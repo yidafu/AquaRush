@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="1.0.0-create-delivery-worker-table" author="aqua-rush">
+        <comment>Create delivery worker table</comment>
+        <createTable tableName="delivery_workers">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="wechat_openid" type="varchar(128)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="phone" type="varchar(20)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="online_status" type="varchar(20)" defaultValue="OFFLINE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <createIndex tableName="delivery_workers" indexName="idx_worker_openid">
+            <column name="wechat_openid"/>
+        </createIndex>
+        <createIndex tableName="delivery_workers" indexName="idx_worker_status">
+            <column name="online_status"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-delivery-area-table" author="aqua-rush">
+        <comment>Create delivery area table</comment>
+        <createTable tableName="delivery_areas">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="province" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="city" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="district" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_enabled" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+        
+        <createIndex tableName="delivery_areas" indexName="idx_area_location">
+            <column name="province"/>
+            <column name="city"/>
+            <column name="district"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.0-add-foreign-key-order-worker" author="aqua-rush">
+        <comment>Add foreign key from orders to delivery workers</comment>
+        <addForeignKeyConstraint
+            baseTableName="orders"
+            baseColumnNames="delivery_worker_id"
+            constraintName="fk_order_delivery_worker"
+            referencedTableName="delivery_workers"
+            referencedColumnNames="id"/>
+    </changeSet>
+
+</databaseChangeLog>

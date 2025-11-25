@@ -1,0 +1,47 @@
+[versions]
+kotlin = "2.0.21"
+spring-boot = "3.2.1"
+spring-dependency-management = "1.1.4"
+liquibase = "4.25.0"
+jackson = "2.16.0"
+wechatpay = "0.5.0"
+
+[libraries]
+# Kotlin
+kotlin-gradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref = "kotlin" }
+kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+
+# Spring Boot
+spring-boot-gradlePlugin = { module = "org.springframework.boot:spring-boot-gradle-plugin", version.ref = "spring-boot" }
+spring-dependency-management-gradlePlugin = { module = "io.spring.gradle:dependency-management-plugin", version.ref = "spring-dependency-management" }
+spring-boot-starter-web = { module = "org.springframework.boot:spring-boot-starter-web" }
+spring-boot-starter-data-jpa = { module = "org.springframework.boot:spring-boot-starter-data-jpa" }
+spring-boot-starter-security = { module = "org.springframework.boot:spring-boot-starter-security" }
+spring-boot-starter-validation = { module = "org.springframework.boot:spring-boot-starter-validation" }
+spring-boot-starter-actuator = { module = "org.springframework.boot:spring-boot-starter-actuator" }
+spring-boot-starter-test = { module = "org.springframework.boot:spring-boot-starter-test" }
+
+# Database
+liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
+postgresql = { module = "org.postgresql:postgresql" }
+
+# Jackson
+jackson-module-kotlin = { module = "com.fasterxml.jackson.module:jackson-module-kotlin", version.ref = "jackson" }
+
+# WeChat Pay
+wechatpay-sdk = { module = "com.github.wechatpay-apiv3:wechatpay-java", version.ref = "wechatpay" }
+
+[bundles]
+kotlin = ["kotlin-reflect", "kotlin-stdlib"]
+spring-boot-web = ["spring-boot-starter-web", "spring-boot-starter-validation", "jackson-module-kotlin"]
+spring-boot-data = ["spring-boot-starter-data-jpa", "liquibase-core"]
+spring-boot-security = ["spring-boot-starter-security"]
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-spring = { id = "org.jetbrains.kotlin.plugin.spring", version.ref = "kotlin" }
+kotlin-jpa = { id = "org.jetbrains.kotlin.plugin.jpa", version.ref = "kotlin" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }

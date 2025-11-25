@@ -25,3 +25,107 @@ replay_pid*
 
 # Kotlin Gradle plugin data, see https://kotlinlang.org/docs/whatsnew20.html#new-directory-for-kotlin-data-in-gradle-projects
 .kotlin/
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# VS Code
+.vscode/
+
+# Spring Boot
+spring-boot-*.log
+application-*.yml
+application-*.yaml
+!application.yml
+!application.yaml
+
+# Environment & Secrets
+.env
+.env.local
+*.key
+*.pem
+*.p12
+*.pfx
+secrets/
+
+# Database
+*.db
+*.sqlite
+*.h2.db
+
+# MacOS
+.DS_Store
+
+# Node.js & npm/yarn/pnpm
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+.pnpm-store/
+.npm/
+.yarn/
+.pnp.*
+
+# Remax 小程序
+dist/
+.remax/
+.remy/
+*.wxs.js
+*.wxs.map
+miniprogram_npm/
+project.private.config.json
+
+# 微信开发者工具
+.DS_Store
+node_modules/
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# React & TypeScript
+*.tsbuildinfo
+
+# 测试覆盖率
+coverage/
+*.lcov
+.nyc_output
+
+# 缓存
+.cache/
+.parcel-cache/
+.turbo/
+
+# Qoder IDE
+.qoder/
+# Ignore Gradle project-specific cache directory
+.gradle
+
+# Ignore Gradle build output directory
+build
