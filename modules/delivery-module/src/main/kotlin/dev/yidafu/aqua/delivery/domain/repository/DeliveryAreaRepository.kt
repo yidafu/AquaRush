@@ -14,5 +14,5 @@ interface DeliveryAreaRepository : JpaRepository<DeliveryArea, UUID> {
         district: String
     ): DeliveryArea?
     
-    fun findByIsEnabledTrue(): List<DeliveryArea>
+    fun findByEnabledTrue(): List<DeliveryArea>
 }
