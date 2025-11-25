@@ -3,7 +3,7 @@ package dev.yidafu.aqua.delivery.controller
 import dev.yidafu.aqua.common.ApiResponse
 import dev.yidafu.aqua.delivery.domain.model.DeliveryArea
 import dev.yidafu.aqua.delivery.domain.model.DeliveryWorker
-import dev.yidafu.aqua.delivery.domain.model.WorkerOnlineStatus
+import dev.yidafu.aqua.delivery.domain.model.WorkerStatus
 import dev.yidafu.aqua.delivery.service.DeliveryService
 import org.springframework.web.bind.annotation.*
 import java.util.UUID
@@ -37,7 +37,7 @@ class DeliveryController(
     @PostMapping("/workers/{workerId}/status")
     fun updateWorkerStatus(
         @PathVariable workerId: UUID,
-        @RequestParam status: WorkerOnlineStatus
+        @RequestParam status: WorkerStatus
     ): ApiResponse<DeliveryWorker> {
         val worker = deliveryService.updateWorkerStatus(workerId, status)
         return ApiResponse.success(worker)

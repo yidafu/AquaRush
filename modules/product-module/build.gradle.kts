@@ -4,6 +4,7 @@ plugins {
 
 dependencies {
     implementation(project(":modules:common-module"))
-    
-    // Product-specific dependencies can be added here
+
+    // Add Spring Web dependency for REST controllers
+    implementation("org.springframework.boot:spring-boot-starter-web")
 }

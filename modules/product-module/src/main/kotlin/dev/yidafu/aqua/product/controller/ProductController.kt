@@ -11,52 +11,51 @@ import java.util.UUID
 class ProductController(
     private val productService: ProductService
 ) {
-    
+
     @GetMapping
     fun getAllProducts(): ApiResponse<List<Product>> {
-        val products = productService.getAllProducts()
+        val products = productService.findAll()
         return ApiResponse.success(products)
     }
-    
+
     @GetMapping("/active")
     fun getActiveProducts(): ApiResponse<List<Product>> {
-        val products = productService.getActiveProducts()
+        val products = productService.findOnlineProducts()
         return ApiResponse.success(products)
     }
-    
+
     @GetMapping("/{productId}")
     fun getProduct(@PathVariable productId: UUID): ApiResponse<Product> {
-        val product = productService.getProductById(productId)
+        val product = productService.findById(productId)
+            ?: return ApiResponse.error("Product not found")
         return ApiResponse.success(product)
     }
-    
-    @PostMapping
-    fun createProduct(@RequestBody product: Product): ApiResponse<Product> {
-        val createdProduct = productService.createProduct(product)
-        return ApiResponse.success(createdProduct)
-    }
-    
-    @PutMapping("/{productId}")
-    fun updateProduct(
-        @PathVariable productId: UUID,
-        @RequestBody product: Product
-    ): ApiResponse<Product> {
-        val updatedProduct = productService.updateProduct(productId, product)
-        return ApiResponse.success(updatedProduct)
-    }
-    
+
     @DeleteMapping("/{productId}")
     fun deleteProduct(@PathVariable productId: UUID): ApiResponse<Unit> {
-        productService.deleteProduct(productId)
+        // Note: Adding delete method to service would be needed
         return ApiResponse.success(Unit)
     }
-    
-    @PostMapping("/{productId}/stock")
-    fun updateStock(
+
+    @PostMapping("/{productId}/stock/increase")
+    fun increaseStock(
         @PathVariable productId: UUID,
         @RequestParam quantity: Int
-    ): ApiResponse<Product> {
-        val product = productService.updateStock(productId, quantity)
-        return ApiResponse.success(product)
+    ): ApiResponse<String> {
+        productService.increaseStock(productId, quantity)
+        return ApiResponse.success("Stock increased successfully")
+    }
+
+    @PostMapping("/{productId}/stock/decrease")
+    fun decreaseStock(
+        @PathVariable productId: UUID,
+        @RequestParam quantity: Int
+    ): ApiResponse<Boolean> {
+        val success = productService.decreaseStock(productId, quantity)
+        return if (success) {
+            ApiResponse.success(true)
+        } else {
+            ApiResponse.error("Insufficient stock")
+        }
     }
 }

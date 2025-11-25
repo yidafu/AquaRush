@@ -4,7 +4,7 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.delivery.domain.model.DeliveryArea
 import dev.yidafu.aqua.delivery.domain.model.DeliveryWorker
-import dev.yidafu.aqua.delivery.domain.model.WorkerOnlineStatus
+import dev.yidafu.aqua.delivery.domain.model.WorkerStatus
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryAreaRepository
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import org.springframework.stereotype.Service
@@ -30,13 +30,13 @@ class DeliveryService(
     }
     
     fun getOnlineWorkers(): List<DeliveryWorker> {
-        return workerRepository.findByOnlineStatus(WorkerOnlineStatus.ONLINE)
+        return workerRepository.findByStatus(WorkerStatus.ONLINE)
     }
-    
+
     @Transactional
-    fun updateWorkerStatus(workerId: UUID, status: WorkerOnlineStatus): DeliveryWorker {
+    fun updateWorkerStatus(workerId: UUID, status: WorkerStatus): DeliveryWorker {
         val worker = getWorkerById(workerId)
-        worker.onlineStatus = status
+        worker.status = status
         return workerRepository.save(worker)
     }
     
@@ -44,7 +44,7 @@ class DeliveryService(
     
     fun isAddressInDeliveryArea(province: String, city: String, district: String): Boolean {
         val area = areaRepository.findByProvinceAndCityAndDistrict(province, city, district)
-        return area != null && area.isEnabled
+        return area != null && area.enabled
     }
     
     fun validateDeliveryAddress(province: String, city: String, district: String) {
@@ -58,7 +58,7 @@ class DeliveryService(
     }
     
     fun getEnabledDeliveryAreas(): List<DeliveryArea> {
-        return areaRepository.findByIsEnabledTrue()
+        return areaRepository.findByEnabledTrue()
     }
     
     @Transactional
@@ -71,7 +71,7 @@ class DeliveryService(
         val area = areaRepository.findById(areaId).orElseThrow {
             NotFoundException("配送区域不存在: $areaId")
         }
-        area.isEnabled = enabled
+        area.enabled = enabled
         return areaRepository.save(area)
     }
 }
