@@ -14,15 +14,18 @@ repositories {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(19)
 }
 
 dependencies {
     implementation(libs.kotlin.gradlePlugin)
     implementation(libs.spring.boot.gradlePlugin)
     implementation(libs.spring.dependency.management.gradlePlugin)
-    
+
     // Add Kotlin plugins for precompiled script plugins
-    implementation("org.jetbrains.kotlin:kotlin-allopen:${libs.versions.kotlin.get()}")
-    implementation("org.jetbrains.kotlin:kotlin-noarg:${libs.versions.kotlin.get()}")
+    implementation(libs.kotlin.allopen)
+    implementation(libs.kotlin.noarg)
+
+    // Add ktlint plugin
+    implementation(libs.ktlint.gradlePlugin)
 }

@@ -129,3 +129,5 @@ coverage/
 
 # Ignore Gradle build output directory
 build
+data/artemis/
+**/data/artemis/

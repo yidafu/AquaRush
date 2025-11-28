@@ -1,0 +1,191 @@
+package dev.yidafu.aqua.statistics.graphql.resolvers
+
+import dev.yidafu.aqua.statistics.service.StatisticsService
+import dev.yidafu.aqua.common.graphql.generated.*
+import dev.yidafu.aqua.common.graphql.generated.toGraphQL
+import jakarta.validation.Valid
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.QueryMapping
+import org.springframework.graphql.data.method.annotation.MutationMapping
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.stereotype.Controller
+import java.time.LocalDateTime
+
+@Controller
+class StatisticsResolver(
+    private val statisticsService: StatisticsService
+) {
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getOrderStatistics(@Argument @Valid input: DateRangeInput): OrderStatistics {
+        val startDate = input.startDate
+        val endDate = input.endDate
+
+        val domainStats = statisticsService.getOrderStatistics(startDate, endDate)
+
+        return OrderStatistics(
+            totalOrders = domainStats.totalOrders,
+            totalRevenue = domainStats.totalRevenue,
+            averageOrderValue = domainStats.averageOrderValue,
+            dateRange = DateRange(startDate, endDate)
+        )
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getDailyStatistics(
+        @Argument startDate: LocalDateTime,
+        @Argument endDate: LocalDateTime
+    ): List<DailyStatistic> {
+        val domainDailyStats = statisticsService.getDailyStatistics(startDate, endDate)
+
+        return domainDailyStats.map { DailyStatistic(
+            date = it.date.toString(),
+            orderCount = it.orderCount,
+            revenue = it.revenue
+        )}
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getWeeklyStatistics(
+        @Argument startWeek: Int,
+        @Argument endWeek: Int,
+        @Argument year: Int
+    ): List<WeeklyStatistic> {
+        val domainWeeklyStats = statisticsService.getWeeklyStatistics(startWeek, endWeek, year)
+
+        return domainWeeklyStats.map { WeeklyStatistic(
+            weekNumber = it.weekNumber,
+            year = it.year,
+            startDate = it.startDate,
+            endDate = it.endDate,
+            orderCount = it.orderCount,
+            revenue = it.revenue
+        )}
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getMonthlyStatistics(
+        @Argument startMonth: Int,
+        @Argument endMonth: Int,
+        @Argument year: Int
+    ): List<MonthlyStatistic> {
+        val domainMonthlyStats = statisticsService.getMonthlyStatistics(startMonth, endMonth, year)
+
+        return domainMonthlyStats.map { MonthlyStatistic(
+            month = it.month,
+            year = it.year,
+            monthName = it.monthName,
+            orderCount = it.orderCount,
+            revenue = it.revenue
+        )}
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getTopSellingProducts(
+        @Argument limit: Int = 10,
+        @Argument @Valid input: DateRangeInput? = null
+    ): List<Product> {
+        val startDate = input?.startDate
+        val endDate = input?.endDate
+
+        val topProducts = statisticsService.getTopSellingProducts(startDate, endDate, limit)
+        return topProducts.map { it.toGraphQL() }
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getUserOrderStatistics(
+        @Argument userId: java.util.UUID,
+        @Argument @Valid input: DateRangeInput
+    ): OrderStatistics {
+        val startDate = input.startDate
+        val endDate = input.endDate
+
+        val domainStats = statisticsService.getUserOrderStatistics(userId, startDate, endDate)
+
+        return OrderStatistics(
+            totalOrders = domainStats.totalOrders,
+            totalRevenue = domainStats.totalRevenue,
+            averageOrderValue = domainStats.averageOrderValue,
+            dateRange = DateRange(startDate, endDate)
+        )
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getDeliveryWorkerStatistics(
+        @Argument workerId: java.util.UUID,
+        @Argument @Valid input: DateRangeInput
+    ): dev.yidafu.aqua.statistics.domain.model.DeliveryWorkerStatistics {
+        val startDate = input.startDate
+        val endDate = input.endDate
+
+        return statisticsService.getDeliveryWorkerStatistics(workerId, startDate, endDate)
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getRevenueStatistics(@Argument @Valid input: DateRangeInput): dev.yidafu.aqua.statistics.domain.model.RevenueStatistics {
+        return statisticsService.getRevenueStatistics(input.startDate, input.endDate)
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getPaymentMethodStatistics(
+        @Argument @Valid input: DateRangeInput
+    ): List<dev.yidafu.aqua.statistics.domain.model.PaymentMethodStatistics> {
+        return statisticsService.getPaymentMethodStatistics(input.startDate, input.endDate)
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getOrderStatusStatistics(@Argument @Valid input: DateRangeInput): List<dev.yidafu.aqua.statistics.domain.model.OrderStatusStatistics> {
+        return statisticsService.getOrderStatusStatistics(input.startDate, input.endDate)
+    }
+
+    // Worker statistics
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
+    fun getMyDeliveryStatistics(@Argument @Valid input: DateRangeInput): dev.yidafu.aqua.statistics.domain.model.DeliveryWorkerStatistics {
+        val authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().authentication
+        val workerId = java.util.UUID.fromString(authentication.name)
+
+        return statisticsService.getDeliveryWorkerStatistics(workerId, input.startDate, input.endDate)
+    }
+
+    // Export statistics
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun exportStatisticsReport(
+        @Argument reportType: String,
+        @Argument @Valid input: DateRangeInput,
+        @Argument format: String = "CSV"
+    ): String {
+        val reportUrl = statisticsService.generateExportReport(
+            reportType = reportType,
+            startDate = input.startDate,
+            endDate = input.endDate,
+            format = format
+        )
+
+        return reportUrl
+    }
+
+    // Real-time statistics (cache-based)
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getRealTimeStatistics(): dev.yidafu.aqua.statistics.domain.model.RealTimeStatistics {
+        return statisticsService.getRealTimeStatistics()
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getDashboardOverview(): dev.yidafu.aqua.statistics.domain.model.DashboardOverview {
+        return statisticsService.getDashboardOverview()
+    }
+}

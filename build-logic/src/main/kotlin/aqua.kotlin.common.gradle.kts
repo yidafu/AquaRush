@@ -6,13 +6,13 @@ plugins {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_21
-    targetCompatibility = JavaVersion.VERSION_21
+    sourceCompatibility = JavaVersion.VERSION_19
+    targetCompatibility = JavaVersion.VERSION_19
 }
 
 kotlin {
-    jvmToolchain(21)
-    
+    jvmToolchain(19)
+
     compilerOptions {
         freeCompilerArgs.add("-Xjsr305=strict")
     }
@@ -25,6 +25,6 @@ tasks.withType<Test>().configureEach {
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
-    
+
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 }

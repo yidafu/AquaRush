@@ -1,0 +1,168 @@
+package dev.yidafu.aqua.common.cache.example
+
+import dev.yidafu.aqua.common.cache.CacheTemplate
+import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.repository.OrderRepository
+import org.slf4j.LoggerFactory
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.CachePut
+import org.springframework.cache.annotation.Cacheable
+import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
+import java.time.Duration
+import java.util.*
+
+/**
+ * 使用 Spring Cache 的订单服务示例
+ * 演示如何使用标准Spring Cache注解替代自定义注解
+ */
+@Service
+class SpringCacheOrderServiceExample(
+    private val orderRepository: OrderRepository,
+    private val cacheTemplate: CacheTemplate
+) {
+
+    private val logger = LoggerFactory.getLogger(SpringCacheOrderServiceExample::class.java)
+
+    companion object {
+        private const val CACHE_NAMESPACE = "orders"
+        private const val USER_ORDERS_CACHE = "user_orders"
+    }
+
+    /**
+     * 获取订单（使用Spring Cache）
+     * 使用订单ID作为缓存键，缓存30分钟
+     */
+    @Cacheable(value = ["orders"], key = "#orderId")
+    fun getOrderById(orderId: UUID): Order? {
+        logger.info("Loading order from cache: {}", orderId)
+        return orderRepository.findById(orderId).orElse(null)
+    }
+
+    /**
+     * 获取用户的订单列表（使用Spring Cache）
+     * 使用用户ID作为缓存键，缓存15分钟
+     */
+    @Cacheable(value = ["user_orders"], key = "#userId")
+    fun getUserOrders(userId: UUID): List<Order> {
+        logger.info("Loading user orders from cache: {}", userId)
+        return orderRepository.findByUserId(userId)
+    }
+
+    /**
+     * 创建订单（使用 @CachePut）
+     * 创建成功后自动缓存到用户会话
+     */
+    @Transactional
+    fun createOrder(order: Order): Order {
+        val savedOrder = orderRepository.save(order)
+        logger.info("Order created: {}", savedOrder.id)
+        return savedOrder
+    }
+
+    /**
+     * 更新订单（使用 @CachePut）
+     * 更新成功后自动更新缓存
+     */
+    @Transactional
+    fun updateOrderStatus(orderId: UUID, status: Order.Status): Order? {
+        val order = orderRepository.findById(orderId).orElse(null)
+        if (order != null) {
+            order.status = status
+            val updatedOrder = orderRepository.save(order)
+            logger.info("Order status updated: {} -> {}", orderId, status)
+            return updatedOrder
+        }
+        return null
+    }
+
+    /**
+     * 取消订单（使用 @CacheEvict）
+     * 取消成功后自动清除用户会话缓存
+     */
+    @Transactional
+    @CacheEvict(value = ["user_orders"], key = "#userId")
+    fun cancelOrder(orderId: UUID): Boolean {
+        val order = orderRepository.findById(orderId).orElse(null)
+        return if (order != null) {
+            order.status = Order.Status.CANCELLED
+            orderRepository.save(order)
+            logger.info("Order cancelled: {}", orderId)
+            true
+        } else {
+            false
+        }
+    }
+
+    /**
+     * 获取订单统计（使用 @Cacheable）
+     * 缓存5分钟的订单统计信息
+     */
+    @Cacheable(value = ["order_stats"], key = "'order_stats_today'")
+    fun getTodayOrderStats(): Map<String, Any> {
+        logger.info("Calculating today's order statistics")
+
+        // 实际的统计逻辑应该从数据库查询
+        // 这里只是演示，返回模拟数据
+        return mapOf(
+            "total_orders" to 0,
+            "total_revenue" to 0.0,
+            "completed_orders" to 0,
+            "pending_orders" to 0
+        )
+    }
+
+    /**
+     * 清除特定缓存（使用 @CacheEvict）
+     */
+    @CacheEvict(value = ["orders"], key = "#orderId")
+    fun clearOrderCache(orderId: UUID) {
+        logger.info("Clearing order cache for: {}", orderId)
+    }
+
+    /**
+     * 清除用户订单缓存（使用 @CacheEvict）
+     */
+    @CacheEvict(value = ["user_orders"], key = "#userId")
+    fun clearUserOrderCache(userId: UUID) {
+        logger.info("Clearing user order cache for: {}", userId)
+    }
+
+    /**
+     * 批量获取订单（使用 @Cacheable）
+     * 如果缓存中有数据则返回缓存数据，否则从数据库加载
+     */
+    fun getOrdersByIds(orderIds: List<UUID>): List<Order> {
+        logger.info("Getting orders by IDs: {}", orderIds)
+
+        // 这里可以添加批量缓存逻辑
+        // Spring Cache 3.1+ 支持批量操作
+        return orderIds.mapNotNull { orderId ->
+            getOrderById(orderId)
+        }
+    }
+
+    /**
+     * 手动缓存操作（使用 CacheTemplate）
+     * 展示编程式缓存控制
+     */
+    fun cacheOrderManually(orderId: UUID, order: Order) {
+        cacheTemplate.put(CACHE_NAMESPACE, orderId, order, Duration.ofMinutes(30))
+        logger.info("Order cached manually: {}", orderId)
+    }
+
+    /**
+     * 获取缓存值（使用 CacheTemplate）
+     */
+    fun getCachedOrder(orderId: UUID): Order? {
+        return cacheTemplate.get(CACHE_NAMESPACE, orderId, Order::class.java)
+    }
+
+    /**
+     * 获取缓存统计信息
+     */
+    fun getCacheStats(): Map<String, Any> {
+        // 这里可以集成我们的统计报告功能
+        return cacheTemplate.getCacheStats()
+    }
+}

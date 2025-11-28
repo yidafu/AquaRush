@@ -1,0 +1,31 @@
+{
+  "name": "aquarush",
+  "version": "1.0.0",
+  "description": "<div align=\"center\">   <img src=\"aqua-rush.svg\" alt=\"AquaRush Logo\" width=\"200\"/>   <h1>AquaRush - WeChat Bottled Water Ordering System</h1> </div>",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yidafu/AquaRush.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/yidafu/AquaRush/issues"
+  },
+  "homepage": "https://github.com/yidafu/AquaRush#readme",
+  "dependencies": {
+    "@graphql-codegen/cli": "^6.1.0",
+    "@graphql-codegen/kotlin": "^3.0.2",
+    "@graphql-codegen/typescript": "^5.0.5",
+    "@graphql-codegen/typescript-operations": "^5.0.5",
+    "@graphql-codegen/typescript-resolvers": "^5.1.3"
+  }
+}

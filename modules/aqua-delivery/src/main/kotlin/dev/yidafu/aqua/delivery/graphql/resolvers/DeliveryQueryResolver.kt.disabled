@@ -1,0 +1,105 @@
+package dev.yidafu.aqua.delivery.graphql.resolvers
+
+import dev.yidafu.aqua.delivery.service.DeliveryService
+import dev.yidafu.aqua.common.graphql.generated.*
+import dev.yidafu.aqua.common.graphql.generated.toGraphQL
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.QueryMapping
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.stereotype.Controller
+import java.util.*
+
+@Controller
+class DeliveryQueryResolver(
+    private val deliveryService: DeliveryService
+) {
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
+    fun getDeliveryWorkers(): List<DeliveryWorker> {
+        val workers = deliveryService.getAllDeliveryWorkers()
+        return workers.map { it.toGraphQL() }
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
+    fun getAvailableDeliveryWorkers(): List<DeliveryWorker> {
+        val workers = deliveryService.getAvailableWorkers()
+        return workers.map { it.toGraphQL() }
+    }
+
+    @QueryMapping
+    fun getDeliveryWorkerById(@Argument id: UUID): DeliveryWorker {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val worker = deliveryService.getWorkerById(id)
+        val workerId = UUID.fromString(authentication.name)
+
+        // Check if user is admin or the worker themselves
+        if (!authentication.authorities.any { it.authority == "ROLE_ADMIN" } &&
+            worker.id != workerId) {
+            throw org.springframework.security.access.AccessDeniedException("无权访问此配送员信息")
+        }
+
+        return worker.toGraphQL()
+    }
+
+    @QueryMapping
+    fun getMyDeliveryInfo(): DeliveryWorker? {
+        val authentication = SecurityContextHolder.getContext().authentication
+        if (!authentication.authorities.any { it.authority == "ROLE_WORKER" }) {
+            throw org.springframework.security.access.AccessDeniedException("无权访问配送信息")
+        }
+
+        val workerId = UUID.fromString(authentication.name)
+        val worker = deliveryService.getWorkerById(workerId)
+        return worker.toGraphQL()
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getDeliveryAreas(): List<DeliveryArea> {
+        val areas = deliveryService.getAllDeliveryAreas()
+        return areas.map { it.toGraphQL() }
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getEnabledDeliveryAreas(): List<DeliveryArea> {
+        val areas = deliveryService.getEnabledDeliveryAreas()
+        return areas.map { it.toGraphQL() }
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getDeliveryAreaById(@Argument id: UUID): DeliveryArea {
+        val area = deliveryService.getDeliveryAreaById(id)
+        return area.toGraphQL()
+    }
+
+    @QueryMapping
+    fun getDeliveryOrders(): List<Order> {
+        val authentication = SecurityContextHolder.getContext().authentication
+        if (!authentication.authorities.any { it.authority == "ROLE_WORKER" }) {
+            throw org.springframework.security.access.AccessDeniedException("无权访问配送订单")
+        }
+
+        val workerId = UUID.fromString(authentication.name)
+        val orders = deliveryService.getWorkerDeliveryOrders(workerId)
+        return orders.map { it.toGraphQL() }
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getAllDeliveryOrders(): List<Order> {
+        val orders = deliveryService.getAllDeliveryOrders()
+        return orders.map { it.toGraphQL() }
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getPendingDeliveryOrders(): List<Order> {
+        val orders = deliveryService.getPendingDeliveryOrders()
+        return orders.map { it.toGraphQL() }
+    }
+}

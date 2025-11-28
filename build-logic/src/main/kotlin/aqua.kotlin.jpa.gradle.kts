@@ -1,6 +1,6 @@
 plugins {
     id("aqua.kotlin.spring")
-    id("org.jetbrains.kotlin.plugin.jpa")
+    kotlin("plugin.jpa")
 }
 
 dependencies {
