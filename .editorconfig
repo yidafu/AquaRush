@@ -1,0 +1,20 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+[*]
+indent_style = space
+indent_size = 2
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{kt,kts}]
+ktlint_standard_no-wildcard-imports = disabled
+
+# 版权头配置 (AGPL 兼容格式)
+ktlint_standard_header-rule = enabled
+ktlint_standard_header-rule-content = ^\/\*\n \* Copyright \\d{4} AquaRush\n \*\n \* This program is free software: you can redistribute it and\/or modify\n \* it under the terms of the GNU Affero General Public License as published\n \* by the Free Software Foundation, either version 3 of the License, or\n \* \(at your option\) any later version\.\n \*\n \* This program is distributed in the hope that it will be useful,\n \* but WITHOUT ANY WARRANTY; without even the implied warranty of\n \* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE\.  See the\n \* GNU Affero General Public License for more details\.\n \*\n \* You should have received a copy of the GNU Affero General Public License\n \* along with this program\.  If not, see <https:\/\/www\.gnu\.org\/licenses\/>\.\n \*\/$
+ktlint_standard_header-rule-regex = true

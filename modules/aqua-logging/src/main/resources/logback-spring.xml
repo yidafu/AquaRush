@@ -1,0 +1,400 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- 定义属性 -->
+    <property name="LOG_HOME" value="./logs"/>
+    <property name="APP_NAME" value="aqua-rush"/>
+    <property name="MAX_FILE_SIZE" value="100MB"/>
+    <property name="MAX_HISTORY" value="30"/>
+    <property name="TOTAL_SIZE_CAP" value="1GB"/>
+
+    <!-- 控制台日志格式 -->
+    <property name="CONSOLE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId:-}] [%logger{36}] - %msg%n"/>
+
+    <!-- 文件日志格式 -->
+    <property name="FILE_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId:-}] [%logger{36}] - %msg%n"/>
+
+    <!-- JSON 日志格式 -->
+    <property name="JSON_LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%X{correlationId:-}] [%logger{36}] - %msg%n"/>
+
+    <!-- 控制台输出 -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+            <providers>
+                <timestamp>
+                    <fieldName>@timestamp</fieldName>
+                    <timeZone>Asia/Shanghai</timeZone>
+                </timestamp>
+                <logLevel>
+                    <fieldName>level</fieldName>
+                </logLevel>
+                <threadName>
+                    <fieldName>thread</fieldName>
+                </threadName>
+                <loggerName>
+                    <fieldName>logger</fieldName>
+                </loggerName>
+                <message/>
+                <mdc>
+                    <includeMdcKeyName>correlationId</includeMdcKeyName>
+                    <includeMdcKeyName>userId</includeMdcKeyName>
+                    <includeMdcKeyName>username</includeMdcKeyName>
+                </mdc>
+                <arguments/>
+                <stackTrace>
+                    <fieldName>stackTrace</fieldName>
+                    <maxLength>8192</maxLength>
+                </stackTrace>
+            </providers>
+        </encoder>
+    </appender>
+
+    <!-- 开发环境：简单控制台输出 -->
+    <springProfile name="dev,default">
+        <appender name="CONSOLE_DEV" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <root level="INFO">
+            <appender-ref ref="CONSOLE_DEV"/>
+        </root>
+
+        <logger name="dev.yidafu.aqua" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE_DEV"/>
+        </logger>
+    </springProfile>
+
+    <!-- 生产环境 -->
+    <springProfile name="prod">
+        <!-- 异步控制台输出 -->
+        <appender name="ASYNC_CONSOLE" class="ch.qos.logback.classic.AsyncAppender">
+            <discardingThreshold>0</discardingThreshold>
+            <queueSize>256</queueSize>
+            <appender-ref ref="CONSOLE"/>
+        </appender>
+
+        <!-- 信息日志文件 -->
+        <appender name="INFO_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_HOME}/${APP_NAME}-info.log</file>
+            <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                <level>INFO</level>
+                <onMatch>ACCEPT</onMatch>
+                <onMismatch>DENY</onMismatch>
+            </filter>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_HOME}/${APP_NAME}-info.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+                <maxHistory>${MAX_HISTORY}</maxHistory>
+                <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+                <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <fieldName>@timestamp</fieldName>
+                        <timeZone>Asia/Shanghai</timeZone>
+                    </timestamp>
+                    <logLevel>
+                        <fieldName>level</fieldName>
+                    </logLevel>
+                    <threadName>
+                        <fieldName>thread</fieldName>
+                    </threadName>
+                    <loggerName>
+                        <fieldName>logger</fieldName>
+                    </loggerName>
+                    <message/>
+                    <mdc>
+                        <includeMdcKeyName>correlationId</includeMdcKeyName>
+                        <includeMdcKeyName>userId</includeMdcKeyName>
+                        <includeMdcKeyName>username</includeMdcKeyName>
+                    </mdc>
+                    <arguments/>
+                    <stackTrace>
+                        <fieldName>stackTrace</fieldName>
+                        <maxLength>4096</maxLength>
+                    </stackTrace>
+                </providers>
+            </encoder>
+        </appender>
+
+        <!-- 错误日志文件 -->
+        <appender name="ERROR_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_HOME}/${APP_NAME}-error.log</file>
+            <filter class="ch.qos.logback.classic.filter.LevelFilter">
+                <level>ERROR</level>
+                <onMatch>ACCEPT</onMatch>
+                <onMismatch>DENY</onMismatch>
+            </filter>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_HOME}/${APP_NAME}-error.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+                <maxHistory>${MAX_HISTORY}</maxHistory>
+                <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+                <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <fieldName>@timestamp</fieldName>
+                        <timeZone>Asia/Shanghai</timeZone>
+                    </timestamp>
+                    <logLevel>
+                        <fieldName>level</fieldName>
+                    </logLevel>
+                    <threadName>
+                        <fieldName>thread</fieldName>
+                    </threadName>
+                    <loggerName>
+                        <fieldName>logger</fieldName>
+                    </loggerName>
+                    <message/>
+                    <mdc>
+                        <includeMdcKeyName>correlationId</includeMdcKeyName>
+                        <includeMdcKeyName>userId</includeMdcKeyName>
+                        <includeMdcKeyName>username</includeMdcKeyName>
+                    </mdc>
+                    <arguments/>
+                    <stackTrace>
+                        <fieldName>stackTrace</fieldName>
+                        <maxLength>8192</maxLength>
+                    </stackTrace>
+                </providers>
+            </encoder>
+        </appender>
+
+        <!-- 业务日志文件 -->
+        <appender name="BUSINESS_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_HOME}/${APP_NAME}-business.log</file>
+            <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+                <evaluator>
+                    <expression>logger.contains("business") || logger.contains("order") || logger.contains("payment") || logger.contains("delivery")</expression>
+                </evaluator>
+                <onMatch>ACCEPT</onMatch>
+                <onMismatch>DENY</onMismatch>
+            </filter>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_HOME}/${APP_NAME}-business.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+                <maxHistory>${MAX_HISTORY}</maxHistory>
+                <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+                <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <fieldName>@timestamp</fieldName>
+                        <timeZone>Asia/Shanghai</timeZone>
+                    </timestamp>
+                    <logLevel>
+                        <fieldName>level</fieldName>
+                    </logLevel>
+                    <threadName>
+                        <fieldName>thread</fieldName>
+                    </threadName>
+                    <loggerName>
+                        <fieldName>logger</fieldName>
+                    </loggerName>
+                    <message/>
+                    <mdc>
+                        <includeMdcKeyName>correlationId</includeMdcKeyName>
+                        <includeMdcKeyName>userId</includeMdcKeyName>
+                        <includeMdcKeyName>username</includeMdcKeyName>
+                    </mdc>
+                    <arguments/>
+                    <stackTrace>
+                        <fieldName>stackTrace</fieldName>
+                        <maxLength>4096</maxLength>
+                    </stackTrace>
+                </providers>
+            </encoder>
+        </appender>
+
+        <!-- 审计日志文件 -->
+        <appender name="AUDIT_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_HOME}/${APP_NAME}-audit.log</file>
+            <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+                <evaluator>
+                    <expression>logger.contains("audit") || logger.contains("security")</expression>
+                </evaluator>
+                <onMatch>ACCEPT</onMatch>
+                <onMismatch>DENY</onMismatch>
+            </filter>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_HOME}/${APP_NAME}-audit.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+                <maxHistory>${MAX_HISTORY}</maxHistory>
+                <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+                <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <fieldName>@timestamp</fieldName>
+                        <timeZone>Asia/Shanghai</timeZone>
+                    </timestamp>
+                    <logLevel>
+                        <fieldName>level</fieldName>
+                    </logLevel>
+                    <threadName>
+                        <fieldName>thread</fieldName>
+                    </threadName>
+                    <loggerName>
+                        <fieldName>logger</fieldName>
+                    </loggerName>
+                    <message/>
+                    <mdc>
+                        <includeMdcKeyName>correlationId</includeMdcKeyName>
+                        <includeMdcKeyName>userId</includeMdcKeyName>
+                        <includeMdcKeyName>username</includeMdcKeyName>
+                    </mdc>
+                    <arguments/>
+                    <stackTrace>
+                        <fieldName>stackTrace</fieldName>
+                        <maxLength>4096</maxLength>
+                    </stackTrace>
+                </providers>
+            </encoder>
+        </appender>
+
+        <!-- 用户操作日志文件 -->
+        <appender name="USER_ACTION_FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+            <file>${LOG_HOME}/${APP_NAME}-user-action.log</file>
+            <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+                <evaluator>
+                    <expression>logger.contains("user-action")</expression>
+                </evaluator>
+                <onMatch>ACCEPT</onMatch>
+                <onMismatch>DENY</onMismatch>
+            </filter>
+            <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+                <fileNamePattern>${LOG_HOME}/${APP_NAME}-user-action.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+                <maxFileSize>${MAX_FILE_SIZE}</maxFileSize>
+                <maxHistory>${MAX_HISTORY}</maxHistory>
+                <totalSizeCap>${TOTAL_SIZE_CAP}</totalSizeCap>
+                <cleanHistoryOnStart>true</cleanHistoryOnStart>
+            </rollingPolicy>
+            <encoder class="net.logstash.logback.encoder.LoggingEventCompositeJsonEncoder">
+                <providers>
+                    <timestamp>
+                        <fieldName>@timestamp</fieldName>
+                        <timeZone>Asia/Shanghai</timeZone>
+                    </timestamp>
+                    <logLevel>
+                        <fieldName>level</fieldName>
+                    </logLevel>
+                    <threadName>
+                        <fieldName>thread</fieldName>
+                    </threadName>
+                    <loggerName>
+                        <fieldName>logger</fieldName>
+                    </loggerName>
+                    <message/>
+                    <mdc>
+                        <includeMdcKeyName>correlationId</includeMdcKeyName>
+                        <includeMdcKeyName>userId</includeMdcKeyName>
+                        <includeMdcKeyName>username</includeMdcKeyName>
+                        <includeMdcKeyName>userRole</includeMdcKeyName>
+                        <includeMdcKeyName>tenantId</includeMdcKeyName>
+                    </mdc>
+                    <arguments/>
+                    <stackTrace>
+                        <fieldName>stackTrace</fieldName>
+                        <maxLength>4096</maxLength>
+                    </stackTrace>
+                </providers>
+            </encoder>
+        </appender>
+
+        <!-- 异步文件输出 -->
+        <appender name="ASYNC_INFO_FILE" class="ch.qos.logback.classic.AsyncAppender">
+            <discardingThreshold>0</discardingThreshold>
+            <queueSize>512</queueSize>
+            <includeCallerData>true</includeCallerData>
+            <appender-ref ref="INFO_FILE"/>
+        </appender>
+
+        <appender name="ASYNC_ERROR_FILE" class="ch.qos.logback.classic.AsyncAppender">
+            <discardingThreshold>0</discardingThreshold>
+            <queueSize>256</queueSize>
+            <includeCallerData>true</includeCallerData>
+            <appender-ref ref="ERROR_FILE"/>
+        </appender>
+
+        <appender name="ASYNC_BUSINESS_FILE" class="ch.qos.logback.classic.AsyncAppender">
+            <discardingThreshold>0</discardingThreshold>
+            <queueSize>1024</queueSize>
+            <appender-ref ref="BUSINESS_FILE"/>
+        </appender>
+
+        <appender name="ASYNC_AUDIT_FILE" class="ch.qos.logback.classic.AsyncAppender">
+            <discardingThreshold>0</discardingThreshold>
+            <queueSize>256</queueSize>
+            <includeCallerData>true</includeCallerData>
+            <appender-ref ref="AUDIT_FILE"/>
+        </appender>
+
+        <appender name="ASYNC_USER_ACTION_FILE" class="ch.qos.logback.classic.AsyncAppender">
+            <discardingThreshold>0</discardingThreshold>
+            <queueSize>1024</queueSize>
+            <includeCallerData>true</includeCallerData>
+            <appender-ref ref="USER_ACTION_FILE"/>
+        </appender>
+
+        <!-- 根日志记录器 -->
+        <root level="INFO">
+            <appender-ref ref="ASYNC_CONSOLE"/>
+            <appender-ref ref="ASYNC_INFO_FILE"/>
+            <appender-ref ref="ASYNC_ERROR_FILE"/>
+        </root>
+
+        <!-- 应用日志记录器 -->
+        <logger name="dev.yidafu.aqua" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_CONSOLE"/>
+            <appender-ref ref="ASYNC_INFO_FILE"/>
+            <appender-ref ref="ASYNC_ERROR_FILE"/>
+            <appender-ref ref="ASYNC_BUSINESS_FILE"/>
+            <appender-ref ref="ASYNC_AUDIT_FILE"/>
+        </logger>
+
+        <!-- 业务日志记录器 -->
+        <logger name="dev.yidafu.aqua.business" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_BUSINESS_FILE"/>
+        </logger>
+
+        <!-- 审计日志记录器 -->
+        <logger name="dev.yidafu.aqua.audit" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_AUDIT_FILE"/>
+        </logger>
+
+        <!-- 安全日志记录器 -->
+        <logger name="dev.yidafu.aqua.security" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_AUDIT_FILE"/>
+        </logger>
+
+        <!-- 用户操作日志记录器 -->
+        <logger name="dev.yidafu.aqua.user.action" level="INFO" additivity="false">
+            <appender-ref ref="ASYNC_USER_ACTION_FILE"/>
+        </logger>
+    </springProfile>
+
+    <!-- 测试环境 -->
+    <springProfile name="test">
+        <appender name="CONSOLE_TEST" class="ch.qos.logback.core.ConsoleAppender">
+            <encoder>
+                <pattern>${CONSOLE_LOG_PATTERN}</pattern>
+                <charset>UTF-8</charset>
+            </encoder>
+        </appender>
+
+        <root level="WARN">
+            <appender-ref ref="CONSOLE_TEST"/>
+        </root>
+
+        <logger name="dev.yidafu.aqua" level="DEBUG" additivity="false">
+            <appender-ref ref="CONSOLE_TEST"/>
+        </logger>
+    </springProfile>
+</configuration>

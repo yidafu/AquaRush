@@ -1,0 +1,29 @@
+# GraphQL Code Generator Configuration
+schema:
+  - graphql-schema/schema.graphqls
+
+generates:
+  # Generate Kotlin types for backend
+  modules/aqua-common/src/main/graphql-gen/schema.kt:
+    plugins:
+      - "@graphql-codegen/kotlin"
+    config:
+      package: "dev.yidafu.aqua.common.graphql.generated"
+      scalars:
+        UUID: "java.util.UUID"
+        Long: "java.lang.Long"
+        BigDecimal: "java.math.BigDecimal"
+        LocalDateTime: "java.time.LocalDateTime"
+        Map: "kotlin.collections.Map<String, Any>"
+      immutableTypes: true
+      skipTypename: true
+      generateConstructorFromInput: false
+  modules/common-module/src/main/graphql-gen/kotlin/types:
+    plugins:
+      - typescript
+    config:
+      scalars:
+        UUID: UUID
+        BigDecimal: java.math.BigDecimal
+        LocalDateTime: java.time.LocalDateTime
+        Map: Map<String, Any>

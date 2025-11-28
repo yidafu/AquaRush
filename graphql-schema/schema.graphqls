@@ -1,0 +1,359 @@
+# Scalar types
+scalar UUID
+scalar BigDecimal
+scalar LocalDateTime
+scalar Map
+
+# Enum types - Based on actual domain models
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY_FOR_DELIVERY
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum ProductStatus {
+  ONLINE
+  OFFLINE
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  WORKER
+}
+
+enum WorkerStatus {
+  ONLINE
+  OFFLINE
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  PROCESSING
+  REFUNDED
+}
+
+# Core Types - Based on actual domain models
+type User {
+  id: UUID!
+  wechatOpenId: String!
+  nickname: String
+  phone: String
+  avatarUrl: String
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type Product {
+  id: UUID!
+  name: String!
+  price: BigDecimal!
+  coverImageUrl: String!
+  detailImages: String
+  description: String
+  stock: Int!
+  status: ProductStatus!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type Address {
+  id: UUID!
+  userId: UUID!
+  receiverName: String!
+  phone: String!
+  province: String!
+  city: String!
+  district: String!
+  detailAddress: String!
+  isDefault: Boolean!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type Order {
+  id: UUID!
+  orderNumber: String!
+  user: User!
+  product: Product!
+  address: Address!
+  quantity: Int!
+  amount: BigDecimal!
+  status: OrderStatus!
+  paymentMethod: String
+  paymentTransactionId: String
+  paymentTime: LocalDateTime
+  deliveryWorker: DeliveryWorker
+  deliveryPhotos: [String!]
+  completedAt: LocalDateTime
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type DeliveryWorker {
+  id: UUID!
+  wechatOpenId: String!
+  name: String!
+  phone: String!
+  status: WorkerStatus!
+  createdAt: LocalDateTime!
+}
+
+type DeliveryArea {
+  id: UUID!
+  name: String!
+  province: String!
+  city: String!
+  district: String!
+  enabled: Boolean!
+}
+
+type OrderStatistics {
+  totalOrders: Int!
+  totalRevenue: BigDecimal!
+  averageOrderValue: BigDecimal!
+  dateRange: DateRange!
+}
+
+type DateRange {
+  startDate: LocalDateTime!
+  endDate: LocalDateTime!
+}
+
+type DailyStatistic {
+  date: String!
+  orderCount: Int!
+  revenue: BigDecimal!
+}
+
+type WeeklyStatistic {
+  weekNumber: Int!
+  year: Int!
+  startDate: String!
+  endDate: String!
+  orderCount: Int!
+  revenue: BigDecimal!
+}
+
+type MonthlyStatistic {
+  month: Int!
+  year: Int!
+  monthName: String!
+  orderCount: Int!
+  revenue: BigDecimal!
+}
+
+# Authentication Types - Based on AuthController
+type AuthPayload {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+}
+
+type UserInfo {
+  id: UUID!
+  wechatOpenId: String!
+  nickname: String
+  phone: String
+  avatarUrl: String
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type WeChatLoginResponse {
+  accessToken: String!
+  refreshToken: String!
+  expiresIn: Int!
+  userInfo: UserInfo!
+}
+
+type WeChatTokenResponse {
+  accessToken: String!
+  refreshToken: String!
+  expiresIn: Int!
+}
+
+type PaymentData {
+  codeUrl: String!
+  outTradeNo: String!
+  appId: String!
+  timeStamp: String!
+  nonceStr: String!
+  packageValue: String!
+  signType: String!
+  paySign: String!
+}
+
+
+# Input Types - Based on REST API request DTOs
+input WechatLoginInput {
+  code: String!
+}
+
+input RefreshTokenInput {
+  refreshToken: String!
+}
+
+input UpdateProfileInput {
+  nickname: String
+  phone: String
+  avatar: String
+}
+
+input CreateProductInput {
+  name: String!
+  price: BigDecimal!
+  coverImageUrl: String!
+  detailImages: String
+  description: String
+  stock: Int!
+}
+
+input UpdateProductInput {
+  name: String
+  price: BigDecimal
+  coverImageUrl: String
+  detailImages: String
+  description: String
+  stock: Int
+}
+
+input CreateOrderInput {
+  productId: UUID!
+  addressId: UUID!
+  quantity: Int!
+}
+
+input AddressInput {
+  receiverName: String!
+  phone: String!
+  province: String!
+  city: String!
+  district: String!
+  detailAddress: String!
+  isDefault: Boolean = false
+}
+
+input UpdateAddressInput {
+  receiverName: String
+  phone: String
+  province: String
+  city: String
+  district: String
+  detailAddress: String
+  isDefault: Boolean
+}
+
+input CreateWechatPaymentInput {
+  orderId: UUID!
+  amount: Int!
+  description: String!
+}
+
+input RefundInput {
+  transactionId: String!
+  refundAmount: Int!
+  totalAmount: Int!
+}
+
+input CreateDeliveryAreaInput {
+  name: String!
+  province: String!
+  city: String!
+  district: String!
+  enabled: Boolean = true
+}
+
+input ValidateAddressInput {
+  province: String!
+  city: String!
+  district: String!
+}
+
+input DateRangeInput {
+  startDate: LocalDateTime!
+  endDate: LocalDateTime!
+}
+
+# Query Schema - Based on all REST endpoints
+type Query {
+  # Authentication (from AuthController)
+  me: UserInfo
+  user(id: UUID!): User
+
+  # Addresses (from AddressController)
+  addresses: [Address!]!
+  address(id: UUID!): Address
+
+  # Products (from ProductController)
+  products: [Product!]!
+  activeProducts: [Product!]!
+  product(id: UUID!): Product
+
+  # Orders (from OrderController)
+  order(orderId: UUID!): Order
+  orderByNumber(orderNumber: String!): Order
+  ordersByUser(userId: UUID!): [Order!]!
+  ordersByUserAndStatus(userId: UUID!, status: OrderStatus!): [Order!]!
+  ordersByStatus(status: OrderStatus!): [Order!]!
+
+  # Delivery (from DeliveryController)
+  deliveryWorkers: [DeliveryWorker!]!
+  onlineDeliveryWorkers: [DeliveryWorker!]!
+  deliveryWorker(id: UUID!): DeliveryWorker
+  deliveryAreas: [DeliveryArea!]!
+  enabledDeliveryAreas: [DeliveryArea!]!
+  deliveryArea(id: UUID!): DeliveryArea
+  validateAddress(input: ValidateAddressInput!): Boolean!
+
+  # Payments (from PaymentController)
+  paymentStatus(transactionId: String!): String!
+
+  # Statistics (from StatisticsController)
+  orderStatistics(input: DateRangeInput!): OrderStatistics!
+  dailyStatistics(input: DateRangeInput!): [DailyStatistic!]!
+  weeklyStatistics(input: DateRangeInput!): [WeeklyStatistic!]!
+  monthlyStatistics(input: DateRangeInput!): [MonthlyStatistic!]!
+}
+
+# Mutation Schema - Based on all REST endpoints
+type Mutation {
+  # Authentication (from AuthController)
+  wechatLogin(input: WechatLoginInput!): WeChatLoginResponse!
+  refreshToken(input: RefreshTokenInput!): WeChatTokenResponse!
+  updateProfile(input: UpdateProfileInput!): UserInfo!
+  logout: Boolean!
+
+  # Addresses (from AddressController)
+  createAddress(input: AddressInput!): Address!
+  updateAddress(id: UUID!, input: UpdateAddressInput!): Address!
+  deleteAddress(id: UUID!): Boolean!
+  setDefaultAddress(id: UUID!): Boolean!
+
+  # Products (from ProductController - Admin only)
+  createProduct(input: CreateProductInput!): Product!
+  updateProduct(id: UUID!, input: UpdateProductInput!): Product!
+  deleteProduct(id: UUID!): Boolean!
+  increaseStock(productId: UUID!, quantity: Int!): String!
+  decreaseStock(productId: UUID!, quantity: Int!): Boolean!
+
+  # Orders (from OrderController)
+  createOrder(input: CreateOrderInput!): Order!
+  cancelOrder(orderId: UUID!): Order!
+  updateOrderStatus(orderId: UUID!, status: OrderStatus!): Order!
+
+  # Payments (from PaymentController)
+  createWechatPayment(input: CreateWechatPaymentInput!): PaymentData!
+  handleWechatCallback(callbackData: Map!): String!
+  refund(input: RefundInput!): Boolean!
+
+  # Delivery (from DeliveryController)
+  createDeliveryArea(input: CreateDeliveryAreaInput!): DeliveryArea!
+  updateWorkerStatus(workerId: UUID!, status: WorkerStatus!): DeliveryWorker!
+}

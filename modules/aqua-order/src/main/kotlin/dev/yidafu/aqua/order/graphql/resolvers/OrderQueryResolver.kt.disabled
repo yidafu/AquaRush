@@ -1,0 +1,81 @@
+package dev.yidafu.aqua.order.graphql.resolvers
+
+import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.order.service.OrderService
+import dev.yidafu.aqua.common.graphql.generated.Order as GraphQLOrder
+import dev.yidafu.aqua.common.graphql.generated.toGraphQL
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.QueryMapping
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.Authentication
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.stereotype.Controller
+import java.util.UUID
+
+@Controller
+class OrderQueryResolver(
+    private val orderService: OrderService
+) {
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
+    fun getOrdersByUser(@Argument userId: UUID): List<GraphQLOrder> {
+        val orders = orderService.getUserOrders(userId)
+        return orders.map { it.toGraphQL() }
+    }
+
+    @QueryMapping
+    fun getMyOrders(): List<GraphQLOrder> {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val userId = UUID.fromString(authentication.name)
+        val orders = orderService.getUserOrders(userId)
+        return orders.map { it.toGraphQL() }
+    }
+
+    @QueryMapping
+    fun getOrderById(@Argument id: UUID): GraphQLOrder {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val order = orderService.getOrderById(id)
+
+        // Check if user has permission to view this order
+        val userId = UUID.fromString(authentication.name)
+        if (!authentication.authorities.any { it.authority == "ROLE_ADMIN" } &&
+            order.user.id != userId) {
+            throw org.springframework.security.access.AccessDeniedException("无权访问此订单")
+        }
+
+        return order.toGraphQL()
+    }
+
+    @QueryMapping
+    fun getOrderByNumber(@Argument orderNumber: String): GraphQLOrder {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val order = orderService.getOrderByNumber(orderNumber)
+
+        // Check if user has permission to view this order
+        val userId = UUID.fromString(authentication.name)
+        if (!authentication.authorities.any { it.authority == "ROLE_ADMIN" } &&
+            order.user.id != userId) {
+            throw org.springframework.security.access.AccessDeniedException("无权访问此订单")
+        }
+
+        return order.toGraphQL()
+    }
+
+    @QueryMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun getOrdersByStatus(@Argument status: dev.yidafu.aqua.common.graphql.generated.OrderStatus): List<GraphQLOrder> {
+        val domainStatus = dev.yidafu.aqua.order.domain.model.OrderStatus.valueOf(status.name)
+        val orders = orderService.getOrdersByStatus(domainStatus)
+        return orders.map { it.toGraphQL() }
+    }
+
+    @QueryMapping
+    fun getMyOrdersByStatus(@Argument status: dev.yidafu.aqua.common.graphql.generated.OrderStatus): List<GraphQLOrder> {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val userId = UUID.fromString(authentication.name)
+        val domainStatus = dev.yidafu.aqua.order.domain.model.OrderStatus.valueOf(status.name)
+        val orders = orderService.getUserOrdersByStatus(userId, domainStatus)
+        return orders.map { it.toGraphQL() }
+    }
+}

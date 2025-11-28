@@ -1,0 +1,159 @@
+package dev.yidafu.aqua.delivery.graphql.resolvers
+
+import dev.yidafu.aqua.delivery.service.DeliveryService
+import dev.yidafu.aqua.common.graphql.generated.*
+import dev.yidafu.aqua.common.graphql.generated.toGraphQL
+import jakarta.validation.Valid
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.MutationMapping
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.stereotype.Controller
+import java.util.*
+
+@Controller
+class DeliveryMutationResolver(
+    private val deliveryService: DeliveryService
+) {
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun createDeliveryArea(@Argument @Valid input: DeliveryAreaInput): DeliveryArea {
+        val createdArea = deliveryService.createDeliveryArea(
+            name = input.name,
+            province = input.province,
+            city = input.city,
+            district = input.district,
+            enabled = input.enabled
+        )
+
+        return createdArea.toGraphQL()
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun updateDeliveryArea(
+        @Argument id: UUID,
+        @Argument @Valid input: UpdateDeliveryAreaInput
+    ): DeliveryArea {
+        val updatedArea = deliveryService.updateDeliveryArea(
+            areaId = id,
+            name = input.name,
+            province = input.province,
+            city = input.city,
+            district = input.district,
+            enabled = input.enabled
+        )
+
+        return updatedArea.toGraphQL()
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun enableDeliveryArea(@Argument id: UUID): DeliveryArea {
+        val updatedArea = deliveryService.enableDeliveryArea(id)
+        return updatedArea.toGraphQL()
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun disableDeliveryArea(@Argument id: UUID): DeliveryArea {
+        val updatedArea = deliveryService.disableDeliveryArea(id)
+        return updatedArea.toGraphQL()
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun deleteDeliveryArea(@Argument id: UUID): Boolean {
+        return deliveryService.deleteDeliveryArea(id)
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
+    fun acceptDeliveryOrder(@Argument orderId: UUID): Order {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val workerId = UUID.fromString(authentication.name)
+
+        val success = deliveryService.assignDeliveryWorker(orderId, workerId)
+        if (!success) {
+            throw RuntimeException("Failed to assign delivery order")
+        }
+
+        // 返回更新后的订单
+        val order = deliveryService.getOrderById(orderId)
+        return order.toGraphQL()
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun assignDeliveryOrder(
+        @Argument orderId: UUID,
+        @Argument workerId: UUID
+    ): Order {
+        val success = deliveryService.assignDeliveryWorker(orderId, workerId)
+        if (!success) {
+            throw RuntimeException("Failed to assign delivery order")
+        }
+
+        // 返回更新后的订单
+        val order = deliveryService.getOrderById(orderId)
+        return order.toGraphQL()
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
+    fun startDelivery(@Argument orderId: UUID): Order {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val workerId = UUID.fromString(authentication.name)
+
+        val updatedOrder = deliveryService.startDelivery(orderId, workerId)
+        return updatedOrder.toGraphQL()
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
+    fun completeDelivery(
+        @Argument orderId: UUID,
+        @Argument deliveryPhotos: List<String>? = null
+    ): Order {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val workerId = UUID.fromString(authentication.name)
+
+        val updatedOrder = deliveryService.completeDelivery(
+            orderId = orderId,
+            workerId = workerId,
+            deliveryPhotos = deliveryPhotos
+        )
+
+        return updatedOrder.toGraphQL()
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
+    fun failDelivery(
+        @Argument orderId: UUID,
+        @Argument reason: String
+    ): Order {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val workerId = UUID.fromString(authentication.name)
+
+        val updatedOrder = deliveryService.failDelivery(
+            orderId = orderId,
+            workerId = workerId,
+            reason = reason
+        )
+
+        return updatedOrder.toGraphQL()
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('WORKER')")
+    fun updateWorkerStatus(@Argument status: WorkerStatus): DeliveryWorker {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val workerId = UUID.fromString(authentication.name)
+
+        val domainStatus = dev.yidafu.aqua.delivery.domain.model.WorkerStatus.valueOf(status.name)
+        val updatedWorker = deliveryService.updateWorkerStatus(workerId, domainStatus)
+        return updatedWorker.toGraphQL()
+    }
+}

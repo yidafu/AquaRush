@@ -1,0 +1,83 @@
+package dev.yidafu.aqua.order.graphql.resolvers
+
+import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.model.OrderStatus
+import dev.yidafu.aqua.order.service.OrderService
+import dev.yidafu.aqua.common.graphql.generated.*
+import dev.yidafu.aqua.common.graphql.generated.toGraphQL
+import jakarta.validation.Valid
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.MutationMapping
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.stereotype.Controller
+import java.util.*
+
+@Controller
+class OrderMutationResolver(
+    private val orderService: OrderService
+) {
+
+    @MutationMapping
+    fun createOrder(@Argument @Valid input: CreateOrderInput): GraphQLOrder {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val userId = UUID.fromString(authentication.name)
+
+        val createdOrder = orderService.createOrder(
+            userId = userId,
+            productId = input.productId,
+            addressId = input.addressId,
+            quantity = input.quantity
+        )
+
+        return createdOrder.toGraphQL()
+    }
+
+    @MutationMapping
+    fun cancelOrder(@Argument orderId: UUID): GraphQLOrder {
+        val authentication = SecurityContextHolder.getContext().authentication
+        val order = orderService.getOrderById(orderId)
+        val userId = UUID.fromString(authentication.name)
+
+        // Check if user owns this order or is admin
+        if (!authentication.authorities.any { it.authority == "ROLE_ADMIN" } &&
+            order.userId != userId) {
+            throw org.springframework.security.access.AccessDeniedException("无权取消此订单")
+        }
+
+        val cancelledOrder = orderService.cancelOrder(orderId)
+        return cancelledOrder.toGraphQL()
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
+    fun updateOrderStatus(
+        @Argument orderId: UUID,
+        @Argument @Valid input: UpdateOrderStatusInput
+    ): GraphQLOrder {
+        val domainStatus = OrderStatus.valueOf(input.status.name)
+        val updatedOrder = orderService.updateOrderStatus(orderId, domainStatus)
+        return updatedOrder.toGraphQL()
+    }
+
+    @MutationMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    fun deleteOrder(@Argument orderId: UUID): Boolean {
+        // TODO: Implement delete order functionality
+        // This would need to be added to OrderService
+        try {
+            orderService.getOrderById(orderId)
+            // orderRepository.deleteById(orderId) would be implemented
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+
+    private fun generateOrderNumber(): String {
+        // Generate order number with timestamp and random digits
+        val timestamp = System.currentTimeMillis()
+        val random = (1000..9999).random()
+        return "ORD${timestamp}${random}"
+    }
+}
