@@ -3,7 +3,7 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
 
     <changeSet id="1.0.0-create-reconciliation-schema" author="aqua-rush">
         <comment>Create reconciliation system tables</comment>
@@ -60,7 +60,7 @@
                 <constraints nullable="false"/>
             </column>
             <column name="record_details" type="jsonb"/>
-            <column name="status" type="varchar(20)" defaultValueNumeric="UNRESOLVED">
+            <column name="status" type="varchar(20)" defaultValue="'UNRESOLVED'">
                 <constraints nullable="false"/>
             </column>
             <column name="resolution_notes" type="text"/>
@@ -169,29 +169,39 @@
             <column name="report_type"/>
         </createIndex>
 
-        <addCheckConstraint tableName="reconciliation_tasks" constraintName="chk_task_type"
-            check="(task_type IN ('PAYMENT', 'REFUND', 'SETTLEMENT'))"/>
+        <sql>
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_task_type
+            CHECK (task_type IN ('PAYMENT', 'REFUND', 'SETTLEMENT'));
 
-        <addCheckConstraint tableName="reconciliation_tasks" constraintName="chk_task_status"
-            check="(status IN ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED'))"/>
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_task_status
+            CHECK (status IN ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED'));
 
-        <addCheckConstraint tableName="reconciliation_tasks" constraintName="chk_total_records_non_negative"
-            check="(total_records >= 0)"/>
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_total_records_non_negative
+            CHECK (total_records &gt;= 0);
 
-        <addCheckConstraint tableName="reconciliation_tasks" constraintName="chk_matched_records_non_negative"
-            check="(matched_records >= 0)"/>
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_matched_records_non_negative
+            CHECK (matched_records &gt;= 0);
 
-        <addCheckConstraint tableName="reconciliation_tasks" constraintName="chk_unmatched_records_non_negative"
-            check="(unmatched_records >= 0)"/>
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_unmatched_records_non_negative
+            CHECK (unmatched_records &gt;= 0);
 
-        <addCheckConstraint tableName="reconciliation_discrepancies" constraintName="chk_discrepancy_type"
-            check="(discrepancy_type IN ('MISSING', 'MISMATCH', 'EXTRA'))"/>
+            ALTER TABLE reconciliation_discrepancies
+            ADD CONSTRAINT chk_discrepancy_type
+            CHECK (discrepancy_type IN ('MISSING', 'MISMATCH', 'EXTRA'));
 
-        <addCheckConstraint tableName="reconciliation_discrepancies" constraintName="chk_source_system"
-            check="(source_system IN ('INTERNAL', 'WECHAT'))"/>
+            ALTER TABLE reconciliation_discrepancies
+            ADD CONSTRAINT chk_source_system
+            CHECK (source_system IN ('INTERNAL', 'WECHAT'));
 
-        <addCheckConstraint tableName="reconciliation_discrepancies" constraintName="chk_discrepancy_status"
-            check="(status IN ('UNRESOLVED', 'RESOLVED'))"/>
+            ALTER TABLE reconciliation_discrepancies
+            ADD CONSTRAINT chk_discrepancy_status
+            CHECK (status IN ('UNRESOLVED', 'RESOLVED'));
+        </sql>
 
         <addForeignKeyConstraint baseTableName="reconciliation_discrepancies" baseColumnNames="task_id"
             referencedTableName="reconciliation_tasks" referencedColumnNames="task_id"
@@ -207,7 +217,7 @@
             BEGIN
                 NEW.updated_at = CURRENT_TIMESTAMP;
                 RETURN NEW;
-            END;
+            END
             $$ LANGUAGE plpgsql;
 
             DROP TRIGGER IF EXISTS update_reconciliation_tasks_updated_at ON reconciliation_tasks;

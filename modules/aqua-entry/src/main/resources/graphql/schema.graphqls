@@ -112,11 +112,22 @@ type Order {
 
 type DeliveryWorker {
   id: Long!
+  userId: Long!
   wechatOpenId: String!
   name: String!
   phone: String!
+  avatarUrl: String
   status: WorkerStatus!
+  coordinates: String
+  currentLocation: String
+  rating: BigDecimal
+  totalOrders: Int!
+  completedOrders: Int!
+  averageRating: BigDecimal
+  earning: BigDecimal
+  isAvailable: Boolean!
   createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
 }
 
 type DeliveryArea {
@@ -168,6 +179,17 @@ type AuthPayload {
   accessToken: String!
   refreshToken: String!
   user: User!
+}
+
+type Admin {
+  id: Long!
+  username: String!
+  realName: String
+  phone: String
+  role: String!
+  lastLoginAt: LocalDateTime
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
 }
 
 type UserInfo {
@@ -295,6 +317,30 @@ input ValidateAddressInput {
   district: String!
 }
 
+input CreateDeliveryWorkerInput {
+  wechatOpenId: String!
+  name: String!
+  phone: String!
+  avatarUrl: String
+  coordinates: String
+  currentLocation: String
+  rating: BigDecimal
+  earning: BigDecimal
+  isAvailable: Boolean = true
+}
+
+input UpdateDeliveryWorkerInput {
+  wechatOpenId: String
+  name: String
+  phone: String
+  avatarUrl: String
+  coordinates: String
+  currentLocation: String
+  rating: BigDecimal
+  earning: BigDecimal
+  isAvailable: Boolean
+}
+
 input DateRangeInput {
   startDate: LocalDateTime!
   endDate: LocalDateTime!
@@ -305,6 +351,15 @@ type Query {
   # Authentication (from AuthController)
   me: UserInfo
   user(id: Long!): User
+
+  # Admin queries - Admin only
+  admins: [Admin!]!
+  admin(id: Long!): Admin
+
+  # Delivery Worker queries
+  deliveryWorkers: [DeliveryWorker!]!
+  onlineDeliveryWorkers: [DeliveryWorker!]!
+  deliveryWorker(id: Long!): DeliveryWorker
 
   # Addresses (from AddressController)
   addresses: [Address!]!
@@ -375,4 +430,9 @@ type Mutation {
   # Delivery (from DeliveryController)
   createDeliveryArea(input: CreateDeliveryAreaInput!): DeliveryArea!
   updateWorkerStatus(workerId: Long!, status: WorkerStatus!): DeliveryWorker!
+
+  # Delivery Worker Management - Admin only
+  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorker!
+  updateDeliveryWorker(workerId: Long!, input: UpdateDeliveryWorkerInput!): DeliveryWorker!
+  deleteDeliveryWorker(workerId: Long!): Boolean!
 }

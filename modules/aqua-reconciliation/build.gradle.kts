@@ -22,8 +22,7 @@ dependencies {
   implementation(libs.spring.boot.starter.actuator)
 
   // GraphQL
-  implementation(libs.spring.boot.starter.graphql)
-  implementation(libs.graphql.java.extended.scalars)
+  implementation(libs.bundles.graphql)
   // Database
   runtimeOnly(libs.postgresql)
   implementation(libs.flyway.core)

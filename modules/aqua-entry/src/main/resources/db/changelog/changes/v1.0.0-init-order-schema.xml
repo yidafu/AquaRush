@@ -3,8 +3,9 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
 
+    
     <changeSet id="1.0.0-create-order-table" author="aqua-rush">
         <comment>Create order table</comment>
         <createTable tableName="orders">
@@ -28,6 +29,9 @@
             </column>
             <column name="address_id" type="bigint">
                 <constraints nullable="false" foreignKeyName="fk_order_address" references="delivery_addresses(id)"/>
+            </column>
+            <column name="delivery_address_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_order_delivery_address" references="delivery_addresses(id)"/>
             </column>
             <column name="status" type="varchar(20)" defaultValue="PENDING_PAYMENT">
                 <constraints nullable="false"/>
@@ -57,6 +61,9 @@
         </createIndex>
         <createIndex tableName="orders" indexName="idx_order_created_at">
             <column name="created_at"/>
+        </createIndex>
+        <createIndex tableName="orders" indexName="idx_orders_delivery_address_id">
+            <column name="delivery_address_id"/>
         </createIndex>
     </changeSet>
 

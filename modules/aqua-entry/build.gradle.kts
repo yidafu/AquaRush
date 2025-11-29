@@ -26,6 +26,7 @@ dependencies {
   implementation(libs.spring.boot.starter.actuator)
   implementation(libs.spring.boot.starter.security)
   implementation(libs.spring.boot.starter.thymeleaf)
+  implementation(libs.bundles.spring.boot.data)
   implementation(libs.bundles.graphql)
   implementation(libs.liquibase.core)
   runtimeOnly(libs.postgresql)
