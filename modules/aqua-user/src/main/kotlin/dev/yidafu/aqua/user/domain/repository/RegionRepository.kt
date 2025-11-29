@@ -17,26 +17,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.delivery.domain.repository
+package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.common.domain.model.DeliveryWorker
-import dev.yidafu.aqua.common.domain.model.WorkerStatus
+import dev.yidafu.aqua.user.domain.model.Region
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 @Repository
-interface DeliveryWorkerRepository : JpaRepository<DeliveryWorker, Long> {
-  fun findByWechatOpenId(wechatOpenId: String): DeliveryWorker?
+interface RegionRepository : JpaRepository<Region, Long> {
 
-  fun findByStatus(status: WorkerStatus): List<DeliveryWorker>
+  fun findByCode(code: String): Region?
 
-  fun existsByWechatOpenId(wechatOpenId: String): Boolean {
-    return findByWechatOpenId(wechatOpenId) != null
-  }
+  fun findByParentCodeAndLevel(parentCode: String, level: Int): List<Region>
 
-  fun existsByPhone(phone: String): Boolean {
-    return findByPhone(phone) != null
-  }
+  fun findByLevel(level: Int): List<Region>
 
-  fun findByPhone(phone: String): DeliveryWorker?
+  fun existsByCode(code: String): Boolean
+
+  @Query("SELECT r FROM Region r WHERE r.parentCode IS NULL AND r.level = :level")
+  fun findRootRegions(@Param("level") level: Int): List<Region>
 }

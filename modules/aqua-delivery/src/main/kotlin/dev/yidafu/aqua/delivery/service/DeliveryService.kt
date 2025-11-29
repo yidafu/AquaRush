@@ -224,6 +224,17 @@ class DeliveryService(
   }
 
   /**
+   * 获取配送员的活跃任务数量
+   */
+  fun getWorkerActiveTaskCount(workerId: Long): Int =
+    orderRepository
+      .countByDeliveryWorkerIdAndStatus(
+        workerId,
+        dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING
+      )
+      .toInt()
+
+  /**
    * 完成配送任务
    */
   @Transactional
