@@ -3,7 +3,7 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
 
     <changeSet id="1.0.0-create-notification-schema" author="aqua-rush">
         <comment>Create notification system tables</comment>
@@ -86,8 +86,22 @@
             <column name="wx_message_id"/>
         </createIndex>
 
-        <addCheckConstraint tableName="message_history" constraintName="chk_message_status"
-            check="(status IN ('PENDING', 'SENT', 'FAILED', 'RETRYING'))"/>
+        <addDefaultValue
+            tableName="message_history"
+            columnName="status"
+            defaultValue="PENDING"/>
+
+    <sql dbms="postgresql">
+            ALTER TABLE message_history
+            ADD CONSTRAINT chk_message_status
+            CHECK (status IN ('PENDING', 'SENT', 'FAILED', 'RETRYING'));
+        </sql>
+
+        <sql dbms="mysql">
+            ALTER TABLE message_history
+            ADD CONSTRAINT chk_message_status
+            CHECK (status IN ('PENDING', 'SENT', 'FAILED', 'RETRYING'));
+        </sql>
 
         <sql>
             CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -95,7 +109,7 @@
             BEGIN
                 NEW.updated_at = CURRENT_TIMESTAMP;
                 RETURN NEW;
-            END;
+            END
             $$ language 'plpgsql';
 
             CREATE TRIGGER update_user_notification_settings_updated_at

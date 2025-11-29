@@ -14,12 +14,17 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
-      minimum-idle: 5
-      connection-timeout: 30000
+      minimum-idle: 2
+      connection-timeout: 60000
+      idle-timeout: 300000
+      max-lifetime: 1800000
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+      leak-detection-threshold: 60000
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: none  # 设置为 none，不进行任何自动 DDL 操作
     show-sql: true
     generate-ddl: false        # 禁用 JPA 自动 DDL
     properties:
@@ -31,7 +36,7 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     default-schema: public
     drop-first: false         # 生产环境必须为 false！
-    enabled: false
+    enabled: true             # Re-enable Liquibase after fixing configuration
 
   artemis:
     mode: embedded
@@ -65,6 +70,17 @@ spring:
       FAIL_ON_NULL_FOR_PRIMITIVES: false
     default-property-inclusion: NON_NULL
 
+  # GraphQL configuration
+  graphql:
+    schema:
+      printer:
+        enabled: true
+      file-extensions: .graphqls
+    graphiql:
+      enabled: true
+      path: /graphiql
+    schema-introspection: on
+    path: /graphql
 
 server:
   port: 8080
@@ -86,6 +102,8 @@ management:
 
 logging:
   level:
+    liquibase: DEBUG
+    org.springframework.boot.autoconfigure.liquibase: DEBUG
     root: INFO
     dev.yidafu.aqua: DEBUG
     # Enhanced logging for request troubleshooting
@@ -178,14 +196,6 @@ wechat-pay:
   merchant-serial-number: ${WECHAT_PAY_SERIAL_NUMBER:your-serial-number}
   private-key-path: ${WECHAT_PAY_PRIVATE_KEY_PATH:classpath:certs/apiclient_key.pem}
 
-# GraphQL configuration
-  graphql:
-    websocket:
-      path: /graphql
-    path: /graphql
-    graphiql:
-      enabled: true
-      path: /graphiql
 
 # JWT configuration
 app:
@@ -193,4 +203,3 @@ app:
     secret: ${JWT_SECRET:your-jwt-secret-key-change-in-production}
     expiration: 86400 # 24 hours in seconds
     refresh-expiration: 604800 # 7 days in seconds
-

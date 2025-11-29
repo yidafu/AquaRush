@@ -3,7 +3,7 @@
     xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
 
     <changeSet id="1.0.0-create-review-schema" author="aqua-rush">
         <comment>Create review and delivery worker statistics tables</comment>
@@ -97,20 +97,27 @@
             <column name="delivery_worker_id"/>
         </createIndex>
 
-        <addCheckConstraint tableName="reviews" constraintName="chk_reviews_rating_range"
-            check="(rating >= 1 AND rating <= 5)"/>
+        <sql>
+            ALTER TABLE reviews
+            ADD CONSTRAINT chk_reviews_rating_range
+            CHECK (rating &gt;= 1 AND rating &lt;= 5);
 
-        <addCheckConstraint tableName="reviews" constraintName="chk_reviews_comment_length"
-            check="(LENGTH(COALESCE(comment, '')) <= 500)"/>
+            ALTER TABLE reviews
+            ADD CONSTRAINT chk_reviews_comment_length
+            CHECK (LENGTH(COALESCE(comment, '')) &lt;= 500);
 
-        <addCheckConstraint tableName="delivery_worker_statistics" constraintName="chk_average_rating_range"
-            check="(average_rating >= 0.00 AND average_rating <= 5.00)"/>
+            ALTER TABLE delivery_worker_statistics
+            ADD CONSTRAINT chk_average_rating_range
+            CHECK (average_rating &gt;= 0.00 AND average_rating &lt;= 5.00);
 
-        <addCheckConstraint tableName="delivery_worker_statistics" constraintName="chk_total_reviews_non_negative"
-            check="(total_reviews >= 0)"/>
+            ALTER TABLE delivery_worker_statistics
+            ADD CONSTRAINT chk_total_reviews_non_negative
+            CHECK (total_reviews &gt;= 0);
 
-        <addCheckConstraint tableName="delivery_worker_statistics" constraintName="chk_star_reviews_non_negative"
-            check="(one_star_reviews >= 0 AND two_star_reviews >= 0 AND three_star_reviews >= 0 AND four_star_reviews >= 0 AND five_star_reviews >= 0)"/>
+            ALTER TABLE delivery_worker_statistics
+            ADD CONSTRAINT chk_star_reviews_non_negative
+            CHECK (one_star_reviews &gt;= 0 AND two_star_reviews &gt;= 0 AND three_star_reviews &gt;= 0 AND four_star_reviews &gt;= 0 AND five_star_reviews &gt;= 0);
+        </sql>
 
         <sql>
             CREATE OR REPLACE FUNCTION update_reviews_updated_at()
@@ -118,7 +125,7 @@
             BEGIN
                 NEW.updated_at = CURRENT_TIMESTAMP;
                 RETURN NEW;
-            END;
+            END
             $$ language 'plpgsql';
 
             CREATE TRIGGER trigger_reviews_updated_at
@@ -131,7 +138,7 @@
             BEGIN
                 NEW.last_updated = CURRENT_TIMESTAMP;
                 RETURN NEW;
-            END;
+            END
             $$ language 'plpgsql';
 
             CREATE TRIGGER trigger_delivery_worker_statistics_last_updated

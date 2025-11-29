@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
-    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
 
     <changeSet id="1.0.0-create-storage-schema" author="aqua-rush">
         <comment>Create file metadata table for storage system</comment>
@@ -67,11 +65,15 @@
             <column name="is_public"/>
         </createIndex>
 
-        <addCheckConstraint tableName="file_metadata" constraintName="chk_file_type"
-            check="(file_type IN ('IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT', 'SPREADSHEET', 'PRESENTATION', 'FRONTEND', 'ARCHIVE', 'EXECUTABLE', 'BACKUP', 'OTHER'))"/>
+        <sql>
+            ALTER TABLE file_metadata ADD CONSTRAINT chk_file_type
+            CHECK (file_type IN ('IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT', 'SPREADSHEET', 'PRESENTATION', 'FRONTEND', 'ARCHIVE', 'EXECUTABLE', 'BACKUP', 'OTHER'));
+        </sql>
 
-        <addCheckConstraint tableName="file_metadata" constraintName="chk_file_size_positive"
-            check="(file_size > 0)"/>
+        <sql>
+            ALTER TABLE file_metadata ADD CONSTRAINT chk_file_size_positive
+            CHECK (file_size > 0);
+        </sql>
 
         <sql>
             CREATE OR REPLACE FUNCTION update_file_metadata_updated_at()
@@ -79,8 +81,8 @@
             BEGIN
                 NEW.updated_at = CURRENT_TIMESTAMP;
                 RETURN NEW;
-            END;
-            $$ language 'plpgsql';
+            END
+            $$ LANGUAGE plpgsql;
 
             CREATE TRIGGER trigger_file_metadata_updated_at
             BEFORE UPDATE ON file_metadata

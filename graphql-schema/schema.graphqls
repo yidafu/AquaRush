@@ -1,5 +1,5 @@
 # Scalar types
-scalar UUID
+scalar Long
 scalar BigDecimal
 scalar LocalDateTime
 scalar Map
@@ -25,6 +25,14 @@ enum UserRole {
   USER
   ADMIN
   WORKER
+  NONE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
 }
 
 enum WorkerStatus {
@@ -39,9 +47,15 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum PaymentMethod {
+  WECHAT_PAY
+  ALIPAY
+  CASH_ON_DELIVERY
+}
+
 # Core Types - Based on actual domain models
 type User {
-  id: UUID!
+  id: Long!
   wechatOpenId: String!
   nickname: String
   phone: String
@@ -51,7 +65,7 @@ type User {
 }
 
 type Product {
-  id: UUID!
+  id: Long!
   name: String!
   price: BigDecimal!
   coverImageUrl: String!
@@ -64,8 +78,8 @@ type Product {
 }
 
 type Address {
-  id: UUID!
-  userId: UUID!
+  id: Long!
+  userId: Long!
   receiverName: String!
   phone: String!
   province: String!
@@ -78,7 +92,7 @@ type Address {
 }
 
 type Order {
-  id: UUID!
+  id: Long!
   orderNumber: String!
   user: User!
   product: Product!
@@ -97,16 +111,27 @@ type Order {
 }
 
 type DeliveryWorker {
-  id: UUID!
+  id: Long!
+  userId: Long!
   wechatOpenId: String!
   name: String!
   phone: String!
+  avatarUrl: String
   status: WorkerStatus!
+  coordinates: String
+  currentLocation: String
+  rating: BigDecimal
+  totalOrders: Int!
+  completedOrders: Int!
+  averageRating: BigDecimal
+  earning: BigDecimal
+  isAvailable: Boolean!
   createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
 }
 
 type DeliveryArea {
-  id: UUID!
+  id: Long!
   name: String!
   province: String!
   city: String!
@@ -156,8 +181,19 @@ type AuthPayload {
   user: User!
 }
 
+type Admin {
+  id: Long!
+  username: String!
+  realName: String
+  phone: String
+  role: String!
+  lastLoginAt: LocalDateTime
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
 type UserInfo {
-  id: UUID!
+  id: Long!
   wechatOpenId: String!
   nickname: String
   phone: String
@@ -189,7 +225,6 @@ type PaymentData {
   signType: String!
   paySign: String!
 }
-
 
 # Input Types - Based on REST API request DTOs
 input WechatLoginInput {
@@ -225,8 +260,8 @@ input UpdateProductInput {
 }
 
 input CreateOrderInput {
-  productId: UUID!
-  addressId: UUID!
+  productId: Long!
+  addressId: Long!
   quantity: Int!
 }
 
@@ -251,9 +286,15 @@ input UpdateAddressInput {
 }
 
 input CreateWechatPaymentInput {
-  orderId: UUID!
+  orderId: Long!
   amount: Int!
   description: String!
+}
+
+input WechatCallbackInput {
+  resource: String!
+  resourceType: String!
+  summary: String!
 }
 
 input RefundInput {
@@ -276,6 +317,30 @@ input ValidateAddressInput {
   district: String!
 }
 
+input CreateDeliveryWorkerInput {
+  wechatOpenId: String!
+  name: String!
+  phone: String!
+  avatarUrl: String
+  coordinates: String
+  currentLocation: String
+  rating: BigDecimal
+  earning: BigDecimal
+  isAvailable: Boolean = true
+}
+
+input UpdateDeliveryWorkerInput {
+  wechatOpenId: String
+  name: String
+  phone: String
+  avatarUrl: String
+  coordinates: String
+  currentLocation: String
+  rating: BigDecimal
+  earning: BigDecimal
+  isAvailable: Boolean
+}
+
 input DateRangeInput {
   startDate: LocalDateTime!
   endDate: LocalDateTime!
@@ -285,31 +350,40 @@ input DateRangeInput {
 type Query {
   # Authentication (from AuthController)
   me: UserInfo
-  user(id: UUID!): User
+  user(id: Long!): User
+
+  # Admin queries - Admin only
+  admins: [Admin!]!
+  admin(id: Long!): Admin
+
+  # Delivery Worker queries
+  deliveryWorkers: [DeliveryWorker!]!
+  onlineDeliveryWorkers: [DeliveryWorker!]!
+  deliveryWorker(id: Long!): DeliveryWorker
 
   # Addresses (from AddressController)
   addresses: [Address!]!
-  address(id: UUID!): Address
+  address(id: Long!): Address
 
   # Products (from ProductController)
   products: [Product!]!
   activeProducts: [Product!]!
-  product(id: UUID!): Product
+  product(id: Long!): Product
 
   # Orders (from OrderController)
-  order(orderId: UUID!): Order
+  order(orderId: Long!): Order
   orderByNumber(orderNumber: String!): Order
-  ordersByUser(userId: UUID!): [Order!]!
-  ordersByUserAndStatus(userId: UUID!, status: OrderStatus!): [Order!]!
+  ordersByUser(userId: Long!): [Order!]!
+  ordersByUserAndStatus(userId: Long!, status: OrderStatus!): [Order!]!
   ordersByStatus(status: OrderStatus!): [Order!]!
 
   # Delivery (from DeliveryController)
   deliveryWorkers: [DeliveryWorker!]!
   onlineDeliveryWorkers: [DeliveryWorker!]!
-  deliveryWorker(id: UUID!): DeliveryWorker
+  deliveryWorker(id: Long!): DeliveryWorker
   deliveryAreas: [DeliveryArea!]!
   enabledDeliveryAreas: [DeliveryArea!]!
-  deliveryArea(id: UUID!): DeliveryArea
+  deliveryArea(id: Long!): DeliveryArea
   validateAddress(input: ValidateAddressInput!): Boolean!
 
   # Payments (from PaymentController)
@@ -332,28 +406,33 @@ type Mutation {
 
   # Addresses (from AddressController)
   createAddress(input: AddressInput!): Address!
-  updateAddress(id: UUID!, input: UpdateAddressInput!): Address!
-  deleteAddress(id: UUID!): Boolean!
-  setDefaultAddress(id: UUID!): Boolean!
+  updateAddress(id: Long!, input: UpdateAddressInput!): Address!
+  deleteAddress(id: Long!): Boolean!
+  setDefaultAddress(id: Long!): Boolean!
 
   # Products (from ProductController - Admin only)
   createProduct(input: CreateProductInput!): Product!
-  updateProduct(id: UUID!, input: UpdateProductInput!): Product!
-  deleteProduct(id: UUID!): Boolean!
-  increaseStock(productId: UUID!, quantity: Int!): String!
-  decreaseStock(productId: UUID!, quantity: Int!): Boolean!
+  updateProduct(id: Long!, input: UpdateProductInput!): Product!
+  deleteProduct(id: Long!): Boolean!
+  increaseStock(productId: Long!, quantity: Int!): String!
+  decreaseStock(productId: Long!, quantity: Int!): Boolean!
 
   # Orders (from OrderController)
   createOrder(input: CreateOrderInput!): Order!
-  cancelOrder(orderId: UUID!): Order!
-  updateOrderStatus(orderId: UUID!, status: OrderStatus!): Order!
+  cancelOrder(orderId: Long!): Order!
+  updateOrderStatus(orderId: Long!, status: OrderStatus!): Order!
 
   # Payments (from PaymentController)
   createWechatPayment(input: CreateWechatPaymentInput!): PaymentData!
-  handleWechatCallback(callbackData: Map!): String!
+  handleWechatCallback(input: WechatCallbackInput!): String!
   refund(input: RefundInput!): Boolean!
 
   # Delivery (from DeliveryController)
   createDeliveryArea(input: CreateDeliveryAreaInput!): DeliveryArea!
-  updateWorkerStatus(workerId: UUID!, status: WorkerStatus!): DeliveryWorker!
+  updateWorkerStatus(workerId: Long!, status: WorkerStatus!): DeliveryWorker!
+
+  # Delivery Worker Management - Admin only
+  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorker!
+  updateDeliveryWorker(workerId: Long!, input: UpdateDeliveryWorkerInput!): DeliveryWorker!
+  deleteDeliveryWorker(workerId: Long!): Boolean!
 }

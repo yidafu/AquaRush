@@ -40,8 +40,15 @@ class SecurityConfig {
     http
       .authorizeHttpRequests { auth ->
         auth
-          .requestMatchers("/login", "/css/**", "/js/**", "/images/**").permitAll()
-          .anyRequest().authenticated()
+          .requestMatchers(
+            "/login",
+            "/css/**",
+            "/js/**",
+            "/images/**",
+            "/graphiql",
+            "/graphql",
+            ).permitAll()
+          .anyRequest().permitAll()
       }
       .csrf {
         it.disable()
