@@ -24,6 +24,8 @@ data class AddressInput(
 
 
 
+
+
 data class CreateDeliveryAreaInput(
     val city: String,
     val district: String,
@@ -37,6 +39,30 @@ data class CreateDeliveryAreaInput(
       args["enabled"] as Boolean? ?: true,
       args["name"] as String,
       args["province"] as String
+  )
+}
+
+data class CreateDeliveryWorkerInput(
+    val avatarUrl: String? = null,
+    val coordinates: String? = null,
+    val currentLocation: String? = null,
+    val earning: java.math.BigDecimal? = null,
+    val isAvailable: Boolean? = true,
+    val name: String,
+    val phone: String,
+    val rating: java.math.BigDecimal? = null,
+    val wechatOpenId: String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["avatarUrl"] as String?,
+      args["coordinates"] as String?,
+      args["currentLocation"] as String?,
+      args["earning"] as java.math.BigDecimal?,
+      args["isAvailable"] as Boolean? ?: true,
+      args["name"] as String,
+      args["phone"] as String,
+      args["rating"] as java.math.BigDecimal?,
+      args["wechatOpenId"] as String
   )
 }
 
@@ -125,6 +151,14 @@ data class MutationCreateDeliveryAreaArgs(
       CreateDeliveryAreaInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationCreateDeliveryWorkerArgs(
+    val input: CreateDeliveryWorkerInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateDeliveryWorkerInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationCreateOrderArgs(
     val input: CreateOrderInput
 ) {
@@ -163,6 +197,13 @@ data class MutationDeleteAddressArgs(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["id"] as java.lang.Long
+  )
+}
+data class MutationDeleteDeliveryWorkerArgs(
+    val workerId: java.lang.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["workerId"] as java.lang.Long
   )
 }
 data class MutationDeleteProductArgs(
@@ -220,6 +261,16 @@ data class MutationUpdateAddressArgs(
   constructor(args: Map<String, Any>) : this(
       args["id"] as java.lang.Long,
       UpdateAddressInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationUpdateDeliveryWorkerArgs(
+    val input: UpdateDeliveryWorkerInput,
+    val workerId: java.lang.Long
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      UpdateDeliveryWorkerInput(args["input"] as Map<String, Any>),
+      args["workerId"] as java.lang.Long
   )
 }
 data class MutationUpdateOrderStatusArgs(
@@ -339,6 +390,13 @@ data class QueryAddressArgs(
       args["id"] as java.lang.Long
   )
 }
+data class QueryAdminArgs(
+    val id: java.lang.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as java.lang.Long
+  )
+}
 data class QueryDailyStatisticsArgs(
     val input: DateRangeInput
 ) {
@@ -428,6 +486,22 @@ data class QueryProductArgs(
       args["id"] as java.lang.Long
   )
 }
+data class QueryRegionArgs(
+    val code: String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["code"] as String
+  )
+}
+data class QueryRegionsArgs(
+    val level: Int? = null,
+    val parentCode: String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["level"] as Int?,
+      args["parentCode"] as String?
+  )
+}
 data class QueryUserArgs(
     val id: java.lang.Long
 ) {
@@ -472,6 +546,8 @@ data class RefundInput(
   )
 }
 
+
+
 data class UpdateAddressInput(
     val city: String? = null,
     val detailAddress: String? = null,
@@ -489,6 +565,30 @@ data class UpdateAddressInput(
       args["phone"] as String?,
       args["province"] as String?,
       args["receiverName"] as String?
+  )
+}
+
+data class UpdateDeliveryWorkerInput(
+    val avatarUrl: String? = null,
+    val coordinates: String? = null,
+    val currentLocation: String? = null,
+    val earning: java.math.BigDecimal? = null,
+    val isAvailable: Boolean? = null,
+    val name: String? = null,
+    val phone: String? = null,
+    val rating: java.math.BigDecimal? = null,
+    val wechatOpenId: String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["avatarUrl"] as String?,
+      args["coordinates"] as String?,
+      args["currentLocation"] as String?,
+      args["earning"] as java.math.BigDecimal?,
+      args["isAvailable"] as Boolean?,
+      args["name"] as String?,
+      args["phone"] as String?,
+      args["rating"] as java.math.BigDecimal?,
+      args["wechatOpenId"] as String?
   )
 }
 

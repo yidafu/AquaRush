@@ -5,6 +5,7 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
 
+    <include file="db/changelog/changes/v1.0.0-init-regions-schema.xml"/>
     <include file="db/changelog/changes/v1.0.0-init-user-schema.xml"/>
     <include file="db/changelog/changes/v1.0.0-init-product-schema.xml"/>
     <include file="db/changelog/changes/v1.0.0-init-order-schema.xml"/>

@@ -8,7 +8,7 @@ spring:
     throw-exception-if-no-handler-found: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/aqua_rush
+    url: jdbc:postgresql://localhost:5432/aqua_rush?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:admin123}
     driver-class-name: org.postgresql.Driver

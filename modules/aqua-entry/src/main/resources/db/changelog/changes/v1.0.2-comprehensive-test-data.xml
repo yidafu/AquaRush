@@ -13,7 +13,7 @@
         <insert tableName="admins">
             <column name="username" value="superadmin"/>
             <column name="password_hash" value="$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iKVIbOBWvTPOrK.K8MZKW6xJUSfS"/>
-            <column name="name" value="超级管理员"/>
+            <column name="real_name" value="超级管理员"/>
             <column name="phone" value="13800138000"/>
             <column name="role" value="SUPER_ADMIN"/>
             <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
@@ -25,7 +25,7 @@
         <insert tableName="admins">
             <column name="username" value="admin"/>
             <column name="password_hash" value="$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iKVIbOBWvTPOrK.K8MZKW6xJUSfS"/>
-            <column name="name" value="系统管理员"/>
+            <column name="real_name" value="系统管理员"/>
             <column name="phone" value="13800138001"/>
             <column name="role" value="ADMIN"/>
             <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>

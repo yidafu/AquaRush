@@ -202,6 +202,16 @@ type UserInfo {
   updatedAt: LocalDateTime!
 }
 
+type Region {
+  id: Long!
+  name: String!
+  code: String!
+  parentCode: String
+  level: Int!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
 type WeChatLoginResponse {
   accessToken: String!
   refreshToken: String!
@@ -378,9 +388,6 @@ type Query {
   ordersByStatus(status: OrderStatus!): [Order!]!
 
   # Delivery (from DeliveryController)
-  deliveryWorkers: [DeliveryWorker!]!
-  onlineDeliveryWorkers: [DeliveryWorker!]!
-  deliveryWorker(id: Long!): DeliveryWorker
   deliveryAreas: [DeliveryArea!]!
   enabledDeliveryAreas: [DeliveryArea!]!
   deliveryArea(id: Long!): DeliveryArea
@@ -394,6 +401,10 @@ type Query {
   dailyStatistics(input: DateRangeInput!): [DailyStatistic!]!
   weeklyStatistics(input: DateRangeInput!): [WeeklyStatistic!]!
   monthlyStatistics(input: DateRangeInput!): [MonthlyStatistic!]!
+
+  # Regions (from RegionQueryResolver)
+  regions(level: Int, parentCode: String): [Region!]!
+  region(code: String!): Region
 }
 
 # Mutation Schema - Based on all REST endpoints

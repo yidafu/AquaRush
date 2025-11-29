@@ -35,7 +35,7 @@ data class DeliveryWorker(
   val userId: Long,
 
   @Column(name = "wechat_openid", unique = true, nullable = false)
-  val wechatOpenId: String,
+  var wechatOpenId: String,
 
   @Column(name = "name", nullable = false)
   var name: String,
@@ -44,7 +44,7 @@ data class DeliveryWorker(
   var phone: String,
 
   @Column(name = "avatar_url")
-  val avatarUrl: String?,
+  var avatarUrl: String?,
 
   @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)

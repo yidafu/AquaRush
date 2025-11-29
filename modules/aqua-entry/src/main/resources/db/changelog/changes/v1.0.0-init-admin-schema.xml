@@ -17,7 +17,7 @@
             <column name="password_hash" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="name" type="varchar(100)"/>
+            <column name="real_name" type="varchar(100)"/>
             <column name="phone" type="varchar(20)"/>
             <column name="role" type="varchar(20)" defaultValue="ADMIN">
                 <constraints nullable="false"/>
