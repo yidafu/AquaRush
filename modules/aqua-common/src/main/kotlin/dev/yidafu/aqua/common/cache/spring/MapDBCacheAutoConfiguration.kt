@@ -36,9 +36,6 @@ import org.springframework.context.annotation.Configuration
 @ConditionalOnProperty(prefix = "aqua.cache", name = ["enabled"], havingValue = "true", matchIfMissing = true)
 @Configuration(proxyBeanMethods = false)
 class MapDBCacheAutoConfiguration {
-
-  
-  
   @Bean
   @ConditionalOnMissingBean
   fun mapDBCacheManager(properties: CacheProperties): MapDBCacheManager {

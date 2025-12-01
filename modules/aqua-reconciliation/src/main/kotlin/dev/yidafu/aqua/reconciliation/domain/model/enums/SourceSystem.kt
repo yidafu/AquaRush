@@ -23,6 +23,6 @@ package dev.yidafu.aqua.reconciliation.domain.model.enums
  * 源系统类型
  */
 enum class SourceSystem {
-    INTERNAL,    // 内部系统
-    WECHAT      // 微信支付
+  INTERNAL, // 内部系统
+  WECHAT, // 微信支付
 }

@@ -12,6 +12,15 @@ dependencies {
   implementation(project(":modules:aqua-delivery"))
   implementation(project(":modules:aqua-payment"))
 
+  // GraphQL support
+  implementation(libs.bundles.graphql)
+
+  // Spring Security
+  implementation(libs.bundles.spring.boot.security)
+
+  // Validation
+  implementation(libs.spring.boot.starter.validation)
+
   // Order-specific dependencies can be added here
 
   // Mappie

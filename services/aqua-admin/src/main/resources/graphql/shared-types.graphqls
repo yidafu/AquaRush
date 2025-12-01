@@ -1,0 +1,772 @@
+# Shared GraphQL Types between User Service and Delivery/Admin Service
+# These types are needed by both services and should be identical
+
+# Scalar types
+scalar Long
+scalar BigDecimal
+scalar Float
+scalar LocalDateTime
+scalar Map
+
+# Enum types - Common across all services
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PREPARING
+  READY_FOR_DELIVERY
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum ProductStatus {
+  ONLINE
+  OFFLINE
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  WORKER
+  NONE
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum WorkerStatus {
+  ONLINE
+  OFFLINE
+}
+
+enum PaymentStatus {
+  SUCCESS
+  FAILED
+  PROCESSING
+  REFUNDED
+}
+
+enum PaymentMethod {
+  WECHAT_PAY
+  ALIPAY
+  CASH_ON_DELIVERY
+}
+
+# Core Domain Types
+type User {
+  id: Long!
+  wechatOpenId: String!
+  nickname: String
+  phone: String
+  avatarUrl: String
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type Product {
+  id: Long!
+  name: String!
+  price: BigDecimal!
+  coverImageUrl: String!
+  detailImages: String
+  description: String
+  stock: Int!
+  status: ProductStatus!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type Address {
+  id: Long!
+  userId: Long!
+  province: String!
+  provinceCode: String
+  city: String!
+  cityCode: String
+  district: String!
+  districtCode: String
+  detailAddress: String!
+  postalCode: String
+  longitude: Float
+  latitude: Float
+  isDefault: Boolean!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type DeliveryAddress {
+  id: Long!
+  userId: Long!
+  receiverName: String!
+  receiverPhone: String!
+  province: String!
+  city: String!
+  district: String!
+  detailAddress: String!
+  longitude: Float
+  latitude: Float
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type Order {
+  id: Long!
+  orderNumber: String!
+  user: User!
+  product: Product!
+  address: Address!
+  quantity: Int!
+  amount: BigDecimal!
+  status: OrderStatus!
+  paymentMethod: String
+  paymentTransactionId: String
+  paymentTime: LocalDateTime
+  deliveryWorker: DeliveryWorker
+  deliveryPhotos: [String!]
+  completedAt: LocalDateTime
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type DeliveryWorker {
+  id: Long!
+  userId: Long!
+  wechatOpenId: String!
+  name: String!
+  phone: String!
+  avatarUrl: String
+  status: WorkerStatus!
+  coordinates: String
+  currentLocation: String
+  rating: BigDecimal
+  totalOrders: Int!
+  completedOrders: Int!
+  averageRating: BigDecimal
+  earning: BigDecimal
+  isAvailable: Boolean!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type DeliveryArea {
+  id: Long!
+  name: String!
+  province: String!
+  city: String!
+  district: String!
+  enabled: Boolean!
+}
+
+type Region {
+  id: Long!
+  name: String!
+  code: String!
+  parentCode: String
+  level: Int!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+# Authentication Types
+type AuthPayload {
+  accessToken: String!
+  refreshToken: String!
+  user: User!
+}
+
+type UserInfo {
+  id: Long!
+  wechatOpenId: String!
+  nickname: String
+  phone: String
+  avatarUrl: String
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type Admin {
+  id: Long!
+  username: String!
+  realName: String
+  phone: String
+  role: String!
+  lastLoginAt: LocalDateTime
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type WeChatLoginResponse {
+  accessToken: String!
+  refreshToken: String!
+  expiresIn: Int!
+  userInfo: UserInfo!
+}
+
+type WeChatTokenResponse {
+  accessToken: String!
+  refreshToken: String!
+  expiresIn: Int!
+}
+
+type PaymentData {
+  codeUrl: String!
+  outTradeNo: String!
+  appId: String!
+  timeStamp: String!
+  nonceStr: String!
+  packageValue: String!
+  signType: String!
+  paySign: String!
+}
+
+# Statistics Types
+type OrderStatistics {
+  totalOrders: Int!
+  totalRevenue: BigDecimal!
+  averageOrderValue: BigDecimal!
+  dateRange: DateRange!
+}
+
+type DateRange {
+  startDate: LocalDateTime!
+  endDate: LocalDateTime!
+}
+
+type DailyStatistic {
+  date: String!
+  orderCount: Int!
+  revenue: BigDecimal!
+}
+
+type WeeklyStatistic {
+  weekNumber: Int!
+  year: Int!
+  startDate: String!
+  endDate: String!
+  orderCount: Int!
+  revenue: BigDecimal!
+}
+
+type MonthlyStatistic {
+  month: Int!
+  year: Int!
+  monthName: String!
+  orderCount: Int!
+  revenue: BigDecimal!
+}
+
+# Common Input Types
+input DateRangeInput {
+  startDate: LocalDateTime!
+  endDate: LocalDateTime!
+}
+
+input RefreshTokenInput {
+  refreshToken: String!
+}
+
+input UpdateProfileInput {
+  nickname: String
+  phone: String
+  avatar: String
+}
+
+input UpdateAddressInput {
+  receiverName: String
+  phone: String
+  province: String
+  provinceCode: String
+  city: String
+  cityCode: String
+  district: String
+  districtCode: String
+  detailAddress: String
+  postalCode: String
+  longitude: Float
+  latitude: Float
+  isDefault: Boolean
+}
+
+input AddressInput {
+  province: String!
+  provinceCode: String
+  city: String!
+  cityCode: String
+  district: String!
+  districtCode: String
+  detailAddress: String!
+  postalCode: String
+  longitude: Float
+  latitude: Float
+  isDefault: Boolean! = false
+}
+
+input CreateOrderInput {
+  productId: Long!
+  addressId: Long!
+  quantity: Int!
+}
+
+input WechatLoginInput {
+  code: String!
+}
+
+input CreateProductInput {
+  name: String!
+  price: BigDecimal!
+  coverImageUrl: String!
+  detailImages: String
+  description: String
+  stock: Int!
+}
+
+input UpdateProductInput {
+  name: String
+  price: BigDecimal
+  coverImageUrl: String
+  detailImages: String
+  description: String
+  stock: Int
+}
+
+input CreateWechatPaymentInput {
+  orderId: Long!
+  amount: BigDecimal!
+  description: String!
+}
+
+input WechatCallbackInput {
+  resource: String!
+  resourceType: String!
+  summary: String!
+  outTradeNo: String
+  transactionId: String
+  mchId: String
+  appId: String
+}
+
+input RefundInput {
+  transactionId: String!
+  refundAmount: BigDecimal!
+  totalAmount: BigDecimal!
+}
+
+input ProcessRefundInput {
+  refundRequestId: String!
+  originalTransactionId: String!
+  orderId: Long!
+  userId: Long!
+  amount: BigDecimal!
+  reason: String!
+  action: RefundAction!
+  adminNote: String
+}
+
+input CreateManualRefundInput {
+  originalTransactionId: String!
+  orderId: Long!
+  userId: Long!
+  amount: BigDecimal!
+  reason: String!
+  adminNote: String
+}
+
+enum RefundAction {
+  APPROVE
+  REJECT
+}
+
+input CreateDeliveryAreaInput {
+  name: String!
+  province: String!
+  city: String!
+  district: String!
+  enabled: Boolean
+}
+
+input ValidateAddressInput {
+  province: String!
+  city: String!
+  district: String!
+}
+
+input CreateDeliveryWorkerInput {
+  wechatOpenId: String!
+  name: String!
+  phone: String!
+  avatarUrl: String
+  coordinates: String
+  currentLocation: String
+  rating: BigDecimal
+  earning: BigDecimal
+  isAvailable: Boolean
+}
+
+input UpdateDeliveryWorkerInput {
+  wechatOpenId: String
+  name: String
+  phone: String
+  avatarUrl: String
+  coordinates: String
+  currentLocation: String
+  rating: BigDecimal
+  earning: BigDecimal
+  isAvailable: Boolean
+}
+
+input CreateDeliveryAddressInput {
+  receiverName: String!
+  receiverPhone: String!
+  province: String!
+  city: String!
+  district: String!
+  detailAddress: String!
+  longitude: Float
+  latitude: Float
+}
+
+input UpdateDeliveryAddressInput {
+  receiverName: String
+  receiverPhone: String
+  province: String
+  city: String
+  district: String
+  detailAddress: String
+  longitude: Float
+  latitude: Float
+}
+
+# Enhanced Address Management Input Types
+input CreateAddressInput {
+  province: String!
+  provinceCode: String
+  city: String!
+  cityCode: String
+  district: String!
+  districtCode: String
+  detailAddress: String!
+  postalCode: String
+  longitude: Float
+  latitude: Float
+  isDefault: Boolean
+}
+
+input GeocodeInput {
+  province: String!
+  city: String!
+  district: String!
+  detailAddress: String!
+}
+
+input AddressValidationInput {
+  province: String!
+  provinceCode: String
+  city: String!
+  cityCode: String
+  district: String!
+  districtCode: String
+  detailAddress: String!
+  longitude: Float
+  latitude: Float
+}
+
+# Enhanced Address Management Payload Types
+type AddressPayload {
+  success: Boolean!
+  message: String!
+  address: Address
+}
+
+type BooleanPayload {
+  success: Boolean!
+  message: String!
+}
+
+type GeocodePayload {
+  success: Boolean!
+  message: String!
+  longitude: Float
+  latitude: Float
+}
+
+type ReverseGeocodePayload {
+  success: Boolean!
+  message: String!
+  province: String
+  provinceCode: String
+  city: String
+  cityCode: String
+  district: String
+  districtCode: String
+  street: String
+  formattedAddress: String
+  confidence: Float
+}
+
+type AddressValidationPayload {
+  success: Boolean!
+  message: String!
+  isValid: Boolean!
+  isDuplicate: Boolean!
+  coordinatesValid: Boolean!
+  normalizedAddress: NormalizedAddress
+  errors: [String!]!
+}
+
+type NormalizedAddress {
+  province: String!
+  provinceCode: String
+  city: String!
+  cityCode: String
+  district: String!
+  districtCode: String
+  detailAddress: String!
+}
+
+type AddressPagePayload {
+  success: Boolean!
+  message: String!
+  content: [Address!]!
+  totalElements: Long!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+  first: Boolean!
+  last: Boolean!
+}
+
+type NearbyAddressesPayload {
+  success: Boolean!
+  message: String!
+  addresses: [Address!]!
+  distanceMap: Map!
+}
+
+type RegionCoordinatesPayload {
+  success: Boolean!
+  message: String!
+  region: Region
+}
+
+type DistancePayload {
+  success: Boolean!
+  message: String!
+  distanceKm: Float
+}
+
+type ServiceAreaPayload {
+  success: Boolean!
+  message: String!
+  inServiceArea: Boolean!
+}
+
+# Review Types
+type Review {
+  reviewId: Long!
+  orderId: Long!
+  userId: Long
+  deliveryWorkerId: Long!
+  deliveryWorkerName: String
+  rating: Int!
+  comment: String
+  isAnonymous: Boolean!
+  createdAt: LocalDateTime!
+}
+
+input CreateReviewRequest {
+  orderId: Long!
+  deliveryWorkerId: Long!
+  rating: Int!
+  comment: String
+  isAnonymous: Boolean
+}
+
+type OrderReviewCheckResponse {
+  hasReviewed: Boolean!
+  canReview: Boolean!
+  review: Review
+}
+
+type DeliveryWorkerStatisticsResponse {
+  deliveryWorkerId: Long!
+  workerName: String
+  averageRating: BigDecimal!
+  totalReviews: Long!
+  oneStarReviews: Long!
+  twoStarReviews: Long!
+  threeStarReviews: Long!
+  fourStarReviews: Long!
+  fiveStarReviews: Long!
+  ratingDistribution: Map!
+  lastUpdated: LocalDateTime!
+}
+
+type DeliveryWorkerRankingResponse {
+  workerId: Long!
+  workerName: String
+  averageRating: BigDecimal!
+  totalReviews: Long!
+  positiveRatingPercentage: Float!
+}
+
+# Payment Refund Types
+type RefundRequest {
+  id: String!
+  originalTransactionId: String!
+  orderId: Long!
+  userId: Long!
+  amount: BigDecimal!
+  reason: String!
+  status: RefundStatus!
+  requestedAt: LocalDateTime!
+  processedAt: LocalDateTime
+  processedBy: Long
+  adminNote: String
+}
+
+enum RefundStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+  FAILED
+}
+
+# Payment Transaction Types
+type PaymentTransaction {
+  id: String!
+  orderId: Long!
+  userId: Long!
+  amount: BigDecimal!
+  status: PaymentStatus!
+  paymentMethod: PaymentMethod!
+  transactionId: String
+  externalTransactionId: String
+  gateway: String!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+  completedAt: LocalDateTime
+  failureReason: String
+  metadata: Map
+  adminNote: String
+}
+
+input ExportTransactionsInput {
+  dateFrom: LocalDateTime
+  dateTo: LocalDateTime
+  status: PaymentStatus
+  paymentMethod: PaymentMethod
+  userId: Long
+  minAmount: BigDecimal
+  maxAmount: BigDecimal
+  format: String! = "CSV"  # CSV, EXCEL, PDF
+  includeMetadata: Boolean! = false
+}
+
+# Payment Statistics Types
+type PaymentStatistics {
+  totalAmount: BigDecimal!
+  totalTransactions: Long!
+  successfulTransactions: Long!
+  failedTransactions: Long!
+  refundedAmount: BigDecimal!
+  refundCount: Long!
+  averageTransactionAmount: BigDecimal!
+  dailyStats: [DailyPaymentStats!]!
+}
+
+type PaymentMethodStats {
+  paymentMethod: PaymentMethod!
+  totalAmount: BigDecimal!
+  transactionCount: Long!
+  successCount: Long!
+  failureCount: Long!
+  refundCount: Long!
+  averageAmount: BigDecimal!
+  successRate: Float!
+}
+
+type SuspiciousTransaction {
+  id: String!
+  orderId: Long!
+  userId: Long!
+  amount: BigDecimal!
+  status: PaymentStatus!
+  paymentMethod: PaymentMethod!
+  transactionId: String
+  suspiciousReason: String!
+  riskScore: Float!
+  createdAt: LocalDateTime!
+  metadata: Map
+  isFrozen: Boolean!
+  frozenAt: LocalDateTime
+  frozenBy: Long
+  adminNote: String
+}
+
+type DailyPaymentStats {
+  date: String!
+  totalAmount: BigDecimal!
+  totalTransactions: Long!
+  successfulTransactions: Long!
+  failedTransactions: Long!
+  refundedAmount: BigDecimal!
+  refundCount: Long!
+  averageTransactionAmount: BigDecimal!
+  peakHour: Int!
+  paymentMethodBreakdown: [PaymentMethodStats!]!
+}
+
+# Additional Input Types for Payment Management
+input UpdateTransactionInput {
+  adminNote: String
+  status: PaymentStatus
+  isFrozen: Boolean
+  freezeReason: String
+}
+
+input ProcessSuspiciousTransactionInput {
+  transactionId: String!
+  action: String!  # FREEZE, UNFREEZE, MARK_SAFE, FLAG_FOR_REVIEW
+  adminNote: String
+}
+
+# Additional Payment Types
+type OrderPaymentInfo {
+  orderId: Long!
+  orderNumber: String!
+  amount: BigDecimal!
+  status: PaymentStatus!
+  paymentMethod: PaymentMethod!
+  transactionId: String
+  createdAt: LocalDateTime!
+  paidAt: LocalDateTime
+  refundedAt: LocalDateTime
+  refundAmount: BigDecimal
+}
+
+type PaymentPeriodStats {
+  period: String!
+  totalAmount: BigDecimal!
+  totalTransactions: Long!
+  successfulTransactions: Long!
+  failedTransactions: Long!
+  averageTransactionAmount: BigDecimal!
+  paymentMethodBreakdown: [PaymentMethodStats!]!
+}
+
+type RefundEligibility {
+  eligible: Boolean!
+  orderId: Long!
+  orderAmount: BigDecimal!
+  paidAmount: BigDecimal!
+  refundableAmount: BigDecimal!
+  refundReason: String
+  deadline: LocalDateTime
+  refundPolicy: String
+}

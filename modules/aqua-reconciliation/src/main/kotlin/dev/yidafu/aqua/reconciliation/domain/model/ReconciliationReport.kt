@@ -30,71 +30,70 @@ import java.time.LocalDateTime
 @Entity
 @Table(name = "reconciliation_reports")
 class ReconciliationReport {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  var id: Long? = null
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
+  @Column(name = "task_id", nullable = false)
+  var taskId: String = ""
 
-    @Column(name = "task_id", nullable = false)
-    var taskId: String = ""
+  @Column(name = "report_type", nullable = false)
+  var reportType: String = "" // SUMMARY, DETAIL
 
-    @Column(name = "report_type", nullable = false)
-    var reportType: String = "" // SUMMARY, DETAIL
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "report_data", columnDefinition = "jsonb", nullable = false)
+  var reportData: Map<String, Any> = emptyMap()
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "report_data", columnDefinition = "jsonb", nullable = false)
-    var reportData: Map<String, Any> = emptyMap()
+  @Column(name = "file_path")
+  var filePath: String? = null
 
-    @Column(name = "file_path")
-    var filePath: String? = null
+  @Column(name = "file_name")
+  var fileName: String? = null
 
-    @Column(name = "file_name")
-    var fileName: String? = null
+  @Column(name = "file_size")
+  var fileSize: Long? = null
 
-    @Column(name = "file_size")
-    var fileSize: Long? = null
+  @Column(name = "generated_at", nullable = false)
+  var generatedAt: LocalDateTime = LocalDateTime.now()
 
-    @Column(name = "generated_at", nullable = false)
-    var generatedAt: LocalDateTime = LocalDateTime.now()
-
-    companion object {
-        fun createSummaryReport(
-            taskId: String,
-            reportData: Map<String, Any>
-        ): ReconciliationReport {
-            return ReconciliationReport().apply {
-                this.taskId = taskId
-                this.reportType = "SUMMARY"
-                this.reportData = reportData
-            }
-        }
-
-        fun createDetailReport(
-            taskId: String,
-            reportData: Map<String, Any>
-        ): ReconciliationReport {
-            return ReconciliationReport().apply {
-                this.taskId = taskId
-                this.reportType = "DETAIL"
-                this.reportData = reportData
-            }
-        }
-
-        fun createExcelReport(
-            taskId: String,
-            reportData: Map<String, Any>,
-            fileName: String,
-            filePath: String,
-            fileSize: Long
-        ): ReconciliationReport {
-            return ReconciliationReport().apply {
-                this.taskId = taskId
-                this.reportType = "EXCEL_EXPORT"
-                this.reportData = reportData
-                this.fileName = fileName
-                this.filePath = filePath
-                this.fileSize = fileSize
-            }
-        }
+  companion object {
+    fun createSummaryReport(
+      taskId: String,
+      reportData: Map<String, Any>,
+    ): ReconciliationReport {
+      return ReconciliationReport().apply {
+        this.taskId = taskId
+        this.reportType = "SUMMARY"
+        this.reportData = reportData
+      }
     }
+
+    fun createDetailReport(
+      taskId: String,
+      reportData: Map<String, Any>,
+    ): ReconciliationReport {
+      return ReconciliationReport().apply {
+        this.taskId = taskId
+        this.reportType = "DETAIL"
+        this.reportData = reportData
+      }
+    }
+
+    fun createExcelReport(
+      taskId: String,
+      reportData: Map<String, Any>,
+      fileName: String,
+      filePath: String,
+      fileSize: Long,
+    ): ReconciliationReport {
+      return ReconciliationReport().apply {
+        this.taskId = taskId
+        this.reportType = "EXCEL_EXPORT"
+        this.reportData = reportData
+        this.fileName = fileName
+        this.filePath = filePath
+        this.fileSize = fileSize
+      }
+    }
+  }
 }

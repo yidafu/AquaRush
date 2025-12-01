@@ -28,16 +28,19 @@ import org.springframework.stereotype.Component
 @Component
 @ConfigurationProperties(prefix = "aqua.reconciliation")
 data class ReconciliationConfig(
-    val enabled: Boolean = true,
-    val scheduleCron: String = "0 0 2 * * ?",
-    val batchSize: Int = 1000,
-    val retryAttempts: Int = 3,
-    val alertThreshold: Double = 0.01,
-    val wechat: WeChatConfig = WeChatConfig()
+  val enabled: Boolean = true,
+  val scheduleCron: String = "0 0 2 * * ?",
+  val batchSize: Int = 1000,
+  val retryAttempts: Int = 3,
+  val alertThreshold: Double = 0.01,
+  val wechat: WeChatConfig = WeChatConfig(),
+  val weChatAppId: String = "",
+  val weChatMchId: String = "",
+  val weChatApiKey: String = "",
 ) {
-    data class WeChatConfig(
-        val apiUrl: String = "https://api.mch.weixin.qq.com",
-        val timeout: Int = 30000,
-        val retryDelay: Int = 5000
-    )
+  data class WeChatConfig(
+    val apiUrl: String = "https://api.mch.weixin.qq.com",
+    val timeout: Int = 30000,
+    val retryDelay: Int = 5000,
+  )
 }

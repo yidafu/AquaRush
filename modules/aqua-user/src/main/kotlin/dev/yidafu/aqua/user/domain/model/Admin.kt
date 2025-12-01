@@ -28,21 +28,34 @@ data class Admin(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
+
   @Column(name = "username", unique = true, nullable = false, length = 50)
   var username: String,
+
   @Column(name = "password_hash", nullable = false)
   var passwordHash: String,
+
   @Column(name = "real_name", length = 100)
   var realName: String? = null,
+
   @Column(name = "phone", length = 20)
   var phone: String? = null,
+
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false)
   var role: AdminRole = AdminRole.NORMAL_ADMIN,
-  @Column(name = "created_at", nullable = false)
+
+  @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
+
   @Column(name = "last_login_at")
   var lastLoginAt: LocalDateTime? = null,
+
   @Column(name = "updated_at", nullable = false)
-  var updatedAt: LocalDateTime = LocalDateTime.now(),
-)
+  var updatedAt: LocalDateTime = LocalDateTime.now()
+) {
+  @PreUpdate
+  fun preUpdate() {
+    updatedAt = LocalDateTime.now()
+  }
+}

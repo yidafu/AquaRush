@@ -23,8 +23,8 @@ package dev.yidafu.aqua.reconciliation.domain.model.enums
  * 对账任务状态
  */
 enum class TaskStatus {
-    PENDING,    // 等待执行
-    RUNNING,     // 执行中
-    SUCCESS,     // 执行成功
-    FAILED       // 执行失败
+  PENDING, // 等待执行
+  RUNNING, // 执行中
+  SUCCESS, // 执行成功
+  FAILED, // 执行失败
 }

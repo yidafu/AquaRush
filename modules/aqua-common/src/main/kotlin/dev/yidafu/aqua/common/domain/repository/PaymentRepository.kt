@@ -23,31 +23,13 @@ import dev.yidafu.aqua.common.domain.model.Payment
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
 
 @Repository
-interface PaymentRepository : JpaRepository<Payment, Long>, JpaSpecificationExecutor<Payment> {
-
-    // Enhanced query methods using modern Spring Data JPA 3.0+ features
-    fun findByUserIdAndStatusEnhanced(userId: Long, status: PaymentStatus): List<Payment>
-    fun findExpiredPaymentsEnhanced(now: LocalDateTime): List<Payment>
-    fun findByCreatedAtBetweenEnhanced(startDate: LocalDateTime, endDate: LocalDateTime): List<Payment>
-    fun countByStatusAndCreatedAtBetweenEnhanced(status: PaymentStatus, startDate: LocalDateTime, endDate: LocalDateTime): Long
-    fun sumAmountByStatusAndCreatedAtBetweenEnhanced(status: PaymentStatus, startDate: LocalDateTime, endDate: LocalDateTime): BigDecimal
-    fun findPaymentsWithFilters(
-        userId: Long? = null,
-        status: PaymentStatus? = null,
-        transactionId: String? = null,
-        startDate: LocalDateTime? = null,
-        endDate: LocalDateTime? = null,
-        minAmount: BigDecimal? = null,
-        maxAmount: BigDecimal? = null
-    ): List<Payment>
+interface PaymentRepository : JpaRepository<Payment, Long>, JpaSpecificationExecutor<Payment>, PaymentRepositoryCustom {
   fun findByOrderId(orderId: Long): Optional<Payment>
 
   fun findByTransactionId(transactionId: String): Optional<Payment>

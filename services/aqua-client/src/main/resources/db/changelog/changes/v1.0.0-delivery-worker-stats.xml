@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+    <changeSet id="1.0.0-add-delivery-worker-stats" author="aqua-rush">
+        <comment>Add delivery worker statistics columns to delivery_workers table</comment>
+        <addColumn tableName="delivery_workers">
+            <column name="current_location" type="jsonb"/>
+            <column name="rating" type="decimal(2,1)"/>
+            <column name="total_orders" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completed_orders" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="average_rating" type="decimal(2,1)"/>
+            <column name="earning" type="decimal(10,2)" defaultValueNumeric="0.00"/>
+            <column name="is_available" type="boolean" defaultValueNumeric="true">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <createIndex tableName="delivery_workers" indexName="idx_delivery_workers_total_orders">
+            <column name="total_orders"/>
+        </createIndex>
+
+        <createIndex tableName="delivery_workers" indexName="idx_delivery_workers_is_available">
+            <column name="is_available"/>
+        </createIndex>
+
+        <createIndex tableName="delivery_workers" indexName="idx_delivery_workers_rating">
+            <column name="rating"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

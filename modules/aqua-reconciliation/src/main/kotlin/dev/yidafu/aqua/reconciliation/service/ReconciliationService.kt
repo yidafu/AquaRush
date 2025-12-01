@@ -42,6 +42,7 @@ import java.time.LocalDateTime
 import java.util.*
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
+import kotlin.time.Duration
 
 /**
  * 对账服务核心实现
@@ -109,27 +110,27 @@ class ReconciliationService(
                 eventPublishService.publishDomainEvent(
                     eventType = "RECONCILIATION_STARTED",
                     aggregateId = task.taskId,
-                    data = mapOf(
+                    eventData = mapOf<String, Any>(
                         "taskType" to "PAYMENT",
-                        "taskDate" to task.taskDate,
-                        "startTime" to task.startTime
+                        "taskDate" to (task.taskDate ?: LocalDateTime.now()),
+                        "startTime" to (task.startTime ?: LocalDateTime.now())
                     )
                 )
 
                 // 获取内部支付记录
                 val internalPayments = paymentRepository.findByCreatedAtBetween(
                     task.taskDate!!.toLocalDate().atStartOfDay(),
-                    task.taskDate.toLocalDate().atTime(23, 59, 59, 999999999)
+                    task.taskDate!!.toLocalDate().atTime(23, 59, 59, 999999999)
                 )
 
                 // 获取微信支付记录
-                val weChatTransactions = weChatReconciliationApi.fetchTransactions(task.taskDate.toLocalDate())
+                val weChatTransactions = weChatReconciliationApi.fetchTransactions(task.taskDate!!.toLocalDate())
 
                 // 执行对账
                 val result = performPaymentReconciliation(internalPayments, weChatTransactions, task.taskId)
 
                 // 更新任务结果
-                task.status = if (result.hasDiscrepancies) TaskStatus.SUCCESS else TaskStatus.FAILED
+                task.status = if (result.discrepancies.isEmpty()) TaskStatus.SUCCESS else TaskStatus.FAILED
                 task.endTime = LocalDateTime.now()
                 task.totalRecords = result.totalRecords
                 task.matchedRecords = result.matchedRecords
@@ -147,14 +148,14 @@ class ReconciliationService(
                 eventPublishService.publishDomainEvent(
                     eventType = if (task.status == TaskStatus.SUCCESS) "RECONCILIATION_COMPLETED" else "RECONCILIATION_FAILED",
                     aggregateId = task.taskId,
-                    data = mapOf(
+                    eventData = mapOf<String, Any>(
                         "taskType" to "PAYMENT",
                         "status" to task.status.name,
                         "totalRecords" to result.totalRecords,
                         "matchedRecords" to result.matchedRecords,
                         "unmatchedRecords" to result.unmatchedRecords,
                         "discrepancies" to result.discrepancies.size,
-                        "endTime" to task.endTime
+                        "endTime" to (task.endTime ?: LocalDateTime.now())
                     )
                 )
 
@@ -174,11 +175,11 @@ class ReconciliationService(
                 eventPublishService.publishDomainEvent(
                     eventType = "RECONCILIATION_FAILED",
                     aggregateId = task.taskId,
-                    data = mapOf(
+                    eventData = mapOf<String, Any>(
                         "taskType" to "PAYMENT",
                         "status" to TaskStatus.FAILED.name,
-                        "error" to e.message,
-                        "endTime" to task.endTime
+                        "error" to (e.message ?: ""),
+                        "endTime" to (task.endTime ?: LocalDateTime.now())
                     )
                 )
 
@@ -206,10 +207,10 @@ class ReconciliationService(
                 eventPublishService.publishDomainEvent(
                     eventType = "RECONCILIATION_STARTED",
                     aggregateId = task.taskId,
-                    data = mapOf(
+                    eventData = mapOf<String, Any>(
                         "taskType" to "REFUND",
-                        "taskDate" to task.taskDate,
-                        "startTime" to task.startTime
+                        "taskDate" to (task.taskDate ?: LocalDateTime.now()),
+                        "startTime" to (task.startTime ?: LocalDateTime.now())
                     )
                 )
 
@@ -217,7 +218,7 @@ class ReconciliationService(
                 // val internalRefunds = refundRepository.findByCreatedAtBetween(...)
 
                 // 获取微信退款记录
-                val weChatRefunds = weChatReconciliationApi.fetchRefunds(task.taskDate.toLocalDate())
+                val weChatRefunds = weChatReconciliationApi.fetchRefunds(task.taskDate!!.toLocalDate())
 
                 // 执行退款对账
                 // val result = performRefundReconciliation(internalRefunds, weChatRefunds, task.taskId)
@@ -235,13 +236,13 @@ class ReconciliationService(
                 eventPublishService.publishDomainEvent(
                     eventType = "RECONCILIATION_COMPLETED",
                     aggregateId = task.taskId,
-                    data = mapOf(
+                    eventData = mapOf(
                         "taskType" to "REFUND",
                         "status" to task.status.name,
                         "totalRecords" to 0,
                         "matchedRecords" to 0,
                         "unmatchedRecords" to 0,
-                        "endTime" to task.endTime
+                        "endTime" to (task.endTime ?: LocalDateTime.now())
                     )
                 )
 
@@ -281,15 +282,15 @@ class ReconciliationService(
                 eventPublishService.publishDomainEvent(
                     eventType = "RECONCILIATION_STARTED",
                     aggregateId = task.taskId,
-                    data = mapOf(
+                    eventData = mapOf(
                         "taskType" to "SETTLEMENT",
-                        "taskDate" to task.taskDate,
-                        "startTime" to task.startTime
+                        "taskDate" to (task.taskDate ?: LocalDateTime.now()),
+                        "startTime" to (task.startTime ?: LocalDateTime.now())
                     )
                 )
 
                 // 获取微信结算记录
-                val weChatSettlements = weChatReconciliationApi.fetchSettlements(task.taskDate.toLocalDate())
+                val weChatSettlements = weChatReconciliationApi.fetchSettlements(task.taskDate!!.toLocalDate())
 
                 // 执行结算对账
                 // val result = performSettlementReconciliation(weChatSettlements, task.taskId)
@@ -307,13 +308,13 @@ class ReconciliationService(
                 eventPublishService.publishDomainEvent(
                     eventType = "RECONCILIATION_COMPLETED",
                     aggregateId = task.taskId,
-                    data = mapOf(
+                    eventData = mapOf<String, Any>(
                         "taskType" to "SETTLEMENT",
                         "status" to task.status.name,
                         "totalRecords" to task.totalRecords,
                         "matchedRecords" to task.matchedRecords,
                         "unmatchedRecords" to task.unmatchedRecords,
-                        "endTime" to task.endTime
+                        "endTime" to (task.endTime ?: LocalDateTime.now())
                     )
                 )
 
@@ -391,7 +392,7 @@ class ReconciliationService(
             val discrepancy = reconciliationDiscrepancyRepository.findById(discrepancyId).orElse(null)
                 ?: return false
 
-            discrepancy.status = "RESOLVED"
+            discrepancy.status = DiscrepancyStatus.RESOLVED
             discrepancy.resolutionNotes = resolutionNotes
             discrepancy.resolvedBy = resolvedBy
             discrepancy.resolvedAt = LocalDateTime.now()
@@ -402,11 +403,11 @@ class ReconciliationService(
             eventPublishService.publishDomainEvent(
                 eventType = "DISCREPANCY_RESOLVED",
                 aggregateId = discrepancy.taskId,
-                data = mapOf(
+                eventData = mapOf<String, Any>(
                     "discrepancyId" to discrepancyId,
                     "discrepancyType" to discrepancy.discrepancyType.name,
                     "resolvedBy" to resolvedBy,
-                    "resolvedAt" to discrepancy.resolvedAt,
+                    "resolvedAt" to (discrepancy.resolvedAt ?: LocalDateTime.now()),
                     "resolutionNotes" to resolutionNotes
                 )
             )
@@ -443,7 +444,7 @@ class ReconciliationService(
                         ReconciliationDiscrepancy.createMissingRecord(
                             taskId = taskId,
                             sourceSystem = SourceSystem.WECHAT,
-                            recordId = payment.transactionId,
+                            recordId = payment.transactionId ?: "",
                             recordDetails = mapOf(
                                 "internal" to mapOf(
                                     "transactionId" to payment.transactionId,
@@ -458,13 +459,13 @@ class ReconciliationService(
                         )
                     )
                 }
-                !payment.amount.equals(weChatTx.amount) -> {
+                !payment.amount.equals(weChatTx?.amount) -> {
                     // 金额不匹配
                     discrepancies.add(
                         ReconciliationDiscrepancy.createMismatchRecord(
                             taskId = taskId,
                             sourceSystem = SourceSystem.INTERNAL,
-                            recordId = payment.transactionId,
+                            recordId = payment.transactionId ?: "",
                             recordDetails = mapOf(
                                 "internal" to mapOf(
                                     "transactionId" to payment.transactionId,
@@ -473,12 +474,12 @@ class ReconciliationService(
                                     "status" to payment.status.name
                                 ),
                                 "wechat" to mapOf(
-                                    "transactionId" to weChatTx.transactionId,
-                                    "outTradeNo" to weChatTx.outTradeNo,
-                                    "amount" to weChatTx.amount,
-                                    "tradeState" to weChatTx.tradeState
+                                    "transactionId" to weChatTx?.transactionId,
+                                    "outTradeNo" to weChatTx?.outTradeNo,
+                                    "amount" to weChatTx?.amount,
+                                    "tradeState" to weChatTx?.tradeState
                                 ),
-                                "amountDifference" to (payment.amount - weChatTx.amount).abs()
+                                "amountDifference" to (payment.amount - (weChatTx?.amount ?: BigDecimal(0))).abs()
                             )
                         )
                     )
@@ -533,22 +534,24 @@ class ReconciliationService(
     private fun generatePaymentReconciliationReport(task: ReconciliationTask, result: PaymentReconciliationResult) {
         val summaryReport = ReconciliationReport.createSummaryReport(
             taskId = task.taskId!!,
-            reportData = mapOf(
+            reportData = mapOf<String, Any>(
                 "taskType" to "PAYMENT",
-                "taskDate" to task.taskDate,
+                "taskDate" to (task.taskDate ?: LocalDateTime.now()),
                 "totalRecords" to result.totalRecords,
                 "matchedRecords" to result.matchedRecords,
                 "unmatchedRecords" to result.unmatchedRecords,
-                "discrepancies" to result.discrepancies.groupBy { it.discrepancyType }.mapValues { it.size },
+                "discrepancies" to result.discrepancies.groupBy { it.discrepancyType }.mapValues { it.value },
                 "discrepancyDetails" to result.discrepancies.take(50).map {
+                  mapOf(
                     "id" to it.id,
                     "type" to it.discrepancyType.name,
                     "recordId" to it.recordId,
                     "sourceSystem" to it.sourceSystem.name
+                  )
                 },
                 "executionTime" to if (task.startTime != null && task.endTime != null) {
                     java.time.Duration.between(task.startTime, task.endTime).toMillis()
-                } else null
+                } else Duration.ZERO
             )
         )
 

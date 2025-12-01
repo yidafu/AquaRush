@@ -21,8 +21,6 @@ package dev.yidafu.aqua.common.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.Payment
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
-import io.mockk.every
-import io.mockk.mockk
 import jakarta.persistence.EntityManager
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -33,149 +31,153 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.test.context.TestPropertySource
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 /**
  * Test class for enhanced payment repository methods
  * Validates the modern Spring Data JPA 3.0+ query patterns
  */
 @ExtendWith(MockitoExtension::class)
-//@DataJpaTest
-@TestPropertySource(properties = [
+// @DataJpaTest
+@TestPropertySource(
+  properties = [
     "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1"
-])
+    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",
+  ],
+)
 class EnhancedPaymentRepositoryTest {
+  @Mock
+  private lateinit var paymentRepository: JpaRepository<Payment, Long>
 
-    @Mock
-    private lateinit var paymentRepository: JpaRepository<Payment, Long>
+  @Mock
+  private lateinit var entityManager: EntityManager
 
-    @Mock
-    private lateinit var entityManager: EntityManager
+  private lateinit var enhancedRepository: PaymentRepositoryImpl
 
-    private lateinit var enhancedRepository: PaymentRepositoryImpl
+  @BeforeEach
+  fun setUp() {
+    enhancedRepository = PaymentRepositoryImpl(entityManager)
+  }
 
-    @BeforeEach
-    fun setUp() {
-        enhancedRepository = PaymentRepositoryImpl(entityManager)
-    }
+  @Test
+  fun `should find payments by user ID and status`() {
+    // Given
+    val userId = 1L
+    val status = PaymentStatus.SUCCESS
+    val expectedPayments =
+      listOf(
+        Payment(
+          userId = userId,
+          status = status,
+          amount = BigDecimal("100.00"),
+          createdAt = LocalDateTime.now(),
+          id = TODO(),
+          orderId = TODO(),
+          transactionId = TODO(),
+          prepayId = TODO(),
+          currency = TODO(),
+          paymentMethod = TODO(),
+          description = TODO(),
+          failureReason = TODO(),
+          paidAt = TODO(),
+          expiredAt = TODO(),
+          updatedAt = TODO(),
+        ),
+      )
 
-    @Test
-    fun `should find payments by user ID and status`() {
-        // Given
-        val userId = 1L
-        val status = PaymentStatus.SUCCESS
-        val expectedPayments = listOf(
-            Payment(
-              userId = userId,
-              status = status,
-              amount = BigDecimal("100.00"),
-              createdAt = LocalDateTime.now(),
-              id = TODO(),
-              orderId = TODO(),
-              transactionId = TODO(),
-              prepayId = TODO(),
-              currency = TODO(),
-              paymentMethod = TODO(),
-              description = TODO(),
-              failureReason = TODO(),
-              paidAt = TODO(),
-              expiredAt = TODO(),
-              updatedAt = TODO()
-            )
-        )
-
-        // Mock Criteria API behavior
+    // Mock Criteria API behavior
 //        every<Any>(entityManager.criteriaBuilder).thenReturn(mockk())
 //        every<Any>(entityManager.createQuery(Payment::class.java)).thenReturn(mockk())
 
-        // When & Then
-        val result = enhancedRepository.findByUserIdAndStatusEnhanced(userId, status)
-        assertNotNull(result)
-        // Additional assertions would depend on mock behavior
-    }
+    // When & Then
+    val result = enhancedRepository.findByUserIdAndStatusEnhanced(userId, status)
+    assertNotNull(result)
+    // Additional assertions would depend on mock behavior
+  }
 
-    @Test
-    fun `should find expired payments`() {
-        // Given
-        val now = LocalDateTime.now()
-        val expiredTime = now.minusMinutes(30)
+  @Test
+  fun `should find expired payments`() {
+    // Given
+    val now = LocalDateTime.now()
+    val expiredTime = now.minusMinutes(30)
 
-        // When
-        val result = enhancedRepository.findExpiredPaymentsEnhanced(now)
+    // When
+    val result = enhancedRepository.findExpiredPaymentsEnhanced(now)
 
-        // Then
-        assertNotNull(result)
-        // Additional validation would depend on mock setup
-    }
+    // Then
+    assertNotNull(result)
+    // Additional validation would depend on mock setup
+  }
 
-    @Test
-    fun `should count payments by status and date range`() {
-        // Given
-        val status = PaymentStatus.PENDING
-        val startDate = LocalDateTime.now().minusDays(7)
-        val endDate = LocalDateTime.now()
+  @Test
+  fun `should count payments by status and date range`() {
+    // Given
+    val status = PaymentStatus.PENDING
+    val startDate = LocalDateTime.now().minusDays(7)
+    val endDate = LocalDateTime.now()
 
-        // Mock the count query
+    // Mock the count query
 //        every(entityManager.criteriaBuilder).thenReturn(mockk())
 //        every(entityManager.createQuery(Long::class.java)).thenReturn(mockk())
 
-        // When
-        val result = enhancedRepository.countByStatusAndCreatedAtBetweenEnhanced(status, startDate, endDate)
+    // When
+    val result = enhancedRepository.countByStatusAndCreatedAtBetweenEnhanced(status, startDate, endDate)
 
-        // Then
-        assertNotNull(result)
-    }
+    // Then
+    assertNotNull(result)
+  }
 
-    @Test
-    fun `should sum payment amounts by status and date range`() {
-        // Given
-        val status = PaymentStatus.SUCCESS
-        val startDate = LocalDateTime.now().minusDays(30)
-        val endDate = LocalDateTime.now()
-        val expectedTotal = BigDecimal("1500.50")
+  @Test
+  fun `should sum payment amounts by status and date range`() {
+    // Given
+    val status = PaymentStatus.SUCCESS
+    val startDate = LocalDateTime.now().minusDays(30)
+    val endDate = LocalDateTime.now()
+    val expectedTotal = BigDecimal("1500.50")
 
-        // Mock aggregation query
+    // Mock aggregation query
 //        every(entityManager.criteriaBuilder).thenReturn(mockk())
 //        every(entityManager.createQuery()).thenReturn(mockk())
 
-        // When
-        val result = enhancedRepository.sumAmountByStatusAndCreatedAtBetweenEnhanced(
-            status, startDate, endDate
-        )
+    // When
+    val result =
+      enhancedRepository.sumAmountByStatusAndCreatedAtBetweenEnhanced(
+        status,
+        startDate,
+        endDate,
+      )
 
-        // Then
-        assertNotNull(result)
-        // In real test with actual database, would verify the sum calculation
-    }
+    // Then
+    assertNotNull(result)
+    // In real test with actual database, would verify the sum calculation
+  }
 
-    @Test
-    fun `should find payments with flexible filters`() {
-        // Given
-        val userId = 123L
-        val status = PaymentStatus.PENDING
-        val startDate = LocalDateTime.now().minusDays(1)
-        val endDate = LocalDateTime.now()
-        val minAmount = BigDecimal("50.00")
-        val maxAmount = BigDecimal("500.00")
+  @Test
+  fun `should find payments with flexible filters`() {
+    // Given
+    val userId = 123L
+    val status = PaymentStatus.PENDING
+    val startDate = LocalDateTime.now().minusDays(1)
+    val endDate = LocalDateTime.now()
+    val minAmount = BigDecimal("50.00")
+    val maxAmount = BigDecimal("500.00")
 
-        // Mock complex query behavior
+    // Mock complex query behavior
 //        every(entityManager.criteriaBuilder).thenReturn(mockk())
 //        every(entityManager.createQuery(Payment::class.java)).thenReturn(mockk())
 
-        // When
-        val result = enhancedRepository.findPaymentsWithFilters(
-            userId = userId,
-            status = status,
-            startDate = startDate,
-            endDate = endDate,
-            minAmount = minAmount,
-            maxAmount = maxAmount
-        )
+    // When
+    val result =
+      enhancedRepository.findPaymentsWithFilters(
+        userId = userId,
+        status = status,
+        startDate = startDate,
+        endDate = endDate,
+        minAmount = minAmount,
+        maxAmount = maxAmount,
+      )
 
-        // Then
-        assertNotNull(result)
-    }
+    // Then
+    assertNotNull(result)
+  }
 }

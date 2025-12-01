@@ -43,17 +43,17 @@ data class DomainEvent(
   var payload: String,
   @Column(name = "retry_count", nullable = false)
   var retryCount: Int = 0,
-  @Column(name = "next_run_at")
   // @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")  // Temporarily disabled for Jackson 3.x compatibility
+  @Column(name = "next_run_at")
   var nextRunAt: LocalDateTime? = null,
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
   var status: EventStatus = EventStatus.PENDING,
+  // @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")  // Temporarily disabled for Jackson 3.x compatibility
   @Column(name = "created_at", nullable = false)
-  // @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")  // Temporarily disabled for Jackson 3.x compatibility
   val createdAt: LocalDateTime = LocalDateTime.now(),
-  @Column(name = "updated_at", nullable = false)
   // @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")  // Temporarily disabled for Jackson 3.x compatibility
+  @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "error_message", columnDefinition = "TEXT")
   var errorMessage: String? = null,

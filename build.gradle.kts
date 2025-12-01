@@ -11,7 +11,7 @@ group = "dev.yidafu.aqua"
 version = "0.1.0-SNAPSHOT"
 
 repositories {
-  maven { url = uri("https://repo.huaweicloud.com/repository/maven/")}
+  maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
   mavenCentral()
   maven { url = uri("https://repo.spring.io/milestone") }
   maven { url = uri("https://repo.spring.io/snapshot") }
@@ -41,9 +41,10 @@ subprojects {
   version = rootProject.version
 
   repositories {
-    maven { url = uri("https://repo.huaweicloud.com/repository/maven/")}
+    maven { url = uri("https://repo.huaweicloud.com/repository/maven/") }
     mavenCentral()
     maven { url = uri("https://repo.spring.io/milestone") }
+    gradlePluginPortal()
   }
 
   apply(plugin = "org.jlleitschuh.gradle.ktlint")

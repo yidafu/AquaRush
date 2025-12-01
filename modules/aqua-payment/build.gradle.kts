@@ -14,6 +14,9 @@ dependencies {
   // Spring Security for security context
   implementation(libs.spring.boot.starter.security)
 
+  // Spring Data JPA for PaymentRepository
+  implementation(libs.bundles.spring.boot.data)
+
   // Note: Order-related operations will be handled through common-module
   // to avoid circular dependencies
 

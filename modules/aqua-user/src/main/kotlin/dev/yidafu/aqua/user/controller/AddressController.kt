@@ -33,7 +33,7 @@ class AddressController(
   fun getMyAddresses(
     @RequestAttribute("userId") userId: Long,
   ): ResponseEntity<List<Address>> {
-    val addresses = addressService.findByUserId(userId)
+    val addresses = addressService.getUserAddresses(userId)
     return ResponseEntity.ok(addresses)
   }
 
@@ -61,8 +61,6 @@ class AddressController(
     val address =
       addressService.createAddress(
         userId = userId,
-        receiverName = request.receiverName,
-        phone = request.phone,
         province = request.province,
         city = request.city,
         district = request.district,
@@ -82,8 +80,6 @@ class AddressController(
       addressService.updateAddress(
         addressId = id,
         userId = userId,
-        receiverName = request.receiverName,
-        phone = request.phone,
         province = request.province,
         city = request.city,
         district = request.district,
@@ -110,9 +106,9 @@ class AddressController(
   fun setDefaultAddress(
     @PathVariable id: Long,
     @RequestAttribute("userId") userId: Long,
-  ): ResponseEntity<Address> {
-    val address = addressService.setDefaultAddress(id, userId)
-    return ResponseEntity.ok(address)
+  ): ResponseEntity<Boolean> {
+    val success = addressService.setDefaultAddress(id, userId)
+    return ResponseEntity.ok(success)
   }
 }
 

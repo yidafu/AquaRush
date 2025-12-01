@@ -21,5 +21,6 @@ package dev.yidafu.aqua.user.domain.model
 
 enum class AdminRole {
   SUPER_ADMIN, // 超级管理员
+  ADMIN, // 管理员
   NORMAL_ADMIN, // 普通管理员
 }

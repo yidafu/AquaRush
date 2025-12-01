@@ -36,7 +36,6 @@ import java.util.concurrent.ThreadPoolExecutor
 @EnableConfigurationProperties(SimplifiedMessagingProperties::class)
 @EnableAsync
 class MessagingConfig {
-
   @Bean
   @Primary
   fun simplifiedMessagingProperties(): SimplifiedMessagingProperties {

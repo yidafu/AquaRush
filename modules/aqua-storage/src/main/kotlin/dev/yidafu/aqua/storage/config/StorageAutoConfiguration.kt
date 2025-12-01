@@ -19,7 +19,9 @@
 
 package dev.yidafu.aqua.storage.config
 
+import org.apache.tika.Tika
 import org.springframework.boot.context.properties.EnableConfigurationProperties
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 
@@ -29,4 +31,13 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @ComponentScan(basePackages = ["dev.yidafu.aqua.storage"])
 @EnableConfigurationProperties(StorageProperties::class, ImageProcessingProperties::class)
-class StorageAutoConfiguration
+class StorageAutoConfiguration {
+
+    /**
+     * 配置 Apache Tika bean 用于文件类型检测
+     */
+    @Bean
+    fun tika(): Tika {
+        return Tika()
+    }
+}

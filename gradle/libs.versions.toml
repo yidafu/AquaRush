@@ -79,6 +79,7 @@ java-dataloader = { module = "com.graphql-java:java-dataloader", version = "6.0.
 
 # QueryDSL
 querydsl-jpa = { module = "com.querydsl:querydsl-jpa", version.ref = "querydsl" }
+querydsl-core = { module = "com.querydsl:querydsl-core", version.ref = "querydsl"}
 querydsl-apt = { module = "com.querydsl:querydsl-apt", version.ref = "querydsl" }
 
 # Logging
@@ -150,11 +151,12 @@ wechat-miniapp = { module = "com.github.binarywang:weixin-java-miniapp", version
 [bundles]
 kotlin = ["kotlin-reflect", "kotlin-stdlib"]
 spring-boot-web = ["spring-boot-starter-web", "spring-boot-starter-validation", "jackson-module-kotlin"]
-spring-boot-data = ["spring-boot-starter-data-jpa", "spring-boot-starter-liquibase", "postgresql"]
+spring-boot-data = ["spring-boot-starter-data-jpa", "postgresql"]
+spring-boot-liqiubase = ["spring-boot-starter-data-jpa", "spring-boot-starter-liquibase", "postgresql"]
 spring-boot-security = ["spring-boot-starter-security"]
 #jwt = ["jjwt-api", "jjwt-impl", "jjwt-jackson"]
 graphql = ["spring-boot-starter-graphql"]
-querydsl = ["querydsl-jpa", "querydsl-apt"]
+querydsl = ["querydsl-jpa","querydsl-core", "querydsl-apt"]
 kotlinx = ["kotlinx-coroutines-core", "kotlinx-serialization-json"]
 messaging = ["spring-boot-starter-artemis", "artemis-jakarta-server"]
 cache = ["spring-boot-starter-cache"]

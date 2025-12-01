@@ -36,6 +36,16 @@ interface RegionRepository : JpaRepository<Region, Long> {
 
   fun existsByCode(code: String): Boolean
 
+  fun existsByCodeAndLevel(code: String, level: Int): Boolean
+
+  fun findByNameContainingAndLevelOrderByCode(name: String, level: Int): List<Region>
+
+  fun findByNameContainingOrderByCode(name: String): List<Region>
+
+  fun findByParentCodeOrderByCode(parentCode: String): List<Region>
+
+  fun findByLevelOrderByCode(level: Int): List<Region>
+
   @Query("SELECT r FROM Region r WHERE r.parentCode IS NULL AND r.level = :level")
   fun findRootRegions(@Param("level") level: Int): List<Region>
 }

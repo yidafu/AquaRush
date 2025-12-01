@@ -19,12 +19,12 @@
 
 package dev.yidafu.aqua.common.cache
 
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import org.mapdb.DB
 import org.mapdb.DBMaker
 import org.mapdb.Serializer
 import org.slf4j.LoggerFactory
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.Duration
 import java.time.Instant
 import java.util.concurrent.CompletableFuture
@@ -32,7 +32,6 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.ScheduledExecutorService
 import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * MapDB缓存管理器实现

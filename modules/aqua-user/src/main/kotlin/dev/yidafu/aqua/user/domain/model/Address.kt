@@ -24,7 +24,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "addresses")
-data class Address(
+open class Address(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
@@ -32,20 +32,23 @@ data class Address(
   @Column(name = "user_id", nullable = false)
   val userId: Long,
 
-  @Column(name = "receiver_name", nullable = false)
-  var receiverName: String,
-
-  @Column(name = "phone", nullable = false)
-  var phone: String,
-
   @Column(name = "province", nullable = false)
   var province: String,
+
+  @Column(name = "province_code")
+  var provinceCode: String? = null,
 
   @Column(name = "city", nullable = false)
   var city: String,
 
+  @Column(name = "city_code")
+  var cityCode: String? = null,
+
   @Column(name = "district", nullable = false)
   var district: String,
+
+  @Column(name = "district_code")
+  var districtCode: String? = null,
 
   @Column(name = "detail_address", nullable = false, length = 500)
   var detailAddress: String,
@@ -53,8 +56,11 @@ data class Address(
   @Column(name = "postal_code")
   var postalCode: String? = null,
 
-  @Column(name = "coordinates", columnDefinition = "jsonb")
-  var coordinates: String? = null,
+  @Column(name = "longitude")
+  var longitude: Double? = null,
+
+  @Column(name = "latitude")
+  var latitude: Double? = null,
 
   @Column(name = "is_default", nullable = false)
   var isDefault: Boolean = false,

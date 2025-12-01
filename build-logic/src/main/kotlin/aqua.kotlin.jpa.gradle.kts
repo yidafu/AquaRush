@@ -1,9 +1,10 @@
 plugins {
-    id("aqua.kotlin.spring")
-    kotlin("plugin.jpa")
+  id("aqua.kotlin.spring")
+  kotlin("plugin.jpa")
 }
 
 dependencies {
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    runtimeOnly("org.postgresql:postgresql")
+  implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+  runtimeOnly("org.postgresql:postgresql")
 }
+

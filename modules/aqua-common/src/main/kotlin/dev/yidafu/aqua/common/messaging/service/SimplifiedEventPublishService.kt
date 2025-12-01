@@ -19,7 +19,6 @@
 
 package dev.yidafu.aqua.common.messaging.service
 
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import dev.yidafu.aqua.common.domain.model.DomainEvent
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.messaging.config.SimplifiedMessagingProperties
@@ -28,6 +27,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 
 /**
