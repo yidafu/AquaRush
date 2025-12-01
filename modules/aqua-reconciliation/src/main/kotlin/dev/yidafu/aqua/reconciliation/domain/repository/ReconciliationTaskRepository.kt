@@ -33,62 +33,66 @@ import java.time.LocalDateTime
  */
 @Repository
 interface ReconciliationTaskRepository : JpaRepository<ReconciliationTask, Long> {
+  /**
+   * 根据任务ID查找任务
+   */
+  fun findByTaskId(taskId: String): ReconciliationTask?
 
-    /**
-     * 根据任务ID查找任务
-     */
-    fun findByTaskId(taskId: String): ReconciliationTask?
+  /**
+   * 根据任务状态查找任务
+   */
+  fun findByStatus(status: TaskStatus): List<ReconciliationTask>
 
-    /**
-     * 根据任务状态查找任务
-     */
-    fun findByStatus(status: TaskStatus): List<ReconciliationTask>
+  /**
+   * 根据任务类型和状态查找任务
+   */
+  fun findByTaskTypeAndStatus(
+    taskType: TaskType,
+    status: TaskStatus,
+  ): List<ReconciliationTask>
 
-    /**
-     * 根据任务类型和状态查找任务
-     */
-    fun findByTaskTypeAndStatus(taskType: TaskType, status: TaskStatus): List<ReconciliationTask>
+  /**
+   * 查找正在运行的任务
+   */
+  fun findByStatusIn(statuses: List<TaskStatus>): List<ReconciliationTask>
 
-    /**
-     * 查找正在运行的任务
-     */
-    fun findByStatusIn(statuses: List<TaskStatus>): List<ReconciliationTask>
+  /**
+   * 根据任务日期范围查找任务
+   */
+  @Query("SELECT t FROM ReconciliationTask t WHERE t.taskDate BETWEEN :startDate AND :endDate ORDER BY t.taskDate DESC")
+  fun findByTaskDateBetween(
+    @Param("startDate") startDate: LocalDateTime,
+    @Param("endDate") endDate: LocalDateTime,
+  ): List<ReconciliationTask>
 
-    /**
-     * 根据任务日期范围查找任务
-     */
-    @Query("SELECT t FROM ReconciliationTask t WHERE t.taskDate BETWEEN :startDate AND :endDate ORDER BY t.taskDate DESC")
-    fun findByTaskDateBetween(
-        @Param("startDate") startDate: LocalDateTime,
-        @Param("endDate") endDate: LocalDateTime
-    ): List<ReconciliationTask>
+  /**
+   * 根据任务类型和日期范围查找任务
+   */
+  @Query(
+    "SELECT t FROM ReconciliationTask t WHERE t.taskType = :taskType AND t.taskDate BETWEEN :startDate AND :endDate ORDER BY t.taskDate DESC",
+  )
+  fun findByTaskTypeAndTaskDateBetween(
+    @Param("taskType") taskType: TaskType,
+    @Param("startDate") startDate: LocalDateTime,
+    @Param("endDate") endDate: LocalDateTime,
+  ): List<ReconciliationTask>
 
-    /**
-     * 根据任务类型和日期范围查找任务
-     */
-    @Query("SELECT t FROM ReconciliationTask t WHERE t.taskType = :taskType AND t.taskDate BETWEEN :startDate AND :endDate ORDER BY t.taskDate DESC")
-    fun findByTaskTypeAndTaskDateBetween(
-        @Param("taskType") taskType: TaskType,
-        @Param("startDate") startDate: LocalDateTime,
-        @Param("endDate") endDate: LocalDateTime
-    ): List<ReconciliationTask>
+  /**
+   * 统计任务数量
+   */
+  @Query("SELECT COUNT(t) FROM ReconciliationTask t WHERE t.taskType = :taskType AND t.status = :status")
+  fun countByTaskTypeAndStatus(
+    @Param("taskType") taskType: TaskType,
+    @Param("status") status: TaskStatus,
+  ): Long
 
-    /**
-     * 统计任务数量
-     */
-    @Query("SELECT COUNT(t) FROM ReconciliationTask t WHERE t.taskType = :taskType AND t.status = :status")
-    fun countByTaskTypeAndStatus(
-        @Param("taskType") taskType: TaskType,
-        @Param("status") status: TaskStatus
-    ): Long
+  /**
+   * 查找最新的任务
+   */
+  fun findFirstByOrderByTaskDateDesc(): ReconciliationTask?
 
-    /**
-     * 查找最新的任务
-     */
-    fun findFirstByOrderByTaskDateDesc(): ReconciliationTask?
-
-    /**
-     * 检查是否有正在运行的任务
-     */
-    fun existsByStatus(status: TaskStatus): Boolean
+  /**
+   * 检查是否有正在运行的任务
+   */
+  fun existsByStatus(status: TaskStatus): Boolean
 }

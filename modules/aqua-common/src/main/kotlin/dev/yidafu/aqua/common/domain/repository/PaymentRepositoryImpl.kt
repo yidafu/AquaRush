@@ -22,159 +22,163 @@ package dev.yidafu.aqua.common.domain.repository
 import dev.yidafu.aqua.common.domain.model.Payment
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
 /**
  * Enhanced PaymentRepository implementation with modern Spring Data JPA 3.0+ features
- * This provides type-safe query methods as an alternative to the Specification pattern
+ * This implements PaymentRepositoryCustom for custom query methods
  */
 @Repository
 class PaymentRepositoryImpl(
-    private val entityManager: EntityManager
-) {
+  private val entityManager: EntityManager,
+) : PaymentRepositoryCustom {
+  /**
+   * Find payments by user ID and status with type-safe query
+   */
+  override fun findByUserIdAndStatusEnhanced(
+    userId: Long,
+    status: PaymentStatus,
+  ): List<Payment> {
+    val cb = entityManager.criteriaBuilder
+    val query = cb.createQuery(Payment::class.java)
+    val root = query.from(Payment::class.java)
 
-    /**
-     * Find payments by user ID and status with type-safe query
-     */
-    fun findByUserIdAndStatusEnhanced(userId: Long, status: PaymentStatus): List<Payment> {
-        val cb = entityManager.criteriaBuilder
-        val query = cb.createQuery(Payment::class.java)
-        val root = query.from(Payment::class.java)
+    val userIdPredicate = cb.equal(root.get<Long>("userId"), userId)
+    val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), status)
 
-        val userIdPredicate = cb.equal(root.get<Long>("userId"), userId)
-        val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), status)
+    query.where(cb.and(userIdPredicate, statusPredicate))
+    return entityManager.createQuery(query).resultList
+  }
 
-        query.where(cb.and(userIdPredicate, statusPredicate))
-        return entityManager.createQuery(query).resultList
+  /**
+   * Find expired payments before specified time
+   */
+  override fun findExpiredPaymentsEnhanced(now: LocalDateTime): List<Payment> {
+    val cb = entityManager.criteriaBuilder
+    val query = cb.createQuery(Payment::class.java)
+    val root = query.from(Payment::class.java)
+
+    val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), PaymentStatus.PENDING)
+    val expiredPredicate = cb.lessThan(root.get<LocalDateTime>("expiredAt"), now)
+
+    query.where(cb.and(statusPredicate, expiredPredicate))
+    return entityManager.createQuery(query).resultList
+  }
+
+  /**
+   * Find payments created within a date range
+   */
+  override fun findByCreatedAtBetweenEnhanced(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<Payment> {
+    val cb = entityManager.criteriaBuilder
+    val query = cb.createQuery(Payment::class.java)
+    val root = query.from(Payment::class.java)
+
+    val startPredicate = cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), startDate)
+    val endPredicate = cb.lessThanOrEqualTo(root.get<LocalDateTime>("createdAt"), endDate)
+
+    query.where(cb.and(startPredicate, endPredicate))
+    return entityManager.createQuery(query).resultList
+  }
+
+  /**
+   * Count payments by status and creation date range
+   */
+  override fun countByStatusAndCreatedAtBetweenEnhanced(
+    status: PaymentStatus,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): Long {
+    val cb = entityManager.criteriaBuilder
+    val query = cb.createQuery(Long::class.java)
+    val root = query.from(Payment::class.java)
+
+    val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), status)
+    val startPredicate = cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), startDate)
+    val endPredicate = cb.lessThanOrEqualTo(root.get<LocalDateTime>("createdAt"), endDate)
+
+    query.select(cb.count(root))
+    query.where(cb.and(statusPredicate, startPredicate, endPredicate))
+    return entityManager.createQuery(query).singleResult ?: 0L
+  }
+
+  /**
+   * Sum payment amounts by status and creation date range using database-level aggregation
+   * This is much more efficient than in-memory aggregation
+   */
+  override fun sumAmountByStatusAndCreatedAtBetweenEnhanced(
+    status: PaymentStatus,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): BigDecimal {
+    val cb = entityManager.criteriaBuilder
+    val query = cb.createQuery()
+    val root = query.from(Payment::class.java)
+
+    val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), status)
+    val startPredicate = cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), startDate)
+    val endPredicate = cb.lessThanOrEqualTo(root.get<LocalDateTime>("createdAt"), endDate)
+
+    query.select(cb.sum(root.get<BigDecimal>("amount")))
+    query.where(cb.and(statusPredicate, startPredicate, endPredicate))
+
+    val result = entityManager.createQuery(query).singleResult
+    return (result as? BigDecimal) ?: BigDecimal.ZERO
+  }
+
+  /**
+   * Complex query: find payments with multiple criteria
+   */
+  override fun findPaymentsWithFilters(
+    userId: Long?,
+    status: PaymentStatus?,
+    transactionId: String?,
+    startDate: LocalDateTime?,
+    endDate: LocalDateTime?,
+    minAmount: BigDecimal?,
+    maxAmount: BigDecimal?,
+  ): List<Payment> {
+    val cb = entityManager.criteriaBuilder
+    val query = cb.createQuery(Payment::class.java)
+    val root = query.from(Payment::class.java)
+
+    val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
+
+    userId?.let {
+      predicates.add(cb.equal(root.get<Long>("userId"), it))
     }
 
-    /**
-     * Find expired payments before specified time
-     */
-    fun findExpiredPaymentsEnhanced(now: LocalDateTime): List<Payment> {
-        val cb = entityManager.criteriaBuilder
-        val query = cb.createQuery(Payment::class.java)
-        val root = query.from(Payment::class.java)
-
-        val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), PaymentStatus.PENDING)
-        val expiredPredicate = cb.lessThan(root.get<LocalDateTime>("expiredAt"), now)
-
-        query.where(cb.and(statusPredicate, expiredPredicate))
-        return entityManager.createQuery(query).resultList
+    status?.let {
+      predicates.add(cb.equal(root.get<PaymentStatus>("status"), it))
     }
 
-    /**
-     * Find payments created within a date range
-     */
-    fun findByCreatedAtBetweenEnhanced(startDate: LocalDateTime, endDate: LocalDateTime): List<Payment> {
-        val cb = entityManager.criteriaBuilder
-        val query = cb.createQuery(Payment::class.java)
-        val root = query.from(Payment::class.java)
-
-        val startPredicate = cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), startDate)
-        val endPredicate = cb.lessThanOrEqualTo(root.get<LocalDateTime>("createdAt"), endDate)
-
-        query.where(cb.and(startPredicate, endPredicate))
-        return entityManager.createQuery(query).resultList
+    transactionId?.let {
+      predicates.add(cb.equal(root.get<String>("transactionId"), it))
     }
 
-    /**
-     * Count payments by status and creation date range
-     */
-    fun countByStatusAndCreatedAtBetweenEnhanced(
-        status: PaymentStatus,
-        startDate: LocalDateTime,
-        endDate: LocalDateTime
-    ): Long {
-        val cb = entityManager.criteriaBuilder
-        val query = cb.createQuery(Long::class.java)
-        val root = query.from(Payment::class.java)
-
-        val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), status)
-        val startPredicate = cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), startDate)
-        val endPredicate = cb.lessThanOrEqualTo(root.get<LocalDateTime>("createdAt"), endDate)
-
-        query.select(cb.count(root))
-        query.where(cb.and(statusPredicate, startPredicate, endPredicate))
-        return entityManager.createQuery(query).singleResult ?: 0L
+    startDate?.let { start ->
+      endDate?.let { end ->
+        predicates.add(cb.between(root.get<LocalDateTime>("createdAt"), start, end))
+      }
     }
 
-    /**
-     * Sum payment amounts by status and creation date range using database-level aggregation
-     * This is much more efficient than in-memory aggregation
-     */
-    fun sumAmountByStatusAndCreatedAtBetweenEnhanced(
-        status: PaymentStatus,
-        startDate: LocalDateTime,
-        endDate: LocalDateTime
-    ): BigDecimal {
-        val cb = entityManager.criteriaBuilder
-        val query = cb.createQuery()
-        val root = query.from(Payment::class.java)
-
-        val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), status)
-        val startPredicate = cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), startDate)
-        val endPredicate = cb.lessThanOrEqualTo(root.get<LocalDateTime>("createdAt"), endDate)
-
-        query.select(cb.sum(root.get<BigDecimal>("amount")))
-        query.where(cb.and(statusPredicate, startPredicate, endPredicate))
-
-        val result = entityManager.createQuery(query).singleResult
-        return (result as? BigDecimal) ?: BigDecimal.ZERO
+    minAmount?.let { min ->
+      predicates.add(cb.greaterThanOrEqualTo(root.get<BigDecimal>("amount"), min))
     }
 
-    /**
-     * Complex query: find payments with multiple criteria
-     */
-    fun findPaymentsWithFilters(
-        userId: Long? = null,
-        status: PaymentStatus? = null,
-        transactionId: String? = null,
-        startDate: LocalDateTime? = null,
-        endDate: LocalDateTime? = null,
-        minAmount: BigDecimal? = null,
-        maxAmount: BigDecimal? = null
-    ): List<Payment> {
-        val cb = entityManager.criteriaBuilder
-        val query = cb.createQuery(Payment::class.java)
-        val root = query.from(Payment::class.java)
-
-        val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
-
-        userId?.let {
-            predicates.add(cb.equal(root.get<Long>("userId"), it))
-        }
-
-        status?.let {
-            predicates.add(cb.equal(root.get<PaymentStatus>("status"), it))
-        }
-
-        transactionId?.let {
-            predicates.add(cb.equal(root.get<String>("transactionId"), it))
-        }
-
-        startDate?.let { start ->
-            endDate?.let { end ->
-                predicates.add(cb.between(root.get<LocalDateTime>("createdAt"), start, end))
-            }
-        }
-
-        minAmount?.let { min ->
-            predicates.add(cb.greaterThanOrEqualTo(root.get<BigDecimal>("amount"), min))
-        }
-
-        maxAmount?.let { max ->
-            predicates.add(cb.lessThanOrEqualTo(root.get<BigDecimal>("amount"), max))
-        }
-
-        if (predicates.isNotEmpty()) {
-            query.where(cb.and(*predicates.toTypedArray()))
-        }
-
-        query.orderBy(cb.desc(root.get<LocalDateTime>("createdAt")))
-        return entityManager.createQuery(query).resultList
+    maxAmount?.let { max ->
+      predicates.add(cb.lessThanOrEqualTo(root.get<BigDecimal>("amount"), max))
     }
+
+    if (predicates.isNotEmpty()) {
+      query.where(cb.and(*predicates.toTypedArray()))
+    }
+
+    query.orderBy(cb.desc(root.get<LocalDateTime>("createdAt")))
+    return entityManager.createQuery(query).resultList
+  }
 }

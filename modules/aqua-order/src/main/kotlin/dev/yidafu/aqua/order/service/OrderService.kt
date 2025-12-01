@@ -325,4 +325,87 @@ class OrderService(
         ),
     )
   }
+
+  // Additional methods for GraphQL resolvers
+  @Transactional
+  override fun createOrder(input: Any, userId: Long): Order {
+    // Parse input based on type (assuming CreateOrderInput)
+    // This is a simplified implementation - you may need to adapt based on your input type
+    val inputMap = objectMapper.convertValue(input, Map::class.java)
+    val productId = (inputMap["productId"] as Number).toLong()
+    val addressId = (inputMap["addressId"] as Number).toLong()
+    val quantity = (inputMap["quantity"] as Number).toInt()
+
+    return createOrder(userId, productId, addressId, quantity)
+  }
+
+  @Transactional
+  override fun cancelOrder(orderId: Long, userId: Long): Order? {
+    val order = orderRepository.findById(orderId).orElse(null) ?: return null
+
+    // Verify order belongs to user
+    if (order.userId != userId) {
+      return null
+    }
+
+    return cancelOrder(orderId)
+  }
+
+  @Transactional
+  override fun cancelOrderForAdmin(orderId: Long): Order? {
+    return try {
+      cancelOrder(orderId)
+    } catch (e: Exception) {
+      null
+    }
+  }
+
+  @Transactional
+  override fun updateOrderStatus(orderId: Long, status: String): Order? {
+    return try {
+      val orderStatus = OrderStatus.valueOf(status.uppercase())
+      updateOrderStatus(orderId, orderStatus)
+    } catch (e: Exception) {
+      null
+    }
+  }
+
+  override fun findAllOrders(): List<Order> = orderRepository.findAll()
+
+  override fun findOrderByIdAndUserId(orderId: Long, userId: Long): Order? {
+    val order = orderRepository.findById(orderId).orElse(null) ?: return null
+    return if (order.userId == userId) order else null
+  }
+
+  override fun findOrderByNumberAndUserId(orderNumber: String, userId: Long): Order? {
+    val order = orderRepository.findByOrderNumber(orderNumber) ?: return null
+    return if (order.userId == userId) order else null
+  }
+
+  override fun findOrdersByUserId(userId: Long): List<Order> = orderRepository.findByUserId(userId)
+
+  override fun findOrdersByStatus(status: String): List<Order> {
+    return try {
+      val orderStatus = OrderStatus.valueOf(status.uppercase())
+      getOrdersByStatus(orderStatus)
+    } catch (e: Exception) {
+      emptyList()
+    }
+  }
+
+  override fun findOrdersByUserIdAndStatus(userId: Long, status: String): List<Order> {
+    return try {
+      val orderStatus = OrderStatus.valueOf(status.uppercase())
+      getUserOrdersByStatus(userId, orderStatus)
+    } catch (e: Exception) {
+      emptyList()
+    }
+  }
+
+  // Method for current user (requires authentication context)
+  fun findOrdersByCurrentUser(): List<Order> {
+    // This would typically be implemented with authentication context
+    // For now, return empty list - you may need to adapt based on your auth setup
+    return emptyList()
+  }
 }

@@ -30,26 +30,17 @@ object AddressMapper : ObjectMappie<Address, AddressDTO>() {
   private val objectMapper = jacksonObjectMapper()
 
   override fun map(from: Address): AddressDTO {
-    // 处理 coordinates 的 JSON 转换
-    val coordinates = from.coordinates?.let { json ->
-      try {
-        objectMapper.readValue(json, dev.yidafu.aqua.api.dto.Coordinates::class.java)
-      } catch (e: Exception) {
-        null
-      }
-    }
-
     return AddressDTO(
       id = from.id,
       userId = from.userId,
-      receiverName = from.receiverName,
-      phone = from.phone,
+      receiverName = "", // User address doesn't have receiverName
+      phone = "", // User address doesn't have phone
       province = from.province,
       city = from.city,
       district = from.district,
       detailAddress = from.detailAddress,
       postalCode = from.postalCode,
-      coordinates = coordinates,
+      coordinates = null, // User address doesn't have coordinates field
       isDefault = from.isDefault,
     )
   }

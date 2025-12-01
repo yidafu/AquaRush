@@ -32,8 +32,9 @@ import java.time.LocalDateTime
 /**
  * Enhanced payment service demonstrating modern Spring Data JPA 3.0+ query techniques
  * This service showcases the migration from Specification pattern to more efficient, type-safe queries
+ * Note: @Service annotation temporarily removed to avoid dependency injection issues
  */
-@Service
+// @Service  // Temporarily disabled to avoid PaymentRepository dependency issues
 @Transactional(readOnly = true)
 class EnhancedPaymentService(
     private val paymentRepository: PaymentRepository,

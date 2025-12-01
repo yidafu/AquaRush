@@ -16,8 +16,6 @@ dependencies {
   implementation(libs.jackson.module.kotlin)
 
   testImplementation(libs.spring.boot.starter.test)
-   implementation(libs.spring.boot.starter.aop)
+  implementation(libs.spring.boot.starter.aop)
   compileOnly(libs.spotbugs.annotations)
 }
-
-

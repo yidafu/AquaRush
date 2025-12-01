@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.common.domain.service
 
 import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.model.OrderStatus
 import java.util.*
 
 /**
@@ -36,4 +37,16 @@ interface OrderService {
   )
 
   fun handlePaymentTimeout(orderId: Long)
+
+  // Additional methods for GraphQL resolvers
+  fun createOrder(input: Any, userId: Long): Order
+  fun cancelOrder(orderId: Long, userId: Long): Order?
+  fun cancelOrderForAdmin(orderId: Long): Order?
+  fun updateOrderStatus(orderId: Long, status: String): Order?
+  fun findAllOrders(): List<Order>
+  fun findOrderByIdAndUserId(orderId: Long, userId: Long): Order?
+  fun findOrderByNumberAndUserId(orderNumber: String, userId: Long): Order?
+  fun findOrdersByUserId(userId: Long): List<Order>
+  fun findOrdersByStatus(status: String): List<Order>
+  fun findOrdersByUserIdAndStatus(userId: Long, status: String): List<Order>
 }

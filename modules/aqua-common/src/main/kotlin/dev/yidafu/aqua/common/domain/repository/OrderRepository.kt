@@ -57,31 +57,31 @@ interface OrderRepository : JpaRepository<Order, Long> {
 
   fun countByStatus(status: OrderStatus): Long
 
-    // Enhanced query methods using modern Spring Data JPA 3.0+ features
-    fun findOrdersWithFilters(
-        userId: Long? = null,
-        status: OrderStatus? = null,
-        deliveryWorkerId: Long? = null,
-        startDate: LocalDateTime? = null,
-        endDate: LocalDateTime? = null,
-        orderNumber: String? = null,
-        statuses: List<OrderStatus>? = null
-    ): List<Order>
+  // Enhanced query methods using modern Spring Data JPA 3.0+ features
+  fun findOrdersWithFilters(
+    userId: Long? = null,
+    status: OrderStatus? = null,
+    deliveryWorkerId: Long? = null,
+    startDate: LocalDateTime? = null,
+    endDate: LocalDateTime? = null,
+    orderNumber: String? = null,
+    statuses: List<OrderStatus>? = null,
+  ): List<Order>
 
-    fun findDeliveryWorkerOrdersWithFilters(
-        deliveryWorkerId: Long,
-        status: OrderStatus,
-        startDate: LocalDateTime? = null,
-        endDate: LocalDateTime? = null,
-        limit: Int? = null
-    ): List<Order>
+  fun findDeliveryWorkerOrdersWithFilters(
+    deliveryWorkerId: Long,
+    status: OrderStatus,
+    startDate: LocalDateTime? = null,
+    endDate: LocalDateTime? = null,
+    limit: Int? = null,
+  ): List<Order>
 
-    fun countOrdersWithFilters(
-        userId: Long? = null,
-        status: OrderStatus? = null,
-        deliveryWorkerId: Long? = null,
-        startDate: LocalDateTime? = null,
-        endDate: LocalDateTime? = null,
-        statuses: List<OrderStatus>? = null
-    ): Long
+  fun countOrdersWithFilters(
+    userId: Long? = null,
+    status: OrderStatus? = null,
+    deliveryWorkerId: Long? = null,
+    startDate: LocalDateTime? = null,
+    endDate: LocalDateTime? = null,
+    statuses: List<OrderStatus>? = null,
+  ): Long
 }

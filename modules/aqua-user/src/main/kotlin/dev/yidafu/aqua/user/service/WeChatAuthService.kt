@@ -46,10 +46,10 @@ class WeChatAuthService(
 ) {
   private val logger = LoggerFactory.getLogger(WeChatAuthService::class.java)
 
-  @Value("\${wechat.appid}")
+  @Value($$"${aqua.wechat.app-id}")
   private lateinit var appId: String
 
-  @Value("\${wechat.secret}")
+  @Value($$"${aqua.wechat.app-secret}")
   private lateinit var appSecret: String
 
   private val restTemplate = RestTemplate()

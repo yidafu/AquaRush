@@ -27,7 +27,7 @@ dependencies {
   // Spring Boot Actuator for health checks
   implementation(libs.spring.boot.starter.actuator)
 
-   implementation(libs.spring.boot.starter.aop)
+  implementation(libs.spring.boot.starter.aop)
 
   implementation(libs.bundles.jackson)
   // Validation

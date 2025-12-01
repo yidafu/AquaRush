@@ -30,55 +30,39 @@ data class DeliveryWorker(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
-
   @Column(name = "user_id", nullable = false)
   val userId: Long,
-
   @Column(name = "wechat_openid", unique = true, nullable = false)
   var wechatOpenId: String,
-
   @Column(name = "name", nullable = false)
   var name: String,
-
   @Column(name = "phone", unique = true, nullable = false)
   var phone: String,
-
   @Column(name = "avatar_url")
   var avatarUrl: String?,
-
   @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)
   var status: WorkerStatus = WorkerStatus.OFFLINE,
-
   @Column(name = "coordinates", columnDefinition = "jsonb")
   var coordinates: String? = null,
-
   @Column(name = "current_location", columnDefinition = "jsonb")
   var currentLocation: String? = null, // 存储 JSON 格式的坐标
-
   @Column(name = "rating", precision = 2, scale = 1)
   var rating: BigDecimal? = null,
-
   @Column(name = "total_orders", nullable = false)
   var totalOrders: Int = 0,
-
   @Column(name = "completed_orders", nullable = false)
   var completedOrders: Int = 0,
-
   @Column(name = "average_rating", precision = 2, scale = 1)
   var averageRating: BigDecimal? = null,
-
   @Column(name = "earning", precision = 10, scale = 2)
   var earning: BigDecimal? = null,
-
   @Column(name = "is_available", nullable = false)
   var isAvailable: Boolean = true,
-
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-
   @Column(name = "updated_at", nullable = false)
-  var updatedAt: LocalDateTime = LocalDateTime.now()
+  var updatedAt: LocalDateTime = LocalDateTime.now(),
 ) {
   @PreUpdate
   fun preUpdate() {

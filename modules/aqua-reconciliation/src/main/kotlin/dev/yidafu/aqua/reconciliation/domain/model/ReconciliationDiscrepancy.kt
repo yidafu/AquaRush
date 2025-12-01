@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.reconciliation.domain.model
 
+import dev.yidafu.aqua.reconciliation.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.reconciliation.domain.model.enums.DiscrepancyType
 import dev.yidafu.aqua.reconciliation.domain.model.enums.SourceSystem
 import jakarta.persistence.*
@@ -32,100 +33,99 @@ import java.time.LocalDateTime
 @Entity
 @Table(name = "reconciliation_discrepancies")
 class ReconciliationDiscrepancy {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  var id: Long? = null
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
+  @Column(name = "task_id", nullable = false)
+  var taskId: String = ""
 
-    @Column(name = "task_id", nullable = false)
-    var taskId: String = ""
+  @Enumerated(EnumType.STRING)
+  @Column(name = "discrepancy_type", nullable = false)
+  lateinit var discrepancyType: DiscrepancyType
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "discrepancy_type", nullable = false)
-    lateinit var discrepancyType: DiscrepancyType
+  @Enumerated(EnumType.STRING)
+  @Column(name = "source_system", nullable = false)
+  lateinit var sourceSystem: SourceSystem
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "source_system", nullable = false)
-    lateinit var sourceSystem: SourceSystem
+  @Column(name = "record_id", nullable = false)
+  var recordId: String = ""
 
-    @Column(name = "record_id", nullable = false)
-    var recordId: String = ""
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "record_details", columnDefinition = "jsonb")
+  var recordDetails: Map<String, Any>? = null
 
-    @JdbcTypeCode(SqlTypes.JSON)
-    @Column(name = "record_details", columnDefinition = "jsonb")
-    var recordDetails: Map<String, Any>? = null
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  var status: DiscrepancyStatus = DiscrepancyStatus.UNRESOLVED // UNRESOLVED, RESOLVED
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    var status: String = "UNRESOLVED" // UNRESOLVED, RESOLVED
+  @Column(name = "resolution_notes")
+  var resolutionNotes: String? = null
 
-    @Column(name = "resolution_notes")
-    var resolutionNotes: String? = null
+  @Column(name = "resolved_by")
+  var resolvedBy: String? = null
 
-    @Column(name = "resolved_by")
-    var resolvedBy: String? = null
+  @Column(name = "resolved_at")
+  var resolvedAt: LocalDateTime? = null
 
-    @Column(name = "resolved_at")
-    var resolvedAt: LocalDateTime? = null
+  @Column(name = "created_at", nullable = false)
+  var createdAt: LocalDateTime = LocalDateTime.now()
 
-    @Column(name = "created_at", nullable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now()
+  @Column(name = "updated_at", nullable = false)
+  var updatedAt: LocalDateTime = LocalDateTime.now()
 
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
+  @PreUpdate
+  fun preUpdate() {
+    updatedAt = LocalDateTime.now()
+  }
 
-    @PreUpdate
-    fun preUpdate() {
-        updatedAt = LocalDateTime.now()
+  companion object {
+    fun createMissingRecord(
+      taskId: String,
+      sourceSystem: SourceSystem,
+      recordId: String,
+      recordDetails: Map<String, Any>,
+    ): ReconciliationDiscrepancy {
+      return ReconciliationDiscrepancy().apply {
+        this.taskId = taskId
+        this.discrepancyType = DiscrepancyType.MISSING
+        this.sourceSystem = sourceSystem
+        this.recordId = recordId
+        this.recordDetails = recordDetails
+        this.status = DiscrepancyStatus.UNRESOLVED
+      }
     }
 
-    companion object {
-        fun createMissingRecord(
-            taskId: String,
-            sourceSystem: SourceSystem,
-            recordId: String,
-            recordDetails: Map<String, Any>
-        ): ReconciliationDiscrepancy {
-            return ReconciliationDiscrepancy().apply {
-                this.taskId = taskId
-                this.discrepancyType = DiscrepancyType.MISSING
-                this.sourceSystem = sourceSystem
-                this.recordId = recordId
-                this.recordDetails = recordDetails
-                this.status = "UNRESOLVED"
-            }
-        }
-
-        fun createMismatchRecord(
-            taskId: String,
-            sourceSystem: SourceSystem,
-            recordId: String,
-            recordDetails: Map<String, Any>
-        ): ReconciliationDiscrepancy {
-            return ReconciliationDiscrepancy().apply {
-                this.taskId = taskId
-                this.discrepancyType = DiscrepancyType.MISMATCH
-                this.sourceSystem = sourceSystem
-                this.recordId = recordId
-                this.recordDetails = recordDetails
-                this.status = "UNRESOLVED"
-            }
-        }
-
-        fun createExtraRecord(
-            taskId: String,
-            sourceSystem: SourceSystem,
-            recordId: String,
-            recordDetails: Map<String, Any>
-        ): ReconciliationDiscrepancy {
-            return ReconciliationDiscrepancy().apply {
-                this.taskId = taskId
-                this.discrepancyType = DiscrepancyType.EXTRA
-                this.sourceSystem = sourceSystem
-                this.recordId = recordId
-                this.recordDetails = recordDetails
-                this.status = "UNRESOLVED"
-            }
-        }
+    fun createMismatchRecord(
+      taskId: String,
+      sourceSystem: SourceSystem,
+      recordId: String,
+      recordDetails: Map<String, Any>,
+    ): ReconciliationDiscrepancy {
+      return ReconciliationDiscrepancy().apply {
+        this.taskId = taskId
+        this.discrepancyType = DiscrepancyType.MISMATCH
+        this.sourceSystem = sourceSystem
+        this.recordId = recordId
+        this.recordDetails = recordDetails
+        this.status = DiscrepancyStatus.UNRESOLVED
+      }
     }
+
+    fun createExtraRecord(
+      taskId: String,
+      sourceSystem: SourceSystem,
+      recordId: String,
+      recordDetails: Map<String, Any>,
+    ): ReconciliationDiscrepancy {
+      return ReconciliationDiscrepancy().apply {
+        this.taskId = taskId
+        this.discrepancyType = DiscrepancyType.EXTRA
+        this.sourceSystem = sourceSystem
+        this.recordId = recordId
+        this.recordDetails = recordDetails
+        this.status = DiscrepancyStatus.UNRESOLVED
+      }
+    }
+  }
 }

@@ -19,15 +19,14 @@
 
 package dev.yidafu.aqua.common.graphql.scalars
 
+import graphql.language.IntValue
+import graphql.language.ObjectValue
+import graphql.language.StringValue
 import graphql.schema.Coercing
 import graphql.schema.CoercingParseLiteralException
 import graphql.schema.CoercingParseValueException
 import graphql.schema.CoercingSerializeException
 import graphql.schema.GraphQLScalarType
-import graphql.language.Value
-import graphql.language.StringValue
-import graphql.language.IntValue
-import graphql.language.ObjectValue
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -280,11 +279,12 @@ object MapScalar {
           is ObjectValue -> {
             val result = mutableMapOf<String, Any>()
             input.objectFields.forEach { field ->
-              result[field.name] = when (val value = field.value) {
-                is StringValue -> value.value as Any
-                is IntValue -> value.value as Any
-                else -> value.toString()
-              }
+              result[field.name] =
+                when (val value = field.value) {
+                  is StringValue -> value.value as Any
+                  is IntValue -> value.value as Any
+                  else -> value.toString()
+                }
             }
             result
           }

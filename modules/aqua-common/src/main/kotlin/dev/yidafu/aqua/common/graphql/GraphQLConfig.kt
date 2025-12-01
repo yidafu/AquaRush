@@ -21,7 +21,6 @@ package dev.yidafu.aqua.common.graphql
 
 import dev.yidafu.aqua.common.graphql.scalars.BigDecimalScalar
 import dev.yidafu.aqua.common.graphql.scalars.LocalDateTimeScalar
-import dev.yidafu.aqua.common.graphql.scalars.UUIDScalar
 import dev.yidafu.aqua.common.graphql.scalars.LongScalar
 import dev.yidafu.aqua.common.graphql.scalars.MapScalar
 import org.springframework.context.annotation.Bean

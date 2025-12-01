@@ -173,6 +173,10 @@ class MessageHistoryService(
         return messageHistoryRepository.findByWxMessageId(wxMessageId).orElse(null)
     }
 
+    fun getUnreadCount(userId: Long): Int {
+        return messageHistoryRepository.countByUserIdAndStatus(userId, MessageStatus.SENT).toInt()
+    }
+
     fun deleteOldMessages(olderThanDays: Int): Int {
         val cutoffDate = LocalDateTime.now().minusDays(olderThanDays.toLong())
         val oldMessages = messageHistoryRepository.findAll().filter {

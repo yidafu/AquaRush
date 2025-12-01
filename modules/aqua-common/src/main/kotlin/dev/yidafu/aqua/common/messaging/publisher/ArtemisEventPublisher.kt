@@ -19,12 +19,12 @@
 
 package dev.yidafu.aqua.common.messaging.publisher
 
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import dev.yidafu.aqua.common.domain.model.DomainEvent
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jms.core.JmsTemplate
 import org.springframework.stereotype.Component
+import tools.jackson.module.kotlin.jacksonObjectMapper
 
 /**
  * ActiveMQ Artemis事件发布器

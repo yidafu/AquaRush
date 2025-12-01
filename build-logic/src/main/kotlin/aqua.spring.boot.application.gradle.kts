@@ -1,5 +1,6 @@
 plugins {
     id("aqua.kotlin.jpa")
+    id("aqua.kotlin.spring")
     id("org.springframework.boot")
     id("io.spring.dependency-management")
 }

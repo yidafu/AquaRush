@@ -33,64 +33,72 @@ import java.time.LocalDateTime
  */
 @Repository
 interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDiscrepancy, Long> {
+  /**
+   * 根据任务ID查找差异
+   */
+  fun findByTaskId(taskId: String): List<ReconciliationDiscrepancy>
 
-    /**
-     * 根据任务ID查找差异
-     */
-    fun findByTaskId(taskId: String): List<ReconciliationDiscrepancy>
+  /**
+   * 根据任务ID和状态查找差异
+   */
+  fun findByTaskIdAndStatus(
+    taskId: String,
+    status: String,
+  ): List<ReconciliationDiscrepancy>
 
-    /**
-     * 根据任务ID和状态查找差异
-     */
-    fun findByTaskIdAndStatus(taskId: String, status: String): List<ReconciliationDiscrepancy>
+  /**
+   * 根据差异类型查找差异
+   */
+  fun findByDiscrepancyType(discrepancyType: DiscrepancyType): List<ReconciliationDiscrepancy>
 
-    /**
-     * 根据差异类型查找差异
-     */
-    fun findByDiscrepancyType(discrepancyType: DiscrepancyType): List<ReconciliationDiscrepancy>
+  /**
+   * 根据源系统查找差异
+   */
+  fun findBySourceSystem(sourceSystem: SourceSystem): List<ReconciliationDiscrepancy>
 
-    /**
-     * 根据源系统查找差异
-     */
-    fun findBySourceSystem(sourceSystem: SourceSystem): List<ReconciliationDiscrepancy>
+  /**
+   * 根据任务ID和差异类型查找差异
+   */
+  fun findByTaskIdAndDiscrepancyType(
+    taskId: String,
+    discrepancyType: DiscrepancyType,
+  ): List<ReconciliationDiscrepancy>
 
-    /**
-     * 根据任务ID和差异类型查找差异
-     */
-    fun findByTaskIdAndDiscrepancyType(
-        taskId: String,
-        discrepancyType: DiscrepancyType
-    ): List<ReconciliationDiscrepancy>
+  /**
+   * 统计未解决的差异数量
+   */
+  @Query("SELECT COUNT(d) FROM ReconciliationDiscrepancy d WHERE d.taskId = :taskId AND d.status = 'UNRESOLVED'")
+  fun countUnresolvedByTaskId(
+    @Param("taskId") taskId: String,
+  ): Long
 
-    /**
-     * 统计未解决的差异数量
-     */
-    @Query("SELECT COUNT(d) FROM ReconciliationDiscrepancy d WHERE d.taskId = :taskId AND d.status = 'UNRESOLVED'")
-    fun countUnresolvedByTaskId(@Param("taskId") taskId: String): Long
+  /**
+   * 统计各种差异类型的数量
+   */
+  @Query("SELECT d.discrepancyType, COUNT(d) FROM ReconciliationDiscrepancy d WHERE d.taskId = :taskId GROUP BY d.discrepancyType")
+  fun countByDiscrepancyTypeGroup(
+    @Param("taskId") taskId: String,
+  ): List<Array<Any>>
 
-    /**
-     * 统计各种差异类型的数量
-     */
-    @Query("SELECT d.discrepancyType, COUNT(d) FROM ReconciliationDiscrepancy d WHERE d.taskId = :taskId GROUP BY d.discrepancyType")
-    fun countByDiscrepancyTypeGroup(@Param("taskId") taskId: String): List<Array<Any>>
+  /**
+   * 根据创建时间范围查找差异
+   */
+  @Query("SELECT d FROM ReconciliationDiscrepancy d WHERE d.createdAt BETWEEN :startDate AND :endDate ORDER BY d.createdAt DESC")
+  fun findByCreatedAtBetween(
+    @Param("startDate") startDate: LocalDateTime,
+    @Param("endDate") endDate: LocalDateTime,
+  ): List<ReconciliationDiscrepancy>
 
-    /**
-     * 根据创建时间范围查找差异
-     */
-    @Query("SELECT d FROM ReconciliationDiscrepancy d WHERE d.createdAt BETWEEN :startDate AND :endDate ORDER BY d.createdAt DESC")
-    fun findByCreatedAtBetween(
-        @Param("startDate") startDate: LocalDateTime,
-        @Param("endDate") endDate: LocalDateTime
-    ): List<ReconciliationDiscrepancy>
+  /**
+   * 查找所有未解决的差异
+   */
+  fun findByStatus(status: String = "UNRESOLVED"): List<ReconciliationDiscrepancy>
 
-    /**
-     * 查找所有未解决的差异
-     */
-    fun findByStatus(status: String = "UNRESOLVED"): List<ReconciliationDiscrepancy>
-
-    /**
-     * 删除已解决的旧差异
-     */
-    @Query("DELETE FROM ReconciliationDiscrepancy d WHERE d.status = 'RESOLVED' AND d.resolvedAt < :beforeDate")
-    fun deleteResolvedBefore(@Param("beforeDate") beforeDate: LocalDateTime): Int
+  /**
+   * 删除已解决的旧差异
+   */
+  @Query("DELETE FROM ReconciliationDiscrepancy d WHERE d.status = 'RESOLVED' AND d.resolvedAt < :beforeDate")
+  fun deleteResolvedBefore(
+    @Param("beforeDate") beforeDate: LocalDateTime,
+  ): Int
 }

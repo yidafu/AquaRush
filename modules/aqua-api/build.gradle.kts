@@ -24,5 +24,4 @@ dependencies {
   testImplementation(libs.spring.boot.starter.test)
 
   implementation(libs.bundles.jackson)
-
 }

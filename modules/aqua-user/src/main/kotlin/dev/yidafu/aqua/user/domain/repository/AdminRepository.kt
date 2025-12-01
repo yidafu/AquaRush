@@ -55,4 +55,12 @@ interface AdminRepository : JpaRepository<Admin, Long>, JpaSpecificationExecutor
     val specification = AdminSpecifications.byPhone(phone)
     return count(specification) > 0
   }
+
+  fun findAllAdmins(): List<Admin> {
+    return findAll()
+  }
+
+  fun findAdminById(id: Long): Admin? {
+    return findById(id).orElse(null)
+  }
 }

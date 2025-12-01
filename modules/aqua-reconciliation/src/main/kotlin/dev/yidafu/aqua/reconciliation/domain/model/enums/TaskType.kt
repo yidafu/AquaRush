@@ -23,7 +23,7 @@ package dev.yidafu.aqua.reconciliation.domain.model.enums
  * 对账任务类型
  */
 enum class TaskType {
-    PAYMENT,    // 支付对账
-    REFUND,     // 退款对账
-    SETTLEMENT   // 结算对账
+  PAYMENT, // 支付对账
+  REFUND, // 退款对账
+  SETTLEMENT, // 结算对账
 }

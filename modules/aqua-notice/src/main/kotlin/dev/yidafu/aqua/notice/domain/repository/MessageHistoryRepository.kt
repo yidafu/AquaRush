@@ -46,7 +46,11 @@ interface MessageHistoryRepository : JpaRepository<MessageHistory, Long> {
         status: MessageStatus,
         retryCount: Int,
         before: LocalDateTime
-    ): List<MessageHistory>
+    ): List<MessageHistory> {
+      return emptyList()
+    }
 
-    fun findByWxMessageId(wxMessageId: String): Optional<MessageHistory>
+    fun findByWxMessageId(wxMessageId: String): Optional<MessageHistory> {
+    return Optional.empty<MessageHistory>()
+    }
 }

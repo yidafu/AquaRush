@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+    <changeSet id="1.0.0-create-reconciliation-schema" author="aqua-rush">
+        <comment>Create reconciliation system tables</comment>
+        <createTable tableName="reconciliation_tasks">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="task_id" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="task_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_date" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_time" type="timestamp"/>
+            <column name="end_time" type="timestamp"/>
+            <column name="total_records" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="matched_records" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unmatched_records" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="error_message" type="text"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="reconciliation_discrepancies">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="task_id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="discrepancy_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_system" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="record_id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="record_details" type="jsonb"/>
+            <column name="status" type="varchar(20)" defaultValue="'UNRESOLVED'">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resolution_notes" type="text"/>
+            <column name="resolved_by" type="varchar(100)"/>
+            <column name="resolved_at" type="timestamp"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="reconciliation_reports">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="task_id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="report_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="report_data" type="jsonb">
+                <constraints nullable="false"/>
+            </column>
+            <column name="file_path" type="varchar(500)"/>
+            <column name="file_name" type="varchar(255)"/>
+            <column name="file_size" type="bigint"/>
+            <column name="generated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_task_id">
+            <column name="task_id"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_task_type">
+            <column name="task_type"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_status">
+            <column name="status"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_task_date">
+            <column name="task_date"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_composite">
+            <column name="task_date"/>
+            <column name="status"/>
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_type_status">
+            <column name="task_type"/>
+            <column name="status"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_task_id">
+            <column name="task_id"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_discrepancy_type">
+            <column name="discrepancy_type"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_source_system">
+            <column name="source_system"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_status">
+            <column name="status"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_record_id">
+            <column name="record_id"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_task_created">
+            <column name="task_id"/>
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_resolution">
+            <column name="status"/>
+            <column name="discrepancy_type"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_reports" indexName="idx_reconciliation_reports_task_id">
+            <column name="task_id"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_reports" indexName="idx_reconciliation_reports_report_type">
+            <column name="report_type"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_reports" indexName="idx_reconciliation_reports_generated_at">
+            <column name="generated_at"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_reports" indexName="idx_reconciliation_reports_task_type">
+            <column name="task_id"/>
+            <column name="report_type"/>
+        </createIndex>
+
+        <sql>
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_task_type
+            CHECK (task_type IN ('PAYMENT', 'REFUND', 'SETTLEMENT'));
+
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_task_status
+            CHECK (status IN ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED'));
+
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_total_records_non_negative
+            CHECK (total_records &gt;= 0);
+
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_matched_records_non_negative
+            CHECK (matched_records &gt;= 0);
+
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_unmatched_records_non_negative
+            CHECK (unmatched_records &gt;= 0);
+
+            ALTER TABLE reconciliation_discrepancies
+            ADD CONSTRAINT chk_discrepancy_type
+            CHECK (discrepancy_type IN ('MISSING', 'MISMATCH', 'EXTRA'));
+
+            ALTER TABLE reconciliation_discrepancies
+            ADD CONSTRAINT chk_source_system
+            CHECK (source_system IN ('INTERNAL', 'WECHAT'));
+
+            ALTER TABLE reconciliation_discrepancies
+            ADD CONSTRAINT chk_discrepancy_status
+            CHECK (status IN ('UNRESOLVED', 'RESOLVED'));
+        </sql>
+
+        <addForeignKeyConstraint baseTableName="reconciliation_discrepancies" baseColumnNames="task_id"
+            referencedTableName="reconciliation_tasks" referencedColumnNames="task_id"
+            constraintName="fk_reconciliation_discrepancies_task_id" onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint baseTableName="reconciliation_reports" baseColumnNames="task_id"
+            referencedTableName="reconciliation_tasks" referencedColumnNames="task_id"
+            constraintName="fk_reconciliation_reports_task_id" onDelete="CASCADE"/>
+
+        <sql>
+            CREATE OR REPLACE FUNCTION update_updated_at_column()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END
+            $$ LANGUAGE plpgsql;
+
+            DROP TRIGGER IF EXISTS update_reconciliation_tasks_updated_at ON reconciliation_tasks;
+            CREATE TRIGGER update_reconciliation_tasks_updated_at
+                BEFORE UPDATE ON reconciliation_tasks
+                FOR EACH ROW
+                EXECUTE FUNCTION update_updated_at_column();
+
+            DROP TRIGGER IF EXISTS update_reconciliation_discrepancies_updated_at ON reconciliation_discrepancies;
+            CREATE TRIGGER update_reconciliation_discrepancies_updated_at
+                BEFORE UPDATE ON reconciliation_discrepancies
+                FOR EACH ROW
+                EXECUTE FUNCTION update_updated_at_column();
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

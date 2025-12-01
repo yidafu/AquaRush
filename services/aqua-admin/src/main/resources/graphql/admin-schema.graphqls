@@ -1,0 +1,146 @@
+# Aqua Admin GraphQL Schema
+# Schema for the Admin dashboard and delivery worker management
+
+# Extend shared schema
+# The shared types are imported from shared-config/graphql/shared-types.graphqls
+
+# Schema definition
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+# Admin-specific Query Schema
+type Query {
+  # Admin queries - Admin only
+  admins: [Admin!]!
+  admin(id: Long!): Admin
+
+  # Delivery Worker queries
+  deliveryWorkers: [DeliveryWorker!]!
+  onlineDeliveryWorkers: [DeliveryWorker!]!
+  deliveryWorker(id: Long!): DeliveryWorker
+
+  # Addresses (for admin management)
+  addresses: [Address!]!
+  address(id: Long!): Address
+  deliveryAddresses: [DeliveryAddress!]!
+  deliveryAddress(id: Long!): DeliveryAddress
+
+  # Products (Admin management)
+  products: [Product!]!
+  product(id: Long!): Product
+
+  # Orders (Admin/Delivery perspective)
+  order(orderId: Long!): Order
+  orderByNumber(orderNumber: String!): Order
+  ordersByUser(userId: Long!): [Order!]!
+  ordersByUserAndStatus(userId: Long!, status: OrderStatus!): [Order!]!
+  ordersByStatus(status: OrderStatus!): [Order!]!
+
+  # Delivery Area queries
+  deliveryAreas: [DeliveryArea!]!
+  enabledDeliveryAreas: [DeliveryArea!]!
+  deliveryArea(id: Long!): DeliveryArea
+  validateAddress(input: ValidateAddressInput!): Boolean!
+
+  # Payment queries (Admin perspective)
+  paymentStatus(transactionId: String!): String!
+  paymentTransaction(id: String!): PaymentTransaction
+  paymentTransactions(
+    page: Int = 0
+    size: Int = 20
+    userId: Long
+    status: PaymentStatus
+    dateFrom: LocalDateTime
+    dateTo: LocalDateTime
+    minAmount: BigDecimal
+    maxAmount: BigDecimal
+  ): [PaymentTransaction!]!
+  userPaymentTransactions(userId: Long!, page: Int = 0, size: Int = 20): [PaymentTransaction!]!
+  refundRequests(
+    page: Int = 0
+    size: Int = 20
+    status: RefundStatus
+    dateFrom: LocalDateTime
+    dateTo: LocalDateTime
+  ): [RefundRequest!]!
+  refundRequest(id: String!): RefundRequest
+  paymentStatistics(dateFrom: LocalDateTime, dateTo: LocalDateTime): PaymentStatistics
+  paymentMethodStatistics(dateFrom: LocalDateTime, dateTo: LocalDateTime): [PaymentMethodStats!]!
+  suspiciousTransactions(
+    page: Int = 0
+    size: Int = 20
+    dateFrom: LocalDateTime
+    dateTo: LocalDateTime
+  ): [SuspiciousTransaction!]!
+  dailyPaymentStatistics(dateFrom: LocalDateTime!, dateTo: LocalDateTime!): [DailyPaymentStats!]!
+
+  # Statistics and Analytics - Admin only
+  orderStatistics(input: DateRangeInput!): OrderStatistics!
+  dailyStatistics(input: DateRangeInput!): [DailyStatistic!]!
+  weeklyStatistics(input: DateRangeInput!): [WeeklyStatistic!]!
+  monthlyStatistics(input: DateRangeInput!): [MonthlyStatistic!]!
+
+  # Regions (for admin)
+  regions(level: Int, parentCode: String): [Region!]!
+  region(code: String!): Region
+
+  # Admin review queries
+  reviews(
+    deliveryWorkerId: Long
+    minRating: Int
+    maxRating: Int
+    dateFrom: LocalDateTime
+    dateTo: LocalDateTime
+    userId: Long
+    page: Int
+    size: Int
+  ): [Review!]!
+  deliveryWorkerStatistics(deliveryWorkerId: Long!): DeliveryWorkerStatisticsResponse!
+  deliveryWorkerRanking(sortBy: String, minReviews: Int, page: Int, size: Int): [DeliveryWorkerRankingResponse!]!
+  deliveryWorkerReviews(deliveryWorkerId: Long!, page: Int, size: Int): [Review!]!
+}
+
+# Admin-specific Mutation Schema
+type Mutation {
+  # Product Management - Admin only
+  createProduct(input: CreateProductInput!): Product!
+  updateProduct(id: Long!, input: UpdateProductInput!): Product!
+  deleteProduct(id: Long!): Boolean!
+  increaseStock(productId: Long!, quantity: Int!): String!
+  decreaseStock(productId: Long!, quantity: Int!): Boolean!
+
+  # Order Management - Admin/Delivery operations
+  updateOrderStatus(orderId: Long!, status: OrderStatus!): Order!
+
+  # Payment Management - Admin operations
+  handleWechatCallback(input: WechatCallbackInput!): String!
+  refund(input: RefundInput!): Boolean!
+  processRefund(input: ProcessRefundInput!): RefundRequest!
+  createManualRefund(input: CreateManualRefundInput!): RefundRequest!
+  forceCompletePayment(transactionId: String!, adminNote: String!): Boolean!
+  forceRefund(transactionId: String!, amount: BigDecimal!, reason: String!, adminNote: String!): Boolean!
+  updateTransactionNote(transactionId: String!, note: String!): Boolean!
+  freezeSuspiciousTransaction(transactionId: String!, reason: String!): Boolean!
+  exportTransactions(input: ExportTransactionsInput!): String!
+  updateTransaction(transactionId: String!, input: UpdateTransactionInput!): PaymentTransaction!
+  processSuspiciousTransaction(input: ProcessSuspiciousTransactionInput!): SuspiciousTransaction!
+
+  # Delivery Area Management - Admin only
+  createDeliveryArea(input: CreateDeliveryAreaInput!): DeliveryArea!
+  updateDeliveryArea(id: Long!, input: CreateDeliveryAreaInput!): DeliveryArea!
+  deleteDeliveryArea(id: Long!): Boolean!
+
+  # Delivery Worker Management - Admin only
+  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorker!
+  updateDeliveryWorker(workerId: Long!, input: UpdateDeliveryWorkerInput!): DeliveryWorker!
+  deleteDeliveryWorker(workerId: Long!): Boolean!
+  updateWorkerStatus(workerId: Long!, status: WorkerStatus!): DeliveryWorker!
+
+  # Delivery Address Management
+  createDeliveryAddress(input: CreateDeliveryAddressInput!): DeliveryAddress!
+  updateDeliveryAddress(id: Long!, input: UpdateDeliveryAddressInput!): DeliveryAddress!
+  deleteDeliveryAddress(id: Long!): Boolean!
+  setDefaultDeliveryAddress(id: Long!): Boolean!
+}

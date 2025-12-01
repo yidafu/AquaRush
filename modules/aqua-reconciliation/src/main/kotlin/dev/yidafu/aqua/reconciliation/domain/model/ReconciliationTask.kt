@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.reconciliation.domain.model
 
+import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import dev.yidafu.aqua.reconciliation.domain.model.enums.TaskStatus
 import dev.yidafu.aqua.reconciliation.domain.model.enums.TaskType
-import dev.yidafu.aqua.common.id.IdGenerator
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -31,80 +31,79 @@ import java.time.LocalDateTime
 @Entity
 @Table(name = "reconciliation_tasks")
 class ReconciliationTask {
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  var id: Long? = null
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    var id: Long? = null
+  @Column(name = "task_id", nullable = false, unique = true)
+  var taskId: String = ""
 
-    @Column(name = "task_id", nullable = false, unique = true)
-    var taskId: String = ""
+  @Enumerated(EnumType.STRING)
+  @Column(name = "task_type", nullable = false)
+  lateinit var taskType: TaskType
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "task_type", nullable = false)
-    lateinit var taskType: TaskType
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", nullable = false)
+  var status: TaskStatus = TaskStatus.PENDING
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
-    var status: TaskStatus = TaskStatus.PENDING
+  @Column(name = "task_date", nullable = false)
+  var taskDate: LocalDateTime? = null
 
-    @Column(name = "task_date", nullable = false)
-    var taskDate: LocalDateTime? = null
+  @Column(name = "start_time")
+  var startTime: LocalDateTime? = null
 
-    @Column(name = "start_time")
-    var startTime: LocalDateTime? = null
+  @Column(name = "end_time")
+  var endTime: LocalDateTime? = null
 
-    @Column(name = "end_time")
-    var endTime: LocalDateTime? = null
+  @Column(name = "total_records")
+  var totalRecords: Int = 0
 
-    @Column(name = "total_records")
-    var totalRecords: Int = 0
+  @Column(name = "matched_records")
+  var matchedRecords: Int = 0
 
-    @Column(name = "matched_records")
-    var matchedRecords: Int = 0
+  @Column(name = "unmatched_records")
+  var unmatchedRecords: Int = 0
 
-    @Column(name = "unmatched_records")
-    var unmatchedRecords: Int = 0
+  @Column(name = "error_message")
+  var errorMessage: String? = null
 
-    @Column(name = "error_message")
-    var errorMessage: String? = null
+  @Column(name = "created_at", nullable = false)
+  var createdAt: LocalDateTime = LocalDateTime.now()
 
-    @Column(name = "created_at", nullable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now()
+  @Column(name = "updated_at", nullable = false)
+  var updatedAt: LocalDateTime = LocalDateTime.now()
 
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
+  @PreUpdate
+  fun preUpdate() {
+    updatedAt = LocalDateTime.now()
+  }
 
-    @PreUpdate
-    fun preUpdate() {
-        updatedAt = LocalDateTime.now()
+  companion object {
+    fun createPaymentTask(date: LocalDateTime): ReconciliationTask {
+      return ReconciliationTask().apply {
+        taskId = SnowflakeIdGenerator().generate().toString()
+        taskType = TaskType.PAYMENT
+        taskDate = date
+        status = TaskStatus.PENDING
+      }
     }
 
-    companion object {
-        fun createPaymentTask(date: LocalDateTime): ReconciliationTask {
-            return ReconciliationTask().apply {
-                taskId = IdGenerator.generateId().toString()
-                taskType = TaskType.PAYMENT
-                taskDate = date
-                status = TaskStatus.PENDING
-            }
-        }
-
-        fun createRefundTask(date: LocalDateTime): ReconciliationTask {
-            return ReconciliationTask().apply {
-                taskId = IdGenerator.generateId().toString()
-                taskType = TaskType.REFUND
-                taskDate = date
-                status = TaskStatus.PENDING
-            }
-        }
-
-        fun createSettlementTask(date: LocalDateTime): ReconciliationTask {
-            return ReconciliationTask().apply {
-                taskId = IdGenerator.generateId().toString()
-                taskType = TaskType.SETTLEMENT
-                taskDate = date
-                status = TaskStatus.PENDING
-            }
-        }
+    fun createRefundTask(date: LocalDateTime): ReconciliationTask {
+      return ReconciliationTask().apply {
+        taskId = SnowflakeIdGenerator().generate().toString()
+        taskType = TaskType.REFUND
+        taskDate = date
+        status = TaskStatus.PENDING
+      }
     }
+
+    fun createSettlementTask(date: LocalDateTime): ReconciliationTask {
+      return ReconciliationTask().apply {
+        taskId = SnowflakeIdGenerator().generate().toString()
+        taskType = TaskType.SETTLEMENT
+        taskDate = date
+        status = TaskStatus.PENDING
+      }
+    }
+  }
 }

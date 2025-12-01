@@ -1,5 +1,6 @@
 plugins {
-  id("aqua.kotlin.spring")
+  id("aqua.spring.boot.library")
+  alias(libs.plugins.mappie)
 }
 
 group = "dev.yidafu.aqua"
@@ -51,17 +52,12 @@ dependencies {
   testImplementation(libs.springmockk)
 }
 
-kotlin {
-  jvmToolchain(21)
-}
-
 tasks.withType<Test> {
   useJUnitPlatform()
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
   compilerOptions {
-    jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
     freeCompilerArgs.add("-Xjsr305=strict")
   }
 }

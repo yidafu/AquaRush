@@ -26,6 +26,6 @@ import dev.yidafu.aqua.user.domain.model.User
 // Since GraphQL Code Generator doesn't generate User/Address data classes for Kotlin,
 // we use domain models directly
 
-fun Address.toGraphQLString(): String = "Address(id=$id, receiver=$receiverName, phone=$phone)"
+fun Address.toGraphQLString(): String = "Address(id=$id, userId=$userId, province=$province, city=$city, district=$district)"
 
 fun User.toGraphQLString(): String = "User(id=$id, nickname=$nickname, phone=$phone)"

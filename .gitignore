@@ -131,3 +131,5 @@ coverage/
 build
 data/artemis/
 **/data/artemis/
+**/data/artemis-user/
+services/aqua-client/src/main/resources/graphql/shared-types.graphqls

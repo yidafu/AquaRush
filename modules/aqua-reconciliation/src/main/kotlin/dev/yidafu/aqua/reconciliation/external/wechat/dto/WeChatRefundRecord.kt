@@ -27,105 +27,83 @@ import java.time.LocalDateTime
  * 微信支付退款记录DTO
  */
 data class WeChatRefundRecord(
-    @JsonProperty("transaction_id")
-    val transactionId: String,
-
-    @JsonProperty("out_trade_no")
-    val outTradeNo: String,
-
-    @JsonProperty("out_refund_no")
-    val outRefundNo: String,
-
-    @JsonProperty("refund_id")
-    val refundId: String,
-
-    @JsonProperty("refund_channel")
-    val refundChannel: String?,
-
-    @JsonProperty("refund_fee")
-    val refundFee: BigDecimal,
-
-    @JsonProperty("settlement_refund_fee")
-    val settlementRefundFee: BigDecimal?,
-
-    @JsonProperty("total_fee")
-    val totalFee: BigDecimal?,
-
-    @JsonProperty("settlement_total_fee")
-    val settlementTotalFee: BigDecimal?,
-
-    @JsonProperty("coupon_type")
-    val couponType: String?,
-
-    @JsonProperty("coupon_refund_fee")
-    val couponRefundFee: BigDecimal? = BigDecimal.ZERO,
-
-    @JsonProperty("coupon_fee")
-    val couponFee: BigDecimal? = BigDecimal.ZERO,
-
-    @JsonProperty("amount")
-    val amount: BigDecimal,
-
-    @JsonProperty("refund_recv_account")
-    val refundRecvAccount: String?,
-
-    @JsonProperty("refund_account")
-    val refundAccount: String?,
-
-    @JsonProperty("refund_request_source")
-    val refundRequestSource: String?,
-
-    @JsonProperty("refund_success_time")
-    val refundSuccessTime: LocalDateTime?,
-
-    @JsonProperty("refund_status")
-    val refundStatus: String,
-
-    @JsonProperty("create_time")
-    val createTime: LocalDateTime,
-
-    @JsonProperty("return_code")
-    val returnCode: String,
-
-    @JsonProperty("return_msg")
-    val returnMsg: String?,
-
-    @JsonProperty("err_code")
-    val errorCode: String?,
-
-    @JsonProperty("err_code_des")
-    val errorCodeDes: String?
+  @JsonProperty("transaction_id")
+  val transactionId: String,
+  @JsonProperty("out_trade_no")
+  val outTradeNo: String,
+  @JsonProperty("out_refund_no")
+  val outRefundNo: String,
+  @JsonProperty("refund_id")
+  val refundId: String,
+  @JsonProperty("refund_channel")
+  val refundChannel: String?,
+  @JsonProperty("refund_fee")
+  val refundFee: BigDecimal,
+  @JsonProperty("settlement_refund_fee")
+  val settlementRefundFee: BigDecimal?,
+  @JsonProperty("total_fee")
+  val totalFee: BigDecimal?,
+  @JsonProperty("settlement_total_fee")
+  val settlementTotalFee: BigDecimal?,
+  @JsonProperty("coupon_type")
+  val couponType: String?,
+  @JsonProperty("coupon_refund_fee")
+  val couponRefundFee: BigDecimal? = BigDecimal.ZERO,
+  @JsonProperty("coupon_fee")
+  val couponFee: BigDecimal? = BigDecimal.ZERO,
+  @JsonProperty("amount")
+  val amount: BigDecimal,
+  @JsonProperty("refund_recv_account")
+  val refundRecvAccount: String?,
+  @JsonProperty("refund_account")
+  val refundAccount: String?,
+  @JsonProperty("refund_request_source")
+  val refundRequestSource: String?,
+  @JsonProperty("refund_success_time")
+  val refundSuccessTime: LocalDateTime?,
+  @JsonProperty("refund_status")
+  val refundStatus: String,
+  @JsonProperty("create_time")
+  val createTime: LocalDateTime,
+  @JsonProperty("return_code")
+  val returnCode: String,
+  @JsonProperty("return_msg")
+  val returnMsg: String?,
+  @JsonProperty("err_code")
+  val errorCode: String?,
+  @JsonProperty("err_code_des")
+  val errorCodeDes: String?,
 ) {
-    companion object {
-        const val SUCCESS = "SUCCESS"
-        const val REFUND_CLOSE = "REFUND_CLOSE"
-        const val PROCESSING = "PROCESSING"
-        const val CHANGE = "CHANGE"
-        const val FAIL = "FAIL"
-    }
+  companion object {
+    const val SUCCESS = "SUCCESS"
+    const val REFUND_CLOSE = "REFUND_CLOSE"
+    const val PROCESSING = "PROCESSING"
+    const val CHANGE = "CHANGE"
+    const val FAIL = "FAIL"
+  }
 
-    /**
-     * 是否退款成功
-     */
-    fun isSuccess(): Boolean = refundStatus == SUCCESS
+  /**
+   * 是否退款成功
+   */
+  fun isSuccess(): Boolean = refundStatus == SUCCESS
 
-    /**
-     * 是否退款处理中
-     */
-    fun isProcessing(): Boolean = refundStatus == PROCESSING
+  /**
+   * 是否退款处理中
+   */
+  fun isProcessing(): Boolean = refundStatus == PROCESSING
 
-    /**
-     * 是否退款失败
-     */
-    fun isFailed(): Boolean = refundStatus == FAIL
+  /**
+   * 是否退款失败
+   */
+  fun isFailed(): Boolean = refundStatus == FAIL
 
-    /**
-     * 是否退款已关闭
-     */
-    fun isClosed(): Boolean = refundStatus == REFUND_CLOSE
+  /**
+   * 是否退款已关闭
+   */
+  fun isClosed(): Boolean = refundStatus == REFUND_CLOSE
 
-    /**
-     * 是否退款有变化
-     */
-    fun hasChange(): Boolean = refundStatus == CHANGE
+  /**
+   * 是否退款有变化
+   */
+  fun hasChange(): Boolean = refundStatus == CHANGE
 }

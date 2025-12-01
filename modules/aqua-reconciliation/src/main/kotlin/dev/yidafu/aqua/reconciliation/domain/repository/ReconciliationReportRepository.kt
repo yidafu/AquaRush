@@ -31,48 +31,52 @@ import java.time.LocalDateTime
  */
 @Repository
 interface ReconciliationReportRepository : JpaRepository<ReconciliationReport, Long> {
+  /**
+   * 根据任务ID查找报表
+   */
+  fun findByTaskId(taskId: String): List<ReconciliationReport>
 
-    /**
-     * 根据任务ID查找报表
-     */
-    fun findByTaskId(taskId: String): List<ReconciliationReport>
+  /**
+   * 根据任务ID和报表类型查找报表
+   */
+  fun findByTaskIdAndReportType(
+    taskId: String,
+    reportType: String,
+  ): ReconciliationReport?
 
-    /**
-     * 根据任务ID和报表类型查找报表
-     */
-    fun findByTaskIdAndReportType(taskId: String, reportType: String): ReconciliationReport?
+  /**
+   * 根据报表类型查找报表
+   */
+  fun findByReportType(reportType: String): List<ReconciliationReport>
 
-    /**
-     * 根据报表类型查找报表
-     */
-    fun findByReportType(reportType: String): List<ReconciliationReport>
+  /**
+   * 根据生成时间范围查找报表
+   */
+  @Query("SELECT r FROM ReconciliationReport r WHERE r.generatedAt BETWEEN :startDate AND :endDate ORDER BY r.generatedAt DESC")
+  fun findByGeneratedAtBetween(
+    @Param("startDate") startDate: LocalDateTime,
+    @Param("endDate") endDate: LocalDateTime,
+  ): List<ReconciliationReport>
 
-    /**
-     * 根据生成时间范围查找报表
-     */
-    @Query("SELECT r FROM ReconciliationReport r WHERE r.generatedAt BETWEEN :startDate AND :endDate ORDER BY r.generatedAt DESC")
-    fun findByGeneratedAtBetween(
-        @Param("startDate") startDate: LocalDateTime,
-        @Param("endDate") endDate: LocalDateTime
-    ): List<ReconciliationReport>
+  /**
+   * 查找最新的报表
+   */
+  fun findFirstByOrderByGeneratedAtDesc(): ReconciliationReport?
 
-    /**
-     * 查找最新的报表
-     */
-    fun findFirstByOrderByGeneratedAtDesc(): ReconciliationReport?
+  /**
+   * 删除旧报表
+   */
+  @Query("DELETE FROM ReconciliationReport r WHERE r.generatedAt < :beforeDate")
+  fun deleteReportsBefore(
+    @Param("beforeDate") beforeDate: LocalDateTime,
+  ): Int
 
-    /**
-     * 删除旧报表
-     */
-    @Query("DELETE FROM ReconciliationReport r WHERE r.generatedAt < :beforeDate")
-    fun deleteReportsBefore(@Param("beforeDate") beforeDate: LocalDateTime): Int
-
-    /**
-     * 统计报表数量
-     */
-    @Query("SELECT COUNT(r) FROM ReconciliationReport r WHERE r.taskId = :taskId AND r.reportType = :reportType")
-    fun countByTaskIdAndReportType(
-        @Param("taskId") taskId: String,
-        @Param("reportType") reportType: String
-    ): Long
+  /**
+   * 统计报表数量
+   */
+  @Query("SELECT COUNT(r) FROM ReconciliationReport r WHERE r.taskId = :taskId AND r.reportType = :reportType")
+  fun countByTaskIdAndReportType(
+    @Param("taskId") taskId: String,
+    @Param("reportType") reportType: String,
+  ): Long
 }
