@@ -1,0 +1,234 @@
+@import '../../components/ThemeProvider/styles.scss';
+
+.theme-settings-page {
+  min-height: 100vh;
+  background-color: var(--theme-background-page);
+  padding-bottom: 40px;
+}
+
+.theme-settings-header {
+  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
+  padding: 60px 20px 30px;
+  color: white;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-20px) rotate(180deg);
+    }
+  }
+}
+
+.theme-settings-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 8px;
+  position: relative;
+  z-index: 1;
+}
+
+.theme-settings-subtitle {
+  font-size: 14px;
+  opacity: 0.9;
+  position: relative;
+  z-index: 1;
+}
+
+.theme-settings-section {
+  margin: 16px 20px;
+  background: var(--theme-background);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px var(--theme-shadow-medium);
+  overflow: hidden;
+  animation: fadeInUp 0.4s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.theme-settings-section-title {
+  padding: 16px 20px 12px;
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.theme-settings-section-content {
+  padding: 16px 20px;
+}
+
+.theme-preview-container {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+}
+
+.current-theme-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  background: var(--theme-primary-light);
+  border-radius: 8px;
+  border: 1px solid var(--theme-primary);
+}
+
+.current-theme-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.current-theme-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--theme-primary);
+}
+
+.current-theme-desc {
+  font-size: 12px;
+  color: var(--theme-text-secondary);
+  line-height: 1.4;
+}
+
+.theme-usage-tips {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.usage-tip {
+  font-size: 13px;
+  color: var(--theme-text-secondary);
+  line-height: 1.5;
+  padding-left: 16px;
+  position: relative;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 8px;
+    width: 6px;
+    height: 6px;
+    background-color: var(--theme-primary);
+    border-radius: 50%;
+  }
+}
+
+.theme-saving-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.theme-saving-content {
+  background: var(--theme-background);
+  border-radius: 12px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  min-width: 160px;
+  box-shadow: 0 4px 16px var(--theme-shadow-medium);
+}
+
+.theme-loading-spinner {
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--theme-border);
+  border-top: 2px solid var(--theme-primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.theme-saving-text {
+  font-size: 14px;
+  color: var(--theme-text-primary);
+  font-weight: 500;
+}
+
+// 响应式调整
+@media (max-width: 375px) {
+  .theme-settings-section {
+    margin: 12px 16px;
+  }
+
+  .theme-preview-container {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .theme-settings-title {
+    font-size: 20px;
+  }
+
+  .theme-settings-subtitle {
+    font-size: 13px;
+  }
+
+  .theme-settings-header {
+    padding: 50px 16px 25px;
+  }
+
+  .current-theme-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .usage-tip {
+    font-size: 12px;
+  }
+}
+
+// 小屏设备优化
+@media (max-width: 320px) {
+  .theme-preview-container {
+    grid-template-columns: 1fr;
+  }
+
+  .theme-settings-section {
+    margin: 8px 12px;
+  }
+}
