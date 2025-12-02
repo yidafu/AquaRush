@@ -1,0 +1,38 @@
+.custom-icon {
+  display: inline-block;
+  vertical-align: middle;
+  object-fit: contain;
+
+  &.loading {
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  &.error {
+    opacity: 0.5;
+    filter: grayscale(100%);
+  }
+}
+
+.icon-placeholder {
+  border-radius: 4px;
+  font-family: monospace;
+  font-weight: bold;
+  user-select: none;
+  cursor: default;
+
+  &:hover {
+    background-color: #ebebeb;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+  }
+}

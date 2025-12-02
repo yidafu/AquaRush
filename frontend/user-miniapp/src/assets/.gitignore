@@ -1,0 +1,5 @@
+*.png
+*.py
+**/*.png
+venv/
+*.md

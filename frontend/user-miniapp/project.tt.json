@@ -1,0 +1,13 @@
+{
+  "miniprogramRoot": "./",
+  "projectname": "user-miniapp",
+  "description": "送水用户端小程序",
+  "appid": "touristappid",
+  "setting": {
+    "urlCheck": true,
+    "es6": false,
+    "postcss": false,
+    "minified": false
+  },
+  "compileType": "miniprogram"
+}
