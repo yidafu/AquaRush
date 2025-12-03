@@ -59,14 +59,14 @@ class ClientAddressMutationResolver(
 
             val address = Address(
                 userId = userPrincipal.id,
-                province = input.province.toString(),
-                city = input.city.toString(),
-                district = input.district.toString(),
-                detailAddress = input.detailAddress.toString(),
-                postalCode = input.postalCode?.toString(),
+                province = input.province,
+                city = input.city,
+                district = input.district,
+                detailAddress = input.detailAddress,
+                postalCode = input.postalCode,
                 longitude = input.longitude?.toDouble(),
                 latitude = input.latitude?.toDouble(),
-                isDefault = (input.isDefault as Boolean?) ?: false
+                isDefault = input.isDefault ?: false
             )
 
             val savedAddress = addressService.save(address)

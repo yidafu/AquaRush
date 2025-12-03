@@ -139,6 +139,8 @@ aqua:
   wechat:
     app-id: ${WECHAT_APP_ID:your-app-id}
     app-secret: ${WECHAT_APP_SECRET:your-app-secret}
+    token: "token"
+    aes-key: "string"
   messaging:
     enabled: true
     strategy: artemis # artemis, hybrid, outbox-only, memory-only
