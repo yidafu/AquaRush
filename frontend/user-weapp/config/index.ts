@@ -13,6 +13,7 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
     date: '2025-12-2',
     env: {
       APP_ID: process.env.TARO_APP_ID || '',
+      API_BASE_URL: process.env.TARO_APP_API_BASE_URL ?? '',
     },
     designWidth: 750,
     deviceRatio: {
