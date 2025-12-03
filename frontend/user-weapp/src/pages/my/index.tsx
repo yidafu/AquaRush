@@ -4,6 +4,7 @@ import { AtButton, AtCard, AtList, AtListItem, AtAvatar, AtBadge, AtToast, AtDiv
 import CustomIcon from '../../components/CustomIcon'
 import { ThemeSwitcher } from '../../components/ThemeProvider'
 import Taro from '@tarojs/taro'
+import { authService, type UserInfo as AuthUserInfo, type LoginResponse } from '../../utils/auth'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/card.scss"
@@ -15,17 +16,7 @@ import "taro-ui/dist/style/components/toast.scss"
 import "taro-ui/dist/style/components/divider.scss"
 import './index.scss'
 
-interface UserInfo {
-  id: string
-  nickname: string
-  avatarUrl: string
-  phone: string
-  balance: number
-  points: number
-  level: string
-  isVip: boolean
-  vipExpireTime?: string
-}
+// Use AuthUserInfo from auth utility
 
 interface OrderStats {
   pendingPayment: number
@@ -36,7 +27,7 @@ interface OrderStats {
 }
 
 interface MyPageState {
-  userInfo: UserInfo | null
+  userInfo: AuthUserInfo | null
   orderStats: OrderStats
   loading: boolean
   showToast: boolean
@@ -72,6 +63,47 @@ export default class MyPage extends Component<{}, MyPageState> {
     // 页面显示时刷新用户信息
     this.loadUserInfo()
     this.loadOrderStats()
+
+    // 检查并刷新认证状态
+    this.checkAuthStatus()
+  }
+
+  checkAuthStatus = async () => {
+    try {
+      // 检查是否有有效的认证状态
+      if (authService.isAuthenticated()) {
+        const currentUser = authService.getUserInfo()
+        if (currentUser && currentUser.id) {
+          this.setState({ userInfo: currentUser })
+        }
+      } else {
+        // 如果没有认证，保持游客状态
+        if (this.state.userInfo?.id) {
+          // 如果之前有用户信息但现在没有认证，清除状态
+          this.setState({
+            userInfo: {
+              id: '',
+              nickname: '游客',
+              avatarUrl: '',
+              phone: '',
+              balance: 0,
+              points: 0,
+              level: '普通用户',
+              isVip: false
+            },
+            orderStats: {
+              pendingPayment: 0,
+              pendingDelivery: 0,
+              delivering: 0,
+              completed: 0,
+              afterSales: 0
+            }
+          })
+        }
+      }
+    } catch (error) {
+      console.error('检查认证状态失败:', error)
+    }
   }
 
   onPullDownRefresh = () => {
@@ -97,23 +129,34 @@ export default class MyPage extends Component<{}, MyPageState> {
 
   loadUserInfo = async () => {
     try {
-      // TODO: 实际项目中这里应该调用获取用户信息的API
-      // const userInfo = await getCurrentUser()
-
-      // 模拟用户数据
-      const mockUserInfo: UserInfo = {
-        id: 'user123',
-        nickname: '小明同学',
-        avatarUrl: '',
-        phone: '13800138000',
-        balance: 156.80,
-        points: 2580,
-        level: '黄金会员',
-        isVip: true,
-        vipExpireTime: '2025-12-31'
+      // 检查是否已登录
+      if (authService.isAuthenticated()) {
+        const storedUserInfo = authService.getUserInfo()
+        if (storedUserInfo) {
+          this.setState({ userInfo: storedUserInfo })
+          return
+        }
       }
 
-      this.setState({ userInfo: mockUserInfo })
+      // 尝试从服务器获取当前用户信息
+      const currentUser = await authService.getCurrentUser()
+      if (currentUser) {
+        this.setState({ userInfo: currentUser })
+      } else {
+        // 设置游客用户信息
+        this.setState({
+          userInfo: {
+            id: '',
+            nickname: '游客',
+            avatarUrl: '',
+            phone: '',
+            balance: 0,
+            points: 0,
+            level: '普通用户',
+            isVip: false
+          }
+        })
+      }
     } catch (error) {
       console.error('获取用户信息失败:', error)
 
@@ -156,9 +199,32 @@ export default class MyPage extends Component<{}, MyPageState> {
   }
 
   handleProfileEdit = () => {
-    Taro.navigateTo({
-      url: '/pages/profile-edit/index'
-    })
+    // 如果用户未登录，触发微信登录
+    if (!authService.isAuthenticated()) {
+      this.handleWeChatLogin()
+    } else {
+      Taro.navigateTo({
+        url: '/pages/profile-edit/index'
+      })
+    }
+  }
+
+  handleWeChatLogin = async () => {
+    try {
+      this.showToast('正在登录...', 'loading')
+
+      const loginData = await authService.weChatLogin()
+
+      this.setState({ userInfo: loginData.userInfo })
+      this.showToast('登录成功', 'success')
+
+      // 重新加载订单统计
+      this.loadOrderStats()
+    } catch (error) {
+      console.error('微信登录失败:', error)
+      const errorMsg = error instanceof Error ? error.message : '登录失败'
+      this.showToast(errorMsg, 'error')
+    }
   }
 
   handleRecharge = () => {
@@ -222,38 +288,38 @@ export default class MyPage extends Component<{}, MyPageState> {
     })
   }
 
-  handleLogout = () => {
-    Taro.showModal({
-      title: '确认退出',
-      content: '确定要退出登录吗？',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            // TODO: 实际项目中这里应该调用退出登录的API
-            // await logout()
+  handleLogout = async () => {
+    // 微信小程序不需要手动登出，这个方法仅用于程序内部处理认证过期
+    try {
+      await authService.logout()
 
-            // 清除用户信息
-            this.setState({
-              userInfo: {
-                id: '',
-                nickname: '游客',
-                avatarUrl: '',
-                phone: '',
-                balance: 0,
-                points: 0,
-                level: '普通用户',
-                isVip: false
-              }
-            })
-
-            this.showToast('已退出登录', 'success')
-          } catch (error) {
-            console.error('退出登录失败:', error)
-            this.showToast('退出登录失败', 'error')
-          }
+      // 清除用户信息
+      this.setState({
+        userInfo: {
+          id: '',
+          nickname: '游客',
+          avatarUrl: '',
+          phone: '',
+          balance: 0,
+          points: 0,
+          level: '普通用户',
+          isVip: false
         }
-      }
-    })
+      })
+
+      // 清除订单统计
+      this.setState({
+        orderStats: {
+          pendingPayment: 0,
+          pendingDelivery: 0,
+          delivering: 0,
+          completed: 0,
+          afterSales: 0
+        }
+      })
+    } catch (error) {
+      console.error('清理认证状态失败:', error)
+    }
   }
 
   renderUserSection = () => {
@@ -267,21 +333,26 @@ export default class MyPage extends Component<{}, MyPageState> {
       )
     }
 
+    const isLoggedIn = authService.isAuthenticated()
+
     return (
       <View className='user-section'>
-        <View className='user-info' onClick={this.handleProfileEdit}>
+        <View
+          className={`user-info ${!isLoggedIn ? 'not-logged-in' : ''}`}
+          onClick={this.handleProfileEdit}
+        >
           <View className='avatar-section'>
             {userInfo.avatarUrl ? (
-              <Image
-                src={userInfo.avatarUrl}
-                mode='aspectFill'
+              <AtAvatar
+                image={userInfo.avatarUrl}
                 className='user-avatar'
+                circle
               />
             ) : (
               <AtAvatar
                 size='large'
                 circle
-                text={userInfo.nickname.charAt(0) || 'U'}
+                text={userInfo.nickname ?? '游客'}
                 className='default-avatar'
               />
             )}
@@ -298,6 +369,9 @@ export default class MyPage extends Component<{}, MyPageState> {
             </View>
             {userInfo.phone && (
               <Text className='user-phone'>{userInfo.phone}</Text>
+            )}
+            {!isLoggedIn && (
+              <Text className='login-hint'>点击头像登录</Text>
             )}
           </View>
 

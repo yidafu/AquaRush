@@ -14,7 +14,8 @@
 
 /* 用户信息区域 */
 .user-section {
-  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
+  background: linear-gradient(135deg, var(--theme-gradient-start, #00A8CC) 0%, var(--theme-gradient-end, #006B8A) 100%);
+  background: -webkit-linear-gradient(315deg, var(--theme-gradient-start, #00A8CC) 0%, var(--theme-gradient-end, #006B8A) 100%);
   padding: 20px 16px 30px;
   color: white;
   position: relative;
@@ -44,6 +45,23 @@
   position: relative;
   z-index: 1;
   cursor: pointer;
+  transition: all 0.2s ease;
+
+  &.not-logged-in {
+    border: 2px dashed rgba(255,255,255,0.4);
+    border-radius: 12px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.1);
+
+    &:hover {
+      border-color: rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.15);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
 }
 
 .avatar-section {
@@ -116,6 +134,16 @@
 .user-phone {
   font-size: 14px;
   opacity: 0.8;
+}
+
+.login-hint {
+  font-size: 12px;
+  color: rgba(255,255,255,0.9);
+  background: rgba(0,0,0,0.2);
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin-top: 4px;
+  display: inline-block;
 }
 
 .user-stats {
@@ -427,6 +455,11 @@
   .service-desc {
     font-size: 11px;
     max-width: 70px;
+  }
+
+  .login-hint {
+    font-size: 11px;
+    padding: 2px 6px;
   }
 }
 

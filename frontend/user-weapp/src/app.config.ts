@@ -8,6 +8,7 @@ export default defineAppConfig({
     'pages/order-list/index',
     'pages/order-detail/index',
     'pages/my/index',
+    'pages/profile-edit/index',
     'pages/theme-settings/index'
   ],
   window: {
