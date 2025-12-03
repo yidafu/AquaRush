@@ -39,11 +39,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer
 class NoticeAutoConfiguration {
 
     @Bean
-    fun restTemplate(): RestTemplate {
-        return RestTemplate()
-    }
-
-    @Bean
     fun redisTemplate(connectionFactory: RedisConnectionFactory): RedisTemplate<String, Any> {
         val template = RedisTemplate<String, Any>()
         template.connectionFactory = connectionFactory

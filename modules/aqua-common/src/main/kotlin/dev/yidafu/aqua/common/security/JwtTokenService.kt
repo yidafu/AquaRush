@@ -19,9 +19,8 @@
 
 package dev.yidafu.aqua.common.security
 
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
-//import io.jsonwebtoken.*
-//import io.jsonwebtoken.security.Keys
+import io.jsonwebtoken.*
+import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
@@ -42,8 +41,7 @@ class JwtTokenService {
   private val refreshTokenExpiration: Long = 604800
 
   private val key: Key by lazy {
-//    Keys.hmacShaKeyFor(secret.toByteArray(StandardCharsets.UTF_8))
-    TODO()
+    Keys.hmacShaKeyFor(secret.toByteArray(StandardCharsets.UTF_8))
   }
 
   /**
@@ -59,7 +57,7 @@ class JwtTokenService {
   /**
    * Extract username from JWT token
    */
-  fun extractUsername(token: String): String? = extractClaim(token) { claims ->  "" }
+  fun extractUsername(token: String): String? = extractClaim(token) { claims -> "" }
 
   /**
    * Extract expiration date from JWT token
@@ -100,7 +98,7 @@ class JwtTokenService {
     userDetails: UserDetails,
     expiration: Long,
   ): String {
-    val authorities = userDetails.authorities?.map { it.authority }?.toMutableList() ?: mutableListOf()
+    val authorities = userDetails.authorities.map { it.authority }.toMutableList()
 
     var userId: String? = null
     var userType: String? = null
@@ -109,41 +107,41 @@ class JwtTokenService {
       userType = userDetails.userType
     }
 
-    return ""
-//    return Jwts
-//      .builder()
-//      .setSubject(userDetails.username)
-//      .claim("authorities", authorities)
-//      .claim("userId", userId)
-//      .claim("userType", userType)
-//      .setIssuedAt(Date())
-//      .setExpiration(Date(System.currentTimeMillis() + expiration * 1000))
-//      .signWith(key, SignatureAlgorithm.HS256)
-//      .compact()
+//    return ""
+    return Jwts
+      .builder()
+      .setSubject(userDetails.username)
+      .claim("authorities", authorities)
+      .claim("userId", userId)
+      .claim("userType", userType)
+      .setIssuedAt(Date())
+      .setExpiration(Date(System.currentTimeMillis() + expiration * 1000))
+      .signWith(key, SignatureAlgorithm.HS256)
+      .compact()
   }
 
   /**
    * Extract all claims from JWT token
    */
-  private fun extractAllClaims(token: String): Any = ""
-//    try {
-//      Jwts
-//        .parser()
-//        .setSigningKey(key)
-//        .build()
-//        .parseClaimsJws(token)
-//        .body
-//    } catch (e: ExpiredJwtException) {
-//      throw JwtTokenException("Token has expired")
-//    } catch (e: UnsupportedJwtException) {
-//      throw JwtTokenException("Token is unsupported")
-//    } catch (e: MalformedJwtException) {
-//      throw JwtTokenException("Token is malformed")
-//    } catch (e: SecurityException) {
-//      throw JwtTokenException("Token signature validation failed")
-//    } catch (e: IllegalArgumentException) {
-//      throw JwtTokenException("Token claims string is empty")
-//    }
+  private fun extractAllClaims(token: String): Claims =
+    try {
+      Jwts
+        .parser()
+        .setSigningKey(key)
+        .build()
+        .parseClaimsJws(token)
+        .body
+    } catch (e: ExpiredJwtException) {
+      throw JwtTokenException("Token has expired")
+    } catch (e: UnsupportedJwtException) {
+      throw JwtTokenException("Token is unsupported")
+    } catch (e: MalformedJwtException) {
+      throw JwtTokenException("Token is malformed")
+    } catch (e: SecurityException) {
+      throw JwtTokenException("Token signature validation failed")
+    } catch (e: IllegalArgumentException) {
+      throw JwtTokenException("Token claims string is empty")
+    }
 
   /**
    * Get UserPrincipal from token
@@ -151,20 +149,19 @@ class JwtTokenService {
   fun getUserPrincipalFromToken(token: String): UserPrincipal? =
     try {
       val claims = extractAllClaims(token)
-//      val username = claims.subject
-//      val userId = claims["userId"] as? String
-//      val userType = claims["userType"] as? String
+      val username = claims.subject
+      val userId = claims["userId"] as? String
+      val userType = claims["userType"] as? String
 
       val authorities = mutableListOf<SimpleGrantedAuthority>()
-//      val authoritiesList = claims["authorities"] as? List<String>
-//      authoritiesList?.map { SimpleGrantedAuthority(it) }?.let { authorities.addAll(it) }
+      val authoritiesList = claims["authorities"] as? List<String>
+      authoritiesList?.map { SimpleGrantedAuthority(it) }?.let { authorities.addAll(it) }
 
       UserPrincipal(
         id =
-//          userId?.toLong() ?:
-          DefaultIdGenerator().generate(),
-        _username = "",
-        userType =  "USER",
+          userId?.toLong() ?: 0L,
+        _username = username,
+        userType = userType ?: "USER",
         _authorities = authorities,
       )
     } catch (e: Exception) {

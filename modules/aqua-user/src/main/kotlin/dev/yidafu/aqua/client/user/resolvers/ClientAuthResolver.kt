@@ -7,8 +7,8 @@ import dev.yidafu.aqua.common.graphql.generated.UpdateProfileInput
 import dev.yidafu.aqua.common.graphql.generated.WechatLoginInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.model.User
-import dev.yidafu.aqua.user.service.UserInfo
 import dev.yidafu.aqua.user.service.WeChatAuthService
+import dev.yidafu.aqua.user.service.WeChatLoginResponse
 import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -20,15 +20,14 @@ import java.time.LocalDateTime
 
 @ClientService
 @Controller
-class AuthResolver(
+class ClientAuthResolver(
     private val weChatAuthService: WeChatAuthService,
 ) {
   @MutationMapping
   fun wechatLogin(
       @Argument @Valid input: WechatLoginInput,
-  ): UserInfo {
-    val authResponse = weChatAuthService.login(input.code.toString())
-    return authResponse.userInfo
+  ): WeChatLoginResponse {
+    return weChatAuthService.login(input.code)
   }
 
   @MutationMapping
