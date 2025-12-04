@@ -21,5 +21,10 @@
 	"compileType": "miniprogram",
 	"simulatorType": "wechat",
 	"simulatorPluginLibVersion": {},
-	"condition": {}
+	"condition": {},
+  "permission": {
+    "scope.userInfo": {
+      "desc": "你的基本信息将用于小程序展示"
+    }
+  }
 }
