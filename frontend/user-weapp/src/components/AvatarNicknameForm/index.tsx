@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Button, Input, Image } from '@tarojs/components'
-import { AtAvatar, AtButton, AtModal, AtModalHeader, AtModalContent, AtModalAction, AtToast } from 'taro-ui'
+import { AtAvatar, AtButton, AtModal, AtModalHeader, AtModalContent, AtModalAction, AtToast, AtForm, AtInput, AtImagePicker } from 'taro-ui'
 import Taro from '@tarojs/taro'
+import { fileUploadService } from '../../services/FileUploadService'
+import { UploadError } from '../../types/storage'
 import "taro-ui/dist/style/components/avatar.scss"
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/modal.scss"
@@ -64,31 +66,23 @@ const AvatarNicknameForm: React.FC<AvatarNicknameFormProps> = ({
 
   // 上传头像到服务器
   const uploadAvatar = async (tempFilePath: string): Promise<string> => {
-    return new Promise((resolve, reject) => {
-      Taro.uploadFile({
-        url: 'http://localhost:8080/api/upload/avatar',
-        filePath: tempFilePath,
-        name: 'avatar',
-        header: {
-          'Authorization': `Bearer ${Taro.getStorageSync('token')}`
-        },
-        success: (res) => {
-          try {
-            const data = JSON.parse(res.data)
-            if (data.code === 0) {
-              resolve(data.data.url)
-            } else {
-              reject(new Error(data.message || '头像上传失败'))
-            }
-          } catch (error) {
-            reject(new Error('头像上传响应解析失败'))
-          }
-        },
-        fail: (error) => {
-          reject(new Error('头像上传失败'))
-        }
-      })
-    })
+    try {
+      return await fileUploadService.uploadAvatar(tempFilePath)
+    } catch (error) {
+      console.error('Avatar upload failed:', error)
+
+      if (error instanceof Error) {
+        throw error
+      }
+
+      // 处理UploadError
+      if ((error as UploadError).code) {
+        const uploadError = error as UploadError
+        throw new Error(uploadError.message)
+      }
+
+      throw new Error('头像上传失败')
+    }
   }
 
   // 提交表单
@@ -142,27 +136,21 @@ const AvatarNicknameForm: React.FC<AvatarNicknameFormProps> = ({
     }
   }
 
-  // 关闭弹窗
-  const handleClose = (): void => {
-    // 重置状态
+  const handleReset = () => {
     setAvatarUrl(initialData.avatarUrl || '')
     setNickname(initialData.nickname || '')
     setIsSubmitting(false)
+  }
+
+  // 关闭弹窗
+  const handleClose = (): void => {
+    // 重置状态
+    handleReset()
     onClose()
   }
 
   return (
     <>
-      {/* <AtModal
-        isOpened
-        title='标题'
-        cancelText='取消'
-        confirmText='确认'
-        onClose={handleClose}
-        onCancel={handleClose}
-        onConfirm={handleSubmit}
-        content='欢迎加入京东凹凸实验室\n\r欢迎加入京东凹凸实验室'
-      /> */}
       <AtModal
         isOpened={visible}
         onClose={handleClose}
@@ -174,59 +162,56 @@ const AvatarNicknameForm: React.FC<AvatarNicknameFormProps> = ({
         <AtModalHeader>完善个人资料</AtModalHeader>
 
         <AtModalContent>
-          <View className='avatar-nickname-form'>
-            <Text className='form-tip'>请选择您的头像并设置昵称</Text>
+          <Text className='form-tip'>请选择您的头像并设置昵称</Text>
 
-            {/* 头像和昵称左右布局 */}
-            <View className='form-content'>
-              {/* 头像选择区域 */}
-              <View className='avatar-section'>
-                <Text className='section-title'>头像</Text>
-                <Button
-                  className='avatar-button'
-                  openType='chooseAvatar'
-                  onChooseAvatar={handleChooseAvatar}
-                >
-                  {avatarUrl ? (
-                    <Image
-                      src={avatarUrl}
-                      className='avatar-preview'
-                      mode='aspectFill'
-                    />
-                  ) : (
-                    <AtAvatar
-                      size='large'
-                      circle
-                      text='头像'
-                      className='default-avatar'
-                    />
-                  )}
-                </Button>
-                <Text className='avatar-hint'>点击选择头像</Text>
+          <AtForm>
+            {/* 头像选择区域 */}
+            <View className='avatar-section border-b border-b-stone-300'>
+              <Text className='section-title'>头像</Text>
+              <View className='flex flex-col justify-center'>
+
+              <Button
+                className='avatar-button'
+                openType='chooseAvatar'
+                onChooseAvatar={handleChooseAvatar}
+              >
+                {avatarUrl ? (
+                  <Image
+                    src={avatarUrl}
+                    className='avatar-preview'
+                    mode='aspectFill'
+                  />
+                ) : (
+                  <AtAvatar
+                    size='large'
+                    circle
+                    text='头像'
+                    className='default-avatar'
+                  />
+                )}
+              </Button>
+                <Text className='avatar-hint text-center	'>点击选择头像</Text>
               </View>
 
-              {/* 昵称输入区域 */}
-              <View className='nickname-section'>
-                <Text className='section-title'>昵称</Text>
-                <Input
-                  type='nickname'
-                  className='nickname-input'
-                  placeholder='请输入昵称（1-20个字符）'
-                  value={nickname}
-                  onInput={handleNicknameInput}
-                  maxlength={20}
-                />
-              </View>
             </View>
-          </View>
+
+            <AtInput
+              title='昵称'
+              type='nickname'
+              name='nickname'
+              value={nickname}
+              onChange={handleNicknameInput}
+            />
+          </AtForm>
         </AtModalContent>
 
         <AtModalAction>
-          <AtButton type='secondary' onClick={handleClose}>取消</AtButton>
-          <AtButton type='primary' onClick={handleSubmit} loading={isSubmitting}>
+          <AtButton full onClick={handleClose} >取消</AtButton>
+          <AtButton full type='primary' onClick={handleSubmit} loading={isSubmitting}>
             确认
           </AtButton>
         </AtModalAction>
+
       </AtModal>
       {/* Toast 提示 */}
       <AtToast

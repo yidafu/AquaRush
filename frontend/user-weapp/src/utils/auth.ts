@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro'
 import { useState, useCallback } from 'react'
-import NetworkManager, { NetworkError, GraphQLError } from './network'
+import NetworkManager, { GraphQLError } from './network'
 
 export interface WeChatAuthResponse {
   code: string
@@ -109,7 +109,7 @@ class AuthService {
     return this.userInfo
   }
 
-  
+
   async weChatLogin(): Promise<LoginResponse> {
     try {
       // 第一步：获取微信登录凭证
@@ -152,47 +152,44 @@ class AuthService {
   }
 
   private async callLoginAPI(code: string): Promise<LoginResponse> {
-    const mutation = `
-      mutation WechatLogin($code: String!) {
-        wechatLogin(input: {
-          code: $code
-        }) {
-          accessToken
-          refreshToken
-          expiresIn
-          userInfo {
-            id
-            wechatOpenId
-            nickname
-            avatarUrl
-          }
-        }
-      }
-    `
-
     try {
-      const response = await networkManager.mutate<any>(mutation, { code }, { skipAuth: true })
-      const weChatLoginResult = response.wechatLogin
+      const response = await Taro.request({
+        url: `${apiBaseUrl}/api/auth/wechat/login`,
+        method: 'POST',
+        data: { code },
+        header: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (response.statusCode !== 200) {
+        throw new Error(`HTTP ${response.statusCode}: ${response.data?.message || '登录失败'}`);
+      }
+
+      const apiResponse = response.data;
+
+      if (!apiResponse.success) {
+        throw new Error(apiResponse.message || '登录失败');
+      }
+
+      const loginResult = apiResponse.data;
 
       return {
-        token: weChatLoginResult.accessToken,
-        refreshToken: weChatLoginResult.refreshToken,
+        token: loginResult.accessToken,
+        refreshToken: loginResult.refreshToken,
         userInfo: {
-          id: weChatLoginResult.userInfo.id,
-          nickname: weChatLoginResult.userInfo.nickname || '微信用户',
-          avatarUrl: weChatLoginResult.userInfo.avatarUrl || '',
-          wechatOpenId: weChatLoginResult.userInfo.wechatOpenId
+          id: loginResult.userInfo.id.toString(),
+          nickname: loginResult.userInfo.nickname || '微信用户',
+          avatarUrl: loginResult.userInfo.avatar || '',
+          wechatOpenId: loginResult.userInfo.wechatOpenId
         }
-      }
+      };
     } catch (error) {
-      console.error('Login API call failed:', error)
-      if (error instanceof GraphQLError) {
-        throw new Error(error.errors?.[0]?.message || '登录失败')
+      console.error('Login API call failed:', error);
+      if (error instanceof Error) {
+        throw error;
       }
-      if (error instanceof NetworkError) {
-        throw new Error('网络连接失败，请检查网络设置')
-      }
-      throw error
+      throw new Error('网络连接失败，请检查网络设置');
     }
   }
 
@@ -200,12 +197,14 @@ class AuthService {
     try {
       // 调用后端登出接口（可选）
       if (this.token) {
-        const mutation = `
-          mutation Logout {
-            logout
+        await Taro.request({
+          url: `${apiBaseUrl}/api/auth/logout`,
+          method: 'POST',
+          header: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${this.token}`
           }
-        `
-        await networkManager.mutate(mutation, {}, {})
+        });
       }
     } catch (error) {
       console.error('Logout API call failed:', error)
@@ -281,10 +280,10 @@ class AuthService {
       if (error instanceof GraphQLError) {
         throw new Error(error.errors?.[0]?.message || '更新用户信息失败')
       }
-      if (error instanceof NetworkError) {
-        throw new Error('网络连接失败，请检查网络设置')
+      if (error instanceof Error) {
+        throw error;
       }
-      throw error
+      throw new Error('网络连接失败，请检查网络设置')
     }
   }
 
