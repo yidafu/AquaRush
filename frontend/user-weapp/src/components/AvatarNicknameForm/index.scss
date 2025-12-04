@@ -7,99 +7,103 @@
   }
 }
 
-.avatar-nickname-form {
-  padding: 20px;
+.form-tip {
+  display: block;
+  text-align: center;
+  color: #666;
+  font-size: 14px;
+  margin-bottom: 30px;
+}
 
-  .form-tip {
-    display: block;
-    text-align: center;
-    color: #666;
-    font-size: 14px;
-    margin-bottom: 30px;
-  }
+.form-content {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 40px;
+  justify-content: space-between;
+}
 
-  .form-content {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    gap: 40px;
-    justify-content: space-between;
-  }
+.section-title {
+  display: block;
+  font-size: 32px;
+  width: 172px;
+  line-height: 1.5;
+  color: #333;
+  margin-bottom: 15px;
+}
 
-  .section-title {
-    display: block;
-    font-size: 16px;
-    font-weight: 500;
-    color: #333;
-    margin-bottom: 15px;
-  }
+.avatar-section {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-shrink: 0;
+  padding: 24rpx 0;
+  color: #333;
+  background-color: #FFF;
+  margin-left: 32rpx;
+  // margin-bottom: 1PX;
+  position: relative;
 
-  .avatar-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    flex-shrink: 0;
 
-    .avatar-button {
-      background: none;
+  .avatar-button {
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    width: 100px;
+    height: 100px;
+    position: relative;
+
+    &::after {
       border: none;
-      padding: 0;
-      margin: 0;
-      border-radius: 50%;
-      overflow: hidden;
+    }
+
+    .avatar-preview {
       width: 100px;
       height: 100px;
-      position: relative;
-
-      &::after {
-        border: none;
-      }
-
-      .avatar-preview {
-        width: 100px;
-        height: 100px;
-        border-radius: 50%;
-        border: 2px solid #e5e5e5;
-      }
-
-      .default-avatar {
-        width: 100px;
-        height: 100px;
-        border: 2px solid #e5e5e5;
-        background-color: #f5f5f5;
-      }
+      border-radius: 50%;
+      border: 2px solid #e5e5e5;
     }
 
-    .avatar-hint {
-      font-size: 12px;
-      color: #999;
-      margin-top: 10px;
+    .default-avatar {
+      width: 100px;
+      height: 100px;
+      border: 2px solid #e5e5e5;
+      background-color: #f5f5f5;
     }
   }
 
-  .nickname-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
+  .avatar-hint {
+    font-size: 18px;
+    color: #999;
+    margin-top: 10px;
+  }
+}
 
-    .nickname-input {
-      width: 100%;
-      height: 44px;
-      border: 1px solid #e5e5e5;
-      border-radius: 8px;
-      padding: 0 16px;
-      font-size: 16px;
-      background-color: #fff;
-      box-sizing: border-box;
+.nickname-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
 
-      &:focus {
-        border-color: #667eea;
-        outline: none;
-      }
+  .nickname-input {
+    width: 100%;
+    height: 44px;
+    border: 1px solid #e5e5e5;
+    border-radius: 8px;
+    padding: 0 16px;
+    font-size: 16px;
+    background-color: #fff;
+    box-sizing: border-box;
 
-      &::placeholder {
-        color: #ccc;
-      }
+    &:focus {
+      border-color: #667eea;
+      outline: none;
+    }
+
+    &::placeholder {
+      color: #ccc;
     }
   }
 }
