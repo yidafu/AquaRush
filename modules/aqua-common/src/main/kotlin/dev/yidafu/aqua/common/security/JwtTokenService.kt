@@ -21,6 +21,7 @@ package dev.yidafu.aqua.common.security
 
 import io.jsonwebtoken.*
 import io.jsonwebtoken.security.Keys
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.userdetails.UserDetails
@@ -31,6 +32,8 @@ import java.util.*
 
 @Service
 class JwtTokenService {
+
+  val logger = LoggerFactory.getLogger(JwtTokenService::class.java)
   @Value($$"${app.jwt.secret:your-secret-key-must-be-256-bits-long}")
   private lateinit var secret: String
 
@@ -57,19 +60,19 @@ class JwtTokenService {
   /**
    * Extract username from JWT token
    */
-  fun extractUsername(token: String): String? = extractClaim(token) { claims -> "" }
+  fun extractUsername(token: String): String? = extractClaim(token) { claims -> claims.subject }
 
   /**
    * Extract expiration date from JWT token
    */
-  fun extractExpiration(token: String): Date? = extractClaim(token) { claims -> Date() }
+  fun extractExpiration(token: String): Date? = extractClaim(token) { claims -> claims.expiration }
 
   /**
    * Extract specific claim from JWT token
    */
   fun <T> extractClaim(
     token: String,
-    claimsResolver: (Any) -> T,
+    claimsResolver: (Claims) -> T,
   ): T {
     val claims = extractAllClaims(token)
     return claimsResolver(claims)
