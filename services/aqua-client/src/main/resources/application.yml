@@ -37,7 +37,7 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     default-schema: public
     drop-first: false         # 生产环境必须为 false！
-    enabled: false            # Disable Liquibase for client service since main app manages schema
+    enabled: true             # Enable Liquibase for client service
 
   artemis:
     mode: embedded
@@ -159,6 +159,15 @@ aqua:
       retry-delays-ms: [30000, 90000, 300000, 900000, 1800000] # 30s, 90s, 5min, 15min, 30min
       cleanup-days: 30
   mode: client
+
+# Storage configuration
+storage:
+  type: LOCAL
+  local:
+    base-path: ${STORAGE_BASE_PATH:./storage}
+    max-file-size: 104857600  # 100MB
+    allowed-extensions: ["jpg", "jpeg", "png", "gif", "bmp", "webp", "mp4", "avi", "mov", "wmv", "flv", "mp3", "wav", "flac", "aac", "pdf", "doc", "docx", "txt", "xls", "xlsx", "csv", "ppt", "pptx", "html", "css", "js", "zip", "rar", "7z", "tar", "gz", "bak", "backup"]
+
 # JWT configuration
 app:
   jwt:

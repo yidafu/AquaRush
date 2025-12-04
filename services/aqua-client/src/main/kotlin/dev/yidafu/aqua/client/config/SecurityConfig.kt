@@ -19,34 +19,34 @@
 
 package dev.yidafu.aqua.client.config
 
+import dev.yidafu.aqua.user.service.CustomUserDetailsService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.authority.AuthorityUtils
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 
 @Configuration
 @EnableWebSecurity
 class SecurityConfig {
 
   @Bean
-  fun filterChain(http: HttpSecurity): SecurityFilterChain {
+  fun filterChain(http: HttpSecurity, jwtAuthenticationFilter: JwtAuthenticationFilter): SecurityFilterChain {
     http
       .authorizeHttpRequests { auth ->
         auth
+          .requestMatchers("/api/auth/wechat/login").permitAll()
+          .requestMatchers("/api/*").authenticated()
+          .requestMatchers("/graphql").authenticated()
           .requestMatchers(
             "/login",
             "/css/**",
             "/js/**",
             "/images/**",
             "/graphiql",
-            "/graphql",
             ).permitAll()
           .anyRequest().permitAll()
       }
@@ -65,17 +65,9 @@ class SecurityConfig {
           .logoutSuccessUrl("/login?logout")
           .permitAll()
       }
+      .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
 
     return http.build()
-  }
-
-  @Bean
-  fun authenticationManager(): AuthenticationManager {
-    return AuthenticationManager { authentication: Authentication? ->
-      UsernamePasswordAuthenticationToken(
-        "anonymous", null, AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")
-      )
-    }
   }
 
   @Bean

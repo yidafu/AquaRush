@@ -21,24 +21,24 @@ package dev.yidafu.aqua.client.config
 
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
+import dev.yidafu.aqua.user.service.CustomUserDetailsService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.http.HttpStatus
-//import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-//import org.springframework.security.core.context.SecurityContextHolder
-//import org.springframework.security.core.userdetails.UserDetailsService
-//import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.core.context.SecurityContextHolder
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
-//@Component
+@Component
 class JwtAuthenticationFilter(
   private val jwtTokenService: JwtTokenService,
-//  private val userDetailsService: UserDetailsService,
+  private val customUserDetailsService: CustomUserDetailsService,
 ) : OncePerRequestFilter() {
-  private val logger = LoggerFactory.getLogger("dev.yidafu.aqua.security.jwt")
+  private val logger = LoggerFactory.getLogger("dev.yidafu.aqua.security.JwtAuthenticationFilter")
   private val auditLogger = LoggerFactory.getLogger("dev.yidafu.aqua.audit")
 
   override fun doFilterInternal(
@@ -46,7 +46,7 @@ class JwtAuthenticationFilter(
     response: HttpServletResponse,
     filterChain: FilterChain,
   ) {
-    val correlationId = CorrelationIdHolder.getCorrelationId()
+    val correlationId = CorrelationIdHolder.getCorrelationId() ?: "unknown"
     val startTime = System.currentTimeMillis()
     var tokenProcessed = false
     var authenticationResult = "SKIPPED"
@@ -59,10 +59,28 @@ class JwtAuthenticationFilter(
         request.requestURI
       )
 
-      // 直接放行所有请求，不做任何认证处理
-      filterChain.doFilter(request, response)
+      val token = extractTokenFromRequest(request)
 
-      authenticationResult = "ALLOWED"
+      token?.let { t ->
+        tokenProcessed = true
+        val isValid = validateAndAuthenticate(t, request, correlationId)
+
+        if (isValid) {
+          authenticationResult = "AUTHENTICATED"
+        } else {
+          authenticationResult = "INVALID_TOKEN"
+        }
+      } ?: run {
+        logger.debug(
+          "JWT_NO_TOKEN - CorrelationId: {}, Method: {}, URI: {}",
+          correlationId,
+          request.method,
+          request.requestURI
+        )
+        authenticationResult = "NO_TOKEN"
+      }
+
+      filterChain.doFilter(request, response)
 
       val endTime = System.currentTimeMillis()
       val duration = endTime - startTime
@@ -106,14 +124,22 @@ class JwtAuthenticationFilter(
   }
 
   override fun shouldNotFilter(request: HttpServletRequest): Boolean {
-    val correlationId = CorrelationIdHolder.getCorrelationId()
-    val shouldNotFilter = false // 返回 false，因为 SecurityConfig 已经配置为允许所有请求
+    val correlationId = CorrelationIdHolder.getCorrelationId() ?: "unknown"
+    val requestURI = request.requestURI
+
+    // Skip JWT processing for public endpoints
+    val shouldNotFilter = requestURI.startsWith("/login") ||
+                         requestURI.startsWith("/css/") ||
+                         requestURI.startsWith("/js/") ||
+                         requestURI.startsWith("/images/") ||
+                         requestURI.startsWith("/graphiql") ||
+                         requestURI.startsWith("/error")
 
     logger.debug(
       "JWT_FILTER_SHOULD_NOT_FILTER - CorrelationId: {}, Method: {}, URI: {}, ShouldNotFilter: {}",
       correlationId,
       request.method,
-      request.requestURI,
+      requestURI,
       shouldNotFilter
     )
 
@@ -121,7 +147,7 @@ class JwtAuthenticationFilter(
   }
 
   private fun extractTokenFromRequest(request: HttpServletRequest): String? {
-    val correlationId = CorrelationIdHolder.getCorrelationId()
+    val correlationId = CorrelationIdHolder.getCorrelationId() ?: "unknown"
 
     // Try Authorization header first
     val authHeader = request.getHeader("Authorization")
@@ -185,17 +211,17 @@ class JwtAuthenticationFilter(
       )
 
       // Load user details and set authentication
-//      val userDetails = userDetailsService.loadUserByUsername(username)
-//
+      val userDetails = customUserDetailsService.loadUserByUsername(username)
+
 //      // Check if token is valid
-//      if (!jwtTokenService.validateToken(token, userDetails)) {
-//        logger.warn(
-//          "JWT_VALIDATION_FAILED - CorrelationId: {}, Username: {}, Reason: Token validation failed",
-//          correlationId,
-//          username
-//        )
-//        return false
-//      }
+      if (!jwtTokenService.validateToken(token, userDetails)) {
+        logger.warn(
+          "JWT_VALIDATION_FAILED - CorrelationId: {}, Username: {}, Reason: Token validation failed",
+          correlationId,
+          username
+        )
+        return false
+      }
 
       logger.debug(
         "JWT_VALIDATION_SUCCESS - CorrelationId: {}, Username: {}",
@@ -203,14 +229,12 @@ class JwtAuthenticationFilter(
         username
       )
 
-//      val authentication = UsernamePasswordAuthenticationToken(
-//        userDetails,
-//        null,
-//        userDetails.authorities
-//      )
-//      authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
-//
-//      SecurityContextHolder.getContext().authentication = authentication
+      // Set authentication in SecurityContext
+      val authentication = UsernamePasswordAuthenticationToken(
+        userDetails, null, userDetails.authorities
+      )
+      authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
+      SecurityContextHolder.getContext().authentication = authentication
 
       auditLogger.info(
         "JWT_AUTHENTICATION_SUCCESS - CorrelationId: {}, Username: {}, Method: {}, URI: {}",
