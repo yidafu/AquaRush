@@ -24,7 +24,9 @@ import dev.yidafu.aqua.storage.domain.entity.FileMetadata
 import dev.yidafu.aqua.storage.domain.enums.FileType
 import dev.yidafu.aqua.storage.dto.FileUploadRequest
 import dev.yidafu.aqua.storage.repository.FileMetadataRepository
+import dev.yidafu.aqua.storage.service.impl.StorageServiceImpl
 import dev.yidafu.aqua.storage.service.storage.StorageStrategy
+import org.springframework.data.repository.findByIdOrNull
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.*
@@ -82,7 +84,6 @@ class StorageServiceTest {
         )
         val storagePath = "images/2024/01/test_123456.jpg"
         val expectedMetadata = FileMetadata(
-            id = 1L,
             fileName = "test.jpg",
             storagePath = storagePath,
             fileType = FileType.IMAGE,
@@ -93,12 +94,12 @@ class StorageServiceTest {
             ownerId = 1L,
             isPublic = true,
             description = "Test image"
-        )
+        ).apply { id = 1L }
 
         every { fileMetadataRepository.findByChecksum(any()) } returns Optional.empty()
         every { storageStrategy.store(file, any()) } returns storagePath
         every { fileMetadataRepository.save(any()) } returns expectedMetadata
-        every { storageStrategy.generateUrl(storagePath) } returns "/api/v1/storage/files/$storagePath"
+        every { storageStrategy.generateUrl(1L) } returns "/api/v1/storage/files/1"
 
         // When
         val result = storageService.uploadFile(file, request)
@@ -107,7 +108,7 @@ class StorageServiceTest {
         assertNotNull(result)
         assertEquals("test.jpg", result.fileName)
         assertEquals(FileType.IMAGE, result.fileType)
-        assertEquals("/api/v1/storage/files/$storagePath", result.fileUrl)
+        assertEquals("/api/v1/storage/files/1", result.fileUrl)
     }
 
     @Test
@@ -134,7 +135,7 @@ class StorageServiceTest {
             "large.jpg",
             "large.jpg",
             "image/jpeg",
-            ByteArray(20L * 1024L * 1024L) // 20MB > 10MB limit
+            ByteArray((20L * 1024L * 1024L).toInt()) // 20MB > 10MB limit
         )
         val request = FileUploadRequest()
 
@@ -150,7 +151,6 @@ class StorageServiceTest {
         val fileId = 1L
         val storagePath = "images/2024/01/test.jpg"
         val metadata = FileMetadata(
-            id = fileId,
             fileName = "test.jpg",
             storagePath = storagePath,
             fileType = FileType.IMAGE,
@@ -159,10 +159,10 @@ class StorageServiceTest {
             checksum = "test_checksum",
             extension = "jpg",
             isPublic = true
-        )
+        ).apply { id = fileId }
 
         every { fileMetadataRepository.findByIdOrNull(fileId) } returns metadata
-        every { storageStrategy.generateUrl(storagePath) } returns "/api/v1/storage/files/$storagePath"
+        every { storageStrategy.generateUrl(fileId) } returns "/api/v1/storage/files/$fileId"
 
         // When
         val result = storageService.getFileMetadata(fileId)
@@ -192,23 +192,21 @@ class StorageServiceTest {
         val pageable: Pageable = PageRequest.of(0, 20)
         val metadataList = listOf(
             FileMetadata(
-                id = 1L,
                 fileName = "test1.jpg",
                 storagePath = "images/2024/01/test1.jpg",
                 fileType = FileType.IMAGE,
                 fileSize = 1024L,
                 mimeType = "image/jpeg",
                 checksum = "checksum1"
-            ),
+            ).apply { id = 1L },
             FileMetadata(
-                id = 2L,
                 fileName = "test2.jpg",
                 storagePath = "images/2024/01/test2.jpg",
                 fileType = FileType.IMAGE,
                 fileSize = 2048L,
                 mimeType = "image/jpeg",
                 checksum = "checksum2"
-            )
+            ).apply { id = 2L }
         )
         val page = PageImpl(metadataList)
 

@@ -77,9 +77,9 @@ data class LocalStorageProperties(
                                            "pdf", "doc", "docx", "txt",
                                            "xls", "xlsx", "csv",
                                            "ppt", "pptx",
-                                           "html", "css", "js",
+                                           "html", "css", "js", "json",
                                            "zip", "rar", "7z", "tar", "gz",
-                                           "exe", "msi", "sh", "bat",
+//                                           "exe", "msi", "sh", "bat",
                                            "bak", "backup")
 )
 
