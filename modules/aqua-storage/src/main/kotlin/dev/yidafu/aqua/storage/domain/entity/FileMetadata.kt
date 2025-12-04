@@ -28,89 +28,145 @@ import java.time.LocalDateTime
  */
 @Entity
 @Table(name = "file_metadata")
-data class FileMetadata(
+class FileMetadata {
     /**
      * 主键ID
      */
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
+    var id: Long = 0
 
     /**
      * 原始文件名
      */
     @Column(nullable = false)
-    val fileName: String,
+    var fileName: String = ""
+        private set
 
     /**
      * 存储路径
      */
     @Column(nullable = false, unique = true)
-    var storagePath: String,
+    var storagePath: String = ""
 
     /**
      * 文件类型
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    val fileType: FileType,
+    var fileType: FileType = FileType.OTHER
+        private set
 
     /**
      * 文件大小（字节）
      */
     @Column(nullable = false)
-    val fileSize: Long,
+    var fileSize: Long = 0
+        private set
 
     /**
      * MIME类型
      */
     @Column(nullable = false)
-    val mimeType: String,
+    var mimeType: String = ""
+        private set
 
     /**
      * 文件校验和 (SHA-256)
      */
     @Column(nullable = false, unique = true)
-    val checksum: String,
+    var checksum: String = ""
+        private set
 
     /**
      * 创建时间
      */
     @Column(nullable = false, updatable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now(),
+    var createdAt: LocalDateTime = LocalDateTime.now()
+        private set
 
     /**
      * 更新时间
      */
     @Column(nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now(),
+    var updatedAt: LocalDateTime = LocalDateTime.now()
+        private set
 
     /**
      * 文件访问权限（公开/私有）
      */
     @Column(nullable = false)
-    val isPublic: Boolean = true,
+    var isPublic: Boolean = true
+        private set
 
     /**
      * 文件描述
      */
     @Column(length = 1000)
-    var description: String? = null,
+    var description: String? = null
+        private set
 
     /**
      * 文件扩展名
      */
     @Column
-    val extension: String? = null,
+    var extension: String? = null
+        private set
 
     /**
      * 文件所有者ID
      */
     @Column
-    val ownerId: Long? = null
-) {
+    var ownerId: Long? = null
+        private set
+
+    // No-arg constructor for Hibernate
+    constructor()
+
+    constructor(
+        fileName: String,
+        storagePath: String,
+        fileType: FileType,
+        fileSize: Long,
+        mimeType: String,
+        checksum: String,
+        isPublic: Boolean = true,
+        description: String? = null,
+        extension: String? = null,
+        ownerId: Long? = null
+    ) {
+        this.fileName = fileName
+        this.storagePath = storagePath
+        this.fileType = fileType
+        this.fileSize = fileSize
+        this.mimeType = mimeType
+        this.checksum = checksum
+        this.isPublic = isPublic
+        this.description = description
+        this.extension = extension
+        this.ownerId = ownerId
+        val now = LocalDateTime.now()
+        this.createdAt = now
+        this.updatedAt = now
+    }
+
     @PreUpdate
     fun preUpdate() {
         updatedAt = LocalDateTime.now()
+    }
+
+    // Equals and hashCode
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is FileMetadata) return false
+        return id == other.id
+    }
+
+    override fun hashCode(): Int {
+        return id.hashCode()
+    }
+
+    override fun toString(): String {
+        return "FileMetadata(id=$id, fileName='$fileName', storagePath='$storagePath', fileType=$fileType, fileSize=$fileSize, mimeType='$mimeType', checksum='$checksum', createdAt=$createdAt, updatedAt=$updatedAt, isPublic=$isPublic, description=$description, extension=$extension, ownerId=$ownerId)"
     }
 }

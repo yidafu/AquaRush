@@ -57,7 +57,7 @@ class StorageController(
         @RequestParam("description", required = false) description: String?,
         @RequestParam(value = "isPublic", defaultValue = "true") isPublic: Boolean,
         @RequestParam("ownerId", required = false) ownerId: Long?
-    ): ResponseEntity<ApiResponse<FileMetadataResponse>> {
+    ): ApiResponse<FileMetadataResponse> {
         val request = FileUploadRequest(
             fileType = fileType,
             description = description,
@@ -66,7 +66,7 @@ class StorageController(
         )
 
         val result = storageService.uploadFile(file, request)
-        return ResponseEntity.ok(ApiResponse.success(result))
+        return ApiResponse.success(result)
     }
 
     /**
