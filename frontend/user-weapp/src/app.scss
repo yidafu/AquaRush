@@ -3,7 +3,9 @@
 @import 'tailwindcss/utilities';
 
 @import './styles/theme.scss';
-$color-brand: #00A8CC;
+$color-brand: #1890ff;
+$color-brand-light: #52acff;
+$color-brand-dark: #1373cc;
 
 @import './node_modules/taro-ui/dist/style/index.scss';
 

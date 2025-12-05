@@ -2,15 +2,16 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, Image, Button } from '@tarojs/components'
 import { AtButton, AtCard, AtList, AtListItem, AtToast } from 'taro-ui'
 import { ThemeSwitcher } from '../../components/ThemeProvider'
-import AvatarNicknameForm from '../../components/AvatarNicknameForm'
-import UserSection from '../../components/UserSection'
-import OrderSection from '../../components/OrderSection'
-import ServiceSection from '../../components/ServiceSection'
+import AvatarNicknameForm from './components/AvatarNicknameForm'
+import UserSection from './components/UserSection'
+import OrderSection from './components/OrderSection'
+import ServiceSection from './components/ServiceSection'
 import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import { authService, type UserInfo as AuthUserInfo, type LoginResponse } from '../../utils/auth'
 
 // Taro UI 样式已在 app.scss 中全局引入，无需重复引入
 import './index.scss'
+import { CONTACT_INFO } from '@/constants'
 
 // Use AuthUserInfo from auth utility
 
@@ -258,7 +259,7 @@ const MyPage: React.FC = () => {
   const handleCustomerService = (): void => {
     // 联系客服
     Taro.makePhoneCall({
-      phoneNumber: '400-888-8888'
+      phoneNumber: CONTACT_INFO.COMPLAINT_HOTLINE
     })
   }
 
@@ -370,30 +371,18 @@ const MyPage: React.FC = () => {
       {/* 服务区域 */}
       <ServiceSection serviceItems={serviceItems} />
 
-      <AtButton>按钮文案</AtButton>
-      <AtButton type='primary' size='normal'>按钮文案</AtButton>
       {/* 其他设置 */}
-      <AtCard className='settings-section'>
+      <AtCard title='其他' className='settings-section'>
         <AtList>
-          <AtListItem
-            title='主题设置'
-            note='选择应用主题颜色'
-            arrow='right'
-            iconInfo={{ value: '/assets/icons/service/settings.png', color: '#667eea' }}
-            onClick={() => Taro.navigateTo({ url: '/pages/theme-settings/index' })}
-          />
+
           <AtListItem
             title='设置'
             arrow='right'
-            iconInfo={{ value: '/assets/icons/service/settings.png', color: '#667eea' }}
+            iconInfo={{ value: '/assets/icons/service/settings.png', color: 'var(--theme-primary)' }}
             onClick={handleSettings}
           />
         </AtList>
 
-        <View style={{ padding: '8px 16px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Text style={{ fontSize: '12px', color: '#666', marginRight: '8px' }}>快速切换主题：</Text>
-          <ThemeSwitcher showLabel={true} />
-        </View>
       </AtCard>
       {/* 底部安全区域 */}
       <View className='safe-bottom' />

@@ -264,14 +264,14 @@ export default class AddressList extends Component<{}, AddressListState> {
     return (
       <View className='address-list-page'>
         {/* 微信地址导入按钮 */}
-        <View className='import-section'>
+        <View className='flex justify-end import-section'>
           <AtButton
             type='secondary'
             size='small'
             onClick={this.handleWechatImport}
             className='import-button'
           >
-            <AtIcon value='download' size='14' color='#667eea' />
+            {/* <AtIcon value='download' size='20' color='#1890ff' /> */}
             <Text>导入微信地址</Text>
           </AtButton>
         </View>
@@ -296,19 +296,21 @@ export default class AddressList extends Component<{}, AddressListState> {
             addresses.map((address) => (
               <AtCard
                 key={address.id}
+                title={address.receiverName}
+                extra={address.phone}
                 className='address-card'
+                renderIcon={address.isDefault ? (
+                  <View className='mr-2 default-badge'>
+                    <Text>默认</Text>
+                  </View>
+                ) : <></>}
               >
                 <View className='address-content'>
-                  {address.isDefault && (
+                  {/* {address.isDefault && (
                     <View className='default-badge'>
                       <Text>默认</Text>
                     </View>
-                  )}
-
-                  <View className='address-header'>
-                    <Text className='receiver-name'>{address.receiverName}</Text>
-                    <Text className='receiver-phone'>{address.phone}</Text>
-                  </View>
+                  )} */}
 
                   <Text className='address-detail'>
                     {address.province} {address.city} {address.district} {address.detailAddress}
@@ -343,17 +345,17 @@ export default class AddressList extends Component<{}, AddressListState> {
                           onClick={() => this.handleEditAddress(address.id)}
                           className='edit-button'
                         >
-                          <AtIcon value='edit' size='14' color='#666' />
+                            <AtIcon value='edit' size='14' color='#1890ff' />
                           <Text>编辑</Text>
                         </AtButton>
 
                         <AtButton
-                          type='secondary'
+                            type='secondary'
                           size='small'
                           onClick={() => this.handleDeleteClick(address.id)}
                           className='delete-button'
                         >
-                          <AtIcon value='trash' size='14' color='#ff6b35' />
+                            <AtIcon value='trash' size='14' color='#FF4D4F' />
                           <Text>删除</Text>
                         </AtButton>
                       </View>
