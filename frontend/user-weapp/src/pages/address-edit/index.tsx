@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, Input, Button, Switch, Picker } from '@tarojs/components'
-import { AtButton, AtForm, AtInput, AtSwitch, AtToast, AtMessage } from 'taro-ui'
+import { View, Text, Picker } from '@tarojs/components'
+import { AtButton, AtForm, AtInput, AtSwitch, AtToast, AtMessage, AtList, AtListItem } from 'taro-ui'
 import Taro from '@tarojs/taro'
 
 import "taro-ui/dist/style/components/button.scss"
@@ -34,7 +34,7 @@ const AddressEdit: React.FC = () => {
     isDefault: false
   })
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [errors, setErrors] = useState<Record<keyof AddressFormData, string>>({} as Record<keyof AddressFormData, string>)
   const [loading, setLoading] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
   const [addressId, setAddressId] = useState<string | null>(null)
@@ -45,9 +45,9 @@ const AddressEdit: React.FC = () => {
   const [cityIndex, setCityIndex] = useState(0)
   const [districtIndex, setDistrictIndex] = useState(0)
 
-  const [provinces] = useState(['广东省', '北京市', '上海市', '江苏省', '浙江省'])
-  const [cities, setCities] = useState(['深圳市', '广州市', '珠海市', '佛山市'])
-  const [districts, setDistricts] = useState(['南山区', '福田区', '罗湖区', '宝安区'])
+  const [provinces] = useState<string[]>(['广东省', '北京市', '上海市', '江苏省', '浙江省'])
+  const [cities, setCities] = useState<string[]>(['深圳市', '广州市', '珠海市', '佛山市'])
+  const [districts, setDistricts] = useState<string[]>(['南山区', '福田区', '罗湖区', '宝安区'])
 
   const showToastMessage = useCallback((text: string, type: 'success' | 'error' | 'loading' = 'success') => {
     setShowToast(true)
@@ -59,10 +59,13 @@ const AddressEdit: React.FC = () => {
     setShowToast(false)
   }, [])
 
-  const handleInputChange = useCallback((field: keyof AddressFormData, value: string | boolean) => {
+  const handleInputChange = useCallback((field: keyof AddressFormData, value: string | number | boolean) => {
+    // AtInput 的 onChange 可能返回 number，需要转换为 string
+    const processedValue = typeof value === 'number' ? value.toString() : value
+
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      [field]: processedValue
     }))
 
     // 清除对应字段的错误信息
@@ -209,8 +212,9 @@ const AddressEdit: React.FC = () => {
   }, [districts])
 
   const validateForm = useCallback((): boolean => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Partial<Record<keyof AddressFormData, string>> = {}
 
+    // 收货人姓名验证
     if (!formData.receiverName.trim()) {
       newErrors.receiverName = '请输入收货人姓名'
     } else if (formData.receiverName.length < 2) {
@@ -219,12 +223,14 @@ const AddressEdit: React.FC = () => {
       newErrors.receiverName = '收货人姓名不能超过20个字符'
     }
 
+    // 手机号验证
     if (!formData.phone.trim()) {
       newErrors.phone = '请输入手机号'
     } else if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
       newErrors.phone = '手机号格式不正确'
     }
 
+    // 地区验证
     if (!formData.province.trim()) {
       newErrors.province = '请选择省份'
     }
@@ -237,6 +243,7 @@ const AddressEdit: React.FC = () => {
       newErrors.district = '请选择区域'
     }
 
+    // 详细地址验证
     if (!formData.detailAddress.trim()) {
       newErrors.detailAddress = '请输入详细地址'
     } else if (formData.detailAddress.length < 5) {
@@ -245,11 +252,12 @@ const AddressEdit: React.FC = () => {
       newErrors.detailAddress = '详细地址不能超过100个字符'
     }
 
+    // 邮政编码验证（可选）
     if (formData.postalCode && !/^\d{6}$/.test(formData.postalCode)) {
       newErrors.postalCode = '邮政编码格式不正确'
     }
 
-    setErrors(newErrors)
+    setErrors(newErrors as Record<keyof AddressFormData, string>)
     return Object.keys(newErrors).length === 0
   }, [formData])
 
@@ -311,130 +319,58 @@ const AddressEdit: React.FC = () => {
   return (
     <View className='address-edit-page'>
       <AtForm className='address-form'>
+
+
         {/* 收货人 */}
-        <View className='form-item'>
-          <View className='form-label required'>收货人</View>
-          <AtInput
-            name='receiverName'
-            title=''
-            type='text'
-            placeholder='请输入收货人姓名'
-            value={formData.receiverName}
-            onChange={(value) => handleInputChange('receiverName', value)}
-            error={!!errors.receiverName}
-          />
-          {errors.receiverName && (
-            <Text className='error-text'>{errors.receiverName}</Text>
-          )}
-        </View>
+        <AtInput
+          name='receiverName'
+          title='收货人'
+          type='text'
+          placeholder='请输入收货人姓名'
+          value={formData.receiverName}
+          onChange={(value) => handleInputChange('receiverName', value)}
+        />
 
         {/* 手机号 */}
-        <View className='form-item'>
-          <View className='form-label required'>手机号</View>
-          <AtInput
-            name='phone'
-            title=''
-            type='phone'
-            placeholder='请输入手机号'
-            value={formData.phone}
-            onChange={(value) => handleInputChange('phone', value)}
-            error={!!errors.phone}
-          />
-          {errors.phone && (
-            <Text className='error-text'>{errors.phone}</Text>
-          )}
-        </View>
+        <AtInput
+          name='phone'
+          title='手机号'
+          type='phone'
+          placeholder='请输入手机号'
+          value={formData.phone}
+          onChange={(value) => handleInputChange('phone', value)}
+          error={!!errors.phone}
+        />
 
         {/* 地区选择 */}
-        <View className='form-item'>
-          <View className='form-label required'>所在地区</View>
-          <View className='region-picker'>
-            <Picker
-              mode='selector'
-              range={provinces}
-              value={provinceIndex}
-              onChange={handleProvinceChange}
-              className='picker-item'
-            >
-              <View className={`picker-display ${errors.province ? 'error' : ''}`}>
-                {formData.province || '请选择省份'}
-              </View>
-            </Picker>
-
-            <Picker
-              mode='selector'
-              range={cities}
-              value={cityIndex}
-              onChange={handleCityChange}
-              className='picker-item'
-            >
-              <View className={`picker-display ${errors.city ? 'error' : ''}`}>
-                {formData.city || '请选择城市'}
-              </View>
-            </Picker>
-
-            <Picker
-              mode='selector'
-              range={districts}
-              value={districtIndex}
-              onChange={handleDistrictChange}
-              className='picker-item'
-            >
-              <View className={`picker-display ${errors.district ? 'error' : ''}`}>
-                {formData.district || '请选择区域'}
-              </View>
-            </Picker>
-          </View>
-          {(errors.province || errors.city || errors.district) && (
-            <Text className='error-text'>
-              {errors.province || errors.city || errors.district || '请选择完整的地区信息'}
-            </Text>
-          )}
-        </View>
+        <Picker mode='time' value={formData.city} onChange={(value) => handleInputChange('city', value)} >
+          <AtList>
+            <AtListItem
+              title='所在地区'
+            />
+          </AtList>
+        </Picker>
 
         {/* 详细地址 */}
-        <View className='form-item'>
-          <View className='form-label required'>详细地址</View>
-          <Input
-            className={`detail-input ${errors.detailAddress ? 'error' : ''}`}
-            placeholder='街道、门牌号、小区、楼号等详细信息'
-            value={formData.detailAddress}
-            onInput={(e) => handleInputChange('detailAddress', e.detail.value)}
-            maxlength={100}
-          />
-          {errors.detailAddress && (
-            <Text className='error-text'>{errors.detailAddress}</Text>
-          )}
-          <Text className='input-hint'>请输入详细的收货地址，不少于5个字符</Text>
-        </View>
+        <AtInput
+          name='detailAddress'
+          title='详细地址'
+          type='text'
+          placeholder='街道、门牌号、小区、楼号等详细信息'
+          value={formData.detailAddress}
+          onChange={(value) => handleInputChange('detailAddress', value)}
+          error={!!errors.detailAddress}
+          maxlength={100}
+        />
+        <Text className='input-hint'>请输入详细的收货地址，不少于5个字符</Text>
 
-        {/* 邮政编码 */}
-        <View className='form-item'>
-          <View className='form-label'>邮政编码</View>
-          <AtInput
-            name='postalCode'
-            title=''
-            type='number'
-            placeholder='请输入邮政编码（选填）'
-            value={formData.postalCode}
-            onChange={(value) => handleInputChange('postalCode', value)}
-            error={!!errors.postalCode}
-          />
-          {errors.postalCode && (
-            <Text className='error-text'>{errors.postalCode}</Text>
-          )}
-        </View>
 
         {/* 设为默认地址 */}
-        <View className='form-item switch-item'>
-          <View className='form-label'>设为默认地址</View>
-          <AtSwitch
-            checked={formData.isDefault}
-            onChange={(value) => handleInputChange('isDefault', value)}
-          />
-        </View>
-      </AtForm>
-
+        <AtSwitch
+          title='设为默认地址'
+          checked={formData.isDefault}
+          onChange={(value) => handleInputChange('isDefault', value)}
+        />
       {/* 提交按钮 */}
       <View className='submit-section'>
         <AtButton
@@ -448,6 +384,9 @@ const AddressEdit: React.FC = () => {
           {loading ? '保存中...' : '保存地址'}
         </AtButton>
       </View>
+
+      </AtForm>
+
 
       {/* Toast 提示 */}
       <AtToast

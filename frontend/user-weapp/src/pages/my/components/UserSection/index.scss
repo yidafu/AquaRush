@@ -1,0 +1,122 @@
+.user-section {
+  margin-bottom: 16px;
+
+  .user-info {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
+    border-radius: 12px;
+    color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+    }
+
+    &.not-logged-in {
+      background: linear-gradient(135deg, #a8a8a8 0%, #7f7f7f 100%);
+      opacity: 0.8;
+    }
+
+    .avatar-section {
+      margin-right: 16px;
+
+      .user-avatar {
+        width: 64px;
+        height: 64px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+      }
+
+      .default-avatar {
+        width: 64px;
+        height: 64px;
+        background-color: rgba(255, 255, 255, 0.2);
+        color: white;
+        font-size: 24px;
+        border: 3px solid rgba(255, 255, 255, 0.3);
+      }
+    }
+
+    .user-details {
+      flex: 1;
+
+      .user-name-section {
+        display: flex;
+        align-items: center;
+        margin-bottom: 6px;
+
+        .user-name {
+          font-size: 18px;
+          font-weight: 600;
+          color: white;
+          margin-right: 8px;
+        }
+
+        .user-level {
+          display: flex;
+          align-items: center;
+          background-color: rgba(255, 107, 53, 0.2);
+          padding: 2px 6px;
+          border-radius: 8px;
+
+          .level-text {
+            font-size: 10px;
+            color: #ff6b35;
+            margin-left: 2px;
+          }
+        }
+      }
+
+      .user-phone {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 4px;
+      }
+
+      .login-hint {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.6);
+        font-style: italic;
+      }
+    }
+  }
+}
+
+// 响应式适配
+@media (max-width: 750px) {
+  .user-section {
+    .user-info {
+      padding: 16px;
+
+      .avatar-section {
+        margin-right: 12px;
+
+        .user-avatar,
+        .default-avatar {
+          width: 56px;
+          height: 56px;
+          font-size: 20px;
+        }
+      }
+
+      .user-details {
+        .user-name-section {
+          .user-name {
+            font-size: 16px;
+          }
+        }
+
+        .user-phone {
+          font-size: 13px;
+        }
+
+        .login-hint {
+          font-size: 11px;
+        }
+      }
+    }
+  }
+}

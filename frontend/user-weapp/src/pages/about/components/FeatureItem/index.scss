@@ -1,0 +1,35 @@
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 32px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .feature-icon {
+    font-size: 40px;
+    margin-right: 24px;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+
+  .feature-content {
+    flex: 1;
+
+    .feature-title {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--theme-text-primary);
+      margin-bottom: 8px;
+      display: block;
+    }
+
+    .feature-desc {
+      font-size: 24px;
+      color: var(--theme-text-secondary);
+      line-height: 1.6;
+      display: block;
+    }
+  }
+}

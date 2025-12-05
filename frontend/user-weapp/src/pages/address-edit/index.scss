@@ -1,194 +1,29 @@
 .address-edit-page {
   min-height: 100vh;
-  background-color: #f5f5f5;
+  background-color: var(--theme-background-page);
   padding-bottom: 100px;
   animation: fadeIn 0.4s ease-out;
 }
 
 .address-form {
-  background: white;
+  background: #fff;
   margin: 20px 16px;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 32px var(--theme-shadow-medium);
   animation: slideInUp 0.5s ease-out;
 }
 
-.form-item {
-  padding: 20px;
-  border-bottom: 1px solid rgba(240, 240, 240, 0.8);
-  transition: background-color 0.3s ease;
-  position: relative;
 
-  &:last-child {
-    border-bottom: none;
-  }
-
-  &.switch-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.02) 0%, rgba(118, 75, 162, 0.02) 100%);
-  }
-
-  &:hover:not(.switch-item) {
-    background: rgba(102, 126, 234, 0.02);
-  }
-}
-
-.form-label {
-  font-size: 15px;
-  color: #333;
-  font-weight: 600;
-  margin-bottom: 12px;
-  position: relative;
-  letter-spacing: 0.3px;
-
-  &.required::before {
-    content: '*';
-    color: #ff6b35;
-    position: absolute;
-    left: -12px;
-    top: 2px;
-    font-weight: bold;
-    font-size: 16px;
-  }
-}
-
-.switch-item .form-label {
-  margin-bottom: 0;
-  font-size: 16px;
-}
-
-.region-picker {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.picker-item {
-  flex: 1;
-  min-width: 100px;
-}
-
-.picker-display {
-  height: 44px;
-  line-height: 44px;
-  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-  border-radius: 12px;
-  padding: 0 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  text-align: center;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-  cursor: pointer;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-  }
-
-  &.error {
-    border-color: #ff6b35;
-    background: linear-gradient(135deg, rgba(255, 107, 53, 0.05) 0%, rgba(255, 107, 53, 0.1) 100%);
-    animation: shake 0.3s ease-in-out;
-  }
-
-  &:active {
-    transform: scale(0.98);
-  }
-
-  &:active::before {
-    opacity: 1;
-  }
-
-  &:empty::before {
-    content: attr(placeholder);
-    color: #999;
-    font-weight: 400;
-  }
-}
-
-.detail-input {
-  width: 100%;
-  height: 44px;
-  line-height: 44px;
-  background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-  border-radius: 12px;
-  padding: 0 16px;
-  font-size: 14px;
-  font-weight: 500;
-  color: #333;
-  border: 2px solid transparent;
-  transition: all 0.3s ease;
-  position: relative;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    border-radius: 12px;
-  }
-
-  &.error {
-    border-color: #ff6b35;
-    background: linear-gradient(135deg, rgba(255, 107, 53, 0.05) 0%, rgba(255, 107, 53, 0.1) 100%);
-    animation: shake 0.3s ease-in-out;
-  }
-
-  &:focus {
-    border-color: #667eea;
-    outline: none;
-  }
-
-  &:focus::before {
-    opacity: 1;
-  }
-
-  &::placeholder {
-    color: #999;
-    font-weight: 400;
-  }
-}
-
-.error-text {
-  font-size: 12px;
-  color: #ff6b35;
-  margin-top: 8px;
-  display: block;
-  font-weight: 500;
-  animation: fadeInUp 0.3s ease-out;
-  background: rgba(255, 107, 53, 0.05);
-  padding: 6px 8px;
-  border-radius: 6px;
-  border-left: 3px solid #ff6b35;
-}
 
 .input-hint {
-  font-size: 12px;
-  color: #999;
+  font-size: 24px;
+  color: var(--theme-text-tertiary);
   margin-top: 8px;
   display: block;
   line-height: 1.5;
   font-style: italic;
+  text-align: right;
 }
 
 .submit-section {
@@ -198,33 +33,20 @@
 
 .submit-button {
   width: 100%;
-  height: 56px;
-  font-size: 17px;
+  // height: 56px;
+  font-size: 34px;
   font-weight: 600;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
   color: white;
   border: none;
   border-radius: 28px;
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 8px 24px rgba(var(--theme-primary-rgb), 0.4);
   transition: all 0.3s ease;
-  position: relative;
-  overflow: hidden;
-  letter-spacing: 0.5px;
 
-  &::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-    transition: left 0.6s ease;
-  }
 
   &:active {
     transform: scale(0.98);
-    box-shadow: 0 4px 16px rgba(102, 126, 234, 0.5);
+    box-shadow: 0 4px 16px rgba(var(--theme-primary-rgb), 0.5);
   }
 
   &:active::before {
@@ -234,7 +56,7 @@
   &[disabled] {
     opacity: 0.6;
     background: linear-gradient(135deg, #ccc 0%, #999 100%);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 8px var(--theme-shadow-medium);
     cursor: not-allowed;
   }
 }
@@ -291,87 +113,6 @@
 }
 
 /* Taro UI 组件样式覆盖 */
-.at-form {
-  background: transparent;
-}
-
-.at-input {
-  background: transparent;
-  padding: 0;
-  margin: 0;
-
-  &::after {
-    display: none;
-  }
-
-  .at-input__title {
-    display: none;
-  }
-
-  .at-input__input {
-    background: linear-gradient(135deg, #f8f9ff 0%, #f0f4ff 100%);
-    border-radius: 12px;
-    padding: 0 16px;
-    height: 44px;
-    line-height: 44px;
-    border: 2px solid transparent;
-    transition: all 0.3s ease;
-    font-weight: 500;
-    position: relative;
-
-    &::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-      opacity: 0;
-      transition: opacity 0.3s ease;
-      border-radius: 12px;
-    }
-
-    &:focus {
-      border-color: #667eea;
-      outline: none;
-    }
-
-    &:focus::before {
-      opacity: 1;
-    }
-
-    &.at-input--error {
-      border-color: #ff6b35;
-      background: linear-gradient(135deg, rgba(255, 107, 53, 0.05) 0%, rgba(255, 107, 53, 0.1) 100%);
-      animation: shake 0.3s ease-in-out;
-    }
-  }
-
-  .at-input__container {
-    padding: 0;
-  }
-}
-
-.at-switch {
-  transform: scale(1.1);
-
-  .at-switch__switch {
-    background: #e0e0e0;
-    border-color: #e0e0e0;
-
-    &.at-switch--switch-checked {
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      border-color: transparent;
-    }
-  }
-}
-
-.at-toast {
-  border-radius: 12px;
-  backdrop-filter: blur(10px);
-  font-weight: 500;
-}
 
 .at-message {
   border-radius: 12px;
@@ -392,101 +133,11 @@
 }
 
 /* 输入框聚焦效果 */
-.detail-input:focus,
-.picker-display:focus-within {
-  border-color: #667eea;
-  box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+.detail-input:focus {
+  border-color: var(--theme-primary);
+  box-shadow: 0 0 0 4px rgba(var(--theme-primary-rgb), 0.1);
 }
 
-/* 响应式调整 */
-@media (max-width: 375px) {
-  .address-edit-page {
-    padding-bottom: 80px;
-  }
-
-  .address-form {
-    margin: 16px 12px;
-    border-radius: 16px;
-  }
-
-  .form-item {
-    padding: 16px;
-  }
-
-  .form-label {
-    font-size: 14px;
-    margin-bottom: 10px;
-  }
-
-  .region-picker {
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  .picker-item {
-    min-width: auto;
-  }
-
-  .picker-display {
-    text-align: left;
-    height: 40px;
-    line-height: 40px;
-    padding: 0 12px;
-    font-size: 13px;
-  }
-
-  .detail-input {
-    height: 40px;
-    line-height: 40px;
-    padding: 0 12px;
-    font-size: 13px;
-  }
-
-  .submit-section {
-    padding: 20px 12px;
-  }
-
-  .submit-button {
-    height: 48px;
-    font-size: 16px;
-  }
-
-  .error-text {
-    font-size: 11px;
-    margin-top: 6px;
-    padding: 4px 6px;
-  }
-
-  .input-hint {
-    font-size: 11px;
-    margin-top: 6px;
-  }
-
-  .at-input__input {
-    height: 40px;
-    line-height: 40px;
-    padding: 0 12px;
-  }
-
-  .at-switch {
-    transform: scale(1);
-  }
-}
-
-@media (max-width: 320px) {
-  .region-picker {
-    gap: 8px;
-  }
-
-  .picker-display {
-    padding: 0 8px;
-    font-size: 12px;
-  }
-
-  .form-item {
-    padding: 12px;
-  }
-}
 
 /* 暗色模式适配 */
 @media (prefers-color-scheme: dark) {
@@ -521,6 +172,7 @@
 
   .input-hint {
     color: #aaa;
+    text-align: right;
   }
 }
 

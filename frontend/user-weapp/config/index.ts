@@ -3,7 +3,6 @@ import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin'
 import devConfig from './dev'
 import prodConfig from './prod'
 import path from 'node:path'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { normalizePath } from 'vite'
 import tailwindcss from 'tailwindcss'
 import { UnifiedViteWeappTailwindcssPlugin as uvtw } from 'weapp-tailwindcss/vite'
@@ -31,9 +30,14 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
     },
     copy: {
       patterns: [
+        { from: 'src/assets/icons/', to: 'dist/assets/icons/', ignore:['*.svg', '*.py']}
       ],
       options: {
       }
+    },
+    alias: {
+      '@': path.resolve(__dirname, '..', 'src'),
+
     },
     framework: 'react',
     compiler: {
@@ -57,14 +61,6 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
           // 由于 taro vite 默认会移除所有的 tailwindcss css 变量，所以一定要开启这个配置，进行css 变量的重新注入
           injectAdditionalCssVarScope: true,
         }),
-        viteStaticCopy({
-          targets: [
-            {
-              src: normalizePath(path.resolve(process.cwd(), 'src/assets/icons/')),
-              dest: 'assets'
-            },
-          ]
-        })
       ]
     },
     mini: {

@@ -1,0 +1,29 @@
+.section {
+  margin-bottom: 48px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+
+  .section-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--theme-text-primary);
+    margin-bottom: 24px;
+    display: block;
+    position: relative;
+    padding-left: 24px;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 6px;
+      height: 32px;
+      background: var(--theme-primary);
+      border-radius: 3px;
+    }
+  }
+}
