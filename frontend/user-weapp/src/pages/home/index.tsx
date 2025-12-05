@@ -3,6 +3,7 @@ import { View, Text, Image, Navigator, Swiper, SwiperItem } from '@tarojs/compon
 import { AtButton, AtCard, AtGrid, AtDivider } from 'taro-ui'
 import Taro from '@tarojs/taro'
 import CustomNavBar from '../../components/CustomNavBar'
+import { authService } from '../../utils/auth'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/card.scss"
@@ -43,24 +44,24 @@ export default class HomePage extends Component<{}, HomeState> {
   }
 
   componentDidShow() {
-    // 页面显示时可以刷新数据
+    // 页面显示时刷新用户信息和产品数据
+    this.loadUserInfo()
+    this.loadProducts()
   }
 
   loadUserInfo = async () => {
     try {
-      // TODO: 实际项目中这里应该调用获取用户信息的API
-      // const userInfo = await getCurrentUser()
-
-      // 模拟用户数据
-      const userInfo = {
-        nickname: '用户',
-        avatarUrl: '',
-        balance: 0
+      // 检查用户是否已登录，如果已登录则获取用户信息
+      if (authService.isAuthenticated()) {
+        const userInfo = authService.getUserInfo()
+        this.setState({ userInfo })
+      } else {
+        // 如果用户未登录，设置为null，组件会根据状态显示不同的内容
+        this.setState({ userInfo: null })
       }
-
-      this.setState({ userInfo })
     } catch (error) {
       console.error('获取用户信息失败:', error)
+      this.setState({ userInfo: null })
     }
   }
 
@@ -262,8 +263,6 @@ export default class HomePage extends Component<{}, HomeState> {
             ))}
           </Swiper>
         </View>
-
-
 
         <AtDivider content='推荐产品' />
 

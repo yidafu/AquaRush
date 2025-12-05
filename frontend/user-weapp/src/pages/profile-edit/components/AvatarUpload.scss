@@ -1,0 +1,141 @@
+@import '../../../styles/theme.scss';
+
+.avatar-upload {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+
+  .avatar-container {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    overflow: hidden;
+
+    &:not(.disabled):hover {
+      transform: scale(1.02);
+
+      .upload-hint {
+        opacity: 1;
+      }
+    }
+
+    &.disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    &.uploading {
+      pointer-events: none;
+    }
+  }
+
+  .avatar-preview {
+    border: 3px solid var(--theme-primary-light, #66E0FF);
+    box-shadow: 0 4px 12px rgba(0, 168, 204, 0.2);
+  }
+
+  .avatar-placeholder {
+    background-color: var(--theme-background-secondary, #f8f8f8);
+    border: 2px dashed var(--theme-border-primary, #e0e0e0);
+    color: var(--theme-text-secondary, #999);
+    font-size: 14px;
+  }
+
+  .uploading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+
+    .uploading-text {
+      color: var(--theme-background-primary, #ffffff);
+      font-size: 12px;
+      font-weight: 500;
+    }
+  }
+
+  .upload-hint {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: var(--theme-background-primary, #ffffff);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+    z-index: 20;
+  }
+
+  .avatar-tips {
+    margin-top: 24px;
+    text-align: center;
+
+    .tips-text {
+      font-size: 12px;
+      color: var(--theme-text-tertiary, #999);
+      line-height: 1.4;
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 375px) {
+  .avatar-upload {
+    .avatar-tips {
+      margin-top: 20px;
+
+      .tips-text {
+        font-size: 11px;
+      }
+    }
+
+    .upload-hint {
+      font-size: 11px;
+      padding: 3px 6px;
+      bottom: -18px;
+    }
+  }
+}
+
+// 主题适配
+[data-theme="dark"] {
+  .avatar-upload {
+    .avatar-placeholder {
+      background-color: #404040;
+      border-color: #555555;
+      color: #cccccc;
+    }
+
+    .avatar-tips .tips-text {
+      color: #888888;
+    }
+  }
+}
+
+// 动画效果
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.8;
+  }
+}
+
+.avatar-container.uploading {
+  animation: pulse 1.5s ease-in-out infinite;
+}

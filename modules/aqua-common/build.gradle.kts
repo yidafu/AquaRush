@@ -34,12 +34,12 @@ dependencies {
   implementation("jakarta.validation:jakarta.validation-api:4.0.0-M1")
 
   // JWT support
-//  implementation(libs.bundles.jwt)
+  implementation(libs.bundles.jwt)
 
   // MapDB for caching
   implementation(libs.mapdb)
   testImplementation(libs.spring.boot.starter.test)
-
+  implementation(libs.wechat.miniapp)
   // QueryDSL for type-safe queries (temporarily disabled)
   // implementation(libs.bundles.querydsl)
   // annotationProcessor(libs.querydsl.apt)

@@ -1,0 +1,28 @@
+.contact-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--theme-border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .contact-label {
+    font-size: 28px;
+    color: var(--theme-text-secondary);
+    font-weight: 500;
+    flex-shrink: 0;
+    min-width: 160px;
+  }
+
+  .contact-value {
+    font-size: 26px;
+    color: var(--theme-text-primary);
+    text-align: right;
+    flex: 1;
+    margin-left: 24px;
+    word-break: break-all;
+  }
+}

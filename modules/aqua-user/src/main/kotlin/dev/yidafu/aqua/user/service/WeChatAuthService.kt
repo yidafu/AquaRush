@@ -19,40 +19,31 @@
 
 package dev.yidafu.aqua.user.service
 
+import cn.binarywang.wx.miniapp.api.WxMaService
 import com.fasterxml.jackson.annotation.JsonProperty
-import tools.jackson.databind.ObjectMapper
-import dev.yidafu.aqua.api.dto.NotificationSettingsDTO
 import dev.yidafu.aqua.api.dto.UserRole
 import dev.yidafu.aqua.api.dto.UserStatus
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.model.User
 import dev.yidafu.aqua.user.domain.repository.UserRepository
+import me.chanjar.weixin.common.error.WxErrorException
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import org.springframework.web.client.RestTemplate
+import tools.jackson.databind.ObjectMapper
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.*
 
 @Service
 class WeChatAuthService(
   private val userRepository: UserRepository,
   private val jwtTokenService: JwtTokenService,
   private val objectMapper: ObjectMapper,
+  private val wxMaService: WxMaService
 ) {
   private val logger = LoggerFactory.getLogger(WeChatAuthService::class.java)
-
-  @Value($$"${aqua.wechat.app-id}")
-  private lateinit var appId: String
-
-  @Value($$"${aqua.wechat.app-secret}")
-  private lateinit var appSecret: String
-
-  private val restTemplate = RestTemplate()
 
   /**
    * Authenticate user with WeChat code and return JWT tokens
@@ -61,14 +52,14 @@ class WeChatAuthService(
   fun login(code: String): WeChatLoginResponse {
     try {
       // Exchange code for OpenID and session key
-      val wechatResponse = exchangeCodeForOpenId(code)
+      val wechatResult = exchangeCodeForOpenId(code)
 
-      if (wechatResponse.errcode != null && wechatResponse.errcode != 0) {
-        throw WeChatAuthException("WeChat API error: ${wechatResponse.errmsg}")
+      if (wechatResult.isFailure) {
+        throw WeChatAuthException("WeChat API error: ${wechatResult.exceptionOrNull()}")
       }
-
+      val wechatResp = wechatResult.getOrNull()!!
       // Find or create user
-      val user = findOrCreateUser(wechatResponse.openid!!)
+      val user = findOrCreateUser(wechatResp.openid!!)
 
       // Create user principal
       val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
@@ -84,7 +75,7 @@ class WeChatAuthService(
       val accessToken = jwtTokenService.generateAccessToken(userPrincipal)
       val refreshToken = jwtTokenService.generateRefreshToken(userPrincipal)
 
-      logger.info("User logged in successfully: openid={}", wechatResponse.openid)
+      logger.info("User logged in successfully: openid={}", wechatResp.openid)
 
       return WeChatLoginResponse(
         accessToken = accessToken,
@@ -93,11 +84,12 @@ class WeChatAuthService(
         tokenType = "Bearer",
         userInfo =
           UserInfo(
-            id = user.id!!,
+            id = user.id,
             openid = user.wechatOpenId,
             nickname = user.nickname,
             avatar = user.avatarUrl,
             phone = user.phone,
+            wechatOpenId = user.wechatOpenId
           ),
       )
     } catch (e: Exception) {
@@ -141,17 +133,20 @@ class WeChatAuthService(
   /**
    * Exchange WeChat code for OpenID and session key
    */
-  private fun exchangeCodeForOpenId(code: String): WeChatCode2SessionResponse {
-    val url =
-      "https://api.weixin.qq.com/sns/jscode2session" +
-        "?appid=$appId" +
-        "&secret=$appSecret" +
-        "&js_code=$code" +
-        "&grant_type=authorization_code"
+  private fun exchangeCodeForOpenId(code: String): Result<WeChatCode2SessionResponse> {
+    try {
 
-    logger.debug("Calling WeChat code2session API")
-    return restTemplate.getForObject(url, WeChatCode2SessionResponse::class.java)
-      ?: throw WeChatAuthException("Failed to call WeChat API")
+      val session = wxMaService.userService.getSessionInfo(code)
+      return Result.success(
+      WeChatCode2SessionResponse(
+        session.openid,
+        session.sessionKey,
+        session.unionid,
+      )
+      )
+    }catch (e: WxErrorException) {
+      return Result.failure(e)
+    }
   }
 
   /**
@@ -192,6 +187,7 @@ class WeChatAuthService(
       nickname = user.nickname,
       avatar = user.avatarUrl,
       phone = user.phone,
+      wechatOpenId = user.wechatOpenId
     )
   }
 
@@ -220,6 +216,7 @@ class WeChatAuthService(
       nickname = updatedUser.nickname,
       avatar = updatedUser.avatarUrl,
       phone = updatedUser.phone,
+      wechatOpenId = updatedUser.wechatOpenId
     )
   }
 }
@@ -230,8 +227,8 @@ data class WeChatCode2SessionResponse(
   @JsonProperty("openid") val openid: String? = null,
   @JsonProperty("session_key") val sessionKey: String? = null,
   @JsonProperty("unionid") val unionid: String? = null,
-  @JsonProperty("errcode") val errcode: Int? = null,
-  @JsonProperty("errmsg") val errmsg: String? = null,
+//  @JsonProperty("errcode") val errcode: Int? = null,
+//  @JsonProperty("errmsg") val errmsg: String? = null,
 )
 
 data class WeChatLoginResponse(
@@ -255,6 +252,7 @@ data class UserInfo(
   val nickname: String?,
   val avatar: String?,
   val phone: String?,
+  val wechatOpenId: String?
 )
 
 data class UpdateUserRequest(

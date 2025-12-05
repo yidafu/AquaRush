@@ -51,6 +51,7 @@ dependencies {
   implementation(project(":modules:aqua-payment"))
   implementation(project(":modules:aqua-notice"))
   implementation(project(":modules:aqua-review"))
+  implementation(project(":modules:aqua-storage"))
 
   // Entry module specific dependencies
   implementation(libs.spring.boot.starter.web)

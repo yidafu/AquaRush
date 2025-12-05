@@ -1,0 +1,374 @@
+@import '../../styles/theme.scss';
+
+.profile-edit-page {
+  min-height: 100vh;
+  background-color: var(--theme-background-page, #f5f5f5);
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50vh;
+  color: var(--theme-text-secondary, #666);
+}
+
+// 页面头部
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: var(--theme-background-primary, #ffffff);
+  border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
+
+  .header-left,
+  .header-right {
+    flex: 1;
+    min-width: 60px;
+  }
+
+  .header-left {
+    .cancel-btn {
+      font-size: 16px;
+      color: var(--theme-text-secondary, #666);
+
+      &:active {
+        opacity: 0.6;
+      }
+    }
+  }
+
+  .header-center {
+    flex: 2;
+    text-align: center;
+
+    .page-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--theme-text-primary, #333);
+    }
+  }
+
+  .header-right {
+    text-align: right;
+
+    .save-btn {
+      font-size: 16px;
+      color: var(--theme-text-secondary, #999);
+      font-weight: 500;
+
+      &.active {
+        color: var(--theme-primary, #00A8CC);
+
+        &:active {
+          opacity: 0.6;
+        }
+      }
+
+      &.disabled {
+        color: var(--theme-text-disabled, #ccc);
+        pointer-events: none;
+      }
+    }
+  }
+}
+
+// 表单容器
+.form-container {
+  margin-top: 8px;
+}
+
+.form-section {
+  background-color: var(--theme-background-primary, #ffffff);
+  padding: 20px 20px 10px;
+  margin-bottom: 1px;
+
+  .section-title {
+    display: block;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--theme-text-primary, #333);
+    margin-bottom: 16px;
+  }
+}
+
+// 头像区域
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .avatar-upload-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+}
+
+// 只读信息区域
+.readonly-section {
+  .readonly-field {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--theme-border-light, #f5f5f5);
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    .field-label {
+      font-size: 14px;
+      color: var(--theme-text-secondary, #666);
+    }
+
+    .field-value {
+      font-size: 14px;
+      color: var(--theme-text-primary, #333);
+      font-weight: 500;
+    }
+  }
+}
+
+// 错误信息
+.error-message {
+  margin: 8px 0 0 0;
+  padding: 0 5px;
+
+  .error-text {
+    font-size: 12px;
+    color: var(--theme-error, #ff6b35);
+    line-height: 1.4;
+  }
+}
+
+// 安全底部区域
+.safe-bottom {
+  height: constant(safe-area-inset-bottom);
+  height: env(safe-area-inset-bottom);
+}
+
+// Taro UI 组件样式覆盖
+.at-form {
+  background: transparent;
+
+  .at-input {
+    background: var(--theme-background-primary, #ffffff);
+    margin-bottom: 1px;
+
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+
+  .at-input__input {
+    color: var(--theme-text-primary, #333);
+  }
+
+  .at-input__container {
+    border-bottom: none;
+  }
+}
+
+.at-divider {
+  background-color: var(--theme-background-page, #f5f5f5);
+  color: transparent;
+  height: 8px;
+  margin: 0;
+  border: none;
+}
+
+// 头像上传组件样式
+:global(.avatar-upload) {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .avatar-container {
+    position: relative;
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &:hover:not(.disabled) {
+      .upload-hint {
+        opacity: 1;
+      }
+    }
+
+    &.disabled {
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    &.uploading {
+      pointer-events: none;
+    }
+  }
+
+  .avatar-preview {
+    border: 3px solid var(--theme-primary-light, #66E0FF);
+    box-shadow: 0 4px 12px rgba(0, 168, 204, 0.2);
+  }
+
+  .avatar-placeholder {
+    background-color: var(--theme-background-secondary, #f8f8f8);
+    border: 2px dashed var(--theme-border-primary, #e0e0e0);
+    color: var(--theme-text-secondary, #999);
+    font-size: 14px;
+  }
+
+  .uploading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    .uploading-text {
+      color: var(--theme-background-primary, #ffffff);
+      font-size: 12px;
+    }
+  }
+
+  .upload-hint {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: rgba(0, 0, 0, 0.7);
+    color: var(--theme-background-primary, #ffffff);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    pointer-events: none;
+  }
+
+  .avatar-tips {
+    margin-top: 24px;
+    text-align: center;
+
+    .tips-text {
+      font-size: 12px;
+      color: var(--theme-text-tertiary, #999);
+      line-height: 1.4;
+    }
+  }
+}
+
+// Toast 样式
+.at-toast {
+  .at-toast__body {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: var(--theme-background-primary, #ffffff);
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-size: 14px;
+    max-width: 80%;
+  }
+}
+
+// 响应式设计
+@media (max-width: 375px) {
+  .page-header {
+    padding: 12px 16px;
+
+    .header-left,
+    .header-right {
+      min-width: 50px;
+    }
+
+    .header-center .page-title {
+      font-size: 16px;
+    }
+
+    .header-left .cancel-btn,
+    .header-right .save-btn {
+      font-size: 14px;
+    }
+  }
+
+  .form-section {
+    padding: 16px 16px 8px;
+
+    .section-title {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+  }
+}
+
+@media (min-width: 768px) {
+  .profile-edit-page {
+    max-width: 500px;
+    margin: 0 auto;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+  }
+}
+
+// 动画效果
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.form-section {
+  animation: fadeInUp 0.3s ease-out;
+}
+
+// 主题适配
+[data-theme="dark"] {
+  .profile-edit-page {
+    background-color: #1a1a1a;
+  }
+
+  .page-header {
+    background-color: #2d2d2d;
+    border-bottom-color: #404040;
+  }
+
+  .form-section {
+    background-color: #2d2d2d;
+
+    .section-title {
+      color: #ffffff;
+    }
+  }
+
+  .readonly-section .readonly-field {
+    border-bottom-color: #404040;
+
+    .field-label {
+      color: #cccccc;
+    }
+
+    .field-value {
+      color: #ffffff;
+    }
+  }
+
+  :global(.avatar-upload) {
+    .avatar-placeholder {
+      background-color: #404040;
+      border-color: #555555;
+    }
+  }
+}

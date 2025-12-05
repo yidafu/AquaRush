@@ -1,20 +1,21 @@
 // 主题变量定义
 :root {
-  // 主色调 - 水蓝色系
-  --theme-primary: #00A8CC;
-  --theme-primary-light: #E6F7FB;
-  --theme-primary-dark: #0088AA;
-  --theme-primary-rgb: 0, 168, 204;
+  // 主色调 - 蓝色系
+  --theme-primary: #1890ff;
+  --theme-primary-light: #e6f7ff;
+  --theme-primary-dark: #1373cc;
+  --theme-primary-rgb: 24, 144, 255;
 
   // 渐变色
-  --theme-gradient-start: #00A8CC;
-  --theme-gradient-end: #006B8A;
+  --theme-gradient-start: #1890ff;
+  --theme-gradient-end: #1373cc;
 
   // 功能色
   --theme-secondary: #FF6B35;
   --theme-success: #52C41A;
   --theme-warning: #FAAD14;
-  --theme-error: #FF4D4F;
+  --theme-error: #ff4d4f;
+  --theme-error-rgb: 255,77,79;
 
   // 中性色
   --theme-text-primary: #333333;
@@ -22,10 +23,10 @@
   --theme-text-tertiary: #999999;
   --theme-background: #FFFFFF;
   --theme-background-page: #F5F5F5;
-  --theme-border: #F0F0F0;
+  --theme-border: #f0f0f0;
 
   // 阴影
-  --theme-shadow-light: rgba(0, 168, 204, 0.08);
+  --theme-shadow-light: rgba(24, 144, 255, 0.08);
   --theme-shadow-medium: rgba(0, 0, 0, 0.05);
 }
 
