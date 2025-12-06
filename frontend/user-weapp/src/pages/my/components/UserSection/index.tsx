@@ -5,7 +5,6 @@ import CustomIcon from '@/components/CustomIcon'
 import { authService, type AuthUserInfo } from '@/utils/auth'
 
 import "taro-ui/dist/style/components/avatar.scss"
-import './index.scss'
 
 interface UserSectionProps {
   userInfo: AuthUserInfo | null
@@ -15,7 +14,7 @@ interface UserSectionProps {
 const UserSection: React.FC<UserSectionProps> = ({ userInfo, onProfileEdit }) => {
   if (!userInfo) {
     return (
-      <View className='user-section'>
+      <View className='mb-4'>
         <Text>加载中...</Text>
       </View>
     )
@@ -24,7 +23,7 @@ const UserSection: React.FC<UserSectionProps> = ({ userInfo, onProfileEdit }) =>
   const isLoggedIn = authService.isAuthenticated()
 
   return (
-    <View className='user-section'>
+    <View className='mb-4'>
       <View
         className={`user-info ${!isLoggedIn ? 'not-logged-in' : ''}`}
         onClick={onProfileEdit}

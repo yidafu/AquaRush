@@ -7,6 +7,7 @@ export default defineAppConfig({
     'pages/address-edit/index',
     'pages/order-list/index',
     'pages/order-detail/index',
+    'pages/delivery-tracking/index',
     'pages/my/index',
     'pages/profile-edit/index',
     'pages/theme-settings/index',

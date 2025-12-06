@@ -330,3 +330,690 @@
     }
   }
 }
+
+// Box Shadow 阴影工具类
+.shadow-none {
+  box-shadow: none !important;
+}
+
+// 小尺寸阴影
+.shadow-sm {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-sm-top {
+  box-shadow: 0 -1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-sm-bottom {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-sm-left {
+  box-shadow: -1px 0 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-sm-right {
+  box-shadow: 1px 0 2px rgba(0, 0, 0, 0.05) !important;
+}
+
+// 中等尺寸阴影
+.shadow {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-top {
+  box-shadow: 0 -1px 3px rgba(0, 0, 0, 0.1), 0 -1px 2px rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-bottom {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-left {
+  box-shadow: -1px 0 3px rgba(0, 0, 0, 0.1), -1px 0 2px rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-right {
+  box-shadow: 1px 0 3px rgba(0, 0, 0, 0.1), 1px 0 2px rgba(0, 0, 0, 0.06) !important;
+}
+
+// 默认阴影 (对应目前项目中使用的 0 2px 8px rgba(0,0,0,0.05))
+.shadow-default {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-default-top {
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-default-bottom {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-default-left {
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-default-right {
+  box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05) !important;
+}
+
+// 中等强度阴影 (对应目前项目中使用的 0 -2px 8px rgba(0,0,0,0.1))
+.shadow-md {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-md-top {
+  box-shadow: 0 -4px 6px rgba(0, 0, 0, 0.07), 0 -2px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-md-bottom {
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07), 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-md-left {
+  box-shadow: -4px 0 6px rgba(0, 0, 0, 0.07), -2px 0 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+.shadow-md-right {
+  box-shadow: 4px 0 6px rgba(0, 0, 0, 0.07), 2px 0 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+// 特殊强度阴影 (对应 bottom-actions 使用的 0 -2px 8px rgba(0,0,0,0.1))
+.shadow-action {
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1) !important;
+}
+
+// 大尺寸阴影
+.shadow-lg {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-lg-top {
+  box-shadow: 0 -10px 15px rgba(0, 0, 0, 0.1), 0 -4px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-lg-bottom {
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1), 0 4px 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-lg-left {
+  box-shadow: -10px 0 15px rgba(0, 0, 0, 0.1), -4px 0 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+.shadow-lg-right {
+  box-shadow: 10px 0 15px rgba(0, 0, 0, 0.1), 4px 0 6px rgba(0, 0, 0, 0.05) !important;
+}
+
+// 超大尺寸阴影
+.shadow-xl {
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+.shadow-xl-top {
+  box-shadow: 0 -20px 25px rgba(0, 0, 0, 0.1), 0 -10px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+.shadow-xl-bottom {
+  box-shadow: 0 20px 25px rgba(0, 0, 0, 0.1), 0 10px 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+.shadow-xl-left {
+  box-shadow: -20px 0 25px rgba(0, 0, 0, 0.1), -10px 0 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+.shadow-xl-right {
+  box-shadow: 20px 0 25px rgba(0, 0, 0, 0.1), 10px 0 10px rgba(0, 0, 0, 0.04) !important;
+}
+
+// 2xl 超大阴影
+.shadow-2xl {
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25) !important;
+}
+
+// 内阴影
+.shadow-inner {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06) !important;
+}
+
+// 主题阴影类 (使用主题变量)
+.shadow-theme-light {
+  box-shadow: 0 2px 8px var(--theme-shadow-light) !important;
+}
+
+.shadow-theme-medium {
+  box-shadow: 0 2px 8px var(--theme-shadow-medium) !important;
+}
+
+.shadow-theme-light-top {
+  box-shadow: 0 -2px 8px var(--theme-shadow-light) !important;
+}
+
+.shadow-theme-medium-top {
+  box-shadow: 0 -2px 8px var(--theme-shadow-medium) !important;
+}
+
+.shadow-theme-light-bottom {
+  box-shadow: 0 2px 8px var(--theme-shadow-light) !important;
+}
+
+.shadow-theme-medium-bottom {
+  box-shadow: 0 2px 8px var(--theme-shadow-medium) !important;
+}
+
+// 悬浮效果阴影
+.shadow-hover {
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
+  }
+}
+
+.shadow-hover-lg {
+  transition: box-shadow 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15) !important;
+  }
+}
+
+// 文本颜色工具类 (对应 Tailwind 配置)
+.text-primary {
+  color: var(--theme-text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--theme-text-secondary) !important;
+}
+
+.text-tertiary {
+  color: var(--theme-text-tertiary) !important;
+}
+
+// 背景颜色工具类
+.bg-page {
+  background-color: var(--theme-background-page) !important;
+}
+
+.bg-primary {
+  background-color: var(--theme-primary) !important;
+}
+
+.bg-secondary {
+  background-color: var(--theme-secondary) !important;
+}
+
+.bg-success {
+  background-color: var(--theme-success) !important;
+}
+
+.bg-warning {
+  background-color: var(--theme-warning) !important;
+}
+
+.bg-error {
+  background-color: var(--theme-error) !important;
+}
+
+// 边框颜色工具类
+.border-default {
+  border-color: var(--theme-border) !important;
+}
+
+.border-primary {
+  border-color: var(--theme-primary) !important;
+}
+
+.border-secondary {
+  border-color: var(--theme-secondary) !important;
+}
+
+// 间距工具类
+.space-y-1 > * + * {
+  margin-top: 4px !important;
+}
+
+.space-y-2 > * + * {
+  margin-top: 8px !important;
+}
+
+.space-y-3 > * + * {
+  margin-top: 12px !important;
+}
+
+.space-y-4 > * + * {
+  margin-top: 16px !important;
+}
+
+.space-x-1 > * + * {
+  margin-left: 4px !important;
+}
+
+.space-x-2 > * + * {
+  margin-left: 8px !important;
+}
+
+.space-x-3 > * + * {
+  margin-left: 12px !important;
+}
+
+.space-x-4 > * + * {
+  margin-left: 16px !important;
+}
+
+// 圆角工具类
+.rounded-sm {
+  border-radius: 2px !important;
+}
+
+.rounded {
+  border-radius: 4px !important;
+}
+
+.rounded-md {
+  border-radius: 6px !important;
+}
+
+.rounded-lg {
+  border-radius: 8px !important;
+}
+
+.rounded-xl {
+  border-radius: 12px !important;
+}
+
+.rounded-2xl {
+  border-radius: 16px !important;
+}
+
+.rounded-full {
+  border-radius: 50% !important;
+}
+
+// 显示工具类
+.block {
+  display: block !important;
+}
+
+.inline-block {
+  display: inline-block !important;
+}
+
+.inline {
+  display: inline !important;
+}
+
+.flex {
+  display: flex !important;
+}
+
+.inline-flex {
+  display: inline-flex !important;
+}
+
+.grid {
+  display: grid !important;
+}
+
+.hidden {
+  display: none !important;
+}
+
+// Flex 工具类
+.flex-col {
+  flex-direction: column !important;
+}
+
+.flex-row {
+  flex-direction: row !important;
+}
+
+.flex-wrap {
+  flex-wrap: wrap !important;
+}
+
+.flex-nowrap {
+  flex-wrap: nowrap !important;
+}
+
+.items-start {
+  align-items: flex-start !important;
+}
+
+.items-end {
+  align-items: flex-end !important;
+}
+
+.items-center {
+  align-items: center !important;
+}
+
+.items-stretch {
+  align-items: stretch !important;
+}
+
+.justify-start {
+  justify-content: flex-start !important;
+}
+
+.justify-end {
+  justify-content: flex-end !important;
+}
+
+.justify-center {
+  justify-content: center !important;
+}
+
+.justify-between {
+  justify-content: space-between !important;
+}
+
+.justify-around {
+  justify-content: space-around !important;
+}
+
+.flex-1 {
+  flex: 1 !important;
+}
+
+.flex-auto {
+  flex: auto !important;
+}
+
+.flex-none {
+  flex: none !important;
+}
+
+// 字体大小工具类
+.text-xs {
+  font-size: 12px !important;
+}
+
+.text-sm {
+  font-size: 14px !important;
+}
+
+.text-base {
+  font-size: 16px !important;
+}
+
+.text-lg {
+  font-size: 18px !important;
+}
+
+.text-xl {
+  font-size: 20px !important;
+}
+
+.text-2xl {
+  font-size: 24px !important;
+}
+
+.text-3xl {
+  font-size: 30px !important;
+}
+
+.text-4xl {
+  font-size: 36px !important;
+}
+
+// 字体粗细工具类
+.font-thin {
+  font-weight: 100 !important;
+}
+
+.font-light {
+  font-weight: 300 !important;
+}
+
+.font-normal {
+  font-weight: 400 !important;
+}
+
+.font-medium {
+  font-weight: 500 !important;
+}
+
+.font-semibold {
+  font-weight: 600 !important;
+}
+
+.font-bold {
+  font-weight: 700 !important;
+}
+
+.font-extrabold {
+  font-weight: 800 !important;
+}
+
+// 间距工具类 (padding 和 margin)
+.p-0 { padding: 0 !important; }
+.p-1 { padding: 4px !important; }
+.p-2 { padding: 8px !important; }
+.p-3 { padding: 12px !important; }
+.p-4 { padding: 16px !important; }
+.p-5 { padding: 20px !important; }
+.p-6 { padding: 24px !important; }
+.p-8 { padding: 32px !important; }
+.p-10 { padding: 40px !important; }
+.p-12 { padding: 48px !important; }
+
+.px-0 { padding-left: 0 !important; padding-right: 0 !important; }
+.px-1 { padding-left: 4px !important; padding-right: 4px !important; }
+.px-2 { padding-left: 8px !important; padding-right: 8px !important; }
+.px-3 { padding-left: 12px !important; padding-right: 12px !important; }
+.px-4 { padding-left: 16px !important; padding-right: 16px !important; }
+.px-5 { padding-left: 20px !important; padding-right: 20px !important; }
+.px-6 { padding-left: 24px !important; padding-right: 24px !important; }
+.px-8 { padding-left: 32px !important; padding-right: 32px !important; }
+.px-10 { padding-left: 40px !important; padding-right: 40px !important; }
+.px-12 { padding-left: 48px !important; padding-right: 48px !important; }
+
+.py-0 { padding-top: 0 !important; padding-bottom: 0 !important; }
+.py-1 { padding-top: 4px !important; padding-bottom: 4px !important; }
+.py-2 { padding-top: 8px !important; padding-bottom: 8px !important; }
+.py-3 { padding-top: 12px !important; padding-bottom: 12px !important; }
+.py-4 { padding-top: 16px !important; padding-bottom: 16px !important; }
+.py-5 { padding-top: 20px !important; padding-bottom: 20px !important; }
+.py-6 { padding-top: 24px !important; padding-bottom: 24px !important; }
+.py-8 { padding-top: 32px !important; padding-bottom: 32px !important; }
+.py-10 { padding-top: 40px !important; padding-bottom: 40px !important; }
+.py-12 { padding-top: 48px !important; padding-bottom: 48px !important; }
+
+.m-0 { margin: 0 !important; }
+.m-1 { margin: 4px !important; }
+.m-2 { margin: 8px !important; }
+.m-3 { margin: 12px !important; }
+.m-4 { margin: 16px !important; }
+.m-5 { margin: 20px !important; }
+.m-6 { margin: 24px !important; }
+.m-8 { margin: 32px !important; }
+.m-10 { margin: 40px !important; }
+.m-12 { margin: 48px !important; }
+
+.mx-0 { margin-left: 0 !important; margin-right: 0 !important; }
+.mx-1 { margin-left: 4px !important; margin-right: 4px !important; }
+.mx-2 { margin-left: 8px !important; margin-right: 8px !important; }
+.mx-3 { margin-left: 12px !important; margin-right: 12px !important; }
+.mx-4 { margin-left: 16px !important; margin-right: 16px !important; }
+.mx-5 { margin-left: 20px !important; margin-right: 20px !important; }
+.mx-6 { margin-left: 24px !important; margin-right: 24px !important; }
+.mx-8 { margin-left: 32px !important; margin-right: 32px !important; }
+.mx-10 { margin-left: 40px !important; margin-right: 40px !important; }
+.mx-12 { margin-left: 48px !important; margin-right: 48px !important; }
+
+.my-0 { margin-top: 0 !important; margin-bottom: 0 !important; }
+.my-1 { margin-top: 4px !important; margin-bottom: 4px !important; }
+.my-2 { margin-top: 8px !important; margin-bottom: 8px !important; }
+.my-3 { margin-top: 12px !important; margin-bottom: 12px !important; }
+.my-4 { margin-top: 16px !important; margin-bottom: 16px !important; }
+.my-5 { margin-top: 20px !important; margin-bottom: 20px !important; }
+.my-6 { margin-top: 24px !important; margin-bottom: 24px !important; }
+.my-8 { margin-top: 32px !important; margin-bottom: 32px !important; }
+.my-10 { margin-top: 40px !important; margin-bottom: 40px !important; }
+.my-12 { margin-top: 48px !important; margin-bottom: 48px !important; }
+
+// 宽度高度工具类
+.w-full {
+  width: 100% !important;
+}
+
+.h-full {
+  height: 100% !important;
+}
+
+.w-auto {
+  width: auto !important;
+}
+
+.h-auto {
+  height: auto !important;
+}
+
+// 位置工具类
+.relative {
+  position: relative !important;
+}
+
+.absolute {
+  position: absolute !important;
+}
+
+.fixed {
+  position: fixed !important;
+}
+
+.sticky {
+  position: sticky !important;
+}
+
+// 透明度工具类
+.opacity-0 {
+  opacity: 0 !important;
+}
+
+.opacity-25 {
+  opacity: 0.25 !important;
+}
+
+.opacity-50 {
+  opacity: 0.5 !important;
+}
+
+.opacity-75 {
+  opacity: 0.75 !important;
+}
+
+.opacity-100 {
+  opacity: 1 !important;
+}
+
+// 过渡效果工具类
+.transition {
+  transition: all 0.2s ease !important;
+}
+
+.transition-colors {
+  transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease !important;
+}
+
+.transition-transform {
+  transition: transform 0.2s ease !important;
+}
+
+// 变换工具类
+.scale-95 {
+  transform: scale(0.95) !important;
+}
+
+.scale-100 {
+  transform: scale(1) !important;
+}
+
+.scale-105 {
+  transform: scale(1.05) !important;
+}
+
+.rotate-45 {
+  transform: rotate(45deg) !important;
+}
+
+.rotate-90 {
+  transform: rotate(90deg) !important;
+}
+
+.rotate-180 {
+  transform: rotate(180deg) !important;
+}
+
+// 溢出工具类
+.overflow-hidden {
+  overflow: hidden !important;
+}
+
+.overflow-visible {
+  overflow: visible !important;
+}
+
+.overflow-scroll {
+  overflow: scroll !important;
+}
+
+.overflow-auto {
+  overflow: auto !important;
+}
+
+.overflow-x-hidden {
+  overflow-x: hidden !important;
+}
+
+.overflow-y-hidden {
+  overflow-y: hidden !important;
+}
+
+.overflow-x-scroll {
+  overflow-x: scroll !important;
+}
+
+.overflow-y-scroll {
+  overflow-y: scroll !important;
+}
+
+.overflow-x-auto {
+  overflow-x: auto !important;
+}
+
+.overflow-y-auto {
+  overflow-y: auto !important;
+}
+
+// Z-index 工具类
+.z-0 {
+  z-index: 0 !important;
+}
+
+.z-10 {
+  z-index: 10 !important;
+}
+
+.z-20 {
+  z-index: 20 !important;
+}
+
+.z-30 {
+  z-index: 30 !important;
+}
+
+.z-40 {
+  z-index: 40 !important;
+}
+
+.z-50 {
+  z-index: 50 !important;
+}
+
+.z-auto {
+  z-index: auto !important;
+}

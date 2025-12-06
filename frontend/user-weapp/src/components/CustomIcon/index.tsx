@@ -1,7 +1,6 @@
 import React from 'react'
 import { Image } from '@tarojs/components'
 import { AtIcon } from 'taro-ui'
-import './styles.scss'
 
 interface CustomIconProps {
   value: string           // Icon identifier
@@ -53,7 +52,7 @@ const CustomIcon: React.FC<CustomIconProps> = ({
       return (
         <Image
           src={iconSrc}
-          className={`custom-icon ${className || ''}`}
+          className={`inline-block align-middle object-contain ${className || ''}`}
           style={{
             width: typeof size === 'number' ? `${size}px` : size,
             height: typeof size === 'number' ? `${size}px` : size,
@@ -68,20 +67,14 @@ const CustomIcon: React.FC<CustomIconProps> = ({
     default:
       return (
         <div
-          className={`icon-placeholder ${className || ''}`}
+          className={`rounded font-mono font-bold select-none cursor-default flex items-center justify-center ${className || ''}`}
           style={{
             width: typeof size === 'number' ? `${size}px` : size,
             height: typeof size === 'number' ? `${size}px` : size,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
             backgroundColor: '#f5f5f5',
             border: '1px dashed #ddd',
             color: '#999',
             fontSize: typeof size === 'number' ? `${size * 0.6}px` : '12px',
-            borderRadius: '4px',
-            fontFamily: 'monospace',
-            fontWeight: 'bold',
             ...style
           }}
           onClick={onClick}

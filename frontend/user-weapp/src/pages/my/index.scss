@@ -1,3 +1,5 @@
+@import "../../styles/theme.scss";
+
 .my-page {
   min-height: 100vh;
   background-color: var(--theme-background-page);
@@ -335,7 +337,7 @@
   padding: 16px;
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--theme-text-primary);
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -360,16 +362,16 @@
 
 .at-list__item-content__info-title {
   font-size: 15px;
-  color: #333;
+  color: var(--theme-text-primary);
 }
 
 .at-list__item__icon {
-  color: #667eea;
+  color: var(--theme-primary);
 }
 
 .at-divider {
   margin: 0 16px;
-  background-color: #f0f0f0;
+  background-color: var(--theme-border);
 }
 
 .at-badge {
@@ -380,7 +382,7 @@
 }
 
 .at-badge__content {
-  background: #ff6b35;
+  background: var(--theme-secondary);
   color: white;
   border: 2px solid white;
   font-size: 10px;
