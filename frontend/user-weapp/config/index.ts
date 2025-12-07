@@ -30,7 +30,8 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
     },
     copy: {
       patterns: [
-        { from: 'src/assets/icons/', to: 'dist/assets/icons/', ignore:['*.svg', '*.py']}
+        { from: 'src/assets/icons/', to: 'dist/assets/icons/', ignore:['*.svg', '*.py']},
+        { from: 'src/libs/', to: 'dist/libs/' }
       ],
       options: {
       }

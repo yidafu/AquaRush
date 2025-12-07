@@ -1,7 +1,6 @@
 import { Component, PropsWithChildren } from 'react'
 import { View, Text } from '@tarojs/components'
 import { authService } from '../../utils/auth'
-import './index.scss'
 
 interface AuthGuardProps {
   fallback?: React.ReactNode
@@ -57,7 +56,7 @@ class AuthGuard extends Component<PropsWithChildren<AuthGuardProps>, AuthGuardSt
 
     if (loading) {
       return (
-        <View className='auth-guard-loading'>
+        <View className='flex justify-center items-center h-[200px]'>
           <Text>加载中...</Text>
         </View>
       )

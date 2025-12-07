@@ -4,3 +4,6 @@
 
 // 联系信息相关
 export * from './contact'
+
+
+export * from './qqmap'

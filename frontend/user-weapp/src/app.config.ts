@@ -20,6 +20,7 @@ export default defineAppConfig({
     navigationBarTitleText: 'AquaRush',
     navigationBarTextStyle: 'black'
   },
+
   tabBar: {
     color: '#999999',
     selectedColor: '#1890ff',

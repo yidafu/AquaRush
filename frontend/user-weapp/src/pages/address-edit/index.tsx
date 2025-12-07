@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, Picker } from '@tarojs/components'
-import { AtButton, AtForm, AtInput, AtSwitch, AtToast, AtMessage, AtList, AtListItem } from 'taro-ui'
+import { AtButton, AtForm, AtInput, AtSwitch, AtToast, AtMessage, AtList, AtListItem, AtActivityIndicator } from 'taro-ui'
 import Taro from '@tarojs/taro'
+import { useRegionSelector } from '../../hooks/useRegionSelector'
+import AddressMap from '../../components/AddressMap'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/form.scss"
@@ -9,6 +11,8 @@ import "taro-ui/dist/style/components/input.scss"
 import "taro-ui/dist/style/components/switch.scss"
 import "taro-ui/dist/style/components/toast.scss"
 import "taro-ui/dist/style/components/message.scss"
+import "taro-ui/dist/style/components/activity-indicator.scss"
+import "taro-ui/dist/style/components/icon.scss"
 import './index.scss'
 
 interface AddressFormData {
@@ -20,6 +24,11 @@ interface AddressFormData {
   detailAddress: string
   postalCode: string
   isDefault: boolean
+  provinceCode?: string
+  cityCode?: string
+  districtCode?: string
+  latitude?: number
+  longitude?: number
 }
 
 const AddressEdit: React.FC = () => {
@@ -41,13 +50,13 @@ const AddressEdit: React.FC = () => {
   const [showToast, setShowToast] = useState(false)
   const [toastText, setToastText] = useState('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
-  const [provinceIndex, setProvinceIndex] = useState(0)
-  const [cityIndex, setCityIndex] = useState(0)
-  const [districtIndex, setDistrictIndex] = useState(0)
 
-  const [provinces] = useState<string[]>(['广东省', '北京市', '上海市', '江苏省', '浙江省'])
-  const [cities, setCities] = useState<string[]>(['深圳市', '广州市', '珠海市', '佛山市'])
-  const [districts, setDistricts] = useState<string[]>(['南山区', '福田区', '罗湖区', '宝安区'])
+  // Initialize region selector
+  const regionSelector = useRegionSelector({
+    onError: (error) => {
+      showToastMessage(`地区加载失败: ${error}`, 'error')
+    }
+  })
 
   const showToastMessage = useCallback((text: string, type: 'success' | 'error' | 'loading' = 'success') => {
     setShowToast(true)
@@ -59,53 +68,73 @@ const AddressEdit: React.FC = () => {
     setShowToast(false)
   }, [])
 
+  // Handle map location changes from AddressMap component
+  const handleMapLocationChange = useCallback((location: {
+    latitude: number
+    longitude: number
+    address: string
+  }) => {
+    setFormData(prev => ({
+      ...prev,
+      latitude: location.latitude,
+      longitude: location.longitude
+    }))
+    showToastMessage('地图位置已更新', 'success')
+  }, [showToastMessage])
+
   const handleInputChange = useCallback((field: keyof AddressFormData, value: string | number | boolean) => {
     // AtInput 的 onChange 可能返回 number，需要转换为 string
     const processedValue = typeof value === 'number' ? value.toString() : value
 
-    setFormData(prev => ({
-      ...prev,
-      [field]: processedValue
-    }))
+    setFormData(prev => {
+      // 检查值是否真的发生了变化
+      if (prev[field] === processedValue) {
+        return prev
+      }
+      return {
+        ...prev,
+        [field]: processedValue
+      }
+    })
 
     // 清除对应字段的错误信息
-    if (errors[field]) {
-      setErrors(prev => ({
+    setErrors(prev => {
+      if (!prev[field]) return prev
+      return {
         ...prev,
         [field]: ''
-      }))
-    }
-  }, [errors])
-
-  // 简化的地区数据获取方法，实际项目中应该从后端获取完整的省市区数据
-  const getCitiesByProvince = useCallback((province: string): string[] => {
-    const cityMap: Record<string, string[]> = {
-      '广东省': ['深圳市', '广州市', '珠海市', '佛山市', '东莞市'],
-      '北京市': ['东城区', '西城区', '朝阳区', '海淀区', '丰台区'],
-      '上海市': ['黄浦区', '徐汇区', '长宁区', '静安区', '普陀区'],
-      '江苏省': ['南京市', '苏州市', '无锡市', '常州市', '南通市'],
-      '浙江省': ['杭州市', '宁波市', '温州市', '嘉兴市', '湖州市']
-    }
-    return cityMap[province] || ['深圳市']
+      }
+    })
   }, [])
 
-  const getDistrictsByCity = useCallback((city: string): string[] => {
-    const districtMap: Record<string, string[]> = {
-      '深圳市': ['南山区', '福田区', '罗湖区', '宝安区', '龙岗区'],
-      '广州市': ['天河区', '越秀区', '海珠区', '白云区', '番禺区'],
-      '珠海市': ['香洲区', '斗门区', '金湾区'],
-      '佛山市': ['禅城区', '南海区', '顺德区', '高明区', '三水区'],
-      '东莞市': ['莞城区', '南城区', '东城区', '万江区', '石龙镇'],
-      '东城区': ['东华门街道', '景山街道', '交道口街道', '安定门街道'],
-      '西城区': ['西长安街街道', '新街口街道', '月坛街道', '展览路街道'],
-      '朝阳区': ['建国门外街道', '朝外街道', '呼家楼街道', '三里屯街道'],
-      '海淀区': ['万寿路街道', '永定路街道', '羊坊店街道', '甘家口街道'],
-      '南京市': ['玄武区', '秦淮区', '建邺区', '鼓楼区', '浦口区'],
-      '苏州市': ['姑苏区', '虎丘区', '吴中区', '相城区', '吴江区'],
-      '杭州市': ['上城区', '下城区', '江干区', '拱墅区', '西湖区']
-    }
-    return districtMap[city] || ['南山区']
-  }, [])
+  // Sync form data with region selection changes - 优化：减少不必要的重新渲染
+  useEffect(() => {
+    const selectedNames = regionSelector.getSelectedNames()
+    const selectedCodes = regionSelector.getSelectedCodes()
+
+    setFormData(prev => {
+      // 检查是否真的需要更新
+      const hasChanges =
+        prev.province !== (selectedNames.province || '') ||
+        prev.city !== (selectedNames.city || '') ||
+        prev.district !== (selectedNames.district || '') ||
+        prev.provinceCode !== selectedCodes.provinceCode ||
+        prev.cityCode !== selectedCodes.cityCode ||
+        prev.districtCode !== selectedCodes.districtCode
+
+      if (!hasChanges) return prev
+
+      return {
+        ...prev,
+        province: selectedNames.province || '',
+        city: selectedNames.city || '',
+        district: selectedNames.district || '',
+        provinceCode: selectedCodes.provinceCode,
+        cityCode: selectedCodes.cityCode,
+        districtCode: selectedCodes.districtCode
+      }
+    })
+  }, [regionSelector.selectedProvince?.code, regionSelector.selectedCity?.code, regionSelector.selectedDistrict?.code])
 
   const loadAddressDetail = useCallback(async (addressId: string) => {
     try {
@@ -122,94 +151,33 @@ const AddressEdit: React.FC = () => {
         district: '南山区',
         detailAddress: '科技园南区深南大道9988号',
         postalCode: '518000',
-        isDefault: true
+        isDefault: true,
+        latitude: 22.5316,   // 深圳科技园坐标
+        longitude: 113.9351
       }
 
-      // 设置地区选择器的索引
-      const pIndex = provinces.indexOf(mockAddress.province)
-      const cIndex = cities.indexOf(mockAddress.city)
-      const dIndex = districts.indexOf(mockAddress.district)
-
       setFormData(mockAddress)
-      setProvinceIndex(pIndex >= 0 ? pIndex : 0)
-      setCityIndex(cIndex >= 0 ? cIndex : 0)
-      setDistrictIndex(dIndex >= 0 ? dIndex : 0)
+
+      // Initialize region selector with existing data
+      // This will be handled by the useRegionSelector hook if we pass initialSelection
     } catch (error) {
       console.error('获取地址详情失败:', error)
       showToastMessage('获取地址详情失败', 'error')
     }
-  }, [provinces, cities, districts, showToastMessage])
+  }, [showToastMessage])
 
   const loadWechatAddress = useCallback(() => {
     try {
       const wechatAddress = Taro.getStorageSync('wechatAddress')
       if (wechatAddress) {
-        // 设置地区选择器的索引
-        const pIndex = provinces.indexOf(wechatAddress.province)
-        const cIndex = cities.indexOf(wechatAddress.city)
-        const dIndex = districts.indexOf(wechatAddress.district)
-
         setFormData(wechatAddress)
-        setProvinceIndex(pIndex >= 0 ? pIndex : 0)
-        setCityIndex(cIndex >= 0 ? cIndex : 0)
-        setDistrictIndex(dIndex >= 0 ? dIndex : 0)
-
         // 清除缓存的微信地址
         Taro.removeStorageSync('wechatAddress')
       }
     } catch (error) {
       console.error('加载微信地址失败:', error)
     }
-  }, [provinces, cities, districts])
-
-  const handleProvinceChange = useCallback((e: any) => {
-    const pIndex = e.detail.value
-    const province = provinces[pIndex]
-
-    // 根据省份更新城市列表
-    const newCities = getCitiesByProvince(province)
-    const newDistricts = getDistrictsByCity(newCities[0] || '')
-
-    setProvinceIndex(pIndex)
-    setFormData(prev => ({
-      ...prev,
-      province,
-      city: newCities[0] || '',
-      district: newDistricts[0] || ''
-    }))
-    setCityIndex(0)
-    setDistrictIndex(0)
-    setCities(newCities)
-    setDistricts(newDistricts)
-  }, [provinces, getCitiesByProvince, getDistrictsByCity])
-
-  const handleCityChange = useCallback((e: any) => {
-    const cIndex = e.detail.value
-    const city = cities[cIndex]
-
-    // 根据城市更新区县列表
-    const newDistricts = getDistrictsByCity(city)
-
-    setCityIndex(cIndex)
-    setFormData(prev => ({
-      ...prev,
-      city,
-      district: newDistricts[0] || ''
-    }))
-    setDistrictIndex(0)
-    setDistricts(newDistricts)
-  }, [cities, getDistrictsByCity])
-
-  const handleDistrictChange = useCallback((e: any) => {
-    const dIndex = e.detail.value
-    const district = districts[dIndex]
-
-    setDistrictIndex(dIndex)
-    setFormData(prev => ({
-      ...prev,
-      district
-    }))
-  }, [districts])
+  }, [])
 
   const validateForm = useCallback((): boolean => {
     const newErrors: Partial<Record<keyof AddressFormData, string>> = {}
@@ -260,6 +228,29 @@ const AddressEdit: React.FC = () => {
     setErrors(newErrors as Record<keyof AddressFormData, string>)
     return Object.keys(newErrors).length === 0
   }, [formData])
+
+  // Handle map selection results
+  useEffect(() => {
+    const checkMapSelection = () => {
+      const selectedLocation = Taro.getStorageSync('selectedLocation')
+      if (selectedLocation) {
+        // Update form with selected coordinates
+        setFormData(prev => ({
+          ...prev,
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
+          detailAddress: selectedLocation.address && selectedLocation.address.trim() ? selectedLocation.address : prev.detailAddress
+        }))
+
+        // Clear the stored location
+        Taro.removeStorageSync('selectedLocation')
+
+        showToastMessage('已选择地图位置', 'success')
+      }
+    }
+
+    checkMapSelection()
+  }, [showToastMessage])
 
   const handleSubmit = useCallback(async () => {
     if (!validateForm()) {
@@ -343,13 +334,47 @@ const AddressEdit: React.FC = () => {
         />
 
         {/* 地区选择 */}
-        <Picker mode='time' value={formData.city} onChange={(value) => handleInputChange('city', value)} >
+        {regionSelector.provinces.length > 0 ? (
+          <Picker
+            mode='multiSelector'
+            range={[
+              regionSelector.provinces.map(p => p.name),
+              regionSelector.cities.map(c => c.name),
+              regionSelector.districts.map(d => d.name)
+            ]}
+            value={[
+              regionSelector.selectedIndex.province,
+              regionSelector.selectedIndex.city,
+              regionSelector.selectedIndex.district
+            ]}
+            onColumnChange={regionSelector.handleColumnChange}
+            onChange={regionSelector.handlePickerChange}
+          >
+            <AtList>
+              <AtListItem
+                title='所在地区'
+                extraText={regionSelector.getFullRegionText() || '请选择省市区'}
+                arrow='right'
+              />
+            </AtList>
+          </Picker>
+        ) : (
           <AtList>
             <AtListItem
               title='所在地区'
+              extraText='正在加载地区数据...'
+              arrow='right'
+              disabled={true}
             />
           </AtList>
-        </Picker>
+        )}
+
+        {/* Loading indicator for regions */}
+        {(regionSelector.loading.provinces || regionSelector.loading.cities || regionSelector.loading.districts) && (
+          <View className='region-loading'>
+            <AtActivityIndicator content='加载地区数据...' />
+          </View>
+        )}
 
         {/* 详细地址 */}
         <AtInput
@@ -359,10 +384,27 @@ const AddressEdit: React.FC = () => {
           placeholder='街道、门牌号、小区、楼号等详细信息'
           value={formData.detailAddress}
           onChange={(value) => handleInputChange('detailAddress', value)}
-          error={!!errors.detailAddress}
           maxlength={100}
         />
         <Text className='input-hint'>请输入详细的收货地址，不少于5个字符</Text>
+
+        {/* 地址地图预览 */}
+        <View className='address-map-section'>
+          <Text className='section-title'>地址预览</Text>
+          <AddressMap
+            address={formData.detailAddress}
+            province={formData.province}
+            city={formData.city}
+            district={formData.district}
+            latitude={formData.latitude}
+            longitude={formData.longitude}
+            height='200px'
+            className='address-edit-map'
+            showControls={true}
+            onLocationChange={handleMapLocationChange}
+          />
+          <Text className='map-hint'>地图会根据地址信息自动定位，也可以手动选择位置</Text>
+        </View>
 
 
         {/* 设为默认地址 */}
@@ -371,19 +413,21 @@ const AddressEdit: React.FC = () => {
           checked={formData.isDefault}
           onChange={(value) => handleInputChange('isDefault', value)}
         />
-      {/* 提交按钮 */}
-      <View className='submit-section'>
-        <AtButton
-          type='primary'
-          size='normal'
-          loading={loading}
-          disabled={loading}
-          onClick={handleSubmit}
-          className='submit-button'
-        >
-          {loading ? '保存中...' : '保存地址'}
-        </AtButton>
-      </View>
+
+
+        {/* 提交按钮 */}
+        <View className='submit-section'>
+          <AtButton
+            type='primary'
+            size='normal'
+            loading={loading}
+            disabled={loading}
+            onClick={handleSubmit}
+            className='submit-button'
+          >
+            {loading ? '保存中...' : '保存地址'}
+          </AtButton>
+        </View>
 
       </AtForm>
 
