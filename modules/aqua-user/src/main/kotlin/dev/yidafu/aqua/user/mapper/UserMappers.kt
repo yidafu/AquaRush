@@ -23,8 +23,9 @@ import dev.yidafu.aqua.api.dto.CreateAddressRequest
 import dev.yidafu.aqua.api.dto.NotificationSettingsDTO
 import dev.yidafu.aqua.api.dto.UpdateAddressRequest
 import dev.yidafu.aqua.api.dto.UserDTO
-import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.common.graphql.generated.Address
+import dev.yidafu.aqua.common.graphql.generated.AddressInput
+import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.common.graphql.generated.Region
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.user.domain.model.AddressModel
@@ -32,10 +33,10 @@ import dev.yidafu.aqua.user.domain.model.AdminModel
 import dev.yidafu.aqua.user.domain.model.NotificationSettingsModel
 import dev.yidafu.aqua.user.domain.model.RegionModel
 import dev.yidafu.aqua.user.domain.model.UserModel
-import java.time.LocalDateTime
 import org.springframework.stereotype.Component
 import tech.mappie.api.ObjectMappie
-
+import java.time.LocalDateTime
+import jakarta.validation.constraints.NotNull
 // ============================================================================
 // Domain Model → GraphQL Mappers
 // ============================================================================
@@ -43,19 +44,15 @@ import tech.mappie.api.ObjectMappie
 /**
  * Mapper for converting UserModel domain entity to GraphQL User type
  */
-object UserMapper : ObjectMappie<UserModel, User>() {
-    override fun map(from: UserModel) = mapping {
-        // Most fields map automatically by name
-        // No custom mapping needed as field names match
-    }
-}
+object UserMapper : ObjectMappie<UserModel, User>()
 
 /**
  * Mapper for converting Admin domain entity to GraphQL Admin type
  */
 object AdminMapper : ObjectMappie<AdminModel, Admin>() {
-    override fun map(from: AdminModel) = mapping {
-        to::role fromExpression { admin -> admin.role.name }
+  override fun map(from: AdminModel) =
+    mapping {
+      to::role fromExpression { admin -> admin.role.name }
     }
 }
 
@@ -63,12 +60,14 @@ object AdminMapper : ObjectMappie<AdminModel, Admin>() {
  * Mapper for converting AddressModel domain entity to GraphQL Address type
  */
 object AddressMapper : ObjectMappie<AddressModel, Address>() {
-    override fun map(from: AddressModel) = mapping {
-        to::longitude fromValue from.longitude?.toFloat()
-        to::latitude fromValue from.latitude?.toFloat()
-        to::detailAddress fromValue from.detailAddress
-        // Most fields map automatically by name
-        // Note: Mappie automatically handles Double to Float conversion for nullable fields
+  override fun map(from: AddressModel) =
+    mapping {
+      to::id fromValue (from.id ?: -1L)
+      to::longitude fromValue from.longitude?.toFloat()
+      to::latitude fromValue from.latitude?.toFloat()
+      to::detailAddress fromValue from.detailAddress
+      // Most fields map automatically by name
+      // Note: Mappie automatically handles Double to Float conversion for nullable fields
     }
 }
 
@@ -76,9 +75,10 @@ object AddressMapper : ObjectMappie<AddressModel, Address>() {
  * Mapper for converting Region domain entity to GraphQL Region type
  */
 object RegionMapper : ObjectMappie<RegionModel, Region>() {
-    override fun map(from: RegionModel) = mapping {
-        // Most fields map automatically by name
-        // No custom mapping needed as field names match
+  override fun map(from: RegionModel) =
+    mapping {
+      // Most fields map automatically by name
+      // No custom mapping needed as field names match
     }
 }
 
@@ -89,20 +89,21 @@ object RegionMapper : ObjectMappie<RegionModel, Region>() {
 /**
  * Mapper for converting NotificationSettingsDTO to NotificationSettingsModel
  */
-object NotificationSettingsDTOToModelMapper : ObjectMappie<NotificationSettingsDTO, NotificationSettingsModel>() {
-    override fun map(from: NotificationSettingsDTO) = mapping {
-        // Most fields map automatically by name
-        // No custom mapping needed as field names match
-    }
-}
+// object NotificationSettingsDTOToModelMapper : ObjectMappie<NotificationSettingsDTO, NotificationSettingsModel>() {
+//    override fun map(from: NotificationSettingsDTO) = mapping {
+//        // Most fields map automatically by name
+//        // No custom mapping needed as field names match
+//    }
+// }
 
 /**
  * Mapper for converting NotificationSettingsModel to NotificationSettingsDTO
  */
 object NotificationSettingsModelToDTOMapper : ObjectMappie<NotificationSettingsModel, NotificationSettingsDTO>() {
-    override fun map(from: NotificationSettingsModel) = mapping {
-        // Most fields map automatically by name
-        // No custom mapping needed as field names match
+  override fun map(from: NotificationSettingsModel) =
+    mapping {
+      // Most fields map automatically by name
+      // No custom mapping needed as field names match
     }
 }
 
@@ -110,9 +111,10 @@ object NotificationSettingsModelToDTOMapper : ObjectMappie<NotificationSettingsM
  * Mapper for converting UserModel to UserDTO
  */
 object UserModelToDTOMapper : ObjectMappie<UserModel, UserDTO>() {
-    override fun map(from: UserModel) = mapping {
-        // Most fields map automatically by name
-        // No custom mapping needed as field names match
+  override fun map(from: UserModel) =
+    mapping {
+      // Most fields map automatically by name
+      // No custom mapping needed as field names match
       to::addresses fromValue emptyList()
       to::notificationSettings fromValue NotificationSettingsDTO()
     }
@@ -121,12 +123,12 @@ object UserModelToDTOMapper : ObjectMappie<UserModel, UserDTO>() {
 /**
  * Mapper for converting UserDTO to UserModel
  */
-object UserDTOToModelMapper : ObjectMappie<UserDTO, UserModel>() {
-    override fun map(from: UserDTO) = mapping {
-        // Most fields map automatically by name
-        // No custom mapping needed as field names match
-    }
-}
+// object UserDTOToModelMapper : ObjectMappie<UserDTO, UserModel>() {
+//    override fun map(from: UserDTO) = mapping {
+//        // Most fields map automatically by name
+//        // No custom mapping needed as field names match
+//    }
+// }
 
 // ============================================================================
 // Request → Domain Model Mappers (with additional parameters)
@@ -137,46 +139,62 @@ object UserDTOToModelMapper : ObjectMappie<UserDTO, UserModel>() {
  */
 @Component
 object CreateAddressRequestWithUserIdMapper {
-    fun map(from: CreateAddressRequest, userId: Long): AddressModel {
-        return AddressModel(
-            id = -1L,
-            userId = userId,
-            province = from.province,
-            provinceCode = null,
-            city = from.city,
-            cityCode = null,
-            district = from.district,
-            districtCode = null,
-            detailAddress = from.detailedAddress,
-            postalCode = from.postalCode,
-            longitude = 0.0, // from.longitude?.toDouble(),
-            latitude = 0.0, // from.latitude?.toDouble(),
-            isDefault = from.isDefault
-        )
-    }
+  fun map(
+    from: CreateAddressRequest,
+    userId: Long,
+  ): AddressModel =
+    AddressModel(
+      id = -1L,
+      userId = userId,
+      province = from.province,
+      provinceCode = null,
+      city = from.city,
+      cityCode = null,
+      district = from.district,
+      districtCode = null,
+      detailAddress = from.detailedAddress,
+      postalCode = from.postalCode,
+      longitude = 0.0, // from.longitude?.toDouble(),
+      latitude = 0.0, // from.latitude?.toDouble(),
+      isDefault = from.isDefault,
+    )
 }
 
+object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
+  override fun map(from: AddressInput) =
+    mapping {
+      to::id fromValue null
+      to::userId fromValue 0L // Will be set after mapping
+      to::createdAt fromValue LocalDateTime.now()
+      to::updatedAt fromValue LocalDateTime.now()
+      // Convert Float to Double for nullable fields
+      to::longitude fromValue from.longitude?.toDouble()
+      to::latitude fromValue from.latitude?.toDouble()
+    }
+}
 /**
  * Mapper for converting UpdateAddressRequest with id and userId to AddressModel domain entity
  */
 @Component
 object UpdateAddressRequestWithIdsMapper {
-    fun map(from: UpdateAddressRequest, id: Long, userId: Long): AddressModel {
-        return AddressModel(
-            id = id,
-            userId = userId,
-            province = from.province,
-            provinceCode = null,
-            city = from.city,
-            cityCode = null,
-            district = from.district,
-            districtCode = null,
-            detailAddress = from.detailedAddress,
-            postalCode = from.postalCode,
-            longitude = 0.0, // from.longitude?.toDouble(),
-            latitude = 0.0, // from.latitude?.toDouble(),
-            isDefault = from.isDefault
-        )
-    }
+  fun map(
+    from: UpdateAddressRequest,
+    id: Long,
+    userId: Long,
+  ): AddressModel =
+    AddressModel(
+      id = id,
+      userId = userId,
+      province = from.province,
+      provinceCode = null,
+      city = from.city,
+      cityCode = null,
+      district = from.district,
+      districtCode = null,
+      detailAddress = from.detailedAddress,
+      postalCode = from.postalCode,
+      longitude = 0.0, // from.longitude?.toDouble(),
+      latitude = 0.0, // from.latitude?.toDouble(),
+      isDefault = from.isDefault,
+    )
 }
-

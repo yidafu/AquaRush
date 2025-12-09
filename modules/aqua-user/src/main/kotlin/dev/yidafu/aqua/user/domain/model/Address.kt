@@ -27,10 +27,10 @@ import java.time.LocalDateTime
 open class AddressModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long = -1L,
+  val id: Long? = null,
 
   @Column(name = "user_id", nullable = false)
-  val userId: Long,
+  var userId: Long,
 
   @Column(name = "province", nullable = false)
   var province: String,

@@ -133,3 +133,5 @@ data/artemis/
 **/data/artemis/
 **/data/artemis-user/
 services/aqua-client/src/main/resources/graphql/shared-types.graphqls
+frontend/user-weapp/src/constants/qqmap.ts
+services/aqua-admin/src/main/resources/graphql/shared-types.graphqls

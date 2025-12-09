@@ -21,12 +21,13 @@ package dev.yidafu.aqua.common.annotation
 
 import org.springframework.context.annotation.Condition
 import org.springframework.context.annotation.ConditionContext
+import org.springframework.context.annotation.Conditional
 import org.springframework.core.type.AnnotatedTypeMetadata
 
 const val AQUA_MODE_CLIENT = "client"
 const val AQUA_MODE_ADMIN = "admin"
 
-class ClientServiceScope(val value: String) : Condition {
+class ClientServiceScope : Condition {
   override fun matches(
     context: ConditionContext,
     metadata: AnnotatedTypeMetadata,
@@ -35,7 +36,7 @@ class ClientServiceScope(val value: String) : Condition {
   }
 }
 
-class AdminServiceScope(val value: String) : Condition {
+class AdminServiceScope : Condition {
   override fun matches(
     context: ConditionContext,
     metadata: AnnotatedTypeMetadata,
@@ -49,7 +50,7 @@ class AdminServiceScope(val value: String) : Condition {
  */
 @Target(AnnotationTarget.TYPE, AnnotationTarget.PROPERTY, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-// @Conditional(ClientServiceScope::class)
+@Conditional(ClientServiceScope::class)
 annotation class ClientService
 
 /**
@@ -57,5 +58,5 @@ annotation class ClientService
  */
 @Target(AnnotationTarget.TYPE, AnnotationTarget.PROPERTY, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-// @Conditional(AdminServiceScope::class)
+@Conditional(AdminServiceScope::class)
 annotation class AdminService

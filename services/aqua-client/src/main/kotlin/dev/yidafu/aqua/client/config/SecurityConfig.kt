@@ -28,10 +28,14 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.authorization.AuthorizationDecision
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig {
+class SecurityConfig(
+  private val customAccessDeniedHandler: CustomAccessDeniedHandler,
+  private val customAuthenticationEntryPoint: CustomAuthenticationEntryPoint
+) {
 
   @Bean
   fun filterChain(http: HttpSecurity, jwtAuthenticationFilter: JwtAuthenticationFilter): SecurityFilterChain {
@@ -39,7 +43,9 @@ class SecurityConfig {
       .authorizeHttpRequests { auth ->
         auth
           .requestMatchers("/api/auth/wechat/login").permitAll()
+          .requestMatchers("/api/debug/*").permitAll()
           .requestMatchers("/api/*").authenticated()
+          // 允许 GraphQL 端点（用于调试和开发）
           .requestMatchers("/graphql").authenticated()
           .requestMatchers(
             "/login",
@@ -54,10 +60,7 @@ class SecurityConfig {
         it.disable()
       }
       .formLogin { form ->
-        form
-          .loginPage("/login")
-          .defaultSuccessUrl("/admin", true)
-          .permitAll()
+        form.disable()
       }
       .logout { logout ->
         logout
@@ -66,6 +69,11 @@ class SecurityConfig {
           .permitAll()
       }
       .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+      .exceptionHandling { exceptions ->
+        exceptions
+          .accessDeniedHandler(customAccessDeniedHandler)
+          .authenticationEntryPoint(customAuthenticationEntryPoint)
+      }
 
     return http.build()
   }

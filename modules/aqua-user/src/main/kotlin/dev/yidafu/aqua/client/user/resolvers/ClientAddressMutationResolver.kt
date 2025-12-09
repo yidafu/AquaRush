@@ -26,6 +26,7 @@ import dev.yidafu.aqua.common.graphql.generated.AddressInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.model.AddressModel
+import dev.yidafu.aqua.user.mapper.AddressInputMapper
 import dev.yidafu.aqua.user.service.AddressService
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -50,8 +51,8 @@ class ClientAddressMutationResolver(
     /**
      * 创建用户地址
      */
-    @MutationMapping
     @PreAuthorize("isAuthenticated()")
+    @MutationMapping
     @Transactional
     fun createAddress(
       @Argument @Valid input: AddressInput,
@@ -61,25 +62,19 @@ class ClientAddressMutationResolver(
             // 验证输入
             validateCreateAddressInput(input)
 
+            // 检查地址数量限制
+            val currentAddressCount = addressService.countByUserId(userPrincipal.id)
+            if (currentAddressCount >= 20) {
+                throw BadRequestException("地址数量已达上限（最多20个地址）")
+            }
+
             // 如果新地址设为默认地址，先取消其他默认地址
             if (input.isDefault == true) {
                 addressService.unsetDefaultAddresses(userPrincipal.id)
             }
 
-            val address = AddressModel(
-                userId = userPrincipal.id,
-                province = input.province,
-                provinceCode = input.provinceCode,
-                city = input.city,
-                cityCode = input.cityCode,
-                district = input.district,
-                districtCode = input.districtCode,
-                detailAddress = input.detailAddress,
-                postalCode = input.postalCode,
-                longitude = input.longitude?.toDouble(),
-                latitude = input.latitude?.toDouble(),
-                isDefault = input.isDefault ?: false
-            )
+            val address = AddressInputMapper.map(input)
+            address.userId = userPrincipal.id
 
             val savedAddress = addressService.save(address)
 
@@ -119,21 +114,16 @@ class ClientAddressMutationResolver(
             // 验证输入
             validateUpdateAddressInput(input)
 
-            // 更新地址字段
-            input.province?.let { existingAddress.province = it }
-            input.city?.let { existingAddress.city = it }
-            input.district?.let { existingAddress.district = it }
-            input.detailAddress?.let { existingAddress.detailAddress = it }
-            input.postalCode?.let { existingAddress.postalCode = it }
-            input.longitude?.let { existingAddress.longitude = it.toDouble() }
-            input.latitude?.let { existingAddress.latitude = it.toDouble() }
-            input.isDefault?.let {
-                if ((it as Boolean?) == true && !existingAddress.isDefault) {
-                    // 如果设为默认地址，先取消其他默认地址
-                    addressService.unsetDefaultAddresses(userPrincipal.id)
-                }
-                existingAddress.isDefault = (it as Boolean?) ?: false
+            // 检查是否需要设置默认地址（在应用更新之前检查）
+            val willBeDefault = input.isDefault
+            if (willBeDefault == true && !existingAddress.isDefault) {
+                // 如果设为默认地址，先取消其他默认地址
+                addressService.unsetDefaultAddresses(userPrincipal.id)
             }
+
+            // 应用更新
+//          TODO: 合并 input 和 existingAddress
+//            input.applyTo(existingAddress)
 
             val updatedAddress = addressService.save(existingAddress)
             logger.info("Successfully updated address: $id for user: ${userPrincipal.id}")
@@ -214,8 +204,8 @@ class ClientAddressMutationResolver(
                 throw IllegalArgumentException("源地址不存在或无权访问")
             }
 
-            val copiedAddress = AddressModel(
-                userId = userPrincipal.id,
+            // 创建 AddressInput 从源地址，然后转换为 AddressModel
+            val addressInput = AddressInput(
                 province = sourceAddress.province,
                 provinceCode = sourceAddress.provinceCode,
                 city = sourceAddress.city,
@@ -224,10 +214,12 @@ class ClientAddressMutationResolver(
                 districtCode = sourceAddress.districtCode,
                 detailAddress = sourceAddress.detailAddress,
                 postalCode = sourceAddress.postalCode,
-                longitude = sourceAddress.longitude,
-                latitude = sourceAddress.latitude,
+                longitude = sourceAddress.longitude?.toFloat(),
+                latitude = sourceAddress.latitude?.toFloat(),
                 isDefault = false
             )
+
+            val copiedAddress = AddressInputMapper.map(addressInput)
 
             val savedAddress = addressService.save(copiedAddress)
             logger.info("Successfully copied address: $id to new address for user: ${userPrincipal.id}")

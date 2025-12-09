@@ -325,15 +325,9 @@ class AddressService(
     /**
      * 获取用户地址分页列表
      */
-    fun findByUserId(userId: Long, pageable: PageRequest): Page<AddressModel> {
+    fun findByUserId(userId: Long): List<AddressModel> {
         val addresses = addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
-        val start = pageable.offset.toInt()
-        val end = (start + pageable.pageSize).coerceAtMost(addresses.size)
-        return if (start >= addresses.size) {
-            Page.empty(pageable)
-        } else {
-            PageImpl(addresses.subList(start, end), pageable, addresses.size.toLong())
-        }
+        return addresses
     }
 
     /**

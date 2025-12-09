@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.notice.graphql.resolvers
 
+import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.notice.domain.model.UserNotificationSettingsModel
 import dev.yidafu.aqua.notice.service.SubscriptionService
 import dev.yidafu.aqua.notice.service.WeChatMessagePushService
@@ -29,6 +30,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Controller
 
+@ClientService
 @Controller
 class NotificationMutationResolver(
   private val subscriptionService: SubscriptionService,

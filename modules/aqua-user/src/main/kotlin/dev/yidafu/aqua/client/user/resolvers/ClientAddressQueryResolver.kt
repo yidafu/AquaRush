@@ -28,6 +28,7 @@ import dev.yidafu.aqua.user.mapper.AddressMapper
 import dev.yidafu.aqua.user.service.AddressService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
+import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
@@ -45,21 +46,19 @@ class ClientAddressQueryResolver(
     /**
      * 获取用户的所有地址
      */
+    @QueryMapping
     @PreAuthorize("isAuthenticated()")
     fun userAddresses(
-        page: Int = 0,
-        size: Int = 20,
         @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): Page<Address> {
-        val pageable = PageRequest.of(page, size)
-        return addressService.findByUserId(userPrincipal.id, pageable)
-            .map { it.let { AddressMapper.map(it) } }
+    ): List<Address> {
+        return AddressMapper.mapList(addressService.findByUserId(userPrincipal.id))
     }
 
     /**
      * 获取用户的默认地址
      */
     @PreAuthorize("isAuthenticated()")
+    @QueryMapping
     fun userDefaultAddress(
         @AuthenticationPrincipal userPrincipal: UserPrincipal
     ): Address? {

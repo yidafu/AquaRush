@@ -1,5 +1,6 @@
 package dev.yidafu.aqua.payment.graphql.resolvers
 
+import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.payment.service.PaymentService
 import dev.yidafu.aqua.common.graphql.generated.*
 import jakarta.validation.Valid
@@ -20,6 +21,7 @@ data class PaymentData(
     val paySign: String
 )
 
+@ClientService
 @Controller
 class PaymentResolver(
     private val paymentService: PaymentService

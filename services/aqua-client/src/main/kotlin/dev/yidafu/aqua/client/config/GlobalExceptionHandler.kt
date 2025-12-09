@@ -187,6 +187,84 @@ class GlobalExceptionHandler {
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
   }
 
+  @ExceptionHandler(org.springframework.security.access.AccessDeniedException::class)
+  fun handleAccessDeniedException(
+    ex: org.springframework.security.access.AccessDeniedException,
+    request: HttpServletRequest,
+  ): ResponseEntity<ErrorResponse> {
+    val correlationId = CorrelationIdHolder.getCorrelationId() ?: generateCorrelationId()
+    val errorId = UUID.randomUUID().toString().substring(0, 8)
+
+    logger.warn(
+      "ACCESS_DENIED_EXCEPTION - CorrelationId: {}, ErrorId: {}, Method: {}, URI: {}, User: {}, Reason: {}",
+      correlationId,
+      errorId,
+      request.method,
+      request.requestURI,
+      request.userPrincipal?.name ?: "anonymous",
+      ex.message
+    )
+
+    auditLogger.error(
+      "ACCESS_DENIED - CorrelationId: {}, ErrorId: {}, Method: {}, URI: {}, User: {}, UserAgent: {}, RemoteAddr: {}",
+      correlationId,
+      errorId,
+      request.method,
+      request.requestURI,
+      request.userPrincipal?.name ?: "anonymous",
+      request.getHeader("User-Agent"),
+      request.remoteAddr
+    )
+
+    val error =
+      ErrorResponse(
+        code = 403,
+        message = "权限不足，无法访问: ${request.method} ${request.requestURI}",
+        timestamp = LocalDateTime.now(),
+        errorId = errorId,
+        correlationId = correlationId
+      )
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error)
+  }
+
+  @ExceptionHandler(SecurityException::class)
+  fun handleSecurityException(
+    ex: SecurityException,
+    request: HttpServletRequest,
+  ): ResponseEntity<ErrorResponse> {
+    val correlationId = CorrelationIdHolder.getCorrelationId() ?: generateCorrelationId()
+    val errorId = UUID.randomUUID().toString().substring(0, 8)
+
+    logger.warn(
+      "SECURITY_EXCEPTION - CorrelationId: {}, ErrorId: {}, Method: {}, URI: {}, Error: {}",
+      correlationId,
+      errorId,
+      request.method,
+      request.requestURI,
+      ex.message
+    )
+
+    auditLogger.error(
+      "SECURITY_VIOLATION - CorrelationId: {}, ErrorId: {}, Method: {}, URI: {}, UserAgent: {}, RemoteAddr: {}",
+      correlationId,
+      errorId,
+      request.method,
+      request.requestURI,
+      request.getHeader("User-Agent"),
+      request.remoteAddr
+    )
+
+    val error =
+      ErrorResponse(
+        code = 403,
+        message = ex.message ?: "安全验证失败",
+        timestamp = LocalDateTime.now(),
+        errorId = errorId,
+        correlationId = correlationId
+      )
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error)
+  }
+
   @ExceptionHandler(org.springframework.dao.DataAccessException::class)
   fun handleDataAccessException(
     ex: org.springframework.dao.DataAccessException,

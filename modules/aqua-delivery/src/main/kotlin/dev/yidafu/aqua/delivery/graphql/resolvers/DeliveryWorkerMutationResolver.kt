@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.delivery.graphql.resolvers
 
+import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.WorkerStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
@@ -39,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
 import kotlin.collections.isNotEmpty
 
+@AdminService
 @Controller
 class DeliveryWorkerMutationResolver(
   private val deliveryWorkerRepository: DeliveryWorkerRepository,

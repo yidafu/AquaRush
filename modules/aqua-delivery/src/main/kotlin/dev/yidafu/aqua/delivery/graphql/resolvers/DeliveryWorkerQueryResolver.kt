@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.delivery.graphql.resolvers
 
+import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
@@ -29,6 +30,7 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import kotlin.collections.map
 
+@AdminService
 @Controller
 class DeliveryWorkerQueryResolver(
   private val deliveryService: DeliveryService,

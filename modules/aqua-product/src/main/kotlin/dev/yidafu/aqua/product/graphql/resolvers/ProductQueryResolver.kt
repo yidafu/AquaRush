@@ -19,12 +19,14 @@
 
 package dev.yidafu.aqua.product.graphql.resolvers
 
+import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.product.domain.model.ProductModel
 import dev.yidafu.aqua.product.service.ProductService
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.stereotype.Controller
 
+@AdminService
 @Controller
 class ProductQueryResolver(
   private val productService: ProductService,

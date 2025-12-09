@@ -19,19 +19,17 @@
 
 package dev.yidafu.aqua.client.user.resolvers
 
-import dev.yidafu.aqua.client.user.resolvers.ClientUserQueryResolver.Companion.UserBalanceInfo
-import dev.yidafu.aqua.client.user.resolvers.ClientUserQueryResolver.Companion.UserOrderStats
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import dev.yidafu.aqua.user.mapper.UserMapper
-import dev.yidafu.aqua.user.service.UserInfo
 import dev.yidafu.aqua.user.service.UserService
 import dev.yidafu.aqua.user.service.WeChatAuthService
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
+import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
@@ -49,12 +47,14 @@ class ClientUserQueryResolver(
     private val weChatAuthService: WeChatAuthService,
     private val userRepository: UserRepository
 ) {
-
+  private val logger = LoggerFactory.getLogger(ClientUserQueryResolver::class.java)
     /**
      * 获取当前用户信息
      */
+    @QueryMapping
     @PreAuthorize("isAuthenticated()")
     fun me(@AuthenticationPrincipal userPrincipal: UserPrincipal): User {
+      logger.info("query me info ${userPrincipal.id}")
         return userRepository.findById(userPrincipal.id)
             .orElseThrow { IllegalArgumentException("User not found") }
           .let { UserMapper.map(it) }

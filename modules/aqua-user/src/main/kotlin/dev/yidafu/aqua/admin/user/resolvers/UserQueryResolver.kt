@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.admin.user.resolvers
 
+import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.graphql.utils.GraphQLSecurityContext
 import dev.yidafu.aqua.user.mapper.*
@@ -29,6 +30,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
+@AdminService
 @Controller
 class UserQueryResolver(
   private val userService: UserService,

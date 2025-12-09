@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.notice.graphql.resolvers
 
+import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.dto.PageRequest
 import dev.yidafu.aqua.notice.domain.model.MessageHistoryModel
 import dev.yidafu.aqua.notice.domain.model.UserNotificationSettingsModel
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Controller
 import java.time.LocalDateTime
 import org.springframework.data.domain.PageRequest as SpringPageRequest
 
+@ClientService
 @Controller
 class NotificationQueryResolver(
   private val subscriptionService: SubscriptionService,
