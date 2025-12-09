@@ -21,29 +21,27 @@ data class Address(
 
 data class AddressInput(
     val city: kotlin.String,
-    val cityCode: kotlin.String? = null,
+    val cityCode: kotlin.String,
     val detailAddress: kotlin.String,
     val district: kotlin.String,
-    val districtCode: kotlin.String? = null,
+    val districtCode: kotlin.String,
     val isDefault: kotlin.Boolean = false,
     val latitude: kotlin.Float? = null,
     val longitude: kotlin.Float? = null,
-    val postalCode: kotlin.String? = null,
     val province: kotlin.String,
-    val provinceCode: kotlin.String? = null
+    val provinceCode: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
       args["city"] as kotlin.String,
-      args["cityCode"] as kotlin.String?,
+      args["cityCode"] as kotlin.String,
       args["detailAddress"] as kotlin.String,
       args["district"] as kotlin.String,
-      args["districtCode"] as kotlin.String?,
+      args["districtCode"] as kotlin.String,
       args["isDefault"] as kotlin.Boolean? ?: false,
       args["latitude"] as kotlin.Float?,
       args["longitude"] as kotlin.Float?,
-      args["postalCode"] as kotlin.String?,
       args["province"] as kotlin.String,
-      args["provinceCode"] as kotlin.String?
+      args["provinceCode"] as kotlin.String
   )
 }
 
@@ -1847,7 +1845,6 @@ data class UpdateAddressInput(
     val latitude: kotlin.Float? = null,
     val longitude: kotlin.Float? = null,
     val phone: kotlin.String? = null,
-    val postalCode: kotlin.String? = null,
     val province: kotlin.String? = null,
     val provinceCode: kotlin.String? = null,
     val receiverName: kotlin.String? = null
@@ -1862,7 +1859,6 @@ data class UpdateAddressInput(
       args["latitude"] as kotlin.Float?,
       args["longitude"] as kotlin.Float?,
       args["phone"] as kotlin.String?,
-      args["postalCode"] as kotlin.String?,
       args["province"] as kotlin.String?,
       args["provinceCode"] as kotlin.String?,
       args["receiverName"] as kotlin.String?

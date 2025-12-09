@@ -315,8 +315,6 @@ input UpdateAddressInput {
   detailAddress: String
     @notBlank(message: "详细地址不能为空")
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
-  postalCode: String
-    @pattern(regexp: "^\\d{6}$", message: "邮政编码格式不正确")
   longitude: Float
     @range(min: -180, max: 180, message: "经度必须在-180到180之间")
   latitude: Float
