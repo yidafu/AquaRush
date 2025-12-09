@@ -19,91 +19,52 @@
 
 package dev.yidafu.aqua.review.domain.repository
 
-import dev.yidafu.aqua.review.domain.model.Review
+import dev.yidafu.aqua.review.domain.model.ReviewModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
-interface ReviewRepository : JpaRepository<Review, Long> {
+interface ReviewRepository : JpaRepository<ReviewModel, Long>, ReviewRepositoryCustom {
+  fun findByOrderId(orderId: Long): ReviewModel?
 
-    fun findByOrderId(orderId: Long): Review?
+  fun existsByOrderId(orderId: Long): Boolean
 
-    fun existsByOrderId(orderId: Long): Boolean
+  fun findByUserId(userId: Long): List<ReviewModel>
 
-    fun findByUserId(userId: Long): List<Review>
+  fun findByUserIdOrderByCreatedAtDesc(userId: Long): List<ReviewModel>
 
-    fun findByUserIdOrderByCreatedAtDesc(userId: Long): List<Review>
+  fun findByUserIdOrderByCreatedAtDesc(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<ReviewModel>
 
-    fun findByUserIdOrderByCreatedAtDesc(userId: Long, pageable: Pageable): Page<Review>
+  fun findByDeliveryWorkerId(deliveryWorkerId: Long): List<ReviewModel>
 
-    fun findByDeliveryWorkerId(deliveryWorkerId: Long): List<Review>
+  fun findByDeliveryWorkerIdOrderByCreatedAtDesc(
+    deliveryWorkerId: Long,
+    pageable: Pageable,
+  ): Page<ReviewModel>
 
-    fun findByDeliveryWorkerIdOrderByCreatedAtDesc(
-        deliveryWorkerId: Long,
-        pageable: Pageable
-    ): Page<Review>
+  fun findByDeliveryWorkerIdAndRatingOrderByCreatedAtDesc(
+    deliveryWorkerId: Long,
+    rating: Int,
+    pageable: Pageable,
+  ): Page<ReviewModel>
 
-    fun findByDeliveryWorkerIdAndRatingOrderByCreatedAtDesc(
-        deliveryWorkerId: Long,
-        rating: Int,
-        pageable: Pageable
-    ): Page<Review>
+  fun findByDeliveryWorkerIdAndCreatedAtBetween(
+    deliveryWorkerId: Long,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<ReviewModel>
 
-    fun findByDeliveryWorkerIdAndCreatedAtBetween(
-        deliveryWorkerId: Long,
-        startDate: LocalDateTime,
-        endDate: LocalDateTime
-    ): List<Review>
+  fun countByDeliveryWorkerId(deliveryWorkerId: Long): Long
 
-    @Query("""
-        SELECT r
-        FROM Review r
-        WHERE (:deliveryWorkerId IS NULL OR r.deliveryWorkerId = :deliveryWorkerId)
-        AND (:minRating IS NULL OR r.rating >= :minRating)
-        AND (:maxRating IS NULL OR r.rating <= :maxRating)
-        AND (:dateFrom IS NULL OR r.createdAt >= :dateFrom)
-        AND (:dateTo IS NULL OR r.createdAt <= :dateTo)
-        AND (:userId IS NULL OR r.userId = :userId)
-        ORDER BY r.createdAt DESC
-    """)
-    fun findReviewsWithFilters(
-        @Param("deliveryWorkerId") deliveryWorkerId: Long? = null,
-        @Param("minRating") minRating: Int? = null,
-        @Param("maxRating") maxRating: Int? = null,
-        @Param("dateFrom") dateFrom: LocalDateTime? = null,
-        @Param("dateTo") dateTo: LocalDateTime? = null,
-        @Param("userId") userId: Long? = null,
-        pageable: Pageable
-    ): Page<Review>
-
-    @Query("""
-        SELECT COUNT(r)
-        FROM Review r
-        WHERE r.deliveryWorkerId = :deliveryWorkerId
-        AND r.rating = :rating
-    """)
-    fun countByDeliveryWorkerIdAndRating(
-        @Param("deliveryWorkerId") deliveryWorkerId: Long,
-        @Param("rating") rating: Int
-    ): Long
-
-    @Query("""
-        SELECT AVG(r.rating)
-        FROM Review r
-        WHERE r.deliveryWorkerId = :deliveryWorkerId
-    """)
-    fun findAverageRatingByDeliveryWorkerId(@Param("deliveryWorkerId") deliveryWorkerId: Long): Double?
-
-    fun countByDeliveryWorkerId(deliveryWorkerId: Long): Long
-
-    fun countByDeliveryWorkerIdAndCreatedAtBetween(
-        deliveryWorkerId: Long,
-        startDate: LocalDateTime,
-        endDate: LocalDateTime
-    ): Long
+  fun countByDeliveryWorkerIdAndCreatedAtBetween(
+    deliveryWorkerId: Long,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): Long
 }

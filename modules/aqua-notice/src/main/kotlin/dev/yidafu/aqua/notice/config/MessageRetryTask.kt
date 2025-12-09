@@ -26,19 +26,19 @@ import org.springframework.stereotype.Component
 
 @Component
 class MessageRetryTask(
-    private val weChatMessagePushService: WeChatMessagePushService
+  private val weChatMessagePushService: WeChatMessagePushService,
 ) {
-    private val logger = LoggerFactory.getLogger(MessageRetryTask::class.java)
+  private val logger = LoggerFactory.getLogger(MessageRetryTask::class.java)
 
-    @Scheduled(fixedDelayString = "PT10M") // Run every 10 minutes
-    fun retryFailedMessages() {
-        logger.info("Starting scheduled retry of failed messages")
+  @Scheduled(fixedDelayString = "PT10M") // Run every 10 minutes
+  fun retryFailedMessages() {
+    logger.info("Starting scheduled retry of failed messages")
 
-        try {
-            val retryCount = weChatMessagePushService.retryFailedMessages()
-            logger.info("Completed scheduled retry, successfully resent $retryCount messages")
-        } catch (e: Exception) {
-            logger.error("Failed to retry messages", e)
-        }
+    try {
+      val retryCount = weChatMessagePushService.retryFailedMessages()
+      logger.info("Completed scheduled retry, successfully resent $retryCount messages")
+    } catch (e: Exception) {
+      logger.error("Failed to retry messages", e)
     }
+  }
 }

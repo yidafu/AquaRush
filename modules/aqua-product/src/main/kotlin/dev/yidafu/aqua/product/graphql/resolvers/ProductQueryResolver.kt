@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.product.graphql.resolvers
 
-import dev.yidafu.aqua.product.domain.model.Product
+import dev.yidafu.aqua.product.domain.model.ProductModel
 import dev.yidafu.aqua.product.service.ProductService
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -32,11 +32,11 @@ class ProductQueryResolver(
   @QueryMapping
   fun product(
     @Argument id: Long,
-  ): Product? = productService.findById(id)
+  ): ProductModel? = productService.findById(id)
 
   @QueryMapping
-  fun products(): List<Product> = productService.findAll()
+  fun products(): List<ProductModel> = productService.findAll()
 
   @QueryMapping
-  fun activeProducts(): List<Product> = productService.findOnlineProducts()
+  fun activeProducts(): List<ProductModel> = productService.findOnlineProducts()
 }

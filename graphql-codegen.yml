@@ -26,6 +26,7 @@ generates:
         Int: "kotlin.Int"
         String: "kotlin.String"
         Boolean: "kotlin.Boolean"
+      withTypes: true
       immutableTypes: true
       skipTypename: true
       generateConstructorFromInput: false

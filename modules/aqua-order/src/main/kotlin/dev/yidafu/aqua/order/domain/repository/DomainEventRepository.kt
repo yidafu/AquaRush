@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.order.domain.repository
 
-import dev.yidafu.aqua.order.domain.model.DomainEvent
-import dev.yidafu.aqua.order.domain.model.EventStatus
+import dev.yidafu.aqua.order.domain.model.DomainEventModel
+import dev.yidafu.aqua.order.domain.model.EventStatusModel
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
@@ -33,20 +33,20 @@ import jakarta.persistence.LockModeType
 import java.util.*
 
 @Repository
-interface DomainEventRepository : JpaRepository<DomainEvent, Long>, JpaSpecificationExecutor<DomainEvent> {
+interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpecificationExecutor<DomainEventModel> {
   fun findByEventTypeAndStatus(
     eventType: String,
-    status: EventStatus,
-  ): List<DomainEvent>
+    status: EventStatusModel,
+  ): List<DomainEventModel>
 
-  fun findByStatus(status: EventStatus): List<DomainEvent>
+  fun findByStatus(status: EventStatusModel): List<DomainEventModel>
 
-  fun findByStatusIn(statuses: List<EventStatus>): List<DomainEvent>
+  fun findByStatusIn(statuses: List<EventStatusModel>): List<DomainEventModel>
 
   fun findPendingEvents(
-    status: EventStatus,
+    status: EventStatusModel,
     now: LocalDateTime,
-  ): List<DomainEvent> {
+  ): List<DomainEventModel> {
     val specification = DomainEventSpecifications.byStatus(status)
       .and(DomainEventSpecifications.nextRunAtBeforeOrIsNull(now))
     return findAll(specification, Sort.by(Sort.Direction.ASC, "createdAt"))
@@ -55,9 +55,9 @@ interface DomainEventRepository : JpaRepository<DomainEvent, Long>, JpaSpecifica
   // PESSIMISTIC_SKIP_LOCKED
   @Lock(LockModeType.PESSIMISTIC_READ)
   fun findNextPendingEventForUpdate(
-    status: EventStatus,
+    status: EventStatusModel,
     now: LocalDateTime,
-  ): DomainEvent? {
+  ): DomainEventModel? {
     val specification = DomainEventSpecifications.byStatus(status)
       .and(DomainEventSpecifications.nextRunAtBeforeOrIsNull(now))
     val pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "createdAt"))
@@ -67,7 +67,7 @@ interface DomainEventRepository : JpaRepository<DomainEvent, Long>, JpaSpecifica
 
   fun countByEventTypeAndStatusAndCreatedAtBetween(
     eventType: String,
-    status: EventStatus,
+    status: EventStatusModel,
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Long {
@@ -78,7 +78,7 @@ interface DomainEventRepository : JpaRepository<DomainEvent, Long>, JpaSpecifica
 
   fun countDeadLetterEvents(
     maxRetries: Int,
-    status: EventStatus,
+    status: EventStatusModel,
   ): Long {
     val specification = DomainEventSpecifications.retryCountGreaterThanOrEqualTo(maxRetries)
       .and(DomainEventSpecifications.byStatus(status))
@@ -86,7 +86,7 @@ interface DomainEventRepository : JpaRepository<DomainEvent, Long>, JpaSpecifica
   }
 
   fun deleteByStatusAndCreatedAtBefore(
-    status: EventStatus,
+    status: EventStatusModel,
     before: LocalDateTime,
   ) {
     val specification = DomainEventSpecifications.byStatus(status)
@@ -99,21 +99,21 @@ interface DomainEventRepository : JpaRepository<DomainEvent, Long>, JpaSpecifica
 
     // Enhanced query methods using modern Spring Data JPA 3.0+ features
     fun findNextPendingEventForUpdateEnhanced(
-        status: EventStatus,
+        status: EventStatusModel,
         now: LocalDateTime
-    ): DomainEvent?
+    ): EventStatusModel?
 
     fun findPendingEventsWithFilters(
-        status: EventStatus,
+        status: EventStatusModel,
         now: LocalDateTime,
         eventType: String? = null,
         maxRetries: Int? = null,
         batchSize: Int = 100
-    ): List<DomainEvent>
+    ): List<EventStatusModel>
 
     fun batchUpdateEvents(
         eventIds: List<Long>,
-        newStatus: EventStatus,
+        newStatus: EventStatusModel,
         incrementRetry: Boolean = false,
         nextRunAt: LocalDateTime? = null
     ): Int
@@ -122,12 +122,12 @@ interface DomainEventRepository : JpaRepository<DomainEvent, Long>, JpaSpecifica
         startDate: LocalDateTime,
         endDate: LocalDateTime,
         eventTypes: List<String>? = null,
-        statuses: List<EventStatus>? = null
-    ): List<DomainEvent>
+        statuses: List<EventStatusModel>? = null
+    ): List<DomainEventModel>
 
     fun countEventsByTypeAndStatus(
         eventType: String,
-        status: EventStatus,
+        status: EventStatusModel,
         startDate: LocalDateTime? = null,
         endDate: LocalDateTime? = null
     ): Long

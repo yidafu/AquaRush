@@ -19,28 +19,29 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.Admin
-import dev.yidafu.aqua.user.domain.model.AdminRole
+import dev.yidafu.aqua.common.graphql.generated.Admin
+import dev.yidafu.aqua.user.domain.model.AdminModel
+import dev.yidafu.aqua.user.domain.model.AdminRoleModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface AdminRepository : JpaRepository<Admin, Long>, JpaSpecificationExecutor<Admin> {
-  fun findByUsername(username: String): Optional<Admin>
+interface AdminRepository : JpaRepository<AdminModel, Long>, JpaSpecificationExecutor<AdminModel> {
+  fun findByUsername(username: String): Optional<AdminModel>
 
   fun findByUsernameAndRole(
     username: String,
-    role: AdminRole,
+    role: AdminRoleModel,
   ): Optional<Admin>
 
   fun findByPhone(phone: String): Optional<Admin>
 
-  fun findByRole(role: AdminRole): List<Admin>
+  fun findByRole(role: AdminRoleModel): List<AdminModel>
 
   fun countByRole(
-    role: AdminRole,
+    role: AdminRoleModel,
   ): Long {
     val specification = AdminSpecifications.byRole(role)
     return count(specification)
@@ -56,11 +57,11 @@ interface AdminRepository : JpaRepository<Admin, Long>, JpaSpecificationExecutor
     return count(specification) > 0
   }
 
-  fun findAllAdmins(): List<Admin> {
+  fun findAllAdmins(): List<AdminModel> {
     return findAll()
   }
 
-  fun findAdminById(id: Long): Admin? {
+  fun findAdminById(id: Long): AdminModel? {
     return findById(id).orElse(null)
   }
 }

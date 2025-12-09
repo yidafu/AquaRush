@@ -19,8 +19,11 @@
 
 package dev.yidafu.aqua.admin.user.resolvers
 
-import dev.yidafu.aqua.user.domain.model.Admin
+import dev.yidafu.aqua.common.graphql.generated.Admin
+import dev.yidafu.aqua.user.domain.model.AdminModel
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
+import dev.yidafu.aqua.user.mapper.AddressMapper
+import dev.yidafu.aqua.user.mapper.AdminMapper
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -37,7 +40,7 @@ class AdminQueryResolver(
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun admins(): List<Admin> {
-    return adminRepository.findAllAdmins()
+    return adminRepository.findAllAdmins().map { AdminMapper.map(it) }
   }
 
   /**
@@ -48,6 +51,6 @@ class AdminQueryResolver(
   fun admin(
     @Argument id: Long,
   ): Admin? {
-    return adminRepository.findAdminById(id)
+    return adminRepository.findAdminById(id)?.let { AdminMapper.map(it) }
   }
 }

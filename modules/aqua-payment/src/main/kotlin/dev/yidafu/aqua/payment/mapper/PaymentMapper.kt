@@ -20,24 +20,25 @@
 package dev.yidafu.aqua.payment.mapper
 
 import dev.yidafu.aqua.api.dto.PaymentDTO
-import dev.yidafu.aqua.common.domain.model.Payment
-import org.springframework.stereotype.Component
+import dev.yidafu.aqua.common.domain.model.PaymentModel
 import tech.mappie.api.ObjectMappie
 
-@Component
-object PaymentMapper : ObjectMappie<Payment, PaymentDTO>() {
-  override fun map(from: Payment): PaymentDTO =
-    mapping {
-      // 自动映射基础字段（id, orderId, amount, transactionId, status, paidAt）
-      // paymentMethod 字段名称相同，会自动映射
+/**
+ * Mapper for converting PaymentModel domain entity to PaymentDTO for API responses
+ * Note: This mapper excludes sensitive fields like userId, prepayId, etc.
+ */
+object PaymentMapper : ObjectMappie<PaymentModel, PaymentDTO>() {
+    override fun map(from: PaymentModel) = mapping {
+        // Automatic mapping for matching fields (id, orderId, amount, transactionId, status, paidAt, paymentMethod)
+        // Manual overrides only needed for field name mismatches
 
-      // 注意：以下字段在 Payment 模型中存在但在 PaymentDTO 中被有意排除：
-      // - userId: 敏感信息，不暴露给客户端
-      // - prepayId: 支付预交易ID，内部使用
-      // - currency: 固定为 CNY，不需要暴露
-      // - description: 支付描述，内部使用
-      // - failureReason: 支付失败原因，包含敏感信息
-      // - expiredAt: 支付过期时间，内部使用
-      // - createdAt, updatedAt: 审计字段，客户端不需要
+        // Note: The following fields exist in PaymentModel but are intentionally excluded from PaymentDTO:
+        // - userId: sensitive information, not exposed to client
+        // - prepayId: internal payment pre-transaction ID
+        // - currency: fixed as CNY, not needed in response
+        // - description: internal payment description
+        // - failureReason: contains sensitive information
+        // - expiredAt: internal payment expiration time
+        // - createdAt, updatedAt: audit fields, not needed by client
     }
 }

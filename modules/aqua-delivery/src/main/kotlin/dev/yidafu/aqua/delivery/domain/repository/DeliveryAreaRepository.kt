@@ -19,17 +19,17 @@
 
 package dev.yidafu.aqua.delivery.domain.repository
 
-import dev.yidafu.aqua.delivery.domain.model.DeliveryArea
+import dev.yidafu.aqua.delivery.domain.model.DeliveryAreaModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface DeliveryAreaRepository : JpaRepository<DeliveryArea, Long> {
+interface DeliveryAreaRepository : JpaRepository<DeliveryAreaModel, Long> {
   fun findByProvinceAndCityAndDistrict(
     province: String,
     city: String,
     district: String,
-  ): DeliveryArea?
+  ): DeliveryAreaModel?
 
-  fun findByEnabledTrue(): List<DeliveryArea>
+  fun findByEnabledTrue(): List<DeliveryAreaModel>
 }

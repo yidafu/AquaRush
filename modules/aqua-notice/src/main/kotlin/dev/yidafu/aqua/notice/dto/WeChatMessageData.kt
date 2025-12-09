@@ -20,6 +20,6 @@
 package dev.yidafu.aqua.notice.dto
 
 data class WeChatMessageData(
-    val name: String,
-    val value: String
+  val name: String,
+  val value: String,
 )

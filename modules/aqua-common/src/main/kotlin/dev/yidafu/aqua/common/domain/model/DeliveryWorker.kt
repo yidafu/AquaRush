@@ -26,10 +26,10 @@ import java.util.*
 
 @Entity
 @Table(name = "delivery_workers")
-data class DeliveryWorker(
+data class DeliveryWorkerModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  val id: Long = -1L,
   @Column(name = "user_id", nullable = false)
   val userId: Long,
   @Column(name = "wechat_openid", unique = true, nullable = false)

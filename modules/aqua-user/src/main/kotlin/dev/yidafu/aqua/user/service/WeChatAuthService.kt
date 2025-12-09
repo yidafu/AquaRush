@@ -25,7 +25,7 @@ import dev.yidafu.aqua.api.dto.UserRole
 import dev.yidafu.aqua.api.dto.UserStatus
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.User
+import dev.yidafu.aqua.user.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import me.chanjar.weixin.common.error.WxErrorException
 import org.slf4j.LoggerFactory
@@ -152,9 +152,9 @@ class WeChatAuthService(
   /**
    * Find existing user or create new one
    */
-  private fun findOrCreateUser(openid: String): User =
+  private fun findOrCreateUser(openid: String): UserModel =
     userRepository.findByWechatOpenId(openid)
-      ?: User(
+      ?: UserModel(
         wechatOpenId = openid,
         createdAt = LocalDateTime.now(),
         nickname = "",

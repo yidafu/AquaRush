@@ -20,10 +20,12 @@
 package dev.yidafu.aqua.client.delivery.resolvers
 
 import dev.yidafu.aqua.common.annotation.ClientService
-import dev.yidafu.aqua.common.domain.model.DeliveryWorker
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.WorkerStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
+import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
@@ -72,7 +74,7 @@ class ClientDeliveryWorkerMutationResolver(
 
             val updatedWorker = deliveryWorkerRepository.save(existingWorker)
             logger.info("Successfully updated delivery worker profile: ${updatedWorker.id} - ${updatedWorker.name}")
-            return updatedWorker
+            return updatedWorker.let { DeliveryWorkerMapper.map(it) }
         } catch (e: Exception) {
             logger.error("Failed to update delivery worker profile", e)
             throw BadRequestException("更新配送员资料失败: ${e.message}")
@@ -94,7 +96,7 @@ class ClientDeliveryWorkerMutationResolver(
             val updatedWorker = deliveryWorkerRepository.save(existingWorker)
 
             logger.info("Successfully updated worker status: ${updatedWorker.id} - ${status}")
-            return updatedWorker
+            return updatedWorker.let { DeliveryWorkerMapper.map(it) }
         } catch (e: Exception) {
             logger.error("Failed to update worker status", e)
             throw BadRequestException("更新工作状态失败: ${e.message}")
@@ -117,7 +119,7 @@ class ClientDeliveryWorkerMutationResolver(
 
             val updatedWorker = deliveryWorkerRepository.save(existingWorker)
             logger.info("Successfully updated worker location: ${updatedWorker.id}")
-            return updatedWorker
+            return DeliveryWorkerMapper.map(updatedWorker)
         } catch (e: Exception) {
             logger.error("Failed to update worker location", e)
             throw BadRequestException("更新位置信息失败: ${e.message}")

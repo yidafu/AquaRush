@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.user.service
 
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.User
+import dev.yidafu.aqua.user.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -53,7 +53,7 @@ class CustomUserDetailsService(
     )
   }
 
-  private fun determineUserType(user: User): String {
+  private fun determineUserType(user: UserModel): String {
     // Check if user is an admin (this could be based on a field in User entity)
     // For now, we'll use a simple logic - you can extend this based on your requirements
     return if (user.phone?.startsWith("admin") == true) {
@@ -66,7 +66,7 @@ class CustomUserDetailsService(
   }
 
   private fun determineAuthorities(
-    user: User,
+    user: UserModel,
     userType: String,
   ): List<SimpleGrantedAuthority> {
     val authorities = mutableListOf<SimpleGrantedAuthority>()

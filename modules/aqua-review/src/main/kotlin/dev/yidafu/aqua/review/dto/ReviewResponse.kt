@@ -26,30 +26,22 @@ import java.time.LocalDateTime
  * 评价响应DTO
  */
 data class ReviewResponse(
-    @field:JsonProperty("reviewId")
-    val reviewId: Long,
-
-    @field:JsonProperty("orderId")
-    val orderId: Long,
-
-    @field:JsonProperty("userId")
-    val userId: Long? = null, // 匿名评价时隐藏
-
-    @field:JsonProperty("deliveryWorkerId")
-    val deliveryWorkerId: Long,
-
-    @field:JsonProperty("deliveryWorkerName")
-    val deliveryWorkerName: String? = null,
-
-    @field:JsonProperty("rating")
-    val rating: Int,
-
-    @field:JsonProperty("comment")
-    val comment: String? = null,
-
-    @field:JsonProperty("isAnonymous")
-    val isAnonymous: Boolean,
-
-    @field:JsonProperty("createdAt")
-    val createdAt: LocalDateTime
+  @field:JsonProperty("reviewId")
+  val reviewId: Long,
+  @field:JsonProperty("orderId")
+  val orderId: Long,
+  @field:JsonProperty("userId")
+  val userId: Long? = null, // 匿名评价时隐藏
+  @field:JsonProperty("deliveryWorkerId")
+  val deliveryWorkerId: Long,
+  @field:JsonProperty("deliveryWorkerName")
+  val deliveryWorkerName: String? = null,
+  @field:JsonProperty("rating")
+  val rating: Int,
+  @field:JsonProperty("comment")
+  val comment: String? = null,
+  @field:JsonProperty("isAnonymous")
+  val isAnonymous: Boolean,
+  @field:JsonProperty("createdAt")
+  val createdAt: LocalDateTime,
 )

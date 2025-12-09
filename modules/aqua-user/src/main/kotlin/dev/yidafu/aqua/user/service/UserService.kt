@@ -21,8 +21,8 @@ package dev.yidafu.aqua.user.service
 
 import dev.yidafu.aqua.api.dto.UserRole
 import dev.yidafu.aqua.api.dto.UserStatus
-import dev.yidafu.aqua.user.domain.model.User
-import dev.yidafu.aqua.user.domain.model.NotificationSettings
+import dev.yidafu.aqua.user.domain.model.UserModel
+import dev.yidafu.aqua.user.domain.model.NotificationSettingsModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import dev.yidafu.aqua.user.domain.repository.NotificationSettingsRepository
 import org.springframework.stereotype.Service
@@ -36,18 +36,18 @@ class UserService(
   private val userRepository: UserRepository,
   private val notificationSettingsRepository: NotificationSettingsRepository,
 ) {
-  fun findById(id: Long): User? = userRepository.findById(id).orElse(null)
+  fun findById(id: Long): UserModel? = userRepository.findById(id).orElse(null)
 
-  fun findByWechatOpenId(wechatOpenId: String): User? = userRepository.findByWechatOpenId(wechatOpenId)
+  fun findByWechatOpenId(wechatOpenId: String): UserModel? = userRepository.findByWechatOpenId(wechatOpenId)
 
   @Transactional
   fun createUser(
     wechatOpenId: String,
     nickname: String?,
     avatarUrl: String?,
-  ): User {
+  ): UserModel {
     val user =
-      User(
+      UserModel(
         wechatOpenId = wechatOpenId,
         nickname = nickname,
         avatarUrl = avatarUrl,
@@ -63,7 +63,7 @@ class UserService(
     val savedUser = userRepository.save(user)
 
     // Create default notification settings for the user
-    val notificationSettings = NotificationSettings(
+    val notificationSettings = NotificationSettingsModel(
       userId = savedUser.id!!,
       orderUpdates = true,
       paymentNotifications = true,
@@ -81,7 +81,7 @@ class UserService(
     nickname: String?,
     phone: String?,
     avatarUrl: String?,
-  ): User {
+  ): UserModel {
     val user =
       userRepository
         .findById(userId)

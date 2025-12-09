@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.repository
 
-import dev.yidafu.aqua.common.domain.model.Payment
+import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Repository
@@ -40,10 +40,10 @@ class PaymentRepositoryImpl(
   override fun findByUserIdAndStatusEnhanced(
     userId: Long,
     status: PaymentStatus,
-  ): List<Payment> {
+  ): List<PaymentModel> {
     val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Payment::class.java)
-    val root = query.from(Payment::class.java)
+    val query = cb.createQuery(PaymentModel::class.java)
+    val root = query.from(PaymentModel::class.java)
 
     val userIdPredicate = cb.equal(root.get<Long>("userId"), userId)
     val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), status)
@@ -55,10 +55,10 @@ class PaymentRepositoryImpl(
   /**
    * Find expired payments before specified time
    */
-  override fun findExpiredPaymentsEnhanced(now: LocalDateTime): List<Payment> {
+  override fun findExpiredPaymentsEnhanced(now: LocalDateTime): List<PaymentModel> {
     val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Payment::class.java)
-    val root = query.from(Payment::class.java)
+    val query = cb.createQuery(PaymentModel::class.java)
+    val root = query.from(PaymentModel::class.java)
 
     val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), PaymentStatus.PENDING)
     val expiredPredicate = cb.lessThan(root.get<LocalDateTime>("expiredAt"), now)
@@ -73,10 +73,10 @@ class PaymentRepositoryImpl(
   override fun findByCreatedAtBetweenEnhanced(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): List<Payment> {
+  ): List<PaymentModel> {
     val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Payment::class.java)
-    val root = query.from(Payment::class.java)
+    val query = cb.createQuery(PaymentModel::class.java)
+    val root = query.from(PaymentModel::class.java)
 
     val startPredicate = cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), startDate)
     val endPredicate = cb.lessThanOrEqualTo(root.get<LocalDateTime>("createdAt"), endDate)
@@ -95,7 +95,7 @@ class PaymentRepositoryImpl(
   ): Long {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(Long::class.java)
-    val root = query.from(Payment::class.java)
+    val root = query.from(PaymentModel::class.java)
 
     val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), status)
     val startPredicate = cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), startDate)
@@ -117,7 +117,7 @@ class PaymentRepositoryImpl(
   ): BigDecimal {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery()
-    val root = query.from(Payment::class.java)
+    val root = query.from(PaymentModel::class.java)
 
     val statusPredicate = cb.equal(root.get<PaymentStatus>("status"), status)
     val startPredicate = cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), startDate)
@@ -141,10 +141,10 @@ class PaymentRepositoryImpl(
     endDate: LocalDateTime?,
     minAmount: BigDecimal?,
     maxAmount: BigDecimal?,
-  ): List<Payment> {
+  ): List<PaymentModel> {
     val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Payment::class.java)
-    val root = query.from(Payment::class.java)
+    val query = cb.createQuery(PaymentModel::class.java)
+    val root = query.from(PaymentModel::class.java)
 
     val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
 

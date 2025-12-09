@@ -592,6 +592,17 @@ type OrderReviewCheckResponse {
   review: Review
 }
 
+type DeliveryWorkerStatistics {
+  deliveryWorkerId: Long!
+  totalReviews: Long!
+  averageRating: BigDecimal!
+  oneStarReviews: Long!
+  twoStarReviews: Long!
+  threeStarReviews: Long!
+  fourStarReviews: Long!
+  fiveStarReviews: Long!
+}
+
 type DeliveryWorkerStatisticsResponse {
   deliveryWorkerId: Long!
   workerName: String

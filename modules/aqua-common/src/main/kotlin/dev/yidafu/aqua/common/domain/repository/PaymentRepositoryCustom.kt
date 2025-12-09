@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.repository
 
-import dev.yidafu.aqua.common.domain.model.Payment
+import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -35,12 +35,12 @@ interface PaymentRepositoryCustom {
   fun findByUserIdAndStatusEnhanced(
     userId: Long,
     status: PaymentStatus,
-  ): List<Payment>
+  ): List<PaymentModel>
 
   /**
    * Find expired payments before specified time
    */
-  fun findExpiredPaymentsEnhanced(now: LocalDateTime): List<Payment>
+  fun findExpiredPaymentsEnhanced(now: LocalDateTime): List<PaymentModel>
 
   /**
    * Find payments created within a date range
@@ -48,7 +48,7 @@ interface PaymentRepositoryCustom {
   fun findByCreatedAtBetweenEnhanced(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): List<Payment>
+  ): List<PaymentModel>
 
   /**
    * Count payments by status and creation date range
@@ -79,5 +79,5 @@ interface PaymentRepositoryCustom {
     endDate: LocalDateTime? = null,
     minAmount: BigDecimal? = null,
     maxAmount: BigDecimal? = null,
-  ): List<Payment>
+  ): List<PaymentModel>
 }

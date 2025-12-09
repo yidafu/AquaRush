@@ -26,7 +26,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "payment_refunds")
-data class PaymentRefund(
+data class PaymentRefundModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,

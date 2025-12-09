@@ -19,26 +19,15 @@
 
 package dev.yidafu.aqua.product.mapper
 
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.product.domain.model.Product
-import org.springframework.stereotype.Component
+import dev.yidafu.aqua.common.graphql.generated.Product
+import dev.yidafu.aqua.product.domain.model.ProductModel
 import tech.mappie.api.ObjectMappie
-import java.math.BigDecimal
-import java.time.LocalDateTime
 
-// Product DTO
-data class ProductDTO(
-  val id: Long?,
-  val name: String,
-  val price: BigDecimal,
-  val coverImageUrl: String,
-  val detailImages: String?,
-  val description: String?,
-  val stock: Int,
-  val status: ProductStatus,
-  val createdAt: LocalDateTime,
-  val updatedAt: LocalDateTime,
-)
-
-@Component
-object ProductMapper : ObjectMappie<Product, ProductDTO>()
+/**
+ * Mapper for converting ProductModel domain entity to GraphQL ProductModel type
+ */
+object ProductMapper : ObjectMappie<ProductModel, Product>() {
+    override fun map(from: ProductModel) = mapping {
+        to::id fromProperty  from::id
+    }
+}

@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.client.order.resolvers
 
 import dev.yidafu.aqua.common.annotation.ClientService
-import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.order.service.OrderService
 import org.springframework.graphql.data.method.annotation.Argument
@@ -40,7 +40,7 @@ class OrderQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun myOrders(): List<Order> {
+  fun myOrders(): List<OrderModel> {
     return orderService.findOrdersByCurrentUser()
   }
 
@@ -52,7 +52,7 @@ class OrderQueryResolver(
   fun order(
     @Argument orderId: Long,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Order? {
+  ): OrderModel? {
     return orderService.findOrderByIdAndUserId(orderId, userPrincipal.id)
       ?: throw IllegalArgumentException("Order not found or access denied")
   }
@@ -65,7 +65,7 @@ class OrderQueryResolver(
   fun orderByNumber(
     @Argument orderNumber: String,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Order? {
+  ): OrderModel? {
     return orderService.findOrderByNumberAndUserId(orderNumber, userPrincipal.id)
       ?: throw IllegalArgumentException("Order not found or access denied")
   }
@@ -78,7 +78,7 @@ class OrderQueryResolver(
   fun ordersByStatus(
     @Argument status: String,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): List<Order> {
+  ): List<OrderModel> {
     return orderService.findOrdersByUserIdAndStatus(userPrincipal.id, status)
   }
 }

@@ -1,7 +1,7 @@
 plugins {
   id("aqua.spring.boot.library")
   alias(libs.plugins.mappie)
-  id("com.ewerk.gradle.plugins.querydsl") version "1.0.10"
+  id("aqua.kotlin.querydsl")
 }
 
 dependencies {
@@ -21,11 +21,11 @@ dependencies {
   // Mappie
   implementation(libs.mappie.api)
 
-  // QueryDSL for type-safe queries (temporarily disabled)
-   implementation(libs.bundles.querydsl)
-//   annotationProcessor(libs.querydsl.apt)
+  // QueryDSL dependencies are handled by aqua.kotlin.querydsl plugin
   implementation(libs.wechat.miniapp)
 }
+
+// Configure QueryDSL
 val querydslDir = "$buildDir/generated/querydsl"
 
 querydsl {
@@ -33,8 +33,6 @@ querydsl {
   hibernate = true
   querydslSourcesDir = querydslDir
 }
-
-
 
 // Configure Kotlin compilation to include generated source
 kotlin {

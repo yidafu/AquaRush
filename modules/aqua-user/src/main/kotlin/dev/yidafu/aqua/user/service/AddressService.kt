@@ -22,7 +22,7 @@ package dev.yidafu.aqua.user.service
 import dev.yidafu.aqua.user.domain.exception.AquaException
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
-import dev.yidafu.aqua.user.domain.model.Address
+import dev.yidafu.aqua.user.domain.model.AddressModel
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.domain.Page
@@ -43,7 +43,7 @@ class AddressService(
      * 获取用户的所有地址
      */
     @Cacheable(value = ["user_addresses"], key = "#userId")
-    fun getUserAddresses(userId: Long): List<Address> {
+    fun getUserAddresses(userId: Long): List<AddressModel> {
         return addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
     }
 
@@ -51,7 +51,7 @@ class AddressService(
      * 获取用户默认地址
      */
     @Cacheable(value = ["user_default_address"], key = "#userId")
-    fun getUserDefaultAddress(userId: Long): Address? {
+    fun getUserDefaultAddress(userId: Long): AddressModel? {
         return addressRepository.findByUserIdAndIsDefaultTrue(userId)
     }
 
@@ -59,7 +59,7 @@ class AddressService(
      * 根据ID获取地址
      */
     @Cacheable(value = ["address"], key = "#addressId")
-    fun getAddressById(addressId: Long): Address? {
+    fun getAddressById(addressId: Long): AddressModel? {
         return addressRepository.findById(addressId).orElse(null)
     }
 
@@ -80,8 +80,8 @@ class AddressService(
         longitude: Double? = null,
         latitude: Double? = null,
         isDefault: Boolean = false
-    ): Address {
-        val address = Address(
+    ): AddressModel {
+        val address = AddressModel(
             userId = userId,
             province = province,
             city = city,
@@ -102,7 +102,7 @@ class AddressService(
      * 创建新地址 (使用Address对象)
      */
     @CacheEvict(value = ["user_addresses", "user_default_address"], key = "#address.userId")
-    fun createAddress(address: Address): Address {
+    fun createAddress(address: AddressModel): AddressModel {
         // 验证用户权限
         if (address.userId <= 0) {
             throw AquaException("无效的用户ID")
@@ -152,7 +152,7 @@ class AddressService(
         longitude: Double? = null,
         latitude: Double? = null,
         isDefault: Boolean? = null
-    ): Address? {
+    ): AddressModel? {
         val updates = AddressUpdateRequest(
             province = province,
             city = city,
@@ -174,7 +174,7 @@ class AddressService(
      */
     @CacheEvict(value = ["user_addresses", "user_default_address", "address"],
                   key = "#addressId", allEntries = true)
-    fun updateAddress(addressId: Long, updates: AddressUpdateRequest): Address? {
+    fun updateAddress(addressId: Long, updates: AddressUpdateRequest): AddressModel? {
         val existingAddress = addressRepository.findById(addressId)
             .orElseThrow { AquaException("地址不存在") }
 
@@ -254,14 +254,14 @@ class AddressService(
     /**
      * 根据坐标获取附近地址
      */
-    fun findNearbyAddresses(longitude: Double, latitude: Double, radiusKm: Double = 5.0): List<Address> {
+    fun findNearbyAddresses(longitude: Double, latitude: Double, radiusKm: Double = 5.0): List<AddressModel> {
         return addressRepository.findNearby(longitude, latitude, radiusKm)
     }
 
     /**
      * 检查地址是否重复
      */
-    fun isDuplicateAddress(userId: Long, address: Address): Boolean {
+    fun isDuplicateAddress(userId: Long, address: AddressModel): Boolean {
         return addressRepository.findByUserId(userId).any { existing ->
             existing.province == address.province &&
             existing.city == address.city &&
@@ -273,7 +273,7 @@ class AddressService(
     /**
      * 验证地址信息
      */
-    private fun validateAddress(address: Address) {
+    private fun validateAddress(address: AddressModel) {
         if (address.province.isBlank()) {
             throw AquaException("省份不能为空")
         }
@@ -325,7 +325,7 @@ class AddressService(
     /**
      * 获取用户地址分页列表
      */
-    fun findByUserId(userId: Long, pageable: PageRequest): Page<Address> {
+    fun findByUserId(userId: Long, pageable: PageRequest): Page<AddressModel> {
         val addresses = addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
         val start = pageable.offset.toInt()
         val end = (start + pageable.pageSize).coerceAtMost(addresses.size)
@@ -339,21 +339,21 @@ class AddressService(
     /**
      * 获取用户默认地址
      */
-    fun findDefaultByUserId(userId: Long): Address? {
+    fun findDefaultByUserId(userId: Long): AddressModel? {
         return addressRepository.findByUserIdAndIsDefaultTrue(userId)
     }
 
     /**
      * 根据ID获取地址
      */
-    fun findById(addressId: Long): Address? {
+    fun findById(addressId: Long): AddressModel? {
         return addressRepository.findById(addressId).orElse(null)
     }
 
     /**
      * 搜索用户地址
      */
-    fun searchByUserIdAndKeyword(userId: Long, keyword: String, pageable: PageRequest): Page<Address> {
+    fun searchByUserIdAndKeyword(userId: Long, keyword: String, pageable: PageRequest): Page<AddressModel> {
         val addresses = addressRepository.searchByUserIdAndKeyword(userId, keyword)
         val start = pageable.offset.toInt()
         val end = (start + pageable.pageSize).coerceAtMost(addresses.size)
@@ -372,7 +372,7 @@ class AddressService(
     }
 
     // Legacy method for backward compatibility
-    fun save(address: Address): Address {
+    fun save(address: AddressModel): AddressModel {
         return addressRepository.save(address)
     }
 

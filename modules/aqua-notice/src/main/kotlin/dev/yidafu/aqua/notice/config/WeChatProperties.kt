@@ -25,11 +25,11 @@ import org.springframework.context.annotation.Configuration
 @Configuration
 @ConfigurationProperties(prefix = "wechat")
 data class WeChatProperties(
-    var appId: String = "",
-    var appSecret: String = "",
-    var apiUrl: String = "https://api.weixin.qq.com",
-    var templates: Map<String, String> = emptyMap(),
-    var tokenCacheMinutes: Int = 90,
-    var maxRetries: Int = 3,
-    var retryDelayMinutes: Int = 5
+  var appId: String = "",
+  var appSecret: String = "",
+  var apiUrl: String = "https://api.weixin.qq.com",
+  var templates: Map<String, String> = emptyMap(),
+  var tokenCacheMinutes: Int = 90,
+  var maxRetries: Int = 3,
+  var retryDelayMinutes: Int = 5,
 )

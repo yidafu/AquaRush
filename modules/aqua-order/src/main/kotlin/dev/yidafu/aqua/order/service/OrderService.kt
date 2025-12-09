@@ -19,8 +19,9 @@
 
 package dev.yidafu.aqua.order.service
 
+import dev.yidafu.aqua.common.domain.model.EventStatus
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
@@ -28,8 +29,8 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.delivery.service.DeliveryService
-import dev.yidafu.aqua.order.domain.model.DomainEvent
-import dev.yidafu.aqua.order.domain.model.EventStatus
+import dev.yidafu.aqua.order.domain.model.DomainEventModel
+import dev.yidafu.aqua.order.domain.model.EventStatusModel
 import dev.yidafu.aqua.order.domain.repository.DomainEventRepository
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import dev.yidafu.aqua.product.service.ProductService
@@ -58,7 +59,7 @@ class OrderService(
     productId: Long,
     addressId: Long,
     quantity: Int,
-  ): Order {
+  ): OrderModel {
     // 1. 验证产品存在且有足够库存
     val product =
       productRepository
@@ -96,7 +97,7 @@ class OrderService(
 
     // 7. 创建订单
     val order =
-      Order(
+      OrderModel(
         id = DefaultIdGenerator().generate(),
         orderNumber = orderNumber,
         userId = userId,
@@ -140,26 +141,26 @@ class OrderService(
 
   // 保持原有方法以兼容现有代码
   @Transactional
-  fun createOrder(order: Order): Order = createOrder(order.userId, order.productId, order.addressId, order.quantity)
+  fun createOrder(order: OrderModel): OrderModel = createOrder(order.userId, order.productId, order.addressId, order.quantity)
 
-  override fun getOrderById(orderId: Long): Order =
+  override fun getOrderById(orderId: Long): OrderModel =
     orderRepository.findById(orderId).orElseThrow {
       NotFoundException("订单不存在: $orderId")
     }
 
-  override fun getOrderByNumber(orderNumber: String): Order =
+  override fun getOrderByNumber(orderNumber: String): OrderModel =
     orderRepository.findByOrderNumber(orderNumber)
       ?: throw NotFoundException("订单不存在: $orderNumber")
 
-  fun getUserOrders(userId: Long): List<Order> = orderRepository.findByUserId(userId)
+  fun getUserOrders(userId: Long): List<OrderModel> = orderRepository.findByUserId(userId)
 
   fun getUserOrdersByStatus(
     userId: Long,
     status: OrderStatus,
-  ): List<Order> = orderRepository.findByUserIdAndStatus(userId, status)
+  ): List<OrderModel> = orderRepository.findByUserIdAndStatus(userId, status)
 
   @Transactional
-  fun cancelOrder(orderId: Long): Order {
+  fun cancelOrder(orderId: Long): OrderModel {
     val order = getOrderById(orderId)
 
     // 1. 验证订单状态是否可以取消
@@ -214,13 +215,13 @@ class OrderService(
   fun updateOrderStatus(
     orderId: Long,
     status: OrderStatus,
-  ): Order {
+  ): OrderModel {
     val order = getOrderById(orderId)
     order.status = status
     return orderRepository.save(order)
   }
 
-  fun getOrdersByStatus(status: OrderStatus): List<Order> = orderRepository.findByStatus(status)
+  fun getOrdersByStatus(status: OrderStatus): List<OrderModel> = orderRepository.findByStatus(status)
 
   /**
    * 生成唯一订单号
@@ -243,11 +244,11 @@ class OrderService(
     val eventPayload = objectMapper.writeValueAsString(eventData)
 
     val domainEvent =
-      DomainEvent(
+      DomainEventModel(
         id = DefaultIdGenerator().generate(),
         eventType = eventType,
         payload = eventPayload,
-        status = EventStatus.PENDING,
+        status = EventStatusModel.PENDING,
         retryCount = 0,
         nextRunAt = nextRunAt,
         createdAt = LocalDateTime.now(),
@@ -328,7 +329,7 @@ class OrderService(
 
   // Additional methods for GraphQL resolvers
   @Transactional
-  override fun createOrder(input: Any, userId: Long): Order {
+  override fun createOrder(input: Any, userId: Long): OrderModel {
     // Parse input based on type (assuming CreateOrderInput)
     // This is a simplified implementation - you may need to adapt based on your input type
     val inputMap = objectMapper.convertValue(input, Map::class.java)
@@ -340,7 +341,7 @@ class OrderService(
   }
 
   @Transactional
-  override fun cancelOrder(orderId: Long, userId: Long): Order? {
+  override fun cancelOrder(orderId: Long, userId: Long): OrderModel? {
     val order = orderRepository.findById(orderId).orElse(null) ?: return null
 
     // Verify order belongs to user
@@ -352,7 +353,7 @@ class OrderService(
   }
 
   @Transactional
-  override fun cancelOrderForAdmin(orderId: Long): Order? {
+  override fun cancelOrderForAdmin(orderId: Long): OrderModel? {
     return try {
       cancelOrder(orderId)
     } catch (e: Exception) {
@@ -361,7 +362,7 @@ class OrderService(
   }
 
   @Transactional
-  override fun updateOrderStatus(orderId: Long, status: String): Order? {
+  override fun updateOrderStatus(orderId: Long, status: String): OrderModel? {
     return try {
       val orderStatus = OrderStatus.valueOf(status.uppercase())
       updateOrderStatus(orderId, orderStatus)
@@ -370,21 +371,21 @@ class OrderService(
     }
   }
 
-  override fun findAllOrders(): List<Order> = orderRepository.findAll()
+  override fun findAllOrders(): List<OrderModel> = orderRepository.findAll()
 
-  override fun findOrderByIdAndUserId(orderId: Long, userId: Long): Order? {
+  override fun findOrderByIdAndUserId(orderId: Long, userId: Long): OrderModel? {
     val order = orderRepository.findById(orderId).orElse(null) ?: return null
     return if (order.userId == userId) order else null
   }
 
-  override fun findOrderByNumberAndUserId(orderNumber: String, userId: Long): Order? {
+  override fun findOrderByNumberAndUserId(orderNumber: String, userId: Long): OrderModel? {
     val order = orderRepository.findByOrderNumber(orderNumber) ?: return null
     return if (order.userId == userId) order else null
   }
 
-  override fun findOrdersByUserId(userId: Long): List<Order> = orderRepository.findByUserId(userId)
+  override fun findOrdersByUserId(userId: Long): List<OrderModel> = orderRepository.findByUserId(userId)
 
-  override fun findOrdersByStatus(status: String): List<Order> {
+  override fun findOrdersByStatus(status: String): List<OrderModel> {
     return try {
       val orderStatus = OrderStatus.valueOf(status.uppercase())
       getOrdersByStatus(orderStatus)
@@ -393,7 +394,7 @@ class OrderService(
     }
   }
 
-  override fun findOrdersByUserIdAndStatus(userId: Long, status: String): List<Order> {
+  override fun findOrdersByUserIdAndStatus(userId: Long, status: String): List<OrderModel> {
     return try {
       val orderStatus = OrderStatus.valueOf(status.uppercase())
       getUserOrdersByStatus(userId, orderStatus)
@@ -403,7 +404,7 @@ class OrderService(
   }
 
   // Method for current user (requires authentication context)
-  fun findOrdersByCurrentUser(): List<Order> {
+  fun findOrdersByCurrentUser(): List<OrderModel> {
     // This would typically be implemented with authentication context
     // For now, return empty list - you may need to adapt based on your auth setup
     return emptyList()

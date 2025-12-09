@@ -19,8 +19,10 @@
 
 package dev.yidafu.aqua.admin.user.resolvers
 
+import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.graphql.utils.GraphQLSecurityContext
-import dev.yidafu.aqua.user.domain.model.User
+import dev.yidafu.aqua.user.mapper.*
+import dev.yidafu.aqua.user.domain.model.UserModel
 import dev.yidafu.aqua.user.service.UserService
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -37,12 +39,12 @@ class UserQueryResolver(
     val currentUserId =
       GraphQLSecurityContext.getCurrentUserId()
         ?: throw IllegalArgumentException("User not authenticated")
-    return userService.findById(currentUserId)
+    return userService.findById(currentUserId)?.let { UserMapper.map(it) }
   }
 
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
   fun user(
     @Argument id: Long,
-  ): User? = userService.findById(id)
+  ): User? = userService.findById(id)?.let { UserMapper.map(it) }
 }

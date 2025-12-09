@@ -19,19 +19,19 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.Admin
-import dev.yidafu.aqua.user.domain.model.AdminRole
+import dev.yidafu.aqua.user.domain.model.AdminModel
+import dev.yidafu.aqua.user.domain.model.AdminRoleModel
 import org.springframework.data.jpa.domain.Specification
 
 class AdminSpecifications {
     companion object {
-        fun byUsername(username: String): Specification<Admin> {
+        fun byUsername(username: String): Specification<AdminModel> {
             return Specification { root, _, cb ->
                 cb.equal(root.get<String>("username"), username)
             }
         }
 
-        fun byUsernameAndRole(username: String, role: AdminRole): Specification<Admin> {
+        fun byUsernameAndRole(username: String, role: AdminRoleModel): Specification<AdminModel> {
             return Specification { root, _, cb ->
                 val usernamePredicate = cb.equal(root.get<String>("username"), username)
                 val rolePredicate = cb.equal(root.get<Enum<*>>("role"), role)
@@ -39,13 +39,13 @@ class AdminSpecifications {
             }
         }
 
-        fun byPhone(phone: String): Specification<Admin> {
+        fun byPhone(phone: String): Specification<AdminModel> {
             return Specification { root, _, cb ->
                 cb.equal(root.get<String>("phone"), phone)
             }
         }
 
-        fun byRole(role: AdminRole): Specification<Admin> {
+        fun byRole(role: AdminRoleModel): Specification<AdminModel> {
             return Specification { root, _, cb ->
                 cb.equal(root.get<Enum<*>>("role"), role)
             }

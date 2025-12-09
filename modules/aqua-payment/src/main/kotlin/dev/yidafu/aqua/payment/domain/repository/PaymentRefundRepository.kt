@@ -19,16 +19,16 @@
 
 package dev.yidafu.aqua.payment.domain.repository
 
-import dev.yidafu.aqua.payment.domain.model.PaymentRefund
+import dev.yidafu.aqua.payment.domain.model.PaymentRefundModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface PaymentRefundRepository : JpaRepository<PaymentRefund, Long> {
-  fun findByPaymentId(paymentId: Long): List<PaymentRefund>
+interface PaymentRefundRepository : JpaRepository<PaymentRefundModel, Long> {
+  fun findByPaymentId(paymentId: Long): List<PaymentRefundModel>
 
-  fun findByRefundId(refundId: String): Optional<PaymentRefund>
+  fun findByRefundId(refundId: String): Optional<PaymentRefundModel>
 
-  fun findByOutRefundNo(outRefundNo: String): Optional<PaymentRefund>
+  fun findByOutRefundNo(outRefundNo: String): Optional<PaymentRefundModel>
 }

@@ -19,13 +19,13 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.User
+import dev.yidafu.aqua.user.domain.model.UserModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface UserRepository : JpaRepository<User, Long>, UserRepositoryCustom {
-  fun findByWechatOpenId(wechatOpenId: String): User?
+interface UserRepository : JpaRepository<UserModel, Long>, UserRepositoryCustom {
+  fun findByWechatOpenId(wechatOpenId: String): UserModel?
 
   fun existsByWechatOpenId(wechatOpenId: String): Boolean
 

@@ -1,5 +1,7 @@
 plugins {
   id("aqua.kotlin.spring")
+  alias(libs.plugins.mappie)
+  id("aqua.kotlin.querydsl")
 }
 
 dependencies {
@@ -21,5 +23,27 @@ dependencies {
   // For Redis cache
   implementation(libs.bundles.redis)
 
+  // Mappie
+  implementation(libs.mappie.api)
+
   testImplementation(libs.spring.boot.starter.test)
+}
+
+// Configure QueryDSL
+val querydslDir = "$buildDir/generated/querydsl"
+
+querydsl {
+  jpa = true
+  hibernate = true
+  querydslSourcesDir = querydslDir
+}
+
+// Configure Kotlin compilation to include generated source
+kotlin {
+  sourceSets {
+    main {
+      // Add QueryDSL generated sources
+      kotlin.srcDir(layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main"))
+    }
+  }
 }

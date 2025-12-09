@@ -20,9 +20,9 @@
 package dev.yidafu.aqua.order.event
 
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
-import dev.yidafu.aqua.order.domain.model.DomainEvent
+import dev.yidafu.aqua.order.domain.model.DomainEventModel
 import dev.yidafu.aqua.payment.service.PaymentService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -42,7 +42,7 @@ class OrderCancelledHandler(
    * 处理订单取消事件
    */
   @Transactional
-  fun handle(event: DomainEvent) {
+  fun handle(event: DomainEventModel) {
     try {
       // 解析payload获取事件数据
       val eventData =
@@ -78,7 +78,7 @@ class OrderCancelledHandler(
    * 处理退款
    */
   private fun processRefund(
-    order: Order,
+    order: OrderModel,
     paymentTransactionId: String,
   ) {
     try {

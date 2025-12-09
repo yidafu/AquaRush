@@ -24,78 +24,74 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "delivery_worker_statistics", uniqueConstraints = [
-    UniqueConstraint(name = "uk_delivery_worker_id", columnNames = ["delivery_worker_id"])
-])
-data class DeliveryWorkerStatistics(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long? = null,
-
-    @Column(name = "delivery_worker_id", nullable = false, unique = true)
-    val deliveryWorkerId: Long,
-
-    @Column(name = "average_rating", nullable = false, precision = 3, scale = 2)
-    var averageRating: BigDecimal = BigDecimal.ZERO,
-
-    @Column(name = "total_reviews", nullable = false)
-    var totalReviews: Int = 0,
-
-    @Column(name = "one_star_reviews", nullable = false)
-    var oneStarReviews: Int = 0,
-
-    @Column(name = "two_star_reviews", nullable = false)
-    var twoStarReviews: Int = 0,
-
-    @Column(name = "three_star_reviews", nullable = false)
-    var threeStarReviews: Int = 0,
-
-    @Column(name = "four_star_reviews", nullable = false)
-    var fourStarReviews: Int = 0,
-
-    @Column(name = "five_star_reviews", nullable = false)
-    var fiveStarReviews: Int = 0,
-
-    @Column(name = "last_updated", nullable = false)
-    var lastUpdated: LocalDateTime = LocalDateTime.now(),
+@Table(
+  name = "delivery_worker_statistics",
+  uniqueConstraints = [
+    UniqueConstraint(name = "uk_delivery_worker_id", columnNames = ["delivery_worker_id"]),
+  ],
+)
+data class DeliveryWorkerStatisticsModel(
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  val id: Long? = null,
+  @Column(name = "delivery_worker_id", nullable = false, unique = true)
+  val deliveryWorkerId: Long,
+  @Column(name = "average_rating", nullable = false, precision = 3, scale = 2)
+  var averageRating: BigDecimal = BigDecimal.ZERO,
+  @Column(name = "total_reviews", nullable = false)
+  var totalReviews: Int = 0,
+  @Column(name = "one_star_reviews", nullable = false)
+  var oneStarReviews: Int = 0,
+  @Column(name = "two_star_reviews", nullable = false)
+  var twoStarReviews: Int = 0,
+  @Column(name = "three_star_reviews", nullable = false)
+  var threeStarReviews: Int = 0,
+  @Column(name = "four_star_reviews", nullable = false)
+  var fourStarReviews: Int = 0,
+  @Column(name = "five_star_reviews", nullable = false)
+  var fiveStarReviews: Int = 0,
+  @Column(name = "last_updated", nullable = false)
+  var lastUpdated: LocalDateTime = LocalDateTime.now(),
 ) {
-    @PreUpdate
-    fun preUpdate() {
-        lastUpdated = LocalDateTime.now()
+  @PreUpdate
+  fun preUpdate() {
+    lastUpdated = LocalDateTime.now()
+  }
+
+  fun updateStatistics(newRating: Int) {
+    totalReviews++
+
+    when (newRating) {
+      1 -> oneStarReviews++
+      2 -> twoStarReviews++
+      3 -> threeStarReviews++
+      4 -> fourStarReviews++
+      5 -> fiveStarReviews++
     }
 
-    fun updateStatistics(newRating: Int) {
-        totalReviews++
+    // Recalculate average rating
+    val totalRatingPoints =
+      oneStarReviews +
+        (twoStarReviews * 2) +
+        (threeStarReviews * 3) +
+        (fourStarReviews * 4) +
+        (fiveStarReviews * 5)
 
-        when (newRating) {
-            1 -> oneStarReviews++
-            2 -> twoStarReviews++
-            3 -> threeStarReviews++
-            4 -> fourStarReviews++
-            5 -> fiveStarReviews++
-        }
+    averageRating =
+      if (totalReviews > 0) {
+        BigDecimal(totalRatingPoints).divide(BigDecimal(totalReviews), 2, java.math.RoundingMode.HALF_UP)
+      } else {
+        BigDecimal.ZERO
+      }
+  }
 
-        // Recalculate average rating
-        val totalRatingPoints = oneStarReviews +
-            (twoStarReviews * 2) +
-            (threeStarReviews * 3) +
-            (fourStarReviews * 4) +
-            (fiveStarReviews * 5)
-
-        averageRating = if (totalReviews > 0) {
-            BigDecimal(totalRatingPoints).divide(BigDecimal(totalReviews), 2, java.math.RoundingMode.HALF_UP)
-        } else {
-            BigDecimal.ZERO
-        }
-    }
-
-    fun getRatingDistribution(): Map<Int, Int> {
-        return mapOf(
-            1 to oneStarReviews,
-            2 to twoStarReviews,
-            3 to threeStarReviews,
-            4 to fourStarReviews,
-            5 to fiveStarReviews
-        )
-    }
+  fun getRatingDistribution(): Map<Int, Int> {
+    return mapOf(
+      1 to oneStarReviews,
+      2 to twoStarReviews,
+      3 to threeStarReviews,
+      4 to fourStarReviews,
+      5 to fiveStarReviews,
+    )
+  }
 }

@@ -21,8 +21,10 @@ package dev.yidafu.aqua.client.user.resolvers
 
 import dev.yidafu.aqua.client.user.resolvers.ClientAddressQueryResolver.Companion.AddressWithDistance
 import dev.yidafu.aqua.common.annotation.ClientService
+import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.Address
+import dev.yidafu.aqua.user.domain.model.AddressModel
+import dev.yidafu.aqua.user.mapper.AddressMapper
 import dev.yidafu.aqua.user.service.AddressService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -51,6 +53,7 @@ class ClientAddressQueryResolver(
     ): Page<Address> {
         val pageable = PageRequest.of(page, size)
         return addressService.findByUserId(userPrincipal.id, pageable)
+            .map { it.let { AddressMapper.map(it) } }
     }
 
     /**
@@ -60,7 +63,7 @@ class ClientAddressQueryResolver(
     fun userDefaultAddress(
         @AuthenticationPrincipal userPrincipal: UserPrincipal
     ): Address? {
-        return addressService.findDefaultByUserId(userPrincipal.id)
+        return addressService.findDefaultByUserId(userPrincipal.id)?.let { AddressMapper.map(it) }
     }
 
     /**
@@ -76,7 +79,7 @@ class ClientAddressQueryResolver(
         if (address != null && address.userId != userPrincipal.id) {
             throw IllegalArgumentException("无权访问此地址")
         }
-        return address
+        return address?.let { AddressMapper.map(it) }
     }
 
     /**
@@ -91,6 +94,7 @@ class ClientAddressQueryResolver(
     ): Page<Address> {
         val pageable = PageRequest.of(page, size)
         return addressService.searchByUserIdAndKeyword(userPrincipal.id, keyword, pageable)
+            .map { it.let { AddressMapper.map(it) } }
     }
 
     /**

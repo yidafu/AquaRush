@@ -22,7 +22,9 @@ package dev.yidafu.aqua.admin.delivery.resolvers
 import dev.yidafu.aqua.admin.delivery.resolvers.AdminDeliveryWorkerMutationResolver.Companion.CreateDeliveryWorkerInput
 import dev.yidafu.aqua.admin.delivery.resolvers.AdminDeliveryWorkerMutationResolver.Companion.UpdateDeliveryWorkerInput
 import dev.yidafu.aqua.common.annotation.AdminService
-import dev.yidafu.aqua.common.domain.model.DeliveryWorker
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
+import  dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
 import dev.yidafu.aqua.delivery.service.DeliveryService
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
@@ -42,7 +44,7 @@ class AdminDeliveryWorkerQueryResolver(
      */
     @PreAuthorize("hasRole('ADMIN')")
     fun deliveryWorkers(): List<DeliveryWorker> {
-        return deliveryService.getAllWorkers()
+      return DeliveryWorkerMapper.mapList( deliveryService.getAllWorkers())
     }
 
     /**
@@ -50,7 +52,7 @@ class AdminDeliveryWorkerQueryResolver(
      */
     @PreAuthorize("hasRole('ADMIN')")
     fun onlineDeliveryWorkers(): List<DeliveryWorker> {
-        return deliveryService.getOnlineWorkers()
+      return DeliveryWorkerMapper.mapList( deliveryService.getOnlineWorkers())
     }
 
     /**
@@ -58,7 +60,7 @@ class AdminDeliveryWorkerQueryResolver(
      */
     @PreAuthorize("hasRole('ADMIN')")
     fun deliveryWorker(id: Long): DeliveryWorker? {
-        return deliveryService.getWorkerById(id)
+      return DeliveryWorkerMapper.map(deliveryService.getWorkerById(id))
     }
 
     /**

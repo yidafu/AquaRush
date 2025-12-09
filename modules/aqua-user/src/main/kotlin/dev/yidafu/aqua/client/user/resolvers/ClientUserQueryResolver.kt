@@ -22,9 +22,11 @@ package dev.yidafu.aqua.client.user.resolvers
 import dev.yidafu.aqua.client.user.resolvers.ClientUserQueryResolver.Companion.UserBalanceInfo
 import dev.yidafu.aqua.client.user.resolvers.ClientUserQueryResolver.Companion.UserOrderStats
 import dev.yidafu.aqua.common.annotation.ClientService
+import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.User
+import dev.yidafu.aqua.user.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
+import dev.yidafu.aqua.user.mapper.UserMapper
 import dev.yidafu.aqua.user.service.UserInfo
 import dev.yidafu.aqua.user.service.UserService
 import dev.yidafu.aqua.user.service.WeChatAuthService
@@ -52,9 +54,10 @@ class ClientUserQueryResolver(
      * 获取当前用户信息
      */
     @PreAuthorize("isAuthenticated()")
-    fun me(@AuthenticationPrincipal userPrincipal: UserPrincipal): dev.yidafu.aqua.user.domain.model.User {
+    fun me(@AuthenticationPrincipal userPrincipal: UserPrincipal): User {
         return userRepository.findById(userPrincipal.id)
             .orElseThrow { IllegalArgumentException("User not found") }
+          .let { UserMapper.map(it) }
     }
 
     /**
@@ -72,6 +75,7 @@ class ClientUserQueryResolver(
 
         return userRepository.findById(id)
             .orElseThrow { IllegalArgumentException("User not found") }
+          .let { UserMapper.map(it) }
     }
 
     /**

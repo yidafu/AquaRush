@@ -25,7 +25,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "payments")
-data class Payment(
+data class PaymentModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,

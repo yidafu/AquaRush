@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.user.service
 
 import dev.yidafu.aqua.user.domain.exception.AquaException
-import dev.yidafu.aqua.user.domain.model.Address
-import dev.yidafu.aqua.user.domain.model.Region
+import dev.yidafu.aqua.user.domain.model.AddressModel
+import dev.yidafu.aqua.user.domain.model.RegionModel
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
@@ -35,7 +35,7 @@ class GeolocationService(
     /**
      * 地址转坐标 - 地理编码
      */
-    fun geocode(address: Address): Pair<Double, Double>? {
+    fun geocode(address: AddressModel): Pair<Double, Double>? {
         val fullAddress = buildFullAddress(address)
         return try {
             externalGeocodingService.geocode(fullAddress)
@@ -62,7 +62,7 @@ class GeolocationService(
     /**
      * 验证并标准化地址
      */
-    fun validateAndNormalizeAddress(address: Address): Address {
+    fun validateAndNormalizeAddress(address: AddressModel): AddressModel {
         // 验证行政区划代码
         val province = address.provinceCode?.let { code ->
             regionRepository.findByCode(code)
@@ -110,7 +110,7 @@ class GeolocationService(
      * 根据坐标匹配行政区划
      */
     @Cacheable(value = ["region_by_coords"], key = "#longitude.toString() + '_' + #latitude.toString()")
-    fun findRegionByCoordinates(longitude: Double, latitude: Double): Region? {
+    fun findRegionByCoordinates(longitude: Double, latitude: Double): RegionModel? {
         val result = externalGeocodingService.reverseGeocode(
             longitude,
             latitude
@@ -156,7 +156,7 @@ class GeolocationService(
     /**
      * 构建完整地址字符串
      */
-    private fun buildFullAddress(address: Address): String {
+    private fun buildFullAddress(address: AddressModel): String {
         return buildString {
             append(address.province)
             append(address.city)

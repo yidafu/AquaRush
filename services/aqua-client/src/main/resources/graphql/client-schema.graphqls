@@ -60,6 +60,9 @@ type Query {
   checkOrderReview(orderId: Long!): OrderReviewCheckResponse!
   myReviews(page: Int, size: Int): [Review!]!
   deliveryWorkerPublicStatistics(deliveryWorkerId: Long!): Review!
+
+  # Default region hierarchy
+  defaultRegionHierarchy: RegionHierarchy
 }
 
 # Client-specific Mutation Schema
@@ -98,6 +101,11 @@ type Mutation {
 
   # Review mutations
   createReview(input: CreateReviewRequest!): Review!
+
+  # Region mutations (Admin only)
+  createRegion(input: CreateRegionInput!): Region!
+  updateRegion(code: String!, input: UpdateRegionInput!): Region!
+  deleteRegion(code: String!): Boolean!
 }
 
 # Additional Client-specific Payment Types
@@ -134,4 +142,27 @@ input RequestRefundInput {
   outTradeNo: String!
   amount: BigDecimal!
   reason: String!
+}
+
+# Region mutation inputs
+input CreateRegionInput {
+  name: String!
+  code: String!
+  level: Int!
+  parentCode: String
+}
+
+input UpdateRegionInput {
+  name: String
+  parentCode: String
+}
+
+# Region hierarchy for default region configuration
+type RegionHierarchy {
+  province: Region!
+  city: Region!
+  district: Region!
+  provinces: [Region!]!
+  cities: [Region!]!
+  districts: [Region!]!
 }

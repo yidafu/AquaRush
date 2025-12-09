@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.common.service
 
-import dev.yidafu.aqua.common.domain.model.Payment
+import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import dev.yidafu.aqua.common.domain.repository.PaymentRepository
 import jakarta.persistence.EntityManager
@@ -45,7 +45,7 @@ class EnhancedPaymentService(
      * Find pending payments that are expired
      * Uses database-level aggregation for better performance
      */
-    fun findExpiredPendingPayments(now: LocalDateTime): List<Payment> {
+    fun findExpiredPendingPayments(now: LocalDateTime): List<PaymentModel> {
         // Using the enhanced repository method with Criteria API
         return paymentRepository.findExpiredPaymentsEnhanced(now)
     }
@@ -79,7 +79,7 @@ class EnhancedPaymentService(
         transactionId: String? = null,
         dateRange: DateRange? = null,
         amountRange: AmountRange? = null
-    ): List<Payment> {
+    ): List<PaymentModel> {
         return paymentRepository.findPaymentsWithFilters(
             userId = userId,
             status = status,
@@ -98,7 +98,7 @@ class EnhancedPaymentService(
     @Transactional
     fun batchUpdatePaymentStatus(paymentIds: List<Long>, newStatus: PaymentStatus): Int {
         val cb = entityManager.criteriaBuilder
-        val update = cb.createCriteriaUpdate(Payment::class.java)
+        val update = cb.createCriteriaUpdate(PaymentModel::class.java)
         val root = update.root
 
         val idPredicate = root.get<Long>("id").`in`(paymentIds)

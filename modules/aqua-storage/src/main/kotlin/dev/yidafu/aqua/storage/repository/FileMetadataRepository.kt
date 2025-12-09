@@ -24,8 +24,6 @@ import dev.yidafu.aqua.storage.domain.enums.FileType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 import java.util.Optional
@@ -34,7 +32,7 @@ import java.util.Optional
  * 文件元数据仓库接口
  */
 @Repository
-interface FileMetadataRepository : JpaRepository<FileMetadata, Long> {
+interface FileMetadataRepository : JpaRepository<FileMetadata, Long>, FileMetadataRepositoryCustom {
 
     /**
      * 根据存储路径查找文件
@@ -91,59 +89,4 @@ interface FileMetadataRepository : JpaRepository<FileMetadata, Long> {
      */
     fun findByCreatedAtAfter(createdAt: LocalDateTime): List<FileMetadata>
 
-    /**
-     * 查找指定时间范围内创建的文件
-     */
-    @Query("SELECT f FROM FileMetadata f WHERE f.createdAt BETWEEN :startTime AND :endTime")
-    fun findByCreatedAtBetween(
-        @Param("startTime") startTime: LocalDateTime,
-        @Param("endTime") endTime: LocalDateTime
-    ): List<FileMetadata>
-
-    /**
-     * 统计各类型文件的数量
-     */
-    @Query("SELECT f.fileType, COUNT(f) FROM FileMetadata f GROUP BY f.fileType")
-    fun countByFileType(): Array<Array<Any>>
-
-    /**
-     * 统计指定所有者的文件总大小
-     */
-    @Query("SELECT COALESCE(SUM(f.fileSize), 0) FROM FileMetadata f WHERE f.ownerId = :ownerId")
-    fun getTotalFileSizeByOwner(@Param("ownerId") ownerId: Long?): Long
-
-    /**
-     * 查找重复文件（根据校验和）
-     */
-    @Query("SELECT f FROM FileMetadata f WHERE f.checksum IN " +
-           "(SELECT f2.checksum FROM FileMetadata f2 GROUP BY f2.checksum HAVING COUNT(f2.checksum) > 1) " +
-           "ORDER BY f.checksum")
-    fun findDuplicateFiles(): List<FileMetadata>
-
-    /**
-     * 复合查询：根据文件类型、所有者和公开状态查找文件
-     */
-    @Query("SELECT f FROM FileMetadata f WHERE " +
-           "(:fileType IS NULL OR f.fileType = :fileType) AND " +
-           "(:ownerId IS NULL OR f.ownerId = :ownerId) AND " +
-           "(:isPublic IS NULL OR f.isPublic = :isPublic)")
-    fun findByMultipleConditions(
-        @Param("fileType") fileType: FileType?,
-        @Param("ownerId") ownerId: Long?,
-        @Param("isPublic") isPublic: Boolean?
-    ): List<FileMetadata>
-
-    /**
-     * 复合查询：根据文件类型、所有者和公开状态查找文件（分页）
-     */
-    @Query("SELECT f FROM FileMetadata f WHERE " +
-           "(:fileType IS NULL OR f.fileType = :fileType) AND " +
-           "(:ownerId IS NULL OR f.ownerId = :ownerId) AND " +
-           "(:isPublic IS NULL OR f.isPublic = :isPublic)")
-    fun findByMultipleConditions(
-        @Param("fileType") fileType: FileType?,
-        @Param("ownerId") ownerId: Long?,
-        @Param("isPublic") isPublic: Boolean?,
-        pageable: Pageable
-    ): Page<FileMetadata>
-}
+  }

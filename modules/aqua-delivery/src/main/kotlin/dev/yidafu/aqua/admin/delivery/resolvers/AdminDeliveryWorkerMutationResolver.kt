@@ -20,17 +20,20 @@
 package dev.yidafu.aqua.admin.delivery.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
-import dev.yidafu.aqua.common.domain.model.DeliveryWorker
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.WorkerStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
+import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
 import dev.yidafu.aqua.delivery.service.DeliveryService
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import kotlin.collections.isNotEmpty
 
 /**
  * 管理端配送员变更解析器
@@ -64,7 +67,7 @@ class AdminDeliveryWorkerMutationResolver(
             }
 
             // 创建新配送员
-            val worker = DeliveryWorker(
+            val worker = DeliveryWorkerModel(
                 userId = 0L, // WeChat集成可用时将更新
                 wechatOpenId = input.wechatOpenId,
                 name = input.name,
@@ -80,7 +83,7 @@ class AdminDeliveryWorkerMutationResolver(
 
             val savedWorker = deliveryWorkerRepository.save(worker)
             logger.info("Successfully created delivery worker: ${savedWorker.id} - ${savedWorker.name}")
-            return savedWorker
+            return savedWorker.let{ DeliveryWorkerMapper.map(it) }
         } catch (e: Exception) {
             logger.error("Failed to create delivery worker", e)
             throw BadRequestException("创建送水工失败: ${e.message}")
@@ -129,7 +132,7 @@ class AdminDeliveryWorkerMutationResolver(
 
             val updatedWorker = deliveryWorkerRepository.save(existingWorker)
             logger.info("Successfully updated delivery worker: ${updatedWorker.id} - ${updatedWorker.name}")
-            return updatedWorker
+            return updatedWorker.let{ DeliveryWorkerMapper.map(it) }
         } catch (e: Exception) {
             logger.error("Failed to update delivery worker", e)
             throw BadRequestException("更新送水工失败: ${e.message}")
@@ -196,7 +199,7 @@ class AdminDeliveryWorkerMutationResolver(
      */
     private fun validateUpdateDeliveryWorkerInput(
         input: UpdateDeliveryWorkerInput,
-        existingWorker: DeliveryWorker
+        existingWorker: DeliveryWorkerModel
     ) {
         // 验证wechatOpenId（如果提供）
         input.wechatOpenId?.let {

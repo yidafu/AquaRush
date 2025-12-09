@@ -32,7 +32,7 @@ import java.time.LocalDateTime
  * 对账任务仓库接口
  */
 @Repository
-interface ReconciliationTaskRepository : JpaRepository<ReconciliationTask, Long> {
+interface ReconciliationTaskRepository : JpaRepository<ReconciliationTask, Long>, ReconciliationTaskRepositoryCustom {
   /**
    * 根据任务ID查找任务
    */
@@ -58,33 +58,21 @@ interface ReconciliationTaskRepository : JpaRepository<ReconciliationTask, Long>
 
   /**
    * 根据任务日期范围查找任务
+   * Implementation moved to ReconciliationTaskRepositoryCustom
    */
-  @Query("SELECT t FROM ReconciliationTask t WHERE t.taskDate BETWEEN :startDate AND :endDate ORDER BY t.taskDate DESC")
-  fun findByTaskDateBetween(
-    @Param("startDate") startDate: LocalDateTime,
-    @Param("endDate") endDate: LocalDateTime,
-  ): List<ReconciliationTask>
+  // fun findByTaskDateBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationTask>
 
   /**
    * 根据任务类型和日期范围查找任务
+   * Implementation moved to ReconciliationTaskRepositoryCustom
    */
-  @Query(
-    "SELECT t FROM ReconciliationTask t WHERE t.taskType = :taskType AND t.taskDate BETWEEN :startDate AND :endDate ORDER BY t.taskDate DESC",
-  )
-  fun findByTaskTypeAndTaskDateBetween(
-    @Param("taskType") taskType: TaskType,
-    @Param("startDate") startDate: LocalDateTime,
-    @Param("endDate") endDate: LocalDateTime,
-  ): List<ReconciliationTask>
+  // fun findByTaskTypeAndTaskDateBetween(taskType: TaskType, startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationTask>
 
   /**
    * 统计任务数量
+   * Implementation moved to ReconciliationTaskRepositoryCustom
    */
-  @Query("SELECT COUNT(t) FROM ReconciliationTask t WHERE t.taskType = :taskType AND t.status = :status")
-  fun countByTaskTypeAndStatus(
-    @Param("taskType") taskType: TaskType,
-    @Param("status") status: TaskStatus,
-  ): Long
+  // fun countByTaskTypeAndStatus(taskType: TaskType, status: TaskStatus): Long
 
   /**
    * 查找最新的任务

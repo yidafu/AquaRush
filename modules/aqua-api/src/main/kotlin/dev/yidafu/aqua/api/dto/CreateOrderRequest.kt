@@ -43,7 +43,6 @@ data class CreateOrderRequest(
   @field:JsonProperty("addressId")
   @field:NotNull(message = "配送地址ID不能为空")
   val addressId: Long,
-
   @field:JsonProperty("amount")
   val amount: BigDecimal,
   @field:JsonProperty("notes")

@@ -19,9 +19,8 @@
 
 package dev.yidafu.aqua.logging.formatter
 
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.databind.SerializationFeature
 import dev.yidafu.aqua.logging.context.LoggingContext
+import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 

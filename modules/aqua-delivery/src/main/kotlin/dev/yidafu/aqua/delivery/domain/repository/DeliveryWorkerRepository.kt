@@ -19,16 +19,16 @@
 
 package dev.yidafu.aqua.delivery.domain.repository
 
-import dev.yidafu.aqua.common.domain.model.DeliveryWorker
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.WorkerStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface DeliveryWorkerRepository : JpaRepository<DeliveryWorker, Long> {
-  fun findByWechatOpenId(wechatOpenId: String): DeliveryWorker?
+interface DeliveryWorkerRepository : JpaRepository<DeliveryWorkerModel, Long> {
+  fun findByWechatOpenId(wechatOpenId: String): DeliveryWorkerModel?
 
-  fun findByStatus(status: WorkerStatus): List<DeliveryWorker>
+  fun findByStatus(status: WorkerStatus): List<DeliveryWorkerModel>
 
   fun existsByWechatOpenId(wechatOpenId: String): Boolean {
     return findByWechatOpenId(wechatOpenId) != null
@@ -38,5 +38,5 @@ interface DeliveryWorkerRepository : JpaRepository<DeliveryWorker, Long> {
     return findByPhone(phone) != null
   }
 
-  fun findByPhone(phone: String): DeliveryWorker?
+  fun findByPhone(phone: String): DeliveryWorkerModel?
 }

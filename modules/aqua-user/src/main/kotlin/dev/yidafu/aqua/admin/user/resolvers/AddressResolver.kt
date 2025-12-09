@@ -20,7 +20,8 @@
 package dev.yidafu.aqua.admin.user.resolvers
 
 import dev.yidafu.aqua.common.graphql.generated.*
-import dev.yidafu.aqua.user.domain.model.Address
+import dev.yidafu.aqua.user.domain.model.AddressModel
+import dev.yidafu.aqua.user.mapper.AddressMapper
 import dev.yidafu.aqua.user.service.AddressService
 import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument
@@ -40,7 +41,8 @@ class AddressResolver(
     val authentication = SecurityContextHolder.getContext().authentication
     val userId = authentication?.name!!.toLong()
     val addresses = addressService.getUserAddresses(userId)
-    return addresses
+    return     addresses.map { AddressMapper.map(it) }
+
   }
 
   @QueryMapping
@@ -59,7 +61,7 @@ class AddressResolver(
       throw AccessDeniedException("无权访问此地址")
     }
 
-    return address
+    return address?.let { AddressMapper.map(it) }
   }
 
   @QueryMapping
@@ -67,7 +69,7 @@ class AddressResolver(
     val authentication = SecurityContextHolder.getContext().authentication
     val userId = authentication!!.name.toLong()
     val defaultAddress = addressService.getUserDefaultAddress(userId)
-    return defaultAddress
+    return defaultAddress?.let { AddressMapper.map(it) }
   }
 
   @MutationMapping
@@ -93,7 +95,7 @@ class AddressResolver(
         isDefault = (request.isDefault as Boolean?) ?: false,
       )
 
-    return createdAddress
+    return createdAddress.let { AddressMapper.map(it) }
   }
 
   @MutationMapping
@@ -121,7 +123,7 @@ class AddressResolver(
         isDefault = (request.isDefault as Boolean?) ?: false,
       )
 
-    return updatedAddress
+    return updatedAddress?.let { AddressMapper.map(it) }
   }
 
   @MutationMapping

@@ -42,8 +42,8 @@ class UserActionLogger(
   data class Coordinates(
     val screenX: Int, // 屏幕坐标X
     val screenY: Int, // 屏幕坐标Y
-    val pageX: Int,   // 页面坐标X
-    val pageY: Int,   // 页面坐标Y
+    val pageX: Int, // 页面坐标X
+    val pageY: Int, // 页面坐标Y
   )
 
   /**
@@ -60,13 +60,14 @@ class UserActionLogger(
       return
     }
 
-    val logMessage = formatter.formatPageView(
-      pageUrl = pageUrl,
-      pageTitle = pageTitle,
-      referrer = referrer,
-      userAgent = userAgent,
-      additionalData = additionalData
-    )
+    val logMessage =
+      formatter.formatPageView(
+        pageUrl = pageUrl,
+        pageTitle = pageTitle,
+        referrer = referrer,
+        userAgent = userAgent,
+        additionalData = additionalData,
+      )
 
     logger.info(logMessage)
   }
@@ -85,22 +86,24 @@ class UserActionLogger(
       return
     }
 
-    val coordinatesMap = coordinates?.let {
-      mapOf(
-        "screenX" to it.screenX,
-        "screenY" to it.screenY,
-        "pageX" to it.pageX,
-        "pageY" to it.pageY
-      )
-    }
+    val coordinatesMap =
+      coordinates?.let {
+        mapOf(
+          "screenX" to it.screenX,
+          "screenY" to it.screenY,
+          "pageX" to it.pageX,
+          "pageY" to it.pageY,
+        )
+      }
 
-    val logMessage = formatter.formatClick(
-      elementId = elementId,
-      elementType = elementType,
-      elementText = elementText,
-      coordinates = coordinatesMap,
-      additionalData = additionalData
-    )
+    val logMessage =
+      formatter.formatClick(
+        elementId = elementId,
+        elementType = elementType,
+        elementText = elementText,
+        coordinates = coordinatesMap,
+        additionalData = additionalData,
+      )
 
     logger.info(logMessage)
   }
@@ -119,27 +122,30 @@ class UserActionLogger(
       return
     }
 
-    val startMap = mapOf(
-      "screenX" to startCoordinates.screenX,
-      "screenY" to startCoordinates.screenY,
-      "pageX" to startCoordinates.pageX,
-      "pageY" to startCoordinates.pageY
-    )
+    val startMap =
+      mapOf(
+        "screenX" to startCoordinates.screenX,
+        "screenY" to startCoordinates.screenY,
+        "pageX" to startCoordinates.pageX,
+        "pageY" to startCoordinates.pageY,
+      )
 
-    val endMap = mapOf(
-      "screenX" to endCoordinates.screenX,
-      "screenY" to endCoordinates.screenY,
-      "pageX" to endCoordinates.pageX,
-      "pageY" to endCoordinates.pageY
-    )
+    val endMap =
+      mapOf(
+        "screenX" to endCoordinates.screenX,
+        "screenY" to endCoordinates.screenY,
+        "pageX" to endCoordinates.pageX,
+        "pageY" to endCoordinates.pageY,
+      )
 
-    val logMessage = formatter.formatDrag(
-      startCoordinates = startMap,
-      endCoordinates = endMap,
-      elementId = elementId,
-      elementType = elementType,
-      additionalData = additionalData
-    )
+    val logMessage =
+      formatter.formatDrag(
+        startCoordinates = startMap,
+        endCoordinates = endMap,
+        elementId = elementId,
+        elementType = elementType,
+        additionalData = additionalData,
+      )
 
     logger.info(logMessage)
   }
@@ -157,12 +163,13 @@ class UserActionLogger(
       return
     }
 
-    val logMessage = formatter.formatInput(
-      elementId = elementId,
-      inputValue = inputValue,
-      inputType = inputType,
-      additionalData = additionalData
-    )
+    val logMessage =
+      formatter.formatInput(
+        elementId = elementId,
+        inputValue = inputValue,
+        inputType = inputType,
+        additionalData = additionalData,
+      )
 
     logger.info(logMessage)
   }
@@ -181,13 +188,14 @@ class UserActionLogger(
       return
     }
 
-    val logMessage = formatter.formatBackendOperation(
-      operation = operation,
-      module = module,
-      result = result,
-      target = target,
-      additionalData = additionalData
-    )
+    val logMessage =
+      formatter.formatBackendOperation(
+        operation = operation,
+        module = module,
+        result = result,
+        target = target,
+        additionalData = additionalData,
+      )
 
     logger.info(logMessage)
   }
@@ -205,12 +213,13 @@ class UserActionLogger(
       return
     }
 
-    val logMessage = formatter.formatCustomAction(
-      actionType = actionType,
-      target = target,
-      properties = properties,
-      level = level
-    )
+    val logMessage =
+      formatter.formatCustomAction(
+        actionType = actionType,
+        target = target,
+        properties = properties,
+        level = level,
+      )
 
     when (level.uppercase()) {
       "ERROR", "FATAL" -> logger.error(logMessage)
@@ -399,11 +408,12 @@ class UserActionLogger(
     properties["scrollDistance"] = scrollDistance
     properties["scrollTop"] = scrollTop
     properties["documentHeight"] = documentHeight
-    properties["scrollPercentage"] = if (documentHeight > 0) {
-      (scrollTop * 100) / documentHeight
-    } else {
-      0
-    }
+    properties["scrollPercentage"] =
+      if (documentHeight > 0) {
+        (scrollTop * 100) / documentHeight
+      } else {
+        0
+      }
 
     if (additionalData.isNotEmpty()) {
       properties.putAll(additionalData)

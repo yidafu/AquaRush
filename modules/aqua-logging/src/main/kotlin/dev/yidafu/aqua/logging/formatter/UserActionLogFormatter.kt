@@ -20,8 +20,7 @@
 package dev.yidafu.aqua.logging.formatter
 
 import tools.jackson.databind.ObjectMapper
-import tools.jackson.databind.SerializationFeature
-//import tools.jackson.datatype.jsr310.JavaTimeModule
+// import tools.jackson.datatype.jsr310.JavaTimeModule
 import dev.yidafu.aqua.logging.context.LoggingContext
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -211,12 +210,13 @@ class UserActionLogFormatter {
       properties.putAll(additionalData)
     }
 
-    val level = when (result.uppercase()) {
-      "SUCCESS", "COMPLETED" -> "INFO"
-      "FAILURE", "ERROR", "FAILED" -> "ERROR"
-      "PARTIAL", "WARNING" -> "WARN"
-      else -> "INFO"
-    }
+    val level =
+      when (result.uppercase()) {
+        "SUCCESS", "COMPLETED" -> "INFO"
+        "FAILURE", "ERROR", "FAILED" -> "ERROR"
+        "PARTIAL", "WARNING" -> "WARN"
+        else -> "INFO"
+      }
 
     return createLogWithLevel(level, "BACKEND_OPERATION", target, properties)
   }
@@ -281,29 +281,35 @@ class UserActionLogFormatter {
   /**
    * 对敏感输入数据进行脱敏处理
    */
-  private fun sanitizeInput(input: String, inputType: String): String? {
+  private fun sanitizeInput(
+    input: String,
+    inputType: String,
+  ): String? {
     return when (inputType.lowercase()) {
       "password", "passwd", "pwd" -> "***"
-      "email" -> if (input.contains("@")) {
-        val parts = input.split("@")
-        if (parts[0].length > 2) {
-          "${parts[0].substring(0, 2)}***@${parts[1]}"
+      "email" ->
+        if (input.contains("@")) {
+          val parts = input.split("@")
+          if (parts[0].length > 2) {
+            "${parts[0].substring(0, 2)}***@${parts[1]}"
+          } else {
+            "***@${parts[1]}"
+          }
         } else {
-          "***@${parts[1]}"
+          "***"
         }
-      } else {
-        "***"
-      }
-      "phone", "tel", "mobile" -> if (input.length >= 7) {
-        "${input.substring(0, 3)}***${input.substring(input.length - 4)}"
-      } else {
-        "***"
-      }
-      "creditcard", "card", "bankcard" -> if (input.length >= 8) {
-        "${input.substring(0, 4)}***${input.substring(input.length - 4)}"
-      } else {
-        "***"
-      }
+      "phone", "tel", "mobile" ->
+        if (input.length >= 7) {
+          "${input.substring(0, 3)}***${input.substring(input.length - 4)}"
+        } else {
+          "***"
+        }
+      "creditcard", "card", "bankcard" ->
+        if (input.length >= 8) {
+          "${input.substring(0, 4)}***${input.substring(input.length - 4)}"
+        } else {
+          "***"
+        }
       else -> {
         // 对于一般输入，如果太长则截断
         if (input.length > 100) {
@@ -323,13 +329,14 @@ class UserActionLogFormatter {
     target: String,
     properties: Map<String, Any>,
   ): String {
-    val parts = mutableListOf(
-      "[${dateFormatter.format(Instant.now())}]",
-      "INFO",
-      "user-action",
-      "-",
-      "User action: $actionType on $target",
-    )
+    val parts =
+      mutableListOf(
+        "[${dateFormatter.format(Instant.now())}]",
+        "INFO",
+        "user-action",
+        "-",
+        "User action: $actionType on $target",
+      )
 
     // 添加上下文信息
     val context = LoggingContext.current()

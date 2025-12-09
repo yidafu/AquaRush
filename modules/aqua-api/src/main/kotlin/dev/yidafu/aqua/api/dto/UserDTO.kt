@@ -70,7 +70,7 @@ data class UserDTO(
   val updatedAt: LocalDateTime,
   @field:JsonProperty("lastLoginAt")
   @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
-  val lastLoginAt: LocalDateTime?,
+  val lastLoginAt: LocalDateTime,
   @field:JsonProperty("notificationSettings")
   val notificationSettings: NotificationSettingsDTO,
 )

@@ -26,7 +26,7 @@ import dev.yidafu.aqua.common.exception.BusinessException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.user.domain.ext.toDTO
-import dev.yidafu.aqua.user.domain.model.User
+import dev.yidafu.aqua.user.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.slf4j.LoggerFactory
@@ -78,7 +78,7 @@ class UserApiServiceImpl(
     }
 
     val user =
-      User(
+      UserModel(
         wechatOpenId = request.openId,
         nickname = request.nickname,
         phone = request.phone,
@@ -169,7 +169,7 @@ class UserApiServiceImpl(
     logger.info("Getting user list: page=$page, size=$size")
 
     val pageable: Pageable = PageRequest.of(page - 1, size)
-    val userPage: Page<User> = userRepository.findAll(pageable)
+    val userPage: Page<UserModel> = userRepository.findAll(pageable)
 
     val userDTOs = userPage.content.map { it.toDTO() }
 

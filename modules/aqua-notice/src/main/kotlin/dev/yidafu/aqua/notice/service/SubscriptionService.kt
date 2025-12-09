@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.notice.service
 
-import dev.yidafu.aqua.notice.domain.model.UserNotificationSettings
+import dev.yidafu.aqua.notice.domain.model.UserNotificationSettingsModel
 import dev.yidafu.aqua.notice.domain.repository.UserNotificationSettingsRepository
 import org.slf4j.LoggerFactory
 import org.springframework.cache.annotation.CacheEvict
@@ -30,103 +30,111 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 @Transactional
 class SubscriptionService(
-    private val userNotificationSettingsRepository: UserNotificationSettingsRepository
+  private val userNotificationSettingsRepository: UserNotificationSettingsRepository,
 ) {
-    private val logger = LoggerFactory.getLogger(SubscriptionService::class.java)
+  private val logger = LoggerFactory.getLogger(SubscriptionService::class.java)
 
-    @Cacheable(value = ["user_notification_settings"], key = "#userId")
-    fun getUserNotificationSettings(userId: Long): UserNotificationSettings {
-        logger.debug("Getting notification settings for user $userId")
+  @Cacheable(value = ["user_notification_settings"], key = "#userId")
+  fun getUserNotificationSettings(userId: Long): UserNotificationSettingsModel {
+    logger.debug("Getting notification settings for user $userId")
 
-        return userNotificationSettingsRepository.findByUserId(userId)
-            .orElseGet {
-                logger.info("Creating default notification settings for user $userId")
-                createDefaultSettings(userId)
-            }
+    return userNotificationSettingsRepository.findByUserId(userId)
+      .orElseGet {
+        logger.info("Creating default notification settings for user $userId")
+        createDefaultSettings(userId)
+      }
+  }
+
+  @CacheEvict(value = ["user_notification_settings"], key = "#userId")
+  fun updateNotificationSettings(
+    userId: Long,
+    orderUpdates: Boolean? = null,
+    paymentNotifications: Boolean? = null,
+    deliveryNotifications: Boolean? = null,
+    promotionalNotifications: Boolean? = null,
+  ): UserNotificationSettingsModel {
+    logger.info("Updating notification settings for user $userId")
+
+    val settings =
+      userNotificationSettingsRepository.findByUserId(userId)
+        .orElseGet { createDefaultSettings(userId) }
+
+    val updatedSettings =
+      settings.copy(
+        orderUpdates = orderUpdates ?: settings.orderUpdates,
+        paymentNotifications = paymentNotifications ?: settings.paymentNotifications,
+        deliveryNotifications = deliveryNotifications ?: settings.deliveryNotifications,
+        promotionalNotifications = promotionalNotifications ?: settings.promotionalNotifications,
+      )
+
+    val savedSettings = userNotificationSettingsRepository.save(updatedSettings)
+    logger.info("Updated notification settings for user $userId")
+    return savedSettings
+  }
+
+  fun isNotificationEnabled(
+    userId: Long,
+    messageType: dev.yidafu.aqua.notice.domain.model.MessageType,
+  ): Boolean {
+    logger.debug("Checking if notification is enabled for user $userId, type: $messageType")
+
+    val settings = getUserNotificationSettings(userId)
+
+    return when (messageType) {
+      dev.yidafu.aqua.notice.domain.model.MessageType.ORDER_CREATED,
+      dev.yidafu.aqua.notice.domain.model.MessageType.ORDER_PAID,
+      dev.yidafu.aqua.notice.domain.model.MessageType.ORDER_CANCELLED,
+      dev.yidafu.aqua.notice.domain.model.MessageType.ORDER_DELIVERED,
+      -> settings.orderUpdates
+
+      dev.yidafu.aqua.notice.domain.model.MessageType.PAYMENT_FAILED -> settings.paymentNotifications
+
+      dev.yidafu.aqua.notice.domain.model.MessageType.DELIVERY_ASSIGNED,
+      dev.yidafu.aqua.notice.domain.model.MessageType.DELIVERY_STARTED,
+      dev.yidafu.aqua.notice.domain.model.MessageType.DELIVERY_DELAYED,
+      -> settings.deliveryNotifications
+
+      dev.yidafu.aqua.notice.domain.model.MessageType.PROMOTIONAL -> settings.promotionalNotifications
     }
+  }
 
-    @CacheEvict(value = ["user_notification_settings"], key = "#userId")
-    fun updateNotificationSettings(
-        userId: Long,
-        orderUpdates: Boolean? = null,
-        paymentNotifications: Boolean? = null,
-        deliveryNotifications: Boolean? = null,
-        promotionalNotifications: Boolean? = null
-    ): UserNotificationSettings {
-        logger.info("Updating notification settings for user $userId")
+  fun enableAllNotifications(userId: Long): UserNotificationSettingsModel {
+    logger.info("Enabling all notifications for user $userId")
+    return updateNotificationSettings(
+      userId = userId,
+      orderUpdates = true,
+      paymentNotifications = true,
+      deliveryNotifications = true,
+      promotionalNotifications = false,
+    )
+  }
 
-        val settings = userNotificationSettingsRepository.findByUserId(userId)
-            .orElseGet { createDefaultSettings(userId) }
+  fun disableAllNotifications(userId: Long): UserNotificationSettingsModel {
+    logger.info("Disabling all notifications for user $userId")
+    return updateNotificationSettings(
+      userId = userId,
+      orderUpdates = false,
+      paymentNotifications = false,
+      deliveryNotifications = false,
+      promotionalNotifications = false,
+    )
+  }
 
-        val updatedSettings = settings.copy(
-            orderUpdates = orderUpdates ?: settings.orderUpdates,
-            paymentNotifications = paymentNotifications ?: settings.paymentNotifications,
-            deliveryNotifications = deliveryNotifications ?: settings.deliveryNotifications,
-            promotionalNotifications = promotionalNotifications ?: settings.promotionalNotifications
-        )
+  fun deleteUserNotificationSettings(userId: Long): Boolean {
+    logger.info("Deleting notification settings for user $userId")
+    return userNotificationSettingsRepository.deleteByUserId(userId) > 0
+  }
 
-        val savedSettings = userNotificationSettingsRepository.save(updatedSettings)
-        logger.info("Updated notification settings for user $userId")
-        return savedSettings
-    }
+  private fun createDefaultSettings(userId: Long): UserNotificationSettingsModel {
+    val defaultSettings =
+      UserNotificationSettingsModel(
+        userId = userId,
+        orderUpdates = true,
+        paymentNotifications = true,
+        deliveryNotifications = true,
+        promotionalNotifications = false,
+      )
 
-    fun isNotificationEnabled(userId: Long, messageType: dev.yidafu.aqua.notice.domain.model.MessageType): Boolean {
-        logger.debug("Checking if notification is enabled for user $userId, type: $messageType")
-
-        val settings = getUserNotificationSettings(userId)
-
-        return when (messageType) {
-            dev.yidafu.aqua.notice.domain.model.MessageType.ORDER_CREATED,
-            dev.yidafu.aqua.notice.domain.model.MessageType.ORDER_PAID,
-            dev.yidafu.aqua.notice.domain.model.MessageType.ORDER_CANCELLED,
-            dev.yidafu.aqua.notice.domain.model.MessageType.ORDER_DELIVERED -> settings.orderUpdates
-
-            dev.yidafu.aqua.notice.domain.model.MessageType.PAYMENT_FAILED -> settings.paymentNotifications
-
-            dev.yidafu.aqua.notice.domain.model.MessageType.DELIVERY_ASSIGNED,
-            dev.yidafu.aqua.notice.domain.model.MessageType.DELIVERY_STARTED,
-            dev.yidafu.aqua.notice.domain.model.MessageType.DELIVERY_DELAYED -> settings.deliveryNotifications
-
-            dev.yidafu.aqua.notice.domain.model.MessageType.PROMOTIONAL -> settings.promotionalNotifications
-        }
-    }
-
-    fun enableAllNotifications(userId: Long): UserNotificationSettings {
-        logger.info("Enabling all notifications for user $userId")
-        return updateNotificationSettings(
-            userId = userId,
-            orderUpdates = true,
-            paymentNotifications = true,
-            deliveryNotifications = true,
-            promotionalNotifications = false
-        )
-    }
-
-    fun disableAllNotifications(userId: Long): UserNotificationSettings {
-        logger.info("Disabling all notifications for user $userId")
-        return updateNotificationSettings(
-            userId = userId,
-            orderUpdates = false,
-            paymentNotifications = false,
-            deliveryNotifications = false,
-            promotionalNotifications = false
-        )
-    }
-
-    fun deleteUserNotificationSettings(userId: Long): Boolean {
-        logger.info("Deleting notification settings for user $userId")
-        return userNotificationSettingsRepository.deleteByUserId(userId) > 0
-    }
-
-    private fun createDefaultSettings(userId: Long): UserNotificationSettings {
-        val defaultSettings = UserNotificationSettings(
-            userId = userId,
-            orderUpdates = true,
-            paymentNotifications = true,
-            deliveryNotifications = true,
-            promotionalNotifications = false
-        )
-
-        return userNotificationSettingsRepository.save(defaultSettings)
-    }
+    return userNotificationSettingsRepository.save(defaultSettings)
+  }
 }

@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.repository
 
-import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
@@ -47,10 +47,10 @@ class OrderRepositoryImpl(
     endDate: LocalDateTime? = null,
     orderNumber: String? = null,
     statuses: List<OrderStatus>? = null,
-  ): List<Order> {
+  ): List<OrderModel> {
     val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Order::class.java)
-    val root = query.from(Order::class.java)
+    val query = cb.createQuery(OrderModel::class.java)
+    val root = query.from(OrderModel::class.java)
 
     val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
 
@@ -98,10 +98,10 @@ class OrderRepositoryImpl(
     startDate: LocalDateTime? = null,
     endDate: LocalDateTime? = null,
     limit: Int? = null,
-  ): List<Order> {
+  ): List<OrderModel> {
     val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Order::class.java)
-    val root = query.from(Order::class.java)
+    val query = cb.createQuery(OrderModel::class.java)
+    val root = query.from(OrderModel::class.java)
 
     val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
 
@@ -141,7 +141,7 @@ class OrderRepositoryImpl(
   ): Long {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(Long::class.java)
-    val root = query.from(Order::class.java)
+    val root = query.from(OrderModel::class.java)
 
     val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
 
@@ -184,7 +184,7 @@ class OrderRepositoryImpl(
     deliveryWorkerId: Long? = null,
   ): Int {
     val cb = entityManager.criteriaBuilder
-    val update = cb.createCriteriaUpdate(Order::class.java)
+    val update = cb.createCriteriaUpdate(OrderModel::class.java)
     val root = update.root
 
     val idPredicate = root.get<Long>("id").`in`(orderIds)

@@ -32,7 +32,7 @@ import java.time.LocalDateTime
  * 对账差异仓库接口
  */
 @Repository
-interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDiscrepancy, Long> {
+interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDiscrepancy, Long>, ReconciliationDiscrepancyRepositoryCustom {
   /**
    * 根据任务ID查找差异
    */
@@ -66,28 +66,21 @@ interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDisc
 
   /**
    * 统计未解决的差异数量
+   * Implementation moved to ReconciliationDiscrepancyRepositoryCustom
    */
-  @Query("SELECT COUNT(d) FROM ReconciliationDiscrepancy d WHERE d.taskId = :taskId AND d.status = 'UNRESOLVED'")
-  fun countUnresolvedByTaskId(
-    @Param("taskId") taskId: String,
-  ): Long
+  // fun countUnresolvedByTaskId(taskId: String): Long
 
   /**
    * 统计各种差异类型的数量
+   * Implementation moved to ReconciliationDiscrepancyRepositoryCustom
    */
-  @Query("SELECT d.discrepancyType, COUNT(d) FROM ReconciliationDiscrepancy d WHERE d.taskId = :taskId GROUP BY d.discrepancyType")
-  fun countByDiscrepancyTypeGroup(
-    @Param("taskId") taskId: String,
-  ): List<Array<Any>>
+  // fun countByDiscrepancyTypeGroup(taskId: String): List<Array<Any>>
 
   /**
    * 根据创建时间范围查找差异
+   * Implementation moved to ReconciliationDiscrepancyRepositoryCustom
    */
-  @Query("SELECT d FROM ReconciliationDiscrepancy d WHERE d.createdAt BETWEEN :startDate AND :endDate ORDER BY d.createdAt DESC")
-  fun findByCreatedAtBetween(
-    @Param("startDate") startDate: LocalDateTime,
-    @Param("endDate") endDate: LocalDateTime,
-  ): List<ReconciliationDiscrepancy>
+  // fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationDiscrepancy>
 
   /**
    * 查找所有未解决的差异
@@ -96,9 +89,7 @@ interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDisc
 
   /**
    * 删除已解决的旧差异
+   * Implementation moved to ReconciliationDiscrepancyRepositoryCustom
    */
-  @Query("DELETE FROM ReconciliationDiscrepancy d WHERE d.status = 'RESOLVED' AND d.resolvedAt < :beforeDate")
-  fun deleteResolvedBefore(
-    @Param("beforeDate") beforeDate: LocalDateTime,
-  ): Int
+  // fun deleteResolvedBefore(beforeDate: LocalDateTime): Int
 }

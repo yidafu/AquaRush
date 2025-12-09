@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.repository
 
-import dev.yidafu.aqua.common.domain.model.Payment
+import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
@@ -29,26 +29,26 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Repository
-interface PaymentRepository : JpaRepository<Payment, Long>, JpaSpecificationExecutor<Payment>, PaymentRepositoryCustom {
-  fun findByOrderId(orderId: Long): Optional<Payment>
+interface PaymentRepository : JpaRepository<PaymentModel, Long>, JpaSpecificationExecutor<PaymentModel>, PaymentRepositoryCustom {
+  fun findByOrderId(orderId: Long): Optional<PaymentModel>
 
-  fun findByTransactionId(transactionId: String): Optional<Payment>
+  fun findByTransactionId(transactionId: String): Optional<PaymentModel>
 
-  fun findByPrepayId(prepayId: String): Optional<Payment>
+  fun findByPrepayId(prepayId: String): Optional<PaymentModel>
 
   fun findByUserIdAndStatus(
     userId: Long,
     status: PaymentStatus,
-  ): List<Payment>
+  ): List<PaymentModel>
 
-  fun findByStatus(status: PaymentStatus): List<Payment>
+  fun findByStatus(status: PaymentStatus): List<PaymentModel>
 
-  fun findByStatusIn(statuses: List<PaymentStatus>): List<Payment>
+  fun findByStatusIn(statuses: List<PaymentStatus>): List<PaymentModel>
 
   fun findExpiredPayments(
     status: PaymentStatus,
     now: LocalDateTime,
-  ): List<Payment> {
+  ): List<PaymentModel> {
     val specification = PaymentSpecifications.expiredBefore(now)
     return findAll(specification)
   }
@@ -56,7 +56,7 @@ interface PaymentRepository : JpaRepository<Payment, Long>, JpaSpecificationExec
   fun findByCreatedAtBetween(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): List<Payment> {
+  ): List<PaymentModel> {
     val specification = PaymentSpecifications.createdAtBetween(startDate, endDate)
     return findAll(specification)
   }

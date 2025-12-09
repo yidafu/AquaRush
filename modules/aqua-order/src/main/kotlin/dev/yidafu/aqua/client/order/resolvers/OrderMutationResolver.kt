@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.client.order.resolvers
 
 import dev.yidafu.aqua.common.annotation.ClientService
-import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.order.service.OrderService
@@ -45,7 +45,7 @@ class OrderMutationResolver(
   fun createOrder(
     @Argument @Valid input: CreateOrderInput,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Order {
+  ): OrderModel {
     return orderService.createOrder(input, userPrincipal.id)
   }
 
@@ -57,7 +57,7 @@ class OrderMutationResolver(
   fun cancelOrder(
     @Argument orderId: Long,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Order {
+  ): OrderModel {
     return orderService.cancelOrder(orderId, userPrincipal.id)
       ?: throw IllegalArgumentException("Order not found or access denied")
   }

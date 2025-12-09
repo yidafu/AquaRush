@@ -21,12 +21,15 @@ package dev.yidafu.aqua.client.user.resolvers
 
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.common.graphql.generated.CreateAddressInput
+import dev.yidafu.aqua.common.graphql.generated.Address
+import dev.yidafu.aqua.common.graphql.generated.AddressInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.Address
+import dev.yidafu.aqua.user.domain.model.AddressModel
 import dev.yidafu.aqua.user.service.AddressService
 import org.slf4j.LoggerFactory
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
@@ -47,21 +50,30 @@ class ClientAddressMutationResolver(
     /**
      * 创建用户地址
      */
+    @MutationMapping
     @PreAuthorize("isAuthenticated()")
     @Transactional
-    fun createUserAddress(
-      @Valid input: CreateAddressInput,
+    fun createAddress(
+      @Argument @Valid input: AddressInput,
       @AuthenticationPrincipal userPrincipal: UserPrincipal
     ): Address {
         try {
             // 验证输入
             validateCreateAddressInput(input)
 
-            val address = Address(
+            // 如果新地址设为默认地址，先取消其他默认地址
+            if (input.isDefault == true) {
+                addressService.unsetDefaultAddresses(userPrincipal.id)
+            }
+
+            val address = AddressModel(
                 userId = userPrincipal.id,
                 province = input.province,
+                provinceCode = input.provinceCode,
                 city = input.city,
+                cityCode = input.cityCode,
                 district = input.district,
+                districtCode = input.districtCode,
                 detailAddress = input.detailAddress,
                 postalCode = input.postalCode,
                 longitude = input.longitude?.toDouble(),
@@ -70,8 +82,17 @@ class ClientAddressMutationResolver(
             )
 
             val savedAddress = addressService.save(address)
-            logger.info("Successfully created address for user: ${userPrincipal.id}")
-            return savedAddress
+
+            // Ensure the saved address has an ID before returning
+            if (savedAddress.id == null) {
+                logger.error("Address was saved but ID is still null")
+                throw BadRequestException("地址保存失败：ID 生成失败")
+            }
+
+            // Convert entity to GraphQL type
+            val graphqlAddress = savedAddress.toGraphQLAddress()
+            logger.info("Successfully created address for user: ${userPrincipal.id} with ID: ${graphqlAddress.id}")
+            return graphqlAddress
         } catch (e: Exception) {
             logger.error("Failed to create user address", e)
             throw BadRequestException("创建地址失败: ${e.message}")
@@ -116,7 +137,7 @@ class ClientAddressMutationResolver(
 
             val updatedAddress = addressService.save(existingAddress)
             logger.info("Successfully updated address: $id for user: ${userPrincipal.id}")
-            return updatedAddress
+            return updatedAddress.toGraphQLAddress()
         } catch (e: Exception) {
             logger.error("Failed to update user address", e)
             throw BadRequestException("更新地址失败: ${e.message}")
@@ -193,11 +214,14 @@ class ClientAddressMutationResolver(
                 throw IllegalArgumentException("源地址不存在或无权访问")
             }
 
-            val copiedAddress = Address(
+            val copiedAddress = AddressModel(
                 userId = userPrincipal.id,
                 province = sourceAddress.province,
+                provinceCode = sourceAddress.provinceCode,
                 city = sourceAddress.city,
+                cityCode = sourceAddress.cityCode,
                 district = sourceAddress.district,
+                districtCode = sourceAddress.districtCode,
                 detailAddress = sourceAddress.detailAddress,
                 postalCode = sourceAddress.postalCode,
                 longitude = sourceAddress.longitude,
@@ -207,7 +231,7 @@ class ClientAddressMutationResolver(
 
             val savedAddress = addressService.save(copiedAddress)
             logger.info("Successfully copied address: $id to new address for user: ${userPrincipal.id}")
-            return savedAddress
+            return savedAddress.toGraphQLAddress()
         } catch (e: Exception) {
             logger.error("Failed to copy user address", e)
             throw BadRequestException("复制地址失败: ${e.message}")
@@ -254,7 +278,7 @@ class ClientAddressMutationResolver(
     /**
      * 验证创建地址输入
      */
-    private fun validateCreateAddressInput(input: CreateAddressInput) {
+    private fun validateCreateAddressInput(input: AddressInput) {
         if (input.province.isBlank()) {
             throw BadRequestException("省份不能为空")
         }
@@ -315,8 +339,31 @@ class ClientAddressMutationResolver(
     }
 
     companion object {
+        /**
+         * Convert Address entity to GraphQL Address type
+         */
+        private fun AddressModel.toGraphQLAddress(): Address {
+            if (this.id == null) {
+                throw IllegalStateException("Address ID cannot be null for GraphQL response")
+            }
 
-
-
+            return Address(
+                id = this.id,
+                userId = this.userId,
+                province = this.province,
+                provinceCode = this.provinceCode,
+                city = this.city,
+                cityCode = this.cityCode,
+                district = this.district,
+                districtCode = this.districtCode,
+                detailAddress = this.detailAddress,
+                postalCode = this.postalCode,
+                longitude = this.longitude?.toFloat(),
+                latitude = this.latitude?.toFloat(),
+                isDefault = this.isDefault,
+                createdAt = this.createdAt,
+                updatedAt = this.updatedAt
+            )
+        }
     }
 }
