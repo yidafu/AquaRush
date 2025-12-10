@@ -4,6 +4,8 @@ import { AtButton, AtForm, AtInput, AtSwitch, AtToast, AtMessage, AtList, AtList
 import Taro from '@tarojs/taro'
 import { useRegionSelector } from '../../hooks/useRegionSelector'
 import AddressMap from '../../components/AddressMap'
+import AddressService from '../../services/AddressService'
+import { AddressFormData, transformFormToGraphQLInput } from '../../types/address'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/form.scss"
@@ -15,22 +17,6 @@ import "taro-ui/dist/style/components/activity-indicator.scss"
 import "taro-ui/dist/style/components/icon.scss"
 import './index.scss'
 
-interface AddressFormData {
-  receiverName: string
-  phone: string
-  province: string
-  city: string
-  district: string
-  detailAddress: string
-  postalCode: string
-  isDefault: boolean
-  provinceCode?: string
-  cityCode?: string
-  districtCode?: string
-  latitude?: number
-  longitude?: number
-}
-
 const AddressEdit: React.FC = () => {
   const [formData, setFormData] = useState<AddressFormData>({
     receiverName: '',
@@ -39,7 +25,6 @@ const AddressEdit: React.FC = () => {
     city: '',
     district: '',
     detailAddress: '',
-    postalCode: '',
     isDefault: false
   })
 
@@ -50,6 +35,9 @@ const AddressEdit: React.FC = () => {
   const [showToast, setShowToast] = useState(false)
   const [toastText, setToastText] = useState('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
+
+  // Initialize services
+  const addressService = AddressService.getInstance()
 
   // Initialize region selector
   const regionSelector = useRegionSelector({
@@ -150,7 +138,6 @@ const AddressEdit: React.FC = () => {
         city: '深圳市',
         district: '南山区',
         detailAddress: '科技园南区深南大道9988号',
-        postalCode: '518000',
         isDefault: true,
         latitude: 22.5316,   // 深圳科技园坐标
         longitude: 113.9351
@@ -220,11 +207,7 @@ const AddressEdit: React.FC = () => {
       newErrors.detailAddress = '详细地址不能超过100个字符'
     }
 
-    // 邮政编码验证（可选）
-    if (formData.postalCode && !/^\d{6}$/.test(formData.postalCode)) {
-      newErrors.postalCode = '邮政编码格式不正确'
-    }
-
+  
     setErrors(newErrors as Record<keyof AddressFormData, string>)
     return Object.keys(newErrors).length === 0
   }, [formData])
@@ -260,17 +243,30 @@ const AddressEdit: React.FC = () => {
     setLoading(true)
 
     try {
-      // TODO: 实际项目中这里应该调用创建或更新地址的API
-      if (isEdit && addressId) {
-        // await updateAddress(addressId, formData)
-        console.log('更新地址:', { id: addressId, ...formData })
-      } else {
-        // await createAddress(formData)
-        console.log('创建地址:', formData)
-      }
+      // Transform form data to GraphQL input format
+      // Note: receiverName and phone are excluded as they're not supported in backend schema
+      // TODO: Update this when backend schema supports receiverName and phone fields
+      const graphqlInput = transformFormToGraphQLInput(formData)
 
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      if (isEdit && addressId) {
+        // Update existing address
+        console.log('更新地址:', { id: addressId, graphqlInput })
+        const result = await addressService.updateAddress(parseInt(addressId), graphqlInput)
+
+        if (!result.success) {
+          showToastMessage(result.error?.message || '地址更新失败，请重试', 'error')
+          return
+        }
+      } else {
+        // Create new address
+        console.log('创建地址:', graphqlInput)
+        const result = await addressService.createAddress(graphqlInput)
+
+        if (!result.success) {
+          showToastMessage(result.error?.message || '地址添加失败，请重试', 'error')
+          return
+        }
+      }
 
       showToastMessage(isEdit ? '地址更新成功' : '地址添加成功', 'success')
 
@@ -284,7 +280,7 @@ const AddressEdit: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }, [validateForm, isEdit, addressId, formData, showToastMessage])
+  }, [validateForm, isEdit, addressId, formData, showToastMessage, addressService])
 
   // 初始化
   useEffect(() => {

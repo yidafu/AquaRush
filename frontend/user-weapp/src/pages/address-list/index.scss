@@ -155,12 +155,24 @@
   font-size: 33px;
   color: var(--theme-text-secondary);
   line-height: 1.6;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   padding-right: 16px;
   background: var(--theme-primary-light);
   padding: 12px;
   border-radius: 8px;
   border-left: 3px solid var(--theme-primary);
+}
+
+.address-coords {
+  font-size: 26px;
+  color: var(--theme-text-tertiary);
+  margin-bottom: 16px;
+  padding: 8px 12px;
+  background: var(--theme-background);
+  border-radius: 6px;
+  border: 1px solid var(--theme-border);
+  font-family: 'Monaco', 'Menlo', monospace;
+  opacity: 0.8;
 }
 
 .address-footer {
