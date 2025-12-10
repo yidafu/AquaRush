@@ -12,9 +12,10 @@ data class Address(
     val isDefault: kotlin.Boolean,
     val latitude: kotlin.Float?,
     val longitude: kotlin.Float?,
-    val postalCode: kotlin.String?,
+    val phone: kotlin.String,
     val province: kotlin.String,
     val provinceCode: kotlin.String?,
+    val receiverName: kotlin.String,
     val updatedAt: java.time.LocalDateTime,
     val userId: kotlin.Long
 )
@@ -28,8 +29,10 @@ data class AddressInput(
     val isDefault: kotlin.Boolean = false,
     val latitude: kotlin.Float? = null,
     val longitude: kotlin.Float? = null,
+    val phone: kotlin.String,
     val province: kotlin.String,
-    val provinceCode: kotlin.String
+    val provinceCode: kotlin.String,
+    val receiverName: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
       args["city"] as kotlin.String,
@@ -40,8 +43,10 @@ data class AddressInput(
       args["isDefault"] as kotlin.Boolean? ?: false,
       args["latitude"] as kotlin.Float?,
       args["longitude"] as kotlin.Float?,
+      args["phone"] as kotlin.String,
       args["province"] as kotlin.String,
-      args["provinceCode"] as kotlin.String
+      args["provinceCode"] as kotlin.String,
+      args["receiverName"] as kotlin.String
   )
 }
 
@@ -128,7 +133,6 @@ data class CreateAddressInput(
     val isDefault: kotlin.Boolean? = null,
     val latitude: kotlin.Float? = null,
     val longitude: kotlin.Float? = null,
-    val postalCode: kotlin.String? = null,
     val province: kotlin.String,
     val provinceCode: kotlin.String? = null
 ) {
@@ -141,7 +145,6 @@ data class CreateAddressInput(
       args["isDefault"] as kotlin.Boolean?,
       args["latitude"] as kotlin.Float?,
       args["longitude"] as kotlin.Float?,
-      args["postalCode"] as kotlin.String?,
       args["province"] as kotlin.String,
       args["provinceCode"] as kotlin.String?
   )

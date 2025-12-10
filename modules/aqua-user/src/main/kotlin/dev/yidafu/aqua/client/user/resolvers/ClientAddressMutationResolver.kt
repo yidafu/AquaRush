@@ -28,6 +28,7 @@ import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.model.AddressModel
 import dev.yidafu.aqua.user.mapper.AddressInputMapper
 import dev.yidafu.aqua.user.service.AddressService
+import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -35,7 +36,6 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
-import jakarta.validation.Valid
 
 /**
  * 客户端地址变更解析器
@@ -44,318 +44,306 @@ import jakarta.validation.Valid
 @ClientService
 @Controller
 class ClientAddressMutationResolver(
-    private val addressService: AddressService
+  private val addressService: AddressService,
 ) {
-    private val logger = LoggerFactory.getLogger(ClientAddressMutationResolver::class.java)
+  private val logger = LoggerFactory.getLogger(ClientAddressMutationResolver::class.java)
 
-    /**
-     * 创建用户地址
-     */
-    @PreAuthorize("isAuthenticated()")
-    @MutationMapping
-    @Transactional
-    fun createAddress(
-      @Argument @Valid input: AddressInput,
-      @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): Address {
-        try {
-            // 验证输入
-            validateCreateAddressInput(input)
+  /**
+   * 创建用户地址
+   */
+  @PreAuthorize("isAuthenticated()")
+  @MutationMapping
+  @Transactional
+  fun createAddress(
+    @Argument @Valid input: AddressInput,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
+  ): Address {
+    try {
+      // 验证输入
+      validateCreateAddressInput(input)
 
-            // 检查地址数量限制
-            val currentAddressCount = addressService.countByUserId(userPrincipal.id)
-            if (currentAddressCount >= 20) {
-                throw BadRequestException("地址数量已达上限（最多20个地址）")
-            }
+      // 检查地址数量限制
+      val currentAddressCount = addressService.countByUserId(userPrincipal.id)
+      if (currentAddressCount >= 20) {
+        throw BadRequestException("地址数量已达上限（最多20个地址）")
+      }
 
-            // 如果新地址设为默认地址，先取消其他默认地址
-            if (input.isDefault == true) {
-                addressService.unsetDefaultAddresses(userPrincipal.id)
-            }
+      // 如果新地址设为默认地址，先取消其他默认地址
+      if (input.isDefault == true) {
+        addressService.unsetDefaultAddresses(userPrincipal.id)
+      }
 
-            val address = AddressInputMapper.map(input)
-            address.userId = userPrincipal.id
+      val address = AddressInputMapper.map(input)
+      address.userId = userPrincipal.id
 
-            val savedAddress = addressService.save(address)
+      val savedAddress = addressService.save(address)
 
-            // Ensure the saved address has an ID before returning
-            if (savedAddress.id == null) {
-                logger.error("Address was saved but ID is still null")
-                throw BadRequestException("地址保存失败：ID 生成失败")
-            }
+      // Ensure the saved address has an ID before returning
+      if (savedAddress.id == null) {
+        logger.error("Address was saved but ID is still null")
+        throw BadRequestException("地址保存失败：ID 生成失败")
+      }
 
-            // Convert entity to GraphQL type
-            val graphqlAddress = savedAddress.toGraphQLAddress()
-            logger.info("Successfully created address for user: ${userPrincipal.id} with ID: ${graphqlAddress.id}")
-            return graphqlAddress
-        } catch (e: Exception) {
-            logger.error("Failed to create user address", e)
-            throw BadRequestException("创建地址失败: ${e.message}")
-        }
+      // Convert entity to GraphQL type
+      val graphqlAddress = savedAddress.toGraphQLAddress()
+      logger.info("Successfully created address for user: ${userPrincipal.id} with ID: ${graphqlAddress.id}")
+      return graphqlAddress
+    } catch (e: Exception) {
+      logger.error("Failed to create user address", e)
+      throw BadRequestException("创建地址失败: ${e.message}")
     }
+  }
 
-    /**
-     * 更新用户地址
-     */
-    @PreAuthorize("isAuthenticated()")
-    @Transactional
-    fun updateUserAddress(
-      id: Long,
-      @Valid input: UpdateAddressInput,
-      @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): Address {
-        try {
-            // 验证地址存在且属于当前用户
-            val existingAddress = addressService.findById(id)
-            if (existingAddress == null || existingAddress.userId != userPrincipal.id) {
-                throw IllegalArgumentException("地址不存在或无权访问")
-            }
+  /**
+   * 更新用户地址
+   */
+  @PreAuthorize("isAuthenticated()")
+  @Transactional
+  fun updateUserAddress(
+    id: Long,
+    @Valid input: UpdateAddressInput,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
+  ): Address {
+    try {
+      // 验证地址存在且属于当前用户
+      val existingAddress = addressService.findById(id)
+      if (existingAddress == null || existingAddress.userId != userPrincipal.id) {
+        throw IllegalArgumentException("地址不存在或无权访问")
+      }
 
-            // 验证输入
-            validateUpdateAddressInput(input)
+      // 验证输入
+      validateUpdateAddressInput(input)
 
-            // 检查是否需要设置默认地址（在应用更新之前检查）
-            val willBeDefault = input.isDefault
-            if (willBeDefault == true && !existingAddress.isDefault) {
-                // 如果设为默认地址，先取消其他默认地址
-                addressService.unsetDefaultAddresses(userPrincipal.id)
-            }
+      // 检查是否需要设置默认地址（在应用更新之前检查）
+      val willBeDefault = input.isDefault
+      if (willBeDefault == true && !existingAddress.isDefault) {
+        // 如果设为默认地址，先取消其他默认地址
+        addressService.unsetDefaultAddresses(userPrincipal.id)
+      }
 
-            // 应用更新
+      // 应用更新
 //          TODO: 合并 input 和 existingAddress
 //            input.applyTo(existingAddress)
 
-            val updatedAddress = addressService.save(existingAddress)
-            logger.info("Successfully updated address: $id for user: ${userPrincipal.id}")
-            return updatedAddress.toGraphQLAddress()
-        } catch (e: Exception) {
-            logger.error("Failed to update user address", e)
-            throw BadRequestException("更新地址失败: ${e.message}")
-        }
+      val updatedAddress = addressService.save(existingAddress)
+      logger.info("Successfully updated address: $id for user: ${userPrincipal.id}")
+      return updatedAddress.toGraphQLAddress()
+    } catch (e: Exception) {
+      logger.error("Failed to update user address", e)
+      throw BadRequestException("更新地址失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 删除用户地址
+   */
+  @PreAuthorize("isAuthenticated()")
+  @Transactional
+  fun deleteUserAddress(
+    id: Long,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
+  ): Boolean =
+    try {
+      // 验证地址存在且属于当前用户
+      val existingAddress = addressService.findById(id)
+      if (existingAddress == null || existingAddress.userId != userPrincipal.id) {
+        throw IllegalArgumentException("地址不存在或无权访问")
+      }
+
+      // TODO: 检查地址是否有关联的未完成订单
+      // 如果有关联订单，不允许删除
+
+      addressService.deleteById(id)
+      logger.info("Successfully deleted address: $id for user: ${userPrincipal.id}")
+      true
+    } catch (e: Exception) {
+      logger.error("Failed to delete user address", e)
+      throw BadRequestException("删除地址失败: ${e.message}")
     }
 
+  /**
+   * 设置默认地址
+   */
+  @PreAuthorize("isAuthenticated()")
+  @Transactional
+  fun setDefaultUserAddress(
+    id: Long,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
+  ): Boolean =
+    try {
+      // 验证地址存在且属于当前用户
+      val existingAddress = addressService.findById(id)
+      if (existingAddress == null || existingAddress.userId != userPrincipal.id) {
+        throw IllegalArgumentException("地址不存在或无权访问")
+      }
+
+      addressService.setDefaultAddress(userPrincipal.id, id)
+      logger.info("Successfully set default address: $id for user: ${userPrincipal.id}")
+      true
+    } catch (e: Exception) {
+      logger.error("Failed to set default address", e)
+      throw BadRequestException("设置默认地址失败: ${e.message}")
+    }
+
+  /**
+   * 复制地址
+   */
+  @PreAuthorize("isAuthenticated()")
+  @Transactional
+  fun copyUserAddress(
+    id: Long,
+    newName: String,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
+  ): Address {
+    return try {
+      // 验证源地址存在且属于当前用户
+      val sourceAddress = addressService.findById(id)
+      if (sourceAddress == null || sourceAddress.userId != userPrincipal.id) {
+        throw IllegalArgumentException("源地址不存在或无权访问")
+      }
+
+      // 创建 AddressInput 从源地址，然后转换为 AddressModel
+      val addressInput =
+        AddressInput(
+          receiverName = sourceAddress.receiverName,
+          phone = sourceAddress.phone,
+          province = sourceAddress.province,
+          provinceCode = sourceAddress.provinceCode,
+          city = sourceAddress.city,
+          cityCode = sourceAddress.cityCode,
+          district = sourceAddress.district,
+          districtCode = sourceAddress.districtCode,
+          detailAddress = sourceAddress.detailAddress,
+          longitude = sourceAddress.longitude?.toFloat(),
+          latitude = sourceAddress.latitude?.toFloat(),
+          isDefault = false,
+        )
+
+      val copiedAddress = AddressInputMapper.map(addressInput)
+
+      val savedAddress = addressService.save(copiedAddress)
+      logger.info("Successfully copied address: $id to new address for user: ${userPrincipal.id}")
+      return savedAddress.toGraphQLAddress()
+    } catch (e: Exception) {
+      logger.error("Failed to copy user address", e)
+      throw BadRequestException("复制地址失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 批量删除地址
+   */
+  @PreAuthorize("isAuthenticated()")
+  @Transactional
+  fun deleteUserAddresses(
+    ids: List<Long>,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
+  ): Boolean =
+    try {
+      if (ids.isEmpty()) {
+        throw BadRequestException("地址ID列表不能为空")
+      }
+      if (ids.size > 10) {
+        throw BadRequestException("一次最多只能删除10个地址")
+      }
+
+      // 验证所有地址都属于当前用户
+      ids.forEach { id ->
+        val address = addressService.findById(id)
+        if (address == null || address.userId != userPrincipal.id) {
+          throw IllegalArgumentException("地址不存在或无权访问: $id")
+        }
+      }
+
+      ids.forEach { id ->
+        addressService.deleteById(id)
+      }
+
+      logger.info("Successfully deleted ${ids.size} addresses for user: ${userPrincipal.id}")
+      true
+    } catch (e: Exception) {
+      logger.error("Failed to delete user addresses", e)
+      throw BadRequestException("批量删除地址失败: ${e.message}")
+    }
+
+  /**
+   * 验证创建地址输入
+   */
+  private fun validateCreateAddressInput(input: AddressInput) {
+    if (input.province.isBlank()) {
+      throw BadRequestException("省份不能为空")
+    }
+    if (input.city.isBlank()) {
+      throw BadRequestException("城市不能为空")
+    }
+    if (input.district.isBlank()) {
+      throw BadRequestException("区县不能为空")
+    }
+    if (input.detailAddress.isBlank()) {
+      throw BadRequestException("详细地址不能为空")
+    }
+    if (input.detailAddress.length > 200) {
+      throw BadRequestException("详细地址长度不能超过200个字符")
+    }
+  }
+
+  /**
+   * 验证更新地址输入
+   */
+  private fun validateUpdateAddressInput(input: UpdateAddressInput) {
+    input.province?.let { province ->
+      if (province.isBlank()) {
+        throw BadRequestException("省份不能为空")
+      }
+      if (province.length > 50) {
+        throw BadRequestException("省份长度不能超过50个字符")
+      }
+    }
+
+    input.detailAddress?.let { detailAddress ->
+      if (detailAddress.isBlank()) {
+        throw BadRequestException("详细地址不能为空")
+      }
+      if (detailAddress.length > 200) {
+        throw BadRequestException("详细地址长度不能超过200个字符")
+      }
+    }
+
+
+  }
+
+  /**
+   * 验证手机号格式（简单验证）
+   */
+  private fun isValidPhone(phone: String): Boolean = phone.matches(Regex("^1[3-9]\\d{9}$"))
+
+  companion object {
     /**
-     * 删除用户地址
+     * Convert Address entity to GraphQL Address type
      */
-    @PreAuthorize("isAuthenticated()")
-    @Transactional
-    fun deleteUserAddress(
-        id: Long,
-        @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): Boolean {
-        return try {
-            // 验证地址存在且属于当前用户
-            val existingAddress = addressService.findById(id)
-            if (existingAddress == null || existingAddress.userId != userPrincipal.id) {
-                throw IllegalArgumentException("地址不存在或无权访问")
-            }
+    private fun AddressModel.toGraphQLAddress(): Address {
+      if (this.id == null) {
+        throw IllegalStateException("Address ID cannot be null for GraphQL response")
+      }
 
-            // TODO: 检查地址是否有关联的未完成订单
-            // 如果有关联订单，不允许删除
-
-            addressService.deleteById(id)
-            logger.info("Successfully deleted address: $id for user: ${userPrincipal.id}")
-            true
-        } catch (e: Exception) {
-            logger.error("Failed to delete user address", e)
-            throw BadRequestException("删除地址失败: ${e.message}")
-        }
+      return Address(
+        id = this.id,
+        receiverName = this.receiverName,
+        phone = this.phone,
+        userId = this.userId,
+        province = this.province,
+        provinceCode = this.provinceCode,
+        city = this.city,
+        cityCode = this.cityCode,
+        district = this.district,
+        districtCode = this.districtCode,
+        detailAddress = this.detailAddress,
+        longitude = this.longitude?.toFloat(),
+        latitude = this.latitude?.toFloat(),
+        isDefault = this.isDefault,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
+      )
     }
-
-    /**
-     * 设置默认地址
-     */
-    @PreAuthorize("isAuthenticated()")
-    @Transactional
-    fun setDefaultUserAddress(
-        id: Long,
-        @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): Boolean {
-        return try {
-            // 验证地址存在且属于当前用户
-            val existingAddress = addressService.findById(id)
-            if (existingAddress == null || existingAddress.userId != userPrincipal.id) {
-                throw IllegalArgumentException("地址不存在或无权访问")
-            }
-
-            addressService.setDefaultAddress(userPrincipal.id, id)
-            logger.info("Successfully set default address: $id for user: ${userPrincipal.id}")
-            true
-        } catch (e: Exception) {
-            logger.error("Failed to set default address", e)
-            throw BadRequestException("设置默认地址失败: ${e.message}")
-        }
-    }
-
-    /**
-     * 复制地址
-     */
-    @PreAuthorize("isAuthenticated()")
-    @Transactional
-    fun copyUserAddress(
-        id: Long,
-        newName: String,
-        @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): Address {
-        return try {
-            // 验证源地址存在且属于当前用户
-            val sourceAddress = addressService.findById(id)
-            if (sourceAddress == null || sourceAddress.userId != userPrincipal.id) {
-                throw IllegalArgumentException("源地址不存在或无权访问")
-            }
-
-            // 创建 AddressInput 从源地址，然后转换为 AddressModel
-            val addressInput = AddressInput(
-                province = sourceAddress.province,
-                provinceCode = sourceAddress.provinceCode,
-                city = sourceAddress.city,
-                cityCode = sourceAddress.cityCode,
-                district = sourceAddress.district,
-                districtCode = sourceAddress.districtCode,
-                detailAddress = sourceAddress.detailAddress,
-                postalCode = sourceAddress.postalCode,
-                longitude = sourceAddress.longitude?.toFloat(),
-                latitude = sourceAddress.latitude?.toFloat(),
-                isDefault = false
-            )
-
-            val copiedAddress = AddressInputMapper.map(addressInput)
-
-            val savedAddress = addressService.save(copiedAddress)
-            logger.info("Successfully copied address: $id to new address for user: ${userPrincipal.id}")
-            return savedAddress.toGraphQLAddress()
-        } catch (e: Exception) {
-            logger.error("Failed to copy user address", e)
-            throw BadRequestException("复制地址失败: ${e.message}")
-        }
-    }
-
-    /**
-     * 批量删除地址
-     */
-    @PreAuthorize("isAuthenticated()")
-    @Transactional
-    fun deleteUserAddresses(
-        ids: List<Long>,
-        @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): Boolean {
-        return try {
-            if (ids.isEmpty()) {
-                throw BadRequestException("地址ID列表不能为空")
-            }
-            if (ids.size > 10) {
-                throw BadRequestException("一次最多只能删除10个地址")
-            }
-
-            // 验证所有地址都属于当前用户
-            ids.forEach { id ->
-                val address = addressService.findById(id)
-                if (address == null || address.userId != userPrincipal.id) {
-                    throw IllegalArgumentException("地址不存在或无权访问: $id")
-                }
-            }
-
-            ids.forEach { id ->
-                addressService.deleteById(id)
-            }
-
-            logger.info("Successfully deleted ${ids.size} addresses for user: ${userPrincipal.id}")
-            true
-        } catch (e: Exception) {
-            logger.error("Failed to delete user addresses", e)
-            throw BadRequestException("批量删除地址失败: ${e.message}")
-        }
-    }
-
-    /**
-     * 验证创建地址输入
-     */
-    private fun validateCreateAddressInput(input: AddressInput) {
-        if (input.province.isBlank()) {
-            throw BadRequestException("省份不能为空")
-        }
-        if (input.city.isBlank()) {
-            throw BadRequestException("城市不能为空")
-        }
-        if (input.district.isBlank()) {
-            throw BadRequestException("区县不能为空")
-        }
-        if (input.detailAddress.isBlank()) {
-            throw BadRequestException("详细地址不能为空")
-        }
-        if (input.detailAddress.length > 200) {
-            throw BadRequestException("详细地址长度不能超过200个字符")
-        }
-                input.postalCode?.let { postalCode ->
-            if (postalCode.length > 10) {
-                throw BadRequestException("邮编长度不能超过10个字符")
-            }
-        }
-    }
-
-    /**
-     * 验证更新地址输入
-     */
-    private fun validateUpdateAddressInput(input: UpdateAddressInput) {
-        input.province?.let { province ->
-            if (province.isBlank()) {
-                throw BadRequestException("省份不能为空")
-            }
-            if (province.length > 50) {
-                throw BadRequestException("省份长度不能超过50个字符")
-            }
-        }
-
-        input.detailAddress?.let { detailAddress ->
-            if (detailAddress.isBlank()) {
-                throw BadRequestException("详细地址不能为空")
-            }
-            if (detailAddress.length > 200) {
-                throw BadRequestException("详细地址长度不能超过200个字符")
-            }
-        }
-
-
-        input.postalCode?.let { postalCode ->
-            if (postalCode.length > 10) {
-                throw BadRequestException("邮编长度不能超过10个字符")
-            }
-        }
-    }
-
-    /**
-     * 验证手机号格式（简单验证）
-     */
-    private fun isValidPhone(phone: String): Boolean {
-        return phone.matches(Regex("^1[3-9]\\d{9}$"))
-    }
-
-    companion object {
-        /**
-         * Convert Address entity to GraphQL Address type
-         */
-        private fun AddressModel.toGraphQLAddress(): Address {
-            if (this.id == null) {
-                throw IllegalStateException("Address ID cannot be null for GraphQL response")
-            }
-
-            return Address(
-                id = this.id,
-                userId = this.userId,
-                province = this.province,
-                provinceCode = this.provinceCode,
-                city = this.city,
-                cityCode = this.cityCode,
-                district = this.district,
-                districtCode = this.districtCode,
-                detailAddress = this.detailAddress,
-                postalCode = this.postalCode,
-                longitude = this.longitude?.toFloat(),
-                latitude = this.latitude?.toFloat(),
-                isDefault = this.isDefault,
-                createdAt = this.createdAt,
-                updatedAt = this.updatedAt
-            )
-        }
-    }
+  }
 }

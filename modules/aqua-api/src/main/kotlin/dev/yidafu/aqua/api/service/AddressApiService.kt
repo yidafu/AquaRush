@@ -70,11 +70,6 @@ interface AddressApiService {
   ): Boolean
 
   /**
-   * 根据邮政编码获取地址信息
-   */
-  fun getAddressByPostalCode(postalCode: String): List<AddressDTO>
-
-  /**
    * 验证地址是否有效
    */
   fun validateAddress(address: String): Boolean

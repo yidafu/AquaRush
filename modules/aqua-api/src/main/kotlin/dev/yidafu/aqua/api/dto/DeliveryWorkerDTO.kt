@@ -49,7 +49,7 @@ data class DeliveryWorkerDTO(
   val status: WorkerStatus,
   //    @field:JsonProperty("coordinates")
   @field:JsonProperty("currentLocation")
-  val currentLocation: Coordinates? = null,
+  val currentLocation: String? = null,
   @field:JsonProperty("rating")
   @field:DecimalMin(value = "0.0", message = "评分必须大于等于0.0")
   @field:DecimalMax(value = "5.0", message = "评分必须小于等于5.0")

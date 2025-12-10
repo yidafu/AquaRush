@@ -32,29 +32,32 @@ open class AddressModel(
   @Column(name = "user_id", nullable = false)
   var userId: Long,
 
+  @Column(name = "receiver_name", nullable = false)
+  var receiverName: String,
+
+  @Column(name = "phone", nullable = false)
+  var phone: String,
+
   @Column(name = "province", nullable = false)
   var province: String,
 
   @Column(name = "province_code")
-  var provinceCode: String? = null,
+  var provinceCode: String = "",
 
   @Column(name = "city", nullable = false)
   var city: String,
 
   @Column(name = "city_code")
-  var cityCode: String? = null,
+  var cityCode: String = "",
 
   @Column(name = "district", nullable = false)
   var district: String,
 
   @Column(name = "district_code")
-  var districtCode: String? = null,
+  var districtCode: String = "",
 
   @Column(name = "detail_address", nullable = false, length = 500)
   var detailAddress: String,
-
-  @Column(name = "postal_code")
-  var postalCode: String? = null,
 
   @Column(name = "longitude")
   var longitude: Double? = null,

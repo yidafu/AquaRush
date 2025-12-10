@@ -48,7 +48,7 @@ class DebugJwtController(
       val authorities = listOf("ROLE_${user.role.name}")
       val grantedAuthorities = authorities.map { SimpleGrantedAuthority(it) }
       val userPrincipal = UserPrincipal(
-          id = user.id,
+          id =( user.id ?: -1),
           _username = user.wechatOpenId,
           userType = user.role.name,
           _authorities = grantedAuthorities
@@ -59,7 +59,7 @@ class DebugJwtController(
 
       val response = JwtGenerationResponse(
         token = token,
-        userId = user.id,
+        userId = user.id!!,
         username = user.wechatOpenId,
         userType = user.role.name,
         nickname = user.nickname,
@@ -89,7 +89,7 @@ class DebugJwtController(
         }
 
       val userInfo = UserDebugInfo(
-        id = user.id,
+        id = user.id!!,
         wechatOpenId = user.wechatOpenId,
         nickname = user.nickname,
         phone = user.phone,
@@ -118,7 +118,7 @@ class DebugJwtController(
     try {
       val users = userRepository.findAll().map { user ->
         UserDebugInfo(
-          id = user.id,
+          id = user.id!!,
           wechatOpenId = user.wechatOpenId,
           nickname = user.nickname,
           phone = user.phone,

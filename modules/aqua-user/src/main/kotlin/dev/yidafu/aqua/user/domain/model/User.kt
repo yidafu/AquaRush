@@ -30,7 +30,7 @@ import java.time.LocalDateTime
 data class UserModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long = -1L,
+  val id: Long? = null,
 
   @Column(name = "wechat_openid", unique = true, nullable = false)
   val wechatOpenId: String,

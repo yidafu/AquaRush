@@ -162,9 +162,6 @@ class GeolocationService(
             append(address.city)
             append(address.district)
             append(address.detailAddress)
-            if (address.postalCode?.isNotEmpty() == true) {
-                append("(").append(address.postalCode).append(")")
-            }
         }
     }
 

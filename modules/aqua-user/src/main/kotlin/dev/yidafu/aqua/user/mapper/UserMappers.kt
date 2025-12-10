@@ -44,7 +44,11 @@ import jakarta.validation.constraints.NotNull
 /**
  * Mapper for converting UserModel domain entity to GraphQL User type
  */
-object UserMapper : ObjectMappie<UserModel, User>()
+object UserMapper : ObjectMappie<UserModel, User>(){
+  override fun map(from: UserModel): User  = mapping {
+    to::id fromValue (from.id ?: -1L)
+  }
+}
 
 /**
  * Mapper for converting Admin domain entity to GraphQL Admin type
@@ -137,29 +141,6 @@ object UserModelToDTOMapper : ObjectMappie<UserModel, UserDTO>() {
 /**
  * Mapper for converting CreateAddressRequest with userId to AddressModel domain entity
  */
-@Component
-object CreateAddressRequestWithUserIdMapper {
-  fun map(
-    from: CreateAddressRequest,
-    userId: Long,
-  ): AddressModel =
-    AddressModel(
-      id = -1L,
-      userId = userId,
-      province = from.province,
-      provinceCode = null,
-      city = from.city,
-      cityCode = null,
-      district = from.district,
-      districtCode = null,
-      detailAddress = from.detailedAddress,
-      postalCode = from.postalCode,
-      longitude = 0.0, // from.longitude?.toDouble(),
-      latitude = 0.0, // from.latitude?.toDouble(),
-      isDefault = from.isDefault,
-    )
-}
-
 object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
   override fun map(from: AddressInput) =
     mapping {
@@ -175,26 +156,3 @@ object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
 /**
  * Mapper for converting UpdateAddressRequest with id and userId to AddressModel domain entity
  */
-@Component
-object UpdateAddressRequestWithIdsMapper {
-  fun map(
-    from: UpdateAddressRequest,
-    id: Long,
-    userId: Long,
-  ): AddressModel =
-    AddressModel(
-      id = id,
-      userId = userId,
-      province = from.province,
-      provinceCode = null,
-      city = from.city,
-      cityCode = null,
-      district = from.district,
-      districtCode = null,
-      detailAddress = from.detailedAddress,
-      postalCode = from.postalCode,
-      longitude = 0.0, // from.longitude?.toDouble(),
-      latitude = 0.0, // from.latitude?.toDouble(),
-      isDefault = from.isDefault,
-    )
-}

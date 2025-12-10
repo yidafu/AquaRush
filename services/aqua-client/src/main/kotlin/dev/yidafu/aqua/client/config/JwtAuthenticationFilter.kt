@@ -142,9 +142,6 @@ class JwtAuthenticationFilter(
     correlationId: String,
   ): Boolean {
     return try {
-      if (token == "skip-on-dev") {
-        return true
-      }
       // Extract username from token
       val username = jwtTokenService.extractUsername(token)
       if (username.isNullOrBlank()) {
