@@ -23,17 +23,28 @@ type Query {
   # Enhanced Address Management
   userAddresses: [Address!]!
   userDefaultAddress: Address
-  userAddressPage(page: Int, size: Int, sort: String, direction: String): AddressPagePayload
 
   # Regions
   regions(level: Int, parentCode: String): [Region!]!
   region(code: String!): Region
-  regionByCoordinates(longitude: Float!, latitude: Float!): RegionCoordinatesPayload
+  regionByCoordinates(
+    longitude: Float!
+    latitude: Float!
+  ): RegionCoordinatesPayload
   searchRegions(keyword: String!, level: Int): [Region!]!
 
   # Geolocation Services
-  nearbyAddresses(longitude: Float!, latitude: Float!, radiusKm: Float): NearbyAddressesPayload
-  calculateDistance(lng1: Float!, lat1: Float!, lng2: Float!, lat2: Float!): DistancePayload
+  nearbyAddresses(
+    longitude: Float!
+    latitude: Float!
+    radiusKm: Float
+  ): NearbyAddressesPayload
+  calculateDistance(
+    lng1: Float!
+    lat1: Float!
+    lng2: Float!
+    lat2: Float!
+  ): DistancePayload
   isInServiceArea(longitude: Float!, latitude: Float!): ServiceAreaPayload
 
   # Products
@@ -51,8 +62,14 @@ type Query {
   # Payments
   paymentStatus(transactionId: String!): String!
   orderPaymentInfo(orderId: Long!): OrderPaymentInfo!
-  paymentPeriodStats(from: LocalDateTime!, to: LocalDateTime!): [PaymentPeriodStats!]!
-  myPaymentTransactions(page: Int = 0, size: Int = 20): [UserPaymentTransaction!]!
+  paymentPeriodStats(
+    from: LocalDateTime!
+    to: LocalDateTime!
+  ): [PaymentPeriodStats!]!
+  myPaymentTransactions(
+    page: Int = 0
+    size: Int = 20
+  ): [UserPaymentTransaction!]!
   refundEligibility(orderId: Long!): RefundEligibility!
   myRefundRequests(page: Int = 0, size: Int = 20): [RefundRequest!]!
 
@@ -79,11 +96,6 @@ type Mutation {
   deleteAddress(id: Long!): Boolean!
   setDefaultAddress(id: Long!): Boolean!
 
-  # Enhanced Address Management
-  createAddressEnhanced(input: CreateAddressInput!): AddressPayload!
-  updateAddressEnhanced(addressId: Long!, input: UpdateAddressInput!): AddressPayload!
-  deleteAddressEnhanced(addressId: Long!): BooleanPayload!
-  setDefaultAddressEnhanced(addressId: Long!): BooleanPayload!
   geocodeAddress(address: GeocodeInput!): GeocodePayload!
   reverseGeocode(longitude: Float!, latitude: Float!): ReverseGeocodePayload!
   validateAddress(input: AddressValidationInput!): AddressValidationPayload!
@@ -153,15 +165,13 @@ input CreateRegionInput {
     @notBlank(message: "地区代码不能为空")
     @size(min: 1, max: 20, message: "地区代码长度应在1-20个字符之间")
     @pattern(regexp: "^[A-Z0-9]+$", message: "地区代码只能包含大写字母和数字")
-  level: Int!
-    @range(min: 1, max: 5, message: "地区级别必须在1-5之间")
+  level: Int! @range(min: 1, max: 5, message: "地区级别必须在1-5之间")
   parentCode: String
     @size(min: 1, max: 20, message: "上级地区代码长度应在1-20个字符之间")
 }
 
 input UpdateRegionInput {
-  name: String
-    @size(min: 2, max: 50, message: "地区名称长度应在2-50个字符之间")
+  name: String @size(min: 2, max: 50, message: "地区名称长度应在2-50个字符之间")
   parentCode: String
     @size(min: 1, max: 20, message: "上级地区代码长度应在1-20个字符之间")
 }

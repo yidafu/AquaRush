@@ -13,7 +13,6 @@ directive @notBlank(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINI
 directive @size(min: Int, max: Int, message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 directive @email(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 directive @pattern(regexp: String!, message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-directive @range(min: Float, max: Float, message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 directive @positive(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 directive @future(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 directive @past(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
@@ -289,7 +288,7 @@ input UpdateProfileInput {
   nickname: String
     @size(min: 2, max: 50, message: "昵称长度应在2-50个字符之间")
   phone: String
-    @pattern(regexp: "^1[3-9]\\d{9}$", message: "手机号格式不正确")
+    @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
   avatar: String
     @size(max: 500, message: "头像URL长度不能超过500个字符")
 }
@@ -300,7 +299,7 @@ input UpdateAddressInput {
     @size(min: 2, max: 20, message: "收货人姓名长度应在2-20个字符之间")
   phone: String
     @notBlank(message: "收货人手机号不能为空")
-    @pattern(regexp: "^1[3-9]\\d{9}$", message: "手机号格式不正确")
+    @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
   province: String
     @notBlank(message: "省份不能为空")
   provinceCode: String
@@ -317,9 +316,11 @@ input UpdateAddressInput {
     @notBlank(message: "详细地址不能为空")
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
   longitude: Float
-    @range(min: -180, max: 180, message: "经度必须在-180到180之间")
+    @min(value: -180, message: "经度不能小于-180")
+    @max(value: 180, message: "经度不能大于180")
   latitude: Float
-    @range(min: -90, max: 90, message: "纬度必须在-90到90之间")
+    @min(value: -90, message: "纬度不能小于-90")
+    @max(value: 90, message: "纬度不能大于90")
   isDefault: Boolean
 }
 
@@ -329,7 +330,7 @@ input AddressInput {
     @size(min: 2, max: 20, message: "收货人姓名长度应在2-20个字符之间")
   phone: String!
     @notBlank(message: "收货人手机号不能为空")
-    @pattern(regexp: "^1[3-9]\\d{9}$", message: "手机号格式不正确")
+    @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
   province: String!
     @notBlank(message: "省份不能为空")
   provinceCode: String!
@@ -346,9 +347,11 @@ input AddressInput {
     @notBlank(message: "详细地址不能为空")
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
   longitude: Float
-    @range(min: -180, max: 180, message: "经度必须在-180到180之间")
+    @min(value: -180, message: "经度不能小于-180")
+    @max(value: 180, message: "经度不能大于180")
   latitude: Float
-    @range(min: -90, max: 90, message: "纬度必须在-90到90之间")
+    @min(value: -90, message: "纬度不能小于-90")
+    @max(value: 90, message: "纬度不能大于90")
   isDefault: Boolean! = false
 }
 
@@ -358,7 +361,8 @@ input CreateOrderInput {
   addressId: Long!
     @positive(message: "地址ID必须为正数")
   quantity: Int!
-    @range(min: 1, max: 999, message: "购买数量必须在1-999之间")
+    @min(value: 1, message: "购买数量不能少于1")
+    @max(value: 999, message: "购买数量不能超过999")
 }
 
 input WechatLoginInput {
@@ -373,7 +377,8 @@ input CreateProductInput {
     @size(min: 2, max: 100, message: "商品名称长度应在2-100个字符之间")
   price: BigDecimal!
     @positive(message: "商品价格必须为正数")
-    @range(min: 0.01, max: 99999.99, message: "商品价格必须在0.01-99999.99之间")
+    @min(value: 0, message: "商品价格不能小于0")
+    @max(value: 99999, message: "商品价格不能大于99999")
   coverImageUrl: String!
     @notBlank(message: "商品封面图片不能为空")
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
@@ -382,7 +387,8 @@ input CreateProductInput {
   description: String
     @size(max: 1000, message: "商品描述长度不能超过1000个字符")
   stock: Int!
-    @range(min: 0, max: 99999, message: "库存数量必须在0-99999之间")
+    @min(value: 0, message: "库存数量不能小于0")
+    @max(value: 99999, message: "库存数量不能大于99999")
 }
 
 input UpdateProductInput {
@@ -390,7 +396,8 @@ input UpdateProductInput {
     @size(min: 2, max: 100, message: "商品名称长度应在2-100个字符之间")
   price: BigDecimal
     @positive(message: "商品价格必须为正数")
-    @range(min: 0.01, max: 99999.99, message: "商品价格必须在0.01-99999.99之间")
+    @min(value: 0, message: "商品价格不能小于0")
+    @max(value: 99999, message: "商品价格不能大于99999")
   coverImageUrl: String
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
   detailImages: String
@@ -398,7 +405,8 @@ input UpdateProductInput {
   description: String
     @size(max: 1000, message: "商品描述长度不能超过1000个字符")
   stock: Int
-    @range(min: 0, max: 99999, message: "库存数量必须在0-99999之间")
+    @min(value: 0, message: "库存数量不能小于0")
+    @max(value: 99999, message: "库存数量不能大于99999")
 }
 
 input CreateWechatPaymentInput {
@@ -406,7 +414,8 @@ input CreateWechatPaymentInput {
     @positive(message: "订单ID必须为正数")
   amount: BigDecimal!
     @positive(message: "支付金额必须为正数")
-    @range(min: 0.01, max: 99999.99, message: "支付金额必须在0.01-99999.99之间")
+    @min(value: 0, message: "支付金额不能小于0")
+    @max(value: 99999, message: "支付金额不能大于99999")
   description: String!
     @notBlank(message: "支付描述不能为空")
     @size(min: 1, max: 127, message: "支付描述长度应在1-127个字符之间")
@@ -437,10 +446,12 @@ input RefundInput {
     @size(min: 10, max: 100, message: "交易ID长度应在10-100个字符之间")
   refundAmount: BigDecimal!
     @positive(message: "退款金额必须为正数")
-    @range(min: 0.01, max: 99999.99, message: "退款金额必须在0.01-99999.99之间")
+    @min(value: 0, message: "退款金额不能小于0")
+    @max(value: 99999, message: "退款金额不能大于99999")
   totalAmount: BigDecimal!
     @positive(message: "总金额必须为正数")
-    @range(min: 0.01, max: 99999.99, message: "总金额必须在0.01-99999.99之间")
+    @min(value: 0, message: "总金额不能小于0")
+    @max(value: 99999, message: "总金额不能大于99999")
 }
 
 input ProcessRefundInput {
@@ -456,7 +467,8 @@ input ProcessRefundInput {
     @positive(message: "用户ID必须为正数")
   amount: BigDecimal!
     @positive(message: "退款金额必须为正数")
-    @range(min: 0.01, max: 99999.99, message: "退款金额必须在0.01-99999.99之间")
+    @min(value: 0, message: "退款金额不能小于0")
+    @max(value: 99999, message: "退款金额不能大于99999")
   reason: String!
     @notBlank(message: "退款原因不能为空")
     @size(min: 1, max: 500, message: "退款原因长度应在1-500个字符之间")
@@ -475,7 +487,8 @@ input CreateManualRefundInput {
     @positive(message: "用户ID必须为正数")
   amount: BigDecimal!
     @positive(message: "退款金额必须为正数")
-    @range(min: 0.01, max: 99999.99, message: "退款金额必须在0.01-99999.99之间")
+    @min(value: 0, message: "退款金额不能小于0")
+    @max(value: 99999, message: "退款金额不能大于99999")
   reason: String!
     @notBlank(message: "退款原因不能为空")
     @size(min: 1, max: 500, message: "退款原因长度应在1-500个字符之间")
@@ -525,7 +538,7 @@ input CreateDeliveryWorkerInput {
     @size(min: 2, max: 20, message: "配送员姓名长度应在2-20个字符之间")
   phone: String!
     @notBlank(message: "手机号不能为空")
-    @pattern(regexp: "^1[3-9]\\d{9}$", message: "手机号格式不正确")
+    @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
   avatarUrl: String
     @size(max: 500, message: "头像URL长度不能超过500个字符")
   coordinates: String
@@ -533,9 +546,11 @@ input CreateDeliveryWorkerInput {
   currentLocation: String
     @size(max: 200, message: "当前位置长度不能超过200个字符")
   rating: BigDecimal
-    @range(min: 0, max: 5, message: "评分必须在0-5之间")
+    @min(value: 0, message: "评分不能小于0")
+    @max(value: 5, message: "评分不能大于5")
   earning: BigDecimal
-    @range(min: 0, max: 999999.99, message: "收入必须在0-999999.99之间")
+    @min(value: 0, message: "收入不能小于0")
+    @max(value: 999999, message: "收入不能大于999999")
   isAvailable: Boolean
 }
 
@@ -545,7 +560,7 @@ input UpdateDeliveryWorkerInput {
   name: String
     @size(min: 2, max: 20, message: "配送员姓名长度应在2-20个字符之间")
   phone: String
-    @pattern(regexp: "^1[3-9]\\d{9}$", message: "手机号格式不正确")
+    @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
   avatarUrl: String
     @size(max: 500, message: "头像URL长度不能超过500个字符")
   coordinates: String
@@ -553,9 +568,11 @@ input UpdateDeliveryWorkerInput {
   currentLocation: String
     @size(max: 200, message: "当前位置长度不能超过200个字符")
   rating: BigDecimal
-    @range(min: 0, max: 5, message: "评分必须在0-5之间")
+    @min(value: 0, message: "评分不能小于0")
+    @max(value: 5, message: "评分不能大于5")
   earning: BigDecimal
-    @range(min: 0, max: 999999.99, message: "收入必须在0-999999.99之间")
+    @min(value: 0, message: "收入不能小于0")
+    @max(value: 999999, message: "收入不能大于999999")
   isAvailable: Boolean
 }
 
@@ -565,7 +582,7 @@ input CreateDeliveryAddressInput {
     @size(min: 2, max: 20, message: "收货人姓名长度应在2-20个字符之间")
   receiverPhone: String!
     @notBlank(message: "收货人手机号不能为空")
-    @pattern(regexp: "^1[3-9]\\d{9}$", message: "手机号格式不正确")
+    @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
   province: String!
     @notBlank(message: "省份不能为空")
     @size(min: 2, max: 50, message: "省份名称长度应在2-50个字符之间")
@@ -579,16 +596,18 @@ input CreateDeliveryAddressInput {
     @notBlank(message: "详细地址不能为空")
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
   longitude: Float
-    @range(min: -180, max: 180, message: "经度必须在-180到180之间")
+    @min(value: -180, message: "经度不能小于-180")
+    @max(value: 180, message: "经度不能大于180")
   latitude: Float
-    @range(min: -90, max: 90, message: "纬度必须在-90到90之间")
+    @min(value: -90, message: "纬度不能小于-90")
+    @max(value: 90, message: "纬度不能大于90")
 }
 
 input UpdateDeliveryAddressInput {
   receiverName: String
     @size(min: 2, max: 20, message: "收货人姓名长度应在2-20个字符之间")
   receiverPhone: String
-    @pattern(regexp: "^1[3-9]\\d{9}$", message: "手机号格式不正确")
+    @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
   province: String
     @size(min: 2, max: 50, message: "省份名称长度应在2-50个字符之间")
   city: String
@@ -598,33 +617,13 @@ input UpdateDeliveryAddressInput {
   detailAddress: String
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
   longitude: Float
-    @range(min: -180, max: 180, message: "经度必须在-180到180之间")
+    @min(value: -180, message: "经度不能小于-180")
+    @max(value: 180, message: "经度不能大于180")
   latitude: Float
-    @range(min: -90, max: 90, message: "纬度必须在-90到90之间")
+    @min(value: -90, message: "纬度不能小于-90")
+    @max(value: 90, message: "纬度不能大于90")
 }
 
-# Enhanced Address Management Input Types
-input CreateAddressInput {
-  province: String!
-    @notBlank(message: "省份不能为空")
-  provinceCode: String
-    @size(min: 1, max: 20, message: "省份代码长度应在1-20个字符之间")
-  city: String!
-    @notBlank(message: "城市不能为空")
-  cityCode: String
-    @size(min: 1, max: 20, message: "城市代码长度应在1-20个字符之间")
-  district: String!
-    @notBlank(message: "区县不能为空")
-  districtCode: String
-    @size(min: 1, max: 20, message: "区县代码长度应在1-20个字符之间")
-  detailAddress: String!
-    @notBlank(message: "详细地址不能为空")
-  longitude: Float
-    @range(min: -180, max: 180, message: "经度必须在-180到180之间")
-  latitude: Float
-    @range(min: -90, max: 90, message: "纬度必须在-90到90之间")
-  isDefault: Boolean
-}
 
 input GeocodeInput {
   province: String!
@@ -661,17 +660,13 @@ input AddressValidationInput {
     @notBlank(message: "详细地址不能为空")
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
   longitude: Float
-    @range(min: -180, max: 180, message: "经度必须在-180到180之间")
+    @min(value: -180, message: "经度不能小于-180")
+    @max(value: 180, message: "经度不能大于180")
   latitude: Float
-    @range(min: -90, max: 90, message: "纬度必须在-90到90之间")
+    @min(value: -90, message: "纬度不能小于-90")
+    @max(value: 90, message: "纬度不能大于90")
 }
 
-# Enhanced Address Management Payload Types
-type AddressPayload {
-  success: Boolean!
-  message: String!
-  address: Address
-}
 
 type BooleanPayload {
   success: Boolean!
@@ -719,17 +714,6 @@ type NormalizedAddress {
   detailAddress: String!
 }
 
-type AddressPagePayload {
-  success: Boolean!
-  message: String!
-  content: [Address!]!
-  totalElements: Long!
-  totalPages: Int!
-  size: Int!
-  number: Int!
-  first: Boolean!
-  last: Boolean!
-}
 
 type NearbyAddressesPayload {
   success: Boolean!
@@ -775,7 +759,8 @@ input CreateReviewRequest {
   deliveryWorkerId: Long!
     @positive(message: "配送员ID必须为正数")
   rating: Int!
-    @range(min: 1, max: 5, message: "评分必须在1-5之间")
+    @min(value: 1, message: "评分不能小于1")
+    @max(value: 5, message: "评分不能大于5")
   comment: String
     @size(max: 1000, message: "评论长度不能超过1000个字符")
   isAnonymous: Boolean
@@ -871,10 +856,12 @@ input ExportTransactionsInput {
     @positive(message: "用户ID必须为正数")
   minAmount: BigDecimal
     @positive(message: "最小金额必须为正数")
-    @range(min: 0.01, max: 99999.99, message: "最小金额必须在0.01-99999.99之间")
+    @min(value: 0, message: "最小金额不能小于0")
+    @max(value: 99999, message: "最小金额不能大于99999")
   maxAmount: BigDecimal
     @positive(message: "最大金额必须为正数")
-    @range(min: 0.01, max: 99999.99, message: "最大金额必须在0.01-99999.99之间")
+    @min(value: 0, message: "最大金额不能小于0")
+    @max(value: 99999, message: "最大金额不能大于99999")
   format: String! = "CSV" # CSV, EXCEL, PDF
     @size(min: 1, max: 10, message: "导出格式长度应在1-10个字符之间")
   includeMetadata: Boolean! = false
