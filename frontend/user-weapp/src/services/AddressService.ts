@@ -1,6 +1,7 @@
 import NetworkManager from '../utils/network'
 import {
   AddressInput,
+  UpdateAddressInput,
   Address,
   CreateAddressResponse,
   UpdateAddressResponse,
@@ -31,6 +32,79 @@ class AddressService {
       AddressService.instance = new AddressService()
     }
     return AddressService.instance
+  }
+
+  /**
+   * Get address details by ID
+   * @param id Address ID to fetch
+   * @returns Promise with address details or error
+   */
+  public async getAddressDetail(id: number): Promise<AddressServiceResult<Address>> {
+    try {
+      const query = `
+        query AddressDetail($id: Long!) {
+          address(id: $id) {
+            id
+            receiverName
+            phone
+            province
+            provinceCode
+            city
+            cityCode
+            district
+            districtCode
+            detailAddress
+            longitude
+            latitude
+            isDefault
+            createdAt
+            updatedAt
+          }
+        }
+      `
+
+      const variables = { id }
+
+      console.log('Fetching address detail for ID:', id)
+
+      const response = await this.networkManager.query<{ address: Address | null }>(query, variables)
+
+      if (!response?.address) {
+        throw new Error('Address not found')
+      }
+
+      console.log('Address detail fetched successfully:', response.address)
+
+      return {
+        success: true,
+        data: response.address
+      }
+    } catch (error) {
+      console.error('Get address detail error:', error)
+
+      let errorMessage = '获取地址详情失败，请重试'
+      let errorCode: string | undefined
+
+      // Handle GraphQL errors
+      if (error && typeof error === 'object' && 'errors' in error) {
+        const graphqlErrors = (error as any).errors
+        if (Array.isArray(graphqlErrors) && graphqlErrors.length > 0) {
+          const firstError = graphqlErrors[0]
+          errorMessage = firstError.message || errorMessage
+          errorCode = firstError.extensions?.code
+        }
+      } else if (error instanceof Error) {
+        errorMessage = error.message
+      }
+
+      return {
+        success: false,
+        error: {
+          message: errorMessage,
+          code: errorCode
+        }
+      }
+    }
   }
 
   /**
@@ -188,10 +262,10 @@ class AddressService {
    * @param addressData Updated address data
    * @returns Promise with updated address or error
    */
-  public async updateAddress(id: number, addressData: AddressInput): Promise<AddressServiceResult<Address>> {
+  public async updateAddress(id: number, addressData: UpdateAddressInput): Promise<AddressServiceResult<Address>> {
     try {
       const mutation = `
-        mutation UpdateAddress($id: Long!, $input: AddressInput!) {
+        mutation UpdateAddress($id: Long!, $input: UpdateAddressInput!) {
           updateAddress(id: $id, input: $input) {
             id
             userId

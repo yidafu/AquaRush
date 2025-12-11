@@ -41,6 +41,7 @@ const AddressEdit: React.FC = () => {
 
   // Initialize region selector
   const regionSelector = useRegionSelector({
+    // initialSelection: initialRegionSelection,
     onError: (error) => {
       showToastMessage(`地区加载失败: ${error}`, 'error')
     }
@@ -126,32 +127,58 @@ const AddressEdit: React.FC = () => {
 
   const loadAddressDetail = useCallback(async (addressId: string) => {
     try {
-      // TODO: 实际项目中这里应该调用获取地址详情的API
-      // const address = await getAddressDetail(addressId)
+      setLoading(true)
+      showToastMessage('正在加载地址详情...', 'loading')
 
-      // 模拟地址详情数据
-      const mockAddress = {
-        id: addressId,
-        receiverName: '张三',
-        phone: '13800138000',
-        province: '广东省',
-        city: '深圳市',
-        district: '南山区',
-        detailAddress: '科技园南区深南大道9988号',
-        isDefault: true,
-        latitude: 22.5316,   // 深圳科技园坐标
-        longitude: 113.9351
+      const result = await addressService.getAddressDetail(parseInt(addressId))
+
+      if (!result.success || !result.data) {
+        showToastMessage(result.error?.message || '地址不存在', 'error')
+        setTimeout(() => {
+          Taro.navigateBack()
+        }, 1500)
+        return
       }
 
-      setFormData(mockAddress)
+      const address = result.data
 
-      // Initialize region selector with existing data
-      // This will be handled by the useRegionSelector hook if we pass initialSelection
+      // Set initial region selection for the selector
+      if (address.provinceCode || address.cityCode || address.districtCode) {
+        regionSelector.initializeWithSelection({
+          provinceCode: address.provinceCode,
+          cityCode: address.cityCode,
+          districtCode: address.districtCode
+        })
+      }
+
+      // Update form data with fetched address
+      setFormData(prev => ({
+        ...prev,
+        receiverName: address.receiverName || '',
+        phone: address.phone || '',
+        province: address.province || '',
+        city: address.city || '',
+        district: address.district || '',
+        provinceCode: address.provinceCode,
+        cityCode: address.cityCode,
+        districtCode: address.districtCode,
+        detailAddress: address.detailAddress || '',
+        isDefault: address.isDefault || false,
+        latitude: address.latitude,
+        longitude: address.longitude
+      }))
+
+      showToastMessage('地址详情加载成功', 'success')
     } catch (error) {
       console.error('获取地址详情失败:', error)
       showToastMessage('获取地址详情失败', 'error')
+      setTimeout(() => {
+        Taro.navigateBack()
+      }, 1500)
+    } finally {
+      setLoading(false)
     }
-  }, [showToastMessage])
+  }, [addressService, showToastMessage])
 
   const loadWechatAddress = useCallback(() => {
     try {
@@ -207,7 +234,7 @@ const AddressEdit: React.FC = () => {
       newErrors.detailAddress = '详细地址不能超过100个字符'
     }
 
-  
+
     setErrors(newErrors as Record<keyof AddressFormData, string>)
     return Object.keys(newErrors).length === 0
   }, [formData])

@@ -9,12 +9,14 @@ import {
   RegionHierarchy
 } from '../types/region'
 
+interface IInitialSelection {
+
+  provinceCode?: string
+  cityCode?: string
+  districtCode?: string
+}
 interface UseRegionSelectorOptions {
-  initialSelection?: {
-    provinceCode?: string
-    cityCode?: string
-    districtCode?: string
-  }
+  initialSelection?: IInitialSelection
   autoLoadProvinces?: boolean
   onError?: (error: string) => void
 }
@@ -60,6 +62,8 @@ interface UseRegionSelectorReturn {
     city?: string
     district?: string
   }
+
+  initializeWithSelection: (initialSelect: IInitialSelection) => void
 }
 const regionService = RegionService.getInstance()
 
@@ -266,12 +270,12 @@ export const useRegionSelector = (options: UseRegionSelectorOptions = {}): UseRe
   }, [onError])
 
   // Initialize with initial selection
-  const initializeWithSelection = useCallback(async () => {
+  const initializeWithSelection = useCallback(async (initialSelection: IInitialSelection) => {
     if (!initialSelection) return
 
     try {
       const { provinceCode, cityCode, districtCode } = initialSelection
-
+      console.log('init selection', initialSelection)
       // Load provinces first
       await loadProvinces()
 
@@ -318,7 +322,7 @@ export const useRegionSelector = (options: UseRegionSelectorOptions = {}): UseRe
     } catch (error) {
       console.error('Failed to initialize with selection:', error)
     }
-  }, [initialSelection, loadProvinces, loadCities, loadDistricts])
+  }, [ loadProvinces, loadCities, loadDistricts])
 
   // Handle column change for cascading picker
   const handleColumnChange = useCallback(async (event: any) => {
@@ -442,7 +446,7 @@ export const useRegionSelector = (options: UseRegionSelectorOptions = {}): UseRe
       initializedRef.current = true
 
       if (initialSelection) {
-        initializeWithSelection()
+        initializeWithSelection(initialSelection)
       } else {
         loadBackendDefault()
       }
@@ -477,6 +481,8 @@ export const useRegionSelector = (options: UseRegionSelectorOptions = {}): UseRe
     getFullRegionText,
     resetSelection,
     getSelectedCodes,
-    getSelectedNames
+    getSelectedNames,
+
+    initializeWithSelection,
   }
 }

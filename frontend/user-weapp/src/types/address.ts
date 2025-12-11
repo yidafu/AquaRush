@@ -16,6 +16,22 @@ export interface AddressInput {
   isDefault: boolean
 }
 
+// GraphQL update input type (all fields optional for partial updates)
+export interface UpdateAddressInput {
+  receiverName?: string
+  phone?: string
+  province?: string
+  provinceCode?: string
+  city?: string
+  cityCode?: string
+  district?: string
+  districtCode?: string
+  detailAddress?: string
+  longitude?: number
+  latitude?: number
+  isDefault?: boolean
+}
+
 // GraphQL response types
 export interface Address {
   id: number
@@ -102,5 +118,41 @@ export function transformFormToGraphQLInput(formData: AddressFormData): AddressI
     provinceCode: formData.provinceCode || undefined,
     cityCode: formData.cityCode || undefined,
     districtCode: formData.districtCode || undefined
+  }
+}
+
+// Helper function to transform AddressInput to UpdateAddressInput (for partial updates)
+export function transformToUpdateInput(addressData: AddressInput): UpdateAddressInput {
+  return {
+    receiverName: addressData.receiverName,
+    phone: addressData.phone,
+    province: addressData.province,
+    provinceCode: addressData.provinceCode,
+    city: addressData.city,
+    cityCode: addressData.cityCode,
+    district: addressData.district,
+    districtCode: addressData.districtCode,
+    detailAddress: addressData.detailAddress,
+    longitude: addressData.longitude,
+    latitude: addressData.latitude,
+    isDefault: addressData.isDefault
+  }
+}
+
+// Helper function to transform form data directly to UpdateAddressInput
+export function transformFormToUpdateInput(formData: AddressFormData): UpdateAddressInput {
+  return {
+    receiverName: formData.receiverName,
+    phone: formData.phone,
+    province: formData.province,
+    provinceCode: formData.provinceCode,
+    city: formData.city,
+    cityCode: formData.cityCode,
+    district: formData.district,
+    districtCode: formData.districtCode,
+    detailAddress: formData.detailAddress,
+    longitude: formData.longitude,
+    latitude: formData.latitude,
+    isDefault: formData.isDefault
   }
 }

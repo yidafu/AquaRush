@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Button, Image } from '@tarojs/components'
-import { AtButton, AtCard, AtIcon, AtToast, AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
+import { AtButton, AtToast, AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
 import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import AddressService from '../../services/AddressService'
 import { Address } from '../../types/address'
+import AddressCard from '../../components/AddressCard'
 
 import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/card.scss"
-import "taro-ui/dist/style/components/icon.scss"
 import "taro-ui/dist/style/components/toast.scss"
 import "taro-ui/dist/style/components/modal.scss"
 import './index.scss'
@@ -228,74 +227,15 @@ const AddressList: React.FC<AddressListProps> = () => {
           </View>
         ) : (
           addresses.map((address) => (
-            <AtCard
+            <AddressCard
               key={address.id}
-              title={`地址 ${address.id}`}
-              className='address-card'
-              renderIcon={address.isDefault ? (
-                <View className='mr-2 default-badge'>
-                  <Text>默认</Text>
-                </View>
-              ) : <></>}
-            >
-              <View className='address-content'>
-                <Text className='address-detail'>
-                  {address.province} {address.city} {address.district} {address.detailAddress}
-                </Text>
-
-                {address.longitude && address.latitude && (
-                  <Text className='address-coords'>
-                    坐标: {address.latitude.toFixed(6)}, {address.longitude.toFixed(6)}
-                  </Text>
-                )}
-
-                <View className='address-footer'>
-                  {isSelectMode ? (
-                    <AtButton
-                      type='primary'
-                      size='small'
-                      onClick={() => handleSelectAddress(address)}
-                      className='select-button'
-                    >
-                      选择此地址
-                    </AtButton>
-                  ) : (
-                    <View className='action-buttons'>
-                      {!address.isDefault && (
-                        <AtButton
-                          type='secondary'
-                          size='small'
-                          onClick={() => handleSetDefault(address.id)}
-                          className='default-button'
-                        >
-                          设为默认
-                        </AtButton>
-                      )}
-
-                      <AtButton
-                        type='secondary'
-                        size='small'
-                        onClick={() => handleEditAddress(address.id)}
-                        className='edit-button'
-                      >
-                        <AtIcon value='edit' size='14' color='#1890ff' />
-                        <Text>编辑</Text>
-                      </AtButton>
-
-                      <AtButton
-                        type='secondary'
-                        size='small'
-                        onClick={() => handleDeleteClick(address.id)}
-                        className='delete-button'
-                      >
-                        <AtIcon value='trash' size='14' color='#FF4D4F' />
-                        <Text>删除</Text>
-                      </AtButton>
-                    </View>
-                  )}
-                </View>
-              </View>
-            </AtCard>
+              address={address}
+              isSelectMode={isSelectMode}
+              onSelect={handleSelectAddress}
+              onEdit={handleEditAddress}
+              onSetDefault={handleSetDefault}
+              onDelete={handleDeleteClick}
+            />
           ))
         )}
       </View>
@@ -308,7 +248,6 @@ const AddressList: React.FC<AddressListProps> = () => {
           onClick={handleAddAddress}
           className='add-button'
         >
-          <AtIcon value='add' size='16' color='white' />
           <Text>新增收货地址</Text>
         </AtButton>
       </View>
