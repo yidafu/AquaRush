@@ -21,7 +21,6 @@ package dev.yidafu.aqua.common.graphql
 
 import dev.yidafu.aqua.common.security.UserPrincipal
 import org.slf4j.LoggerFactory
-import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.context.SecurityContextHolder
 
 /**
@@ -69,7 +68,10 @@ object GraphQLValidator {
    * @param requiredRole 需要的角色
    * @return 是否有权限
    */
-  fun hasRole(userPrincipal: UserPrincipal?, requiredRole: String): Boolean {
+  fun hasRole(
+    userPrincipal: UserPrincipal?,
+    requiredRole: String,
+  ): Boolean {
     if (userPrincipal == null) return false
     return userPrincipal.authorities.any { authority -> authority.authority == requiredRole }
   }
@@ -80,7 +82,10 @@ object GraphQLValidator {
    * @param requiredRole 需要的角色
    * @throws SecurityException 如果用户没有指定角色
    */
-  fun requireRole(userPrincipal: UserPrincipal?, requiredRole: String) {
+  fun requireRole(
+    userPrincipal: UserPrincipal?,
+    requiredRole: String,
+  ) {
     if (!hasRole(userPrincipal, requiredRole)) {
       logger.warn("Access denied - user {} lacks required role {}", userPrincipal?.id, requiredRole)
       throw SecurityException("权限不足，需要角色: $requiredRole")
@@ -97,6 +102,6 @@ object GraphQLValidator {
     val environmentProfiles = System.getenv("SPRING_PROFILES_ACTIVE") ?: ""
 
     return activeProfiles.contains("dev") || activeProfiles.contains("development") ||
-           environmentProfiles.contains("dev") || environmentProfiles.contains("development")
+      environmentProfiles.contains("dev") || environmentProfiles.contains("development")
   }
 }

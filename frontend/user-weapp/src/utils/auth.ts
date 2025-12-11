@@ -47,6 +47,7 @@ console.log('API_BASE_URL', Taro.env)
 class AuthService {
   private token: string | null = null
   private userInfo: UserInfo | null = null
+  private silentLoginPromise: Promise<boolean> | null = null
 
   constructor() {
     this.loadStoredAuth()
@@ -86,6 +87,9 @@ class AuthService {
     try {
       this.token = null
       this.userInfo = null
+
+      // 清除进行中的静默登录 Promise
+      this.silentLoginPromise = null
 
       // 使用网络管理器清除 token
       networkManager.clearAuthToken()
@@ -133,13 +137,34 @@ class AuthService {
 
   // 静默登录方法，用于app启动时自动登录
   async silentLogin(): Promise<boolean> {
-    try {
-      await this.weChatLogin()
-      return true
-    } catch (error) {
-      console.warn('Silent login failed:', error)
-      return false
+    // 如果已经有进行中的静默登录请求，返回同一个 Promise
+    if (this.silentLoginPromise) {
+      console.log('🔄 静默登录正在进行中，等待现有请求完成...')
+      return this.silentLoginPromise
     }
+
+    // 检查是否已经有有效的 token
+    if (this.token && this.userInfo) {
+      return true
+    }
+
+    // 创建新的静默登录 Promise
+    this.silentLoginPromise = (async () => {
+      try {
+        console.log('🔐 开始静默登录...')
+        await this.weChatLogin()
+        console.log('✅ 静默登录成功')
+        return true
+      } catch (error) {
+        console.warn('⚠️ 静默登录失败:', error)
+        return false
+      } finally {
+        // 无论成功失败，都清除 Promise 引用
+        this.silentLoginPromise = null
+      }
+    })()
+
+    return this.silentLoginPromise
   }
 
   private async getWeChatCode(): Promise<WeChatAuthResponse> {
@@ -304,6 +329,23 @@ class AuthService {
       return false
     }
   }
+
+  // 强制清除所有认证数据
+  forceClearAuth(): void {
+    this.clearStoredAuth()
+
+    // 清除进行中的静默登录 Promise
+    this.silentLoginPromise = null
+
+    // 额外清除其他可能的认证数据
+    try {
+      Taro.removeStorageSync('refresh_token')
+      Taro.removeStorageSync('login_time')
+      console.log('✅ 所有认证数据已强制清除')
+    } catch (error) {
+      console.error('Failed to force clear auth:', error)
+    }
+  }
 }
 
 export const authService = new AuthService()
@@ -363,6 +405,17 @@ export const useAuth = () => {
     }
   }, [])
 
+  const clearAuth = useCallback(() => {
+    authService.forceClearAuth()
+    setIsAuthenticated(false)
+    setUserInfo(null)
+    Taro.showToast({
+      title: '已清除登录信息',
+      icon: 'success',
+      duration: 2000
+    })
+  }, [])
+
   return {
     isAuthenticated,
     userInfo,
@@ -370,6 +423,7 @@ export const useAuth = () => {
     login,
     logout,
     refreshUserInfo,
+    clearAuth,
     getToken: () => authService.getToken()
   }
 }

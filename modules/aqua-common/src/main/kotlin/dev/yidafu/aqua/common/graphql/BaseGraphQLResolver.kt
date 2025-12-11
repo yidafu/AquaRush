@@ -21,7 +21,6 @@ package dev.yidafu.aqua.common.graphql
 
 import dev.yidafu.aqua.common.security.UserPrincipal
 import org.slf4j.LoggerFactory
-import org.springframework.security.access.prepost.PreAuthorize
 
 /**
  * GraphQL Resolver 基类，提供通用的验证逻辑
@@ -59,7 +58,10 @@ abstract class BaseGraphQLResolver {
    * @param userPrincipal 注入的用户主体
    * @param operation 操作名称，用于日志记录
    */
-  protected fun checkPermission(userPrincipal: UserPrincipal?, operation: String) {
+  protected fun checkPermission(
+    userPrincipal: UserPrincipal?,
+    operation: String,
+  ) {
     // 在开发环境跳过权限检查，方便调试
     if (GraphQLValidator.isDevelopmentEnvironment()) {
       logger.debug("Development environment - skipping permission check for $operation")
@@ -79,18 +81,19 @@ abstract class BaseGraphQLResolver {
   protected fun logOperation(
     userPrincipal: UserPrincipal?,
     operation: String,
-    parameters: Map<String, Any>? = null
+    parameters: Map<String, Any>? = null,
   ) {
     val userId = userPrincipal?.id ?: "anonymous"
-    val paramsStr = parameters?.let {
-      it.entries.joinToString(", ") { "${it.key}=${it.value}" }
-    } ?: "no-parameters"
+    val paramsStr =
+      parameters?.let {
+        it.entries.joinToString(", ") { "${it.key}=${it.value}" }
+      } ?: "no-parameters"
 
     logger.info(
       "GraphQL Operation: {} by User {} with parameters: {}",
       operation,
       userId,
-      paramsStr
+      paramsStr,
     )
   }
 }
