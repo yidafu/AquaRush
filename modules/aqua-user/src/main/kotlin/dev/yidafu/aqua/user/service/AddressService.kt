@@ -310,7 +310,7 @@ class AddressService(
    * 获取用户地址分页列表
    */
   fun findByUserId(userId: Long): List<AddressModel> {
-    val addresses = addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
+    val addresses = addressRepository.findByUserIdOrderByIdDesc(userId)
     return addresses
   }
 

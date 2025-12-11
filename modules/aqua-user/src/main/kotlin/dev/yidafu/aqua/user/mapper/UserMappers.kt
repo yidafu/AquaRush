@@ -27,6 +27,7 @@ import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
 import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.common.graphql.generated.Region
+import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.user.domain.model.AddressModel
 import dev.yidafu.aqua.user.domain.model.AdminModel
@@ -37,6 +38,8 @@ import org.springframework.stereotype.Component
 import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
 import jakarta.validation.constraints.NotNull
+import tools.jackson.databind.ObjectMapper
+
 // ============================================================================
 // Domain Model → GraphQL Mappers
 // ============================================================================
@@ -156,3 +159,42 @@ object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
 /**
  * Mapper for converting UpdateAddressRequest with id and userId to AddressModel domain entity
  */
+object AddressUpdateMapper : ObjectMappie<UpdateAddressInput, AddressModel>() {
+  override fun map(from: UpdateAddressInput): AddressModel  = mapping {
+
+    to::id fromValue null
+    to::userId fromValue 0L // Will be set after mapping
+
+    to::province fromValue (from.province ?: "")
+    to::receiverName fromValue (from.receiverName ?: "")
+    to::phone fromValue (from.phone ?: "")
+    to::provinceCode fromValue (from.provinceCode ?: "")
+    to::city fromValue (from.city ?: "")
+    to::cityCode fromValue (from.cityCode ?: "")
+    to::district fromValue (from.district ?: "")
+    to::districtCode fromValue (from.districtCode ?: "")
+    to::detailAddress fromValue (from.detailAddress ?: "")
+    to::isDefault fromValue (from.isDefault ?: false)
+
+    to::createdAt fromValue LocalDateTime.now()
+    to::updatedAt fromValue LocalDateTime.now()
+    // Convert Float to Double for nullable fields
+    to::longitude fromValue from.longitude?.toDouble()
+    to::latitude fromValue from.latitude?.toDouble()
+  }
+}
+
+fun AddressModel.merge(inputInput: UpdateAddressInput) {
+  inputInput.receiverName?.let { this.receiverName = it }
+  inputInput.phone?.let { this.phone = it }
+  inputInput.province?.let { this.province = it }
+  inputInput.provinceCode?.let { this.provinceCode = it }
+  inputInput.city?.let { this.city = it }
+  inputInput.cityCode?.let { this.cityCode = it }
+  inputInput.district?.let { this.district = it }
+  inputInput.districtCode?.let { this.districtCode = it }
+  inputInput.detailAddress?.let { this.detailAddress = it }
+  inputInput.longitude?.let { this.longitude = it.toDouble() }
+  inputInput.latitude?.let { this.latitude = it.toDouble() }
+  inputInput.isDefault?.let { this.isDefault = it }
+}

@@ -6,7 +6,6 @@
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
 
     <!-- Clear Liquibase history first -->
-    <!-- <include file="db/changelog/changes/v1.0.3-clear-liquibase-history.xml"/> -->
     <!-- Development schema recreation - drops and recreates all tables -->
     <include file="db/changelog/changes/v1.0.0-init-comprehensive-schema.xml"/>
     <include file="db/changelog/changes/v1.0.2-comprehensive-test-data.xml"/>

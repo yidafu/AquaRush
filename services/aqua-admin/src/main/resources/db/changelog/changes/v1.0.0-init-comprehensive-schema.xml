@@ -49,6 +49,11 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="1.0.0-insert-regions-data" author="aqua-rush">
+        <comment>Insert initial regions data (provinces, cities, districts)</comment>
+        <sqlFile path="db/changelog/changes/insert-regions.sql" relativeToChangelogFile="false"/>
+    </changeSet>
+
     <changeSet id="1.0.0-create-admin-table" author="aqua-rush">
         <comment>Create admin table</comment>
         <createTable tableName="admins">

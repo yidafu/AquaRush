@@ -30,6 +30,7 @@ interface AddressRepository : JpaRepository<AddressModel, Long>, JpaSpecificatio
   fun findByUserId(userId: Long): List<AddressModel>
 
   fun findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId: Long): List<AddressModel>
+  fun findByUserIdOrderByIdDesc(userId: Long): List<AddressModel>
 
   fun findByUserIdAndIsDefault(
     userId: Long,

@@ -27,7 +27,7 @@ import java.time.LocalDateTime
 open class AddressModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  var id: Long? = null,
 
   @Column(name = "user_id", nullable = false)
   var userId: Long,
