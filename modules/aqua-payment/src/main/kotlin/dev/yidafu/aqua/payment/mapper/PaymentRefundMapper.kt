@@ -20,9 +20,21 @@
 package dev.yidafu.aqua.payment.mapper
 
 import dev.yidafu.aqua.api.dto.PaymentRefundDTO
-import dev.yidafu.aqua.payment.domain.model.PaymentRefund
-import org.springframework.stereotype.Component
+import dev.yidafu.aqua.payment.domain.model.PaymentRefundModel
 import tech.mappie.api.ObjectMappie
 
-@Component
-object PaymentRefundMapper : ObjectMappie<PaymentRefund, PaymentRefundDTO>()
+/**
+ * Mapper for converting PaymentRefundModel domain entity to PaymentRefundDTO for API responses
+ */
+object PaymentRefundMapper : ObjectMappie<PaymentRefundModel, PaymentRefundDTO>() {
+    override fun map(from: PaymentRefundModel) = mapping {
+        // Automatic mapping for most fields
+        // Field name mapping: refundedAt -> processedAt
+        to::processedAt fromProperty from::refundedAt
+
+        // Note: The following fields exist in PaymentRefundModel but are intentionally excluded from PaymentRefundDTO:
+        // - refundId: internal WeChat refund ID
+        // - outRefundNo: internal refund tracking number
+        // - refundAccount: internal refund account information
+    }
+}

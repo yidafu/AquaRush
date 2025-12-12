@@ -5,18 +5,8 @@
     xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
 
-    <include file="db/changelog/changes/v1.0.0-init-regions-schema.xml"/>
-    <include file="db/changelog/changes/v1.0.0-init-user-schema.xml"/>
-    <include file="db/changelog/changes/v1.0.0-init-product-schema.xml"/>
-    <include file="db/changelog/changes/v1.0.0-init-order-schema.xml"/>
-    <include file="db/changelog/changes/v1.0.0-init-payment-schema.xml"/>
-    <include file="db/changelog/changes/v1.0.0-init-delivery-schema.xml"/>
-    <include file="db/changelog/changes/v1.0.0-init-event-schema.xml"/>
-    <include file="db/changelog/changes/v1.0.0-init-admin-schema.xml"/>
-    <include file="db/changelog/changes/v1.0.0-delivery-worker-stats.xml"/>
-    <include file="db/changelog/changes/v1.0.0-storage-schema.xml"/>
-    <include file="db/changelog/changes/v1.0.0-notification-schema.xml"/>
-    <include file="db/changelog/changes/v1.0.0-review-schema.xml"/>
-    <include file="db/changelog/changes/v1.0.0-reconciliation-schema.xml"/>
+    <!-- Clear Liquibase history first -->
+    <!-- Development schema recreation - drops and recreates all tables -->
+    <include file="db/changelog/changes/v1.0.0-init-comprehensive-schema.xml"/>
     <include file="db/changelog/changes/v1.0.2-comprehensive-test-data.xml"/>
 </databaseChangeLog>

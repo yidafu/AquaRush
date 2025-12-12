@@ -23,10 +23,10 @@ import jakarta.persistence.*
 
 @Entity
 @Table(name = "delivery_areas")
-data class DeliveryArea(
+data class DeliveryAreaModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  val id: Long = -1L,
   @Column(name = "name", nullable = false)
   var name: String,
   @Column(name = "province", nullable = false)

@@ -37,7 +37,7 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     default-schema: public
     drop-first: false         # 生产环境必须为 false！
-    enabled: false            # Disable Liquibase for admin service since main app manages schema
+    enabled: true            # Disable Liquibase for admin service since main app manages schema
 
   artemis:
     mode: embedded
@@ -139,6 +139,8 @@ aqua:
   wechat:
     app-id: ${WECHAT_APP_ID:your-app-id}
     app-secret: ${WECHAT_APP_SECRET:your-app-secret}
+    token: "token"
+    aes-key: "string"
   messaging:
     enabled: true
     strategy: artemis # artemis, hybrid, outbox-only, memory-only

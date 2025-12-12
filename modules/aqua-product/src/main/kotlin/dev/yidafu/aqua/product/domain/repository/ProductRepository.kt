@@ -20,15 +20,15 @@
 package dev.yidafu.aqua.product.domain.repository
 
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.product.domain.model.Product
+import dev.yidafu.aqua.product.domain.model.ProductModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ProductRepository : JpaRepository<Product, Long>, JpaSpecificationExecutor<Product> {
-  fun findByStatus(status: ProductStatus): List<Product>
+interface ProductRepository : JpaRepository<ProductModel, Long>, JpaSpecificationExecutor<ProductModel> {
+  fun findByStatus(status: ProductStatus): List<ProductModel>
 
   fun decreaseStock(
     productId: Long,

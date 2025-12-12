@@ -21,7 +21,7 @@ package dev.yidafu.aqua.api.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.*
-import java.util.*
+import java.time.LocalDateTime
 
 /**
  * 地址数据传输对象
@@ -42,24 +42,30 @@ data class AddressDTO(
   @field:JsonProperty("province")
   @field:NotBlank(message = "省份不能为空")
   val province: String,
+  @field:JsonProperty("provinceCode")
+  val provinceCode: String? = null,
   @field:JsonProperty("city")
   @field:NotBlank(message = "城市不能为空")
   val city: String,
+  @field:JsonProperty("cityCode")
+  val cityCode: String? = null,
   @field:JsonProperty("district")
-  @field:NotBlank(message = "区域不能为空")
+  @field:NotBlank(message = "区县不能为空")
   val district: String,
+  @field:JsonProperty("districtCode")
+  val districtCode: String? = null,
   @field:JsonProperty("detailAddress")
   @field:NotBlank(message = "详细地址不能为空")
   val detailAddress: String,
-  @field:JsonProperty("postalCode")
-  @field:Size(max = 10, message = "邮政编码长度不能超过10个字符")
-  val postalCode: String? = null,
-  @field:JsonProperty("coordinates")
-  @JsonProperty("coordinates")
-  val coordinates: Coordinates? = null,
+  @field:JsonProperty("longitude")
+  val longitude: Double? = null,
+  @field:JsonProperty("latitude")
+  val latitude: Double? = null,
   @field:JsonProperty("isDefault")
   @field:NotNull(message = "是否默认地址不能为空")
   val isDefault: Boolean = false,
+  @field:JsonProperty("createdAt")
+  val createdAt: LocalDateTime? = null,
+  @field:JsonProperty("updatedAt")
+  val updatedAt: LocalDateTime? = null,
 )
-
-class Coordinates

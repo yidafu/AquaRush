@@ -24,34 +24,27 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "user_notification_settings")
-data class UserNotificationSettings(
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    val id: Long = 0,
-
-    @Column(name = "user_id", nullable = false, unique = true)
-    val userId: Long,
-
-    @Column(name = "order_updates", nullable = false)
-    var orderUpdates: Boolean = true,
-
-    @Column(name = "payment_notifications", nullable = false)
-    var paymentNotifications: Boolean = true,
-
-    @Column(name = "delivery_notifications", nullable = false)
-    var deliveryNotifications: Boolean = true,
-
-    @Column(name = "promotional_notifications", nullable = false)
-    var promotionalNotifications: Boolean = false,
-
-    @Column(name = "created_at", nullable = false, updatable = false)
-    val createdAt: LocalDateTime = LocalDateTime.now(),
-
-    @Column(name = "updated_at", nullable = false)
-    var updatedAt: LocalDateTime = LocalDateTime.now()
+data class UserNotificationSettingsModel(
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  val id: Long = 0,
+  @Column(name = "user_id", nullable = false, unique = true)
+  val userId: Long,
+  @Column(name = "order_updates", nullable = false)
+  var orderUpdates: Boolean = true,
+  @Column(name = "payment_notifications", nullable = false)
+  var paymentNotifications: Boolean = true,
+  @Column(name = "delivery_notifications", nullable = false)
+  var deliveryNotifications: Boolean = true,
+  @Column(name = "promotional_notifications", nullable = false)
+  var promotionalNotifications: Boolean = false,
+  @Column(name = "created_at", nullable = false, updatable = false)
+  val createdAt: LocalDateTime = LocalDateTime.now(),
+  @Column(name = "updated_at", nullable = false)
+  var updatedAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    @PreUpdate
-    fun preUpdate() {
-        updatedAt = LocalDateTime.now()
-    }
+  @PreUpdate
+  fun preUpdate() {
+    updatedAt = LocalDateTime.now()
+  }
 }

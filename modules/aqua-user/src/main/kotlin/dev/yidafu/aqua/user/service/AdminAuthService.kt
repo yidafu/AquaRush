@@ -21,8 +21,8 @@ package dev.yidafu.aqua.user.service
 
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.Admin
-import dev.yidafu.aqua.user.domain.model.AdminRole
+import dev.yidafu.aqua.user.domain.model.AdminModel
+import dev.yidafu.aqua.user.domain.model.AdminRoleModel
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.service.dto.LoginResponse
 import dev.yidafu.aqua.user.service.dto.AdminUserInfo
@@ -102,7 +102,7 @@ class AdminAuthService(
   /**
    * Find admin by username
    */
-  fun findAdminByUsername(username: String): Admin? =
+  fun findAdminByUsername(username: String): AdminModel? =
     adminRepository.findByUsername(username).orElse(null)
 
   /**

@@ -19,14 +19,13 @@
 
 package dev.yidafu.aqua.reconciliation.service
 
+import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.reconciliation.domain.model.*
 import dev.yidafu.aqua.reconciliation.domain.model.enums.*
 import dev.yidafu.aqua.reconciliation.domain.repository.*
 import dev.yidafu.aqua.reconciliation.external.wechat.WeChatReconciliationApi
 import dev.yidafu.aqua.reconciliation.external.wechat.dto.*
 import dev.yidafu.aqua.reconciliation.external.config.ReconciliationConfig
-import dev.yidafu.aqua.common.domain.model.Payment
-import dev.yidafu.aqua.common.domain.model.Order
 import dev.yidafu.aqua.common.domain.repository.PaymentRepository
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
@@ -424,9 +423,9 @@ class ReconciliationService(
      * 执行支付对账核心逻辑
      */
     private fun performPaymentReconciliation(
-        internalPayments: List<Payment>,
-        weChatTransactions: List<WeChatTransactionRecord>,
-        taskId: String
+      internalPayments: List<PaymentModel>,
+      weChatTransactions: List<WeChatTransactionRecord>,
+      taskId: String
     ): PaymentReconciliationResult {
         val internalMap = internalPayments.associateBy { it.transactionId }
         val weChatMap = weChatTransactions.associateBy { it.transactionId }

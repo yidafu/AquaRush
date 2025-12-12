@@ -24,10 +24,10 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "delivery_addresses")
-data class DeliveryAddress(
+data class DeliveryAddressModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  val id: Long = -1L,
   @Column(name = "user_id", nullable = false)
   val userId: Long,
   @Column(name = "receiver_name", nullable = false)

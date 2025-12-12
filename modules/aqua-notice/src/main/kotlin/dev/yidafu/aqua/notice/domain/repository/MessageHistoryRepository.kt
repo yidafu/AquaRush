@@ -19,38 +19,29 @@
 
 package dev.yidafu.aqua.notice.domain.repository
 
-import dev.yidafu.aqua.notice.domain.model.MessageHistory
+import dev.yidafu.aqua.notice.domain.model.MessageHistoryModel
 import dev.yidafu.aqua.notice.domain.model.MessageStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 import java.util.*
 
 @Repository
-interface MessageHistoryRepository : JpaRepository<MessageHistory, Long> {
-    fun findByUserIdOrderByCreatedAtDesc(userId: Long, pageable: Pageable): Page<MessageHistory>
-    fun findByUserIdAndStatus(userId: Long, status: MessageStatus): List<MessageHistory>
-    fun findByMessageTypeAndStatus(messageType: String, status: MessageStatus): List<MessageHistory>
+interface MessageHistoryRepository : JpaRepository<MessageHistoryModel, Long>, MessageHistoryRepositoryCustom {
+  fun findByUserIdOrderByCreatedAtDesc(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<MessageHistoryModel>
 
-    @Query("SELECT COUNT(m) FROM MessageHistory m WHERE m.userId = :userId AND m.status = :status")
-    fun countByUserIdAndStatus(@Param("userId") userId: Long, @Param("status") status: MessageStatus): Long
+  fun findByUserIdAndStatus(
+    userId: Long,
+    status: MessageStatus,
+  ): List<MessageHistoryModel>
 
-    @Query("SELECT COUNT(m) FROM MessageHistory m WHERE m.messageType = :messageType AND m.createdAt >= :since")
-    fun countByMessageTypeSince(@Param("messageType") messageType: String, @Param("since") since: LocalDateTime): Long
-
-    fun findByStatusAndRetryCountLessThanAndCreatedAtBefore(
-        status: MessageStatus,
-        retryCount: Int,
-        before: LocalDateTime
-    ): List<MessageHistory> {
-      return emptyList()
-    }
-
-    fun findByWxMessageId(wxMessageId: String): Optional<MessageHistory> {
-    return Optional.empty<MessageHistory>()
-    }
+  fun findByMessageTypeAndStatus(
+    messageType: String,
+    status: MessageStatus,
+  ): List<MessageHistoryModel>
 }

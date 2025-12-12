@@ -27,58 +27,50 @@ import java.time.LocalDateTime
  * 配送员评分统计响应DTO
  */
 data class DeliveryWorkerStatisticsResponse(
-    @field:JsonProperty("deliveryWorkerId")
-    val deliveryWorkerId: Long,
-
-    @field:JsonProperty("workerName")
-    val workerName: String? = null,
-
-    @field:JsonProperty("averageRating")
-    val averageRating: BigDecimal,
-
-    @field:JsonProperty("totalReviews")
-    val totalReviews: Int,
-
-    @field:JsonProperty("oneStarReviews")
-    val oneStarReviews: Int,
-
-    @field:JsonProperty("twoStarReviews")
-    val twoStarReviews: Int,
-
-    @field:JsonProperty("threeStarReviews")
-    val threeStarReviews: Int,
-
-    @field:JsonProperty("fourStarReviews")
-    val fourStarReviews: Int,
-
-    @field:JsonProperty("fiveStarReviews")
-    val fiveStarReviews: Int,
-
-    @field:JsonProperty("ratingDistribution")
-    val ratingDistribution: Map<Int, Int>,
-
-    @field:JsonProperty("lastUpdated")
-    val lastUpdated: LocalDateTime
+  @field:JsonProperty("deliveryWorkerId")
+  val deliveryWorkerId: Long,
+  @field:JsonProperty("workerName")
+  val workerName: String? = null,
+  @field:JsonProperty("averageRating")
+  val averageRating: BigDecimal,
+  @field:JsonProperty("totalReviews")
+  val totalReviews: Int,
+  @field:JsonProperty("oneStarReviews")
+  val oneStarReviews: Int,
+  @field:JsonProperty("twoStarReviews")
+  val twoStarReviews: Int,
+  @field:JsonProperty("threeStarReviews")
+  val threeStarReviews: Int,
+  @field:JsonProperty("fourStarReviews")
+  val fourStarReviews: Int,
+  @field:JsonProperty("fiveStarReviews")
+  val fiveStarReviews: Int,
+  @field:JsonProperty("ratingDistribution")
+  val ratingDistribution: Map<Int, Int>,
+  @field:JsonProperty("lastUpdated")
+  val lastUpdated: LocalDateTime,
 ) {
-    /**
-     * 获取好评率 (4星及以上)
-     */
-    @get:JsonProperty("positiveRatingPercentage")
-    val positiveRatingPercentage: Double
-        get() = if (totalReviews > 0) {
-            ((fourStarReviews + fiveStarReviews).toDouble() / totalReviews * 100)
-        } else {
-            0.0
-        }
+  /**
+   * 获取好评率 (4星及以上)
+   */
+  @get:JsonProperty("positiveRatingPercentage")
+  val positiveRatingPercentage: Double
+    get() =
+      if (totalReviews > 0) {
+        ((fourStarReviews + fiveStarReviews).toDouble() / totalReviews * 100)
+      } else {
+        0.0
+      }
 
-    /**
-     * 获取五星好评率
-     */
-    @get:JsonProperty("fiveStarRatingPercentage")
-    val fiveStarRatingPercentage: Double
-        get() = if (totalReviews > 0) {
-            (fiveStarReviews.toDouble() / totalReviews * 100)
-        } else {
-            0.0
-        }
+  /**
+   * 获取五星好评率
+   */
+  @get:JsonProperty("fiveStarRatingPercentage")
+  val fiveStarRatingPercentage: Double
+    get() =
+      if (totalReviews > 0) {
+        (fiveStarReviews.toDouble() / totalReviews * 100)
+      } else {
+        0.0
+      }
 }

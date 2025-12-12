@@ -19,33 +19,28 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.Region
+import dev.yidafu.aqua.user.domain.model.RegionModel
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 @Repository
-interface RegionRepository : JpaRepository<Region, Long> {
+interface RegionRepository : JpaRepository<RegionModel, Long>, RegionRepositoryCustom {
 
-  fun findByCode(code: String): Region?
+  fun findByCode(code: String): RegionModel?
 
-  fun findByParentCodeAndLevel(parentCode: String, level: Int): List<Region>
+  fun findByParentCodeAndLevel(parentCode: String, level: Int): List<RegionModel>
 
-  fun findByLevel(level: Int): List<Region>
+  fun findByLevel(level: Int): List<RegionModel>
 
   fun existsByCode(code: String): Boolean
 
   fun existsByCodeAndLevel(code: String, level: Int): Boolean
 
-  fun findByNameContainingAndLevelOrderByCode(name: String, level: Int): List<Region>
+  fun findByNameContainingAndLevelOrderByCode(name: String, level: Int): List<RegionModel>
 
-  fun findByNameContainingOrderByCode(name: String): List<Region>
+  fun findByNameContainingOrderByCode(name: String): List<RegionModel>
 
-  fun findByParentCodeOrderByCode(parentCode: String): List<Region>
+  fun findByParentCodeOrderByCode(parentCode: String): List<RegionModel>
 
-  fun findByLevelOrderByCode(level: Int): List<Region>
-
-  @Query("SELECT r FROM Region r WHERE r.parentCode IS NULL AND r.level = :level")
-  fun findRootRegions(@Param("level") level: Int): List<Region>
+  fun findByLevelOrderByCode(level: Int): List<RegionModel>
 }

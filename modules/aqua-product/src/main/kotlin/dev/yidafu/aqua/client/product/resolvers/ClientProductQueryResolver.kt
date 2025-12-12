@@ -22,7 +22,7 @@ package dev.yidafu.aqua.client.product.resolvers
 import dev.yidafu.aqua.client.product.resolvers.ClientProductQueryResolver.Companion.ProductSearchInput
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.product.domain.model.Product
+import dev.yidafu.aqua.product.domain.model.ProductModel
 import dev.yidafu.aqua.product.service.ProductService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -46,7 +46,7 @@ class ClientProductQueryResolver(
      * 根据ID查询产品详情（仅限上线产品）
      */
     @PreAuthorize("isAuthenticated()")
-    fun product(id: Long): Product? {
+    fun product(id: Long): ProductModel? {
         val product = productService.findById(id)
         return product?.takeIf { it.status == ProductStatus.Online }
     }
@@ -60,7 +60,7 @@ class ClientProductQueryResolver(
         size: Int = 20,
         sortBy: String = "createdAt",
         sortDirection: String = "desc"
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(
             page,
             size,
@@ -73,7 +73,7 @@ class ClientProductQueryResolver(
      * 按关键词搜索产品
      */
     @PreAuthorize("isAuthenticated()")
-    fun searchProducts(input: ProductSearchInput): Page<Product> {
+    fun searchProducts(input: ProductSearchInput): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(
             input.page ?: 0,
             input.size ?: 20,
@@ -114,7 +114,7 @@ class ClientProductQueryResolver(
         size: Int = 20,
         sortBy: String = "name",
         sortDirection: String = "asc"
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(
             page,
             size,
@@ -136,7 +136,7 @@ class ClientProductQueryResolver(
         maxPrice: java.math.BigDecimal,
         page: Int = 0,
         size: Int = 20
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
         return productService.findByPriceBetweenAndStatus(minPrice, maxPrice, pageable)
     }
@@ -149,7 +149,7 @@ class ClientProductQueryResolver(
         limit: Int = 10,
         page: Int = 0,
         size: Int = 20
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
         return productService.findPopularProducts(pageable, limit)
     }
@@ -162,7 +162,7 @@ class ClientProductQueryResolver(
         days: Int = 7,
         page: Int = 0,
         size: Int = 20
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
         return productService.findNewProducts(pageable, days)
     }
@@ -175,7 +175,7 @@ class ClientProductQueryResolver(
         limit: Int = 10,
         page: Int = 0,
         size: Int = 20
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
         return productService.findRecommendedProducts(pageable, limit)
     }

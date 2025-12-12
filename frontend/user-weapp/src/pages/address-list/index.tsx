@@ -1,156 +1,107 @@
-import { Component } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, Button, Image } from '@tarojs/components'
-import { AtButton, AtCard, AtIcon, AtToast, AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
-import Taro from '@tarojs/taro'
+import { AtButton, AtToast, AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
+import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import AddressService from '../../services/AddressService'
+import { Address } from '../../types/address'
+import AddressCard from '../../components/AddressCard'
 
 import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/card.scss"
-import "taro-ui/dist/style/components/icon.scss"
 import "taro-ui/dist/style/components/toast.scss"
 import "taro-ui/dist/style/components/modal.scss"
 import './index.scss'
 
-interface Address {
-  id: string
-  receiverName: string
-  phone: string
-  province: string
-  city: string
-  district: string
-  detailAddress: string
-  postalCode: string
-  isDefault: boolean
+interface AddressListProps {
+  // Props can be added here if needed
 }
 
-interface AddressListState {
-  addresses: Address[]
-  loading: boolean
-  isSelectMode: boolean
-  deleteModalVisible: boolean
-  deleteAddressId: string | null
-  showToast: boolean
-  toastText: string
-  toastType: 'success' | 'error' | 'loading'
-}
+const AddressList: React.FC<AddressListProps> = () => {
+  const [addresses, setAddresses] = useState<Address[]>([])
+  const [loading, setLoading] = useState<boolean>(true)
+  const [isSelectMode, setIsSelectMode] = useState<boolean>(false)
+  const [deleteModalVisible, setDeleteModalVisible] = useState<boolean>(false)
+  const [deleteAddressId, setDeleteAddressId] = useState<number | null>(null)
+  const [showToast, setShowToast] = useState<boolean>(false)
+  const [toastText, setToastText] = useState<string>('')
+  const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
 
-export default class AddressList extends Component<{}, AddressListState> {
-  isFromOrderConfirm: boolean = false
+  const addressService = AddressService.getInstance()
 
-  constructor(props) {
-    super(props)
-    this.state = {
-      addresses: [],
-      loading: true,
-      isSelectMode: false,
-      deleteModalVisible: false,
-      deleteAddressId: null,
-      showToast: false,
-      toastText: '',
-      toastType: 'success'
-    }
-  }
+  // Standard React hooks
+  useEffect(() => {
+    // Component mounted logic
+    console.log('AddressList component mounted')
+  }, [])
 
-  componentDidMount() {
+  // Taro page lifecycle hooks
+  useReady(() => {
     // 检查是否从订单确认页面跳转过来（选择地址模式）
     const instance = Taro.getCurrentInstance()
     const { select } = instance.router?.params || {}
+    const isFromOrderConfirm = select === 'true'
+    setIsSelectMode(isFromOrderConfirm)
+  })
 
-    this.isFromOrderConfirm = select === 'true'
-    this.setState({ isSelectMode: this.isFromOrderConfirm })
-
-    this.loadAddresses()
-  }
-
-  componentDidShow() {
+  useDidShow(() => {
     // 页面显示时刷新地址列表（从地址编辑页面返回时）
-    this.loadAddresses()
-  }
+    loadAddresses()
+  })
 
-  onPullDownRefresh = () => {
-    this.loadAddresses().finally(() => {
-      Taro.stopPullDownRefresh()
-    })
-  }
-
-  loadAddresses = async () => {
+  usePullDownRefresh(async () => {
     try {
-      this.setState({ loading: true })
+      await loadAddresses()
+    } finally {
+      Taro.stopPullDownRefresh()
+    }
+  })
 
-      // TODO: 实际项目中这里应该调用获取地址列表的API
-      // const addresses = await getUserAddresses()
+  const loadAddresses = async () => {
+    try {
+      setLoading(true)
 
-      // 模拟地址数据
-      const mockAddresses: Address[] = [
-        {
-          id: '1',
-          receiverName: '张三',
-          phone: '13800138000',
-          province: '广东省',
-          city: '深圳市',
-          district: '南山区',
-          detailAddress: '科技园南区深南大道9988号',
-          postalCode: '518000',
-          isDefault: true
-        },
-        {
-          id: '2',
-          receiverName: '李四',
-          phone: '13900139000',
-          province: '广东省',
-          city: '深圳市',
-          district: '福田区',
-          detailAddress: '华强北电子世界1栋',
-          postalCode: '518000',
-          isDefault: false
-        },
-        {
-          id: '3',
-          receiverName: '王五',
-          phone: '13700137000',
-          province: '广东省',
-          city: '深圳市',
-          district: '宝安区',
-          detailAddress: '宝安中心区新安街道',
-          postalCode: '518000',
-          isDefault: false
-        }
-      ]
+      const result = await addressService.getUserAddresses()
 
-      this.setState({ addresses: mockAddresses })
+      if (result.success && result.data) {
+        setAddresses(result.data)
+      } else {
+        setToastText(result.error?.message || '获取地址列表失败')
+        setToastType('error')
+        setShowToast(true)
+      }
     } catch (error) {
       console.error('获取地址列表失败:', error)
-      this.showToast('获取地址列表失败', 'error')
+      setToastText('获取地址列表失败')
+      setToastType('error')
+      setShowToast(true)
     } finally {
-      this.setState({ loading: false })
+      setLoading(false)
     }
   }
 
-  showToast = (text: string, type: 'success' | 'error' | 'loading' = 'success') => {
-    this.setState({
-      showToast: true,
-      toastText: text,
-      toastType: type
-    })
+  const handleShowToast = (text: string, type: 'success' | 'error' | 'loading' = 'success') => {
+    setToastText(text)
+    setToastType(type)
+    setShowToast(true)
   }
 
-  hideToast = () => {
-    this.setState({ showToast: false })
+  const handleHideToast = () => {
+    setShowToast(false)
   }
 
-  handleAddAddress = () => {
+  const handleAddAddress = () => {
     Taro.navigateTo({
       url: '/pages/address-edit/index'
     })
   }
 
-  handleEditAddress = (addressId: string) => {
+  const handleEditAddress = (addressId: number) => {
     Taro.navigateTo({
       url: `/pages/address-edit/index?id=${addressId}`
     })
   }
 
-  handleSelectAddress = (address: Address) => {
-    if (!this.isFromOrderConfirm) return
+  const handleSelectAddress = (address: Address) => {
+    if (!isSelectMode) return
 
     // 将选中的地址存储到本地，供订单确认页面使用
     Taro.setStorageSync('selectedAddress', address)
@@ -159,75 +110,69 @@ export default class AddressList extends Component<{}, AddressListState> {
     Taro.navigateBack()
   }
 
-  handleSetDefault = async (addressId: string) => {
+  const handleSetDefault = async (addressId: number) => {
     try {
-      // TODO: 实际项目中这里应该调用设置默认地址的API
-      // await setDefaultAddress(addressId)
+      const result = await addressService.setDefaultAddress(addressId)
 
-      // 更新本地状态
-      this.setState({
-        addresses: this.state.addresses.map(addr => ({
+      if (result.success) {
+        // 更新本地状态
+        setAddresses(addresses.map(addr => ({
           ...addr,
           isDefault: addr.id === addressId
-        }))
-      })
+        })))
 
-      this.showToast('设置默认地址成功', 'success')
+        handleShowToast('设置默认地址成功', 'success')
+      } else {
+        handleShowToast(result.error?.message || '设置默认地址失败', 'error')
+      }
     } catch (error) {
       console.error('设置默认地址失败:', error)
-      this.showToast('设置默认地址失败', 'error')
+      handleShowToast('设置默认地址失败', 'error')
     }
   }
 
-  handleDeleteClick = (addressId: string) => {
-    this.setState({
-      deleteModalVisible: true,
-      deleteAddressId: addressId
-    })
+  const handleDeleteClick = (addressId: number) => {
+    setDeleteModalVisible(true)
+    setDeleteAddressId(addressId)
   }
 
-  handleDeleteConfirm = async () => {
-    const { deleteAddressId } = this.state
-
+  const handleDeleteConfirm = async () => {
     if (!deleteAddressId) return
 
     try {
-      // TODO: 实际项目中这里应该调用删除地址的API
-      // await deleteAddress(deleteAddressId)
+      const result = await addressService.deleteAddress(deleteAddressId)
 
-      // 从本地状态中移除地址
-      this.setState({
-        addresses: this.state.addresses.filter(addr => addr.id !== deleteAddressId),
-        deleteModalVisible: false,
-        deleteAddressId: null
-      })
-
-      this.showToast('删除地址成功', 'success')
+      if (result.success) {
+        // 从本地状态中移除地址
+        setAddresses(addresses.filter(addr => addr.id !== deleteAddressId))
+        setDeleteModalVisible(false)
+        setDeleteAddressId(null)
+        handleShowToast('删除地址成功', 'success')
+      } else {
+        handleShowToast(result.error?.message || '删除地址失败', 'error')
+      }
     } catch (error) {
       console.error('删除地址失败:', error)
-      this.showToast('删除地址失败', 'error')
+      handleShowToast('删除地址失败', 'error')
     }
   }
 
-  handleDeleteCancel = () => {
-    this.setState({
-      deleteModalVisible: false,
-      deleteAddressId: null
-    })
+  const handleDeleteCancel = () => {
+    setDeleteModalVisible(false)
+    setDeleteAddressId(null)
   }
 
-  handleWechatImport = () => {
+  const handleWechatImport = () => {
     // 微信地址导入功能
     Taro.chooseAddress({
       success: (res) => {
-        const newAddress: Partial<Address> = {
+        const newAddress = {
           receiverName: res.userName || '',
           phone: res.telNumber || '',
           province: res.provinceName || '',
           city: res.cityName || '',
           district: res.countyName || '',
           detailAddress: `${res.detailInfo || ''}`.trim(),
-          postalCode: res.postalCode || '',
           isDefault: false
         }
 
@@ -250,160 +195,90 @@ export default class AddressList extends Component<{}, AddressListState> {
     })
   }
 
-  render() {
-    const {
-      addresses,
-      loading,
-      isSelectMode,
-      deleteModalVisible,
-      showToast,
-      toastText,
-      toastType
-    } = this.state
-
-    return (
-      <View className='address-list-page'>
-        {/* 微信地址导入按钮 */}
-        <View className='import-section'>
-          <AtButton
-            type='secondary'
-            size='small'
-            onClick={this.handleWechatImport}
-            className='import-button'
-          >
-            <AtIcon value='download' size='14' color='#667eea' />
-            <Text>导入微信地址</Text>
-          </AtButton>
-        </View>
-
-        {/* 地址列表 */}
-        <View className='address-list'>
-          {loading ? (
-            <View className='loading-container'>
-              <Text>加载中...</Text>
-            </View>
-          ) : addresses.length === 0 ? (
-            <View className='empty-container'>
-              <Image
-                src='/assets/empty-address.png'
-                mode='aspectFit'
-                className='empty-image'
-              />
-              <Text className='empty-text'>暂无收货地址</Text>
-              <Text className='empty-desc'>添加您的收货地址，方便快速下单</Text>
-            </View>
-          ) : (
-            addresses.map((address) => (
-              <AtCard
-                key={address.id}
-                className='address-card'
-              >
-                <View className='address-content'>
-                  {address.isDefault && (
-                    <View className='default-badge'>
-                      <Text>默认</Text>
-                    </View>
-                  )}
-
-                  <View className='address-header'>
-                    <Text className='receiver-name'>{address.receiverName}</Text>
-                    <Text className='receiver-phone'>{address.phone}</Text>
-                  </View>
-
-                  <Text className='address-detail'>
-                    {address.province} {address.city} {address.district} {address.detailAddress}
-                  </Text>
-
-                  <View className='address-footer'>
-                    {isSelectMode ? (
-                      <AtButton
-                        type='primary'
-                        size='small'
-                        onClick={() => this.handleSelectAddress(address)}
-                        className='select-button'
-                      >
-                        选择此地址
-                      </AtButton>
-                    ) : (
-                      <View className='action-buttons'>
-                        {!address.isDefault && (
-                          <AtButton
-                            type='secondary'
-                            size='small'
-                            onClick={() => this.handleSetDefault(address.id)}
-                            className='default-button'
-                          >
-                            设为默认
-                          </AtButton>
-                        )}
-
-                        <AtButton
-                          type='secondary'
-                          size='small'
-                          onClick={() => this.handleEditAddress(address.id)}
-                          className='edit-button'
-                        >
-                          <AtIcon value='edit' size='14' color='#666' />
-                          <Text>编辑</Text>
-                        </AtButton>
-
-                        <AtButton
-                          type='secondary'
-                          size='small'
-                          onClick={() => this.handleDeleteClick(address.id)}
-                          className='delete-button'
-                        >
-                          <AtIcon value='trash' size='14' color='#ff6b35' />
-                          <Text>删除</Text>
-                        </AtButton>
-                      </View>
-                    )}
-                  </View>
-                </View>
-              </AtCard>
-            ))
-          )}
-        </View>
-
-        {/* 底部添加按钮 */}
-        <View className='bottom-actions'>
-          <AtButton
-            type='primary'
-            size='normal'
-            onClick={this.handleAddAddress}
-            className='add-button'
-          >
-            <AtIcon value='add' size='16' color='white' />
-            <Text>新增收货地址</Text>
-          </AtButton>
-        </View>
-
-        {/* 删除确认弹窗 */}
-        <AtModal
-          isOpened={deleteModalVisible}
-          onClose={this.handleDeleteCancel}
+  return (
+    <View className='address-list-page'>
+      {/* 微信地址导入按钮 */}
+      <View className='flex justify-end import-section'>
+        <AtButton
+          type='secondary'
+          size='small'
+          onClick={handleWechatImport}
+          className='import-button'
         >
-          <AtModalHeader>确认删除</AtModalHeader>
-          <AtModalContent>
-            <Text>确定要删除这个地址吗？删除后无法恢复。</Text>
-          </AtModalContent>
-          <AtModalAction>
-            <Button onClick={this.handleDeleteCancel}>取消</Button>
-            <Button onClick={this.handleDeleteConfirm}>删除</Button>
-          </AtModalAction>
-        </AtModal>
-
-        {/* Toast 提示 */}
-        <AtToast
-          isOpened={showToast}
-          text={toastText}
-          status={toastType}
-          onClose={this.hideToast}
-        />
-
-        {/* 底部安全区域 */}
-        <View className='safe-bottom' />
+          <Text>导入微信地址</Text>
+        </AtButton>
       </View>
-    )
-  }
+
+      {/* 地址列表 */}
+      <View className='address-list'>
+        {loading ? (
+          <View className='loading-container'>
+            <Text>加载中...</Text>
+          </View>
+        ) : addresses.length === 0 ? (
+          <View className='empty-container'>
+            <Image
+              src='/assets/empty-address.png'
+              mode='aspectFit'
+              className='empty-image'
+            />
+            <Text className='empty-text'>暂无收货地址</Text>
+            <Text className='empty-desc'>添加您的收货地址，方便快速下单</Text>
+          </View>
+        ) : (
+          addresses.map((address) => (
+            <AddressCard
+              key={address.id}
+              address={address}
+              isSelectMode={isSelectMode}
+              onSelect={handleSelectAddress}
+              onEdit={handleEditAddress}
+              onSetDefault={handleSetDefault}
+              onDelete={handleDeleteClick}
+            />
+          ))
+        )}
+      </View>
+
+      {/* 底部添加按钮 */}
+      <View className='bottom-actions'>
+        <AtButton
+          type='primary'
+          size='normal'
+          onClick={handleAddAddress}
+          className='add-button'
+        >
+          <Text>新增收货地址</Text>
+        </AtButton>
+      </View>
+
+      {/* 删除确认弹窗 */}
+      <AtModal
+        isOpened={deleteModalVisible}
+        onClose={handleDeleteCancel}
+      >
+        <AtModalHeader>确认删除</AtModalHeader>
+        <AtModalContent>
+          <Text>确定要删除这个地址吗？删除后无法恢复。</Text>
+        </AtModalContent>
+        <AtModalAction>
+          <Button onClick={handleDeleteCancel}>取消</Button>
+          <Button onClick={handleDeleteConfirm}>删除</Button>
+        </AtModalAction>
+      </AtModal>
+
+      {/* Toast 提示 */}
+      <AtToast
+        isOpened={showToast}
+        text={toastText}
+        status={toastType}
+        onClose={handleHideToast}
+      />
+
+      {/* 底部安全区域 */}
+      <View className='safe-bottom' />
+    </View>
+  )
 }
+
+export default AddressList

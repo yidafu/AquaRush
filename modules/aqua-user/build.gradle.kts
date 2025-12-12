@@ -1,11 +1,15 @@
 plugins {
   id("aqua.spring.boot.library")
   alias(libs.plugins.mappie)
+  id("aqua.kotlin.querydsl")
 }
 
 dependencies {
   implementation(project(":modules:aqua-common"))
   implementation(project(":modules:aqua-api"))
+
+  // Spring Data JPA for AddressRepository
+  implementation(libs.bundles.spring.boot.data)
 
   // User-specific dependencies
   implementation(libs.spring.boot.starter.security)
@@ -17,9 +21,17 @@ dependencies {
   // Mappie
   implementation(libs.mappie.api)
 
-  // QueryDSL for type-safe queries (temporarily disabled)
-  // implementation(libs.bundles.querydsl)
-  // annotationProcessor(libs.querydsl.apt)
+  // QueryDSL dependencies are handled by aqua.kotlin.querydsl plugin
+  implementation(libs.wechat.miniapp)
+}
+
+// Configure QueryDSL
+val querydslDir = "$buildDir/generated/querydsl"
+
+querydsl {
+  jpa = true
+  hibernate = true
+  querydslSourcesDir = querydslDir
 }
 
 // Configure Kotlin compilation to include generated source

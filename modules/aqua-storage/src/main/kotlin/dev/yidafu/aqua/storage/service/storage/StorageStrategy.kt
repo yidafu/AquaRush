@@ -51,10 +51,11 @@ interface StorageStrategy {
 
     /**
      * 生成文件访问URL
-     * @param path 文件路径
+     * @param fileId 文件ID
+     * @param filename 文件名
      * @return 文件URL
      */
-    fun generateUrl(path: String): String
+    fun generateUrl(fileId: Long, filename: String): String
 
     /**
      * 检查文件是否存在

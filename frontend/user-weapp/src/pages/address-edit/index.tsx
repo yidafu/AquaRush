@@ -1,7 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, Input, Button, Switch, Picker } from '@tarojs/components'
-import { AtButton, AtForm, AtInput, AtSwitch, AtToast, AtMessage } from 'taro-ui'
+import { View, Text, Picker } from '@tarojs/components'
+import { AtButton, AtForm, AtInput, AtSwitch, AtToast, AtMessage, AtList, AtListItem, AtActivityIndicator } from 'taro-ui'
 import Taro from '@tarojs/taro'
+import { useRegionSelector } from '../../hooks/useRegionSelector'
+import AddressMap from '../../components/AddressMap'
+import AddressService from '../../services/AddressService'
+import { AddressFormData, transformFormToGraphQLInput } from '../../types/address'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/form.scss"
@@ -9,18 +13,9 @@ import "taro-ui/dist/style/components/input.scss"
 import "taro-ui/dist/style/components/switch.scss"
 import "taro-ui/dist/style/components/toast.scss"
 import "taro-ui/dist/style/components/message.scss"
+import "taro-ui/dist/style/components/activity-indicator.scss"
+import "taro-ui/dist/style/components/icon.scss"
 import './index.scss'
-
-interface AddressFormData {
-  receiverName: string
-  phone: string
-  province: string
-  city: string
-  district: string
-  detailAddress: string
-  postalCode: string
-  isDefault: boolean
-}
 
 const AddressEdit: React.FC = () => {
   const [formData, setFormData] = useState<AddressFormData>({
@@ -30,24 +25,27 @@ const AddressEdit: React.FC = () => {
     city: '',
     district: '',
     detailAddress: '',
-    postalCode: '',
     isDefault: false
   })
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [errors, setErrors] = useState<Record<keyof AddressFormData, string>>({} as Record<keyof AddressFormData, string>)
   const [loading, setLoading] = useState(false)
   const [isEdit, setIsEdit] = useState(false)
   const [addressId, setAddressId] = useState<string | null>(null)
   const [showToast, setShowToast] = useState(false)
   const [toastText, setToastText] = useState('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
-  const [provinceIndex, setProvinceIndex] = useState(0)
-  const [cityIndex, setCityIndex] = useState(0)
-  const [districtIndex, setDistrictIndex] = useState(0)
 
-  const [provinces] = useState(['广东省', '北京市', '上海市', '江苏省', '浙江省'])
-  const [cities, setCities] = useState(['深圳市', '广州市', '珠海市', '佛山市'])
-  const [districts, setDistricts] = useState(['南山区', '福田区', '罗湖区', '宝安区'])
+  // Initialize services
+  const addressService = AddressService.getInstance()
+
+  // Initialize region selector
+  const regionSelector = useRegionSelector({
+    // initialSelection: initialRegionSelection,
+    onError: (error) => {
+      showToastMessage(`地区加载失败: ${error}`, 'error')
+    }
+  })
 
   const showToastMessage = useCallback((text: string, type: 'success' | 'error' | 'loading' = 'success') => {
     setShowToast(true)
@@ -59,158 +57,146 @@ const AddressEdit: React.FC = () => {
     setShowToast(false)
   }, [])
 
-  const handleInputChange = useCallback((field: keyof AddressFormData, value: string | boolean) => {
+  // Handle map location changes from AddressMap component
+  const handleMapLocationChange = useCallback((location: {
+    latitude: number
+    longitude: number
+    address: string
+  }) => {
     setFormData(prev => ({
       ...prev,
-      [field]: value
+      latitude: location.latitude,
+      longitude: location.longitude
     }))
+    showToastMessage('地图位置已更新', 'success')
+  }, [showToastMessage])
+
+  const handleInputChange = useCallback((field: keyof AddressFormData, value: string | number | boolean) => {
+    // AtInput 的 onChange 可能返回 number，需要转换为 string
+    const processedValue = typeof value === 'number' ? value.toString() : value
+
+    setFormData(prev => {
+      // 检查值是否真的发生了变化
+      if (prev[field] === processedValue) {
+        return prev
+      }
+      return {
+        ...prev,
+        [field]: processedValue
+      }
+    })
 
     // 清除对应字段的错误信息
-    if (errors[field]) {
-      setErrors(prev => ({
+    setErrors(prev => {
+      if (!prev[field]) return prev
+      return {
         ...prev,
         [field]: ''
-      }))
-    }
-  }, [errors])
-
-  // 简化的地区数据获取方法，实际项目中应该从后端获取完整的省市区数据
-  const getCitiesByProvince = useCallback((province: string): string[] => {
-    const cityMap: Record<string, string[]> = {
-      '广东省': ['深圳市', '广州市', '珠海市', '佛山市', '东莞市'],
-      '北京市': ['东城区', '西城区', '朝阳区', '海淀区', '丰台区'],
-      '上海市': ['黄浦区', '徐汇区', '长宁区', '静安区', '普陀区'],
-      '江苏省': ['南京市', '苏州市', '无锡市', '常州市', '南通市'],
-      '浙江省': ['杭州市', '宁波市', '温州市', '嘉兴市', '湖州市']
-    }
-    return cityMap[province] || ['深圳市']
+      }
+    })
   }, [])
 
-  const getDistrictsByCity = useCallback((city: string): string[] => {
-    const districtMap: Record<string, string[]> = {
-      '深圳市': ['南山区', '福田区', '罗湖区', '宝安区', '龙岗区'],
-      '广州市': ['天河区', '越秀区', '海珠区', '白云区', '番禺区'],
-      '珠海市': ['香洲区', '斗门区', '金湾区'],
-      '佛山市': ['禅城区', '南海区', '顺德区', '高明区', '三水区'],
-      '东莞市': ['莞城区', '南城区', '东城区', '万江区', '石龙镇'],
-      '东城区': ['东华门街道', '景山街道', '交道口街道', '安定门街道'],
-      '西城区': ['西长安街街道', '新街口街道', '月坛街道', '展览路街道'],
-      '朝阳区': ['建国门外街道', '朝外街道', '呼家楼街道', '三里屯街道'],
-      '海淀区': ['万寿路街道', '永定路街道', '羊坊店街道', '甘家口街道'],
-      '南京市': ['玄武区', '秦淮区', '建邺区', '鼓楼区', '浦口区'],
-      '苏州市': ['姑苏区', '虎丘区', '吴中区', '相城区', '吴江区'],
-      '杭州市': ['上城区', '下城区', '江干区', '拱墅区', '西湖区']
-    }
-    return districtMap[city] || ['南山区']
-  }, [])
+  // Sync form data with region selection changes - 优化：减少不必要的重新渲染
+  useEffect(() => {
+    const selectedNames = regionSelector.getSelectedNames()
+    const selectedCodes = regionSelector.getSelectedCodes()
+
+    setFormData(prev => {
+      // 检查是否真的需要更新
+      const hasChanges =
+        prev.province !== (selectedNames.province || '') ||
+        prev.city !== (selectedNames.city || '') ||
+        prev.district !== (selectedNames.district || '') ||
+        prev.provinceCode !== selectedCodes.provinceCode ||
+        prev.cityCode !== selectedCodes.cityCode ||
+        prev.districtCode !== selectedCodes.districtCode
+
+      if (!hasChanges) return prev
+
+      return {
+        ...prev,
+        province: selectedNames.province || '',
+        city: selectedNames.city || '',
+        district: selectedNames.district || '',
+        provinceCode: selectedCodes.provinceCode,
+        cityCode: selectedCodes.cityCode,
+        districtCode: selectedCodes.districtCode
+      }
+    })
+  }, [regionSelector.selectedProvince?.code, regionSelector.selectedCity?.code, regionSelector.selectedDistrict?.code])
 
   const loadAddressDetail = useCallback(async (addressId: string) => {
     try {
-      // TODO: 实际项目中这里应该调用获取地址详情的API
-      // const address = await getAddressDetail(addressId)
+      setLoading(true)
+      showToastMessage('正在加载地址详情...', 'loading')
 
-      // 模拟地址详情数据
-      const mockAddress = {
-        id: addressId,
-        receiverName: '张三',
-        phone: '13800138000',
-        province: '广东省',
-        city: '深圳市',
-        district: '南山区',
-        detailAddress: '科技园南区深南大道9988号',
-        postalCode: '518000',
-        isDefault: true
+      const result = await addressService.getAddressDetail(parseInt(addressId))
+
+      if (!result.success || !result.data) {
+        showToastMessage(result.error?.message || '地址不存在', 'error')
+        setTimeout(() => {
+          Taro.navigateBack()
+        }, 1500)
+        return
       }
 
-      // 设置地区选择器的索引
-      const pIndex = provinces.indexOf(mockAddress.province)
-      const cIndex = cities.indexOf(mockAddress.city)
-      const dIndex = districts.indexOf(mockAddress.district)
+      const address = result.data
 
-      setFormData(mockAddress)
-      setProvinceIndex(pIndex >= 0 ? pIndex : 0)
-      setCityIndex(cIndex >= 0 ? cIndex : 0)
-      setDistrictIndex(dIndex >= 0 ? dIndex : 0)
+      // Set initial region selection for the selector
+      if (address.provinceCode || address.cityCode || address.districtCode) {
+        regionSelector.initializeWithSelection({
+          provinceCode: address.provinceCode,
+          cityCode: address.cityCode,
+          districtCode: address.districtCode
+        })
+      }
+
+      // Update form data with fetched address
+      setFormData(prev => ({
+        ...prev,
+        receiverName: address.receiverName || '',
+        phone: address.phone || '',
+        province: address.province || '',
+        city: address.city || '',
+        district: address.district || '',
+        provinceCode: address.provinceCode,
+        cityCode: address.cityCode,
+        districtCode: address.districtCode,
+        detailAddress: address.detailAddress || '',
+        isDefault: address.isDefault || false,
+        latitude: address.latitude,
+        longitude: address.longitude
+      }))
+
+      showToastMessage('地址详情加载成功', 'success')
     } catch (error) {
       console.error('获取地址详情失败:', error)
       showToastMessage('获取地址详情失败', 'error')
+      setTimeout(() => {
+        Taro.navigateBack()
+      }, 1500)
+    } finally {
+      setLoading(false)
     }
-  }, [provinces, cities, districts, showToastMessage])
+  }, [addressService, showToastMessage])
 
   const loadWechatAddress = useCallback(() => {
     try {
       const wechatAddress = Taro.getStorageSync('wechatAddress')
       if (wechatAddress) {
-        // 设置地区选择器的索引
-        const pIndex = provinces.indexOf(wechatAddress.province)
-        const cIndex = cities.indexOf(wechatAddress.city)
-        const dIndex = districts.indexOf(wechatAddress.district)
-
         setFormData(wechatAddress)
-        setProvinceIndex(pIndex >= 0 ? pIndex : 0)
-        setCityIndex(cIndex >= 0 ? cIndex : 0)
-        setDistrictIndex(dIndex >= 0 ? dIndex : 0)
-
         // 清除缓存的微信地址
         Taro.removeStorageSync('wechatAddress')
       }
     } catch (error) {
       console.error('加载微信地址失败:', error)
     }
-  }, [provinces, cities, districts])
-
-  const handleProvinceChange = useCallback((e: any) => {
-    const pIndex = e.detail.value
-    const province = provinces[pIndex]
-
-    // 根据省份更新城市列表
-    const newCities = getCitiesByProvince(province)
-    const newDistricts = getDistrictsByCity(newCities[0] || '')
-
-    setProvinceIndex(pIndex)
-    setFormData(prev => ({
-      ...prev,
-      province,
-      city: newCities[0] || '',
-      district: newDistricts[0] || ''
-    }))
-    setCityIndex(0)
-    setDistrictIndex(0)
-    setCities(newCities)
-    setDistricts(newDistricts)
-  }, [provinces, getCitiesByProvince, getDistrictsByCity])
-
-  const handleCityChange = useCallback((e: any) => {
-    const cIndex = e.detail.value
-    const city = cities[cIndex]
-
-    // 根据城市更新区县列表
-    const newDistricts = getDistrictsByCity(city)
-
-    setCityIndex(cIndex)
-    setFormData(prev => ({
-      ...prev,
-      city,
-      district: newDistricts[0] || ''
-    }))
-    setDistrictIndex(0)
-    setDistricts(newDistricts)
-  }, [cities, getDistrictsByCity])
-
-  const handleDistrictChange = useCallback((e: any) => {
-    const dIndex = e.detail.value
-    const district = districts[dIndex]
-
-    setDistrictIndex(dIndex)
-    setFormData(prev => ({
-      ...prev,
-      district
-    }))
-  }, [districts])
+  }, [])
 
   const validateForm = useCallback((): boolean => {
-    const newErrors: Record<string, string> = {}
+    const newErrors: Partial<Record<keyof AddressFormData, string>> = {}
 
+    // 收货人姓名验证
     if (!formData.receiverName.trim()) {
       newErrors.receiverName = '请输入收货人姓名'
     } else if (formData.receiverName.length < 2) {
@@ -219,12 +205,14 @@ const AddressEdit: React.FC = () => {
       newErrors.receiverName = '收货人姓名不能超过20个字符'
     }
 
+    // 手机号验证
     if (!formData.phone.trim()) {
       newErrors.phone = '请输入手机号'
     } else if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
       newErrors.phone = '手机号格式不正确'
     }
 
+    // 地区验证
     if (!formData.province.trim()) {
       newErrors.province = '请选择省份'
     }
@@ -237,6 +225,7 @@ const AddressEdit: React.FC = () => {
       newErrors.district = '请选择区域'
     }
 
+    // 详细地址验证
     if (!formData.detailAddress.trim()) {
       newErrors.detailAddress = '请输入详细地址'
     } else if (formData.detailAddress.length < 5) {
@@ -245,13 +234,33 @@ const AddressEdit: React.FC = () => {
       newErrors.detailAddress = '详细地址不能超过100个字符'
     }
 
-    if (formData.postalCode && !/^\d{6}$/.test(formData.postalCode)) {
-      newErrors.postalCode = '邮政编码格式不正确'
-    }
 
-    setErrors(newErrors)
+    setErrors(newErrors as Record<keyof AddressFormData, string>)
     return Object.keys(newErrors).length === 0
   }, [formData])
+
+  // Handle map selection results
+  useEffect(() => {
+    const checkMapSelection = () => {
+      const selectedLocation = Taro.getStorageSync('selectedLocation')
+      if (selectedLocation) {
+        // Update form with selected coordinates
+        setFormData(prev => ({
+          ...prev,
+          latitude: selectedLocation.latitude,
+          longitude: selectedLocation.longitude,
+          detailAddress: selectedLocation.address && selectedLocation.address.trim() ? selectedLocation.address : prev.detailAddress
+        }))
+
+        // Clear the stored location
+        Taro.removeStorageSync('selectedLocation')
+
+        showToastMessage('已选择地图位置', 'success')
+      }
+    }
+
+    checkMapSelection()
+  }, [showToastMessage])
 
   const handleSubmit = useCallback(async () => {
     if (!validateForm()) {
@@ -261,17 +270,30 @@ const AddressEdit: React.FC = () => {
     setLoading(true)
 
     try {
-      // TODO: 实际项目中这里应该调用创建或更新地址的API
-      if (isEdit && addressId) {
-        // await updateAddress(addressId, formData)
-        console.log('更新地址:', { id: addressId, ...formData })
-      } else {
-        // await createAddress(formData)
-        console.log('创建地址:', formData)
-      }
+      // Transform form data to GraphQL input format
+      // Note: receiverName and phone are excluded as they're not supported in backend schema
+      // TODO: Update this when backend schema supports receiverName and phone fields
+      const graphqlInput = transformFormToGraphQLInput(formData)
 
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      if (isEdit && addressId) {
+        // Update existing address
+        console.log('更新地址:', { id: addressId, graphqlInput })
+        const result = await addressService.updateAddress(parseInt(addressId), graphqlInput)
+
+        if (!result.success) {
+          showToastMessage(result.error?.message || '地址更新失败，请重试', 'error')
+          return
+        }
+      } else {
+        // Create new address
+        console.log('创建地址:', graphqlInput)
+        const result = await addressService.createAddress(graphqlInput)
+
+        if (!result.success) {
+          showToastMessage(result.error?.message || '地址添加失败，请重试', 'error')
+          return
+        }
+      }
 
       showToastMessage(isEdit ? '地址更新成功' : '地址添加成功', 'success')
 
@@ -285,7 +307,7 @@ const AddressEdit: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }, [validateForm, isEdit, addressId, formData, showToastMessage])
+  }, [validateForm, isEdit, addressId, formData, showToastMessage, addressService])
 
   // 初始化
   useEffect(() => {
@@ -311,143 +333,127 @@ const AddressEdit: React.FC = () => {
   return (
     <View className='address-edit-page'>
       <AtForm className='address-form'>
+
+
         {/* 收货人 */}
-        <View className='form-item'>
-          <View className='form-label required'>收货人</View>
-          <AtInput
-            name='receiverName'
-            title=''
-            type='text'
-            placeholder='请输入收货人姓名'
-            value={formData.receiverName}
-            onChange={(value) => handleInputChange('receiverName', value)}
-            error={!!errors.receiverName}
-          />
-          {errors.receiverName && (
-            <Text className='error-text'>{errors.receiverName}</Text>
-          )}
-        </View>
+        <AtInput
+          name='receiverName'
+          title='收货人'
+          type='text'
+          placeholder='请输入收货人姓名'
+          value={formData.receiverName}
+          onChange={(value) => handleInputChange('receiverName', value)}
+        />
 
         {/* 手机号 */}
-        <View className='form-item'>
-          <View className='form-label required'>手机号</View>
-          <AtInput
-            name='phone'
-            title=''
-            type='phone'
-            placeholder='请输入手机号'
-            value={formData.phone}
-            onChange={(value) => handleInputChange('phone', value)}
-            error={!!errors.phone}
-          />
-          {errors.phone && (
-            <Text className='error-text'>{errors.phone}</Text>
-          )}
-        </View>
+        <AtInput
+          name='phone'
+          title='手机号'
+          type='phone'
+          placeholder='请输入手机号'
+          value={formData.phone}
+          onChange={(value) => handleInputChange('phone', value)}
+          error={!!errors.phone}
+        />
 
         {/* 地区选择 */}
-        <View className='form-item'>
-          <View className='form-label required'>所在地区</View>
-          <View className='region-picker'>
-            <Picker
-              mode='selector'
-              range={provinces}
-              value={provinceIndex}
-              onChange={handleProvinceChange}
-              className='picker-item'
-            >
-              <View className={`picker-display ${errors.province ? 'error' : ''}`}>
-                {formData.province || '请选择省份'}
-              </View>
-            </Picker>
+        {regionSelector.provinces.length > 0 ? (
+          <Picker
+            mode='multiSelector'
+            range={[
+              regionSelector.provinces.map(p => p.name),
+              regionSelector.cities.map(c => c.name),
+              regionSelector.districts.map(d => d.name)
+            ]}
+            value={[
+              regionSelector.selectedIndex.province,
+              regionSelector.selectedIndex.city,
+              regionSelector.selectedIndex.district
+            ]}
+            onColumnChange={regionSelector.handleColumnChange}
+            onChange={regionSelector.handlePickerChange}
+          >
+            <AtList>
+              <AtListItem
+                title='所在地区'
+                extraText={regionSelector.getFullRegionText() || '请选择省市区'}
+                arrow='right'
+              />
+            </AtList>
+          </Picker>
+        ) : (
+          <AtList>
+            <AtListItem
+              title='所在地区'
+              extraText='正在加载地区数据...'
+              arrow='right'
+              disabled={true}
+            />
+          </AtList>
+        )}
 
-            <Picker
-              mode='selector'
-              range={cities}
-              value={cityIndex}
-              onChange={handleCityChange}
-              className='picker-item'
-            >
-              <View className={`picker-display ${errors.city ? 'error' : ''}`}>
-                {formData.city || '请选择城市'}
-              </View>
-            </Picker>
-
-            <Picker
-              mode='selector'
-              range={districts}
-              value={districtIndex}
-              onChange={handleDistrictChange}
-              className='picker-item'
-            >
-              <View className={`picker-display ${errors.district ? 'error' : ''}`}>
-                {formData.district || '请选择区域'}
-              </View>
-            </Picker>
+        {/* Loading indicator for regions */}
+        {(regionSelector.loading.provinces || regionSelector.loading.cities || regionSelector.loading.districts) && (
+          <View className='region-loading'>
+            <AtActivityIndicator content='加载地区数据...' />
           </View>
-          {(errors.province || errors.city || errors.district) && (
-            <Text className='error-text'>
-              {errors.province || errors.city || errors.district || '请选择完整的地区信息'}
-            </Text>
-          )}
-        </View>
+        )}
 
         {/* 详细地址 */}
-        <View className='form-item'>
-          <View className='form-label required'>详细地址</View>
-          <Input
-            className={`detail-input ${errors.detailAddress ? 'error' : ''}`}
-            placeholder='街道、门牌号、小区、楼号等详细信息'
-            value={formData.detailAddress}
-            onInput={(e) => handleInputChange('detailAddress', e.detail.value)}
-            maxlength={100}
+        <AtInput
+          name='detailAddress'
+          title='详细地址'
+          type='text'
+          placeholder='街道、门牌号、小区、楼号等详细信息'
+          value={formData.detailAddress}
+          onChange={(value) => handleInputChange('detailAddress', value)}
+          maxlength={100}
+        />
+        <Text className='input-hint'>请输入详细的收货地址，不少于5个字符</Text>
+
+        {/* 地址地图预览 */}
+        <View className='address-map-section'>
+          <Text className='section-title'>地址预览</Text>
+          <AddressMap
+            address={formData.detailAddress}
+            province={formData.province}
+            city={formData.city}
+            district={formData.district}
+            latitude={formData.latitude}
+            longitude={formData.longitude}
+            height='200px'
+            className='address-edit-map'
+            showControls={true}
+            onLocationChange={handleMapLocationChange}
           />
-          {errors.detailAddress && (
-            <Text className='error-text'>{errors.detailAddress}</Text>
-          )}
-          <Text className='input-hint'>请输入详细的收货地址，不少于5个字符</Text>
+          <Text className='map-hint'>地图会根据地址信息自动定位，也可以手动选择位置</Text>
         </View>
 
-        {/* 邮政编码 */}
-        <View className='form-item'>
-          <View className='form-label'>邮政编码</View>
-          <AtInput
-            name='postalCode'
-            title=''
-            type='number'
-            placeholder='请输入邮政编码（选填）'
-            value={formData.postalCode}
-            onChange={(value) => handleInputChange('postalCode', value)}
-            error={!!errors.postalCode}
-          />
-          {errors.postalCode && (
-            <Text className='error-text'>{errors.postalCode}</Text>
-          )}
-        </View>
 
         {/* 设为默认地址 */}
-        <View className='form-item switch-item'>
-          <View className='form-label'>设为默认地址</View>
-          <AtSwitch
-            checked={formData.isDefault}
-            onChange={(value) => handleInputChange('isDefault', value)}
-          />
+        <AtSwitch
+          title='设为默认地址'
+          checked={formData.isDefault}
+          onChange={(value) => handleInputChange('isDefault', value)}
+        />
+
+
+        {/* 提交按钮 */}
+        <View className='submit-section'>
+          <AtButton
+            type='primary'
+            size='normal'
+            loading={loading}
+            disabled={loading}
+            onClick={handleSubmit}
+            className='submit-button'
+          >
+            {loading ? '保存中...' : '保存地址'}
+          </AtButton>
         </View>
+
       </AtForm>
 
-      {/* 提交按钮 */}
-      <View className='submit-section'>
-        <AtButton
-          type='primary'
-          size='normal'
-          loading={loading}
-          disabled={loading}
-          onClick={handleSubmit}
-          className='submit-button'
-        >
-          {loading ? '保存中...' : '保存地址'}
-        </AtButton>
-      </View>
 
       {/* Toast 提示 */}
       <AtToast

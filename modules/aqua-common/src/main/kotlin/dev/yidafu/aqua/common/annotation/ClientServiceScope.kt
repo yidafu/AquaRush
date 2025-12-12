@@ -26,14 +26,23 @@ import org.springframework.core.type.AnnotatedTypeMetadata
 
 const val AQUA_MODE_CLIENT = "client"
 const val AQUA_MODE_ADMIN = "admin"
-class ServiceScope(val value: String) : Condition {
+
+class ClientServiceScope : Condition {
   override fun matches(
     context: ConditionContext,
     metadata: AnnotatedTypeMetadata,
   ): Boolean {
     return context.environment.getProperty("aqua.mode") == AQUA_MODE_CLIENT
   }
+}
 
+class AdminServiceScope : Condition {
+  override fun matches(
+    context: ConditionContext,
+    metadata: AnnotatedTypeMetadata,
+  ): Boolean {
+    return context.environment.getProperty("aqua.mode") == AQUA_MODE_ADMIN
+  }
 }
 
 /**
@@ -41,7 +50,7 @@ class ServiceScope(val value: String) : Condition {
  */
 @Target(AnnotationTarget.TYPE, AnnotationTarget.PROPERTY, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
- @Conditional(ServiceScope::class)
+@Conditional(ClientServiceScope::class)
 annotation class ClientService
 
 /**
@@ -49,5 +58,5 @@ annotation class ClientService
  */
 @Target(AnnotationTarget.TYPE, AnnotationTarget.PROPERTY, AnnotationTarget.CONSTRUCTOR, AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.RUNTIME)
-// @Conditional(@ServiceScope(""))
+@Conditional(AdminServiceScope::class)
 annotation class AdminService

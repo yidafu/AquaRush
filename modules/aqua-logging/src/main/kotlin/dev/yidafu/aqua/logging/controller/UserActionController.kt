@@ -20,10 +20,8 @@
 package dev.yidafu.aqua.logging.controller
 
 import dev.yidafu.aqua.common.ApiResponse
-import dev.yidafu.aqua.logging.formatter.UserActionLogFormatter
 import dev.yidafu.aqua.logging.service.UserActionEventService
 import dev.yidafu.aqua.logging.util.UserActionLogger
-import dev.yidafu.aqua.logging.util.UserActionLogger.Coordinates
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
@@ -90,20 +88,21 @@ class UserActionController(
       val clientIp = getClientIp(httpRequest)
 
       // 转换为单个请求并批量处理
-      val singleRequests = request.actions.map { action ->
-        action.userAgent = userAgent
-        action.clientIp = clientIp
+      val singleRequests =
+        request.actions.map { action ->
+          action.userAgent = userAgent
+          action.clientIp = clientIp
 
-        UserActionLogRequest(
-          userId = action.userId,
-          username = action.username,
-          actionType = action.actionType,
-          target = action.target,
-          coordinates = action.coordinates,
-          properties = action.properties,
-          timestamp = action.timestamp
-        )
-      }
+          UserActionLogRequest(
+            userId = action.userId,
+            username = action.username,
+            actionType = action.actionType,
+            target = action.target,
+            coordinates = action.coordinates,
+            properties = action.properties,
+            timestamp = action.timestamp,
+          )
+        }
 
       // 批量处理用户操作
       userActionEventService.processUserActionsBatch(singleRequests)

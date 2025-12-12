@@ -19,14 +19,16 @@
 
 package dev.yidafu.aqua.notice.domain.repository
 
-import dev.yidafu.aqua.notice.domain.model.UserNotificationSettings
+import dev.yidafu.aqua.notice.domain.model.UserNotificationSettingsModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface UserNotificationSettingsRepository : JpaRepository<UserNotificationSettings, Long> {
-    fun findByUserId(userId: Long): Optional<UserNotificationSettings>
-    fun existsByUserId(userId: Long): Boolean
-    fun deleteByUserId(userId: Long): Int
+interface UserNotificationSettingsRepository : JpaRepository<UserNotificationSettingsModel, Long> {
+  fun findByUserId(userId: Long): Optional<UserNotificationSettingsModel>
+
+  fun existsByUserId(userId: Long): Boolean
+
+  fun deleteByUserId(userId: Long): Int
 }

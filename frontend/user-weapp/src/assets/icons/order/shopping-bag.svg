@@ -1,0 +1,11 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 购物袋主体 -->
+  <path d="M7 6c0-2.21 1.79-4 4-4s4 1.79 4 4h1c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2H6c-1.1 0-2-.9-2-2V8c0-1.1.9-2 2-2h1z" fill="#1890ff" stroke="#1890ff" stroke-width="0.5"/>
+  <!-- 购物袋手柄 -->
+  <path d="M9 6c0-1.1.9-2 2-2s2 .9 2 2" fill="none" stroke="white" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- 购物袋细节装饰 -->
+  <circle cx="12" cy="14" r="1" fill="white"/>
+  <path d="M8 10h8M8 12h8M8 14h6" stroke="white" stroke-width="0.8" stroke-linecap="round"/>
+  <!-- 购物袋底部阴影效果 -->
+  <ellipse cx="12" cy="18" rx="6" ry="1" fill="#1373cc" opacity="0.3"/>
+</svg>

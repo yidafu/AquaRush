@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.product.domain.model.Product
+import dev.yidafu.aqua.product.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.product.service.ProductService
 import org.slf4j.LoggerFactory
@@ -47,7 +47,7 @@ class AdminProductMutationResolver(
      */
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    fun createProduct(@Valid input: CreateProductInput): Product {
+    fun createProduct(@Valid input: CreateProductInput): ProductModel {
         try {
             // 验证输入
             validateCreateProductInput(input)
@@ -74,7 +74,7 @@ class AdminProductMutationResolver(
      */
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    fun updateProduct(id: Long, @Valid input: UpdateProductInput): Product {
+    fun updateProduct(id: Long, @Valid input: UpdateProductInput): ProductModel {
         try {
             // 验证产品存在
             val existingProduct = productService.findById(id)
@@ -196,7 +196,7 @@ class AdminProductMutationResolver(
      */
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    fun onlineProduct(id: Long): Product {
+    fun onlineProduct(id: Long): ProductModel {
         return try {
             val product = productService.findById(id)
                 ?: throw BadRequestException("产品不存在: $id")
@@ -219,7 +219,7 @@ class AdminProductMutationResolver(
      */
     @PreAuthorize("hasRole('ADMIN')")
     @Transactional
-    fun offlineProduct(id: Long): Product {
+    fun offlineProduct(id: Long): ProductModel {
         return try {
             val product = productService.findById(id)
                 ?: throw BadRequestException("产品不存在: $id")

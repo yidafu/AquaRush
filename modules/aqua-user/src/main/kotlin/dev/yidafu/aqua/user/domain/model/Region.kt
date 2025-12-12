@@ -24,10 +24,10 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "regions")
-data class Region(
+data class RegionModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  val id: Long = -1L,
 
   @Column(name = "name", nullable = false)
   val name: String,

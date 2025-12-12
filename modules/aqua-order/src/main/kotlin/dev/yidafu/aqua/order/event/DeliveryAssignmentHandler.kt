@@ -20,14 +20,15 @@
 package dev.yidafu.aqua.order.event
 
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import dev.yidafu.aqua.common.domain.model.DeliveryWorker
-import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
+import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.order.domain.model.DomainEventModel
+import dev.yidafu.aqua.order.domain.model.EventStatusModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.delivery.service.DeliveryService
-import dev.yidafu.aqua.order.domain.model.DomainEvent
-import dev.yidafu.aqua.order.domain.model.EventStatus
+import dev.yidafu.aqua.user.domain.model.AddressModel
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -47,7 +48,7 @@ class DeliveryAssignmentHandler(
    * 处理配送分配事件
    */
   @Transactional
-  fun handle(event: DomainEvent) {
+  fun handle(event: DomainEventModel) {
     try {
       // 解析payload获取事件数据
       val eventData =
@@ -101,9 +102,9 @@ class DeliveryAssignmentHandler(
    * 实际应用中可以根据地理位置、负载等因素进行智能分配
    */
   private fun assignDeliveryWorker(
-    order: Order,
-    address: dev.yidafu.aqua.user.domain.model.Address,
-  ): DeliveryWorker? {
+    order: OrderModel,
+    address: AddressModel,
+  ): DeliveryWorkerModel? {
     try {
       // 获取所有在线送水员
       val onlineWorkers = deliveryService.getOnlineWorkers()
@@ -130,8 +131,8 @@ class DeliveryAssignmentHandler(
    * 创建配送分配成功事件
    */
   private fun createDeliveryAssignedEvent(
-    order: Order,
-    worker: DeliveryWorker,
+    order: OrderModel,
+    worker: DeliveryWorkerModel,
   ) {
     try {
       val eventData =
@@ -147,11 +148,11 @@ class DeliveryAssignmentHandler(
       val eventPayload = objectMapper.writeValueAsString(eventData)
 
       val event =
-        DomainEvent(
+        DomainEventModel(
           id = DefaultIdGenerator().generate(),
           eventType = "ORDER_ASSIGNED",
           payload = eventPayload,
-          status = EventStatus.PENDING,
+          status = EventStatusModel.PENDING,
           retryCount = 0,
           nextRunAt = java.time.LocalDateTime.now(),
           createdAt = java.time.LocalDateTime.now(),

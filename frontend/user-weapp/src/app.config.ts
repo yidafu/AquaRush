@@ -7,8 +7,12 @@ export default defineAppConfig({
     'pages/address-edit/index',
     'pages/order-list/index',
     'pages/order-detail/index',
+    'pages/delivery-tracking/index',
     'pages/my/index',
-    'pages/theme-settings/index'
+    'pages/profile-edit/index',
+    'pages/theme-settings/index',
+    'pages/about/index',
+    'pages/feedback/index'
   ],
   window: {
     backgroundTextStyle: 'light',
@@ -16,9 +20,10 @@ export default defineAppConfig({
     navigationBarTitleText: 'AquaRush',
     navigationBarTextStyle: 'black'
   },
+
   tabBar: {
     color: '#999999',
-    selectedColor: '#00A8CC', // 水蓝色主色调
+    selectedColor: '#1890ff',
     backgroundColor: '#ffffff',
     borderStyle: 'white',
     list: [

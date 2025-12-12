@@ -76,11 +76,11 @@ interface OrderDetailState {
 }
 
 const STATUS_MAP = {
-  pending_payment: { text: '待付款', color: '#ff6b35', step: 1 },
-  pending_delivery: { text: '待配送', color: '#667eea', step: 2 },
-  delivering: { text: '配送中', color: '#19be6b', step: 3 },
-  completed: { text: '已完成', color: '#999', step: 4 },
-  cancelled: { text: '已取消', color: '#ccc', step: 0 }
+  pending_payment: { text: '待付款', color: 'var(--theme-secondary)', step: 1 },
+  pending_delivery: { text: '待配送', color: 'var(--theme-primary)', step: 2 },
+  delivering: { text: '配送中', color: 'var(--theme-success)', step: 3 },
+  completed: { text: '已完成', color: 'var(--theme-text-tertiary)', step: 4 },
+  cancelled: { text: '已取消', color: 'var(--theme-text-tertiary)', step: 0 }
 }
 
 const PAYMENT_METHOD_MAP = {
@@ -157,7 +157,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       const mockOrder = {
         id: this.orderId,
         orderNo: 'ORD202412020001',
-        status: 'delivering',
+        status: 'delivering' as const,
         items: [
           {
             id: '1',
@@ -192,7 +192,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
         createTime: '2024-12-02 10:30:00',
         paymentTime: '2024-12-02 10:35:00',
         acceptTime: '2024-12-02 10:45:00',
-        deliveryTime: '2024-12-02 10:50:00',
+        actualDeliveryTime: '2024-12-02 10:50:00',
         remark: '请送到前台',
         deliveryInfo: {
           deliveryWorkerId: 'DW001',
@@ -209,28 +209,28 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
             title: '订单创建',
             content: '您的订单已创建',
             icon: 'bookmark',
-            color: '#667eea'
+            color: 'var(--theme-primary)'
           },
           {
             time: '2024-12-02 10:35:00',
             title: '支付成功',
             content: '使用微信支付成功',
             icon: 'credit-card',
-            color: '#ff6b35'
+            color: 'var(--theme-secondary)'
           },
           {
             time: '2024-12-02 10:45:00',
             title: '商家接单',
             content: '商家已接单，正在准备商品',
             icon: 'shopping-bag',
-            color: '#667eea'
+            color: 'var(--theme-primary)'
           },
           {
             time: '2024-12-02 10:50:00',
             title: '配送员取货',
             content: '配送员小李已取货，正在配送中',
             icon: 'truck',
-            color: '#19be6b'
+            color: 'var(--theme-success)'
           }
         ]
       }
@@ -322,17 +322,24 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     const { order } = this.state
     if (!order) return
 
+    // 检查order.items是否为数组
+    if (!Array.isArray(order.items)) {
+      console.warn('handleReorder: order.items is not an array', order.items)
+      this.showToast('订单商品信息异常', 'error')
+      return
+    }
+
     // 将订单商品添加到订单确认页面
     const orderData = {
       products: order.items.map(item => ({
         id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image,
-        specifications: item.specifications
+        name: item.name || '商品名称',
+        price: item.price || 0,
+        quantity: item.quantity || 0,
+        image: item.image || '/assets/default-product.png',
+        specifications: Array.isArray(item.specifications) ? item.specifications : []
       })),
-      totalAmount: order.totalAmount
+      totalAmount: order.totalAmount || 0
     }
 
     Taro.setStorageSync('pendingOrder', orderData)
@@ -364,26 +371,49 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     })
   }
 
-  renderOrderItems = (items: OrderItem[]) => {
+  getTimelineColor = (color?: string): 'blue' | 'green' | 'red' | 'yellow' => {
+    if (!color) return 'blue'
+
+    const colorMap: Record<string, 'blue' | 'green' | 'red' | 'yellow'> = {
+      'var(--theme-primary)': 'blue',
+      'var(--theme-success)': 'green',
+      'var(--theme-secondary)': 'red',
+      'var(--theme-warning)': 'yellow',
+      // Legacy color mappings for backward compatibility
+      '#667eea': 'blue',
+      '#19be6b': 'green',
+      '#ff6b35': 'red',
+      '#ffc107': 'yellow'
+    }
+
+    return colorMap[color] || 'blue'
+  }
+
+  renderOrderItems = (items: OrderItem[] = []) => {
+    if (!Array.isArray(items)) {
+      console.warn('renderOrderItems: items is not an array', items)
+      return <View className='order-items'><Text>暂无商品信息</Text></View>
+    }
+
     return (
       <View className='order-items'>
         {items.map((item, index) => (
           <View key={`${item.id}-${index}`} className='order-item'>
             <Image
-              src={item.image}
+              src={item.image || '/assets/default-product.png'}
               mode='aspectFill'
               className='item-image'
             />
             <View className='item-info'>
-              <Text className='item-name'>{item.name}</Text>
-              {item.specifications && item.specifications.length > 0 && (
+              <Text className='item-name'>{item.name || '商品名称'}</Text>
+              {item.specifications && Array.isArray(item.specifications) && item.specifications.length > 0 && (
                 <Text className='item-spec'>
                   规格：{item.specifications.join(', ')}
                 </Text>
               )}
               <View className='item-bottom'>
-                <Text className='item-price'>¥{item.price.toFixed(2)}</Text>
-                <Text className='item-quantity'>x{item.quantity}</Text>
+                <Text className='item-price'>¥{(item.price || 0).toFixed(2)}</Text>
+                <Text className='item-quantity'>x{item.quantity || 0}</Text>
               </View>
             </View>
           </View>
@@ -487,7 +517,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
         {order.status === 'delivering' && order.deliveryInfo && (
           <AtCard
             title='配送员信息'
-            className='delivery-info-card'
+            className='delivery-info-card shadow-default'
           >
             <View className='delivery-worker'>
               <View className='worker-avatar'>
@@ -528,19 +558,26 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
         )}
 
         {/* 订单时间轴 */}
-        {order.timeline && order.timeline.length > 0 && (
+        {Array.isArray(order.timeline) && order.timeline.length > 0 && (
           <AtCard
             title='订单跟踪'
-            className='timeline-card'
+            className='timeline-card shadow-default'
           >
-            <AtTimeline items={order.timeline} />
+            <AtTimeline
+              items={order.timeline.map(item => ({
+                title: item.title || '状态更新',
+                content: Array.isArray(item.content) ? item.content : [item.content || ''],
+                icon: item.icon || 'clock',
+                color: this.getTimelineColor(item.color)
+              }))}
+            />
           </AtCard>
         )}
 
         {/* 商品信息 */}
         <AtCard
           title='商品信息'
-          className='items-card'
+          className='items-card shadow-default'
         >
           {this.renderOrderItems(order.items)}
           <View className='order-summary'>
@@ -564,7 +601,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
         {/* 订单信息 */}
         <AtCard
           title='订单信息'
-          className='info-card'
+          className='info-card shadow-default'
         >
           <View className='info-item'>
             <Text className='info-label'>支付方式</Text>
@@ -597,7 +634,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
         {/* 收货地址 */}
         <AtCard
           title='收货地址'
-          className='address-card'
+          className='address-card shadow-default'
         >
           <View className='address-content'>
             <View className='address-header'>
@@ -611,7 +648,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
         </AtCard>
 
         {/* 底部操作按钮 */}
-        <View className='bottom-actions'>
+        <View className='bottom-actions shadow-action'>
           {order.status === 'pending_payment' && (
             <>
               <AtButton

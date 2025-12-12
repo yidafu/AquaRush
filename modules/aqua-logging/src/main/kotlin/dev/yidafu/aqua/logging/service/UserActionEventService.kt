@@ -19,7 +19,6 @@
 
 package dev.yidafu.aqua.logging.service
 
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import dev.yidafu.aqua.common.domain.model.DomainEvent
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.logging.config.LoggingProperties
@@ -29,6 +28,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Executors
@@ -87,8 +87,10 @@ class UserActionEventService(
         val batchResults = batch.map { processUserActionSync(it) }
         results.addAll(batchResults)
 
-        logger.info("Processed batch of ${batch.size} user actions, " +
-            "success: ${batchResults.count { it }}")
+        logger.info(
+          "Processed batch of ${batch.size} user actions, " +
+            "success: ${batchResults.count { it }}",
+        )
       }
 
       results
@@ -115,28 +117,30 @@ class UserActionEventService(
             pageUrl = request.target,
             pageTitle = pageTitle,
             referrer = referrer,
-            additionalData = additionalData
+            additionalData = additionalData,
           )
         }
 
         "CLICK" -> {
-          val coordinates = request.coordinates?.let {
-            UserActionLogger.Coordinates(
-              screenX = it.screenX,
-              screenY = it.screenY,
-              pageX = it.pageX,
-              pageY = it.pageY
-            )
-          }
+          val coordinates =
+            request.coordinates?.let {
+              UserActionLogger.Coordinates(
+                screenX = it.screenX,
+                screenY = it.screenY,
+                pageX = it.pageX,
+                pageY = it.pageY,
+              )
+            }
 
           userActionLogger.logClick(
             elementId = request.target,
             elementType = request.properties["elementType"] as? String ?: "button",
             elementText = request.properties["elementText"] as? String,
             coordinates = coordinates,
-            additionalData = request.properties.filterKeys { key ->
-              key !in setOf("elementType", "elementText")
-            }
+            additionalData =
+              request.properties.filterKeys { key ->
+                key !in setOf("elementType", "elementText")
+              },
           )
         }
 
@@ -150,9 +154,10 @@ class UserActionEventService(
             formType = formType,
             success = success,
             formFields = formFields,
-            additionalData = request.properties.filterKeys { key ->
-              key !in setOf("success", "fields", "formType")
-            }
+            additionalData =
+              request.properties.filterKeys { key ->
+                key !in setOf("success", "fields", "formType")
+              },
           )
         }
 
@@ -167,9 +172,10 @@ class UserActionEventService(
             searchType = searchType,
             resultCount = resultCount,
             searchTime = searchTime,
-            additionalData = request.properties.filterKeys { key ->
-              key !in setOf("searchQuery", "searchType", "resultCount", "searchTime")
-            }
+            additionalData =
+              request.properties.filterKeys { key ->
+                key !in setOf("searchQuery", "searchType", "resultCount", "searchTime")
+              },
           )
         }
 
@@ -181,9 +187,10 @@ class UserActionEventService(
             shareTarget = request.target,
             shareType = shareType,
             shareContent = shareContent,
-            additionalData = request.properties.filterKeys { key ->
-              key !in setOf("shareType", "shareContent")
-            }
+            additionalData =
+              request.properties.filterKeys { key ->
+                key !in setOf("shareType", "shareContent")
+              },
           )
         }
 
@@ -198,9 +205,10 @@ class UserActionEventService(
             scrollDistance = scrollDistance,
             scrollTop = scrollTop,
             documentHeight = documentHeight,
-            additionalData = request.properties.filterKeys { key ->
-              key !in setOf("scrollDirection", "scrollDistance", "scrollTop", "documentHeight")
-            }
+            additionalData =
+              request.properties.filterKeys { key ->
+                key !in setOf("scrollDirection", "scrollDistance", "scrollTop", "documentHeight")
+              },
           )
         }
 
@@ -217,9 +225,10 @@ class UserActionEventService(
             fileSize = fileSize,
             fileType = fileType,
             success = success,
-            additionalData = request.properties.filterKeys { key ->
-              key !in setOf("operation", "fileName", "fileSize", "fileType", "success")
-            }
+            additionalData =
+              request.properties.filterKeys { key ->
+                key !in setOf("operation", "fileName", "fileSize", "fileType", "success")
+              },
           )
         }
 
@@ -228,7 +237,7 @@ class UserActionEventService(
           userActionLogger.logCustomAction(
             actionType = request.actionType,
             target = request.target,
-            properties = request.properties
+            properties = request.properties,
           )
         }
       }
@@ -245,16 +254,17 @@ class UserActionEventService(
    * 用于消息队列集成
    */
   private fun createUserActionEvent(request: UserActionLogRequest): DomainEvent {
-    val eventData = mapOf(
-      "userId" to request.userId,
-      "username" to request.username,
-      "actionType" to request.actionType,
-      "target" to request.target,
-      "coordinates" to request.coordinates,
-      "properties" to request.properties,
-      "timestamp" to request.timestamp,
-      "eventId" to UUID.randomUUID().toString()
-    )
+    val eventData =
+      mapOf(
+        "userId" to request.userId,
+        "username" to request.username,
+        "actionType" to request.actionType,
+        "target" to request.target,
+        "coordinates" to request.coordinates,
+        "properties" to request.properties,
+        "timestamp" to request.timestamp,
+        "eventId" to UUID.randomUUID().toString(),
+      )
 
     return DomainEvent(
       id = DefaultIdGenerator().generate(),
@@ -297,7 +307,6 @@ class UserActionEventService(
 
               // 这里可以调用消息队列发布服务
               // eventPublishService.publishDomainEvent(...)
-
             } catch (e: Exception) {
               logger.error("Failed to create domain event for user action", e)
             }
@@ -334,7 +343,7 @@ class UserActionEventService(
       "batchSize" to loggingProperties.userAction.batchSize,
       "flushIntervalMs" to loggingProperties.userAction.flushInterval,
       "eventStoreSize" to eventStore.size,
-      "asyncProcessing" to loggingProperties.userAction.asyncProcessing
+      "asyncProcessing" to loggingProperties.userAction.asyncProcessing,
     )
   }
 
@@ -346,10 +355,11 @@ class UserActionEventService(
     val retentionDays = loggingProperties.userAction.retentionDays
     val cutoffTime = System.currentTimeMillis() - (retentionDays * 24 * 60 * 60 * 1000L)
 
-    val expiredEvents = eventStore.filter { (_, event) ->
-      // 这里需要从payload中解析timestamp，简化处理
-      true // 在实际实现中需要解析payload
-    }
+    val expiredEvents =
+      eventStore.filter { (_, event) ->
+        // 这里需要从payload中解析timestamp，简化处理
+        true // 在实际实现中需要解析payload
+      }
 
     expiredEvents.keys.forEach { eventStore.remove(it) }
 

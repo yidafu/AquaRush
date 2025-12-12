@@ -20,7 +20,8 @@
 package dev.yidafu.aqua.admin.order.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
-import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.order.mapper.OrderMapper
 import dev.yidafu.aqua.order.service.OrderService
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -39,7 +40,7 @@ class OrderQueryResolver(
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun orders(): List<Order> {
-    return orderService.findAllOrders()
+    return orderService.findAllOrders().map { OrderMapper.map(it) }
   }
 
   /**
@@ -48,7 +49,7 @@ class OrderQueryResolver(
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun order(@Argument orderId: Long): Order? {
-    return orderService.getOrderById(orderId)
+    return  OrderMapper.map( orderService.getOrderById(orderId))
   }
 
   /**
@@ -57,7 +58,7 @@ class OrderQueryResolver(
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun orderByNumber(@Argument orderNumber: String): Order? {
-    return orderService.getOrderByNumber(orderNumber)
+    return  OrderMapper.map(orderService.getOrderByNumber(orderNumber))
   }
 
   /**
@@ -66,7 +67,7 @@ class OrderQueryResolver(
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun ordersByUser(@Argument userId: Long): List<Order> {
-    return orderService.findOrdersByUserId(userId)
+    return  OrderMapper.mapList(orderService.findOrdersByUserId(userId))
   }
 
   /**
@@ -75,7 +76,7 @@ class OrderQueryResolver(
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun ordersByStatus(@Argument status: String): List<Order> {
-    return orderService.findOrdersByStatus(status)
+    return OrderMapper.mapList(orderService.findOrdersByStatus(status))
   }
 
   /**
@@ -87,6 +88,6 @@ class OrderQueryResolver(
     @Argument userId: Long,
     @Argument status: String,
   ): List<Order> {
-    return orderService.findOrdersByUserIdAndStatus(userId, status)
+    return OrderMapper.mapList(orderService.findOrdersByUserIdAndStatus(userId, status))
   }
 }

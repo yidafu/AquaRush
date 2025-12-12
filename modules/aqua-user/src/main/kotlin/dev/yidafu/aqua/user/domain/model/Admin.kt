@@ -24,10 +24,10 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "admins")
-data class Admin(
+data class AdminModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  val id: Long = -1L,
 
   @Column(name = "username", unique = true, nullable = false, length = 50)
   var username: String,
@@ -43,7 +43,7 @@ data class Admin(
 
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false)
-  var role: AdminRole = AdminRole.NORMAL_ADMIN,
+  var role: AdminRoleModel = AdminRoleModel.NORMAL_ADMIN,
 
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),

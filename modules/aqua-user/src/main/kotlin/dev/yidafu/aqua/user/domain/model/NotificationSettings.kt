@@ -24,7 +24,7 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "notification_settings")
-data class NotificationSettings(
+data class NotificationSettingsModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,

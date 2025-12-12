@@ -20,13 +20,13 @@
 package dev.yidafu.aqua.order.event
 
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.delivery.service.DeliveryService
-import dev.yidafu.aqua.order.domain.model.DomainEvent
-import dev.yidafu.aqua.order.domain.model.EventStatus
+import dev.yidafu.aqua.order.domain.model.DomainEventModel
+import dev.yidafu.aqua.order.domain.model.EventStatusModel
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -45,7 +45,7 @@ class OrderPaidHandler(
    * 处理订单支付成功事件
    */
   @Transactional
-  fun handle(event: DomainEvent) {
+  fun handle(event: DomainEventModel) {
     try {
       // 解析payload获取事件数据
       val eventData =
@@ -81,7 +81,7 @@ class OrderPaidHandler(
   /**
    * 触发配送分配
    */
-  private fun triggerDeliveryAssignment(order: Order) {
+  private fun triggerDeliveryAssignment(order: OrderModel) {
     // 创建配送分配事件
     val eventData =
       mapOf(
@@ -95,11 +95,11 @@ class OrderPaidHandler(
     val eventPayload = objectMapper.writeValueAsString(eventData)
 
     val deliveryAssignmentEvent =
-      DomainEvent(
+      DomainEventModel(
         id = DefaultIdGenerator().generate(),
         eventType = "ORDER_DELIVERY_ASSIGNMENT",
         payload = eventPayload,
-        status = EventStatus.PENDING,
+        status = EventStatusModel.PENDING,
         retryCount = 0,
         nextRunAt = java.time.LocalDateTime.now(),
         createdAt = java.time.LocalDateTime.now(),

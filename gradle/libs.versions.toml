@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.0"
+kotlin = "2.2.20"
 spring-boot = "4.0.0"
 spring-dependency-management = "1.1.4"
 liquibase = "4.33.0"
@@ -20,7 +20,7 @@ spring-for-kafka = "3.2.1"
 reactor-core = "3.6.2"
 micrometer-tracing = "1.2.1"
 ktlint = "12.1.0"
-mappie = "2.2.10-1.4.2"
+mappie = "2.2.20-1.6.0"
 artemis = "2.31.2"
 
 [libraries]
@@ -65,9 +65,9 @@ jackson-module-kotlin = { module = "tools.jackson.module:jackson-module-kotlin",
 wechatpay-sdk = { module = "com.github.wechatpay-apiv3:wechatpay-java", version.ref = "wechatpay" }
 
 # JWT
-#jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jwt" }
-#jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jwt" }
-#jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jwt" }
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jwt" }
+jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jwt" }
 
 # GraphQL
 graphql-java = { module = "com.graphql-java:graphql-java", version.ref = "graphql" }
@@ -96,6 +96,7 @@ ktlint-gradlePlugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version
 
 # Mappie
 mappie-api = { module = "tech.mappie:mappie-api", version.ref = "mappie" }
+#mappie-processor = { module = "tech.mappie:mappie-processor", version.ref = "mappie" }
 
 # MapDB
 mapdb = { module = "org.mapdb:mapdb", version.ref = "mapdb" }
@@ -154,7 +155,7 @@ spring-boot-web = ["spring-boot-starter-web", "spring-boot-starter-validation", 
 spring-boot-data = ["spring-boot-starter-data-jpa", "postgresql"]
 spring-boot-liqiubase = ["spring-boot-starter-data-jpa", "spring-boot-starter-liquibase", "postgresql"]
 spring-boot-security = ["spring-boot-starter-security"]
-#jwt = ["jjwt-api", "jjwt-impl", "jjwt-jackson"]
+jwt = ["jjwt-api", "jjwt-impl", "jjwt-jackson"]
 graphql = ["spring-boot-starter-graphql"]
 querydsl = ["querydsl-jpa","querydsl-core", "querydsl-apt"]
 kotlinx = ["kotlinx-coroutines-core", "kotlinx-serialization-json"]

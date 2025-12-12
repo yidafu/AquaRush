@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.storage.dto
 
+import dev.yidafu.aqua.storage.domain.entity.FileMetadata
 import dev.yidafu.aqua.storage.domain.enums.FileType
 import java.time.LocalDateTime
 
@@ -92,8 +93,8 @@ data class FileMetadataResponse(
     val fileSizeFormatted: String
 ) {
     constructor(
-        metadata: dev.yidafu.aqua.storage.domain.entity.FileMetadata,
-        fileUrl: String? = null
+      metadata: FileMetadata,
+      fileUrl: String? = null
     ) : this(
         id = metadata.id,
         fileName = metadata.fileName,

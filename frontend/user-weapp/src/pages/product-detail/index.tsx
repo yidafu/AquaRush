@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, Image, Button } from '@tarojs/components'
-import { AtButton, AtCard, AtInputNumber, AtToast } from 'taro-ui'
+import { View, Text, Image, Button, Swiper, SwiperItem } from '@tarojs/components'
+import { AtButton, AtCard, AtInputNumber, AtToast, AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
 import Taro from '@tarojs/taro'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/card.scss"
 import "taro-ui/dist/style/components/input-number.scss"
 import "taro-ui/dist/style/components/toast.scss"
+import "taro-ui/dist/style/components/modal.scss"
 import './index.scss'
+import { CONTACT_INFO } from '@/constants'
 
 interface Product {
   id: string
@@ -27,14 +29,14 @@ interface Product {
 const ProductDetail: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
-  const [quantity, setQuantity] = useState(1)
-  const [showSpecDialog, setShowSpecDialog] = useState(false)
-  const [selectedSpec, setSelectedSpec] = useState<Record<string, string>>({})
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [showToast, setShowToast] = useState(false)
   const [toastText, setToastText] = useState('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
   const [productId, setProductId] = useState<string>('')
+  const [showBuyModal, setShowBuyModal] = useState(false)
+  const [buyModalQuantity, setBuyModalQuantity] = useState(1)
+  const [buyModalSelectedSpec, setBuyModalSelectedSpec] = useState<string>('')
 
   const showToastMessage = useCallback((text: string, type: 'success' | 'error' | 'loading' = 'success') => {
     setShowToast(true)
@@ -59,13 +61,15 @@ const ProductDetail: React.FC = () => {
         name: '农夫山泉 天然矿泉水 550ml',
         price: 2.00,
         originalPrice: 2.50,
-        image: '/assets/product-water.jpg',
+        image: 'https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&h=600&fit=crop',
         images: [
-          '/assets/product-water-1.jpg',
-          '/assets/product-water-2.jpg',
-          '/assets/product-water-3.jpg'
+          'https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1596484989008-0a4938d2b5c7?w=800&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1549496903-b551a9c4d80f?w=800&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1580957419298-3176325b1324?w=800&h=600&fit=crop',
+          'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=800&h=600&fit=crop'
         ],
-        description: '农夫山泉天然矿泉水，源自深层地下水源，经过天然过滤，富含多种矿物质和微量元素。水质清冽甘甜，是您日常补水的理想选择。',
+        description: '农夫山泉天然矿泉水，源自深层地下水源，经过天然过滤，富含多种矿物质和微量元素。水质清冽甘甜，是您日常补水的理想选择。\n\n产品特点：\n• 天然矿物质，有益健康\n• pH值7.3±0.5，天然弱碱性\n• 源自千岛湖深层水源\n• 经过严格质量检测\n• 环保包装，绿色健康',
         stock: 100,
         category: '矿泉水',
         specifications: ['550ml', '24瓶装', '36瓶装'],
@@ -82,39 +86,35 @@ const ProductDetail: React.FC = () => {
     }
   }, [productId, showToastMessage])
 
-  const handleQuantityChange = useCallback((value: number) => {
-    if (product && value <= product.stock && value > 0) {
-      setQuantity(value)
-    }
-  }, [product])
-
   const handleImageChange = useCallback((index: number) => {
     setCurrentImageIndex(index)
   }, [])
 
-  const handleAddToCart = useCallback(() => {
-    if (!product) return
-
-    if (quantity > product.stock) {
-      showToastMessage('库存不足', 'error')
-      return
-    }
-
-    // TODO: 实际项目中这里应该调用添加到购物车的API
-    // await addToCart({
-    //   productId: product.id,
-    //   quantity: quantity,
-    //   specifications: selectedSpec
-    // })
-
-    showToastMessage('已添加到购物车', 'success')
-  }, [product, quantity, selectedSpec, showToastMessage])
 
   const handleBuyNow = useCallback(() => {
     if (!product) return
 
-    if (quantity > product.stock) {
+    // 显示购买弹窗
+    setShowBuyModal(true)
+    setBuyModalQuantity(1) // 默认数量为1
+
+    // 如果有规格，默认选中第一个
+    if (product.specifications && product.specifications.length > 0) {
+      setBuyModalSelectedSpec(product.specifications[0])
+    }
+  }, [product])
+
+  const handleBuyModalConfirm = useCallback(() => {
+    if (!product) return
+
+    if (buyModalQuantity > product.stock) {
       showToastMessage('库存不足', 'error')
+      return
+    }
+
+    // 检查是否需要选择规格
+    if (product.specifications && product.specifications.length > 0 && !buyModalSelectedSpec) {
+      showToastMessage('请选择产品规格', 'error')
       return
     }
 
@@ -124,24 +124,42 @@ const ProductDetail: React.FC = () => {
         id: product.id,
         name: product.name,
         price: product.price,
-        quantity: quantity,
-        image: product.image
+        quantity: buyModalQuantity,
+        image: product.image,
+        specification: buyModalSelectedSpec
       }],
-      totalAmount: product.price * quantity
+      totalAmount: product.price * buyModalQuantity,
+      specification: buyModalSelectedSpec
     }
 
     // 将订单数据缓存到本地存储
     Taro.setStorageSync('pendingOrder', orderData)
 
+    setShowBuyModal(false)
+
     Taro.navigateTo({
       url: '/pages/order-confirm/index'
     })
-  }, [product, quantity, showToastMessage])
+  }, [product, buyModalQuantity, buyModalSelectedSpec, showToastMessage])
+
+  const handleBuyModalCancel = useCallback(() => {
+    setShowBuyModal(false)
+  }, [])
+
+  const handleBuyModalQuantityChange = useCallback((value: number) => {
+    if (product && value <= product.stock && value > 0) {
+      setBuyModalQuantity(value)
+    }
+  }, [product])
+
+  const handleBuyModalSpecSelect = useCallback((spec: string) => {
+    setBuyModalSelectedSpec(spec)
+  }, [])
 
   const handleContactService = useCallback(() => {
     // 联系客服
     Taro.makePhoneCall({
-      phoneNumber: '400-888-8888'
+      phoneNumber: CONTACT_INFO.COMPLAINT_HOTLINE
     })
   }, [])
 
@@ -227,14 +245,30 @@ const ProductDetail: React.FC = () => {
     <View className='product-detail-page'>
       {/* 产品图片轮播 */}
       <View className='image-section'>
-        <View className='main-image'>
-          <Image
-            src={currentImages[currentImageIndex]}
-            mode='aspectFit'
-            className='product-image'
-          />
-        </View>
+        <Swiper
+          className='product-swiper'
+          indicatorDots
+          autoplay
+          interval={3000}
+          duration={500}
+          indicatorColor='rgba(255, 255, 255, 0.5)'
+          indicatorActiveColor='#667eea'
+          circular
+        >
+          {currentImages.map((image, index) => (
+            <SwiperItem key={index}>
+              <View className='swiper-item'>
+                <Image
+                  src={image}
+                  mode='aspectFit'
+                  className='product-image'
+                />
+              </View>
+            </SwiperItem>
+          ))}
+        </Swiper>
 
+        {/* 缩略图导航 */}
         {currentImages.length > 1 && (
           <View className='image-thumbnails'>
             {currentImages.map((image, index) => (
@@ -297,59 +331,94 @@ const ProductDetail: React.FC = () => {
       {/* 产品详情 */}
       <AtCard
         title='产品详情'
-        content={product.description}
         className='detail-card'
-      />
+      >
+        <View className='detail-content'>
+          {/* 产品图片和文字描述 */}
+          <View className='detail-section'>
+            <Image
+              src='https://images.unsplash.com/photo-1549496903-b551a9c4d80f?w=400&h=300&fit=crop'
+              mode='aspectFill'
+              className='detail-image'
+            />
+            <View className='detail-text-section'>
+              <Text className='detail-title'>优质水源</Text>
+              <Text className='detail-description'>
+                农夫山泉天然矿泉水源自千岛湖深层地下水源，经过多层天然过滤，确保水质纯净清冽。
+              </Text>
+            </View>
+          </View>
 
-      {/* 规格选择 */}
-      {product.specifications && product.specifications.length > 0 && (
-        <AtCard
-          title='选择规格'
-          className='spec-card'
-        >
-          <View className='spec-list'>
-            {product.specifications.map((spec, index) => (
-              <View
-                key={index}
-                className={`spec-item ${selectedSpec.spec === spec ? 'active' : ''}`}
-                onClick={() => setSelectedSpec({ ...selectedSpec, spec })}
-              >
-                <Text>{spec}</Text>
-              </View>
+          <View className='detail-section'>
+            <View className='detail-text-section'>
+              <Text className='detail-title'>富含矿物质</Text>
+              <Text className='detail-description'>
+                含有钙、镁、钾、钠等多种天然矿物质和微量元素，有助于维持身体机能平衡。
+              </Text>
+            </View>
+            <Image
+              src='https://images.unsplash.com/photo-1596484989008-0a4938d2b5c7?w=400&h=300&fit=crop'
+              mode='aspectFill'
+              className='detail-image'
+            />
+          </View>
+
+          <View className='detail-section'>
+            <Image
+              src='https://images.unsplash.com/photo-1580957419298-3176325b1324?w=400&h=300&fit=crop'
+              mode='aspectFill'
+              className='detail-image'
+            />
+            <View className='detail-text-section'>
+              <Text className='detail-title'>天然弱碱性</Text>
+              <Text className='detail-description'>
+                pH值7.3±0.5的天然弱碱性水质，有助于维持体内酸碱平衡，促进新陈代谢。
+              </Text>
+            </View>
+          </View>
+
+          <View className='detail-section'>
+            <View className='detail-text-section'>
+              <Text className='detail-title'>环保包装</Text>
+              <Text className='detail-description'>
+                采用可回收环保材料，减少塑料污染，为环境保护贡献一份力量。
+              </Text>
+            </View>
+            <Image
+              src='https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=400&h=300&fit=crop'
+              mode='aspectFill'
+              className='detail-image'
+            />
+          </View>
+
+          {/* 产品特点列表 */}
+          <View className='detail-features'>
+            <Text className='detail-subtitle'>产品特点</Text>
+            {product.description.split('\n').map((paragraph, index) => (
+              paragraph.startsWith('•') ? (
+                <View key={index} className='feature-list-item'>
+                  <Text className='feature-bullet'>•</Text>
+                  <Text className='feature-text'>{paragraph.slice(1).trim()}</Text>
+                </View>
+              ) : paragraph.trim() && !paragraph.startsWith('产品特点') ? (
+                <Text key={index} className='detail-paragraph'>
+                  {paragraph}
+                </Text>
+              ) : null
             ))}
           </View>
-        </AtCard>
-      )}
-
-      {/* 数量选择和操作按钮 */}
-      <View className='action-section'>
-        <View className='quantity-selector'>
-          <Text className='quantity-label'>数量</Text>
-          <AtInputNumber
-            value={quantity}
-            min={1}
-            max={product.stock}
-            onChange={handleQuantityChange}
-            size='large'
-          />
         </View>
+      </AtCard>
 
+      {/* 操作按钮 */}
+      <View className='action-section'>
         <View className='action-buttons'>
           <View className='button-row'>
-            <AtButton
-              type='secondary'
-              size='normal'
-              onClick={handleAddToCart}
-              className='cart-button'
-            >
-              加入购物车
-            </AtButton>
-
             <AtButton
               type='primary'
               size='normal'
               onClick={handleBuyNow}
-              className='buy-button'
+              className='buy-button full-width'
             >
               立即购买
             </AtButton>
@@ -384,6 +453,76 @@ const ProductDetail: React.FC = () => {
         status={toastType}
         onClose={hideToast}
       />
+
+      {/* 购买确认弹窗 */}
+      <AtModal
+        isOpened={showBuyModal}
+        onClose={handleBuyModalCancel}
+        className='buy-modal'
+      >
+        <AtModalHeader>确认购买</AtModalHeader>
+        <AtModalContent>
+          <View className='buy-modal-content'>
+            {/* 产品信息 */}
+            <View className='modal-product-info'>
+              <Image
+                src={product?.image}
+                mode='aspectFill'
+                className='modal-product-image'
+              />
+              <View className='modal-product-details'>
+                <Text className='modal-product-name'>{product?.name}</Text>
+                <Text className='modal-product-price'>¥{product?.price.toFixed(2)}</Text>
+                <Text className='modal-product-stock'>库存: {product?.stock}</Text>
+              </View>
+            </View>
+
+            {/* 规格选择 */}
+            {product?.specifications && product.specifications.length > 0 && (
+              <View className='modal-spec-section'>
+                <Text className='modal-section-title'>选择规格</Text>
+                <View className='modal-spec-list'>
+                  {product.specifications.map((spec, index) => (
+                    <View
+                      key={index}
+                      className={`modal-spec-item ${buyModalSelectedSpec === spec ? 'active' : ''}`}
+                      onClick={() => handleBuyModalSpecSelect(spec)}
+                    >
+                      <Text>{spec}</Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* 数量选择 */}
+            <View className='modal-quantity-section'>
+              <Text className='modal-section-title'>购买数量</Text>
+              <AtInputNumber
+                value={buyModalQuantity}
+                min={1}
+                max={product?.stock || 1}
+                onChange={handleBuyModalQuantityChange}
+                size='large'
+                className='modal-quantity-input'
+                type='number'
+              />
+            </View>
+
+            {/* 总价 */}
+            <View className='modal-total-section'>
+              <Text className='modal-total-label'>合计：</Text>
+              <Text className='modal-total-price'>
+                ¥{product ? (product.price * buyModalQuantity).toFixed(2) : '0.00'}
+              </Text>
+            </View>
+          </View>
+        </AtModalContent>
+        <AtModalAction>
+          <Button onClick={handleBuyModalCancel}>取消</Button>
+          <Button type='primary' onClick={handleBuyModalConfirm}>确认购买</Button>
+        </AtModalAction>
+      </AtModal>
 
       {/* 底部安全区域 */}
       <View className='safe-bottom' />

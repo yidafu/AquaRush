@@ -1,5 +1,6 @@
 import React, { useEffect, useState, createContext, useContext } from 'react';
 import { initTheme, setTheme, getCurrentTheme, ThemePreset, ThemeColors } from '../../styles/theme';
+import Taro from '@tarojs/taro';
 
 interface ThemeContextType {
   theme: ThemeColors;

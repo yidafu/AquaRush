@@ -30,7 +30,7 @@ import java.time.LocalDateTime
  * 对账报表仓库接口
  */
 @Repository
-interface ReconciliationReportRepository : JpaRepository<ReconciliationReport, Long> {
+interface ReconciliationReportRepository : JpaRepository<ReconciliationReport, Long>, ReconciliationReportRepositoryCustom {
   /**
    * 根据任务ID查找报表
    */
@@ -51,12 +51,9 @@ interface ReconciliationReportRepository : JpaRepository<ReconciliationReport, L
 
   /**
    * 根据生成时间范围查找报表
+   * Implementation moved to ReconciliationReportRepositoryCustom
    */
-  @Query("SELECT r FROM ReconciliationReport r WHERE r.generatedAt BETWEEN :startDate AND :endDate ORDER BY r.generatedAt DESC")
-  fun findByGeneratedAtBetween(
-    @Param("startDate") startDate: LocalDateTime,
-    @Param("endDate") endDate: LocalDateTime,
-  ): List<ReconciliationReport>
+  // fun findByGeneratedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationReport>
 
   /**
    * 查找最新的报表
@@ -65,18 +62,13 @@ interface ReconciliationReportRepository : JpaRepository<ReconciliationReport, L
 
   /**
    * 删除旧报表
+   * Implementation moved to ReconciliationReportRepositoryCustom
    */
-  @Query("DELETE FROM ReconciliationReport r WHERE r.generatedAt < :beforeDate")
-  fun deleteReportsBefore(
-    @Param("beforeDate") beforeDate: LocalDateTime,
-  ): Int
+  // fun deleteReportsBefore(beforeDate: LocalDateTime): Int
 
   /**
    * 统计报表数量
+   * Implementation moved to ReconciliationReportRepositoryCustom
    */
-  @Query("SELECT COUNT(r) FROM ReconciliationReport r WHERE r.taskId = :taskId AND r.reportType = :reportType")
-  fun countByTaskIdAndReportType(
-    @Param("taskId") taskId: String,
-    @Param("reportType") reportType: String,
-  ): Long
+  // fun countByTaskIdAndReportType(taskId: String, reportType: String): Long
 }

@@ -19,9 +19,8 @@
 
 package dev.yidafu.aqua.logging.util
 
-import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.json.JsonMapper
-//import tools.jackson.datatype.jsr310.JavaTimeModule
+// import tools.jackson.datatype.jsr310.JavaTimeModule
 import dev.yidafu.aqua.logging.context.LoggingContext
 import java.time.Instant
 
@@ -29,9 +28,10 @@ import java.time.Instant
  * 日志构建器，用于构建结构化日志消息
  */
 class LogBuilder {
-  private val objectMapper = JsonMapper.builder()
+  private val objectMapper =
+    JsonMapper.builder()
 //    .addModule(JavaTimeModule())
-    .build()
+      .build()
   private val data = mutableMapOf<String, Any>()
 
   init {

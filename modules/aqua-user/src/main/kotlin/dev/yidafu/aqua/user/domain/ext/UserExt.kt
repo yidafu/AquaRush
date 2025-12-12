@@ -23,11 +23,11 @@ import dev.yidafu.aqua.api.dto.NotificationSettingsDTO
 import dev.yidafu.aqua.api.dto.UserDTO
 import dev.yidafu.aqua.api.dto.UserRole
 import dev.yidafu.aqua.api.dto.UserStatus
-import dev.yidafu.aqua.user.domain.model.User
+import dev.yidafu.aqua.user.domain.model.UserModel
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-fun User.toDTO(): UserDTO =
+fun UserModel.toDTO(): UserDTO =
   UserDTO(
     id = id ?: 0L,
     wechatOpenId = null,

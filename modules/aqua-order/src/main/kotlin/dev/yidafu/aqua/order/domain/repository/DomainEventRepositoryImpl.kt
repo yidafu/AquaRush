@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.order.domain.repository
 
-import dev.yidafu.aqua.order.domain.model.DomainEvent
-import dev.yidafu.aqua.order.domain.model.EventStatus
+import dev.yidafu.aqua.order.domain.model.DomainEventModel
+import dev.yidafu.aqua.order.domain.model.EventStatusModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.LockModeType
 import jakarta.persistence.PersistenceContext
@@ -44,18 +44,18 @@ class DomainEventRepositoryImpl(
      * Uses native query for optimal performance with row-level locking
      */
     fun findNextPendingEventForUpdateEnhanced(
-        status: EventStatus,
+        status: EventStatusModel,
         now: LocalDateTime
-    ): DomainEvent? {
+    ): DomainEventModel? {
         // Native query with explicit pessimistic locking
         val query = entityManager.createQuery(
             """
-            SELECT de FROM DomainEvent de
+            SELECT de FROM DomainEventModel de
             WHERE de.status = :status
             AND (de.nextRunAt <= :now OR de.nextRunAt IS NULL)
             ORDER BY de.createdAt ASC
             """.trimIndent(),
-            DomainEvent::class.java
+          DomainEventModel::class.java
         )
 
         query.setParameter("status", status)
@@ -71,12 +71,12 @@ class DomainEventRepositoryImpl(
      * More flexible than simple status-based queries
      */
     fun findPendingEventsWithFilters(
-        status: EventStatus,
+        status: EventStatusModel,
         now: LocalDateTime,
         eventType: String? = null,
         maxRetries: Int? = null,
         batchSize: Int = 100
-    ): List<DomainEvent> {
+    ): List<DomainEventModel> {
         // TODO: Fix Criteria API usage
         return emptyList()
     }
@@ -87,16 +87,16 @@ class DomainEventRepositoryImpl(
      */
     fun batchUpdateEvents(
         eventIds: List<Long>,
-        newStatus: EventStatus,
+        newStatus: EventStatusModel,
         incrementRetry: Boolean = false,
         nextRunAt: LocalDateTime? = null
     ): Int {
         val cb = entityManager.criteriaBuilder
-        val update = cb.createCriteriaUpdate(DomainEvent::class.java)
-        val root = update.from(DomainEvent::class.java)
+        val update = cb.createCriteriaUpdate(DomainEventModel::class.java)
+        val root = update.from(DomainEventModel::class.java)
 
         val idPredicate = root.get<Long>("id").`in`(eventIds)
-        update.set(root.get<EventStatus>("status"), newStatus)
+        update.set(root.get<EventStatusModel>("status"), newStatus)
 
         if (incrementRetry) {
             // Add 1 to existing retry count
@@ -124,8 +124,8 @@ class DomainEventRepositoryImpl(
         startDate: LocalDateTime,
         endDate: LocalDateTime,
         eventTypes: List<String>? = null,
-        statuses: List<EventStatus>? = null
-    ): List<DomainEvent> {
+        statuses: List<EventStatusModel>? = null
+    ): List<DomainEventModel> {
         // TODO: Fix Criteria API usage
         return emptyList()
     }
@@ -135,7 +135,7 @@ class DomainEventRepositoryImpl(
      */
     fun countEventsByTypeAndStatus(
         eventType: String,
-        status: EventStatus,
+        status: EventStatusModel,
         startDate: LocalDateTime? = null,
         endDate: LocalDateTime? = null
     ): Long {
@@ -176,7 +176,7 @@ class DomainEventRepositoryImpl(
             EventAnalyticsRow(
                 eventDate = row[0] as java.time.LocalDate,
                 eventType = row[1] as String,
-                status = EventStatus.valueOf(row[2] as String),
+                status = EventStatusModel.valueOf(row[2] as String),
                 eventCount = (row[3] as Number).toLong(),
                 averageRetries = (row[4] as Number).toDouble(),
                 maxRetries = (row[5] as Number).toInt(),
@@ -192,12 +192,12 @@ class DomainEventRepositoryImpl(
      */
     fun cleanupProcessedEvents(olderThan: LocalDateTime): Int {
         val cb = entityManager.criteriaBuilder
-        val delete = cb.createCriteriaDelete(DomainEvent::class.java)
-        val root = delete.from(DomainEvent::class.java)
+        val delete = cb.createCriteriaDelete(DomainEventModel::class.java)
+        val root = delete.from(DomainEventModel::class.java)
 
         delete.where(
             cb.and(
-                cb.equal(root.get<EventStatus>("status"), EventStatus.COMPLETED),
+                cb.equal(root.get<EventStatusModel>("status"), EventStatusModel.COMPLETED),
                 cb.lessThan(root.get<LocalDateTime>("createdAt"), olderThan)
             )
         )
@@ -212,7 +212,7 @@ class DomainEventRepositoryImpl(
 data class EventAnalyticsRow(
     val eventDate: java.time.LocalDate,
     val eventType: String,
-    val status: EventStatus,
+    val status: EventStatusModel,
     val eventCount: Long,
     val averageRetries: Double,
     val maxRetries: Int,

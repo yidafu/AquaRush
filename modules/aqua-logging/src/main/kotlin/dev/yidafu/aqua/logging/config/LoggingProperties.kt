@@ -96,7 +96,7 @@ data class UserActionProperties(
   val enabled: Boolean = true,
   val logPageViews: Boolean = true,
   val logClicks: Boolean = true,
-  val logInputs: Boolean = false,  // 默认关闭输入日志以减少日志量
+  val logInputs: Boolean = false, // 默认关闭输入日志以减少日志量
   val logBackendOps: Boolean = true,
   val logScrolls: Boolean = false, // 默认关闭滚动日志以减少日志量
   val logFormSubmits: Boolean = true,
@@ -104,7 +104,7 @@ data class UserActionProperties(
   val logSearches: Boolean = true,
   val logShares: Boolean = true,
   val retentionDays: Int = 30, // 保留天数
-  val batchSize: Int = 100,    // 批量处理大小
+  val batchSize: Int = 100, // 批量处理大小
   val flushInterval: Long = 5000, // 刷新间隔（毫秒）
   val sanitizeSensitiveData: Boolean = true, // 是否对敏感数据进行脱敏
   val maxInputLength: Int = 200, // 输入内容最大记录长度

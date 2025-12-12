@@ -26,10 +26,10 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "products")
-data class Product(
+data class ProductModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  val id: Long = 0L,
 
   @Column(name = "name", nullable = false)
   var name: String,

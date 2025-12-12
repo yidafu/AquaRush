@@ -33,7 +33,7 @@ import java.util.*
     Index(name = "idx_order_event_status", columnList = "status"),
   ],
 )
-data class DomainEvent(
+data class DomainEventModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
@@ -48,7 +48,7 @@ data class DomainEvent(
   var nextRunAt: LocalDateTime? = null,
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
-  var status: EventStatus = EventStatus.PENDING,
+  var status: EventStatusModel = EventStatusModel.PENDING,
   @Column(name = "created_at", nullable = false)
   @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
   val createdAt: LocalDateTime = LocalDateTime.now(),

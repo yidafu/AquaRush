@@ -36,74 +36,73 @@ import java.time.LocalDateTime
 @AdminService
 @Controller
 class AdminReviewQueryResolver(
-    private val reviewService: ReviewService
+  private val reviewService: ReviewService,
 ) {
+  /**
+   * 查询所有评价（管理员功能）
+   */
+  @PreAuthorize("hasRole('ADMIN')")
+  fun reviews(
+    deliveryWorkerId: Long? = null,
+    minRating: Int? = null,
+    maxRating: Int? = null,
+    dateFrom: LocalDateTime? = null,
+    dateTo: LocalDateTime? = null,
+    userId: Long? = null,
+    page: Int = 0,
+    size: Int = 20,
+  ): Page<ReviewResponse> {
+    return reviewService.getReviewsWithFilters(
+      deliveryWorkerId = deliveryWorkerId,
+      minRating = minRating,
+      maxRating = maxRating,
+      dateFrom = dateFrom,
+      dateTo = dateTo,
+      userId = userId,
+      page = page,
+      size = size,
+    )
+  }
 
-    /**
-     * 查询所有评价（管理员功能）
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    fun reviews(
-        deliveryWorkerId: Long? = null,
-        minRating: Int? = null,
-        maxRating: Int? = null,
-        dateFrom: LocalDateTime? = null,
-        dateTo: LocalDateTime? = null,
-        userId: Long? = null,
-        page: Int = 0,
-        size: Int = 20
-    ): Page<ReviewResponse> {
-        return reviewService.getReviewsWithFilters(
-            deliveryWorkerId = deliveryWorkerId,
-            minRating = minRating,
-            maxRating = maxRating,
-            dateFrom = dateFrom,
-            dateTo = dateTo,
-            userId = userId,
-            page = page,
-            size = size
-        )
-    }
+  /**
+   * 获取配送员统计数据（管理员功能）
+   */
+  @PreAuthorize("hasRole('ADMIN')")
+  fun deliveryWorkerStatistics(deliveryWorkerId: Long): DeliveryWorkerStatisticsResponse {
+    return reviewService.getDeliveryWorkerStatistics(deliveryWorkerId)
+  }
 
-    /**
-     * 获取配送员统计数据（管理员功能）
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    fun deliveryWorkerStatistics(deliveryWorkerId: Long): DeliveryWorkerStatisticsResponse {
-        return reviewService.getDeliveryWorkerStatistics(deliveryWorkerId)
-    }
+  /**
+   * 获取配送员排行榜（管理员功能）
+   */
+  @PreAuthorize("hasRole('ADMIN')")
+  fun deliveryWorkerRanking(
+    sortBy: String = "rating",
+    minReviews: Int = 1,
+    page: Int = 0,
+    size: Int = 20,
+  ): Page<DeliveryWorkerRankingResponse> {
+    return reviewService.getDeliveryWorkerRanking(
+      sortBy = sortBy,
+      minReviews = minReviews,
+      page = page,
+      size = size,
+    )
+  }
 
-    /**
-     * 获取配送员排行榜（管理员功能）
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    fun deliveryWorkerRanking(
-        sortBy: String = "rating",
-        minReviews: Int = 1,
-        page: Int = 0,
-        size: Int = 20
-    ): Page<DeliveryWorkerRankingResponse> {
-        return reviewService.getDeliveryWorkerRanking(
-            sortBy = sortBy,
-            minReviews = minReviews,
-            page = page,
-            size = size
-        )
-    }
-
-    /**
-     * 获取配送员的评价列表（管理员功能）
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    fun deliveryWorkerReviews(
-        deliveryWorkerId: Long,
-        page: Int = 0,
-        size: Int = 10
-    ): Page<ReviewResponse> {
-        return reviewService.getDeliveryWorkerReviews(
-            deliveryWorkerId = deliveryWorkerId,
-            page = page,
-            size = size
-        )
-    }
+  /**
+   * 获取配送员的评价列表（管理员功能）
+   */
+  @PreAuthorize("hasRole('ADMIN')")
+  fun deliveryWorkerReviews(
+    deliveryWorkerId: Long,
+    page: Int = 0,
+    size: Int = 10,
+  ): Page<ReviewResponse> {
+    return reviewService.getDeliveryWorkerReviews(
+      deliveryWorkerId = deliveryWorkerId,
+      page = page,
+      size = size,
+    )
+  }
 }

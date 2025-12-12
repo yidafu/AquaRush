@@ -37,7 +37,7 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     default-schema: public
     drop-first: false         # 生产环境必须为 false！
-    enabled: false            # Disable Liquibase for client service since main app manages schema
+    enabled: true             # Enable Liquibase for client service
 
   artemis:
     mode: embedded
@@ -138,6 +138,8 @@ aqua:
   wechat:
     app-id: ${WECHAT_APP_ID:your-app-id}
     app-secret: ${WECHAT_APP_SECRET:your-app-secret}
+    token: "token"
+    aes-key: "string"
   messaging:
     enabled: true
     strategy: artemis # artemis, hybrid, outbox-only, memory-only
@@ -157,9 +159,23 @@ aqua:
       retry-delays-ms: [30000, 90000, 300000, 900000, 1800000] # 30s, 90s, 5min, 15min, 30min
       cleanup-days: 30
   mode: client
+  # Default region configuration
+  region:
+    default-district-code: ${DEFAULT_REGION_DISTRICT_CODE:330106} # 西湖区 by default
+
+# Storage configuration
+storage:
+  type: LOCAL
+  local:
+    base-path: ${STORAGE_BASE_PATH:./storage}
+    max-file-size: 104857600  # 100MB
+    allowed-extensions: ["jpg", "jpeg", "png", "gif", "bmp", "webp", "mp4", "avi", "mov", "wmv", "flv", "mp3", "wav", "flac", "aac", "pdf", "doc", "docx", "txt", "xls", "xlsx", "csv", "ppt", "pptx", "html", "css", "js", "zip", "rar", "7z", "tar", "gz", "bak", "backup"]
+
 # JWT configuration
 app:
   jwt:
     secret: ${JWT_SECRET:your-jwt-secret-key-change-in-production}
     expiration: 86400 # 24 hours in seconds
     refresh-expiration: 604800 # 7 days in seconds
+  debug:
+    enabled: ${DEBUG_ENABLED:true} # Enable debug endpoints (should only be true in development)

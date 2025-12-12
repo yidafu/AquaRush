@@ -19,7 +19,8 @@
 
 package dev.yidafu.aqua.user.service
 
-import dev.yidafu.aqua.user.domain.model.Admin
+import dev.yidafu.aqua.user.domain.model.AdminModel
+import dev.yidafu.aqua.user.domain.model.AdminRoleModel
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -36,22 +37,22 @@ class AdminService(
   /**
    * Find all admin users
    */
-  fun findAll(): List<Admin> = adminRepository.findAll()
+  fun findAll(): List<AdminModel> = adminRepository.findAll()
 
   /**
    * Find admin by id
    */
-  fun findById(id: Long): Admin? = adminRepository.findById(id).orElse(null)
+  fun findById(id: Long): AdminModel? = adminRepository.findById(id).orElse(null)
 
   /**
    * Find admin by username
    */
-  fun findByUsername(username: String): Admin? = adminRepository.findByUsername(username).orElse(null)
+  fun findByUsername(username: String): AdminModel? = adminRepository.findByUsername(username).orElse(null)
 
   /**
    * Create or update admin
    */
-  fun save(admin: Admin): Admin = adminRepository.save(admin)
+  fun save(admin: AdminModel): AdminModel = adminRepository.save(admin)
 
   /**
    * Delete admin by id
@@ -78,6 +79,6 @@ class AdminService(
   /**
    * Find admins by role
    */
-  fun findByRole(role: dev.yidafu.aqua.user.domain.model.AdminRole): List<Admin> =
+  fun findByRole(role: AdminRoleModel): List<AdminModel> =
     adminRepository.findByRole(role)
 }

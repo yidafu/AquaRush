@@ -1,0 +1,1344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+    <!-- ======================================================================= -->
+    <!-- Reference Tables (No Dependencies) -->
+    <!-- ======================================================================= -->
+
+    <changeSet id="1.0.0-create-regions-table" author="aqua-rush">
+        <comment>Create regions table for province/city/district data</comment>
+        <createTable tableName="regions">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="code" type="varchar(12)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="parent_code" type="varchar(12)">
+                <constraints nullable="true"/>
+            </column>
+            <column name="level" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="regions" indexName="idx_regions_parent_code">
+            <column name="parent_code"/>
+        </createIndex>
+
+        <createIndex tableName="regions" indexName="idx_regions_level">
+            <column name="level"/>
+        </createIndex>
+
+        <createIndex tableName="regions" indexName="idx_regions_parent_level">
+            <column name="parent_code"/>
+            <column name="level"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.0-insert-regions-data" author="aqua-rush">
+        <comment>Insert initial regions data (provinces, cities, districts)</comment>
+        <sqlFile path="db/changelog/changes/insert-regions.sql" relativeToChangelogFile="false"/>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-admin-table" author="aqua-rush">
+        <comment>Create admin table</comment>
+        <createTable tableName="admins">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="username" type="varchar(50)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password_hash" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="real_name" type="varchar(100)"/>
+            <column name="phone" type="varchar(20)"/>
+            <column name="role" type="varchar(20)" defaultValue="ADMIN">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_login_at" type="timestamp"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="admins" indexName="idx_admin_username">
+            <column name="username"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-product-table" author="aqua-rush">
+        <comment>Create product table</comment>
+        <createTable tableName="products">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="price" type="decimal(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="thumbnail_url" type="varchar(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="detail_images" type="jsonb"/>
+            <column name="description" type="text"/>
+            <column name="stock_quantity" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)" defaultValue="ACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="products" indexName="idx_product_status">
+            <column name="status"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ======================================================================= -->
+    <!-- System Tables (No Dependencies) -->
+    <!-- ======================================================================= -->
+
+    <changeSet id="1.0.0-create-storage-schema" author="aqua-rush">
+        <comment>Create file metadata table for storage system</comment>
+        <createTable tableName="file_metadata">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="file_name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="storage_path" type="varchar(500)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="file_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="file_size" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="mime_type" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="checksum" type="varchar(64)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_public" type="boolean" defaultValueNumeric="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(1000)"/>
+            <column name="extension" type="varchar(10)"/>
+            <column name="owner_id" type="bigint"/>
+        </createTable>
+
+        <createIndex tableName="file_metadata" indexName="idx_file_metadata_checksum">
+            <column name="checksum"/>
+        </createIndex>
+
+        <createIndex tableName="file_metadata" indexName="idx_file_metadata_storage_path">
+            <column name="storage_path"/>
+        </createIndex>
+
+        <createIndex tableName="file_metadata" indexName="idx_file_metadata_file_type">
+            <column name="file_type"/>
+        </createIndex>
+
+        <createIndex tableName="file_metadata" indexName="idx_file_metadata_owner_id">
+            <column name="owner_id"/>
+        </createIndex>
+
+        <createIndex tableName="file_metadata" indexName="idx_file_metadata_created_at">
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="file_metadata" indexName="idx_file_metadata_is_public">
+            <column name="is_public"/>
+        </createIndex>
+
+        <sql>
+            ALTER TABLE file_metadata ADD CONSTRAINT chk_file_type
+            CHECK (file_type IN ('IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT', 'SPREADSHEET', 'PRESENTATION', 'FRONTEND', 'ARCHIVE', 'EXECUTABLE', 'BACKUP', 'OTHER'));
+        </sql>
+
+        <sql>
+            ALTER TABLE file_metadata ADD CONSTRAINT chk_file_size_positive
+            CHECK (file_size > 0);
+        </sql>
+
+        <sql>
+            CREATE OR REPLACE FUNCTION update_file_metadata_updated_at()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER trigger_file_metadata_updated_at
+            BEFORE UPDATE ON file_metadata
+            FOR EACH ROW
+            EXECUTE FUNCTION update_file_metadata_updated_at();
+        </sql>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-event-table" author="aqua-rush">
+        <comment>Create outbox event table for async processing</comment>
+        <createTable tableName="outbox_events">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="event_type" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payload" type="jsonb">
+                <constraints nullable="false"/>
+            </column>
+            <column name="retry_count" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="next_run_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="error_message" type="text"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="outbox_events" indexName="idx_event_type">
+            <column name="event_type"/>
+        </createIndex>
+        <createIndex tableName="outbox_events" indexName="idx_event_status">
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="outbox_events" indexName="idx_event_next_run">
+            <column name="next_run_at"/>
+        </createIndex>
+        <createIndex tableName="outbox_events" indexName="idx_event_composite">
+            <column name="status"/>
+            <column name="next_run_at"/>
+        </createIndex>
+    </changeSet>
+
+    <!-- ======================================================================= -->
+    <!-- Base Entity Tables -->
+    <!-- ======================================================================= -->
+
+    <changeSet id="1.0.0-create-user-table" author="aqua-rush">
+        <comment>Create user table</comment>
+        <createTable tableName="users">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="wechat_openid" type="varchar(128)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="wechat_unionid" type="varchar(128)">
+                <constraints unique="true"/>
+            </column>
+            <column name="nickname" type="varchar(255)"/>
+            <column name="phone" type="varchar(20)"/>
+            <column name="avatar_url" type="varchar(512)"/>
+            <column name="email" type="varchar(255)" defaultValue="">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(50)" defaultValue="INACTIVE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="varchar(50)" defaultValue="NONE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="balance" type="decimal(19,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_spent" type="decimal(19,2)" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_login_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="users" indexName="idx_users_openid">
+            <column name="wechat_openid"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-delivery-worker-table" author="aqua-rush">
+        <comment>Create delivery worker table</comment>
+        <createTable tableName="delivery_workers">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="wechat_openid" type="varchar(128)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="phone" type="varchar(20)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="online_status" type="varchar(20)" defaultValue="OFFLINE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="delivery_workers" indexName="idx_worker_openid">
+            <column name="wechat_openid"/>
+        </createIndex>
+        <createIndex tableName="delivery_workers" indexName="idx_worker_status">
+            <column name="online_status"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-delivery-area-table" author="aqua-rush">
+        <comment>Create delivery area table</comment>
+        <createTable tableName="delivery_areas">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="province" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="city" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="district" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_enabled" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="delivery_areas" indexName="idx_area_location">
+            <column name="province"/>
+            <column name="city"/>
+            <column name="district"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-reconciliation-tasks-table" author="aqua-rush">
+        <comment>Create reconciliation tasks table</comment>
+        <createTable tableName="reconciliation_tasks">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="task_id" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="task_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="task_date" type="timestamp">
+                <constraints nullable="false"/>
+            </column>
+            <column name="start_time" type="timestamp"/>
+            <column name="end_time" type="timestamp"/>
+            <column name="total_records" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="matched_records" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unmatched_records" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="error_message" type="text"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_task_id">
+            <column name="task_id"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_task_type">
+            <column name="task_type"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_status">
+            <column name="status"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_task_date">
+            <column name="task_date"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_composite">
+            <column name="task_date"/>
+            <column name="status"/>
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_type_status">
+            <column name="task_type"/>
+            <column name="status"/>
+        </createIndex>
+
+        <sql>
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_task_type
+            CHECK (task_type IN ('PAYMENT', 'REFUND', 'SETTLEMENT'));
+
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_task_status
+            CHECK (status IN ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED'));
+
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_total_records_non_negative
+            CHECK (total_records &gt;= 0);
+
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_matched_records_non_negative
+            CHECK (matched_records &gt;= 0);
+
+            ALTER TABLE reconciliation_tasks
+            ADD CONSTRAINT chk_unmatched_records_non_negative
+            CHECK (unmatched_records &gt;= 0);
+        </sql>
+    </changeSet>
+
+    <!-- ======================================================================= -->
+    <!-- Dependent Tables (Reference Base Entities) -->
+    <!-- ======================================================================= -->
+
+    <changeSet id="1.0.1-create-user-address-table" author="aqua-rush">
+        <comment>Create user address table</comment>
+        <createTable tableName="addresses">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="receiver_name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="phone" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="province" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="province_code" type="varchar(12)" remarks="省份代码">
+                <constraints nullable="true"/>
+            </column>
+            <column name="city" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="city_code" type="varchar(12)" remarks="城市代码">
+                <constraints nullable="true"/>
+            </column>
+            <column name="district" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="district_code" type="varchar(12)" remarks="区县代码">
+                <constraints nullable="true"/>
+            </column>
+            <column name="detail_address" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="longitude" type="double" remarks="经度坐标">
+                <constraints nullable="true"/>
+            </column>
+            <column name="latitude" type="double" remarks="纬度坐标">
+                <constraints nullable="true"/>
+            </column>
+            <column name="is_default" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="addresses" indexName="idx_user_address_user_id">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="addresses" indexName="idx_addresses_phone">
+            <column name="phone"/>
+        </createIndex>
+        <createIndex tableName="addresses" indexName="idx_user_address_is_default">
+            <column name="user_id"/>
+            <column name="is_default"/>
+        </createIndex>
+        <createIndex tableName="addresses" indexName="idx_addresses_location">
+            <column name="longitude"/>
+            <column name="latitude"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.2-create-delivery-address-table" author="aqua-rush">
+        <comment>Create delivery address table</comment>
+        <createTable tableName="delivery_addresses">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="receiver_name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="receiver_phone" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="province" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="city" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="district" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="detail_address" type="varchar(512)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="longitude" type="double" remarks="经度坐标">
+                <constraints nullable="true"/>
+            </column>
+            <column name="latitude" type="double" remarks="纬度坐标">
+                <constraints nullable="true"/>
+            </column>
+            <column name="is_default" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="delivery_addresses" indexName="idx_delivery_address_user_id">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="delivery_addresses" indexName="idx_delivery_address_location">
+            <column name="longitude"/>
+            <column name="latitude"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.1-create-user-notification-settings-table" author="aqua-rush">
+        <comment>Create user notification settings table</comment>
+        <createTable tableName="user_notification_settings">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="order_updates" type="boolean" defaultValueNumeric="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payment_notifications" type="boolean" defaultValueNumeric="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="delivery_notifications" type="boolean" defaultValueNumeric="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="promotional_notifications" type="boolean" defaultValueNumeric="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="user_notification_settings" indexName="idx_user_notification_settings_user_id">
+            <column name="user_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.1-create-message-history-table" author="aqua-rush">
+        <comment>Create message history table</comment>
+        <createTable tableName="message_history">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message_type" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="template_id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="text"/>
+            <column name="status" type="varchar(20)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="sent_at" type="timestamp"/>
+            <column name="wx_message_id" type="varchar(100)"/>
+            <column name="error_message" type="text"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="retry_count" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="message_history" indexName="idx_message_history_user_id">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex tableName="message_history" indexName="idx_message_history_status">
+            <column name="status"/>
+        </createIndex>
+
+        <createIndex tableName="message_history" indexName="idx_message_history_message_type">
+            <column name="message_type"/>
+        </createIndex>
+
+        <createIndex tableName="message_history" indexName="idx_message_history_created_at">
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="message_history" indexName="idx_message_history_wx_message_id">
+            <column name="wx_message_id"/>
+        </createIndex>
+
+        <sql dbms="postgresql">
+            ALTER TABLE message_history
+            ADD CONSTRAINT chk_message_status
+            CHECK (status IN ('PENDING', 'SENT', 'FAILED', 'RETRYING'));
+        </sql>
+
+        <sql dbms="mysql">
+            ALTER TABLE message_history
+            ADD CONSTRAINT chk_message_status
+            CHECK (status IN ('PENDING', 'SENT', 'FAILED', 'RETRYING'));
+        </sql>
+
+        <sql>
+            CREATE OR REPLACE FUNCTION update_updated_at_column()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END
+            $$ language 'plpgsql';
+
+            CREATE TRIGGER update_user_notification_settings_updated_at
+            BEFORE UPDATE ON user_notification_settings
+            FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+        </sql>
+    </changeSet>
+
+    <changeSet id="1.0.1-create-delivery-worker-statistics-table" author="aqua-rush">
+        <comment>Create delivery worker statistics table</comment>
+        <createTable tableName="delivery_worker_statistics">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="delivery_worker_id" type="bigint">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="average_rating" type="decimal(3,2)" defaultValueNumeric="0.00">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_reviews" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="one_star_reviews" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="two_star_reviews" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="three_star_reviews" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="four_star_reviews" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="five_star_reviews" type="int" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_updated" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="delivery_worker_statistics" indexName="idx_delivery_worker_statistics_id">
+            <column name="delivery_worker_id"/>
+        </createIndex>
+
+        <sql>
+            ALTER TABLE delivery_worker_statistics
+            ADD CONSTRAINT chk_average_rating_range
+            CHECK (average_rating &gt;= 0.00 AND average_rating &lt;= 5.00);
+
+            ALTER TABLE delivery_worker_statistics
+            ADD CONSTRAINT chk_total_reviews_non_negative
+            CHECK (total_reviews &gt;= 0);
+
+            ALTER TABLE delivery_worker_statistics
+            ADD CONSTRAINT chk_star_reviews_non_negative
+            CHECK (one_star_reviews &gt;= 0 AND two_star_reviews &gt;= 0 AND three_star_reviews &gt;= 0 AND four_star_reviews &gt;= 0 AND five_star_reviews &gt;= 0);
+        </sql>
+
+        <sql>
+            CREATE OR REPLACE FUNCTION update_delivery_worker_statistics_last_updated()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.last_updated = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END
+            $$ language 'plpgsql';
+
+            CREATE TRIGGER trigger_delivery_worker_statistics_last_updated
+            BEFORE UPDATE ON delivery_worker_statistics
+            FOR EACH ROW
+            EXECUTE FUNCTION update_delivery_worker_statistics_last_updated();
+        </sql>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-reconciliation-discrepancies-table" author="aqua-rush">
+        <comment>Create reconciliation discrepancies table</comment>
+        <createTable tableName="reconciliation_discrepancies">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="task_id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="discrepancy_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="source_system" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="record_id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="record_details" type="jsonb"/>
+            <column name="status" type="varchar(20)" defaultValue="'UNRESOLVED'">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resolution_notes" type="text"/>
+            <column name="resolved_by" type="varchar(100)"/>
+            <column name="resolved_at" type="timestamp"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_task_id">
+            <column name="task_id"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_discrepancy_type">
+            <column name="discrepancy_type"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_source_system">
+            <column name="source_system"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_status">
+            <column name="status"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_record_id">
+            <column name="record_id"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_task_created">
+            <column name="task_id"/>
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_resolution">
+            <column name="status"/>
+            <column name="discrepancy_type"/>
+        </createIndex>
+
+        <addForeignKeyConstraint
+            baseTableName="reconciliation_discrepancies"
+            baseColumnNames="task_id"
+            referencedTableName="reconciliation_tasks"
+            referencedColumnNames="task_id"
+            constraintName="fk_reconciliation_discrepancies_task_id"
+            onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE reconciliation_discrepancies
+            ADD CONSTRAINT chk_discrepancy_type
+            CHECK (discrepancy_type IN ('MISSING', 'MISMATCH', 'EXTRA'));
+
+            ALTER TABLE reconciliation_discrepancies
+            ADD CONSTRAINT chk_source_system
+            CHECK (source_system IN ('INTERNAL', 'WECHAT'));
+
+            ALTER TABLE reconciliation_discrepancies
+            ADD CONSTRAINT chk_discrepancy_status
+            CHECK (status IN ('UNRESOLVED', 'RESOLVED'));
+        </sql>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-reconciliation-reports-table" author="aqua-rush">
+        <comment>Create reconciliation reports table</comment>
+        <createTable tableName="reconciliation_reports">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="task_id" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="report_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="report_data" type="jsonb">
+                <constraints nullable="false"/>
+            </column>
+            <column name="file_path" type="varchar(500)"/>
+            <column name="file_name" type="varchar(255)"/>
+            <column name="file_size" type="bigint"/>
+            <column name="generated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="reconciliation_reports" indexName="idx_reconciliation_reports_task_id">
+            <column name="task_id"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_reports" indexName="idx_reconciliation_reports_report_type">
+            <column name="report_type"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_reports" indexName="idx_reconciliation_reports_generated_at">
+            <column name="generated_at"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_reports" indexName="idx_reconciliation_reports_task_type">
+            <column name="task_id"/>
+            <column name="report_type"/>
+        </createIndex>
+
+        <addForeignKeyConstraint
+            baseTableName="reconciliation_reports"
+            baseColumnNames="task_id"
+            referencedTableName="reconciliation_tasks"
+            referencedColumnNames="task_id"
+            constraintName="fk_reconciliation_reports_task_id"
+            onDelete="CASCADE"/>
+    </changeSet>
+
+    <!-- ======================================================================= -->
+    <!-- Transaction Tables (High Dependencies) -->
+    <!-- ======================================================================= -->
+
+    <changeSet id="1.0.1-create-order-table" author="aqua-rush">
+        <comment>Create order table</comment>
+        <createTable tableName="orders">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_no" type="varchar(64)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quantity" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_amount" type="decimal(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="address_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="delivery_address_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)" defaultValue="PENDING_PAYMENT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payment_method" type="varchar(20)"/>
+            <column name="payment_transaction_id" type="varchar(128)"/>
+            <column name="paid_at" type="timestamp"/>
+            <column name="delivery_worker_id" type="bigint">
+                <constraints nullable="true"/>
+            </column>
+            <column name="delivery_photos" type="jsonb"/>
+            <column name="completed_at" type="timestamp"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="orders" indexName="idx_order_no">
+            <column name="order_no"/>
+        </createIndex>
+        <createIndex tableName="orders" indexName="idx_order_user_id">
+            <column name="user_id"/>
+        </createIndex>
+        <createIndex tableName="orders" indexName="idx_order_status">
+            <column name="status"/>
+        </createIndex>
+        <createIndex tableName="orders" indexName="idx_order_created_at">
+            <column name="created_at"/>
+        </createIndex>
+        <createIndex tableName="orders" indexName="idx_orders_delivery_address_id">
+            <column name="delivery_address_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.2-create-order-items-table" author="aqua-rush">
+        <comment>Create order items table for order line items</comment>
+        <createTable tableName="order_items">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quantity" type="integer">
+                <constraints nullable="false"/>
+            </column>
+            <column name="unit_price" type="decimal(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="total_price" type="decimal(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_snapshot" type="jsonb">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="order_items" indexName="idx_order_items_order_id">
+            <column name="order_id"/>
+        </createIndex>
+
+        <createIndex tableName="order_items" indexName="idx_order_items_product_id">
+            <column name="product_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint
+            baseTableName="order_items"
+            baseColumnNames="order_id"
+            referencedTableName="orders"
+            referencedColumnNames="id"
+            constraintName="fk_order_items_order"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="order_items"
+            baseColumnNames="product_id"
+            referencedTableName="products"
+            referencedColumnNames="id"
+            constraintName="fk_order_items_product"/>
+
+        <sql>
+            ALTER TABLE order_items ADD CONSTRAINT chk_order_items_quantity_positive
+            CHECK (quantity &gt; 0);
+
+            ALTER TABLE order_items ADD CONSTRAINT chk_order_items_unit_price_positive
+            CHECK (unit_price &gt; 0);
+
+            ALTER TABLE order_items ADD CONSTRAINT chk_order_items_total_price_positive
+            CHECK (total_price &gt; 0);
+        </sql>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-payments-table" author="aqua-rush">
+        <comment>Create payments table</comment>
+        <createTable tableName="payments">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="transaction_id" type="VARCHAR(255)">
+                <constraints unique="true" uniqueConstraintName="uk_payments_transaction_id"/>
+            </column>
+            <column name="prepay_id" type="VARCHAR(255)">
+                <constraints unique="true" uniqueConstraintName="uk_payments_prepay_id"/>
+            </column>
+            <column name="amount" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="currency" type="VARCHAR(3)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="payment_method" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="TEXT"/>
+            <column name="failure_reason" type="TEXT"/>
+            <column name="paid_at" type="TIMESTAMP"/>
+            <column name="expired_at" type="TIMESTAMP"/>
+            <column name="created_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex indexName="idx_payments_user_id" tableName="payments">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_payments_status" tableName="payments">
+            <column name="status"/>
+        </createIndex>
+
+        <createIndex indexName="idx_payments_created_at" tableName="payments">
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex indexName="idx_payments_order_id" tableName="payments">
+            <column name="order_id"/>
+        </createIndex>
+
+        <addForeignKeyConstraint
+            baseTableName="payments"
+            baseColumnNames="order_id"
+            referencedTableName="orders"
+            referencedColumnNames="id"
+            constraintName="fk_payments_order_id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="payments"
+            baseColumnNames="user_id"
+            referencedTableName="users"
+            referencedColumnNames="id"
+            constraintName="fk_payments_user_id"
+            onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE payments ADD CONSTRAINT chk_payments_amount_positive
+            CHECK (amount &gt; 0);
+
+            ALTER TABLE payments ADD CONSTRAINT chk_payments_currency_code
+            CHECK (LENGTH(currency) = 3);
+
+            ALTER TABLE payments ADD CONSTRAINT chk_payments_status
+            CHECK (status IN ('PENDING', 'PAID', 'FAILED', 'CANCELLED', 'REFUNDED'));
+        </sql>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-payment-refunds-table" author="aqua-rush">
+        <comment>Create payment refunds table</comment>
+        <createTable tableName="payment_refunds">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="payment_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="order_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refund_id" type="varchar(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="refund_no" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="amount" type="decimal(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reason" type="varchar(500)"/>
+            <column name="status" type="varchar(20)" defaultValue="PENDING">
+                <constraints nullable="false"/>
+            </column>
+            <column name="refund_account" type="varchar(100)"/>
+            <column name="failure_reason" type="text"/>
+            <column name="processed_at" type="timestamp"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="payment_refunds" indexName="idx_payment_refunds_payment_id">
+            <column name="payment_id"/>
+        </createIndex>
+
+        <createIndex tableName="payment_refunds" indexName="idx_payment_refunds_order_id">
+            <column name="order_id"/>
+        </createIndex>
+
+        <createIndex tableName="payment_refunds" indexName="idx_payment_refunds_user_id">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex tableName="payment_refunds" indexName="idx_payment_refunds_status">
+            <column name="status"/>
+        </createIndex>
+
+        <createIndex tableName="payment_refunds" indexName="idx_payment_refunds_created_at">
+            <column name="created_at"/>
+        </createIndex>
+
+        <addForeignKeyConstraint
+            baseTableName="payment_refunds"
+            baseColumnNames="payment_id"
+            referencedTableName="payments"
+            referencedColumnNames="id"
+            constraintName="fk_payment_refunds_payment"/>
+
+        <addForeignKeyConstraint
+            baseTableName="payment_refunds"
+            baseColumnNames="order_id"
+            referencedTableName="orders"
+            referencedColumnNames="id"
+            constraintName="fk_payment_refunds_order"/>
+
+        <addForeignKeyConstraint
+            baseTableName="payment_refunds"
+            baseColumnNames="user_id"
+            referencedTableName="users"
+            referencedColumnNames="id"
+            constraintName="fk_payment_refunds_user"/>
+
+        <sql>
+            ALTER TABLE payment_refunds ADD CONSTRAINT chk_payment_refunds_amount_positive
+            CHECK (amount &gt; 0);
+
+            ALTER TABLE payment_refunds ADD CONSTRAINT chk_payment_refunds_status
+            CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED'));
+        </sql>
+    </changeSet>
+
+    <changeSet id="1.0.0-create-reviews-table" author="aqua-rush">
+        <comment>Create review table</comment>
+        <createTable tableName="reviews">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="order_id" type="bigint">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="delivery_worker_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rating" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comment" type="text"/>
+            <column name="is_anonymous" type="boolean" defaultValueNumeric="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="reviews" indexName="idx_reviews_order_id">
+            <column name="order_id"/>
+        </createIndex>
+
+        <createIndex tableName="reviews" indexName="idx_reviews_user_id">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex tableName="reviews" indexName="idx_reviews_delivery_worker_id">
+            <column name="delivery_worker_id"/>
+        </createIndex>
+
+        <createIndex tableName="reviews" indexName="idx_reviews_created_at">
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="reviews" indexName="idx_reviews_rating">
+            <column name="rating"/>
+        </createIndex>
+
+        <createIndex tableName="reviews" indexName="idx_reviews_composite">
+            <column name="delivery_worker_id"/>
+            <column name="created_at"/>
+        </createIndex>
+
+        <addForeignKeyConstraint
+            baseTableName="reviews"
+            baseColumnNames="order_id"
+            referencedTableName="orders"
+            referencedColumnNames="id"
+            constraintName="fk_reviews_order"/>
+
+        <addForeignKeyConstraint
+            baseTableName="reviews"
+            baseColumnNames="user_id"
+            referencedTableName="users"
+            referencedColumnNames="id"
+            constraintName="fk_reviews_user"/>
+
+        <addForeignKeyConstraint
+            baseTableName="reviews"
+            baseColumnNames="delivery_worker_id"
+            referencedTableName="delivery_workers"
+            referencedColumnNames="id"
+            constraintName="fk_reviews_delivery_worker"/>
+
+        <sql>
+            ALTER TABLE reviews
+            ADD CONSTRAINT chk_reviews_rating_range
+            CHECK (rating &gt;= 1 AND rating &lt;= 5);
+
+            ALTER TABLE reviews
+            ADD CONSTRAINT chk_reviews_comment_length
+            CHECK (LENGTH(COALESCE(comment, '')) &lt;= 500);
+        </sql>
+
+        <sql>
+            CREATE OR REPLACE FUNCTION update_reviews_updated_at()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END
+            $$ language 'plpgsql';
+
+            CREATE TRIGGER trigger_reviews_updated_at
+            BEFORE UPDATE ON reviews
+            FOR EACH ROW
+            EXECUTE FUNCTION update_reviews_updated_at();
+        </sql>
+    </changeSet>
+
+    <!-- ======================================================================= -->
+    <!-- Triggers for Updated Timestamps -->
+    <!-- ======================================================================= -->
+
+    <changeSet id="1.0.0-create-updated-at-triggers" author="aqua-rush">
+        <comment>Create triggers for automatic updated_at timestamp updates</comment>
+        <sql>
+            CREATE OR REPLACE FUNCTION update_updated_at_column()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END
+            $$ LANGUAGE plpgsql;
+
+            DROP TRIGGER IF EXISTS update_reconciliation_tasks_updated_at ON reconciliation_tasks;
+            CREATE TRIGGER update_reconciliation_tasks_updated_at
+                BEFORE UPDATE ON reconciliation_tasks
+                FOR EACH ROW
+                EXECUTE FUNCTION update_updated_at_column();
+
+            DROP TRIGGER IF EXISTS update_reconciliation_discrepancies_updated_at ON reconciliation_discrepancies;
+            CREATE TRIGGER update_reconciliation_discrepancies_updated_at
+                BEFORE UPDATE ON reconciliation_discrepancies
+                FOR EACH ROW
+                EXECUTE FUNCTION update_updated_at_column();
+        </sql>
+    </changeSet>
+
+</databaseChangeLog>

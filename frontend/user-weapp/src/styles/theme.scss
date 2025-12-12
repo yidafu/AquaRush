@@ -1,20 +1,22 @@
 // 主题变量定义
 :root {
-  // 主色调 - 水蓝色系
-  --theme-primary: #00A8CC;
-  --theme-primary-light: #E6F7FB;
-  --theme-primary-dark: #0088AA;
-  --theme-primary-rgb: 0, 168, 204;
+  // 主色调 - 蓝色系
+  --theme-primary: #1890ff;
+  --theme-primary-light: #e6f7ff;
+  --theme-primary-dark: #1373cc;
+  --theme-primary-rgb: 24, 144, 255;
+  --theme-primary-light-rgb: 230, 247, 255;
 
   // 渐变色
-  --theme-gradient-start: #00A8CC;
-  --theme-gradient-end: #006B8A;
+  --theme-gradient-start: #1890ff;
+  --theme-gradient-end: #1373cc;
 
   // 功能色
   --theme-secondary: #FF6B35;
   --theme-success: #52C41A;
   --theme-warning: #FAAD14;
-  --theme-error: #FF4D4F;
+  --theme-error: #ff4d4f;
+  --theme-error-rgb: 255,77,79;
 
   // 中性色
   --theme-text-primary: #333333;
@@ -22,93 +24,97 @@
   --theme-text-tertiary: #999999;
   --theme-background: #FFFFFF;
   --theme-background-page: #F5F5F5;
-  --theme-border: #F0F0F0;
+  --theme-border: #f0f0f0;
 
   // 阴影
-  --theme-shadow-light: rgba(0, 168, 204, 0.08);
+  --theme-shadow-light: rgba(24, 144, 255, 0.08);
   --theme-shadow-medium: rgba(0, 0, 0, 0.05);
 }
 
 // 主题相关类
 .theme-primary {
-  color: var(--theme-primary) !important;
+  color: var(--theme-primary);
 }
 
 .theme-primary-bg {
-  background-color: var(--theme-primary) !important;
+  background-color: var(--theme-primary);
 }
 
 .theme-primary-light {
-  color: var(--theme-primary-light) !important;
+  color: var(--theme-primary-light);
 }
 
 .theme-primary-light-bg {
-  background-color: var(--theme-primary-light) !important;
+  background-color: var(--theme-primary-light);
 }
 
 .theme-primary-dark {
-  color: var(--theme-primary-dark) !important;
+  color: var(--theme-primary-dark);
 }
 
 .theme-primary-dark-bg {
-  background-color: var(--theme-primary-dark) !important;
+  background-color: var(--theme-primary-dark);
 }
 
 .theme-gradient {
-  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%) !important;
+  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
 }
 
 .theme-secondary {
-  color: var(--theme-secondary) !important;
+  color: var(--theme-secondary);
 }
 
 .theme-secondary-bg {
-  background-color: var(--theme-secondary) !important;
+  background-color: var(--theme-secondary);
 }
 
 .theme-success {
-  color: var(--theme-success) !important;
+  color: var(--theme-success);
 }
 
 .theme-success-bg {
-  background-color: var(--theme-success) !important;
+  background-color: var(--theme-success);
 }
 
 .theme-warning {
-  color: var(--theme-warning) !important;
+  color: var(--theme-warning);
 }
 
 .theme-warning-bg {
-  background-color: var(--theme-warning) !important;
+  background-color: var(--theme-warning);
 }
 
 .theme-error {
-  color: var(--theme-error) !important;
+  color: var(--theme-error);
 }
 
 .theme-error-bg {
-  background-color: var(--theme-error) !important;
+  background-color: var(--theme-error);
 }
 
 // 通用主题样式
 .theme-text-primary {
-  color: var(--theme-text-primary) !important;
+  color: var(--theme-text-primary);
 }
 
 .theme-text-secondary {
-  color: var(--theme-text-secondary) !important;
+  color: var(--theme-text-secondary);
 }
 
 .theme-text-tertiary {
-  color: var(--theme-text-tertiary) !important;
+  color: var(--theme-text-tertiary);
+}
+
+.theme-text-danger {
+  color: var(--theme-text-error) ;
 }
 
 .theme-background {
-  background-color: var(--theme-background) !important;
+  background-color: var(--theme-background);
 }
 
 .theme-background-page {
-  background-color: var(--theme-background-page) !important;
+  background-color: var(--theme-background-page);
 }
 
 // 主题化组件样式
@@ -329,3 +335,4 @@
     }
   }
 }
+

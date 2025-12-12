@@ -1,5 +1,6 @@
 plugins {
   id("aqua.kotlin.spring")
+  id("aqua.kotlin.querydsl")
 }
 
 dependencies {
@@ -27,4 +28,29 @@ dependencies {
   // 测试依赖
   testImplementation(libs.spring.boot.starter.test)
   testImplementation("io.mockk:mockk:1.13.10")
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+  compilerOptions {
+    freeCompilerArgs.add("-Xjsr305=strict")
+  }
+}
+
+// Configure QueryDSL
+val querydslDir = "$buildDir/generated/querydsl"
+
+querydsl {
+  jpa = true
+  hibernate = true
+  querydslSourcesDir = querydslDir
+}
+
+// Configure Kotlin compilation to include generated source
+kotlin {
+  sourceSets {
+    main {
+      // Add QueryDSL generated sources
+      kotlin.srcDir(layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main"))
+    }
+  }
 }

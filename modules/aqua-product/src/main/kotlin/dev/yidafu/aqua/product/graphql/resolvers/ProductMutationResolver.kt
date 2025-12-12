@@ -19,9 +19,10 @@
 
 package dev.yidafu.aqua.product.graphql.resolvers
 
+import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateProductInput
-import dev.yidafu.aqua.product.domain.model.Product
+import dev.yidafu.aqua.product.domain.model.ProductModel
 import dev.yidafu.aqua.product.service.ProductService
 import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument
@@ -29,6 +30,7 @@ import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
+@AdminService
 @Controller
 class ProductMutationResolver(
   private val productService: ProductService,
@@ -37,7 +39,7 @@ class ProductMutationResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun createProduct(
     @Argument @Valid input: CreateProductInput,
-  ): Product =
+  ): ProductModel =
     productService.createProduct(
       name = input.name,
       price = input.price,
@@ -52,7 +54,7 @@ class ProductMutationResolver(
   fun updateProduct(
     @Argument id: Long,
     @Argument @Valid input: UpdateProductInput,
-  ): Product =
+  ): ProductModel =
     productService.updateProduct(
       productId = id,
       name = input.name,

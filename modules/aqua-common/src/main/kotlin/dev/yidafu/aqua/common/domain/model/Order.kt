@@ -25,10 +25,10 @@ import java.time.LocalDateTime
 
 @Entity
 @Table(name = "orders")
-data class Order(
+data class OrderModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  val id: Long = -1L,
   @Column(name = "order_number", unique = true, nullable = false)
   val orderNumber: String,
   @Column(name = "user_id", nullable = false)

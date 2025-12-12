@@ -19,59 +19,25 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.Address
+import dev.yidafu.aqua.user.domain.model.AddressModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Modifying
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 
 @Repository
-interface AddressRepository : JpaRepository<Address, Long>, JpaSpecificationExecutor<Address> {
+interface AddressRepository : JpaRepository<AddressModel, Long>, JpaSpecificationExecutor<AddressModel>, AddressRepositoryCustom {
 
-  fun findByUserId(userId: Long): List<Address>
+  fun findByUserId(userId: Long): List<AddressModel>
 
-  fun findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId: Long): List<Address>
+  fun findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId: Long): List<AddressModel>
+  fun findByUserIdOrderByIdDesc(userId: Long): List<AddressModel>
 
   fun findByUserIdAndIsDefault(
     userId: Long,
     isDefault: Boolean,
-  ): Address?
+  ): AddressModel?
 
-  fun findByUserIdAndIdNot(userId: Long, addressId: Long): List<Address>
-
-  @Modifying
-  @Query("UPDATE Address a SET a.isDefault = false WHERE a.userId = :userId")
-  fun clearDefaultAddresses(@Param("userId") userId: Long)
-
-  @Query(
-    value = """
-      SELECT * FROM addresses
-      WHERE longitude IS NOT NULL AND latitude IS NOT NULL
-      AND (
-        6371 * acos(
-          cos(radians(:latitude)) * cos(radians(latitude)) *
-          cos(radians(longitude) - radians(:longitude)) +
-          sin(radians(:latitude)) * sin(radians(latitude))
-        )
-      ) <= :radiusKm
-      ORDER BY (
-        6371 * acos(
-          cos(radians(:latitude)) * cos(radians(latitude)) *
-          cos(radians(longitude) - radians(:longitude)) +
-          sin(radians(:latitude)) * sin(radians(latitude))
-        )
-      )
-      LIMIT 20
-    """,
-    nativeQuery = true
-  )
-  fun findNearby(
-    @Param("longitude") longitude: Double,
-    @Param("latitude") latitude: Double,
-    @Param("radiusKm") radiusKm: Double
-  ): List<Address>
+  fun findByUserIdAndIdNot(userId: Long, addressId: Long): List<AddressModel>
 
   fun deleteByIdAndUserId(
     id: Long,
@@ -94,24 +60,7 @@ interface AddressRepository : JpaRepository<Address, Long>, JpaSpecificationExec
     }
   }
 
-  fun findByUserIdAndIsDefaultTrue(userId: Long): Address?
-
-  @Query(
-    value = """
-      SELECT a FROM Address a
-      WHERE a.userId = :userId
-      AND (
-        LOWER(a.province) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
-        LOWER(a.city) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
-        LOWER(a.district) LIKE LOWER(CONCAT('%', :keyword, '%')) OR
-        LOWER(a.detailAddress) LIKE LOWER(CONCAT('%', :keyword, '%'))
-      )
-    """
-  )
-  fun searchByUserIdAndKeyword(
-    @Param("userId") userId: Long,
-    @Param("keyword") keyword: String
-  ): List<Address>
+  fun findByUserIdAndIsDefaultTrue(userId: Long): AddressModel?
 
   fun countByUserId(userId: Long): Int
 }

@@ -20,9 +20,11 @@
 package dev.yidafu.aqua.admin.order.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
-import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
+import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.order.mapper.OrderMapper
 import dev.yidafu.aqua.order.service.OrderService
 import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument
@@ -45,7 +47,7 @@ class OrderMutationResolver(
     @Argument @Valid input: CreateOrderInput,
     @Argument userId: Long,
   ): Order {
-    return orderService.createOrder(input, userId)
+    return OrderMapper.map(orderService.createOrder(input, userId))
   }
 
   /**
@@ -54,7 +56,8 @@ class OrderMutationResolver(
   @MutationMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun cancelOrder(@Argument orderId: Long): Order {
-    return orderService.cancelOrderForAdmin(orderId)
+    return orderService.cancelOrderForAdmin(orderId)?.let { OrderMapper.map(it) }
+
       ?: throw IllegalArgumentException("Order not found")
   }
 
@@ -68,6 +71,7 @@ class OrderMutationResolver(
     @Argument status: OrderStatus,
   ): Order {
     return orderService.updateOrderStatus(orderId, status.name)
+      ?.let { OrderMapper.map(it) }
       ?: throw IllegalArgumentException("Order not found")
   }
 }

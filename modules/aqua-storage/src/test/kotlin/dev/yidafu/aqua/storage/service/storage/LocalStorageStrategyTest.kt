@@ -56,7 +56,6 @@ class LocalStorageStrategyTest {
             "test image content".toByteArray()
         )
         val metadata = FileMetadata(
-            id = 1L,
             fileName = "test.jpg",
             storagePath = "", // Will be set by storage strategy
             fileType = FileType.IMAGE,
@@ -64,7 +63,7 @@ class LocalStorageStrategyTest {
             mimeType = "image/jpeg",
             checksum = "test_checksum",
             extension = "jpg"
-        )
+        ).apply { id = 1L }
 
         // When
         val storagePath = localStorageStrategy.store(file, metadata)
@@ -86,7 +85,6 @@ class LocalStorageStrategyTest {
             fileContent.toByteArray()
         )
         val metadata = FileMetadata(
-            id = 1L,
             fileName = "test.jpg",
             storagePath = "",
             fileType = FileType.IMAGE,
@@ -94,7 +92,7 @@ class LocalStorageStrategyTest {
             mimeType = "image/jpeg",
             checksum = "test_checksum",
             extension = "jpg"
-        )
+        ).apply { id = 1L }
 
         // When
         val storagePath = localStorageStrategy.store(file, metadata)
@@ -116,7 +114,6 @@ class LocalStorageStrategyTest {
             "test image content".toByteArray()
         )
         val metadata = FileMetadata(
-            id = 1L,
             fileName = "test.jpg",
             storagePath = "",
             fileType = FileType.IMAGE,
@@ -124,7 +121,7 @@ class LocalStorageStrategyTest {
             mimeType = "image/jpeg",
             checksum = "test_checksum",
             extension = "jpg"
-        )
+        ).apply { id = 1L }
 
         // When
         val storagePath = localStorageStrategy.store(file, metadata)
@@ -152,15 +149,15 @@ class LocalStorageStrategyTest {
     @Test
     fun `should generate URL`() {
         // Given
-        val storagePath = "images/2024/01/test.jpg"
+        val fileId = 123L
 
         // When
-        val url = localStorageStrategy.generateUrl(storagePath)
+        val url = localStorageStrategy.generateUrl(fileId)
 
         // Then
         assertNotNull(url)
-        assertTrue(url.contains(storagePath))
-        assertEquals("/api/v1/storage/files/$storagePath", url)
+        assertTrue(url.contains(fileId.toString()))
+        assertEquals("http://localhost:8080/api/v1/storage/files/$fileId", url)
     }
 
     @Test
@@ -173,7 +170,6 @@ class LocalStorageStrategyTest {
             "image content".toByteArray()
         )
         val imageMetadata = FileMetadata(
-            id = 1L,
             fileName = "image.jpg",
             storagePath = "",
             fileType = FileType.IMAGE,
@@ -181,7 +177,7 @@ class LocalStorageStrategyTest {
             mimeType = "image/jpeg",
             checksum = "image_checksum",
             extension = "jpg"
-        )
+        ).apply { id = 1L }
 
         val documentFile = MockMultipartFile(
             "document.pdf",
@@ -190,7 +186,6 @@ class LocalStorageStrategyTest {
             "document content".toByteArray()
         )
         val documentMetadata = FileMetadata(
-            id = 2L,
             fileName = "document.pdf",
             storagePath = "",
             fileType = FileType.DOCUMENT,
@@ -198,7 +193,7 @@ class LocalStorageStrategyTest {
             mimeType = "application/pdf",
             checksum = "document_checksum",
             extension = "pdf"
-        )
+        ).apply { id = 2L }
 
         // When
         val imageStoragePath = localStorageStrategy.store(imageFile, imageMetadata)

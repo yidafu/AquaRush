@@ -1,0 +1,138 @@
+@import "../../../../styles/theme.scss";
+
+/* 用户信息区域 */
+.user-section {
+  background: linear-gradient(135deg, var(--theme-gradient-start, #00A8CC) 0%, var(--theme-gradient-end, #006B8A) 100%);
+  background: -webkit-linear-gradient(315deg, var(--theme-gradient-start, #00A8CC) 0%, var(--theme-gradient-end, #006B8A) 100%);
+  padding: 32px 16px;
+  color: white;
+  position: relative;
+  overflow: hidden;
+
+  &::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    animation: float 6s ease-in-out infinite;
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(180deg); }
+  }
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  position: relative;
+  z-index: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background-color: rgba(var(--theme-primary-light-rgb), 0.3);
+  border-radius: 20px;
+
+  &.not-logged-in {
+    border: 2px dashed rgba(255,255,255,0.4);
+    border-radius: 12px;
+    padding: 8px 12px;
+    background: rgba(255,255,255,0.1);
+
+    &:hover {
+      border-color: rgba(255,255,255,0.6);
+      background: rgba(255,255,255,0.15);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+}
+
+.avatar-section {
+  position: relative;
+}
+
+.user-avatar {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,0.3);
+}
+
+.default-avatar {
+  width: 100px;
+  height: 100px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  font-size: 28px;
+  font-weight: bold;
+  border: 3px solid rgba(255,255,255,0.3);
+}
+
+.vip-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--theme-secondary);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: bold;
+  border: 2px solid white;
+}
+
+.user-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.user-name-section {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.user-name {
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+}
+
+.user-level {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(255,255,255,0.2);
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.level-text {
+  font-size: 12px;
+  color: white;
+}
+
+.user-phone {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.login-hint {
+  font-size: 12px;
+  color: rgba(255,255,255,0.9);
+  background: rgba(0,0,0,0.2);
+  padding: 2px 8px;
+  border-radius: 8px;
+  margin-top: 4px;
+  display: inline-block;
+}
+

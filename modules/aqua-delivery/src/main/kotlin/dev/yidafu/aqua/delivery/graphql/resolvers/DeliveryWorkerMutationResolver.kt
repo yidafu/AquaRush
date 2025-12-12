@@ -19,11 +19,17 @@
 
 package dev.yidafu.aqua.delivery.graphql.resolvers
 
-import dev.yidafu.aqua.common.domain.model.DeliveryWorker
+import dev.yidafu.aqua.common.annotation.AdminService
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.WorkerStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
+import dev.yidafu.aqua.delivery.domain.model.DeliveryAreaModel
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
+import dev.yidafu.aqua.delivery.mapper.DeliveryAreaMapper
+import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
+
 import dev.yidafu.aqua.delivery.service.DeliveryService
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -32,7 +38,9 @@ import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
+import kotlin.collections.isNotEmpty
 
+@AdminService
 @Controller
 class DeliveryWorkerMutationResolver(
   private val deliveryWorkerRepository: DeliveryWorkerRepository,
@@ -63,7 +71,7 @@ class DeliveryWorkerMutationResolver(
       }
 
       // Create new delivery worker
-      val worker = DeliveryWorker(
+      val worker = DeliveryWorkerModel(
         userId = 0L, // Will be updated when WeChat integration is available
         wechatOpenId = input.wechatOpenId,
         name = input.name,
@@ -79,7 +87,7 @@ class DeliveryWorkerMutationResolver(
 
       val savedWorker = deliveryWorkerRepository.save(worker)
       logger.info("Successfully created delivery worker: ${savedWorker.id} - ${savedWorker.name}")
-      return savedWorker
+      return DeliveryWorkerMapper.map(savedWorker)
     } catch (e: Exception) {
       logger.error("Failed to create delivery worker", e)
       throw BadRequestException("创建送水工失败: ${e.message}")
@@ -132,7 +140,7 @@ class DeliveryWorkerMutationResolver(
 
       val updatedWorker = deliveryWorkerRepository.save(existingWorker)
       logger.info("Successfully updated delivery worker: ${updatedWorker.id} - ${updatedWorker.name}")
-      return updatedWorker
+      return DeliveryWorkerMapper.map(updatedWorker)
     } catch (e: Exception) {
       logger.error("Failed to update delivery worker", e)
       throw BadRequestException("更新送水工失败: ${e.message}")
@@ -202,7 +210,7 @@ class DeliveryWorkerMutationResolver(
    */
   private fun validateUpdateDeliveryWorkerInput(
     input: UpdateDeliveryWorkerInput,
-    existingWorker: DeliveryWorker
+    existingWorker: DeliveryWorkerModel
   ) {
     // Validate wechatOpenId if provided
     input.wechatOpenId?.let {

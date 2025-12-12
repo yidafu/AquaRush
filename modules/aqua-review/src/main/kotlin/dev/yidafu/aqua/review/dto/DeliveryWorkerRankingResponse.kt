@@ -26,21 +26,16 @@ import java.math.BigDecimal
  * 配送员排行榜响应DTO
  */
 data class DeliveryWorkerRankingResponse(
-    @field:JsonProperty("workerId")
-    val workerId: Long,
-
-    @field:JsonProperty("workerName")
-    val workerName: String? = null,
-
-    @field:JsonProperty("averageRating")
-    val averageRating: BigDecimal,
-
-    @field:JsonProperty("totalReviews")
-    val totalReviews: Int,
-
-    @field:JsonProperty("rank")
-    val rank: Int? = null,
-
-    @field:JsonProperty("positiveRatingPercentage")
-    val positiveRatingPercentage: Double
+  @field:JsonProperty("workerId")
+  val workerId: Long,
+  @field:JsonProperty("workerName")
+  val workerName: String? = null,
+  @field:JsonProperty("averageRating")
+  val averageRating: BigDecimal,
+  @field:JsonProperty("totalReviews")
+  val totalReviews: Int,
+  @field:JsonProperty("rank")
+  val rank: Int? = null,
+  @field:JsonProperty("positiveRatingPercentage")
+  val positiveRatingPercentage: Double,
 )

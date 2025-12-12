@@ -1,3 +1,5 @@
+@import "../../styles/theme.scss";
+
 .my-page {
   min-height: 100vh;
   background-color: var(--theme-background-page);
@@ -12,111 +14,6 @@
   color: var(--theme-text-tertiary);
 }
 
-/* 用户信息区域 */
-.user-section {
-  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
-  padding: 20px 16px 30px;
-  color: white;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    animation: float 6s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(180deg); }
-  }
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  position: relative;
-  z-index: 1;
-  cursor: pointer;
-}
-
-.avatar-section {
-  position: relative;
-}
-
-.user-avatar {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  border: 3px solid rgba(255,255,255,0.3);
-}
-
-.default-avatar {
-  width: 70px;
-  height: 70px;
-  background: rgba(255,255,255,0.2);
-  color: white;
-  font-size: 28px;
-  font-weight: bold;
-  border: 3px solid rgba(255,255,255,0.3);
-}
-
-.vip-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: var(--theme-secondary);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: bold;
-  border: 2px solid white;
-}
-
-.user-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.user-name-section {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.user-name {
-  font-size: 20px;
-  font-weight: bold;
-  color: white;
-}
-
-.user-level {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(255,255,255,0.2);
-  padding: 2px 8px;
-  border-radius: 12px;
-}
-
-.level-text {
-  font-size: 12px;
-  color: white;
-}
-
-.user-phone {
-  font-size: 14px;
-  opacity: 0.8;
-}
 
 .user-stats {
   display: flex;
@@ -307,7 +204,7 @@
   padding: 16px;
   font-size: 16px;
   font-weight: 600;
-  color: #333;
+  color: var(--theme-text-primary);
   border-bottom: 1px solid #f0f0f0;
 }
 
@@ -332,16 +229,16 @@
 
 .at-list__item-content__info-title {
   font-size: 15px;
-  color: #333;
+  color: var(--theme-text-primary);
 }
 
 .at-list__item__icon {
-  color: #667eea;
+  color: var(--theme-primary);
 }
 
 .at-divider {
   margin: 0 16px;
-  background-color: #f0f0f0;
+  background-color: var(--theme-border);
 }
 
 .at-badge {
@@ -352,7 +249,7 @@
 }
 
 .at-badge__content {
-  background: #ff6b35;
+  background: var(--theme-secondary);
   color: white;
   border: 2px solid white;
   font-size: 10px;
@@ -361,92 +258,4 @@
   line-height: 12px;
   border-radius: 8px;
   padding: 2px;
-}
-
-/* 响应式调整 */
-@media (max-width: 375px) {
-  .user-section {
-    padding: 16px 12px 24px;
-  }
-
-  .user-info {
-    gap: 12px;
-  }
-
-  .user-avatar,
-  .default-avatar {
-    width: 60px;
-    height: 60px;
-  }
-
-  .user-name {
-    font-size: 18px;
-  }
-
-  .user-stats {
-    margin-top: 16px;
-    padding-top: 16px;
-  }
-
-  .stat-value {
-    font-size: 18px;
-  }
-
-  .order-grid {
-    gap: 6px;
-    padding: 12px 0;
-
-    .order-item {
-      width: calc(20% - 4.8px); /* 5列布局，适配小屏幕 */
-    }
-  }
-
-  .order-icon {
-    width: 36px;
-    height: 36px;
-  }
-
-  .service-grid {
-    gap: 12px;
-    padding: 12px 0;
-
-    .service-item {
-      width: calc(33.333% - 8px); /* 3列布局，适配小屏幕 */
-    }
-  }
-
-  .service-icon {
-    width: 40px;
-    height: 40px;
-  }
-
-  .service-title {
-    font-size: 13px;
-  }
-
-  .service-desc {
-    font-size: 11px;
-    max-width: 70px;
-  }
-}
-
-/* 动画效果 */
-.order-section,
-.service-section {
-  animation: fadeInUp 0.5s ease-out;
-}
-
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.safe-bottom {
-  height: 20px;
 }

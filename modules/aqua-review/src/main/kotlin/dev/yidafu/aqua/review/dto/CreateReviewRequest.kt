@@ -26,24 +26,20 @@ import jakarta.validation.constraints.*
  * 创建评价请求DTO
  */
 data class CreateReviewRequest(
-    @field:JsonProperty("orderId")
-    @field:NotNull(message = "订单ID不能为空")
-    val orderId: Long,
-
-    @field:JsonProperty("deliveryWorkerId")
-    @field:NotNull(message = "配送员ID不能为空")
-    val deliveryWorkerId: Long,
-
-    @field:JsonProperty("rating")
-    @field:NotNull(message = "评分不能为空")
-    @field:Min(value = 1, message = "评分不能低于1星")
-    @field:Max(value = 5, message = "评分不能高于5星")
-    val rating: Int,
-
-    @field:JsonProperty("comment")
-    @field:Size(max = 500, message = "评论长度不能超过500个字符")
-    val comment: String? = null,
-
-    @field:JsonProperty("isAnonymous")
-    val isAnonymous: Boolean = false
+  @field:JsonProperty("orderId")
+  @field:NotNull(message = "订单ID不能为空")
+  val orderId: Long,
+  @field:JsonProperty("deliveryWorkerId")
+  @field:NotNull(message = "配送员ID不能为空")
+  val deliveryWorkerId: Long,
+  @field:JsonProperty("rating")
+  @field:NotNull(message = "评分不能为空")
+  @field:Min(value = 1, message = "评分不能低于1星")
+  @field:Max(value = 5, message = "评分不能高于5星")
+  val rating: Int,
+  @field:JsonProperty("comment")
+  @field:Size(max = 500, message = "评论长度不能超过500个字符")
+  val comment: String? = null,
+  @field:JsonProperty("isAnonymous")
+  val isAnonymous: Boolean = false,
 )

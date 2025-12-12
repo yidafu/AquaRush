@@ -3,8 +3,9 @@ import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin'
 import devConfig from './dev'
 import prodConfig from './prod'
 import path from 'node:path'
-import { viteStaticCopy } from 'vite-plugin-static-copy'
 import { normalizePath } from 'vite'
+import tailwindcss from 'tailwindcss'
+import { UnifiedViteWeappTailwindcssPlugin as uvtw } from 'weapp-tailwindcss/vite'
 
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
 export default defineConfig<'vite'>(async (merge, { command, mode }) => {
@@ -13,6 +14,7 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
     date: '2025-12-2',
     env: {
       APP_ID: process.env.TARO_APP_ID || '',
+      API_BASE_URL: process.env.TARO_APP_API_BASE_URL ?? '',
     },
     designWidth: 750,
     deviceRatio: {
@@ -28,22 +30,57 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
     },
     copy: {
       patterns: [
+        { from: 'src/assets/icons/', to: 'dist/assets/icons/', ignore:['*.svg', '*.py']},
+        { from: 'src/libs/', to: 'dist/libs/' }
       ],
       options: {
       }
+    },
+    alias: {
+      '@': path.resolve(__dirname, '..', 'src'),
+
     },
     framework: 'react',
     compiler: {
       type: 'vite',
       vitePlugins: [
-        viteStaticCopy({
-          targets: [
-            {
-              src: normalizePath(path.resolve(process.cwd(), 'src/assets/icons/')),
-              dest: 'assets'
-            },
-          ]
-        })
+        {
+          // 通过 vite 插件加载 postcss,
+          name: 'postcss-config-loader-plugin',
+          config(config) {
+            // 加载 tailwindcss with purging for production
+            if (typeof config.css?.postcss === 'object') {
+              config.css?.postcss.plugins?.unshift(
+                tailwindcss({
+                  content: [
+                    './src/**/*.{js,jsx,ts,tsx}',
+                    './src/**/*.wxml',
+                    './src/**/*.wxss'
+                  ],
+                  // Enable purging in production to remove unused styles
+                  ...(process.env.NODE_ENV === 'production' && {
+                    purge: {
+                      enabled: true,
+                      content: [
+                        './src/**/*.{js,jsx,ts,tsx}',
+                        './src/**/*.wxml',
+                        './src/**/*.wxss'
+                      ]
+                    }
+                  })
+                })
+              )
+            }
+          },
+        },
+        uvtw({
+          // rem转rpx
+          rem2rpx: true,
+          // 除了小程序这些，其他平台都 disable
+          disabled: process.env.TARO_ENV === 'h5' || process.env.TARO_ENV === 'harmony' || process.env.TARO_ENV === 'rn',
+          // 由于 taro vite 默认会移除所有的 tailwindcss css 变量，所以一定要开启这个配置，进行css 变量的重新注入
+          injectAdditionalCssVarScope: true,
+        }),
       ]
     },
     mini: {

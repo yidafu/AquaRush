@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.repository
 
-import dev.yidafu.aqua.common.domain.model.Order
+import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
@@ -27,28 +27,28 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Repository
-interface OrderRepository : JpaRepository<Order, Long> {
-  fun findByOrderNumber(orderNumber: String): Order?
+interface OrderRepository : JpaRepository<OrderModel, Long> {
+  fun findByOrderNumber(orderNumber: String): OrderModel?
 
-  fun findByUserId(userId: Long): List<Order>
+  fun findByUserId(userId: Long): List<OrderModel>
 
   fun findByUserIdAndStatus(
     userId: Long,
     status: OrderStatus,
-  ): List<Order>
+  ): List<OrderModel>
 
-  fun findByStatus(status: OrderStatus): List<Order>
+  fun findByStatus(status: OrderStatus): List<OrderModel>
 
-  fun findByStatusOrderByCreatedAtAsc(status: OrderStatus): List<Order>
+  fun findByStatusOrderByCreatedAtAsc(status: OrderStatus): List<OrderModel>
 
-  fun findByDeliveryWorkerId(deliveryWorkerId: Long): List<Order>
+  fun findByDeliveryWorkerId(deliveryWorkerId: Long): List<OrderModel>
 
-  fun findByDeliveryWorkerIdOrderByCreatedAtDesc(deliveryWorkerId: Long): List<Order>
+  fun findByDeliveryWorkerIdOrderByCreatedAtDesc(deliveryWorkerId: Long): List<OrderModel>
 
   fun findByDeliveryWorkerIdAndStatusOrderByCreatedAtDesc(
     deliveryWorkerId: Long,
     status: OrderStatus,
-  ): List<Order>
+  ): List<OrderModel>
 
   fun countByDeliveryWorkerIdAndStatus(
     deliveryWorkerId: Long,
@@ -66,7 +66,7 @@ interface OrderRepository : JpaRepository<Order, Long> {
     endDate: LocalDateTime? = null,
     orderNumber: String? = null,
     statuses: List<OrderStatus>? = null,
-  ): List<Order>
+  ): List<OrderModel>
 
   fun findDeliveryWorkerOrdersWithFilters(
     deliveryWorkerId: Long,
@@ -74,7 +74,7 @@ interface OrderRepository : JpaRepository<Order, Long> {
     startDate: LocalDateTime? = null,
     endDate: LocalDateTime? = null,
     limit: Int? = null,
-  ): List<Order>
+  ): List<OrderModel>
 
   fun countOrdersWithFilters(
     userId: Long? = null,

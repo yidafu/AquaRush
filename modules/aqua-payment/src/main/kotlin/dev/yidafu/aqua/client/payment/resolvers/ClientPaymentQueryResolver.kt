@@ -90,7 +90,7 @@ class ClientPaymentQueryResolver(
             paidAt = LocalDateTime.now(),
             refundAmount = null,
             refundedAt = null,
-            status = PaymentStatus.SUCCESS,
+            status = PaymentStatus.Success,
             transactionId = transactionId,
             updatedAt = LocalDateTime.now()
         )
@@ -171,7 +171,7 @@ class ClientPaymentQueryResolver(
         // TODO: 实现从paymentService获取可用支付方式
         // 目前返回微信支付
         return listOf(
-          PaymentMethod.WECHAT_PAY
+          PaymentMethod.WechatPay
         )
     }
 

@@ -25,12 +25,10 @@ import com.fasterxml.jackson.annotation.JsonProperty
  * 订单评价检查响应DTO
  */
 data class OrderReviewCheckResponse(
-    @field:JsonProperty("hasReviewed")
-    val hasReviewed: Boolean,
-
-    @field:JsonProperty("review")
-    val review: ReviewResponse? = null,
-
-    @field:JsonProperty("canReview")
-    val canReview: Boolean = !hasReviewed
+  @field:JsonProperty("hasReviewed")
+  val hasReviewed: Boolean,
+  @field:JsonProperty("review")
+  val review: ReviewResponse? = null,
+  @field:JsonProperty("canReview")
+  val canReview: Boolean = !hasReviewed,
 )

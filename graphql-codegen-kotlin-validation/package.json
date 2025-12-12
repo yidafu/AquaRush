@@ -1,0 +1,37 @@
+{
+  "name": "@graphql-codegen/kotlin-validation",
+  "version": "1.0.0",
+  "description": "Enhanced Kotlin plugin with Jakarta Validation support for GraphQL Code Generator",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "graphql",
+    "codegen",
+    "kotlin",
+    "validation",
+    "jakarta-validation"
+  ],
+  "author": "AquaRush Team",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "@graphql-codegen/kotlin": "^3.0.2",
+    "@graphql-codegen/visitor-plugin-common": "^6.2.1",
+    "@graphql-codegen/plugin-helpers": "^5.0.0"
+  },
+  "peerDependencies": {
+    "graphql": "^16.12.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.3.0",
+    "@types/node": "^20.10.0",
+    "graphql": "^16.12.0"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ]
+}

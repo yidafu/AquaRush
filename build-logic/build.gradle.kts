@@ -28,4 +28,7 @@ dependencies {
 
     // Add ktlint plugin
     implementation(libs.ktlint.gradlePlugin)
+
+    // Add QueryDSL plugin
+    implementation("com.ewerk.gradle.plugins.querydsl:com.ewerk.gradle.plugins.querydsl.gradle.plugin:1.0.10")
 }

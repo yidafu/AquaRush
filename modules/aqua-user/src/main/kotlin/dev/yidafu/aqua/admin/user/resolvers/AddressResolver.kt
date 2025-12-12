@@ -20,13 +20,15 @@
 package dev.yidafu.aqua.admin.user.resolvers
 
 import dev.yidafu.aqua.common.graphql.generated.*
-import dev.yidafu.aqua.user.domain.model.Address
+import dev.yidafu.aqua.user.domain.model.AddressModel
+import dev.yidafu.aqua.user.mapper.AddressInputMapper
+import dev.yidafu.aqua.user.mapper.AddressMapper
 import dev.yidafu.aqua.user.service.AddressService
 import jakarta.validation.Valid
+import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
-import org.springframework.data.domain.PageRequest
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Controller
@@ -40,7 +42,7 @@ class AddressResolver(
     val authentication = SecurityContextHolder.getContext().authentication
     val userId = authentication?.name!!.toLong()
     val addresses = addressService.getUserAddresses(userId)
-    return addresses
+    return addresses.map { AddressMapper.map(it) }
   }
 
   @QueryMapping
@@ -59,7 +61,7 @@ class AddressResolver(
       throw AccessDeniedException("无权访问此地址")
     }
 
-    return address
+    return address?.let { AddressMapper.map(it) }
   }
 
   @QueryMapping
@@ -67,7 +69,7 @@ class AddressResolver(
     val authentication = SecurityContextHolder.getContext().authentication
     val userId = authentication!!.name.toLong()
     val defaultAddress = addressService.getUserDefaultAddress(userId)
-    return defaultAddress
+    return defaultAddress?.let { AddressMapper.map(it) }
   }
 
   @MutationMapping
@@ -76,24 +78,14 @@ class AddressResolver(
   ): Address {
     val authentication = SecurityContextHolder.getContext().authentication
     val userId = authentication!!.name.toLong()
-    val request = input
-
+    val address = AddressInputMapper.map(input)
+    address.userId = userId;
     val createdAddress =
       addressService.createAddress(
-        userId = userId,
-        province = request.province.toString(),
-        city = request.city.toString(),
-        district = request.district.toString(),
-        detailAddress = request.detailAddress.toString(),
-        provinceCode = request.provinceCode?.toString(),
-        cityCode = request.cityCode?.toString(),
-        districtCode = request.districtCode?.toString(),
-        longitude = request.longitude?.toDouble(),
-        latitude = request.latitude?.toDouble(),
-        isDefault = (request.isDefault as Boolean?) ?: false,
+        address
       )
 
-    return createdAddress
+    return createdAddress.let { AddressMapper.map(it) }
   }
 
   @MutationMapping
@@ -121,7 +113,7 @@ class AddressResolver(
         isDefault = (request.isDefault as Boolean?) ?: false,
       )
 
-    return updatedAddress
+    return updatedAddress?.let { AddressMapper.map(it) }
   }
 
   @MutationMapping

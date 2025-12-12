@@ -1,31 +1,19 @@
-import { Component } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { View, Text, Image, Button } from '@tarojs/components'
-import { AtButton, AtCard, AtList, AtListItem, AtAvatar, AtBadge, AtToast, AtDivider } from 'taro-ui'
-import CustomIcon from '../../components/CustomIcon'
+import { AtButton, AtCard, AtList, AtListItem, AtToast } from 'taro-ui'
 import { ThemeSwitcher } from '../../components/ThemeProvider'
-import Taro from '@tarojs/taro'
+import AvatarNicknameForm from './components/AvatarNicknameForm'
+import UserSection from './components/UserSection'
+import OrderSection from './components/OrderSection'
+import ServiceSection from './components/ServiceSection'
+import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import { authService, type UserInfo as AuthUserInfo, type LoginResponse } from '../../utils/auth'
 
-import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/card.scss"
-import "taro-ui/dist/style/components/icon.scss"
-import "taro-ui/dist/style/components/list.scss"
-import "taro-ui/dist/style/components/avatar.scss"
-import "taro-ui/dist/style/components/badge.scss"
-import "taro-ui/dist/style/components/toast.scss"
-import "taro-ui/dist/style/components/divider.scss"
+// Taro UI 样式已在 app.scss 中全局引入，无需重复引入
 import './index.scss'
+import { CONTACT_INFO } from '@/constants'
 
-interface UserInfo {
-  id: string
-  nickname: string
-  avatarUrl: string
-  phone: string
-  balance: number
-  points: number
-  level: string
-  isVip: boolean
-  vipExpireTime?: string
-}
+// Use AuthUserInfo from auth utility
 
 interface OrderStats {
   pendingPayment: number
@@ -35,105 +23,132 @@ interface OrderStats {
   afterSales: number
 }
 
-interface MyPageState {
-  userInfo: UserInfo | null
-  orderStats: OrderStats
-  loading: boolean
-  showToast: boolean
-  toastText: string
-  toastType: 'success' | 'error' | 'loading'
-}
+const MyPage: React.FC = () => {
+  // State management
+  const [userInfo, setUserInfo] = useState<AuthUserInfo | null>(null)
+  const [orderStats, setOrderStats] = useState<OrderStats>({
+    pendingPayment: 0,
+    pendingDelivery: 0,
+    delivering: 0,
+    completed: 0,
+    afterSales: 0
+  })
+  const [loading, setLoading] = useState<boolean>(true)
+  const [showToast, setShowToast] = useState<boolean>(false)
+  const [toastText, setToastText] = useState<string>('')
+  const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
+  const [showAvatarNicknameForm, setShowAvatarNicknameForm] = useState<boolean>(false)
 
-export default class MyPage extends Component<{}, MyPageState> {
-  constructor(props) {
-    super(props)
-    this.state = {
-      userInfo: null,
-      orderStats: {
-        pendingPayment: 0,
-        pendingDelivery: 0,
-        delivering: 0,
-        completed: 0,
-        afterSales: 0
-      },
-      loading: true,
-      showToast: false,
-      toastText: '',
-      toastType: 'success'
-    }
-  }
+  // Lifecycle hooks
+  useEffect(() => {
+    // 对应 componentDidMount
+    loadUserInfo()
+    loadOrderStats()
+  }, [])
 
-  componentDidMount() {
-    this.loadUserInfo()
-    this.loadOrderStats()
-  }
-
-  componentDidShow() {
+  useDidShow(() => {
     // 页面显示时刷新用户信息
-    this.loadUserInfo()
-    this.loadOrderStats()
-  }
+    loadUserInfo()
+    loadOrderStats()
 
-  onPullDownRefresh = () => {
+    // 检查并刷新认证状态
+    checkAuthStatus()
+  })
+
+  usePullDownRefresh(() => {
+    // 下拉刷新
     Promise.all([
-      this.loadUserInfo(),
-      this.loadOrderStats()
+      loadUserInfo(),
+      loadOrderStats()
     ]).finally(() => {
       Taro.stopPullDownRefresh()
     })
+  })
+
+  // Toast functions
+  const showToastMessage = (text: string, type: 'success' | 'error' | 'loading' = 'success'): void => {
+    setShowToast(true)
+    setToastText(text)
+    setToastType(type)
   }
 
-  showToast = (text: string, type: 'success' | 'error' | 'loading' = 'success') => {
-    this.setState({
-      showToast: true,
-      toastText: text,
-      toastType: type
-    })
+  const hideToast = (): void => {
+    setShowToast(false)
   }
 
-  hideToast = () => {
-    this.setState({ showToast: false })
-  }
-
-  loadUserInfo = async () => {
+  const checkAuthStatus = async (): Promise<void> => {
     try {
-      // TODO: 实际项目中这里应该调用获取用户信息的API
-      // const userInfo = await getCurrentUser()
+      // 检查是否有有效的认证状态
+      if (authService.isAuthenticated()) {
+        const currentUser = authService.getUserInfo()
+        if (currentUser && currentUser.id) {
+          setUserInfo(currentUser)
+        }
+      } else {
+        // 如果没有认证，保持游客状态
+        if (userInfo?.id) {
+          // 如果之前有用户信息但现在没有认证，清除状态
+          setUserInfo({
+            id: '',
+            nickname: '游客',
+            avatarUrl: '',
+            phone: '',
+            wechatOpenId: ''
+          })
+          setOrderStats({
+            pendingPayment: 0,
+            pendingDelivery: 0,
+            delivering: 0,
+            completed: 0,
+            afterSales: 0
+          })
+        }
+      }
+    } catch (error) {
+      console.error('检查认证状态失败:', error)
+    }
+  }
 
-      // 模拟用户数据
-      const mockUserInfo: UserInfo = {
-        id: 'user123',
-        nickname: '小明同学',
-        avatarUrl: '',
-        phone: '13800138000',
-        balance: 156.80,
-        points: 2580,
-        level: '黄金会员',
-        isVip: true,
-        vipExpireTime: '2025-12-31'
+  const loadUserInfo = async (): Promise<void> => {
+    try {
+      // 检查是否已登录
+      if (authService.isAuthenticated()) {
+        const storedUserInfo = authService.getUserInfo()
+        if (storedUserInfo) {
+          setUserInfo(storedUserInfo)
+          return
+        }
       }
 
-      this.setState({ userInfo: mockUserInfo })
-    } catch (error) {
-      console.error('获取用户信息失败:', error)
-
-      // 设置默认用户信息
-      this.setState({
-        userInfo: {
+      // 尝试从服务器获取当前用户信息
+      const currentUser = await authService.getCurrentUser()
+      if (currentUser) {
+        setUserInfo(currentUser)
+      } else {
+        // 设置游客用户信息
+        setUserInfo({
           id: '',
           nickname: '游客',
           avatarUrl: '',
           phone: '',
-          balance: 0,
-          points: 0,
-          level: '普通用户',
-          isVip: false
-        }
+          wechatOpenId: ''
+        })
+      }
+    } catch (error) {
+      console.error('获取用户信息失败:', error)
+
+      // 设置默认用户信息
+      setUserInfo({
+        id: '',
+        nickname: '游客',
+        avatarUrl: '',
+        phone: '',
+        wechatOpenId: ''
       })
     }
   }
 
-  loadOrderStats = async () => {
+  const loadOrderStats = async (): Promise<void> => {
     try {
       // TODO: 实际项目中这里应该调用获取订单统计的API
       // const orderStats = await getOrderStats()
@@ -147,348 +162,217 @@ export default class MyPage extends Component<{}, MyPageState> {
         afterSales: 1
       }
 
-      this.setState({ orderStats: mockOrderStats })
+      setOrderStats(mockOrderStats)
     } catch (error) {
       console.error('获取订单统计失败:', error)
     } finally {
-      this.setState({ loading: false })
+      setLoading(false)
     }
   }
 
-  handleProfileEdit = () => {
-    Taro.navigateTo({
-      url: '/pages/profile-edit/index'
-    })
+  const handleProfileEdit = (): void => {
+    // 如果用户未登录，触发微信登录
+    if (!authService.isAuthenticated()) {
+      handleWeChatLogin()
+    } else {
+      // 显示头像昵称填写表单
+      setShowAvatarNicknameForm(true)
+    }
   }
 
-  handleRecharge = () => {
+  // 关闭头像昵称表单
+  const handleCloseAvatarNicknameForm = (): void => {
+    setShowAvatarNicknameForm(false)
+  }
+
+  // 提交头像昵称更新
+  const handleSubmitAvatarNickname = async (data: { avatarUrl: string; nickname: string }): Promise<void> => {
+    try {
+      // 使用 authService 的 updateUserInfo 方法
+      const updatedUserInfo = await authService.updateUserInfo({
+        avatarUrl: data.avatarUrl,
+        nickname: data.nickname
+      })
+
+      // 更新页面状态
+      setUserInfo(updatedUserInfo)
+
+      showToastMessage('个人资料更新成功', 'success')
+    } catch (error) {
+      console.error('更新个人资料失败:', error)
+      const errorMsg = error instanceof Error ? error.message : '更新失败'
+      throw new Error(errorMsg)
+    }
+  }
+
+  const handleWeChatLogin = async (): Promise<void> => {
+    try {
+      showToastMessage('正在登录...', 'loading')
+
+      const loginData = await authService.weChatLogin()
+
+      setUserInfo({
+        ...loginData.userInfo,
+        phone: ''
+      })
+      showToastMessage('登录成功', 'success')
+
+      // 重新加载订单统计
+      loadOrderStats()
+    } catch (error) {
+      console.error('微信登录失败:', error)
+      const errorMsg = error instanceof Error ? error.message : '登录失败'
+      showToastMessage(errorMsg, 'error')
+    }
+  }
+
+  const handleRecharge = (): void => {
     Taro.navigateTo({
       url: '/pages/recharge/index'
     })
   }
 
-  handlePointsMall = () => {
+  const handlePointsMall = (): void => {
     Taro.navigateTo({
       url: '/pages/points-mall/index'
     })
   }
 
-  handleOrderNavigation = (type: string) => {
+  const handleOrderNavigation = (type: string): void => {
     Taro.navigateTo({
       url: `/pages/order-list/index?tab=${type}`
     })
   }
 
-  handleAddressManagement = () => {
+  const handleAddressManagement = (): void => {
     Taro.navigateTo({
       url: '/pages/address-list/index'
     })
   }
 
-  handleCouponCenter = () => {
-    Taro.navigateTo({
-      url: '/pages/coupon-center/index'
-    })
-  }
-
-  handleCustomerService = () => {
+  const handleCustomerService = (): void => {
     // 联系客服
     Taro.makePhoneCall({
-      phoneNumber: '400-888-8888'
+      phoneNumber: CONTACT_INFO.COMPLAINT_HOTLINE
     })
   }
 
-  handleFeedback = () => {
+  const handleFeedback = (): void => {
     Taro.navigateTo({
       url: '/pages/feedback/index'
     })
   }
 
-  handleAbout = () => {
+  const handleAbout = (): void => {
     Taro.navigateTo({
       url: '/pages/about/index'
     })
   }
 
-  handleSettings = () => {
+  const handleSettings = (): void => {
     Taro.navigateTo({
       url: '/pages/settings/index'
     })
   }
 
-  handleShare = () => {
+  const handleShare = (): void => {
     Taro.showShareMenu({
       withShareTicket: true
     })
   }
 
-  handleLogout = () => {
-    Taro.showModal({
-      title: '确认退出',
-      content: '确定要退出登录吗？',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            // TODO: 实际项目中这里应该调用退出登录的API
-            // await logout()
 
-            // 清除用户信息
-            this.setState({
-              userInfo: {
-                id: '',
-                nickname: '游客',
-                avatarUrl: '',
-                phone: '',
-                balance: 0,
-                points: 0,
-                level: '普通用户',
-                isVip: false
-              }
-            })
-
-            this.showToast('已退出登录', 'success')
-          } catch (error) {
-            console.error('退出登录失败:', error)
-            this.showToast('退出登录失败', 'error')
-          }
-        }
-      }
-    })
-  }
-
-  renderUserSection = () => {
-    const { userInfo } = this.state
-
-    if (!userInfo) {
-      return (
-        <View className='user-section'>
-          <Text>加载中...</Text>
-        </View>
-      )
+  const serviceItems = useMemo(() =>[
+    {
+      icon: '/assets/icons/service/map-pin.png',
+      title: '收货地址',
+      description: '管理收货地址',
+      onClick: handleAddressManagement
+    },
+    {
+      icon: '/assets/icons/service/comments.png',
+      title: '客服中心',
+      description: '联系在线客服',
+      onClick: handleCustomerService
+    },
+    {
+      icon: '/assets/icons/service/feedback.png',
+      title: '意见反馈',
+      description: '帮助我们改进',
+      onClick: handleFeedback
+    },
+    {
+      icon: '/assets/icons/service/info-circle.png',
+      title: '关于我们',
+      description: '了解好喝山泉',
+      onClick: handleAbout
     }
+  ], [])
 
-    return (
-      <View className='user-section'>
-        <View className='user-info' onClick={this.handleProfileEdit}>
-          <View className='avatar-section'>
-            {userInfo.avatarUrl ? (
-              <Image
-                src={userInfo.avatarUrl}
-                mode='aspectFill'
-                className='user-avatar'
-              />
-            ) : (
-              <AtAvatar
-                size='large'
-                circle
-                text={userInfo.nickname.charAt(0) || 'U'}
-                className='default-avatar'
-              />
-            )}
-
-          </View>
-
-          <View className='user-details'>
-            <View className='user-name-section'>
-              <Text className='user-name'>{userInfo.nickname}</Text>
-              <View className='user-level'>
-                <CustomIcon value='bookmark' size={12} color='#ff6b35' />
-                <Text className='level-text'>{userInfo.level}</Text>
-              </View>
-            </View>
-            {userInfo.phone && (
-              <Text className='user-phone'>{userInfo.phone}</Text>
-            )}
-          </View>
-
-          <CustomIcon value='chevron-right' size={16} color='#999' />
-        </View>
-
-
-      </View>
-    )
-  }
-
-  renderOrderSection = () => {
-    const { orderStats } = this.state
-
-    const orderItems = [
-      {
-        icon: '/assets/icons/order/all.png',
-        label: '全部',
-        count: 0,
-        type: 'pending_payment',
-        color: '#ff6b35'
-      },
-      {
-        icon: '/assets/icons/order/credit-card.png',
-        label: '待付款',
-        count: orderStats.pendingPayment,
-        type: 'pending_payment',
-        color: '#ff6b35'
-      },
-      {
-        icon: '/assets/icons/order/shopping-bag.png',
-        label: '待配送',
-        count: orderStats.pendingDelivery,
-        type: 'pending_delivery',
-        color: '#667eea'
-      },
-      {
-        icon: '/assets/icons/order/truck.png',
-        label: '配送中',
-        count: orderStats.delivering,
-        type: 'delivering',
-        color: '#19be6b'
-      },
-      // {
-      //   icon: '/assets/icons/order/check-circle.png',
-      //   label: '已完成',
-      //   count: orderStats.completed,
-      //   type: 'completed',
-      //   color: '#999'
-      // },
-      // {
-      //   icon: '/assets/icons/order/message.png',
-      //   label: '售后',
-      //   count: orderStats.afterSales,
-      //   type: 'after_sales',
-      //   color: '#f39c12'
-      // }
-    ]
-
-    return (
-      <AtCard title='我的订单' className='order-section'>
-        <View className='order-grid'>
-          {orderItems.map((item, index) => (
-            <View
-              key={index}
-              className='order-item'
-              onClick={() => this.handleOrderNavigation(item.type)}
-            >
-              <AtBadge value={item.count} maxValue={99} className='order-badge'>
-                <View className='order-icon' style={{ color: item.color }}>
-                  <CustomIcon value={item.icon} size={20} />
-                </View>
-                <Text className='order-label'>{item.label}</Text>
-              </AtBadge>
-            </View>
-          ))}
-        </View>
-
-        <AtDivider />
-      </AtCard>
-    )
-  }
-
-  renderServiceSection = () => {
-    const serviceItems = [
-      {
-        icon: '/assets/icons/service/map-pin.png',
-        title: '收货地址',
-        description: '管理收货地址',
-        onClick: this.handleAddressManagement
-      },
-      {
-        icon: '/assets/icons/service/comments.png',
-        title: '客服中心',
-        description: '联系在线客服',
-        onClick: this.handleCustomerService
-      },
-      {
-        icon: '/assets/icons/service/feedback.png',
-        title: '意见反馈',
-        description: '帮助我们改进',
-        onClick: this.handleFeedback
-      },
-      {
-        icon: '/assets/icons/service/info-circle.png',
-        title: '关于我们',
-        description: '了解 AquaRush',
-        onClick: this.handleAbout
-      }
-    ]
-
-    return (
-      <AtCard title='常用服务' className='service-section'>
-        <View className='service-grid'>
-          {serviceItems.map((item, index) => (
-            <View
-              key={index}
-              className='service-item'
-              onClick={item.onClick}
-            >
-              <View className='service-icon'>
-                <CustomIcon value={item.icon} size={24} color='#667eea' />
-              </View>
-              <Text className='service-title'>{item.title}</Text>
-              <Text className='service-desc'>{item.description}</Text>
-            </View>
-          ))}
-        </View>
-      </AtCard>
-    )
-  }
-
-  render() {
-    const { loading, showToast, toastText, toastType, userInfo } = this.state
-
-    if (loading) {
-      return (
-        <View className='my-page'>
-          <View className='loading-container'>
-            <Text>加载中...</Text>
-          </View>
-        </View>
-      )
-    }
-
+  // Return JSX directly
+  if (loading) {
     return (
       <View className='my-page'>
-        {/* 用户信息区域 */}
-        {this.renderUserSection()}
-
-        {/* 订单区域 */}
-        {this.renderOrderSection()}
-
-        {/* 服务区域 */}
-        {this.renderServiceSection()}
-
-        {/* 其他设置 */}
-        <AtCard className='settings-section'>
-          <AtList>
-            <AtListItem
-              title='主题设置'
-              note='选择应用主题颜色'
-              arrow='right'
-              iconInfo={{ value: '/assets/icons/service/settings.png', color: '#667eea' }}
-              onClick={() => Taro.navigateTo({ url: '/pages/theme-settings/index' })}
-            />
-            <AtListItem
-              title='设置'
-              arrow='right'
-              iconInfo={{ value: '/assets/icons/service/settings.png', color: '#667eea' }}
-              onClick={this.handleSettings}
-            />
-          </AtList>
-
-          <View style={{ padding: '8px 16px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <Text style={{ fontSize: '12px', color: '#666', marginRight: '8px' }}>快速切换主题：</Text>
-            <ThemeSwitcher showLabel={true} />
-          </View>
-        </AtCard>
-
-        {/* 底部安全区域 */}
-        <View className='safe-bottom' />
-
-        {/* Toast 提示 */}
-        <AtToast
-          isOpened={showToast}
-          text={toastText}
-          status={toastType}
-          onClose={this.hideToast}
-        />
+        <View className='loading-container'>
+          <Text>加载中...</Text>
+        </View>
       </View>
     )
   }
+
+  return (
+    <View className='my-page'>
+      {/* 用户信息区域 */}
+      <UserSection
+        userInfo={userInfo}
+        onProfileEdit={handleProfileEdit}
+      />
+
+      {/* 订单区域 */}
+      <OrderSection
+        orderStats={orderStats}
+        onOrderNavigation={handleOrderNavigation}
+      />
+
+      {/* 服务区域 */}
+      <ServiceSection serviceItems={serviceItems} />
+
+      {/* 其他设置 */}
+      <AtCard title='其他' className='settings-section'>
+        <AtList>
+
+          <AtListItem
+            title='设置'
+            arrow='right'
+            iconInfo={{ value: '/assets/icons/service/settings.png', color: 'var(--theme-primary)' }}
+            onClick={handleSettings}
+          />
+        </AtList>
+
+      </AtCard>
+      {/* 底部安全区域 */}
+      <View className='safe-bottom' />
+
+      {/* Toast 提示 */}
+      <AtToast
+        isOpened={showToast}
+        text={toastText}
+        status={toastType}
+        onClose={hideToast}
+      />
+
+      {/* 头像昵称填写表单 */}
+      <AvatarNicknameForm
+        visible={showAvatarNicknameForm}
+        onClose={handleCloseAvatarNicknameForm}
+        onSubmit={handleSubmitAvatarNickname}
+        initialData={{
+          avatarUrl: userInfo?.avatarUrl,
+          nickname: userInfo?.nickname
+        }}
+      />
+    </View>
+  )
 }
+
+export default MyPage

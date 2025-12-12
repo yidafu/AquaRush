@@ -24,8 +24,8 @@ import dev.yidafu.aqua.admin.product.resolvers.AdminProductMutationResolver.Comp
 import dev.yidafu.aqua.admin.product.resolvers.AdminProductMutationResolver.Companion.StockAdjustmentInput
 import dev.yidafu.aqua.common.annotation.AdminService
 import org.springframework.data.domain.PageImpl
-import dev.yidafu.aqua.product.domain.model.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.product.domain.model.ProductModel
 import dev.yidafu.aqua.product.service.ProductService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -52,7 +52,7 @@ class AdminProductQueryResolver(
         size: Int = 20,
         status: ProductStatus? = null,
         keyword: String? = null
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
 
         return when {
@@ -75,7 +75,7 @@ class AdminProductQueryResolver(
      * 根据ID查询产品详细信息（管理员功能）
      */
     @PreAuthorize("hasRole('ADMIN')")
-    fun product(id: Long): Product? {
+    fun product(id: Long): ProductModel? {
         return productService.findById(id)
     }
 
@@ -86,7 +86,7 @@ class AdminProductQueryResolver(
     fun activeProducts(
         page: Int = 0,
         size: Int = 20
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
         return productService.findByStatus(ProductStatus.Online, pageable)
     }
@@ -98,7 +98,7 @@ class AdminProductQueryResolver(
     fun offlineProducts(
         page: Int = 0,
         size: Int = 20
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
         return productService.findByStatus(ProductStatus.Offline, pageable)
     }
@@ -111,7 +111,7 @@ class AdminProductQueryResolver(
         threshold: Int = 10,
         page: Int = 0,
         size: Int = 20
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
         return productService.findLowStockProducts(threshold, pageable)
     }
@@ -124,7 +124,7 @@ class AdminProductQueryResolver(
         category: String,
         page: Int = 0,
         size: Int = 20
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
         return productService.findByCategory(category, pageable)
     }
@@ -138,7 +138,7 @@ class AdminProductQueryResolver(
         maxPrice: java.math.BigDecimal,
         page: Int = 0,
         size: Int = 20
-    ): Page<Product> {
+    ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
         return productService.findByPriceBetween(minPrice, maxPrice, pageable)
     }

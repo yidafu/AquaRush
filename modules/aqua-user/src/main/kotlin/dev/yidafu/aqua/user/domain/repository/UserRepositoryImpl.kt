@@ -25,9 +25,10 @@ import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 
 @Repository
-class UserRepositoryImpl(
-  @PersistenceContext private val entityManager: EntityManager
-) : UserRepositoryCustom {
+class UserRepositoryImpl : UserRepositoryCustom {
+
+  @PersistenceContext
+  private lateinit var entityManager: EntityManager
 
   override fun getUserTotalSpent(userId: Long): Double {
     val query = entityManager.createQuery(

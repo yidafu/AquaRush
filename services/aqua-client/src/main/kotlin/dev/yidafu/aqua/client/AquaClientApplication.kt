@@ -20,7 +20,9 @@
 package dev.yidafu.aqua.client
 
 import dev.yidafu.aqua.common.cache.CacheAutoConfiguration
+import dev.yidafu.aqua.storage.config.StorageProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.runApplication
 import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.scheduling.annotation.EnableScheduling
@@ -30,6 +32,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
     "dev.yidafu.aqua.common",
     "dev.yidafu.aqua.api",
     "dev.yidafu.aqua.client.config",
+    "dev.yidafu.aqua.client.user.controller",
     "dev.yidafu.aqua.logging",
     "dev.yidafu.aqua.user",
     "dev.yidafu.aqua.product",
@@ -38,6 +41,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
     "dev.yidafu.aqua.review",
     "dev.yidafu.aqua.payment",
     "dev.yidafu.aqua.order",
+    "dev.yidafu.aqua.storage",
     "dev.yidafu.aqua.client.user.resolvers",
     "dev.yidafu.aqua.client.product.resolvers",
     "dev.yidafu.aqua.client.delivery.resolvers",
@@ -48,6 +52,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
   exclude = [CacheAutoConfiguration::class],
 )
 @EnableScheduling
+@EnableConfigurationProperties(StorageProperties::class)
 @EntityScan(basePackages = [
   "dev.yidafu.aqua.common.domain.model",
   "dev.yidafu.aqua.user.domain.model",

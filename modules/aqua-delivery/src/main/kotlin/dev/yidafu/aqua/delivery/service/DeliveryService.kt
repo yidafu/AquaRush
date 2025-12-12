@@ -19,12 +19,14 @@
 
 package dev.yidafu.aqua.delivery.service
 
-import dev.yidafu.aqua.common.domain.model.DeliveryWorker
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
+import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.WorkerStatus
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
-import dev.yidafu.aqua.delivery.domain.model.DeliveryArea
+import dev.yidafu.aqua.delivery.domain.model.DeliveryAreaModel
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryAreaRepository
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import org.slf4j.LoggerFactory
@@ -42,25 +44,25 @@ class DeliveryService(
 
   // 配送员管理
 
-  fun getWorkerById(workerId: Long): DeliveryWorker =
+  fun getWorkerById(workerId: Long): DeliveryWorkerModel =
     workerRepository.findById(workerId).orElseThrow {
       NotFoundException("配送员不存在: $workerId")
     }
 
-  fun getOrderById(orderId: Long): dev.yidafu.aqua.common.domain.model.Order =
+  fun getOrderById(orderId: Long): OrderModel =
     orderRepository.findById(orderId).orElseThrow {
       NotFoundException("订单不存在: $orderId")
     }
 
-  fun getAllWorkers(): List<DeliveryWorker> = workerRepository.findAll()
+  fun getAllWorkers(): List<DeliveryWorkerModel> = workerRepository.findAll()
 
-  fun getOnlineWorkers(): List<DeliveryWorker> = workerRepository.findByStatus(WorkerStatus.ONLINE)
+  fun getOnlineWorkers(): List<DeliveryWorkerModel> = workerRepository.findByStatus(WorkerStatus.ONLINE)
 
   @Transactional
   fun updateWorkerStatus(
     workerId: Long,
     status: WorkerStatus,
-  ): DeliveryWorker {
+  ): DeliveryWorkerModel {
     val worker = getWorkerById(workerId)
     worker.status = status
     return workerRepository.save(worker)
@@ -87,18 +89,18 @@ class DeliveryService(
     }
   }
 
-  fun getAllDeliveryAreas(): List<DeliveryArea> = areaRepository.findAll()
+  fun getAllDeliveryAreas(): List<DeliveryAreaModel> = areaRepository.findAll()
 
-  fun getEnabledDeliveryAreas(): List<DeliveryArea> = areaRepository.findByEnabledTrue()
+  fun getEnabledDeliveryAreas(): List<DeliveryAreaModel> = areaRepository.findByEnabledTrue()
 
   @Transactional
-  fun createDeliveryArea(area: DeliveryArea): DeliveryArea = areaRepository.save(area)
+  fun createDeliveryArea(area: DeliveryAreaModel): DeliveryAreaModel = areaRepository.save(area)
 
   @Transactional
   fun updateDeliveryArea(
     areaId: Long,
     enabled: Boolean,
-  ): DeliveryArea {
+  ): DeliveryAreaModel {
     val area =
       areaRepository.findById(areaId).orElseThrow {
         NotFoundException("配送区域不存在: $areaId")
@@ -207,7 +209,7 @@ class DeliveryService(
   /**
    * 获取配送员的所有任务
    */
-  fun getWorkerTasks(workerId: Long): List<dev.yidafu.aqua.common.domain.model.Order> {
+  fun getWorkerTasks(workerId: Long): List<OrderModel> {
     val worker = getWorkerById(workerId)
     return orderRepository.findByDeliveryWorkerIdOrderByCreatedAtDesc(workerId)
   }
@@ -215,11 +217,11 @@ class DeliveryService(
   /**
    * 获取配送员的进行中任务
    */
-  fun getWorkerActiveTasks(workerId: Long): List<dev.yidafu.aqua.common.domain.model.Order> {
+  fun getWorkerActiveTasks(workerId: Long): List<OrderModel> {
     val worker = getWorkerById(workerId)
     return orderRepository.findByDeliveryWorkerIdAndStatusOrderByCreatedAtDesc(
       workerId,
-      dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING,
+      OrderStatus.DELIVERING,
     )
   }
 
@@ -272,9 +274,9 @@ class DeliveryService(
   /**
    * 获取所有待分配的订单
    */
-  fun getPendingDeliveryOrders(): List<dev.yidafu.aqua.common.domain.model.Order> =
+  fun getPendingDeliveryOrders(): List<OrderModel> =
     orderRepository.findByStatusOrderByCreatedAtAsc(
-      dev.yidafu.aqua.common.domain.model.OrderStatus.PENDING_DELIVERY,
+      OrderStatus.PENDING_DELIVERY,
     )
 
   /**
@@ -299,7 +301,7 @@ class DeliveryService(
 
   // 内部数据类
   private data class WorkerLoad(
-    val worker: DeliveryWorker,
+    val worker: DeliveryWorkerModel,
     val taskCount: Int,
   )
 

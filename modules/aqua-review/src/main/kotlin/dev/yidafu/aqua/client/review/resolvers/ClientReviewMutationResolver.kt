@@ -33,48 +33,47 @@ import org.springframework.stereotype.Controller
 @ClientService
 @Controller
 class ClientReviewMutationResolver(
-    private val reviewService: ReviewService
+  private val reviewService: ReviewService,
 ) {
+  /**
+   * 用户创建评价
+   */
+  @PreAuthorize("isAuthenticated()")
+  fun createReview(request: CreateReviewRequest): ReviewResponse {
+    // 验证评价数据
+    validateReviewRequest(request)
 
-    /**
-     * 用户创建评价
-     */
-    @PreAuthorize("isAuthenticated()")
-    fun createReview(request: CreateReviewRequest): ReviewResponse {
-        // 验证评价数据
-        validateReviewRequest(request)
+    return reviewService.createReview(getCurrentUserId(), request)
+  }
 
-        return reviewService.createReview(getCurrentUserId(), request)
+  /**
+   * 获取当前认证用户的ID
+   * 在实际实现中应该从Spring Security Context获取
+   */
+  private fun getCurrentUserId(): Long {
+    // TODO: 从Spring Security Context获取当前用户ID
+    // 暂时返回占位符，实际实现需要：
+    // val authentication = SecurityContextHolder.getContext().authentication
+    // return (authentication.principal as UserDetails).id
+    throw UnsupportedOperationException("需要从Spring Security Context获取用户ID")
+  }
+
+  /**
+   * 验证评价请求数据
+   */
+  private fun validateReviewRequest(request: CreateReviewRequest) {
+    if (request.rating !in MIN_RATING..MAX_RATING) {
+      throw IllegalArgumentException("评分必须在${MIN_RATING}-${MAX_RATING}之间")
     }
 
-    /**
-     * 获取当前认证用户的ID
-     * 在实际实现中应该从Spring Security Context获取
-     */
-    private fun getCurrentUserId(): Long {
-        // TODO: 从Spring Security Context获取当前用户ID
-        // 暂时返回占位符，实际实现需要：
-        // val authentication = SecurityContextHolder.getContext().authentication
-        // return (authentication.principal as UserDetails).id
-        throw UnsupportedOperationException("需要从Spring Security Context获取用户ID")
+    if (request.comment?.length ?: 0 > MAX_COMMENT_LENGTH) {
+      throw IllegalArgumentException("评论长度不能超过$MAX_COMMENT_LENGTH 个字符")
     }
+  }
 
-    /**
-     * 验证评价请求数据
-     */
-    private fun validateReviewRequest(request: CreateReviewRequest) {
-        if (request.rating !in MIN_RATING..MAX_RATING) {
-            throw IllegalArgumentException("评分必须在${MIN_RATING}-${MAX_RATING}之间")
-        }
-
-        if (request.comment?.length ?: 0 > MAX_COMMENT_LENGTH) {
-            throw IllegalArgumentException("评论长度不能超过$MAX_COMMENT_LENGTH 个字符")
-        }
-    }
-
-    companion object {
-        const val MIN_RATING = 1
-        const val MAX_RATING = 5
-        const val MAX_COMMENT_LENGTH = 500
-    }
+  companion object {
+    const val MIN_RATING = 1
+    const val MAX_RATING = 5
+    const val MAX_COMMENT_LENGTH = 500
+  }
 }

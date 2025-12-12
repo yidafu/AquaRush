@@ -70,7 +70,7 @@ class OutboxEventProcessor(
     try {
       val events =
         domainEventRepository.findPendingEvents(
-          EventStatus.PENDING,
+          EventStatusModel.PENDING,
           LocalDateTime.now(),
         )
 
@@ -92,9 +92,9 @@ class OutboxEventProcessor(
   /**
    * 处理单个事件
    */
-  private fun processEvent(event: DomainEvent) {
+  private fun processEvent(event: DomainEventModel) {
     // 标记事件为处理中
-    event.status = EventStatus.PROCESSING
+    event.status = EventStatusModel.PROCESSING
     domainEventRepository.save(event)
 
     try {
@@ -115,13 +115,13 @@ class OutboxEventProcessor(
         "DELIVERY_TIMEOUT" -> deliveryTimeoutHandler.handle(event)
         else -> {
           logger.warn("Unknown event type: ${event.eventType}")
-          event.status = EventStatus.COMPLETED
+          event.status = EventStatusModel.COMPLETED
           domainEventRepository.save(event)
         }
       }
 
       // 如果处理成功，标记为已完成
-      event.status = EventStatus.COMPLETED
+      event.status = EventStatusModel.COMPLETED
       event.errorMessage = null
       domainEventRepository.save(event)
 
@@ -135,14 +135,14 @@ class OutboxEventProcessor(
    * 处理事件失败
    */
   private fun handleEventFailure(
-    event: DomainEvent,
+    event: DomainEventModel,
     exception: Exception,
   ) {
     event.retryCount++
 
     if (event.retryCount >= MAX_RETRY_COUNT) {
       // 超过最大重试次数，标记为失败
-      event.status = EventStatus.FAILED
+      event.status = EventStatusModel.FAILED
       event.errorMessage = exception.message ?: "Unknown error"
       logger.error("Event processing failed after $MAX_RETRY_COUNT retries: ${event.id}", exception)
     } else {
@@ -150,7 +150,7 @@ class OutboxEventProcessor(
       val delayIndex = minOf(event.retryCount - 1, RETRY_DELAYS.size - 1)
       val nextRunAt = LocalDateTime.now().plusSeconds(RETRY_DELAYS[delayIndex] / 1000)
 
-      event.status = EventStatus.PENDING
+      event.status = EventStatusModel.PENDING
       event.nextRunAt = nextRunAt
       event.errorMessage = exception.message ?: "Unknown error"
 
@@ -169,7 +169,7 @@ class OutboxEventProcessor(
   fun cleanupCompletedEvents() {
     try {
       val thirtyDaysAgo = LocalDateTime.now().minusDays(30)
-      domainEventRepository.deleteByStatusAndCreatedAtBefore(EventStatus.COMPLETED, thirtyDaysAgo)
+      domainEventRepository.deleteByStatusAndCreatedAtBefore(EventStatusModel.COMPLETED, thirtyDaysAgo)
       logger.info("Cleaned up completed events older than 30 days")
     } catch (e: Exception) {
       logger.error("Error cleaning up completed events", e)
@@ -212,7 +212,7 @@ class HybridEventProcessorCoordinator(
     try {
       val events =
         domainEventRepository.findPendingEvents(
-          EventStatus.PENDING,
+          EventStatusModel.PENDING,
           LocalDateTime.now(),
         )
 
@@ -238,7 +238,7 @@ class HybridEventProcessorCoordinator(
   /**
    * 处理Outbox中的事件
    */
-  private fun processOutboxEvent(event: DomainEvent) {
+  private fun processOutboxEvent(event: DomainEventModel) {
     logger.info("Processing Outbox fallback event: ${event.eventType} (${event.id})")
 
     // 这里可以根据事件类型进行特殊处理
@@ -252,7 +252,7 @@ class HybridEventProcessorCoordinator(
     }
 
     // 标记为已完成（假设已经通过其他方式处理）
-    event.status = EventStatus.COMPLETED
+    event.status = EventStatusModel.COMPLETED
     event.errorMessage = null
     domainEventRepository.save(event)
   }
@@ -261,14 +261,14 @@ class HybridEventProcessorCoordinator(
    * 处理Outbox事件失败
    */
   private fun handleOutboxEventFailure(
-    event: DomainEvent,
+    event: DomainEventModel,
     exception: Exception,
   ) {
     event.retryCount++
 
     if (event.retryCount >= MAX_RETRY_COUNT) {
       // 超过最大重试次数，标记为失败
-      event.status = EventStatus.FAILED
+      event.status = EventStatusModel.FAILED
       event.errorMessage = exception.message ?: "Unknown error"
       logger.error("Outbox event processing failed after $MAX_RETRY_COUNT retries: ${event.id}", exception)
     } else {
@@ -276,7 +276,7 @@ class HybridEventProcessorCoordinator(
       val delayIndex = minOf(event.retryCount - 1, RETRY_DELAYS.size - 1)
       val nextRunAt = LocalDateTime.now().plusSeconds(RETRY_DELAYS[delayIndex] / 1000)
 
-      event.status = EventStatus.PENDING
+      event.status = EventStatusModel.PENDING
       event.nextRunAt = nextRunAt
       event.errorMessage = exception.message ?: "Unknown error"
 
@@ -298,7 +298,7 @@ class HybridEventProcessorCoordinator(
   fun cleanupCompletedEvents() {
     try {
       val thirtyDaysAgo = LocalDateTime.now().minusDays(30)
-      domainEventRepository.deleteByStatusAndCreatedAtBefore(EventStatus.COMPLETED, thirtyDaysAgo)
+      domainEventRepository.deleteByStatusAndCreatedAtBefore(EventStatusModel.COMPLETED, thirtyDaysAgo)
       logger.info("Cleaned up completed events older than 30 days")
     } catch (e: Exception) {
       logger.error("Error cleaning up completed events", e)
@@ -348,7 +348,7 @@ class Xxx(
     try {
       val events =
         domainEventRepository.findPendingEvents(
-          EventStatus.PENDING,
+          EventStatusModel.PENDING,
           LocalDateTime.now(),
         )
 
@@ -370,9 +370,9 @@ class Xxx(
   /**
    * 处理单个事件
    */
-  private fun processEvent(event: DomainEvent) {
+  private fun processEvent(event: DomainEventModel) {
     // 标记事件为处理中
-    event.status = EventStatus.PROCESSING
+    event.status = EventStatusModel.PROCESSING
     domainEventRepository.save(event)
 
     try {
@@ -393,13 +393,13 @@ class Xxx(
         "DELIVERY_TIMEOUT" -> deliveryTimeoutHandler.handle(event)
         else -> {
           logger.warn("Unknown event type: ${event.eventType}")
-          event.status = EventStatus.COMPLETED
+          event.status = EventStatusModel.COMPLETED
           domainEventRepository.save(event)
         }
       }
 
       // 如果处理成功，标记为已完成
-      event.status = EventStatus.COMPLETED
+      event.status = EventStatusModel.COMPLETED
       event.errorMessage = null
       domainEventRepository.save(event)
 
@@ -413,14 +413,14 @@ class Xxx(
    * 处理事件失败
    */
   private fun handleEventFailure(
-    event: DomainEvent,
+    event: DomainEventModel,
     exception: Exception,
   ) {
     event.retryCount++
 
     if (event.retryCount >= MAX_RETRY_COUNT) {
       // 超过最大重试次数，标记为失败
-      event.status = EventStatus.FAILED
+      event.status = EventStatusModel.FAILED
       event.errorMessage = exception.message ?: "Unknown error"
       logger.error("Event processing failed after $MAX_RETRY_COUNT retries: ${event.id}", exception)
     } else {
@@ -428,7 +428,7 @@ class Xxx(
       val delayIndex = minOf(event.retryCount - 1, RETRY_DELAYS.size - 1)
       val nextRunAt = LocalDateTime.now().plusSeconds(RETRY_DELAYS[delayIndex] / 1000)
 
-      event.status = EventStatus.PENDING
+      event.status = EventStatusModel.PENDING
       event.nextRunAt = nextRunAt
       event.errorMessage = exception.message ?: "Unknown error"
 
@@ -447,7 +447,7 @@ class Xxx(
   fun cleanupCompletedEvents() {
     try {
       val thirtyDaysAgo = LocalDateTime.now().minusDays(30)
-      domainEventRepository.deleteByStatusAndCreatedAtBefore(EventStatus.COMPLETED, thirtyDaysAgo)
+      domainEventRepository.deleteByStatusAndCreatedAtBefore(EventStatusModel.COMPLETED, thirtyDaysAgo)
       logger.info("Cleaned up completed events older than 30 days")
     } catch (e: Exception) {
       logger.error("Error cleaning up completed events", e)
