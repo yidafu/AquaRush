@@ -48,9 +48,28 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
           // 通过 vite 插件加载 postcss,
           name: 'postcss-config-loader-plugin',
           config(config) {
-            // 加载 tailwindcss
+            // 加载 tailwindcss with purging for production
             if (typeof config.css?.postcss === 'object') {
-              config.css?.postcss.plugins?.unshift(tailwindcss())
+              config.css?.postcss.plugins?.unshift(
+                tailwindcss({
+                  content: [
+                    './src/**/*.{js,jsx,ts,tsx}',
+                    './src/**/*.wxml',
+                    './src/**/*.wxss'
+                  ],
+                  // Enable purging in production to remove unused styles
+                  ...(process.env.NODE_ENV === 'production' && {
+                    purge: {
+                      enabled: true,
+                      content: [
+                        './src/**/*.{js,jsx,ts,tsx}',
+                        './src/**/*.wxml',
+                        './src/**/*.wxss'
+                      ]
+                    }
+                  })
+                })
+              )
             }
           },
         },
