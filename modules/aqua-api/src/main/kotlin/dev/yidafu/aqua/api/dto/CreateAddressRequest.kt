@@ -22,7 +22,6 @@ package dev.yidafu.aqua.api.dto
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.*
 
-
 /**
  * 创建地址请求DTO
  */

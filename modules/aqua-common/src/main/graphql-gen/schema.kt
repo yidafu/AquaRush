@@ -1065,7 +1065,6 @@ enum class OrderStatus(val label: String) {
       Preparing("PREPARING"),
       ReadyForDelivery("READY_FOR_DELIVERY"),
       Refunded("REFUNDED");
-
   companion object {
     @JvmStatic
     fun valueOfLabel(label: String): OrderStatus? {
@@ -1242,7 +1241,6 @@ data class Product(
 enum class ProductStatus(val label: String) {
       Offline("OFFLINE"),
       Online("ONLINE");
-
   companion object {
     @JvmStatic
     fun valueOfLabel(label: String): ProductStatus? {
@@ -2123,7 +2121,6 @@ enum class UserRole(val label: String) {
       None("NONE"),
       User("USER"),
       Worker("WORKER");
-
   companion object {
     @JvmStatic
     fun valueOfLabel(label: String): UserRole? {
@@ -2137,7 +2134,6 @@ enum class UserStatus(val label: String) {
       Deleted("DELETED"),
       Inactive("INACTIVE"),
       Suspended("SUSPENDED");
-
   companion object {
     @JvmStatic
     fun valueOfLabel(label: String): UserStatus? {
@@ -2228,7 +2224,6 @@ data class WeeklyStatistic(
 enum class WorkerStatus(val label: String) {
       Offline("OFFLINE"),
       Online("ONLINE");
-
   companion object {
     @JvmStatic
     fun valueOfLabel(label: String): WorkerStatus? {

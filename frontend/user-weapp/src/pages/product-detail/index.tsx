@@ -90,7 +90,7 @@ const ProductDetail: React.FC = () => {
     setCurrentImageIndex(index)
   }, [])
 
-  
+
   const handleBuyNow = useCallback(() => {
     if (!product) return
 
