@@ -59,8 +59,8 @@ const AvatarNicknameForm: React.FC<AvatarNicknameFormProps> = ({
   }
 
   // 昵称输入
-  const handleNicknameInput = (e: any): void => {
-    setNickname(e.detail.value)
+  const handleNicknameInput = (value: string, e: any): void => {
+    setNickname(value)
   }
 
   // 上传头像到服务器

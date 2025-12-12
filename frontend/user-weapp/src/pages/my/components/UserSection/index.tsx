@@ -2,12 +2,13 @@ import React from 'react'
 import { View, Text } from '@tarojs/components'
 import { AtAvatar } from 'taro-ui'
 import CustomIcon from '@/components/CustomIcon'
-import { authService, type AuthUserInfo } from '@/utils/auth'
+import { authService, type UserInfo } from '@/utils/auth'
 
 import "taro-ui/dist/style/components/avatar.scss"
+import './index.scss'
 
 interface UserSectionProps {
-  userInfo: AuthUserInfo | null
+  userInfo: UserInfo | null
   onProfileEdit: () => void
 }
 
@@ -23,7 +24,7 @@ const UserSection: React.FC<UserSectionProps> = ({ userInfo, onProfileEdit }) =>
   const isLoggedIn = authService.isAuthenticated()
 
   return (
-    <View className='mb-4'>
+    <View className='mb-4 user-section'>
       <View
         className={`user-info ${!isLoggedIn ? 'not-logged-in' : ''}`}
         onClick={onProfileEdit}
@@ -47,11 +48,7 @@ const UserSection: React.FC<UserSectionProps> = ({ userInfo, onProfileEdit }) =>
 
         <View className='user-details'>
           <View className='user-name-section'>
-            <Text className='user-name'>{userInfo.nickname}</Text>
-            <View className='user-level'>
-              <CustomIcon value='bookmark' size={12} color='#ff6b35' />
-              <Text className='level-text'>普通用户</Text>
-            </View>
+            <Text className='text-base font-bold text-white'>{userInfo.nickname}</Text>
           </View>
           {userInfo.phone && (
             <Text className='user-phone'>{userInfo.phone}</Text>

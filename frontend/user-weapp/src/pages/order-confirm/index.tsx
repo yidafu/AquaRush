@@ -27,7 +27,6 @@ interface Address {
   city: string
   district: string
   detailAddress: string
-  postalCode: string
   isDefault: boolean
 }
 
@@ -116,24 +115,18 @@ export default class OrderConfirm extends Component<{}, OrderConfirmState> {
       const mockAddresses: Address[] = [
         {
           id: '1',
-          receiverName: '张三',
-          phone: '13800138000',
           province: '广东省',
           city: '深圳市',
           district: '南山区',
           detailAddress: '科技园南区深南大道9988号',
-          postalCode: '518000',
           isDefault: true
         },
         {
           id: '2',
-          receiverName: '李四',
-          phone: '13900139000',
           province: '广东省',
           city: '深圳市',
           district: '福田区',
           detailAddress: '华强北电子世界1栋',
-          postalCode: '518000',
           isDefault: false
         }
       ]

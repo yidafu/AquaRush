@@ -54,7 +54,7 @@ const OrderSection: React.FC<OrderSectionProps> = ({ orderStats, onOrderNavigati
   ]
 
   return (
-    <AtCard title='我的订单' className='mb-4 h-auto'>
+    <AtCard title='我的订单' className='h-auto mb-4'>
       <View className='at-row'>
         {orderItems.map((item, index) => (
           <View
@@ -63,12 +63,12 @@ const OrderSection: React.FC<OrderSectionProps> = ({ orderStats, onOrderNavigati
             onClick={() => onOrderNavigation(item.type)}
           >
             <View className='flex flex-col items-center justify-center '>
-              <AtBadge value={item.count} maxValue={99} className='order-badge'>
-                <View className='flex items-center justify-center w-20 h-20 rounded-full bg-primary-light bg-opacity-10' style={{ color: item.color }}>
-                  <CustomIcon value={item.icon} size={40} />
+              <AtBadge value={item.count < 1 ? undefined : item.count} maxValue={99} className='order-badge'>
+                <View className='flex items-center justify-center w-10 h-10 rounded-full bg-primary-light bg-opacity-10' style={{ color: item.color }}>
+                  <CustomIcon value={item.icon} size={30} />
                 </View>
               </AtBadge>
-              <Text className='text-2xl text-primary text-center font-medium'>{item.label}</Text>
+              <Text className='text-base font-medium text-center theme-text-primary'>{item.label}</Text>
             </View>
 
           </View>

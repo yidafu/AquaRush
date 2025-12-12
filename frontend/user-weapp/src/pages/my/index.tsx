@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { View, Text, Image, Button } from '@tarojs/components'
 import { AtButton, AtCard, AtList, AtListItem, AtToast } from 'taro-ui'
 import { ThemeSwitcher } from '../../components/ThemeProvider'
@@ -250,12 +250,6 @@ const MyPage: React.FC = () => {
     })
   }
 
-  const handleCouponCenter = (): void => {
-    Taro.navigateTo({
-      url: '/pages/coupon-center/index'
-    })
-  }
-
   const handleCustomerService = (): void => {
     // 联系客服
     Taro.makePhoneCall({
@@ -287,36 +281,8 @@ const MyPage: React.FC = () => {
     })
   }
 
-  const handleLogout = async (): Promise<void> => {
-    // 微信小程序不需要手动登出，这个方法仅用于程序内部处理认证过期
-    try {
-      await authService.logout()
 
-      // 清除用户信息
-      setUserInfo({
-        id: '',
-        nickname: '游客',
-        avatarUrl: '',
-        phone: '',
-        wechatOpenId: ''
-      })
-
-      // 清除订单统计
-      setOrderStats({
-        pendingPayment: 0,
-        pendingDelivery: 0,
-        delivering: 0,
-        completed: 0,
-        afterSales: 0
-      })
-    } catch (error) {
-      console.error('清理认证状态失败:', error)
-    }
-  }
-
-
-
-  const serviceItems = [
+  const serviceItems = useMemo(() =>[
     {
       icon: '/assets/icons/service/map-pin.png',
       title: '收货地址',
@@ -338,10 +304,10 @@ const MyPage: React.FC = () => {
     {
       icon: '/assets/icons/service/info-circle.png',
       title: '关于我们',
-      description: '了解 AquaRush',
+      description: '了解好喝山泉',
       onClick: handleAbout
     }
-  ]
+  ], [])
 
   // Return JSX directly
   if (loading) {
