@@ -34,13 +34,13 @@ import java.util.*
 class JwtTokenService {
 
   val logger = LoggerFactory.getLogger(JwtTokenService::class.java)
-  @Value($$"${app.jwt.secret:your-secret-key-must-be-256-bits-long}")
+  @Value("\${app.jwt.secret:your-secret-key-must-be-256-bits-long}")
   private lateinit var secret: String
 
-  @Value($$"${app.jwt.expiration:86400}") // 24 hours in seconds
+  @Value("\${app.jwt.expiration:86400}") // 24 hours in seconds
   private val accessTokenExpiration: Long = 86400
 
-  @Value($$"${app.jwt.refresh-expiration:604800}") // 7 days in seconds
+  @Value("\${app.jwt.refresh-expiration:604800}") // 7 days in seconds
   private val refreshTokenExpiration: Long = 604800
 
   private val key: Key by lazy {

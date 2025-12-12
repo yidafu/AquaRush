@@ -37,7 +37,7 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     default-schema: public
     drop-first: false         # 生产环境必须为 false！
-    enabled: false            # Disable Liquibase for admin service since main app manages schema
+    enabled: true            # Disable Liquibase for admin service since main app manages schema
 
   artemis:
     mode: embedded
