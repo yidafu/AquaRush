@@ -14,14 +14,30 @@ import AdminDetailModal from './components/AdminDetailModal';
 import DeliveryWorkerDetailModal from './components/DeliveryWorkerDetailModal';
 import UserDetailModal from './components/UserDetailModal';
 
-// Import types and mock data
-import type { Admin, DeliveryWorker, User, AdminFormData, DeliveryWorkerFormData, UserFormData } from './components/types';
+// Import GraphQL hooks and types
+import {
+  useAdmins,
+  useDeliveryWorkers,
+  useUsers,
+} from '../../services/user-graphql';
+import type {
+  Admin,
+  DeliveryWorker,
+  User,
+} from '../../types/graphql';
+
+// Import types and mock data for forms
+import type { AdminFormData, DeliveryWorkerFormData, UserFormData } from './components/types';
 import { mockAdmins, mockDeliveryWorkers, mockUsers, mockDeliveryWorkerAddresses, mockUserAddresses } from './components/mockData';
 
 const Users: React.FC = () => {
   // State for tabs and data
   const [activeTab, setActiveTab] = useState<string>('admin');
-  const [loading, setLoading] = useState<boolean>(false);
+
+  // GraphQL data fetching
+  const { data: adminsData, loading: adminsLoading } = useAdmins();
+  const { data: deliveryWorkersData, loading: deliveryWorkersLoading } = useDeliveryWorkers();
+  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useUsers();
 
   // State for modals
   const [adminFormVisible, setAdminFormVisible] = useState<boolean>(false);
@@ -32,20 +48,20 @@ const Users: React.FC = () => {
   const [deliveryWorkerDetailVisible, setDeliveryWorkerDetailVisible] = useState<boolean>(false);
   const [userDetailVisible, setUserDetailVisible] = useState<boolean>(false);
 
-  // State for editing records
-  const [editingAdmin, setEditingAdmin] = useState<Admin | null>(null);
-  const [editingDeliveryWorker, setEditingDeliveryWorker] = useState<DeliveryWorker | null>(null);
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  // State for editing records (using mock data types temporarily)
+  const [editingAdmin, setEditingAdmin] = useState<any>(null);
+  const [editingDeliveryWorker, setEditingDeliveryWorker] = useState<any>(null);
+  const [editingUser, setEditingUser] = useState<any>(null);
 
-  // State for viewing details
-  const [viewingAdmin, setViewingAdmin] = useState<Admin | null>(null);
-  const [viewingDeliveryWorker, setViewingDeliveryWorker] = useState<DeliveryWorker | null>(null);
-  const [viewingUser, setViewingUser] = useState<User | null>(null);
+  // State for viewing details (using mock data types temporarily)
+  const [viewingAdmin, setViewingAdmin] = useState<any>(null);
+  const [viewingDeliveryWorker, setViewingDeliveryWorker] = useState<any>(null);
+  const [viewingUser, setViewingUser] = useState<any>(null);
 
-  // Mock data (in real app, this would come from API)
-  const [admins, setAdmins] = useState<Admin[]>(mockAdmins);
-  const [deliveryWorkers, setDeliveryWorkers] = useState<DeliveryWorker[]>(mockDeliveryWorkers);
-  const [users, setUsers] = useState<User[]>(mockUsers);
+  // Use GraphQL data if available, otherwise fall back to mock data
+  const admins = adminsData?.admins || mockAdmins;
+  const deliveryWorkers = deliveryWorkersData?.deliveryWorkers || mockDeliveryWorkers;
+  const users = usersData?.users?.content || mockUsers;
 
   // Common action handlers
   const handleViewAdmin = (admin: Admin) => {
@@ -78,22 +94,20 @@ const Users: React.FC = () => {
     setUserFormVisible(true);
   };
 
-  const handleDeleteAdmin = (admin: Admin) => {
+  const handleDeleteAdmin = (admin: any) => {
     Modal.confirm({
       title: '确认删除',
-      content: `确定要删除管理员 ${admin.username} 吗？此操作不可恢复。`,
+      content: `确定要删除管理员 ${admin.nickname || admin.username || admin.wechatOpenId} 吗？此操作不可恢复。`,
       okType: 'danger',
       onOk: async () => {
-        setLoading(true);
         try {
           // TODO: Call delete API
           await new Promise(resolve => setTimeout(resolve, 1000));
-          setAdmins(admins.filter(a => a.id !== admin.id));
+          // Use refetch to update data from GraphQL
+          refetchUsers();
           message.success('管理员删除成功');
         } catch (error) {
           message.error('删除失败');
-        } finally {
-          setLoading(false);
         }
       },
     });
@@ -296,7 +310,7 @@ const Users: React.FC = () => {
           </div>
           <AdminTable
             data={admins}
-            loading={loading}
+            loading={adminsLoading}
             onEdit={handleEditAdmin}
             onView={handleViewAdmin}
             onDelete={handleDeleteAdmin}
@@ -328,7 +342,7 @@ const Users: React.FC = () => {
           </div>
           <DeliveryWorkerTable
             data={deliveryWorkers}
-            loading={loading}
+            loading={deliveryWorkersLoading}
             onEdit={handleEditDeliveryWorker}
             onView={handleViewDeliveryWorker}
             onDelete={handleDeleteDeliveryWorker}
@@ -360,7 +374,7 @@ const Users: React.FC = () => {
           </div>
           <UserTable
             data={users}
-            loading={loading}
+            loading={usersLoading}
             onEdit={handleEditUser}
             onView={handleViewUser}
             onDelete={handleDeleteUser}
@@ -396,7 +410,7 @@ const Users: React.FC = () => {
         }}
         record={editingAdmin || undefined}
         onSubmit={handleAdminSubmit}
-        loading={loading}
+        loading={adminsLoading}
       />
 
       <DeliveryWorkerForm
@@ -407,7 +421,7 @@ const Users: React.FC = () => {
         }}
         record={editingDeliveryWorker || undefined}
         onSubmit={handleDeliveryWorkerSubmit}
-        loading={loading}
+        loading={deliveryWorkersLoading}
       />
 
       <UserForm
@@ -418,7 +432,7 @@ const Users: React.FC = () => {
         }}
         record={editingUser || undefined}
         onSubmit={handleUserSubmit}
-        loading={loading}
+        loading={usersLoading}
       />
 
       {/* Detail Modals */}
@@ -429,7 +443,7 @@ const Users: React.FC = () => {
           setViewingAdmin(null);
         }}
         admin={viewingAdmin}
-        loading={loading}
+        loading={adminsLoading}
       />
 
       <DeliveryWorkerDetailModal
@@ -440,7 +454,7 @@ const Users: React.FC = () => {
         }}
         deliveryWorker={viewingDeliveryWorker}
         addresses={viewingDeliveryWorker ? mockDeliveryWorkerAddresses[viewingDeliveryWorker.id] || [] : []}
-        loading={loading}
+        loading={deliveryWorkersLoading}
       />
 
       <UserDetailModal
@@ -451,7 +465,7 @@ const Users: React.FC = () => {
         }}
         user={viewingUser}
         addresses={viewingUser ? mockUserAddresses[viewingUser.id] || [] : []}
-        loading={loading}
+        loading={usersLoading}
       />
     </div>
   );

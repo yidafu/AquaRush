@@ -11,9 +11,10 @@
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
+    "@apollo/client": "^3.8.8",
     "antd": "^6.0.0",
+    "graphql": "^16.8.1",
     "react": "^19.2.0",
-    "@aquarush/common": "*",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.9.6"
   },
