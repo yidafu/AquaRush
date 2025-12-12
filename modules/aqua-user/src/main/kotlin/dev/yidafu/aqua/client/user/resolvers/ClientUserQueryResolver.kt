@@ -20,15 +20,20 @@
 package dev.yidafu.aqua.client.user.resolvers
 
 import dev.yidafu.aqua.common.annotation.ClientService
+import dev.yidafu.aqua.common.graphql.generated.UpdateProfileInput
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.user.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import dev.yidafu.aqua.user.mapper.UserMapper
 import dev.yidafu.aqua.user.service.UserService
 import dev.yidafu.aqua.user.service.WeChatAuthService
+import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -78,24 +83,20 @@ class ClientUserQueryResolver(
           .let { UserMapper.map(it) }
     }
 
-    /**
-     * 获取用户余额信息
-     */
-    @PreAuthorize("isAuthenticated()")
-    fun getUserBalance(
-        @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): UserBalanceInfo {
-        val currentBalance = BigDecimal(userRepository.getUserBalance(userPrincipal.id))
-
-        return UserBalanceInfo(
-            currentBalance = currentBalance,
-            availableBalance = currentBalance, // 假设所有余额都可用
-            frozenAmount = BigDecimal.ZERO,
-            totalRecharge = BigDecimal.ZERO, // TODO: 从服务获取实际数据
-            totalSpent = BigDecimal(userRepository.getUserTotalSpent(userPrincipal.id)),
-            lastUpdatedAt = LocalDateTime.now()
-        )
+  @MutationMapping
+  @PreAuthorize("isAuthenticated()")
+  fun updateProfile(
+    @Argument @Valid input: UpdateProfileInput,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal?,
+  ): User {
+    if (userPrincipal == null) {
+      throw IllegalStateException("请先登录")
     }
+    val userId = userPrincipal.id
+    val updatedUser =  userService.updateUserInfo(userId, input.nickname, null, input.avatar)
+    // 正常认证用户的处理
+    return UserMapper.map(updatedUser)
+  }
 
     /**
      * 获取用户订单统计
@@ -115,33 +116,6 @@ class ClientUserQueryResolver(
             lastOrderDate = null,
             favoriteProduct = null
         )
-    }
-
-    /**
-     * 获取用户消费记录
-     */
-    @PreAuthorize("isAuthenticated()")
-    fun getUserSpendingHistory(
-        page: Int = 0,
-        size: Int = 20,
-        dateFrom: LocalDateTime? = null,
-        dateTo: LocalDateTime? = null,
-        @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): Page<SpendingRecord> {
-        // TODO: 实现从服务获取用户消费记录
-        // 目前返回空列表
-        val pageable = PageRequest.of(page, size)
-        return Page.empty(pageable)
-    }
-
-    /**
-     * 获取用户收货地址数量
-     */
-    @PreAuthorize("isAuthenticated()")
-    fun getUserAddressCount(
-        @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): Int {
-        return userRepository.getUserAddressCount(userPrincipal.id)
     }
 
     /**
@@ -177,18 +151,6 @@ class ClientUserQueryResolver(
     }
 
     companion object {
-        /**
-         * 用户相关类型定义
-         */
-        data class UserBalanceInfo(
-            val currentBalance: BigDecimal,
-            val availableBalance: BigDecimal,
-            val frozenAmount: BigDecimal,
-            val totalRecharge: BigDecimal,
-            val totalSpent: BigDecimal,
-            val lastUpdatedAt: LocalDateTime
-        )
-
         data class UserOrderStats(
             val totalOrders: Long,
             val completedOrders: Long,
@@ -199,15 +161,6 @@ class ClientUserQueryResolver(
             val favoriteProduct: String?
         )
 
-        data class SpendingRecord(
-            val id: Long,
-            val orderId: Long,
-            val amount: BigDecimal,
-            val type: String, // PURCHASE, REFUND, RECHARGE
-            val description: String,
-            val createdAt: LocalDateTime,
-            val relatedOrderId: Long?
-        )
 
         data class UserPreferences(
             val language: String,
