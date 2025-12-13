@@ -66,8 +66,8 @@ class AdminPaymentMutationResolver(
                 amount = input.amount,
                 reason = input.reason,
                 status = when (input.action) {
-                    RefundAction.Approve -> RefundStatus.Approved
-                    RefundAction.Reject -> RefundStatus.Rejected
+                    RefundAction.APPROVE -> RefundStatus.APPROVED
+                    RefundAction.REJECT -> RefundStatus.REJECTED
                 },
                 requestedAt = java.time.LocalDateTime.now(),
                 processedAt = java.time.LocalDateTime.now(),
@@ -102,7 +102,7 @@ class AdminPaymentMutationResolver(
                 userId = input.userId,
                 amount = input.amount,
                 reason = input.reason,
-                status = RefundStatus.Pending,
+                status = RefundStatus.PENDING,
                 requestedAt = java.time.LocalDateTime.now(),
                 processedAt = null,
                 processedBy = getCurrentAdminId(),
@@ -220,7 +220,7 @@ class AdminPaymentMutationResolver(
         if (input.originalTransactionId.isBlank()) {
             throw BadRequestException("原始交易ID不能为空")
         }
-        if (input.amount <= BigDecimal.ZERO) {
+        if (input.amount <= 0L) {
             throw BadRequestException("退款金额必须大于0")
         }
         if (input.reason.isBlank()) {
@@ -235,7 +235,7 @@ class AdminPaymentMutationResolver(
         if (input.originalTransactionId.isBlank()) {
             throw BadRequestException("原始交易ID不能为空")
         }
-        if (input.amount <= BigDecimal.ZERO) {
+        if (input.amount <= 0L) {
             throw BadRequestException("退款金额必须大于0")
         }
         if (input.reason.isBlank()) {

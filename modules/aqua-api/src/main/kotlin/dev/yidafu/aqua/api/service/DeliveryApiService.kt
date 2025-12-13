@@ -21,10 +21,9 @@ package dev.yidafu.aqua.api.service
 
 import dev.yidafu.aqua.api.common.PagedResponse
 import dev.yidafu.aqua.api.dto.*
-import dev.yidafu.aqua.common.domain.model.WorkerStatus
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.*
 
 /**
  * 配送API服务接口
@@ -70,8 +69,8 @@ interface DeliveryApiService {
    * 更新配送员工作状态
    */
   fun updateWorkerStatus(
-    workerId: Long,
-    status: WorkerStatus,
+      workerId: Long,
+      status: DeliverWorkerStatus,
   ): DeliveryWorkerDTO
 
   /**

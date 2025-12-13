@@ -21,6 +21,7 @@ package dev.yidafu.aqua.user.domain.model
 
 import dev.yidafu.aqua.api.dto.UserRole
 import dev.yidafu.aqua.api.dto.UserStatus
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -55,11 +56,12 @@ data class UserModel(
   @Enumerated(EnumType.STRING)
   val role: UserRole = UserRole.NONE,
 
-  @Column(name = "balance", nullable = false)
-  val balance: BigDecimal = BigDecimal.ZERO,
+  @Column(name = "balance_cents", nullable = false)
+  val balanceCents: Long = 0L,
 
-  @Column(name = "total_spent", nullable = false)
-  val totalSpent: BigDecimal = BigDecimal.ZERO,
+  @Column(name = "total_spent_cents", nullable = false)
+  val totalSpentCents: Long = 0L,
+
 
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
@@ -74,4 +76,13 @@ data class UserModel(
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
   }
+
+
+  // Backward compatibility property
+  val balance: BigDecimal
+  get() = MoneyUtils.fromCents(balanceCents)
+
+  // Backward compatibility property
+  val totalSpent: BigDecimal
+    get() = MoneyUtils.fromCents(totalSpentCents)
 }

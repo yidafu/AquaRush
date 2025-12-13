@@ -20,11 +20,14 @@
 package dev.yidafu.aqua.admin.review.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatisticsResponse
 import dev.yidafu.aqua.review.dto.DeliveryWorkerRankingResponse
-import dev.yidafu.aqua.review.dto.DeliveryWorkerStatisticsResponse
 import dev.yidafu.aqua.review.dto.ReviewResponse
 import dev.yidafu.aqua.review.service.ReviewService
+import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import java.time.LocalDateTime
@@ -33,11 +36,12 @@ import java.time.LocalDateTime
  * 管理端评价查询解析器
  * 提供评价系统的管理功能，包括查询所有评价、配送员统计等
  */
-@AdminService
+//@AdminService
 @Controller
 class AdminReviewQueryResolver(
   private val reviewService: ReviewService,
 ) {
+  val logger = LoggerFactory.getLogger(AdminReviewQueryResolver::class.java)
   /**
    * 查询所有评价（管理员功能）
    */
@@ -67,8 +71,10 @@ class AdminReviewQueryResolver(
   /**
    * 获取配送员统计数据（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
-  fun deliveryWorkerStatistics(deliveryWorkerId: Long): DeliveryWorkerStatisticsResponse {
+//  @PreAuthorize("hasRole('ADMIN')")
+  @QueryMapping("deliveryWorkerStatistics")
+  fun deliveryWorkerStatistics(@Argument deliveryWorkerId: Long): DeliveryWorkerStatisticsResponse {
+    logger.info("deliveryWorkerStatistics(${deliveryWorkerId})")
     return reviewService.getDeliveryWorkerStatistics(deliveryWorkerId)
   }
 

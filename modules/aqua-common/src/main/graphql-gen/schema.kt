@@ -441,9 +441,9 @@ data class DeliveryWorker(
     val id: kotlin.Long,
     val isAvailable: kotlin.Boolean,
     val name: kotlin.String,
+    val onlineStatus: DeliveryWorkerStatus,
     val phone: kotlin.String,
     val rating: java.math.BigDecimal?,
-    val status: WorkerStatus,
     val totalOrders: kotlin.Int,
     val updatedAt: java.time.LocalDateTime,
     val userId: kotlin.Long,
@@ -482,6 +482,18 @@ data class DeliveryWorkerStatisticsResponse(
     val twoStarReviews: kotlin.Long,
     val workerName: kotlin.String?
 )
+
+enum class DeliveryWorkerStatus(val label: String) {
+      OFFLINE("OFFLINE"),
+      ONLINE("ONLINE");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): DeliveryWorkerStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
 
 data class DistancePayload(
     val distanceKm: kotlin.Float?,
@@ -920,11 +932,11 @@ data class MutationUpdateTransactionNoteArgs(
   )
 }
 data class MutationUpdateWorkerStatusArgs(
-    val status: WorkerStatus,
+    val status: DeliveryWorkerStatus,
     val workerId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["status"] as WorkerStatus,
+      args["status"] as DeliveryWorkerStatus,
       args["workerId"] as kotlin.Long
   )
 }
@@ -1057,14 +1069,15 @@ data class OrderStatistics(
 )
 
 enum class OrderStatus(val label: String) {
-      Cancelled("CANCELLED"),
-      Confirmed("CONFIRMED"),
-      Delivered("DELIVERED"),
-      OutForDelivery("OUT_FOR_DELIVERY"),
-      Pending("PENDING"),
-      Preparing("PREPARING"),
-      ReadyForDelivery("READY_FOR_DELIVERY"),
-      Refunded("REFUNDED");
+      CANCELLED("CANCELLED"),
+      CONFIRMED("CONFIRMED"),
+      DELIVERED("DELIVERED"),
+      OUT_FOR_DELIVERY("OUT_FOR_DELIVERY"),
+      PENDING("PENDING"),
+      PREPARING("PREPARING"),
+      READY_FOR_DELIVERY("READY_FOR_DELIVERY"),
+      REFUNDED("REFUNDED");
+
   companion object {
     @JvmStatic
     fun valueOfLabel(label: String): OrderStatus? {
@@ -1085,9 +1098,9 @@ data class PaymentData(
 )
 
 enum class PaymentMethod(val label: String) {
-      Alipay("ALIPAY"),
-      CashOnDelivery("CASH_ON_DELIVERY"),
-      WechatPay("WECHAT_PAY");
+      ALIPAY("ALIPAY"),
+      CASH_ON_DELIVERY("CASH_ON_DELIVERY"),
+      WECHAT_PAY("WECHAT_PAY");
 
   companion object {
     @JvmStatic
@@ -1130,10 +1143,10 @@ data class PaymentStatistics(
 )
 
 enum class PaymentStatus(val label: String) {
-      Failed("FAILED"),
-      Processing("PROCESSING"),
-      Refunded("REFUNDED"),
-      Success("SUCCESS");
+      FAILED("FAILED"),
+      PROCESSING("PROCESSING"),
+      REFUNDED("REFUNDED"),
+      SUCCESS("SUCCESS");
 
   companion object {
     @JvmStatic
@@ -1239,8 +1252,9 @@ data class Product(
 )
 
 enum class ProductStatus(val label: String) {
-      Offline("OFFLINE"),
-      Online("ONLINE");
+      OFFLINE("OFFLINE"),
+      ONLINE("ONLINE");
+
   companion object {
     @JvmStatic
     fun valueOfLabel(label: String): ProductStatus? {
@@ -1650,6 +1664,14 @@ data class QueryUserPaymentTransactionsArgs(
       args["userId"] as kotlin.Long
   )
 }
+data class QueryUsersArgs(
+    val input: UserListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { UserListInput(it as Map<String, Any>) }
+  )
+}
 data class QueryValidateAddressArgs(
     val input: ValidateAddressInput
 ) {
@@ -1724,6 +1746,7 @@ data class Query(
     val userAddresses: Iterable<Address>,
     val userDefaultAddress: Address?,
     val userPaymentTransactions: Iterable<PaymentTransaction>,
+    val users: UserListResponse,
     val validateAddress: kotlin.Boolean,
     val weeklyStatistics: Iterable<WeeklyStatistic>
 )
@@ -1739,8 +1762,8 @@ data class RefreshTokenInput(
 }
 
 enum class RefundAction(val label: String) {
-      Approve("APPROVE"),
-      Reject("REJECT");
+      APPROVE("APPROVE"),
+      REJECT("REJECT");
 
   companion object {
     @JvmStatic
@@ -1796,11 +1819,11 @@ data class RefundRequest(
 )
 
 enum class RefundStatus(val label: String) {
-      Approved("APPROVED"),
-      Completed("COMPLETED"),
-      Failed("FAILED"),
-      Pending("PENDING"),
-      Rejected("REJECTED");
+      APPROVED("APPROVED"),
+      COMPLETED("COMPLETED"),
+      FAILED("FAILED"),
+      PENDING("PENDING"),
+      REJECTED("REJECTED");
 
   companion object {
     @JvmStatic
@@ -2101,6 +2124,33 @@ data class UserInfo(
     val wechatOpenId: kotlin.String
 )
 
+data class UserListInput(
+    val page: kotlin.Int? = 0,
+    val search: kotlin.String? = null,
+    val size: kotlin.Int? = 20,
+    val sort: kotlin.String? = """createdAt,desc""".trimIndent(),
+    val status: UserStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["search"] as kotlin.String?,
+      args["size"] as kotlin.Int? ?: 20,
+      args["sort"] as kotlin.String? ?: """createdAt,desc""".trimIndent(),
+      args["status"] as UserStatus?
+  )
+}
+
+data class UserListResponse(
+    val content: Iterable<User>,
+    val empty: kotlin.Boolean,
+    val first: kotlin.Boolean,
+    val last: kotlin.Boolean,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Long,
+    val totalPages: kotlin.Int
+)
+
 data class UserPaymentTransaction(
     val amount: java.math.BigDecimal,
     val completedAt: java.time.LocalDateTime?,
@@ -2117,10 +2167,11 @@ data class UserPaymentTransaction(
 )
 
 enum class UserRole(val label: String) {
-      Admin("ADMIN"),
-      None("NONE"),
-      User("USER"),
-      Worker("WORKER");
+      ADMIN("ADMIN"),
+      NONE("NONE"),
+      USER("USER"),
+      WORKER("WORKER");
+
   companion object {
     @JvmStatic
     fun valueOfLabel(label: String): UserRole? {
@@ -2130,10 +2181,11 @@ enum class UserRole(val label: String) {
 }
 
 enum class UserStatus(val label: String) {
-      Active("ACTIVE"),
-      Deleted("DELETED"),
-      Inactive("INACTIVE"),
-      Suspended("SUSPENDED");
+      ACTIVE("ACTIVE"),
+      DELETED("DELETED"),
+      INACTIVE("INACTIVE"),
+      SUSPENDED("SUSPENDED");
+
   companion object {
     @JvmStatic
     fun valueOfLabel(label: String): UserStatus? {
@@ -2220,14 +2272,3 @@ data class WeeklyStatistic(
     val weekNumber: kotlin.Int,
     val year: kotlin.Int
 )
-
-enum class WorkerStatus(val label: String) {
-      Offline("OFFLINE"),
-      Online("ONLINE");
-  companion object {
-    @JvmStatic
-    fun valueOfLabel(label: String): WorkerStatus? {
-      return values().find { it.label == label }
-    }
-  }
-}

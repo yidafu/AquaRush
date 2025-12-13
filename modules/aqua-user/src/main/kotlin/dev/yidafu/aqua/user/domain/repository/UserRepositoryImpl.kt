@@ -19,8 +19,14 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
+import com.querydsl.jpa.impl.JPAQueryFactory
+import dev.yidafu.aqua.user.domain.model.QUserModel
+import dev.yidafu.aqua.user.domain.model.UserModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 
@@ -29,6 +35,10 @@ class UserRepositoryImpl : UserRepositoryCustom {
 
   @PersistenceContext
   private lateinit var entityManager: EntityManager
+
+  private val queryFactory: JPAQueryFactory by lazy {
+    JPAQueryFactory(entityManager)
+  }
 
   override fun getUserTotalSpent(userId: Long): Double {
     val query = entityManager.createQuery(
@@ -75,6 +85,42 @@ class UserRepositoryImpl : UserRepositoryCustom {
     query.setParameter("orderId", orderId)
     return (query.singleResult as Boolean?) ?: false
   }
+
+  override fun findByNicknameContainingIgnoreCaseAndStatusOrPhoneContainingIgnoreCaseAndStatus(
+    keyword: String,
+    status: dev.yidafu.aqua.api.dto.UserStatus,
+    pageable: Pageable
+  ): Page<UserModel> {
+    val user = QUserModel.userModel
+
+    // Build the query
+    val query = queryFactory
+      .selectFrom(user)
+      .where(
+        user.nickname.containsIgnoreCase(keyword)
+          .or(user.phone.contains(keyword))
+          .and(user.status.eq(status))
+      )
+      .orderBy(user.id.desc())
+
+    // Get total count
+    val totalCount = queryFactory
+      .select(user.count())
+      .where(
+        user.nickname.containsIgnoreCase(keyword)
+          .or(user.phone.contains(keyword))
+          .and(user.status.eq(status))
+      )
+      .fetchOne() ?: 0L
+
+    // Apply pagination
+    val results = query
+      .offset(pageable.offset)
+      .limit(pageable.pageSize.toLong())
+      .fetch()
+
+    return PageImpl(results, pageable, totalCount)
+  }
 }
 
 interface UserRepositoryCustom {
@@ -82,4 +128,9 @@ interface UserRepositoryCustom {
   fun getUserBalance(userId: Long): Double
   fun getUserAddressCount(userId: Long): Int
   fun canUserReview(userId: Long, orderId: Long): Boolean
+  fun findByNicknameContainingIgnoreCaseAndStatusOrPhoneContainingIgnoreCaseAndStatus(
+    keyword: String,
+    status: dev.yidafu.aqua.api.dto.UserStatus,
+    pageable: Pageable
+  ): Page<UserModel>
 }

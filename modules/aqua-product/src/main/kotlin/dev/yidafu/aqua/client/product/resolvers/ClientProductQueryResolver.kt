@@ -48,7 +48,7 @@ class ClientProductQueryResolver(
     @PreAuthorize("isAuthenticated()")
     fun product(id: Long): ProductModel? {
         val product = productService.findById(id)
-        return product?.takeIf { it.status == ProductStatus.Online }
+        return product?.takeIf { it.status == ProductStatus.ONLINE }
     }
 
     /**
@@ -99,7 +99,7 @@ class ClientProductQueryResolver(
                 productService.findByNameContainingAndStatus(input.keyword, pageable)
             }
             else -> {
-                productService.findByStatus(ProductStatus.Online, pageable)
+                productService.findByStatus(ProductStatus.ONLINE, pageable)
             }
         }
     }
@@ -208,7 +208,7 @@ class ClientProductQueryResolver(
             productId = productId,
             productName = product.name,
             currentStock = product.stock,
-            isAvailable = product.stock > 0 && product.status == ProductStatus.Online,
+            isAvailable = product.stock > 0 && product.status == ProductStatus.ONLINE,
             lowStockWarning = product.stock <= 5
         )
     }

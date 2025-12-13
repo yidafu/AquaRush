@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.reconciliation.service
 
 import dev.yidafu.aqua.common.domain.model.PaymentModel
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import dev.yidafu.aqua.reconciliation.domain.model.*
 import dev.yidafu.aqua.reconciliation.domain.model.enums.*
 import dev.yidafu.aqua.reconciliation.domain.repository.*
@@ -437,7 +438,7 @@ class ReconciliationService(
         internalPayments.forEach { payment ->
             val weChatTx = weChatMap[payment.transactionId]
             when {
-                weChatTx != null -> {
+                weChatTx == null -> {
                     // 内部有支付，微信没有记录
                     discrepancies.add(
                         ReconciliationDiscrepancy.createMissingRecord(
@@ -448,18 +449,22 @@ class ReconciliationService(
                                 "internal" to mapOf(
                                     "transactionId" to payment.transactionId,
                                     "orderId" to payment.orderId,
-                                    "amount" to payment.amount,
+                                    "amount" to MoneyUtils.fromCents(payment.amount),
+                                    "amountCents" to payment.amount,
                                     "status" to payment.status.name,
                                     "createdAt" to payment.createdAt
                                 ),
-                                "amount" to payment.amount,
+                                "amount" to MoneyUtils.fromCents(payment.amount),
+                                "amountCents" to payment.amount,
                                 "createdAt" to payment.createdAt
                             )
                         )
                     )
                 }
-                !payment.amount.equals(weChatTx?.amount) -> {
-                    // 金额不匹配
+                payment.amount != weChatTx.amount -> {
+                    // 金额不匹配 (both amounts are in cents)
+                    val internalAmountYuan = MoneyUtils.fromCents(payment.amount)
+                    val wechatAmountYuan = MoneyUtils.fromCents(weChatTx.amount)
                     discrepancies.add(
                         ReconciliationDiscrepancy.createMismatchRecord(
                             taskId = taskId,
@@ -469,16 +474,19 @@ class ReconciliationService(
                                 "internal" to mapOf(
                                     "transactionId" to payment.transactionId,
                                     "orderId" to payment.orderId,
-                                    "amount" to payment.amount,
+                                    "amount" to internalAmountYuan,
+                                    "amountCents" to payment.amount,
                                     "status" to payment.status.name
                                 ),
                                 "wechat" to mapOf(
-                                    "transactionId" to weChatTx?.transactionId,
-                                    "outTradeNo" to weChatTx?.outTradeNo,
-                                    "amount" to weChatTx?.amount,
-                                    "tradeState" to weChatTx?.tradeState
+                                    "transactionId" to weChatTx.transactionId,
+                                    "outTradeNo" to weChatTx.outTradeNo,
+                                    "amount" to wechatAmountYuan,
+                                    "amountCents" to weChatTx.amount,
+                                    "tradeState" to weChatTx.tradeState
                                 ),
-                                "amountDifference" to (payment.amount - (weChatTx?.amount ?: BigDecimal(0))).abs()
+                                "amountDifference" to MoneyUtils.fromCents(kotlin.math.abs(payment.amount - weChatTx.amount)),
+                                "amountDifferenceCents" to kotlin.math.abs(payment.amount - weChatTx.amount)
                             )
                         )
                     )
@@ -495,6 +503,7 @@ class ReconciliationService(
             val internalPayment = internalMap[weChatTx.transactionId]
             if (internalPayment == null) {
                 // 微信有记录，内部没有
+                val amountYuan = MoneyUtils.fromCents(weChatTx.amount)
                 discrepancies.add(
                     ReconciliationDiscrepancy.createMissingRecord(
                         taskId = taskId,
@@ -504,11 +513,13 @@ class ReconciliationService(
                             "wechat" to mapOf(
                                 "transactionId" to weChatTx.transactionId,
                                 "outTradeNo" to weChatTx.outTradeNo,
-                                "amount" to weChatTx.amount,
+                                "amount" to amountYuan,
+                                "amountCents" to weChatTx.amount,
                                 "tradeState" to weChatTx.tradeState,
                                 "timeEnd" to weChatTx.timeEnd
                             ),
-                            "amount" to weChatTx.amount
+                            "amount" to amountYuan,
+                            "amountCents" to weChatTx.amount
                         )
                     )
                 )

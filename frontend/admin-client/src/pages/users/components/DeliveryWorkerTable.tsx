@@ -1,9 +1,11 @@
 import React from 'react';
 import { Table, Button, Space, Tag, Progress, Avatar } from 'antd';
 import { EditOutlined, LockOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import type { DeliveryWorker, TableActionProps } from './types';
 import { WORKER_STATUS_MAPPINGS } from './types';
+import { formatAdminTableAmount } from '../../../utils/money';
 
 interface DeliveryWorkerTableProps extends TableActionProps {
   data: DeliveryWorker[];
@@ -14,10 +16,10 @@ const DeliveryWorkerTable: React.FC<DeliveryWorkerTableProps> = ({
   data,
   loading = false,
   onEdit,
-  onView,
   onDelete,
   onResetPassword,
 }) => {
+  const navigate = useNavigate();
   const columns: ColumnsType<DeliveryWorker> = [
     {
       title: '头像',
@@ -67,7 +69,9 @@ const DeliveryWorkerTable: React.FC<DeliveryWorkerTableProps> = ({
         const statusConfig = WORKER_STATUS_MAPPINGS[status as keyof typeof WORKER_STATUS_MAPPINGS];
         return (
           <Space direction="vertical" size="small">
-            <Tag color={statusConfig.color}>{statusConfig.text}</Tag>
+            <Tag color={statusConfig?.color || 'default'}>
+              {statusConfig?.text || '未知状态'}
+            </Tag>
             {!record.isAvailable && (
               <Tag color="default">不可接单</Tag>
             )}
@@ -81,16 +85,17 @@ const DeliveryWorkerTable: React.FC<DeliveryWorkerTableProps> = ({
       key: 'averageRating',
       width: 120,
       render: (averageRating: number, record: DeliveryWorker) => {
-        const rating = averageRating || record.rating || 0;
+        const rating = Number(averageRating || record.rating || 0);
+        const validRating = isNaN(rating) ? 0 : rating;
         return (
           <Space direction="vertical" size="small">
             <Progress
-              percent={Math.min(rating * 20, 100)}
+              percent={Math.min(validRating * 20, 100)}
               size="small"
               showInfo={false}
-              strokeColor={rating >= 4 ? '#52c41a' : rating >= 3 ? '#faad14' : '#ff4d4f'}
+              strokeColor={validRating >= 4 ? '#52c41a' : validRating >= 3 ? '#faad14' : '#ff4d4f'}
             />
-            <span style={{ fontSize: '12px' }}>{rating.toFixed(1)} 分</span>
+            <span style={{ fontSize: '12px' }}>{validRating.toFixed(1)} 分</span>
           </Space>
         );
       },
@@ -117,9 +122,9 @@ const DeliveryWorkerTable: React.FC<DeliveryWorkerTableProps> = ({
       dataIndex: 'earning',
       key: 'earning',
       width: 100,
-      render: (earning: number) => (
+      render: (earning: number | null | undefined) => (
         <span style={{ fontWeight: 'bold', color: '#52c41a' }}>
-          ¥{earning ? earning.toFixed(2) : '0.00'}
+          {formatAdminTableAmount(earning)}
         </span>
       ),
     },
@@ -151,7 +156,7 @@ const DeliveryWorkerTable: React.FC<DeliveryWorkerTableProps> = ({
           <Button
             type="link"
             icon={<EyeOutlined />}
-            onClick={() => onView(record)}
+            onClick={() => navigate(`/users/delivery-workers/${record.id}`)}
             size="small"
           >
             查看

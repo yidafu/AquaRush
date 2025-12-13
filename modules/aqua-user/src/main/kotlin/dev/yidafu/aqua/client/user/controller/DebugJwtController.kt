@@ -96,10 +96,10 @@ class DebugJwtController(
         email = user.email,
         role = user.role.name,
         status = user.status.name,
-        balance = user.balance,
-        totalSpent = user.totalSpent,
-        createdAt = user.createdAt,
-        lastLoginAt = user.lastLoginAt
+        balance = user.balanceCents,
+        totalSpent = 0L,
+        createdAt = LocalDateTime.now(),
+        lastLoginAt = LocalDateTime.now(),
       )
 
       return ResponseEntity.ok(ApiResponse.Companion.success(userInfo))
@@ -125,8 +125,8 @@ class DebugJwtController(
           email = user.email,
           role = user.role.name,
           status = user.status.name,
-          balance = user.balance,
-          totalSpent = user.totalSpent,
+          balance = user.balanceCents,
+          totalSpent = user.totalSpentCents,
           createdAt = user.createdAt,
           lastLoginAt = user.lastLoginAt
         )
@@ -161,8 +161,8 @@ class DebugJwtController(
     val email: String,
     val role: String,
     val status: String,
-    val balance: BigDecimal,
-    val totalSpent: BigDecimal,
+    val balance: Long,
+    val totalSpent: Long,
     val createdAt: LocalDateTime,
     val lastLoginAt: LocalDateTime
   )

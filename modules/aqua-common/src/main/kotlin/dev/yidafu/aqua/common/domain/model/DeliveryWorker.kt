@@ -19,44 +19,45 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.*
 
 @Entity
 @Table(name = "delivery_workers")
 data class DeliveryWorkerModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long = -1L,
+  val id: Long? = null,
   @Column(name = "user_id", nullable = false)
-  val userId: Long,
+  val userId: Long = -1L,
   @Column(name = "wechat_openid", unique = true, nullable = false)
-  var wechatOpenId: String,
+  var wechatOpenId: String = "",
   @Column(name = "name", nullable = false)
-  var name: String,
+  var name: String = "",
   @Column(name = "phone", unique = true, nullable = false)
-  var phone: String,
+  var phone: String = "",
   @Column(name = "avatar_url")
-  var avatarUrl: String?,
-  @Column(name = "status", nullable = false)
-  @Enumerated(EnumType.STRING)
-  var status: WorkerStatus = WorkerStatus.OFFLINE,
+  var avatarUrl: String? = null,
+  @Column(name = "online_status", nullable = false)
+  @Convert(converter = DeliverWorkerStatusConverter::class)
+  var onlineStatus: DeliverWorkerStatus = DeliverWorkerStatus.OFFLINE,
   @Column(name = "coordinates", columnDefinition = "jsonb")
   var coordinates: String? = null,
   @Column(name = "current_location", columnDefinition = "jsonb")
   var currentLocation: String? = null, // 存储 JSON 格式的坐标
-  @Column(name = "rating", precision = 2, scale = 1)
-  var rating: BigDecimal? = null,
+  @Column(name = "rating")
+  var rating: Double? = null,
   @Column(name = "total_orders", nullable = false)
   var totalOrders: Int = 0,
   @Column(name = "completed_orders", nullable = false)
   var completedOrders: Int = 0,
-  @Column(name = "average_rating", precision = 2, scale = 1)
-  var averageRating: BigDecimal? = null,
-  @Column(name = "earning", precision = 10, scale = 2)
-  var earning: BigDecimal? = null,
+  @Column(name = "average_rating")
+  var averageRating: Double? = null,
+  @Column(name = "earning_cents")
+  var earningCents: Long? = null,
+
   @Column(name = "is_available", nullable = false)
   var isAvailable: Boolean = true,
   @Column(name = "created_at", nullable = false, updatable = false)
@@ -68,9 +69,35 @@ data class DeliveryWorkerModel(
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
   }
+
+  // Backward compatibility property
+  val earning: BigDecimal?
+    get() = earningCents?.let { MoneyUtils.fromCents(it) }
 }
 
-enum class WorkerStatus {
-  ONLINE, // 上线
-  OFFLINE, // 下线
+@Converter(autoApply = false)
+class DeliverWorkerStatusConverter : AttributeConverter<DeliverWorkerStatus, String> {
+  override fun convertToDatabaseColumn(attribute: DeliverWorkerStatus?): String? {
+    return attribute?.label
+  }
+
+  override fun convertToEntityAttribute(dbData: String?): DeliverWorkerStatus? {
+    return DeliverWorkerStatus.fromString(dbData)
+  }
+}
+
+enum class DeliverWorkerStatus(val label: String) {
+  ONLINE("ONLINE"), // 上线
+  OFFLINE("OFFLINE"), // 下线
+;
+
+  companion object {
+    fun fromString(value: String?): DeliverWorkerStatus {
+      return when (value) {
+        "ONLINE", "Online" -> ONLINE
+        "OFFLINE", "Offline" -> OFFLINE
+        else -> OFFLINE // 默认值
+      }
+    }
+  }
 }

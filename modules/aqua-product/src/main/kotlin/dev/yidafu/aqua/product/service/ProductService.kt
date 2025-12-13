@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.product.service
 
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import dev.yidafu.aqua.product.domain.model.ProductModel
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import org.springframework.data.domain.Page
@@ -38,30 +39,32 @@ class ProductService(
 
   fun findAll(): List<ProductModel> = productRepository.findAll()
 
-  fun findOnlineProducts(): List<ProductModel> = productRepository.findByStatus(ProductStatus.Online)
+  fun findOnlineProducts(): List<ProductModel> = productRepository.findByStatus(ProductStatus.ONLINE)
 
   fun findOnlineProducts(pageable: Pageable): Page<ProductModel> {
-    return findByStatus(ProductStatus.Online, pageable)
+    return findByStatus(ProductStatus.ONLINE, pageable)
   }
 
   @Transactional
   fun createProduct(
     name: String,
-    price: BigDecimal,
+    priceYuan: BigDecimal,
     coverImageUrl: String,
     detailImages: String?,
     description: String?,
     stock: Int,
   ): ProductModel {
+    // Convert price from yuan to cents for storage
+    val priceCents = MoneyUtils.toCents(priceYuan)
     val product =
       ProductModel(
         name = name,
-        price = price,
+        price = priceCents,
         coverImageUrl = coverImageUrl,
         detailImages = detailImages,
         description = description,
         stock = stock,
-        status = ProductStatus.Offline,
+        status = ProductStatus.OFFLINE,
       )
     return productRepository.save(product)
   }
@@ -70,7 +73,7 @@ class ProductService(
   fun updateProduct(
     productId: Long,
     name: String?,
-    price: BigDecimal?,
+    priceYuan: BigDecimal?,
     coverImageUrl: String?,
     detailImages: String?,
     description: String?,
@@ -82,7 +85,7 @@ class ProductService(
         .orElseThrow { IllegalArgumentException("Product not found: $productId") }
 
     name?.let { product.name = it }
-    price?.let { product.price = it }
+    priceYuan?.let { product.price = MoneyUtils.toCents(priceYuan) }
     coverImageUrl?.let { product.coverImageUrl = it }
     detailImages?.let { product.detailImages = it }
     description?.let { product.description = it }
@@ -176,9 +179,13 @@ class ProductService(
     return  PageImpl(pageContent, pageable, products.size.toLong())
   }
 
-  fun findByPriceBetween(minPrice: java.math.BigDecimal, maxPrice: java.math.BigDecimal, pageable: Pageable):  Page<ProductModel> {
+  fun findByPriceBetween(minPriceYuan: java.math.BigDecimal, maxPriceYuan: java.math.BigDecimal, pageable: Pageable):  Page<ProductModel> {
+    // Convert price ranges from yuan to cents for comparison
+    val minPriceCents = MoneyUtils.toCents(minPriceYuan)
+    val maxPriceCents = MoneyUtils.toCents(maxPriceYuan)
+
     val products = productRepository.findAll().filter {
-        it.price >= minPrice && it.price <= maxPrice
+        it.price >= minPriceCents && it.price <= maxPriceCents
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -197,7 +204,7 @@ class ProductService(
     val products = productRepository.findAll().filter {
         it.detailImages?.contains(category) == true &&
         it.name.contains(keyword, ignoreCase = true) &&
-        it.status == ProductStatus.Online
+        it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -207,7 +214,7 @@ class ProductService(
 
   fun findByCategoryAndStatus(category: String, pageable: Pageable):  Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.detailImages?.contains(category) == true && it.status == ProductStatus.Online
+        it.detailImages?.contains(category) == true && it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -217,7 +224,7 @@ class ProductService(
 
   fun findByNameContainingAndStatus(keyword: String, pageable: Pageable):  Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.name.contains(keyword, ignoreCase = true) && it.status == ProductStatus.Online
+        it.name.contains(keyword, ignoreCase = true) && it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -225,9 +232,13 @@ class ProductService(
     return  PageImpl(pageContent, pageable, products.size.toLong())
   }
 
-  fun findByPriceBetweenAndStatus(minPrice: java.math.BigDecimal, maxPrice: java.math.BigDecimal, pageable: Pageable):  Page<ProductModel> {
+  fun findByPriceBetweenAndStatus(minPriceYuan: java.math.BigDecimal, maxPriceYuan: java.math.BigDecimal, pageable: Pageable):  Page<ProductModel> {
+    // Convert price ranges from yuan to cents for comparison
+    val minPriceCents = MoneyUtils.toCents(minPriceYuan)
+    val maxPriceCents = MoneyUtils.toCents(maxPriceYuan)
+
     val products = productRepository.findAll().filter {
-        it.price >= minPrice && it.price <= maxPrice && it.status == ProductStatus.Online
+        it.price >= minPriceCents && it.price <= maxPriceCents && it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -237,7 +248,7 @@ class ProductService(
 
   fun findPopularProducts(pageable: Pageable, limit: Int):  Page<ProductModel> {
     // Simplified: just return online products ordered by name (would normally sort by popularity)
-    val products = productRepository.findByStatus(ProductStatus.Online).sortedBy { it.name }
+    val products = productRepository.findByStatus(ProductStatus.ONLINE).sortedBy { it.name }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, minOf(products.size, limit))
     val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
@@ -246,12 +257,12 @@ class ProductService(
 
   fun findNewProducts(pageable: Pageable, days: Int):  Page<ProductModel> {
     // Simplified: return all online products (would normally filter by creation date)
-    return findByStatus(ProductStatus.Online, pageable)
+    return findByStatus(ProductStatus.ONLINE, pageable)
   }
 
   fun findRecommendedProducts(pageable: Pageable, limit: Int):  Page<ProductModel> {
     // Simplified: return first few online products (would normally have recommendation logic)
-    val products = productRepository.findByStatus(ProductStatus.Online).take(limit)
+    val products = productRepository.findByStatus(ProductStatus.ONLINE).take(limit)
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
     val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
@@ -268,19 +279,30 @@ class ProductService(
 
   fun getPriceRangeStatistics(): List<dev.yidafu.aqua.client.product.resolvers.ClientProductQueryResolver.Companion.PriceRange> {
     // Simplified: return basic price ranges
-    val allProducts = productRepository.findByStatus(ProductStatus.Online)
-    val prices = allProducts.map { it.price }
+    val allProducts = productRepository.findByStatus(ProductStatus.ONLINE)
 
-    if (prices.isEmpty()) return emptyList()
+    if (allProducts.isEmpty()) return emptyList()
 
-    val min = prices.minOrNull() ?: java.math.BigDecimal.ZERO
-    val max = prices.maxOrNull() ?: java.math.BigDecimal.ZERO
+    // Convert prices from cents to yuan for statistics
+    val pricesYuan = allProducts.map { MoneyUtils.fromCents(it.price) }
+
+    val min = pricesYuan.minOrNull() ?: java.math.BigDecimal.ZERO
+    val max = pricesYuan.maxOrNull() ?: java.math.BigDecimal.ZERO
     val step = (max - min).divide(java.math.BigDecimal(4)) // Divide into 4 ranges
 
     return (0..3).map { i ->
         val rangeMin = min + step * i.toBigDecimal()
         val rangeMax = if (i == 3) max else min + step * (i + 1).toBigDecimal()
-        val count = allProducts.count { it.price >= rangeMin && it.price < rangeMax }.toLong()
+
+        // Convert ranges back to cents for comparison
+        val rangeMinCents = MoneyUtils.toCents(rangeMin)
+        val rangeMaxCents = MoneyUtils.toCents(rangeMax)
+
+        val count = allProducts.count {
+          val priceCents = it.price
+          priceCents >= rangeMinCents && (i == 3 || priceCents < rangeMaxCents)
+        }.toLong()
+
         dev.yidafu.aqua.client.product.resolvers.ClientProductQueryResolver.Companion.PriceRange(
             min = rangeMin,
             max = rangeMax,

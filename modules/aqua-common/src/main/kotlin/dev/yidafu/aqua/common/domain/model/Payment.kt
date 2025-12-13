@@ -20,7 +20,6 @@
 package dev.yidafu.aqua.common.domain.model
 
 import jakarta.persistence.*
-import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Entity
@@ -37,8 +36,8 @@ data class PaymentModel(
   var transactionId: String? = null,
   @Column(name = "prepay_id", unique = true)
   var prepayId: String? = null,
-  @Column(name = "amount", nullable = false, precision = 10, scale = 2)
-  var amount: BigDecimal,
+  @Column(name = "amount_cents", nullable = false)
+  var amount: Long,
   @Column(name = "currency", nullable = false)
   var currency: String = "CNY",
   @Enumerated(EnumType.STRING)

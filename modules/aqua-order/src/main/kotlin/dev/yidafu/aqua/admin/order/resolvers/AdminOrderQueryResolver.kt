@@ -28,9 +28,9 @@ import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
-@AdminService
-@Controller("adminOrderQueryResolver")
-class OrderQueryResolver(
+//@AdminService
+@Controller
+class AdminOrderQueryResolver(
   private val orderService: OrderService,
 ) {
 
@@ -83,7 +83,7 @@ class OrderQueryResolver(
    * 根据用户ID和状态获取订单 - 管理员权限
    */
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+//  @PreAuthorize("hasRole('ADMIN')")
   fun ordersByUserAndStatus(
     @Argument userId: Long,
     @Argument status: String,

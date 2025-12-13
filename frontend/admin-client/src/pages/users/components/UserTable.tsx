@@ -1,9 +1,10 @@
 import React from 'react';
 import { Table, Button, Space, Tag, Avatar } from 'antd';
 import { EditOutlined, LockOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import type { User, TableActionProps } from './types';
-import { STATUS_MAPPINGS } from './types';
+import { STATUS_MAPPINGS, ROLE_MAPPINGS } from './types';
 
 interface UserTableProps extends TableActionProps {
   data: User[];
@@ -14,10 +15,10 @@ const UserTable: React.FC<UserTableProps> = ({
   data,
   loading = false,
   onEdit,
-  onView,
   onDelete,
   onResetPassword,
 }) => {
+  const navigate = useNavigate();
   const columns: ColumnsType<User> = [
     {
       title: '头像',
@@ -67,6 +68,9 @@ const UserTable: React.FC<UserTableProps> = ({
       width: 100,
       render: (status: string) => {
         const config = STATUS_MAPPINGS[status as keyof typeof STATUS_MAPPINGS];
+        if (!config) {
+          return <Tag color="default">未知状态</Tag>;
+        }
         return <Tag color={config.color}>{config.text}</Tag>;
       },
     },
@@ -76,13 +80,10 @@ const UserTable: React.FC<UserTableProps> = ({
       key: 'role',
       width: 100,
       render: (role: string) => {
-        const roleMap = {
-          USER: { color: 'blue', text: '用户' },
-          ADMIN: { color: 'red', text: '管理员' },
-          WORKER: { color: 'green', text: '配送员' },
-          NONE: { color: 'default', text: '无' },
-        };
-        const config = roleMap[role as keyof typeof roleMap];
+        const config = ROLE_MAPPINGS[role as keyof typeof ROLE_MAPPINGS];
+        if (!config) {
+          return <Tag color="default">未知角色</Tag>;
+        }
         return <Tag color={config.color}>{config.text}</Tag>;
       },
     },
@@ -110,7 +111,7 @@ const UserTable: React.FC<UserTableProps> = ({
           <Button
             type="link"
             icon={<EyeOutlined />}
-            onClick={() => onView(record)}
+            onClick={() => navigate(`/users/${record.id}`)}
             size="small"
           >
             查看

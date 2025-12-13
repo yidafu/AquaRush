@@ -20,8 +20,7 @@
 package dev.yidafu.aqua.client.delivery.resolvers
 
 import dev.yidafu.aqua.common.annotation.ClientService
-import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-import dev.yidafu.aqua.common.domain.model.WorkerStatus
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 
 /**
  * 客户端配送员变更解析器
@@ -86,13 +84,13 @@ class ClientDeliveryWorkerMutationResolver(
      */
     @PreAuthorize("hasRole('WORKER')")
     @Transactional
-    fun updateMyWorkerStatus(status: WorkerStatus): DeliveryWorker {
+    fun updateMyWorkerStatus(status: DeliverWorkerStatus): DeliveryWorker {
         try {
             val currentWorkerId = getCurrentWorkerId()
             val existingWorker = deliveryWorkerRepository.findById(currentWorkerId)
                 .orElseThrow { BadRequestException("配送员不存在: $currentWorkerId") }
 
-            existingWorker.status = status
+            existingWorker.onlineStatus = status
             val updatedWorker = deliveryWorkerRepository.save(existingWorker)
 
             logger.info("Successfully updated worker status: ${updatedWorker.id} - ${status}")

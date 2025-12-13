@@ -22,7 +22,7 @@ package dev.yidafu.aqua.delivery.service
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
-import dev.yidafu.aqua.common.domain.model.WorkerStatus
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
@@ -32,7 +32,6 @@ import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 @Service
 class DeliveryService(
@@ -56,15 +55,15 @@ class DeliveryService(
 
   fun getAllWorkers(): List<DeliveryWorkerModel> = workerRepository.findAll()
 
-  fun getOnlineWorkers(): List<DeliveryWorkerModel> = workerRepository.findByStatus(WorkerStatus.ONLINE)
+  fun getOnlineWorkers(): List<DeliveryWorkerModel> = workerRepository.findByOnlineStatus(DeliverWorkerStatus.ONLINE)
 
   @Transactional
   fun updateWorkerStatus(
     workerId: Long,
-    status: WorkerStatus,
+    status: DeliverWorkerStatus,
   ): DeliveryWorkerModel {
     val worker = getWorkerById(workerId)
-    worker.status = status
+    worker.onlineStatus = status
     return workerRepository.save(worker)
   }
 
@@ -136,7 +135,7 @@ class DeliveryService(
       }
 
       // 验证配送员状态
-      if (worker.status != WorkerStatus.ONLINE) {
+      if (worker.onlineStatus != DeliverWorkerStatus.ONLINE) {
         throw BadRequestException("配送员不在线，无法分配任务")
       }
 

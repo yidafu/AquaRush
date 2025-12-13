@@ -35,7 +35,7 @@ data class DeliveryWorkerStatisticsModel(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
   @Column(name = "delivery_worker_id", nullable = false, unique = true)
-  val deliveryWorkerId: Long,
+  val deliveryWorkerId: Long = -1L,
   @Column(name = "average_rating", nullable = false, precision = 3, scale = 2)
   var averageRating: BigDecimal = BigDecimal.ZERO,
   @Column(name = "total_reviews", nullable = false)

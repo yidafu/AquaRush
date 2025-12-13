@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.delivery.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-import dev.yidafu.aqua.common.domain.model.WorkerStatus
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
@@ -32,7 +32,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import kotlin.collections.isNotEmpty
 
 /**
@@ -73,11 +72,11 @@ class AdminDeliveryWorkerMutationResolver(
                 name = input.name,
                 phone = input.phone,
                 avatarUrl = input.avatarUrl,
-                status = WorkerStatus.OFFLINE, // 默认为离线
+                onlineStatus = DeliverWorkerStatus.OFFLINE, // 默认为离线
                 coordinates = input.coordinates,
                 currentLocation = input.currentLocation,
                 rating = input.rating,
-                earning = input.earning,
+                earningCents =0L,
                 isAvailable = input.isAvailable ?: true,
             )
 
@@ -127,7 +126,7 @@ class AdminDeliveryWorkerMutationResolver(
             input.coordinates?.let { existingWorker.coordinates = it }
             input.currentLocation?.let { existingWorker.currentLocation = it }
             input.rating?.let { existingWorker.rating = it }
-            input.earning?.let { existingWorker.earning = it }
+            input.earning?.let { existingWorker.earningCents = it }
             input.isAvailable?.let { existingWorker.isAvailable = it }
 
             val updatedWorker = deliveryWorkerRepository.save(existingWorker)
@@ -185,11 +184,11 @@ class AdminDeliveryWorkerMutationResolver(
             throw BadRequestException("手机号码格式不正确")
         }
 
-        if (input.rating != null && input.rating!! < BigDecimal.ZERO) {
+        if (input.rating != null && input.rating!! < 0.0) {
             throw BadRequestException("评分不能为负数")
         }
 
-        if (input.earning != null && input.earning!! < BigDecimal.ZERO) {
+        if (input.earning != null && input.earning!! < 0.0) {
             throw BadRequestException("收入不能为负数")
         }
     }
@@ -228,14 +227,14 @@ class AdminDeliveryWorkerMutationResolver(
 
         // 验证评分（如果提供）
         input.rating?.let {
-            if (it < BigDecimal.ZERO) {
+            if (it < 0.0) {
                 throw BadRequestException("评分不能为负数")
             }
         }
 
         // 验证收入（如果提供）
         input.earning?.let {
-            if (it < BigDecimal.ZERO) {
+            if (it < 0.0) {
                 throw BadRequestException("收入不能为负数")
             }
         }
@@ -259,8 +258,8 @@ class AdminDeliveryWorkerMutationResolver(
             val avatarUrl: String?,
             val coordinates: String?,
             val currentLocation: String?,
-            val rating: BigDecimal?,
-            val earning: BigDecimal?,
+            val rating: Double?,
+            val earning: Double?,
             val isAvailable: Boolean? = true
         )
 
@@ -271,8 +270,8 @@ class AdminDeliveryWorkerMutationResolver(
             val avatarUrl: String?,
             val coordinates: String?,
             val currentLocation: String?,
-            val rating: BigDecimal?,
-            val earning: BigDecimal?,
+            val rating: Double?,
+            val earning: Long?,
             val isAvailable: Boolean?
         )
     }

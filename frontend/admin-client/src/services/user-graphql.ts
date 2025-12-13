@@ -5,6 +5,10 @@ import {
   GET_USER_DETAIL_QUERY,
   GET_ADMINS_QUERY,
   GET_DELIVERY_WORKERS_QUERY,
+  DELIVERY_WORKER_DETAIL_QUERY,
+  DELIVERY_WORKER_STATISTICS_QUERY,
+  DELIVERY_WORKER_ORDERS_QUERY,
+  USER_ORDERS_QUERY,
 } from '../graphql/queries/user.graphql';
 import {
   UPDATE_USER_MUTATION,
@@ -133,6 +137,39 @@ export const useUpdateAdmin = () => {
       message.error(error.message || '管理员信息更新失败');
     },
     refetchQueries: ['GetAdmins'],
+  });
+};
+
+// Delivery Worker Detail Query Hooks
+export const useDeliveryWorkerDetail = (id: number) => {
+  return useQuery(DELIVERY_WORKER_DETAIL_QUERY, {
+    variables: { id },
+    skip: !id,
+    errorPolicy: 'all',
+  });
+};
+
+export const useDeliveryWorkerStatistics = (deliveryWorkerId: number) => {
+  return useQuery(DELIVERY_WORKER_STATISTICS_QUERY, {
+    variables: { deliveryWorkerId },
+    skip: !deliveryWorkerId,
+    errorPolicy: 'all',
+  });
+};
+
+export const useDeliveryWorkerOrders = (deliveryWorkerId: number, status?: string) => {
+  return useQuery(DELIVERY_WORKER_ORDERS_QUERY, {
+    variables: { deliveryWorkerId, status },
+    skip: !deliveryWorkerId,
+    errorPolicy: 'all',
+  });
+};
+
+export const useUserOrders = (userId: number) => {
+  return useQuery(USER_ORDERS_QUERY, {
+    variables: { userId },
+    skip: !userId,
+    errorPolicy: 'all',
   });
 };
 

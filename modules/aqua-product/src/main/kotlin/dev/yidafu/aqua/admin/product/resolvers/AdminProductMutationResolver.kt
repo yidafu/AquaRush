@@ -21,8 +21,11 @@ package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.product.domain.model.ProductModel
+import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.common.utils.MoneyUtils
+import dev.yidafu.aqua.product.domain.model.ProductModel
 import dev.yidafu.aqua.product.service.ProductService
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
@@ -54,7 +57,7 @@ class AdminProductMutationResolver(
 
             val product = productService.createProduct(
                 name = input.name,
-                price = input.price,
+                priceYuan = java.math.BigDecimal.valueOf(input.price.toDouble() / 100.0),
                 coverImageUrl = input.coverImageUrl ?: "",
                 detailImages = input.detailImages?.joinToString(","),
                 description = input.description,
@@ -86,7 +89,7 @@ class AdminProductMutationResolver(
             val updatedProduct = productService.updateProduct(
                 productId = id,
                 name = input.name,
-                price = input.price,
+                priceYuan = input.price?.let { java.math.BigDecimal.valueOf(it.toDouble() / 100.0) },
                 coverImageUrl = input.coverImageUrl,
                 detailImages = input.detailImages?.joinToString(","),
                 description = input.description,
@@ -201,11 +204,11 @@ class AdminProductMutationResolver(
             val product = productService.findById(id)
                 ?: throw BadRequestException("产品不存在: $id")
 
-            if (product.status == ProductStatus.Online) {
+            if (product.status == ProductStatus.ONLINE) {
                 throw BadRequestException("产品已上线")
             }
 
-            productService.updateProductStatus(id, ProductStatus.Online)
+            productService.updateProductStatus(id, ProductStatus.ONLINE)
             logger.info("Successfully online product: $id")
             productService.findById(id)!!
         } catch (e: Exception) {
@@ -224,11 +227,11 @@ class AdminProductMutationResolver(
             val product = productService.findById(id)
                 ?: throw BadRequestException("产品不存在: $id")
 
-            if (product.status == ProductStatus.Offline) {
+            if (product.status == ProductStatus.OFFLINE) {
                 throw BadRequestException("产品已下线")
             }
 
-            productService.updateProductStatus(id, ProductStatus.Offline)
+            productService.updateProductStatus(id, ProductStatus.OFFLINE)
             logger.info("Successfully offline product: $id")
             productService.findById(id)!!
         } catch (e: Exception) {

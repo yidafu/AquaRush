@@ -98,12 +98,11 @@ class OrderConversionChain {
             userId = existingOrderModel.userId,
             productId = existingOrderModel.productId,
             quantity = existingOrderModel.quantity,
-            amount = existingOrderModel.amount,
+            amountCents = existingOrderModel.amountCents,
             addressId = existingOrderModel.addressId,
             deliveryAddressId = existingOrderModel.deliveryAddressId,
             status = orderDTO.status,
             paymentMethod = orderDTO.paymentMethod ?: existingOrderModel.paymentMethod,
-            totalAmount = orderDTO.totalAmount,
             deliveryPhotos = orderDTO.deliveryPhotos?.let { photos ->
                 jacksonObjectMapper().writeValueAsString(photos)
             } ?: existingOrderModel.deliveryPhotos,

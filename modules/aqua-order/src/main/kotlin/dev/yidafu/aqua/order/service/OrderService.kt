@@ -19,7 +19,6 @@
 
 package dev.yidafu.aqua.order.service
 
-import dev.yidafu.aqua.common.domain.model.EventStatus
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
@@ -28,6 +27,7 @@ import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import dev.yidafu.aqua.delivery.service.DeliveryService
 import dev.yidafu.aqua.order.domain.model.DomainEventModel
 import dev.yidafu.aqua.order.domain.model.EventStatusModel
@@ -37,9 +37,7 @@ import dev.yidafu.aqua.product.service.ProductService
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.*
 import dev.yidafu.aqua.common.domain.service.OrderService as IOrderService
 
 @Service
@@ -83,8 +81,8 @@ class OrderService(
     // 3. 验证地址是否在配送范围内
     deliveryService.validateDeliveryAddress(address.province, address.city, address.district)
 
-    // 4. 计算订单金额
-    val amount = product.price.multiply(BigDecimal(quantity))
+    // 4. 计算订单金额 (product.price is already in cents)
+    val amount = product.price
 
     // 5. 生成唯一订单号
     val orderNumber = generateUniqueOrderNumber()
@@ -103,7 +101,7 @@ class OrderService(
         userId = userId,
         productId = productId,
         quantity = quantity,
-        amount = amount,
+        amountCents = amount,
         addressId = addressId,
         deliveryAddressId = addressId, // 映射到同一字段
         status = OrderStatus.PENDING_PAYMENT,
@@ -113,7 +111,6 @@ class OrderService(
         deliveryWorkerId = null,
         deliveryPhotos = null,
         completedAt = null,
-        totalAmount = amount, // 映射到同一字段
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
@@ -131,7 +128,8 @@ class OrderService(
           "userId" to savedOrder.userId.toString(),
           "productId" to savedOrder.productId.toString(),
           "quantity" to savedOrder.quantity,
-          "amount" to savedOrder.amount.toString(),
+          "amount" to savedOrder.amountCents.toString(),
+          "amountCents" to savedOrder.amountCents,
           "addressId" to savedOrder.addressId.toString(),
         ),
     )
@@ -202,7 +200,8 @@ class OrderService(
           "userId" to cancelledOrder.userId.toString(),
           "productId" to cancelledOrder.productId.toString(),
           "quantity" to cancelledOrder.quantity,
-          "amount" to cancelledOrder.amount.toString(),
+          "amount" to cancelledOrder.amountCents.toString(),
+          "amountCents" to cancelledOrder.amountCents,
           "shouldRefund" to shouldRefund,
           "paymentTransactionId" to (cancelledOrder.paymentTransactionId ?: ""),
         ),
@@ -289,7 +288,8 @@ class OrderService(
           "orderId" to updatedOrder.id.toString(),
           "orderNumber" to updatedOrder.orderNumber,
           "userId" to updatedOrder.userId.toString(),
-          "amount" to updatedOrder.amount.toString(),
+          "amount" to updatedOrder.amountCents.toString(),
+          "amountCents" to updatedOrder.amountCents,
           "paymentTransactionId" to paymentTransactionId,
         ),
     )
@@ -322,7 +322,8 @@ class OrderService(
           "orderId" to order.id.toString(),
           "orderNumber" to order.orderNumber,
           "userId" to order.userId.toString(),
-          "amount" to order.amount.toString(),
+          "amount" to order.amountCents.toString(),
+          "amountCents" to order.amountCents,
         ),
     )
   }

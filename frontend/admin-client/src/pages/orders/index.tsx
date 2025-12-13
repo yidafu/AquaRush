@@ -1,12 +1,20 @@
 import React from 'react';
 import { Table, Tag, Space, Button } from 'antd';
+import { formatAdminTableAmount } from '../utils/money.ts';
 
 const Orders: React.FC = () => {
   const columns = [
     { title: '订单号', dataIndex: 'orderNumber', key: 'orderNumber' },
     { title: '用户', dataIndex: 'userName', key: 'userName' },
     { title: '产品', dataIndex: 'productName', key: 'productName' },
-    { title: '金额', dataIndex: 'amount', key: 'amount' },
+    {
+      title: '金额',
+      dataIndex: 'amount',
+      key: 'amount',
+      render: (amount: number | null | undefined) => (
+        <span>{formatAdminTableAmount(amount)}</span>
+      ),
+    },
     {
       title: '状态',
       dataIndex: 'status',

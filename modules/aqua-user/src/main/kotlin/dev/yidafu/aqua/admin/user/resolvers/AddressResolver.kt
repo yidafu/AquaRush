@@ -38,11 +38,19 @@ class AddressResolver(
   private val addressService: AddressService,
 ) {
   @QueryMapping
+  fun userAddresses(
+    @Argument userId: Long,
+  ) : List<Address> {
+    val list = addressService.findByUserId(userId);
+    return AddressMapper.mapList(list)
+  }
+
+  @QueryMapping
   fun getMyAddresses(): List<Address> {
     val authentication = SecurityContextHolder.getContext().authentication
     val userId = authentication?.name!!.toLong()
     val addresses = addressService.getUserAddresses(userId)
-    return addresses.map { AddressMapper.map(it) }
+    return AddressMapper.mapList(addresses)
   }
 
   @QueryMapping

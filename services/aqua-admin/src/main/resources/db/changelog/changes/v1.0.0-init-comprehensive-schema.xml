@@ -94,7 +94,7 @@
             <column name="name" type="varchar(255)">
                 <constraints nullable="false"/>
             </column>
-            <column name="price" type="decimal(10,2)">
+            <column name="price_cents" type="bigint">
                 <constraints nullable="false"/>
             </column>
             <column name="thumbnail_url" type="varchar(512)">
@@ -188,13 +188,11 @@
         </createIndex>
 
         <sql>
-            ALTER TABLE file_metadata ADD CONSTRAINT chk_file_type
-            CHECK (file_type IN ('IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT', 'SPREADSHEET', 'PRESENTATION', 'FRONTEND', 'ARCHIVE', 'EXECUTABLE', 'BACKUP', 'OTHER'));
-        </sql>
-
-        <sql>
-            ALTER TABLE file_metadata ADD CONSTRAINT chk_file_size_positive
-            CHECK (file_size > 0);
+            ALTER TABLE file_metadata
+                ADD CONSTRAINT chk_file_type
+                CHECK (file_type IN ('IMAGE', 'VIDEO', 'AUDIO', 'DOCUMENT', 'SPREADSHEET', 'PRESENTATION', 'FRONTEND', 'ARCHIVE', 'EXECUTABLE', 'BACKUP', 'OTHER')),
+                ADD CONSTRAINT chk_file_size_positive
+                CHECK (file_size > 0);
         </sql>
 
         <sql>
@@ -286,10 +284,10 @@
             <column name="role" type="varchar(50)" defaultValue="NONE">
                 <constraints nullable="false"/>
             </column>
-            <column name="balance" type="decimal(19,2)" defaultValueNumeric="0">
+            <column name="balance_cents" type="bigint" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="total_spent" type="decimal(19,2)" defaultValueNumeric="0">
+            <column name="total_spent_cents" type="bigint" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
@@ -314,6 +312,9 @@
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
             <column name="wechat_openid" type="varchar(128)">
                 <constraints nullable="false" unique="true"/>
             </column>
@@ -323,7 +324,22 @@
             <column name="phone" type="varchar(20)">
                 <constraints nullable="false" unique="true"/>
             </column>
+            <column name="avatar_url" type="varchar(512)"/>
             <column name="online_status" type="varchar(20)" defaultValue="OFFLINE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="coordinates" type="jsonb"/>
+            <column name="current_location" type="jsonb"/>
+            <column name="rating" type="double"/>
+            <column name="total_orders" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completed_orders" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="average_rating" type="double"/>
+            <column name="earning_cents" type="bigint"/>
+            <column name="is_available" type="boolean" defaultValueBoolean="true">
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
@@ -334,12 +350,39 @@
             </column>
         </createTable>
 
+        <createIndex tableName="delivery_workers" indexName="idx_worker_user_id">
+            <column name="user_id"/>
+        </createIndex>
         <createIndex tableName="delivery_workers" indexName="idx_worker_openid">
             <column name="wechat_openid"/>
         </createIndex>
         <createIndex tableName="delivery_workers" indexName="idx_worker_status">
             <column name="online_status"/>
         </createIndex>
+
+        <addForeignKeyConstraint
+            baseTableName="delivery_workers"
+            baseColumnNames="user_id"
+            referencedTableName="users"
+            referencedColumnNames="id"
+            constraintName="fk_delivery_workers_user_id"
+            onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE delivery_workers
+                ADD CONSTRAINT chk_worker_status
+                CHECK (online_status IN ('ONLINE', 'OFFLINE')),
+                ADD CONSTRAINT chk_rating_positive
+                CHECK (rating IS NULL OR rating >= 0),
+                ADD CONSTRAINT chk_total_orders_non_negative
+                CHECK (total_orders >= 0),
+                ADD CONSTRAINT chk_completed_orders_non_negative
+                CHECK (completed_orders >= 0),
+                ADD CONSTRAINT chk_average_rating_positive
+                CHECK (average_rating IS NULL OR average_rating >= 0),
+                ADD CONSTRAINT chk_earning_cents_non_negative
+                CHECK (earning_cents IS NULL OR earning_cents >= 0);
+        </sql>
     </changeSet>
 
     <changeSet id="1.0.0-create-delivery-area-table" author="aqua-rush">
@@ -442,24 +485,16 @@
 
         <sql>
             ALTER TABLE reconciliation_tasks
-            ADD CONSTRAINT chk_task_type
-            CHECK (task_type IN ('PAYMENT', 'REFUND', 'SETTLEMENT'));
-
-            ALTER TABLE reconciliation_tasks
-            ADD CONSTRAINT chk_task_status
-            CHECK (status IN ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED'));
-
-            ALTER TABLE reconciliation_tasks
-            ADD CONSTRAINT chk_total_records_non_negative
-            CHECK (total_records &gt;= 0);
-
-            ALTER TABLE reconciliation_tasks
-            ADD CONSTRAINT chk_matched_records_non_negative
-            CHECK (matched_records &gt;= 0);
-
-            ALTER TABLE reconciliation_tasks
-            ADD CONSTRAINT chk_unmatched_records_non_negative
-            CHECK (unmatched_records &gt;= 0);
+                ADD CONSTRAINT chk_task_type
+                CHECK (task_type IN ('PAYMENT', 'REFUND', 'SETTLEMENT')),
+                ADD CONSTRAINT chk_task_status
+                CHECK (status IN ('PENDING', 'RUNNING', 'SUCCESS', 'FAILED')),
+                ADD CONSTRAINT chk_total_records_non_negative
+                CHECK (total_records &gt;= 0),
+                ADD CONSTRAINT chk_matched_records_non_negative
+                CHECK (matched_records &gt;= 0),
+                ADD CONSTRAINT chk_unmatched_records_non_negative
+                CHECK (unmatched_records &gt;= 0);
         </sql>
     </changeSet>
 
@@ -741,16 +776,12 @@
 
         <sql>
             ALTER TABLE delivery_worker_statistics
-            ADD CONSTRAINT chk_average_rating_range
-            CHECK (average_rating &gt;= 0.00 AND average_rating &lt;= 5.00);
-
-            ALTER TABLE delivery_worker_statistics
-            ADD CONSTRAINT chk_total_reviews_non_negative
-            CHECK (total_reviews &gt;= 0);
-
-            ALTER TABLE delivery_worker_statistics
-            ADD CONSTRAINT chk_star_reviews_non_negative
-            CHECK (one_star_reviews &gt;= 0 AND two_star_reviews &gt;= 0 AND three_star_reviews &gt;= 0 AND four_star_reviews &gt;= 0 AND five_star_reviews &gt;= 0);
+                ADD CONSTRAINT chk_average_rating_range
+                CHECK (average_rating &gt;= 0.00 AND average_rating &lt;= 5.00),
+                ADD CONSTRAINT chk_total_reviews_non_negative
+                CHECK (total_reviews &gt;= 0),
+                ADD CONSTRAINT chk_star_reviews_non_negative
+                CHECK (one_star_reviews &gt;= 0 AND two_star_reviews &gt;= 0 AND three_star_reviews &gt;= 0 AND four_star_reviews &gt;= 0 AND five_star_reviews &gt;= 0);
         </sql>
 
         <sql>
@@ -842,16 +873,12 @@
 
         <sql>
             ALTER TABLE reconciliation_discrepancies
-            ADD CONSTRAINT chk_discrepancy_type
-            CHECK (discrepancy_type IN ('MISSING', 'MISMATCH', 'EXTRA'));
-
-            ALTER TABLE reconciliation_discrepancies
-            ADD CONSTRAINT chk_source_system
-            CHECK (source_system IN ('INTERNAL', 'WECHAT'));
-
-            ALTER TABLE reconciliation_discrepancies
-            ADD CONSTRAINT chk_discrepancy_status
-            CHECK (status IN ('UNRESOLVED', 'RESOLVED'));
+                ADD CONSTRAINT chk_discrepancy_type
+                CHECK (discrepancy_type IN ('MISSING', 'MISMATCH', 'EXTRA')),
+                ADD CONSTRAINT chk_source_system
+                CHECK (source_system IN ('INTERNAL', 'WECHAT')),
+                ADD CONSTRAINT chk_discrepancy_status
+                CHECK (status IN ('UNRESOLVED', 'RESOLVED'));
         </sql>
     </changeSet>
 
@@ -926,7 +953,7 @@
             <column name="quantity" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="total_amount" type="decimal(10,2)">
+            <column name="total_amount_cents" type="bigint">
                 <constraints nullable="false"/>
             </column>
             <column name="address_id" type="bigint">
@@ -986,10 +1013,10 @@
             <column name="quantity" type="integer">
                 <constraints nullable="false"/>
             </column>
-            <column name="unit_price" type="decimal(10,2)">
+            <column name="unit_price_cents" type="bigint">
                 <constraints nullable="false"/>
             </column>
-            <column name="total_price" type="decimal(10,2)">
+            <column name="total_price_cents" type="bigint">
                 <constraints nullable="false"/>
             </column>
             <column name="product_snapshot" type="jsonb">
@@ -1024,14 +1051,13 @@
             constraintName="fk_order_items_product"/>
 
         <sql>
-            ALTER TABLE order_items ADD CONSTRAINT chk_order_items_quantity_positive
-            CHECK (quantity &gt; 0);
-
-            ALTER TABLE order_items ADD CONSTRAINT chk_order_items_unit_price_positive
-            CHECK (unit_price &gt; 0);
-
-            ALTER TABLE order_items ADD CONSTRAINT chk_order_items_total_price_positive
-            CHECK (total_price &gt; 0);
+            ALTER TABLE order_items
+                ADD CONSTRAINT chk_order_items_quantity_positive
+                CHECK (quantity &gt; 0),
+                ADD CONSTRAINT chk_order_items_unit_price_cents_positive
+                CHECK (unit_price_cents &gt;= 0),
+                ADD CONSTRAINT chk_order_items_total_price_cents_positive
+                CHECK (total_price_cents &gt;= 0);
         </sql>
     </changeSet>
 
@@ -1053,7 +1079,7 @@
             <column name="prepay_id" type="VARCHAR(255)">
                 <constraints unique="true" uniqueConstraintName="uk_payments_prepay_id"/>
             </column>
-            <column name="amount" type="DECIMAL(10,2)">
+            <column name="amount_cents" type="bigint">
                 <constraints nullable="false"/>
             </column>
             <column name="currency" type="VARCHAR(3)">
@@ -1110,14 +1136,13 @@
             onDelete="CASCADE"/>
 
         <sql>
-            ALTER TABLE payments ADD CONSTRAINT chk_payments_amount_positive
-            CHECK (amount &gt; 0);
-
-            ALTER TABLE payments ADD CONSTRAINT chk_payments_currency_code
-            CHECK (LENGTH(currency) = 3);
-
-            ALTER TABLE payments ADD CONSTRAINT chk_payments_status
-            CHECK (status IN ('PENDING', 'PAID', 'FAILED', 'CANCELLED', 'REFUNDED'));
+            ALTER TABLE payments
+                ADD CONSTRAINT chk_payments_amount_cents_positive
+                CHECK (amount_cents &gt; 0),
+                ADD CONSTRAINT chk_payments_currency_code
+                CHECK (LENGTH(currency) = 3),
+                ADD CONSTRAINT chk_payments_status
+                CHECK (status IN ('PENDING', 'PAID', 'FAILED', 'CANCELLED', 'REFUNDED'));
         </sql>
     </changeSet>
 
@@ -1142,7 +1167,7 @@
             <column name="refund_no" type="varchar(100)">
                 <constraints nullable="false" unique="true"/>
             </column>
-            <column name="amount" type="decimal(10,2)">
+            <column name="refund_amount_cents" type="bigint">
                 <constraints nullable="false"/>
             </column>
             <column name="reason" type="varchar(500)"/>
@@ -1202,11 +1227,11 @@
             constraintName="fk_payment_refunds_user"/>
 
         <sql>
-            ALTER TABLE payment_refunds ADD CONSTRAINT chk_payment_refunds_amount_positive
-            CHECK (amount &gt; 0);
-
-            ALTER TABLE payment_refunds ADD CONSTRAINT chk_payment_refunds_status
-            CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED'));
+            ALTER TABLE payment_refunds
+                ADD CONSTRAINT chk_payment_refunds_refund_amount_cents_positive
+                CHECK (refund_amount_cents &gt; 0),
+                ADD CONSTRAINT chk_payment_refunds_status
+                CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED', 'CANCELLED'));
         </sql>
     </changeSet>
 
@@ -1288,12 +1313,10 @@
 
         <sql>
             ALTER TABLE reviews
-            ADD CONSTRAINT chk_reviews_rating_range
-            CHECK (rating &gt;= 1 AND rating &lt;= 5);
-
-            ALTER TABLE reviews
-            ADD CONSTRAINT chk_reviews_comment_length
-            CHECK (LENGTH(COALESCE(comment, '')) &lt;= 500);
+                ADD CONSTRAINT chk_reviews_rating_range
+                CHECK (rating &gt;= 1 AND rating &lt;= 5),
+                ADD CONSTRAINT chk_reviews_comment_length
+                CHECK (LENGTH(COALESCE(comment, '')) &lt;= 500);
         </sql>
 
         <sql>

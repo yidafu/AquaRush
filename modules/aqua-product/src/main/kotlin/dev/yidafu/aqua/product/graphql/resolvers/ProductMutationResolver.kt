@@ -22,6 +22,7 @@ package dev.yidafu.aqua.product.graphql.resolvers
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateProductInput
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import dev.yidafu.aqua.product.domain.model.ProductModel
 import dev.yidafu.aqua.product.service.ProductService
 import jakarta.validation.Valid
@@ -42,7 +43,7 @@ class ProductMutationResolver(
   ): ProductModel =
     productService.createProduct(
       name = input.name,
-      price = input.price,
+      priceYuan = java.math.BigDecimal.valueOf(input.price.toDouble() / 100.0),
       coverImageUrl = input.coverImageUrl,
       detailImages = null,
       description = input.description,
@@ -58,7 +59,7 @@ class ProductMutationResolver(
     productService.updateProduct(
       productId = id,
       name = input.name,
-      price = input.price,
+      priceYuan = input.price?.let { java.math.BigDecimal.valueOf(it.toDouble() / 100.0) },
       coverImageUrl = input.coverImageUrl,
       detailImages = null,
       description = input.description,

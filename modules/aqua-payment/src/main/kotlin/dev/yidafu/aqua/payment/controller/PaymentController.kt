@@ -31,7 +31,7 @@ class PaymentController(
   @PostMapping("/wechat/create")
   fun createWechatPayment(
     @RequestParam orderId: Long,
-    @RequestParam amount: Int,
+    @RequestParam amount: Long,
     @RequestParam description: String,
   ): ApiResponse<Map<String, Any>> {
     val paymentData = paymentService.createWechatPayOrder(orderId, amount, description)
@@ -68,8 +68,8 @@ class PaymentController(
   @PostMapping("/refund")
   fun refund(
     @RequestParam transactionId: String,
-    @RequestParam refundAmount: Int,
-    @RequestParam totalAmount: Int,
+    @RequestParam refundAmount: Long,
+    @RequestParam totalAmount: Long,
   ): ApiResponse<Boolean> {
     val result = paymentService.refund(transactionId, refundAmount, totalAmount)
     return ApiResponse.success(result)

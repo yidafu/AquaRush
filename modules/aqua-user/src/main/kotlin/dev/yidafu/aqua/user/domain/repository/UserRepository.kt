@@ -19,7 +19,10 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
+import dev.yidafu.aqua.api.dto.UserStatus
 import dev.yidafu.aqua.user.domain.model.UserModel
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
@@ -28,5 +31,13 @@ interface UserRepository : JpaRepository<UserModel, Long>, UserRepositoryCustom 
   fun findByWechatOpenId(wechatOpenId: String): UserModel?
 
   fun existsByWechatOpenId(wechatOpenId: String): Boolean
+
+  fun findByNicknameContainingIgnoreCaseOrPhoneContainingIgnoreCase(
+    nickname: String,
+    phone: String,
+    pageable: Pageable
+  ): Page<UserModel>
+
+  fun findByStatus(status: UserStatus, pageable: Pageable): Page<UserModel>
 
   }

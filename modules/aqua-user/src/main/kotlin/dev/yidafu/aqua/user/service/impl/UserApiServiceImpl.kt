@@ -88,8 +88,8 @@ class UserApiServiceImpl(
         email = "",
         status = UserStatus.ACTIVE,
         role = UserRole.USER,
-        balance = BigDecimal(0),
-        totalSpent = BigDecimal(0),
+//        balance = BigDecimal(0),
+//        totalSpent = BigDecimal(0),
         lastLoginAt = LocalDateTime.now(),
       )
 

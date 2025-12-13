@@ -21,6 +21,7 @@ package dev.yidafu.aqua.common.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
@@ -77,6 +78,8 @@ interface PaymentRepository : JpaRepository<PaymentModel, Long>, JpaSpecificatio
   ): BigDecimal {
     val specification = PaymentSpecifications.byStatusAndCreatedAtBetween(status, startDate, endDate)
     val payments = findAll(specification)
-    return payments.fold(BigDecimal.ZERO) { sum, payment -> sum + payment.amount }
+    return payments.fold(BigDecimal.ZERO) { sum, payment ->
+      sum + MoneyUtils.fromCents(payment.amount)
+    }
   }
 }

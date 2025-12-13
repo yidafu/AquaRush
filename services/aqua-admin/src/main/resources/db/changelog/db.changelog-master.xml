@@ -9,4 +9,6 @@
     <!-- Development schema recreation - drops and recreates all tables -->
     <include file="db/changelog/changes/v1.0.0-init-comprehensive-schema.xml"/>
     <include file="db/changelog/changes/v1.0.2-comprehensive-test-data.xml"/>
+
+    <!-- Monetary migration: Convert all monetary columns from DECIMAL to BIGINT (cents) -->
 </databaseChangeLog>

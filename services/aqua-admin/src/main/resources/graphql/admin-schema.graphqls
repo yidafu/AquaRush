@@ -16,12 +16,17 @@ type Query {
   admins: [Admin!]!
   admin(id: Long!): Admin
 
+  # User management - Admin only
+  users(input: UserListInput): UserListResponse!
+  user(id: Long!): User
+
   # Delivery Worker queries
   deliveryWorkers: [DeliveryWorker!]!
   onlineDeliveryWorkers: [DeliveryWorker!]!
   deliveryWorker(id: Long!): DeliveryWorker
 
   # Addresses (for admin management)
+  userAddresses(userId: Long): [Address!]!
   addresses: [Address!]!
   address(id: Long!): Address
   deliveryAddresses: [DeliveryAddress!]!
@@ -97,7 +102,7 @@ type Query {
     page: Int
     size: Int
   ): [Review!]!
-  deliveryWorkerStatistics(deliveryWorkerId: Long!): DeliveryWorkerStatisticsResponse!
+  deliveryWorkerStatistics(deliveryWorkerId: Long!): DeliveryWorkerStatisticsResponse
   deliveryWorkerRanking(sortBy: String, minReviews: Int, page: Int, size: Int): [DeliveryWorkerRankingResponse!]!
   deliveryWorkerReviews(deliveryWorkerId: Long!, page: Int, size: Int): [Review!]!
 }
@@ -136,7 +141,7 @@ type Mutation {
   createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorker!
   updateDeliveryWorker(workerId: Long!, input: UpdateDeliveryWorkerInput!): DeliveryWorker!
   deleteDeliveryWorker(workerId: Long!): Boolean!
-  updateWorkerStatus(workerId: Long!, status: WorkerStatus!): DeliveryWorker!
+  updateWorkerStatus(workerId: Long!, status: DeliveryWorkerStatus!): DeliveryWorker!
 
   # Delivery Address Management
   createDeliveryAddress(input: CreateDeliveryAddressInput!): DeliveryAddress!

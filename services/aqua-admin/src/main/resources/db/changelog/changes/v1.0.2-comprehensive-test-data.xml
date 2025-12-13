@@ -1,639 +1,1283 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<databaseChangeLog
-    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
     http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
 
-    <changeSet id="v1.0.2-comprehensive-test-data" author="aqua-rush">
-        <comment>Create comprehensive test data for AquaRush system</comment>
+  <changeSet id="v1.0.2-comprehensive-test-data" author="aqua-rush">
+    <comment>Create comprehensive test data for AquaRush system</comment>
 
-        <!-- ==================== Admin Users ==================== -->
-        <!-- Super Admin User -->
-        <insert tableName="admins">
-            <column name="username" value="superadmin"/>
-            <column name="password_hash" value="$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iKVIbOBWvTPOrK.K8MZKW6xJUSfS"/>
-            <column name="real_name" value="超级管理员"/>
-            <column name="phone" value="13800138000"/>
-            <column name="role" value="SUPER_ADMIN"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- ==================== Admin Users ==================== -->
+    <!-- Super Admin User -->
+    <insert tableName="admins">
+      <column name="username" value="superadmin" />
+      <column name="password_hash" value="$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iKVIbOBWvTPOrK.K8MZKW6xJUSfS" />
+      <column name="real_name" value="超级管理员" />
+      <column name="phone" value="13800138000" />
+      <column name="role" value="SUPER_ADMIN" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- Regular Admin User -->
-        <insert tableName="admins">
-            <column name="username" value="admin"/>
-            <column name="password_hash" value="$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iKVIbOBWvTPOrK.K8MZKW6xJUSfS"/>
-            <column name="real_name" value="系统管理员"/>
-            <column name="phone" value="13800138001"/>
-            <column name="role" value="ADMIN"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- Regular Admin User -->
+    <insert tableName="admins">
+      <column name="username" value="admin" />
+      <column name="password_hash" value="$2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iKVIbOBWvTPOrK.K8MZKW6xJUSfS" />
+      <column name="real_name" value="系统管理员" />
+      <column name="phone" value="13800138001" />
+      <column name="role" value="ADMIN" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- ==================== Delivery Workers ==================== -->
-        <!-- Delivery Worker 1 -->
-        <insert tableName="delivery_workers">
-            <column name="id" valueNumeric="1000000000000000001"/>
-            <column name="wechat_openid" value="delivery_worker_001"/>
-            <column name="name" value="张师傅"/>
-            <column name="phone" value="13800138101"/>
-            <column name="online_status" value="ONLINE"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- ==================== Regular Users ==================== -->
+    <!-- User 1: 张明 (3个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000011" />
+      <column name="wechat_openid" value="user_zhang_ming" />
+      <column name="wechat_unionid" value="union_zhang_ming" />
+      <column name="nickname" value="张明" />
+      <column name="phone" value="13800138201" />
+      <column name="avatar_url" value="https://example.com/avatars/zhang_ming.png" />
+      <column name="email" value="zhangming@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="15050" />
+      <column name="total_spent_cents" valueNumeric="89000" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- Delivery Worker 2 -->
-        <insert tableName="delivery_workers">
-            <column name="id" valueNumeric="1000000000000000002"/>
-            <column name="wechat_openid" value="delivery_worker_002"/>
-            <column name="name" value="李师傅"/>
-            <column name="phone" value="13800138102"/>
-            <column name="online_status" value="ONLINE"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- User 2: 李芳 (2个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000012" />
+      <column name="wechat_openid" value="user_li_fang" />
+      <column name="wechat_unionid" value="union_li_fang" />
+      <column name="nickname" value="李芳" />
+      <column name="phone" value="13800138202" />
+      <column name="avatar_url" value="https://example.com/avatars/li_fang.png" />
+      <column name="email" value="lifang@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="8000" />
+      <column name="total_spent_cents" valueNumeric="45000" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- Delivery Worker 3 -->
-        <insert tableName="delivery_workers">
-            <column name="id" valueNumeric="1000000000000000003"/>
-            <column name="wechat_openid" value="delivery_worker_003"/>
-            <column name="name" value="王师傅"/>
-            <column name="phone" value="13800138103"/>
-            <column name="online_status" value="OFFLINE"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- User 3: 王伟 (1个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000013" />
+      <column name="wechat_openid" value="user_wang_wei" />
+      <column name="wechat_unionid" value="union_wang_wei" />
+      <column name="nickname" value="王伟" />
+      <column name="phone" value="13800138203" />
+      <column name="avatar_url" value="https://example.com/avatars/wang_wei.png" />
+      <column name="email" value="wangwei@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="0" />
+      <column name="total_spent_cents" valueNumeric="12000" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- ==================== Regular Users ==================== -->
-        <!-- User 1: 张明 (3个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000011"/>
-            <column name="wechat_openid" value="user_zhang_ming"/>
-            <column name="wechat_unionid" value="union_zhang_ming"/>
-            <column name="nickname" value="张明"/>
-            <column name="phone" value="13800138201"/>
-            <column name="avatar_url" value="https://example.com/avatars/zhang_ming.png"/>
-            <column name="email" value="zhangming@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="150.50"/>
-            <column name="total_spent" valueNumeric="890.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- User 4: 刘静 (2个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000014" />
+      <column name="wechat_openid" value="user_liu_jing" />
+      <column name="wechat_unionid" value="union_liu_jing" />
+      <column name="nickname" value="刘静" />
+      <column name="phone" value="13800138204" />
+      <column name="avatar_url" value="https://example.com/avatars/liu_jing.png" />
+      <column name="email" value="liujing@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="4500" />
+      <column name="total_spent_cents" valueNumeric="68000" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- User 2: 李芳 (2个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000012"/>
-            <column name="wechat_openid" value="user_li_fang"/>
-            <column name="wechat_unionid" value="union_li_fang"/>
-            <column name="nickname" value="李芳"/>
-            <column name="phone" value="13800138202"/>
-            <column name="avatar_url" value="https://example.com/avatars/li_fang.png"/>
-            <column name="email" value="lifang@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="80.00"/>
-            <column name="total_spent" valueNumeric="450.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- User 5: 陈强 (3个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000015" />
+      <column name="wechat_openid" value="user_chen_qiang" />
+      <column name="wechat_unionid" value="union_chen_qiang" />
+      <column name="nickname" value="陈强" />
+      <column name="phone" value="13800138205" />
+      <column name="avatar_url" value="https://example.com/avatars/chen_qiang.png" />
+      <column name="email" value="chenqiang@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="20000" />
+      <column name="total_spent_cents" valueNumeric="150000" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- User 3: 王伟 (1个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000013"/>
-            <column name="wechat_openid" value="user_wang_wei"/>
-            <column name="wechat_unionid" value="union_wang_wei"/>
-            <column name="nickname" value="王伟"/>
-            <column name="phone" value="13800138203"/>
-            <column name="avatar_url" value="https://example.com/avatars/wang_wei.png"/>
-            <column name="email" value="wangwei@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="0.00"/>
-            <column name="total_spent" valueNumeric="120.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- User 6: 杨梅 (1个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000016" />
+      <column name="wechat_openid" value="user_yang_mei" />
+      <column name="wechat_unionid" value="union_yang_mei" />
+      <column name="nickname" value="杨梅" />
+      <column name="phone" value="13800138206" />
+      <column name="avatar_url" value="https://example.com/avatars/yang_mei.png" />
+      <column name="email" value="yangmei@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="3000" />
+      <column name="total_spent_cents" valueNumeric="22000" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- User 4: 刘静 (2个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000014"/>
-            <column name="wechat_openid" value="user_liu_jing"/>
-            <column name="wechat_unionid" value="union_liu_jing"/>
-            <column name="nickname" value="刘静"/>
-            <column name="phone" value="13800138204"/>
-            <column name="avatar_url" value="https://example.com/avatars/liu_jing.png"/>
-            <column name="email" value="liujing@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="45.00"/>
-            <column name="total_spent" valueNumeric="680.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- User 7: 赵磊 (2个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000017" />
+      <column name="wechat_openid" value="user_zhao_lei" />
+      <column name="wechat_unionid" value="union_zhao_lei" />
+      <column name="nickname" value="赵磊" />
+      <column name="phone" value="13800138207" />
+      <column name="avatar_url" value="https://example.com/avatars/zhao_lei.png" />
+      <column name="email" value="zhaolei@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="7500" />
+      <column name="total_spent_cents" valueNumeric="45000" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- User 5: 陈强 (3个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000015"/>
-            <column name="wechat_openid" value="user_chen_qiang"/>
-            <column name="wechat_unionid" value="union_chen_qiang"/>
-            <column name="nickname" value="陈强"/>
-            <column name="phone" value="13800138205"/>
-            <column name="avatar_url" value="https://example.com/avatars/chen_qiang.png"/>
-            <column name="email" value="chenqiang@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="200.00"/>
-            <column name="total_spent" valueNumeric="1500.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- User 8: 孙丽 (3个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000018" />
+      <column name="wechat_openid" value="user_sun_li" />
+      <column name="wechat_unionid" value="union_sun_li" />
+      <column name="nickname" value="孙丽" />
+      <column name="phone" value="13800138208" />
+      <column name="avatar_url" value="https://example.com/avatars/sun_li.png" />
+      <column name="email" value="sunli@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="12000" />
+      <column name="total_spent_cents" valueNumeric="78000" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- User 6: 杨梅 (1个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000016"/>
-            <column name="wechat_openid" value="user_yang_mei"/>
-            <column name="wechat_unionid" value="union_yang_mei"/>
-            <column name="nickname" value="杨梅"/>
-            <column name="phone" value="13800138206"/>
-            <column name="avatar_url" value="https://example.com/avatars/yang_mei.png"/>
-            <column name="email" value="yangmei@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="30.00"/>
-            <column name="total_spent" valueNumeric="220.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- User 9: 周涛 (1个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000019" />
+      <column name="wechat_openid" value="user_zhou_tao" />
+      <column name="wechat_unionid" value="union_zhou_tao" />
+      <column name="nickname" value="周涛" />
+      <column name="phone" value="13800138209" />
+      <column name="avatar_url" value="https://example.com/avatars/zhou_tao.png" />
+      <column name="email" value="zhoutao@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="0" />
+      <column name="total_spent_cents" valueNumeric="18000" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- User 7: 赵磊 (2个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000017"/>
-            <column name="wechat_openid" value="user_zhao_lei"/>
-            <column name="wechat_unionid" value="union_zhao_lei"/>
-            <column name="nickname" value="赵磊"/>
-            <column name="phone" value="13800138207"/>
-            <column name="avatar_url" value="https://example.com/avatars/zhao_lei.png"/>
-            <column name="email" value="zhaolei@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="75.00"/>
-            <column name="total_spent" valueNumeric="450.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- User 10: 吴芳 (2个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000020" />
+      <column name="wechat_openid" value="user_wu_fang" />
+      <column name="wechat_unionid" value="union_wu_fang" />
+      <column name="nickname" value="吴芳" />
+      <column name="phone" value="13800138210" />
+      <column name="avatar_url" value="https://example.com/avatars/wu_fang.png" />
+      <column name="email" value="wufang@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="6000" />
+      <column name="total_spent_cents" valueNumeric="34000" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- User 8: 孙丽 (3个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000018"/>
-            <column name="wechat_openid" value="user_sun_li"/>
-            <column name="wechat_unionid" value="union_sun_li"/>
-            <column name="nickname" value="孙丽"/>
-            <column name="phone" value="13800138208"/>
-            <column name="avatar_url" value="https://example.com/avatars/sun_li.png"/>
-            <column name="email" value="sunli@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="120.00"/>
-            <column name="total_spent" valueNumeric="780.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- User 11: 郑勇 (1个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000021" />
+      <column name="wechat_openid" value="user_zheng_yong" />
+      <column name="wechat_unionid" value="union_zheng_yong" />
+      <column name="nickname" value="郑勇" />
+      <column name="phone" value="13800138211" />
+      <column name="avatar_url" value="https://example.com/avatars/zheng_yong.png" />
+      <column name="email" value="zhengyong@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="15.00" />
+      <column name="total_spent_cents" valueNumeric="95.00" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- User 9: 周涛 (1个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000019"/>
-            <column name="wechat_openid" value="user_zhou_tao"/>
-            <column name="wechat_unionid" value="union_zhou_tao"/>
-            <column name="nickname" value="周涛"/>
-            <column name="phone" value="13800138209"/>
-            <column name="avatar_url" value="https://example.com/avatars/zhou_tao.png"/>
-            <column name="email" value="zhoutao@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="0.00"/>
-            <column name="total_spent" valueNumeric="180.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- User 12: 黄燕 (3个地址) -->
+    <insert tableName="users">
+      <column name="id" valueNumeric="1000000000000000022" />
+      <column name="wechat_openid" value="user_huang_yan" />
+      <column name="wechat_unionid" value="union_huang_yan" />
+      <column name="nickname" value="黄燕" />
+      <column name="phone" value="13800138212" />
+      <column name="avatar_url" value="https://example.com/avatars/huang_yan.png" />
+      <column name="email" value="huangyan@example.com" />
+      <column name="status" value="ACTIVE" />
+      <column name="role" value="USER" />
+      <column name="balance_cents" valueNumeric="18000" />
+      <column name="total_spent_cents" valueNumeric="120000" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- User 10: 吴芳 (2个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000020"/>
-            <column name="wechat_openid" value="user_wu_fang"/>
-            <column name="wechat_unionid" value="union_wu_fang"/>
-            <column name="nickname" value="吴芳"/>
-            <column name="phone" value="13800138210"/>
-            <column name="avatar_url" value="https://example.com/avatars/wu_fang.png"/>
-            <column name="email" value="wufang@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="60.00"/>
-            <column name="total_spent" valueNumeric="340.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- ==================== Delivery Workers ==================== -->
+    <!-- Delivery Worker 1 -->
+    <insert tableName="delivery_workers">
+      <column name="id" valueNumeric="1000000000000000001" />
+      <column name="user_id" valueNumeric="1000000000000000011" />
+      <column name="wechat_openid" value="delivery_worker_001" />
+      <column name="name" value="张师傅" />
+      <column name="phone" value="13800138101" />
+      <column name="avatar_url" value="https://example.com/avatars/delivery_worker_001.png" />
+      <column name="online_status" value="ONLINE" />
+      <column name="rating" valueNumeric="4.5" />
+      <column name="total_orders" valueNumeric="156" />
+      <column name="completed_orders" valueNumeric="148" />
+      <column name="average_rating" valueNumeric="4.5" />
+      <column name="earning_cents" valueNumeric="1245000" />
+      <column name="is_available" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- User 11: 郑勇 (1个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000021"/>
-            <column name="wechat_openid" value="user_zheng_yong"/>
-            <column name="wechat_unionid" value="union_zheng_yong"/>
-            <column name="nickname" value="郑勇"/>
-            <column name="phone" value="13800138211"/>
-            <column name="avatar_url" value="https://example.com/avatars/zheng_yong.png"/>
-            <column name="email" value="zhengyong@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="15.00"/>
-            <column name="total_spent" valueNumeric="95.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- Delivery Worker 2 -->
+    <insert tableName="delivery_workers">
+      <column name="id" valueNumeric="1000000000000000002" />
+      <column name="user_id" valueNumeric="1000000000000000012" />
+      <column name="wechat_openid" value="delivery_worker_002" />
+      <column name="name" value="李师傅" />
+      <column name="phone" value="13800138102" />
+      <column name="avatar_url" value="https://example.com/avatars/delivery_worker_002.png" />
+      <column name="online_status" value="ONLINE" />
+      <column name="rating" valueNumeric="4.8" />
+      <column name="total_orders" valueNumeric="203" />
+      <column name="completed_orders" valueNumeric="198" />
+      <column name="average_rating" valueNumeric="4.8" />
+      <column name="earning_cents" valueNumeric="1567000" />
+      <column name="is_available" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- User 12: 黄燕 (3个地址) -->
-        <insert tableName="users">
-            <column name="id" valueNumeric="1000000000000000022"/>
-            <column name="wechat_openid" value="user_huang_yan"/>
-            <column name="wechat_unionid" value="union_huang_yan"/>
-            <column name="nickname" value="黄燕"/>
-            <column name="phone" value="13800138212"/>
-            <column name="avatar_url" value="https://example.com/avatars/huang_yan.png"/>
-            <column name="email" value="huangyan@example.com"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="role" value="USER"/>
-            <column name="balance" valueNumeric="180.00"/>
-            <column name="total_spent" valueNumeric="1200.00"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- Delivery Worker 3 -->
+    <insert tableName="delivery_workers">
+      <column name="id" valueNumeric="1000000000000000003" />
+      <column name="user_id" valueNumeric="1000000000000000013" />
+      <column name="wechat_openid" value="delivery_worker_003" />
+      <column name="name" value="王师傅" />
+      <column name="phone" value="13800138103" />
+      <column name="avatar_url" value="https://example.com/avatars/delivery_worker_003.png" />
+      <column name="online_status" value="OFFLINE" />
+      <column name="rating" valueNumeric="4.2" />
+      <column name="total_orders" valueNumeric="89" />
+      <column name="completed_orders" valueNumeric="85" />
+      <column name="average_rating" valueNumeric="4.2" />
+      <column name="earning_cents" valueNumeric="678000" />
+      <column name="is_available" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- ==================== Delivery Addresses ==================== -->
+    <!-- ==================== Delivery Addresses ==================== -->
 
-        <!-- 张明的地址 (3个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000011"/>
-            <column name="user_id" valueNumeric="1000000000000000011"/>
-            <column name="receiver_name" value="张明"/>
-            <column name="receiver_phone" value="13800138201"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="解放路1号高德置地广场10楼1201室"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 张明的地址 (3个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000011" />
+      <column name="user_id" valueNumeric="1000000000000000011" />
+      <column name="receiver_name" value="张明" />
+      <column name="receiver_phone" value="13800138201" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="解放路1号高德置地广场10楼1201室" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000012"/>
-            <column name="user_id" valueNumeric="1000000000000000011"/>
-            <column name="receiver_name" value="张明"/>
-            <column name="receiver_phone" value="13800138201"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="庆春路66号杭州大厦8楼805室"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000012" />
+      <column name="user_id" valueNumeric="1000000000000000011" />
+      <column name="receiver_name" value="张明" />
+      <column name="receiver_phone" value="13800138201" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="庆春路66号杭州大厦8楼805室" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000013"/>
-            <column name="user_id" valueNumeric="1000000000000000011"/>
-            <column name="receiver_name" value="张明"/>
-            <column name="receiver_phone" value="13800138201"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="延安路98号西湖时代广场5楼508室"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000013" />
+      <column name="user_id" valueNumeric="1000000000000000011" />
+      <column name="receiver_name" value="张明" />
+      <column name="receiver_phone" value="13800138201" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="延安路98号西湖时代广场5楼508室" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- 李芳的地址 (2个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000021"/>
-            <column name="user_id" valueNumeric="1000000000000000012"/>
-            <column name="receiver_name" value="李芳"/>
-            <column name="receiver_phone" value="13800138202"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="湖滨路58号湖滨银泰in77 A座15楼"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 李芳的地址 (2个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000021" />
+      <column name="user_id" valueNumeric="1000000000000000012" />
+      <column name="receiver_name" value="李芳" />
+      <column name="receiver_phone" value="13800138202" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="湖滨路58号湖滨银泰in77 A座15楼" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000022"/>
-            <column name="user_id" valueNumeric="1000000000000000012"/>
-            <column name="receiver_name" value="李芳"/>
-            <column name="receiver_phone" value="13800138202"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="平海路124号利星名品广场6楼"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000022" />
+      <column name="user_id" valueNumeric="1000000000000000012" />
+      <column name="receiver_name" value="李芳" />
+      <column name="receiver_phone" value="13800138202" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="平海路124号利星名品广场6楼" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- 王伟的地址 (1个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000031"/>
-            <column name="user_id" valueNumeric="1000000000000000013"/>
-            <column name="receiver_name" value="王伟"/>
-            <column name="receiver_phone" value="13800138203"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="中山中路533号中山中路商务楼32楼"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 王伟的地址 (1个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000031" />
+      <column name="user_id" valueNumeric="1000000000000000013" />
+      <column name="receiver_name" value="王伟" />
+      <column name="receiver_phone" value="13800138203" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="中山中路533号中山中路商务楼32楼" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- 刘静的地址 (2个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000041"/>
-            <column name="user_id" valueNumeric="1000000000000000014"/>
-            <column name="receiver_name" value="刘静"/>
-            <column name="receiver_phone" value="13800138204"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="解放东路46号金秋国际大厦18楼"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 刘静的地址 (2个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000041" />
+      <column name="user_id" valueNumeric="1000000000000000014" />
+      <column name="receiver_name" value="刘静" />
+      <column name="receiver_phone" value="13800138204" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="解放东路46号金秋国际大厦18楼" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000042"/>
-            <column name="user_id" valueNumeric="1000000000000000014"/>
-            <column name="receiver_name" value="刘静"/>
-            <column name="receiver_phone" value="13800138204"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="延安路178号平安金融中心55楼"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000042" />
+      <column name="user_id" valueNumeric="1000000000000000014" />
+      <column name="receiver_name" value="刘静" />
+      <column name="receiver_phone" value="13800138204" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="延安路178号平安金融中心55楼" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- 陈强的地址 (3个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000051"/>
-            <column name="user_id" valueNumeric="1000000000000000015"/>
-            <column name="receiver_name" value="陈强"/>
-            <column name="receiver_phone" value="13800138205"/>
-            <column name="province" value="杭州"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="西湖区"/>
-            <column name="detail_address" value="西湖大道1号黄龙国际中心A座22楼"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 陈强的地址 (3个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000051" />
+      <column name="user_id" valueNumeric="1000000000000000015" />
+      <column name="receiver_name" value="陈强" />
+      <column name="receiver_phone" value="13800138205" />
+      <column name="province" value="杭州" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="西湖区" />
+      <column name="detail_address" value="西湖大道1号黄龙国际中心A座22楼" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000052"/>
-            <column name="user_id" valueNumeric="1000000000000000015"/>
-            <column name="receiver_name" value="陈强"/>
-            <column name="receiver_phone" value="13800138205"/>
-            <column name="province" value="杭州"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="滨江区"/>
-            <column name="detail_address" value="江南大道588号恒生科技园12号楼8楼"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000052" />
+      <column name="user_id" valueNumeric="1000000000000000015" />
+      <column name="receiver_name" value="陈强" />
+      <column name="receiver_phone" value="13800138205" />
+      <column name="province" value="杭州" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="滨江区" />
+      <column name="detail_address" value="江南大道588号恒生科技园12号楼8楼" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000053"/>
-            <column name="user_id" valueNumeric="1000000000000000015"/>
-            <column name="receiver_name" value="陈强"/>
-            <column name="receiver_phone" value="13800138205"/>
-            <column name="province" value="杭州"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="解放东路1号高德置地广场写字楼10楼"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000053" />
+      <column name="user_id" valueNumeric="1000000000000000015" />
+      <column name="receiver_name" value="陈强" />
+      <column name="receiver_phone" value="13800138205" />
+      <column name="province" value="杭州" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="解放东路1号高德置地广场写字楼10楼" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- 杨梅的地址 (1个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000061"/>
-            <column name="user_id" valueNumeric="1000000000000000016"/>
-            <column name="receiver_name" value="杨梅"/>
-            <column name="receiver_phone" value="13800138206"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="延安路98号西湖时代广场W3区18楼"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 杨梅的地址 (1个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000061" />
+      <column name="user_id" valueNumeric="1000000000000000016" />
+      <column name="receiver_name" value="杨梅" />
+      <column name="receiver_phone" value="13800138206" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="延安路98号西湖时代广场W3区18楼" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- 赵磊的地址 (2个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000071"/>
-            <column name="user_id" valueNumeric="1000000000000000017"/>
-            <column name="receiver_name" value="赵磊"/>
-            <column name="receiver_phone" value="13800138207"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="庆春路150号西子国际中心25楼"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 赵磊的地址 (2个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000071" />
+      <column name="user_id" valueNumeric="1000000000000000017" />
+      <column name="receiver_name" value="赵磊" />
+      <column name="receiver_phone" value="13800138207" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="庆春路150号西子国际中心25楼" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000072"/>
-            <column name="user_id" valueNumeric="1000000000000000017"/>
-            <column name="receiver_name" value="赵磊"/>
-            <column name="receiver_phone" value="13800138207"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="体育场路333号保利国际中心35楼"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000072" />
+      <column name="user_id" valueNumeric="1000000000000000017" />
+      <column name="receiver_name" value="赵磊" />
+      <column name="receiver_phone" value="13800138207" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="体育场路333号保利国际中心35楼" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- 孙丽的地址 (3个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000081"/>
-            <column name="user_id" valueNumeric="1000000000000000018"/>
-            <column name="receiver_name" value="孙丽"/>
-            <column name="receiver_phone" value="13800138208"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="高新路25号希格玛大厦12楼"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 孙丽的地址 (3个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000081" />
+      <column name="user_id" valueNumeric="1000000000000000018" />
+      <column name="receiver_name" value="孙丽" />
+      <column name="receiver_phone" value="13800138208" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="高新路25号希格玛大厦12楼" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000082"/>
-            <column name="user_id" valueNumeric="1000000000000000018"/>
-            <column name="receiver_name" value="孙丽"/>
-            <column name="receiver_phone" value="13800138208"/>
-            <column name="province" value="西安"/>
-            <column name="city" value="西安市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="南关正街88号世纪金花大厦18楼"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000082" />
+      <column name="user_id" valueNumeric="1000000000000000018" />
+      <column name="receiver_name" value="孙丽" />
+      <column name="receiver_phone" value="13800138208" />
+      <column name="province" value="西安" />
+      <column name="city" value="西安市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="南关正街88号世纪金花大厦18楼" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000083"/>
-            <column name="user_id" valueNumeric="1000000000000000018"/>
-            <column name="receiver_name" value="孙丽"/>
-            <column name="receiver_phone" value="13800138208"/>
-            <column name="province" value="西安"/>
-            <column name="city" value="西安市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="未央路168号荣民国际金融中心28楼"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000083" />
+      <column name="user_id" valueNumeric="1000000000000000018" />
+      <column name="receiver_name" value="孙丽" />
+      <column name="receiver_phone" value="13800138208" />
+      <column name="province" value="西安" />
+      <column name="city" value="西安市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="未央路168号荣民国际金融中心28楼" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- 周涛的地址 (1个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000091"/>
-            <column name="user_id" valueNumeric="1000000000000000019"/>
-            <column name="receiver_name" value="周涛"/>
-            <column name="receiver_phone" value="13800138209"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="中山中路1号杭州国际金融中心45楼"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 周涛的地址 (1个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000091" />
+      <column name="user_id" valueNumeric="1000000000000000019" />
+      <column name="receiver_name" value="周涛" />
+      <column name="receiver_phone" value="13800138209" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="中山中路1号杭州国际金融中心45楼" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- 吴芳的地址 (2个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000101"/>
-            <column name="user_id" valueNumeric="1000000000000000020"/>
-            <column name="receiver_name" value="吴芳"/>
-            <column name="receiver_phone" value="13800138210"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="解放路步行街88号杭州大都会广场12楼"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 吴芳的地址 (2个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000101" />
+      <column name="user_id" valueNumeric="1000000000000000020" />
+      <column name="receiver_name" value="吴芳" />
+      <column name="receiver_phone" value="13800138210" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="解放路步行街88号杭州大都会广场12楼" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000102"/>
-            <column name="user_id" valueNumeric="1000000000000000020"/>
-            <column name="receiver_name" value="吴芳"/>
-            <column name="receiver_phone" value="13800138210"/>
-            <column name="province" value="重庆"/>
-            <column name="city" value="重庆市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="钱江新城金融城1号国金中心T1栋35楼"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000102" />
+      <column name="user_id" valueNumeric="1000000000000000020" />
+      <column name="receiver_name" value="吴芳" />
+      <column name="receiver_phone" value="13800138210" />
+      <column name="province" value="重庆" />
+      <column name="city" value="重庆市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="钱江新城金融城1号国金中心T1栋35楼" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- 郑勇的地址 (1个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000111"/>
-            <column name="user_id" valueNumeric="1000000000000000021"/>
-            <column name="receiver_name" value="郑勇"/>
-            <column name="receiver_phone" value="13800138211"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="凤起路219号杭州国际大厦20楼"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 郑勇的地址 (1个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000111" />
+      <column name="user_id" valueNumeric="1000000000000000021" />
+      <column name="receiver_name" value="郑勇" />
+      <column name="receiver_phone" value="13800138211" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="凤起路219号杭州国际大厦20楼" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <!-- 黄燕的地址 (3个) -->
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000121"/>
-            <column name="user_id" valueNumeric="1000000000000000022"/>
-            <column name="receiver_name" value="黄燕"/>
-            <column name="receiver_phone" value="13800138212"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="钱江路688号杭州国际金融中心32楼"/>
-            <column name="is_default" valueBoolean="true"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <!-- 黄燕的地址 (3个) -->
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000121" />
+      <column name="user_id" valueNumeric="1000000000000000022" />
+      <column name="receiver_name" value="黄燕" />
+      <column name="receiver_phone" value="13800138212" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="钱江路688号杭州国际金融中心32楼" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000122"/>
-            <column name="user_id" valueNumeric="1000000000000000022"/>
-            <column name="receiver_name" value="黄燕"/>
-            <column name="receiver_phone" value="13800138212"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="庆春西路888号杭州中心广场B座18楼"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000122" />
+      <column name="user_id" valueNumeric="1000000000000000022" />
+      <column name="receiver_name" value="黄燕" />
+      <column name="receiver_phone" value="13800138212" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="庆春西路888号杭州中心广场B座18楼" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
 
-        <insert tableName="delivery_addresses">
-            <column name="id" valueNumeric="2000000000000000123"/>
-            <column name="user_id" valueNumeric="1000000000000000022"/>
-            <column name="receiver_name" value="黄燕"/>
-            <column name="receiver_phone" value="13800138212"/>
-            <column name="province" value="浙江"/>
-            <column name="city" value="杭州市"/>
-            <column name="district" value="上城区"/>
-            <column name="detail_address" value="文二路2号杭州高新区技术产业园12号楼8楼"/>
-            <column name="is_default" valueBoolean="false"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
+    <insert tableName="delivery_addresses">
+      <column name="id" valueNumeric="2000000000000000123" />
+      <column name="user_id" valueNumeric="1000000000000000022" />
+      <column name="receiver_name" value="黄燕" />
+      <column name="receiver_phone" value="13800138212" />
+      <column name="province" value="浙江" />
+      <column name="city" value="杭州市" />
+      <column name="district" value="上城区" />
+      <column name="detail_address" value="文二路2号杭州高新区技术产业园12号楼8楼" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+  </changeSet>
 
-    </changeSet>
+  <changeSet id="v1.0.2-comprehensive-test-data-3" author="aqua-rush">
+    <!-- ==================== Addresses ==================== -->
+    <!-- 张明的地址 (3个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000011" />
+      <column name="user_id" valueNumeric="1000000000000000011" />
+      <column name="receiver_name" value="张明" />
+      <column name="phone" value="13800138201" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="解放路1号高德置地广场10楼1201室" />
+      <column name="longitude" valueNumeric="120.16142" />
+      <column name="latitude" valueNumeric="30.259224" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000012" />
+      <column name="user_id" valueNumeric="1000000000000000011" />
+      <column name="receiver_name" value="张明" />
+      <column name="phone" value="13800138201" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="庆春路66号杭州大厦8楼805室" />
+      <column name="longitude" valueNumeric="120.16993" />
+      <column name="latitude" valueNumeric="30.254562" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000013" />
+      <column name="user_id" valueNumeric="1000000000000000011" />
+      <column name="receiver_name" value="张明" />
+      <column name="phone" value="13800138201" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="延安路98号西湖时代广场5楼508室" />
+      <column name="longitude" valueNumeric="120.16642" />
+      <column name="latitude" valueNumeric="30.250987" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- 李芳的地址 (2个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000021" />
+      <column name="user_id" valueNumeric="1000000000000000012" />
+      <column name="receiver_name" value="李芳" />
+      <column name="phone" value="13800138202" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="湖滨路58号湖滨银泰in77 A座15楼" />
+      <column name="longitude" valueNumeric="120.16598" />
+      <column name="latitude" valueNumeric="30.245234" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000022" />
+      <column name="user_id" valueNumeric="1000000000000000012" />
+      <column name="receiver_name" value="李芳" />
+      <column name="phone" value="13800138202" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="平海路124号利星名品广场6楼" />
+      <column name="longitude" valueNumeric="120.16876" />
+      <column name="latitude" valueNumeric="30.251234" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- 王伟的地址 (1个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000031" />
+      <column name="user_id" valueNumeric="1000000000000000013" />
+      <column name="receiver_name" value="王伟" />
+      <column name="phone" value="13800138203" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="中山中路533号中山中路商务楼32楼" />
+      <column name="longitude" valueNumeric="120.17012" />
+      <column name="latitude" valueNumeric="30.252345" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- 刘静的地址 (2个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000041" />
+      <column name="user_id" valueNumeric="1000000000000000014" />
+      <column name="receiver_name" value="刘静" />
+      <column name="phone" value="13800138204" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="解放东路46号金秋国际大厦18楼" />
+      <column name="longitude" valueNumeric="120.17234" />
+      <column name="latitude" valueNumeric="30.256789" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000042" />
+      <column name="user_id" valueNumeric="1000000000000000014" />
+      <column name="receiver_name" value="刘静" />
+      <column name="phone" value="13800138204" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="延安路178号平安金融中心55楼" />
+      <column name="longitude" valueNumeric="120.16789" />
+      <column name="latitude" valueNumeric="30.258901" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- 陈强的地址 (3个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000051" />
+      <column name="user_id" valueNumeric="1000000000000000015" />
+      <column name="receiver_name" value="陈强" />
+      <column name="phone" value="13800138205" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="西湖区" />
+      <column name="district_code" value="330106" />
+      <column name="detail_address" value="西湖大道1号黄龙国际中心A座22楼" />
+      <column name="longitude" valueNumeric="120.15890" />
+      <column name="latitude" valueNumeric="30.267890" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000052" />
+      <column name="user_id" valueNumeric="1000000000000000015" />
+      <column name="receiver_name" value="陈强" />
+      <column name="phone" value="13800138205" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="滨江区" />
+      <column name="district_code" value="330108" />
+      <column name="detail_address" value="江南大道588号恒生科技园12号楼8楼" />
+      <column name="longitude" valueNumeric="120.21098" />
+      <column name="latitude" valueNumeric="30.209876" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000053" />
+      <column name="user_id" valueNumeric="1000000000000000015" />
+      <column name="receiver_name" value="陈强" />
+      <column name="phone" value="13800138205" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="解放东路1号高德置地广场写字楼10楼" />
+      <column name="longitude" valueNumeric="120.17123" />
+      <column name="latitude" valueNumeric="30.253456" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- 杨梅的地址 (1个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000061" />
+      <column name="user_id" valueNumeric="1000000000000000016" />
+      <column name="receiver_name" value="杨梅" />
+      <column name="phone" value="13800138206" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="延安路98号西湖时代广场W3区18楼" />
+      <column name="longitude" valueNumeric="120.16789" />
+      <column name="latitude" valueNumeric="30.249876" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- 赵磊的地址 (2个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000071" />
+      <column name="user_id" valueNumeric="1000000000000000017" />
+      <column name="receiver_name" value="赵磊" />
+      <column name="phone" value="13800138207" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="庆春路150号西子国际中心25楼" />
+      <column name="longitude" valueNumeric="120.16987" />
+      <column name="latitude" valueNumeric="30.261234" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000072" />
+      <column name="user_id" valueNumeric="1000000000000000017" />
+      <column name="receiver_name" value="赵磊" />
+      <column name="phone" value="13800138207" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="体育场路333号保利国际中心35楼" />
+      <column name="longitude" valueNumeric="120.17234" />
+      <column name="latitude" valueNumeric="30.265678" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- 孙丽的地址 (3个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000081" />
+      <column name="user_id" valueNumeric="1000000000000000018" />
+      <column name="receiver_name" value="孙丽" />
+      <column name="phone" value="13800138208" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="高新路25号希格玛大厦12楼" />
+      <column name="longitude" valueNumeric="120.17456" />
+      <column name="latitude" valueNumeric="30.267890" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000082" />
+      <column name="user_id" valueNumeric="1000000000000000018" />
+      <column name="receiver_name" value="孙丽" />
+      <column name="phone" value="13800138208" />
+      <column name="province" value="陕西" />
+      <column name="province_code" value="61" />
+      <column name="city" value="西安市" />
+      <column name="city_code" value="6101" />
+      <column name="district" value="雁塔区" />
+      <column name="district_code" value="610113" />
+      <column name="detail_address" value="南关正街88号世纪金花大厦18楼" />
+      <column name="longitude" valueNumeric="108.94802" />
+      <column name="latitude" valueNumeric="34.228456" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000083" />
+      <column name="user_id" valueNumeric="1000000000000000018" />
+      <column name="receiver_name" value="孙丽" />
+      <column name="phone" value="13800138208" />
+      <column name="province" value="陕西" />
+      <column name="province_code" value="61" />
+      <column name="city" value="西安市" />
+      <column name="city_code" value="6101" />
+      <column name="district" value="未央区" />
+      <column name="district_code" value="610112" />
+      <column name="detail_address" value="未央路168号荣民国际金融中心28楼" />
+      <column name="longitude" valueNumeric="108.93456" />
+      <column name="latitude" valueNumeric="34.287654" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- 周涛的地址 (1个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000091" />
+      <column name="user_id" valueNumeric="1000000000000000019" />
+      <column name="receiver_name" value="周涛" />
+      <column name="phone" value="13800138209" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="中山中路1号杭州国际金融中心45楼" />
+      <column name="longitude" valueNumeric="120.17123" />
+      <column name="latitude" valueNumeric="30.256789" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- 吴芳的地址 (2个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000101" />
+      <column name="user_id" valueNumeric="1000000000000000020" />
+      <column name="receiver_name" value="吴芳" />
+      <column name="phone" value="13800138210" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="解放路步行街88号杭州大都会广场12楼" />
+      <column name="longitude" valueNumeric="120.16890" />
+      <column name="latitude" valueNumeric="30.248765" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000102" />
+      <column name="user_id" valueNumeric="1000000000000000020" />
+      <column name="receiver_name" value="吴芳" />
+      <column name="phone" value="13800138210" />
+      <column name="province" value="重庆" />
+      <column name="province_code" value="50" />
+      <column name="city" value="重庆市" />
+      <column name="city_code" value="5001" />
+      <column name="district" value="渝北区" />
+      <column name="district_code" value="500112" />
+      <column name="detail_address" value="钱江新城金融城1号国金中心T1栋35楼" />
+      <column name="longitude" valueNumeric="106.50456" />
+      <column name="latitude" valueNumeric="29.581234" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- 郑勇的地址 (1个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000111" />
+      <column name="user_id" valueNumeric="1000000000000000021" />
+      <column name="receiver_name" value="郑勇" />
+      <column name="phone" value="13800138211" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="凤起路219号杭州国际大厦20楼" />
+      <column name="longitude" valueNumeric="120.16789" />
+      <column name="latitude" valueNumeric="30.267890" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- 黄燕的地址 (3个) -->
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000121" />
+      <column name="user_id" valueNumeric="1000000000000000022" />
+      <column name="receiver_name" value="黄燕" />
+      <column name="phone" value="13800138212" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="钱江路688号杭州国际金融中心32楼" />
+      <column name="longitude" valueNumeric="120.21567" />
+      <column name="latitude" valueNumeric="30.256789" />
+      <column name="is_default" valueBoolean="true" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000122" />
+      <column name="user_id" valueNumeric="1000000000000000022" />
+      <column name="receiver_name" value="黄燕" />
+      <column name="phone" value="13800138212" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="庆春西路888号杭州中心广场B座18楼" />
+      <column name="longitude" valueNumeric="120.18765" />
+      <column name="latitude" valueNumeric="30.271234" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <insert tableName="addresses">
+      <column name="id" valueNumeric="1000000000000000123" />
+      <column name="user_id" valueNumeric="1000000000000000022" />
+      <column name="receiver_name" value="黄燕" />
+      <column name="phone" value="13800138212" />
+      <column name="province" value="浙江" />
+      <column name="province_code" value="33" />
+      <column name="city" value="杭州市" />
+      <column name="city_code" value="3301" />
+      <column name="district" value="上城区" />
+      <column name="district_code" value="330102" />
+      <column name="detail_address" value="文二路2号杭州高新区技术产业园12号楼8楼" />
+      <column name="longitude" valueNumeric="120.19876" />
+      <column name="latitude" valueNumeric="30.278901" />
+      <column name="is_default" valueBoolean="false" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+  </changeSet>
+
+  <changeSet id="v1.0.2-comprehensive-test-data-2" author="aqua-rush">
+    <!-- ==================== Products ==================== -->
+    <!-- Product 1: 农夫山泉 天然矿泉水 550ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000001" />
+      <column name="name" value="农夫山泉 天然矿泉水 550ml" />
+      <column name="price_cents" valueNumeric="200" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;, &quot;https://images.unsplash.com/photo-1596484989008-0a4938d2b5c7?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="农夫山泉天然矿泉水，源自深层地下水源，经过天然过滤，富含多种矿物质和微量元素。水质清冽甘甜，是您日常补水的理想选择。" />
+      <column name="stock_quantity" valueNumeric="1000" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 2: 怡宝 纯净水 380ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000002" />
+      <column name="name" value="怡宝 纯净水 380ml" />
+      <column name="price_cents" valueNumeric="150" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="怡宝纯净水，采用多重净化工艺，去除杂质和细菌，口感纯净清爽，适合各种饮用场景。" />
+      <column name="stock_quantity" valueNumeric="800" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 3: 景田 百岁山 570ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000003" />
+      <column name="name" value="景田 百岁山 570ml" />
+      <column name="price_cents" valueNumeric="350" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="景田百岁山天然矿泉水，源自地下深层矿泉，含有丰富的偏硅酸等天然矿物元素，口感甘甜清醇。" />
+      <column name="stock_quantity" valueNumeric="600" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- ==================== Orders ==================== -->
+    <!-- Order 1: 张明的订单 -->
+    <insert tableName="orders">
+      <column name="id" valueNumeric="4000000000000000001" />
+      <column name="order_no" value="ORD202412020001" />
+      <column name="user_id" valueNumeric="1000000000000000011" />
+      <column name="product_id" valueNumeric="3000000000000000001" />
+      <column name="quantity" valueNumeric="2" />
+      <column name="total_amount_cents" valueNumeric="400" />
+      <column name="address_id" valueNumeric="2000000000000000011" />
+      <column name="delivery_address_id" valueNumeric="2000000000000000011" />
+      <column name="status" value="COMPLETED" />
+      <column name="payment_method" value="WECHAT_PAY" />
+      <column name="payment_transaction_id" value="TXN202412020001" />
+      <column name="paid_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="delivery_worker_id" valueNumeric="1000000000000000001" />
+      <column name="delivery_photos"
+        value="[&quot;https://example.com/delivery_photo1.jpg&quot;, &quot;https://example.com/delivery_photo2.jpg&quot;]" />
+      <column name="completed_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Order 2: 李芳的订单 -->
+    <insert tableName="orders">
+      <column name="id" valueNumeric="4000000000000000002" />
+      <column name="order_no" value="ORD202412020002" />
+      <column name="user_id" valueNumeric="1000000000000000012" />
+      <column name="product_id" valueNumeric="3000000000000000002" />
+      <column name="quantity" valueNumeric="3" />
+      <column name="total_amount_cents" valueNumeric="450" />
+      <column name="address_id" valueNumeric="2000000000000000021" />
+      <column name="delivery_address_id" valueNumeric="2000000000000000021" />
+      <column name="status" value="DELIVERING" />
+      <column name="payment_method" value="WECHAT_PAY" />
+      <column name="payment_transaction_id" value="TXN202412020002" />
+      <column name="paid_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="delivery_worker_id" valueNumeric="1000000000000000002" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Order 3: 王伟的订单 -->
+    <insert tableName="orders">
+      <column name="id" valueNumeric="4000000000000000003" />
+      <column name="order_no" value="ORD202412020003" />
+      <column name="user_id" valueNumeric="1000000000000000013" />
+      <column name="product_id" valueNumeric="3000000000000000003" />
+      <column name="quantity" valueNumeric="1" />
+      <column name="total_amount_cents" valueNumeric="350" />
+      <column name="address_id" valueNumeric="2000000000000000031" />
+      <column name="delivery_address_id" valueNumeric="2000000000000000031" />
+      <column name="status" value="PENDING_DELIVERY" />
+      <column name="payment_method" value="WECHAT_PAY" />
+      <column name="payment_transaction_id" value="TXN202412020003" />
+      <column name="paid_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- ==================== Order Items ==================== -->
+    <!-- Order Item 1: 张明订单的商品项 -->
+    <insert tableName="order_items">
+      <column name="id" valueNumeric="5000000000000000001" />
+      <column name="order_id" valueNumeric="4000000000000000001" />
+      <column name="product_id" valueNumeric="3000000000000000001" />
+      <column name="quantity" valueNumeric="2" />
+      <column name="unit_price_cents" valueNumeric="200" />
+      <column name="total_price_cents" valueNumeric="400" />
+      <column name="product_snapshot"
+        value="{&quot;id&quot;:3000000000000000001,&quot;name&quot;:&quot;农夫山泉 天然矿泉水 550ml&quot;,&quot;price_cents&quot;:200,&quot;thumbnail_url&quot;:&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop&quot;,&quot;status&quot;:&quot;ACTIVE&quot;}" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Order Item 2: 李芳订单的商品项 -->
+    <insert tableName="order_items">
+      <column name="id" valueNumeric="5000000000000000002" />
+      <column name="order_id" valueNumeric="4000000000000000002" />
+      <column name="product_id" valueNumeric="3000000000000000002" />
+      <column name="quantity" valueNumeric="3" />
+      <column name="unit_price_cents" valueNumeric="150" />
+      <column name="total_price_cents" valueNumeric="450" />
+      <column name="product_snapshot"
+        value="{&quot;id&quot;:3000000000000000002,&quot;name&quot;:&quot;怡宝 纯净水 380ml&quot;,&quot;price_cents&quot;:150,&quot;thumbnail_url&quot;:&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop&quot;,&quot;status&quot;:&quot;ACTIVE&quot;}" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Order Item 3: 王伟订单的商品项 -->
+    <insert tableName="order_items">
+      <column name="id" valueNumeric="5000000000000000003" />
+      <column name="order_id" valueNumeric="4000000000000000003" />
+      <column name="product_id" valueNumeric="3000000000000000003" />
+      <column name="quantity" valueNumeric="1" />
+      <column name="unit_price_cents" valueNumeric="350" />
+      <column name="total_price_cents" valueNumeric="350" />
+      <column name="product_snapshot"
+        value="{&quot;id&quot;:3000000000000000003,&quot;name&quot;:&quot;景田 百岁山 570ml&quot;,&quot;price_cents&quot;:350,&quot;thumbnail_url&quot;:&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop&quot;,&quot;status&quot;:&quot;ACTIVE&quot;}" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+  </changeSet>
 
 </databaseChangeLog>

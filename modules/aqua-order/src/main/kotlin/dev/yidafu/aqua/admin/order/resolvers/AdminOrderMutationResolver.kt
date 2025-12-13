@@ -20,7 +20,6 @@
 package dev.yidafu.aqua.admin.order.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
-import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.graphql.generated.Order
@@ -34,7 +33,7 @@ import org.springframework.stereotype.Controller
 
 @AdminService
 @Controller("adminOrderMutationResolver")
-class OrderMutationResolver(
+class AdminOrderMutationResolver(
   private val orderService: OrderService,
 ) {
 

@@ -90,7 +90,7 @@ class ClientPaymentQueryResolver(
             paidAt = LocalDateTime.now(),
             refundAmount = null,
             refundedAt = null,
-            status = PaymentStatus.Success,
+            status = PaymentStatus.SUCCESS,
             transactionId = transactionId,
             updatedAt = LocalDateTime.now()
         )
@@ -154,9 +154,9 @@ class ClientPaymentQueryResolver(
         return RefundEligibility(
             eligible = true,
             orderId = orderId,
-            orderAmount = BigDecimal.ZERO,
-            paidAmount = BigDecimal.ZERO,
-            refundableAmount = BigDecimal.ZERO,
+            orderAmount = 0L,
+            paidAmount = 0L,
+            refundableAmount = 0L,
             refundReason = "符合退款条件",
             deadline = LocalDateTime.now().plusDays(7),
             refundPolicy = "7天无理由退款"
@@ -171,7 +171,7 @@ class ClientPaymentQueryResolver(
         // TODO: 实现从paymentService获取可用支付方式
         // 目前返回微信支付
         return listOf(
-          PaymentMethod.WechatPay
+          PaymentMethod.WECHAT_PAY
         )
     }
 

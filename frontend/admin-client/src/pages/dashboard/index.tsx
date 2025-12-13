@@ -5,7 +5,7 @@ import { ShoppingCartOutlined, DollarOutlined, UserOutlined } from '@ant-design/
 const Dashboard: React.FC = () => {
   return (
     <div>
-      <h1>仪表盘</h1>
+      <h1 className="text-3xl font-bold text-blue-500">仪表盘</h1>
       <Row gutter={16} style={{ marginTop: 24 }}>
         <Col span={8}>
           <Card>
