@@ -1,11 +1,19 @@
 import React from 'react';
 import { Table, Button, Space } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
+import { formatAdminTableAmount } from '../utils/money.ts';
 
 const Products: React.FC = () => {
   const columns = [
     { title: '产品名称', dataIndex: 'name', key: 'name' },
-    { title: '价格', dataIndex: 'price', key: 'price' },
+    {
+      title: '价格',
+      dataIndex: 'price',
+      key: 'price',
+      render: (price: number | null | undefined) => (
+        <span>{formatAdminTableAmount(price)}</span>
+      ),
+    },
     { title: '库存', dataIndex: 'stock', key: 'stock' },
     { title: '状态', dataIndex: 'status', key: 'status' },
     {

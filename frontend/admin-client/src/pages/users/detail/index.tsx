@@ -1,8 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Card,
-  Row,
+  Card, Row,
   Col,
   Statistic,
   Tag,
@@ -10,9 +9,11 @@ import {
   Button,
   Table,
   Spin,
-  message,
   Descriptions,
   Typography,
+  Empty,
+  Tabs,
+
 } from 'antd';
 import {
   UserOutlined,
@@ -20,7 +21,6 @@ import {
   ShoppingOutlined,
   DollarOutlined,
   CalendarOutlined,
-  EnvironmentOutlined,
 } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import {
@@ -30,8 +30,11 @@ import {
 import type {
   User,
   Order,
+  Address,
 } from '../../../types/graphql';
 import { OrderStatus } from '../../../types/graphql';
+import { formatAdminTableAmount, centsToYuan } from '../../../utils/money';
+import AddressListUsingList from '../components/AddressListUsingList';
 
 const { Title, Text } = Typography;
 
@@ -39,7 +42,7 @@ const UserDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  const userId = id ? parseInt(id, 10) : undefined;
+  const userId = id;
 
   // Query for user basic info
   const {
@@ -56,7 +59,6 @@ const UserDetailPage: React.FC = () => {
   const {
     data: ordersData,
     loading: ordersLoading,
-    error: ordersError,
   } = useQuery(USER_ORDERS_QUERY, {
     variables: { userId },
     skip: !userId,
@@ -64,6 +66,7 @@ const UserDetailPage: React.FC = () => {
   });
 
   const user: User | undefined = userData?.user;
+  const userAddresses: Address[] = userData?.userAddresses || [];
   const orders: Order[] = ordersData?.ordersByUser || [];
 
   const getStatusColor = (status: OrderStatus) => {
@@ -137,7 +140,9 @@ const UserDetailPage: React.FC = () => {
       dataIndex: 'amount',
       key: 'amount',
       width: 120,
-      render: (amount: number) => `¥${amount}`,
+      render: (amount: number | null | undefined) => (
+        <span>{formatAdminTableAmount(amount)}</span>
+      ),
     },
     {
       title: '收货地址',
@@ -207,11 +212,28 @@ const UserDetailPage: React.FC = () => {
 
   // Calculate statistics
   const totalOrders = orders.length;
-  const totalAmount = orders.reduce((sum, order) => sum + Number(order.amount), 0);
+  const totalAmount = orders.reduce((sum, order) => sum + (order.amount || 0), 0);
+  const totalAmountInYuan = centsToYuan(totalAmount);
   const completedOrders = orders.filter(order => order.status === OrderStatus.DELIVERED).length;
   const lastOrderTime = orders.length > 0
     ? new Date(Math.max(...orders.map(order => new Date(order.createdAt).getTime()))).toLocaleString()
     : '暂无订单';
+
+  // Handle address actions
+  const handleEditAddress = (id: string) => {
+    console.log('Edit address:', id);
+    // Implement edit address logic here
+  };
+
+  const handleDeleteAddress = (id: string) => {
+    console.log('Delete address:', id);
+    // Implement delete address logic here
+  };
+
+  const handleSetDefaultAddress = (id: string) => {
+    console.log('Set default address:', id);
+    // Implement set default address logic here
+  };
 
   if (userLoading) {
     return (
@@ -233,14 +255,57 @@ const UserDetailPage: React.FC = () => {
     );
   }
 
+  const tabItems = [
+    {
+      key: 'address',
+      label: '收货地址',
+      children: (
+        <>
+          {userAddresses && userAddresses.length > 0 ? (
+            <AddressListUsingList
+              addresses={userAddresses}
+              loading={userLoading}
+              onEdit={handleEditAddress}
+              onDelete={handleDeleteAddress}
+              onSetDefault={handleSetDefaultAddress}
+            />
+          ) : (
+            <Empty description="暂无收货地址" />
+          )}
+        </>
+      )
+    }, {
+      key: 'order',
+      label: '订单记录',
+      children: (
+        <Table
+          columns={orderColumns}
+          dataSource={orders}
+          rowKey="id"
+          loading={ordersLoading}
+          pagination={{
+            pageSize: 10,
+            showSizeChanger: true,
+            showQuickJumper: true,
+            showTotal: (total, range) =>
+              `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
+          }}
+          scroll={{ x: 1400 }}
+          locale={{
+            emptyText: '该用户暂无订单记录',
+          }}
+        />
+      )
+    }
+  ]
+
   return (
-    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+    <div style={{  minHeight: '100vh' }}>
       {/* Header with back button */}
-      <div style={{ marginBottom: '24px' }}>
-        <Button onClick={() => navigate('/users')} style={{ marginBottom: '16px' }}>
+      <div style={{ marginBottom: '12px' }}>
+        <Button onClick={() => navigate('/users')} >
           ← 返回用户列表
         </Button>
-        <Title level={2} style={{ margin: 0 }}>用户详情</Title>
       </div>
 
       {/* Basic Information Card */}
@@ -256,6 +321,11 @@ const UserDetailPage: React.FC = () => {
           </Col>
           <Col span={20}>
             <Descriptions title="基本信息" column={3}>
+
+              <Descriptions.Item label="用户ID">
+                 {user.id || '未绑定'}
+              </Descriptions.Item>
+
               <Descriptions.Item label="昵称">
                 {user.nickname || '未设置'}
               </Descriptions.Item>
@@ -265,6 +335,15 @@ const UserDetailPage: React.FC = () => {
               <Descriptions.Item label="微信OpenID">
                 {user.wechatOpenId}
               </Descriptions.Item>
+
+              <Descriptions.Item label="账户状态">
+                <Tag color="success">正常</Tag>
+              </Descriptions.Item>
+
+              <Descriptions.Item label="最近下单时间">
+                <CalendarOutlined /> {new Date(lastOrderTime).toLocaleString()}
+              </Descriptions.Item>
+
               <Descriptions.Item label="注册时间">
                 <CalendarOutlined /> {new Date(user.createdAt).toLocaleString()}
               </Descriptions.Item>
@@ -275,6 +354,7 @@ const UserDetailPage: React.FC = () => {
           </Col>
         </Row>
       </Card>
+
 
       {/* Statistics Cards */}
       <Row gutter={16} style={{ marginBottom: '24px' }}>
@@ -292,7 +372,7 @@ const UserDetailPage: React.FC = () => {
           <Card>
             <Statistic
               title="总消费金额"
-              value={totalAmount}
+              value={totalAmountInYuan}
               prefix={<DollarOutlined />}
               precision={2}
               valueStyle={{ color: '#f5222d' }}
@@ -313,77 +393,20 @@ const UserDetailPage: React.FC = () => {
         <Col span={6}>
           <Card>
             <Statistic
-              title="最近下单时间"
-              value={lastOrderTime}
-              prefix={<CalendarOutlined />}
-              valueStyle={{ fontSize: '14px', color: '#666' }}
+              title="平均订单金额"
+              value={totalOrders > 0 ? totalAmountInYuan / totalOrders : 0}
+              prefix={<DollarOutlined />}
+              precision={2}
+              suffix="元"
+              valueStyle={{ color: '#f5222d' }}
             />
           </Card>
         </Col>
       </Row>
 
-      {/* Order History */}
-      <Card title="订单历史" style={{ marginBottom: '24px' }}>
-        <Table
-          columns={orderColumns}
-          dataSource={orders}
-          rowKey="id"
-          loading={ordersLoading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
-          }}
-          scroll={{ x: 1400 }}
-          locale={{
-            emptyText: '该用户暂无订单记录',
-          }}
-        />
-      </Card>
+      <Tabs items={ tabItems}>
+      </Tabs>
 
-      {/* Additional Information */}
-      <Row gutter={16}>
-        <Col span={12}>
-          <Card title="消费统计">
-            <Row gutter={16}>
-              <Col span={12}>
-                <Statistic
-                  title="平均订单金额"
-                  value={totalOrders > 0 ? totalAmount / totalOrders : 0}
-                  prefix={<DollarOutlined />}
-                  precision={2}
-                  suffix="元"
-                />
-              </Col>
-              <Col span={12}>
-                <Statistic
-                  title="订单完成率"
-                  value={totalOrders > 0 ? (completedOrders / totalOrders) * 100 : 0}
-                  precision={1}
-                  suffix="%"
-                />
-              </Col>
-            </Row>
-          </Card>
-        </Col>
-        <Col span={12}>
-          <Card title="账户信息">
-            <Descriptions column={1}>
-              <Descriptions.Item label="用户ID">
-                {user.id}
-              </Descriptions.Item>
-              <Descriptions.Item label="用户类型">
-                <Tag color="blue">普通用户</Tag>
-              </Descriptions.Item>
-              <Descriptions.Item label="账户状态">
-                <Tag color="success">正常</Tag>
-              </Descriptions.Item>
-            </Descriptions>
-          </Card>
-        </Col>
-      </Row>
     </div>
   );
 };

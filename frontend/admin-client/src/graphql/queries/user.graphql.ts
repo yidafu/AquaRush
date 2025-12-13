@@ -24,30 +24,33 @@ export const GET_USERS_QUERY = gql`
 `;
 
 export const GET_USER_DETAIL_QUERY = gql`
-  query GetUserDetail($id: Long!) {
-    user(id: $id) {
-      id
-      wechatOpenId
-      nickname
-      phone
-      avatarUrl
-      status
-      addresses {
-        id
-        receiverName
-        phone
-        province
-        city
-        district
-        detailAddress
-        isDefault
-        createdAt
-        updatedAt
-      }
-      createdAt
-      updatedAt
-    }
+query GetUserDetail($id: Long!) {
+  user(id: $id) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+    __typename
   }
+  userAddresses(userId: $id) {
+    id
+    province
+    provinceCode
+    city
+    cityCode
+    district
+    districtCode
+    receiverName
+    phone
+    detailAddress
+    longitude
+    latitude
+    isDefault
+  }
+}
 `;
 
 export const GET_ADMINS_QUERY = gql`
@@ -95,7 +98,7 @@ export const DELIVERY_WORKER_DETAIL_QUERY = gql`
       name
       phone
       avatarUrl
-      status
+      onlineStatus
       rating
       totalOrders
       completedOrders
@@ -129,7 +132,7 @@ export const DELIVERY_WORKER_STATISTICS_QUERY = gql`
 `;
 
 export const DELIVERY_WORKER_ORDERS_QUERY = gql`
-  query GetDeliveryWorkerOrders($deliveryWorkerId: Long!, $status: OrderStatus) {
+  query GetDeliveryWorkerOrders($deliveryWorkerId: Long!, $status: OrderStatus!) {
     ordersByUserAndStatus(userId: $deliveryWorkerId, status: $status) {
       id
       orderNumber

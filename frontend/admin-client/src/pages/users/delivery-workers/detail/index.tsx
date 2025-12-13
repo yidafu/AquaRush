@@ -11,9 +11,9 @@ import {
   Tabs,
   Table,
   Spin,
-  message,
   Descriptions,
   Progress,
+  Popover,
 } from 'antd';
 import {
   UserOutlined,
@@ -21,10 +21,10 @@ import {
   EnvironmentOutlined,
   StarOutlined,
   TrophyOutlined,
-  DollarOutlined,
   ShoppingOutlined,
   CheckCircleOutlined,
   ClockCircleOutlined,
+  InfoCircleOutlined,
 } from '@ant-design/icons';
 import type { TabsProps } from 'antd';
 import { useQuery } from '@apollo/client';
@@ -38,6 +38,7 @@ import type {
   DeliveryWorkerStatisticsResponse,
   Order,
 } from '../../../../types/graphql';
+import { formatAdminTableAmount } from '../../../../utils/money';
 import { OrderStatus } from '../../../../types/graphql';
 
 
@@ -46,7 +47,20 @@ const DeliveryWorkerDetailPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string>('delivering');
 
-  const deliveryWorkerId = id ? parseInt(id, 10) : undefined;
+  const deliveryWorkerId = id;
+
+  const getTabStatus = (tabKey: string): OrderStatus | undefined => {
+    switch (tabKey) {
+      case 'delivering':
+        return OrderStatus.OUT_FOR_DELIVERY;
+      case 'pending':
+        return OrderStatus.READY_FOR_DELIVERY;
+      case 'completed':
+        return OrderStatus.DELIVERED;
+      default:
+        return undefined;
+    }
+  };
 
   // Query for delivery worker basic info
   const {
@@ -100,19 +114,6 @@ const DeliveryWorkerDetailPage: React.FC = () => {
 
   const handleTabChange = (key: string) => {
     setActiveTab(key);
-  };
-
-  const getTabStatus = (tabKey: string): OrderStatus | undefined => {
-    switch (tabKey) {
-      case 'delivering':
-        return OrderStatus.OUT_FOR_DELIVERY;
-      case 'pending':
-        return OrderStatus.READY_FOR_DELIVERY;
-      case 'completed':
-        return OrderStatus.DELIVERED;
-      default:
-        return undefined;
-    }
   };
 
   const getStatusColor = (status: OrderStatus) => {
@@ -180,7 +181,9 @@ const DeliveryWorkerDetailPage: React.FC = () => {
       dataIndex: 'amount',
       key: 'amount',
       width: 100,
-      render: (amount: number) => `¥${amount}`,
+      render: (amount: number | null | undefined) => (
+        <span>{formatAdminTableAmount(amount)}</span>
+      ),
     },
     {
       title: '收货地址',
@@ -333,13 +336,12 @@ const DeliveryWorkerDetailPage: React.FC = () => {
     : 0;
 
   return (
-    <div style={{ padding: '24px', background: '#f0f2f5', minHeight: '100vh' }}>
+    <div style={{  minHeight: '100vh' }}>
       {/* Header with back button */}
-      <div style={{ marginBottom: '24px' }}>
-        <Button onClick={() => navigate('/users')} style={{ marginBottom: '16px' }}>
+      <div style={{ marginBottom: '12px' }}>
+        <Button onClick={() => navigate('/users')}>
           ← 返回用户列表
         </Button>
-        <h1 style={{ margin: 0, fontSize: '28px' }}>送水员详情</h1>
       </div>
 
       {/* Basic Information Card */}
@@ -402,84 +404,52 @@ const DeliveryWorkerDetailPage: React.FC = () => {
             />
           </Card>
         </Col>
+
+
         <Col span={6}>
           <Card>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '14px', color: '#999', marginBottom: '8px' }}>
-                完成率
-              </div>
-              <Progress
-                type="circle"
-                percent={Math.round(completionRate)}
-                format={(percent) => `${percent}%`}
-                strokeColor={{
-                  '0%': '#108ee9',
-                  '100%': '#87d068',
-                }}
-              />
-            </div>
+
+            <Statistic
+              title={(
+                <Popover content={(<div>
+                  {Object.entries(statistics?.ratingDistribution || {}).map(([rating, count]) => (
+                    <div key={rating} style={{ marginBottom: '4px' }}>
+                      <span style={{ width: '40px', display: 'inline-block' }}>
+                        {rating}星
+                      </span>
+                      <Progress
+                        percent={(count as number / (statistics?.totalReviews ?? 1)) * 100}
+                        showInfo={false}
+                        strokeColor="#faad14"
+                        style={{ width: '100px', display: 'inline-block', marginLeft: '8px' }}
+                      />
+                      <span style={{ marginLeft: '8px' }}>{count}</span>
+                    </div>
+                  ))}
+                </div>)} title='评分分布'>
+                  平均评分<InfoCircleOutlined />
+                </Popover>
+              )}
+              value={statistics?.averageRating ?? 0}
+              prefix={<StarOutlined />}
+              precision={2}
+              valueStyle={{ color: '#faad14' }}
+              suffix={`/ 5.0`}
+            />
           </Card>
+
         </Col>
         <Col span={6}>
           <Card>
             <Statistic
-              title="总收入"
-              value={deliveryWorker.earning || 0}
-              prefix={<DollarOutlined />}
-              precision={2}
-              valueStyle={{ color: '#f5222d' }}
-              suffix="元"
+              title="总评价数"
+              value={statistics?.totalReviews}
+              prefix={<TrophyOutlined />}
+              valueStyle={{ color: '#722ed1' }}
             />
           </Card>
         </Col>
       </Row>
-
-      {/* Rating Statistics */}
-      {statistics && (
-        <Card title="评分统计" style={{ marginBottom: '24px' }}>
-          <Row gutter={16}>
-            <Col span={8}>
-              <Statistic
-                title="平均评分"
-                value={statistics.averageRating}
-                prefix={<StarOutlined />}
-                precision={2}
-                valueStyle={{ color: '#faad14' }}
-                suffix={`/ 5.0`}
-              />
-            </Col>
-            <Col span={8}>
-              <Statistic
-                title="总评价数"
-                value={statistics.totalReviews}
-                prefix={<TrophyOutlined />}
-                valueStyle={{ color: '#722ed1' }}
-              />
-            </Col>
-            <Col span={8}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '14px', color: '#999', marginBottom: '8px' }}>
-                  评分分布
-                </div>
-                {Object.entries(statistics.ratingDistribution || {}).map(([rating, count]) => (
-                  <div key={rating} style={{ marginBottom: '4px' }}>
-                    <span style={{ width: '40px', display: 'inline-block' }}>
-                      {rating}星
-                    </span>
-                    <Progress
-                      percent={(count as number / statistics.totalReviews) * 100}
-                      showInfo={false}
-                      strokeColor="#faad14"
-                      style={{ width: '100px', display: 'inline-block', marginLeft: '8px' }}
-                    />
-                    <span style={{ marginLeft: '8px' }}>{count}</span>
-                  </div>
-                ))}
-              </div>
-            </Col>
-          </Row>
-        </Card>
-      )}
 
       {/* Order Tabs */}
       <Card>

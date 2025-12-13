@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import type { DeliveryWorker, TableActionProps } from './types';
 import { WORKER_STATUS_MAPPINGS } from './types';
+import { formatAdminTableAmount } from '../../../utils/money';
 
 interface DeliveryWorkerTableProps extends TableActionProps {
   data: DeliveryWorker[];
@@ -121,15 +122,11 @@ const DeliveryWorkerTable: React.FC<DeliveryWorkerTableProps> = ({
       dataIndex: 'earning',
       key: 'earning',
       width: 100,
-      render: (earning: number) => {
-        const earningValue = Number(earning || 0);
-        const validEarning = isNaN(earningValue) ? 0 : earningValue;
-        return (
-          <span style={{ fontWeight: 'bold', color: '#52c41a' }}>
-            ¥{validEarning.toFixed(2)}
-          </span>
-        );
-      },
+      render: (earning: number | null | undefined) => (
+        <span style={{ fontWeight: 'bold', color: '#52c41a' }}>
+          {formatAdminTableAmount(earning)}
+        </span>
+      ),
     },
     {
       title: '当前位置',
