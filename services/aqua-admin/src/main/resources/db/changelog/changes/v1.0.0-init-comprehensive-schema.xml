@@ -314,6 +314,9 @@
             <column name="id" type="bigint" autoIncrement="true">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
             <column name="wechat_openid" type="varchar(128)">
                 <constraints nullable="false" unique="true"/>
             </column>
@@ -323,7 +326,22 @@
             <column name="phone" type="varchar(20)">
                 <constraints nullable="false" unique="true"/>
             </column>
+            <column name="avatar_url" type="varchar(512)"/>
             <column name="online_status" type="varchar(20)" defaultValue="OFFLINE">
+                <constraints nullable="false"/>
+            </column>
+            <column name="coordinates" type="jsonb"/>
+            <column name="current_location" type="jsonb"/>
+            <column name="rating" type="double"/>
+            <column name="total_orders" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="completed_orders" type="integer" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+            <column name="average_rating" type="double"/>
+            <column name="earning" type="double"/>
+            <column name="is_available" type="boolean" defaultValueBoolean="true">
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
@@ -334,12 +352,49 @@
             </column>
         </createTable>
 
+        <createIndex tableName="delivery_workers" indexName="idx_worker_user_id">
+            <column name="user_id"/>
+        </createIndex>
         <createIndex tableName="delivery_workers" indexName="idx_worker_openid">
             <column name="wechat_openid"/>
         </createIndex>
         <createIndex tableName="delivery_workers" indexName="idx_worker_status">
             <column name="online_status"/>
         </createIndex>
+
+        <addForeignKeyConstraint
+            baseTableName="delivery_workers"
+            baseColumnNames="user_id"
+            referencedTableName="users"
+            referencedColumnNames="id"
+            constraintName="fk_delivery_workers_user_id"
+            onDelete="CASCADE"/>
+
+        <sql>
+            ALTER TABLE delivery_workers
+            ADD CONSTRAINT chk_worker_status
+            CHECK (online_status IN ('ONLINE', 'OFFLINE'));
+
+            ALTER TABLE delivery_workers
+            ADD CONSTRAINT chk_rating_positive
+            CHECK (rating IS NULL OR rating >= 0);
+
+            ALTER TABLE delivery_workers
+            ADD CONSTRAINT chk_total_orders_non_negative
+            CHECK (total_orders >= 0);
+
+            ALTER TABLE delivery_workers
+            ADD CONSTRAINT chk_completed_orders_non_negative
+            CHECK (completed_orders >= 0);
+
+            ALTER TABLE delivery_workers
+            ADD CONSTRAINT chk_average_rating_positive
+            CHECK (average_rating IS NULL OR average_rating >= 0);
+
+            ALTER TABLE delivery_workers
+            ADD CONSTRAINT chk_earning_non_negative
+            CHECK (earning IS NULL OR earning >= 0);
+        </sql>
     </changeSet>
 
     <changeSet id="1.0.0-create-delivery-area-table" author="aqua-rush">

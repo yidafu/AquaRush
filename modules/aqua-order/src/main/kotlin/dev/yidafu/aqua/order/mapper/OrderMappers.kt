@@ -23,6 +23,7 @@ import dev.yidafu.aqua.api.dto.CreateOrderRequest
 import dev.yidafu.aqua.common.domain.model.DeliveryAddressModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
+import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.DeliveryAddress
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
@@ -264,7 +265,7 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
         detailImages = null,
         price = from.amount,
         stock = 1,
-        status = dev.yidafu.aqua.common.graphql.generated.ProductStatus.Online,
+        status = dev.yidafu.aqua.common.graphql.generated.ProductStatus.ONLINE,
         createdAt = from.createdAt,
         updatedAt = from.updatedAt,
       )
@@ -318,12 +319,12 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       quantity = from.quantity,
       status =
         when (from.status.name) {
-          "PENDING_PAYMENT" -> dev.yidafu.aqua.common.graphql.generated.OrderStatus.Pending
-          "PENDING_DELIVERY" -> dev.yidafu.aqua.common.graphql.generated.OrderStatus.Pending
-          "DELIVERING" -> dev.yidafu.aqua.common.graphql.generated.OrderStatus.OutForDelivery
-          "COMPLETED" -> dev.yidafu.aqua.common.graphql.generated.OrderStatus.Delivered
-          "CANCELLED" -> dev.yidafu.aqua.common.graphql.generated.OrderStatus.Cancelled
-          else -> dev.yidafu.aqua.common.graphql.generated.OrderStatus.Pending
+          "PENDING_PAYMENT" -> OrderStatusG.PENDING
+          "PENDING_DELIVERY" -> OrderStatusG.PENDING
+          "DELIVERING" -> OrderStatusG.OUT_FOR_DELIVERY
+          "COMPLETED" -> OrderStatusG.DELIVERED
+          "CANCELLED" -> OrderStatusG.CANCELLED
+          else -> OrderStatusG.PENDING
         },
       updatedAt = from.updatedAt,
       address = placeholderAddress,

@@ -88,7 +88,7 @@ class AdminProductQueryResolver(
         size: Int = 20
     ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
-        return productService.findByStatus(ProductStatus.Online, pageable)
+        return productService.findByStatus(ProductStatus.ONLINE, pageable)
     }
 
     /**
@@ -100,7 +100,7 @@ class AdminProductQueryResolver(
         size: Int = 20
     ): Page<ProductModel> {
         val pageable: Pageable = PageRequest.of(page, size)
-        return productService.findByStatus(ProductStatus.Offline, pageable)
+        return productService.findByStatus(ProductStatus.OFFLINE, pageable)
     }
 
     /**
@@ -149,8 +149,8 @@ class AdminProductQueryResolver(
     @PreAuthorize("hasRole('ADMIN')")
     fun productStatistics(): ProductStatistics {
         val allProducts = productService.count()
-        val onlineProducts = productService.countByStatus(ProductStatus.Online)
-        val offlineProducts = productService.countByStatus(ProductStatus.Offline)
+        val onlineProducts = productService.countByStatus(ProductStatus.ONLINE)
+        val offlineProducts = productService.countByStatus(ProductStatus.OFFLINE)
         val lowStockProducts = productService.countLowStockProducts(10)
 
         return ProductStatistics(

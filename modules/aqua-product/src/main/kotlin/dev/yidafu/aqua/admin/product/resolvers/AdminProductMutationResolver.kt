@@ -201,11 +201,11 @@ class AdminProductMutationResolver(
             val product = productService.findById(id)
                 ?: throw BadRequestException("产品不存在: $id")
 
-            if (product.status == ProductStatus.Online) {
+            if (product.status == ProductStatus.ONLINE) {
                 throw BadRequestException("产品已上线")
             }
 
-            productService.updateProductStatus(id, ProductStatus.Online)
+            productService.updateProductStatus(id, ProductStatus.ONLINE)
             logger.info("Successfully online product: $id")
             productService.findById(id)!!
         } catch (e: Exception) {
@@ -224,11 +224,11 @@ class AdminProductMutationResolver(
             val product = productService.findById(id)
                 ?: throw BadRequestException("产品不存在: $id")
 
-            if (product.status == ProductStatus.Offline) {
+            if (product.status == ProductStatus.OFFLINE) {
                 throw BadRequestException("产品已下线")
             }
 
-            productService.updateProductStatus(id, ProductStatus.Offline)
+            productService.updateProductStatus(id, ProductStatus.OFFLINE)
             logger.info("Successfully offline product: $id")
             productService.findById(id)!!
         } catch (e: Exception) {

@@ -66,8 +66,8 @@ class AdminPaymentMutationResolver(
                 amount = input.amount,
                 reason = input.reason,
                 status = when (input.action) {
-                    RefundAction.Approve -> RefundStatus.Approved
-                    RefundAction.Reject -> RefundStatus.Rejected
+                    RefundAction.APPROVE -> RefundStatus.APPROVED
+                    RefundAction.REJECT -> RefundStatus.REJECTED
                 },
                 requestedAt = java.time.LocalDateTime.now(),
                 processedAt = java.time.LocalDateTime.now(),
@@ -102,7 +102,7 @@ class AdminPaymentMutationResolver(
                 userId = input.userId,
                 amount = input.amount,
                 reason = input.reason,
-                status = RefundStatus.Pending,
+                status = RefundStatus.PENDING,
                 requestedAt = java.time.LocalDateTime.now(),
                 processedAt = null,
                 processedBy = getCurrentAdminId(),

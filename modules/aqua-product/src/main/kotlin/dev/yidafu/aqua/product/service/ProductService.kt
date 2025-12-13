@@ -38,10 +38,10 @@ class ProductService(
 
   fun findAll(): List<ProductModel> = productRepository.findAll()
 
-  fun findOnlineProducts(): List<ProductModel> = productRepository.findByStatus(ProductStatus.Online)
+  fun findOnlineProducts(): List<ProductModel> = productRepository.findByStatus(ProductStatus.ONLINE)
 
   fun findOnlineProducts(pageable: Pageable): Page<ProductModel> {
-    return findByStatus(ProductStatus.Online, pageable)
+    return findByStatus(ProductStatus.ONLINE, pageable)
   }
 
   @Transactional
@@ -61,7 +61,7 @@ class ProductService(
         detailImages = detailImages,
         description = description,
         stock = stock,
-        status = ProductStatus.Offline,
+        status = ProductStatus.OFFLINE,
       )
     return productRepository.save(product)
   }
@@ -197,7 +197,7 @@ class ProductService(
     val products = productRepository.findAll().filter {
         it.detailImages?.contains(category) == true &&
         it.name.contains(keyword, ignoreCase = true) &&
-        it.status == ProductStatus.Online
+        it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -207,7 +207,7 @@ class ProductService(
 
   fun findByCategoryAndStatus(category: String, pageable: Pageable):  Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.detailImages?.contains(category) == true && it.status == ProductStatus.Online
+        it.detailImages?.contains(category) == true && it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -217,7 +217,7 @@ class ProductService(
 
   fun findByNameContainingAndStatus(keyword: String, pageable: Pageable):  Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.name.contains(keyword, ignoreCase = true) && it.status == ProductStatus.Online
+        it.name.contains(keyword, ignoreCase = true) && it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -227,7 +227,7 @@ class ProductService(
 
   fun findByPriceBetweenAndStatus(minPrice: java.math.BigDecimal, maxPrice: java.math.BigDecimal, pageable: Pageable):  Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.price >= minPrice && it.price <= maxPrice && it.status == ProductStatus.Online
+        it.price >= minPrice && it.price <= maxPrice && it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -237,7 +237,7 @@ class ProductService(
 
   fun findPopularProducts(pageable: Pageable, limit: Int):  Page<ProductModel> {
     // Simplified: just return online products ordered by name (would normally sort by popularity)
-    val products = productRepository.findByStatus(ProductStatus.Online).sortedBy { it.name }
+    val products = productRepository.findByStatus(ProductStatus.ONLINE).sortedBy { it.name }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, minOf(products.size, limit))
     val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
@@ -246,12 +246,12 @@ class ProductService(
 
   fun findNewProducts(pageable: Pageable, days: Int):  Page<ProductModel> {
     // Simplified: return all online products (would normally filter by creation date)
-    return findByStatus(ProductStatus.Online, pageable)
+    return findByStatus(ProductStatus.ONLINE, pageable)
   }
 
   fun findRecommendedProducts(pageable: Pageable, limit: Int):  Page<ProductModel> {
     // Simplified: return first few online products (would normally have recommendation logic)
-    val products = productRepository.findByStatus(ProductStatus.Online).take(limit)
+    val products = productRepository.findByStatus(ProductStatus.ONLINE).take(limit)
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
     val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
@@ -268,7 +268,7 @@ class ProductService(
 
   fun getPriceRangeStatistics(): List<dev.yidafu.aqua.client.product.resolvers.ClientProductQueryResolver.Companion.PriceRange> {
     // Simplified: return basic price ranges
-    val allProducts = productRepository.findByStatus(ProductStatus.Online)
+    val allProducts = productRepository.findByStatus(ProductStatus.ONLINE)
     val prices = allProducts.map { it.price }
 
     if (prices.isEmpty()) return emptyList()

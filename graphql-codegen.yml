@@ -32,6 +32,8 @@ generates:
       validationAnnotations: true
       generateConstructorFromInput: false
       sealedClassUnionsForInterfaces: true
+      namingConvention:
+        enumValues: change-case#upperCase
 
   # Generate TypeScript types for frontend common module
   frontend/common/src/types/graphql.ts:

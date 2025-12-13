@@ -33,40 +33,6 @@
             <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
         </insert>
 
-        <!-- ==================== Delivery Workers ==================== -->
-        <!-- Delivery Worker 1 -->
-        <insert tableName="delivery_workers">
-            <column name="id" valueNumeric="1000000000000000001"/>
-            <column name="wechat_openid" value="delivery_worker_001"/>
-            <column name="name" value="张师傅"/>
-            <column name="phone" value="13800138101"/>
-            <column name="online_status" value="ONLINE"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
-
-        <!-- Delivery Worker 2 -->
-        <insert tableName="delivery_workers">
-            <column name="id" valueNumeric="1000000000000000002"/>
-            <column name="wechat_openid" value="delivery_worker_002"/>
-            <column name="name" value="李师傅"/>
-            <column name="phone" value="13800138102"/>
-            <column name="online_status" value="ONLINE"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
-
-        <!-- Delivery Worker 3 -->
-        <insert tableName="delivery_workers">
-            <column name="id" valueNumeric="1000000000000000003"/>
-            <column name="wechat_openid" value="delivery_worker_003"/>
-            <column name="name" value="王师傅"/>
-            <column name="phone" value="13800138103"/>
-            <column name="online_status" value="OFFLINE"/>
-            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
-            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
-        </insert>
-
         <!-- ==================== Regular Users ==================== -->
         <!-- User 1: 张明 (3个地址) -->
         <insert tableName="users">
@@ -282,6 +248,64 @@
             <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
             <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
             <column name="last_login_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- ==================== Delivery Workers ==================== -->
+        <!-- Delivery Worker 1 -->
+        <insert tableName="delivery_workers">
+            <column name="id" valueNumeric="1000000000000000001"/>
+            <column name="user_id" valueNumeric="1000000000000000011"/>
+            <column name="wechat_openid" value="delivery_worker_001"/>
+            <column name="name" value="张师傅"/>
+            <column name="phone" value="13800138101"/>
+            <column name="avatar_url" value="https://example.com/avatars/delivery_worker_001.png"/>
+            <column name="online_status" value="ONLINE"/>
+            <column name="rating" valueNumeric="4.5"/>
+            <column name="total_orders" valueNumeric="156"/>
+            <column name="completed_orders" valueNumeric="148"/>
+            <column name="average_rating" valueNumeric="4.5"/>
+            <column name="earning" valueNumeric="12450.00"/>
+            <column name="is_available" valueBoolean="true"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- Delivery Worker 2 -->
+        <insert tableName="delivery_workers">
+            <column name="id" valueNumeric="1000000000000000002"/>
+            <column name="user_id" valueNumeric="1000000000000000012"/>
+            <column name="wechat_openid" value="delivery_worker_002"/>
+            <column name="name" value="李师傅"/>
+            <column name="phone" value="13800138102"/>
+            <column name="avatar_url" value="https://example.com/avatars/delivery_worker_002.png"/>
+            <column name="online_status" value="ONLINE"/>
+            <column name="rating" valueNumeric="4.8"/>
+            <column name="total_orders" valueNumeric="203"/>
+            <column name="completed_orders" valueNumeric="198"/>
+            <column name="average_rating" valueNumeric="4.8"/>
+            <column name="earning" valueNumeric="15670.00"/>
+            <column name="is_available" valueBoolean="true"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
+        </insert>
+
+        <!-- Delivery Worker 3 -->
+        <insert tableName="delivery_workers">
+            <column name="id" valueNumeric="1000000000000000003"/>
+            <column name="user_id" valueNumeric="1000000000000000013"/>
+            <column name="wechat_openid" value="delivery_worker_003"/>
+            <column name="name" value="王师傅"/>
+            <column name="phone" value="13800138103"/>
+            <column name="avatar_url" value="https://example.com/avatars/delivery_worker_003.png"/>
+            <column name="online_status" value="OFFLINE"/>
+            <column name="rating" valueNumeric="4.2"/>
+            <column name="total_orders" valueNumeric="89"/>
+            <column name="completed_orders" valueNumeric="85"/>
+            <column name="average_rating" valueNumeric="4.2"/>
+            <column name="earning" valueNumeric="6780.00"/>
+            <column name="is_available" valueBoolean="false"/>
+            <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
+            <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
         </insert>
 
         <!-- ==================== Delivery Addresses ==================== -->

@@ -21,13 +21,11 @@ package dev.yidafu.aqua.delivery.graphql.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-import dev.yidafu.aqua.common.domain.model.WorkerStatus
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
-import dev.yidafu.aqua.delivery.domain.model.DeliveryAreaModel
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
-import dev.yidafu.aqua.delivery.mapper.DeliveryAreaMapper
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
 
 import dev.yidafu.aqua.delivery.service.DeliveryService
@@ -37,7 +35,6 @@ import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import kotlin.collections.isNotEmpty
 
 @AdminService
@@ -77,7 +74,7 @@ class DeliveryWorkerMutationResolver(
         name = input.name,
         phone = input.phone,
         avatarUrl = input.avatarUrl,
-        status = WorkerStatus.OFFLINE, // Default to offline
+        onlineStatus = DeliverWorkerStatus.OFFLINE, // Default to offline
         coordinates = input.coordinates,
         currentLocation = input.currentLocation,
         rating = input.rating,
@@ -196,11 +193,11 @@ class DeliveryWorkerMutationResolver(
       throw BadRequestException("手机号码格式不正确")
     }
 
-    if (input.rating != null && input.rating!! < BigDecimal.ZERO) {
+    if (input.rating != null && input.rating!! < 0.0) {
       throw BadRequestException("评分不能为负数")
     }
 
-    if (input.earning != null && input.earning!! < BigDecimal.ZERO) {
+    if (input.earning != null && input.earning!! < 0.0) {
       throw BadRequestException("收入不能为负数")
     }
   }
@@ -239,14 +236,14 @@ class DeliveryWorkerMutationResolver(
 
     // Validate rating if provided
     input.rating?.let {
-      if (it < BigDecimal.ZERO) {
+      if (it < 0.0) {
         throw BadRequestException("评分不能为负数")
       }
     }
 
     // Validate earning if provided
     input.earning?.let {
-      if (it < BigDecimal.ZERO) {
+      if (it < 0.0) {
         throw BadRequestException("收入不能为负数")
       }
     }
@@ -270,8 +267,8 @@ data class CreateDeliveryWorkerInput(
   val avatarUrl: String?,
   val coordinates: String?,
   val currentLocation: String?,
-  val rating: BigDecimal?,
-  val earning: BigDecimal?,
+  val rating: Double?,
+  val earning: Double?,
   val isAvailable: Boolean? = true
 )
 
@@ -282,7 +279,7 @@ data class UpdateDeliveryWorkerInput(
   val avatarUrl: String?,
   val coordinates: String?,
   val currentLocation: String?,
-  val rating: BigDecimal?,
-  val earning: BigDecimal?,
+  val rating: Double?,
+  val earning: Double?,
   val isAvailable: Boolean?
 )

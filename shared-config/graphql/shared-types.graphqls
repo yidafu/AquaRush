@@ -50,7 +50,7 @@ enum UserStatus {
   DELETED
 }
 
-enum WorkerStatus {
+enum DeliveryWorkerStatus {
   ONLINE
   OFFLINE
 }
@@ -152,7 +152,7 @@ type DeliveryWorker {
   name: String!
   phone: String!
   avatarUrl: String
-  status: WorkerStatus!
+  onlineStatus: DeliveryWorkerStatus!
   coordinates: String
   currentLocation: String
   rating: BigDecimal
@@ -975,4 +975,24 @@ type RefundEligibility {
   refundReason: String
   deadline: LocalDateTime
   refundPolicy: String
+}
+
+# User Management Types for Admin
+type UserListResponse {
+  content: [User!]!
+  totalElements: Long!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+  first: Boolean!
+  last: Boolean!
+  empty: Boolean!
+}
+
+input UserListInput {
+  page: Int = 0
+  size: Int = 20
+  sort: String = "createdAt,desc"
+  search: String
+  status: UserStatus
 }

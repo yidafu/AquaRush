@@ -19,22 +19,23 @@
 
 package dev.yidafu.aqua.delivery.mapper
 
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.graphql.generated.DeliveryArea
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
-import dev.yidafu.aqua.common.graphql.generated.WorkerStatus
-import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-import dev.yidafu.aqua.common.domain.model.WorkerStatus as WorkerStatusM
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatus
 import dev.yidafu.aqua.delivery.domain.model.DeliveryAreaModel
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus as WorkerStatusM
 
 /**
  * Mapper for converting DeliveryWorkerModel domain entity to GraphQL DeliveryWorker type
  */
 object DeliveryWorkerMapper : ObjectMappie<DeliveryWorkerModel, DeliveryWorker>() {
-    override fun map(from: DeliveryWorkerModel) = mapping {
-        // Most fields map automatically by name
-      to::status fromExpression {f -> WorkerStatusMapper.map(f.status) }
+  override fun map(from: DeliveryWorkerModel) =
+    mapping {
+      to::id fromValue (from.id ?: -1L)
+      to::onlineStatus fromValue DeliveryWorkerStatusMapper.map(from.onlineStatus)
     }
 }
 
@@ -42,8 +43,12 @@ object DeliveryWorkerMapper : ObjectMappie<DeliveryWorkerModel, DeliveryWorker>(
  * Mapper for converting DeliveryWorkerModel domain entity to GraphQL DeliveryWorker type (with current user)
  */
 object DeliveryWorkerWithCurrentUserMapper : ObjectMappie<DeliveryWorkerModel, DeliveryWorker>() {
-    override fun map(from: DeliveryWorkerModel) = mapping {
-        // Note: isAvailable maps automatically
+  override fun map(from: DeliveryWorkerModel) =
+    mapping {
+      to::id fromValue (from.id ?: -1L)
+      to::onlineStatus fromValue DeliveryWorkerStatusMapper.map(from.onlineStatus)
+
+      // Note: isAvailable maps automatically
     }
 }
 
@@ -51,18 +56,20 @@ object DeliveryWorkerWithCurrentUserMapper : ObjectMappie<DeliveryWorkerModel, D
  * Mapper for converting DeliveryAreaModel domain entity to GraphQL DeliveryArea type
  */
 object DeliveryAreaMapper : ObjectMappie<DeliveryAreaModel, DeliveryArea>() {
-    override fun map(from: DeliveryAreaModel) = mapping {
-        // Most fields map automatically by name
-        // No custom mapping needed as field names match
+  override fun map(from: DeliveryAreaModel) =
+    mapping {
+      // Most fields map automatically by name
+      // No custom mapping needed as field names match
     }
 }
 
 /**
  * Enum mapper for WorkerStatus domain enum to GraphQL WorkerStatus enum
  */
-object WorkerStatusMapper : EnumMappie<WorkerStatusM, WorkerStatus>() {
-    override fun map(from: WorkerStatusM) = mapping {
-        WorkerStatus.Online fromEnumEntry WorkerStatusM.ONLINE
-        WorkerStatus.Offline fromEnumEntry WorkerStatusM.OFFLINE
+object DeliveryWorkerStatusMapper : EnumMappie<WorkerStatusM, DeliveryWorkerStatus>() {
+  override fun map(from: WorkerStatusM) =
+    mapping {
+      DeliveryWorkerStatus.ONLINE fromEnumEntry WorkerStatusM.ONLINE
+      DeliveryWorkerStatus.OFFLINE fromEnumEntry WorkerStatusM.OFFLINE
     }
 }
