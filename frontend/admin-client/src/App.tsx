@@ -9,6 +9,8 @@ import Products from './pages/products';
 import Orders from './pages/orders';
 import Delivery from './pages/delivery';
 import Statistics from './pages/statistics';
+import UserDetailPage from './pages/users/detail/index';
+import DeliveryWorkerDetailPage from './pages/users/delivery-workers/detail/index';
 
 const App: React.FC = () => {
   return (
@@ -25,6 +27,8 @@ const App: React.FC = () => {
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="users" element={<Users />} />
+        <Route path="users/:id" element={<UserDetailPage />} />
+        <Route path="users/delivery-workers/:id" element={<DeliveryWorkerDetailPage />} />
         <Route path="products" element={<Products />} />
         <Route path="orders" element={<Orders />} />
         <Route path="delivery" element={<Delivery />} />

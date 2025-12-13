@@ -26,17 +26,17 @@ import type {
   User,
 } from '../../types/graphql';
 
-// Import types and mock data for forms
+// Import types for forms
 import type { AdminFormData, DeliveryWorkerFormData, UserFormData } from './components/types';
-import { mockAdmins, mockDeliveryWorkers, mockUsers, mockDeliveryWorkerAddresses, mockUserAddresses } from './components/mockData';
 
 const Users: React.FC = () => {
   // State for tabs and data
   const [activeTab, setActiveTab] = useState<string>('admin');
+  const [loading, setLoading] = useState<boolean>(false);
 
   // GraphQL data fetching
-  const { data: adminsData, loading: adminsLoading } = useAdmins();
-  const { data: deliveryWorkersData, loading: deliveryWorkersLoading } = useDeliveryWorkers();
+  const { data: adminsData, loading: adminsLoading, refetch: refetchAdmins } = useAdmins();
+  const { data: deliveryWorkersData, loading: deliveryWorkersLoading, refetch: refetchDeliveryWorkers } = useDeliveryWorkers();
   const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useUsers();
 
   // State for modals
@@ -58,10 +58,10 @@ const Users: React.FC = () => {
   const [viewingDeliveryWorker, setViewingDeliveryWorker] = useState<any>(null);
   const [viewingUser, setViewingUser] = useState<any>(null);
 
-  // Use GraphQL data if available, otherwise fall back to mock data
-  const admins = adminsData?.admins || mockAdmins;
-  const deliveryWorkers = deliveryWorkersData?.deliveryWorkers || mockDeliveryWorkers;
-  const users = usersData?.users?.content || mockUsers;
+  // Use GraphQL data only
+  const admins = adminsData?.admins || [];
+  const deliveryWorkers = deliveryWorkersData?.deliveryWorkers || [];
+  const users = usersData?.users?.content || [];
 
   // Common action handlers
   const handleViewAdmin = (admin: Admin) => {
@@ -94,10 +94,10 @@ const Users: React.FC = () => {
     setUserFormVisible(true);
   };
 
-  const handleDeleteAdmin = (admin: any) => {
+  const handleDeleteAdmin = (admin: Admin) => {
     Modal.confirm({
       title: '确认删除',
-      content: `确定要删除管理员 ${admin.nickname || admin.username || admin.wechatOpenId} 吗？此操作不可恢复。`,
+      content: `确定要删除管理员 ${admin.username || admin.realName} 吗？此操作不可恢复。`,
       okType: 'danger',
       onOk: async () => {
         try {
@@ -123,7 +123,7 @@ const Users: React.FC = () => {
         try {
           // TODO: Call delete API
           await new Promise(resolve => setTimeout(resolve, 1000));
-          setDeliveryWorkers(deliveryWorkers.filter(w => w.id !== deliveryWorker.id));
+          await refetchDeliveryWorkers();
           message.success('送水员删除成功');
         } catch (error) {
           message.error('删除失败');
@@ -144,7 +144,7 @@ const Users: React.FC = () => {
         try {
           // TODO: Call delete API
           await new Promise(resolve => setTimeout(resolve, 1000));
-          setUsers(users.filter(u => u.id !== user.id));
+          await refetchUsers();
           message.success('用户删除成功');
         } catch (error) {
           message.error('删除失败');
@@ -183,25 +183,12 @@ const Users: React.FC = () => {
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       if (editingAdmin) {
-        // Update existing admin
-        setAdmins(admins.map(admin =>
-          admin.id === editingAdmin.id
-            ? { ...admin, ...values, updatedAt: new Date().toISOString() }
-            : admin
-        ));
         message.success('管理员更新成功');
       } else {
-        // Create new admin
-        const newAdmin: Admin = {
-          id: Math.random().toString(36).substring(7),
-          ...values,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        setAdmins([...admins, newAdmin]);
         message.success('管理员创建成功');
       }
 
+      await refetchAdmins();
       setAdminFormVisible(false);
       setEditingAdmin(null);
     } catch (error) {
@@ -214,32 +201,16 @@ const Users: React.FC = () => {
   const handleDeliveryWorkerSubmit = async (values: DeliveryWorkerFormData) => {
     setLoading(true);
     try {
-      // TODO: Call create/update API
+      // TODO: Call create/update API with values
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       if (editingDeliveryWorker) {
-        // Update existing delivery worker
-        setDeliveryWorkers(deliveryWorkers.map(worker =>
-          worker.id === editingDeliveryWorker.id
-            ? { ...worker, ...values, updatedAt: new Date().toISOString() }
-            : worker
-        ));
         message.success('送水员更新成功');
       } else {
-        // Create new delivery worker
-        const newDeliveryWorker: DeliveryWorker = {
-          id: Math.random().toString(36).substring(7),
-          userId: Math.random().toString(36).substring(7),
-          totalOrders: 0,
-          completedOrders: 0,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          ...values,
-        };
-        setDeliveryWorkers([...deliveryWorkers, newDeliveryWorker]);
         message.success('送水员创建成功');
       }
 
+      await refetchDeliveryWorkers();
       setDeliveryWorkerFormVisible(false);
       setEditingDeliveryWorker(null);
     } catch (error) {
@@ -252,30 +223,16 @@ const Users: React.FC = () => {
   const handleUserSubmit = async (values: UserFormData) => {
     setLoading(true);
     try {
-      // TODO: Call create/update API
+      // TODO: Call create/update API with values
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       if (editingUser) {
-        // Update existing user
-        setUsers(users.map(user =>
-          user.id === editingUser.id
-            ? { ...user, ...values, updatedAt: new Date().toISOString() }
-            : user
-        ));
         message.success('用户更新成功');
       } else {
-        // Create new user
-        const newUser: User = {
-          id: Math.random().toString(36).substring(7),
-          role: 'USER',
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          ...values,
-        };
-        setUsers([...users, newUser]);
         message.success('用户创建成功');
       }
 
+      await refetchUsers();
       setUserFormVisible(false);
       setEditingUser(null);
     } catch (error) {
@@ -387,11 +344,6 @@ const Users: React.FC = () => {
 
   return (
     <div style={{ padding: '24px', background: '#fff' }}>
-      <div style={{ marginBottom: 32 }}>
-        <h1 style={{ margin: 0, fontSize: 40, marginBottom: 8 }}>用户管理</h1>
-        <p style={{ margin: 0, color: '#666', fontSize: 16 }}>管理系统中的所有用户账户</p>
-      </div>
-
       <Tabs
         activeKey={activeTab}
         onChange={setActiveTab}
@@ -453,7 +405,7 @@ const Users: React.FC = () => {
           setViewingDeliveryWorker(null);
         }}
         deliveryWorker={viewingDeliveryWorker}
-        addresses={viewingDeliveryWorker ? mockDeliveryWorkerAddresses[viewingDeliveryWorker.id] || [] : []}
+        addresses={[]}
         loading={deliveryWorkersLoading}
       />
 
@@ -464,7 +416,7 @@ const Users: React.FC = () => {
           setViewingUser(null);
         }}
         user={viewingUser}
-        addresses={viewingUser ? mockUserAddresses[viewingUser.id] || [] : []}
+        addresses={[]}
         loading={usersLoading}
       />
     </div>
