@@ -23,9 +23,19 @@ import dev.yidafu.aqua.common.graphql.scalars.BigDecimalScalar
 import dev.yidafu.aqua.common.graphql.scalars.LocalDateTimeScalar
 import dev.yidafu.aqua.common.graphql.scalars.LongScalar
 import dev.yidafu.aqua.common.graphql.scalars.MapScalar
+import dev.yidafu.aqua.common.graphql.scalars.MoneyScalar
+import graphql.schema.GraphQLScalarType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.graphql.execution.RuntimeWiringConfigurer
+import org.springframework.stereotype.Component
+import java.lang.Long
+import kotlin.Any
+import kotlin.String
+import kotlin.collections.getValue
+import kotlin.getValue
+
+
 
 @Configuration
 class GraphQLConfig {
@@ -37,5 +47,6 @@ class GraphQLConfig {
         .scalar(LocalDateTimeScalar.GraphQL_TYPE)
         .scalar(LongScalar.GraphQL_TYPE)
         .scalar(MapScalar.GraphQL_TYPE)
+        .scalar(MoneyScalar.GraphQL_TYPE)
     }
 }

@@ -29,11 +29,13 @@ import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.common.graphql.generated.Region
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.common.graphql.generated.User
+import dev.yidafu.aqua.common.graphql.generated.UserListResponse
 import dev.yidafu.aqua.user.domain.model.AddressModel
 import dev.yidafu.aqua.user.domain.model.AdminModel
 import dev.yidafu.aqua.user.domain.model.NotificationSettingsModel
 import dev.yidafu.aqua.user.domain.model.RegionModel
 import dev.yidafu.aqua.user.domain.model.UserModel
+import org.springframework.data.domain.Page
 import org.springframework.stereotype.Component
 import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
@@ -50,6 +52,24 @@ import tools.jackson.databind.ObjectMapper
 object UserMapper : ObjectMappie<UserModel, User>(){
   override fun map(from: UserModel): User  = mapping {
     to::id fromValue (from.id ?: -1L)
+  }
+}
+
+/**
+ * Mapper for converting Page<UserModel> to UserListResponse
+ */
+object UserListResponseMapper {
+  fun map(userPage: Page<UserModel>): UserListResponse {
+    return UserListResponse(
+      content = userPage.content.map { UserMapper.map(it) },
+      empty = userPage.isEmpty,
+      first = userPage.isFirst,
+      last = userPage.isLast,
+      number = userPage.number,
+      size = userPage.size,
+      totalElements = userPage.totalElements,
+      totalPages = userPage.totalPages
+    )
   }
 }
 

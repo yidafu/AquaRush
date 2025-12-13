@@ -24,6 +24,7 @@ import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatisticsResponse
 import dev.yidafu.aqua.review.domain.model.DeliveryWorkerStatisticsModel
 import dev.yidafu.aqua.review.domain.model.ReviewModel
 import dev.yidafu.aqua.review.domain.repository.DeliveryWorkerStatisticsRepository
@@ -33,6 +34,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import org.slf4j.LoggerFactory
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
@@ -46,6 +48,8 @@ class ReviewService(
   private val deliveryWorkerRepository: DeliveryWorkerRepository,
   private val orderService: IOrderService,
 ) {
+  private val logger = LoggerFactory.getLogger(ReviewService::class.java)
+
   /**
    * 用户创建评价
    */
@@ -184,6 +188,7 @@ class ReviewService(
    * 获取配送员统计数据
    */
   fun getDeliveryWorkerStatistics(deliveryWorkerId: Long): DeliveryWorkerStatisticsResponse {
+    logger.info("getDeliveryWorkerStatistics(${deliveryWorkerId})")
     val statistics =
       statisticsRepository.findByDeliveryWorkerId(deliveryWorkerId)
         ?: DeliveryWorkerStatisticsModel(
@@ -196,22 +201,23 @@ class ReviewService(
           fourStarReviews = 0,
           fiveStarReviews = 0,
           lastUpdated = LocalDateTime.now(),
-        ).let { statisticsRepository.save(it) }
+        ).let {
+          statisticsRepository.save(it) }
 
     val deliveryWorker = deliveryWorkerRepository.findById(deliveryWorkerId).orElse(null)
 
     return DeliveryWorkerStatisticsResponse(
-      deliveryWorkerId = statistics.deliveryWorkerId,
-      workerName = deliveryWorker?.name,
       averageRating = statistics.averageRating,
-      totalReviews = statistics.totalReviews,
-      oneStarReviews = statistics.oneStarReviews,
-      twoStarReviews = statistics.twoStarReviews,
-      threeStarReviews = statistics.threeStarReviews,
-      fourStarReviews = statistics.fourStarReviews,
-      fiveStarReviews = statistics.fiveStarReviews,
-      ratingDistribution = statistics.getRatingDistribution(),
+      deliveryWorkerId = statistics.deliveryWorkerId,
+      fiveStarReviews = statistics.fiveStarReviews.toLong(),
+      fourStarReviews = statistics.fourStarReviews.toLong(),
       lastUpdated = statistics.lastUpdated,
+      oneStarReviews = statistics.oneStarReviews.toLong(),
+      ratingDistribution = statistics.getRatingDistribution().mapKeys { it.key.toString() },
+      threeStarReviews = statistics.threeStarReviews.toLong(),
+      totalReviews = statistics.totalReviews.toLong(),
+      twoStarReviews = statistics.twoStarReviews.toLong(),
+      workerName = deliveryWorker?.name
     )
   }
 

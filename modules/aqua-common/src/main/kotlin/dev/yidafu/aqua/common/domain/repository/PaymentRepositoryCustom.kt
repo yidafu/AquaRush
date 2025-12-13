@@ -61,12 +61,13 @@ interface PaymentRepositoryCustom {
 
   /**
    * Sum payment amounts by status and creation date range
+   * Returns result in cents (Long) since amount is stored as cents in the database
    */
   fun sumAmountByStatusAndCreatedAtBetweenEnhanced(
     status: PaymentStatus,
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): BigDecimal
+  ): Long
 
   /**
    * Complex query: find payments with multiple criteria
@@ -77,7 +78,7 @@ interface PaymentRepositoryCustom {
     transactionId: String? = null,
     startDate: LocalDateTime? = null,
     endDate: LocalDateTime? = null,
-    minAmount: BigDecimal? = null,
-    maxAmount: BigDecimal? = null,
+    minAmount: Long? = null,
+    maxAmount: Long? = null,
   ): List<PaymentModel>
 }

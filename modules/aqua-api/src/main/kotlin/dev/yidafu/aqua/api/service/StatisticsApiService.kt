@@ -21,6 +21,7 @@ package dev.yidafu.aqua.api.service
 
 import dev.yidafu.aqua.api.dto.*
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.*
@@ -170,13 +171,17 @@ data class SystemOverviewDTO(
   val activeUsers: Int = 0,
   val totalOrders: Int = 0,
   val pendingOrders: Int = 0,
-  val totalRevenue: BigDecimal = BigDecimal.ZERO,
-  val todayRevenue: BigDecimal = BigDecimal.ZERO,
+  val totalRevenueCents: Long = 0L,
+  val todayRevenueCents: Long = 0L,
   val totalDeliveryWorkers: Int = 0,
   val activeDeliveryWorkers: Int = 0,
-  val averageOrderValue: BigDecimal = BigDecimal.ZERO,
+  val averageOrderValueCents: Long = 0L,
   val systemUptime: Long = 0L,
-)
+) {
+  val totalRevenue: BigDecimal get() = MoneyUtils.fromCents(totalRevenueCents)
+  val todayRevenue: BigDecimal get() = MoneyUtils.fromCents(todayRevenueCents)
+  val averageOrderValue: BigDecimal get() = MoneyUtils.fromCents(averageOrderValueCents)
+}
 
 /**
  * 用户统计DTO
@@ -184,24 +189,37 @@ data class SystemOverviewDTO(
 data class UserStatisticsDTO(
   val userId: Long,
   val totalOrders: Int = 0,
-  val totalSpent: BigDecimal = BigDecimal.ZERO,
-  val averageOrderValue: BigDecimal = BigDecimal.ZERO,
+  val totalSpentCents: Long = 0L,
+  val averageOrderValueCents: Long = 0L,
   val favoriteProduct: String? = null,
   val orderFrequency: Map<String, Int> = emptyMap(),
   val lastOrderDate: LocalDateTime? = null,
-)
+) {
+  val totalSpent: BigDecimal get() = MoneyUtils.fromCents(totalSpentCents)
+  val averageOrderValue: BigDecimal get() = MoneyUtils.fromCents(averageOrderValueCents)
+}
 
 /**
  * 收入统计DTO
  */
 data class RevenueStatisticsDTO(
-  val totalRevenue: BigDecimal = BigDecimal.ZERO,
-  val netRevenue: BigDecimal = BigDecimal.ZERO,
-  val refundsAmount: BigDecimal = BigDecimal.ZERO,
-  val revenueByPaymentMethod: Map<String, BigDecimal> = emptyMap(),
-  val revenueByHour: Map<String, BigDecimal> = emptyMap(),
-  val revenueByDay: Map<String, BigDecimal> = emptyMap(),
-)
+  val totalRevenueCents: Long = 0L,
+  val netRevenueCents: Long = 0L,
+  val refundsAmountCents: Long = 0L,
+  val revenueByPaymentMethodCents: Map<String, Long> = emptyMap(),
+  val revenueByHourCents: Map<String, Long> = emptyMap(),
+  val revenueByDayCents: Map<String, Long> = emptyMap(),
+) {
+  val totalRevenue: BigDecimal get() = MoneyUtils.fromCents(totalRevenueCents)
+  val netRevenue: BigDecimal get() = MoneyUtils.fromCents(netRevenueCents)
+  val refundsAmount: BigDecimal get() = MoneyUtils.fromCents(refundsAmountCents)
+  val revenueByPaymentMethod: Map<String, BigDecimal>
+    get() = revenueByPaymentMethodCents.mapValues { MoneyUtils.fromCents(it.value) }
+  val revenueByHour: Map<String, BigDecimal>
+    get() = revenueByHourCents.mapValues { MoneyUtils.fromCents(it.value) }
+  val revenueByDay: Map<String, BigDecimal>
+    get() = revenueByDayCents.mapValues { MoneyUtils.fromCents(it.value) }
+}
 
 /**
  * 产品销售排行DTO
@@ -210,9 +228,12 @@ data class ProductSalesRankingDTO(
   val productId: Long,
   val productName: String,
   val totalSales: Int = 0,
-  val totalRevenue: BigDecimal = BigDecimal.ZERO,
-  val growthRate: BigDecimal = BigDecimal.ZERO,
-)
+  val totalRevenueCents: Long = 0L,
+  val growthRateCents: Long = 0L,
+) {
+  val totalRevenue: BigDecimal get() = MoneyUtils.fromCents(totalRevenueCents)
+  val growthRate: BigDecimal get() = MoneyUtils.fromCents(growthRateCents)
+}
 
 /**
  * 用户消费排行DTO
@@ -220,10 +241,13 @@ data class ProductSalesRankingDTO(
 data class UserSpendingRankingDTO(
   val userId: Long,
   val nickname: String,
-  val totalSpent: BigDecimal = BigDecimal.ZERO,
+  val totalSpentCents: Long = 0L,
   val orderCount: Int = 0,
-  val averageOrderValue: BigDecimal = BigDecimal.ZERO,
-)
+  val averageOrderValueCents: Long = 0L,
+) {
+  val totalSpent: BigDecimal get() = MoneyUtils.fromCents(totalSpentCents)
+  val averageOrderValue: BigDecimal get() = MoneyUtils.fromCents(averageOrderValueCents)
+}
 
 /**
  * 地区销售DTO
@@ -231,9 +255,12 @@ data class UserSpendingRankingDTO(
 data class RegionalSalesDTO(
   val region: String,
   val orderCount: Int = 0,
-  val revenue: BigDecimal = BigDecimal.ZERO,
-  val averageOrderValue: BigDecimal = BigDecimal.ZERO,
-)
+  val revenueCents: Long = 0L,
+  val averageOrderValueCents: Long = 0L,
+) {
+  val revenue: BigDecimal get() = MoneyUtils.fromCents(revenueCents)
+  val averageOrderValue: BigDecimal get() = MoneyUtils.fromCents(averageOrderValueCents)
+}
 
 /**
  * 实时统计DTO
@@ -244,9 +271,11 @@ data class RealTimeStatisticsDTO(
   val pendingPayments: Int = 0,
   val deliveriesInProgress: Int = 0,
   val todayOrders: Int = 0,
-  val todayRevenue: BigDecimal = BigDecimal.ZERO,
+  val todayRevenueCents: Long = 0L,
   val timestamp: LocalDateTime = LocalDateTime.now(),
-)
+) {
+  val todayRevenue: BigDecimal get() = MoneyUtils.fromCents(todayRevenueCents)
+}
 
 /**
  * 配送员效率DTO
@@ -256,10 +285,12 @@ data class WorkerEfficiencyDTO(
   val nickname: String,
   val totalDeliveries: Int = 0,
   val averageDeliveryTime: Int = 0,
-  val successRate: BigDecimal = BigDecimal.ZERO,
-  val totalDistance: BigDecimal = BigDecimal.ZERO,
-  val totalEarnings: BigDecimal = BigDecimal.ZERO,
-)
+  val successRate: BigDecimal = BigDecimal.ZERO, // Percentage, keep as BigDecimal
+  val totalDistance: BigDecimal = BigDecimal.ZERO, // Distance, keep as BigDecimal
+  val totalEarningsCents: Long = 0L,
+) {
+  val totalEarnings: BigDecimal get() = MoneyUtils.fromCents(totalEarningsCents)
+}
 
 /**
  * 支付方式统计DTO
@@ -267,15 +298,19 @@ data class WorkerEfficiencyDTO(
 data class PaymentMethodStatsDTO(
   val paymentMethod: PaymentMethod,
   val count: Int = 0,
-  val amount: BigDecimal = BigDecimal.ZERO,
-  val percentage: BigDecimal = BigDecimal.ZERO,
-)
+  val amountCents: Long = 0L,
+  val percentage: BigDecimal = BigDecimal.ZERO, // Percentage, keep as BigDecimal
+) {
+  val amount: BigDecimal get() = MoneyUtils.fromCents(amountCents)
+}
 
 /**
  * 趋势数据DTO
  */
 data class TrendDataDTO(
   val date: String,
-  val value: BigDecimal,
-  val changeRate: BigDecimal = BigDecimal.ZERO,
-)
+  val valueCents: Long = 0L,
+  val changeRate: BigDecimal = BigDecimal.ZERO, // Percentage, keep as BigDecimal
+) {
+  val value: BigDecimal get() = MoneyUtils.fromCents(valueCents)
+}

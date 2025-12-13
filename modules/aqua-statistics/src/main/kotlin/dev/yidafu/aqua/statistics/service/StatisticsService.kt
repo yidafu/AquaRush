@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.statistics.service
 
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -27,16 +28,21 @@ import java.time.LocalDate
 class StatisticsService {
   data class OrderStatistics(
     val totalOrders: Long,
-    val totalAmount: BigDecimal,
+    val totalAmountCents: Long,
     val completedOrders: Long,
-    val completedAmount: BigDecimal,
-  )
+    val completedAmountCents: Long,
+  ) {
+    val totalAmount: BigDecimal get() = MoneyUtils.fromCents(totalAmountCents)
+    val completedAmount: BigDecimal get() = MoneyUtils.fromCents(completedAmountCents)
+  }
 
   data class DailyStatistics(
     val date: LocalDate,
     val orderCount: Long,
-    val totalAmount: BigDecimal,
-  )
+    val totalAmountCents: Long,
+  ) {
+    val totalAmount: BigDecimal get() = MoneyUtils.fromCents(totalAmountCents)
+  }
 
   /**
    * 获取日期范围内的订单统计
@@ -46,11 +52,12 @@ class StatisticsService {
     endDate: LocalDate,
   ): OrderStatistics {
     // TODO: 实现订单统计逻辑
+    // Note: Implementations should work with cents internally
     return OrderStatistics(
       totalOrders = 0L,
-      totalAmount = BigDecimal.ZERO,
+      totalAmountCents = 0L,
       completedOrders = 0L,
-      completedAmount = BigDecimal.ZERO,
+      completedAmountCents = 0L,
     )
   }
 

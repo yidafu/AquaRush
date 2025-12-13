@@ -130,13 +130,13 @@ class AdminPaymentQueryResolver(
         // TODO: 实现从paymentService获取支付统计
         // 目前返回默认统计数据
         return PaymentStatistics(
-            totalAmount = BigDecimal.ZERO,
+            totalAmount = 0L,
             totalTransactions = 0L,
             successfulTransactions = 0L,
             failedTransactions = 0L,
-            refundedAmount = BigDecimal.ZERO,
+            refundedAmount = 0L,
             refundCount = 0L,
-            averageTransactionAmount = BigDecimal.ZERO,
+            averageTransactionAmount = 0L,
             dailyStats = emptyList()
         )
     }

@@ -24,7 +24,6 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import jakarta.validation.constraints.*
-import java.math.BigDecimal
 import java.time.LocalDateTime
 
 /**
@@ -39,8 +38,8 @@ data class PaymentDTO(
   val orderId: Long,
   @field:JsonProperty("amount")
   @field:NotNull(message = "支付金额不能为空")
-  @field:DecimalMin(value = "0.01", message = "支付金额必须大于等于0.01")
-  val amount: BigDecimal,
+  @field:Min(value = 1, message = "支付金额必须大于等于1分")
+  val amount: Long,
   @field:JsonProperty("method")
   @field:NotNull(message = "支付方式不能为空")
   val paymentMethod: PaymentMethod,
@@ -52,4 +51,8 @@ data class PaymentDTO(
   @field:JsonProperty("paidAt")
   @field:JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
   val paidAt: LocalDateTime?,
-)
+) {
+  // Compatibility property for existing code - returns amount in yuan as BigDecimal
+  val amountYuan: java.math.BigDecimal
+    get() = dev.yidafu.aqua.common.utils.MoneyUtils.fromCents(amount)
+}

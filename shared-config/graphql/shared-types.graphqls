@@ -4,6 +4,7 @@
 # Scalar types
 scalar Long
 scalar BigDecimal
+scalar Money
 scalar Float
 scalar LocalDateTime
 scalar Map
@@ -82,7 +83,7 @@ type User {
 type Product {
   id: Long!
   name: String!
-  price: BigDecimal!
+  price: Money!
   coverImageUrl: String!
   detailImages: String
   description: String
@@ -133,7 +134,7 @@ type Order {
   product: Product!
   address: Address!
   quantity: Int!
-  amount: BigDecimal!
+  amount: Money!
   status: OrderStatus!
   paymentMethod: String
   paymentTransactionId: String
@@ -159,7 +160,7 @@ type DeliveryWorker {
   totalOrders: Int!
   completedOrders: Int!
   averageRating: BigDecimal
-  earning: BigDecimal
+  earning: Money
   isAvailable: Boolean!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
@@ -239,8 +240,8 @@ type PaymentData {
 # Statistics Types
 type OrderStatistics {
   totalOrders: Int!
-  totalRevenue: BigDecimal!
-  averageOrderValue: BigDecimal!
+  totalRevenue: Money!
+  averageOrderValue: Money!
   dateRange: DateRange!
 }
 
@@ -252,7 +253,7 @@ type DateRange {
 type DailyStatistic {
   date: String!
   orderCount: Int!
-  revenue: BigDecimal!
+  revenue: Money!
 }
 
 type WeeklyStatistic {
@@ -261,7 +262,7 @@ type WeeklyStatistic {
   startDate: String!
   endDate: String!
   orderCount: Int!
-  revenue: BigDecimal!
+  revenue: Money!
 }
 
 type MonthlyStatistic {
@@ -269,7 +270,7 @@ type MonthlyStatistic {
   year: Int!
   monthName: String!
   orderCount: Int!
-  revenue: BigDecimal!
+  revenue: Money!
 }
 
 # Common Input Types
@@ -375,10 +376,10 @@ input CreateProductInput {
   name: String!
     @notBlank(message: "商品名称不能为空")
     @size(min: 2, max: 100, message: "商品名称长度应在2-100个字符之间")
-  price: BigDecimal!
+  price: Money!
     @positive(message: "商品价格必须为正数")
-    @min(value: 0, message: "商品价格不能小于0")
-    @max(value: 99999, message: "商品价格不能大于99999")
+    @min(value: 1, message: "商品价格不能小于1分")
+    @max(value: 9999900, message: "商品价格不能大于99999元")
   coverImageUrl: String!
     @notBlank(message: "商品封面图片不能为空")
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
@@ -394,10 +395,10 @@ input CreateProductInput {
 input UpdateProductInput {
   name: String
     @size(min: 2, max: 100, message: "商品名称长度应在2-100个字符之间")
-  price: BigDecimal
+  price: Money
     @positive(message: "商品价格必须为正数")
-    @min(value: 0, message: "商品价格不能小于0")
-    @max(value: 99999, message: "商品价格不能大于99999")
+    @min(value: 1, message: "商品价格不能小于1分")
+    @max(value: 9999900, message: "商品价格不能大于99999元")
   coverImageUrl: String
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
   detailImages: String
@@ -412,10 +413,10 @@ input UpdateProductInput {
 input CreateWechatPaymentInput {
   orderId: Long!
     @positive(message: "订单ID必须为正数")
-  amount: BigDecimal!
+  amount: Money!
     @positive(message: "支付金额必须为正数")
-    @min(value: 0, message: "支付金额不能小于0")
-    @max(value: 99999, message: "支付金额不能大于99999")
+    @min(value: 1, message: "支付金额不能小于1分")
+    @max(value: 9999900, message: "支付金额不能大于99999元")
   description: String!
     @notBlank(message: "支付描述不能为空")
     @size(min: 1, max: 127, message: "支付描述长度应在1-127个字符之间")
@@ -444,14 +445,14 @@ input RefundInput {
   transactionId: String!
     @notBlank(message: "交易ID不能为空")
     @size(min: 10, max: 100, message: "交易ID长度应在10-100个字符之间")
-  refundAmount: BigDecimal!
+  refundAmount: Money!
     @positive(message: "退款金额必须为正数")
-    @min(value: 0, message: "退款金额不能小于0")
-    @max(value: 99999, message: "退款金额不能大于99999")
-  totalAmount: BigDecimal!
+    @min(value: 1, message: "退款金额不能小于1分")
+    @max(value: 9999900, message: "退款金额不能大于99999元")
+  totalAmount: Money!
     @positive(message: "总金额必须为正数")
-    @min(value: 0, message: "总金额不能小于0")
-    @max(value: 99999, message: "总金额不能大于99999")
+    @min(value: 1, message: "总金额不能小于1分")
+    @max(value: 9999900, message: "总金额不能大于99999元")
 }
 
 input ProcessRefundInput {
@@ -465,10 +466,10 @@ input ProcessRefundInput {
     @positive(message: "订单ID必须为正数")
   userId: Long!
     @positive(message: "用户ID必须为正数")
-  amount: BigDecimal!
+  amount: Money!
     @positive(message: "退款金额必须为正数")
-    @min(value: 0, message: "退款金额不能小于0")
-    @max(value: 99999, message: "退款金额不能大于99999")
+    @min(value: 1, message: "退款金额不能小于1分")
+    @max(value: 9999900, message: "退款金额不能大于99999元")
   reason: String!
     @notBlank(message: "退款原因不能为空")
     @size(min: 1, max: 500, message: "退款原因长度应在1-500个字符之间")
@@ -485,10 +486,10 @@ input CreateManualRefundInput {
     @positive(message: "订单ID必须为正数")
   userId: Long!
     @positive(message: "用户ID必须为正数")
-  amount: BigDecimal!
+  amount: Money!
     @positive(message: "退款金额必须为正数")
-    @min(value: 0, message: "退款金额不能小于0")
-    @max(value: 99999, message: "退款金额不能大于99999")
+    @min(value: 1, message: "退款金额不能小于1分")
+    @max(value: 9999900, message: "退款金额不能大于99999元")
   reason: String!
     @notBlank(message: "退款原因不能为空")
     @size(min: 1, max: 500, message: "退款原因长度应在1-500个字符之间")
@@ -548,9 +549,9 @@ input CreateDeliveryWorkerInput {
   rating: BigDecimal
     @min(value: 0, message: "评分不能小于0")
     @max(value: 5, message: "评分不能大于5")
-  earning: BigDecimal
+  earning: Money
     @min(value: 0, message: "收入不能小于0")
-    @max(value: 999999, message: "收入不能大于999999")
+    @max(value: 99999900, message: "收入不能大于999999元")
   isAvailable: Boolean
 }
 
@@ -570,9 +571,9 @@ input UpdateDeliveryWorkerInput {
   rating: BigDecimal
     @min(value: 0, message: "评分不能小于0")
     @max(value: 5, message: "评分不能大于5")
-  earning: BigDecimal
+  earning: Money
     @min(value: 0, message: "收入不能小于0")
-    @max(value: 999999, message: "收入不能大于999999")
+    @max(value: 99999900, message: "收入不能大于999999元")
   isAvailable: Boolean
 }
 
@@ -811,7 +812,7 @@ type RefundRequest {
   originalTransactionId: String!
   orderId: Long!
   userId: Long!
-  amount: BigDecimal!
+  amount: Money!
   reason: String!
   status: RefundStatus!
   requestedAt: LocalDateTime!
@@ -833,7 +834,7 @@ type PaymentTransaction {
   id: String!
   orderId: Long!
   userId: Long!
-  amount: BigDecimal!
+  amount: Money!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
   transactionId: String
@@ -854,14 +855,14 @@ input ExportTransactionsInput {
   paymentMethod: PaymentMethod
   userId: Long
     @positive(message: "用户ID必须为正数")
-  minAmount: BigDecimal
+  minAmount: Money
     @positive(message: "最小金额必须为正数")
-    @min(value: 0, message: "最小金额不能小于0")
-    @max(value: 99999, message: "最小金额不能大于99999")
-  maxAmount: BigDecimal
+    @min(value: 1, message: "最小金额不能小于1分")
+    @max(value: 9999900, message: "最小金额不能大于99999元")
+  maxAmount: Money
     @positive(message: "最大金额必须为正数")
-    @min(value: 0, message: "最大金额不能小于0")
-    @max(value: 99999, message: "最大金额不能大于99999")
+    @min(value: 1, message: "最大金额不能小于1分")
+    @max(value: 9999900, message: "最大金额不能大于99999元")
   format: String! = "CSV" # CSV, EXCEL, PDF
     @size(min: 1, max: 10, message: "导出格式长度应在1-10个字符之间")
   includeMetadata: Boolean! = false
@@ -869,24 +870,24 @@ input ExportTransactionsInput {
 
 # Payment Statistics Types
 type PaymentStatistics {
-  totalAmount: BigDecimal!
+  totalAmount: Money!
   totalTransactions: Long!
   successfulTransactions: Long!
   failedTransactions: Long!
-  refundedAmount: BigDecimal!
+  refundedAmount: Money!
   refundCount: Long!
-  averageTransactionAmount: BigDecimal!
+  averageTransactionAmount: Money!
   dailyStats: [DailyPaymentStats!]!
 }
 
 type PaymentMethodStats {
   paymentMethod: PaymentMethod!
-  totalAmount: BigDecimal!
+  totalAmount: Money!
   transactionCount: Long!
   successCount: Long!
   failureCount: Long!
   refundCount: Long!
-  averageAmount: BigDecimal!
+  averageAmount: Money!
   successRate: Float!
 }
 
@@ -894,7 +895,7 @@ type SuspiciousTransaction {
   id: String!
   orderId: Long!
   userId: Long!
-  amount: BigDecimal!
+  amount: Money!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
   transactionId: String
@@ -910,13 +911,13 @@ type SuspiciousTransaction {
 
 type DailyPaymentStats {
   date: String!
-  totalAmount: BigDecimal!
+  totalAmount: Money!
   totalTransactions: Long!
   successfulTransactions: Long!
   failedTransactions: Long!
-  refundedAmount: BigDecimal!
+  refundedAmount: Money!
   refundCount: Long!
-  averageTransactionAmount: BigDecimal!
+  averageTransactionAmount: Money!
   peakHour: Int!
   paymentMethodBreakdown: [PaymentMethodStats!]!
 }
@@ -946,32 +947,32 @@ input ProcessSuspiciousTransactionInput {
 type OrderPaymentInfo {
   orderId: Long!
   orderNumber: String!
-  amount: BigDecimal!
+  amount: Money!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
   transactionId: String
   createdAt: LocalDateTime!
   paidAt: LocalDateTime
   refundedAt: LocalDateTime
-  refundAmount: BigDecimal
+  refundAmount: Money
 }
 
 type PaymentPeriodStats {
   period: String!
-  totalAmount: BigDecimal!
+  totalAmount: Money!
   totalTransactions: Long!
   successfulTransactions: Long!
   failedTransactions: Long!
-  averageTransactionAmount: BigDecimal!
+  averageTransactionAmount: Money!
   paymentMethodBreakdown: [PaymentMethodStats!]!
 }
 
 type RefundEligibility {
   eligible: Boolean!
   orderId: Long!
-  orderAmount: BigDecimal!
-  paidAmount: BigDecimal!
-  refundableAmount: BigDecimal!
+  orderAmount: Money!
+  paidAmount: Money!
+  refundableAmount: Money!
   refundReason: String
   deadline: LocalDateTime
   refundPolicy: String

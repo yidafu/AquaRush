@@ -25,6 +25,8 @@ import dev.yidafu.aqua.user.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.model.NotificationSettingsModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import dev.yidafu.aqua.user.domain.repository.NotificationSettingsRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -55,8 +57,8 @@ class UserService(
         email = "",
         status = UserStatus.ACTIVE,
         role = UserRole.USER,
-        balance = BigDecimal.ZERO,
-        totalSpent = BigDecimal.ZERO,
+//        balance = 0L,
+//        totalSpent = BigDecimal.ZERO,
         lastLoginAt = LocalDateTime.now(),
       )
 
@@ -95,4 +97,20 @@ class UserService(
   }
 
   fun existsByWechatOpenId(wechatOpenId: String): Boolean = userRepository.existsByWechatOpenId(wechatOpenId)
+
+  fun findAllUsers(pageable: Pageable): Page<UserModel> = userRepository.findAll(pageable)
+
+  fun findUsersByKeyword(keyword: String, pageable: Pageable): Page<UserModel> {
+    return userRepository.findByNicknameContainingIgnoreCaseOrPhoneContainingIgnoreCase(keyword, keyword, pageable)
+  }
+
+  fun findUsersByStatus(status: UserStatus, pageable: Pageable): Page<UserModel> {
+    return userRepository.findByStatus(status, pageable)
+  }
+
+  fun findUsersByKeywordAndStatus(keyword: String, status: UserStatus, pageable: Pageable): Page<UserModel> {
+    return userRepository.findByNicknameContainingIgnoreCaseAndStatusOrPhoneContainingIgnoreCaseAndStatus(
+      keyword, status, pageable
+    )
+  }
 }

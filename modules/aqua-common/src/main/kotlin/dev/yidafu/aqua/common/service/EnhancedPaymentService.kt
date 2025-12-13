@@ -22,6 +22,7 @@ package dev.yidafu.aqua.common.service
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import dev.yidafu.aqua.common.domain.repository.PaymentRepository
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Service
@@ -60,12 +61,13 @@ class EnhancedPaymentService(
         endDate: LocalDateTime
     ): PaymentStatistics {
         val count = paymentRepository.countByStatusAndCreatedAtBetweenEnhanced(status, startDate, endDate)
-        val totalAmount = paymentRepository.sumAmountByStatusAndCreatedAtBetweenEnhanced(status, startDate, endDate)
+        // Note: sumAmountByStatusAndCreatedAtBetweenEnhanced should return cents
+        val totalAmountCents = paymentRepository.sumAmountByStatusAndCreatedAtBetweenEnhanced(status, startDate, endDate)
 
         return PaymentStatistics(
             count = count,
-            totalAmount = totalAmount,
-            averageAmount = if (count > 0) totalAmount.divide(BigDecimal.valueOf(count), 2) else BigDecimal.ZERO
+            totalAmountCents = totalAmountCents,
+            averageAmountCents = if (count > 0) totalAmountCents / count else 0L
         )
     }
 
@@ -86,8 +88,8 @@ class EnhancedPaymentService(
             transactionId = transactionId,
             startDate = dateRange?.start,
             endDate = dateRange?.end,
-            minAmount = amountRange?.min,
-            maxAmount = amountRange?.max
+            minAmount = amountRange?.minCents,
+            maxAmount = amountRange?.maxCents
         )
     }
 
@@ -110,6 +112,7 @@ class EnhancedPaymentService(
 
     /**
      * Native query for complex reporting when Criteria API is not sufficient
+     * Note: Database query assumes amount is stored as cents (Long)
      */
     fun getPaymentReportByMonth(year: Int, month: Int): List<PaymentReportRow> {
         val query = entityManager.createNativeQuery(
@@ -118,8 +121,8 @@ class EnhancedPaymentService(
                 EXTRACT(MONTH FROM p.created_at) as month,
                 p.status,
                 COUNT(*) as payment_count,
-                SUM(p.amount) as total_amount,
-                AVG(p.amount) as average_amount
+                SUM(p.amount) as total_amount_cents,
+                AVG(p.amount) as average_amount_cents
             FROM payments p
             WHERE EXTRACT(YEAR FROM p.created_at) = :year
                 AND EXTRACT(MONTH FROM p.created_at) = :month
@@ -137,8 +140,8 @@ class EnhancedPaymentService(
                 month = (row[0] as Number).toInt(),
                 status = PaymentStatus.valueOf(row[1] as String),
                 count = (row[2] as Number).toLong(),
-                totalAmount = BigDecimal.valueOf((row[3] as Number).toDouble()),
-                averageAmount = BigDecimal.valueOf((row[4] as Number).toDouble())
+                totalAmountCents = (row[3] as Number).toLong(),
+                averageAmountCents = (row[4] as Number).toLong()
             )
         }
     }
@@ -149,9 +152,12 @@ class EnhancedPaymentService(
  */
 data class PaymentStatistics(
     val count: Long,
-    val totalAmount: BigDecimal,
-    val averageAmount: BigDecimal
-)
+    val totalAmountCents: Long,
+    val averageAmountCents: Long
+) {
+    val totalAmount: BigDecimal get() = MoneyUtils.fromCents(totalAmountCents)
+    val averageAmount: BigDecimal get() = MoneyUtils.fromCents(averageAmountCents)
+}
 
 data class DateRange(
     val start: LocalDateTime,
@@ -159,14 +165,20 @@ data class DateRange(
 )
 
 data class AmountRange(
-    val min: BigDecimal,
-    val max: BigDecimal
-)
+    val minYuan: BigDecimal,
+    val maxYuan: BigDecimal
+) {
+    val minCents: Long get() = MoneyUtils.toCents(minYuan)
+    val maxCents: Long get() = MoneyUtils.toCents(maxYuan)
+}
 
 data class PaymentReportRow(
     val month: Int,
     val status: PaymentStatus,
     val count: Long,
-    val totalAmount: BigDecimal,
-    val averageAmount: BigDecimal
-)
+    val totalAmountCents: Long,
+    val averageAmountCents: Long
+) {
+    val totalAmount: BigDecimal get() = MoneyUtils.fromCents(totalAmountCents)
+    val averageAmount: BigDecimal get() = MoneyUtils.fromCents(averageAmountCents)
+}

@@ -21,10 +21,15 @@ package dev.yidafu.aqua.admin.user.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.User
+import dev.yidafu.aqua.common.graphql.generated.UserListInput
+import dev.yidafu.aqua.common.graphql.generated.UserListResponse
 import dev.yidafu.aqua.common.graphql.utils.GraphQLSecurityContext
 import dev.yidafu.aqua.user.mapper.*
 import dev.yidafu.aqua.user.domain.model.UserModel
 import dev.yidafu.aqua.user.service.UserService
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.data.domain.Sort
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -49,4 +54,45 @@ class UserQueryResolver(
   fun user(
     @Argument id: Long,
   ): User? = userService.findById(id)?.let { UserMapper.map(it) }
+
+  @QueryMapping
+  @PreAuthorize("hasRole('ADMIN')")
+  fun users(@Argument input: UserListInput?): UserListResponse {
+    // Provide default values if input is null
+    val sort = input?.sort ?: "createdAt,desc"
+    val page = input?.page ?: 0
+    val size = input?.size ?: 20
+    val search = input?.search
+    val status = input?.status
+
+    // Parse sort parameter (format: "field,direction")
+    val sortParams = sort.split(",")
+    val sortField = sortParams.getOrNull(0) ?: "createdAt"
+    val sortDirection = if (sortParams.getOrNull(1)?.equals("desc", ignoreCase = true) == true) {
+      Sort.Direction.DESC
+    } else {
+      Sort.Direction.ASC
+    }
+
+    val pageable: Pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortField))
+
+    val userPage = when {
+      search != null && status != null -> {
+        val domainStatus = UserStatusMapper.toDomainStatus(status)
+        userService.findUsersByKeywordAndStatus(search, domainStatus, pageable)
+      }
+      search != null -> {
+        userService.findUsersByKeyword(search, pageable)
+      }
+      status != null -> {
+        val domainStatus = UserStatusMapper.toDomainStatus(status)
+        userService.findUsersByStatus(domainStatus, pageable)
+      }
+      else -> {
+        userService.findAllUsers(pageable)
+      }
+    }
+
+    return UserListResponseMapper.map(userPage)
+  }
 }

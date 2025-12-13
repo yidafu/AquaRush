@@ -22,6 +22,7 @@ package dev.yidafu.aqua.api.service
 import dev.yidafu.aqua.api.common.PagedResponse
 import dev.yidafu.aqua.api.dto.*
 import dev.yidafu.aqua.common.domain.model.OrderStatus
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import java.math.BigDecimal
 import java.util.*
 
@@ -129,6 +130,9 @@ data class OrderStatisticsDTO(
   val paidOrders: Int = 0,
   val deliveredOrders: Int = 0,
   val cancelledOrders: Int = 0,
-  val totalAmount: BigDecimal = BigDecimal.ZERO,
-  val averageOrderValue: BigDecimal = BigDecimal.ZERO,
-)
+  val totalAmountCents: Long = 0L,
+  val averageOrderValueCents: Long = 0L,
+) {
+  val totalAmount: BigDecimal get() = MoneyUtils.fromCents(totalAmountCents)
+  val averageOrderValue: BigDecimal get() = MoneyUtils.fromCents(averageOrderValueCents)
+}

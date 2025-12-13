@@ -25,6 +25,7 @@ import com.wechat.pay.java.service.payments.jsapi.model.*
 import com.wechat.pay.java.service.refund.model.*
 import dev.yidafu.aqua.common.domain.service.OrderService
 import dev.yidafu.aqua.common.exception.BadRequestException
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
@@ -68,10 +69,15 @@ class PaymentService(
 
   /**
    * 创建微信小程序支付订单
+   * @param orderId 订单ID
+   * @param amountCents 支付金额（分）
+   * @param description 支付描述
+   * @param openId 微信用户OpenID
+   * @return 支付参数
    */
   fun createWechatJsapiPay(
     orderId: Long,
-    amount: Int,
+    amountCents: Long,
     description: String,
     openId: String,
   ): Map<String, Any> {
@@ -150,12 +156,17 @@ class PaymentService(
 
   /**
    * 申请退款
+   * @param transactionId 原交易ID
+   * @param refundAmountCents 退款金额（分）
+   * @param totalAmountCents 原订单总金额（分）
+   * @param reason 退款原因
+   * @return 退款结果
    */
   @Transactional
   fun refund(
     transactionId: String,
-    refundAmount: Int,
-    totalAmount: Int,
+    refundAmountCents: Long,
+    totalAmountCents: Long,
     reason: String = "订单取消退款",
   ): Map<String, Any> {
     try {
@@ -220,22 +231,22 @@ class PaymentService(
   // 保持原有接口兼容性
   fun createWechatPayOrder(
     orderId: Long,
-    amount: Int,
+    amountCents: Long,
     description: String,
   ): Map<String, Any> {
     // 简化版本，实际使用时需要传入openId
-    return createWechatJsapiPay(orderId, amount, description, "mock_openid")
+    return createWechatJsapiPay(orderId, amountCents, description, "mock_openid")
   }
 
   fun handleWechatPayCallback(callbackData: Map<String, Any>): Boolean = handleWechatPayCallback(callbackData, emptyMap())
 
   fun refund(
     transactionId: String,
-    refundAmount: Int,
-    totalAmount: Int,
+    refundAmountCents: Long,
+    totalAmountCents: Long,
   ): Boolean =
     try {
-      refund(transactionId, refundAmount, totalAmount)
+      refund(transactionId, refundAmountCents, totalAmountCents)
       true
     } catch (e: Exception) {
       false

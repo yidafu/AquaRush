@@ -21,7 +21,6 @@ package dev.yidafu.aqua.payment.domain.model
 
 import dev.yidafu.aqua.api.dto.RefundStatus
 import jakarta.persistence.*
-import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Entity
@@ -36,8 +35,8 @@ data class PaymentRefundModel(
   var refundId: String? = null,
   @Column(name = "out_refund_no", unique = true)
   var outRefundNo: String? = null,
-  @Column(name = "refund_amount", nullable = false, precision = 10, scale = 2)
-  var refundAmount: BigDecimal,
+  @Column(name = "refund_amount_cents", nullable = false)
+  var refundAmount: Long,
   @Column(name = "refund_reason")
   var refundReason: String? = null,
   @Enumerated(EnumType.STRING)

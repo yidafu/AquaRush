@@ -220,7 +220,7 @@ class AdminPaymentMutationResolver(
         if (input.originalTransactionId.isBlank()) {
             throw BadRequestException("原始交易ID不能为空")
         }
-        if (input.amount <= BigDecimal.ZERO) {
+        if (input.amount <= 0L) {
             throw BadRequestException("退款金额必须大于0")
         }
         if (input.reason.isBlank()) {
@@ -235,7 +235,7 @@ class AdminPaymentMutationResolver(
         if (input.originalTransactionId.isBlank()) {
             throw BadRequestException("原始交易ID不能为空")
         }
-        if (input.amount <= BigDecimal.ZERO) {
+        if (input.amount <= 0L) {
             throw BadRequestException("退款金额必须大于0")
         }
         if (input.reason.isBlank()) {

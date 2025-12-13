@@ -154,9 +154,9 @@ class ClientPaymentQueryResolver(
         return RefundEligibility(
             eligible = true,
             orderId = orderId,
-            orderAmount = BigDecimal.ZERO,
-            paidAmount = BigDecimal.ZERO,
-            refundableAmount = BigDecimal.ZERO,
+            orderAmount = 0L,
+            paidAmount = 0L,
+            refundableAmount = 0L,
             refundReason = "符合退款条件",
             deadline = LocalDateTime.now().plusDays(7),
             refundPolicy = "7天无理由退款"

@@ -26,7 +26,6 @@ import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.DeliveryAddress
-import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.User
@@ -56,7 +55,7 @@ object OrderModelToDTOMapper : ObjectMappie<OrderModel, OrderDTO>() {
       userId = from.userId,
       productId = from.productId,
       quantity = from.quantity,
-      amount = from.amount,
+      amount = from.amountCents,
       addressId = from.addressId,
       status = from.status,
       paymentMethod = from.paymentMethod,
@@ -73,7 +72,7 @@ object OrderModelToDTOMapper : ObjectMappie<OrderModel, OrderDTO>() {
         },
       deliveryAddressId = from.deliveryAddressId,
       completedAt = from.completedAt,
-      totalAmount = from.totalAmount,
+      totalAmount = from.amountCents,
       createdAt = from.createdAt,
       updatedAt = from.updatedAt,
       // Nested objects are set to null and should be populated by the service layer
@@ -96,12 +95,11 @@ object CreateOrderDTOToModelMapper : ObjectMappie<CreateOrderDTO, OrderModel>() 
       userId = from.userId,
       productId = from.productId,
       quantity = from.quantity,
-      amount = from.amount,
+      amountCents = from.amount,
       addressId = from.addressId,
       deliveryAddressId = from.deliveryAddressId,
       status = dev.yidafu.aqua.common.domain.model.OrderStatus.PENDING_PAYMENT,
       paymentMethod = from.paymentMethod,
-      totalAmount = from.amount, // Will be calculated by service
       deliveryPhotos = null,
       paymentTransactionId = null,
       paymentTime = null,
@@ -124,12 +122,11 @@ object UpdateOrderStatusMapper : ObjectMappie<UpdateOrderStatusDTO, OrderModel>(
       userId = -1L, // This needs to be set by the calling code
       productId = -1L, // This needs to be set by the calling code
       quantity = 1, // This needs to be set by the calling code
-      amount = java.math.BigDecimal.ZERO, // This needs to be set by the calling code
+      amountCents = 0, // This needs to be set by the calling code
       addressId = -1L, // This needs to be set by the calling code
       deliveryAddressId = -1L, // This needs to be set by the calling code
       status = from.status,
       paymentMethod = from.paymentMethod,
-      totalAmount = java.math.BigDecimal.ZERO, // This needs to be set by the calling code
       deliveryPhotos =
         from.deliveryPhotos?.let { photos ->
           jacksonObjectMapper().writeValueAsString(photos)
@@ -263,7 +260,7 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
         description = null,
         coverImageUrl = "",
         detailImages = null,
-        price = from.amount,
+        price = from.amountCents,
         stock = 1,
         status = dev.yidafu.aqua.common.graphql.generated.ProductStatus.ONLINE,
         createdAt = from.createdAt,
@@ -293,7 +290,7 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
     return Order(
       id = from.id,
       orderNumber = from.orderNumber,
-      amount = from.amount,
+      amount = from.amountCents,
       completedAt = from.completedAt,
       createdAt = from.createdAt,
       deliveryPhotos =
@@ -361,7 +358,7 @@ object CreateOrderRequestMapper : ObjectMappie<CreateOrderRequest, OrderModel>()
       userId = from.userId,
       productId = from.productId,
       quantity = from.quantity,
-      amount = from.amount,
+      amountCents = from.amount,
       addressId = from.addressId,
       deliveryAddressId = from.addressId, // 映射到同一字段
       status = OrderStatus.PENDING_PAYMENT,
@@ -371,7 +368,6 @@ object CreateOrderRequestMapper : ObjectMappie<CreateOrderRequest, OrderModel>()
       deliveryWorkerId = null,
       deliveryPhotos = null,
       completedAt = null,
-      totalAmount = from.amount, // 映射到同一字段
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )

@@ -27,8 +27,6 @@ import dev.yidafu.aqua.payment.service.PaymentService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
-import java.util.*
 
 @Component
 class OrderCancelledHandler(
@@ -83,18 +81,20 @@ class OrderCancelledHandler(
   ) {
     try {
       // 计算退款金额（分为单位）
-      val refundAmount = order.amount.multiply(BigDecimal("100")).toInt()
+      val refundAmount = (order.amountCents)
       val totalAmount = refundAmount
 
-      logger.info("Processing refund for order ${order.orderNumber}, amount: ${order.amount}")
+      logger.info("Processing refund for order ${order.orderNumber}, amount: ${order.amountCents}")
 
       // 调用退款接口
       val refundResult =
         paymentService.refund(
           transactionId = paymentTransactionId,
-          refundAmount = refundAmount,
-          totalAmount = totalAmount,
+          refundAmountCents = refundAmount,
+          totalAmountCents = totalAmount,
           reason = "订单取消退款 - 订单号: ${order.orderNumber}",
+//          refundAmountCents = order.amount,
+//          totalAmountCents = order.totalAmount,
         )
 
       logger.info("Refund processed successfully for order ${order.orderNumber}, refundId: ${refundResult["refundId"]}")

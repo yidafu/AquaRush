@@ -21,8 +21,11 @@ package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.product.domain.model.ProductModel
+import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.common.utils.MoneyUtils
+import dev.yidafu.aqua.product.domain.model.ProductModel
 import dev.yidafu.aqua.product.service.ProductService
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
@@ -54,7 +57,7 @@ class AdminProductMutationResolver(
 
             val product = productService.createProduct(
                 name = input.name,
-                price = input.price,
+                priceYuan = java.math.BigDecimal.valueOf(input.price.toDouble() / 100.0),
                 coverImageUrl = input.coverImageUrl ?: "",
                 detailImages = input.detailImages?.joinToString(","),
                 description = input.description,
@@ -86,7 +89,7 @@ class AdminProductMutationResolver(
             val updatedProduct = productService.updateProduct(
                 productId = id,
                 name = input.name,
-                price = input.price,
+                priceYuan = input.price?.let { java.math.BigDecimal.valueOf(it.toDouble() / 100.0) },
                 coverImageUrl = input.coverImageUrl,
                 detailImages = input.detailImages?.joinToString(","),
                 description = input.description,

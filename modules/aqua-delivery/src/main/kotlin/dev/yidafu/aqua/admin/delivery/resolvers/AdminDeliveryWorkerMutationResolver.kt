@@ -76,7 +76,7 @@ class AdminDeliveryWorkerMutationResolver(
                 coordinates = input.coordinates,
                 currentLocation = input.currentLocation,
                 rating = input.rating,
-                earning = input.earning,
+                earningCents =0L,
                 isAvailable = input.isAvailable ?: true,
             )
 
@@ -126,7 +126,7 @@ class AdminDeliveryWorkerMutationResolver(
             input.coordinates?.let { existingWorker.coordinates = it }
             input.currentLocation?.let { existingWorker.currentLocation = it }
             input.rating?.let { existingWorker.rating = it }
-            input.earning?.let { existingWorker.earning = it }
+            input.earning?.let { existingWorker.earningCents = it }
             input.isAvailable?.let { existingWorker.isAvailable = it }
 
             val updatedWorker = deliveryWorkerRepository.save(existingWorker)
@@ -271,7 +271,7 @@ class AdminDeliveryWorkerMutationResolver(
             val coordinates: String?,
             val currentLocation: String?,
             val rating: Double?,
-            val earning: Double?,
+            val earning: Long?,
             val isAvailable: Boolean?
         )
     }

@@ -19,7 +19,9 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
+import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Entity
@@ -53,8 +55,9 @@ data class DeliveryWorkerModel(
   var completedOrders: Int = 0,
   @Column(name = "average_rating")
   var averageRating: Double? = null,
-  @Column(name = "earning")
-  var earning: Double? = null,
+  @Column(name = "earning_cents")
+  var earningCents: Long? = null,
+
   @Column(name = "is_available", nullable = false)
   var isAvailable: Boolean = true,
   @Column(name = "created_at", nullable = false, updatable = false)
@@ -66,6 +69,10 @@ data class DeliveryWorkerModel(
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
   }
+
+  // Backward compatibility property
+  val earning: BigDecimal?
+    get() = earningCents?.let { MoneyUtils.fromCents(it) }
 }
 
 @Converter(autoApply = false)

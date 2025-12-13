@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -29,18 +30,18 @@ data class OrderModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long = -1L,
-  @Column(name = "order_number", unique = true, nullable = false)
-  val orderNumber: String,
+  @Column(name = "order_no", unique = true, nullable = false)
+  val orderNumber: String = "",
   @Column(name = "user_id", nullable = false)
-  val userId: Long,
+  val userId: Long = -1L,
   @Column(name = "product_id", nullable = false)
-  val productId: Long,
+  val productId: Long = 1L,
   @Column(name = "quantity", nullable = false)
-  val quantity: Int,
-  @Column(name = "amount", nullable = false, precision = 10, scale = 2)
-  val amount: BigDecimal,
+  val quantity: Int = 0,
+  @Column(name = "total_amount_cents", nullable = false)
+  val amountCents: Long = 0,
   @Column(name = "address_id", nullable = false)
-  val addressId: Long,
+  val addressId: Long = 0,
   @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)
   var status: OrderStatus = OrderStatus.PENDING_PAYMENT,
@@ -49,18 +50,16 @@ data class OrderModel(
   var paymentMethod: PaymentMethod? = null,
   @Column(name = "payment_transaction_id")
   var paymentTransactionId: String? = null,
-  @Column(name = "payment_time")
+  @Column(name = "paid_at")
   var paymentTime: LocalDateTime? = null,
   @Column(name = "delivery_worker_id")
   var deliveryWorkerId: Long? = null,
   @Column(name = "delivery_photos", columnDefinition = "jsonb")
   var deliveryPhotos: String? = null,
   @Column("delivery_address_id")
-  val deliveryAddressId: Long,
+  val deliveryAddressId: Long = -1L,
   @Column(name = "completed_at")
   var completedAt: LocalDateTime? = null,
-  @Column(name = "total_amount")
-  var totalAmount: BigDecimal,
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "updated_at", nullable = false)
@@ -70,6 +69,11 @@ data class OrderModel(
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
   }
+  // Compatibility property for existing code - returns amount in yuan as BigDecimal
+  val amount: BigDecimal
+    get() = MoneyUtils.fromCents(amountCents)
+  val totalAmount: BigDecimal
+    get() = MoneyUtils.fromCents(amountCents)
 }
 
 enum class OrderStatus {

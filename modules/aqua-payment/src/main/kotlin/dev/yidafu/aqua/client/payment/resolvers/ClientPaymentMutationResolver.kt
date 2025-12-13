@@ -177,7 +177,7 @@ class ClientPaymentMutationResolver(
         if (input.orderId <= 0L) {
             throw BadRequestException("订单ID必须大于0")
         }
-        if (input.amount <= BigDecimal.ZERO) {
+        if (input.amount <= 0L) {
             throw BadRequestException("支付金额必须大于0")
         }
         if (input.description?.length ?: 0 > 200) {

@@ -36,6 +36,8 @@ object DeliveryWorkerMapper : ObjectMappie<DeliveryWorkerModel, DeliveryWorker>(
     mapping {
       to::id fromValue (from.id ?: -1L)
       to::onlineStatus fromValue DeliveryWorkerStatusMapper.map(from.onlineStatus)
+      to::earning fromValue from.earningCents
+
     }
 }
 
@@ -47,7 +49,7 @@ object DeliveryWorkerWithCurrentUserMapper : ObjectMappie<DeliveryWorkerModel, D
     mapping {
       to::id fromValue (from.id ?: -1L)
       to::onlineStatus fromValue DeliveryWorkerStatusMapper.map(from.onlineStatus)
-
+      to::earning fromValue from.earningCents
       // Note: isAvailable maps automatically
     }
 }

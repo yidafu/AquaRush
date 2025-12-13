@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.product.domain.model
 
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -34,8 +35,8 @@ data class ProductModel(
   @Column(name = "name", nullable = false)
   var name: String,
 
-  @Column(name = "price", nullable = false, precision = 10, scale = 2)
-  var price: BigDecimal,
+  @Column(name = "price_cents", nullable = false)
+  var price: Long,
 
   @Column(name = "cover_image_url", nullable = false)
   var coverImageUrl: String,
@@ -63,4 +64,8 @@ data class ProductModel(
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
   }
+
+  // Compatibility property for existing code - returns price in yuan as BigDecimal
+  val priceYuan: BigDecimal
+    get() = MoneyUtils.fromCents(price)
 }

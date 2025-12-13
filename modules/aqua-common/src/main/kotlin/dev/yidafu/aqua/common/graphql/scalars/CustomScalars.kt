@@ -191,11 +191,11 @@ object LongScalar {
     object : Coercing<Long, Any> {
       override fun serialize(dataFetcherResult: Any): Any =
         when (dataFetcherResult) {
-          is Long -> dataFetcherResult
-          is Int -> dataFetcherResult.toLong()
+          is Long -> dataFetcherResult.toString()
+          is Int -> dataFetcherResult.toString()
           is String -> {
             try {
-              dataFetcherResult.toLong()
+              dataFetcherResult
             } catch (e: NumberFormatException) {
               throw CoercingSerializeException("Expected Long but got invalid string: $dataFetcherResult")
             }
@@ -306,6 +306,89 @@ object MapScalar {
       .newScalar()
       .name("Map")
       .description("Custom Map scalar type")
+      .coercing(coercing)
+      .build()
+}
+
+object MoneyScalar {
+  private val coercing =
+    object : Coercing<Long, String> {
+      override fun serialize(dataFetcherResult: Any): String =
+        when (dataFetcherResult) {
+          is Long -> dataFetcherResult.toString()
+          is Int -> dataFetcherResult.toLong().toString()
+          is String -> {
+            try {
+              val longValue = dataFetcherResult.toLong()
+              if (longValue < 0) {
+                throw CoercingSerializeException("Money value cannot be negative: $dataFetcherResult")
+              }
+              longValue.toString()
+            } catch (e: NumberFormatException) {
+              throw CoercingSerializeException("Expected Money (cents) but got invalid string: $dataFetcherResult")
+            }
+          }
+          else -> throw CoercingSerializeException("Expected Money (cents) but got ${dataFetcherResult::class.simpleName}")
+        }
+
+      override fun parseValue(input: Any): Long =
+        when (input) {
+          is Long -> {
+            if (input < 0) {
+              throw CoercingParseValueException("Money value cannot be negative: $input")
+            }
+            input
+          }
+          is Int -> {
+            if (input < 0) {
+              throw CoercingParseValueException("Money value cannot be negative: $input")
+            }
+            input.toLong()
+          }
+          is String -> {
+            try {
+              val longValue = input.toLong()
+              if (longValue < 0) {
+                throw CoercingParseValueException("Money value cannot be negative: $input")
+              }
+              longValue
+            } catch (e: NumberFormatException) {
+              throw CoercingParseValueException("Expected valid Money (cents) string but got: $input")
+            }
+          }
+          else -> throw CoercingParseValueException("Expected Money (cents) but got ${input::class.simpleName}")
+        }
+
+      override fun parseLiteral(input: Any): Long {
+        return when (input) {
+          is IntValue -> {
+            val longValue = input.value.toLong()
+            if (longValue < 0) {
+              throw CoercingParseLiteralException("Money value cannot be negative: $longValue")
+            }
+            longValue
+          }
+          is StringValue -> {
+            try {
+              val longValue = input.value?.toLong() ?: throw CoercingParseLiteralException("String value is null")
+              if (longValue < 0) {
+                throw CoercingParseLiteralException("Money value cannot be negative: $longValue")
+              }
+              longValue
+            } catch (e: NumberFormatException) {
+              throw CoercingParseLiteralException("Expected valid Money (cents) string but got: ${input.value}")
+            }
+          }
+          else -> throw CoercingParseLiteralException("Expected Money (cents) value but got: $input")
+        }
+      }
+    }
+
+  val GraphQL_TYPE: GraphQLScalarType =
+    GraphQLScalarType
+      .newScalar()
+      .name("Money")
+      .description("Custom Money scalar type representing monetary value in cents (分). 1 yuan = 100 cents.")
       .coercing(coercing)
       .build()
 }

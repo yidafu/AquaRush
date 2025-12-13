@@ -44,7 +44,7 @@ data class CreateOrderRequest(
   @field:NotNull(message = "配送地址ID不能为空")
   val addressId: Long,
   @field:JsonProperty("amount")
-  val amount: BigDecimal,
+  val amount: Long,
   @field:JsonProperty("notes")
   @field:Size(max = 500, message = "备注长度不能超过500个字符")
   val notes: String? = null,

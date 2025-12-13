@@ -78,7 +78,7 @@ class DeliveryWorkerMutationResolver(
         coordinates = input.coordinates,
         currentLocation = input.currentLocation,
         rating = input.rating,
-        earning = input.earning,
+        earningCents = input.earning,
         isAvailable = input.isAvailable ?: true,
       )
 
@@ -132,7 +132,7 @@ class DeliveryWorkerMutationResolver(
       input.coordinates?.let { existingWorker.coordinates = it }
       input.currentLocation?.let { existingWorker.currentLocation = it }
       input.rating?.let { existingWorker.rating = it }
-      input.earning?.let { existingWorker.earning = it }
+      input.earning?.let { existingWorker.earningCents = it }
       input.isAvailable?.let { existingWorker.isAvailable = it }
 
       val updatedWorker = deliveryWorkerRepository.save(existingWorker)
@@ -268,7 +268,7 @@ data class CreateDeliveryWorkerInput(
   val coordinates: String?,
   val currentLocation: String?,
   val rating: Double?,
-  val earning: Double?,
+  val earning: Long?,
   val isAvailable: Boolean? = true
 )
 
@@ -280,6 +280,6 @@ data class UpdateDeliveryWorkerInput(
   val coordinates: String?,
   val currentLocation: String?,
   val rating: Double?,
-  val earning: Double?,
+  val earning: Long?,
   val isAvailable: Boolean?
 )

@@ -47,6 +47,7 @@ dependencies {
   implementation(project(":modules:aqua-api"))
   implementation(project(":modules:aqua-delivery"))
   implementation(project(":modules:aqua-order"))
+  implementation(project(":modules:aqua-review"))
   implementation(project(":modules:aqua-payment"))
   implementation(project(":modules:aqua-statistics"))
   implementation(project(":modules:aqua-storage"))

@@ -21,6 +21,7 @@ package dev.yidafu.aqua.common.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
@@ -109,12 +110,13 @@ class PaymentRepositoryImpl(
   /**
    * Sum payment amounts by status and creation date range using database-level aggregation
    * This is much more efficient than in-memory aggregation
+   * Returns result in cents (Long) since amount is stored as cents in the database
    */
   override fun sumAmountByStatusAndCreatedAtBetweenEnhanced(
     status: PaymentStatus,
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): BigDecimal {
+  ): Long {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery()
     val root = query.from(PaymentModel::class.java)
@@ -123,11 +125,11 @@ class PaymentRepositoryImpl(
     val startPredicate = cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), startDate)
     val endPredicate = cb.lessThanOrEqualTo(root.get<LocalDateTime>("createdAt"), endDate)
 
-    query.select(cb.sum(root.get<BigDecimal>("amount")))
+    query.select(cb.sum(root.get<Long>("amount")))
     query.where(cb.and(statusPredicate, startPredicate, endPredicate))
 
     val result = entityManager.createQuery(query).singleResult
-    return (result as? BigDecimal) ?: BigDecimal.ZERO
+    return (result as? Number)?.toLong() ?: 0L
   }
 
   /**
@@ -139,8 +141,8 @@ class PaymentRepositoryImpl(
     transactionId: String?,
     startDate: LocalDateTime?,
     endDate: LocalDateTime?,
-    minAmount: BigDecimal?,
-    maxAmount: BigDecimal?,
+    minAmount: Long?,
+    maxAmount: Long?,
   ): List<PaymentModel> {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(PaymentModel::class.java)
@@ -167,11 +169,11 @@ class PaymentRepositoryImpl(
     }
 
     minAmount?.let { min ->
-      predicates.add(cb.greaterThanOrEqualTo(root.get<BigDecimal>("amount"), min))
+      predicates.add(cb.greaterThanOrEqualTo(root.get<Long>("amount"), min))
     }
 
     maxAmount?.let { max ->
-      predicates.add(cb.lessThanOrEqualTo(root.get<BigDecimal>("amount"), max))
+      predicates.add(cb.lessThanOrEqualTo(root.get<Long>("amount"), max))
     }
 
     if (predicates.isNotEmpty()) {

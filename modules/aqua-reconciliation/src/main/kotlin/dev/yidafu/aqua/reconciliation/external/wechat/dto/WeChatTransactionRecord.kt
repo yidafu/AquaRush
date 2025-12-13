@@ -64,11 +64,11 @@ data class WeChatTransactionRecord(
   @JsonProperty("trade_pay_time")
   val tradePayTime: LocalDateTime?,
   @JsonProperty("settlement_total_fee")
-  val settlementTotalFee: BigDecimal?,
+  val settlementTotalFee: Long?,
   @JsonProperty("promotion_info")
   val promotionInfo: String?,
   @JsonProperty("amount")
-  val amount: BigDecimal,
+  val amount: Long,
   @JsonProperty("openid")
   val openId: String?,
   @JsonProperty("sub_openid")

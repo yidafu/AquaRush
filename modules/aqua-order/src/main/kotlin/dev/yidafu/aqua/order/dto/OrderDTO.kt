@@ -43,7 +43,7 @@ data class OrderDTO(
     val productId: Long,
     val product: Product? = null,
     val quantity: Int,
-    val amount: BigDecimal,
+    val amount: Long,
     val addressId: Long,
     val address: Address? = null,
     val status: OrderStatus,
@@ -55,7 +55,7 @@ data class OrderDTO(
     val deliveryPhotos: List<String>? = null,
     val deliveryAddressId: Long,
     val completedAt: LocalDateTime? = null,
-    val totalAmount: BigDecimal,
+    val totalAmount: Long,
     val createdAt: LocalDateTime,
     val updatedAt: LocalDateTime
 )
@@ -67,7 +67,7 @@ data class CreateOrderDTO(
     val userId: Long,
     val productId: Long,
     val quantity: Int,
-    val amount: BigDecimal,
+    val amount: Long,
     val addressId: Long,
     val deliveryAddressId: Long,
     val paymentMethod: PaymentMethod? = null
