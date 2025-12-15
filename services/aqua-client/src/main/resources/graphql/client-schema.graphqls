@@ -48,7 +48,7 @@ type Query {
   isInServiceArea(longitude: Float!, latitude: Float!): ServiceAreaPayload
 
   # Products
-  products: [Product!]!
+  allProducts: [Product!]!
   activeProducts: [Product!]!
   product(id: Long!): Product
 

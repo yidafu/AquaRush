@@ -19,6 +19,7 @@ generates:
       scalars:
         Long: "kotlin.Long"
         BigDecimal: "java.math.BigDecimal"
+        Money: "kotlin.Long"
         Double: "kotlin.Double"
         LocalDateTime: "java.time.LocalDateTime"
         Map: "kotlin.collections.Map<String, Any>"
@@ -46,6 +47,7 @@ generates:
       scalars:
         Long: "number"
         BigDecimal: "number"
+        Money: "string"
         Double: "number"
         LocalDateTime: "string"
         Map: "{ [key: string]: any }"

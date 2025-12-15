@@ -20,7 +20,9 @@
 package dev.yidafu.aqua.product.mapper
 
 import dev.yidafu.aqua.common.graphql.generated.Product
+import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.product.domain.model.ProductModel
+import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
 
 /**
@@ -31,3 +33,5 @@ object ProductMapper : ObjectMappie<ProductModel, Product>() {
         to::id fromProperty  from::id
     }
 }
+
+

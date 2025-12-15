@@ -22,10 +22,11 @@ package dev.yidafu.aqua.admin.user.resolvers
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.graphql.generated.UserListInput
-import dev.yidafu.aqua.common.graphql.generated.UserListResponse
+import dev.yidafu.aqua.common.graphql.generated.UserPage
+import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.common.graphql.utils.GraphQLSecurityContext
-import dev.yidafu.aqua.user.mapper.*
-import dev.yidafu.aqua.user.domain.model.UserModel
+import dev.yidafu.aqua.user.mapper.UserMapper
+import dev.yidafu.aqua.user.mapper.UserStatusMapper
 import dev.yidafu.aqua.user.service.UserService
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -57,7 +58,7 @@ class UserQueryResolver(
 
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun users(@Argument input: UserListInput?): UserListResponse {
+  fun users(@Argument input: UserListInput?): UserPage {
     // Provide default values if input is null
     val sort = input?.sort ?: "createdAt,desc"
     val page = input?.page ?: 0
@@ -93,6 +94,10 @@ class UserQueryResolver(
       }
     }
 
-    return UserListResponseMapper.map(userPage)
+    val (userList, pageInfo) = userPage.toPageInfo{ UserMapper.map(it) }
+    return UserPage(
+        list = userList,
+        pageInfo = pageInfo
+    )
   }
 }

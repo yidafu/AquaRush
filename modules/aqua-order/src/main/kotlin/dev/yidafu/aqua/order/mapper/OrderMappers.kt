@@ -27,7 +27,9 @@ import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.DeliveryAddress
 import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.common.graphql.generated.PaymentMethod
 import dev.yidafu.aqua.common.graphql.generated.Product
+import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.order.dto.CreateOrderDTO
@@ -98,7 +100,7 @@ object CreateOrderDTOToModelMapper : ObjectMappie<CreateOrderDTO, OrderModel>() 
       amountCents = from.amount,
       addressId = from.addressId,
       deliveryAddressId = from.deliveryAddressId,
-      status = dev.yidafu.aqua.common.domain.model.OrderStatus.PENDING_PAYMENT,
+      status = OrderStatus.PENDING_PAYMENT,
       paymentMethod = from.paymentMethod,
       deliveryPhotos = null,
       paymentTransactionId = null,
@@ -165,14 +167,14 @@ object OrderDTOToGraphQLMapper : ObjectMappie<OrderDTO, Order>() {
       paymentMethod =
         from.paymentMethod
           ?.let { method ->
-            dev.yidafu.aqua.common.graphql.generated.PaymentMethod
+            PaymentMethod
               .valueOf(method.name)
           }?.name,
       paymentTime = from.paymentTime,
       paymentTransactionId = from.paymentTransactionId,
       quantity = from.quantity,
       status =
-        dev.yidafu.aqua.common.graphql.generated.OrderStatus
+        OrderStatusG
           .valueOf(from.status.name),
       updatedAt = from.updatedAt,
       // These are required by GraphQL Order constructor
@@ -202,12 +204,12 @@ object GraphQLToOrderDTOMapper : ObjectMappie<Order, OrderDTO>() {
       address = from.address,
       status =
         when (from.status.name) {
-          "PENDING_PAYMENT" -> dev.yidafu.aqua.common.domain.model.OrderStatus.PENDING_PAYMENT
-          "PENDING_DELIVERY" -> dev.yidafu.aqua.common.domain.model.OrderStatus.PENDING_DELIVERY
-          "DELIVERING" -> dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING
-          "COMPLETED" -> dev.yidafu.aqua.common.domain.model.OrderStatus.COMPLETED
-          "CANCELLED" -> dev.yidafu.aqua.common.domain.model.OrderStatus.CANCELLED
-          else -> dev.yidafu.aqua.common.domain.model.OrderStatus.PENDING_PAYMENT
+          "PENDING_PAYMENT" -> OrderStatus.PENDING_PAYMENT
+          "PENDING_DELIVERY" -> OrderStatus.PENDING_DELIVERY
+          "DELIVERING" -> OrderStatus.DELIVERING
+          "COMPLETED" -> OrderStatus.COMPLETED
+          "CANCELLED" -> OrderStatus.CANCELLED
+          else -> OrderStatus.PENDING_PAYMENT
         },
       paymentMethod =
         from.paymentMethod?.let { method ->
@@ -251,20 +253,38 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
         avatarUrl = null,
         createdAt = from.createdAt,
         updatedAt = from.updatedAt,
+        balanceCents = TODO(),
+        email = TODO(),
+        role = TODO(),
+        status = TODO(),
+        totalSpentCents = TODO(),
       )
 
     val placeholderProduct =
       Product(
         id = from.productId,
         name = "placeholder",
-        description = null,
         coverImageUrl = "",
-        detailImages = null,
         price = from.amountCents,
         stock = 1,
-        status = dev.yidafu.aqua.common.graphql.generated.ProductStatus.ONLINE,
+        status = ProductStatus.ONLINE,
         createdAt = from.createdAt,
         updatedAt = from.updatedAt,
+        certificateImages = TODO(),
+        deliverySettings = TODO(),
+        depositPrice = TODO(),
+        detailContent = TODO(),
+        imageGallery = TODO(),
+        isDeleted = TODO(),
+        mineralContent = TODO(),
+        originalPrice = TODO(),
+        phValue = TODO(),
+        salesVolume = TODO(),
+        sortOrder = TODO(),
+        specification = TODO(),
+        subtitle = TODO(),
+        tags = TODO(),
+        waterSource = TODO(),
       )
 
     val placeholderAddress =
@@ -296,8 +316,7 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       deliveryPhotos =
         from.deliveryPhotos?.let { photos ->
           try {
-            tools.jackson.module.kotlin
-              .jacksonObjectMapper()
+            jacksonObjectMapper()
               .readValue(photos, Array<String>::class.java)
               .toList()
           } catch (e: Exception) {

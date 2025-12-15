@@ -1280,4 +1280,280 @@
 
   </changeSet>
 
+  <changeSet id="v1.0.2-additional-products-data" author="aqua-rush">
+    <comment>Add additional product test data for comprehensive testing</comment>
+
+    <!-- Product 4: 娃哈哈 纯净水 596ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000004" />
+      <column name="name" value="娃哈哈 纯净水 596ml" />
+      <column name="price_cents" valueNumeric="180" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="娃哈哈纯净水，采用反渗透技术净化，水质纯净甘甜，不含任何杂质，是日常饮用的健康选择。" />
+      <column name="stock_quantity" valueNumeric="1200" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 5: 康师傅 冰红茶 500ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000005" />
+      <column name="name" value="康师傅 冰红茶 500ml" />
+      <column name="price_cents" valueNumeric="300" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="康师傅冰红茶，精选优质红茶为原料，加入清新柠檬汁，口感醇厚，甜而不腻，是夏日解渴的理想饮品。" />
+      <column name="stock_quantity" valueNumeric="800" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 6: 统一 阿萨姆奶茶 500ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000006" />
+      <column name="name" value="统一 阿萨姆奶茶 500ml" />
+      <column name="price_cents" valueNumeric="450" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="统一阿萨姆奶茶，选用印度阿萨姆红茶与新西兰奶粉调制，口感香滑浓郁，茶香与奶香完美融合。" />
+      <column name="stock_quantity" valueNumeric="500" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 7: 雀巢 橙汁 450ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000007" />
+      <column name="name" value="雀巢 橙汁 450ml" />
+      <column name="price_cents" valueNumeric="380" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="雀巢橙汁，选用新鲜甜橙榨取，富含维生素C，口感酸甜适中，不添加防腐剂，是健康饮品的选择。" />
+      <column name="stock_quantity" valueNumeric="400" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 8: 可口可乐 汽水 330ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000008" />
+      <column name="name" value="可口可乐 汽水 330ml" />
+      <column name="price_cents" valueNumeric="250" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="可口可乐，全球知名碳酸饮料，独特的配方带来清爽的口感，是聚会和休闲时光的经典饮品。" />
+      <column name="stock_quantity" valueNumeric="900" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 9: 农夫山泉 东方树叶 500ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000009" />
+      <column name="name" value="农夫山泉 东方树叶 500ml" />
+      <column name="price_cents" valueNumeric="400" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="农夫山泉东方树叶，采用传统工艺萃取茶叶精华，不添加糖分，保留茶叶原香，是健康饮茶的理想选择。" />
+      <column name="stock_quantity" valueNumeric="300" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 10: 维他奶 豆奶 250ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000010" />
+      <column name="name" value="维他奶 豆奶 250ml" />
+      <column name="price_cents" valueNumeric="320" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="维他奶豆奶，选用优质非转基因大豆，富含植物蛋白，口感香滑，营养健康，是乳糖不耐人群的理想选择。" />
+      <column name="stock_quantity" valueNumeric="600" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 11: 汤臣倍健 蛋白粉 450g -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000011" />
+      <column name="name" value="汤臣倍健 蛋白粉 450g" />
+      <column name="price_cents" valueNumeric="29800" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="汤臣倍健蛋白粉，采用先进分离技术提取乳清蛋白，蛋白质含量高达80%，易于溶解吸收，是运动健身人群的理想营养补充。" />
+      <column name="stock_quantity" valueNumeric="100" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 12: 康师傅 绿茶 500ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000012" />
+      <column name="name" value="康师傅 绿茶 500ml" />
+      <column name="price_cents" valueNumeric="280" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="康师傅绿茶，精选优质绿茶为原料，保留茶叶清香，口感清雅，是传统茶文化与现代工艺的完美结合。" />
+      <column name="stock_quantity" valueNumeric="700" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 13: 农夫山泉 维他命水 500ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000013" />
+      <column name="name" value="农夫山泉 维他命水 500ml" />
+      <column name="price_cents" valueNumeric="350" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="农夫山泉维他命水，添加多种维生素和矿物质，口感清爽，是补充维生素的便捷选择，适合运动后饮用。" />
+      <column name="stock_quantity" valueNumeric="450" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 14: 汇源 苹果汁 1L -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000014" />
+      <column name="name" value="汇源 苹果汁 1L" />
+      <column name="price_cents" valueNumeric="680" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="汇源苹果汁，选用新鲜红富士苹果，采用先进压榨技术，100%纯果汁，不添加糖分，保留苹果原有风味和营养。" />
+      <column name="stock_quantity" valueNumeric="200" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 15: 养元 六个核桃 240ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000015" />
+      <column name="name" value="养元 六个核桃 240ml" />
+      <column name="price_cents" valueNumeric="420" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="养元六个核桃，选用优质核桃仁，采用现代工艺精制而成，富含核桃蛋白和多种营养元素，有益脑健康。" />
+      <column name="stock_quantity" valueNumeric="350" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 16: 雪碧 汽水 330ml (暂时缺货) -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000016" />
+      <column name="name" value="雪碧 汽水 330ml" />
+      <column name="price_cents" valueNumeric="250" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="雪碧柠檬味汽水，清爽的柠檬口感，透明的气泡带来畅快的饮用体验，是夏日降温的理想选择。" />
+      <column name="stock_quantity" valueNumeric="0" />
+      <column name="status" value="OUT_OF_STOCK" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 17: 达利园 花生牛奶 250ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000017" />
+      <column name="name" value="达利园 花生牛奶 250ml" />
+      <column name="price_cents" valueNumeric="380" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="达利园花生牛奶，选用优质花生和鲜牛奶，口感香滑浓郁，营养丰富，是老少皆宜的营养饮品。" />
+      <column name="stock_quantity" valueNumeric="280" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 18: 红牛 功能饮料 250ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000018" />
+      <column name="name" value="红牛 功能饮料 250ml" />
+      <column name="price_cents" valueNumeric="650" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="红牛功能饮料，含有咖啡因、牛磺酸、维生素B群等成分，能够提神醒脑，增强体力，适合加班和运动时饮用。" />
+      <column name="stock_quantity" valueNumeric="150" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 19: 椰树 椰汁 245ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000019" />
+      <column name="name" value="椰树 椰汁 245ml" />
+      <column name="price_cents" valueNumeric="450" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="椰树椰汁，选用新鲜椰肉，采用传统工艺压制，保留椰子原有香味，口感香滑，营养丰富，是热带风味的经典饮品。" />
+      <column name="stock_quantity" valueNumeric="320" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+
+    <!-- Product 20: 康师傅 矿泉水 380ml -->
+    <insert tableName="products">
+      <column name="id" valueNumeric="3000000000000000020" />
+      <column name="name" value="康师傅 矿泉水 380ml" />
+      <column name="price_cents" valueNumeric="120" />
+      <column name="thumbnail_url"
+        value="https://images.unsplash.com/photo-1548839140-29a74921eb34?w=300&amp;h=300&amp;fit=crop" />
+      <column name="detail_images"
+        value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]" />
+      <column name="description" value="康师傅矿泉水，源自优质地下水源，经过多层过滤净化，水质清冽甘甜，价格实惠，是日常饮用的高性价比选择。" />
+      <column name="stock_quantity" valueNumeric="1500" />
+      <column name="status" value="ACTIVE" />
+      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
+      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
+    </insert>
+  </changeSet>
+
 </databaseChangeLog>
