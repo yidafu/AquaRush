@@ -30,7 +30,28 @@ import tech.mappie.api.ObjectMappie
  */
 object ProductMapper : ObjectMappie<ProductModel, Product>() {
     override fun map(from: ProductModel) = mapping {
-        to::id fromProperty  from::id
+        to::id fromProperty from::id
+        to::name fromProperty from::name
+        to::subtitle fromProperty from::subtitle
+        to::price fromProperty from::price
+        to::originalPrice fromProperty from::originalPrice
+        to::depositPrice fromProperty from::depositPrice
+        to::coverImageUrl fromProperty from::coverImageUrl
+        to::specification fromProperty from::specification
+        to::waterSource fromProperty from::waterSource
+        to::phValue fromProperty from::phValue
+        to::mineralContent fromProperty from::mineralContent
+        to::stock fromProperty from::stock
+        to::salesVolume fromProperty from::salesVolume
+        to::status fromProperty from::status
+        to::sortOrder fromProperty from::sortOrder
+        to::detailContent fromProperty from::detailContent
+        to::isDeleted fromProperty from::isDeleted
+        to::createdAt fromProperty from::createdAt
+        to::updatedAt fromProperty from::updatedAt
+
+        // Note: JSON fields are handled by JPA converters and will be returned as strings by GraphQL
+        // The actual type conversion happens in the resolvers if needed
     }
 }
 

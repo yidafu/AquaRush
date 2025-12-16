@@ -4,6 +4,7 @@ import { AtButton, AtCard, AtGrid, AtDivider } from 'taro-ui'
 import Taro from '@tarojs/taro'
 import CustomNavBar from '../../components/CustomNavBar'
 import { authService } from '../../utils/auth'
+import { displayCents } from '../../utils/money'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/card.scss"
@@ -295,7 +296,7 @@ export default class HomePage extends Component<{}, HomeState> {
                     <Text className='product-name'>{product.name}</Text>
                     <Text className='product-desc' numberOfLines={2}>{product.description}</Text>
                     <View className='product-bottom'>
-                      <Text className='product-price'>¥{product.price.toFixed(2)}</Text>
+                      <Text className='product-price'>{displayCents(product.price)}</Text>
                       <Text className='product-stock'>库存{product.stock}</Text>
                     </View>
                   </View>

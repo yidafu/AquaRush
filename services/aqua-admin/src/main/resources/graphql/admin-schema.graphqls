@@ -14,27 +14,27 @@ schema {
 type Query {
   # Admin queries - Admin only
   admins: [Admin!]!
-  admin(id: Long!): Admin
+  admin(id: PrimaryId!): Admin
 
   # User management - Admin only
   users(input: UserListInput): UserPage!
-  user(id: Long!): User
+  user(id: PrimaryId!): User
 
   # Delivery Worker queries
   deliveryWorkers: [DeliveryWorker!]!
   onlineDeliveryWorkers: [DeliveryWorker!]!
-  deliveryWorker(id: Long!): DeliveryWorker
+  deliveryWorker(id: PrimaryId!): DeliveryWorker
 
   # Addresses (for admin management)
   userAddresses(userId: Long): [Address!]!
   addresses: [Address!]!
-  address(id: Long!): Address
+  address(id: PrimaryId!): Address
   deliveryAddresses: [DeliveryAddress!]!
-  deliveryAddress(id: Long!): DeliveryAddress
+  deliveryAddress(id: PrimaryId!): DeliveryAddress
 
   # Products (Admin management)
   products(page: Int = 0, size: Int = 20, status: ProductStatus, keyword: String): ProductPage!
-  product(id: Long!): Product
+  product(id: PrimaryId!): Product
   productStatistics(dateRange: DateRangeInput): ProductStatistics
   lowStockProducts(threshold: Int = 10): [LowStockAlert!]!
   productsPaginated(input: ProductListInput): ProductPage
@@ -53,16 +53,16 @@ type Query {
   productsSortedBySortOrder: [Product!]!
 
   # Orders (Admin/Delivery perspective)
-  order(orderId: Long!): Order
+  order(orderId: PrimaryId!): Order
   orderByNumber(orderNumber: String!): Order
-  ordersByUser(userId: Long!): [Order!]!
-  ordersByUserAndStatus(userId: Long!, status: OrderStatus!): [Order!]!
+  ordersByUser(userId: PrimaryId!): [Order!]!
+  ordersByUserAndStatus(userId: PrimaryId!, status: OrderStatus!): [Order!]!
   ordersByStatus(status: OrderStatus!): [Order!]!
 
   # Delivery Area queries
   deliveryAreas: [DeliveryArea!]!
   enabledDeliveryAreas: [DeliveryArea!]!
-  deliveryArea(id: Long!): DeliveryArea
+  deliveryArea(id: PrimaryId!): DeliveryArea
   validateAddress(input: ValidateAddressInput!): Boolean!
 
   # Payment queries (Admin perspective)
@@ -78,7 +78,7 @@ type Query {
     minAmount: BigDecimal
     maxAmount: BigDecimal
   ): [PaymentTransaction!]!
-  userPaymentTransactions(userId: Long!, page: Int = 0, size: Int = 20): [PaymentTransaction!]!
+  userPaymentTransactions(userId: PrimaryId!, page: Int = 0, size: Int = 20): [PaymentTransaction!]!
   refundRequests(
     page: Int = 0
     size: Int = 20
@@ -118,29 +118,29 @@ type Query {
     page: Int
     size: Int
   ): [Review!]!
-  deliveryWorkerStatistics(deliveryWorkerId: Long!): DeliveryWorkerStatisticsResponse
+  deliveryWorkerStatistics(deliveryWorkerId: PrimaryId!): DeliveryWorkerStatisticsResponse
   deliveryWorkerRanking(sortBy: String, minReviews: Int, page: Int, size: Int): [DeliveryWorkerRankingResponse!]!
-  deliveryWorkerReviews(deliveryWorkerId: Long!, page: Int, size: Int): [Review!]!
+  deliveryWorkerReviews(deliveryWorkerId: PrimaryId!, page: Int, size: Int): [Review!]!
 }
 
 # Admin-specific Mutation Schema
 type Mutation {
   # Product Management - Admin only
   createProduct(input: CreateProductInput!): Product!
-  updateProduct(id: Long!, input: UpdateProductInput!): Product!
-  deleteProduct(id: Long!): Boolean!
-  increaseStock(productId: Long!, quantity: Int!): String!
-  decreaseStock(productId: Long!, quantity: Int!): Boolean!
+  updateProduct(id: PrimaryId!, input: UpdateProductInput!): Product!
+  deleteProduct(id: PrimaryId!): Boolean!
+  increaseStock(productId: PrimaryId!, quantity: Int!): String!
+  decreaseStock(productId: PrimaryId!, quantity: Int!): Boolean!
   batchUpdateProducts(input: [ProductUpdateRequest!]!): [Product!]!
-  updateProductStatus(productId: Long!, status: ProductStatus!): Product!
+  updateProductStatus(productId: PrimaryId!, status: ProductStatus!): Product!
 
   # Enhanced Product Management Mutations
-  onlineProduct(id: Long!): Product!
-  offlineProduct(id: Long!): Product!
+  onlineProduct(id: PrimaryId!): Product!
+  offlineProduct(id: PrimaryId!): Product!
   batchAdjustStock(input: BatchStockAdjustmentInput!): BatchStockAdjustmentResult!
 
   # Order Management - Admin/Delivery operations
-  updateOrderStatus(orderId: Long!, status: OrderStatus!): Order!
+  updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): Order!
 
   # Payment Management - Admin operations
   handleWechatCallback(input: WechatCallbackInput!): String!
@@ -157,20 +157,20 @@ type Mutation {
 
   # Delivery Area Management - Admin only
   createDeliveryArea(input: CreateDeliveryAreaInput!): DeliveryArea!
-  updateDeliveryArea(id: Long!, input: CreateDeliveryAreaInput!): DeliveryArea!
-  deleteDeliveryArea(id: Long!): Boolean!
+  updateDeliveryArea(id: PrimaryId!, input: CreateDeliveryAreaInput!): DeliveryArea!
+  deleteDeliveryArea(id: PrimaryId!): Boolean!
 
   # Delivery Worker Management - Admin only
   createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorker!
-  updateDeliveryWorker(workerId: Long!, input: UpdateDeliveryWorkerInput!): DeliveryWorker!
-  deleteDeliveryWorker(workerId: Long!): Boolean!
-  updateWorkerStatus(workerId: Long!, status: DeliveryWorkerStatus!): DeliveryWorker!
+  updateDeliveryWorker(workerId: PrimaryId!, input: UpdateDeliveryWorkerInput!): DeliveryWorker!
+  deleteDeliveryWorker(workerId: PrimaryId!): Boolean!
+  updateWorkerStatus(workerId: PrimaryId!, status: DeliveryWorkerStatus!): DeliveryWorker!
 
   # Delivery Address Management
   createDeliveryAddress(input: CreateDeliveryAddressInput!): DeliveryAddress!
-  updateDeliveryAddress(id: Long!, input: UpdateDeliveryAddressInput!): DeliveryAddress!
-  deleteDeliveryAddress(id: Long!): Boolean!
-  setDefaultDeliveryAddress(id: Long!): Boolean!
+  updateDeliveryAddress(id: PrimaryId!, input: UpdateDeliveryAddressInput!): DeliveryAddress!
+  deleteDeliveryAddress(id: PrimaryId!): Boolean!
+  setDefaultDeliveryAddress(id: PrimaryId!): Boolean!
 }
 
 # Extend the User type with admin-specific fields

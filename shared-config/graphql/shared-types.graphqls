@@ -8,6 +8,9 @@ scalar Money
 scalar Float
 scalar LocalDateTime
 scalar Map
+scalar JsonObject
+scalar JsonArray
+scalar PrimaryId
 
 # Validation Directives
 directive @notBlank(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
@@ -73,7 +76,7 @@ enum PaymentMethod {
 
 # Core Domain Types
 type User {
-  id: Long!
+  id: PrimaryId!
   wechatOpenId: String!
   nickname: String
   phone: String
@@ -83,14 +86,14 @@ type User {
 }
 
 type Product {
-  id: Long!
+  id: PrimaryId!
   name: String!
   subtitle: String
   price: Money!
   originalPrice: Money
   depositPrice: Money
   coverImageUrl: String!
-  imageGallery: String
+  imageGallery: JsonArray
   specification: String!
   waterSource: String
   phValue: BigDecimal
@@ -99,18 +102,18 @@ type Product {
   salesVolume: Int!
   status: ProductStatus!
   sortOrder: Int!
-  tags: String
+  tags: JsonArray
   detailContent: String
-  certificateImages: String
-  deliverySettings: String
+  certificateImages: JsonArray
+  deliverySettings: JsonObject
   isDeleted: Boolean!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
 
 type Address {
-  id: Long!
-  userId: Long!
+  id: PrimaryId!
+  userId: PrimaryId!
   receiverName: String!
   phone: String!
   province: String!
@@ -128,8 +131,8 @@ type Address {
 }
 
 type DeliveryAddress {
-  id: Long!
-  userId: Long!
+  id: PrimaryId!
+  userId: PrimaryId!
   receiverName: String!
   receiverPhone: String!
   province: String!
@@ -143,7 +146,7 @@ type DeliveryAddress {
 }
 
 type Order {
-  id: Long!
+  id: PrimaryId!
   orderNumber: String!
   user: User!
   product: Product!
@@ -162,8 +165,8 @@ type Order {
 }
 
 type DeliveryWorker {
-  id: Long!
-  userId: Long!
+  id: PrimaryId!
+  userId: PrimaryId!
   wechatOpenId: String!
   name: String!
   phone: String!
@@ -182,7 +185,7 @@ type DeliveryWorker {
 }
 
 type DeliveryArea {
-  id: Long!
+  id: PrimaryId!
   name: String!
   province: String!
   city: String!
@@ -191,7 +194,7 @@ type DeliveryArea {
 }
 
 type Region {
-  id: Long!
+  id: PrimaryId!
   name: String!
   code: String!
   parentCode: String
@@ -208,7 +211,7 @@ type AuthPayload {
 }
 
 type UserInfo {
-  id: Long!
+  id: PrimaryId!
   wechatOpenId: String!
   nickname: String
   phone: String
@@ -218,7 +221,7 @@ type UserInfo {
 }
 
 type Admin {
-  id: Long!
+  id: PrimaryId!
   username: String!
   realName: String
   phone: String
@@ -372,9 +375,9 @@ input AddressInput {
 }
 
 input CreateOrderInput {
-  productId: Long!
+  productId: PrimaryId!
     @positive(message: "商品ID必须为正数")
-  addressId: Long!
+  addressId: PrimaryId!
     @positive(message: "地址ID必须为正数")
   quantity: Int!
     @min(value: 1, message: "购买数量不能少于1")
@@ -407,8 +410,7 @@ input CreateProductInput {
   coverImageUrl: String!
     @notBlank(message: "商品封面图片不能为空")
     @size(max : 500, message: "封面图片URL长度不能超过500个字符")
-  imageGallery: String
-    @size(max : 2000, message: "图片画廊URL长度不能超过2000个字符")
+  imageGallery: JsonArray
   specification: String!
     @notBlank(message: "商品规格不能为空")
     @size(min : 1, max : 100, message: "商品规格长度应在1-100个字符之间")
@@ -428,14 +430,11 @@ input CreateProductInput {
   sortOrder: Int!
     @min(value : 0, message: "排序权重不能小于0")
     @max(value : 9999, message: "排序权重不能大于9999")
-  tags: String
-    @size(max : 1000, message: "标签JSON长度不能超过1000个字符")
+  tags: JsonArray
   detailContent: String
     @size(max : 5000, message: "详情内容长度不能超过5000个字符")
-  certificateImages: String
-    @size(max : 2000, message: "证书图片URL长度不能超过2000个字符")
-  deliverySettings: String
-    @size(max : 2000, message: "配送设置JSON长度不能超过2000个字符")
+  certificateImages: JsonArray
+  deliverySettings: JsonObject
 }
 
 input UpdateProductInput {
@@ -456,8 +455,7 @@ input UpdateProductInput {
     @max(value: 9999900, message: "押金不能大于99999元")
   coverImageUrl: String
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
-  imageGallery: String
-    @size(max: 2000, message: "图片画廊URL长度不能超过2000个字符")
+  imageGallery: JsonArray
   specification: String
     @size(min: 1, max: 100, message: "商品规格长度应在1-100个字符之间")
   waterSource: String
@@ -476,19 +474,16 @@ input UpdateProductInput {
   sortOrder: Int
     @min(value: 0, message: "排序权重不能小于0")
     @max(value: 9999, message: "排序权重不能大于9999")
-  tags: String
-    @size(max: 1000, message: "标签JSON长度不能超过1000个字符")
+  tags: JsonArray
   detailContent: String
     @size(max: 5000, message: "详情内容长度不能超过5000个字符")
-  certificateImages: String
-    @size(max: 2000, message: "证书图片URL长度不能超过2000个字符")
-  deliverySettings: String
-    @size(max: 2000, message: "配送设置JSON长度不能超过2000个字符")
+  certificateImages: JsonArray
+  deliverySettings: JsonObject
   isDeleted: Boolean
 }
 
 input CreateWechatPaymentInput {
-  orderId: Long!
+  orderId: PrimaryId!
     @positive(message: "订单ID必须为正数")
   amount: Money!
     @positive(message: "支付金额必须为正数")
@@ -539,9 +534,9 @@ input ProcessRefundInput {
   originalTransactionId: String!
     @notBlank(message: "原交易ID不能为空")
     @size(min: 1, max: 100, message: "原交易ID长度应在1-100个字符之间")
-  orderId: Long!
+  orderId: PrimaryId!
     @positive(message: "订单ID必须为正数")
-  userId: Long!
+  userId: PrimaryId!
     @positive(message: "用户ID必须为正数")
   amount: Money!
     @positive(message: "退款金额必须为正数")
@@ -559,9 +554,9 @@ input CreateManualRefundInput {
   originalTransactionId: String!
     @notBlank(message: "原交易ID不能为空")
     @size(min: 1, max: 100, message: "原交易ID长度应在1-100个字符之间")
-  orderId: Long!
+  orderId: PrimaryId!
     @positive(message: "订单ID必须为正数")
-  userId: Long!
+  userId: PrimaryId!
     @positive(message: "用户ID必须为正数")
   amount: Money!
     @positive(message: "退款金额必须为正数")
@@ -820,10 +815,10 @@ type ServiceAreaPayload {
 
 # Review Types
 type Review {
-  reviewId: Long!
-  orderId: Long!
-  userId: Long
-  deliveryWorkerId: Long!
+  reviewId: PrimaryId!
+  orderId: PrimaryId!
+  userId: PrimaryId
+  deliveryWorkerId: PrimaryId!
   deliveryWorkerName: String
   rating: Int!
   comment: String
@@ -832,9 +827,9 @@ type Review {
 }
 
 input CreateReviewRequest {
-  orderId: Long!
+  orderId: PrimaryId!
     @positive(message: "订单ID必须为正数")
-  deliveryWorkerId: Long!
+  deliveryWorkerId: PrimaryId!
     @positive(message: "配送员ID必须为正数")
   rating: Int!
     @min(value: 1, message: "评分不能小于1")
@@ -851,7 +846,7 @@ type OrderReviewCheckResponse {
 }
 
 type DeliveryWorkerStatistics {
-  deliveryWorkerId: Long!
+  deliveryWorkerId: PrimaryId!
   totalReviews: Long!
   averageRating: BigDecimal!
   oneStarReviews: Long!
@@ -862,7 +857,7 @@ type DeliveryWorkerStatistics {
 }
 
 type DeliveryWorkerStatisticsResponse {
-  deliveryWorkerId: Long!
+  deliveryWorkerId: PrimaryId!
   workerName: String
   averageRating: BigDecimal!
   totalReviews: Long!
@@ -876,7 +871,7 @@ type DeliveryWorkerStatisticsResponse {
 }
 
 type DeliveryWorkerRankingResponse {
-  workerId: Long!
+  workerId: PrimaryId!
   workerName: String
   averageRating: BigDecimal!
   totalReviews: Long!
@@ -887,8 +882,8 @@ type DeliveryWorkerRankingResponse {
 type RefundRequest {
   id: String!
   originalTransactionId: String!
-  orderId: Long!
-  userId: Long!
+  orderId: PrimaryId!
+  userId: PrimaryId!
   amount: Money!
   reason: String!
   status: RefundStatus!
@@ -909,8 +904,8 @@ enum RefundStatus {
 # Payment Transaction Types
 type PaymentTransaction {
   id: String!
-  orderId: Long!
-  userId: Long!
+  orderId: PrimaryId!
+  userId: PrimaryId!
   amount: Money!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
@@ -930,7 +925,7 @@ input ExportTransactionsInput {
   dateTo: LocalDateTime
   status: PaymentStatus
   paymentMethod: PaymentMethod
-  userId: Long
+  userId: PrimaryId
     @positive(message: "用户ID必须为正数")
   minAmount: Money
     @positive(message: "最小金额必须为正数")
@@ -970,8 +965,8 @@ type PaymentMethodStats {
 
 type SuspiciousTransaction {
   id: String!
-  orderId: Long!
-  userId: Long!
+  orderId: PrimaryId!
+  userId: PrimaryId!
   amount: Money!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
@@ -1022,7 +1017,7 @@ input ProcessSuspiciousTransactionInput {
 
 # Additional Payment Types
 type OrderPaymentInfo {
-  orderId: Long!
+  orderId: PrimaryId!
   orderNumber: String!
   amount: Money!
   status: PaymentStatus!
@@ -1046,7 +1041,7 @@ type PaymentPeriodStats {
 
 type RefundEligibility {
   eligible: Boolean!
-  orderId: Long!
+  orderId: PrimaryId!
   orderAmount: Money!
   paidAmount: Money!
   refundableAmount: Money!
@@ -1090,7 +1085,7 @@ type ProductStatistics {
 }
 
 type LowStockAlert {
-  productId: Long!
+  productId: PrimaryId!
   productName: String!
   currentStock: Int!
   threshold: Int!
@@ -1123,7 +1118,7 @@ input ProductListInput {
 }
 
 input ProductUpdateRequest {
-  id: Long!
+  id: PrimaryId!
     @positive(message: "商品ID必须为正数")
   name: String
     @size(min: 2, max: 200, message: "商品名称长度应在2-200个字符之间")
@@ -1142,7 +1137,7 @@ input ProductUpdateRequest {
     @max(value: 9999900, message: "押金不能大于99999元")
   coverImageUrl: String
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
-  imageGallery: String
+  imageGallery: JsonArray
     @size(max: 2000, message: "图片画廊URL长度不能超过2000个字符")
   specification: String
     @size(min: 1, max: 100, message: "商品规格长度应在1-100个字符之间")
@@ -1162,14 +1157,11 @@ input ProductUpdateRequest {
   sortOrder: Int
     @min(value: 0, message: "排序权重不能小于0")
     @max(value: 9999, message: "排序权重不能大于9999")
-  tags: String
-    @size(max: 1000, message: "标签JSON长度不能超过1000个字符")
+  tags: JsonArray
   detailContent: String
     @size(max: 5000, message: "详情内容长度不能超过5000个字符")
-  certificateImages: String
-    @size(max: 2000, message: "证书图片URL长度不能超过2000个字符")
-  deliverySettings: String
-    @size(max: 2000, message: "配送设置JSON长度不能超过2000个字符")
+  certificateImages: JsonArray
+  deliverySettings: JsonObject
 }
 
 # Enhanced Product Management Types
@@ -1260,7 +1252,7 @@ input BatchStockAdjustmentInput {
 }
 
 input StockAdjustmentInput {
-  productId: Long!
+  productId: PrimaryId!
     @positive(message: "商品ID必须为正数")
   quantity: Int!
     @min(value : 1, message: "调整数量不能小于1")
@@ -1277,7 +1269,7 @@ enum StockAdjustmentType {
 }
 
 type StockAdjustmentResult {
-  productId: Long!
+  productId: PrimaryId!
   success: Boolean!
   message: String!
   previousStock: Int

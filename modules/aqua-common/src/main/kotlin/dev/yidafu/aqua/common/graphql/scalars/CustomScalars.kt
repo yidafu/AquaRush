@@ -19,18 +19,22 @@
 
 package dev.yidafu.aqua.common.graphql.scalars
 
-import graphql.language.IntValue
-import graphql.language.ObjectValue
-import graphql.language.StringValue
+import graphql.language.*
 import graphql.schema.Coercing
 import graphql.schema.CoercingParseLiteralException
 import graphql.schema.CoercingParseValueException
 import graphql.schema.CoercingSerializeException
 import graphql.schema.GraphQLScalarType
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.databind.JsonNode
+import tools.jackson.databind.node.ArrayNode
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
+import kotlin.collections.forEach
 
 object BigDecimalScalar {
   private val coercing =
@@ -242,16 +246,23 @@ object LongScalar {
 }
 
 object MapScalar {
+  private val objectMapper = jacksonObjectMapper()
+
   private val coercing =
     object : Coercing<Map<String, Any>, Any> {
       override fun serialize(dataFetcherResult: Any): Any =
         when (dataFetcherResult) {
           is Map<*, *> -> dataFetcherResult
+          is JsonNode -> {
+            try {
+              objectMapper.convertValue(dataFetcherResult, Map::class.java)
+            } catch (e: Exception) {
+              throw CoercingSerializeException("Expected Map but got invalid JsonNode: $dataFetcherResult")
+            }
+          }
           is String -> {
             try {
-              // Simple JSON string parsing - in a real implementation, you might want to use a proper JSON parser
-              // For now, just return the string as-is
-              dataFetcherResult
+              objectMapper.readValue(dataFetcherResult, Map::class.java)
             } catch (e: Exception) {
               throw CoercingSerializeException("Expected Map but got invalid string: $dataFetcherResult")
             }
@@ -263,41 +274,46 @@ object MapScalar {
         when (input) {
           is Map<*, *> -> input as Map<String, Any>
           is String -> {
-            try {
-              // Simple JSON string parsing - in a real implementation, you might want to use a proper JSON parser
-              // For now, return empty map for strings
-              emptyMap()
-            } catch (e: Exception) {
-              throw CoercingParseValueException("Expected valid Map string but got: $input")
-            }
+                try {
+                  objectMapper.readValue(input, Map::class.java)
+                } catch (e: Exception) {
+                  throw CoercingParseValueException("Expected valid Map JSON string but got: $input")
+                }
           }
+
           else -> throw CoercingParseValueException("Expected Map but got ${input::class.simpleName}")
-        }
+        } as Map<String, Any>
 
       override fun parseLiteral(input: Any): Map<String, Any> {
         return when (input) {
           is ObjectValue -> {
-            val result = mutableMapOf<String, Any>()
-            input.objectFields.forEach { field ->
-              result[field.name] =
-                when (val value = field.value) {
-                  is StringValue -> value.value as Any
-                  is IntValue -> value.value as Any
-                  else -> value.toString()
+                val result = mutableMapOf<String, Any>()
+                input.objectFields
+                  .filterNot { it.value is NullValue  }
+                  .forEach { field ->
+                  result[field.name] =
+                    when (val value = field.value) {
+                      is StringValue -> value.value as Any
+                      is IntValue -> value.value as Any
+                      is FloatValue -> value.value as Any
+                      is BooleanValue -> value.isValue as Any
+//                      is NullValue -> null as Any?
+                      else -> value.toString()
+                    }
                 }
-            }
-            result
+                result
           }
+
           is StringValue -> {
-            try {
-              // Simple JSON string parsing
-              emptyMap()
-            } catch (e: Exception) {
-              throw CoercingParseLiteralException("Expected valid Map string but got: ${input.value}")
-            }
+                try {
+                  objectMapper.readValue(input.value, Map::class.java)
+                } catch (e: Exception) {
+                  throw CoercingParseLiteralException("Expected valid Map JSON string but got: ${input.value}")
+                }
           }
+
           else -> throw CoercingParseLiteralException("Expected Map value but got: $input")
-        }
+        } as Map<String, Any>
       }
     }
 
@@ -306,6 +322,244 @@ object MapScalar {
       .newScalar()
       .name("Map")
       .description("Custom Map scalar type")
+      .coercing(coercing)
+      .build()
+}
+
+object JsonObjectScalar {
+  private val objectMapper = jacksonObjectMapper()
+
+  private val coercing =
+    object : Coercing<ObjectNode, Any> {
+      override fun serialize(dataFetcherResult: Any): ObjectNode =
+        when (dataFetcherResult) {
+          is ObjectNode -> dataFetcherResult
+          is JsonNode -> {
+                if (dataFetcherResult.isObject) {
+                  dataFetcherResult as ObjectNode
+                } else {
+                  throw CoercingSerializeException("Expected JsonObject but got ${dataFetcherResult.nodeType}")
+                }
+          }
+
+          is Map<*, *> -> {
+                try {
+                  objectMapper.valueToTree<ObjectNode>(dataFetcherResult)
+                } catch (e: Exception) {
+                  throw CoercingSerializeException("Expected JsonObject but got invalid Map: $dataFetcherResult")
+                }
+          }
+
+          is String -> {
+                try {
+                  val jsonNode = objectMapper.readTree(dataFetcherResult)
+                  if (jsonNode.isObject) {
+                    jsonNode as ObjectNode
+                  } else {
+                    throw CoercingSerializeException("Expected JsonObject but got non-object JSON: $dataFetcherResult")
+                  }
+                } catch (e: Exception) {
+                  throw CoercingSerializeException("Expected JsonObject but got invalid string: $dataFetcherResult")
+                }
+          }
+
+          else -> throw CoercingSerializeException("Expected JsonObject but got ${dataFetcherResult::class.simpleName}")
+        }
+
+      override fun parseValue(input: Any): ObjectNode =
+        when (input) {
+          is ObjectNode -> input
+          is JsonNode -> {
+            if (input.isObject) {
+              input as ObjectNode
+            } else {
+              throw CoercingParseValueException("Expected JsonObject but got ${input.nodeType}")
+            }
+          }
+          is Map<*, *> -> {
+            try {
+              objectMapper.valueToTree<ObjectNode>(input)
+            } catch (e: Exception) {
+              throw CoercingParseValueException("Expected valid JsonObject but got invalid Map: $input")
+            }
+          }
+          is String -> {
+            try {
+              val jsonNode = objectMapper.readTree(input)
+              if (jsonNode.isObject) {
+                jsonNode as ObjectNode
+              } else {
+                throw CoercingParseValueException("Expected JsonObject but got non-object JSON: $input")
+              }
+            } catch (e: Exception) {
+              throw CoercingParseValueException("Expected valid JsonObject JSON string but got: $input")
+            }
+          }
+          else -> throw CoercingParseValueException("Expected JsonObject but got ${input::class.simpleName}")
+        }
+
+      override fun parseLiteral(input: Any): ObjectNode {
+        return when (input) {
+          is ObjectValue -> {
+            try {
+              val map = mutableMapOf<String, Any>()
+              input.objectFields
+                .filterNot { it.value is NullValue }
+                .forEach { field ->
+                map[field.name] =
+                  when (val value = field.value) {
+                    is StringValue -> value.value as Any
+                    is IntValue -> value.value as Any
+                    is FloatValue -> value.value as Any
+                    is BooleanValue -> value.isValue as Any
+//                    is NullValue -> null
+                    else -> value.toString()
+                  }
+              }
+              objectMapper.valueToTree<ObjectNode>(map)
+            } catch (e: Exception) {
+              throw CoercingParseLiteralException("Failed to convert ObjectValue to JsonObject: $input")
+            }
+          }
+          is StringValue -> {
+            try {
+              val jsonNode = objectMapper.readTree(input.value)
+              if (jsonNode.isObject) {
+                jsonNode as ObjectNode
+              } else {
+                throw CoercingParseLiteralException("Expected JsonObject but got non-object JSON: ${input.value}")
+              }
+            } catch (e: Exception) {
+              throw CoercingParseLiteralException("Expected valid JsonObject JSON string but got: ${input.value}")
+            }
+          }
+          else -> throw CoercingParseLiteralException("Expected JsonObject value but got: $input")
+        }
+      }
+    }
+
+  val GraphQL_TYPE: GraphQLScalarType =
+    GraphQLScalarType
+      .newScalar()
+      .name("JsonObject")
+      .description("Custom JsonObject scalar type for JSON objects")
+      .coercing(coercing)
+      .build()
+}
+
+object JsonArrayScalar {
+  private val objectMapper = jacksonObjectMapper()
+
+  private val coercing =
+    object : Coercing<ArrayNode, Any> {
+      override fun serialize(dataFetcherResult: Any): Any =
+        when (dataFetcherResult) {
+          is ArrayNode -> dataFetcherResult
+          is JsonNode -> {
+            if (dataFetcherResult.isArray) {
+              dataFetcherResult
+            } else {
+              throw CoercingSerializeException("Expected JsonArray but got ${dataFetcherResult.nodeType}")
+            }
+          }
+          is List<*> -> {
+            try {
+              objectMapper.valueToTree<ArrayNode>(dataFetcherResult)
+            } catch (e: Exception) {
+              throw CoercingSerializeException("Expected JsonArray but got invalid List: $dataFetcherResult")
+            }
+          }
+          is String -> {
+            try {
+              val jsonNode = objectMapper.readTree(dataFetcherResult)
+              if (jsonNode.isArray) {
+                jsonNode as ArrayNode
+              } else {
+                throw CoercingSerializeException("Expected JsonArray but got non-array JSON: $dataFetcherResult")
+              }
+            } catch (e: Exception) {
+              throw CoercingSerializeException("Expected JsonArray but got invalid string: $dataFetcherResult")
+            }
+          }
+          else -> throw CoercingSerializeException("Expected JsonArray but got ${dataFetcherResult::class.simpleName}")
+        }
+
+      override fun parseValue(input: Any): ArrayNode =
+        when (input) {
+          is ArrayNode -> input
+          is JsonNode -> {
+            if (input.isArray) {
+              input as ArrayNode
+            } else {
+              throw CoercingParseValueException("Expected JsonArray but got ${input.nodeType}")
+            }
+          }
+          is List<*> -> {
+            try {
+              objectMapper.valueToTree<ArrayNode>(input)
+            } catch (e: Exception) {
+              throw CoercingParseValueException("Expected valid JsonArray but got invalid List: $input")
+            }
+          }
+          is String -> {
+            try {
+              val jsonNode = objectMapper.readTree(input)
+              if (jsonNode.isArray) {
+                jsonNode as ArrayNode
+              } else {
+                throw CoercingParseValueException("Expected JsonArray but got non-array JSON: $input")
+              }
+            } catch (e: Exception) {
+              throw CoercingParseValueException("Expected valid JsonArray JSON string but got: $input")
+            }
+          }
+          else -> throw CoercingParseValueException("Expected JsonArray but got ${input::class.simpleName}")
+        }
+
+      override fun parseLiteral(input: Any): ArrayNode {
+        return when (input) {
+          is ArrayValue -> {
+            try {
+              val list = mutableListOf<Any>()
+              input.values.forEach { value ->
+                list.add(
+                  when (value) {
+                    is StringValue -> value.value as Any
+                    is IntValue -> value.value as Any
+                    is FloatValue -> value.value as Any
+                    is BooleanValue -> value.isValue as Any
+//                    is NullValue -> null
+                    else -> value.toString()
+                  }
+                )
+              }
+              objectMapper.valueToTree<ArrayNode>(list)
+            } catch (e: Exception) {
+              throw CoercingParseLiteralException("Failed to convert ArrayValue to JsonArray: $input")
+            }
+          }
+          is StringValue -> {
+            try {
+              val jsonNode = objectMapper.readTree(input.value)
+              if (jsonNode.isArray) {
+                jsonNode as ArrayNode
+              } else {
+                throw CoercingParseLiteralException("Expected JsonArray but got non-array JSON: ${input.value}")
+              }
+            } catch (e: Exception) {
+              throw CoercingParseLiteralException("Expected valid JsonArray JSON string but got: ${input.value}")
+            }
+          }
+          else -> throw CoercingParseLiteralException("Expected JsonArray value but got: $input")
+        }
+      }
+    }
+
+  val GraphQL_TYPE: GraphQLScalarType =
+    GraphQLScalarType
+      .newScalar()
+      .name("JsonArray")
+      .description("Custom JsonArray scalar type for JSON arrays")
       .coercing(coercing)
       .build()
 }

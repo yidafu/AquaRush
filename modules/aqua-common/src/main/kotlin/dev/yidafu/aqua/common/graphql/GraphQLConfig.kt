@@ -24,6 +24,8 @@ import dev.yidafu.aqua.common.graphql.scalars.LocalDateTimeScalar
 import dev.yidafu.aqua.common.graphql.scalars.LongScalar
 import dev.yidafu.aqua.common.graphql.scalars.MapScalar
 import dev.yidafu.aqua.common.graphql.scalars.MoneyScalar
+import dev.yidafu.aqua.common.graphql.scalars.JsonObjectScalar
+import dev.yidafu.aqua.common.graphql.scalars.JsonArrayScalar
 import graphql.schema.GraphQLScalarType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -47,6 +49,8 @@ class GraphQLConfig {
         .scalar(LocalDateTimeScalar.GraphQL_TYPE)
         .scalar(LongScalar.GraphQL_TYPE)
         .scalar(MapScalar.GraphQL_TYPE)
+        .scalar(JsonObjectScalar.GraphQL_TYPE)
+        .scalar(JsonArrayScalar.GraphQL_TYPE)
         .scalar(MoneyScalar.GraphQL_TYPE)
     }
 }

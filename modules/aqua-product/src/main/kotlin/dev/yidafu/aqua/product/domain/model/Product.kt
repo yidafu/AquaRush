@@ -19,9 +19,14 @@
 
 package dev.yidafu.aqua.product.domain.model
 
+import dev.yidafu.aqua.common.converter.ArrayNodeConverter
+import dev.yidafu.aqua.common.converter.ObjectNodeConverter
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
+import tools.jackson.databind.node.ArrayNode
+import tools.jackson.databind.node.ObjectNode
+import tools.jackson.core.type.TypeReference
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -51,7 +56,8 @@ data class ProductModel(
   var coverImageUrl: String,
 
   @Column(name = "detail_images", columnDefinition = "jsonb")
-  var imageGallery: String? = null,
+  @Convert(converter = ArrayNodeConverter::class)
+  var imageGallery: ArrayNode? = null,
 
   @Column(name = "specification", nullable = false, length = 100)
   var specification: String,
@@ -79,16 +85,19 @@ data class ProductModel(
   var sortOrder: Int = 999,
 
   @Column(name = "tags", columnDefinition = "jsonb")
-  var tags: String? = null,
+  @Convert(converter = ArrayNodeConverter::class)
+  var tags: ArrayNode? = null,
 
   @Column(name = "description", columnDefinition = "TEXT")
   var detailContent: String? = null,
 
   @Column(name = "certificate_images", columnDefinition = "jsonb")
-  var certificateImages: String? = null,
+  @Convert(converter = ArrayNodeConverter::class)
+  var certificateImages: ArrayNode? = null,
 
   @Column(name = "delivery_settings", columnDefinition = "jsonb")
-  var deliverySettings: String? = null,
+  @Convert(converter = ObjectNodeConverter::class)
+  var deliverySettings: ObjectNode? = null,
 
   @Column(name = "is_deleted", nullable = false)
   var isDeleted: Boolean = false,
@@ -122,5 +131,78 @@ data class ProductModel(
   // Helper method to check if product is available for sale
   fun isAvailable(): Boolean {
     return !isDeleted && status == ProductStatus.ONLINE && stock > 0
+  }
+
+  // Helper methods for JSON field handling
+
+  /**
+   * Get tags as a list of strings
+   */
+  fun getTagsAsList(): List<String> {
+    return tags?.mapNotNull { if (it.isTextual) it.asText() else null } ?: emptyList()
+  }
+
+  /**
+   * Set tags from a list of strings
+   */
+  fun setTagsFromList(tagList: List<String>) {
+    tags = if (tagList.isEmpty()) null else {
+      val objectMapper = tools.jackson.module.kotlin.jacksonObjectMapper()
+      objectMapper.valueToTree<ArrayNode>(tagList)
+    }
+  }
+
+  /**
+   * Get image gallery as a list of URLs
+   */
+  fun getImageGalleryAsList(): List<String> {
+    return imageGallery?.mapNotNull { if (it.isTextual) it.asText() else null } ?: emptyList()
+  }
+
+  /**
+   * Set image gallery from a list of URLs
+   */
+  fun setImageGalleryFromList(imageUrls: List<String>) {
+    imageGallery = if (imageUrls.isEmpty()) null else {
+      val objectMapper = tools.jackson.module.kotlin.jacksonObjectMapper()
+      objectMapper.valueToTree<ArrayNode>(imageUrls)
+    }
+  }
+
+  /**
+   * Get certificate images as a list of URLs
+   */
+  fun getCertificateImagesAsList(): List<String> {
+    return certificateImages?.mapNotNull { if (it.isTextual) it.asText() else null } ?: emptyList()
+  }
+
+  /**
+   * Set certificate images from a list of URLs
+   */
+  fun setCertificateImagesFromList(imageUrls: List<String>) {
+    certificateImages = if (imageUrls.isEmpty()) null else {
+      val objectMapper = tools.jackson.module.kotlin.jacksonObjectMapper()
+      objectMapper.valueToTree<ArrayNode>(imageUrls)
+    }
+  }
+
+  /**
+   * Get delivery settings as a Map
+   */
+  fun getDeliverySettingsAsMap(): Map<String, Any> {
+    return deliverySettings?.let {
+      val objectMapper = tools.jackson.module.kotlin.jacksonObjectMapper()
+      objectMapper.convertValue(it, object : TypeReference<Map<String, Any>>() {})
+    } ?: emptyMap()
+  }
+
+  /**
+   * Set delivery settings from a Map
+   */
+  fun setDeliverySettingsFromMap(settings: Map<String, Any>) {
+    deliverySettings = if (settings.isEmpty()) null else {
+      val objectMapper = tools.jackson.module.kotlin.jacksonObjectMapper()
+      objectMapper.valueToTree<ObjectNode>(settings)
+    }
   }
 }

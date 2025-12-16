@@ -33,6 +33,7 @@ import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.MutationMapping
 import java.math.BigDecimal
 import kotlin.collections.joinToString
 
@@ -52,6 +53,7 @@ class AdminProductMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
+  @MutationMapping
   fun createProduct(@Argument @Valid input: CreateProductInput): ProductModel {
     try {
       // 验证输入
@@ -73,6 +75,7 @@ class AdminProductMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
+  @MutationMapping
   fun updateProduct(
     @Argument id: Long,
     @Argument @Valid input: UpdateProductInput

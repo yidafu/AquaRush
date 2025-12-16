@@ -17,6 +17,7 @@ generates:
     config:
       package: "dev.yidafu.aqua.common.graphql.generated"
       scalars:
+        PrimaryId: "kotlin.Long"
         Long: "kotlin.Long"
         BigDecimal: "java.math.BigDecimal"
         Money: "kotlin.Long"
@@ -27,6 +28,8 @@ generates:
         Int: "kotlin.Int"
         String: "kotlin.String"
         Boolean: "kotlin.Boolean"
+        JsonObject: "tools.jackson.databind.node.ObjectNode"
+        JsonArray: "tools.jackson.databind.node.ArrayNode"
       withTypes: true
       immutableTypes: true
       skipTypename: true
@@ -45,12 +48,15 @@ generates:
       - "typescript-operations"
     config:
       scalars:
+        PrimaryId: "string"
         Long: "number"
         BigDecimal: "number"
         Money: "string"
         Double: "number"
         LocalDateTime: "string"
         Map: "{ [key: string]: any }"
+        JsonObject: "{ [key: string]: any }"
+        JsonArray: "string[]"
         Float: "number"
         Int: "number"
         String: "string"

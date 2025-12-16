@@ -32,6 +32,8 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.databind.node.ArrayNode
+import tools.jackson.databind.node.ObjectNode
 import java.math.BigDecimal
 
 @Service
@@ -96,17 +98,17 @@ class ProductService(
     subtitle: String? = null,
     originalPriceYuan: BigDecimal? = null,
     depositPriceYuan: BigDecimal? = null,
-    imageGallery: String? = null,
+    imageGallery: ArrayNode? = null,
     specification: String? = null,
     waterSource: String? = null,
     phValue: BigDecimal? = null,
     mineralContent: String? = null,
     salesVolume: Int? = null,
     sortOrder: Int? = null,
-    tags: String? = null,
+    tags: ArrayNode? = null,
     detailContent: String? = null,
-    certificateImages: String? = null,
-    deliverySettings: String? = null,
+    certificateImages: ArrayNode? = null,
+    deliverySettings: ObjectNode? = null,
     isDeleted: Boolean? = null
   ): ProductModel {
     val product =
@@ -235,7 +237,7 @@ class ProductService(
 
   fun findByCategory(category: String, pageable: Pageable):  Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.imageGallery?.contains(category) == true
+        it.getImageGalleryAsList().any { url -> url.contains(category, ignoreCase = true) }
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -266,7 +268,7 @@ class ProductService(
   // Additional methods for client queries
   fun findByCategoryAndNameContainingAndStatus(category: String, keyword: String, pageable: Pageable):  Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.imageGallery?.contains(category) == true &&
+        it.getImageGalleryAsList().any { url -> url.contains(category, ignoreCase = true) } &&
         it.name.contains(keyword, ignoreCase = true) &&
         it.status == ProductStatus.ONLINE
     }
@@ -278,7 +280,7 @@ class ProductService(
 
   fun findByCategoryAndStatus(category: String, pageable: Pageable):  Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.imageGallery?.contains(category) == true && it.status == ProductStatus.ONLINE
+        it.getImageGalleryAsList().any { url -> url.contains(category, ignoreCase = true) } && it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -336,8 +338,8 @@ class ProductService(
   fun findAllCategories(): List<String> {
     // Simplified: extract categories from imageGallery (would normally have a proper category field)
     return productRepository.findAll()
-        .mapNotNull { it.imageGallery }
-        .flatMap { images -> images.split(",").map { it.trim() } }
+        .flatMap { product -> product.getImageGalleryAsList() }
+        .map { url -> url.trim() }
         .distinct()
   }
 
@@ -517,4 +519,15 @@ class ProductService(
 
   // Batch operations for stock management
   // Removed duplicate methods to avoid conflicts
+
+  fun ArrayNode.contains(value: String): Boolean {
+    this.forEach { node ->
+        if (node.isString) {
+          if (value == node.stringValue()) {
+            return true
+          }
+        }
+    }
+    return false
+  }
 }
