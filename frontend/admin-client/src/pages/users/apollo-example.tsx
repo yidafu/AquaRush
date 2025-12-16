@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Card, Table, Button, Space, Input, Select, message, Modal } from 'antd';
+import { Card, Table, Button, Space, Input, Select, Modal } from 'antd';
 import { SearchOutlined, PlusOutlined, EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 
@@ -8,13 +8,11 @@ import {
   useUsers,
   useDeleteUser,
   useToggleUserStatus,
-  useLazyUsers,
 } from '../../services/user-graphql';
 import type {
   User,
-  UserListInput,
-  UserStatus,
-} from '../../types/graphql';
+} from '@aquarush/common';
+import { UserStatus } from '@aquarush/common';
 
 const ApolloExample: React.FC = () => {
   // State for pagination and filters
@@ -31,13 +29,13 @@ const ApolloExample: React.FC = () => {
   const { data, loading, error, refetch } = useUsers({
     page: pagination.current - 1,
     size: pagination.pageSize,
-    keyword: filters.keyword,
-    status: filters.status,
+    search: filters.keyword,
+    status: filters.status as UserStatus || undefined,
   });
 
   const [deleteUser] = useDeleteUser();
   const [toggleUserStatus] = useToggleUserStatus();
-  const [searchUsers, { loading: searchLoading }] = useLazyUsers();
+  const [searchLoading] = useState(false);
 
   // Handle delete user
   const handleDelete = (user: User) => {
@@ -58,7 +56,7 @@ const ApolloExample: React.FC = () => {
 
   // Handle toggle user status
   const handleToggleStatus = async (user: User) => {
-    const newStatus: UserStatus = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
+    const newStatus: UserStatus = user.status === UserStatus.ACTIVE ? UserStatus.INACTIVE : UserStatus.ACTIVE;
     try {
       await toggleUserStatus({
         variables: {
@@ -126,9 +124,10 @@ const ApolloExample: React.FC = () => {
       width: 100,
       render: (status: UserStatus) => {
         const statusMap = {
-          ACTIVE: { text: '活跃', color: 'green' },
-          INACTIVE: { text: '非活跃', color: 'orange' },
-          BANNED: { text: '已禁用', color: 'red' },
+          [UserStatus.ACTIVE]: { text: '活跃', color: 'green' },
+          [UserStatus.INACTIVE]: { text: '非活跃', color: 'orange' },
+          [UserStatus.SUSPENDED]: { text: '已禁用', color: 'red' },
+          [UserStatus.DELETED]: { text: '已删除', color: 'gray' },
         };
         const statusInfo = statusMap[status];
         return (
@@ -163,10 +162,10 @@ const ApolloExample: React.FC = () => {
           </Button>
           <Button
             size="small"
-            type={record.status === 'ACTIVE' ? 'default' : 'primary'}
+            type={record.status === UserStatus.ACTIVE ? 'default' : 'primary'}
             onClick={() => handleToggleStatus(record)}
           >
-            {record.status === 'ACTIVE' ? '禁用' : '启用'}
+            {record.status === UserStatus.ACTIVE ? '禁用' : '启用'}
           </Button>
           <Button
             size="small"
@@ -214,9 +213,9 @@ const ApolloExample: React.FC = () => {
           style={{ width: 120 }}
           allowClear
         >
-          <Select.Option value="ACTIVE">活跃</Select.Option>
-          <Select.Option value="INACTIVE">非活跃</Select.Option>
-          <Select.Option value="BANNED">已禁用</Select.Option>
+          <Select.Option value={UserStatus.ACTIVE}>活跃</Select.Option>
+          <Select.Option value={UserStatus.INACTIVE}>非活跃</Select.Option>
+          <Select.Option value={UserStatus.SUSPENDED}>已禁用</Select.Option>
         </Select>
         <Button
           type="primary"

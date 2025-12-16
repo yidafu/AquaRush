@@ -21,14 +21,40 @@ import {
 import type {
   User,
   UserListInput,
-  UpdateUserInput,
-  CreateUserInput,
   UserStatus,
-  Admin,
-  DeliveryWorker,
-  CreateAdminInput,
-  UpdateAdminInput,
-} from '../types/graphql';
+} from '@aquarush/common';
+
+// Temporary local types for missing input types
+// TODO: These should be added to @aquarush/common package
+export interface UpdateUserInput {
+  readonly id: number;
+  readonly nickname?: string;
+  readonly phone?: string;
+  readonly status?: UserStatus;
+}
+
+export interface CreateUserInput {
+  readonly wechatOpenId: string;
+  readonly nickname?: string;
+  readonly phone?: string;
+  readonly status?: UserStatus;
+}
+
+export interface CreateAdminInput {
+  readonly username: string;
+  readonly realName?: string;
+  readonly phone?: string;
+  readonly role?: string;
+  readonly wechatOpenId?: string;
+}
+
+export interface UpdateAdminInput {
+  readonly id: number;
+  readonly username?: string;
+  readonly realName?: string;
+  readonly phone?: string;
+  readonly role?: string;
+}
 
 // User Query Hooks
 export const useUsers = (input?: UserListInput) => {
@@ -174,7 +200,7 @@ export const useUserOrders = (userId: number) => {
 };
 
 // Utility functions for manual cache updates
-export const updateUserCache = (userId: number, updatedData: Partial<User>) => {
+export const updateUserCache = (_userId: number, _updatedData: Partial<User>) => {
   // This would be used for optimistic updates
   // Implementation depends on your cache structure
 };

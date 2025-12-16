@@ -1,5 +1,5 @@
 import { gql } from '@apollo/client';
-
+import {} from '@aquarush/common'
 export const UPDATE_ORDER_STATUS_MUTATION = gql`
   mutation UpdateOrderStatus($orderId: Long!, $status: OrderStatus!) {
     updateOrderStatus(orderId: $orderId, status: $status) {

@@ -1,6 +1,6 @@
 import React from 'react';
 import { List, Tag } from 'antd';
-import type { Address as GraphQLAddress } from '../../../types/graphql';
+import type { Address as GraphQLAddress } from '@aquarush/common';
 
 interface AddressListUsingListProps {
   addresses: GraphQLAddress[];

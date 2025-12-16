@@ -31,12 +31,12 @@ import type {
   User,
   Order,
   Address,
-} from '../../../types/graphql';
-import { OrderStatus } from '../../../types/graphql';
-import { formatAdminTableAmount, centsToYuan } from '../../../utils/money';
+} from '@aquarush/common';
+import { OrderStatus } from '@aquarush/common';
+import { formatAdminTableAmount } from '../../../utils/money';
 import AddressListUsingList from '../components/AddressListUsingList';
 
-const { Title, Text } = Typography;
+const { Text } = Typography;
 
 const UserDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -212,8 +212,12 @@ const UserDetailPage: React.FC = () => {
 
   // Calculate statistics
   const totalOrders = orders.length;
-  const totalAmount = orders.reduce((sum, order) => sum + (order.amount || 0), 0);
-  const totalAmountInYuan = centsToYuan(totalAmount);
+  const totalAmount = orders.reduce((sum, order) => {
+    // order.amount is a string in yuan format, sum as number
+    const amountValue = parseFloat(order.amount || '0');
+    return sum + amountValue;
+  }, 0);
+  const totalAmountInYuan = totalAmount;
   const completedOrders = orders.filter(order => order.status === OrderStatus.DELIVERED).length;
   const lastOrderTime = orders.length > 0
     ? new Date(Math.max(...orders.map(order => new Date(order.createdAt).getTime()))).toLocaleString()

@@ -74,14 +74,16 @@ const AdminTable: React.FC<AdminTableProps> = ({
       fixed: 'right',
       render: (_, record) => (
         <Space size="small">
-          <Button
-            type="link"
-            icon={<EyeOutlined />}
-            onClick={() => onView(record)}
-            size="small"
-          >
-            查看
-          </Button>
+          {onView && (
+            <Button
+              type="link"
+              icon={<EyeOutlined />}
+              onClick={() => onView(record)}
+              size="small"
+            >
+              查看
+            </Button>
+          )}
           <Button
             type="link"
             icon={<EditOutlined />}

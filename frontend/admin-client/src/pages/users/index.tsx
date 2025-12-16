@@ -24,7 +24,7 @@ import type {
   Admin,
   DeliveryWorker,
   User,
-} from '../../types/graphql';
+} from '@aquarush/common';
 
 // Import types for forms
 import type { AdminFormData, DeliveryWorkerFormData, UserFormData } from './components/types';
@@ -32,7 +32,7 @@ import type { AdminFormData, DeliveryWorkerFormData, UserFormData } from './comp
 const Users: React.FC = () => {
   // State for tabs and data
   const [activeTab, setActiveTab] = useState<string>('admin');
-  const [loading, setLoading] = useState<boolean>(false);
+  const [_loading, setLoading] = useState<boolean>(false);
 
   // GraphQL data fetching
   const { data: adminsData, loading: adminsLoading, refetch: refetchAdmins } = useAdmins();
@@ -176,7 +176,7 @@ const Users: React.FC = () => {
   };
 
   // Form submission handlers
-  const handleAdminSubmit = async (values: AdminFormData) => {
+  const handleAdminSubmit = async (_values: AdminFormData) => {
     setLoading(true);
     try {
       // TODO: Call create/update API
@@ -198,7 +198,7 @@ const Users: React.FC = () => {
     }
   };
 
-  const handleDeliveryWorkerSubmit = async (values: DeliveryWorkerFormData) => {
+  const handleDeliveryWorkerSubmit = async (_values: DeliveryWorkerFormData) => {
     setLoading(true);
     try {
       // TODO: Call create/update API with values
@@ -220,7 +220,7 @@ const Users: React.FC = () => {
     }
   };
 
-  const handleUserSubmit = async (values: UserFormData) => {
+  const handleUserSubmit = async (_values: UserFormData) => {
     setLoading(true);
     try {
       // TODO: Call create/update API with values

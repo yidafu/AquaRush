@@ -86,6 +86,7 @@ export interface UserFormData {
 // Common interfaces
 export interface TableActionProps {
   onEdit: (record: any) => void;
+  onView?: (record: any) => void;
   onDelete: (record: any) => void;
   onResetPassword: (record: any) => void;
 }
