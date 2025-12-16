@@ -1,3 +1,5 @@
+import Taro from "@tarojs/taro";
+
 // 主题配置接口
 export interface ThemeColors {
   // 主色调 - 水蓝色系
@@ -112,7 +114,7 @@ export class ThemeManager {
 
     // 保存到本地存储
     try {
-      wx.setStorageSync('app_theme', themeName);
+      Taro.setStorageSync('app_theme', themeName);
     } catch (error) {
       console.warn('Failed to save theme to storage:', error);
     }
@@ -127,7 +129,7 @@ export class ThemeManager {
 
     // 保存自定义主题配置
     try {
-      wx.setStorageSync('custom_theme', currentTheme);
+      Taro.setStorageSync('custom_theme', currentTheme);
     } catch (error) {
       console.warn('Failed to save custom theme to storage:', error);
     }
@@ -138,13 +140,13 @@ export class ThemeManager {
   static initTheme(): void {
     // 尝试从本地存储加载主题设置
     try {
-      const savedThemeName = wx.getStorageSync('app_theme') as ThemePreset;
+      const savedThemeName = Taro.getStorageSync('app_theme') as ThemePreset;
       if (savedThemeName && themePresets[savedThemeName]) {
         currentTheme = themePresets[savedThemeName];
         currentThemeName = savedThemeName;
       } else {
         // 尝试加载自定义主题
-        const customTheme = wx.getStorageSync('custom_theme') as ThemeColors;
+        const customTheme = Taro.getStorageSync('custom_theme') as ThemeColors;
         if (customTheme) {
           currentTheme = customTheme;
           currentThemeName = 'aqua';
@@ -159,7 +161,7 @@ export class ThemeManager {
 
   private static applyCSSVariables(): void {
     // 为小程序页面应用CSS变量（通过页面级样式类）
-    const page = getCurrentPages().pop();
+    const page = Taro.getCurrentPages().pop();
     if (page && page.setData) {
       page.setData({
         cssVariables: this.getCSSVariables(),

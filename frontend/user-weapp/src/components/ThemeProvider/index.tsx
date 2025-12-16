@@ -60,7 +60,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({
   // 应用CSS变量到页面
   const applyCSSVariables = (themeColors: ThemeColors) => {
     try {
-      const page = getCurrentPages().pop();
+      const page = Taro.getCurrentPages().pop();
       if (page && page.setData) {
         page.setData({
           cssVariables: {

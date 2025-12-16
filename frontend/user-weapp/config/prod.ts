@@ -29,11 +29,32 @@ export default {
     }
   },
   h5: {
+    compile: {
+      include: [
+        // 确保产物为 ES5，如可以确认包含 ES6 代码的 node_modules，则可修改正则采用白名单方式缩小编译范围，以提升编译速度
+        (filename: string) => /node_modules\/(?!(@babel|core-js|style-loader|css-loader|react|react-dom))/.test(filename)
+      ]
+    },
     /**
      * WebpackChain 插件配置
      * @docs https://github.com/neutrinojs/webpack-chain
      */
     webpackChain (chain) {
+      chain.merge({
+        module: {
+          rule: {
+            myloader: {
+              test: /\.js$/,
+              use: [
+                {
+                  loader: 'babel-loader',
+                  options: {},
+                },
+              ],
+            },
+          },
+        },
+      });
       /**
        * 如果 h5 端编译后体积过大，可以使用 webpack-bundle-analyzer 插件对打包体积进行分析。
        * @docs https://github.com/webpack-contrib/webpack-bundle-analyzer
