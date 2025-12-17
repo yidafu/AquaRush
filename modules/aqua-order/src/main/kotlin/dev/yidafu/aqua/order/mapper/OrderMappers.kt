@@ -278,7 +278,6 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
         isDeleted = TODO(),
         mineralContent = TODO(),
         originalPrice = TODO(),
-        phValue = TODO(),
         salesVolume = TODO(),
         sortOrder = TODO(),
         specification = TODO(),

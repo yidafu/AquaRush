@@ -100,7 +100,7 @@
             <column name="thumbnail_url" type="varchar(512)">
                 <constraints nullable="false"/>
             </column>
-            <column name="detail_images" type="jsonb"/>
+            <column name="detail_images" type="json"/>
             <column name="description" type="text"/>
             <column name="stock_quantity" type="integer" defaultValueNumeric="0">
                 <constraints nullable="false"/>
@@ -114,12 +114,11 @@
             <column name="deposit_price_cents" type="bigint" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
-            <column name="image_gallery" type="jsonb"/>
+            <column name="image_gallery" type="json"/>
             <column name="specification" type="varchar(100)" defaultValue="默认规格">
                 <constraints nullable="false"/>
             </column>
             <column name="water_source" type="varchar(200)"/>
-            <column name="ph_value" type="decimal(3,1)"/>
             <column name="mineral_content" type="varchar(200)"/>
             <column name="sales_volume" type="integer" defaultValueNumeric="0">
                 <constraints nullable="false"/>
@@ -127,10 +126,10 @@
             <column name="sort_order" type="integer" defaultValueNumeric="999">
                 <constraints nullable="false"/>
             </column>
-            <column name="tags" type="jsonb"/>
+            <column name="tags" type="json"/>
             <column name="detail_content" type="text"/>
-            <column name="certificate_images" type="jsonb"/>
-            <column name="delivery_settings" type="jsonb"/>
+            <column name="certificate_images" type="json"/>
+            <column name="delivery_settings" type="json"/>
             <column name="is_deleted" type="boolean" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
@@ -182,9 +181,7 @@
                 ADD CONSTRAINT chk_product_original_price_positive
                 CHECK (original_price_cents IS NULL OR original_price_cents >= 0),
                 ADD CONSTRAINT chk_product_deposit_price_positive
-                CHECK (deposit_price_cents >= 0),
-                ADD CONSTRAINT chk_product_ph_value_range
-                CHECK (ph_value IS NULL OR (ph_value >= 0.0 AND ph_value <= 14.0));
+                CHECK (deposit_price_cents >= 0);
             ]]>
         </sql>
     </changeSet>
@@ -288,7 +285,7 @@
             <column name="event_type" type="varchar(100)">
                 <constraints nullable="false"/>
             </column>
-            <column name="payload" type="jsonb">
+            <column name="payload" type="json">
                 <constraints nullable="false"/>
             </column>
             <column name="retry_count" type="integer" defaultValueNumeric="0">
@@ -396,8 +393,8 @@
             <column name="online_status" type="varchar(20)" defaultValue="OFFLINE">
                 <constraints nullable="false"/>
             </column>
-            <column name="coordinates" type="jsonb"/>
-            <column name="current_location" type="jsonb"/>
+            <column name="coordinates" type="json"/>
+            <column name="current_location" type="json"/>
             <column name="rating" type="double"/>
             <column name="total_orders" type="integer" defaultValueNumeric="0">
                 <constraints nullable="false"/>
@@ -886,7 +883,7 @@
             <column name="record_id" type="varchar(100)">
                 <constraints nullable="false"/>
             </column>
-            <column name="record_details" type="jsonb"/>
+            <column name="record_details" type="json"/>
             <column name="status" type="varchar(20)" defaultValue="'UNRESOLVED'">
                 <constraints nullable="false"/>
             </column>
@@ -962,7 +959,7 @@
             <column name="report_type" type="varchar(20)">
                 <constraints nullable="false"/>
             </column>
-            <column name="report_data" type="jsonb">
+            <column name="report_data" type="json">
                 <constraints nullable="false"/>
             </column>
             <column name="file_path" type="varchar(500)"/>
@@ -1039,7 +1036,7 @@
             <column name="delivery_worker_id" type="bigint">
                 <constraints nullable="true"/>
             </column>
-            <column name="delivery_photos" type="jsonb"/>
+            <column name="delivery_photos" type="json"/>
             <column name="completed_at" type="timestamp"/>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
@@ -1087,7 +1084,7 @@
             <column name="total_price_cents" type="bigint">
                 <constraints nullable="false"/>
             </column>
-            <column name="product_snapshot" type="jsonb">
+            <column name="product_snapshot" type="json">
                 <constraints nullable="false"/>
             </column>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">

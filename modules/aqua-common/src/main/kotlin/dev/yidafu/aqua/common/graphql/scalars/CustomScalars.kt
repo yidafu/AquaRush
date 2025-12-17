@@ -646,3 +646,86 @@ object MoneyScalar {
       .coercing(coercing)
       .build()
 }
+
+object PrimaryIdScalar {
+  private val coercing =
+    object : Coercing<Long, String> {
+      override fun serialize(dataFetcherResult: Any): String =
+        when (dataFetcherResult) {
+          is Long -> dataFetcherResult.toString()
+          is Int -> dataFetcherResult.toLong().toString()
+          is String -> {
+            try {
+              val longValue = dataFetcherResult.toLong()
+              if (longValue <= 0) {
+                throw CoercingSerializeException("PrimaryId must be positive but got: $longValue")
+              }
+              longValue.toString()
+            } catch (e: NumberFormatException) {
+              throw CoercingSerializeException("Expected valid PrimaryId but got invalid string: $dataFetcherResult")
+            }
+          }
+          else -> throw CoercingSerializeException("Expected PrimaryId but got ${dataFetcherResult::class.simpleName}")
+        }
+
+      override fun parseValue(input: Any): Long =
+        when (input) {
+          is Long -> {
+            if (input <= 0) {
+              throw CoercingParseValueException("PrimaryId must be positive but got: $input")
+            }
+            input
+          }
+          is Int -> {
+            if (input <= 0) {
+              throw CoercingParseValueException("PrimaryId must be positive but got: $input")
+            }
+            input.toLong()
+          }
+          is String -> {
+            try {
+              val longValue = input.toLong()
+              if (longValue <= 0) {
+                throw CoercingParseValueException("PrimaryId must be positive but got: $longValue")
+              }
+              longValue
+            } catch (e: NumberFormatException) {
+              throw CoercingParseValueException("Expected valid PrimaryId string but got: $input")
+            }
+          }
+          else -> throw CoercingParseValueException("Expected PrimaryId but got ${input::class.simpleName}")
+        }
+
+      override fun parseLiteral(input: Any): Long {
+        return when (input) {
+          is IntValue -> {
+            val value = input.value.toLong()
+            if (value <= 0) {
+              throw CoercingParseLiteralException("PrimaryId must be positive but got: $value")
+            }
+            value
+          }
+          is StringValue -> {
+            try {
+              val longValue = input.value?.toLong() ?: throw CoercingParseLiteralException("PrimaryId string value is null")
+              if (longValue <= 0) {
+                throw CoercingParseLiteralException("PrimaryId must be positive but got: $longValue")
+              }
+              longValue
+            } catch (e: NumberFormatException) {
+              throw CoercingParseLiteralException("Expected valid PrimaryId string but got: ${input.value}")
+            }
+          }
+          else -> throw CoercingParseLiteralException("Expected PrimaryId literal but got: $input")
+        }
+      }
+    }
+
+  val GraphQL_TYPE: GraphQLScalarType =
+    GraphQLScalarType
+      .newScalar()
+      .name("PrimaryId")
+      .description("Custom primary ID scalar type - Long in backend, string in frontend. Must be positive.")
+      .coercing(coercing)
+      .build()
+}

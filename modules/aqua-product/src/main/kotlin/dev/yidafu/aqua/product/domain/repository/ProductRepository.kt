@@ -41,8 +41,6 @@ interface ProductRepository : JpaRepository<ProductModel, Long>, JpaSpecificatio
   // Advanced filtering methods
   fun findByWaterSourceContaining(waterSource: String): List<ProductModel>
 
-  fun findByPhValueBetween(minPh: java.math.BigDecimal, maxPh: java.math.BigDecimal): List<ProductModel>
-
   fun findBySalesVolumeGreaterThan(minVolume: Int): List<ProductModel>
 
   fun findByTagsContaining(tag: String): List<ProductModel>

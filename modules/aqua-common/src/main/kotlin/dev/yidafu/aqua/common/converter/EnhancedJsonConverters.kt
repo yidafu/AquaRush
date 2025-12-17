@@ -20,12 +20,14 @@
 package dev.yidafu.aqua.common.converter
 
 import tools.jackson.databind.JsonNode
-import tools.jackson.databind.node.ArrayNode
-import tools.jackson.databind.node.ObjectNode
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Converter
+import org.postgresql.util.PGBinaryObject
+import org.postgresql.util.PGobject
 import tools.jackson.core.JacksonException
+import tools.jackson.databind.node.ArrayNode
+import tools.jackson.databind.node.ObjectNode
 
 /**
  * Enhanced JSON converters using Jackson for proper JsonNode handling
@@ -47,7 +49,7 @@ class ObjectNodeConverter : AttributeConverter<ObjectNode?, String?> {
       null
     } else {
       try {
-        objectMapper.writeValueAsString(attribute)
+          objectMapper.writeValueAsString(attribute)
       } catch (e: JacksonException) {
         throw IllegalArgumentException("Error converting ObjectNode to JSON string", e)
       }
@@ -85,7 +87,7 @@ class ArrayNodeConverter : AttributeConverter<ArrayNode?, String?> {
       null
     } else {
       try {
-        objectMapper.writeValueAsString(attribute)
+          objectMapper.writeValueAsString(attribute)
       } catch (e: JacksonException) {
         throw IllegalArgumentException("Error converting ArrayNode to JSON string", e)
       }

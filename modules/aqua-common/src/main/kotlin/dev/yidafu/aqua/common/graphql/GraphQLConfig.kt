@@ -26,6 +26,7 @@ import dev.yidafu.aqua.common.graphql.scalars.MapScalar
 import dev.yidafu.aqua.common.graphql.scalars.MoneyScalar
 import dev.yidafu.aqua.common.graphql.scalars.JsonObjectScalar
 import dev.yidafu.aqua.common.graphql.scalars.JsonArrayScalar
+import dev.yidafu.aqua.common.graphql.scalars.PrimaryIdScalar
 import graphql.schema.GraphQLScalarType
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -52,5 +53,6 @@ class GraphQLConfig {
         .scalar(JsonObjectScalar.GraphQL_TYPE)
         .scalar(JsonArrayScalar.GraphQL_TYPE)
         .scalar(MoneyScalar.GraphQL_TYPE)
+        .scalar(PrimaryIdScalar.GraphQL_TYPE)
     }
 }

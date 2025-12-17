@@ -21,12 +21,15 @@ package dev.yidafu.aqua.product.domain.model
 
 import dev.yidafu.aqua.common.converter.ArrayNodeConverter
 import dev.yidafu.aqua.common.converter.ObjectNodeConverter
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import tools.jackson.databind.node.ArrayNode
 import tools.jackson.databind.node.ObjectNode
 import tools.jackson.core.type.TypeReference
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -55,7 +58,8 @@ data class ProductModel(
   @Column(name = "thumbnail_url", nullable = false)
   var coverImageUrl: String,
 
-  @Column(name = "detail_images", columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "detail_images", columnDefinition = "json")
   @Convert(converter = ArrayNodeConverter::class)
   var imageGallery: ArrayNode? = null,
 
@@ -64,9 +68,6 @@ data class ProductModel(
 
   @Column(name = "water_source", length = 200)
   var waterSource: String? = null,
-
-  @Column(name = "ph_value", precision = 3, scale = 1)
-  var phValue: BigDecimal? = null,
 
   @Column(name = "mineral_content", length = 200)
   var mineralContent: String? = null,
@@ -84,18 +85,22 @@ data class ProductModel(
   @Column(name = "sort_order", nullable = false)
   var sortOrder: Int = 999,
 
-  @Column(name = "tags", columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+
+  @Column(name = "tags", columnDefinition = "json")
   @Convert(converter = ArrayNodeConverter::class)
   var tags: ArrayNode? = null,
 
   @Column(name = "description", columnDefinition = "TEXT")
   var detailContent: String? = null,
 
-  @Column(name = "certificate_images", columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "certificate_images", columnDefinition = "json")
   @Convert(converter = ArrayNodeConverter::class)
   var certificateImages: ArrayNode? = null,
 
-  @Column(name = "delivery_settings", columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "delivery_settings", columnDefinition = "json")
   @Convert(converter = ObjectNodeConverter::class)
   var deliverySettings: ObjectNode? = null,
 
@@ -147,7 +152,7 @@ data class ProductModel(
    */
   fun setTagsFromList(tagList: List<String>) {
     tags = if (tagList.isEmpty()) null else {
-      val objectMapper = tools.jackson.module.kotlin.jacksonObjectMapper()
+      val objectMapper = jacksonObjectMapper()
       objectMapper.valueToTree<ArrayNode>(tagList)
     }
   }
@@ -164,7 +169,7 @@ data class ProductModel(
    */
   fun setImageGalleryFromList(imageUrls: List<String>) {
     imageGallery = if (imageUrls.isEmpty()) null else {
-      val objectMapper = tools.jackson.module.kotlin.jacksonObjectMapper()
+      val objectMapper = jacksonObjectMapper()
       objectMapper.valueToTree<ArrayNode>(imageUrls)
     }
   }
@@ -181,7 +186,7 @@ data class ProductModel(
    */
   fun setCertificateImagesFromList(imageUrls: List<String>) {
     certificateImages = if (imageUrls.isEmpty()) null else {
-      val objectMapper = tools.jackson.module.kotlin.jacksonObjectMapper()
+      val objectMapper = jacksonObjectMapper()
       objectMapper.valueToTree<ArrayNode>(imageUrls)
     }
   }
@@ -191,7 +196,7 @@ data class ProductModel(
    */
   fun getDeliverySettingsAsMap(): Map<String, Any> {
     return deliverySettings?.let {
-      val objectMapper = tools.jackson.module.kotlin.jacksonObjectMapper()
+      val objectMapper = jacksonObjectMapper()
       objectMapper.convertValue(it, object : TypeReference<Map<String, Any>>() {})
     } ?: emptyMap()
   }
@@ -201,7 +206,7 @@ data class ProductModel(
    */
   fun setDeliverySettingsFromMap(settings: Map<String, Any>) {
     deliverySettings = if (settings.isEmpty()) null else {
-      val objectMapper = tools.jackson.module.kotlin.jacksonObjectMapper()
+      val objectMapper = jacksonObjectMapper()
       objectMapper.valueToTree<ObjectNode>(settings)
     }
   }

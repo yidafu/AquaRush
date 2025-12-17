@@ -39,7 +39,6 @@ object ProductMapper : ObjectMappie<ProductModel, Product>() {
         to::coverImageUrl fromProperty from::coverImageUrl
         to::specification fromProperty from::specification
         to::waterSource fromProperty from::waterSource
-        to::phValue fromProperty from::phValue
         to::mineralContent fromProperty from::mineralContent
         to::stock fromProperty from::stock
         to::salesVolume fromProperty from::salesVolume

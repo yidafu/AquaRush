@@ -96,7 +96,6 @@ type Product {
   imageGallery: JsonArray
   specification: String!
   waterSource: String
-  phValue: BigDecimal
   mineralContent: String
   stock: Int!
   salesVolume: Int!
@@ -416,9 +415,7 @@ input CreateProductInput {
     @size(min : 1, max : 100, message: "商品规格长度应在1-100个字符之间")
   waterSource: String
     @size(max : 200, message: "水源地长度不能超过200个字符")
-  phValue: BigDecimal
-    @min(value : 0, message: "PH值不能小于0")
-    @max(value : 14, message: "PH值不能大于14")
+
   mineralContent: String
     @size(max : 200, message: "矿物质含量长度不能超过200个字符")
   stock: Int!
@@ -460,9 +457,7 @@ input UpdateProductInput {
     @size(min: 1, max: 100, message: "商品规格长度应在1-100个字符之间")
   waterSource: String
     @size(max: 200, message: "水源地长度不能超过200个字符")
-  phValue: BigDecimal
-    @min(value: 0, message: "PH值不能小于0")
-    @max(value: 14, message: "PH值不能大于14")
+
   mineralContent: String
     @size(max: 200, message: "矿物质含量长度不能超过200个字符")
   stock: Int
@@ -1143,9 +1138,7 @@ input ProductUpdateRequest {
     @size(min: 1, max: 100, message: "商品规格长度应在1-100个字符之间")
   waterSource: String
     @size(max: 200, message: "水源地长度不能超过200个字符")
-  phValue: BigDecimal
-    @min(value: 0, message: "PH值不能小于0")
-    @max(value: 14, message: "PH值不能大于14")
+
   mineralContent: String
     @size(max: 200, message: "矿物质含量长度不能超过200个字符")
   stock: Int

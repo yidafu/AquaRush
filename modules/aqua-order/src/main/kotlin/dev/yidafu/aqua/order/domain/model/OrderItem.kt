@@ -21,6 +21,8 @@ package dev.yidafu.aqua.order.domain.model
 
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -48,7 +50,8 @@ data class OrderItemModel(
   val totalPriceCents: Long,
 
 
-  @Column(name = "product_snapshot", nullable = false, columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "product_snapshot", nullable = false, columnDefinition = "json")
   val productSnapshot: String, // JSON string of product snapshot
 
   @Column(name = "created_at", nullable = false, updatable = false)

@@ -21,6 +21,8 @@ package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -43,9 +45,11 @@ data class DeliveryWorkerModel(
   @Column(name = "online_status", nullable = false)
   @Convert(converter = DeliverWorkerStatusConverter::class)
   var onlineStatus: DeliverWorkerStatus = DeliverWorkerStatus.OFFLINE,
-  @Column(name = "coordinates", columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "coordinates", columnDefinition = "json")
   var coordinates: String? = null,
-  @Column(name = "current_location", columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "current_location", columnDefinition = "json")
   var currentLocation: String? = null, // 存储 JSON 格式的坐标
   @Column(name = "rating")
   var rating: Double? = null,

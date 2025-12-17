@@ -69,7 +69,6 @@ class ProductService(
         imageGallery = request.imageGallery,
         specification = request.specification,
         waterSource = request.waterSource,
-        phValue = request.phValue,
         mineralContent = request.mineralContent,
         stock = request.stock,
         salesVolume = request.salesVolume,
@@ -101,7 +100,6 @@ class ProductService(
     imageGallery: ArrayNode? = null,
     specification: String? = null,
     waterSource: String? = null,
-    phValue: BigDecimal? = null,
     mineralContent: String? = null,
     salesVolume: Int? = null,
     sortOrder: Int? = null,
@@ -109,7 +107,7 @@ class ProductService(
     detailContent: String? = null,
     certificateImages: ArrayNode? = null,
     deliverySettings: ObjectNode? = null,
-    isDeleted: Boolean? = null
+    status: ProductStatus? = null
   ): ProductModel {
     val product =
       productRepository
@@ -117,6 +115,7 @@ class ProductService(
         .orElseThrow { IllegalArgumentException("Product not found: $productId") }
 
     name?.let { product.name = it }
+    subtitle?.let { product.subtitle = it }
     priceYuan?.let { product.price = MoneyUtils.toCents(priceYuan) }
     originalPriceYuan?.let { product.originalPrice = MoneyUtils.toCents(originalPriceYuan) }
     depositPriceYuan?.let { product.depositPrice = MoneyUtils.toCents(depositPriceYuan) }
@@ -124,18 +123,16 @@ class ProductService(
     imageGallery?.let { product.imageGallery = it }
     specification?.let { product.specification = it }
     waterSource?.let { product.waterSource = it }
-    phValue?.let { product.phValue = it }
     mineralContent?.let { product.mineralContent = it }
     imageGallery?.let { product.imageGallery = it }
-//    description?.let { product.description = it }
-    stock?.let { product.stock = it ?: 0 }
-    salesVolume?.let { product.salesVolume = it ?: 0 }
-    sortOrder?.let { product.sortOrder = it ?: 0 }
+    stock?.let { product.stock = it }
+    salesVolume?.let { product.salesVolume = it }
+    sortOrder?.let { product.sortOrder = it }
     tags?.let { product.tags = it }
     detailContent?.let { product.detailContent = it }
     certificateImages?.let { product.certificateImages = it }
     deliverySettings?.let { product.deliverySettings = it }
-    isDeleted?.let { product.isDeleted = it ?: false }
+    status?.let { product.status = it }
 
     return productRepository.save(product)
   }
@@ -361,7 +358,6 @@ class ProductService(
         imageGallery = update.imageGallery,
         specification = update.specification,
         waterSource = update.waterSource,
-        phValue = update.phValue,
         mineralContent = update.mineralContent,
         salesVolume = update.salesVolume,
         sortOrder = update.sortOrder,
@@ -468,10 +464,7 @@ class ProductService(
       .filter { !it.isDeleted }
   }
 
-  fun findByPhRange(minPh: BigDecimal, maxPh: BigDecimal): List<ProductModel> {
-    return productRepository.findByPhValueBetween(minPh, maxPh)
-      .filter { !it.isDeleted }
-  }
+
 
   fun findBySalesVolumeGreaterThan(minVolume: Int): List<ProductModel> {
     return productRepository.findBySalesVolumeGreaterThan(minVolume)
