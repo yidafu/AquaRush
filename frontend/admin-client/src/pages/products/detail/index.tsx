@@ -19,19 +19,18 @@ interface Product {
   originalPrice?: number;
   depositPrice?: number;
   coverImageUrl?: string;
-  imageGallery?: string;
+  imageGallery?: string | string[];
   specification: string;
   waterSource?: string;
-  phValue?: number;
   mineralContent?: string;
   stock: number;
   salesVolume: number;
   status: 'ONLINE' | 'OFFLINE' | 'OUT_OF_STOCK' | 'ACTIVE';
   sortOrder: number;
-  tags?: string;
+  tags?: string | string[];
   detailContent?: string;
-  certificateImages?: string;
-  deliverySettings?: string;
+  certificateImages?: string | string[];
+  deliverySettings?: any;
   isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
@@ -65,6 +64,8 @@ const ProductDetailPage: React.FC = () => {
   };
 
   const handleSave = async (values: ProductFormData) => {
+    console.log('handleSave called with values:', values);
+    console.log('data.product exists:', !!data?.product);
     if (!data?.product) return;
 
     try {
@@ -73,22 +74,27 @@ const ProductDetailPage: React.FC = () => {
       // Convert form data to product format
       const productData = formDataToProduct(values);
 
-      // Handle image gallery and certificate images array conversion
+      // Handle image gallery and certificate images arrays - send as arrays directly
+      // The ArrayNodeConverter on the backend will handle the conversion
       if (Array.isArray(values.imageGallery)) {
-        productData.imageGallery = JSON.stringify(values.imageGallery);
+        productData.imageGallery = values.imageGallery;
       }
 
       if (Array.isArray(values.certificateImages)) {
-        productData.certificateImages = JSON.stringify(values.certificateImages);
+        productData.certificateImages = values.certificateImages;
       }
 
+      console.log('Saving product with data:', productData);
+
       // Call update mutation
-      await updateProduct({
+      const result = await updateProduct({
         variables: {
           id: data.product.id,
           input: productData
         }
       });
+
+      console.log('Update result:', result);
 
       message.success('商品更新成功');
       setViewMode('readonly');
@@ -97,7 +103,7 @@ const ProductDetailPage: React.FC = () => {
       refetch();
     } catch (error) {
       console.error('Update failed:', error);
-      message.error('更新失败，请重试');
+      message.error(`更新失败：${error instanceof Error ? error.message : '请重试'}`);
     } finally {
       setLoading(false);
     }
@@ -201,7 +207,10 @@ const ProductDetailPage: React.FC = () => {
                 type="primary"
                 icon={<SaveOutlined />}
                 loading={loading}
-                onClick={() => form.submit()}
+                onClick={() => {
+                  console.log('Save button clicked - triggering form.submit()');
+                  form.submit();
+                }}
               >
                 保存
               </Button>

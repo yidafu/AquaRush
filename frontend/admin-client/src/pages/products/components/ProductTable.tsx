@@ -15,7 +15,6 @@ interface Product {
   imageGallery?: string;
   specification: string;
   waterSource?: string;
-  phValue?: number;
   mineralContent?: string;
   stock: number;
   salesVolume: number;

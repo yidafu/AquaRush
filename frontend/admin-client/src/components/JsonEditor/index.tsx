@@ -11,10 +11,9 @@ const { Panel } = Collapse;
 const { Text } = Typography;
 
 interface JsonEditorProps {
-  value?: string;
-  onChange?: (value: string) => void;
+  value?: any;
+  onChange?: (value: any) => void;
   placeholder?: string;
-  maxLength?: number;
   title?: string;
   help?: string;
   templates?: Array<{ name: string; value: any }>;
@@ -24,7 +23,6 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
   value,
   onChange,
   placeholder = "请输入JSON格式数据",
-  maxLength,
   title = "JSON编辑器",
   help,
   templates = [],
@@ -34,7 +32,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
   const [copied, setCopied] = useState(false);
 
   // Ensure value is a string
-  const safeValue = value || "";
+  const safeValue = typeof value === 'string' ? value : (value ? JSON.stringify(value, null, 2) : "");
 
   const validateJson = useCallback((str: string): boolean => {
     if (!str.trim()) {
@@ -59,22 +57,28 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const val = e.target.value;
 
-      // 检查长度限制
-      if (maxLength && val.length > maxLength) {
-        return;
-      }
-
       // 验证JSON格式
       if (val.trim()) {
-        validateJson(val);
+        const isValidJson = validateJson(val);
+        if (isValidJson) {
+          try {
+            const parsed = JSON.parse(val);
+            onChange?.(parsed);
+          } catch {
+            // 解析失败时返回 null，表示无效数据
+            onChange?.(null);
+          }
+        } else {
+          // JSON 验证失败时返回 null
+          onChange?.(null);
+        }
       } else {
         setIsValid(true);
         setErrorMessage("");
+        onChange?.(null);
       }
-
-      onChange?.(val);
     },
-    [onChange, maxLength, validateJson],
+    [onChange, validateJson],
   );
 
   const formatJson = () => {
@@ -85,8 +89,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
 
     try {
       const parsed = JSON.parse(safeValue);
-      const formatted = JSON.stringify(parsed, null, 2);
-      onChange?.(formatted);
+      onChange?.(parsed);
       message.success("JSON格式化成功");
     } catch (error) {
       message.error("JSON格式错误，无法格式化");
@@ -105,8 +108,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
   };
 
   const useTemplate = (templateValue: any) => {
-    const formatted = JSON.stringify(templateValue, null, 2);
-    onChange?.(formatted);
+    onChange?.(templateValue);
     message.success("已应用模板");
   };
 
@@ -176,8 +178,6 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
           fontSize: "13px",
           borderColor: isValid ? undefined : "#ff4d4f",
         }}
-        showCount={maxLength !== undefined}
-        maxLength={maxLength}
       />
 
       {!isValid && (
@@ -196,19 +196,7 @@ export const JsonEditor: React.FC<JsonEditorProps> = ({
         </div>
       )}
 
-      {maxLength && (
-        <div
-          style={{
-            marginTop: 8,
-            fontSize: "12px",
-            color: safeValue?.length > maxLength * 0.9 ? "#ff4d4f" : "#999",
-          }}
-        >
-          {safeValue?.length || 0} / {maxLength} 字符
-          {safeValue?.length > maxLength * 0.9 && "（接近字数限制）"}
-        </div>
-      )}
-    </div>
+          </div>
   );
 };
 

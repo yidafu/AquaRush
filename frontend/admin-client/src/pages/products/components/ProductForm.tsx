@@ -63,7 +63,6 @@ interface Product {
   imageGallery?: string;
   specification: string;
   waterSource?: string;
-  phValue?: number;
   mineralContent?: string;
   stock: number;
   salesVolume: number;
@@ -285,24 +284,6 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                     filterOption={(inputValue, option) =>
                       option!.value.indexOf(inputValue) !== -1
                     }
-                  />
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item
-                  label="PH值"
-                  name="phValue"
-                  rules={[
-                    { type: 'number', min: 0, max: 14, message: 'PH值应在0-14之间' }
-                  ]}
-                >
-                  <InputNumber
-                    min={0}
-                    max={14}
-                    step={0.1}
-                    precision={1}
-                    placeholder="7.0"
-                    style={{ width: '100%' }}
                   />
                 </Form.Item>
               </Col>
@@ -565,25 +546,15 @@ export const ProductForm: React.FC<ProductFormProps> = ({
             <Form.Item
               label="商品标签"
               name="tags"
-              rules={[
-                { max: 1000, message: '标签JSON长度不能超过1000个字符' }
-              ]}
             >
-              <TagsEditor
-                maxLength={1000}
-              />
+              <TagsEditor />
             </Form.Item>
 
             <Form.Item
               label="配送设置"
               name="deliverySettings"
-              rules={[
-                { max: 2000, message: '配送设置JSON长度不能超过2000个字符' }
-              ]}
             >
-              <DeliverySettingsEditor
-                maxLength={2000}
-              />
+              <DeliverySettingsEditor />
             </Form.Item>
           </Panel>
         </Collapse>

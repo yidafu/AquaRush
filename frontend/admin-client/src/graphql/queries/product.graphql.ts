@@ -14,7 +14,6 @@ export const GET_PRODUCTS_QUERY = gql`
         imageGallery
         specification
         waterSource
-        phValue
         mineralContent
         stock
         salesVolume
@@ -41,7 +40,7 @@ export const GET_PRODUCTS_QUERY = gql`
 `;
 
 export const GET_PRODUCT_DETAIL_QUERY = gql`
-  query GetProductDetail($id: Long!) {
+  query GetProductDetail($id: PrimaryId!) {
     product(id: $id) {
       id
       name
@@ -53,7 +52,6 @@ export const GET_PRODUCT_DETAIL_QUERY = gql`
       imageGallery
       specification
       waterSource
-      phValue
       mineralContent
       stock
       salesVolume
@@ -84,7 +82,6 @@ export const GET_PRODUCTS_PAGINATED_QUERY = gql`
         imageGallery
         specification
         waterSource
-        phValue
         mineralContent
         stock
         salesVolume
@@ -149,21 +146,6 @@ export const GET_PRODUCTS_BY_WATER_SOURCE = gql`
   }
 `;
 
-export const GET_PRODUCTS_BY_PH_RANGE = gql`
-  query GetProductsByPhRange($minPh: BigDecimal!, $maxPh: BigDecimal!) {
-    productsByPhRange(minPh: $minPh, maxPh: $maxPh) {
-      id
-      name
-      price
-      coverImageUrl
-      waterSource
-      phValue
-      stock
-      salesVolume
-      status
-    }
-  }
-`;
 
 export const GET_PRODUCTS_BY_TAG = gql`
   query GetProductsByTag($tag: String!) {

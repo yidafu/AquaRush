@@ -6,7 +6,6 @@ import {
   GET_PRODUCTS_PAGINATED_QUERY,
   GET_TOP_SALES_PRODUCTS,
   GET_PRODUCTS_BY_WATER_SOURCE,
-  GET_PRODUCTS_BY_PH_RANGE,
   GET_PRODUCTS_BY_TAG,
   GET_ALL_ACTIVE_PRODUCTS,
   GET_WATER_SOURCE_STATISTICS,
@@ -149,13 +148,6 @@ export const useProductsByWaterSource = (waterSource: string) => {
   });
 };
 
-export const useProductsByPhRange = (minPh: number, maxPh: number) => {
-  return useQuery(GET_PRODUCTS_BY_PH_RANGE, {
-    variables: { minPh, maxPh },
-    skip: minPh === undefined || maxPh === undefined,
-    errorPolicy: 'all',
-  });
-};
 
 export const useProductsByTag = (tag: string) => {
   return useQuery(GET_PRODUCTS_BY_TAG, {

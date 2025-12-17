@@ -26,13 +26,13 @@ export const CREATE_USER_MUTATION = gql`
 `;
 
 export const DELETE_USER_MUTATION = gql`
-  mutation DeleteUser($id: Long!) {
+  mutation DeleteUser($id: PrimaryId!) {
     deleteUser(id: $id)
   }
 `;
 
 export const TOGGLE_USER_STATUS_MUTATION = gql`
-  mutation ToggleUserStatus($id: Long!, $status: UserStatus!) {
+  mutation ToggleUserStatus($id: PrimaryId!, $status: UserStatus!) {
     updateUserStatus(id: $id, status: $status) {
       id
       status

@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { Upload, Button, Space, Image, message } from 'antd';
 import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
-import type { RcFile, UploadFile, UploadProps } from 'antd/es/upload';
+import type { UploadFile, UploadProps } from 'antd/es/upload';
 
 interface ImageUploadProps {
   value?: string | string[];
   onChange?: (value: string | string[]) => void;
   multiple?: boolean;
   maxCount?: number;
-  title?: string;
 }
 
 export const ImageUpload: React.FC<ImageUploadProps> = ({
@@ -16,7 +15,6 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
   onChange,
   multiple = false,
   maxCount = multiple ? 10 : 1,
-  title = '图片上传'
 }) => {
   const [fileList, setFileList] = useState<UploadFile[]>(() => {
     if (!value) return [];
@@ -64,13 +62,13 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       Image.preview({
         src: file.url,
         width: 800,
-      });
+      } as any);
     }
   };
 
   const handleRemove = (file: UploadFile) => {
     if (file.url) {
-      const urls = multiple ? (value as string[] || []) : [value].filter(Boolean);
+      const urls = multiple ? (value as string[] || []) : [value].filter(Boolean) as string[];
       const newUrls = urls.filter(url => url !== file.url);
 
       if (multiple) {
@@ -84,29 +82,38 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
 
   const customRequest = async ({ file, onSuccess, onError }: any) => {
     try {
-      // 这里应该实现实际的文件上传逻辑
-      // 目前作为示例，我们创建一个临时URL
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('fileType', 'IMAGE');
+      formData.append('isPublic', 'true');
 
-      // 模拟上传过程
-      const mockUrl = `https://via.placeholder.com/400x400?text=${encodeURIComponent(file.name)}`;
+      const response = await fetch('/api/v1/storage/files', {
+        method: 'POST',
+        body: formData,
+      });
 
-      // 实际项目中应该调用真实的上传API
-      // const response = await fetch('/api/upload', {
-      //   method: 'POST',
-      //   body: formData
-      // });
-      // const result = await response.json();
-      // const url = result.url;
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `上传失败: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (!result.success) {
+        throw new Error(result.message || '上传失败');
+      }
+
+      // 使用后端返回的fileUrl
+      const fileUrl = result.data.fileUrl;
 
       setTimeout(() => {
-        onSuccess?.({ url: mockUrl });
+        onSuccess?.({ url: fileUrl });
         message.success(`${file.name} 上传成功`);
-      }, 1000);
+      }, 500);
     } catch (error) {
+      console.error('Upload error:', error);
       onError?.(error);
-      message.error(`${file.name} 上传失败`);
+      message.error(`${file.name} 上传失败: ${error instanceof Error ? error.message : '未知错误'}`);
     }
   };
 
@@ -155,7 +162,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           <Button
             icon={<EyeOutlined />}
             size="small"
-            onClick={() => Image.preview({ src: value as string })}
+            onClick={() => Image.preview({ src: value as string } as any)}
           >
             预览
           </Button>

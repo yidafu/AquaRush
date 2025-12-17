@@ -13,7 +13,6 @@ export const CREATE_PRODUCT_MUTATION = gql`
       imageGallery
       specification
       waterSource
-      phValue
       mineralContent
       stock
       salesVolume
@@ -31,7 +30,7 @@ export const CREATE_PRODUCT_MUTATION = gql`
 `;
 
 export const UPDATE_PRODUCT_MUTATION = gql`
-  mutation UpdateProduct($id: Long!, $input: UpdateProductInput!) {
+  mutation UpdateProduct($id: PrimaryId!, $input: UpdateProductInput!) {
     updateProduct(id: $id, input: $input) {
       id
       name
@@ -43,7 +42,6 @@ export const UPDATE_PRODUCT_MUTATION = gql`
       imageGallery
       specification
       waterSource
-      phValue
       mineralContent
       stock
       salesVolume
@@ -60,13 +58,13 @@ export const UPDATE_PRODUCT_MUTATION = gql`
 `;
 
 export const DELETE_PRODUCT_MUTATION = gql`
-  mutation DeleteProduct($id: Long!) {
+  mutation DeleteProduct($id: PrimaryId!) {
     deleteProduct(id: $id)
   }
 `;
 
 export const UPDATE_PRODUCT_STATUS_MUTATION = gql`
-  mutation UpdateProductStatus($productId: Long!, $status: ProductStatus!) {
+  mutation UpdateProductStatus($productId: PrimaryId!, $status: ProductStatus!) {
     updateProductStatus(productId: $productId, status: $status) {
       id
       status
@@ -93,19 +91,19 @@ export const BATCH_ADJUST_STOCK_MUTATION = gql`
 `;
 
 export const INCREASE_STOCK_MUTATION = gql`
-  mutation IncreaseStock($productId: Long!, $quantity: Int!) {
+  mutation IncreaseStock($productId: PrimaryId!, $quantity: Int!) {
     increaseStock(productId: $productId, quantity: $quantity)
   }
 `;
 
 export const DECREASE_STOCK_MUTATION = gql`
-  mutation DecreaseStock($productId: Long!, $quantity: Int!) {
+  mutation DecreaseStock($productId: PrimaryId!, $quantity: Int!) {
     decreaseStock(productId: $productId, quantity: $quantity)
   }
 `;
 
 export const ONLINE_PRODUCT_MUTATION = gql`
-  mutation OnlineProduct($id: Long!) {
+  mutation OnlineProduct($id: PrimaryId!) {
     onlineProduct(id: $id) {
       id
       status
@@ -115,7 +113,7 @@ export const ONLINE_PRODUCT_MUTATION = gql`
 `;
 
 export const OFFLINE_PRODUCT_MUTATION = gql`
-  mutation OfflineProduct($id: Long!) {
+  mutation OfflineProduct($id: PrimaryId!) {
     offlineProduct(id: $id) {
       id
       status

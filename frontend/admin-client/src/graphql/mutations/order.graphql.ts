@@ -1,7 +1,7 @@
 import { gql } from '@apollo/client';
 import {} from '@aquarush/common'
 export const UPDATE_ORDER_STATUS_MUTATION = gql`
-  mutation UpdateOrderStatus($orderId: Long!, $status: OrderStatus!) {
+  mutation UpdateOrderStatus($orderId: PrimaryId!, $status: OrderStatus!) {
     updateOrderStatus(orderId: $orderId, status: $status) {
       id
       status
@@ -11,7 +11,7 @@ export const UPDATE_ORDER_STATUS_MUTATION = gql`
 `;
 
 export const ASSIGN_DELIVERY_WORKER_MUTATION = gql`
-  mutation AssignDeliveryWorker($orderId: Long!, $deliveryWorkerId: Long!) {
+  mutation AssignDeliveryWorker($orderId: PrimaryId!, $deliveryWorkerId: PrimaryId!) {
     assignDeliveryWorker(orderId: $orderId, deliveryWorkerId: $deliveryWorkerId) {
       id
       deliveryWorker {

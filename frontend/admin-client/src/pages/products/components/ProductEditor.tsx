@@ -107,14 +107,30 @@ export const ProductEditor: React.FC<ProductEditorProps> = ({
   }, [debouncedPreviewUpdate, isReadonly]);
 
   const handleFormSubmit = async () => {
-    if (isReadonly || !onSave) return;
+    console.log('=== handleFormSubmit START ===');
+    console.log('isReadonly:', isReadonly);
+    console.log('onSave exists:', !!onSave);
+    console.log('form exists:', !!form);
+
+    if (isReadonly || !onSave) {
+      console.log('Form submit skipped - readonly or no onSave handler');
+      return;
+    }
 
     try {
+      console.log('Starting form validation...');
       const values = await form.validateFields();
+      console.log('Form validation successful, values count:', Object.keys(values).length);
+      console.log('Form values preview:', Object.keys(values));
+
+      console.log('Calling onSave function...');
       await onSave(values);
+      console.log('onSave completed successfully');
     } catch (error) {
-      console.error('Form validation failed:', error);
+      console.error('Form submission failed:', error);
+      console.error('Error details:', error instanceof Error ? error.message : String(error));
     }
+    console.log('=== handleFormSubmit END ===');
   };
 
   // 只读模式下的渲染函数
@@ -202,6 +218,7 @@ export const ProductEditor: React.FC<ProductEditorProps> = ({
         layout="vertical"
         onValuesChange={handleValuesChange}
         onFinish={handleFormSubmit}
+        onError={console.error}
         disabled={isReadonly}
       >
         <Collapse
@@ -249,7 +266,6 @@ export const ProductEditor: React.FC<ProductEditorProps> = ({
                 <Col span={12}>
                   {renderReadonlyField("规格", product.specification)}
                   {product.waterSource && renderReadonlyField("水源地", product.waterSource)}
-                  {product.phValue !== undefined && renderReadonlyField("PH值", product.phValue)}
                   {product.mineralContent && renderReadonlyField("矿物质含量", product.mineralContent)}
                   {renderReadonlyField("销量", product.salesVolume)}
                   {renderReadonlyField("排序权重", product.sortOrder)}
@@ -319,24 +335,6 @@ export const ProductEditor: React.FC<ProductEditorProps> = ({
                       filterOption={(inputValue, option) =>
                         option!.value.indexOf(inputValue) !== -1
                       }
-                    />
-                  </Form.Item>
-                </Col>
-                <Col span={12}>
-                  <Form.Item
-                    label="PH值"
-                    name="phValue"
-                    rules={[
-                      { type: 'number', min: 0, max: 14, message: 'PH值应在0-14之间' }
-                    ]}
-                  >
-                    <InputNumber
-                      min={0}
-                      max={14}
-                      step={0.1}
-                      precision={1}
-                      placeholder="7.0"
-                      style={{ width: '100%' }}
                     />
                   </Form.Item>
                 </Col>
@@ -620,9 +618,6 @@ export const ProductEditor: React.FC<ProductEditorProps> = ({
                     label="图片画廊"
                     name="imageGallery"
                     help="上传商品展示图片，最多10张"
-                    rules={[
-                      { max: 2000, message: '图片URL长度不能超过2000个字符' }
-                    ]}
                   >
                     <MultiImageUpload maxCount={10} title="上传商品图片" />
                   </Form.Item>
@@ -632,9 +627,6 @@ export const ProductEditor: React.FC<ProductEditorProps> = ({
                     label="证书图片"
                     name="certificateImages"
                     help="上传产品证书图片，最多5张"
-                    rules={[
-                      { max: 2000, message: '图片URL长度不能超过2000个字符' }
-                    ]}
                   >
                     <MultiImageUpload maxCount={5} title="上传证书图片" />
                   </Form.Item>
@@ -680,21 +672,15 @@ export const ProductEditor: React.FC<ProductEditorProps> = ({
               <Form.Item
                 label="商品标签"
                 name="tags"
-                rules={[
-                  { max: 1000, message: '标签JSON长度不能超过1000个字符' }
-                ]}
               >
-                <TagsEditor maxLength={1000} />
+                <TagsEditor />
               </Form.Item>
 
               <Form.Item
                 label="配送设置"
                 name="deliverySettings"
-                rules={[
-                  { max: 2000, message: '配送设置JSON长度不能超过2000个字符' }
-                ]}
               >
-                <DeliverySettingsEditor maxLength={2000} />
+                <DeliverySettingsEditor />
               </Form.Item>
             </Panel>
           )}

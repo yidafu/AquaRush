@@ -5,49 +5,46 @@ export interface Product {
   id: number;
   name: string;
   subtitle?: string;
-  price: number;
-  originalPrice?: number;
-  depositPrice?: number;
-  coverImageUrl?: string;
-  imageGallery?: string;
+  price: number; // in cents (分)
+  originalPrice?: number; // in cents (分)
+  depositPrice?: number; // in cents (分)
+  coverImageUrl: string;
+  imageGallery?: string[] | string; // JSON array from backend
   specification: string;
   waterSource?: string;
-  phValue?: number;
   mineralContent?: string;
   stock: number;
   salesVolume: number;
   status: 'ONLINE' | 'OFFLINE' | 'OUT_OF_STOCK' | 'ACTIVE';
   sortOrder: number;
-  tags?: string;
+  tags?: string[] | string; // JSON array from backend
   detailContent?: string;
-  certificateImages?: string;
-  deliverySettings?: string;
-  isDeleted?: boolean;
+  certificateImages?: string[] | string; // JSON array from backend
+  deliverySettings?: any; // JSON object from backend
+  isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
-  description?: string;
 }
 
 export interface ProductFormData {
   name: string;
   subtitle?: string;
-  price: number;
-  originalPrice?: number;
-  depositPrice?: number;
+  price: number; // in yuan (元) for form display
+  originalPrice?: number; // in yuan (元) for form display
+  depositPrice?: number; // in yuan (元) for form display
   coverImageUrl?: string;
-  imageGallery?: string | string[];
+  imageGallery?: string[]; // Form handles arrays directly
   specification: string;
   waterSource?: string;
-  phValue?: number;
   mineralContent?: string;
   stock: number;
   salesVolume: number;
   status: 'ONLINE' | 'OFFLINE' | 'OUT_OF_STOCK';
   sortOrder: number;
-  tags?: string;
+  tags?: string[]; // Form handles arrays directly
   detailContent?: string;
-  certificateImages?: string | string[];
-  deliverySettings?: string;
+  certificateImages?: string[]; // Form handles arrays directly
+  deliverySettings?: any; // Form handles objects directly
 }
 
 /**
@@ -55,12 +52,34 @@ export interface ProductFormData {
  * 主要处理价格从分转换为元
  */
 export function productToFormData(product: Product): ProductFormData {
+  // Parse JSON fields if they are strings
+  const parseArrayField = (field?: string | string[]): string[] => {
+    if (!field) return [];
+    if (Array.isArray(field)) return field;
+    if (typeof field === 'string') {
+      try {
+        const parsed = JSON.parse(field);
+        return Array.isArray(parsed) ? parsed : [];
+      } catch {
+        return [];
+      }
+    }
+    return [];
+  };
+
   return {
     ...product,
     price: product.price / 100,
     originalPrice: product.originalPrice ? product.originalPrice / 100 : undefined,
     depositPrice: product.depositPrice ? product.depositPrice / 100 : undefined,
     status: product.status === 'ACTIVE' ? 'ONLINE' : product.status,
+    // Convert JSON string fields to arrays for form
+    imageGallery: parseArrayField(product.imageGallery),
+    tags: parseArrayField(product.tags),
+    certificateImages: parseArrayField(product.certificateImages),
+    deliverySettings: product.deliverySettings && typeof product.deliverySettings === 'string'
+      ? JSON.parse(product.deliverySettings)
+      : product.deliverySettings,
   };
 }
 
@@ -78,13 +97,18 @@ export function formDataToProduct(formData: ProductFormData): Partial<Product> {
     sortOrder: formData.sortOrder || 0,
   };
 
-  // Handle array fields conversion
+  // Handle array fields - send as arrays directly for GraphQL
+  // The ArrayNodeConverter on the backend will handle the conversion to JSON
   if (Array.isArray(formData.imageGallery)) {
-    result.imageGallery = JSON.stringify(formData.imageGallery);
+    result.imageGallery = formData.imageGallery;
   }
 
   if (Array.isArray(formData.certificateImages)) {
-    result.certificateImages = JSON.stringify(formData.certificateImages);
+    result.certificateImages = formData.certificateImages;
+  }
+
+  if (Array.isArray(formData.tags)) {
+    result.tags = formData.tags;
   }
 
   return result;
@@ -106,22 +130,40 @@ export function useFormattedPrices(product: Product) {
  */
 export function useParsedJSONFields(product: Product) {
   return useMemo(() => {
-    const parseJSONField = (field?: string) => {
+    const parseJSONField = (field?: string | string[]) => {
       if (!field) return [];
-      try {
-        const parsed = JSON.parse(field);
-        return Array.isArray(parsed) ? parsed : [];
-      } catch {
-        return [];
+      if (Array.isArray(field)) return field;
+      if (typeof field === 'string') {
+        try {
+          const parsed = JSON.parse(field);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch {
+          return [];
+        }
       }
+      return [];
+    };
+
+    const parseObjectField = (field?: any) => {
+      if (!field) return {};
+      if (typeof field === 'object' && field !== null) return field;
+      if (typeof field === 'string') {
+        try {
+          return JSON.parse(field);
+        } catch {
+          return {};
+        }
+      }
+      return {};
     };
 
     return {
       imageGallery: parseJSONField(product.imageGallery),
       certificateImages: parseJSONField(product.certificateImages),
       tags: parseJSONField(product.tags),
+      deliverySettings: parseObjectField(product.deliverySettings),
     };
-  }, [product.imageGallery, product.certificateImages, product.tags]);
+  }, [product.imageGallery, product.certificateImages, product.tags, product.deliverySettings]);
 }
 
 /**

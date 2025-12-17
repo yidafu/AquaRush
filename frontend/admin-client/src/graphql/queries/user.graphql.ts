@@ -24,7 +24,7 @@ export const GET_USERS_QUERY = gql`
 `;
 
 export const GET_USER_DETAIL_QUERY = gql`
-query GetUserDetail($id: Long!) {
+query GetUserDetail($id: PrimaryId!) {
   user(id: $id) {
     id
     wechatOpenId
@@ -90,7 +90,7 @@ export const GET_DELIVERY_WORKERS_QUERY = gql`
 `;
 
 export const DELIVERY_WORKER_DETAIL_QUERY = gql`
-  query GetDeliveryWorkerDetail($id: Long!) {
+  query GetDeliveryWorkerDetail($id: PrimaryId!) {
     deliveryWorker(id: $id) {
       id
       userId
@@ -114,7 +114,7 @@ export const DELIVERY_WORKER_DETAIL_QUERY = gql`
 `;
 
 export const DELIVERY_WORKER_STATISTICS_QUERY = gql`
-  query GetDeliveryWorkerStatistics($deliveryWorkerId: Long!) {
+  query GetDeliveryWorkerStatistics($deliveryWorkerId: PrimaryId!) {
     deliveryWorkerStatistics(deliveryWorkerId: $deliveryWorkerId) {
       deliveryWorkerId
       workerName
@@ -132,7 +132,7 @@ export const DELIVERY_WORKER_STATISTICS_QUERY = gql`
 `;
 
 export const DELIVERY_WORKER_ORDERS_QUERY = gql`
-  query GetDeliveryWorkerOrders($deliveryWorkerId: Long!, $status: OrderStatus!) {
+  query GetDeliveryWorkerOrders($deliveryWorkerId: PrimaryId!, $status: OrderStatus!) {
     ordersByUserAndStatus(userId: $deliveryWorkerId, status: $status) {
       id
       orderNumber
@@ -177,7 +177,7 @@ export const DELIVERY_WORKER_ORDERS_QUERY = gql`
 `;
 
 export const USER_ORDERS_QUERY = gql`
-  query GetUserOrders($userId: Long!) {
+  query GetUserOrders($userId: PrimaryId!) {
     ordersByUser(userId: $userId) {
       id
       orderNumber
