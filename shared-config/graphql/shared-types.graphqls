@@ -8,6 +8,9 @@ scalar Money
 scalar Float
 scalar LocalDateTime
 scalar Map
+scalar JsonObject
+scalar JsonArray
+scalar PrimaryId
 
 # Validation Directives
 directive @notBlank(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
@@ -35,6 +38,8 @@ enum OrderStatus {
 enum ProductStatus {
   ONLINE
   OFFLINE
+  OUT_OF_STOCK
+  ACTIVE
 }
 
 enum UserRole {
@@ -71,7 +76,7 @@ enum PaymentMethod {
 
 # Core Domain Types
 type User {
-  id: Long!
+  id: PrimaryId!
   wechatOpenId: String!
   nickname: String
   phone: String
@@ -81,21 +86,33 @@ type User {
 }
 
 type Product {
-  id: Long!
+  id: PrimaryId!
   name: String!
+  subtitle: String
   price: Money!
+  originalPrice: Money
+  depositPrice: Money
   coverImageUrl: String!
-  detailImages: String
-  description: String
+  imageGallery: JsonArray
+  specification: String!
+  waterSource: String
+  mineralContent: String
   stock: Int!
+  salesVolume: Int!
   status: ProductStatus!
+  sortOrder: Int!
+  tags: JsonArray
+  detailContent: String
+  certificateImages: JsonArray
+  deliverySettings: JsonObject
+  isDeleted: Boolean!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
 
 type Address {
-  id: Long!
-  userId: Long!
+  id: PrimaryId!
+  userId: PrimaryId!
   receiverName: String!
   phone: String!
   province: String!
@@ -113,8 +130,8 @@ type Address {
 }
 
 type DeliveryAddress {
-  id: Long!
-  userId: Long!
+  id: PrimaryId!
+  userId: PrimaryId!
   receiverName: String!
   receiverPhone: String!
   province: String!
@@ -128,7 +145,7 @@ type DeliveryAddress {
 }
 
 type Order {
-  id: Long!
+  id: PrimaryId!
   orderNumber: String!
   user: User!
   product: Product!
@@ -147,8 +164,8 @@ type Order {
 }
 
 type DeliveryWorker {
-  id: Long!
-  userId: Long!
+  id: PrimaryId!
+  userId: PrimaryId!
   wechatOpenId: String!
   name: String!
   phone: String!
@@ -167,7 +184,7 @@ type DeliveryWorker {
 }
 
 type DeliveryArea {
-  id: Long!
+  id: PrimaryId!
   name: String!
   province: String!
   city: String!
@@ -176,7 +193,7 @@ type DeliveryArea {
 }
 
 type Region {
-  id: Long!
+  id: PrimaryId!
   name: String!
   code: String!
   parentCode: String
@@ -193,7 +210,7 @@ type AuthPayload {
 }
 
 type UserInfo {
-  id: Long!
+  id: PrimaryId!
   wechatOpenId: String!
   nickname: String
   phone: String
@@ -203,7 +220,7 @@ type UserInfo {
 }
 
 type Admin {
-  id: Long!
+  id: PrimaryId!
   username: String!
   realName: String
   phone: String
@@ -357,9 +374,9 @@ input AddressInput {
 }
 
 input CreateOrderInput {
-  productId: Long!
+  productId: PrimaryId!
     @positive(message: "商品ID必须为正数")
-  addressId: Long!
+  addressId: PrimaryId!
     @positive(message: "地址ID必须为正数")
   quantity: Int!
     @min(value: 1, message: "购买数量不能少于1")
@@ -375,43 +392,93 @@ input WechatLoginInput {
 input CreateProductInput {
   name: String!
     @notBlank(message: "商品名称不能为空")
-    @size(min: 2, max: 100, message: "商品名称长度应在2-100个字符之间")
+    @size(min: 2, max: 200, message: "商品名称长度应在2-200个字符之间")
+  subtitle: String
+    @size(max: 500, message: "商品副标题长度不能超过500个字符")
   price: Money!
     @positive(message: "商品价格必须为正数")
     @min(value: 1, message: "商品价格不能小于1分")
     @max(value: 9999900, message: "商品价格不能大于99999元")
+  originalPrice: Money
+    @positive(message: "原价必须为正数")
+    @min(value: 1, message: "原价不能小于1分")
+    @max(value : 9999900, message: "原价不能大于99999元")
+  depositPrice: Money
+    @min(value : 0, message: "押金不能小于0")
+    @max(value : 9999900, message: "押金不能大于99999元")
   coverImageUrl: String!
     @notBlank(message: "商品封面图片不能为空")
-    @size(max: 500, message: "封面图片URL长度不能超过500个字符")
-  detailImages: String
-    @size(max: 2000, message: "详情图片URL长度不能超过2000个字符")
-  description: String
-    @size(max: 1000, message: "商品描述长度不能超过1000个字符")
+    @size(max : 500, message: "封面图片URL长度不能超过500个字符")
+  imageGallery: JsonArray
+  specification: String!
+    @notBlank(message: "商品规格不能为空")
+    @size(min : 1, max : 100, message: "商品规格长度应在1-100个字符之间")
+  waterSource: String
+    @size(max : 200, message: "水源地长度不能超过200个字符")
+
+  mineralContent: String
+    @size(max : 200, message: "矿物质含量长度不能超过200个字符")
   stock: Int!
-    @min(value: 0, message: "库存数量不能小于0")
-    @max(value: 99999, message: "库存数量不能大于99999")
+    @min(value : 0, message: "库存数量不能小于0")
+    @max(value : 99999, message: "库存数量不能大于99999")
+  salesVolume: Int!
+    @min(value : 0, message: "销量不能小于0")
+  status: ProductStatus!
+  sortOrder: Int!
+    @min(value : 0, message: "排序权重不能小于0")
+    @max(value : 9999, message: "排序权重不能大于9999")
+  tags: JsonArray
+  detailContent: String
+    @size(max : 5000, message: "详情内容长度不能超过5000个字符")
+  certificateImages: JsonArray
+  deliverySettings: JsonObject
 }
 
 input UpdateProductInput {
   name: String
-    @size(min: 2, max: 100, message: "商品名称长度应在2-100个字符之间")
+    @size(min: 2, max: 200, message: "商品名称长度应在2-200个字符之间")
+  subtitle: String
+    @size(max: 500, message: "商品副标题长度不能超过500个字符")
   price: Money
     @positive(message: "商品价格必须为正数")
     @min(value: 1, message: "商品价格不能小于1分")
     @max(value: 9999900, message: "商品价格不能大于99999元")
+  originalPrice: Money
+    @positive(message: "原价必须为正数")
+    @min(value: 1, message: "原价不能小于1分")
+    @max(value: 9999900, message: "原价不能大于99999元")
+  depositPrice: Money
+    @min(value: 0, message: "押金不能小于0")
+    @max(value: 9999900, message: "押金不能大于99999元")
   coverImageUrl: String
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
-  detailImages: String
-    @size(max: 2000, message: "详情图片URL长度不能超过2000个字符")
-  description: String
-    @size(max: 1000, message: "商品描述长度不能超过1000个字符")
+  imageGallery: JsonArray
+  specification: String
+    @size(min: 1, max: 100, message: "商品规格长度应在1-100个字符之间")
+  waterSource: String
+    @size(max: 200, message: "水源地长度不能超过200个字符")
+
+  mineralContent: String
+    @size(max: 200, message: "矿物质含量长度不能超过200个字符")
   stock: Int
     @min(value: 0, message: "库存数量不能小于0")
     @max(value: 99999, message: "库存数量不能大于99999")
+  salesVolume: Int
+    @min(value: 0, message: "销量不能小于0")
+  status: ProductStatus
+  sortOrder: Int
+    @min(value: 0, message: "排序权重不能小于0")
+    @max(value: 9999, message: "排序权重不能大于9999")
+  tags: JsonArray
+  detailContent: String
+    @size(max: 5000, message: "详情内容长度不能超过5000个字符")
+  certificateImages: JsonArray
+  deliverySettings: JsonObject
+  isDeleted: Boolean
 }
 
 input CreateWechatPaymentInput {
-  orderId: Long!
+  orderId: PrimaryId!
     @positive(message: "订单ID必须为正数")
   amount: Money!
     @positive(message: "支付金额必须为正数")
@@ -462,9 +529,9 @@ input ProcessRefundInput {
   originalTransactionId: String!
     @notBlank(message: "原交易ID不能为空")
     @size(min: 1, max: 100, message: "原交易ID长度应在1-100个字符之间")
-  orderId: Long!
+  orderId: PrimaryId!
     @positive(message: "订单ID必须为正数")
-  userId: Long!
+  userId: PrimaryId!
     @positive(message: "用户ID必须为正数")
   amount: Money!
     @positive(message: "退款金额必须为正数")
@@ -482,9 +549,9 @@ input CreateManualRefundInput {
   originalTransactionId: String!
     @notBlank(message: "原交易ID不能为空")
     @size(min: 1, max: 100, message: "原交易ID长度应在1-100个字符之间")
-  orderId: Long!
+  orderId: PrimaryId!
     @positive(message: "订单ID必须为正数")
-  userId: Long!
+  userId: PrimaryId!
     @positive(message: "用户ID必须为正数")
   amount: Money!
     @positive(message: "退款金额必须为正数")
@@ -743,10 +810,10 @@ type ServiceAreaPayload {
 
 # Review Types
 type Review {
-  reviewId: Long!
-  orderId: Long!
-  userId: Long
-  deliveryWorkerId: Long!
+  reviewId: PrimaryId!
+  orderId: PrimaryId!
+  userId: PrimaryId
+  deliveryWorkerId: PrimaryId!
   deliveryWorkerName: String
   rating: Int!
   comment: String
@@ -755,9 +822,9 @@ type Review {
 }
 
 input CreateReviewRequest {
-  orderId: Long!
+  orderId: PrimaryId!
     @positive(message: "订单ID必须为正数")
-  deliveryWorkerId: Long!
+  deliveryWorkerId: PrimaryId!
     @positive(message: "配送员ID必须为正数")
   rating: Int!
     @min(value: 1, message: "评分不能小于1")
@@ -774,7 +841,7 @@ type OrderReviewCheckResponse {
 }
 
 type DeliveryWorkerStatistics {
-  deliveryWorkerId: Long!
+  deliveryWorkerId: PrimaryId!
   totalReviews: Long!
   averageRating: BigDecimal!
   oneStarReviews: Long!
@@ -785,7 +852,7 @@ type DeliveryWorkerStatistics {
 }
 
 type DeliveryWorkerStatisticsResponse {
-  deliveryWorkerId: Long!
+  deliveryWorkerId: PrimaryId!
   workerName: String
   averageRating: BigDecimal!
   totalReviews: Long!
@@ -799,7 +866,7 @@ type DeliveryWorkerStatisticsResponse {
 }
 
 type DeliveryWorkerRankingResponse {
-  workerId: Long!
+  workerId: PrimaryId!
   workerName: String
   averageRating: BigDecimal!
   totalReviews: Long!
@@ -810,8 +877,8 @@ type DeliveryWorkerRankingResponse {
 type RefundRequest {
   id: String!
   originalTransactionId: String!
-  orderId: Long!
-  userId: Long!
+  orderId: PrimaryId!
+  userId: PrimaryId!
   amount: Money!
   reason: String!
   status: RefundStatus!
@@ -832,8 +899,8 @@ enum RefundStatus {
 # Payment Transaction Types
 type PaymentTransaction {
   id: String!
-  orderId: Long!
-  userId: Long!
+  orderId: PrimaryId!
+  userId: PrimaryId!
   amount: Money!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
@@ -853,7 +920,7 @@ input ExportTransactionsInput {
   dateTo: LocalDateTime
   status: PaymentStatus
   paymentMethod: PaymentMethod
-  userId: Long
+  userId: PrimaryId
     @positive(message: "用户ID必须为正数")
   minAmount: Money
     @positive(message: "最小金额必须为正数")
@@ -893,8 +960,8 @@ type PaymentMethodStats {
 
 type SuspiciousTransaction {
   id: String!
-  orderId: Long!
-  userId: Long!
+  orderId: PrimaryId!
+  userId: PrimaryId!
   amount: Money!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
@@ -945,7 +1012,7 @@ input ProcessSuspiciousTransactionInput {
 
 # Additional Payment Types
 type OrderPaymentInfo {
-  orderId: Long!
+  orderId: PrimaryId!
   orderNumber: String!
   amount: Money!
   status: PaymentStatus!
@@ -969,7 +1036,7 @@ type PaymentPeriodStats {
 
 type RefundEligibility {
   eligible: Boolean!
-  orderId: Long!
+  orderId: PrimaryId!
   orderAmount: Money!
   paidAmount: Money!
   refundableAmount: Money!
@@ -978,16 +1045,20 @@ type RefundEligibility {
   refundPolicy: String
 }
 
+# Pagination Types
+type PageInfo {
+  total: Int!
+  pageSize: Int!
+  pageNum: Int!  # current page index (0-based)
+  hasNext: Boolean!
+  hasPrevious: Boolean!
+  totalPages: Int!  # Include for completeness
+}
+
 # User Management Types for Admin
-type UserListResponse {
-  content: [User!]!
-  totalElements: Long!
-  totalPages: Int!
-  size: Int!
-  number: Int!
-  first: Boolean!
-  last: Boolean!
-  empty: Boolean!
+type UserPage {
+  list: [User!]!
+  pageInfo: PageInfo!
 }
 
 input UserListInput {
@@ -996,4 +1067,211 @@ input UserListInput {
   sort: String = "createdAt,desc"
   search: String
   status: UserStatus
+}
+
+# Product Management Types for Admin
+type ProductStatistics {
+  totalProducts: Int!
+  onlineProducts: Int!
+  offlineProducts: Int!
+  lowStockProducts: Int!
+  totalValue: Money!
+  averagePrice: Money!
+}
+
+type LowStockAlert {
+  productId: PrimaryId!
+  productName: String!
+  currentStock: Int!
+  threshold: Int!
+  status: ProductStatus!
+}
+
+type ProductPage {
+  list: [Product!]!
+  pageInfo: PageInfo!
+}
+
+input ProductListInput {
+  page: Int = 0
+  size: Int = 20
+  sort: String = "createdAt,desc"
+  search: String
+  status: ProductStatus
+  minPrice: Money
+    @positive(message: "最小价格必须为正数")
+    @min(value: 1, message: "最小价格不能小于1分")
+    @max(value: 9999900, message: "最小价格不能大于99999元")
+  maxPrice: Money
+    @positive(message: "最大价格必须为正数")
+    @min(value: 1, message: "最大价格不能小于1分")
+    @max(value: 9999900, message: "最大价格不能大于99999元")
+  minStock: Int
+    @min(value: 0, message: "最小库存不能小于0")
+  maxStock: Int
+    @min(value: 0, message: "最大库存不能小于0")
+}
+
+input ProductUpdateRequest {
+  id: PrimaryId!
+    @positive(message: "商品ID必须为正数")
+  name: String
+    @size(min: 2, max: 200, message: "商品名称长度应在2-200个字符之间")
+  subtitle: String
+    @size(max: 500, message: "商品副标题长度不能超过500个字符")
+  price: Money
+    @positive(message: "商品价格必须为正数")
+    @min(value: 1, message: "商品价格不能小于1分")
+    @max(value: 9999900, message: "商品价格不能大于99999元")
+  originalPrice: Money
+    @positive(message: "原价必须为正数")
+    @min(value: 1, message: "原价不能小于1分")
+    @max(value: 9999900, message: "原价不能大于99999元")
+  depositPrice: Money
+    @min(value: 0, message: "押金不能小于0")
+    @max(value: 9999900, message: "押金不能大于99999元")
+  coverImageUrl: String
+    @size(max: 500, message: "封面图片URL长度不能超过500个字符")
+  imageGallery: JsonArray
+    @size(max: 2000, message: "图片画廊URL长度不能超过2000个字符")
+  specification: String
+    @size(min: 1, max: 100, message: "商品规格长度应在1-100个字符之间")
+  waterSource: String
+    @size(max: 200, message: "水源地长度不能超过200个字符")
+
+  mineralContent: String
+    @size(max: 200, message: "矿物质含量长度不能超过200个字符")
+  stock: Int
+    @min(value: 0, message: "库存数量不能小于0")
+    @max(value: 99999, message: "库存数量不能大于99999")
+  salesVolume: Int
+    @min(value: 0, message: "销量不能小于0")
+  status: ProductStatus
+  sortOrder: Int
+    @min(value: 0, message: "排序权重不能小于0")
+    @max(value: 9999, message: "排序权重不能大于9999")
+  tags: JsonArray
+  detailContent: String
+    @size(max: 5000, message: "详情内容长度不能超过5000个字符")
+  certificateImages: JsonArray
+  deliverySettings: JsonObject
+}
+
+# Enhanced Product Management Types
+
+type WaterSourceStatistics {
+  waterSource: String!
+  productCount: Int!
+  totalSalesVolume: Int!
+  averagePrice: Money!
+}
+
+type SpecificationStatistics {
+  specification: String!
+  productCount: Int!
+  totalSalesVolume: Int!
+  averagePrice: Money!
+}
+
+type SalesReport {
+  dateRange: DateRange!
+  totalSales: Int!
+  totalRevenue: Money!
+  topSellingProducts: [ProductSalesInfo!]!
+  salesByWaterSource: [WaterSourceStatistics!]!
+  salesBySpecification: [SpecificationStatistics!]!
+}
+
+type ProductSalesInfo {
+  product: Product!
+  salesVolume: Int!
+  revenue: Money!
+  salesPercentage: Float!
+}
+
+input SalesReportInput {
+  dateRange: DateRangeInput!
+  groupBy: SalesReportGroupBy! = DAY
+  includeWaterSourceBreakdown: Boolean! = true
+  includeSpecificationBreakdown: Boolean! = true
+  topProductLimit: Int! = 10
+    @min(value: 1, message: "热销商品数量不能小于1")
+    @max(value : 100, message: "热销商品数量不能大于100")
+}
+
+enum SalesReportGroupBy {
+  DAY
+  WEEK
+  MONTH
+}
+
+input ProductSearchInput {
+  keyword: String
+    @size(max: 100, message: "搜索关键词长度不能超过100个字符")
+  waterSource: String
+    @size(max: 200, message: "水源地长度不能超过200个字符")
+  minPh: BigDecimal
+    @min(value: 0, message: "最小PH值不能小于0")
+    @max(value : 14, message: "最小PH值不能大于14")
+  maxPh: BigDecimal
+    @min(value: 0, message: "最大PH值不能小于0")
+    @max(value : 14, message: "最大PH值不能大于14")
+  tags: [String!]
+  minSalesVolume: Int
+    @min(value: 0, message: "最小销量不能小于0")
+  maxSalesVolume: Int
+    @min(value : 0, message: "最大销量不能小于0")
+  hasOriginalPrice: Boolean
+  hasDepositPrice: Boolean
+  sortBy: ProductSortBy! = SALES_VOLUME_DESC
+}
+
+enum ProductSortBy {
+  SALES_VOLUME_DESC
+  SALES_VOLUME_ASC
+  PRICE_DESC
+  PRICE_ASC
+  CREATED_AT_DESC
+  CREATED_AT_ASC
+  SORT_ORDER_ASC
+  SORT_ORDER_DESC
+  NAME_ASC
+  NAME_DESC
+}
+
+input BatchStockAdjustmentInput {
+  adjustments: [StockAdjustmentInput!]!
+    @size(min : 1, max : 100, message: "调整项目数量应在1-100之间")
+}
+
+input StockAdjustmentInput {
+  productId: PrimaryId!
+    @positive(message: "商品ID必须为正数")
+  quantity: Int!
+    @min(value : 1, message: "调整数量不能小于1")
+    @max(value : 99999, message: "调整数量不能大于99999")
+  type: StockAdjustmentType!
+  reason: String
+    @size(max : 500, message: "调整原因长度不能超过500个字符")
+}
+
+enum StockAdjustmentType {
+  INCREASE
+  DECREASE
+  SET
+}
+
+type StockAdjustmentResult {
+  productId: PrimaryId!
+  success: Boolean!
+  message: String!
+  previousStock: Int
+  newStock: Int
+}
+
+type BatchStockAdjustmentResult {
+  success: Boolean!
+  successCount: Int!
+  failureCount: Int!
+  results: [StockAdjustmentResult!]!
 }

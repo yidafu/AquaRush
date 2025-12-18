@@ -1,11 +1,13 @@
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
-import TsconfigPathsPlugin from 'tsconfig-paths-webpack-plugin'
 import devConfig from './dev'
 import prodConfig from './prod'
 import path from 'node:path'
-import { normalizePath } from 'vite'
 import tailwindcss from 'tailwindcss'
 import { UnifiedViteWeappTailwindcssPlugin as uvtw } from 'weapp-tailwindcss/vite'
+
+process.env.BROWSERSLIST_ENV = process.env.NODE_ENV
+
+// Admin build configuration
 
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
 export default defineConfig<'vite'>(async (merge, { command, mode }) => {
@@ -101,7 +103,7 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
       },
     },
     h5: {
-      publicPath: '/',
+      publicPath: process.env.PUBLIC_PATH || '/weapp/',
       staticDirectory: 'static',
 
       miniCssExtractPluginOption: {

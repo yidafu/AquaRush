@@ -30,6 +30,31 @@ import org.springframework.stereotype.Repository
 interface ProductRepository : JpaRepository<ProductModel, Long>, JpaSpecificationExecutor<ProductModel> {
   fun findByStatus(status: ProductStatus): List<ProductModel>
 
+  fun findByStatus(status: ProductStatus, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<ProductModel>
+
+  fun findByNameContaining(name: String, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<ProductModel>
+
+  fun findByNameContainingAndStatus(name: String, status: ProductStatus, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<ProductModel>
+
+  fun findByPriceBetween(minPrice: Long, maxPrice: Long, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<ProductModel>
+
+  // Advanced filtering methods
+  fun findByWaterSourceContaining(waterSource: String): List<ProductModel>
+
+  fun findBySalesVolumeGreaterThan(minVolume: Int): List<ProductModel>
+
+  fun findByTagsContaining(tag: String): List<ProductModel>
+
+  // Soft delete support
+  fun findByIsDeletedFalse(): List<ProductModel>
+
+  fun findByIsDeletedFalseAndStatus(status: ProductStatus): List<ProductModel>
+
+  // Sorting and ordering
+  fun findAllByOrderBySalesVolumeDesc(): List<ProductModel>
+
+  fun findAllByOrderBySortOrderAsc(): List<ProductModel>
+
   fun decreaseStock(
     productId: Long,
     quantity: Int,
@@ -37,6 +62,9 @@ interface ProductRepository : JpaRepository<ProductModel, Long>, JpaSpecificatio
     val product = findById(productId).orElse(null)
     return if (product != null && product.stock >= quantity) {
       product.stock -= quantity
+      if (product.stock == 0) {
+        product.status = ProductStatus.OUT_OF_STOCK
+      }
       save(product)
       1
     } else {
@@ -51,6 +79,9 @@ interface ProductRepository : JpaRepository<ProductModel, Long>, JpaSpecificatio
     val product = findById(productId).orElse(null)
     return if (product != null) {
       product.stock += quantity
+      if (product.stock > 0 && product.status == ProductStatus.OUT_OF_STOCK) {
+        product.status = ProductStatus.ONLINE
+      }
       save(product)
       1
     } else {

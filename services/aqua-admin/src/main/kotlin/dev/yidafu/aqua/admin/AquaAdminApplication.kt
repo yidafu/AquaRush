@@ -25,6 +25,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.boot.persistence.autoconfigure.EntityScan
+import org.springframework.data.jpa.repository.config.EnableJpaAuditing
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories
+import org.springframework.transaction.annotation.EnableTransactionManagement
 
 @EntityScan(basePackages = [
   "dev.yidafu.aqua.common.domain.model",
@@ -69,6 +72,9 @@ import org.springframework.boot.persistence.autoconfigure.EntityScan
   ],
   exclude = [CacheAutoConfiguration::class],
 )
+@EnableJpaRepositories(basePackages = ["dev.yidafu.aqua"])
+@EnableJpaAuditing
+@EnableTransactionManagement
 @EnableScheduling
 class AquaAdminApplication
 

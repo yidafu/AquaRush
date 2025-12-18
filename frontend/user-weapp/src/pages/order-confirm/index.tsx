@@ -9,6 +9,7 @@ import "taro-ui/dist/style/components/toast.scss"
 import "taro-ui/dist/style/components/icon.scss"
 import "taro-ui/dist/style/components/checkbox.scss"
 import './index.scss'
+import { displayCents, calculateAndFormatTotal } from '@/utils/money'
 
 interface OrderItem {
   id: string
@@ -391,7 +392,7 @@ export default class OrderConfirm extends Component<{}, OrderConfirmState> {
                     </Text>
                   )}
                   <View className='product-bottom'>
-                    <Text className='product-price'>¥{item.price.toFixed(2)}</Text>
+                    <Text className='product-price'>{displayCents(item.price)}</Text>
                     <Text className='product-quantity'>x{item.quantity}</Text>
                   </View>
                 </View>

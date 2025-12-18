@@ -134,6 +134,23 @@ data class AuthPayload(
     val user: User
 )
 
+data class BatchStockAdjustmentInput(
+    @field:Size(min = 1, max = 100, message = "调整项目数量应在1-100之间")
+    val adjustments: Iterable<StockAdjustmentInput>
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["adjustments"]!!.let { adjustments -> (adjustments as List<Map<String, Any>>).map { StockAdjustmentInput(it) } }
+  )
+}
+
+data class BatchStockAdjustmentResult(
+    val failureCount: kotlin.Int,
+    val results: Iterable<StockAdjustmentResult>,
+    val success: kotlin.Boolean,
+    val successCount: kotlin.Int
+)
+
 data class BooleanPayload(
     val message: kotlin.String,
     val success: kotlin.Boolean
@@ -209,8 +226,8 @@ data class CreateDeliveryWorkerInput(
     @field:Size(max = 200, message = "当前位置长度不能超过200个字符")
     val currentLocation: kotlin.String? = null,
     @field:Min(value = 0, message = "收入不能小于0")
-    @field:Max(value = 999999, message = "收入不能大于999999")
-    val earning: java.math.BigDecimal? = null,
+    @field:Max(value = 99999900, message = "收入不能大于999999元")
+    val earning: kotlin.Long? = null,
     val isAvailable: kotlin.Boolean? = null,
     @field:NotBlank(message = "配送员姓名不能为空")
     @field:Size(min = 2, max = 20, message = "配送员姓名长度应在2-20个字符之间")
@@ -229,7 +246,7 @@ data class CreateDeliveryWorkerInput(
       args["avatarUrl"] as kotlin.String?,
       args["coordinates"] as kotlin.String?,
       args["currentLocation"] as kotlin.String?,
-      args["earning"] as java.math.BigDecimal?,
+      args["earning"] as kotlin.Long?,
       args["isAvailable"] as kotlin.Boolean?,
       args["name"] as kotlin.String,
       args["phone"] as kotlin.String,
@@ -242,9 +259,9 @@ data class CreateManualRefundInput(
     @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
     val adminNote: kotlin.String? = null,
     @field:Positive(message = "退款金额必须为正数")
-    @field:Min(value = 0, message = "退款金额不能小于0")
-    @field:Max(value = 99999, message = "退款金额不能大于99999")
-    val amount: java.math.BigDecimal,
+    @field:Min(value = 1, message = "退款金额不能小于1分")
+    @field:Max(value = 9999900, message = "退款金额不能大于99999元")
+    val amount: kotlin.Long,
     @field:Positive(message = "订单ID必须为正数")
     val orderId: kotlin.Long,
     @field:NotBlank(message = "原交易ID不能为空")
@@ -258,7 +275,7 @@ data class CreateManualRefundInput(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["adminNote"] as kotlin.String?,
-      args["amount"] as java.math.BigDecimal,
+      args["amount"] as kotlin.Long,
       args["orderId"] as kotlin.Long,
       args["originalTransactionId"] as kotlin.String,
       args["reason"] as kotlin.String,
@@ -283,31 +300,75 @@ data class CreateOrderInput(
 }
 
 data class CreateProductInput(
+    @field:Size(max = 2000, message = "证书图片URL长度不能超过2000个字符")
+    val certificateImages: kotlin.String? = null,
     @field:NotBlank(message = "商品封面图片不能为空")
     @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
     val coverImageUrl: kotlin.String,
-    @field:Size(max = 1000, message = "商品描述长度不能超过1000个字符")
-    val description: kotlin.String? = null,
-    @field:Size(max = 2000, message = "详情图片URL长度不能超过2000个字符")
-    val detailImages: kotlin.String? = null,
+    @field:Size(max = 2000, message = "配送设置JSON长度不能超过2000个字符")
+    val deliverySettings: kotlin.String? = null,
+    @field:Min(value = 0, message = "押金不能小于0")
+    @field:Max(value = 9999900, message = "押金不能大于99999元")
+    val depositPrice: kotlin.Long? = null,
+    @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
+    val detailContent: kotlin.String? = null,
+    @field:Size(max = 2000, message = "图片画廊URL长度不能超过2000个字符")
+    val imageGallery: kotlin.String? = null,
+    @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
+    val mineralContent: kotlin.String? = null,
     @field:NotBlank(message = "商品名称不能为空")
-    @field:Size(min = 2, max = 100, message = "商品名称长度应在2-100个字符之间")
+    @field:Size(min = 2, max = 200, message = "商品名称长度应在2-200个字符之间")
     val name: kotlin.String,
+    @field:Positive(message = "原价必须为正数")
+    @field:Min(value = 1, message = "原价不能小于1分")
+    @field:Max(value = 9999900, message = "原价不能大于99999元")
+    val originalPrice: kotlin.Long? = null,
+    @field:Min(value = 0, message = "PH值不能小于0")
+    @field:Max(value = 14, message = "PH值不能大于14")
+    val phValue: java.math.BigDecimal? = null,
     @field:Positive(message = "商品价格必须为正数")
-    @field:Min(value = 0, message = "商品价格不能小于0")
-    @field:Max(value = 99999, message = "商品价格不能大于99999")
-    val price: java.math.BigDecimal,
+    @field:Min(value = 1, message = "商品价格不能小于1分")
+    @field:Max(value = 9999900, message = "商品价格不能大于99999元")
+    val price: kotlin.Long,
+    @field:Min(value = 0, message = "销量不能小于0")
+    val salesVolume: kotlin.Int,
+    @field:Min(value = 0, message = "排序权重不能小于0")
+    @field:Max(value = 9999, message = "排序权重不能大于9999")
+    val sortOrder: kotlin.Int,
+    @field:NotBlank(message = "商品规格不能为空")
+    @field:Size(min = 1, max = 100, message = "商品规格长度应在1-100个字符之间")
+    val specification: kotlin.String,
+    val status: ProductStatus,
     @field:Min(value = 0, message = "库存数量不能小于0")
     @field:Max(value = 99999, message = "库存数量不能大于99999")
-    val stock: kotlin.Int
+    val stock: kotlin.Int,
+    @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
+    val subtitle: kotlin.String? = null,
+    @field:Size(max = 1000, message = "标签JSON长度不能超过1000个字符")
+    val tags: kotlin.String? = null,
+    @field:Size(max = 200, message = "水源地长度不能超过200个字符")
+    val waterSource: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["certificateImages"] as kotlin.String?,
       args["coverImageUrl"] as kotlin.String,
-      args["description"] as kotlin.String?,
-      args["detailImages"] as kotlin.String?,
+      args["deliverySettings"] as kotlin.String?,
+      args["depositPrice"] as kotlin.Long?,
+      args["detailContent"] as kotlin.String?,
+      args["imageGallery"] as kotlin.String?,
+      args["mineralContent"] as kotlin.String?,
       args["name"] as kotlin.String,
-      args["price"] as java.math.BigDecimal,
-      args["stock"] as kotlin.Int
+      args["originalPrice"] as kotlin.Long?,
+      args["phValue"] as java.math.BigDecimal?,
+      args["price"] as kotlin.Long,
+      args["salesVolume"] as kotlin.Int,
+      args["sortOrder"] as kotlin.Int,
+      args["specification"] as kotlin.String,
+      args["status"] as ProductStatus,
+      args["stock"] as kotlin.Int,
+      args["subtitle"] as kotlin.String?,
+      args["tags"] as kotlin.String?,
+      args["waterSource"] as kotlin.String?
   )
 }
 
@@ -356,9 +417,9 @@ data class CreateReviewRequestInput(
 
 data class CreateWechatPaymentInput(
     @field:Positive(message = "支付金额必须为正数")
-    @field:Min(value = 0, message = "支付金额不能小于0")
-    @field:Max(value = 99999, message = "支付金额不能大于99999")
-    val amount: java.math.BigDecimal,
+    @field:Min(value = 1, message = "支付金额不能小于1分")
+    @field:Max(value = 9999900, message = "支付金额不能大于99999元")
+    val amount: kotlin.Long,
     @field:NotBlank(message = "支付描述不能为空")
     @field:Size(min = 1, max = 127, message = "支付描述长度应在1-127个字符之间")
     val description: kotlin.String,
@@ -366,29 +427,29 @@ data class CreateWechatPaymentInput(
     val orderId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["amount"] as java.math.BigDecimal,
+      args["amount"] as kotlin.Long,
       args["description"] as kotlin.String,
       args["orderId"] as kotlin.Long
   )
 }
 
 data class DailyPaymentStats(
-    val averageTransactionAmount: java.math.BigDecimal,
+    val averageTransactionAmount: kotlin.Long,
     val date: kotlin.String,
     val failedTransactions: kotlin.Long,
     val paymentMethodBreakdown: Iterable<PaymentMethodStats>,
     val peakHour: kotlin.Int,
     val refundCount: kotlin.Long,
-    val refundedAmount: java.math.BigDecimal,
+    val refundedAmount: kotlin.Long,
     val successfulTransactions: kotlin.Long,
-    val totalAmount: java.math.BigDecimal,
+    val totalAmount: kotlin.Long,
     val totalTransactions: kotlin.Long
 )
 
 data class DailyStatistic(
     val date: kotlin.String,
     val orderCount: kotlin.Int,
-    val revenue: java.math.BigDecimal
+    val revenue: kotlin.Long
 )
 
 data class DateRange(
@@ -437,7 +498,7 @@ data class DeliveryWorker(
     val coordinates: kotlin.String?,
     val createdAt: java.time.LocalDateTime,
     val currentLocation: kotlin.String?,
-    val earning: java.math.BigDecimal?,
+    val earning: kotlin.Long?,
     val id: kotlin.Long,
     val isAvailable: kotlin.Boolean,
     val name: kotlin.String,
@@ -508,13 +569,13 @@ data class ExportTransactionsInput(
     val format: kotlin.String = """CSV""".trimIndent(),
     val includeMetadata: kotlin.Boolean = false,
     @field:Positive(message = "最大金额必须为正数")
-    @field:Min(value = 0, message = "最大金额不能小于0")
-    @field:Max(value = 99999, message = "最大金额不能大于99999")
-    val maxAmount: java.math.BigDecimal? = null,
+    @field:Min(value = 1, message = "最大金额不能小于1分")
+    @field:Max(value = 9999900, message = "最大金额不能大于99999元")
+    val maxAmount: kotlin.Long? = null,
     @field:Positive(message = "最小金额必须为正数")
-    @field:Min(value = 0, message = "最小金额不能小于0")
-    @field:Max(value = 99999, message = "最小金额不能大于99999")
-    val minAmount: java.math.BigDecimal? = null,
+    @field:Min(value = 1, message = "最小金额不能小于1分")
+    @field:Max(value = 9999900, message = "最小金额不能大于99999元")
+    val minAmount: kotlin.Long? = null,
     val paymentMethod: PaymentMethod? = null,
     val status: PaymentStatus? = null,
     @field:Positive(message = "用户ID必须为正数")
@@ -525,8 +586,8 @@ data class ExportTransactionsInput(
       args["dateTo"] as java.time.LocalDateTime?,
       args["format"] as kotlin.String? ?: """CSV""".trimIndent(),
       args["includeMetadata"] as kotlin.Boolean? ?: false,
-      args["maxAmount"] as java.math.BigDecimal?,
-      args["minAmount"] as java.math.BigDecimal?,
+      args["maxAmount"] as kotlin.Long?,
+      args["minAmount"] as kotlin.Long?,
       args["paymentMethod"] as PaymentMethod?,
       args["status"] as PaymentStatus?,
       args["userId"] as kotlin.Long?
@@ -562,14 +623,38 @@ data class GeocodePayload(
     val success: kotlin.Boolean
 )
 
+data class LowStockAlert(
+    val currentStock: kotlin.Int,
+    val productId: kotlin.Long,
+    val productName: kotlin.String,
+    val status: ProductStatus,
+    val threshold: kotlin.Int
+)
+
 data class MonthlyStatistic(
     val month: kotlin.Int,
     val monthName: kotlin.String,
     val orderCount: kotlin.Int,
-    val revenue: java.math.BigDecimal,
+    val revenue: kotlin.Long,
     val year: kotlin.Int
 )
 
+data class MutationBatchAdjustStockArgs(
+    val input: BatchStockAdjustmentInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      BatchStockAdjustmentInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationBatchUpdateProductsArgs(
+    val input: Iterable<ProductUpdateRequestInput>
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]!!.let { input -> (input as List<Map<String, Any>>).map { ProductUpdateRequestInput(it) } }
+  )
+}
 data class MutationCancelOrderArgs(
     val orderId: kotlin.Long
 ) {
@@ -772,6 +857,20 @@ data class MutationIncreaseStockArgs(
       args["quantity"] as kotlin.Int
   )
 }
+data class MutationOfflineProductArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class MutationOnlineProductArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
 data class MutationProcessRefundArgs(
     val input: ProcessRefundInput
 ) {
@@ -894,6 +993,15 @@ data class MutationUpdateProductArgs(
       UpdateProductInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationUpdateProductStatusArgs(
+    val productId: kotlin.Long,
+    val status: ProductStatus
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["productId"] as kotlin.Long,
+      args["status"] as ProductStatus
+  )
+}
 data class MutationUpdateProfileArgs(
     val input: UpdateProfileInput
 ) {
@@ -957,6 +1065,8 @@ data class MutationWechatLoginArgs(
   )
 }
 data class Mutation(
+    val batchAdjustStock: BatchStockAdjustmentResult,
+    val batchUpdateProducts: Iterable<Product>,
     val cancelOrder: Order,
     val createAddress: Address,
     val createDeliveryAddress: DeliveryAddress,
@@ -983,6 +1093,8 @@ data class Mutation(
     val handleWechatCallback: kotlin.String,
     val increaseStock: kotlin.String,
     val logout: kotlin.Boolean,
+    val offlineProduct: Product,
+    val onlineProduct: Product,
     val processRefund: RefundRequest,
     val processSuspiciousTransaction: SuspiciousTransaction,
     val refreshToken: WeChatTokenResponse,
@@ -997,6 +1109,7 @@ data class Mutation(
     val updateDeliveryWorker: DeliveryWorker,
     val updateOrderStatus: Order,
     val updateProduct: Product,
+    val updateProductStatus: Product,
     val updateProfile: UserInfo,
     val updateRegion: Region,
     val updateTransaction: PaymentTransaction,
@@ -1025,7 +1138,7 @@ data class NormalizedAddress(
 
 data class Order(
     val address: Address,
-    val amount: java.math.BigDecimal,
+    val amount: kotlin.Long,
     val completedAt: java.time.LocalDateTime?,
     val createdAt: java.time.LocalDateTime,
     val deliveryPhotos: Iterable<kotlin.String>?,
@@ -1043,13 +1156,13 @@ data class Order(
 )
 
 data class OrderPaymentInfo(
-    val amount: java.math.BigDecimal,
+    val amount: kotlin.Long,
     val createdAt: java.time.LocalDateTime,
     val orderId: kotlin.Long,
     val orderNumber: kotlin.String,
     val paidAt: java.time.LocalDateTime?,
     val paymentMethod: PaymentMethod,
-    val refundAmount: java.math.BigDecimal?,
+    val refundAmount: kotlin.Long?,
     val refundedAt: java.time.LocalDateTime?,
     val status: PaymentStatus,
     val transactionId: kotlin.String?
@@ -1062,10 +1175,10 @@ data class OrderReviewCheckResponse(
 )
 
 data class OrderStatistics(
-    val averageOrderValue: java.math.BigDecimal,
+    val averageOrderValue: kotlin.Long,
     val dateRange: DateRange,
     val totalOrders: kotlin.Int,
-    val totalRevenue: java.math.BigDecimal
+    val totalRevenue: kotlin.Long
 )
 
 enum class OrderStatus(val label: String) {
@@ -1085,6 +1198,15 @@ enum class OrderStatus(val label: String) {
     }
   }
 }
+
+data class PageInfo(
+    val hasNext: kotlin.Boolean,
+    val hasPrevious: kotlin.Boolean,
+    val pageNum: kotlin.Int,
+    val pageSize: kotlin.Int,
+    val total: kotlin.Int,
+    val totalPages: kotlin.Int
+)
 
 data class PaymentData(
     val appId: kotlin.String,
@@ -1111,34 +1233,34 @@ enum class PaymentMethod(val label: String) {
 }
 
 data class PaymentMethodStats(
-    val averageAmount: java.math.BigDecimal,
+    val averageAmount: kotlin.Long,
     val failureCount: kotlin.Long,
     val paymentMethod: PaymentMethod,
     val refundCount: kotlin.Long,
     val successCount: kotlin.Long,
     val successRate: kotlin.Float,
-    val totalAmount: java.math.BigDecimal,
+    val totalAmount: kotlin.Long,
     val transactionCount: kotlin.Long
 )
 
 data class PaymentPeriodStats(
-    val averageTransactionAmount: java.math.BigDecimal,
+    val averageTransactionAmount: kotlin.Long,
     val failedTransactions: kotlin.Long,
     val paymentMethodBreakdown: Iterable<PaymentMethodStats>,
     val period: kotlin.String,
     val successfulTransactions: kotlin.Long,
-    val totalAmount: java.math.BigDecimal,
+    val totalAmount: kotlin.Long,
     val totalTransactions: kotlin.Long
 )
 
 data class PaymentStatistics(
-    val averageTransactionAmount: java.math.BigDecimal,
+    val averageTransactionAmount: kotlin.Long,
     val dailyStats: Iterable<DailyPaymentStats>,
     val failedTransactions: kotlin.Long,
     val refundCount: kotlin.Long,
-    val refundedAmount: java.math.BigDecimal,
+    val refundedAmount: kotlin.Long,
     val successfulTransactions: kotlin.Long,
-    val totalAmount: java.math.BigDecimal,
+    val totalAmount: kotlin.Long,
     val totalTransactions: kotlin.Long
 )
 
@@ -1171,7 +1293,7 @@ data class PaymentStatusInfo(
 
 data class PaymentTransaction(
     val adminNote: kotlin.String?,
-    val amount: java.math.BigDecimal,
+    val amount: kotlin.Long,
     val completedAt: java.time.LocalDateTime?,
     val createdAt: java.time.LocalDateTime,
     val externalTransactionId: kotlin.String?,
@@ -1192,9 +1314,9 @@ data class ProcessRefundInput(
     @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
     val adminNote: kotlin.String? = null,
     @field:Positive(message = "退款金额必须为正数")
-    @field:Min(value = 0, message = "退款金额不能小于0")
-    @field:Max(value = 99999, message = "退款金额不能大于99999")
-    val amount: java.math.BigDecimal,
+    @field:Min(value = 1, message = "退款金额不能小于1分")
+    @field:Max(value = 9999900, message = "退款金额不能大于99999元")
+    val amount: kotlin.Long,
     @field:Positive(message = "订单ID必须为正数")
     val orderId: kotlin.Long,
     @field:NotBlank(message = "原交易ID不能为空")
@@ -1212,7 +1334,7 @@ data class ProcessRefundInput(
   constructor(args: Map<String, Any>) : this(
       args["action"] as RefundAction,
       args["adminNote"] as kotlin.String?,
-      args["amount"] as java.math.BigDecimal,
+      args["amount"] as kotlin.Long,
       args["orderId"] as kotlin.Long,
       args["originalTransactionId"] as kotlin.String,
       args["reason"] as kotlin.String,
@@ -1239,21 +1361,143 @@ data class ProcessSuspiciousTransactionInput(
 }
 
 data class Product(
+    val certificateImages: kotlin.String?,
     val coverImageUrl: kotlin.String,
     val createdAt: java.time.LocalDateTime,
-    val description: kotlin.String?,
-    val detailImages: kotlin.String?,
+    val deliverySettings: kotlin.String?,
+    val depositPrice: kotlin.Long?,
+    val detailContent: kotlin.String?,
     val id: kotlin.Long,
+    val imageGallery: kotlin.String?,
+    val isDeleted: kotlin.Boolean,
+    val mineralContent: kotlin.String?,
     val name: kotlin.String,
-    val price: java.math.BigDecimal,
+    val originalPrice: kotlin.Long?,
+    val phValue: java.math.BigDecimal?,
+    val price: kotlin.Long,
+    val salesVolume: kotlin.Int,
+    val sortOrder: kotlin.Int,
+    val specification: kotlin.String,
     val status: ProductStatus,
     val stock: kotlin.Int,
-    val updatedAt: java.time.LocalDateTime
+    val subtitle: kotlin.String?,
+    val tags: kotlin.String?,
+    val updatedAt: java.time.LocalDateTime,
+    val waterSource: kotlin.String?
+)
+
+data class ProductListInput(
+    @field:Positive(message = "最大价格必须为正数")
+    @field:Min(value = 1, message = "最大价格不能小于1分")
+    @field:Max(value = 9999900, message = "最大价格不能大于99999元")
+    val maxPrice: kotlin.Long? = null,
+    @field:Min(value = 0, message = "最大库存不能小于0")
+    val maxStock: kotlin.Int? = null,
+    @field:Positive(message = "最小价格必须为正数")
+    @field:Min(value = 1, message = "最小价格不能小于1分")
+    @field:Max(value = 9999900, message = "最小价格不能大于99999元")
+    val minPrice: kotlin.Long? = null,
+    @field:Min(value = 0, message = "最小库存不能小于0")
+    val minStock: kotlin.Int? = null,
+    val page: kotlin.Int? = 0,
+    val search: kotlin.String? = null,
+    val size: kotlin.Int? = 20,
+    val sort: kotlin.String? = """createdAt,desc""".trimIndent(),
+    val status: ProductStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["maxPrice"] as kotlin.Long?,
+      args["maxStock"] as kotlin.Int?,
+      args["minPrice"] as kotlin.Long?,
+      args["minStock"] as kotlin.Int?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["search"] as kotlin.String?,
+      args["size"] as kotlin.Int? ?: 20,
+      args["sort"] as kotlin.String? ?: """createdAt,desc""".trimIndent(),
+      args["status"] as ProductStatus?
+  )
+}
+
+data class ProductPage(
+    val list: Iterable<Product>,
+    val pageInfo: PageInfo
+)
+
+data class ProductSalesInfo(
+    val product: Product,
+    val revenue: kotlin.Long,
+    val salesPercentage: kotlin.Float,
+    val salesVolume: kotlin.Int
+)
+
+data class ProductSearchInput(
+    val hasDepositPrice: kotlin.Boolean? = null,
+    val hasOriginalPrice: kotlin.Boolean? = null,
+    @field:Size(max = 100, message = "搜索关键词长度不能超过100个字符")
+    val keyword: kotlin.String? = null,
+    @field:Min(value = 0, message = "最大PH值不能小于0")
+    @field:Max(value = 14, message = "最大PH值不能大于14")
+    val maxPh: java.math.BigDecimal? = null,
+    @field:Min(value = 0, message = "最大销量不能小于0")
+    val maxSalesVolume: kotlin.Int? = null,
+    @field:Min(value = 0, message = "最小PH值不能小于0")
+    @field:Max(value = 14, message = "最小PH值不能大于14")
+    val minPh: java.math.BigDecimal? = null,
+    @field:Min(value = 0, message = "最小销量不能小于0")
+    val minSalesVolume: kotlin.Int? = null,
+    val sortBy: ProductSortBy = ProductSortBy.SALES_VOLUME_DESC,
+    val tags: Iterable<kotlin.String>? = null,
+    @field:Size(max = 200, message = "水源地长度不能超过200个字符")
+    val waterSource: kotlin.String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["hasDepositPrice"] as kotlin.Boolean?,
+      args["hasOriginalPrice"] as kotlin.Boolean?,
+      args["keyword"] as kotlin.String?,
+      args["maxPh"] as java.math.BigDecimal?,
+      args["maxSalesVolume"] as kotlin.Int?,
+      args["minPh"] as java.math.BigDecimal?,
+      args["minSalesVolume"] as kotlin.Int?,
+      args["sortBy"] as ProductSortBy? ?: ProductSortBy.SALES_VOLUME_DESC,
+      args["tags"] as Iterable<kotlin.String>?,
+      args["waterSource"] as kotlin.String?
+  )
+}
+
+enum class ProductSortBy(val label: String) {
+      CREATED_AT_ASC("CREATED_AT_ASC"),
+      CREATED_AT_DESC("CREATED_AT_DESC"),
+      NAME_ASC("NAME_ASC"),
+      NAME_DESC("NAME_DESC"),
+      PRICE_ASC("PRICE_ASC"),
+      PRICE_DESC("PRICE_DESC"),
+      SALES_VOLUME_ASC("SALES_VOLUME_ASC"),
+      SALES_VOLUME_DESC("SALES_VOLUME_DESC"),
+      SORT_ORDER_ASC("SORT_ORDER_ASC"),
+      SORT_ORDER_DESC("SORT_ORDER_DESC");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): ProductSortBy? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class ProductStatistics(
+    val averagePrice: kotlin.Long,
+    val lowStockProducts: kotlin.Int,
+    val offlineProducts: kotlin.Int,
+    val onlineProducts: kotlin.Int,
+    val totalProducts: kotlin.Int,
+    val totalValue: kotlin.Long
 )
 
 enum class ProductStatus(val label: String) {
+      ACTIVE("ACTIVE"),
       OFFLINE("OFFLINE"),
-      ONLINE("ONLINE");
+      ONLINE("ONLINE"),
+      OUT_OF_STOCK("OUT_OF_STOCK");
 
   companion object {
     @JvmStatic
@@ -1263,6 +1507,86 @@ enum class ProductStatus(val label: String) {
   }
 }
 
+data class ProductUpdateRequestInput(
+    @field:Size(max = 2000, message = "证书图片URL长度不能超过2000个字符")
+    val certificateImages: kotlin.String? = null,
+    @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
+    val coverImageUrl: kotlin.String? = null,
+    @field:Size(max = 2000, message = "配送设置JSON长度不能超过2000个字符")
+    val deliverySettings: kotlin.String? = null,
+    @field:Min(value = 0, message = "押金不能小于0")
+    @field:Max(value = 9999900, message = "押金不能大于99999元")
+    val depositPrice: kotlin.Long? = null,
+    @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
+    val detailContent: kotlin.String? = null,
+    @field:Positive(message = "商品ID必须为正数")
+    val id: kotlin.Long,
+    @field:Size(max = 2000, message = "图片画廊URL长度不能超过2000个字符")
+    val imageGallery: kotlin.String? = null,
+    @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
+    val mineralContent: kotlin.String? = null,
+    @field:Size(min = 2, max = 200, message = "商品名称长度应在2-200个字符之间")
+    val name: kotlin.String? = null,
+    @field:Positive(message = "原价必须为正数")
+    @field:Min(value = 1, message = "原价不能小于1分")
+    @field:Max(value = 9999900, message = "原价不能大于99999元")
+    val originalPrice: kotlin.Long? = null,
+    @field:Min(value = 0, message = "PH值不能小于0")
+    @field:Max(value = 14, message = "PH值不能大于14")
+    val phValue: java.math.BigDecimal? = null,
+    @field:Positive(message = "商品价格必须为正数")
+    @field:Min(value = 1, message = "商品价格不能小于1分")
+    @field:Max(value = 9999900, message = "商品价格不能大于99999元")
+    val price: kotlin.Long? = null,
+    @field:Min(value = 0, message = "销量不能小于0")
+    val salesVolume: kotlin.Int? = null,
+    @field:Min(value = 0, message = "排序权重不能小于0")
+    @field:Max(value = 9999, message = "排序权重不能大于9999")
+    val sortOrder: kotlin.Int? = null,
+    @field:Size(min = 1, max = 100, message = "商品规格长度应在1-100个字符之间")
+    val specification: kotlin.String? = null,
+    val status: ProductStatus? = null,
+    @field:Min(value = 0, message = "库存数量不能小于0")
+    @field:Max(value = 99999, message = "库存数量不能大于99999")
+    val stock: kotlin.Int? = null,
+    @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
+    val subtitle: kotlin.String? = null,
+    @field:Size(max = 1000, message = "标签JSON长度不能超过1000个字符")
+    val tags: kotlin.String? = null,
+    @field:Size(max = 200, message = "水源地长度不能超过200个字符")
+    val waterSource: kotlin.String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["certificateImages"] as kotlin.String?,
+      args["coverImageUrl"] as kotlin.String?,
+      args["deliverySettings"] as kotlin.String?,
+      args["depositPrice"] as kotlin.Long?,
+      args["detailContent"] as kotlin.String?,
+      args["id"] as kotlin.Long,
+      args["imageGallery"] as kotlin.String?,
+      args["mineralContent"] as kotlin.String?,
+      args["name"] as kotlin.String?,
+      args["originalPrice"] as kotlin.Long?,
+      args["phValue"] as java.math.BigDecimal?,
+      args["price"] as kotlin.Long?,
+      args["salesVolume"] as kotlin.Int?,
+      args["sortOrder"] as kotlin.Int?,
+      args["specification"] as kotlin.String?,
+      args["status"] as ProductStatus?,
+      args["stock"] as kotlin.Int?,
+      args["subtitle"] as kotlin.String?,
+      args["tags"] as kotlin.String?,
+      args["waterSource"] as kotlin.String?
+  )
+}
+
+data class QueryActiveProductsByStatusArgs(
+    val status: ProductStatus
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["status"] as ProductStatus
+  )
+}
 data class QueryAddressArgs(
     val id: kotlin.Long
 ) {
@@ -1380,6 +1704,13 @@ data class QueryIsInServiceAreaArgs(
   constructor(args: Map<String, Any>) : this(
       args["latitude"] as kotlin.Float,
       args["longitude"] as kotlin.Float
+  )
+}
+data class QueryLowStockProductsArgs(
+    val threshold: kotlin.Int? = 10
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["threshold"] as kotlin.Int? ?: 10
   )
 }
 data class QueryMonthlyStatisticsArgs(
@@ -1549,6 +1880,65 @@ data class QueryProductArgs(
       args["id"] as kotlin.Long
   )
 }
+data class QueryProductStatisticsArgs(
+    val dateRange: DateRangeInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["dateRange"]?.let { DateRangeInput(it as Map<String, Any>) }
+  )
+}
+data class QueryProductsArgs(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val status: ProductStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["status"] as ProductStatus?
+  )
+}
+data class QueryProductsByMinSalesVolumeArgs(
+    val minVolume: kotlin.Int
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["minVolume"] as kotlin.Int
+  )
+}
+data class QueryProductsByPhRangeArgs(
+    val maxPh: java.math.BigDecimal,
+    val minPh: java.math.BigDecimal
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["maxPh"] as java.math.BigDecimal,
+      args["minPh"] as java.math.BigDecimal
+  )
+}
+data class QueryProductsByTagArgs(
+    val tag: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["tag"] as kotlin.String
+  )
+}
+data class QueryProductsByWaterSourceArgs(
+    val waterSource: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["waterSource"] as kotlin.String
+  )
+}
+data class QueryProductsPaginatedArgs(
+    val input: ProductListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { ProductListInput(it as Map<String, Any>) }
+  )
+}
 data class QueryRefundEligibilityArgs(
     val orderId: kotlin.Long
 ) {
@@ -1646,11 +2036,25 @@ data class QuerySuspiciousTransactionsArgs(
       args["size"] as kotlin.Int? ?: 20
   )
 }
+data class QueryTopSalesProductsArgs(
+    val limit: kotlin.Int? = 10
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["limit"] as kotlin.Int? ?: 10
+  )
+}
 data class QueryUserArgs(
     val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
       args["id"] as kotlin.Long
+  )
+}
+data class QueryUserAddressesArgs(
+    val userId: kotlin.Long? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["userId"] as kotlin.Long?
   )
 }
 data class QueryUserPaymentTransactionsArgs(
@@ -1690,10 +2094,13 @@ data class QueryWeeklyStatisticsArgs(
 }
 data class Query(
     val activeProducts: Iterable<Product>,
+    val activeProductsByStatus: Iterable<Product>,
     val address: Address?,
     val addresses: Iterable<Address>,
     val admin: Admin?,
     val admins: Iterable<Admin>,
+    val allActiveProducts: Iterable<Product>,
+    val allProducts: Iterable<Product>,
     val calculateDistance: DistancePayload?,
     val checkOrderReview: OrderReviewCheckResponse,
     val dailyPaymentStatistics: Iterable<DailyPaymentStats>,
@@ -1707,10 +2114,11 @@ data class Query(
     val deliveryWorkerPublicStatistics: Review,
     val deliveryWorkerRanking: Iterable<DeliveryWorkerRankingResponse>,
     val deliveryWorkerReviews: Iterable<Review>,
-    val deliveryWorkerStatistics: DeliveryWorkerStatisticsResponse,
+    val deliveryWorkerStatistics: DeliveryWorkerStatisticsResponse?,
     val deliveryWorkers: Iterable<DeliveryWorker>,
     val enabledDeliveryAreas: Iterable<DeliveryArea>,
     val isInServiceArea: ServiceAreaPayload?,
+    val lowStockProducts: Iterable<LowStockAlert>,
     val me: UserInfo?,
     val monthlyStatistics: Iterable<MonthlyStatistic>,
     val myPaymentTransactions: Iterable<UserPaymentTransaction>,
@@ -1732,7 +2140,15 @@ data class Query(
     val paymentTransaction: PaymentTransaction?,
     val paymentTransactions: Iterable<PaymentTransaction>,
     val product: Product?,
-    val products: Iterable<Product>,
+    val productStatistics: ProductStatistics?,
+    val products: ProductPage,
+    val productsByMinSalesVolume: Iterable<Product>,
+    val productsByPhRange: Iterable<Product>,
+    val productsByTag: Iterable<Product>,
+    val productsByWaterSource: Iterable<Product>,
+    val productsPaginated: ProductPage?,
+    val productsSortedBySalesVolume: Iterable<Product>,
+    val productsSortedBySortOrder: Iterable<Product>,
     val refundEligibility: RefundEligibility,
     val refundRequest: RefundRequest?,
     val refundRequests: Iterable<RefundRequest>,
@@ -1741,13 +2157,16 @@ data class Query(
     val regions: Iterable<Region>,
     val reviews: Iterable<Review>,
     val searchRegions: Iterable<Region>,
+    val specificationStatistics: kotlin.collections.Map<String, Any>,
     val suspiciousTransactions: Iterable<SuspiciousTransaction>,
+    val topSalesProducts: Iterable<Product>,
     val user: User?,
     val userAddresses: Iterable<Address>,
     val userDefaultAddress: Address?,
     val userPaymentTransactions: Iterable<PaymentTransaction>,
-    val users: UserListResponse,
+    val users: UserPage,
     val validateAddress: kotlin.Boolean,
+    val waterSourceStatistics: kotlin.collections.Map<String, Any>,
     val weeklyStatistics: Iterable<WeeklyStatistic>
 )
 
@@ -1776,37 +2195,37 @@ enum class RefundAction(val label: String) {
 data class RefundEligibility(
     val deadline: java.time.LocalDateTime?,
     val eligible: kotlin.Boolean,
-    val orderAmount: java.math.BigDecimal,
+    val orderAmount: kotlin.Long,
     val orderId: kotlin.Long,
-    val paidAmount: java.math.BigDecimal,
+    val paidAmount: kotlin.Long,
     val refundPolicy: kotlin.String?,
     val refundReason: kotlin.String?,
-    val refundableAmount: java.math.BigDecimal
+    val refundableAmount: kotlin.Long
 )
 
 data class RefundInput(
     @field:Positive(message = "退款金额必须为正数")
-    @field:Min(value = 0, message = "退款金额不能小于0")
-    @field:Max(value = 99999, message = "退款金额不能大于99999")
-    val refundAmount: java.math.BigDecimal,
+    @field:Min(value = 1, message = "退款金额不能小于1分")
+    @field:Max(value = 9999900, message = "退款金额不能大于99999元")
+    val refundAmount: kotlin.Long,
     @field:Positive(message = "总金额必须为正数")
-    @field:Min(value = 0, message = "总金额不能小于0")
-    @field:Max(value = 99999, message = "总金额不能大于99999")
-    val totalAmount: java.math.BigDecimal,
+    @field:Min(value = 1, message = "总金额不能小于1分")
+    @field:Max(value = 9999900, message = "总金额不能大于99999元")
+    val totalAmount: kotlin.Long,
     @field:NotBlank(message = "交易ID不能为空")
     @field:Size(min = 10, max = 100, message = "交易ID长度应在10-100个字符之间")
     val transactionId: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["refundAmount"] as java.math.BigDecimal,
-      args["totalAmount"] as java.math.BigDecimal,
+      args["refundAmount"] as kotlin.Long,
+      args["totalAmount"] as kotlin.Long,
       args["transactionId"] as kotlin.String
   )
 }
 
 data class RefundRequest(
     val adminNote: kotlin.String?,
-    val amount: java.math.BigDecimal,
+    val amount: kotlin.Long,
     val id: kotlin.String,
     val orderId: kotlin.Long,
     val originalTransactionId: kotlin.String,
@@ -1898,15 +2317,102 @@ data class Review(
     val userId: kotlin.Long?
 )
 
+data class SalesReport(
+    val dateRange: DateRange,
+    val salesBySpecification: Iterable<SpecificationStatistics>,
+    val salesByWaterSource: Iterable<WaterSourceStatistics>,
+    val topSellingProducts: Iterable<ProductSalesInfo>,
+    val totalRevenue: kotlin.Long,
+    val totalSales: kotlin.Int
+)
+
+enum class SalesReportGroupBy(val label: String) {
+      DAY("DAY"),
+      MONTH("MONTH"),
+      WEEK("WEEK");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): SalesReportGroupBy? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class SalesReportInput(
+    val dateRange: DateRangeInput,
+    val groupBy: SalesReportGroupBy = SalesReportGroupBy.DAY,
+    val includeSpecificationBreakdown: kotlin.Boolean = true,
+    val includeWaterSourceBreakdown: kotlin.Boolean = true,
+    @field:Min(value = 1, message = "热销商品数量不能小于1")
+    @field:Max(value = 100, message = "热销商品数量不能大于100")
+    val topProductLimit: kotlin.Int = 10
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      DateRangeInput(args["dateRange"] as Map<String, Any>),
+      args["groupBy"] as SalesReportGroupBy? ?: SalesReportGroupBy.DAY,
+      args["includeSpecificationBreakdown"] as kotlin.Boolean? ?: true,
+      args["includeWaterSourceBreakdown"] as kotlin.Boolean? ?: true,
+      args["topProductLimit"] as kotlin.Int? ?: 10
+  )
+}
+
 data class ServiceAreaPayload(
     val inServiceArea: kotlin.Boolean,
     val message: kotlin.String,
     val success: kotlin.Boolean
 )
 
+data class SpecificationStatistics(
+    val averagePrice: kotlin.Long,
+    val productCount: kotlin.Int,
+    val specification: kotlin.String,
+    val totalSalesVolume: kotlin.Int
+)
+
+data class StockAdjustmentInput(
+    @field:Positive(message = "商品ID必须为正数")
+    val productId: kotlin.Long,
+    @field:Min(value = 1, message = "调整数量不能小于1")
+    @field:Max(value = 99999, message = "调整数量不能大于99999")
+    val quantity: kotlin.Int,
+    @field:Size(max = 500, message = "调整原因长度不能超过500个字符")
+    val reason: kotlin.String? = null,
+    val type: StockAdjustmentType
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["productId"] as kotlin.Long,
+      args["quantity"] as kotlin.Int,
+      args["reason"] as kotlin.String?,
+      args["type"] as StockAdjustmentType
+  )
+}
+
+data class StockAdjustmentResult(
+    val message: kotlin.String,
+    val newStock: kotlin.Int?,
+    val previousStock: kotlin.Int?,
+    val productId: kotlin.Long,
+    val success: kotlin.Boolean
+)
+
+enum class StockAdjustmentType(val label: String) {
+      DECREASE("DECREASE"),
+      INCREASE("INCREASE"),
+      SET("SET");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): StockAdjustmentType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
 data class SuspiciousTransaction(
     val adminNote: kotlin.String?,
-    val amount: java.math.BigDecimal,
+    val amount: kotlin.Long,
     val createdAt: java.time.LocalDateTime,
     val frozenAt: java.time.LocalDateTime?,
     val frozenBy: kotlin.Long?,
@@ -2008,8 +2514,8 @@ data class UpdateDeliveryWorkerInput(
     @field:Size(max = 200, message = "当前位置长度不能超过200个字符")
     val currentLocation: kotlin.String? = null,
     @field:Min(value = 0, message = "收入不能小于0")
-    @field:Max(value = 999999, message = "收入不能大于999999")
-    val earning: java.math.BigDecimal? = null,
+    @field:Max(value = 99999900, message = "收入不能大于999999元")
+    val earning: kotlin.Long? = null,
     val isAvailable: kotlin.Boolean? = null,
     @field:Size(min = 2, max = 20, message = "配送员姓名长度应在2-20个字符之间")
     val name: kotlin.String? = null,
@@ -2025,7 +2531,7 @@ data class UpdateDeliveryWorkerInput(
       args["avatarUrl"] as kotlin.String?,
       args["coordinates"] as kotlin.String?,
       args["currentLocation"] as kotlin.String?,
-      args["earning"] as java.math.BigDecimal?,
+      args["earning"] as kotlin.Long?,
       args["isAvailable"] as kotlin.Boolean?,
       args["name"] as kotlin.String?,
       args["phone"] as kotlin.String?,
@@ -2035,29 +2541,74 @@ data class UpdateDeliveryWorkerInput(
 }
 
 data class UpdateProductInput(
+    @field:Size(max = 2000, message = "证书图片URL长度不能超过2000个字符")
+    val certificateImages: kotlin.String? = null,
     @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
     val coverImageUrl: kotlin.String? = null,
-    @field:Size(max = 1000, message = "商品描述长度不能超过1000个字符")
-    val description: kotlin.String? = null,
-    @field:Size(max = 2000, message = "详情图片URL长度不能超过2000个字符")
-    val detailImages: kotlin.String? = null,
-    @field:Size(min = 2, max = 100, message = "商品名称长度应在2-100个字符之间")
+    @field:Size(max = 2000, message = "配送设置JSON长度不能超过2000个字符")
+    val deliverySettings: kotlin.String? = null,
+    @field:Min(value = 0, message = "押金不能小于0")
+    @field:Max(value = 9999900, message = "押金不能大于99999元")
+    val depositPrice: kotlin.Long? = null,
+    @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
+    val detailContent: kotlin.String? = null,
+    @field:Size(max = 2000, message = "图片画廊URL长度不能超过2000个字符")
+    val imageGallery: kotlin.String? = null,
+    val isDeleted: kotlin.Boolean? = null,
+    @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
+    val mineralContent: kotlin.String? = null,
+    @field:Size(min = 2, max = 200, message = "商品名称长度应在2-200个字符之间")
     val name: kotlin.String? = null,
+    @field:Positive(message = "原价必须为正数")
+    @field:Min(value = 1, message = "原价不能小于1分")
+    @field:Max(value = 9999900, message = "原价不能大于99999元")
+    val originalPrice: kotlin.Long? = null,
+    @field:Min(value = 0, message = "PH值不能小于0")
+    @field:Max(value = 14, message = "PH值不能大于14")
+    val phValue: java.math.BigDecimal? = null,
     @field:Positive(message = "商品价格必须为正数")
-    @field:Min(value = 0, message = "商品价格不能小于0")
-    @field:Max(value = 99999, message = "商品价格不能大于99999")
-    val price: java.math.BigDecimal? = null,
+    @field:Min(value = 1, message = "商品价格不能小于1分")
+    @field:Max(value = 9999900, message = "商品价格不能大于99999元")
+    val price: kotlin.Long? = null,
+    @field:Min(value = 0, message = "销量不能小于0")
+    val salesVolume: kotlin.Int? = null,
+    @field:Min(value = 0, message = "排序权重不能小于0")
+    @field:Max(value = 9999, message = "排序权重不能大于9999")
+    val sortOrder: kotlin.Int? = null,
+    @field:Size(min = 1, max = 100, message = "商品规格长度应在1-100个字符之间")
+    val specification: kotlin.String? = null,
+    val status: ProductStatus? = null,
     @field:Min(value = 0, message = "库存数量不能小于0")
     @field:Max(value = 99999, message = "库存数量不能大于99999")
-    val stock: kotlin.Int? = null
+    val stock: kotlin.Int? = null,
+    @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
+    val subtitle: kotlin.String? = null,
+    @field:Size(max = 1000, message = "标签JSON长度不能超过1000个字符")
+    val tags: kotlin.String? = null,
+    @field:Size(max = 200, message = "水源地长度不能超过200个字符")
+    val waterSource: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["certificateImages"] as kotlin.String?,
       args["coverImageUrl"] as kotlin.String?,
-      args["description"] as kotlin.String?,
-      args["detailImages"] as kotlin.String?,
+      args["deliverySettings"] as kotlin.String?,
+      args["depositPrice"] as kotlin.Long?,
+      args["detailContent"] as kotlin.String?,
+      args["imageGallery"] as kotlin.String?,
+      args["isDeleted"] as kotlin.Boolean?,
+      args["mineralContent"] as kotlin.String?,
       args["name"] as kotlin.String?,
-      args["price"] as java.math.BigDecimal?,
-      args["stock"] as kotlin.Int?
+      args["originalPrice"] as kotlin.Long?,
+      args["phValue"] as java.math.BigDecimal?,
+      args["price"] as kotlin.Long?,
+      args["salesVolume"] as kotlin.Int?,
+      args["sortOrder"] as kotlin.Int?,
+      args["specification"] as kotlin.String?,
+      args["status"] as ProductStatus?,
+      args["stock"] as kotlin.Int?,
+      args["subtitle"] as kotlin.String?,
+      args["tags"] as kotlin.String?,
+      args["waterSource"] as kotlin.String?
   )
 }
 
@@ -2106,10 +2657,15 @@ data class UpdateTransactionInput(
 
 data class User(
     val avatarUrl: kotlin.String?,
+    val balanceCents: kotlin.Long,
     val createdAt: java.time.LocalDateTime,
+    val email: kotlin.String,
     val id: kotlin.Long,
     val nickname: kotlin.String?,
     val phone: kotlin.String?,
+    val role: UserRole,
+    val status: UserStatus,
+    val totalSpentCents: kotlin.Long,
     val updatedAt: java.time.LocalDateTime,
     val wechatOpenId: kotlin.String
 )
@@ -2140,15 +2696,9 @@ data class UserListInput(
   )
 }
 
-data class UserListResponse(
-    val content: Iterable<User>,
-    val empty: kotlin.Boolean,
-    val first: kotlin.Boolean,
-    val last: kotlin.Boolean,
-    val number: kotlin.Int,
-    val size: kotlin.Int,
-    val totalElements: kotlin.Long,
-    val totalPages: kotlin.Int
+data class UserPage(
+    val list: Iterable<User>,
+    val pageInfo: PageInfo
 )
 
 data class UserPaymentTransaction(
@@ -2212,6 +2762,13 @@ data class ValidateAddressInput(
   )
 }
 
+data class WaterSourceStatistics(
+    val averagePrice: kotlin.Long,
+    val productCount: kotlin.Int,
+    val totalSalesVolume: kotlin.Int,
+    val waterSource: kotlin.String
+)
+
 data class WeChatLoginResponse(
     val accessToken: kotlin.String,
     val expiresIn: kotlin.Int,
@@ -2267,7 +2824,7 @@ data class WechatLoginInput(
 data class WeeklyStatistic(
     val endDate: kotlin.String,
     val orderCount: kotlin.Int,
-    val revenue: java.math.BigDecimal,
+    val revenue: kotlin.Long,
     val startDate: kotlin.String,
     val weekNumber: kotlin.Int,
     val year: kotlin.Int

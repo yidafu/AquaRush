@@ -21,6 +21,8 @@ package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -54,7 +56,8 @@ data class OrderModel(
   var paymentTime: LocalDateTime? = null,
   @Column(name = "delivery_worker_id")
   var deliveryWorkerId: Long? = null,
-  @Column(name = "delivery_photos", columnDefinition = "jsonb")
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "delivery_photos", columnDefinition = "json")
   var deliveryPhotos: String? = null,
   @Column("delivery_address_id")
   val deliveryAddressId: Long = -1L,

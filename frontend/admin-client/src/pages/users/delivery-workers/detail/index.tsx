@@ -37,9 +37,9 @@ import type {
   DeliveryWorker,
   DeliveryWorkerStatisticsResponse,
   Order,
-} from '../../../../types/graphql';
+} from '@aquarush/common';
 import { formatAdminTableAmount } from '../../../../utils/money';
-import { OrderStatus } from '../../../../types/graphql';
+import { OrderStatus } from '@aquarush/common';
 
 
 const DeliveryWorkerDetailPage: React.FC = () => {
@@ -88,7 +88,6 @@ const DeliveryWorkerDetailPage: React.FC = () => {
   const {
     data: ordersData,
     loading: ordersLoading,
-    error: ordersError,
     refetch: refetchOrders,
   } = useQuery(DELIVERY_WORKER_ORDERS_QUERY, {
     variables: {
@@ -330,10 +329,6 @@ const DeliveryWorkerDetailPage: React.FC = () => {
       </div>
     );
   }
-
-  const completionRate = deliveryWorker.totalOrders > 0
-    ? (deliveryWorker.completedOrders / deliveryWorker.totalOrders) * 100
-    : 0;
 
   return (
     <div style={{  minHeight: '100vh' }}>

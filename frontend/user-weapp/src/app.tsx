@@ -2,6 +2,7 @@ import { PropsWithChildren, useEffect } from 'react'
 import { useDidShow, useDidHide } from '@tarojs/taro'
 import { ThemeProvider } from './components/ThemeProvider'
 import { authService } from './utils/auth'
+import { testConfigurationInDevelopment } from './config/config-test'
 
 import './app.scss'
 
@@ -79,6 +80,9 @@ function App({ children }: PropsWithChildren) {
 
   // 对应 componentDidMount
   useEffect(() => {
+    // 验证API配置（仅在开发环境）
+    testConfigurationInDevelopment()
+
     // 初始化主题
     initAppTheme()
     // 静默登录

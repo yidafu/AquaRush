@@ -14,11 +14,11 @@ schema {
 type Query {
   # Authentication
   me: UserInfo
-  user(id: Long!): User
+  user(id: PrimaryId!): User
 
   # Addresses
   addresses: [Address!]!
-  address(id: Long!): Address
+  address(id: PrimaryId!): Address
 
   # Enhanced Address Management
   userAddresses: [Address!]!
@@ -48,20 +48,20 @@ type Query {
   isInServiceArea(longitude: Float!, latitude: Float!): ServiceAreaPayload
 
   # Products
-  products: [Product!]!
-  activeProducts: [Product!]!
-  product(id: Long!): Product
+  allProducts: [Product!]!
+  activeProducts(page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductPage!
+  product(id: PrimaryId!): Product
 
   # Orders
-  order(orderId: Long!): Order
+  order(orderId: PrimaryId!): Order
   orderByNumber(orderNumber: String!): Order
-  ordersByUser(userId: Long!): [Order!]!
-  ordersByUserAndStatus(userId: Long!, status: OrderStatus!): [Order!]!
+  ordersByUser(userId: PrimaryId!): [Order!]!
+  ordersByUserAndStatus(userId: PrimaryId!, status: OrderStatus!): [Order!]!
   ordersByStatus(status: OrderStatus!): [Order!]!
 
   # Payments
   paymentStatus(transactionId: String!): String!
-  orderPaymentInfo(orderId: Long!): OrderPaymentInfo!
+  orderPaymentInfo(orderId: PrimaryId!): OrderPaymentInfo!
   paymentPeriodStats(
     from: LocalDateTime!
     to: LocalDateTime!
@@ -70,13 +70,13 @@ type Query {
     page: Int = 0
     size: Int = 20
   ): [UserPaymentTransaction!]!
-  refundEligibility(orderId: Long!): RefundEligibility!
+  refundEligibility(orderId: PrimaryId!): RefundEligibility!
   myRefundRequests(page: Int = 0, size: Int = 20): [RefundRequest!]!
 
   # Review queries
-  checkOrderReview(orderId: Long!): OrderReviewCheckResponse!
+  checkOrderReview(orderId: PrimaryId!): OrderReviewCheckResponse!
   myReviews(page: Int, size: Int): [Review!]!
-  deliveryWorkerPublicStatistics(deliveryWorkerId: Long!): Review!
+  deliveryWorkerPublicStatistics(deliveryWorkerId: PrimaryId!): Review!
 
   # Default region hierarchy
   defaultRegionHierarchy: RegionHierarchy
@@ -92,9 +92,9 @@ type Mutation {
 
   # Addresses
   createAddress(input: AddressInput!): Address!
-  updateAddress(id: Long!, input: UpdateAddressInput!): Address!
-  deleteAddress(id: Long!): Boolean!
-  setDefaultAddress(id: Long!): Boolean!
+  updateAddress(id: PrimaryId!, input: UpdateAddressInput!): Address!
+  deleteAddress(id: PrimaryId!): Boolean!
+  setDefaultAddress(id: PrimaryId!): Boolean!
 
   geocodeAddress(address: GeocodeInput!): GeocodePayload!
   reverseGeocode(longitude: Float!, latitude: Float!): ReverseGeocodePayload!
@@ -102,8 +102,8 @@ type Mutation {
 
   # Orders
   createOrder(input: CreateOrderInput!): Order!
-  cancelOrder(orderId: Long!): Order!
-  updateOrderStatus(orderId: Long!, status: OrderStatus!): Order!
+  cancelOrder(orderId: PrimaryId!): Order!
+  updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): Order!
 
   # Payments
   createWechatPayment(input: CreateWechatPaymentInput!): PaymentData!
@@ -123,7 +123,7 @@ type Mutation {
 # Additional Client-specific Payment Types
 type UserPaymentTransaction {
   id: String!
-  orderId: Long!
+  orderId: PrimaryId!
   orderNumber: String!
   amount: BigDecimal!
   status: PaymentStatus!
@@ -150,7 +150,7 @@ type PaymentStatusInfo {
 }
 
 input RequestRefundInput {
-  orderId: Long!
+  orderId: PrimaryId!
   outTradeNo: String!
   amount: BigDecimal!
   reason: String!

@@ -21,14 +21,20 @@ package dev.yidafu.aqua.client.product.resolvers
 
 import dev.yidafu.aqua.client.product.resolvers.ClientProductQueryResolver.Companion.ProductSearchInput
 import dev.yidafu.aqua.common.annotation.ClientService
+import dev.yidafu.aqua.common.graphql.generated.Product
+import dev.yidafu.aqua.common.graphql.generated.ProductPage
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.product.domain.model.ProductModel
+import dev.yidafu.aqua.product.mapper.ProductMapper
 import dev.yidafu.aqua.product.service.ProductService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.data.domain.Sort.Direction
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
@@ -46,27 +52,32 @@ class ClientProductQueryResolver(
      * 根据ID查询产品详情（仅限上线产品）
      */
     @PreAuthorize("isAuthenticated()")
-    fun product(id: Long): ProductModel? {
+    @QueryMapping
+    fun product(@Argument id: Long): Product? {
         val product = productService.findById(id)
-        return product?.takeIf { it.status == ProductStatus.ONLINE }
+
+        return product?.let { ProductMapper.map(it)}
     }
 
     /**
      * 查询活跃的上线产品（分页）
      */
     @PreAuthorize("isAuthenticated()")
+    @QueryMapping
     fun activeProducts(
-        page: Int = 0,
-        size: Int = 20,
-        sortBy: String = "createdAt",
-        sortDirection: String = "desc"
-    ): Page<ProductModel> {
+      @Argument page: Int = 0,
+      @Argument size: Int = 20,
+      @Argument sortBy: String = "createdAt",
+      @Argument sortDirection: String = "desc"
+    ): ProductPage {
         val pageable: Pageable = PageRequest.of(
             page,
             size,
             Sort.by(if (sortDirection.lowercase() == "asc") Direction.ASC else Direction.DESC, sortBy)
         )
-        return productService.findOnlineProducts(pageable)
+      val page = productService.findOnlineProducts(pageable)
+      val (list, pageInfo) = page.toPageInfo { ProductMapper.map(it) }
+        return ProductPage(list, pageInfo)
     }
 
     /**

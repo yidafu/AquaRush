@@ -75,14 +75,18 @@ class StorageController(
     @GetMapping("/files/{id}")
     fun getFile(
         @PathVariable id: Long,
+        @RequestParam(value = "name", required = false) name: String?,
         response: HttpServletResponse
     ): ResponseEntity<Resource> {
         val resource = storageService.getFile(id)
         val metadata = storageService.getFileMetadata(id)
 
+        // 使用请求参数中的文件名，如果没有则使用元数据中的文件名
+        val fileName = name ?: metadata.fileName
+
         return ResponseEntity.ok()
             .contentType(MediaType.parseMediaType(metadata.mimeType))
-            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"${metadata.fileName}\"")
+            .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$fileName\"")
             .header(HttpHeaders.CACHE_CONTROL, "max-age=31536000") // 缓存1年
             .body(resource)
     }
@@ -241,18 +245,24 @@ class StorageController(
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ApiResponse<Nothing>> {
         return ResponseEntity.badRequest()
-            .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value().toString(), ex.message ?: "Bad request"))
+            .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value().toString(), ex.message ?: "请求参数错误"))
     }
 
     @ExceptionHandler(NoSuchElementException::class)
     fun handleNoSuchElementException(ex: NoSuchElementException): ResponseEntity<ApiResponse<Nothing>> {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(ApiResponse.error(HttpStatus.NOT_FOUND.value().toString(), ex.message ?: "Resource not found"))
+            .body(ApiResponse.error(HttpStatus.NOT_FOUND.value().toString(), ex.message ?: "文件不存在"))
     }
 
     @ExceptionHandler(RuntimeException::class)
     fun handleRuntimeException(ex: RuntimeException): ResponseEntity<ApiResponse<Nothing>> {
+        // 如果错误消息包含文件路径信息，提供更友好的错误信息
+        val message = when {
+            ex.message?.contains("File not found") == true -> "文件不存在或已被删除"
+            ex.message?.contains("Failed to store file") == true -> "文件存储失败，请重试"
+            else -> ex.message ?: "服务器内部错误"
+        }
         return ResponseEntity.internalServerError()
-            .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value().toString(), ex.message ?: "Internal server error"))
+            .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value().toString(), message))
     }
 }

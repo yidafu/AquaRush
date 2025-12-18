@@ -11,14 +11,12 @@ import {
   PROCESS_REFUND_MUTATION,
 } from '../graphql/mutations/order.graphql';
 import type {
-  Order,
-  OrderListInput,
   OrderStatus,
-  ProcessRefundInput,
-} from '../types/graphql';
+} from '@aquarush/common';
 
 // Order Query Hooks
-export const useOrders = (input?: OrderListInput) => {
+// TODO: Fix this query - GET_ORDERS_QUERY uses non-existent 'orders' query in schema
+export const useOrders = (input?: any) => {
   return useQuery(GET_ORDERS_QUERY, {
     variables: { input },
     errorPolicy: 'all',

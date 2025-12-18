@@ -8,6 +8,7 @@ import {
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { message } from 'antd';
+import { createMockApolloLink } from '../mock/apolloMockLink';
 
 // HTTP 连接到 GraphQL 服务器
 const httpLink = createHttpLink({
@@ -27,7 +28,7 @@ const authLink = setContext((_, { headers }) => {
 });
 
 // 错误处理 Link
-const errorLink = onError(({ graphQLErrors, networkError, operation, forward }) => {
+const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors) {
     graphQLErrors.forEach(({ message: errorMessage, extensions }) => {
       // 处理认证错误
@@ -66,7 +67,7 @@ export const apolloClient = new ApolloClient({
     logLink,
     errorLink,
     authLink,
-    httpLink
+    createMockApolloLink() || httpLink, // 如果有mock链接就使用，否则使用httpLink
   ]),
   cache: new InMemoryCache({
     // 配置缓存策略
@@ -75,17 +76,17 @@ export const apolloClient = new ApolloClient({
         fields: {
           // 配置查询的缓存策略
           users: {
-            merge(existing = [], incoming) {
+            merge(_existing, incoming) {
               return incoming;
             },
           },
           orders: {
-            merge(existing = [], incoming) {
+            merge(_existing, incoming) {
               return incoming;
             },
           },
           products: {
-            merge(existing = [], incoming) {
+            merge(_existing, incoming) {
               return incoming;
             },
           },

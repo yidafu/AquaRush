@@ -29,7 +29,6 @@ import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.common.graphql.generated.Region
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.common.graphql.generated.User
-import dev.yidafu.aqua.common.graphql.generated.UserListResponse
 import dev.yidafu.aqua.user.domain.model.AddressModel
 import dev.yidafu.aqua.user.domain.model.AdminModel
 import dev.yidafu.aqua.user.domain.model.NotificationSettingsModel
@@ -55,23 +54,6 @@ object UserMapper : ObjectMappie<UserModel, User>(){
   }
 }
 
-/**
- * Mapper for converting Page<UserModel> to UserListResponse
- */
-object UserListResponseMapper {
-  fun map(userPage: Page<UserModel>): UserListResponse {
-    return UserListResponse(
-      content = userPage.content.map { UserMapper.map(it) },
-      empty = userPage.isEmpty,
-      first = userPage.isFirst,
-      last = userPage.isLast,
-      number = userPage.number,
-      size = userPage.size,
-      totalElements = userPage.totalElements,
-      totalPages = userPage.totalPages
-    )
-  }
-}
 
 /**
  * Mapper for converting Admin domain entity to GraphQL Admin type
@@ -113,15 +95,7 @@ object RegionMapper : ObjectMappie<RegionModel, Region>() {
 // DTO → Domain Model Mappers
 // ============================================================================
 
-/**
- * Mapper for converting NotificationSettingsDTO to NotificationSettingsModel
- */
-// object NotificationSettingsDTOToModelMapper : ObjectMappie<NotificationSettingsDTO, NotificationSettingsModel>() {
-//    override fun map(from: NotificationSettingsDTO) = mapping {
-//        // Most fields map automatically by name
-//        // No custom mapping needed as field names match
-//    }
-// }
+
 
 /**
  * Mapper for converting NotificationSettingsModel to NotificationSettingsDTO

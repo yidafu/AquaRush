@@ -5,7 +5,8 @@ import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/login';
 import Dashboard from './pages/dashboard';
 import Users from './pages/users';
-import Products from './pages/products';
+import ProductListPage from './pages/products/list';
+import ProductDetailPage from './pages/products/detail';
 import Orders from './pages/orders';
 import Delivery from './pages/delivery';
 import Statistics from './pages/statistics';
@@ -29,7 +30,8 @@ const App: React.FC = () => {
         <Route path="users" element={<Users />} />
         <Route path="users/:id" element={<UserDetailPage />} />
         <Route path="users/delivery-workers/:id" element={<DeliveryWorkerDetailPage />} />
-        <Route path="products" element={<Products />} />
+        <Route path="products" element={<ProductListPage />} />
+        <Route path="products/:id" element={<ProductDetailPage />} />
         <Route path="orders" element={<Orders />} />
         <Route path="delivery" element={<Delivery />} />
         <Route path="statistics" element={<Statistics />} />

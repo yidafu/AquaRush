@@ -40,7 +40,7 @@ export const GET_ORDERS_QUERY = gql`
 `;
 
 export const GET_ORDER_DETAIL_QUERY = gql`
-  query GetOrderDetail($id: Long!) {
+  query GetOrderDetail($id: PrimaryId!) {
     order(id: $id) {
       id
       orderNo

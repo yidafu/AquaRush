@@ -11,6 +11,7 @@ import "taro-ui/dist/style/components/tabs.scss"
 import "taro-ui/dist/style/components/badge.scss"
 import "taro-ui/dist/style/components/tag.scss"
 import './index.scss'
+import { displayCents } from '@/utils/money'
 
 interface OrderItem {
   id: string
@@ -191,9 +192,9 @@ export default class OrderList extends Component<{}, OrderListState> {
             specifications: ['24瓶装']
           }
         ],
-        totalAmount: 48.00,
+        totalAmount: 4800, // 48.00 yuan in cents
         deliveryFee: 0,
-        finalAmount: 48.00,
+        finalAmount: 4800, // 48.00 yuan in cents
         address: {
           receiverName: '张三',
           phone: '13800138000',
@@ -218,9 +219,9 @@ export default class OrderList extends Component<{}, OrderListState> {
             specifications: ['36瓶装']
           }
         ],
-        totalAmount: 162.00,
+        totalAmount: 16200, // 162.00 yuan in cents
         deliveryFee: 0,
-        finalAmount: 162.00,
+        finalAmount: 16200, // 162.00 yuan in cents
         address: {
           receiverName: '李四',
           phone: '13900139000',
@@ -246,9 +247,9 @@ export default class OrderList extends Component<{}, OrderListState> {
             specifications: ['12瓶装']
           }
         ],
-        totalAmount: 120.00,
+        totalAmount: 12000, // 120.00 yuan in cents
         deliveryFee: 0,
-        finalAmount: 120.00,
+        finalAmount: 12000, // 120.00 yuan in cents
         address: {
           receiverName: '王五',
           phone: '13700137000',
@@ -275,9 +276,9 @@ export default class OrderList extends Component<{}, OrderListState> {
             specifications: ['24瓶装']
           }
         ],
-        totalAmount: 48.00,
+        totalAmount: 4800, // 48.00 yuan in cents
         deliveryFee: 0,
-        finalAmount: 48.00,
+        finalAmount: 4800, // 48.00 yuan in cents
         address: {
           receiverName: '张三',
           phone: '13800138000',
@@ -469,7 +470,7 @@ export default class OrderList extends Component<{}, OrderListState> {
         <View className='order-footer'>
           <View className='order-amount'>
             <Text className='amount-label'>实付：</Text>
-            <Text className='amount-value'>¥{order.finalAmount.toFixed(2)}</Text>
+            <Text className='amount-value'>{displayCents(order.finalAmount)}</Text>
           </View>
 
           <View className='order-actions'>

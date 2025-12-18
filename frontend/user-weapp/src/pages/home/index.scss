@@ -134,10 +134,31 @@
 }
 
 .loading-container,
-.empty-container {
+.empty-container,
+.error-container {
   text-align: center;
   padding: 40px;
   color: var(--theme-text-tertiary);
+}
+
+.error-container {
+  color: var(--theme-secondary);
+
+  .retry-button {
+    margin-top: 16px;
+  }
+}
+
+.load-more-container {
+  padding: 20px 0;
+  text-align: center;
+}
+
+.no-more-container {
+  text-align: center;
+  padding: 20px;
+  color: var(--theme-text-tertiary);
+  font-size: 24px;
 }
 
 .product-grid {

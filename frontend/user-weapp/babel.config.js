@@ -2,10 +2,14 @@
 // https://github.com/NervJS/taro/blob/next/packages/babel-preset-taro/README.md
 module.exports = {
   presets: [
-    ['taro', {
-      framework: 'react',
-      ts: true,
-      compiler: 'vite',
-    }]
-  ]
-}
+    [
+      "taro",
+      {
+        framework: "react",
+        ts: true,
+        compiler: "vite",
+        useBuiltIns: process.env.TARO_ENV === "h5" ? "usage" : false,
+      },
+    ],
+  ],
+};

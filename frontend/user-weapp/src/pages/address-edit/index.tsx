@@ -5,7 +5,11 @@ import Taro from '@tarojs/taro'
 import { useRegionSelector } from '../../hooks/useRegionSelector'
 import AddressMap from '../../components/AddressMap'
 import AddressService from '../../services/AddressService'
-import { AddressFormData, transformFormToGraphQLInput } from '../../types/address'
+import { AddressFormData } from '../../types/address'
+import {
+  AddressInput as GraphQLAddressInput,
+  UpdateAddressInput as GraphQLUpdateAddressInput
+} from '@aquarush/common'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/form.scss"
@@ -270,15 +274,26 @@ const AddressEdit: React.FC = () => {
     setLoading(true)
 
     try {
-      // Transform form data to GraphQL input format
-      // Note: receiverName and phone are excluded as they're not supported in backend schema
-      // TODO: Update this when backend schema supports receiverName and phone fields
-      const graphqlInput = transformFormToGraphQLInput(formData)
-
+      // Transform form data directly to GraphQL input format
       if (isEdit && addressId) {
         // Update existing address
-        console.log('更新地址:', { id: addressId, graphqlInput })
-        const result = await addressService.updateAddress(parseInt(addressId), graphqlInput)
+        const updateInput: GraphQLUpdateAddressInput = {
+          receiverName: formData.receiverName,
+          phone: formData.phone,
+          province: formData.province,
+          provinceCode: formData.provinceCode || '',
+          city: formData.city,
+          cityCode: formData.cityCode || '',
+          district: formData.district,
+          districtCode: formData.districtCode || '',
+          detailAddress: formData.detailAddress,
+          longitude: formData.longitude,
+          latitude: formData.latitude,
+          isDefault: formData.isDefault
+        }
+
+        console.log('更新地址:', { id: addressId, updateInput })
+        const result = await addressService.updateAddress(parseInt(addressId), updateInput)
 
         if (!result.success) {
           showToastMessage(result.error?.message || '地址更新失败，请重试', 'error')
@@ -286,8 +301,23 @@ const AddressEdit: React.FC = () => {
         }
       } else {
         // Create new address
-        console.log('创建地址:', graphqlInput)
-        const result = await addressService.createAddress(graphqlInput)
+        const createInput: GraphQLAddressInput = {
+          receiverName: formData.receiverName,
+          phone: formData.phone,
+          province: formData.province,
+          city: formData.city,
+          district: formData.district,
+          detailAddress: formData.detailAddress,
+          longitude: formData.longitude || undefined,
+          latitude: formData.latitude || undefined,
+          isDefault: formData.isDefault,
+          provinceCode: formData.provinceCode || '',
+          cityCode: formData.cityCode || '',
+          districtCode: formData.districtCode || ''
+        }
+
+        console.log('创建地址:', createInput)
+        const result = await addressService.createAddress(createInput)
 
         if (!result.success) {
           showToastMessage(result.error?.message || '地址添加失败，请重试', 'error')
