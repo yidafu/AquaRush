@@ -1,53 +1,100 @@
 import { Component } from 'react'
 import { View, Text, Image, Navigator, Swiper, SwiperItem } from '@tarojs/components'
-import { AtButton, AtCard, AtGrid, AtDivider } from 'taro-ui'
-import Taro from '@tarojs/taro'
+import { AtButton, AtCard, AtGrid, AtDivider, AtLoadMore } from 'taro-ui'
+import Taro, { useRouter } from '@tarojs/taro'
 import CustomNavBar from '../../components/CustomNavBar'
 import { authService } from '../../utils/auth'
 import { displayCents } from '../../utils/money'
+import ProductService from '../../services/ProductService'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/card.scss"
 import "taro-ui/dist/style/components/grid.scss"
 import "taro-ui/dist/style/components/divider.scss"
+import "taro-ui/dist/style/components/load-more.scss"
 import './index.scss'
 
-interface Product {
+// Import the ExtendedProduct type from ProductService
+interface ExtendedProduct {
   id: string
   name: string
-  price: number
-  image: string
-  description: string
+  subtitle?: string
+  price: number // Converted to number for displayCents compatibility
+  originalPrice?: number
+  depositPrice?: number
+  coverImageUrl: string
+  imageGallery?: any[]
+  specification: string
+  waterSource?: string
+  mineralContent?: string
   stock: number
+  salesVolume: number
+  status: 'ONLINE' | 'OFFLINE' | 'OUT_OF_STOCK' | 'ACTIVE'
+  sortOrder: number
+  tags?: any[]
+  detailContent?: string
+  certificateImages?: any[]
+  deliverySettings?: Record<string, any>
+  isDeleted: boolean
+  createdAt: string
+  updatedAt: string
+  image: string // Mapped from coverImageUrl for homepage compatibility
+  description: string // Additional field for homepage compatibility
 }
 
 interface HomeState {
-  products: Product[]
+  products: ExtendedProduct[]
   loading: boolean
+  loadingMore: boolean
   userInfo: any
   currentSlide: number
+  currentPage: number
+  hasMore: boolean
+  totalCount: number
+  error?: string
 }
 
 export default class HomePage extends Component<{}, HomeState> {
+  private productService = ProductService.getInstance()
+
   constructor(props) {
     super(props)
     this.state = {
       products: [],
       loading: true,
+      loadingMore: false,
       userInfo: null,
-      currentSlide: 0
+      currentSlide: 0,
+      currentPage: 0,
+      hasMore: true,
+      totalCount: 0
     }
   }
 
   componentDidMount() {
     this.loadUserInfo()
     this.loadProducts()
+    this.setupPullDownRefresh()
   }
 
   componentDidShow() {
     // 页面显示时刷新用户信息和产品数据
     this.loadUserInfo()
-    this.loadProducts()
+    this.refreshProducts()
+  }
+
+  /**
+   * 设置下拉刷新
+   */
+  setupPullDownRefresh = () => {
+    // Taro.enablePullDownRefresh()
+  }
+
+  /**
+   * 下拉刷新处理
+   */
+  onPullDownRefresh = () => {
+    this.refreshProducts()
   }
 
   loadUserInfo = async () => {
@@ -66,75 +113,148 @@ export default class HomePage extends Component<{}, HomeState> {
     }
   }
 
+  /**
+   * 加载产品列表（首次加载）
+   */
   loadProducts = async () => {
     try {
-      this.setState({ loading: true })
+      this.setState({ loading: true, error: undefined })
 
-      // TODO: 实际项目中这里应该调用获取产品列表的API
-      // const products = await getProducts()
+      const result = await this.productService.getActiveProducts({
+        page: 0,
+        size: 20,
+        sortBy: 'createdAt',
+        sortDirection: 'desc'
+      })
 
-      // 模拟产品数据，使用真实图片
-      const mockProducts: Product[] = [
-        {
-          id: '1',
-          name: '农夫山泉 矿泉水 550ml',
-          price: 2.00,
-          image: '/assets/home-active.png',
-          description: '天然矿泉水，源自千岛湖深层水源，口感清甜甘冽',
-          stock: 100
-        },
-        {
-          id: '2',
-          name: '怡宝 纯净水 380ml',
-          price: 1.50,
-          image: '/assets/order-active.png',
-          description: '采用先进反渗透技术，滴滴纯净，安全放心',
-          stock: 80
-        },
-        {
-          id: '3',
-          name: '娃哈哈 AD钙奶 220ml',
-          price: 3.50,
-          image: '/assets/my-active.png',
-          description: '富含维生素A、D和钙质，营养美味',
-          stock: 60
-        },
-        {
-          id: '4',
-          name: '康师傅 冰红茶 500ml',
-          price: 4.00,
-          image: '/assets/home.png',
-          description: '精选红茶，冰爽解渴，夏日必备',
-          stock: 45
-        },
-        {
-          id: '5',
-          name: '统一 阿萨姆奶茶 500ml',
-          price: 5.00,
-          image: '/assets/order.png',
-          description: '浓郁奶茶口感，丝滑香醇，回味无穷',
-          stock: 30
-        },
-        {
-          id: '6',
-          name: '百事可乐 330ml',
-          price: 3.00,
-          image: '/assets/my.png',
-          description: '经典可乐，气泡十足，畅爽无比',
-          stock: 70
-        }
-      ]
+      if (result.success && result.data) {
+        const { products, pagination } = result.data
 
-      this.setState({ products: mockProducts })
+        // Products are already transformed in ProductService with image and description fields
+        this.setState({
+          products,
+          currentPage: pagination.page,
+          hasMore: !pagination.last,
+          totalCount: pagination.totalElements,
+          loading: false
+        })
+      } else {
+        throw new Error(result.error?.message || '获取产品列表失败')
+      }
     } catch (error) {
-      console.error('获取产品列表失败:', error)
+      console.error('Load products error:', error)
+      this.setState({
+        loading: false,
+        error: error instanceof Error ? error.message : '加载失败'
+      })
+
       Taro.showToast({
         title: '加载失败',
         icon: 'none'
       })
-    } finally {
-      this.setState({ loading: false })
     }
+  }
+
+  /**
+   * 刷新产品列表（下拉刷新）
+   */
+  refreshProducts = async () => {
+    try {
+      this.setState({ loading: true, error: undefined })
+
+      const result = await this.productService.getActiveProducts({
+        page: 0,
+        size: 20,
+        sortBy: 'createdAt',
+        sortDirection: 'desc'
+      })
+
+      if (result.success && result.data) {
+        const { products, pagination } = result.data
+
+        // Products are already transformed in ProductService with image and description fields
+        this.setState({
+          products,
+          currentPage: pagination.page,
+          hasMore: !pagination.last,
+          totalCount: pagination.totalElements,
+          loading: false,
+          error: undefined
+        })
+      } else {
+        throw new Error(result.error?.message || '刷新产品列表失败')
+      }
+    } catch (error) {
+      console.error('Refresh products error:', error)
+      this.setState({
+        loading: false,
+        error: error instanceof Error ? error.message : '刷新失败'
+      })
+
+      Taro.showToast({
+        title: '刷新失败',
+        icon: 'none'
+      })
+    } finally {
+      Taro.stopPullDownRefresh()
+    }
+  }
+
+  /**
+   * 加载更多产品
+   */
+  loadMoreProducts = async () => {
+    try {
+      const { loadingMore, currentPage, hasMore } = this.state
+
+      if (loadingMore || !hasMore) {
+        return
+      }
+
+      this.setState({ loadingMore: true })
+
+      const nextPage = currentPage + 1
+      const result = await this.productService.loadMoreProducts(nextPage, {
+        size: 20,
+        sortBy: 'createdAt',
+        sortDirection: 'desc'
+      })
+
+      if (result.success && result.data) {
+        const { products, pagination } = result.data
+
+        // Transform products to match homepage expected format
+        const transformedProducts = products.map(product => ({
+          ...product,
+          image: product.coverImageUrl,
+          description: product.subtitle || product.specification || ''
+        }))
+
+        this.setState(prevState => ({
+          products: [...prevState.products, ...transformedProducts],
+          currentPage: pagination.page,
+          hasMore: !pagination.last,
+          loadingMore: false
+        }))
+      } else {
+        throw new Error(result.error?.message || '加载更多产品失败')
+      }
+    } catch (error) {
+      console.error('Load more products error:', error)
+      this.setState({ loadingMore: false })
+
+      Taro.showToast({
+        title: '加载失败',
+        icon: 'none'
+      })
+    }
+  }
+
+  /**
+   * 滚动到底部触发加载更多
+   */
+  onReachBottom = () => {
+    this.loadMoreProducts()
   }
 
   // 轮播图数据
@@ -171,7 +291,7 @@ export default class HomePage extends Component<{}, HomeState> {
     })
   }
 
-  handleProductClick = (product: Product) => {
+  handleProductClick = (product: ExtendedProduct) => {
     Taro.navigateTo({
       url: `/pages/product-detail/index?id=${product.id}`
     })
@@ -216,10 +336,8 @@ export default class HomePage extends Component<{}, HomeState> {
   }
 
   render() {
-    const { products, loading, userInfo, currentSlide } = this.state
+    const { products, loading, loadingMore, error, userInfo, currentSlide, hasMore } = this.state
     const carouselData = this.getCarouselData()
-
-
 
     return (
       <View className='home-page'>
@@ -273,36 +391,67 @@ export default class HomePage extends Component<{}, HomeState> {
             <View className='loading-container'>
               <Text>加载中...</Text>
             </View>
+          ) : error ? (
+            <View className='error-container'>
+              <Text>{error}</Text>
+              <AtButton
+                type='primary'
+                size='small'
+                onClick={this.refreshProducts}
+                className='retry-button'
+              >
+                重试
+              </AtButton>
+            </View>
           ) : products.length === 0 ? (
             <View className='empty-container'>
               <Text>暂无产品</Text>
             </View>
           ) : (
-            <View className='product-grid'>
-              {products.map((product) => (
-                <View
-                  key={product.id}
-                  className='product-card'
-                  onClick={() => this.handleProductClick(product)}
-                >
-                  <View className='product-image-container'>
-                    <Image
-                      src={product.image}
-                      mode='aspectFill'
-                      className='product-image'
-                    />
-                  </View>
-                  <View className='product-content'>
-                    <Text className='product-name'>{product.name}</Text>
-                    <Text className='product-desc' numberOfLines={2}>{product.description}</Text>
-                    <View className='product-bottom'>
-                      <Text className='product-price'>{displayCents(product.price)}</Text>
-                      <Text className='product-stock'>库存{product.stock}</Text>
+            <>
+              <View className='product-grid'>
+                {products.map((product) => (
+                  <View
+                    key={product.id}
+                    className='product-card'
+                    onClick={() => this.handleProductClick(product)}
+                  >
+                    <View className='product-image-container'>
+                      <Image
+                        src={product.image}
+                        mode='aspectFill'
+                        className='product-image'
+                      />
+                    </View>
+                    <View className='product-content'>
+                      <Text className='product-name'>{product.name}</Text>
+                      <Text className='product-desc' numberOfLines={2}>{product.description}</Text>
+                      <View className='product-bottom'>
+                        <Text className='product-price'>{displayCents(product.price)}</Text>
+                        <Text className='product-stock'>库存{product.stock}</Text>
+                      </View>
                     </View>
                   </View>
+                ))}
+              </View>
+
+              {/* 加载更多组件 */}
+              {hasMore && (
+                <View className='load-more-container'>
+                  <AtLoadMore
+                    status={loadingMore ? 'loading' : 'more'}
+                    onClick={this.loadMoreProducts}
+                  />
                 </View>
-              ))}
-            </View>
+              )}
+
+              {/* 无更多数据提示 */}
+              {!hasMore && products.length > 0 && (
+                <View className='no-more-container'>
+                  <Text>没有更多产品了</Text>
+                </View>
+              )}
+            </>
           )}
         </View>
 

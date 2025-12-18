@@ -1,29 +1,23 @@
 import NetworkManager from '../utils/network'
+import apiConfig from '../config/api'
 import {
-  AddressInput,
-  UpdateAddressInput,
-  Address,
-  CreateAddressResponse,
-  UpdateAddressResponse,
-  DeleteAddressResponse,
-  SetDefaultAddressResponse,
-  UserAddressesResponse,
-  AddressServiceResult,
-  AddressServiceError
-} from '../types/address'
+  Address as GraphQLAddress,
+  AddressInput as GraphQLAddressInput,
+  UpdateAddressInput as GraphQLUpdateAddressInput
+} from '@aquarush/common'
+import {
+  AddressServiceResult} from '../types/address'
 
 class AddressService {
   private static instance: AddressService
   private networkManager: NetworkManager
 
   private constructor() {
-    // Use the same configuration as the region service
+    // Use centralized API configuration
     this.networkManager = NetworkManager.getInstance({
-      baseURL: 'http://localhost:8080/graphql',
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      baseURL: apiConfig.getGraphqlUrl(),
+      timeout: apiConfig.getTimeout(),
+      headers: apiConfig.getHeaders()
     })
   }
 
@@ -39,10 +33,10 @@ class AddressService {
    * @param id Address ID to fetch
    * @returns Promise with address details or error
    */
-  public async getAddressDetail(id: number): Promise<AddressServiceResult<Address>> {
+  public async getAddressDetail(id: number): Promise<AddressServiceResult<GraphQLAddress>> {
     try {
       const query = `
-        query AddressDetail($id: Long!) {
+        query AddressDetail($id: PrimaryId!) {
           address(id: $id) {
             id
             receiverName
@@ -67,7 +61,7 @@ class AddressService {
 
       console.log('Fetching address detail for ID:', id)
 
-      const response = await this.networkManager.query<{ address: Address | null }>(query, variables)
+      const response = await this.networkManager.query<{ address: GraphQLAddress | null }>(query, variables)
 
       if (!response?.address) {
         throw new Error('Address not found')
@@ -111,7 +105,7 @@ class AddressService {
    * Get all addresses for the current user
    * @returns Promise with address list or error
    */
-  public async getUserAddresses(): Promise<AddressServiceResult<Address[]>> {
+  public async getUserAddresses(): Promise<AddressServiceResult<GraphQLAddress[]>> {
     try {
       const query = `
         query UserAddresses {
@@ -132,7 +126,7 @@ class AddressService {
 
       console.log('Fetching user addresses...')
 
-      const response = await this.networkManager.query<UserAddressesResponse>(query, {})
+      const response = await this.networkManager.query<{ userAddresses: GraphQLAddress[] }>(query, {})
 
       if (!response?.userAddresses) {
         throw new Error('Failed to fetch addresses: No data returned')
@@ -177,7 +171,7 @@ class AddressService {
    * @param addressData Address data to create
    * @returns Promise with created address or error
    */
-  public async createAddress(addressData: AddressInput): Promise<AddressServiceResult<Address>> {
+  public async createAddress(addressData: GraphQLAddressInput): Promise<AddressServiceResult<GraphQLAddress>> {
     try {
       const mutation = `
         mutation CreateAddress($input: AddressInput!) {
@@ -208,7 +202,7 @@ class AddressService {
 
       console.log('Creating address with data:', addressData)
 
-      const response = await this.networkManager.mutate<CreateAddressResponse>(mutation, variables, {})
+      const response = await this.networkManager.mutate<{ createAddress: GraphQLAddress }>(mutation, variables, {})
 
       if (!response?.createAddress) {
         throw new Error('Failed to create address: No data returned')
@@ -262,7 +256,7 @@ class AddressService {
    * @param addressData Updated address data
    * @returns Promise with updated address or error
    */
-  public async updateAddress(id: number, addressData: UpdateAddressInput): Promise<AddressServiceResult<Address>> {
+  public async updateAddress(id: number, addressData: GraphQLUpdateAddressInput): Promise<AddressServiceResult<GraphQLAddress>> {
     try {
       const mutation = `
         mutation UpdateAddress($id: Long!, $input: UpdateAddressInput!) {
@@ -294,7 +288,7 @@ class AddressService {
 
       console.log('Updating address with data:', { id, ...addressData })
 
-      const response = await this.networkManager.mutate<UpdateAddressResponse>(mutation, variables, {})
+      const response = await this.networkManager.mutate<{ updateAddress: GraphQLAddress }>(mutation, variables, {})
 
       if (!response?.updateAddress) {
         throw new Error('Failed to update address: No data returned')
@@ -358,7 +352,7 @@ class AddressService {
 
       console.log('Deleting address:', id)
 
-      const response = await this.networkManager.mutate<DeleteAddressResponse>(mutation, variables, {})
+      const response = await this.networkManager.mutate<{ deleteAddress: boolean }>(mutation, variables, {})
 
       if (response?.deleteAddress === undefined) {
         throw new Error('Failed to delete address: No response')
@@ -405,7 +399,7 @@ class AddressService {
 
       console.log('Setting address as default:', id)
 
-      const response = await this.networkManager.mutate<SetDefaultAddressResponse>(mutation, variables, {})
+      const response = await this.networkManager.mutate<{ setDefaultAddress: boolean }>(mutation, variables, {})
 
       if (response?.setDefaultAddress === undefined) {
         throw new Error('Failed to set default address: No response')

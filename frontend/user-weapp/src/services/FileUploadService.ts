@@ -1,5 +1,6 @@
 import Taro from '@tarojs/taro'
 import NetworkManager, { NetworkError } from '../utils/network'
+import apiConfig from '../config/api'
 import {
   FileMetadataResponse,
   FileMetadata,
@@ -16,7 +17,12 @@ class FileUploadService {
   private static instance: FileUploadService
 
   constructor() {
-    this.networkManager = NetworkManager.getInstance()
+    // Use centralized API configuration for REST API
+    this.networkManager = NetworkManager.getInstance({
+      baseURL: apiConfig.getRestApiBaseUrl(),
+      timeout: apiConfig.getTimeout(),
+      headers: apiConfig.getHeaders()
+    })
   }
 
   static getInstance(): FileUploadService {

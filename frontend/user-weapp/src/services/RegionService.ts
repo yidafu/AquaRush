@@ -1,4 +1,5 @@
 import NetworkManager from '../utils/network'
+import apiConfig from '../config/api'
 import {
   Region,
   RegionCacheItem,
@@ -23,13 +24,11 @@ class RegionService {
   private readonly MAX_CACHE_SIZE = 100 // Maximum number of cache entries
 
   private constructor() {
-    // Use the same configuration as the auth service
+    // Use centralized API configuration
     this.networkManager = NetworkManager.getInstance({
-      baseURL: 'http://localhost:8080/graphql',
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      baseURL: apiConfig.getGraphqlUrl(),
+      timeout: apiConfig.getTimeout(),
+      headers: apiConfig.getHeaders()
     })
   }
 
