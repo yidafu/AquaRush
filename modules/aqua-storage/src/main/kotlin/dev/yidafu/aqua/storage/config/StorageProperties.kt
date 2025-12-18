@@ -80,7 +80,12 @@ data class LocalStorageProperties(
                                            "html", "css", "js", "json",
                                            "zip", "rar", "7z", "tar", "gz",
 //                                           "exe", "msi", "sh", "bat",
-                                           "bak", "backup")
+                                           "bak", "backup"),
+
+    /**
+     * 服务访问URL基础路径（用于生成文件URL）
+     */
+    var baseUrl: String = "http://localhost:9090"
 )
 
 /**

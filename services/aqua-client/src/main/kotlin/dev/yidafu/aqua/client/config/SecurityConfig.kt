@@ -29,6 +29,7 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.security.authorization.AuthorizationDecision
+import org.springframework.web.cors.CorsUtils
 
 @Configuration
 @EnableWebSecurity
@@ -54,10 +55,15 @@ class SecurityConfig(
             "/images/**",
             "/graphiql",
             ).permitAll()
+          // Allow CORS preflight requests for GraphQL
+          .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
           .anyRequest().permitAll()
       }
       .csrf {
         it.disable()
+      }
+      .cors { cors ->
+        cors.configure(http)
       }
       .formLogin { form ->
         form.disable()

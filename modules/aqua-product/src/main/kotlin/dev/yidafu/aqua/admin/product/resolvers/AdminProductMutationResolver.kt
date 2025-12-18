@@ -103,7 +103,6 @@ class AdminProductMutationResolver(
         imageGallery = input.imageGallery,
         specification = input.specification,
         waterSource = input.waterSource,
-        phValue = input.phValue,
         mineralContent = input.mineralContent,
         salesVolume = input.salesVolume,
         sortOrder = input.sortOrder,
@@ -111,7 +110,7 @@ class AdminProductMutationResolver(
         detailContent = input.detailContent,
         certificateImages = input.certificateImages,
         deliverySettings = input.deliverySettings,
-        isDeleted = input.isDeleted
+        status = input.status
       )
 
       logger.info("Successfully updated product: $id - ${updatedProduct.name}")

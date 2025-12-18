@@ -250,18 +250,6 @@ class AdminProductQueryResolver(
     }
 
     /**
-     * 按PH值范围查询产品（管理员功能）
-     */
-    @QueryMapping
-    @PreAuthorize("hasRole('ADMIN')")
-    fun productsByPhRange(
-        @Argument minPh: java.math.BigDecimal,
-        @Argument maxPh: java.math.BigDecimal
-    ): List<ProductModel> {
-        return productService.findByPhRange(minPh, maxPh)
-    }
-
-    /**
      * 按销量查询产品（管理员功能）
      */
     @QueryMapping

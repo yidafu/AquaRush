@@ -93,8 +93,8 @@ class LocalStorageStrategy(
 
     override fun generateUrl(fileId: Long, filename: String): String {
         // 生成文件下载URL，使用文件ID访问下载端点
-        // 格式：http://localhost:8080/api/v1/storage/files/{id}
-        return "http://localhost:8080/api/v1/storage/files/$fileId?name=$filename"
+        // 格式：{baseUrl}/api/v1/storage/files/{id}
+        return "${storageProperties.local.baseUrl}/api/v1/storage/files/$fileId?name=$filename"
     }
 
     override fun exists(path: String): Boolean {
