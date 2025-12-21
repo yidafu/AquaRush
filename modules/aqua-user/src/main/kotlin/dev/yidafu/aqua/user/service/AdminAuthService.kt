@@ -19,19 +19,14 @@
 
 package dev.yidafu.aqua.user.service
 
+import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.AdminModel
-import dev.yidafu.aqua.user.domain.model.AdminRoleModel
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
-import dev.yidafu.aqua.user.service.dto.LoginResponse
 import dev.yidafu.aqua.user.service.dto.AdminUserInfo
-import dev.yidafu.aqua.user.service.WeChatAuthException
+import dev.yidafu.aqua.user.service.dto.LoginResponse
 import org.slf4j.LoggerFactory
-import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

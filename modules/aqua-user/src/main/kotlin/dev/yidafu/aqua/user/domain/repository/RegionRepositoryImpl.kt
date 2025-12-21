@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.RegionModel
+import dev.yidafu.aqua.common.domain.model.RegionModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.persistence.criteria.Predicate

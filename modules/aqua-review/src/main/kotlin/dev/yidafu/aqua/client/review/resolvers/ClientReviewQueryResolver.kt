@@ -19,10 +19,10 @@
 
 package dev.yidafu.aqua.client.review.resolvers
 
+import dev.yidafu.aqua.api.service.ReviewService
 import dev.yidafu.aqua.common.annotation.ClientService
-import dev.yidafu.aqua.review.dto.OrderReviewCheckResponse
-import dev.yidafu.aqua.review.dto.ReviewResponse
-import dev.yidafu.aqua.review.service.ReviewService
+import dev.yidafu.aqua.common.dto.ReviewResponse
+import dev.yidafu.aqua.common.graphql.generated.OrderReviewCheckResponse
 import org.springframework.data.domain.Page
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
@@ -69,12 +69,12 @@ class ClientReviewQueryResolver(
       reviewId = 0L,
       orderId = 0L,
       userId = null, // 不返回用户信息
-      deliveryWorkerId = statistics.deliveryWorkerId,
-      deliveryWorkerName = statistics.workerName,
+      deliveryWorkerId = statistics.workerId,
+      deliveryWorkerName = "配送员${statistics.workerId}", // 生成配送员名称
       rating = statistics.averageRating.toInt(),
       comment = null, // 不返回具体评论
       isAnonymous = true,
-      createdAt = statistics.lastUpdated,
+      createdAt = java.time.LocalDateTime.now(),
     )
   }
 

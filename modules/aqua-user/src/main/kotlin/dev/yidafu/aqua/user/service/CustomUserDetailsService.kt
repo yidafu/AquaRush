@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.user.service
 
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.UserModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.authority.SimpleGrantedAuthority

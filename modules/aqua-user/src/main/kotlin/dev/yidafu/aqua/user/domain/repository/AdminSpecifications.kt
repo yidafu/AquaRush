@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.AdminModel
-import dev.yidafu.aqua.user.domain.model.AdminRoleModel
+import dev.yidafu.aqua.common.domain.model.AdminModel
+import dev.yidafu.aqua.common.domain.model.AdminRoleModel
 import org.springframework.data.jpa.domain.Specification
 
 class AdminSpecifications {

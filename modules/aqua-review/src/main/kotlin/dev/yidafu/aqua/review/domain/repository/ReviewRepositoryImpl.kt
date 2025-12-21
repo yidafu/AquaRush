@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.review.domain.repository
 
-import dev.yidafu.aqua.review.domain.model.ReviewModel
+import dev.yidafu.aqua.common.domain.model.ReviewModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.persistence.criteria.Predicate
@@ -34,9 +34,8 @@ import java.time.LocalDateTime
  */
 @Repository
 class ReviewRepositoryImpl(
-  @PersistenceContext private val entityManager: EntityManager
+  @PersistenceContext private val entityManager: EntityManager,
 ) : ReviewRepositoryCustom {
-
   override fun findReviewsWithFilters(
     deliveryWorkerId: Long?,
     minRating: Int?,
@@ -44,7 +43,7 @@ class ReviewRepositoryImpl(
     dateFrom: LocalDateTime?,
     dateTo: LocalDateTime?,
     userId: Long?,
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<ReviewModel> {
     val cb = entityManager.criteriaBuilder
     val countQuery = cb.createQuery(Long::class.java)
@@ -154,7 +153,10 @@ class ReviewRepositoryImpl(
     return PageImpl(results, pageable, totalCount)
   }
 
-  override fun countByDeliveryWorkerIdAndRating(deliveryWorkerId: Long, rating: Int): Long {
+  override fun countByDeliveryWorkerIdAndRating(
+    deliveryWorkerId: Long,
+    rating: Int,
+  ): Long {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(Long::class.java)
     val root = query.from(ReviewModel::class.java)

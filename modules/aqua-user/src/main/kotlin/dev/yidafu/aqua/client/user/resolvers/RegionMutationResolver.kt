@@ -21,7 +21,7 @@ package dev.yidafu.aqua.client.user.resolvers
 
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.RegionModel
+import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
 import dev.yidafu.aqua.user.service.CreateRegionInput
 import dev.yidafu.aqua.user.service.RegionService

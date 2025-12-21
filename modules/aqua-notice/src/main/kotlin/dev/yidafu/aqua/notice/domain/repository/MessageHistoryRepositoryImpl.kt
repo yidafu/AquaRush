@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.notice.domain.repository
 
-import dev.yidafu.aqua.notice.domain.model.MessageHistoryModel
-import dev.yidafu.aqua.notice.domain.model.MessageStatus
+import dev.yidafu.aqua.common.domain.model.MessageHistoryModel
+import dev.yidafu.aqua.common.domain.model.MessageStatus
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.persistence.criteria.Predicate
@@ -33,12 +33,11 @@ import java.util.*
  */
 @Repository
 class MessageHistoryRepositoryImpl(
-  @PersistenceContext private val entityManager: EntityManager
+  @PersistenceContext private val entityManager: EntityManager,
 ) : MessageHistoryRepositoryCustom {
-
   override fun countByUserIdAndStatus(
     userId: Long,
-    status: MessageStatus
+    status: MessageStatus,
   ): Long {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(Long::class.java)
@@ -65,7 +64,7 @@ class MessageHistoryRepositoryImpl(
 
   override fun countByMessageTypeSince(
     messageType: String,
-    since: LocalDateTime
+    since: LocalDateTime,
   ): Long {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(Long::class.java)
@@ -93,7 +92,7 @@ class MessageHistoryRepositoryImpl(
   override fun findByStatusAndRetryCountLessThanAndCreatedAtBefore(
     status: MessageStatus,
     retryCount: Int,
-    before: LocalDateTime
+    before: LocalDateTime,
   ): List<MessageHistoryModel> {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(MessageHistoryModel::class.java)

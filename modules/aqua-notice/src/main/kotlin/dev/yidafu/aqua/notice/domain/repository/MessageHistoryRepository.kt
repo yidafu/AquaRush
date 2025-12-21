@@ -19,13 +19,12 @@
 
 package dev.yidafu.aqua.notice.domain.repository
 
-import dev.yidafu.aqua.notice.domain.model.MessageHistoryModel
-import dev.yidafu.aqua.notice.domain.model.MessageStatus
+import dev.yidafu.aqua.common.domain.model.MessageHistoryModel
+import dev.yidafu.aqua.common.domain.model.MessageStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 import java.util.*
 
 @Repository

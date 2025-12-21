@@ -19,11 +19,11 @@
 
 package dev.yidafu.aqua.delivery.graphql.resolvers
 
+import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
-import dev.yidafu.aqua.delivery.service.DeliveryService
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize

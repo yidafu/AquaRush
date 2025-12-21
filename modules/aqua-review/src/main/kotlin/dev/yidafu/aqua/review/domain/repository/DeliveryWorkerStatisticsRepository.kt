@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.review.domain.repository
 
-import dev.yidafu.aqua.review.domain.model.DeliveryWorkerStatisticsModel
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository

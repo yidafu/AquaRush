@@ -20,16 +20,15 @@
 package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
-import org.springframework.data.domain.PageImpl
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
 import dev.yidafu.aqua.common.graphql.generated.LowStockAlert
 import dev.yidafu.aqua.common.graphql.generated.ProductPage
 import dev.yidafu.aqua.common.graphql.generated.ProductListInput
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
-import dev.yidafu.aqua.product.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.product.mapper.ProductMapper
-import dev.yidafu.aqua.product.service.ProductService
+import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -45,7 +44,7 @@ import org.springframework.stereotype.Controller
 @AdminService
 @Controller
 class AdminProductQueryResolver(
-    private val productService: ProductService
+    private val productService: ProductServiceImpl
 ) {
 
     /**

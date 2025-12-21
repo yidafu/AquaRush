@@ -27,7 +27,7 @@ import dev.yidafu.aqua.common.graphql.generated.ExportTransactionsInput
 import dev.yidafu.aqua.common.graphql.generated.ProcessRefundInput
 import dev.yidafu.aqua.common.graphql.generated.RefundAction
 import dev.yidafu.aqua.common.graphql.generated.RefundRequest
-import dev.yidafu.aqua.payment.service.PaymentService
+import dev.yidafu.aqua.api.service.PaymentService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize

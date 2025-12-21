@@ -20,9 +20,11 @@
 package dev.yidafu.aqua.api.service
 
 import dev.yidafu.aqua.api.common.PagedResponse
-import dev.yidafu.aqua.api.dto.*
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
+import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
+import dev.yidafu.aqua.common.graphql.generated.PaymentTransaction
+import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import java.math.BigDecimal
 import java.util.*
 
@@ -37,7 +39,7 @@ interface PaymentApiService {
     orderId: Long,
     amount: BigDecimal,
     paymentMethod: PaymentMethod,
-  ): PaymentDTO
+  ): PaymentTransaction
 
   /**
    * 处理支付回调
@@ -46,17 +48,17 @@ interface PaymentApiService {
     paymentId: Long,
     transactionId: String,
     status: PaymentStatus,
-  ): PaymentDTO
+  ): PaymentTransaction
 
   /**
    * 获取支付详情
    */
-  fun getPaymentById(paymentId: Long): PaymentDTO?
+  fun getPaymentById(paymentId: Long): PaymentTransaction?
 
   /**
    * 获取订单支付记录
    */
-  fun getOrderPayments(orderId: Long): List<PaymentDTO>
+  fun getOrderPayments(orderId: Long): List<PaymentTransaction>
 
   /**
    * 获取用户支付记录
@@ -65,7 +67,7 @@ interface PaymentApiService {
     userId: Long,
     page: Int = 0,
     size: Int = 20,
-  ): PagedResponse<PaymentDTO>
+  ): PagedResponse<PaymentTransaction>
 
   /**
    * 申请退款
@@ -74,7 +76,7 @@ interface PaymentApiService {
     paymentId: Long,
     amount: BigDecimal,
     reason: String,
-  ): PaymentRefundDTO
+  ): PaymentRefundModel
 
   /**
    * 处理退款
@@ -82,12 +84,12 @@ interface PaymentApiService {
   fun processRefund(
     refundId: Long,
     status: RefundStatus,
-  ): PaymentRefundDTO
+  ): PaymentRefundModel
 
   /**
    * 获取退款详情
    */
-  fun getRefundById(refundId: Long): PaymentRefundDTO?
+  fun getRefundById(refundId: Long): PaymentRefundModel?
 
   /**
    * 获取用户退款记录
@@ -96,7 +98,7 @@ interface PaymentApiService {
     userId: Long,
     page: Int = 0,
     size: Int = 20,
-  ): PagedResponse<PaymentRefundDTO>
+  ): PagedResponse<PaymentRefundModel>
 
   /**
    * 获取支付统计

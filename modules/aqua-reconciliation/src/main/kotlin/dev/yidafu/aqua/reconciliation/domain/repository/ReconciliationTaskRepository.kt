@@ -19,42 +19,39 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
-import dev.yidafu.aqua.reconciliation.domain.model.ReconciliationTask
-import dev.yidafu.aqua.reconciliation.domain.model.enums.TaskStatus
-import dev.yidafu.aqua.reconciliation.domain.model.enums.TaskType
+import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 
 /**
  * 对账任务仓库接口
  */
 @Repository
-interface ReconciliationTaskRepository : JpaRepository<ReconciliationTask, Long>, ReconciliationTaskRepositoryCustom {
+interface ReconciliationTaskRepository : JpaRepository<ReconciliationTaskModel, Long>, ReconciliationTaskRepositoryCustom {
   /**
    * 根据任务ID查找任务
    */
-  fun findByTaskId(taskId: String): ReconciliationTask?
+  fun findByTaskId(taskId: String): ReconciliationTaskModel?
 
   /**
    * 根据任务状态查找任务
    */
-  fun findByStatus(status: TaskStatus): List<ReconciliationTask>
+  fun findByStatus(status: ReconciliationTaskStatus): List<ReconciliationTaskModel>
 
   /**
    * 根据任务类型和状态查找任务
    */
   fun findByTaskTypeAndStatus(
-    taskType: TaskType,
-    status: TaskStatus,
-  ): List<ReconciliationTask>
+    taskType: ReconciliationTaskType,
+    status: ReconciliationTaskStatus,
+  ): List<ReconciliationTaskModel>
 
   /**
    * 查找正在运行的任务
    */
-  fun findByStatusIn(statuses: List<TaskStatus>): List<ReconciliationTask>
+  fun findByStatusIn(statuses: List<ReconciliationTaskStatus>): List<ReconciliationTaskModel>
 
   /**
    * 根据任务日期范围查找任务
@@ -77,10 +74,10 @@ interface ReconciliationTaskRepository : JpaRepository<ReconciliationTask, Long>
   /**
    * 查找最新的任务
    */
-  fun findFirstByOrderByTaskDateDesc(): ReconciliationTask?
+  fun findFirstByOrderByTaskDateDesc(): ReconciliationTaskModel?
 
   /**
    * 检查是否有正在运行的任务
    */
-  fun existsByStatus(status: TaskStatus): Boolean
+  fun existsByStatus(status: ReconciliationTaskStatus): Boolean
 }

@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
-import dev.yidafu.aqua.reconciliation.domain.model.ReconciliationTask
-import dev.yidafu.aqua.reconciliation.domain.model.enums.TaskStatus
-import dev.yidafu.aqua.reconciliation.domain.model.enums.TaskType
+import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
 import java.time.LocalDateTime
 
 /**
@@ -34,7 +34,7 @@ interface ReconciliationTaskRepositoryCustom {
    * @param endDate the end date
    * @return list of tasks ordered by task date descending
    */
-  fun findByTaskDateBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationTask>
+  fun findByTaskDateBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationTaskModel>
 
   /**
    * Find tasks by task type and date range
@@ -44,10 +44,10 @@ interface ReconciliationTaskRepositoryCustom {
    * @return list of tasks ordered by task date descending
    */
   fun findByTaskTypeAndTaskDateBetween(
-    taskType: TaskType,
+    taskType: ReconciliationTaskType,
     startDate: LocalDateTime,
     endDate: LocalDateTime
-  ): List<ReconciliationTask>
+  ): List<ReconciliationTaskModel>
 
   /**
    * Count tasks by task type and status
@@ -55,5 +55,5 @@ interface ReconciliationTaskRepositoryCustom {
    * @param status the task status
    * @return number of tasks
    */
-  fun countByTaskTypeAndStatus(taskType: TaskType, status: TaskStatus): Long
+  fun countByTaskTypeAndStatus(taskType: ReconciliationTaskType, status: ReconciliationTaskStatus): Long
 }

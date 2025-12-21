@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.NotificationSettingsModel
+import dev.yidafu.aqua.common.domain.model.NotificationSettingsModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.*

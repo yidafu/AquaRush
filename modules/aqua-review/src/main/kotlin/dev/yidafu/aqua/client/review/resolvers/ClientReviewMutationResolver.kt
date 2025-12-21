@@ -19,12 +19,12 @@
 
 package dev.yidafu.aqua.client.review.resolvers
 
+import dev.yidafu.aqua.api.service.ReviewService
 import dev.yidafu.aqua.common.annotation.ClientService
-import dev.yidafu.aqua.review.dto.CreateReviewRequest
-import dev.yidafu.aqua.review.dto.ReviewResponse
-import dev.yidafu.aqua.review.service.ReviewService
+import dev.yidafu.aqua.common.dto.ReviewResponse
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
+import dev.yidafu.aqua.common.dto.CreateReviewRequest as CommonCreateReviewRequest
 
 /**
  * 客户端评价变更解析器
@@ -39,7 +39,7 @@ class ClientReviewMutationResolver(
    * 用户创建评价
    */
   @PreAuthorize("isAuthenticated()")
-  fun createReview(request: CreateReviewRequest): ReviewResponse {
+  fun createReview(request: CommonCreateReviewRequest): ReviewResponse {
     // 验证评价数据
     validateReviewRequest(request)
 
@@ -61,7 +61,7 @@ class ClientReviewMutationResolver(
   /**
    * 验证评价请求数据
    */
-  private fun validateReviewRequest(request: CreateReviewRequest) {
+  private fun validateReviewRequest(request: CommonCreateReviewRequest) {
     if (request.rating !in MIN_RATING..MAX_RATING) {
       throw IllegalArgumentException("评分必须在${MIN_RATING}-${MAX_RATING}之间")
     }

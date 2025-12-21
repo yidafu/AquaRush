@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.api.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import dev.yidafu.aqua.common.graphql.generated.UserRole
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull

@@ -9,6 +9,9 @@ dependencies {
   // Spring Data JPA for shared entities
   implementation(libs.bundles.spring.boot.data)
 
+  // Explicitly add Hibernate core for annotations
+  implementation("org.hibernate.orm:hibernate-core:6.4.1.Final")
+
   // Spring Security for JWT authentication
   implementation(libs.bundles.spring.boot.security)
 

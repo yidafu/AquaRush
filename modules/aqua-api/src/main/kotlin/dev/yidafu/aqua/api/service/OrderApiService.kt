@@ -20,8 +20,9 @@
 package dev.yidafu.aqua.api.service
 
 import dev.yidafu.aqua.api.common.PagedResponse
-import dev.yidafu.aqua.api.dto.*
+import dev.yidafu.aqua.api.dto.CreateOrderRequest
 import dev.yidafu.aqua.common.domain.model.OrderStatus
+import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import java.math.BigDecimal
 import java.util.*
@@ -33,12 +34,12 @@ interface OrderApiService {
   /**
    * 创建新订单
    */
-  fun createOrder(request: CreateOrderRequest): OrderDTO
+  fun createOrder(request: CreateOrderRequest): Order
 
   /**
    * 获取订单详情
    */
-  fun getOrderById(orderId: Long): OrderDTO?
+  fun getOrderById(orderId: Long): Order?
 
   /**
    * 获取用户订单列表
@@ -47,7 +48,7 @@ interface OrderApiService {
     userId: Long,
     page: Int = 0,
     size: Int = 20,
-  ): PagedResponse<OrderDTO>
+  ): PagedResponse<Order>
 
   /**
    * 获取用户订单列表（按状态筛选）
@@ -57,7 +58,7 @@ interface OrderApiService {
     status: OrderStatus,
     page: Int = 0,
     size: Int = 20,
-  ): PagedResponse<OrderDTO>
+  ): PagedResponse<Order>
 
   /**
    * 取消订单
@@ -65,12 +66,12 @@ interface OrderApiService {
   fun cancelOrder(
     orderId: Long,
     reason: String,
-  ): OrderDTO
+  ): Order
 
   /**
    * 确认订单送达
    */
-  fun confirmOrderDelivered(orderId: Long): OrderDTO
+  fun confirmOrderDelivered(orderId: Long): Order
 
   /**
    * 获取订单统计信息
@@ -83,7 +84,7 @@ interface OrderApiService {
   fun updateOrderStatus(
     orderId: Long,
     status: OrderStatus,
-  ): OrderDTO
+  ): Order
 
   /**
    * 分配配送员
@@ -91,12 +92,12 @@ interface OrderApiService {
   fun assignDeliveryWorker(
     orderId: Long,
     workerId: Long,
-  ): OrderDTO
+  ): Order
 
   /**
    * 获取配送员当前订单
    */
-  fun getDeliveryWorkerCurrentOrders(workerId: Long): List<OrderDTO>
+  fun getDeliveryWorkerCurrentOrders(workerId: Long): List<Order>
 
   /**
    * 获取附近待分配订单
@@ -105,7 +106,7 @@ interface OrderApiService {
     latitude: BigDecimal,
     longitude: BigDecimal,
     radiusKm: Int = 5,
-  ): List<OrderDTO>
+  ): List<Order>
 
   /**
    * 批量更新订单状态
@@ -113,12 +114,12 @@ interface OrderApiService {
   fun batchUpdateOrderStatus(
     orderIds: List<Long>,
     status: OrderStatus,
-  ): List<OrderDTO>
+  ): List<Order>
 
   /**
    * 重新计算订单金额
    */
-  fun recalculateOrderAmount(orderId: Long): OrderDTO
+  fun recalculateOrderAmount(orderId: Long): Order
 }
 
 /**

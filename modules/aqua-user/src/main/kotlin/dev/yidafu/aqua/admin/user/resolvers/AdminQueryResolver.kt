@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.admin.user.resolvers
 
 import dev.yidafu.aqua.common.graphql.generated.Admin
-import dev.yidafu.aqua.user.domain.model.AdminModel
+import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.mapper.AddressMapper
 import dev.yidafu.aqua.user.mapper.AdminMapper

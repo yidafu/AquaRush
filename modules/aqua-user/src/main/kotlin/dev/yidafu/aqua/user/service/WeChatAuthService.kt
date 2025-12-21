@@ -21,11 +21,11 @@ package dev.yidafu.aqua.user.service
 
 import cn.binarywang.wx.miniapp.api.WxMaService
 import com.fasterxml.jackson.annotation.JsonProperty
-import dev.yidafu.aqua.api.dto.UserRole
-import dev.yidafu.aqua.api.dto.UserStatus
+import dev.yidafu.aqua.common.graphql.generated.UserRole
+import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.UserModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import me.chanjar.weixin.common.error.WxErrorException
 import org.slf4j.LoggerFactory
@@ -84,7 +84,7 @@ class WeChatAuthService(
         tokenType = "Bearer",
         userInfo =
           UserInfo(
-            id = user.id,
+            id = user.id!!,
             openid = user.wechatOpenId,
             nickname = user.nickname,
             avatar = user.avatarUrl,

@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.notice.domain.repository
 
-import dev.yidafu.aqua.notice.domain.model.MessageHistoryModel
-import dev.yidafu.aqua.notice.domain.model.MessageStatus
+import dev.yidafu.aqua.common.domain.model.MessageHistoryModel
+import dev.yidafu.aqua.common.domain.model.MessageStatus
 import java.time.LocalDateTime
 import java.util.*
 
@@ -36,7 +36,7 @@ interface MessageHistoryRepositoryCustom {
    */
   fun countByUserIdAndStatus(
     userId: Long,
-    status: MessageStatus
+    status: MessageStatus,
   ): Long
 
   /**
@@ -47,7 +47,7 @@ interface MessageHistoryRepositoryCustom {
    */
   fun countByMessageTypeSince(
     messageType: String,
-    since: LocalDateTime
+    since: LocalDateTime,
   ): Long
 
   /**
@@ -60,7 +60,7 @@ interface MessageHistoryRepositoryCustom {
   fun findByStatusAndRetryCountLessThanAndCreatedAtBefore(
     status: MessageStatus,
     retryCount: Int,
-    before: LocalDateTime
+    before: LocalDateTime,
   ): List<MessageHistoryModel>
 
   /**

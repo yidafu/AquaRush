@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.payment.domain.repository
 
-import dev.yidafu.aqua.payment.domain.model.PaymentRefundModel
+import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.*

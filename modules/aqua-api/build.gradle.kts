@@ -22,6 +22,6 @@ dependencies {
   // HTTP Client
   implementation(libs.spring.boot.starter.web)
   testImplementation(libs.spring.boot.starter.test)
-
+  implementation(libs.spring.boot.starter.data.jpa)
   implementation(libs.bundles.jackson)
 }

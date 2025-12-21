@@ -23,10 +23,10 @@ import dev.yidafu.aqua.admin.notice.resolvers.AdminNoticeMutationResolver.Compan
 import dev.yidafu.aqua.admin.notice.resolvers.AdminNoticeMutationResolver.Companion.CreateNotificationTemplateInput
 import dev.yidafu.aqua.admin.notice.resolvers.AdminNoticeMutationResolver.Companion.UpdateNotificationTemplateInput
 import dev.yidafu.aqua.admin.notice.resolvers.AdminNoticeQueryResolver.Companion.NotificationTemplate
+import dev.yidafu.aqua.api.service.WeChatMessagePushService
 import dev.yidafu.aqua.common.annotation.AdminService
+import dev.yidafu.aqua.common.domain.model.MessageType
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.notice.domain.model.MessageType
-import dev.yidafu.aqua.notice.service.WeChatMessagePushService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize

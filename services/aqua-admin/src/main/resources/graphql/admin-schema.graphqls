@@ -121,6 +121,16 @@ type Query {
   deliveryWorkerStatistics(deliveryWorkerId: PrimaryId!): DeliveryWorkerStatisticsResponse
   deliveryWorkerRanking(sortBy: String, minReviews: Int, page: Int, size: Int): [DeliveryWorkerRankingResponse!]!
   deliveryWorkerReviews(deliveryWorkerId: PrimaryId!, page: Int, size: Int): [Review!]!
+
+  # Admin User Favorites Management - Admin only
+  userFavoriteAnalytics: UserFavoriteAnalytics!
+  mostFavoritedProducts(limit: Int = 10): [ProductFavoriteCount!]!
+  favoritesTrend(days: Int = 30): [FavoriteTrendData!]!
+  usersWithFavorites(input: AdminFavoriteListInput!): UserFavoriteSummaryPage!
+  userFavoritesWithDetails(input: AdminFavoriteListInput!): UserFavoriteWithProductPage!
+  userFavoriteInsights(userId: PrimaryId!): UserFavoriteInsights!
+  favoriteProductStats(productId: PrimaryId!): FavoriteProductStats
+  favoritePeriodStats(dateRange: DateRangeInput!): Map!
 }
 
 # Admin-specific Mutation Schema
@@ -171,6 +181,12 @@ type Mutation {
   updateDeliveryAddress(id: PrimaryId!, input: UpdateDeliveryAddressInput!): DeliveryAddress!
   deleteDeliveryAddress(id: PrimaryId!): Boolean!
   setDefaultDeliveryAddress(id: PrimaryId!): Boolean!
+
+  # Admin User Favorites Management - Admin only
+  batchFavoriteOperation(input: BatchFavoriteOperationInput!): BatchOperationResult!
+  exportFavorites(input: ExportFavoritesInput!): ExportFavoritesResult!
+  analyzeUserFavorites(userId: PrimaryId!): Map!
+  refreshFavoriteAnalyticsCache(force: Boolean = true): BooleanPayload!
 }
 
 # Extend the User type with admin-specific fields

@@ -19,15 +19,15 @@
 
 package dev.yidafu.aqua.admin.delivery.resolvers
 
+import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
-import dev.yidafu.aqua.delivery.service.DeliveryService
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
@@ -41,8 +41,8 @@ import kotlin.collections.isNotEmpty
 @AdminService
 @Controller
 class AdminDeliveryWorkerMutationResolver(
-    private val deliveryWorkerRepository: DeliveryWorkerRepository,
-    private val deliveryService: DeliveryService,
+  private val deliveryWorkerRepository: DeliveryWorkerRepository,
+  private val deliveryService: DeliveryService,
 ) {
     private val logger = LoggerFactory.getLogger(AdminDeliveryWorkerMutationResolver::class.java)
 
@@ -72,7 +72,7 @@ class AdminDeliveryWorkerMutationResolver(
                 name = input.name,
                 phone = input.phone,
                 avatarUrl = input.avatarUrl,
-                onlineStatus = DeliverWorkerStatus.OFFLINE, // 默认为离线
+                onlineStatus = DeliverWorkerModelStatus.OFFLINE, // 默认为离线
                 coordinates = input.coordinates,
                 currentLocation = input.currentLocation,
                 rating = input.rating,

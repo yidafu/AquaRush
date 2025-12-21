@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
-import dev.yidafu.aqua.reconciliation.domain.model.ReconciliationReport
+import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import java.time.LocalDateTime
 
 /**
@@ -32,7 +32,7 @@ interface ReconciliationReportRepositoryCustom {
    * @param endDate the end date
    * @return list of reports ordered by generation date descending
    */
-  fun findByGeneratedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationReport>
+  fun findByGeneratedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationReportModel>
 
   /**
    * Delete reports before a specific date

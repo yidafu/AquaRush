@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.api.dto
 
-import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import jakarta.validation.constraints.*
 
 /**
@@ -37,5 +37,5 @@ data class CreateDeliveryWorkerRequest(
   @field:Size(max = 500, message = "备注长度不能超过500个字符")
   val notes: String? = null,
   @field:NotNull(message = "状态不能为空")
-  val status: DeliverWorkerStatus = DeliverWorkerStatus.OFFLINE,
+  val status: DeliverWorkerModelStatus = DeliverWorkerModelStatus.OFFLINE,
 )

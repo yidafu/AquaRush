@@ -20,9 +20,7 @@
 package dev.yidafu.aqua.product.mapper
 
 import dev.yidafu.aqua.common.graphql.generated.Product
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.product.domain.model.ProductModel
-import tech.mappie.api.EnumMappie
+import dev.yidafu.aqua.common.domain.model.ProductModel
 import tech.mappie.api.ObjectMappie
 
 /**
@@ -45,10 +43,9 @@ object ProductMapper : ObjectMappie<ProductModel, Product>() {
         to::status fromProperty from::status
         to::sortOrder fromProperty from::sortOrder
         to::detailContent fromProperty from::detailContent
-        to::isDeleted fromProperty from::isDeleted
         to::createdAt fromProperty from::createdAt
         to::updatedAt fromProperty from::updatedAt
-
+        to::isDeleted fromValue false
         // Note: JSON fields are handled by JPA converters and will be returned as strings by GraphQL
         // The actual type conversion happens in the resolvers if needed
     }

@@ -19,25 +19,6 @@
 
 package dev.yidafu.aqua.user.mapper
 
-import dev.yidafu.aqua.api.dto.UserStatus as DomainUserStatus
-import dev.yidafu.aqua.common.graphql.generated.UserStatus as GraphQLUserStatus
+import dev.yidafu.aqua.common.graphql.generated.UserStatus
+import tech.mappie.api.EnumMappie
 
-object UserStatusMapper {
-  fun toDomainStatus(graphqlStatus: GraphQLUserStatus): DomainUserStatus {
-    return when (graphqlStatus) {
-      GraphQLUserStatus.ACTIVE -> DomainUserStatus.ACTIVE
-      GraphQLUserStatus.INACTIVE -> DomainUserStatus.INACTIVE
-      GraphQLUserStatus.SUSPENDED -> DomainUserStatus.SUSPENDED
-      GraphQLUserStatus.DELETED -> DomainUserStatus.DELETED
-    }
-  }
-
-  fun toGraphQLStatus(domainStatus: DomainUserStatus): GraphQLUserStatus {
-    return when (domainStatus) {
-      DomainUserStatus.ACTIVE -> GraphQLUserStatus.ACTIVE
-      DomainUserStatus.INACTIVE -> GraphQLUserStatus.INACTIVE
-      DomainUserStatus.SUSPENDED -> GraphQLUserStatus.SUSPENDED
-      DomainUserStatus.DELETED -> GraphQLUserStatus.DELETED
-    }
-  }
-}

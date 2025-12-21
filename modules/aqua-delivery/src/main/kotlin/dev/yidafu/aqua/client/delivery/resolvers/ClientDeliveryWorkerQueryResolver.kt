@@ -19,10 +19,10 @@
 
 package dev.yidafu.aqua.client.delivery.resolvers
 
+import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
-import dev.yidafu.aqua.delivery.service.DeliveryService
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 

@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.admin.notice.resolvers
 
+import dev.yidafu.aqua.api.service.WeChatMessagePushService
 import dev.yidafu.aqua.common.annotation.AdminService
-import dev.yidafu.aqua.notice.domain.model.MessageType
-import dev.yidafu.aqua.notice.service.WeChatMessagePushService
+import dev.yidafu.aqua.common.domain.model.MessageType
 import org.springframework.data.domain.Page
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller

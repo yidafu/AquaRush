@@ -20,7 +20,8 @@
 package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.common.messaging.config.MessagingProperties
-import dev.yidafu.aqua.order.domain.model.*
+import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
+import dev.yidafu.aqua.common.domain.model.DomainEventModel
 import dev.yidafu.aqua.order.domain.repository.DomainEventRepository
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

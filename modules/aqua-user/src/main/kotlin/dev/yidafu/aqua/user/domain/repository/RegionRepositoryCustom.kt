@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.RegionModel
+import dev.yidafu.aqua.common.domain.model.RegionModel
 
 /**
  * Custom repository interface for Region entity with QueryDSL implementations

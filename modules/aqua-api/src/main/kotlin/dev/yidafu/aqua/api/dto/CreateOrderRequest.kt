@@ -21,7 +21,6 @@ package dev.yidafu.aqua.api.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.*
-import java.math.BigDecimal
 import java.util.*
 
 /**

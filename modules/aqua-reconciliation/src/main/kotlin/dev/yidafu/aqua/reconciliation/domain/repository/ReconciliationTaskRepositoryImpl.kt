@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
-import dev.yidafu.aqua.reconciliation.domain.model.ReconciliationTask
-import dev.yidafu.aqua.reconciliation.domain.model.enums.TaskStatus
-import dev.yidafu.aqua.reconciliation.domain.model.enums.TaskType
+import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.persistence.criteria.Predicate
@@ -36,10 +36,10 @@ class ReconciliationTaskRepositoryImpl(
   @PersistenceContext private val entityManager: EntityManager
 ) : ReconciliationTaskRepositoryCustom {
 
-  override fun findByTaskDateBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationTask> {
+  override fun findByTaskDateBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationTaskModel> {
     val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(ReconciliationTask::class.java)
-    val root = query.from(ReconciliationTask::class.java)
+    val query = cb.createQuery(ReconciliationTaskModel::class.java)
+    val root = query.from(ReconciliationTaskModel::class.java)
 
     // Create predicate for taskDate BETWEEN startDate AND endDate
     query.where(cb.between(root.get<LocalDateTime>("taskDate"), startDate, endDate))
@@ -52,19 +52,19 @@ class ReconciliationTaskRepositoryImpl(
   }
 
   override fun findByTaskTypeAndTaskDateBetween(
-    taskType: TaskType,
+    taskType: ReconciliationTaskType,
     startDate: LocalDateTime,
     endDate: LocalDateTime
-  ): List<ReconciliationTask> {
+  ): List<ReconciliationTaskModel> {
     val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(ReconciliationTask::class.java)
-    val root = query.from(ReconciliationTask::class.java)
+    val query = cb.createQuery(ReconciliationTaskModel::class.java)
+    val root = query.from(ReconciliationTaskModel::class.java)
 
     // Create predicates for taskType AND taskDate BETWEEN startDate AND endDate
     val predicates = mutableListOf<Predicate>()
 
     // taskType = :taskType predicate
-    predicates.add(cb.equal(root.get<TaskType>("taskType"), taskType))
+    predicates.add(cb.equal(root.get<ReconciliationTaskType>("taskType"), taskType))
 
     // taskDate BETWEEN startDate AND endDate predicate
     predicates.add(cb.between(root.get<LocalDateTime>("taskDate"), startDate, endDate))
@@ -79,10 +79,10 @@ class ReconciliationTaskRepositoryImpl(
     return entityManager.createQuery(query).resultList
   }
 
-  override fun countByTaskTypeAndStatus(taskType: TaskType, status: TaskStatus): Long {
+  override fun countByTaskTypeAndStatus(taskType: ReconciliationTaskType, status: ReconciliationTaskStatus): Long {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(Long::class.java)
-    val root = query.from(ReconciliationTask::class.java)
+    val root = query.from(ReconciliationTaskModel::class.java)
 
     // Create count query
     query.select(cb.count(root))
@@ -91,10 +91,10 @@ class ReconciliationTaskRepositoryImpl(
     val predicates = mutableListOf<Predicate>()
 
     // taskType = :taskType predicate
-    predicates.add(cb.equal(root.get<TaskType>("taskType"), taskType))
+    predicates.add(cb.equal(root.get<ReconciliationTaskType>("taskType"), taskType))
 
     // status = :status predicate
-    predicates.add(cb.equal(root.get<TaskStatus>("status"), status))
+    predicates.add(cb.equal(root.get<ReconciliationTaskStatus>("status"), status))
 
     // Apply where clause with AND condition
     query.where(*predicates.toTypedArray())

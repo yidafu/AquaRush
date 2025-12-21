@@ -19,38 +19,40 @@
 
 package dev.yidafu.aqua.user.domain.model
 
+import dev.yidafu.aqua.common.domain.model.RegionModel
+
 /**
  * Region hierarchy data model for default region configuration
  * Represents the complete province-city-district hierarchy with
  * all available options for selection
  */
 data class RegionHierarchyModel(
-    /**
+  /**
      * The default selected province
      */
     val province: RegionModel,
 
-    /**
+  /**
      * The default selected city
      */
     val city: RegionModel,
 
-    /**
+  /**
      * The default selected district
      */
     val district: RegionModel,
 
-    /**
+  /**
      * All available provinces for selection
      */
     val provinces: List<RegionModel>,
 
-    /**
+  /**
      * All cities in the selected province
      */
     val cities: List<RegionModel>,
 
-    /**
+  /**
      * All districts in the selected city
      */
     val districts: List<RegionModel>

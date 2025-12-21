@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.api.service
 
 import dev.yidafu.aqua.api.dto.*
+import dev.yidafu.aqua.common.graphql.generated.Address
 import java.util.*
 
 /**
@@ -29,12 +30,12 @@ interface AddressApiService {
   /**
    * 获取用户的所有地址
    */
-  fun getUserAddresses(userId: Long): List<AddressDTO>
+  fun getUserAddresses(userId: Long): List<Address>
 
   /**
    * 获取地址详情
    */
-  fun getAddressById(addressId: Long): AddressDTO?
+  fun getAddressById(addressId: Long): Address?
 
   /**
    * 添加新地址
@@ -42,7 +43,7 @@ interface AddressApiService {
   fun addAddress(
     userId: Long,
     request: CreateAddressRequest,
-  ): AddressDTO
+  ): Address
 
   /**
    * 更新地址信息
@@ -51,7 +52,7 @@ interface AddressApiService {
     userId: Long,
     addressId: Long,
     request: UpdateAddressRequest,
-  ): AddressDTO
+  ): Address
 
   /**
    * 设置默认地址
@@ -59,7 +60,7 @@ interface AddressApiService {
   fun setDefaultAddress(
     userId: Long,
     addressId: Long,
-  ): AddressDTO
+  ): Address
 
   /**
    * 删除地址
@@ -82,5 +83,5 @@ interface AddressApiService {
   /**
    * 获取用户默认地址
    */
-  fun getDefaultAddress(userId: Long): AddressDTO?
+  fun getDefaultAddress(userId: Long): Address?
 }

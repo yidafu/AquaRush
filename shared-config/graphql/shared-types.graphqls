@@ -1092,6 +1092,199 @@ type ProductPage {
   pageInfo: PageInfo!
 }
 
+# Favorites Management Types
+type FavoriteProduct {
+  id: PrimaryId!
+  name: String!
+  subtitle: String
+  price: Money!
+  originalPrice: Money
+  coverImageUrl: String!
+  stock: Int!
+  salesVolume: Int!
+  status: ProductStatus!
+  addedAt: LocalDateTime!
+}
+
+type FavoriteProductPage {
+  list: [FavoriteProduct!]!
+  pageInfo: PageInfo!
+}
+
+# Admin Favorites Management Types
+type UserFavorite {
+  id: PrimaryId!
+  user: User!
+  product: Product!
+  createdAt: LocalDateTime!
+}
+
+type UserFavoritePage {
+  list: [UserFavorite!]!
+  pageInfo: PageInfo!
+}
+
+type UserFavoriteAnalytics {
+  totalFavorites: Long!
+  activeUsersWithFavorites: Long!
+  averageFavoritesPerUser: Float!
+  mostFavoritedProducts: [ProductFavoriteCount!]!
+  favoritesTrend: [FavoriteTrendData!]!
+  newFavoritesToday: Long!
+  newFavoritesThisWeek: Long!
+  newFavoritesThisMonth: Long!
+}
+
+type ProductFavoriteCount {
+  product: Product!
+  favoriteCount: Long!
+  addedThisWeek: Long!
+  addedThisMonth: Long!
+  addedToday: Long!
+}
+
+type FavoriteTrendData {
+  date: String!
+  newFavorites: Long!
+  totalFavorites: Long!
+  activeUsers: Long!
+}
+
+type UserFavoriteSummary {
+  user: User!
+  favoriteCount: Long!
+  lastFavoriteAdded: LocalDateTime
+  totalValueOfFavoritedProducts: Money!
+  categories: [String!]!
+  mostFavoritedCategory: String
+}
+
+type UserFavoriteSummaryPage {
+  list: [UserFavoriteSummary!]!
+  pageInfo: PageInfo!
+}
+
+type UserFavoriteWithProduct {
+  id: PrimaryId!
+  user: User!
+  product: Product!
+  createdAt: LocalDateTime!
+  productStatus: ProductStatus!
+  productStock: Int!
+  productSalesVolume: Int!
+}
+
+type UserFavoriteWithProductPage {
+  list: [UserFavoriteWithProduct!]!
+  pageInfo: PageInfo!
+}
+
+type FavoriteProductStats {
+  productId: PrimaryId!
+  productName: String!
+  favoriteCount: Long!
+  addToOrderRate: Float!
+  averageTimeToOrder: Float! # days from favorite to order
+  revenueFromFavorites: Money!
+}
+
+type UserFavoriteInsights {
+  userId: PrimaryId!
+  userNickname: String!
+  totalFavorites: Long!
+  favoriteCategories: [String!]!
+  averageFavoritePrice: Money!
+  favoriteToOrderRate: Float!
+  lastActiveAt: LocalDateTime!
+  engagementLevel: UserEngagementLevel!
+}
+
+enum UserEngagementLevel {
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+}
+
+# Admin Favorites Input Types
+input AdminFavoriteListInput {
+  page: Int = 0
+  size: Int = 20
+  userId: PrimaryId
+  productId: PrimaryId
+  dateFrom: LocalDateTime
+  dateTo: LocalDateTime
+  sortBy: FavoriteSortBy! = CREATED_AT_DESC
+  search: String
+  productStatus: ProductStatus
+}
+
+enum FavoriteSortBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  USER_ID_ASC
+  USER_ID_DESC
+  PRODUCT_ID_ASC
+  PRODUCT_ID_DESC
+  PRODUCT_NAME_ASC
+  PRODUCT_NAME_DESC
+  PRODUCT_PRICE_ASC
+  PRODUCT_PRICE_DESC
+}
+
+input BatchFavoriteOperationInput {
+  userIds: [PrimaryId!]!
+    @size(min: 1, max: 1000, message: "用户ID数量应在1-1000之间")
+  productIds: [PrimaryId!]!
+    @size(min: 1, max: 1000, message: "商品ID数量应在1-1000之间")
+  operation: BatchFavoriteOperation!
+  reason: String
+    @size(max: 500, message: "操作原因长度不能超过500个字符")
+}
+
+enum BatchFavoriteOperation {
+  CLEAR_ALL_FAVORITES
+  CLEAR_SPECIFIC_PRODUCTS
+  EXPORT_FAVORITES
+  ANALYZE_FAVORITES
+}
+
+input ExportFavoritesInput {
+  userId: PrimaryId
+  productIds: [PrimaryId!]
+  dateFrom: LocalDateTime
+  dateTo: LocalDateTime
+  format: ExportFormat! = CSV
+  includeUserInfo: Boolean! = true
+  includeProductInfo: Boolean! = true
+}
+
+enum ExportFormat {
+  CSV
+  EXCEL
+  JSON
+}
+
+type BatchOperationResult {
+  success: Boolean!
+  message: String!
+  processedCount: Int!
+  successCount: Int!
+  failureCount: Int!
+  errors: [String!]!
+  details: Map!
+}
+
+type ExportFavoritesResult {
+  success: Boolean!
+  message: String!
+  downloadUrl: String
+  fileName: String!
+  fileSize: Long!
+  recordCount: Int!
+  expiresAt: LocalDateTime!
+}
+
 input ProductListInput {
   page: Int = 0
   size: Int = 20

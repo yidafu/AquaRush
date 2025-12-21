@@ -19,12 +19,12 @@
 
 package dev.yidafu.aqua.admin.order.resolvers
 
+import dev.yidafu.aqua.api.service.OrderService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.order.mapper.OrderMapper
-import dev.yidafu.aqua.order.service.OrderService
 import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping

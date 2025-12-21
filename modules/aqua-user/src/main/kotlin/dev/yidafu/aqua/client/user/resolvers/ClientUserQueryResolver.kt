@@ -23,10 +23,10 @@ import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.UpdateProfileInput
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.UserModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import dev.yidafu.aqua.user.mapper.UserMapper
-import dev.yidafu.aqua.user.service.UserService
+import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.user.service.WeChatAuthService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory

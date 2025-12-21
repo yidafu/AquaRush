@@ -25,8 +25,8 @@ import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.utils.MoneyUtils
-import dev.yidafu.aqua.product.domain.model.ProductModel
-import dev.yidafu.aqua.product.service.ProductService
+import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
@@ -34,8 +34,6 @@ import org.springframework.transaction.annotation.Transactional
 import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
-import java.math.BigDecimal
-import kotlin.collections.joinToString
 
 /**
  * 管理端产品变更解析器
@@ -44,7 +42,7 @@ import kotlin.collections.joinToString
 @AdminService
 @Controller
 class AdminProductMutationResolver(
-  private val productService: ProductService
+  private val productService: ProductServiceImpl
 ) {
   private val logger = LoggerFactory.getLogger(AdminProductMutationResolver::class.java)
 

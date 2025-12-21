@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
+import dev.yidafu.aqua.common.domain.model.AdminModel
+import dev.yidafu.aqua.common.domain.model.AdminRoleModel
 import dev.yidafu.aqua.common.graphql.generated.Admin
-import dev.yidafu.aqua.user.domain.model.AdminModel
-import dev.yidafu.aqua.user.domain.model.AdminRoleModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository

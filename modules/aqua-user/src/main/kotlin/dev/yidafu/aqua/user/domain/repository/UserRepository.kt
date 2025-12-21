@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.api.dto.UserStatus
-import dev.yidafu.aqua.user.domain.model.UserModel
+import dev.yidafu.aqua.common.graphql.generated.UserStatus
+import dev.yidafu.aqua.common.domain.model.UserModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -40,4 +40,4 @@ interface UserRepository : JpaRepository<UserModel, Long>, UserRepositoryCustom 
 
   fun findByStatus(status: UserStatus, pageable: Pageable): Page<UserModel>
 
-  }
+}

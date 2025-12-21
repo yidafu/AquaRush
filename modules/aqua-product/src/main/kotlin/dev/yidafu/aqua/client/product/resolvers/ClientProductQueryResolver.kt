@@ -19,15 +19,14 @@
 
 package dev.yidafu.aqua.client.product.resolvers
 
-import dev.yidafu.aqua.client.product.resolvers.ClientProductQueryResolver.Companion.ProductSearchInput
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductPage
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
-import dev.yidafu.aqua.product.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.product.mapper.ProductMapper
-import dev.yidafu.aqua.product.service.ProductService
+import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
@@ -45,7 +44,7 @@ import org.springframework.stereotype.Controller
 @ClientService
 @Controller
 class ClientProductQueryResolver(
-    private val productService: ProductService
+    private val productService: ProductServiceImpl
 ) {
 
     /**

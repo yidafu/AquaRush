@@ -19,22 +19,19 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
-import dev.yidafu.aqua.reconciliation.domain.model.ReconciliationReport
+import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 
 /**
  * 对账报表仓库接口
  */
 @Repository
-interface ReconciliationReportRepository : JpaRepository<ReconciliationReport, Long>, ReconciliationReportRepositoryCustom {
+interface ReconciliationReportRepository : JpaRepository<ReconciliationReportModel, Long>, ReconciliationReportRepositoryCustom {
   /**
    * 根据任务ID查找报表
    */
-  fun findByTaskId(taskId: String): List<ReconciliationReport>
+  fun findByTaskId(taskId: String): List<ReconciliationReportModel>
 
   /**
    * 根据任务ID和报表类型查找报表
@@ -42,12 +39,12 @@ interface ReconciliationReportRepository : JpaRepository<ReconciliationReport, L
   fun findByTaskIdAndReportType(
     taskId: String,
     reportType: String,
-  ): ReconciliationReport?
+  ): ReconciliationReportModel?
 
   /**
    * 根据报表类型查找报表
    */
-  fun findByReportType(reportType: String): List<ReconciliationReport>
+  fun findByReportType(reportType: String): List<ReconciliationReportModel>
 
   /**
    * 根据生成时间范围查找报表
@@ -58,7 +55,7 @@ interface ReconciliationReportRepository : JpaRepository<ReconciliationReport, L
   /**
    * 查找最新的报表
    */
-  fun findFirstByOrderByGeneratedAtDesc(): ReconciliationReport?
+  fun findFirstByOrderByGeneratedAtDesc(): ReconciliationReportModel?
 
   /**
    * 删除旧报表

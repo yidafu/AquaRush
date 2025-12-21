@@ -19,11 +19,11 @@
 
 package dev.yidafu.aqua.order.event
 
+import dev.yidafu.aqua.api.service.PaymentService
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
-import dev.yidafu.aqua.order.domain.model.DomainEventModel
-import dev.yidafu.aqua.payment.service.PaymentService
+import dev.yidafu.aqua.common.domain.model.DomainEventModel
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional

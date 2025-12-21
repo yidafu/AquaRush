@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
-import dev.yidafu.aqua.reconciliation.domain.model.ReconciliationReport
+import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.persistence.criteria.Predicate
@@ -34,10 +34,10 @@ class ReconciliationReportRepositoryImpl(
   @PersistenceContext private val entityManager: EntityManager
 ) : ReconciliationReportRepositoryCustom {
 
-  override fun findByGeneratedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationReport> {
+  override fun findByGeneratedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationReportModel> {
     val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(ReconciliationReport::class.java)
-    val root = query.from(ReconciliationReport::class.java)
+    val query = cb.createQuery(ReconciliationReportModel::class.java)
+    val root = query.from(ReconciliationReportModel::class.java)
 
     // Create predicate for generatedAt BETWEEN startDate AND endDate
     query.where(cb.between(root.get<LocalDateTime>("generatedAt"), startDate, endDate))
@@ -51,8 +51,8 @@ class ReconciliationReportRepositoryImpl(
 
   override fun deleteReportsBefore(beforeDate: LocalDateTime): Int {
     val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(ReconciliationReport::class.java)
-    val root = query.from(ReconciliationReport::class.java)
+    val query = cb.createQuery(ReconciliationReportModel::class.java)
+    val root = query.from(ReconciliationReportModel::class.java)
 
     // Create predicate for generatedAt < :beforeDate
     query.where(cb.lessThan(root.get<LocalDateTime>("generatedAt"), beforeDate))
@@ -73,7 +73,7 @@ class ReconciliationReportRepositoryImpl(
   override fun countByTaskIdAndReportType(taskId: String, reportType: String): Long {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(Long::class.java)
-    val root = query.from(ReconciliationReport::class.java)
+    val root = query.from(ReconciliationReportModel::class.java)
 
     // Create count query
     query.select(cb.count(root))

@@ -23,10 +23,10 @@ import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.graphql.generated.DeliveryArea
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatus
-import dev.yidafu.aqua.delivery.domain.model.DeliveryAreaModel
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
-import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus as WorkerStatusM
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
+import dev.yidafu.aqua.common.domain.model.DeliveryAreaModel
 
 /**
  * Mapper for converting DeliveryWorkerModel domain entity to GraphQL DeliveryWorker type
@@ -35,7 +35,7 @@ object DeliveryWorkerMapper : ObjectMappie<DeliveryWorkerModel, DeliveryWorker>(
   override fun map(from: DeliveryWorkerModel) =
     mapping {
       to::id fromValue (from.id ?: -1L)
-      to::onlineStatus fromValue DeliveryWorkerStatusMapper.map(from.onlineStatus)
+      to::onlineStatus fromValue DeliveryWorkerModelStatusMapper.map(from.onlineStatus)
       to::earning fromValue from.earningCents
 
     }
@@ -48,7 +48,7 @@ object DeliveryWorkerWithCurrentUserMapper : ObjectMappie<DeliveryWorkerModel, D
   override fun map(from: DeliveryWorkerModel) =
     mapping {
       to::id fromValue (from.id ?: -1L)
-      to::onlineStatus fromValue DeliveryWorkerStatusMapper.map(from.onlineStatus)
+      to::onlineStatus fromValue DeliveryWorkerModelStatusMapper.map(from.onlineStatus)
       to::earning fromValue from.earningCents
       // Note: isAvailable maps automatically
     }
@@ -68,10 +68,19 @@ object DeliveryAreaMapper : ObjectMappie<DeliveryAreaModel, DeliveryArea>() {
 /**
  * Enum mapper for WorkerStatus domain enum to GraphQL WorkerStatus enum
  */
-object DeliveryWorkerStatusMapper : EnumMappie<WorkerStatusM, DeliveryWorkerStatus>() {
-  override fun map(from: WorkerStatusM) =
+object DeliveryWorkerModelStatusMapper : EnumMappie<DeliverWorkerModelStatus, DeliveryWorkerStatus>() {
+  override fun map(from: DeliverWorkerModelStatus) =
     mapping {
-      DeliveryWorkerStatus.ONLINE fromEnumEntry WorkerStatusM.ONLINE
-      DeliveryWorkerStatus.OFFLINE fromEnumEntry WorkerStatusM.OFFLINE
+      DeliveryWorkerStatus.ONLINE fromEnumEntry DeliverWorkerModelStatus.ONLINE
+      DeliveryWorkerStatus.OFFLINE fromEnumEntry DeliverWorkerModelStatus.OFFLINE
     }
 }
+
+object DeliveryWorkerStatusMapper : EnumMappie<DeliveryWorkerStatus, DeliverWorkerModelStatus >() {
+  override fun map(from: DeliveryWorkerStatus) =
+    mapping {
+     DeliverWorkerModelStatus.ONLINE  fromEnumEntry   DeliveryWorkerStatus.ONLINE
+      DeliverWorkerModelStatus.OFFLINE fromEnumEntry    DeliveryWorkerStatus.OFFLINE
+    }
+}
+

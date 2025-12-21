@@ -19,24 +19,21 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
-import dev.yidafu.aqua.reconciliation.domain.model.ReconciliationDiscrepancy
-import dev.yidafu.aqua.reconciliation.domain.model.enums.DiscrepancyType
-import dev.yidafu.aqua.reconciliation.domain.model.enums.SourceSystem
+import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
+import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
+import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 
 /**
  * 对账差异仓库接口
  */
 @Repository
-interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDiscrepancy, Long>, ReconciliationDiscrepancyRepositoryCustom {
+interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDiscrepancyModel, Long>, ReconciliationDiscrepancyRepositoryCustom {
   /**
    * 根据任务ID查找差异
    */
-  fun findByTaskId(taskId: String): List<ReconciliationDiscrepancy>
+  fun findByTaskId(taskId: String): List<ReconciliationDiscrepancyModel>
 
   /**
    * 根据任务ID和状态查找差异
@@ -44,17 +41,17 @@ interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDisc
   fun findByTaskIdAndStatus(
     taskId: String,
     status: String,
-  ): List<ReconciliationDiscrepancy>
+  ): List<ReconciliationDiscrepancyModel>
 
   /**
    * 根据差异类型查找差异
    */
-  fun findByDiscrepancyType(discrepancyType: DiscrepancyType): List<ReconciliationDiscrepancy>
+  fun findByDiscrepancyType(discrepancyType: DiscrepancyType): List<ReconciliationDiscrepancyModel>
 
   /**
    * 根据源系统查找差异
    */
-  fun findBySourceSystem(sourceSystem: SourceSystem): List<ReconciliationDiscrepancy>
+  fun findBySourceSystem(sourceSystem: SourceSystem): List<ReconciliationDiscrepancyModel>
 
   /**
    * 根据任务ID和差异类型查找差异
@@ -62,7 +59,7 @@ interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDisc
   fun findByTaskIdAndDiscrepancyType(
     taskId: String,
     discrepancyType: DiscrepancyType,
-  ): List<ReconciliationDiscrepancy>
+  ): List<ReconciliationDiscrepancyModel>
 
   /**
    * 统计未解决的差异数量
@@ -85,7 +82,7 @@ interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDisc
   /**
    * 查找所有未解决的差异
    */
-  fun findByStatus(status: String = "UNRESOLVED"): List<ReconciliationDiscrepancy>
+  fun findByStatus(status: String = "UNRESOLVED"): List<ReconciliationDiscrepancyModel>
 
   /**
    * 删除已解决的旧差异

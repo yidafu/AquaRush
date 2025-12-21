@@ -19,16 +19,16 @@
 
 package dev.yidafu.aqua.delivery.graphql.resolvers
 
+import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
 
-import dev.yidafu.aqua.delivery.service.DeliveryService
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -74,7 +74,7 @@ class DeliveryWorkerMutationResolver(
         name = input.name,
         phone = input.phone,
         avatarUrl = input.avatarUrl,
-        onlineStatus = DeliverWorkerStatus.OFFLINE, // Default to offline
+        onlineStatus = DeliverWorkerModelStatus.OFFLINE, // Default to offline
         coordinates = input.coordinates,
         currentLocation = input.currentLocation,
         rating = input.rating,

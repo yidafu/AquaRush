@@ -19,13 +19,11 @@
 
 package dev.yidafu.aqua.review.domain.repository
 
-import dev.yidafu.aqua.review.domain.model.DeliveryWorkerStatisticsModel
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import jakarta.persistence.criteria.CriteriaBuilder
 import jakarta.persistence.criteria.Order
 import jakarta.persistence.criteria.Predicate
-import jakarta.persistence.criteria.Subquery
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -38,13 +36,12 @@ import java.time.LocalDateTime
  */
 @Repository
 class DeliveryWorkerStatisticsRepositoryImpl(
-  @PersistenceContext private val entityManager: EntityManager
+  @PersistenceContext private val entityManager: EntityManager,
 ) : DeliveryWorkerStatisticsRepositoryCustom {
-
   override fun findDeliveryWorkersRanking(
     sortBy: String,
     minReviews: Int,
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<DeliveryWorkerStatisticsModel> {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(DeliveryWorkerStatisticsModel::class.java)
@@ -62,11 +59,12 @@ class DeliveryWorkerStatisticsRepositoryImpl(
 
     // Add primary sorting based on sortBy parameter
     @Suppress("UNCHECKED_CAST")
-    val sortExpression = when (sortBy.lowercase()) {
-      "reviews" -> root.get<Int>("totalReviews")
-      "rating" -> root.get<BigDecimal>("averageRating")
-      else -> root.get<BigDecimal>("averageRating") // default to rating
-    } as jakarta.persistence.criteria.Expression<Any>
+    val sortExpression =
+      when (sortBy.lowercase()) {
+        "reviews" -> root.get<Int>("totalReviews")
+        "rating" -> root.get<BigDecimal>("averageRating")
+        else -> root.get<BigDecimal>("averageRating") // default to rating
+      } as jakarta.persistence.criteria.Expression<Any>
     orders.add(cb.desc(sortExpression))
 
     // Add secondary sorting by lastUpdated
@@ -100,7 +98,7 @@ class DeliveryWorkerStatisticsRepositoryImpl(
     minReviews: Int,
     maxReviews: Int?,
     sortBy: String,
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<DeliveryWorkerStatisticsModel> {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(DeliveryWorkerStatisticsModel::class.java)
@@ -126,12 +124,14 @@ class DeliveryWorkerStatisticsRepositoryImpl(
 
     // Create dynamic sorting (same as ranking)
     val orders = mutableListOf<Order>()
+
     @Suppress("UNCHECKED_CAST")
-    val sortExpression = when (sortBy.lowercase()) {
-      "reviews" -> root.get<Int>("totalReviews")
-      "rating" -> root.get<BigDecimal>("averageRating")
-      else -> root.get<BigDecimal>("averageRating")
-    } as jakarta.persistence.criteria.Expression<Any>
+    val sortExpression =
+      when (sortBy.lowercase()) {
+        "reviews" -> root.get<Int>("totalReviews")
+        "rating" -> root.get<BigDecimal>("averageRating")
+        else -> root.get<BigDecimal>("averageRating")
+      } as jakarta.persistence.criteria.Expression<Any>
     orders.add(cb.desc(sortExpression))
     orders.add(cb.desc(root.get<LocalDateTime>("lastUpdated")))
     query.orderBy(orders)
@@ -166,7 +166,7 @@ class DeliveryWorkerStatisticsRepositoryImpl(
 
   override fun countDeliveryWorkersByMinRating(
     minRating: Double,
-    minReviews: Int
+    minReviews: Int,
   ): Long {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(Long::class.java)

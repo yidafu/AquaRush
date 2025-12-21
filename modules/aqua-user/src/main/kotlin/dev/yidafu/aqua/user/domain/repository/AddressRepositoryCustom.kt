@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.AddressModel
+import dev.yidafu.aqua.common.domain.model.AddressModel
 
 /**
  * Custom repository interface for Address entity with QueryDSL implementations

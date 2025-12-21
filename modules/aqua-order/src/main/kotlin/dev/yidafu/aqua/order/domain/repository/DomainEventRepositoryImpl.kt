@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.order.domain.repository
 
-import dev.yidafu.aqua.order.domain.model.DomainEventModel
-import dev.yidafu.aqua.order.domain.model.EventStatusModel
+import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.LockModeType
 import jakarta.persistence.PersistenceContext
@@ -44,8 +44,8 @@ class DomainEventRepositoryImpl(
      * Uses native query for optimal performance with row-level locking
      */
     fun findNextPendingEventForUpdateEnhanced(
-        status: EventStatusModel,
-        now: LocalDateTime
+      status: EventStatusModel,
+      now: LocalDateTime
     ): DomainEventModel? {
         // Native query with explicit pessimistic locking
         val query = entityManager.createQuery(

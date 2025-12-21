@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.AddressModel
+import dev.yidafu.aqua.common.domain.model.AddressModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
@@ -27,16 +27,44 @@ import org.springframework.stereotype.Repository
 @Repository
 interface AddressRepository : JpaRepository<AddressModel, Long>, JpaSpecificationExecutor<AddressModel>, AddressRepositoryCustom {
 
+  /**
+   * Find all addresses for a user
+   * @param userId the user ID
+   * @return list of addresses
+   */
   fun findByUserId(userId: Long): List<AddressModel>
 
+  /**
+   * Find all addresses for a user ordered by default status and creation time
+   * @param userId the user ID
+   * @return list of addresses ordered by default status and creation time
+   */
   fun findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId: Long): List<AddressModel>
+
+  /**
+   * Find all addresses for a user ordered by ID descending
+   * @param userId the user ID
+   * @return list of addresses ordered by ID descending
+   */
   fun findByUserIdOrderByIdDesc(userId: Long): List<AddressModel>
 
+  /**
+   * Find address by user ID and default status
+   * @param userId the user ID
+   * @param isDefault the default status
+   * @return address that matches the criteria, or null if not found
+   */
   fun findByUserIdAndIsDefault(
     userId: Long,
     isDefault: Boolean,
   ): AddressModel?
 
+  /**
+   * Find addresses by user ID excluding a specific address ID
+   * @param userId the user ID
+   * @param addressId the address ID to exclude
+   * @return list of addresses
+   */
   fun findByUserIdAndIdNot(userId: Long, addressId: Long): List<AddressModel>
 
   fun deleteByIdAndUserId(

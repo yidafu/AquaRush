@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.review.domain.repository
 
-import dev.yidafu.aqua.review.domain.model.ReviewModel
+import dev.yidafu.aqua.common.domain.model.ReviewModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime
@@ -46,7 +46,7 @@ interface ReviewRepositoryCustom {
     dateFrom: LocalDateTime? = null,
     dateTo: LocalDateTime? = null,
     userId: Long? = null,
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<ReviewModel>
 
   /**
@@ -55,7 +55,10 @@ interface ReviewRepositoryCustom {
    * @param rating the rating
    * @return number of reviews with the specified rating
    */
-  fun countByDeliveryWorkerIdAndRating(deliveryWorkerId: Long, rating: Int): Long
+  fun countByDeliveryWorkerIdAndRating(
+    deliveryWorkerId: Long,
+    rating: Int,
+  ): Long
 
   /**
    * Find average rating for a delivery worker

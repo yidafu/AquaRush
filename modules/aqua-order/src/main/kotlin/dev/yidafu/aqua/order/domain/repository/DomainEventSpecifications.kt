@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.order.domain.repository
 
-import dev.yidafu.aqua.order.domain.model.DomainEventModel
-import dev.yidafu.aqua.order.domain.model.EventStatusModel
+import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
 

@@ -21,6 +21,8 @@ package dev.yidafu.aqua.api.service
 
 import dev.yidafu.aqua.api.common.PagedResponse
 import dev.yidafu.aqua.api.dto.*
+import dev.yidafu.aqua.common.graphql.generated.User
+import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import java.util.*
 
 /**
@@ -30,22 +32,22 @@ interface UserApiService {
   /**
    * 根据ID获取用户信息
    */
-  fun getUserById(userId: Long): UserDTO?
+  fun getUserById(userId: Long): User?
 
   /**
    * 根据openId获取用户信息
    */
-  fun getUserByOpenId(openId: String): UserDTO?
+  fun getUserByOpenId(openId: String): User?
 
   /**
    * 根据手机号获取用户信息
    */
-  fun getUserByPhone(phone: String): UserDTO?
+  fun getUserByPhone(phone: String): User?
 
   /**
    * 创建新用户
    */
-  fun createUser(request: CreateUserRequest): UserDTO
+  fun createUser(request: CreateUserRequest): User
 
   /**
    * 更新用户信息
@@ -53,7 +55,7 @@ interface UserApiService {
   fun updateUser(
     userId: Long,
     request: UpdateUserRequest,
-  ): UserDTO
+  ): User
 
   /**
    * 更新用户状态
@@ -61,7 +63,7 @@ interface UserApiService {
   fun updateUserStatus(
     userId: Long,
     status: UserStatus,
-  ): UserDTO
+  ): User
 
   /**
    * 获取用户列表（分页）
@@ -69,7 +71,7 @@ interface UserApiService {
   fun getUserList(
     page: Int = 0,
     size: Int = 20,
-  ): PagedResponse<UserDTO>
+  ): PagedResponse<User>
 
   /**
    * 删除用户
@@ -82,18 +84,18 @@ interface UserApiService {
   fun loginUser(
     openId: String,
     phone: String,
-  ): UserDTO
+  ): User
 
   /**
    * 更新最后登录时间
    */
-  fun updateLastLogin(userId: Long): UserDTO
+  fun updateLastLogin(userId: Long): User
 
-  /**
-   * 更新用户通知设置
-   */
-  fun updateNotificationSettings(
-    userId: Long,
-    settings: NotificationSettingsDTO,
-  ): UserDTO
+//  /**
+//   * 更新用户通知设置
+//   */
+//  fun updateNotificationSettings(
+//    userId: Long,
+//    settings: NotificationSettingsDTO,
+//  ): User
 }

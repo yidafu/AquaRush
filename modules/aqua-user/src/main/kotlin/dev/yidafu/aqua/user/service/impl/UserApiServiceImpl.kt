@@ -22,11 +22,14 @@ package dev.yidafu.aqua.user.service.impl
 import dev.yidafu.aqua.api.common.PagedResponse
 import dev.yidafu.aqua.api.dto.*
 import dev.yidafu.aqua.api.service.UserApiService
+import dev.yidafu.aqua.common.graphql.generated.User
+import dev.yidafu.aqua.common.graphql.generated.UserStatus
+import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.exception.BusinessException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
-import dev.yidafu.aqua.user.domain.ext.toDTO
-import dev.yidafu.aqua.user.domain.model.UserModel
+import dev.yidafu.aqua.user.mapper.UserMapper
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.slf4j.LoggerFactory
@@ -35,7 +38,6 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import java.time.LocalDateTime
 import kotlin.jvm.optionals.getOrNull
 
@@ -51,26 +53,26 @@ class UserApiServiceImpl(
 ) : UserApiService {
   private val logger = LoggerFactory.getLogger(UserApiServiceImpl::class.java)
 
-  override fun getUserById(userId: Long): UserDTO? {
+  override fun getUserById(userId: Long): User? {
     logger.info("Getting user by ID: $userId")
     val user = userRepository.findById(userId)
-    return user.getOrNull()?.toDTO()
+    return user.getOrNull()?.let { UserMapper.map(it) }
   }
 
-  override fun getUserByOpenId(openId: String): UserDTO? {
+  override fun getUserByOpenId(openId: String): User? {
     logger.info("Getting user by openId: $openId")
     val user = userRepository.findByWechatOpenId(openId)
-    return user?.toDTO()
+    return user?.let { UserMapper.map(it) }
   }
 
-  override fun getUserByPhone(phone: String): UserDTO? {
+  override fun getUserByPhone(phone: String): User? {
     logger.info("Getting user by phone: $phone")
     val user = userRepository.findById(0L).getOrNull()
 //        val user = userRepository.findByPhone(phone)
-    return user?.toDTO()
+    return user?.let { UserMapper.map(it) }
   }
 
-  override fun createUser(request: CreateUserRequest): UserDTO {
+  override fun createUser(request: CreateUserRequest): User {
     logger.info("Creating user with request: $request")
 
     if (userRepository.existsByWechatOpenId(request.openId)) {
@@ -110,13 +112,13 @@ class UserApiServiceImpl(
         ),
     )
 
-    return savedUser.toDTO()
+    return UserMapper.map(savedUser)
   }
 
   override fun updateUser(
     userId: Long,
     request: UpdateUserRequest,
-  ): UserDTO {
+  ): User {
     logger.info("Updating user $userId with request: $request")
 
     val user =
@@ -145,13 +147,13 @@ class UserApiServiceImpl(
         ),
     )
 
-    return savedUser.toDTO()
+    return UserMapper.map(savedUser)
   }
 
   override fun updateUserStatus(
     userId: Long,
     status: UserStatus,
-  ): UserDTO {
+  ): User {
     logger.info("Updating user $userId status to: $status")
 
     val user =
@@ -159,19 +161,19 @@ class UserApiServiceImpl(
         ?: throw NotFoundException("用户不存在: $userId")
 
     val savedUser = userRepository.save(user)
-    return savedUser.toDTO()
+    return UserMapper.map(savedUser)
   }
 
   override fun getUserList(
     page: Int,
     size: Int,
-  ): PagedResponse<UserDTO> {
+  ): PagedResponse<User> {
     logger.info("Getting user list: page=$page, size=$size")
 
     val pageable: Pageable = PageRequest.of(page - 1, size)
     val userPage: Page<UserModel> = userRepository.findAll(pageable)
 
-    val userDTOs = userPage.content.map { it.toDTO() }
+    val userDTOs = userPage.content.map { UserMapper.map(it) }
 
     return PagedResponse(
       content = userDTOs,
@@ -210,42 +212,45 @@ class UserApiServiceImpl(
   override fun loginUser(
     openId: String,
     phone: String,
-  ): UserDTO {
+  ): User {
     logger.info("User login: openId=$openId, phone=$phone")
 
     val user =
       userRepository.findByWechatOpenId(openId)
         ?: throw NotFoundException("用户不存在: $openId")
 
-    return user.toDTO().copy(
-      lastLoginAt = LocalDateTime.now(),
-    )
+    // Update lastLoginAt on the model and save
+    user.lastLoginAt = LocalDateTime.now()
+    userRepository.save(user)
+    return UserMapper.map(user)
   }
 
-  override fun updateLastLogin(userId: Long): UserDTO {
+  override fun updateLastLogin(userId: Long): User {
     logger.info("Updating last login for user: $userId")
 
     val user =
       userRepository.findById(userId).getOrNull()
         ?: throw NotFoundException("用户不存在: $userId")
 
-    return user.toDTO().copy(
-      lastLoginAt = LocalDateTime.now(),
-    )
+    // Update lastLoginAt on the model and save
+    user.lastLoginAt = LocalDateTime.now()
+    userRepository.save(user)
+    return UserMapper.map(user)
   }
 
-  override fun updateNotificationSettings(
-    userId: Long,
-    settings: NotificationSettingsDTO,
-  ): UserDTO {
-    logger.info("Updating notification settings for user: $userId")
-
-    val user =
-      userRepository.findById(userId).getOrNull()
-        ?: throw NotFoundException("用户不存在: $userId")
-
-    return user.toDTO().copy(
-      notificationSettings = settings,
-    )
-  }
+//  override fun updateNotificationSettings(
+//    userId: Long,
+//    settings: Any,
+//  ): User {
+//    logger.info("Updating notification settings for user: $userId")
+//
+//    val user =
+//      userRepository.findById(userId).getOrNull()
+//        ?: throw NotFoundException("用户不存在: $userId")
+//
+//    // TODO: Implement notification settings update when GraphQL type is available
+//    // For now, just return the user unchanged
+//    logger.warn("Notification settings update not yet implemented for GraphQL types")
+//    return UserMapper.map(user)
+//  }
 }

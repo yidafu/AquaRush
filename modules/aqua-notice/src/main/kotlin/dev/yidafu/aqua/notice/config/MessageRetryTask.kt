@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.notice.config
 
-import dev.yidafu.aqua.notice.service.WeChatMessagePushService
+import dev.yidafu.aqua.api.service.WeChatMessagePushService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component

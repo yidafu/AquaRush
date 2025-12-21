@@ -33,6 +33,11 @@
             <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
         </createTable>
 
         <createIndex tableName="regions" indexName="idx_regions_parent_code">
@@ -46,6 +51,10 @@
         <createIndex tableName="regions" indexName="idx_regions_parent_level">
             <column name="parent_code"/>
             <column name="level"/>
+        </createIndex>
+
+        <createIndex tableName="regions" indexName="idx_regions_deleted">
+            <column name="is_deleted"/>
         </createIndex>
     </changeSet>
 
@@ -72,6 +81,11 @@
                 <constraints nullable="false"/>
             </column>
             <column name="last_login_at" type="timestamp"/>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -82,6 +96,10 @@
 
         <createIndex tableName="admins" indexName="idx_admin_username">
             <column name="username"/>
+        </createIndex>
+
+        <createIndex tableName="admins" indexName="idx_admins_deleted">
+            <column name="is_deleted"/>
         </createIndex>
     </changeSet>
 
@@ -133,6 +151,8 @@
             <column name="is_deleted" type="boolean" defaultValueBoolean="false">
                 <constraints nullable="false"/>
             </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -226,6 +246,11 @@
             <column name="description" type="varchar(1000)"/>
             <column name="extension" type="varchar(10)"/>
             <column name="owner_id" type="bigint"/>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
         </createTable>
 
         <createIndex tableName="file_metadata" indexName="idx_file_metadata_checksum">
@@ -250,6 +275,10 @@
 
         <createIndex tableName="file_metadata" indexName="idx_file_metadata_is_public">
             <column name="is_public"/>
+        </createIndex>
+
+        <createIndex tableName="file_metadata" indexName="idx_file_metadata_deleted">
+            <column name="is_deleted"/>
         </createIndex>
 
         <sql>
@@ -304,6 +333,11 @@
             <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
         </createTable>
 
         <createIndex tableName="outbox_events" indexName="idx_event_type">
@@ -318,6 +352,10 @@
         <createIndex tableName="outbox_events" indexName="idx_event_composite">
             <column name="status"/>
             <column name="next_run_at"/>
+        </createIndex>
+
+        <createIndex tableName="outbox_events" indexName="idx_outbox_events_deleted">
+            <column name="is_deleted"/>
         </createIndex>
     </changeSet>
 
@@ -364,10 +402,19 @@
             <column name="last_login_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
         </createTable>
 
         <createIndex tableName="users" indexName="idx_users_openid">
             <column name="wechat_openid"/>
+        </createIndex>
+
+        <createIndex tableName="users" indexName="idx_users_deleted">
+            <column name="is_deleted"/>
         </createIndex>
     </changeSet>
 
@@ -413,6 +460,11 @@
             <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
         </createTable>
 
         <createIndex tableName="delivery_workers" indexName="idx_worker_user_id">
@@ -423,6 +475,10 @@
         </createIndex>
         <createIndex tableName="delivery_workers" indexName="idx_worker_status">
             <column name="online_status"/>
+        </createIndex>
+
+        <createIndex tableName="delivery_workers" indexName="idx_delivery_workers_deleted">
+            <column name="is_deleted"/>
         </createIndex>
 
         <addForeignKeyConstraint
@@ -471,7 +527,15 @@
             <column name="is_enabled" type="boolean" defaultValueBoolean="true">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
         </createTable>
@@ -480,6 +544,10 @@
             <column name="province"/>
             <column name="city"/>
             <column name="district"/>
+        </createIndex>
+
+        <createIndex tableName="delivery_areas" indexName="idx_delivery_areas_deleted">
+            <column name="is_deleted"/>
         </createIndex>
     </changeSet>
 
@@ -513,6 +581,11 @@
                 <constraints nullable="false"/>
             </column>
             <column name="error_message" type="text"/>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -546,6 +619,10 @@
         <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_type_status">
             <column name="task_type"/>
             <column name="status"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_tasks" indexName="idx_reconciliation_tasks_deleted">
+            <column name="is_deleted"/>
         </createIndex>
 
         <sql>
@@ -618,6 +695,11 @@
             <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
         </createTable>
 
         <createIndex tableName="addresses" indexName="idx_user_address_user_id">
@@ -633,6 +715,10 @@
         <createIndex tableName="addresses" indexName="idx_addresses_location">
             <column name="longitude"/>
             <column name="latitude"/>
+        </createIndex>
+
+        <createIndex tableName="addresses" indexName="idx_addresses_deleted">
+            <column name="is_deleted"/>
         </createIndex>
     </changeSet>
 
@@ -678,6 +764,11 @@
             <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
         </createTable>
 
         <createIndex tableName="delivery_addresses" indexName="idx_delivery_address_user_id">
@@ -686,6 +777,10 @@
         <createIndex tableName="delivery_addresses" indexName="idx_delivery_address_location">
             <column name="longitude"/>
             <column name="latitude"/>
+        </createIndex>
+
+        <createIndex tableName="delivery_addresses" indexName="idx_delivery_addresses_deleted">
+            <column name="is_deleted"/>
         </createIndex>
     </changeSet>
 
@@ -710,6 +805,11 @@
             <column name="promotional_notifications" type="boolean" defaultValueNumeric="false">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -720,6 +820,10 @@
 
         <createIndex tableName="user_notification_settings" indexName="idx_user_notification_settings_user_id">
             <column name="user_id"/>
+        </createIndex>
+
+        <createIndex tableName="user_notification_settings" indexName="idx_user_notification_settings_deleted">
+            <column name="is_deleted"/>
         </createIndex>
     </changeSet>
 
@@ -745,7 +849,15 @@
             <column name="sent_at" type="timestamp"/>
             <column name="wx_message_id" type="varchar(100)"/>
             <column name="error_message" type="text"/>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
             <column name="retry_count" type="int" defaultValueNumeric="0">
@@ -771,6 +883,10 @@
 
         <createIndex tableName="message_history" indexName="idx_message_history_wx_message_id">
             <column name="wx_message_id"/>
+        </createIndex>
+
+        <createIndex tableName="message_history" indexName="idx_message_history_deleted">
+            <column name="is_deleted"/>
         </createIndex>
 
         <sql dbms="postgresql">
@@ -830,6 +946,17 @@
             <column name="five_star_reviews" type="int" defaultValueNumeric="0">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
             <column name="last_updated" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -837,6 +964,10 @@
 
         <createIndex tableName="delivery_worker_statistics" indexName="idx_delivery_worker_statistics_id">
             <column name="delivery_worker_id"/>
+        </createIndex>
+
+        <createIndex tableName="delivery_worker_statistics" indexName="idx_delivery_worker_statistics_deleted">
+            <column name="is_deleted"/>
         </createIndex>
 
         <sql>
@@ -865,6 +996,194 @@
         </sql>
     </changeSet>
 
+    <changeSet id="1.0.2-create-product-favorites-table" author="aqua-rush">
+        <comment>Create product favorites table for managing product favorites</comment>
+        <createTable tableName="product_favorites">
+            <column name="id" type="bigint" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="product_id" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <!-- Composite unique constraint to prevent duplicate favorites -->
+        <addUniqueConstraint tableName="product_favorites"
+                            columnNames="user_id, product_id"
+                            constraintName="uk_user_product_favorite"/>
+
+        <!-- Foreign key constraints -->
+        <addForeignKeyConstraint baseTableName="product_favorites"
+                                baseColumnNames="user_id"
+                                referencedTableName="users"
+                                referencedColumnNames="id"
+                                constraintName="fk_favorites_user"/>
+
+        <addForeignKeyConstraint baseTableName="product_favorites"
+                                baseColumnNames="product_id"
+                                referencedTableName="products"
+                                referencedColumnNames="id"
+                                constraintName="fk_favorites_product"/>
+
+        <!-- Basic performance indexes -->
+        <createIndex tableName="product_favorites" indexName="idx_favorites_user_id">
+            <column name="user_id"/>
+        </createIndex>
+
+        <createIndex tableName="product_favorites" indexName="idx_favorites_product_id">
+            <column name="product_id"/>
+        </createIndex>
+
+        <createIndex tableName="product_favorites" indexName="idx_favorites_created_at">
+            <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="product_favorites" indexName="idx_product_favorites_deleted">
+            <column name="is_deleted"/>
+        </createIndex>
+
+        <!-- Enhanced performance indexes -->
+        <createIndex tableName="product_favorites"
+                    indexName="idx_favorites_user_created"
+                    unique="false">
+            <column name="user_id"/>
+            <column name="created_at" descending="true"/>
+        </createIndex>
+
+        <createIndex tableName="product_favorites"
+                    indexName="idx_favorites_product_created"
+                    unique="false">
+            <column name="product_id"/>
+            <column name="created_at" descending="true"/>
+        </createIndex>
+
+        <createIndex tableName="product_favorites"
+                    indexName="idx_favorites_date_user_product"
+                    unique="false">
+            <column name="created_at"/>
+            <column name="user_id"/>
+            <column name="product_id"/>
+        </createIndex>
+
+        <createIndex tableName="product_favorites"
+                    indexName="idx_favorites_created_at_desc"
+                    unique="false">
+            <column name="created_at" descending="true"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="1.0.3-create-favorites-performance-views" author="aqua-rush" context="production,development">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="product_favorites"/>
+            <tableExists tableName="products"/>
+            <tableExists tableName="users"/>
+        </preConditions>
+
+        <!-- Materialized view for daily favorites statistics (PostgreSQL) -->
+        <!-- <sql dbms="postgresql">
+            CREATE OR REPLACE MATERIALIZED VIEW mv_daily_favorites_stats AS
+            SELECT
+                DATE(pf.created_at) as date,
+                COUNT(*) as total_favorites,
+                COUNT(DISTINCT pf.user_id) as active_users,
+                COUNT(DISTINCT pf.product_id) as unique_products
+            FROM product_favorites pf
+            WHERE pf.is_deleted = false
+            GROUP BY DATE(pf.created_at)
+            ORDER BY date DESC;
+        </sql> -->
+
+        <!-- Regular view for most favorited products -->
+        <createView viewName="v_most_favorited_products" replaceIfExists="true">
+            <![CDATA[
+            SELECT
+                p.id as product_id,
+                p.name as product_name,
+                p.price_cents,
+                p.stock_quantity,
+                p.sales_volume,
+                COUNT(pf.id) as favorite_count,
+                MAX(pf.created_at) as last_favorite_at
+            FROM products p
+            INNER JOIN product_favorites pf ON p.id = pf.product_id
+            WHERE p.is_deleted = false AND pf.is_deleted = false AND p.status IN ('ONLINE', 'ACTIVE')
+            GROUP BY p.id, p.name, p.price_cents, p.stock_quantity, p.sales_volume
+            ORDER BY favorite_count DESC
+            ]]>
+        </createView>
+
+        <!-- Regular view for user engagement statistics -->
+        <createView viewName="v_user_engagement_stats" replaceIfExists="true">
+            <![CDATA[
+            SELECT
+                u.id as user_id,
+                u.nickname,
+                u.created_at as user_created_at,
+                COUNT(pf.id) as total_favorites,
+                MAX(pf.created_at) as last_favorite_at,
+                AVG(p.price_cents) as avg_favorite_price,
+                COUNT(DISTINCT pf.product_id) as unique_products_favorited
+            FROM users u
+            LEFT JOIN product_favorites pf ON u.id = pf.user_id AND pf.is_deleted = false
+            LEFT JOIN products p ON pf.product_id = p.id AND p.is_deleted = false
+            GROUP BY u.id, u.nickname, u.created_at
+            ORDER BY total_favorites DESC
+            ]]>
+        </createView>
+
+        <comment>
+            Performance views for admin analytics:
+            - mv_daily_favorites_stats: Daily aggregate statistics (PostgreSQL materialized view)
+            - v_most_favorited_products: Pre-computed product popularity ranking
+            - v_user_engagement_stats: User favorite engagement metrics
+        </comment>
+    </changeSet>
+
+    <changeSet id="1.0.3-create-favorites-view-indexes" author="aqua-rush" context="production,development">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="product_favorites"/>
+        </preConditions>
+
+        <!-- Note: Indexes cannot be created on regular views in PostgreSQL -->
+        <!-- The underlying tables already have indexes for optimal performance -->
+
+        <!-- Update table statistics for query optimizer -->
+        <sql dbms="postgresql">
+            ANALYZE product_favorites;
+        </sql>
+
+        <sql dbms="postgresql">
+            ANALYZE products;
+        </sql>
+
+        <sql dbms="postgresql">
+            ANALYZE users;
+        </sql>
+
+        <!-- Update table statistics for MySQL -->
+        <sql dbms="mysql">
+            ANALYZE TABLE product_favorites;
+        </sql>
+
+        <comment>
+            Create supporting indexes for performance views and update statistics
+        </comment>
+    </changeSet>
+
     <changeSet id="1.0.0-create-reconciliation-discrepancies-table" author="aqua-rush">
         <comment>Create reconciliation discrepancies table</comment>
         <createTable tableName="reconciliation_discrepancies">
@@ -890,6 +1209,11 @@
             <column name="resolution_notes" type="text"/>
             <column name="resolved_by" type="varchar(100)"/>
             <column name="resolved_at" type="timestamp"/>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -926,6 +1250,10 @@
         <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_resolution">
             <column name="status"/>
             <column name="discrepancy_type"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_discrepancies" indexName="idx_reconciliation_discrepancies_deleted">
+            <column name="is_deleted"/>
         </createIndex>
 
         <addForeignKeyConstraint
@@ -965,6 +1293,17 @@
             <column name="file_path" type="varchar(500)"/>
             <column name="file_name" type="varchar(255)"/>
             <column name="file_size" type="bigint"/>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
+            <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
             <column name="generated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -985,6 +1324,10 @@
         <createIndex tableName="reconciliation_reports" indexName="idx_reconciliation_reports_task_type">
             <column name="task_id"/>
             <column name="report_type"/>
+        </createIndex>
+
+        <createIndex tableName="reconciliation_reports" indexName="idx_reconciliation_reports_deleted">
+            <column name="is_deleted"/>
         </createIndex>
 
         <addForeignKeyConstraint
@@ -1044,6 +1387,11 @@
             <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
         </createTable>
 
         <createIndex tableName="orders" indexName="idx_order_no">
@@ -1060,6 +1408,10 @@
         </createIndex>
         <createIndex tableName="orders" indexName="idx_orders_delivery_address_id">
             <column name="delivery_address_id"/>
+        </createIndex>
+
+        <createIndex tableName="orders" indexName="idx_orders_deleted">
+            <column name="is_deleted"/>
         </createIndex>
     </changeSet>
 
@@ -1090,6 +1442,14 @@
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
         </createTable>
 
         <createIndex tableName="order_items" indexName="idx_order_items_order_id">
@@ -1098,6 +1458,10 @@
 
         <createIndex tableName="order_items" indexName="idx_order_items_product_id">
             <column name="product_id"/>
+        </createIndex>
+
+        <createIndex tableName="order_items" indexName="idx_order_items_deleted">
+            <column name="is_deleted"/>
         </createIndex>
 
         <addForeignKeyConstraint
@@ -1166,6 +1530,11 @@
             <column name="updated_at" type="TIMESTAMP" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
         </createTable>
 
         <createIndex indexName="idx_payments_user_id" tableName="payments">
@@ -1182,6 +1551,10 @@
 
         <createIndex indexName="idx_payments_order_id" tableName="payments">
             <column name="order_id"/>
+        </createIndex>
+
+        <createIndex indexName="idx_payments_deleted" tableName="payments">
+            <column name="is_deleted"/>
         </createIndex>
 
         <addForeignKeyConstraint
@@ -1242,6 +1615,11 @@
             <column name="refund_account" type="varchar(100)"/>
             <column name="failure_reason" type="text"/>
             <column name="processed_at" type="timestamp"/>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
             <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
@@ -1268,6 +1646,10 @@
 
         <createIndex tableName="payment_refunds" indexName="idx_payment_refunds_created_at">
             <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="payment_refunds" indexName="idx_payment_refunds_deleted">
+            <column name="is_deleted"/>
         </createIndex>
 
         <addForeignKeyConstraint
@@ -1328,6 +1710,11 @@
             <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
                 <constraints nullable="false"/>
             </column>
+            <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="deleted_at" type="timestamp"/>
+            <column name="deleted_by" type="bigint"/>
         </createTable>
 
         <createIndex tableName="reviews" indexName="idx_reviews_order_id">
@@ -1353,6 +1740,10 @@
         <createIndex tableName="reviews" indexName="idx_reviews_composite">
             <column name="delivery_worker_id"/>
             <column name="created_at"/>
+        </createIndex>
+
+        <createIndex tableName="reviews" indexName="idx_reviews_deleted">
+            <column name="is_deleted"/>
         </createIndex>
 
         <addForeignKeyConstraint

@@ -20,26 +20,19 @@
 package dev.yidafu.aqua.user.mapper
 
 import dev.yidafu.aqua.api.dto.CreateAddressRequest
-import dev.yidafu.aqua.api.dto.NotificationSettingsDTO
 import dev.yidafu.aqua.api.dto.UpdateAddressRequest
-import dev.yidafu.aqua.api.dto.UserDTO
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
 import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.common.graphql.generated.Region
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.common.graphql.generated.User
-import dev.yidafu.aqua.user.domain.model.AddressModel
-import dev.yidafu.aqua.user.domain.model.AdminModel
-import dev.yidafu.aqua.user.domain.model.NotificationSettingsModel
-import dev.yidafu.aqua.user.domain.model.RegionModel
-import dev.yidafu.aqua.user.domain.model.UserModel
-import org.springframework.data.domain.Page
-import org.springframework.stereotype.Component
+import dev.yidafu.aqua.common.domain.model.AddressModel
+import dev.yidafu.aqua.common.domain.model.AdminModel
+import dev.yidafu.aqua.common.domain.model.RegionModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
-import jakarta.validation.constraints.NotNull
-import tools.jackson.databind.ObjectMapper
 
 // ============================================================================
 // Domain Model → GraphQL Mappers
@@ -47,10 +40,15 @@ import tools.jackson.databind.ObjectMapper
 
 /**
  * Mapper for converting UserModel domain entity to GraphQL User type
+ * Handles monetary field conversion from cents (Long) to GraphQL cent-based fields
  */
 object UserMapper : ObjectMappie<UserModel, User>(){
   override fun map(from: UserModel): User  = mapping {
     to::id fromValue (from.id ?: -1L)
+    // Monetary fields are already in cents (Long) in UserModel, so direct mapping works
+    // No conversion needed as both source and target use cent-based Long fields
+    to::balanceCents fromValue from.balanceCents
+    to::totalSpentCents fromValue from.totalSpentCents
   }
 }
 
@@ -92,44 +90,31 @@ object RegionMapper : ObjectMappie<RegionModel, Region>() {
 }
 
 // ============================================================================
-// DTO → Domain Model Mappers
+// Monetary Conversion Utility Functions
 // ============================================================================
 
-
+/**
+ * Utility functions for monetary conversions between BigDecimal and Long (cents)
+ * These functions ensure precise financial calculations without floating-point errors
+ */
 
 /**
- * Mapper for converting NotificationSettingsModel to NotificationSettingsDTO
+ * Convert BigDecimal amount to cents (Long)
+ * @param amount BigDecimal amount in currency units (e.g., 12.34 for ¥12.34)
+ * @return amount in cents (e.g., 1234 for ¥12.34)
  */
-object NotificationSettingsModelToDTOMapper : ObjectMappie<NotificationSettingsModel, NotificationSettingsDTO>() {
-  override fun map(from: NotificationSettingsModel) =
-    mapping {
-      // Most fields map automatically by name
-      // No custom mapping needed as field names match
-    }
+fun toCents(amount: java.math.BigDecimal): Long {
+  return (amount * java.math.BigDecimal(100)).toLong()
 }
 
 /**
- * Mapper for converting UserModel to UserDTO
+ * Convert cents (Long) to BigDecimal amount
+ * @param cents amount in cents (e.g., 1234)
+ * @return BigDecimal amount in currency units (e.g., 12.34)
  */
-object UserModelToDTOMapper : ObjectMappie<UserModel, UserDTO>() {
-  override fun map(from: UserModel) =
-    mapping {
-      // Most fields map automatically by name
-      // No custom mapping needed as field names match
-      to::addresses fromValue emptyList()
-      to::notificationSettings fromValue NotificationSettingsDTO()
-    }
+fun fromCents(cents: Long): java.math.BigDecimal {
+  return java.math.BigDecimal(cents).divide(java.math.BigDecimal(100))
 }
-
-/**
- * Mapper for converting UserDTO to UserModel
- */
-// object UserDTOToModelMapper : ObjectMappie<UserDTO, UserModel>() {
-//    override fun map(from: UserDTO) = mapping {
-//        // Most fields map automatically by name
-//        // No custom mapping needed as field names match
-//    }
-// }
 
 // ============================================================================
 // Request → Domain Model Mappers (with additional parameters)

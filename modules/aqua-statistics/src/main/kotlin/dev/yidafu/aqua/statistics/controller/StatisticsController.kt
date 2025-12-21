@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.statistics.controller
 
+import dev.yidafu.aqua.api.service.StatisticsService
 import dev.yidafu.aqua.common.ApiResponse
-import dev.yidafu.aqua.statistics.service.StatisticsService
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDate

@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.client.delivery.resolvers
 
 import dev.yidafu.aqua.common.annotation.ClientService
-import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
@@ -84,7 +84,7 @@ class ClientDeliveryWorkerMutationResolver(
      */
     @PreAuthorize("hasRole('WORKER')")
     @Transactional
-    fun updateMyWorkerStatus(status: DeliverWorkerStatus): DeliveryWorker {
+    fun updateMyWorkerStatus(status: DeliverWorkerModelStatus): DeliveryWorker {
         try {
             val currentWorkerId = getCurrentWorkerId()
             val existingWorker = deliveryWorkerRepository.findById(currentWorkerId)

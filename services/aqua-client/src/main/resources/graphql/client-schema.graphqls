@@ -78,6 +78,26 @@ type Query {
   myReviews(page: Int, size: Int): [Review!]!
   deliveryWorkerPublicStatistics(deliveryWorkerId: PrimaryId!): Review!
 
+  # Favorites queries
+  favoriteProducts(page: Int = 0, size: Int = 20): FavoriteProductPage!
+  isProductFavorited(productId: PrimaryId!): Boolean!
+  favoritesCount: Long!
+
+  # Notification queries
+  getUserNotificationSettings: UserNotificationSettings!
+  getMessageHistory(page: CustomPageRequest): MessageHistoryPage!
+  getMessageStatistics: MessageStatistics!
+  isNotificationEnabled(messageType: String!): Boolean!
+  getUnreadMessageCount: Int!
+  getRecentMessages(limit: Int = 10, messageType: String): [ClientMessage!]!
+  getMessageDetail(messageId: PrimaryId!): ClientMessage
+  getMessagesByType(messageType: String!, page: Int = 0, size: Int = 20): MessageHistoryPage!
+  searchMessages(keyword: String!, page: Int = 0, size: Int = 20, dateFrom: LocalDateTime, dateTo: LocalDateTime): MessageHistoryPage!
+  getMessageTypes: [MessageTypeInfo!]!
+  getSubscribedTopics: [String!]!
+  isSubscribedToTopic(topic: String!): Boolean!
+  getDoNotDisturbSettings: DoNotDisturbSettings!
+
   # Default region hierarchy
   defaultRegionHierarchy: RegionHierarchy
 }
@@ -113,6 +133,24 @@ type Mutation {
 
   # Review mutations
   createReview(input: CreateReviewRequest!): Review!
+
+  # Favorites mutations
+  addToFavorites(productId: PrimaryId!): Boolean!
+  removeFromFavorites(productId: PrimaryId!): Boolean!
+
+  # Notification mutations
+  updateNotificationSettings(input: UpdateNotificationSettingsInput!): UserNotificationSettings!
+  enableAllNotifications: UserNotificationSettings!
+  disableAllNotifications: UserNotificationSettings!
+  markMessageAsRead(messageId: PrimaryId!): Boolean!
+  markMessagesAsRead(messageIds: [PrimaryId!]!): Boolean!
+  deleteMessage(messageId: PrimaryId!): Boolean!
+  deleteMessages(messageIds: [PrimaryId!]!): Boolean!
+  testNotification: String!
+  subscribeToTopic(topic: String!): Boolean!
+  unsubscribeFromTopic(topic: String!): Boolean!
+  setDoNotDisturb(enabled: Boolean!, startTime: String, endTime: String): Boolean!
+  requestPushPermission: String!
 
   # Region mutations (Admin only)
   createRegion(input: CreateRegionInput!): Region!
@@ -186,4 +224,64 @@ type RegionHierarchy {
   provinces: [Region!]!
   cities: [Region!]!
   districts: [Region!]!
+}
+
+# Notification Types
+type UserNotificationSettings {
+  id: PrimaryId!
+  userId: PrimaryId!
+  orderUpdates: Boolean!
+  paymentNotifications: Boolean!
+  deliveryNotifications: Boolean!
+  promotionalNotifications: Boolean!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type ClientMessage {
+  id: PrimaryId!
+  messageType: String!
+  title: String
+  content: String!
+  sentAt: LocalDateTime!
+  readAt: LocalDateTime
+  isRead: Boolean!
+  data: Map
+}
+
+type MessageTypeInfo {
+  type: String!
+  name: String!
+  description: String!
+}
+
+type DoNotDisturbSettings {
+  enabled: Boolean!
+  startTime: String
+  endTime: String
+}
+
+type MessageHistoryPage {
+  list: [ClientMessage!]!
+  pageInfo: PageInfo!
+}
+
+type MessageStatistics {
+  totalMessages: Long!
+  readMessages: Long!
+  unreadMessages: Long!
+  messageTypes: Map!
+}
+
+# Notification Input Types
+input UpdateNotificationSettingsInput {
+  orderUpdates: Boolean
+  paymentNotifications: Boolean
+  deliveryNotifications: Boolean
+  promotionalNotifications: Boolean
+}
+
+input CustomPageRequest {
+  page: Int = 0
+  size: Int = 20
 }

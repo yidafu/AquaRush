@@ -20,8 +20,11 @@
 package dev.yidafu.aqua.api.service
 
 import dev.yidafu.aqua.api.common.PagedResponse
-import dev.yidafu.aqua.api.dto.*
-import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus
+import dev.yidafu.aqua.api.dto.CreateDeliveryWorkerRequest
+import dev.yidafu.aqua.api.dto.DeliveryStatus
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
+import dev.yidafu.aqua.common.graphql.generated.Order
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
@@ -32,7 +35,7 @@ interface DeliveryApiService {
   /**
    * 注册配送员
    */
-  fun registerDeliveryWorker(request: CreateDeliveryWorkerRequest): DeliveryWorkerDTO
+  fun registerDeliveryWorker(request: CreateDeliveryWorkerRequest): DeliveryWorker
 
   /**
    * 更新配送员位置
@@ -41,12 +44,12 @@ interface DeliveryApiService {
     workerId: Long,
     latitude: BigDecimal,
     longitude: BigDecimal,
-  ): DeliveryWorkerDTO
+  ): DeliveryWorker
 
   /**
    * 获取配送员信息
    */
-  fun getDeliveryWorker(workerId: Long): DeliveryWorkerDTO?
+  fun getDeliveryWorker(workerId: Long): DeliveryWorker?
 
   /**
    * 获取配送员列表
@@ -54,7 +57,7 @@ interface DeliveryApiService {
   fun getDeliveryWorkers(
     page: Int = 0,
     size: Int = 20,
-  ): PagedResponse<DeliveryWorkerDTO>
+  ): PagedResponse<DeliveryWorker>
 
   /**
    * 获取附近可用的配送员
@@ -63,15 +66,15 @@ interface DeliveryApiService {
     latitude: BigDecimal,
     longitude: BigDecimal,
     radiusKm: Int = 3,
-  ): List<DeliveryWorkerDTO>
+  ): List<DeliveryWorker>
 
   /**
    * 更新配送员工作状态
    */
   fun updateWorkerStatus(
-      workerId: Long,
-      status: DeliverWorkerStatus,
-  ): DeliveryWorkerDTO
+    workerId: Long,
+    status: DeliverWorkerModelStatus,
+  ): DeliveryWorker
 
   /**
    * 配送员接单
@@ -79,7 +82,7 @@ interface DeliveryApiService {
   fun acceptOrder(
     workerId: Long,
     orderId: Long,
-  ): OrderDTO
+  ): Order
 
   /**
    * 配送员拒单
@@ -88,7 +91,7 @@ interface DeliveryApiService {
     workerId: Long,
     orderId: Long,
     reason: String,
-  ): OrderDTO
+  ): Order
 
   /**
    * 更新订单配送状态
@@ -97,7 +100,7 @@ interface DeliveryApiService {
     orderId: Long,
     status: DeliveryStatus,
     estimatedTime: LocalDateTime? = null,
-  ): OrderDTO
+  ): Order
 
   /**
    * 确认订单送达
@@ -105,12 +108,12 @@ interface DeliveryApiService {
   fun confirmDelivery(
     orderId: Long,
     deliveryProof: String? = null,
-  ): OrderDTO
+  ): Order
 
   /**
    * 获取配送员当前订单
    */
-  fun getCurrentOrders(workerId: Long): List<OrderDTO>
+  fun getCurrentOrders(workerId: Long): List<Order>
 
   /**
    * 获取配送员历史订单
@@ -119,7 +122,7 @@ interface DeliveryApiService {
     workerId: Long,
     page: Int = 0,
     size: Int = 20,
-  ): PagedResponse<OrderDTO>
+  ): PagedResponse<Order>
 
   /**
    * 获取配送统计信息
@@ -142,12 +145,12 @@ interface DeliveryApiService {
   /**
    * 批量分配配送员
    */
-  fun batchAssignWorkers(orderIds: List<Long>): Map<Long, DeliveryWorkerDTO>
+  fun batchAssignWorkers(orderIds: List<Long>): Map<Long, DeliveryWorker>
 
   /**
    * 检查配送超时
    */
-  fun checkDeliveryTimeout(): List<OrderDTO>
+  fun checkDeliveryTimeout(): List<Order>
 }
 
 /**

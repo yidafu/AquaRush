@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
-import dev.yidafu.aqua.reconciliation.domain.model.ReconciliationDiscrepancy
+import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
 import java.time.LocalDateTime
 
 /**
@@ -46,7 +46,7 @@ interface ReconciliationDiscrepancyRepositoryCustom {
    * @param endDate the end date
    * @return list of discrepancies ordered by creation date descending
    */
-  fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationDiscrepancy>
+  fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationDiscrepancyModel>
 
   /**
    * Delete resolved discrepancies before a specific date

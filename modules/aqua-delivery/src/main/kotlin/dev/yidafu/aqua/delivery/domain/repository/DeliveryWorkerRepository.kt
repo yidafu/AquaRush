@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.delivery.domain.repository
 
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-import dev.yidafu.aqua.common.domain.model.DeliverWorkerStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
@@ -28,7 +28,7 @@ import org.springframework.stereotype.Repository
 interface DeliveryWorkerRepository : JpaRepository<DeliveryWorkerModel, Long> {
   fun findByWechatOpenId(wechatOpenId: String): DeliveryWorkerModel?
 
-  fun findByOnlineStatus(status: DeliverWorkerStatus): List<DeliveryWorkerModel>
+  fun findByOnlineStatus(status: DeliverWorkerModelStatus): List<DeliveryWorkerModel>
 
   fun existsByWechatOpenId(wechatOpenId: String): Boolean {
     return findByWechatOpenId(wechatOpenId) != null

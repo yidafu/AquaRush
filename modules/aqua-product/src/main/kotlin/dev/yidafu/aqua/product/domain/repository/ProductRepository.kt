@@ -20,10 +20,9 @@
 package dev.yidafu.aqua.product.domain.repository
 
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.product.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.ProductModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Modifying
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -44,11 +43,6 @@ interface ProductRepository : JpaRepository<ProductModel, Long>, JpaSpecificatio
   fun findBySalesVolumeGreaterThan(minVolume: Int): List<ProductModel>
 
   fun findByTagsContaining(tag: String): List<ProductModel>
-
-  // Soft delete support
-  fun findByIsDeletedFalse(): List<ProductModel>
-
-  fun findByIsDeletedFalseAndStatus(status: ProductStatus): List<ProductModel>
 
   // Sorting and ordering
   fun findAllByOrderBySalesVolumeDesc(): List<ProductModel>

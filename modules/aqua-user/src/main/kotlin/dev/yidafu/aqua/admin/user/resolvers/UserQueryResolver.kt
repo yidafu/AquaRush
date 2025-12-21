@@ -26,8 +26,7 @@ import dev.yidafu.aqua.common.graphql.generated.UserPage
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.common.graphql.utils.GraphQLSecurityContext
 import dev.yidafu.aqua.user.mapper.UserMapper
-import dev.yidafu.aqua.user.mapper.UserStatusMapper
-import dev.yidafu.aqua.user.service.UserService
+import dev.yidafu.aqua.api.service.UserService
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -79,15 +78,13 @@ class UserQueryResolver(
 
     val userPage = when {
       search != null && status != null -> {
-        val domainStatus = UserStatusMapper.toDomainStatus(status)
-        userService.findUsersByKeywordAndStatus(search, domainStatus, pageable)
+        userService.findUsersByKeywordAndStatus(search, status, pageable)
       }
       search != null -> {
         userService.findUsersByKeyword(search, pageable)
       }
       status != null -> {
-        val domainStatus = UserStatusMapper.toDomainStatus(status)
-        userService.findUsersByStatus(domainStatus, pageable)
+        userService.findUsersByStatus(status, pageable)
       }
       else -> {
         userService.findAllUsers(pageable)

@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
-import dev.yidafu.aqua.reconciliation.domain.model.ReconciliationDiscrepancy
-import dev.yidafu.aqua.reconciliation.domain.model.enums.DiscrepancyStatus
+import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
+import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import jakarta.persistence.criteria.CriteriaUpdate
@@ -39,7 +39,7 @@ class ReconciliationDiscrepancyRepositoryImpl(
   override fun countUnresolvedByTaskId(taskId: String): Long {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery(Long::class.java)
-    val root = query.from(ReconciliationDiscrepancy::class.java)
+    val root = query.from(ReconciliationDiscrepancyModel::class.java)
 
     // Create count query
     query.select(cb.count(root))
@@ -63,7 +63,7 @@ class ReconciliationDiscrepancyRepositoryImpl(
   override fun countByDiscrepancyTypeGroup(taskId: String): List<Array<Any>> {
     val cb = entityManager.criteriaBuilder
     val query = cb.createQuery()
-    val root = query.from(ReconciliationDiscrepancy::class.java)
+    val root = query.from(ReconciliationDiscrepancyModel::class.java)
 
     // Create multiselect query for discrepancyType and count
     query.multiselect(root.get<String>("discrepancyType"), cb.count(root))
@@ -84,10 +84,10 @@ class ReconciliationDiscrepancyRepositoryImpl(
     }
   }
 
-  override fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationDiscrepancy> {
+  override fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationDiscrepancyModel> {
     val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(ReconciliationDiscrepancy::class.java)
-    val root = query.from(ReconciliationDiscrepancy::class.java)
+    val query = cb.createQuery(ReconciliationDiscrepancyModel::class.java)
+    val root = query.from(ReconciliationDiscrepancyModel::class.java)
 
     // Create predicate for createdAt BETWEEN startDate AND endDate
     query.where(cb.between(root.get<LocalDateTime>("createdAt"), startDate, endDate))
@@ -101,8 +101,8 @@ class ReconciliationDiscrepancyRepositoryImpl(
 
   override fun deleteResolvedBefore(beforeDate: LocalDateTime): Int {
     val cb = entityManager.criteriaBuilder
-    val update: CriteriaUpdate<ReconciliationDiscrepancy> = cb.createCriteriaUpdate(ReconciliationDiscrepancy::class.java)
-    val root = update.from(ReconciliationDiscrepancy::class.java)
+    val update: CriteriaUpdate<ReconciliationDiscrepancyModel> = cb.createCriteriaUpdate(ReconciliationDiscrepancyModel::class.java)
+    val root = update.from(ReconciliationDiscrepancyModel::class.java)
 
     // Create predicates for status = 'RESOLVED' AND resolvedAt < :beforeDate
     val predicates = mutableListOf<Predicate>()

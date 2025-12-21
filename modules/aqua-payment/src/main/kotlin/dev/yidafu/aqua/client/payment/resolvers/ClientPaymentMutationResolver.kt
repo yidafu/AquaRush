@@ -25,7 +25,7 @@ import dev.yidafu.aqua.common.graphql.generated.CreateWechatPaymentInput
 import dev.yidafu.aqua.common.graphql.generated.RequestRefundInput
 import dev.yidafu.aqua.common.graphql.generated.WechatCallbackInput
 import dev.yidafu.aqua.payment.graphql.resolvers.PaymentData
-import dev.yidafu.aqua.payment.service.PaymentService
+import dev.yidafu.aqua.api.service.PaymentService
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller

@@ -28,7 +28,7 @@ import dev.yidafu.aqua.common.graphql.generated.RefundRequest
 import dev.yidafu.aqua.common.graphql.generated.SuspiciousTransaction
 import dev.yidafu.aqua.common.graphql.generated.PaymentStatus
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
-import dev.yidafu.aqua.payment.service.PaymentService
+import dev.yidafu.aqua.api.service.PaymentService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable

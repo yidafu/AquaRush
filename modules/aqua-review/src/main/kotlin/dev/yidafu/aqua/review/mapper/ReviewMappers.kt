@@ -19,34 +19,25 @@
 
 package dev.yidafu.aqua.review.mapper
 
-import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatistics
-import dev.yidafu.aqua.review.domain.model.DeliveryWorkerStatisticsModel
-import dev.yidafu.aqua.review.domain.model.ReviewModel
+import dev.yidafu.aqua.common.domain.model.ReviewModel
+import dev.yidafu.aqua.common.graphql.generated.Review
 import tech.mappie.api.ObjectMappie
 
 /**
  * Mapper for converting Review domain entity to GraphQL Review type
  */
-object ReviewMapper : ObjectMappie<ReviewModel, dev.yidafu.aqua.common.graphql.generated.Review>() {
-    override fun map(from: ReviewModel): dev.yidafu.aqua.common.graphql.generated.Review {
-        return dev.yidafu.aqua.common.graphql.generated.Review(
-            reviewId = from.id!!,
-            orderId = from.orderId,
-            userId = if (from.isAnonymous) null else from.userId,
-            deliveryWorkerId = from.deliveryWorkerId,
-            deliveryWorkerName = null, // This would need to be fetched from delivery worker repository
-            rating = from.rating,
-            comment = from.comment,
-            isAnonymous = from.isAnonymous,
-            createdAt = from.createdAt
-        )
-    }
-}
-
-/**
- * Mapper for converting DeliveryWorkerStatistics domain entity to GraphQL DeliveryWorkerStatistics type
- * Note: This mapper will be used when the GraphQL schema is regenerated to include DeliveryWorkerStatistics type
- */
-object DeliveryWorkerStatisticsMapper : ObjectMappie<DeliveryWorkerStatisticsModel, DeliveryWorkerStatistics>() {
-    override fun map(from: DeliveryWorkerStatisticsModel): DeliveryWorkerStatistics = mapping {  }
+object ReviewMapper : ObjectMappie<ReviewModel, Review>() {
+  override fun map(from: ReviewModel): Review {
+    return Review(
+      reviewId = from.id!!,
+      orderId = from.orderId,
+      userId = if (from.isAnonymous) null else from.userId,
+      deliveryWorkerId = from.deliveryWorkerId,
+      deliveryWorkerName = null, // This would need to be fetched from delivery worker repository
+      rating = from.rating,
+      comment = from.comment,
+      isAnonymous = from.isAnonymous,
+      createdAt = from.createdAt,
+    )
+  }
 }

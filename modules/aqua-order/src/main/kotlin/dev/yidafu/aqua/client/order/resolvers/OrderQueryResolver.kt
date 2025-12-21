@@ -19,10 +19,10 @@
 
 package dev.yidafu.aqua.client.order.resolvers
 
+import dev.yidafu.aqua.api.service.OrderService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.order.service.OrderService
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -40,8 +40,10 @@ class OrderQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun myOrders(): List<OrderModel> {
-    return orderService.findOrdersByCurrentUser()
+  fun myOrders(
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
+  ): List<OrderModel> {
+    return orderService.findOrdersByUserId(userPrincipal.id)
   }
 
   /**

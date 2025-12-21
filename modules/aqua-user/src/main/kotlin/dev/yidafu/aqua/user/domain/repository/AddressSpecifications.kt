@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.AddressModel
+import dev.yidafu.aqua.common.domain.model.AddressModel
 import org.springframework.data.jpa.domain.Specification
 
 class AddressSpecifications {

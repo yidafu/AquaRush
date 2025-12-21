@@ -20,8 +20,9 @@
 package dev.yidafu.aqua.user.domain.repository
 
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.user.domain.model.QUserModel
-import dev.yidafu.aqua.user.domain.model.UserModel
+// import dev.yidafu.aqua.user.domain.model.QUserModel // TODO: Regenerate QueryDSL Q-classes
+import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page
@@ -42,7 +43,7 @@ class UserRepositoryImpl : UserRepositoryCustom {
 
   override fun getUserTotalSpent(userId: Long): Double {
     val query = entityManager.createQuery(
-      "SELECT COALESCE(u.totalSpent, 0) FROM User u WHERE u.id = :userId",
+      "SELECT COALESCE(u.totalSpent, 0) FROM UserModel u WHERE u.id = :userId",
       java.lang.Double::class.java
     )
     query.setParameter("userId", userId)
@@ -51,7 +52,7 @@ class UserRepositoryImpl : UserRepositoryCustom {
 
   override fun getUserBalance(userId: Long): Double {
     val query = entityManager.createQuery(
-      "SELECT COALESCE(u.balance, 0) FROM User u WHERE u.id = :userId",
+      "SELECT COALESCE(u.balance, 0) FROM UserModel u WHERE u.id = :userId",
       java.lang.Double::class.java
     )
     query.setParameter("userId", userId)
@@ -60,7 +61,7 @@ class UserRepositoryImpl : UserRepositoryCustom {
 
   override fun getUserAddressCount(userId: Long): Int {
     val query = entityManager.createQuery(
-      "SELECT COUNT(a) FROM Address a WHERE a.userId = :userId",
+      "SELECT COUNT(a) FROM AddressModel a WHERE a.userId = :userId",
       java.lang.Long::class.java
     )
     query.setParameter("userId", userId)
@@ -72,8 +73,8 @@ class UserRepositoryImpl : UserRepositoryCustom {
     val query = entityManager.createQuery(
       """
         SELECT CASE WHEN COUNT(o) > 0 THEN true ELSE false END
-        FROM Order o
-        LEFT JOIN Review r ON r.orderId = o.id AND r.userId = :userId
+        FROM OrderModel o
+        LEFT JOIN ReviewModel r ON r.orderId = o.id AND r.userId = :userId
         WHERE o.id = :orderId
         AND o.userId = :userId
         AND o.status = 'COMPLETED'
@@ -88,38 +89,31 @@ class UserRepositoryImpl : UserRepositoryCustom {
 
   override fun findByNicknameContainingIgnoreCaseAndStatusOrPhoneContainingIgnoreCaseAndStatus(
     keyword: String,
-    status: dev.yidafu.aqua.api.dto.UserStatus,
+    status: UserStatus,
     pageable: Pageable
   ): Page<UserModel> {
-    val user = QUserModel.userModel
+    // TODO: Replace with QueryDSL implementation once Q-classes are regenerated
+    // For now, use a simple JPA query with pagination filtering in memory
+    val query = entityManager.createQuery(
+      "SELECT u FROM UserModel u WHERE " +
+      "(LOWER(u.nickname) LIKE LOWER(:keyword) OR LOWER(u.phone) LIKE LOWER(:keyword)) " +
+      "AND u.status = :status " +
+      "ORDER BY u.id DESC",
+      UserModel::class.java
+    )
+    query.setParameter("keyword", "%$keyword%")
+    query.setParameter("status", status)
 
-    // Build the query
-    val query = queryFactory
-      .selectFrom(user)
-      .where(
-        user.nickname.containsIgnoreCase(keyword)
-          .or(user.phone.contains(keyword))
-          .and(user.status.eq(status))
-      )
-      .orderBy(user.id.desc())
+    // Get all results (less efficient but works for now)
+    val allResults = query.resultList
 
-    // Get total count
-    val totalCount = queryFactory
-      .select(user.count())
-      .where(
-        user.nickname.containsIgnoreCase(keyword)
-          .or(user.phone.contains(keyword))
-          .and(user.status.eq(status))
-      )
-      .fetchOne() ?: 0L
+    // Apply pagination manually
+    val total = allResults.size.toLong()
+    val start = pageable.offset.toInt()
+    val end = (start + pageable.pageSize).coerceAtMost(allResults.size)
+    val pageResults = if (start < allResults.size) allResults.subList(start, end) else emptyList()
 
-    // Apply pagination
-    val results = query
-      .offset(pageable.offset)
-      .limit(pageable.pageSize.toLong())
-      .fetch()
-
-    return PageImpl(results, pageable, totalCount)
+    return PageImpl(pageResults, pageable, total)
   }
 }
 
@@ -130,7 +124,7 @@ interface UserRepositoryCustom {
   fun canUserReview(userId: Long, orderId: Long): Boolean
   fun findByNicknameContainingIgnoreCaseAndStatusOrPhoneContainingIgnoreCaseAndStatus(
     keyword: String,
-    status: dev.yidafu.aqua.api.dto.UserStatus,
+    status: UserStatus,
     pageable: Pageable
   ): Page<UserModel>
 }

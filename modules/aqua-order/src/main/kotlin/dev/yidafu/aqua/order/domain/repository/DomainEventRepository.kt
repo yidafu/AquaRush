@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.order.domain.repository
 
-import dev.yidafu.aqua.order.domain.model.DomainEventModel
-import dev.yidafu.aqua.order.domain.model.EventStatusModel
+import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
@@ -36,7 +36,7 @@ import java.util.*
 interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpecificationExecutor<DomainEventModel> {
   fun findByEventTypeAndStatus(
     eventType: String,
-    status: EventStatusModel,
+    status:  EventStatusModel,
   ): List<DomainEventModel>
 
   fun findByStatus(status: EventStatusModel): List<DomainEventModel>

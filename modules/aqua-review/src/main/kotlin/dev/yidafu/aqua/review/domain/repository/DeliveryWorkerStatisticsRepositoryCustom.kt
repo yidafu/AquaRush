@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.review.domain.repository
 
-import dev.yidafu.aqua.review.domain.model.DeliveryWorkerStatisticsModel
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
@@ -37,7 +37,7 @@ interface DeliveryWorkerStatisticsRepositoryCustom {
   fun findDeliveryWorkersRanking(
     sortBy: String = "rating",
     minReviews: Int = 1,
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<DeliveryWorkerStatisticsModel>
 
   /**
@@ -56,7 +56,7 @@ interface DeliveryWorkerStatisticsRepositoryCustom {
     minReviews: Int = 1,
     maxReviews: Int? = null,
     sortBy: String = "rating",
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<DeliveryWorkerStatisticsModel>
 
   /**
@@ -67,7 +67,7 @@ interface DeliveryWorkerStatisticsRepositoryCustom {
    */
   fun countDeliveryWorkersByMinRating(
     minRating: Double,
-    minReviews: Int = 1
+    minReviews: Int = 1,
   ): Long
 
   /**

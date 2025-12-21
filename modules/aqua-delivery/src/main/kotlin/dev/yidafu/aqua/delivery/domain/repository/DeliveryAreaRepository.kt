@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.delivery.domain.repository
 
-import dev.yidafu.aqua.delivery.domain.model.DeliveryAreaModel
+import dev.yidafu.aqua.common.domain.model.DeliveryAreaModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

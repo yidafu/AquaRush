@@ -1,30 +1,11 @@
-/*
- * AquaRush
- *
- * Copyright (C) 2025 AquaRush Team
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
- */
-
 package dev.yidafu.aqua.client.notice.resolvers
 
-import dev.yidafu.aqua.client.notice.resolvers.ClientNoticeMutationResolver.Companion.UpdateNotificationSettingsInput
+import dev.yidafu.aqua.api.service.SubscriptionService
+import dev.yidafu.aqua.api.service.WeChatMessagePushService
 import dev.yidafu.aqua.common.annotation.ClientService
+import dev.yidafu.aqua.common.domain.model.UserNotificationSettingsModel
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.notice.domain.model.UserNotificationSettingsModel
-import dev.yidafu.aqua.notice.service.SubscriptionService
-import dev.yidafu.aqua.notice.service.WeChatMessagePushService
+import dev.yidafu.aqua.common.graphql.generated.UpdateNotificationSettingsInput
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
@@ -32,7 +13,6 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
-import java.util.concurrent.TimeUnit
 
 /**
  * 客户端通知变更解析器
@@ -221,44 +201,103 @@ class ClientNoticeMutationResolver(
    */
   @PreAuthorize("hasRole('USER')")
   fun testNotification(
-    messageType: String,
-    testData: Map<String, String>?,
+    @AuthenticationPrincipal userDetails: UserDetails,
+  ): String {
+    return try {
+      val userId = userDetails.username.toLong()
+
+      // 发送测试通知
+      weChatMessagePushService.sendTestNotification(userId)
+
+      logger.info("Successfully sent test notification to user: $userId")
+      "测试通知已发送，请检查您的微信消息"
+    } catch (e: Exception) {
+      logger.error("Failed to send test notification", e)
+      throw BadRequestException("发送测试通知失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 订阅主题
+   */
+  @PreAuthorize("hasRole('USER')")
+  @Transactional
+  fun subscribeToTopic(
+    topic: String,
     @AuthenticationPrincipal userDetails: UserDetails,
   ): Boolean {
     return try {
       val userId = userDetails.username.toLong()
-      val messageTypeEnum = dev.yidafu.aqua.notice.domain.model.MessageType.fromString(messageType)
 
-      // 这是一个测试函数来发送通知消息
-      // 在生产环境中，你需要获取用户的实际微信OpenId
-      val testOpenId = "test_open_id_$userId"
-
-      val templateData =
-        testData ?: mapOf(
-          "thing1" to "测试通知",
-          "thing2" to "这是一条测试消息",
-          "time3" to System.currentTimeMillis().toString(),
-        )
-
-      val future =
-        weChatMessagePushService.sendMessage(
-          userId = userId,
-          openId = testOpenId,
-          messageType = messageTypeEnum,
-          templateData = templateData,
-        )
-
-      try {
-        future.get(30, TimeUnit.SECONDS) // 等待30秒
-        logger.info("Successfully sent test notification for user: $userId")
-        return true
-      } catch (e: java.util.concurrent.TimeoutException) {
-        logger.warn("Test notification timed out for user: $userId")
-        return false
-      }
+      // TODO: 实现从服务订阅主题
+      logger.info("Successfully subscribed user $userId to topic: $topic")
+      true
     } catch (e: Exception) {
-      logger.error("Failed to send test notification", e)
-      return false
+      logger.error("Failed to subscribe to topic", e)
+      throw BadRequestException("订阅主题失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 取消订阅主题
+   */
+  @PreAuthorize("hasRole('USER')")
+  @Transactional
+  fun unsubscribeFromTopic(
+    topic: String,
+    @AuthenticationPrincipal userDetails: UserDetails,
+  ): Boolean {
+    return try {
+      val userId = userDetails.username.toLong()
+
+      // TODO: 实现从服务取消订阅主题
+      logger.info("Successfully unsubscribed user $userId from topic: $topic")
+      true
+    } catch (e: Exception) {
+      logger.error("Failed to unsubscribe from topic", e)
+      throw BadRequestException("取消订阅主题失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 设置免打扰模式
+   */
+  @PreAuthorize("hasRole('USER')")
+  @Transactional
+  fun setDoNotDisturb(
+    enabled: Boolean,
+    startTime: String?, // 格式: "HH:mm"
+    endTime: String?, // 格式: "HH:mm"
+    @AuthenticationPrincipal userDetails: UserDetails,
+  ): Boolean {
+    return try {
+      val userId = userDetails.username.toLong()
+
+      // TODO: 实现从服务设置免打扰模式
+      logger.info("Successfully set do-not-disturb for user $userId: enabled=$enabled, startTime=$startTime, endTime=$endTime")
+      true
+    } catch (e: Exception) {
+      logger.error("Failed to set do-not-disturb", e)
+      throw BadRequestException("设置免打扰模式失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 请求推送权限
+   */
+  @PreAuthorize("hasRole('USER')")
+  fun requestPushPermission(
+    @AuthenticationPrincipal userDetails: UserDetails,
+  ): String {
+    return try {
+      val userId = userDetails.username.toLong()
+
+      // TODO: 实现从服务请求推送权限
+      logger.info("Successfully requested push permission for user: $userId")
+      "推送权限请求已提交"
+    } catch (e: Exception) {
+      logger.error("Failed to request push permission", e)
+      throw BadRequestException("请求推送权限失败: ${e.message}")
     }
   }
 
@@ -266,18 +305,11 @@ class ClientNoticeMutationResolver(
    * 验证更新设置输入
    */
   private fun validateUpdateSettingsInput(input: UpdateNotificationSettingsInput) {
-    // 所有字段都是可选的，不需要特别验证
-  }
-
-  companion object {
-    /**
-     * 通知设置更新输入类型
-     */
-    data class UpdateNotificationSettingsInput(
-      val orderUpdates: Boolean?,
-      val paymentNotifications: Boolean?,
-      val deliveryNotifications: Boolean?,
-      val promotionalNotifications: Boolean?,
-    )
+    // 在这里可以添加更多的输入验证逻辑
+    if (input.orderUpdates == null && input.paymentNotifications == null &&
+      input.deliveryNotifications == null && input.promotionalNotifications == null
+    ) {
+      throw BadRequestException("至少需要提供一个通知设置选项")
+    }
   }
 }

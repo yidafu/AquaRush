@@ -21,7 +21,7 @@ package dev.yidafu.aqua.client.user.resolvers
 
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.model.RegionHierarchyModel
-import dev.yidafu.aqua.user.domain.model.RegionModel
+import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
 import io.mockk.every
 import io.mockk.mockk

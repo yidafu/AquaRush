@@ -1,7 +1,7 @@
 package dev.yidafu.aqua.payment.graphql.resolvers
 
 import dev.yidafu.aqua.common.annotation.ClientService
-import dev.yidafu.aqua.payment.service.PaymentService
+import dev.yidafu.aqua.api.service.PaymentService
 import dev.yidafu.aqua.common.graphql.generated.*
 import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument

@@ -1,0 +1,102 @@
+/*
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.yidafu.aqua.common.domain.model
+
+import dev.yidafu.aqua.common.utils.MoneyUtils
+import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
+import java.math.BigDecimal
+import java.time.LocalDateTime
+
+import org.hibernate.annotations.SoftDelete
+
+@Entity
+@SoftDelete(columnName = "is_deleted")
+@Table(name = "order_items")
+open class  OrderItemModel(
+  @Id
+  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  val id: Long? = null,
+
+  @Column(name = "order_id", nullable = false)
+  val orderId: Long,
+
+  @Column(name = "product_id", nullable = false)
+  val productId: Long,
+
+  @Column(name = "quantity", nullable = false)
+  val quantity: Int,
+
+  @Column(name = "unit_price_cents", nullable = false)
+  val unitPriceCents: Long,
+
+  @Column(name = "total_price_cents", nullable = false)
+  val totalPriceCents: Long,
+
+  @JdbcTypeCode(SqlTypes.JSON)
+  @Column(name = "product_snapshot", nullable = false, columnDefinition = "json")
+  val productSnapshot: String, // JSON string of product snapshot
+
+  @Column(name = "created_at", nullable = false, updatable = false)
+  val createdAt: LocalDateTime = LocalDateTime.now(),
+
+  @Column(name = "updated_at", nullable = false)
+  var updatedAt: LocalDateTime = LocalDateTime.now(),
+@Column(name = "deleted_at")
+  override var deletedAt: LocalDateTime? = null,
+
+  @Column(name = "deleted_by")
+  override var deletedBy: Long? = null
+) : SoftDeletable {
+
+  @PreUpdate
+  fun preUpdate() {
+    updatedAt = LocalDateTime.now()
+  }
+
+  // Backward compatibility property
+  val unitPrice: BigDecimal
+  get() = MoneyUtils.fromCents(unitPriceCents)
+
+  // Backward compatibility property
+  val totalPrice: BigDecimal
+    get() = MoneyUtils.fromCents(totalPriceCents)
+  // Companion object for factory methods
+  companion object {
+    fun create(
+      orderId: Long,
+      productId: Long,
+      quantity: Int,
+      unitPriceCents: Long,
+      productSnapshot: String
+    ): OrderItemModel {
+      val totalPriceCents = unitPriceCents * quantity
+      return OrderItemModel(
+        orderId = orderId,
+        productId = productId,
+        quantity = quantity,
+        unitPriceCents = unitPriceCents,
+        totalPriceCents = totalPriceCents,
+        productSnapshot = productSnapshot
+      )
+    }
+  }
+}
