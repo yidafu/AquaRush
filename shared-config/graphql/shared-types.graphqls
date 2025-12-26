@@ -1128,8 +1128,6 @@ type UserFavoriteAnalytics {
   totalFavorites: Long!
   activeUsersWithFavorites: Long!
   averageFavoritesPerUser: Float!
-  mostFavoritedProducts: [ProductFavoriteCount!]!
-  favoritesTrend: [FavoriteTrendData!]!
   newFavoritesToday: Long!
   newFavoritesThisWeek: Long!
   newFavoritesThisMonth: Long!
@@ -1186,6 +1184,23 @@ type FavoriteProductStats {
   addToOrderRate: Float!
   averageTimeToOrder: Float! # days from favorite to order
   revenueFromFavorites: Money!
+}
+
+type AllProductsFavoriteStats {
+  totalProducts: Long!
+  totalFavorites: Long!
+  averageFavoritesPerProduct: Float!
+}
+
+type ProductFavoritePage {
+  list: [ProductFavoriteItem!]!
+  pageInfo: PageInfo!
+}
+
+type ProductFavoriteItem {
+  product: Product!
+  favoriteCount: Long!
+  lastFavoritedAt: LocalDateTime
 }
 
 type UserFavoriteInsights {

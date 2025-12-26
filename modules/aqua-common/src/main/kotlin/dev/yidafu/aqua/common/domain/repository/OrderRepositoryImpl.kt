@@ -19,8 +19,11 @@
 
 package dev.yidafu.aqua.common.domain.repository
 
+import com.querydsl.core.types.dsl.Expressions
+import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
+import dev.yidafu.aqua.common.domain.model.QOrderModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository
@@ -35,6 +38,9 @@ import java.util.*
 class OrderRepositoryImpl(
   @PersistenceContext private val entityManager: EntityManager,
 ) {
+  private val queryFactory: JPAQueryFactory by lazy {
+    JPAQueryFactory(entityManager)
+  }
   /**
    * Find orders with complex filtering criteria
    * Demonstrates flexible query building with multiple conditions
@@ -199,43 +205,47 @@ class OrderRepositoryImpl(
   }
 
   /**
-   * Native query for complex order analytics
+   * QueryDSL implementation for complex order analytics
    */
   fun getOrderAnalytics(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): List<OrderAnalyticsRow> {
-    val query =
-      entityManager.createNativeQuery(
-        """
-        SELECT
-            DATE(o.created_at) as order_date,
-            o.status,
-            COUNT(*) as order_count,
-            SUM(o.total_amount) as total_revenue,
-            AVG(o.total_amount) as average_order_value,
-            COUNT(DISTINCT o.user_id) as unique_customers,
-            COUNT(DISTINCT o.delivery_worker_id) as active_workers
-        FROM orders o
-        WHERE o.created_at BETWEEN :startDate AND :endDate
-        GROUP BY DATE(o.created_at), o.status
-        ORDER BY order_date DESC, o.status
-        """.trimIndent(),
+    val qOrder = QOrderModel.orderModel
+
+    // Create date expression for PostgreSQL DATE() function
+    val dateExpr = Expressions.dateTemplate(
+      java.time.LocalDate::class.java,
+      "DATE({0})",
+      qOrder.createdAt
+    )
+
+    val results = queryFactory
+      .select(
+        dateExpr,
+        qOrder.status,
+        qOrder.count(),
+        qOrder.amountCents.sum().coalesce(0L),
+        qOrder.amountCents.avg().coalesce(0.0),
+        qOrder.userId.countDistinct(),
+        qOrder.deliveryWorkerId.countDistinct()
       )
+      .from(qOrder)
+      .where(qOrder.createdAt.between(startDate, endDate))
+      .groupBy(dateExpr, qOrder.status)
+      .orderBy(dateExpr.desc(), qOrder.status.asc())
+      .fetch()
 
-    query.setParameter("startDate", startDate)
-    query.setParameter("endDate", endDate)
-
-    val results = query.resultList as Array<Array<Any>>
-    return results.map { row ->
+    return results.map { tuple ->
       OrderAnalyticsRow(
-        orderDate = row[0] as java.time.LocalDate,
-        status = OrderStatus.valueOf(row[1] as String),
-        orderCount = (row[2] as Number).toLong(),
-        totalRevenue = (row[3] as Number).toDouble(),
-        averageOrderValue = (row[4] as Number).toDouble(),
-        uniqueCustomers = (row[5] as Number).toLong(),
-        activeWorkers = (row[6] as Number).toLong(),
+        orderDate = tuple.get(dateExpr) ?: java.time.LocalDate.now(),
+        status = tuple.get(qOrder.status) ?: OrderStatus.PENDING_PAYMENT,
+        orderCount = tuple.get(qOrder.count()) ?: 0L,
+        // Convert from cents to yuan (divide by 100)
+        totalRevenue = (tuple.get(qOrder.amountCents.sum()) ?: 0L).toDouble() / 100.0,
+        averageOrderValue = (tuple.get(qOrder.amountCents.avg()) ?: 0.0) / 100.0,
+        uniqueCustomers = tuple.get(qOrder.userId.countDistinct()) ?: 0L,
+        activeWorkers = tuple.get(qOrder.deliveryWorkerId.countDistinct()) ?: 0L
       )
     }
   }

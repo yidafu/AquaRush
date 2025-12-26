@@ -128,10 +128,75 @@ data class Admin(
     val username: kotlin.String
 )
 
+data class AdminFavoriteListInput(
+    val dateFrom: java.time.LocalDateTime? = null,
+    val dateTo: java.time.LocalDateTime? = null,
+    val page: kotlin.Int? = 0,
+    val productId: kotlin.Long? = null,
+    val productStatus: ProductStatus? = null,
+    val search: kotlin.String? = null,
+    val size: kotlin.Int? = 20,
+    val sortBy: FavoriteSortBy = FavoriteSortBy.CREATED_AT_DESC,
+    val userId: kotlin.Long? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["dateFrom"] as java.time.LocalDateTime?,
+      args["dateTo"] as java.time.LocalDateTime?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["productId"] as kotlin.Long?,
+      args["productStatus"] as ProductStatus?,
+      args["search"] as kotlin.String?,
+      args["size"] as kotlin.Int? ?: 20,
+      args["sortBy"] as FavoriteSortBy? ?: FavoriteSortBy.CREATED_AT_DESC,
+      args["userId"] as kotlin.Long?
+  )
+}
+
 data class AuthPayload(
     val accessToken: kotlin.String,
     val refreshToken: kotlin.String,
     val user: User
+)
+
+enum class BatchFavoriteOperation(val label: String) {
+      ANALYZE_FAVORITES("ANALYZE_FAVORITES"),
+      CLEAR_ALL_FAVORITES("CLEAR_ALL_FAVORITES"),
+      CLEAR_SPECIFIC_PRODUCTS("CLEAR_SPECIFIC_PRODUCTS"),
+      EXPORT_FAVORITES("EXPORT_FAVORITES");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): BatchFavoriteOperation? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class BatchFavoriteOperationInput(
+    val operation: BatchFavoriteOperation,
+    @field:Size(min = 1, max = 1000, message = "商品ID数量应在1-1000之间")
+    val productIds: Iterable<kotlin.Long>,
+    @field:Size(max = 500, message = "操作原因长度不能超过500个字符")
+    val reason: kotlin.String? = null,
+    @field:Size(min = 1, max = 1000, message = "用户ID数量应在1-1000之间")
+    val userIds: Iterable<kotlin.Long>
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["operation"] as BatchFavoriteOperation,
+      args["productIds"] as Iterable<kotlin.Long>,
+      args["reason"] as kotlin.String?,
+      args["userIds"] as Iterable<kotlin.Long>
+  )
+}
+
+data class BatchOperationResult(
+    val details: kotlin.collections.Map<String, Any>,
+    val errors: Iterable<kotlin.String>,
+    val failureCount: kotlin.Int,
+    val message: kotlin.String,
+    val processedCount: kotlin.Int,
+    val success: kotlin.Boolean,
+    val successCount: kotlin.Int
 )
 
 data class BatchStockAdjustmentInput(
@@ -154,6 +219,17 @@ data class BatchStockAdjustmentResult(
 data class BooleanPayload(
     val message: kotlin.String,
     val success: kotlin.Boolean
+)
+
+data class ClientMessage(
+    val content: kotlin.String,
+    val data: kotlin.collections.Map<String, Any>?,
+    val id: kotlin.Long,
+    val isRead: kotlin.Boolean,
+    val messageType: kotlin.String,
+    val readAt: java.time.LocalDateTime?,
+    val sentAt: java.time.LocalDateTime,
+    val title: kotlin.String?
 )
 
 data class CreateDeliveryAddressInput(
@@ -300,20 +376,17 @@ data class CreateOrderInput(
 }
 
 data class CreateProductInput(
-    @field:Size(max = 2000, message = "证书图片URL长度不能超过2000个字符")
-    val certificateImages: kotlin.String? = null,
+    val certificateImages: tools.jackson.databind.node.ArrayNode? = null,
     @field:NotBlank(message = "商品封面图片不能为空")
     @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
     val coverImageUrl: kotlin.String,
-    @field:Size(max = 2000, message = "配送设置JSON长度不能超过2000个字符")
-    val deliverySettings: kotlin.String? = null,
+    val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
     @field:Min(value = 0, message = "押金不能小于0")
     @field:Max(value = 9999900, message = "押金不能大于99999元")
     val depositPrice: kotlin.Long? = null,
     @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
     val detailContent: kotlin.String? = null,
-    @field:Size(max = 2000, message = "图片画廊URL长度不能超过2000个字符")
-    val imageGallery: kotlin.String? = null,
+    val imageGallery: tools.jackson.databind.node.ArrayNode? = null,
     @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
     val mineralContent: kotlin.String? = null,
     @field:NotBlank(message = "商品名称不能为空")
@@ -323,9 +396,6 @@ data class CreateProductInput(
     @field:Min(value = 1, message = "原价不能小于1分")
     @field:Max(value = 9999900, message = "原价不能大于99999元")
     val originalPrice: kotlin.Long? = null,
-    @field:Min(value = 0, message = "PH值不能小于0")
-    @field:Max(value = 14, message = "PH值不能大于14")
-    val phValue: java.math.BigDecimal? = null,
     @field:Positive(message = "商品价格必须为正数")
     @field:Min(value = 1, message = "商品价格不能小于1分")
     @field:Max(value = 9999900, message = "商品价格不能大于99999元")
@@ -344,22 +414,20 @@ data class CreateProductInput(
     val stock: kotlin.Int,
     @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
     val subtitle: kotlin.String? = null,
-    @field:Size(max = 1000, message = "标签JSON长度不能超过1000个字符")
-    val tags: kotlin.String? = null,
+    val tags: tools.jackson.databind.node.ArrayNode? = null,
     @field:Size(max = 200, message = "水源地长度不能超过200个字符")
     val waterSource: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["certificateImages"] as kotlin.String?,
+      args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
       args["coverImageUrl"] as kotlin.String,
-      args["deliverySettings"] as kotlin.String?,
+      args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
       args["depositPrice"] as kotlin.Long?,
       args["detailContent"] as kotlin.String?,
-      args["imageGallery"] as kotlin.String?,
+      args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
       args["mineralContent"] as kotlin.String?,
       args["name"] as kotlin.String,
       args["originalPrice"] as kotlin.Long?,
-      args["phValue"] as java.math.BigDecimal?,
       args["price"] as kotlin.Long,
       args["salesVolume"] as kotlin.Int,
       args["sortOrder"] as kotlin.Int,
@@ -367,7 +435,7 @@ data class CreateProductInput(
       args["status"] as ProductStatus,
       args["stock"] as kotlin.Int,
       args["subtitle"] as kotlin.String?,
-      args["tags"] as kotlin.String?,
+      args["tags"] as tools.jackson.databind.node.ArrayNode?,
       args["waterSource"] as kotlin.String?
   )
 }
@@ -430,6 +498,16 @@ data class CreateWechatPaymentInput(
       args["amount"] as kotlin.Long,
       args["description"] as kotlin.String,
       args["orderId"] as kotlin.Long
+  )
+}
+
+data class CustomPageRequestInput(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
   )
 }
 
@@ -562,6 +640,55 @@ data class DistancePayload(
     val success: kotlin.Boolean
 )
 
+data class DoNotDisturbSettings(
+    val enabled: kotlin.Boolean,
+    val endTime: kotlin.String?,
+    val startTime: kotlin.String?
+)
+
+data class ExportFavoritesInput(
+    val dateFrom: java.time.LocalDateTime? = null,
+    val dateTo: java.time.LocalDateTime? = null,
+    val format: ExportFormat = ExportFormat.CSV,
+    val includeProductInfo: kotlin.Boolean = true,
+    val includeUserInfo: kotlin.Boolean = true,
+    val productIds: Iterable<kotlin.Long>? = null,
+    val userId: kotlin.Long? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["dateFrom"] as java.time.LocalDateTime?,
+      args["dateTo"] as java.time.LocalDateTime?,
+      args["format"] as ExportFormat? ?: ExportFormat.CSV,
+      args["includeProductInfo"] as kotlin.Boolean? ?: true,
+      args["includeUserInfo"] as kotlin.Boolean? ?: true,
+      args["productIds"] as Iterable<kotlin.Long>?,
+      args["userId"] as kotlin.Long?
+  )
+}
+
+data class ExportFavoritesResult(
+    val downloadUrl: kotlin.String?,
+    val expiresAt: java.time.LocalDateTime,
+    val fileName: kotlin.String,
+    val fileSize: kotlin.Long,
+    val message: kotlin.String,
+    val recordCount: kotlin.Int,
+    val success: kotlin.Boolean
+)
+
+enum class ExportFormat(val label: String) {
+      CSV("CSV"),
+      EXCEL("EXCEL"),
+      JSON("JSON");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): ExportFormat? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
 data class ExportTransactionsInput(
     val dateFrom: java.time.LocalDateTime? = null,
     val dateTo: java.time.LocalDateTime? = null,
@@ -593,6 +720,60 @@ data class ExportTransactionsInput(
       args["userId"] as kotlin.Long?
   )
 }
+
+data class FavoriteProduct(
+    val addedAt: java.time.LocalDateTime,
+    val coverImageUrl: kotlin.String,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val originalPrice: kotlin.Long?,
+    val price: kotlin.Long,
+    val salesVolume: kotlin.Int,
+    val status: ProductStatus,
+    val stock: kotlin.Int,
+    val subtitle: kotlin.String?
+)
+
+data class FavoriteProductPage(
+    val list: Iterable<FavoriteProduct>,
+    val pageInfo: PageInfo
+)
+
+data class FavoriteProductStats(
+    val addToOrderRate: kotlin.Float,
+    val averageTimeToOrder: kotlin.Float,
+    val favoriteCount: kotlin.Long,
+    val productId: kotlin.Long,
+    val productName: kotlin.String,
+    val revenueFromFavorites: kotlin.Long
+)
+
+enum class FavoriteSortBy(val label: String) {
+      CREATED_AT_ASC("CREATED_AT_ASC"),
+      CREATED_AT_DESC("CREATED_AT_DESC"),
+      PRODUCT_ID_ASC("PRODUCT_ID_ASC"),
+      PRODUCT_ID_DESC("PRODUCT_ID_DESC"),
+      PRODUCT_NAME_ASC("PRODUCT_NAME_ASC"),
+      PRODUCT_NAME_DESC("PRODUCT_NAME_DESC"),
+      PRODUCT_PRICE_ASC("PRODUCT_PRICE_ASC"),
+      PRODUCT_PRICE_DESC("PRODUCT_PRICE_DESC"),
+      USER_ID_ASC("USER_ID_ASC"),
+      USER_ID_DESC("USER_ID_DESC");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): FavoriteSortBy? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class FavoriteTrendData(
+    val activeUsers: kotlin.Long,
+    val date: kotlin.String,
+    val newFavorites: kotlin.Long,
+    val totalFavorites: kotlin.Long
+)
 
 data class GeocodeInput(
     @field:NotBlank(message = "城市不能为空")
@@ -631,6 +812,24 @@ data class LowStockAlert(
     val threshold: kotlin.Int
 )
 
+data class MessageHistoryPage(
+    val list: Iterable<ClientMessage>,
+    val pageInfo: PageInfo
+)
+
+data class MessageStatistics(
+    val messageTypes: kotlin.collections.Map<String, Any>,
+    val readMessages: kotlin.Long,
+    val totalMessages: kotlin.Long,
+    val unreadMessages: kotlin.Long
+)
+
+data class MessageTypeInfo(
+    val description: kotlin.String,
+    val name: kotlin.String,
+    val type: kotlin.String
+)
+
 data class MonthlyStatistic(
     val month: kotlin.Int,
     val monthName: kotlin.String,
@@ -639,12 +838,27 @@ data class MonthlyStatistic(
     val year: kotlin.Int
 )
 
+data class MutationAnalyzeUserFavoritesArgs(
+    val userId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["userId"] as kotlin.Long
+  )
+}
 data class MutationBatchAdjustStockArgs(
     val input: BatchStockAdjustmentInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       BatchStockAdjustmentInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationBatchFavoriteOperationArgs(
+    val input: BatchFavoriteOperationInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      BatchFavoriteOperationInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationBatchUpdateProductsArgs(
@@ -779,6 +993,20 @@ data class MutationDeleteDeliveryWorkerArgs(
       args["workerId"] as kotlin.Long
   )
 }
+data class MutationDeleteMessageArgs(
+    val messageId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["messageId"] as kotlin.Long
+  )
+}
+data class MutationDeleteMessagesArgs(
+    val messageIds: Iterable<kotlin.Long>
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["messageIds"] as Iterable<kotlin.Long>
+  )
+}
 data class MutationDeleteProductArgs(
     val id: kotlin.Long
 ) {
@@ -791,6 +1019,14 @@ data class MutationDeleteRegionArgs(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["code"] as kotlin.String
+  )
+}
+data class MutationExportFavoritesArgs(
+    val input: ExportFavoritesInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      ExportFavoritesInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationExportTransactionsArgs(
@@ -857,6 +1093,20 @@ data class MutationIncreaseStockArgs(
       args["quantity"] as kotlin.Int
   )
 }
+data class MutationMarkMessageAsReadArgs(
+    val messageId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["messageId"] as kotlin.Long
+  )
+}
+data class MutationMarkMessagesAsReadArgs(
+    val messageIds: Iterable<kotlin.Long>
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["messageIds"] as Iterable<kotlin.Long>
+  )
+}
 data class MutationOfflineProductArgs(
     val id: kotlin.Long
 ) {
@@ -885,6 +1135,13 @@ data class MutationProcessSuspiciousTransactionArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       ProcessSuspiciousTransactionInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationRefreshFavoriteAnalyticsCacheArgs(
+    val force: kotlin.Boolean? = true
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["force"] as kotlin.Boolean? ?: true
   )
 }
 data class MutationRefreshTokenArgs(
@@ -934,6 +1191,38 @@ data class MutationSetDefaultDeliveryAddressArgs(
       args["id"] as kotlin.Long
   )
 }
+data class MutationSetDoNotDisturbArgs(
+    val enabled: kotlin.Boolean,
+    val endTime: kotlin.String? = null,
+    val startTime: kotlin.String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["enabled"] as kotlin.Boolean,
+      args["endTime"] as kotlin.String?,
+      args["startTime"] as kotlin.String?
+  )
+}
+data class MutationSubscribeToTopicArgs(
+    val topic: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["topic"] as kotlin.String
+  )
+}
+data class MutationToggleProductFavoritesArgs(
+    val productId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["productId"] as kotlin.Long
+  )
+}
+data class MutationUnsubscribeFromTopicArgs(
+    val topic: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["topic"] as kotlin.String
+  )
+}
 data class MutationUpdateAddressArgs(
     val id: kotlin.Long,
     val input: UpdateAddressInput
@@ -972,6 +1261,14 @@ data class MutationUpdateDeliveryWorkerArgs(
   constructor(args: Map<String, Any>) : this(
       UpdateDeliveryWorkerInput(args["input"] as Map<String, Any>),
       args["workerId"] as kotlin.Long
+  )
+}
+data class MutationUpdateNotificationSettingsArgs(
+    val input: UpdateNotificationSettingsInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      UpdateNotificationSettingsInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationUpdateOrderStatusArgs(
@@ -1065,7 +1362,9 @@ data class MutationWechatLoginArgs(
   )
 }
 data class Mutation(
+    val analyzeUserFavorites: kotlin.collections.Map<String, Any>,
     val batchAdjustStock: BatchStockAdjustmentResult,
+    val batchFavoriteOperation: BatchOperationResult,
     val batchUpdateProducts: Iterable<Product>,
     val cancelOrder: Order,
     val createAddress: Address,
@@ -1083,8 +1382,13 @@ data class Mutation(
     val deleteDeliveryAddress: kotlin.Boolean,
     val deleteDeliveryArea: kotlin.Boolean,
     val deleteDeliveryWorker: kotlin.Boolean,
+    val deleteMessage: kotlin.Boolean,
+    val deleteMessages: kotlin.Boolean,
     val deleteProduct: kotlin.Boolean,
     val deleteRegion: kotlin.Boolean,
+    val disableAllNotifications: UserNotificationSettings,
+    val enableAllNotifications: UserNotificationSettings,
+    val exportFavorites: ExportFavoritesResult,
     val exportTransactions: kotlin.String,
     val forceCompletePayment: kotlin.Boolean,
     val forceRefund: kotlin.Boolean,
@@ -1093,20 +1397,30 @@ data class Mutation(
     val handleWechatCallback: kotlin.String,
     val increaseStock: kotlin.String,
     val logout: kotlin.Boolean,
+    val markMessageAsRead: kotlin.Boolean,
+    val markMessagesAsRead: kotlin.Boolean,
     val offlineProduct: Product,
     val onlineProduct: Product,
     val processRefund: RefundRequest,
     val processSuspiciousTransaction: SuspiciousTransaction,
+    val refreshFavoriteAnalyticsCache: BooleanPayload,
     val refreshToken: WeChatTokenResponse,
     val refund: kotlin.Boolean,
+    val requestPushPermission: kotlin.String,
     val requestRefund: RefundRequest,
     val reverseGeocode: ReverseGeocodePayload,
     val setDefaultAddress: kotlin.Boolean,
     val setDefaultDeliveryAddress: kotlin.Boolean,
+    val setDoNotDisturb: kotlin.Boolean,
+    val subscribeToTopic: kotlin.Boolean,
+    val testNotification: kotlin.String,
+    val toggleProductFavorites: kotlin.Boolean,
+    val unsubscribeFromTopic: kotlin.Boolean,
     val updateAddress: Address,
     val updateDeliveryAddress: DeliveryAddress,
     val updateDeliveryArea: DeliveryArea,
     val updateDeliveryWorker: DeliveryWorker,
+    val updateNotificationSettings: UserNotificationSettings,
     val updateOrderStatus: Order,
     val updateProduct: Product,
     val updateProductStatus: Product,
@@ -1361,19 +1675,18 @@ data class ProcessSuspiciousTransactionInput(
 }
 
 data class Product(
-    val certificateImages: kotlin.String?,
+    val certificateImages: tools.jackson.databind.node.ArrayNode?,
     val coverImageUrl: kotlin.String,
     val createdAt: java.time.LocalDateTime,
-    val deliverySettings: kotlin.String?,
+    val deliverySettings: tools.jackson.databind.node.ObjectNode?,
     val depositPrice: kotlin.Long?,
     val detailContent: kotlin.String?,
     val id: kotlin.Long,
-    val imageGallery: kotlin.String?,
+    val imageGallery: tools.jackson.databind.node.ArrayNode?,
     val isDeleted: kotlin.Boolean,
     val mineralContent: kotlin.String?,
     val name: kotlin.String,
     val originalPrice: kotlin.Long?,
-    val phValue: java.math.BigDecimal?,
     val price: kotlin.Long,
     val salesVolume: kotlin.Int,
     val sortOrder: kotlin.Int,
@@ -1381,9 +1694,17 @@ data class Product(
     val status: ProductStatus,
     val stock: kotlin.Int,
     val subtitle: kotlin.String?,
-    val tags: kotlin.String?,
+    val tags: tools.jackson.databind.node.ArrayNode?,
     val updatedAt: java.time.LocalDateTime,
     val waterSource: kotlin.String?
+)
+
+data class ProductFavoriteCount(
+    val addedThisMonth: kotlin.Long,
+    val addedThisWeek: kotlin.Long,
+    val addedToday: kotlin.Long,
+    val favoriteCount: kotlin.Long,
+    val product: Product
 )
 
 data class ProductListInput(
@@ -1508,12 +1829,10 @@ enum class ProductStatus(val label: String) {
 }
 
 data class ProductUpdateRequestInput(
-    @field:Size(max = 2000, message = "证书图片URL长度不能超过2000个字符")
-    val certificateImages: kotlin.String? = null,
+    val certificateImages: tools.jackson.databind.node.ArrayNode? = null,
     @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
     val coverImageUrl: kotlin.String? = null,
-    @field:Size(max = 2000, message = "配送设置JSON长度不能超过2000个字符")
-    val deliverySettings: kotlin.String? = null,
+    val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
     @field:Min(value = 0, message = "押金不能小于0")
     @field:Max(value = 9999900, message = "押金不能大于99999元")
     val depositPrice: kotlin.Long? = null,
@@ -1522,7 +1841,7 @@ data class ProductUpdateRequestInput(
     @field:Positive(message = "商品ID必须为正数")
     val id: kotlin.Long,
     @field:Size(max = 2000, message = "图片画廊URL长度不能超过2000个字符")
-    val imageGallery: kotlin.String? = null,
+    val imageGallery: tools.jackson.databind.node.ArrayNode? = null,
     @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
     val mineralContent: kotlin.String? = null,
     @field:Size(min = 2, max = 200, message = "商品名称长度应在2-200个字符之间")
@@ -1531,9 +1850,6 @@ data class ProductUpdateRequestInput(
     @field:Min(value = 1, message = "原价不能小于1分")
     @field:Max(value = 9999900, message = "原价不能大于99999元")
     val originalPrice: kotlin.Long? = null,
-    @field:Min(value = 0, message = "PH值不能小于0")
-    @field:Max(value = 14, message = "PH值不能大于14")
-    val phValue: java.math.BigDecimal? = null,
     @field:Positive(message = "商品价格必须为正数")
     @field:Min(value = 1, message = "商品价格不能小于1分")
     @field:Max(value = 9999900, message = "商品价格不能大于99999元")
@@ -1551,23 +1867,21 @@ data class ProductUpdateRequestInput(
     val stock: kotlin.Int? = null,
     @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
     val subtitle: kotlin.String? = null,
-    @field:Size(max = 1000, message = "标签JSON长度不能超过1000个字符")
-    val tags: kotlin.String? = null,
+    val tags: tools.jackson.databind.node.ArrayNode? = null,
     @field:Size(max = 200, message = "水源地长度不能超过200个字符")
     val waterSource: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["certificateImages"] as kotlin.String?,
+      args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
       args["coverImageUrl"] as kotlin.String?,
-      args["deliverySettings"] as kotlin.String?,
+      args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
       args["depositPrice"] as kotlin.Long?,
       args["detailContent"] as kotlin.String?,
       args["id"] as kotlin.Long,
-      args["imageGallery"] as kotlin.String?,
+      args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
       args["mineralContent"] as kotlin.String?,
       args["name"] as kotlin.String?,
       args["originalPrice"] as kotlin.Long?,
-      args["phValue"] as java.math.BigDecimal?,
       args["price"] as kotlin.Long?,
       args["salesVolume"] as kotlin.Int?,
       args["sortOrder"] as kotlin.Int?,
@@ -1575,11 +1889,24 @@ data class ProductUpdateRequestInput(
       args["status"] as ProductStatus?,
       args["stock"] as kotlin.Int?,
       args["subtitle"] as kotlin.String?,
-      args["tags"] as kotlin.String?,
+      args["tags"] as tools.jackson.databind.node.ArrayNode?,
       args["waterSource"] as kotlin.String?
   )
 }
 
+data class QueryActiveProductsArgs(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val sortBy: kotlin.String? = """createdAt""".trimIndent(),
+    val sortDirection: kotlin.String? = """desc""".trimIndent()
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["sortBy"] as kotlin.String? ?: """createdAt""".trimIndent(),
+      args["sortDirection"] as kotlin.String? ?: """desc""".trimIndent()
+  )
+}
 data class QueryActiveProductsByStatusArgs(
     val status: ProductStatus
 ) {
@@ -1697,6 +2024,72 @@ data class QueryDeliveryWorkerStatisticsArgs(
       args["deliveryWorkerId"] as kotlin.Long
   )
 }
+data class QueryFavoritePeriodStatsArgs(
+    val dateRange: DateRangeInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      DateRangeInput(args["dateRange"] as Map<String, Any>)
+  )
+}
+data class QueryFavoriteProductStatsArgs(
+    val productId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["productId"] as kotlin.Long
+  )
+}
+data class QueryFavoriteProductsArgs(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
+data class QueryFavoritesTrendArgs(
+    val days: kotlin.Int? = 30
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["days"] as kotlin.Int? ?: 30
+  )
+}
+data class QueryGetMessageDetailArgs(
+    val messageId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["messageId"] as kotlin.Long
+  )
+}
+data class QueryGetMessageHistoryArgs(
+    val page: CustomPageRequestInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["page"]?.let { CustomPageRequestInput(it as Map<String, Any>) }
+  )
+}
+data class QueryGetMessagesByTypeArgs(
+    val messageType: kotlin.String,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["messageType"] as kotlin.String,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
+data class QueryGetRecentMessagesArgs(
+    val limit: kotlin.Int? = 10,
+    val messageType: kotlin.String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["limit"] as kotlin.Int? ?: 10,
+      args["messageType"] as kotlin.String?
+  )
+}
 data class QueryIsInServiceAreaArgs(
     val latitude: kotlin.Float,
     val longitude: kotlin.Float
@@ -1704,6 +2097,27 @@ data class QueryIsInServiceAreaArgs(
   constructor(args: Map<String, Any>) : this(
       args["latitude"] as kotlin.Float,
       args["longitude"] as kotlin.Float
+  )
+}
+data class QueryIsNotificationEnabledArgs(
+    val messageType: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["messageType"] as kotlin.String
+  )
+}
+data class QueryIsProductFavoritedArgs(
+    val productId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["productId"] as kotlin.Long
+  )
+}
+data class QueryIsSubscribedToTopicArgs(
+    val topic: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["topic"] as kotlin.String
   )
 }
 data class QueryLowStockProductsArgs(
@@ -1719,6 +2133,13 @@ data class QueryMonthlyStatisticsArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       DateRangeInput(args["input"] as Map<String, Any>)
+  )
+}
+data class QueryMostFavoritedProductsArgs(
+    val limit: kotlin.Int? = 10
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["limit"] as kotlin.Int? ?: 10
   )
 }
 data class QueryMyPaymentTransactionsArgs(
@@ -2014,6 +2435,21 @@ data class QueryReviewsArgs(
       args["userId"] as kotlin.Long?
   )
 }
+data class QuerySearchMessagesArgs(
+    val dateFrom: java.time.LocalDateTime? = null,
+    val dateTo: java.time.LocalDateTime? = null,
+    val keyword: kotlin.String,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["dateFrom"] as java.time.LocalDateTime?,
+      args["dateTo"] as java.time.LocalDateTime?,
+      args["keyword"] as kotlin.String,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
 data class QuerySearchRegionsArgs(
     val keyword: kotlin.String,
     val level: kotlin.Int? = null
@@ -2057,6 +2493,21 @@ data class QueryUserAddressesArgs(
       args["userId"] as kotlin.Long?
   )
 }
+data class QueryUserFavoriteInsightsArgs(
+    val userId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["userId"] as kotlin.Long
+  )
+}
+data class QueryUserFavoritesWithDetailsArgs(
+    val input: AdminFavoriteListInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      AdminFavoriteListInput(args["input"] as Map<String, Any>)
+  )
+}
 data class QueryUserPaymentTransactionsArgs(
     val page: kotlin.Int? = 0,
     val size: kotlin.Int? = 20,
@@ -2076,6 +2527,14 @@ data class QueryUsersArgs(
       args["input"]?.let { UserListInput(it as Map<String, Any>) }
   )
 }
+data class QueryUsersWithFavoritesArgs(
+    val input: AdminFavoriteListInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      AdminFavoriteListInput(args["input"] as Map<String, Any>)
+  )
+}
 data class QueryValidateAddressArgs(
     val input: ValidateAddressInput
 ) {
@@ -2093,7 +2552,7 @@ data class QueryWeeklyStatisticsArgs(
   )
 }
 data class Query(
-    val activeProducts: Iterable<Product>,
+    val activeProducts: ProductPage,
     val activeProductsByStatus: Iterable<Product>,
     val address: Address?,
     val addresses: Iterable<Address>,
@@ -2117,10 +2576,29 @@ data class Query(
     val deliveryWorkerStatistics: DeliveryWorkerStatisticsResponse?,
     val deliveryWorkers: Iterable<DeliveryWorker>,
     val enabledDeliveryAreas: Iterable<DeliveryArea>,
+    val favoritePeriodStats: kotlin.collections.Map<String, Any>,
+    val favoriteProductStats: FavoriteProductStats?,
+    val favoriteProducts: FavoriteProductPage,
+    val favoritesCount: kotlin.Long,
+    val favoritesTrend: Iterable<FavoriteTrendData>,
+    val getDoNotDisturbSettings: DoNotDisturbSettings,
+    val getMessageDetail: ClientMessage?,
+    val getMessageHistory: MessageHistoryPage,
+    val getMessageStatistics: MessageStatistics,
+    val getMessageTypes: Iterable<MessageTypeInfo>,
+    val getMessagesByType: MessageHistoryPage,
+    val getRecentMessages: Iterable<ClientMessage>,
+    val getSubscribedTopics: Iterable<kotlin.String>,
+    val getUnreadMessageCount: kotlin.Int,
+    val getUserNotificationSettings: UserNotificationSettings,
     val isInServiceArea: ServiceAreaPayload?,
+    val isNotificationEnabled: kotlin.Boolean,
+    val isProductFavorited: kotlin.Boolean,
+    val isSubscribedToTopic: kotlin.Boolean,
     val lowStockProducts: Iterable<LowStockAlert>,
     val me: UserInfo?,
     val monthlyStatistics: Iterable<MonthlyStatistic>,
+    val mostFavoritedProducts: Iterable<ProductFavoriteCount>,
     val myPaymentTransactions: Iterable<UserPaymentTransaction>,
     val myRefundRequests: Iterable<RefundRequest>,
     val myReviews: Iterable<Review>,
@@ -2156,6 +2634,7 @@ data class Query(
     val regionByCoordinates: RegionCoordinatesPayload?,
     val regions: Iterable<Region>,
     val reviews: Iterable<Review>,
+    val searchMessages: MessageHistoryPage,
     val searchRegions: Iterable<Region>,
     val specificationStatistics: kotlin.collections.Map<String, Any>,
     val suspiciousTransactions: Iterable<SuspiciousTransaction>,
@@ -2163,8 +2642,12 @@ data class Query(
     val user: User?,
     val userAddresses: Iterable<Address>,
     val userDefaultAddress: Address?,
+    val userFavoriteAnalytics: UserFavoriteAnalytics,
+    val userFavoriteInsights: UserFavoriteInsights,
+    val userFavoritesWithDetails: UserFavoriteWithProductPage,
     val userPaymentTransactions: Iterable<PaymentTransaction>,
     val users: UserPage,
+    val usersWithFavorites: UserFavoriteSummaryPage,
     val validateAddress: kotlin.Boolean,
     val waterSourceStatistics: kotlin.collections.Map<String, Any>,
     val weeklyStatistics: Iterable<WeeklyStatistic>
@@ -2540,20 +3023,31 @@ data class UpdateDeliveryWorkerInput(
   )
 }
 
+data class UpdateNotificationSettingsInput(
+    val deliveryNotifications: kotlin.Boolean? = null,
+    val orderUpdates: kotlin.Boolean? = null,
+    val paymentNotifications: kotlin.Boolean? = null,
+    val promotionalNotifications: kotlin.Boolean? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["deliveryNotifications"] as kotlin.Boolean?,
+      args["orderUpdates"] as kotlin.Boolean?,
+      args["paymentNotifications"] as kotlin.Boolean?,
+      args["promotionalNotifications"] as kotlin.Boolean?
+  )
+}
+
 data class UpdateProductInput(
-    @field:Size(max = 2000, message = "证书图片URL长度不能超过2000个字符")
-    val certificateImages: kotlin.String? = null,
+    val certificateImages: tools.jackson.databind.node.ArrayNode? = null,
     @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
     val coverImageUrl: kotlin.String? = null,
-    @field:Size(max = 2000, message = "配送设置JSON长度不能超过2000个字符")
-    val deliverySettings: kotlin.String? = null,
+    val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
     @field:Min(value = 0, message = "押金不能小于0")
     @field:Max(value = 9999900, message = "押金不能大于99999元")
     val depositPrice: kotlin.Long? = null,
     @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
     val detailContent: kotlin.String? = null,
-    @field:Size(max = 2000, message = "图片画廊URL长度不能超过2000个字符")
-    val imageGallery: kotlin.String? = null,
+    val imageGallery: tools.jackson.databind.node.ArrayNode? = null,
     val isDeleted: kotlin.Boolean? = null,
     @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
     val mineralContent: kotlin.String? = null,
@@ -2563,9 +3057,6 @@ data class UpdateProductInput(
     @field:Min(value = 1, message = "原价不能小于1分")
     @field:Max(value = 9999900, message = "原价不能大于99999元")
     val originalPrice: kotlin.Long? = null,
-    @field:Min(value = 0, message = "PH值不能小于0")
-    @field:Max(value = 14, message = "PH值不能大于14")
-    val phValue: java.math.BigDecimal? = null,
     @field:Positive(message = "商品价格必须为正数")
     @field:Min(value = 1, message = "商品价格不能小于1分")
     @field:Max(value = 9999900, message = "商品价格不能大于99999元")
@@ -2583,23 +3074,21 @@ data class UpdateProductInput(
     val stock: kotlin.Int? = null,
     @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
     val subtitle: kotlin.String? = null,
-    @field:Size(max = 1000, message = "标签JSON长度不能超过1000个字符")
-    val tags: kotlin.String? = null,
+    val tags: tools.jackson.databind.node.ArrayNode? = null,
     @field:Size(max = 200, message = "水源地长度不能超过200个字符")
     val waterSource: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["certificateImages"] as kotlin.String?,
+      args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
       args["coverImageUrl"] as kotlin.String?,
-      args["deliverySettings"] as kotlin.String?,
+      args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
       args["depositPrice"] as kotlin.Long?,
       args["detailContent"] as kotlin.String?,
-      args["imageGallery"] as kotlin.String?,
+      args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
       args["isDeleted"] as kotlin.Boolean?,
       args["mineralContent"] as kotlin.String?,
       args["name"] as kotlin.String?,
       args["originalPrice"] as kotlin.Long?,
-      args["phValue"] as java.math.BigDecimal?,
       args["price"] as kotlin.Long?,
       args["salesVolume"] as kotlin.Int?,
       args["sortOrder"] as kotlin.Int?,
@@ -2607,7 +3096,7 @@ data class UpdateProductInput(
       args["status"] as ProductStatus?,
       args["stock"] as kotlin.Int?,
       args["subtitle"] as kotlin.String?,
-      args["tags"] as kotlin.String?,
+      args["tags"] as tools.jackson.databind.node.ArrayNode?,
       args["waterSource"] as kotlin.String?
   )
 }
@@ -2670,6 +3159,83 @@ data class User(
     val wechatOpenId: kotlin.String
 )
 
+enum class UserEngagementLevel(val label: String) {
+      HIGH("HIGH"),
+      LOW("LOW"),
+      MEDIUM("MEDIUM"),
+      VERY_HIGH("VERY_HIGH");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): UserEngagementLevel? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class UserFavorite(
+    val createdAt: java.time.LocalDateTime,
+    val id: kotlin.Long,
+    val product: Product,
+    val user: User
+)
+
+data class UserFavoriteAnalytics(
+    val activeUsersWithFavorites: kotlin.Long,
+    val averageFavoritesPerUser: kotlin.Float,
+    val favoritesTrend: Iterable<FavoriteTrendData>,
+    val mostFavoritedProducts: Iterable<ProductFavoriteCount>,
+    val newFavoritesThisMonth: kotlin.Long,
+    val newFavoritesThisWeek: kotlin.Long,
+    val newFavoritesToday: kotlin.Long,
+    val totalFavorites: kotlin.Long
+)
+
+data class UserFavoriteInsights(
+    val averageFavoritePrice: kotlin.Long,
+    val engagementLevel: UserEngagementLevel,
+    val favoriteCategories: Iterable<kotlin.String>,
+    val favoriteToOrderRate: kotlin.Float,
+    val lastActiveAt: java.time.LocalDateTime,
+    val totalFavorites: kotlin.Long,
+    val userId: kotlin.Long,
+    val userNickname: kotlin.String
+)
+
+data class UserFavoritePage(
+    val list: Iterable<UserFavorite>,
+    val pageInfo: PageInfo
+)
+
+data class UserFavoriteSummary(
+    val categories: Iterable<kotlin.String>,
+    val favoriteCount: kotlin.Long,
+    val lastFavoriteAdded: java.time.LocalDateTime?,
+    val mostFavoritedCategory: kotlin.String?,
+    val totalValueOfFavoritedProducts: kotlin.Long,
+    val user: User
+)
+
+data class UserFavoriteSummaryPage(
+    val list: Iterable<UserFavoriteSummary>,
+    val pageInfo: PageInfo
+)
+
+data class UserFavoriteWithProduct(
+    val createdAt: java.time.LocalDateTime,
+    val id: kotlin.Long,
+    val product: Product,
+    val productSalesVolume: kotlin.Int,
+    val productStatus: ProductStatus,
+    val productStock: kotlin.Int,
+    val user: User
+)
+
+data class UserFavoriteWithProductPage(
+    val list: Iterable<UserFavoriteWithProduct>,
+    val pageInfo: PageInfo
+)
+
 data class UserInfo(
     val avatarUrl: kotlin.String?,
     val createdAt: java.time.LocalDateTime,
@@ -2695,6 +3261,17 @@ data class UserListInput(
       args["status"] as UserStatus?
   )
 }
+
+data class UserNotificationSettings(
+    val createdAt: java.time.LocalDateTime,
+    val deliveryNotifications: kotlin.Boolean,
+    val id: kotlin.Long,
+    val orderUpdates: kotlin.Boolean,
+    val paymentNotifications: kotlin.Boolean,
+    val promotionalNotifications: kotlin.Boolean,
+    val updatedAt: java.time.LocalDateTime,
+    val userId: kotlin.Long
+)
 
 data class UserPage(
     val list: Iterable<User>,

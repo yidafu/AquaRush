@@ -69,7 +69,6 @@ class MessageHistoryServiceImpl(
           createdAt = message.createdAt,
           retryCount = message.retryCount,
           updatedAt = LocalDateTime.now(),
-          isDeleted = false,
         )
       messageHistoryRepository.save(updatedMessage)
     }
@@ -96,7 +95,6 @@ class MessageHistoryServiceImpl(
           createdAt = message.createdAt,
           retryCount = message.retryCount,
           updatedAt = LocalDateTime.now(),
-          isDeleted = false,
         )
       messageHistoryRepository.save(updatedMessage)
     }
@@ -120,7 +118,6 @@ class MessageHistoryServiceImpl(
           createdAt = message.createdAt,
           retryCount = message.retryCount,
           updatedAt = LocalDateTime.now(),
-          isDeleted = false,
         )
       messageHistoryRepository.save(updatedMessage)
     }
@@ -144,7 +141,6 @@ class MessageHistoryServiceImpl(
           createdAt = message.createdAt,
           retryCount = message.retryCount + 1,
           updatedAt = LocalDateTime.now(),
-          isDeleted = false,
         )
       messageHistoryRepository.save(updatedMessage)
     }

@@ -2,3 +2,4 @@ packages:
   - 'graphql-codegen-kotlin-validation'
   - 'frontend/common'
   - 'frontend/admin-client'
+  - 'frontend/user-weapp'

@@ -123,14 +123,8 @@ type Query {
   deliveryWorkerReviews(deliveryWorkerId: PrimaryId!, page: Int, size: Int): [Review!]!
 
   # Admin User Favorites Management - Admin only
-  userFavoriteAnalytics: UserFavoriteAnalytics!
-  mostFavoritedProducts(limit: Int = 10): [ProductFavoriteCount!]!
-  favoritesTrend(days: Int = 30): [FavoriteTrendData!]!
-  usersWithFavorites(input: AdminFavoriteListInput!): UserFavoriteSummaryPage!
-  userFavoritesWithDetails(input: AdminFavoriteListInput!): UserFavoriteWithProductPage!
-  userFavoriteInsights(userId: PrimaryId!): UserFavoriteInsights!
-  favoriteProductStats(productId: PrimaryId!): FavoriteProductStats
-  favoritePeriodStats(dateRange: DateRangeInput!): Map!
+  allProductsFavoriteStats: AllProductsFavoriteStats!
+  productsByFavorites(page: Int = 0, size: Int = 20, minFavorites: Int): ProductFavoritePage!
 }
 
 # Admin-specific Mutation Schema

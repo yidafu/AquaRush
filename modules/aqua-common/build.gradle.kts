@@ -1,5 +1,6 @@
 plugins {
   id("aqua.kotlin.spring")
+  id("aqua.kotlin.querydsl")
 }
 
 dependencies {
@@ -43,9 +44,16 @@ dependencies {
   implementation(libs.mapdb)
   testImplementation(libs.spring.boot.starter.test)
   implementation(libs.wechat.miniapp)
-  // QueryDSL for type-safe queries (temporarily disabled)
-  // implementation(libs.bundles.querydsl)
-  // annotationProcessor(libs.querydsl.apt)
+  // QueryDSL dependencies are handled by aqua.kotlin.querydsl plugin
+}
+
+// Configure QueryDSL
+val querydslDir = "$buildDir/generated/querydsl"
+
+querydsl {
+  jpa = true
+  hibernate = true
+  querydslSourcesDir = querydslDir
 }
 
 // Configure Kotlin compilation to include generated source

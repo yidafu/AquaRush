@@ -33,23 +33,27 @@ data class ProductFavoriteModel(
   val id: Long? = null,
 
   @Column(name = "user_id", nullable = false)
-  val userId: Long,
+  val userId: Long = -1,
 
   @Column(name = "product_id", nullable = false)
-  val productId: Long,
+  val productId: Long = -1,
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "product_id", insertable = false, updatable = false)
   val product: ProductModel? = null,
+
+  @Column(name = "enable", nullable = false)
+  val enable: Boolean = true,
 
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
 
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-@Column(name = "deleted_at")
+
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
 
   @Column(name = "deleted_by")
   override var deletedBy: Long? = null
-) : SoftDeletable {}
+) : SoftDeletable

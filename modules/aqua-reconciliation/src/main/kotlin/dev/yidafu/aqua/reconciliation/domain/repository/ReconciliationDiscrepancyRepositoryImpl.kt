@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
+import com.querydsl.jpa.impl.JPAQueryFactory
+import dev.yidafu.aqua.common.domain.model.QReconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import jakarta.persistence.EntityManager
@@ -35,6 +37,9 @@ import java.time.LocalDateTime
 class ReconciliationDiscrepancyRepositoryImpl(
   @PersistenceContext private val entityManager: EntityManager
 ) : ReconciliationDiscrepancyRepositoryCustom {
+  private val queryFactory: JPAQueryFactory by lazy {
+    JPAQueryFactory(entityManager)
+  }
 
   override fun countUnresolvedByTaskId(taskId: String): Long {
     val cb = entityManager.criteriaBuilder
@@ -100,29 +105,15 @@ class ReconciliationDiscrepancyRepositoryImpl(
   }
 
   override fun deleteResolvedBefore(beforeDate: LocalDateTime): Int {
-    val cb = entityManager.criteriaBuilder
-    val update: CriteriaUpdate<ReconciliationDiscrepancyModel> = cb.createCriteriaUpdate(ReconciliationDiscrepancyModel::class.java)
-    val root = update.from(ReconciliationDiscrepancyModel::class.java)
+    val qDiscrepancy = QReconciliationDiscrepancyModel.reconciliationDiscrepancyModel
 
-    // Create predicates for status = 'RESOLVED' AND resolvedAt < :beforeDate
-    val predicates = mutableListOf<Predicate>()
-
-    // status = 'RESOLVED' predicate
-    predicates.add(cb.equal(root.get<DiscrepancyStatus>("status"), DiscrepancyStatus.RESOLVED))
-
-    // resolvedAt < :beforeDate predicate
-    predicates.add(cb.lessThan(root.get<LocalDateTime>("resolvedAt"), beforeDate))
-
-    // Apply where clause with AND condition
-    update.where(*predicates.toTypedArray())
-
-    // For delete operations, we need to use a different approach with EntityManager
-    // Create a delete query using JPQL through EntityManager.createNativeQuery
-    val deleteQuery = entityManager.createNativeQuery(
-      "DELETE FROM reconciliation_discrepancies WHERE status = 'RESOLVED' AND resolved_at < :beforeDate"
-    )
-    deleteQuery.setParameter("beforeDate", beforeDate)
-
-    return deleteQuery.executeUpdate()
+    return queryFactory
+      .delete(qDiscrepancy)
+      .where(
+        qDiscrepancy.status.eq(DiscrepancyStatus.RESOLVED)
+          .and(qDiscrepancy.resolvedAt.lt(beforeDate))
+      )
+      .execute()
+      .toInt()
   }
 }

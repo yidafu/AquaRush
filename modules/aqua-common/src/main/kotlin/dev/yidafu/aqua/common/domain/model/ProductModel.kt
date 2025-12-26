@@ -44,13 +44,13 @@ open class  ProductModel(
   val id: Long = 0L,
 
   @Column(name = "name", nullable = false)
-  var name: String,
+  var name: String = "",
 
   @Column(name = "subtitle", length = 500)
   var subtitle: String? = null,
 
   @Column(name = "price_cents", nullable = false)
-  var price: Long,
+  var price: Long = 0,
 
   @Column(name = "original_price_cents")
   var originalPrice: Long? = null,
@@ -59,7 +59,7 @@ open class  ProductModel(
   var depositPrice: Long? = null,
 
   @Column(name = "thumbnail_url", nullable = false)
-  var coverImageUrl: String,
+  var coverImageUrl: String = "",
 
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "detail_images", columnDefinition = "json")
@@ -67,7 +67,7 @@ open class  ProductModel(
   var imageGallery: ArrayNode? = null,
 
   @Column(name = "specification", nullable = false, length = 100)
-  var specification: String,
+  var specification: String = "",
 
   @Column(name = "water_source", length = 200)
   var waterSource: String? = null,

@@ -22,7 +22,7 @@ package dev.yidafu.aqua.client.product.resolvers
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.product.service.UserFavoriteService
+import dev.yidafu.aqua.api.service.ProductFavoriteService
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -38,30 +38,30 @@ import org.springframework.transaction.annotation.Transactional
 @ClientService
 @Controller
 class ClientFavoriteMutationResolver(
-  private val userFavoriteService: UserFavoriteService,
+  private val productFavoriteService: ProductFavoriteService,
 ) {
   private val logger = LoggerFactory.getLogger(ClientFavoriteMutationResolver::class.java)
 
   /**
-   * 添加商品到收藏
+   * 切换商品收藏状态（如果已收藏则取消收藏，如果未收藏则添加收藏）
    */
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
   @Transactional
-  fun addToFavorites(
+  fun toggleProductFavorites(
     @Argument productId: Long,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): Boolean {
     return try {
-      userFavoriteService.addToFavorites(userPrincipal.id, productId)
-      logger.info("User ${userPrincipal.id} added product $productId to favorites")
-      true
+      val result = productFavoriteService.toggleFavorite(userPrincipal.id, productId)
+      logger.info("User ${userPrincipal.id} toggled favorite status for product $productId to: ${if (result) "ENABLED" else "DISABLED"}")
+      result
     } catch (e: BadRequestException) {
-      logger.warn("Failed to add to favorites: ${e.message}")
+      logger.warn("Failed to toggle favorite status: ${e.message}")
       throw e
     } catch (e: Exception) {
-      logger.error("Failed to add product $productId to favorites for user: ${userPrincipal.id}", e)
-      throw BadRequestException("添加收藏失败: ${e.message}")
+      logger.error("Failed to toggle favorite status for product $productId by user: ${userPrincipal.id}", e)
+      throw BadRequestException("切换收藏状态失败: ${e.message}")
     }
   }
 

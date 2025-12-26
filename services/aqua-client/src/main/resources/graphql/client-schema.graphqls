@@ -135,8 +135,7 @@ type Mutation {
   createReview(input: CreateReviewRequest!): Review!
 
   # Favorites mutations
-  addToFavorites(productId: PrimaryId!): Boolean!
-  removeFromFavorites(productId: PrimaryId!): Boolean!
+  toggleProductFavorites(productId: PrimaryId!): Boolean!
 
   # Notification mutations
   updateNotificationSettings(input: UpdateNotificationSettingsInput!): UserNotificationSettings!

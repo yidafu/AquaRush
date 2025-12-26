@@ -1,6 +1,7 @@
 plugins {
   id("aqua.spring.boot.library")
   alias(libs.plugins.mappie)
+  id("aqua.kotlin.querydsl")
 }
 
 dependencies {
@@ -20,15 +21,26 @@ dependencies {
   // Apache Commons CSV for export functionality
   implementation("org.apache.commons:commons-csv:1.10.0")
 
+  // Apache POI for Excel export functionality
+  implementation("org.apache.poi:poi:5.2.5")
+  implementation("org.apache.poi:poi-ooxml:5.2.5")
+
   // Mappie
   implementation(libs.mappie.api)
 
   // Hibernate Types for JSON support
 //  implementation("com.vladmihalcea:hibernate-types-60:2.21.1")
 
-  // QueryDSL for type-safe queries (temporarily disabled)
-  // implementation(libs.bundles.querydsl)
-  // annotationProcessor(libs.querydsl.apt)
+  // QueryDSL dependencies are handled by aqua.kotlin.querydsl plugin
+}
+
+// Configure QueryDSL
+val querydslDir = "$buildDir/generated/querydsl"
+
+querydsl {
+  jpa = true
+  hibernate = true
+  querydslSourcesDir = querydslDir
 }
 
 // Configure Kotlin compilation to include generated source

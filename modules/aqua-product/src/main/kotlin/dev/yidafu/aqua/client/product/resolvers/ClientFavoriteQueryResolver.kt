@@ -19,15 +19,14 @@
 
 package dev.yidafu.aqua.client.product.resolvers
 
+import dev.yidafu.aqua.api.service.ProductFavoriteService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.FavoriteProduct
 import dev.yidafu.aqua.common.graphql.generated.FavoriteProductPage
 import dev.yidafu.aqua.common.graphql.generated.PageInfo
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.product.service.UserFavoriteService
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -42,7 +41,7 @@ import org.springframework.stereotype.Controller
 @ClientService
 @Controller
 class ClientFavoriteQueryResolver(
-  private val userFavoriteService: UserFavoriteService,
+  private val productFavoriteService: ProductFavoriteService,
 ) {
   private val logger = LoggerFactory.getLogger(ClientFavoriteQueryResolver::class.java)
 
@@ -58,10 +57,10 @@ class ClientFavoriteQueryResolver(
   ): FavoriteProductPage {
     return try {
       val pageable = PageRequest.of(page, size)
-      val productPage = userFavoriteService.getFavoriteProducts(userPrincipal.id, pageable)
+      val productPage = productFavoriteService.getFavoriteProducts(userPrincipal.id, pageable)
 
       // Get user's favorite entities to get creation dates
-      val favoriteEntities = userFavoriteService.getUserFavoriteEntities(userPrincipal.id, pageable)
+      val favoriteEntities = productFavoriteService.getUserFavoriteEntities(userPrincipal.id, pageable)
 
       // Create map of product ID to creation date
       val favoriteMap = favoriteEntities.content.associateBy({ it.productId }, { it.createdAt })
@@ -97,7 +96,7 @@ class ClientFavoriteQueryResolver(
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): Boolean {
     return try {
-      userFavoriteService.isProductFavorited(userPrincipal.id, productId)
+      productFavoriteService.isProductFavorited(userPrincipal.id, productId)
     } catch (e: Exception) {
       logger.error("Failed to check favorite status for user: ${userPrincipal.id}, product: $productId", e)
       false
@@ -113,7 +112,7 @@ class ClientFavoriteQueryResolver(
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): Long {
     return try {
-      userFavoriteService.getFavoritesCount(userPrincipal.id)
+      productFavoriteService.getFavoritesCount(userPrincipal.id)
     } catch (e: Exception) {
       logger.error("Failed to get favorites count for user: ${userPrincipal.id}", e)
       0L
