@@ -1,6 +1,7 @@
 plugins {
   id("aqua.spring.boot.library")
   alias(libs.plugins.mappie)
+  id("aqua.kotlin.querydsl")
 }
 
 dependencies {
@@ -25,10 +26,15 @@ dependencies {
 
   // Mappie
   implementation(libs.mappie.api)
+}
 
-  // QueryDSL for type-safe queries (temporarily disabled)
-  // implementation(libs.bundles.querydsl)
-  // annotationProcessor(libs.querydsl.apt)
+// Configure QueryDSL
+val querydslDir = "$buildDir/generated/querydsl"
+
+querydsl {
+  jpa = true
+  hibernate = true
+  querydslSourcesDir = querydslDir
 }
 
 // Configure Kotlin compilation to include generated source

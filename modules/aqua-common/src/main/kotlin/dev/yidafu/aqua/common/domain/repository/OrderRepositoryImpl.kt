@@ -19,233 +19,167 @@
 
 package dev.yidafu.aqua.common.domain.repository
 
+import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
-import dev.yidafu.aqua.common.domain.model.QOrderModel
+import dev.yidafu.aqua.common.domain.model.QOrderModel.orderModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.util.*
 
 /**
- * Enhanced OrderRepository implementation with modern Spring Data JPA 3.0+ features
+ * Enhanced OrderRepository implementation using QueryDSL
  * Provides type-safe complex queries for order management
  */
 @Repository
-class OrderRepositoryImpl(
-  @PersistenceContext private val entityManager: EntityManager,
-) {
+class OrderRepositoryImpl : OrderRepositoryCustom {
+
+  @PersistenceContext
+  private lateinit var entityManager: EntityManager
+
   private val queryFactory: JPAQueryFactory by lazy {
     JPAQueryFactory(entityManager)
   }
-  /**
-   * Find orders with complex filtering criteria
-   * Demonstrates flexible query building with multiple conditions
-   */
-  fun findOrdersWithFilters(
-    userId: Long? = null,
-    status: OrderStatus? = null,
-    deliveryWorkerId: Long? = null,
-    startDate: LocalDateTime? = null,
-    endDate: LocalDateTime? = null,
-    orderNumber: String? = null,
-    statuses: List<OrderStatus>? = null,
+  override fun findOrdersWithFilters(
+    userId: Long?,
+    status: OrderStatus?,
+    deliveryWorkerId: Long?,
+    startDate: LocalDateTime?,
+    endDate: LocalDateTime?,
+    orderNumber: String?,
+    statuses: List<OrderStatus>?,
   ): List<OrderModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(OrderModel::class.java)
-    val root = query.from(OrderModel::class.java)
+    val builder = BooleanBuilder()
 
-    val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
-
-    userId?.let {
-      predicates.add(cb.equal(root.get<Long>("userId"), it))
-    }
-
-    status?.let {
-      predicates.add(cb.equal(root.get<OrderStatus>("status"), it))
-    }
-
-    deliveryWorkerId?.let {
-      predicates.add(cb.equal(root.get<Long>("deliveryWorkerId"), it))
-    }
-
-    orderNumber?.let {
-      predicates.add(cb.equal(root.get<String>("orderNumber"), it))
-    }
-
-    statuses?.let { statusList ->
-      predicates.add(root.get<OrderStatus>("status").`in`(statusList))
-    }
-
+    userId?.let { builder.and(orderModel.userId.eq(it)) }
+    status?.let { builder.and(orderModel.status.eq(it)) }
+    deliveryWorkerId?.let { builder.and(orderModel.deliveryWorkerId.eq(it)) }
+    orderNumber?.let { builder.and(orderModel.orderNumber.eq(it)) }
+    statuses?.let { builder.and(orderModel.status.`in`(it)) }
     startDate?.let { start ->
       endDate?.let { end ->
-        predicates.add(cb.between(root.get<LocalDateTime>("createdAt"), start, end))
+        builder.and(orderModel.createdAt.between(start, end))
       }
     }
 
-    if (predicates.isNotEmpty()) {
-      query.where(cb.and(*predicates.toTypedArray()))
-    }
-
-    query.orderBy(cb.desc(root.get<LocalDateTime>("createdAt")))
-    return entityManager.createQuery(query).resultList
+    return queryFactory.selectFrom(orderModel)
+      .where(builder)
+      .orderBy(orderModel.createdAt.desc())
+      .fetch()
   }
 
-  /**
-   * Find orders for a delivery worker with specific status and date range
-   * Combines multiple conditions efficiently
-   */
-  fun findDeliveryWorkerOrdersWithFilters(
+  override fun findDeliveryWorkerOrdersWithFilters(
     deliveryWorkerId: Long,
     status: OrderStatus,
-    startDate: LocalDateTime? = null,
-    endDate: LocalDateTime? = null,
-    limit: Int? = null,
+    startDate: LocalDateTime?,
+    endDate: LocalDateTime?,
+    limit: Int?,
   ): List<OrderModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(OrderModel::class.java)
-    val root = query.from(OrderModel::class.java)
-
-    val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
-
-    predicates.add(cb.equal(root.get<Long>("deliveryWorkerId"), deliveryWorkerId))
-    predicates.add(cb.equal(root.get<OrderStatus>("status"), status))
+    var query = queryFactory.selectFrom(orderModel)
+      .where(
+        orderModel.deliveryWorkerId.eq(deliveryWorkerId)
+          .and(orderModel.status.eq(status))
+      )
 
     startDate?.let { start ->
       endDate?.let { end ->
-        predicates.add(cb.between(root.get<LocalDateTime>("createdAt"), start, end))
+        query = query.where(orderModel.createdAt.between(start, end))
       }
     }
 
-    if (predicates.isNotEmpty()) {
-      query.where(cb.and(*predicates.toTypedArray()))
-    }
+    var result = query.orderBy(orderModel.createdAt.desc())
 
-    query.orderBy(cb.desc(root.get<LocalDateTime>("createdAt")))
-
-    val typedQuery = entityManager.createQuery(query)
     limit?.let {
-      typedQuery.maxResults = it
+      result = result.limit(it.toLong())
     }
 
-    return typedQuery.resultList
+    return result.fetch()
   }
 
-  /**
-   * Count orders by multiple criteria for reporting
-   */
-  fun countOrdersWithFilters(
-    userId: Long? = null,
-    status: OrderStatus? = null,
-    deliveryWorkerId: Long? = null,
-    startDate: LocalDateTime? = null,
-    endDate: LocalDateTime? = null,
-    statuses: List<OrderStatus>? = null,
+  override fun countOrdersWithFilters(
+    userId: Long?,
+    status: OrderStatus?,
+    deliveryWorkerId: Long?,
+    startDate: LocalDateTime?,
+    endDate: LocalDateTime?,
+    statuses: List<OrderStatus>?,
   ): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(OrderModel::class.java)
+    val builder = BooleanBuilder()
 
-    val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
-
-    userId?.let {
-      predicates.add(cb.equal(root.get<Long>("userId"), it))
-    }
-
-    status?.let {
-      predicates.add(cb.equal(root.get<OrderStatus>("status"), it))
-    }
-
-    deliveryWorkerId?.let {
-      predicates.add(cb.equal(root.get<Long>("deliveryWorkerId"), it))
-    }
-
-    statuses?.let { statusList ->
-      predicates.add(root.get<OrderStatus>("status").`in`(statusList))
-    }
-
+    userId?.let { builder.and(orderModel.userId.eq(it)) }
+    status?.let { builder.and(orderModel.status.eq(it)) }
+    deliveryWorkerId?.let { builder.and(orderModel.deliveryWorkerId.eq(it)) }
+    statuses?.let { builder.and(orderModel.status.`in`(it)) }
     startDate?.let { start ->
       endDate?.let { end ->
-        predicates.add(cb.between(root.get<LocalDateTime>("createdAt"), start, end))
+        builder.and(orderModel.createdAt.between(start, end))
       }
     }
 
-    if (predicates.isNotEmpty()) {
-      query.where(cb.and(*predicates.toTypedArray()))
-    }
-
-    query.select(cb.count(root))
-    return entityManager.createQuery(query).singleResult ?: 0L
+    return queryFactory.query()
+      .from(orderModel)
+      .where(builder)
+      .fetchCount()
   }
 
-  /**
-   * Bulk update order status for efficient operations
-   */
-  fun bulkUpdateOrderStatus(
+  @Transactional
+  override fun bulkUpdateOrderStatus(
     orderIds: List<Long>,
     newStatus: OrderStatus,
-    deliveryWorkerId: Long? = null,
+    deliveryWorkerId: Long?,
   ): Int {
-    val cb = entityManager.criteriaBuilder
-    val update = cb.createCriteriaUpdate(OrderModel::class.java)
-    val root = update.root
-
-    val idPredicate = root.get<Long>("id").`in`(orderIds)
-    update.set(root.get<OrderStatus>("status"), newStatus)
+    var update = queryFactory.update(orderModel)
+      .set(orderModel.status, newStatus)
+      .where(orderModel.id.`in`(orderIds))
 
     deliveryWorkerId?.let {
-      update.set(root.get<Long>("deliveryWorkerId"), it)
+      update = update.set(orderModel.deliveryWorkerId, it)
     }
 
-    update.where(idPredicate)
-    return entityManager.createQuery(update).executeUpdate()
+    return update.execute().toInt()
   }
 
-  /**
-   * QueryDSL implementation for complex order analytics
-   */
-  fun getOrderAnalytics(
+  override fun getOrderAnalytics(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): List<OrderAnalyticsRow> {
-    val qOrder = QOrderModel.orderModel
-
     // Create date expression for PostgreSQL DATE() function
     val dateExpr = Expressions.dateTemplate(
       java.time.LocalDate::class.java,
       "DATE({0})",
-      qOrder.createdAt
+      orderModel.createdAt
     )
 
     val results = queryFactory
       .select(
         dateExpr,
-        qOrder.status,
-        qOrder.count(),
-        qOrder.amountCents.sum().coalesce(0L),
-        qOrder.amountCents.avg().coalesce(0.0),
-        qOrder.userId.countDistinct(),
-        qOrder.deliveryWorkerId.countDistinct()
+        orderModel.status,
+        orderModel.count(),
+        orderModel.amountCents.sum().coalesce(0L),
+        orderModel.amountCents.avg().coalesce(0.0),
+        orderModel.userId.countDistinct(),
+        orderModel.deliveryWorkerId.countDistinct()
       )
-      .from(qOrder)
-      .where(qOrder.createdAt.between(startDate, endDate))
-      .groupBy(dateExpr, qOrder.status)
-      .orderBy(dateExpr.desc(), qOrder.status.asc())
+      .from(orderModel)
+      .where(orderModel.createdAt.between(startDate, endDate))
+      .groupBy(dateExpr, orderModel.status)
+      .orderBy(dateExpr.desc(), orderModel.status.asc())
       .fetch()
 
     return results.map { tuple ->
       OrderAnalyticsRow(
         orderDate = tuple.get(dateExpr) ?: java.time.LocalDate.now(),
-        status = tuple.get(qOrder.status) ?: OrderStatus.PENDING_PAYMENT,
-        orderCount = tuple.get(qOrder.count()) ?: 0L,
+        status = tuple.get(orderModel.status) ?: OrderStatus.PENDING_PAYMENT,
+        orderCount = tuple.get(orderModel.count()) ?: 0L,
         // Convert from cents to yuan (divide by 100)
-        totalRevenue = (tuple.get(qOrder.amountCents.sum()) ?: 0L).toDouble() / 100.0,
-        averageOrderValue = (tuple.get(qOrder.amountCents.avg()) ?: 0.0) / 100.0,
-        uniqueCustomers = tuple.get(qOrder.userId.countDistinct()) ?: 0L,
-        activeWorkers = tuple.get(qOrder.deliveryWorkerId.countDistinct()) ?: 0L
+        totalRevenue = (tuple.get(orderModel.amountCents.sum()) ?: 0L).toDouble() / 100.0,
+        averageOrderValue = (tuple.get(orderModel.amountCents.avg()) ?: 0.0) / 100.0,
+        uniqueCustomers = tuple.get(orderModel.userId.countDistinct()) ?: 0L,
+        activeWorkers = tuple.get(orderModel.deliveryWorkerId.countDistinct()) ?: 0L
       )
     }
   }
@@ -263,3 +197,43 @@ data class OrderAnalyticsRow(
   val uniqueCustomers: Long,
   val activeWorkers: Long,
 )
+
+interface OrderRepositoryCustom {
+  fun findOrdersWithFilters(
+    userId: Long?,
+    status: OrderStatus?,
+    deliveryWorkerId: Long?,
+    startDate: LocalDateTime?,
+    endDate: LocalDateTime?,
+    orderNumber: String?,
+    statuses: List<OrderStatus>?,
+  ): List<OrderModel>
+
+  fun findDeliveryWorkerOrdersWithFilters(
+    deliveryWorkerId: Long,
+    status: OrderStatus,
+    startDate: LocalDateTime?,
+    endDate: LocalDateTime?,
+    limit: Int?,
+  ): List<OrderModel>
+
+  fun countOrdersWithFilters(
+    userId: Long?,
+    status: OrderStatus?,
+    deliveryWorkerId: Long?,
+    startDate: LocalDateTime?,
+    endDate: LocalDateTime?,
+    statuses: List<OrderStatus>?,
+  ): Long
+
+  fun bulkUpdateOrderStatus(
+    orderIds: List<Long>,
+    newStatus: OrderStatus,
+    deliveryWorkerId: Long?,
+  ): Int
+
+  fun getOrderAnalytics(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<OrderAnalyticsRow>
+}

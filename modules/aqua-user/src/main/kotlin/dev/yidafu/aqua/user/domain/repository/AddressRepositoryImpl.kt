@@ -19,32 +19,35 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
+import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.AddressModel
+import dev.yidafu.aqua.common.domain.model.QAddressModel.addressModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import kotlin.math.*
 
 /**
- * Custom repository implementation for Address entity using type-safe queries
+ * Custom repository implementation for Address entity using QueryDSL
  */
 @Repository
-class AddressRepositoryImpl(
-  @PersistenceContext private val entityManager: EntityManager
-) : AddressRepositoryCustom {
+class AddressRepositoryImpl : AddressRepositoryCustom {
 
+  @PersistenceContext
+  private lateinit var entityManager: EntityManager
+
+  private val queryFactory: JPAQueryFactory by lazy {
+    JPAQueryFactory(entityManager)
+  }
+
+  @Transactional
   override fun clearDefaultAddresses(userId: Long): Int {
-    val cb = entityManager.criteriaBuilder
-    val update = cb.createCriteriaUpdate(AddressModel::class.java)
-    val root = update.from(AddressModel::class.java)
-
-    // Set isDefault to false
-    update.set("isDefault", false)
-
-    // Where userId matches
-    update.where(cb.equal(root.get<Long>("userId"), userId))
-
-    return entityManager.createQuery(update).executeUpdate()
+    return queryFactory.update(addressModel)
+      .set(addressModel.isDefault, false)
+      .where(addressModel.userId.eq(userId))
+      .execute()
+      .toInt()
   }
 
   override fun findNearby(
@@ -53,6 +56,7 @@ class AddressRepositoryImpl(
     radiusKm: Double
   ): List<AddressModel> {
     // Haversine formula for calculating distance
+    // Keep native query for geospatial calculations (more efficient)
     val haversineFormula = """
       (6371 * acos(
         cos(radians(:latitude)) * cos(radians(a.latitude)) *
@@ -85,42 +89,17 @@ class AddressRepositoryImpl(
     userId: Long,
     keyword: String
   ): List<AddressModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(AddressModel::class.java)
-    val root = query.from(AddressModel::class.java)
+    val lowerKeyword = keyword.lowercase()
 
-    // Create predicates for search
-    val predicates = mutableListOf(
-      cb.equal(root.get<Long>("userId"), userId),
-      cb.like(
-        cb.lower(root.get("province")),
-        cb.lower(cb.literal("%$keyword%"))
-      ),
-      cb.like(
-        cb.lower(root.get("city")),
-        cb.lower(cb.literal("%$keyword%"))
-      ),
-      cb.like(
-        cb.lower(root.get("district")),
-        cb.lower(cb.literal("%$keyword%"))
-      ),
-      cb.like(
-        cb.lower(root.get("detailAddress")),
-        cb.lower(cb.literal("%$keyword%"))
+    return queryFactory.selectFrom(addressModel)
+      .where(
+        addressModel.userId.eq(userId).and(
+          addressModel.province.lower().like("%$lowerKeyword%")
+            .or(addressModel.city.lower().like("%$lowerKeyword%"))
+            .or(addressModel.district.lower().like("%$lowerKeyword%"))
+            .or(addressModel.detailAddress.lower().like("%$lowerKeyword%"))
+        )
       )
-    )
-
-    // Combine keyword search with OR
-    val keywordPredicate = cb.or(
-      predicates[1], predicates[2], predicates[3], predicates[4]
-    )
-
-    // Final where clause: userId AND (province OR city OR district OR detailAddress contains keyword)
-    query.where(
-      predicates[0], // userId = :userId
-      keywordPredicate
-    )
-
-    return entityManager.createQuery(query).resultList
+      .fetch()
   }
 }

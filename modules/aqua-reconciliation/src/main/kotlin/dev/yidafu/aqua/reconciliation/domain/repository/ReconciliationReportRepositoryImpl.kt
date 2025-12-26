@@ -19,78 +19,51 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
+import com.querydsl.jpa.impl.JPAQueryFactory
+import dev.yidafu.aqua.common.domain.model.QReconciliationReportModel.reconciliationReportModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import jakarta.persistence.criteria.Predicate
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 /**
- * Custom repository implementation for ReconciliationReport entity using type-safe queries
+ * Custom repository implementation for ReconciliationReport entity using QueryDSL
  */
 @Repository
-class ReconciliationReportRepositoryImpl(
-  @PersistenceContext private val entityManager: EntityManager
-) : ReconciliationReportRepositoryCustom {
+class ReconciliationReportRepositoryImpl : ReconciliationReportRepositoryCustom {
 
-  override fun findByGeneratedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationReportModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(ReconciliationReportModel::class.java)
-    val root = query.from(ReconciliationReportModel::class.java)
+  @PersistenceContext
+  private lateinit var entityManager: EntityManager
 
-    // Create predicate for generatedAt BETWEEN startDate AND endDate
-    query.where(cb.between(root.get<LocalDateTime>("generatedAt"), startDate, endDate))
-
-    // Order by generatedAt DESC
-    query.orderBy(cb.desc(root.get<LocalDateTime>("generatedAt")))
-
-    // Execute query and return results
-    return entityManager.createQuery(query).resultList
+  private val queryFactory: JPAQueryFactory by lazy {
+    JPAQueryFactory(entityManager)
   }
 
+  override fun findByGeneratedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationReportModel> {
+    return queryFactory.selectFrom(reconciliationReportModel)
+      .where(reconciliationReportModel.generatedAt.between(startDate, endDate))
+      .orderBy(reconciliationReportModel.generatedAt.desc())
+      .fetch()
+  }
+
+  @Transactional
   override fun deleteReportsBefore(beforeDate: LocalDateTime): Int {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(ReconciliationReportModel::class.java)
-    val root = query.from(ReconciliationReportModel::class.java)
-
-    // Create predicate for generatedAt < :beforeDate
-    query.where(cb.lessThan(root.get<LocalDateTime>("generatedAt"), beforeDate))
-
-    // Find all reports before the date
-    val reportsToDelete = entityManager.createQuery(query).resultList
-
-    // Delete each report individually
-    var deletedCount = 0
-    reportsToDelete.forEach { report ->
-      entityManager.remove(report)
-      deletedCount++
-    }
-
-    return deletedCount
+    // Use bulk delete for better performance
+    return queryFactory.delete(reconciliationReportModel)
+      .where(reconciliationReportModel.generatedAt.lt(beforeDate))
+      .execute()
+      .toInt()
   }
 
   override fun countByTaskIdAndReportType(taskId: String, reportType: String): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(ReconciliationReportModel::class.java)
-
-    // Create count query
-    query.select(cb.count(root))
-
-    // Create predicates for taskId and reportType
-    val predicates = mutableListOf<Predicate>()
-
-    // taskId = :taskId predicate
-    predicates.add(cb.equal(root.get<String>("taskId"), taskId))
-
-    // reportType = :reportType predicate
-    predicates.add(cb.equal(root.get<String>("reportType"), reportType))
-
-    // Apply where clause with AND condition
-    query.where(*predicates.toTypedArray())
-
-    // Execute count query and return result
-    return entityManager.createQuery(query).singleResult
+    return queryFactory.query()
+      .from(reconciliationReportModel)
+      .where(
+        reconciliationReportModel.taskId.eq(taskId)
+          .and(reconciliationReportModel.reportType.eq(reportType))
+      )
+      .fetchCount()
   }
 }

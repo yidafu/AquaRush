@@ -19,74 +19,53 @@
 
 package dev.yidafu.aqua.notice.domain.repository
 
+import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.MessageHistoryModel
 import dev.yidafu.aqua.common.domain.model.MessageStatus
+import dev.yidafu.aqua.common.domain.model.QMessageHistoryModel.messageHistoryModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import jakarta.persistence.criteria.Predicate
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 import java.util.*
 
 /**
- * Custom repository implementation for MessageHistory entity using type-safe queries
+ * Custom repository implementation for MessageHistory entity using QueryDSL
  */
 @Repository
-class MessageHistoryRepositoryImpl(
-  @PersistenceContext private val entityManager: EntityManager,
-) : MessageHistoryRepositoryCustom {
+class MessageHistoryRepositoryImpl : MessageHistoryRepositoryCustom {
+
+  @PersistenceContext
+  private lateinit var entityManager: EntityManager
+
+  private val queryFactory: JPAQueryFactory by lazy {
+    JPAQueryFactory(entityManager)
+  }
+
   override fun countByUserIdAndStatus(
     userId: Long,
     status: MessageStatus,
   ): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(MessageHistoryModel::class.java)
-
-    // Create count query
-    query.select(cb.count(root))
-
-    // Create predicates for userId and status
-    val predicates = mutableListOf<Predicate>()
-
-    // userId = :userId predicate
-    predicates.add(cb.equal(root.get<Long>("userId"), userId))
-
-    // status = :status predicate
-    predicates.add(cb.equal(root.get<MessageStatus>("status"), status))
-
-    // Apply where clause with AND condition
-    query.where(*predicates.toTypedArray())
-
-    // Execute count query and return result
-    return entityManager.createQuery(query).singleResult
+    return queryFactory.query()
+      .from(messageHistoryModel)
+      .where(
+        messageHistoryModel.userId.eq(userId)
+          .and(messageHistoryModel.status.eq(status))
+      )
+      .fetchCount()
   }
 
   override fun countByMessageTypeSince(
     messageType: String,
     since: LocalDateTime,
   ): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(MessageHistoryModel::class.java)
-
-    // Create count query
-    query.select(cb.count(root))
-
-    // Create predicates for messageType and createdAt >= since
-    val predicates = mutableListOf<Predicate>()
-
-    // messageType = :messageType predicate
-    predicates.add(cb.equal(root.get<String>("messageType"), messageType))
-
-    // createdAt >= :since predicate
-    predicates.add(cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), since))
-
-    // Apply where clause with AND condition
-    query.where(*predicates.toTypedArray())
-
-    // Execute count query and return result
-    return entityManager.createQuery(query).singleResult
+    return queryFactory.query()
+      .from(messageHistoryModel)
+      .where(
+        messageHistoryModel.messageType.eq(messageType)
+          .and(messageHistoryModel.createdAt.goe(since))
+      )
+      .fetchCount()
   }
 
   override fun findByStatusAndRetryCountLessThanAndCreatedAtBefore(
@@ -94,45 +73,21 @@ class MessageHistoryRepositoryImpl(
     retryCount: Int,
     before: LocalDateTime,
   ): List<MessageHistoryModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(MessageHistoryModel::class.java)
-    val root = query.from(MessageHistoryModel::class.java)
-
-    // Create predicates for status, retryCount, and createdAt
-    val predicates = mutableListOf<Predicate>()
-
-    // status = :status predicate
-    predicates.add(cb.equal(root.get<MessageStatus>("status"), status))
-
-    // retryCount < :retryCount predicate
-    predicates.add(cb.lessThan(root.get<Int>("retryCount"), retryCount))
-
-    // createdAt < :before predicate
-    predicates.add(cb.lessThan(root.get<LocalDateTime>("createdAt"), before))
-
-    // Apply where clause with AND condition
-    query.where(*predicates.toTypedArray())
-
-    // Order by creation time (oldest first)
-    query.orderBy(cb.asc(root.get<LocalDateTime>("createdAt")))
-
-    return entityManager.createQuery(query).resultList
+    return queryFactory.selectFrom(messageHistoryModel)
+      .where(
+        messageHistoryModel.status.eq(status)
+          .and(messageHistoryModel.retryCount.lt(retryCount))
+          .and(messageHistoryModel.createdAt.lt(before))
+      )
+      .orderBy(messageHistoryModel.createdAt.asc())
+      .fetch()
   }
 
   override fun findByWxMessageId(wxMessageId: String): Optional<MessageHistoryModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(MessageHistoryModel::class.java)
-    val root = query.from(MessageHistoryModel::class.java)
+    val result = queryFactory.selectFrom(messageHistoryModel)
+      .where(messageHistoryModel.wxMessageId.eq(wxMessageId))
+      .fetchFirst()
 
-    // Create predicate for wxMessageId
-    query.where(cb.equal(root.get<String>("wxMessageId"), wxMessageId))
-
-    // Execute query and return optional result
-    val results = entityManager.createQuery(query).resultList
-    return if (results.isEmpty()) {
-      Optional.empty()
-    } else {
-      Optional.of(results.first())
-    }
+    return Optional.ofNullable(result)
   }
 }

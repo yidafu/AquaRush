@@ -19,11 +19,11 @@
 
 package dev.yidafu.aqua.review.domain.repository
 
+import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
+import dev.yidafu.aqua.common.domain.model.QDeliveryWorkerStatisticsModel.deliveryWorkerStatisticsModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import jakarta.persistence.criteria.Order
-import jakarta.persistence.criteria.Predicate
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -32,62 +32,41 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 /**
- * Custom repository implementation for DeliveryWorkerStatistics entity using type-safe queries
+ * Custom repository implementation for DeliveryWorkerStatistics entity using QueryDSL
  */
 @Repository
-class DeliveryWorkerStatisticsRepositoryImpl(
-  @PersistenceContext private val entityManager: EntityManager,
-) : DeliveryWorkerStatisticsRepositoryCustom {
+class DeliveryWorkerStatisticsRepositoryImpl : DeliveryWorkerStatisticsRepositoryCustom {
+
+  @PersistenceContext
+  private lateinit var entityManager: EntityManager
+
+  private val queryFactory: JPAQueryFactory by lazy {
+    JPAQueryFactory(entityManager)
+  }
+
   override fun findDeliveryWorkersRanking(
     sortBy: String,
     minReviews: Int,
     pageable: Pageable,
   ): Page<DeliveryWorkerStatisticsModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(DeliveryWorkerStatisticsModel::class.java)
-    val root = query.from(DeliveryWorkerStatisticsModel::class.java)
+    // Count query
+    val total = queryFactory.query()
+      .from(deliveryWorkerStatisticsModel)
+      .where(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
+      .fetchCount()
 
-    // Create predicate for minimum reviews
-    val predicates = mutableListOf<Predicate>()
-    predicates.add(cb.greaterThanOrEqualTo(root.get<Int>("totalReviews"), minReviews))
+    // Main query with dynamic sorting
+    val primarySort = when (sortBy.lowercase()) {
+      "reviews" -> deliveryWorkerStatisticsModel.totalReviews.desc()
+      else -> deliveryWorkerStatisticsModel.averageRating.desc() // default to rating
+    }
 
-    // Apply where clause
-    query.where(*predicates.toTypedArray())
-
-    // Create dynamic sorting
-    val orders = mutableListOf<Order>()
-
-    // Add primary sorting based on sortBy parameter
-    @Suppress("UNCHECKED_CAST")
-    val sortExpression =
-      when (sortBy.lowercase()) {
-        "reviews" -> root.get<Int>("totalReviews")
-        "rating" -> root.get<BigDecimal>("averageRating")
-        else -> root.get<BigDecimal>("averageRating") // default to rating
-      } as jakarta.persistence.criteria.Expression<Any>
-    orders.add(cb.desc(sortExpression))
-
-    // Add secondary sorting by lastUpdated
-    orders.add(cb.desc(root.get<LocalDateTime>("lastUpdated")))
-
-    // Apply ordering
-    query.orderBy(orders)
-
-    // Create count query for pagination
-    val countQuery = cb.createQuery(Long::class.java)
-    val countRoot = countQuery.from(DeliveryWorkerStatisticsModel::class.java)
-    countQuery.select(cb.count(countRoot))
-    countQuery.where(cb.greaterThanOrEqualTo(countRoot.get<Int>("totalReviews"), minReviews))
-
-    // Execute queries
-    val typedQuery = entityManager.createQuery(query)
-    val countTypedQuery = entityManager.createQuery(countQuery)
-
-    // Apply pagination
-    val total = countTypedQuery.singleResult
-    typedQuery.firstResult = pageable.pageNumber * pageable.pageSize
-    typedQuery.maxResults = pageable.pageSize
-    val results = typedQuery.resultList
+    val results = queryFactory.selectFrom(deliveryWorkerStatisticsModel)
+      .where(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
+      .orderBy(primarySort, deliveryWorkerStatisticsModel.lastUpdated.desc())
+      .offset(pageable.offset)
+      .limit(pageable.pageSize.toLong())
+      .fetch()
 
     return PageImpl(results, pageable, total)
   }
@@ -100,66 +79,36 @@ class DeliveryWorkerStatisticsRepositoryImpl(
     sortBy: String,
     pageable: Pageable,
   ): Page<DeliveryWorkerStatisticsModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(DeliveryWorkerStatisticsModel::class.java)
-    val root = query.from(DeliveryWorkerStatisticsModel::class.java)
+    val minRatingBg = BigDecimal.valueOf(minRating)
+    val maxRatingBg = BigDecimal.valueOf(maxRating)
 
-    // Create predicates for rating range and review count
-    val predicates = mutableListOf<Predicate>()
+    // Build predicates
+    var basePredicate = deliveryWorkerStatisticsModel.averageRating.goe(minRatingBg)
+      .and(deliveryWorkerStatisticsModel.averageRating.loe(maxRatingBg))
+      .and(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
 
-    // Rating range predicates
-    predicates.add(cb.greaterThanOrEqualTo(root.get<BigDecimal>("averageRating"), BigDecimal.valueOf(minRating)))
-    predicates.add(cb.lessThanOrEqualTo(root.get<BigDecimal>("averageRating"), BigDecimal.valueOf(maxRating)))
-
-    // Review count predicates
-    predicates.add(cb.greaterThanOrEqualTo(root.get<Int>("totalReviews"), minReviews))
-
-    // Optional maximum reviews
     maxReviews?.let {
-      predicates.add(cb.lessThanOrEqualTo(root.get<Int>("totalReviews"), it))
+      basePredicate = basePredicate.and(deliveryWorkerStatisticsModel.totalReviews.loe(it))
     }
 
-    // Apply where clause
-    query.where(*predicates.toTypedArray())
+    // Count query
+    val total = queryFactory.query()
+      .from(deliveryWorkerStatisticsModel)
+      .where(basePredicate)
+      .fetchCount()
 
-    // Create dynamic sorting (same as ranking)
-    val orders = mutableListOf<Order>()
-
-    @Suppress("UNCHECKED_CAST")
-    val sortExpression =
-      when (sortBy.lowercase()) {
-        "reviews" -> root.get<Int>("totalReviews")
-        "rating" -> root.get<BigDecimal>("averageRating")
-        else -> root.get<BigDecimal>("averageRating")
-      } as jakarta.persistence.criteria.Expression<Any>
-    orders.add(cb.desc(sortExpression))
-    orders.add(cb.desc(root.get<LocalDateTime>("lastUpdated")))
-    query.orderBy(orders)
-
-    // Create count query for pagination
-    val countQuery = cb.createQuery(Long::class.java)
-    val countRoot = countQuery.from(DeliveryWorkerStatisticsModel::class.java)
-    countQuery.select(cb.count(countRoot))
-
-    val countPredicates = mutableListOf<Predicate>()
-    countPredicates.add(cb.greaterThanOrEqualTo(countRoot.get<BigDecimal>("averageRating"), BigDecimal.valueOf(minRating)))
-    countPredicates.add(cb.lessThanOrEqualTo(countRoot.get<BigDecimal>("averageRating"), BigDecimal.valueOf(maxRating)))
-    countPredicates.add(cb.greaterThanOrEqualTo(countRoot.get<Int>("totalReviews"), minReviews))
-    maxReviews?.let {
-      countPredicates.add(cb.lessThanOrEqualTo(countRoot.get<Int>("totalReviews"), it))
+    // Main query with dynamic sorting
+    val primarySort = when (sortBy.lowercase()) {
+      "reviews" -> deliveryWorkerStatisticsModel.totalReviews.desc()
+      else -> deliveryWorkerStatisticsModel.averageRating.desc()
     }
 
-    countQuery.where(*countPredicates.toTypedArray())
-
-    // Execute queries
-    val typedQuery = entityManager.createQuery(query)
-    val countTypedQuery = entityManager.createQuery(countQuery)
-
-    // Apply pagination
-    val total = countTypedQuery.singleResult
-    typedQuery.firstResult = pageable.pageNumber * pageable.pageSize
-    typedQuery.maxResults = pageable.pageSize
-    val results = typedQuery.resultList
+    val results = queryFactory.selectFrom(deliveryWorkerStatisticsModel)
+      .where(basePredicate)
+      .orderBy(primarySort, deliveryWorkerStatisticsModel.lastUpdated.desc())
+      .offset(pageable.offset)
+      .limit(pageable.pageSize.toLong())
+      .fetch()
 
     return PageImpl(results, pageable, total)
   }
@@ -168,38 +117,23 @@ class DeliveryWorkerStatisticsRepositoryImpl(
     minRating: Double,
     minReviews: Int,
   ): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(DeliveryWorkerStatisticsModel::class.java)
+    val minRatingBg = BigDecimal.valueOf(minRating)
 
-    // Create count query
-    query.select(cb.count(root))
-
-    // Create predicates
-    val predicates = mutableListOf<Predicate>()
-    predicates.add(cb.greaterThanOrEqualTo(root.get<BigDecimal>("averageRating"), BigDecimal.valueOf(minRating)))
-    predicates.add(cb.greaterThanOrEqualTo(root.get<Int>("totalReviews"), minReviews))
-
-    // Apply where clause
-    query.where(*predicates.toTypedArray())
-
-    // Execute count query
-    return entityManager.createQuery(query).singleResult
+    return queryFactory.query()
+      .from(deliveryWorkerStatisticsModel)
+      .where(
+        deliveryWorkerStatisticsModel.averageRating.goe(minRatingBg)
+          .and(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
+      )
+      .fetchCount()
   }
 
   override fun findOverallAverageRating(minReviews: Int): Double? {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Double::class.java)
-    val root = query.from(DeliveryWorkerStatisticsModel::class.java)
-
-    // Create average query
-    query.select(cb.avg(root.get<BigDecimal>("averageRating")))
-
-    // Filter by minimum reviews
-    query.where(cb.greaterThanOrEqualTo(root.get<Int>("totalReviews"), minReviews))
-
-    // Execute average query
-    val result = entityManager.createQuery(query).singleResult
-    return result?.let { it.toDouble() }
+    return queryFactory.query()
+      .from(deliveryWorkerStatisticsModel)
+      .where(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
+      .select(deliveryWorkerStatisticsModel.averageRating.avg())
+      .fetchOne()
+      ?.toDouble()
   }
 }

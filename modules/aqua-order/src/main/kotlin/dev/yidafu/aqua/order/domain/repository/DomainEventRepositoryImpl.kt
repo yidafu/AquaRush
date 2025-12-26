@@ -19,31 +19,36 @@
 
 package dev.yidafu.aqua.order.domain.repository
 
+import com.querydsl.core.BooleanBuilder
+import com.querydsl.core.types.dsl.CaseBuilder
+import com.querydsl.core.types.dsl.Expressions
+import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.QDomainEventModel.domainEventModel
 import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.LockModeType
 import jakarta.persistence.PersistenceContext
-import jakarta.persistence.TypedQuery
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 /**
- * Enhanced DomainEventRepository implementation with modern Spring Data JPA 3.0+ features
+ * Enhanced DomainEventRepository implementation using QueryDSL
  * Handles event-driven architecture with optimized query patterns and proper locking
  */
 @Repository
 @Transactional
-class DomainEventRepositoryImpl(
-    @PersistenceContext private val entityManager: EntityManager
-) {
+class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
 
-    /**
-     * Find next pending event for processing with pessimistic locking
-     * Uses native query for optimal performance with row-level locking
-     */
-    fun findNextPendingEventForUpdateEnhanced(
+    @PersistenceContext
+    private lateinit var entityManager: EntityManager
+
+    private val queryFactory: JPAQueryFactory by lazy {
+        JPAQueryFactory(entityManager)
+    }
+
+    override fun findNextPendingEventForUpdateEnhanced(
       status: EventStatusModel,
       now: LocalDateTime
     ): DomainEventModel? {
@@ -66,143 +71,159 @@ class DomainEventRepositoryImpl(
         return query.singleResult
     }
 
-    /**
-     * Find pending events with flexible filtering using Criteria API
-     * More flexible than simple status-based queries
-     */
-    fun findPendingEventsWithFilters(
+    override fun findPendingEventsWithFilters(
         status: EventStatusModel,
         now: LocalDateTime,
-        eventType: String? = null,
-        maxRetries: Int? = null,
-        batchSize: Int = 100
+        eventType: String?,
+        maxRetries: Int?,
+        batchSize: Int
     ): List<DomainEventModel> {
-        // TODO: Fix Criteria API usage
-        return emptyList()
+        val builder = BooleanBuilder()
+
+        builder.and(domainEventModel.status.eq(status))
+        builder.and(
+            domainEventModel.nextRunAt.loe(now)
+                .or(domainEventModel.nextRunAt.isNull)
+        )
+
+        eventType?.let { builder.and(domainEventModel.eventType.eq(it)) }
+        maxRetries?.let { builder.and(domainEventModel.retryCount.loe(it)) }
+
+        return queryFactory.selectFrom(domainEventModel)
+            .where(builder)
+            .orderBy(domainEventModel.createdAt.asc())
+            .limit(batchSize.toLong())
+            .fetch()
     }
 
-    /**
-     * Batch update events with retry increment and status change
-     * Efficient bulk operation for event processing
-     */
-    fun batchUpdateEvents(
+    override fun batchUpdateEvents(
         eventIds: List<Long>,
         newStatus: EventStatusModel,
-        incrementRetry: Boolean = false,
-        nextRunAt: LocalDateTime? = null
+        incrementRetry: Boolean,
+        nextRunAt: LocalDateTime?
     ): Int {
-        val cb = entityManager.criteriaBuilder
-        val update = cb.createCriteriaUpdate(DomainEventModel::class.java)
-        val root = update.from(DomainEventModel::class.java)
-
-        val idPredicate = root.get<Long>("id").`in`(eventIds)
-        update.set(root.get<EventStatusModel>("status"), newStatus)
+        var update = queryFactory.update(domainEventModel)
+            .set(domainEventModel.status, newStatus)
+            .set(domainEventModel.updatedAt, LocalDateTime.now())
+            .where(domainEventModel.id.`in`(eventIds))
 
         if (incrementRetry) {
-            // Add 1 to existing retry count
-            update.set(
-                root.get<Int>("retryCount"),
-                cb.sum(root.get<Int>("retryCount"), 1)
-            )
+            // Note: QueryDSL doesn't support increment expressions directly
+            // We need to fetch current values, increment, and update
+            val events = queryFactory.selectFrom(domainEventModel)
+                .where(domainEventModel.id.`in`(eventIds))
+                .fetch()
+
+            events.forEach { event ->
+                queryFactory.update(domainEventModel)
+                    .set(domainEventModel.retryCount, event.retryCount + 1)
+                    .where(domainEventModel.id.eq(event.id))
+                    .execute()
+            }
         }
 
         nextRunAt?.let {
-            update.set(root.get<LocalDateTime>("nextRunAt"), it)
+            update = update.set(domainEventModel.nextRunAt, it)
         }
 
-        update.set(root.get<LocalDateTime>("updatedAt"), LocalDateTime.now())
-        update.where(idPredicate)
-
-        return entityManager.createQuery(update).executeUpdate()
+        return update.execute().toInt()
     }
 
-    /**
-     * Find events created within a time range with specific filters
-     * Demonstrates complex Criteria API usage
-     */
-    fun findEventsInTimeRange(
+    override fun findEventsInTimeRange(
         startDate: LocalDateTime,
         endDate: LocalDateTime,
-        eventTypes: List<String>? = null,
-        statuses: List<EventStatusModel>? = null
+        eventTypes: List<String>?,
+        statuses: List<EventStatusModel>?
     ): List<DomainEventModel> {
-        // TODO: Fix Criteria API usage
-        return emptyList()
+        val builder = BooleanBuilder()
+
+        builder.and(domainEventModel.createdAt.between(startDate, endDate))
+        eventTypes?.let { builder.and(domainEventModel.eventType.`in`(it)) }
+        statuses?.let { builder.and(domainEventModel.status.`in`(it)) }
+
+        return queryFactory.selectFrom(domainEventModel)
+            .where(builder)
+            .orderBy(domainEventModel.createdAt.desc())
+            .fetch()
     }
 
-    /**
-     * Count events by type and status for monitoring and reporting
-     */
-    fun countEventsByTypeAndStatus(
+    override fun countEventsByTypeAndStatus(
         eventType: String,
         status: EventStatusModel,
-        startDate: LocalDateTime? = null,
-        endDate: LocalDateTime? = null
+        startDate: LocalDateTime?,
+        endDate: LocalDateTime?
     ): Long {
-        // TODO: Fix Criteria API usage
-        return 0L
+        var predicate = domainEventModel.eventType.eq(eventType)
+            .and(domainEventModel.status.eq(status))
+
+        startDate?.let { start ->
+            endDate?.let { end ->
+                predicate = predicate.and(domainEventModel.createdAt.between(start, end))
+            }
+        }
+
+        return queryFactory.query()
+            .from(domainEventModel)
+            .where(predicate)
+            .fetchCount()
     }
 
-    /**
-     * Native query for complex event analytics and monitoring
-     */
-    fun getEventProcessingAnalytics(
+    override fun getEventProcessingAnalytics(
         startDate: LocalDateTime,
         endDate: LocalDateTime
     ): List<EventAnalyticsRow> {
-        val query = entityManager.createNativeQuery(
-            """
-            SELECT
-                DATE(de.created_at) as event_date,
-                de.event_type,
-                de.status,
-                COUNT(*) as event_count,
-                AVG(de.retry_count) as avg_retries,
-                MAX(de.retry_count) as max_retries,
-                MIN(de.next_run_at) as earliest_next_run,
-                COUNT(CASE WHEN de.status = 'PROCESSED' THEN 1 END) as processed_count
-            FROM domain_events de
-            WHERE de.created_at BETWEEN :startDate AND :endDate
-            GROUP BY DATE(de.created_at), de.event_type, de.status
-            ORDER BY event_date DESC, de.event_type, de.status
-            """.trimIndent()
+        // Create date expression for PostgreSQL DATE() function
+        val dateExpr = Expressions.dateTemplate(
+            java.time.LocalDate::class.java,
+            "DATE({0})",
+            domainEventModel.createdAt
         )
 
-        query.setParameter("startDate", startDate)
-        query.setParameter("endDate", endDate)
+        // Conditional aggregation for processed count
+        val processedCase = CaseBuilder()
+            .`when`(domainEventModel.status.eq(EventStatusModel.COMPLETED))
+            .then(1L)
+            .otherwise(0L)
 
-        val results = query.resultList as Array<Array<Any>>
-        return results.map { row ->
+        val results = queryFactory
+            .select(
+                dateExpr,
+                domainEventModel.eventType,
+                domainEventModel.status,
+                domainEventModel.count(),
+                domainEventModel.retryCount.avg(),
+                domainEventModel.retryCount.max(),
+                domainEventModel.nextRunAt.min(),
+                processedCase.sum()
+            )
+            .from(domainEventModel)
+            .where(domainEventModel.createdAt.between(startDate, endDate))
+            .groupBy(dateExpr, domainEventModel.eventType, domainEventModel.status)
+            .orderBy(dateExpr.desc(), domainEventModel.eventType.asc(), domainEventModel.status.asc())
+            .fetch()
+
+        return results.map { tuple ->
             EventAnalyticsRow(
-                eventDate = row[0] as java.time.LocalDate,
-                eventType = row[1] as String,
-                status = EventStatusModel.valueOf(row[2] as String),
-                eventCount = (row[3] as Number).toLong(),
-                averageRetries = (row[4] as Number).toDouble(),
-                maxRetries = (row[5] as Number).toInt(),
-                earliestNextRun = row[6] as LocalDateTime?,
-                processedCount = (row[7] as Number).toLong()
+                eventDate = tuple.get(dateExpr) ?: java.time.LocalDate.now(),
+                eventType = tuple.get(domainEventModel.eventType) ?: "",
+                status = tuple.get(domainEventModel.status) ?: EventStatusModel.PENDING,
+                eventCount = tuple.get(domainEventModel.count()) ?: 0L,
+                averageRetries = tuple.get(domainEventModel.retryCount.avg()) ?: 0.0,
+                maxRetries = tuple.get(domainEventModel.retryCount.max()) ?: 0,
+                earliestNextRun = tuple.get(domainEventModel.nextRunAt.min()),
+                processedCount = tuple.get(processedCase.sum()) ?: 0L
             )
         }
     }
 
-    /**
-     * Clean up processed events older than specified time
-     * Maintenance operation for event table
-     */
-    fun cleanupProcessedEvents(olderThan: LocalDateTime): Int {
-        val cb = entityManager.criteriaBuilder
-        val delete = cb.createCriteriaDelete(DomainEventModel::class.java)
-        val root = delete.from(DomainEventModel::class.java)
-
-        delete.where(
-            cb.and(
-                cb.equal(root.get<EventStatusModel>("status"), EventStatusModel.COMPLETED),
-                cb.lessThan(root.get<LocalDateTime>("createdAt"), olderThan)
+    override fun cleanupProcessedEvents(olderThan: LocalDateTime): Int {
+        return queryFactory.delete(domainEventModel)
+            .where(
+                domainEventModel.status.eq(EventStatusModel.COMPLETED)
+                    .and(domainEventModel.createdAt.lt(olderThan))
             )
-        )
-
-        return entityManager.createQuery(delete).executeUpdate()
+            .execute()
+            .toInt()
     }
 }
 
@@ -219,3 +240,46 @@ data class EventAnalyticsRow(
     val earliestNextRun: LocalDateTime?,
     val processedCount: Long
 )
+
+interface DomainEventRepositoryCustom {
+    fun findNextPendingEventForUpdateEnhanced(
+        status: EventStatusModel,
+        now: LocalDateTime
+    ): DomainEventModel?
+
+    fun findPendingEventsWithFilters(
+        status: EventStatusModel,
+        now: LocalDateTime,
+        eventType: String?,
+        maxRetries: Int?,
+        batchSize: Int
+    ): List<DomainEventModel>
+
+    fun batchUpdateEvents(
+        eventIds: List<Long>,
+        newStatus: EventStatusModel,
+        incrementRetry: Boolean,
+        nextRunAt: LocalDateTime?
+    ): Int
+
+    fun findEventsInTimeRange(
+        startDate: LocalDateTime,
+        endDate: LocalDateTime,
+        eventTypes: List<String>?,
+        statuses: List<EventStatusModel>?
+    ): List<DomainEventModel>
+
+    fun countEventsByTypeAndStatus(
+        eventType: String,
+        status: EventStatusModel,
+        startDate: LocalDateTime?,
+        endDate: LocalDateTime?
+    ): Long
+
+    fun getEventProcessingAnalytics(
+        startDate: LocalDateTime,
+        endDate: LocalDateTime
+    ): List<EventAnalyticsRow>
+
+    fun cleanupProcessedEvents(olderThan: LocalDateTime): Int
+}

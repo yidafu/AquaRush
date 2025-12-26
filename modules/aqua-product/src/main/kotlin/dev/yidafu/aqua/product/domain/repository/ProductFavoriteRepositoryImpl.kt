@@ -19,25 +19,22 @@
 
 package dev.yidafu.aqua.product.domain.repository
 
+import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
-import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
-import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.QProductFavoriteModel
+import dev.yidafu.aqua.common.domain.model.QProductFavoriteModel.productFavoriteModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import jakarta.persistence.criteria.Predicate
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * Custom repository implementation for ProductFavorite using JPA Criteria API
+ * Custom repository implementation for ProductFavorite using type-safe QueryDSL
  */
 @Repository
 class ProductFavoriteRepositoryImpl : ProductFavoriteRepositoryCustom {
@@ -49,282 +46,92 @@ class ProductFavoriteRepositoryImpl : ProductFavoriteRepositoryCustom {
     JPAQueryFactory(entityManager)
   }
 
-/**
- * Result data class for favorites trend
- */
-data class FavoriteTrendRow(
-  val date: LocalDate,
-  val totalCount: Long,
-  val distinctUsers: Long
-)
-
-/**
- * Result data class for daily active users
- */
-data class DailyActiveUsersRow(
-  val date: LocalDate,
-  val activeUserCount: Long
-)
-
   override fun findFavoriteProductIdsByUserId(userId: Long): List<Long> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(ProductFavoriteModel::class.java)
+    return queryFactory.select(productFavoriteModel.productId)
+      .from(productFavoriteModel)
+      .where(productFavoriteModel.userId.eq(userId))
+      .where(productFavoriteModel.enable.eq(true))
+      .fetch()
+  }
 
-    query.select(root.get<Long>("productId"))
-    query.where(
-      cb.equal(root.get<Long>("userId"), userId),
-      cb.equal(root.get<Boolean>("enable"), true)
-    )
+  override fun findFavoriteIdsByUserId(userId: Long, pageable: Pageable): Page<Long> {
+    // Get total count
+    val total = queryFactory.query()
+      .from(productFavoriteModel)
+      .where(productFavoriteModel.userId.eq(userId))
+      .where(productFavoriteModel.enable.eq(true))
+      .fetchCount()
 
-    return entityManager.createQuery(query).resultList
+    // Get paginated product IDs
+    val results = queryFactory.select(productFavoriteModel.productId)
+      .from(productFavoriteModel)
+      .where(productFavoriteModel.userId.eq(userId))
+      .where(productFavoriteModel.enable.eq(true))
+      .orderBy(productFavoriteModel.createdAt.desc())
+      .offset(pageable.offset)
+      .limit(pageable.pageSize.toLong())
+      .fetch()
+
+    return PageImpl(results, pageable, total)
   }
 
   override fun existsByUserIdAndProductId(userId: Long, productId: Long): Boolean {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(ProductFavoriteModel::class.java)
-
-    query.select(cb.count(root))
-    query.where(
-      cb.equal(root.get<Long>("userId"), userId),
-      cb.equal(root.get<Long>("productId"), productId),
-      cb.equal(root.get<Boolean>("enable"), true)
-    )
-
-    val count = entityManager.createQuery(query).singleResult ?: 0L
+    val count = queryFactory.selectFrom(productFavoriteModel)
+      .where(productFavoriteModel.userId.eq(userId))
+      .where(productFavoriteModel.productId.eq(productId))
+      .where(productFavoriteModel.enable.eq(true))
+      .fetchCount()
     return count > 0
   }
 
   override fun countByUserId(userId: Long): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(ProductFavoriteModel::class.java)
-
-    query.select(cb.count(root))
-    query.where(
-      cb.equal(root.get<Long>("userId"), userId),
-      cb.equal(root.get<Boolean>("enable"), true)
-    )
-
-    return entityManager.createQuery(query).singleResult ?: 0L
+    return queryFactory.query()
+      .from(productFavoriteModel)
+      .where(productFavoriteModel.userId.eq(userId))
+      .where(productFavoriteModel.enable.eq(true))
+      .fetchCount()
   }
 
   @Transactional
   override fun updateEnableStatus(userId: Long, productId: Long, enable: Boolean): Int {
-    val cb = entityManager.criteriaBuilder
-    val update = cb.createCriteriaUpdate(ProductFavoriteModel::class.java)
-    val root = update.from(ProductFavoriteModel::class.java)
-
-    update.set("enable", enable)
-    update.where(
-      cb.equal(root.get<Long>("userId"), userId),
-      cb.equal(root.get<Long>("productId"), productId)
-    )
-
-    return entityManager.createQuery(update).executeUpdate()
+    return queryFactory.update(productFavoriteModel)
+      .set(productFavoriteModel.enable, enable)
+      .where(productFavoriteModel.userId.eq(userId))
+      .where(productFavoriteModel.productId.eq(productId))
+      .execute()
+      .toInt()
   }
 
   // Admin analytics methods
 
   override fun countDistinctUsersWithFavorites(): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(ProductFavoriteModel::class.java)
-
-    query.select(cb.countDistinct(root.get<Long>("userId")))
-
-    return entityManager.createQuery(query).singleResult ?: 0L
+    return queryFactory.query()
+      .from(productFavoriteModel)
+      .select(productFavoriteModel.userId.countDistinct())
+      .fetchCount()
   }
 
   override fun countFavoritesSince(startDate: LocalDateTime): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(ProductFavoriteModel::class.java)
-
-    query.select(cb.count(root))
-    query.where(cb.greaterThanOrEqualTo(root.get("createdAt"), startDate))
-
-    return entityManager.createQuery(query).singleResult ?: 0L
+    return queryFactory.query()
+      .from(productFavoriteModel)
+      .where(productFavoriteModel.createdAt.goe(startDate))
+      .fetchCount()
   }
 
-  override fun countFavoritesBetween(startDate: LocalDateTime, endDate: LocalDateTime): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(ProductFavoriteModel::class.java)
-
-    query.select(cb.count(root))
-    query.where(
-      cb.greaterThanOrEqualTo(root.get("createdAt"), startDate),
-      cb.lessThanOrEqualTo(root.get("createdAt"), endDate)
-    )
-
-    return entityManager.createQuery(query).singleResult ?: 0L
-  }
-
-  override fun findMostFavoritedProducts(): List<Array<Any>> {
-    // Use JPQL for complex joins
-    val jpql = """
-      SELECT p, COUNT(pf) as favoriteCount
-      FROM ProductFavoriteModel pf
-      JOIN pf.product p
-      GROUP BY p.id
-      ORDER BY favoriteCount DESC
-    """
-
-    val query = entityManager.createQuery(jpql)
-    return query.resultList as List<Array<Any>>
-  }
-
-  override fun findMostFavoritedProductsSince(startDate: LocalDateTime): List<Array<Any>> {
-    val jpql = """
-      SELECT p, COUNT(pf) as favoriteCount
-      FROM ProductFavoriteModel pf
-      JOIN pf.product p
-      WHERE pf.createdAt >= :startDate
-      GROUP BY p.id
-      ORDER BY favoriteCount DESC
-    """
-
-    val query = entityManager.createQuery(jpql)
-    query.setParameter("startDate", startDate)
-    return query.resultList as List<Array<Any>>
-  }
-
-  override fun getFavoritesTrend(startDate: LocalDateTime): List<FavoriteTrendRow> {
-    val qProductFavorite = QProductFavoriteModel.productFavoriteModel
-
-    // Create date expression for PostgreSQL DATE() function
-    val dateExpr = Expressions.dateTemplate(
-      LocalDate::class.java,
-      "DATE({0})",
-      qProductFavorite.createdAt
-    )
-
-    return queryFactory
-      .select(
-        Projections.constructor(
-          FavoriteTrendRow::class.java,
-          dateExpr,
-          qProductFavorite.count(),
-          qProductFavorite.userId.countDistinct()
-        )
+  override fun findMostFavoritedProducts(): List<ProductFavoriteRepositoryCustom.ProductFavoriteCount> {
+    val results = queryFactory.select(
+      Projections.constructor(
+        ProductFavoriteRepositoryCustom.ProductFavoriteCount::class.java,
+        productFavoriteModel.productId,
+        productFavoriteModel.count()
       )
-      .from(qProductFavorite)
-      .where(qProductFavorite.createdAt.goe(startDate))
-      .groupBy(dateExpr)
-      .orderBy(dateExpr.asc())
-      .fetch()
-  }
-
-  override fun getUserFavoriteSummaries(): List<Array<Any>> {
-    val jpql = """
-      SELECT pf.userId, COUNT(pf) as favoriteCount, MAX(pf.createdAt) as lastCreatedAt
-      FROM ProductFavoriteModel pf
-      GROUP BY pf.userId
-      ORDER BY favoriteCount DESC
-    """
-
-    val query = entityManager.createQuery(jpql)
-    return query.resultList as List<Array<Any>>
-  }
-
-  override fun countByProductId(productId: Long): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(ProductFavoriteModel::class.java)
-
-    query.select(cb.count(root))
-    query.where(cb.equal(root.get<Long>("productId"), productId))
-
-    return entityManager.createQuery(query).singleResult ?: 0L
-  }
-
-  override fun findFavoritesWithFilters(
-    userId: Long?,
-    productId: Long?,
-    dateFrom: LocalDateTime?,
-    dateTo: LocalDateTime?,
-    pageable: Pageable
-  ): Page<ProductFavoriteModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(ProductFavoriteModel::class.java)
-    val root = query.from(ProductFavoriteModel::class.java)
-
-    val predicates = mutableListOf<Predicate>()
-
-    userId?.let { predicates.add(cb.equal(root.get<Long>("userId"), it)) }
-    productId?.let { predicates.add(cb.equal(root.get<Long>("productId"), it)) }
-    dateFrom?.let { predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), it)) }
-    dateTo?.let { predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), it)) }
-
-    query.where(*predicates.toTypedArray())
-
-    // Get total count
-    val countQuery = cb.createQuery(Long::class.java)
-    val countRoot = countQuery.from(ProductFavoriteModel::class.java)
-    val countPredicates = mutableListOf<Predicate>()
-
-    userId?.let { countPredicates.add(cb.equal(countRoot.get<Long>("userId"), it)) }
-    productId?.let { countPredicates.add(cb.equal(countRoot.get<Long>("productId"), it)) }
-    dateFrom?.let { countPredicates.add(cb.greaterThanOrEqualTo(countRoot.get("createdAt"), it)) }
-    dateTo?.let { countPredicates.add(cb.lessThanOrEqualTo(countRoot.get("createdAt"), it)) }
-
-    countQuery.select(cb.count(countRoot)).where(*countPredicates.toTypedArray())
-    val total = entityManager.createQuery(countQuery).singleResult ?: 0L
-
-    // Apply pagination
-    query.orderBy(cb.desc(root.get<Long>("id")))
-    val typedQuery = entityManager.createQuery(query)
-    typedQuery.firstResult = pageable.offset.toInt()
-    typedQuery.maxResults = pageable.pageSize
-
-    val results = typedQuery.resultList
-
-    return PageImpl(results, pageable, total)
-  }
-
-  override fun findByUserIdsAndProductIds(userIds: List<Long>, productIds: List<Long>): List<ProductFavoriteModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(ProductFavoriteModel::class.java)
-    val root = query.from(ProductFavoriteModel::class.java)
-
-    query.where(
-      cb.isTrue(root.get<Long>("userId").`in`(userIds)),
-      cb.isTrue(root.get<Long>("productId").`in`(productIds))
     )
+    .from(productFavoriteModel)
+    .groupBy(productFavoriteModel.productId)
+    .orderBy(productFavoriteModel.count().desc())
+    .fetch()
 
-    return entityManager.createQuery(query).resultList
-  }
-
-  // Product analytics
-
-  override fun getProductFavoriteStatsSince(startDate: LocalDateTime): List<Array<Any>> {
-    val jpql = """
-      SELECT pf.productId, COUNT(pf) as favoriteCount, AVG(p.price) as averagePrice
-      FROM ProductFavoriteModel pf
-      JOIN pf.product p
-      WHERE pf.createdAt >= :startDate
-      GROUP BY pf.productId
-      ORDER BY favoriteCount DESC
-    """
-
-    val query = entityManager.createQuery(jpql)
-    query.setParameter("startDate", startDate)
-    return query.resultList as List<Array<Any>>
-  }
-
-  override fun getUserEngagementStats(): List<Array<Any>> {
-    val jpql = """
-      SELECT pf.userId, COUNT(pf) as favoriteCount, AVG(p.price) as averagePrice
-      FROM ProductFavoriteModel pf
-      JOIN pf.product p
-      GROUP BY pf.userId
-      HAVING COUNT(pf) > 0
-    """
-
-    val query = entityManager.createQuery(jpql)
-    return query.resultList as List<Array<Any>>
+    return results
   }
 
   // Export methods
@@ -335,72 +142,34 @@ data class DailyActiveUsersRow(
     dateFrom: LocalDateTime?,
     dateTo: LocalDateTime?
   ): List<ProductFavoriteModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(ProductFavoriteModel::class.java)
-    val root = query.from(ProductFavoriteModel::class.java)
+    val builder = BooleanBuilder()
 
-    val predicates = mutableListOf<Predicate>()
+    userId?.let { builder.and(productFavoriteModel.userId.eq(it)) }
+    productIds?.let {
+      if (it.isNotEmpty()) {
+        builder.and(productFavoriteModel.productId.`in`(it))
+      }
+    }
+    dateFrom?.let { builder.and(productFavoriteModel.createdAt.goe(it)) }
+    dateTo?.let { builder.and(productFavoriteModel.createdAt.loe(it)) }
 
-    userId?.let { predicates.add(cb.equal(root.get<Long>("userId"), it)) }
-    productIds?.let { predicates.add(cb.isTrue(root.get<Long>("productId").`in`(it))) }
-    dateFrom?.let { predicates.add(cb.greaterThanOrEqualTo(root.get("createdAt"), it)) }
-    dateTo?.let { predicates.add(cb.lessThanOrEqualTo(root.get("createdAt"), it)) }
-
-    query.where(*predicates.toTypedArray())
-
-    return entityManager.createQuery(query).resultList
+    return queryFactory.selectFrom(productFavoriteModel)
+      .where(builder)
+      .fetch()
   }
 
   // Statistics for specific periods
 
-  override fun countActiveUsersSince(startDate: LocalDateTime): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(ProductFavoriteModel::class.java)
-
-    query.select(cb.countDistinct(root.get<Long>("userId")))
-    query.where(cb.greaterThanOrEqualTo(root.get("createdAt"), startDate))
-
-    return entityManager.createQuery(query).singleResult ?: 0L
-  }
-
   override fun getAverageFavoritesPerUser(): Double {
-    // Using a subquery approach
-    val totalFavorites = entityManager.createQuery(
-      "SELECT COUNT(pf) FROM ProductFavoriteModel pf",
-      Long::class.java
-    ).singleResult ?: 0L
+    val totalFavorites = queryFactory.query()
+      .from(productFavoriteModel)
+      .fetchCount()
 
-    val distinctUsers = entityManager.createQuery(
-      "SELECT COUNT(DISTINCT pf.userId) FROM ProductFavoriteModel pf",
-      Long::class.java
-    ).singleResult ?: 0L
+    val distinctUsers = queryFactory.query()
+      .from(productFavoriteModel)
+      .select(productFavoriteModel.userId.countDistinct())
+      .fetchCount()
 
     return if (distinctUsers > 0) totalFavorites.toDouble() / distinctUsers else 0.0
-  }
-
-  override fun getDailyActiveUsers(startDate: LocalDateTime): List<DailyActiveUsersRow> {
-    val qProductFavorite = QProductFavoriteModel.productFavoriteModel
-
-    // Create date expression for PostgreSQL DATE() function
-    val dateExpr = Expressions.dateTemplate(
-      LocalDate::class.java,
-      "DATE({0})",
-      qProductFavorite.createdAt
-    )
-
-    return queryFactory
-      .select(
-        Projections.constructor(
-          DailyActiveUsersRow::class.java,
-          dateExpr,
-          qProductFavorite.userId.countDistinct()
-        )
-      )
-      .from(qProductFavorite)
-      .where(qProductFavorite.createdAt.goe(startDate))
-      .groupBy(dateExpr)
-      .orderBy(dateExpr.desc())
-      .fetch()
   }
 }

@@ -19,99 +19,70 @@
 
 package dev.yidafu.aqua.reconciliation.domain.repository
 
+import com.querydsl.core.Tuple
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.common.domain.model.QReconciliationDiscrepancyModel
+import dev.yidafu.aqua.common.domain.model.QReconciliationDiscrepancyModel.reconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import jakarta.persistence.criteria.CriteriaUpdate
-import jakarta.persistence.criteria.Predicate
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 /**
- * Custom repository implementation for ReconciliationDiscrepancy entity using type-safe queries
+ * Custom repository implementation for ReconciliationDiscrepancy entity using QueryDSL
  */
 @Repository
-class ReconciliationDiscrepancyRepositoryImpl(
-  @PersistenceContext private val entityManager: EntityManager
-) : ReconciliationDiscrepancyRepositoryCustom {
+class ReconciliationDiscrepancyRepositoryImpl : ReconciliationDiscrepancyRepositoryCustom {
+
+  @PersistenceContext
+  private lateinit var entityManager: EntityManager
+
   private val queryFactory: JPAQueryFactory by lazy {
     JPAQueryFactory(entityManager)
   }
 
   override fun countUnresolvedByTaskId(taskId: String): Long {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(ReconciliationDiscrepancyModel::class.java)
-
-    // Create count query
-    query.select(cb.count(root))
-
-    // Create predicates for taskId and status = 'UNRESOLVED'
-    val predicates = mutableListOf<Predicate>()
-
-    // taskId = :taskId predicate
-    predicates.add(cb.equal(root.get<String>("taskId"), taskId))
-
-    // status = 'UNRESOLVED' predicate
-    predicates.add(cb.equal(root.get<DiscrepancyStatus>("status"), DiscrepancyStatus.UNRESOLVED))
-
-    // Apply where clause with AND condition
-    query.where(*predicates.toTypedArray())
-
-    // Execute count query and return result
-    return entityManager.createQuery(query).singleResult
+    return queryFactory.query()
+      .from(reconciliationDiscrepancyModel)
+      .where(
+        reconciliationDiscrepancyModel.taskId.eq(taskId)
+          .and(reconciliationDiscrepancyModel.status.eq(DiscrepancyStatus.UNRESOLVED))
+      )
+      .fetchCount()
   }
 
   override fun countByDiscrepancyTypeGroup(taskId: String): List<Array<Any>> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery()
-    val root = query.from(ReconciliationDiscrepancyModel::class.java)
+    val results: List<Tuple> = queryFactory
+      .select(reconciliationDiscrepancyModel.discrepancyType, reconciliationDiscrepancyModel.count())
+      .from(reconciliationDiscrepancyModel)
+      .where(reconciliationDiscrepancyModel.taskId.eq(taskId))
+      .groupBy(reconciliationDiscrepancyModel.discrepancyType)
+      .fetch()
 
-    // Create multiselect query for discrepancyType and count
-    query.multiselect(root.get<String>("discrepancyType"), cb.count(root))
-
-    // Create predicate for taskId
-    query.where(cb.equal(root.get<String>("taskId"), taskId))
-
-    // Group by discrepancyType
-    query.groupBy(root.get<String>("discrepancyType"))
-
-    // Execute query and convert results to Array<Any>
-    val results = entityManager.createQuery(query).resultList
-    return results.map { row ->
-      when (row) {
-        is Array<*> -> row.map { it ?: "" }.toTypedArray()
-        else -> arrayOf(row.toString())
-      }
+    return results.map { tuple ->
+      arrayOf<Any>(
+        tuple.get(reconciliationDiscrepancyModel.discrepancyType) ?: "",
+        tuple.get(reconciliationDiscrepancyModel.count()) ?: 0L
+      )
     }
   }
 
   override fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationDiscrepancyModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(ReconciliationDiscrepancyModel::class.java)
-    val root = query.from(ReconciliationDiscrepancyModel::class.java)
-
-    // Create predicate for createdAt BETWEEN startDate AND endDate
-    query.where(cb.between(root.get<LocalDateTime>("createdAt"), startDate, endDate))
-
-    // Order by createdAt DESC
-    query.orderBy(cb.desc(root.get<LocalDateTime>("createdAt")))
-
-    // Execute query and return results
-    return entityManager.createQuery(query).resultList
+    return queryFactory.selectFrom(reconciliationDiscrepancyModel)
+      .where(reconciliationDiscrepancyModel.createdAt.between(startDate, endDate))
+      .orderBy(reconciliationDiscrepancyModel.createdAt.desc())
+      .fetch()
   }
 
+  @Transactional
   override fun deleteResolvedBefore(beforeDate: LocalDateTime): Int {
-    val qDiscrepancy = QReconciliationDiscrepancyModel.reconciliationDiscrepancyModel
-
     return queryFactory
-      .delete(qDiscrepancy)
+      .delete(reconciliationDiscrepancyModel)
       .where(
-        qDiscrepancy.status.eq(DiscrepancyStatus.RESOLVED)
-          .and(qDiscrepancy.resolvedAt.lt(beforeDate))
+        reconciliationDiscrepancyModel.status.eq(DiscrepancyStatus.RESOLVED)
+          .and(reconciliationDiscrepancyModel.resolvedAt.lt(beforeDate))
       )
       .execute()
       .toInt()

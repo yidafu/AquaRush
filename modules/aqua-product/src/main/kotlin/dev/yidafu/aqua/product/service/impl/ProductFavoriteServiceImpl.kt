@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.product.service.impl
 
-import dev.yidafu.aqua.api.service.ProductService
 import dev.yidafu.aqua.api.service.ProductFavoriteService
+import dev.yidafu.aqua.api.service.ProductService
 import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
@@ -34,13 +34,8 @@ import org.apache.commons.csv.CSVPrinter
 import org.apache.poi.ss.usermodel.*
 import org.apache.poi.ss.util.CellRangeAddress
 import org.apache.poi.xssf.usermodel.XSSFWorkbook
-import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
-import org.springframework.data.domain.Sort
+import org.springframework.data.domain.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.io.ByteArrayOutputStream
@@ -114,27 +109,22 @@ class ProductFavoriteServiceImpl(
    * Get user's favorite products with pagination
    */
   override fun getFavoriteProducts(userId: Long, pageable: Pageable): Page<ProductModel> {
-    val favoriteIds = productFavoriteRepository.findFavoriteProductIdsByUserId(userId)
+    // Get paginated product IDs from favorites
+    val favoriteIdsPage = productFavoriteRepository.findFavoriteIdsByUserId(userId, pageable)
 
-    if (favoriteIds.isEmpty()) {
+    if (favoriteIdsPage.isEmpty) {
       return Page.empty(pageable)
     }
 
-    // Get products that are still active/online
-    val allProducts = productRepository.findAllById(favoriteIds)
-    val activeProducts = allProducts.filter {
+    // Get products by IDs
+    val products = productRepository.findAllById(favoriteIdsPage.content)
+
+    // Filter by status (active/online only)
+    val activeProducts = products.filter {
       it.status == ProductStatus.ACTIVE || it.status == ProductStatus.ONLINE
     }
 
-    // Manual pagination since we need to filter by product status
-    val start = pageable.offset.toInt()
-    val end = (start + pageable.pageSize).coerceAtMost(activeProducts.size)
-
-    return if (start >= activeProducts.size) {
-      Page.empty(pageable)
-    } else {
-      PageImpl(activeProducts.subList(start, end), pageable, activeProducts.size.toLong())
-    }
+    return PageImpl(activeProducts, pageable, favoriteIdsPage.totalElements)
   }
 
   /**
@@ -243,7 +233,7 @@ class ProductFavoriteServiceImpl(
     val mostFavorited = productFavoriteRepository.findMostFavoritedProducts()
 
     val totalProducts = mostFavorited.size.toLong()
-    val totalFavorites = mostFavorited.sumOf { (it[1] as Number).toLong() }
+    val totalFavorites = mostFavorited.sumOf { it.favoriteCount }
     val averageFavoritesPerProduct = if (totalProducts > 0) {
       totalFavorites.toFloat() / totalProducts
     } else {
@@ -266,7 +256,7 @@ class ProductFavoriteServiceImpl(
     val mostFavorited = productFavoriteRepository.findMostFavoritedProducts()
 
     val filtered = if (minFavorites != null) {
-      mostFavorited.filter { (it[1] as Number).toLong() >= minFavorites }
+      mostFavorited.filter { it.favoriteCount >= minFavorites }
     } else {
       mostFavorited
     }
@@ -281,19 +271,23 @@ class ProductFavoriteServiceImpl(
       emptyList()
     }
 
-    val list = pagedItems.map { row ->
-      val product = row[0] as ProductModel
-      val favoriteCount = (row[1] as Number).toLong()
+    val list = pagedItems.map { item ->
+      val product = productRepository.findById(item.productId)
+      val favoriteCount = item.favoriteCount
 
-      val lastFavorites = productFavoriteRepository.findByProductId(product.id!!)
+      if (product.isEmpty) {
+        return@map null
+      }
+
+      val lastFavorites = productFavoriteRepository.findByProductId(item.productId)
       val lastFavoritedAt = lastFavorites.maxByOrNull { it.createdAt }?.createdAt
 
       ProductFavoriteItem(
-        product = convertToGraphQLProduct(product),
+        product = convertToGraphQLProduct(product.get()),
         favoriteCount = favoriteCount,
         lastFavoritedAt = lastFavoritedAt ?: LocalDateTime.now()
       )
-    }
+    }.filterNotNull()
 
     return ProductFavoritePage(
       list = list,
