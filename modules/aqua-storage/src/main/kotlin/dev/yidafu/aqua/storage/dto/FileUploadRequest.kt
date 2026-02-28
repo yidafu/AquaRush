@@ -25,23 +25,23 @@ import dev.yidafu.aqua.storage.domain.enums.FileType
  * 文件上传请求
  */
 data class FileUploadRequest(
-    /**
-     * 文件类型（可选，如果不提供则自动检测）
-     */
-    val fileType: FileType? = null,
+  /**
+   * 文件类型（可选，如果不提供则自动检测）
+   */
+  val fileType: FileType? = null,
 
-    /**
-     * 文件描述
-     */
-    val description: String? = null,
+  /**
+   * 文件描述
+   */
+  val description: String? = null,
 
-    /**
-     * 是否公开（默认为true）
-     */
-    val isPublic: Boolean = true,
+  /**
+   * 是否公开（默认为true）
+   */
+  val isPublic: Boolean = true,
 
-    /**
-     * 文件所有者ID（可选）
-     */
-    val ownerId: Long? = null
+  /**
+   * 文件所有者ID（可选）
+   */
+  val ownerId: Long? = null
 )

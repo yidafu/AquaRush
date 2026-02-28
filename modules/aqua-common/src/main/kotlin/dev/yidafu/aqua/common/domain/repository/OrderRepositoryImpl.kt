@@ -21,10 +21,11 @@ package dev.yidafu.aqua.common.domain.repository
 
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.dsl.Expressions
+import com.querydsl.core.types.dsl.NumberExpression
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
-import dev.yidafu.aqua.common.domain.model.QOrderModel.orderModel
+import dev.yidafu.aqua.common.domain.model.QOrderModel.Companion.orderModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository
@@ -44,6 +45,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
   private val queryFactory: JPAQueryFactory by lazy {
     JPAQueryFactory(entityManager)
   }
+
   override fun findOrdersWithFilters(
     userId: Long?,
     status: OrderStatus?,
@@ -154,13 +156,16 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
       orderModel.createdAt
     )
 
+    val sumAmount: NumberExpression<Long> = orderModel.amountCents.sumLong()
+    val avgAmount = orderModel.amountCents.avg()
+
     val results = queryFactory
       .select(
         dateExpr,
         orderModel.status,
         orderModel.count(),
-        orderModel.amountCents.sum().coalesce(0L),
-        orderModel.amountCents.avg().coalesce(0.0),
+        sumAmount,
+        avgAmount,
         orderModel.userId.countDistinct(),
         orderModel.deliveryWorkerId.countDistinct()
       )
@@ -170,14 +175,15 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
       .orderBy(dateExpr.desc(), orderModel.status.asc())
       .fetch()
 
+    @Suppress("UNCHECKED_CAST")
     return results.map { tuple ->
       OrderAnalyticsRow(
         orderDate = tuple.get(dateExpr) ?: java.time.LocalDate.now(),
         status = tuple.get(orderModel.status) ?: OrderStatus.PENDING_PAYMENT,
         orderCount = tuple.get(orderModel.count()) ?: 0L,
         // Convert from cents to yuan (divide by 100)
-        totalRevenue = (tuple.get(orderModel.amountCents.sum()) ?: 0L).toDouble() / 100.0,
-        averageOrderValue = (tuple.get(orderModel.amountCents.avg()) ?: 0.0) / 100.0,
+        totalRevenue = (tuple.get(sumAmount) as? Long? ?: 0L).toDouble() / 100.0,
+        averageOrderValue = (tuple.get(avgAmount) as? Double? ?: 0.0) / 100.0,
         uniqueCustomers = tuple.get(orderModel.userId.countDistinct()) ?: 0L,
         activeWorkers = tuple.get(orderModel.deliveryWorkerId.countDistinct()) ?: 0L
       )

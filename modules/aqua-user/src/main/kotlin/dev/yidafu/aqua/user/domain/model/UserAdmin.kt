@@ -19,9 +19,6 @@
 
 package dev.yidafu.aqua.user.domain.model
 
-import dev.yidafu.aqua.common.domain.model.AdminRoleModel
-import jakarta.persistence.*
-import java.time.LocalDateTime
 //
 //@Entity
 //@Table(name = "admins")

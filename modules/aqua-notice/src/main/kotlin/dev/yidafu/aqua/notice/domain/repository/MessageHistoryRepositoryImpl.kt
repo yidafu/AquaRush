@@ -22,7 +22,7 @@ package dev.yidafu.aqua.notice.domain.repository
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.MessageHistoryModel
 import dev.yidafu.aqua.common.domain.model.MessageStatus
-import dev.yidafu.aqua.common.domain.model.QMessageHistoryModel.messageHistoryModel
+import dev.yidafu.aqua.common.domain.model.QMessageHistoryModel.Companion.messageHistoryModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository

@@ -19,16 +19,15 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+/**
+ * 对账任务实体
+ */
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import jakarta.persistence.*
-import java.time.LocalDateTime
-
-/**
- * 对账任务实体
- */
 import org.hibernate.annotations.SoftDelete
+import java.time.LocalDateTime
 
 @Entity
 @SoftDelete(columnName = "is_deleted")
@@ -76,7 +75,8 @@ class ReconciliationTaskModel : SoftDeletable {
 
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now()
-@Column(name = "deleted_at")
+
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null
 
   @Column(name = "deleted_by")

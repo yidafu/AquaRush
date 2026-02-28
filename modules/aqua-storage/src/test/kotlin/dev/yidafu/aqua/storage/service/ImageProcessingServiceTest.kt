@@ -35,109 +35,109 @@ import javax.imageio.ImageIO
 
 class ImageProcessingServiceTest {
 
-    private lateinit var storageStrategy: StorageStrategy
-    private lateinit var imageProcessingProperties: ImageProcessingProperties
-    private lateinit var imageProcessingService: ImageProcessingService
+  private lateinit var storageStrategy: StorageStrategy
+  private lateinit var imageProcessingProperties: ImageProcessingProperties
+  private lateinit var imageProcessingService: ImageProcessingService
 
-    @BeforeEach
-    fun setUp() {
-        storageStrategy = mockk()
-        imageProcessingProperties = ImageProcessingProperties(
-            defaultQuality = 0.8f,
-            maxWidth = 4096,
-            maxHeight = 4096,
-            supportedFormats = setOf("JPEG", "PNG", "WEBP")
-        )
-        imageProcessingService = ImageProcessingService(storageStrategy, imageProcessingProperties)
+  @BeforeEach
+  fun setUp() {
+    storageStrategy = mockk()
+    imageProcessingProperties = ImageProcessingProperties(
+      defaultQuality = 0.8f,
+      maxWidth = 4096,
+      maxHeight = 4096,
+      supportedFormats = setOf("JPEG", "PNG", "WEBP")
+    )
+    imageProcessingService = ImageProcessingService(storageStrategy, imageProcessingProperties)
+  }
+
+  @Test
+  fun `should process image with resize parameters`() {
+    // Given
+    val originalImage = createTestImage(800, 600)
+    val imageResource = ByteArrayResource(imageToBytes(originalImage))
+    val parameters = ImageParameters(
+      width = 400,
+      height = 300,
+      quality = 0.7f,
+      format = "JPEG"
+    )
+
+    // When
+    val result = imageProcessingService.processImage(imageResource, parameters)
+
+    // Then
+    assertNotNull(result)
+    assertTrue(result.isNotEmpty())
+  }
+
+  @Test
+  fun `should throw exception for invalid parameters`() {
+    // Given
+    val imageResource = ByteArrayResource(createTestImage(100, 100).let { imageToBytes(it) })
+    val invalidParameters = ImageParameters(
+      width = -100,
+      quality = 1.5f
+    )
+
+    // When & Then
+    assertThrows<IllegalArgumentException> {
+      imageProcessingService.processImage(imageResource, invalidParameters)
     }
+  }
 
-    @Test
-    fun `should process image with resize parameters`() {
-        // Given
-        val originalImage = createTestImage(800, 600)
-        val imageResource = ByteArrayResource(imageToBytes(originalImage))
-        val parameters = ImageParameters(
-            width = 400,
-            height = 300,
-            quality = 0.7f,
-            format = "JPEG"
-        )
+  @Test
+  fun `should return original image when no processing parameters provided`() {
+    // Given
+    val originalImage = createTestImage(200, 200)
+    val imageBytes = imageToBytes(originalImage)
+    val imageResource = ByteArrayResource(imageBytes)
+    val parameters = ImageParameters()
+    val storagePath = "test/image.jpg"
 
-        // When
-        val result = imageProcessingService.processImage(imageResource, parameters)
+    every { storageStrategy.exists(any()) } returns false
+    every { storageStrategy.retrieve(storagePath) } returns imageResource
 
-        // Then
-        assertNotNull(result)
-        assertTrue(result.isNotEmpty())
-    }
+    // When
+    val result = imageProcessingService.getOrProcessImage(storagePath, parameters)
 
-    @Test
-    fun `should throw exception for invalid parameters`() {
-        // Given
-        val imageResource = ByteArrayResource(createTestImage(100, 100).let { imageToBytes(it) })
-        val invalidParameters = ImageParameters(
-            width = -100,
-            quality = 1.5f
-        )
+    // Then
+    assertArrayEquals(imageBytes, result)
+  }
 
-        // When & Then
-        assertThrows<IllegalArgumentException> {
-            imageProcessingService.processImage(imageResource, invalidParameters)
-        }
-    }
+  @Test
+  fun `should add watermark when requested`() {
+    // Given
+    val originalImage = createTestImage(800, 600)
+    val imageResource = ByteArrayResource(imageToBytes(originalImage))
+    val parameters = ImageParameters(
+      width = 400,
+      watermark = true,
+      watermarkText = "Test Watermark"
+    )
 
-    @Test
-    fun `should return original image when no processing parameters provided`() {
-        // Given
-        val originalImage = createTestImage(200, 200)
-        val imageBytes = imageToBytes(originalImage)
-        val imageResource = ByteArrayResource(imageBytes)
-        val parameters = ImageParameters()
-        val storagePath = "test/image.jpg"
+    // When
+    val result = imageProcessingService.processImage(imageResource, parameters)
 
-        every { storageStrategy.exists(any()) } returns false
-        every { storageStrategy.retrieve(storagePath) } returns imageResource
+    // Then
+    assertNotNull(result)
+    assertTrue(result.isNotEmpty())
+  }
 
-        // When
-        val result = imageProcessingService.getOrProcessImage(storagePath, parameters)
+  private fun createTestImage(width: Int, height: Int): BufferedImage {
+    val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
+    val graphics = image.createGraphics()
+    graphics.background = java.awt.Color.WHITE
+    graphics.clearRect(0, 0, width, height)
+    graphics.color = java.awt.Color.BLUE
+    graphics.fillRect(50, 50, width - 100, height - 100)
+    graphics.dispose()
+    return image
+  }
 
-        // Then
-        assertArrayEquals(imageBytes, result)
-    }
-
-    @Test
-    fun `should add watermark when requested`() {
-        // Given
-        val originalImage = createTestImage(800, 600)
-        val imageResource = ByteArrayResource(imageToBytes(originalImage))
-        val parameters = ImageParameters(
-            width = 400,
-            watermark = true,
-            watermarkText = "Test Watermark"
-        )
-
-        // When
-        val result = imageProcessingService.processImage(imageResource, parameters)
-
-        // Then
-        assertNotNull(result)
-        assertTrue(result.isNotEmpty())
-    }
-
-    private fun createTestImage(width: Int, height: Int): BufferedImage {
-        val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
-        val graphics = image.createGraphics()
-        graphics.background = java.awt.Color.WHITE
-        graphics.clearRect(0, 0, width, height)
-        graphics.color = java.awt.Color.BLUE
-        graphics.fillRect(50, 50, width - 100, height - 100)
-        graphics.dispose()
-        return image
-    }
-
-    private fun imageToBytes(image: BufferedImage, format: String = "JPEG"): ByteArray {
-        val outputStream = ByteArrayOutputStream()
-        ImageIO.write(image, format, outputStream)
-        return outputStream.toByteArray()
-    }
+  private fun imageToBytes(image: BufferedImage, format: String = "JPEG"): ByteArray {
+    val outputStream = ByteArrayOutputStream()
+    ImageIO.write(image, format, outputStream)
+    return outputStream.toByteArray()
+  }
 }

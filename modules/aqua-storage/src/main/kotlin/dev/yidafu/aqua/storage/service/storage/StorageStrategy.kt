@@ -27,47 +27,47 @@ import org.springframework.web.multipart.MultipartFile
  * 存储策略接口
  */
 interface StorageStrategy {
-    /**
-     * 存储文件
-     * @param file 要存储的文件
-     * @param metadata 文件元数据
-     * @return 存储路径
-     */
-    fun store(file: MultipartFile, metadata: FileMetadata): String
+  /**
+   * 存储文件
+   * @param file 要存储的文件
+   * @param metadata 文件元数据
+   * @return 存储路径
+   */
+  fun store(file: MultipartFile, metadata: FileMetadata): String
 
-    /**
-     * 获取文件
-     * @param path 文件路径
-     * @return 文件资源
-     */
-    fun retrieve(path: String): Resource
+  /**
+   * 获取文件
+   * @param path 文件路径
+   * @return 文件资源
+   */
+  fun retrieve(path: String): Resource
 
-    /**
-     * 删除文件
-     * @param path 文件路径
-     * @return 是否删除成功
-     */
-    fun delete(path: String): Boolean
+  /**
+   * 删除文件
+   * @param path 文件路径
+   * @return 是否删除成功
+   */
+  fun delete(path: String): Boolean
 
-    /**
-     * 生成文件访问URL
-     * @param fileId 文件ID
-     * @param filename 文件名
-     * @return 文件URL
-     */
-    fun generateUrl(fileId: Long, filename: String): String
+  /**
+   * 生成文件访问URL
+   * @param fileId 文件ID
+   * @param filename 文件名
+   * @return 文件URL
+   */
+  fun generateUrl(fileId: Long, filename: String): String
 
-    /**
-     * 检查文件是否存在
-     * @param path 文件路径
-     * @return 文件是否存在
-     */
-    fun exists(path: String): Boolean
+  /**
+   * 检查文件是否存在
+   * @param path 文件路径
+   * @return 文件是否存在
+   */
+  fun exists(path: String): Boolean
 
-    /**
-     * 获取文件大小
-     * @param path 文件路径
-     * @return 文件大小（字节）
-     */
-    fun getFileSize(path: String): Long
+  /**
+   * 获取文件大小
+   * @param path 文件路径
+   * @return 文件大小（字节）
+   */
+  fun getFileSize(path: String): Long
 }

@@ -22,17 +22,15 @@ package dev.yidafu.aqua.common.domain.model
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.annotations.Where
+import org.hibernate.annotations.SoftDelete
 import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-import org.hibernate.annotations.SoftDelete
-
 @Entity
 @SoftDelete(columnName = "is_deleted")
 @Table(name = "delivery_workers")
-open class  DeliveryWorkerModel(
+open class DeliveryWorkerModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
@@ -72,7 +70,7 @@ open class  DeliveryWorkerModel(
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-@Column(name = "deleted_at")
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
 
   @Column(name = "deleted_by")
@@ -102,7 +100,7 @@ class DeliverWorkerStatusConverter : AttributeConverter<DeliverWorkerModelStatus
 enum class DeliverWorkerModelStatus(val label: String) {
   ONLINE("ONLINE"), // 上线
   OFFLINE("OFFLINE"), // 下线
-;
+  ;
 
   companion object {
     fun fromString(value: String?): DeliverWorkerModelStatus {

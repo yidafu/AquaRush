@@ -32,6 +32,6 @@ import java.time.LocalDateTime
  * and should not be explicitly defined in entity classes.
  */
 interface SoftDeletable {
-    var deletedAt: LocalDateTime?
-    var deletedBy: Long?
+  var deletedAt: LocalDateTime?
+  var deletedBy: Long?
 }

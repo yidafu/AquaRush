@@ -1,5 +1,5 @@
 [versions]
-kotlin = "2.2.20"
+kotlin = "2.3.0"
 spring-boot = "4.0.0"
 spring-dependency-management = "1.1.4"
 liquibase = "4.33.0"
@@ -8,7 +8,7 @@ wechatpay = "0.2.17"
 jwt = "0.13.0"
 graphql = "25.0"
 spring-graphql = "1.3.0" # Let Spring Boot manage GraphQL version
-# ksp = "1.9.24-1.0.20" # Using annotationProcessor instead
+ksp = "2.3.0"
 querydsl = "5.1.0"
 logback-logstash = "7.4"
 kotlinx-serialization = "1.6.3"
@@ -20,7 +20,7 @@ spring-for-kafka = "3.2.1"
 reactor-core = "3.6.2"
 micrometer-tracing = "1.2.1"
 ktlint = "12.1.0"
-mappie = "2.2.20-1.6.0"
+mappie = "2.3.0-2.3.1"
 artemis = "2.31.2"
 
 [libraries]
@@ -96,7 +96,7 @@ ktlint-gradlePlugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version
 
 # Mappie
 mappie-api = { module = "tech.mappie:mappie-api", version.ref = "mappie" }
-#mappie-processor = { module = "tech.mappie:mappie-processor", version.ref = "mappie" }
+mappie-processor = { module = "tech.mappie:mappie-processor", version.ref = "mappie" }
 
 # MapDB
 mapdb = { module = "org.mapdb:mapdb", version.ref = "mapdb" }
@@ -194,7 +194,7 @@ testcontainers = { id = "org.testcontainers", version = "1.19.7" }
 versions = { id = "com.github.ben-manes.versions", version = "0.51.0" }
 # Dependency Analysis
 dependency-check = { id = "org.owasp.dependencycheck", version = "9.0.9" }
-# ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" } # Using annotationProcessor instead
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 # Aqua project convention plugins
 aqua-kotlin-common = { id = "aqua.kotlin.common", version = "unspecified" }

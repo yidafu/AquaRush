@@ -19,19 +19,16 @@
 
 package dev.yidafu.aqua.client.user.resolvers
 
+import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.UpdateProfileInput
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import dev.yidafu.aqua.user.mapper.UserMapper
-import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.user.service.WeChatAuthService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -48,40 +45,41 @@ import java.time.LocalDateTime
 @ClientService
 @Controller
 class ClientUserQueryResolver(
-    private val userService: UserService,
-    private val weChatAuthService: WeChatAuthService,
-    private val userRepository: UserRepository
+  private val userService: UserService,
+  private val weChatAuthService: WeChatAuthService,
+  private val userRepository: UserRepository
 ) {
   private val logger = LoggerFactory.getLogger(ClientUserQueryResolver::class.java)
-    /**
-     * 获取当前用户信息
-     */
-    @QueryMapping
-    @PreAuthorize("isAuthenticated()")
-    fun me(@AuthenticationPrincipal userPrincipal: UserPrincipal): User {
-      logger.info("query me info ${userPrincipal.id}")
-        return userRepository.findById(userPrincipal.id)
-            .orElseThrow { IllegalArgumentException("User not found") }
-          .let { UserMapper.map(it) }
+
+  /**
+   * 获取当前用户信息
+   */
+  @QueryMapping
+  @PreAuthorize("isAuthenticated()")
+  fun me(@AuthenticationPrincipal userPrincipal: UserPrincipal): User {
+    logger.info("query me info ${userPrincipal.id}")
+    return userRepository.findById(userPrincipal.id)
+      .orElseThrow { IllegalArgumentException("User not found") }
+      .let { UserMapper.map(it) }
+  }
+
+  /**
+   * 获取用户详细信息（只能查看自己）
+   */
+  @PreAuthorize("isAuthenticated()")
+  fun user(
+    id: Long,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal
+  ): User? {
+    // 验证只能查看自己的信息
+    if (id != userPrincipal.id) {
+      throw IllegalArgumentException("无权查看其他用户信息")
     }
 
-    /**
-     * 获取用户详细信息（只能查看自己）
-     */
-    @PreAuthorize("isAuthenticated()")
-    fun user(
-        id: Long,
-        @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): User? {
-        // 验证只能查看自己的信息
-        if (id != userPrincipal.id) {
-            throw IllegalArgumentException("无权查看其他用户信息")
-        }
-
-        return userRepository.findById(id)
-            .orElseThrow { IllegalArgumentException("User not found") }
-          .let { UserMapper.map(it) }
-    }
+    return userRepository.findById(id)
+      .orElseThrow { IllegalArgumentException("User not found") }
+      .let { UserMapper.map(it) }
+  }
 
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
@@ -93,80 +91,80 @@ class ClientUserQueryResolver(
       throw IllegalStateException("请先登录")
     }
     val userId = userPrincipal.id
-    val updatedUser =  userService.updateUserInfo(userId, input.nickname, null, input.avatar)
+    val updatedUser = userService.updateUserInfo(userId, input.nickname, null, input.avatar)
     // 正常认证用户的处理
     return UserMapper.map(updatedUser)
   }
 
-    /**
-     * 获取用户订单统计
-     */
-    @PreAuthorize("isAuthenticated()")
-    fun getUserOrderStatistics(
-        @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): UserOrderStats {
-        // TODO: 实现从服务获取用户订单统计
-        // 目前返回默认统计数据
-        return UserOrderStats(
-            totalOrders = 0L,
-            completedOrders = 0L,
-            cancelledOrders = 0L,
-            totalAmount = BigDecimal.ZERO,
-            averageOrderAmount = BigDecimal.ZERO,
-            lastOrderDate = null,
-            favoriteProduct = null
-        )
-    }
+  /**
+   * 获取用户订单统计
+   */
+  @PreAuthorize("isAuthenticated()")
+  fun getUserOrderStatistics(
+    @AuthenticationPrincipal userPrincipal: UserPrincipal
+  ): UserOrderStats {
+    // TODO: 实现从服务获取用户订单统计
+    // 目前返回默认统计数据
+    return UserOrderStats(
+      totalOrders = 0L,
+      completedOrders = 0L,
+      cancelledOrders = 0L,
+      totalAmount = BigDecimal.ZERO,
+      averageOrderAmount = BigDecimal.ZERO,
+      lastOrderDate = null,
+      favoriteProduct = null
+    )
+  }
 
-    /**
-     * 检查用户是否可以评价
-     */
-    @PreAuthorize("isAuthenticated()")
-    fun canUserReview(
-        orderId: Long,
-        @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): Boolean {
-        return userRepository.canUserReview(userPrincipal.id, orderId)
-    }
+  /**
+   * 检查用户是否可以评价
+   */
+  @PreAuthorize("isAuthenticated()")
+  fun canUserReview(
+    orderId: Long,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal
+  ): Boolean {
+    return userRepository.canUserReview(userPrincipal.id, orderId)
+  }
 
-    /**
-     * 获取用户偏好设置
-     */
-    @PreAuthorize("isAuthenticated()")
-    fun getUserPreferences(
-        @AuthenticationPrincipal userPrincipal: UserPrincipal
-    ): UserPreferences {
-        // TODO: 实现从服务获取用户偏好设置
-        // 目前返回默认偏好
-        return UserPreferences(
-            language = "zh-CN",
-            timezone = "Asia/Shanghai",
-            currency = "CNY",
-            notifications = mapOf(
-                "email" to true,
-                "sms" to false,
-                "push" to true
-            )
-        )
-    }
+  /**
+   * 获取用户偏好设置
+   */
+  @PreAuthorize("isAuthenticated()")
+  fun getUserPreferences(
+    @AuthenticationPrincipal userPrincipal: UserPrincipal
+  ): UserPreferences {
+    // TODO: 实现从服务获取用户偏好设置
+    // 目前返回默认偏好
+    return UserPreferences(
+      language = "zh-CN",
+      timezone = "Asia/Shanghai",
+      currency = "CNY",
+      notifications = mapOf(
+        "email" to true,
+        "sms" to false,
+        "push" to true
+      )
+    )
+  }
 
-    companion object {
-        data class UserOrderStats(
-            val totalOrders: Long,
-            val completedOrders: Long,
-            val cancelledOrders: Long,
-            val totalAmount: BigDecimal,
-            val averageOrderAmount: BigDecimal,
-            val lastOrderDate: LocalDateTime?,
-            val favoriteProduct: String?
-        )
+  companion object {
+    data class UserOrderStats(
+      val totalOrders: Long,
+      val completedOrders: Long,
+      val cancelledOrders: Long,
+      val totalAmount: BigDecimal,
+      val averageOrderAmount: BigDecimal,
+      val lastOrderDate: LocalDateTime?,
+      val favoriteProduct: String?
+    )
 
 
-        data class UserPreferences(
-            val language: String,
-            val timezone: String,
-            val currency: String,
-            val notifications: Map<String, Boolean>
-        )
-    }
+    data class UserPreferences(
+      val language: String,
+      val timezone: String,
+      val currency: String,
+      val notifications: Map<String, Boolean>
+    )
+  }
 }

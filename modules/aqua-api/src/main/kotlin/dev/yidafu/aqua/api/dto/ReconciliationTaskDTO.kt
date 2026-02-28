@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.api.dto
 
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
 import java.time.LocalDateTime
 
 /**
@@ -27,8 +29,8 @@ import java.time.LocalDateTime
 data class ReconciliationTaskDTO(
   val id: Long?,
   val taskId: String,
-  val taskType: TaskType,
-  val status: TaskStatus,
+  val taskType: ReconciliationTaskType,
+  val status: ReconciliationTaskStatus,
   val taskDate: LocalDateTime?,
   val startTime: LocalDateTime?,
   val endTime: LocalDateTime?,
@@ -39,23 +41,3 @@ data class ReconciliationTaskDTO(
   val createdAt: LocalDateTime,
   val updatedAt: LocalDateTime,
 )
-
-/**
- * 任务类型枚举
- */
-enum class TaskType {
-  PAYMENT,
-  REFUND,
-  SETTLEMENT,
-}
-
-/**
- * 任务状态枚举
- */
-enum class TaskStatus {
-  PENDING,
-  RUNNING,
-  COMPLETED,
-  FAILED,
-  CANCELLED,
-}

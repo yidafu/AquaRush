@@ -20,14 +20,13 @@
 package dev.yidafu.aqua.common.domain.model
 
 import jakarta.persistence.*
-import java.time.LocalDateTime
-
 import org.hibernate.annotations.SoftDelete
+import java.time.LocalDateTime
 
 @Entity
 @SoftDelete(columnName = "is_deleted")
 @Table(name = "payments")
-open class  PaymentModel(
+open class PaymentModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,

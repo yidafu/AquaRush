@@ -22,7 +22,10 @@ package dev.yidafu.aqua.statistics.controller
 import dev.yidafu.aqua.api.service.StatisticsService
 import dev.yidafu.aqua.common.ApiResponse
 import org.springframework.format.annotation.DateTimeFormat
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RequestParam
+import org.springframework.web.bind.annotation.RestController
 import java.time.LocalDate
 
 @RestController

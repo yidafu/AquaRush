@@ -22,11 +22,10 @@ package dev.yidafu.aqua.common.domain.model
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.annotations.SoftDelete
 import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
 import java.time.LocalDateTime
-
-import org.hibernate.annotations.SoftDelete
 
 @Entity
 @SoftDelete(columnName = "is_deleted")
@@ -64,6 +63,15 @@ data class OrderModel(
   var deliveryPhotos: String? = null,
   @Column("delivery_address_id")
   val deliveryAddressId: Long = -1L,
+  @Column(name = "is_self_collect", nullable = false)
+  var isSelfCollect: Boolean = false,
+  @Column(name = "payment_type")
+  @Enumerated(EnumType.STRING)
+  var paymentType: PaymentType? = null,
+  @Column(name = "delivery_started_at")
+  var deliveryStartedAt: LocalDateTime? = null,
+  @Column(name = "delivery_confirmed_at")
+  var deliveryConfirmedAt: LocalDateTime? = null,
   @Column(name = "completed_at")
   var completedAt: LocalDateTime? = null,
   @Column(name = "created_at", nullable = false, updatable = false)
@@ -81,6 +89,7 @@ data class OrderModel(
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
   }
+
   // Compatibility property for existing code - returns amount in yuan as BigDecimal
   val amount: BigDecimal
     get() = MoneyUtils.fromCents(amountCents)
@@ -94,4 +103,14 @@ enum class OrderStatus {
   DELIVERING, // 配送中
   COMPLETED, // 已完成
   CANCELLED, // 已取消
+}
+
+/**
+ * 收款方式枚举
+ * 用于记录配送员完成配送时的收款方式
+ */
+enum class PaymentType {
+  WATER_TICKET, // 水票
+  CASH, // 现金
+  QR_CODE, // 扫码
 }

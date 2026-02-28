@@ -74,219 +74,445 @@ enum PaymentMethod {
   CASH_ON_DELIVERY
 }
 
+# 收款方式枚举 - 用于记录配送员完成配送时的收款方式
+enum PaymentType {
+  WATER_TICKET  # 水票
+  CASH          # 现金
+  QR_CODE       # 扫码
+}
+
+# 押桶状态枚举
+enum BucketDepositStatus {
+  DEPOSITED   # 已押桶（待退还）
+  REFUNDED    # 已退还
+}
+
+# 押桶记录类型
+type BucketDeposit {
+  id: PrimaryId!
+  userId: PrimaryId!
+  quantity: Int!
+  amountCents: Long!
+  status: BucketDepositStatus!
+  paymentTransactionId: String
+  paymentTime: LocalDateTime
+  refundedAt: LocalDateTime
+  refundedBy: PrimaryId
+  remark: String
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+# 押桶记录分页类型
+type BucketDepositPage {
+  list: [BucketDeposit!]!
+  pageInfo: PageInfo!
+}
+
+# 押桶输入类型
+input CreateBucketDepositInput {
+  quantity: Int!
+    @min(value: 1, message: "押桶数量不能少于1")
+    @max(value: 99, message: "押桶数量不能超过99")
+}
+
+# 押桶退还输入类型
+input RefundBucketDepositInput {
+  depositId: PrimaryId!
+    @positive(message: "押桶记录ID必须为正数")
+  remark: String
+    @size(max: 500, message: "备注长度不能超过500个字符")
+}
+
 # Core Domain Types
 type User {
+  # 用户唯一标识ID
   id: PrimaryId!
+  # 微信OpenID
   wechatOpenId: String!
+  # 用户昵称
   nickname: String
+  # 用户手机号
   phone: String
+  # 用户头像URL
   avatarUrl: String
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type Product {
+  # 商品唯一标识ID
   id: PrimaryId!
+  # 商品名称
   name: String!
+  # 商品副标题
   subtitle: String
+  # 商品价格（分）
   price: Money!
+  # 商品原价（分）
   originalPrice: Money
+  # 押金价格（分）
   depositPrice: Money
+  # 商品封面图片URL
   coverImageUrl: String!
+  # 商品图片画廊
   imageGallery: JsonArray
+  # 商品规格（如18.9L桶装水）
   specification: String!
+  # 水源地
   waterSource: String
+  # 矿物质含量
   mineralContent: String
+  # 库存数量
   stock: Int!
+  # 销量
   salesVolume: Int!
+  # 商品状态
   status: ProductStatus!
+  # 排序权重
   sortOrder: Int!
+  # 商品标签
   tags: JsonArray
+  # 商品详情内容
   detailContent: String
+  # 证书图片列表
   certificateImages: JsonArray
+  # 配送设置
   deliverySettings: JsonObject
+  # 是否已删除
   isDeleted: Boolean!
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type Address {
+  # 地址唯一标识ID
   id: PrimaryId!
+  # 用户ID
   userId: PrimaryId!
+  # 收货人姓名
   receiverName: String!
+  # 收货人手机号
   phone: String!
+  # 省份
   province: String!
+  # 省份代码
   provinceCode: String
+  # 城市
   city: String!
+  # 城市代码
   cityCode: String
+  # 区县
   district: String!
+  # 区县代码
   districtCode: String
+  # 详细地址
   detailAddress: String!
+  # 经度
   longitude: Float
+  # 纬度
   latitude: Float
+  # 是否为默认地址
   isDefault: Boolean!
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type DeliveryAddress {
+  # 配送地址唯一标识ID
   id: PrimaryId!
+  # 用户ID
   userId: PrimaryId!
+  # 收货人姓名
   receiverName: String!
+  # 收货人手机号
   receiverPhone: String!
+  # 省份
   province: String!
+  # 城市
   city: String!
+  # 区县
   district: String!
+  # 详细地址
   detailAddress: String!
+  # 经度
   longitude: Float
+  # 纬度
   latitude: Float
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type Order {
+  # 订单唯一标识ID
   id: PrimaryId!
+  # 订单编号
   orderNumber: String!
+  # 下单用户
   user: User!
+  # 订购商品
   product: Product!
+  # 配送地址
   address: Address!
+  # 订购数量
   quantity: Int!
+  # 订单金额（分）
   amount: Money!
+  # 订单状态
   status: OrderStatus!
+  # 支付方式
   paymentMethod: String
+  # 支付交易流水号
   paymentTransactionId: String
+  # 支付时间
   paymentTime: LocalDateTime
+  # 配送员信息
   deliveryWorker: DeliveryWorker
+  # 配送照片列表
   deliveryPhotos: [String!]
+  # 是否自收（水钱已收/水票已扣）
+  isSelfCollect: Boolean!
+  # 收款方式
+  paymentType: PaymentType
+  # 开始配送时间
+  deliveryStartedAt: LocalDateTime
+  # 配送确认时间
+  deliveryConfirmedAt: LocalDateTime
+  # 订单完成时间
   completedAt: LocalDateTime
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type DeliveryWorker {
+  # 配送员唯一标识ID
   id: PrimaryId!
+  # 用户ID
   userId: PrimaryId!
+  # 微信OpenID
   wechatOpenId: String!
+  # 配送员姓名
   name: String!
+  # 配送员手机号
   phone: String!
+  # 配送员头像URL
   avatarUrl: String
+  # 在线状态
   onlineStatus: DeliveryWorkerStatus!
+  # 坐标位置（经纬度格式）
   coordinates: String
+  # 当前位置描述
   currentLocation: String
+  # 评分
   rating: BigDecimal
+  # 总订单数
   totalOrders: Int!
+  # 已完成订单数
   completedOrders: Int!
+  # 平均评分
   averageRating: BigDecimal
+  # 收入（分）
   earning: Money
+  # 是否可接单
   isAvailable: Boolean!
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
+# 当日统计数据 - 用于配送员小程序
+type TodayStatistics {
+  # 今日总订单数
+  totalOrders: Int!
+  # 今日已完成订单数
+  completedOrders: Int!
+  # 今日待配送订单数
+  pendingOrders: Int!
+  # 今日收入（分）
+  earningCents: Long!
+}
+
 type DeliveryArea {
+  # 配送区域ID
   id: PrimaryId!
+  # 配送区域名称
   name: String!
+  # 省份
   province: String!
+  # 城市
   city: String!
+  # 区县
   district: String!
+  # 是否启用
   enabled: Boolean!
 }
 
 type Region {
+  # 区域ID
   id: PrimaryId!
+  # 区域名称
   name: String!
+  # 区域代码
   code: String!
+  # 父级区域代码
   parentCode: String
+  # 区域级别（1-省/2-市/3-区）
   level: Int!
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 # Authentication Types
 type AuthPayload {
+  # 访问令牌
   accessToken: String!
+  # 刷新令牌
   refreshToken: String!
+  # 用户信息
   user: User!
 }
 
 type UserInfo {
+  # 用户ID
   id: PrimaryId!
+  # 微信OpenID
   wechatOpenId: String!
+  # 用户昵称
   nickname: String
+  # 用户手机号
   phone: String
+  # 用户头像URL
   avatarUrl: String
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type Admin {
+  # 管理员ID
   id: PrimaryId!
+  # 用户名
   username: String!
+  # 真实姓名
   realName: String
+  # 手机号
   phone: String
+  # 角色
   role: String!
+  # 最后登录时间
   lastLoginAt: LocalDateTime
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type WeChatLoginResponse {
+  # 访问令牌
   accessToken: String!
+  # 刷新令牌
   refreshToken: String!
+  # 过期时间（秒）
   expiresIn: Int!
+  # 用户信息
   userInfo: UserInfo!
 }
 
 type WeChatTokenResponse {
+  # 访问令牌
   accessToken: String!
+  # 刷新令牌
   refreshToken: String!
+  # 过期时间（秒）
   expiresIn: Int!
 }
 
 type PaymentData {
+  # 支付二维码URL
   codeUrl: String!
+  # 商户订单号
   outTradeNo: String!
+  # 微信应用ID
   appId: String!
+  # 时间戳
   timeStamp: String!
+  # 随机字符串
   nonceStr: String!
+  # 订单详情扩展字符串
   packageValue: String!
+  # 签名方式
   signType: String!
+  # 签名
   paySign: String!
 }
 
 # Statistics Types
 type OrderStatistics {
+  # 订单总数
   totalOrders: Int!
+  # 总收入
   totalRevenue: Money!
+  # 平均订单金额
   averageOrderValue: Money!
+  # 日期范围
   dateRange: DateRange!
 }
 
 type DateRange {
+  # 开始日期
   startDate: LocalDateTime!
+  # 结束日期
   endDate: LocalDateTime!
 }
 
 type DailyStatistic {
+  # 日期
   date: String!
+  # 订单数量
   orderCount: Int!
+  # 收入
   revenue: Money!
 }
 
 type WeeklyStatistic {
+  # 周数
   weekNumber: Int!
+  # 年份
   year: Int!
+  # 开始日期
   startDate: String!
+  # 结束日期
   endDate: String!
+  # 订单数量
   orderCount: Int!
+  # 收入
   revenue: Money!
 }
 
 type MonthlyStatistic {
+  # 月份
   month: Int!
+  # 年份
   year: Int!
+  # 月份名称
   monthName: String!
+  # 订单数量
   orderCount: Int!
+  # 收入
   revenue: Money!
 }
 
@@ -875,16 +1101,27 @@ type DeliveryWorkerRankingResponse {
 
 # Payment Refund Types
 type RefundRequest {
+  # 退款请求ID
   id: String!
+  # 原交易ID
   originalTransactionId: String!
+  # 订单ID
   orderId: PrimaryId!
+  # 用户ID
   userId: PrimaryId!
+  # 退款金额（分）
   amount: Money!
+  # 退款原因
   reason: String!
+  # 退款状态
   status: RefundStatus!
+  # 申请时间
   requestedAt: LocalDateTime!
+  # 处理时间
   processedAt: LocalDateTime
+  # 处理人ID
   processedBy: Long
+  # 管理员备注
   adminNote: String
 }
 
@@ -898,20 +1135,35 @@ enum RefundStatus {
 
 # Payment Transaction Types
 type PaymentTransaction {
+  # 交易ID
   id: String!
+  # 订单ID
   orderId: PrimaryId!
+  # 用户ID
   userId: PrimaryId!
+  # 交易金额（分）
   amount: Money!
+  # 交易状态
   status: PaymentStatus!
+  # 支付方式
   paymentMethod: PaymentMethod!
+  # 交易流水号
   transactionId: String
+  # 外部交易号
   externalTransactionId: String
+  # 支付网关
   gateway: String!
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
+  # 完成时间
   completedAt: LocalDateTime
+  # 失败原因
   failureReason: String
+  # 附加数据
   metadata: Map
+  # 管理员备注
   adminNote: String
 }
 
@@ -1047,12 +1299,18 @@ type RefundEligibility {
 
 # Pagination Types
 type PageInfo {
+  # 总记录数
   total: Int!
+  # 每页大小
   pageSize: Int!
-  pageNum: Int!  # current page index (0-based)
+  # 当前页码（从0开始）
+  pageNum: Int!
+  # 是否有下一页
   hasNext: Boolean!
+  # 是否有上一页
   hasPrevious: Boolean!
-  totalPages: Int!  # Include for completeness
+  # 总页数
+  totalPages: Int!
 }
 
 # User Management Types for Admin

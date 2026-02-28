@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.logging.context
 
-import java.util.UUID
+import java.util.*
 
 /**
  * 关联ID持有者，用于在整个请求生命周期中维护关联ID

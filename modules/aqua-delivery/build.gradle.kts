@@ -1,6 +1,7 @@
 plugins {
   id("aqua.spring.boot.library")
   alias(libs.plugins.mappie)
+  id("aqua.kotlin.querydsl")
 }
 
 dependencies {
@@ -26,6 +27,8 @@ dependencies {
   // QueryDSL for type-safe queries (temporarily disabled)
   // implementation(libs.bundles.querydsl)
   // annotationProcessor(libs.querydsl.apt)
+  implementation(libs.wechat.miniapp)
+  implementation(libs.wechatpay.sdk)
 }
 
 // Configure Kotlin compilation to include generated source

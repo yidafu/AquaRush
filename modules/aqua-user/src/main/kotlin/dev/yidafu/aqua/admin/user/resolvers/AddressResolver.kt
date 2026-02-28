@@ -19,13 +19,13 @@
 
 package dev.yidafu.aqua.admin.user.resolvers
 
-import dev.yidafu.aqua.common.graphql.generated.*
-import dev.yidafu.aqua.common.domain.model.AddressModel
+import dev.yidafu.aqua.api.service.AddressService
+import dev.yidafu.aqua.common.graphql.generated.Address
+import dev.yidafu.aqua.common.graphql.generated.AddressInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.user.mapper.AddressInputMapper
 import dev.yidafu.aqua.user.mapper.AddressMapper
-import dev.yidafu.aqua.api.service.AddressService
 import jakarta.validation.Valid
-import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -40,7 +40,7 @@ class AddressResolver(
   @QueryMapping
   fun userAddresses(
     @Argument userId: Long,
-  ) : List<Address> {
+  ): List<Address> {
     val list = addressService.findByUserId(userId);
     return AddressMapper.mapList(list)
   }

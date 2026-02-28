@@ -19,8 +19,3 @@
 
 package dev.yidafu.aqua.payment.mapper
 
-import dev.yidafu.aqua.common.domain.model.PaymentModel
-import dev.yidafu.aqua.common.graphql.generated.PaymentMethod
-import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
-import tech.mappie.api.ObjectMappie
-

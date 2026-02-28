@@ -23,14 +23,14 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 
 data class PaymentReportRow(
-    val year: Int,
-    val month: Int,
-    val totalAmount: BigDecimal,
-    val totalTransactions: Int,
-    val successfulTransactions: Int,
-    val failedTransactions: Int,
-    val refundCount: Int,
-    val averageTransactionAmount: BigDecimal,
-    val periodStart: LocalDateTime,
-    val periodEnd: LocalDateTime
+  val year: Int,
+  val month: Int,
+  val totalAmount: BigDecimal,
+  val totalTransactions: Int,
+  val successfulTransactions: Int,
+  val failedTransactions: Int,
+  val refundCount: Int,
+  val averageTransactionAmount: BigDecimal,
+  val periodStart: LocalDateTime,
+  val periodEnd: LocalDateTime
 )

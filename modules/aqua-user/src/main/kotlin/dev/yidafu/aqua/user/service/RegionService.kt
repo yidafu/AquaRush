@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.user.service
 
-import dev.yidafu.aqua.user.domain.exception.AquaException
 import dev.yidafu.aqua.common.domain.model.RegionModel
+import dev.yidafu.aqua.user.domain.exception.AquaException
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
 import jakarta.transaction.Transactional
 import org.springframework.cache.annotation.CacheEvict
@@ -30,7 +30,7 @@ import org.springframework.stereotype.Service
 @Service
 @Transactional
 class RegionService(
-    private val regionRepository: RegionRepository
+  private val regionRepository: RegionRepository
 ) {
 
   /**
@@ -178,6 +178,7 @@ class RegionService(
       level != null && parentCode != null -> {
         regionRepository.findByParentCodeAndLevel(parentCode, level)
       }
+
       level != null -> {
         if (level == 1) {
           regionRepository.findRootRegions(level)
@@ -185,6 +186,7 @@ class RegionService(
           regionRepository.findByLevel(level)
         }
       }
+
       else -> {
         regionRepository.findAll()
       }

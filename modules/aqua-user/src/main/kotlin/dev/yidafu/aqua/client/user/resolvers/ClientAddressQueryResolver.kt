@@ -19,14 +19,11 @@
 
 package dev.yidafu.aqua.client.user.resolvers
 
-import dev.yidafu.aqua.client.user.resolvers.ClientAddressQueryResolver.Companion.AddressWithDistance
+import dev.yidafu.aqua.api.service.AddressService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.user.mapper.AddressMapper
-import dev.yidafu.aqua.api.service.AddressService
-import jakarta.validation.Valid
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument

@@ -20,7 +20,10 @@
 package dev.yidafu.aqua.reconciliation.service.impl
 
 import dev.yidafu.aqua.api.service.ReconciliationService
-import dev.yidafu.aqua.common.domain.model.*
+import dev.yidafu.aqua.common.domain.model.PaymentModel
+import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
+import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
+import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
@@ -44,7 +47,6 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
-import kotlin.collections.get
 import kotlin.math.abs
 import kotlin.time.Duration
 
@@ -134,7 +136,8 @@ class ReconciliationServiceImpl(
         val result = performPaymentReconciliation(internalPayments, weChatTransactions, task.taskId)
 
         // 更新任务结果
-        task.status = if (result.discrepancies.isEmpty()) ReconciliationTaskStatus.SUCCESS else ReconciliationTaskStatus.FAILED
+        task.status =
+          if (result.discrepancies.isEmpty()) ReconciliationTaskStatus.SUCCESS else ReconciliationTaskStatus.FAILED
         task.endTime = LocalDateTime.now()
         task.totalRecords = result.totalRecords
         task.matchedRecords = result.matchedRecords
@@ -349,7 +352,10 @@ class ReconciliationServiceImpl(
   /**
    * 根据日期查询对账任务
    */
-  override fun getReconciliationTasksByDateRange(startDate: LocalDate, endDate: LocalDate): List<ReconciliationTaskModel> {
+  override fun getReconciliationTasksByDateRange(
+    startDate: LocalDate,
+    endDate: LocalDate
+  ): List<ReconciliationTaskModel> {
     return reconciliationTaskRepository.findByTaskDateBetween(
       startDate.atStartOfDay(),
       endDate.atTime(23, 59, 59, 999999999)
@@ -465,6 +471,7 @@ class ReconciliationServiceImpl(
             )
           )
         }
+
         payment.amount != weChatTx.amount -> {
           // 金额不匹配 (both amounts are in cents)
           val internalAmountYuan = MoneyUtils.fromCents(payment.amount)
@@ -495,6 +502,7 @@ class ReconciliationServiceImpl(
             )
           )
         }
+
         else -> {
           // 匹配成功
           matchedCount++

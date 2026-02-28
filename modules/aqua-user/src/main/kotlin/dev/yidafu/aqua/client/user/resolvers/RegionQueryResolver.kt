@@ -1,8 +1,8 @@
 package dev.yidafu.aqua.client.user.resolvers
 
+import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.user.domain.model.RegionHierarchyModel
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
 import org.springframework.beans.factory.annotation.Value
@@ -13,27 +13,30 @@ import org.springframework.stereotype.Controller
 
 @Controller
 class RegionQueryResolver(
-    private val regionRepository: RegionRepository,
-    @Value($$"${aqua.region.default-district-code:}") private val defaultDistrictCode: String?
+  private val regionRepository: RegionRepository,
+  @Value($$"${aqua.region.default-district-code:}") private val defaultDistrictCode: String?
 ) : BaseGraphQLResolver() {
 
   @QueryMapping
   fun regions(
-      @Argument level: Int?,
-      @Argument parentCode: String?,
-      @AuthenticationPrincipal userPrincipal: UserPrincipal?
+    @Argument level: Int?,
+    @Argument parentCode: String?,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal?
   ): List<RegionModel> {
     // 记录操作日志
-    logOperation(userPrincipal, "regions", mapOf<String, Any>(
-      "level" to (level ?: 0),
-      "parentCode" to (parentCode ?: "")
-    ))
+    logOperation(
+      userPrincipal, "regions", mapOf<String, Any>(
+        "level" to (level ?: 0),
+        "parentCode" to (parentCode ?: "")
+      )
+    )
 
     // 地区查询通常不需要严格的权限控制，但保留日志记录
     return when {
       level != null && parentCode != null -> {
         regionRepository.findByParentCodeAndLevel(parentCode, level)
       }
+
       level != null -> {
         if (level == 1) {
           regionRepository.findRootRegions(level)
@@ -41,6 +44,7 @@ class RegionQueryResolver(
           regionRepository.findByLevel(level)
         }
       }
+
       else -> {
         regionRepository.findAll()
       }
@@ -63,9 +67,11 @@ class RegionQueryResolver(
     @AuthenticationPrincipal userPrincipal: UserPrincipal?
   ): RegionHierarchyModel? {
     // 记录操作日志
-    logOperation(userPrincipal, "defaultRegionHierarchy", mapOf<String, Any>(
-      "defaultDistrictCode" to (defaultDistrictCode ?: "")
-    ))
+    logOperation(
+      userPrincipal, "defaultRegionHierarchy", mapOf<String, Any>(
+        "defaultDistrictCode" to (defaultDistrictCode ?: "")
+      )
+    )
 
     return defaultDistrictCode?.let { buildRegionHierarchy(it) }
   }

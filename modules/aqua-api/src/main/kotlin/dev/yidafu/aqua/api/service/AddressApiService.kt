@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.api.service
 
-import dev.yidafu.aqua.api.dto.*
+import dev.yidafu.aqua.api.dto.CreateAddressRequest
+import dev.yidafu.aqua.api.dto.UpdateAddressRequest
 import dev.yidafu.aqua.common.graphql.generated.Address
-import java.util.*
 
 /**
  * 地址API服务接口

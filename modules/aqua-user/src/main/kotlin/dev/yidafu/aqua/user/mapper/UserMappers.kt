@@ -19,18 +19,11 @@
 
 package dev.yidafu.aqua.user.mapper
 
-import dev.yidafu.aqua.api.dto.CreateAddressRequest
-import dev.yidafu.aqua.api.dto.UpdateAddressRequest
-import dev.yidafu.aqua.common.graphql.generated.Address
-import dev.yidafu.aqua.common.graphql.generated.AddressInput
-import dev.yidafu.aqua.common.graphql.generated.Admin
-import dev.yidafu.aqua.common.graphql.generated.Region
-import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
-import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.graphql.generated.*
 import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
 
@@ -42,8 +35,8 @@ import java.time.LocalDateTime
  * Mapper for converting UserModel domain entity to GraphQL User type
  * Handles monetary field conversion from cents (Long) to GraphQL cent-based fields
  */
-object UserMapper : ObjectMappie<UserModel, User>(){
-  override fun map(from: UserModel): User  = mapping {
+object UserMapper : ObjectMappie<UserModel, User>() {
+  override fun map(from: UserModel): User = mapping {
     to::id fromValue (from.id ?: -1L)
     // Monetary fields are already in cents (Long) in UserModel, so direct mapping works
     // No conversion needed as both source and target use cent-based Long fields
@@ -135,11 +128,12 @@ object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
       to::latitude fromValue from.latitude?.toDouble()
     }
 }
+
 /**
  * Mapper for converting UpdateAddressRequest with id and userId to AddressModel domain entity
  */
 object AddressUpdateMapper : ObjectMappie<UpdateAddressInput, AddressModel>() {
-  override fun map(from: UpdateAddressInput): AddressModel  = mapping {
+  override fun map(from: UpdateAddressInput): AddressModel = mapping {
 
     to::id fromValue null
     to::userId fromValue 0L // Will be set after mapping

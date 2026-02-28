@@ -23,7 +23,7 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
-import dev.yidafu.aqua.common.domain.model.QPaymentModel.paymentModel
+import dev.yidafu.aqua.common.domain.model.QPaymentModel.Companion.paymentModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository
@@ -91,14 +91,16 @@ class PaymentRepositoryImpl : PaymentRepositoryCustom {
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Long {
+    val sumAmount = paymentModel.amount.sumLong()
+    @Suppress("UNCHECKED_CAST")
     return queryFactory.query()
       .from(paymentModel)
       .where(
         paymentModel.status.eq(status)
           .and(paymentModel.createdAt.between(startDate, endDate))
       )
-      .select(paymentModel.amount.sum())
-      .fetchOne() ?: 0L
+      .select(sumAmount)
+      .fetchOne() as? Long ?: 0L
   }
 
   override fun findPaymentsWithFilters(

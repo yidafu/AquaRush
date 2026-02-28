@@ -21,6 +21,7 @@ package dev.yidafu.aqua.order.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DomainEventModel
 import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
+import jakarta.persistence.LockModeType
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.data.jpa.domain.Specification
@@ -29,14 +30,12 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Lock
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
-import jakarta.persistence.LockModeType
-import java.util.*
 
 @Repository
 interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpecificationExecutor<DomainEventModel> {
   fun findByEventTypeAndStatus(
     eventType: String,
-    status:  EventStatusModel,
+    status: EventStatusModel,
   ): List<DomainEventModel>
 
   fun findByStatus(status: EventStatusModel): List<DomainEventModel>
@@ -97,45 +96,45 @@ interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpec
     deleteAll(events)
   }
 
-    // Enhanced query methods using modern Spring Data JPA 3.0+ features
-    fun findNextPendingEventForUpdateEnhanced(
-        status: EventStatusModel,
-        now: LocalDateTime
-    ): EventStatusModel?
+  // Enhanced query methods using modern Spring Data JPA 3.0+ features
+  fun findNextPendingEventForUpdateEnhanced(
+    status: EventStatusModel,
+    now: LocalDateTime
+  ): EventStatusModel?
 
-    fun findPendingEventsWithFilters(
-        status: EventStatusModel,
-        now: LocalDateTime,
-        eventType: String? = null,
-        maxRetries: Int? = null,
-        batchSize: Int = 100
-    ): List<EventStatusModel>
+  fun findPendingEventsWithFilters(
+    status: EventStatusModel,
+    now: LocalDateTime,
+    eventType: String? = null,
+    maxRetries: Int? = null,
+    batchSize: Int = 100
+  ): List<EventStatusModel>
 
-    fun batchUpdateEvents(
-        eventIds: List<Long>,
-        newStatus: EventStatusModel,
-        incrementRetry: Boolean = false,
-        nextRunAt: LocalDateTime? = null
-    ): Int
+  fun batchUpdateEvents(
+    eventIds: List<Long>,
+    newStatus: EventStatusModel,
+    incrementRetry: Boolean = false,
+    nextRunAt: LocalDateTime? = null
+  ): Int
 
-    fun findEventsInTimeRange(
-        startDate: LocalDateTime,
-        endDate: LocalDateTime,
-        eventTypes: List<String>? = null,
-        statuses: List<EventStatusModel>? = null
-    ): List<DomainEventModel>
+  fun findEventsInTimeRange(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    eventTypes: List<String>? = null,
+    statuses: List<EventStatusModel>? = null
+  ): List<DomainEventModel>
 
-    fun countEventsByTypeAndStatus(
-        eventType: String,
-        status: EventStatusModel,
-        startDate: LocalDateTime? = null,
-        endDate: LocalDateTime? = null
-    ): Long
+  fun countEventsByTypeAndStatus(
+    eventType: String,
+    status: EventStatusModel,
+    startDate: LocalDateTime? = null,
+    endDate: LocalDateTime? = null
+  ): Long
 
-    fun getEventProcessingAnalytics(
-        startDate: LocalDateTime,
-        endDate: LocalDateTime
-    ): List<EventAnalyticsRow>
+  fun getEventProcessingAnalytics(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime
+  ): List<EventAnalyticsRow>
 
-    fun cleanupProcessedEvents(olderThan: LocalDateTime): Int
+  fun cleanupProcessedEvents(olderThan: LocalDateTime): Int
 }

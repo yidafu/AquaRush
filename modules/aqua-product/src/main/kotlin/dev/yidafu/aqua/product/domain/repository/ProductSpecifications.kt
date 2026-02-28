@@ -19,28 +19,28 @@
 
 package dev.yidafu.aqua.product.domain.repository
 
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import org.springframework.data.jpa.domain.Specification
 
 class ProductSpecifications {
-    companion object {
-        fun byId(id: Long): Specification<ProductModel> {
-            return Specification { root, _, cb ->
-                cb.equal(root.get<Long>("id"), id)
-            }
-        }
-
-        fun byStatus(status: ProductStatus): Specification<ProductModel> {
-            return Specification { root, _, cb ->
-                cb.equal(root.get<Enum<*>>("status"), status)
-            }
-        }
-
-        fun stockGreaterThanOrEqualTo(minStock: Int): Specification<ProductModel> {
-            return Specification { root, _, cb ->
-                cb.greaterThanOrEqualTo(root.get<Int>("stock"), minStock)
-            }
-        }
+  companion object {
+    fun byId(id: Long): Specification<ProductModel> {
+      return Specification { root, _, cb ->
+        cb.equal(root.get<Long>("id"), id)
+      }
     }
+
+    fun byStatus(status: ProductStatus): Specification<ProductModel> {
+      return Specification { root, _, cb ->
+        cb.equal(root.get<Enum<*>>("status"), status)
+      }
+    }
+
+    fun stockGreaterThanOrEqualTo(minStock: Int): Specification<ProductModel> {
+      return Specification { root, _, cb ->
+        cb.greaterThanOrEqualTo(root.get<Int>("stock"), minStock)
+      }
+    }
+  }
 }

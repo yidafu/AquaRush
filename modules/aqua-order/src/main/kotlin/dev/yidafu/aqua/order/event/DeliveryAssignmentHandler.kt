@@ -20,20 +20,15 @@
 package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.api.service.DeliveryService
-import tools.jackson.module.kotlin.jacksonObjectMapper
-import dev.yidafu.aqua.common.domain.model.AddressModel
-import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.*
 import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
-import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
+import tools.jackson.module.kotlin.jacksonObjectMapper
 
 @Component
 class DeliveryAssignmentHandler(
@@ -152,7 +147,7 @@ class DeliveryAssignmentHandler(
           id = DefaultIdGenerator().generate(),
           eventType = "ORDER_ASSIGNED",
           payload = eventPayload,
-          status =  EventStatusModel.PENDING,
+          status = EventStatusModel.PENDING,
           retryCount = 0,
           nextRunAt = java.time.LocalDateTime.now(),
           createdAt = java.time.LocalDateTime.now(),

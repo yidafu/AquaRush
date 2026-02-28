@@ -46,13 +46,15 @@ class AddressServiceImpl(
    * 获取用户的所有地址
    */
   @Cacheable(value = ["user_addresses"], key = "#userId")
-  override fun getUserAddresses(userId: Long): List<AddressModel> = addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
+  override fun getUserAddresses(userId: Long): List<AddressModel> =
+    addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
 
   /**
    * 获取用户默认地址
    */
   @Cacheable(value = ["user_default_address"], key = "#userId")
-  override fun getUserDefaultAddress(userId: Long): AddressModel? = addressRepository.findByUserIdAndIsDefaultTrue(userId)
+  override fun getUserDefaultAddress(userId: Long): AddressModel? =
+    addressRepository.findByUserIdAndIsDefaultTrue(userId)
 
   /**
    * 根据ID获取地址
@@ -254,9 +256,9 @@ class AddressServiceImpl(
     val existingAddresses = addressRepository.findByUserId(userId)
     return existingAddresses.any { existing ->
       existing.province == address.province &&
-      existing.city == address.city &&
-      existing.district == address.district &&
-      existing.detailAddress == address.detailAddress
+        existing.city == address.city &&
+        existing.district == address.district &&
+        existing.detailAddress == address.detailAddress
     }
   }
 
@@ -283,9 +285,9 @@ class AddressServiceImpl(
     val allAddresses = addressRepository.findByUserId(userId)
     val filteredAddresses = allAddresses.filter { address ->
       address.province?.contains(keyword, ignoreCase = true) == true ||
-      address.city?.contains(keyword, ignoreCase = true) == true ||
-      address.district?.contains(keyword, ignoreCase = true) == true ||
-      address.detailAddress?.contains(keyword, ignoreCase = true) == true
+        address.city?.contains(keyword, ignoreCase = true) == true ||
+        address.district?.contains(keyword, ignoreCase = true) == true ||
+        address.detailAddress?.contains(keyword, ignoreCase = true) == true
     }
 
     val start = pageable.offset.toInt()

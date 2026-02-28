@@ -19,9 +19,6 @@
 
 package dev.yidafu.aqua.admin.notice.resolvers
 
-import dev.yidafu.aqua.admin.notice.resolvers.AdminNoticeMutationResolver.Companion.BroadcastMessageInput
-import dev.yidafu.aqua.admin.notice.resolvers.AdminNoticeMutationResolver.Companion.CreateNotificationTemplateInput
-import dev.yidafu.aqua.admin.notice.resolvers.AdminNoticeMutationResolver.Companion.UpdateNotificationTemplateInput
 import dev.yidafu.aqua.admin.notice.resolvers.AdminNoticeQueryResolver.Companion.NotificationTemplate
 import dev.yidafu.aqua.api.service.WeChatMessagePushService
 import dev.yidafu.aqua.common.annotation.AdminService

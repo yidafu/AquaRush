@@ -19,68 +19,84 @@
 
 package dev.yidafu.aqua.delivery.mapper
 
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
+import dev.yidafu.aqua.common.domain.model.DeliveryAreaModel
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.graphql.generated.DeliveryArea
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatus
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
-import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
-import dev.yidafu.aqua.common.domain.model.DeliveryAreaModel
 
 /**
  * Mapper for converting DeliveryWorkerModel domain entity to GraphQL DeliveryWorker type
  */
 object DeliveryWorkerMapper : ObjectMappie<DeliveryWorkerModel, DeliveryWorker>() {
-  override fun map(from: DeliveryWorkerModel) =
-    mapping {
-      to::id fromValue (from.id ?: -1L)
-      to::onlineStatus fromValue DeliveryWorkerModelStatusMapper.map(from.onlineStatus)
-      to::earning fromValue from.earningCents
-
+  override fun map(from: DeliveryWorkerModel): DeliveryWorker = mapping {
+    to::id fromValue (from.id ?: 0L)
+    to::userId fromProperty from::userId
+    to::wechatOpenId fromProperty from::wechatOpenId
+    to::name fromProperty from::name
+    to::phone fromProperty from::phone
+    to::avatarUrl fromProperty from::avatarUrl
+    to::onlineStatus fromExpression {
+      DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
     }
+    to::coordinates fromProperty from::coordinates
+    to::currentLocation fromProperty from::currentLocation
+    to::totalOrders fromProperty from::totalOrders
+    to::completedOrders fromProperty from::completedOrders
+    to::rating fromProperty from::rating
+    to::averageRating fromProperty from::averageRating
+    to::earning fromProperty from::earningCents
+    to::isAvailable fromProperty from::isAvailable
+    to::createdAt fromProperty from::createdAt
+    to::updatedAt fromProperty from::updatedAt
+  }
 }
 
 /**
  * Mapper for converting DeliveryWorkerModel domain entity to GraphQL DeliveryWorker type (with current user)
  */
 object DeliveryWorkerWithCurrentUserMapper : ObjectMappie<DeliveryWorkerModel, DeliveryWorker>() {
-  override fun map(from: DeliveryWorkerModel) =
-    mapping {
-      to::id fromValue (from.id ?: -1L)
-      to::onlineStatus fromValue DeliveryWorkerModelStatusMapper.map(from.onlineStatus)
-      to::earning fromValue from.earningCents
-      // Note: isAvailable maps automatically
+  override fun map(from: DeliveryWorkerModel): DeliveryWorker = mapping {
+    to::id fromValue (from.id ?: 0L)
+    to::userId fromProperty from::userId
+    to::wechatOpenId fromProperty from::wechatOpenId
+    to::name fromProperty from::name
+    to::phone fromProperty from::phone
+    to::avatarUrl fromProperty from::avatarUrl
+    to::onlineStatus fromExpression {
+      DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
     }
+    to::coordinates fromProperty from::coordinates
+    to::currentLocation fromProperty from::currentLocation
+    to::totalOrders fromProperty from::totalOrders
+    to::completedOrders fromProperty from::completedOrders
+    to::rating fromProperty from::rating
+    to::averageRating fromProperty from::averageRating
+    to::earning fromProperty from::earningCents
+    to::isAvailable fromProperty from::isAvailable
+    to::createdAt fromProperty from::createdAt
+    to::updatedAt fromProperty from::updatedAt
+  }
 }
 
 /**
  * Mapper for converting DeliveryAreaModel domain entity to GraphQL DeliveryArea type
  */
 object DeliveryAreaMapper : ObjectMappie<DeliveryAreaModel, DeliveryArea>() {
-  override fun map(from: DeliveryAreaModel) =
-    mapping {
-      // Most fields map automatically by name
-      // No custom mapping needed as field names match
-    }
+  override fun map(from: DeliveryAreaModel): DeliveryArea = mapping {
+    to::id fromProperty from::id
+    to::name fromProperty from::name
+    to::province fromProperty from::province
+    to::city fromProperty from::city
+    to::district fromProperty from::district
+    to::enabled fromProperty from::enabled
+  }
 }
 
 /**
  * Enum mapper for WorkerStatus domain enum to GraphQL WorkerStatus enum
  */
-object DeliveryWorkerModelStatusMapper : EnumMappie<DeliverWorkerModelStatus, DeliveryWorkerStatus>() {
-  override fun map(from: DeliverWorkerModelStatus) =
-    mapping {
-      DeliveryWorkerStatus.ONLINE fromEnumEntry DeliverWorkerModelStatus.ONLINE
-      DeliveryWorkerStatus.OFFLINE fromEnumEntry DeliverWorkerModelStatus.OFFLINE
-    }
-}
-
-object DeliveryWorkerStatusMapper : EnumMappie<DeliveryWorkerStatus, DeliverWorkerModelStatus >() {
-  override fun map(from: DeliveryWorkerStatus) =
-    mapping {
-     DeliverWorkerModelStatus.ONLINE  fromEnumEntry   DeliveryWorkerStatus.ONLINE
-      DeliverWorkerModelStatus.OFFLINE fromEnumEntry    DeliveryWorkerStatus.OFFLINE
-    }
-}
-
+object DeliveryWorkerStatusMapper : EnumMappie<DeliverWorkerModelStatus, DeliveryWorkerStatus>()

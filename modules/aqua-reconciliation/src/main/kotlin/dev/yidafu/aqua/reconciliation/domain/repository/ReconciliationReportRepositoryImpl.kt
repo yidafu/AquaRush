@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.reconciliation.domain.repository
 
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.common.domain.model.QReconciliationReportModel.reconciliationReportModel
+import dev.yidafu.aqua.common.domain.model.QReconciliationReportModel.Companion.reconciliationReportModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
@@ -41,7 +41,10 @@ class ReconciliationReportRepositoryImpl : ReconciliationReportRepositoryCustom 
     JPAQueryFactory(entityManager)
   }
 
-  override fun findByGeneratedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationReportModel> {
+  override fun findByGeneratedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime
+  ): List<ReconciliationReportModel> {
     return queryFactory.selectFrom(reconciliationReportModel)
       .where(reconciliationReportModel.generatedAt.between(startDate, endDate))
       .orderBy(reconciliationReportModel.generatedAt.desc())

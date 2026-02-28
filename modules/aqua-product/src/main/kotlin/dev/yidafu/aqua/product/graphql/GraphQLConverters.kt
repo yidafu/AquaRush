@@ -19,6 +19,4 @@
 
 package dev.yidafu.aqua.product.graphql
 
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-
 

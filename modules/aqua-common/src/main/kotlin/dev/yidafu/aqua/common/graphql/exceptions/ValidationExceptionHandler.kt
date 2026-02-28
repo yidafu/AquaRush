@@ -46,10 +46,12 @@ class ValidationExceptionHandler : DataFetcherExceptionResolverAdapter() {
           errorMessage = exception.message ?: "验证失败",
         )
       }
+
       is ConstraintViolationException -> {
         logger.debug("ConstraintViolationException caught: {}", exception.message)
         return createValidationError(exception)
       }
+
       else -> return null
     }
   }

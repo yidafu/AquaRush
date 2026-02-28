@@ -22,11 +22,8 @@ package dev.yidafu.aqua.common.domain.model
 import com.fasterxml.jackson.annotation.JsonFormat
 import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import jakarta.persistence.*
-import org.hibernate.annotations.Where
-import java.time.LocalDateTime
-import java.util.*
-
 import org.hibernate.annotations.SoftDelete
+import java.time.LocalDateTime
 
 @Entity(name = "OrderDomainEvent")
 @SoftDelete(columnName = "is_deleted")

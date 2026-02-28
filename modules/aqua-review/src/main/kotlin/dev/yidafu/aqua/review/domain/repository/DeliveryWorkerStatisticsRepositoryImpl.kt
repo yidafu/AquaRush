@@ -21,7 +21,7 @@ package dev.yidafu.aqua.review.domain.repository
 
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
-import dev.yidafu.aqua.common.domain.model.QDeliveryWorkerStatisticsModel.deliveryWorkerStatisticsModel
+import dev.yidafu.aqua.common.domain.model.QDeliveryWorkerStatisticsModel.Companion.deliveryWorkerStatisticsModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page
@@ -29,7 +29,6 @@ import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
-import java.time.LocalDateTime
 
 /**
  * Custom repository implementation for DeliveryWorkerStatistics entity using QueryDSL

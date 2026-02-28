@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+    <changeSet id="v1.0.4-add-bucket-deposit-tables" author="aqua-rush">
+        <comment>Add bucket deposit management tables</comment>
+
+        <!-- 系统配置表 -->
+        <createTable tableName="system_settings">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="setting_key" type="varchar(64)">
+                <constraints nullable="false" unique="true" />
+            </column>
+            <column name="setting_value" type="varchar(255)" />
+            <column name="description" type="varchar(255)" />
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_at" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <!-- 初始化押桶金额配置 -->
+        <insert tableName="system_settings">
+            <column name="id">1</column>
+            <column name="setting_key">bucket_deposit_amount</column>
+            <column name="setting_value">1000</column>
+            <column name="description">每个桶的押金金额（分）</column>
+            <column name="created_at">NOW()</column>
+            <column name="updated_at">NOW()</column>
+        </insert>
+
+        <!-- 押桶记录表 -->
+        <createTable tableName="bucket_deposits">
+            <column name="id" type="bigint">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="user_id" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="quantity" type="int" defaultValueNumeric="1">
+                <constraints nullable="false" />
+            </column>
+            <column name="amount_cents" type="bigint">
+                <constraints nullable="false" />
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false" />
+            </column>
+            <column name="payment_transaction_id" type="varchar(64)" />
+            <column name="payment_time" type="timestamp" />
+            <column name="refunded_at" type="timestamp" />
+            <column name="refunded_by" type="bigint" />
+            <column name="remark" type="varchar(255)" />
+            <column name="created_at" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+            <column name="updated_at" type="timestamp">
+                <constraints nullable="false" />
+            </column>
+        </createTable>
+
+        <!-- 添加索引 -->
+        <createIndex tableName="bucket_deposits" indexName="idx_bucket_deposits_user_id">
+            <column name="user_id" />
+        </createIndex>
+
+        <createIndex tableName="bucket_deposits" indexName="idx_bucket_deposits_status">
+            <column name="status" />
+        </createIndex>
+
+        <createIndex tableName="bucket_deposits" indexName="idx_bucket_deposits_created_at">
+            <column name="created_at" />
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

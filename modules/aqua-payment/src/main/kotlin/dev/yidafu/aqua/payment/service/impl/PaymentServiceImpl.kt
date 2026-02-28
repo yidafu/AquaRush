@@ -21,8 +21,6 @@ package dev.yidafu.aqua.payment.service.impl
 
 import com.wechat.pay.java.core.Config
 import com.wechat.pay.java.core.exception.ValidationException
-import com.wechat.pay.java.service.payments.jsapi.model.*
-import com.wechat.pay.java.service.refund.model.*
 import dev.yidafu.aqua.api.service.OrderService
 import dev.yidafu.aqua.api.service.PaymentService
 import dev.yidafu.aqua.common.domain.model.OrderStatus
@@ -31,12 +29,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.util.*
 
 @Service
 class PaymentServiceImpl(
   private val orderService: OrderService,
-) : PaymentService{
+) : PaymentService {
   private val logger = LoggerFactory.getLogger(PaymentService::class.java)
 
   @Value("\${wechat.pay.appid:}")
@@ -239,7 +236,8 @@ class PaymentServiceImpl(
     return createWechatJsapiPay(orderId, amountCents, description, "mock_openid")
   }
 
-  override fun handleWechatPayCallback(callbackData: Map<String, Any>): Boolean = handleWechatPayCallback(callbackData, emptyMap())
+  override fun handleWechatPayCallback(callbackData: Map<String, Any>): Boolean =
+    handleWechatPayCallback(callbackData, emptyMap())
 
   override fun refund(
     transactionId: String,

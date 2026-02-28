@@ -27,11 +27,11 @@ import org.springframework.web.client.RestTemplate
 @Configuration
 class RestTemplateConfig {
 
-    @Bean
-    fun restTemplate(): RestTemplate {
-        val factory = SimpleClientHttpRequestFactory()
-        factory.setConnectTimeout(5000) // 5 seconds
-        factory.setReadTimeout(10000)    // 10 seconds
-        return RestTemplate(factory)
-    }
+  @Bean
+  fun restTemplate(): RestTemplate {
+    val factory = SimpleClientHttpRequestFactory()
+    factory.setConnectTimeout(5000) // 5 seconds
+    factory.setReadTimeout(10000)    // 10 seconds
+    return RestTemplate(factory)
+  }
 }

@@ -19,13 +19,10 @@
 
 package dev.yidafu.aqua.admin.delivery.resolvers
 
-import dev.yidafu.aqua.admin.delivery.resolvers.AdminDeliveryWorkerMutationResolver.Companion.CreateDeliveryWorkerInput
-import dev.yidafu.aqua.admin.delivery.resolvers.AdminDeliveryWorkerMutationResolver.Companion.UpdateDeliveryWorkerInput
 import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.common.annotation.AdminService
-import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
-import  dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
+import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
@@ -36,38 +33,38 @@ import org.springframework.stereotype.Controller
 @AdminService
 @Controller
 class AdminDeliveryWorkerQueryResolver(
-    private val deliveryService: DeliveryService
+  private val deliveryService: DeliveryService
 ) {
 
-    /**
-     * 查询所有配送员（管理员功能）
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    fun deliveryWorkers(): List<DeliveryWorker> {
-      return DeliveryWorkerMapper.mapList( deliveryService.getAllWorkers())
-    }
+  /**
+   * 查询所有配送员（管理员功能）
+   */
+  @PreAuthorize("hasRole('ADMIN')")
+  fun deliveryWorkers(): List<DeliveryWorker> {
+    return DeliveryWorkerMapper.mapList(deliveryService.getAllWorkers())
+  }
 
-    /**
-     * 查询在线配送员（管理员功能）
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    fun onlineDeliveryWorkers(): List<DeliveryWorker> {
-      return DeliveryWorkerMapper.mapList( deliveryService.getOnlineWorkers())
-    }
+  /**
+   * 查询在线配送员（管理员功能）
+   */
+  @PreAuthorize("hasRole('ADMIN')")
+  fun onlineDeliveryWorkers(): List<DeliveryWorker> {
+    return DeliveryWorkerMapper.mapList(deliveryService.getOnlineWorkers())
+  }
 
-    /**
-     * 根据ID查询配送员（管理员功能）
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    fun deliveryWorker(id: Long): DeliveryWorker? {
-      return DeliveryWorkerMapper.map(deliveryService.getWorkerById(id))
-    }
+  /**
+   * 根据ID查询配送员（管理员功能）
+   */
+  @PreAuthorize("hasRole('ADMIN')")
+  fun deliveryWorker(id: Long): DeliveryWorker? {
+    return DeliveryWorkerMapper.map(deliveryService.getWorkerById(id))
+  }
 
-    /**
-     * 查询配送员的活跃任务数量（管理员功能）
-     */
-    @PreAuthorize("hasRole('ADMIN')")
-    fun deliveryWorkerActiveTasks(workerId: Long): Int {
-        return deliveryService.getWorkerActiveTasks(workerId).size
-    }
+  /**
+   * 查询配送员的活跃任务数量（管理员功能）
+   */
+  @PreAuthorize("hasRole('ADMIN')")
+  fun deliveryWorkerActiveTasks(workerId: Long): Int {
+    return deliveryService.getWorkerActiveTasks(workerId).size
+  }
 }

@@ -1,16 +1,22 @@
-// Plugin that provides QueryDSL dependencies and configuration
+// Plugin that provides QueryDSL dependencies using BOM
+// Note: Apply com.google.devtools.ksp plugin in the target project before applying this plugin
+
 plugins {
-  id("com.ewerk.gradle.plugins.querydsl")
-  kotlin("kapt")
+  `java-library`
+  kotlin("jvm")
+
+  kotlin("plugin.jpa")
+  id("com.google.devtools.ksp")
 }
 
-// Add QueryDSL dependencies
+repositories {
+  mavenCentral()
+}
+
 dependencies {
-  add("implementation", "com.querydsl:querydsl-jpa:5.1.0:jakarta")
-  add("implementation", "com.querydsl:querydsl-core:5.1.0")
-  add("kapt", "com.querydsl:querydsl-apt:5.1.0:jakarta")
+  implementation(platform("io.github.openfeign.querydsl:querydsl-bom:7.1"))
+  implementation("jakarta.persistence:jakarta.persistence-api")
+  implementation("io.github.openfeign.querydsl:querydsl-jpa")
+  ksp("io.github.openfeign.querydsl:querydsl-ksp-codegen:7.1")
+  // Note: ksp dependency should be added by the consuming module
 }
-
-// Note: The QueryDSL configuration (querydsl { ... }) needs to be applied
-// in the target project's build.gradle.kts file since the extension
-// is not available during build-logic compilation.

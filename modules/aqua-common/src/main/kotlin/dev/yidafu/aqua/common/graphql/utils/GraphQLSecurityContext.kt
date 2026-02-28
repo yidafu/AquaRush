@@ -30,6 +30,7 @@ object GraphQLSecurityContext {
       authentication != null && authentication.isAuthenticated && authentication.principal is UserPrincipal -> {
         authentication.principal as UserPrincipal
       }
+
       else -> null
     }
   }

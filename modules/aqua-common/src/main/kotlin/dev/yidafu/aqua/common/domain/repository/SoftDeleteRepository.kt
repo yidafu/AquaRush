@@ -32,46 +32,46 @@ import java.util.*
  */
 @NoRepositoryBean
 interface SoftDeleteRepository<T : SoftDeletable, ID : Any> : JpaRepository<T, ID> {
-    /**
-     * Find all entities including deleted ones.
-     *
-     * @return list of all entities
-     */
-    fun findAllIncludingDeleted(): List<T>
+  /**
+   * Find all entities including deleted ones.
+   *
+   * @return list of all entities
+   */
+  fun findAllIncludingDeleted(): List<T>
 
-    /**
-     * Find entity by id including deleted ones.
-     *
-     * @param id the entity id
-     * @return optional of the entity
-     */
-    fun findByIdIncludingDeleted(id: ID): Optional<T>
+  /**
+   * Find entity by id including deleted ones.
+   *
+   * @param id the entity id
+   * @return optional of the entity
+   */
+  fun findByIdIncludingDeleted(id: ID): Optional<T>
 
-    /**
-     * Soft delete entity by id.
-     *
-     * @param id the entity id
-     */
-    fun deleteByIdSoft(id: ID)
+  /**
+   * Soft delete entity by id.
+   *
+   * @param id the entity id
+   */
+  fun deleteByIdSoft(id: ID)
 
-    /**
-     * Soft delete entity.
-     *
-     * @param entity the entity to delete
-     */
-    fun deleteSoft(entity: T)
+  /**
+   * Soft delete entity.
+   *
+   * @param entity the entity to delete
+   */
+  fun deleteSoft(entity: T)
 
-    /**
-     * Restore deleted entity by id.
-     *
-     * @param id the entity id
-     */
-    fun restore(id: ID)
+  /**
+   * Restore deleted entity by id.
+   *
+   * @param id the entity id
+   */
+  fun restore(id: ID)
 
-    /**
-     * Find all deleted entities.
-     *
-     * @return list of deleted entities
-     */
-    fun findAllDeleted(): List<T>
+  /**
+   * Find all deleted entities.
+   *
+   * @return list of deleted entities
+   */
+  fun findAllDeleted(): List<T>
 }

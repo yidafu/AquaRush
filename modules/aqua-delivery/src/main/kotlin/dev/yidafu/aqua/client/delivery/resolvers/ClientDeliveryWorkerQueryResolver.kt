@@ -40,7 +40,8 @@ class ClientDeliveryWorkerQueryResolver(
    * 用户可以看到哪些配送员在线，但看不到敏感信息
    */
   @PreAuthorize("isAuthenticated()")
-  fun onlineDeliveryWorkersPublic(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryService.getOnlineWorkers())
+  fun onlineDeliveryWorkersPublic(): List<DeliveryWorker> =
+    DeliveryWorkerMapper.mapList(deliveryService.getOnlineWorkers())
 
   /**
    * 配送员查询自己的信息

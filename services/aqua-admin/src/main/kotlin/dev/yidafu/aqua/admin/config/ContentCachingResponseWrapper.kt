@@ -23,7 +23,6 @@ import jakarta.servlet.ServletOutputStream
 import jakarta.servlet.WriteListener
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.servlet.http.HttpServletResponseWrapper
-import org.springframework.util.StreamUtils
 import java.io.*
 
 class ContentCachingResponseWrapper(response: HttpServletResponse) : HttpServletResponseWrapper(response) {
@@ -37,7 +36,7 @@ class ContentCachingResponseWrapper(response: HttpServletResponse) : HttpServlet
   override fun getOutputStream(): ServletOutputStream = contentOutputStream
 
   override fun getWriter(): PrintWriter {
-    return PrintWriter(OutputStreamWriter(contentOutputStream, getCharacterEncoding() ?: "UTF-8"))
+    return PrintWriter(OutputStreamWriter(contentOutputStream, characterEncoding ?: "UTF-8"))
   }
 
   fun getContentAsByteArray(): ByteArray = cachedContent.toByteArray()
@@ -55,7 +54,7 @@ class ContentCachingResponseWrapper(response: HttpServletResponse) : HttpServlet
     }
   }
 
-  private inner class CachedContentServletOutputStream(
+  private class CachedContentServletOutputStream(
     private val originalOutputStream: ServletOutputStream,
     private val cachedContent: ByteArrayOutputStream,
   ) : ServletOutputStream() {

@@ -34,6 +34,7 @@ import java.util.*
 class JwtTokenService {
 
   val logger = LoggerFactory.getLogger(JwtTokenService::class.java)
+
   @Value("\${app.jwt.secret:your-secret-key-must-be-256-bits-long}")
   private lateinit var secret: String
 

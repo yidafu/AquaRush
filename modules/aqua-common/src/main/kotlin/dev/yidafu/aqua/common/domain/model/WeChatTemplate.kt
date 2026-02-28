@@ -25,7 +25,8 @@ data class WeChatTemplateModel(
   val page: String? = null,
   val data: Map<String, WeChatTemplateData>,
 )
-open class  WeChatTemplateData(
+
+open class WeChatTemplateData(
   val value: String,
   val color: String? = null,
 )

@@ -64,21 +64,4 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
   }
 }
 
-// Configure QueryDSL
-val querydslDir = "$buildDir/generated/querydsl"
-
-querydsl {
-  jpa = true
-  hibernate = true
-  querydslSourcesDir = querydslDir
-}
-
-// Configure Kotlin compilation to include generated source
-kotlin {
-  sourceSets {
-    main {
-      // Add QueryDSL generated sources
-      kotlin.srcDir(layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main"))
-    }
-  }
-}
+// QueryDSL configuration is now handled by aqua.kotlin.querydsl plugin

@@ -8,13 +8,7 @@ import jakarta.validation.constraints.NotNull
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
-import java.math.BigDecimal
+import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
 
 /**
@@ -25,8 +19,8 @@ import java.time.LocalDateTime
 @RequestMapping("/api/debug/auth")
 @ConditionalOnProperty(prefix = "app.debug", name = ["enabled"], havingValue = "true")
 class DebugJwtController(
-    private val jwtTokenService: JwtTokenService,
-    private val userRepository: UserRepository
+  private val jwtTokenService: JwtTokenService,
+  private val userRepository: UserRepository
 ) {
 
   /**
@@ -48,10 +42,10 @@ class DebugJwtController(
       val authorities = listOf("ROLE_${user.role.name}")
       val grantedAuthorities = authorities.map { SimpleGrantedAuthority(it) }
       val userPrincipal = UserPrincipal(
-          id =( user.id ?: -1),
-          _username = user.wechatOpenId,
-          userType = user.role.name,
-          _authorities = grantedAuthorities
+        id = (user.id ?: -1),
+        _username = user.wechatOpenId,
+        userType = user.role.name,
+        _authorities = grantedAuthorities
       )
 
       // Generate JWT token

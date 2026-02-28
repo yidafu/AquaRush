@@ -27,102 +27,102 @@ import java.time.LocalDateTime
  * 文件元数据响应
  */
 data class FileMetadataResponse(
-    /**
-     * 文件ID
-     */
-    val id: Long,
+  /**
+   * 文件ID
+   */
+  val id: Long,
 
-    /**
-     * 原始文件名
-     */
-    val fileName: String,
+  /**
+   * 原始文件名
+   */
+  val fileName: String,
 
-    /**
-     * 文件类型
-     */
-    val fileType: FileType,
+  /**
+   * 文件类型
+   */
+  val fileType: FileType,
 
-    /**
-     * 文件大小（字节）
-     */
-    val fileSize: Long,
+  /**
+   * 文件大小（字节）
+   */
+  val fileSize: Long,
 
-    /**
-     * MIME类型
-     */
-    val mimeType: String,
+  /**
+   * MIME类型
+   */
+  val mimeType: String,
 
-    /**
-     * 文件扩展名
-     */
-    val extension: String?,
+  /**
+   * 文件扩展名
+   */
+  val extension: String?,
 
-    /**
-     * 创建时间
-     */
-    val createdAt: LocalDateTime,
+  /**
+   * 创建时间
+   */
+  val createdAt: LocalDateTime,
 
-    /**
-     * 更新时间
-     */
-    val updatedAt: LocalDateTime,
+  /**
+   * 更新时间
+   */
+  val updatedAt: LocalDateTime,
 
-    /**
-     * 是否公开
-     */
-    val isPublic: Boolean,
+  /**
+   * 是否公开
+   */
+  val isPublic: Boolean,
 
-    /**
-     * 文件描述
-     */
-    val description: String?,
+  /**
+   * 文件描述
+   */
+  val description: String?,
 
-    /**
-     * 文件所有者ID
-     */
-    val ownerId: Long?,
+  /**
+   * 文件所有者ID
+   */
+  val ownerId: Long?,
 
-    /**
-     * 文件访问URL
-     */
-    val fileUrl: String?,
+  /**
+   * 文件访问URL
+   */
+  val fileUrl: String?,
 
-    /**
-     * 文件大小（可读格式）
-     */
-    val fileSizeFormatted: String
+  /**
+   * 文件大小（可读格式）
+   */
+  val fileSizeFormatted: String
 ) {
-    constructor(
-      metadata: FileMetadata,
-      fileUrl: String? = null
-    ) : this(
-        id = metadata.id,
-        fileName = metadata.fileName,
-        fileType = metadata.fileType,
-        fileSize = metadata.fileSize,
-        mimeType = metadata.mimeType,
-        extension = metadata.extension,
-        createdAt = metadata.createdAt,
-        updatedAt = metadata.updatedAt,
-        isPublic = metadata.isPublic,
-        description = metadata.description,
-        ownerId = metadata.ownerId,
-        fileUrl = fileUrl,
-        fileSizeFormatted = formatFileSize(metadata.fileSize)
-    )
+  constructor(
+    metadata: FileMetadata,
+    fileUrl: String? = null
+  ) : this(
+    id = metadata.id,
+    fileName = metadata.fileName,
+    fileType = metadata.fileType,
+    fileSize = metadata.fileSize,
+    mimeType = metadata.mimeType,
+    extension = metadata.extension,
+    createdAt = metadata.createdAt,
+    updatedAt = metadata.updatedAt,
+    isPublic = metadata.isPublic,
+    description = metadata.description,
+    ownerId = metadata.ownerId,
+    fileUrl = fileUrl,
+    fileSizeFormatted = formatFileSize(metadata.fileSize)
+  )
 
-    companion object {
-        /**
-         * 格式化文件大小
-         */
-        private fun formatFileSize(bytes: Long): String {
-            if (bytes < 1024) return "${bytes}B"
-            val kb = bytes / 1024.0
-            if (kb < 1024) return "${String.format("%.1f", kb)}KB"
-            val mb = kb / 1024.0
-            if (mb < 1024) return "${String.format("%.1f", mb)}MB"
-            val gb = mb / 1024.0
-            return "${String.format("%.1f", gb)}GB"
-        }
+  companion object {
+    /**
+     * 格式化文件大小
+     */
+    private fun formatFileSize(bytes: Long): String {
+      if (bytes < 1024) return "${bytes}B"
+      val kb = bytes / 1024.0
+      if (kb < 1024) return "${String.format("%.1f", kb)}KB"
+      val mb = kb / 1024.0
+      if (mb < 1024) return "${String.format("%.1f", mb)}MB"
+      val gb = mb / 1024.0
+      return "${String.format("%.1f", gb)}GB"
     }
+  }
 }

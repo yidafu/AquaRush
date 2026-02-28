@@ -27,17 +27,15 @@ import tech.mappie.api.ObjectMappie
  * Mapper for converting Review domain entity to GraphQL Review type
  */
 object ReviewMapper : ObjectMappie<ReviewModel, Review>() {
-  override fun map(from: ReviewModel): Review {
-    return Review(
-      reviewId = from.id!!,
-      orderId = from.orderId,
-      userId = if (from.isAnonymous) null else from.userId,
-      deliveryWorkerId = from.deliveryWorkerId,
-      deliveryWorkerName = null, // This would need to be fetched from delivery worker repository
-      rating = from.rating,
-      comment = from.comment,
-      isAnonymous = from.isAnonymous,
-      createdAt = from.createdAt,
-    )
+  override fun map(from: ReviewModel) = mapping {
+    to::reviewId fromExpression { from.id ?: -1L }
+    to::orderId fromProperty from::orderId
+    to::userId fromProperty from::userId
+    to::deliveryWorkerId fromProperty from::deliveryWorkerId
+    to::deliveryWorkerName fromValue null // Not available in ReviewModel
+    to::rating fromProperty from::rating
+    to::comment fromProperty from::comment
+    to::isAnonymous fromProperty from::isAnonymous
+    to::createdAt fromProperty from::createdAt
   }
 }

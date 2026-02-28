@@ -30,23 +30,23 @@ import org.springframework.web.servlet.ModelAndView
 @Controller
 class CustomErrorController : ErrorController {
 
-    @RequestMapping("/error")
-    fun handleError(request: HttpServletRequest): ModelAndView {
-        val modelAndView = ModelAndView()
+  @RequestMapping("/error")
+  fun handleError(request: HttpServletRequest): ModelAndView {
+    val modelAndView = ModelAndView()
 
-        val status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE)
+    val status = request.getAttribute(RequestDispatcher.ERROR_STATUS_CODE)
 
-        if (status != null) {
-            val statusCode = Integer.valueOf(status.toString())
+    if (status != null) {
+      val statusCode = Integer.valueOf(status.toString())
 
-            if (statusCode == HttpStatus.NOT_FOUND.value()) {
-                modelAndView.viewName = "error-404"
-                return modelAndView
-            }
-        }
-
-        // For other errors, return a generic error page
-        modelAndView.viewName = "error"
+      if (statusCode == HttpStatus.NOT_FOUND.value()) {
+        modelAndView.viewName = "error-404"
         return modelAndView
+      }
     }
+
+    // For other errors, return a generic error page
+    modelAndView.viewName = "error"
+    return modelAndView
+  }
 }

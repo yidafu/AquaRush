@@ -20,14 +20,13 @@
 package dev.yidafu.aqua.common.domain.model
 
 import jakarta.persistence.*
-import java.time.LocalDateTime
-
 import org.hibernate.annotations.SoftDelete
+import java.time.LocalDateTime
 
 @Entity
 @SoftDelete(columnName = "is_deleted")
 @Table(name = "notification_settings")
-open class  NotificationSettingsModel(
+open class NotificationSettingsModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
@@ -52,7 +51,7 @@ open class  NotificationSettingsModel(
 
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-@Column(name = "deleted_at")
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
 
   @Column(name = "deleted_by")

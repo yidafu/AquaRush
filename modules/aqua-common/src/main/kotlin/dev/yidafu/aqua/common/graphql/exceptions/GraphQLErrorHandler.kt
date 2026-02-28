@@ -26,7 +26,6 @@ import jakarta.validation.ConstraintViolationException
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.stereotype.Component
-import java.util.*
 
 @Component
 class GraphQLErrorHandler {

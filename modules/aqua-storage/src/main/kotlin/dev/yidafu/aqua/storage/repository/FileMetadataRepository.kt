@@ -26,7 +26,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
-import java.util.Optional
+import java.util.*
 
 /**
  * 文件元数据仓库接口
@@ -34,59 +34,59 @@ import java.util.Optional
 @Repository
 interface FileMetadataRepository : JpaRepository<FileMetadata, Long>, FileMetadataRepositoryCustom {
 
-    /**
-     * 根据存储路径查找文件
-     */
-    fun findByStoragePath(storagePath: String): Optional<FileMetadata>
+  /**
+   * 根据存储路径查找文件
+   */
+  fun findByStoragePath(storagePath: String): Optional<FileMetadata>
 
-    /**
-     * 根据校验和查找文件
-     */
-    fun findByChecksum(checksum: String): Optional<FileMetadata>
+  /**
+   * 根据校验和查找文件
+   */
+  fun findByChecksum(checksum: String): Optional<FileMetadata>
 
-    /**
-     * 根据文件类型查找文件
-     */
-    fun findByFileType(fileType: FileType): List<FileMetadata>
+  /**
+   * 根据文件类型查找文件
+   */
+  fun findByFileType(fileType: FileType): List<FileMetadata>
 
-    /**
-     * 根据文件类型分页查找文件
-     */
-    fun findByFileType(fileType: FileType, pageable: Pageable): Page<FileMetadata>
+  /**
+   * 根据文件类型分页查找文件
+   */
+  fun findByFileType(fileType: FileType, pageable: Pageable): Page<FileMetadata>
 
-    /**
-     * 根据所有者ID查找文件
-     */
-    fun findByOwnerId(ownerId: Long?): List<FileMetadata>
+  /**
+   * 根据所有者ID查找文件
+   */
+  fun findByOwnerId(ownerId: Long?): List<FileMetadata>
 
-    /**
-     * 根据所有者ID分页查找文件
-     */
-    fun findByOwnerId(ownerId: Long?, pageable: Pageable): Page<FileMetadata>
+  /**
+   * 根据所有者ID分页查找文件
+   */
+  fun findByOwnerId(ownerId: Long?, pageable: Pageable): Page<FileMetadata>
 
-    /**
-     * 查找公开文件
-     */
-    fun findByIsPublic(isPublic: Boolean): List<FileMetadata>
+  /**
+   * 查找公开文件
+   */
+  fun findByIsPublic(isPublic: Boolean): List<FileMetadata>
 
-    /**
-     * 根据文件名模糊搜索
-     */
-    fun findByFileNameContainingIgnoreCase(fileName: String): List<FileMetadata>
+  /**
+   * 根据文件名模糊搜索
+   */
+  fun findByFileNameContainingIgnoreCase(fileName: String): List<FileMetadata>
 
-    /**
-     * 根据文件名模糊搜索（分页）
-     */
-    fun findByFileNameContainingIgnoreCase(fileName: String, pageable: Pageable): Page<FileMetadata>
+  /**
+   * 根据文件名模糊搜索（分页）
+   */
+  fun findByFileNameContainingIgnoreCase(fileName: String, pageable: Pageable): Page<FileMetadata>
 
-    /**
-     * 根据文件扩展名查找文件
-     */
-    fun findByExtension(extension: String): List<FileMetadata>
+  /**
+   * 根据文件扩展名查找文件
+   */
+  fun findByExtension(extension: String): List<FileMetadata>
 
-    /**
-     * 查找指定时间之后创建的文件
-     */
-    fun findByCreatedAtAfter(createdAt: LocalDateTime): List<FileMetadata>
+  /**
+   * 查找指定时间之后创建的文件
+   */
+  fun findByCreatedAtAfter(createdAt: LocalDateTime): List<FileMetadata>
 
-  }
+}

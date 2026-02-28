@@ -23,60 +23,60 @@ package dev.yidafu.aqua.storage.dto
  * 图片处理参数
  */
 data class ImageParameters(
-    /**
-     * 图片宽度
-     */
-    val width: Int? = null,
+  /**
+   * 图片宽度
+   */
+  val width: Int? = null,
 
-    /**
-     * 图片高度
-     */
-    val height: Int? = null,
+  /**
+   * 图片高度
+   */
+  val height: Int? = null,
 
-    /**
-     * 图片质量 (0.1-1.0)
-     */
-    val quality: Float? = null,
+  /**
+   * 图片质量 (0.1-1.0)
+   */
+  val quality: Float? = null,
 
-    /**
-     * 输出格式 (JPEG, PNG, WEBP等)
-     */
-    val format: String? = null,
+  /**
+   * 输出格式 (JPEG, PNG, WEBP等)
+   */
+  val format: String? = null,
 
-    /**
-     * 是否添加水印
-     */
-    val watermark: Boolean = false,
+  /**
+   * 是否添加水印
+   */
+  val watermark: Boolean = false,
 
-    /**
-     * 水印文本（当watermark为true时使用）
-     */
-    val watermarkText: String? = null
+  /**
+   * 水印文本（当watermark为true时使用）
+   */
+  val watermarkText: String? = null
 ) {
-    /**
-     * 验证参数有效性
-     */
-    fun validate(): Boolean {
-        // 验证宽度和高度
-        if (width != null && width <= 0) return false
-        if (height != null && height <= 0) return false
+  /**
+   * 验证参数有效性
+   */
+  fun validate(): Boolean {
+    // 验证宽度和高度
+    if (width != null && width <= 0) return false
+    if (height != null && height <= 0) return false
 
-        // 验证质量范围
-        if (quality != null && (quality < 0.1f || quality > 1.0f)) return false
+    // 验证质量范围
+    if (quality != null && (quality < 0.1f || quality > 1.0f)) return false
 
-        // 验证格式
-        if (format != null) {
-            val supportedFormats = setOf("JPEG", "JPG", "PNG", "WEBP", "GIF", "BMP")
-            if (!supportedFormats.contains(format.uppercase())) return false
-        }
-
-        return true
+    // 验证格式
+    if (format != null) {
+      val supportedFormats = setOf("JPEG", "JPG", "PNG", "WEBP", "GIF", "BMP")
+      if (!supportedFormats.contains(format.uppercase())) return false
     }
 
-    /**
-     * 生成处理参数的唯一标识符
-     */
-    fun generateCacheKey(): String {
-        return "${width}_${height}_${quality}_${format?.uppercase()}_${watermark}_${watermarkText}"
-    }
+    return true
+  }
+
+  /**
+   * 生成处理参数的唯一标识符
+   */
+  fun generateCacheKey(): String {
+    return "${width}_${height}_${quality}_${format?.uppercase()}_${watermark}_${watermarkText}"
+  }
 }

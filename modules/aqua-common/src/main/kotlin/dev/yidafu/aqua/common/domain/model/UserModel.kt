@@ -30,7 +30,7 @@ import java.time.LocalDateTime
 @Entity
 @SoftDelete(columnName = "is_deleted")
 @Table(name = "users")
-open class  UserModel(
+open class UserModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
@@ -86,7 +86,7 @@ open class  UserModel(
 
   // Backward compatibility property
   val balance: BigDecimal
-  get() = MoneyUtils.fromCents(balanceCents)
+    get() = MoneyUtils.fromCents(balanceCents)
 
   // Backward compatibility property
   val totalSpent: BigDecimal

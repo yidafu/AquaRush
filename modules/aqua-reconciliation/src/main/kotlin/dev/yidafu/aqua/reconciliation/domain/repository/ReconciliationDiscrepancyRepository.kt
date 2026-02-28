@@ -29,7 +29,8 @@ import org.springframework.stereotype.Repository
  * 对账差异仓库接口
  */
 @Repository
-interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDiscrepancyModel, Long>, ReconciliationDiscrepancyRepositoryCustom {
+interface ReconciliationDiscrepancyRepository : JpaRepository<ReconciliationDiscrepancyModel, Long>,
+  ReconciliationDiscrepancyRepositoryCustom {
   /**
    * 根据任务ID查找差异
    */

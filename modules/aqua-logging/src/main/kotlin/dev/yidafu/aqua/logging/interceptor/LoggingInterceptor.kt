@@ -103,7 +103,8 @@ class LoggingInterceptor : HandlerInterceptor {
         }
 
       @Suppress("ktlint:standard:max-line-length")
-      val message = "Request completed - Method: ${request.method}, URI: ${request.requestURI}, Status: ${response.status}, Duration: ${duration}ms, CorrelationId: $correlationId"
+      val message =
+        "Request completed - Method: ${request.method}, URI: ${request.requestURI}, Status: ${response.status}, Duration: ${duration}ms, CorrelationId: $correlationId"
 
       when (level) {
         "ERROR" -> logger.error(message)

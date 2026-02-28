@@ -26,8 +26,6 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
-import org.springframework.web.context.request.RequestContextHolder
-import org.springframework.web.context.request.ServletRequestAttributes
 import java.time.LocalDateTime
 import java.util.*
 
@@ -303,9 +301,9 @@ class GlobalExceptionHandler {
       val headers = request.headerNames.asSequence()
         .filter { headerName ->
           !headerName.equals("Authorization", ignoreCase = true) &&
-          !headerName.equals("Cookie", ignoreCase = true) &&
-          !headerName.contains("password", ignoreCase = true) &&
-          !headerName.contains("secret", ignoreCase = true)
+            !headerName.equals("Cookie", ignoreCase = true) &&
+            !headerName.contains("password", ignoreCase = true) &&
+            !headerName.contains("secret", ignoreCase = true)
         }
         .associateWith { headerName ->
           request.getHeaders(headerName)?.asSequence()?.toList() ?: emptyList()

@@ -23,7 +23,7 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
-import dev.yidafu.aqua.common.domain.model.QProductFavoriteModel.productFavoriteModel
+import dev.yidafu.aqua.common.domain.model.QProductFavoriteModel.Companion.productFavoriteModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page
@@ -126,10 +126,10 @@ class ProductFavoriteRepositoryImpl : ProductFavoriteRepositoryCustom {
         productFavoriteModel.count()
       )
     )
-    .from(productFavoriteModel)
-    .groupBy(productFavoriteModel.productId)
-    .orderBy(productFavoriteModel.count().desc())
-    .fetch()
+      .from(productFavoriteModel)
+      .groupBy(productFavoriteModel.productId)
+      .orderBy(productFavoriteModel.count().desc())
+      .fetch()
 
     return results
   }

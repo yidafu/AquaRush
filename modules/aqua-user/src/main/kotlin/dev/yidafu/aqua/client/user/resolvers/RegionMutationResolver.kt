@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.client.user.resolvers
 
+import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
 import dev.yidafu.aqua.user.service.CreateRegionInput
 import dev.yidafu.aqua.user.service.RegionService
@@ -34,8 +34,8 @@ import org.springframework.stereotype.Controller
 
 @Controller
 class RegionMutationResolver(
-    private val regionService: RegionService,
-    private val regionRepository: RegionRepository,
+  private val regionService: RegionService,
+  private val regionRepository: RegionRepository,
 ) : BaseGraphQLResolver() {
 
   @MutationMapping
@@ -45,12 +45,14 @@ class RegionMutationResolver(
     @AuthenticationPrincipal userPrincipal: UserPrincipal?
   ): RegionModel {
     // 记录操作日志
-    logOperation(userPrincipal, "createRegion", mapOf<String, Any>(
-      "name" to input.name,
-      "code" to input.code,
-      "level" to input.level,
-      "parentCode" to (input.parentCode ?: "")
-    ))
+    logOperation(
+      userPrincipal, "createRegion", mapOf<String, Any>(
+        "name" to input.name,
+        "code" to input.code,
+        "level" to input.level,
+        "parentCode" to (input.parentCode ?: "")
+      )
+    )
 
     return regionService.createRegion(input)
   }
@@ -63,11 +65,13 @@ class RegionMutationResolver(
     @AuthenticationPrincipal userPrincipal: UserPrincipal?
   ): RegionModel {
     // 记录操作日志
-    logOperation(userPrincipal, "updateRegion", mapOf<String, Any>(
-      "code" to code,
-      "name" to (input.name ?: ""),
-      "parentCode" to (input.parentCode ?: "")
-    ))
+    logOperation(
+      userPrincipal, "updateRegion", mapOf<String, Any>(
+        "code" to code,
+        "name" to (input.name ?: ""),
+        "parentCode" to (input.parentCode ?: "")
+      )
+    )
 
     return regionService.updateRegion(code, input)
   }
@@ -75,13 +79,15 @@ class RegionMutationResolver(
   @MutationMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun deleteRegion(
-      @Argument code: String,
-      @AuthenticationPrincipal userPrincipal: UserPrincipal?
+    @Argument code: String,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal?
   ): Boolean {
     // 记录操作日志
-    logOperation(userPrincipal, "deleteRegion", mapOf<String, Any>(
-      "code" to code
-    ))
+    logOperation(
+      userPrincipal, "deleteRegion", mapOf<String, Any>(
+        "code" to code
+      )
+    )
 
     return regionService.deleteRegion(code)
   }

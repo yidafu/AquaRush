@@ -32,6 +32,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+      jakarta.persistence.schema-generation.create-source: metadata-then-scripts
+      jakarta.persistence.schema-generation.drop-source: metadata-then-scripts
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml

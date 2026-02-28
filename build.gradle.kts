@@ -54,3 +54,8 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
   version.set("1.5.0")
   debug.set(false)
 }
+
+// Disable bootJar task in root project (root is not an application)
+tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
+  enabled = false
+}

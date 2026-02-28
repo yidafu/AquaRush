@@ -22,16 +22,15 @@ package dev.yidafu.aqua.common.domain.model
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.annotations.SoftDelete
 import org.hibernate.type.SqlTypes
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-import org.hibernate.annotations.SoftDelete
-
 @Entity
 @SoftDelete(columnName = "is_deleted")
 @Table(name = "order_items")
-open class  OrderItemModel(
+open class OrderItemModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
@@ -60,7 +59,7 @@ open class  OrderItemModel(
 
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-@Column(name = "deleted_at")
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
 
   @Column(name = "deleted_by")
@@ -74,11 +73,12 @@ open class  OrderItemModel(
 
   // Backward compatibility property
   val unitPrice: BigDecimal
-  get() = MoneyUtils.fromCents(unitPriceCents)
+    get() = MoneyUtils.fromCents(unitPriceCents)
 
   // Backward compatibility property
   val totalPrice: BigDecimal
     get() = MoneyUtils.fromCents(totalPriceCents)
+
   // Companion object for factory methods
   companion object {
     fun create(

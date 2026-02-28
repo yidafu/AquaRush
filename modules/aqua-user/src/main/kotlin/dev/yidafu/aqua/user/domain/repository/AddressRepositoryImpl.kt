@@ -21,12 +21,11 @@ package dev.yidafu.aqua.user.domain.repository
 
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.AddressModel
-import dev.yidafu.aqua.common.domain.model.QAddressModel.addressModel
+import dev.yidafu.aqua.common.domain.model.QAddressModel.Companion.addressModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
-import kotlin.math.*
 
 /**
  * Custom repository implementation for Address entity using QueryDSL

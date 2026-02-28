@@ -19,5 +19,3 @@
 
 package dev.yidafu.aqua.common.dto
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import java.math.BigDecimal

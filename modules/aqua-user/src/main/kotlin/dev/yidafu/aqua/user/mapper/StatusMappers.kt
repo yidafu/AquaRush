@@ -22,3 +22,9 @@ package dev.yidafu.aqua.user.mapper
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import tech.mappie.api.EnumMappie
 
+/**
+ * Enum mapper for UserStatus.
+ * Since domain model and GraphQL use the same UserStatus enum,
+ * this mapper provides identity mapping between them.
+ */
+object UserStatusMapper : EnumMappie<UserStatus, UserStatus>()

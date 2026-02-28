@@ -283,6 +283,7 @@ class BusinessLogFormatter {
           operation.contains("STATUS") -> "ORDER_STATUS_CHANGE"
           else -> "ORDER_MANAGEMENT"
         }
+
       "PAYMENT" ->
         when {
           operation.contains("CREATE") -> "PAYMENT_PROCESSING"
@@ -290,6 +291,7 @@ class BusinessLogFormatter {
           operation.contains("VERIFY") -> "PAYMENT_VERIFICATION"
           else -> "PAYMENT_MANAGEMENT"
         }
+
       "DELIVERY" ->
         when {
           operation.contains("ASSIGN") -> "DELIVERY_ASSIGNMENT"
@@ -297,6 +299,7 @@ class BusinessLogFormatter {
           operation.contains("STATUS") -> "DELIVERY_STATUS_CHANGE"
           else -> "DELIVERY_MANAGEMENT"
         }
+
       "USER" ->
         when {
           operation.contains("CREATE") -> "USER_REGISTRATION"
@@ -304,6 +307,7 @@ class BusinessLogFormatter {
           operation.contains("UPDATE") -> "USER_UPDATE"
           else -> "USER_MANAGEMENT"
         }
+
       "PRODUCT" ->
         when {
           operation.contains("CREATE") -> "PRODUCT_CREATION"
@@ -311,6 +315,7 @@ class BusinessLogFormatter {
           operation.contains("DELETE") -> "PRODUCT_DELETION"
           else -> "PRODUCT_MANAGEMENT"
         }
+
       else -> "GENERAL_BUSINESS"
     }
 
@@ -327,18 +332,22 @@ class BusinessLogFormatter {
         additionalData["businessDomain"] = "ORDER_MANAGEMENT"
         additionalData["workflowStage"] = metadata["workflowStage"] ?: "UNKNOWN"
       }
+
       "PAYMENT" -> {
         additionalData["businessDomain"] = "PAYMENT_PROCESSING"
         additionalData["transactionType"] = metadata["transactionType"] ?: "PAYMENT"
       }
+
       "DELIVERY" -> {
         additionalData["businessDomain"] = "DELIVERY_LOGISTICS"
         additionalData["deliveryType"] = metadata["deliveryType"] ?: "STANDARD"
       }
+
       "USER" -> {
         additionalData["businessDomain"] = "USER_MANAGEMENT"
         additionalData["userType"] = metadata["userType"] ?: "CUSTOMER"
       }
+
       "PRODUCT" -> {
         additionalData["businessDomain"] = "PRODUCT_MANAGEMENT"
         additionalData["productType"] = metadata["productType"] ?: "WATER"

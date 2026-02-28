@@ -2,7 +2,8 @@
 
 ## Overview
 
-The `aqua-storage` module provides comprehensive file storage and management capabilities for the AquaRush system. It supports file upload, storage, retrieval, and image processing with configurable storage strategies.
+The `aqua-storage` module provides comprehensive file storage and management capabilities for the AquaRush system. It
+supports file upload, storage, retrieval, and image processing with configurable storage strategies.
 
 ## Features
 
@@ -35,16 +36,21 @@ aqua-storage/
 ## Key Components
 
 ### 1. FileMetadata Entity
+
 Stores comprehensive file information including metadata, checksums, and access control.
 
 ### 2. Storage Strategy Pattern
+
 Flexible storage abstraction supporting multiple backends:
+
 - `LocalStorageStrategy`: Local file system storage
 - `S3StorageStrategy`: AWS S3 (ready for implementation)
 - `OSSStorageStrategy`: Alibaba Cloud OSS (ready for implementation)
 
 ### 3. Image Processing Service
+
 Real-time image processing with caching:
+
 - Resize and quality adjustment
 - Format conversion (JPEG, PNG, WEBP)
 - Watermarking capabilities
@@ -52,12 +58,14 @@ Real-time image processing with caching:
 ### 4. REST API Endpoints
 
 #### File Operations
+
 - `POST /api/v1/storage/files` - Upload file
 - `GET /api/v1/storage/files/{id}` - Retrieve file
 - `DELETE /api/v1/storage/files/{id}` - Delete file
 - `GET /api/v1/storage/files/{id}/metadata` - Get file metadata
 
 #### Image Processing
+
 - `GET /api/v1/storage/files/{id}/image` - Get processed image with parameters
   - `width`, `height`: Resize dimensions
   - `quality`: Image quality (0.1-1.0)
@@ -66,6 +74,7 @@ Real-time image processing with caching:
   - `watermarkText`: Custom watermark text
 
 #### Search and Listing
+
 - `GET /api/v1/storage/files` - List files with pagination
 - `GET /api/v1/storage/files/by-type/{fileType}` - Filter by file type
 - `GET /api/v1/storage/files/by-owner/{ownerId}` - Filter by owner
@@ -188,6 +197,7 @@ The module includes comprehensive unit tests covering:
 - API endpoint functionality
 
 Run tests with:
+
 ```bash
 ./gradlew :modules:aqua-storage:test
 ```

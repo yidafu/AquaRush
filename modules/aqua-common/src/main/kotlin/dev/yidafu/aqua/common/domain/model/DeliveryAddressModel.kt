@@ -20,10 +20,8 @@
 package dev.yidafu.aqua.common.domain.model
 
 import jakarta.persistence.*
-import org.hibernate.annotations.Where
-import java.time.LocalDateTime
-
 import org.hibernate.annotations.SoftDelete
+import java.time.LocalDateTime
 
 @Entity
 @SoftDelete(columnName = "is_deleted")
@@ -54,7 +52,7 @@ data class DeliveryAddressModel(
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-@Column(name = "deleted_at")
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
 
   @Column(name = "deleted_by")

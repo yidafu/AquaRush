@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.user.domain.repository
 
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.common.domain.model.QRegionModel.regionModel
+import dev.yidafu.aqua.common.domain.model.QRegionModel.Companion.regionModel
 import dev.yidafu.aqua.common.domain.model.RegionModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext

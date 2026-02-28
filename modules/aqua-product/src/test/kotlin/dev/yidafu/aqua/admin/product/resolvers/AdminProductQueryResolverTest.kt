@@ -37,165 +37,165 @@ import java.util.*
 
 class AdminProductQueryResolverTest {
 
-    @Mock
-    private lateinit var productService: ProductService
+  @Mock
+  private lateinit var productService: ProductService
 
-    @InjectMocks
-    private lateinit var adminProductQueryResolver: AdminProductQueryResolver
+  @InjectMocks
+  private lateinit var adminProductQueryResolver: AdminProductQueryResolver
 
-    @BeforeEach
-    fun setUp() {
-        MockitoAnnotations.openMocks(this)
+  @BeforeEach
+  fun setUp() {
+    MockitoAnnotations.openMocks(this)
+  }
+
+  @Test
+  @WithMockUser(roles = ["ADMIN"])
+  fun `productStatistics should return product statistics`() {
+    // Given
+    val expectedStatistics = ProductStatistics(
+      totalProducts = 10,
+      onlineProducts = 7,
+      offlineProducts = 3,
+      lowStockProducts = 2,
+      totalValue = 50000L,
+      averagePrice = 5000L
+    )
+
+    whenever(productService.getProductStatistics()).thenReturn(expectedStatistics)
+
+    // When
+    val result = adminProductQueryResolver.productStatistics()
+
+    // Then
+    assert(result.totalProducts == 10)
+    assert(result.onlineProducts == 7)
+    assert(result.offlineProducts == 3)
+    assert(result.lowStockProducts == 2)
+    assert(result.totalValue == 50000L)
+    assert(result.averagePrice == 5000L)
+    verify(productService).getProductStatistics()
+  }
+
+  @Test
+  @WithMockUser(roles = ["ADMIN"])
+  fun `lowStockProducts should return low stock alerts`() {
+    // Given
+    val lowStockProduct = createTestProduct(1L, "Low Stock Product", 1000L, 5)
+    val threshold = 10
+
+    whenever(productService.getLowStockProducts(threshold)).thenReturn(listOf(lowStockProduct))
+
+    // When
+    val result = adminProductQueryResolver.lowStockProducts(threshold)
+
+    // Then
+    assert(result.size == 1)
+    val alert = result[0]
+    assert(alert.productId == 1L)
+    assert(alert.productName == "Low Stock Product")
+    assert(alert.currentStock == 5)
+    assert(alert.threshold == threshold)
+    verify(productService).getLowStockProducts(threshold)
+  }
+
+  @Test
+  @WithMockUser(roles = ["ADMIN"])
+  fun `lowStockProducts should use default threshold`() {
+    // Given
+    whenever(productService.getLowStockProducts(10)).thenReturn(emptyList())
+
+    // When
+    val result = adminProductQueryResolver.lowStockProducts()
+
+    // Then
+    assert(result.isEmpty())
+    verify(productService).getLowStockProducts(10) // Default threshold
+  }
+
+  @Test
+  @WithMockUser(roles = ["ADMIN"])
+  fun `productsPaginated should return paginated products`() {
+    // Given
+    val productListInput = ProductListInput(
+      page = 0,
+      size = 20,
+      sort = "createdAt,desc",
+      search = "test",
+      status = ProductStatus.ONLINE,
+      minPrice = 1000L,
+      maxPrice = 5000L,
+      minStock = 1,
+      maxStock = 100
+    )
+
+    val products = listOf(
+      createTestProduct(1L, "Test Product 1", 2000L, 50),
+      createTestProduct(2L, "Test Product 2", 3000L, 30)
+    )
+
+    val page = PageImpl(products, mock<Pageable>(), 2)
+
+    whenever(
+      productService.findByNameContainingAndStatus(
+        eq("test"),
+        eq(ProductStatus.ONLINE),
+        any()
+      )
+    ).thenReturn(page)
+
+    // When
+    val result = adminProductQueryResolver.productsPaginated(productListInput)
+
+    // Then
+    assert(result.content.size == 2)
+    assert(result.totalElements == 2L)
+    assert(result.totalPages == 1)
+    assert(result.size == 20)
+    assert(result.number == 0)
+    assert(result.first == true)
+    assert(result.last == true)
+    assert(result.empty == false)
+
+    verify(productService).findByNameContainingAndStatus(
+      eq("test"),
+      eq(ProductStatus.ONLINE),
+      any()
+    )
+  }
+
+  @Test
+  @WithMockUser(roles = ["USER"]) // Not ADMIN
+  fun `productStatistics should throw AccessDeniedException for non-admin users`() {
+    // Given
+    whenever(productService.getProductStatistics()).thenReturn(
+      ProductStatistics(0, 0, 0, 0, 0L, 0L)
+    )
+
+    // When & Then
+    // Note: In a real test environment, you would use @WithMockUser with ADMIN role
+    // This test demonstrates the security check
+    assertThrows<AccessDeniedException> {
+      // This would typically be caught by Spring Security before method execution
+      adminProductQueryResolver.productStatistics()
     }
+  }
 
-    @Test
-    @WithMockUser(roles = ["ADMIN"])
-    fun `productStatistics should return product statistics`() {
-        // Given
-        val expectedStatistics = ProductStatistics(
-            totalProducts = 10,
-            onlineProducts = 7,
-            offlineProducts = 3,
-            lowStockProducts = 2,
-            totalValue = 50000L,
-            averagePrice = 5000L
-        )
-
-        whenever(productService.getProductStatistics()).thenReturn(expectedStatistics)
-
-        // When
-        val result = adminProductQueryResolver.productStatistics()
-
-        // Then
-        assert(result.totalProducts == 10)
-        assert(result.onlineProducts == 7)
-        assert(result.offlineProducts == 3)
-        assert(result.lowStockProducts == 2)
-        assert(result.totalValue == 50000L)
-        assert(result.averagePrice == 5000L)
-        verify(productService).getProductStatistics()
-    }
-
-    @Test
-    @WithMockUser(roles = ["ADMIN"])
-    fun `lowStockProducts should return low stock alerts`() {
-        // Given
-        val lowStockProduct = createTestProduct(1L, "Low Stock Product", 1000L, 5)
-        val threshold = 10
-
-        whenever(productService.getLowStockProducts(threshold)).thenReturn(listOf(lowStockProduct))
-
-        // When
-        val result = adminProductQueryResolver.lowStockProducts(threshold)
-
-        // Then
-        assert(result.size == 1)
-        val alert = result[0]
-        assert(alert.productId == 1L)
-        assert(alert.productName == "Low Stock Product")
-        assert(alert.currentStock == 5)
-        assert(alert.threshold == threshold)
-        verify(productService).getLowStockProducts(threshold)
-    }
-
-    @Test
-    @WithMockUser(roles = ["ADMIN"])
-    fun `lowStockProducts should use default threshold`() {
-        // Given
-        whenever(productService.getLowStockProducts(10)).thenReturn(emptyList())
-
-        // When
-        val result = adminProductQueryResolver.lowStockProducts()
-
-        // Then
-        assert(result.isEmpty())
-        verify(productService).getLowStockProducts(10) // Default threshold
-    }
-
-    @Test
-    @WithMockUser(roles = ["ADMIN"])
-    fun `productsPaginated should return paginated products`() {
-        // Given
-        val productListInput = ProductListInput(
-            page = 0,
-            size = 20,
-            sort = "createdAt,desc",
-            search = "test",
-            status = ProductStatus.ONLINE,
-            minPrice = 1000L,
-            maxPrice = 5000L,
-            minStock = 1,
-            maxStock = 100
-        )
-
-        val products = listOf(
-            createTestProduct(1L, "Test Product 1", 2000L, 50),
-            createTestProduct(2L, "Test Product 2", 3000L, 30)
-        )
-
-        val page = PageImpl(products, mock<Pageable>(), 2)
-
-        whenever(
-            productService.findByNameContainingAndStatus(
-                eq("test"),
-                eq(ProductStatus.ONLINE),
-                any()
-            )
-        ).thenReturn(page)
-
-        // When
-        val result = adminProductQueryResolver.productsPaginated(productListInput)
-
-        // Then
-        assert(result.content.size == 2)
-        assert(result.totalElements == 2L)
-        assert(result.totalPages == 1)
-        assert(result.size == 20)
-        assert(result.number == 0)
-        assert(result.first == true)
-        assert(result.last == true)
-        assert(result.empty == false)
-
-        verify(productService).findByNameContainingAndStatus(
-            eq("test"),
-            eq(ProductStatus.ONLINE),
-            any()
-        )
-    }
-
-    @Test
-    @WithMockUser(roles = ["USER"]) // Not ADMIN
-    fun `productStatistics should throw AccessDeniedException for non-admin users`() {
-        // Given
-        whenever(productService.getProductStatistics()).thenReturn(
-            ProductStatistics(0, 0, 0, 0, 0L, 0L)
-        )
-
-        // When & Then
-        // Note: In a real test environment, you would use @WithMockUser with ADMIN role
-        // This test demonstrates the security check
-        assertThrows<AccessDeniedException> {
-            // This would typically be caught by Spring Security before method execution
-            adminProductQueryResolver.productStatistics()
-        }
-    }
-
-    private fun createTestProduct(
-        id: Long,
-        name: String,
-        priceCents: Long,
-        stock: Int,
-        status: ProductStatus = ProductStatus.OFFLINE
-    ): ProductModel {
-        return ProductModel(
-            id = id,
-            name = name,
-            price = priceCents,
-            coverImageUrl = "http://example.com/image.jpg",
-            detailImages = null,
-            description = "Test description",
-            stock = stock,
-            status = status
-        )
-    }
+  private fun createTestProduct(
+    id: Long,
+    name: String,
+    priceCents: Long,
+    stock: Int,
+    status: ProductStatus = ProductStatus.OFFLINE
+  ): ProductModel {
+    return ProductModel(
+      id = id,
+      name = name,
+      price = priceCents,
+      coverImageUrl = "http://example.com/image.jpg",
+      detailImages = null,
+      description = "Test description",
+      stock = stock,
+      status = status
+    )
+  }
 }

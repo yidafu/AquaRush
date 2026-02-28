@@ -20,10 +20,8 @@
 package dev.yidafu.aqua.common.domain.model
 
 import jakarta.persistence.*
-import org.hibernate.annotations.Where
-import java.time.LocalDateTime
-
 import org.hibernate.annotations.SoftDelete
+import java.time.LocalDateTime
 
 @Entity
 @SoftDelete(columnName = "is_deleted")
@@ -36,7 +34,7 @@ import org.hibernate.annotations.SoftDelete
     Index(name = "idx_review_created_at", columnList = "created_at"),
   ],
 )
-open class  ReviewModel(
+open class ReviewModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
@@ -49,14 +47,14 @@ open class  ReviewModel(
   @Column(name = "rating", nullable = false)
   val rating: Int, // 1-5 stars
   @Column(name = "comment", columnDefinition = "TEXT")
-  val comment: String? = null,
+  open val comment: String? = null,
   @Column(name = "is_anonymous", nullable = false)
   val isAnonymous: Boolean = false,
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-@Column(name = "deleted_at")
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
 
   @Column(name = "deleted_by")

@@ -371,15 +371,17 @@ class ProductFavoriteServiceImpl(
       ExportFormat.CSV -> {
         outputStream.use { os ->
           val writer = os.writer()
-          val printer = CSVPrinter(writer, CSVFormat.DEFAULT.withHeader(
-            "ID",
-            "User ID",
-            "User Nickname",
-            "Product ID",
-            "Product Name",
-            "Price (Cents)",
-            "Created At"
-          ))
+          val printer = CSVPrinter(
+            writer, CSVFormat.DEFAULT.withHeader(
+              "ID",
+              "User ID",
+              "User Nickname",
+              "Product ID",
+              "Product Name",
+              "Price (Cents)",
+              "Created At"
+            )
+          )
 
           favorites.forEach { favorite ->
             val user = userService.findById(favorite.userId)
@@ -510,7 +512,9 @@ class ProductFavoriteServiceImpl(
       ExportFormat.EXCEL -> "xlsx"
       ExportFormat.JSON -> "json"
     }
-    val fileName = "favorites_export_${LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)}_${System.currentTimeMillis()}.$fileExtension"
+    val fileName = "favorites_export_${
+      LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
+    }_${System.currentTimeMillis()}.$fileExtension"
     val fileSize = outputStream.size().toLong()
     val expiresAt = LocalDateTime.now().plusDays(7)
 

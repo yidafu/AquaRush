@@ -21,21 +21,19 @@ package dev.yidafu.aqua.delivery.graphql.resolvers
 
 import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.common.annotation.AdminService
-import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
-
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
-import kotlin.collections.isNotEmpty
 
 @AdminService
 @Controller
@@ -112,14 +110,16 @@ class DeliveryWorkerMutationResolver(
       // Check if wechatOpenId or phone already exists (excluding current worker)
       input.wechatOpenId?.let { newWechatOpenId ->
         if (newWechatOpenId != existingWorker.wechatOpenId &&
-            deliveryWorkerRepository.existsByWechatOpenId(newWechatOpenId)) {
+          deliveryWorkerRepository.existsByWechatOpenId(newWechatOpenId)
+        ) {
           throw BadRequestException("该微信OpenID已存在: $newWechatOpenId")
         }
       }
 
       input.phone?.let { newPhone ->
         if (newPhone != existingWorker.phone &&
-            deliveryWorkerRepository.existsByPhone(newPhone)) {
+          deliveryWorkerRepository.existsByPhone(newPhone)
+        ) {
           throw BadRequestException("该手机号码已存在: $newPhone")
         }
       }

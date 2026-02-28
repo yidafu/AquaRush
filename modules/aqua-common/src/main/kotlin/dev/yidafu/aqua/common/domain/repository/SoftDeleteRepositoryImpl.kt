@@ -26,7 +26,6 @@ import org.springframework.data.jpa.repository.support.JpaEntityInformation
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository
 import java.time.LocalDateTime
 import java.util.*
-import kotlin.reflect.KClass
 
 /**
  * Base repository implementation for entities that support soft deletion.
@@ -35,67 +34,67 @@ import kotlin.reflect.KClass
  * @param ID the entity id type
  */
 open class SoftDeleteRepositoryImpl<T : SoftDeletable, ID : Any>(
-    private val entityInformation: JpaEntityInformation<T, *>,
-    @PersistenceContext
-    private val entityManager: EntityManager
+  private val entityInformation: JpaEntityInformation<T, *>,
+  @PersistenceContext
+  private val entityManager: EntityManager
 ) : SimpleJpaRepository<T, ID>(entityInformation, entityManager), SoftDeleteRepository<T, ID> {
 
-    private val entityClass: Class<T> = entityInformation.javaType
+  private val entityClass: Class<T> = entityInformation.javaType
 
-    override fun deleteByIdSoft(id: ID) {
-        val entity = entityManager.find(entityClass, id)
-        if (entity != null) {
-            deleteSoft(entity)
-        }
+  override fun deleteByIdSoft(id: ID) {
+    val entity = entityManager.find(entityClass, id)
+    if (entity != null) {
+      deleteSoft(entity)
     }
+  }
 
-    override fun deleteSoft(entity: T) {
-        // Set deletedAt to current time
-        entity.deletedAt = LocalDateTime.now()
-        // Note: deletedBy should be set by the caller before calling this method
-        entityManager.merge(entity)
-    }
+  override fun deleteSoft(entity: T) {
+    // Set deletedAt to current time
+    entity.deletedAt = LocalDateTime.now()
+    // Note: deletedBy should be set by the caller before calling this method
+    entityManager.merge(entity)
+  }
 
-    override fun restore(id: ID) {
-        val entity = findByIdIncludingDeleted(id)
-        if (entity.isPresent) {
-            val entityToRestore = entity.get()
-            // Clear audit information
-            entityToRestore.deletedAt = null
-            entityToRestore.deletedBy = null
-            entityManager.merge(entityToRestore)
-        }
+  override fun restore(id: ID) {
+    val entity = findByIdIncludingDeleted(id)
+    if (entity.isPresent) {
+      val entityToRestore = entity.get()
+      // Clear audit information
+      entityToRestore.deletedAt = null
+      entityToRestore.deletedBy = null
+      entityManager.merge(entityToRestore)
     }
+  }
 
-    override fun findAllIncludingDeleted(): List<T> {
-        val cb = entityManager.criteriaBuilder
-        val query = cb.createQuery(entityClass)
-        val root = query.from(entityClass)
-        return entityManager.createQuery(query.select(root)).resultList
-    }
+  override fun findAllIncludingDeleted(): List<T> {
+    val cb = entityManager.criteriaBuilder
+    val query = cb.createQuery(entityClass)
+    val root = query.from(entityClass)
+    return entityManager.createQuery(query.select(root)).resultList
+  }
 
-    override fun findByIdIncludingDeleted(id: ID): Optional<T> {
-        return Optional.ofNullable(entityManager.find(entityClass, id))
-    }
+  override fun findByIdIncludingDeleted(id: ID): Optional<T> {
+    return Optional.ofNullable(entityManager.find(entityClass, id))
+  }
 
-    override fun findAllDeleted(): List<T> {
-        // With Hibernate @SoftDelete, we need to use native query or adjust criteria
-        // to bypass the soft delete filter
-        val cb = entityManager.criteriaBuilder
-        val query = cb.createQuery(entityClass)
-        val root = query.from(entityClass)
-        // Filter for entities where deletedAt is not null (i.e., soft deleted)
-        query.where(cb.isNotNull(root.get<LocalDateTime>("deletedAt")))
-        return entityManager.createQuery(query).resultList
-    }
+  override fun findAllDeleted(): List<T> {
+    // With Hibernate @SoftDelete, we need to use native query or adjust criteria
+    // to bypass the soft delete filter
+    val cb = entityManager.criteriaBuilder
+    val query = cb.createQuery(entityClass)
+    val root = query.from(entityClass)
+    // Filter for entities where deletedAt is not null (i.e., soft deleted)
+    query.where(cb.isNotNull(root.get<LocalDateTime>("deletedAt")))
+    return entityManager.createQuery(query).resultList
+  }
 
-    override fun findAll(): List<T> {
-        // This will be filtered by @Where annotation on the entity
-        return super.findAll()
-    }
+  override fun findAll(): List<T> {
+    // This will be filtered by @Where annotation on the entity
+    return super.findAll()
+  }
 
-    override fun findById(id: ID): Optional<T> {
-        // This will be filtered by @Where annotation on the entity
-        return super.findById(id)
-    }
+  override fun findById(id: ID): Optional<T> {
+    // This will be filtered by @Where annotation on the entity
+    return super.findById(id)
+  }
 }

@@ -19,7 +19,9 @@
 
 package dev.yidafu.aqua.common.cache.spring
 
-import dev.yidafu.aqua.common.cache.*
+import dev.yidafu.aqua.common.cache.CacheProperties
+import dev.yidafu.aqua.common.cache.MapDBCacheManager
+import dev.yidafu.aqua.common.cache.MapDBCacheNamespace
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

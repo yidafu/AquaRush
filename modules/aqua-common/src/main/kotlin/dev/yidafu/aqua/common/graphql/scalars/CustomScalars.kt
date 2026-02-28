@@ -19,14 +19,9 @@
 
 package dev.yidafu.aqua.common.graphql.scalars
 
-import graphql.language.*
-import graphql.schema.Coercing
-import graphql.schema.CoercingParseLiteralException
-import graphql.schema.CoercingParseValueException
-import graphql.schema.CoercingSerializeException
-import graphql.schema.GraphQLScalarType
-import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.JsonNode
+import graphql.language.*
+import graphql.schema.*
 import tools.jackson.databind.node.ArrayNode
 import tools.jackson.databind.node.ObjectNode
 import tools.jackson.module.kotlin.jacksonObjectMapper
@@ -34,7 +29,6 @@ import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
-import kotlin.collections.forEach
 
 object BigDecimalScalar {
   private val coercing =
@@ -51,6 +45,7 @@ object BigDecimalScalar {
               throw CoercingSerializeException("Expected BigDecimal but got invalid string: $dataFetcherResult")
             }
           }
+
           else -> throw CoercingSerializeException("Expected BigDecimal but got ${dataFetcherResult::class.simpleName}")
         }
 
@@ -64,6 +59,7 @@ object BigDecimalScalar {
               throw CoercingParseValueException("Expected valid BigDecimal string but got: $input")
             }
           }
+
           is Number -> BigDecimal(input.toDouble())
           else -> throw CoercingParseValueException("Expected BigDecimal but got ${input::class.simpleName}")
         }
@@ -104,6 +100,7 @@ object LocalDateTimeScalar {
               throw CoercingSerializeException("Expected LocalDateTime but got invalid string: $dataFetcherResult")
             }
           }
+
           else -> throw CoercingSerializeException("Expected LocalDateTime but got ${dataFetcherResult::class.simpleName}")
         }
 
@@ -116,6 +113,7 @@ object LocalDateTimeScalar {
               throw CoercingParseValueException("Expected valid ISO datetime string but got: $input")
             }
           }
+
           else -> throw CoercingParseValueException("Expected LocalDateTime string but got ${input::class.simpleName}")
         }
 
@@ -153,6 +151,7 @@ object UUIDScalar {
               throw CoercingSerializeException("Expected UUID but got invalid string: $dataFetcherResult")
             }
           }
+
           else -> throw CoercingSerializeException("Expected UUID but got ${dataFetcherResult::class.simpleName}")
         }
 
@@ -166,6 +165,7 @@ object UUIDScalar {
               throw CoercingParseValueException("Expected valid UUID string but got: $input")
             }
           }
+
           else -> throw CoercingParseValueException("Expected UUID but got ${input::class.simpleName}")
         }
 
@@ -204,6 +204,7 @@ object LongScalar {
               throw CoercingSerializeException("Expected Long but got invalid string: $dataFetcherResult")
             }
           }
+
           else -> throw CoercingSerializeException("Expected Long but got ${dataFetcherResult::class.simpleName}")
         }
 
@@ -218,6 +219,7 @@ object LongScalar {
               throw CoercingParseValueException("Expected valid Long string but got: $input")
             }
           }
+
           else -> throw CoercingParseValueException("Expected Long but got ${input::class.simpleName}")
         }
 
@@ -231,6 +233,7 @@ object LongScalar {
               throw CoercingParseLiteralException("Expected valid Long string but got: ${input.value}")
             }
           }
+
           else -> throw CoercingParseLiteralException("Expected Long value but got: $input")
         }
       }
@@ -260,6 +263,7 @@ object MapScalar {
               throw CoercingSerializeException("Expected Map but got invalid JsonNode: $dataFetcherResult")
             }
           }
+
           is String -> {
             try {
               objectMapper.readValue(dataFetcherResult, Map::class.java)
@@ -267,6 +271,7 @@ object MapScalar {
               throw CoercingSerializeException("Expected Map but got invalid string: $dataFetcherResult")
             }
           }
+
           else -> throw CoercingSerializeException("Expected Map but got ${dataFetcherResult::class.simpleName}")
         }
 
@@ -274,11 +279,11 @@ object MapScalar {
         when (input) {
           is Map<*, *> -> input as Map<String, Any>
           is String -> {
-                try {
-                  objectMapper.readValue(input, Map::class.java)
-                } catch (e: Exception) {
-                  throw CoercingParseValueException("Expected valid Map JSON string but got: $input")
-                }
+            try {
+              objectMapper.readValue(input, Map::class.java)
+            } catch (e: Exception) {
+              throw CoercingParseValueException("Expected valid Map JSON string but got: $input")
+            }
           }
 
           else -> throw CoercingParseValueException("Expected Map but got ${input::class.simpleName}")
@@ -287,29 +292,29 @@ object MapScalar {
       override fun parseLiteral(input: Any): Map<String, Any> {
         return when (input) {
           is ObjectValue -> {
-                val result = mutableMapOf<String, Any>()
-                input.objectFields
-                  .filterNot { it.value is NullValue  }
-                  .forEach { field ->
-                  result[field.name] =
-                    when (val value = field.value) {
-                      is StringValue -> value.value as Any
-                      is IntValue -> value.value as Any
-                      is FloatValue -> value.value as Any
-                      is BooleanValue -> value.isValue as Any
+            val result = mutableMapOf<String, Any>()
+            input.objectFields
+              .filterNot { it.value is NullValue }
+              .forEach { field ->
+                result[field.name] =
+                  when (val value = field.value) {
+                    is StringValue -> value.value as Any
+                    is IntValue -> value.value as Any
+                    is FloatValue -> value.value as Any
+                    is BooleanValue -> value.isValue as Any
 //                      is NullValue -> null as Any?
-                      else -> value.toString()
-                    }
-                }
-                result
+                    else -> value.toString()
+                  }
+              }
+            result
           }
 
           is StringValue -> {
-                try {
-                  objectMapper.readValue(input.value, Map::class.java)
-                } catch (e: Exception) {
-                  throw CoercingParseLiteralException("Expected valid Map JSON string but got: ${input.value}")
-                }
+            try {
+              objectMapper.readValue(input.value, Map::class.java)
+            } catch (e: Exception) {
+              throw CoercingParseLiteralException("Expected valid Map JSON string but got: ${input.value}")
+            }
           }
 
           else -> throw CoercingParseLiteralException("Expected Map value but got: $input")
@@ -335,32 +340,32 @@ object JsonObjectScalar {
         when (dataFetcherResult) {
           is ObjectNode -> dataFetcherResult
           is JsonNode -> {
-                if (dataFetcherResult.isObject) {
-                  dataFetcherResult as ObjectNode
-                } else {
-                  throw CoercingSerializeException("Expected JsonObject but got ${dataFetcherResult.nodeType}")
-                }
+            if (dataFetcherResult.isObject) {
+              dataFetcherResult as ObjectNode
+            } else {
+              throw CoercingSerializeException("Expected JsonObject but got ${dataFetcherResult.nodeType}")
+            }
           }
 
           is Map<*, *> -> {
-                try {
-                  objectMapper.valueToTree<ObjectNode>(dataFetcherResult)
-                } catch (e: Exception) {
-                  throw CoercingSerializeException("Expected JsonObject but got invalid Map: $dataFetcherResult")
-                }
+            try {
+              objectMapper.valueToTree<ObjectNode>(dataFetcherResult)
+            } catch (e: Exception) {
+              throw CoercingSerializeException("Expected JsonObject but got invalid Map: $dataFetcherResult")
+            }
           }
 
           is String -> {
-                try {
-                  val jsonNode = objectMapper.readTree(dataFetcherResult)
-                  if (jsonNode.isObject) {
-                    jsonNode as ObjectNode
-                  } else {
-                    throw CoercingSerializeException("Expected JsonObject but got non-object JSON: $dataFetcherResult")
-                  }
-                } catch (e: Exception) {
-                  throw CoercingSerializeException("Expected JsonObject but got invalid string: $dataFetcherResult")
-                }
+            try {
+              val jsonNode = objectMapper.readTree(dataFetcherResult)
+              if (jsonNode.isObject) {
+                jsonNode as ObjectNode
+              } else {
+                throw CoercingSerializeException("Expected JsonObject but got non-object JSON: $dataFetcherResult")
+              }
+            } catch (e: Exception) {
+              throw CoercingSerializeException("Expected JsonObject but got invalid string: $dataFetcherResult")
+            }
           }
 
           else -> throw CoercingSerializeException("Expected JsonObject but got ${dataFetcherResult::class.simpleName}")
@@ -376,6 +381,7 @@ object JsonObjectScalar {
               throw CoercingParseValueException("Expected JsonObject but got ${input.nodeType}")
             }
           }
+
           is Map<*, *> -> {
             try {
               objectMapper.valueToTree<ObjectNode>(input)
@@ -383,6 +389,7 @@ object JsonObjectScalar {
               throw CoercingParseValueException("Expected valid JsonObject but got invalid Map: $input")
             }
           }
+
           is String -> {
             try {
               val jsonNode = objectMapper.readTree(input)
@@ -395,6 +402,7 @@ object JsonObjectScalar {
               throw CoercingParseValueException("Expected valid JsonObject JSON string but got: $input")
             }
           }
+
           else -> throw CoercingParseValueException("Expected JsonObject but got ${input::class.simpleName}")
         }
 
@@ -406,21 +414,22 @@ object JsonObjectScalar {
               input.objectFields
                 .filterNot { it.value is NullValue }
                 .forEach { field ->
-                map[field.name] =
-                  when (val value = field.value) {
-                    is StringValue -> value.value as Any
-                    is IntValue -> value.value as Any
-                    is FloatValue -> value.value as Any
-                    is BooleanValue -> value.isValue as Any
+                  map[field.name] =
+                    when (val value = field.value) {
+                      is StringValue -> value.value as Any
+                      is IntValue -> value.value as Any
+                      is FloatValue -> value.value as Any
+                      is BooleanValue -> value.isValue as Any
 //                    is NullValue -> null
-                    else -> value.toString()
-                  }
-              }
+                      else -> value.toString()
+                    }
+                }
               objectMapper.valueToTree<ObjectNode>(map)
             } catch (e: Exception) {
               throw CoercingParseLiteralException("Failed to convert ObjectValue to JsonObject: $input")
             }
           }
+
           is StringValue -> {
             try {
               val jsonNode = objectMapper.readTree(input.value)
@@ -433,6 +442,7 @@ object JsonObjectScalar {
               throw CoercingParseLiteralException("Expected valid JsonObject JSON string but got: ${input.value}")
             }
           }
+
           else -> throw CoercingParseLiteralException("Expected JsonObject value but got: $input")
         }
       }
@@ -462,6 +472,7 @@ object JsonArrayScalar {
               throw CoercingSerializeException("Expected JsonArray but got ${dataFetcherResult.nodeType}")
             }
           }
+
           is List<*> -> {
             try {
               objectMapper.valueToTree<ArrayNode>(dataFetcherResult)
@@ -469,6 +480,7 @@ object JsonArrayScalar {
               throw CoercingSerializeException("Expected JsonArray but got invalid List: $dataFetcherResult")
             }
           }
+
           is String -> {
             try {
               val jsonNode = objectMapper.readTree(dataFetcherResult)
@@ -481,6 +493,7 @@ object JsonArrayScalar {
               throw CoercingSerializeException("Expected JsonArray but got invalid string: $dataFetcherResult")
             }
           }
+
           else -> throw CoercingSerializeException("Expected JsonArray but got ${dataFetcherResult::class.simpleName}")
         }
 
@@ -494,6 +507,7 @@ object JsonArrayScalar {
               throw CoercingParseValueException("Expected JsonArray but got ${input.nodeType}")
             }
           }
+
           is List<*> -> {
             try {
               objectMapper.valueToTree<ArrayNode>(input)
@@ -501,6 +515,7 @@ object JsonArrayScalar {
               throw CoercingParseValueException("Expected valid JsonArray but got invalid List: $input")
             }
           }
+
           is String -> {
             try {
               val jsonNode = objectMapper.readTree(input)
@@ -513,6 +528,7 @@ object JsonArrayScalar {
               throw CoercingParseValueException("Expected valid JsonArray JSON string but got: $input")
             }
           }
+
           else -> throw CoercingParseValueException("Expected JsonArray but got ${input::class.simpleName}")
         }
 
@@ -538,6 +554,7 @@ object JsonArrayScalar {
               throw CoercingParseLiteralException("Failed to convert ArrayValue to JsonArray: $input")
             }
           }
+
           is StringValue -> {
             try {
               val jsonNode = objectMapper.readTree(input.value)
@@ -550,6 +567,7 @@ object JsonArrayScalar {
               throw CoercingParseLiteralException("Expected valid JsonArray JSON string but got: ${input.value}")
             }
           }
+
           else -> throw CoercingParseLiteralException("Expected JsonArray value but got: $input")
         }
       }
@@ -582,6 +600,7 @@ object MoneyScalar {
               throw CoercingSerializeException("Expected Money (cents) but got invalid string: $dataFetcherResult")
             }
           }
+
           else -> throw CoercingSerializeException("Expected Money (cents) but got ${dataFetcherResult::class.simpleName}")
         }
 
@@ -593,12 +612,14 @@ object MoneyScalar {
             }
             input
           }
+
           is Int -> {
             if (input < 0) {
               throw CoercingParseValueException("Money value cannot be negative: $input")
             }
             input.toLong()
           }
+
           is String -> {
             try {
               val longValue = input.toLong()
@@ -610,6 +631,7 @@ object MoneyScalar {
               throw CoercingParseValueException("Expected valid Money (cents) string but got: $input")
             }
           }
+
           else -> throw CoercingParseValueException("Expected Money (cents) but got ${input::class.simpleName}")
         }
 
@@ -622,6 +644,7 @@ object MoneyScalar {
             }
             longValue
           }
+
           is StringValue -> {
             try {
               val longValue = input.value?.toLong() ?: throw CoercingParseLiteralException("String value is null")
@@ -633,6 +656,7 @@ object MoneyScalar {
               throw CoercingParseLiteralException("Expected valid Money (cents) string but got: ${input.value}")
             }
           }
+
           else -> throw CoercingParseLiteralException("Expected Money (cents) value but got: $input")
         }
       }
@@ -665,6 +689,7 @@ object PrimaryIdScalar {
               throw CoercingSerializeException("Expected valid PrimaryId but got invalid string: $dataFetcherResult")
             }
           }
+
           else -> throw CoercingSerializeException("Expected PrimaryId but got ${dataFetcherResult::class.simpleName}")
         }
 
@@ -676,12 +701,14 @@ object PrimaryIdScalar {
             }
             input
           }
+
           is Int -> {
             if (input <= 0) {
               throw CoercingParseValueException("PrimaryId must be positive but got: $input")
             }
             input.toLong()
           }
+
           is String -> {
             try {
               val longValue = input.toLong()
@@ -693,6 +720,7 @@ object PrimaryIdScalar {
               throw CoercingParseValueException("Expected valid PrimaryId string but got: $input")
             }
           }
+
           else -> throw CoercingParseValueException("Expected PrimaryId but got ${input::class.simpleName}")
         }
 
@@ -705,9 +733,11 @@ object PrimaryIdScalar {
             }
             value
           }
+
           is StringValue -> {
             try {
-              val longValue = input.value?.toLong() ?: throw CoercingParseLiteralException("PrimaryId string value is null")
+              val longValue =
+                input.value?.toLong() ?: throw CoercingParseLiteralException("PrimaryId string value is null")
               if (longValue <= 0) {
                 throw CoercingParseLiteralException("PrimaryId must be positive but got: $longValue")
               }
@@ -716,6 +746,7 @@ object PrimaryIdScalar {
               throw CoercingParseLiteralException("Expected valid PrimaryId string but got: ${input.value}")
             }
           }
+
           else -> throw CoercingParseLiteralException("Expected PrimaryId literal but got: $input")
         }
       }

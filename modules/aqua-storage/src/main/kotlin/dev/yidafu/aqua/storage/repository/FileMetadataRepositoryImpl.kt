@@ -75,13 +75,13 @@ class FileMetadataRepositoryImpl : FileMetadataRepositoryCustom {
       queryFactory.query()
         .from(qFileMetadata)
         .where(qFileMetadata.ownerId.isNull)
-        .select(qFileMetadata.fileSize.sum().coalesce(0L))
+        .select(qFileMetadata.fileSize.sumLong().coalesce(0L))
         .fetchOne() ?: 0L
     } else {
       queryFactory.query()
         .from(qFileMetadata)
         .where(qFileMetadata.ownerId.eq(ownerId))
-        .select(qFileMetadata.fileSize.sum().coalesce(0L))
+        .select(qFileMetadata.fileSize.sumLong().coalesce(0L))
         .fetchOne() ?: 0L
     }
   }

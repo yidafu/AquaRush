@@ -30,7 +30,8 @@ import java.time.LocalDateTime
 import java.util.*
 
 @Repository
-interface PaymentRepository : JpaRepository<PaymentModel, Long>, JpaSpecificationExecutor<PaymentModel>, PaymentRepositoryCustom {
+interface PaymentRepository : JpaRepository<PaymentModel, Long>, JpaSpecificationExecutor<PaymentModel>,
+  PaymentRepositoryCustom {
   fun findByOrderId(orderId: Long): Optional<PaymentModel>
 
   fun findByTransactionId(transactionId: String): Optional<PaymentModel>

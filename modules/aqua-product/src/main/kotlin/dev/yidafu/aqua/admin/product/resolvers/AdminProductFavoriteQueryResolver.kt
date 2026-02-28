@@ -19,9 +19,10 @@
 
 package dev.yidafu.aqua.admin.product.resolvers
 
-import dev.yidafu.aqua.common.annotation.AdminService
-import dev.yidafu.aqua.common.graphql.generated.*
 import dev.yidafu.aqua.api.service.ProductFavoriteService
+import dev.yidafu.aqua.common.annotation.AdminService
+import dev.yidafu.aqua.common.graphql.generated.AllProductsFavoriteStats
+import dev.yidafu.aqua.common.graphql.generated.ProductFavoritePage
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping

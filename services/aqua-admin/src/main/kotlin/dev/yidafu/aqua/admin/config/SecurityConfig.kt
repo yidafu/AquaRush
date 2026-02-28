@@ -47,7 +47,7 @@ class SecurityConfig {
             "/images/**",
             "/graphiql",
             "/graphql",
-            ).permitAll()
+          ).permitAll()
           .anyRequest().permitAll()
       }
       .csrf {

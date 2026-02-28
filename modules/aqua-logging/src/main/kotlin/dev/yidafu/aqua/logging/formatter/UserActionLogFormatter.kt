@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.logging.formatter
 
-import tools.jackson.databind.ObjectMapper
 // import tools.jackson.datatype.jsr310.JavaTimeModule
 import dev.yidafu.aqua.logging.context.LoggingContext
+import tools.jackson.databind.ObjectMapper
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 
@@ -298,18 +298,21 @@ class UserActionLogFormatter {
         } else {
           "***"
         }
+
       "phone", "tel", "mobile" ->
         if (input.length >= 7) {
           "${input.substring(0, 3)}***${input.substring(input.length - 4)}"
         } else {
           "***"
         }
+
       "creditcard", "card", "bankcard" ->
         if (input.length >= 8) {
           "${input.substring(0, 4)}***${input.substring(input.length - 4)}"
         } else {
           "***"
         }
+
       else -> {
         // 对于一般输入，如果太长则截断
         if (input.length > 100) {

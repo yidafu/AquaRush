@@ -21,7 +21,7 @@ package dev.yidafu.aqua.review.domain.repository
 
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.common.domain.model.QReviewModel.reviewModel
+import dev.yidafu.aqua.common.domain.model.QReviewModel.Companion.reviewModel
 import dev.yidafu.aqua.common.domain.model.ReviewModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext

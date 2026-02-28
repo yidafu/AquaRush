@@ -19,15 +19,14 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import jakarta.persistence.*
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.type.SqlTypes
-import java.time.LocalDateTime
-
 /**
  * 对账报表实体
  */
+import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.annotations.SoftDelete
+import org.hibernate.type.SqlTypes
+import java.time.LocalDateTime
 
 @Entity
 @SoftDelete(columnName = "is_deleted")
@@ -59,7 +58,8 @@ class ReconciliationReportModel : SoftDeletable {
 
   @Column(name = "generated_at", nullable = false)
   var generatedAt: LocalDateTime = LocalDateTime.now()
-@Column(name = "deleted_at")
+
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null
 
   @Column(name = "deleted_by")

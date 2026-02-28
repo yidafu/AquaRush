@@ -27,7 +27,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ProductFavoriteRepository : JpaRepository<ProductFavoriteModel, Long>, JpaSpecificationExecutor<ProductFavoriteModel>, ProductFavoriteRepositoryCustom {
+interface ProductFavoriteRepository : JpaRepository<ProductFavoriteModel, Long>,
+  JpaSpecificationExecutor<ProductFavoriteModel>, ProductFavoriteRepositoryCustom {
 
   // Existing methods (kept for Spring Data JPA query derivation)
   fun findByUserIdAndProductId(userId: Long, productId: Long): ProductFavoriteModel?

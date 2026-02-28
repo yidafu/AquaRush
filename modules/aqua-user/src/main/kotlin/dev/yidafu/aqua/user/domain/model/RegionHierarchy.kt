@@ -28,32 +28,32 @@ import dev.yidafu.aqua.common.domain.model.RegionModel
  */
 data class RegionHierarchyModel(
   /**
-     * The default selected province
-     */
-    val province: RegionModel,
+   * The default selected province
+   */
+  val province: RegionModel,
 
   /**
-     * The default selected city
-     */
-    val city: RegionModel,
+   * The default selected city
+   */
+  val city: RegionModel,
 
   /**
-     * The default selected district
-     */
-    val district: RegionModel,
+   * The default selected district
+   */
+  val district: RegionModel,
 
   /**
-     * All available provinces for selection
-     */
-    val provinces: List<RegionModel>,
+   * All available provinces for selection
+   */
+  val provinces: List<RegionModel>,
 
   /**
-     * All cities in the selected province
-     */
-    val cities: List<RegionModel>,
+   * All cities in the selected province
+   */
+  val cities: List<RegionModel>,
 
   /**
-     * All districts in the selected city
-     */
-    val districts: List<RegionModel>
+   * All districts in the selected city
+   */
+  val districts: List<RegionModel>
 )

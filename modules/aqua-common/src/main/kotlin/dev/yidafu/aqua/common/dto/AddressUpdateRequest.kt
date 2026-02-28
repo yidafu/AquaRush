@@ -20,14 +20,14 @@
 package dev.yidafu.aqua.common.dto
 
 data class AddressUpdateRequest(
-    val province: String? = null,
-    val city: String? = null,
-    val district: String? = null,
-    val detailAddress: String? = null,
-    val provinceCode: String? = null,
-    val cityCode: String? = null,
-    val districtCode: String? = null,
-    val longitude: Double? = null,
-    val latitude: Double? = null,
-    val isDefault: Boolean? = null,
+  val province: String? = null,
+  val city: String? = null,
+  val district: String? = null,
+  val detailAddress: String? = null,
+  val provinceCode: String? = null,
+  val cityCode: String? = null,
+  val districtCode: String? = null,
+  val longitude: Double? = null,
+  val latitude: Double? = null,
+  val isDefault: Boolean? = null,
 )

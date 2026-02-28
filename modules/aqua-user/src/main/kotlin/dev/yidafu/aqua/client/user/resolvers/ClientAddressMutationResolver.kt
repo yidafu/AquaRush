@@ -19,18 +19,16 @@
 
 package dev.yidafu.aqua.client.user.resolvers
 
+import dev.yidafu.aqua.api.service.AddressService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.user.mapper.AddressInputMapper
 import dev.yidafu.aqua.user.mapper.AddressMapper
-import dev.yidafu.aqua.user.mapper.AddressUpdateMapper
 import dev.yidafu.aqua.user.mapper.merge
-import dev.yidafu.aqua.api.service.AddressService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -85,7 +83,7 @@ class ClientAddressMutationResolver(
       }
 
       // Convert entity to GraphQL type
-      val graphqlAddress =  AddressMapper.map(savedAddress)
+      val graphqlAddress = AddressMapper.map(savedAddress)
       logger.info("Successfully created address for user: ${userPrincipal.id} with ID: ${graphqlAddress.id}")
       return graphqlAddress
     } catch (e: Exception) {
@@ -124,7 +122,7 @@ class ClientAddressMutationResolver(
 
       val updatedAddress = addressService.save(existingAddress)
       logger.info("Successfully updated address: $id for user: ${userPrincipal.id}")
-      return  AddressMapper.map(updatedAddress)
+      return AddressMapper.map(updatedAddress)
     } catch (e: Exception) {
       logger.error("Failed to update user address", e)
       throw BadRequestException("更新地址失败: ${e.message}")

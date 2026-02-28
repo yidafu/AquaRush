@@ -29,9 +29,7 @@ import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
-import org.springframework.web.util.ContentCachingRequestWrapper
 import org.springframework.web.util.ContentCachingResponseWrapper
-import org.springframework.web.util.WebUtils
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.util.*
@@ -186,6 +184,7 @@ class RequestLoggingFilter : OncePerRequestFilter() {
         // Log response body for 500 errors if available
         logResponseBodyForErrors(request, response, correlationId, requestId)
       }
+
       "WARN" -> logger.warn(message, exception)
       else -> logger.info(message)
     }
@@ -284,14 +283,14 @@ class RequestLoggingFilter : OncePerRequestFilter() {
     val uri = request.requestURI
     // Skip logging for static resources and health checks
     return uri.startsWith("/actuator/health") ||
-           uri.startsWith("/actuator/info") ||
-           uri.endsWith(".css") ||
-           uri.endsWith(".js") ||
-           uri.endsWith(".ico") ||
-           uri.endsWith(".png") ||
-           uri.endsWith(".jpg") ||
-           uri.endsWith(".jpeg") ||
-           uri.endsWith(".gif") ||
-           uri.endsWith(".svg")
+      uri.startsWith("/actuator/info") ||
+      uri.endsWith(".css") ||
+      uri.endsWith(".js") ||
+      uri.endsWith(".ico") ||
+      uri.endsWith(".png") ||
+      uri.endsWith(".jpg") ||
+      uri.endsWith(".jpeg") ||
+      uri.endsWith(".gif") ||
+      uri.endsWith(".svg")
   }
 }

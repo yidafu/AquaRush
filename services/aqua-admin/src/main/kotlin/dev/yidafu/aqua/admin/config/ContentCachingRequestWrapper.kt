@@ -42,12 +42,12 @@ class ContentCachingRequestWrapper(request: HttpServletRequest) : HttpServletReq
   }
 
   override fun getReader(): BufferedReader {
-    return BufferedReader(InputStreamReader(inputStream, getCharacterEncoding() ?: StandardCharsets.UTF_8.name()))
+    return BufferedReader(InputStreamReader(inputStream, characterEncoding ?: StandardCharsets.UTF_8.name()))
   }
 
   fun getContentAsByteArray(): ByteArray = cachedContent.toByteArray()
 
-  private inner class CachedServletInputStream(private val cachedInputStream: InputStream) : ServletInputStream() {
+  private class CachedServletInputStream(private val cachedInputStream: InputStream) : ServletInputStream() {
     override fun isFinished(): Boolean = try {
       cachedInputStream.available() == 0
     } catch (e: IOException) {

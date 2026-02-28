@@ -19,4 +19,3 @@
 
 package dev.yidafu.aqua.common.dto
 
-import com.fasterxml.jackson.annotation.JsonProperty

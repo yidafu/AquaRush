@@ -22,6 +22,6 @@ package dev.yidafu.aqua.common.domain.model
 import java.math.BigDecimal
 
 data class AmountRange(
-    val minAmount: BigDecimal? = null,
-    val maxAmount: BigDecimal? = null
+  val minAmount: BigDecimal? = null,
+  val maxAmount: BigDecimal? = null
 )

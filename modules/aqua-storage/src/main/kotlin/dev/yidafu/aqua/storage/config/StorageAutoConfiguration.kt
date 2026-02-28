@@ -33,11 +33,11 @@ import org.springframework.context.annotation.Configuration
 @EnableConfigurationProperties(StorageProperties::class, ImageProcessingProperties::class)
 class StorageAutoConfiguration {
 
-    /**
-     * 配置 Apache Tika bean 用于文件类型检测
-     */
-    @Bean
-    fun tika(): Tika {
-        return Tika()
-    }
+  /**
+   * 配置 Apache Tika bean 用于文件类型检测
+   */
+  @Bean
+  fun tika(): Tika {
+    return Tika()
+  }
 }

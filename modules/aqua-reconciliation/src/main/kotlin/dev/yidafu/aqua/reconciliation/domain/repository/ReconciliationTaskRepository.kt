@@ -29,7 +29,8 @@ import org.springframework.stereotype.Repository
  * 对账任务仓库接口
  */
 @Repository
-interface ReconciliationTaskRepository : JpaRepository<ReconciliationTaskModel, Long>, ReconciliationTaskRepositoryCustom {
+interface ReconciliationTaskRepository : JpaRepository<ReconciliationTaskModel, Long>,
+  ReconciliationTaskRepositoryCustom {
   /**
    * 根据任务ID查找任务
    */

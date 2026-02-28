@@ -19,10 +19,7 @@
 
 package dev.yidafu.aqua.api.service
 
-import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
-import dev.yidafu.aqua.common.domain.model.DeliveryAreaModel
-import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.*
 
 /**
  * 配送服务接口
@@ -72,17 +69,44 @@ interface DeliveryService {
 
   /**
    * 分配送水员给订单
+   * @param orderId 订单ID
+   * @param workerId 配送员ID
+   * @param isSelfCollect 是否自收（水钱已收/水票已扣）
    */
   fun assignDeliveryWorker(
     orderId: Long,
     workerId: Long,
-  ): Boolean
+    isSelfCollect: Boolean,
+  ): OrderModel
+
+  /**
+   * 批量分配订单给配送员
+   * @param orderIds 订单ID列表
+   * @param workerId 配送员ID
+   */
+  fun batchAssignOrders(
+    orderIds: List<Long>,
+    workerId: Long,
+  ): List<OrderModel>
 
   /**
    * 自动分配配送员
    * 根据负载均衡和地理位置选择最优配送员
    */
   fun autoAssignDeliveryWorker(orderId: Long): Long?
+
+  /**
+   * 配送员接单
+   * @param orderId 订单ID
+   * @param workerId 配送员ID
+   */
+  fun acceptDelivery(orderId: Long, workerId: Long): OrderModel
+
+  /**
+   * 开始配送（配送员点击开始配送按钮）
+   * @param orderId 订单ID
+   */
+  fun startDelivery(orderId: Long): OrderModel
 
   /**
    * 获取配送员的所有任务
@@ -101,11 +125,15 @@ interface DeliveryService {
 
   /**
    * 完成配送任务
+   * @param orderId 订单ID
+   * @param deliveryPhotos 配送照片列表
+   * @param paymentType 收款方式（非自收订单需要记录）
    */
   fun completeDelivery(
     orderId: Long,
     deliveryPhotos: List<String>,
-  ): Boolean
+    paymentType: PaymentType?,
+  ): OrderModel
 
   /**
    * 获取所有待分配的订单
@@ -113,14 +141,32 @@ interface DeliveryService {
   fun getPendingDeliveryOrders(): List<OrderModel>
 
   /**
+   * 获取配送员的已接单未开始配送的订单
+   */
+  fun getAssignedOrders(workerId: Long): List<OrderModel>
+
+  /**
    * 获取配送统计数据
    */
   fun getDeliveryStatistics(): DeliveryStatistics
+
+  /**
+   * 获取配送员当日统计数据
+   * @param workerId 配送员ID，如果为null则返回所有配送员的统计数据
+   */
+  fun getTodayStatistics(workerId: Long?): TodayStatistics
 
   data class DeliveryStatistics(
     val totalWorkers: Int,
     val onlineWorkers: Int,
     val pendingOrders: Int,
     val deliveringOrders: Int,
+  )
+
+  data class TodayStatistics(
+    val totalOrders: Int,
+    val completedOrders: Int,
+    val pendingOrders: Int,
+    val earningCents: Long,
   )
 }

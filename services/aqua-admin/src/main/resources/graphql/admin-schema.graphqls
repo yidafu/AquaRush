@@ -59,6 +59,15 @@ type Query {
   ordersByUserAndStatus(userId: PrimaryId!, status: OrderStatus!): [Order!]!
   ordersByStatus(status: OrderStatus!): [Order!]!
 
+  # 派单相关查询
+  pendingDeliveryOrders: [Order!]!              # 待派单订单
+  assignedOrders(workerId: PrimaryId!): [Order!]!  # 已分配订单
+  deliveringOrders(workerId: PrimaryId!): [Order!]! # 配送中订单
+
+  # 用户搜索
+  findUserByPhone(phone: String!): User
+  findUsersByAddress(address: String!): [User!]!
+
   # Delivery Area queries
   deliveryAreas: [DeliveryArea!]!
   enabledDeliveryAreas: [DeliveryArea!]!
@@ -145,6 +154,10 @@ type Mutation {
 
   # Order Management - Admin/Delivery operations
   updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): Order!
+
+  # 派单管理
+  assignDeliveryWorker(orderId: PrimaryId!, workerId: PrimaryId!, isSelfCollect: Boolean!): Order!
+  batchAssignOrders(orderIds: [PrimaryId!]!, workerId: PrimaryId!): [Order!]!
 
   # Payment Management - Admin operations
   handleWechatCallback(input: WechatCallbackInput!): String!

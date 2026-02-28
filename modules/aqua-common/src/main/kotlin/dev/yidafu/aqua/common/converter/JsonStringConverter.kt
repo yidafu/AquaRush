@@ -32,13 +32,13 @@ import tools.jackson.databind.ObjectMapper
 @Converter(autoApply = false)
 class StringJsonConverter : AttributeConverter<String?, String?> {
 
-    override fun convertToDatabaseColumn(attribute: String?): String? {
-        return attribute
-    }
+  override fun convertToDatabaseColumn(attribute: String?): String? {
+    return attribute
+  }
 
-    override fun convertToEntityAttribute(dbData: String?): String? {
-        return dbData
-    }
+  override fun convertToEntityAttribute(dbData: String?): String? {
+    return dbData
+  }
 }
 
 /**
@@ -47,32 +47,32 @@ class StringJsonConverter : AttributeConverter<String?, String?> {
 @Converter(autoApply = false)
 class StringListJsonConverter : AttributeConverter<List<String>?, String?> {
 
-    private val objectMapper = ObjectMapper()
+  private val objectMapper = ObjectMapper()
 
-    override fun convertToDatabaseColumn(attribute: List<String>?): String? {
-        return try {
-            if (attribute == null) {
-                null
-            } else {
-                objectMapper.writeValueAsString(attribute)
-            }
-        } catch (e: Exception) {
-            throw IllegalArgumentException("Error converting list to JSON string", e)
-        }
+  override fun convertToDatabaseColumn(attribute: List<String>?): String? {
+    return try {
+      if (attribute == null) {
+        null
+      } else {
+        objectMapper.writeValueAsString(attribute)
+      }
+    } catch (e: Exception) {
+      throw IllegalArgumentException("Error converting list to JSON string", e)
     }
+  }
 
-    override fun convertToEntityAttribute(dbData: String?): List<String>? {
-        return try {
-            if (dbData == null) {
-                null
-            } else {
-                @Suppress("UNCHECKED_CAST")
-                objectMapper.readValue(dbData, List::class.java) as List<String>
-            }
-        } catch (e: Exception) {
-            throw IllegalArgumentException("Error converting JSON string to list", e)
-        }
+  override fun convertToEntityAttribute(dbData: String?): List<String>? {
+    return try {
+      if (dbData == null) {
+        null
+      } else {
+        @Suppress("UNCHECKED_CAST")
+        objectMapper.readValue(dbData, List::class.java) as List<String>
+      }
+    } catch (e: Exception) {
+      throw IllegalArgumentException("Error converting JSON string to list", e)
     }
+  }
 }
 
 /**
@@ -81,30 +81,30 @@ class StringListJsonConverter : AttributeConverter<List<String>?, String?> {
 @Converter(autoApply = false)
 class JsonMapConverter : AttributeConverter<Map<String, Any>?, String?> {
 
-    private val objectMapper = ObjectMapper()
+  private val objectMapper = ObjectMapper()
 
-    override fun convertToDatabaseColumn(attribute: Map<String, Any>?): String? {
-        return try {
-            if (attribute == null) {
-                null
-            } else {
-                objectMapper.writeValueAsString(attribute)
-            }
-        } catch (e: Exception) {
-            throw IllegalArgumentException("Error converting map to JSON string", e)
-        }
+  override fun convertToDatabaseColumn(attribute: Map<String, Any>?): String? {
+    return try {
+      if (attribute == null) {
+        null
+      } else {
+        objectMapper.writeValueAsString(attribute)
+      }
+    } catch (e: Exception) {
+      throw IllegalArgumentException("Error converting map to JSON string", e)
     }
+  }
 
-    override fun convertToEntityAttribute(dbData: String?): Map<String, Any>? {
-        return try {
-            if (dbData == null) {
-                null
-            } else {
-                @Suppress("UNCHECKED_CAST")
-                objectMapper.readValue(dbData, Map::class.java) as Map<String, Any>
-            }
-        } catch (e: Exception) {
-            throw IllegalArgumentException("Error converting JSON string to map", e)
-        }
+  override fun convertToEntityAttribute(dbData: String?): Map<String, Any>? {
+    return try {
+      if (dbData == null) {
+        null
+      } else {
+        @Suppress("UNCHECKED_CAST")
+        objectMapper.readValue(dbData, Map::class.java) as Map<String, Any>
+      }
+    } catch (e: Exception) {
+      throw IllegalArgumentException("Error converting JSON string to map", e)
     }
+  }
 }

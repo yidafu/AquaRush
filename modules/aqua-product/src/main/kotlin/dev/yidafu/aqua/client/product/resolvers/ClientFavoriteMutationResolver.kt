@@ -19,10 +19,10 @@
 
 package dev.yidafu.aqua.client.product.resolvers
 
+import dev.yidafu.aqua.api.service.ProductFavoriteService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.api.service.ProductFavoriteService
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping

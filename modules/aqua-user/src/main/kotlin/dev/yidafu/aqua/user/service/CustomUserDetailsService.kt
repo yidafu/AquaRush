@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.user.service
 
-import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -89,11 +89,13 @@ class CustomUserDetailsService(
         authorities.add(SimpleGrantedAuthority("PERMISSION_PAYMENT_WRITE"))
         authorities.add(SimpleGrantedAuthority("PERMISSION_STATISTICS_READ"))
       }
+
       "WORKER" -> {
         authorities.add(SimpleGrantedAuthority("PERMISSION_DELIVERY_READ"))
         authorities.add(SimpleGrantedAuthority("PERMISSION_DELIVERY_WRITE"))
         authorities.add(SimpleGrantedAuthority("PERMISSION_ORDER_READ"))
       }
+
       "USER" -> {
         authorities.add(SimpleGrantedAuthority("PERMISSION_USER_READ"))
         authorities.add(SimpleGrantedAuthority("PERMISSION_USER_WRITE"))

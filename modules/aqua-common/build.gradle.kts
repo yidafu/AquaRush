@@ -1,6 +1,7 @@
 plugins {
   id("aqua.kotlin.spring")
   id("aqua.kotlin.querydsl")
+  id("aqua.kotlin.jpa")
 }
 
 dependencies {
@@ -44,25 +45,23 @@ dependencies {
   implementation(libs.mapdb)
   testImplementation(libs.spring.boot.starter.test)
   implementation(libs.wechat.miniapp)
-  // QueryDSL dependencies are handled by aqua.kotlin.querydsl plugin
+
+  // QueryDSL with KSP support - using BOM for version management
+//  implementation(platform("io.github.openfeign.querydsl:querydsl-bom:7.1"))
+//  implementation("jakarta.persistence:jakarta.persistence-api:4.0.0-M1")
+//  implementation("io.github.openfeign.querydsl:querydsl-jpa")
+//  implementation("io.github.openfeign.querydsl:querydsl-core")
+//  ksp("io.github.openfeign.querydsl:querydsl-ksp-codegen:7.1")
 }
 
-// Configure QueryDSL
-val querydslDir = "$buildDir/generated/querydsl"
 
-querydsl {
-  jpa = true
-  hibernate = true
-  querydslSourcesDir = querydslDir
-}
 
-// Configure Kotlin compilation to include generated source
 kotlin {
   sourceSets {
     main {
       kotlin.srcDir("src/main/graphql-gen")
-      // Add QueryDSL generated sources
-      kotlin.srcDir(layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main"))
+      // Add QueryDSL generated sources - KSP generates to kspKotlin output
+      kotlin.srcDir(layout.buildDirectory.dir("generated/kspKotlin/main"))
     }
   }
 }

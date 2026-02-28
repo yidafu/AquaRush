@@ -23,58 +23,58 @@ package dev.yidafu.aqua.storage.domain.enums
  * 文件类型枚举
  */
 enum class FileType {
-    /**
-     * 图片文件 (jpg, jpeg, png, gif, bmp, webp等)
-     */
-    IMAGE,
+  /**
+   * 图片文件 (jpg, jpeg, png, gif, bmp, webp等)
+   */
+  IMAGE,
 
-    /**
-     * 视频文件 (mp4, avi, mov, wmv, flv等)
-     */
-    VIDEO,
+  /**
+   * 视频文件 (mp4, avi, mov, wmv, flv等)
+   */
+  VIDEO,
 
-    /**
-     * 音频文件 (mp3, wav, flac, aac等)
-     */
-    AUDIO,
+  /**
+   * 音频文件 (mp3, wav, flac, aac等)
+   */
+  AUDIO,
 
-    /**
-     * 文档文件 (pdf, doc, docx, txt等)
-     */
-    DOCUMENT,
+  /**
+   * 文档文件 (pdf, doc, docx, txt等)
+   */
+  DOCUMENT,
 
-    /**
-     * 电子表格文件 (xls, xlsx, csv等)
-     */
-    SPREADSHEET,
+  /**
+   * 电子表格文件 (xls, xlsx, csv等)
+   */
+  SPREADSHEET,
 
-    /**
-     * 演示文稿文件 (ppt, pptx等)
-     */
-    PRESENTATION,
+  /**
+   * 演示文稿文件 (ppt, pptx等)
+   */
+  PRESENTATION,
 
-    /**
-     * 前端资源文件 (html, css, js等)
-     */
-    FRONTEND,
+  /**
+   * 前端资源文件 (html, css, js等)
+   */
+  FRONTEND,
 
-    /**
-     * 压缩包文件 (zip, rar, 7z, tar, gz, tar.gz等)
-     */
-    ARCHIVE,
+  /**
+   * 压缩包文件 (zip, rar, 7z, tar, gz, tar.gz等)
+   */
+  ARCHIVE,
 
-    /**
-     * 可执行文件 (exe, msi, sh, bat等)
-     */
-    EXECUTABLE,
+  /**
+   * 可执行文件 (exe, msi, sh, bat等)
+   */
+  EXECUTABLE,
 
-    /**
-     * 备份文件 (bak, backup等)
-     */
-    BACKUP,
+  /**
+   * 备份文件 (bak, backup等)
+   */
+  BACKUP,
 
-    /**
-     * 其他文件
-     */
-    OTHER
+  /**
+   * 其他文件
+   */
+  OTHER
 }

@@ -19,18 +19,17 @@
 
 package dev.yidafu.aqua.user.service.impl
 
+import dev.yidafu.aqua.api.service.UserService
+import dev.yidafu.aqua.common.domain.model.NotificationSettingsModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
-import dev.yidafu.aqua.api.service.UserService
-import dev.yidafu.aqua.common.domain.model.UserModel
-import dev.yidafu.aqua.common.domain.model.NotificationSettingsModel
-import dev.yidafu.aqua.user.domain.repository.UserRepository
 import dev.yidafu.aqua.user.domain.repository.NotificationSettingsRepository
+import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Service

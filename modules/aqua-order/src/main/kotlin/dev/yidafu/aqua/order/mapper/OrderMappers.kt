@@ -23,66 +23,69 @@ import dev.yidafu.aqua.api.dto.CreateOrderRequest
 import dev.yidafu.aqua.common.domain.model.DeliveryAddressModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
-import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
-import dev.yidafu.aqua.common.graphql.generated.Address
-import dev.yidafu.aqua.common.graphql.generated.DeliveryAddress
-import dev.yidafu.aqua.common.graphql.generated.Order
-import dev.yidafu.aqua.common.graphql.generated.PaymentMethod
-import dev.yidafu.aqua.common.graphql.generated.Product
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.common.graphql.generated.User
+import dev.yidafu.aqua.common.domain.model.PaymentType
+import dev.yidafu.aqua.common.graphql.generated.*
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.order.dto.CreateOrderDTO
 import dev.yidafu.aqua.order.dto.OrderDTO
 import dev.yidafu.aqua.order.dto.UpdateOrderStatusDTO
 import org.springframework.stereotype.Component
+import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
+import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
+import dev.yidafu.aqua.common.graphql.generated.PaymentType as PaymentTypeG
 
 // ============================================================================
 // OrderModel ↔ OrderDTO Mappers
 // ============================================================================
 
 /**
+ * Enum mapper for converting domain PaymentType to GraphQL PaymentType
+ */
+object PaymentTypeMapper : EnumMappie<PaymentType, PaymentTypeG>()
+
+/**
  * Mapper for converting OrderModel to OrderDTO
  */
 object OrderModelToDTOMapper : ObjectMappie<OrderModel, OrderDTO>() {
-  override fun map(from: OrderModel): OrderDTO {
-    val objectMapper = jacksonObjectMapper()
-
-    return OrderDTO(
-      id = from.id,
-      orderNumber = from.orderNumber,
-      userId = from.userId,
-      productId = from.productId,
-      quantity = from.quantity,
-      amount = from.amountCents,
-      addressId = from.addressId,
-      status = from.status,
-      paymentMethod = from.paymentMethod,
-      paymentTransactionId = from.paymentTransactionId,
-      paymentTime = from.paymentTime,
-      deliveryWorkerId = from.deliveryWorkerId,
-      deliveryPhotos =
-        from.deliveryPhotos?.let { photos ->
-          try {
-            objectMapper.readValue(photos, Array<String>::class.java).toList()
-          } catch (e: Exception) {
-            emptyList()
-          }
-        },
-      deliveryAddressId = from.deliveryAddressId,
-      completedAt = from.completedAt,
-      totalAmount = from.amountCents,
-      createdAt = from.createdAt,
-      updatedAt = from.updatedAt,
-      // Nested objects are set to null and should be populated by the service layer
-      user = null,
-      product = null,
-      address = null,
-      deliveryWorker = null,
-    )
+  override fun map(from: OrderModel) = mapping {
+    to::id fromProperty from::id
+    to::orderNumber fromProperty from::orderNumber
+    to::userId fromProperty from::userId
+    to::productId fromProperty from::productId
+    to::quantity fromProperty from::quantity
+    to::amount fromProperty from::amountCents
+    to::addressId fromProperty from::addressId
+    to::status fromProperty from::status
+    to::paymentMethod fromProperty from::paymentMethod
+    to::paymentTransactionId fromProperty from::paymentTransactionId
+    to::paymentTime fromProperty from::paymentTime
+    to::deliveryWorkerId fromProperty from::deliveryWorkerId
+    to::deliveryPhotos fromExpression {
+      from.deliveryPhotos?.let { photos ->
+        try {
+          jacksonObjectMapper().readValue(photos, Array<String>::class.java).toList()
+        } catch (e: Exception) {
+          emptyList()
+        }
+      }
+    }
+    to::deliveryAddressId fromProperty from::deliveryAddressId
+    to::completedAt fromProperty from::completedAt
+    to::totalAmount fromProperty from::amountCents
+    to::createdAt fromProperty from::createdAt
+    to::updatedAt fromProperty from::updatedAt
+    // Nested objects are set to null and should be populated by the service layer
+    to::user fromValue null
+    to::product fromValue null
+    to::address fromValue null
+    to::deliveryWorker fromValue null
+    to::deliveryStartedAt fromProperty from::deliveryStartedAt
+    to::deliveryConfirmedAt fromProperty from::deliveryConfirmedAt
+    to::isSelfCollect fromProperty from::isSelfCollect
+    to::paymentType fromProperty from::paymentType
   }
 }
 
@@ -90,54 +93,61 @@ object OrderModelToDTOMapper : ObjectMappie<OrderModel, OrderDTO>() {
  * Mapper for converting CreateOrderDTO to OrderModel
  */
 object CreateOrderDTOToModelMapper : ObjectMappie<CreateOrderDTO, OrderModel>() {
-  override fun map(from: CreateOrderDTO): OrderModel =
-    OrderModel(
-      id = -1L, // Will be generated by database
-      orderNumber = "", // This should be generated by the service
-      userId = from.userId,
-      productId = from.productId,
-      quantity = from.quantity,
-      amountCents = from.amount,
-      addressId = from.addressId,
-      deliveryAddressId = from.deliveryAddressId,
-      status = OrderStatus.PENDING_PAYMENT,
-      paymentMethod = from.paymentMethod,
-      deliveryPhotos = null,
-      paymentTransactionId = null,
-      paymentTime = null,
-      deliveryWorkerId = null,
-      completedAt = null,
-    )
+  override fun map(from: CreateOrderDTO) = mapping {
+    to::id fromValue -1L // Will be generated by database
+    to::orderNumber fromValue "" // This should be generated by the service
+    to::userId fromProperty from::userId
+    to::productId fromProperty from::productId
+    to::quantity fromProperty from::quantity
+    to::amountCents fromProperty from::amount
+    to::addressId fromProperty from::addressId
+    to::deliveryAddressId fromProperty from::deliveryAddressId
+    to::status fromExpression { OrderStatus.PENDING_PAYMENT }
+    to::paymentMethod fromProperty from::paymentMethod
+    to::deliveryPhotos fromValue null
+    to::paymentTransactionId fromValue null
+    to::paymentTime fromValue null
+    to::deliveryWorkerId fromValue null
+    to::completedAt fromValue null
+    to::createdAt fromValue LocalDateTime.now()
+    to::updatedAt fromValue LocalDateTime.now()
+    to::deliveryStartedAt fromValue null
+    to::deliveryConfirmedAt fromValue null
+    to::isSelfCollect fromValue false
+    to::paymentType fromValue null
+  }
 }
 
 /**
  * Mapper for applying UpdateOrderStatusDTO to OrderModel
  */
 object UpdateOrderStatusMapper : ObjectMappie<UpdateOrderStatusDTO, OrderModel>() {
-  override fun map(from: UpdateOrderStatusDTO): OrderModel {
-    // This mapper is used with the existing OrderModel for updates
-    // In practice, you would pass the existing model as a parameter
-    // For now, this will create a new model that should be merged
-    return OrderModel(
-      id = -1L, // This needs to be set by the calling code
-      orderNumber = "", // This needs to be set by the calling code
-      userId = -1L, // This needs to be set by the calling code
-      productId = -1L, // This needs to be set by the calling code
-      quantity = 1, // This needs to be set by the calling code
-      amountCents = 0, // This needs to be set by the calling code
-      addressId = -1L, // This needs to be set by the calling code
-      deliveryAddressId = -1L, // This needs to be set by the calling code
-      status = from.status,
-      paymentMethod = from.paymentMethod,
-      deliveryPhotos =
-        from.deliveryPhotos?.let { photos ->
-          jacksonObjectMapper().writeValueAsString(photos)
-        },
-      paymentTransactionId = from.paymentTransactionId,
-      paymentTime = from.paymentTime,
-      deliveryWorkerId = from.deliveryWorkerId,
-      completedAt = from.completedAt,
-    )
+  override fun map(from: UpdateOrderStatusDTO) = mapping {
+    to::id fromValue -1L // This needs to be set by the calling code
+    to::orderNumber fromValue "" // This needs to be set by the calling code
+    to::userId fromValue -1L // This needs to be set by the calling code
+    to::productId fromValue -1L // This needs to be set by the calling code
+    to::quantity fromValue 1 // This needs to be set by the calling code
+    to::amountCents fromValue 0L // This needs to be set by the calling code
+    to::addressId fromValue -1L // This needs to be set by the calling code
+    to::deliveryAddressId fromValue -1L // This needs to be set by the calling code
+    to::status fromExpression { from.status }
+    to::paymentMethod fromProperty from::paymentMethod
+    to::deliveryPhotos fromExpression {
+      from.deliveryPhotos?.let { photos ->
+        jacksonObjectMapper().writeValueAsString(photos)
+      }
+    }
+    to::paymentTransactionId fromProperty from::paymentTransactionId
+    to::paymentTime fromProperty from::paymentTime
+    to::deliveryWorkerId fromProperty from::deliveryWorkerId
+    to::completedAt fromProperty from::completedAt
+    to::createdAt fromValue LocalDateTime.now()
+    to::updatedAt fromValue LocalDateTime.now()
+    to::deliveryStartedAt fromValue null
+    to::deliveryConfirmedAt fromValue null
+    to::isSelfCollect fromValue false
+    to::paymentType fromValue null
   }
 }
 
@@ -149,40 +159,31 @@ object UpdateOrderStatusMapper : ObjectMappie<UpdateOrderStatusDTO, OrderModel>(
  * Mapper for converting OrderDTO to GraphQL Order type
  */
 object OrderDTOToGraphQLMapper : ObjectMappie<OrderDTO, Order>() {
-  override fun map(from: OrderDTO): Order {
-    // Note: GraphQL Order constructor requires non-null nested objects
+  override fun map(from: OrderDTO) = mapping {
+    // Note: GraphQL Order requires non-null nested objects (address, product, user)
     // This mapper should only be used when nested objects are properly populated
-    // Otherwise, use a service method that handles the null cases
-    if (from.address == null || from.product == null || from.user == null) {
-      throw IllegalArgumentException("Nested objects (address, product, user) must be populated for GraphQL conversion")
-    }
-
-    return Order(
-      id = from.id,
-      orderNumber = from.orderNumber,
-      amount = from.amount,
-      completedAt = from.completedAt,
-      createdAt = from.createdAt,
-      deliveryPhotos = from.deliveryPhotos,
-      paymentMethod =
-        from.paymentMethod
-          ?.let { method ->
-            PaymentMethod
-              .valueOf(method.name)
-          }?.name,
-      paymentTime = from.paymentTime,
-      paymentTransactionId = from.paymentTransactionId,
-      quantity = from.quantity,
-      status =
-        OrderStatusG
-          .valueOf(from.status.name),
-      updatedAt = from.updatedAt,
-      // These are required by GraphQL Order constructor
-      address = from.address!!,
-      deliveryWorker = from.deliveryWorker,
-      product = from.product!!,
-      user = from.user!!,
-    )
+    to::id fromProperty from::id
+    to::orderNumber fromProperty from::orderNumber
+    to::amount fromProperty from::amount
+    to::completedAt fromProperty from::completedAt
+    to::createdAt fromProperty from::createdAt
+    to::deliveryPhotos fromExpression { from.deliveryPhotos }
+    to::paymentMethod fromExpression { from.paymentMethod?.name }
+    to::paymentTime fromProperty from::paymentTime
+    to::paymentTransactionId fromProperty from::paymentTransactionId
+    to::quantity fromProperty from::quantity
+    to::status fromExpression { OrderStatusG.valueOf(from.status.name) }
+    to::updatedAt fromProperty from::updatedAt
+    // These are required by GraphQL Order constructor - use requireNotNull
+    to::address fromExpression { requireNotNull(from.address) { "address must not be null" } }
+    to::deliveryWorker fromProperty from::deliveryWorker
+    to::product fromExpression { requireNotNull(from.product) { "product must not be null" } }
+    to::user fromExpression { requireNotNull(from.user) { "user must not be null" } }
+    // Added missing fields
+    to::deliveryConfirmedAt fromProperty from::deliveryConfirmedAt
+    to::deliveryStartedAt fromProperty from::deliveryStartedAt
+    to::isSelfCollect fromProperty from::isSelfCollect
+    to::paymentType fromProperty from::paymentType
   }
 }
 
@@ -190,45 +191,48 @@ object OrderDTOToGraphQLMapper : ObjectMappie<OrderDTO, Order>() {
  * Mapper for converting GraphQL Order type to OrderDTO
  */
 object GraphQLToOrderDTOMapper : ObjectMappie<Order, OrderDTO>() {
-  override fun map(from: Order): OrderDTO =
-    OrderDTO(
-      id = from.id,
-      orderNumber = from.orderNumber,
-      userId = from.user.id,
-      user = from.user,
-      productId = from.product.id,
-      product = from.product,
-      quantity = from.quantity,
-      amount = from.amount,
-      addressId = from.address.id,
-      address = from.address,
-      status =
-        when (from.status.name) {
-          "PENDING_PAYMENT" -> OrderStatus.PENDING_PAYMENT
-          "PENDING_DELIVERY" -> OrderStatus.PENDING_DELIVERY
-          "DELIVERING" -> OrderStatus.DELIVERING
-          "COMPLETED" -> OrderStatus.COMPLETED
-          "CANCELLED" -> OrderStatus.CANCELLED
-          else -> OrderStatus.PENDING_PAYMENT
-        },
-      paymentMethod =
-        from.paymentMethod?.let { method ->
-          when (method) {
-            "WECHAT_PAY" -> dev.yidafu.aqua.common.domain.model.PaymentMethod.WECHAT_PAY
-            else -> null
-          }
-        },
-      paymentTransactionId = from.paymentTransactionId,
-      paymentTime = from.paymentTime,
-      deliveryWorkerId = from.deliveryWorker?.id,
-      deliveryWorker = from.deliveryWorker,
-      deliveryPhotos = from.deliveryPhotos?.toList(),
-      deliveryAddressId = from.address.id, // Assuming delivery address is the same as user address
-      completedAt = from.completedAt,
-      totalAmount = from.amount, // In GraphQL, amount and totalAmount might be the same
-      createdAt = from.createdAt,
-      updatedAt = from.updatedAt,
-    )
+  override fun map(from: Order) = mapping {
+    to::id fromProperty from::id
+    to::orderNumber fromProperty from::orderNumber
+    to::userId fromExpression { from.user.id }
+    to::user fromValue from.user
+    to::productId fromExpression { from.product.id }
+    to::product fromValue from.product
+    to::quantity fromProperty from::quantity
+    to::amount fromProperty from::amount
+    to::addressId fromExpression { from.address.id }
+    to::address fromValue from.address
+    to::status fromExpression {
+      when (from.status.name) {
+        "PENDING_PAYMENT" -> OrderStatus.PENDING_PAYMENT
+        "PENDING_DELIVERY" -> OrderStatus.PENDING_DELIVERY
+        "DELIVERING" -> OrderStatus.DELIVERING
+        "COMPLETED" -> OrderStatus.COMPLETED
+        "CANCELLED" -> OrderStatus.CANCELLED
+        else -> OrderStatus.PENDING_PAYMENT
+      }
+    }
+    to::paymentMethod fromExpression {
+      when (from.paymentMethod) {
+        "WECHAT_PAY" -> dev.yidafu.aqua.common.domain.model.PaymentMethod.WECHAT_PAY
+        else -> null
+      }
+    }
+    to::paymentTransactionId fromProperty from::paymentTransactionId
+    to::paymentTime fromProperty from::paymentTime
+    to::deliveryWorkerId fromExpression { from.deliveryWorker?.id }
+    to::deliveryWorker fromProperty from::deliveryWorker
+    to::deliveryPhotos fromExpression { from.deliveryPhotos?.toList() }
+    to::deliveryAddressId fromExpression { from.address.id }
+    to::completedAt fromProperty from::completedAt
+    to::totalAmount fromProperty from::amount
+    to::createdAt fromProperty from::createdAt
+    to::updatedAt fromProperty from::updatedAt
+    to::deliveryStartedAt fromProperty from::deliveryStartedAt
+    to::deliveryConfirmedAt fromProperty from::deliveryConfirmedAt
+    to::isSelfCollect fromProperty from::isSelfCollect
+    to::paymentType fromProperty from::paymentType
+  }
 }
 
 // ============================================================================
@@ -241,52 +245,39 @@ object GraphQLToOrderDTOMapper : ObjectMappie<Order, OrderDTO>() {
  * In a complete implementation, these should be loaded from their respective services
  */
 object OrderMapper : ObjectMappie<OrderModel, Order>() {
-  override fun map(from: OrderModel): Order {
+  override fun map(from: OrderModel) = mapping {
     // Create placeholder objects for required nested fields
     // In a real implementation, these should be loaded from their respective services
-    val placeholderUser =
-      User(
-        id = from.userId,
-        nickname = "placeholder",
-        phone = "placeholder",
-        wechatOpenId = "placeholder_openid",
-        avatarUrl = null,
-        createdAt = from.createdAt,
-        updatedAt = from.updatedAt,
-        balanceCents = TODO(),
-        email = TODO(),
-        role = TODO(),
-        status = TODO(),
-        totalSpentCents = TODO(),
-      )
-
-    val placeholderProduct =
-      Product(
-        id = from.productId,
-        name = "placeholder",
-        coverImageUrl = "",
-        price = from.amountCents,
-        stock = 1,
-        status = ProductStatus.ONLINE,
-        createdAt = from.createdAt,
-        updatedAt = from.updatedAt,
-        certificateImages = TODO(),
-        deliverySettings = TODO(),
-        depositPrice = TODO(),
-        detailContent = TODO(),
-        imageGallery = TODO(),
-        isDeleted = TODO(),
-        mineralContent = TODO(),
-        originalPrice = TODO(),
-        salesVolume = TODO(),
-        sortOrder = TODO(),
-        specification = TODO(),
-        subtitle = TODO(),
-        tags = TODO(),
-        waterSource = TODO(),
-      )
-
-    val placeholderAddress =
+    to::id fromProperty from::id
+    to::orderNumber fromProperty from::orderNumber
+    to::amount fromProperty from::amountCents
+    to::completedAt fromProperty from::completedAt
+    to::createdAt fromProperty from::createdAt
+    to::deliveryPhotos fromExpression {
+      from.deliveryPhotos?.let { photos ->
+        try {
+          jacksonObjectMapper().readValue(photos, Array<String>::class.java).toList()
+        } catch (e: Exception) {
+          emptyList()
+        }
+      }
+    }
+    to::paymentMethod fromExpression { from.paymentMethod?.name }
+    to::paymentTime fromProperty from::paymentTime
+    to::paymentTransactionId fromProperty from::paymentTransactionId
+    to::quantity fromProperty from::quantity
+    to::status fromExpression {
+      when (from.status.name) {
+        "PENDING_PAYMENT" -> OrderStatusG.PENDING
+        "PENDING_DELIVERY" -> OrderStatusG.PENDING
+        "DELIVERING" -> OrderStatusG.OUT_FOR_DELIVERY
+        "COMPLETED" -> OrderStatusG.DELIVERED
+        "CANCELLED" -> OrderStatusG.CANCELLED
+        else -> OrderStatusG.PENDING
+      }
+    }
+    to::updatedAt fromProperty from::updatedAt
+    to::address fromExpression {
       Address(
         id = from.addressId,
         userId = from.userId,
@@ -305,48 +296,55 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
         createdAt = from.createdAt,
         updatedAt = from.updatedAt,
       )
-
-    return Order(
-      id = from.id,
-      orderNumber = from.orderNumber,
-      amount = from.amountCents,
-      completedAt = from.completedAt,
-      createdAt = from.createdAt,
-      deliveryPhotos =
-        from.deliveryPhotos?.let { photos ->
-          try {
-            jacksonObjectMapper()
-              .readValue(photos, Array<String>::class.java)
-              .toList()
-          } catch (e: Exception) {
-            emptyList()
-          }
-        },
-      paymentMethod =
-        from.paymentMethod?.let { method ->
-          when (method.name) {
-            "WECHAT_PAY" -> "WECHAT_PAY"
-            else -> method.name
-          }
-        },
-      paymentTime = from.paymentTime,
-      paymentTransactionId = from.paymentTransactionId,
-      quantity = from.quantity,
-      status =
-        when (from.status.name) {
-          "PENDING_PAYMENT" -> OrderStatusG.PENDING
-          "PENDING_DELIVERY" -> OrderStatusG.PENDING
-          "DELIVERING" -> OrderStatusG.OUT_FOR_DELIVERY
-          "COMPLETED" -> OrderStatusG.DELIVERED
-          "CANCELLED" -> OrderStatusG.CANCELLED
-          else -> OrderStatusG.PENDING
-        },
-      updatedAt = from.updatedAt,
-      address = placeholderAddress,
-      deliveryWorker = null, // Optional field
-      product = placeholderProduct,
-      user = placeholderUser,
-    )
+    }
+    to::deliveryWorker fromValue null // Optional field
+    to::product fromExpression {
+      Product(
+        id = from.productId,
+        name = "placeholder",
+        coverImageUrl = "",
+        price = from.amountCents,
+        stock = 1,
+        status = ProductStatus.ONLINE,
+        createdAt = from.createdAt,
+        updatedAt = from.updatedAt,
+        certificateImages = null,
+        deliverySettings = null,
+        depositPrice = null,
+        detailContent = null,
+        imageGallery = null,
+        isDeleted = false,
+        mineralContent = null,
+        originalPrice = null,
+        salesVolume = 0,
+        sortOrder = 0,
+        specification = "",
+        subtitle = null,
+        tags = null,
+        waterSource = null,
+      )
+    }
+    to::user fromExpression {
+      User(
+        id = from.userId,
+        nickname = "placeholder",
+        phone = "placeholder",
+        wechatOpenId = "placeholder_openid",
+        avatarUrl = null,
+        createdAt = from.createdAt,
+        updatedAt = from.updatedAt,
+        balanceCents = 0L,
+        email = "",
+        role = UserRole.USER,
+        status = UserStatus.ACTIVE,
+        totalSpentCents = 0L,
+      )
+    }
+    // Added missing fields
+    to::deliveryConfirmedAt fromProperty from::deliveryConfirmedAt
+    to::deliveryStartedAt fromProperty from::deliveryStartedAt
+    to::isSelfCollect fromProperty from::isSelfCollect
+    to::paymentType fromExpression { from.paymentType?.let { PaymentTypeMapper.map(it) } }
   }
 }
 
@@ -368,26 +366,27 @@ object DeliveryAddressMapper : ObjectMappie<DeliveryAddressModel, DeliveryAddres
  */
 @Component
 object CreateOrderRequestMapper : ObjectMappie<CreateOrderRequest, OrderModel>() {
-  override fun map(from: CreateOrderRequest): OrderModel {
-    // 由于 Order 需要复杂的构造，我们手动创建对象
-    return OrderModel(
-      id = DefaultIdGenerator().generate(),
-      orderNumber = from.orderNumber,
-      userId = from.userId,
-      productId = from.productId,
-      quantity = from.quantity,
-      amountCents = from.amount,
-      addressId = from.addressId,
-      deliveryAddressId = from.addressId, // 映射到同一字段
-      status = OrderStatus.PENDING_PAYMENT,
-      paymentMethod = null,
-      paymentTransactionId = null,
-      paymentTime = null,
-      deliveryWorkerId = null,
-      deliveryPhotos = null,
-      completedAt = null,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
+  override fun map(from: CreateOrderRequest) = mapping {
+    to::id fromValue DefaultIdGenerator().generate()
+    to::orderNumber fromProperty from::orderNumber
+    to::userId fromProperty from::userId
+    to::productId fromProperty from::productId
+    to::quantity fromProperty from::quantity
+    to::amountCents fromProperty from::amount
+    to::addressId fromProperty from::addressId
+    to::deliveryAddressId fromProperty from::addressId
+    to::status fromValue OrderStatus.PENDING_PAYMENT
+    to::paymentMethod fromValue null
+    to::paymentTransactionId fromValue null
+    to::paymentTime fromValue null
+    to::deliveryWorkerId fromValue null
+    to::deliveryPhotos fromValue null
+    to::completedAt fromValue null
+    to::createdAt fromValue LocalDateTime.now()
+    to::updatedAt fromValue LocalDateTime.now()
+    to::deliveryStartedAt fromValue null
+    to::deliveryConfirmedAt fromValue null
+    to::isSelfCollect fromValue false
+    to::paymentType fromValue null
   }
 }

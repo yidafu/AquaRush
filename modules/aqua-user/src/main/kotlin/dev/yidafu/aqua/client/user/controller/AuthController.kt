@@ -19,13 +19,12 @@
 
 package dev.yidafu.aqua.client.user.controller
 
+import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.common.ApiResponse
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.service.AdminAuthService
 import dev.yidafu.aqua.user.service.UpdateUserRequest
-import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.user.service.WeChatAuthService
-import dev.yidafu.aqua.user.service.dto.LoginResponse
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import org.springframework.http.ResponseEntity

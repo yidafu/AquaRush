@@ -25,7 +25,6 @@ import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
 import org.springframework.web.multipart.MultipartFile
-import java.io.File
 import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
@@ -37,112 +36,112 @@ import java.nio.file.StandardCopyOption
  */
 @Component
 class LocalStorageStrategy(
-    private val storageProperties: StorageProperties
+  private val storageProperties: StorageProperties
 ) : StorageStrategy {
 
-    private val basePath: Path = Paths.get(storageProperties.local.basePath)
+  private val basePath: Path = Paths.get(storageProperties.local.basePath)
 
-    init {
-        // 确保基础存储目录存在
-        if (!Files.exists(basePath)) {
-            Files.createDirectories(basePath)
-        }
+  init {
+    // 确保基础存储目录存在
+    if (!Files.exists(basePath)) {
+      Files.createDirectories(basePath)
+    }
+  }
+
+  override fun store(file: MultipartFile, metadata: FileMetadata): String {
+    return try {
+      // 按年月创建目录结构
+      val targetDir = basePath.resolve(generatePathByFileType(metadata.fileType))
+      if (!Files.exists(targetDir)) {
+        Files.createDirectories(targetDir)
+      }
+
+      // 生成唯一文件名
+      val fileName = generateUniqueFileName(file.originalFilename ?: "unknown")
+      val targetPath = targetDir.resolve(fileName)
+
+      // 存储文件
+      Files.copy(file.inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING)
+
+      // 返回相对路径
+      generateRelativePath(metadata.fileType, fileName)
+    } catch (e: IOException) {
+      throw RuntimeException("Failed to store file", e)
+    }
+  }
+
+  override fun retrieve(path: String): Resource {
+    val fullPath = basePath.resolve(path)
+    val file = fullPath.toFile()
+
+    if (!file.exists()) {
+      throw RuntimeException("File not found: $path")
     }
 
-    override fun store(file: MultipartFile, metadata: FileMetadata): String {
-        return try {
-            // 按年月创建目录结构
-            val targetDir = basePath.resolve(generatePathByFileType(metadata.fileType))
-            if (!Files.exists(targetDir)) {
-                Files.createDirectories(targetDir)
-            }
+    return FileSystemResource(file)
+  }
 
-            // 生成唯一文件名
-            val fileName = generateUniqueFileName(file.originalFilename ?: "unknown")
-            val targetPath = targetDir.resolve(fileName)
+  override fun delete(path: String): Boolean {
+    return try {
+      val fullPath = basePath.resolve(path)
+      Files.deleteIfExists(fullPath)
+    } catch (e: IOException) {
+      false
+    }
+  }
 
-            // 存储文件
-            Files.copy(file.inputStream, targetPath, StandardCopyOption.REPLACE_EXISTING)
+  override fun generateUrl(fileId: Long, filename: String): String {
+    // 生成文件下载URL，使用文件ID访问下载端点
+    // 格式：{baseUrl}/api/v1/storage/files/{id}
+    return "${storageProperties.local.baseUrl}/api/v1/storage/files/$fileId?name=$filename"
+  }
 
-            // 返回相对路径
-            generateRelativePath(metadata.fileType, fileName)
-        } catch (e: IOException) {
-            throw RuntimeException("Failed to store file", e)
-        }
+  override fun exists(path: String): Boolean {
+    val fullPath = basePath.resolve(path)
+    return Files.exists(fullPath)
+  }
+
+  override fun getFileSize(path: String): Long {
+    val fullPath = basePath.resolve(path)
+    return try {
+      Files.size(fullPath)
+    } catch (e: IOException) {
+      0L
+    }
+  }
+
+  /**
+   * 根据文件类型生成存储路径
+   */
+  private fun generatePathByFileType(fileType: dev.yidafu.aqua.storage.domain.enums.FileType): String {
+    val now = java.time.LocalDateTime.now()
+    return "${fileType.name.lowercase()}/${now.year}/${String.format("%02d", now.monthValue)}"
+  }
+
+  /**
+   * 生成唯一文件名
+   */
+  private fun generateUniqueFileName(originalName: String): String {
+    val extension = if (originalName.contains('.')) {
+      originalName.substringAfterLast('.')
+    } else {
+      ""
     }
 
-    override fun retrieve(path: String): Resource {
-        val fullPath = basePath.resolve(path)
-        val file = fullPath.toFile()
+    val timestamp = System.currentTimeMillis()
+    val randomString = (1..6).map { ('a'..'z').random() }.joinToString("")
 
-        if (!file.exists()) {
-            throw RuntimeException("File not found: $path")
-        }
-
-        return FileSystemResource(file)
+    return if (extension.isNotEmpty()) {
+      "${timestamp}_${randomString}.$extension"
+    } else {
+      "${timestamp}_$randomString"
     }
+  }
 
-    override fun delete(path: String): Boolean {
-        return try {
-            val fullPath = basePath.resolve(path)
-            Files.deleteIfExists(fullPath)
-        } catch (e: IOException) {
-            false
-        }
-    }
-
-    override fun generateUrl(fileId: Long, filename: String): String {
-        // 生成文件下载URL，使用文件ID访问下载端点
-        // 格式：{baseUrl}/api/v1/storage/files/{id}
-        return "${storageProperties.local.baseUrl}/api/v1/storage/files/$fileId?name=$filename"
-    }
-
-    override fun exists(path: String): Boolean {
-        val fullPath = basePath.resolve(path)
-        return Files.exists(fullPath)
-    }
-
-    override fun getFileSize(path: String): Long {
-        val fullPath = basePath.resolve(path)
-        return try {
-            Files.size(fullPath)
-        } catch (e: IOException) {
-            0L
-        }
-    }
-
-    /**
-     * 根据文件类型生成存储路径
-     */
-    private fun generatePathByFileType(fileType: dev.yidafu.aqua.storage.domain.enums.FileType): String {
-        val now = java.time.LocalDateTime.now()
-        return "${fileType.name.lowercase()}/${now.year}/${String.format("%02d", now.monthValue)}"
-    }
-
-    /**
-     * 生成唯一文件名
-     */
-    private fun generateUniqueFileName(originalName: String): String {
-        val extension = if (originalName.contains('.')) {
-            originalName.substringAfterLast('.')
-        } else {
-            ""
-        }
-
-        val timestamp = System.currentTimeMillis()
-        val randomString = (1..6).map { ('a'..'z').random() }.joinToString("")
-
-        return if (extension.isNotEmpty()) {
-            "${timestamp}_${randomString}.$extension"
-        } else {
-            "${timestamp}_$randomString"
-        }
-    }
-
-    /**
-     * 生成相对路径
-     */
-    private fun generateRelativePath(fileType: dev.yidafu.aqua.storage.domain.enums.FileType, fileName: String): String {
-        return "${generatePathByFileType(fileType)}/$fileName"
-    }
+  /**
+   * 生成相对路径
+   */
+  private fun generateRelativePath(fileType: dev.yidafu.aqua.storage.domain.enums.FileType, fileName: String): String {
+    return "${generatePathByFileType(fileType)}/$fileName"
+  }
 }

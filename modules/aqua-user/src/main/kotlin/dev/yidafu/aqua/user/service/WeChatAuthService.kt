@@ -21,11 +21,11 @@ package dev.yidafu.aqua.user.service
 
 import cn.binarywang.wx.miniapp.api.WxMaService
 import com.fasterxml.jackson.annotation.JsonProperty
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import me.chanjar.weixin.common.error.WxErrorException
 import org.slf4j.LoggerFactory
@@ -33,7 +33,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
-import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Service
@@ -138,13 +137,13 @@ class WeChatAuthService(
 
       val session = wxMaService.userService.getSessionInfo(code)
       return Result.success(
-      WeChatCode2SessionResponse(
-        session.openid,
-        session.sessionKey,
-        session.unionid,
+        WeChatCode2SessionResponse(
+          session.openid,
+          session.sessionKey,
+          session.unionid,
+        )
       )
-      )
-    }catch (e: WxErrorException) {
+    } catch (e: WxErrorException) {
       return Result.failure(e)
     }
   }

@@ -25,7 +25,8 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 
 @Repository
-interface AddressRepository : JpaRepository<AddressModel, Long>, JpaSpecificationExecutor<AddressModel>, AddressRepositoryCustom {
+interface AddressRepository : JpaRepository<AddressModel, Long>, JpaSpecificationExecutor<AddressModel>,
+  AddressRepositoryCustom {
 
   /**
    * Find all addresses for a user

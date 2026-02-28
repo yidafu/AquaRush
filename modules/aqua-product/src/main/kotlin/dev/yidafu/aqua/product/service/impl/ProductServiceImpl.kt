@@ -2,12 +2,12 @@ package dev.yidafu.aqua.product.service.impl
 
 import dev.yidafu.aqua.api.service.ProductService
 import dev.yidafu.aqua.client.product.resolvers.ClientProductQueryResolver
+import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductUpdateRequestInput
 import dev.yidafu.aqua.common.utils.MoneyUtils
-import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -21,7 +21,7 @@ import java.math.BigDecimal
 @Service
 @Transactional(readOnly = true)
 class ProductServiceImpl(
-    val productRepository: ProductRepository,
+  val productRepository: ProductRepository,
 ) : ProductService {
   override fun findById(id: Long): ProductModel? = productRepository.findById(id).orElse(null)
 
@@ -37,35 +37,39 @@ class ProductServiceImpl(
   override fun createProduct(request: CreateProductInput): ProductModel {
     // Convert prices from yuan to cents for storage
     val priceCents = MoneyUtils.toCents(BigDecimal.valueOf(request.price).divide(BigDecimal(100)))
-    val originalPriceCents = request.originalPrice?.let { MoneyUtils.toCents(
+    val originalPriceCents = request.originalPrice?.let {
+      MoneyUtils.toCents(
         BigDecimal.valueOf(it).divide(
-            BigDecimal(
-                100
-            )
-        )) }
-    val depositPriceCents = request.depositPrice?.let { MoneyUtils.toCents(BigDecimal.valueOf(it).divide(BigDecimal(100))) }
+          BigDecimal(
+            100
+          )
+        )
+      )
+    }
+    val depositPriceCents =
+      request.depositPrice?.let { MoneyUtils.toCents(BigDecimal.valueOf(it).divide(BigDecimal(100))) }
 
     val product =
-        ProductModel(
-            name = request.name,
-            subtitle = request.subtitle,
-            price = priceCents,
-            originalPrice = originalPriceCents,
-            depositPrice = depositPriceCents,
-            coverImageUrl = request.coverImageUrl,
-            imageGallery = request.imageGallery,
-            specification = request.specification,
-            waterSource = request.waterSource,
-            mineralContent = request.mineralContent,
-            stock = request.stock,
-            salesVolume = request.salesVolume,
-            status = request.status,
-            sortOrder = request.sortOrder,
-            tags = request.tags,
-            detailContent = request.detailContent,
-            certificateImages = request.certificateImages,
-            deliverySettings = request.deliverySettings,
-        )
+      ProductModel(
+        name = request.name,
+        subtitle = request.subtitle,
+        price = priceCents,
+        originalPrice = originalPriceCents,
+        depositPrice = depositPriceCents,
+        coverImageUrl = request.coverImageUrl,
+        imageGallery = request.imageGallery,
+        specification = request.specification,
+        waterSource = request.waterSource,
+        mineralContent = request.mineralContent,
+        stock = request.stock,
+        salesVolume = request.salesVolume,
+        status = request.status,
+        sortOrder = request.sortOrder,
+        tags = request.tags,
+        detailContent = request.detailContent,
+        certificateImages = request.certificateImages,
+        deliverySettings = request.deliverySettings,
+      )
     return productRepository.save(product)
   }
 
@@ -74,26 +78,26 @@ class ProductServiceImpl(
 
   @Transactional
   fun updateProduct(
-      productId: Long,
-      name: String?,
-      priceYuan: BigDecimal?,
-      coverImageUrl: String?,
-      description: String?,
-      stock: Int?,
-      subtitle: String? = null,
-      originalPriceYuan: BigDecimal? = null,
-      depositPriceYuan: BigDecimal? = null,
-      imageGallery: ArrayNode? = null,
-      specification: String? = null,
-      waterSource: String? = null,
-      mineralContent: String? = null,
-      salesVolume: Int? = null,
-      sortOrder: Int? = null,
-      tags: ArrayNode? = null,
-      detailContent: String? = null,
-      certificateImages: ArrayNode? = null,
-      deliverySettings: ObjectNode? = null,
-      status: ProductStatus? = null
+    productId: Long,
+    name: String?,
+    priceYuan: BigDecimal?,
+    coverImageUrl: String?,
+    description: String?,
+    stock: Int?,
+    subtitle: String? = null,
+    originalPriceYuan: BigDecimal? = null,
+    depositPriceYuan: BigDecimal? = null,
+    imageGallery: ArrayNode? = null,
+    specification: String? = null,
+    waterSource: String? = null,
+    mineralContent: String? = null,
+    salesVolume: Int? = null,
+    sortOrder: Int? = null,
+    tags: ArrayNode? = null,
+    detailContent: String? = null,
+    certificateImages: ArrayNode? = null,
+    deliverySettings: ObjectNode? = null,
+    status: ProductStatus? = null
   ): ProductModel {
     val product =
       productRepository
@@ -125,8 +129,8 @@ class ProductServiceImpl(
 
   @Transactional
   override fun updateProductStatus(
-      productId: Long,
-      status: ProductStatus,
+    productId: Long,
+    status: ProductStatus,
   ): ProductModel {
     val product =
       productRepository
@@ -176,7 +180,7 @@ class ProductServiceImpl(
   // Additional methods for queries
   fun findByNameContainingAndStatus(keyword: String, status: ProductStatus, pageable: Pageable): Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.name.contains(keyword, ignoreCase = true) && it.status == status
+      it.name.contains(keyword, ignoreCase = true) && it.status == status
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -186,7 +190,7 @@ class ProductServiceImpl(
 
   fun findByNameContaining(keyword: String, pageable: Pageable): Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.name.contains(keyword, ignoreCase = true)
+      it.name.contains(keyword, ignoreCase = true)
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -220,7 +224,7 @@ class ProductServiceImpl(
 
   override fun findByCategory(category: String, pageable: Pageable): Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.getImageGalleryAsList().any { url -> url.contains(category, ignoreCase = true) }
+      it.getImageGalleryAsList().any { url -> url.contains(category, ignoreCase = true) }
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -228,13 +232,17 @@ class ProductServiceImpl(
     return PageImpl(pageContent, pageable, products.size.toLong())
   }
 
-  override fun findByPriceBetween(minPriceYuan: BigDecimal, maxPriceYuan: BigDecimal, pageable: Pageable): Page<ProductModel> {
+  override fun findByPriceBetween(
+    minPriceYuan: BigDecimal,
+    maxPriceYuan: BigDecimal,
+    pageable: Pageable
+  ): Page<ProductModel> {
     // Convert price ranges from yuan to cents for comparison
     val minPriceCents = MoneyUtils.toCents(minPriceYuan)
     val maxPriceCents = MoneyUtils.toCents(maxPriceYuan)
 
     val products = productRepository.findAll().filter {
-        it.price >= minPriceCents && it.price <= maxPriceCents
+      it.price >= minPriceCents && it.price <= maxPriceCents
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -249,9 +257,13 @@ class ProductServiceImpl(
   fun countLowStockProducts(threshold: Int): Long = productRepository.findAll().count { it.stock <= threshold }.toLong()
 
   // Additional methods for client queries
-  fun findByCategoryAndNameContainingAndStatus(category: String, keyword: String, pageable: Pageable): Page<ProductModel> {
+  fun findByCategoryAndNameContainingAndStatus(
+    category: String,
+    keyword: String,
+    pageable: Pageable
+  ): Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.getImageGalleryAsList().any { url -> url.contains(category, ignoreCase = true) } &&
+      it.getImageGalleryAsList().any { url -> url.contains(category, ignoreCase = true) } &&
         it.name.contains(keyword, ignoreCase = true) &&
         it.status == ProductStatus.ONLINE
     }
@@ -263,7 +275,8 @@ class ProductServiceImpl(
 
   fun findByCategoryAndStatus(category: String, pageable: Pageable): Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.getImageGalleryAsList().any { url -> url.contains(category, ignoreCase = true) } && it.status == ProductStatus.ONLINE
+      it.getImageGalleryAsList()
+        .any { url -> url.contains(category, ignoreCase = true) } && it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -273,7 +286,7 @@ class ProductServiceImpl(
 
   fun findByNameContainingAndStatus(keyword: String, pageable: Pageable): Page<ProductModel> {
     val products = productRepository.findAll().filter {
-        it.name.contains(keyword, ignoreCase = true) && it.status == ProductStatus.ONLINE
+      it.name.contains(keyword, ignoreCase = true) && it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -281,13 +294,17 @@ class ProductServiceImpl(
     return PageImpl(pageContent, pageable, products.size.toLong())
   }
 
-  fun findByPriceBetweenAndStatus(minPriceYuan: BigDecimal, maxPriceYuan: BigDecimal, pageable: Pageable): Page<ProductModel> {
+  fun findByPriceBetweenAndStatus(
+    minPriceYuan: BigDecimal,
+    maxPriceYuan: BigDecimal,
+    pageable: Pageable
+  ): Page<ProductModel> {
     // Convert price ranges from yuan to cents for comparison
     val minPriceCents = MoneyUtils.toCents(minPriceYuan)
     val maxPriceCents = MoneyUtils.toCents(maxPriceYuan)
 
     val products = productRepository.findAll().filter {
-        it.price in minPriceCents..maxPriceCents && it.status == ProductStatus.ONLINE
+      it.price in minPriceCents..maxPriceCents && it.status == ProductStatus.ONLINE
     }
     val start = pageable.pageNumber * pageable.pageSize
     val end = minOf(start + pageable.pageSize, products.size)
@@ -321,9 +338,9 @@ class ProductServiceImpl(
   override fun findAllCategories(): List<String> {
     // Simplified: extract categories from imageGallery (would normally have a proper category field)
     return productRepository.findAll()
-        .flatMap { product -> product.getImageGalleryAsList() }
-        .map { url -> url.trim() }
-        .distinct()
+      .flatMap { product -> product.getImageGalleryAsList() }
+      .map { url -> url.trim() }
+      .distinct()
   }
 
   // New methods for admin functionality
@@ -375,12 +392,12 @@ class ProductServiceImpl(
     val averagePrice = if (allProducts.isNotEmpty()) totalValue / allProducts.size else 0L
 
     return ProductStatistics(
-        totalProducts = allProducts.size,
-        onlineProducts = onlineProducts.size,
-        offlineProducts = offlineProducts.size,
-        lowStockProducts = lowStockProducts.size,
-        totalValue = totalValue,
-        averagePrice = averagePrice
+      totalProducts = allProducts.size,
+      onlineProducts = onlineProducts.size,
+      offlineProducts = offlineProducts.size,
+      lowStockProducts = lowStockProducts.size,
+      totalValue = totalValue,
+      averagePrice = averagePrice
     )
   }
 
@@ -398,24 +415,24 @@ class ProductServiceImpl(
     val step = (max - min).divide(BigDecimal(4)) // Divide into 4 ranges
 
     return (0..3).map { i ->
-        val rangeMin = min + step * i.toBigDecimal()
-        val rangeMax = if (i == 3) max else min + step * (i + 1).toBigDecimal()
+      val rangeMin = min + step * i.toBigDecimal()
+      val rangeMax = if (i == 3) max else min + step * (i + 1).toBigDecimal()
 
-        // Convert ranges back to cents for comparison
-        val rangeMinCents = MoneyUtils.toCents(rangeMin)
-        val rangeMaxCents = MoneyUtils.toCents(rangeMax)
+      // Convert ranges back to cents for comparison
+      val rangeMinCents = MoneyUtils.toCents(rangeMin)
+      val rangeMaxCents = MoneyUtils.toCents(rangeMax)
 
-        val count = allProducts.count {
-          val priceCents = it.price
-          priceCents >= rangeMinCents && (i == 3 || priceCents < rangeMaxCents)
-        }.toLong()
+      val count = allProducts.count {
+        val priceCents = it.price
+        priceCents >= rangeMinCents && (i == 3 || priceCents < rangeMaxCents)
+      }.toLong()
 
-        ClientProductQueryResolver.Companion.PriceRange(
-            min = rangeMin,
-            max = rangeMax,
-            count = count,
-            label = "${rangeMin}-${rangeMax}"
-        )
+      ClientProductQueryResolver.Companion.PriceRange(
+        min = rangeMin,
+        max = rangeMax,
+        count = count,
+        label = "${rangeMin}-${rangeMax}"
+      )
     }
   }
 
@@ -448,7 +465,6 @@ class ProductServiceImpl(
   fun findByWaterSource(waterSource: String): List<ProductModel> {
     return productRepository.findByWaterSourceContaining(waterSource)
   }
-
 
 
   fun findBySalesVolumeGreaterThan(minVolume: Int): List<ProductModel> {
@@ -496,11 +512,11 @@ class ProductServiceImpl(
 
   fun ArrayNode.contains(value: String): Boolean {
     this.forEach { node ->
-        if (node.isString) {
-          if (value == node.stringValue()) {
-            return true
-          }
+      if (node.isString) {
+        if (value == node.stringValue()) {
+          return true
         }
+      }
     }
     return false
   }

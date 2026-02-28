@@ -23,37 +23,41 @@ package dev.yidafu.aqua.product.exception
  * 产品未找到异常
  */
 class ProductNotFoundException(productId: Long) :
-    RuntimeException("Product not found with ID: $productId")
+  RuntimeException("Product not found with ID: $productId")
 
 /**
  * 库存不足异常
  */
 class InsufficientStockException(productId: Long, requested: Int, available: Int) :
-    RuntimeException("Insufficient stock for product $productId. Requested: $requested, Available: $available")
+  RuntimeException("Insufficient stock for product $productId. Requested: $requested, Available: $available")
 
 /**
  * 无效价格异常
  */
 class InvalidPriceException(price: Long, reason: String) :
-    RuntimeException("Invalid price: $price. $reason")
+  RuntimeException("Invalid price: $price. $reason")
 
 /**
  * 产品状态转换异常
  */
 class ProductStatusTransitionException(productId: Long, currentStatus: String, targetStatus: String) :
-    RuntimeException("Invalid status transition for product $productId from $currentStatus to $targetStatus")
+  RuntimeException("Invalid status transition for product $productId from $currentStatus to $targetStatus")
 
 /**
  * 产品操作异常
  */
 class ProductOperationException(message: String, cause: Throwable? = null) :
-    RuntimeException(message, cause)
+  RuntimeException(message, cause)
 
 /**
  * 批量产品操作异常
  */
 class BatchProductOperationException(
-    val successCount: Int,
-    val failureCount: Int,
-    val failures: List<String>
-) : RuntimeException("Batch operation completed with $successCount successes and $failureCount failures. Failures: ${failures.joinToString(", ")}")
+  val successCount: Int,
+  val failureCount: Int,
+  val failures: List<String>
+) : RuntimeException(
+  "Batch operation completed with $successCount successes and $failureCount failures. Failures: ${
+    failures.joinToString(", ")
+  }"
+)

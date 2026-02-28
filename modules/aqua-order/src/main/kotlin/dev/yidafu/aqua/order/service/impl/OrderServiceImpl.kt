@@ -22,7 +22,10 @@ package dev.yidafu.aqua.order.service
 import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.api.service.OrderService
 import dev.yidafu.aqua.api.service.ProductService
-import dev.yidafu.aqua.common.domain.model.*
+import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.OrderStatus
+import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.exception.BadRequestException
@@ -135,7 +138,8 @@ class OrderServiceImpl(
 
   // 保持原有方法以兼容现有代码
   @Transactional
-  fun createOrder(order: OrderModel): OrderModel = createOrder(order.userId, order.productId, order.addressId, order.quantity)
+  fun createOrder(order: OrderModel): OrderModel =
+    createOrder(order.userId, order.productId, order.addressId, order.quantity)
 
   override fun getOrderById(orderId: Long): OrderModel =
     orderRepository.findById(orderId).orElseThrow {

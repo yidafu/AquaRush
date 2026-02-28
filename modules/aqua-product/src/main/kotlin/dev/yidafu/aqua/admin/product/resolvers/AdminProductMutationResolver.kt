@@ -20,20 +20,20 @@
 package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
+import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
-import dev.yidafu.aqua.common.graphql.generated.UpdateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.common.graphql.generated.UpdateProductInput
 import dev.yidafu.aqua.common.utils.MoneyUtils
-import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
+import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
-import jakarta.validation.Valid
-import org.springframework.graphql.data.method.annotation.Argument
-import org.springframework.graphql.data.method.annotation.MutationMapping
 
 /**
  * 管理端产品变更解析器
@@ -92,7 +92,7 @@ class AdminProductMutationResolver(
         priceYuan = input.price?.let { MoneyUtils.fromCents(it) },
         coverImageUrl = input.coverImageUrl,
         // detailImages字段在ProductUpdateRequestInput中不存在，使用imageGallery替代
-                // detailImages = input.detailImages?.joinToString(","),
+        // detailImages = input.detailImages?.joinToString(","),
         description = input.detailContent,
         stock = input.stock,
         subtitle = input.subtitle,

@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.reconciliation.domain.repository
 
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.common.domain.model.QReconciliationTaskModel.reconciliationTaskModel
+import dev.yidafu.aqua.common.domain.model.QReconciliationTaskModel.Companion.reconciliationTaskModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType

@@ -20,11 +20,9 @@
 package dev.yidafu.aqua.common.domain.model
 
 import jakarta.persistence.*
-import org.hibernate.annotations.Where
+import org.hibernate.annotations.SoftDelete
 import java.math.BigDecimal
 import java.time.LocalDateTime
-
-import org.hibernate.annotations.SoftDelete
 
 @Entity
 @SoftDelete(columnName = "is_deleted")
@@ -34,7 +32,7 @@ import org.hibernate.annotations.SoftDelete
     UniqueConstraint(name = "uk_delivery_worker_id", columnNames = ["delivery_worker_id"]),
   ],
 )
-open class  DeliveryWorkerStatisticsModel(
+open class DeliveryWorkerStatisticsModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
@@ -62,7 +60,7 @@ open class  DeliveryWorkerStatisticsModel(
 
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-@Column(name = "deleted_at")
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
 
   @Column(name = "deleted_by")

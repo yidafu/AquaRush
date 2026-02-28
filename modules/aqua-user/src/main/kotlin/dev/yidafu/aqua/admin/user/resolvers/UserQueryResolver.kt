@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.admin.user.resolvers
 
+import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.graphql.generated.UserListInput
@@ -26,7 +27,6 @@ import dev.yidafu.aqua.common.graphql.generated.UserPage
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.common.graphql.utils.GraphQLSecurityContext
 import dev.yidafu.aqua.user.mapper.UserMapper
-import dev.yidafu.aqua.api.service.UserService
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -80,21 +80,24 @@ class UserQueryResolver(
       search != null && status != null -> {
         userService.findUsersByKeywordAndStatus(search, status, pageable)
       }
+
       search != null -> {
         userService.findUsersByKeyword(search, pageable)
       }
+
       status != null -> {
         userService.findUsersByStatus(status, pageable)
       }
+
       else -> {
         userService.findAllUsers(pageable)
       }
     }
 
-    val (userList, pageInfo) = userPage.toPageInfo{ UserMapper.map(it) }
+    val (userList, pageInfo) = userPage.toPageInfo { UserMapper.map(it) }
     return UserPage(
-        list = userList,
-        pageInfo = pageInfo
+      list = userList,
+      pageInfo = pageInfo
     )
   }
 }

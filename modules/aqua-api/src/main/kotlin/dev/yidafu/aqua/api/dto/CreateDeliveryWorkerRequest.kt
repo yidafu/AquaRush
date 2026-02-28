@@ -20,7 +20,10 @@
 package dev.yidafu.aqua.api.dto
 
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
-import jakarta.validation.constraints.*
+import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Pattern
+import jakarta.validation.constraints.Size
 
 /**
  * 创建配送员请求数据传输对象

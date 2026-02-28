@@ -59,6 +59,12 @@ type Query {
   ordersByUserAndStatus(userId: PrimaryId!, status: OrderStatus!): [Order!]!
   ordersByStatus(status: OrderStatus!): [Order!]!
 
+  # 配送员派单相关查询
+  pendingDeliveryOrders: [Order!]!              # 待接单订单
+  myAssignedOrders: [Order!]!                   # 我的已接单订单
+  myDeliveringOrders: [Order!]!                # 我的配送中订单
+  todayStatistics: TodayStatistics!             # 当日统计数据
+
   # Payments
   paymentStatus(transactionId: String!): String!
   orderPaymentInfo(orderId: PrimaryId!): OrderPaymentInfo!
@@ -124,6 +130,11 @@ type Mutation {
   createOrder(input: CreateOrderInput!): Order!
   cancelOrder(orderId: PrimaryId!): Order!
   updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): Order!
+
+  # 配送员操作
+  acceptDelivery(orderId: PrimaryId!): Order!           # 配送员接单
+  startDelivery(orderId: PrimaryId!): Order!           # 开始配送
+  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType): Order!  # 完成配送
 
   # Payments
   createWechatPayment(input: CreateWechatPaymentInput!): PaymentData!

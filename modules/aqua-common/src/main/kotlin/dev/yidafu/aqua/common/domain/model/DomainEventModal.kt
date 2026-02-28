@@ -21,9 +21,8 @@ package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.domain.model.enums.EventStatus
 import jakarta.persistence.*
-import java.time.LocalDateTime
-
 import org.hibernate.annotations.SoftDelete
+import java.time.LocalDateTime
 
 @Entity(name = "CommonDomainEvent")
 @SoftDelete(columnName = "is_deleted")

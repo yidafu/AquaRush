@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.user.domain.repository
 
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.common.domain.model.QAddressModel.addressModel
-import dev.yidafu.aqua.common.domain.model.QUserModel.userModel
+import dev.yidafu.aqua.common.domain.model.QAddressModel.Companion.addressModel
+import dev.yidafu.aqua.common.domain.model.QUserModel.Companion.userModel
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import jakarta.persistence.EntityManager

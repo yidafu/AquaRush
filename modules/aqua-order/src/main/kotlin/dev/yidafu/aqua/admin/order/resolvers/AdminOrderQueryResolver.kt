@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.admin.order.resolvers
 
+import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.api.service.OrderService
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.order.mapper.OrderMapper
@@ -31,6 +32,7 @@ import org.springframework.stereotype.Controller
 @Controller
 class AdminOrderQueryResolver(
   private val orderService: OrderService,
+  private val deliveryService: DeliveryService,
 ) {
 
   /**
@@ -48,7 +50,7 @@ class AdminOrderQueryResolver(
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun order(@Argument orderId: Long): Order? {
-    return  OrderMapper.map( orderService.getOrderById(orderId))
+    return OrderMapper.map(orderService.getOrderById(orderId))
   }
 
   /**
@@ -57,7 +59,7 @@ class AdminOrderQueryResolver(
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun orderByNumber(@Argument orderNumber: String): Order? {
-    return  OrderMapper.map(orderService.getOrderByNumber(orderNumber))
+    return OrderMapper.map(orderService.getOrderByNumber(orderNumber))
   }
 
   /**
@@ -66,7 +68,7 @@ class AdminOrderQueryResolver(
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun ordersByUser(@Argument userId: Long): List<Order> {
-    return  OrderMapper.mapList(orderService.findOrdersByUserId(userId))
+    return OrderMapper.mapList(orderService.findOrdersByUserId(userId))
   }
 
   /**
@@ -88,5 +90,40 @@ class AdminOrderQueryResolver(
     @Argument status: String,
   ): List<Order> {
     return OrderMapper.mapList(orderService.findOrdersByUserIdAndStatus(userId, status))
+  }
+
+  // ==================== 派单相关 queries ====================
+
+  /**
+   * 获取待派单订单列表 - 管理员权限
+   */
+  @QueryMapping
+  @PreAuthorize("hasRole('ADMIN')")
+  fun pendingDeliveryOrders(): List<Order> {
+    return deliveryService.getPendingDeliveryOrders().map { OrderMapper.map(it) }
+  }
+
+  /**
+   * 获取配送员的已接单订单
+   */
+  @QueryMapping
+  fun assignedOrders(@Argument workerId: Long): List<Order> {
+    return deliveryService.getAssignedOrders(workerId).map { OrderMapper.map(it) }
+  }
+
+  /**
+   * 获取配送员的配送中订单
+   */
+  @QueryMapping
+  fun deliveringOrders(@Argument workerId: Long): List<Order> {
+    return deliveryService.getWorkerActiveTasks(workerId).map { OrderMapper.map(it) }
+  }
+
+  /**
+   * 获取配送员当日统计数据
+   */
+  @QueryMapping
+  fun todayStatistics(@Argument workerId: Long?): dev.yidafu.aqua.api.service.DeliveryService.TodayStatistics {
+    return deliveryService.getTodayStatistics(workerId)
   }
 }

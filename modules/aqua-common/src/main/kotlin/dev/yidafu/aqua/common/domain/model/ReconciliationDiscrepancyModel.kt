@@ -19,18 +19,17 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+/**
+ * 对账差异实体
+ */
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.annotations.SoftDelete
 import org.hibernate.type.SqlTypes
 import java.time.LocalDateTime
-
-/**
- * 对账差异实体
- */
-import org.hibernate.annotations.SoftDelete
 
 @Entity
 @SoftDelete(columnName = "is_deleted")
@@ -77,7 +76,8 @@ class ReconciliationDiscrepancyModel : SoftDeletable {
 
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now()
-@Column(name = "deleted_at")
+
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null
 
   @Column(name = "deleted_by")

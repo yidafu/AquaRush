@@ -20,9 +20,10 @@
 package dev.yidafu.aqua.reconciliation.external.wechat
 
 import dev.yidafu.aqua.reconciliation.external.config.ReconciliationConfig
-import dev.yidafu.aqua.reconciliation.external.wechat.dto.*
+import dev.yidafu.aqua.reconciliation.external.wechat.dto.WeChatRefundRecord
+import dev.yidafu.aqua.reconciliation.external.wechat.dto.WeChatSettlementRecord
+import dev.yidafu.aqua.reconciliation.external.wechat.dto.WeChatTransactionRecord
 import org.slf4j.LoggerFactory
-import org.springframework.http.*
 import org.springframework.retry.annotation.Backoff
 import org.springframework.retry.annotation.Retryable
 import org.springframework.stereotype.Service
@@ -30,7 +31,7 @@ import org.springframework.web.client.RestTemplate
 import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import java.util.Base64
+import java.util.*
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -333,7 +334,8 @@ class WeChatReconciliationApi(
                     null
                   },
                 refundStatus = if (fields.size > 17) fields[17].trim() else "SUCCESS",
-                createTime = if (fields.size > 18) parseWeChatDateTime(fields[18].trim()) else LocalDate.now().atStartOfDay(),
+                createTime = if (fields.size > 18) parseWeChatDateTime(fields[18].trim()) else LocalDate.now()
+                  .atStartOfDay(),
                 returnCode = "SUCCESS",
                 returnMsg = "获取成功",
                 errorCode = null,
@@ -391,7 +393,8 @@ class WeChatReconciliationApi(
                 rate = fields[17].trim().takeIf { it.isNotEmpty() }?.toBigDecimalOrNull(),
                 cashFee = fields[18].trim().takeIf { it.isNotEmpty() }?.toBigDecimalOrNull(),
                 refundFee = fields[19].trim().takeIf { it.isNotEmpty() }?.toBigDecimalOrNull() ?: BigDecimal.ZERO,
-                settlementRefundFee = fields[20].trim().takeIf { it.isNotEmpty() }?.toBigDecimalOrNull() ?: BigDecimal.ZERO,
+                settlementRefundFee = fields[20].trim().takeIf { it.isNotEmpty() }?.toBigDecimalOrNull()
+                  ?: BigDecimal.ZERO,
                 body = fields[21].trim(),
                 detail = fields[22].trim().takeIf { it.isNotEmpty() },
                 attach = fields[23].trim().takeIf { it.isNotEmpty() },

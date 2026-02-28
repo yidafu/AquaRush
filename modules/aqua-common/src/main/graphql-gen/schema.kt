@@ -4,165 +4,171 @@ package dev.yidafu.aqua.common.graphql.generated
 import jakarta.validation.constraints.*
 
 data class Address(
-    val city: kotlin.String,
-    val cityCode: kotlin.String?,
-    val createdAt: java.time.LocalDateTime,
-    val detailAddress: kotlin.String,
-    val district: kotlin.String,
-    val districtCode: kotlin.String?,
-    val id: kotlin.Long,
-    val isDefault: kotlin.Boolean,
-    val latitude: kotlin.Float?,
-    val longitude: kotlin.Float?,
-    val phone: kotlin.String,
-    val province: kotlin.String,
-    val provinceCode: kotlin.String?,
-    val receiverName: kotlin.String,
-    val updatedAt: java.time.LocalDateTime,
-    val userId: kotlin.Long
+  val city: kotlin.String,
+  val cityCode: kotlin.String?,
+  val createdAt: java.time.LocalDateTime,
+  val detailAddress: kotlin.String,
+  val district: kotlin.String,
+  val districtCode: kotlin.String?,
+  val id: kotlin.Long,
+  val isDefault: kotlin.Boolean,
+  val latitude: kotlin.Float?,
+  val longitude: kotlin.Float?,
+  val phone: kotlin.String,
+  val province: kotlin.String,
+  val provinceCode: kotlin.String?,
+  val receiverName: kotlin.String,
+  val updatedAt: java.time.LocalDateTime,
+  val userId: kotlin.Long
 )
 
 data class AddressInput(
-    @field:NotBlank(message = "城市不能为空")
-    val city: kotlin.String,
-    @field:Size(min = 1, max = 20, message = "城市代码长度应在1-20个字符之间")
-    val cityCode: kotlin.String,
-    @field:NotBlank(message = "详细地址不能为空")
-    @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
-    val detailAddress: kotlin.String,
-    @field:NotBlank(message = "区县不能为空")
-    val district: kotlin.String,
-    @field:Size(min = 1, max = 20, message = "区县代码长度应在1-20个字符之间")
-    val districtCode: kotlin.String,
-    val isDefault: kotlin.Boolean = false,
-    @field:Min(value = -90, message = "纬度不能小于-90")
-    @field:Max(value = 90, message = "纬度不能大于90")
-    val latitude: kotlin.Float? = null,
-    @field:Min(value = -180, message = "经度不能小于-180")
-    @field:Max(value = 180, message = "经度不能大于180")
-    val longitude: kotlin.Float? = null,
-    @field:NotBlank(message = "收货人手机号不能为空")
-    @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    val phone: kotlin.String,
-    @field:NotBlank(message = "省份不能为空")
-    val province: kotlin.String,
-    @field:Size(min = 1, max = 20, message = "省份代码长度应在1-20个字符之间")
-    val provinceCode: kotlin.String,
-    @field:NotBlank(message = "收货人姓名不能为空")
-    @field:Size(min = 2, max = 20, message = "收货人姓名长度应在2-20个字符之间")
-    val receiverName: kotlin.String
+  @field:NotBlank(message = "城市不能为空")
+  val city: kotlin.String,
+  @field:Size(min = 1, max = 20, message = "城市代码长度应在1-20个字符之间")
+  val cityCode: kotlin.String,
+  @field:NotBlank(message = "详细地址不能为空")
+  @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
+  val detailAddress: kotlin.String,
+  @field:NotBlank(message = "区县不能为空")
+  val district: kotlin.String,
+  @field:Size(min = 1, max = 20, message = "区县代码长度应在1-20个字符之间")
+  val districtCode: kotlin.String,
+  val isDefault: kotlin.Boolean = false,
+  @field:Min(value = -90, message = "纬度不能小于-90")
+  @field:Max(value = 90, message = "纬度不能大于90")
+  val latitude: kotlin.Float? = null,
+  @field:Min(value = -180, message = "经度不能小于-180")
+  @field:Max(value = 180, message = "经度不能大于180")
+  val longitude: kotlin.Float? = null,
+  @field:NotBlank(message = "收货人手机号不能为空")
+  @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+  val phone: kotlin.String,
+  @field:NotBlank(message = "省份不能为空")
+  val province: kotlin.String,
+  @field:Size(min = 1, max = 20, message = "省份代码长度应在1-20个字符之间")
+  val provinceCode: kotlin.String,
+  @field:NotBlank(message = "收货人姓名不能为空")
+  @field:Size(min = 2, max = 20, message = "收货人姓名长度应在2-20个字符之间")
+  val receiverName: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["city"] as kotlin.String,
-      args["cityCode"] as kotlin.String,
-      args["detailAddress"] as kotlin.String,
-      args["district"] as kotlin.String,
-      args["districtCode"] as kotlin.String,
-      args["isDefault"] as kotlin.Boolean? ?: false,
-      args["latitude"] as kotlin.Float?,
-      args["longitude"] as kotlin.Float?,
-      args["phone"] as kotlin.String,
-      args["province"] as kotlin.String,
-      args["provinceCode"] as kotlin.String,
-      args["receiverName"] as kotlin.String
+    args["city"] as kotlin.String,
+    args["cityCode"] as kotlin.String,
+    args["detailAddress"] as kotlin.String,
+    args["district"] as kotlin.String,
+    args["districtCode"] as kotlin.String,
+    args["isDefault"] as kotlin.Boolean? ?: false,
+    args["latitude"] as kotlin.Float?,
+    args["longitude"] as kotlin.Float?,
+    args["phone"] as kotlin.String,
+    args["province"] as kotlin.String,
+    args["provinceCode"] as kotlin.String,
+    args["receiverName"] as kotlin.String
   )
 }
 
 data class AddressValidationInput(
-    @field:NotBlank(message = "城市不能为空")
-    @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
-    val city: kotlin.String,
-    @field:Size(min = 1, max = 20, message = "城市代码长度应在1-20个字符之间")
-    val cityCode: kotlin.String? = null,
-    @field:NotBlank(message = "详细地址不能为空")
-    @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
-    val detailAddress: kotlin.String,
-    @field:NotBlank(message = "区县不能为空")
-    @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
-    val district: kotlin.String,
-    @field:Size(min = 1, max = 20, message = "区县代码长度应在1-20个字符之间")
-    val districtCode: kotlin.String? = null,
-    @field:Min(value = -90, message = "纬度不能小于-90")
-    @field:Max(value = 90, message = "纬度不能大于90")
-    val latitude: kotlin.Float? = null,
-    @field:Min(value = -180, message = "经度不能小于-180")
-    @field:Max(value = 180, message = "经度不能大于180")
-    val longitude: kotlin.Float? = null,
-    @field:NotBlank(message = "省份不能为空")
-    @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
-    val province: kotlin.String,
-    @field:Size(min = 1, max = 20, message = "省份代码长度应在1-20个字符之间")
-    val provinceCode: kotlin.String? = null
+  @field:NotBlank(message = "城市不能为空")
+  @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
+  val city: kotlin.String,
+  @field:Size(min = 1, max = 20, message = "城市代码长度应在1-20个字符之间")
+  val cityCode: kotlin.String? = null,
+  @field:NotBlank(message = "详细地址不能为空")
+  @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
+  val detailAddress: kotlin.String,
+  @field:NotBlank(message = "区县不能为空")
+  @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
+  val district: kotlin.String,
+  @field:Size(min = 1, max = 20, message = "区县代码长度应在1-20个字符之间")
+  val districtCode: kotlin.String? = null,
+  @field:Min(value = -90, message = "纬度不能小于-90")
+  @field:Max(value = 90, message = "纬度不能大于90")
+  val latitude: kotlin.Float? = null,
+  @field:Min(value = -180, message = "经度不能小于-180")
+  @field:Max(value = 180, message = "经度不能大于180")
+  val longitude: kotlin.Float? = null,
+  @field:NotBlank(message = "省份不能为空")
+  @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
+  val province: kotlin.String,
+  @field:Size(min = 1, max = 20, message = "省份代码长度应在1-20个字符之间")
+  val provinceCode: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["city"] as kotlin.String,
-      args["cityCode"] as kotlin.String?,
-      args["detailAddress"] as kotlin.String,
-      args["district"] as kotlin.String,
-      args["districtCode"] as kotlin.String?,
-      args["latitude"] as kotlin.Float?,
-      args["longitude"] as kotlin.Float?,
-      args["province"] as kotlin.String,
-      args["provinceCode"] as kotlin.String?
+    args["city"] as kotlin.String,
+    args["cityCode"] as kotlin.String?,
+    args["detailAddress"] as kotlin.String,
+    args["district"] as kotlin.String,
+    args["districtCode"] as kotlin.String?,
+    args["latitude"] as kotlin.Float?,
+    args["longitude"] as kotlin.Float?,
+    args["province"] as kotlin.String,
+    args["provinceCode"] as kotlin.String?
   )
 }
 
 data class AddressValidationPayload(
-    val coordinatesValid: kotlin.Boolean,
-    val errors: Iterable<kotlin.String>,
-    val isDuplicate: kotlin.Boolean,
-    val isValid: kotlin.Boolean,
-    val message: kotlin.String,
-    val normalizedAddress: NormalizedAddress?,
-    val success: kotlin.Boolean
+  val coordinatesValid: kotlin.Boolean,
+  val errors: Iterable<kotlin.String>,
+  val isDuplicate: kotlin.Boolean,
+  val isValid: kotlin.Boolean,
+  val message: kotlin.String,
+  val normalizedAddress: NormalizedAddress?,
+  val success: kotlin.Boolean
 )
 
 data class Admin(
-    val createdAt: java.time.LocalDateTime,
-    val id: kotlin.Long,
-    val lastLoginAt: java.time.LocalDateTime?,
-    val phone: kotlin.String?,
-    val realName: kotlin.String?,
-    val role: kotlin.String,
-    val updatedAt: java.time.LocalDateTime,
-    val username: kotlin.String
+  val createdAt: java.time.LocalDateTime,
+  val id: kotlin.Long,
+  val lastLoginAt: java.time.LocalDateTime?,
+  val phone: kotlin.String?,
+  val realName: kotlin.String?,
+  val role: kotlin.String,
+  val updatedAt: java.time.LocalDateTime,
+  val username: kotlin.String
 )
 
 data class AdminFavoriteListInput(
-    val dateFrom: java.time.LocalDateTime? = null,
-    val dateTo: java.time.LocalDateTime? = null,
-    val page: kotlin.Int? = 0,
-    val productId: kotlin.Long? = null,
-    val productStatus: ProductStatus? = null,
-    val search: kotlin.String? = null,
-    val size: kotlin.Int? = 20,
-    val sortBy: FavoriteSortBy = FavoriteSortBy.CREATED_AT_DESC,
-    val userId: kotlin.Long? = null
+  val dateFrom: java.time.LocalDateTime? = null,
+  val dateTo: java.time.LocalDateTime? = null,
+  val page: kotlin.Int? = 0,
+  val productId: kotlin.Long? = null,
+  val productStatus: ProductStatus? = null,
+  val search: kotlin.String? = null,
+  val size: kotlin.Int? = 20,
+  val sortBy: FavoriteSortBy = FavoriteSortBy.CREATED_AT_DESC,
+  val userId: kotlin.Long? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime?,
-      args["dateTo"] as java.time.LocalDateTime?,
-      args["page"] as kotlin.Int? ?: 0,
-      args["productId"] as kotlin.Long?,
-      args["productStatus"] as ProductStatus?,
-      args["search"] as kotlin.String?,
-      args["size"] as kotlin.Int? ?: 20,
-      args["sortBy"] as FavoriteSortBy? ?: FavoriteSortBy.CREATED_AT_DESC,
-      args["userId"] as kotlin.Long?
+    args["dateFrom"] as java.time.LocalDateTime?,
+    args["dateTo"] as java.time.LocalDateTime?,
+    args["page"] as kotlin.Int? ?: 0,
+    args["productId"] as kotlin.Long?,
+    args["productStatus"] as ProductStatus?,
+    args["search"] as kotlin.String?,
+    args["size"] as kotlin.Int? ?: 20,
+    args["sortBy"] as FavoriteSortBy? ?: FavoriteSortBy.CREATED_AT_DESC,
+    args["userId"] as kotlin.Long?
   )
 }
 
+data class AllProductsFavoriteStats(
+  val averageFavoritesPerProduct: kotlin.Float,
+  val totalFavorites: kotlin.Long,
+  val totalProducts: kotlin.Long
+)
+
 data class AuthPayload(
-    val accessToken: kotlin.String,
-    val refreshToken: kotlin.String,
-    val user: User
+  val accessToken: kotlin.String,
+  val refreshToken: kotlin.String,
+  val user: User
 )
 
 enum class BatchFavoriteOperation(val label: String) {
-      ANALYZE_FAVORITES("ANALYZE_FAVORITES"),
-      CLEAR_ALL_FAVORITES("CLEAR_ALL_FAVORITES"),
-      CLEAR_SPECIFIC_PRODUCTS("CLEAR_SPECIFIC_PRODUCTS"),
-      EXPORT_FAVORITES("EXPORT_FAVORITES");
+  ANALYZE_FAVORITES("ANALYZE_FAVORITES"),
+  CLEAR_ALL_FAVORITES("CLEAR_ALL_FAVORITES"),
+  CLEAR_SPECIFIC_PRODUCTS("CLEAR_SPECIFIC_PRODUCTS"),
+  EXPORT_FAVORITES("EXPORT_FAVORITES");
 
   companion object {
     @JvmStatic
@@ -173,458 +179,500 @@ enum class BatchFavoriteOperation(val label: String) {
 }
 
 data class BatchFavoriteOperationInput(
-    val operation: BatchFavoriteOperation,
-    @field:Size(min = 1, max = 1000, message = "商品ID数量应在1-1000之间")
-    val productIds: Iterable<kotlin.Long>,
-    @field:Size(max = 500, message = "操作原因长度不能超过500个字符")
-    val reason: kotlin.String? = null,
-    @field:Size(min = 1, max = 1000, message = "用户ID数量应在1-1000之间")
-    val userIds: Iterable<kotlin.Long>
+  val operation: BatchFavoriteOperation,
+  @field:Size(min = 1, max = 1000, message = "商品ID数量应在1-1000之间")
+  val productIds: Iterable<kotlin.Long>,
+  @field:Size(max = 500, message = "操作原因长度不能超过500个字符")
+  val reason: kotlin.String? = null,
+  @field:Size(min = 1, max = 1000, message = "用户ID数量应在1-1000之间")
+  val userIds: Iterable<kotlin.Long>
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["operation"] as BatchFavoriteOperation,
-      args["productIds"] as Iterable<kotlin.Long>,
-      args["reason"] as kotlin.String?,
-      args["userIds"] as Iterable<kotlin.Long>
+    args["operation"] as BatchFavoriteOperation,
+    args["productIds"] as Iterable<kotlin.Long>,
+    args["reason"] as kotlin.String?,
+    args["userIds"] as Iterable<kotlin.Long>
   )
 }
 
 data class BatchOperationResult(
-    val details: kotlin.collections.Map<String, Any>,
-    val errors: Iterable<kotlin.String>,
-    val failureCount: kotlin.Int,
-    val message: kotlin.String,
-    val processedCount: kotlin.Int,
-    val success: kotlin.Boolean,
-    val successCount: kotlin.Int
+  val details: kotlin.collections.Map<String, Any>,
+  val errors: Iterable<kotlin.String>,
+  val failureCount: kotlin.Int,
+  val message: kotlin.String,
+  val processedCount: kotlin.Int,
+  val success: kotlin.Boolean,
+  val successCount: kotlin.Int
 )
 
 data class BatchStockAdjustmentInput(
-    @field:Size(min = 1, max = 100, message = "调整项目数量应在1-100之间")
-    val adjustments: Iterable<StockAdjustmentInput>
+  @field:Size(min = 1, max = 100, message = "调整项目数量应在1-100之间")
+  val adjustments: Iterable<StockAdjustmentInput>
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["adjustments"]!!.let { adjustments -> (adjustments as List<Map<String, Any>>).map { StockAdjustmentInput(it) } }
+    args["adjustments"]!!.let { adjustments -> (adjustments as List<Map<String, Any>>).map { StockAdjustmentInput(it) } }
   )
 }
 
 data class BatchStockAdjustmentResult(
-    val failureCount: kotlin.Int,
-    val results: Iterable<StockAdjustmentResult>,
-    val success: kotlin.Boolean,
-    val successCount: kotlin.Int
+  val failureCount: kotlin.Int,
+  val results: Iterable<StockAdjustmentResult>,
+  val success: kotlin.Boolean,
+  val successCount: kotlin.Int
 )
 
 data class BooleanPayload(
-    val message: kotlin.String,
-    val success: kotlin.Boolean
+  val message: kotlin.String,
+  val success: kotlin.Boolean
 )
+
+data class BucketDeposit(
+  val amountCents: kotlin.Long,
+  val createdAt: java.time.LocalDateTime,
+  val id: kotlin.Long,
+  val paymentTime: java.time.LocalDateTime?,
+  val paymentTransactionId: kotlin.String?,
+  val quantity: kotlin.Int,
+  val refundedAt: java.time.LocalDateTime?,
+  val refundedBy: kotlin.Long?,
+  val remark: kotlin.String?,
+  val status: BucketDepositStatus,
+  val updatedAt: java.time.LocalDateTime,
+  val userId: kotlin.Long
+)
+
+data class BucketDepositPage(
+  val list: Iterable<BucketDeposit>,
+  val pageInfo: PageInfo
+)
+
+enum class BucketDepositStatus(val label: String) {
+  DEPOSITED("DEPOSITED"),
+  REFUNDED("REFUNDED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): BucketDepositStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
 
 data class ClientMessage(
-    val content: kotlin.String,
-    val data: kotlin.collections.Map<String, Any>?,
-    val id: kotlin.Long,
-    val isRead: kotlin.Boolean,
-    val messageType: kotlin.String,
-    val readAt: java.time.LocalDateTime?,
-    val sentAt: java.time.LocalDateTime,
-    val title: kotlin.String?
+  val content: kotlin.String,
+  val data: kotlin.collections.Map<String, Any>?,
+  val id: kotlin.Long,
+  val isRead: kotlin.Boolean,
+  val messageType: kotlin.String,
+  val readAt: java.time.LocalDateTime?,
+  val sentAt: java.time.LocalDateTime,
+  val title: kotlin.String?
 )
 
-data class CreateDeliveryAddressInput(
-    @field:NotBlank(message = "城市不能为空")
-    @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
-    val city: kotlin.String,
-    @field:NotBlank(message = "详细地址不能为空")
-    @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
-    val detailAddress: kotlin.String,
-    @field:NotBlank(message = "区县不能为空")
-    @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
-    val district: kotlin.String,
-    @field:Min(value = -90, message = "纬度不能小于-90")
-    @field:Max(value = 90, message = "纬度不能大于90")
-    val latitude: kotlin.Float? = null,
-    @field:Min(value = -180, message = "经度不能小于-180")
-    @field:Max(value = 180, message = "经度不能大于180")
-    val longitude: kotlin.Float? = null,
-    @field:NotBlank(message = "省份不能为空")
-    @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
-    val province: kotlin.String,
-    @field:NotBlank(message = "收货人姓名不能为空")
-    @field:Size(min = 2, max = 20, message = "收货人姓名长度应在2-20个字符之间")
-    val receiverName: kotlin.String,
-    @field:NotBlank(message = "收货人手机号不能为空")
-    @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    val receiverPhone: kotlin.String
+data class CreateBucketDepositInput(
+  @field:Min(value = 1, message = "押桶数量不能少于1")
+  @field:Max(value = 99, message = "押桶数量不能超过99")
+  val quantity: kotlin.Int
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["city"] as kotlin.String,
-      args["detailAddress"] as kotlin.String,
-      args["district"] as kotlin.String,
-      args["latitude"] as kotlin.Float?,
-      args["longitude"] as kotlin.Float?,
-      args["province"] as kotlin.String,
-      args["receiverName"] as kotlin.String,
-      args["receiverPhone"] as kotlin.String
+    args["quantity"] as kotlin.Int
+  )
+}
+
+data class CreateDeliveryAddressInput(
+  @field:NotBlank(message = "城市不能为空")
+  @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
+  val city: kotlin.String,
+  @field:NotBlank(message = "详细地址不能为空")
+  @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
+  val detailAddress: kotlin.String,
+  @field:NotBlank(message = "区县不能为空")
+  @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
+  val district: kotlin.String,
+  @field:Min(value = -90, message = "纬度不能小于-90")
+  @field:Max(value = 90, message = "纬度不能大于90")
+  val latitude: kotlin.Float? = null,
+  @field:Min(value = -180, message = "经度不能小于-180")
+  @field:Max(value = 180, message = "经度不能大于180")
+  val longitude: kotlin.Float? = null,
+  @field:NotBlank(message = "省份不能为空")
+  @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
+  val province: kotlin.String,
+  @field:NotBlank(message = "收货人姓名不能为空")
+  @field:Size(min = 2, max = 20, message = "收货人姓名长度应在2-20个字符之间")
+  val receiverName: kotlin.String,
+  @field:NotBlank(message = "收货人手机号不能为空")
+  @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+  val receiverPhone: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+    args["city"] as kotlin.String,
+    args["detailAddress"] as kotlin.String,
+    args["district"] as kotlin.String,
+    args["latitude"] as kotlin.Float?,
+    args["longitude"] as kotlin.Float?,
+    args["province"] as kotlin.String,
+    args["receiverName"] as kotlin.String,
+    args["receiverPhone"] as kotlin.String
   )
 }
 
 data class CreateDeliveryAreaInput(
-    @field:NotBlank(message = "城市不能为空")
-    @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
-    val city: kotlin.String,
-    @field:NotBlank(message = "区县不能为空")
-    @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
-    val district: kotlin.String,
-    val enabled: kotlin.Boolean? = null,
-    @field:NotBlank(message = "配送区域名称不能为空")
-    @field:Size(min = 2, max = 100, message = "配送区域名称长度应在2-100个字符之间")
-    val name: kotlin.String,
-    @field:NotBlank(message = "省份不能为空")
-    @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
-    val province: kotlin.String
+  @field:NotBlank(message = "城市不能为空")
+  @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
+  val city: kotlin.String,
+  @field:NotBlank(message = "区县不能为空")
+  @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
+  val district: kotlin.String,
+  val enabled: kotlin.Boolean? = null,
+  @field:NotBlank(message = "配送区域名称不能为空")
+  @field:Size(min = 2, max = 100, message = "配送区域名称长度应在2-100个字符之间")
+  val name: kotlin.String,
+  @field:NotBlank(message = "省份不能为空")
+  @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
+  val province: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["city"] as kotlin.String,
-      args["district"] as kotlin.String,
-      args["enabled"] as kotlin.Boolean?,
-      args["name"] as kotlin.String,
-      args["province"] as kotlin.String
+    args["city"] as kotlin.String,
+    args["district"] as kotlin.String,
+    args["enabled"] as kotlin.Boolean?,
+    args["name"] as kotlin.String,
+    args["province"] as kotlin.String
   )
 }
 
 data class CreateDeliveryWorkerInput(
-    @field:Size(max = 500, message = "头像URL长度不能超过500个字符")
-    val avatarUrl: kotlin.String? = null,
-    @field:Size(max = 100, message = "坐标信息长度不能超过100个字符")
-    val coordinates: kotlin.String? = null,
-    @field:Size(max = 200, message = "当前位置长度不能超过200个字符")
-    val currentLocation: kotlin.String? = null,
-    @field:Min(value = 0, message = "收入不能小于0")
-    @field:Max(value = 99999900, message = "收入不能大于999999元")
-    val earning: kotlin.Long? = null,
-    val isAvailable: kotlin.Boolean? = null,
-    @field:NotBlank(message = "配送员姓名不能为空")
-    @field:Size(min = 2, max = 20, message = "配送员姓名长度应在2-20个字符之间")
-    val name: kotlin.String,
-    @field:NotBlank(message = "手机号不能为空")
-    @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    val phone: kotlin.String,
-    @field:Min(value = 0, message = "评分不能小于0")
-    @field:Max(value = 5, message = "评分不能大于5")
-    val rating: java.math.BigDecimal? = null,
-    @field:NotBlank(message = "微信OpenID不能为空")
-    @field:Size(min = 1, max = 100, message = "微信OpenID长度应在1-100个字符之间")
-    val wechatOpenId: kotlin.String
+  @field:Size(max = 500, message = "头像URL长度不能超过500个字符")
+  val avatarUrl: kotlin.String? = null,
+  @field:Size(max = 100, message = "坐标信息长度不能超过100个字符")
+  val coordinates: kotlin.String? = null,
+  @field:Size(max = 200, message = "当前位置长度不能超过200个字符")
+  val currentLocation: kotlin.String? = null,
+  @field:Min(value = 0, message = "收入不能小于0")
+  @field:Max(value = 99999900, message = "收入不能大于999999元")
+  val earning: kotlin.Long? = null,
+  val isAvailable: kotlin.Boolean? = null,
+  @field:NotBlank(message = "配送员姓名不能为空")
+  @field:Size(min = 2, max = 20, message = "配送员姓名长度应在2-20个字符之间")
+  val name: kotlin.String,
+  @field:NotBlank(message = "手机号不能为空")
+  @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+  val phone: kotlin.String,
+  @field:Min(value = 0, message = "评分不能小于0")
+  @field:Max(value = 5, message = "评分不能大于5")
+  val rating: java.math.BigDecimal? = null,
+  @field:NotBlank(message = "微信OpenID不能为空")
+  @field:Size(min = 1, max = 100, message = "微信OpenID长度应在1-100个字符之间")
+  val wechatOpenId: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["avatarUrl"] as kotlin.String?,
-      args["coordinates"] as kotlin.String?,
-      args["currentLocation"] as kotlin.String?,
-      args["earning"] as kotlin.Long?,
-      args["isAvailable"] as kotlin.Boolean?,
-      args["name"] as kotlin.String,
-      args["phone"] as kotlin.String,
-      args["rating"] as java.math.BigDecimal?,
-      args["wechatOpenId"] as kotlin.String
+    args["avatarUrl"] as kotlin.String?,
+    args["coordinates"] as kotlin.String?,
+    args["currentLocation"] as kotlin.String?,
+    args["earning"] as kotlin.Long?,
+    args["isAvailable"] as kotlin.Boolean?,
+    args["name"] as kotlin.String,
+    args["phone"] as kotlin.String,
+    args["rating"] as java.math.BigDecimal?,
+    args["wechatOpenId"] as kotlin.String
   )
 }
 
 data class CreateManualRefundInput(
-    @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
-    val adminNote: kotlin.String? = null,
-    @field:Positive(message = "退款金额必须为正数")
-    @field:Min(value = 1, message = "退款金额不能小于1分")
-    @field:Max(value = 9999900, message = "退款金额不能大于99999元")
-    val amount: kotlin.Long,
-    @field:Positive(message = "订单ID必须为正数")
-    val orderId: kotlin.Long,
-    @field:NotBlank(message = "原交易ID不能为空")
-    @field:Size(min = 1, max = 100, message = "原交易ID长度应在1-100个字符之间")
-    val originalTransactionId: kotlin.String,
-    @field:NotBlank(message = "退款原因不能为空")
-    @field:Size(min = 1, max = 500, message = "退款原因长度应在1-500个字符之间")
-    val reason: kotlin.String,
-    @field:Positive(message = "用户ID必须为正数")
-    val userId: kotlin.Long
+  @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
+  val adminNote: kotlin.String? = null,
+  @field:Positive(message = "退款金额必须为正数")
+  @field:Min(value = 1, message = "退款金额不能小于1分")
+  @field:Max(value = 9999900, message = "退款金额不能大于99999元")
+  val amount: kotlin.Long,
+  @field:Positive(message = "订单ID必须为正数")
+  val orderId: kotlin.Long,
+  @field:NotBlank(message = "原交易ID不能为空")
+  @field:Size(min = 1, max = 100, message = "原交易ID长度应在1-100个字符之间")
+  val originalTransactionId: kotlin.String,
+  @field:NotBlank(message = "退款原因不能为空")
+  @field:Size(min = 1, max = 500, message = "退款原因长度应在1-500个字符之间")
+  val reason: kotlin.String,
+  @field:Positive(message = "用户ID必须为正数")
+  val userId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["adminNote"] as kotlin.String?,
-      args["amount"] as kotlin.Long,
-      args["orderId"] as kotlin.Long,
-      args["originalTransactionId"] as kotlin.String,
-      args["reason"] as kotlin.String,
-      args["userId"] as kotlin.Long
+    args["adminNote"] as kotlin.String?,
+    args["amount"] as kotlin.Long,
+    args["orderId"] as kotlin.Long,
+    args["originalTransactionId"] as kotlin.String,
+    args["reason"] as kotlin.String,
+    args["userId"] as kotlin.Long
   )
 }
 
 data class CreateOrderInput(
-    @field:Positive(message = "地址ID必须为正数")
-    val addressId: kotlin.Long,
-    @field:Positive(message = "商品ID必须为正数")
-    val productId: kotlin.Long,
-    @field:Min(value = 1, message = "购买数量不能少于1")
-    @field:Max(value = 999, message = "购买数量不能超过999")
-    val quantity: kotlin.Int
+  @field:Positive(message = "地址ID必须为正数")
+  val addressId: kotlin.Long,
+  @field:Positive(message = "商品ID必须为正数")
+  val productId: kotlin.Long,
+  @field:Min(value = 1, message = "购买数量不能少于1")
+  @field:Max(value = 999, message = "购买数量不能超过999")
+  val quantity: kotlin.Int
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["addressId"] as kotlin.Long,
-      args["productId"] as kotlin.Long,
-      args["quantity"] as kotlin.Int
+    args["addressId"] as kotlin.Long,
+    args["productId"] as kotlin.Long,
+    args["quantity"] as kotlin.Int
   )
 }
 
 data class CreateProductInput(
-    val certificateImages: tools.jackson.databind.node.ArrayNode? = null,
-    @field:NotBlank(message = "商品封面图片不能为空")
-    @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
-    val coverImageUrl: kotlin.String,
-    val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
-    @field:Min(value = 0, message = "押金不能小于0")
-    @field:Max(value = 9999900, message = "押金不能大于99999元")
-    val depositPrice: kotlin.Long? = null,
-    @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
-    val detailContent: kotlin.String? = null,
-    val imageGallery: tools.jackson.databind.node.ArrayNode? = null,
-    @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
-    val mineralContent: kotlin.String? = null,
-    @field:NotBlank(message = "商品名称不能为空")
-    @field:Size(min = 2, max = 200, message = "商品名称长度应在2-200个字符之间")
-    val name: kotlin.String,
-    @field:Positive(message = "原价必须为正数")
-    @field:Min(value = 1, message = "原价不能小于1分")
-    @field:Max(value = 9999900, message = "原价不能大于99999元")
-    val originalPrice: kotlin.Long? = null,
-    @field:Positive(message = "商品价格必须为正数")
-    @field:Min(value = 1, message = "商品价格不能小于1分")
-    @field:Max(value = 9999900, message = "商品价格不能大于99999元")
-    val price: kotlin.Long,
-    @field:Min(value = 0, message = "销量不能小于0")
-    val salesVolume: kotlin.Int,
-    @field:Min(value = 0, message = "排序权重不能小于0")
-    @field:Max(value = 9999, message = "排序权重不能大于9999")
-    val sortOrder: kotlin.Int,
-    @field:NotBlank(message = "商品规格不能为空")
-    @field:Size(min = 1, max = 100, message = "商品规格长度应在1-100个字符之间")
-    val specification: kotlin.String,
-    val status: ProductStatus,
-    @field:Min(value = 0, message = "库存数量不能小于0")
-    @field:Max(value = 99999, message = "库存数量不能大于99999")
-    val stock: kotlin.Int,
-    @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
-    val subtitle: kotlin.String? = null,
-    val tags: tools.jackson.databind.node.ArrayNode? = null,
-    @field:Size(max = 200, message = "水源地长度不能超过200个字符")
-    val waterSource: kotlin.String? = null
+  val certificateImages: tools.jackson.databind.node.ArrayNode? = null,
+  @field:NotBlank(message = "商品封面图片不能为空")
+  @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
+  val coverImageUrl: kotlin.String,
+  val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
+  @field:Min(value = 0, message = "押金不能小于0")
+  @field:Max(value = 9999900, message = "押金不能大于99999元")
+  val depositPrice: kotlin.Long? = null,
+  @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
+  val detailContent: kotlin.String? = null,
+  val imageGallery: tools.jackson.databind.node.ArrayNode? = null,
+  @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
+  val mineralContent: kotlin.String? = null,
+  @field:NotBlank(message = "商品名称不能为空")
+  @field:Size(min = 2, max = 200, message = "商品名称长度应在2-200个字符之间")
+  val name: kotlin.String,
+  @field:Positive(message = "原价必须为正数")
+  @field:Min(value = 1, message = "原价不能小于1分")
+  @field:Max(value = 9999900, message = "原价不能大于99999元")
+  val originalPrice: kotlin.Long? = null,
+  @field:Positive(message = "商品价格必须为正数")
+  @field:Min(value = 1, message = "商品价格不能小于1分")
+  @field:Max(value = 9999900, message = "商品价格不能大于99999元")
+  val price: kotlin.Long,
+  @field:Min(value = 0, message = "销量不能小于0")
+  val salesVolume: kotlin.Int,
+  @field:Min(value = 0, message = "排序权重不能小于0")
+  @field:Max(value = 9999, message = "排序权重不能大于9999")
+  val sortOrder: kotlin.Int,
+  @field:NotBlank(message = "商品规格不能为空")
+  @field:Size(min = 1, max = 100, message = "商品规格长度应在1-100个字符之间")
+  val specification: kotlin.String,
+  val status: ProductStatus,
+  @field:Min(value = 0, message = "库存数量不能小于0")
+  @field:Max(value = 99999, message = "库存数量不能大于99999")
+  val stock: kotlin.Int,
+  @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
+  val subtitle: kotlin.String? = null,
+  val tags: tools.jackson.databind.node.ArrayNode? = null,
+  @field:Size(max = 200, message = "水源地长度不能超过200个字符")
+  val waterSource: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
-      args["coverImageUrl"] as kotlin.String,
-      args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
-      args["depositPrice"] as kotlin.Long?,
-      args["detailContent"] as kotlin.String?,
-      args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
-      args["mineralContent"] as kotlin.String?,
-      args["name"] as kotlin.String,
-      args["originalPrice"] as kotlin.Long?,
-      args["price"] as kotlin.Long,
-      args["salesVolume"] as kotlin.Int,
-      args["sortOrder"] as kotlin.Int,
-      args["specification"] as kotlin.String,
-      args["status"] as ProductStatus,
-      args["stock"] as kotlin.Int,
-      args["subtitle"] as kotlin.String?,
-      args["tags"] as tools.jackson.databind.node.ArrayNode?,
-      args["waterSource"] as kotlin.String?
+    args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
+    args["coverImageUrl"] as kotlin.String,
+    args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
+    args["depositPrice"] as kotlin.Long?,
+    args["detailContent"] as kotlin.String?,
+    args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
+    args["mineralContent"] as kotlin.String?,
+    args["name"] as kotlin.String,
+    args["originalPrice"] as kotlin.Long?,
+    args["price"] as kotlin.Long,
+    args["salesVolume"] as kotlin.Int,
+    args["sortOrder"] as kotlin.Int,
+    args["specification"] as kotlin.String,
+    args["status"] as ProductStatus,
+    args["stock"] as kotlin.Int,
+    args["subtitle"] as kotlin.String?,
+    args["tags"] as tools.jackson.databind.node.ArrayNode?,
+    args["waterSource"] as kotlin.String?
   )
 }
 
 data class CreateRegionInput(
-    @field:NotBlank(message = "地区代码不能为空")
-    @field:Size(min = 1, max = 20, message = "地区代码长度应在1-20个字符之间")
-    @field:Pattern(regexp = "^[A-Z0-9]+$", message = "地区代码只能包含大写字母和数字")
-    val code: kotlin.String,
-    @field:Min(value = 1, message = "地区级别不能小于1")
-    @field:Max(value = 5, message = "地区级别不能大于5")
-    val level: kotlin.Int,
-    @field:NotBlank(message = "地区名称不能为空")
-    @field:Size(min = 2, max = 50, message = "地区名称长度应在2-50个字符之间")
-    val name: kotlin.String,
-    @field:Size(min = 1, max = 20, message = "上级地区代码长度应在1-20个字符之间")
-    val parentCode: kotlin.String? = null
+  @field:NotBlank(message = "地区代码不能为空")
+  @field:Size(min = 1, max = 20, message = "地区代码长度应在1-20个字符之间")
+  @field:Pattern(regexp = "^[A-Z0-9]+$", message = "地区代码只能包含大写字母和数字")
+  val code: kotlin.String,
+  @field:Min(value = 1, message = "地区级别不能小于1")
+  @field:Max(value = 5, message = "地区级别不能大于5")
+  val level: kotlin.Int,
+  @field:NotBlank(message = "地区名称不能为空")
+  @field:Size(min = 2, max = 50, message = "地区名称长度应在2-50个字符之间")
+  val name: kotlin.String,
+  @field:Size(min = 1, max = 20, message = "上级地区代码长度应在1-20个字符之间")
+  val parentCode: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["code"] as kotlin.String,
-      args["level"] as kotlin.Int,
-      args["name"] as kotlin.String,
-      args["parentCode"] as kotlin.String?
+    args["code"] as kotlin.String,
+    args["level"] as kotlin.Int,
+    args["name"] as kotlin.String,
+    args["parentCode"] as kotlin.String?
   )
 }
 
 data class CreateReviewRequestInput(
-    @field:Size(max = 1000, message = "评论长度不能超过1000个字符")
-    val comment: kotlin.String? = null,
-    @field:Positive(message = "配送员ID必须为正数")
-    val deliveryWorkerId: kotlin.Long,
-    val isAnonymous: kotlin.Boolean? = null,
-    @field:Positive(message = "订单ID必须为正数")
-    val orderId: kotlin.Long,
-    @field:Min(value = 1, message = "评分不能小于1")
-    @field:Max(value = 5, message = "评分不能大于5")
-    val rating: kotlin.Int
+  @field:Size(max = 1000, message = "评论长度不能超过1000个字符")
+  val comment: kotlin.String? = null,
+  @field:Positive(message = "配送员ID必须为正数")
+  val deliveryWorkerId: kotlin.Long,
+  val isAnonymous: kotlin.Boolean? = null,
+  @field:Positive(message = "订单ID必须为正数")
+  val orderId: kotlin.Long,
+  @field:Min(value = 1, message = "评分不能小于1")
+  @field:Max(value = 5, message = "评分不能大于5")
+  val rating: kotlin.Int
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["comment"] as kotlin.String?,
-      args["deliveryWorkerId"] as kotlin.Long,
-      args["isAnonymous"] as kotlin.Boolean?,
-      args["orderId"] as kotlin.Long,
-      args["rating"] as kotlin.Int
+    args["comment"] as kotlin.String?,
+    args["deliveryWorkerId"] as kotlin.Long,
+    args["isAnonymous"] as kotlin.Boolean?,
+    args["orderId"] as kotlin.Long,
+    args["rating"] as kotlin.Int
   )
 }
 
 data class CreateWechatPaymentInput(
-    @field:Positive(message = "支付金额必须为正数")
-    @field:Min(value = 1, message = "支付金额不能小于1分")
-    @field:Max(value = 9999900, message = "支付金额不能大于99999元")
-    val amount: kotlin.Long,
-    @field:NotBlank(message = "支付描述不能为空")
-    @field:Size(min = 1, max = 127, message = "支付描述长度应在1-127个字符之间")
-    val description: kotlin.String,
-    @field:Positive(message = "订单ID必须为正数")
-    val orderId: kotlin.Long
+  @field:Positive(message = "支付金额必须为正数")
+  @field:Min(value = 1, message = "支付金额不能小于1分")
+  @field:Max(value = 9999900, message = "支付金额不能大于99999元")
+  val amount: kotlin.Long,
+  @field:NotBlank(message = "支付描述不能为空")
+  @field:Size(min = 1, max = 127, message = "支付描述长度应在1-127个字符之间")
+  val description: kotlin.String,
+  @field:Positive(message = "订单ID必须为正数")
+  val orderId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["amount"] as kotlin.Long,
-      args["description"] as kotlin.String,
-      args["orderId"] as kotlin.Long
+    args["amount"] as kotlin.Long,
+    args["description"] as kotlin.String,
+    args["orderId"] as kotlin.Long
   )
 }
 
 data class CustomPageRequestInput(
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20
   )
 }
 
 data class DailyPaymentStats(
-    val averageTransactionAmount: kotlin.Long,
-    val date: kotlin.String,
-    val failedTransactions: kotlin.Long,
-    val paymentMethodBreakdown: Iterable<PaymentMethodStats>,
-    val peakHour: kotlin.Int,
-    val refundCount: kotlin.Long,
-    val refundedAmount: kotlin.Long,
-    val successfulTransactions: kotlin.Long,
-    val totalAmount: kotlin.Long,
-    val totalTransactions: kotlin.Long
+  val averageTransactionAmount: kotlin.Long,
+  val date: kotlin.String,
+  val failedTransactions: kotlin.Long,
+  val paymentMethodBreakdown: Iterable<PaymentMethodStats>,
+  val peakHour: kotlin.Int,
+  val refundCount: kotlin.Long,
+  val refundedAmount: kotlin.Long,
+  val successfulTransactions: kotlin.Long,
+  val totalAmount: kotlin.Long,
+  val totalTransactions: kotlin.Long
 )
 
 data class DailyStatistic(
-    val date: kotlin.String,
-    val orderCount: kotlin.Int,
-    val revenue: kotlin.Long
+  val date: kotlin.String,
+  val orderCount: kotlin.Int,
+  val revenue: kotlin.Long
 )
 
 data class DateRange(
-    val endDate: java.time.LocalDateTime,
-    val startDate: java.time.LocalDateTime
+  val endDate: java.time.LocalDateTime,
+  val startDate: java.time.LocalDateTime
 )
 
 data class DateRangeInput(
-    val endDate: java.time.LocalDateTime,
-    val startDate: java.time.LocalDateTime
+  val endDate: java.time.LocalDateTime,
+  val startDate: java.time.LocalDateTime
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["endDate"] as java.time.LocalDateTime,
-      args["startDate"] as java.time.LocalDateTime
+    args["endDate"] as java.time.LocalDateTime,
+    args["startDate"] as java.time.LocalDateTime
   )
 }
 
 data class DeliveryAddress(
-    val city: kotlin.String,
-    val createdAt: java.time.LocalDateTime,
-    val detailAddress: kotlin.String,
-    val district: kotlin.String,
-    val id: kotlin.Long,
-    val latitude: kotlin.Float?,
-    val longitude: kotlin.Float?,
-    val province: kotlin.String,
-    val receiverName: kotlin.String,
-    val receiverPhone: kotlin.String,
-    val updatedAt: java.time.LocalDateTime,
-    val userId: kotlin.Long
+  val city: kotlin.String,
+  val createdAt: java.time.LocalDateTime,
+  val detailAddress: kotlin.String,
+  val district: kotlin.String,
+  val id: kotlin.Long,
+  val latitude: kotlin.Float?,
+  val longitude: kotlin.Float?,
+  val province: kotlin.String,
+  val receiverName: kotlin.String,
+  val receiverPhone: kotlin.String,
+  val updatedAt: java.time.LocalDateTime,
+  val userId: kotlin.Long
 )
 
 data class DeliveryArea(
-    val city: kotlin.String,
-    val district: kotlin.String,
-    val enabled: kotlin.Boolean,
-    val id: kotlin.Long,
-    val name: kotlin.String,
-    val province: kotlin.String
+  val city: kotlin.String,
+  val district: kotlin.String,
+  val enabled: kotlin.Boolean,
+  val id: kotlin.Long,
+  val name: kotlin.String,
+  val province: kotlin.String
 )
 
 data class DeliveryWorker(
-    val avatarUrl: kotlin.String?,
-    val averageRating: java.math.BigDecimal?,
-    val completedOrders: kotlin.Int,
-    val coordinates: kotlin.String?,
-    val createdAt: java.time.LocalDateTime,
-    val currentLocation: kotlin.String?,
-    val earning: kotlin.Long?,
-    val id: kotlin.Long,
-    val isAvailable: kotlin.Boolean,
-    val name: kotlin.String,
-    val onlineStatus: DeliveryWorkerStatus,
-    val phone: kotlin.String,
-    val rating: java.math.BigDecimal?,
-    val totalOrders: kotlin.Int,
-    val updatedAt: java.time.LocalDateTime,
-    val userId: kotlin.Long,
-    val wechatOpenId: kotlin.String
+  val avatarUrl: kotlin.String?,
+  val averageRating: java.math.BigDecimal?,
+  val completedOrders: kotlin.Int,
+  val coordinates: kotlin.String?,
+  val createdAt: java.time.LocalDateTime,
+  val currentLocation: kotlin.String?,
+  val earning: kotlin.Long?,
+  val id: kotlin.Long,
+  val isAvailable: kotlin.Boolean,
+  val name: kotlin.String,
+  val onlineStatus: DeliveryWorkerStatus,
+  val phone: kotlin.String,
+  val rating: java.math.BigDecimal?,
+  val totalOrders: kotlin.Int,
+  val updatedAt: java.time.LocalDateTime,
+  val userId: kotlin.Long,
+  val wechatOpenId: kotlin.String
 )
 
 data class DeliveryWorkerRankingResponse(
-    val averageRating: java.math.BigDecimal,
-    val positiveRatingPercentage: kotlin.Float,
-    val totalReviews: kotlin.Long,
-    val workerId: kotlin.Long,
-    val workerName: kotlin.String?
+  val averageRating: java.math.BigDecimal,
+  val positiveRatingPercentage: kotlin.Float,
+  val totalReviews: kotlin.Long,
+  val workerId: kotlin.Long,
+  val workerName: kotlin.String?
 )
 
 data class DeliveryWorkerStatistics(
-    val averageRating: java.math.BigDecimal,
-    val deliveryWorkerId: kotlin.Long,
-    val fiveStarReviews: kotlin.Long,
-    val fourStarReviews: kotlin.Long,
-    val oneStarReviews: kotlin.Long,
-    val threeStarReviews: kotlin.Long,
-    val totalReviews: kotlin.Long,
-    val twoStarReviews: kotlin.Long
+  val averageRating: java.math.BigDecimal,
+  val deliveryWorkerId: kotlin.Long,
+  val fiveStarReviews: kotlin.Long,
+  val fourStarReviews: kotlin.Long,
+  val oneStarReviews: kotlin.Long,
+  val threeStarReviews: kotlin.Long,
+  val totalReviews: kotlin.Long,
+  val twoStarReviews: kotlin.Long
 )
 
 data class DeliveryWorkerStatisticsResponse(
-    val averageRating: java.math.BigDecimal,
-    val deliveryWorkerId: kotlin.Long,
-    val fiveStarReviews: kotlin.Long,
-    val fourStarReviews: kotlin.Long,
-    val lastUpdated: java.time.LocalDateTime,
-    val oneStarReviews: kotlin.Long,
-    val ratingDistribution: kotlin.collections.Map<String, Any>,
-    val threeStarReviews: kotlin.Long,
-    val totalReviews: kotlin.Long,
-    val twoStarReviews: kotlin.Long,
-    val workerName: kotlin.String?
+  val averageRating: java.math.BigDecimal,
+  val deliveryWorkerId: kotlin.Long,
+  val fiveStarReviews: kotlin.Long,
+  val fourStarReviews: kotlin.Long,
+  val lastUpdated: java.time.LocalDateTime,
+  val oneStarReviews: kotlin.Long,
+  val ratingDistribution: kotlin.collections.Map<String, Any>,
+  val threeStarReviews: kotlin.Long,
+  val totalReviews: kotlin.Long,
+  val twoStarReviews: kotlin.Long,
+  val workerName: kotlin.String?
 )
 
 enum class DeliveryWorkerStatus(val label: String) {
-      OFFLINE("OFFLINE"),
-      ONLINE("ONLINE");
+  OFFLINE("OFFLINE"),
+  ONLINE("ONLINE");
 
   companion object {
     @JvmStatic
@@ -635,51 +683,51 @@ enum class DeliveryWorkerStatus(val label: String) {
 }
 
 data class DistancePayload(
-    val distanceKm: kotlin.Float?,
-    val message: kotlin.String,
-    val success: kotlin.Boolean
+  val distanceKm: kotlin.Float?,
+  val message: kotlin.String,
+  val success: kotlin.Boolean
 )
 
 data class DoNotDisturbSettings(
-    val enabled: kotlin.Boolean,
-    val endTime: kotlin.String?,
-    val startTime: kotlin.String?
+  val enabled: kotlin.Boolean,
+  val endTime: kotlin.String?,
+  val startTime: kotlin.String?
 )
 
 data class ExportFavoritesInput(
-    val dateFrom: java.time.LocalDateTime? = null,
-    val dateTo: java.time.LocalDateTime? = null,
-    val format: ExportFormat = ExportFormat.CSV,
-    val includeProductInfo: kotlin.Boolean = true,
-    val includeUserInfo: kotlin.Boolean = true,
-    val productIds: Iterable<kotlin.Long>? = null,
-    val userId: kotlin.Long? = null
+  val dateFrom: java.time.LocalDateTime? = null,
+  val dateTo: java.time.LocalDateTime? = null,
+  val format: ExportFormat = ExportFormat.CSV,
+  val includeProductInfo: kotlin.Boolean = true,
+  val includeUserInfo: kotlin.Boolean = true,
+  val productIds: Iterable<kotlin.Long>? = null,
+  val userId: kotlin.Long? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime?,
-      args["dateTo"] as java.time.LocalDateTime?,
-      args["format"] as ExportFormat? ?: ExportFormat.CSV,
-      args["includeProductInfo"] as kotlin.Boolean? ?: true,
-      args["includeUserInfo"] as kotlin.Boolean? ?: true,
-      args["productIds"] as Iterable<kotlin.Long>?,
-      args["userId"] as kotlin.Long?
+    args["dateFrom"] as java.time.LocalDateTime?,
+    args["dateTo"] as java.time.LocalDateTime?,
+    args["format"] as ExportFormat? ?: ExportFormat.CSV,
+    args["includeProductInfo"] as kotlin.Boolean? ?: true,
+    args["includeUserInfo"] as kotlin.Boolean? ?: true,
+    args["productIds"] as Iterable<kotlin.Long>?,
+    args["userId"] as kotlin.Long?
   )
 }
 
 data class ExportFavoritesResult(
-    val downloadUrl: kotlin.String?,
-    val expiresAt: java.time.LocalDateTime,
-    val fileName: kotlin.String,
-    val fileSize: kotlin.Long,
-    val message: kotlin.String,
-    val recordCount: kotlin.Int,
-    val success: kotlin.Boolean
+  val downloadUrl: kotlin.String?,
+  val expiresAt: java.time.LocalDateTime,
+  val fileName: kotlin.String,
+  val fileSize: kotlin.Long,
+  val message: kotlin.String,
+  val recordCount: kotlin.Int,
+  val success: kotlin.Boolean
 )
 
 enum class ExportFormat(val label: String) {
-      CSV("CSV"),
-      EXCEL("EXCEL"),
-      JSON("JSON");
+  CSV("CSV"),
+  EXCEL("EXCEL"),
+  JSON("JSON");
 
   companion object {
     @JvmStatic
@@ -690,75 +738,75 @@ enum class ExportFormat(val label: String) {
 }
 
 data class ExportTransactionsInput(
-    val dateFrom: java.time.LocalDateTime? = null,
-    val dateTo: java.time.LocalDateTime? = null,
-    @field:Size(min = 1, max = 10, message = "导出格式长度应在1-10个字符之间")
-    val format: kotlin.String = """CSV""".trimIndent(),
-    val includeMetadata: kotlin.Boolean = false,
-    @field:Positive(message = "最大金额必须为正数")
-    @field:Min(value = 1, message = "最大金额不能小于1分")
-    @field:Max(value = 9999900, message = "最大金额不能大于99999元")
-    val maxAmount: kotlin.Long? = null,
-    @field:Positive(message = "最小金额必须为正数")
-    @field:Min(value = 1, message = "最小金额不能小于1分")
-    @field:Max(value = 9999900, message = "最小金额不能大于99999元")
-    val minAmount: kotlin.Long? = null,
-    val paymentMethod: PaymentMethod? = null,
-    val status: PaymentStatus? = null,
-    @field:Positive(message = "用户ID必须为正数")
-    val userId: kotlin.Long? = null
+  val dateFrom: java.time.LocalDateTime? = null,
+  val dateTo: java.time.LocalDateTime? = null,
+  @field:Size(min = 1, max = 10, message = "导出格式长度应在1-10个字符之间")
+  val format: kotlin.String = """CSV""".trimIndent(),
+  val includeMetadata: kotlin.Boolean = false,
+  @field:Positive(message = "最大金额必须为正数")
+  @field:Min(value = 1, message = "最大金额不能小于1分")
+  @field:Max(value = 9999900, message = "最大金额不能大于99999元")
+  val maxAmount: kotlin.Long? = null,
+  @field:Positive(message = "最小金额必须为正数")
+  @field:Min(value = 1, message = "最小金额不能小于1分")
+  @field:Max(value = 9999900, message = "最小金额不能大于99999元")
+  val minAmount: kotlin.Long? = null,
+  val paymentMethod: PaymentMethod? = null,
+  val status: PaymentStatus? = null,
+  @field:Positive(message = "用户ID必须为正数")
+  val userId: kotlin.Long? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime?,
-      args["dateTo"] as java.time.LocalDateTime?,
-      args["format"] as kotlin.String? ?: """CSV""".trimIndent(),
-      args["includeMetadata"] as kotlin.Boolean? ?: false,
-      args["maxAmount"] as kotlin.Long?,
-      args["minAmount"] as kotlin.Long?,
-      args["paymentMethod"] as PaymentMethod?,
-      args["status"] as PaymentStatus?,
-      args["userId"] as kotlin.Long?
+    args["dateFrom"] as java.time.LocalDateTime?,
+    args["dateTo"] as java.time.LocalDateTime?,
+    args["format"] as kotlin.String? ?: """CSV""".trimIndent(),
+    args["includeMetadata"] as kotlin.Boolean? ?: false,
+    args["maxAmount"] as kotlin.Long?,
+    args["minAmount"] as kotlin.Long?,
+    args["paymentMethod"] as PaymentMethod?,
+    args["status"] as PaymentStatus?,
+    args["userId"] as kotlin.Long?
   )
 }
 
 data class FavoriteProduct(
-    val addedAt: java.time.LocalDateTime,
-    val coverImageUrl: kotlin.String,
-    val id: kotlin.Long,
-    val name: kotlin.String,
-    val originalPrice: kotlin.Long?,
-    val price: kotlin.Long,
-    val salesVolume: kotlin.Int,
-    val status: ProductStatus,
-    val stock: kotlin.Int,
-    val subtitle: kotlin.String?
+  val addedAt: java.time.LocalDateTime,
+  val coverImageUrl: kotlin.String,
+  val id: kotlin.Long,
+  val name: kotlin.String,
+  val originalPrice: kotlin.Long?,
+  val price: kotlin.Long,
+  val salesVolume: kotlin.Int,
+  val status: ProductStatus,
+  val stock: kotlin.Int,
+  val subtitle: kotlin.String?
 )
 
 data class FavoriteProductPage(
-    val list: Iterable<FavoriteProduct>,
-    val pageInfo: PageInfo
+  val list: Iterable<FavoriteProduct>,
+  val pageInfo: PageInfo
 )
 
 data class FavoriteProductStats(
-    val addToOrderRate: kotlin.Float,
-    val averageTimeToOrder: kotlin.Float,
-    val favoriteCount: kotlin.Long,
-    val productId: kotlin.Long,
-    val productName: kotlin.String,
-    val revenueFromFavorites: kotlin.Long
+  val addToOrderRate: kotlin.Float,
+  val averageTimeToOrder: kotlin.Float,
+  val favoriteCount: kotlin.Long,
+  val productId: kotlin.Long,
+  val productName: kotlin.String,
+  val revenueFromFavorites: kotlin.Long
 )
 
 enum class FavoriteSortBy(val label: String) {
-      CREATED_AT_ASC("CREATED_AT_ASC"),
-      CREATED_AT_DESC("CREATED_AT_DESC"),
-      PRODUCT_ID_ASC("PRODUCT_ID_ASC"),
-      PRODUCT_ID_DESC("PRODUCT_ID_DESC"),
-      PRODUCT_NAME_ASC("PRODUCT_NAME_ASC"),
-      PRODUCT_NAME_DESC("PRODUCT_NAME_DESC"),
-      PRODUCT_PRICE_ASC("PRODUCT_PRICE_ASC"),
-      PRODUCT_PRICE_DESC("PRODUCT_PRICE_DESC"),
-      USER_ID_ASC("USER_ID_ASC"),
-      USER_ID_DESC("USER_ID_DESC");
+  CREATED_AT_ASC("CREATED_AT_ASC"),
+  CREATED_AT_DESC("CREATED_AT_DESC"),
+  PRODUCT_ID_ASC("PRODUCT_ID_ASC"),
+  PRODUCT_ID_DESC("PRODUCT_ID_DESC"),
+  PRODUCT_NAME_ASC("PRODUCT_NAME_ASC"),
+  PRODUCT_NAME_DESC("PRODUCT_NAME_DESC"),
+  PRODUCT_PRICE_ASC("PRODUCT_PRICE_ASC"),
+  PRODUCT_PRICE_DESC("PRODUCT_PRICE_DESC"),
+  USER_ID_ASC("USER_ID_ASC"),
+  USER_ID_DESC("USER_ID_DESC");
 
   companion object {
     @JvmStatic
@@ -769,741 +817,864 @@ enum class FavoriteSortBy(val label: String) {
 }
 
 data class FavoriteTrendData(
-    val activeUsers: kotlin.Long,
-    val date: kotlin.String,
-    val newFavorites: kotlin.Long,
-    val totalFavorites: kotlin.Long
+  val activeUsers: kotlin.Long,
+  val date: kotlin.String,
+  val newFavorites: kotlin.Long,
+  val totalFavorites: kotlin.Long
 )
 
 data class GeocodeInput(
-    @field:NotBlank(message = "城市不能为空")
-    @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
-    val city: kotlin.String,
-    @field:NotBlank(message = "详细地址不能为空")
-    @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
-    val detailAddress: kotlin.String,
-    @field:NotBlank(message = "区县不能为空")
-    @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
-    val district: kotlin.String,
-    @field:NotBlank(message = "省份不能为空")
-    @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
-    val province: kotlin.String
+  @field:NotBlank(message = "城市不能为空")
+  @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
+  val city: kotlin.String,
+  @field:NotBlank(message = "详细地址不能为空")
+  @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
+  val detailAddress: kotlin.String,
+  @field:NotBlank(message = "区县不能为空")
+  @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
+  val district: kotlin.String,
+  @field:NotBlank(message = "省份不能为空")
+  @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
+  val province: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["city"] as kotlin.String,
-      args["detailAddress"] as kotlin.String,
-      args["district"] as kotlin.String,
-      args["province"] as kotlin.String
+    args["city"] as kotlin.String,
+    args["detailAddress"] as kotlin.String,
+    args["district"] as kotlin.String,
+    args["province"] as kotlin.String
   )
 }
 
 data class GeocodePayload(
-    val latitude: kotlin.Float?,
-    val longitude: kotlin.Float?,
-    val message: kotlin.String,
-    val success: kotlin.Boolean
+  val latitude: kotlin.Float?,
+  val longitude: kotlin.Float?,
+  val message: kotlin.String,
+  val success: kotlin.Boolean
 )
 
 data class LowStockAlert(
-    val currentStock: kotlin.Int,
-    val productId: kotlin.Long,
-    val productName: kotlin.String,
-    val status: ProductStatus,
-    val threshold: kotlin.Int
+  val currentStock: kotlin.Int,
+  val productId: kotlin.Long,
+  val productName: kotlin.String,
+  val status: ProductStatus,
+  val threshold: kotlin.Int
 )
 
 data class MessageHistoryPage(
-    val list: Iterable<ClientMessage>,
-    val pageInfo: PageInfo
+  val list: Iterable<ClientMessage>,
+  val pageInfo: PageInfo
 )
 
 data class MessageStatistics(
-    val messageTypes: kotlin.collections.Map<String, Any>,
-    val readMessages: kotlin.Long,
-    val totalMessages: kotlin.Long,
-    val unreadMessages: kotlin.Long
+  val messageTypes: kotlin.collections.Map<String, Any>,
+  val readMessages: kotlin.Long,
+  val totalMessages: kotlin.Long,
+  val unreadMessages: kotlin.Long
 )
 
 data class MessageTypeInfo(
-    val description: kotlin.String,
-    val name: kotlin.String,
-    val type: kotlin.String
+  val description: kotlin.String,
+  val name: kotlin.String,
+  val type: kotlin.String
 )
 
 data class MonthlyStatistic(
-    val month: kotlin.Int,
-    val monthName: kotlin.String,
-    val orderCount: kotlin.Int,
-    val revenue: kotlin.Long,
-    val year: kotlin.Int
+  val month: kotlin.Int,
+  val monthName: kotlin.String,
+  val orderCount: kotlin.Int,
+  val revenue: kotlin.Long,
+  val year: kotlin.Int
 )
 
+data class MutationAcceptDeliveryArgs(
+  val orderId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+    args["orderId"] as kotlin.Long
+  )
+}
+
 data class MutationAnalyzeUserFavoritesArgs(
-    val userId: kotlin.Long
+  val userId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["userId"] as kotlin.Long
+    args["userId"] as kotlin.Long
   )
 }
+
+data class MutationAssignDeliveryWorkerArgs(
+  val isSelfCollect: kotlin.Boolean,
+  val orderId: kotlin.Long,
+  val workerId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+    args["isSelfCollect"] as kotlin.Boolean,
+    args["orderId"] as kotlin.Long,
+    args["workerId"] as kotlin.Long
+  )
+}
+
 data class MutationBatchAdjustStockArgs(
-    val input: BatchStockAdjustmentInput
+  val input: BatchStockAdjustmentInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      BatchStockAdjustmentInput(args["input"] as Map<String, Any>)
+    BatchStockAdjustmentInput(args["input"] as Map<String, Any>)
   )
 }
+
+data class MutationBatchAssignOrdersArgs(
+  val orderIds: Iterable<kotlin.Long>,
+  val workerId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+    args["orderIds"] as Iterable<kotlin.Long>,
+    args["workerId"] as kotlin.Long
+  )
+}
+
 data class MutationBatchFavoriteOperationArgs(
-    val input: BatchFavoriteOperationInput
+  val input: BatchFavoriteOperationInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      BatchFavoriteOperationInput(args["input"] as Map<String, Any>)
+    BatchFavoriteOperationInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationBatchUpdateProductsArgs(
-    val input: Iterable<ProductUpdateRequestInput>
+  val input: Iterable<ProductUpdateRequestInput>
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["input"]!!.let { input -> (input as List<Map<String, Any>>).map { ProductUpdateRequestInput(it) } }
+    args["input"]!!.let { input -> (input as List<Map<String, Any>>).map { ProductUpdateRequestInput(it) } }
   )
 }
+
 data class MutationCancelOrderArgs(
-    val orderId: kotlin.Long
+  val orderId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["orderId"] as kotlin.Long
+    args["orderId"] as kotlin.Long
   )
 }
+
+data class MutationCompleteDeliveryArgs(
+  val orderId: kotlin.Long,
+  val paymentType: PaymentType? = null,
+  val photos: Iterable<kotlin.String>
+) {
+  constructor(args: Map<String, Any>) : this(
+    args["orderId"] as kotlin.Long,
+    args["paymentType"] as PaymentType?,
+    args["photos"] as Iterable<kotlin.String>
+  )
+}
+
 data class MutationCreateAddressArgs(
-    val input: AddressInput
+  val input: AddressInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      AddressInput(args["input"] as Map<String, Any>)
+    AddressInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationCreateDeliveryAddressArgs(
-    val input: CreateDeliveryAddressInput
+  val input: CreateDeliveryAddressInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      CreateDeliveryAddressInput(args["input"] as Map<String, Any>)
+    CreateDeliveryAddressInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationCreateDeliveryAreaArgs(
-    val input: CreateDeliveryAreaInput
+  val input: CreateDeliveryAreaInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      CreateDeliveryAreaInput(args["input"] as Map<String, Any>)
+    CreateDeliveryAreaInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationCreateDeliveryWorkerArgs(
-    val input: CreateDeliveryWorkerInput
+  val input: CreateDeliveryWorkerInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      CreateDeliveryWorkerInput(args["input"] as Map<String, Any>)
+    CreateDeliveryWorkerInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationCreateManualRefundArgs(
-    val input: CreateManualRefundInput
+  val input: CreateManualRefundInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      CreateManualRefundInput(args["input"] as Map<String, Any>)
+    CreateManualRefundInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationCreateOrderArgs(
-    val input: CreateOrderInput
+  val input: CreateOrderInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      CreateOrderInput(args["input"] as Map<String, Any>)
+    CreateOrderInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationCreateProductArgs(
-    val input: CreateProductInput
+  val input: CreateProductInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      CreateProductInput(args["input"] as Map<String, Any>)
+    CreateProductInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationCreateRegionArgs(
-    val input: CreateRegionInput
+  val input: CreateRegionInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      CreateRegionInput(args["input"] as Map<String, Any>)
+    CreateRegionInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationCreateReviewArgs(
-    val input: CreateReviewRequestInput
+  val input: CreateReviewRequestInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      CreateReviewRequestInput(args["input"] as Map<String, Any>)
+    CreateReviewRequestInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationCreateWechatPaymentArgs(
-    val input: CreateWechatPaymentInput
+  val input: CreateWechatPaymentInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      CreateWechatPaymentInput(args["input"] as Map<String, Any>)
+    CreateWechatPaymentInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationDecreaseStockArgs(
-    val productId: kotlin.Long,
-    val quantity: kotlin.Int
+  val productId: kotlin.Long,
+  val quantity: kotlin.Int
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["productId"] as kotlin.Long,
-      args["quantity"] as kotlin.Int
+    args["productId"] as kotlin.Long,
+    args["quantity"] as kotlin.Int
   )
 }
+
 data class MutationDeleteAddressArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class MutationDeleteDeliveryAddressArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class MutationDeleteDeliveryAreaArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class MutationDeleteDeliveryWorkerArgs(
-    val workerId: kotlin.Long
+  val workerId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["workerId"] as kotlin.Long
+    args["workerId"] as kotlin.Long
   )
 }
+
 data class MutationDeleteMessageArgs(
-    val messageId: kotlin.Long
+  val messageId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["messageId"] as kotlin.Long
+    args["messageId"] as kotlin.Long
   )
 }
+
 data class MutationDeleteMessagesArgs(
-    val messageIds: Iterable<kotlin.Long>
+  val messageIds: Iterable<kotlin.Long>
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["messageIds"] as Iterable<kotlin.Long>
+    args["messageIds"] as Iterable<kotlin.Long>
   )
 }
+
 data class MutationDeleteProductArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class MutationDeleteRegionArgs(
-    val code: kotlin.String
+  val code: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["code"] as kotlin.String
+    args["code"] as kotlin.String
   )
 }
+
 data class MutationExportFavoritesArgs(
-    val input: ExportFavoritesInput
+  val input: ExportFavoritesInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      ExportFavoritesInput(args["input"] as Map<String, Any>)
+    ExportFavoritesInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationExportTransactionsArgs(
-    val input: ExportTransactionsInput
+  val input: ExportTransactionsInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      ExportTransactionsInput(args["input"] as Map<String, Any>)
+    ExportTransactionsInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationForceCompletePaymentArgs(
-    val adminNote: kotlin.String,
-    val transactionId: kotlin.String
+  val adminNote: kotlin.String,
+  val transactionId: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["adminNote"] as kotlin.String,
-      args["transactionId"] as kotlin.String
+    args["adminNote"] as kotlin.String,
+    args["transactionId"] as kotlin.String
   )
 }
+
 data class MutationForceRefundArgs(
-    val adminNote: kotlin.String,
-    val amount: java.math.BigDecimal,
-    val reason: kotlin.String,
-    val transactionId: kotlin.String
+  val adminNote: kotlin.String,
+  val amount: java.math.BigDecimal,
+  val reason: kotlin.String,
+  val transactionId: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["adminNote"] as kotlin.String,
-      args["amount"] as java.math.BigDecimal,
-      args["reason"] as kotlin.String,
-      args["transactionId"] as kotlin.String
+    args["adminNote"] as kotlin.String,
+    args["amount"] as java.math.BigDecimal,
+    args["reason"] as kotlin.String,
+    args["transactionId"] as kotlin.String
   )
 }
+
 data class MutationFreezeSuspiciousTransactionArgs(
-    val reason: kotlin.String,
-    val transactionId: kotlin.String
+  val reason: kotlin.String,
+  val transactionId: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["reason"] as kotlin.String,
-      args["transactionId"] as kotlin.String
+    args["reason"] as kotlin.String,
+    args["transactionId"] as kotlin.String
   )
 }
+
 data class MutationGeocodeAddressArgs(
-    val address: GeocodeInput
+  val address: GeocodeInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      GeocodeInput(args["address"] as Map<String, Any>)
+    GeocodeInput(args["address"] as Map<String, Any>)
   )
 }
+
 data class MutationHandleWechatCallbackArgs(
-    val input: WechatCallbackInput
+  val input: WechatCallbackInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      WechatCallbackInput(args["input"] as Map<String, Any>)
+    WechatCallbackInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationIncreaseStockArgs(
-    val productId: kotlin.Long,
-    val quantity: kotlin.Int
+  val productId: kotlin.Long,
+  val quantity: kotlin.Int
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["productId"] as kotlin.Long,
-      args["quantity"] as kotlin.Int
+    args["productId"] as kotlin.Long,
+    args["quantity"] as kotlin.Int
   )
 }
+
 data class MutationMarkMessageAsReadArgs(
-    val messageId: kotlin.Long
+  val messageId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["messageId"] as kotlin.Long
+    args["messageId"] as kotlin.Long
   )
 }
+
 data class MutationMarkMessagesAsReadArgs(
-    val messageIds: Iterable<kotlin.Long>
+  val messageIds: Iterable<kotlin.Long>
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["messageIds"] as Iterable<kotlin.Long>
+    args["messageIds"] as Iterable<kotlin.Long>
   )
 }
+
 data class MutationOfflineProductArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class MutationOnlineProductArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class MutationProcessRefundArgs(
-    val input: ProcessRefundInput
+  val input: ProcessRefundInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      ProcessRefundInput(args["input"] as Map<String, Any>)
+    ProcessRefundInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationProcessSuspiciousTransactionArgs(
-    val input: ProcessSuspiciousTransactionInput
+  val input: ProcessSuspiciousTransactionInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      ProcessSuspiciousTransactionInput(args["input"] as Map<String, Any>)
+    ProcessSuspiciousTransactionInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationRefreshFavoriteAnalyticsCacheArgs(
-    val force: kotlin.Boolean? = true
+  val force: kotlin.Boolean? = true
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["force"] as kotlin.Boolean? ?: true
+    args["force"] as kotlin.Boolean? ?: true
   )
 }
+
 data class MutationRefreshTokenArgs(
-    val input: RefreshTokenInput
+  val input: RefreshTokenInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      RefreshTokenInput(args["input"] as Map<String, Any>)
+    RefreshTokenInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationRefundArgs(
-    val input: RefundInput
+  val input: RefundInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      RefundInput(args["input"] as Map<String, Any>)
+    RefundInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationRequestRefundArgs(
-    val input: RequestRefundInput
+  val input: RequestRefundInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      RequestRefundInput(args["input"] as Map<String, Any>)
+    RequestRefundInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationReverseGeocodeArgs(
-    val latitude: kotlin.Float,
-    val longitude: kotlin.Float
+  val latitude: kotlin.Float,
+  val longitude: kotlin.Float
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["latitude"] as kotlin.Float,
-      args["longitude"] as kotlin.Float
+    args["latitude"] as kotlin.Float,
+    args["longitude"] as kotlin.Float
   )
 }
+
 data class MutationSetDefaultAddressArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class MutationSetDefaultDeliveryAddressArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class MutationSetDoNotDisturbArgs(
-    val enabled: kotlin.Boolean,
-    val endTime: kotlin.String? = null,
-    val startTime: kotlin.String? = null
+  val enabled: kotlin.Boolean,
+  val endTime: kotlin.String? = null,
+  val startTime: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["enabled"] as kotlin.Boolean,
-      args["endTime"] as kotlin.String?,
-      args["startTime"] as kotlin.String?
+    args["enabled"] as kotlin.Boolean,
+    args["endTime"] as kotlin.String?,
+    args["startTime"] as kotlin.String?
   )
 }
+
+data class MutationStartDeliveryArgs(
+  val orderId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+    args["orderId"] as kotlin.Long
+  )
+}
+
 data class MutationSubscribeToTopicArgs(
-    val topic: kotlin.String
+  val topic: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["topic"] as kotlin.String
+    args["topic"] as kotlin.String
   )
 }
+
 data class MutationToggleProductFavoritesArgs(
-    val productId: kotlin.Long
+  val productId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["productId"] as kotlin.Long
+    args["productId"] as kotlin.Long
   )
 }
+
 data class MutationUnsubscribeFromTopicArgs(
-    val topic: kotlin.String
+  val topic: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["topic"] as kotlin.String
+    args["topic"] as kotlin.String
   )
 }
+
 data class MutationUpdateAddressArgs(
-    val id: kotlin.Long,
-    val input: UpdateAddressInput
+  val id: kotlin.Long,
+  val input: UpdateAddressInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long,
-      UpdateAddressInput(args["input"] as Map<String, Any>)
+    args["id"] as kotlin.Long,
+    UpdateAddressInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationUpdateDeliveryAddressArgs(
-    val id: kotlin.Long,
-    val input: UpdateDeliveryAddressInput
+  val id: kotlin.Long,
+  val input: UpdateDeliveryAddressInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long,
-      UpdateDeliveryAddressInput(args["input"] as Map<String, Any>)
+    args["id"] as kotlin.Long,
+    UpdateDeliveryAddressInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationUpdateDeliveryAreaArgs(
-    val id: kotlin.Long,
-    val input: CreateDeliveryAreaInput
+  val id: kotlin.Long,
+  val input: CreateDeliveryAreaInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long,
-      CreateDeliveryAreaInput(args["input"] as Map<String, Any>)
+    args["id"] as kotlin.Long,
+    CreateDeliveryAreaInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationUpdateDeliveryWorkerArgs(
-    val input: UpdateDeliveryWorkerInput,
-    val workerId: kotlin.Long
+  val input: UpdateDeliveryWorkerInput,
+  val workerId: kotlin.Long
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      UpdateDeliveryWorkerInput(args["input"] as Map<String, Any>),
-      args["workerId"] as kotlin.Long
+    UpdateDeliveryWorkerInput(args["input"] as Map<String, Any>),
+    args["workerId"] as kotlin.Long
   )
 }
+
 data class MutationUpdateNotificationSettingsArgs(
-    val input: UpdateNotificationSettingsInput
+  val input: UpdateNotificationSettingsInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      UpdateNotificationSettingsInput(args["input"] as Map<String, Any>)
+    UpdateNotificationSettingsInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationUpdateOrderStatusArgs(
-    val orderId: kotlin.Long,
-    val status: OrderStatus
+  val orderId: kotlin.Long,
+  val status: OrderStatus
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["orderId"] as kotlin.Long,
-      args["status"] as OrderStatus
+    args["orderId"] as kotlin.Long,
+    args["status"] as OrderStatus
   )
 }
+
 data class MutationUpdateProductArgs(
-    val id: kotlin.Long,
-    val input: UpdateProductInput
+  val id: kotlin.Long,
+  val input: UpdateProductInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long,
-      UpdateProductInput(args["input"] as Map<String, Any>)
+    args["id"] as kotlin.Long,
+    UpdateProductInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationUpdateProductStatusArgs(
-    val productId: kotlin.Long,
-    val status: ProductStatus
+  val productId: kotlin.Long,
+  val status: ProductStatus
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["productId"] as kotlin.Long,
-      args["status"] as ProductStatus
+    args["productId"] as kotlin.Long,
+    args["status"] as ProductStatus
   )
 }
+
 data class MutationUpdateProfileArgs(
-    val input: UpdateProfileInput
+  val input: UpdateProfileInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      UpdateProfileInput(args["input"] as Map<String, Any>)
+    UpdateProfileInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationUpdateRegionArgs(
-    val code: kotlin.String,
-    val input: UpdateRegionInput
+  val code: kotlin.String,
+  val input: UpdateRegionInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["code"] as kotlin.String,
-      UpdateRegionInput(args["input"] as Map<String, Any>)
+    args["code"] as kotlin.String,
+    UpdateRegionInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationUpdateTransactionArgs(
-    val input: UpdateTransactionInput,
-    val transactionId: kotlin.String
+  val input: UpdateTransactionInput,
+  val transactionId: kotlin.String
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      UpdateTransactionInput(args["input"] as Map<String, Any>),
-      args["transactionId"] as kotlin.String
+    UpdateTransactionInput(args["input"] as Map<String, Any>),
+    args["transactionId"] as kotlin.String
   )
 }
+
 data class MutationUpdateTransactionNoteArgs(
-    val note: kotlin.String,
-    val transactionId: kotlin.String
+  val note: kotlin.String,
+  val transactionId: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["note"] as kotlin.String,
-      args["transactionId"] as kotlin.String
+    args["note"] as kotlin.String,
+    args["transactionId"] as kotlin.String
   )
 }
+
 data class MutationUpdateWorkerStatusArgs(
-    val status: DeliveryWorkerStatus,
-    val workerId: kotlin.Long
+  val status: DeliveryWorkerStatus,
+  val workerId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["status"] as DeliveryWorkerStatus,
-      args["workerId"] as kotlin.Long
+    args["status"] as DeliveryWorkerStatus,
+    args["workerId"] as kotlin.Long
   )
 }
+
 data class MutationValidateAddressArgs(
-    val input: AddressValidationInput
+  val input: AddressValidationInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      AddressValidationInput(args["input"] as Map<String, Any>)
+    AddressValidationInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class MutationWechatLoginArgs(
-    val input: WechatLoginInput
+  val input: WechatLoginInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      WechatLoginInput(args["input"] as Map<String, Any>)
+    WechatLoginInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class Mutation(
-    val analyzeUserFavorites: kotlin.collections.Map<String, Any>,
-    val batchAdjustStock: BatchStockAdjustmentResult,
-    val batchFavoriteOperation: BatchOperationResult,
-    val batchUpdateProducts: Iterable<Product>,
-    val cancelOrder: Order,
-    val createAddress: Address,
-    val createDeliveryAddress: DeliveryAddress,
-    val createDeliveryArea: DeliveryArea,
-    val createDeliveryWorker: DeliveryWorker,
-    val createManualRefund: RefundRequest,
-    val createOrder: Order,
-    val createProduct: Product,
-    val createRegion: Region,
-    val createReview: Review,
-    val createWechatPayment: PaymentData,
-    val decreaseStock: kotlin.Boolean,
-    val deleteAddress: kotlin.Boolean,
-    val deleteDeliveryAddress: kotlin.Boolean,
-    val deleteDeliveryArea: kotlin.Boolean,
-    val deleteDeliveryWorker: kotlin.Boolean,
-    val deleteMessage: kotlin.Boolean,
-    val deleteMessages: kotlin.Boolean,
-    val deleteProduct: kotlin.Boolean,
-    val deleteRegion: kotlin.Boolean,
-    val disableAllNotifications: UserNotificationSettings,
-    val enableAllNotifications: UserNotificationSettings,
-    val exportFavorites: ExportFavoritesResult,
-    val exportTransactions: kotlin.String,
-    val forceCompletePayment: kotlin.Boolean,
-    val forceRefund: kotlin.Boolean,
-    val freezeSuspiciousTransaction: kotlin.Boolean,
-    val geocodeAddress: GeocodePayload,
-    val handleWechatCallback: kotlin.String,
-    val increaseStock: kotlin.String,
-    val logout: kotlin.Boolean,
-    val markMessageAsRead: kotlin.Boolean,
-    val markMessagesAsRead: kotlin.Boolean,
-    val offlineProduct: Product,
-    val onlineProduct: Product,
-    val processRefund: RefundRequest,
-    val processSuspiciousTransaction: SuspiciousTransaction,
-    val refreshFavoriteAnalyticsCache: BooleanPayload,
-    val refreshToken: WeChatTokenResponse,
-    val refund: kotlin.Boolean,
-    val requestPushPermission: kotlin.String,
-    val requestRefund: RefundRequest,
-    val reverseGeocode: ReverseGeocodePayload,
-    val setDefaultAddress: kotlin.Boolean,
-    val setDefaultDeliveryAddress: kotlin.Boolean,
-    val setDoNotDisturb: kotlin.Boolean,
-    val subscribeToTopic: kotlin.Boolean,
-    val testNotification: kotlin.String,
-    val toggleProductFavorites: kotlin.Boolean,
-    val unsubscribeFromTopic: kotlin.Boolean,
-    val updateAddress: Address,
-    val updateDeliveryAddress: DeliveryAddress,
-    val updateDeliveryArea: DeliveryArea,
-    val updateDeliveryWorker: DeliveryWorker,
-    val updateNotificationSettings: UserNotificationSettings,
-    val updateOrderStatus: Order,
-    val updateProduct: Product,
-    val updateProductStatus: Product,
-    val updateProfile: UserInfo,
-    val updateRegion: Region,
-    val updateTransaction: PaymentTransaction,
-    val updateTransactionNote: kotlin.Boolean,
-    val updateWorkerStatus: DeliveryWorker,
-    val validateAddress: AddressValidationPayload,
-    val wechatLogin: WeChatLoginResponse
+  val acceptDelivery: Order,
+  val analyzeUserFavorites: kotlin.collections.Map<String, Any>,
+  val assignDeliveryWorker: Order,
+  val batchAdjustStock: BatchStockAdjustmentResult,
+  val batchAssignOrders: Iterable<Order>,
+  val batchFavoriteOperation: BatchOperationResult,
+  val batchUpdateProducts: Iterable<Product>,
+  val cancelOrder: Order,
+  val completeDelivery: Order,
+  val createAddress: Address,
+  val createDeliveryAddress: DeliveryAddress,
+  val createDeliveryArea: DeliveryArea,
+  val createDeliveryWorker: DeliveryWorker,
+  val createManualRefund: RefundRequest,
+  val createOrder: Order,
+  val createProduct: Product,
+  val createRegion: Region,
+  val createReview: Review,
+  val createWechatPayment: PaymentData,
+  val decreaseStock: kotlin.Boolean,
+  val deleteAddress: kotlin.Boolean,
+  val deleteDeliveryAddress: kotlin.Boolean,
+  val deleteDeliveryArea: kotlin.Boolean,
+  val deleteDeliveryWorker: kotlin.Boolean,
+  val deleteMessage: kotlin.Boolean,
+  val deleteMessages: kotlin.Boolean,
+  val deleteProduct: kotlin.Boolean,
+  val deleteRegion: kotlin.Boolean,
+  val disableAllNotifications: UserNotificationSettings,
+  val enableAllNotifications: UserNotificationSettings,
+  val exportFavorites: ExportFavoritesResult,
+  val exportTransactions: kotlin.String,
+  val forceCompletePayment: kotlin.Boolean,
+  val forceRefund: kotlin.Boolean,
+  val freezeSuspiciousTransaction: kotlin.Boolean,
+  val geocodeAddress: GeocodePayload,
+  val handleWechatCallback: kotlin.String,
+  val increaseStock: kotlin.String,
+  val logout: kotlin.Boolean,
+  val markMessageAsRead: kotlin.Boolean,
+  val markMessagesAsRead: kotlin.Boolean,
+  val offlineProduct: Product,
+  val onlineProduct: Product,
+  val processRefund: RefundRequest,
+  val processSuspiciousTransaction: SuspiciousTransaction,
+  val refreshFavoriteAnalyticsCache: BooleanPayload,
+  val refreshToken: WeChatTokenResponse,
+  val refund: kotlin.Boolean,
+  val requestPushPermission: kotlin.String,
+  val requestRefund: RefundRequest,
+  val reverseGeocode: ReverseGeocodePayload,
+  val setDefaultAddress: kotlin.Boolean,
+  val setDefaultDeliveryAddress: kotlin.Boolean,
+  val setDoNotDisturb: kotlin.Boolean,
+  val startDelivery: Order,
+  val subscribeToTopic: kotlin.Boolean,
+  val testNotification: kotlin.String,
+  val toggleProductFavorites: kotlin.Boolean,
+  val unsubscribeFromTopic: kotlin.Boolean,
+  val updateAddress: Address,
+  val updateDeliveryAddress: DeliveryAddress,
+  val updateDeliveryArea: DeliveryArea,
+  val updateDeliveryWorker: DeliveryWorker,
+  val updateNotificationSettings: UserNotificationSettings,
+  val updateOrderStatus: Order,
+  val updateProduct: Product,
+  val updateProductStatus: Product,
+  val updateProfile: UserInfo,
+  val updateRegion: Region,
+  val updateTransaction: PaymentTransaction,
+  val updateTransactionNote: kotlin.Boolean,
+  val updateWorkerStatus: DeliveryWorker,
+  val validateAddress: AddressValidationPayload,
+  val wechatLogin: WeChatLoginResponse
 )
 
 data class NearbyAddressesPayload(
-    val addresses: Iterable<Address>,
-    val distanceMap: kotlin.collections.Map<String, Any>,
-    val message: kotlin.String,
-    val success: kotlin.Boolean
+  val addresses: Iterable<Address>,
+  val distanceMap: kotlin.collections.Map<String, Any>,
+  val message: kotlin.String,
+  val success: kotlin.Boolean
 )
 
 data class NormalizedAddress(
-    val city: kotlin.String,
-    val cityCode: kotlin.String?,
-    val detailAddress: kotlin.String,
-    val district: kotlin.String,
-    val districtCode: kotlin.String?,
-    val province: kotlin.String,
-    val provinceCode: kotlin.String?
+  val city: kotlin.String,
+  val cityCode: kotlin.String?,
+  val detailAddress: kotlin.String,
+  val district: kotlin.String,
+  val districtCode: kotlin.String?,
+  val province: kotlin.String,
+  val provinceCode: kotlin.String?
 )
 
 data class Order(
-    val address: Address,
-    val amount: kotlin.Long,
-    val completedAt: java.time.LocalDateTime?,
-    val createdAt: java.time.LocalDateTime,
-    val deliveryPhotos: Iterable<kotlin.String>?,
-    val deliveryWorker: DeliveryWorker?,
-    val id: kotlin.Long,
-    val orderNumber: kotlin.String,
-    val paymentMethod: kotlin.String?,
-    val paymentTime: java.time.LocalDateTime?,
-    val paymentTransactionId: kotlin.String?,
-    val product: Product,
-    val quantity: kotlin.Int,
-    val status: OrderStatus,
-    val updatedAt: java.time.LocalDateTime,
-    val user: User
+  val address: Address,
+  val amount: kotlin.Long,
+  val completedAt: java.time.LocalDateTime?,
+  val createdAt: java.time.LocalDateTime,
+  val deliveryConfirmedAt: java.time.LocalDateTime?,
+  val deliveryPhotos: Iterable<kotlin.String>?,
+  val deliveryStartedAt: java.time.LocalDateTime?,
+  val deliveryWorker: DeliveryWorker?,
+  val id: kotlin.Long,
+  val isSelfCollect: kotlin.Boolean,
+  val orderNumber: kotlin.String,
+  val paymentMethod: kotlin.String?,
+  val paymentTime: java.time.LocalDateTime?,
+  val paymentTransactionId: kotlin.String?,
+  val paymentType: PaymentType?,
+  val product: Product,
+  val quantity: kotlin.Int,
+  val status: OrderStatus,
+  val updatedAt: java.time.LocalDateTime,
+  val user: User
 )
 
 data class OrderPaymentInfo(
-    val amount: kotlin.Long,
-    val createdAt: java.time.LocalDateTime,
-    val orderId: kotlin.Long,
-    val orderNumber: kotlin.String,
-    val paidAt: java.time.LocalDateTime?,
-    val paymentMethod: PaymentMethod,
-    val refundAmount: kotlin.Long?,
-    val refundedAt: java.time.LocalDateTime?,
-    val status: PaymentStatus,
-    val transactionId: kotlin.String?
+  val amount: kotlin.Long,
+  val createdAt: java.time.LocalDateTime,
+  val orderId: kotlin.Long,
+  val orderNumber: kotlin.String,
+  val paidAt: java.time.LocalDateTime?,
+  val paymentMethod: PaymentMethod,
+  val refundAmount: kotlin.Long?,
+  val refundedAt: java.time.LocalDateTime?,
+  val status: PaymentStatus,
+  val transactionId: kotlin.String?
 )
 
 data class OrderReviewCheckResponse(
-    val canReview: kotlin.Boolean,
-    val hasReviewed: kotlin.Boolean,
-    val review: Review?
+  val canReview: kotlin.Boolean,
+  val hasReviewed: kotlin.Boolean,
+  val review: Review?
 )
 
 data class OrderStatistics(
-    val averageOrderValue: kotlin.Long,
-    val dateRange: DateRange,
-    val totalOrders: kotlin.Int,
-    val totalRevenue: kotlin.Long
+  val averageOrderValue: kotlin.Long,
+  val dateRange: DateRange,
+  val totalOrders: kotlin.Int,
+  val totalRevenue: kotlin.Long
 )
 
 enum class OrderStatus(val label: String) {
-      CANCELLED("CANCELLED"),
-      CONFIRMED("CONFIRMED"),
-      DELIVERED("DELIVERED"),
-      OUT_FOR_DELIVERY("OUT_FOR_DELIVERY"),
-      PENDING("PENDING"),
-      PREPARING("PREPARING"),
-      READY_FOR_DELIVERY("READY_FOR_DELIVERY"),
-      REFUNDED("REFUNDED");
+  CANCELLED("CANCELLED"),
+  CONFIRMED("CONFIRMED"),
+  DELIVERED("DELIVERED"),
+  OUT_FOR_DELIVERY("OUT_FOR_DELIVERY"),
+  PENDING("PENDING"),
+  PREPARING("PREPARING"),
+  READY_FOR_DELIVERY("READY_FOR_DELIVERY"),
+  REFUNDED("REFUNDED");
 
   companion object {
     @JvmStatic
@@ -1514,29 +1685,29 @@ enum class OrderStatus(val label: String) {
 }
 
 data class PageInfo(
-    val hasNext: kotlin.Boolean,
-    val hasPrevious: kotlin.Boolean,
-    val pageNum: kotlin.Int,
-    val pageSize: kotlin.Int,
-    val total: kotlin.Int,
-    val totalPages: kotlin.Int
+  val hasNext: kotlin.Boolean,
+  val hasPrevious: kotlin.Boolean,
+  val pageNum: kotlin.Int,
+  val pageSize: kotlin.Int,
+  val total: kotlin.Int,
+  val totalPages: kotlin.Int
 )
 
 data class PaymentData(
-    val appId: kotlin.String,
-    val codeUrl: kotlin.String,
-    val nonceStr: kotlin.String,
-    val outTradeNo: kotlin.String,
-    val packageValue: kotlin.String,
-    val paySign: kotlin.String,
-    val signType: kotlin.String,
-    val timeStamp: kotlin.String
+  val appId: kotlin.String,
+  val codeUrl: kotlin.String,
+  val nonceStr: kotlin.String,
+  val outTradeNo: kotlin.String,
+  val packageValue: kotlin.String,
+  val paySign: kotlin.String,
+  val signType: kotlin.String,
+  val timeStamp: kotlin.String
 )
 
 enum class PaymentMethod(val label: String) {
-      ALIPAY("ALIPAY"),
-      CASH_ON_DELIVERY("CASH_ON_DELIVERY"),
-      WECHAT_PAY("WECHAT_PAY");
+  ALIPAY("ALIPAY"),
+  CASH_ON_DELIVERY("CASH_ON_DELIVERY"),
+  WECHAT_PAY("WECHAT_PAY");
 
   companion object {
     @JvmStatic
@@ -1547,42 +1718,42 @@ enum class PaymentMethod(val label: String) {
 }
 
 data class PaymentMethodStats(
-    val averageAmount: kotlin.Long,
-    val failureCount: kotlin.Long,
-    val paymentMethod: PaymentMethod,
-    val refundCount: kotlin.Long,
-    val successCount: kotlin.Long,
-    val successRate: kotlin.Float,
-    val totalAmount: kotlin.Long,
-    val transactionCount: kotlin.Long
+  val averageAmount: kotlin.Long,
+  val failureCount: kotlin.Long,
+  val paymentMethod: PaymentMethod,
+  val refundCount: kotlin.Long,
+  val successCount: kotlin.Long,
+  val successRate: kotlin.Float,
+  val totalAmount: kotlin.Long,
+  val transactionCount: kotlin.Long
 )
 
 data class PaymentPeriodStats(
-    val averageTransactionAmount: kotlin.Long,
-    val failedTransactions: kotlin.Long,
-    val paymentMethodBreakdown: Iterable<PaymentMethodStats>,
-    val period: kotlin.String,
-    val successfulTransactions: kotlin.Long,
-    val totalAmount: kotlin.Long,
-    val totalTransactions: kotlin.Long
+  val averageTransactionAmount: kotlin.Long,
+  val failedTransactions: kotlin.Long,
+  val paymentMethodBreakdown: Iterable<PaymentMethodStats>,
+  val period: kotlin.String,
+  val successfulTransactions: kotlin.Long,
+  val totalAmount: kotlin.Long,
+  val totalTransactions: kotlin.Long
 )
 
 data class PaymentStatistics(
-    val averageTransactionAmount: kotlin.Long,
-    val dailyStats: Iterable<DailyPaymentStats>,
-    val failedTransactions: kotlin.Long,
-    val refundCount: kotlin.Long,
-    val refundedAmount: kotlin.Long,
-    val successfulTransactions: kotlin.Long,
-    val totalAmount: kotlin.Long,
-    val totalTransactions: kotlin.Long
+  val averageTransactionAmount: kotlin.Long,
+  val dailyStats: Iterable<DailyPaymentStats>,
+  val failedTransactions: kotlin.Long,
+  val refundCount: kotlin.Long,
+  val refundedAmount: kotlin.Long,
+  val successfulTransactions: kotlin.Long,
+  val totalAmount: kotlin.Long,
+  val totalTransactions: kotlin.Long
 )
 
 enum class PaymentStatus(val label: String) {
-      FAILED("FAILED"),
-      PROCESSING("PROCESSING"),
-      REFUNDED("REFUNDED"),
-      SUCCESS("SUCCESS");
+  FAILED("FAILED"),
+  PROCESSING("PROCESSING"),
+  REFUNDED("REFUNDED"),
+  SUCCESS("SUCCESS");
 
   companion object {
     @JvmStatic
@@ -1593,209 +1764,233 @@ enum class PaymentStatus(val label: String) {
 }
 
 data class PaymentStatusInfo(
-    val amount: java.math.BigDecimal,
-    val createdAt: java.time.LocalDateTime,
-    val failureReason: kotlin.String?,
-    val orderNumber: kotlin.String,
-    val paidAt: java.time.LocalDateTime?,
-    val refundAmount: java.math.BigDecimal?,
-    val refundedAt: java.time.LocalDateTime?,
-    val status: PaymentStatus,
-    val transactionId: kotlin.String,
-    val updatedAt: java.time.LocalDateTime
+  val amount: java.math.BigDecimal,
+  val createdAt: java.time.LocalDateTime,
+  val failureReason: kotlin.String?,
+  val orderNumber: kotlin.String,
+  val paidAt: java.time.LocalDateTime?,
+  val refundAmount: java.math.BigDecimal?,
+  val refundedAt: java.time.LocalDateTime?,
+  val status: PaymentStatus,
+  val transactionId: kotlin.String,
+  val updatedAt: java.time.LocalDateTime
 )
 
 data class PaymentTransaction(
-    val adminNote: kotlin.String?,
-    val amount: kotlin.Long,
-    val completedAt: java.time.LocalDateTime?,
-    val createdAt: java.time.LocalDateTime,
-    val externalTransactionId: kotlin.String?,
-    val failureReason: kotlin.String?,
-    val gateway: kotlin.String,
-    val id: kotlin.String,
-    val metadata: kotlin.collections.Map<String, Any>?,
-    val orderId: kotlin.Long,
-    val paymentMethod: PaymentMethod,
-    val status: PaymentStatus,
-    val transactionId: kotlin.String?,
-    val updatedAt: java.time.LocalDateTime,
-    val userId: kotlin.Long
+  val adminNote: kotlin.String?,
+  val amount: kotlin.Long,
+  val completedAt: java.time.LocalDateTime?,
+  val createdAt: java.time.LocalDateTime,
+  val externalTransactionId: kotlin.String?,
+  val failureReason: kotlin.String?,
+  val gateway: kotlin.String,
+  val id: kotlin.String,
+  val metadata: kotlin.collections.Map<String, Any>?,
+  val orderId: kotlin.Long,
+  val paymentMethod: PaymentMethod,
+  val status: PaymentStatus,
+  val transactionId: kotlin.String?,
+  val updatedAt: java.time.LocalDateTime,
+  val userId: kotlin.Long
 )
 
+enum class PaymentType(val label: String) {
+  CASH("CASH"),
+  QR_CODE("QR_CODE"),
+  WATER_TICKET("WATER_TICKET");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): PaymentType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
 data class ProcessRefundInput(
-    val action: RefundAction,
-    @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
-    val adminNote: kotlin.String? = null,
-    @field:Positive(message = "退款金额必须为正数")
-    @field:Min(value = 1, message = "退款金额不能小于1分")
-    @field:Max(value = 9999900, message = "退款金额不能大于99999元")
-    val amount: kotlin.Long,
-    @field:Positive(message = "订单ID必须为正数")
-    val orderId: kotlin.Long,
-    @field:NotBlank(message = "原交易ID不能为空")
-    @field:Size(min = 1, max = 100, message = "原交易ID长度应在1-100个字符之间")
-    val originalTransactionId: kotlin.String,
-    @field:NotBlank(message = "退款原因不能为空")
-    @field:Size(min = 1, max = 500, message = "退款原因长度应在1-500个字符之间")
-    val reason: kotlin.String,
-    @field:NotBlank(message = "退款请求ID不能为空")
-    @field:Size(min = 1, max = 100, message = "退款请求ID长度应在1-100个字符之间")
-    val refundRequestId: kotlin.String,
-    @field:Positive(message = "用户ID必须为正数")
-    val userId: kotlin.Long
+  val action: RefundAction,
+  @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
+  val adminNote: kotlin.String? = null,
+  @field:Positive(message = "退款金额必须为正数")
+  @field:Min(value = 1, message = "退款金额不能小于1分")
+  @field:Max(value = 9999900, message = "退款金额不能大于99999元")
+  val amount: kotlin.Long,
+  @field:Positive(message = "订单ID必须为正数")
+  val orderId: kotlin.Long,
+  @field:NotBlank(message = "原交易ID不能为空")
+  @field:Size(min = 1, max = 100, message = "原交易ID长度应在1-100个字符之间")
+  val originalTransactionId: kotlin.String,
+  @field:NotBlank(message = "退款原因不能为空")
+  @field:Size(min = 1, max = 500, message = "退款原因长度应在1-500个字符之间")
+  val reason: kotlin.String,
+  @field:NotBlank(message = "退款请求ID不能为空")
+  @field:Size(min = 1, max = 100, message = "退款请求ID长度应在1-100个字符之间")
+  val refundRequestId: kotlin.String,
+  @field:Positive(message = "用户ID必须为正数")
+  val userId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["action"] as RefundAction,
-      args["adminNote"] as kotlin.String?,
-      args["amount"] as kotlin.Long,
-      args["orderId"] as kotlin.Long,
-      args["originalTransactionId"] as kotlin.String,
-      args["reason"] as kotlin.String,
-      args["refundRequestId"] as kotlin.String,
-      args["userId"] as kotlin.Long
+    args["action"] as RefundAction,
+    args["adminNote"] as kotlin.String?,
+    args["amount"] as kotlin.Long,
+    args["orderId"] as kotlin.Long,
+    args["originalTransactionId"] as kotlin.String,
+    args["reason"] as kotlin.String,
+    args["refundRequestId"] as kotlin.String,
+    args["userId"] as kotlin.Long
   )
 }
 
 data class ProcessSuspiciousTransactionInput(
-    @field:NotBlank(message = "操作类型不能为空")
-    @field:Size(min = 1, max = 50, message = "操作类型长度应在1-50个字符之间")
-    val action: kotlin.String,
-    @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
-    val adminNote: kotlin.String? = null,
-    @field:NotBlank(message = "交易ID不能为空")
-    @field:Size(min = 1, max = 100, message = "交易ID长度应在1-100个字符之间")
-    val transactionId: kotlin.String
+  @field:NotBlank(message = "操作类型不能为空")
+  @field:Size(min = 1, max = 50, message = "操作类型长度应在1-50个字符之间")
+  val action: kotlin.String,
+  @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
+  val adminNote: kotlin.String? = null,
+  @field:NotBlank(message = "交易ID不能为空")
+  @field:Size(min = 1, max = 100, message = "交易ID长度应在1-100个字符之间")
+  val transactionId: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["action"] as kotlin.String,
-      args["adminNote"] as kotlin.String?,
-      args["transactionId"] as kotlin.String
+    args["action"] as kotlin.String,
+    args["adminNote"] as kotlin.String?,
+    args["transactionId"] as kotlin.String
   )
 }
 
 data class Product(
-    val certificateImages: tools.jackson.databind.node.ArrayNode?,
-    val coverImageUrl: kotlin.String,
-    val createdAt: java.time.LocalDateTime,
-    val deliverySettings: tools.jackson.databind.node.ObjectNode?,
-    val depositPrice: kotlin.Long?,
-    val detailContent: kotlin.String?,
-    val id: kotlin.Long,
-    val imageGallery: tools.jackson.databind.node.ArrayNode?,
-    val isDeleted: kotlin.Boolean,
-    val mineralContent: kotlin.String?,
-    val name: kotlin.String,
-    val originalPrice: kotlin.Long?,
-    val price: kotlin.Long,
-    val salesVolume: kotlin.Int,
-    val sortOrder: kotlin.Int,
-    val specification: kotlin.String,
-    val status: ProductStatus,
-    val stock: kotlin.Int,
-    val subtitle: kotlin.String?,
-    val tags: tools.jackson.databind.node.ArrayNode?,
-    val updatedAt: java.time.LocalDateTime,
-    val waterSource: kotlin.String?
+  val certificateImages: tools.jackson.databind.node.ArrayNode?,
+  val coverImageUrl: kotlin.String,
+  val createdAt: java.time.LocalDateTime,
+  val deliverySettings: tools.jackson.databind.node.ObjectNode?,
+  val depositPrice: kotlin.Long?,
+  val detailContent: kotlin.String?,
+  val id: kotlin.Long,
+  val imageGallery: tools.jackson.databind.node.ArrayNode?,
+  val isDeleted: kotlin.Boolean,
+  val mineralContent: kotlin.String?,
+  val name: kotlin.String,
+  val originalPrice: kotlin.Long?,
+  val price: kotlin.Long,
+  val salesVolume: kotlin.Int,
+  val sortOrder: kotlin.Int,
+  val specification: kotlin.String,
+  val status: ProductStatus,
+  val stock: kotlin.Int,
+  val subtitle: kotlin.String?,
+  val tags: tools.jackson.databind.node.ArrayNode?,
+  val updatedAt: java.time.LocalDateTime,
+  val waterSource: kotlin.String?
 )
 
 data class ProductFavoriteCount(
-    val addedThisMonth: kotlin.Long,
-    val addedThisWeek: kotlin.Long,
-    val addedToday: kotlin.Long,
-    val favoriteCount: kotlin.Long,
-    val product: Product
+  val addedThisMonth: kotlin.Long,
+  val addedThisWeek: kotlin.Long,
+  val addedToday: kotlin.Long,
+  val favoriteCount: kotlin.Long,
+  val product: Product
+)
+
+data class ProductFavoriteItem(
+  val favoriteCount: kotlin.Long,
+  val lastFavoritedAt: java.time.LocalDateTime?,
+  val product: Product
+)
+
+data class ProductFavoritePage(
+  val list: Iterable<ProductFavoriteItem>,
+  val pageInfo: PageInfo
 )
 
 data class ProductListInput(
-    @field:Positive(message = "最大价格必须为正数")
-    @field:Min(value = 1, message = "最大价格不能小于1分")
-    @field:Max(value = 9999900, message = "最大价格不能大于99999元")
-    val maxPrice: kotlin.Long? = null,
-    @field:Min(value = 0, message = "最大库存不能小于0")
-    val maxStock: kotlin.Int? = null,
-    @field:Positive(message = "最小价格必须为正数")
-    @field:Min(value = 1, message = "最小价格不能小于1分")
-    @field:Max(value = 9999900, message = "最小价格不能大于99999元")
-    val minPrice: kotlin.Long? = null,
-    @field:Min(value = 0, message = "最小库存不能小于0")
-    val minStock: kotlin.Int? = null,
-    val page: kotlin.Int? = 0,
-    val search: kotlin.String? = null,
-    val size: kotlin.Int? = 20,
-    val sort: kotlin.String? = """createdAt,desc""".trimIndent(),
-    val status: ProductStatus? = null
+  @field:Positive(message = "最大价格必须为正数")
+  @field:Min(value = 1, message = "最大价格不能小于1分")
+  @field:Max(value = 9999900, message = "最大价格不能大于99999元")
+  val maxPrice: kotlin.Long? = null,
+  @field:Min(value = 0, message = "最大库存不能小于0")
+  val maxStock: kotlin.Int? = null,
+  @field:Positive(message = "最小价格必须为正数")
+  @field:Min(value = 1, message = "最小价格不能小于1分")
+  @field:Max(value = 9999900, message = "最小价格不能大于99999元")
+  val minPrice: kotlin.Long? = null,
+  @field:Min(value = 0, message = "最小库存不能小于0")
+  val minStock: kotlin.Int? = null,
+  val page: kotlin.Int? = 0,
+  val search: kotlin.String? = null,
+  val size: kotlin.Int? = 20,
+  val sort: kotlin.String? = """createdAt,desc""".trimIndent(),
+  val status: ProductStatus? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["maxPrice"] as kotlin.Long?,
-      args["maxStock"] as kotlin.Int?,
-      args["minPrice"] as kotlin.Long?,
-      args["minStock"] as kotlin.Int?,
-      args["page"] as kotlin.Int? ?: 0,
-      args["search"] as kotlin.String?,
-      args["size"] as kotlin.Int? ?: 20,
-      args["sort"] as kotlin.String? ?: """createdAt,desc""".trimIndent(),
-      args["status"] as ProductStatus?
+    args["maxPrice"] as kotlin.Long?,
+    args["maxStock"] as kotlin.Int?,
+    args["minPrice"] as kotlin.Long?,
+    args["minStock"] as kotlin.Int?,
+    args["page"] as kotlin.Int? ?: 0,
+    args["search"] as kotlin.String?,
+    args["size"] as kotlin.Int? ?: 20,
+    args["sort"] as kotlin.String? ?: """createdAt,desc""".trimIndent(),
+    args["status"] as ProductStatus?
   )
 }
 
 data class ProductPage(
-    val list: Iterable<Product>,
-    val pageInfo: PageInfo
+  val list: Iterable<Product>,
+  val pageInfo: PageInfo
 )
 
 data class ProductSalesInfo(
-    val product: Product,
-    val revenue: kotlin.Long,
-    val salesPercentage: kotlin.Float,
-    val salesVolume: kotlin.Int
+  val product: Product,
+  val revenue: kotlin.Long,
+  val salesPercentage: kotlin.Float,
+  val salesVolume: kotlin.Int
 )
 
 data class ProductSearchInput(
-    val hasDepositPrice: kotlin.Boolean? = null,
-    val hasOriginalPrice: kotlin.Boolean? = null,
-    @field:Size(max = 100, message = "搜索关键词长度不能超过100个字符")
-    val keyword: kotlin.String? = null,
-    @field:Min(value = 0, message = "最大PH值不能小于0")
-    @field:Max(value = 14, message = "最大PH值不能大于14")
-    val maxPh: java.math.BigDecimal? = null,
-    @field:Min(value = 0, message = "最大销量不能小于0")
-    val maxSalesVolume: kotlin.Int? = null,
-    @field:Min(value = 0, message = "最小PH值不能小于0")
-    @field:Max(value = 14, message = "最小PH值不能大于14")
-    val minPh: java.math.BigDecimal? = null,
-    @field:Min(value = 0, message = "最小销量不能小于0")
-    val minSalesVolume: kotlin.Int? = null,
-    val sortBy: ProductSortBy = ProductSortBy.SALES_VOLUME_DESC,
-    val tags: Iterable<kotlin.String>? = null,
-    @field:Size(max = 200, message = "水源地长度不能超过200个字符")
-    val waterSource: kotlin.String? = null
+  val hasDepositPrice: kotlin.Boolean? = null,
+  val hasOriginalPrice: kotlin.Boolean? = null,
+  @field:Size(max = 100, message = "搜索关键词长度不能超过100个字符")
+  val keyword: kotlin.String? = null,
+  @field:Min(value = 0, message = "最大PH值不能小于0")
+  @field:Max(value = 14, message = "最大PH值不能大于14")
+  val maxPh: java.math.BigDecimal? = null,
+  @field:Min(value = 0, message = "最大销量不能小于0")
+  val maxSalesVolume: kotlin.Int? = null,
+  @field:Min(value = 0, message = "最小PH值不能小于0")
+  @field:Max(value = 14, message = "最小PH值不能大于14")
+  val minPh: java.math.BigDecimal? = null,
+  @field:Min(value = 0, message = "最小销量不能小于0")
+  val minSalesVolume: kotlin.Int? = null,
+  val sortBy: ProductSortBy = ProductSortBy.SALES_VOLUME_DESC,
+  val tags: Iterable<kotlin.String>? = null,
+  @field:Size(max = 200, message = "水源地长度不能超过200个字符")
+  val waterSource: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["hasDepositPrice"] as kotlin.Boolean?,
-      args["hasOriginalPrice"] as kotlin.Boolean?,
-      args["keyword"] as kotlin.String?,
-      args["maxPh"] as java.math.BigDecimal?,
-      args["maxSalesVolume"] as kotlin.Int?,
-      args["minPh"] as java.math.BigDecimal?,
-      args["minSalesVolume"] as kotlin.Int?,
-      args["sortBy"] as ProductSortBy? ?: ProductSortBy.SALES_VOLUME_DESC,
-      args["tags"] as Iterable<kotlin.String>?,
-      args["waterSource"] as kotlin.String?
+    args["hasDepositPrice"] as kotlin.Boolean?,
+    args["hasOriginalPrice"] as kotlin.Boolean?,
+    args["keyword"] as kotlin.String?,
+    args["maxPh"] as java.math.BigDecimal?,
+    args["maxSalesVolume"] as kotlin.Int?,
+    args["minPh"] as java.math.BigDecimal?,
+    args["minSalesVolume"] as kotlin.Int?,
+    args["sortBy"] as ProductSortBy? ?: ProductSortBy.SALES_VOLUME_DESC,
+    args["tags"] as Iterable<kotlin.String>?,
+    args["waterSource"] as kotlin.String?
   )
 }
 
 enum class ProductSortBy(val label: String) {
-      CREATED_AT_ASC("CREATED_AT_ASC"),
-      CREATED_AT_DESC("CREATED_AT_DESC"),
-      NAME_ASC("NAME_ASC"),
-      NAME_DESC("NAME_DESC"),
-      PRICE_ASC("PRICE_ASC"),
-      PRICE_DESC("PRICE_DESC"),
-      SALES_VOLUME_ASC("SALES_VOLUME_ASC"),
-      SALES_VOLUME_DESC("SALES_VOLUME_DESC"),
-      SORT_ORDER_ASC("SORT_ORDER_ASC"),
-      SORT_ORDER_DESC("SORT_ORDER_DESC");
+  CREATED_AT_ASC("CREATED_AT_ASC"),
+  CREATED_AT_DESC("CREATED_AT_DESC"),
+  NAME_ASC("NAME_ASC"),
+  NAME_DESC("NAME_DESC"),
+  PRICE_ASC("PRICE_ASC"),
+  PRICE_DESC("PRICE_DESC"),
+  SALES_VOLUME_ASC("SALES_VOLUME_ASC"),
+  SALES_VOLUME_DESC("SALES_VOLUME_DESC"),
+  SORT_ORDER_ASC("SORT_ORDER_ASC"),
+  SORT_ORDER_DESC("SORT_ORDER_DESC");
 
   companion object {
     @JvmStatic
@@ -1806,19 +2001,19 @@ enum class ProductSortBy(val label: String) {
 }
 
 data class ProductStatistics(
-    val averagePrice: kotlin.Long,
-    val lowStockProducts: kotlin.Int,
-    val offlineProducts: kotlin.Int,
-    val onlineProducts: kotlin.Int,
-    val totalProducts: kotlin.Int,
-    val totalValue: kotlin.Long
+  val averagePrice: kotlin.Long,
+  val lowStockProducts: kotlin.Int,
+  val offlineProducts: kotlin.Int,
+  val onlineProducts: kotlin.Int,
+  val totalProducts: kotlin.Int,
+  val totalValue: kotlin.Long
 )
 
 enum class ProductStatus(val label: String) {
-      ACTIVE("ACTIVE"),
-      OFFLINE("OFFLINE"),
-      ONLINE("ONLINE"),
-      OUT_OF_STOCK("OUT_OF_STOCK");
+  ACTIVE("ACTIVE"),
+  OFFLINE("OFFLINE"),
+  ONLINE("ONLINE"),
+  OUT_OF_STOCK("OUT_OF_STOCK");
 
   companion object {
     @JvmStatic
@@ -1829,843 +2024,905 @@ enum class ProductStatus(val label: String) {
 }
 
 data class ProductUpdateRequestInput(
-    val certificateImages: tools.jackson.databind.node.ArrayNode? = null,
-    @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
-    val coverImageUrl: kotlin.String? = null,
-    val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
-    @field:Min(value = 0, message = "押金不能小于0")
-    @field:Max(value = 9999900, message = "押金不能大于99999元")
-    val depositPrice: kotlin.Long? = null,
-    @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
-    val detailContent: kotlin.String? = null,
-    @field:Positive(message = "商品ID必须为正数")
-    val id: kotlin.Long,
-    @field:Size(max = 2000, message = "图片画廊URL长度不能超过2000个字符")
-    val imageGallery: tools.jackson.databind.node.ArrayNode? = null,
-    @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
-    val mineralContent: kotlin.String? = null,
-    @field:Size(min = 2, max = 200, message = "商品名称长度应在2-200个字符之间")
-    val name: kotlin.String? = null,
-    @field:Positive(message = "原价必须为正数")
-    @field:Min(value = 1, message = "原价不能小于1分")
-    @field:Max(value = 9999900, message = "原价不能大于99999元")
-    val originalPrice: kotlin.Long? = null,
-    @field:Positive(message = "商品价格必须为正数")
-    @field:Min(value = 1, message = "商品价格不能小于1分")
-    @field:Max(value = 9999900, message = "商品价格不能大于99999元")
-    val price: kotlin.Long? = null,
-    @field:Min(value = 0, message = "销量不能小于0")
-    val salesVolume: kotlin.Int? = null,
-    @field:Min(value = 0, message = "排序权重不能小于0")
-    @field:Max(value = 9999, message = "排序权重不能大于9999")
-    val sortOrder: kotlin.Int? = null,
-    @field:Size(min = 1, max = 100, message = "商品规格长度应在1-100个字符之间")
-    val specification: kotlin.String? = null,
-    val status: ProductStatus? = null,
-    @field:Min(value = 0, message = "库存数量不能小于0")
-    @field:Max(value = 99999, message = "库存数量不能大于99999")
-    val stock: kotlin.Int? = null,
-    @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
-    val subtitle: kotlin.String? = null,
-    val tags: tools.jackson.databind.node.ArrayNode? = null,
-    @field:Size(max = 200, message = "水源地长度不能超过200个字符")
-    val waterSource: kotlin.String? = null
+  val certificateImages: tools.jackson.databind.node.ArrayNode? = null,
+  @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
+  val coverImageUrl: kotlin.String? = null,
+  val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
+  @field:Min(value = 0, message = "押金不能小于0")
+  @field:Max(value = 9999900, message = "押金不能大于99999元")
+  val depositPrice: kotlin.Long? = null,
+  @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
+  val detailContent: kotlin.String? = null,
+  @field:Positive(message = "商品ID必须为正数")
+  val id: kotlin.Long,
+  @field:Size(max = 2000, message = "图片画廊URL长度不能超过2000个字符")
+  val imageGallery: tools.jackson.databind.node.ArrayNode? = null,
+  @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
+  val mineralContent: kotlin.String? = null,
+  @field:Size(min = 2, max = 200, message = "商品名称长度应在2-200个字符之间")
+  val name: kotlin.String? = null,
+  @field:Positive(message = "原价必须为正数")
+  @field:Min(value = 1, message = "原价不能小于1分")
+  @field:Max(value = 9999900, message = "原价不能大于99999元")
+  val originalPrice: kotlin.Long? = null,
+  @field:Positive(message = "商品价格必须为正数")
+  @field:Min(value = 1, message = "商品价格不能小于1分")
+  @field:Max(value = 9999900, message = "商品价格不能大于99999元")
+  val price: kotlin.Long? = null,
+  @field:Min(value = 0, message = "销量不能小于0")
+  val salesVolume: kotlin.Int? = null,
+  @field:Min(value = 0, message = "排序权重不能小于0")
+  @field:Max(value = 9999, message = "排序权重不能大于9999")
+  val sortOrder: kotlin.Int? = null,
+  @field:Size(min = 1, max = 100, message = "商品规格长度应在1-100个字符之间")
+  val specification: kotlin.String? = null,
+  val status: ProductStatus? = null,
+  @field:Min(value = 0, message = "库存数量不能小于0")
+  @field:Max(value = 99999, message = "库存数量不能大于99999")
+  val stock: kotlin.Int? = null,
+  @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
+  val subtitle: kotlin.String? = null,
+  val tags: tools.jackson.databind.node.ArrayNode? = null,
+  @field:Size(max = 200, message = "水源地长度不能超过200个字符")
+  val waterSource: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
-      args["coverImageUrl"] as kotlin.String?,
-      args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
-      args["depositPrice"] as kotlin.Long?,
-      args["detailContent"] as kotlin.String?,
-      args["id"] as kotlin.Long,
-      args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
-      args["mineralContent"] as kotlin.String?,
-      args["name"] as kotlin.String?,
-      args["originalPrice"] as kotlin.Long?,
-      args["price"] as kotlin.Long?,
-      args["salesVolume"] as kotlin.Int?,
-      args["sortOrder"] as kotlin.Int?,
-      args["specification"] as kotlin.String?,
-      args["status"] as ProductStatus?,
-      args["stock"] as kotlin.Int?,
-      args["subtitle"] as kotlin.String?,
-      args["tags"] as tools.jackson.databind.node.ArrayNode?,
-      args["waterSource"] as kotlin.String?
+    args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
+    args["coverImageUrl"] as kotlin.String?,
+    args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
+    args["depositPrice"] as kotlin.Long?,
+    args["detailContent"] as kotlin.String?,
+    args["id"] as kotlin.Long,
+    args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
+    args["mineralContent"] as kotlin.String?,
+    args["name"] as kotlin.String?,
+    args["originalPrice"] as kotlin.Long?,
+    args["price"] as kotlin.Long?,
+    args["salesVolume"] as kotlin.Int?,
+    args["sortOrder"] as kotlin.Int?,
+    args["specification"] as kotlin.String?,
+    args["status"] as ProductStatus?,
+    args["stock"] as kotlin.Int?,
+    args["subtitle"] as kotlin.String?,
+    args["tags"] as tools.jackson.databind.node.ArrayNode?,
+    args["waterSource"] as kotlin.String?
   )
 }
 
 data class QueryActiveProductsArgs(
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20,
-    val sortBy: kotlin.String? = """createdAt""".trimIndent(),
-    val sortDirection: kotlin.String? = """desc""".trimIndent()
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20,
+  val sortBy: kotlin.String? = """createdAt""".trimIndent(),
+  val sortDirection: kotlin.String? = """desc""".trimIndent()
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20,
-      args["sortBy"] as kotlin.String? ?: """createdAt""".trimIndent(),
-      args["sortDirection"] as kotlin.String? ?: """desc""".trimIndent()
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20,
+    args["sortBy"] as kotlin.String? ?: """createdAt""".trimIndent(),
+    args["sortDirection"] as kotlin.String? ?: """desc""".trimIndent()
   )
 }
+
 data class QueryActiveProductsByStatusArgs(
-    val status: ProductStatus
+  val status: ProductStatus
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["status"] as ProductStatus
+    args["status"] as ProductStatus
   )
 }
+
 data class QueryAddressArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class QueryAdminArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
+data class QueryAssignedOrdersArgs(
+  val workerId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+    args["workerId"] as kotlin.Long
+  )
+}
+
 data class QueryCalculateDistanceArgs(
-    val lat1: kotlin.Float,
-    val lat2: kotlin.Float,
-    val lng1: kotlin.Float,
-    val lng2: kotlin.Float
+  val lat1: kotlin.Float,
+  val lat2: kotlin.Float,
+  val lng1: kotlin.Float,
+  val lng2: kotlin.Float
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["lat1"] as kotlin.Float,
-      args["lat2"] as kotlin.Float,
-      args["lng1"] as kotlin.Float,
-      args["lng2"] as kotlin.Float
+    args["lat1"] as kotlin.Float,
+    args["lat2"] as kotlin.Float,
+    args["lng1"] as kotlin.Float,
+    args["lng2"] as kotlin.Float
   )
 }
+
 data class QueryCheckOrderReviewArgs(
-    val orderId: kotlin.Long
+  val orderId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["orderId"] as kotlin.Long
+    args["orderId"] as kotlin.Long
   )
 }
+
 data class QueryDailyPaymentStatisticsArgs(
-    val dateFrom: java.time.LocalDateTime,
-    val dateTo: java.time.LocalDateTime
+  val dateFrom: java.time.LocalDateTime,
+  val dateTo: java.time.LocalDateTime
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime,
-      args["dateTo"] as java.time.LocalDateTime
+    args["dateFrom"] as java.time.LocalDateTime,
+    args["dateTo"] as java.time.LocalDateTime
   )
 }
+
 data class QueryDailyStatisticsArgs(
-    val input: DateRangeInput
+  val input: DateRangeInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      DateRangeInput(args["input"] as Map<String, Any>)
+    DateRangeInput(args["input"] as Map<String, Any>)
   )
 }
+
+data class QueryDeliveringOrdersArgs(
+  val workerId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+    args["workerId"] as kotlin.Long
+  )
+}
+
 data class QueryDeliveryAddressArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class QueryDeliveryAreaArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class QueryDeliveryWorkerArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class QueryDeliveryWorkerPublicStatisticsArgs(
-    val deliveryWorkerId: kotlin.Long
+  val deliveryWorkerId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["deliveryWorkerId"] as kotlin.Long
+    args["deliveryWorkerId"] as kotlin.Long
   )
 }
+
 data class QueryDeliveryWorkerRankingArgs(
-    val minReviews: kotlin.Int? = null,
-    val page: kotlin.Int? = null,
-    val size: kotlin.Int? = null,
-    val sortBy: kotlin.String? = null
+  val minReviews: kotlin.Int? = null,
+  val page: kotlin.Int? = null,
+  val size: kotlin.Int? = null,
+  val sortBy: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["minReviews"] as kotlin.Int?,
-      args["page"] as kotlin.Int?,
-      args["size"] as kotlin.Int?,
-      args["sortBy"] as kotlin.String?
+    args["minReviews"] as kotlin.Int?,
+    args["page"] as kotlin.Int?,
+    args["size"] as kotlin.Int?,
+    args["sortBy"] as kotlin.String?
   )
 }
+
 data class QueryDeliveryWorkerReviewsArgs(
-    val deliveryWorkerId: kotlin.Long,
-    val page: kotlin.Int? = null,
-    val size: kotlin.Int? = null
+  val deliveryWorkerId: kotlin.Long,
+  val page: kotlin.Int? = null,
+  val size: kotlin.Int? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["deliveryWorkerId"] as kotlin.Long,
-      args["page"] as kotlin.Int?,
-      args["size"] as kotlin.Int?
+    args["deliveryWorkerId"] as kotlin.Long,
+    args["page"] as kotlin.Int?,
+    args["size"] as kotlin.Int?
   )
 }
+
 data class QueryDeliveryWorkerStatisticsArgs(
-    val deliveryWorkerId: kotlin.Long
+  val deliveryWorkerId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["deliveryWorkerId"] as kotlin.Long
+    args["deliveryWorkerId"] as kotlin.Long
   )
 }
-data class QueryFavoritePeriodStatsArgs(
-    val dateRange: DateRangeInput
-) {
-  @Suppress("UNCHECKED_CAST")
-  constructor(args: Map<String, Any>) : this(
-      DateRangeInput(args["dateRange"] as Map<String, Any>)
-  )
-}
-data class QueryFavoriteProductStatsArgs(
-    val productId: kotlin.Long
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["productId"] as kotlin.Long
-  )
-}
+
 data class QueryFavoriteProductsArgs(
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20
   )
 }
-data class QueryFavoritesTrendArgs(
-    val days: kotlin.Int? = 30
+
+data class QueryFindUserByPhoneArgs(
+  val phone: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["days"] as kotlin.Int? ?: 30
+    args["phone"] as kotlin.String
   )
 }
+
+data class QueryFindUsersByAddressArgs(
+  val address: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+    args["address"] as kotlin.String
+  )
+}
+
 data class QueryGetMessageDetailArgs(
-    val messageId: kotlin.Long
+  val messageId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["messageId"] as kotlin.Long
+    args["messageId"] as kotlin.Long
   )
 }
+
 data class QueryGetMessageHistoryArgs(
-    val page: CustomPageRequestInput? = null
+  val page: CustomPageRequestInput? = null
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["page"]?.let { CustomPageRequestInput(it as Map<String, Any>) }
+    args["page"]?.let { CustomPageRequestInput(it as Map<String, Any>) }
   )
 }
+
 data class QueryGetMessagesByTypeArgs(
-    val messageType: kotlin.String,
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20
+  val messageType: kotlin.String,
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["messageType"] as kotlin.String,
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20
+    args["messageType"] as kotlin.String,
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20
   )
 }
+
 data class QueryGetRecentMessagesArgs(
-    val limit: kotlin.Int? = 10,
-    val messageType: kotlin.String? = null
+  val limit: kotlin.Int? = 10,
+  val messageType: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["limit"] as kotlin.Int? ?: 10,
-      args["messageType"] as kotlin.String?
+    args["limit"] as kotlin.Int? ?: 10,
+    args["messageType"] as kotlin.String?
   )
 }
+
 data class QueryIsInServiceAreaArgs(
-    val latitude: kotlin.Float,
-    val longitude: kotlin.Float
+  val latitude: kotlin.Float,
+  val longitude: kotlin.Float
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["latitude"] as kotlin.Float,
-      args["longitude"] as kotlin.Float
+    args["latitude"] as kotlin.Float,
+    args["longitude"] as kotlin.Float
   )
 }
+
 data class QueryIsNotificationEnabledArgs(
-    val messageType: kotlin.String
+  val messageType: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["messageType"] as kotlin.String
+    args["messageType"] as kotlin.String
   )
 }
+
 data class QueryIsProductFavoritedArgs(
-    val productId: kotlin.Long
+  val productId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["productId"] as kotlin.Long
+    args["productId"] as kotlin.Long
   )
 }
+
 data class QueryIsSubscribedToTopicArgs(
-    val topic: kotlin.String
+  val topic: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["topic"] as kotlin.String
+    args["topic"] as kotlin.String
   )
 }
+
 data class QueryLowStockProductsArgs(
-    val threshold: kotlin.Int? = 10
+  val threshold: kotlin.Int? = 10
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["threshold"] as kotlin.Int? ?: 10
+    args["threshold"] as kotlin.Int? ?: 10
   )
 }
+
 data class QueryMonthlyStatisticsArgs(
-    val input: DateRangeInput
+  val input: DateRangeInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      DateRangeInput(args["input"] as Map<String, Any>)
+    DateRangeInput(args["input"] as Map<String, Any>)
   )
 }
-data class QueryMostFavoritedProductsArgs(
-    val limit: kotlin.Int? = 10
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["limit"] as kotlin.Int? ?: 10
-  )
-}
+
 data class QueryMyPaymentTransactionsArgs(
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20
   )
 }
+
 data class QueryMyRefundRequestsArgs(
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20
   )
 }
+
 data class QueryMyReviewsArgs(
-    val page: kotlin.Int? = null,
-    val size: kotlin.Int? = null
+  val page: kotlin.Int? = null,
+  val size: kotlin.Int? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["page"] as kotlin.Int?,
-      args["size"] as kotlin.Int?
+    args["page"] as kotlin.Int?,
+    args["size"] as kotlin.Int?
   )
 }
+
 data class QueryNearbyAddressesArgs(
-    val latitude: kotlin.Float,
-    val longitude: kotlin.Float,
-    val radiusKm: kotlin.Float? = null
+  val latitude: kotlin.Float,
+  val longitude: kotlin.Float,
+  val radiusKm: kotlin.Float? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["latitude"] as kotlin.Float,
-      args["longitude"] as kotlin.Float,
-      args["radiusKm"] as kotlin.Float?
+    args["latitude"] as kotlin.Float,
+    args["longitude"] as kotlin.Float,
+    args["radiusKm"] as kotlin.Float?
   )
 }
+
 data class QueryOrderArgs(
-    val orderId: kotlin.Long
+  val orderId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["orderId"] as kotlin.Long
+    args["orderId"] as kotlin.Long
   )
 }
+
 data class QueryOrderByNumberArgs(
-    val orderNumber: kotlin.String
+  val orderNumber: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["orderNumber"] as kotlin.String
+    args["orderNumber"] as kotlin.String
   )
 }
+
 data class QueryOrderPaymentInfoArgs(
-    val orderId: kotlin.Long
+  val orderId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["orderId"] as kotlin.Long
+    args["orderId"] as kotlin.Long
   )
 }
+
 data class QueryOrderStatisticsArgs(
-    val input: DateRangeInput
+  val input: DateRangeInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      DateRangeInput(args["input"] as Map<String, Any>)
+    DateRangeInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class QueryOrdersByStatusArgs(
-    val status: OrderStatus
+  val status: OrderStatus
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["status"] as OrderStatus
+    args["status"] as OrderStatus
   )
 }
+
 data class QueryOrdersByUserArgs(
-    val userId: kotlin.Long
+  val userId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["userId"] as kotlin.Long
+    args["userId"] as kotlin.Long
   )
 }
+
 data class QueryOrdersByUserAndStatusArgs(
-    val status: OrderStatus,
-    val userId: kotlin.Long
+  val status: OrderStatus,
+  val userId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["status"] as OrderStatus,
-      args["userId"] as kotlin.Long
+    args["status"] as OrderStatus,
+    args["userId"] as kotlin.Long
   )
 }
+
 data class QueryPaymentMethodStatisticsArgs(
-    val dateFrom: java.time.LocalDateTime? = null,
-    val dateTo: java.time.LocalDateTime? = null
+  val dateFrom: java.time.LocalDateTime? = null,
+  val dateTo: java.time.LocalDateTime? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime?,
-      args["dateTo"] as java.time.LocalDateTime?
+    args["dateFrom"] as java.time.LocalDateTime?,
+    args["dateTo"] as java.time.LocalDateTime?
   )
 }
+
 data class QueryPaymentPeriodStatsArgs(
-    val from: java.time.LocalDateTime,
-    val to: java.time.LocalDateTime
+  val from: java.time.LocalDateTime,
+  val to: java.time.LocalDateTime
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["from"] as java.time.LocalDateTime,
-      args["to"] as java.time.LocalDateTime
+    args["from"] as java.time.LocalDateTime,
+    args["to"] as java.time.LocalDateTime
   )
 }
+
 data class QueryPaymentStatisticsArgs(
-    val dateFrom: java.time.LocalDateTime? = null,
-    val dateTo: java.time.LocalDateTime? = null
+  val dateFrom: java.time.LocalDateTime? = null,
+  val dateTo: java.time.LocalDateTime? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime?,
-      args["dateTo"] as java.time.LocalDateTime?
+    args["dateFrom"] as java.time.LocalDateTime?,
+    args["dateTo"] as java.time.LocalDateTime?
   )
 }
+
 data class QueryPaymentStatusArgs(
-    val transactionId: kotlin.String
+  val transactionId: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["transactionId"] as kotlin.String
+    args["transactionId"] as kotlin.String
   )
 }
+
 data class QueryPaymentTransactionArgs(
-    val id: kotlin.String
+  val id: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.String
+    args["id"] as kotlin.String
   )
 }
+
 data class QueryPaymentTransactionsArgs(
-    val dateFrom: java.time.LocalDateTime? = null,
-    val dateTo: java.time.LocalDateTime? = null,
-    val maxAmount: java.math.BigDecimal? = null,
-    val minAmount: java.math.BigDecimal? = null,
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20,
-    val status: PaymentStatus? = null,
-    val userId: kotlin.Long? = null
+  val dateFrom: java.time.LocalDateTime? = null,
+  val dateTo: java.time.LocalDateTime? = null,
+  val maxAmount: java.math.BigDecimal? = null,
+  val minAmount: java.math.BigDecimal? = null,
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20,
+  val status: PaymentStatus? = null,
+  val userId: kotlin.Long? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime?,
-      args["dateTo"] as java.time.LocalDateTime?,
-      args["maxAmount"] as java.math.BigDecimal?,
-      args["minAmount"] as java.math.BigDecimal?,
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20,
-      args["status"] as PaymentStatus?,
-      args["userId"] as kotlin.Long?
+    args["dateFrom"] as java.time.LocalDateTime?,
+    args["dateTo"] as java.time.LocalDateTime?,
+    args["maxAmount"] as java.math.BigDecimal?,
+    args["minAmount"] as java.math.BigDecimal?,
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20,
+    args["status"] as PaymentStatus?,
+    args["userId"] as kotlin.Long?
   )
 }
+
 data class QueryProductArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class QueryProductStatisticsArgs(
-    val dateRange: DateRangeInput? = null
+  val dateRange: DateRangeInput? = null
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["dateRange"]?.let { DateRangeInput(it as Map<String, Any>) }
+    args["dateRange"]?.let { DateRangeInput(it as Map<String, Any>) }
   )
 }
+
 data class QueryProductsArgs(
-    val keyword: kotlin.String? = null,
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20,
-    val status: ProductStatus? = null
+  val keyword: kotlin.String? = null,
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20,
+  val status: ProductStatus? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["keyword"] as kotlin.String?,
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20,
-      args["status"] as ProductStatus?
+    args["keyword"] as kotlin.String?,
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20,
+    args["status"] as ProductStatus?
   )
 }
+
+data class QueryProductsByFavoritesArgs(
+  val minFavorites: kotlin.Int? = null,
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+    args["minFavorites"] as kotlin.Int?,
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20
+  )
+}
+
 data class QueryProductsByMinSalesVolumeArgs(
-    val minVolume: kotlin.Int
+  val minVolume: kotlin.Int
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["minVolume"] as kotlin.Int
+    args["minVolume"] as kotlin.Int
   )
 }
+
 data class QueryProductsByPhRangeArgs(
-    val maxPh: java.math.BigDecimal,
-    val minPh: java.math.BigDecimal
+  val maxPh: java.math.BigDecimal,
+  val minPh: java.math.BigDecimal
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["maxPh"] as java.math.BigDecimal,
-      args["minPh"] as java.math.BigDecimal
+    args["maxPh"] as java.math.BigDecimal,
+    args["minPh"] as java.math.BigDecimal
   )
 }
+
 data class QueryProductsByTagArgs(
-    val tag: kotlin.String
+  val tag: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["tag"] as kotlin.String
+    args["tag"] as kotlin.String
   )
 }
+
 data class QueryProductsByWaterSourceArgs(
-    val waterSource: kotlin.String
+  val waterSource: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["waterSource"] as kotlin.String
+    args["waterSource"] as kotlin.String
   )
 }
+
 data class QueryProductsPaginatedArgs(
-    val input: ProductListInput? = null
+  val input: ProductListInput? = null
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["input"]?.let { ProductListInput(it as Map<String, Any>) }
+    args["input"]?.let { ProductListInput(it as Map<String, Any>) }
   )
 }
+
 data class QueryRefundEligibilityArgs(
-    val orderId: kotlin.Long
+  val orderId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["orderId"] as kotlin.Long
+    args["orderId"] as kotlin.Long
   )
 }
+
 data class QueryRefundRequestArgs(
-    val id: kotlin.String
+  val id: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.String
+    args["id"] as kotlin.String
   )
 }
+
 data class QueryRefundRequestsArgs(
-    val dateFrom: java.time.LocalDateTime? = null,
-    val dateTo: java.time.LocalDateTime? = null,
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20,
-    val status: RefundStatus? = null
+  val dateFrom: java.time.LocalDateTime? = null,
+  val dateTo: java.time.LocalDateTime? = null,
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20,
+  val status: RefundStatus? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime?,
-      args["dateTo"] as java.time.LocalDateTime?,
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20,
-      args["status"] as RefundStatus?
+    args["dateFrom"] as java.time.LocalDateTime?,
+    args["dateTo"] as java.time.LocalDateTime?,
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20,
+    args["status"] as RefundStatus?
   )
 }
+
 data class QueryRegionArgs(
-    val code: kotlin.String
+  val code: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["code"] as kotlin.String
+    args["code"] as kotlin.String
   )
 }
+
 data class QueryRegionByCoordinatesArgs(
-    val latitude: kotlin.Float,
-    val longitude: kotlin.Float
+  val latitude: kotlin.Float,
+  val longitude: kotlin.Float
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["latitude"] as kotlin.Float,
-      args["longitude"] as kotlin.Float
+    args["latitude"] as kotlin.Float,
+    args["longitude"] as kotlin.Float
   )
 }
+
 data class QueryRegionsArgs(
-    val level: kotlin.Int? = null,
-    val parentCode: kotlin.String? = null
+  val level: kotlin.Int? = null,
+  val parentCode: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["level"] as kotlin.Int?,
-      args["parentCode"] as kotlin.String?
+    args["level"] as kotlin.Int?,
+    args["parentCode"] as kotlin.String?
   )
 }
+
 data class QueryReviewsArgs(
-    val dateFrom: java.time.LocalDateTime? = null,
-    val dateTo: java.time.LocalDateTime? = null,
-    val deliveryWorkerId: kotlin.Long? = null,
-    val maxRating: kotlin.Int? = null,
-    val minRating: kotlin.Int? = null,
-    val page: kotlin.Int? = null,
-    val size: kotlin.Int? = null,
-    val userId: kotlin.Long? = null
+  val dateFrom: java.time.LocalDateTime? = null,
+  val dateTo: java.time.LocalDateTime? = null,
+  val deliveryWorkerId: kotlin.Long? = null,
+  val maxRating: kotlin.Int? = null,
+  val minRating: kotlin.Int? = null,
+  val page: kotlin.Int? = null,
+  val size: kotlin.Int? = null,
+  val userId: kotlin.Long? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime?,
-      args["dateTo"] as java.time.LocalDateTime?,
-      args["deliveryWorkerId"] as kotlin.Long?,
-      args["maxRating"] as kotlin.Int?,
-      args["minRating"] as kotlin.Int?,
-      args["page"] as kotlin.Int?,
-      args["size"] as kotlin.Int?,
-      args["userId"] as kotlin.Long?
+    args["dateFrom"] as java.time.LocalDateTime?,
+    args["dateTo"] as java.time.LocalDateTime?,
+    args["deliveryWorkerId"] as kotlin.Long?,
+    args["maxRating"] as kotlin.Int?,
+    args["minRating"] as kotlin.Int?,
+    args["page"] as kotlin.Int?,
+    args["size"] as kotlin.Int?,
+    args["userId"] as kotlin.Long?
   )
 }
+
 data class QuerySearchMessagesArgs(
-    val dateFrom: java.time.LocalDateTime? = null,
-    val dateTo: java.time.LocalDateTime? = null,
-    val keyword: kotlin.String,
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20
+  val dateFrom: java.time.LocalDateTime? = null,
+  val dateTo: java.time.LocalDateTime? = null,
+  val keyword: kotlin.String,
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime?,
-      args["dateTo"] as java.time.LocalDateTime?,
-      args["keyword"] as kotlin.String,
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20
+    args["dateFrom"] as java.time.LocalDateTime?,
+    args["dateTo"] as java.time.LocalDateTime?,
+    args["keyword"] as kotlin.String,
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20
   )
 }
+
 data class QuerySearchRegionsArgs(
-    val keyword: kotlin.String,
-    val level: kotlin.Int? = null
+  val keyword: kotlin.String,
+  val level: kotlin.Int? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["keyword"] as kotlin.String,
-      args["level"] as kotlin.Int?
+    args["keyword"] as kotlin.String,
+    args["level"] as kotlin.Int?
   )
 }
+
 data class QuerySuspiciousTransactionsArgs(
-    val dateFrom: java.time.LocalDateTime? = null,
-    val dateTo: java.time.LocalDateTime? = null,
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20
+  val dateFrom: java.time.LocalDateTime? = null,
+  val dateTo: java.time.LocalDateTime? = null,
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["dateFrom"] as java.time.LocalDateTime?,
-      args["dateTo"] as java.time.LocalDateTime?,
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20
+    args["dateFrom"] as java.time.LocalDateTime?,
+    args["dateTo"] as java.time.LocalDateTime?,
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20
   )
 }
+
 data class QueryTopSalesProductsArgs(
-    val limit: kotlin.Int? = 10
+  val limit: kotlin.Int? = 10
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["limit"] as kotlin.Int? ?: 10
+    args["limit"] as kotlin.Int? ?: 10
   )
 }
+
 data class QueryUserArgs(
-    val id: kotlin.Long
+  val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
+    args["id"] as kotlin.Long
   )
 }
+
 data class QueryUserAddressesArgs(
-    val userId: kotlin.Long? = null
+  val userId: kotlin.Long? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["userId"] as kotlin.Long?
+    args["userId"] as kotlin.Long?
   )
 }
-data class QueryUserFavoriteInsightsArgs(
-    val userId: kotlin.Long
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["userId"] as kotlin.Long
-  )
-}
-data class QueryUserFavoritesWithDetailsArgs(
-    val input: AdminFavoriteListInput
-) {
-  @Suppress("UNCHECKED_CAST")
-  constructor(args: Map<String, Any>) : this(
-      AdminFavoriteListInput(args["input"] as Map<String, Any>)
-  )
-}
+
 data class QueryUserPaymentTransactionsArgs(
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20,
-    val userId: kotlin.Long
+  val page: kotlin.Int? = 0,
+  val size: kotlin.Int? = 20,
+  val userId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20,
-      args["userId"] as kotlin.Long
+    args["page"] as kotlin.Int? ?: 0,
+    args["size"] as kotlin.Int? ?: 20,
+    args["userId"] as kotlin.Long
   )
 }
+
 data class QueryUsersArgs(
-    val input: UserListInput? = null
+  val input: UserListInput? = null
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      args["input"]?.let { UserListInput(it as Map<String, Any>) }
+    args["input"]?.let { UserListInput(it as Map<String, Any>) }
   )
 }
-data class QueryUsersWithFavoritesArgs(
-    val input: AdminFavoriteListInput
-) {
-  @Suppress("UNCHECKED_CAST")
-  constructor(args: Map<String, Any>) : this(
-      AdminFavoriteListInput(args["input"] as Map<String, Any>)
-  )
-}
+
 data class QueryValidateAddressArgs(
-    val input: ValidateAddressInput
+  val input: ValidateAddressInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      ValidateAddressInput(args["input"] as Map<String, Any>)
+    ValidateAddressInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class QueryWeeklyStatisticsArgs(
-    val input: DateRangeInput
+  val input: DateRangeInput
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      DateRangeInput(args["input"] as Map<String, Any>)
+    DateRangeInput(args["input"] as Map<String, Any>)
   )
 }
+
 data class Query(
-    val activeProducts: ProductPage,
-    val activeProductsByStatus: Iterable<Product>,
-    val address: Address?,
-    val addresses: Iterable<Address>,
-    val admin: Admin?,
-    val admins: Iterable<Admin>,
-    val allActiveProducts: Iterable<Product>,
-    val allProducts: Iterable<Product>,
-    val calculateDistance: DistancePayload?,
-    val checkOrderReview: OrderReviewCheckResponse,
-    val dailyPaymentStatistics: Iterable<DailyPaymentStats>,
-    val dailyStatistics: Iterable<DailyStatistic>,
-    val defaultRegionHierarchy: RegionHierarchy?,
-    val deliveryAddress: DeliveryAddress?,
-    val deliveryAddresses: Iterable<DeliveryAddress>,
-    val deliveryArea: DeliveryArea?,
-    val deliveryAreas: Iterable<DeliveryArea>,
-    val deliveryWorker: DeliveryWorker?,
-    val deliveryWorkerPublicStatistics: Review,
-    val deliveryWorkerRanking: Iterable<DeliveryWorkerRankingResponse>,
-    val deliveryWorkerReviews: Iterable<Review>,
-    val deliveryWorkerStatistics: DeliveryWorkerStatisticsResponse?,
-    val deliveryWorkers: Iterable<DeliveryWorker>,
-    val enabledDeliveryAreas: Iterable<DeliveryArea>,
-    val favoritePeriodStats: kotlin.collections.Map<String, Any>,
-    val favoriteProductStats: FavoriteProductStats?,
-    val favoriteProducts: FavoriteProductPage,
-    val favoritesCount: kotlin.Long,
-    val favoritesTrend: Iterable<FavoriteTrendData>,
-    val getDoNotDisturbSettings: DoNotDisturbSettings,
-    val getMessageDetail: ClientMessage?,
-    val getMessageHistory: MessageHistoryPage,
-    val getMessageStatistics: MessageStatistics,
-    val getMessageTypes: Iterable<MessageTypeInfo>,
-    val getMessagesByType: MessageHistoryPage,
-    val getRecentMessages: Iterable<ClientMessage>,
-    val getSubscribedTopics: Iterable<kotlin.String>,
-    val getUnreadMessageCount: kotlin.Int,
-    val getUserNotificationSettings: UserNotificationSettings,
-    val isInServiceArea: ServiceAreaPayload?,
-    val isNotificationEnabled: kotlin.Boolean,
-    val isProductFavorited: kotlin.Boolean,
-    val isSubscribedToTopic: kotlin.Boolean,
-    val lowStockProducts: Iterable<LowStockAlert>,
-    val me: UserInfo?,
-    val monthlyStatistics: Iterable<MonthlyStatistic>,
-    val mostFavoritedProducts: Iterable<ProductFavoriteCount>,
-    val myPaymentTransactions: Iterable<UserPaymentTransaction>,
-    val myRefundRequests: Iterable<RefundRequest>,
-    val myReviews: Iterable<Review>,
-    val nearbyAddresses: NearbyAddressesPayload?,
-    val onlineDeliveryWorkers: Iterable<DeliveryWorker>,
-    val order: Order?,
-    val orderByNumber: Order?,
-    val orderPaymentInfo: OrderPaymentInfo,
-    val orderStatistics: OrderStatistics,
-    val ordersByStatus: Iterable<Order>,
-    val ordersByUser: Iterable<Order>,
-    val ordersByUserAndStatus: Iterable<Order>,
-    val paymentMethodStatistics: Iterable<PaymentMethodStats>,
-    val paymentPeriodStats: Iterable<PaymentPeriodStats>,
-    val paymentStatistics: PaymentStatistics?,
-    val paymentStatus: kotlin.String,
-    val paymentTransaction: PaymentTransaction?,
-    val paymentTransactions: Iterable<PaymentTransaction>,
-    val product: Product?,
-    val productStatistics: ProductStatistics?,
-    val products: ProductPage,
-    val productsByMinSalesVolume: Iterable<Product>,
-    val productsByPhRange: Iterable<Product>,
-    val productsByTag: Iterable<Product>,
-    val productsByWaterSource: Iterable<Product>,
-    val productsPaginated: ProductPage?,
-    val productsSortedBySalesVolume: Iterable<Product>,
-    val productsSortedBySortOrder: Iterable<Product>,
-    val refundEligibility: RefundEligibility,
-    val refundRequest: RefundRequest?,
-    val refundRequests: Iterable<RefundRequest>,
-    val region: Region?,
-    val regionByCoordinates: RegionCoordinatesPayload?,
-    val regions: Iterable<Region>,
-    val reviews: Iterable<Review>,
-    val searchMessages: MessageHistoryPage,
-    val searchRegions: Iterable<Region>,
-    val specificationStatistics: kotlin.collections.Map<String, Any>,
-    val suspiciousTransactions: Iterable<SuspiciousTransaction>,
-    val topSalesProducts: Iterable<Product>,
-    val user: User?,
-    val userAddresses: Iterable<Address>,
-    val userDefaultAddress: Address?,
-    val userFavoriteAnalytics: UserFavoriteAnalytics,
-    val userFavoriteInsights: UserFavoriteInsights,
-    val userFavoritesWithDetails: UserFavoriteWithProductPage,
-    val userPaymentTransactions: Iterable<PaymentTransaction>,
-    val users: UserPage,
-    val usersWithFavorites: UserFavoriteSummaryPage,
-    val validateAddress: kotlin.Boolean,
-    val waterSourceStatistics: kotlin.collections.Map<String, Any>,
-    val weeklyStatistics: Iterable<WeeklyStatistic>
+  val activeProducts: ProductPage,
+  val activeProductsByStatus: Iterable<Product>,
+  val address: Address?,
+  val addresses: Iterable<Address>,
+  val admin: Admin?,
+  val admins: Iterable<Admin>,
+  val allActiveProducts: Iterable<Product>,
+  val allProducts: Iterable<Product>,
+  val allProductsFavoriteStats: AllProductsFavoriteStats,
+  val assignedOrders: Iterable<Order>,
+  val calculateDistance: DistancePayload?,
+  val checkOrderReview: OrderReviewCheckResponse,
+  val dailyPaymentStatistics: Iterable<DailyPaymentStats>,
+  val dailyStatistics: Iterable<DailyStatistic>,
+  val defaultRegionHierarchy: RegionHierarchy?,
+  val deliveringOrders: Iterable<Order>,
+  val deliveryAddress: DeliveryAddress?,
+  val deliveryAddresses: Iterable<DeliveryAddress>,
+  val deliveryArea: DeliveryArea?,
+  val deliveryAreas: Iterable<DeliveryArea>,
+  val deliveryWorker: DeliveryWorker?,
+  val deliveryWorkerPublicStatistics: Review,
+  val deliveryWorkerRanking: Iterable<DeliveryWorkerRankingResponse>,
+  val deliveryWorkerReviews: Iterable<Review>,
+  val deliveryWorkerStatistics: DeliveryWorkerStatisticsResponse?,
+  val deliveryWorkers: Iterable<DeliveryWorker>,
+  val enabledDeliveryAreas: Iterable<DeliveryArea>,
+  val favoriteProducts: FavoriteProductPage,
+  val favoritesCount: kotlin.Long,
+  val findUserByPhone: User?,
+  val findUsersByAddress: Iterable<User>,
+  val getDoNotDisturbSettings: DoNotDisturbSettings,
+  val getMessageDetail: ClientMessage?,
+  val getMessageHistory: MessageHistoryPage,
+  val getMessageStatistics: MessageStatistics,
+  val getMessageTypes: Iterable<MessageTypeInfo>,
+  val getMessagesByType: MessageHistoryPage,
+  val getRecentMessages: Iterable<ClientMessage>,
+  val getSubscribedTopics: Iterable<kotlin.String>,
+  val getUnreadMessageCount: kotlin.Int,
+  val getUserNotificationSettings: UserNotificationSettings,
+  val isInServiceArea: ServiceAreaPayload?,
+  val isNotificationEnabled: kotlin.Boolean,
+  val isProductFavorited: kotlin.Boolean,
+  val isSubscribedToTopic: kotlin.Boolean,
+  val lowStockProducts: Iterable<LowStockAlert>,
+  val me: UserInfo?,
+  val monthlyStatistics: Iterable<MonthlyStatistic>,
+  val myAssignedOrders: Iterable<Order>,
+  val myDeliveringOrders: Iterable<Order>,
+  val myPaymentTransactions: Iterable<UserPaymentTransaction>,
+  val myRefundRequests: Iterable<RefundRequest>,
+  val myReviews: Iterable<Review>,
+  val nearbyAddresses: NearbyAddressesPayload?,
+  val onlineDeliveryWorkers: Iterable<DeliveryWorker>,
+  val order: Order?,
+  val orderByNumber: Order?,
+  val orderPaymentInfo: OrderPaymentInfo,
+  val orderStatistics: OrderStatistics,
+  val ordersByStatus: Iterable<Order>,
+  val ordersByUser: Iterable<Order>,
+  val ordersByUserAndStatus: Iterable<Order>,
+  val paymentMethodStatistics: Iterable<PaymentMethodStats>,
+  val paymentPeriodStats: Iterable<PaymentPeriodStats>,
+  val paymentStatistics: PaymentStatistics?,
+  val paymentStatus: kotlin.String,
+  val paymentTransaction: PaymentTransaction?,
+  val paymentTransactions: Iterable<PaymentTransaction>,
+  val pendingDeliveryOrders: Iterable<Order>,
+  val product: Product?,
+  val productStatistics: ProductStatistics?,
+  val products: ProductPage,
+  val productsByFavorites: ProductFavoritePage,
+  val productsByMinSalesVolume: Iterable<Product>,
+  val productsByPhRange: Iterable<Product>,
+  val productsByTag: Iterable<Product>,
+  val productsByWaterSource: Iterable<Product>,
+  val productsPaginated: ProductPage?,
+  val productsSortedBySalesVolume: Iterable<Product>,
+  val productsSortedBySortOrder: Iterable<Product>,
+  val refundEligibility: RefundEligibility,
+  val refundRequest: RefundRequest?,
+  val refundRequests: Iterable<RefundRequest>,
+  val region: Region?,
+  val regionByCoordinates: RegionCoordinatesPayload?,
+  val regions: Iterable<Region>,
+  val reviews: Iterable<Review>,
+  val searchMessages: MessageHistoryPage,
+  val searchRegions: Iterable<Region>,
+  val specificationStatistics: kotlin.collections.Map<String, Any>,
+  val suspiciousTransactions: Iterable<SuspiciousTransaction>,
+  val todayStatistics: TodayStatistics,
+  val topSalesProducts: Iterable<Product>,
+  val user: User?,
+  val userAddresses: Iterable<Address>,
+  val userDefaultAddress: Address?,
+  val userPaymentTransactions: Iterable<PaymentTransaction>,
+  val users: UserPage,
+  val validateAddress: kotlin.Boolean,
+  val waterSourceStatistics: kotlin.collections.Map<String, Any>,
+  val weeklyStatistics: Iterable<WeeklyStatistic>
 )
 
 data class RefreshTokenInput(
-    @field:NotBlank(message = "刷新令牌不能为空")
-    @field:Size(min = 10, max = 1000, message = "刷新令牌长度应在10-1000个字符之间")
-    val refreshToken: kotlin.String
+  @field:NotBlank(message = "刷新令牌不能为空")
+  @field:Size(min = 10, max = 1000, message = "刷新令牌长度应在10-1000个字符之间")
+  val refreshToken: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["refreshToken"] as kotlin.String
+    args["refreshToken"] as kotlin.String
   )
 }
 
 enum class RefundAction(val label: String) {
-      APPROVE("APPROVE"),
-      REJECT("REJECT");
+  APPROVE("APPROVE"),
+  REJECT("REJECT");
 
   companion object {
     @JvmStatic
@@ -2675,57 +2932,69 @@ enum class RefundAction(val label: String) {
   }
 }
 
+data class RefundBucketDepositInput(
+  @field:Positive(message = "押桶记录ID必须为正数")
+  val depositId: kotlin.Long,
+  @field:Size(max = 500, message = "备注长度不能超过500个字符")
+  val remark: kotlin.String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+    args["depositId"] as kotlin.Long,
+    args["remark"] as kotlin.String?
+  )
+}
+
 data class RefundEligibility(
-    val deadline: java.time.LocalDateTime?,
-    val eligible: kotlin.Boolean,
-    val orderAmount: kotlin.Long,
-    val orderId: kotlin.Long,
-    val paidAmount: kotlin.Long,
-    val refundPolicy: kotlin.String?,
-    val refundReason: kotlin.String?,
-    val refundableAmount: kotlin.Long
+  val deadline: java.time.LocalDateTime?,
+  val eligible: kotlin.Boolean,
+  val orderAmount: kotlin.Long,
+  val orderId: kotlin.Long,
+  val paidAmount: kotlin.Long,
+  val refundPolicy: kotlin.String?,
+  val refundReason: kotlin.String?,
+  val refundableAmount: kotlin.Long
 )
 
 data class RefundInput(
-    @field:Positive(message = "退款金额必须为正数")
-    @field:Min(value = 1, message = "退款金额不能小于1分")
-    @field:Max(value = 9999900, message = "退款金额不能大于99999元")
-    val refundAmount: kotlin.Long,
-    @field:Positive(message = "总金额必须为正数")
-    @field:Min(value = 1, message = "总金额不能小于1分")
-    @field:Max(value = 9999900, message = "总金额不能大于99999元")
-    val totalAmount: kotlin.Long,
-    @field:NotBlank(message = "交易ID不能为空")
-    @field:Size(min = 10, max = 100, message = "交易ID长度应在10-100个字符之间")
-    val transactionId: kotlin.String
+  @field:Positive(message = "退款金额必须为正数")
+  @field:Min(value = 1, message = "退款金额不能小于1分")
+  @field:Max(value = 9999900, message = "退款金额不能大于99999元")
+  val refundAmount: kotlin.Long,
+  @field:Positive(message = "总金额必须为正数")
+  @field:Min(value = 1, message = "总金额不能小于1分")
+  @field:Max(value = 9999900, message = "总金额不能大于99999元")
+  val totalAmount: kotlin.Long,
+  @field:NotBlank(message = "交易ID不能为空")
+  @field:Size(min = 10, max = 100, message = "交易ID长度应在10-100个字符之间")
+  val transactionId: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["refundAmount"] as kotlin.Long,
-      args["totalAmount"] as kotlin.Long,
-      args["transactionId"] as kotlin.String
+    args["refundAmount"] as kotlin.Long,
+    args["totalAmount"] as kotlin.Long,
+    args["transactionId"] as kotlin.String
   )
 }
 
 data class RefundRequest(
-    val adminNote: kotlin.String?,
-    val amount: kotlin.Long,
-    val id: kotlin.String,
-    val orderId: kotlin.Long,
-    val originalTransactionId: kotlin.String,
-    val processedAt: java.time.LocalDateTime?,
-    val processedBy: kotlin.Long?,
-    val reason: kotlin.String,
-    val requestedAt: java.time.LocalDateTime,
-    val status: RefundStatus,
-    val userId: kotlin.Long
+  val adminNote: kotlin.String?,
+  val amount: kotlin.Long,
+  val id: kotlin.String,
+  val orderId: kotlin.Long,
+  val originalTransactionId: kotlin.String,
+  val processedAt: java.time.LocalDateTime?,
+  val processedBy: kotlin.Long?,
+  val reason: kotlin.String,
+  val requestedAt: java.time.LocalDateTime,
+  val status: RefundStatus,
+  val userId: kotlin.Long
 )
 
 enum class RefundStatus(val label: String) {
-      APPROVED("APPROVED"),
-      COMPLETED("COMPLETED"),
-      FAILED("FAILED"),
-      PENDING("PENDING"),
-      REJECTED("REJECTED");
+  APPROVED("APPROVED"),
+  COMPLETED("COMPLETED"),
+  FAILED("FAILED"),
+  PENDING("PENDING"),
+  REJECTED("REJECTED");
 
   companion object {
     @JvmStatic
@@ -2736,83 +3005,83 @@ enum class RefundStatus(val label: String) {
 }
 
 data class Region(
-    val code: kotlin.String,
-    val createdAt: java.time.LocalDateTime,
-    val id: kotlin.Long,
-    val level: kotlin.Int,
-    val name: kotlin.String,
-    val parentCode: kotlin.String?,
-    val updatedAt: java.time.LocalDateTime
+  val code: kotlin.String,
+  val createdAt: java.time.LocalDateTime,
+  val id: kotlin.Long,
+  val level: kotlin.Int,
+  val name: kotlin.String,
+  val parentCode: kotlin.String?,
+  val updatedAt: java.time.LocalDateTime
 )
 
 data class RegionCoordinatesPayload(
-    val message: kotlin.String,
-    val region: Region?,
-    val success: kotlin.Boolean
+  val message: kotlin.String,
+  val region: Region?,
+  val success: kotlin.Boolean
 )
 
 data class RegionHierarchy(
-    val cities: Iterable<Region>,
-    val city: Region,
-    val district: Region,
-    val districts: Iterable<Region>,
-    val province: Region,
-    val provinces: Iterable<Region>
+  val cities: Iterable<Region>,
+  val city: Region,
+  val district: Region,
+  val districts: Iterable<Region>,
+  val province: Region,
+  val provinces: Iterable<Region>
 )
 
 data class RequestRefundInput(
-    val amount: java.math.BigDecimal,
-    val orderId: kotlin.Long,
-    val outTradeNo: kotlin.String,
-    val reason: kotlin.String
+  val amount: java.math.BigDecimal,
+  val orderId: kotlin.Long,
+  val outTradeNo: kotlin.String,
+  val reason: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["amount"] as java.math.BigDecimal,
-      args["orderId"] as kotlin.Long,
-      args["outTradeNo"] as kotlin.String,
-      args["reason"] as kotlin.String
+    args["amount"] as java.math.BigDecimal,
+    args["orderId"] as kotlin.Long,
+    args["outTradeNo"] as kotlin.String,
+    args["reason"] as kotlin.String
   )
 }
 
 data class ReverseGeocodePayload(
-    val city: kotlin.String?,
-    val cityCode: kotlin.String?,
-    val confidence: kotlin.Float?,
-    val district: kotlin.String?,
-    val districtCode: kotlin.String?,
-    val formattedAddress: kotlin.String?,
-    val message: kotlin.String,
-    val province: kotlin.String?,
-    val provinceCode: kotlin.String?,
-    val street: kotlin.String?,
-    val success: kotlin.Boolean
+  val city: kotlin.String?,
+  val cityCode: kotlin.String?,
+  val confidence: kotlin.Float?,
+  val district: kotlin.String?,
+  val districtCode: kotlin.String?,
+  val formattedAddress: kotlin.String?,
+  val message: kotlin.String,
+  val province: kotlin.String?,
+  val provinceCode: kotlin.String?,
+  val street: kotlin.String?,
+  val success: kotlin.Boolean
 )
 
 data class Review(
-    val comment: kotlin.String?,
-    val createdAt: java.time.LocalDateTime,
-    val deliveryWorkerId: kotlin.Long,
-    val deliveryWorkerName: kotlin.String?,
-    val isAnonymous: kotlin.Boolean,
-    val orderId: kotlin.Long,
-    val rating: kotlin.Int,
-    val reviewId: kotlin.Long,
-    val userId: kotlin.Long?
+  val comment: kotlin.String?,
+  val createdAt: java.time.LocalDateTime,
+  val deliveryWorkerId: kotlin.Long,
+  val deliveryWorkerName: kotlin.String?,
+  val isAnonymous: kotlin.Boolean,
+  val orderId: kotlin.Long,
+  val rating: kotlin.Int,
+  val reviewId: kotlin.Long,
+  val userId: kotlin.Long?
 )
 
 data class SalesReport(
-    val dateRange: DateRange,
-    val salesBySpecification: Iterable<SpecificationStatistics>,
-    val salesByWaterSource: Iterable<WaterSourceStatistics>,
-    val topSellingProducts: Iterable<ProductSalesInfo>,
-    val totalRevenue: kotlin.Long,
-    val totalSales: kotlin.Int
+  val dateRange: DateRange,
+  val salesBySpecification: Iterable<SpecificationStatistics>,
+  val salesByWaterSource: Iterable<WaterSourceStatistics>,
+  val topSellingProducts: Iterable<ProductSalesInfo>,
+  val totalRevenue: kotlin.Long,
+  val totalSales: kotlin.Int
 )
 
 enum class SalesReportGroupBy(val label: String) {
-      DAY("DAY"),
-      MONTH("MONTH"),
-      WEEK("WEEK");
+  DAY("DAY"),
+  MONTH("MONTH"),
+  WEEK("WEEK");
 
   companion object {
     @JvmStatic
@@ -2823,67 +3092,67 @@ enum class SalesReportGroupBy(val label: String) {
 }
 
 data class SalesReportInput(
-    val dateRange: DateRangeInput,
-    val groupBy: SalesReportGroupBy = SalesReportGroupBy.DAY,
-    val includeSpecificationBreakdown: kotlin.Boolean = true,
-    val includeWaterSourceBreakdown: kotlin.Boolean = true,
-    @field:Min(value = 1, message = "热销商品数量不能小于1")
-    @field:Max(value = 100, message = "热销商品数量不能大于100")
-    val topProductLimit: kotlin.Int = 10
+  val dateRange: DateRangeInput,
+  val groupBy: SalesReportGroupBy = SalesReportGroupBy.DAY,
+  val includeSpecificationBreakdown: kotlin.Boolean = true,
+  val includeWaterSourceBreakdown: kotlin.Boolean = true,
+  @field:Min(value = 1, message = "热销商品数量不能小于1")
+  @field:Max(value = 100, message = "热销商品数量不能大于100")
+  val topProductLimit: kotlin.Int = 10
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
-      DateRangeInput(args["dateRange"] as Map<String, Any>),
-      args["groupBy"] as SalesReportGroupBy? ?: SalesReportGroupBy.DAY,
-      args["includeSpecificationBreakdown"] as kotlin.Boolean? ?: true,
-      args["includeWaterSourceBreakdown"] as kotlin.Boolean? ?: true,
-      args["topProductLimit"] as kotlin.Int? ?: 10
+    DateRangeInput(args["dateRange"] as Map<String, Any>),
+    args["groupBy"] as SalesReportGroupBy? ?: SalesReportGroupBy.DAY,
+    args["includeSpecificationBreakdown"] as kotlin.Boolean? ?: true,
+    args["includeWaterSourceBreakdown"] as kotlin.Boolean? ?: true,
+    args["topProductLimit"] as kotlin.Int? ?: 10
   )
 }
 
 data class ServiceAreaPayload(
-    val inServiceArea: kotlin.Boolean,
-    val message: kotlin.String,
-    val success: kotlin.Boolean
+  val inServiceArea: kotlin.Boolean,
+  val message: kotlin.String,
+  val success: kotlin.Boolean
 )
 
 data class SpecificationStatistics(
-    val averagePrice: kotlin.Long,
-    val productCount: kotlin.Int,
-    val specification: kotlin.String,
-    val totalSalesVolume: kotlin.Int
+  val averagePrice: kotlin.Long,
+  val productCount: kotlin.Int,
+  val specification: kotlin.String,
+  val totalSalesVolume: kotlin.Int
 )
 
 data class StockAdjustmentInput(
-    @field:Positive(message = "商品ID必须为正数")
-    val productId: kotlin.Long,
-    @field:Min(value = 1, message = "调整数量不能小于1")
-    @field:Max(value = 99999, message = "调整数量不能大于99999")
-    val quantity: kotlin.Int,
-    @field:Size(max = 500, message = "调整原因长度不能超过500个字符")
-    val reason: kotlin.String? = null,
-    val type: StockAdjustmentType
+  @field:Positive(message = "商品ID必须为正数")
+  val productId: kotlin.Long,
+  @field:Min(value = 1, message = "调整数量不能小于1")
+  @field:Max(value = 99999, message = "调整数量不能大于99999")
+  val quantity: kotlin.Int,
+  @field:Size(max = 500, message = "调整原因长度不能超过500个字符")
+  val reason: kotlin.String? = null,
+  val type: StockAdjustmentType
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["productId"] as kotlin.Long,
-      args["quantity"] as kotlin.Int,
-      args["reason"] as kotlin.String?,
-      args["type"] as StockAdjustmentType
+    args["productId"] as kotlin.Long,
+    args["quantity"] as kotlin.Int,
+    args["reason"] as kotlin.String?,
+    args["type"] as StockAdjustmentType
   )
 }
 
 data class StockAdjustmentResult(
-    val message: kotlin.String,
-    val newStock: kotlin.Int?,
-    val previousStock: kotlin.Int?,
-    val productId: kotlin.Long,
-    val success: kotlin.Boolean
+  val message: kotlin.String,
+  val newStock: kotlin.Int?,
+  val previousStock: kotlin.Int?,
+  val productId: kotlin.Long,
+  val success: kotlin.Boolean
 )
 
 enum class StockAdjustmentType(val label: String) {
-      DECREASE("DECREASE"),
-      INCREASE("INCREASE"),
-      SET("SET");
+  DECREASE("DECREASE"),
+  INCREASE("INCREASE"),
+  SET("SET");
 
   companion object {
     @JvmStatic
@@ -2894,276 +3163,283 @@ enum class StockAdjustmentType(val label: String) {
 }
 
 data class SuspiciousTransaction(
-    val adminNote: kotlin.String?,
-    val amount: kotlin.Long,
-    val createdAt: java.time.LocalDateTime,
-    val frozenAt: java.time.LocalDateTime?,
-    val frozenBy: kotlin.Long?,
-    val id: kotlin.String,
-    val isFrozen: kotlin.Boolean,
-    val metadata: kotlin.collections.Map<String, Any>?,
-    val orderId: kotlin.Long,
-    val paymentMethod: PaymentMethod,
-    val riskScore: kotlin.Float,
-    val status: PaymentStatus,
-    val suspiciousReason: kotlin.String,
-    val transactionId: kotlin.String?,
-    val userId: kotlin.Long
+  val adminNote: kotlin.String?,
+  val amount: kotlin.Long,
+  val createdAt: java.time.LocalDateTime,
+  val frozenAt: java.time.LocalDateTime?,
+  val frozenBy: kotlin.Long?,
+  val id: kotlin.String,
+  val isFrozen: kotlin.Boolean,
+  val metadata: kotlin.collections.Map<String, Any>?,
+  val orderId: kotlin.Long,
+  val paymentMethod: PaymentMethod,
+  val riskScore: kotlin.Float,
+  val status: PaymentStatus,
+  val suspiciousReason: kotlin.String,
+  val transactionId: kotlin.String?,
+  val userId: kotlin.Long
+)
+
+data class TodayStatistics(
+  val completedOrders: kotlin.Int,
+  val earningCents: kotlin.Long,
+  val pendingOrders: kotlin.Int,
+  val totalOrders: kotlin.Int
 )
 
 data class UpdateAddressInput(
-    @field:NotBlank(message = "城市不能为空")
-    val city: kotlin.String? = null,
-    @field:Size(min = 1, max = 20, message = "城市代码长度应在1-20个字符之间")
-    val cityCode: kotlin.String? = null,
-    @field:NotBlank(message = "详细地址不能为空")
-    @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
-    val detailAddress: kotlin.String? = null,
-    @field:NotBlank(message = "区县不能为空")
-    val district: kotlin.String? = null,
-    @field:Size(min = 1, max = 20, message = "区县代码长度应在1-20个字符之间")
-    val districtCode: kotlin.String? = null,
-    val isDefault: kotlin.Boolean? = null,
-    @field:Min(value = -90, message = "纬度不能小于-90")
-    @field:Max(value = 90, message = "纬度不能大于90")
-    val latitude: kotlin.Float? = null,
-    @field:Min(value = -180, message = "经度不能小于-180")
-    @field:Max(value = 180, message = "经度不能大于180")
-    val longitude: kotlin.Float? = null,
-    @field:NotBlank(message = "收货人手机号不能为空")
-    @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    val phone: kotlin.String? = null,
-    @field:NotBlank(message = "省份不能为空")
-    val province: kotlin.String? = null,
-    @field:Size(min = 1, max = 20, message = "省份代码长度应在1-20个字符之间")
-    val provinceCode: kotlin.String? = null,
-    @field:NotBlank(message = "收货人姓名不能为空")
-    @field:Size(min = 2, max = 20, message = "收货人姓名长度应在2-20个字符之间")
-    val receiverName: kotlin.String? = null
+  @field:NotBlank(message = "城市不能为空")
+  val city: kotlin.String? = null,
+  @field:Size(min = 1, max = 20, message = "城市代码长度应在1-20个字符之间")
+  val cityCode: kotlin.String? = null,
+  @field:NotBlank(message = "详细地址不能为空")
+  @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
+  val detailAddress: kotlin.String? = null,
+  @field:NotBlank(message = "区县不能为空")
+  val district: kotlin.String? = null,
+  @field:Size(min = 1, max = 20, message = "区县代码长度应在1-20个字符之间")
+  val districtCode: kotlin.String? = null,
+  val isDefault: kotlin.Boolean? = null,
+  @field:Min(value = -90, message = "纬度不能小于-90")
+  @field:Max(value = 90, message = "纬度不能大于90")
+  val latitude: kotlin.Float? = null,
+  @field:Min(value = -180, message = "经度不能小于-180")
+  @field:Max(value = 180, message = "经度不能大于180")
+  val longitude: kotlin.Float? = null,
+  @field:NotBlank(message = "收货人手机号不能为空")
+  @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+  val phone: kotlin.String? = null,
+  @field:NotBlank(message = "省份不能为空")
+  val province: kotlin.String? = null,
+  @field:Size(min = 1, max = 20, message = "省份代码长度应在1-20个字符之间")
+  val provinceCode: kotlin.String? = null,
+  @field:NotBlank(message = "收货人姓名不能为空")
+  @field:Size(min = 2, max = 20, message = "收货人姓名长度应在2-20个字符之间")
+  val receiverName: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["city"] as kotlin.String?,
-      args["cityCode"] as kotlin.String?,
-      args["detailAddress"] as kotlin.String?,
-      args["district"] as kotlin.String?,
-      args["districtCode"] as kotlin.String?,
-      args["isDefault"] as kotlin.Boolean?,
-      args["latitude"] as kotlin.Float?,
-      args["longitude"] as kotlin.Float?,
-      args["phone"] as kotlin.String?,
-      args["province"] as kotlin.String?,
-      args["provinceCode"] as kotlin.String?,
-      args["receiverName"] as kotlin.String?
+    args["city"] as kotlin.String?,
+    args["cityCode"] as kotlin.String?,
+    args["detailAddress"] as kotlin.String?,
+    args["district"] as kotlin.String?,
+    args["districtCode"] as kotlin.String?,
+    args["isDefault"] as kotlin.Boolean?,
+    args["latitude"] as kotlin.Float?,
+    args["longitude"] as kotlin.Float?,
+    args["phone"] as kotlin.String?,
+    args["province"] as kotlin.String?,
+    args["provinceCode"] as kotlin.String?,
+    args["receiverName"] as kotlin.String?
   )
 }
 
 data class UpdateDeliveryAddressInput(
-    @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
-    val city: kotlin.String? = null,
-    @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
-    val detailAddress: kotlin.String? = null,
-    @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
-    val district: kotlin.String? = null,
-    @field:Min(value = -90, message = "纬度不能小于-90")
-    @field:Max(value = 90, message = "纬度不能大于90")
-    val latitude: kotlin.Float? = null,
-    @field:Min(value = -180, message = "经度不能小于-180")
-    @field:Max(value = 180, message = "经度不能大于180")
-    val longitude: kotlin.Float? = null,
-    @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
-    val province: kotlin.String? = null,
-    @field:Size(min = 2, max = 20, message = "收货人姓名长度应在2-20个字符之间")
-    val receiverName: kotlin.String? = null,
-    @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    val receiverPhone: kotlin.String? = null
+  @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
+  val city: kotlin.String? = null,
+  @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
+  val detailAddress: kotlin.String? = null,
+  @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
+  val district: kotlin.String? = null,
+  @field:Min(value = -90, message = "纬度不能小于-90")
+  @field:Max(value = 90, message = "纬度不能大于90")
+  val latitude: kotlin.Float? = null,
+  @field:Min(value = -180, message = "经度不能小于-180")
+  @field:Max(value = 180, message = "经度不能大于180")
+  val longitude: kotlin.Float? = null,
+  @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
+  val province: kotlin.String? = null,
+  @field:Size(min = 2, max = 20, message = "收货人姓名长度应在2-20个字符之间")
+  val receiverName: kotlin.String? = null,
+  @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+  val receiverPhone: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["city"] as kotlin.String?,
-      args["detailAddress"] as kotlin.String?,
-      args["district"] as kotlin.String?,
-      args["latitude"] as kotlin.Float?,
-      args["longitude"] as kotlin.Float?,
-      args["province"] as kotlin.String?,
-      args["receiverName"] as kotlin.String?,
-      args["receiverPhone"] as kotlin.String?
+    args["city"] as kotlin.String?,
+    args["detailAddress"] as kotlin.String?,
+    args["district"] as kotlin.String?,
+    args["latitude"] as kotlin.Float?,
+    args["longitude"] as kotlin.Float?,
+    args["province"] as kotlin.String?,
+    args["receiverName"] as kotlin.String?,
+    args["receiverPhone"] as kotlin.String?
   )
 }
 
 data class UpdateDeliveryWorkerInput(
-    @field:Size(max = 500, message = "头像URL长度不能超过500个字符")
-    val avatarUrl: kotlin.String? = null,
-    @field:Size(max = 100, message = "坐标信息长度不能超过100个字符")
-    val coordinates: kotlin.String? = null,
-    @field:Size(max = 200, message = "当前位置长度不能超过200个字符")
-    val currentLocation: kotlin.String? = null,
-    @field:Min(value = 0, message = "收入不能小于0")
-    @field:Max(value = 99999900, message = "收入不能大于999999元")
-    val earning: kotlin.Long? = null,
-    val isAvailable: kotlin.Boolean? = null,
-    @field:Size(min = 2, max = 20, message = "配送员姓名长度应在2-20个字符之间")
-    val name: kotlin.String? = null,
-    @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    val phone: kotlin.String? = null,
-    @field:Min(value = 0, message = "评分不能小于0")
-    @field:Max(value = 5, message = "评分不能大于5")
-    val rating: java.math.BigDecimal? = null,
-    @field:Size(min = 1, max = 100, message = "微信OpenID长度应在1-100个字符之间")
-    val wechatOpenId: kotlin.String? = null
+  @field:Size(max = 500, message = "头像URL长度不能超过500个字符")
+  val avatarUrl: kotlin.String? = null,
+  @field:Size(max = 100, message = "坐标信息长度不能超过100个字符")
+  val coordinates: kotlin.String? = null,
+  @field:Size(max = 200, message = "当前位置长度不能超过200个字符")
+  val currentLocation: kotlin.String? = null,
+  @field:Min(value = 0, message = "收入不能小于0")
+  @field:Max(value = 99999900, message = "收入不能大于999999元")
+  val earning: kotlin.Long? = null,
+  val isAvailable: kotlin.Boolean? = null,
+  @field:Size(min = 2, max = 20, message = "配送员姓名长度应在2-20个字符之间")
+  val name: kotlin.String? = null,
+  @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+  val phone: kotlin.String? = null,
+  @field:Min(value = 0, message = "评分不能小于0")
+  @field:Max(value = 5, message = "评分不能大于5")
+  val rating: java.math.BigDecimal? = null,
+  @field:Size(min = 1, max = 100, message = "微信OpenID长度应在1-100个字符之间")
+  val wechatOpenId: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["avatarUrl"] as kotlin.String?,
-      args["coordinates"] as kotlin.String?,
-      args["currentLocation"] as kotlin.String?,
-      args["earning"] as kotlin.Long?,
-      args["isAvailable"] as kotlin.Boolean?,
-      args["name"] as kotlin.String?,
-      args["phone"] as kotlin.String?,
-      args["rating"] as java.math.BigDecimal?,
-      args["wechatOpenId"] as kotlin.String?
+    args["avatarUrl"] as kotlin.String?,
+    args["coordinates"] as kotlin.String?,
+    args["currentLocation"] as kotlin.String?,
+    args["earning"] as kotlin.Long?,
+    args["isAvailable"] as kotlin.Boolean?,
+    args["name"] as kotlin.String?,
+    args["phone"] as kotlin.String?,
+    args["rating"] as java.math.BigDecimal?,
+    args["wechatOpenId"] as kotlin.String?
   )
 }
 
 data class UpdateNotificationSettingsInput(
-    val deliveryNotifications: kotlin.Boolean? = null,
-    val orderUpdates: kotlin.Boolean? = null,
-    val paymentNotifications: kotlin.Boolean? = null,
-    val promotionalNotifications: kotlin.Boolean? = null
+  val deliveryNotifications: kotlin.Boolean? = null,
+  val orderUpdates: kotlin.Boolean? = null,
+  val paymentNotifications: kotlin.Boolean? = null,
+  val promotionalNotifications: kotlin.Boolean? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["deliveryNotifications"] as kotlin.Boolean?,
-      args["orderUpdates"] as kotlin.Boolean?,
-      args["paymentNotifications"] as kotlin.Boolean?,
-      args["promotionalNotifications"] as kotlin.Boolean?
+    args["deliveryNotifications"] as kotlin.Boolean?,
+    args["orderUpdates"] as kotlin.Boolean?,
+    args["paymentNotifications"] as kotlin.Boolean?,
+    args["promotionalNotifications"] as kotlin.Boolean?
   )
 }
 
 data class UpdateProductInput(
-    val certificateImages: tools.jackson.databind.node.ArrayNode? = null,
-    @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
-    val coverImageUrl: kotlin.String? = null,
-    val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
-    @field:Min(value = 0, message = "押金不能小于0")
-    @field:Max(value = 9999900, message = "押金不能大于99999元")
-    val depositPrice: kotlin.Long? = null,
-    @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
-    val detailContent: kotlin.String? = null,
-    val imageGallery: tools.jackson.databind.node.ArrayNode? = null,
-    val isDeleted: kotlin.Boolean? = null,
-    @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
-    val mineralContent: kotlin.String? = null,
-    @field:Size(min = 2, max = 200, message = "商品名称长度应在2-200个字符之间")
-    val name: kotlin.String? = null,
-    @field:Positive(message = "原价必须为正数")
-    @field:Min(value = 1, message = "原价不能小于1分")
-    @field:Max(value = 9999900, message = "原价不能大于99999元")
-    val originalPrice: kotlin.Long? = null,
-    @field:Positive(message = "商品价格必须为正数")
-    @field:Min(value = 1, message = "商品价格不能小于1分")
-    @field:Max(value = 9999900, message = "商品价格不能大于99999元")
-    val price: kotlin.Long? = null,
-    @field:Min(value = 0, message = "销量不能小于0")
-    val salesVolume: kotlin.Int? = null,
-    @field:Min(value = 0, message = "排序权重不能小于0")
-    @field:Max(value = 9999, message = "排序权重不能大于9999")
-    val sortOrder: kotlin.Int? = null,
-    @field:Size(min = 1, max = 100, message = "商品规格长度应在1-100个字符之间")
-    val specification: kotlin.String? = null,
-    val status: ProductStatus? = null,
-    @field:Min(value = 0, message = "库存数量不能小于0")
-    @field:Max(value = 99999, message = "库存数量不能大于99999")
-    val stock: kotlin.Int? = null,
-    @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
-    val subtitle: kotlin.String? = null,
-    val tags: tools.jackson.databind.node.ArrayNode? = null,
-    @field:Size(max = 200, message = "水源地长度不能超过200个字符")
-    val waterSource: kotlin.String? = null
+  val certificateImages: tools.jackson.databind.node.ArrayNode? = null,
+  @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
+  val coverImageUrl: kotlin.String? = null,
+  val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
+  @field:Min(value = 0, message = "押金不能小于0")
+  @field:Max(value = 9999900, message = "押金不能大于99999元")
+  val depositPrice: kotlin.Long? = null,
+  @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
+  val detailContent: kotlin.String? = null,
+  val imageGallery: tools.jackson.databind.node.ArrayNode? = null,
+  val isDeleted: kotlin.Boolean? = null,
+  @field:Size(max = 200, message = "矿物质含量长度不能超过200个字符")
+  val mineralContent: kotlin.String? = null,
+  @field:Size(min = 2, max = 200, message = "商品名称长度应在2-200个字符之间")
+  val name: kotlin.String? = null,
+  @field:Positive(message = "原价必须为正数")
+  @field:Min(value = 1, message = "原价不能小于1分")
+  @field:Max(value = 9999900, message = "原价不能大于99999元")
+  val originalPrice: kotlin.Long? = null,
+  @field:Positive(message = "商品价格必须为正数")
+  @field:Min(value = 1, message = "商品价格不能小于1分")
+  @field:Max(value = 9999900, message = "商品价格不能大于99999元")
+  val price: kotlin.Long? = null,
+  @field:Min(value = 0, message = "销量不能小于0")
+  val salesVolume: kotlin.Int? = null,
+  @field:Min(value = 0, message = "排序权重不能小于0")
+  @field:Max(value = 9999, message = "排序权重不能大于9999")
+  val sortOrder: kotlin.Int? = null,
+  @field:Size(min = 1, max = 100, message = "商品规格长度应在1-100个字符之间")
+  val specification: kotlin.String? = null,
+  val status: ProductStatus? = null,
+  @field:Min(value = 0, message = "库存数量不能小于0")
+  @field:Max(value = 99999, message = "库存数量不能大于99999")
+  val stock: kotlin.Int? = null,
+  @field:Size(max = 500, message = "商品副标题长度不能超过500个字符")
+  val subtitle: kotlin.String? = null,
+  val tags: tools.jackson.databind.node.ArrayNode? = null,
+  @field:Size(max = 200, message = "水源地长度不能超过200个字符")
+  val waterSource: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
-      args["coverImageUrl"] as kotlin.String?,
-      args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
-      args["depositPrice"] as kotlin.Long?,
-      args["detailContent"] as kotlin.String?,
-      args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
-      args["isDeleted"] as kotlin.Boolean?,
-      args["mineralContent"] as kotlin.String?,
-      args["name"] as kotlin.String?,
-      args["originalPrice"] as kotlin.Long?,
-      args["price"] as kotlin.Long?,
-      args["salesVolume"] as kotlin.Int?,
-      args["sortOrder"] as kotlin.Int?,
-      args["specification"] as kotlin.String?,
-      args["status"] as ProductStatus?,
-      args["stock"] as kotlin.Int?,
-      args["subtitle"] as kotlin.String?,
-      args["tags"] as tools.jackson.databind.node.ArrayNode?,
-      args["waterSource"] as kotlin.String?
+    args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
+    args["coverImageUrl"] as kotlin.String?,
+    args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
+    args["depositPrice"] as kotlin.Long?,
+    args["detailContent"] as kotlin.String?,
+    args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
+    args["isDeleted"] as kotlin.Boolean?,
+    args["mineralContent"] as kotlin.String?,
+    args["name"] as kotlin.String?,
+    args["originalPrice"] as kotlin.Long?,
+    args["price"] as kotlin.Long?,
+    args["salesVolume"] as kotlin.Int?,
+    args["sortOrder"] as kotlin.Int?,
+    args["specification"] as kotlin.String?,
+    args["status"] as ProductStatus?,
+    args["stock"] as kotlin.Int?,
+    args["subtitle"] as kotlin.String?,
+    args["tags"] as tools.jackson.databind.node.ArrayNode?,
+    args["waterSource"] as kotlin.String?
   )
 }
 
 data class UpdateProfileInput(
-    @field:Size(max = 500, message = "头像URL长度不能超过500个字符")
-    val avatar: kotlin.String? = null,
-    @field:Size(min = 2, max = 50, message = "昵称长度应在2-50个字符之间")
-    val nickname: kotlin.String? = null,
-    @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-    val phone: kotlin.String? = null
+  @field:Size(max = 500, message = "头像URL长度不能超过500个字符")
+  val avatar: kotlin.String? = null,
+  @field:Size(min = 2, max = 50, message = "昵称长度应在2-50个字符之间")
+  val nickname: kotlin.String? = null,
+  @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
+  val phone: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["avatar"] as kotlin.String?,
-      args["nickname"] as kotlin.String?,
-      args["phone"] as kotlin.String?
+    args["avatar"] as kotlin.String?,
+    args["nickname"] as kotlin.String?,
+    args["phone"] as kotlin.String?
   )
 }
 
 data class UpdateRegionInput(
-    @field:Size(min = 2, max = 50, message = "地区名称长度应在2-50个字符之间")
-    val name: kotlin.String? = null,
-    @field:Size(min = 1, max = 20, message = "上级地区代码长度应在1-20个字符之间")
-    val parentCode: kotlin.String? = null
+  @field:Size(min = 2, max = 50, message = "地区名称长度应在2-50个字符之间")
+  val name: kotlin.String? = null,
+  @field:Size(min = 1, max = 20, message = "上级地区代码长度应在1-20个字符之间")
+  val parentCode: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["name"] as kotlin.String?,
-      args["parentCode"] as kotlin.String?
+    args["name"] as kotlin.String?,
+    args["parentCode"] as kotlin.String?
   )
 }
 
 data class UpdateTransactionInput(
-    @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
-    val adminNote: kotlin.String? = null,
-    @field:Size(max = 500, message = "冻结原因长度不能超过500个字符")
-    val freezeReason: kotlin.String? = null,
-    val isFrozen: kotlin.Boolean? = null,
-    val status: PaymentStatus? = null
+  @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
+  val adminNote: kotlin.String? = null,
+  @field:Size(max = 500, message = "冻结原因长度不能超过500个字符")
+  val freezeReason: kotlin.String? = null,
+  val isFrozen: kotlin.Boolean? = null,
+  val status: PaymentStatus? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["adminNote"] as kotlin.String?,
-      args["freezeReason"] as kotlin.String?,
-      args["isFrozen"] as kotlin.Boolean?,
-      args["status"] as PaymentStatus?
+    args["adminNote"] as kotlin.String?,
+    args["freezeReason"] as kotlin.String?,
+    args["isFrozen"] as kotlin.Boolean?,
+    args["status"] as PaymentStatus?
   )
 }
 
 data class User(
-    val avatarUrl: kotlin.String?,
-    val balanceCents: kotlin.Long,
-    val createdAt: java.time.LocalDateTime,
-    val email: kotlin.String,
-    val id: kotlin.Long,
-    val nickname: kotlin.String?,
-    val phone: kotlin.String?,
-    val role: UserRole,
-    val status: UserStatus,
-    val totalSpentCents: kotlin.Long,
-    val updatedAt: java.time.LocalDateTime,
-    val wechatOpenId: kotlin.String
+  val avatarUrl: kotlin.String?,
+  val balanceCents: kotlin.Long,
+  val createdAt: java.time.LocalDateTime,
+  val email: kotlin.String,
+  val id: kotlin.Long,
+  val nickname: kotlin.String?,
+  val phone: kotlin.String?,
+  val role: UserRole,
+  val status: UserStatus,
+  val totalSpentCents: kotlin.Long,
+  val updatedAt: java.time.LocalDateTime,
+  val wechatOpenId: kotlin.String
 )
 
 enum class UserEngagementLevel(val label: String) {
-      HIGH("HIGH"),
-      LOW("LOW"),
-      MEDIUM("MEDIUM"),
-      VERY_HIGH("VERY_HIGH");
+  HIGH("HIGH"),
+  LOW("LOW"),
+  MEDIUM("MEDIUM"),
+  VERY_HIGH("VERY_HIGH");
 
   companion object {
     @JvmStatic
@@ -3174,130 +3450,128 @@ enum class UserEngagementLevel(val label: String) {
 }
 
 data class UserFavorite(
-    val createdAt: java.time.LocalDateTime,
-    val id: kotlin.Long,
-    val product: Product,
-    val user: User
+  val createdAt: java.time.LocalDateTime,
+  val id: kotlin.Long,
+  val product: Product,
+  val user: User
 )
 
 data class UserFavoriteAnalytics(
-    val activeUsersWithFavorites: kotlin.Long,
-    val averageFavoritesPerUser: kotlin.Float,
-    val favoritesTrend: Iterable<FavoriteTrendData>,
-    val mostFavoritedProducts: Iterable<ProductFavoriteCount>,
-    val newFavoritesThisMonth: kotlin.Long,
-    val newFavoritesThisWeek: kotlin.Long,
-    val newFavoritesToday: kotlin.Long,
-    val totalFavorites: kotlin.Long
+  val activeUsersWithFavorites: kotlin.Long,
+  val averageFavoritesPerUser: kotlin.Float,
+  val newFavoritesThisMonth: kotlin.Long,
+  val newFavoritesThisWeek: kotlin.Long,
+  val newFavoritesToday: kotlin.Long,
+  val totalFavorites: kotlin.Long
 )
 
 data class UserFavoriteInsights(
-    val averageFavoritePrice: kotlin.Long,
-    val engagementLevel: UserEngagementLevel,
-    val favoriteCategories: Iterable<kotlin.String>,
-    val favoriteToOrderRate: kotlin.Float,
-    val lastActiveAt: java.time.LocalDateTime,
-    val totalFavorites: kotlin.Long,
-    val userId: kotlin.Long,
-    val userNickname: kotlin.String
+  val averageFavoritePrice: kotlin.Long,
+  val engagementLevel: UserEngagementLevel,
+  val favoriteCategories: Iterable<kotlin.String>,
+  val favoriteToOrderRate: kotlin.Float,
+  val lastActiveAt: java.time.LocalDateTime,
+  val totalFavorites: kotlin.Long,
+  val userId: kotlin.Long,
+  val userNickname: kotlin.String
 )
 
 data class UserFavoritePage(
-    val list: Iterable<UserFavorite>,
-    val pageInfo: PageInfo
+  val list: Iterable<UserFavorite>,
+  val pageInfo: PageInfo
 )
 
 data class UserFavoriteSummary(
-    val categories: Iterable<kotlin.String>,
-    val favoriteCount: kotlin.Long,
-    val lastFavoriteAdded: java.time.LocalDateTime?,
-    val mostFavoritedCategory: kotlin.String?,
-    val totalValueOfFavoritedProducts: kotlin.Long,
-    val user: User
+  val categories: Iterable<kotlin.String>,
+  val favoriteCount: kotlin.Long,
+  val lastFavoriteAdded: java.time.LocalDateTime?,
+  val mostFavoritedCategory: kotlin.String?,
+  val totalValueOfFavoritedProducts: kotlin.Long,
+  val user: User
 )
 
 data class UserFavoriteSummaryPage(
-    val list: Iterable<UserFavoriteSummary>,
-    val pageInfo: PageInfo
+  val list: Iterable<UserFavoriteSummary>,
+  val pageInfo: PageInfo
 )
 
 data class UserFavoriteWithProduct(
-    val createdAt: java.time.LocalDateTime,
-    val id: kotlin.Long,
-    val product: Product,
-    val productSalesVolume: kotlin.Int,
-    val productStatus: ProductStatus,
-    val productStock: kotlin.Int,
-    val user: User
+  val createdAt: java.time.LocalDateTime,
+  val id: kotlin.Long,
+  val product: Product,
+  val productSalesVolume: kotlin.Int,
+  val productStatus: ProductStatus,
+  val productStock: kotlin.Int,
+  val user: User
 )
 
 data class UserFavoriteWithProductPage(
-    val list: Iterable<UserFavoriteWithProduct>,
-    val pageInfo: PageInfo
+  val list: Iterable<UserFavoriteWithProduct>,
+  val pageInfo: PageInfo
 )
 
 data class UserInfo(
-    val avatarUrl: kotlin.String?,
-    val createdAt: java.time.LocalDateTime,
-    val id: kotlin.Long,
-    val nickname: kotlin.String?,
-    val phone: kotlin.String?,
-    val updatedAt: java.time.LocalDateTime,
-    val wechatOpenId: kotlin.String
+  val avatarUrl: kotlin.String?,
+  val createdAt: java.time.LocalDateTime,
+  val id: kotlin.Long,
+  val nickname: kotlin.String?,
+  val phone: kotlin.String?,
+  val updatedAt: java.time.LocalDateTime,
+  val wechatOpenId: kotlin.String
 )
 
 data class UserListInput(
-    val page: kotlin.Int? = 0,
-    val search: kotlin.String? = null,
-    val size: kotlin.Int? = 20,
-    val sort: kotlin.String? = """createdAt,desc""".trimIndent(),
-    val status: UserStatus? = null
+  val page: kotlin.Int? = 0,
+  val search: kotlin.String? = null,
+  val size: kotlin.Int? = 20,
+  val sort: kotlin.String? = """createdAt,desc""".trimIndent(),
+  val status: UserStatus? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["page"] as kotlin.Int? ?: 0,
-      args["search"] as kotlin.String?,
-      args["size"] as kotlin.Int? ?: 20,
-      args["sort"] as kotlin.String? ?: """createdAt,desc""".trimIndent(),
-      args["status"] as UserStatus?
+    args["page"] as kotlin.Int? ?: 0,
+    args["search"] as kotlin.String?,
+    args["size"] as kotlin.Int? ?: 20,
+    args["sort"] as kotlin.String? ?: """createdAt,desc""".trimIndent(),
+    args["status"] as UserStatus?
   )
 }
 
 data class UserNotificationSettings(
-    val createdAt: java.time.LocalDateTime,
-    val deliveryNotifications: kotlin.Boolean,
-    val id: kotlin.Long,
-    val orderUpdates: kotlin.Boolean,
-    val paymentNotifications: kotlin.Boolean,
-    val promotionalNotifications: kotlin.Boolean,
-    val updatedAt: java.time.LocalDateTime,
-    val userId: kotlin.Long
+  val createdAt: java.time.LocalDateTime,
+  val deliveryNotifications: kotlin.Boolean,
+  val id: kotlin.Long,
+  val orderUpdates: kotlin.Boolean,
+  val paymentNotifications: kotlin.Boolean,
+  val promotionalNotifications: kotlin.Boolean,
+  val updatedAt: java.time.LocalDateTime,
+  val userId: kotlin.Long
 )
 
 data class UserPage(
-    val list: Iterable<User>,
-    val pageInfo: PageInfo
+  val list: Iterable<User>,
+  val pageInfo: PageInfo
 )
 
 data class UserPaymentTransaction(
-    val amount: java.math.BigDecimal,
-    val completedAt: java.time.LocalDateTime?,
-    val createdAt: java.time.LocalDateTime,
-    val failureReason: kotlin.String?,
-    val id: kotlin.String,
-    val orderId: kotlin.Long,
-    val orderNumber: kotlin.String,
-    val paymentMethod: PaymentMethod,
-    val refundAmount: java.math.BigDecimal?,
-    val refundedAt: java.time.LocalDateTime?,
-    val status: PaymentStatus,
-    val transactionId: kotlin.String?
+  val amount: java.math.BigDecimal,
+  val completedAt: java.time.LocalDateTime?,
+  val createdAt: java.time.LocalDateTime,
+  val failureReason: kotlin.String?,
+  val id: kotlin.String,
+  val orderId: kotlin.Long,
+  val orderNumber: kotlin.String,
+  val paymentMethod: PaymentMethod,
+  val refundAmount: java.math.BigDecimal?,
+  val refundedAt: java.time.LocalDateTime?,
+  val status: PaymentStatus,
+  val transactionId: kotlin.String?
 )
 
 enum class UserRole(val label: String) {
-      ADMIN("ADMIN"),
-      NONE("NONE"),
-      USER("USER"),
-      WORKER("WORKER");
+  ADMIN("ADMIN"),
+  NONE("NONE"),
+  USER("USER"),
+  WORKER("WORKER");
 
   companion object {
     @JvmStatic
@@ -3308,10 +3582,10 @@ enum class UserRole(val label: String) {
 }
 
 enum class UserStatus(val label: String) {
-      ACTIVE("ACTIVE"),
-      DELETED("DELETED"),
-      INACTIVE("INACTIVE"),
-      SUSPENDED("SUSPENDED");
+  ACTIVE("ACTIVE"),
+  DELETED("DELETED"),
+  INACTIVE("INACTIVE"),
+  SUSPENDED("SUSPENDED");
 
   companion object {
     @JvmStatic
@@ -3322,87 +3596,87 @@ enum class UserStatus(val label: String) {
 }
 
 data class ValidateAddressInput(
-    @field:NotBlank(message = "城市不能为空")
-    @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
-    val city: kotlin.String,
-    @field:NotBlank(message = "区县不能为空")
-    @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
-    val district: kotlin.String,
-    @field:NotBlank(message = "省份不能为空")
-    @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
-    val province: kotlin.String
+  @field:NotBlank(message = "城市不能为空")
+  @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
+  val city: kotlin.String,
+  @field:NotBlank(message = "区县不能为空")
+  @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
+  val district: kotlin.String,
+  @field:NotBlank(message = "省份不能为空")
+  @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
+  val province: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["city"] as kotlin.String,
-      args["district"] as kotlin.String,
-      args["province"] as kotlin.String
+    args["city"] as kotlin.String,
+    args["district"] as kotlin.String,
+    args["province"] as kotlin.String
   )
 }
 
 data class WaterSourceStatistics(
-    val averagePrice: kotlin.Long,
-    val productCount: kotlin.Int,
-    val totalSalesVolume: kotlin.Int,
-    val waterSource: kotlin.String
+  val averagePrice: kotlin.Long,
+  val productCount: kotlin.Int,
+  val totalSalesVolume: kotlin.Int,
+  val waterSource: kotlin.String
 )
 
 data class WeChatLoginResponse(
-    val accessToken: kotlin.String,
-    val expiresIn: kotlin.Int,
-    val refreshToken: kotlin.String,
-    val userInfo: UserInfo
+  val accessToken: kotlin.String,
+  val expiresIn: kotlin.Int,
+  val refreshToken: kotlin.String,
+  val userInfo: UserInfo
 )
 
 data class WeChatTokenResponse(
-    val accessToken: kotlin.String,
-    val expiresIn: kotlin.Int,
-    val refreshToken: kotlin.String
+  val accessToken: kotlin.String,
+  val expiresIn: kotlin.Int,
+  val refreshToken: kotlin.String
 )
 
 data class WechatCallbackInput(
-    @field:Size(max = 50, message = "应用ID长度不能超过50个字符")
-    val appId: kotlin.String? = null,
-    @field:Size(max = 50, message = "商户号长度不能超过50个字符")
-    val mchId: kotlin.String? = null,
-    @field:Size(max = 100, message = "商户订单号长度不能超过100个字符")
-    val outTradeNo: kotlin.String? = null,
-    @field:NotBlank(message = "回调资源不能为空")
-    @field:Size(min = 1, max = 5000, message = "回调资源长度应在1-5000个字符之间")
-    val resource: kotlin.String,
-    @field:NotBlank(message = "资源类型不能为空")
-    @field:Size(min = 1, max = 50, message = "资源类型长度应在1-50个字符之间")
-    val resourceType: kotlin.String,
-    @field:Size(max = 500, message = "摘要长度不能超过500个字符")
-    val summary: kotlin.String,
-    @field:Size(max = 100, message = "微信支付订单号长度不能超过100个字符")
-    val transactionId: kotlin.String? = null
+  @field:Size(max = 50, message = "应用ID长度不能超过50个字符")
+  val appId: kotlin.String? = null,
+  @field:Size(max = 50, message = "商户号长度不能超过50个字符")
+  val mchId: kotlin.String? = null,
+  @field:Size(max = 100, message = "商户订单号长度不能超过100个字符")
+  val outTradeNo: kotlin.String? = null,
+  @field:NotBlank(message = "回调资源不能为空")
+  @field:Size(min = 1, max = 5000, message = "回调资源长度应在1-5000个字符之间")
+  val resource: kotlin.String,
+  @field:NotBlank(message = "资源类型不能为空")
+  @field:Size(min = 1, max = 50, message = "资源类型长度应在1-50个字符之间")
+  val resourceType: kotlin.String,
+  @field:Size(max = 500, message = "摘要长度不能超过500个字符")
+  val summary: kotlin.String,
+  @field:Size(max = 100, message = "微信支付订单号长度不能超过100个字符")
+  val transactionId: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["appId"] as kotlin.String?,
-      args["mchId"] as kotlin.String?,
-      args["outTradeNo"] as kotlin.String?,
-      args["resource"] as kotlin.String,
-      args["resourceType"] as kotlin.String,
-      args["summary"] as kotlin.String,
-      args["transactionId"] as kotlin.String?
+    args["appId"] as kotlin.String?,
+    args["mchId"] as kotlin.String?,
+    args["outTradeNo"] as kotlin.String?,
+    args["resource"] as kotlin.String,
+    args["resourceType"] as kotlin.String,
+    args["summary"] as kotlin.String,
+    args["transactionId"] as kotlin.String?
   )
 }
 
 data class WechatLoginInput(
-    @field:NotBlank(message = "微信授权码不能为空")
-    @field:Size(min = 10, max = 100, message = "授权码长度应在10-100个字符之间")
-    val code: kotlin.String
+  @field:NotBlank(message = "微信授权码不能为空")
+  @field:Size(min = 10, max = 100, message = "授权码长度应在10-100个字符之间")
+  val code: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["code"] as kotlin.String
+    args["code"] as kotlin.String
   )
 }
 
 data class WeeklyStatistic(
-    val endDate: kotlin.String,
-    val orderCount: kotlin.Int,
-    val revenue: kotlin.Long,
-    val startDate: kotlin.String,
-    val weekNumber: kotlin.Int,
-    val year: kotlin.Int
+  val endDate: kotlin.String,
+  val orderCount: kotlin.Int,
+  val revenue: kotlin.Long,
+  val startDate: kotlin.String,
+  val weekNumber: kotlin.Int,
+  val year: kotlin.Int
 )

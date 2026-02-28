@@ -20,15 +20,13 @@
 package dev.yidafu.aqua.common.domain.model
 
 import jakarta.persistence.*
-import org.hibernate.annotations.Where
-import java.time.LocalDateTime
-
 import org.hibernate.annotations.SoftDelete
+import java.time.LocalDateTime
 
 @Entity
 @SoftDelete(columnName = "is_deleted")
 @Table(name = "message_history")
-open class  MessageHistoryModel(
+open class MessageHistoryModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long = 0,
@@ -56,7 +54,7 @@ open class  MessageHistoryModel(
 
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-@Column(name = "deleted_at")
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
 
   @Column(name = "deleted_by")

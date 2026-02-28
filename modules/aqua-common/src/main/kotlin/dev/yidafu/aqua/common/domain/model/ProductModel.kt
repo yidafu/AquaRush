@@ -21,24 +21,23 @@ package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.converter.ArrayNodeConverter
 import dev.yidafu.aqua.common.converter.ObjectNodeConverter
-import org.hibernate.annotations.JdbcTypeCode
-import org.hibernate.type.SqlTypes
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.annotations.SoftDelete
+import org.hibernate.type.SqlTypes
+import tools.jackson.core.type.TypeReference
 import tools.jackson.databind.node.ArrayNode
 import tools.jackson.databind.node.ObjectNode
-import tools.jackson.core.type.TypeReference
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.math.BigDecimal
 import java.time.LocalDateTime
 
-import org.hibernate.annotations.SoftDelete
-
 @Entity
 @SoftDelete(columnName = "is_deleted")
 @Table(name = "products")
-open class  ProductModel(
+open class ProductModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long = 0L,
@@ -106,7 +105,7 @@ open class  ProductModel(
   @Column(name = "delivery_settings", columnDefinition = "json")
   @Convert(converter = ObjectNodeConverter::class)
   var deliverySettings: ObjectNode? = null,
-@Column(name = "deleted_at")
+  @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
 
   @Column(name = "deleted_by")

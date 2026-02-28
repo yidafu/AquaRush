@@ -20,10 +20,10 @@
 package dev.yidafu.aqua.api.service
 
 import dev.yidafu.aqua.api.common.PagedResponse
-import dev.yidafu.aqua.api.dto.*
+import dev.yidafu.aqua.api.dto.CreateUserRequest
+import dev.yidafu.aqua.api.dto.UpdateUserRequest
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
-import java.util.*
 
 /**
  * 用户API服务接口

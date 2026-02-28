@@ -21,7 +21,7 @@ package dev.yidafu.aqua.reconciliation.domain.repository
 
 import com.querydsl.core.Tuple
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.common.domain.model.QReconciliationDiscrepancyModel.reconciliationDiscrepancyModel
+import dev.yidafu.aqua.common.domain.model.QReconciliationDiscrepancyModel.Companion.reconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import jakarta.persistence.EntityManager
@@ -69,7 +69,10 @@ class ReconciliationDiscrepancyRepositoryImpl : ReconciliationDiscrepancyReposit
     }
   }
 
-  override fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationDiscrepancyModel> {
+  override fun findByCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime
+  ): List<ReconciliationDiscrepancyModel> {
     return queryFactory.selectFrom(reconciliationDiscrepancyModel)
       .where(reconciliationDiscrepancyModel.createdAt.between(startDate, endDate))
       .orderBy(reconciliationDiscrepancyModel.createdAt.desc())
