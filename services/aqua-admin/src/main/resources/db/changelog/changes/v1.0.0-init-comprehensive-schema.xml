@@ -408,11 +408,12 @@
     <comment>Create delivery worker table</comment>
     <createTable tableName="delivery_workers">
       <column name="id" type="bigint" autoIncrement="true">
-        <constraints primaryKey="true" nullable="false" />
+        <constraints primaryKey="true" nullable="true" />
       </column>
       <column name="user_id" type="bigint">
-        <constraints nullable="false" />
+        <constraints nullable="true" />
       </column>
+      <column name="admin_id" type="bigint" />
       <column name="wechat_openid" type="varchar(128)">
         <constraints nullable="false" unique="true" />
       </column>
@@ -474,6 +475,13 @@
       referencedColumnNames="id"
       constraintName="fk_delivery_workers_user_id"
       onDelete="CASCADE" />
+
+    <addForeignKeyConstraint
+      baseTableName="delivery_workers"
+      baseColumnNames="admin_id"
+      referencedTableName="admins"
+      referencedColumnNames="id"
+      constraintName="fk_delivery_workers_admin_id" />
 
     <sql> ALTER TABLE delivery_workers ADD CONSTRAINT chk_worker_status CHECK (online_status IN
       ('ONLINE', 'OFFLINE')), ADD CONSTRAINT chk_rating_positive CHECK (rating IS NULL OR rating >=
@@ -1337,6 +1345,12 @@
         <constraints nullable="true" />
       </column>
       <column name="delivery_photos" type="json" />
+      <column name="is_self_collect" type="boolean" defaultValueBoolean="false">
+        <constraints nullable="false" />
+      </column>
+      <column name="payment_type" type="varchar(20)" />
+      <column name="delivery_started_at" type="timestamp" />
+      <column name="delivery_confirmed_at" type="timestamp" />
       <column name="completed_at" type="timestamp" />
       <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
         <constraints nullable="false" />
@@ -1369,6 +1383,14 @@
 
     <createIndex tableName="orders" indexName="idx_orders_deleted">
       <column name="is_deleted" />
+    </createIndex>
+
+    <createIndex tableName="orders" indexName="idx_orders_delivery_worker_id">
+      <column name="delivery_worker_id" />
+    </createIndex>
+
+    <createIndex tableName="orders" indexName="idx_orders_is_self_collect">
+      <column name="is_self_collect" />
     </createIndex>
   </changeSet>
 
@@ -1735,6 +1757,84 @@
       update_reconciliation_discrepancies_updated_at ON reconciliation_discrepancies; CREATE TRIGGER
       update_reconciliation_discrepancies_updated_at BEFORE UPDATE ON reconciliation_discrepancies
       FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); </sql>
+  </changeSet>
+
+  <!-- ======================================================================= -->
+  <!-- Bucket Deposit Management Tables -->
+  <!-- ======================================================================= -->
+
+  <changeSet id="1.0.0-create-system-settings-table" author="aqua-rush">
+    <comment>Create system settings table</comment>
+    <createTable tableName="system_settings">
+      <column name="id" type="bigint">
+        <constraints primaryKey="true" />
+      </column>
+      <column name="setting_key" type="varchar(64)">
+        <constraints nullable="false" unique="true" />
+      </column>
+      <column name="setting_value" type="varchar(255)" />
+      <column name="description" type="varchar(255)" />
+      <column name="created_at" type="timestamp">
+        <constraints nullable="false" />
+      </column>
+      <column name="updated_at" type="timestamp">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+
+    <!-- Initialize bucket deposit amount -->
+    <insert tableName="system_settings">
+      <column name="id">1</column>
+      <column name="setting_key">bucket_deposit_amount</column>
+      <column name="setting_value">1000</column>
+      <column name="description">每个桶的押金金额（分）</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+  </changeSet>
+
+  <changeSet id="1.0.0-create-bucket-deposits-table" author="aqua-rush">
+    <comment>Create bucket deposits table</comment>
+    <createTable tableName="bucket_deposits">
+      <column name="id" type="bigint">
+        <constraints primaryKey="true" />
+      </column>
+      <column name="user_id" type="bigint">
+        <constraints nullable="false" />
+      </column>
+      <column name="quantity" type="int" defaultValueNumeric="1">
+        <constraints nullable="false" />
+      </column>
+      <column name="amount_cents" type="bigint">
+        <constraints nullable="false" />
+      </column>
+      <column name="status" type="varchar(20)">
+        <constraints nullable="false" />
+      </column>
+      <column name="payment_transaction_id" type="varchar(64)" />
+      <column name="payment_time" type="timestamp" />
+      <column name="refunded_at" type="timestamp" />
+      <column name="refunded_by" type="bigint" />
+      <column name="remark" type="varchar(255)" />
+      <column name="created_at" type="timestamp">
+        <constraints nullable="false" />
+      </column>
+      <column name="updated_at" type="timestamp">
+        <constraints nullable="false" />
+      </column>
+    </createTable>
+
+    <createIndex tableName="bucket_deposits" indexName="idx_bucket_deposits_user_id">
+      <column name="user_id" />
+    </createIndex>
+
+    <createIndex tableName="bucket_deposits" indexName="idx_bucket_deposits_status">
+      <column name="status" />
+    </createIndex>
+
+    <createIndex tableName="bucket_deposits" indexName="idx_bucket_deposits_created_at">
+      <column name="created_at" />
+    </createIndex>
   </changeSet>
 
 </databaseChangeLog>

@@ -31,7 +31,6 @@ import org.springframework.stereotype.Repository
  */
 @Repository
 class RegionRepositoryImpl : RegionRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -39,27 +38,27 @@ class RegionRepositoryImpl : RegionRepositoryCustom {
     JPAQueryFactory(entityManager)
   }
 
-  override fun findRootRegions(level: Int): List<RegionModel> {
-    return queryFactory.selectFrom(regionModel)
+  override fun findRootRegions(level: Int): List<RegionModel> =
+    queryFactory
+      .selectFrom(regionModel)
       .where(
-        regionModel.parentCode.eq("0")
-          .and(regionModel.level.eq(level))
-      )
-      .fetch()
-  }
+        regionModel.parentCode
+          .eq("0")
+          .and(regionModel.level.eq(level)),
+      ).fetch()
 
   override fun existsByNameAndLevelAndParentCode(
     name: String,
     level: Int,
-    parentCode: String
-  ): Boolean {
-    return queryFactory.query()
+    parentCode: String,
+  ): Boolean =
+    queryFactory
+      .query()
       .from(regionModel)
       .where(
-        regionModel.name.eq(name)
+        regionModel.name
+          .eq(name)
           .and(regionModel.level.eq(level))
-          .and(regionModel.parentCode.eq(parentCode))
-      )
-      .fetchCount() > 0
-  }
+          .and(regionModel.parentCode.eq(parentCode)),
+      ).fetchCount() > 0
 }

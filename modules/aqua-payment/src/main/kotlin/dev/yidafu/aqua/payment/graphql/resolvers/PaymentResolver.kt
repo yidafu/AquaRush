@@ -20,17 +20,18 @@ data class PaymentData(
   val nonceStr: String,
   val packageValue: String,
   val signType: String,
-  val paySign: String
+  val paySign: String,
 )
 
 @ClientService
 @Controller
 class PaymentResolver(
-  private val paymentService: PaymentService
+  private val paymentService: PaymentService,
 ) {
-
   @MutationMapping
-  fun createWechatPayment(@Argument @Valid input: CreateWechatPaymentInput): PaymentData {
+  fun createWechatPayment(
+    @Argument @Valid input: CreateWechatPaymentInput,
+  ): PaymentData {
     // Simplified implementation - return mock data for now
     return PaymentData(
       codeUrl = "mock_code_url",
@@ -40,22 +41,28 @@ class PaymentResolver(
       nonceStr = "mock_nonce_str",
       packageValue = "mock_package_value",
       signType = "mock_sign_type",
-      paySign = "mock_pay_sign"
+      paySign = "mock_pay_sign",
     )
   }
 
   @QueryMapping
-  fun paymentStatus(@Argument transactionId: String): String {
+  fun paymentStatus(
+    @Argument transactionId: String,
+  ): String {
     return "SUCCESS" // Simplified implementation
   }
 
   @MutationMapping
-  fun refund(@Argument @Valid input: RefundInput): Boolean {
+  fun refund(
+    @Argument @Valid input: RefundInput,
+  ): Boolean {
     return true // Simplified implementation
   }
 
   @MutationMapping
-  fun handleWechatCallback(@Argument input: WechatCallbackInput): String {
+  fun handleWechatCallback(
+    @Argument input: WechatCallbackInput,
+  ): String {
     return "SUCCESS" // Simplified implementation
   }
 }

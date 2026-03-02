@@ -35,9 +35,18 @@ object BigDecimalScalar {
     object : Coercing<BigDecimal, String> {
       override fun serialize(dataFetcherResult: Any): String =
         when (dataFetcherResult) {
-          is BigDecimal -> dataFetcherResult.toString()
-          is Double -> dataFetcherResult.toBigDecimal().toString()
-          is Float -> dataFetcherResult.toBigDecimal().toString()
+          is BigDecimal -> {
+            dataFetcherResult.toString()
+          }
+
+          is Double -> {
+            dataFetcherResult.toBigDecimal().toString()
+          }
+
+          is Float -> {
+            dataFetcherResult.toBigDecimal().toString()
+          }
+
           is String -> {
             try {
               BigDecimal(dataFetcherResult).toString()
@@ -46,12 +55,17 @@ object BigDecimalScalar {
             }
           }
 
-          else -> throw CoercingSerializeException("Expected BigDecimal but got ${dataFetcherResult::class.simpleName}")
+          else -> {
+            throw CoercingSerializeException("Expected BigDecimal but got ${dataFetcherResult::class.simpleName}")
+          }
         }
 
       override fun parseValue(input: Any): BigDecimal =
         when (input) {
-          is BigDecimal -> input
+          is BigDecimal -> {
+            input
+          }
+
           is String -> {
             try {
               BigDecimal(input)
@@ -60,8 +74,13 @@ object BigDecimalScalar {
             }
           }
 
-          is Number -> BigDecimal(input.toDouble())
-          else -> throw CoercingParseValueException("Expected BigDecimal but got ${input::class.simpleName}")
+          is Number -> {
+            BigDecimal(input.toDouble())
+          }
+
+          else -> {
+            throw CoercingParseValueException("Expected BigDecimal but got ${input::class.simpleName}")
+          }
         }
 
       override fun parseLiteral(input: Any): BigDecimal {
@@ -92,7 +111,10 @@ object LocalDateTimeScalar {
     object : Coercing<LocalDateTime, String> {
       override fun serialize(dataFetcherResult: Any): String =
         when (dataFetcherResult) {
-          is LocalDateTime -> dataFetcherResult.format(formatter)
+          is LocalDateTime -> {
+            dataFetcherResult.format(formatter)
+          }
+
           is String -> {
             try {
               LocalDateTime.parse(dataFetcherResult, formatter).format(formatter)
@@ -101,7 +123,9 @@ object LocalDateTimeScalar {
             }
           }
 
-          else -> throw CoercingSerializeException("Expected LocalDateTime but got ${dataFetcherResult::class.simpleName}")
+          else -> {
+            throw CoercingSerializeException("Expected LocalDateTime but got ${dataFetcherResult::class.simpleName}")
+          }
         }
 
       override fun parseValue(input: Any): LocalDateTime =
@@ -114,7 +138,9 @@ object LocalDateTimeScalar {
             }
           }
 
-          else -> throw CoercingParseValueException("Expected LocalDateTime string but got ${input::class.simpleName}")
+          else -> {
+            throw CoercingParseValueException("Expected LocalDateTime string but got ${input::class.simpleName}")
+          }
         }
 
       override fun parseLiteral(input: Any): LocalDateTime {
@@ -143,7 +169,10 @@ object UUIDScalar {
     object : Coercing<UUID, String> {
       override fun serialize(dataFetcherResult: Any): String =
         when (dataFetcherResult) {
-          is UUID -> dataFetcherResult.toString()
+          is UUID -> {
+            dataFetcherResult.toString()
+          }
+
           is String -> {
             try {
               UUID.fromString(dataFetcherResult).toString()
@@ -152,12 +181,17 @@ object UUIDScalar {
             }
           }
 
-          else -> throw CoercingSerializeException("Expected UUID but got ${dataFetcherResult::class.simpleName}")
+          else -> {
+            throw CoercingSerializeException("Expected UUID but got ${dataFetcherResult::class.simpleName}")
+          }
         }
 
       override fun parseValue(input: Any): UUID =
         when (input) {
-          is UUID -> input
+          is UUID -> {
+            input
+          }
+
           is String -> {
             try {
               UUID.fromString(input)
@@ -166,7 +200,9 @@ object UUIDScalar {
             }
           }
 
-          else -> throw CoercingParseValueException("Expected UUID but got ${input::class.simpleName}")
+          else -> {
+            throw CoercingParseValueException("Expected UUID but got ${input::class.simpleName}")
+          }
         }
 
       override fun parseLiteral(input: Any): UUID {
@@ -195,8 +231,14 @@ object LongScalar {
     object : Coercing<Long, Any> {
       override fun serialize(dataFetcherResult: Any): Any =
         when (dataFetcherResult) {
-          is Long -> dataFetcherResult.toString()
-          is Int -> dataFetcherResult.toString()
+          is Long -> {
+            dataFetcherResult.toString()
+          }
+
+          is Int -> {
+            dataFetcherResult.toString()
+          }
+
           is String -> {
             try {
               dataFetcherResult
@@ -205,13 +247,21 @@ object LongScalar {
             }
           }
 
-          else -> throw CoercingSerializeException("Expected Long but got ${dataFetcherResult::class.simpleName}")
+          else -> {
+            throw CoercingSerializeException("Expected Long but got ${dataFetcherResult::class.simpleName}")
+          }
         }
 
       override fun parseValue(input: Any): Long =
         when (input) {
-          is Long -> input
-          is Int -> input.toLong()
+          is Long -> {
+            input
+          }
+
+          is Int -> {
+            input.toLong()
+          }
+
           is String -> {
             try {
               input.toLong()
@@ -220,12 +270,17 @@ object LongScalar {
             }
           }
 
-          else -> throw CoercingParseValueException("Expected Long but got ${input::class.simpleName}")
+          else -> {
+            throw CoercingParseValueException("Expected Long but got ${input::class.simpleName}")
+          }
         }
 
-      override fun parseLiteral(input: Any): Long {
-        return when (input) {
-          is IntValue -> input.value.toLong()
+      override fun parseLiteral(input: Any): Long =
+        when (input) {
+          is IntValue -> {
+            input.value.toLong()
+          }
+
           is StringValue -> {
             try {
               input.value?.toLong() ?: throw CoercingParseLiteralException("String value is null")
@@ -234,9 +289,10 @@ object LongScalar {
             }
           }
 
-          else -> throw CoercingParseLiteralException("Expected Long value but got: $input")
+          else -> {
+            throw CoercingParseLiteralException("Expected Long value but got: $input")
+          }
         }
-      }
     }
 
   val GraphQL_TYPE: GraphQLScalarType =
@@ -255,7 +311,10 @@ object MapScalar {
     object : Coercing<Map<String, Any>, Any> {
       override fun serialize(dataFetcherResult: Any): Any =
         when (dataFetcherResult) {
-          is Map<*, *> -> dataFetcherResult
+          is Map<*, *> -> {
+            dataFetcherResult
+          }
+
           is JsonNode -> {
             try {
               objectMapper.convertValue(dataFetcherResult, Map::class.java)
@@ -272,12 +331,17 @@ object MapScalar {
             }
           }
 
-          else -> throw CoercingSerializeException("Expected Map but got ${dataFetcherResult::class.simpleName}")
+          else -> {
+            throw CoercingSerializeException("Expected Map but got ${dataFetcherResult::class.simpleName}")
+          }
         }
 
       override fun parseValue(input: Any): Map<String, Any> =
         when (input) {
-          is Map<*, *> -> input as Map<String, Any>
+          is Map<*, *> -> {
+            input as Map<String, Any>
+          }
+
           is String -> {
             try {
               objectMapper.readValue(input, Map::class.java)
@@ -286,11 +350,13 @@ object MapScalar {
             }
           }
 
-          else -> throw CoercingParseValueException("Expected Map but got ${input::class.simpleName}")
+          else -> {
+            throw CoercingParseValueException("Expected Map but got ${input::class.simpleName}")
+          }
         } as Map<String, Any>
 
-      override fun parseLiteral(input: Any): Map<String, Any> {
-        return when (input) {
+      override fun parseLiteral(input: Any): Map<String, Any> =
+        when (input) {
           is ObjectValue -> {
             val result = mutableMapOf<String, Any>()
             input.objectFields
@@ -299,10 +365,14 @@ object MapScalar {
                 result[field.name] =
                   when (val value = field.value) {
                     is StringValue -> value.value as Any
+
                     is IntValue -> value.value as Any
+
                     is FloatValue -> value.value as Any
+
                     is BooleanValue -> value.isValue as Any
-//                      is NullValue -> null as Any?
+
+                    //                      is NullValue -> null as Any?
                     else -> value.toString()
                   }
               }
@@ -317,9 +387,10 @@ object MapScalar {
             }
           }
 
-          else -> throw CoercingParseLiteralException("Expected Map value but got: $input")
+          else -> {
+            throw CoercingParseLiteralException("Expected Map value but got: $input")
+          }
         } as Map<String, Any>
-      }
     }
 
   val GraphQL_TYPE: GraphQLScalarType =
@@ -338,7 +409,10 @@ object JsonObjectScalar {
     object : Coercing<ObjectNode, Any> {
       override fun serialize(dataFetcherResult: Any): ObjectNode =
         when (dataFetcherResult) {
-          is ObjectNode -> dataFetcherResult
+          is ObjectNode -> {
+            dataFetcherResult
+          }
+
           is JsonNode -> {
             if (dataFetcherResult.isObject) {
               dataFetcherResult as ObjectNode
@@ -368,12 +442,17 @@ object JsonObjectScalar {
             }
           }
 
-          else -> throw CoercingSerializeException("Expected JsonObject but got ${dataFetcherResult::class.simpleName}")
+          else -> {
+            throw CoercingSerializeException("Expected JsonObject but got ${dataFetcherResult::class.simpleName}")
+          }
         }
 
       override fun parseValue(input: Any): ObjectNode =
         when (input) {
-          is ObjectNode -> input
+          is ObjectNode -> {
+            input
+          }
+
           is JsonNode -> {
             if (input.isObject) {
               input as ObjectNode
@@ -403,11 +482,13 @@ object JsonObjectScalar {
             }
           }
 
-          else -> throw CoercingParseValueException("Expected JsonObject but got ${input::class.simpleName}")
+          else -> {
+            throw CoercingParseValueException("Expected JsonObject but got ${input::class.simpleName}")
+          }
         }
 
-      override fun parseLiteral(input: Any): ObjectNode {
-        return when (input) {
+      override fun parseLiteral(input: Any): ObjectNode =
+        when (input) {
           is ObjectValue -> {
             try {
               val map = mutableMapOf<String, Any>()
@@ -417,10 +498,14 @@ object JsonObjectScalar {
                   map[field.name] =
                     when (val value = field.value) {
                       is StringValue -> value.value as Any
+
                       is IntValue -> value.value as Any
+
                       is FloatValue -> value.value as Any
+
                       is BooleanValue -> value.isValue as Any
-//                    is NullValue -> null
+
+                      //                    is NullValue -> null
                       else -> value.toString()
                     }
                 }
@@ -443,9 +528,10 @@ object JsonObjectScalar {
             }
           }
 
-          else -> throw CoercingParseLiteralException("Expected JsonObject value but got: $input")
+          else -> {
+            throw CoercingParseLiteralException("Expected JsonObject value but got: $input")
+          }
         }
-      }
     }
 
   val GraphQL_TYPE: GraphQLScalarType =
@@ -464,7 +550,10 @@ object JsonArrayScalar {
     object : Coercing<ArrayNode, Any> {
       override fun serialize(dataFetcherResult: Any): Any =
         when (dataFetcherResult) {
-          is ArrayNode -> dataFetcherResult
+          is ArrayNode -> {
+            dataFetcherResult
+          }
+
           is JsonNode -> {
             if (dataFetcherResult.isArray) {
               dataFetcherResult
@@ -494,12 +583,17 @@ object JsonArrayScalar {
             }
           }
 
-          else -> throw CoercingSerializeException("Expected JsonArray but got ${dataFetcherResult::class.simpleName}")
+          else -> {
+            throw CoercingSerializeException("Expected JsonArray but got ${dataFetcherResult::class.simpleName}")
+          }
         }
 
       override fun parseValue(input: Any): ArrayNode =
         when (input) {
-          is ArrayNode -> input
+          is ArrayNode -> {
+            input
+          }
+
           is JsonNode -> {
             if (input.isArray) {
               input as ArrayNode
@@ -529,11 +623,13 @@ object JsonArrayScalar {
             }
           }
 
-          else -> throw CoercingParseValueException("Expected JsonArray but got ${input::class.simpleName}")
+          else -> {
+            throw CoercingParseValueException("Expected JsonArray but got ${input::class.simpleName}")
+          }
         }
 
-      override fun parseLiteral(input: Any): ArrayNode {
-        return when (input) {
+      override fun parseLiteral(input: Any): ArrayNode =
+        when (input) {
           is ArrayValue -> {
             try {
               val list = mutableListOf<Any>()
@@ -541,12 +637,16 @@ object JsonArrayScalar {
                 list.add(
                   when (value) {
                     is StringValue -> value.value as Any
+
                     is IntValue -> value.value as Any
+
                     is FloatValue -> value.value as Any
+
                     is BooleanValue -> value.isValue as Any
-//                    is NullValue -> null
+
+                    //                    is NullValue -> null
                     else -> value.toString()
-                  }
+                  },
                 )
               }
               objectMapper.valueToTree<ArrayNode>(list)
@@ -568,9 +668,10 @@ object JsonArrayScalar {
             }
           }
 
-          else -> throw CoercingParseLiteralException("Expected JsonArray value but got: $input")
+          else -> {
+            throw CoercingParseLiteralException("Expected JsonArray value but got: $input")
+          }
         }
-      }
     }
 
   val GraphQL_TYPE: GraphQLScalarType =
@@ -587,8 +688,14 @@ object MoneyScalar {
     object : Coercing<Long, String> {
       override fun serialize(dataFetcherResult: Any): String =
         when (dataFetcherResult) {
-          is Long -> dataFetcherResult.toString()
-          is Int -> dataFetcherResult.toLong().toString()
+          is Long -> {
+            dataFetcherResult.toString()
+          }
+
+          is Int -> {
+            dataFetcherResult.toLong().toString()
+          }
+
           is String -> {
             try {
               val longValue = dataFetcherResult.toLong()
@@ -601,7 +708,9 @@ object MoneyScalar {
             }
           }
 
-          else -> throw CoercingSerializeException("Expected Money (cents) but got ${dataFetcherResult::class.simpleName}")
+          else -> {
+            throw CoercingSerializeException("Expected Money (cents) but got ${dataFetcherResult::class.simpleName}")
+          }
         }
 
       override fun parseValue(input: Any): Long =
@@ -632,11 +741,13 @@ object MoneyScalar {
             }
           }
 
-          else -> throw CoercingParseValueException("Expected Money (cents) but got ${input::class.simpleName}")
+          else -> {
+            throw CoercingParseValueException("Expected Money (cents) but got ${input::class.simpleName}")
+          }
         }
 
-      override fun parseLiteral(input: Any): Long {
-        return when (input) {
+      override fun parseLiteral(input: Any): Long =
+        when (input) {
           is IntValue -> {
             val longValue = input.value.toLong()
             if (longValue < 0) {
@@ -657,9 +768,10 @@ object MoneyScalar {
             }
           }
 
-          else -> throw CoercingParseLiteralException("Expected Money (cents) value but got: $input")
+          else -> {
+            throw CoercingParseLiteralException("Expected Money (cents) value but got: $input")
+          }
         }
-      }
     }
 
   val GraphQL_TYPE: GraphQLScalarType =
@@ -676,8 +788,14 @@ object PrimaryIdScalar {
     object : Coercing<Long, String> {
       override fun serialize(dataFetcherResult: Any): String =
         when (dataFetcherResult) {
-          is Long -> dataFetcherResult.toString()
-          is Int -> dataFetcherResult.toLong().toString()
+          is Long -> {
+            dataFetcherResult.toString()
+          }
+
+          is Int -> {
+            dataFetcherResult.toLong().toString()
+          }
+
           is String -> {
             try {
               val longValue = dataFetcherResult.toLong()
@@ -690,7 +808,9 @@ object PrimaryIdScalar {
             }
           }
 
-          else -> throw CoercingSerializeException("Expected PrimaryId but got ${dataFetcherResult::class.simpleName}")
+          else -> {
+            throw CoercingSerializeException("Expected PrimaryId but got ${dataFetcherResult::class.simpleName}")
+          }
         }
 
       override fun parseValue(input: Any): Long =
@@ -721,11 +841,13 @@ object PrimaryIdScalar {
             }
           }
 
-          else -> throw CoercingParseValueException("Expected PrimaryId but got ${input::class.simpleName}")
+          else -> {
+            throw CoercingParseValueException("Expected PrimaryId but got ${input::class.simpleName}")
+          }
         }
 
-      override fun parseLiteral(input: Any): Long {
-        return when (input) {
+      override fun parseLiteral(input: Any): Long =
+        when (input) {
           is IntValue -> {
             val value = input.value.toLong()
             if (value <= 0) {
@@ -747,9 +869,10 @@ object PrimaryIdScalar {
             }
           }
 
-          else -> throw CoercingParseLiteralException("Expected PrimaryId literal but got: $input")
+          else -> {
+            throw CoercingParseLiteralException("Expected PrimaryId literal but got: $input")
+          }
         }
-      }
     }
 
   val GraphQL_TYPE: GraphQLScalarType =

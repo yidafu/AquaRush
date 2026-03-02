@@ -51,14 +51,12 @@ open class MessageHistoryModel(
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "retry_count", nullable = false)
   val retryCount: Int = 0,
-
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-
   @Column(name = "deleted_by")
-  override var deletedBy: Long? = null
+  override var deletedBy: Long? = null,
 ) : SoftDeletable {
   companion object {
     fun createSuccess(
@@ -67,8 +65,8 @@ open class MessageHistoryModel(
       templateId: String,
       content: String,
       wxMessageId: String,
-    ): MessageHistoryModel {
-      return MessageHistoryModel(
+    ): MessageHistoryModel =
+      MessageHistoryModel(
         userId = userId,
         messageType = messageType,
         templateId = templateId,
@@ -78,7 +76,6 @@ open class MessageHistoryModel(
         wxMessageId = wxMessageId,
         errorMessage = null,
       )
-    }
 
     fun createFailure(
       userId: Long,
@@ -87,8 +84,8 @@ open class MessageHistoryModel(
       content: String,
       errorMessage: String,
       retryCount: Int = 0,
-    ): MessageHistoryModel {
-      return MessageHistoryModel(
+    ): MessageHistoryModel =
+      MessageHistoryModel(
         userId = userId,
         messageType = messageType,
         templateId = templateId,
@@ -99,15 +96,14 @@ open class MessageHistoryModel(
         errorMessage = errorMessage,
         retryCount = retryCount,
       )
-    }
 
     fun createPending(
       userId: Long,
       messageType: String,
       templateId: String,
       content: String,
-    ): MessageHistoryModel {
-      return MessageHistoryModel(
+    ): MessageHistoryModel =
+      MessageHistoryModel(
         userId = userId,
         messageType = messageType,
         templateId = templateId,
@@ -117,7 +113,6 @@ open class MessageHistoryModel(
         wxMessageId = null,
         errorMessage = null,
       )
-    }
   }
 }
 

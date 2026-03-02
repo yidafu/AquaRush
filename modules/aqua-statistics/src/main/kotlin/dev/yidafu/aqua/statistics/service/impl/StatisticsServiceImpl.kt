@@ -25,7 +25,6 @@ import java.time.LocalDate
 
 @Service
 class StatisticsServiceImpl : StatisticsService {
-
   /**
    * 获取日期范围内的订单统计
    */

@@ -24,18 +24,19 @@ import org.springframework.data.jpa.domain.Specification
 
 class AddressSpecifications {
   companion object {
-    fun byUserId(userId: Long): Specification<AddressModel> {
-      return Specification { root, _, cb ->
+    fun byUserId(userId: Long): Specification<AddressModel> =
+      Specification { root, _, cb ->
         cb.equal(root.get<Long>("userId"), userId)
       }
-    }
 
-    fun byUserIdAndIsDefault(userId: Long, isDefault: Boolean): Specification<AddressModel> {
-      return Specification { root, _, cb ->
+    fun byUserIdAndIsDefault(
+      userId: Long,
+      isDefault: Boolean,
+    ): Specification<AddressModel> =
+      Specification { root, _, cb ->
         val userIdPredicate = cb.equal(root.get<Long>("userId"), userId)
         val isDefaultPredicate = cb.equal(root.get<Boolean>("isDefault"), isDefault)
         cb.and(userIdPredicate, isDefaultPredicate)
       }
-    }
   }
 }

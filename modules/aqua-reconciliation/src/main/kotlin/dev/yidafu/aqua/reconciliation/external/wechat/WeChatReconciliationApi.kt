@@ -334,8 +334,14 @@ class WeChatReconciliationApi(
                     null
                   },
                 refundStatus = if (fields.size > 17) fields[17].trim() else "SUCCESS",
-                createTime = if (fields.size > 18) parseWeChatDateTime(fields[18].trim()) else LocalDate.now()
-                  .atStartOfDay(),
+                createTime =
+                  if (fields.size > 18) {
+                    parseWeChatDateTime(fields[18].trim())
+                  } else {
+                    LocalDate
+                      .now()
+                      .atStartOfDay()
+                  },
                 returnCode = "SUCCESS",
                 returnMsg = "获取成功",
                 errorCode = null,
@@ -393,8 +399,9 @@ class WeChatReconciliationApi(
                 rate = fields[17].trim().takeIf { it.isNotEmpty() }?.toBigDecimalOrNull(),
                 cashFee = fields[18].trim().takeIf { it.isNotEmpty() }?.toBigDecimalOrNull(),
                 refundFee = fields[19].trim().takeIf { it.isNotEmpty() }?.toBigDecimalOrNull() ?: BigDecimal.ZERO,
-                settlementRefundFee = fields[20].trim().takeIf { it.isNotEmpty() }?.toBigDecimalOrNull()
-                  ?: BigDecimal.ZERO,
+                settlementRefundFee =
+                  fields[20].trim().takeIf { it.isNotEmpty() }?.toBigDecimalOrNull()
+                    ?: BigDecimal.ZERO,
                 body = fields[21].trim(),
                 detail = fields[22].trim().takeIf { it.isNotEmpty() },
                 attach = fields[23].trim().takeIf { it.isNotEmpty() },
@@ -447,8 +454,8 @@ class WeChatReconciliationApi(
   /**
    * 解析微信支付时间格式
    */
-  private fun parseWeChatDateTime(dateTimeStr: String): java.time.LocalDateTime {
-    return try {
+  private fun parseWeChatDateTime(dateTimeStr: String): java.time.LocalDateTime =
+    try {
       // 微信支付时间格式通常是yyyyMMddHHmmss或yyyy-MM-dd HH:mm:ss
       val formatter =
         when {
@@ -461,16 +468,14 @@ class WeChatReconciliationApi(
       logger.warn("解析微信支付时间失败: $dateTimeStr", e)
       java.time.LocalDateTime.now()
     }
-  }
 
   /**
    * String转BigDecimal的安全方法
    */
-  private fun String.toBigDecimalOrNull(): BigDecimal? {
-    return try {
+  private fun String.toBigDecimalOrNull(): BigDecimal? =
+    try {
       this.toBigDecimal()
     } catch (e: Exception) {
       null
     }
-  }
 }

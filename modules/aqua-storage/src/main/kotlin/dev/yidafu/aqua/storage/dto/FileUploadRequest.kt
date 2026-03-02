@@ -29,19 +29,16 @@ data class FileUploadRequest(
    * 文件类型（可选，如果不提供则自动检测）
    */
   val fileType: FileType? = null,
-
   /**
    * 文件描述
    */
   val description: String? = null,
-
   /**
    * 是否公开（默认为true）
    */
   val isPublic: Boolean = true,
-
   /**
    * 文件所有者ID（可选）
    */
-  val ownerId: Long? = null
+  val ownerId: Long? = null,
 )

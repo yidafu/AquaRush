@@ -275,7 +275,7 @@ class BusinessLogFormatter {
     module: String,
   ): String =
     when (module.uppercase()) {
-      "ORDER" ->
+      "ORDER" -> {
         when {
           operation.contains("CREATE") -> "ORDER_CREATION"
           operation.contains("UPDATE") -> "ORDER_UPDATE"
@@ -283,40 +283,47 @@ class BusinessLogFormatter {
           operation.contains("STATUS") -> "ORDER_STATUS_CHANGE"
           else -> "ORDER_MANAGEMENT"
         }
+      }
 
-      "PAYMENT" ->
+      "PAYMENT" -> {
         when {
           operation.contains("CREATE") -> "PAYMENT_PROCESSING"
           operation.contains("REFUND") -> "PAYMENT_REFUND"
           operation.contains("VERIFY") -> "PAYMENT_VERIFICATION"
           else -> "PAYMENT_MANAGEMENT"
         }
+      }
 
-      "DELIVERY" ->
+      "DELIVERY" -> {
         when {
           operation.contains("ASSIGN") -> "DELIVERY_ASSIGNMENT"
           operation.contains("COMPLETE") -> "DELIVERY_COMPLETION"
           operation.contains("STATUS") -> "DELIVERY_STATUS_CHANGE"
           else -> "DELIVERY_MANAGEMENT"
         }
+      }
 
-      "USER" ->
+      "USER" -> {
         when {
           operation.contains("CREATE") -> "USER_REGISTRATION"
           operation.contains("AUTH") -> "USER_AUTHENTICATION"
           operation.contains("UPDATE") -> "USER_UPDATE"
           else -> "USER_MANAGEMENT"
         }
+      }
 
-      "PRODUCT" ->
+      "PRODUCT" -> {
         when {
           operation.contains("CREATE") -> "PRODUCT_CREATION"
           operation.contains("UPDATE") -> "PRODUCT_UPDATE"
           operation.contains("DELETE") -> "PRODUCT_DELETION"
           else -> "PRODUCT_MANAGEMENT"
         }
+      }
 
-      else -> "GENERAL_BUSINESS"
+      else -> {
+        "GENERAL_BUSINESS"
+      }
     }
 
   /**

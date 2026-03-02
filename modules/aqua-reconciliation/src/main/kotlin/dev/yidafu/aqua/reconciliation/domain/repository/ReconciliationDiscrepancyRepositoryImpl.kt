@@ -35,7 +35,6 @@ import java.time.LocalDateTime
  */
 @Repository
 class ReconciliationDiscrepancyRepositoryImpl : ReconciliationDiscrepancyRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -43,51 +42,51 @@ class ReconciliationDiscrepancyRepositoryImpl : ReconciliationDiscrepancyReposit
     JPAQueryFactory(entityManager)
   }
 
-  override fun countUnresolvedByTaskId(taskId: String): Long {
-    return queryFactory.query()
+  override fun countUnresolvedByTaskId(taskId: String): Long =
+    queryFactory
+      .query()
       .from(reconciliationDiscrepancyModel)
       .where(
-        reconciliationDiscrepancyModel.taskId.eq(taskId)
-          .and(reconciliationDiscrepancyModel.status.eq(DiscrepancyStatus.UNRESOLVED))
-      )
-      .fetchCount()
-  }
+        reconciliationDiscrepancyModel.taskId
+          .eq(taskId)
+          .and(reconciliationDiscrepancyModel.status.eq(DiscrepancyStatus.UNRESOLVED)),
+      ).fetchCount()
 
   override fun countByDiscrepancyTypeGroup(taskId: String): List<Array<Any>> {
-    val results: List<Tuple> = queryFactory
-      .select(reconciliationDiscrepancyModel.discrepancyType, reconciliationDiscrepancyModel.count())
-      .from(reconciliationDiscrepancyModel)
-      .where(reconciliationDiscrepancyModel.taskId.eq(taskId))
-      .groupBy(reconciliationDiscrepancyModel.discrepancyType)
-      .fetch()
+    val results: List<Tuple> =
+      queryFactory
+        .select(reconciliationDiscrepancyModel.discrepancyType, reconciliationDiscrepancyModel.count())
+        .from(reconciliationDiscrepancyModel)
+        .where(reconciliationDiscrepancyModel.taskId.eq(taskId))
+        .groupBy(reconciliationDiscrepancyModel.discrepancyType)
+        .fetch()
 
     return results.map { tuple ->
       arrayOf<Any>(
         tuple.get(reconciliationDiscrepancyModel.discrepancyType) ?: "",
-        tuple.get(reconciliationDiscrepancyModel.count()) ?: 0L
+        tuple.get(reconciliationDiscrepancyModel.count()) ?: 0L,
       )
     }
   }
 
   override fun findByCreatedAtBetween(
     startDate: LocalDateTime,
-    endDate: LocalDateTime
-  ): List<ReconciliationDiscrepancyModel> {
-    return queryFactory.selectFrom(reconciliationDiscrepancyModel)
+    endDate: LocalDateTime,
+  ): List<ReconciliationDiscrepancyModel> =
+    queryFactory
+      .selectFrom(reconciliationDiscrepancyModel)
       .where(reconciliationDiscrepancyModel.createdAt.between(startDate, endDate))
       .orderBy(reconciliationDiscrepancyModel.createdAt.desc())
       .fetch()
-  }
 
   @Transactional
-  override fun deleteResolvedBefore(beforeDate: LocalDateTime): Int {
-    return queryFactory
+  override fun deleteResolvedBefore(beforeDate: LocalDateTime): Int =
+    queryFactory
       .delete(reconciliationDiscrepancyModel)
       .where(
-        reconciliationDiscrepancyModel.status.eq(DiscrepancyStatus.RESOLVED)
-          .and(reconciliationDiscrepancyModel.resolvedAt.lt(beforeDate))
-      )
-      .execute()
+        reconciliationDiscrepancyModel.status
+          .eq(DiscrepancyStatus.RESOLVED)
+          .and(reconciliationDiscrepancyModel.resolvedAt.lt(beforeDate)),
+      ).execute()
       .toInt()
-  }
 }

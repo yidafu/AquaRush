@@ -31,7 +31,9 @@ object GraphQLSecurityContext {
         authentication.principal as UserPrincipal
       }
 
-      else -> null
+      else -> {
+        null
+      }
     }
   }
 

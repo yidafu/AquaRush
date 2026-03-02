@@ -17,27 +17,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.delivery.service
+package dev.yidafu.aqua.admin.user.controller.dto
 
-import dev.yidafu.aqua.delivery.service.dto.DeliveryLoginRequest
-import dev.yidafu.aqua.delivery.service.dto.DeliveryLoginResponse
+import jakarta.validation.constraints.NotBlank
 
 /**
- * Service interface for delivery worker authentication
+ * Request DTO for binding phone number to delivery worker
  */
-interface DeliveryAuthService {
-  /**
-   * Login with WeChat code
-   * @return LoginResponse containing token and whether phone binding is needed
-   */
-  fun login(request: DeliveryLoginRequest): DeliveryLoginResponse
-
-  /**
-   * Bind phone number to delivery worker
-   * @return LoginResponse with token after successful binding
-   */
-  fun bindPhone(
-    openId: String,
-    phoneNumber: String
-  ): DeliveryLoginResponse
-}
+data class BindPhoneRequest(
+  @NotBlank(message = "OpenID不能为空")
+  val openId: String,
+  @NotBlank(message = "手机号不能为空")
+  val phoneNumber: String,
+)

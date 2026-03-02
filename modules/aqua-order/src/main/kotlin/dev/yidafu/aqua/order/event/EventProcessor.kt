@@ -100,8 +100,14 @@ class OutboxEventProcessor(
 
     try {
       when (event.eventType) {
-        "ORDER_PAID" -> orderPaidHandler.handle(event)
-        "ORDER_CANCELLED" -> orderCancelledHandler.handle(event)
+        "ORDER_PAID" -> {
+          orderPaidHandler.handle(event)
+        }
+
+        "ORDER_CANCELLED" -> {
+          orderCancelledHandler.handle(event)
+        }
+
         "ORDER_DELIVERED" -> {
           // TODO: 实现订单送达处理器
           logger.info("Processing ORDER_DELIVERED event: ${event.id}")
@@ -112,8 +118,14 @@ class OutboxEventProcessor(
           logger.info("Processing ORDER_ASSIGNED event: ${event.id}")
         }
 
-        "PAYMENT_TIMEOUT" -> paymentTimeoutHandler.handle(event)
-        "DELIVERY_TIMEOUT" -> deliveryTimeoutHandler.handle(event)
+        "PAYMENT_TIMEOUT" -> {
+          paymentTimeoutHandler.handle(event)
+        }
+
+        "DELIVERY_TIMEOUT" -> {
+          deliveryTimeoutHandler.handle(event)
+        }
+
         else -> {
           logger.warn("Unknown event type: ${event.eventType}")
           event.status = EventStatusModel.COMPLETED
@@ -378,8 +390,14 @@ class Xxx(
 
     try {
       when (event.eventType) {
-        "ORDER_PAID" -> orderPaidHandler.handle(event)
-        "ORDER_CANCELLED" -> orderCancelledHandler.handle(event)
+        "ORDER_PAID" -> {
+          orderPaidHandler.handle(event)
+        }
+
+        "ORDER_CANCELLED" -> {
+          orderCancelledHandler.handle(event)
+        }
+
         "ORDER_DELIVERED" -> {
           // TODO: 实现订单送达处理器
           logger.info("Processing ORDER_DELIVERED event: ${event.id}")
@@ -390,8 +408,14 @@ class Xxx(
           logger.info("Processing ORDER_ASSIGNED event: ${event.id}")
         }
 
-        "PAYMENT_TIMEOUT" -> paymentTimeoutHandler.handle(event)
-        "DELIVERY_TIMEOUT" -> deliveryTimeoutHandler.handle(event)
+        "PAYMENT_TIMEOUT" -> {
+          paymentTimeoutHandler.handle(event)
+        }
+
+        "DELIVERY_TIMEOUT" -> {
+          deliveryTimeoutHandler.handle(event)
+        }
+
         else -> {
           logger.warn("Unknown event type: ${event.eventType}")
           event.status = EventStatusModel.COMPLETED

@@ -236,8 +236,7 @@ class PaymentServiceImpl(
     return createWechatJsapiPay(orderId, amountCents, description, "mock_openid")
   }
 
-  override fun handleWechatPayCallback(callbackData: Map<String, Any>): Boolean =
-    handleWechatPayCallback(callbackData, emptyMap())
+  override fun handleWechatPayCallback(callbackData: Map<String, Any>): Boolean = handleWechatPayCallback(callbackData, emptyMap())
 
   override fun refund(
     transactionId: String,

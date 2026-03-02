@@ -34,7 +34,10 @@ interface ReconciliationTaskRepositoryCustom {
    * @param endDate the end date
    * @return list of tasks ordered by task date descending
    */
-  fun findByTaskDateBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationTaskModel>
+  fun findByTaskDateBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<ReconciliationTaskModel>
 
   /**
    * Find tasks by task type and date range
@@ -46,7 +49,7 @@ interface ReconciliationTaskRepositoryCustom {
   fun findByTaskTypeAndTaskDateBetween(
     taskType: ReconciliationTaskType,
     startDate: LocalDateTime,
-    endDate: LocalDateTime
+    endDate: LocalDateTime,
   ): List<ReconciliationTaskModel>
 
   /**
@@ -55,5 +58,8 @@ interface ReconciliationTaskRepositoryCustom {
    * @param status the task status
    * @return number of tasks
    */
-  fun countByTaskTypeAndStatus(taskType: ReconciliationTaskType, status: ReconciliationTaskStatus): Long
+  fun countByTaskTypeAndStatus(
+    taskType: ReconciliationTaskType,
+    status: ReconciliationTaskStatus,
+  ): Long
 }

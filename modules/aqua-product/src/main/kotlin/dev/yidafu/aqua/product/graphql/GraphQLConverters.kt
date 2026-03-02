@@ -18,5 +18,3 @@
  */
 
 package dev.yidafu.aqua.product.graphql
-
-

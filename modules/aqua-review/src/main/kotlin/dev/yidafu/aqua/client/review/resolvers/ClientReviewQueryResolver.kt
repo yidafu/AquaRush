@@ -53,9 +53,7 @@ class ClientReviewQueryResolver(
   fun myReviews(
     page: Int = 0,
     size: Int = 20,
-  ): Page<ReviewResponse> {
-    return reviewService.getUserReviews(getCurrentUserId(), page, size)
-  }
+  ): Page<ReviewResponse> = reviewService.getUserReviews(getCurrentUserId(), page, size)
 
   /**
    * 获取配送员统计数据（公开信息）

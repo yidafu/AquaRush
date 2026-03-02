@@ -28,7 +28,6 @@ import java.time.LocalDateTime
  * Custom repository interface for ProductFavorite with QueryDSL implementations
  */
 interface ProductFavoriteRepositoryCustom {
-
   /**
    * Find all favorite product IDs for a user
    * @param userId the user ID
@@ -42,7 +41,10 @@ interface ProductFavoriteRepositoryCustom {
    * @param pageable pagination information
    * @return page of product favorite IDs
    */
-  fun findFavoriteIdsByUserId(userId: Long, pageable: Pageable): Page<Long>
+  fun findFavoriteIdsByUserId(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<Long>
 
   /**
    * Check if a favorite exists by user ID and product ID
@@ -50,7 +52,10 @@ interface ProductFavoriteRepositoryCustom {
    * @param productId the product ID
    * @return true if exists, false otherwise
    */
-  fun existsByUserIdAndProductId(userId: Long, productId: Long): Boolean
+  fun existsByUserIdAndProductId(
+    userId: Long,
+    productId: Long,
+  ): Boolean
 
   /**
    * Count favorites by user ID
@@ -66,7 +71,11 @@ interface ProductFavoriteRepositoryCustom {
    * @param enable the enable status
    * @return number of updated records
    */
-  fun updateEnableStatus(userId: Long, productId: Long, enable: Boolean): Int
+  fun updateEnableStatus(
+    userId: Long,
+    productId: Long,
+    enable: Boolean,
+  ): Int
 
   // Admin analytics methods
 
@@ -88,7 +97,7 @@ interface ProductFavoriteRepositoryCustom {
    */
   data class ProductFavoriteCount(
     val productId: Long,
-    val favoriteCount: Long
+    val favoriteCount: Long,
   )
 
   /**
@@ -111,7 +120,7 @@ interface ProductFavoriteRepositoryCustom {
     userId: Long?,
     productIds: List<Long>?,
     dateFrom: LocalDateTime?,
-    dateTo: LocalDateTime?
+    dateTo: LocalDateTime?,
   ): List<ProductFavoriteModel>
 
   // Statistics for specific periods

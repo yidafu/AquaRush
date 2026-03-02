@@ -51,8 +51,8 @@ class ClientFavoriteMutationResolver(
   fun toggleProductFavorites(
     @Argument productId: Long,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       val result = productFavoriteService.toggleFavorite(userPrincipal.id, productId)
       logger.info("User ${userPrincipal.id} toggled favorite status for product $productId to: ${if (result) "ENABLED" else "DISABLED"}")
       result
@@ -63,6 +63,4 @@ class ClientFavoriteMutationResolver(
       logger.error("Failed to toggle favorite status for product $productId by user: ${userPrincipal.id}", e)
       throw BadRequestException("切换收藏状态失败: ${e.message}")
     }
-  }
-
 }

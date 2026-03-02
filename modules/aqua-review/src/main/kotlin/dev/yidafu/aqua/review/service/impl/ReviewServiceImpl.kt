@@ -64,7 +64,8 @@ class ReviewServiceImpl(
   ): ReviewResponse {
     // 1. 验证订单存在且属于当前用户
     val order =
-      orderRepository.findById(request.orderId)
+      orderRepository
+        .findById(request.orderId)
         .orElseThrow { NotFoundException("订单不存在: ${request.orderId}") }
 
     if (order.userId != userId) {
@@ -88,7 +89,8 @@ class ReviewServiceImpl(
 
     // 5. 验证配送员存在
     val deliveryWorker =
-      deliveryWorkerRepository.findById(request.deliveryWorkerId)
+      deliveryWorkerRepository
+        .findById(request.deliveryWorkerId)
         .orElseThrow { NotFoundException("配送员不存在: ${request.deliveryWorkerId}") }
 
     // 6. 创建评价
@@ -129,7 +131,8 @@ class ReviewServiceImpl(
   ): OrderReviewCheckResponse {
     // 验证订单存在且属于当前用户
     val order =
-      orderRepository.findById(orderId)
+      orderRepository
+        .findById(orderId)
         .orElseThrow { NotFoundException("订单不存在: $orderId") }
 
     if (order.userId != userId) {

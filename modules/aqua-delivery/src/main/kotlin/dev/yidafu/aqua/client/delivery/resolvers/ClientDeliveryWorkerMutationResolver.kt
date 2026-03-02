@@ -37,7 +37,7 @@ import org.springframework.transaction.annotation.Transactional
 @ClientService
 @Controller
 class ClientDeliveryWorkerMutationResolver(
-  private val deliveryWorkerRepository: DeliveryWorkerRepository
+  private val deliveryWorkerRepository: DeliveryWorkerRepository,
 ) {
   private val logger = LoggerFactory.getLogger(ClientDeliveryWorkerMutationResolver::class.java)
 
@@ -50,8 +50,10 @@ class ClientDeliveryWorkerMutationResolver(
     try {
       // 获取当前认证的配送员
       val currentWorkerId = getCurrentWorkerId()
-      val existingWorker = deliveryWorkerRepository.findById(currentWorkerId)
-        .orElseThrow { BadRequestException("配送员不存在: $currentWorkerId") }
+      val existingWorker =
+        deliveryWorkerRepository
+          .findById(currentWorkerId)
+          .orElseThrow { BadRequestException("配送员不存在: $currentWorkerId") }
 
       // 验证输入
       validateUpdateProfileInput(input)
@@ -87,13 +89,15 @@ class ClientDeliveryWorkerMutationResolver(
   fun updateMyWorkerStatus(status: DeliverWorkerModelStatus): DeliveryWorker {
     try {
       val currentWorkerId = getCurrentWorkerId()
-      val existingWorker = deliveryWorkerRepository.findById(currentWorkerId)
-        .orElseThrow { BadRequestException("配送员不存在: $currentWorkerId") }
+      val existingWorker =
+        deliveryWorkerRepository
+          .findById(currentWorkerId)
+          .orElseThrow { BadRequestException("配送员不存在: $currentWorkerId") }
 
       existingWorker.onlineStatus = status
       val updatedWorker = deliveryWorkerRepository.save(existingWorker)
 
-      logger.info("Successfully updated worker status: ${updatedWorker.id} - ${status}")
+      logger.info("Successfully updated worker status: ${updatedWorker.id} - $status")
       return updatedWorker.let { DeliveryWorkerMapper.map(it) }
     } catch (e: Exception) {
       logger.error("Failed to update worker status", e)
@@ -106,11 +110,16 @@ class ClientDeliveryWorkerMutationResolver(
    */
   @PreAuthorize("hasRole('WORKER')")
   @Transactional
-  fun updateMyLocation(coordinates: String, currentLocation: String): DeliveryWorker {
+  fun updateMyLocation(
+    coordinates: String,
+    currentLocation: String,
+  ): DeliveryWorker {
     try {
       val currentWorkerId = getCurrentWorkerId()
-      val existingWorker = deliveryWorkerRepository.findById(currentWorkerId)
-        .orElseThrow { BadRequestException("配送员不存在: $currentWorkerId") }
+      val existingWorker =
+        deliveryWorkerRepository
+          .findById(currentWorkerId)
+          .orElseThrow { BadRequestException("配送员不存在: $currentWorkerId") }
 
       existingWorker.coordinates = coordinates
       existingWorker.currentLocation = currentLocation
@@ -150,14 +159,13 @@ class ClientDeliveryWorkerMutationResolver(
   /**
    * 验证URL格式（简单验证）
    */
-  private fun isValidUrl(url: String): Boolean {
-    return try {
+  private fun isValidUrl(url: String): Boolean =
+    try {
       java.net.URL(url).toURI()
       true
     } catch (e: Exception) {
       false
     }
-  }
 
   /**
    * 获取当前认证配送员的ID
@@ -177,11 +185,11 @@ class ClientDeliveryWorkerMutationResolver(
      * 注意：配送员只能修改部分字段，敏感字段由管理员维护
      */
     data class UpdateDeliveryWorkerProfileInput(
-      val name: String?,           // 配送员可以修改姓名
-      val avatarUrl: String?,       // 配送员可以修改头像
-      val coordinates: String?,     // 配送员可以修改坐标
-      val currentLocation: String?,  // 配送员可以修改当前位置
-      val isAvailable: Boolean?    // 配送员可以修改可用状态
+      val name: String?, // 配送员可以修改姓名
+      val avatarUrl: String?, // 配送员可以修改头像
+      val coordinates: String?, // 配送员可以修改坐标
+      val currentLocation: String?, // 配送员可以修改当前位置
+      val isAvailable: Boolean?, // 配送员可以修改可用状态
     )
   }
 }

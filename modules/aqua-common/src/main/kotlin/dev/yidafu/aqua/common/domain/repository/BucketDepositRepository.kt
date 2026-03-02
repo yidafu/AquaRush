@@ -28,12 +28,14 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface BucketDepositRepository : JpaRepository<BucketDepositModel, Long> {
-
   fun findByUserId(userId: Long): List<BucketDepositModel>
 
   fun findByUserIdOrderByCreatedAtDesc(userId: Long): List<BucketDepositModel>
 
-  fun findByUserIdAndStatus(userId: Long, status: BucketDepositStatus): List<BucketDepositModel>
+  fun findByUserIdAndStatus(
+    userId: Long,
+    status: BucketDepositStatus,
+  ): List<BucketDepositModel>
 
   fun findByStatus(status: BucketDepositStatus): List<BucketDepositModel>
 
@@ -41,19 +43,32 @@ interface BucketDepositRepository : JpaRepository<BucketDepositModel, Long> {
 
   fun findByUserIdAndStatusOrderByCreatedAtDesc(
     userId: Long,
-    status: BucketDepositStatus
+    status: BucketDepositStatus,
   ): List<BucketDepositModel>
 
   fun countByUserId(userId: Long): Long
 
-  fun countByUserIdAndStatus(userId: Long, status: BucketDepositStatus): Long
+  fun countByUserIdAndStatus(
+    userId: Long,
+    status: BucketDepositStatus,
+  ): Long
 
   // 分页查询
-  fun findByUserId(userId: Long, pageable: Pageable): Page<BucketDepositModel>
+  fun findByUserId(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<BucketDepositModel>
 
-  fun findByStatus(status: BucketDepositStatus, pageable: Pageable): Page<BucketDepositModel>
+  fun findByStatus(
+    status: BucketDepositStatus,
+    pageable: Pageable,
+  ): Page<BucketDepositModel>
 
-  fun findByUserIdAndStatus(userId: Long, status: BucketDepositStatus, pageable: Pageable): Page<BucketDepositModel>
+  fun findByUserIdAndStatus(
+    userId: Long,
+    status: BucketDepositStatus,
+    pageable: Pageable,
+  ): Page<BucketDepositModel>
 
   fun findAllByOrderByCreatedAtDesc(pageable: Pageable): Page<BucketDepositModel>
 }

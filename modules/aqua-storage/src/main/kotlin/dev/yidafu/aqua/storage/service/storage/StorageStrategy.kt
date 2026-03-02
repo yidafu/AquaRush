@@ -33,7 +33,10 @@ interface StorageStrategy {
    * @param metadata 文件元数据
    * @return 存储路径
    */
-  fun store(file: MultipartFile, metadata: FileMetadata): String
+  fun store(
+    file: MultipartFile,
+    metadata: FileMetadata,
+  ): String
 
   /**
    * 获取文件
@@ -55,7 +58,10 @@ interface StorageStrategy {
    * @param filename 文件名
    * @return 文件URL
    */
-  fun generateUrl(fileId: Long, filename: String): String
+  fun generateUrl(
+    fileId: Long,
+    filename: String,
+  ): String
 
   /**
    * 检查文件是否存在

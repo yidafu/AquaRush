@@ -37,21 +37,22 @@ class RegionMutationResolver(
   private val regionService: RegionService,
   private val regionRepository: RegionRepository,
 ) : BaseGraphQLResolver() {
-
   @MutationMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun createRegion(
     @Argument input: CreateRegionInput,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal?
+    @AuthenticationPrincipal userPrincipal: UserPrincipal?,
   ): RegionModel {
     // 记录操作日志
     logOperation(
-      userPrincipal, "createRegion", mapOf<String, Any>(
+      userPrincipal,
+      "createRegion",
+      mapOf<String, Any>(
         "name" to input.name,
         "code" to input.code,
         "level" to input.level,
-        "parentCode" to (input.parentCode ?: "")
-      )
+        "parentCode" to (input.parentCode ?: ""),
+      ),
     )
 
     return regionService.createRegion(input)
@@ -62,15 +63,17 @@ class RegionMutationResolver(
   fun updateRegion(
     @Argument code: String,
     @Argument input: UpdateRegionInput,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal?
+    @AuthenticationPrincipal userPrincipal: UserPrincipal?,
   ): RegionModel {
     // 记录操作日志
     logOperation(
-      userPrincipal, "updateRegion", mapOf<String, Any>(
+      userPrincipal,
+      "updateRegion",
+      mapOf<String, Any>(
         "code" to code,
         "name" to (input.name ?: ""),
-        "parentCode" to (input.parentCode ?: "")
-      )
+        "parentCode" to (input.parentCode ?: ""),
+      ),
     )
 
     return regionService.updateRegion(code, input)
@@ -80,16 +83,17 @@ class RegionMutationResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun deleteRegion(
     @Argument code: String,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal?
+    @AuthenticationPrincipal userPrincipal: UserPrincipal?,
   ): Boolean {
     // 记录操作日志
     logOperation(
-      userPrincipal, "deleteRegion", mapOf<String, Any>(
-        "code" to code
-      )
+      userPrincipal,
+      "deleteRegion",
+      mapOf<String, Any>(
+        "code" to code,
+      ),
     )
 
     return regionService.deleteRegion(code)
   }
 }
-

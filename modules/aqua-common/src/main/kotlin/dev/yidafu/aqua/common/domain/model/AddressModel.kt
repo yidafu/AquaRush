@@ -30,56 +30,40 @@ open class AddressModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   var id: Long? = null,
-
   @Column(name = "user_id", nullable = false)
   var userId: Long,
-
   @Column(name = "receiver_name", nullable = false)
   var receiverName: String,
-
   @Column(name = "phone", nullable = false)
   var phone: String,
-
   @Column(name = "province", nullable = false)
   var province: String,
-
   @Column(name = "province_code")
   var provinceCode: String = "",
-
   @Column(name = "city", nullable = false)
   var city: String,
-
   @Column(name = "city_code")
   var cityCode: String = "",
-
   @Column(name = "district", nullable = false)
   var district: String,
-
   @Column(name = "district_code")
   var districtCode: String = "",
-
   @Column(name = "detail_address", nullable = false, length = 500)
   var detailAddress: String,
-
   @Column(name = "longitude")
   var longitude: Double? = null,
-
   @Column(name = "latitude")
   var latitude: Double? = null,
-
   @Column(name = "is_default", nullable = false)
   var isDefault: Boolean = false,
-
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-
   @Column(name = "deleted_by")
-  override var deletedBy: Long? = null
+  override var deletedBy: Long? = null,
 ) : SoftDeletable {
   @PreUpdate
   fun preUpdate() {

@@ -34,8 +34,10 @@ open class DeliveryWorkerModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
-  @Column(name = "user_id", nullable = false)
-  val userId: Long = -1L,
+  @Column(name = "user_id", nullable = true)
+  var userId: Long? = null,
+  @Column(name = "admin_id", nullable = false)
+  var adminId: Long = -1L,
   @Column(name = "wechat_openid", unique = true, nullable = false)
   var wechatOpenId: String = "",
   @Column(name = "name", nullable = false)
@@ -63,7 +65,6 @@ open class DeliveryWorkerModel(
   var averageRating: Double? = null,
   @Column(name = "earning_cents")
   var earningCents: Long? = null,
-
   @Column(name = "is_available", nullable = false)
   var isAvailable: Boolean = true,
   @Column(name = "created_at", nullable = false, updatable = false)
@@ -72,9 +73,8 @@ open class DeliveryWorkerModel(
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-
   @Column(name = "deleted_by")
-  override var deletedBy: Long? = null
+  override var deletedBy: Long? = null,
 ) : SoftDeletable {
   @PreUpdate
   fun preUpdate() {
@@ -88,27 +88,24 @@ open class DeliveryWorkerModel(
 
 @Converter(autoApply = false)
 class DeliverWorkerStatusConverter : AttributeConverter<DeliverWorkerModelStatus, String> {
-  override fun convertToDatabaseColumn(attribute: DeliverWorkerModelStatus?): String? {
-    return attribute?.label
-  }
+  override fun convertToDatabaseColumn(attribute: DeliverWorkerModelStatus?): String? = attribute?.label
 
-  override fun convertToEntityAttribute(dbData: String?): DeliverWorkerModelStatus? {
-    return DeliverWorkerModelStatus.fromString(dbData)
-  }
+  override fun convertToEntityAttribute(dbData: String?): DeliverWorkerModelStatus? = DeliverWorkerModelStatus.fromString(dbData)
 }
 
-enum class DeliverWorkerModelStatus(val label: String) {
+enum class DeliverWorkerModelStatus(
+  val label: String,
+) {
   ONLINE("ONLINE"), // 上线
   OFFLINE("OFFLINE"), // 下线
   ;
 
   companion object {
-    fun fromString(value: String?): DeliverWorkerModelStatus {
-      return when (value) {
+    fun fromString(value: String?): DeliverWorkerModelStatus =
+      when (value) {
         "ONLINE", "Online" -> ONLINE
         "OFFLINE", "Offline" -> OFFLINE
         else -> OFFLINE // 默认值
       }
-    }
   }
 }

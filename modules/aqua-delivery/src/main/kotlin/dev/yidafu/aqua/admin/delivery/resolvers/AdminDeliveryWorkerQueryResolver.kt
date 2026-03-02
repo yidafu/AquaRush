@@ -33,38 +33,29 @@ import org.springframework.stereotype.Controller
 @AdminService
 @Controller
 class AdminDeliveryWorkerQueryResolver(
-  private val deliveryService: DeliveryService
+  private val deliveryService: DeliveryService,
 ) {
-
   /**
    * 查询所有配送员（管理员功能）
    */
   @PreAuthorize("hasRole('ADMIN')")
-  fun deliveryWorkers(): List<DeliveryWorker> {
-    return DeliveryWorkerMapper.mapList(deliveryService.getAllWorkers())
-  }
+  fun deliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryService.getAllWorkers())
 
   /**
    * 查询在线配送员（管理员功能）
    */
   @PreAuthorize("hasRole('ADMIN')")
-  fun onlineDeliveryWorkers(): List<DeliveryWorker> {
-    return DeliveryWorkerMapper.mapList(deliveryService.getOnlineWorkers())
-  }
+  fun onlineDeliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryService.getOnlineWorkers())
 
   /**
    * 根据ID查询配送员（管理员功能）
    */
   @PreAuthorize("hasRole('ADMIN')")
-  fun deliveryWorker(id: Long): DeliveryWorker? {
-    return DeliveryWorkerMapper.map(deliveryService.getWorkerById(id))
-  }
+  fun deliveryWorker(id: Long): DeliveryWorker? = DeliveryWorkerMapper.map(deliveryService.getWorkerById(id))
 
   /**
    * 查询配送员的活跃任务数量（管理员功能）
    */
   @PreAuthorize("hasRole('ADMIN')")
-  fun deliveryWorkerActiveTasks(workerId: Long): Int {
-    return deliveryService.getWorkerActiveTasks(workerId).size
-  }
+  fun deliveryWorkerActiveTasks(workerId: Long): Int = deliveryService.getWorkerActiveTasks(workerId).size
 }

@@ -37,8 +37,9 @@ class SubscriptionServiceImpl(
   /**
    * 获取用户通知设置
    */
-  override fun getUserNotificationSettings(userId: Long): UserNotificationSettingsModel {
-    return userNotificationSettingsRepository.findByUserId(userId)
+  override fun getUserNotificationSettings(userId: Long): UserNotificationSettingsModel =
+    userNotificationSettingsRepository
+      .findByUserId(userId)
       .orElseGet {
         // 如果用户没有通知设置，则创建默认设置
         val defaultSettings =
@@ -53,7 +54,6 @@ class SubscriptionServiceImpl(
           )
         userNotificationSettingsRepository.save(defaultSettings)
       }
-  }
 
   /**
    * 更新用户通知设置
@@ -89,10 +89,16 @@ class SubscriptionServiceImpl(
 
     return when (messageType) {
       MessageType.ORDER_UPDATE -> settings.orderUpdates
+
       MessageType.PAYMENT_SUCCESS, MessageType.PAYMENT_FAILURE -> settings.paymentNotifications
+
       MessageType.DELIVERY_UPDATE -> settings.deliveryNotifications
-      MessageType.SYSTEM_NOTICE -> true // 系统公告总是启用
+
+      MessageType.SYSTEM_NOTICE -> true
+
+      // 系统公告总是启用
       MessageType.PROMOTIONAL -> settings.promotionalNotifications
+
       else -> true // 默认启用所有通知
     }
   }
@@ -101,29 +107,27 @@ class SubscriptionServiceImpl(
    * 启用所有通知
    */
   @Transactional
-  override fun enableAllNotifications(userId: Long): UserNotificationSettingsModel {
-    return updateNotificationSettings(
+  override fun enableAllNotifications(userId: Long): UserNotificationSettingsModel =
+    updateNotificationSettings(
       userId = userId,
       orderUpdates = true,
       paymentNotifications = true,
       deliveryNotifications = true,
       promotionalNotifications = true,
     )
-  }
 
   /**
    * 禁用所有通知
    */
   @Transactional
-  override fun disableAllNotifications(userId: Long): UserNotificationSettingsModel {
-    return updateNotificationSettings(
+  override fun disableAllNotifications(userId: Long): UserNotificationSettingsModel =
+    updateNotificationSettings(
       userId = userId,
       orderUpdates = false,
       paymentNotifications = false,
       deliveryNotifications = false,
       promotionalNotifications = false,
     )
-  }
 
   /**
    * 删除用户通知设置

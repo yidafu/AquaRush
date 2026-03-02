@@ -29,7 +29,8 @@ import java.time.Instant
  */
 class LogBuilder {
   private val objectMapper =
-    JsonMapper.builder()
+    JsonMapper
+      .builder()
 //    .addModule(JavaTimeModule())
       .build()
   private val data = mutableMapOf<String, Any>()

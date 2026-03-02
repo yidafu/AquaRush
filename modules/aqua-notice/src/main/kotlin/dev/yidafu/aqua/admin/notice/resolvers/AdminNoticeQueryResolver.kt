@@ -71,7 +71,10 @@ class AdminNoticeQueryResolver(
   ): Page<NotificationTemplate> {
     // TODO: 实现从服务获取系统消息模板
     // 目前返回空列表
-    return Page.empty(org.springframework.data.domain.PageRequest.of(page, size))
+    return Page.empty(
+      org.springframework.data.domain.PageRequest
+        .of(page, size),
+    )
   }
 
   /**
@@ -99,7 +102,10 @@ class AdminNoticeQueryResolver(
   ): Page<SystemMessageHistory> {
     // TODO: 实现从服务获取消息发送历史
     // 目前返回空列表
-    return Page.empty(org.springframework.data.domain.PageRequest.of(page, size))
+    return Page.empty(
+      org.springframework.data.domain.PageRequest
+        .of(page, size),
+    )
   }
 
   /**
@@ -165,7 +171,10 @@ class AdminNoticeQueryResolver(
   ): Page<NotificationTemplate> {
     // TODO: 实现从服务搜索通知模板
     // 目前返回空列表
-    return Page.empty(org.springframework.data.domain.PageRequest.of(page, size))
+    return Page.empty(
+      org.springframework.data.domain.PageRequest
+        .of(page, size),
+    )
   }
 
   companion object {

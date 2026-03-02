@@ -38,7 +38,6 @@ import java.time.LocalDateTime
  */
 @Repository
 class FileMetadataRepositoryImpl : FileMetadataRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -48,55 +47,63 @@ class FileMetadataRepositoryImpl : FileMetadataRepositoryCustom {
 
   private val qFileMetadata = QFileMetadata.fileMetadata
 
-  override fun findByCreatedAtBetween(startTime: LocalDateTime, endTime: LocalDateTime): List<FileMetadata> {
-    return queryFactory.selectFrom(qFileMetadata)
+  override fun findByCreatedAtBetween(
+    startTime: LocalDateTime,
+    endTime: LocalDateTime,
+  ): List<FileMetadata> =
+    queryFactory
+      .selectFrom(qFileMetadata)
       .where(qFileMetadata.createdAt.between(startTime, endTime))
       .orderBy(qFileMetadata.createdAt.desc())
       .fetch()
-  }
 
   override fun countByFileType(): Array<Array<Any>> {
-    val results: List<Tuple> = queryFactory
-      .select(qFileMetadata.fileType, qFileMetadata.count())
-      .from(qFileMetadata)
-      .groupBy(qFileMetadata.fileType)
-      .fetch()
+    val results: List<Tuple> =
+      queryFactory
+        .select(qFileMetadata.fileType, qFileMetadata.count())
+        .from(qFileMetadata)
+        .groupBy(qFileMetadata.fileType)
+        .fetch()
 
-    return results.map { tuple ->
-      arrayOf<Any>(
-        tuple.get(qFileMetadata.fileType) ?: 0,
-        tuple.get(qFileMetadata.count()) ?: 0L
-      )
-    }.toTypedArray()
+    return results
+      .map { tuple ->
+        arrayOf<Any>(
+          tuple.get(qFileMetadata.fileType) ?: 0,
+          tuple.get(qFileMetadata.count()) ?: 0L,
+        )
+      }.toTypedArray()
   }
 
-  override fun getTotalFileSizeByOwner(ownerId: Long?): Long {
-    return if (ownerId == null) {
-      queryFactory.query()
+  override fun getTotalFileSizeByOwner(ownerId: Long?): Long =
+    if (ownerId == null) {
+      queryFactory
+        .query()
         .from(qFileMetadata)
         .where(qFileMetadata.ownerId.isNull)
         .select(qFileMetadata.fileSize.sumLong().coalesce(0L))
         .fetchOne() ?: 0L
     } else {
-      queryFactory.query()
+      queryFactory
+        .query()
         .from(qFileMetadata)
         .where(qFileMetadata.ownerId.eq(ownerId))
         .select(qFileMetadata.fileSize.sumLong().coalesce(0L))
         .fetchOne() ?: 0L
     }
-  }
 
   override fun findDuplicateFiles(): List<FileMetadata> {
     // Find checksums that appear more than once
-    val duplicateChecksums = queryFactory
-      .select(qFileMetadata.checksum)
-      .from(qFileMetadata)
-      .groupBy(qFileMetadata.checksum)
-      .having(qFileMetadata.count().gt(1L))
-      .fetch()
+    val duplicateChecksums =
+      queryFactory
+        .select(qFileMetadata.checksum)
+        .from(qFileMetadata)
+        .groupBy(qFileMetadata.checksum)
+        .having(qFileMetadata.count().gt(1L))
+        .fetch()
 
     // Find files with duplicate checksums
-    return queryFactory.selectFrom(qFileMetadata)
+    return queryFactory
+      .selectFrom(qFileMetadata)
       .where(qFileMetadata.checksum.`in`(duplicateChecksums))
       .orderBy(qFileMetadata.checksum.asc())
       .fetch()
@@ -105,7 +112,7 @@ class FileMetadataRepositoryImpl : FileMetadataRepositoryCustom {
   override fun findByMultipleConditions(
     fileType: FileType?,
     ownerId: Long?,
-    isPublic: Boolean?
+    isPublic: Boolean?,
   ): List<FileMetadata> {
     val builder = BooleanBuilder()
 
@@ -113,7 +120,8 @@ class FileMetadataRepositoryImpl : FileMetadataRepositoryCustom {
     ownerId?.let { builder.and(qFileMetadata.ownerId.eq(it)) }
     isPublic?.let { builder.and(qFileMetadata.isPublic.eq(it)) }
 
-    return queryFactory.selectFrom(qFileMetadata)
+    return queryFactory
+      .selectFrom(qFileMetadata)
       .where(builder)
       .orderBy(qFileMetadata.createdAt.desc())
       .fetch()
@@ -123,7 +131,7 @@ class FileMetadataRepositoryImpl : FileMetadataRepositoryCustom {
     fileType: FileType?,
     ownerId: Long?,
     isPublic: Boolean?,
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<FileMetadata> {
     val builder = BooleanBuilder()
 
@@ -132,18 +140,22 @@ class FileMetadataRepositoryImpl : FileMetadataRepositoryCustom {
     isPublic?.let { builder.and(qFileMetadata.isPublic.eq(it)) }
 
     // Count query
-    val totalCount = queryFactory.query()
-      .from(qFileMetadata)
-      .where(builder)
-      .fetchCount()
+    val totalCount =
+      queryFactory
+        .query()
+        .from(qFileMetadata)
+        .where(builder)
+        .fetchCount()
 
     // Main query with pagination
-    val results = queryFactory.selectFrom(qFileMetadata)
-      .where(builder)
-      .orderBy(qFileMetadata.createdAt.desc())
-      .offset(pageable.offset)
-      .limit(pageable.pageSize.toLong())
-      .fetch()
+    val results =
+      queryFactory
+        .selectFrom(qFileMetadata)
+        .where(builder)
+        .orderBy(qFileMetadata.createdAt.desc())
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .fetch()
 
     return PageImpl(results, pageable, totalCount)
   }

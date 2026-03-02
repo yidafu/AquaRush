@@ -27,7 +27,9 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
-interface ReviewRepository : JpaRepository<ReviewModel, Long>, ReviewRepositoryCustom {
+interface ReviewRepository :
+  JpaRepository<ReviewModel, Long>,
+  ReviewRepositoryCustom {
   fun findByOrderId(orderId: Long): ReviewModel?
 
   fun existsByOrderId(orderId: Long): Boolean

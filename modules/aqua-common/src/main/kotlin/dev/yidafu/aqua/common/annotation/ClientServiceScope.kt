@@ -31,18 +31,14 @@ class ClientServiceScope : Condition {
   override fun matches(
     context: ConditionContext,
     metadata: AnnotatedTypeMetadata,
-  ): Boolean {
-    return context.environment.getProperty("aqua.mode") == AQUA_MODE_CLIENT
-  }
+  ): Boolean = context.environment.getProperty("aqua.mode") == AQUA_MODE_CLIENT
 }
 
 class AdminServiceScope : Condition {
   override fun matches(
     context: ConditionContext,
     metadata: AnnotatedTypeMetadata,
-  ): Boolean {
-    return context.environment.getProperty("aqua.mode") == AQUA_MODE_ADMIN
-  }
+  ): Boolean = context.environment.getProperty("aqua.mode") == AQUA_MODE_ADMIN
 }
 
 /**

@@ -25,22 +25,19 @@ import org.springframework.data.jpa.domain.Specification
 
 class ProductSpecifications {
   companion object {
-    fun byId(id: Long): Specification<ProductModel> {
-      return Specification { root, _, cb ->
+    fun byId(id: Long): Specification<ProductModel> =
+      Specification { root, _, cb ->
         cb.equal(root.get<Long>("id"), id)
       }
-    }
 
-    fun byStatus(status: ProductStatus): Specification<ProductModel> {
-      return Specification { root, _, cb ->
+    fun byStatus(status: ProductStatus): Specification<ProductModel> =
+      Specification { root, _, cb ->
         cb.equal(root.get<Enum<*>>("status"), status)
       }
-    }
 
-    fun stockGreaterThanOrEqualTo(minStock: Int): Specification<ProductModel> {
-      return Specification { root, _, cb ->
+    fun stockGreaterThanOrEqualTo(minStock: Int): Specification<ProductModel> =
+      Specification { root, _, cb ->
         cb.greaterThanOrEqualTo(root.get<Int>("stock"), minStock)
       }
-    }
   }
 }

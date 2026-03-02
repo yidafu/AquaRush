@@ -27,7 +27,6 @@ import org.springframework.web.bind.annotation.GetMapping
  */
 @Controller
 class LoginController {
-
   /**
    * Display login page
    */

@@ -6,7 +6,7 @@ import org.springframework.data.domain.Page
 /**
  * Utility object for consistent pagination mapping from Spring Data Page to GraphQL Page types
  */
-//object PaginationUtils {
+// object PaginationUtils {
 
 /**
  * Converts a Spring Data Page to a GraphQL Page structure with PageInfo
@@ -15,8 +15,8 @@ import org.springframework.data.domain.Page
  * @param mapper Function to transform domain entities to GraphQL types
  * @return A Pair containing the list of items and PageInfo
  */
-inline fun <T : Any, R> Page<T>.toPageInfo(mapper: (T) -> R): Pair<List<R>, PageInfo> {
-  return Pair(
+inline fun <T : Any, R> Page<T>.toPageInfo(mapper: (T) -> R): Pair<List<R>, PageInfo> =
+  Pair(
     content.map(mapper),
     PageInfo(
       hasNext = hasNext(),
@@ -24,36 +24,36 @@ inline fun <T : Any, R> Page<T>.toPageInfo(mapper: (T) -> R): Pair<List<R>, Page
       pageNum = number,
       pageSize = size,
       total = totalElements.toInt(),
-      totalPages = totalPages
-    )
+      totalPages = totalPages,
+    ),
   )
-}
 
 /**
  * Creates PageInfo directly from a Spring Data Page
  */
-fun <T : Any> Page<T>.toPageInfo(): PageInfo {
-  return PageInfo(
+fun <T : Any> Page<T>.toPageInfo(): PageInfo =
+  PageInfo(
     hasNext = hasNext(),
     hasPrevious = hasPrevious(),
     pageNum = number,
     pageSize = size,
     total = totalElements.toInt(),
-    totalPages = totalPages
+    totalPages = totalPages,
   )
-}
 
 /**
  * Creates an empty PageInfo for empty results
  */
-fun emptyPageInfo(pageNum: Int = 0, pageSize: Int = 20): PageInfo {
-  return PageInfo(
+fun emptyPageInfo(
+  pageNum: Int = 0,
+  pageSize: Int = 20,
+): PageInfo =
+  PageInfo(
     hasNext = false,
     hasPrevious = pageNum > 0,
     pageNum = pageNum,
     pageSize = pageSize,
     total = 0,
-    totalPages = 0
+    totalPages = 0,
   )
-}
-//}
+// }

@@ -34,7 +34,6 @@ import java.time.LocalDateTime
  */
 @Repository
 class ReconciliationTaskRepositoryImpl : ReconciliationTaskRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -42,34 +41,40 @@ class ReconciliationTaskRepositoryImpl : ReconciliationTaskRepositoryCustom {
     JPAQueryFactory(entityManager)
   }
 
-  override fun findByTaskDateBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationTaskModel> {
-    return queryFactory.selectFrom(reconciliationTaskModel)
+  override fun findByTaskDateBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<ReconciliationTaskModel> =
+    queryFactory
+      .selectFrom(reconciliationTaskModel)
       .where(reconciliationTaskModel.taskDate.between(startDate, endDate))
       .orderBy(reconciliationTaskModel.taskDate.desc())
       .fetch()
-  }
 
   override fun findByTaskTypeAndTaskDateBetween(
     taskType: ReconciliationTaskType,
     startDate: LocalDateTime,
-    endDate: LocalDateTime
-  ): List<ReconciliationTaskModel> {
-    return queryFactory.selectFrom(reconciliationTaskModel)
+    endDate: LocalDateTime,
+  ): List<ReconciliationTaskModel> =
+    queryFactory
+      .selectFrom(reconciliationTaskModel)
       .where(
-        reconciliationTaskModel.taskType.eq(taskType)
-          .and(reconciliationTaskModel.taskDate.between(startDate, endDate))
-      )
-      .orderBy(reconciliationTaskModel.taskDate.desc())
+        reconciliationTaskModel.taskType
+          .eq(taskType)
+          .and(reconciliationTaskModel.taskDate.between(startDate, endDate)),
+      ).orderBy(reconciliationTaskModel.taskDate.desc())
       .fetch()
-  }
 
-  override fun countByTaskTypeAndStatus(taskType: ReconciliationTaskType, status: ReconciliationTaskStatus): Long {
-    return queryFactory.query()
+  override fun countByTaskTypeAndStatus(
+    taskType: ReconciliationTaskType,
+    status: ReconciliationTaskStatus,
+  ): Long =
+    queryFactory
+      .query()
       .from(reconciliationTaskModel)
       .where(
-        reconciliationTaskModel.taskType.eq(taskType)
-          .and(reconciliationTaskModel.status.eq(status))
-      )
-      .fetchCount()
-  }
+        reconciliationTaskModel.taskType
+          .eq(taskType)
+          .and(reconciliationTaskModel.status.eq(status)),
+      ).fetchCount()
 }

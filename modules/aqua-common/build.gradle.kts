@@ -54,8 +54,6 @@ dependencies {
 //  ksp("io.github.openfeign.querydsl:querydsl-ksp-codegen:7.1")
 }
 
-
-
 kotlin {
   sourceSets {
     main {

@@ -14,7 +14,6 @@ import java.util.*
  * with financial calculations.
  */
 object MoneyUtils {
-
   /**
    * Conversion factor from yuan to cents (1 yuan = 100 cents)
    */
@@ -33,11 +32,12 @@ object MoneyUtils {
   /**
    * Currency formatter for Chinese Yuan
    */
-  private val CURRENCY_FORMATTER: NumberFormat = NumberFormat.getCurrencyInstance(CHINESE_LOCALE).apply {
-    // Ensure minimum 2 decimal places
-    minimumFractionDigits = MONETARY_SCALE
-    maximumFractionDigits = MONETARY_SCALE
-  }
+  private val CURRENCY_FORMATTER: NumberFormat =
+    NumberFormat.getCurrencyInstance(CHINESE_LOCALE).apply {
+      // Ensure minimum 2 decimal places
+      minimumFractionDigits = MONETARY_SCALE
+      maximumFractionDigits = MONETARY_SCALE
+    }
 
   /**
    * Converts a BigDecimal amount in yuan to cents (Long).
@@ -55,7 +55,8 @@ object MoneyUtils {
     require(yuan >= BigDecimal.ZERO) { "Yuan amount cannot be negative: $yuan" }
 
     return try {
-      yuan.multiply(YUAN_TO_CENTS)
+      yuan
+        .multiply(YUAN_TO_CENTS)
         .setScale(0, RoundingMode.HALF_EVEN)
         .longValueExact()
     } catch (e: ArithmeticException) {
@@ -121,8 +122,10 @@ object MoneyUtils {
     }
 
     return try {
-      val cents = yuan.multiply(YUAN_TO_CENTS)
-        .setScale(0, RoundingMode.HALF_EVEN)
+      val cents =
+        yuan
+          .multiply(YUAN_TO_CENTS)
+          .setScale(0, RoundingMode.HALF_EVEN)
       // Verify round-trip conversion
       fromCents(cents.longValueExact()).compareTo(yuan) == 0
     } catch (e: ArithmeticException) {
@@ -137,7 +140,10 @@ object MoneyUtils {
    * @param expectedYuan The expected yuan amount to match against
    * @return true if the conversion is accurate and matches the expected amount
    */
-  fun validateCentsConversion(cents: Long, expectedYuan: BigDecimal): Boolean {
+  fun validateCentsConversion(
+    cents: Long,
+    expectedYuan: BigDecimal,
+  ): Boolean {
     if (cents < 0 || expectedYuan == null || expectedYuan < BigDecimal.ZERO) {
       return false
     }
@@ -152,9 +158,7 @@ object MoneyUtils {
    * @param amount The amount to round
    * @return The rounded amount with exactly 2 decimal places
    */
-  fun roundToMonetaryScale(amount: BigDecimal): BigDecimal {
-    return amount.setScale(MONETARY_SCALE, RoundingMode.HALF_EVEN)
-  }
+  fun roundToMonetaryScale(amount: BigDecimal): BigDecimal = amount.setScale(MONETARY_SCALE, RoundingMode.HALF_EVEN)
 
   /**
    * Adds two amounts in cents and returns the result as cents.
@@ -164,13 +168,15 @@ object MoneyUtils {
    * @return The sum as cents
    * @throws ArithmeticException if the addition would overflow
    */
-  fun addCents(cents1: Long, cents2: Long): Long {
-    return try {
+  fun addCents(
+    cents1: Long,
+    cents2: Long,
+  ): Long =
+    try {
       Math.addExact(cents1, cents2)
     } catch (e: ArithmeticException) {
       throw ArithmeticException("Overflow when adding cents: $cents1 + $cents2")
     }
-  }
 
   /**
    * Subtracts cents2 from cents1 and returns the result as cents.
@@ -181,7 +187,10 @@ object MoneyUtils {
    * @throws IllegalArgumentException if the result would be negative
    * @throws ArithmeticException if the subtraction would overflow
    */
-  fun subtractCents(cents1: Long, cents2: Long): Long {
+  fun subtractCents(
+    cents1: Long,
+    cents2: Long,
+  ): Long {
     require(cents1 >= cents2) { "Result would be negative: $cents1 - $cents2 = ${cents1 - cents2}" }
 
     return try {
@@ -200,7 +209,10 @@ object MoneyUtils {
    * @return The product as cents
    * @throws IllegalArgumentException if the multiplier is negative or null
    */
-  fun multiplyCents(cents: Long, multiplier: BigDecimal): Long {
+  fun multiplyCents(
+    cents: Long,
+    multiplier: BigDecimal,
+  ): Long {
     requireNotNull(multiplier) { "Multiplier cannot be null" }
     require(multiplier >= BigDecimal.ZERO) { "Multiplier cannot be negative: $multiplier" }
 
@@ -215,7 +227,10 @@ object MoneyUtils {
    * @param percentage The percentage (e.g., 15.0 for 15%)
    * @return The percentage amount as cents
    */
-  fun calculatePercentage(cents: Long, percentage: BigDecimal): Long {
+  fun calculatePercentage(
+    cents: Long,
+    percentage: BigDecimal,
+  ): Long {
     requireNotNull(percentage) { "Percentage cannot be null" }
     require(percentage >= BigDecimal.ZERO) { "Percentage cannot be negative: $percentage" }
 

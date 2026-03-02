@@ -31,9 +31,8 @@ import org.springframework.web.client.getForObject
 @Primary
 @Service
 class GoogleGeocodingService(
-  private val restTemplate: RestTemplate
+  private val restTemplate: RestTemplate,
 ) : ExternalGeocodingService {
-
   @Value($$"${geocoding.google.api-key:}")
   private val apiKey: String = ""
 
@@ -59,7 +58,10 @@ class GoogleGeocodingService(
     }
   }
 
-  override fun reverseGeocode(longitude: Double, latitude: Double): GeocodingResult? {
+  override fun reverseGeocode(
+    longitude: Double,
+    latitude: Double,
+  ): GeocodingResult? {
     if (apiKey.isBlank()) {
       // 如果没有配置API Key，返回空（使用模拟服务）
       return MockGeocodingService().reverseGeocode(longitude, latitude)
@@ -70,10 +72,11 @@ class GoogleGeocodingService(
       val response = restTemplate.getForObject<GoogleGeocodeResponse>(url)
 
       response?.results?.firstOrNull()?.let { result ->
-        val (province, provinceCode) = extractAdministrativeArea(
-          result.address_components,
-          "administrative_area_level_1"
-        )
+        val (province, provinceCode) =
+          extractAdministrativeArea(
+            result.address_components,
+            "administrative_area_level_1",
+          )
         val (city, cityCode) = extractAdministrativeArea(result.address_components, "administrative_area_level_2")
         val (district, districtCode) = extractAdministrativeArea(result.address_components, "sublocality_level_1")
 
@@ -88,7 +91,7 @@ class GoogleGeocodingService(
           formattedAddress = result.formatted_address,
           longitude = result.geometry.location.lng,
           latitude = result.geometry.location.lat,
-          confidence = calculateConfidence(result)
+          confidence = calculateConfidence(result),
         )
       }
     } catch (e: Exception) {
@@ -97,20 +100,22 @@ class GoogleGeocodingService(
     }
   }
 
-  private fun extractAdministrativeArea(components: List<GoogleAddressComponent>, type: String): Pair<String, String?> {
+  private fun extractAdministrativeArea(
+    components: List<GoogleAddressComponent>,
+    type: String,
+  ): Pair<String, String?> {
     val component = components.find { it.types.contains(type) }
     return Pair(component?.long_name ?: "", component?.short_name)
   }
 
-  private fun calculateConfidence(result: GoogleResult): Double {
-    return when {
+  private fun calculateConfidence(result: GoogleResult): Double =
+    when {
       result.types.contains("street_address") -> 0.95
       result.types.contains("route") -> 0.85
       result.types.contains("sublocality") -> 0.75
       result.types.contains("locality") -> 0.65
       else -> 0.5
     }
-  }
 }
 
 @Profile("test")
@@ -128,8 +133,11 @@ class MockGeocodingService : ExternalGeocodingService {
     }
   }
 
-  override fun reverseGeocode(longitude: Double, latitude: Double): GeocodingResult? {
-    return GeocodingResult(
+  override fun reverseGeocode(
+    longitude: Double,
+    latitude: Double,
+  ): GeocodingResult? =
+    GeocodingResult(
       province = "北京市",
       provinceCode = "110000",
       city = "北京市",
@@ -140,36 +148,35 @@ class MockGeocodingService : ExternalGeocodingService {
       formattedAddress = "北京市朝阳区建国路88号",
       longitude = longitude,
       latitude = latitude,
-      confidence = 0.8
+      confidence = 0.8,
     )
-  }
 }
 
 // Data classes for Google API response
 data class GoogleGeocodeResponse(
   val results: List<GoogleResult>,
-  val status: String
+  val status: String,
 )
 
 data class GoogleResult(
   val address_components: List<GoogleAddressComponent>,
   val formatted_address: String,
   val geometry: GoogleGeometry,
-  val types: List<String>
+  val types: List<String>,
 )
 
 data class GoogleAddressComponent(
   val long_name: String,
   val short_name: String,
-  val types: List<String>
+  val types: List<String>,
 )
 
 data class GoogleGeometry(
   val location: GoogleLocation,
-  val location_type: String
+  val location_type: String,
 )
 
 data class GoogleLocation(
   val lat: Double,
-  val lng: Double
+  val lng: Double,
 )

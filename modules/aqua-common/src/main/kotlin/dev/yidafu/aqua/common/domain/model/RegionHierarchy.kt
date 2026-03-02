@@ -29,29 +29,24 @@ data class RegionHierarchyModel(
    * The default selected province
    */
   val province: RegionModel,
-
   /**
    * The default selected city
    */
   val city: RegionModel,
-
   /**
    * The default selected district
    */
   val district: RegionModel,
-
   /**
    * All available provinces for selection
    */
   val provinces: List<RegionModel>,
-
   /**
    * All cities in the selected province
    */
   val cities: List<RegionModel>,
-
   /**
    * All districts in the selected city
    */
-  val districts: List<RegionModel>
+  val districts: List<RegionModel>,
 )

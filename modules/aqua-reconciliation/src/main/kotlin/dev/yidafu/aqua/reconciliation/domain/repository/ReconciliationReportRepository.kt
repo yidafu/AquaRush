@@ -27,7 +27,8 @@ import org.springframework.stereotype.Repository
  * 对账报表仓库接口
  */
 @Repository
-interface ReconciliationReportRepository : JpaRepository<ReconciliationReportModel, Long>,
+interface ReconciliationReportRepository :
+  JpaRepository<ReconciliationReportModel, Long>,
   ReconciliationReportRepositoryCustom {
   /**
    * 根据任务ID查找报表

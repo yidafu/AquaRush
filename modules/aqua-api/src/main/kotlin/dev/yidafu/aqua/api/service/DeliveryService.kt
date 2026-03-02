@@ -27,6 +27,16 @@ import dev.yidafu.aqua.common.domain.model.*
 interface DeliveryService {
   // 配送员管理
 
+  /**
+   * 创建配送员记录
+   */
+  fun createDeliveryWorker(
+    adminId: Long,
+    name: String,
+    phone: String,
+    wechatOpenId: String = "",
+  ): DeliveryWorkerModel
+
   fun getWorkerById(workerId: Long): DeliveryWorkerModel
 
   fun getOrderById(orderId: Long): OrderModel
@@ -100,7 +110,10 @@ interface DeliveryService {
    * @param orderId 订单ID
    * @param workerId 配送员ID
    */
-  fun acceptDelivery(orderId: Long, workerId: Long): OrderModel
+  fun acceptDelivery(
+    orderId: Long,
+    workerId: Long,
+  ): OrderModel
 
   /**
    * 开始配送（配送员点击开始配送按钮）

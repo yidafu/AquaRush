@@ -27,17 +27,23 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface UserRepository : JpaRepository<UserModel, Long>, UserRepositoryCustom {
+interface UserRepository :
+  JpaRepository<UserModel, Long>,
+  UserRepositoryCustom {
   fun findByWechatOpenId(wechatOpenId: String): UserModel?
+
+  fun findByPhone(phone: String): UserModel?
 
   fun existsByWechatOpenId(wechatOpenId: String): Boolean
 
   fun findByNicknameContainingIgnoreCaseOrPhoneContainingIgnoreCase(
     nickname: String,
     phone: String,
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<UserModel>
 
-  fun findByStatus(status: UserStatus, pageable: Pageable): Page<UserModel>
-
+  fun findByStatus(
+    status: UserStatus,
+    pageable: Pageable,
+  ): Page<UserModel>
 }

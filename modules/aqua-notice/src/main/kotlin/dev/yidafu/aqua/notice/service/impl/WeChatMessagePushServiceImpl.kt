@@ -197,9 +197,7 @@ class WeChatMessagePushServiceImpl(
     return retryCount
   }
 
-  override fun getMessageStatistics(since: LocalDateTime): Map<String, Long> {
-    return messageHistoryService.getStatistics(since)
-  }
+  override fun getMessageStatistics(since: LocalDateTime): Map<String, Long> = messageHistoryService.getStatistics(since)
 
   override fun sendTestNotification(userId: Long) {
     logger.info("Sending test notification to user: $userId")

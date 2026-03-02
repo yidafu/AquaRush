@@ -41,9 +41,8 @@ import org.springframework.stereotype.Controller
 @AdminService
 @Controller
 class AdminProductQueryResolver(
-  private val productService: ProductServiceImpl
+  private val productService: ProductServiceImpl,
 ) {
-
   /**
    * 查询所有产品（管理员功能，包括下线产品）
    */
@@ -53,34 +52,35 @@ class AdminProductQueryResolver(
     @Argument page: Int? = 0,
     @Argument size: Int? = 20,
     @Argument status: ProductStatus? = null,
-    @Argument keyword: String? = null
+    @Argument keyword: String? = null,
   ): ProductPage {
     val actualPage = page ?: 0
     val actualSize = size ?: 20
     val pageable: Pageable = PageRequest.of(actualPage, actualSize)
 
-    val productsPage = when {
-      keyword != null && status != null -> {
-        productService.findByNameContainingAndStatus(keyword, status, pageable)
-      }
+    val productsPage =
+      when {
+        keyword != null && status != null -> {
+          productService.findByNameContainingAndStatus(keyword, status, pageable)
+        }
 
-      keyword != null -> {
-        productService.findByNameContaining(keyword, pageable)
-      }
+        keyword != null -> {
+          productService.findByNameContaining(keyword, pageable)
+        }
 
-      status != null -> {
-        productService.findByStatus(status, pageable)
-      }
+        status != null -> {
+          productService.findByStatus(status, pageable)
+        }
 
-      else -> {
-        productService.findAll(pageable)
+        else -> {
+          productService.findAll(pageable)
+        }
       }
-    }
 
     val (productList, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
     return ProductPage(
       list = productList,
-      pageInfo = pageInfo
+      pageInfo = pageInfo,
     )
   }
 
@@ -90,9 +90,9 @@ class AdminProductQueryResolver(
 
   @PreAuthorize("hasRole('ADMIN')")
   @QueryMapping
-  fun product(@Argument id: Long): ProductModel? {
-    return productService.findById(id)
-  }
+  fun product(
+    @Argument id: Long,
+  ): Product? = productService.findById(id)?.let { ProductMapper.map(it) }
 
   /**
    * 查询活跃产品（管理员功能）
@@ -101,7 +101,7 @@ class AdminProductQueryResolver(
   @QueryMapping
   fun activeProducts(
     @Argument page: Int? = 0,
-    @Argument size: Int? = 20
+    @Argument size: Int? = 20,
   ): Page<ProductModel> {
     val actualPage = page ?: 0
     val actualSize = size ?: 20
@@ -115,7 +115,7 @@ class AdminProductQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun offlineProducts(
     page: Int? = 0,
-    size: Int? = 20
+    size: Int? = 20,
   ): Page<ProductModel> {
     val actualPage = page ?: 0
     val actualSize = size ?: 20
@@ -130,7 +130,7 @@ class AdminProductQueryResolver(
   fun lowStockProducts(
     threshold: Int? = 10,
     page: Int? = 0,
-    size: Int? = 20
+    size: Int? = 20,
   ): Page<ProductModel> {
     val actualThreshold = threshold ?: 10
     val actualPage = page ?: 0
@@ -147,7 +147,7 @@ class AdminProductQueryResolver(
   fun productsByCategory(
     @Argument category: String,
     @Argument page: Int? = 0,
-    @Argument size: Int? = 20
+    @Argument size: Int? = 20,
   ): Page<ProductModel> {
     val actualPage = page ?: 0
     val actualSize = size ?: 20
@@ -163,7 +163,7 @@ class AdminProductQueryResolver(
     minPrice: java.math.BigDecimal,
     maxPrice: java.math.BigDecimal,
     page: Int? = 0,
-    size: Int? = 20
+    size: Int? = 20,
   ): Page<ProductModel> {
     val actualPage = page ?: 0
     val actualSize = size ?: 20
@@ -176,16 +176,16 @@ class AdminProductQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun productStatistics(): ProductStatistics {
-    return productService.getProductStatistics()
-  }
+  fun productStatistics(): ProductStatistics = productService.getProductStatistics()
 
   /**
    * 获取低库存产品警报（管理员功能）- GraphQL
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun lowStockProducts(@Argument threshold: Int? = 10): List<LowStockAlert> {
+  fun lowStockProducts(
+    @Argument threshold: Int? = 10,
+  ): List<LowStockAlert> {
     val actualThreshold = threshold ?: 10
     val lowStockProducts = productService.getLowStockProducts(actualThreshold)
     return lowStockProducts.map { product ->
@@ -194,7 +194,7 @@ class AdminProductQueryResolver(
         productName = product.name,
         currentStock = product.stock,
         threshold = actualThreshold,
-        status = product.status
+        status = product.status,
       )
     }
   }
@@ -204,30 +204,33 @@ class AdminProductQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun productsPaginated(@Argument input: ProductListInput): ProductPage {
+  fun productsPaginated(
+    @Argument input: ProductListInput,
+  ): ProductPage {
     val pageable: Pageable = PageRequest.of(input.page ?: 0, input.size ?: 20)
-    val productsPage = when {
-      input.search != null && input.status != null -> {
-        productService.findByNameContainingAndStatus(input.search!!, input.status!!, pageable)
-      }
+    val productsPage =
+      when {
+        input.search != null && input.status != null -> {
+          productService.findByNameContainingAndStatus(input.search!!, input.status!!, pageable)
+        }
 
-      input.search != null -> {
-        productService.findByNameContaining(input.search!!, pageable)
-      }
+        input.search != null -> {
+          productService.findByNameContaining(input.search!!, pageable)
+        }
 
-      input.status != null -> {
-        productService.findByStatus(input.status!!, pageable)
-      }
+        input.status != null -> {
+          productService.findByStatus(input.status!!, pageable)
+        }
 
-      else -> {
-        productService.findAll(pageable)
+        else -> {
+          productService.findAll(pageable)
+        }
       }
-    }
 
     val (products, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
     return ProductPage(
       list = products,
-      pageInfo = pageInfo
+      pageInfo = pageInfo,
     )
   }
 
@@ -238,90 +241,80 @@ class AdminProductQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun topSalesProducts(@Argument limit: Int? = 10): List<ProductModel> {
-    return productService.getTopSalesProducts(limit ?: 10)
-  }
+  fun topSalesProducts(
+    @Argument limit: Int? = 10,
+  ): List<ProductModel> = productService.getTopSalesProducts(limit ?: 10)
 
   /**
    * 按水源地查询产品（管理员功能）
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun productsByWaterSource(@Argument waterSource: String): List<ProductModel> {
-    return productService.findByWaterSource(waterSource)
-  }
+  fun productsByWaterSource(
+    @Argument waterSource: String,
+  ): List<ProductModel> = productService.findByWaterSource(waterSource)
 
   /**
    * 按销量查询产品（管理员功能）
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun productsByMinSalesVolume(@Argument minVolume: Int?): List<ProductModel> {
-    return productService.findBySalesVolumeGreaterThan(minVolume ?: 0)
-  }
+  fun productsByMinSalesVolume(
+    @Argument minVolume: Int?,
+  ): List<ProductModel> = productService.findBySalesVolumeGreaterThan(minVolume ?: 0)
 
   /**
    * 按标签查询产品（管理员功能）
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun productsByTag(@Argument tag: String): List<ProductModel> {
-    return productService.findByTagsContaining(tag)
-  }
+  fun productsByTag(
+    @Argument tag: String,
+  ): List<ProductModel> = productService.findByTagsContaining(tag)
 
   /**
    * 获取水源地统计（管理员功能）
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun waterSourceStatistics(): Map<String, Long> {
-    return productService.getWaterSourceStatistics()
-  }
+  fun waterSourceStatistics(): Map<String, Long> = productService.getWaterSourceStatistics()
 
   /**
    * 获取产品规格统计（管理员功能）
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun specificationStatistics(): Map<String, Long> {
-    return productService.getSpecificationStatistics()
-  }
+  fun specificationStatistics(): Map<String, Long> = productService.getSpecificationStatistics()
 
   /**
    * 获取所有活跃产品（未删除的产品）
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun allActiveProducts(): List<ProductModel> {
-    return productService.findActiveProducts()
-  }
+  fun allActiveProducts(): List<ProductModel> = productService.findActiveProducts()
 
   /**
    * 按状态获取活跃产品
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun activeProductsByStatus(@Argument status: ProductStatus): List<ProductModel> {
-    return productService.findActiveProductsByStatus(status)
-  }
+  fun activeProductsByStatus(
+    @Argument status: ProductStatus,
+  ): List<ProductModel> = productService.findActiveProductsByStatus(status)
 
   /**
    * 按销量排序产品
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun productsSortedBySalesVolume(): List<ProductModel> {
-    return productService.findAllByOrderBySalesVolumeDesc()
-  }
+  fun productsSortedBySalesVolume(): List<ProductModel> = productService.findAllByOrderBySalesVolumeDesc()
 
   /**
    * 按排序权重排序产品
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun productsSortedBySortOrder(): List<ProductModel> {
-    return productService.findAllByOrderBySortOrderAsc()
-  }
+  fun productsSortedBySortOrder(): List<ProductModel> = productService.findAllByOrderBySortOrderAsc()
 }
 
 /**
@@ -332,5 +325,5 @@ data class ProductStatistics(
   val onlineProducts: Long,
   val offlineProducts: Long,
   val lowStockProducts: Long,
-  val onlinePercentage: Double
+  val onlinePercentage: Double,
 )

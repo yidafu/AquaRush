@@ -37,9 +37,8 @@ import java.time.LocalDateTime
 @AdminService
 @Controller
 class AdminPaymentQueryResolver(
-  private val paymentService: PaymentService
+  private val paymentService: PaymentService,
 ) {
-
   /**
    * 查询所有支付交易（管理员功能）
    */
@@ -52,7 +51,7 @@ class AdminPaymentQueryResolver(
     dateFrom: LocalDateTime? = null,
     dateTo: LocalDateTime? = null,
     minAmount: BigDecimal? = null,
-    maxAmount: BigDecimal? = null
+    maxAmount: BigDecimal? = null,
   ): Page<PaymentTransaction> {
     // TODO: 实现从paymentService获取支付交易列表
     // 目前返回空列表
@@ -77,7 +76,7 @@ class AdminPaymentQueryResolver(
   fun userPaymentTransactions(
     userId: Long,
     page: Int = 0,
-    size: Int = 20
+    size: Int = 20,
   ): Page<PaymentTransaction> {
     // TODO: 实现从paymentService获取用户交易历史
     // 目前返回空列表
@@ -94,7 +93,7 @@ class AdminPaymentQueryResolver(
     size: Int = 20,
     status: RefundStatus? = null,
     dateFrom: LocalDateTime? = null,
-    dateTo: LocalDateTime? = null
+    dateTo: LocalDateTime? = null,
   ): Page<RefundRequest> {
     // TODO: 实现从paymentService获取退款请求列表
     // 目前返回空列表
@@ -118,7 +117,7 @@ class AdminPaymentQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun paymentStatistics(
     dateFrom: LocalDateTime? = null,
-    dateTo: LocalDateTime? = null
+    dateTo: LocalDateTime? = null,
   ): PaymentStatistics {
     // TODO: 实现从paymentService获取支付统计
     // 目前返回默认统计数据
@@ -130,7 +129,7 @@ class AdminPaymentQueryResolver(
       refundedAmount = 0L,
       refundCount = 0L,
       averageTransactionAmount = 0L,
-      dailyStats = emptyList()
+      dailyStats = emptyList(),
     )
   }
 
@@ -140,7 +139,7 @@ class AdminPaymentQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun paymentMethodStatistics(
     dateFrom: LocalDateTime? = null,
-    dateTo: LocalDateTime? = null
+    dateTo: LocalDateTime? = null,
   ): List<PaymentMethodStats> {
     // TODO: 实现从paymentService获取支付方式统计
     // 目前返回空列表
@@ -155,7 +154,7 @@ class AdminPaymentQueryResolver(
     page: Int = 0,
     size: Int = 20,
     dateFrom: LocalDateTime? = null,
-    dateTo: LocalDateTime? = null
+    dateTo: LocalDateTime? = null,
   ): Page<SuspiciousTransaction> {
     // TODO: 实现从paymentService获取异常交易
     // 目前返回空列表
@@ -169,12 +168,10 @@ class AdminPaymentQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun dailyPaymentStatistics(
     dateFrom: LocalDateTime,
-    dateTo: LocalDateTime
+    dateTo: LocalDateTime,
   ): List<DailyPaymentStats> {
     // TODO: 实现从paymentService获取日支付统计
     // 目前返回空列表
     return emptyList()
   }
-
-
 }

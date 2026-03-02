@@ -86,7 +86,6 @@ class UserApiServiceImpl(
         nickname = request.nickname,
         phone = request.phone,
         avatarUrl = request.avatar,
-
         updatedAt = LocalDateTime.now(),
         email = "",
         status = UserStatus.ACTIVE,

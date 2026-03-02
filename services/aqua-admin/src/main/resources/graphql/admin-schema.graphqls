@@ -194,6 +194,37 @@ type Mutation {
   exportFavorites(input: ExportFavoritesInput!): ExportFavoritesResult!
   analyzeUserFavorites(userId: PrimaryId!): Map!
   refreshFavoriteAnalyticsCache(force: Boolean = true): BooleanPayload!
+
+  # Admin User Management
+  createAdmin(input: CreateAdminInput!): Admin!
+  updateAdmin(id: PrimaryId!, input: UpdateAdminInput!): Admin!
+  deleteAdmin(id: PrimaryId!): Boolean!
+
+  # Delivery Worker Authentication
+  deliveryLogin(input: DeliveryLoginInput!): DeliveryLoginResponse!
+  bindDeliveryPhone(input: BindDeliveryPhoneInput!): DeliveryLoginResponse!
+}
+
+# Admin User Input Types
+input CreateAdminInput {
+  username: String!
+  password: String
+  realName: String
+  phone: String
+  role: AdminRole!
+  avatarUrl: String
+  status: DeliveryWorkerStatus
+  isAvailable: Boolean
+}
+
+input UpdateAdminInput {
+  username: String
+  realName: String
+  phone: String
+  role: AdminRole
+  avatarUrl: String
+  status: DeliveryWorkerStatus
+  isAvailable: Boolean
 }
 
 # Extend the User type with admin-specific fields

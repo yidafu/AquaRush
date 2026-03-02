@@ -25,9 +25,10 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 
 @Repository
-interface AddressRepository : JpaRepository<AddressModel, Long>, JpaSpecificationExecutor<AddressModel>,
+interface AddressRepository :
+  JpaRepository<AddressModel, Long>,
+  JpaSpecificationExecutor<AddressModel>,
   AddressRepositoryCustom {
-
   /**
    * Find all addresses for a user
    * @param userId the user ID
@@ -66,7 +67,10 @@ interface AddressRepository : JpaRepository<AddressModel, Long>, JpaSpecificatio
    * @param addressId the address ID to exclude
    * @return list of addresses
    */
-  fun findByUserIdAndIdNot(userId: Long, addressId: Long): List<AddressModel>
+  fun findByUserIdAndIdNot(
+    userId: Long,
+    addressId: Long,
+  ): List<AddressModel>
 
   fun deleteByIdAndUserId(
     id: Long,

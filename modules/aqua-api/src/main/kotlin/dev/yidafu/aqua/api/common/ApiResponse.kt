@@ -20,23 +20,6 @@
 package dev.yidafu.aqua.api.common
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import java.time.LocalDateTime
-
-/**
- * 通用API响应格式
- */
-data class ApiResponse<T>(
-  @field:JsonProperty("success")
-  val success: Boolean,
-  @field:JsonProperty("message")
-  val message: String,
-  @field:JsonProperty("data")
-  val data: T? = null,
-  @field:JsonProperty("timestamp")
-  val timestamp: LocalDateTime = LocalDateTime.now(),
-  @field:JsonProperty("code")
-  val code: Int = 200,
-)
 
 /**
  * 分页响应格式
@@ -56,18 +39,4 @@ data class PagedResponse<T>(
   val first: Boolean,
   @field:JsonProperty("last")
   val last: Boolean,
-)
-
-/**
- * API 错误响应
- */
-data class ApiError(
-  @field:JsonProperty("code")
-  val code: Int,
-  @field:JsonProperty("message")
-  val message: String,
-  @field:JsonProperty("field")
-  val field: String? = null,
-  @field:JsonProperty("rejectedValue")
-  val rejectedValue: Any? = null,
 )

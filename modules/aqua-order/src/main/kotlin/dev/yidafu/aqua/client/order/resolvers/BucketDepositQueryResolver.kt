@@ -35,7 +35,6 @@ import org.springframework.stereotype.Controller
 class BucketDepositQueryResolver(
   private val bucketDepositService: BucketDepositService,
 ) {
-
   /**
    * 获取当前用户的押桶记录列表
    */
@@ -43,9 +42,7 @@ class BucketDepositQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun myBucketDeposits(
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): List<BucketDepositModel> {
-    return bucketDepositService.getUserBucketDeposits(userPrincipal.id)
-  }
+  ): List<BucketDepositModel> = bucketDepositService.getUserBucketDeposits(userPrincipal.id)
 
   /**
    * 获取当前用户的押桶记录列表（分页）
@@ -56,9 +53,7 @@ class BucketDepositQueryResolver(
     @Argument page: Int = 0,
     @Argument size: Int = 20,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Page<BucketDepositModel> {
-    return bucketDepositService.getUserBucketDeposits(userPrincipal.id, page, size)
-  }
+  ): Page<BucketDepositModel> = bucketDepositService.getUserBucketDeposits(userPrincipal.id, page, size)
 
   /**
    * 获取当前用户的有效押桶数量
@@ -67,17 +62,13 @@ class BucketDepositQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun myActiveBucketCount(
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Int {
-    return bucketDepositService.getUserActiveBucketCount(userPrincipal.id)
-  }
+  ): Int = bucketDepositService.getUserActiveBucketCount(userPrincipal.id)
 
   /**
    * 获取押桶金额配置
    */
   @QueryMapping
-  fun bucketDepositAmount(): Long {
-    return bucketDepositService.getBucketDepositAmount()
-  }
+  fun bucketDepositAmount(): Long = bucketDepositService.getBucketDepositAmount()
 
   /**
    * 根据ID获取押桶记录

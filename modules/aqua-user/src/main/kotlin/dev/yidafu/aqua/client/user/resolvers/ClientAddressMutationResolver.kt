@@ -225,5 +225,4 @@ class ClientAddressMutationResolver(
       throw BadRequestException("复制地址失败: ${e.message}")
     }
   }
-
 }

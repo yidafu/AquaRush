@@ -62,8 +62,8 @@ class UserActionEventService(
    * 异步处理用户操作日志
    * 将用户操作事件添加到队列中，等待批量处理
    */
-  fun processUserActionAsync(request: UserActionLogRequest): Boolean {
-    return try {
+  fun processUserActionAsync(request: UserActionLogRequest): Boolean =
+    try {
       eventQueue.offer(request)
       logger.debug("User action added to processing queue: ${request.actionType}")
       true
@@ -73,13 +73,12 @@ class UserActionEventService(
       processUserActionSync(request)
       true
     }
-  }
 
   /**
    * 批量处理用户操作日志
    */
-  fun processUserActionsBatch(requests: List<UserActionLogRequest>): List<Boolean> {
-    return try {
+  fun processUserActionsBatch(requests: List<UserActionLogRequest>): List<Boolean> =
+    try {
       val results = mutableListOf<Boolean>()
       val batchSize = loggingProperties.userAction.batchSize
 
@@ -98,15 +97,14 @@ class UserActionEventService(
       logger.error("Failed to process batch user actions", e)
       requests.map { false }
     }
-  }
 
   /**
    * 同步处理用户操作日志
    * 直接记录到日志文件，用于关键操作或降级场景
    */
   @Transactional
-  fun processUserActionSync(request: UserActionLogRequest): Boolean {
-    return try {
+  fun processUserActionSync(request: UserActionLogRequest): Boolean =
+    try {
       when (request.actionType.uppercase()) {
         "PAGE_VIEW" -> {
           val pageTitle = request.properties["pageTitle"] as? String
@@ -247,7 +245,6 @@ class UserActionEventService(
       logger.error("Failed to process user action: ${request.actionType}", e)
       false
     }
-  }
 
   /**
    * 创建用户操作域事件
@@ -337,15 +334,14 @@ class UserActionEventService(
   /**
    * 获取队列状态
    */
-  fun getQueueStatus(): Map<String, Any> {
-    return mapOf(
+  fun getQueueStatus(): Map<String, Any> =
+    mapOf(
       "queueSize" to eventQueue.size,
       "batchSize" to loggingProperties.userAction.batchSize,
       "flushIntervalMs" to loggingProperties.userAction.flushInterval,
       "eventStoreSize" to eventStore.size,
       "asyncProcessing" to loggingProperties.userAction.asyncProcessing,
     )
-  }
 
   /**
    * 清理过期事件

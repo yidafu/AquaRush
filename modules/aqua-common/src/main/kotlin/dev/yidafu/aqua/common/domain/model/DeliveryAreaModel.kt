@@ -40,15 +40,12 @@ open class DeliveryAreaModel(
   var district: String,
   @Column(name = "enabled", nullable = false)
   var enabled: Boolean = true,
-
   @Column(name = "created_at", nullable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-
   @Column(name = "deleted_by")
-  override var deletedBy: Long? = null
-) : SoftDeletable {}
+  override var deletedBy: Long? = null,
+) : SoftDeletable

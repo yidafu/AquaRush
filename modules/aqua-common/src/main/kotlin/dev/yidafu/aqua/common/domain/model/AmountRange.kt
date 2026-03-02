@@ -23,5 +23,5 @@ import java.math.BigDecimal
 
 data class AmountRange(
   val minAmount: BigDecimal? = null,
-  val maxAmount: BigDecimal? = null
+  val maxAmount: BigDecimal? = null,
 )

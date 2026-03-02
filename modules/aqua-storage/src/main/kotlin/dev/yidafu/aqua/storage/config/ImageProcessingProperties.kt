@@ -30,34 +30,28 @@ data class ImageProcessingProperties(
    * 默认图片质量
    */
   var defaultQuality: Float = 0.8f,
-
   /**
    * 最大宽度
    */
   var maxWidth: Int = 4096,
-
   /**
    * 最大高度
    */
   var maxHeight: Int = 4096,
-
   /**
    * 支持的输出格式
    */
   var supportedFormats: Set<String> = setOf("JPEG", "PNG", "WEBP", "GIF", "BMP"),
-
   /**
    * 是否启用图片处理缓存
    */
   var enableCache: Boolean = true,
-
   /**
    * 缓存过期时间（小时）
    */
   var cacheExpirationHours: Long = 24L,
-
   /**
    * 默认水印文本
    */
-  var defaultWatermarkText: String = "AquaRush"
+  var defaultWatermarkText: String = "AquaRush",
 )

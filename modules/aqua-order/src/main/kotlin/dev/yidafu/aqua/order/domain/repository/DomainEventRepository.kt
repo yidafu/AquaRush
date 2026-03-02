@@ -32,7 +32,9 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 @Repository
-interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpecificationExecutor<DomainEventModel> {
+interface DomainEventRepository :
+  JpaRepository<DomainEventModel, Long>,
+  JpaSpecificationExecutor<DomainEventModel> {
   fun findByEventTypeAndStatus(
     eventType: String,
     status: EventStatusModel,
@@ -46,8 +48,10 @@ interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpec
     status: EventStatusModel,
     now: LocalDateTime,
   ): List<DomainEventModel> {
-    val specification = DomainEventSpecifications.byStatus(status)
-      .and(DomainEventSpecifications.nextRunAtBeforeOrIsNull(now))
+    val specification =
+      DomainEventSpecifications
+        .byStatus(status)
+        .and(DomainEventSpecifications.nextRunAtBeforeOrIsNull(now))
     return findAll(specification, Sort.by(Sort.Direction.ASC, "createdAt"))
   }
 
@@ -57,8 +61,10 @@ interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpec
     status: EventStatusModel,
     now: LocalDateTime,
   ): DomainEventModel? {
-    val specification = DomainEventSpecifications.byStatus(status)
-      .and(DomainEventSpecifications.nextRunAtBeforeOrIsNull(now))
+    val specification =
+      DomainEventSpecifications
+        .byStatus(status)
+        .and(DomainEventSpecifications.nextRunAtBeforeOrIsNull(now))
     val pageable = PageRequest.of(0, 1, Sort.by(Sort.Direction.ASC, "createdAt"))
     val page = findAll(specification, pageable)
     return page.content.firstOrNull()
@@ -70,8 +76,10 @@ interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpec
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Long {
-    val specification = DomainEventSpecifications.byEventTypeAndStatus(eventType, status)
-      .and(DomainEventSpecifications.createdAtBetween(startDate, endDate))
+    val specification =
+      DomainEventSpecifications
+        .byEventTypeAndStatus(eventType, status)
+        .and(DomainEventSpecifications.createdAtBetween(startDate, endDate))
     return count(specification)
   }
 
@@ -79,8 +87,10 @@ interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpec
     maxRetries: Int,
     status: EventStatusModel,
   ): Long {
-    val specification = DomainEventSpecifications.retryCountGreaterThanOrEqualTo(maxRetries)
-      .and(DomainEventSpecifications.byStatus(status))
+    val specification =
+      DomainEventSpecifications
+        .retryCountGreaterThanOrEqualTo(maxRetries)
+        .and(DomainEventSpecifications.byStatus(status))
     return count(specification)
   }
 
@@ -88,10 +98,14 @@ interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpec
     status: EventStatusModel,
     before: LocalDateTime,
   ) {
-    val specification = DomainEventSpecifications.byStatus(status)
-      .and(Specification { root, _, cb ->
-        cb.lessThan(root.get<LocalDateTime>("createdAt"), before)
-      })
+    val specification =
+      DomainEventSpecifications
+        .byStatus(status)
+        .and(
+          Specification { root, _, cb ->
+            cb.lessThan(root.get<LocalDateTime>("createdAt"), before)
+          },
+        )
     val events = findAll(specification)
     deleteAll(events)
   }
@@ -99,7 +113,7 @@ interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpec
   // Enhanced query methods using modern Spring Data JPA 3.0+ features
   fun findNextPendingEventForUpdateEnhanced(
     status: EventStatusModel,
-    now: LocalDateTime
+    now: LocalDateTime,
   ): EventStatusModel?
 
   fun findPendingEventsWithFilters(
@@ -107,33 +121,33 @@ interface DomainEventRepository : JpaRepository<DomainEventModel, Long>, JpaSpec
     now: LocalDateTime,
     eventType: String? = null,
     maxRetries: Int? = null,
-    batchSize: Int = 100
+    batchSize: Int = 100,
   ): List<EventStatusModel>
 
   fun batchUpdateEvents(
     eventIds: List<Long>,
     newStatus: EventStatusModel,
     incrementRetry: Boolean = false,
-    nextRunAt: LocalDateTime? = null
+    nextRunAt: LocalDateTime? = null,
   ): Int
 
   fun findEventsInTimeRange(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
     eventTypes: List<String>? = null,
-    statuses: List<EventStatusModel>? = null
+    statuses: List<EventStatusModel>? = null,
   ): List<DomainEventModel>
 
   fun countEventsByTypeAndStatus(
     eventType: String,
     status: EventStatusModel,
     startDate: LocalDateTime? = null,
-    endDate: LocalDateTime? = null
+    endDate: LocalDateTime? = null,
   ): Long
 
   fun getEventProcessingAnalytics(
     startDate: LocalDateTime,
-    endDate: LocalDateTime
+    endDate: LocalDateTime,
   ): List<EventAnalyticsRow>
 
   fun cleanupProcessedEvents(olderThan: LocalDateTime): Int

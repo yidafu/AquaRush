@@ -36,7 +36,6 @@ import java.time.LocalDateTime
  */
 @Repository
 class ReviewRepositoryImpl : ReviewRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -63,18 +62,22 @@ class ReviewRepositoryImpl : ReviewRepositoryCustom {
     userId?.let { builder.and(reviewModel.userId.eq(it)) }
 
     // Count query
-    val totalCount = queryFactory.query()
-      .from(reviewModel)
-      .where(builder)
-      .fetchCount()
+    val totalCount =
+      queryFactory
+        .query()
+        .from(reviewModel)
+        .where(builder)
+        .fetchCount()
 
     // Main query with pagination
-    val results = queryFactory.selectFrom(reviewModel)
-      .where(builder)
-      .orderBy(reviewModel.createdAt.desc())
-      .offset(pageable.offset)
-      .limit(pageable.pageSize.toLong())
-      .fetch()
+    val results =
+      queryFactory
+        .selectFrom(reviewModel)
+        .where(builder)
+        .orderBy(reviewModel.createdAt.desc())
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .fetch()
 
     return PageImpl(results, pageable, totalCount)
   }
@@ -82,21 +85,21 @@ class ReviewRepositoryImpl : ReviewRepositoryCustom {
   override fun countByDeliveryWorkerIdAndRating(
     deliveryWorkerId: Long,
     rating: Int,
-  ): Long {
-    return queryFactory.query()
+  ): Long =
+    queryFactory
+      .query()
       .from(reviewModel)
       .where(
-        reviewModel.deliveryWorkerId.eq(deliveryWorkerId)
-          .and(reviewModel.rating.eq(rating))
-      )
-      .fetchCount()
-  }
+        reviewModel.deliveryWorkerId
+          .eq(deliveryWorkerId)
+          .and(reviewModel.rating.eq(rating)),
+      ).fetchCount()
 
-  override fun findAverageRatingByDeliveryWorkerId(deliveryWorkerId: Long): Double? {
-    return queryFactory.query()
+  override fun findAverageRatingByDeliveryWorkerId(deliveryWorkerId: Long): Double? =
+    queryFactory
+      .query()
       .from(reviewModel)
       .where(reviewModel.deliveryWorkerId.eq(deliveryWorkerId))
       .select(reviewModel.rating.avg())
       .fetchOne()
-  }
 }

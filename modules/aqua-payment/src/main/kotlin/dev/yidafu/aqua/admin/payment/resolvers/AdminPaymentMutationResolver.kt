@@ -37,7 +37,7 @@ import java.math.BigDecimal
 @AdminService
 @Controller
 class AdminPaymentMutationResolver(
-  private val paymentService: PaymentService
+  private val paymentService: PaymentService,
 ) {
   private val logger = LoggerFactory.getLogger(AdminPaymentMutationResolver::class.java)
 
@@ -46,29 +46,33 @@ class AdminPaymentMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun processRefund(@Valid input: ProcessRefundInput): RefundRequest {
+  fun processRefund(
+    @Valid input: ProcessRefundInput,
+  ): RefundRequest {
     try {
       // 验证输入
       validateProcessRefundInput(input)
 
       // TODO: 实现从paymentService处理退款
       // 目前返回模拟数据
-      val refundRequest = RefundRequest(
-        id = "refund_${input.refundRequestId}",
-        originalTransactionId = input.originalTransactionId,
-        orderId = input.orderId,
-        userId = input.userId,
-        amount = input.amount,
-        reason = input.reason,
-        status = when (input.action) {
-          RefundAction.APPROVE -> RefundStatus.APPROVED
-          RefundAction.REJECT -> RefundStatus.REJECTED
-        },
-        requestedAt = java.time.LocalDateTime.now(),
-        processedAt = java.time.LocalDateTime.now(),
-        processedBy = getCurrentAdminId(),
-        adminNote = input.adminNote
-      )
+      val refundRequest =
+        RefundRequest(
+          id = "refund_${input.refundRequestId}",
+          originalTransactionId = input.originalTransactionId,
+          orderId = input.orderId,
+          userId = input.userId,
+          amount = input.amount,
+          reason = input.reason,
+          status =
+            when (input.action) {
+              RefundAction.APPROVE -> RefundStatus.APPROVED
+              RefundAction.REJECT -> RefundStatus.REJECTED
+            },
+          requestedAt = java.time.LocalDateTime.now(),
+          processedAt = java.time.LocalDateTime.now(),
+          processedBy = getCurrentAdminId(),
+          adminNote = input.adminNote,
+        )
 
       logger.info("Successfully processed refund request: ${refundRequest.id}")
       return refundRequest
@@ -83,26 +87,29 @@ class AdminPaymentMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun createManualRefund(@Valid input: CreateManualRefundInput): RefundRequest {
+  fun createManualRefund(
+    @Valid input: CreateManualRefundInput,
+  ): RefundRequest {
     try {
       // 验证输入
       validateManualRefundInput(input)
 
       // TODO: 实现从paymentService创建手动退款
       // 目前返回模拟数据
-      val refundRequest = RefundRequest(
-        id = "manual_refund_${System.currentTimeMillis()}",
-        originalTransactionId = input.originalTransactionId,
-        orderId = input.orderId,
-        userId = input.userId,
-        amount = input.amount,
-        reason = input.reason,
-        status = RefundStatus.PENDING,
-        requestedAt = java.time.LocalDateTime.now(),
-        processedAt = null,
-        processedBy = getCurrentAdminId(),
-        adminNote = input.adminNote
-      )
+      val refundRequest =
+        RefundRequest(
+          id = "manual_refund_${System.currentTimeMillis()}",
+          originalTransactionId = input.originalTransactionId,
+          orderId = input.orderId,
+          userId = input.userId,
+          amount = input.amount,
+          reason = input.reason,
+          status = RefundStatus.PENDING,
+          requestedAt = java.time.LocalDateTime.now(),
+          processedAt = null,
+          processedBy = getCurrentAdminId(),
+          adminNote = input.adminNote,
+        )
 
       logger.info("Successfully created manual refund: ${refundRequest.id}")
       return refundRequest
@@ -118,8 +125,11 @@ class AdminPaymentMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun forceCompletePayment(transactionId: String, adminNote: String): Boolean {
-    return try {
+  fun forceCompletePayment(
+    transactionId: String,
+    adminNote: String,
+  ): Boolean =
+    try {
       // TODO: 实现从paymentService强制完成支付
       logger.info("Successfully forced completion of payment: $transactionId")
       true
@@ -127,7 +137,6 @@ class AdminPaymentMutationResolver(
       logger.error("Failed to force complete payment", e)
       throw BadRequestException("强制完成支付失败: ${e.message}")
     }
-  }
 
   /**
    * 强制退款（管理员功能）
@@ -139,9 +148,9 @@ class AdminPaymentMutationResolver(
     transactionId: String,
     amount: BigDecimal,
     reason: String,
-    adminNote: String
-  ): Boolean {
-    return try {
+    adminNote: String,
+  ): Boolean =
+    try {
       if (amount <= BigDecimal.ZERO) {
         throw BadRequestException("退款金额必须大于0")
       }
@@ -153,15 +162,17 @@ class AdminPaymentMutationResolver(
       logger.error("Failed to force refund", e)
       throw BadRequestException("强制退款失败: ${e.message}")
     }
-  }
 
   /**
    * 更新交易备注（管理员功能）
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun updateTransactionNote(transactionId: String, note: String): Boolean {
-    return try {
+  fun updateTransactionNote(
+    transactionId: String,
+    note: String,
+  ): Boolean =
+    try {
       // TODO: 实现从paymentService更新交易备注
       logger.info("Successfully updated note for transaction: $transactionId")
       true
@@ -169,15 +180,17 @@ class AdminPaymentMutationResolver(
       logger.error("Failed to update transaction note", e)
       throw BadRequestException("更新交易备注失败: ${e.message}")
     }
-  }
 
   /**
    * 冻结可疑交易（管理员功能）
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun freezeSuspiciousTransaction(transactionId: String, reason: String): Boolean {
-    return try {
+  fun freezeSuspiciousTransaction(
+    transactionId: String,
+    reason: String,
+  ): Boolean =
+    try {
       // TODO: 实现从paymentService冻结可疑交易
       logger.info("Successfully frozen suspicious transaction: $transactionId")
       true
@@ -185,7 +198,6 @@ class AdminPaymentMutationResolver(
       logger.error("Failed to freeze suspicious transaction", e)
       throw BadRequestException("冻结可疑交易失败: ${e.message}")
     }
-  }
 
   /**
    * 导出交易报表（管理员功能）
@@ -261,5 +273,4 @@ class AdminPaymentMutationResolver(
     // 暂时返回占位符
     return 1L
   }
-
 }

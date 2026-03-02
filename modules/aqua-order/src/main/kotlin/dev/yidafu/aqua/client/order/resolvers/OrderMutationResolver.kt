@@ -36,7 +36,6 @@ import org.springframework.stereotype.Controller
 class OrderMutationResolver(
   private val orderService: OrderService,
 ) {
-
   /**
    * 创建订单 - 客户端
    */
@@ -45,9 +44,7 @@ class OrderMutationResolver(
   fun createOrder(
     @Argument @Valid input: CreateOrderInput,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): OrderModel {
-    return orderService.createOrder(input, userPrincipal.id)
-  }
+  ): OrderModel = orderService.createOrder(input, userPrincipal.id)
 
   /**
    * 取消订单（仅限当前用户的订单）- 客户端
@@ -57,8 +54,7 @@ class OrderMutationResolver(
   fun cancelOrder(
     @Argument orderId: Long,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): OrderModel {
-    return orderService.cancelOrder(orderId, userPrincipal.id)
+  ): OrderModel =
+    orderService.cancelOrder(orderId, userPrincipal.id)
       ?: throw IllegalArgumentException("Order not found or access denied")
-  }
 }

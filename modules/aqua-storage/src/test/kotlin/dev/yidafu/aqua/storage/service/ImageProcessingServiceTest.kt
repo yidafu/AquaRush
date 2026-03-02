@@ -34,7 +34,6 @@ import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
 
 class ImageProcessingServiceTest {
-
   private lateinit var storageStrategy: StorageStrategy
   private lateinit var imageProcessingProperties: ImageProcessingProperties
   private lateinit var imageProcessingService: ImageProcessingService
@@ -42,12 +41,13 @@ class ImageProcessingServiceTest {
   @BeforeEach
   fun setUp() {
     storageStrategy = mockk()
-    imageProcessingProperties = ImageProcessingProperties(
-      defaultQuality = 0.8f,
-      maxWidth = 4096,
-      maxHeight = 4096,
-      supportedFormats = setOf("JPEG", "PNG", "WEBP")
-    )
+    imageProcessingProperties =
+      ImageProcessingProperties(
+        defaultQuality = 0.8f,
+        maxWidth = 4096,
+        maxHeight = 4096,
+        supportedFormats = setOf("JPEG", "PNG", "WEBP"),
+      )
     imageProcessingService = ImageProcessingService(storageStrategy, imageProcessingProperties)
   }
 
@@ -56,12 +56,13 @@ class ImageProcessingServiceTest {
     // Given
     val originalImage = createTestImage(800, 600)
     val imageResource = ByteArrayResource(imageToBytes(originalImage))
-    val parameters = ImageParameters(
-      width = 400,
-      height = 300,
-      quality = 0.7f,
-      format = "JPEG"
-    )
+    val parameters =
+      ImageParameters(
+        width = 400,
+        height = 300,
+        quality = 0.7f,
+        format = "JPEG",
+      )
 
     // When
     val result = imageProcessingService.processImage(imageResource, parameters)
@@ -75,10 +76,11 @@ class ImageProcessingServiceTest {
   fun `should throw exception for invalid parameters`() {
     // Given
     val imageResource = ByteArrayResource(createTestImage(100, 100).let { imageToBytes(it) })
-    val invalidParameters = ImageParameters(
-      width = -100,
-      quality = 1.5f
-    )
+    val invalidParameters =
+      ImageParameters(
+        width = -100,
+        quality = 1.5f,
+      )
 
     // When & Then
     assertThrows<IllegalArgumentException> {
@@ -110,11 +112,12 @@ class ImageProcessingServiceTest {
     // Given
     val originalImage = createTestImage(800, 600)
     val imageResource = ByteArrayResource(imageToBytes(originalImage))
-    val parameters = ImageParameters(
-      width = 400,
-      watermark = true,
-      watermarkText = "Test Watermark"
-    )
+    val parameters =
+      ImageParameters(
+        width = 400,
+        watermark = true,
+        watermarkText = "Test Watermark",
+      )
 
     // When
     val result = imageProcessingService.processImage(imageResource, parameters)
@@ -124,7 +127,10 @@ class ImageProcessingServiceTest {
     assertTrue(result.isNotEmpty())
   }
 
-  private fun createTestImage(width: Int, height: Int): BufferedImage {
+  private fun createTestImage(
+    width: Int,
+    height: Int,
+  ): BufferedImage {
     val image = BufferedImage(width, height, BufferedImage.TYPE_INT_RGB)
     val graphics = image.createGraphics()
     graphics.background = java.awt.Color.WHITE
@@ -135,7 +141,10 @@ class ImageProcessingServiceTest {
     return image
   }
 
-  private fun imageToBytes(image: BufferedImage, format: String = "JPEG"): ByteArray {
+  private fun imageToBytes(
+    image: BufferedImage,
+    format: String = "JPEG",
+  ): ByteArray {
     val outputStream = ByteArrayOutputStream()
     ImageIO.write(image, format, outputStream)
     return outputStream.toByteArray()

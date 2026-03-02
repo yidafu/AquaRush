@@ -41,7 +41,7 @@ class AddressResolver(
   fun userAddresses(
     @Argument userId: Long,
   ): List<Address> {
-    val list = addressService.findByUserId(userId);
+    val list = addressService.findByUserId(userId)
     return AddressMapper.mapList(list)
   }
 
@@ -87,10 +87,10 @@ class AddressResolver(
     val authentication = SecurityContextHolder.getContext().authentication
     val userId = authentication!!.name.toLong()
     val address = AddressInputMapper.map(input)
-    address.userId = userId;
+    address.userId = userId
     val createdAddress =
       addressService.createAddress(
-        address
+        address,
       )
 
     return createdAddress.let { AddressMapper.map(it) }

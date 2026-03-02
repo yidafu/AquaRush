@@ -33,8 +33,8 @@ object GraphQLValidator {
    * 检查当前用户是否已认证
    * @return UserPrincipal 如果已认证，null 如果未认证
    */
-  fun getCurrentUser(): UserPrincipal? {
-    return try {
+  fun getCurrentUser(): UserPrincipal? =
+    try {
       val authentication = SecurityContextHolder.getContext().authentication
       if (authentication?.principal is UserPrincipal) {
         authentication.principal as UserPrincipal
@@ -46,7 +46,6 @@ object GraphQLValidator {
       logger.error("Error getting current user", e)
       null
     }
-  }
 
   /**
    * 验证用户是否已认证，如果未认证则抛出异常

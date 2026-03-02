@@ -31,70 +31,58 @@ data class FileMetadataResponse(
    * 文件ID
    */
   val id: Long,
-
   /**
    * 原始文件名
    */
   val fileName: String,
-
   /**
    * 文件类型
    */
   val fileType: FileType,
-
   /**
    * 文件大小（字节）
    */
   val fileSize: Long,
-
   /**
    * MIME类型
    */
   val mimeType: String,
-
   /**
    * 文件扩展名
    */
   val extension: String?,
-
   /**
    * 创建时间
    */
   val createdAt: LocalDateTime,
-
   /**
    * 更新时间
    */
   val updatedAt: LocalDateTime,
-
   /**
    * 是否公开
    */
   val isPublic: Boolean,
-
   /**
    * 文件描述
    */
   val description: String?,
-
   /**
    * 文件所有者ID
    */
   val ownerId: Long?,
-
   /**
    * 文件访问URL
    */
   val fileUrl: String?,
-
   /**
    * 文件大小（可读格式）
    */
-  val fileSizeFormatted: String
+  val fileSizeFormatted: String,
 ) {
   constructor(
     metadata: FileMetadata,
-    fileUrl: String? = null
+    fileUrl: String? = null,
   ) : this(
     id = metadata.id,
     fileName = metadata.fileName,
@@ -108,7 +96,7 @@ data class FileMetadataResponse(
     description = metadata.description,
     ownerId = metadata.ownerId,
     fileUrl = fileUrl,
-    fileSizeFormatted = formatFileSize(metadata.fileSize)
+    fileSizeFormatted = formatFileSize(metadata.fileSize),
   )
 
   companion object {

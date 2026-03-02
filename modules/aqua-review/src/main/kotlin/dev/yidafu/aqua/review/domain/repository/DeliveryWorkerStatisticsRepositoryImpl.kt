@@ -35,7 +35,6 @@ import java.math.BigDecimal
  */
 @Repository
 class DeliveryWorkerStatisticsRepositoryImpl : DeliveryWorkerStatisticsRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -49,23 +48,28 @@ class DeliveryWorkerStatisticsRepositoryImpl : DeliveryWorkerStatisticsRepositor
     pageable: Pageable,
   ): Page<DeliveryWorkerStatisticsModel> {
     // Count query
-    val total = queryFactory.query()
-      .from(deliveryWorkerStatisticsModel)
-      .where(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
-      .fetchCount()
+    val total =
+      queryFactory
+        .query()
+        .from(deliveryWorkerStatisticsModel)
+        .where(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
+        .fetchCount()
 
     // Main query with dynamic sorting
-    val primarySort = when (sortBy.lowercase()) {
-      "reviews" -> deliveryWorkerStatisticsModel.totalReviews.desc()
-      else -> deliveryWorkerStatisticsModel.averageRating.desc() // default to rating
-    }
+    val primarySort =
+      when (sortBy.lowercase()) {
+        "reviews" -> deliveryWorkerStatisticsModel.totalReviews.desc()
+        else -> deliveryWorkerStatisticsModel.averageRating.desc() // default to rating
+      }
 
-    val results = queryFactory.selectFrom(deliveryWorkerStatisticsModel)
-      .where(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
-      .orderBy(primarySort, deliveryWorkerStatisticsModel.lastUpdated.desc())
-      .offset(pageable.offset)
-      .limit(pageable.pageSize.toLong())
-      .fetch()
+    val results =
+      queryFactory
+        .selectFrom(deliveryWorkerStatisticsModel)
+        .where(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
+        .orderBy(primarySort, deliveryWorkerStatisticsModel.lastUpdated.desc())
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .fetch()
 
     return PageImpl(results, pageable, total)
   }
@@ -82,32 +86,39 @@ class DeliveryWorkerStatisticsRepositoryImpl : DeliveryWorkerStatisticsRepositor
     val maxRatingBg = BigDecimal.valueOf(maxRating)
 
     // Build predicates
-    var basePredicate = deliveryWorkerStatisticsModel.averageRating.goe(minRatingBg)
-      .and(deliveryWorkerStatisticsModel.averageRating.loe(maxRatingBg))
-      .and(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
+    var basePredicate =
+      deliveryWorkerStatisticsModel.averageRating
+        .goe(minRatingBg)
+        .and(deliveryWorkerStatisticsModel.averageRating.loe(maxRatingBg))
+        .and(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
 
     maxReviews?.let {
       basePredicate = basePredicate.and(deliveryWorkerStatisticsModel.totalReviews.loe(it))
     }
 
     // Count query
-    val total = queryFactory.query()
-      .from(deliveryWorkerStatisticsModel)
-      .where(basePredicate)
-      .fetchCount()
+    val total =
+      queryFactory
+        .query()
+        .from(deliveryWorkerStatisticsModel)
+        .where(basePredicate)
+        .fetchCount()
 
     // Main query with dynamic sorting
-    val primarySort = when (sortBy.lowercase()) {
-      "reviews" -> deliveryWorkerStatisticsModel.totalReviews.desc()
-      else -> deliveryWorkerStatisticsModel.averageRating.desc()
-    }
+    val primarySort =
+      when (sortBy.lowercase()) {
+        "reviews" -> deliveryWorkerStatisticsModel.totalReviews.desc()
+        else -> deliveryWorkerStatisticsModel.averageRating.desc()
+      }
 
-    val results = queryFactory.selectFrom(deliveryWorkerStatisticsModel)
-      .where(basePredicate)
-      .orderBy(primarySort, deliveryWorkerStatisticsModel.lastUpdated.desc())
-      .offset(pageable.offset)
-      .limit(pageable.pageSize.toLong())
-      .fetch()
+    val results =
+      queryFactory
+        .selectFrom(deliveryWorkerStatisticsModel)
+        .where(basePredicate)
+        .orderBy(primarySort, deliveryWorkerStatisticsModel.lastUpdated.desc())
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .fetch()
 
     return PageImpl(results, pageable, total)
   }
@@ -118,21 +129,22 @@ class DeliveryWorkerStatisticsRepositoryImpl : DeliveryWorkerStatisticsRepositor
   ): Long {
     val minRatingBg = BigDecimal.valueOf(minRating)
 
-    return queryFactory.query()
+    return queryFactory
+      .query()
       .from(deliveryWorkerStatisticsModel)
       .where(
-        deliveryWorkerStatisticsModel.averageRating.goe(minRatingBg)
-          .and(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
-      )
-      .fetchCount()
+        deliveryWorkerStatisticsModel.averageRating
+          .goe(minRatingBg)
+          .and(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews)),
+      ).fetchCount()
   }
 
-  override fun findOverallAverageRating(minReviews: Int): Double? {
-    return queryFactory.query()
+  override fun findOverallAverageRating(minReviews: Int): Double? =
+    queryFactory
+      .query()
       .from(deliveryWorkerStatisticsModel)
       .where(deliveryWorkerStatisticsModel.totalReviews.goe(minReviews))
       .select(deliveryWorkerStatisticsModel.averageRating.avg())
       .fetchOne()
       ?.toDouble()
-  }
 }

@@ -22,39 +22,58 @@ package dev.yidafu.aqua.storage.exception
 /**
  * 存储相关异常基类
  */
-open class StorageException(message: String, cause: Throwable? = null) : RuntimeException(message, cause)
+open class StorageException(
+  message: String,
+  cause: Throwable? = null,
+) : RuntimeException(message, cause)
 
 /**
  * 文件存储异常
  */
-class FileStorageException(message: String, cause: Throwable? = null) : StorageException(message, cause)
+class FileStorageException(
+  message: String,
+  cause: Throwable? = null,
+) : StorageException(message, cause)
 
 /**
  * 文件不存在异常
  */
-class FileNotFoundException(message: String) : StorageException(message)
+class FileNotFoundException(
+  message: String,
+) : StorageException(message)
 
 /**
  * 文件大小超出限制异常
  */
-class FileSizeExceededException(message: String) : StorageException(message)
+class FileSizeExceededException(
+  message: String,
+) : StorageException(message)
 
 /**
  * 不支持的文件类型异常
  */
-class UnsupportedFileTypeException(message: String) : StorageException(message)
+class UnsupportedFileTypeException(
+  message: String,
+) : StorageException(message)
 
 /**
  * 图片处理异常
  */
-class ImageProcessingException(message: String, cause: Throwable? = null) : StorageException(message, cause)
+class ImageProcessingException(
+  message: String,
+  cause: Throwable? = null,
+) : StorageException(message, cause)
 
 /**
  * 存储空间不足异常
  */
-class InsufficientStorageException(message: String) : StorageException(message)
+class InsufficientStorageException(
+  message: String,
+) : StorageException(message)
 
 /**
  * 文件校验失败异常
  */
-class FileValidationException(message: String) : StorageException(message)
+class FileValidationException(
+  message: String,
+) : StorageException(message)

@@ -36,7 +36,6 @@ import org.springframework.security.test.context.support.WithMockUser
 import java.util.*
 
 class AdminProductQueryResolverTest {
-
   @Mock
   private lateinit var productService: ProductService
 
@@ -52,14 +51,15 @@ class AdminProductQueryResolverTest {
   @WithMockUser(roles = ["ADMIN"])
   fun `productStatistics should return product statistics`() {
     // Given
-    val expectedStatistics = ProductStatistics(
-      totalProducts = 10,
-      onlineProducts = 7,
-      offlineProducts = 3,
-      lowStockProducts = 2,
-      totalValue = 50000L,
-      averagePrice = 5000L
-    )
+    val expectedStatistics =
+      ProductStatistics(
+        totalProducts = 10,
+        onlineProducts = 7,
+        offlineProducts = 3,
+        lowStockProducts = 2,
+        totalValue = 50000L,
+        averagePrice = 5000L,
+      )
 
     whenever(productService.getProductStatistics()).thenReturn(expectedStatistics)
 
@@ -116,22 +116,24 @@ class AdminProductQueryResolverTest {
   @WithMockUser(roles = ["ADMIN"])
   fun `productsPaginated should return paginated products`() {
     // Given
-    val productListInput = ProductListInput(
-      page = 0,
-      size = 20,
-      sort = "createdAt,desc",
-      search = "test",
-      status = ProductStatus.ONLINE,
-      minPrice = 1000L,
-      maxPrice = 5000L,
-      minStock = 1,
-      maxStock = 100
-    )
+    val productListInput =
+      ProductListInput(
+        page = 0,
+        size = 20,
+        sort = "createdAt,desc",
+        search = "test",
+        status = ProductStatus.ONLINE,
+        minPrice = 1000L,
+        maxPrice = 5000L,
+        minStock = 1,
+        maxStock = 100,
+      )
 
-    val products = listOf(
-      createTestProduct(1L, "Test Product 1", 2000L, 50),
-      createTestProduct(2L, "Test Product 2", 3000L, 30)
-    )
+    val products =
+      listOf(
+        createTestProduct(1L, "Test Product 1", 2000L, 50),
+        createTestProduct(2L, "Test Product 2", 3000L, 30),
+      )
 
     val page = PageImpl(products, mock<Pageable>(), 2)
 
@@ -139,8 +141,8 @@ class AdminProductQueryResolverTest {
       productService.findByNameContainingAndStatus(
         eq("test"),
         eq(ProductStatus.ONLINE),
-        any()
-      )
+        any(),
+      ),
     ).thenReturn(page)
 
     // When
@@ -159,7 +161,7 @@ class AdminProductQueryResolverTest {
     verify(productService).findByNameContainingAndStatus(
       eq("test"),
       eq(ProductStatus.ONLINE),
-      any()
+      any(),
     )
   }
 
@@ -168,7 +170,7 @@ class AdminProductQueryResolverTest {
   fun `productStatistics should throw AccessDeniedException for non-admin users`() {
     // Given
     whenever(productService.getProductStatistics()).thenReturn(
-      ProductStatistics(0, 0, 0, 0, 0L, 0L)
+      ProductStatistics(0, 0, 0, 0, 0L, 0L),
     )
 
     // When & Then
@@ -185,9 +187,9 @@ class AdminProductQueryResolverTest {
     name: String,
     priceCents: Long,
     stock: Int,
-    status: ProductStatus = ProductStatus.OFFLINE
-  ): ProductModel {
-    return ProductModel(
+    status: ProductStatus = ProductStatus.OFFLINE,
+  ): ProductModel =
+    ProductModel(
       id = id,
       name = name,
       price = priceCents,
@@ -195,7 +197,6 @@ class AdminProductQueryResolverTest {
       detailImages = null,
       description = "Test description",
       stock = stock,
-      status = status
+      status = status,
     )
-  }
 }

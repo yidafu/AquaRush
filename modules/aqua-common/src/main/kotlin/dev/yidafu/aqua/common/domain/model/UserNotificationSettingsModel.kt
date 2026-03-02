@@ -46,9 +46,8 @@ open class UserNotificationSettingsModel(
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-
   @Column(name = "deleted_by")
-  override var deletedBy: Long? = null
+  override var deletedBy: Long? = null,
 ) : SoftDeletable {
   @PreUpdate
   fun preUpdate() {

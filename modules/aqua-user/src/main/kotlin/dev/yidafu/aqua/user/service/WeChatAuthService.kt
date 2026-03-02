@@ -40,7 +40,7 @@ class WeChatAuthService(
   private val userRepository: UserRepository,
   private val jwtTokenService: JwtTokenService,
   private val objectMapper: ObjectMapper,
-  private val wxMaService: WxMaService
+  private val wxMaService: WxMaService,
 ) {
   private val logger = LoggerFactory.getLogger(WeChatAuthService::class.java)
 
@@ -88,7 +88,7 @@ class WeChatAuthService(
             nickname = user.nickname,
             avatar = user.avatarUrl,
             phone = user.phone,
-            wechatOpenId = user.wechatOpenId
+            wechatOpenId = user.wechatOpenId,
           ),
       )
     } catch (e: Exception) {
@@ -134,14 +134,13 @@ class WeChatAuthService(
    */
   private fun exchangeCodeForOpenId(code: String): Result<WeChatCode2SessionResponse> {
     try {
-
       val session = wxMaService.userService.getSessionInfo(code)
       return Result.success(
         WeChatCode2SessionResponse(
           session.openid,
           session.sessionKey,
           session.unionid,
-        )
+        ),
       )
     } catch (e: WxErrorException) {
       return Result.failure(e)
@@ -186,7 +185,7 @@ class WeChatAuthService(
       nickname = user.nickname,
       avatar = user.avatarUrl,
       phone = user.phone,
-      wechatOpenId = user.wechatOpenId
+      wechatOpenId = user.wechatOpenId,
     )
   }
 
@@ -215,7 +214,7 @@ class WeChatAuthService(
       nickname = updatedUser.nickname,
       avatar = updatedUser.avatarUrl,
       phone = updatedUser.phone,
-      wechatOpenId = updatedUser.wechatOpenId
+      wechatOpenId = updatedUser.wechatOpenId,
     )
   }
 }
@@ -251,7 +250,7 @@ data class UserInfo(
   val nickname: String?,
   val avatar: String?,
   val phone: String?,
-  val wechatOpenId: String?
+  val wechatOpenId: String?,
 )
 
 data class UpdateUserRequest(

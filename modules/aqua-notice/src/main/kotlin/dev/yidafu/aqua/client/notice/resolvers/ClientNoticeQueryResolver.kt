@@ -97,7 +97,9 @@ class ClientNoticeQueryResolver(
     @AuthenticationPrincipal userDetails: UserDetails,
   ): Boolean {
     val userId = userDetails.username.toLong()
-    val messageTypeEnum = dev.yidafu.aqua.common.domain.model.MessageType.fromString(messageType)
+    val messageTypeEnum =
+      dev.yidafu.aqua.common.domain.model.MessageType
+        .fromString(messageType)
     return subscriptionService.isNotificationEnabled(userId, messageTypeEnum)
   }
 

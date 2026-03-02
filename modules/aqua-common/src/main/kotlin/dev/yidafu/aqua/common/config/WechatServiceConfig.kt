@@ -8,7 +8,6 @@ import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
-
 @Configuration
 class WechatServiceConfig {
   val logger = LoggerFactory.getLogger(WechatServiceConfig::class.java)
@@ -31,14 +30,14 @@ class WechatServiceConfig {
   private val msgDataFormat: String? = null
 
   @Bean
-  fun wxMaService(): WxMaService {
-    return WxMaServiceImpl().apply {
-      wxMaConfig = WxMaDefaultConfigImpl().apply {
-        appid = this@WechatServiceConfig.appId
-        secret = this@WechatServiceConfig.appSecret
-        token = this@WechatServiceConfig.token
-        aesKey = this@WechatServiceConfig.aesKey
-      }
+  fun wxMaService(): WxMaService =
+    WxMaServiceImpl().apply {
+      wxMaConfig =
+        WxMaDefaultConfigImpl().apply {
+          appid = this@WechatServiceConfig.appId
+          secret = this@WechatServiceConfig.appSecret
+          token = this@WechatServiceConfig.token
+          aesKey = this@WechatServiceConfig.aesKey
+        }
     }
-  }
 }

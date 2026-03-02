@@ -40,6 +40,25 @@ class DeliveryServiceImpl(
 
   // 配送员管理
 
+  override fun createDeliveryWorker(
+    adminId: Long,
+    name: String,
+    phone: String,
+    wechatOpenId: String,
+  ): DeliveryWorkerModel {
+    val worker =
+      DeliveryWorkerModel(
+        userId = null,
+        adminId = adminId,
+        wechatOpenId = wechatOpenId,
+        name = name,
+        phone = phone,
+        onlineStatus = DeliverWorkerModelStatus.OFFLINE,
+        isAvailable = true,
+      )
+    return workerRepository.save(worker)
+  }
+
   override fun getWorkerById(workerId: Long): DeliveryWorkerModel =
     workerRepository.findById(workerId).orElseThrow {
       NotFoundException("配送员不存在: $workerId")
@@ -52,14 +71,12 @@ class DeliveryServiceImpl(
 
   override fun getAllWorkers(): List<DeliveryWorkerModel> = workerRepository.findAll()
 
-  override fun getOnlineWorkers(): List<DeliveryWorkerModel> {
-    return workerRepository.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE)
-  }
+  override fun getOnlineWorkers(): List<DeliveryWorkerModel> = workerRepository.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE)
 
   @Transactional
   override fun updateWorkerStatus(
     workerId: Long,
-    status: DeliverWorkerModelStatus
+    status: DeliverWorkerModelStatus,
   ): DeliveryWorkerModel {
     val worker = getWorkerById(workerId)
     worker.onlineStatus = status
@@ -194,7 +211,10 @@ class DeliveryServiceImpl(
    * 配送员接单
    */
   @Transactional
-  override fun acceptDelivery(orderId: Long, workerId: Long): OrderModel {
+  override fun acceptDelivery(
+    orderId: Long,
+    workerId: Long,
+  ): OrderModel {
     val order =
       orderRepository.findById(orderId).orElseThrow {
         NotFoundException("订单不存在: $orderId")
@@ -315,9 +335,8 @@ class DeliveryServiceImpl(
     orderRepository
       .countByDeliveryWorkerIdAndStatus(
         workerId,
-        dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING
-      )
-      .toInt()
+        dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING,
+      ).toInt()
 
   /**
    * 完成配送任务
@@ -363,12 +382,12 @@ class DeliveryServiceImpl(
    * 获取配送员的已接单未开始配送的订单
    * 状态为 DELIVERING 但 deliveryStartedAt 为 null
    */
-  override fun getAssignedOrders(workerId: Long): List<OrderModel> {
-    return orderRepository.findByDeliveryWorkerIdAndStatusOrderByCreatedAtDesc(
-      workerId,
-      OrderStatus.DELIVERING,
-    ).filter { it.deliveryStartedAt == null }
-  }
+  override fun getAssignedOrders(workerId: Long): List<OrderModel> =
+    orderRepository
+      .findByDeliveryWorkerIdAndStatusOrderByCreatedAtDesc(
+        workerId,
+        OrderStatus.DELIVERING,
+      ).filter { it.deliveryStartedAt == null }
 
   /**
    * 获取配送统计数据
@@ -398,25 +417,29 @@ class DeliveryServiceImpl(
     val startOfDay = today.atStartOfDay()
     val endOfDay = today.plusDays(1).atStartOfDay()
 
-    val orders = if (workerId != null) {
-      orderRepository.findByDeliveryWorkerId(workerId)
-    } else {
-      orderRepository.findAll()
-    }
+    val orders =
+      if (workerId != null) {
+        orderRepository.findByDeliveryWorkerId(workerId)
+      } else {
+        orderRepository.findAll()
+      }
 
-    val todayOrders = orders.filter { order ->
-      order.createdAt >= startOfDay && order.createdAt < endOfDay
-    }
+    val todayOrders =
+      orders.filter { order ->
+        order.createdAt >= startOfDay && order.createdAt < endOfDay
+      }
 
-    val completedToday = todayOrders.filter { order ->
-      order.status == dev.yidafu.aqua.common.domain.model.OrderStatus.COMPLETED &&
-        order.completedAt != null &&
-        order.completedAt!! >= startOfDay && order.completedAt!! < endOfDay
-    }
+    val completedToday =
+      todayOrders.filter { order ->
+        order.status == dev.yidafu.aqua.common.domain.model.OrderStatus.COMPLETED &&
+          order.completedAt != null &&
+          order.completedAt!! >= startOfDay && order.completedAt!! < endOfDay
+      }
 
-    val pendingToday = todayOrders.filter { order ->
-      order.status == dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING
-    }
+    val pendingToday =
+      todayOrders.filter { order ->
+        order.status == dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING
+      }
 
     val totalEarning = completedToday.sumOf { it.amountCents }
 
@@ -435,5 +458,4 @@ class DeliveryServiceImpl(
     val worker: DeliveryWorkerModel,
     val taskCount: Int,
   )
-
 }

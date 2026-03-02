@@ -32,5 +32,5 @@ data class PaymentReportRow(
   val refundCount: Int,
   val averageTransactionAmount: BigDecimal,
   val periodStart: LocalDateTime,
-  val periodEnd: LocalDateTime
+  val periodEnd: LocalDateTime,
 )

@@ -20,13 +20,15 @@
 package dev.yidafu.aqua.client.user.controller
 
 import dev.yidafu.aqua.api.service.UserService
+import dev.yidafu.aqua.client.user.controller.dto.RefreshTokenRequest
+import dev.yidafu.aqua.client.user.controller.dto.UpdateProfileRequest
+import dev.yidafu.aqua.client.user.controller.dto.WeChatLoginRequest
 import dev.yidafu.aqua.common.ApiResponse
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.service.AdminAuthService
 import dev.yidafu.aqua.user.service.UpdateUserRequest
 import dev.yidafu.aqua.user.service.WeChatAuthService
 import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.*
@@ -101,29 +103,6 @@ class AuthController(
       ResponseEntity.badRequest().body(ApiResponse.error(e.message ?: "Failed to update profile"))
     }
 }
-
-// Request DTOs
-data class WeChatLoginRequest(
-  val code: String,
-)
-
-data class RefreshTokenRequest(
-  val refreshToken: String,
-)
-
-data class LoginRequest(
-  @field:NotBlank(message = "Username is required")
-  val username: String,
-  @field:NotBlank(message = "Password is required")
-  val password: String,
-)
-
-data class UpdateProfileRequest(
-  val nickname: String? = null,
-  val phone: String? = null,
-  val avatar: String? = null,
-)
-
 
 typealias UserInfo = dev.yidafu.aqua.user.service.UserInfo
 typealias WeChatLoginResponse = dev.yidafu.aqua.user.service.WeChatLoginResponse

@@ -54,17 +54,14 @@ open class DeliveryWorkerStatisticsModel(
   var fiveStarReviews: Int = 0,
   @Column(name = "last_updated", nullable = false)
   var lastUpdated: LocalDateTime = LocalDateTime.now(),
-
   @Column(name = "created_at", nullable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-
   @Column(name = "deleted_by")
-  override var deletedBy: Long? = null
+  override var deletedBy: Long? = null,
 ) : SoftDeletable {
   @PreUpdate
   fun preUpdate() {
@@ -98,13 +95,12 @@ open class DeliveryWorkerStatisticsModel(
       }
   }
 
-  fun getRatingDistribution(): Map<Int, Int> {
-    return mapOf(
+  fun getRatingDistribution(): Map<Int, Int> =
+    mapOf(
       1 to oneStarReviews,
       2 to twoStarReviews,
       3 to threeStarReviews,
       4 to fourStarReviews,
       5 to fiveStarReviews,
     )
-  }
 }

@@ -64,8 +64,12 @@ interface StatisticsService {
     val completedOrders: Long,
     val completedAmountCents: Long,
   ) {
-    val totalAmount: BigDecimal get() = dev.yidafu.aqua.common.utils.MoneyUtils.fromCents(totalAmountCents)
-    val completedAmount: BigDecimal get() = dev.yidafu.aqua.common.utils.MoneyUtils.fromCents(completedAmountCents)
+    val totalAmount: BigDecimal get() =
+      dev.yidafu.aqua.common.utils.MoneyUtils
+        .fromCents(totalAmountCents)
+    val completedAmount: BigDecimal get() =
+      dev.yidafu.aqua.common.utils.MoneyUtils
+        .fromCents(completedAmountCents)
   }
 
   data class DailyStatistics(
@@ -73,6 +77,8 @@ interface StatisticsService {
     val orderCount: Long,
     val totalAmountCents: Long,
   ) {
-    val totalAmount: BigDecimal get() = dev.yidafu.aqua.common.utils.MoneyUtils.fromCents(totalAmountCents)
+    val totalAmount: BigDecimal get() =
+      dev.yidafu.aqua.common.utils.MoneyUtils
+        .fromCents(totalAmountCents)
   }
 }

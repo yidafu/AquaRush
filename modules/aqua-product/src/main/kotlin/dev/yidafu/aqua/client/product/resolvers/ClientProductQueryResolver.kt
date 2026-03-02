@@ -44,15 +44,16 @@ import org.springframework.stereotype.Controller
 @ClientService
 @Controller
 class ClientProductQueryResolver(
-  private val productService: ProductServiceImpl
+  private val productService: ProductServiceImpl,
 ) {
-
   /**
    * 根据ID查询产品详情（仅限上线产品）
    */
   @PreAuthorize("isAuthenticated()")
   @QueryMapping
-  fun product(@Argument id: Long): Product? {
+  fun product(
+    @Argument id: Long,
+  ): Product? {
     val product = productService.findById(id)
 
     return product?.let { ProductMapper.map(it) }
@@ -67,13 +68,14 @@ class ClientProductQueryResolver(
     @Argument page: Int = 0,
     @Argument size: Int = 20,
     @Argument sortBy: String = "createdAt",
-    @Argument sortDirection: String = "desc"
+    @Argument sortDirection: String = "desc",
   ): ProductPage {
-    val pageable: Pageable = PageRequest.of(
-      page,
-      size,
-      Sort.by(if (sortDirection.lowercase() == "asc") Direction.ASC else Direction.DESC, sortBy)
-    )
+    val pageable: Pageable =
+      PageRequest.of(
+        page,
+        size,
+        Sort.by(if (sortDirection.lowercase() == "asc") Direction.ASC else Direction.DESC, sortBy),
+      )
     val page = productService.findOnlineProducts(pageable)
     val (list, pageInfo) = page.toPageInfo { ProductMapper.map(it) }
     return ProductPage(list, pageInfo)
@@ -84,22 +86,26 @@ class ClientProductQueryResolver(
    */
   @PreAuthorize("isAuthenticated()")
   fun searchProducts(input: ProductSearchInput): Page<ProductModel> {
-    val pageable: Pageable = PageRequest.of(
-      input.page ?: 0,
-      input.size ?: 20,
-      Sort.by(
-        if ((input.sortDirection ?: "desc").lowercase() == "asc") Direction.ASC
-        else Direction.DESC,
-        input.sortBy ?: "createdAt"
+    val pageable: Pageable =
+      PageRequest.of(
+        input.page ?: 0,
+        input.size ?: 20,
+        Sort.by(
+          if ((input.sortDirection ?: "desc").lowercase() == "asc") {
+            Direction.ASC
+          } else {
+            Direction.DESC
+          },
+          input.sortBy ?: "createdAt",
+        ),
       )
-    )
 
     return when {
       input.category != null && input.keyword != null -> {
         productService.findByCategoryAndNameContainingAndStatus(
           input.category,
           input.keyword,
-          pageable
+          pageable,
         )
       }
 
@@ -126,17 +132,21 @@ class ClientProductQueryResolver(
     page: Int = 0,
     size: Int = 20,
     sortBy: String = "name",
-    sortDirection: String = "asc"
+    sortDirection: String = "asc",
   ): Page<ProductModel> {
-    val pageable: Pageable = PageRequest.of(
-      page,
-      size,
-      Sort.by(
-        if (sortDirection.lowercase() == "asc") Direction.ASC
-        else Direction.DESC,
-        sortBy
+    val pageable: Pageable =
+      PageRequest.of(
+        page,
+        size,
+        Sort.by(
+          if (sortDirection.lowercase() == "asc") {
+            Direction.ASC
+          } else {
+            Direction.DESC
+          },
+          sortBy,
+        ),
       )
-    )
     return productService.findByCategoryAndStatus(category, pageable)
   }
 
@@ -148,7 +158,7 @@ class ClientProductQueryResolver(
     minPrice: java.math.BigDecimal,
     maxPrice: java.math.BigDecimal,
     page: Int = 0,
-    size: Int = 20
+    size: Int = 20,
   ): Page<ProductModel> {
     val pageable: Pageable = PageRequest.of(page, size)
     return productService.findByPriceBetweenAndStatus(minPrice, maxPrice, pageable)
@@ -161,7 +171,7 @@ class ClientProductQueryResolver(
   fun popularProducts(
     limit: Int = 10,
     page: Int = 0,
-    size: Int = 20
+    size: Int = 20,
   ): Page<ProductModel> {
     val pageable: Pageable = PageRequest.of(page, size)
     return productService.findPopularProducts(pageable, limit)
@@ -174,7 +184,7 @@ class ClientProductQueryResolver(
   fun newProducts(
     days: Int = 7,
     page: Int = 0,
-    size: Int = 20
+    size: Int = 20,
   ): Page<ProductModel> {
     val pageable: Pageable = PageRequest.of(page, size)
     return productService.findNewProducts(pageable, days)
@@ -187,7 +197,7 @@ class ClientProductQueryResolver(
   fun recommendedProducts(
     limit: Int = 10,
     page: Int = 0,
-    size: Int = 20
+    size: Int = 20,
   ): Page<ProductModel> {
     val pageable: Pageable = PageRequest.of(page, size)
     return productService.findRecommendedProducts(pageable, limit)
@@ -197,32 +207,29 @@ class ClientProductQueryResolver(
    * 获取产品分类列表
    */
   @PreAuthorize("isAuthenticated()")
-  fun productCategories(): List<String> {
-    return productService.findAllCategories()
-  }
+  fun productCategories(): List<String> = productService.findAllCategories()
 
   /**
    * 获取价格区间统计
    */
   @PreAuthorize("isAuthenticated()")
-  fun priceRanges(): List<PriceRange> {
-    return productService.getPriceRangeStatistics()
-  }
+  fun priceRanges(): List<PriceRange> = productService.getPriceRangeStatistics()
 
   /**
    * 检查产品库存
    */
   @PreAuthorize("isAuthenticated()")
   fun checkProductStock(productId: Long): StockInfo {
-    val product = productService.findById(productId)
-      ?: throw IllegalArgumentException("产品不存在: $productId")
+    val product =
+      productService.findById(productId)
+        ?: throw IllegalArgumentException("产品不存在: $productId")
 
     return StockInfo(
       productId = productId,
       productName = product.name,
       currentStock = product.stock,
       isAvailable = product.stock > 0 && product.status == ProductStatus.ONLINE,
-      lowStockWarning = product.stock <= 5
+      lowStockWarning = product.stock <= 5,
     )
   }
 
@@ -238,7 +245,7 @@ class ClientProductQueryResolver(
       val page: Int?,
       val size: Int?,
       val sortBy: String?,
-      val sortDirection: String?
+      val sortDirection: String?,
     )
 
     /**
@@ -248,7 +255,7 @@ class ClientProductQueryResolver(
       val min: java.math.BigDecimal,
       val max: java.math.BigDecimal,
       val count: Long,
-      val label: String
+      val label: String,
     )
 
     /**
@@ -259,7 +266,7 @@ class ClientProductQueryResolver(
       val productName: String,
       val currentStock: Int,
       val isAvailable: Boolean,
-      val lowStockWarning: Boolean
+      val lowStockWarning: Boolean,
     )
   }
 }

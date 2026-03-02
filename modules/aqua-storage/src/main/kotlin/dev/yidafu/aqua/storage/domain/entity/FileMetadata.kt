@@ -133,7 +133,7 @@ class FileMetadata {
     isPublic: Boolean = true,
     description: String? = null,
     extension: String? = null,
-    ownerId: Long? = null
+    ownerId: Long? = null,
   ) {
     this.fileName = fileName
     this.storagePath = storagePath
@@ -162,11 +162,8 @@ class FileMetadata {
     return id == other.id
   }
 
-  override fun hashCode(): Int {
-    return id.hashCode()
-  }
+  override fun hashCode(): Int = id.hashCode()
 
-  override fun toString(): String {
-    return "FileMetadata(id=$id, fileName='$fileName', storagePath='$storagePath', fileType=$fileType, fileSize=$fileSize, mimeType='$mimeType', checksum='$checksum', createdAt=$createdAt, updatedAt=$updatedAt, isPublic=$isPublic, description=$description, extension=$extension, ownerId=$ownerId)"
-  }
+  override fun toString(): String =
+    "FileMetadata(id=$id, fileName='$fileName', storagePath='$storagePath', fileType=$fileType, fileSize=$fileSize, mimeType='$mimeType', checksum='$checksum', createdAt=$createdAt, updatedAt=$updatedAt, isPublic=$isPublic, description=$description, extension=$extension, ownerId=$ownerId)"
 }

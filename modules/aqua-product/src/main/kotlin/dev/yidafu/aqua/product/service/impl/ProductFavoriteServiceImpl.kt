@@ -29,6 +29,7 @@ import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.*
 import dev.yidafu.aqua.product.domain.repository.ProductFavoriteRepository
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
+import dev.yidafu.aqua.product.mapper.ProductMapper
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVPrinter
 import org.apache.poi.ss.usermodel.*
@@ -49,16 +50,20 @@ class ProductFavoriteServiceImpl(
   private val productFavoriteRepository: ProductFavoriteRepository,
   private val productRepository: ProductRepository,
   private val userService: UserService,
-  private val productService: ProductService
+  private val productService: ProductService,
 ) : ProductFavoriteService {
-
   /**
    * Add product to user's favorites
    */
-  override fun addToFavorites(userId: Long, productId: Long): ProductFavoriteModel {
+  override fun addToFavorites(
+    userId: Long,
+    productId: Long,
+  ): ProductFavoriteModel {
     // Validate product exists and is active
-    val product = productRepository.findById(productId)
-      .orElseThrow { NotFoundException("Product not found") }
+    val product =
+      productRepository
+        .findById(productId)
+        .orElseThrow { NotFoundException("Product not found") }
 
     if (product.status != ProductStatus.ACTIVE && product.status != ProductStatus.ONLINE) {
       throw BadRequestException("Product is not available for favorites")
@@ -75,17 +80,18 @@ class ProductFavoriteServiceImpl(
           val record = productFavoriteRepository.findByUserIdAndProductId(userId, productId)
           record?.let {
             // Create a new instance with updated fields since val cannot be modified
-            val updatedFavorite = ProductFavoriteModel(
-              id = it.id,
-              userId = it.userId,
-              productId = it.productId,
-              product = it.product,
-              enable = true,
-              createdAt = it.createdAt,
-              updatedAt = LocalDateTime.now(),
-              deletedAt = it.deletedAt,
-              deletedBy = it.deletedBy
-            )
+            val updatedFavorite =
+              ProductFavoriteModel(
+                id = it.id,
+                userId = it.userId,
+                productId = it.productId,
+                product = it.product,
+                enable = true,
+                createdAt = it.createdAt,
+                updatedAt = LocalDateTime.now(),
+                deletedAt = it.deletedAt,
+                deletedBy = it.deletedBy,
+              )
             return productFavoriteRepository.save(updatedFavorite)
           }
         }
@@ -95,20 +101,23 @@ class ProductFavoriteServiceImpl(
       }
     } else {
       // Create new favorite with enable = true
-      val favorite = ProductFavoriteModel(
-        userId = userId,
-        productId = productId,
-        enable = true
-      )
+      val favorite =
+        ProductFavoriteModel(
+          userId = userId,
+          productId = productId,
+          enable = true,
+        )
       return productFavoriteRepository.save(favorite)
     }
   }
 
-
   /**
    * Get user's favorite products with pagination
    */
-  override fun getFavoriteProducts(userId: Long, pageable: Pageable): Page<ProductModel> {
+  override fun getFavoriteProducts(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<ProductModel> {
     // Get paginated product IDs from favorites
     val favoriteIdsPage = productFavoriteRepository.findFavoriteIdsByUserId(userId, pageable)
 
@@ -120,9 +129,10 @@ class ProductFavoriteServiceImpl(
     val products = productRepository.findAllById(favoriteIdsPage.content)
 
     // Filter by status (active/online only)
-    val activeProducts = products.filter {
-      it.status == ProductStatus.ACTIVE || it.status == ProductStatus.ONLINE
-    }
+    val activeProducts =
+      products.filter {
+        it.status == ProductStatus.ACTIVE || it.status == ProductStatus.ONLINE
+      }
 
     return PageImpl(activeProducts, pageable, favoriteIdsPage.totalElements)
   }
@@ -130,29 +140,29 @@ class ProductFavoriteServiceImpl(
   /**
    * Check if product is favorited by user
    */
-  override fun isProductFavorited(userId: Long, productId: Long): Boolean {
-    return productFavoriteRepository.existsByUserIdAndProductId(userId, productId)
-  }
+  override fun isProductFavorited(
+    userId: Long,
+    productId: Long,
+  ): Boolean = productFavoriteRepository.existsByUserIdAndProductId(userId, productId)
 
   /**
    * Get total count of user's favorites
    */
   @Cacheable(value = ["user_favorites_count"], key = "#userId")
-  override fun getFavoritesCount(userId: Long): Long {
-    return productFavoriteRepository.countByUserId(userId)
-  }
+  override fun getFavoritesCount(userId: Long): Long = productFavoriteRepository.countByUserId(userId)
 
   /**
    * Get user's favorite product IDs only (for internal use)
    */
-  override fun getFavoriteProductIds(userId: Long): List<Long> {
-    return productFavoriteRepository.findFavoriteProductIdsByUserId(userId)
-  }
+  override fun getFavoriteProductIds(userId: Long): List<Long> = productFavoriteRepository.findFavoriteProductIdsByUserId(userId)
 
   /**
    * Toggle favorite status (add if not exists, toggle enable field if exists)
    */
-  override fun toggleFavorite(userId: Long, productId: Long): Boolean {
+  override fun toggleFavorite(
+    userId: Long,
+    productId: Long,
+  ): Boolean {
     val existing = productFavoriteRepository.findByUserIdAndProductId(userId, productId)
 
     return if (existing != null) {
@@ -166,17 +176,18 @@ class ProductFavoriteServiceImpl(
         val updated = productFavoriteRepository.findByUserIdAndProductId(userId, productId)
         updated?.let {
           // Create a new instance with updated fields since val cannot be modified
-          val updatedFavorite = ProductFavoriteModel(
-            id = it.id,
-            userId = it.userId,
-            productId = it.productId,
-            product = it.product,
-            enable = newEnableStatus,
-            createdAt = it.createdAt,
-            updatedAt = LocalDateTime.now(),
-            deletedAt = it.deletedAt,
-            deletedBy = it.deletedBy
-          )
+          val updatedFavorite =
+            ProductFavoriteModel(
+              id = it.id,
+              userId = it.userId,
+              productId = it.productId,
+              product = it.product,
+              enable = newEnableStatus,
+              createdAt = it.createdAt,
+              updatedAt = LocalDateTime.now(),
+              deletedAt = it.deletedAt,
+              deletedBy = it.deletedBy,
+            )
           productFavoriteRepository.save(updatedFavorite)
         }
       }
@@ -189,13 +200,13 @@ class ProductFavoriteServiceImpl(
     }
   }
 
-
   /**
    * Get user's favorite entities (not products) for internal operations
    */
-  override fun getUserFavoriteEntities(userId: Long, pageable: Pageable): Page<ProductFavoriteModel> {
-    return productFavoriteRepository.findByUserId(userId, pageable)
-  }
+  override fun getUserFavoriteEntities(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<ProductFavoriteModel> = productFavoriteRepository.findByUserId(userId, pageable)
 
   // ============== Admin Methods ==============
 
@@ -222,7 +233,7 @@ class ProductFavoriteServiceImpl(
       averageFavoritesPerUser = averageFavorites.toFloat(),
       newFavoritesToday = newToday,
       newFavoritesThisWeek = newThisWeek,
-      newFavoritesThisMonth = newThisMonth
+      newFavoritesThisMonth = newThisMonth,
     )
   }
 
@@ -234,71 +245,81 @@ class ProductFavoriteServiceImpl(
 
     val totalProducts = mostFavorited.size.toLong()
     val totalFavorites = mostFavorited.sumOf { it.favoriteCount }
-    val averageFavoritesPerProduct = if (totalProducts > 0) {
-      totalFavorites.toFloat() / totalProducts
-    } else {
-      0.0f
-    }
+    val averageFavoritesPerProduct =
+      if (totalProducts > 0) {
+        totalFavorites.toFloat() / totalProducts
+      } else {
+        0.0f
+      }
 
     return AllProductsFavoriteStats(
       totalProducts = totalProducts,
       totalFavorites = totalFavorites,
-      averageFavoritesPerProduct = averageFavoritesPerProduct
+      averageFavoritesPerProduct = averageFavoritesPerProduct,
     )
   }
 
   /**
    * Get products sorted by favorite count with pagination
    */
-  override fun getProductsByFavorites(page: Int, size: Int, minFavorites: Int?): ProductFavoritePage {
+  override fun getProductsByFavorites(
+    page: Int,
+    size: Int,
+    minFavorites: Int?,
+  ): ProductFavoritePage {
     val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "favoriteCount"))
 
     val mostFavorited = productFavoriteRepository.findMostFavoritedProducts()
 
-    val filtered = if (minFavorites != null) {
-      mostFavorited.filter { it.favoriteCount >= minFavorites }
-    } else {
-      mostFavorited
-    }
+    val filtered =
+      if (minFavorites != null) {
+        mostFavorited.filter { it.favoriteCount >= minFavorites }
+      } else {
+        mostFavorited
+      }
 
     val totalElements = filtered.size.toLong()
     val totalPages = Math.ceil(totalElements.toDouble() / size).toInt()
     val start = page * size
     val end = minOf(start + size, filtered.size)
-    val pagedItems = if (start < filtered.size) {
-      filtered.subList(start, end)
-    } else {
-      emptyList()
-    }
-
-    val list = pagedItems.map { item ->
-      val product = productRepository.findById(item.productId)
-      val favoriteCount = item.favoriteCount
-
-      if (product.isEmpty) {
-        return@map null
+    val pagedItems =
+      if (start < filtered.size) {
+        filtered.subList(start, end)
+      } else {
+        emptyList()
       }
 
-      val lastFavorites = productFavoriteRepository.findByProductId(item.productId)
-      val lastFavoritedAt = lastFavorites.maxByOrNull { it.createdAt }?.createdAt
+    val list =
+      pagedItems
+        .map { item ->
+          val product = productRepository.findById(item.productId)
+          val favoriteCount = item.favoriteCount
 
-      ProductFavoriteItem(
-        product = convertToGraphQLProduct(product.get()),
-        favoriteCount = favoriteCount,
-        lastFavoritedAt = lastFavoritedAt ?: LocalDateTime.now()
-      )
-    }.filterNotNull()
+          if (product.isEmpty) {
+            return@map null
+          }
+
+          val lastFavorites = productFavoriteRepository.findByProductId(item.productId)
+          val lastFavoritedAt = lastFavorites.maxByOrNull { it.createdAt }?.createdAt
+
+          ProductFavoriteItem(
+            product = convertToGraphQLProduct(product.get()),
+            favoriteCount = favoriteCount,
+            lastFavoritedAt = lastFavoritedAt ?: LocalDateTime.now(),
+          )
+        }.filterNotNull()
 
     return ProductFavoritePage(
       list = list,
-      pageInfo = PageInfo(
-        total = totalElements.toInt(),
-        pageSize = size,
-        pageNum = page,
-        hasNext = (page + 1) * size < totalElements,
-        hasPrevious = page > 0,
-        totalPages = totalPages
-      )
+      pageInfo =
+        PageInfo(
+          total = totalElements.toInt(),
+          pageSize = size,
+          pageNum = page,
+          hasNext = (page + 1) * size < totalElements,
+          hasPrevious = page > 0,
+          totalPages = totalPages,
+        ),
     )
   }
 
@@ -338,7 +359,7 @@ class ProductFavoriteServiceImpl(
       message = "Batch operation completed",
       details = mapOf("results" to results),
       errors = emptyList(),
-      processedCount = successCount + failureCount
+      processedCount = successCount + failureCount,
     )
   }
 
@@ -346,12 +367,13 @@ class ProductFavoriteServiceImpl(
    * Export favorites data to CSV/Excel format
    */
   override fun exportFavorites(input: ExportFavoritesInput): ExportFavoritesResult {
-    val favorites = productFavoriteRepository.findFavoritesForExport(
-      input.userId,
-      input.productIds?.toList(),
-      input.dateFrom,
-      input.dateTo
-    )
+    val favorites =
+      productFavoriteRepository.findFavoritesForExport(
+        input.userId,
+        input.productIds?.toList(),
+        input.dateFrom,
+        input.dateTo,
+      )
 
     if (favorites.isEmpty()) {
       return ExportFavoritesResult(
@@ -361,7 +383,7 @@ class ProductFavoriteServiceImpl(
         fileName = "",
         fileSize = 0,
         recordCount = 0,
-        expiresAt = LocalDateTime.now().plusDays(1)
+        expiresAt = LocalDateTime.now().plusDays(1),
       )
     }
 
@@ -371,17 +393,19 @@ class ProductFavoriteServiceImpl(
       ExportFormat.CSV -> {
         outputStream.use { os ->
           val writer = os.writer()
-          val printer = CSVPrinter(
-            writer, CSVFormat.DEFAULT.withHeader(
-              "ID",
-              "User ID",
-              "User Nickname",
-              "Product ID",
-              "Product Name",
-              "Price (Cents)",
-              "Created At"
+          val printer =
+            CSVPrinter(
+              writer,
+              CSVFormat.DEFAULT.withHeader(
+                "ID",
+                "User ID",
+                "User Nickname",
+                "Product ID",
+                "Product Name",
+                "Price (Cents)",
+                "Created At",
+              ),
             )
-          )
 
           favorites.forEach { favorite ->
             val user = userService.findById(favorite.userId)
@@ -394,7 +418,7 @@ class ProductFavoriteServiceImpl(
               favorite.productId,
               product?.name ?: "",
               product?.price ?: 0,
-              favorite.createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+              favorite.createdAt.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME),
             )
           }
 
@@ -463,15 +487,16 @@ class ProductFavoriteServiceImpl(
           val user = userService.findById(favorite.userId)
           val product = productRepository.findById(favorite.productId).orElse(null)
 
-          val values = arrayOf(
-            favorite.id?.toString() ?: "",
-            favorite.userId.toString(),
-            user?.nickname ?: "",
-            favorite.productId.toString(),
-            product?.name ?: "",
-            (product?.price ?: 0).toString(),
-            favorite.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"))
-          )
+          val values =
+            arrayOf(
+              favorite.id?.toString() ?: "",
+              favorite.userId.toString(),
+              user?.nickname ?: "",
+              favorite.productId.toString(),
+              product?.name ?: "",
+              (product?.price ?: 0).toString(),
+              favorite.createdAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")),
+            )
 
           values.forEachIndexed { colIndex, value ->
             val cell = dataRow.createCell(colIndex)
@@ -507,11 +532,12 @@ class ProductFavoriteServiceImpl(
       }
     }
 
-    val fileExtension = when (input.format) {
-      ExportFormat.CSV -> "csv"
-      ExportFormat.EXCEL -> "xlsx"
-      ExportFormat.JSON -> "json"
-    }
+    val fileExtension =
+      when (input.format) {
+        ExportFormat.CSV -> "csv"
+        ExportFormat.EXCEL -> "xlsx"
+        ExportFormat.JSON -> "json"
+      }
     val fileName = "favorites_export_${
       LocalDate.now().format(DateTimeFormatter.ISO_LOCAL_DATE)
     }_${System.currentTimeMillis()}.$fileExtension"
@@ -525,40 +551,13 @@ class ProductFavoriteServiceImpl(
       fileName = fileName,
       fileSize = fileSize,
       recordCount = favorites.size,
-      expiresAt = expiresAt
+      expiresAt = expiresAt,
     )
   }
 
   // Private helper methods
 
-  private fun convertToGraphQLProduct(product: ProductModel): Product {
-    return Product(
-      id = product.id!!,
-      name = product.name,
-      subtitle = product.subtitle,
-      price = product.price,
-      originalPrice = product.originalPrice,
-      stock = product.stock,
-      salesVolume = product.salesVolume,
-      status = product.status,
-      coverImageUrl = product.coverImageUrl,
-      detailContent = product.detailContent,
-      imageGallery = product.imageGallery,
-      tags = product.tags,
-      mineralContent = product.mineralContent,
-      sortOrder = product.sortOrder,
-      specification = product.specification,
-      waterSource = product.waterSource,
-      certificateImages = product.certificateImages,
-      deliverySettings = product.deliverySettings,
-      depositPrice = product.depositPrice,
-      createdAt = product.createdAt,
-      updatedAt = product.updatedAt,
-      isDeleted = false
-    )
-  }
+  private fun convertToGraphQLProduct(product: ProductModel): Product = ProductMapper.map(product)
 
-  private fun convertProductStatus(status: ProductStatus): ProductStatus {
-    return status
-  }
+  private fun convertProductStatus(status: ProductStatus): ProductStatus = status
 }

@@ -34,6 +34,7 @@ class CustomUserDetailsService(
   private val userRepository: UserRepository,
 ) : UserDetailsService {
   val logger = LoggerFactory.getLogger(CustomUserDetailsService::class.java)
+
   override fun loadUserByUsername(username: String): UserDetails {
     // logger.info("loadUserByUsername ${username}")
     // For JWT authentication, username is the OpenID

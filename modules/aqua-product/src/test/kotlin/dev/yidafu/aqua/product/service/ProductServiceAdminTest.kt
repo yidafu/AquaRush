@@ -33,7 +33,6 @@ import org.mockito.kotlin.*
 import java.util.*
 
 class ProductServiceAdminTest {
-
   @Mock
   private lateinit var productRepository: ProductRepository
 
@@ -51,28 +50,29 @@ class ProductServiceAdminTest {
     val product1 = createTestProduct(1L, "Product 1", 1000L, 50)
     val product2 = createTestProduct(2L, "Product 2", 2000L, 30)
 
-    val updates = listOf(
-      ProductUpdateRequest(
-        id = 1L,
-        name = "Updated Product 1",
-        price = 1500L,
-        coverImageUrl = "http://example.com/image1.jpg",
-        detailImages = null,
-        description = "Updated description 1",
-        stock = 60,
-        status = ProductStatus.ONLINE
-      ),
-      ProductUpdateRequest(
-        id = 2L,
-        name = "Updated Product 2",
-        price = 2500L,
-        coverImageUrl = "http://example.com/image2.jpg",
-        detailImages = null,
-        description = "Updated description 2",
-        stock = 40,
-        status = ProductStatus.ONLINE
+    val updates =
+      listOf(
+        ProductUpdateRequest(
+          id = 1L,
+          name = "Updated Product 1",
+          price = 1500L,
+          coverImageUrl = "http://example.com/image1.jpg",
+          detailImages = null,
+          description = "Updated description 1",
+          stock = 60,
+          status = ProductStatus.ONLINE,
+        ),
+        ProductUpdateRequest(
+          id = 2L,
+          name = "Updated Product 2",
+          price = 2500L,
+          coverImageUrl = "http://example.com/image2.jpg",
+          detailImages = null,
+          description = "Updated description 2",
+          stock = 40,
+          status = ProductStatus.ONLINE,
+        ),
       )
-    )
 
     whenever(productRepository.findById(1L)).thenReturn(Optional.of(product1))
     whenever(productRepository.findById(2L)).thenReturn(Optional.of(product2))
@@ -89,18 +89,19 @@ class ProductServiceAdminTest {
   @Test
   fun `batchUpdateProducts should throw exception when product not found`() {
     // Given
-    val updates = listOf(
-      ProductUpdateRequest(
-        id = 999L,
-        name = "Updated Product",
-        price = 1500L,
-        coverImageUrl = null,
-        detailImages = null,
-        description = null,
-        stock = 60,
-        status = ProductStatus.ONLINE
+    val updates =
+      listOf(
+        ProductUpdateRequest(
+          id = 999L,
+          name = "Updated Product",
+          price = 1500L,
+          coverImageUrl = null,
+          detailImages = null,
+          description = null,
+          stock = 60,
+          status = ProductStatus.ONLINE,
+        ),
       )
-    )
 
     whenever(productRepository.findById(999L)).thenReturn(Optional.empty())
 
@@ -192,9 +193,9 @@ class ProductServiceAdminTest {
     name: String,
     priceCents: Long,
     stock: Int,
-    status: ProductStatus = ProductStatus.OFFLINE
-  ): ProductModel {
-    return ProductModel(
+    status: ProductStatus = ProductStatus.OFFLINE,
+  ): ProductModel =
+    ProductModel(
       id = id,
       name = name,
       price = priceCents,
@@ -202,7 +203,6 @@ class ProductServiceAdminTest {
       detailImages = null,
       description = "Test description",
       stock = stock,
-      status = status
+      status = status,
     )
-  }
 }

@@ -42,7 +42,7 @@ import java.time.LocalDateTime
 @RestController
 @RequestMapping("/api/admin/product/favorites")
 class AdminProductFavoriteController(
-  private val productFavoriteService: ProductFavoriteService
+  private val productFavoriteService: ProductFavoriteService,
 ) {
   private val logger = LoggerFactory.getLogger(AdminProductFavoriteController::class.java)
 
@@ -56,7 +56,9 @@ class AdminProductFavoriteController(
    */
   @PostMapping("/export")
   @PreAuthorize("hasRole('ADMIN')")
-  fun exportFavorites(@RequestBody @Valid request: ExportFavoritesRequest): ResponseEntity<ExportFavoritesResult> {
+  fun exportFavorites(
+    @RequestBody @Valid request: ExportFavoritesRequest,
+  ): ResponseEntity<ExportFavoritesResult> {
     return try {
       // Validate export parameters
       val dateFrom = request.dateFrom
@@ -70,21 +72,22 @@ class AdminProductFavoriteController(
             fileName = "",
             fileSize = 0,
             recordCount = 0,
-            expiresAt = LocalDateTime.now().plusDays(1)
-          )
+            expiresAt = LocalDateTime.now().plusDays(1),
+          ),
         )
       }
 
       // Convert request to GraphQL input type
-      val input = ExportFavoritesInput(
-        dateFrom = dateFrom,
-        dateTo = dateTo,
-        format = request.format,
-        includeProductInfo = request.includeProductInfo,
-        includeUserInfo = request.includeUserInfo,
-        productIds = request.productIds,
-        userId = request.userId
-      )
+      val input =
+        ExportFavoritesInput(
+          dateFrom = dateFrom,
+          dateTo = dateTo,
+          format = request.format,
+          includeProductInfo = request.includeProductInfo,
+          includeUserInfo = request.includeUserInfo,
+          productIds = request.productIds,
+          userId = request.userId,
+        )
 
       val result = productFavoriteService.exportFavorites(input)
 
@@ -97,7 +100,7 @@ class AdminProductFavoriteController(
         productCount,
         dateFrom,
         dateTo,
-        result.recordCount
+        result.recordCount,
       )
 
       ResponseEntity.ok(result)
@@ -111,8 +114,8 @@ class AdminProductFavoriteController(
           fileName = "",
           fileSize = 0,
           recordCount = 0,
-          expiresAt = LocalDateTime.now().plusDays(1)
-        )
+          expiresAt = LocalDateTime.now().plusDays(1),
+        ),
       )
     }
   }
@@ -126,34 +129,28 @@ data class ExportFavoritesRequest(
    * 开始时间（可选）
    */
   val dateFrom: LocalDateTime? = null,
-
   /**
    * 结束时间（可选）
    */
   val dateTo: LocalDateTime? = null,
-
   /**
    * 导出格式（默认 CSV）
    */
   val format: ExportFormat = ExportFormat.CSV,
-
   /**
    * 是否包含商品信息（默认 true）
    */
   val includeProductInfo: Boolean = true,
-
   /**
    * 是否包含用户信息（默认 true）
    */
   val includeUserInfo: Boolean = true,
-
   /**
    * 指定商品 ID 列表（可选）
    */
   val productIds: List<Long>? = null,
-
   /**
    * 指定用户 ID（可选）
    */
-  val userId: Long? = null
+  val userId: Long? = null,
 )

@@ -31,14 +31,9 @@ import tools.jackson.databind.ObjectMapper
  */
 @Converter(autoApply = false)
 class StringJsonConverter : AttributeConverter<String?, String?> {
+  override fun convertToDatabaseColumn(attribute: String?): String? = attribute
 
-  override fun convertToDatabaseColumn(attribute: String?): String? {
-    return attribute
-  }
-
-  override fun convertToEntityAttribute(dbData: String?): String? {
-    return dbData
-  }
+  override fun convertToEntityAttribute(dbData: String?): String? = dbData
 }
 
 /**
@@ -46,11 +41,10 @@ class StringJsonConverter : AttributeConverter<String?, String?> {
  */
 @Converter(autoApply = false)
 class StringListJsonConverter : AttributeConverter<List<String>?, String?> {
-
   private val objectMapper = ObjectMapper()
 
-  override fun convertToDatabaseColumn(attribute: List<String>?): String? {
-    return try {
+  override fun convertToDatabaseColumn(attribute: List<String>?): String? =
+    try {
       if (attribute == null) {
         null
       } else {
@@ -59,10 +53,9 @@ class StringListJsonConverter : AttributeConverter<List<String>?, String?> {
     } catch (e: Exception) {
       throw IllegalArgumentException("Error converting list to JSON string", e)
     }
-  }
 
-  override fun convertToEntityAttribute(dbData: String?): List<String>? {
-    return try {
+  override fun convertToEntityAttribute(dbData: String?): List<String>? =
+    try {
       if (dbData == null) {
         null
       } else {
@@ -72,7 +65,6 @@ class StringListJsonConverter : AttributeConverter<List<String>?, String?> {
     } catch (e: Exception) {
       throw IllegalArgumentException("Error converting JSON string to list", e)
     }
-  }
 }
 
 /**
@@ -80,11 +72,10 @@ class StringListJsonConverter : AttributeConverter<List<String>?, String?> {
  */
 @Converter(autoApply = false)
 class JsonMapConverter : AttributeConverter<Map<String, Any>?, String?> {
-
   private val objectMapper = ObjectMapper()
 
-  override fun convertToDatabaseColumn(attribute: Map<String, Any>?): String? {
-    return try {
+  override fun convertToDatabaseColumn(attribute: Map<String, Any>?): String? =
+    try {
       if (attribute == null) {
         null
       } else {
@@ -93,10 +84,9 @@ class JsonMapConverter : AttributeConverter<Map<String, Any>?, String?> {
     } catch (e: Exception) {
       throw IllegalArgumentException("Error converting map to JSON string", e)
     }
-  }
 
-  override fun convertToEntityAttribute(dbData: String?): Map<String, Any>? {
-    return try {
+  override fun convertToEntityAttribute(dbData: String?): Map<String, Any>? =
+    try {
       if (dbData == null) {
         null
       } else {
@@ -106,5 +96,4 @@ class JsonMapConverter : AttributeConverter<Map<String, Any>?, String?> {
     } catch (e: Exception) {
       throw IllegalArgumentException("Error converting JSON string to map", e)
     }
-  }
 }

@@ -37,9 +37,8 @@ import java.time.LocalDateTime
 @ClientService
 @Controller
 class ClientPaymentQueryResolver(
-  private val paymentService: PaymentService
+  private val paymentService: PaymentService,
 ) {
-
   /**
    * 查询用户自己的支付交易记录
    */
@@ -49,7 +48,7 @@ class ClientPaymentQueryResolver(
     size: Int = 20,
     status: PaymentStatus? = null,
     dateFrom: LocalDateTime? = null,
-    dateTo: LocalDateTime? = null
+    dateTo: LocalDateTime? = null,
   ): Page<UserPaymentTransaction> {
     // TODO: 实现从paymentService获取用户支付交易
     // 目前返回空列表
@@ -84,7 +83,7 @@ class ClientPaymentQueryResolver(
       refundedAt = null,
       status = PaymentStatus.SUCCESS,
       transactionId = transactionId,
-      updatedAt = LocalDateTime.now()
+      updatedAt = LocalDateTime.now(),
     )
   }
 
@@ -95,7 +94,7 @@ class ClientPaymentQueryResolver(
   fun myRefundRequests(
     page: Int = 0,
     size: Int = 20,
-    status: RefundStatus? = null
+    status: RefundStatus? = null,
   ): Page<RefundRequest> {
     // TODO: 实现从paymentService获取用户退款请求
     // 目前返回空列表
@@ -129,7 +128,7 @@ class ClientPaymentQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun myPaymentStatistics(
     period: String = "month", // week, month, year
-    count: Int = 6 // 最近几个周期
+    count: Int = 6, // 最近几个周期
   ): List<PaymentPeriodStats> {
     // TODO: 实现从paymentService获取用户支付统计
     // 目前返回空列表
@@ -151,7 +150,7 @@ class ClientPaymentQueryResolver(
       refundableAmount = 0L,
       refundReason = "符合退款条件",
       deadline = LocalDateTime.now().plusDays(7),
-      refundPolicy = "7天无理由退款"
+      refundPolicy = "7天无理由退款",
     )
   }
 
@@ -163,8 +162,7 @@ class ClientPaymentQueryResolver(
     // TODO: 实现从paymentService获取可用支付方式
     // 目前返回微信支付
     return listOf(
-      PaymentMethod.WECHAT_PAY
+      PaymentMethod.WECHAT_PAY,
     )
   }
-
 }

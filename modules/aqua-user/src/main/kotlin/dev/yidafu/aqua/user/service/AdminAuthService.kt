@@ -46,7 +46,10 @@ class AdminAuthService(
    * Authenticate admin user with username and password
    */
   @Transactional
-  fun authenticate(username: String, password: String): LoginResponse {
+  fun authenticate(
+    username: String,
+    password: String,
+  ): LoginResponse {
     try {
       // Authenticate user
 //      val authentication = authenticationManager.authenticate(
@@ -54,17 +57,20 @@ class AdminAuthService(
 //      )
 
       // Get authenticated user details
-      val admin = adminRepository.findByUsername(username)
-        .orElseThrow { WeChatAuthException("Invalid username or password") }
+      val admin =
+        adminRepository
+          .findByUsername(username)
+          .orElseThrow { WeChatAuthException("Invalid username or password") }
 
       // Create user principal
       val authorities = listOf(SimpleGrantedAuthority("ROLE_${admin.role.name}"))
-      val userPrincipal = UserPrincipal(
-        id = admin.id!!,
-        _username = admin.username,
-        userType = "ADMIN",
-        _authorities = authorities,
-      )
+      val userPrincipal =
+        UserPrincipal(
+          id = admin.id!!,
+          _username = admin.username,
+          userType = "ADMIN",
+          _authorities = authorities,
+        )
 
       // Generate JWT tokens
       val accessToken = jwtTokenService.generateAccessToken(userPrincipal)
@@ -81,12 +87,13 @@ class AdminAuthService(
         refreshToken = refreshToken,
         expiresIn = 86400, // 24 hours
         tokenType = "Bearer",
-        userInfo = AdminUserInfo(
-          id = admin.id,
-          username = admin.username,
-          realName = admin.realName,
-          role = admin.role.name,
-        ),
+        userInfo =
+          AdminUserInfo(
+            id = admin.id,
+            username = admin.username,
+            realName = admin.realName,
+            role = admin.role.name,
+          ),
       )
     } catch (e: Exception) {
       logger.error("Admin authentication failed", e)
@@ -97,12 +104,14 @@ class AdminAuthService(
   /**
    * Find admin by username
    */
-  fun findAdminByUsername(username: String): AdminModel? =
-    adminRepository.findByUsername(username).orElse(null)
+  fun findAdminByUsername(username: String): AdminModel? = adminRepository.findByUsername(username).orElse(null)
 
   /**
    * Validate password against encoded password hash
    */
-  fun validatePassword(rawPassword: String, encodedPassword: String): Boolean = true
+  fun validatePassword(
+    rawPassword: String,
+    encodedPassword: String,
+  ): Boolean = true
 //    passwordEncoder.matches(rawPassword, encodedPassword)
 }

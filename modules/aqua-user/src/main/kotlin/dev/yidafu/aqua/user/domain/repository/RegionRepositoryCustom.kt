@@ -42,6 +42,6 @@ interface RegionRepositoryCustom {
   fun existsByNameAndLevelAndParentCode(
     name: String,
     level: Int,
-    parentCode: String
+    parentCode: String,
   ): Boolean
 }

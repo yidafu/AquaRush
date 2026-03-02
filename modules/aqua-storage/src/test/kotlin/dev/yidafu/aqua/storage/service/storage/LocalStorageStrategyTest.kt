@@ -31,7 +31,6 @@ import java.nio.file.Files
 import java.nio.file.Path
 
 class LocalStorageStrategyTest {
-
   @TempDir
   lateinit var tempDir: Path
 
@@ -40,30 +39,33 @@ class LocalStorageStrategyTest {
 
   @BeforeEach
   fun setUp() {
-    storageProperties = StorageProperties().apply {
-      local.basePath = tempDir.toString()
-    }
+    storageProperties =
+      StorageProperties().apply {
+        local.basePath = tempDir.toString()
+      }
     localStorageStrategy = LocalStorageStrategy(storageProperties)
   }
 
   @Test
   fun `should store file successfully`() {
     // Given
-    val file = MockMultipartFile(
-      "test.jpg",
-      "test.jpg",
-      "image/jpeg",
-      "test image content".toByteArray()
-    )
-    val metadata = FileMetadata(
-      fileName = "test.jpg",
-      storagePath = "", // Will be set by storage strategy
-      fileType = FileType.IMAGE,
-      fileSize = file.size.toLong(),
-      mimeType = "image/jpeg",
-      checksum = "test_checksum",
-      extension = "jpg"
-    ).apply { id = 1L }
+    val file =
+      MockMultipartFile(
+        "test.jpg",
+        "test.jpg",
+        "image/jpeg",
+        "test image content".toByteArray(),
+      )
+    val metadata =
+      FileMetadata(
+        fileName = "test.jpg",
+        storagePath = "", // Will be set by storage strategy
+        fileType = FileType.IMAGE,
+        fileSize = file.size.toLong(),
+        mimeType = "image/jpeg",
+        checksum = "test_checksum",
+        extension = "jpg",
+      ).apply { id = 1L }
 
     // When
     val storagePath = localStorageStrategy.store(file, metadata)
@@ -78,21 +80,23 @@ class LocalStorageStrategyTest {
   fun `should retrieve stored file`() {
     // Given
     val fileContent = "test image content"
-    val file = MockMultipartFile(
-      "test.jpg",
-      "test.jpg",
-      "image/jpeg",
-      fileContent.toByteArray()
-    )
-    val metadata = FileMetadata(
-      fileName = "test.jpg",
-      storagePath = "",
-      fileType = FileType.IMAGE,
-      fileSize = file.size.toLong(),
-      mimeType = "image/jpeg",
-      checksum = "test_checksum",
-      extension = "jpg"
-    ).apply { id = 1L }
+    val file =
+      MockMultipartFile(
+        "test.jpg",
+        "test.jpg",
+        "image/jpeg",
+        fileContent.toByteArray(),
+      )
+    val metadata =
+      FileMetadata(
+        fileName = "test.jpg",
+        storagePath = "",
+        fileType = FileType.IMAGE,
+        fileSize = file.size.toLong(),
+        mimeType = "image/jpeg",
+        checksum = "test_checksum",
+        extension = "jpg",
+      ).apply { id = 1L }
 
     // When
     val storagePath = localStorageStrategy.store(file, metadata)
@@ -107,21 +111,23 @@ class LocalStorageStrategyTest {
   @Test
   fun `should delete stored file`() {
     // Given
-    val file = MockMultipartFile(
-      "test.jpg",
-      "test.jpg",
-      "image/jpeg",
-      "test image content".toByteArray()
-    )
-    val metadata = FileMetadata(
-      fileName = "test.jpg",
-      storagePath = "",
-      fileType = FileType.IMAGE,
-      fileSize = file.size.toLong(),
-      mimeType = "image/jpeg",
-      checksum = "test_checksum",
-      extension = "jpg"
-    ).apply { id = 1L }
+    val file =
+      MockMultipartFile(
+        "test.jpg",
+        "test.jpg",
+        "image/jpeg",
+        "test image content".toByteArray(),
+      )
+    val metadata =
+      FileMetadata(
+        fileName = "test.jpg",
+        storagePath = "",
+        fileType = FileType.IMAGE,
+        fileSize = file.size.toLong(),
+        mimeType = "image/jpeg",
+        checksum = "test_checksum",
+        extension = "jpg",
+      ).apply { id = 1L }
 
     // When
     val storagePath = localStorageStrategy.store(file, metadata)
@@ -163,37 +169,41 @@ class LocalStorageStrategyTest {
   @Test
   fun `should organize files by type and date`() {
     // Given
-    val imageFile = MockMultipartFile(
-      "image.jpg",
-      "image.jpg",
-      "image/jpeg",
-      "image content".toByteArray()
-    )
-    val imageMetadata = FileMetadata(
-      fileName = "image.jpg",
-      storagePath = "",
-      fileType = FileType.IMAGE,
-      fileSize = imageFile.size.toLong(),
-      mimeType = "image/jpeg",
-      checksum = "image_checksum",
-      extension = "jpg"
-    ).apply { id = 1L }
+    val imageFile =
+      MockMultipartFile(
+        "image.jpg",
+        "image.jpg",
+        "image/jpeg",
+        "image content".toByteArray(),
+      )
+    val imageMetadata =
+      FileMetadata(
+        fileName = "image.jpg",
+        storagePath = "",
+        fileType = FileType.IMAGE,
+        fileSize = imageFile.size.toLong(),
+        mimeType = "image/jpeg",
+        checksum = "image_checksum",
+        extension = "jpg",
+      ).apply { id = 1L }
 
-    val documentFile = MockMultipartFile(
-      "document.pdf",
-      "document.pdf",
-      "application/pdf",
-      "document content".toByteArray()
-    )
-    val documentMetadata = FileMetadata(
-      fileName = "document.pdf",
-      storagePath = "",
-      fileType = FileType.DOCUMENT,
-      fileSize = documentFile.size.toLong(),
-      mimeType = "application/pdf",
-      checksum = "document_checksum",
-      extension = "pdf"
-    ).apply { id = 2L }
+    val documentFile =
+      MockMultipartFile(
+        "document.pdf",
+        "document.pdf",
+        "application/pdf",
+        "document content".toByteArray(),
+      )
+    val documentMetadata =
+      FileMetadata(
+        fileName = "document.pdf",
+        storagePath = "",
+        fileType = FileType.DOCUMENT,
+        fileSize = documentFile.size.toLong(),
+        mimeType = "application/pdf",
+        checksum = "document_checksum",
+        extension = "pdf",
+      ).apply { id = 2L }
 
     // When
     val imageStoragePath = localStorageStrategy.store(imageFile, imageMetadata)

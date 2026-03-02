@@ -44,9 +44,8 @@ import org.springframework.web.multipart.MultipartFile
 @RestController
 @RequestMapping("/api/v1/storage")
 class StorageController(
-  private val storageService: StorageService
+  private val storageService: StorageService,
 ) {
-
   /**
    * 文件上传
    */
@@ -56,14 +55,15 @@ class StorageController(
     @RequestParam("fileType", required = false) fileType: FileType?,
     @RequestParam("description", required = false) description: String?,
     @RequestParam(value = "isPublic", defaultValue = "true") isPublic: Boolean,
-    @RequestParam("ownerId", required = false) ownerId: Long?
+    @RequestParam("ownerId", required = false) ownerId: Long?,
   ): ApiResponse<FileMetadataResponse> {
-    val request = FileUploadRequest(
-      fileType = fileType,
-      description = description,
-      isPublic = isPublic,
-      ownerId = ownerId
-    )
+    val request =
+      FileUploadRequest(
+        fileType = fileType,
+        description = description,
+        isPublic = isPublic,
+        ownerId = ownerId,
+      )
 
     val result = storageService.uploadFile(file, request)
     return ApiResponse.success(result)
@@ -76,7 +76,7 @@ class StorageController(
   fun getFile(
     @PathVariable id: Long,
     @RequestParam(value = "name", required = false) name: String?,
-    response: HttpServletResponse
+    response: HttpServletResponse,
   ): ResponseEntity<Resource> {
     val resource = storageService.getFile(id)
     val metadata = storageService.getFileMetadata(id)
@@ -84,7 +84,8 @@ class StorageController(
     // 使用请求参数中的文件名，如果没有则使用元数据中的文件名
     val fileName = name ?: metadata.fileName
 
-    return ResponseEntity.ok()
+    return ResponseEntity
+      .ok()
       .contentType(MediaType.parseMediaType(metadata.mimeType))
       .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"$fileName\"")
       .header(HttpHeaders.CACHE_CONTROL, "max-age=31536000") // 缓存1年
@@ -103,31 +104,34 @@ class StorageController(
     @RequestParam(value = "format", required = false) format: String?,
     @RequestParam(value = "watermark", defaultValue = "false") watermark: Boolean,
     @RequestParam(value = "watermarkText", required = false) watermarkText: String?,
-    response: HttpServletResponse
+    response: HttpServletResponse,
   ): ResponseEntity<ByteArray> {
-    val parameters = ImageParameters(
-      width = width,
-      height = height,
-      quality = quality,
-      format = format,
-      watermark = watermark,
-      watermarkText = watermarkText
-    )
+    val parameters =
+      ImageParameters(
+        width = width,
+        height = height,
+        quality = quality,
+        format = format,
+        watermark = watermark,
+        watermarkText = watermarkText,
+      )
 
     val processedImage = storageService.getProcessedImage(id, parameters)
     val metadata = storageService.getFileMetadata(id)
 
     // 确定响应的MIME类型
     val responseFormat = format?.uppercase() ?: "JPEG"
-    val mimeType = when (responseFormat) {
-      "PNG" -> "image/png"
-      "WEBP" -> "image/webp"
-      "GIF" -> "image/gif"
-      "BMP" -> "image/bmp"
-      else -> "image/jpeg"
-    }
+    val mimeType =
+      when (responseFormat) {
+        "PNG" -> "image/png"
+        "WEBP" -> "image/webp"
+        "GIF" -> "image/gif"
+        "BMP" -> "image/bmp"
+        else -> "image/jpeg"
+      }
 
-    return ResponseEntity.ok()
+    return ResponseEntity
+      .ok()
       .contentType(MediaType.parseMediaType(mimeType))
       .header(HttpHeaders.CACHE_CONTROL, "max-age=86400") // 缓存1天
       .body(processedImage)
@@ -137,7 +141,9 @@ class StorageController(
    * 获取文件元数据
    */
   @GetMapping("/files/{id}/metadata")
-  fun getFileMetadata(@PathVariable id: Long): ResponseEntity<ApiResponse<FileMetadataResponse>> {
+  fun getFileMetadata(
+    @PathVariable id: Long,
+  ): ResponseEntity<ApiResponse<FileMetadataResponse>> {
     val metadata = storageService.getFileMetadata(id)
     return ResponseEntity.ok(ApiResponse.success(metadata))
   }
@@ -146,7 +152,9 @@ class StorageController(
    * 删除文件
    */
   @DeleteMapping("/files/{id}")
-  fun deleteFile(@PathVariable id: Long): ResponseEntity<ApiResponse<Boolean>> {
+  fun deleteFile(
+    @PathVariable id: Long,
+  ): ResponseEntity<ApiResponse<Boolean>> {
     val result = storageService.deleteFile(id)
     return ResponseEntity.ok(ApiResponse.success(result))
   }
@@ -159,7 +167,7 @@ class StorageController(
     @RequestParam(value = "page", defaultValue = "0") page: Int,
     @RequestParam(value = "size", defaultValue = "20") size: Int,
     @RequestParam(value = "sort", defaultValue = "createdAt") sort: String,
-    @RequestParam(value = "direction", defaultValue = "desc") direction: String
+    @RequestParam(value = "direction", defaultValue = "desc") direction: String,
   ): ResponseEntity<ApiResponse<Page<FileMetadataResponse>>> {
     val sortDirection = if (direction.lowercase() == "desc") Sort.Direction.DESC else Sort.Direction.ASC
     val pageable: Pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort))
@@ -176,7 +184,7 @@ class StorageController(
     @RequestParam(value = "page", defaultValue = "0") page: Int,
     @RequestParam(value = "size", defaultValue = "20") size: Int,
     @RequestParam(value = "sort", defaultValue = "createdAt") sort: String,
-    @RequestParam(value = "direction", defaultValue = "desc") direction: String
+    @RequestParam(value = "direction", defaultValue = "desc") direction: String,
   ): ResponseEntity<ApiResponse<Page<FileMetadataResponse>>> {
     val sortDirection = if (direction.lowercase() == "desc") Sort.Direction.DESC else Sort.Direction.ASC
     val pageable: Pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort))
@@ -193,7 +201,7 @@ class StorageController(
     @RequestParam(value = "page", defaultValue = "0") page: Int,
     @RequestParam(value = "size", defaultValue = "20") size: Int,
     @RequestParam(value = "sort", defaultValue = "createdAt") sort: String,
-    @RequestParam(value = "direction", defaultValue = "desc") direction: String
+    @RequestParam(value = "direction", defaultValue = "desc") direction: String,
   ): ResponseEntity<ApiResponse<Page<FileMetadataResponse>>> {
     val sortDirection = if (direction.lowercase() == "desc") Sort.Direction.DESC else Sort.Direction.ASC
     val pageable: Pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort))
@@ -210,7 +218,7 @@ class StorageController(
     @RequestParam(value = "page", defaultValue = "0") page: Int,
     @RequestParam(value = "size", defaultValue = "20") size: Int,
     @RequestParam(value = "sort", defaultValue = "createdAt") sort: String,
-    @RequestParam(value = "direction", defaultValue = "desc") direction: String
+    @RequestParam(value = "direction", defaultValue = "desc") direction: String,
   ): ResponseEntity<ApiResponse<Page<FileMetadataResponse>>> {
     val sortDirection = if (direction.lowercase() == "desc") Sort.Direction.DESC else Sort.Direction.ASC
     val pageable: Pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort))
@@ -231,42 +239,43 @@ class StorageController(
    * 健康检查
    */
   @GetMapping("/health")
-  fun healthCheck(): ResponseEntity<ApiResponse<Map<String, String>>> {
-    return ResponseEntity.ok(
+  fun healthCheck(): ResponseEntity<ApiResponse<Map<String, String>>> =
+    ResponseEntity.ok(
       ApiResponse.success(
         mapOf(
           "status" to "healthy",
           "service" to "aqua-storage",
-          "timestamp" to System.currentTimeMillis().toString()
-        )
-      )
+          "timestamp" to System.currentTimeMillis().toString(),
+        ),
+      ),
     )
-  }
 
   /**
    * 异常处理
    */
   @ExceptionHandler(IllegalArgumentException::class)
-  fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ApiResponse<Nothing>> {
-    return ResponseEntity.badRequest()
+  fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ApiResponse<Nothing>> =
+    ResponseEntity
+      .badRequest()
       .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value().toString(), ex.message ?: "请求参数错误"))
-  }
 
   @ExceptionHandler(NoSuchElementException::class)
-  fun handleNoSuchElementException(ex: NoSuchElementException): ResponseEntity<ApiResponse<Nothing>> {
-    return ResponseEntity.status(HttpStatus.NOT_FOUND)
+  fun handleNoSuchElementException(ex: NoSuchElementException): ResponseEntity<ApiResponse<Nothing>> =
+    ResponseEntity
+      .status(HttpStatus.NOT_FOUND)
       .body(ApiResponse.error(HttpStatus.NOT_FOUND.value().toString(), ex.message ?: "文件不存在"))
-  }
 
   @ExceptionHandler(RuntimeException::class)
   fun handleRuntimeException(ex: RuntimeException): ResponseEntity<ApiResponse<Nothing>> {
     // 如果错误消息包含文件路径信息，提供更友好的错误信息
-    val message = when {
-      ex.message?.contains("File not found") == true -> "文件不存在或已被删除"
-      ex.message?.contains("Failed to store file") == true -> "文件存储失败，请重试"
-      else -> ex.message ?: "服务器内部错误"
-    }
-    return ResponseEntity.internalServerError()
+    val message =
+      when {
+        ex.message?.contains("File not found") == true -> "文件不存在或已被删除"
+        ex.message?.contains("Failed to store file") == true -> "文件存储失败，请重试"
+        else -> ex.message ?: "服务器内部错误"
+      }
+    return ResponseEntity
+      .internalServerError()
       .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value().toString(), message))
   }
 }

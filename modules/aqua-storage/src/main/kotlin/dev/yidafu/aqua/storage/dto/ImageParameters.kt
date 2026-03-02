@@ -27,31 +27,26 @@ data class ImageParameters(
    * 图片宽度
    */
   val width: Int? = null,
-
   /**
    * 图片高度
    */
   val height: Int? = null,
-
   /**
    * 图片质量 (0.1-1.0)
    */
   val quality: Float? = null,
-
   /**
    * 输出格式 (JPEG, PNG, WEBP等)
    */
   val format: String? = null,
-
   /**
    * 是否添加水印
    */
   val watermark: Boolean = false,
-
   /**
    * 水印文本（当watermark为true时使用）
    */
-  val watermarkText: String? = null
+  val watermarkText: String? = null,
 ) {
   /**
    * 验证参数有效性
@@ -76,7 +71,5 @@ data class ImageParameters(
   /**
    * 生成处理参数的唯一标识符
    */
-  fun generateCacheKey(): String {
-    return "${width}_${height}_${quality}_${format?.uppercase()}_${watermark}_${watermarkText}"
-  }
+  fun generateCacheKey(): String = "${width}_${height}_${quality}_${format?.uppercase()}_${watermark}_$watermarkText"
 }

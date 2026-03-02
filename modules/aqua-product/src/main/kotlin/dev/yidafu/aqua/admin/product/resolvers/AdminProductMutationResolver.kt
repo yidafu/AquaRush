@@ -42,7 +42,7 @@ import org.springframework.transaction.annotation.Transactional
 @AdminService
 @Controller
 class AdminProductMutationResolver(
-  private val productService: ProductServiceImpl
+  private val productService: ProductServiceImpl,
 ) {
   private val logger = LoggerFactory.getLogger(AdminProductMutationResolver::class.java)
 
@@ -52,11 +52,12 @@ class AdminProductMutationResolver(
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   @MutationMapping
-  fun createProduct(@Argument @Valid input: CreateProductInput): ProductModel {
+  fun createProduct(
+    @Argument @Valid input: CreateProductInput,
+  ): ProductModel {
     try {
       // 验证输入
       validateCreateProductInput(input)
-
 
       val product = productService.createProduct(input)
 
@@ -76,40 +77,42 @@ class AdminProductMutationResolver(
   @MutationMapping
   fun updateProduct(
     @Argument id: Long,
-    @Argument @Valid input: UpdateProductInput
+    @Argument @Valid input: UpdateProductInput,
   ): ProductModel {
     try {
       // 验证产品存在
-      val existingProduct = productService.findById(id)
-        ?: throw BadRequestException("产品不存在: $id")
+      val existingProduct =
+        productService.findById(id)
+          ?: throw BadRequestException("产品不存在: $id")
 
       // 验证输入
       validateUpdateProductInput(input)
 
-      val updatedProduct = productService.updateProduct(
-        productId = id,
-        name = input.name,
-        priceYuan = input.price?.let { MoneyUtils.fromCents(it) },
-        coverImageUrl = input.coverImageUrl,
-        // detailImages字段在ProductUpdateRequestInput中不存在，使用imageGallery替代
-        // detailImages = input.detailImages?.joinToString(","),
-        description = input.detailContent,
-        stock = input.stock,
-        subtitle = input.subtitle,
-        originalPriceYuan = input.originalPrice?.let { MoneyUtils.fromCents(it) },
-        depositPriceYuan = input.depositPrice?.let { MoneyUtils.fromCents(it) },
-        imageGallery = input.imageGallery,
-        specification = input.specification,
-        waterSource = input.waterSource,
-        mineralContent = input.mineralContent,
-        salesVolume = input.salesVolume,
-        sortOrder = input.sortOrder,
-        tags = input.tags,
-        detailContent = input.detailContent,
-        certificateImages = input.certificateImages,
-        deliverySettings = input.deliverySettings,
-        status = input.status
-      )
+      val updatedProduct =
+        productService.updateProduct(
+          productId = id,
+          name = input.name,
+          priceYuan = input.price?.let { MoneyUtils.fromCents(it) },
+          coverImageUrl = input.coverImageUrl,
+          // detailImages字段在ProductUpdateRequestInput中不存在，使用imageGallery替代
+          // detailImages = input.detailImages?.joinToString(","),
+          description = input.detailContent,
+          stock = input.stock,
+          subtitle = input.subtitle,
+          originalPriceYuan = input.originalPrice?.let { MoneyUtils.fromCents(it) },
+          depositPriceYuan = input.depositPrice?.let { MoneyUtils.fromCents(it) },
+          imageGallery = input.imageGallery,
+          specification = input.specification,
+          waterSource = input.waterSource,
+          mineralContent = input.mineralContent,
+          salesVolume = input.salesVolume,
+          sortOrder = input.sortOrder,
+          tags = input.tags,
+          detailContent = input.detailContent,
+          certificateImages = input.certificateImages,
+          deliverySettings = input.deliverySettings,
+          status = input.status,
+        )
 
       logger.info("Successfully updated product: $id - ${updatedProduct.name}")
       return updatedProduct
@@ -124,11 +127,12 @@ class AdminProductMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun deleteProduct(id: Long): Boolean {
-    return try {
+  fun deleteProduct(id: Long): Boolean =
+    try {
       // 验证产品存在
-      val existingProduct = productService.findById(id)
-        ?: throw BadRequestException("产品不存在: $id")
+      val existingProduct =
+        productService.findById(id)
+          ?: throw BadRequestException("产品不存在: $id")
 
       // 检查产品是否有关联的订单 - 简化版本，暂时移除此检查
       // TODO: 实现订单关联检查
@@ -140,7 +144,6 @@ class AdminProductMutationResolver(
       logger.error("Failed to delete product", e)
       throw BadRequestException("删除产品失败: ${e.message}")
     }
-  }
 
   /**
    * 批量调整产品库存（管理员功能）
@@ -153,40 +156,41 @@ class AdminProductMutationResolver(
 
       input.adjustments.forEach { adjustment ->
         try {
-          val success = when (adjustment.type) {
-            StockAdjustmentType.INCREASE -> {
-              productService.increaseStock(adjustment.productId, adjustment.quantity)
-              true
-            }
-
-            StockAdjustmentType.DECREASE -> {
-              productService.decreaseStock(adjustment.productId, adjustment.quantity)
-              true
-            }
-
-            StockAdjustmentType.SET -> {
-              val product = productService.findById(adjustment.productId)
-              if (product != null) {
-                val targetStock = adjustment.quantity
-                val currentStock = product.stock
-                if (targetStock > currentStock) {
-                  productService.increaseStock(adjustment.productId, targetStock - currentStock)
-                } else {
-                  productService.decreaseStock(adjustment.productId, currentStock - targetStock)
-                }
+          val success =
+            when (adjustment.type) {
+              StockAdjustmentType.INCREASE -> {
+                productService.increaseStock(adjustment.productId, adjustment.quantity)
                 true
-              } else {
-                false
+              }
+
+              StockAdjustmentType.DECREASE -> {
+                productService.decreaseStock(adjustment.productId, adjustment.quantity)
+                true
+              }
+
+              StockAdjustmentType.SET -> {
+                val product = productService.findById(adjustment.productId)
+                if (product != null) {
+                  val targetStock = adjustment.quantity
+                  val currentStock = product.stock
+                  if (targetStock > currentStock) {
+                    productService.increaseStock(adjustment.productId, targetStock - currentStock)
+                  } else {
+                    productService.decreaseStock(adjustment.productId, currentStock - targetStock)
+                  }
+                  true
+                } else {
+                  false
+                }
               }
             }
-          }
 
           results.add(
             StockAdjustmentResult(
               productId = adjustment.productId,
               success = success,
-              message = if (success) "调整成功" else "调整失败"
-            )
+              message = if (success) "调整成功" else "调整失败",
+            ),
           )
         } catch (e: Exception) {
           logger.warn("Failed to adjust stock for product ${adjustment.productId}", e)
@@ -194,8 +198,8 @@ class AdminProductMutationResolver(
             StockAdjustmentResult(
               productId = adjustment.productId,
               success = false,
-              message = "调整失败: ${e.message}"
-            )
+              message = "调整失败: ${e.message}",
+            ),
           )
         }
       }
@@ -207,7 +211,7 @@ class AdminProductMutationResolver(
         success = successCount == totalCount,
         successCount = successCount,
         failureCount = totalCount - successCount,
-        results = results
+        results = results,
       )
     } catch (e: Exception) {
       logger.error("Failed to batch adjust stock", e)
@@ -220,10 +224,11 @@ class AdminProductMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun onlineProduct(id: Long): ProductModel {
-    return try {
-      val product = productService.findById(id)
-        ?: throw BadRequestException("产品不存在: $id")
+  fun onlineProduct(id: Long): ProductModel =
+    try {
+      val product =
+        productService.findById(id)
+          ?: throw BadRequestException("产品不存在: $id")
 
       if (product.status == ProductStatus.ONLINE) {
         throw BadRequestException("产品已上线")
@@ -236,17 +241,17 @@ class AdminProductMutationResolver(
       logger.error("Failed to online product", e)
       throw BadRequestException("上线产品失败: ${e.message}")
     }
-  }
 
   /**
    * 下线产品（管理员功能）
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun offlineProduct(id: Long): ProductModel {
-    return try {
-      val product = productService.findById(id)
-        ?: throw BadRequestException("产品不存在: $id")
+  fun offlineProduct(id: Long): ProductModel =
+    try {
+      val product =
+        productService.findById(id)
+          ?: throw BadRequestException("产品不存在: $id")
 
       if (product.status == ProductStatus.OFFLINE) {
         throw BadRequestException("产品已下线")
@@ -259,7 +264,6 @@ class AdminProductMutationResolver(
       logger.error("Failed to offline product", e)
       throw BadRequestException("下线产品失败: ${e.message}")
     }
-  }
 
   /**
    * 验证创建产品输入
@@ -319,34 +323,35 @@ class AdminProductMutationResolver(
      * 产品操作输入类型
      */
 
-
     // UpdateProductInput moved to GraphQL generated classes
 
     data class StockAdjustmentInput(
       val productId: Long,
       val quantity: Int,
-      val type: StockAdjustmentType
+      val type: StockAdjustmentType,
     )
 
     data class BatchStockAdjustmentInput(
-      val adjustments: List<StockAdjustmentInput>
+      val adjustments: List<StockAdjustmentInput>,
     )
 
     data class StockAdjustmentResult(
       val productId: Long,
       val success: Boolean,
-      val message: String
+      val message: String,
     )
 
     data class BatchStockAdjustmentResult(
       val success: Boolean,
       val successCount: Int,
       val failureCount: Int,
-      val results: List<StockAdjustmentResult>
+      val results: List<StockAdjustmentResult>,
     )
 
     enum class StockAdjustmentType {
-      INCREASE, DECREASE, SET
+      INCREASE,
+      DECREASE,
+      SET,
     }
   }
 
@@ -355,24 +360,27 @@ class AdminProductMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun batchUpdateProducts(input: List<dev.yidafu.aqua.common.graphql.generated.ProductUpdateRequestInput>): List<ProductModel> {
-    return try {
+  fun batchUpdateProducts(input: List<dev.yidafu.aqua.common.graphql.generated.ProductUpdateRequestInput>): List<ProductModel> =
+    try {
       productService.batchUpdateProducts(input)
     } catch (e: Exception) {
       logger.error("Failed to batch update products", e)
       throw BadRequestException("批量更新产品失败: ${e.message}")
     }
-  }
 
   /**
    * 更新产品状态（管理员功能）
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun updateProductStatus(productId: Long, status: ProductStatus): ProductModel {
-    return try {
-      val product = productService.findById(productId)
-        ?: throw BadRequestException("产品不存在: $productId")
+  fun updateProductStatus(
+    productId: Long,
+    status: ProductStatus,
+  ): ProductModel =
+    try {
+      val product =
+        productService.findById(productId)
+          ?: throw BadRequestException("产品不存在: $productId")
 
       productService.updateProductStatus(productId, status)
       logger.info("Successfully updated product status: $productId to $status")
@@ -381,5 +389,4 @@ class AdminProductMutationResolver(
       logger.error("Failed to update product status", e)
       throw BadRequestException("更新产品状态失败: ${e.message}")
     }
-  }
 }

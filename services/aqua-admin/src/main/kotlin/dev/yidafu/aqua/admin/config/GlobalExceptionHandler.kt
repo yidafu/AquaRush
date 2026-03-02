@@ -50,7 +50,7 @@ class GlobalExceptionHandler {
       request.method,
       request.requestURI,
       ex.message,
-      ex
+      ex,
     )
 
     val error =
@@ -59,7 +59,7 @@ class GlobalExceptionHandler {
         message = ex.message ?: "Invalid argument",
         timestamp = LocalDateTime.now(),
         errorId = errorId,
-        correlationId = correlationId
+        correlationId = correlationId,
       )
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
   }
@@ -72,9 +72,11 @@ class GlobalExceptionHandler {
     val correlationId = CorrelationIdHolder.getCorrelationId() ?: generateCorrelationId()
     val errorId = UUID.randomUUID().toString().substring(0, 8)
 
-    val validationErrors = ex.bindingResult.fieldErrors.map {
-      "${it.field}: ${it.defaultMessage ?: "Invalid value"}"
-    }.joinToString("; ")
+    val validationErrors =
+      ex.bindingResult.fieldErrors
+        .map {
+          "${it.field}: ${it.defaultMessage ?: "Invalid value"}"
+        }.joinToString("; ")
 
     logger.warn(
       "VALIDATION_EXCEPTION - CorrelationId: {}, ErrorId: {}, Method: {}, URI: {}, ValidationErrors: {}",
@@ -83,7 +85,7 @@ class GlobalExceptionHandler {
       request.method,
       request.requestURI,
       validationErrors,
-      ex
+      ex,
     )
 
     val error =
@@ -92,7 +94,7 @@ class GlobalExceptionHandler {
         message = "Validation failed: $validationErrors",
         timestamp = LocalDateTime.now(),
         errorId = errorId,
-        correlationId = correlationId
+        correlationId = correlationId,
       )
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
   }
@@ -112,7 +114,7 @@ class GlobalExceptionHandler {
       request.method,
       request.requestURI,
       ex.supportedMethods?.joinToString(", ") ?: "none",
-      ex
+      ex,
     )
 
     val error =
@@ -121,7 +123,7 @@ class GlobalExceptionHandler {
         message = "Method ${request.method} not supported. Supported methods: ${ex.supportedMethods?.joinToString(", ") ?: "none"}",
         timestamp = LocalDateTime.now(),
         errorId = errorId,
-        correlationId = correlationId
+        correlationId = correlationId,
       )
     return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED).body(error)
   }
@@ -142,7 +144,7 @@ class GlobalExceptionHandler {
       request.requestURI,
       ex.parameterName,
       ex.parameterType,
-      ex
+      ex,
     )
 
     val error =
@@ -151,7 +153,7 @@ class GlobalExceptionHandler {
         message = "Required parameter '${ex.parameterName}' of type ${ex.parameterType} is missing",
         timestamp = LocalDateTime.now(),
         errorId = errorId,
-        correlationId = correlationId
+        correlationId = correlationId,
       )
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
   }
@@ -171,7 +173,7 @@ class GlobalExceptionHandler {
       request.method,
       request.requestURI,
       request.contentType,
-      ex
+      ex,
     )
 
     val error =
@@ -180,7 +182,7 @@ class GlobalExceptionHandler {
         message = "Request body is malformed or unreadable: ${ex.message}",
         timestamp = LocalDateTime.now(),
         errorId = errorId,
-        correlationId = correlationId
+        correlationId = correlationId,
       )
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
   }
@@ -200,7 +202,7 @@ class GlobalExceptionHandler {
       request.method,
       request.requestURI,
       ex.message,
-      ex
+      ex,
     )
 
     auditLogger.error(
@@ -210,7 +212,7 @@ class GlobalExceptionHandler {
       request.method,
       request.requestURI,
       ex.javaClass.simpleName,
-      ex.message
+      ex.message,
     )
 
     val error =
@@ -219,7 +221,7 @@ class GlobalExceptionHandler {
         message = "Database operation failed. Error ID: $errorId",
         timestamp = LocalDateTime.now(),
         errorId = errorId,
-        correlationId = correlationId
+        correlationId = correlationId,
       )
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error)
   }
@@ -241,7 +243,7 @@ class GlobalExceptionHandler {
       request.requestURI,
       ex.javaClass.simpleName,
       ex.message,
-      ex
+      ex,
     )
 
     // Log additional request context for debugging
@@ -252,7 +254,7 @@ class GlobalExceptionHandler {
       "EXCEPTION_STACK_TRACE - CorrelationId: {}, ErrorId: {}, StackTrace: {}",
       correlationId,
       errorId,
-      getStackTraceAsString(ex)
+      getStackTraceAsString(ex),
     )
 
     auditLogger.error(
@@ -262,7 +264,7 @@ class GlobalExceptionHandler {
       request.method,
       request.requestURI,
       ex.javaClass.simpleName,
-      ex.message
+      ex.message,
     )
 
     val error =
@@ -271,20 +273,26 @@ class GlobalExceptionHandler {
         message = "Internal server error occurred. Error ID: $errorId",
         timestamp = LocalDateTime.now(),
         errorId = errorId,
-        correlationId = correlationId
+        correlationId = correlationId,
       )
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error)
   }
 
-  private fun logRequestContext(request: HttpServletRequest, correlationId: String, errorId: String) {
+  private fun logRequestContext(
+    request: HttpServletRequest,
+    correlationId: String,
+    errorId: String,
+  ) {
     try {
       val userAgent = request.getHeader("User-Agent")
       val contentType = request.contentType
       val contentLength = request.contentLengthLong
       val remoteAddr = request.remoteAddr
-      val requestParams = request.parameterMap.map { (key, values) ->
-        "$key=${values.joinToString(",")}"
-      }.joinToString("&")
+      val requestParams =
+        request.parameterMap
+          .map { (key, values) ->
+            "$key=${values.joinToString(",")}"
+          }.joinToString("&")
 
       errorLogger.error(
         "REQUEST_CONTEXT - CorrelationId: {}, ErrorId: {}, RemoteAddr: {}, UserAgent: {}, ContentType: {}, ContentLength: {}, Parameters: {}",
@@ -294,41 +302,39 @@ class GlobalExceptionHandler {
         userAgent,
         contentType,
         contentLength,
-        if (requestParams.length > 500) requestParams.substring(0, 500) + "..." else requestParams
+        if (requestParams.length > 500) requestParams.substring(0, 500) + "..." else requestParams,
       )
 
       // Log headers for debugging (sensitive data will be masked)
-      val headers = request.headerNames.asSequence()
-        .filter { headerName ->
-          !headerName.equals("Authorization", ignoreCase = true) &&
-            !headerName.equals("Cookie", ignoreCase = true) &&
-            !headerName.contains("password", ignoreCase = true) &&
-            !headerName.contains("secret", ignoreCase = true)
-        }
-        .associateWith { headerName ->
-          request.getHeaders(headerName)?.asSequence()?.toList() ?: emptyList()
-        }
+      val headers =
+        request.headerNames
+          .asSequence()
+          .filter { headerName ->
+            !headerName.equals("Authorization", ignoreCase = true) &&
+              !headerName.equals("Cookie", ignoreCase = true) &&
+              !headerName.contains("password", ignoreCase = true) &&
+              !headerName.contains("secret", ignoreCase = true)
+          }.associateWith { headerName ->
+            request.getHeaders(headerName)?.asSequence()?.toList() ?: emptyList()
+          }
 
       errorLogger.error(
         "REQUEST_HEADERS - CorrelationId: {}, ErrorId: {}, Headers: {}",
         correlationId,
         errorId,
-        headers
+        headers,
       )
-
     } catch (ex: Exception) {
       logger.warn(
         "Failed to log request context - CorrelationId: {}, ErrorId: {}, Error: {}",
         correlationId,
         errorId,
-        ex.message
+        ex.message,
       )
     }
   }
 
-  private fun generateCorrelationId(): String {
-    return "GEN-${UUID.randomUUID().toString().substring(0, 8)}"
-  }
+  private fun generateCorrelationId(): String = "GEN-${UUID.randomUUID().toString().substring(0, 8)}"
 
   private fun getStackTraceAsString(exception: Exception): String {
     val sw = java.io.StringWriter()
@@ -343,5 +349,5 @@ data class ErrorResponse(
   val message: String,
   val timestamp: LocalDateTime,
   val errorId: String? = null,
-  val correlationId: String? = null
+  val correlationId: String? = null,
 )

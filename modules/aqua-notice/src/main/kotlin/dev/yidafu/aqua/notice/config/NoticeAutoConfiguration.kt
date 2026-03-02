@@ -48,7 +48,6 @@ class NoticeAutoConfiguration {
   }
 
   @Bean
-  fun messageRetryTask(weChatMessagePushService: dev.yidafu.aqua.api.service.WeChatMessagePushService): MessageRetryTask {
-    return MessageRetryTask(weChatMessagePushService)
-  }
+  fun messageRetryTask(weChatMessagePushService: dev.yidafu.aqua.api.service.WeChatMessagePushService): MessageRetryTask =
+    MessageRetryTask(weChatMessagePushService)
 }

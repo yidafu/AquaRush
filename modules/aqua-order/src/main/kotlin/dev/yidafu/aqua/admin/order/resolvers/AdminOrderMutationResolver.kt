@@ -50,20 +50,19 @@ class AdminOrderMutationResolver(
   fun createOrder(
     @Argument @Valid input: CreateOrderInput,
     @Argument userId: Long,
-  ): Order {
-    return OrderMapper.map(orderService.createOrder(input, userId))
-  }
+  ): Order = OrderMapper.map(orderService.createOrder(input, userId))
 
   /**
    * 取消订单 - 管理员权限
    */
   @MutationMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun cancelOrder(@Argument orderId: Long): Order {
-    return orderService.cancelOrderForAdmin(orderId)?.let { OrderMapper.map(it) }
+  fun cancelOrder(
+    @Argument orderId: Long,
+  ): Order =
+    orderService.cancelOrderForAdmin(orderId)?.let { OrderMapper.map(it) }
 
       ?: throw IllegalArgumentException("Order not found")
-  }
 
   /**
    * 更新订单状态 - 管理员权限
@@ -73,11 +72,11 @@ class AdminOrderMutationResolver(
   fun updateOrderStatus(
     @Argument orderId: Long,
     @Argument status: OrderStatus,
-  ): Order {
-    return orderService.updateOrderStatus(orderId, status.name)
+  ): Order =
+    orderService
+      .updateOrderStatus(orderId, status.name)
       ?.let { OrderMapper.map(it) }
       ?: throw IllegalArgumentException("Order not found")
-  }
 
   // ==================== 派单相关 mutations ====================
 
@@ -127,7 +126,9 @@ class AdminOrderMutationResolver(
    * 开始配送（配送员点击开始配送按钮）
    */
   @MutationMapping
-  fun startDelivery(@Argument orderId: Long): Order {
+  fun startDelivery(
+    @Argument orderId: Long,
+  ): Order {
     logger.info("Starting delivery for order $orderId")
     return OrderMapper.map(deliveryService.startDelivery(orderId))
   }

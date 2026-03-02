@@ -28,39 +28,28 @@ import java.time.LocalDateTime
 @Table(name = "admins")
 data class AdminModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long = -1L,
-
   @Column(name = "username", unique = true, nullable = false, length = 50)
   var username: String,
-
   @Column(name = "password_hash", nullable = false)
   var passwordHash: String,
-
   @Column(name = "real_name", length = 100)
   var realName: String? = null,
-
   @Column(name = "phone", length = 20)
   var phone: String? = null,
-
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false)
-  var role: AdminRoleModel = AdminRoleModel.NORMAL_ADMIN,
-
+  var role: AdminRoleModel = AdminRoleModel.ADMIN,
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-
   @Column(name = "last_login_at")
   var lastLoginAt: LocalDateTime? = null,
-
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-
   @Column(name = "deleted_by")
-  override var deletedBy: Long? = null
+  override var deletedBy: Long? = null,
 ) : SoftDeletable {
   @PreUpdate
   fun preUpdate() {

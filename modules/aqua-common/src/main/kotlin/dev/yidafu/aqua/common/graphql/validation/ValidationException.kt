@@ -22,4 +22,6 @@ package dev.yidafu.aqua.common.graphql.validation
 /**
  * 验证异常类，用于表示输入验证失败
  */
-class ValidationException(message: String) : RuntimeException(message)
+class ValidationException(
+  message: String,
+) : RuntimeException(message)

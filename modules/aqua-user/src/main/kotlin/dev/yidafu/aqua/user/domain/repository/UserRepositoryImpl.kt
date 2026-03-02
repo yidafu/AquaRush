@@ -33,7 +33,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 class UserRepositoryImpl : UserRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -42,35 +41,47 @@ class UserRepositoryImpl : UserRepositoryCustom {
   }
 
   override fun getUserTotalSpent(userId: Long): Double {
-    val result = queryFactory.select(userModel.totalSpentCents)
-      .from(userModel)
-      .where(userModel.id.eq(userId))
-      .fetchOne()
+    val result =
+      queryFactory
+        .select(userModel.totalSpentCents)
+        .from(userModel)
+        .where(userModel.id.eq(userId))
+        .fetchOne()
 
-    return dev.yidafu.aqua.common.utils.MoneyUtils.fromCents(result ?: 0L).toDouble()
+    return dev.yidafu.aqua.common.utils.MoneyUtils
+      .fromCents(result ?: 0L)
+      .toDouble()
   }
 
   override fun getUserBalance(userId: Long): Double {
-    val result = queryFactory.select(userModel.balanceCents)
-      .from(userModel)
-      .where(userModel.id.eq(userId))
-      .fetchOne()
+    val result =
+      queryFactory
+        .select(userModel.balanceCents)
+        .from(userModel)
+        .where(userModel.id.eq(userId))
+        .fetchOne()
 
-    return dev.yidafu.aqua.common.utils.MoneyUtils.fromCents(result ?: 0L).toDouble()
+    return dev.yidafu.aqua.common.utils.MoneyUtils
+      .fromCents(result ?: 0L)
+      .toDouble()
   }
 
-  override fun getUserAddressCount(userId: Long): Int {
-    return queryFactory.query()
+  override fun getUserAddressCount(userId: Long): Int =
+    queryFactory
+      .query()
       .from(addressModel)
       .where(addressModel.userId.eq(userId))
       .fetchCount()
       .toInt()
-  }
 
-  override fun canUserReview(userId: Long, orderId: Long): Boolean {
+  override fun canUserReview(
+    userId: Long,
+    orderId: Long,
+  ): Boolean {
     // Simplified check - verify user exists
     // Business logic should be moved to service layer
-    return queryFactory.selectFrom(userModel)
+    return queryFactory
+      .selectFrom(userModel)
       .where(userModel.id.eq(userId))
       .fetchFirst() != null
   }
@@ -78,33 +89,39 @@ class UserRepositoryImpl : UserRepositoryCustom {
   override fun findByNicknameContainingIgnoreCaseAndStatusOrPhoneContainingIgnoreCaseAndStatus(
     keyword: String,
     status: UserStatus,
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<UserModel> {
     val lowerKeyword = keyword.lowercase()
 
     // Count query
-    val totalCount = queryFactory.query()
-      .from(userModel)
-      .where(
-        userModel.status.eq(status).and(
-          userModel.nickname.lower().like("%$lowerKeyword%")
-            .or(userModel.phone.lower().like("%$lowerKeyword%"))
-        )
-      )
-      .fetchCount()
+    val totalCount =
+      queryFactory
+        .query()
+        .from(userModel)
+        .where(
+          userModel.status.eq(status).and(
+            userModel.nickname
+              .lower()
+              .like("%$lowerKeyword%")
+              .or(userModel.phone.lower().like("%$lowerKeyword%")),
+          ),
+        ).fetchCount()
 
     // Main query with pagination
-    val results = queryFactory.selectFrom(userModel)
-      .where(
-        userModel.status.eq(status).and(
-          userModel.nickname.lower().like("%$lowerKeyword%")
-            .or(userModel.phone.lower().like("%$lowerKeyword%"))
-        )
-      )
-      .orderBy(userModel.id.desc())
-      .offset(pageable.offset)
-      .limit(pageable.pageSize.toLong())
-      .fetch()
+    val results =
+      queryFactory
+        .selectFrom(userModel)
+        .where(
+          userModel.status.eq(status).and(
+            userModel.nickname
+              .lower()
+              .like("%$lowerKeyword%")
+              .or(userModel.phone.lower().like("%$lowerKeyword%")),
+          ),
+        ).orderBy(userModel.id.desc())
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .fetch()
 
     return PageImpl(results, pageable, totalCount)
   }
@@ -112,12 +129,19 @@ class UserRepositoryImpl : UserRepositoryCustom {
 
 interface UserRepositoryCustom {
   fun getUserTotalSpent(userId: Long): Double
+
   fun getUserBalance(userId: Long): Double
+
   fun getUserAddressCount(userId: Long): Int
-  fun canUserReview(userId: Long, orderId: Long): Boolean
+
+  fun canUserReview(
+    userId: Long,
+    orderId: Long,
+  ): Boolean
+
   fun findByNicknameContainingIgnoreCaseAndStatusOrPhoneContainingIgnoreCaseAndStatus(
     keyword: String,
     status: UserStatus,
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<UserModel>
 }

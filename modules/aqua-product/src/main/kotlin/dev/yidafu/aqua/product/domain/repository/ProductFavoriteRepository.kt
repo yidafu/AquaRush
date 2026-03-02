@@ -27,16 +27,27 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ProductFavoriteRepository : JpaRepository<ProductFavoriteModel, Long>,
-  JpaSpecificationExecutor<ProductFavoriteModel>, ProductFavoriteRepositoryCustom {
-
+interface ProductFavoriteRepository :
+  JpaRepository<ProductFavoriteModel, Long>,
+  JpaSpecificationExecutor<ProductFavoriteModel>,
+  ProductFavoriteRepositoryCustom {
   // Existing methods (kept for Spring Data JPA query derivation)
-  fun findByUserIdAndProductId(userId: Long, productId: Long): ProductFavoriteModel?
+  fun findByUserIdAndProductId(
+    userId: Long,
+    productId: Long,
+  ): ProductFavoriteModel?
 
-  fun findByUserId(userId: Long, pageable: Pageable): Page<ProductFavoriteModel>
+  fun findByUserId(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<ProductFavoriteModel>
 
   // New enable field methods
-  fun findByUserIdAndProductIdAndEnable(userId: Long, productId: Long, enable: Boolean): ProductFavoriteModel?
+  fun findByUserIdAndProductIdAndEnable(
+    userId: Long,
+    productId: Long,
+    enable: Boolean,
+  ): ProductFavoriteModel?
 
   fun findByProductId(productId: Long): List<ProductFavoriteModel>
 

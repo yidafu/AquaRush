@@ -49,7 +49,5 @@ class MapDBCacheAutoConfiguration {
 
   @Bean
   @ConditionalOnMissingBean
-  fun mapDBCacheNamespace(): MapDBCacheNamespace {
-    return MapDBCacheNamespace()
-  }
+  fun mapDBCacheNamespace(): MapDBCacheNamespace = MapDBCacheNamespace()
 }

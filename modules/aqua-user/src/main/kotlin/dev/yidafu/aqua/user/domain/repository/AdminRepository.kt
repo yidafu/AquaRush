@@ -28,7 +28,9 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface AdminRepository : JpaRepository<AdminModel, Long>, JpaSpecificationExecutor<AdminModel> {
+interface AdminRepository :
+  JpaRepository<AdminModel, Long>,
+  JpaSpecificationExecutor<AdminModel> {
   fun findByUsername(username: String): Optional<AdminModel>
 
   fun findByUsernameAndRole(
@@ -40,9 +42,7 @@ interface AdminRepository : JpaRepository<AdminModel, Long>, JpaSpecificationExe
 
   fun findByRole(role: AdminRoleModel): List<AdminModel>
 
-  fun countByRole(
-    role: AdminRoleModel,
-  ): Long {
+  fun countByRole(role: AdminRoleModel): Long {
     val specification = AdminSpecifications.byRole(role)
     return count(specification)
   }
@@ -57,11 +57,7 @@ interface AdminRepository : JpaRepository<AdminModel, Long>, JpaSpecificationExe
     return count(specification) > 0
   }
 
-  fun findAllAdmins(): List<AdminModel> {
-    return findAll()
-  }
+  fun findAllAdmins(): List<AdminModel> = findAll()
 
-  fun findAdminById(id: Long): AdminModel? {
-    return findById(id).orElse(null)
-  }
+  fun findAdminById(id: Long): AdminModel? = findById(id).orElse(null)
 }

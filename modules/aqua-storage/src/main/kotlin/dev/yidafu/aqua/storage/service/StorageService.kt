@@ -37,7 +37,10 @@ interface StorageService {
    * @param request 上传请求参数
    * @return 文件元数据
    */
-  fun uploadFile(file: MultipartFile, request: FileUploadRequest): FileMetadataResponse
+  fun uploadFile(
+    file: MultipartFile,
+    request: FileUploadRequest,
+  ): FileMetadataResponse
 
   /**
    * 根据ID获取文件
@@ -52,7 +55,10 @@ interface StorageService {
    * @param parameters 图片处理参数
    * @return 处理后的图片资源
    */
-  fun getProcessedImage(id: Long, parameters: ImageParameters): ByteArray
+  fun getProcessedImage(
+    id: Long,
+    parameters: ImageParameters,
+  ): ByteArray
 
   /**
    * 根据ID获取文件元数据
@@ -83,7 +89,7 @@ interface StorageService {
    */
   fun listFilesByType(
     fileType: dev.yidafu.aqua.storage.domain.enums.FileType,
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<FileMetadataResponse>
 
   /**
@@ -92,7 +98,10 @@ interface StorageService {
    * @param pageable 分页参数
    * @return 文件元数据分页
    */
-  fun listFilesByOwner(ownerId: Long?, pageable: Pageable): Page<FileMetadataResponse>
+  fun listFilesByOwner(
+    ownerId: Long?,
+    pageable: Pageable,
+  ): Page<FileMetadataResponse>
 
   /**
    * 根据文件名搜索文件
@@ -100,5 +109,8 @@ interface StorageService {
    * @param pageable 分页参数
    * @return 文件元数据分页
    */
-  fun searchFiles(fileName: String, pageable: Pageable): Page<FileMetadataResponse>
+  fun searchFiles(
+    fileName: String,
+    pageable: Pageable,
+  ): Page<FileMetadataResponse>
 }

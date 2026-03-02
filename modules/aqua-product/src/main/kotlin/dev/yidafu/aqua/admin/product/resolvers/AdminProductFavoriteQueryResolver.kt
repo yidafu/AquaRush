@@ -36,7 +36,7 @@ import org.springframework.stereotype.Controller
 @AdminService
 @Controller
 class AdminProductFavoriteQueryResolver(
-  private val productFavoriteService: ProductFavoriteService
+  private val productFavoriteService: ProductFavoriteService,
 ) {
   private val logger = LoggerFactory.getLogger(AdminProductFavoriteQueryResolver::class.java)
 
@@ -45,14 +45,13 @@ class AdminProductFavoriteQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun allProductsFavoriteStats(): AllProductsFavoriteStats {
-    return try {
+  fun allProductsFavoriteStats(): AllProductsFavoriteStats =
+    try {
       productFavoriteService.getAllProductsFavoriteStats()
     } catch (e: Exception) {
       logger.error("Failed to get all products favorite stats", e)
       throw RuntimeException("获取全部商品收藏统计失败: ${e.message}")
     }
-  }
 
   /**
    * 按收藏数量排序的分页产品列表
@@ -62,13 +61,12 @@ class AdminProductFavoriteQueryResolver(
   fun productsByFavorites(
     @Argument page: Int? = 0,
     @Argument size: Int? = 20,
-    @Argument minFavorites: Int? = null
-  ): ProductFavoritePage {
-    return try {
+    @Argument minFavorites: Int? = null,
+  ): ProductFavoritePage =
+    try {
       productFavoriteService.getProductsByFavorites(page ?: 0, size ?: 20, minFavorites)
     } catch (e: Exception) {
       logger.error("Failed to get products by favorites", e)
       throw RuntimeException("获取收藏商品列表失败: ${e.message}")
     }
-  }
 }

@@ -34,7 +34,6 @@ import java.time.LocalDateTime
  */
 @Repository
 class PaymentRepositoryImpl : PaymentRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -45,46 +44,46 @@ class PaymentRepositoryImpl : PaymentRepositoryCustom {
   override fun findByUserIdAndStatusEnhanced(
     userId: Long,
     status: PaymentStatus,
-  ): List<PaymentModel> {
-    return queryFactory.selectFrom(paymentModel)
+  ): List<PaymentModel> =
+    queryFactory
+      .selectFrom(paymentModel)
       .where(
-        paymentModel.userId.eq(userId)
-          .and(paymentModel.status.eq(status))
-      )
-      .fetch()
-  }
+        paymentModel.userId
+          .eq(userId)
+          .and(paymentModel.status.eq(status)),
+      ).fetch()
 
-  override fun findExpiredPaymentsEnhanced(now: LocalDateTime): List<PaymentModel> {
-    return queryFactory.selectFrom(paymentModel)
+  override fun findExpiredPaymentsEnhanced(now: LocalDateTime): List<PaymentModel> =
+    queryFactory
+      .selectFrom(paymentModel)
       .where(
-        paymentModel.status.eq(PaymentStatus.PENDING)
-          .and(paymentModel.expiredAt.lt(now))
-      )
-      .fetch()
-  }
+        paymentModel.status
+          .eq(PaymentStatus.PENDING)
+          .and(paymentModel.expiredAt.lt(now)),
+      ).fetch()
 
   override fun findByCreatedAtBetweenEnhanced(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): List<PaymentModel> {
-    return queryFactory.selectFrom(paymentModel)
+  ): List<PaymentModel> =
+    queryFactory
+      .selectFrom(paymentModel)
       .where(paymentModel.createdAt.between(startDate, endDate))
       .fetch()
-  }
 
   override fun countByStatusAndCreatedAtBetweenEnhanced(
     status: PaymentStatus,
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): Long {
-    return queryFactory.query()
+  ): Long =
+    queryFactory
+      .query()
       .from(paymentModel)
       .where(
-        paymentModel.status.eq(status)
-          .and(paymentModel.createdAt.between(startDate, endDate))
-      )
-      .fetchCount()
-  }
+        paymentModel.status
+          .eq(status)
+          .and(paymentModel.createdAt.between(startDate, endDate)),
+      ).fetchCount()
 
   override fun sumAmountByStatusAndCreatedAtBetweenEnhanced(
     status: PaymentStatus,
@@ -93,13 +92,14 @@ class PaymentRepositoryImpl : PaymentRepositoryCustom {
   ): Long {
     val sumAmount = paymentModel.amount.sumLong()
     @Suppress("UNCHECKED_CAST")
-    return queryFactory.query()
+    return queryFactory
+      .query()
       .from(paymentModel)
       .where(
-        paymentModel.status.eq(status)
-          .and(paymentModel.createdAt.between(startDate, endDate))
-      )
-      .select(sumAmount)
+        paymentModel.status
+          .eq(status)
+          .and(paymentModel.createdAt.between(startDate, endDate)),
+      ).select(sumAmount)
       .fetchOne() as? Long ?: 0L
   }
 
@@ -125,7 +125,8 @@ class PaymentRepositoryImpl : PaymentRepositoryCustom {
     minAmount?.let { builder.and(paymentModel.amount.goe(it)) }
     maxAmount?.let { builder.and(paymentModel.amount.loe(it)) }
 
-    return queryFactory.selectFrom(paymentModel)
+    return queryFactory
+      .selectFrom(paymentModel)
       .where(builder)
       .orderBy(paymentModel.createdAt.desc())
       .fetch()

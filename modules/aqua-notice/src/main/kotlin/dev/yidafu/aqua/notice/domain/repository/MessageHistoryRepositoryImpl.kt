@@ -34,7 +34,6 @@ import java.util.*
  */
 @Repository
 class MessageHistoryRepositoryImpl : MessageHistoryRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -45,48 +44,50 @@ class MessageHistoryRepositoryImpl : MessageHistoryRepositoryCustom {
   override fun countByUserIdAndStatus(
     userId: Long,
     status: MessageStatus,
-  ): Long {
-    return queryFactory.query()
+  ): Long =
+    queryFactory
+      .query()
       .from(messageHistoryModel)
       .where(
-        messageHistoryModel.userId.eq(userId)
-          .and(messageHistoryModel.status.eq(status))
-      )
-      .fetchCount()
-  }
+        messageHistoryModel.userId
+          .eq(userId)
+          .and(messageHistoryModel.status.eq(status)),
+      ).fetchCount()
 
   override fun countByMessageTypeSince(
     messageType: String,
     since: LocalDateTime,
-  ): Long {
-    return queryFactory.query()
+  ): Long =
+    queryFactory
+      .query()
       .from(messageHistoryModel)
       .where(
-        messageHistoryModel.messageType.eq(messageType)
-          .and(messageHistoryModel.createdAt.goe(since))
-      )
-      .fetchCount()
-  }
+        messageHistoryModel.messageType
+          .eq(messageType)
+          .and(messageHistoryModel.createdAt.goe(since)),
+      ).fetchCount()
 
   override fun findByStatusAndRetryCountLessThanAndCreatedAtBefore(
     status: MessageStatus,
     retryCount: Int,
     before: LocalDateTime,
-  ): List<MessageHistoryModel> {
-    return queryFactory.selectFrom(messageHistoryModel)
+  ): List<MessageHistoryModel> =
+    queryFactory
+      .selectFrom(messageHistoryModel)
       .where(
-        messageHistoryModel.status.eq(status)
+        messageHistoryModel.status
+          .eq(status)
           .and(messageHistoryModel.retryCount.lt(retryCount))
-          .and(messageHistoryModel.createdAt.lt(before))
-      )
-      .orderBy(messageHistoryModel.createdAt.asc())
+          .and(messageHistoryModel.createdAt.lt(before)),
+      ).orderBy(messageHistoryModel.createdAt.asc())
       .fetch()
-  }
 
   override fun findByWxMessageId(wxMessageId: String): Optional<MessageHistoryModel> {
-    val result = queryFactory.selectFrom(messageHistoryModel)
-      .where(messageHistoryModel.wxMessageId.eq(wxMessageId))
-      .fetchFirst()
+    val result =
+      queryFactory
+        .selectFrom(messageHistoryModel)
+        .where(messageHistoryModel.wxMessageId.eq(wxMessageId))
+        .fetchFirst()
 
     return Optional.ofNullable(result)
   }

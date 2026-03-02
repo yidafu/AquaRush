@@ -38,7 +38,6 @@ import java.time.LocalDateTime
  */
 @Repository
 class ProductFavoriteRepositoryImpl : ProductFavoriteRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -46,90 +45,107 @@ class ProductFavoriteRepositoryImpl : ProductFavoriteRepositoryCustom {
     JPAQueryFactory(entityManager)
   }
 
-  override fun findFavoriteProductIdsByUserId(userId: Long): List<Long> {
-    return queryFactory.select(productFavoriteModel.productId)
+  override fun findFavoriteProductIdsByUserId(userId: Long): List<Long> =
+    queryFactory
+      .select(productFavoriteModel.productId)
       .from(productFavoriteModel)
       .where(productFavoriteModel.userId.eq(userId))
       .where(productFavoriteModel.enable.eq(true))
       .fetch()
-  }
 
-  override fun findFavoriteIdsByUserId(userId: Long, pageable: Pageable): Page<Long> {
+  override fun findFavoriteIdsByUserId(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<Long> {
     // Get total count
-    val total = queryFactory.query()
-      .from(productFavoriteModel)
-      .where(productFavoriteModel.userId.eq(userId))
-      .where(productFavoriteModel.enable.eq(true))
-      .fetchCount()
+    val total =
+      queryFactory
+        .query()
+        .from(productFavoriteModel)
+        .where(productFavoriteModel.userId.eq(userId))
+        .where(productFavoriteModel.enable.eq(true))
+        .fetchCount()
 
     // Get paginated product IDs
-    val results = queryFactory.select(productFavoriteModel.productId)
-      .from(productFavoriteModel)
-      .where(productFavoriteModel.userId.eq(userId))
-      .where(productFavoriteModel.enable.eq(true))
-      .orderBy(productFavoriteModel.createdAt.desc())
-      .offset(pageable.offset)
-      .limit(pageable.pageSize.toLong())
-      .fetch()
+    val results =
+      queryFactory
+        .select(productFavoriteModel.productId)
+        .from(productFavoriteModel)
+        .where(productFavoriteModel.userId.eq(userId))
+        .where(productFavoriteModel.enable.eq(true))
+        .orderBy(productFavoriteModel.createdAt.desc())
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .fetch()
 
     return PageImpl(results, pageable, total)
   }
 
-  override fun existsByUserIdAndProductId(userId: Long, productId: Long): Boolean {
-    val count = queryFactory.selectFrom(productFavoriteModel)
-      .where(productFavoriteModel.userId.eq(userId))
-      .where(productFavoriteModel.productId.eq(productId))
-      .where(productFavoriteModel.enable.eq(true))
-      .fetchCount()
+  override fun existsByUserIdAndProductId(
+    userId: Long,
+    productId: Long,
+  ): Boolean {
+    val count =
+      queryFactory
+        .selectFrom(productFavoriteModel)
+        .where(productFavoriteModel.userId.eq(userId))
+        .where(productFavoriteModel.productId.eq(productId))
+        .where(productFavoriteModel.enable.eq(true))
+        .fetchCount()
     return count > 0
   }
 
-  override fun countByUserId(userId: Long): Long {
-    return queryFactory.query()
+  override fun countByUserId(userId: Long): Long =
+    queryFactory
+      .query()
       .from(productFavoriteModel)
       .where(productFavoriteModel.userId.eq(userId))
       .where(productFavoriteModel.enable.eq(true))
       .fetchCount()
-  }
 
   @Transactional
-  override fun updateEnableStatus(userId: Long, productId: Long, enable: Boolean): Int {
-    return queryFactory.update(productFavoriteModel)
+  override fun updateEnableStatus(
+    userId: Long,
+    productId: Long,
+    enable: Boolean,
+  ): Int =
+    queryFactory
+      .update(productFavoriteModel)
       .set(productFavoriteModel.enable, enable)
       .where(productFavoriteModel.userId.eq(userId))
       .where(productFavoriteModel.productId.eq(productId))
       .execute()
       .toInt()
-  }
 
   // Admin analytics methods
 
-  override fun countDistinctUsersWithFavorites(): Long {
-    return queryFactory.query()
+  override fun countDistinctUsersWithFavorites(): Long =
+    queryFactory
+      .query()
       .from(productFavoriteModel)
       .select(productFavoriteModel.userId.countDistinct())
       .fetchCount()
-  }
 
-  override fun countFavoritesSince(startDate: LocalDateTime): Long {
-    return queryFactory.query()
+  override fun countFavoritesSince(startDate: LocalDateTime): Long =
+    queryFactory
+      .query()
       .from(productFavoriteModel)
       .where(productFavoriteModel.createdAt.goe(startDate))
       .fetchCount()
-  }
 
   override fun findMostFavoritedProducts(): List<ProductFavoriteRepositoryCustom.ProductFavoriteCount> {
-    val results = queryFactory.select(
-      Projections.constructor(
-        ProductFavoriteRepositoryCustom.ProductFavoriteCount::class.java,
-        productFavoriteModel.productId,
-        productFavoriteModel.count()
-      )
-    )
-      .from(productFavoriteModel)
-      .groupBy(productFavoriteModel.productId)
-      .orderBy(productFavoriteModel.count().desc())
-      .fetch()
+    val results =
+      queryFactory
+        .select(
+          Projections.constructor(
+            ProductFavoriteRepositoryCustom.ProductFavoriteCount::class.java,
+            productFavoriteModel.productId,
+            productFavoriteModel.count(),
+          ),
+        ).from(productFavoriteModel)
+        .groupBy(productFavoriteModel.productId)
+        .orderBy(productFavoriteModel.count().desc())
+        .fetch()
 
     return results
   }
@@ -140,7 +156,7 @@ class ProductFavoriteRepositoryImpl : ProductFavoriteRepositoryCustom {
     userId: Long?,
     productIds: List<Long>?,
     dateFrom: LocalDateTime?,
-    dateTo: LocalDateTime?
+    dateTo: LocalDateTime?,
   ): List<ProductFavoriteModel> {
     val builder = BooleanBuilder()
 
@@ -153,7 +169,8 @@ class ProductFavoriteRepositoryImpl : ProductFavoriteRepositoryCustom {
     dateFrom?.let { builder.and(productFavoriteModel.createdAt.goe(it)) }
     dateTo?.let { builder.and(productFavoriteModel.createdAt.loe(it)) }
 
-    return queryFactory.selectFrom(productFavoriteModel)
+    return queryFactory
+      .selectFrom(productFavoriteModel)
       .where(builder)
       .fetch()
   }
@@ -161,14 +178,18 @@ class ProductFavoriteRepositoryImpl : ProductFavoriteRepositoryCustom {
   // Statistics for specific periods
 
   override fun getAverageFavoritesPerUser(): Double {
-    val totalFavorites = queryFactory.query()
-      .from(productFavoriteModel)
-      .fetchCount()
+    val totalFavorites =
+      queryFactory
+        .query()
+        .from(productFavoriteModel)
+        .fetchCount()
 
-    val distinctUsers = queryFactory.query()
-      .from(productFavoriteModel)
-      .select(productFavoriteModel.userId.countDistinct())
-      .fetchCount()
+    val distinctUsers =
+      queryFactory
+        .query()
+        .from(productFavoriteModel)
+        .select(productFavoriteModel.userId.countDistinct())
+        .fetchCount()
 
     return if (distinctUsers > 0) totalFavorites.toDouble() / distinctUsers else 0.0
   }

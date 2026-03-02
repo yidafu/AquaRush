@@ -34,7 +34,6 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
  */
 @Component
 class OrderConversionChain {
-
   /**
    * Convert OrderModel to GraphQL Order with full nested object support
    */
@@ -43,15 +42,16 @@ class OrderConversionChain {
     user: User? = null,
     product: Product? = null,
     address: Address? = null,
-    deliveryWorker: DeliveryWorker? = null
+    deliveryWorker: DeliveryWorker? = null,
   ): Order {
     // First convert to DTO
-    val orderDTO = OrderModelToDTOMapper.map(orderModel).copy(
-      user = user,
-      product = product,
-      address = address,
-      deliveryWorker = deliveryWorker
-    )
+    val orderDTO =
+      OrderModelToDTOMapper.map(orderModel).copy(
+        user = user,
+        product = product,
+        address = address,
+        deliveryWorker = deliveryWorker,
+      )
 
     // Then convert to GraphQL
     return OrderDTOToGraphQLMapper.map(orderDTO)
@@ -65,27 +65,27 @@ class OrderConversionChain {
     user: User? = null,
     product: Product? = null,
     address: Address? = null,
-    deliveryWorker: DeliveryWorker? = null
-  ): OrderDTO {
-    return OrderModelToDTOMapper.map(orderModel).copy(
+    deliveryWorker: DeliveryWorker? = null,
+  ): OrderDTO =
+    OrderModelToDTOMapper.map(orderModel).copy(
       user = user,
       product = product,
       address = address,
-      deliveryWorker = deliveryWorker
+      deliveryWorker = deliveryWorker,
     )
-  }
 
   /**
    * Convert GraphQL Order to OrderDTO
    */
-  fun fromGraphQL(graphqlOrder: Order): OrderDTO {
-    return GraphQLToOrderDTOMapper.map(graphqlOrder)
-  }
+  fun fromGraphQL(graphqlOrder: Order): OrderDTO = GraphQLToOrderDTOMapper.map(graphqlOrder)
 
   /**
    * Convert OrderDTO back to OrderModel (for updates)
    */
-  fun toModel(orderDTO: OrderDTO, existingOrderModel: OrderModel): OrderModel {
+  fun toModel(
+    orderDTO: OrderDTO,
+    existingOrderModel: OrderModel,
+  ): OrderModel {
     // Since OrderModel is a JPA entity, we can't use copy()
     // Instead, we create a new OrderModel with updated fields
     return OrderModel(
@@ -99,15 +99,16 @@ class OrderConversionChain {
       deliveryAddressId = existingOrderModel.deliveryAddressId,
       status = orderDTO.status,
       paymentMethod = orderDTO.paymentMethod ?: existingOrderModel.paymentMethod,
-      deliveryPhotos = orderDTO.deliveryPhotos?.let { photos ->
-        jacksonObjectMapper().writeValueAsString(photos)
-      } ?: existingOrderModel.deliveryPhotos,
+      deliveryPhotos =
+        orderDTO.deliveryPhotos?.let { photos ->
+          jacksonObjectMapper().writeValueAsString(photos)
+        } ?: existingOrderModel.deliveryPhotos,
       paymentTransactionId = orderDTO.paymentTransactionId ?: existingOrderModel.paymentTransactionId,
       paymentTime = orderDTO.paymentTime ?: existingOrderModel.paymentTime,
       deliveryWorkerId = orderDTO.deliveryWorkerId ?: existingOrderModel.deliveryWorkerId,
       completedAt = orderDTO.completedAt ?: existingOrderModel.completedAt,
       createdAt = existingOrderModel.createdAt,
-      updatedAt = java.time.LocalDateTime.now() // Update timestamp
+      updatedAt = java.time.LocalDateTime.now(), // Update timestamp
     )
   }
 
@@ -120,16 +121,15 @@ class OrderConversionChain {
     userLookup: (Long) -> User? = { null },
     productLookup: (Long) -> Product? = { null },
     addressLookup: (Long) -> Address? = { null },
-    deliveryWorkerLookup: (Long?) -> DeliveryWorker? = { null }
-  ): List<Order> {
-    return orderModels.map { orderModel ->
+    deliveryWorkerLookup: (Long?) -> DeliveryWorker? = { null },
+  ): List<Order> =
+    orderModels.map { orderModel ->
       toGraphQL(
         orderModel = orderModel,
         user = userLookup(orderModel.userId),
         product = productLookup(orderModel.productId),
         address = addressLookup(orderModel.addressId),
-        deliveryWorker = orderModel.deliveryWorkerId?.let(deliveryWorkerLookup)
+        deliveryWorker = orderModel.deliveryWorkerId?.let(deliveryWorkerLookup),
       )
     }
-  }
 }

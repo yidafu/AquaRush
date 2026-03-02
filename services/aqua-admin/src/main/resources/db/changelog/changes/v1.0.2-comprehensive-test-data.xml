@@ -264,6 +264,7 @@
       <column name="average_rating" valueNumeric="4.5" />
       <column name="earning_cents" valueNumeric="1245000" />
       <column name="is_available" valueBoolean="true" />
+      <column name="admin_id" valueNumeric="1" />
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
     </insert>
@@ -283,28 +284,11 @@
       <column name="average_rating" valueNumeric="4.8" />
       <column name="earning_cents" valueNumeric="1567000" />
       <column name="is_available" valueBoolean="true" />
+      <column name="admin_id" valueNumeric="2" />
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
     </insert>
 
-    <!-- Delivery Worker 3 -->
-    <insert tableName="delivery_workers">
-      <column name="id" valueNumeric="1000000000000000003" />
-      <column name="user_id" valueNumeric="1000000000000000013" />
-      <column name="wechat_openid" value="delivery_worker_003" />
-      <column name="name" value="王师傅" />
-      <column name="phone" value="13800138103" />
-      <column name="avatar_url" value="https://example.com/avatars/delivery_worker_003.png" />
-      <column name="online_status" value="OFFLINE" />
-      <column name="rating" valueNumeric="4.2" />
-      <column name="total_orders" valueNumeric="89" />
-      <column name="completed_orders" valueNumeric="85" />
-      <column name="average_rating" valueNumeric="4.2" />
-      <column name="earning_cents" valueNumeric="678000" />
-      <column name="is_available" valueBoolean="false" />
-      <column name="created_at" valueComputed="CURRENT_TIMESTAMP" />
-      <column name="updated_at" valueComputed="CURRENT_TIMESTAMP" />
-    </insert>
 
     <!-- ==================== Delivery Addresses ==================== -->
 

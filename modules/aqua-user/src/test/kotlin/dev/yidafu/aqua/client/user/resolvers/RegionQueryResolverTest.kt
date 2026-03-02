@@ -34,76 +34,82 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
 class RegionQueryResolverTest {
-
   private lateinit var regionRepository: RegionRepository
   private lateinit var regionQueryResolver: RegionQueryResolver
   private lateinit var userPrincipal: UserPrincipal
 
   // Test data
-  private val sampleProvince = RegionModel(
-    id = 1L,
-    name = "广东省",
-    code = "440000",
-    parentCode = null,
-    level = 1,
-    createdAt = LocalDateTime.now(),
-    updatedAt = LocalDateTime.now()
-  )
+  private val sampleProvince =
+    RegionModel(
+      id = 1L,
+      name = "广东省",
+      code = "440000",
+      parentCode = null,
+      level = 1,
+      createdAt = LocalDateTime.now(),
+      updatedAt = LocalDateTime.now(),
+    )
 
-  private val sampleCity = RegionModel(
-    id = 2L,
-    name = "深圳市",
-    code = "440300",
-    parentCode = "440000",
-    level = 2,
-    createdAt = LocalDateTime.now(),
-    updatedAt = LocalDateTime.now()
-  )
+  private val sampleCity =
+    RegionModel(
+      id = 2L,
+      name = "深圳市",
+      code = "440300",
+      parentCode = "440000",
+      level = 2,
+      createdAt = LocalDateTime.now(),
+      updatedAt = LocalDateTime.now(),
+    )
 
-  private val sampleDistrict = RegionModel(
-    id = 3L,
-    name = "南山区",
-    code = "440305",
-    parentCode = "440300",
-    level = 3,
-    createdAt = LocalDateTime.now(),
-    updatedAt = LocalDateTime.now()
-  )
+  private val sampleDistrict =
+    RegionModel(
+      id = 3L,
+      name = "南山区",
+      code = "440305",
+      parentCode = "440300",
+      level = 3,
+      createdAt = LocalDateTime.now(),
+      updatedAt = LocalDateTime.now(),
+    )
 
-  private val anotherCity = RegionModel(
-    id = 4L,
-    name = "广州市",
-    code = "440100",
-    parentCode = "440000",
-    level = 2,
-    createdAt = LocalDateTime.now(),
-    updatedAt = LocalDateTime.now()
-  )
+  private val anotherCity =
+    RegionModel(
+      id = 4L,
+      name = "广州市",
+      code = "440100",
+      parentCode = "440000",
+      level = 2,
+      createdAt = LocalDateTime.now(),
+      updatedAt = LocalDateTime.now(),
+    )
 
-  private val anotherDistrict = RegionModel(
-    id = 5L,
-    name = "天河区",
-    code = "440106",
-    parentCode = "440100",
-    level = 3,
-    createdAt = LocalDateTime.now(),
-    updatedAt = LocalDateTime.now()
-  )
+  private val anotherDistrict =
+    RegionModel(
+      id = 5L,
+      name = "天河区",
+      code = "440106",
+      parentCode = "440100",
+      level = 3,
+      createdAt = LocalDateTime.now(),
+      updatedAt = LocalDateTime.now(),
+    )
 
   @BeforeEach
   fun setUp() {
     regionRepository = mockk()
-    regionQueryResolver = RegionQueryResolver(
-      regionRepository = regionRepository,
-      defaultDistrictCode = "440305"
-    )
+    regionQueryResolver =
+      RegionQueryResolver(
+        regionRepository = regionRepository,
+        defaultDistrictCode = "440305",
+      )
 
-    userPrincipal = UserPrincipal(
-      id = 123L,
-      _username = "testuser",
-      userType = "USER",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
-    )
+    userPrincipal =
+      UserPrincipal(
+        id = 123L,
+        _username = "testuser",
+        userType = "USER",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
+      )
   }
 
   @Test
@@ -234,10 +240,11 @@ class RegionQueryResolverTest {
   @Test
   fun `should return null when default district code is not set`() {
     // Given
-    val resolverWithoutDefault = RegionQueryResolver(
-      regionRepository = regionRepository,
-      defaultDistrictCode = null
-    )
+    val resolverWithoutDefault =
+      RegionQueryResolver(
+        regionRepository = regionRepository,
+        defaultDistrictCode = null,
+      )
 
     // When
     val result = resolverWithoutDefault.defaultRegionHierarchy(userPrincipal)
@@ -263,7 +270,7 @@ class RegionQueryResolverTest {
   fun `should return null when parent region not found in hierarchy`() {
     // Given
     every { regionRepository.findByCode("440305") } returns sampleDistrict
-    every { regionRepository.findByCode("440300") } returns null  // City not found
+    every { regionRepository.findByCode("440300") } returns null // City not found
 
     // When
     val result = regionQueryResolver.defaultRegionHierarchy(userPrincipal)
@@ -279,7 +286,7 @@ class RegionQueryResolverTest {
     // Given
     every { regionRepository.findByCode("440305") } returns sampleDistrict
     every { regionRepository.findByCode("440300") } returns sampleCity
-    every { regionRepository.findByCode("440000") } returns null  // Province not found
+    every { regionRepository.findByCode("440000") } returns null // Province not found
 
     // When
     val result = regionQueryResolver.defaultRegionHierarchy(userPrincipal)

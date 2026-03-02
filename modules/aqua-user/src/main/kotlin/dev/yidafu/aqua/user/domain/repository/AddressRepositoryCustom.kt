@@ -42,7 +42,7 @@ interface AddressRepositoryCustom {
   fun findNearby(
     longitude: Double,
     latitude: Double,
-    radiusKm: Double
+    radiusKm: Double,
   ): List<AddressModel>
 
   /**
@@ -53,6 +53,6 @@ interface AddressRepositoryCustom {
    */
   fun searchByUserIdAndKeyword(
     userId: Long,
-    keyword: String
+    keyword: String,
   ): List<AddressModel>
 }

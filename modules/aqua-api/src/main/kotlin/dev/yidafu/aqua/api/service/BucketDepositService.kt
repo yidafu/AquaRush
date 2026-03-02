@@ -27,7 +27,6 @@ import org.springframework.data.domain.Page
  * 押桶服务接口
  */
 interface BucketDepositService {
-
   /**
    * 创建押桶记录
    * @param userId 用户ID
@@ -46,7 +45,10 @@ interface BucketDepositService {
    * @param depositId 押桶记录ID
    * @param transactionId 微信支付交易号
    */
-  fun handlePaymentSuccess(depositId: Long, transactionId: String)
+  fun handlePaymentSuccess(
+    depositId: Long,
+    transactionId: String,
+  )
 
   /**
    * 获取押桶记录详情
@@ -61,7 +63,11 @@ interface BucketDepositService {
   /**
    * 获取用户的押桶记录列表（分页）
    */
-  fun getUserBucketDeposits(userId: Long, page: Int, size: Int): Page<BucketDepositModel>
+  fun getUserBucketDeposits(
+    userId: Long,
+    page: Int,
+    size: Int,
+  ): Page<BucketDepositModel>
 
   /**
    * 获取用户当前有效的押桶数量

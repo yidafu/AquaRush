@@ -29,17 +29,26 @@ interface ProductFavoriteService {
   /**
    * Add product to user's favorites
    */
-  fun addToFavorites(userId: Long, productId: Long): ProductFavoriteModel
+  fun addToFavorites(
+    userId: Long,
+    productId: Long,
+  ): ProductFavoriteModel
 
   /**
    * Get user's favorite products with pagination
    */
-  fun getFavoriteProducts(userId: Long, pageable: Pageable): Page<ProductModel>
+  fun getFavoriteProducts(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<ProductModel>
 
   /**
    * Check if product is favorited by user
    */
-  fun isProductFavorited(userId: Long, productId: Long): Boolean
+  fun isProductFavorited(
+    userId: Long,
+    productId: Long,
+  ): Boolean
 
   /**
    * Get total count of user's favorites
@@ -54,12 +63,18 @@ interface ProductFavoriteService {
   /**
    * Toggle favorite status (add if not exists, toggle enable field if exists)
    */
-  fun toggleFavorite(userId: Long, productId: Long): Boolean
+  fun toggleFavorite(
+    userId: Long,
+    productId: Long,
+  ): Boolean
 
   /**
    * Get user's favorite entities (not products) for internal operations
    */
-  fun getUserFavoriteEntities(userId: Long, pageable: Pageable): Page<ProductFavoriteModel>
+  fun getUserFavoriteEntities(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<ProductFavoriteModel>
 
   // ============== Admin Methods ==============
 
@@ -76,7 +91,11 @@ interface ProductFavoriteService {
   /**
    * Get products sorted by favorite count with pagination
    */
-  fun getProductsByFavorites(page: Int, size: Int, minFavorites: Int?): ProductFavoritePage
+  fun getProductsByFavorites(
+    page: Int,
+    size: Int,
+    minFavorites: Int?,
+  ): ProductFavoritePage
 
   /**
    * Perform batch operations on user favorites

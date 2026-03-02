@@ -27,30 +27,12 @@ import tech.mappie.api.ObjectMappie
  * Mapper for converting ProductModel domain entity to GraphQL Product type
  */
 object ProductMapper : ObjectMappie<ProductModel, Product>() {
-  override fun map(from: ProductModel): Product = mapping {
-    to::id fromProperty from::id
-    to::name fromProperty from::name
-    to::subtitle fromProperty from::subtitle
-    to::coverImageUrl fromProperty from::coverImageUrl
-    to::price fromProperty from::price
-    to::originalPrice fromProperty from::originalPrice
-    to::depositPrice fromProperty from::depositPrice
-    to::specification fromProperty from::specification
-    to::waterSource fromProperty from::waterSource
-    to::mineralContent fromProperty from::mineralContent
-    to::stock fromProperty from::stock
-    to::salesVolume fromProperty from::salesVolume
-    to::status fromExpression {
-      dev.yidafu.aqua.common.graphql.generated.ProductStatus.valueOf(from.status.name)
+  override fun map(from: ProductModel): Product =
+    mapping {
+      // Fields with same name and type - auto-mapped by Mappie
+      to::status fromExpression {
+        dev.yidafu.aqua.common.graphql.generated.ProductStatus
+          .valueOf(from.status.name)
+      }
     }
-    to::sortOrder fromProperty from::sortOrder
-    to::detailContent fromProperty from::detailContent
-    to::certificateImages fromProperty from::certificateImages
-    to::deliverySettings fromProperty from::deliverySettings
-    to::imageGallery fromProperty from::imageGallery
-    to::isDeleted fromValue false
-    to::tags fromProperty from::tags
-    to::createdAt fromProperty from::createdAt
-    to::updatedAt fromProperty from::updatedAt
-  }
 }

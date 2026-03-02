@@ -34,7 +34,6 @@ import org.springframework.stereotype.Controller
 class OrderQueryResolver(
   private val orderService: OrderService,
 ) {
-
   /**
    * 获取当前用户的订单 - 客户端
    */
@@ -42,9 +41,7 @@ class OrderQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun myOrders(
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): List<OrderModel> {
-    return orderService.findOrdersByUserId(userPrincipal.id)
-  }
+  ): List<OrderModel> = orderService.findOrdersByUserId(userPrincipal.id)
 
   /**
    * 根据ID获取订单（仅限当前用户的订单）- 客户端
@@ -54,10 +51,9 @@ class OrderQueryResolver(
   fun order(
     @Argument orderId: Long,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): OrderModel? {
-    return orderService.findOrderByIdAndUserId(orderId, userPrincipal.id)
+  ): OrderModel? =
+    orderService.findOrderByIdAndUserId(orderId, userPrincipal.id)
       ?: throw IllegalArgumentException("Order not found or access denied")
-  }
 
   /**
    * 根据订单号获取订单（仅限当前用户的订单）- 客户端
@@ -67,10 +63,9 @@ class OrderQueryResolver(
   fun orderByNumber(
     @Argument orderNumber: String,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): OrderModel? {
-    return orderService.findOrderByNumberAndUserId(orderNumber, userPrincipal.id)
+  ): OrderModel? =
+    orderService.findOrderByNumberAndUserId(orderNumber, userPrincipal.id)
       ?: throw IllegalArgumentException("Order not found or access denied")
-  }
 
   /**
    * 根据状态获取当前用户的订单 - 客户端
@@ -80,7 +75,5 @@ class OrderQueryResolver(
   fun ordersByStatus(
     @Argument status: String,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): List<OrderModel> {
-    return orderService.findOrdersByUserIdAndStatus(userPrincipal.id, status)
-  }
+  ): List<OrderModel> = orderService.findOrdersByUserIdAndStatus(userPrincipal.id, status)
 }

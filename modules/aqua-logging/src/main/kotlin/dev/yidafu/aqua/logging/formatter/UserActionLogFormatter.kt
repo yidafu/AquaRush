@@ -229,9 +229,7 @@ class UserActionLogFormatter {
     target: String,
     properties: Map<String, Any> = emptyMap(),
     level: String = "INFO",
-  ): String {
-    return createLogWithLevel(level, actionType.uppercase(), target, properties)
-  }
+  ): String = createLogWithLevel(level, actionType.uppercase(), target, properties)
 
   /**
    * 创建指定级别的日志
@@ -284,10 +282,13 @@ class UserActionLogFormatter {
   private fun sanitizeInput(
     input: String,
     inputType: String,
-  ): String? {
-    return when (inputType.lowercase()) {
-      "password", "passwd", "pwd" -> "***"
-      "email" ->
+  ): String? =
+    when (inputType.lowercase()) {
+      "password", "passwd", "pwd" -> {
+        "***"
+      }
+
+      "email" -> {
         if (input.contains("@")) {
           val parts = input.split("@")
           if (parts[0].length > 2) {
@@ -298,20 +299,23 @@ class UserActionLogFormatter {
         } else {
           "***"
         }
+      }
 
-      "phone", "tel", "mobile" ->
+      "phone", "tel", "mobile" -> {
         if (input.length >= 7) {
           "${input.substring(0, 3)}***${input.substring(input.length - 4)}"
         } else {
           "***"
         }
+      }
 
-      "creditcard", "card", "bankcard" ->
+      "creditcard", "card", "bankcard" -> {
         if (input.length >= 8) {
           "${input.substring(0, 4)}***${input.substring(input.length - 4)}"
         } else {
           "***"
         }
+      }
 
       else -> {
         // 对于一般输入，如果太长则截断
@@ -322,7 +326,6 @@ class UserActionLogFormatter {
         }
       }
     }
-  }
 
   /**
    * JSON序列化失败时的备用格式化方法

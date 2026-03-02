@@ -34,7 +34,6 @@ import org.springframework.stereotype.Controller
 class AdminBucketDepositQueryResolver(
   private val bucketDepositService: BucketDepositService,
 ) {
-
   /**
    * 获取所有押桶记录（管理员）
    */
@@ -45,9 +44,7 @@ class AdminBucketDepositQueryResolver(
     @Argument userId: Long? = null,
     @Argument page: Int = 0,
     @Argument size: Int = 20,
-  ): Page<BucketDepositModel> {
-    return bucketDepositService.getAllBucketDeposits(status, userId, page, size)
-  }
+  ): Page<BucketDepositModel> = bucketDepositService.getAllBucketDeposits(status, userId, page, size)
 
   /**
    * 根据ID获取押桶记录（管理员）
@@ -56,16 +53,12 @@ class AdminBucketDepositQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun bucketDeposit(
     @Argument depositId: Long,
-  ): BucketDepositModel? {
-    return bucketDepositService.getBucketDepositById(depositId)
-  }
+  ): BucketDepositModel? = bucketDepositService.getBucketDepositById(depositId)
 
   /**
    * 获取押桶金额配置（管理员）
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun bucketDepositAmount(): Long {
-    return bucketDepositService.getBucketDepositAmount()
-  }
+  fun bucketDepositAmount(): Long = bucketDepositService.getBucketDepositAmount()
 }

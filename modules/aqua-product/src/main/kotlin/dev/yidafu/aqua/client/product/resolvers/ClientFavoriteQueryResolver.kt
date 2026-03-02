@@ -54,8 +54,8 @@ class ClientFavoriteQueryResolver(
     @Argument page: Int,
     @Argument size: Int,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): FavoriteProductPage {
-    return try {
+  ): FavoriteProductPage =
+    try {
       val pageable = PageRequest.of(page, size)
       val productPage = productFavoriteService.getFavoriteProducts(userPrincipal.id, pageable)
 
@@ -65,26 +65,27 @@ class ClientFavoriteQueryResolver(
       // Create map of product ID to creation date
       val favoriteMap = favoriteEntities.content.associateBy({ it.productId }, { it.createdAt })
 
-      val favoriteProducts = productPage.content.map { product ->
-        createFavoriteProduct(product, favoriteMap[product.id])
-      }
+      val favoriteProducts =
+        productPage.content.map { product ->
+          createFavoriteProduct(product, favoriteMap[product.id])
+        }
 
       FavoriteProductPage(
         list = favoriteProducts,
-        pageInfo = PageInfo(
-          total = productPage.totalElements.toInt(),
-          pageSize = productPage.size,
-          pageNum = productPage.number,
-          hasNext = productPage.hasNext(),
-          hasPrevious = productPage.hasPrevious(),
-          totalPages = productPage.totalPages
-        )
+        pageInfo =
+          PageInfo(
+            total = productPage.totalElements.toInt(),
+            pageSize = productPage.size,
+            pageNum = productPage.number,
+            hasNext = productPage.hasNext(),
+            hasPrevious = productPage.hasPrevious(),
+            totalPages = productPage.totalPages,
+          ),
       )
     } catch (e: Exception) {
       logger.error("Failed to get favorite products for user: ${userPrincipal.id}", e)
       throw RuntimeException("获取收藏列表失败: ${e.message}")
     }
-  }
 
   /**
    * 检查商品是否被用户收藏
@@ -94,14 +95,13 @@ class ClientFavoriteQueryResolver(
   fun isProductFavorited(
     @Argument productId: Long,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       productFavoriteService.isProductFavorited(userPrincipal.id, productId)
     } catch (e: Exception) {
       logger.error("Failed to check favorite status for user: ${userPrincipal.id}, product: $productId", e)
       false
     }
-  }
 
   /**
    * 获取用户收藏数量
@@ -110,20 +110,22 @@ class ClientFavoriteQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun favoritesCount(
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Long {
-    return try {
+  ): Long =
+    try {
       productFavoriteService.getFavoritesCount(userPrincipal.id)
     } catch (e: Exception) {
       logger.error("Failed to get favorites count for user: ${userPrincipal.id}", e)
       0L
     }
-  }
 
   /**
    * Create FavoriteProduct from ProductModel with addedAt timestamp
    */
-  private fun createFavoriteProduct(product: ProductModel, addedAt: java.time.LocalDateTime?): FavoriteProduct {
-    return FavoriteProduct(
+  private fun createFavoriteProduct(
+    product: ProductModel,
+    addedAt: java.time.LocalDateTime?,
+  ): FavoriteProduct =
+    FavoriteProduct(
       id = product.id,
       name = product.name,
       subtitle = product.subtitle ?: "",
@@ -133,7 +135,6 @@ class ClientFavoriteQueryResolver(
       stock = product.stock,
       salesVolume = product.salesVolume,
       status = product.status,
-      addedAt = addedAt ?: product.createdAt
+      addedAt = addedAt ?: product.createdAt,
     )
-  }
 }

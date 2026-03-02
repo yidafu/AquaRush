@@ -28,28 +28,29 @@ import java.math.BigDecimal
 
 @DisplayName("Product Model Monetary Fields Tests")
 class ProductMonetaryFieldsTest {
-
   // ========== ProductModel Tests ==========
 
   @Test
   @DisplayName("ProductModel should handle price fields correctly")
   fun `ProductModel handles price fields correctly`() {
-    val testCases = listOf(
-      Pair(0L, BigDecimal("0.00")),
-      Pair(100L, BigDecimal("1.00")),
-      Pair(150L, BigDecimal("1.50")),
-      Pair(999L, BigDecimal("9.99")),
-      Pair(123456L, BigDecimal("1234.56"))
-    )
+    val testCases =
+      listOf(
+        Pair(0L, BigDecimal("0.00")),
+        Pair(100L, BigDecimal("1.00")),
+        Pair(150L, BigDecimal("1.50")),
+        Pair(999L, BigDecimal("9.99")),
+        Pair(123456L, BigDecimal("1234.56")),
+      )
 
     for ((priceInCents, expectedYuan) in testCases) {
-      val product = ProductModel(
-        id = 1L,
-        name = "Test Product",
-        price = priceInCents,
-        coverImageUrl = "https://example.com/image.jpg",
-        status = ProductStatus.ONLINE
-      )
+      val product =
+        ProductModel(
+          id = 1L,
+          name = "Test Product",
+          price = priceInCents,
+          coverImageUrl = "https://example.com/image.jpg",
+          status = ProductStatus.ONLINE,
+        )
 
       // Test direct cents field
       assertEquals(priceInCents, product.price, "Price in cents should match")
@@ -69,13 +70,14 @@ class ProductMonetaryFieldsTest {
     val largeCents = 999999999L // ¥9,999,999.99
     val expectedYuan = BigDecimal("9999999.99")
 
-    val product = ProductModel(
-      id = 1L,
-      name = "Expensive Product",
-      price = largeCents,
-      coverImageUrl = "https://example.com/luxury.jpg",
-      status = ProductStatus.ONLINE
-    )
+    val product =
+      ProductModel(
+        id = 1L,
+        name = "Expensive Product",
+        price = largeCents,
+        coverImageUrl = "https://example.com/luxury.jpg",
+        status = ProductStatus.ONLINE,
+      )
 
     assertEquals(largeCents, product.price)
     assertEquals(expectedYuan, product.priceYuan)
@@ -85,22 +87,24 @@ class ProductMonetaryFieldsTest {
   @Test
   @DisplayName("ProductModel should handle pricing calculations correctly")
   fun `ProductModel handles pricing calculations correctly`() {
-    val product = ProductModel(
-      id = 1L,
-      name = "Test Product",
-      price = 2500L, // ¥25.00
-      coverImageUrl = "https://example.com/image.jpg",
-      status = ProductStatus.ONLINE
-    )
+    val product =
+      ProductModel(
+        id = 1L,
+        name = "Test Product",
+        price = 2500L, // ¥25.00
+        coverImageUrl = "https://example.com/image.jpg",
+        status = ProductStatus.ONLINE,
+      )
 
     // Test bulk pricing calculations
     val quantities = listOf(1, 2, 5, 10)
-    val expectedPrices = listOf(
-      2500L,    // 1 × ¥25.00
-      5000L,    // 2 × ¥25.00
-      12500L,   // 5 × ¥25.00
-      25000L    // 10 × ¥25.00
-    )
+    val expectedPrices =
+      listOf(
+        2500L, // 1 × ¥25.00
+        5000L, // 2 × ¥25.00
+        12500L, // 5 × ¥25.00
+        25000L, // 10 × ¥25.00
+      )
 
     quantities.zip(expectedPrices).forEach { (quantity, expectedPrice) ->
       val calculatedPrice = product.price * quantity
@@ -108,7 +112,7 @@ class ProductMonetaryFieldsTest {
       assertEquals(
         BigDecimal("25.00") * BigDecimal(quantity),
         MoneyUtils.fromCents(calculatedPrice),
-        "Yuan calculation failed for quantity: $quantity"
+        "Yuan calculation failed for quantity: $quantity",
       )
     }
 
@@ -125,13 +129,14 @@ class ProductMonetaryFieldsTest {
   @Test
   @DisplayName("ProductModel should work correctly with price formatting")
   fun `ProductModel works with price formatting correctly`() {
-    val product = ProductModel(
-      id = 1L,
-      name = "Premium Product",
-      price = 12345L, // ¥123.45
-      coverImageUrl = "https://example.com/premium.jpg",
-      status = ProductStatus.ONLINE
-    )
+    val product =
+      ProductModel(
+        id = 1L,
+        name = "Premium Product",
+        price = 12345L, // ¥123.45
+        coverImageUrl = "https://example.com/premium.jpg",
+        status = ProductStatus.ONLINE,
+      )
 
     // Test formatting using MoneyUtils
     val formattedCents = MoneyUtils.formatCents(product.price)
@@ -142,11 +147,12 @@ class ProductMonetaryFieldsTest {
     assertEquals(formattedCents, formattedYuan)
 
     // Test boundary values
-    val boundaryCases = listOf(
-      ProductModel(2L, "Free Product", 0L, "https://example.com/free.jpg", ProductStatus.ONLINE),
-      ProductModel(3L, "Cheap Product", 1L, "https://example.com/cheap.jpg", ProductStatus.ONLINE),
-      ProductModel(4L, "Round Product", 100L, "https://example.com/round.jpg", ProductStatus.ONLINE)
-    )
+    val boundaryCases =
+      listOf(
+        ProductModel(2L, "Free Product", 0L, "https://example.com/free.jpg", ProductStatus.ONLINE),
+        ProductModel(3L, "Cheap Product", 1L, "https://example.com/cheap.jpg", ProductStatus.ONLINE),
+        ProductModel(4L, "Round Product", 100L, "https://example.com/round.jpg", ProductStatus.ONLINE),
+      )
 
     boundaryCases.forEach { product ->
       val formattedPrice = MoneyUtils.formatCents(product.price)
@@ -161,13 +167,14 @@ class ProductMonetaryFieldsTest {
     val testPrices = listOf(100L, 150L, 999L, 12345L, 999999L)
 
     for (price in testPrices) {
-      val product = ProductModel(
-        id = 1L,
-        name = "Test Product",
-        price = price,
-        coverImageUrl = "https://example.com/test.jpg",
-        status = ProductStatus.ONLINE
-      )
+      val product =
+        ProductModel(
+          id = 1L,
+          name = "Test Product",
+          price = price,
+          coverImageUrl = "https://example.com/test.jpg",
+          status = ProductStatus.ONLINE,
+        )
 
       // Verify internal consistency
       val yuanFromCents = MoneyUtils.fromCents(price)
@@ -186,13 +193,14 @@ class ProductMonetaryFieldsTest {
   @Test
   @DisplayName("ProductModel should work correctly in price-based filtering and sorting")
   fun `ProductModel works correctly in price-based operations`() {
-    val products = listOf(
-      ProductModel(1L, "Product A", 10000L, "https://example.com/a.jpg", ProductStatus.ONLINE),  // ¥100.00
-      ProductModel(2L, "Product B", 15000L, "https://example.com/b.jpg", ProductStatus.ONLINE),  // ¥150.00
-      ProductModel(3L, "Product C", 5000L, "https://example.com/c.jpg", ProductStatus.ONLINE),  // ¥50.00
-      ProductModel(4L, "Product D", 20000L, "https://example.com/d.jpg", ProductStatus.OFFLINE), // ¥200.00
-      ProductModel(5L, "Product E", 7500L, "https://example.com/e.jpg", ProductStatus.ONLINE)   // ¥75.00
-    )
+    val products =
+      listOf(
+        ProductModel(1L, "Product A", 10000L, "https://example.com/a.jpg", ProductStatus.ONLINE), // ¥100.00
+        ProductModel(2L, "Product B", 15000L, "https://example.com/b.jpg", ProductStatus.ONLINE), // ¥150.00
+        ProductModel(3L, "Product C", 5000L, "https://example.com/c.jpg", ProductStatus.ONLINE), // ¥50.00
+        ProductModel(4L, "Product D", 20000L, "https://example.com/d.jpg", ProductStatus.OFFLINE), // ¥200.00
+        ProductModel(5L, "Product E", 7500L, "https://example.com/e.jpg", ProductStatus.ONLINE), // ¥75.00
+      )
 
     // Test price filtering
     val expensiveProducts = products.filter { it.price > 10000L }
@@ -209,9 +217,10 @@ class ProductMonetaryFieldsTest {
     assertEquals(20000L, sortedByPrice.last().price)
 
     // Test status and price combined filtering
-    val onlineAndAffordable = products.filter {
-      it.status == ProductStatus.ONLINE && it.price <= 15000L
-    }
+    val onlineAndAffordable =
+      products.filter {
+        it.status == ProductStatus.ONLINE && it.price <= 15000L
+      }
     assertEquals(4, onlineAndAffordable.size)
 
     // Test price aggregation for online products
@@ -226,21 +235,23 @@ class ProductMonetaryFieldsTest {
   @Test
   @DisplayName("ProductModel should handle price arithmetic operations correctly")
   fun `ProductModel handles price arithmetic correctly`() {
-    val product1 = ProductModel(
-      id = 1L,
-      name = "Product 1",
-      price = 12000L, // ¥120.00
-      coverImageUrl = "https://example.com/1.jpg",
-      status = ProductStatus.ONLINE
-    )
+    val product1 =
+      ProductModel(
+        id = 1L,
+        name = "Product 1",
+        price = 12000L, // ¥120.00
+        coverImageUrl = "https://example.com/1.jpg",
+        status = ProductStatus.ONLINE,
+      )
 
-    val product2 = ProductModel(
-      id = 2L,
-      name = "Product 2",
-      price = 8000L, // ¥80.00
-      coverImageUrl = "https://example.com/2.jpg",
-      status = ProductStatus.ONLINE
-    )
+    val product2 =
+      ProductModel(
+        id = 2L,
+        name = "Product 2",
+        price = 8000L, // ¥80.00
+        coverImageUrl = "https://example.com/2.jpg",
+        status = ProductStatus.ONLINE,
+      )
 
     // Test price difference
     val priceDifference = MoneyUtils.subtractCents(product1.price, product2.price)
@@ -274,41 +285,44 @@ class ProductMonetaryFieldsTest {
           name = "Valid Product",
           price = price,
           coverImageUrl = "https://example.com/valid.jpg",
-          status = ProductStatus.ONLINE
+          status = ProductStatus.ONLINE,
         )
       }
     }
 
     // Test special price values
-    val freeProduct = ProductModel(
-      id = 2L,
-      name = "Free Product",
-      price = 0L,
-      coverImageUrl = "https://example.com/free.jpg",
-      status = ProductStatus.ONLINE
-    )
+    val freeProduct =
+      ProductModel(
+        id = 2L,
+        name = "Free Product",
+        price = 0L,
+        coverImageUrl = "https://example.com/free.jpg",
+        status = ProductStatus.ONLINE,
+      )
     assertEquals(BigDecimal("0.00"), freeProduct.priceYuan)
     assertEquals("¥0.00", MoneyUtils.formatCents(freeProduct.price))
 
-    val minimumPriceProduct = ProductModel(
-      id = 3L,
-      name = "Minimum Price Product",
-      price = 1L,
-      coverImageUrl = "https://example.com/minimum.jpg",
-      status = ProductStatus.ONLINE
-    )
+    val minimumPriceProduct =
+      ProductModel(
+        id = 3L,
+        name = "Minimum Price Product",
+        price = 1L,
+        coverImageUrl = "https://example.com/minimum.jpg",
+        status = ProductStatus.ONLINE,
+      )
     assertEquals(BigDecimal("0.01"), minimumPriceProduct.priceYuan)
     assertEquals("¥0.01", MoneyUtils.formatCents(minimumPriceProduct.price))
 
     // Note: ProductModel itself doesn't validate negative prices since it's a data class,
     // but service layer should. This test documents the expected behavior.
-    val negativePriceProduct = ProductModel(
-      id = 4L,
-      name = "Invalid Product",
-      price = -100L,
-      coverImageUrl = "https://example.com/invalid.jpg",
-      status = ProductStatus.ONLINE
-    )
+    val negativePriceProduct =
+      ProductModel(
+        id = 4L,
+        name = "Invalid Product",
+        price = -100L,
+        coverImageUrl = "https://example.com/invalid.jpg",
+        status = ProductStatus.ONLINE,
+      )
 
     // The model allows negative prices, but MoneyUtils should handle validation
     assertThrows<IllegalArgumentException> {
@@ -319,14 +333,15 @@ class ProductMonetaryFieldsTest {
   @Test
   @DisplayName("ProductModel should handle price calculations with inventory")
   fun `ProductModel handles price calculations with inventory`() {
-    val product = ProductModel(
-      id = 1L,
-      name = "Inventory Product",
-      price = 2500L, // ¥25.00
-      coverImageUrl = "https://example.com/inventory.jpg",
-      stock = 100,
-      status = ProductStatus.ONLINE
-    )
+    val product =
+      ProductModel(
+        id = 1L,
+        name = "Inventory Product",
+        price = 2500L, // ¥25.00
+        coverImageUrl = "https://example.com/inventory.jpg",
+        stock = 100,
+        status = ProductStatus.ONLINE,
+      )
 
     // Test total inventory value
     val totalInventoryValue = product.price * product.stock

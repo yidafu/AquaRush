@@ -57,7 +57,9 @@ class UserQueryResolver(
 
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun users(@Argument input: UserListInput?): UserPage {
+  fun users(
+    @Argument input: UserListInput?,
+  ): UserPage {
     // Provide default values if input is null
     val sort = input?.sort ?: "createdAt,desc"
     val page = input?.page ?: 0
@@ -68,36 +70,38 @@ class UserQueryResolver(
     // Parse sort parameter (format: "field,direction")
     val sortParams = sort.split(",")
     val sortField = sortParams.getOrNull(0) ?: "createdAt"
-    val sortDirection = if (sortParams.getOrNull(1)?.equals("desc", ignoreCase = true) == true) {
-      Sort.Direction.DESC
-    } else {
-      Sort.Direction.ASC
-    }
+    val sortDirection =
+      if (sortParams.getOrNull(1)?.equals("desc", ignoreCase = true) == true) {
+        Sort.Direction.DESC
+      } else {
+        Sort.Direction.ASC
+      }
 
     val pageable: Pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortField))
 
-    val userPage = when {
-      search != null && status != null -> {
-        userService.findUsersByKeywordAndStatus(search, status, pageable)
-      }
+    val userPage =
+      when {
+        search != null && status != null -> {
+          userService.findUsersByKeywordAndStatus(search, status, pageable)
+        }
 
-      search != null -> {
-        userService.findUsersByKeyword(search, pageable)
-      }
+        search != null -> {
+          userService.findUsersByKeyword(search, pageable)
+        }
 
-      status != null -> {
-        userService.findUsersByStatus(status, pageable)
-      }
+        status != null -> {
+          userService.findUsersByStatus(status, pageable)
+        }
 
-      else -> {
-        userService.findAllUsers(pageable)
+        else -> {
+          userService.findAllUsers(pageable)
+        }
       }
-    }
 
     val (userList, pageInfo) = userPage.toPageInfo { UserMapper.map(it) }
     return UserPage(
       list = userList,
-      pageInfo = pageInfo
+      pageInfo = pageInfo,
     )
   }
 }

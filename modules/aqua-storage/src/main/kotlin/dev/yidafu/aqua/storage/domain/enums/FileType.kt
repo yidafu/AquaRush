@@ -76,5 +76,5 @@ enum class FileType {
   /**
    * 其他文件
    */
-  OTHER
+  OTHER,
 }

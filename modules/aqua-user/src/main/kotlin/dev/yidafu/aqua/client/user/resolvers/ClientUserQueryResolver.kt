@@ -47,7 +47,7 @@ import java.time.LocalDateTime
 class ClientUserQueryResolver(
   private val userService: UserService,
   private val weChatAuthService: WeChatAuthService,
-  private val userRepository: UserRepository
+  private val userRepository: UserRepository,
 ) {
   private val logger = LoggerFactory.getLogger(ClientUserQueryResolver::class.java)
 
@@ -56,9 +56,12 @@ class ClientUserQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun me(@AuthenticationPrincipal userPrincipal: UserPrincipal): User {
+  fun me(
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
+  ): User {
     logger.info("query me info ${userPrincipal.id}")
-    return userRepository.findById(userPrincipal.id)
+    return userRepository
+      .findById(userPrincipal.id)
       .orElseThrow { IllegalArgumentException("User not found") }
       .let { UserMapper.map(it) }
   }
@@ -69,14 +72,15 @@ class ClientUserQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun user(
     id: Long,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): User? {
     // 验证只能查看自己的信息
     if (id != userPrincipal.id) {
       throw IllegalArgumentException("无权查看其他用户信息")
     }
 
-    return userRepository.findById(id)
+    return userRepository
+      .findById(id)
       .orElseThrow { IllegalArgumentException("User not found") }
       .let { UserMapper.map(it) }
   }
@@ -101,7 +105,7 @@ class ClientUserQueryResolver(
    */
   @PreAuthorize("isAuthenticated()")
   fun getUserOrderStatistics(
-    @AuthenticationPrincipal userPrincipal: UserPrincipal
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): UserOrderStats {
     // TODO: 实现从服务获取用户订单统计
     // 目前返回默认统计数据
@@ -112,7 +116,7 @@ class ClientUserQueryResolver(
       totalAmount = BigDecimal.ZERO,
       averageOrderAmount = BigDecimal.ZERO,
       lastOrderDate = null,
-      favoriteProduct = null
+      favoriteProduct = null,
     )
   }
 
@@ -122,17 +126,15 @@ class ClientUserQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun canUserReview(
     orderId: Long,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal
-  ): Boolean {
-    return userRepository.canUserReview(userPrincipal.id, orderId)
-  }
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
+  ): Boolean = userRepository.canUserReview(userPrincipal.id, orderId)
 
   /**
    * 获取用户偏好设置
    */
   @PreAuthorize("isAuthenticated()")
   fun getUserPreferences(
-    @AuthenticationPrincipal userPrincipal: UserPrincipal
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): UserPreferences {
     // TODO: 实现从服务获取用户偏好设置
     // 目前返回默认偏好
@@ -140,11 +142,12 @@ class ClientUserQueryResolver(
       language = "zh-CN",
       timezone = "Asia/Shanghai",
       currency = "CNY",
-      notifications = mapOf(
-        "email" to true,
-        "sms" to false,
-        "push" to true
-      )
+      notifications =
+        mapOf(
+          "email" to true,
+          "sms" to false,
+          "push" to true,
+        ),
     )
   }
 
@@ -156,15 +159,14 @@ class ClientUserQueryResolver(
       val totalAmount: BigDecimal,
       val averageOrderAmount: BigDecimal,
       val lastOrderDate: LocalDateTime?,
-      val favoriteProduct: String?
+      val favoriteProduct: String?,
     )
-
 
     data class UserPreferences(
       val language: String,
       val timezone: String,
       val currency: String,
-      val notifications: Map<String, Boolean>
+      val notifications: Map<String, Boolean>,
     )
   }
 }

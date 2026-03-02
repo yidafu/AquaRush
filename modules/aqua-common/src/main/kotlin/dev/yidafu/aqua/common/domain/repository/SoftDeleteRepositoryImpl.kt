@@ -36,9 +36,9 @@ import java.util.*
 open class SoftDeleteRepositoryImpl<T : SoftDeletable, ID : Any>(
   private val entityInformation: JpaEntityInformation<T, *>,
   @PersistenceContext
-  private val entityManager: EntityManager
-) : SimpleJpaRepository<T, ID>(entityInformation, entityManager), SoftDeleteRepository<T, ID> {
-
+  private val entityManager: EntityManager,
+) : SimpleJpaRepository<T, ID>(entityInformation, entityManager),
+  SoftDeleteRepository<T, ID> {
   private val entityClass: Class<T> = entityInformation.javaType
 
   override fun deleteByIdSoft(id: ID) {
@@ -73,9 +73,7 @@ open class SoftDeleteRepositoryImpl<T : SoftDeletable, ID : Any>(
     return entityManager.createQuery(query.select(root)).resultList
   }
 
-  override fun findByIdIncludingDeleted(id: ID): Optional<T> {
-    return Optional.ofNullable(entityManager.find(entityClass, id))
-  }
+  override fun findByIdIncludingDeleted(id: ID): Optional<T> = Optional.ofNullable(entityManager.find(entityClass, id))
 
   override fun findAllDeleted(): List<T> {
     // With Hibernate @SoftDelete, we need to use native query or adjust criteria

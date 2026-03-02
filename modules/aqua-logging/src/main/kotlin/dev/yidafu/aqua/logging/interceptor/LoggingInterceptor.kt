@@ -97,8 +97,12 @@ class LoggingInterceptor : HandlerInterceptor {
       val level =
         when {
           response.status >= 500 -> "ERROR"
+
           response.status >= 400 -> "WARN"
-          duration > 5000 -> "WARN" // 慢请求警告
+
+          duration > 5000 -> "WARN"
+
+          // 慢请求警告
           else -> "INFO"
         }
 

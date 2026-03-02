@@ -42,7 +42,6 @@ class BucketDepositServiceImpl(
   private val systemSettingsRepository: SystemSettingsRepository,
   private val paymentService: PaymentService,
 ) : BucketDepositService {
-
   companion object {
     private const val BUCKET_DEPOSIT_DESCRIPTION = "水桶押金"
   }
@@ -68,33 +67,38 @@ class BucketDepositServiceImpl(
     val id = DefaultIdGenerator().generate()
 
     // 5. 创建押桶记录
-    val deposit = BucketDepositModel(
-      id = id,
-      userId = userId,
-      quantity = quantity,
-      amountCents = depositAmount,
-      status = BucketDepositStatus.DEPOSITED,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
+    val deposit =
+      BucketDepositModel(
+        id = id,
+        userId = userId,
+        quantity = quantity,
+        amountCents = depositAmount,
+        status = BucketDepositStatus.DEPOSITED,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
 
     // 6. 保存记录
     val savedDeposit = bucketDepositRepository.save(deposit)
 
     // 7. 创建微信支付订单
-    val paymentParams = paymentService.createWechatJsapiPay(
-      orderId = id,
-      amountCents = totalAmount,
-      description = BUCKET_DEPOSIT_DESCRIPTION,
-      openId = openId,
-    )
+    val paymentParams =
+      paymentService.createWechatJsapiPay(
+        orderId = id,
+        amountCents = totalAmount,
+        description = BUCKET_DEPOSIT_DESCRIPTION,
+        openId = openId,
+      )
 
     // 8. 返回押桶记录（包含支付参数）
     return savedDeposit
   }
 
   @Transactional
-  override fun handlePaymentSuccess(depositId: Long, transactionId: String) {
+  override fun handlePaymentSuccess(
+    depositId: Long,
+    transactionId: String,
+  ) {
     val deposit =
       bucketDepositRepository
         .findById(depositId)
@@ -111,17 +115,16 @@ class BucketDepositServiceImpl(
     bucketDepositRepository.save(deposit)
   }
 
-  override fun getBucketDepositById(depositId: Long): BucketDepositModel? {
-    return bucketDepositRepository.findById(depositId).orElse(null)
-  }
+  override fun getBucketDepositById(depositId: Long): BucketDepositModel? = bucketDepositRepository.findById(depositId).orElse(null)
 
-  override fun getUserBucketDeposits(userId: Long): List<BucketDepositModel> {
-    return bucketDepositRepository.findByUserIdOrderByCreatedAtDesc(userId)
-  }
+  override fun getUserBucketDeposits(userId: Long): List<BucketDepositModel> =
+    bucketDepositRepository.findByUserIdOrderByCreatedAtDesc(userId)
 
-  override fun getUserBucketDeposits(userId: Long, page: Int, size: Int): Page<BucketDepositModel> {
-    return bucketDepositRepository.findByUserId(userId, PageRequest.of(page, size))
-  }
+  override fun getUserBucketDeposits(
+    userId: Long,
+    page: Int,
+    size: Int,
+  ): Page<BucketDepositModel> = bucketDepositRepository.findByUserId(userId, PageRequest.of(page, size))
 
   override fun getUserActiveBucketCount(userId: Long): Int {
     val deposits =

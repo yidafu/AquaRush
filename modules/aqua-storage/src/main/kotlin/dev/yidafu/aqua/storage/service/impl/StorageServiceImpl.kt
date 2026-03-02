@@ -49,10 +49,12 @@ class StorageServiceImpl(
   private val storageStrategy: StorageStrategy,
   private val imageProcessingService: ImageProcessingService,
   private val storageProperties: StorageProperties,
-  private val tika: Tika
+  private val tika: Tika,
 ) : StorageService {
-
-  override fun uploadFile(file: MultipartFile, request: FileUploadRequest): FileMetadataResponse {
+  override fun uploadFile(
+    file: MultipartFile,
+    request: FileUploadRequest,
+  ): FileMetadataResponse {
     if (file.isEmpty) {
       throw IllegalArgumentException("File cannot be empty")
     }
@@ -85,18 +87,19 @@ class StorageServiceImpl(
       val fileType = detectFileType(fileName, mimeType, request.fileType)
 
       // 创建文件元数据
-      val fileMetadata = FileMetadata(
-        fileName = fileName,
-        storagePath = "", // 将在存储后更新
-        fileType = fileType,
-        fileSize = file.size,
-        mimeType = mimeType,
-        checksum = checksum,
-        isPublic = request.isPublic,
-        description = request.description,
-        extension = extension,
-        ownerId = request.ownerId
-      )
+      val fileMetadata =
+        FileMetadata(
+          fileName = fileName,
+          storagePath = "", // 将在存储后更新
+          fileType = fileType,
+          fileSize = file.size,
+          mimeType = mimeType,
+          checksum = checksum,
+          isPublic = request.isPublic,
+          description = request.description,
+          extension = extension,
+          ownerId = request.ownerId,
+        )
 
       // 存储文件
       val storagePath = storageStrategy.store(file, fileMetadata)
@@ -113,15 +116,20 @@ class StorageServiceImpl(
   }
 
   override fun getFile(id: Long): Resource {
-    val metadata = fileMetadataRepository.findByIdOrNull(id)
-      ?: throw NoSuchElementException("File not found with id: $id")
+    val metadata =
+      fileMetadataRepository.findByIdOrNull(id)
+        ?: throw NoSuchElementException("File not found with id: $id")
 
     return storageStrategy.retrieve(metadata.storagePath)
   }
 
-  override fun getProcessedImage(id: Long, parameters: ImageParameters): ByteArray {
-    val metadata = fileMetadataRepository.findByIdOrNull(id)
-      ?: throw NoSuchElementException("File not found with id: $id")
+  override fun getProcessedImage(
+    id: Long,
+    parameters: ImageParameters,
+  ): ByteArray {
+    val metadata =
+      fileMetadataRepository.findByIdOrNull(id)
+        ?: throw NoSuchElementException("File not found with id: $id")
 
     if (metadata.fileType != FileType.IMAGE) {
       throw IllegalArgumentException("File is not an image: ${metadata.fileType}")
@@ -131,16 +139,18 @@ class StorageServiceImpl(
   }
 
   override fun getFileMetadata(id: Long): FileMetadataResponse {
-    val metadata = fileMetadataRepository.findByIdOrNull(id)
-      ?: throw NoSuchElementException("File not found with id: $id")
+    val metadata =
+      fileMetadataRepository.findByIdOrNull(id)
+        ?: throw NoSuchElementException("File not found with id: $id")
 
     val fileUrl = storageStrategy.generateUrl(metadata.id, metadata.fileName)
     return FileMetadataResponse(metadata, fileUrl)
   }
 
   override fun deleteFile(id: Long): Boolean {
-    val metadata = fileMetadataRepository.findByIdOrNull(id)
-      ?: throw NoSuchElementException("File not found with id: $id")
+    val metadata =
+      fileMetadataRepository.findByIdOrNull(id)
+        ?: throw NoSuchElementException("File not found with id: $id")
 
     return try {
       // 删除物理文件
@@ -153,42 +163,38 @@ class StorageServiceImpl(
     }
   }
 
-  override fun listFiles(pageable: org.springframework.data.domain.Pageable): Page<FileMetadataResponse> {
-    return fileMetadataRepository.findAll(pageable).map { metadata ->
+  override fun listFiles(pageable: org.springframework.data.domain.Pageable): Page<FileMetadataResponse> =
+    fileMetadataRepository.findAll(pageable).map { metadata ->
       val fileUrl = storageStrategy.generateUrl(metadata.id, metadata.fileName)
       FileMetadataResponse(metadata, fileUrl)
     }
-  }
 
   override fun listFilesByType(
     fileType: FileType,
-    pageable: org.springframework.data.domain.Pageable
-  ): Page<FileMetadataResponse> {
-    return fileMetadataRepository.findByFileType(fileType, pageable).map { metadata ->
+    pageable: org.springframework.data.domain.Pageable,
+  ): Page<FileMetadataResponse> =
+    fileMetadataRepository.findByFileType(fileType, pageable).map { metadata ->
       val fileUrl = storageStrategy.generateUrl(metadata.id, metadata.fileName)
       FileMetadataResponse(metadata, fileUrl)
     }
-  }
 
   override fun listFilesByOwner(
     ownerId: Long?,
-    pageable: org.springframework.data.domain.Pageable
-  ): Page<FileMetadataResponse> {
-    return fileMetadataRepository.findByOwnerId(ownerId, pageable).map { metadata ->
+    pageable: org.springframework.data.domain.Pageable,
+  ): Page<FileMetadataResponse> =
+    fileMetadataRepository.findByOwnerId(ownerId, pageable).map { metadata ->
       val fileUrl = storageStrategy.generateUrl(metadata.id, metadata.fileName)
       FileMetadataResponse(metadata, fileUrl)
     }
-  }
 
   override fun searchFiles(
     fileName: String,
-    pageable: org.springframework.data.domain.Pageable
-  ): Page<FileMetadataResponse> {
-    return fileMetadataRepository.findByFileNameContainingIgnoreCase(fileName, pageable).map { metadata ->
+    pageable: org.springframework.data.domain.Pageable,
+  ): Page<FileMetadataResponse> =
+    fileMetadataRepository.findByFileNameContainingIgnoreCase(fileName, pageable).map { metadata ->
       val fileUrl = storageStrategy.generateUrl(metadata.id, metadata.fileName)
       FileMetadataResponse(metadata, fileUrl)
     }
-  }
 
   /**
    * 计算文件校验和
@@ -202,18 +208,21 @@ class StorageServiceImpl(
   /**
    * 获取文件扩展名
    */
-  private fun getFileExtension(fileName: String): String? {
-    return if (fileName.contains('.')) {
+  private fun getFileExtension(fileName: String): String? =
+    if (fileName.contains('.')) {
       fileName.substringAfterLast('.').lowercase()
     } else {
       null
     }
-  }
 
   /**
    * 检测文件类型
    */
-  private fun detectFileType(fileName: String, mimeType: String, requestedType: FileType?): FileType {
+  private fun detectFileType(
+    fileName: String,
+    mimeType: String,
+    requestedType: FileType?,
+  ): FileType {
     // 如果明确指定了文件类型，优先使用
     requestedType?.let { return it }
 

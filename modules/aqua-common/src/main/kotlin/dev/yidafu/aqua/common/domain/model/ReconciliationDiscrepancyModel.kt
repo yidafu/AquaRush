@@ -34,7 +34,6 @@ import java.time.LocalDateTime
 @Entity
 @SoftDelete(columnName = "is_deleted")
 @Table(name = "reconciliation_discrepancies")
-
 class ReconciliationDiscrepancyModel : SoftDeletable {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -94,8 +93,8 @@ class ReconciliationDiscrepancyModel : SoftDeletable {
       sourceSystem: SourceSystem,
       recordId: String,
       recordDetails: Map<String, Any>,
-    ): ReconciliationDiscrepancyModel {
-      return ReconciliationDiscrepancyModel().apply {
+    ): ReconciliationDiscrepancyModel =
+      ReconciliationDiscrepancyModel().apply {
         this.taskId = taskId
         this.discrepancyType = DiscrepancyType.MISSING
         this.sourceSystem = sourceSystem
@@ -103,15 +102,14 @@ class ReconciliationDiscrepancyModel : SoftDeletable {
         this.recordDetails = recordDetails
         this.status = DiscrepancyStatus.UNRESOLVED
       }
-    }
 
     fun createMismatchRecord(
       taskId: String,
       sourceSystem: SourceSystem,
       recordId: String,
       recordDetails: Map<String, Any>,
-    ): ReconciliationDiscrepancyModel {
-      return ReconciliationDiscrepancyModel().apply {
+    ): ReconciliationDiscrepancyModel =
+      ReconciliationDiscrepancyModel().apply {
         this.taskId = taskId
         this.discrepancyType = DiscrepancyType.MISMATCH
         this.sourceSystem = sourceSystem
@@ -119,15 +117,14 @@ class ReconciliationDiscrepancyModel : SoftDeletable {
         this.recordDetails = recordDetails
         this.status = DiscrepancyStatus.UNRESOLVED
       }
-    }
 
     fun createExtraRecord(
       taskId: String,
       sourceSystem: SourceSystem,
       recordId: String,
       recordDetails: Map<String, Any>,
-    ): ReconciliationDiscrepancyModel {
-      return ReconciliationDiscrepancyModel().apply {
+    ): ReconciliationDiscrepancyModel =
+      ReconciliationDiscrepancyModel().apply {
         this.taskId = taskId
         this.discrepancyType = DiscrepancyType.EXTRA
         this.sourceSystem = sourceSystem
@@ -135,6 +132,5 @@ class ReconciliationDiscrepancyModel : SoftDeletable {
         this.recordDetails = recordDetails
         this.status = DiscrepancyStatus.UNRESOLVED
       }
-    }
   }
 }

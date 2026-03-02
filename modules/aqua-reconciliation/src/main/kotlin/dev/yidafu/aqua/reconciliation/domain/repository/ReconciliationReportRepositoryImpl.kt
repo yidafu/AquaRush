@@ -33,7 +33,6 @@ import java.time.LocalDateTime
  */
 @Repository
 class ReconciliationReportRepositoryImpl : ReconciliationReportRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -43,30 +42,34 @@ class ReconciliationReportRepositoryImpl : ReconciliationReportRepositoryCustom 
 
   override fun findByGeneratedAtBetween(
     startDate: LocalDateTime,
-    endDate: LocalDateTime
-  ): List<ReconciliationReportModel> {
-    return queryFactory.selectFrom(reconciliationReportModel)
+    endDate: LocalDateTime,
+  ): List<ReconciliationReportModel> =
+    queryFactory
+      .selectFrom(reconciliationReportModel)
       .where(reconciliationReportModel.generatedAt.between(startDate, endDate))
       .orderBy(reconciliationReportModel.generatedAt.desc())
       .fetch()
-  }
 
   @Transactional
   override fun deleteReportsBefore(beforeDate: LocalDateTime): Int {
     // Use bulk delete for better performance
-    return queryFactory.delete(reconciliationReportModel)
+    return queryFactory
+      .delete(reconciliationReportModel)
       .where(reconciliationReportModel.generatedAt.lt(beforeDate))
       .execute()
       .toInt()
   }
 
-  override fun countByTaskIdAndReportType(taskId: String, reportType: String): Long {
-    return queryFactory.query()
+  override fun countByTaskIdAndReportType(
+    taskId: String,
+    reportType: String,
+  ): Long =
+    queryFactory
+      .query()
       .from(reconciliationReportModel)
       .where(
-        reconciliationReportModel.taskId.eq(taskId)
-          .and(reconciliationReportModel.reportType.eq(reportType))
-      )
-      .fetchCount()
-  }
+        reconciliationReportModel.taskId
+          .eq(taskId)
+          .and(reconciliationReportModel.reportType.eq(reportType)),
+      ).fetchCount()
 }

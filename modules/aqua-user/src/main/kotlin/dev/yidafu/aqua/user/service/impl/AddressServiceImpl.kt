@@ -46,15 +46,13 @@ class AddressServiceImpl(
    * 获取用户的所有地址
    */
   @Cacheable(value = ["user_addresses"], key = "#userId")
-  override fun getUserAddresses(userId: Long): List<AddressModel> =
-    addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
+  override fun getUserAddresses(userId: Long): List<AddressModel> = addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
 
   /**
    * 获取用户默认地址
    */
   @Cacheable(value = ["user_default_address"], key = "#userId")
-  override fun getUserDefaultAddress(userId: Long): AddressModel? =
-    addressRepository.findByUserIdAndIsDefaultTrue(userId)
+  override fun getUserDefaultAddress(userId: Long): AddressModel? = addressRepository.findByUserIdAndIsDefaultTrue(userId)
 
   /**
    * 根据ID获取地址
@@ -148,8 +146,9 @@ class AddressServiceImpl(
     latitude: Double?,
     isDefault: Boolean?,
   ): AddressModel? {
-    val address = addressRepository.findById(addressId).orElse(null)
-      ?: throw NotFoundException("Address not found")
+    val address =
+      addressRepository.findById(addressId).orElse(null)
+        ?: throw NotFoundException("Address not found")
 
     if (address.userId != userId) {
       throw NotFoundException("Address not found for user")
@@ -181,8 +180,9 @@ class AddressServiceImpl(
     addressId: Long,
     userId: Long,
   ): Boolean {
-    val address = addressRepository.findById(addressId).orElse(null)
-      ?: return false
+    val address =
+      addressRepository.findById(addressId).orElse(null)
+        ?: return false
 
     if (address.userId != userId) {
       return false
@@ -215,8 +215,9 @@ class AddressServiceImpl(
     addressId: Long,
     userId: Long,
   ): Boolean {
-    val address = addressRepository.findById(addressId).orElse(null)
-      ?: return false
+    val address =
+      addressRepository.findById(addressId).orElse(null)
+        ?: return false
 
     if (address.userId != userId) {
       return false
@@ -264,17 +265,11 @@ class AddressServiceImpl(
 
   // Additional methods for compatibility with existing resolvers
 
-  override fun findByUserId(userId: Long): List<AddressModel> {
-    return addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
-  }
+  override fun findByUserId(userId: Long): List<AddressModel> = addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(userId)
 
-  override fun findDefaultByUserId(userId: Long): AddressModel? {
-    return addressRepository.findByUserId(userId).find { it.isDefault }
-  }
+  override fun findDefaultByUserId(userId: Long): AddressModel? = addressRepository.findByUserId(userId).find { it.isDefault }
 
-  override fun findById(addressId: Long): AddressModel? {
-    return addressRepository.findById(addressId).orElse(null)
-  }
+  override fun findById(addressId: Long): AddressModel? = addressRepository.findById(addressId).orElse(null)
 
   override fun searchByUserIdAndKeyword(
     userId: Long,
@@ -283,12 +278,13 @@ class AddressServiceImpl(
   ): Page<AddressModel> {
     // For now, return all user addresses filtered by keyword
     val allAddresses = addressRepository.findByUserId(userId)
-    val filteredAddresses = allAddresses.filter { address ->
-      address.province?.contains(keyword, ignoreCase = true) == true ||
-        address.city?.contains(keyword, ignoreCase = true) == true ||
-        address.district?.contains(keyword, ignoreCase = true) == true ||
-        address.detailAddress?.contains(keyword, ignoreCase = true) == true
-    }
+    val filteredAddresses =
+      allAddresses.filter { address ->
+        address.province?.contains(keyword, ignoreCase = true) == true ||
+          address.city?.contains(keyword, ignoreCase = true) == true ||
+          address.district?.contains(keyword, ignoreCase = true) == true ||
+          address.detailAddress?.contains(keyword, ignoreCase = true) == true
+      }
 
     val start = pageable.offset.toInt()
     val end = (start + pageable.pageSize).coerceAtMost(filteredAddresses.size)
@@ -300,18 +296,14 @@ class AddressServiceImpl(
     }
   }
 
-  override fun countByUserId(userId: Long): Int {
-    return addressRepository.countByUserId(userId)
-  }
+  override fun countByUserId(userId: Long): Int = addressRepository.countByUserId(userId)
 
   // Legacy method for backward compatibility
   @CacheEvict(
     value = ["user_addresses", "user_default_address", "address"],
     allEntries = true,
   )
-  override fun save(address: AddressModel): AddressModel {
-    return addressRepository.save(address)
-  }
+  override fun save(address: AddressModel): AddressModel = addressRepository.save(address)
 
   // Legacy method for backward compatibility
   @CacheEvict(
@@ -339,7 +331,10 @@ class AddressServiceImpl(
     }
   }
 
-  private fun setAsDefault(addressId: Long, userId: Long) {
+  private fun setAsDefault(
+    addressId: Long,
+    userId: Long,
+  ) {
     addressRepository.clearDefaultAddresses(userId)
     val address = addressRepository.findById(addressId).orElse(null)
     address?.let {
@@ -347,5 +342,4 @@ class AddressServiceImpl(
       addressRepository.save(it)
     }
   }
-
 }

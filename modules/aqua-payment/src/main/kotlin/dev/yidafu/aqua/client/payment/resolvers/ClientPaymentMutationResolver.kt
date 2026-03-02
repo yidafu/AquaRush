@@ -40,7 +40,7 @@ import java.math.BigDecimal
 @ClientService
 @Controller
 class ClientPaymentMutationResolver(
-  private val paymentService: PaymentService
+  private val paymentService: PaymentService,
 ) {
   private val logger = LoggerFactory.getLogger(ClientPaymentMutationResolver::class.java)
 
@@ -49,23 +49,26 @@ class ClientPaymentMutationResolver(
    */
   @PreAuthorize("isAuthenticated()")
   @Transactional
-  fun createWechatPayment(@Valid input: CreateWechatPaymentInput): PaymentData {
+  fun createWechatPayment(
+    @Valid input: CreateWechatPaymentInput,
+  ): PaymentData {
     try {
       // 验证输入
       validateCreateWechatPaymentInput(input)
 
       // TODO: 实现从paymentService创建微信支付
       // 目前返回模拟数据
-      val paymentData = PaymentData(
-        codeUrl = "mock_wechat_payment_url_${System.currentTimeMillis()}",
-        outTradeNo = "out_trade_no_${System.currentTimeMillis()}",
-        appId = "mock_app_id",
-        timeStamp = (System.currentTimeMillis() / 1000).toString(),
-        nonceStr = "mock_nonce_str",
-        packageValue = "mock_package_value",
-        signType = "mock_sign_type",
-        paySign = "mock_pay_sign"
-      )
+      val paymentData =
+        PaymentData(
+          codeUrl = "mock_wechat_payment_url_${System.currentTimeMillis()}",
+          outTradeNo = "out_trade_no_${System.currentTimeMillis()}",
+          appId = "mock_app_id",
+          timeStamp = (System.currentTimeMillis() / 1000).toString(),
+          nonceStr = "mock_nonce_str",
+          packageValue = "mock_package_value",
+          signType = "mock_sign_type",
+          paySign = "mock_pay_sign",
+        )
 
       logger.info("Successfully created WeChat payment for order: ${input.orderId}")
       return paymentData
@@ -80,7 +83,9 @@ class ClientPaymentMutationResolver(
    */
   @PreAuthorize("isAuthenticated()")
   @Transactional
-  fun requestRefund(@Valid input: RequestRefundInput): Boolean {
+  fun requestRefund(
+    @Valid input: RequestRefundInput,
+  ): Boolean {
     try {
       // 验证输入
       validateRequestRefundInput(input)
@@ -99,7 +104,9 @@ class ClientPaymentMutationResolver(
    * 处理微信支付回调（系统功能，不需要用户认证）
    */
   @Transactional
-  fun handleWechatCallback(@Valid input: WechatCallbackInput): String {
+  fun handleWechatCallback(
+    @Valid input: WechatCallbackInput,
+  ): String {
     try {
       // 验证回调签名（重要安全检查）
       if (!validateWechatCallbackSignature(input)) {
@@ -121,8 +128,8 @@ class ClientPaymentMutationResolver(
    */
   @PreAuthorize("isAuthenticated()")
   @Transactional
-  fun cancelPayment(transactionId: String): Boolean {
-    return try {
+  fun cancelPayment(transactionId: String): Boolean =
+    try {
       // 验证交易ID
       if (transactionId.isBlank()) {
         throw BadRequestException("交易ID不能为空")
@@ -135,7 +142,6 @@ class ClientPaymentMutationResolver(
       logger.error("Failed to cancel payment", e)
       throw BadRequestException("取消支付失败: ${e.message}")
     }
-  }
 
   /**
    * 重试支付（客户端功能）
@@ -151,16 +157,17 @@ class ClientPaymentMutationResolver(
 
       // TODO: 实现从paymentService重试支付
       // 目前返回新的支付数据
-      val paymentData = PaymentData(
-        codeUrl = "mock_retry_payment_url_${System.currentTimeMillis()}",
-        outTradeNo = "retry_out_trade_no_${System.currentTimeMillis()}",
-        appId = "mock_app_id",
-        timeStamp = (System.currentTimeMillis() / 1000).toString(),
-        nonceStr = "mock_retry_nonce_str",
-        packageValue = "mock_retry_package_value",
-        signType = "mock_retry_sign_type",
-        paySign = "mock_retry_pay_sign"
-      )
+      val paymentData =
+        PaymentData(
+          codeUrl = "mock_retry_payment_url_${System.currentTimeMillis()}",
+          outTradeNo = "retry_out_trade_no_${System.currentTimeMillis()}",
+          appId = "mock_app_id",
+          timeStamp = (System.currentTimeMillis() / 1000).toString(),
+          nonceStr = "mock_retry_nonce_str",
+          packageValue = "mock_retry_package_value",
+          signType = "mock_retry_sign_type",
+          paySign = "mock_retry_pay_sign",
+        )
 
       logger.info("Successfully retried payment for: $originalTransactionId")
       return paymentData
@@ -212,5 +219,4 @@ class ClientPaymentMutationResolver(
     // 目前返回true用于测试
     return true
   }
-
 }

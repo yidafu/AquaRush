@@ -32,7 +32,10 @@ interface ReconciliationReportRepositoryCustom {
    * @param endDate the end date
    * @return list of reports ordered by generation date descending
    */
-  fun findByGeneratedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationReportModel>
+  fun findByGeneratedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<ReconciliationReportModel>
 
   /**
    * Delete reports before a specific date
@@ -47,5 +50,8 @@ interface ReconciliationReportRepositoryCustom {
    * @param reportType the report type
    * @return number of reports
    */
-  fun countByTaskIdAndReportType(taskId: String, reportType: String): Long
+  fun countByTaskIdAndReportType(
+    taskId: String,
+    reportType: String,
+  ): Long
 }

@@ -29,9 +29,8 @@ import org.springframework.stereotype.Service
 @Service
 class GeolocationService(
   private val regionRepository: RegionRepository,
-  private val externalGeocodingService: ExternalGeocodingService
+  private val externalGeocodingService: ExternalGeocodingService,
 ) {
-
   /**
    * 地址转坐标 - 地理编码
    */
@@ -48,39 +47,47 @@ class GeolocationService(
   /**
    * 坐标转地址 - 逆地理编码
    */
-  fun reverseGeocode(longitude: Double, latitude: Double): GeocodingResult? {
-    return try {
+  fun reverseGeocode(
+    longitude: Double,
+    latitude: Double,
+  ): GeocodingResult? =
+    try {
       externalGeocodingService.reverseGeocode(
         longitude,
-        latitude
+        latitude,
       )
     } catch (e: Exception) {
       null
     }
-  }
 
   /**
    * 验证并标准化地址
    */
   fun validateAndNormalizeAddress(address: AddressModel): AddressModel {
     // 验证行政区划代码
-    val province = address.provinceCode?.let { code ->
-      regionRepository.findByCode(code)
-        ?.takeIf { it.level == 1 }
-        ?: throw AquaException("无效的省份代码: $code")
-    }
+    val province =
+      address.provinceCode?.let { code ->
+        regionRepository
+          .findByCode(code)
+          ?.takeIf { it.level == 1 }
+          ?: throw AquaException("无效的省份代码: $code")
+      }
 
-    val city = address.cityCode?.let { code ->
-      regionRepository.findByCode(code)
-        ?.takeIf { it.level == 2 }
-        ?: throw AquaException("无效的城市代码: $code")
-    }
+    val city =
+      address.cityCode?.let { code ->
+        regionRepository
+          .findByCode(code)
+          ?.takeIf { it.level == 2 }
+          ?: throw AquaException("无效的城市代码: $code")
+      }
 
-    val district = address.districtCode?.let { code ->
-      regionRepository.findByCode(code)
-        ?.takeIf { it.level == 3 }
-        ?: throw AquaException("无效的区县代码: $code")
-    }
+    val district =
+      address.districtCode?.let { code ->
+        regionRepository
+          .findByCode(code)
+          ?.takeIf { it.level == 3 }
+          ?: throw AquaException("无效的区县代码: $code")
+      }
 
     // 验证层级关系
     city?.let { city ->
@@ -110,11 +117,15 @@ class GeolocationService(
    * 根据坐标匹配行政区划
    */
   @Cacheable(value = ["region_by_coords"], key = "#longitude.toString() + '_' + #latitude.toString()")
-  fun findRegionByCoordinates(longitude: Double, latitude: Double): RegionModel? {
-    val result = externalGeocodingService.reverseGeocode(
-      longitude,
-      latitude
-    )
+  fun findRegionByCoordinates(
+    longitude: Double,
+    latitude: Double,
+  ): RegionModel? {
+    val result =
+      externalGeocodingService.reverseGeocode(
+        longitude,
+        latitude,
+      )
 
     return result?.provinceCode?.let { provinceCode ->
       regionRepository.findByCode(provinceCode)
@@ -125,8 +136,10 @@ class GeolocationService(
    * 计算两个坐标之间的距离（单位：公里）
    */
   fun calculateDistance(
-    lng1: Double, lat1: Double,
-    lng2: Double, lat2: Double
+    lng1: Double,
+    lat1: Double,
+    lng2: Double,
+    lat2: Double,
   ): Double {
     val lat1Rad = Math.toRadians(lat1)
     val lat2Rad = Math.toRadians(lat2)
@@ -135,9 +148,10 @@ class GeolocationService(
 
     val sinDeltaLatHalf = kotlin.math.sin(deltaLat / 2)
     val sinDeltaLngHalf = kotlin.math.sin(deltaLng / 2)
-    val a = sinDeltaLatHalf * sinDeltaLatHalf +
-      kotlin.math.cos(lat1Rad) * kotlin.math.cos(lat2Rad) *
-      sinDeltaLngHalf * sinDeltaLngHalf
+    val a =
+      sinDeltaLatHalf * sinDeltaLatHalf +
+        kotlin.math.cos(lat1Rad) * kotlin.math.cos(lat2Rad) *
+        sinDeltaLngHalf * sinDeltaLngHalf
     val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
 
     return 6371 * c // 地球半径（公里）
@@ -146,7 +160,10 @@ class GeolocationService(
   /**
    * 检查坐标是否在服务区域内
    */
-  fun isInServiceArea(longitude: Double, latitude: Double): Boolean {
+  fun isInServiceArea(
+    longitude: Double,
+    latitude: Double,
+  ): Boolean {
     // 这里可以根据业务需求定义服务区域
     // 例如：只在特定省份/城市提供服务
     val region = findRegionByCoordinates(longitude, latitude)
@@ -156,14 +173,13 @@ class GeolocationService(
   /**
    * 构建完整地址字符串
    */
-  private fun buildFullAddress(address: AddressModel): String {
-    return buildString {
+  private fun buildFullAddress(address: AddressModel): String =
+    buildString {
       append(address.province)
       append(address.city)
       append(address.district)
       append(address.detailAddress)
     }
-  }
 
   /**
    * 标准化详细地址
@@ -181,19 +197,24 @@ class GeolocationService(
   /**
    * 验证坐标有效性
    */
-  fun validateCoordinates(longitude: Double, latitude: Double): Boolean {
-    return longitude >= -180.0 && longitude <= 180.0 &&
+  fun validateCoordinates(
+    longitude: Double,
+    latitude: Double,
+  ): Boolean =
+    longitude >= -180.0 && longitude <= 180.0 &&
       latitude >= -90.0 && latitude <= 90.0
-  }
 
   /**
    * 坐标格式化
    */
-  fun formatCoordinates(longitude: Double, latitude: Double): Pair<Double, Double> {
+  fun formatCoordinates(
+    longitude: Double,
+    latitude: Double,
+  ): Pair<Double, Double> {
     // 格式化到7位小数
     return Pair(
       String.format("%.7f", longitude).toDouble(),
-      String.format("%.7f", latitude).toDouble()
+      String.format("%.7f", latitude).toDouble(),
     )
   }
 }
@@ -212,7 +233,7 @@ data class GeocodingResult(
   val formattedAddress: String,
   val longitude: Double,
   val latitude: Double,
-  val confidence: Double // 置信度 0-1
+  val confidence: Double, // 置信度 0-1
 )
 
 /**
@@ -227,5 +248,8 @@ interface ExternalGeocodingService {
   /**
    * 逆地理编码：坐标转地址
    */
-  fun reverseGeocode(longitude: Double, latitude: Double): GeocodingResult?
+  fun reverseGeocode(
+    longitude: Double,
+    latitude: Double,
+  ): GeocodingResult?
 }

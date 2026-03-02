@@ -32,7 +32,6 @@ import java.time.LocalDateTime
 @Entity
 @SoftDelete(columnName = "is_deleted")
 @Table(name = "reconciliation_tasks")
-
 class ReconciliationTaskModel : SoftDeletable {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -88,31 +87,28 @@ class ReconciliationTaskModel : SoftDeletable {
   }
 
   companion object {
-    fun createPaymentTask(date: LocalDateTime): ReconciliationTaskModel {
-      return ReconciliationTaskModel().apply {
+    fun createPaymentTask(date: LocalDateTime): ReconciliationTaskModel =
+      ReconciliationTaskModel().apply {
         taskId = SnowflakeIdGenerator().generate().toString()
         taskType = ReconciliationTaskType.PAYMENT
         taskDate = date
         status = ReconciliationTaskStatus.PENDING
       }
-    }
 
-    fun createRefundTask(date: LocalDateTime): ReconciliationTaskModel {
-      return ReconciliationTaskModel().apply {
+    fun createRefundTask(date: LocalDateTime): ReconciliationTaskModel =
+      ReconciliationTaskModel().apply {
         taskId = SnowflakeIdGenerator().generate().toString()
         taskType = ReconciliationTaskType.REFUND
         taskDate = date
         status = ReconciliationTaskStatus.PENDING
       }
-    }
 
-    fun createSettlementTask(date: LocalDateTime): ReconciliationTaskModel {
-      return ReconciliationTaskModel().apply {
+    fun createSettlementTask(date: LocalDateTime): ReconciliationTaskModel =
+      ReconciliationTaskModel().apply {
         taskId = SnowflakeIdGenerator().generate().toString()
         taskType = ReconciliationTaskType.SETTLEMENT
         taskDate = date
         status = ReconciliationTaskStatus.PENDING
       }
-    }
   }
 }

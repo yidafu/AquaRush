@@ -31,7 +31,10 @@ open class WeChatTemplateData(
   val color: String? = null,
 )
 
-enum class MessageType(val templateId: String, val description: String) {
+enum class MessageType(
+  val templateId: String,
+  val description: String,
+) {
   ORDER_UPDATE("ORDER_UPDATE", "订单更新通知"),
   ORDER_CREATED("order_created", "订单创建通知"),
   ORDER_PAID("ORDER_PAID", "订单支付成功"),
@@ -48,9 +51,8 @@ enum class MessageType(val templateId: String, val description: String) {
   ;
 
   companion object {
-    fun fromString(value: String): MessageType {
-      return values().find { it.templateId == value }
+    fun fromString(value: String): MessageType =
+      values().find { it.templateId == value }
         ?: throw IllegalArgumentException("Unknown message type: $value")
-    }
   }
 }

@@ -32,7 +32,6 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Repository
 class AddressRepositoryImpl : AddressRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -41,18 +40,18 @@ class AddressRepositoryImpl : AddressRepositoryCustom {
   }
 
   @Transactional
-  override fun clearDefaultAddresses(userId: Long): Int {
-    return queryFactory.update(addressModel)
+  override fun clearDefaultAddresses(userId: Long): Int =
+    queryFactory
+      .update(addressModel)
       .set(addressModel.isDefault, false)
       .where(addressModel.userId.eq(userId))
       .execute()
       .toInt()
-  }
 
   override fun findNearby(
     longitude: Double,
     latitude: Double,
-    radiusKm: Double
+    radiusKm: Double,
   ): List<AddressModel> {
     // Haversine formula for calculating distance
     // Keep native query for geospatial calculations (more efficient)
@@ -64,8 +63,9 @@ class AddressRepositoryImpl : AddressRepositoryCustom {
       ))
     """
 
-    val query = entityManager.createNativeQuery(
-      """
+    val query =
+      entityManager.createNativeQuery(
+        """
         SELECT * FROM addresses a
         WHERE a.longitude IS NOT NULL
           AND a.latitude IS NOT NULL
@@ -73,8 +73,8 @@ class AddressRepositoryImpl : AddressRepositoryCustom {
         ORDER BY $haversineFormula
         LIMIT 20
       """,
-      AddressModel::class.java
-    )
+        AddressModel::class.java,
+      )
 
     query.setParameter("longitude", longitude)
     query.setParameter("latitude", latitude)
@@ -86,19 +86,21 @@ class AddressRepositoryImpl : AddressRepositoryCustom {
 
   override fun searchByUserIdAndKeyword(
     userId: Long,
-    keyword: String
+    keyword: String,
   ): List<AddressModel> {
     val lowerKeyword = keyword.lowercase()
 
-    return queryFactory.selectFrom(addressModel)
+    return queryFactory
+      .selectFrom(addressModel)
       .where(
         addressModel.userId.eq(userId).and(
-          addressModel.province.lower().like("%$lowerKeyword%")
+          addressModel.province
+            .lower()
+            .like("%$lowerKeyword%")
             .or(addressModel.city.lower().like("%$lowerKeyword%"))
             .or(addressModel.district.lower().like("%$lowerKeyword%"))
-            .or(addressModel.detailAddress.lower().like("%$lowerKeyword%"))
-        )
-      )
-      .fetch()
+            .or(addressModel.detailAddress.lower().like("%$lowerKeyword%")),
+        ),
+      ).fetch()
   }
 }

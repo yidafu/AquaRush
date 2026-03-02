@@ -57,7 +57,7 @@ data class OrderDTO(
   val completedAt: LocalDateTime? = null,
   val totalAmount: Long,
   val createdAt: LocalDateTime,
-  val updatedAt: LocalDateTime
+  val updatedAt: LocalDateTime,
 )
 
 /**
@@ -70,7 +70,7 @@ data class CreateOrderDTO(
   val amount: Long,
   val addressId: Long,
   val deliveryAddressId: Long,
-  val paymentMethod: PaymentMethod? = null
+  val paymentMethod: PaymentMethod? = null,
 )
 
 /**
@@ -83,7 +83,7 @@ data class UpdateOrderStatusDTO(
   val paymentTime: LocalDateTime? = null,
   val deliveryWorkerId: Long? = null,
   val deliveryPhotos: List<String>? = null,
-  val completedAt: LocalDateTime? = null
+  val completedAt: LocalDateTime? = null,
 )
 
 /**
@@ -97,5 +97,5 @@ data class OrderQueryDTO(
   val startDate: LocalDateTime? = null,
   val endDate: LocalDateTime? = null,
   val page: Int = 0,
-  val size: Int = 20
+  val size: Int = 20,
 )

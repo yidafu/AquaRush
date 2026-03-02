@@ -33,40 +33,29 @@ data class BucketDepositModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long = -1L,
-
   @Column(name = "user_id", nullable = false)
   val userId: Long = -1L,
-
   @Column(name = "quantity", nullable = false)
   val quantity: Int = 1,
-
   @Column(name = "amount_cents", nullable = false)
   val amountCents: Long = 0L,
-
   @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)
   var status: BucketDepositStatus = BucketDepositStatus.DEPOSITED,
-
   @Column(name = "payment_transaction_id")
   var paymentTransactionId: String? = null,
-
   @Column(name = "payment_time")
   var paymentTime: LocalDateTime? = null,
-
   @Column(name = "refunded_at")
   var refundedAt: LocalDateTime? = null,
-
   @Column(name = "refunded_by")
   var refundedBy: Long? = null,
-
   @Column(name = "remark")
   var remark: String? = null,
-
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-
   @Column(name = "updated_at", nullable = false)
-  var updatedAt: LocalDateTime = LocalDateTime.now()
+  var updatedAt: LocalDateTime = LocalDateTime.now(),
 ) {
   @PreUpdate
   fun preUpdate() {
@@ -89,6 +78,6 @@ data class BucketDepositModel(
  * 押桶状态枚举
  */
 enum class BucketDepositStatus {
-  DEPOSITED,   // 已押桶（待退还）
-  REFUNDED     // 已退还
+  DEPOSITED, // 已押桶（待退还）
+  REFUNDED, // 已退还
 }

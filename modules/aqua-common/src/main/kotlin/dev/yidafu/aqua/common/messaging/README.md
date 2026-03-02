@@ -7,16 +7,19 @@ AquaRush本地消息队列系统是基于嵌入式ActiveMQ Artemis实现的高�
 ## 核心特性
 
 ### 1. 持久化事件处理模式
+
 - **ActiveMQ Artemis**: 基于嵌入式ActiveMQ Artemis提供可靠的消息队列
 - **消息持久化**: 所有消息都持久化存储，确保应用重启后不丢失
 - **零数据丢失**: 通过持久化机制确保消息不丢失
 
 ### 2. 高性能
+
 - **100ms延迟**: 内存队列处理延迟低至100毫秒
 - **批量处理**: 支持批量事件处理提高吞吐量
 - **并发安全**: 使用线程安全的数据结构
 
 ### 3. 可靠性保障
+
 - **事务一致性**: 事件发布与业务操作在同一事务中
 - **重试机制**: 指数退避重试策略（1s, 5s, 15s, 1min, 5min）
 - **死信队列**: 失败事件发送到死信队列
@@ -25,6 +28,7 @@ AquaRush本地消息队列系统是基于嵌入式ActiveMQ Artemis实现的高�
 ## 架构组件
 
 ### EventPublisher 接口
+
 ```kotlin
 interface EventPublisher {
     suspend fun publish(event: DomainEvent): Boolean
@@ -36,14 +40,17 @@ interface EventPublisher {
 ```
 
 ### 发布器类型
+
 1. **ArtemisEventPublisher**: 基于ActiveMQ Artemis的发布器，提供高性能和持久化保障
 
 ### 事件处理器
+
 1. **MessageConsumer**: 处理ActiveMQ Artemis队列中的事件
 
 ## 配置说明
 
 ### application.yml 配置
+
 ```yaml
 aqua:
   messaging:
@@ -77,6 +84,7 @@ spring:
 ```
 
 ### 策略选择
+
 - **artemis**: 推荐模式，基于ActiveMQ Artemis提供高性能和持久化保障
 - **hybrid**: 混合模式，优先使用ActiveMQ Artemis，失败时回退到数据库Outbox
 - **outbox-only**: 仅使用数据库模式，适用于可靠性优先的场景
@@ -85,6 +93,7 @@ spring:
 ## 使用示例
 
 ### 1. 使用EventPublishService
+
 ```kotlin
 @Service
 class MyService(
@@ -108,6 +117,7 @@ class MyService(
 ```
 
 ### 2. 直接使用EventPublisher
+
 ```kotlin
 @Component
 class MyComponent(
@@ -130,6 +140,7 @@ class MyComponent(
 ```
 
 ### 3. 批量发布事件
+
 ```kotlin
 fun publishBatchEvents() {
     val events = listOf(
@@ -146,11 +157,13 @@ fun publishBatchEvents() {
 ## 监控和健康检查
 
 ### 1. 健康检查端点
+
 - **URL**: `/actuator/health`
 - **指标**: 发布器状态、队列大小、处理器可用性
 - **状态**: UP, WARNING, DEGRADED, DOWN
 
 ### 2. 性能指标
+
 - **事件发布计数**: `event.published.total`
 - **事件处理计数**: `event.processed.total`
 - **队列大小**: `event.queue.size`
@@ -158,7 +171,9 @@ fun publishBatchEvents() {
 - **成功率**: `event.success_rate`
 
 ### 3. 详细指标
+
 访问 `/actuator/metrics` 端点获取详细指标：
+
 ```json
 {
   "name": "event.published",
@@ -184,16 +199,19 @@ fun publishBatchEvents() {
 ## 性能优化建议
 
 ### 1. 队列容量管理
+
 - 监控队列大小，超过80%时发出告警
 - 根据业务量调整队列配置
 - 使用批量处理减少队列访问频率
 
 ### 2. 批量处理优化
+
 - 调整批量处理参数找到最佳值
 - 监控批量处理时间和成功率
 - 避免过大的批量导致的延迟
 
 ### 3. 连接池配置
+
 - 根据并发量调整连接池大小
 - 监控连接池使用情况
 - 优化会话管理
@@ -201,17 +219,20 @@ fun publishBatchEvents() {
 ## 故障排查
 
 ### 1. 常见问题
+
 - **队列积压**: 检查消费者处理能力和事件生产速率
 - **处理延迟**: 检查事件处理器性能和连接池配置
 - **事件丢失**: 检查持久化配置和磁盘空间
 
 ### 2. 日志级别
+
 - **DEBUG**: 详细的事件处理流程
 - **INFO**: 重要的事件状态变更
 - **WARN**: 重试和降级处理
 - **ERROR**: 处理失败和系统错误
 
 ### 3. 监控告警
+
 - 队列使用率超过80%
 - 事件处理失败率超过5%
 - 平均处理延迟超过1秒
@@ -220,6 +241,7 @@ fun publishBatchEvents() {
 ## 扩展和自定义
 
 ### 1. 自定义事件类型
+
 ```kotlin
 object CustomEventType {
     const val USER_REGISTERED = "USER_REGISTERED"
@@ -228,6 +250,7 @@ object CustomEventType {
 ```
 
 ### 2. 自定义事件处理器
+
 ```kotlin
 @Component
 class CustomEventHandler {
@@ -241,6 +264,7 @@ class CustomEventHandler {
 ```
 
 ### 3. 自定义发布器
+
 ```kotlin
 @Component
 class CustomEventPublisher : EventPublisher {
@@ -267,15 +291,15 @@ class CustomEventPublisher : EventPublisher {
 
 ## 与外部消息队列对比
 
-| 特性 | 本地消息队列 | RabbitMQ/Kafka |
-|------|-------------|-------------|
-| 部署复杂度 | 低 | 高 |
-| 运维成本 | 低 | 高 |
-| 数据可靠性 | 高（事务保证） | 高（持久化配置） |
-| 实时性能 | 优秀（100ms） | 优秀（<50ms） |
-| 吞吐量 | 良好（>1000/s） | 优秀（>5000/s） |
-| 扩展性 | 单机限制 | 水平扩展 |
-| 监控复杂度 | 简单 | 中等 |
-| 故障排查 | 简单 | 复杂 |
+| 特性    | 本地消息队列      | RabbitMQ/Kafka |
+|-------|-------------|----------------|
+| 部署复杂度 | 低           | 高              |
+| 运维成本  | 低           | 高              |
+| 数据可靠性 | 高（事务保证）     | 高（持久化配置）       |
+| 实时性能  | 优秀（100ms）   | 优秀（<50ms）      |
+| 吞吐量   | 良好（>1000/s） | 优秀（>5000/s）    |
+| 扩展性   | 单机限制        | 水平扩展           |
+| 监控复杂度 | 简单          | 中等             |
+| 故障排查  | 简单          | 复杂             |
 
 对于中小型应用，本地消息队列在保持足够性能的同时，大大降低了架构复杂度和运维成本。

@@ -30,13 +30,9 @@ interface DeliveryWorkerRepository : JpaRepository<DeliveryWorkerModel, Long> {
 
   fun findByOnlineStatus(status: DeliverWorkerModelStatus): List<DeliveryWorkerModel>
 
-  fun existsByWechatOpenId(wechatOpenId: String): Boolean {
-    return findByWechatOpenId(wechatOpenId) != null
-  }
+  fun existsByWechatOpenId(wechatOpenId: String): Boolean = findByWechatOpenId(wechatOpenId) != null
 
-  fun existsByPhone(phone: String): Boolean {
-    return findByPhone(phone) != null
-  }
+  fun existsByPhone(phone: String): Boolean = findByPhone(phone) != null
 
   fun findByPhone(phone: String): DeliveryWorkerModel?
 }

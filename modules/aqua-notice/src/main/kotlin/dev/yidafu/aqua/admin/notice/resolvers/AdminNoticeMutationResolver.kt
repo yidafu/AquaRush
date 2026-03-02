@@ -117,8 +117,8 @@ class AdminNoticeMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun deleteNotificationTemplate(id: Long): Boolean {
-    return try {
+  fun deleteNotificationTemplate(id: Long): Boolean =
+    try {
       // TODO: 实现从服务删除通知模板
       logger.info("Successfully deleted notification template: $id")
       true
@@ -126,7 +126,6 @@ class AdminNoticeMutationResolver(
       logger.error("Failed to delete notification template", e)
       throw BadRequestException("删除通知模板失败: ${e.message}")
     }
-  }
 
   /**
    * 广播系统消息（管理员功能）
@@ -197,8 +196,8 @@ class AdminNoticeMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun retryFailedMessages(): Int {
-    return try {
+  fun retryFailedMessages(): Int =
+    try {
       val retryCount = weChatMessagePushService.retryFailedMessages()
       logger.info("Successfully retried $retryCount failed messages")
       retryCount
@@ -206,7 +205,6 @@ class AdminNoticeMutationResolver(
       logger.error("Failed to retry failed messages", e)
       throw BadRequestException("重试失败消息失败: ${e.message}")
     }
-  }
 
   /**
    * 激活/停用通知模板（管理员功能）
@@ -216,8 +214,8 @@ class AdminNoticeMutationResolver(
   fun toggleNotificationTemplate(
     id: Long,
     isActive: Boolean,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       // TODO: 实现从服务激活/停用通知模板
       logger.info("Successfully ${if (isActive) "activated" else "deactivated"} notification template: $id")
       true
@@ -225,7 +223,6 @@ class AdminNoticeMutationResolver(
       logger.error("Failed to toggle notification template", e)
       throw BadRequestException("切换通知模板状态失败: ${e.message}")
     }
-  }
 
   /**
    * 验证创建模板输入
@@ -321,7 +318,11 @@ class AdminNoticeMutationResolver(
    */
   private fun extractVariables(template: String): List<String> {
     val regex = Regex("\\{([^}]+)}")
-    return regex.findAll(template).map { it.groupValues[1] }.distinct().toList()
+    return regex
+      .findAll(template)
+      .map { it.groupValues[1] }
+      .distinct()
+      .toList()
   }
 
   companion object {

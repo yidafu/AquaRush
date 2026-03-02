@@ -55,8 +55,8 @@ class AdminReviewQueryResolver(
     userId: Long? = null,
     page: Int = 0,
     size: Int = 20,
-  ): Page<ReviewResponse> {
-    return reviewService.getReviewsWithFilters(
+  ): Page<ReviewResponse> =
+    reviewService.getReviewsWithFilters(
       deliveryWorkerId = deliveryWorkerId,
       minRating = minRating,
       maxRating = maxRating,
@@ -66,7 +66,6 @@ class AdminReviewQueryResolver(
       page = page,
       size = size,
     )
-  }
 
   /**
    * 获取配送员统计数据（管理员功能）
@@ -102,14 +101,13 @@ class AdminReviewQueryResolver(
     minReviews: Int = 1,
     page: Int = 0,
     size: Int = 20,
-  ): Page<GraphQLDeliveryWorkerRankingResponse> {
-    return reviewService.getDeliveryWorkerRanking(
+  ): Page<GraphQLDeliveryWorkerRankingResponse> =
+    reviewService.getDeliveryWorkerRanking(
       sortBy = sortBy,
       minReviews = minReviews,
       page = page,
       size = size,
     )
-  }
 
   /**
    * 获取配送员的评价列表（管理员功能）
@@ -119,11 +117,10 @@ class AdminReviewQueryResolver(
     deliveryWorkerId: Long,
     page: Int = 0,
     size: Int = 10,
-  ): Page<ReviewResponse> {
-    return reviewService.getDeliveryWorkerReviews(
+  ): Page<ReviewResponse> =
+    reviewService.getDeliveryWorkerReviews(
       deliveryWorkerId = deliveryWorkerId,
       page = page,
       size = size,
     )
-  }
 }

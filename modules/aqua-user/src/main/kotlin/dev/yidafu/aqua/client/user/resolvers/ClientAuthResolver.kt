@@ -20,9 +20,7 @@ class ClientAuthResolver(
   @MutationMapping
   fun wechatLogin(
     @Argument @Valid input: WechatLoginInput,
-  ): WeChatLoginResponse {
-    return weChatAuthService.login(input.code)
-  }
+  ): WeChatLoginResponse = weChatAuthService.login(input.code)
 
   @MutationMapping
   fun refreshToken(

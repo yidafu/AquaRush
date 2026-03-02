@@ -65,4 +65,35 @@ interface AdminService {
    * Find admins by role
    */
   fun findByRole(role: AdminRoleModel): List<AdminModel>
+
+  /**
+   * Check if admin exists by phone
+   */
+  fun existsByPhone(phone: String): Boolean
+
+  /**
+   * Create a new admin user
+   */
+  fun createAdmin(
+    username: String,
+    password: String?,
+    realName: String?,
+    phone: String?,
+    role: AdminRoleModel,
+  ): AdminModel
+
+  /**
+   * Update an existing admin user
+   */
+  fun updateAdmin(
+    id: Long,
+    realName: String?,
+    phone: String?,
+    role: AdminRoleModel?,
+  ): AdminModel
+
+  /**
+   * Delete an admin user
+   */
+  fun deleteAdmin(id: Long): Boolean
 }

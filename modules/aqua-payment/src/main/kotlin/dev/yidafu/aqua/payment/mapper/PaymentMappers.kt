@@ -18,4 +18,3 @@
  */
 
 package dev.yidafu.aqua.payment.mapper
-

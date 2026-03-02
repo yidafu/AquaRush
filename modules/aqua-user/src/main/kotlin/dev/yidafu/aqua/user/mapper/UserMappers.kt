@@ -19,32 +19,33 @@
 
 package dev.yidafu.aqua.user.mapper
 
-import dev.yidafu.aqua.common.domain.model.AddressModel
-import dev.yidafu.aqua.common.domain.model.AdminModel
-import dev.yidafu.aqua.common.domain.model.RegionModel
-import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.domain.model.*
 import dev.yidafu.aqua.common.graphql.generated.*
+import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
+import dev.yidafu.aqua.common.graphql.generated.AdminRole as AdminRoleG
 
 // ============================================================================
 // Domain Model → GraphQL Mappers
 // ============================================================================
+
+object AdminRoleMapper : EnumMappie<AdminRoleG, AdminRoleModel>()
 
 /**
  * Mapper for converting UserModel domain entity to GraphQL User type
  * Handles monetary field conversion from cents (Long) to GraphQL cent-based fields
  */
 object UserMapper : ObjectMappie<UserModel, User>() {
-  override fun map(from: UserModel): User = mapping {
-    to::id fromValue (from.id ?: -1L)
-    // Monetary fields are already in cents (Long) in UserModel, so direct mapping works
-    // No conversion needed as both source and target use cent-based Long fields
-    to::balanceCents fromValue from.balanceCents
-    to::totalSpentCents fromValue from.totalSpentCents
-  }
+  override fun map(from: UserModel): User =
+    mapping {
+      to::id fromValue (from.id ?: -1L)
+      // Monetary fields are already in cents (Long) in UserModel, so direct mapping works
+      // No conversion needed as both source and target use cent-based Long fields
+      to::balanceCents fromValue from.balanceCents
+      to::totalSpentCents fromValue from.totalSpentCents
+    }
 }
-
 
 /**
  * Mapper for converting Admin domain entity to GraphQL Admin type
@@ -52,7 +53,14 @@ object UserMapper : ObjectMappie<UserModel, User>() {
 object AdminMapper : ObjectMappie<AdminModel, Admin>() {
   override fun map(from: AdminModel) =
     mapping {
-      to::role fromExpression { admin -> admin.role.name }
+      to::id fromValue from.id
+      to::username fromProperty from::username
+      to::realName fromProperty from::realName
+      to::phone fromProperty from::phone
+      to::role fromExpression { it.role.name }
+      to::createdAt fromProperty from::createdAt
+      to::updatedAt fromProperty from::updatedAt
+      to::lastLoginAt fromProperty from::lastLoginAt
     }
 }
 
@@ -87,27 +95,18 @@ object RegionMapper : ObjectMappie<RegionModel, Region>() {
 // ============================================================================
 
 /**
- * Utility functions for monetary conversions between BigDecimal and Long (cents)
- * These functions ensure precise financial calculations without floating-point errors
- */
-
-/**
  * Convert BigDecimal amount to cents (Long)
  * @param amount BigDecimal amount in currency units (e.g., 12.34 for ¥12.34)
  * @return amount in cents (e.g., 1234 for ¥12.34)
  */
-fun toCents(amount: java.math.BigDecimal): Long {
-  return (amount * java.math.BigDecimal(100)).toLong()
-}
+fun toCents(amount: java.math.BigDecimal): Long = (amount * java.math.BigDecimal(100)).toLong()
 
 /**
  * Convert cents (Long) to BigDecimal amount
  * @param cents amount in cents (e.g., 1234)
  * @return BigDecimal amount in currency units (e.g., 12.34)
  */
-fun fromCents(cents: Long): java.math.BigDecimal {
-  return java.math.BigDecimal(cents).divide(java.math.BigDecimal(100))
-}
+fun fromCents(cents: Long): java.math.BigDecimal = java.math.BigDecimal(cents).divide(java.math.BigDecimal(100))
 
 // ============================================================================
 // Request → Domain Model Mappers (with additional parameters)
@@ -133,28 +132,28 @@ object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
  * Mapper for converting UpdateAddressRequest with id and userId to AddressModel domain entity
  */
 object AddressUpdateMapper : ObjectMappie<UpdateAddressInput, AddressModel>() {
-  override fun map(from: UpdateAddressInput): AddressModel = mapping {
+  override fun map(from: UpdateAddressInput): AddressModel =
+    mapping {
+      to::id fromValue null
+      to::userId fromValue 0L // Will be set after mapping
 
-    to::id fromValue null
-    to::userId fromValue 0L // Will be set after mapping
+      to::province fromValue (from.province ?: "")
+      to::receiverName fromValue (from.receiverName ?: "")
+      to::phone fromValue (from.phone ?: "")
+      to::provinceCode fromValue (from.provinceCode ?: "")
+      to::city fromValue (from.city ?: "")
+      to::cityCode fromValue (from.cityCode ?: "")
+      to::district fromValue (from.district ?: "")
+      to::districtCode fromValue (from.districtCode ?: "")
+      to::detailAddress fromValue (from.detailAddress ?: "")
+      to::isDefault fromValue (from.isDefault ?: false)
 
-    to::province fromValue (from.province ?: "")
-    to::receiverName fromValue (from.receiverName ?: "")
-    to::phone fromValue (from.phone ?: "")
-    to::provinceCode fromValue (from.provinceCode ?: "")
-    to::city fromValue (from.city ?: "")
-    to::cityCode fromValue (from.cityCode ?: "")
-    to::district fromValue (from.district ?: "")
-    to::districtCode fromValue (from.districtCode ?: "")
-    to::detailAddress fromValue (from.detailAddress ?: "")
-    to::isDefault fromValue (from.isDefault ?: false)
-
-    to::createdAt fromValue LocalDateTime.now()
-    to::updatedAt fromValue LocalDateTime.now()
-    // Convert Float to Double for nullable fields
-    to::longitude fromValue from.longitude?.toDouble()
-    to::latitude fromValue from.latitude?.toDouble()
-  }
+      to::createdAt fromValue LocalDateTime.now()
+      to::updatedAt fromValue LocalDateTime.now()
+      // Convert Float to Double for nullable fields
+      to::longitude fromValue from.longitude?.toDouble()
+      to::latitude fromValue from.latitude?.toDouble()
+    }
 }
 
 fun AddressModel.merge(inputInput: UpdateAddressInput) {

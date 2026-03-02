@@ -40,8 +40,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
     "dev.yidafu.aqua.review.domain.model",
     "dev.yidafu.aqua.notice.domain.model",
     "dev.yidafu.aqua.reconciliation.domain.model",
-    "dev.yidafu.aqua.storage.domain.entity"
-  ]
+    "dev.yidafu.aqua.storage.domain.entity",
+  ],
 )
 @AdminService
 @SpringBootApplication(
@@ -62,11 +62,13 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
     "dev.yidafu.aqua.order",
 
     "dev.yidafu.aqua.admin.user.resolvers",
+    "dev.yidafu.aqua.admin.user.controller",
     "dev.yidafu.aqua.admin.product.resolvers",
     "dev.yidafu.aqua.admin.storage.resolvers",
     "dev.yidafu.aqua.admin.notice.resolvers",
     "dev.yidafu.aqua.admin.reconciliation.resolvers",
     "dev.yidafu.aqua.admin.delivery.resolvers",
+    "dev.yidafu.aqua.admin.delivery.controller",
     "dev.yidafu.aqua.admin.statistics.resolvers",
     "dev.yidafu.aqua.admin.review.resolvers",
     "dev.yidafu.aqua.admin.payment.resolvers",

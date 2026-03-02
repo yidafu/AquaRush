@@ -52,7 +52,9 @@ class ValidationExceptionHandler : DataFetcherExceptionResolverAdapter() {
         return createValidationError(exception)
       }
 
-      else -> return null
+      else -> {
+        return null
+      }
     }
   }
 
@@ -81,7 +83,11 @@ class ValidationExceptionHandler : DataFetcherExceptionResolverAdapter() {
     val firstViolation = violations.firstOrNull()
     val mainMessage =
       if (firstViolation != null) {
-        val fieldName = firstViolation.propertyPath.toString().split(".").lastOrNull()
+        val fieldName =
+          firstViolation.propertyPath
+            .toString()
+            .split(".")
+            .lastOrNull()
         val message = firstViolation.message
         if (fieldName != null && message != null) {
           "$fieldName: $message"

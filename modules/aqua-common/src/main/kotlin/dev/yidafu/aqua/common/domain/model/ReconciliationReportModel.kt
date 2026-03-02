@@ -31,7 +31,6 @@ import java.time.LocalDateTime
 @Entity
 @SoftDelete(columnName = "is_deleted")
 @Table(name = "reconciliation_reports")
-
 class ReconciliationReportModel : SoftDeletable {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -69,24 +68,22 @@ class ReconciliationReportModel : SoftDeletable {
     fun createSummaryReport(
       taskId: String,
       reportData: Map<String, Any>,
-    ): ReconciliationReportModel {
-      return ReconciliationReportModel().apply {
+    ): ReconciliationReportModel =
+      ReconciliationReportModel().apply {
         this.taskId = taskId
         this.reportType = "SUMMARY"
         this.reportData = reportData
       }
-    }
 
     fun createDetailReport(
       taskId: String,
       reportData: Map<String, Any>,
-    ): ReconciliationReportModel {
-      return ReconciliationReportModel().apply {
+    ): ReconciliationReportModel =
+      ReconciliationReportModel().apply {
         this.taskId = taskId
         this.reportType = "DETAIL"
         this.reportData = reportData
       }
-    }
 
     fun createExcelReport(
       taskId: String,
@@ -94,8 +91,8 @@ class ReconciliationReportModel : SoftDeletable {
       fileName: String,
       filePath: String,
       fileSize: Long,
-    ): ReconciliationReportModel {
-      return ReconciliationReportModel().apply {
+    ): ReconciliationReportModel =
+      ReconciliationReportModel().apply {
         this.taskId = taskId
         this.reportType = "EXCEL_EXPORT"
         this.reportData = reportData
@@ -103,6 +100,5 @@ class ReconciliationReportModel : SoftDeletable {
         this.filePath = filePath
         this.fileSize = fileSize
       }
-    }
   }
 }

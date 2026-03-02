@@ -27,7 +27,9 @@ import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface MessageHistoryRepository : JpaRepository<MessageHistoryModel, Long>, MessageHistoryRepositoryCustom {
+interface MessageHistoryRepository :
+  JpaRepository<MessageHistoryModel, Long>,
+  MessageHistoryRepositoryCustom {
   fun findByUserIdOrderByCreatedAtDesc(
     userId: Long,
     pageable: Pageable,

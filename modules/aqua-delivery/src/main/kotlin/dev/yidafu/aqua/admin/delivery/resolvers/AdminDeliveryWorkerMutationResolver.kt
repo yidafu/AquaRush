@@ -21,6 +21,8 @@ package dev.yidafu.aqua.admin.delivery.resolvers
 
 import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.common.annotation.AdminService
+import dev.yidafu.aqua.common.domain.model.AdminModel
+import dev.yidafu.aqua.common.domain.model.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.exception.BadRequestException
@@ -28,8 +30,10 @@ import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
+import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Controller
 import org.springframework.transaction.annotation.Transactional
 
@@ -42,6 +46,8 @@ import org.springframework.transaction.annotation.Transactional
 class AdminDeliveryWorkerMutationResolver(
   private val deliveryWorkerRepository: DeliveryWorkerRepository,
   private val deliveryService: DeliveryService,
+  private val adminRepository: AdminRepository,
+  private val passwordEncoder: PasswordEncoder,
 ) {
   private val logger = LoggerFactory.getLogger(AdminDeliveryWorkerMutationResolver::class.java)
 
@@ -55,9 +61,17 @@ class AdminDeliveryWorkerMutationResolver(
       // 验证输入
       validateCreateDeliveryWorkerInput(input)
 
+      // 如果wechatOpenId为空，自动生成一个唯一的ID
+      val wechatOpenId =
+        if (input.wechatOpenId.isNullOrBlank()) {
+          "AUTO_${input.phone}_${System.currentTimeMillis()}"
+        } else {
+          input.wechatOpenId
+        }
+
       // 检查wechatOpenId或电话是否已存在
-      if (deliveryWorkerRepository.existsByWechatOpenId(input.wechatOpenId)) {
-        throw BadRequestException("该微信OpenID已存在: ${input.wechatOpenId}")
+      if (deliveryWorkerRepository.existsByWechatOpenId(wechatOpenId)) {
+        throw BadRequestException("该微信OpenID已存在: $wechatOpenId")
       }
 
       if (deliveryWorkerRepository.existsByPhone(input.phone)) {
@@ -65,22 +79,39 @@ class AdminDeliveryWorkerMutationResolver(
       }
 
       // 创建新配送员
-      val worker = DeliveryWorkerModel(
-        userId = 0L, // WeChat集成可用时将更新
-        wechatOpenId = input.wechatOpenId,
-        name = input.name,
-        phone = input.phone,
-        avatarUrl = input.avatarUrl,
-        onlineStatus = DeliverWorkerModelStatus.OFFLINE, // 默认为离线
-        coordinates = input.coordinates,
-        currentLocation = input.currentLocation,
-        rating = input.rating,
-        earningCents = 0L,
-        isAvailable = input.isAvailable ?: true,
-      )
+      val worker =
+        DeliveryWorkerModel(
+          userId = 0L, // WeChat集成可用时将更新
+          wechatOpenId = wechatOpenId,
+          name = input.name,
+          phone = input.phone,
+          avatarUrl = input.avatarUrl,
+          onlineStatus = DeliverWorkerModelStatus.OFFLINE, // 默认为离线
+          coordinates = input.coordinates,
+          currentLocation = input.currentLocation,
+          rating = input.rating,
+          earningCents = 0L,
+          isAvailable = input.isAvailable ?: true,
+        )
 
       val savedWorker = deliveryWorkerRepository.save(worker)
+
+      // 同时在 admin 表中创建用户记录
+      val username = "delivery_${savedWorker.id}"
+      val password = input.password ?: DEFAULT_PASSWORD
+      val passwordHash = passwordEncoder.encode(password) ?: ""
+      val adminUser =
+        AdminModel(
+          username = username,
+          passwordHash = passwordHash,
+          realName = input.name,
+          phone = input.phone,
+          role = AdminRoleModel.DELIVERY_WORKER,
+        )
+      adminRepository.save(adminUser)
+
       logger.info("Successfully created delivery worker: ${savedWorker.id} - ${savedWorker.name}")
+      logger.info("Created admin user: $username for delivery worker")
       return savedWorker.let { DeliveryWorkerMapper.map(it) }
     } catch (e: Exception) {
       logger.error("Failed to create delivery worker", e)
@@ -93,11 +124,16 @@ class AdminDeliveryWorkerMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun updateDeliveryWorker(workerId: Long, input: UpdateDeliveryWorkerInput): DeliveryWorker {
+  fun updateDeliveryWorker(
+    workerId: Long,
+    input: UpdateDeliveryWorkerInput,
+  ): DeliveryWorker {
     try {
       // 获取现有配送员
-      val existingWorker = deliveryWorkerRepository.findById(workerId)
-        .orElseThrow { NotFoundException("送水工不存在: $workerId") }
+      val existingWorker =
+        deliveryWorkerRepository
+          .findById(workerId)
+          .orElseThrow { NotFoundException("送水工不存在: $workerId") }
 
       // 验证输入
       validateUpdateDeliveryWorkerInput(input, existingWorker)
@@ -144,8 +180,8 @@ class AdminDeliveryWorkerMutationResolver(
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun deleteDeliveryWorker(workerId: Long): Boolean {
-    return try {
+  fun deleteDeliveryWorker(workerId: Long): Boolean =
+    try {
       if (!deliveryWorkerRepository.existsById(workerId)) {
         throw NotFoundException("送水工不存在: $workerId")
       }
@@ -163,15 +199,12 @@ class AdminDeliveryWorkerMutationResolver(
       logger.error("Failed to delete delivery worker", e)
       throw BadRequestException("删除送水工失败: ${e.message}")
     }
-  }
 
   /**
    * 验证创建配送员输入
    */
   private fun validateCreateDeliveryWorkerInput(input: CreateDeliveryWorkerInput) {
-    if (input.wechatOpenId.isBlank()) {
-      throw BadRequestException("微信OpenID不能为空")
-    }
+    // wechatOpenId 现在是可选的，如果为空将自动生成
 
     if (input.name.isBlank()) {
       throw BadRequestException("姓名不能为空")
@@ -199,7 +232,7 @@ class AdminDeliveryWorkerMutationResolver(
    */
   private fun validateUpdateDeliveryWorkerInput(
     input: UpdateDeliveryWorkerInput,
-    existingWorker: DeliveryWorkerModel
+    existingWorker: DeliveryWorkerModel,
   ) {
     // 验证wechatOpenId（如果提供）
     input.wechatOpenId?.let {
@@ -244,24 +277,25 @@ class AdminDeliveryWorkerMutationResolver(
   /**
    * 验证手机号码格式（简单验证）
    */
-  private fun isValidPhoneNumber(phone: String): Boolean {
-    return phone.matches(Regex("^1[3-9]\\d{9}$"))
-  }
+  private fun isValidPhoneNumber(phone: String): Boolean = phone.matches(Regex("^1[3-9]\\d{9}$"))
 
   companion object {
+    private const val DEFAULT_PASSWORD = "123456" // 默认密码
+
     /**
      * 配送员操作输入类型
      */
     data class CreateDeliveryWorkerInput(
-      val wechatOpenId: String,
+      val wechatOpenId: String?,
       val name: String,
       val phone: String,
+      val password: String?,
       val avatarUrl: String?,
       val coordinates: String?,
       val currentLocation: String?,
       val rating: Double?,
       val earning: Double?,
-      val isAvailable: Boolean? = true
+      val isAvailable: Boolean? = true,
     )
 
     data class UpdateDeliveryWorkerInput(
@@ -273,7 +307,7 @@ class AdminDeliveryWorkerMutationResolver(
       val currentLocation: String?,
       val rating: Double?,
       val earning: Long?,
-      val isAvailable: Boolean?
+      val isAvailable: Boolean?,
     )
   }
 }

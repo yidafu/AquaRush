@@ -39,11 +39,10 @@ object EnhancedJsonConverters {
  */
 @Converter(autoApply = false)
 class ObjectNodeConverter : AttributeConverter<ObjectNode?, String?> {
-
   private val objectMapper = jacksonObjectMapper()
 
-  override fun convertToDatabaseColumn(attribute: ObjectNode?): String? {
-    return if (attribute == null) {
+  override fun convertToDatabaseColumn(attribute: ObjectNode?): String? =
+    if (attribute == null) {
       null
     } else {
       try {
@@ -52,10 +51,9 @@ class ObjectNodeConverter : AttributeConverter<ObjectNode?, String?> {
         throw IllegalArgumentException("Error converting ObjectNode to JSON string", e)
       }
     }
-  }
 
-  override fun convertToEntityAttribute(dbData: String?): ObjectNode? {
-    return if (dbData == null || dbData.trim().isEmpty()) {
+  override fun convertToEntityAttribute(dbData: String?): ObjectNode? =
+    if (dbData == null || dbData.trim().isEmpty()) {
       null
     } else {
       try {
@@ -69,7 +67,6 @@ class ObjectNodeConverter : AttributeConverter<ObjectNode?, String?> {
         throw IllegalArgumentException("Error parsing JSON string to ObjectNode: $dbData", e)
       }
     }
-  }
 }
 
 /**
@@ -77,11 +74,10 @@ class ObjectNodeConverter : AttributeConverter<ObjectNode?, String?> {
  */
 @Converter(autoApply = false)
 class ArrayNodeConverter : AttributeConverter<ArrayNode?, String?> {
-
   private val objectMapper = jacksonObjectMapper()
 
-  override fun convertToDatabaseColumn(attribute: ArrayNode?): String? {
-    return if (attribute == null) {
+  override fun convertToDatabaseColumn(attribute: ArrayNode?): String? =
+    if (attribute == null) {
       null
     } else {
       try {
@@ -90,10 +86,9 @@ class ArrayNodeConverter : AttributeConverter<ArrayNode?, String?> {
         throw IllegalArgumentException("Error converting ArrayNode to JSON string", e)
       }
     }
-  }
 
-  override fun convertToEntityAttribute(dbData: String?): ArrayNode? {
-    return if (dbData == null || dbData.trim().isEmpty()) {
+  override fun convertToEntityAttribute(dbData: String?): ArrayNode? =
+    if (dbData == null || dbData.trim().isEmpty()) {
       null
     } else {
       try {
@@ -107,7 +102,6 @@ class ArrayNodeConverter : AttributeConverter<ArrayNode?, String?> {
         throw IllegalArgumentException("Error parsing JSON string to ArrayNode: $dbData", e)
       }
     }
-  }
 }
 
 /**
@@ -115,11 +109,10 @@ class ArrayNodeConverter : AttributeConverter<ArrayNode?, String?> {
  */
 @Converter(autoApply = false)
 class JsonNodeConverter : AttributeConverter<JsonNode?, String?> {
-
   private val objectMapper = jacksonObjectMapper()
 
-  override fun convertToDatabaseColumn(attribute: JsonNode?): String? {
-    return if (attribute == null) {
+  override fun convertToDatabaseColumn(attribute: JsonNode?): String? =
+    if (attribute == null) {
       null
     } else {
       try {
@@ -128,17 +121,17 @@ class JsonNodeConverter : AttributeConverter<JsonNode?, String?> {
         throw IllegalArgumentException("Error converting JsonNode to JSON string", e)
       }
     }
-  }
 
-  override fun convertToEntityAttribute(dbData: String?): JsonNode? {
-    return (if (dbData == null || dbData.trim().isEmpty()) {
-      null
-    } else {
-      try {
-        objectMapper.readTree(dbData) as JsonNode?
-      } catch (e: JacksonException) {
-        throw IllegalArgumentException("Error parsing JSON string to JsonNode: $dbData", e)
+  override fun convertToEntityAttribute(dbData: String?): JsonNode? =
+    (
+      if (dbData == null || dbData.trim().isEmpty()) {
+        null
+      } else {
+        try {
+          objectMapper.readTree(dbData) as JsonNode?
+        } catch (e: JacksonException) {
+          throw IllegalArgumentException("Error parsing JSON string to JsonNode: $dbData", e)
+        }
       }
-    })
-  }
+    )
 }

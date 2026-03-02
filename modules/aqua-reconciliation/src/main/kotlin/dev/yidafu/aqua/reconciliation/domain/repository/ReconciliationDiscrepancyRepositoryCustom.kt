@@ -46,7 +46,10 @@ interface ReconciliationDiscrepancyRepositoryCustom {
    * @param endDate the end date
    * @return list of discrepancies ordered by creation date descending
    */
-  fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationDiscrepancyModel>
+  fun findByCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<ReconciliationDiscrepancyModel>
 
   /**
    * Delete resolved discrepancies before a specific date

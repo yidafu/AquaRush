@@ -33,19 +33,13 @@ import org.springframework.stereotype.Controller
 class DeliveryWorkerQueryResolver(
   private val deliveryService: DeliveryService,
 ) {
+  @QueryMapping
+  @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
+  fun deliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryService.getAllWorkers())
 
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
-  fun deliveryWorkers(): List<DeliveryWorker> {
-    return DeliveryWorkerMapper.mapList(deliveryService.getAllWorkers())
-  }
-
-  @QueryMapping
-  @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
-  fun onlineDeliveryWorkers(): List<DeliveryWorker> {
-    return DeliveryWorkerMapper.mapList(deliveryService.getOnlineWorkers())
-
-  }
+  fun onlineDeliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryService.getOnlineWorkers())
 
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")

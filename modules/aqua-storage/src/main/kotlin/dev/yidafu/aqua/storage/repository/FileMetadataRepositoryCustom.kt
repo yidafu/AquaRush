@@ -35,7 +35,10 @@ interface FileMetadataRepositoryCustom {
    * @param endTime the end time
    * @return list of files created within the date range
    */
-  fun findByCreatedAtBetween(startTime: LocalDateTime, endTime: LocalDateTime): List<FileMetadata>
+  fun findByCreatedAtBetween(
+    startTime: LocalDateTime,
+    endTime: LocalDateTime,
+  ): List<FileMetadata>
 
   /**
    * Count files by file type grouped by type
@@ -66,7 +69,7 @@ interface FileMetadataRepositoryCustom {
   fun findByMultipleConditions(
     fileType: FileType?,
     ownerId: Long?,
-    isPublic: Boolean?
+    isPublic: Boolean?,
   ): List<FileMetadata>
 
   /**
@@ -81,6 +84,6 @@ interface FileMetadataRepositoryCustom {
     fileType: FileType?,
     ownerId: Long?,
     isPublic: Boolean?,
-    pageable: Pageable
+    pageable: Pageable,
   ): Page<FileMetadata>
 }

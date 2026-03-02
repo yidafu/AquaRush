@@ -43,11 +43,10 @@ import kotlin.test.assertNotNull
 @TestPropertySource(
   properties = [
     "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1"
-  ]
+    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1",
+  ],
 )
 class EnhancedDomainEventRepositoryTest {
-
   @Mock
   private lateinit var entityManager: EntityManager
 
@@ -93,13 +92,14 @@ class EnhancedDomainEventRepositoryTest {
     whenever(entityManager.createQuery(DomainEvent::class.java)).thenReturn(mockk())
 
     // When
-    val result = enhancedRepository.findPendingEventsWithFilters(
-      status = status,
-      now = now,
-      eventType = eventType,
-      maxRetries = maxRetries,
-      batchSize = batchSize
-    )
+    val result =
+      enhancedRepository.findPendingEventsWithFilters(
+        status = status,
+        now = now,
+        eventType = eventType,
+        maxRetries = maxRetries,
+        batchSize = batchSize,
+      )
 
     // Then
     assertNotNull(result)
@@ -123,9 +123,13 @@ class EnhancedDomainEventRepositoryTest {
     whenever(mockQuery.executeUpdate()).thenReturn(3)
 
     // When
-    val result = enhancedRepository.batchUpdateEvents(
-      eventIds, newStatus, incrementRetry, nextRunAt
-    )
+    val result =
+      enhancedRepository.batchUpdateEvents(
+        eventIds,
+        newStatus,
+        incrementRetry,
+        nextRunAt,
+      )
 
     // Then
     assertEquals(3, result)
@@ -144,9 +148,13 @@ class EnhancedDomainEventRepositoryTest {
     whenever(entityManager.createQuery(DomainEvent::class.java)).thenReturn(mockk())
 
     // When
-    val result = enhancedRepository.findEventsInTimeRange(
-      startDate, endDate, eventTypes, statuses
-    )
+    val result =
+      enhancedRepository.findEventsInTimeRange(
+        startDate,
+        endDate,
+        eventTypes,
+        statuses,
+      )
 
     // Then
     assertNotNull(result)
@@ -172,8 +180,12 @@ class EnhancedDomainEventRepositoryTest {
         "ORDER_CREATED",
         EventStatus.PENDING,
         50L,
-        2, 3.5, 1, 45L, 2L
-      )
+        2,
+        3.5,
+        1,
+        45L,
+        2L,
+      ),
     )
 
     whenever(mockQuery.resultList).thenReturn(mockResults)

@@ -34,16 +34,12 @@ import java.time.LocalDateTime
 class MessageHistoryServiceImpl(
   private val messageHistoryRepository: MessageHistoryRepository,
 ) : MessageHistoryService {
-  override fun save(messageHistory: MessageHistoryModel): MessageHistoryModel {
-    return messageHistoryRepository.save(messageHistory)
-  }
+  override fun save(messageHistory: MessageHistoryModel): MessageHistoryModel = messageHistoryRepository.save(messageHistory)
 
   override fun findByUserId(
     userId: Long,
     pageable: Pageable,
-  ): Page<MessageHistoryModel> {
-    return messageHistoryRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
-  }
+  ): Page<MessageHistoryModel> = messageHistoryRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
 
   override fun updateSuccess(
     messageId: Long,
@@ -175,9 +171,8 @@ class MessageHistoryServiceImpl(
     )
   }
 
-  override fun findByWxMessageId(wxMessageId: String): MessageHistoryModel? {
-    return messageHistoryRepository.findByWxMessageId(wxMessageId).orElse(null)
-  }
+  override fun findByWxMessageId(wxMessageId: String): MessageHistoryModel? =
+    messageHistoryRepository.findByWxMessageId(wxMessageId).orElse(null)
 
   override fun getUnreadCount(userId: Long): Int {
     // Assuming all messages are considered "read" in this context

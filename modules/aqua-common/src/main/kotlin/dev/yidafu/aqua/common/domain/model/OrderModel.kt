@@ -78,12 +78,28 @@ data class OrderModel(
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-
   @Column(name = "deleted_by")
-  override var deletedBy: Long? = null
+  override var deletedBy: Long? = null,
+  // ========================================================================
+  // Hibernate Associations
+  // ========================================================================
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "user_id", insertable = false, updatable = false)
+  val user: UserModel? = null,
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "product_id", insertable = false, updatable = false)
+  val product: ProductModel? = null,
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "address_id", insertable = false, updatable = false)
+  val address: AddressModel? = null,
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "delivery_worker_id", insertable = false, updatable = false)
+  val deliveryWorker: DeliveryWorkerModel? = null,
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "delivery_address_id", insertable = false, updatable = false)
+  val deliveryAddress: DeliveryAddressModel? = null,
 ) : SoftDeletable {
   @PreUpdate
   fun preUpdate() {

@@ -36,9 +36,8 @@ import java.nio.file.StandardCopyOption
  */
 @Component
 class LocalStorageStrategy(
-  private val storageProperties: StorageProperties
+  private val storageProperties: StorageProperties,
 ) : StorageStrategy {
-
   private val basePath: Path = Paths.get(storageProperties.local.basePath)
 
   init {
@@ -48,8 +47,11 @@ class LocalStorageStrategy(
     }
   }
 
-  override fun store(file: MultipartFile, metadata: FileMetadata): String {
-    return try {
+  override fun store(
+    file: MultipartFile,
+    metadata: FileMetadata,
+  ): String =
+    try {
       // 按年月创建目录结构
       val targetDir = basePath.resolve(generatePathByFileType(metadata.fileType))
       if (!Files.exists(targetDir)) {
@@ -68,7 +70,6 @@ class LocalStorageStrategy(
     } catch (e: IOException) {
       throw RuntimeException("Failed to store file", e)
     }
-  }
 
   override fun retrieve(path: String): Resource {
     val fullPath = basePath.resolve(path)
@@ -81,16 +82,18 @@ class LocalStorageStrategy(
     return FileSystemResource(file)
   }
 
-  override fun delete(path: String): Boolean {
-    return try {
+  override fun delete(path: String): Boolean =
+    try {
       val fullPath = basePath.resolve(path)
       Files.deleteIfExists(fullPath)
     } catch (e: IOException) {
       false
     }
-  }
 
-  override fun generateUrl(fileId: Long, filename: String): String {
+  override fun generateUrl(
+    fileId: Long,
+    filename: String,
+  ): String {
     // 生成文件下载URL，使用文件ID访问下载端点
     // 格式：{baseUrl}/api/v1/storage/files/{id}
     return "${storageProperties.local.baseUrl}/api/v1/storage/files/$fileId?name=$filename"
@@ -122,17 +125,18 @@ class LocalStorageStrategy(
    * 生成唯一文件名
    */
   private fun generateUniqueFileName(originalName: String): String {
-    val extension = if (originalName.contains('.')) {
-      originalName.substringAfterLast('.')
-    } else {
-      ""
-    }
+    val extension =
+      if (originalName.contains('.')) {
+        originalName.substringAfterLast('.')
+      } else {
+        ""
+      }
 
     val timestamp = System.currentTimeMillis()
     val randomString = (1..6).map { ('a'..'z').random() }.joinToString("")
 
     return if (extension.isNotEmpty()) {
-      "${timestamp}_${randomString}.$extension"
+      "${timestamp}_$randomString.$extension"
     } else {
       "${timestamp}_$randomString"
     }
@@ -141,7 +145,8 @@ class LocalStorageStrategy(
   /**
    * 生成相对路径
    */
-  private fun generateRelativePath(fileType: dev.yidafu.aqua.storage.domain.enums.FileType, fileName: String): String {
-    return "${generatePathByFileType(fileType)}/$fileName"
-  }
+  private fun generateRelativePath(
+    fileType: dev.yidafu.aqua.storage.domain.enums.FileType,
+    fileName: String,
+  ): String = "${generatePathByFileType(fileType)}/$fileName"
 }

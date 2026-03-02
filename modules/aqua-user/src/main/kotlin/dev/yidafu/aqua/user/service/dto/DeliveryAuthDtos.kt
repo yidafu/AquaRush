@@ -17,50 +17,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.delivery.service.dto
+package dev.yidafu.aqua.user.service.dto
 
+import dev.yidafu.aqua.api.dto.DeliveryWorkerInfo
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-
-/**
- * Request DTO for delivery worker login
- */
-data class DeliveryLoginRequest(
-  val code: String,
-  val phoneNumber: String? = null,
-  val encryptedData: String? = null,
-  val iv: String? = null
-)
-
-/**
- * Response DTO for delivery worker login
- */
-data class DeliveryLoginResponse(
-  val token: String?,
-  val refreshToken: String?,
-  val needBindPhone: Boolean,
-  val workerInfo: DeliveryWorkerInfo?,
-  val message: String?,
-  val openId: String? = null
-)
-
-/**
- * Delivery worker info DTO
- */
-data class DeliveryWorkerInfo(
-  val id: Long,
-  val name: String,
-  val phone: String,
-  val avatarUrl: String?,
-  val wechatOpenId: String
-)
 
 /**
  * Extension function to convert DeliveryWorkerModel to DeliveryWorkerInfo
  */
-fun DeliveryWorkerModel.toDeliveryWorkerInfo(): DeliveryWorkerInfo = DeliveryWorkerInfo(
-  id = id!!,
-  name = name,
-  phone = phone,
-  avatarUrl = avatarUrl,
-  wechatOpenId = wechatOpenId
-)
+fun DeliveryWorkerModel.toDeliveryWorkerInfo(): DeliveryWorkerInfo =
+  DeliveryWorkerInfo(
+    id = id!!,
+    name = name,
+    phone = phone,
+    avatarUrl = avatarUrl,
+    wechatOpenId = wechatOpenId,
+    role = "",
+  )

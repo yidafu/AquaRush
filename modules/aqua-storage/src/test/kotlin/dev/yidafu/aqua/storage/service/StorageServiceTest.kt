@@ -41,7 +41,6 @@ import org.springframework.mock.web.MockMultipartFile
 import java.util.*
 
 class StorageServiceTest {
-
   private lateinit var fileMetadataRepository: FileMetadataRepository
   private lateinit var storageStrategy: StorageStrategy
   private lateinit var imageProcessingService: ImageProcessingService
@@ -53,48 +52,53 @@ class StorageServiceTest {
     fileMetadataRepository = mockk()
     storageStrategy = mockk()
     imageProcessingService = mockk()
-    storageProperties = StorageProperties().apply {
-      local.maxFileSize = 10L * 1024L * 1024L // 10MB
-      local.allowedExtensions = setOf("jpg", "png", "pdf", "doc")
-    }
+    storageProperties =
+      StorageProperties().apply {
+        local.maxFileSize = 10L * 1024L * 1024L // 10MB
+        local.allowedExtensions = setOf("jpg", "png", "pdf", "doc")
+      }
 
-    storageService = StorageServiceImpl(
-      fileMetadataRepository = fileMetadataRepository,
-      storageStrategy = storageStrategy,
-      imageProcessingService = imageProcessingService,
-      storageProperties = storageProperties,
-      tika = org.apache.tika.Tika()
-    )
+    storageService =
+      StorageServiceImpl(
+        fileMetadataRepository = fileMetadataRepository,
+        storageStrategy = storageStrategy,
+        imageProcessingService = imageProcessingService,
+        storageProperties = storageProperties,
+        tika = org.apache.tika.Tika(),
+      )
   }
 
   @Test
   fun `should upload file successfully`() {
     // Given
-    val file = MockMultipartFile(
-      "test.jpg",
-      "test.jpg",
-      "image/jpeg",
-      "test image content".toByteArray()
-    )
-    val request = FileUploadRequest(
-      fileType = FileType.IMAGE,
-      description = "Test image",
-      isPublic = true,
-      ownerId = 1L
-    )
+    val file =
+      MockMultipartFile(
+        "test.jpg",
+        "test.jpg",
+        "image/jpeg",
+        "test image content".toByteArray(),
+      )
+    val request =
+      FileUploadRequest(
+        fileType = FileType.IMAGE,
+        description = "Test image",
+        isPublic = true,
+        ownerId = 1L,
+      )
     val storagePath = "images/2024/01/test_123456.jpg"
-    val expectedMetadata = FileMetadata(
-      fileName = "test.jpg",
-      storagePath = storagePath,
-      fileType = FileType.IMAGE,
-      fileSize = file.size.toLong(),
-      mimeType = "image/jpeg",
-      checksum = "test_checksum",
-      extension = "jpg",
-      ownerId = 1L,
-      isPublic = true,
-      description = "Test image"
-    ).apply { id = 1L }
+    val expectedMetadata =
+      FileMetadata(
+        fileName = "test.jpg",
+        storagePath = storagePath,
+        fileType = FileType.IMAGE,
+        fileSize = file.size.toLong(),
+        mimeType = "image/jpeg",
+        checksum = "test_checksum",
+        extension = "jpg",
+        ownerId = 1L,
+        isPublic = true,
+        description = "Test image",
+      ).apply { id = 1L }
 
     every { fileMetadataRepository.findByChecksum(any()) } returns Optional.empty()
     every { storageStrategy.store(file, any()) } returns storagePath
@@ -114,12 +118,13 @@ class StorageServiceTest {
   @Test
   fun `should throw exception for empty file`() {
     // Given
-    val emptyFile = MockMultipartFile(
-      "empty.jpg",
-      "empty.jpg",
-      "image/jpeg",
-      ByteArray(0)
-    )
+    val emptyFile =
+      MockMultipartFile(
+        "empty.jpg",
+        "empty.jpg",
+        "image/jpeg",
+        ByteArray(0),
+      )
     val request = FileUploadRequest()
 
     // When & Then
@@ -131,12 +136,13 @@ class StorageServiceTest {
   @Test
   fun `should throw exception for file size exceeded`() {
     // Given
-    val largeFile = MockMultipartFile(
-      "large.jpg",
-      "large.jpg",
-      "image/jpeg",
-      ByteArray((20L * 1024L * 1024L).toInt()) // 20MB > 10MB limit
-    )
+    val largeFile =
+      MockMultipartFile(
+        "large.jpg",
+        "large.jpg",
+        "image/jpeg",
+        ByteArray((20L * 1024L * 1024L).toInt()), // 20MB > 10MB limit
+      )
     val request = FileUploadRequest()
 
     // When & Then
@@ -150,16 +156,17 @@ class StorageServiceTest {
     // Given
     val fileId = 1L
     val storagePath = "images/2024/01/test.jpg"
-    val metadata = FileMetadata(
-      fileName = "test.jpg",
-      storagePath = storagePath,
-      fileType = FileType.IMAGE,
-      fileSize = 1024L,
-      mimeType = "image/jpeg",
-      checksum = "test_checksum",
-      extension = "jpg",
-      isPublic = true
-    ).apply { id = fileId }
+    val metadata =
+      FileMetadata(
+        fileName = "test.jpg",
+        storagePath = storagePath,
+        fileType = FileType.IMAGE,
+        fileSize = 1024L,
+        mimeType = "image/jpeg",
+        checksum = "test_checksum",
+        extension = "jpg",
+        isPublic = true,
+      ).apply { id = fileId }
 
     every { fileMetadataRepository.findByIdOrNull(fileId) } returns metadata
     every { storageStrategy.generateUrl(fileId) } returns "/api/v1/storage/files/$fileId"
@@ -190,24 +197,25 @@ class StorageServiceTest {
   fun `should list files with pagination`() {
     // Given
     val pageable: Pageable = PageRequest.of(0, 20)
-    val metadataList = listOf(
-      FileMetadata(
-        fileName = "test1.jpg",
-        storagePath = "images/2024/01/test1.jpg",
-        fileType = FileType.IMAGE,
-        fileSize = 1024L,
-        mimeType = "image/jpeg",
-        checksum = "checksum1"
-      ).apply { id = 1L },
-      FileMetadata(
-        fileName = "test2.jpg",
-        storagePath = "images/2024/01/test2.jpg",
-        fileType = FileType.IMAGE,
-        fileSize = 2048L,
-        mimeType = "image/jpeg",
-        checksum = "checksum2"
-      ).apply { id = 2L }
-    )
+    val metadataList =
+      listOf(
+        FileMetadata(
+          fileName = "test1.jpg",
+          storagePath = "images/2024/01/test1.jpg",
+          fileType = FileType.IMAGE,
+          fileSize = 1024L,
+          mimeType = "image/jpeg",
+          checksum = "checksum1",
+        ).apply { id = 1L },
+        FileMetadata(
+          fileName = "test2.jpg",
+          storagePath = "images/2024/01/test2.jpg",
+          fileType = FileType.IMAGE,
+          fileSize = 2048L,
+          mimeType = "image/jpeg",
+          checksum = "checksum2",
+        ).apply { id = 2L },
+      )
     val page = PageImpl(metadataList)
 
     every { fileMetadataRepository.findAll(pageable) } returns page

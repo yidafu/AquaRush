@@ -32,8 +32,9 @@ import java.util.*
  * 文件元数据仓库接口
  */
 @Repository
-interface FileMetadataRepository : JpaRepository<FileMetadata, Long>, FileMetadataRepositoryCustom {
-
+interface FileMetadataRepository :
+  JpaRepository<FileMetadata, Long>,
+  FileMetadataRepositoryCustom {
   /**
    * 根据存储路径查找文件
    */
@@ -52,7 +53,10 @@ interface FileMetadataRepository : JpaRepository<FileMetadata, Long>, FileMetada
   /**
    * 根据文件类型分页查找文件
    */
-  fun findByFileType(fileType: FileType, pageable: Pageable): Page<FileMetadata>
+  fun findByFileType(
+    fileType: FileType,
+    pageable: Pageable,
+  ): Page<FileMetadata>
 
   /**
    * 根据所有者ID查找文件
@@ -62,7 +66,10 @@ interface FileMetadataRepository : JpaRepository<FileMetadata, Long>, FileMetada
   /**
    * 根据所有者ID分页查找文件
    */
-  fun findByOwnerId(ownerId: Long?, pageable: Pageable): Page<FileMetadata>
+  fun findByOwnerId(
+    ownerId: Long?,
+    pageable: Pageable,
+  ): Page<FileMetadata>
 
   /**
    * 查找公开文件
@@ -77,7 +84,10 @@ interface FileMetadataRepository : JpaRepository<FileMetadata, Long>, FileMetada
   /**
    * 根据文件名模糊搜索（分页）
    */
-  fun findByFileNameContainingIgnoreCase(fileName: String, pageable: Pageable): Page<FileMetadata>
+  fun findByFileNameContainingIgnoreCase(
+    fileName: String,
+    pageable: Pageable,
+  ): Page<FileMetadata>
 
   /**
    * 根据文件扩展名查找文件
@@ -88,5 +98,4 @@ interface FileMetadataRepository : JpaRepository<FileMetadata, Long>, FileMetada
    * 查找指定时间之后创建的文件
    */
   fun findByCreatedAtAfter(createdAt: LocalDateTime): List<FileMetadata>
-
 }

@@ -25,30 +25,29 @@ import org.springframework.data.jpa.domain.Specification
 
 class AdminSpecifications {
   companion object {
-    fun byUsername(username: String): Specification<AdminModel> {
-      return Specification { root, _, cb ->
+    fun byUsername(username: String): Specification<AdminModel> =
+      Specification { root, _, cb ->
         cb.equal(root.get<String>("username"), username)
       }
-    }
 
-    fun byUsernameAndRole(username: String, role: AdminRoleModel): Specification<AdminModel> {
-      return Specification { root, _, cb ->
+    fun byUsernameAndRole(
+      username: String,
+      role: AdminRoleModel,
+    ): Specification<AdminModel> =
+      Specification { root, _, cb ->
         val usernamePredicate = cb.equal(root.get<String>("username"), username)
         val rolePredicate = cb.equal(root.get<Enum<*>>("role"), role)
         cb.and(usernamePredicate, rolePredicate)
       }
-    }
 
-    fun byPhone(phone: String): Specification<AdminModel> {
-      return Specification { root, _, cb ->
+    fun byPhone(phone: String): Specification<AdminModel> =
+      Specification { root, _, cb ->
         cb.equal(root.get<String>("phone"), phone)
       }
-    }
 
-    fun byRole(role: AdminRoleModel): Specification<AdminModel> {
-      return Specification { root, _, cb ->
+    fun byRole(role: AdminRoleModel): Specification<AdminModel> =
+      Specification { root, _, cb ->
         cb.equal(root.get<Enum<*>>("role"), role)
       }
-    }
   }
 }

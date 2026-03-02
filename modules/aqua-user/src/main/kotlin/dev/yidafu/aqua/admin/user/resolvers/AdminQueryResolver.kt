@@ -29,17 +29,14 @@ import org.springframework.stereotype.Controller
 
 @Controller
 class AdminQueryResolver(
-  private val adminRepository: AdminRepository
+  private val adminRepository: AdminRepository,
 ) {
-
   /**
    * 获取所有管理员 - 管理员权限
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun admins(): List<Admin> {
-    return adminRepository.findAllAdmins().map { AdminMapper.map(it) }
-  }
+  fun admins(): List<Admin> = adminRepository.findAllAdmins().map { AdminMapper.map(it) }
 
   /**
    * 根据ID获取管理员 - 管理员权限
@@ -48,7 +45,5 @@ class AdminQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun admin(
     @Argument id: Long,
-  ): Admin? {
-    return adminRepository.findAdminById(id)?.let { AdminMapper.map(it) }
-  }
+  ): Admin? = adminRepository.findAdminById(id)?.let { AdminMapper.map(it) }
 }

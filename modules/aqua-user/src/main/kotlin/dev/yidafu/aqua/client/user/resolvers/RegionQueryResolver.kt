@@ -14,21 +14,22 @@ import org.springframework.stereotype.Controller
 @Controller
 class RegionQueryResolver(
   private val regionRepository: RegionRepository,
-  @Value($$"${aqua.region.default-district-code:}") private val defaultDistrictCode: String?
+  @Value($$"${aqua.region.default-district-code:}") private val defaultDistrictCode: String?,
 ) : BaseGraphQLResolver() {
-
   @QueryMapping
   fun regions(
     @Argument level: Int?,
     @Argument parentCode: String?,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal?
+    @AuthenticationPrincipal userPrincipal: UserPrincipal?,
   ): List<RegionModel> {
     // 记录操作日志
     logOperation(
-      userPrincipal, "regions", mapOf<String, Any>(
+      userPrincipal,
+      "regions",
+      mapOf<String, Any>(
         "level" to (level ?: 0),
-        "parentCode" to (parentCode ?: "")
-      )
+        "parentCode" to (parentCode ?: ""),
+      ),
     )
 
     // 地区查询通常不需要严格的权限控制，但保留日志记录
@@ -54,7 +55,7 @@ class RegionQueryResolver(
   @QueryMapping
   fun region(
     @Argument code: String,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal?
+    @AuthenticationPrincipal userPrincipal: UserPrincipal?,
   ): RegionModel? {
     // 记录操作日志
     logOperation(userPrincipal, "region", mapOf("code" to code))
@@ -64,13 +65,15 @@ class RegionQueryResolver(
 
   @QueryMapping
   fun defaultRegionHierarchy(
-    @AuthenticationPrincipal userPrincipal: UserPrincipal?
+    @AuthenticationPrincipal userPrincipal: UserPrincipal?,
   ): RegionHierarchyModel? {
     // 记录操作日志
     logOperation(
-      userPrincipal, "defaultRegionHierarchy", mapOf<String, Any>(
-        "defaultDistrictCode" to (defaultDistrictCode ?: "")
-      )
+      userPrincipal,
+      "defaultRegionHierarchy",
+      mapOf<String, Any>(
+        "defaultDistrictCode" to (defaultDistrictCode ?: ""),
+      ),
     )
 
     return defaultDistrictCode?.let { buildRegionHierarchy(it) }
@@ -102,7 +105,7 @@ class RegionQueryResolver(
         district = district,
         provinces = allProvinces,
         cities = citiesInProvince,
-        districts = districtsInCity
+        districts = districtsInCity,
       )
     } catch (e: Exception) {
       // 记录错误但不抛出异常，返回 null 让前端处理

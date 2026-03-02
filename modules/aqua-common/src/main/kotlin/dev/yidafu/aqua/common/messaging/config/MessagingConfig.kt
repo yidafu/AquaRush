@@ -38,9 +38,7 @@ import java.util.concurrent.ThreadPoolExecutor
 class MessagingConfig {
   @Bean
   @Primary
-  fun simplifiedMessagingProperties(): SimplifiedMessagingProperties {
-    return SimplifiedMessagingProperties()
-  }
+  fun simplifiedMessagingProperties(): SimplifiedMessagingProperties = SimplifiedMessagingProperties()
 
   /**
    * 事件处理的异步执行器

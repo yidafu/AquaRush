@@ -106,8 +106,8 @@ class ClientNoticeMutationResolver(
   fun markMessageAsRead(
     messageId: Long,
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       val userId = userDetails.username.toLong()
 
       // TODO: 实现从服务标记消息为已读
@@ -117,7 +117,6 @@ class ClientNoticeMutationResolver(
       logger.error("Failed to mark message as read", e)
       throw BadRequestException("标记消息为已读失败: ${e.message}")
     }
-  }
 
   /**
    * 批量标记消息为已读
@@ -127,8 +126,8 @@ class ClientNoticeMutationResolver(
   fun markMessagesAsRead(
     messageIds: List<Long>,
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       if (messageIds.isEmpty()) {
         throw BadRequestException("消息ID列表不能为空")
       }
@@ -145,7 +144,6 @@ class ClientNoticeMutationResolver(
       logger.error("Failed to mark messages as read", e)
       throw BadRequestException("批量标记消息为已读失败: ${e.message}")
     }
-  }
 
   /**
    * 删除消息
@@ -155,8 +153,8 @@ class ClientNoticeMutationResolver(
   fun deleteMessage(
     messageId: Long,
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       val userId = userDetails.username.toLong()
 
       // TODO: 实现从服务删除消息
@@ -166,7 +164,6 @@ class ClientNoticeMutationResolver(
       logger.error("Failed to delete message", e)
       throw BadRequestException("删除消息失败: ${e.message}")
     }
-  }
 
   /**
    * 批量删除消息
@@ -176,8 +173,8 @@ class ClientNoticeMutationResolver(
   fun deleteMessages(
     messageIds: List<Long>,
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       if (messageIds.isEmpty()) {
         throw BadRequestException("消息ID列表不能为空")
       }
@@ -194,7 +191,6 @@ class ClientNoticeMutationResolver(
       logger.error("Failed to delete messages", e)
       throw BadRequestException("批量删除消息失败: ${e.message}")
     }
-  }
 
   /**
    * 测试通知（客户端功能）
@@ -202,8 +198,8 @@ class ClientNoticeMutationResolver(
   @PreAuthorize("hasRole('USER')")
   fun testNotification(
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): String {
-    return try {
+  ): String =
+    try {
       val userId = userDetails.username.toLong()
 
       // 发送测试通知
@@ -215,7 +211,6 @@ class ClientNoticeMutationResolver(
       logger.error("Failed to send test notification", e)
       throw BadRequestException("发送测试通知失败: ${e.message}")
     }
-  }
 
   /**
    * 订阅主题
@@ -225,8 +220,8 @@ class ClientNoticeMutationResolver(
   fun subscribeToTopic(
     topic: String,
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       val userId = userDetails.username.toLong()
 
       // TODO: 实现从服务订阅主题
@@ -236,7 +231,6 @@ class ClientNoticeMutationResolver(
       logger.error("Failed to subscribe to topic", e)
       throw BadRequestException("订阅主题失败: ${e.message}")
     }
-  }
 
   /**
    * 取消订阅主题
@@ -246,8 +240,8 @@ class ClientNoticeMutationResolver(
   fun unsubscribeFromTopic(
     topic: String,
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       val userId = userDetails.username.toLong()
 
       // TODO: 实现从服务取消订阅主题
@@ -257,7 +251,6 @@ class ClientNoticeMutationResolver(
       logger.error("Failed to unsubscribe from topic", e)
       throw BadRequestException("取消订阅主题失败: ${e.message}")
     }
-  }
 
   /**
    * 设置免打扰模式
@@ -269,8 +262,8 @@ class ClientNoticeMutationResolver(
     startTime: String?, // 格式: "HH:mm"
     endTime: String?, // 格式: "HH:mm"
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       val userId = userDetails.username.toLong()
 
       // TODO: 实现从服务设置免打扰模式
@@ -280,7 +273,6 @@ class ClientNoticeMutationResolver(
       logger.error("Failed to set do-not-disturb", e)
       throw BadRequestException("设置免打扰模式失败: ${e.message}")
     }
-  }
 
   /**
    * 请求推送权限
@@ -288,8 +280,8 @@ class ClientNoticeMutationResolver(
   @PreAuthorize("hasRole('USER')")
   fun requestPushPermission(
     @AuthenticationPrincipal userDetails: UserDetails,
-  ): String {
-    return try {
+  ): String =
+    try {
       val userId = userDetails.username.toLong()
 
       // TODO: 实现从服务请求推送权限
@@ -299,7 +291,6 @@ class ClientNoticeMutationResolver(
       logger.error("Failed to request push permission", e)
       throw BadRequestException("请求推送权限失败: ${e.message}")
     }
-  }
 
   /**
    * 验证更新设置输入

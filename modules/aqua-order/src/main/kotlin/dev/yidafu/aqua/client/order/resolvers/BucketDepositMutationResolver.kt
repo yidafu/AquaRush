@@ -34,7 +34,6 @@ import org.springframework.stereotype.Controller
 class BucketDepositMutationResolver(
   private val bucketDepositService: BucketDepositService,
 ) {
-
   /**
    * 创建押桶记录
    */
@@ -44,13 +43,12 @@ class BucketDepositMutationResolver(
     @Argument quantity: Int,
     @Argument openId: String,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): BucketDepositModel {
-    return bucketDepositService.createBucketDeposit(
+  ): BucketDepositModel =
+    bucketDepositService.createBucketDeposit(
       userId = userPrincipal.id,
       quantity = quantity,
       openId = openId,
     )
-  }
 
   /**
    * 处理押桶支付成功回调
@@ -59,12 +57,11 @@ class BucketDepositMutationResolver(
   fun handleBucketDepositPaymentSuccess(
     @Argument depositId: Long,
     @Argument transactionId: String,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       bucketDepositService.handlePaymentSuccess(depositId, transactionId)
       true
     } catch (e: Exception) {
       false
     }
-  }
 }

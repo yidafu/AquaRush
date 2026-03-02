@@ -32,68 +32,42 @@ import tech.mappie.api.ObjectMappie
  * Mapper for converting DeliveryWorkerModel domain entity to GraphQL DeliveryWorker type
  */
 object DeliveryWorkerMapper : ObjectMappie<DeliveryWorkerModel, DeliveryWorker>() {
-  override fun map(from: DeliveryWorkerModel): DeliveryWorker = mapping {
-    to::id fromValue (from.id ?: 0L)
-    to::userId fromProperty from::userId
-    to::wechatOpenId fromProperty from::wechatOpenId
-    to::name fromProperty from::name
-    to::phone fromProperty from::phone
-    to::avatarUrl fromProperty from::avatarUrl
-    to::onlineStatus fromExpression {
-      DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
+  override fun map(from: DeliveryWorkerModel): DeliveryWorker =
+    mapping {
+      to::id fromValue (from.id ?: 0L)
+      to::userId fromValue (from.userId ?: 0L)
+      // Fields with same name and type - auto-mapped by Mappie
+      to::earning fromProperty from::earningCents
+      to::onlineStatus fromExpression {
+        DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
+      }
     }
-    to::coordinates fromProperty from::coordinates
-    to::currentLocation fromProperty from::currentLocation
-    to::totalOrders fromProperty from::totalOrders
-    to::completedOrders fromProperty from::completedOrders
-    to::rating fromProperty from::rating
-    to::averageRating fromProperty from::averageRating
-    to::earning fromProperty from::earningCents
-    to::isAvailable fromProperty from::isAvailable
-    to::createdAt fromProperty from::createdAt
-    to::updatedAt fromProperty from::updatedAt
-  }
 }
 
 /**
  * Mapper for converting DeliveryWorkerModel domain entity to GraphQL DeliveryWorker type (with current user)
  */
 object DeliveryWorkerWithCurrentUserMapper : ObjectMappie<DeliveryWorkerModel, DeliveryWorker>() {
-  override fun map(from: DeliveryWorkerModel): DeliveryWorker = mapping {
-    to::id fromValue (from.id ?: 0L)
-    to::userId fromProperty from::userId
-    to::wechatOpenId fromProperty from::wechatOpenId
-    to::name fromProperty from::name
-    to::phone fromProperty from::phone
-    to::avatarUrl fromProperty from::avatarUrl
-    to::onlineStatus fromExpression {
-      DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
+  override fun map(from: DeliveryWorkerModel): DeliveryWorker =
+    mapping {
+      to::id fromValue (from.id ?: 0L)
+      to::userId fromValue (from.userId ?: 0L)
+      // Fields with same name and type - auto-mapped by Mappie
+      to::earning fromProperty from::earningCents
+      to::onlineStatus fromExpression {
+        DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
+      }
     }
-    to::coordinates fromProperty from::coordinates
-    to::currentLocation fromProperty from::currentLocation
-    to::totalOrders fromProperty from::totalOrders
-    to::completedOrders fromProperty from::completedOrders
-    to::rating fromProperty from::rating
-    to::averageRating fromProperty from::averageRating
-    to::earning fromProperty from::earningCents
-    to::isAvailable fromProperty from::isAvailable
-    to::createdAt fromProperty from::createdAt
-    to::updatedAt fromProperty from::updatedAt
-  }
 }
 
 /**
  * Mapper for converting DeliveryAreaModel domain entity to GraphQL DeliveryArea type
  */
 object DeliveryAreaMapper : ObjectMappie<DeliveryAreaModel, DeliveryArea>() {
-  override fun map(from: DeliveryAreaModel): DeliveryArea = mapping {
-    to::id fromProperty from::id
-    to::name fromProperty from::name
-    to::province fromProperty from::province
-    to::city fromProperty from::city
-    to::district fromProperty from::district
-    to::enabled fromProperty from::enabled
-  }
+  override fun map(from: DeliveryAreaModel): DeliveryArea =
+    mapping {
+      // All fields have same name and type - auto-mapped by Mappie
+    }
 }
 
 /**

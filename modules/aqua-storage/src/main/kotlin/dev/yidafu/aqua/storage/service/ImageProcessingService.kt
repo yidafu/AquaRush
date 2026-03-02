@@ -41,16 +41,18 @@ import javax.imageio.ImageIO
 @Service
 class ImageProcessingService(
   private val storageStrategy: StorageStrategy,
-  private val imageProcessingProperties: ImageProcessingProperties
+  private val imageProcessingProperties: ImageProcessingProperties,
 ) {
-
   /**
    * 处理图片
    * @param originalResource 原始图片资源
    * @param parameters 图片处理参数
    * @return 处理后的图片字节数组
    */
-  fun processImage(originalResource: Resource, parameters: ImageParameters): ByteArray {
+  fun processImage(
+    originalResource: Resource,
+    parameters: ImageParameters,
+  ): ByteArray {
     if (!parameters.validate()) {
       throw IllegalArgumentException("Invalid image processing parameters")
     }
@@ -61,19 +63,20 @@ class ImageProcessingService(
 
       // 调整大小
       if (parameters.width != null || parameters.height != null) {
-        thumbnailBuilder = when {
-          parameters.width != null && parameters.height != null -> {
-            thumbnailBuilder.size(parameters.width, parameters.height)
-          }
+        thumbnailBuilder =
+          when {
+            parameters.width != null && parameters.height != null -> {
+              thumbnailBuilder.size(parameters.width, parameters.height)
+            }
 
-          parameters.width != null -> {
-            thumbnailBuilder.width(parameters.width)
-          }
+            parameters.width != null -> {
+              thumbnailBuilder.width(parameters.width)
+            }
 
-          else -> {
-            thumbnailBuilder.height(parameters.height ?: 200)
+            else -> {
+              thumbnailBuilder.height(parameters.height ?: 200)
+            }
           }
-        }
       }
 
       // 调整质量
@@ -85,11 +88,12 @@ class ImageProcessingService(
 
       // 添加水印
       if (parameters.watermark) {
-        thumbnailBuilder = thumbnailBuilder.watermark(
-          Positions.BOTTOM_RIGHT,
-          createWatermarkImage(parameters.watermarkText ?: "AquaRush"),
-          0.5f
-        )
+        thumbnailBuilder =
+          thumbnailBuilder.watermark(
+            Positions.BOTTOM_RIGHT,
+            createWatermarkImage(parameters.watermarkText ?: "AquaRush"),
+            0.5f,
+          )
       }
 
       // 生成处理后的图片
@@ -108,7 +112,10 @@ class ImageProcessingService(
    * @param parameters 图片处理参数
    * @return 处理后的图片字节数组
    */
-  fun getOrProcessImage(originalPath: String, parameters: ImageParameters): ByteArray {
+  fun getOrProcessImage(
+    originalPath: String,
+    parameters: ImageParameters,
+  ): ByteArray {
     // 如果没有处理参数，直接返回原始图片
     if (parameters.width == null &&
       parameters.height == null &&
@@ -169,7 +176,10 @@ class ImageProcessingService(
   /**
    * 生成缓存键
    */
-  private fun generateCacheKey(originalPath: String, parameters: ImageParameters): String {
+  private fun generateCacheKey(
+    originalPath: String,
+    parameters: ImageParameters,
+  ): String {
     val combined = "$originalPath:${parameters.generateCacheKey()}"
     val digest = MessageDigest.getInstance("SHA-256")
     val hash = digest.digest(combined.toByteArray())
@@ -179,7 +189,10 @@ class ImageProcessingService(
   /**
    * 生成缓存路径
    */
-  private fun generateCachePath(cacheKey: String, format: String?): String {
+  private fun generateCachePath(
+    cacheKey: String,
+    format: String?,
+  ): String {
     val extension = format?.lowercase() ?: "jpg"
     return "cache/images/${cacheKey.substring(0, 2)}/$cacheKey.$extension"
   }
@@ -187,24 +200,34 @@ class ImageProcessingService(
   /**
    * 缓存处理后的图片
    */
-  private fun cacheProcessedImage(cachePath: String, processedImage: ByteArray) {
+  private fun cacheProcessedImage(
+    cachePath: String,
+    processedImage: ByteArray,
+  ) {
     try {
       val tempFile = ByteArrayInputStream(processedImage)
       val tempMetadata = createTempFileMetadata(cachePath)
       storageStrategy.store(
         object : org.springframework.web.multipart.MultipartFile {
           override fun getInputStream() = tempFile
+
           override fun getName() = "temp"
+
           override fun getOriginalFilename() = cachePath.split("/").last()
+
           override fun getContentType() = "image/jpeg"
+
           override fun isEmpty() = processedImage.isEmpty()
+
           override fun getSize() = processedImage.size.toLong()
+
           override fun getBytes() = processedImage
+
           override fun transferTo(dest: java.io.File) {
             dest.writeBytes(processedImage)
           }
         },
-        tempMetadata
+        tempMetadata,
       )
     } catch (e: Exception) {
       // 缓存失败不应该影响主要的图片处理功能
@@ -216,14 +239,13 @@ class ImageProcessingService(
   /**
    * 创建临时文件元数据
    */
-  private fun createTempFileMetadata(cachePath: String): dev.yidafu.aqua.storage.domain.entity.FileMetadata {
-    return dev.yidafu.aqua.storage.domain.entity.FileMetadata(
+  private fun createTempFileMetadata(cachePath: String): dev.yidafu.aqua.storage.domain.entity.FileMetadata =
+    dev.yidafu.aqua.storage.domain.entity.FileMetadata(
       fileName = cachePath.split("/").last(),
       storagePath = cachePath,
       fileType = dev.yidafu.aqua.storage.domain.enums.FileType.IMAGE,
       fileSize = 0L, // 这将在实际存储时更新
       mimeType = "image/jpeg",
-      checksum = "temp"
+      checksum = "temp",
     )
-  }
 }

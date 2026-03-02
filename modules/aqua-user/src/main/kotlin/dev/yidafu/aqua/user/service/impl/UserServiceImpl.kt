@@ -65,13 +65,14 @@ class UserServiceImpl(
     val savedUser = userRepository.save(user)
 
     // Create default notification settings for the user
-    val notificationSettings = NotificationSettingsModel(
-      userId = savedUser.id!!,
-      orderUpdates = true,
-      paymentNotifications = true,
-      deliveryNotifications = true,
-      promotionalNotifications = false,
-    )
+    val notificationSettings =
+      NotificationSettingsModel(
+        userId = savedUser.id!!,
+        orderUpdates = true,
+        paymentNotifications = true,
+        deliveryNotifications = true,
+        promotionalNotifications = false,
+      )
     notificationSettingsRepository.save(notificationSettings)
 
     return savedUser
@@ -100,17 +101,24 @@ class UserServiceImpl(
 
   override fun findAllUsers(pageable: Pageable): Page<UserModel> = userRepository.findAll(pageable)
 
-  override fun findUsersByKeyword(keyword: String, pageable: Pageable): Page<UserModel> {
-    return userRepository.findByNicknameContainingIgnoreCaseOrPhoneContainingIgnoreCase(keyword, keyword, pageable)
-  }
+  override fun findUsersByKeyword(
+    keyword: String,
+    pageable: Pageable,
+  ): Page<UserModel> = userRepository.findByNicknameContainingIgnoreCaseOrPhoneContainingIgnoreCase(keyword, keyword, pageable)
 
-  override fun findUsersByStatus(status: UserStatus, pageable: Pageable): Page<UserModel> {
-    return userRepository.findByStatus(status, pageable)
-  }
+  override fun findUsersByStatus(
+    status: UserStatus,
+    pageable: Pageable,
+  ): Page<UserModel> = userRepository.findByStatus(status, pageable)
 
-  override fun findUsersByKeywordAndStatus(keyword: String, status: UserStatus, pageable: Pageable): Page<UserModel> {
-    return userRepository.findByNicknameContainingIgnoreCaseAndStatusOrPhoneContainingIgnoreCaseAndStatus(
-      keyword, status, pageable
+  override fun findUsersByKeywordAndStatus(
+    keyword: String,
+    status: UserStatus,
+    pageable: Pageable,
+  ): Page<UserModel> =
+    userRepository.findByNicknameContainingIgnoreCaseAndStatusOrPhoneContainingIgnoreCaseAndStatus(
+      keyword,
+      status,
+      pageable,
     )
-  }
 }

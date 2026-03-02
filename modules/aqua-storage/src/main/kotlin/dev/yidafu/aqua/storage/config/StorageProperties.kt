@@ -30,27 +30,26 @@ data class StorageProperties(
    * 存储类型：local, s3, oss
    */
   var type: StorageType = StorageType.LOCAL,
-
   /**
    * 本地存储配置
    */
   var local: LocalStorageProperties = LocalStorageProperties(),
-
   /**
    * S3存储配置
    */
   var s3: S3StorageProperties = S3StorageProperties(),
-
   /**
    * OSS存储配置
    */
-  var oss: OSSStorageProperties = OSSStorageProperties()
+  var oss: OSSStorageProperties = OSSStorageProperties(),
 ) {
   /**
    * 存储类型枚举
    */
   enum class StorageType {
-    LOCAL, S3, OSS
+    LOCAL,
+    S3,
+    OSS,
   }
 }
 
@@ -62,32 +61,56 @@ data class LocalStorageProperties(
    * 基础存储路径
    */
   var basePath: String = "/var/aqua/storage",
-
   /**
    * 最大文件大小（字节）
    */
   var maxFileSize: Long = 100L * 1024L * 1024L, // 100MB
-
   /**
    * 允许的文件扩展名
    */
-  var allowedExtensions: Set<String> = setOf(
-    "jpg", "jpeg", "png", "gif", "bmp", "webp",
-    "mp4", "avi", "mov", "wmv", "flv",
-    "mp3", "wav", "flac", "aac",
-    "pdf", "doc", "docx", "txt",
-    "xls", "xlsx", "csv",
-    "ppt", "pptx",
-    "html", "css", "js", "json",
-    "zip", "rar", "7z", "tar", "gz",
+  var allowedExtensions: Set<String> =
+    setOf(
+      "jpg",
+      "jpeg",
+      "png",
+      "gif",
+      "bmp",
+      "webp",
+      "mp4",
+      "avi",
+      "mov",
+      "wmv",
+      "flv",
+      "mp3",
+      "wav",
+      "flac",
+      "aac",
+      "pdf",
+      "doc",
+      "docx",
+      "txt",
+      "xls",
+      "xlsx",
+      "csv",
+      "ppt",
+      "pptx",
+      "html",
+      "css",
+      "js",
+      "json",
+      "zip",
+      "rar",
+      "7z",
+      "tar",
+      "gz",
 //                                           "exe", "msi", "sh", "bat",
-    "bak", "backup"
-  ),
-
+      "bak",
+      "backup",
+    ),
   /**
    * 服务访问URL基础路径（用于生成文件URL）
    */
-  var baseUrl: String = "http://localhost:9090"
+  var baseUrl: String = "http://localhost:9090",
 )
 
 /**
@@ -98,26 +121,22 @@ data class S3StorageProperties(
    * 存储桶名称
    */
   var bucket: String = "aqua-storage",
-
   /**
    * AWS区域
    */
   var region: String = "us-west-1",
-
   /**
    * 访问密钥
    */
   var accessKey: String = "",
-
   /**
    * 秘密密钥
    */
   var secretKey: String = "",
-
   /**
    * 端点URL（可选）
    */
-  var endpoint: String? = null
+  var endpoint: String? = null,
 )
 
 /**
@@ -128,19 +147,16 @@ data class OSSStorageProperties(
    * 存储桶名称
    */
   var bucket: String = "aqua-storage",
-
   /**
    * 端点URL
    */
   var endpoint: String = "oss-cn-hangzhou.aliyuncs.com",
-
   /**
    * 访问密钥
    */
   var accessKey: String = "",
-
   /**
    * 秘密密钥
    */
-  var secretKey: String = ""
+  var secretKey: String = "",
 )

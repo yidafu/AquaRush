@@ -32,7 +32,6 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
  */
 @Component
 class JsonHelper {
-
   private val objectMapper: ObjectMapper = jacksonObjectMapper()
 
   /**
@@ -57,35 +56,35 @@ class JsonHelper {
   /**
    * Create an ObjectNode from a map
    */
-  fun createObjectNode(map: Map<String, Any>): ObjectNode {
-    return objectMapper.valueToTree(map) as ObjectNode
-  }
+  fun createObjectNode(map: Map<String, Any>): ObjectNode = objectMapper.valueToTree(map) as ObjectNode
 
   /**
    * Convert ArrayNode to list of strings
    */
-  fun arrayNodeToList(arrayNode: ArrayNode?): List<String> {
-    return arrayNode?.mapNotNull { if (it.isTextual) it.asText() else null } ?: emptyList()
-  }
+  fun arrayNodeToList(arrayNode: ArrayNode?): List<String> =
+    arrayNode?.mapNotNull { if (it.isTextual) it.asText() else null } ?: emptyList()
 
   /**
    * Convert ArrayNode to list of objects of specified type
    */
-  fun <T> arrayNodeToList(arrayNode: ArrayNode?, clazz: Class<T>): List<T> {
-    return if (arrayNode == null) emptyList() else {
+  fun <T> arrayNodeToList(
+    arrayNode: ArrayNode?,
+    clazz: Class<T>,
+  ): List<T> =
+    if (arrayNode == null) {
+      emptyList()
+    } else {
       val javaType = objectMapper.typeFactory.constructCollectionType(List::class.java, clazz)
       objectMapper.convertValue(arrayNode, javaType)
     }
-  }
 
   /**
    * Convert ObjectNode to Map
    */
-  fun objectNodeToMap(objectNode: ObjectNode?): Map<String, Any> {
-    return objectNode?.let {
+  fun objectNodeToMap(objectNode: ObjectNode?): Map<String, Any> =
+    objectNode?.let {
       objectMapper.convertValue(it, object : TypeReference<Map<String, Any>>() {})
     } ?: emptyMap()
-  }
 
   /**
    * Get the underlying ObjectMapper for custom operations

@@ -31,22 +31,21 @@ data class ApiResponse<T>(
   val message: String,
   val data: T? = null,
   val errorCode: String? = null,
-  val timestamp: LocalDateTime = LocalDateTime.now()
+  val timestamp: LocalDateTime = LocalDateTime.now(),
 ) {
   companion object {
     /**
      * 成功响应
      */
-    fun <T> success(data: T, message: String = "操作成功"): ApiResponse<T> {
-      return ApiResponse(success = true, message = message, data = data)
-    }
+    fun <T> success(
+      data: T,
+      message: String = "操作成功",
+    ): ApiResponse<T> = ApiResponse(success = true, message = message, data = data)
 
     /**
      * 成功响应（无数据）
      */
-    fun success(message: String = "操作成功"): ApiResponse<Unit> {
-      return ApiResponse(success = true, message = message)
-    }
+    fun success(message: String = "操作成功"): ApiResponse<Unit> = ApiResponse(success = true, message = message)
 
     /**
      * 失败响应
@@ -54,53 +53,47 @@ data class ApiResponse<T>(
     fun <T> error(
       message: String,
       errorCode: String? = null,
-      data: T? = null
-    ): ApiResponse<T> {
-      return ApiResponse(success = false, message = message, errorCode = errorCode, data = data)
-    }
+      data: T? = null,
+    ): ApiResponse<T> = ApiResponse(success = false, message = message, errorCode = errorCode, data = data)
 
     /**
      * 认证失败响应
      */
-    fun unauthorized(message: String = "认证失败，请先登录"): ApiResponse<Unit> {
-      return ApiResponse(
+    fun unauthorized(message: String = "认证失败，请先登录"): ApiResponse<Unit> =
+      ApiResponse(
         success = false,
         message = message,
-        errorCode = "UNAUTHORIZED"
+        errorCode = "UNAUTHORIZED",
       )
-    }
 
     /**
      * 权限不足响应
      */
-    fun forbidden(message: String = "权限不足"): ApiResponse<Unit> {
-      return ApiResponse(
+    fun forbidden(message: String = "权限不足"): ApiResponse<Unit> =
+      ApiResponse(
         success = false,
         message = message,
-        errorCode = "FORBIDDEN"
+        errorCode = "FORBIDDEN",
       )
-    }
 
     /**
      * 资源未找到响应
      */
-    fun notFound(message: String = "资源未找到"): ApiResponse<Unit> {
-      return ApiResponse(
+    fun notFound(message: String = "资源未找到"): ApiResponse<Unit> =
+      ApiResponse(
         success = false,
         message = message,
-        errorCode = "NOT_FOUND"
+        errorCode = "NOT_FOUND",
       )
-    }
 
     /**
      * 服务器错误响应
      */
-    fun internalServerError(message: String = "服务器内部错误"): ApiResponse<Unit> {
-      return ApiResponse(
+    fun internalServerError(message: String = "服务器内部错误"): ApiResponse<Unit> =
+      ApiResponse(
         success = false,
         message = message,
-        errorCode = "INTERNAL_SERVER_ERROR"
+        errorCode = "INTERNAL_SERVER_ERROR",
       )
-    }
   }
 }

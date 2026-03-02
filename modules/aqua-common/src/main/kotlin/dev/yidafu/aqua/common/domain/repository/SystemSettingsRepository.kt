@@ -25,7 +25,6 @@ import org.springframework.stereotype.Repository
 
 @Repository
 interface SystemSettingsRepository : JpaRepository<SystemSettingsModel, Long> {
-
   fun findBySettingKey(key: String): SystemSettingsModel?
 
   fun findAllBySettingKeyIn(keys: List<String>): List<SystemSettingsModel>

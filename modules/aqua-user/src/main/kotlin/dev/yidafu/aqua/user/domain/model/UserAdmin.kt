@@ -20,9 +20,9 @@
 package dev.yidafu.aqua.user.domain.model
 
 //
-//@Entity
-//@Table(name = "admins")
-//data class UserAdminModel(
+// @Entity
+// @Table(name = "admins")
+// data class UserAdminModel(
 //  @Id
 //  @GeneratedValue(strategy = GenerationType.IDENTITY)
 //  val id: Long = -1L,
@@ -51,9 +51,9 @@ package dev.yidafu.aqua.user.domain.model
 //
 //  @Column(name = "updated_at", nullable = false)
 //  var updatedAt: LocalDateTime = LocalDateTime.now()
-//) {
+// ) {
 //  @PreUpdate
 //  fun preUpdate() {
 //    updatedAt = LocalDateTime.now()
 //  }
-//}
+// }

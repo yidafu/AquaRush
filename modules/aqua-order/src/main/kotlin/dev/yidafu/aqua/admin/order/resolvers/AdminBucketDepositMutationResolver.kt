@@ -32,7 +32,6 @@ import org.springframework.stereotype.Controller
 class AdminBucketDepositMutationResolver(
   private val bucketDepositService: BucketDepositService,
 ) {
-
   /**
    * 退还押金（管理员）
    * 注意：实际管理后台通过登录获取管理员ID，这里简化处理
@@ -60,12 +59,11 @@ class AdminBucketDepositMutationResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun setBucketDepositAmount(
     @Argument amountCents: Long,
-  ): Boolean {
-    return try {
+  ): Boolean =
+    try {
       bucketDepositService.setBucketDepositAmount(amountCents)
       true
     } catch (e: Exception) {
       false
     }
-  }
 }

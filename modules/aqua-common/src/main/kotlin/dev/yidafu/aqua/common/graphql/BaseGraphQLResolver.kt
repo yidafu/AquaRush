@@ -33,14 +33,13 @@ abstract class BaseGraphQLResolver {
    * @param userPrincipal 注入的用户主体
    * @return 认证的用户，如果未认证且允许匿名访问则返回 null
    */
-  protected fun getCurrentUser(userPrincipal: UserPrincipal?): UserPrincipal? {
-    return try {
+  protected fun getCurrentUser(userPrincipal: UserPrincipal?): UserPrincipal? =
+    try {
       userPrincipal ?: GraphQLValidator.getCurrentUser()
     } catch (e: Exception) {
       logger.error("Error getting current user in ${this::class.simpleName}", e)
       null
     }
-  }
 
   /**
    * 要求用户必须认证

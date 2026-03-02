@@ -27,5 +27,6 @@ import java.util.*
 @Repository
 interface NotificationSettingsRepository : JpaRepository<NotificationSettingsModel, Long> {
   fun findByUserId(userId: Long): Optional<NotificationSettingsModel>
+
   fun deleteByUserId(userId: Long)
 }

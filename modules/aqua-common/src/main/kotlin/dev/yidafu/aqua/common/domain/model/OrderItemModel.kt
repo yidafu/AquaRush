@@ -34,38 +34,28 @@ open class OrderItemModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
-
   @Column(name = "order_id", nullable = false)
   val orderId: Long,
-
   @Column(name = "product_id", nullable = false)
   val productId: Long,
-
   @Column(name = "quantity", nullable = false)
   val quantity: Int,
-
   @Column(name = "unit_price_cents", nullable = false)
   val unitPriceCents: Long,
-
   @Column(name = "total_price_cents", nullable = false)
   val totalPriceCents: Long,
-
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "product_snapshot", nullable = false, columnDefinition = "json")
   val productSnapshot: String, // JSON string of product snapshot
-
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-
   @Column(name = "deleted_by")
-  override var deletedBy: Long? = null
+  override var deletedBy: Long? = null,
 ) : SoftDeletable {
-
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
@@ -86,7 +76,7 @@ open class OrderItemModel(
       productId: Long,
       quantity: Int,
       unitPriceCents: Long,
-      productSnapshot: String
+      productSnapshot: String,
     ): OrderItemModel {
       val totalPriceCents = unitPriceCents * quantity
       return OrderItemModel(
@@ -95,7 +85,7 @@ open class OrderItemModel(
         quantity = quantity,
         unitPriceCents = unitPriceCents,
         totalPriceCents = totalPriceCents,
-        productSnapshot = productSnapshot
+        productSnapshot = productSnapshot,
       )
     }
   }

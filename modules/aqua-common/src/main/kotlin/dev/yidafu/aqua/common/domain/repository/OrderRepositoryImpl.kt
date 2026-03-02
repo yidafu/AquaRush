@@ -38,7 +38,6 @@ import java.time.LocalDateTime
  */
 @Repository
 class OrderRepositoryImpl : OrderRepositoryCustom {
-
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -68,7 +67,8 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
       }
     }
 
-    return queryFactory.selectFrom(orderModel)
+    return queryFactory
+      .selectFrom(orderModel)
       .where(builder)
       .orderBy(orderModel.createdAt.desc())
       .fetch()
@@ -81,11 +81,14 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     endDate: LocalDateTime?,
     limit: Int?,
   ): List<OrderModel> {
-    var query = queryFactory.selectFrom(orderModel)
-      .where(
-        orderModel.deliveryWorkerId.eq(deliveryWorkerId)
-          .and(orderModel.status.eq(status))
-      )
+    var query =
+      queryFactory
+        .selectFrom(orderModel)
+        .where(
+          orderModel.deliveryWorkerId
+            .eq(deliveryWorkerId)
+            .and(orderModel.status.eq(status)),
+        )
 
     startDate?.let { start ->
       endDate?.let { end ->
@@ -122,7 +125,8 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
       }
     }
 
-    return queryFactory.query()
+    return queryFactory
+      .query()
       .from(orderModel)
       .where(builder)
       .fetchCount()
@@ -134,9 +138,11 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     newStatus: OrderStatus,
     deliveryWorkerId: Long?,
   ): Int {
-    var update = queryFactory.update(orderModel)
-      .set(orderModel.status, newStatus)
-      .where(orderModel.id.`in`(orderIds))
+    var update =
+      queryFactory
+        .update(orderModel)
+        .set(orderModel.status, newStatus)
+        .where(orderModel.id.`in`(orderIds))
 
     deliveryWorkerId?.let {
       update = update.set(orderModel.deliveryWorkerId, it)
@@ -150,30 +156,31 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     endDate: LocalDateTime,
   ): List<OrderAnalyticsRow> {
     // Create date expression for PostgreSQL DATE() function
-    val dateExpr = Expressions.dateTemplate(
-      java.time.LocalDate::class.java,
-      "DATE({0})",
-      orderModel.createdAt
-    )
+    val dateExpr =
+      Expressions.dateTemplate(
+        java.time.LocalDate::class.java,
+        "DATE({0})",
+        orderModel.createdAt,
+      )
 
     val sumAmount: NumberExpression<Long> = orderModel.amountCents.sumLong()
     val avgAmount = orderModel.amountCents.avg()
 
-    val results = queryFactory
-      .select(
-        dateExpr,
-        orderModel.status,
-        orderModel.count(),
-        sumAmount,
-        avgAmount,
-        orderModel.userId.countDistinct(),
-        orderModel.deliveryWorkerId.countDistinct()
-      )
-      .from(orderModel)
-      .where(orderModel.createdAt.between(startDate, endDate))
-      .groupBy(dateExpr, orderModel.status)
-      .orderBy(dateExpr.desc(), orderModel.status.asc())
-      .fetch()
+    val results =
+      queryFactory
+        .select(
+          dateExpr,
+          orderModel.status,
+          orderModel.count(),
+          sumAmount,
+          avgAmount,
+          orderModel.userId.countDistinct(),
+          orderModel.deliveryWorkerId.countDistinct(),
+        ).from(orderModel)
+        .where(orderModel.createdAt.between(startDate, endDate))
+        .groupBy(dateExpr, orderModel.status)
+        .orderBy(dateExpr.desc(), orderModel.status.asc())
+        .fetch()
 
     @Suppress("UNCHECKED_CAST")
     return results.map { tuple ->
@@ -185,7 +192,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
         totalRevenue = (tuple.get(sumAmount) as? Long? ?: 0L).toDouble() / 100.0,
         averageOrderValue = (tuple.get(avgAmount) as? Double? ?: 0.0) / 100.0,
         uniqueCustomers = tuple.get(orderModel.userId.countDistinct()) ?: 0L,
-        activeWorkers = tuple.get(orderModel.deliveryWorkerId.countDistinct()) ?: 0L
+        activeWorkers = tuple.get(orderModel.deliveryWorkerId.countDistinct()) ?: 0L,
       )
     }
   }

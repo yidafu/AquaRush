@@ -50,7 +50,7 @@ class DeliveryWorkerMutationResolver(
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   fun createDeliveryWorker(
-    @Argument input: CreateDeliveryWorkerInput
+    @Argument input: CreateDeliveryWorkerInput,
   ): DeliveryWorker {
     try {
       // Validate input
@@ -66,19 +66,20 @@ class DeliveryWorkerMutationResolver(
       }
 
       // Create new delivery worker
-      val worker = DeliveryWorkerModel(
-        userId = 0L, // Will be updated when WeChat integration is available
-        wechatOpenId = input.wechatOpenId,
-        name = input.name,
-        phone = input.phone,
-        avatarUrl = input.avatarUrl,
-        onlineStatus = DeliverWorkerModelStatus.OFFLINE, // Default to offline
-        coordinates = input.coordinates,
-        currentLocation = input.currentLocation,
-        rating = input.rating,
-        earningCents = input.earning,
-        isAvailable = input.isAvailable ?: true,
-      )
+      val worker =
+        DeliveryWorkerModel(
+          userId = 0L, // Will be updated when WeChat integration is available
+          wechatOpenId = input.wechatOpenId,
+          name = input.name,
+          phone = input.phone,
+          avatarUrl = input.avatarUrl,
+          onlineStatus = DeliverWorkerModelStatus.OFFLINE, // Default to offline
+          coordinates = input.coordinates,
+          currentLocation = input.currentLocation,
+          rating = input.rating,
+          earningCents = input.earning,
+          isAvailable = input.isAvailable ?: true,
+        )
 
       val savedWorker = deliveryWorkerRepository.save(worker)
       logger.info("Successfully created delivery worker: ${savedWorker.id} - ${savedWorker.name}")
@@ -97,12 +98,14 @@ class DeliveryWorkerMutationResolver(
   @Transactional
   fun updateDeliveryWorker(
     @Argument workerId: Long,
-    @Argument input: UpdateDeliveryWorkerInput
+    @Argument input: UpdateDeliveryWorkerInput,
   ): DeliveryWorker {
     try {
       // Get existing worker
-      val existingWorker = deliveryWorkerRepository.findById(workerId)
-        .orElseThrow { NotFoundException("送水工不存在: $workerId") }
+      val existingWorker =
+        deliveryWorkerRepository
+          .findById(workerId)
+          .orElseThrow { NotFoundException("送水工不存在: $workerId") }
 
       // Validate input
       validateUpdateDeliveryWorkerInput(input, existingWorker)
@@ -151,9 +154,9 @@ class DeliveryWorkerMutationResolver(
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
   fun deleteDeliveryWorker(
-    @Argument workerId: Long
-  ): Boolean {
-    return try {
+    @Argument workerId: Long,
+  ): Boolean =
+    try {
       if (!deliveryWorkerRepository.existsById(workerId)) {
         throw NotFoundException("送水工不存在: $workerId")
       }
@@ -171,7 +174,6 @@ class DeliveryWorkerMutationResolver(
       logger.error("Failed to delete delivery worker", e)
       throw BadRequestException("删除送水工失败: ${e.message}")
     }
-  }
 
   /**
    * Validate create delivery worker input
@@ -207,7 +209,7 @@ class DeliveryWorkerMutationResolver(
    */
   private fun validateUpdateDeliveryWorkerInput(
     input: UpdateDeliveryWorkerInput,
-    existingWorker: DeliveryWorkerModel
+    existingWorker: DeliveryWorkerModel,
   ) {
     // Validate wechatOpenId if provided
     input.wechatOpenId?.let {
@@ -252,9 +254,7 @@ class DeliveryWorkerMutationResolver(
   /**
    * Validate phone number format (simple validation)
    */
-  private fun isValidPhoneNumber(phone: String): Boolean {
-    return phone.matches(Regex("^1[3-9]\\d{9}$"))
-  }
+  private fun isValidPhoneNumber(phone: String): Boolean = phone.matches(Regex("^1[3-9]\\d{9}$"))
 }
 
 /**
@@ -269,7 +269,7 @@ data class CreateDeliveryWorkerInput(
   val currentLocation: String?,
   val rating: Double?,
   val earning: Long?,
-  val isAvailable: Boolean? = true
+  val isAvailable: Boolean? = true,
 )
 
 data class UpdateDeliveryWorkerInput(
@@ -281,5 +281,5 @@ data class UpdateDeliveryWorkerInput(
   val currentLocation: String?,
   val rating: Double?,
   val earning: Long?,
-  val isAvailable: Boolean?
+  val isAvailable: Boolean?,
 )

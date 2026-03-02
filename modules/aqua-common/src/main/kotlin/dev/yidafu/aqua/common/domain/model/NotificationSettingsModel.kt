@@ -30,32 +30,24 @@ open class NotificationSettingsModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,
-
   @Column(name = "user_id", unique = true, nullable = false)
   val userId: Long,
-
   @Column(name = "order_updates", nullable = false)
   var orderUpdates: Boolean = true,
-
   @Column(name = "payment_notifications", nullable = false)
   var paymentNotifications: Boolean = true,
-
   @Column(name = "delivery_notifications", nullable = false)
   var deliveryNotifications: Boolean = true,
-
   @Column(name = "promotional_notifications", nullable = false)
   var promotionalNotifications: Boolean = false,
-
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
-
   @Column(name = "deleted_by")
-  override var deletedBy: Long? = null
+  override var deletedBy: Long? = null,
 ) : SoftDeletable {
   @PreUpdate
   fun preUpdate() {
