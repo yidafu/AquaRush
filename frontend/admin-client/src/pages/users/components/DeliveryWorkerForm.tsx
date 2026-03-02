@@ -155,13 +155,22 @@ const DeliveryWorkerForm: React.FC<FormModalProps<DeliveryWorkerFormData>> = ({
         <Form.Item
           label="微信OpenID"
           name="wechatOpenId"
-          rules={[
-            { required: true, message: '请输入微信OpenID' },
-            { min: 1, max: 100, message: '微信OpenID长度为1-100个字符' },
-          ]}
         >
-          <Input placeholder="请输入微信OpenID" />
+          <Input placeholder="请输入微信OpenID" disabled />
         </Form.Item>
+
+        {!record && (
+          <Form.Item
+            label="登录密码"
+            name="password"
+            rules={[
+              { required: true, message: '请输入登录密码' },
+              { min: 6, max: 20, message: '密码长度为6-20个字符' },
+            ]}
+          >
+            <Input.Password placeholder="请输入登录密码" />
+          </Form.Item>
+        )}
 
         <Form.Item
           label="状态"

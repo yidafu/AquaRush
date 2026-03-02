@@ -1,0 +1,92 @@
+.order-card {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-number {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+}
+
+.self-collect-tag {
+  font-size: 24px;
+  color: #fa8c16;
+  background-color: #fff7e6;
+  padding: 4px 12px;
+  border-radius: 8px;
+}
+
+.order-info {
+  margin-bottom: 16px;
+}
+
+.info-row {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  font-size: 28px;
+  line-height: 1.5;
+}
+
+.info-row .label {
+  color: #999;
+  min-width: 100px;
+}
+
+.info-row .address {
+  flex: 1;
+  color: #333;
+}
+
+.info-row.amount {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px dashed #f0f0f0;
+}
+
+.amount-text {
+  font-size: 32px;
+  font-weight: 600;
+  color: #ff4d4f;
+}
+
+.order-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  font-size: 28px;
+  padding: 0 32px;
+  height: 64px;
+  line-height: 64px;
+  border-radius: 32px;
+  margin-left: 16px;
+}
+
+.accept-btn {
+  background-color: #1890ff;
+  color: #fff;
+}
+
+.start-btn {
+  background-color: #52c41a;
+  color: #fff;
+}
+
+.detail-btn {
+  background-color: #fa8c16;
+  color: #fff;
+}

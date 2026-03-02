@@ -69,7 +69,8 @@ export interface AdminFormData {
 export interface DeliveryWorkerFormData {
   name: string;
   phone: string;
-  wechatOpenId: string;
+  wechatOpenId?: string;
+  password?: string;
   avatarUrl?: string;
   status: 'ONLINE' | 'OFFLINE';
   isAvailable: boolean;
