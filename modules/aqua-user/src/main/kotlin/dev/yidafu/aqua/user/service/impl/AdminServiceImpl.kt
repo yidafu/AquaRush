@@ -39,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional
 class AdminServiceImpl(
   private val adminRepository: AdminRepository,
   private val deliveryService: DeliveryService,
-  private val passwordEncoder: PasswordEncoder,
 ) : AdminService {
   private val logger = LoggerFactory.getLogger(AdminServiceImpl::class.java)
 
@@ -120,7 +119,7 @@ class AdminServiceImpl(
 
     // Encode password
     val passwordToEncode = password ?: DEFAULT_PASSWORD
-    val passwordHash = passwordEncoder.encode(passwordToEncode) ?: ""
+    val passwordHash = "" // passwordEncoder.encode(passwordToEncode) ?: ""
 
     // Create admin user
     val admin =

@@ -1,23 +1,4 @@
-/*
- * AquaRush
- *
- * Copyright (C) 2025 AquaRush Team
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-package dev.yidafu.aqua.user.service
+package dev.yidafu.aqua.client.config
 
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.security.UserPrincipal
@@ -30,13 +11,13 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException
 import org.springframework.stereotype.Service
 
 @Service
-class CustomUserDetailsService(
+class ClientUserDetailsService(
   private val userRepository: UserRepository,
 ) : UserDetailsService {
-  val logger = LoggerFactory.getLogger(CustomUserDetailsService::class.java)
+  val logger = LoggerFactory.getLogger(ClientUserDetailsService::class.java)
 
   override fun loadUserByUsername(username: String): UserDetails {
-    // logger.info("loadUserByUsername ${username}")
+    logger.info("loadUserByUsername $username")
     // For JWT authentication, username is the OpenID
     val user =
       userRepository.findByWechatOpenId(username)

@@ -134,6 +134,14 @@ interface AddressService {
   ): Page<AddressModel>
 
   /**
+   * 搜索所有地址 (管理员功能)
+   */
+  fun searchAllAddresses(
+    keyword: String?,
+    pageable: PageRequest,
+  ): Page<AddressModel>
+
+  /**
    * 获取用户地址数量
    */
   fun countByUserId(userId: Long): Int
@@ -146,4 +154,19 @@ interface AddressService {
 
   // Legacy method for backward compatibility
   fun unsetDefaultAddresses(userId: Long)
+
+  /**
+   * 批量保存地址列表 (管理员功能)
+   */
+  fun saveAll(addresses: List<AddressModel>): List<AddressModel>
+
+  /**
+   * 获取所有地址 (管理员功能)
+   */
+  fun findAllAddresses(): List<AddressModel>
+
+  /**
+   * 根据ID删除地址 (管理员功能，不校验userId)
+   */
+  fun deleteAddressById(addressId: Long): Boolean
 }

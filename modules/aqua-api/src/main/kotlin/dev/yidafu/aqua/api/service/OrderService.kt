@@ -96,6 +96,18 @@ interface OrderService {
     userId: Long,
   ): OrderModel
 
+  /**
+   * 配送员创建订单 - 通过地址ID获取用户ID
+   */
+  fun createDeliveryOrder(
+    deliveryUserId: Long,
+    productId: Long,
+    addressId: Long,
+    quantity: Int,
+    isSelfCollect: Boolean = false,
+    remark: String? = null,
+  ): OrderModel
+
   fun cancelOrder(
     orderId: Long,
     userId: Long,

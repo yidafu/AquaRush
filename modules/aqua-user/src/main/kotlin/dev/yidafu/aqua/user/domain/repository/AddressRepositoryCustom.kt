@@ -20,6 +20,8 @@
 package dev.yidafu.aqua.user.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.AddressModel
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
 /**
  * Custom repository interface for Address entity with QueryDSL implementations
@@ -55,4 +57,28 @@ interface AddressRepositoryCustom {
     userId: Long,
     keyword: String,
   ): List<AddressModel>
+
+  /**
+   * Search addresses by user ID and keyword with pagination
+   * @param userId the user ID
+   * @param keyword the search keyword
+   * @param pageable pagination parameters
+   * @return page of matching addresses
+   */
+  fun searchByUserIdAndKeyword(
+    userId: Long,
+    keyword: String,
+    pageable: Pageable,
+  ): Page<AddressModel>
+
+  /**
+   * Search all addresses with optional keyword filter (admin function)
+   * @param keyword the search keyword
+   * @param pageable pagination parameters
+   * @return page of matching addresses
+   */
+  fun searchAllAddresses(
+    keyword: String?,
+    pageable: Pageable,
+  ): Page<AddressModel>
 }

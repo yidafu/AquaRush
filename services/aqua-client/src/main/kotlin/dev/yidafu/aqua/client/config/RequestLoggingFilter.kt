@@ -55,7 +55,7 @@ class RequestLoggingFilter : OncePerRequestFilter() {
     logRequestEntry(request, correlationId ?: "", requestId, startTime)
 
     // Wrap request and response to enable multiple reads
-    val wrappedRequest = if (isAsyncDispatch(request)) request else ContentCachingRequestWrapper(request)
+    val wrappedRequest = if (isAsyncDispatch(request)) request else ContentCachingRequestWrapper(request, 10 * 1024 * 1024)
     val wrappedResponse = ContentCachingResponseWrapper(response)
 
     var exception: Exception? = null
@@ -92,7 +92,7 @@ class RequestLoggingFilter : OncePerRequestFilter() {
         correlationId = correlationId ?: "",
         requestId = requestId,
         duration = duration,
-        exception = exception
+        exception = exception,
       )
     }
   }
@@ -118,35 +118,39 @@ class RequestLoggingFilter : OncePerRequestFilter() {
       userAgent,
       contentType,
       contentLength,
-      startTime
+      startTime,
     )
 
     // Log all headers for debugging (only in debug mode)
     if (logger.isDebugEnabled) {
-      val headers = request.headerNames.asSequence()
-        .associateWith { headerName ->
-          request.getHeaders(headerName)?.asSequence()?.toList() ?: emptyList()
-        }
+      val headers =
+        request.headerNames
+          .asSequence()
+          .associateWith { headerName ->
+            request.getHeaders(headerName)?.asSequence()?.toList() ?: emptyList()
+          }
 
       logger.debug(
         "REQUEST_HEADERS - CorrelationId: {}, RequestId: {}, Headers: {}",
         correlationId,
         requestId,
-        headers
+        headers,
       )
     }
 
     // Log query parameters
-    val queryParams = request.parameterMap.map { (key, values) ->
-      "$key=${values.joinToString(",")}"
-    }.joinToString("&")
+    val queryParams =
+      request.parameterMap
+        .map { (key, values) ->
+          "$key=${values.joinToString(",")}"
+        }.joinToString("&")
 
     if (queryParams.isNotEmpty()) {
       logger.info(
         "REQUEST_PARAMS - CorrelationId: {}, RequestId: {}, QueryParams: {}",
         correlationId,
         requestId,
-        queryParams
+        queryParams,
       )
     }
   }
@@ -162,23 +166,25 @@ class RequestLoggingFilter : OncePerRequestFilter() {
     val status = response.status
     val statusText = getStatusText(status)
 
-    val logLevel = when {
-      status >= 500 -> "ERROR"
-      status >= 400 -> "WARN"
-      duration > 5000 -> "WARN"
-      else -> "INFO"
-    }
+    val logLevel =
+      when {
+        status >= 500 -> "ERROR"
+        status >= 400 -> "WARN"
+        duration > 5000 -> "WARN"
+        else -> "INFO"
+      }
 
-    val message = buildString {
-      append("REQUEST_COMPLETE - ")
-      append("CorrelationId: $correlationId, ")
-      append("RequestId: $requestId, ")
-      append("Method: ${request.method}, ")
-      append("URI: ${request.requestURI}, ")
-      append("Status: $status $statusText, ")
-      append("Duration: ${duration}ms, ")
-      append("ContentType: ${response.contentType}")
-    }
+    val message =
+      buildString {
+        append("REQUEST_COMPLETE - ")
+        append("CorrelationId: $correlationId, ")
+        append("RequestId: $requestId, ")
+        append("Method: ${request.method}, ")
+        append("URI: ${request.requestURI}, ")
+        append("Status: $status $statusText, ")
+        append("Duration: ${duration}ms, ")
+        append("ContentType: ${response.contentType}")
+      }
 
     when (logLevel) {
       "ERROR" -> {
@@ -186,8 +192,14 @@ class RequestLoggingFilter : OncePerRequestFilter() {
         // Log response body for 500 errors if available
         logResponseBodyForErrors(request, response, correlationId, requestId)
       }
-      "WARN" -> logger.warn(message, exception)
-      else -> logger.info(message)
+
+      "WARN" -> {
+        logger.warn(message, exception)
+      }
+
+      else -> {
+        logger.info(message)
+      }
     }
 
     // Performance warning
@@ -198,7 +210,7 @@ class RequestLoggingFilter : OncePerRequestFilter() {
         requestId,
         request.method,
         request.requestURI,
-        duration
+        duration,
       )
     }
   }
@@ -215,7 +227,7 @@ class RequestLoggingFilter : OncePerRequestFilter() {
       requestId,
       exceptionType,
       exception.message,
-      exception
+      exception,
     )
   }
 
@@ -234,14 +246,14 @@ class RequestLoggingFilter : OncePerRequestFilter() {
             "ERROR_RESPONSE_BODY - CorrelationId: {}, RequestId: {}, Body: {}",
             correlationId,
             requestId,
-            responseBody
+            responseBody,
           )
         } catch (e: Exception) {
           logger.warn(
             "Failed to log response body - CorrelationId: {}, RequestId: {}, Error: {}",
             correlationId,
             requestId,
-            e.message
+            e.message,
           )
         }
       }
@@ -262,8 +274,8 @@ class RequestLoggingFilter : OncePerRequestFilter() {
     return request.remoteAddr ?: "unknown"
   }
 
-  private fun getStatusText(status: Int): String {
-    return when (status) {
+  private fun getStatusText(status: Int): String =
+    when (status) {
       200 -> "OK"
       201 -> "Created"
       204 -> "No Content"
@@ -278,20 +290,19 @@ class RequestLoggingFilter : OncePerRequestFilter() {
       503 -> "Service Unavailable"
       else -> "Unknown"
     }
-  }
 
   override fun shouldNotFilter(request: HttpServletRequest): Boolean {
     val uri = request.requestURI
     // Skip logging for static resources and health checks
     return uri.startsWith("/actuator/health") ||
-           uri.startsWith("/actuator/info") ||
-           uri.endsWith(".css") ||
-           uri.endsWith(".js") ||
-           uri.endsWith(".ico") ||
-           uri.endsWith(".png") ||
-           uri.endsWith(".jpg") ||
-           uri.endsWith(".jpeg") ||
-           uri.endsWith(".gif") ||
-           uri.endsWith(".svg")
+      uri.startsWith("/actuator/info") ||
+      uri.endsWith(".css") ||
+      uri.endsWith(".js") ||
+      uri.endsWith(".ico") ||
+      uri.endsWith(".png") ||
+      uri.endsWith(".jpg") ||
+      uri.endsWith(".jpeg") ||
+      uri.endsWith(".gif") ||
+      uri.endsWith(".svg")
   }
 }

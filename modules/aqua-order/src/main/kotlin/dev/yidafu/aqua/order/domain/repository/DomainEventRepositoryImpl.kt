@@ -23,7 +23,7 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.OrderDomainEventModel
 import dev.yidafu.aqua.common.domain.model.QDomainEventModel.Companion.domainEventModel
 import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import jakarta.persistence.EntityManager
@@ -50,7 +50,7 @@ class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
   override fun findNextPendingEventForUpdateEnhanced(
     status: EventStatusModel,
     now: LocalDateTime,
-  ): DomainEventModel? {
+  ): OrderDomainEventModel? {
     // Native query with explicit pessimistic locking
     val query =
       entityManager.createQuery(
@@ -60,7 +60,7 @@ class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
         AND (de.nextRunAt <= :now OR de.nextRunAt IS NULL)
         ORDER BY de.createdAt ASC
         """.trimIndent(),
-        DomainEventModel::class.java,
+        OrderDomainEventModel::class.java,
       )
 
     query.setParameter("status", status)
@@ -77,7 +77,7 @@ class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
     eventType: String?,
     maxRetries: Int?,
     batchSize: Int,
-  ): List<DomainEventModel> {
+  ): List<OrderDomainEventModel> {
     val builder = BooleanBuilder()
 
     builder.and(domainEventModel.status.eq(status))
@@ -141,7 +141,7 @@ class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
     endDate: LocalDateTime,
     eventTypes: List<String>?,
     statuses: List<EventStatusModel>?,
-  ): List<DomainEventModel> {
+  ): List<OrderDomainEventModel> {
     val builder = BooleanBuilder()
 
     builder.and(domainEventModel.createdAt.between(startDate, endDate))
@@ -258,7 +258,7 @@ interface DomainEventRepositoryCustom {
   fun findNextPendingEventForUpdateEnhanced(
     status: EventStatusModel,
     now: LocalDateTime,
-  ): DomainEventModel?
+  ): OrderDomainEventModel?
 
   fun findPendingEventsWithFilters(
     status: EventStatusModel,
@@ -266,7 +266,7 @@ interface DomainEventRepositoryCustom {
     eventType: String?,
     maxRetries: Int?,
     batchSize: Int,
-  ): List<DomainEventModel>
+  ): List<OrderDomainEventModel>
 
   fun batchUpdateEvents(
     eventIds: List<Long>,
@@ -280,7 +280,7 @@ interface DomainEventRepositoryCustom {
     endDate: LocalDateTime,
     eventTypes: List<String>?,
     statuses: List<EventStatusModel>?,
-  ): List<DomainEventModel>
+  ): List<OrderDomainEventModel>
 
   fun countEventsByTypeAndStatus(
     eventType: String,

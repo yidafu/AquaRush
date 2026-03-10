@@ -19,8 +19,10 @@
 
 package dev.yidafu.aqua.admin.user.resolvers
 
+import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
+import dev.yidafu.aqua.user.domain.repository.RegionRepository
 import dev.yidafu.aqua.user.mapper.AdminMapper
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -30,6 +32,7 @@ import org.springframework.stereotype.Controller
 @Controller
 class AdminQueryResolver(
   private val adminRepository: AdminRepository,
+  private val regionRepository: RegionRepository,
 ) {
   /**
    * 获取所有管理员 - 管理员权限
@@ -46,4 +49,18 @@ class AdminQueryResolver(
   fun admin(
     @Argument id: Long,
   ): Admin? = adminRepository.findAdminById(id)?.let { AdminMapper.map(it) }
+
+  /**
+   * 获取所有地区数据，用于前端构建树形结构
+   */
+  @QueryMapping
+  fun allRegions(): List<RegionModel> {
+    return try {
+      regionRepository.findAll() ?: emptyList()
+    } catch (e: Exception) {
+      println("Error fetching all regions: ${e.message}")
+      e.printStackTrace()
+      emptyList()
+    }
+  }
 }

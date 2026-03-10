@@ -59,4 +59,10 @@ interface ProductService {
   ): Page<ProductModel>
 
   fun findAllCategories(): List<String>
+
+  fun searchProducts(
+    keyword: String?,
+    status: ProductStatus?,
+    pageable: Pageable,
+  ): Page<ProductModel>
 }

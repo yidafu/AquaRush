@@ -35,7 +35,7 @@ import java.time.LocalDateTime
     Index(name = "idx_order_event_status", columnList = "status"),
   ],
 )
-data class DomainEventModel(
+data class OrderDomainEventModel(
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long? = null,

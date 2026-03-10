@@ -46,3 +46,7 @@ class ForbiddenException(
 class InsufficientStockException(
   message: String,
 ) : BusinessException(message, "INSUFFICIENT_STOCK")
+
+class UserNotFoundException(
+  message: String,
+) : BusinessException(message, "USER_NOT_FOUND")

@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.order.domain.repository
 
-import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.OrderDomainEventModel
 import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import jakarta.persistence.LockModeType
 import org.springframework.data.domain.PageRequest
@@ -33,21 +33,21 @@ import java.time.LocalDateTime
 
 @Repository
 interface DomainEventRepository :
-  JpaRepository<DomainEventModel, Long>,
-  JpaSpecificationExecutor<DomainEventModel> {
+  JpaRepository<OrderDomainEventModel, Long>,
+  JpaSpecificationExecutor<OrderDomainEventModel> {
   fun findByEventTypeAndStatus(
     eventType: String,
     status: EventStatusModel,
-  ): List<DomainEventModel>
+  ): List<OrderDomainEventModel>
 
-  fun findByStatus(status: EventStatusModel): List<DomainEventModel>
+  fun findByStatus(status: EventStatusModel): List<OrderDomainEventModel>
 
-  fun findByStatusIn(statuses: List<EventStatusModel>): List<DomainEventModel>
+  fun findByStatusIn(statuses: List<EventStatusModel>): List<OrderDomainEventModel>
 
   fun findPendingEvents(
     status: EventStatusModel,
     now: LocalDateTime,
-  ): List<DomainEventModel> {
+  ): List<OrderDomainEventModel> {
     val specification =
       DomainEventSpecifications
         .byStatus(status)
@@ -60,7 +60,7 @@ interface DomainEventRepository :
   fun findNextPendingEventForUpdate(
     status: EventStatusModel,
     now: LocalDateTime,
-  ): DomainEventModel? {
+  ): OrderDomainEventModel? {
     val specification =
       DomainEventSpecifications
         .byStatus(status)
@@ -136,7 +136,7 @@ interface DomainEventRepository :
     endDate: LocalDateTime,
     eventTypes: List<String>? = null,
     statuses: List<EventStatusModel>? = null,
-  ): List<DomainEventModel>
+  ): List<OrderDomainEventModel>
 
   fun countEventsByTypeAndStatus(
     eventType: String,

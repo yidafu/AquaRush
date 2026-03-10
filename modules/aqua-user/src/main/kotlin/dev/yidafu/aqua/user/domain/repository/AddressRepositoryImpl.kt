@@ -24,6 +24,9 @@ import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.QAddressModel.Companion.addressModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 
@@ -102,5 +105,93 @@ class AddressRepositoryImpl : AddressRepositoryCustom {
             .or(addressModel.detailAddress.lower().like("%$lowerKeyword%")),
         ),
       ).fetch()
+  }
+
+  override fun searchByUserIdAndKeyword(
+    userId: Long,
+    keyword: String,
+    pageable: Pageable,
+  ): Page<AddressModel> {
+    val lowerKeyword = keyword.lowercase()
+
+    // Get total count
+    val total =
+      queryFactory
+        .query()
+        .from(addressModel)
+        .where(
+          addressModel.userId.eq(userId).and(
+            addressModel.detailAddress
+              .like("%$lowerKeyword%")
+              .or(addressModel.phone.like("%$lowerKeyword%"))
+              .or(addressModel.receiverName.like("%$lowerKeyword%")),
+          ),
+        ).fetchCount()
+
+    // Get paginated results
+    val results =
+      queryFactory
+        .selectFrom(addressModel)
+        .where(
+          addressModel.userId.eq(userId).and(
+            addressModel.detailAddress
+              .like("%$lowerKeyword%")
+              .or(addressModel.phone.like("%$lowerKeyword%"))
+              .or(addressModel.receiverName.like("%$lowerKeyword%")),
+          ),
+        ).offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .fetch()
+
+    return PageImpl(results, pageable, total)
+  }
+
+  override fun searchAllAddresses(
+    keyword: String?,
+    pageable: Pageable,
+  ): Page<AddressModel> {
+    val lowerKeyword = keyword?.lowercase()
+
+    // Build the where condition
+    val whereCondition =
+      if (lowerKeyword.isNullOrBlank()) {
+        null
+      } else {
+        addressModel.detailAddress
+          .like("%$lowerKeyword%")
+          .or(addressModel.phone.like("%$lowerKeyword%"))
+          .or(addressModel.receiverName.like("%$lowerKeyword%"))
+      }
+
+    // Get total count
+    val total =
+      if (whereCondition == null) {
+        queryFactory.query().from(addressModel).fetchCount()
+      } else {
+        queryFactory
+          .query()
+          .from(addressModel)
+          .where(whereCondition)
+          .fetchCount()
+      }
+
+    // Get paginated results
+    val results =
+      if (whereCondition == null) {
+        queryFactory
+          .selectFrom(addressModel)
+          .offset(pageable.offset)
+          .limit(pageable.pageSize.toLong())
+          .fetch()
+      } else {
+        queryFactory
+          .selectFrom(addressModel)
+          .where(whereCondition)
+          .offset(pageable.offset)
+          .limit(pageable.pageSize.toLong())
+          .fetch()
+      }
+
+    return PageImpl(results, pageable, total)
   }
 }

@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.order.domain.repository
 
-import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.OrderDomainEventModel
 import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
@@ -29,24 +29,24 @@ class DomainEventSpecifications {
     fun byEventTypeAndStatus(
       eventType: String,
       status: EventStatusModel,
-    ): Specification<DomainEventModel> =
+    ): Specification<OrderDomainEventModel> =
       Specification { root, _, cb ->
         val eventTypePredicate = cb.equal(root.get<String>("eventType"), eventType)
         val statusPredicate = cb.equal(root.get<Enum<*>>("status"), status)
         cb.and(eventTypePredicate, statusPredicate)
       }
 
-    fun byStatus(status: EventStatusModel): Specification<DomainEventModel> =
+    fun byStatus(status: EventStatusModel): Specification<OrderDomainEventModel> =
       Specification { root, _, cb ->
         cb.equal(root.get<Enum<*>>("status"), status)
       }
 
-    fun byStatuses(statuses: List<EventStatusModel>): Specification<DomainEventModel> =
+    fun byStatuses(statuses: List<EventStatusModel>): Specification<OrderDomainEventModel> =
       Specification { root, _, cb ->
         root.get<Enum<*>>("status").`in`(statuses)
       }
 
-    fun nextRunAtBeforeOrIsNull(dateTime: LocalDateTime): Specification<DomainEventModel> =
+    fun nextRunAtBeforeOrIsNull(dateTime: LocalDateTime): Specification<OrderDomainEventModel> =
       Specification { root, _, cb ->
         cb.or(
           cb.isNull(root.get<LocalDateTime>("nextRunAt")),
@@ -54,7 +54,7 @@ class DomainEventSpecifications {
         )
       }
 
-    fun retryCountGreaterThanOrEqualTo(minRetries: Int): Specification<DomainEventModel> =
+    fun retryCountGreaterThanOrEqualTo(minRetries: Int): Specification<OrderDomainEventModel> =
       Specification { root, _, cb ->
         cb.greaterThanOrEqualTo(root.get<Int>("retryCount"), minRetries)
       }
@@ -62,14 +62,14 @@ class DomainEventSpecifications {
     fun createdAtBetween(
       startDate: LocalDateTime,
       endDate: LocalDateTime,
-    ): Specification<DomainEventModel> =
+    ): Specification<OrderDomainEventModel> =
       Specification { root, _, cb ->
         val startPredicate = cb.greaterThanOrEqualTo(root.get<LocalDateTime>("createdAt"), startDate)
         val endPredicate = cb.lessThanOrEqualTo(root.get<LocalDateTime>("createdAt"), endDate)
         cb.and(startPredicate, endPredicate)
       }
 
-    fun byEventType(eventType: String): Specification<DomainEventModel> =
+    fun byEventType(eventType: String): Specification<OrderDomainEventModel> =
       Specification { root, _, cb ->
         cb.equal(root.get<String>("eventType"), eventType)
       }

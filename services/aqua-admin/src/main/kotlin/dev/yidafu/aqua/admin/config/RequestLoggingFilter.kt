@@ -29,6 +29,7 @@ import org.springframework.core.Ordered
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
+import org.springframework.web.util.ContentCachingRequestWrapper
 import org.springframework.web.util.ContentCachingResponseWrapper
 import java.io.IOException
 import java.nio.charset.StandardCharsets
@@ -53,7 +54,7 @@ class RequestLoggingFilter : OncePerRequestFilter() {
     logRequestEntry(request, correlationId ?: "", requestId, startTime)
 
     // Wrap request and response to enable multiple reads
-    val wrappedRequest = if (isAsyncDispatch(request)) request else ContentCachingRequestWrapper(request)
+    val wrappedRequest = if (isAsyncDispatch(request)) request else ContentCachingRequestWrapper(request, 10 * 1024 * 1024)
     val wrappedResponse = ContentCachingResponseWrapper(response)
 
     var exception: Exception? = null

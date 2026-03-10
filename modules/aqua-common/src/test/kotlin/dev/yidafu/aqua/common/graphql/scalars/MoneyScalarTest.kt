@@ -31,7 +31,6 @@ import org.junit.jupiter.api.assertThrows
 
 @DisplayName("MoneyScalar GraphQL Tests")
 class MoneyScalarTest {
-
   private val coercing = MoneyScalar.GraphQL_TYPE.coercing
 
   // ========== Serialization Tests ==========
@@ -65,27 +64,30 @@ class MoneyScalarTest {
   @Test
   @DisplayName("Should throw exception for negative Long values")
   fun `serialize negative Long throws exception`() {
-    val exception = assertThrows<CoercingSerializeException> {
-      coercing.serialize(-1L)
-    }
+    val exception =
+      assertThrows<CoercingSerializeException> {
+        coercing.serialize(-1L)
+      }
     assertTrue(exception.message!!.contains("Money value cannot be negative"))
   }
 
   @Test
   @DisplayName("Should throw exception for negative Int values")
   fun `serialize negative Int throws exception`() {
-    val exception = assertThrows<CoercingSerializeException> {
-      coercing.serialize(-1)
-    }
+    val exception =
+      assertThrows<CoercingSerializeException> {
+        coercing.serialize(-1)
+      }
     assertTrue(exception.message!!.contains("Money value cannot be negative"))
   }
 
   @Test
   @DisplayName("Should throw exception for negative String values")
   fun `serialize negative String throws exception`() {
-    val exception = assertThrows<CoercingSerializeException> {
-      coercing.serialize("-1")
-    }
+    val exception =
+      assertThrows<CoercingSerializeException> {
+        coercing.serialize("-1")
+      }
     assertTrue(exception.message!!.contains("Money value cannot be negative"))
   }
 
@@ -152,27 +154,30 @@ class MoneyScalarTest {
   @Test
   @DisplayName("Should throw exception for negative Long values in parseValue")
   fun `parseValue negative Long throws exception`() {
-    val exception = assertThrows<CoercingParseValueException> {
-      coercing.parseValue(-1L)
-    }
+    val exception =
+      assertThrows<CoercingParseValueException> {
+        coercing.parseValue(-1L)
+      }
     assertTrue(exception.message!!.contains("Money value cannot be negative"))
   }
 
   @Test
   @DisplayName("Should throw exception for negative Int values in parseValue")
   fun `parseValue negative Int throws exception`() {
-    val exception = assertThrows<CoercingParseValueException> {
-      coercing.parseValue(-1)
-    }
+    val exception =
+      assertThrows<CoercingParseValueException> {
+        coercing.parseValue(-1)
+      }
     assertTrue(exception.message!!.contains("Money value cannot be negative"))
   }
 
   @Test
   @DisplayName("Should throw exception for negative String values in parseValue")
   fun `parseValue negative String throws exception`() {
-    val exception = assertThrows<CoercingParseValueException> {
-      coercing.parseValue("-1")
-    }
+    val exception =
+      assertThrows<CoercingParseValueException> {
+        coercing.parseValue("-1")
+      }
     assertTrue(exception.message!!.contains("Money value cannot be negative"))
   }
 
@@ -231,18 +236,20 @@ class MoneyScalarTest {
   @Test
   @DisplayName("Should throw exception for negative IntValue literals")
   fun `parseLiteral negative IntValue throws exception`() {
-    val exception = assertThrows<CoercingParseLiteralException> {
-      coercing.parseLiteral(IntValue.newIntValue(-1).build())
-    }
+    val exception =
+      assertThrows<CoercingParseLiteralException> {
+        coercing.parseLiteral(IntValue.newIntValue(-1).build())
+      }
     assertTrue(exception.message!!.contains("Money value cannot be negative"))
   }
 
   @Test
   @DisplayName("Should throw exception for negative StringValue literals")
   fun `parseLiteral negative StringValue throws exception`() {
-    val exception = assertThrows<CoercingParseLiteralException> {
-      coercing.parseLiteral(StringValue.newStringValue("-1").build())
-    }
+    val exception =
+      assertThrows<CoercingParseLiteralException> {
+        coercing.parseLiteral(StringValue.newStringValue("-1").build())
+      }
     assertTrue(exception.message!!.contains("Money value cannot be negative"))
   }
 
@@ -266,9 +273,10 @@ class MoneyScalarTest {
   @Test
   @DisplayName("Should throw exception for null StringValue")
   fun `parseLiteral null StringValue throws exception`() {
-    val exception = assertThrows<CoercingParseLiteralException> {
-      coercing.parseLiteral(StringValue.newStringValue(null).build())
-    }
+    val exception =
+      assertThrows<CoercingParseLiteralException> {
+        coercing.parseLiteral(StringValue.newStringValue(null).build())
+      }
     assertTrue(exception.message!!.contains("String value is null"))
   }
 

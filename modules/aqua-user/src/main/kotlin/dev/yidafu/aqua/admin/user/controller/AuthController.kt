@@ -1,9 +1,9 @@
 package dev.yidafu.aqua.admin.user.controller
 
 import dev.yidafu.aqua.admin.user.controller.dto.AdminLoginRequest
+import dev.yidafu.aqua.api.dto.LoginResponse
 import dev.yidafu.aqua.common.ApiResponse
-import dev.yidafu.aqua.user.service.AdminAuthService
-import dev.yidafu.aqua.user.service.dto.LoginResponse
+import dev.yidafu.aqua.user.service.impl.AdminAuthServiceImpl
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/auth")
 class AuthController(
-  private val adminAuthService: AdminAuthService,
+  private val adminAuthService: AdminAuthServiceImpl,
 ) {
   /**
    * Traditional form login for admin users

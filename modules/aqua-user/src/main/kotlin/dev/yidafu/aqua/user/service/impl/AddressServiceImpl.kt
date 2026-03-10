@@ -275,26 +275,15 @@ class AddressServiceImpl(
     userId: Long,
     keyword: String,
     pageable: PageRequest,
-  ): Page<AddressModel> {
-    // For now, return all user addresses filtered by keyword
-    val allAddresses = addressRepository.findByUserId(userId)
-    val filteredAddresses =
-      allAddresses.filter { address ->
-        address.province?.contains(keyword, ignoreCase = true) == true ||
-          address.city?.contains(keyword, ignoreCase = true) == true ||
-          address.district?.contains(keyword, ignoreCase = true) == true ||
-          address.detailAddress?.contains(keyword, ignoreCase = true) == true
-      }
+  ): Page<AddressModel> = addressRepository.searchByUserIdAndKeyword(userId, keyword, pageable)
 
-    val start = pageable.offset.toInt()
-    val end = (start + pageable.pageSize).coerceAtMost(filteredAddresses.size)
-
-    return if (start >= filteredAddresses.size) {
-      Page.empty(pageable)
-    } else {
-      PageImpl(filteredAddresses.subList(start, end), pageable, filteredAddresses.size.toLong())
-    }
-  }
+  /**
+   * 搜索所有地址 (管理员功能)
+   */
+  override fun searchAllAddresses(
+    keyword: String?,
+    pageable: PageRequest,
+  ): Page<AddressModel> = addressRepository.searchAllAddresses(keyword, pageable)
 
   override fun countByUserId(userId: Long): Int = addressRepository.countByUserId(userId)
 
@@ -321,6 +310,40 @@ class AddressServiceImpl(
   )
   override fun unsetDefaultAddresses(userId: Long) {
     addressRepository.clearDefaultAddresses(userId)
+  }
+
+  /**
+   * 批量保存地址列表 (管理员功能)
+   */
+  @CacheEvict(
+    value = ["user_addresses", "user_default_address", "address"],
+    allEntries = true,
+  )
+  override fun saveAll(addresses: List<AddressModel>): List<AddressModel> {
+    return addressRepository.saveAll(addresses)
+  }
+
+  /**
+   * 获取所有地址 (管理员功能)
+   */
+  override fun findAllAddresses(): List<AddressModel> {
+    return addressRepository.findAll()
+  }
+
+  /**
+   * 根据ID删除地址 (管理员功能，不校验userId)
+   */
+  @CacheEvict(
+    value = ["user_addresses", "user_default_address", "address"],
+    allEntries = true,
+  )
+  override fun deleteAddressById(addressId: Long): Boolean {
+    return try {
+      addressRepository.deleteById(addressId)
+      true
+    } catch (e: Exception) {
+      false
+    }
   }
 
   // Private helper methods

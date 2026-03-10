@@ -17,15 +17,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.client.config
+package dev.yidafu.aqua.common.config
 
 import dev.yidafu.aqua.common.web.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.security.core.AuthenticationException
 import org.springframework.security.web.AuthenticationEntryPoint
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import tools.jackson.databind.ObjectMapper
 
@@ -35,14 +35,14 @@ import tools.jackson.databind.ObjectMapper
  */
 @Component
 class CustomAuthenticationEntryPoint(
-  private val objectMapper: ObjectMapper
+  private val objectMapper: ObjectMapper,
 ) : AuthenticationEntryPoint {
   private val logger = LoggerFactory.getLogger(CustomAuthenticationEntryPoint::class.java)
 
   override fun commence(
     request: HttpServletRequest,
     response: HttpServletResponse,
-    authException: AuthenticationException
+    authException: AuthenticationException,
   ) {
     val requestURI = request.requestURI
     val method = request.method
@@ -51,7 +51,7 @@ class CustomAuthenticationEntryPoint(
       "Authentication required - Method: {}, URI: {}, Reason: {}",
       method,
       requestURI,
-      authException.message
+      authException.message,
     )
 
     // 记录详细的认证失败信息用于审计
@@ -61,7 +61,7 @@ class CustomAuthenticationEntryPoint(
       method,
       requestURI,
       request.getHeader("User-Agent"),
-      request.remoteAddr
+      request.remoteAddr,
     )
 
     // 设置响应头
@@ -70,9 +70,10 @@ class CustomAuthenticationEntryPoint(
     response.status = HttpServletResponse.SC_UNAUTHORIZED
 
     // 构建错误响应
-    val errorResponse = ApiResponse.unauthorized(
-      message = "认证失败，请先登录后再访问: $method $requestURI"
-    )
+    val errorResponse =
+      ApiResponse.unauthorized(
+        message = "认证失败，请先登录后再访问: $method $requestURI",
+      )
 
     // 返回 JSON 格式的错误信息
     response.writer.use { writer ->

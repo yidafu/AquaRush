@@ -24,14 +24,17 @@ import dev.yidafu.aqua.api.service.OrderService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentType
+import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.order.mapper.OrderMapper
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 
 @AdminService
@@ -108,6 +111,31 @@ class AdminOrderMutationResolver(
   ): List<Order> {
     logger.info("Admin batch assigning orders $orderIds to worker $workerId")
     return deliveryService.batchAssignOrders(orderIds, workerId).map { OrderMapper.map(it) }
+  }
+
+  /**
+   * 配送员创建订单（配送员为用户创建订单）
+   * 配送员不需要用户认证，直接通过地址ID获取用户信息
+   */
+  @MutationMapping
+  fun createDeliveryOrder(
+    @Argument @Valid input: CreateDeliveryOrderInput,
+    @AuthenticationPrincipal userPrincipal: UserPrincipal,
+  ): Order {
+    logger.info(
+      "Delivery creating order: productId=${input.productId}, addressId=${input.addressId}, quantity=${input.quantity}, isSelfCollect=${input.isSelfCollect}",
+    )
+    val userId = userPrincipal.id
+    return OrderMapper.map(
+      orderService.createDeliveryOrder(
+        userId,
+        input.productId,
+        input.addressId,
+        input.quantity,
+        input.isSelfCollect ?: false,
+        input.remark,
+      ),
+    )
   }
 
   /**

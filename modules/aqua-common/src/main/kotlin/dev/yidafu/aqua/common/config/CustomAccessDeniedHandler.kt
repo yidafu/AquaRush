@@ -17,15 +17,15 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.client.config
+package dev.yidafu.aqua.common.config
 
 import dev.yidafu.aqua.common.web.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.web.access.AccessDeniedHandler
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import tools.jackson.databind.ObjectMapper
 
@@ -35,14 +35,14 @@ import tools.jackson.databind.ObjectMapper
  */
 @Component
 class CustomAccessDeniedHandler(
-  private val objectMapper: ObjectMapper
+  private val objectMapper: ObjectMapper,
 ) : AccessDeniedHandler {
   private val logger = LoggerFactory.getLogger(CustomAccessDeniedHandler::class.java)
 
   override fun handle(
     request: HttpServletRequest,
     response: HttpServletResponse,
-    accessDeniedException: AccessDeniedException
+    accessDeniedException: AccessDeniedException,
   ) {
     val requestURI = request.requestURI
     val method = request.method
@@ -52,7 +52,7 @@ class CustomAccessDeniedHandler(
       method,
       requestURI,
       request.userPrincipal?.name ?: "anonymous",
-      accessDeniedException.message
+      accessDeniedException.message,
     )
 
     // 记录详细的访问拒绝信息用于审计
@@ -63,7 +63,7 @@ class CustomAccessDeniedHandler(
       requestURI,
       request.userPrincipal?.name ?: "anonymous",
       request.getHeader("User-Agent"),
-      request.remoteAddr
+      request.remoteAddr,
     )
 
     // 设置响应头
@@ -72,9 +72,10 @@ class CustomAccessDeniedHandler(
     response.status = HttpServletResponse.SC_FORBIDDEN
 
     // 构建错误响应
-    val errorResponse = ApiResponse.forbidden(
-      message = "权限不足，无法访问: $method $requestURI"
-    )
+    val errorResponse =
+      ApiResponse.forbidden(
+        message = "权限不足，无法访问: $method $requestURI",
+      )
 
     // 返回 JSON 格式的错误信息
     response.writer.use { writer ->

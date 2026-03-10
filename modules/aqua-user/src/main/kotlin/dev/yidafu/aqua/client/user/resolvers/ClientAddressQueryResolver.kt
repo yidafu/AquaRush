@@ -24,8 +24,6 @@ import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.mapper.AddressMapper
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -74,22 +72,6 @@ class ClientAddressQueryResolver(
       throw IllegalArgumentException("无权访问此地址")
     }
     return address?.let { AddressMapper.map(it) }
-  }
-
-  /**
-   * 搜索用户地址
-   */
-  @PreAuthorize("isAuthenticated()")
-  fun searchUserAddresses(
-    keyword: String,
-    page: Int = 0,
-    size: Int = 10,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): Page<Address> {
-    val pageable = PageRequest.of(page, size)
-    return addressService
-      .searchByUserIdAndKeyword(userPrincipal.id, keyword, pageable)
-      .map { it.let { AddressMapper.map(it) } }
   }
 
   /**

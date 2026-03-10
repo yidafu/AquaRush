@@ -61,8 +61,6 @@ data class OrderModel(
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "delivery_photos", columnDefinition = "json")
   var deliveryPhotos: String? = null,
-  @Column("delivery_address_id")
-  val deliveryAddressId: Long = -1L,
   @Column(name = "is_self_collect", nullable = false)
   var isSelfCollect: Boolean = false,
   @Column(name = "payment_type")
@@ -82,6 +80,8 @@ data class OrderModel(
   override var deletedAt: LocalDateTime? = null,
   @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
+  @Column(name = "remark", length = 500)
+  var remark: String? = null,
   // ========================================================================
   // Hibernate Associations
   // ========================================================================

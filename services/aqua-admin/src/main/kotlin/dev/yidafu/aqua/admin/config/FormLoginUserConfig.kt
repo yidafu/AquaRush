@@ -28,9 +28,10 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 
 @Configuration
+// @Primary // Disabled - use AdminUserDetailsService instead
 class FormLoginUserConfig {
   @Bean
-  @Primary
+  // @Primary
   fun formLoginUserDetailsService(passwordEncoder: PasswordEncoder): UserDetailsService {
     val userDetailsService = InMemoryUserDetailsManager()
 

@@ -21,22 +21,20 @@ package dev.yidafu.aqua.client.config
 
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
-import dev.yidafu.aqua.user.service.CustomUserDetailsService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import org.springframework.http.HttpStatus
+import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 
 @Component
 class JwtAuthenticationFilter(
   private val jwtTokenService: JwtTokenService,
-  private val customUserDetailsService: CustomUserDetailsService,
+  private val customUserDetailsService: ClientUserDetailsService,
 ) : OncePerRequestFilter() {
   private val logger = LoggerFactory.getLogger("dev.yidafu.aqua.security.JwtAuthenticationFilter")
   private val auditLogger = LoggerFactory.getLogger("dev.yidafu.aqua.audit")
@@ -76,9 +74,8 @@ class JwtAuthenticationFilter(
         request.method,
         request.requestURI,
         authenticationResult,
-        duration
+        duration,
       )
-
     } catch (ex: Exception) {
       authenticationResult = "ERROR"
       val endTime = System.currentTimeMillis()
@@ -92,7 +89,7 @@ class JwtAuthenticationFilter(
         authenticationResult,
         duration,
         ex.message,
-        ex
+        ex,
       )
 
       auditLogger.error(
@@ -101,7 +98,7 @@ class JwtAuthenticationFilter(
         request.method,
         request.requestURI,
         ex.javaClass.simpleName,
-        ex.message
+        ex.message,
       )
 
       throw ex
@@ -113,11 +110,11 @@ class JwtAuthenticationFilter(
 
     // Skip JWT processing for public endpoints
     return requestURI.startsWith("/login") ||
-           requestURI.startsWith("/css/") ||
-           requestURI.startsWith("/js/") ||
-           requestURI.startsWith("/images/") ||
-           requestURI.startsWith("/graphiql") ||
-           requestURI.startsWith("/error")
+      requestURI.startsWith("/css/") ||
+      requestURI.startsWith("/js/") ||
+      requestURI.startsWith("/images/") ||
+      requestURI.startsWith("/graphiql") ||
+      requestURI.startsWith("/error")
   }
 
   private fun extractTokenFromRequest(request: HttpServletRequest): String? {
@@ -159,9 +156,12 @@ class JwtAuthenticationFilter(
       }
 
       // Set authentication in SecurityContext
-      val authentication = UsernamePasswordAuthenticationToken(
-        userDetails, null, userDetails.authorities
-      )
+      val authentication =
+        UsernamePasswordAuthenticationToken(
+          userDetails,
+          null,
+          userDetails.authorities,
+        )
       authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
       SecurityContextHolder.getContext().authentication = authentication
 
@@ -169,7 +169,7 @@ class JwtAuthenticationFilter(
         "JWT authentication successful - Username: {}, Method: {}, URI: {}",
         username,
         request.method,
-        request.requestURI
+        request.requestURI,
       )
 
       true
@@ -179,7 +179,7 @@ class JwtAuthenticationFilter(
       auditLogger.error(
         "JWT authentication error - ErrorType: {}, Message: {}",
         ex.javaClass.simpleName,
-        ex.message
+        ex.message,
       )
 
       false

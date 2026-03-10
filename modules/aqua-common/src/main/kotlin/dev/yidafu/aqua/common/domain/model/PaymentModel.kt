@@ -79,4 +79,5 @@ enum class PaymentStatus {
 
 enum class PaymentMethod {
   WECHAT_PAY, // 微信支付
+  CASH, // 线下现金支付
 }

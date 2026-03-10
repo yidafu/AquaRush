@@ -90,8 +90,10 @@ class DeliveryServiceImpl(
     city: String,
     district: String,
   ): Boolean {
-    val area = areaRepository.findByProvinceAndCityAndDistrict(province, city, district)
-    return area != null && area.enabled
+    // TODO: 先不校验地址区域
+    return true
+//    val area = areaRepository.findByProvinceAndCityAndDistrict(province, city, district)
+//    return area != null && area.enabled
   }
 
   override fun validateDeliveryAddress(

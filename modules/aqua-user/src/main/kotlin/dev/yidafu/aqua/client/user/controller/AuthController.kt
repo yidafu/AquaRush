@@ -25,9 +25,9 @@ import dev.yidafu.aqua.client.user.controller.dto.UpdateProfileRequest
 import dev.yidafu.aqua.client.user.controller.dto.WeChatLoginRequest
 import dev.yidafu.aqua.common.ApiResponse
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.service.AdminAuthService
 import dev.yidafu.aqua.user.service.UpdateUserRequest
 import dev.yidafu.aqua.user.service.WeChatAuthService
+import dev.yidafu.aqua.user.service.impl.AdminAuthServiceImpl
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
@@ -38,7 +38,7 @@ import org.springframework.web.bind.annotation.*
 class AuthController(
   private val weChatAuthService: WeChatAuthService,
   private val userService: UserService,
-  private val adminAuthService: AdminAuthService,
+  private val adminAuthService: AdminAuthServiceImpl,
 ) {
   /**
    * WeChat mini-program login

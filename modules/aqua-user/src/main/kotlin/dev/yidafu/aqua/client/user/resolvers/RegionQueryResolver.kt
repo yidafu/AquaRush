@@ -33,22 +33,29 @@ class RegionQueryResolver(
     )
 
     // 地区查询通常不需要严格的权限控制，但保留日志记录
-    return when {
-      level != null && parentCode != null -> {
-        regionRepository.findByParentCodeAndLevel(parentCode, level)
-      }
+    return try {
+      val result: List<RegionModel> = when {
+        level != null && parentCode != null -> {
+          regionRepository.findByParentCodeAndLevel(parentCode, level) ?: emptyList()
+        }
 
-      level != null -> {
-        if (level == 1) {
-          regionRepository.findRootRegions(level)
-        } else {
-          regionRepository.findByLevel(level)
+        level != null -> {
+          if (level == 1) {
+            regionRepository.findRootRegions(level) ?: emptyList()
+          } else {
+            regionRepository.findByLevel(level) ?: emptyList()
+          }
+        }
+
+        else -> {
+          regionRepository.findAll() ?: emptyList()
         }
       }
-
-      else -> {
-        regionRepository.findAll()
-      }
+      result
+    } catch (e: Exception) {
+      println("Error fetching regions: ${e.message}")
+      e.printStackTrace()
+      emptyList()
     }
   }
 
