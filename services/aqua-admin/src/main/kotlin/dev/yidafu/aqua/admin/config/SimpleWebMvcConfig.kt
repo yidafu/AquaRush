@@ -56,11 +56,13 @@ class SimpleWebMvcConfigurer : WebMvcConfigurer {
 
   override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
     // Add default resource handlers for static resources
-    registry.addResourceHandler("/static/**")
+    registry
+      .addResourceHandler("/static/**")
       .addResourceLocations("classpath:/static/")
 
     // Add default resource handlers for templates
-    registry.addResourceHandler("/templates/**")
+    registry
+      .addResourceHandler("/templates/**")
       .addResourceLocations("classpath:/templates/")
   }
 

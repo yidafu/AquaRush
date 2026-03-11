@@ -230,22 +230,7 @@ class SimplifiedEventPublishService(
   fun getSystemStatus(): Map<String, Any> =
     mapOf(
       "messagingEnabled" to messagingProperties.enabled,
-      "strategy" to messagingProperties.strategy,
-      "memoryQueue" to
-        mapOf(
-          "enabled" to messagingProperties.memoryQueue.enabled,
-          "maxSize" to messagingProperties.memoryQueue.maxSize,
-          "batchSize" to messagingProperties.memoryQueue.batchSize,
-          "pollIntervalMs" to messagingProperties.memoryQueue.pollIntervalMs,
-          "highFrequencyEvents" to messagingProperties.memoryQueue.highFrequencyEvents,
-        ),
-      "outbox" to
-        mapOf(
-          "enabled" to messagingProperties.outbox.enabled,
-          "pollIntervalSeconds" to messagingProperties.outbox.pollIntervalSeconds,
-          "maxRetryCount" to messagingProperties.outbox.maxRetryCount,
-          "cleanupDays" to messagingProperties.outbox.cleanupDays,
-        ),
+      "strategy" to "artemis",
     )
 
   /**

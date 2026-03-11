@@ -40,6 +40,7 @@ class AddressResolver(
   private val addressService: AddressService,
 ) {
   private val logger = LoggerFactory.getLogger(AddressResolver::class.java)
+
   @QueryMapping
   fun userAddresses(
     @Argument userId: Long,
@@ -115,7 +116,9 @@ class AddressResolver(
     @Argument page: Int = 0,
     @Argument size: Int = 10,
   ): List<Address> {
-    val pageable = org.springframework.data.domain.PageRequest.of(page, size)
+    val pageable =
+      org.springframework.data.domain.PageRequest
+        .of(page, size)
     val addresses = addressService.searchByUserIdAndKeyword(userId, keyword, pageable)
     return AddressMapper.mapList(addresses.content)
   }
@@ -129,7 +132,9 @@ class AddressResolver(
     @Argument page: Int = 0,
     @Argument size: Int = 10,
   ): List<Address> {
-    val pageable = org.springframework.data.domain.PageRequest.of(page, size)
+    val pageable =
+      org.springframework.data.domain.PageRequest
+        .of(page, size)
     val addresses = addressService.searchAllAddresses(keyword, pageable)
     return AddressMapper.mapList(addresses.content)
   }
@@ -167,18 +172,20 @@ class AddressResolver(
       var successCount = 0
       var failureCount = 0
 
-      val addresses = input.mapIndexed { index, addressInput ->
-        try {
-          val address = AddressInputMapper.map(addressInput)
-          // userId 保持为 null
-          successCount++
-          address
-        } catch (e: Exception) {
-          failureCount++
-          logger.warn("Failed to parse address at index $index: ${e.message}")
-          null
-        }
-      }.filterNotNull()
+      val addresses =
+        input
+          .mapIndexed { index, addressInput ->
+            try {
+              val address = AddressInputMapper.map(addressInput)
+              // userId 保持为 null
+              successCount++
+              address
+            } catch (e: Exception) {
+              failureCount++
+              logger.warn("Failed to parse address at index $index: ${e.message}")
+              null
+            }
+          }.filterNotNull()
 
       // 批量保存
       if (addresses.isNotEmpty()) {
@@ -204,9 +211,7 @@ class AddressResolver(
   @MutationMapping
   fun deleteAdminAddress(
     @Argument id: Long,
-  ): Boolean {
-    return addressService.deleteAddressById(id)
-  }
+  ): Boolean = addressService.deleteAddressById(id)
 
   @MutationMapping
   fun createAddress(

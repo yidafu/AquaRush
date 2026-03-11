@@ -85,21 +85,18 @@ data class OrderModel(
   // ========================================================================
   // Hibernate Associations
   // ========================================================================
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "user_id", insertable = false, updatable = false)
   val user: UserModel? = null,
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "product_id", insertable = false, updatable = false)
   val product: ProductModel? = null,
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "address_id", insertable = false, updatable = false)
   val address: AddressModel? = null,
-  @ManyToOne(fetch = FetchType.LAZY)
+  @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "delivery_worker_id", insertable = false, updatable = false)
   val deliveryWorker: DeliveryWorkerModel? = null,
-  @ManyToOne(fetch = FetchType.LAZY)
-  @JoinColumn(name = "delivery_address_id", insertable = false, updatable = false)
-  val deliveryAddress: DeliveryAddressModel? = null,
 ) : SoftDeletable {
   @PreUpdate
   fun preUpdate() {
@@ -119,6 +116,7 @@ enum class OrderStatus {
   DELIVERING, // 配送中
   COMPLETED, // 已完成
   CANCELLED, // 已取消
+  REFUNDED, // 已退款
 }
 
 /**

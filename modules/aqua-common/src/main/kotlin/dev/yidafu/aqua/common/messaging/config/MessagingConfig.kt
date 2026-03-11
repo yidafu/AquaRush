@@ -56,38 +56,4 @@ class MessagingConfig {
     executor.initialize()
     return executor
   }
-
-  /**
-   * 高频事件处理执行器（专门用于内存队列）
-   */
-  @Bean("highFrequencyExecutor")
-  fun highFrequencyExecutor(): Executor {
-    val executor = ThreadPoolTaskExecutor()
-    executor.corePoolSize = 2
-    executor.maxPoolSize = 8
-    executor.queueCapacity = 500
-    executor.setThreadNamePrefix("high-freq-event-")
-    executor.setWaitForTasksToCompleteOnShutdown(true)
-    executor.setAwaitTerminationSeconds(10)
-    executor.setRejectedExecutionHandler(ThreadPoolExecutor.CallerRunsPolicy())
-    executor.initialize()
-    return executor
-  }
-
-  /**
-   * 低频事件处理执行器（专门用于Outbox队列）
-   */
-  @Bean("lowFrequencyExecutor")
-  fun lowFrequencyExecutor(): Executor {
-    val executor = ThreadPoolTaskExecutor()
-    executor.corePoolSize = 1
-    executor.maxPoolSize = 4
-    executor.queueCapacity = 200
-    executor.setThreadNamePrefix("low-freq-event-")
-    executor.setWaitForTasksToCompleteOnShutdown(true)
-    executor.setAwaitTerminationSeconds(60)
-    executor.setRejectedExecutionHandler(ThreadPoolExecutor.CallerRunsPolicy())
-    executor.initialize()
-    return executor
-  }
 }

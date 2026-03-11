@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.admin.config
 
-//import tools.jackson.datatype.jsr310.JavaTimeModule
-//import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
+// import tools.jackson.datatype.jsr310.JavaTimeModule
+// import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import tools.jackson.databind.DeserializationFeature
@@ -40,13 +40,13 @@ import tools.jackson.module.kotlin.KotlinModule
  */
 @Configuration
 class JacksonConfig {
-
   /**
    * 主要的 ObjectMapper Bean，使用 Jackson 3.x 的 JsonMapper
    */
   @Bean("primaryObjectMapper")
-  fun primaryObjectMapper(): ObjectMapper {
-    return JsonMapper.builder()
+  fun primaryObjectMapper(): ObjectMapper =
+    JsonMapper
+      .builder()
       .addModule(KotlinModule.Builder().build())
 //            .addModule(JavaTimeModule())
       // 序列化配置
@@ -58,7 +58,6 @@ class JacksonConfig {
       .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
       .disable(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES)
       .build()
-  }
 
   /**
    * Jackson2ObjectMapperBuilder 自定义器，保持与 Spring Boot 自动配置的兼容性
@@ -84,8 +83,9 @@ class JacksonConfig {
    * 用于 API 响应的专用 ObjectMapper
    */
   @Bean("apiObjectMapper")
-  fun apiObjectMapper(): ObjectMapper {
-    return JsonMapper.builder()
+  fun apiObjectMapper(): ObjectMapper =
+    JsonMapper
+      .builder()
       .addModule(KotlinModule.Builder().build())
 //            .addModule(JavaTimeModule())
       // API 专用配置：禁用空值序列化，启用缩进输出
@@ -94,14 +94,14 @@ class JacksonConfig {
       .enable(SerializationFeature.INDENT_OUTPUT)
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .build()
-  }
 
   /**
    * 用于日志记录的专用 ObjectMapper
    */
   @Bean("loggingObjectMapper")
-  fun loggingObjectMapper(): ObjectMapper {
-    return JsonMapper.builder()
+  fun loggingObjectMapper(): ObjectMapper =
+    JsonMapper
+      .builder()
       .addModule(KotlinModule.Builder().build())
 //            .addModule(JavaTimeModule())
       // 日志专用配置：紧凑格式，禁用所有美观化
@@ -110,5 +110,4 @@ class JacksonConfig {
       .disable(SerializationFeature.INDENT_OUTPUT)
       .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
       .build()
-  }
 }

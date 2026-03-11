@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.order.event
 
-import dev.yidafu.aqua.common.domain.model.OrderDomainEventModel
+import dev.yidafu.aqua.common.domain.model.DomainEvent
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -35,7 +35,7 @@ class PaymentTimeoutHandler {
    * 处理支付超时事件
    */
   @Transactional
-  fun handle(event: OrderDomainEventModel) {
+  fun handle(event: DomainEvent) {
     try {
       // 解析payload获取事件数据
       val eventData =

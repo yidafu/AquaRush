@@ -34,9 +34,8 @@ import java.time.LocalDateTime
 @RestController
 @RequestMapping("/api/jackson-test")
 class JacksonValidationController(
-  private val objectMapper: ObjectMapper
+  private val objectMapper: ObjectMapper,
 ) {
-
   /**
    * 测试数据类
    */
@@ -48,7 +47,7 @@ class JacksonValidationController(
     val createdAt: LocalDateTime,
     @JsonProperty("is_active")
     val isActive: Boolean = true,
-    val salary: BigDecimal? = null
+    val salary: BigDecimal? = null,
   )
 
   /**
@@ -56,14 +55,15 @@ class JacksonValidationController(
    */
   @GetMapping("/config")
   fun testJacksonConfiguration(): Map<String, Any> {
-    val testData = TestUser(
-      id = 1L,
-      name = "测试用户",
-      email = "test@aquarush.com",
-      createdAt = LocalDateTime.now(),
-      isActive = true,
-      salary = BigDecimal("5000.00")
-    )
+    val testData =
+      TestUser(
+        id = 1L,
+        name = "测试用户",
+        email = "test@aquarush.com",
+        createdAt = LocalDateTime.now(),
+        isActive = true,
+        salary = BigDecimal("5000.00"),
+      )
 
     val result = mutableMapOf<String, Any>()
     result["jackson_version"] = "3.0.0 (tools.jackson)"
@@ -85,15 +85,16 @@ class JacksonValidationController(
 
     // 测试反序列化
     try {
-      val jsonInput = """
-                {
-                    "id": 2,
-                    "name": "反序列化测试",
-                    "email": "deser@aquarush.com",
-                    "created_at": "2024-01-15T10:30:00",
-                    "is_active": false
-                }
-            """.trimIndent()
+      val jsonInput =
+        """
+        {
+            "id": 2,
+            "name": "反序列化测试",
+            "email": "deser@aquarush.com",
+            "created_at": "2024-01-15T10:30:00",
+            "is_active": false
+        }
+        """.trimIndent()
 
       val user = objectMapper.readValue(jsonInput, TestUser::class.java)
       result["deserialization"] = "SUCCESS"
@@ -104,19 +105,22 @@ class JacksonValidationController(
     }
 
     // 检查配置特性
-    result["features"] = mapOf(
+    result["features"] =
+      mapOf(
 //            "WRITE_DATES_AS_TIMESTAMPS" to !objectMapper.isEnabled(
 //                SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
 //            ),
-      "FAIL_ON_EMPTY_BEANS" to !objectMapper.isEnabled(
-        tools.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS
-      ),
-      "FAIL_ON_UNKNOWN_PROPERTIES" to !objectMapper.isEnabled(
-        tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES
-      ),
-//            "kotlin_module_registered" to objectMapper.registeredModuleIds
+        "FAIL_ON_EMPTY_BEANS" to
+          !objectMapper.isEnabled(
+            tools.jackson.databind.SerializationFeature.FAIL_ON_EMPTY_BEANS,
+          ),
+        "FAIL_ON_UNKNOWN_PROPERTIES" to
+          !objectMapper.isEnabled(
+            tools.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+          ),
+        //            "kotlin_module_registered" to objectMapper.registeredModuleIds
 //                .any { it.toString().contains("kotlin") }
-    )
+      )
 
     return result
   }
@@ -125,13 +129,12 @@ class JacksonValidationController(
    * 健康检查端点
    */
   @GetMapping("/health")
-  fun healthCheck(): Map<String, String> {
-    return mapOf(
+  fun healthCheck(): Map<String, String> =
+    mapOf(
       "status" to "UP",
       "jackson_version" to "3.0.0",
       "migration_status" to "COMPLETED",
       "package" to "tools.jackson",
-      "spring_boot_version" to "4.0.0"
+      "spring_boot_version" to "4.0.0",
     )
-  }
 }

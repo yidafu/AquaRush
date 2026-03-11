@@ -21,6 +21,8 @@ package dev.yidafu.aqua.api.service
 
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.AdminRoleModel
+import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 
 /**
  * 管理员服务接口
@@ -96,4 +98,8 @@ interface AdminService {
    * Delete an admin user
    */
   fun deleteAdmin(id: Long): Boolean
+
+  fun getDeliveryWorkerById(id: Long): DeliveryWorker?
+
+  fun getUserById(id: Long): UserModel
 }

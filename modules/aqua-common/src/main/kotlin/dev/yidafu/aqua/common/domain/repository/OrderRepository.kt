@@ -21,6 +21,7 @@ package dev.yidafu.aqua.common.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
+import org.springframework.data.domain.Page
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
@@ -98,5 +99,5 @@ interface OrderRepository : JpaRepository<OrderModel, Long> {
     size: Int = 20,
     sortField: String = "createdAt",
     sortDirection: String = "desc",
-  ): org.springframework.data.domain.Page<OrderModel>
+  ): Page<OrderModel>
 }

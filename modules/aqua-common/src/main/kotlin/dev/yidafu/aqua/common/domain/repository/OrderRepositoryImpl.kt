@@ -170,25 +170,28 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     maxAmount?.let { builder.and(orderModel.amountCents.loe(it)) }
 
     // Build sorting - use Spring Data Sort
-    val sortFieldName = when (sortField.lowercase()) {
-      "totalamount", "total_amount" -> "amountCents"
-      "updatedat", "updated_at" -> "updatedAt"
-      else -> "createdAt"
-    }
+    val sortFieldName =
+      when (sortField.lowercase()) {
+        "totalamount", "total_amount" -> "amountCents"
+        "updatedat", "updated_at" -> "updatedAt"
+        else -> "createdAt"
+      }
 
-    val springSort = if (sortDirection.equals("asc", ignoreCase = true)) {
-      Sort.by(Sort.Order.asc(sortFieldName))
-    } else {
-      Sort.by(Sort.Order.desc(sortFieldName))
-    }
+    val springSort =
+      if (sortDirection.equals("asc", ignoreCase = true)) {
+        Sort.by(Sort.Order.asc(sortFieldName))
+      } else {
+        Sort.by(Sort.Order.desc(sortFieldName))
+      }
 
     val pageable = PageRequest.of(page, size, springSort)
 
-    val query = queryFactory
-      .selectFrom(orderModel)
-      .where(builder)
-      .offset(pageable.offset)
-      .limit(pageable.pageSize.toLong())
+    val query =
+      queryFactory
+        .selectFrom(orderModel)
+        .where(builder)
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
 
     // Apply ordering using QueryDSL
     when (sortField.lowercase()) {
@@ -199,6 +202,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
           query.orderBy(orderModel.amountCents.desc())
         }
       }
+
       "updatedat", "updated_at" -> {
         if (sortDirection.equals("asc", ignoreCase = true)) {
           query.orderBy(orderModel.updatedAt.asc())
@@ -206,6 +210,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
           query.orderBy(orderModel.updatedAt.desc())
         }
       }
+
       else -> {
         if (sortDirection.equals("asc", ignoreCase = true)) {
           query.orderBy(orderModel.createdAt.asc())
@@ -217,11 +222,12 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
 
     @Suppress("UNCHECKED_CAST")
     val content = query.fetch() as List<OrderModel>
-    val total = queryFactory
-      .query()
-      .from(orderModel)
-      .where(builder)
-      .fetchCount()
+    val total =
+      queryFactory
+        .query()
+        .from(orderModel)
+        .where(builder)
+        .fetchCount()
 
     return PageImpl(content, pageable, total)
   }

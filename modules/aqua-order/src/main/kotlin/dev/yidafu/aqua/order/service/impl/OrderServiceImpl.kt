@@ -24,16 +24,14 @@ import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.api.service.OrderIdGeneratorService
 import dev.yidafu.aqua.api.service.OrderService
 import dev.yidafu.aqua.api.service.ProductService
-import dev.yidafu.aqua.common.domain.model.OrderDomainEventModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
-import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
-import dev.yidafu.aqua.order.domain.repository.DomainEventRepository
+import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import org.slf4j.LoggerFactory
@@ -42,13 +40,14 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
+import kotlin.jvm.optionals.getOrNull
 
 @Service
 class OrderServiceImpl(
   private val orderRepository: OrderRepository,
   private val productRepository: ProductRepository,
   private val addressRepository: AddressRepository,
-  private val domainEventRepository: DomainEventRepository,
+  private val eventPublishService: SimplifiedEventPublishService,
   private val productService: ProductService,
   private val deliveryService: DeliveryService,
   private val orderIdGenerator: OrderIdGeneratorService,
@@ -232,21 +231,12 @@ class OrderServiceImpl(
     eventData: Map<String, Any>,
     nextRunAt: LocalDateTime? = null,
   ) {
-    val eventPayload = objectMapper.writeValueAsString(eventData)
-
-    val domainEvent =
-      OrderDomainEventModel(
-        eventType = eventType,
-        payload = eventPayload,
-        status = EventStatusModel.PENDING,
-        retryCount = 0,
-        nextRunAt = nextRunAt,
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now(),
-        errorMessage = null,
-      )
-
-    domainEventRepository.save(domainEvent)
+    // 通过 Artemis 发布事件
+    eventPublishService.publishDomainEvent(
+      eventType = eventType,
+      aggregateId = aggregateId,
+      eventData = eventData,
+    )
   }
 
   /**
@@ -422,7 +412,7 @@ class OrderServiceImpl(
         ),
     )
 
-    return order
+    return orderRepository.findById(order.id).orElseThrow()
   }
 
   @Transactional

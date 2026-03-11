@@ -33,97 +33,10 @@ data class SimplifiedMessagingProperties(
    */
   var enabled: Boolean = false,
   /**
-   * 处理策略: artemis, hybrid, outbox-only, memory-only
-   */
-  var strategy: String = "artemis",
-  /**
-   * 内存队列配置
-   */
-  @NestedConfigurationProperty
-  var memoryQueue: MemoryQueueProperties = MemoryQueueProperties(),
-  /**
-   * Outbox配置（传统模式作为备份）
-   */
-  @NestedConfigurationProperty
-  var outbox: OutboxProperties = OutboxProperties(),
-  /**
    * ActiveMQ Artemis配置
    */
   @NestedConfigurationProperty
   var artemis: ArtemisProperties = ArtemisProperties(),
-)
-
-/**
- * 内存队列配置属性
- */
-data class MemoryQueueProperties(
-  /**
-   * 是否启用内存队列
-   */
-  var enabled: Boolean = true,
-  /**
-   * 最大队列大小
-   */
-  var maxSize: Int = 5000,
-  /**
-   * 批处理大小
-   */
-  var batchSize: Int = 50,
-  /**
-   * 轮询间隔（毫秒）
-   */
-  var pollIntervalMs: Long = 50L,
-  /**
-   * 高频事件类型（使用内存队列处理）
-   */
-  var highFrequencyEvents: List<String> =
-    listOf(
-      "ORDER_PAID",
-      "PAYMENT_TIMEOUT",
-      "DELIVERY_TIMEOUT",
-    ),
-  /**
-   * 低频事件类型（可使用Outbox处理）
-   */
-  var lowFrequencyEvents: List<String> =
-    listOf(
-      "ORDER_CREATED",
-      "ORDER_CANCELLED",
-      "ORDER_DELIVERED",
-    ),
-)
-
-/**
- * Outbox配置属性（传统模式）
- */
-data class OutboxProperties(
-  /**
-   * 是否启用Outbox模式
-   */
-  var enabled: Boolean = true,
-  /**
-   * 轮询间隔（秒）
-   */
-  var pollIntervalSeconds: Long = 60L,
-  /**
-   * 最大重试次数
-   */
-  var maxRetryCount: Int = 5,
-  /**
-   * 重试延迟（毫秒）
-   */
-  var retryDelaysMs: List<Long> =
-    listOf(
-      60000L, // 1分钟
-      300000L, // 5分钟
-      900000L, // 15分钟
-      3600000L, // 1小时
-      21600000L, // 6小时
-    ),
-  /**
-   * 清理天数
-   */
-  var cleanupDays: Int = 30,
 )
 
 /**

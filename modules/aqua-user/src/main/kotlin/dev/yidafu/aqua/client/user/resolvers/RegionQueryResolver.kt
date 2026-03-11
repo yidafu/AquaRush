@@ -34,23 +34,24 @@ class RegionQueryResolver(
 
     // 地区查询通常不需要严格的权限控制，但保留日志记录
     return try {
-      val result: List<RegionModel> = when {
-        level != null && parentCode != null -> {
-          regionRepository.findByParentCodeAndLevel(parentCode, level) ?: emptyList()
-        }
+      val result: List<RegionModel> =
+        when {
+          level != null && parentCode != null -> {
+            regionRepository.findByParentCodeAndLevel(parentCode, level) ?: emptyList()
+          }
 
-        level != null -> {
-          if (level == 1) {
-            regionRepository.findRootRegions(level) ?: emptyList()
-          } else {
-            regionRepository.findByLevel(level) ?: emptyList()
+          level != null -> {
+            if (level == 1) {
+              regionRepository.findRootRegions(level) ?: emptyList()
+            } else {
+              regionRepository.findByLevel(level) ?: emptyList()
+            }
+          }
+
+          else -> {
+            regionRepository.findAll() ?: emptyList()
           }
         }
-
-        else -> {
-          regionRepository.findAll() ?: emptyList()
-        }
-      }
       result
     } catch (e: Exception) {
       println("Error fetching regions: ${e.message}")

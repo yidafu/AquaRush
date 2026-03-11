@@ -50,3 +50,10 @@ class InsufficientStockException(
 class UserNotFoundException(
   message: String,
 ) : BusinessException(message, "USER_NOT_FOUND")
+
+/**
+ * Custom JWT token exception
+ */
+class JwtTokenException(
+  message: String,
+) : BusinessException(message, "JWT_TOKEN_ERROR")

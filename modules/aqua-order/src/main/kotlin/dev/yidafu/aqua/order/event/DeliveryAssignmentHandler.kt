@@ -21,9 +21,7 @@ package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.common.domain.model.*
-import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -35,6 +33,7 @@ class DeliveryAssignmentHandler(
   private val orderRepository: OrderRepository,
   private val addressRepository: AddressRepository,
   private val deliveryService: DeliveryService,
+  private val simplifiedEventPublishService: dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService,
 ) {
   private val logger = LoggerFactory.getLogger(DeliveryAssignmentHandler::class.java)
   private val objectMapper = jacksonObjectMapper()
@@ -43,7 +42,7 @@ class DeliveryAssignmentHandler(
    * 处理配送分配事件
    */
   @Transactional
-  fun handle(event: OrderDomainEventModel) {
+  fun handle(event: DomainEvent) {
     try {
       // 解析payload获取事件数据
       val eventData =
@@ -140,23 +139,14 @@ class DeliveryAssignmentHandler(
           "userId" to order.userId.toString(),
         )
 
-      val eventPayload = objectMapper.writeValueAsString(eventData)
+      // 通过 Artemis 发布订单分配事件
+      simplifiedEventPublishService.publishDomainEvent(
+        eventType = "ORDER_ASSIGNED",
+        aggregateId = order.id.toString(),
+        eventData = eventData,
+      )
 
-      val event =
-        OrderDomainEventModel(
-          id = DefaultIdGenerator().generate(),
-          eventType = "ORDER_ASSIGNED",
-          payload = eventPayload,
-          status = EventStatusModel.PENDING,
-          retryCount = 0,
-          nextRunAt = java.time.LocalDateTime.now(),
-          createdAt = java.time.LocalDateTime.now(),
-          updatedAt = java.time.LocalDateTime.now(),
-          errorMessage = null,
-        )
-
-      // 保存事件（需要DomainEventRepository的注入，这里简化）
-      logger.info("Created ORDER_ASSIGNED event for order ${order.orderNumber}")
+      logger.info("Published ORDER_ASSIGNED event for order ${order.orderNumber}")
     } catch (e: Exception) {
       logger.error("Error creating delivery assigned event for order ${order.orderNumber}", e)
     }

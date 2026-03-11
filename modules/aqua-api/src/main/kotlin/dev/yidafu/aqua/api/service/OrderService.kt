@@ -21,6 +21,7 @@ package dev.yidafu.aqua.api.service
 
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
+import org.springframework.data.domain.Page
 
 /**
  * 订单服务接口
@@ -100,7 +101,7 @@ interface OrderService {
    * 配送员创建订单 - 通过地址ID获取用户ID
    */
   fun createDeliveryOrder(
-    deliveryUserId: Long,
+    adminId: Long,
     productId: Long,
     addressId: Long,
     quantity: Int,
@@ -140,4 +141,21 @@ interface OrderService {
     userId: Long,
     status: String,
   ): List<OrderModel>
+
+  /**
+   * 分页搜索订单（管理员使用）
+   */
+  fun searchOrders(
+    keyword: String? = null,
+    status: String? = null,
+    userId: Long? = null,
+    dateFrom: String? = null,
+    dateTo: String? = null,
+    minAmount: Long? = null,
+    maxAmount: Long? = null,
+    deliveryWorkerId: Long? = null,
+    page: Int = 0,
+    size: Int = 20,
+    sort: String = "createdAt,desc",
+  ): Page<OrderModel>
 }

@@ -319,16 +319,12 @@ class AddressServiceImpl(
     value = ["user_addresses", "user_default_address", "address"],
     allEntries = true,
   )
-  override fun saveAll(addresses: List<AddressModel>): List<AddressModel> {
-    return addressRepository.saveAll(addresses)
-  }
+  override fun saveAll(addresses: List<AddressModel>): List<AddressModel> = addressRepository.saveAll(addresses)
 
   /**
    * 获取所有地址 (管理员功能)
    */
-  override fun findAllAddresses(): List<AddressModel> {
-    return addressRepository.findAll()
-  }
+  override fun findAllAddresses(): List<AddressModel> = addressRepository.findAll()
 
   /**
    * 根据ID删除地址 (管理员功能，不校验userId)
@@ -337,14 +333,13 @@ class AddressServiceImpl(
     value = ["user_addresses", "user_default_address", "address"],
     allEntries = true,
   )
-  override fun deleteAddressById(addressId: Long): Boolean {
-    return try {
+  override fun deleteAddressById(addressId: Long): Boolean =
+    try {
       addressRepository.deleteById(addressId)
       true
     } catch (e: Exception) {
       false
     }
-  }
 
   // Private helper methods
 

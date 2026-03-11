@@ -28,16 +28,16 @@ import org.springframework.data.domain.Pageable
  * Custom repository for Product queries using QueryDSL
  */
 interface ProductRepositoryCustom {
-    /**
-     * Search products with optional keyword and status filters
-     * @param keyword Search keyword for product name (uses LIKE query)
-     * @param status Optional status filter
-     * @param pageable Pagination parameters
-     * @return Page of matching products
-     */
-    fun searchProducts(
-        keyword: String?,
-        status: ProductStatus?,
-        pageable: Pageable
-    ): Page<ProductModel>
+  /**
+   * Search products with optional keyword and status filters
+   * @param keyword Search keyword for product name (uses LIKE query)
+   * @param status Optional status filter
+   * @param pageable Pagination parameters
+   * @return Page of matching products
+   */
+  fun searchProducts(
+    keyword: String?,
+    status: ProductStatus?,
+    pageable: Pageable,
+  ): Page<ProductModel>
 }

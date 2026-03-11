@@ -79,6 +79,8 @@
       <column name="role" type="varchar(20)" defaultValue="ADMIN">
         <constraints nullable="false" />
       </column>
+      <column name="user_id" type="bigint" />
+      <column name="delivery_worker_id" type="bigint" />
       <column name="last_login_at" type="timestamp" />
       <column name="is_deleted" type="boolean" defaultValueBoolean="false">
         <constraints nullable="false" />
@@ -100,6 +102,12 @@
     <createIndex tableName="admins" indexName="idx_admins_deleted">
       <column name="is_deleted" />
     </createIndex>
+
+    <addUniqueConstraint tableName="admins" columnNames="user_id"
+      constraintName="uq_admins_user_id" />
+
+    <addUniqueConstraint tableName="admins" columnNames="delivery_worker_id"
+      constraintName="uq_admins_delivery_worker_id" />
   </changeSet>
 
   <changeSet id="1.0.0-create-product-table" author="aqua-rush">
@@ -1332,9 +1340,7 @@
       <column name="address_id" type="bigint">
         <constraints nullable="false" />
       </column>
-      <column name="delivery_address_id" type="bigint">
-        <constraints nullable="false" />
-      </column>
+
       <column name="status" type="varchar(20)" defaultValue="PENDING_PAYMENT">
         <constraints nullable="false" />
       </column>
@@ -1344,11 +1350,15 @@
       <column name="delivery_worker_id" type="bigint">
         <constraints nullable="true" />
       </column>
+      <column name="delivery_address_id" type="bigint">
+        <constraints nullable="true" />
+      </column>
       <column name="delivery_photos" type="json" />
       <column name="is_self_collect" type="boolean" defaultValueBoolean="false">
         <constraints nullable="false" />
       </column>
       <column name="payment_type" type="varchar(20)" />
+      <column name="remark" type="varchar(500)" />
       <column name="delivery_started_at" type="timestamp" />
       <column name="delivery_confirmed_at" type="timestamp" />
       <column name="completed_at" type="timestamp" />
@@ -1377,9 +1387,6 @@
     <createIndex tableName="orders" indexName="idx_order_created_at">
       <column name="created_at" />
     </createIndex>
-    <createIndex tableName="orders" indexName="idx_orders_delivery_address_id">
-      <column name="delivery_address_id" />
-    </createIndex>
 
     <createIndex tableName="orders" indexName="idx_orders_deleted">
       <column name="is_deleted" />
@@ -1387,6 +1394,10 @@
 
     <createIndex tableName="orders" indexName="idx_orders_delivery_worker_id">
       <column name="delivery_worker_id" />
+    </createIndex>
+
+    <createIndex tableName="orders" indexName="idx_orders_delivery_address_id">
+      <column name="delivery_address_id" />
     </createIndex>
 
     <createIndex tableName="orders" indexName="idx_orders_is_self_collect">
@@ -1835,6 +1846,12 @@
     <createIndex tableName="bucket_deposits" indexName="idx_bucket_deposits_created_at">
       <column name="created_at" />
     </createIndex>
+  </changeSet>
+
+  <!-- Drop legacy outbox tables - using Artemis MQ instead -->
+  <changeSet id="1.0.5-drop-order-domain-events-table" author="aqua-rush">
+    <comment>Drop order_domain_events table - using Artemis MQ instead</comment>
+    <sql> DROP TABLE IF EXISTS order_domain_events </sql>
   </changeSet>
 
 </databaseChangeLog>

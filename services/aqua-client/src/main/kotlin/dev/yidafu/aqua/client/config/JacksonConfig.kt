@@ -23,9 +23,9 @@ import tools.jackson.databind.ObjectMapper
 import tools.jackson.databind.SerializationFeature
 import tools.jackson.databind.DeserializationFeature
 import tools.jackson.databind.json.JsonMapper
-//import tools.jackson.datatype.jsr310.JavaTimeModule
+// import tools.jackson.datatype.jsr310.JavaTimeModule
 import tools.jackson.module.kotlin.KotlinModule
-//import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
+// import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.context.annotation.Primary
@@ -41,29 +41,28 @@ import org.springframework.context.annotation.Primary
  */
 @Configuration
 class JacksonConfig {
-
-    /**
-     * 主要的 ObjectMapper Bean，使用 Jackson 3.x 的 JsonMapper
-     */
-    @Bean("primaryObjectMapper")
-    fun primaryObjectMapper(): ObjectMapper {
-        return JsonMapper.builder()
-            .addModule(KotlinModule.Builder().build())
+  /**
+   * 主要的 ObjectMapper Bean，使用 Jackson 3.x 的 JsonMapper
+   */
+  @Bean("primaryObjectMapper")
+  fun primaryObjectMapper(): ObjectMapper =
+    JsonMapper
+      .builder()
+      .addModule(KotlinModule.Builder().build())
 //            .addModule(JavaTimeModule())
-            // 序列化配置
+      // 序列化配置
 //            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-            .disable(SerializationFeature.INDENT_OUTPUT)
-            // 反序列化配置
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
-            .disable(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES)
-            .build()
-    }
+      .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+      .disable(SerializationFeature.INDENT_OUTPUT)
+      // 反序列化配置
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .disable(DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES)
+      .disable(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES)
+      .build()
 
-    /**
-     * Jackson2ObjectMapperBuilder 自定义器，保持与 Spring Boot 自动配置的兼容性
-     */
+  /**
+   * Jackson2ObjectMapperBuilder 自定义器，保持与 Spring Boot 自动配置的兼容性
+   */
 //    @Bean
 //    fun jacksonObjectMapperBuilderCustomizer(): Jackson2ObjectMapperBuilderCustomizer {
 //        return Jackson2ObjectMapperBuilderCustomizer { builder ->
@@ -81,35 +80,35 @@ class JacksonConfig {
 //        }
 //    }
 
-    /**
-     * 用于 API 响应的专用 ObjectMapper
-     */
-    @Bean("apiObjectMapper")
-    fun apiObjectMapper(): ObjectMapper {
-        return JsonMapper.builder()
-            .addModule(KotlinModule.Builder().build())
+  /**
+   * 用于 API 响应的专用 ObjectMapper
+   */
+  @Bean("apiObjectMapper")
+  fun apiObjectMapper(): ObjectMapper =
+    JsonMapper
+      .builder()
+      .addModule(KotlinModule.Builder().build())
 //            .addModule(JavaTimeModule())
-            // API 专用配置：禁用空值序列化，启用缩进输出
+      // API 专用配置：禁用空值序列化，启用缩进输出
 //            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-            .enable(SerializationFeature.INDENT_OUTPUT)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .build()
-    }
+      .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+      .enable(SerializationFeature.INDENT_OUTPUT)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .build()
 
-    /**
-     * 用于日志记录的专用 ObjectMapper
-     */
-    @Bean("loggingObjectMapper")
-    fun loggingObjectMapper(): ObjectMapper {
-        return JsonMapper.builder()
-            .addModule(KotlinModule.Builder().build())
+  /**
+   * 用于日志记录的专用 ObjectMapper
+   */
+  @Bean("loggingObjectMapper")
+  fun loggingObjectMapper(): ObjectMapper =
+    JsonMapper
+      .builder()
+      .addModule(KotlinModule.Builder().build())
 //            .addModule(JavaTimeModule())
-            // 日志专用配置：紧凑格式，禁用所有美观化
+      // 日志专用配置：紧凑格式，禁用所有美观化
 //            .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
-            .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
-            .disable(SerializationFeature.INDENT_OUTPUT)
-            .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
-            .build()
-    }
+      .disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)
+      .disable(SerializationFeature.INDENT_OUTPUT)
+      .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES)
+      .build()
 }

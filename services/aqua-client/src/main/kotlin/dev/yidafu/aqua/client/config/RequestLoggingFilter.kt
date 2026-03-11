@@ -55,7 +55,8 @@ class RequestLoggingFilter : OncePerRequestFilter() {
     logRequestEntry(request, correlationId ?: "", requestId, startTime)
 
     // Wrap request and response to enable multiple reads
-    val wrappedRequest = if (isAsyncDispatch(request)) request else ContentCachingRequestWrapper(request, 10 * 1024 * 1024)
+    val wrappedRequest =
+      if (isAsyncDispatch(request)) request else ContentCachingRequestWrapper(request, 10 * 1024 * 1024)
     val wrappedResponse = ContentCachingResponseWrapper(response)
 
     var exception: Exception? = null

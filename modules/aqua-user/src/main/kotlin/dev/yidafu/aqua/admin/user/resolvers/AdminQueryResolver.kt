@@ -54,13 +54,12 @@ class AdminQueryResolver(
    * 获取所有地区数据，用于前端构建树形结构
    */
   @QueryMapping
-  fun allRegions(): List<RegionModel> {
-    return try {
+  fun allRegions(): List<RegionModel> =
+    try {
       regionRepository.findAll() ?: emptyList()
     } catch (e: Exception) {
       println("Error fetching all regions: ${e.message}")
       e.printStackTrace()
       emptyList()
     }
-  }
 }

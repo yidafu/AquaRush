@@ -40,6 +40,10 @@ data class AdminModel(
   @Enumerated(EnumType.STRING)
   @Column(name = "role", nullable = false)
   var role: AdminRoleModel = AdminRoleModel.ADMIN,
+  @Column(name = "user_id")
+  var userId: Long? = null,
+  @Column(name = "delivery_worker_id")
+  var deliveryWorkerId: Long? = null,
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "last_login_at")

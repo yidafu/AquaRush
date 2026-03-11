@@ -30,42 +30,44 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 @Configuration
 @Order(Ordered.HIGHEST_PRECEDENCE)
 class SimpleWebMvcConfigurer : WebMvcConfigurer {
-    override fun addCorsMappings(registry: CorsRegistry) {
-        registry
-            .addMapping("/**")
-            .allowedOriginPatterns("*")
-            .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
-            .allowedHeaders("*")
-            .allowCredentials(true)
-            .maxAge(3600)
-    }
+  override fun addCorsMappings(registry: CorsRegistry) {
+    registry
+      .addMapping("/**")
+      .allowedOriginPatterns("*")
+      .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+      .allowedHeaders("*")
+      .allowCredentials(true)
+      .maxAge(3600)
+  }
 
-    // override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
-    //   // Add default resource handlers for static resources
-    //   registry.addResourceHandler("/static/**")
-    //     .addResourceLocations("classpath:/static/")
+  // override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
+  //   // Add default resource handlers for static resources
+  //   registry.addResourceHandler("/static/**")
+  //     .addResourceLocations("classpath:/static/")
 
-    //   // Add default resource handlers for webjars
-    //   registry.addResourceHandler("/webjars/**")
-    //     .addResourceLocations("classpath:/META-INF/resources/webjars/")
+  //   // Add default resource handlers for webjars
+  //   registry.addResourceHandler("/webjars/**")
+  //     .addResourceLocations("classpath:/META-INF/resources/webjars/")
 
-    //   // Add default resource handlers for templates
-    //   registry.addResourceHandler("/templates/**")
-    //     .addResourceLocations("classpath:/templates/")
-    // }
+  //   // Add default resource handlers for templates
+  //   registry.addResourceHandler("/templates/**")
+  //     .addResourceLocations("classpath:/templates/")
+  // }
 
-    override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
-        // Add default resource handlers for static resources
-        registry.addResourceHandler("/static/**")
-            .addResourceLocations("classpath:/static/")
+  override fun addResourceHandlers(registry: ResourceHandlerRegistry) {
+    // Add default resource handlers for static resources
+    registry
+      .addResourceHandler("/static/**")
+      .addResourceLocations("classpath:/static/")
 
-        // Add default resource handlers for templates
-        registry.addResourceHandler("/templates/**")
-            .addResourceLocations("classpath:/templates/")
-    }
+    // Add default resource handlers for templates
+    registry
+      .addResourceHandler("/templates/**")
+      .addResourceLocations("classpath:/templates/")
+  }
 
-    override fun addViewControllers(registry: ViewControllerRegistry) {
-        // 添加对404错误页面的映射
-        registry.addViewController("/error-404").setViewName("forward:/templates/error-404.html")
-    }
+  override fun addViewControllers(registry: ViewControllerRegistry) {
+    // 添加对404错误页面的映射
+    registry.addViewController("/error-404").setViewName("forward:/templates/error-404.html")
+  }
 }

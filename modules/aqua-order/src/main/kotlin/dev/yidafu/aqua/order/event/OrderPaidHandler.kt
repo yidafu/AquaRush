@@ -20,12 +20,10 @@
 package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.api.service.DeliveryService
-import dev.yidafu.aqua.common.domain.model.OrderDomainEventModel
+import dev.yidafu.aqua.common.domain.model.DomainEvent
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
-import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -35,7 +33,7 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 class OrderPaidHandler(
   private val orderRepository: OrderRepository,
   private val deliveryService: DeliveryService,
-  private val deliveryAssignmentHandler: DeliveryAssignmentHandler,
+  private val simplifiedEventPublishService: dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService,
 ) {
   private val logger = LoggerFactory.getLogger(OrderPaidHandler::class.java)
   private val objectMapper = jacksonObjectMapper()
@@ -44,7 +42,7 @@ class OrderPaidHandler(
    * 处理订单支付成功事件
    */
   @Transactional
-  fun handle(event: OrderDomainEventModel) {
+  fun handle(event: DomainEvent) {
     try {
       // 解析payload获取事件数据
       val eventData =
@@ -81,7 +79,7 @@ class OrderPaidHandler(
    * 触发配送分配
    */
   private fun triggerDeliveryAssignment(order: OrderModel) {
-    // 创建配送分配事件
+    // 通过 Artemis 发布配送分配事件
     val eventData =
       mapOf(
         "orderId" to order.id.toString(),
@@ -91,23 +89,12 @@ class OrderPaidHandler(
         "addressId" to order.addressId.toString(),
       )
 
-    val eventPayload = objectMapper.writeValueAsString(eventData)
+    simplifiedEventPublishService.publishDomainEvent(
+      eventType = "ORDER_DELIVERY_ASSIGNMENT",
+      aggregateId = order.id.toString(),
+      eventData = eventData,
+    )
 
-    val deliveryAssignmentEvent =
-      OrderDomainEventModel(
-        id = DefaultIdGenerator().generate(),
-        eventType = "ORDER_DELIVERY_ASSIGNMENT",
-        payload = eventPayload,
-        status = EventStatusModel.PENDING,
-        retryCount = 0,
-        nextRunAt = java.time.LocalDateTime.now(),
-        createdAt = java.time.LocalDateTime.now(),
-        updatedAt = java.time.LocalDateTime.now(),
-        errorMessage = null,
-      )
-
-    // 这里可以保存事件到数据库，或者直接调用配送服务
-    // 为了简化，直接调用配送分配处理器
-    deliveryAssignmentHandler.handle(deliveryAssignmentEvent)
+    logger.info("Published ORDER_DELIVERY_ASSIGNMENT event for order: ${order.orderNumber}")
   }
 }

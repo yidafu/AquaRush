@@ -29,7 +29,6 @@ import org.springframework.web.servlet.ModelAndView
 
 @Controller
 class CustomErrorController : ErrorController {
-
   @RequestMapping("/error")
   fun handleError(request: HttpServletRequest): ModelAndView {
     val modelAndView = ModelAndView()

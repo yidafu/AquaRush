@@ -27,51 +27,62 @@ import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 
-@Configuration
 // @Primary // Disabled - use AdminUserDetailsService instead
+@Configuration
 class FormLoginUserConfig {
-  @Bean
   // @Primary
+  @Bean
   fun formLoginUserDetailsService(passwordEncoder: PasswordEncoder): UserDetailsService {
     val userDetailsService = InMemoryUserDetailsManager()
 
     // Create admin user
-    val adminUser = User.builder()
-      .username("admin")
-      .password(passwordEncoder.encode("123456"))
-      .roles("ADMIN")
-      .authorities(
-        "PERMISSION_USER_READ", "PERMISSION_USER_WRITE",
-        "PERMISSION_ORDER_READ", "PERMISSION_ORDER_WRITE",
-        "PERMISSION_PRODUCT_READ", "PERMISSION_PRODUCT_WRITE",
-        "PERMISSION_DELIVERY_READ", "PERMISSION_DELIVERY_WRITE",
-        "PERMISSION_PAYMENT_READ", "PERMISSION_PAYMENT_WRITE",
-        "PERMISSION_STATISTICS_READ"
-      )
-      .build()
+    val adminUser =
+      User
+        .builder()
+        .username("admin")
+        .password(passwordEncoder.encode("123456"))
+        .roles("ADMIN")
+        .authorities(
+          "PERMISSION_USER_READ",
+          "PERMISSION_USER_WRITE",
+          "PERMISSION_ORDER_READ",
+          "PERMISSION_ORDER_WRITE",
+          "PERMISSION_PRODUCT_READ",
+          "PERMISSION_PRODUCT_WRITE",
+          "PERMISSION_DELIVERY_READ",
+          "PERMISSION_DELIVERY_WRITE",
+          "PERMISSION_PAYMENT_READ",
+          "PERMISSION_PAYMENT_WRITE",
+          "PERMISSION_STATISTICS_READ",
+        ).build()
 
     // Create regular user
-    val normalUser = User.builder()
-      .username("user")
-      .password(passwordEncoder.encode("user123"))
-      .roles("USER")
-      .authorities(
-        "PERMISSION_USER_READ", "PERMISSION_USER_WRITE",
-        "PERMISSION_ORDER_READ", "PERMISSION_ORDER_WRITE",
-        "PERMISSION_PRODUCT_READ"
-      )
-      .build()
+    val normalUser =
+      User
+        .builder()
+        .username("user")
+        .password(passwordEncoder.encode("user123"))
+        .roles("USER")
+        .authorities(
+          "PERMISSION_USER_READ",
+          "PERMISSION_USER_WRITE",
+          "PERMISSION_ORDER_READ",
+          "PERMISSION_ORDER_WRITE",
+          "PERMISSION_PRODUCT_READ",
+        ).build()
 
     // Create delivery worker
-    val workerUser = User.builder()
-      .username("worker")
-      .password(passwordEncoder.encode("worker123"))
-      .roles("WORKER")
-      .authorities(
-        "PERMISSION_DELIVERY_READ", "PERMISSION_DELIVERY_WRITE",
-        "PERMISSION_ORDER_READ"
-      )
-      .build()
+    val workerUser =
+      User
+        .builder()
+        .username("worker")
+        .password(passwordEncoder.encode("worker123"))
+        .roles("WORKER")
+        .authorities(
+          "PERMISSION_DELIVERY_READ",
+          "PERMISSION_DELIVERY_WRITE",
+          "PERMISSION_ORDER_READ",
+        ).build()
 
     userDetailsService.createUser(adminUser)
     userDetailsService.createUser(normalUser)

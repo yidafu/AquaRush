@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.security
 
+import dev.yidafu.aqua.common.exception.JwtTokenException
 import io.jsonwebtoken.*
 import io.jsonwebtoken.security.Keys
 import org.slf4j.LoggerFactory
@@ -153,22 +154,21 @@ class JwtTokenService {
     try {
       val claims = extractAllClaims(token)
       val username = claims.subject
-      val userId = claims["userId"] as? String
-      val userType = claims["userType"] as? String
+      val userId = claims["userId"] as? String ?: throw JwtTokenException("User ID claims string is empty")
+      val userType = claims["userType"] as? String ?: throw JwtTokenException("User Type claims string is empty")
 
       val authorities = mutableListOf<SimpleGrantedAuthority>()
       val authoritiesList = claims["authorities"] as? List<String>
       authoritiesList?.map { SimpleGrantedAuthority(it) }?.let { authorities.addAll(it) }
 
       UserPrincipal(
-        id =
-          userId?.toLong() ?: 0L,
+        id = userId.toLong(),
         _username = username,
-        userType = userType ?: "USER",
+        userType = userType,
         _authorities = authorities,
       )
     } catch (e: Exception) {
-      null
+      throw JwtTokenException("Token has not been expired")
     }
 
   /**
@@ -205,10 +205,3 @@ class JwtTokenService {
     const val HEADER_STRING = "Authorization"
   }
 }
-
-/**
- * Custom JWT token exception
- */
-class JwtTokenException(
-  message: String,
-) : RuntimeException(message)
