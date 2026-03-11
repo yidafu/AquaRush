@@ -348,6 +348,8 @@ type DeliveryWorker {
   earning: Money
   # 是否可接单
   isAvailable: Boolean!
+  # 当前任务数（待配送订单数）
+  currentTaskCount: Int!
   # 创建时间
   createdAt: LocalDateTime!
   # 更新时间

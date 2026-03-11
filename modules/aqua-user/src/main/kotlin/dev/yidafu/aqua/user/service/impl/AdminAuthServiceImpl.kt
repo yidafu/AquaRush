@@ -9,7 +9,6 @@ import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.ext.getAuthorities
 import dev.yidafu.aqua.user.service.WeChatAuthException
 import org.slf4j.LoggerFactory
-import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
 import org.springframework.security.core.context.SecurityContextHolder

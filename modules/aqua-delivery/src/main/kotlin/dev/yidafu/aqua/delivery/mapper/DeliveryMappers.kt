@@ -41,6 +41,7 @@ object DeliveryWorkerMapper : ObjectMappie<DeliveryWorkerModel, DeliveryWorker>(
       to::onlineStatus fromExpression {
         DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
       }
+      to::currentTaskCount fromValue 0
     }
 }
 
@@ -57,6 +58,7 @@ object DeliveryWorkerWithCurrentUserMapper : ObjectMappie<DeliveryWorkerModel, D
       to::onlineStatus fromExpression {
         DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
       }
+      to::currentTaskCount fromValue 0
     }
 }
 

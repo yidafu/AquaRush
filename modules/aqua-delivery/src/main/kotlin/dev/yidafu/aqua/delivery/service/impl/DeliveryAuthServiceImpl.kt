@@ -18,7 +18,6 @@ import dev.yidafu.aqua.user.ext.toSimpleGrantedAuthority
 import dev.yidafu.aqua.user.service.dto.toDeliveryWorkerInfo
 import me.chanjar.weixin.common.error.WxErrorException
 import org.slf4j.LoggerFactory
-import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 

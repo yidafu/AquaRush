@@ -19,16 +19,15 @@
 
 package dev.yidafu.aqua.client.config
 
-import tools.jackson.databind.ObjectMapper
-import tools.jackson.databind.SerializationFeature
-import tools.jackson.databind.DeserializationFeature
-import tools.jackson.databind.json.JsonMapper
 // import tools.jackson.datatype.jsr310.JavaTimeModule
-import tools.jackson.module.kotlin.KotlinModule
 // import org.springframework.boot.autoconfigure.jackson.Jackson2ObjectMapperBuilderCustomizer
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Primary
+import tools.jackson.databind.DeserializationFeature
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.SerializationFeature
+import tools.jackson.databind.json.JsonMapper
+import tools.jackson.module.kotlin.KotlinModule
 
 /**
  * Spring Boot 4.0 Jackson 3.x 兼容配置
