@@ -19,10 +19,12 @@
 
 package dev.yidafu.aqua.order.service
 
+import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.api.service.DeliveryService
+import dev.yidafu.aqua.api.service.OrderIdGeneratorService
 import dev.yidafu.aqua.api.service.OrderService
 import dev.yidafu.aqua.api.service.ProductService
-import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.OrderDomainEventModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
@@ -34,6 +36,8 @@ import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.order.domain.repository.DomainEventRepository
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
+import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
@@ -47,7 +51,10 @@ class OrderServiceImpl(
   private val domainEventRepository: DomainEventRepository,
   private val productService: ProductService,
   private val deliveryService: DeliveryService,
+  private val orderIdGenerator: OrderIdGeneratorService,
+  private val adminService: AdminService,
 ) : OrderService {
+  private val logger = LoggerFactory.getLogger(OrderServiceImpl::class.java)
   private val objectMapper = jacksonObjectMapper()
 
   @Transactional
@@ -72,7 +79,7 @@ class OrderServiceImpl(
       addressRepository
         .findById(addressId)
         .orElseThrow { NotFoundException("收货地址不存在: $addressId") }
-
+    // 这里需要区分管理员下单和不同用户下单
     if (address.userId != userId) {
       throw BadRequestException("无权使用此收货地址")
     }
@@ -84,7 +91,7 @@ class OrderServiceImpl(
     val amount = product.price
 
     // 5. 生成唯一订单号
-    val orderNumber = generateUniqueOrderNumber()
+    val orderNumber = orderIdGenerator.generateOrderId(userId)
 
     // 6. 扣减库存（使用原子操作）
     val stockDecreased = productService.decreaseStock(productId, quantity)
@@ -102,7 +109,6 @@ class OrderServiceImpl(
         quantity = quantity,
         amountCents = amount,
         addressId = addressId,
-        deliveryAddressId = addressId, // 映射到同一字段
         status = OrderStatus.PENDING_PAYMENT,
         paymentMethod = null,
         paymentTransactionId = null,
@@ -135,10 +141,6 @@ class OrderServiceImpl(
 
     return savedOrder
   }
-
-  // 保持原有方法以兼容现有代码
-  @Transactional
-  fun createOrder(order: OrderModel): OrderModel = createOrder(order.userId, order.productId, order.addressId, order.quantity)
 
   override fun getOrderById(orderId: Long): OrderModel =
     orderRepository.findById(orderId).orElseThrow {
@@ -222,15 +224,6 @@ class OrderServiceImpl(
   override fun getOrdersByStatus(status: OrderStatus): List<OrderModel> = orderRepository.findByStatus(status)
 
   /**
-   * 生成唯一订单号
-   */
-  private fun generateUniqueOrderNumber(): String {
-    val timestamp = System.currentTimeMillis()
-    val random = (1000..9999).random()
-    return "ORD${timestamp}$random"
-  }
-
-  /**
    * 发布领域事件
    */
   private fun publishDomainEvent(
@@ -242,8 +235,7 @@ class OrderServiceImpl(
     val eventPayload = objectMapper.writeValueAsString(eventData)
 
     val domainEvent =
-      DomainEventModel(
-        id = DefaultIdGenerator().generate(),
+      OrderDomainEventModel(
         eventType = eventType,
         payload = eventPayload,
         status = EventStatusModel.PENDING,
@@ -343,6 +335,96 @@ class OrderServiceImpl(
     return createOrder(userId, productId, addressId, quantity)
   }
 
+  /**
+   * 配送员创建订单 - 通过地址ID获取用户ID
+   * 配送员不需要用户认证，直接通过地址ID获取用户信息
+   */
+  @Transactional
+  override fun createDeliveryOrder(
+    adminId: Long,
+    productId: Long,
+    addressId: Long,
+    quantity: Int,
+    isSelfCollect: Boolean,
+    remark: String?,
+  ): OrderModel {
+    // 1. 验证地址存在并获取用户ID
+    val address =
+      addressRepository
+        .findById(addressId)
+        .orElseThrow { NotFoundException("收货地址不存在: $addressId") }
+
+    // 从地址中获取用户ID
+    val user = adminService.getUserById(adminId)
+    val userId = user.id!!
+    // 2. 验证产品存在且有足够库存
+    val product =
+      productRepository
+        .findById(productId)
+        .orElseThrow { NotFoundException("产品不存在: $productId") }
+
+    if (product.stock < quantity) {
+      throw BadRequestException("库存不足，当前库存: ${product.stock}，需求数量: $quantity")
+    }
+
+    // 3. 验证地址是否在配送范围内
+    deliveryService.validateDeliveryAddress(address.province, address.city, address.district)
+
+    // 4. 计算订单金额 (product.price is already in cents)
+    val amount = product.price
+    // 5. 生成唯一订单号
+    val orderNumber = orderIdGenerator.generateOrderId(userId)
+    // 6. 扣减库存（使用原子操作）
+    val stockDecreased = productService.decreaseStock(productId, quantity)
+    if (!stockDecreased) {
+      throw BadRequestException("库存扣减失败，请重试")
+    }
+
+    // 7. 创建订单
+    val order =
+      OrderModel(
+//        id = DefaultIdGenerator().generate(),
+        orderNumber = orderNumber,
+        userId = userId,
+        productId = productId,
+        quantity = quantity,
+        amountCents = amount,
+        addressId = addressId,
+        status = OrderStatus.PENDING_DELIVERY,
+        paymentMethod = PaymentMethod.CASH,
+        paymentTransactionId = null,
+        paymentTime = if (isSelfCollect) LocalDateTime.now() else null,
+        deliveryWorkerId = null,
+        deliveryPhotos = null,
+        completedAt = null,
+        remark = remark,
+        isSelfCollect = isSelfCollect,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
+
+    val savedOrder = orderRepository.save(order)
+
+    // 8. 发布订单创建事件
+    publishDomainEvent(
+      eventType = "ORDER_CREATED",
+      aggregateId = savedOrder.id.toString(),
+      eventData =
+        mapOf(
+          "orderId" to savedOrder.id.toString(),
+          "orderNumber" to savedOrder.orderNumber,
+          "userId" to savedOrder.userId.toString(),
+          "productId" to savedOrder.productId.toString(),
+          "quantity" to savedOrder.quantity,
+          "amount" to savedOrder.amountCents.toString(),
+          "amountCents" to savedOrder.amountCents,
+          "addressId" to savedOrder.addressId.toString(),
+        ),
+    )
+
+    return order
+  }
+
   @Transactional
   override fun cancelOrder(
     orderId: Long,
@@ -422,5 +504,67 @@ class OrderServiceImpl(
     // This would typically be implemented with authentication context
     // For now, return empty list - you may need to adapt based on your auth setup
     return emptyList()
+  }
+
+  override fun searchOrders(
+    keyword: String?,
+    status: String?,
+    userId: Long?,
+    dateFrom: String?,
+    dateTo: String?,
+    minAmount: Long?,
+    maxAmount: Long?,
+    deliveryWorkerId: Long?,
+    page: Int,
+    size: Int,
+    sort: String,
+  ): Page<OrderModel> {
+    // Parse sort string (e.g., "createdAt,desc")
+    val sortParts = sort.split(",")
+    val sortField = sortParts.getOrElse(0) { "createdAt" }
+    val sortDirection = sortParts.getOrElse(1) { "desc" }
+
+    // Convert date strings to LocalDateTime
+    val startDate =
+      dateFrom?.let {
+        try {
+          LocalDateTime.parse(it)
+        } catch (e: Exception) {
+          null
+        }
+      }
+    val endDate =
+      dateTo?.let {
+        try {
+          LocalDateTime.parse(it)
+        } catch (e: Exception) {
+          null
+        }
+      }
+
+    // Convert status string to OrderStatus enum
+    val orderStatus =
+      status?.let {
+        try {
+          OrderStatus.valueOf(it.uppercase())
+        } catch (e: Exception) {
+          null
+        }
+      }
+
+    return orderRepository.findOrdersPaginated(
+      keyword = keyword,
+      status = orderStatus,
+      userId = userId,
+      deliveryWorkerId = deliveryWorkerId,
+      startDate = startDate,
+      endDate = endDate,
+      minAmount = minAmount,
+      maxAmount = maxAmount,
+      page = page,
+      size = size,
+      sortField = sortField,
+      sortDirection = sortDirection,
+    )
   }
 }

@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.api.service.PaymentService
-import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.OrderDomainEventModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import org.slf4j.LoggerFactory
@@ -40,7 +40,7 @@ class OrderCancelledHandler(
    * 处理订单取消事件
    */
   @Transactional
-  fun handle(event: DomainEventModel) {
+  fun handle(event: OrderDomainEventModel) {
     try {
       // 解析payload获取事件数据
       val eventData =

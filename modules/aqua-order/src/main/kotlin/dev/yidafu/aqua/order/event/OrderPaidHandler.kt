@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.api.service.DeliveryService
-import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.OrderDomainEventModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
@@ -44,7 +44,7 @@ class OrderPaidHandler(
    * 处理订单支付成功事件
    */
   @Transactional
-  fun handle(event: DomainEventModel) {
+  fun handle(event: OrderDomainEventModel) {
     try {
       // 解析payload获取事件数据
       val eventData =
@@ -94,7 +94,7 @@ class OrderPaidHandler(
     val eventPayload = objectMapper.writeValueAsString(eventData)
 
     val deliveryAssignmentEvent =
-      DomainEventModel(
+      OrderDomainEventModel(
         id = DefaultIdGenerator().generate(),
         eventType = "ORDER_DELIVERY_ASSIGNMENT",
         payload = eventPayload,

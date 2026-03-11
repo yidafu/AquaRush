@@ -26,12 +26,17 @@ import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentType
 import dev.yidafu.aqua.common.graphql.generated.*
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
+import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
 import dev.yidafu.aqua.order.dto.CreateOrderDTO
 import dev.yidafu.aqua.order.dto.OrderDTO
 import dev.yidafu.aqua.order.dto.UpdateOrderStatusDTO
+import dev.yidafu.aqua.product.mapper.ProductMapper
+import dev.yidafu.aqua.user.mapper.AddressMapper
+import dev.yidafu.aqua.user.mapper.UserMapper
 import org.springframework.stereotype.Component
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
+import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
@@ -110,7 +115,6 @@ object UpdateOrderStatusMapper : ObjectMappie<UpdateOrderStatusDTO, OrderModel>(
       to::quantity fromValue 1 // This needs to be set by the calling code
       to::amountCents fromValue 0L // This needs to be set by the calling code
       to::addressId fromValue -1L // This needs to be set by the calling code
-      to::deliveryAddressId fromValue -1L // This needs to be set by the calling code
       to::status fromExpression { from.status }
       to::deliveryPhotos fromExpression {
         from.deliveryPhotos?.let { photos ->
@@ -181,7 +185,6 @@ object GraphQLToOrderDTOMapper : ObjectMappie<Order, OrderDTO>() {
       to::deliveryWorkerId fromExpression { from.deliveryWorker?.id }
       to::deliveryWorker fromValue from.deliveryWorker
       to::deliveryPhotos fromExpression { from.deliveryPhotos?.toList() }
-      to::deliveryAddressId fromExpression { from.address.id }
       to::totalAmount fromProperty from::amount
     }
 }
@@ -189,6 +192,7 @@ object GraphQLToOrderDTOMapper : ObjectMappie<Order, OrderDTO>() {
 // ============================================================================
 // OrderModel → GraphQL Order Direct Mapper (with placeholders)
 // ============================================================================
+object OrderStatusMapper : EnumMappie<OrderStatus, OrderStatusG>()
 
 /**
  * Simple OrderMapper that converts OrderModel to GraphQL Order
@@ -212,77 +216,17 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       }
       to::paymentMethod fromExpression { from.paymentMethod?.name }
       to::status fromExpression {
-        when (from.status.name) {
-          "PENDING_PAYMENT" -> OrderStatusG.PENDING
-          "PENDING_DELIVERY" -> OrderStatusG.PENDING
-          "DELIVERING" -> OrderStatusG.OUT_FOR_DELIVERY
-          "COMPLETED" -> OrderStatusG.DELIVERED
-          "CANCELLED" -> OrderStatusG.CANCELLED
-          else -> OrderStatusG.PENDING
-        }
+        OrderStatusMapper.map(from.status)
       }
       // Create placeholder objects for required nested fields
-      to::address fromExpression {
-        Address(
-          id = from.addressId,
-          userId = from.userId,
-          province = "placeholder",
-          provinceCode = null,
-          city = "placeholder",
-          cityCode = null,
-          district = "placeholder",
-          districtCode = null,
-          detailAddress = "placeholder",
-          isDefault = false,
-          latitude = null,
-          longitude = null,
-          phone = "",
-          receiverName = "",
-          createdAt = from.createdAt,
-          updatedAt = from.updatedAt,
-        )
-      }
-      to::deliveryWorker fromValue null
+      to::address fromExpression { AddressMapper.map(from.address!!) }
+
+      to::deliveryWorker fromExpression { from.deliveryWorker?.let { DeliveryWorkerMapper.map(it) } }
       to::product fromExpression {
-        Product(
-          id = from.productId,
-          name = "placeholder",
-          coverImageUrl = "",
-          price = from.amountCents,
-          stock = 1,
-          status = ProductStatus.ONLINE,
-          createdAt = from.createdAt,
-          updatedAt = from.updatedAt,
-          certificateImages = null,
-          deliverySettings = null,
-          depositPrice = null,
-          detailContent = null,
-          imageGallery = null,
-          mineralContent = null,
-          originalPrice = null,
-          salesVolume = 0,
-          sortOrder = 0,
-          specification = "",
-          subtitle = null,
-          waterSource = null,
-          tags = null,
-        )
+        ProductMapper.map(from.product!!)
       }
       to::user fromExpression {
-        User(
-          id = from.userId,
-          nickname = "placeholder",
-          phone = "placeholder",
-          wechatOpenId = "placeholder_openid",
-          avatarUrl = null,
-          createdAt = from.createdAt,
-          updatedAt = from.updatedAt,
-          balanceCents = 0L,
-          email = "",
-          role = UserRole.USER,
-          status = UserStatus.ACTIVE,
-          totalSpentCents = 0L,
-        )
+        UserMapper.map(from.user!!)
       }
       to::paymentType fromExpression { from.paymentType?.let { PaymentTypeMapper.map(it) } }
     }
@@ -311,7 +255,6 @@ object CreateOrderRequestMapper : ObjectMappie<CreateOrderRequest, OrderModel>()
       to::id fromValue DefaultIdGenerator().generate()
       // Fields with same name and type - auto-mapped by Mappie
       to::amountCents fromProperty from::amount
-      to::deliveryAddressId fromValue from.addressId
       to::status fromValue OrderStatus.PENDING_PAYMENT
       to::paymentMethod fromValue null
       to::paymentTransactionId fromValue null

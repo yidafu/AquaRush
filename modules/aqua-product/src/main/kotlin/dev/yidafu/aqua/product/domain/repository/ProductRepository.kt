@@ -28,7 +28,8 @@ import org.springframework.stereotype.Repository
 @Repository
 interface ProductRepository :
   JpaRepository<ProductModel, Long>,
-  JpaSpecificationExecutor<ProductModel> {
+  JpaSpecificationExecutor<ProductModel>,
+  ProductRepositoryCustom {
   fun findByStatus(status: ProductStatus): List<ProductModel>
 
   fun findByStatus(

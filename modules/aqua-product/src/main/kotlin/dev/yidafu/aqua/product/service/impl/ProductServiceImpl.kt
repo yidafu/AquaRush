@@ -225,6 +225,12 @@ class ProductServiceImpl(
     return PageImpl(pageContent, pageable, products.size.toLong())
   }
 
+  override fun searchProducts(
+    keyword: String?,
+    status: ProductStatus?,
+    pageable: Pageable,
+  ): Page<ProductModel> = productRepository.searchProducts(keyword, status, pageable)
+
   fun findLowStockProducts(
     threshold: Int,
     pageable: Pageable,

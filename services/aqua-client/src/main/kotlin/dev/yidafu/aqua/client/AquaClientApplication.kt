@@ -23,13 +23,14 @@ import dev.yidafu.aqua.common.cache.CacheAutoConfiguration
 import dev.yidafu.aqua.storage.config.StorageProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.runApplication
 import org.springframework.boot.persistence.autoconfigure.EntityScan
+import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableScheduling
 
 @SpringBootApplication(
   scanBasePackages = [
     "dev.yidafu.aqua.common",
+    "dev.yidafu.aqua.common.domain.listener",
     "dev.yidafu.aqua.api",
     "dev.yidafu.aqua.client.config",
     "dev.yidafu.aqua.client.user.controller",
@@ -53,18 +54,20 @@ import org.springframework.scheduling.annotation.EnableScheduling
 )
 @EnableScheduling
 @EnableConfigurationProperties(StorageProperties::class)
-@EntityScan(basePackages = [
-  "dev.yidafu.aqua.common.domain.model",
-  "dev.yidafu.aqua.user.domain.model",
-  "dev.yidafu.aqua.product.domain.model",
-  "dev.yidafu.aqua.order.domain.model",
-  "dev.yidafu.aqua.payment.domain.model",
-  "dev.yidafu.aqua.delivery.domain.model",
-  "dev.yidafu.aqua.review.domain.model",
-  "dev.yidafu.aqua.notice.domain.model",
-  "dev.yidafu.aqua.reconciliation.domain.model",
-  "dev.yidafu.aqua.storage.domain.entity"
-])
+@EntityScan(
+  basePackages = [
+    "dev.yidafu.aqua.common.domain.model",
+    "dev.yidafu.aqua.user.domain.model",
+    "dev.yidafu.aqua.product.domain.model",
+    "dev.yidafu.aqua.order.domain.model",
+    "dev.yidafu.aqua.payment.domain.model",
+    "dev.yidafu.aqua.delivery.domain.model",
+    "dev.yidafu.aqua.review.domain.model",
+    "dev.yidafu.aqua.notice.domain.model",
+    "dev.yidafu.aqua.reconciliation.domain.model",
+    "dev.yidafu.aqua.storage.domain.entity",
+  ],
+)
 class AquaClientApplication
 
 fun main(args: Array<String>) {

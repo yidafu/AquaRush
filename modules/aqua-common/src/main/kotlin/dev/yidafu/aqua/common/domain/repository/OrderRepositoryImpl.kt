@@ -28,6 +28,10 @@ import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.QOrderModel.Companion.orderModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -130,6 +134,96 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
       .from(orderModel)
       .where(builder)
       .fetchCount()
+  }
+
+  override fun findOrdersPaginated(
+    keyword: String?,
+    status: OrderStatus?,
+    userId: Long?,
+    deliveryWorkerId: Long?,
+    startDate: LocalDateTime?,
+    endDate: LocalDateTime?,
+    minAmount: Long?,
+    maxAmount: Long?,
+    page: Int,
+    size: Int,
+    sortField: String,
+    sortDirection: String,
+  ): org.springframework.data.domain.Page<OrderModel> {
+    val builder = BooleanBuilder()
+
+    keyword?.let { keywordVal ->
+      // Search in order number (using contains)
+      builder.and(orderModel.orderNumber.containsIgnoreCase(keywordVal))
+    }
+    status?.let { builder.and(orderModel.status.eq(it)) }
+    userId?.let { builder.and(orderModel.userId.eq(it)) }
+    deliveryWorkerId?.let { builder.and(orderModel.deliveryWorkerId.eq(it)) }
+
+    startDate?.let { start ->
+      endDate?.let { end ->
+        builder.and(orderModel.createdAt.between(start, end))
+      }
+    }
+
+    minAmount?.let { builder.and(orderModel.amountCents.goe(it)) }
+    maxAmount?.let { builder.and(orderModel.amountCents.loe(it)) }
+
+    // Build sorting - use Spring Data Sort
+    val sortFieldName = when (sortField.lowercase()) {
+      "totalamount", "total_amount" -> "amountCents"
+      "updatedat", "updated_at" -> "updatedAt"
+      else -> "createdAt"
+    }
+
+    val springSort = if (sortDirection.equals("asc", ignoreCase = true)) {
+      Sort.by(Sort.Order.asc(sortFieldName))
+    } else {
+      Sort.by(Sort.Order.desc(sortFieldName))
+    }
+
+    val pageable = PageRequest.of(page, size, springSort)
+
+    val query = queryFactory
+      .selectFrom(orderModel)
+      .where(builder)
+      .offset(pageable.offset)
+      .limit(pageable.pageSize.toLong())
+
+    // Apply ordering using QueryDSL
+    when (sortField.lowercase()) {
+      "totalamount", "total_amount" -> {
+        if (sortDirection.equals("asc", ignoreCase = true)) {
+          query.orderBy(orderModel.amountCents.asc())
+        } else {
+          query.orderBy(orderModel.amountCents.desc())
+        }
+      }
+      "updatedat", "updated_at" -> {
+        if (sortDirection.equals("asc", ignoreCase = true)) {
+          query.orderBy(orderModel.updatedAt.asc())
+        } else {
+          query.orderBy(orderModel.updatedAt.desc())
+        }
+      }
+      else -> {
+        if (sortDirection.equals("asc", ignoreCase = true)) {
+          query.orderBy(orderModel.createdAt.asc())
+        } else {
+          query.orderBy(orderModel.createdAt.desc())
+        }
+      }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    val content = query.fetch() as List<OrderModel>
+    val total = queryFactory
+      .query()
+      .from(orderModel)
+      .where(builder)
+      .fetchCount()
+
+    return PageImpl(content, pageable, total)
   }
 
   @Transactional
@@ -238,6 +332,24 @@ interface OrderRepositoryCustom {
     endDate: LocalDateTime?,
     statuses: List<OrderStatus>?,
   ): Long
+
+  /**
+   * 分页查询订单
+   */
+  fun findOrdersPaginated(
+    keyword: String? = null,
+    status: OrderStatus? = null,
+    userId: Long? = null,
+    deliveryWorkerId: Long? = null,
+    startDate: LocalDateTime? = null,
+    endDate: LocalDateTime? = null,
+    minAmount: Long? = null,
+    maxAmount: Long? = null,
+    page: Int = 0,
+    size: Int = 20,
+    sortField: String = "createdAt",
+    sortDirection: String = "desc",
+  ): org.springframework.data.domain.Page<OrderModel>
 
   fun bulkUpdateOrderStatus(
     orderIds: List<Long>,

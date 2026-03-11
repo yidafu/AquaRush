@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.order.event
 
-import dev.yidafu.aqua.common.domain.model.DomainEventModel
+import dev.yidafu.aqua.common.domain.model.OrderDomainEventModel
 import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import dev.yidafu.aqua.common.messaging.config.MessagingProperties
 import dev.yidafu.aqua.order.domain.repository.DomainEventRepository
@@ -93,7 +93,7 @@ class OutboxEventProcessor(
   /**
    * 处理单个事件
    */
-  private fun processEvent(event: DomainEventModel) {
+  private fun processEvent(event: OrderDomainEventModel) {
     // 标记事件为处理中
     event.status = EventStatusModel.PROCESSING
     domainEventRepository.save(event)
@@ -148,7 +148,7 @@ class OutboxEventProcessor(
    * 处理事件失败
    */
   private fun handleEventFailure(
-    event: DomainEventModel,
+    event: OrderDomainEventModel,
     exception: Exception,
   ) {
     event.retryCount++
@@ -251,7 +251,7 @@ class HybridEventProcessorCoordinator(
   /**
    * 处理Outbox中的事件
    */
-  private fun processOutboxEvent(event: DomainEventModel) {
+  private fun processOutboxEvent(event: OrderDomainEventModel) {
     logger.info("Processing Outbox fallback event: ${event.eventType} (${event.id})")
 
     // 这里可以根据事件类型进行特殊处理
@@ -274,7 +274,7 @@ class HybridEventProcessorCoordinator(
    * 处理Outbox事件失败
    */
   private fun handleOutboxEventFailure(
-    event: DomainEventModel,
+    event: OrderDomainEventModel,
     exception: Exception,
   ) {
     event.retryCount++
@@ -383,7 +383,7 @@ class Xxx(
   /**
    * 处理单个事件
    */
-  private fun processEvent(event: DomainEventModel) {
+  private fun processEvent(event: OrderDomainEventModel) {
     // 标记事件为处理中
     event.status = EventStatusModel.PROCESSING
     domainEventRepository.save(event)
@@ -438,7 +438,7 @@ class Xxx(
    * 处理事件失败
    */
   private fun handleEventFailure(
-    event: DomainEventModel,
+    event: OrderDomainEventModel,
     exception: Exception,
   ) {
     event.retryCount++

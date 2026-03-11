@@ -51,31 +51,14 @@ class AdminProductQueryResolver(
   fun products(
     @Argument page: Int? = 0,
     @Argument size: Int? = 20,
-    @Argument status: ProductStatus? = null,
+    @Argument status: ProductStatus?,
     @Argument keyword: String? = null,
   ): ProductPage {
     val actualPage = page ?: 0
     val actualSize = size ?: 20
     val pageable: Pageable = PageRequest.of(actualPage, actualSize)
 
-    val productsPage =
-      when {
-        keyword != null && status != null -> {
-          productService.findByNameContainingAndStatus(keyword, status, pageable)
-        }
-
-        keyword != null -> {
-          productService.findByNameContaining(keyword, pageable)
-        }
-
-        status != null -> {
-          productService.findByStatus(status, pageable)
-        }
-
-        else -> {
-          productService.findAll(pageable)
-        }
-      }
+    val productsPage = productService.searchProducts(keyword, status, pageable)
 
     val (productList, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
     return ProductPage(
@@ -100,14 +83,10 @@ class AdminProductQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   @QueryMapping
   fun activeProducts(
+    @Argument keyword: String? = null,
     @Argument page: Int? = 0,
     @Argument size: Int? = 20,
-  ): Page<ProductModel> {
-    val actualPage = page ?: 0
-    val actualSize = size ?: 20
-    val pageable: Pageable = PageRequest.of(actualPage, actualSize)
-    return productService.findByStatus(ProductStatus.ONLINE, pageable)
-  }
+  ): ProductPage = products(keyword = keyword, status = ProductStatus.ACTIVE, page = page, size = size)
 
   /**
    * 查询下线产品（管理员功能）
@@ -208,24 +187,7 @@ class AdminProductQueryResolver(
     @Argument input: ProductListInput,
   ): ProductPage {
     val pageable: Pageable = PageRequest.of(input.page ?: 0, input.size ?: 20)
-    val productsPage =
-      when {
-        input.search != null && input.status != null -> {
-          productService.findByNameContainingAndStatus(input.search!!, input.status!!, pageable)
-        }
-
-        input.search != null -> {
-          productService.findByNameContaining(input.search!!, pageable)
-        }
-
-        input.status != null -> {
-          productService.findByStatus(input.status!!, pageable)
-        }
-
-        else -> {
-          productService.findAll(pageable)
-        }
-      }
+    val productsPage = productService.searchProducts(input.search, input.status, pageable)
 
     val (products, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
     return ProductPage(

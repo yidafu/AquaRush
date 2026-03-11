@@ -96,7 +96,6 @@ class OrderConversionChain {
       quantity = existingOrderModel.quantity,
       amountCents = existingOrderModel.amountCents,
       addressId = existingOrderModel.addressId,
-      deliveryAddressId = existingOrderModel.deliveryAddressId,
       status = orderDTO.status,
       paymentMethod = orderDTO.paymentMethod ?: existingOrderModel.paymentMethod,
       deliveryPhotos =

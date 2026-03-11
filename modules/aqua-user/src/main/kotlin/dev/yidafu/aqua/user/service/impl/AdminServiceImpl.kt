@@ -21,9 +21,13 @@ package dev.yidafu.aqua.user.service.impl
 
 import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.api.service.DeliveryService
+import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.AdminRoleModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.exception.BadRequestException
+import dev.yidafu.aqua.common.exception.UserNotFoundException
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import org.slf4j.LoggerFactory
@@ -39,6 +43,7 @@ import org.springframework.transaction.annotation.Transactional
 class AdminServiceImpl(
   private val adminRepository: AdminRepository,
   private val deliveryService: DeliveryService,
+  private val userService: UserService,
 ) : AdminService {
   private val logger = LoggerFactory.getLogger(AdminServiceImpl::class.java)
 
@@ -199,5 +204,13 @@ class AdminServiceImpl(
     adminRepository.delete(existingAdmin)
     logger.info("Successfully deleted admin user: $id")
     return true
+  }
+
+  override fun getDeliveryWorkerById(id: Long): DeliveryWorker? = null
+
+  override fun getUserById(id: Long): UserModel {
+    val admin = findById(id) ?: throw UserNotFoundException("管理员未关联微信账号")
+    val userId = admin.userId ?: throw UserNotFoundException("管理员未关联微信账号")
+    return userService.findById(userId) ?: throw UserNotFoundException("管理员未关联微信账号")
   }
 }

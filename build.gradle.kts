@@ -48,6 +48,20 @@ subprojects {
   }
 
   apply(plugin = "org.jlleitschuh.gradle.ktlint")
+
+  // Configure Kotlin allopen to make JPA entity methods open for Hibernate proxy
+  tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    compilerOptions {
+      freeCompilerArgs.addAll(
+        listOf(
+          "-Xallopen",
+          "-Xannotation=jakarta.persistence.Entity",
+          "-Xannotation=jakarta.persistence.MappedSuperclass",
+          "-Xannotation=jakarta.persistence.Embeddable",
+        ),
+      )
+    }
+  }
 }
 
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {

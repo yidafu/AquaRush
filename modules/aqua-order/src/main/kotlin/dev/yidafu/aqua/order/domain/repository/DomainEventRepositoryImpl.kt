@@ -24,7 +24,7 @@ import com.querydsl.core.types.dsl.CaseBuilder
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.OrderDomainEventModel
-import dev.yidafu.aqua.common.domain.model.QDomainEventModel.Companion.domainEventModel
+import dev.yidafu.aqua.common.domain.model.QOrderDomainEventModel.Companion.orderDomainEventModel
 import dev.yidafu.aqua.common.domain.model.enums.EventStatusModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.LockModeType
@@ -80,20 +80,20 @@ class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
   ): List<OrderDomainEventModel> {
     val builder = BooleanBuilder()
 
-    builder.and(domainEventModel.status.eq(status))
+    builder.and(orderDomainEventModel.status.eq(status))
     builder.and(
-      domainEventModel.nextRunAt
+      orderDomainEventModel.nextRunAt
         .loe(now)
-        .or(domainEventModel.nextRunAt.isNull),
+        .or(orderDomainEventModel.nextRunAt.isNull),
     )
 
-    eventType?.let { builder.and(domainEventModel.eventType.eq(it)) }
-    maxRetries?.let { builder.and(domainEventModel.retryCount.loe(it)) }
+    eventType?.let { builder.and(orderDomainEventModel.eventType.eq(it)) }
+    maxRetries?.let { builder.and(orderDomainEventModel.retryCount.loe(it)) }
 
     return queryFactory
-      .selectFrom(domainEventModel)
+      .selectFrom(orderDomainEventModel)
       .where(builder)
-      .orderBy(domainEventModel.createdAt.asc())
+      .orderBy(orderDomainEventModel.createdAt.asc())
       .limit(batchSize.toLong())
       .fetch()
   }
@@ -106,31 +106,31 @@ class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
   ): Int {
     var update =
       queryFactory
-        .update(domainEventModel)
-        .set(domainEventModel.status, newStatus)
-        .set(domainEventModel.updatedAt, LocalDateTime.now())
-        .where(domainEventModel.id.`in`(eventIds))
+        .update(orderDomainEventModel)
+        .set(orderDomainEventModel.status, newStatus)
+        .set(orderDomainEventModel.updatedAt, LocalDateTime.now())
+        .where(orderDomainEventModel.id.`in`(eventIds))
 
     if (incrementRetry) {
       // Note: QueryDSL doesn't support increment expressions directly
       // We need to fetch current values, increment, and update
       val events =
         queryFactory
-          .selectFrom(domainEventModel)
-          .where(domainEventModel.id.`in`(eventIds))
+          .selectFrom(orderDomainEventModel)
+          .where(orderDomainEventModel.id.`in`(eventIds))
           .fetch()
 
       events.forEach { event ->
         queryFactory
-          .update(domainEventModel)
-          .set(domainEventModel.retryCount, event.retryCount + 1)
-          .where(domainEventModel.id.eq(event.id))
+          .update(orderDomainEventModel)
+          .set(orderDomainEventModel.retryCount, event.retryCount + 1)
+          .where(orderDomainEventModel.id.eq(event.id))
           .execute()
       }
     }
 
     nextRunAt?.let {
-      update = update.set(domainEventModel.nextRunAt, it)
+      update = update.set(orderDomainEventModel.nextRunAt, it)
     }
 
     return update.execute().toInt()
@@ -144,14 +144,14 @@ class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
   ): List<OrderDomainEventModel> {
     val builder = BooleanBuilder()
 
-    builder.and(domainEventModel.createdAt.between(startDate, endDate))
-    eventTypes?.let { builder.and(domainEventModel.eventType.`in`(it)) }
-    statuses?.let { builder.and(domainEventModel.status.`in`(it)) }
+    builder.and(orderDomainEventModel.createdAt.between(startDate, endDate))
+    eventTypes?.let { builder.and(orderDomainEventModel.eventType.`in`(it)) }
+    statuses?.let { builder.and(orderDomainEventModel.status.`in`(it)) }
 
     return queryFactory
-      .selectFrom(domainEventModel)
+      .selectFrom(orderDomainEventModel)
       .where(builder)
-      .orderBy(domainEventModel.createdAt.desc())
+      .orderBy(orderDomainEventModel.createdAt.desc())
       .fetch()
   }
 
@@ -162,19 +162,19 @@ class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
     endDate: LocalDateTime?,
   ): Long {
     var predicate =
-      domainEventModel.eventType
+      orderDomainEventModel.eventType
         .eq(eventType)
-        .and(domainEventModel.status.eq(status))
+        .and(orderDomainEventModel.status.eq(status))
 
     startDate?.let { start ->
       endDate?.let { end ->
-        predicate = predicate.and(domainEventModel.createdAt.between(start, end))
+        predicate = predicate.and(orderDomainEventModel.createdAt.between(start, end))
       }
     }
 
     return queryFactory
       .query()
-      .from(domainEventModel)
+      .from(orderDomainEventModel)
       .where(predicate)
       .fetchCount()
   }
@@ -188,13 +188,13 @@ class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
       Expressions.dateTemplate(
         java.time.LocalDate::class.java,
         "DATE({0})",
-        domainEventModel.createdAt,
+        orderDomainEventModel.createdAt,
       )
 
     // Conditional aggregation for processed count
     val processedCase =
       CaseBuilder()
-        .`when`(domainEventModel.status.eq(EventStatusModel.COMPLETED))
+        .`when`(orderDomainEventModel.status.eq(EventStatusModel.COMPLETED))
         .then(1L)
         .otherwise(0L)
 
@@ -202,28 +202,28 @@ class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
       queryFactory
         .select(
           dateExpr,
-          domainEventModel.eventType,
-          domainEventModel.status,
-          domainEventModel.count(),
-          domainEventModel.retryCount.avg(),
-          domainEventModel.retryCount.max(),
-          domainEventModel.nextRunAt.min(),
+          orderDomainEventModel.eventType,
+          orderDomainEventModel.status,
+          orderDomainEventModel.count(),
+          orderDomainEventModel.retryCount.avg(),
+          orderDomainEventModel.retryCount.max(),
+          orderDomainEventModel.nextRunAt.min(),
           processedCase.sumLong(),
-        ).from(domainEventModel)
-        .where(domainEventModel.createdAt.between(startDate, endDate))
-        .groupBy(dateExpr, domainEventModel.eventType, domainEventModel.status)
-        .orderBy(dateExpr.desc(), domainEventModel.eventType.asc(), domainEventModel.status.asc())
+        ).from(orderDomainEventModel)
+        .where(orderDomainEventModel.createdAt.between(startDate, endDate))
+        .groupBy(dateExpr, orderDomainEventModel.eventType, orderDomainEventModel.status)
+        .orderBy(dateExpr.desc(), orderDomainEventModel.eventType.asc(), orderDomainEventModel.status.asc())
         .fetch()
 
     return results.map { tuple ->
       EventAnalyticsRow(
         eventDate = tuple.get(dateExpr) ?: java.time.LocalDate.now(),
-        eventType = tuple.get(domainEventModel.eventType) ?: "",
-        status = tuple.get(domainEventModel.status) ?: EventStatusModel.PENDING,
-        eventCount = tuple.get(domainEventModel.count()) ?: 0L,
-        averageRetries = tuple.get(domainEventModel.retryCount.avg()) ?: 0.0,
-        maxRetries = tuple.get(domainEventModel.retryCount.max()) ?: 0,
-        earliestNextRun = tuple.get(domainEventModel.nextRunAt.min()),
+        eventType = tuple.get(orderDomainEventModel.eventType) ?: "",
+        status = tuple.get(orderDomainEventModel.status) ?: EventStatusModel.PENDING,
+        eventCount = tuple.get(orderDomainEventModel.count()) ?: 0L,
+        averageRetries = tuple.get(orderDomainEventModel.retryCount.avg()) ?: 0.0,
+        maxRetries = tuple.get(orderDomainEventModel.retryCount.max()) ?: 0,
+        earliestNextRun = tuple.get(orderDomainEventModel.nextRunAt.min()),
         processedCount = tuple.get(processedCase.sumLong()) ?: 0L,
       )
     }
@@ -231,11 +231,11 @@ class DomainEventRepositoryImpl : DomainEventRepositoryCustom {
 
   override fun cleanupProcessedEvents(olderThan: LocalDateTime): Int =
     queryFactory
-      .delete(domainEventModel)
+      .delete(orderDomainEventModel)
       .where(
-        domainEventModel.status
+        orderDomainEventModel.status
           .eq(EventStatusModel.COMPLETED)
-          .and(domainEventModel.createdAt.lt(olderThan)),
+          .and(orderDomainEventModel.createdAt.lt(olderThan)),
       ).execute()
       .toInt()
 }

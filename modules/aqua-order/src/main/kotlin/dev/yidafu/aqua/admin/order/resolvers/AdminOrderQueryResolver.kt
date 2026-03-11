@@ -22,24 +22,56 @@ package dev.yidafu.aqua.admin.order.resolvers
 import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.api.service.OrderService
 import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.common.graphql.generated.OrderListInput
+import dev.yidafu.aqua.common.graphql.generated.OrderPage
+import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.order.mapper.OrderMapper
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
-// @AdminService
 @Controller
 class AdminOrderQueryResolver(
   private val orderService: OrderService,
   private val deliveryService: DeliveryService,
 ) {
   /**
-   * 获取所有订单 - 管理员权限
+   * 分页查询订单 - 管理员权限
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun orders(): List<Order> = orderService.findAllOrders().map { OrderMapper.map(it) }
+  fun orders(
+    @Argument input: OrderListInput?,
+  ): OrderPage {
+    val page = input?.page ?: 0
+    val size = input?.size ?: 20
+    val sort = input?.sort ?: "createdAt,desc"
+
+    val ordersPage =
+      orderService.searchOrders(
+        keyword = input?.search,
+        status = input?.status?.name,
+        userId = input?.userId,
+        dateFrom = input?.dateFrom?.toString(),
+        dateTo = input?.dateTo?.toString(),
+        minAmount = input?.minAmount,
+        maxAmount = input?.maxAmount,
+        deliveryWorkerId = input?.deliveryWorkerId,
+        page = page,
+        size = size,
+        sort = sort,
+      )
+
+    val (orderList, pageInfo) = ordersPage.toPageInfo { OrderMapper.map(it) }
+    return OrderPage(
+      content = orderList,
+      totalElements = pageInfo.total,
+      totalPages = pageInfo.totalPages,
+      size = pageInfo.pageSize,
+      number = pageInfo.pageNum,
+    )
+  }
 
   /**
    * 根据ID获取订单 - 管理员权限
@@ -80,7 +112,6 @@ class AdminOrderQueryResolver(
   /**
    * 根据用户ID和状态获取订单 - 管理员权限
    */
-  //  @PreAuthorize("hasRole('ADMIN')")
   @QueryMapping
   fun ordersByUserAndStatus(
     @Argument userId: Long,

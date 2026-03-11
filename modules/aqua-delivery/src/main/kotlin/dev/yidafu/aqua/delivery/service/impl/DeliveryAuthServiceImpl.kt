@@ -5,14 +5,16 @@ import dev.yidafu.aqua.api.dto.DeliveryLoginRequest
 import dev.yidafu.aqua.api.dto.DeliveryLoginResponse
 import dev.yidafu.aqua.api.dto.DeliveryWorkerInfo
 import dev.yidafu.aqua.api.service.DeliveryAuthService
+import dev.yidafu.aqua.common.domain.model.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.common.security.JwtTokenException
+import dev.yidafu.aqua.common.exception.JwtTokenException
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
+import dev.yidafu.aqua.user.ext.toSimpleGrantedAuthority
 import dev.yidafu.aqua.user.service.dto.toDeliveryWorkerInfo
 import me.chanjar.weixin.common.error.WxErrorException
 import org.slf4j.LoggerFactory
@@ -142,7 +144,7 @@ class DeliveryAuthServiceImpl(
    * Generate JWT token for delivery worker
    */
   private fun generateToken(worker: DeliveryWorkerModel): String {
-    val authorities = listOf(SimpleGrantedAuthority("ROLE_DELIVERY_WORKER"))
+    val authorities = listOf(AdminRoleModel.DELIVERY_WORKER.toSimpleGrantedAuthority())
     val userPrincipal =
       UserPrincipal(
         id = worker.id!!,

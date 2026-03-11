@@ -43,7 +43,7 @@ class DeliveryAssignmentHandler(
    * 处理配送分配事件
    */
   @Transactional
-  fun handle(event: DomainEventModel) {
+  fun handle(event: OrderDomainEventModel) {
     try {
       // 解析payload获取事件数据
       val eventData =
@@ -143,7 +143,7 @@ class DeliveryAssignmentHandler(
       val eventPayload = objectMapper.writeValueAsString(eventData)
 
       val event =
-        DomainEventModel(
+        OrderDomainEventModel(
           id = DefaultIdGenerator().generate(),
           eventType = "ORDER_ASSIGNED",
           payload = eventPayload,

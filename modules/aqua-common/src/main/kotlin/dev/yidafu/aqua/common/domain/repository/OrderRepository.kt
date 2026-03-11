@@ -83,4 +83,20 @@ interface OrderRepository : JpaRepository<OrderModel, Long> {
     endDate: LocalDateTime? = null,
     statuses: List<OrderStatus>? = null,
   ): Long
+
+  // Paginated query method
+  fun findOrdersPaginated(
+    keyword: String? = null,
+    status: OrderStatus? = null,
+    userId: Long? = null,
+    deliveryWorkerId: Long? = null,
+    startDate: LocalDateTime? = null,
+    endDate: LocalDateTime? = null,
+    minAmount: Long? = null,
+    maxAmount: Long? = null,
+    page: Int = 0,
+    size: Int = 20,
+    sortField: String = "createdAt",
+    sortDirection: String = "desc",
+  ): org.springframework.data.domain.Page<OrderModel>
 }
