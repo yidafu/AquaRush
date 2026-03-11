@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Form, Input, Button, Card, Checkbox, message, Spin } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { login } from '../../services/auth';
 import './index.css';
 
 interface LoginForm {
@@ -36,32 +37,31 @@ const Login: React.FC = () => {
 
   const onFinish = async (values: LoginForm) => {
     setLoading(true);
-    
+
     try {
       console.log('登录信息:', values);
-      
-      // TODO: 调用登录 API
-      // const response = await login(values.username, values.password);
-      // localStorage.setItem('token', response.token);
-      // localStorage.setItem('userInfo', JSON.stringify(response.userInfo));
-      
-      // 模拟 API 调用延迟
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
+      // 调用登录 API
+      const response = await login({
+        username: values.username,
+        password: values.password,
+      });
+
+      // 保存 token 和用户信息到 localStorage
+      localStorage.setItem('token', response.accessToken);
+      localStorage.setItem('userInfo', JSON.stringify(response.userInfo));
+
       // 处理"记住我"功能
       if (values.remember) {
         localStorage.setItem('rememberedUsername', values.username);
       } else {
         localStorage.removeItem('rememberedUsername');
       }
-      
-      // 临时存储 token（实际应该从 API 返回）
-      localStorage.setItem('token', 'mock-token-' + Date.now());
-      
+
       message.success('登录成功！');
       navigate('/dashboard');
-    } catch (error) {
-      message.error('登录失败，请检查用户名和密码');
+    } catch (error: any) {
+      message.error(error.message || '登录失败，请检查用户名和密码');
       console.error('登录错误:', error);
     } finally {
       setLoading(false);

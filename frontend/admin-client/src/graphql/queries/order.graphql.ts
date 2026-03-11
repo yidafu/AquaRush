@@ -5,17 +5,15 @@ export const GET_ORDERS_QUERY = gql`
     orders(input: $input) {
       content {
         id
-        orderNo
-        userId
+        orderNumber
         user {
           id
           nickname
           phone
         }
         status
-        totalAmount
-        paymentStatus
-        deliveryAddress {
+        amount
+        address {
           receiverName
           phone
           province
@@ -25,7 +23,7 @@ export const GET_ORDERS_QUERY = gql`
         }
         deliveryWorker {
           id
-          nickname
+          name
           phone
         }
         createdAt
@@ -41,10 +39,9 @@ export const GET_ORDERS_QUERY = gql`
 
 export const GET_ORDER_DETAIL_QUERY = gql`
   query GetOrderDetail($id: PrimaryId!) {
-    order(id: $id) {
+    order(orderId: $id) {
       id
-      orderNo
-      userId
+      orderNumber
       user {
         id
         nickname
@@ -52,9 +49,14 @@ export const GET_ORDER_DETAIL_QUERY = gql`
         avatarUrl
       }
       status
-      totalAmount
-      paymentStatus
-      deliveryAddress {
+      amount
+      quantity
+      product {
+        id
+        name
+        coverImageUrl
+      }
+      address {
         receiverName
         phone
         province
@@ -66,30 +68,20 @@ export const GET_ORDER_DETAIL_QUERY = gql`
       }
       deliveryWorker {
         id
-        nickname
+        name
         phone
         avatarUrl
       }
-      items {
-        id
-        productId
-        product {
-          id
-          name
-          imageUrl
-        }
-        quantity
-        unitPrice
-        totalPrice
-      }
-      payment {
-        id
-        paymentMethod
-        transactionId
-        amount
-        status
-        paidAt
-      }
+      paymentMethod
+      paymentTransactionId
+      paymentTime
+      deliveryPhotos
+      isSelfCollect
+      paymentType
+      deliveryStartedAt
+      deliveryConfirmedAt
+      completedAt
+      remark
       createdAt
       updatedAt
     }
@@ -100,16 +92,14 @@ export const GET_ORDERS_BY_STATUS_QUERY = gql`
   query GetOrdersByStatus($status: OrderStatus!) {
     ordersByStatus(status: $status) {
       id
-      orderNo
-      userId
+      orderNumber
       user {
         id
         nickname
         phone
       }
       status
-      totalAmount
-      paymentStatus
+      amount
       createdAt
       updatedAt
     }

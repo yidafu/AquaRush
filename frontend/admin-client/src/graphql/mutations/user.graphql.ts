@@ -45,23 +45,30 @@ export const CREATE_ADMIN_MUTATION = gql`
   mutation CreateAdmin($input: CreateAdminInput!) {
     createAdmin(input: $input) {
       id
-      wechatOpenId
-      nickname
+      username
+      realName
       phone
-      avatarUrl
+      role
       createdAt
     }
   }
 `;
 
 export const UPDATE_ADMIN_MUTATION = gql`
-  mutation UpdateAdmin($input: UpdateAdminInput!) {
-    updateAdmin(input: $input) {
+  mutation UpdateAdmin($id: PrimaryId!, $input: UpdateAdminInput!) {
+    updateAdmin(id: $id, input: $input) {
       id
-      nickname
+      username
+      realName
       phone
-      avatarUrl
+      role
       updatedAt
     }
+  }
+`;
+
+export const DELETE_ADMIN_MUTATION = gql`
+  mutation DeleteAdmin($id: PrimaryId!) {
+    deleteAdmin(id: $id)
   }
 `;

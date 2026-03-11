@@ -6,7 +6,7 @@ export interface Admin {
   username: string;
   realName?: string;
   phone?: string;
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'NORMAL_ADMIN';
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'DELIVERY_WORKER';
   lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
@@ -63,7 +63,7 @@ export interface AdminFormData {
   realName?: string;
   phone?: string;
   password?: string;
-  role: 'SUPER_ADMIN' | 'ADMIN' | 'NORMAL_ADMIN';
+  role: 'SUPER_ADMIN' | 'ADMIN' | 'DELIVERY_WORKER';
 }
 
 export interface DeliveryWorkerFormData {
@@ -109,7 +109,7 @@ export const ROLE_MAPPINGS = {
   CUSTOMER: { color: 'blue', text: '客户' },
   DELIVERY: { color: 'green', text: '配送员' },
   SUPER_ADMIN: { color: 'purple', text: '超级管理员' },
-  NORMAL_ADMIN: { color: 'orange', text: '普通管理员' },
+  DELIVERY_WORKER: { color: 'green', text: '送水员' },
   USER: { color: 'blue', text: '用户' },
   WORKER: { color: 'green', text: '配送员' },
   NONE: { color: 'default', text: '无' },

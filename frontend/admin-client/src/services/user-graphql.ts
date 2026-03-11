@@ -18,6 +18,11 @@ import {
   CREATE_ADMIN_MUTATION,
   UPDATE_ADMIN_MUTATION,
 } from '../graphql/mutations/user.graphql';
+import {
+  CREATE_DELIVERY_WORKER_MUTATION,
+  UPDATE_DELIVERY_WORKER_MUTATION,
+  DELETE_DELIVERY_WORKER_MUTATION,
+} from '../graphql/mutations/delivery-worker.graphql';
 import type {
   User,
   UserListInput,
@@ -42,14 +47,13 @@ export interface CreateUserInput {
 
 export interface CreateAdminInput {
   readonly username: string;
+  readonly password?: string;
   readonly realName?: string;
   readonly phone?: string;
-  readonly role?: string;
-  readonly wechatOpenId?: string;
+  readonly role: string;
 }
 
 export interface UpdateAdminInput {
-  readonly id: number;
   readonly username?: string;
   readonly realName?: string;
   readonly phone?: string;
@@ -196,6 +200,71 @@ export const useUserOrders = (userId: number) => {
     variables: { userId },
     skip: !userId,
     errorPolicy: 'all',
+  });
+};
+
+// Delivery Worker Mutation Hooks
+
+// Input type for creating delivery worker
+export interface CreateDeliveryWorkerInput {
+  readonly name: string;
+  readonly phone: string;
+  readonly password?: string;
+  readonly avatarUrl?: string;
+  readonly wechatOpenId?: string;
+  readonly coordinates?: string;
+  readonly currentLocation?: string;
+  readonly rating?: number;
+  readonly earning?: number;
+  readonly isAvailable?: boolean;
+}
+
+// Input type for updating delivery worker
+export interface UpdateDeliveryWorkerInput {
+  readonly name?: string;
+  readonly phone?: string;
+  readonly avatarUrl?: string;
+  readonly wechatOpenId?: string;
+  readonly coordinates?: string;
+  readonly currentLocation?: string;
+  readonly rating?: number;
+  readonly earning?: number;
+  readonly isAvailable?: boolean;
+}
+
+export const useCreateDeliveryWorker = () => {
+  return useMutation(CREATE_DELIVERY_WORKER_MUTATION, {
+    onCompleted: () => {
+      message.success('送水员创建成功');
+    },
+    onError: (error) => {
+      message.error(error.message || '送水员创建失败');
+    },
+    refetchQueries: ['GetDeliveryWorkers'],
+  });
+};
+
+export const useUpdateDeliveryWorker = () => {
+  return useMutation(UPDATE_DELIVERY_WORKER_MUTATION, {
+    onCompleted: () => {
+      message.success('送水员信息更新成功');
+    },
+    onError: (error) => {
+      message.error(error.message || '送水员信息更新失败');
+    },
+    refetchQueries: ['GetDeliveryWorkers'],
+  });
+};
+
+export const useDeleteDeliveryWorker = () => {
+  return useMutation(DELETE_DELIVERY_WORKER_MUTATION, {
+    onCompleted: () => {
+      message.success('送水员删除成功');
+    },
+    onError: (error) => {
+      message.error(error.message || '送水员删除失败');
+    },
+    refetchQueries: ['GetDeliveryWorkers'],
   });
 };
 

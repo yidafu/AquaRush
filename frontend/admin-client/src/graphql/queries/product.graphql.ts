@@ -23,7 +23,6 @@ export const GET_PRODUCTS_QUERY = gql`
         detailContent
         certificateImages
         deliverySettings
-        isDeleted
         createdAt
         updatedAt
       }
@@ -61,7 +60,6 @@ export const GET_PRODUCT_DETAIL_QUERY = gql`
       detailContent
       certificateImages
       deliverySettings
-      isDeleted
       createdAt
       updatedAt
     }
@@ -91,7 +89,6 @@ export const GET_PRODUCTS_PAGINATED_QUERY = gql`
         detailContent
         certificateImages
         deliverySettings
-        isDeleted
         createdAt
         updatedAt
       }

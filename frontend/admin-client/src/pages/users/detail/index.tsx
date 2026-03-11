@@ -71,17 +71,13 @@ const UserDetailPage: React.FC = () => {
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
-      case OrderStatus.PENDING:
+      case OrderStatus.PENDING_PAYMENT:
         return 'default';
-      case OrderStatus.CONFIRMED:
+      case OrderStatus.PENDING_DELIVERY:
         return 'processing';
-      case OrderStatus.PREPARING:
+      case OrderStatus.DELIVERING:
         return 'processing';
-      case OrderStatus.READY_FOR_DELIVERY:
-        return 'warning';
-      case OrderStatus.OUT_FOR_DELIVERY:
-        return 'processing';
-      case OrderStatus.DELIVERED:
+      case OrderStatus.COMPLETED:
         return 'success';
       case OrderStatus.CANCELLED:
         return 'error';
@@ -94,17 +90,13 @@ const UserDetailPage: React.FC = () => {
 
   const getStatusText = (status: OrderStatus) => {
     switch (status) {
-      case OrderStatus.PENDING:
-        return '待确认';
-      case OrderStatus.CONFIRMED:
-        return '已确认';
-      case OrderStatus.PREPARING:
-        return '准备中';
-      case OrderStatus.READY_FOR_DELIVERY:
-        return '待派送';
-      case OrderStatus.OUT_FOR_DELIVERY:
-        return '送货中';
-      case OrderStatus.DELIVERED:
+      case OrderStatus.PENDING_PAYMENT:
+        return '待支付';
+      case OrderStatus.PENDING_DELIVERY:
+        return '待配送';
+      case OrderStatus.DELIVERING:
+        return '配送中';
+      case OrderStatus.COMPLETED:
         return '已完成';
       case OrderStatus.CANCELLED:
         return '已取消';
@@ -218,7 +210,7 @@ const UserDetailPage: React.FC = () => {
     return sum + amountValue;
   }, 0);
   const totalAmountInYuan = totalAmount;
-  const completedOrders = orders.filter(order => order.status === OrderStatus.DELIVERED).length;
+  const completedOrders = orders.filter(order => order.status === OrderStatus.COMPLETED).length;
   const lastOrderTime = orders.length > 0
     ? new Date(Math.max(...orders.map(order => new Date(order.createdAt).getTime()))).toLocaleString()
     : '暂无订单';

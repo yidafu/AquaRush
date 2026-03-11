@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Upload, Button, Space, Image, message } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Upload, Button, Space, message } from 'antd';
 import { PlusOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import type { UploadFile, UploadProps } from 'antd/es/upload';
 
@@ -37,6 +37,32 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
     return [];
   });
 
+  // 同步外部value变化到组件内部状态
+  useEffect(() => {
+    if (!value) {
+      setFileList([]);
+      return;
+    }
+
+    if (multiple && Array.isArray(value)) {
+      const newFileList = value.map((url, index) => ({
+        uid: `-${index}`,
+        name: `image-${index}`,
+        status: 'done' as const,
+        url,
+      }));
+      setFileList(newFileList);
+    } else if (!multiple && typeof value === 'string') {
+      const newFileList = [{
+        uid: '-1',
+        name: 'image',
+        status: 'done' as const,
+        url: value,
+      }];
+      setFileList(newFileList);
+    }
+  }, [value, multiple]);
+
   const handleChange: UploadProps['onChange'] = ({ fileList: newFileList }) => {
     // 只保留最新的文件，避免临时文件堆积
     const validFiles = newFileList.filter(file =>
@@ -49,20 +75,22 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       .filter(file => file.status === 'done' && file.url)
       .map(file => file.url!);
 
+    // 对于单图上传，确保只有一个值
     if (multiple) {
       onChange?.(completedUrls);
     } else {
-      onChange?.(completedUrls[0] || '');
+      // 对于单图上传，只取第一个完成的URL，确保非空才更新
+      const firstUrl = completedUrls[0];
+      if (firstUrl) {
+        onChange?.(firstUrl);
+      }
     }
   };
 
   const handlePreview = async (file: UploadFile) => {
     if (file.url) {
-      // 使用 Ant Design 的 Image 预览功能
-      Image.preview({
-        src: file.url,
-        width: 800,
-      } as any);
+      // 在新窗口中打开图片进行预览
+      window.open(file.url, '_blank');
     }
   };
 
@@ -87,7 +115,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       formData.append('fileType', 'IMAGE');
       formData.append('isPublic', 'true');
 
-      const response = await fetch('/api/v1/storage/files', {
+      const response = await fetch('http://localhost:9090/api/v1/storage/files', {
         method: 'POST',
         body: formData,
       });
@@ -106,10 +134,20 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       // 使用后端返回的fileUrl
       const fileUrl = result.data.fileUrl;
 
-      setTimeout(() => {
-        onSuccess?.({ url: fileUrl });
-        message.success(`${file.name} 上传成功`);
-      }, 500);
+      // 立即调用 onSuccess，确保表单值同步更新
+      onSuccess?.({ url: fileUrl });
+
+      // 立即更新表单值，确保验证时能获取到正确的值
+      if (!multiple) {
+        onChange?.(fileUrl);
+      } else {
+        // 对于多图上传，获取当前已有的URLs并添加新的URL
+        const currentUrls = Array.isArray(value) ? value : [];
+        const updatedUrls = [...currentUrls, fileUrl];
+        onChange?.(updatedUrls);
+      }
+
+      message.success(`${file.name} 上传成功`);
     } catch (error) {
       console.error('Upload error:', error);
       onError?.(error);
@@ -162,7 +200,7 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
           <Button
             icon={<EyeOutlined />}
             size="small"
-            onClick={() => Image.preview({ src: value as string } as any)}
+            onClick={() => window.open(value as string, '_blank')}
           >
             预览
           </Button>

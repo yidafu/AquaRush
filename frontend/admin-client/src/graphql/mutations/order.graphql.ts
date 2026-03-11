@@ -11,16 +11,61 @@ export const UPDATE_ORDER_STATUS_MUTATION = gql`
 `;
 
 export const ASSIGN_DELIVERY_WORKER_MUTATION = gql`
-  mutation AssignDeliveryWorker($orderId: PrimaryId!, $deliveryWorkerId: PrimaryId!) {
-    assignDeliveryWorker(orderId: $orderId, deliveryWorkerId: $deliveryWorkerId) {
+  mutation AssignDeliveryWorker($orderId: PrimaryId!, $workerId: PrimaryId!, $isSelfCollect: Boolean!) {
+    assignDeliveryWorker(orderId: $orderId, workerId: $workerId, isSelfCollect: $isSelfCollect) {
       id
+      isSelfCollect
       deliveryWorker {
         id
-        nickname
+        name
         phone
       }
       status
       updatedAt
+    }
+  }
+`;
+
+export const BATCH_ASSIGN_DELIVERY_WORKER_MUTATION = gql`
+  mutation BatchAssignDeliveryWorker($orderIds: [PrimaryId!]!, $workerId: PrimaryId!) {
+    batchAssignOrders(orderIds: $orderIds, workerId: $workerId) {
+      id
+      isSelfCollect
+      deliveryWorker {
+        id
+        name
+        phone
+      }
+      status
+    }
+  }
+`;
+
+export const ACCEPT_DELIVERY_MUTATION = gql`
+  mutation AcceptDelivery($orderId: PrimaryId!, $workerId: PrimaryId!) {
+    acceptDelivery(orderId: $orderId, workerId: $workerId) {
+      id
+      status
+    }
+  }
+`;
+
+export const START_DELIVERY_MUTATION = gql`
+  mutation StartDelivery($orderId: PrimaryId!) {
+    startDelivery(orderId: $orderId) {
+      id
+      status
+      deliveryStartedAt
+    }
+  }
+`;
+
+export const COMPLETE_DELIVERY_MUTATION = gql`
+  mutation CompleteDelivery($orderId: PrimaryId!, $photos: [String!]!, $paymentType: PaymentType) {
+    completeDelivery(orderId: $orderId, photos: $photos, paymentType: $paymentType) {
+      id
+      status
+      deliveryConfirmedAt
     }
   }
 `;

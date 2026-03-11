@@ -5,12 +5,15 @@ import type { MenuProps } from 'antd';
 import {
   DashboardOutlined,
   UserOutlined,
+  TeamOutlined,
+  CarOutlined,
   ShoppingOutlined,
   FileTextOutlined,
-  CarOutlined,
   BarChartOutlined,
   LogoutOutlined,
   SettingOutlined,
+  InboxOutlined,
+  EnvironmentOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = AntLayout;
@@ -20,10 +23,21 @@ const Layout: React.FC = () => {
 
   const menuItems = [
     { key: '/dashboard', icon: <DashboardOutlined />, label: '仪表盘' },
-    { key: '/users', icon: <UserOutlined />, label: '用户管理' },
+    {
+      key: 'users',
+      icon: <UserOutlined />,
+      label: '用户管理',
+      children: [
+        { key: '/users/admins', icon: <TeamOutlined />, label: '管理员' },
+        { key: '/users/delivery-workers', icon: <CarOutlined />, label: '送水员' },
+        { key: '/users/customers', icon: <UserOutlined />, label: '用户' },
+      ]
+    },
     { key: '/products', icon: <ShoppingOutlined />, label: '产品管理' },
+    { key: '/addresses', icon: <EnvironmentOutlined />, label: '地址管理' },
     { key: '/orders', icon: <FileTextOutlined />, label: '订单管理' },
-    { key: '/delivery', icon: <CarOutlined />, label: '配送管理' },
+    { key: '/dispatch', icon: <FileTextOutlined />, label: '派单管理' },
+    { key: '/bucket-deposits', icon: <InboxOutlined />, label: '押桶管理' },
     { key: '/statistics', icon: <BarChartOutlined />, label: '营收统计' },
   ];
 

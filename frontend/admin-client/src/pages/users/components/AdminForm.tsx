@@ -22,7 +22,7 @@ const AdminForm: React.FC<FormModalProps<AdminFormData>> = ({
     } else {
       form.resetFields();
       form.setFieldsValue({
-        role: 'NORMAL_ADMIN',
+        role: 'ADMIN',
       });
     }
   }, [record, form]);
@@ -56,7 +56,7 @@ const AdminForm: React.FC<FormModalProps<AdminFormData>> = ({
         form={form}
         layout="vertical"
         initialValues={{
-          role: 'NORMAL_ADMIN',
+          role: 'ADMIN',
         }}
       >
         <Form.Item
@@ -110,10 +110,13 @@ const AdminForm: React.FC<FormModalProps<AdminFormData>> = ({
           name="role"
           rules={[{ required: true, message: '请选择角色' }]}
         >
-          <Select placeholder="请选择角色">
-            <Select.Option value="NORMAL_ADMIN">普通管理员</Select.Option>
+          <Select
+            placeholder="请选择角色"
+            disabled={!!record}
+          >
             <Select.Option value="ADMIN">管理员</Select.Option>
             <Select.Option value="SUPER_ADMIN">超级管理员</Select.Option>
+            <Select.Option value="DELIVERY_WORKER">送水员</Select.Option>
           </Select>
         </Form.Item>
       </Form>

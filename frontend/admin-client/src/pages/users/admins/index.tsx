@@ -10,6 +10,9 @@ import AdminDetailModal from '../components/AdminDetailModal';
 // Import GraphQL hooks and types
 import {
   useAdmins,
+  useCreateAdmin,
+  useUpdateAdmin,
+  type CreateAdminInput,
 } from '../../../services/user-graphql';
 import type { Admin } from '@aquarush/common';
 
@@ -21,6 +24,10 @@ const AdminUsers: React.FC = () => {
 
   // GraphQL data fetching
   const { data: adminsData, loading: adminsLoading, refetch: refetchAdmins } = useAdmins();
+
+  // GraphQL mutations
+  const [createAdmin, { loading: createLoading }] = useCreateAdmin();
+  const [updateAdmin, { loading: updateLoading }] = useUpdateAdmin();
 
   // State for modals
   const [adminFormVisible, setAdminFormVisible] = useState<boolean>(false);
@@ -83,15 +90,31 @@ const AdminUsers: React.FC = () => {
   };
 
   // Form submission handler
-  const handleAdminSubmit = async (_values: AdminFormData) => {
+  const handleAdminSubmit = async (values: AdminFormData) => {
     setLoading(true);
     try {
-      // TODO: Call create/update API
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const input: CreateAdminInput = {
+        username: values.username,
+        realName: values.realName,
+        phone: values.phone,
+        password: values.password,
+        role: values.role,
+      };
 
-      if (editingAdmin) {
+      if (editingAdmin && editingAdmin.id) {
+        await updateAdmin({
+          variables: {
+            id: editingAdmin.id,
+            input,
+          },
+        });
         message.success('管理员更新成功');
       } else {
+        await createAdmin({
+          variables: {
+            input,
+          },
+        });
         message.success('管理员创建成功');
       }
 
@@ -99,6 +122,7 @@ const AdminUsers: React.FC = () => {
       setAdminFormVisible(false);
       setEditingAdmin(null);
     } catch (error) {
+      console.error('Admin submit error:', error);
       message.error('操作失败');
     } finally {
       setLoading(false);
@@ -139,7 +163,7 @@ const AdminUsers: React.FC = () => {
         }}
         record={editingAdmin || undefined}
         onSubmit={handleAdminSubmit}
-        loading={loading}
+        loading={loading || createLoading || updateLoading}
       />
 
       {/* Detail Modal */}

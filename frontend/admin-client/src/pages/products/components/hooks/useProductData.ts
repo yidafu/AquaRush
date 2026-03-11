@@ -21,7 +21,6 @@ export interface Product {
   detailContent?: string;
   certificateImages?: string[] | string; // JSON array from backend
   deliverySettings?: any; // JSON object from backend
-  isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
 }

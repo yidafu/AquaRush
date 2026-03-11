@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Modal, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Modal, message } from 'antd';
 
 // Import components
 import DeliveryWorkerTable from '../components/DeliveryWorkerTable';
@@ -138,16 +137,7 @@ const DeliveryWorkerUsers: React.FC = () => {
     <div>
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h3 style={{ margin: 0 }}>送水员列表</h3>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setEditingDeliveryWorker(null);
-            setDeliveryWorkerFormVisible(true);
-          }}
-        >
-          新增送水员
-        </Button>
+        {/* 送水员现在通过管理员表单的"送水员"角色创建 */}
       </div>
 
       <DeliveryWorkerTable

@@ -4,14 +4,19 @@ import Layout from './components/Layout';
 import PrivateRoute from './components/PrivateRoute';
 import Login from './pages/login';
 import Dashboard from './pages/dashboard';
-import Users from './pages/users';
 import ProductListPage from './pages/products/list';
 import ProductDetailPage from './pages/products/detail';
 import Orders from './pages/orders';
-import Delivery from './pages/delivery';
+import OrderDetailPage from './pages/orders/detail';
+import Dispatch from './pages/dispatch';
 import Statistics from './pages/statistics';
+import BucketDeposits from './pages/bucket-deposits';
 import UserDetailPage from './pages/users/detail/index';
 import DeliveryWorkerDetailPage from './pages/users/delivery-workers/detail/index';
+import AdminUsers from './pages/users/admins';
+import DeliveryWorkerUsers from './pages/users/delivery-workers';
+import CustomerUsers from './pages/users/customers';
+import AddressListPage from './pages/addresses/list';
 
 const App: React.FC = () => {
   return (
@@ -27,14 +32,20 @@ const App: React.FC = () => {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="users" element={<Users />} />
+        <Route path="users/admins" element={<AdminUsers />} />
+        <Route path="users/delivery-workers" element={<DeliveryWorkerUsers />} />
+        <Route path="users/customers" element={<CustomerUsers />} />
+        <Route path="users" element={<Navigate to="/users/admins" replace />} />
         <Route path="users/:id" element={<UserDetailPage />} />
         <Route path="users/delivery-workers/:id" element={<DeliveryWorkerDetailPage />} />
         <Route path="products" element={<ProductListPage />} />
         <Route path="products/:id" element={<ProductDetailPage />} />
         <Route path="orders" element={<Orders />} />
-        <Route path="delivery" element={<Delivery />} />
+        <Route path="orders/:id" element={<OrderDetailPage />} />
+        <Route path="dispatch" element={<Dispatch />} />
         <Route path="statistics" element={<Statistics />} />
+        <Route path="bucket-deposits" element={<BucketDeposits />} />
+        <Route path="addresses" element={<AddressListPage />} />
       </Route>
     </Routes>
   );

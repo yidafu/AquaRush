@@ -52,11 +52,11 @@ const DeliveryWorkerDetailPage: React.FC = () => {
   const getTabStatus = (tabKey: string): OrderStatus | undefined => {
     switch (tabKey) {
       case 'delivering':
-        return OrderStatus.OUT_FOR_DELIVERY;
+        return OrderStatus.DELIVERING;
       case 'pending':
-        return OrderStatus.READY_FOR_DELIVERY;
+        return OrderStatus.PENDING_DELIVERY;
       case 'completed':
-        return OrderStatus.DELIVERED;
+        return OrderStatus.COMPLETED;
       default:
         return undefined;
     }
@@ -117,11 +117,11 @@ const DeliveryWorkerDetailPage: React.FC = () => {
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
-      case OrderStatus.OUT_FOR_DELIVERY:
+      case OrderStatus.DELIVERING:
         return 'processing';
-      case OrderStatus.READY_FOR_DELIVERY:
+      case OrderStatus.PENDING_DELIVERY:
         return 'warning';
-      case OrderStatus.DELIVERED:
+      case OrderStatus.COMPLETED:
         return 'success';
       default:
         return 'default';
@@ -130,11 +130,11 @@ const DeliveryWorkerDetailPage: React.FC = () => {
 
   const getStatusText = (status: OrderStatus) => {
     switch (status) {
-      case OrderStatus.OUT_FOR_DELIVERY:
-        return '送货中';
-      case OrderStatus.READY_FOR_DELIVERY:
-        return '待派送';
-      case OrderStatus.DELIVERED:
+      case OrderStatus.DELIVERING:
+        return '配送中';
+      case OrderStatus.PENDING_DELIVERY:
+        return '待配送';
+      case OrderStatus.COMPLETED:
         return '已完成';
       default:
         return status;

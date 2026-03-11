@@ -31,7 +31,6 @@ interface Product {
   detailContent?: string;
   certificateImages?: string;
   deliverySettings?: string;
-  isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -115,7 +114,7 @@ const ProductListPage: React.FC = () => {
   return (
     <div style={{ padding: '24px' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <Title level={2} style={{ margin: 0 }}>商品管理</Title>
+        <div></div>
         <Button type="primary" icon={<PlusOutlined />} onClick={handleAddProduct}>
           新增商品
         </Button>

@@ -22,7 +22,6 @@ export const CREATE_PRODUCT_MUTATION = gql`
       detailContent
       certificateImages
       deliverySettings
-      isDeleted
       createdAt
       updatedAt
     }
@@ -51,7 +50,6 @@ export const UPDATE_PRODUCT_MUTATION = gql`
       detailContent
       certificateImages
       deliverySettings
-      isDeleted
       updatedAt
     }
   }

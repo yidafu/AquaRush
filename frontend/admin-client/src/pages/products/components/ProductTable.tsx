@@ -24,7 +24,6 @@ interface Product {
   detailContent?: string;
   certificateImages?: string;
   deliverySettings?: string;
-  isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
 }
