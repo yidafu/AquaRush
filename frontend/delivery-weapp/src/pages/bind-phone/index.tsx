@@ -76,7 +76,7 @@ const BindPhonePage: React.FC = () => {
 
         // Redirect to home after a short delay
         setTimeout(() => {
-          Taro.switchTab({ url: '/pages/task-list/index' })
+          Taro.switchTab({ url: '/pages/order-list/index' })
         }, 1500)
       }
     } catch (err: any) {

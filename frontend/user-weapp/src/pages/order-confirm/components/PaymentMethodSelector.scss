@@ -1,0 +1,43 @@
+@import './Section.styles.scss';
+
+.payment-method-wrapper {
+  padding: 0 32px 32px;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 24px 0;
+  border-bottom: 1px solid var(--theme-border);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:active {
+    background-color: var(--theme-background-page);
+    margin: 0 -32px;
+    padding: 24px 32px;
+  }
+}
+
+.payment-info {
+  flex: 1;
+}
+
+.payment-name {
+  font-size: 16px;
+  color: var(--theme-text-primary);
+  display: block;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.payment-desc {
+  font-size: 14px;
+  color: var(--theme-text-secondary);
+  display: block;
+}

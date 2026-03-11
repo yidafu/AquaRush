@@ -1,0 +1,223 @@
+// Main layout container
+.base-page-layout {
+  min-height: 100vh;
+  background-color: #f8f8f8;
+  position: relative;
+}
+
+// Safe area for different devices
+.safe-bottom {
+  height: constant(safe-area-inset-bottom);
+  height: env(safe-area-inset-bottom);
+}
+
+// Login prompt styles
+.login-prompt {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 60px 48px;
+  background-color: #f8f8f8;
+
+  .login-icon {
+    font-size: 120px;
+    margin-bottom: 32px;
+    opacity: 0.3;
+  }
+
+  .login-title {
+    font-size: 36px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+  }
+
+  .login-subtitle {
+    font-size: 28px;
+    color: #999;
+    margin-bottom: 48px;
+  }
+
+  .login-button {
+    width: 280px;
+    height: 80px;
+    font-size: 28px;
+    border-radius: 40px;
+  }
+}
+
+// Loading state styles
+.loading-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 0 32px;
+  background-color: #f8f8f8;
+
+  .loading-text {
+    color: #999;
+    font-size: 28px;
+  }
+}
+
+// Error state styles
+.error-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 80px 48px;
+  background-color: #f8f8f8;
+
+  .error-icon {
+    font-size: 120px;
+    margin-bottom: 32px;
+    opacity: 0.5;
+  }
+
+  .error-title {
+    font-size: 36px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 16px;
+  }
+
+  .error-message {
+    font-size: 28px;
+    color: #666;
+    margin-bottom: 48px;
+    text-align: center;
+    max-width: 500px;
+  }
+
+  .error-retry-button {
+    width: 240px;
+    height: 72px;
+    font-size: 28px;
+  }
+}
+
+// Empty state styles
+.empty-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  padding: 80px 48px;
+  background-color: #f8f8f8;
+
+  .empty-icon {
+    width: 160px;
+    height: 160px;
+    background: linear-gradient(135deg, #ffe6e6 0%, #fff0f0 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 32px;
+    font-size: 80px;
+    opacity: 0.6;
+  }
+
+  .empty-title {
+    font-size: 32px;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 12px;
+  }
+
+  .empty-subtitle {
+    font-size: 28px;
+    color: #999;
+    margin-bottom: 48px;
+    text-align: center;
+  }
+
+  .empty-action-button {
+    width: 240px;
+    height: 72px;
+    font-size: 28px;
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 375px) {
+  .login-prompt {
+    padding: 48px 32px;
+
+    .login-icon {
+      font-size: 100px;
+    }
+
+    .login-title {
+      font-size: 32px;
+    }
+
+    .login-subtitle {
+      font-size: 26px;
+    }
+
+    .login-button {
+      width: 240px;
+      height: 72px;
+      font-size: 26px;
+    }
+  }
+
+  .loading-container {
+    .loading-text {
+      font-size: 26px;
+    }
+  }
+
+  .error-container {
+    padding: 60px 32px;
+
+    .error-icon {
+      font-size: 100px;
+    }
+
+    .error-title {
+      font-size: 32px;
+    }
+
+    .error-message {
+      font-size: 26px;
+    }
+
+    .error-retry-button {
+      width: 200px;
+      height: 64px;
+      font-size: 26px;
+    }
+  }
+
+  .empty-container {
+    padding: 60px 32px;
+
+    .empty-icon {
+      width: 140px;
+      height: 140px;
+      font-size: 70px;
+    }
+
+    .empty-title {
+      font-size: 28px;
+    }
+
+    .empty-subtitle {
+      font-size: 26px;
+    }
+
+    .empty-action-button {
+      width: 200px;
+      height: 64px;
+      font-size: 26px;
+    }
+  }
+}

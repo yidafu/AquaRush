@@ -1,0 +1,229 @@
+.favorites-page {
+  min-height: 100vh;
+  background-color: #f8f8f8;
+
+  // Login prompt styles
+  .login-prompt {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 60px 48px;
+
+    .login-icon {
+      font-size: 120px;
+      margin-bottom: 32px;
+      opacity: 0.3;
+    }
+
+    .login-title {
+      font-size: 36px;
+      font-weight: 600;
+      color: #333;
+      margin-bottom: 16px;
+    }
+
+    .login-subtitle {
+      font-size: 28px;
+      color: #999;
+      margin-bottom: 48px;
+    }
+
+    .login-button {
+      width: 280px;
+      height: 80px;
+      font-size: 28px;
+      border-radius: 40px;
+    }
+  }
+
+  // Empty state styles
+  .empty-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 80px 48px;
+
+    .empty-icon {
+      width: 160px;
+      height: 160px;
+      background: linear-gradient(135deg, #ffe6e6 0%, #fff0f0 100%);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 32px;
+      font-size: 80px;
+      opacity: 0.6;
+    }
+
+    .empty-title {
+      font-size: 32px;
+      font-weight: 500;
+      color: #333;
+      margin-bottom: 12px;
+    }
+
+    .empty-subtitle {
+      font-size: 28px;
+      color: #999;
+      margin-bottom: 48px;
+    }
+
+    .go-shopping-button {
+      width: 240px;
+      height: 72px;
+      font-size: 28px;
+    }
+  }
+
+  // Loading state
+  .loading-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    padding: 0 32px;
+
+    text {
+      color: #999;
+      font-size: 28px;
+    }
+  }
+
+  // Favorites header
+  .favorites-header {
+    padding: 24px 32px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #eeeeee;
+
+    .count-text {
+      font-size: 28px;
+      color: #666;
+      font-weight: 500;
+    }
+  }
+
+  // Product list (single column)
+  .product-list {
+    padding: 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  // Product item (horizontal card)
+  .product-item {
+    display: flex;
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #eeeeee;
+    overflow: hidden;
+    transition: all 0.2s ease;
+
+    &:active {
+      transform: scale(0.98);
+      background-color: #f8f8f8;
+    }
+
+    .product-thumb {
+      width: 120px;
+      height: 120px;
+      flex-shrink: 0;
+      border-radius: 16px 0 0 16px;
+    }
+
+    .product-details {
+      flex: 1;
+      padding: 16px 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      min-width: 0; // Important for text truncation
+    }
+
+    .product-name {
+      font-size: 28px; // 14px at 1x scale
+      font-weight: 600;
+      color: #333;
+      line-height: 1.4;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      margin-bottom: 8px;
+    }
+
+    .product-meta {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+
+      .product-price {
+        font-size: 32px; // 16px at 1x scale
+        font-weight: bold;
+        color: #ff4d4f;
+      }
+
+      .product-sales {
+        font-size: 24px; // 12px at 1x scale
+        color: #999;
+      }
+    }
+
+    .out-of-stock-label {
+      font-size: 24px;
+      color: #ff4d4f;
+      align-self: flex-start;
+    }
+  }
+}
+
+// Responsive adjustments
+@media (max-width: 375px) {
+  .favorites-page {
+    .product-list {
+      padding: 12px 16px;
+      gap: 12px;
+    }
+
+    .product-item {
+      .product-thumb {
+        width: 100px;
+        height: 100px;
+      }
+
+      .product-details {
+        padding: 12px 16px;
+
+        .product-name {
+          font-size: 26px;
+        }
+
+        .product-meta {
+          .product-price {
+            font-size: 28px;
+          }
+
+          .product-sales {
+            font-size: 22px;
+          }
+        }
+
+        .out-of-stock-label {
+          font-size: 22px;
+        }
+      }
+    }
+
+    .favorites-header {
+      padding: 20px 24px;
+
+      .count-text {
+        font-size: 26px;
+      }
+    }
+  }
+}

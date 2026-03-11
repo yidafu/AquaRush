@@ -1,6 +1,23 @@
 // Address types for frontend data structures
 // GraphQL types from @aquarush/common are imported directly where needed
 
+// Address entity type
+export interface Address {
+  id: number
+  receiverName: string
+  phone: string
+  province: string
+  city: string
+  district: string
+  detailAddress: string
+  isDefault: boolean
+  provinceCode?: string
+  cityCode?: string
+  districtCode?: string
+  latitude?: number
+  longitude?: number
+}
+
 // Error types for service operations
 export interface AddressServiceError {
   message: string

@@ -3,7 +3,8 @@ export default defineAppConfig({
   pages: [
     'pages/login/index',
     'pages/bind-phone/index',
-    'pages/task-list/index',
+    'pages/order-list/index',
+    'pages/create-order/index',
     'pages/statistics/index',
     'pages/my/index'
   ],
@@ -18,7 +19,7 @@ export default defineAppConfig({
     backgroundColor: '#fff',
     list: [
       {
-        pagePath: 'pages/task-list/index',
+        pagePath: 'pages/order-list/index',
         text: '任务',
         iconPath: './assets/task.png',
         selectedIconPath: './assets/task-active.png'

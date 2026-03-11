@@ -12,7 +12,10 @@ export default defineAppConfig({
     'pages/profile-edit/index',
     'pages/theme-settings/index',
     'pages/about/index',
-    'pages/feedback/index'
+    'pages/feedback/index',
+    'pages/favorites/index',
+    'pages/bucket-deposit/list/index',
+    'pages/bucket-deposit/create/index'
   ],
   window: {
     backgroundTextStyle: 'light',

@@ -1,4 +1,4 @@
-import NetworkManager from '../utils/network'
+import { networkManager } from '../utils/networkManager'
 import apiConfig from '../config/api'
 import {
   Product as GraphQLProduct,
@@ -31,7 +31,6 @@ interface ExtendedProduct {
   detailContent?: string
   certificateImages?: any[]
   deliverySettings?: Record<string, any>
-  isDeleted: boolean
   createdAt: string
   updatedAt: string
   image: string // Mapped from coverImageUrl for homepage compatibility
@@ -61,15 +60,9 @@ interface ProductListParams {
 
 class ProductService {
   private static instance: ProductService
-  private networkManager: NetworkManager
 
   private constructor() {
-    // Use centralized API configuration
-    this.networkManager = NetworkManager.getInstance({
-      baseURL: apiConfig.getGraphqlUrl(),
-      timeout: apiConfig.getTimeout(),
-      headers: apiConfig.getHeaders()
-    })
+    // Use shared networkManager from networkManager.ts
   }
 
   public static getInstance(): ProductService {
@@ -108,7 +101,6 @@ class ProductService {
             detailContent
             certificateImages
             deliverySettings
-            isDeleted
             createdAt
             updatedAt
           }
@@ -119,7 +111,7 @@ class ProductService {
 
       console.log('Fetching product detail for ID:', id)
 
-      const response = await this.networkManager.query<{ product: GraphQLProduct | null }>(query, variables)
+      const response = await networkManager.query<{ product: GraphQLProduct | null }>(query, variables)
 
       if (!response?.product) {
         throw new Error('Product not found')
@@ -213,7 +205,7 @@ query GetActiveProducts(
 
       console.log('Fetching active products with params:', variables)
 
-      const response = await this.networkManager.query<{ activeProducts: any }>(query, variables)
+      const response = await networkManager.query<{ activeProducts: any }>(query, variables)
 
       if (!response?.activeProducts) {
         throw new Error('Failed to fetch products')
@@ -311,7 +303,6 @@ query GetActiveProducts(
       detailContent: product.detailContent,
       certificateImages: product.certificateImages,
       deliverySettings: product.deliverySettings,
-      isDeleted: product.isDeleted,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
       // Add description field for homepage compatibility

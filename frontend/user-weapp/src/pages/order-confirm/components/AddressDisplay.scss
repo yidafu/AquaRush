@@ -1,0 +1,82 @@
+@import './Section.styles.scss';
+
+.address-section {
+  .section-content {
+    padding: 0 32px 32px;
+  }
+}
+
+.address-card {
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 123, 255, 0.1);
+  margin-bottom: 24px;
+  padding: 36px;
+  transition: all 0.3s ease;
+  border: 1px solid rgba(0, 123, 255, 0.1);
+  cursor: pointer;
+
+  &:hover {
+    box-shadow: 0 12px 48px rgba(0, 123, 255, 0.15);
+    transform: translateY(-4px);
+  }
+
+  &:active {
+    background-color: var(--theme-background-page);
+    transform: translateY(0);
+  }
+}
+
+.default-badge {
+  background: linear-gradient(135deg, #ff7043, #ff5722);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 22px;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(255, 87, 34, 0.3);
+}
+
+.address-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  background-color: #fff;
+  border-radius: 12px;
+  border: 2px dashed var(--theme-border);
+
+  &:active {
+    background-color: var(--theme-background-page);
+  }
+}
+
+.no-address-icon {
+  margin-bottom: 16px;
+  color: var(--theme-text-tertiary);
+}
+
+.no-address-text {
+  font-size: 20px;
+  color: var(--theme-text-secondary);
+  margin-bottom: 16px;
+}
+
+.select-address-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--theme-primary);
+  font-size: 18px;
+  font-weight: 500;
+
+  .btn-text {
+    color: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+  }
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Button, Image } from '@tarojs/components'
-import { AtButton, AtToast, AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
+import { AtButton, AtToast, AtModal, AtModalHeader, AtModalContent, AtModalAction, AtSearchBar } from 'taro-ui'
 import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import AddressService from '../../services/AddressService'
 import { Address } from '../../types/address'
@@ -9,6 +9,7 @@ import AddressCard from '../../components/AddressCard'
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/toast.scss"
 import "taro-ui/dist/style/components/modal.scss"
+import "taro-ui/dist/style/components/search-bar.scss"
 import './index.scss'
 
 interface AddressListProps {
@@ -17,6 +18,7 @@ interface AddressListProps {
 
 const AddressList: React.FC<AddressListProps> = () => {
   const [addresses, setAddresses] = useState<Address[]>([])
+  const [filteredAddresses, setFilteredAddresses] = useState<Address[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [isSelectMode, setIsSelectMode] = useState<boolean>(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState<boolean>(false)
@@ -24,6 +26,7 @@ const AddressList: React.FC<AddressListProps> = () => {
   const [showToast, setShowToast] = useState<boolean>(false)
   const [toastText, setToastText] = useState<string>('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
+  const [searchValue, setSearchValue] = useState<string>('')
 
   const addressService = AddressService.getInstance()
 
@@ -63,6 +66,7 @@ const AddressList: React.FC<AddressListProps> = () => {
 
       if (result.success && result.data) {
         setAddresses(result.data)
+        setFilteredAddresses(result.data)
       } else {
         setToastText(result.error?.message || '获取地址列表失败')
         setToastType('error')
@@ -76,6 +80,40 @@ const AddressList: React.FC<AddressListProps> = () => {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleSearch = (value: string) => {
+    setSearchValue(value)
+    if (!value.trim()) {
+      // 如果搜索词为空，显示所有地址
+      setFilteredAddresses(addresses)
+      return
+    }
+
+    const searchLower = value.toLowerCase().trim()
+    const filtered = addresses.filter(address => {
+      // 按手机号搜索
+      if (address.phone.includes(searchLower)) {
+        return true
+      }
+      // 按收货人姓名搜索
+      if (address.receiverName.toLowerCase().includes(searchLower)) {
+        return true
+      }
+      // 按地址关键词搜索（省市区 + 详细地址）
+      const fullAddress = `${address.province}${address.city}${address.district}${address.detailAddress}`.toLowerCase()
+      if (fullAddress.includes(searchLower)) {
+        return true
+      }
+      return false
+    })
+
+    setFilteredAddresses(filtered)
+  }
+
+  const handleSearchClear = () => {
+    setSearchValue('')
+    setFilteredAddresses(addresses)
   }
 
   const handleShowToast = (text: string, type: 'success' | 'error' | 'loading' = 'success') => {
@@ -197,6 +235,17 @@ const AddressList: React.FC<AddressListProps> = () => {
 
   return (
     <View className='address-list-page'>
+      {/* 搜索栏 */}
+      <View className='search-section'>
+        <AtSearchBar
+          value={searchValue}
+          onChange={handleSearch}
+          onClear={handleSearchClear}
+          placeholder='搜索手机号或地址'
+          showActionButton={false}
+        />
+      </View>
+
       {/* 微信地址导入按钮 */}
       <View className='flex justify-end import-section'>
         <AtButton
@@ -215,18 +264,27 @@ const AddressList: React.FC<AddressListProps> = () => {
           <View className='loading-container'>
             <Text>加载中...</Text>
           </View>
-        ) : addresses.length === 0 ? (
+        ) : filteredAddresses.length === 0 ? (
           <View className='empty-container'>
-            <Image
-              src='/assets/empty-address.png'
-              mode='aspectFit'
-              className='empty-image'
-            />
-            <Text className='empty-text'>暂无收货地址</Text>
-            <Text className='empty-desc'>添加您的收货地址，方便快速下单</Text>
+            {searchValue ? (
+              <>
+                <Text className='empty-text'>未找到匹配地址</Text>
+                <Text className='empty-desc'>试试其他搜索词</Text>
+              </>
+            ) : (
+              <>
+                <Image
+                  src='/assets/empty-address.png'
+                  mode='aspectFit'
+                  className='empty-image'
+                />
+                <Text className='empty-text'>暂无收货地址</Text>
+                <Text className='empty-desc'>添加您的收货地址，方便快速下单</Text>
+              </>
+            )}
           </View>
         ) : (
-          addresses.map((address) => (
+          filteredAddresses.map((address) => (
             <AddressCard
               key={address.id}
               address={address}

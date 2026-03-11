@@ -43,7 +43,7 @@ export const useAuth = (_options: UseAuthOptions = {}): UseAuthReturn => {
       setWorkerInfo(loginData.workerInfo)
       setNeedBindPhone(false)
       // 登录成功，跳转到首页
-      Taro.switchTab({ url: '/pages/task-list/index' })
+      Taro.switchTab({ url: '/pages/order-list/index' })
       return loginData
     } catch (error) {
       console.error('Login failed:', error)
@@ -81,7 +81,7 @@ export const useAuth = (_options: UseAuthOptions = {}): UseAuthReturn => {
           Taro.redirectTo({ url: '/pages/bind-phone/index' })
         } else {
           setNeedBindPhone(false)
-          Taro.switchTab({ url: '/pages/task-list/index' })
+          Taro.switchTab({ url: '/pages/order-list/index' })
         }
       }
       return success

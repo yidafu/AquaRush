@@ -4,6 +4,15 @@
   padding-bottom: 80px; // 为底部操作栏预留空间
 }
 
+.search-section {
+  padding: 16px;
+  background: var(--theme-background);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px var(--theme-shadow-light);
+}
+
 .import-section {
   text-align: center;
   animation: fadeInDown 0.5s ease-out;

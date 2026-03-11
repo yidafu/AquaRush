@@ -1,7 +1,7 @@
 import Taro from '@tarojs/taro'
 import NetworkManager, { AuthHandler, RequestHandler } from '@aquarush/common/utils/network'
 
-const apiBaseUrl = process.env.TARO_APP_API_BASE_URL || 'http://localhost:9090'
+const apiBaseUrl = 'http://localhost:9090'
 
 // Taro 请求处理器
 const taroRequestHandler: RequestHandler = {

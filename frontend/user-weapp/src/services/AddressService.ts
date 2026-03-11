@@ -1,4 +1,4 @@
-import NetworkManager from '../utils/network'
+import { networkManager } from '../utils/networkManager'
 import apiConfig from '../config/api'
 import {
   Address as GraphQLAddress,
@@ -10,15 +10,9 @@ import {
 
 class AddressService {
   private static instance: AddressService
-  private networkManager: NetworkManager
 
   private constructor() {
-    // Use centralized API configuration
-    this.networkManager = NetworkManager.getInstance({
-      baseURL: apiConfig.getGraphqlUrl(),
-      timeout: apiConfig.getTimeout(),
-      headers: apiConfig.getHeaders()
-    })
+    // Use shared networkManager from networkManager.ts
   }
 
   public static getInstance(): AddressService {
@@ -61,7 +55,7 @@ class AddressService {
 
       console.log('Fetching address detail for ID:', id)
 
-      const response = await this.networkManager.query<{ address: GraphQLAddress | null }>(query, variables)
+      const response = await networkManager.query<{ address: GraphQLAddress | null }>(query, variables)
 
       if (!response?.address) {
         throw new Error('Address not found')
@@ -126,7 +120,7 @@ class AddressService {
 
       console.log('Fetching user addresses...')
 
-      const response = await this.networkManager.query<{ userAddresses: GraphQLAddress[] }>(query, {})
+      const response = await networkManager.query<{ userAddresses: GraphQLAddress[] }>(query, {})
 
       if (!response?.userAddresses) {
         throw new Error('Failed to fetch addresses: No data returned')
@@ -202,7 +196,7 @@ class AddressService {
 
       console.log('Creating address with data:', addressData)
 
-      const response = await this.networkManager.mutate<{ createAddress: GraphQLAddress }>(mutation, variables, {})
+      const response = await networkManager.mutate<{ createAddress: GraphQLAddress }>(mutation, variables, {})
 
       if (!response?.createAddress) {
         throw new Error('Failed to create address: No data returned')
@@ -288,7 +282,7 @@ class AddressService {
 
       console.log('Updating address with data:', { id, ...addressData })
 
-      const response = await this.networkManager.mutate<{ updateAddress: GraphQLAddress }>(mutation, variables, {})
+      const response = await networkManager.mutate<{ updateAddress: GraphQLAddress }>(mutation, variables, {})
 
       if (!response?.updateAddress) {
         throw new Error('Failed to update address: No data returned')
@@ -352,7 +346,7 @@ class AddressService {
 
       console.log('Deleting address:', id)
 
-      const response = await this.networkManager.mutate<{ deleteAddress: boolean }>(mutation, variables, {})
+      const response = await networkManager.mutate<{ deleteAddress: boolean }>(mutation, variables, {})
 
       if (response?.deleteAddress === undefined) {
         throw new Error('Failed to delete address: No response')
@@ -399,7 +393,7 @@ class AddressService {
 
       console.log('Setting address as default:', id)
 
-      const response = await this.networkManager.mutate<{ setDefaultAddress: boolean }>(mutation, variables, {})
+      const response = await networkManager.mutate<{ setDefaultAddress: boolean }>(mutation, variables, {})
 
       if (response?.setDefaultAddress === undefined) {
         throw new Error('Failed to set default address: No response')

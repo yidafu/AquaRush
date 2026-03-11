@@ -18,6 +18,8 @@ export interface DeliveryLoginResponse {
   openId?: string
 }
 
+const apiBaseUrl = process.env.TARO_APP_API_BASE_URL ?? 'http://localhost:9090'
+
 class DeliveryAuthService {
   private token: string | null = null
   private workerInfo: WorkerInfo | null = null
@@ -154,7 +156,6 @@ class DeliveryAuthService {
   }
 
   private async callLoginAPI(code: string): Promise<DeliveryLoginResponse & { openId?: string }> {
-    const apiBaseUrl = process.env.TARO_APP_API_BASE_URL || 'http://localhost:9090'
 
     try {
       const response = await Taro.request({

@@ -19,7 +19,7 @@ const LoginPage: React.FC = () => {
         const result = await deliveryAuthService.checkAuthStatus()
         if (result && result.workerInfo) {
           // Auth valid, redirect to home
-          Taro.switchTab({ url: '/pages/task-list/index' })
+          Taro.switchTab({ url: '/pages/order-list/index' })
           return
         }
       } catch (error) {

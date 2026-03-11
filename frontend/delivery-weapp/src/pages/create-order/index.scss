@@ -1,0 +1,273 @@
+.create-task-page {
+  min-height: 100vh;
+  padding: 32px;
+  padding-bottom: 160px;
+  background-color: #f5f5f5;
+}
+
+.section {
+  margin-bottom: 32px;
+}
+
+.section-title {
+  display: block;
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+}
+
+.card {
+  background-color: #fff;
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.loading-text,
+.empty-text {
+  display: block;
+  text-align: center;
+  color: #999;
+  font-size: 16px;
+  padding: 20px 0;
+}
+
+/* 地址卡片 */
+.address-card {
+  min-height: 120px;
+}
+
+.selected-address {
+  position: relative;
+  padding-right: 40px;
+}
+
+.address-info {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.receiver-name {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  margin-right: 16px;
+}
+
+.phone {
+  font-size: 18px;
+  color: #666;
+}
+
+.address-detail {
+  font-size: 16px;
+  color: #999;
+  line-height: 1.5;
+}
+
+.chevron {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.chevron-text {
+  font-size: 28px;
+  color: #999;
+}
+
+/* 商品列表 */
+.product-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.product-item {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  border: 2px solid #eee;
+  border-radius: 16px;
+  position: relative;
+  transition: all 0.2s ease;
+
+  &.selected {
+    border-color: #1890ff;
+    background-color: rgba(24, 144, 255, 0.05);
+  }
+}
+
+.product-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 12px;
+  background-color: #f5f5f5;
+  flex-shrink: 0;
+}
+
+.product-info {
+  flex: 1;
+  margin-left: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-name {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.product-price {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ff4d4f;
+}
+
+.product-stock {
+  font-size: 14px;
+  color: #999;
+}
+
+.radio-indicator {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 16px;
+
+  &.checked {
+    border-color: #1890ff;
+    background-color: #1890ff;
+  }
+}
+
+.check-mark {
+  color: #fff;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+/* 数量卡片 */
+.quantity-card {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+
+  .at-input-number {
+    width: 240px;
+  }
+
+  .at-input-number__input {
+    font-size: 32px;
+    height: 80px;
+    line-height: 80px;
+  }
+
+  .at-input-number__btn {
+    width: 80px;
+    height: 80px;
+    font-size: 32px;
+  }
+}
+
+/* 费用明细 */
+.summary-card {
+  .summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 0;
+    border-bottom: 1px solid #f0f0f0;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &.total {
+      border-top: 2px solid #f0f0f0;
+      margin-top: 8px;
+      padding-top: 24px;
+
+      .summary-label,
+      .summary-value {
+        font-size: 24px;
+        font-weight: 600;
+        color: #ff4d4f;
+      }
+    }
+  }
+
+  .summary-label {
+    font-size: 18px;
+    color: #666;
+  }
+
+  .summary-value {
+    font-size: 18px;
+    color: #333;
+  }
+}
+
+/* 提交按钮 */
+.submit-section {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 24px 32px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  background-color: #fff;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.submit-button {
+  height: 80px !important;
+  font-size: 22px !important;
+  font-weight: 600;
+  border-radius: 16px !important;
+  line-height: 80px !important;
+}
+
+/* 底部安全区域 */
+.safe-bottom {
+  height: 32px;
+}
+
+/* Switch 卡片 */
+.switch-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  .switch-label {
+    font-size: 18px;
+    color: #333;
+  }
+}
+
+/* 备注输入 */
+.remark-input {
+  width: 100%;
+  min-height: 120px;
+  font-size: 18px;
+  color: #333;
+  line-height: 1.6;
+  padding: 0;
+  border: none;
+  background: transparent;
+
+  &::placeholder {
+    color: #999;
+  }
+}

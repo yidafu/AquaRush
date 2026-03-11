@@ -1,6 +1,6 @@
 import Taro from '@tarojs/taro'
 
-const API_BASE_URL = process.env.TARO_APP_API_BASE_URL || 'http://localhost:9090'
+const API_BASE_URL = 'http://localhost:9090'
 
 // 通用请求方法
 const doRequest = async (options: {
@@ -246,6 +246,165 @@ export const getTodayStatistics = (workerId?: number) => {
         }
       `,
       variables: workerId ? { workerId } : {}
+    }
+  })
+}
+
+// ==================== 地址和商品相关 API ====================
+
+// 获取用户地址列表
+export const getAddresses = () => {
+  return doRequest({
+    url: '/graphql',
+    method: 'POST',
+    data: {
+      query: `
+        query {
+          addresses {
+            id
+            receiverName
+            phone
+            province
+            city
+            district
+            detailAddress
+            isDefault
+          }
+        }
+      `
+    }
+  })
+}
+
+// 搜索用户地址
+export const searchAddresses = (keyword: string, size = 10) => {
+  return doRequest({
+    url: '/graphql',
+    method: 'POST',
+    data: {
+      query: `
+        query searchUserAddresses($keyword: String!, $size: Int) {
+          searchUserAddresses(keyword: $keyword, size: $size) {
+            id
+            receiverName
+            phone
+            province
+            city
+            district
+            detailAddress
+            isDefault
+          }
+        }
+      `,
+      variables: { keyword, size }
+    }
+  })
+}
+
+// 搜索所有地址 (管理员/配送员)
+export const searchAllAddresses = (keyword: string = '', size = 10) => {
+  return doRequest({
+    url: '/graphql',
+    method: 'POST',
+    data: {
+      query: `
+        query searchAllAddresses($keyword: String, $size: Int) {
+          searchAllAddresses(keyword: $keyword, size: $size) {
+            id
+            receiverName
+            phone
+            province
+            city
+            district
+            detailAddress
+            isDefault
+          }
+        }
+      `,
+      variables: { keyword, size }
+    }
+  })
+}
+
+// 获取商品列表
+export const getProducts = () => {
+  return doRequest({
+    url: '/graphql',
+    method: 'POST',
+    data: {
+      query: `
+        query {
+          products {
+            id
+            name
+            price
+            image
+            stock
+          }
+        }
+      `
+    }
+  })
+}
+
+// 搜索上架商品（带关键字过滤）- 使用admin GraphQL端点
+export const searchProducts = (keyword: string, size: number = 20) => {
+  return doRequest({
+    url: '/graphql',
+    method: 'POST',
+    data: {
+      query: `
+        query SearchActiveProducts($keyword: String, $size: Int) {
+          activeProducts(keyword: $keyword, size: $size) {
+            list {
+              id
+              name
+              price
+              stock
+              coverImageUrl
+              status
+            }
+            pageInfo {
+              total
+            }
+          }
+        }
+      `,
+      variables: {
+        keyword: keyword || '',
+        size
+      }
+    }
+  })
+}
+
+// 创建订单（配送员为用户创建订单）
+export const createOrder = (productId: string, addressId: string, quantity: number, isSelfCollect: boolean = false, remark?: string) => {
+  return doRequest({
+    url: '/graphql',
+    method: 'POST',
+    data: {
+      query: `
+        mutation CreateDeliveryOrder($input: CreateDeliveryOrderInput!) {
+          createDeliveryOrder(input: $input) {
+            id
+            orderNumber
+            status
+            quantity
+            amount
+            isSelfCollect
+          }
+        }
+      `,
+      variables: {
+        input: {
+          productId,
+          addressId,
+          quantity,
+          isSelfCollect,
+          remark: remark || null
+        }
+      }
     }
   })
 }

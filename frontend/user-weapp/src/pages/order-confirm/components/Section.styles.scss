@@ -1,0 +1,47 @@
+// 通用section样式
+.section {
+  background: var(--theme-background);
+  margin: 0 32px 32px;
+  border-radius: 20px;
+  padding: 0;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.section-header {
+  padding: 32px 32px 16px;
+  border-bottom: 1px solid var(--theme-border);
+}
+
+.section-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+// 响应式设计
+@media (max-width: 375px) {
+  .section {
+    margin: 0 20px 24px;
+    border-radius: 16px;
+  }
+
+  .section-header {
+    padding: 24px 24px 12px;
+  }
+
+  .section-title {
+    font-size: 20px;
+  }
+}
+
+// 大屏幕适配
+@media (min-width: 414px) {
+  .section {
+    margin: 0 40px 32px;
+  }
+
+  .section-header {
+    padding: 32px 40px 16px;
+  }
+}

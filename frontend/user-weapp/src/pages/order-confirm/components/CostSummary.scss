@@ -1,0 +1,48 @@
+.cost-section {
+  background: var(--theme-background);
+  margin: 0 32px 32px;
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.cost-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+
+  &.total {
+    border-top: 1px solid var(--theme-border);
+    margin-top: 16px;
+    padding-top: 24px;
+  }
+}
+
+.cost-label {
+  font-size: 16px;
+  color: var(--theme-text-secondary);
+
+  .total & {
+    font-size: 20px;
+    color: var(--theme-text-primary);
+    font-weight: 600;
+  }
+}
+
+.cost-value {
+  font-size: 16px;
+  color: var(--theme-text-primary);
+
+  .total & {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--theme-primary);
+  }
+
+  &.total-amount {
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--theme-primary);
+  }
+}

@@ -6,6 +6,8 @@ import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/toast.scss"
 import { CONTACT_INFO } from '@/constants'
 import ProductService from '../../services/ProductService'
+import FavoriteService from '../../services/FavoriteService'
+import { authService } from '../../utils/auth'
 import { Product } from '../../types/product'
 
 // Import extracted components
@@ -29,6 +31,7 @@ interface ProductDetailState {
   imagesWithError: boolean[]
   imageLoadingStates: boolean[]
   isFavorite: boolean
+  favoriteLoading: boolean
 }
 
 // Retry configuration
@@ -48,7 +51,8 @@ const ProductDetail: React.FC = () => {
     imagesLoaded: [],
     imagesWithError: [],
     imageLoadingStates: [],
-    isFavorite: false
+    isFavorite: false,
+    favoriteLoading: false
   })
 
   const updateState = useCallback((updates: Partial<ProductDetailState>) => {
@@ -67,6 +71,24 @@ const ProductDetail: React.FC = () => {
     updateState({ showToast: false })
   }, [updateState])
 
+  const checkFavoriteStatus = useCallback(async () => {
+    if (!state.productId || !authService.isAuthenticated()) {
+      return
+    }
+
+    try {
+      updateState({ favoriteLoading: true })
+      const favoriteService = FavoriteService.getInstance()
+      const isFavorited = await favoriteService.isProductFavorited(state.productId)
+      updateState({ isFavorite: isFavorited })
+    } catch (error) {
+      console.error('Failed to check favorite status:', error)
+      // Don't show error to user for favorite status check
+    } finally {
+      updateState({ favoriteLoading: false })
+    }
+  }, [state.productId, updateState])
+
   const loadProductDetail = useCallback(async (retryCount = 0) => {
     if (!state.productId) return
 
@@ -83,6 +105,8 @@ const ProductDetail: React.FC = () => {
         const imageCount = result.data.imageGallery?.length || 1
         initializeImageStates(imageCount)
         console.log('Product loaded successfully:', result.data)
+        // Check favorite status after product is loaded
+        checkFavoriteStatus()
       } else {
         // Handle specific error cases
         const errorMessage = result.error?.message || '产品不存在'
@@ -116,7 +140,7 @@ const ProductDetail: React.FC = () => {
     } finally {
       updateState({ loading: false })
     }
-  }, [state.productId, showToastMessage, updateState])
+  }, [state.productId, showToastMessage, updateState, checkFavoriteStatus])
 
 
   const handleBuyNow = useCallback(() => {
@@ -182,13 +206,31 @@ const ProductDetail: React.FC = () => {
     })
   }, [])
 
-  const handleToggleFavorite = useCallback(() => {
-    setState(prev => ({ ...prev, isFavorite: !prev.isFavorite }))
-    showToastMessage(
-      state.isFavorite ? '已取消收藏' : '已添加收藏',
-      'success'
-    )
-  }, [state.isFavorite, showToastMessage])
+  const handleToggleFavorite = useCallback(async () => {
+    if (!state.productId || !authService.isAuthenticated()) {
+      showToastMessage('请先登录', 'error')
+      // Navigate to login page or show login prompt
+      return
+    }
+
+    try {
+      updateState({ favoriteLoading: true })
+      const favoriteService = FavoriteService.getInstance()
+
+      const result = await favoriteService.toggleProductFavorites(state.productId)
+
+      if (result) {
+        const newFavoriteStatus = !state.isFavorite
+        showToastMessage(newFavoriteStatus ? '已添加收藏' : '已取消收藏', 'success')
+        updateState({ isFavorite: newFavoriteStatus })
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error)
+      showToastMessage('操作失败，请重试', 'error')
+    } finally {
+      updateState({ favoriteLoading: false })
+    }
+  }, [state.productId, state.isFavorite, showToastMessage, updateState])
 
   const handleAddToCart = useCallback(() => {
     if (!state.product) return
@@ -285,6 +327,13 @@ const ProductDetail: React.FC = () => {
 
   // 注册下拉刷新
   Taro.usePullDownRefresh(handlePullDownRefresh)
+
+  // 注册页面显示时检查收藏状态
+  Taro.useDidShow(() => {
+    if (state.productId && authService.isAuthenticated()) {
+      checkFavoriteStatus()
+    }
+  })
 
   // Loading state - use skeleton component
   if (state.loading) {

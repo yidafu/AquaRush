@@ -1,18 +1,16 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import { View, Text, Image, Button } from '@tarojs/components'
-import { AtButton, AtCard, AtList, AtListItem, AtToast } from 'taro-ui'
-import { ThemeSwitcher } from '../../components/ThemeProvider'
+import React, { useState, useEffect } from 'react'
+import { View, Text } from '@tarojs/components'
+import { AtCard, AtList, AtListItem, AtToast } from 'taro-ui'
 import AvatarNicknameForm from './components/AvatarNicknameForm'
 import UserSection from './components/UserSection'
 import OrderSection from './components/OrderSection'
 import ServiceSection from './components/ServiceSection'
-import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
-import { authService, type UserInfo as AuthUserInfo, type LoginResponse } from '../../utils/auth'
+import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import { authService, type UserInfo as AuthUserInfo } from '../../utils/auth'
 
 // Taro UI 样式已在 app.scss 中全局引入，无需重复引入
 import './index.scss'
-import { CONTACT_INFO } from '@/constants'
-
+import 'taro-ui/dist/style/components/list.scss'
 // Use AuthUserInfo from auth utility
 
 interface OrderStats {
@@ -244,31 +242,6 @@ const MyPage: React.FC = () => {
     })
   }
 
-  const handleAddressManagement = (): void => {
-    Taro.navigateTo({
-      url: '/pages/address-list/index'
-    })
-  }
-
-  const handleCustomerService = (): void => {
-    // 联系客服
-    Taro.makePhoneCall({
-      phoneNumber: CONTACT_INFO.COMPLAINT_HOTLINE
-    })
-  }
-
-  const handleFeedback = (): void => {
-    Taro.navigateTo({
-      url: '/pages/feedback/index'
-    })
-  }
-
-  const handleAbout = (): void => {
-    Taro.navigateTo({
-      url: '/pages/about/index'
-    })
-  }
-
   const handleSettings = (): void => {
     Taro.navigateTo({
       url: '/pages/settings/index'
@@ -280,34 +253,6 @@ const MyPage: React.FC = () => {
       withShareTicket: true
     })
   }
-
-
-  const serviceItems = useMemo(() =>[
-    {
-      icon: '/assets/icons/service/map-pin.png',
-      title: '收货地址',
-      description: '管理收货地址',
-      onClick: handleAddressManagement
-    },
-    {
-      icon: '/assets/icons/service/comments.png',
-      title: '客服中心',
-      description: '联系在线客服',
-      onClick: handleCustomerService
-    },
-    {
-      icon: '/assets/icons/service/feedback.png',
-      title: '意见反馈',
-      description: '帮助我们改进',
-      onClick: handleFeedback
-    },
-    {
-      icon: '/assets/icons/service/info-circle.png',
-      title: '关于我们',
-      description: '了解好喝山泉',
-      onClick: handleAbout
-    }
-  ], [])
 
   // Return JSX directly
   if (loading) {
@@ -335,7 +280,7 @@ const MyPage: React.FC = () => {
       />
 
       {/* 服务区域 */}
-      <ServiceSection serviceItems={serviceItems} />
+      <ServiceSection />
 
       {/* 其他设置 */}
       <AtCard title='其他' className='settings-section'>

@@ -1,0 +1,46 @@
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--theme-background);
+  padding: 24px 32px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom)); // iOS 安全区域
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  z-index: 1000;
+}
+
+.total-info {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.total-label {
+  font-size: 16px;
+  color: var(--theme-text-secondary);
+}
+
+.total-amount {
+  font-size: 24px;
+  font-weight: bold;
+  color: var(--theme-primary);
+}
+
+.submit-button {
+  width: 160px;
+  height: 64px;
+  font-size: 20px;
+  font-weight: 600;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+  border: none;
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.95);
+  }
+}

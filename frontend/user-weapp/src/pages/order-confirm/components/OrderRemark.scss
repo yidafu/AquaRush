@@ -1,0 +1,31 @@
+@import './Section.styles.scss';
+
+.remark-wrapper {
+  padding: 0 32px 32px;
+}
+
+.remark-input {
+  width: 100%;
+  min-height: 180px;
+  padding: 20px;
+  border: 2px solid var(--theme-border);
+  border-radius: 12px;
+  font-size: 20px;
+  line-height: 1.6;
+  resize: none;
+  background: var(--theme-background-page);
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: var(--theme-primary);
+    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
+  }
+}
+
+.remark-count {
+  font-size: 14px;
+  color: var(--theme-text-tertiary);
+  text-align: right;
+  margin-top: 12px;
+  display: block;
+}

@@ -1,7 +1,7 @@
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
 import devConfig from './dev'
 import prodConfig from './prod'
-import path from 'node:path'
+import path from 'path'
 
 process.env.BROWSERSLIST_ENV = process.env.NODE_ENV
 
@@ -57,6 +57,7 @@ export default defineConfig<'vite'>(async (merge) => {
           }
         }
       },
+      // debugReact: true,
     },
     h5: {
       publicPath: process.env.PUBLIC_PATH || '/weapp/',
@@ -88,7 +89,8 @@ export default defineConfig<'vite'>(async (merge) => {
           enable: false, // 默认为 false，如需使用 css modules 功能，则设为 true
         }
       }
-    }
+    },
+
   }
 
 

@@ -4,6 +4,7 @@ import Taro from '@tarojs/taro'
 import { AtTabs, AtTabsPane } from 'taro-ui'
 import 'taro-ui/dist/style/components/tabs.scss'
 import './index.scss'
+import { FloatingButton } from '../../components/FloatingButton'
 import {
   getPendingDeliveryOrders,
   getMyAssignedOrders,
@@ -117,8 +118,14 @@ const TaskListPage: React.FC = () => {
     { title: `已接单 (${assignedOrders.length})` },
     { title: `配送中 (${deliveringOrders.length})` },
   ]
+  const handleCreateTask = () => {
+    Taro.navigateTo({
+      url: '/pages/create-order/index'
+    })
+  }
+
   return (
-    <PageContainer title="配送任务">
+    <PageContainer title="配送订单">
       <View className='task-list-page'>
         <View className='tabs-container'>
           <AtTabs
@@ -177,6 +184,8 @@ const TaskListPage: React.FC = () => {
             </AtTabsPane>
           </AtTabs>
           </View>
+        {/* 悬浮创建订单按钮 */}
+        <FloatingButton onClick={handleCreateTask}>+</FloatingButton>
       </View>
     </PageContainer>
   )
