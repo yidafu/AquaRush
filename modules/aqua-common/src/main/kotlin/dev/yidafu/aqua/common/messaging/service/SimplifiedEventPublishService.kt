@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.common.messaging.service
 
-import dev.yidafu.aqua.common.domain.model.DomainEvent
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.messaging.config.SimplifiedMessagingProperties
+import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.publisher.EventPublisher
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -57,56 +57,31 @@ class SimplifiedEventPublishService(
       val event =
         DomainEvent(
           id = DefaultIdGenerator().generate(),
+          aggregateId = aggregateId,
           eventType = eventType,
           payload = objectMapper.writeValueAsString(eventData),
         )
 
-      // 使用ActiveMQ Artemis发布事件
+      // 使用ActiveMQ Artemis发布事件（异步发送，不阻塞主请求）
       logger.debug("Publishing event to ActiveMQ Artemis: $eventType")
 
+      // 使用异步发布，避免阻塞主业务流程
       eventPublisher.publishSync(event)
     } catch (e: Exception) {
       logger.error("Failed to publish domain event: $eventType", e)
       false
     }
+  // ==================== Long 类型版本 ====================
 
   /**
-   * 批量发布领域事件（优化版）
-   */
-  @Transactional
-  fun publishDomainEventsBatch(events: List<Triple<String, String, Map<String, Any>>>): List<Boolean> =
-    try {
-      val domainEvents =
-        events.map { (eventType, aggregateId, eventData) ->
-          DomainEvent(
-            id = DefaultIdGenerator().generate(),
-            eventType = eventType,
-            payload = objectMapper.writeValueAsString(eventData),
-          )
-        }
-
-      val results = eventPublisher.publishBatchSync(domainEvents)
-
-      // 记录批量发布统计
-      val successCount = results.count { it }
-      val totalCount = results.size
-      logger.info("Batch publish completed: $successCount/$totalCount successful")
-
-      results
-    } catch (e: Exception) {
-      logger.error("Failed to publish batch domain events", e)
-      List(events.size) { false }
-    }
-
-  /**
-   * 发布订单相关事件
+   * 发布订单创建事件（Long 类型）
    */
   fun publishOrderCreated(
-    orderId: UUID,
-    userId: UUID,
-    productId: UUID,
+    orderId: Long,
+    userId: Long,
+    productId: Long,
     quantity: Int,
-    amount: java.math.BigDecimal,
+    amountCents: Long,
   ): Boolean =
     publishDomainEvent(
       eventType = "ORDER_CREATED",
@@ -117,16 +92,19 @@ class SimplifiedEventPublishService(
           "userId" to userId,
           "productId" to productId,
           "quantity" to quantity,
-          "amount" to amount,
+          "amountCents" to amountCents,
           "timestamp" to System.currentTimeMillis(),
         ),
     )
 
+  /**
+   * 发布订单支付成功事件（Long 类型）
+   */
   fun publishOrderPaid(
-    orderId: UUID,
-    userId: UUID,
-    productId: UUID,
-    amount: java.math.BigDecimal,
+    orderId: Long,
+    userId: Long,
+    productId: Long,
+    amountCents: Long,
   ): Boolean =
     publishDomainEvent(
       eventType = "ORDER_PAID",
@@ -136,14 +114,17 @@ class SimplifiedEventPublishService(
           "orderId" to orderId,
           "userId" to userId,
           "productId" to productId,
-          "amount" to amount,
+          "amountCents" to amountCents,
           "timestamp" to System.currentTimeMillis(),
         ),
     )
 
+  /**
+   * 发布订单取消事件（Long 类型）
+   */
   fun publishOrderCancelled(
-    orderId: UUID,
-    userId: UUID,
+    orderId: Long,
+    userId: Long,
     reason: String,
   ): Boolean =
     publishDomainEvent(
@@ -158,12 +139,15 @@ class SimplifiedEventPublishService(
         ),
     )
 
-  fun publishOrderDelivered(
-    orderId: UUID,
-    deliveryWorkerId: UUID,
+  /**
+   * 发布订单配送完成事件（Long 类型）
+   */
+  fun publishDeliveryCompleted(
+    orderId: Long,
+    deliveryWorkerId: Long,
   ): Boolean =
     publishDomainEvent(
-      eventType = "ORDER_DELIVERED",
+      eventType = "DELIVERY_COMPLETED",
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
@@ -173,17 +157,78 @@ class SimplifiedEventPublishService(
         ),
     )
 
-  fun publishOrderAssigned(
-    orderId: UUID,
-    deliveryWorkerId: UUID,
+  /**
+   * 发布订单分配事件（Long 类型）
+   */
+  fun publishDeliveryAssigned(
+    orderId: Long,
+    deliveryWorkerId: Long,
+    userId: Long,
   ): Boolean =
     publishDomainEvent(
-      eventType = "ORDER_ASSIGNED",
+      eventType = "DELIVERY_ASSIGNED",
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
           "orderId" to orderId,
           "deliveryWorkerId" to deliveryWorkerId,
+          "userId" to userId,
+          "timestamp" to System.currentTimeMillis(),
+        ),
+    )
+
+  /**
+   * 发布配送开始事件（Long 类型）
+   */
+  fun publishDeliveryStarted(
+    orderId: Long,
+    deliveryWorkerId: Long,
+  ): Boolean =
+    publishDomainEvent(
+      eventType = "DELIVERY_STARTED",
+      aggregateId = orderId.toString(),
+      eventData =
+        mapOf(
+          "orderId" to orderId,
+          "deliveryWorkerId" to deliveryWorkerId,
+          "timestamp" to System.currentTimeMillis(),
+        ),
+    )
+
+  /**
+   * 发布订单完成事件（Long 类型）
+   */
+  fun publishOrderCompleted(
+    orderId: Long,
+    userId: Long,
+    deliveryWorkerId: Long,
+  ): Boolean =
+    publishDomainEvent(
+      eventType = "ORDER_COMPLETED",
+      aggregateId = orderId.toString(),
+      eventData =
+        mapOf(
+          "orderId" to orderId,
+          "userId" to userId,
+          "deliveryWorkerId" to deliveryWorkerId,
+          "timestamp" to System.currentTimeMillis(),
+        ),
+    )
+
+  /**
+   * 发布支付超时事件（Long 类型）
+   */
+  fun publishPaymentTimeout(
+    orderId: Long,
+    userId: Long,
+  ): Boolean =
+    publishDomainEvent(
+      eventType = "PAYMENT_TIMEOUT",
+      aggregateId = orderId.toString(),
+      eventData =
+        mapOf(
+          "orderId" to orderId,
+          "userId" to userId,
           "timestamp" to System.currentTimeMillis(),
         ),
     )
@@ -241,29 +286,6 @@ class SimplifiedEventPublishService(
       eventPublisher.isAvailable()
     } catch (e: Exception) {
       logger.error("Error checking publisher health", e)
-      false
-    }
-
-  /**
-   * 快速发布高频事件（专用方法）
-   */
-  fun publishHighFrequencyEvent(
-    eventType: String,
-    aggregateId: String,
-    eventData: Map<String, Any>,
-  ): Boolean =
-    try {
-      val event =
-        DomainEvent(
-          id = DefaultIdGenerator().generate(),
-          eventType = eventType,
-          payload = objectMapper.writeValueAsString(eventData),
-        )
-
-      logger.debug("Publishing high-frequency event: $eventType")
-      eventPublisher.publishSync(event)
-    } catch (e: Exception) {
-      logger.error("Failed to publish high-frequency event: $eventType", e)
       false
     }
 }

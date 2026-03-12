@@ -19,10 +19,15 @@
 
 package dev.yidafu.aqua.order.event
 
+import dev.yidafu.aqua.api.service.OrderOperationService
 import dev.yidafu.aqua.api.service.PaymentService
-import dev.yidafu.aqua.common.domain.model.DomainEvent
+import dev.yidafu.aqua.common.domain.model.OperatorType
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.OrderOperationType
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
+import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
+import dev.yidafu.aqua.common.messaging.event.DomainEvent
+import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -32,15 +37,18 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 class OrderCancelledHandler(
   private val orderRepository: OrderRepository,
   private val paymentService: PaymentService,
-) {
+  private val orderOperationService: OrderOperationService,
+) : EventProcessor {
   private val logger = LoggerFactory.getLogger(OrderCancelledHandler::class.java)
   private val objectMapper = jacksonObjectMapper()
+
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.ORDER_CANCELLED
 
   /**
    * 处理订单取消事件
    */
   @Transactional
-  fun handle(event: DomainEvent) {
+  override fun handle(event: DomainEvent) {
     try {
       // 解析payload获取事件数据
       val eventData =
@@ -59,6 +67,16 @@ class OrderCancelledHandler(
       val paymentTransactionId = eventData["paymentTransactionId"] as? String
 
       logger.info("Processing ORDER_CANCELLED event for order: ${order.orderNumber}, shouldRefund: $shouldRefund")
+
+      // 记录订单操作
+      val cancelDescription = if (shouldRefund) "用户取消订单（需退款）" else "用户取消订单"
+      orderOperationService.recordOperation(
+        orderId = order.id,
+        operationType = OrderOperationType.ORDER_CANCELLED,
+        operatorType = OperatorType.USER,
+        operatorId = order.userId,
+        description = cancelDescription,
+      )
 
       // 如果需要退款且存在支付交易号
       if (shouldRefund && !paymentTransactionId.isNullOrEmpty()) {

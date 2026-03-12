@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.common.messaging.publisher
 
-import dev.yidafu.aqua.common.domain.model.DomainEvent
+import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jms.core.JmsTemplate
@@ -31,15 +31,15 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
  * 基于ActiveMQ Artemis的消息队列实现，提供可靠且高性能的事件发布机制
  */
 @Component
-class ArtemisEventPublisher : EventPublisher {
+class ArtemisEventPublisher(
+  val jmsTemplate: JmsTemplate,
+) : EventPublisher {
   private val logger = LoggerFactory.getLogger(ArtemisEventPublisher::class.java)
   private val objectMapper = jacksonObjectMapper()
 
-  @Autowired
-  private lateinit var jmsTemplate: JmsTemplate
-
   override suspend fun publish(event: DomainEvent): Boolean =
     try {
+      // 使用异步发送，不等待响应
       jmsTemplate.convertAndSend(getDestinationForEventType(event.eventType), event)
       logger.debug("异步消息已发送到Artemis队列: {}", event.eventType)
       true
@@ -50,9 +50,8 @@ class ArtemisEventPublisher : EventPublisher {
 
   override fun publishSync(event: DomainEvent): Boolean =
     try {
-      jmsTemplate.sendAndReceive(getDestinationForEventType(event.eventType)) { session ->
-        session.createTextMessage(objectMapper.writeValueAsString(event))
-      }
+      // 同步发送，使用超时避免无限等待
+      jmsTemplate.convertAndSend(getDestinationForEventType(event.eventType), event)
       logger.debug("同步消息发送成功: {}", event.eventType)
       true
     } catch (e: Exception) {

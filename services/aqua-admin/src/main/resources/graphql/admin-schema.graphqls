@@ -62,6 +62,7 @@ type Query {
   ordersByUser(userId: PrimaryId!): [Order!]!
   ordersByUserAndStatus(userId: PrimaryId!, status: OrderStatus!): [Order!]!
   ordersByStatus(status: OrderStatus!): [Order!]!
+  orderOperations(orderId: PrimaryId!): [OrderOperation!]!
 
   # 派单相关查询
   pendingDeliveryOrders: [Order!]!              # 待派单订单

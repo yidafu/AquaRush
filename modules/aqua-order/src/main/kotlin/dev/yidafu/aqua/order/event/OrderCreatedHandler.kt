@@ -31,16 +31,16 @@ import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
 
 @Component
-class PaymentTimeoutHandler(
+class OrderCreatedHandler(
   private val orderOperationService: OrderOperationService,
 ) : EventProcessor {
-  private val logger = LoggerFactory.getLogger(PaymentTimeoutHandler::class.java)
+  private val logger = LoggerFactory.getLogger(OrderCreatedHandler::class.java)
   private val objectMapper = jacksonObjectMapper()
 
-  override fun getSupportedEventType(): DomainEventType = DomainEventType.PAYMENT_TIMEOUT
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.ORDER_CREATED
 
   /**
-   * 处理支付超时事件
+   * 处理订单创建事件
    */
   @Transactional
   override fun handle(event: DomainEvent) {
@@ -54,24 +54,36 @@ class PaymentTimeoutHandler(
 
       val orderId = (eventData["orderId"] as Number).toLong()
       val userId = (eventData["userId"] as Number).toLong()
+      val adminId = eventData["adminId"] as? Long
+      if (adminId == null) {
+        logger.info("Recording ORDER_CREATED operation for order: $orderId")
 
-      logger.info("Processing PAYMENT_TIMEOUT event for order: $orderId")
+        // 记录订单操作
+        orderOperationService.recordOperation(
+          orderId = orderId,
+          operationType = OrderOperationType.ORDER_CREATED,
+          operatorType = OperatorType.USER,
+          operatorId = userId,
+          description = "用户创建订单",
+        )
 
-      // 记录订单操作
-      orderOperationService.recordOperation(
-        orderId = orderId,
-        operationType = OrderOperationType.PAYMENT_TIMEOUT,
-        operatorType = OperatorType.SYSTEM,
-        description = "订单支付超时，自动取消",
-      )
+        logger.info("Successfully recorded ORDER_CREATED operation for order: $orderId")
+      } else {
+        logger.info("Recording ORDER_CREATED operation (admin) for order: $orderId")
 
-      // 可以在这里发送支付超时通知给用户
-      // sendPaymentTimeoutNotification(userId, orderNumber)
+        orderOperationService.recordOperation(
+          orderId = orderId,
+          operationType = OrderOperationType.ORDER_CREATED,
+          operatorType = OperatorType.ADMIN,
+          operatorId = adminId,
+          description = "管理员/配送员创建订单",
+        )
 
-      logger.info("Successfully processed PAYMENT_TIMEOUT event for order: $orderId")
+        logger.info("Successfully recorded ORDER_CREATED operation (admin) for order: $orderId")
+      }
     } catch (e: Exception) {
-      logger.error("Failed to process PAYMENT_TIMEOUT event: ${event.id}", e)
-      throw e // 重新抛出异常以触发重试机制
+      logger.error("Failed to record ORDER_CREATED operation: ${event.id}", e)
+      throw e
     }
   }
 }

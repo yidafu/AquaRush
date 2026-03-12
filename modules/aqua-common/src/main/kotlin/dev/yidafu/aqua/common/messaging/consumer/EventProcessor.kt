@@ -17,10 +17,24 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.order.event
+package dev.yidafu.aqua.common.messaging.consumer
+
+import dev.yidafu.aqua.common.messaging.event.DomainEvent
+import dev.yidafu.aqua.common.messaging.event.DomainEventType
 
 /**
- * 事件处理器接口
- * 事件处理现在通过 Artemis 消息队列进行
+ * 订单事件处理器接口
+ * 用于处理从消息队列接收的订单事件
  */
-interface EventProcessor
+interface EventProcessor {
+  /**
+   * 处理订单事件
+   * @param event 领域事件
+   */
+  fun handle(event: DomainEvent)
+
+  /**
+   * 获取处理器支持的事件类型
+   */
+  fun getSupportedEventType(): DomainEventType
+}

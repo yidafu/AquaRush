@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.common.messaging.processor
 
-import dev.yidafu.aqua.common.domain.model.DomainEvent
 import dev.yidafu.aqua.common.messaging.config.SimplifiedMessagingProperties
+import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 

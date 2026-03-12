@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.logging.service
 
-import dev.yidafu.aqua.common.domain.model.DomainEvent
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
+import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.logging.config.LoggingProperties
 import dev.yidafu.aqua.logging.controller.UserActionController.UserActionLogRequest
 import dev.yidafu.aqua.logging.util.UserActionLogger

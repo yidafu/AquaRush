@@ -20,10 +20,16 @@
 package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.api.service.DeliveryService
-import dev.yidafu.aqua.common.domain.model.DomainEvent
+import dev.yidafu.aqua.api.service.OrderOperationService
+import dev.yidafu.aqua.common.domain.model.OperatorType
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.OrderOperationType
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
+import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
+import dev.yidafu.aqua.common.messaging.event.DomainEvent
+import dev.yidafu.aqua.common.messaging.event.DomainEventType
+import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -33,16 +39,19 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 class OrderPaidHandler(
   private val orderRepository: OrderRepository,
   private val deliveryService: DeliveryService,
-  private val simplifiedEventPublishService: dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService,
-) {
+  private val orderOperationService: OrderOperationService,
+  private val simplifiedEventPublishService: SimplifiedEventPublishService,
+) : EventProcessor {
   private val logger = LoggerFactory.getLogger(OrderPaidHandler::class.java)
   private val objectMapper = jacksonObjectMapper()
+
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.ORDER_PAID
 
   /**
    * 处理订单支付成功事件
    */
   @Transactional
-  fun handle(event: DomainEvent) {
+  override fun handle(event: DomainEvent) {
     try {
       // 解析payload获取事件数据
       val eventData =
@@ -64,6 +73,15 @@ class OrderPaidHandler(
         logger.warn("Order ${order.orderNumber} is not in PENDING_DELIVERY status, current status: ${order.status}")
         return
       }
+
+      // 记录订单操作
+      orderOperationService.recordOperation(
+        orderId = order.id,
+        operationType = OrderOperationType.ORDER_PAID,
+        operatorType = OperatorType.USER,
+        operatorId = order.userId,
+        description = "订单支付成功",
+      )
 
       // 触发配送分配
       triggerDeliveryAssignment(order)

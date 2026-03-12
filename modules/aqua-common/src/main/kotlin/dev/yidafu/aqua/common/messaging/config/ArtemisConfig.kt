@@ -19,8 +19,13 @@
 
 package dev.yidafu.aqua.common.messaging.config
 
+import jakarta.jms.ConnectionFactory
+import org.apache.activemq.artemis.jms.client.ActiveMQConnectionFactory
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.jms.annotation.EnableJms
+import org.springframework.jms.config.DefaultJmsListenerContainerFactory
+import org.springframework.jms.connection.CachingConnectionFactory
 
 /**
  * ActiveMQ Artemis配置类
@@ -32,4 +37,26 @@ import org.springframework.jms.annotation.EnableJms
 class ArtemisConfig {
   // 移除了自定义的EmbeddedActiveMQ Bean，改为使用Spring Boot的自动配置
   // 这样可以避免JMS监听器在Broker启动前尝试连接的问题
+
+  @Bean
+  fun connectionFactory(): ConnectionFactory {
+    // 创建ActiveMQ Artemis连接工厂
+    val factory = ActiveMQConnectionFactory()
+    factory.setBrokerURL("tcp://localhost:61616")
+    factory.setUser("admin")
+    factory.setPassword("admin")
+
+    // 使用连接池提高性能
+    return CachingConnectionFactory(factory)
+  }
+
+  @Bean
+  fun jmsListenerContainerFactory(connectionFactory: ConnectionFactory): DefaultJmsListenerContainerFactory {
+    val factory =
+      DefaultJmsListenerContainerFactory()
+    factory.setConnectionFactory(connectionFactory)
+    factory.setConcurrency("3-10") // 并发消费者数量
+    factory.setSessionTransacted(true) // 启用事务
+    return factory
+  }
 }

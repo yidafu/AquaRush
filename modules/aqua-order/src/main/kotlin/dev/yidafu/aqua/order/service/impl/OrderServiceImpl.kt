@@ -20,7 +20,9 @@
 package dev.yidafu.aqua.order.service
 
 import dev.yidafu.aqua.api.service.*
+import dev.yidafu.aqua.common.domain.model.OperatorType
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.OrderOperationType
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
@@ -47,6 +49,7 @@ class OrderServiceImpl(
   private val deliveryService: DeliveryService,
   private val orderIdGenerator: OrderIdGeneratorService,
   private val adminService: AdminService,
+  private val orderOperationService: OrderOperationService,
 ) : OrderService {
   private val logger = LoggerFactory.getLogger(OrderServiceImpl::class.java)
   private val objectMapper = jacksonObjectMapper()
@@ -117,20 +120,12 @@ class OrderServiceImpl(
     val savedOrder = orderRepository.save(order)
 
     // 8. 发布订单创建事件
-    publishDomainEvent(
-      eventType = "ORDER_CREATED",
-      aggregateId = savedOrder.id.toString(),
-      eventData =
-        mapOf(
-          "orderId" to savedOrder.id.toString(),
-          "orderNumber" to savedOrder.orderNumber,
-          "userId" to savedOrder.userId.toString(),
-          "productId" to savedOrder.productId.toString(),
-          "quantity" to savedOrder.quantity,
-          "amount" to savedOrder.amountCents.toString(),
-          "amountCents" to savedOrder.amountCents,
-          "addressId" to savedOrder.addressId.toString(),
-        ),
+    eventPublishService.publishOrderCreated(
+      orderId = savedOrder.id,
+      userId = savedOrder.userId,
+      productId = savedOrder.productId,
+      quantity = savedOrder.quantity,
+      amountCents = savedOrder.amountCents,
     )
 
     return savedOrder
@@ -185,21 +180,11 @@ class OrderServiceImpl(
     val cancelledOrder = orderRepository.save(order)
 
     // 5. 发布订单取消事件
-    publishDomainEvent(
-      eventType = "ORDER_CANCELLED",
-      aggregateId = cancelledOrder.id.toString(),
-      eventData =
-        mapOf(
-          "orderId" to cancelledOrder.id.toString(),
-          "orderNumber" to cancelledOrder.orderNumber,
-          "userId" to cancelledOrder.userId.toString(),
-          "productId" to cancelledOrder.productId.toString(),
-          "quantity" to cancelledOrder.quantity,
-          "amount" to cancelledOrder.amountCents.toString(),
-          "amountCents" to cancelledOrder.amountCents,
-          "shouldRefund" to shouldRefund,
-          "paymentTransactionId" to (cancelledOrder.paymentTransactionId ?: ""),
-        ),
+    val cancelDescription = if (shouldRefund) "用户取消订单（需退款）" else "用户取消订单"
+    eventPublishService.publishOrderCancelled(
+      orderId = cancelledOrder.id,
+      userId = cancelledOrder.userId,
+      reason = cancelDescription,
     )
 
     return cancelledOrder
@@ -216,23 +201,6 @@ class OrderServiceImpl(
   }
 
   override fun getOrdersByStatus(status: OrderStatus): List<OrderModel> = orderRepository.findByStatus(status)
-
-  /**
-   * 发布领域事件
-   */
-  private fun publishDomainEvent(
-    eventType: String,
-    aggregateId: String,
-    eventData: Map<String, Any>,
-    nextRunAt: LocalDateTime? = null,
-  ) {
-    // 通过 Artemis 发布事件
-    eventPublishService.publishDomainEvent(
-      eventType = eventType,
-      aggregateId = aggregateId,
-      eventData = eventData,
-    )
-  }
 
   /**
    * 处理支付成功
@@ -256,18 +224,11 @@ class OrderServiceImpl(
     val updatedOrder = orderRepository.save(order)
 
     // 发布支付成功事件
-    publishDomainEvent(
-      eventType = "ORDER_PAID",
-      aggregateId = updatedOrder.id.toString(),
-      eventData =
-        mapOf(
-          "orderId" to updatedOrder.id.toString(),
-          "orderNumber" to updatedOrder.orderNumber,
-          "userId" to updatedOrder.userId.toString(),
-          "amount" to updatedOrder.amountCents.toString(),
-          "amountCents" to updatedOrder.amountCents,
-          "paymentTransactionId" to paymentTransactionId,
-        ),
+    eventPublishService.publishOrderPaid(
+      orderId = updatedOrder.id,
+      userId = updatedOrder.userId,
+      productId = updatedOrder.productId,
+      amountCents = updatedOrder.amountCents,
     )
   }
 
@@ -290,17 +251,9 @@ class OrderServiceImpl(
     orderRepository.save(order)
 
     // 发布支付超时事件
-    publishDomainEvent(
-      eventType = "PAYMENT_TIMEOUT",
-      aggregateId = order.id.toString(),
-      eventData =
-        mapOf(
-          "orderId" to order.id.toString(),
-          "orderNumber" to order.orderNumber,
-          "userId" to order.userId.toString(),
-          "amount" to order.amountCents.toString(),
-          "amountCents" to order.amountCents,
-        ),
+    eventPublishService.publishPaymentTimeout(
+      orderId = order.id,
+      userId = order.userId,
     )
   }
 
@@ -391,23 +344,14 @@ class OrderServiceImpl(
     val savedOrder = orderRepository.save(order)
 
     // 8. 发布订单创建事件
-    publishDomainEvent(
-      eventType = "ORDER_CREATED",
-      aggregateId = savedOrder.id.toString(),
-      eventData =
-        mapOf(
-          "orderId" to savedOrder.id.toString(),
-          "orderNumber" to savedOrder.orderNumber,
-          "userId" to savedOrder.userId.toString(),
-          "productId" to savedOrder.productId.toString(),
-          "quantity" to savedOrder.quantity,
-          "amount" to savedOrder.amountCents.toString(),
-          "amountCents" to savedOrder.amountCents,
-          "addressId" to savedOrder.addressId.toString(),
-        ),
+    eventPublishService.publishOrderCreated(
+      orderId = savedOrder.id,
+      userId = savedOrder.userId,
+      productId = savedOrder.productId,
+      quantity = savedOrder.quantity,
+      amountCents = savedOrder.amountCents,
     )
-
-    return orderRepository.findById(order.id).orElseThrow()
+    return orderRepository.findById(savedOrder.id).orElseThrow()
   }
 
   @Transactional

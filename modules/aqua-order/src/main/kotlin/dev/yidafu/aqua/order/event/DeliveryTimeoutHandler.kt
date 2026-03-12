@@ -19,7 +19,9 @@
 
 package dev.yidafu.aqua.order.event
 
-import dev.yidafu.aqua.common.domain.model.DomainEvent
+import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
+import dev.yidafu.aqua.common.messaging.event.DomainEvent
+import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -27,15 +29,17 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.util.*
 
 @Component
-class DeliveryTimeoutHandler {
+class DeliveryTimeoutHandler : EventProcessor {
   private val logger = LoggerFactory.getLogger(DeliveryTimeoutHandler::class.java)
   private val objectMapper = jacksonObjectMapper()
+
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.DELIVERY_TIMEOUT
 
   /**
    * 处理配送超时事件
    */
   @Transactional
-  fun handle(event: DomainEvent) {
+  override fun handle(event: DomainEvent) {
     try {
       // 解析payload获取事件数据
       val eventData =

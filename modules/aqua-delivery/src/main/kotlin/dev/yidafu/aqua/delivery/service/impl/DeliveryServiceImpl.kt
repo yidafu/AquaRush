@@ -20,10 +20,12 @@
 package dev.yidafu.aqua.delivery.service.impl
 
 import dev.yidafu.aqua.api.service.DeliveryService
+import dev.yidafu.aqua.api.service.OrderOperationService
 import dev.yidafu.aqua.common.domain.model.*
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
+import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryAreaRepository
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import org.slf4j.LoggerFactory
@@ -35,6 +37,8 @@ class DeliveryServiceImpl(
   private val workerRepository: DeliveryWorkerRepository,
   private val areaRepository: DeliveryAreaRepository,
   private val orderRepository: OrderRepository,
+  private val orderOperationService: OrderOperationService,
+  private val eventPublishService: SimplifiedEventPublishService,
 ) : DeliveryService {
   private val logger = LoggerFactory.getLogger(DeliveryService::class.java)
 
@@ -253,8 +257,25 @@ class DeliveryServiceImpl(
     // 设置开始配送时间
     order.deliveryStartedAt = java.time.LocalDateTime.now()
 
+    val savedOrder = orderRepository.save(order)
+
+    // 记录订单操作 - 开始配送
+    orderOperationService.recordOperation(
+      orderId = savedOrder.id,
+      operationType = OrderOperationType.DELIVERY_STARTED,
+      operatorType = OperatorType.DELIVERY_WORKER,
+      operatorId = savedOrder.deliveryWorkerId,
+      description = "配送员开始配送",
+    )
+
+    // 发布配送开始事件
+    eventPublishService.publishDeliveryStarted(
+      orderId = savedOrder.id,
+      deliveryWorkerId = savedOrder.deliveryWorkerId!!,
+    )
+
     logger.info("Started delivery for order $orderId")
-    return orderRepository.save(order)
+    return savedOrder
   }
 
   /**
@@ -366,10 +387,42 @@ class DeliveryServiceImpl(
     order.paymentType = paymentType
     order.deliveryConfirmedAt = java.time.LocalDateTime.now()
     order.completedAt = java.time.LocalDateTime.now()
-    orderRepository.save(order)
+    val savedOrder = orderRepository.save(order)
+
+    // 记录订单操作 - 配送完成
+    orderOperationService.recordOperation(
+      orderId = savedOrder.id,
+      operationType = OrderOperationType.DELIVERY_COMPLETED,
+      operatorType = OperatorType.DELIVERY_WORKER,
+      operatorId = savedOrder.deliveryWorkerId,
+      description = "配送员完成配送",
+      extraData = """{"paymentType": "${paymentType?.name}"}""",
+    )
+
+    // 记录订单操作 - 订单完成
+    orderOperationService.recordOperation(
+      orderId = savedOrder.id,
+      operationType = OrderOperationType.ORDER_COMPLETED,
+      operatorType = OperatorType.DELIVERY_WORKER,
+      operatorId = savedOrder.deliveryWorkerId,
+      description = "订单已完成",
+    )
+
+    // 发布配送完成事件
+    eventPublishService.publishDeliveryCompleted(
+      orderId = savedOrder.id,
+      deliveryWorkerId = savedOrder.deliveryWorkerId!!,
+    )
+
+    // 发布订单完成事件
+    eventPublishService.publishOrderCompleted(
+      orderId = savedOrder.id,
+      userId = savedOrder.userId,
+      deliveryWorkerId = savedOrder.deliveryWorkerId!!,
+    )
 
     logger.info("Successfully completed delivery for order $orderId, paymentType: $paymentType")
-    return order
+    return savedOrder
   }
 
   /**

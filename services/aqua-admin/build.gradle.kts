@@ -57,6 +57,7 @@ dependencies {
   // Entry module specific dependencies
   implementation(libs.spring.boot.starter.web)
   implementation(libs.spring.boot.starter.actuator)
+  implementation(libs.bundles.messaging)
   implementation(libs.spring.boot.starter.security)
   implementation(libs.spring.boot.starter.thymeleaf)
   implementation(libs.bundles.spring.boot.liqiubase)

@@ -20,8 +20,13 @@
 package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.api.service.DeliveryService
+import dev.yidafu.aqua.api.service.OrderOperationService
 import dev.yidafu.aqua.common.domain.model.*
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
+import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
+import dev.yidafu.aqua.common.messaging.event.DomainEvent
+import dev.yidafu.aqua.common.messaging.event.DomainEventType
+import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -33,16 +38,19 @@ class DeliveryAssignmentHandler(
   private val orderRepository: OrderRepository,
   private val addressRepository: AddressRepository,
   private val deliveryService: DeliveryService,
-  private val simplifiedEventPublishService: dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService,
-) {
+  private val simplifiedEventPublishService: SimplifiedEventPublishService,
+  private val orderOperationService: OrderOperationService,
+) : EventProcessor {
   private val logger = LoggerFactory.getLogger(DeliveryAssignmentHandler::class.java)
   private val objectMapper = jacksonObjectMapper()
+
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.DELIVERY_ASSIGNED
 
   /**
    * 处理配送分配事件
    */
   @Transactional
-  fun handle(event: DomainEvent) {
+  override fun handle(event: DomainEvent) {
     try {
       // 解析payload获取事件数据
       val eventData =
@@ -69,10 +77,14 @@ class DeliveryAssignmentHandler(
       val assignedWorker = assignDeliveryWorker(order, address)
 
       if (assignedWorker != null) {
-        // 更新订单状态和配送员信息
-        order.status = OrderStatus.DELIVERING
-        order.deliveryWorkerId = assignedWorker.id
-        orderRepository.save(order)
+        // 记录订单操作 - 配送员分配
+        orderOperationService.recordOperation(
+          orderId = order.id,
+          operationType = OrderOperationType.DELIVERY_ASSIGNED,
+          operatorType = OperatorType.SYSTEM,
+          description = "系统自动分配配送员: ${assignedWorker.name}",
+          extraData = """{"deliveryWorkerId": ${assignedWorker.id}, "deliveryWorkerName": "${assignedWorker.name}"}""",
+        )
 
         // 创建配送分配成功事件
         createDeliveryAssignedEvent(order, assignedWorker)
@@ -129,24 +141,14 @@ class DeliveryAssignmentHandler(
     worker: DeliveryWorkerModel,
   ) {
     try {
-      val eventData =
-        mapOf(
-          "orderId" to order.id.toString(),
-          "orderNumber" to order.orderNumber,
-          "deliveryWorkerId" to worker.id.toString(),
-          "deliveryWorkerName" to worker.name,
-          "deliveryWorkerPhone" to worker.phone,
-          "userId" to order.userId.toString(),
-        )
-
       // 通过 Artemis 发布订单分配事件
-      simplifiedEventPublishService.publishDomainEvent(
-        eventType = "ORDER_ASSIGNED",
-        aggregateId = order.id.toString(),
-        eventData = eventData,
+      simplifiedEventPublishService.publishDeliveryAssigned(
+        orderId = order.id,
+        deliveryWorkerId = worker.id!!,
+        userId = order.userId,
       )
 
-      logger.info("Published ORDER_ASSIGNED event for order ${order.orderNumber}")
+      logger.info("Published DELIVERY_ASSIGNED event for order ${order.orderNumber}")
     } catch (e: Exception) {
       logger.error("Error creating delivery assigned event for order ${order.orderNumber}", e)
     }

@@ -19,7 +19,8 @@
 
 package dev.yidafu.aqua.common.messaging.consumer
 
-import dev.yidafu.aqua.common.domain.model.DomainEvent
+import dev.yidafu.aqua.common.messaging.event.DomainEvent
+import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import jakarta.jms.Session
 import org.slf4j.LoggerFactory
 import org.springframework.jms.annotation.JmsListener
@@ -30,8 +31,15 @@ import org.springframework.stereotype.Component
  * 监听ActiveMQ Artemis队列并处理消息
  */
 @Component
-class MessageConsumer {
+class MessageConsumer(
+  private val orderEventProcessors: List<EventProcessor>,
+) {
   private val logger = LoggerFactory.getLogger(MessageConsumer::class.java)
+
+  // 构建事件类型到处理器的映射
+  private val eventProcessorMap: Map<DomainEventType, List<EventProcessor>> by lazy {
+    orderEventProcessors.groupBy { it.getSupportedEventType() }
+  }
 
   @JmsListener(destination = "order-events")
   fun handleOrderEvent(
@@ -109,7 +117,14 @@ class MessageConsumer {
   private fun processOrderEvent(event: DomainEvent) {
     // 订单事件处理逻辑
     logger.info("执行订单事件处理逻辑: {}", event.eventType)
-    // 这里应该调用相应的业务服务来处理订单事件
+    val eventType = DomainEventType.fromValue(event.eventType)
+    // 根据事件类型分发到对应的处理器
+    val processorList = eventProcessorMap[eventType]
+    if (processorList != null) {
+      processorList.forEach { p -> p.handle(event) }
+    } else {
+      logger.warn("未知的事件类型: ${event.eventType}")
+    }
   }
 
   private fun processPaymentEvent(event: DomainEvent) {

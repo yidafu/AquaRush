@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.common.messaging.publisher
 
-import dev.yidafu.aqua.common.domain.model.DomainEvent
+import dev.yidafu.aqua.common.messaging.event.DomainEvent
 
 /**
  * 事件发布器接口
