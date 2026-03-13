@@ -29,6 +29,20 @@ const authLink = setContext((_, { headers }) => {
 
 // 错误处理 Link
 const errorLink = onError(({ graphQLErrors, networkError }) => {
+  console.log('errorLink', graphQLErrors, networkError.statusCode)
+  // 检查 networkError 中的 HTTP 401（后端返回的认证失败）
+  if (networkError) {
+    // 检测 HTTP 401 认证失败
+    if ('statusCode' in networkError && networkError.statusCode === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('userInfo');
+      window.location.href = '/login';
+      return;
+    }
+    message.error('网络连接失败，请检查网络');
+    return;
+  }
+
   if (graphQLErrors) {
     graphQLErrors.forEach(({ message: errorMessage, extensions }) => {
       // 处理认证错误
@@ -41,10 +55,6 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
       // 显示其他 GraphQL 错误
       message.error(errorMessage || 'GraphQL 请求失败');
     });
-  }
-
-  if (networkError) {
-    message.error('网络连接失败，请检查网络');
   }
 });
 

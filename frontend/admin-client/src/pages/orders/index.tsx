@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Table, Tag, Space, Button, Card, Typography, message } from 'antd';
 import { useLazyQuery } from '@apollo/client';
 import { GET_ORDERS_QUERY } from '../../graphql/queries/order.graphql';
+import AssignDeliveryButton from '../../components/AssignDeliveryButton';
 import { OrderFilters, OrderFilters as FilterType } from './components/OrderFilters';
 import { formatAdminTableAmount } from '../utils/money';
 
@@ -213,7 +214,12 @@ const Orders: React.FC = () => {
           <Button type="link" size="small" onClick={() => navigate(`/orders/${record.id}`)}>
             查看
           </Button>
-          <Button type="link" size="small">分配配送</Button>
+          {record.status === 'PENDING_DELIVERY' && (
+            <AssignDeliveryButton
+              orderId={record.id}
+              onAssigned={() => fetchOrders()}
+            />
+          )}
         </Space>
       ),
     },
