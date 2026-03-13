@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.common.messaging.publisher
 
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
+import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jms.core.JmsTemplate
@@ -96,11 +97,31 @@ class ArtemisEventPublisher(
   /**
    * 根据事件类型确定目标队列
    */
-  private fun getDestinationForEventType(eventType: String): String =
-    when (eventType) {
-      "ORDER_CREATED", "ORDER_PAID", "ORDER_CANCELLED", "ORDER_DELIVERED", "ORDER_ASSIGNED" -> "order-events"
-      "PAYMENT_TIMEOUT" -> "payment-events"
-      "DELIVERY_TIMEOUT" -> "delivery-events"
-      else -> "user-events"
+  private fun getDestinationForEventType(eventType: String): String {
+    val domainEventType = DomainEventType.fromValue(eventType)
+    return when (domainEventType) {
+      DomainEventType.ORDER_CREATED,
+      DomainEventType.ORDER_PAID,
+      DomainEventType.ORDER_CANCELLED,
+      DomainEventType.ORDER_COMPLETED,
+      DomainEventType.ORDER_DELIVERED,
+      -> EventQueueName.ORDER_QUEUE.toString()
+
+      DomainEventType.PAYMENT_TIMEOUT,
+      DomainEventType.PAYMENT_REFUNDED,
+      -> EventQueueName.PAYMENT_QUEUE.toString()
+
+      DomainEventType.DELIVERY_ASSIGNED,
+      DomainEventType.DELIVERY_STARTED,
+      DomainEventType.DELIVERY_COMPLETED,
+      DomainEventType.DELIVERY_TIMEOUT,
+      -> EventQueueName.DELIVERY_QUEUE.toString()
+
+      DomainEventType.USER_REGISTERED,
+      DomainEventType.USER_UPDATED,
+      -> EventQueueName.USER_QUEUE.toString()
+
+      else -> EventQueueName.DELIVERY_QUEUE.toString()
     }
+  }
 }

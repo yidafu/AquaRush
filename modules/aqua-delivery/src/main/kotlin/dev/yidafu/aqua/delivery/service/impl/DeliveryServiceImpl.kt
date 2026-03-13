@@ -138,6 +138,7 @@ class DeliveryServiceImpl(
    */
   @Transactional
   override fun assignDeliveryWorker(
+    adminId: Long,
     orderId: Long,
     workerId: Long,
     isSelfCollect: Boolean,
@@ -153,7 +154,7 @@ class DeliveryServiceImpl(
       }
 
     // 验证订单状态 - 待配送状态才能派单
-    if (order.status != dev.yidafu.aqua.common.domain.model.OrderStatus.PENDING_DELIVERY) {
+    if (order.status != OrderStatus.PENDING_DELIVERY) {
       throw BadRequestException("订单状态不正确，无法分配配送员")
     }
 
@@ -165,10 +166,20 @@ class DeliveryServiceImpl(
     // 分配配送员，状态变为已接单（待开始配送）
     order.deliveryWorkerId = workerId
     order.isSelfCollect = isSelfCollect
-    order.status = dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING
+    order.status = OrderStatus.DELIVERING
+
+    val savedOrder = orderRepository.save(order)
+
+    // 发布配送分配事件
+    eventPublishService.publishDeliveryAssigned(
+      orderId = savedOrder.id,
+      deliveryWorkerId = workerId,
+      userId = savedOrder.userId,
+      adminId = adminId,
+    )
 
     logger.info("Successfully assigned worker $workerId to order $orderId, isSelfCollect: $isSelfCollect")
-    return orderRepository.save(order)
+    return savedOrder
   }
 
   /**
@@ -176,6 +187,7 @@ class DeliveryServiceImpl(
    */
   @Transactional
   override fun batchAssignOrders(
+    adminId: Long,
     orderIds: List<Long>,
     workerId: Long,
   ): List<OrderModel> {
@@ -199,10 +211,21 @@ class DeliveryServiceImpl(
           }
 
         // 只处理待配送状态的订单
-        if (order.status == dev.yidafu.aqua.common.domain.model.OrderStatus.PENDING_DELIVERY) {
+        if (order.status == OrderStatus.PENDING_DELIVERY) {
           order.deliveryWorkerId = workerId
-          order.status = dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING
-          assignedOrders.add(orderRepository.save(order))
+          order.status = OrderStatus.DELIVERING
+          val savedOrder = orderRepository.save(order)
+
+
+          // 发布配送分配事件
+          eventPublishService.publishDeliveryAssigned(
+            adminId = adminId,
+            orderId = savedOrder.id,
+            deliveryWorkerId = workerId,
+            userId = savedOrder.userId,
+          )
+
+          assignedOrders.add(savedOrder)
         }
       } catch (e: Exception) {
         logger.warn("Failed to assign order $orderId to worker $workerId: ${e.message}")
@@ -227,16 +250,35 @@ class DeliveryServiceImpl(
       }
 
     // 验证订单状态
-    if (order.status != dev.yidafu.aqua.common.domain.model.OrderStatus.PENDING_DELIVERY) {
+    if (order.status != OrderStatus.PENDING_DELIVERY) {
       throw BadRequestException("订单状态不正确，无法接单")
     }
 
     // 分配配送员
     order.deliveryWorkerId = workerId
-    order.status = dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING
+    order.status = OrderStatus.DELIVERING
+
+    val savedOrder = orderRepository.save(order)
+
+    // 记录订单操作 - 配送员接单
+    orderOperationService.recordOperation(
+      orderId = savedOrder.id,
+      operationType = OrderOperationType.DELIVERY_ASSIGNED,
+      operatorType = OperatorType.DELIVERY_WORKER,
+      operatorId = workerId,
+      description = "配送员接单",
+    )
+
+    // 发布配送分配事件
+    eventPublishService.publishDeliveryAssigned(
+      adminId = 0L,
+      orderId = savedOrder.id,
+      deliveryWorkerId = workerId,
+      userId = savedOrder.userId,
+    )
 
     logger.info("Worker $workerId accepted delivery for order $orderId")
-    return orderRepository.save(order)
+    return savedOrder
   }
 
   /**
@@ -250,7 +292,7 @@ class DeliveryServiceImpl(
       }
 
     // 验证订单状态
-    if (order.status != dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING) {
+    if (order.status != OrderStatus.DELIVERING) {
       throw BadRequestException("订单状态不正确，无法开始配送")
     }
 
@@ -279,57 +321,13 @@ class DeliveryServiceImpl(
   }
 
   /**
-   * 自动分配配送员
-   * 根据负载均衡和地理位置选择最优配送员
-   */
-  override fun autoAssignDeliveryWorker(orderId: Long): Long? {
-    try {
-      val order =
-        orderRepository.findById(orderId).orElse(null)
-          ?: return null
-
-      if (order.status != dev.yidafu.aqua.common.domain.model.OrderStatus.PENDING_DELIVERY) {
-        return null
-      }
-
-      // 获取所有在线配送员
-      val onlineWorkers = getOnlineWorkers()
-      if (onlineWorkers.isEmpty()) {
-        logger.warn("No online delivery workers available for order $orderId")
-        return null
-      }
-
-      // 获取每个配送员的当前任务数量
-      val workerLoads =
-        onlineWorkers.map { worker ->
-          val currentTaskCount = getCurrentTaskCount(worker.id!!)
-          WorkerLoad(worker, currentTaskCount)
-        }
-
-      // 选择任务最少的配送员
-      val selectedWorker = workerLoads.minByOrNull { it.taskCount }?.worker
-
-      return if (selectedWorker != null && selectedWorker.id != null) {
-        // 自动派单时默认非自收
-        assignDeliveryWorker(orderId, selectedWorker.id!!, false)
-        selectedWorker.id!!
-      } else {
-        null
-      }
-    } catch (e: Exception) {
-      logger.error("Failed to auto assign delivery worker for order $orderId", e)
-      return null
-    }
-  }
-
-  /**
    * 获取配送员当前任务数量
    */
   private fun getCurrentTaskCount(workerId: Long): Int =
     orderRepository
       .countByDeliveryWorkerIdAndStatus(
         workerId,
-        dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING,
+        OrderStatus.DELIVERING,
       ).toInt()
 
   /**
@@ -358,7 +356,7 @@ class DeliveryServiceImpl(
     orderRepository
       .countByDeliveryWorkerIdAndStatus(
         workerId,
-        dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING,
+        OrderStatus.DELIVERING,
       ).toInt()
 
   /**
@@ -370,19 +368,19 @@ class DeliveryServiceImpl(
   override fun completeDelivery(
     orderId: Long,
     deliveryPhotos: List<String>,
-    paymentType: dev.yidafu.aqua.common.domain.model.PaymentType?,
+    paymentType: PaymentType?,
   ): OrderModel {
     val order =
       orderRepository.findById(orderId).orElseThrow {
         NotFoundException("订单不存在: $orderId")
       }
 
-    if (order.status != dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING) {
+    if (order.status != OrderStatus.DELIVERING) {
       throw BadRequestException("订单状态不正确，无法完成配送")
     }
 
     // 更新订单状态
-    order.status = dev.yidafu.aqua.common.domain.model.OrderStatus.COMPLETED
+    order.status = OrderStatus.COMPLETED
     order.deliveryPhotos = deliveryPhotos.joinToString(",")
     order.paymentType = paymentType
     order.deliveryConfirmedAt = java.time.LocalDateTime.now()
@@ -447,16 +445,16 @@ class DeliveryServiceImpl(
   /**
    * 获取配送统计数据
    */
-  override fun getDeliveryStatistics(): dev.yidafu.aqua.api.service.DeliveryService.DeliveryStatistics {
+  override fun getDeliveryStatistics(): DeliveryService.DeliveryStatistics {
     val totalWorkers = workerRepository.count()
     val onlineWorkers = getOnlineWorkers().size
     val pendingOrders = getPendingDeliveryOrders().size
     val deliveringOrders =
       orderRepository.countByStatus(
-        dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING,
+        OrderStatus.DELIVERING,
       )
 
-    return dev.yidafu.aqua.api.service.DeliveryService.DeliveryStatistics(
+    return DeliveryService.DeliveryStatistics(
       totalWorkers = totalWorkers.toInt(),
       onlineWorkers = onlineWorkers,
       pendingOrders = pendingOrders,
@@ -467,7 +465,7 @@ class DeliveryServiceImpl(
   /**
    * 获取配送员当日统计数据
    */
-  override fun getTodayStatistics(workerId: Long?): dev.yidafu.aqua.api.service.DeliveryService.TodayStatistics {
+  override fun getTodayStatistics(workerId: Long?): DeliveryService.TodayStatistics {
     val today = java.time.LocalDate.now()
     val startOfDay = today.atStartOfDay()
     val endOfDay = today.plusDays(1).atStartOfDay()
@@ -486,19 +484,19 @@ class DeliveryServiceImpl(
 
     val completedToday =
       todayOrders.filter { order ->
-        order.status == dev.yidafu.aqua.common.domain.model.OrderStatus.COMPLETED &&
+        order.status == OrderStatus.COMPLETED &&
           order.completedAt != null &&
           order.completedAt!! >= startOfDay && order.completedAt!! < endOfDay
       }
 
     val pendingToday =
       todayOrders.filter { order ->
-        order.status == dev.yidafu.aqua.common.domain.model.OrderStatus.DELIVERING
+        order.status == OrderStatus.DELIVERING
       }
 
     val totalEarning = completedToday.sumOf { it.amountCents }
 
-    return dev.yidafu.aqua.api.service.DeliveryService.TodayStatistics(
+    return DeliveryService.TodayStatistics(
       totalOrders = todayOrders.size,
       completedOrders = completedToday.size,
       pendingOrders = pendingToday.size,

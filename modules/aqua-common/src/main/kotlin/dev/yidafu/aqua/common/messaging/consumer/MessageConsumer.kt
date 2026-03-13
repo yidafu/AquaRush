@@ -21,6 +21,7 @@ package dev.yidafu.aqua.common.messaging.consumer
 
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
+import dev.yidafu.aqua.common.messaging.publisher.EventQueueConst
 import jakarta.jms.Session
 import org.slf4j.LoggerFactory
 import org.springframework.jms.annotation.JmsListener
@@ -41,7 +42,7 @@ class MessageConsumer(
     orderEventProcessors.groupBy { it.getSupportedEventType() }
   }
 
-  @JmsListener(destination = "order-events")
+  @JmsListener(destination = EventQueueConst.ORDER_QUEUE_NAME)
   fun handleOrderEvent(
     event: DomainEvent,
     session: Session,
@@ -50,7 +51,7 @@ class MessageConsumer(
       // 处理订单事件
       logger.info("处理订单事件: {}", event.eventType)
       // 具体的业务逻辑处理
-      processOrderEvent(event)
+      processEventProcessor(event)
       logger.debug("订单事件处理成功: {}", event.eventType)
     } catch (e: Exception) {
       logger.error("处理订单事件失败: {}", event.eventType, e)
@@ -60,7 +61,7 @@ class MessageConsumer(
     }
   }
 
-  @JmsListener(destination = "payment-events")
+  @JmsListener(destination = EventQueueConst.PAYMENT_QUEUE_NAME)
   fun handlePaymentEvent(
     event: DomainEvent,
     session: Session,
@@ -69,7 +70,7 @@ class MessageConsumer(
       // 处理支付事件
       logger.info("处理支付事件: {}", event.eventType)
       // 具体的业务逻辑处理
-      processPaymentEvent(event)
+      processEventProcessor(event)
       logger.debug("支付事件处理成功: {}", event.eventType)
     } catch (e: Exception) {
       logger.error("处理支付事件失败: {}", event.eventType, e)
@@ -78,7 +79,7 @@ class MessageConsumer(
     }
   }
 
-  @JmsListener(destination = "delivery-events")
+  @JmsListener(destination = EventQueueConst.DELIVERY_QUEUE_NAME)
   fun handleDeliveryEvent(
     event: DomainEvent,
     session: Session,
@@ -87,7 +88,7 @@ class MessageConsumer(
       // 处理配送事件
       logger.info("处理配送事件: {}", event.eventType)
       // 具体的业务逻辑处理
-      processDeliveryEvent(event)
+      processEventProcessor(event)
       logger.debug("配送事件处理成功: {}", event.eventType)
     } catch (e: Exception) {
       logger.error("处理配送事件失败: {}", event.eventType, e)
@@ -96,7 +97,7 @@ class MessageConsumer(
     }
   }
 
-  @JmsListener(destination = "user-events")
+  @JmsListener(destination = EventQueueConst.USER_QUEUE_NAME)
   fun handleUserEvent(
     event: DomainEvent,
     session: Session,
@@ -105,7 +106,7 @@ class MessageConsumer(
       // 处理用户事件
       logger.info("处理用户事件: {}", event.eventType)
       // 具体的业务逻辑处理
-      processUserEvent(event)
+      processEventProcessor(event)
       logger.debug("用户事件处理成功: {}", event.eventType)
     } catch (e: Exception) {
       logger.error("处理用户事件失败: {}", event.eventType, e)
@@ -114,9 +115,9 @@ class MessageConsumer(
     }
   }
 
-  private fun processOrderEvent(event: DomainEvent) {
+  private fun processEventProcessor(event: DomainEvent) {
     // 订单事件处理逻辑
-    logger.info("执行订单事件处理逻辑: {}", event.eventType)
+    logger.info("执行事件处理逻辑: {}", event.eventType)
     val eventType = DomainEventType.fromValue(event.eventType)
     // 根据事件类型分发到对应的处理器
     val processorList = eventProcessorMap[eventType]
@@ -125,23 +126,5 @@ class MessageConsumer(
     } else {
       logger.warn("未知的事件类型: ${event.eventType}")
     }
-  }
-
-  private fun processPaymentEvent(event: DomainEvent) {
-    // 支付事件处理逻辑
-    logger.info("执行支付事件处理逻辑: {}", event.eventType)
-    // 这里应该调用相应的业务服务来处理支付事件
-  }
-
-  private fun processDeliveryEvent(event: DomainEvent) {
-    // 配送事件处理逻辑
-    logger.info("执行配送事件处理逻辑: {}", event.eventType)
-    // 这里应该调用相应的业务服务来处理配送事件
-  }
-
-  private fun processUserEvent(event: DomainEvent) {
-    // 用户事件处理逻辑
-    logger.info("执行用户事件处理逻辑: {}", event.eventType)
-    // 这里应该调用相应的业务服务来处理用户事件
   }
 }

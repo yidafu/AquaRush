@@ -95,9 +95,12 @@ class AdminOrderMutationResolver(
     @Argument orderId: Long,
     @Argument workerId: Long,
     @Argument isSelfCollect: Boolean,
+    @AuthenticationPrincipal principal: UserPrincipal,
   ): Order {
-    logger.info("Admin assigning worker $workerId to order $orderId, isSelfCollect: $isSelfCollect")
-    return OrderMapper.map(deliveryService.assignDeliveryWorker(orderId, workerId, isSelfCollect))
+    val adminId = principal.id
+    val username = principal.username
+    logger.info("Admin $username($adminId) assigning worker $workerId to order $orderId, isSelfCollect: $isSelfCollect")
+    return OrderMapper.map(deliveryService.assignDeliveryWorker(adminId, orderId, workerId, isSelfCollect))
   }
 
   /**
@@ -108,9 +111,12 @@ class AdminOrderMutationResolver(
   fun batchAssignOrders(
     @Argument orderIds: List<Long>,
     @Argument workerId: Long,
+    @AuthenticationPrincipal principal: UserPrincipal,
   ): List<Order> {
-    logger.info("Admin batch assigning orders $orderIds to worker $workerId")
-    return deliveryService.batchAssignOrders(orderIds, workerId).map { OrderMapper.map(it) }
+    val adminId = principal.id
+    val username = principal.username
+    logger.info("Admin $username($adminId)  batch assigning orders $orderIds to worker $workerId")
+    return deliveryService.batchAssignOrders(adminId, orderIds, workerId).map { OrderMapper.map(it) }
   }
 
   /**

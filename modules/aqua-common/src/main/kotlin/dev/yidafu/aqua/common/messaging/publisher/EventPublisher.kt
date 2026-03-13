@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.common.messaging.publisher
 
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
+import org.apache.activemq.artemis.core.server.plugin.impl.LoggingActiveMQServerPlugin
 
 /**
  * 事件发布器接口
@@ -84,22 +85,30 @@ interface EventPublisher {
  */
 enum class EventTypePublisherType {
   /**
-   * 数据库Outbox模式（可靠，但性能较慢）
-   */
-  OUTBOX,
-
-  /**
-   * 内存队列模式（高性能，但应用重启可能丢失）
-   */
-  MEMORY_QUEUE,
-
-  /**
-   * 混合模式（优先内存队列，失败时回退到Outbox）
-   */
-  HYBRID,
-
-  /**
    * ActiveMQ Artemis模式（可靠且高性能）
    */
   ARTEMIS,
+}
+
+object EventQueueConst {
+  const val ORDER_QUEUE_NAME = "order-events"
+  const val PAYMENT_QUEUE_NAME = "payment-events"
+  const val DELIVERY_QUEUE_NAME = "delivery-events"
+  const val USER_QUEUE_NAME = "user-events"
+  const val NOTIFICATIONS_QUEUE_NAME = "notifications-events"
+  const val COMMON_QUEUE_NAME = "common-events"
+}
+
+enum class EventQueueName(
+  private val tag: String,
+) {
+  ORDER_QUEUE(EventQueueConst.ORDER_QUEUE_NAME),
+  PAYMENT_QUEUE(EventQueueConst.PAYMENT_QUEUE_NAME),
+  DELIVERY_QUEUE(EventQueueConst.DELIVERY_QUEUE_NAME),
+  USER_QUEUE(EventQueueConst.USER_QUEUE_NAME),
+  NOTIFICATION_QUEUE(EventQueueConst.NOTIFICATIONS_QUEUE_NAME),
+  COMMON_QUEUE(EventQueueConst.COMMON_QUEUE_NAME),
+  ;
+
+  override fun toString(): String = tag
 }

@@ -22,6 +22,7 @@ package dev.yidafu.aqua.common.messaging.service
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.messaging.config.SimplifiedMessagingProperties
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
+import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import dev.yidafu.aqua.common.messaging.publisher.EventPublisher
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -84,7 +85,7 @@ class SimplifiedEventPublishService(
     amountCents: Long,
   ): Boolean =
     publishDomainEvent(
-      eventType = "ORDER_CREATED",
+      eventType = DomainEventType.ORDER_CREATED.value,
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
@@ -107,7 +108,7 @@ class SimplifiedEventPublishService(
     amountCents: Long,
   ): Boolean =
     publishDomainEvent(
-      eventType = "ORDER_PAID",
+      eventType = DomainEventType.ORDER_PAID.value,
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
@@ -128,7 +129,7 @@ class SimplifiedEventPublishService(
     reason: String,
   ): Boolean =
     publishDomainEvent(
-      eventType = "ORDER_CANCELLED",
+      eventType = DomainEventType.ORDER_CANCELLED.value,
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
@@ -147,7 +148,7 @@ class SimplifiedEventPublishService(
     deliveryWorkerId: Long,
   ): Boolean =
     publishDomainEvent(
-      eventType = "DELIVERY_COMPLETED",
+      eventType = DomainEventType.DELIVERY_COMPLETED.value,
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
@@ -161,15 +162,17 @@ class SimplifiedEventPublishService(
    * 发布订单分配事件（Long 类型）
    */
   fun publishDeliveryAssigned(
+    adminId: Long,
     orderId: Long,
     deliveryWorkerId: Long,
     userId: Long,
   ): Boolean =
     publishDomainEvent(
-      eventType = "DELIVERY_ASSIGNED",
+      eventType = DomainEventType.DELIVERY_ASSIGNED.value,
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
+          "adminId" to adminId,
           "orderId" to orderId,
           "deliveryWorkerId" to deliveryWorkerId,
           "userId" to userId,
@@ -185,7 +188,7 @@ class SimplifiedEventPublishService(
     deliveryWorkerId: Long,
   ): Boolean =
     publishDomainEvent(
-      eventType = "DELIVERY_STARTED",
+      eventType = DomainEventType.DELIVERY_STARTED.value,
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
@@ -204,7 +207,7 @@ class SimplifiedEventPublishService(
     deliveryWorkerId: Long,
   ): Boolean =
     publishDomainEvent(
-      eventType = "ORDER_COMPLETED",
+      eventType = DomainEventType.ORDER_COMPLETED.value,
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
@@ -223,7 +226,7 @@ class SimplifiedEventPublishService(
     userId: Long,
   ): Boolean =
     publishDomainEvent(
-      eventType = "PAYMENT_TIMEOUT",
+      eventType = DomainEventType.PAYMENT_TIMEOUT.value,
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
@@ -241,7 +244,7 @@ class SimplifiedEventPublishService(
     userId: UUID,
   ): Boolean =
     publishDomainEvent(
-      eventType = "PAYMENT_TIMEOUT",
+      eventType = DomainEventType.PAYMENT_TIMEOUT.value,
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
@@ -259,7 +262,7 @@ class SimplifiedEventPublishService(
     deliveryWorkerId: UUID,
   ): Boolean =
     publishDomainEvent(
-      eventType = "DELIVERY_TIMEOUT",
+      eventType = DomainEventType.DELIVERY_TIMEOUT.value,
       aggregateId = orderId.toString(),
       eventData =
         mapOf(
