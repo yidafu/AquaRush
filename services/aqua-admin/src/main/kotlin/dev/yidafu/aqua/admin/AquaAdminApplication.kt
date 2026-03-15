@@ -41,6 +41,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
     "dev.yidafu.aqua.notice.domain.model",
     "dev.yidafu.aqua.reconciliation.domain.model",
     "dev.yidafu.aqua.storage.domain.entity",
+    "dev.yidafu.aqua.logging.domain",
   ],
 )
 @AdminService

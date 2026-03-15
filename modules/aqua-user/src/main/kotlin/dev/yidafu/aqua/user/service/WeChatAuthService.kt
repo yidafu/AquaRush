@@ -26,6 +26,7 @@ import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import me.chanjar.weixin.common.error.WxErrorException
 import org.slf4j.LoggerFactory
@@ -41,6 +42,7 @@ class WeChatAuthService(
   private val jwtTokenService: JwtTokenService,
   private val objectMapper: ObjectMapper,
   private val wxMaService: WxMaService,
+  private val bizLogger: BizLogger,
 ) {
   private val logger = LoggerFactory.getLogger(WeChatAuthService::class.java)
 
@@ -76,6 +78,14 @@ class WeChatAuthService(
 
       logger.info("User logged in successfully: openid={}", wechatResp.openid)
 
+      // 记录用户登录日志
+      bizLogger.logLogin(
+        userId = user.id!!.toString(),
+        username = user.wechatOpenId ?: "unknown",
+        loginMethod = "WECHAT",
+        success = true,
+      )
+
       return WeChatLoginResponse(
         accessToken = accessToken,
         refreshToken = refreshToken,
@@ -93,6 +103,14 @@ class WeChatAuthService(
       )
     } catch (e: Exception) {
       logger.error("WeChat login failed", e)
+      // 记录登录失败日志
+      bizLogger.logLogin(
+        userId = "0",
+        username = "unknown",
+        loginMethod = "WECHAT",
+        success = false,
+        additionalData = mapOf("error" to (e.message ?: "unknown error")),
+      )
       throw WeChatAuthException("Login failed: ${e.message}")
     }
   }

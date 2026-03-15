@@ -84,6 +84,7 @@ interface DeliveryService {
    * @param isSelfCollect 是否自收（水钱已收/水票已扣）
    */
   fun assignDeliveryWorker(
+    adminId: Long,
     orderId: Long,
     workerId: Long,
     isSelfCollect: Boolean,
@@ -95,15 +96,10 @@ interface DeliveryService {
    * @param workerId 配送员ID
    */
   fun batchAssignOrders(
+    adminId: Long,
     orderIds: List<Long>,
     workerId: Long,
   ): List<OrderModel>
-
-  /**
-   * 自动分配配送员
-   * 根据负载均衡和地理位置选择最优配送员
-   */
-  fun autoAssignDeliveryWorker(orderId: Long): Long?
 
   /**
    * 配送员接单

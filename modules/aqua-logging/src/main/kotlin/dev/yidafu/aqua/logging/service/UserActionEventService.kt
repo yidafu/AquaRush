@@ -22,7 +22,7 @@ package dev.yidafu.aqua.logging.service
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.logging.config.LoggingProperties
-import dev.yidafu.aqua.logging.controller.UserActionController.UserActionLogRequest
+import dev.yidafu.aqua.logging.controller.UserActionLogController.UserActionLogRequest
 import dev.yidafu.aqua.logging.util.UserActionLogger
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -44,6 +44,7 @@ import java.util.concurrent.TimeUnit
 class UserActionEventService(
   private val loggingProperties: LoggingProperties,
   private val userActionLogger: UserActionLogger,
+  private val userActionLogService: UserActionLogService? = null,
 ) {
   private val logger = LoggerFactory.getLogger(UserActionEventService::class.java)
   private val objectMapper = jacksonObjectMapper()
@@ -240,11 +241,37 @@ class UserActionEventService(
         }
       }
 
+      // 保存到数据库
+      saveToDatabase(request)
+
       true
     } catch (e: Exception) {
       logger.error("Failed to process user action: ${request.actionType}", e)
       false
     }
+
+  /**
+   * 保存用户操作日志到数据库
+   */
+  private fun saveToDatabase(request: UserActionLogRequest) {
+    try {
+      userActionLogService?.saveUserActionLog(
+        userId = request.userId,
+        username = request.username,
+        actionType = request.actionType,
+        target = request.target,
+        pageUrl = request.properties["pageUrl"] as? String,
+        elementId = request.properties["elementId"] as? String,
+        elementType = request.properties["elementType"] as? String,
+        elementText = request.properties["elementText"] as? String,
+        clientIp = request.properties["clientIp"] as? String,
+        userAgent = request.properties["userAgent"] as? String,
+        properties = if (request.properties.isNotEmpty()) objectMapper.writeValueAsString(request.properties) else null,
+      )
+    } catch (e: Exception) {
+      logger.warn("Failed to save user action to database: {}", e.message)
+    }
+  }
 
   /**
    * 创建用户操作域事件

@@ -1,5 +1,6 @@
 plugins {
   id("aqua.kotlin.spring")
+  id("aqua.kotlin.querydsl")
 }
 
 dependencies {
@@ -8,6 +9,8 @@ dependencies {
   implementation(libs.spring.boot.starter.actuator)
   implementation(libs.spring.boot.starter.validation)
   implementation(libs.spring.boot.starter.data.jpa)
+  implementation(libs.spring.boot.starter.graphql)
+  implementation(libs.spring.boot.starter.security)
 
   implementation(project(":modules:aqua-common"))
   implementation(libs.kotlinx.coroutines.core)

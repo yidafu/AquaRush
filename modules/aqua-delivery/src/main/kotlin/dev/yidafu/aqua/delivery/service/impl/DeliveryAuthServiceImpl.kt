@@ -12,6 +12,7 @@ import dev.yidafu.aqua.common.exception.JwtTokenException
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import dev.yidafu.aqua.user.ext.toSimpleGrantedAuthority
@@ -28,6 +29,7 @@ class DeliveryAuthServiceImpl(
   private val deliveryWorkerRepository: DeliveryWorkerRepository,
   private val adminRepository: AdminRepository,
   private val userRepository: UserRepository,
+  private val bizLogger: BizLogger,
 ) : DeliveryAuthService {
   private val logger = LoggerFactory.getLogger(DeliveryAuthServiceImpl::class.java)
 
@@ -55,6 +57,15 @@ class DeliveryAuthServiceImpl(
       if (existingWorker != null) {
         // Worker already bound, generate token
         val token = generateToken(existingWorker)
+
+        // 记录配送员登录日志
+        bizLogger.logLogin(
+          userId = existingWorker.id!!.toString(),
+          username = existingWorker.name ?: existingWorker.wechatOpenId,
+          loginMethod = "WECHAT_DELIVERY",
+          success = true,
+        )
+
         return DeliveryLoginResponse(
           token = token,
           refreshToken = null,
@@ -65,9 +76,10 @@ class DeliveryAuthServiceImpl(
         )
       }
 
-      // Worker not bound, need to bind phone
+      // Worker not bound, need to bind phone - but still return a token with limited permissions
+      val pendingToken = generatePendingToken(openId)
       return DeliveryLoginResponse(
-        token = null,
+        token = pendingToken,
         refreshToken = null,
         needBindPhone = true,
         workerInfo = null,
@@ -76,6 +88,14 @@ class DeliveryAuthServiceImpl(
       )
     } catch (e: Exception) {
       logger.error("Delivery worker login failed", e)
+      // 记录登录失败日志
+      bizLogger.logLogin(
+        userId = "0",
+        username = "asynounmes",
+        loginMethod = "WECHAT_DELIVERY",
+        success = false,
+        additionalData = mapOf("error" to (e.message ?: "unknown error")),
+      )
       throw BadRequestException("登录失败: ${e.message}")
     }
   }
@@ -118,6 +138,16 @@ class DeliveryAuthServiceImpl(
 
     // Generate token
     val token = generateToken(worker)
+
+    // 记录配送员手机绑定日志
+    bizLogger.logLogin(
+      userId = worker.id!!.toString(),
+      username = worker.name ?: phoneNumber,
+      loginMethod = "PHONE_BIND",
+      success = true,
+      additionalData = mapOf("phoneNumber" to phoneNumber),
+    )
+
     return DeliveryLoginResponse(
       token = token,
       refreshToken = null,
@@ -149,6 +179,21 @@ class DeliveryAuthServiceImpl(
         id = worker.id!!,
         _username = worker.wechatOpenId,
         userType = "DELIVERY_WORKER",
+        _authorities = authorities,
+      )
+    return jwtTokenService.generateAccessToken(userPrincipal)
+  }
+
+  /**
+   * Generate JWT token for pending delivery worker (not yet bound to phone)
+   */
+  private fun generatePendingToken(openId: String): String {
+    val authorities = listOf(AdminRoleModel.DELIVERY_WORKER.toSimpleGrantedAuthority())
+    val userPrincipal =
+      UserPrincipal(
+        id = 0L, // 0 indicates pending/unbound worker
+        _username = openId,
+        userType = AdminRoleModel.DELIVERY_WORKER.name,
         _authorities = authorities,
       )
     return jwtTokenService.generateAccessToken(userPrincipal)

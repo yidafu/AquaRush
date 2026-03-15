@@ -26,7 +26,10 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 
 /**
- * 用户操作日志记录器，提供便捷的用户行为记录方法
+ * 用户操作日志记录器，提供便捷的前端用户行为记录方法
+ *
+ * 注意：此类仅用于记录前端用户行为（如页面访问、点击、输入等）
+ * 后端业务操作请使用 [dev.yidafu.aqua.logging.service.BusinessLogService]
  */
 @Component
 @ConditionalOnProperty(prefix = "aqua.logging", name = ["enabled"], matchIfMissing = true)
@@ -168,32 +171,6 @@ class UserActionLogger(
         elementId = elementId,
         inputValue = inputValue,
         inputType = inputType,
-        additionalData = additionalData,
-      )
-
-    logger.info(logMessage)
-  }
-
-  /**
-   * 记录后台操作
-   */
-  fun logBackendOperation(
-    operation: String,
-    module: String,
-    result: String,
-    target: String,
-    additionalData: Map<String, Any> = emptyMap(),
-  ) {
-    if (!loggingProperties.userAction.logBackendOps) {
-      return
-    }
-
-    val logMessage =
-      formatter.formatBackendOperation(
-        operation = operation,
-        module = module,
-        result = result,
-        target = target,
         additionalData = additionalData,
       )
 

@@ -20,18 +20,23 @@
 package dev.yidafu.aqua.logging.interceptor
 
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
+import dev.yidafu.aqua.logging.domain.RequestType
+import dev.yidafu.aqua.logging.service.ApiLogService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
 import org.springframework.web.servlet.ModelAndView
+import java.net.http.HttpHeaders
 
 /**
  * 日志拦截器，用于记录请求和响应信息
  */
 @Component
-class LoggingInterceptor : HandlerInterceptor {
+class LoggingInterceptor(
+  private val apiLogService: ApiLogService,
+) : HandlerInterceptor {
   private val logger = LoggerFactory.getLogger(LoggingInterceptor::class.java)
 
   override fun preHandle(
@@ -45,7 +50,7 @@ class LoggingInterceptor : HandlerInterceptor {
     // 记录请求信息
     val correlationId = CorrelationIdHolder.getCorrelationId()
     val clientIp = getClientIpAddress(request)
-    val userAgent = request.getHeader("User-Agent")
+    val userAgent = request.getHeader(org.springframework.http.HttpHeaders.USER_AGENT)
 
     logger.info(
       "Request started - Method: {}, URI: {}, IP: {}, UserAgent: {}, CorrelationId: {}",
@@ -74,7 +79,7 @@ class LoggingInterceptor : HandlerInterceptor {
     handler: Any,
     exception: Exception?,
   ) {
-    val startTime = request.getAttribute("startTime") as? Long ?: return
+    val startTime = request.getAttribute("startTime") as? Long ?: System.currentTimeMillis()
     val endTime = System.currentTimeMillis()
     val duration = endTime - startTime
 
@@ -106,9 +111,9 @@ class LoggingInterceptor : HandlerInterceptor {
           else -> "INFO"
         }
 
-      @Suppress("ktlint:standard:max-line-length")
       val message =
-        "Request completed - Method: ${request.method}, URI: ${request.requestURI}, Status: ${response.status}, Duration: ${duration}ms, CorrelationId: $correlationId"
+        "Request completed - Method: ${request.method}, URI: ${request.requestURI}, Status: ${
+          response.status}, Duration: ${duration}ms, CorrelationId: $correlationId"
 
       when (level) {
         "ERROR" -> logger.error(message)
@@ -127,6 +132,37 @@ class LoggingInterceptor : HandlerInterceptor {
         correlationId,
       )
     }
+
+    // 保存到数据库
+    saveApiLogToDatabase(request, response, correlationId, duration, exception)
+  }
+
+  /**
+   * 保存API日志到数据库
+   */
+  private fun saveApiLogToDatabase(
+    request: HttpServletRequest,
+    response: HttpServletResponse,
+    correlationId: String?,
+    duration: Long,
+    exception: Exception?,
+  ) {
+    val clientIp = getClientIpAddress(request)
+    val userAgent = request.getHeader(org.springframework.http.HttpHeaders.USER_AGENT)
+    val errorMessage = exception?.message
+
+    apiLogService.saveApiLog(
+      correlationId = correlationId,
+      requestType = RequestType.HTTP,
+      method = request.method,
+      uri = request.requestURI,
+      requestBody = request.getAttribute("requestBody") as? String,
+      responseStatus = response.status,
+      durationMs = duration,
+      ipAddress = clientIp,
+      userAgent = userAgent,
+      errorMessage = errorMessage,
+    )
   }
 
   /**

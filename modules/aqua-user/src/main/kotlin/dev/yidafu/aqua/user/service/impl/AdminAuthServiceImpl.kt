@@ -5,6 +5,7 @@ import dev.yidafu.aqua.api.dto.LoginResponse
 import dev.yidafu.aqua.api.service.AdminAuthService
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.ext.getAuthorities
 import dev.yidafu.aqua.user.service.WeChatAuthException
@@ -24,6 +25,7 @@ class AdminAuthServiceImpl(
   private val adminRepository: AdminRepository,
   private val jwtTokenService: JwtTokenService,
   private val authenticationConfiguration: AuthenticationConfiguration,
+  private val bizLogger: BizLogger,
 ) : AdminAuthService {
   private val logger = LoggerFactory.getLogger(AdminAuthServiceImpl::class.java)
 
@@ -55,7 +57,7 @@ class AdminAuthServiceImpl(
       val authorities = admin.getAuthorities()
       val userPrincipal =
         UserPrincipal(
-          id = admin.id!!,
+          id = admin.id,
           _username = admin.username,
           userType = admin.role.toString(),
           _authorities = authorities,
@@ -70,6 +72,15 @@ class AdminAuthServiceImpl(
       adminRepository.save(admin)
 
       logger.info("Admin logged in successfully: username={}", username)
+
+      // 记录管理员登录日志
+      bizLogger.logLogin(
+        userId = admin.id!!.toString(),
+        username = username,
+        loginMethod = "PASSWORD",
+        success = true,
+        additionalData = mapOf("role" to admin.role.name),
+      )
 
       return LoginResponse(
         accessToken = accessToken,
@@ -86,6 +97,14 @@ class AdminAuthServiceImpl(
       )
     } catch (e: Exception) {
       logger.error("Admin authentication failed", e)
+      // 记录登录失败日志
+      bizLogger.logLogin(
+        userId = "0",
+        username = username,
+        loginMethod = "PASSWORD",
+        success = false,
+        additionalData = mapOf("error" to (e.message ?: "unknown error")),
+      )
       throw WeChatAuthException("Authentication failed: ${e.message}")
     }
   }

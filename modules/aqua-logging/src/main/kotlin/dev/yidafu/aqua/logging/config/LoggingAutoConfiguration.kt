@@ -22,12 +22,16 @@ package dev.yidafu.aqua.logging.config
 import dev.yidafu.aqua.logging.formatter.BusinessLogFormatter
 import dev.yidafu.aqua.logging.formatter.StructuredLogFormatter
 import dev.yidafu.aqua.logging.interceptor.CorrelationFilter
+import dev.yidafu.aqua.logging.interceptor.GraphQLLoggingInterceptor
 import dev.yidafu.aqua.logging.interceptor.LoggingInterceptor
+import dev.yidafu.aqua.logging.service.ApiLogService
 import org.springframework.boot.autoconfigure.AutoConfiguration
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.web.servlet.FilterRegistrationBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.graphql.server.WebGraphQlInterceptor
+import org.springframework.scheduling.annotation.EnableAsync
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
 
@@ -36,6 +40,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer
  */
 @AutoConfiguration
 @EnableConfigurationProperties(LoggingProperties::class)
+@EnableAsync
 @Configuration(proxyBeanMethods = false)
 class LoggingAutoConfiguration {
   @Bean
@@ -54,10 +59,16 @@ class LoggingAutoConfiguration {
   }
 
   @Bean
-  fun loggingInterceptorConfigurer(): WebMvcConfigurer =
+  fun loggingInterceptor(apiLogService: ApiLogService): LoggingInterceptor = LoggingInterceptor(apiLogService)
+
+  @Bean
+  fun loggingInterceptorConfigurer(loggingInterceptor: LoggingInterceptor): WebMvcConfigurer =
     object : WebMvcConfigurer {
       override fun addInterceptors(registry: InterceptorRegistry) {
-        registry.addInterceptor(LoggingInterceptor())
+        registry.addInterceptor(loggingInterceptor)
       }
     }
+
+  @Bean
+  fun graphQLLoggingInterceptor(apiLogService: ApiLogService): WebGraphQlInterceptor = GraphQLLoggingInterceptor(apiLogService)
 }

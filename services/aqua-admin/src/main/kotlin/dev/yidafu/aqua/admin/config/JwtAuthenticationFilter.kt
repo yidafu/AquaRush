@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.admin.config
 
+import dev.yidafu.aqua.common.exception.AuthenticationException
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
@@ -213,12 +214,7 @@ class JwtAuthenticationFilter(
       // 从 JWT token 中提取完整的 UserPrincipal
       val userPrincipal =
         jwtTokenService.getUserPrincipalFromToken(token)
-          ?: UserPrincipal(
-            id = 0L,
-            _username = username,
-            userType = "ADMIN",
-            _authorities = userDetails.authorities.toList(),
-          )
+          ?: throw AuthenticationException("Authentication failed")
 
       val authentication =
         UsernamePasswordAuthenticationToken(

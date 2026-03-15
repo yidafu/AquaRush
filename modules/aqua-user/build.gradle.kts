@@ -8,6 +8,7 @@ plugins {
 dependencies {
   implementation(project(":modules:aqua-common"))
   implementation(project(":modules:aqua-api"))
+  implementation(project(":modules:aqua-logging"))
 
   // Spring Data JPA for AddressRepository
   implementation(libs.bundles.spring.boot.data)

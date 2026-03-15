@@ -39,6 +39,9 @@ class CustomAccessDeniedHandler(
 ) : AccessDeniedHandler {
   private val logger = LoggerFactory.getLogger(CustomAccessDeniedHandler::class.java)
 
+  // 记录详细的访问拒绝信息用于审计
+  val auditLogger = LoggerFactory.getLogger("dev.yidafu.aqua.audit")
+
   override fun handle(
     request: HttpServletRequest,
     response: HttpServletResponse,
@@ -55,8 +58,6 @@ class CustomAccessDeniedHandler(
       accessDeniedException.message,
     )
 
-    // 记录详细的访问拒绝信息用于审计
-    val auditLogger = LoggerFactory.getLogger("dev.yidafu.aqua.audit")
     auditLogger.error(
       "ACCESS_DENIED - Method: {}, URI: {}, User: {}, UserAgent: {}, RemoteAddr: {}",
       method,

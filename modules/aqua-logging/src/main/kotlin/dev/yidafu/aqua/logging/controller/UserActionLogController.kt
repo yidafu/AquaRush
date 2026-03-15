@@ -20,57 +20,70 @@
 package dev.yidafu.aqua.logging.controller
 
 import dev.yidafu.aqua.common.ApiResponse
+import dev.yidafu.aqua.logging.domain.UserActionLogModel
 import dev.yidafu.aqua.logging.service.UserActionEventService
-import dev.yidafu.aqua.logging.util.UserActionLogger
+import dev.yidafu.aqua.logging.service.UserActionLogService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
+import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
+import java.time.LocalDateTime
 
 /**
- * 用户操作日志记录控制器
- * 提供RESTful API接口用于接收前端上报的用户操作日志
+ * 用户操作日志控制器
+ * 提供RESTful API接口用于接收前端上报的用户操作日志及查询
  */
 @RestController
-@RequestMapping("/api/user-actions")
+@RequestMapping("/api/logs")
 @ConditionalOnProperty(prefix = "aqua.logging.userAction", name = ["enabled"], matchIfMissing = true)
-class UserActionController(
-  private val userActionLogger: UserActionLogger,
+class UserActionLogController(
+  private val userActionLogService: UserActionLogService,
   private val userActionEventService: UserActionEventService,
 ) {
-  private val logger = LoggerFactory.getLogger(UserActionController::class.java)
+  private val logger = LoggerFactory.getLogger(UserActionLogController::class.java)
+  /**
+   * 分页查询用户操作日志
+   */
+  @GetMapping("/user-actions")
+  fun queryUserActionLogs(
+    @RequestParam(required = false) userId: String?,
+    @RequestParam(required = false) actionType: String?,
+    @RequestParam(required = false) username: String?,
+    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) startTime: LocalDateTime?,
+    @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) endTime: LocalDateTime?,
+    @RequestParam(defaultValue = "0") page: Int,
+    @RequestParam(defaultValue = "20") size: Int,
+  ): Page<UserActionLogModel> {
+    val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
+    return userActionLogService.queryUserActionLogs(
+      userId,
+      actionType,
+      username,
+      startTime,
+      endTime,
+      pageable,
+    )
+  }
 
   /**
    * 记录用户操作日志
    */
-  @PostMapping("/log")
+  @PostMapping("/user-actions/log")
   fun logUserAction(
     @Valid @RequestBody request: UserActionLogRequest,
     httpRequest: HttpServletRequest,
   ): ResponseEntity<ApiResponse<String>> {
     try {
-      // 设置用户上下文信息
-      val properties = mutableMapOf<String, Any>()
-
-      // 添加请求相关信息
-      properties["userAgent"] = httpRequest.getHeader("User-Agent") ?: "Unknown"
-      properties["clientIp"] = getClientIp(httpRequest)
-      properties["timestamp"] = request.timestamp
-
-      // 添加用户信息（如果有）
-      request.userId?.let { properties["userId"] = it }
-      request.username?.let { properties["username"] = it }
-
       // 使用异步处理服务处理用户操作
-      val success = userActionEventService.processUserActionAsync(request)
-
+      userActionEventService.processUserActionAsync(request)
       return ResponseEntity.ok(ApiResponse.success("User action logged successfully"))
     } catch (e: Exception) {
       logger.error("Failed to log user action", e)
@@ -81,7 +94,7 @@ class UserActionController(
   /**
    * 批量记录用户操作日志
    */
-  @PostMapping("/batch")
+  @PostMapping("/user-actions/batch")
   fun logUserActionsBatch(
     @Valid @RequestBody request: BatchUserActionLogRequest,
     httpRequest: HttpServletRequest,
@@ -129,11 +142,6 @@ class UserActionController(
     val xRealIp = request.getHeader("X-Real-IP")
     if (!xRealIp.isNullOrEmpty()) {
       return xRealIp
-    }
-
-    val xForwardedProto = request.getHeader("X-Forwarded-Proto")
-    if (!xForwardedProto.isNullOrEmpty()) {
-      return request.remoteAddr
     }
 
     return request.remoteAddr

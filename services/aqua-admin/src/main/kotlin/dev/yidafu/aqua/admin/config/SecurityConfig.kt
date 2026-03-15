@@ -33,6 +33,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository
+import org.springframework.security.web.context.SecurityContextRepository
 
 @Configuration
 @EnableWebSecurity
@@ -46,6 +48,14 @@ class SecurityConfig(
 
   @Bean
   fun filterChain(http: HttpSecurity): SecurityFilterChain {
+    // Configure security context repository to persist authentication across requests
+    val securityContextRepository = HttpSessionSecurityContextRepository()
+    http.securityContext { context ->
+      context
+        .securityContextRepository(securityContextRepository)
+        .requireExplicitSave(false)
+    }
+
     http
       .authorizeHttpRequests { auth ->
         auth
@@ -58,7 +68,7 @@ class SecurityConfig(
             "/images/**",
             "/graphiql",
           ).permitAll()
-          .requestMatchers("/api/*")
+          .requestMatchers("/api/**")
           .authenticated()
           .requestMatchers("/graphql")
           .authenticated()
@@ -86,21 +96,6 @@ class SecurityConfig(
   @Bean
   fun passwordEncoder(): PasswordEncoder {
     val encoder = BCryptPasswordEncoder()
-    log.info(
-      "passwordEncoder " + encoder.encode("123456") + " " +
-        encoder.matches(
-          "123456",
-          "\$2a\$10\$7EhtjPxrF0/nxhnxk7HBQ..yAiZtOyqDJ6BQOy53Dnh.sNJebbm0C",
-        ),
-    )
-    log.info(
-      "passwordEncoder " + encoder.encode("admin") + " " +
-        encoder.matches(
-          "admin",
-          "\$2a\$10\$JnQeCYaWpLlN6KPgF.aAluIbGWDjYrjKMCNaUF964NwL4ATrYNTba",
-        ),
-    )
-
     return encoder
   }
 

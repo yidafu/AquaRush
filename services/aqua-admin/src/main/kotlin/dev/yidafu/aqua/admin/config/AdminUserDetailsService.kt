@@ -2,7 +2,7 @@ package dev.yidafu.aqua.admin.config
 
 import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.common.exception.UserNotFoundException
-import dev.yidafu.aqua.user.ext.toSimpleGrantedAuthority
+import dev.yidafu.aqua.common.security.toPermissionAuthorities
 import org.springframework.context.annotation.Primary
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
@@ -25,7 +25,7 @@ class AdminUserDetailsService(
       User
         .withUsername(username)
         .password(admin.passwordHash)
-        .authorities(admin.role.toSimpleGrantedAuthority())
+        .authorities(admin.role.toPermissionAuthorities())
         .accountExpired(false)
         .accountLocked(false)
         .disabled(false)

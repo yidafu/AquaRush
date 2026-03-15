@@ -57,3 +57,7 @@ class UserNotFoundException(
 class JwtTokenException(
   message: String,
 ) : BusinessException(message, "JWT_TOKEN_ERROR")
+
+class AuthenticationException(
+  message: String,
+) : BusinessException(message, "AUTHENTICATED_ERROR")

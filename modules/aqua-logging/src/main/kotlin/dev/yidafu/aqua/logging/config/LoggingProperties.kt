@@ -32,6 +32,7 @@ data class LoggingProperties(
   val audit: AuditProperties = AuditProperties(),
   val async: AsyncProperties = AsyncProperties(),
   val userAction: UserActionProperties = UserActionProperties(),
+  val database: DatabaseLogProperties = DatabaseLogProperties(),
   val enabled: Boolean = true,
 )
 
@@ -122,3 +123,17 @@ enum class LogFormat {
   JSON,
   PLAIN,
 }
+
+/**
+ * 数据库日志配置
+ */
+data class DatabaseLogProperties(
+  val enabled: Boolean = true,
+  val asyncEnabled: Boolean = true,
+  val batchSize: Int = 100,
+  val flushIntervalMs: Long = 5000,
+  val httpLogEnabled: Boolean = true,
+  val graphqlLogEnabled: Boolean = true,
+  val businessLogEnabled: Boolean = true,
+  val retentionDays: Int = 30,
+)
