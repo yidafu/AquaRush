@@ -5,5 +5,4 @@ export { default as AddressCard } from './AddressCard';
 export { default as DeliveryInfoCard } from './DeliveryInfoCard';
 export { default as PaymentInfoCard } from './PaymentInfoCard';
 export { default as DeliveryPhotosCard } from './DeliveryPhotosCard';
-export { default as TimeInfoCard } from './TimeInfoCard';
 export { default as AssignDeliveryModal } from './AssignDeliveryModal';

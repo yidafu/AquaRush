@@ -1,4 +1,4 @@
-import request from '../utils/request';
+import http from '../utils/http';
 
 export interface LoginDto {
   username: string;
@@ -35,47 +35,47 @@ export interface UserInfo {
  * 登录
  */
 export const login = (data: LoginDto) => {
-  return request.post<LoginResponse>('/auth/login', data);
+  return http.post<LoginResponse>('/auth/login', data);
 };
 
 /**
  * 登出
  */
 export const logout = () => {
-  return request.post('/auth/logout');
+  return http.post('/auth/logout');
 };
 
 /**
  * 获取当前用户信息
  */
 export const getCurrentUser = () => {
-  return request.get<UserInfo>('/auth/current-user');
+  return http.get<UserInfo>('/auth/current-user');
 };
 
 /**
  * 刷新 Token
  */
 export const refreshToken = (refreshToken: string) => {
-  return request.post<{ token: string }>('/auth/refresh-token', { refreshToken });
+  return http.post<{ token: string }>('/auth/refresh-token', { refreshToken });
 };
 
 /**
  * 修改密码
  */
 export const changePassword = (data: { oldPassword: string; newPassword: string }) => {
-  return request.post('/auth/change-password', data);
+  return http.post('/auth/change-password', data);
 };
 
 /**
  * 忘记密码（发送验证码）
  */
 export const forgotPassword = (phone: string) => {
-  return request.post('/auth/forgot-password', { phone });
+  return http.post('/auth/forgot-password', { phone });
 };
 
 /**
  * 重置密码
  */
 export const resetPassword = (data: { phone: string; code: string; newPassword: string }) => {
-  return request.post('/auth/reset-password', data);
+  return http.post('/auth/reset-password', data);
 };

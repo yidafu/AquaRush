@@ -40,14 +40,26 @@ class DeliveryAuthController(
     val response = deliveryAuthService.checkAuthStatus(authHeader)
     return ResponseEntity.ok(ApiResponse.success(response))
   }
+
+  /**
+   * Bind phone number to delivery worker
+   * OpenID is extracted from JWT token (pending token)
+   */
+  @PostMapping("/bind-phone")
+  fun bindPhone(
+    @RequestBody @Valid request: BindPhoneRequest,
+    @RequestHeader("Authorization") authHeader: String,
+  ): ResponseEntity<ApiResponse<DeliveryLoginResponse>> {
+    val response = deliveryAuthService.bindPhone(authHeader, request.phoneNumber)
+    return ResponseEntity.ok(ApiResponse.success(response))
+  }
 }
 
 /**
  * Request DTO for binding phone number
+ * OpenID is extracted from JWT token
  */
 data class BindPhoneRequest(
-  @NotBlank(message = "OpenID不能为空")
-  val openId: String,
   @NotBlank(message = "手机号不能为空")
   val phoneNumber: String,
 )

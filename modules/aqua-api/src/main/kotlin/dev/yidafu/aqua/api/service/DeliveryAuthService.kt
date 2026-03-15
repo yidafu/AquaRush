@@ -14,11 +14,14 @@ interface DeliveryAuthService {
   fun login(request: DeliveryLoginRequest): DeliveryLoginResponse
 
   /**
-   * Bind phone number to delivery worker
+   * Bind phone number to delivery worker using JWT token
+   * OpenID is extracted from the JWT token
+   * @param token JWT token from Authorization header (pending token)
+   * @param phoneNumber Phone number to bind
    * @return LoginResponse with token after successful binding
    */
   fun bindPhone(
-    openId: String,
+    token: String,
     phoneNumber: String,
   ): DeliveryLoginResponse
 

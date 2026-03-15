@@ -23,7 +23,6 @@ import {
   DeliveryInfoCard,
   PaymentInfoCard,
   DeliveryPhotosCard,
-  TimeInfoCard
 } from './components';
 
 const { Title, Text } = Typography;

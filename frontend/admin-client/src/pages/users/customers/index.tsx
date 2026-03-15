@@ -31,7 +31,7 @@ const CustomerUsers: React.FC = () => {
   const [viewingUser, setViewingUser] = useState<User | null>(null);
 
   // Use GraphQL data only
-  const users = usersData?.users?.content || [];
+  const users = usersData?.users?.list || [];
 
   // Action handlers
   const handleViewUser = (user: User) => {

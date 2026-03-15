@@ -19,7 +19,6 @@ data class DeliveryLoginResponse(
   val needBindPhone: Boolean,
   val workerInfo: DeliveryWorkerInfo?,
   val message: String?,
-  val openId: String? = null,
 )
 
 /**

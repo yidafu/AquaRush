@@ -15,7 +15,6 @@ export interface DeliveryLoginResponse {
   needBindPhone: boolean
   workerInfo: WorkerInfo | null
   message: string
-  openId?: string
 }
 
 const apiBaseUrl = process.env.TARO_APP_API_BASE_URL ?? 'http://localhost:9090'
@@ -32,7 +31,7 @@ class DeliveryAuthService {
 
   private loadStoredAuth() {
     try {
-      this.token = Taro.getStorageSync('worker_token')
+      this.token = Taro.getStorageSync('auth_token')
       const storedWorkerInfo = Taro.getStorageSync('worker_info')
       if (storedWorkerInfo) {
         this.workerInfo = JSON.parse(storedWorkerInfo)
@@ -49,7 +48,7 @@ class DeliveryAuthService {
       this.workerInfo = workerInfo
       this.openId = openId
 
-      Taro.setStorageSync('worker_token', token)
+      Taro.setStorageSync('auth_token', token)
       Taro.setStorageSync('worker_info', JSON.stringify(workerInfo))
       Taro.setStorageSync('worker_openid', openId)
     } catch (error) {
@@ -63,7 +62,7 @@ class DeliveryAuthService {
       this.workerInfo = null
       this.openId = null
 
-      Taro.removeStorageSync('worker_token')
+      Taro.removeStorageSync('auth_token')
       Taro.removeStorageSync('worker_info')
       Taro.removeStorageSync('worker_openid')
     } catch (error) {

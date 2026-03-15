@@ -194,34 +194,6 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
           </div>
         </Col>
 
-        <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
-              排序方式
-            </label>
-            <div style={{ display: 'flex', gap: '8px' }}>
-              <Select
-                style={{ flex: 1 }}
-                value={localFilters.sortBy || 'createdAt'}
-                onChange={handleSortByChange}
-                placeholder="排序字段"
-              >
-                <Option value="createdAt">创建时间</Option>
-                <Option value="totalAmount">订单金额</Option>
-                <Option value="updatedAt">更新时间</Option>
-              </Select>
-              <Select
-                style={{ width: '100px' }}
-                value={localFilters.sortOrder || 'desc'}
-                onChange={handleSortOrderChange}
-                placeholder="顺序"
-              >
-                <Option value="asc">升序</Option>
-                <Option value="desc">降序</Option>
-              </Select>
-            </div>
-          </div>
-        </Col>
       </Row>
     </Card>
   );

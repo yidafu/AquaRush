@@ -14,6 +14,8 @@ import {
   SettingOutlined,
   InboxOutlined,
   EnvironmentOutlined,
+  HistoryOutlined,
+  AuditOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = AntLayout;
@@ -36,9 +38,18 @@ const Layout: React.FC = () => {
     { key: '/products', icon: <ShoppingOutlined />, label: '产品管理' },
     { key: '/addresses', icon: <EnvironmentOutlined />, label: '地址管理' },
     { key: '/orders', icon: <FileTextOutlined />, label: '订单管理' },
-    { key: '/dispatch', icon: <FileTextOutlined />, label: '派单管理' },
     { key: '/bucket-deposits', icon: <InboxOutlined />, label: '押桶管理' },
     { key: '/statistics', icon: <BarChartOutlined />, label: '营收统计' },
+    {
+      key: 'logs',
+      icon: <HistoryOutlined />,
+      label: '日志管理',
+      children: [
+        { key: '/logs/api', icon: <AuditOutlined />, label: 'API日志' },
+        { key: '/logs/user-actions', icon: <FileTextOutlined />, label: '用户操作' },
+        { key: '/logs/business', icon: <FileTextOutlined />, label: '业务日志' },
+      ]
+    },
   ];
 
   const handleLogout = () => {

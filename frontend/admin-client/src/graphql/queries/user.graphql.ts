@@ -3,7 +3,7 @@ import { gql } from '@apollo/client';
 export const GET_USERS_QUERY = gql`
   query GetUsers($input: UserListInput) {
     users(input: $input) {
-      content {
+      list {
         id
         wechatOpenId
         nickname
@@ -12,13 +12,14 @@ export const GET_USERS_QUERY = gql`
         createdAt
         updatedAt
       }
-      totalElements
-      totalPages
-      size
-      number
-      first
-      last
-      empty
+      pageInfo {
+        total
+        pageSize
+        pageNum
+        hasNext
+        hasPrevious
+        totalPages
+      }
     }
   }
 `;

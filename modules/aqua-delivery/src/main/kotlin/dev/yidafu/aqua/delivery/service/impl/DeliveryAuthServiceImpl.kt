@@ -7,8 +7,11 @@ import dev.yidafu.aqua.api.dto.DeliveryWorkerInfo
 import dev.yidafu.aqua.api.service.DeliveryAuthService
 import dev.yidafu.aqua.common.domain.model.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
+import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.JwtTokenException
+import dev.yidafu.aqua.common.graphql.generated.UserRole
+import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
@@ -72,11 +75,24 @@ class DeliveryAuthServiceImpl(
           needBindPhone = false,
           workerInfo = getWorkInfo(existingWorker.id!!),
           message = "登录成功",
-          openId = openId,
         )
       }
 
-      // Worker not bound, need to bind phone - but still return a token with limited permissions
+      // Worker not bound, need to bind phone
+      // 先在 users 表中创建用户记录，以便后续 bindPhone 时能找到用户
+      val existingUser = userRepository.findByWechatOpenId(openId)
+      if (existingUser == null) {
+        val newUser =
+          UserModel(
+            wechatOpenId = openId,
+            status = UserStatus.ACTIVE,
+            role = UserRole.NONE,
+          )
+        userRepository.save(newUser)
+        logger.info("Created user record for delivery worker: openId={}", openId)
+      }
+
+      // Generate pending token with limited permissions
       val pendingToken = generatePendingToken(openId)
       return DeliveryLoginResponse(
         token = pendingToken,
@@ -84,7 +100,6 @@ class DeliveryAuthServiceImpl(
         needBindPhone = true,
         workerInfo = null,
         message = "请绑定手机号",
-        openId = openId,
       )
     } catch (e: Exception) {
       logger.error("Delivery worker login failed", e)
@@ -100,34 +115,76 @@ class DeliveryAuthServiceImpl(
     }
   }
 
+  /**
+   * Bind phone number using JWT token
+   * OpenID is extracted from the JWT token (pending token)
+   */
   @Transactional
   override fun bindPhone(
-    openId: String,
+    token: String,
     phoneNumber: String,
   ): DeliveryLoginResponse {
+    // Extract token from Bearer header
+    val actualToken =
+      if (token.startsWith("Bearer ")) {
+        token.substring(7)
+      } else {
+        token
+      }
+
+    // Validate and parse token to get openId
+    val userPrincipal =
+      try {
+        jwtTokenService.getUserPrincipalFromToken(actualToken)
+      } catch (e: JwtTokenException) {
+        logger.warn("Invalid token: {}", e.message)
+        throw BadRequestException("登录态无效，请重新登录")
+      }
+
+    if (userPrincipal == null) {
+      throw BadRequestException("登录态无效，请重新登录")
+    }
+
+    // Check if token is expired
+    if (jwtTokenService.isTokenExpired(actualToken)) {
+      throw BadRequestException("登录态已过期，请重新登录")
+    }
+
+    // Extract openId from token (for pending workers, username is the openId)
+    val openId = userPrincipal.username
+    if (openId.isNullOrBlank()) {
+      throw BadRequestException("无效的登录信息，请重新登录")
+    }
+
+    logger.info("Binding phone for openId: {}", openId)
+
     // Verify phone number belongs to admin or delivery worker
     val isAdmin = adminRepository.existsByPhone(phoneNumber)
 
     if (!isAdmin) {
       throw BadRequestException("该手机号未注册为管理员或送水员，请联系管理员")
     }
+
     // 根据手机查询送水员
     var worker =
       deliveryWorkerRepository.findByPhone(phoneNumber)
         ?: throw BadRequestException("该手机号未注册为管理员或送水员，请联系管理员")
+
     // 检查是否被绑定
     if (worker.wechatOpenId.isNotBlank()) {
       throw BadRequestException("该手机号已被绑定，请联系管理员")
     }
+
     // 查找或创建用户记录
     val user =
       userRepository.findByWechatOpenId(openId)
         ?: throw BadRequestException("微信用户不存在")
 
-    // 已有该 openId 的送水员，绑定用户ID
+    // 绑定用户ID和手机号
     worker.userId = user.id
     worker.phone = phoneNumber
     worker = deliveryWorkerRepository.save(worker)
+
     logger.info(
       "Updated existing worker: id={}, phone={}, openId={}, userId={}",
       worker.id,
@@ -137,7 +194,7 @@ class DeliveryAuthServiceImpl(
     )
 
     // Generate token
-    val token = generateToken(worker)
+    val newToken = generateToken(worker)
 
     // 记录配送员手机绑定日志
     bizLogger.logLogin(
@@ -149,7 +206,7 @@ class DeliveryAuthServiceImpl(
     )
 
     return DeliveryLoginResponse(
-      token = token,
+      token = newToken,
       refreshToken = null,
       needBindPhone = false,
       workerInfo = worker.toDeliveryWorkerInfo(),
