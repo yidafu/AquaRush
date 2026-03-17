@@ -19,7 +19,6 @@
 
 package dev.yidafu.aqua.review.service.impl
 
-import dev.yidafu.aqua.api.service.OrderService
 import dev.yidafu.aqua.api.service.ReviewService
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
@@ -50,7 +49,6 @@ class ReviewServiceImpl(
   private val statisticsRepository: DeliveryWorkerStatisticsRepository,
   private val orderRepository: OrderRepository,
   private val deliveryWorkerRepository: DeliveryWorkerRepository,
-  private val orderService: OrderService,
 ) : ReviewService {
   private val logger = LoggerFactory.getLogger(ReviewService::class.java)
 

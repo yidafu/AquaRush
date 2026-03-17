@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.user.service.impl
 
 import dev.yidafu.aqua.api.service.AdminService
-import dev.yidafu.aqua.api.service.DeliveryService
 import dev.yidafu.aqua.api.service.UserService
+import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerMutationService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.UserModel
@@ -41,7 +41,7 @@ import org.springframework.transaction.annotation.Transactional
 @Transactional
 class AdminServiceImpl(
   private val adminRepository: AdminRepository,
-  private val deliveryService: DeliveryService,
+  private val deliveryWorkerMutationService: DeliveryWorkerMutationService,
   private val userService: UserService,
 ) : AdminService {
   private val logger = LoggerFactory.getLogger(AdminServiceImpl::class.java)
@@ -60,10 +60,12 @@ class AdminServiceImpl(
    */
   override fun findById(id: Long): AdminModel? = adminRepository.findById(id).orElse(null)
 
+  override fun findByUserId(userId: Long): AdminModel? = adminRepository.findByUserId(userId)
+
   /**
    * Find admin by username
    */
-  override fun findByUsername(username: String): AdminModel? = adminRepository.findByUsername(username).orElse(null)
+  override fun findByUsername(username: String): AdminModel? = adminRepository.findByUsername(username)
 
   /**
    * Create or update admin
@@ -140,7 +142,7 @@ class AdminServiceImpl(
 
     // Create delivery worker record for ADMIN and DELIVERY_WORKER roles
     if (role == AdminRoleModel.ADMIN || role == AdminRoleModel.DELIVERY_WORKER) {
-      deliveryService.createDeliveryWorker(
+      deliveryWorkerMutationService.createDeliveryWorker(
         adminId = savedAdmin.id,
         name = realName ?: username,
         phone = phone ?: "",
@@ -173,7 +175,7 @@ class AdminServiceImpl(
     phone?.let { newPhone ->
       // Check if phone is used by other users (excluding self)
       val existingWithPhone = adminRepository.findByPhone(newPhone)
-      if (existingWithPhone.isPresent && existingWithPhone.get().id != id) {
+      if (existingWithPhone != null && existingWithPhone.id != id) {
         throw BadRequestException("手机号已被其他用户使用: $newPhone")
       }
       existingAdmin.phone = newPhone

@@ -19,11 +19,12 @@
 
 package dev.yidafu.aqua.product.service.impl
 
-import dev.yidafu.aqua.api.service.ProductFavoriteService
-import dev.yidafu.aqua.api.service.ProductService
 import dev.yidafu.aqua.api.service.UserService
+import dev.yidafu.aqua.api.service.product.ProductFavoriteService
+import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.ProductModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.*
@@ -65,7 +66,7 @@ class ProductFavoriteServiceImpl(
         .findById(productId)
         .orElseThrow { NotFoundException("Product not found") }
 
-    if (product.status != ProductStatus.ACTIVE && product.status != ProductStatus.ONLINE) {
+    if (product.status != ProductModelStatus.ONLINE) {
       throw BadRequestException("Product is not available for favorites")
     }
 
@@ -131,7 +132,7 @@ class ProductFavoriteServiceImpl(
     // Filter by status (active/online only)
     val activeProducts =
       products.filter {
-        it.status == ProductStatus.ACTIVE || it.status == ProductStatus.ONLINE
+        it.status == ProductModelStatus.ONLINE
       }
 
     return PageImpl(activeProducts, pageable, favoriteIdsPage.totalElements)

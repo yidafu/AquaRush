@@ -19,32 +19,31 @@
 
 package dev.yidafu.aqua.delivery.graphql.resolvers
 
-import dev.yidafu.aqua.api.service.DeliveryService
+import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
-import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
 @AdminService
 @Controller
 class DeliveryWorkerQueryResolver(
-  private val deliveryService: DeliveryService,
+  private val deliveryWorkerQueryService: DeliveryWorkerQueryService,
 ) {
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
-  fun deliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryService.getAllWorkers())
+  fun deliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryWorkerQueryService.getAllWorkers())
 
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
-  fun onlineDeliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryService.getOnlineWorkers())
+  fun onlineDeliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryWorkerQueryService.getOnlineWorkers())
 
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN') or hasRole('WORKER')")
   fun deliveryWorker(
     @Argument id: Long,
-  ): DeliveryWorker? = DeliveryWorkerMapper.map(deliveryService.getWorkerById(id))
+  ): DeliveryWorker? = DeliveryWorkerMapper.map(deliveryWorkerQueryService.getWorkerById(id))
 }

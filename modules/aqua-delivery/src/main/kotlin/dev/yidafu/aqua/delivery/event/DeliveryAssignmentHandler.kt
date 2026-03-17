@@ -1,17 +1,14 @@
 package dev.yidafu.aqua.delivery.event
 
 import dev.yidafu.aqua.api.service.AdminService
-import dev.yidafu.aqua.api.service.DeliveryService
-import dev.yidafu.aqua.api.service.OrderOperationService
+import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.common.domain.model.OperatorType
 import dev.yidafu.aqua.common.domain.model.OrderOperationType
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
-import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
-import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional

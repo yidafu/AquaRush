@@ -35,7 +35,6 @@ import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatisticsResponse
  * 管理端评价查询解析器
  * 提供评价系统的管理功能，包括查询所有评价、配送员统计等
  */
-// @AdminService
 @Controller
 class AdminReviewQueryResolver(
   private val reviewService: ReviewService,
@@ -63,63 +62,6 @@ class AdminReviewQueryResolver(
       dateFrom = dateFrom,
       dateTo = dateTo,
       userId = userId,
-      page = page,
-      size = size,
-    )
-
-  /**
-   * 获取配送员统计数据（管理员功能）
-   */
-//  @PreAuthorize("hasRole('ADMIN')")
-  @QueryMapping("deliveryWorkerStatistics")
-  fun deliveryWorkerStatistics(
-    @Argument deliveryWorkerId: Long,
-  ): GraphQLDeliveryWorkerStatisticsResponse {
-    logger.info("deliveryWorkerStatistics($deliveryWorkerId)")
-    // For now, return empty statistics since we need to implement the actual data retrieval
-    return GraphQLDeliveryWorkerStatisticsResponse(
-      averageRating = java.math.BigDecimal.ZERO,
-      deliveryWorkerId = deliveryWorkerId,
-      fiveStarReviews = 0L,
-      fourStarReviews = 0L,
-      lastUpdated = java.time.LocalDateTime.now(),
-      oneStarReviews = 0L,
-      ratingDistribution = emptyMap(),
-      threeStarReviews = 0L,
-      totalReviews = 0L,
-      twoStarReviews = 0L,
-      workerName = "配送员$deliveryWorkerId",
-    )
-  }
-
-  /**
-   * 获取配送员排行榜（管理员功能）
-   */
-  @PreAuthorize("hasRole('ADMIN')")
-  fun deliveryWorkerRanking(
-    sortBy: String = "rating",
-    minReviews: Int = 1,
-    page: Int = 0,
-    size: Int = 20,
-  ): Page<GraphQLDeliveryWorkerRankingResponse> =
-    reviewService.getDeliveryWorkerRanking(
-      sortBy = sortBy,
-      minReviews = minReviews,
-      page = page,
-      size = size,
-    )
-
-  /**
-   * 获取配送员的评价列表（管理员功能）
-   */
-  @PreAuthorize("hasRole('ADMIN')")
-  fun deliveryWorkerReviews(
-    deliveryWorkerId: Long,
-    page: Int = 0,
-    size: Int = 10,
-  ): Page<ReviewResponse> =
-    reviewService.getDeliveryWorkerReviews(
-      deliveryWorkerId = deliveryWorkerId,
       page = page,
       size = size,
     )

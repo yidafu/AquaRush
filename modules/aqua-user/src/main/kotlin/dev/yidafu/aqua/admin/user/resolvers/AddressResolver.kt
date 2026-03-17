@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.admin.user.resolvers
 
-import dev.yidafu.aqua.api.service.AddressService
+import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
 import dev.yidafu.aqua.common.graphql.generated.BatchImportAddressesResult

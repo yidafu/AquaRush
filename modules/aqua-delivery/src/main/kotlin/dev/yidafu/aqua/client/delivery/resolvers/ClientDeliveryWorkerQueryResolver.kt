@@ -19,13 +19,10 @@
 
 package dev.yidafu.aqua.client.delivery.resolvers
 
-import dev.yidafu.aqua.api.service.DeliveryService
+import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
-import org.springframework.graphql.data.method.annotation.Argument
-import org.springframework.graphql.data.method.annotation.QueryMapping
-import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
@@ -36,14 +33,14 @@ import org.springframework.stereotype.Controller
 @ClientService
 @Controller
 class ClientDeliveryWorkerQueryResolver(
-  private val deliveryService: DeliveryService,
+  private val deliveryWorkerQueryService: DeliveryWorkerQueryService,
 ) {
   /**
    * 查询在线配送员（公开信息）
    * 用户可以看到哪些配送员在线，但看不到敏感信息
    */
   @PreAuthorize("isAuthenticated()")
-  fun onlineDeliveryWorkersPublic(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryService.getOnlineWorkers())
+  fun onlineDeliveryWorkersPublic(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryWorkerQueryService.getOnlineWorkers())
 
   /**
    * 配送员查询自己的信息
@@ -52,7 +49,7 @@ class ClientDeliveryWorkerQueryResolver(
   fun myDeliveryWorkerProfile(): DeliveryWorker? {
     // 获取当前认证的配送员ID
     val currentWorkerId = getCurrentWorkerId()
-    return DeliveryWorkerMapper.map(deliveryService.getWorkerById(currentWorkerId))
+    return DeliveryWorkerMapper.map(deliveryWorkerQueryService.getWorkerById(currentWorkerId))
   }
 
   /**
@@ -62,7 +59,7 @@ class ClientDeliveryWorkerQueryResolver(
   fun myActiveTasks(): List<Any> {
     // 获取当前认证的配送员ID
     val currentWorkerId = getCurrentWorkerId()
-    return deliveryService.getWorkerActiveTasks(currentWorkerId)
+    return deliveryWorkerQueryService.getWorkerActiveTasks(currentWorkerId)
   }
 
   /**
@@ -70,7 +67,7 @@ class ClientDeliveryWorkerQueryResolver(
    */
   @PreAuthorize("isAuthenticated()")
   fun deliveryWorkerPublicInfo(workerId: Long): DeliveryWorker? {
-    val worker = deliveryService.getWorkerById(workerId)
+    val worker = deliveryWorkerQueryService.getWorkerById(workerId)
 
     return DeliveryWorkerMapper.map(worker)
   }

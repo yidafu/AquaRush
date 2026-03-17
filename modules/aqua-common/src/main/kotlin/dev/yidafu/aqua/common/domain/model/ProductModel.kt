@@ -21,7 +21,6 @@ package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.converter.ArrayNodeConverter
 import dev.yidafu.aqua.common.converter.ObjectNodeConverter
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
@@ -69,7 +68,7 @@ open class ProductModel(
   var salesVolume: Int = 0,
   @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)
-  var status: ProductStatus = ProductStatus.OFFLINE,
+  var status: ProductModelStatus = ProductModelStatus.OFFLINE,
   @Column(name = "sort_order", nullable = false)
   var sortOrder: Int = 999,
   @JdbcTypeCode(SqlTypes.JSON)
@@ -115,7 +114,7 @@ open class ProductModel(
 
   // Helper method to check if product is available for sale
   // Note: isDeleted check is handled by Hibernate @SoftDelete filtering
-  fun isAvailable(): Boolean = status == ProductStatus.ONLINE && stock > 0
+  fun isAvailable(): Boolean = status == ProductModelStatus.ONLINE && stock > 0
 
   // Helper methods for JSON field handling
 

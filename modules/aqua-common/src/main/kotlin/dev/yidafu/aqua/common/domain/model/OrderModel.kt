@@ -112,6 +112,7 @@ data class OrderModel(
 
 enum class OrderStatus {
   PENDING_PAYMENT, // 待支付
+  PENDING_DISPATCH, // 待分配
   PENDING_DELIVERY, // 待配送
   DELIVERING, // 配送中
   COMPLETED, // 已完成

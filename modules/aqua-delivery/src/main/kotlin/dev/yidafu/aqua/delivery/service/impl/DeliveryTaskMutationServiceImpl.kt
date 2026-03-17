@@ -19,119 +19,32 @@
 
 package dev.yidafu.aqua.delivery.service.impl
 
-import dev.yidafu.aqua.api.service.DeliveryService
-import dev.yidafu.aqua.api.service.OrderOperationService
-import dev.yidafu.aqua.common.domain.model.*
+import dev.yidafu.aqua.api.service.delivery.DeliveryTaskMutationService
+import dev.yidafu.aqua.api.service.order.OrderOperationService
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
+import dev.yidafu.aqua.common.domain.model.OperatorType
+import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.OrderOperationType
+import dev.yidafu.aqua.common.domain.model.OrderStatus
+import dev.yidafu.aqua.common.domain.model.PaymentType
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
+import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
-import dev.yidafu.aqua.delivery.domain.repository.DeliveryAreaRepository
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
-class DeliveryServiceImpl(
+class DeliveryTaskMutationServiceImpl(
   private val workerRepository: DeliveryWorkerRepository,
-  private val areaRepository: DeliveryAreaRepository,
   private val orderRepository: OrderRepository,
   private val orderOperationService: OrderOperationService,
   private val eventPublishService: SimplifiedEventPublishService,
-) : DeliveryService {
-  private val logger = LoggerFactory.getLogger(DeliveryService::class.java)
-
-  // 配送员管理
-
-  override fun createDeliveryWorker(
-    adminId: Long,
-    name: String,
-    phone: String,
-    wechatOpenId: String,
-  ): DeliveryWorkerModel {
-    val worker =
-      DeliveryWorkerModel(
-        userId = null,
-        adminId = adminId,
-        wechatOpenId = wechatOpenId,
-        name = name,
-        phone = phone,
-        onlineStatus = DeliverWorkerModelStatus.OFFLINE,
-        isAvailable = true,
-      )
-    return workerRepository.save(worker)
-  }
-
-  override fun getWorkerById(workerId: Long): DeliveryWorkerModel =
-    workerRepository.findById(workerId).orElseThrow {
-      NotFoundException("配送员不存在: $workerId")
-    }
-
-  override fun getOrderById(orderId: Long): OrderModel =
-    orderRepository.findById(orderId).orElseThrow {
-      NotFoundException("订单不存在: $orderId")
-    }
-
-  override fun getAllWorkers(): List<DeliveryWorkerModel> = workerRepository.findAll()
-
-  override fun getOnlineWorkers(): List<DeliveryWorkerModel> = workerRepository.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE)
-
-  @Transactional
-  override fun updateWorkerStatus(
-    workerId: Long,
-    status: DeliverWorkerModelStatus,
-  ): DeliveryWorkerModel {
-    val worker = getWorkerById(workerId)
-    worker.onlineStatus = status
-    return workerRepository.save(worker)
-  }
-
-  // 配送区域管理
-
-  override fun isAddressInDeliveryArea(
-    province: String,
-    city: String,
-    district: String,
-  ): Boolean {
-    // TODO: 先不校验地址区域
-    return true
-//    val area = areaRepository.findByProvinceAndCityAndDistrict(province, city, district)
-//    return area != null && area.enabled
-  }
-
-  override fun validateDeliveryAddress(
-    province: String,
-    city: String,
-    district: String,
-  ) {
-    if (!isAddressInDeliveryArea(province, city, district)) {
-      throw BadRequestException("该地址不在配送范围内")
-    }
-  }
-
-  override fun getAllDeliveryAreas(): List<DeliveryAreaModel> = areaRepository.findAll()
-
-  override fun getEnabledDeliveryAreas(): List<DeliveryAreaModel> = areaRepository.findByEnabledTrue()
-
-  @Transactional
-  override fun createDeliveryArea(area: DeliveryAreaModel): DeliveryAreaModel = areaRepository.save(area)
-
-  @Transactional
-  override fun updateDeliveryArea(
-    areaId: Long,
-    enabled: Boolean,
-  ): DeliveryAreaModel {
-    val area =
-      areaRepository.findById(areaId).orElseThrow {
-        NotFoundException("配送区域不存在: $areaId")
-      }
-    area.enabled = enabled
-    areaRepository.save(area)
-    return area
-  }
-
-  // 配送任务管理
+) : DeliveryTaskMutationService {
+  private val logger = LoggerFactory.getLogger(DeliveryTaskMutationService::class.java)
 
   /**
    * 分配送水员给订单
@@ -216,7 +129,6 @@ class DeliveryServiceImpl(
           order.status = OrderStatus.DELIVERING
           val savedOrder = orderRepository.save(order)
 
-
           // 发布配送分配事件
           eventPublishService.publishDeliveryAssigned(
             adminId = adminId,
@@ -242,7 +154,7 @@ class DeliveryServiceImpl(
   @Transactional
   override fun acceptDelivery(
     orderId: Long,
-    workerId: Long,
+    adminId: Long,
   ): OrderModel {
     val order =
       orderRepository.findById(orderId).orElseThrow {
@@ -250,13 +162,14 @@ class DeliveryServiceImpl(
       }
 
     // 验证订单状态
-    if (order.status != OrderStatus.PENDING_DELIVERY) {
+    if (order.status != OrderStatus.PENDING_DISPATCH) {
       throw BadRequestException("订单状态不正确，无法接单")
     }
-
+    val worker = workerRepository.findByAdminId(adminId) ?: throw UserNotFoundException("管理员 $adminId 不存在")
+    val workerId = worker.id
     // 分配配送员
     order.deliveryWorkerId = workerId
-    order.status = OrderStatus.DELIVERING
+    order.status = OrderStatus.PENDING_DELIVERY
 
     val savedOrder = orderRepository.save(order)
 
@@ -265,19 +178,19 @@ class DeliveryServiceImpl(
       orderId = savedOrder.id,
       operationType = OrderOperationType.DELIVERY_ASSIGNED,
       operatorType = OperatorType.DELIVERY_WORKER,
-      operatorId = workerId,
+      operatorId = adminId,
       description = "配送员接单",
     )
 
     // 发布配送分配事件
     eventPublishService.publishDeliveryAssigned(
-      adminId = 0L,
+      adminId = adminId,
       orderId = savedOrder.id,
-      deliveryWorkerId = workerId,
+      deliveryWorkerId = workerId ?: 0L,
       userId = savedOrder.userId,
     )
 
-    logger.info("Worker $workerId accepted delivery for order $orderId")
+    logger.info("Worker $adminId accepted delivery for order $orderId")
     return savedOrder
   }
 
@@ -292,13 +205,13 @@ class DeliveryServiceImpl(
       }
 
     // 验证订单状态
-    if (order.status != OrderStatus.DELIVERING) {
+    if (order.status != OrderStatus.PENDING_DELIVERY) {
       throw BadRequestException("订单状态不正确，无法开始配送")
     }
 
     // 设置开始配送时间
     order.deliveryStartedAt = java.time.LocalDateTime.now()
-
+    order.status = OrderStatus.DELIVERING
     val savedOrder = orderRepository.save(order)
 
     // 记录订单操作 - 开始配送
@@ -319,45 +232,6 @@ class DeliveryServiceImpl(
     logger.info("Started delivery for order $orderId")
     return savedOrder
   }
-
-  /**
-   * 获取配送员当前任务数量
-   */
-  private fun getCurrentTaskCount(workerId: Long): Int =
-    orderRepository
-      .countByDeliveryWorkerIdAndStatus(
-        workerId,
-        OrderStatus.DELIVERING,
-      ).toInt()
-
-  /**
-   * 获取配送员的所有任务
-   */
-  override fun getWorkerTasks(workerId: Long): List<OrderModel> {
-    val worker = getWorkerById(workerId)
-    return orderRepository.findByDeliveryWorkerIdOrderByCreatedAtDesc(workerId)
-  }
-
-  /**
-   * 获取配送员的进行中任务
-   */
-  override fun getWorkerActiveTasks(workerId: Long): List<OrderModel> {
-    val worker = getWorkerById(workerId)
-    return orderRepository.findByDeliveryWorkerIdAndStatusOrderByCreatedAtDesc(
-      workerId,
-      OrderStatus.DELIVERING,
-    )
-  }
-
-  /**
-   * 获取配送员的活跃任务数量
-   */
-  override fun getWorkerActiveTaskCount(workerId: Long): Int =
-    orderRepository
-      .countByDeliveryWorkerIdAndStatus(
-        workerId,
-        OrderStatus.DELIVERING,
-      ).toInt()
 
   /**
    * 完成配送任务
@@ -422,93 +296,4 @@ class DeliveryServiceImpl(
     logger.info("Successfully completed delivery for order $orderId, paymentType: $paymentType")
     return savedOrder
   }
-
-  /**
-   * 获取所有待分配的订单
-   */
-  override fun getPendingDeliveryOrders(): List<OrderModel> =
-    orderRepository.findByStatusOrderByCreatedAtAsc(
-      OrderStatus.PENDING_DELIVERY,
-    )
-
-  /**
-   * 获取配送员的已接单未开始配送的订单
-   * 状态为 DELIVERING 但 deliveryStartedAt 为 null
-   */
-  override fun getAssignedOrders(workerId: Long): List<OrderModel> =
-    orderRepository
-      .findByDeliveryWorkerIdAndStatusOrderByCreatedAtDesc(
-        workerId,
-        OrderStatus.DELIVERING,
-      ).filter { it.deliveryStartedAt == null }
-
-  /**
-   * 获取配送统计数据
-   */
-  override fun getDeliveryStatistics(): DeliveryService.DeliveryStatistics {
-    val totalWorkers = workerRepository.count()
-    val onlineWorkers = getOnlineWorkers().size
-    val pendingOrders = getPendingDeliveryOrders().size
-    val deliveringOrders =
-      orderRepository.countByStatus(
-        OrderStatus.DELIVERING,
-      )
-
-    return DeliveryService.DeliveryStatistics(
-      totalWorkers = totalWorkers.toInt(),
-      onlineWorkers = onlineWorkers,
-      pendingOrders = pendingOrders,
-      deliveringOrders = deliveringOrders.toInt(),
-    )
-  }
-
-  /**
-   * 获取配送员当日统计数据
-   */
-  override fun getTodayStatistics(workerId: Long?): DeliveryService.TodayStatistics {
-    val today = java.time.LocalDate.now()
-    val startOfDay = today.atStartOfDay()
-    val endOfDay = today.plusDays(1).atStartOfDay()
-
-    val orders =
-      if (workerId != null) {
-        orderRepository.findByDeliveryWorkerId(workerId)
-      } else {
-        orderRepository.findAll()
-      }
-
-    val todayOrders =
-      orders.filter { order ->
-        order.createdAt >= startOfDay && order.createdAt < endOfDay
-      }
-
-    val completedToday =
-      todayOrders.filter { order ->
-        order.status == OrderStatus.COMPLETED &&
-          order.completedAt != null &&
-          order.completedAt!! >= startOfDay && order.completedAt!! < endOfDay
-      }
-
-    val pendingToday =
-      todayOrders.filter { order ->
-        order.status == OrderStatus.DELIVERING
-      }
-
-    val totalEarning = completedToday.sumOf { it.amountCents }
-
-    return DeliveryService.TodayStatistics(
-      totalOrders = todayOrders.size,
-      completedOrders = completedToday.size,
-      pendingOrders = pendingToday.size,
-      earningCents = totalEarning,
-    )
-  }
-
-  /**
-   * Worker load data class for internal use
-   */
-  private data class WorkerLoad(
-    val worker: DeliveryWorkerModel,
-    val taskCount: Int,
-  )
 }

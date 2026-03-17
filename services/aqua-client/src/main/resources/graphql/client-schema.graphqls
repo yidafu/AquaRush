@@ -27,6 +27,8 @@ type Query {
   # Regions
   regions(level: Int, parentCode: String): [Region!]!
   region(code: String!): Region
+  # 获取所有地区数据，用于前端构建树形结构
+  allRegions: [Region!]!
   regionByCoordinates(
     longitude: Float!
     latitude: Float!
@@ -49,29 +51,16 @@ type Query {
 
   # Products
   allProducts: [Product!]!
-  activeProducts(page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductPage!
+  activeProducts(keyword: String, page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductPage!
   product(id: PrimaryId!): Product
 
   # Orders
   order(orderId: PrimaryId!): Order
   orderByNumber(orderNumber: String!): Order
-  ordersByUser(userId: PrimaryId!): [Order!]!
-  ordersByUserAndStatus(userId: PrimaryId!, status: OrderStatus!): [Order!]!
-  ordersByStatus(status: OrderStatus!): [Order!]!
-
-  # 配送员派单相关查询
-  pendingDeliveryOrders: [Order!]!              # 待接单订单
-  myAssignedOrders: [Order!]!                   # 我的已接单订单
-  myDeliveringOrders: [Order!]!                # 我的配送中订单
-  todayStatistics: TodayStatistics!             # 当日统计数据
+  orderOperations(orderId: PrimaryId!): [OrderOperation!]!
 
   # Payments
-  paymentStatus(transactionId: String!): String!
   orderPaymentInfo(orderId: PrimaryId!): OrderPaymentInfo!
-  paymentPeriodStats(
-    from: LocalDateTime!
-    to: LocalDateTime!
-  ): [PaymentPeriodStats!]!
   myPaymentTransactions(
     page: Int = 0
     size: Int = 20
@@ -82,7 +71,6 @@ type Query {
   # Review queries
   checkOrderReview(orderId: PrimaryId!): OrderReviewCheckResponse!
   myReviews(page: Int, size: Int): [Review!]!
-  deliveryWorkerPublicStatistics(deliveryWorkerId: PrimaryId!): Review!
 
   # Favorites queries
   favoriteProducts(page: Int = 0, size: Int = 20): FavoriteProductPage!
@@ -97,12 +85,8 @@ type Query {
   getUnreadMessageCount: Int!
   getRecentMessages(limit: Int = 10, messageType: String): [ClientMessage!]!
   getMessageDetail(messageId: PrimaryId!): ClientMessage
-  getMessagesByType(messageType: String!, page: Int = 0, size: Int = 20): MessageHistoryPage!
   searchMessages(keyword: String!, page: Int = 0, size: Int = 20, dateFrom: LocalDateTime, dateTo: LocalDateTime): MessageHistoryPage!
   getMessageTypes: [MessageTypeInfo!]!
-  getSubscribedTopics: [String!]!
-  isSubscribedToTopic(topic: String!): Boolean!
-  getDoNotDisturbSettings: DoNotDisturbSettings!
 
   # Default region hierarchy
   defaultRegionHierarchy: RegionHierarchy
@@ -111,10 +95,7 @@ type Query {
 # Client-specific Mutation Schema
 type Mutation {
   # Authentication
-  wechatLogin(input: WechatLoginInput!): WeChatLoginResponse!
-  refreshToken(input: RefreshTokenInput!): WeChatTokenResponse!
   updateProfile(input: UpdateProfileInput!): UserInfo!
-  logout: Boolean!
 
   # Addresses
   createAddress(input: AddressInput!): Address!
@@ -122,19 +103,12 @@ type Mutation {
   deleteAddress(id: PrimaryId!): Boolean!
   setDefaultAddress(id: PrimaryId!): Boolean!
 
-  geocodeAddress(address: GeocodeInput!): GeocodePayload!
-  reverseGeocode(longitude: Float!, latitude: Float!): ReverseGeocodePayload!
   validateAddress(input: AddressValidationInput!): AddressValidationPayload!
 
   # Orders
   createOrder(input: CreateOrderInput!): Order!
   cancelOrder(orderId: PrimaryId!): Order!
-  updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): Order!
 
-  # 配送员操作
-  acceptDelivery(orderId: PrimaryId!): Order!           # 配送员接单
-  startDelivery(orderId: PrimaryId!): Order!           # 开始配送
-  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType): Order!  # 完成配送
 
   # Payments
   createWechatPayment(input: CreateWechatPaymentInput!): PaymentData!
@@ -156,11 +130,6 @@ type Mutation {
   markMessagesAsRead(messageIds: [PrimaryId!]!): Boolean!
   deleteMessage(messageId: PrimaryId!): Boolean!
   deleteMessages(messageIds: [PrimaryId!]!): Boolean!
-  testNotification: String!
-  subscribeToTopic(topic: String!): Boolean!
-  unsubscribeFromTopic(topic: String!): Boolean!
-  setDoNotDisturb(enabled: Boolean!, startTime: String, endTime: String): Boolean!
-  requestPushPermission: String!
 
   # Region mutations (Admin only)
   createRegion(input: CreateRegionInput!): Region!
@@ -207,23 +176,23 @@ input RequestRefundInput {
 # Region mutation inputs
 input CreateRegionInput {
   name: String!
-    @notBlank(message: "地区名称不能为空")
-    @size(min: 2, max: 50, message: "地区名称长度应在2-50个字符之间")
+  @notBlank(message: "地区名称不能为空")
+  @size(min: 2, max: 50, message: "地区名称长度应在2-50个字符之间")
   code: String!
-    @notBlank(message: "地区代码不能为空")
-    @size(min: 1, max: 20, message: "地区代码长度应在1-20个字符之间")
-    @pattern(regexp: "^[A-Z0-9]+$", message: "地区代码只能包含大写字母和数字")
+  @notBlank(message: "地区代码不能为空")
+  @size(min: 1, max: 20, message: "地区代码长度应在1-20个字符之间")
+  @pattern(regexp: "^[A-Z0-9]+$", message: "地区代码只能包含大写字母和数字")
   level: Int!
-    @min(value: 1, message: "地区级别不能小于1")
-    @max(value: 5, message: "地区级别不能大于5")
+  @min(value: 1, message: "地区级别不能小于1")
+  @max(value: 5, message: "地区级别不能大于5")
   parentCode: String
-    @size(min: 1, max: 20, message: "上级地区代码长度应在1-20个字符之间")
+  @size(min: 1, max: 20, message: "上级地区代码长度应在1-20个字符之间")
 }
 
 input UpdateRegionInput {
   name: String @size(min: 2, max: 50, message: "地区名称长度应在2-50个字符之间")
   parentCode: String
-    @size(min: 1, max: 20, message: "上级地区代码长度应在1-20个字符之间")
+  @size(min: 1, max: 20, message: "上级地区代码长度应在1-20个字符之间")
 }
 
 # Region hierarchy for default region configuration

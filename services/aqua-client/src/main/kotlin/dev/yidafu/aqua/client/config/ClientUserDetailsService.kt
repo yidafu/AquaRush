@@ -1,7 +1,9 @@
 package dev.yidafu.aqua.client.config
 
+import dev.yidafu.aqua.common.domain.model.AdminPermission
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.common.security.toSimpleGrantedAuthorities
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.authority.SimpleGrantedAuthority
@@ -25,7 +27,7 @@ class ClientUserDetailsService(
 
     // Determine user type and authorities based on user data
     val userType = determineUserType(user)
-    val authorities = determineAuthorities(user, userType)
+    val authorities = determineAuthorities(userType)
 
     return UserPrincipal(
       id = user.id!!,
@@ -47,45 +49,46 @@ class ClientUserDetailsService(
     }
   }
 
-  private fun determineAuthorities(
-    user: UserModel,
-    userType: String,
-  ): List<SimpleGrantedAuthority> {
+  private fun determineAuthorities(userType: String): List<SimpleGrantedAuthority> {
     val authorities = mutableListOf<SimpleGrantedAuthority>()
 
     // Add role based on user type
     authorities.add(SimpleGrantedAuthority("ROLE_$userType"))
 
-    // Add specific permissions based on user type
-    when (userType) {
-      "ADMIN" -> {
-        authorities.add(SimpleGrantedAuthority("PERMISSION_USER_READ"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_USER_WRITE"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_ORDER_READ"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_ORDER_WRITE"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_PRODUCT_READ"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_PRODUCT_WRITE"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_DELIVERY_READ"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_DELIVERY_WRITE"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_PAYMENT_READ"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_PAYMENT_WRITE"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_STATISTICS_READ"))
-      }
+    // Add specific permissions based on user type using AdminPermission enum
+    val permissions = when (userType) {
+      "ADMIN" -> setOf(
+        AdminPermission.USER_READ,
+        AdminPermission.USER_WRITE,
+        AdminPermission.ORDER_READ,
+        AdminPermission.ORDER_WRITE,
+        AdminPermission.PRODUCT_READ,
+        AdminPermission.PRODUCT_WRITE,
+        AdminPermission.DELIVERY_READ,
+        AdminPermission.DELIVERY_WRITE,
+        AdminPermission.PAYMENT_READ,
+        AdminPermission.PAYMENT_WRITE,
+        AdminPermission.STATISTICS_READ,
+      )
 
-      "WORKER" -> {
-        authorities.add(SimpleGrantedAuthority("PERMISSION_DELIVERY_READ"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_DELIVERY_WRITE"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_ORDER_READ"))
-      }
+      "WORKER" -> setOf(
+        AdminPermission.DELIVERY_READ,
+        AdminPermission.DELIVERY_WRITE,
+        AdminPermission.ORDER_READ,
+      )
 
-      "USER" -> {
-        authorities.add(SimpleGrantedAuthority("PERMISSION_USER_READ"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_USER_WRITE"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_ORDER_READ"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_ORDER_WRITE"))
-        authorities.add(SimpleGrantedAuthority("PERMISSION_PRODUCT_READ"))
-      }
+      "USER" -> setOf(
+        AdminPermission.USER_READ,
+        AdminPermission.USER_WRITE,
+        AdminPermission.ORDER_READ,
+        AdminPermission.ORDER_WRITE,
+        AdminPermission.PRODUCT_READ,
+      )
+
+      else -> emptySet()
     }
+
+    authorities.addAll(permissions.toSimpleGrantedAuthorities())
 
     return authorities
   }

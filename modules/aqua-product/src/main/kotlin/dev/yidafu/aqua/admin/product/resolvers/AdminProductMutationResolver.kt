@@ -21,6 +21,7 @@ package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.ProductModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
@@ -230,7 +231,7 @@ class AdminProductMutationResolver(
         productService.findById(id)
           ?: throw BadRequestException("产品不存在: $id")
 
-      if (product.status == ProductStatus.ONLINE) {
+      if (product.status == ProductModelStatus.ONLINE) {
         throw BadRequestException("产品已上线")
       }
 
@@ -253,7 +254,7 @@ class AdminProductMutationResolver(
         productService.findById(id)
           ?: throw BadRequestException("产品不存在: $id")
 
-      if (product.status == ProductStatus.OFFLINE) {
+      if (product.status == ProductModelStatus.OFFLINE) {
         throw BadRequestException("产品已下线")
       }
 

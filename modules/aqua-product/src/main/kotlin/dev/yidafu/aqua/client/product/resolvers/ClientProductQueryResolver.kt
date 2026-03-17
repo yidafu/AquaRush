@@ -60,111 +60,6 @@ class ClientProductQueryResolver(
   }
 
   /**
-   * 查询活跃的上线产品（分页）
-   */
-  @PreAuthorize("isAuthenticated()")
-  @QueryMapping
-  fun activeProducts(
-    @Argument page: Int = 0,
-    @Argument size: Int = 20,
-    @Argument sortBy: String = "createdAt",
-    @Argument sortDirection: String = "desc",
-  ): ProductPage {
-    val pageable: Pageable =
-      PageRequest.of(
-        page,
-        size,
-        Sort.by(if (sortDirection.lowercase() == "asc") Direction.ASC else Direction.DESC, sortBy),
-      )
-    val page = productService.findOnlineProducts(pageable)
-    val (list, pageInfo) = page.toPageInfo { ProductMapper.map(it) }
-    return ProductPage(list, pageInfo)
-  }
-
-  /**
-   * 按关键词搜索产品
-   */
-  @PreAuthorize("isAuthenticated()")
-  fun searchProducts(input: ProductSearchInput): Page<ProductModel> {
-    val pageable: Pageable =
-      PageRequest.of(
-        input.page ?: 0,
-        input.size ?: 20,
-        Sort.by(
-          if ((input.sortDirection ?: "desc").lowercase() == "asc") {
-            Direction.ASC
-          } else {
-            Direction.DESC
-          },
-          input.sortBy ?: "createdAt",
-        ),
-      )
-
-    return when {
-      input.category != null && input.keyword != null -> {
-        productService.findByCategoryAndNameContainingAndStatus(
-          input.category,
-          input.keyword,
-          pageable,
-        )
-      }
-
-      input.category != null -> {
-        productService.findByCategoryAndStatus(input.category, pageable)
-      }
-
-      input.keyword != null -> {
-        productService.findByNameContainingAndStatus(input.keyword, pageable)
-      }
-
-      else -> {
-        productService.findByStatus(ProductStatus.ONLINE, pageable)
-      }
-    }
-  }
-
-  /**
-   * 按分类查询产品
-   */
-  @PreAuthorize("isAuthenticated()")
-  fun productsByCategory(
-    category: String,
-    page: Int = 0,
-    size: Int = 20,
-    sortBy: String = "name",
-    sortDirection: String = "asc",
-  ): Page<ProductModel> {
-    val pageable: Pageable =
-      PageRequest.of(
-        page,
-        size,
-        Sort.by(
-          if (sortDirection.lowercase() == "asc") {
-            Direction.ASC
-          } else {
-            Direction.DESC
-          },
-          sortBy,
-        ),
-      )
-    return productService.findByCategoryAndStatus(category, pageable)
-  }
-
-  /**
-   * 按价格范围查询产品
-   */
-  @PreAuthorize("isAuthenticated()")
-  fun productsByPriceRange(
-    minPrice: java.math.BigDecimal,
-    maxPrice: java.math.BigDecimal,
-    page: Int = 0,
-    size: Int = 20,
-  ): Page<ProductModel> {
-    val pageable: Pageable = PageRequest.of(page, size)
-    return productService.findByPriceBetweenAndStatus(minPrice, maxPrice, pageable)
-  }
-
-  /**
    * 查询热销产品
    */
   @PreAuthorize("isAuthenticated()")
@@ -204,18 +99,6 @@ class ClientProductQueryResolver(
   }
 
   /**
-   * 获取产品分类列表
-   */
-  @PreAuthorize("isAuthenticated()")
-  fun productCategories(): List<String> = productService.findAllCategories()
-
-  /**
-   * 获取价格区间统计
-   */
-  @PreAuthorize("isAuthenticated()")
-  fun priceRanges(): List<PriceRange> = productService.getPriceRangeStatistics()
-
-  /**
    * 检查产品库存
    */
   @PreAuthorize("isAuthenticated()")
@@ -228,7 +111,7 @@ class ClientProductQueryResolver(
       productId = productId,
       productName = product.name,
       currentStock = product.stock,
-      isAvailable = product.stock > 0 && product.status == ProductStatus.ONLINE,
+      isAvailable = product.isAvailable(),
       lowStockWarning = product.stock <= 5,
     )
   }

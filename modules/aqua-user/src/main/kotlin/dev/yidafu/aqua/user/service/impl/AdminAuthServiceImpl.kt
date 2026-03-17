@@ -2,7 +2,7 @@ package dev.yidafu.aqua.user.service.impl
 
 import dev.yidafu.aqua.api.dto.AdminUserInfo
 import dev.yidafu.aqua.api.dto.LoginResponse
-import dev.yidafu.aqua.api.service.AdminAuthService
+import dev.yidafu.aqua.api.service.admin.AdminAuthService
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.logging.util.BizLogger
@@ -51,7 +51,7 @@ class AdminAuthServiceImpl(
       val admin =
         adminRepository
           .findByUsername(username)
-          .orElseThrow { WeChatAuthException("Invalid username or password") }
+          ?: throw WeChatAuthException("Invalid username or password")
 
       // Create user principal
       val authorities = admin.getAuthorities()

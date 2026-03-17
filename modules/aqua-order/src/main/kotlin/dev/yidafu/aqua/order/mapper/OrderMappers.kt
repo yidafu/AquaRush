@@ -159,22 +159,15 @@ object OrderDTOToGraphQLMapper : ObjectMappie<OrderDTO, Order>() {
 object GraphQLToOrderDTOMapper : ObjectMappie<Order, OrderDTO>() {
   override fun map(from: Order) =
     mapping {
-      to::userId fromExpression { from.user.id }
+      to::userId fromExpression { from.user?.id ?: 0L }
       to::user fromValue from.user
-      to::productId fromExpression { from.product.id }
+      to::productId fromExpression { from.product?.id ?: 0L }
       to::product fromValue from.product
       to::amount fromProperty from::amount
-      to::addressId fromExpression { from.address.id }
+      to::addressId fromExpression { from.address?.id ?: 0L }
       to::address fromValue from.address
       to::status fromExpression {
-        when (from.status.name) {
-          "PENDING_PAYMENT" -> OrderStatus.PENDING_PAYMENT
-          "PENDING_DELIVERY" -> OrderStatus.PENDING_DELIVERY
-          "DELIVERING" -> OrderStatus.DELIVERING
-          "COMPLETED" -> OrderStatus.COMPLETED
-          "CANCELLED" -> OrderStatus.CANCELLED
-          else -> OrderStatus.PENDING_PAYMENT
-        }
+        GenerateOrderStatusMapper.map(from.status)
       }
       to::paymentMethod fromExpression {
         when (from.paymentMethod) {
@@ -193,6 +186,8 @@ object GraphQLToOrderDTOMapper : ObjectMappie<Order, OrderDTO>() {
 // OrderModel → GraphQL Order Direct Mapper (with placeholders)
 // ============================================================================
 object OrderStatusMapper : EnumMappie<OrderStatus, OrderStatusG>()
+
+object GenerateOrderStatusMapper : EnumMappie<OrderStatusG, OrderStatus>()
 
 /**
  * Simple OrderMapper that converts OrderModel to GraphQL Order
@@ -219,14 +214,16 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
         OrderStatusMapper.map(from.status)
       }
       // Create placeholder objects for required nested fields
-      to::address fromExpression { AddressMapper.map(from.address!!) }
+      to::address fromExpression { from.address?.let { AddressMapper.map(it) } }
 
       to::deliveryWorker fromExpression { from.deliveryWorker?.let { DeliveryWorkerMapper.map(it) } }
       to::product fromExpression {
-        ProductMapper.map(from.product!!)
+        from.product?.let {
+          ProductMapper.map(it)
+        }
       }
       to::user fromExpression {
-        UserMapper.map(from.user!!)
+        from.user?.let { UserMapper.map(it) }
       }
       to::paymentType fromExpression { from.paymentType?.let { PaymentTypeMapper.map(it) } }
     }

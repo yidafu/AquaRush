@@ -1,4 +1,4 @@
-package dev.yidafu.aqua.api.service
+package dev.yidafu.aqua.api.service.order
 
 interface OrderIdGeneratorService {
   /**

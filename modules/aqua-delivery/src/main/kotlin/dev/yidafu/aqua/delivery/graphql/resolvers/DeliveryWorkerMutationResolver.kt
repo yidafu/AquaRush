@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.delivery.graphql.resolvers
 
-import dev.yidafu.aqua.api.service.DeliveryService
+import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.Transactional
 @Controller
 class DeliveryWorkerMutationResolver(
   private val deliveryWorkerRepository: DeliveryWorkerRepository,
-  private val deliveryService: DeliveryService,
+  private val deliveryWorkerQueryService: DeliveryWorkerQueryService,
 ) {
   private val logger = LoggerFactory.getLogger(DeliveryWorkerMutationResolver::class.java)
 
@@ -162,7 +162,7 @@ class DeliveryWorkerMutationResolver(
       }
 
       // Check if worker has active deliveries
-      val activeDeliveries = deliveryService.getWorkerActiveTasks(workerId)
+      val activeDeliveries = deliveryWorkerQueryService.getWorkerActiveTasks(workerId)
       if (activeDeliveries.isNotEmpty()) {
         throw BadRequestException("该送水工还有进行中的配送任务，无法删除")
       }

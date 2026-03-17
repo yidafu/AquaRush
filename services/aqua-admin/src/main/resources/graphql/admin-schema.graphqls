@@ -43,41 +43,23 @@ type Query {
 
   # Enhanced Product Management Queries
   topSalesProducts(limit: Int = 10): [Product!]!
-  productsByWaterSource(waterSource: String!): [Product!]!
-  productsByPhRange(minPh: BigDecimal!, maxPh: BigDecimal!): [Product!]!
-  productsByMinSalesVolume(minVolume: Int!): [Product!]!
-  productsByTag(tag: String!): [Product!]!
-  waterSourceStatistics: Map!
-  specificationStatistics: Map!
   allActiveProducts: [Product!]!
   activeProducts(keyword: String, page: Int = 0, size: Int = 20): ProductPage!
-  activeProductsByStatus(status: ProductStatus!): [Product!]!
-  productsSortedBySalesVolume: [Product!]!
-  productsSortedBySortOrder: [Product!]!
 
   # Orders (Admin/Delivery perspective)
   order(orderId: PrimaryId!): Order
   orderByNumber(orderNumber: String!): Order
   orders(input: OrderListInput): OrderPage
-  ordersByUser(userId: PrimaryId!): [Order!]!
-  ordersByUserAndStatus(userId: PrimaryId!, status: OrderStatus!): [Order!]!
-  ordersByStatus(status: OrderStatus!): [Order!]!
   orderOperations(orderId: PrimaryId!): [OrderOperation!]!
 
   # 派单相关查询
   pendingDeliveryOrders: [Order!]!              # 待派单订单
-  assignedOrders(workerId: PrimaryId!): [Order!]!  # 已分配订单
-  deliveringOrders(workerId: PrimaryId!): [Order!]! # 配送中订单
+  assignedOrders: [Order!]!  # 已分配订单
+  deliveringOrders: [Order!]! # 配送中订单
 
   # 用户搜索
   findUserByPhone(phone: String!): User
   findUsersByAddress(address: String!): [User!]!
-
-  # Delivery Area queries
-  deliveryAreas: [DeliveryArea!]!
-  enabledDeliveryAreas: [DeliveryArea!]!
-  deliveryArea(id: PrimaryId!): DeliveryArea
-  validateAddress(input: ValidateAddressInput!): Boolean!
 
   # Payment queries (Admin perspective)
   paymentStatus(transactionId: String!): String!
@@ -101,15 +83,12 @@ type Query {
     dateTo: LocalDateTime
   ): [RefundRequest!]!
   refundRequest(id: String!): RefundRequest
-  paymentStatistics(dateFrom: LocalDateTime, dateTo: LocalDateTime): PaymentStatistics
-  paymentMethodStatistics(dateFrom: LocalDateTime, dateTo: LocalDateTime): [PaymentMethodStats!]!
   suspiciousTransactions(
     page: Int = 0
     size: Int = 20
     dateFrom: LocalDateTime
     dateTo: LocalDateTime
   ): [SuspiciousTransaction!]!
-  dailyPaymentStatistics(dateFrom: LocalDateTime!, dateTo: LocalDateTime!): [DailyPaymentStats!]!
 
   # Statistics and Analytics - Admin only
   orderStatistics(input: DateRangeInput!): OrderStatistics!
@@ -134,9 +113,6 @@ type Query {
     page: Int
     size: Int
   ): [Review!]!
-  deliveryWorkerStatistics(deliveryWorkerId: PrimaryId!): DeliveryWorkerStatisticsResponse
-  deliveryWorkerRanking(sortBy: String, minReviews: Int, page: Int, size: Int): [DeliveryWorkerRankingResponse!]!
-  deliveryWorkerReviews(deliveryWorkerId: PrimaryId!, page: Int, size: Int): [Review!]!
 
   # Admin User Favorites Management - Admin only
   allProductsFavoriteStats: AllProductsFavoriteStats!
@@ -168,6 +144,11 @@ type Mutation {
   assignDeliveryWorker(orderId: PrimaryId!, workerId: PrimaryId!, isSelfCollect: Boolean!): Order!
   batchAssignOrders(orderIds: [PrimaryId!]!, workerId: PrimaryId!): [Order!]!
 
+  # 配送员操作
+  acceptDelivery(orderId: PrimaryId!): Order!           # 配送员接单
+  startDelivery(orderId: PrimaryId!): Order!             # 开始配送
+  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType): Order!  # 完成配送
+
   # Payment Management - Admin operations
   handleWechatCallback(input: WechatCallbackInput!): String!
   refund(input: RefundInput!): Boolean!
@@ -189,29 +170,16 @@ type Mutation {
   # Delivery Worker Management - Admin only
   createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorker!
   updateDeliveryWorker(workerId: PrimaryId!, input: UpdateDeliveryWorkerInput!): DeliveryWorker!
-  deleteDeliveryWorker(workerId: PrimaryId!): Boolean!
   updateWorkerStatus(workerId: PrimaryId!, status: DeliveryWorkerStatus!): DeliveryWorker!
-
-  # Delivery Address Management
-  createDeliveryAddress(input: CreateDeliveryAddressInput!): DeliveryAddress!
-  updateDeliveryAddress(id: PrimaryId!, input: UpdateDeliveryAddressInput!): DeliveryAddress!
-  deleteDeliveryAddress(id: PrimaryId!): Boolean!
-  setDefaultDeliveryAddress(id: PrimaryId!): Boolean!
 
   # Admin User Favorites Management - Admin only
   batchFavoriteOperation(input: BatchFavoriteOperationInput!): BatchOperationResult!
   exportFavorites(input: ExportFavoritesInput!): ExportFavoritesResult!
-  analyzeUserFavorites(userId: PrimaryId!): Map!
-  refreshFavoriteAnalyticsCache(force: Boolean = true): BooleanPayload!
 
   # Admin User Management
   createAdmin(input: CreateAdminInput!): Admin!
   updateAdmin(id: PrimaryId!, input: UpdateAdminInput!): Admin!
   deleteAdmin(id: PrimaryId!): Boolean!
-
-  # Delivery Worker Authentication
-  deliveryLogin(input: DeliveryLoginInput!): DeliveryLoginResponse!
-  bindDeliveryPhone(input: BindDeliveryPhoneInput!): DeliveryLoginResponse!
 
   # Admin Address Management
   createAdminAddress(input: AddressInput!): Address!

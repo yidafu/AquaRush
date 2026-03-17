@@ -1,14 +1,17 @@
 package dev.yidafu.aqua.product.service.impl
 
-import dev.yidafu.aqua.api.service.ProductService
-import dev.yidafu.aqua.client.product.resolvers.ClientProductQueryResolver
+import dev.yidafu.aqua.api.dto.ProductQuery
+import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductUpdateRequestInput
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
+import dev.yidafu.aqua.product.mapper.ProductModelStatusMapper
+import dev.yidafu.aqua.product.mapper.ProductStatusMapper
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
@@ -24,10 +27,6 @@ class ProductServiceImpl(
   val productRepository: ProductRepository,
 ) : ProductService {
   override fun findById(id: Long): ProductModel? = productRepository.findById(id).orElse(null)
-
-  override fun findAll(): List<ProductModel> = productRepository.findAll()
-
-  fun findOnlineProducts(): List<ProductModel> = productRepository.findByStatus(ProductStatus.ONLINE)
 
   override fun findOnlineProducts(pageable: Pageable): Page<ProductModel> = findByStatus(ProductStatus.ONLINE, pageable)
 
@@ -62,7 +61,7 @@ class ProductServiceImpl(
         mineralContent = request.mineralContent,
         stock = request.stock,
         salesVolume = request.salesVolume,
-        status = request.status,
+        status = ProductStatusMapper.map(request.status),
         sortOrder = request.sortOrder,
         tags = request.tags,
         detailContent = request.detailContent,
@@ -121,7 +120,7 @@ class ProductServiceImpl(
     detailContent?.let { product.detailContent = it }
     certificateImages?.let { product.certificateImages = it }
     deliverySettings?.let { product.deliverySettings = it }
-    status?.let { product.status = it }
+    status?.let { product.status = ProductStatusMapper.map(it) }
 
     return productRepository.save(product)
   }
@@ -135,7 +134,7 @@ class ProductServiceImpl(
       productRepository
         .findById(productId)
         .orElseThrow { IllegalArgumentException("Product not found: $productId") }
-    product.status = status
+    product.status = ProductStatusMapper.map(status)
     return productRepository.save(product)
   }
 
@@ -148,8 +147,8 @@ class ProductServiceImpl(
     val product = productRepository.findById(productId).orElse(null)
     return if (product != null) {
       product.stock += quantity
-      if (product.stock > 0 && product.status == ProductStatus.OUT_OF_STOCK) {
-        product.status = ProductStatus.ONLINE
+      if (product.stock > 0 && product.status == ProductModelStatus.OUT_OF_STOCK) {
+        product.status = ProductModelStatus.ONLINE
       }
       productRepository.save(product)
       true
@@ -167,7 +166,7 @@ class ProductServiceImpl(
     return if (product != null && product.stock >= quantity) {
       product.stock -= quantity
       if (product.stock == 0) {
-        product.status = ProductStatus.OUT_OF_STOCK
+        product.status = ProductModelStatus.OUT_OF_STOCK
       }
       productRepository.save(product)
       true
@@ -176,37 +175,7 @@ class ProductServiceImpl(
     }
   }
 
-  // Additional methods for queries
-  fun findByNameContainingAndStatus(
-    keyword: String,
-    status: ProductStatus,
-    pageable: Pageable,
-  ): Page<ProductModel> {
-    val products =
-      productRepository.findAll().filter {
-        it.name.contains(keyword, ignoreCase = true) && it.status == status
-      }
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
-  fun findByNameContaining(
-    keyword: String,
-    pageable: Pageable,
-  ): Page<ProductModel> {
-    val products =
-      productRepository.findAll().filter {
-        it.name.contains(keyword, ignoreCase = true)
-      }
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
-  override fun findByStatus(
+  fun findByStatus(
     status: ProductStatus,
     pageable: Pageable,
   ): Page<ProductModel> {
@@ -217,136 +186,12 @@ class ProductServiceImpl(
     return PageImpl(pageContent, pageable, products.size.toLong())
   }
 
-  override fun findAll(pageable: Pageable): Page<ProductModel> {
-    val products = productRepository.findAll()
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
-  override fun searchProducts(
-    keyword: String?,
-    status: ProductStatus?,
+  override fun productsPaginated(
+    query: ProductQuery,
     pageable: Pageable,
-  ): Page<ProductModel> = productRepository.searchProducts(keyword, status, pageable)
-
-  fun findLowStockProducts(
-    threshold: Int,
-    pageable: Pageable,
-  ): Page<ProductModel> {
-    val products = productRepository.findAll().filter { it.stock <= threshold }
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
-  override fun findByCategory(
-    category: String,
-    pageable: Pageable,
-  ): Page<ProductModel> {
-    val products =
-      productRepository.findAll().filter {
-        it.getImageGalleryAsList().any { url -> url.contains(category, ignoreCase = true) }
-      }
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
-  override fun findByPriceBetween(
-    minPriceYuan: BigDecimal,
-    maxPriceYuan: BigDecimal,
-    pageable: Pageable,
-  ): Page<ProductModel> {
-    // Convert price ranges from yuan to cents for comparison
-    val minPriceCents = MoneyUtils.toCents(minPriceYuan)
-    val maxPriceCents = MoneyUtils.toCents(maxPriceYuan)
-
-    val products =
-      productRepository.findAll().filter {
-        it.price >= minPriceCents && it.price <= maxPriceCents
-      }
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
-  override fun count(): Long = productRepository.count()
+  ): Page<ProductModel> = productRepository.searchProducts(query, pageable)
 
   override fun countByStatus(status: ProductStatus): Long = productRepository.findByStatus(status).size.toLong()
-
-  fun countLowStockProducts(threshold: Int): Long = productRepository.findAll().count { it.stock <= threshold }.toLong()
-
-  // Additional methods for client queries
-  fun findByCategoryAndNameContainingAndStatus(
-    category: String,
-    keyword: String,
-    pageable: Pageable,
-  ): Page<ProductModel> {
-    val products =
-      productRepository.findAll().filter {
-        it.getImageGalleryAsList().any { url -> url.contains(category, ignoreCase = true) } &&
-          it.name.contains(keyword, ignoreCase = true) &&
-          it.status == ProductStatus.ONLINE
-      }
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
-  fun findByCategoryAndStatus(
-    category: String,
-    pageable: Pageable,
-  ): Page<ProductModel> {
-    val products =
-      productRepository.findAll().filter {
-        it
-          .getImageGalleryAsList()
-          .any { url -> url.contains(category, ignoreCase = true) } && it.status == ProductStatus.ONLINE
-      }
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
-  fun findByNameContainingAndStatus(
-    keyword: String,
-    pageable: Pageable,
-  ): Page<ProductModel> {
-    val products =
-      productRepository.findAll().filter {
-        it.name.contains(keyword, ignoreCase = true) && it.status == ProductStatus.ONLINE
-      }
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
-  fun findByPriceBetweenAndStatus(
-    minPriceYuan: BigDecimal,
-    maxPriceYuan: BigDecimal,
-    pageable: Pageable,
-  ): Page<ProductModel> {
-    // Convert price ranges from yuan to cents for comparison
-    val minPriceCents = MoneyUtils.toCents(minPriceYuan)
-    val maxPriceCents = MoneyUtils.toCents(maxPriceYuan)
-
-    val products =
-      productRepository.findAll().filter {
-        it.price in minPriceCents..maxPriceCents && it.status == ProductStatus.ONLINE
-      }
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
 
   override fun findPopularProducts(
     pageable: Pageable,
@@ -380,15 +225,6 @@ class ProductServiceImpl(
     return PageImpl(pageContent, pageable, products.size.toLong())
   }
 
-  override fun findAllCategories(): List<String> {
-    // Simplified: extract categories from imageGallery (would normally have a proper category field)
-    return productRepository
-      .findAll()
-      .flatMap { product -> product.getImageGalleryAsList() }
-      .map { url -> url.trim() }
-      .distinct()
-  }
-
   // New methods for admin functionality
   @Transactional
   fun batchUpdateProducts(updates: List<ProductUpdateRequestInput>): List<ProductModel> =
@@ -418,14 +254,10 @@ class ProductServiceImpl(
       )
     }
 
-  fun getProductsByStatus(status: ProductStatus): List<ProductModel> = productRepository.findByStatus(status)
-
-  fun getLowStockProducts(threshold: Int): List<ProductModel> = productRepository.findAll().filter { it.stock <= threshold }
-
   fun getProductStatistics(): ProductStatistics {
     val allProducts = productRepository.findAll()
-    val onlineProducts = allProducts.filter { it.status == ProductStatus.ONLINE }
-    val offlineProducts = allProducts.filter { it.status == ProductStatus.OFFLINE }
+    val onlineProducts = allProducts.filter { it.status == ProductModelStatus.ONLINE }
+    val offlineProducts = allProducts.filter { it.status == ProductModelStatus.OFFLINE }
     val lowStockThreshold = 10 // Default threshold
     val lowStockProducts = allProducts.filter { it.stock <= lowStockThreshold }
 
@@ -441,45 +273,6 @@ class ProductServiceImpl(
       averagePrice = averagePrice,
     )
   }
-
-  fun getPriceRangeStatistics(): List<ClientProductQueryResolver.Companion.PriceRange> {
-    // Simplified: return basic price ranges
-    val allProducts = productRepository.findByStatus(ProductStatus.ONLINE)
-
-    if (allProducts.isEmpty()) return emptyList()
-
-    // Convert prices from cents to yuan for statistics
-    val pricesYuan = allProducts.map { MoneyUtils.fromCents(it.price) }
-
-    val min = pricesYuan.minOrNull() ?: BigDecimal.ZERO
-    val max = pricesYuan.maxOrNull() ?: BigDecimal.ZERO
-    val step = (max - min).divide(BigDecimal(4)) // Divide into 4 ranges
-
-    return (0..3).map { i ->
-      val rangeMin = min + step * i.toBigDecimal()
-      val rangeMax = if (i == 3) max else min + step * (i + 1).toBigDecimal()
-
-      // Convert ranges back to cents for comparison
-      val rangeMinCents = MoneyUtils.toCents(rangeMin)
-      val rangeMaxCents = MoneyUtils.toCents(rangeMax)
-
-      val count =
-        allProducts
-          .count {
-            val priceCents = it.price
-            priceCents >= rangeMinCents && (i == 3 || priceCents < rangeMaxCents)
-          }.toLong()
-
-      ClientProductQueryResolver.Companion.PriceRange(
-        min = rangeMin,
-        max = rangeMax,
-        count = count,
-        label = "$rangeMin-$rangeMax",
-      )
-    }
-  }
-
-  // Enhanced methods for new product functionality
 
   // Sales volume tracking
   @Transactional
@@ -498,7 +291,7 @@ class ProductServiceImpl(
   fun getTopSalesProducts(limit: Int = 10): List<ProductModel> =
     productRepository
       .findAllByOrderBySalesVolumeDesc()
-      .filter { it.status == ProductStatus.ONLINE }
+      .filter { it.status == ProductModelStatus.ONLINE }
       .take(limit)
 
   @Transactional
@@ -513,38 +306,6 @@ class ProductServiceImpl(
     product.salesVolume = volume
     productRepository.save(product)
   }
-
-  // Advanced filtering
-  fun findByWaterSource(waterSource: String): List<ProductModel> = productRepository.findByWaterSourceContaining(waterSource)
-
-  fun findBySalesVolumeGreaterThan(minVolume: Int): List<ProductModel> = productRepository.findBySalesVolumeGreaterThan(minVolume)
-
-  fun findByTagsContaining(tag: String): List<ProductModel> = productRepository.findByTagsContaining(tag)
-
-  // Soft delete support
-  fun findActiveProducts(): List<ProductModel> = emptyList()
-
-  fun findActiveProductsByStatus(status: ProductStatus): List<ProductModel> = productRepository.findByStatus(status)
-
-  // Sorting and ordering
-  fun findAllByOrderBySalesVolumeDesc(): List<ProductModel> = productRepository.findAllByOrderBySalesVolumeDesc()
-
-  fun findAllByOrderBySortOrderAsc(): List<ProductModel> = productRepository.findAllByOrderBySortOrderAsc()
-
-  // Enhanced statistics
-  fun getWaterSourceStatistics(): Map<String, Long> =
-    findActiveProducts()
-      .filter { !it.waterSource.isNullOrBlank() }
-      .groupBy { it.waterSource!! }
-      .mapValues { it.value.size.toLong() }
-
-  fun getSpecificationStatistics(): Map<String, Long> =
-    findActiveProducts()
-      .groupBy { it.specification }
-      .mapValues { it.value.size.toLong() }
-
-  // Batch operations for stock management
-  // Removed duplicate methods to avoid conflicts
 
   fun ArrayNode.contains(value: String): Boolean {
     this.forEach { node ->

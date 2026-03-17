@@ -19,12 +19,10 @@
 
 package dev.yidafu.aqua.admin.config
 
+import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.common.domain.model.AdminPermission
-import dev.yidafu.aqua.common.exception.AuthenticationException
-import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.security.JwtTokenService
-import dev.yidafu.aqua.common.security.RolePermissionMapping
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.common.security.toSimpleGrantedAuthority
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
@@ -32,10 +30,8 @@ import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
-import org.springframework.security.authentication.AnonymousAuthenticationToken
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource
 import org.springframework.stereotype.Component
@@ -46,6 +42,7 @@ class JwtAuthenticationFilter(
   private val jwtTokenService: JwtTokenService,
   private val customUserDetailsService: UserDetailsService,
   private val userService: UserService,
+  private val adminService: AdminService,
 ) : OncePerRequestFilter() {
   private val jwtLogger = LoggerFactory.getLogger("dev.yidafu.aqua.security.jwt")
   private val auditLogger = LoggerFactory.getLogger("dev.yidafu.aqua.audit")
@@ -185,7 +182,7 @@ class JwtAuthenticationFilter(
       )
 
       // Extract username from token
-      val username = jwtTokenService.extractUsername(token)
+      var username = jwtTokenService.extractUsername(token)
       if (username.isNullOrBlank()) {
         jwtLogger.warn(
           "JWT_VALIDATION_FAILED - CorrelationId: {}, Reason: Cannot extract username from token",
@@ -208,20 +205,25 @@ class JwtAuthenticationFilter(
           correlationId,
           username,
         )
+        val userId = userModal.id!!
+        val admin = adminService.findByUserId(userId)
+        if (admin != null) {
+          username = admin.username
+        } else {
+          // If it's a pending delivery worker token (userType = DELIVERY_WORKER, id = 0),
+          // use proper authentication instead of AnonymousAuthenticationToken
+          val authorities = listOf(AdminPermission.PRODUCT_READ.toSimpleGrantedAuthority())
 
-        // If it's a pending delivery worker token (userType = DELIVERY_WORKER, id = 0),
-        // use proper authentication instead of AnonymousAuthenticationToken
-        val authorities = listOf(AdminPermission.PRODUCT_READ.toSimpleGrantedAuthority())
+          val authentication =
+            UsernamePasswordAuthenticationToken(
+              UserPrincipal(0L, username, "Anonymous", authorities),
+              null,
+              authorities,
+            )
+          SecurityContextHolder.getContext().authentication = authentication
 
-        val authentication =
-          UsernamePasswordAuthenticationToken(
-            UserPrincipal(0L, username, "Anonymous", authorities),
-            null,
-            authorities,
-          )
-        SecurityContextHolder.getContext().authentication = authentication
-
-        return true
+          return true
+        }
       }
 
       // Load user details and set authentication
@@ -243,16 +245,11 @@ class JwtAuthenticationFilter(
         username,
       )
 
-      // 从 JWT token 中提取完整的 UserPrincipal
-      val userPrincipal =
-        jwtTokenService.getUserPrincipalFromToken(token)
-          ?: throw AuthenticationException("Authentication failed")
-
       val authentication =
         UsernamePasswordAuthenticationToken(
-          userPrincipal,
+          userDetails,
           null,
-          userPrincipal.authorities,
+          userDetails.authorities,
         )
       authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
 

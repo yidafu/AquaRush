@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.client.product.resolvers
 
-import dev.yidafu.aqua.api.service.ProductFavoriteService
+import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.security.UserPrincipal

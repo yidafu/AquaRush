@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.admin.delivery.resolvers
 
-import dev.yidafu.aqua.api.service.DeliveryService
+import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.AdminRoleModel
@@ -45,7 +45,7 @@ import org.springframework.transaction.annotation.Transactional
 @Controller
 class AdminDeliveryWorkerMutationResolver(
   private val deliveryWorkerRepository: DeliveryWorkerRepository,
-  private val deliveryService: DeliveryService,
+  private val deliveryWorkerQueryService: DeliveryWorkerQueryService,
   private val adminRepository: AdminRepository,
   private val passwordEncoder: PasswordEncoder,
 ) {
@@ -174,31 +174,6 @@ class AdminDeliveryWorkerMutationResolver(
       throw BadRequestException("更新送水工失败: ${e.message}")
     }
   }
-
-  /**
-   * 删除配送员（管理员功能）
-   */
-  @PreAuthorize("hasRole('ADMIN')")
-  @Transactional
-  fun deleteDeliveryWorker(workerId: Long): Boolean =
-    try {
-      if (!deliveryWorkerRepository.existsById(workerId)) {
-        throw NotFoundException("送水工不存在: $workerId")
-      }
-
-      // 检查配送员是否有活跃配送任务
-      val activeDeliveries = deliveryService.getWorkerActiveTasks(workerId)
-      if (activeDeliveries.isNotEmpty()) {
-        throw BadRequestException("该送水工还有进行中的配送任务，无法删除")
-      }
-
-      deliveryWorkerRepository.deleteById(workerId)
-      logger.info("Successfully deleted delivery worker: $workerId")
-      true
-    } catch (e: Exception) {
-      logger.error("Failed to delete delivery worker", e)
-      throw BadRequestException("删除送水工失败: ${e.message}")
-    }
 
   /**
    * 验证创建配送员输入

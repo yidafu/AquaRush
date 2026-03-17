@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.client.order.resolvers
 
-import dev.yidafu.aqua.api.service.OrderService
+import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.security.UserPrincipal
@@ -32,7 +32,7 @@ import org.springframework.stereotype.Controller
 @ClientService
 @Controller("clientOrderQueryResolver")
 class OrderQueryResolver(
-  private val orderService: OrderService,
+  private val orderQueryService: OrderQueryService,
 ) {
   /**
    * 获取当前用户的订单 - 客户端
@@ -41,7 +41,7 @@ class OrderQueryResolver(
   @PreAuthorize("isAuthenticated()")
   fun myOrders(
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): List<OrderModel> = orderService.findOrdersByUserId(userPrincipal.id)
+  ): List<OrderModel> = orderQueryService.findOrdersByUserId(userPrincipal.id)
 
   /**
    * 根据ID获取订单（仅限当前用户的订单）- 客户端
@@ -52,7 +52,7 @@ class OrderQueryResolver(
     @Argument orderId: Long,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): OrderModel? =
-    orderService.findOrderByIdAndUserId(orderId, userPrincipal.id)
+    orderQueryService.findOrderByIdAndUserId(orderId, userPrincipal.id)
       ?: throw IllegalArgumentException("Order not found or access denied")
 
   /**
@@ -64,16 +64,6 @@ class OrderQueryResolver(
     @Argument orderNumber: String,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): OrderModel? =
-    orderService.findOrderByNumberAndUserId(orderNumber, userPrincipal.id)
+    orderQueryService.findOrderByNumberAndUserId(orderNumber, userPrincipal.id)
       ?: throw IllegalArgumentException("Order not found or access denied")
-
-  /**
-   * 根据状态获取当前用户的订单 - 客户端
-   */
-  @QueryMapping
-  @PreAuthorize("isAuthenticated()")
-  fun ordersByStatus(
-    @Argument status: String,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): List<OrderModel> = orderService.findOrdersByUserIdAndStatus(userPrincipal.id, status)
 }

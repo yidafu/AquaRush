@@ -19,8 +19,7 @@
 
 package dev.yidafu.aqua.admin.order.resolvers
 
-import dev.yidafu.aqua.api.service.DeliveryService
-import dev.yidafu.aqua.api.service.OrderService
+import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderListInput
 import dev.yidafu.aqua.common.graphql.generated.OrderPage
@@ -33,8 +32,7 @@ import org.springframework.stereotype.Controller
 
 @Controller
 class AdminOrderQueryResolver(
-  private val orderService: OrderService,
-  private val deliveryService: DeliveryService,
+  private val orderQueryService: OrderQueryService,
 ) {
   /**
    * 分页查询订单 - 管理员权限
@@ -49,7 +47,7 @@ class AdminOrderQueryResolver(
     val sort = input?.sort ?: "createdAt,desc"
 
     val ordersPage =
-      orderService.searchOrders(
+      orderQueryService.searchOrders(
         keyword = input?.search,
         status = input?.status?.name,
         userId = input?.userId,
@@ -80,7 +78,7 @@ class AdminOrderQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun order(
     @Argument orderId: Long,
-  ): Order? = OrderMapper.map(orderService.getOrderById(orderId))
+  ): Order? = OrderMapper.map(orderQueryService.getOrderById(orderId))
 
   /**
    * 根据订单号获取订单 - 管理员权限
@@ -89,65 +87,5 @@ class AdminOrderQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun orderByNumber(
     @Argument orderNumber: String,
-  ): Order? = OrderMapper.map(orderService.getOrderByNumber(orderNumber))
-
-  /**
-   * 根据用户ID获取订单 - 管理员权限
-   */
-  @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
-  fun ordersByUser(
-    @Argument userId: Long,
-  ): List<Order> = OrderMapper.mapList(orderService.findOrdersByUserId(userId))
-
-  /**
-   * 根据状态获取订单 - 管理员权限
-   */
-  @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
-  fun ordersByStatus(
-    @Argument status: String,
-  ): List<Order> = OrderMapper.mapList(orderService.findOrdersByStatus(status))
-
-  /**
-   * 根据用户ID和状态获取订单 - 管理员权限
-   */
-  @QueryMapping
-  fun ordersByUserAndStatus(
-    @Argument userId: Long,
-    @Argument status: String,
-  ): List<Order> = OrderMapper.mapList(orderService.findOrdersByUserIdAndStatus(userId, status))
-
-  // ==================== 派单相关 queries ====================
-
-  /**
-   * 获取待派单订单列表 - 管理员权限
-   */
-  @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
-  fun pendingDeliveryOrders(): List<Order> = deliveryService.getPendingDeliveryOrders().map { OrderMapper.map(it) }
-
-  /**
-   * 获取配送员的已接单订单
-   */
-  @QueryMapping
-  fun assignedOrders(
-    @Argument workerId: Long,
-  ): List<Order> = deliveryService.getAssignedOrders(workerId).map { OrderMapper.map(it) }
-
-  /**
-   * 获取配送员的配送中订单
-   */
-  @QueryMapping
-  fun deliveringOrders(
-    @Argument workerId: Long,
-  ): List<Order> = deliveryService.getWorkerActiveTasks(workerId).map { OrderMapper.map(it) }
-
-  /**
-   * 获取配送员当日统计数据
-   */
-  @QueryMapping
-  fun todayStatistics(
-    @Argument workerId: Long?,
-  ): dev.yidafu.aqua.api.service.DeliveryService.TodayStatistics = deliveryService.getTodayStatistics(workerId)
+  ): Order? = OrderMapper.map(orderQueryService.getOrderByNumber(orderNumber))
 }

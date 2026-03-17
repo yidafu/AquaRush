@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.product.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
@@ -54,17 +55,8 @@ interface ProductRepository :
     pageable: org.springframework.data.domain.Pageable,
   ): org.springframework.data.domain.Page<ProductModel>
 
-  // Advanced filtering methods
-  fun findByWaterSourceContaining(waterSource: String): List<ProductModel>
-
-  fun findBySalesVolumeGreaterThan(minVolume: Int): List<ProductModel>
-
-  fun findByTagsContaining(tag: String): List<ProductModel>
-
   // Sorting and ordering
   fun findAllByOrderBySalesVolumeDesc(): List<ProductModel>
-
-  fun findAllByOrderBySortOrderAsc(): List<ProductModel>
 
   fun decreaseStock(
     productId: Long,
@@ -74,7 +66,7 @@ interface ProductRepository :
     return if (product != null && product.stock >= quantity) {
       product.stock -= quantity
       if (product.stock == 0) {
-        product.status = ProductStatus.OUT_OF_STOCK
+        product.status = ProductModelStatus.OUT_OF_STOCK
       }
       save(product)
       1
@@ -90,8 +82,8 @@ interface ProductRepository :
     val product = findById(productId).orElse(null)
     return if (product != null) {
       product.stock += quantity
-      if (product.stock > 0 && product.status == ProductStatus.OUT_OF_STOCK) {
-        product.status = ProductStatus.ONLINE
+      if (product.stock > 0 && product.status == ProductModelStatus.OUT_OF_STOCK) {
+        product.status = ProductModelStatus.ONLINE
       }
       save(product)
       1

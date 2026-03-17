@@ -17,26 +17,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.api.service
+package dev.yidafu.aqua.api.service.order
 
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import org.springframework.data.domain.Page
 
 /**
- * 订单服务接口
+ * 订单查询服务接口
  */
-interface OrderService {
-  /**
-   * 创建订单
-   */
-  fun createOrder(
-    userId: Long,
-    productId: Long,
-    addressId: Long,
-    quantity: Int,
-  ): OrderModel
-
+interface OrderQueryService {
   /**
    * 获取订单详情
    */
@@ -61,82 +51,44 @@ interface OrderService {
   ): List<OrderModel>
 
   /**
-   * 取消订单
-   */
-  fun cancelOrder(orderId: Long): OrderModel
-
-  /**
-   * 更新订单状态
-   */
-  fun updateOrderStatus(
-    orderId: Long,
-    status: OrderStatus,
-  ): OrderModel
-
-  /**
    * 根据状态获取订单列表
    */
   fun getOrdersByStatus(status: OrderStatus): List<OrderModel>
 
   /**
-   * 处理支付成功
+   * 获取所有订单
    */
-  fun handlePaymentSuccess(
-    orderId: Long,
-    paymentTransactionId: String,
-  )
-
-  /**
-   * 处理支付超时
-   */
-  fun handlePaymentTimeout(orderId: Long)
-
-  // Additional methods for GraphQL resolvers
-  fun createOrder(
-    input: Any,
-    userId: Long,
-  ): OrderModel
-
-  /**
-   * 配送员创建订单 - 通过地址ID获取用户ID
-   */
-  fun createDeliveryOrder(
-    adminId: Long,
-    productId: Long,
-    addressId: Long,
-    quantity: Int,
-    isSelfCollect: Boolean = false,
-    remark: String? = null,
-  ): OrderModel
-
-  fun cancelOrder(
-    orderId: Long,
-    userId: Long,
-  ): OrderModel?
-
-  fun cancelOrderForAdmin(orderId: Long): OrderModel?
-
-  fun updateOrderStatus(
-    orderId: Long,
-    status: String,
-  ): OrderModel?
-
   fun findAllOrders(): List<OrderModel>
 
+  /**
+   * 根据ID和用户ID查询订单
+   */
   fun findOrderByIdAndUserId(
     orderId: Long,
     userId: Long,
   ): OrderModel?
 
+  /**
+   * 根据订单号和用户ID查询订单
+   */
   fun findOrderByNumberAndUserId(
     orderNumber: String,
     userId: Long,
   ): OrderModel?
 
+  /**
+   * 查询用户所有订单
+   */
   fun findOrdersByUserId(userId: Long): List<OrderModel>
 
+  /**
+   * 根据状态字符串查询订单
+   */
   fun findOrdersByStatus(status: String): List<OrderModel>
 
+  /**
+   * 根据用户ID和状态查询
+   */
   fun findOrdersByUserIdAndStatus(
     userId: Long,
     status: String,

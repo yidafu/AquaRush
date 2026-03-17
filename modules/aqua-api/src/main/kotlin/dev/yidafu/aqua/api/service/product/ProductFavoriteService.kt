@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.api.service
+package dev.yidafu.aqua.api.service.product
 
 import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
 import dev.yidafu.aqua.common.domain.model.ProductModel

@@ -21,9 +21,8 @@ package dev.yidafu.aqua.admin.delivery.resolvers
 
 import dev.yidafu.aqua.api.dto.DeliveryLoginRequest
 import dev.yidafu.aqua.api.dto.DeliveryLoginResponse
-import dev.yidafu.aqua.api.service.DeliveryAuthService
+import dev.yidafu.aqua.api.service.delivery.DeliveryAuthService
 import dev.yidafu.aqua.common.annotation.AdminService
-import dev.yidafu.aqua.common.graphql.generated.BindDeliveryPhoneInput
 import dev.yidafu.aqua.common.graphql.generated.DeliveryLoginInput
 import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument
@@ -43,9 +42,4 @@ class DeliveryAuthMutationResolver(
   fun deliveryLogin(
     @Argument @Valid input: DeliveryLoginInput,
   ): DeliveryLoginResponse = deliveryAuthService.login(DeliveryLoginRequest(input.code))
-
-  @MutationMapping
-  fun bindDeliveryPhone(
-    @Argument @Valid input: BindDeliveryPhoneInput,
-  ): DeliveryLoginResponse = deliveryAuthService.bindPhone(input.openId, input.phoneNumber)
 }

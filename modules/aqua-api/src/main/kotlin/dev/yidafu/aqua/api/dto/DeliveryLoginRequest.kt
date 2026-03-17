@@ -29,6 +29,6 @@ data class DeliveryWorkerInfo(
   val name: String,
   val phone: String,
   val avatarUrl: String?,
-  val wechatOpenId: String,
+//  val wechatOpenId: String,
   val role: String,
 )

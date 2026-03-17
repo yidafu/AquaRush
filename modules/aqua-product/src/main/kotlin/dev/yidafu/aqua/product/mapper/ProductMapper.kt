@@ -19,8 +19,13 @@
 
 package dev.yidafu.aqua.product.mapper
 
+import dev.yidafu.aqua.api.dto.ProductQuery
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.Product
+import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
+import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
 
 /**
@@ -31,8 +36,20 @@ object ProductMapper : ObjectMappie<ProductModel, Product>() {
     mapping {
       // Fields with same name and type - auto-mapped by Mappie
       to::status fromExpression {
-        dev.yidafu.aqua.common.graphql.generated.ProductStatus
+        ProductStatus
           .valueOf(from.status.name)
       }
     }
 }
+
+object ProductQueryMapper : ObjectMappie<ProductSearchInput, ProductQuery>() {
+  override fun map(from: ProductSearchInput): ProductQuery =
+    mapping {
+      to::sortBy fromValue from.sortBy.toString()
+      to::status fromExpression { from.status?.let { ProductStatusMapper.map(it) } }
+    }
+}
+
+object ProductModelStatusMapper : EnumMappie<ProductModelStatus, ProductStatus>()
+
+object ProductStatusMapper : EnumMappie<ProductStatus, ProductModelStatus>()

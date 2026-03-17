@@ -31,6 +31,5 @@ fun DeliveryWorkerModel.toDeliveryWorkerInfo(): DeliveryWorkerInfo =
     name = name,
     phone = phone,
     avatarUrl = avatarUrl,
-    wechatOpenId = wechatOpenId,
     role = "",
   )

@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.client.user.resolvers
 
-import dev.yidafu.aqua.api.service.AddressService
+import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.Address

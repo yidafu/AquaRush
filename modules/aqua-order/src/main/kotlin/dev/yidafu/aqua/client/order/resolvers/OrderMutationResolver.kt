@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.client.order.resolvers
 
-import dev.yidafu.aqua.api.service.OrderService
+import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
@@ -34,7 +34,7 @@ import org.springframework.stereotype.Controller
 @ClientService
 @Controller("clientOrderMutationResolver")
 class OrderMutationResolver(
-  private val orderService: OrderService,
+  private val orderMutationService: OrderMutationService,
 ) {
   /**
    * 创建订单 - 客户端
@@ -44,7 +44,7 @@ class OrderMutationResolver(
   fun createOrder(
     @Argument @Valid input: CreateOrderInput,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): OrderModel = orderService.createOrder(input, userPrincipal.id)
+  ): OrderModel = orderMutationService.createOrder(input, userPrincipal.id)
 
   /**
    * 取消订单（仅限当前用户的订单）- 客户端
@@ -55,6 +55,6 @@ class OrderMutationResolver(
     @Argument orderId: Long,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): OrderModel =
-    orderService.cancelOrder(orderId, userPrincipal.id)
+    orderMutationService.cancelOrder(orderId, userPrincipal.id)
       ?: throw IllegalArgumentException("Order not found or access denied")
 }

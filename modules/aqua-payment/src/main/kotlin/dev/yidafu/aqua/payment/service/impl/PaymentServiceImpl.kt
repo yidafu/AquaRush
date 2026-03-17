@@ -21,8 +21,9 @@ package dev.yidafu.aqua.payment.service.impl
 
 import com.wechat.pay.java.core.Config
 import com.wechat.pay.java.core.exception.ValidationException
-import dev.yidafu.aqua.api.service.OrderService
 import dev.yidafu.aqua.api.service.PaymentService
+import dev.yidafu.aqua.api.service.order.OrderMutationService
+import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import org.slf4j.LoggerFactory
@@ -32,7 +33,8 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class PaymentServiceImpl(
-  private val orderService: OrderService,
+  private val orderQueryService: OrderQueryService,
+  private val orderMutationService: OrderMutationService,
 ) : PaymentService {
   private val logger = LoggerFactory.getLogger(PaymentService::class.java)
 
@@ -81,7 +83,7 @@ class PaymentServiceImpl(
   ): Map<String, Any> {
     try {
       // 验证订单存在且状态正确
-      val order = orderService.getOrderById(orderId)
+      val order = orderQueryService.getOrderById(orderId)
       if (order.status != OrderStatus.PENDING_PAYMENT) {
         throw BadRequestException("订单状态不正确，无法创建支付")
       }
@@ -115,10 +117,10 @@ class PaymentServiceImpl(
       val transactionId = resource["transaction_id"] as String
 
       // 查找订单
-      val order = orderService.getOrderByNumber(outTradeNo)
+      val order = orderQueryService.getOrderByNumber(outTradeNo)
 
       // 处理支付成功
-      orderService.handlePaymentSuccess(order.id!!, transactionId)
+      orderMutationService.handlePaymentSuccess(order.id!!, transactionId)
 
       logger.info("支付回调处理成功: 订单号=$outTradeNo, 交易号=$transactionId")
       return true
@@ -133,7 +135,7 @@ class PaymentServiceImpl(
    */
   override fun queryPaymentStatus(orderId: Long): String {
     try {
-      val order = orderService.getOrderById(orderId)
+      val order = orderQueryService.getOrderById(orderId)
 
       if (order.status != OrderStatus.PENDING_PAYMENT) {
         return when (order.status) {
@@ -219,7 +221,7 @@ class PaymentServiceImpl(
   @Transactional
   override fun handlePaymentTimeout(orderId: Long) {
     try {
-      orderService.handlePaymentTimeout(orderId)
+      orderMutationService.handlePaymentTimeout(orderId)
       logger.info("支付超时处理成功: 订单ID=$orderId")
     } catch (e: Exception) {
       logger.error("支付超时处理失败", e)

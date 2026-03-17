@@ -31,14 +31,16 @@ import java.util.*
 interface AdminRepository :
   JpaRepository<AdminModel, Long>,
   JpaSpecificationExecutor<AdminModel> {
-  fun findByUsername(username: String): Optional<AdminModel>
+  fun findByUsername(username: String): AdminModel?
+
+  fun findByUserId(userId: Long): AdminModel?
 
   fun findByUsernameAndRole(
     username: String,
     role: AdminRoleModel,
-  ): Optional<Admin>
+  ): AdminModel?
 
-  fun findByPhone(phone: String): Optional<Admin>
+  fun findByPhone(phone: String): AdminModel?
 
   fun findByRole(role: AdminRoleModel): List<AdminModel>
 

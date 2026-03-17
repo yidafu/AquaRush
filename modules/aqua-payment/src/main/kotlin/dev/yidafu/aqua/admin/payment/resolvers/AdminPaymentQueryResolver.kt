@@ -111,40 +111,7 @@ class AdminPaymentQueryResolver(
     return null
   }
 
-  /**
-   * 查询支付统计信息（管理员功能）
-   */
-  @PreAuthorize("hasRole('ADMIN')")
-  fun paymentStatistics(
-    dateFrom: LocalDateTime? = null,
-    dateTo: LocalDateTime? = null,
-  ): PaymentStatistics {
-    // TODO: 实现从paymentService获取支付统计
-    // 目前返回默认统计数据
-    return PaymentStatistics(
-      totalAmount = 0L,
-      totalTransactions = 0L,
-      successfulTransactions = 0L,
-      failedTransactions = 0L,
-      refundedAmount = 0L,
-      refundCount = 0L,
-      averageTransactionAmount = 0L,
-      dailyStats = emptyList(),
-    )
-  }
 
-  /**
-   * 查询支付方式统计（管理员功能）
-   */
-  @PreAuthorize("hasRole('ADMIN')")
-  fun paymentMethodStatistics(
-    dateFrom: LocalDateTime? = null,
-    dateTo: LocalDateTime? = null,
-  ): List<PaymentMethodStats> {
-    // TODO: 实现从paymentService获取支付方式统计
-    // 目前返回空列表
-    return emptyList()
-  }
 
   /**
    * 查询异常交易（管理员功能）
@@ -162,16 +129,4 @@ class AdminPaymentQueryResolver(
     return Page.empty(pageable)
   }
 
-  /**
-   * 查询日支付统计（管理员功能）
-   */
-  @PreAuthorize("hasRole('ADMIN')")
-  fun dailyPaymentStatistics(
-    dateFrom: LocalDateTime,
-    dateTo: LocalDateTime,
-  ): List<DailyPaymentStats> {
-    // TODO: 实现从paymentService获取日支付统计
-    // 目前返回空列表
-    return emptyList()
-  }
 }

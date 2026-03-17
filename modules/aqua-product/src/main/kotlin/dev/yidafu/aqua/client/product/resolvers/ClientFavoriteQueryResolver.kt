@@ -19,13 +19,14 @@
 
 package dev.yidafu.aqua.client.product.resolvers
 
-import dev.yidafu.aqua.api.service.ProductFavoriteService
+import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.FavoriteProduct
 import dev.yidafu.aqua.common.graphql.generated.FavoriteProductPage
 import dev.yidafu.aqua.common.graphql.generated.PageInfo
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.product.mapper.ProductModelStatusMapper
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
@@ -33,6 +34,7 @@ import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
+import java.time.LocalDateTime
 
 /**
  * 客户端收藏查询解析器
@@ -123,7 +125,7 @@ class ClientFavoriteQueryResolver(
    */
   private fun createFavoriteProduct(
     product: ProductModel,
-    addedAt: java.time.LocalDateTime?,
+    addedAt: LocalDateTime?,
   ): FavoriteProduct =
     FavoriteProduct(
       id = product.id,
@@ -134,7 +136,7 @@ class ClientFavoriteQueryResolver(
       coverImageUrl = product.coverImageUrl,
       stock = product.stock,
       salesVolume = product.salesVolume,
-      status = product.status,
+      status = ProductModelStatusMapper.map(product.status),
       addedAt = addedAt ?: product.createdAt,
     )
 }

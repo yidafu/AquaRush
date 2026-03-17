@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.admin.order.resolvers
 
-import dev.yidafu.aqua.api.service.OrderOperationService
+import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.common.domain.model.OrderOperationModel
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping

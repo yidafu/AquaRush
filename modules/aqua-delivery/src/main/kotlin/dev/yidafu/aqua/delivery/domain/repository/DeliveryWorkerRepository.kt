@@ -35,4 +35,6 @@ interface DeliveryWorkerRepository : JpaRepository<DeliveryWorkerModel, Long> {
   fun existsByPhone(phone: String): Boolean = findByPhone(phone) != null
 
   fun findByPhone(phone: String): DeliveryWorkerModel?
+
+  fun findByAdminId(adminId: Long): DeliveryWorkerModel?
 }

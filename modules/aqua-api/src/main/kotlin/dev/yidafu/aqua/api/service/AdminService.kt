@@ -38,6 +38,8 @@ interface AdminService {
    */
   fun findById(id: Long): AdminModel?
 
+  fun findByUserId(userId: Long): AdminModel?
+
   /**
    * Find admin by username
    */

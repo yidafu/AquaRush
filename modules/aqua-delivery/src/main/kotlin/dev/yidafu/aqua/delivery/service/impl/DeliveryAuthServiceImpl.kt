@@ -4,16 +4,17 @@ import cn.binarywang.wx.miniapp.api.WxMaService
 import dev.yidafu.aqua.api.dto.DeliveryLoginRequest
 import dev.yidafu.aqua.api.dto.DeliveryLoginResponse
 import dev.yidafu.aqua.api.dto.DeliveryWorkerInfo
-import dev.yidafu.aqua.api.service.DeliveryAuthService
+import dev.yidafu.aqua.api.service.delivery.DeliveryAuthService
 import dev.yidafu.aqua.common.domain.model.AdminRoleModel
-import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.JwtTokenException
+import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.common.security.toPermissionAuthorities
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
@@ -24,6 +25,7 @@ import me.chanjar.weixin.common.error.WxErrorException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
 @Service
 class DeliveryAuthServiceImpl(
@@ -44,7 +46,6 @@ class DeliveryAuthServiceImpl(
       name = worker.name,
       phone = worker.phone,
       avatarUrl = worker.avatarUrl,
-      wechatOpenId = worker.wechatOpenId,
       role = admin.role.toString(),
     )
   }
@@ -59,12 +60,12 @@ class DeliveryAuthServiceImpl(
       val existingWorker = deliveryWorkerRepository.findByWechatOpenId(openId)
       if (existingWorker != null) {
         // Worker already bound, generate token
-        val token = generateToken(existingWorker)
+        val token = generateToken(existingWorker.adminId)
 
         // 记录配送员登录日志
         bizLogger.logLogin(
           userId = existingWorker.id!!.toString(),
-          username = existingWorker.name ?: existingWorker.wechatOpenId,
+          username = existingWorker.name,
           loginMethod = "WECHAT_DELIVERY",
           success = true,
         )
@@ -152,14 +153,15 @@ class DeliveryAuthServiceImpl(
 
     // Extract openId from token (for pending workers, username is the openId)
     val openId = userPrincipal.username
-    if (openId.isNullOrBlank()) {
+    if (openId.isBlank()) {
       throw BadRequestException("无效的登录信息，请重新登录")
     }
 
     logger.info("Binding phone for openId: {}", openId)
 
     // Verify phone number belongs to admin or delivery worker
-    val isAdmin = adminRepository.existsByPhone(phoneNumber)
+    val admin = adminRepository.findByPhone(phoneNumber)
+    val isAdmin = admin != null
 
     if (!isAdmin) {
       throw BadRequestException("该手机号未注册为管理员或送水员，请联系管理员")
@@ -183,7 +185,14 @@ class DeliveryAuthServiceImpl(
     // 绑定用户ID和手机号
     worker.userId = user.id
     worker.phone = phoneNumber
+    worker.wechatOpenId = openId
+    worker.adminId = admin.id
     worker = deliveryWorkerRepository.save(worker)
+
+    admin.deliveryWorkerId = worker.id
+    admin.userId = user.id
+    admin.lastLoginAt = LocalDateTime.now()
+    adminRepository.save(admin)
 
     logger.info(
       "Updated existing worker: id={}, phone={}, openId={}, userId={}",
@@ -194,7 +203,7 @@ class DeliveryAuthServiceImpl(
     )
 
     // Generate token
-    val newToken = generateToken(worker)
+    val newToken = generateToken(admin.id)
 
     // 记录配送员手机绑定日志
     bizLogger.logLogin(
@@ -229,14 +238,14 @@ class DeliveryAuthServiceImpl(
   /**
    * Generate JWT token for delivery worker
    */
-  private fun generateToken(worker: DeliveryWorkerModel): String {
-    val authorities = listOf(AdminRoleModel.DELIVERY_WORKER.toSimpleGrantedAuthority())
+  private fun generateToken(adminId: Long): String {
+    val admin = adminRepository.findById(adminId).orElseThrow { UserNotFoundException("管理员不存在") }
     val userPrincipal =
       UserPrincipal(
-        id = worker.id!!,
-        _username = worker.wechatOpenId,
-        userType = "DELIVERY_WORKER",
-        _authorities = authorities,
+        id = admin.id,
+        _username = admin.username,
+        userType = admin.role.name,
+        _authorities = admin.role.toPermissionAuthorities(),
       )
     return jwtTokenService.generateAccessToken(userPrincipal)
   }
@@ -284,15 +293,15 @@ class DeliveryAuthServiceImpl(
     }
 
     // Query worker info by userId
-    val worker =
-      deliveryWorkerRepository.findById(userPrincipal.id).orElse(null)
+    val admin =
+      adminRepository.findById(userPrincipal.id).orElse(null)
         ?: throw BadRequestException("用户不存在，请重新登录")
 
     return DeliveryLoginResponse(
       token = actualToken,
       refreshToken = null,
       needBindPhone = false,
-      workerInfo = getWorkInfo(worker.id!!),
+      workerInfo = admin.deliveryWorkerId?.let { getWorkInfo(it) },
       message = "登录态有效",
     )
   }

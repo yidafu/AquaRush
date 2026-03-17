@@ -58,6 +58,8 @@ class JwtTokenService {
    */
   fun generateRefreshToken(userDetails: UserDetails): String = generateToken(userDetails, refreshTokenExpiration)
 
+  fun generateWorkerToken(userDetails: UserDetails): String = generateToken(userDetails, accessTokenExpiration)
+
   /**
    * Extract username from JWT token
    */

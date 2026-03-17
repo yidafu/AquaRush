@@ -20,8 +20,11 @@
 package dev.yidafu.aqua.product.domain.repository
 
 import com.querydsl.core.BooleanBuilder
+import com.querydsl.core.types.OrderSpecifier
 import com.querydsl.jpa.impl.JPAQueryFactory
+import dev.yidafu.aqua.api.dto.ProductQuery
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.ProductModelStatus
 import dev.yidafu.aqua.common.domain.model.QProductModel.Companion.productModel
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import jakarta.persistence.EntityManager
@@ -44,20 +47,48 @@ class ProductRepositoryImpl : ProductRepositoryCustom {
   }
 
   override fun searchProducts(
-    keyword: String?,
-    status: ProductStatus?,
+    query: ProductQuery,
     pageable: Pageable,
   ): Page<ProductModel> {
     val builder = BooleanBuilder()
 
     // Add keyword filter (LIKE query)
-    if (keyword.isNullOrBlank()) {
-      builder.and(productModel.name.like("%$keyword%"))
+    if (!query.keyword.isNullOrBlank()) {
+      builder.and(productModel.name.like("%${query.keyword}%"))
     }
-    // Add status filter
-    status?.let {
+    query.status?.let {
       builder.and(productModel.status.eq(it))
     }
+    query.minPrice?.let {
+      builder.and(productModel.price.gt(it))
+    }
+    query.maxPrice?.let {
+      builder.and(productModel.price.lt(it))
+    }
+    query.minStock?.let {
+      builder.and(productModel.stock.gt(it))
+    }
+    query.maxStock?.let {
+      builder.and(productModel.stock.lt(it))
+    }
+    query.minSalesVolume?.let {
+      builder.and(productModel.salesVolume.gt(it))
+    }
+    query.maxSalesVolume?.let {
+      builder.and(productModel.salesVolume.lt(it))
+    }
+    val orderBy =
+      when (query.sortBy) {
+        "CREATED_AT_ASC" -> productModel.status.asc()
+        "CREATED_AT_DESC" -> productModel.createdAt.desc()
+        "PRICE_ASC" -> productModel.price.asc()
+        "PRICE_DESC" -> productModel.price.desc()
+        "SALES_VOLUME_ASC" -> productModel.salesVolume.asc()
+        "SALES_VOLUME_DESC" -> productModel.salesVolume.desc()
+        "SORT_ORDER_ASC" -> productModel.sortOrder.asc()
+        "SORT_ORDER_DESC" -> productModel.sortOrder.desc()
+        else -> productModel.createdAt.desc()
+      }
 
     // Get total count
     val total =
@@ -65,6 +96,7 @@ class ProductRepositoryImpl : ProductRepositoryCustom {
         .query()
         .from(productModel)
         .where(builder)
+        .orderBy(orderBy)
         .fetchCount()
 
     // Get paginated results
@@ -72,6 +104,7 @@ class ProductRepositoryImpl : ProductRepositoryCustom {
       queryFactory
         .selectFrom(productModel)
         .where(builder)
+        .orderBy(orderBy)
         .offset(pageable.offset)
         .limit(pageable.pageSize.toLong())
         .fetch()

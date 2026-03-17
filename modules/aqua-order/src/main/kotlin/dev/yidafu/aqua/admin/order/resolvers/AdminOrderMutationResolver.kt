@@ -19,11 +19,13 @@
 
 package dev.yidafu.aqua.admin.order.resolvers
 
-import dev.yidafu.aqua.api.service.DeliveryService
-import dev.yidafu.aqua.api.service.OrderService
-import dev.yidafu.aqua.common.annotation.AdminService
+import dev.yidafu.aqua.api.service.AdminService
+import dev.yidafu.aqua.api.service.delivery.DeliveryTaskMutationService
+import dev.yidafu.aqua.api.service.order.OrderMutationService
+import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentType
+import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.graphql.generated.Order
@@ -35,13 +37,15 @@ import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
+import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Controller
 
-@AdminService
 @Controller("adminOrderMutationResolver")
 class AdminOrderMutationResolver(
-  private val orderService: OrderService,
-  private val deliveryService: DeliveryService,
+  private val orderMutationService: OrderMutationService,
+  private val orderQueryService: OrderQueryService,
+  private val deliveryTaskMutationService: DeliveryTaskMutationService,
+  private val adminService: AdminService,
 ) {
   private val logger = LoggerFactory.getLogger(AdminOrderMutationResolver::class.java)
 
@@ -53,7 +57,7 @@ class AdminOrderMutationResolver(
   fun createOrder(
     @Argument @Valid input: CreateOrderInput,
     @Argument userId: Long,
-  ): Order = OrderMapper.map(orderService.createOrder(input, userId))
+  ): Order = OrderMapper.map(orderMutationService.createOrder(input, userId))
 
   /**
    * 取消订单 - 管理员权限
@@ -63,7 +67,7 @@ class AdminOrderMutationResolver(
   fun cancelOrder(
     @Argument orderId: Long,
   ): Order =
-    orderService.cancelOrderForAdmin(orderId)?.let { OrderMapper.map(it) }
+    orderMutationService.cancelOrderForAdmin(orderId)?.let { OrderMapper.map(it) }
 
       ?: throw IllegalArgumentException("Order not found")
 
@@ -76,7 +80,7 @@ class AdminOrderMutationResolver(
     @Argument orderId: Long,
     @Argument status: OrderStatus,
   ): Order =
-    orderService
+    orderMutationService
       .updateOrderStatus(orderId, status.name)
       ?.let { OrderMapper.map(it) }
       ?: throw IllegalArgumentException("Order not found")
@@ -100,7 +104,7 @@ class AdminOrderMutationResolver(
     val adminId = principal.id
     val username = principal.username
     logger.info("Admin $username($adminId) assigning worker $workerId to order $orderId, isSelfCollect: $isSelfCollect")
-    return OrderMapper.map(deliveryService.assignDeliveryWorker(adminId, orderId, workerId, isSelfCollect))
+    return OrderMapper.map(deliveryTaskMutationService.assignDeliveryWorker(adminId, orderId, workerId, isSelfCollect))
   }
 
   /**
@@ -116,7 +120,7 @@ class AdminOrderMutationResolver(
     val adminId = principal.id
     val username = principal.username
     logger.info("Admin $username($adminId)  batch assigning orders $orderIds to worker $workerId")
-    return deliveryService.batchAssignOrders(adminId, orderIds, workerId).map { OrderMapper.map(it) }
+    return deliveryTaskMutationService.batchAssignOrders(adminId, orderIds, workerId).map { OrderMapper.map(it) }
   }
 
   /**
@@ -126,21 +130,23 @@ class AdminOrderMutationResolver(
   @MutationMapping
   fun createDeliveryOrder(
     @Argument @Valid input: CreateDeliveryOrderInput,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal,
+    @AuthenticationPrincipal userDetail: UserDetails,
   ): Order {
     logger.info(
       "Delivery creating order: productId=${input.productId}, addressId=${input.addressId}, quantity=${input.quantity}, isSelfCollect=${input.isSelfCollect}",
     )
-    val userId = userPrincipal.id
-    return OrderMapper.map(
-      orderService.createDeliveryOrder(
-        userId,
+    val adminId = getAdminId(userDetail.username)
+    val order =
+      orderMutationService.createDeliveryOrder(
+        adminId,
         input.productId,
         input.addressId,
         input.quantity,
         input.isSelfCollect ?: false,
         input.remark,
-      ),
+      )
+    return OrderMapper.map(
+      orderQueryService.getOrderById(order.id),
     )
   }
 
@@ -150,10 +156,11 @@ class AdminOrderMutationResolver(
   @MutationMapping
   fun acceptDelivery(
     @Argument orderId: Long,
-    @Argument workerId: Long,
+    @AuthenticationPrincipal userDetail: UserDetails,
   ): Order {
-    logger.info("Worker $workerId accepting delivery for order $orderId")
-    return OrderMapper.map(deliveryService.acceptDelivery(orderId, workerId))
+    val username = userDetail.username
+    logger.info("Worker $username accepting delivery for order $orderId")
+    return OrderMapper.map(deliveryTaskMutationService.acceptDelivery(orderId, getAdminId(username)))
   }
 
   /**
@@ -164,7 +171,7 @@ class AdminOrderMutationResolver(
     @Argument orderId: Long,
   ): Order {
     logger.info("Starting delivery for order $orderId")
-    return OrderMapper.map(deliveryService.startDelivery(orderId))
+    return OrderMapper.map(deliveryTaskMutationService.startDelivery(orderId))
   }
 
   /**
@@ -179,6 +186,9 @@ class AdminOrderMutationResolver(
     @Argument paymentType: PaymentType?,
   ): Order {
     logger.info("Completing delivery for order $orderId, paymentType: $paymentType")
-    return OrderMapper.map(deliveryService.completeDelivery(orderId, photos, paymentType))
+    return OrderMapper.map(deliveryTaskMutationService.completeDelivery(orderId, photos, paymentType))
   }
+
+  private fun getAdminId(username: String): Long =
+    adminService.findByUsername(username)?.id ?: throw UserNotFoundException("管理员 $username 不存在")
 }

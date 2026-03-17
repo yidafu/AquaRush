@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.admin.product.resolvers
 
-import dev.yidafu.aqua.api.service.ProductFavoriteService
+import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.AllProductsFavoriteStats
 import dev.yidafu.aqua.common.graphql.generated.ProductFavoritePage

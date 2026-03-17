@@ -19,8 +19,7 @@
 
 package dev.yidafu.aqua.order.event
 
-import dev.yidafu.aqua.api.service.DeliveryService
-import dev.yidafu.aqua.api.service.OrderOperationService
+import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.common.domain.model.OperatorType
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderOperationType
@@ -38,7 +37,6 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 @Component
 class OrderPaidHandler(
   private val orderRepository: OrderRepository,
-  private val deliveryService: DeliveryService,
   private val orderOperationService: OrderOperationService,
   private val simplifiedEventPublishService: SimplifiedEventPublishService,
 ) : EventProcessor {

@@ -75,11 +75,6 @@ class OrderConversionChain {
     )
 
   /**
-   * Convert GraphQL Order to OrderDTO
-   */
-  fun fromGraphQL(graphqlOrder: Order): OrderDTO = GraphQLToOrderDTOMapper.map(graphqlOrder)
-
-  /**
    * Convert OrderDTO back to OrderModel (for updates)
    */
   fun toModel(
