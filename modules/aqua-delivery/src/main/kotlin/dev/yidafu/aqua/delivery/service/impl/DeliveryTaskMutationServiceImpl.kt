@@ -237,12 +237,14 @@ class DeliveryTaskMutationServiceImpl(
    * 完成配送任务
    * @param deliveryPhotos 配送照片列表
    * @param paymentType 收款方式（非自收订单需要记录）
+   * @param remark 配送员备注
    */
   @Transactional
   override fun completeDelivery(
     orderId: Long,
     deliveryPhotos: List<String>,
     paymentType: PaymentType?,
+    remark: String?,
   ): OrderModel {
     val order =
       orderRepository.findById(orderId).orElseThrow {
@@ -257,6 +259,7 @@ class DeliveryTaskMutationServiceImpl(
     order.status = OrderStatus.COMPLETED
     order.deliveryPhotos = deliveryPhotos.joinToString(",")
     order.paymentType = paymentType
+    order.deliveryRemark = remark
     order.deliveryConfirmedAt = java.time.LocalDateTime.now()
     order.completedAt = java.time.LocalDateTime.now()
     val savedOrder = orderRepository.save(order)
@@ -267,7 +270,7 @@ class DeliveryTaskMutationServiceImpl(
       operationType = OrderOperationType.DELIVERY_COMPLETED,
       operatorType = OperatorType.DELIVERY_WORKER,
       operatorId = savedOrder.deliveryWorkerId,
-      description = "配送员完成配送",
+      description = if (remark.isNullOrBlank()) "配送员完成配送" else "配送员完成配送: $remark",
       extraData = """{"paymentType": "${paymentType?.name}"}""",
     )
 

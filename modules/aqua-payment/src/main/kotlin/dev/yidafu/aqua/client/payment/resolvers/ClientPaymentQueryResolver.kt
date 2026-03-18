@@ -77,7 +77,7 @@ class ClientPaymentQueryResolver(
       amount = BigDecimal.ZERO,
       createdAt = LocalDateTime.now(),
       failureReason = null,
-      orderNumber = "DEFAULT-ORDER",
+      orderNo = "DEFAULT-ORDER",
       paidAt = LocalDateTime.now(),
       refundAmount = null,
       refundedAt = null,

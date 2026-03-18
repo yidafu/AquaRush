@@ -117,7 +117,7 @@ class PaymentServiceImpl(
       val transactionId = resource["transaction_id"] as String
 
       // 查找订单
-      val order = orderQueryService.getOrderByNumber(outTradeNo)
+      val order = orderQueryService.getOrderByNo(outTradeNo)
 
       // 处理支付成功
       orderMutationService.handlePaymentSuccess(order.id!!, transactionId)

@@ -93,7 +93,7 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
   override fun map(from: OrderModel): Order =
     mapping {
       to::id fromValue (from.id ?: -1L)
-      to::orderNumber fromProperty from::orderNumber
+      to::orderNo fromProperty from::orderNo
       to::quantity fromProperty from::quantity
       to::amount fromProperty from::amountCents
       to::isSelfCollect fromProperty from::isSelfCollect

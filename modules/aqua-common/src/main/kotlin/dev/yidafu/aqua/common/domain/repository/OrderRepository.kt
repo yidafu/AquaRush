@@ -28,7 +28,7 @@ import java.time.LocalDateTime
 
 @Repository
 interface OrderRepository : JpaRepository<OrderModel, Long> {
-  fun findByOrderNumber(orderNumber: String): OrderModel?
+  fun findByOrderNo(orderNo: String): OrderModel?
 
   fun findByUserId(userId: Long): List<OrderModel>
 

@@ -64,11 +64,11 @@ class OrderPaidHandler(
           .findById(orderId)
           .orElseThrow { IllegalStateException("Order not found: $orderId") }
 
-      logger.info("Processing ORDER_PAID event for order: ${order.orderNumber}")
+      logger.info("Processing ORDER_PAID event for order: ${order.orderNo}")
 
       // 验证订单状态
       if (order.status != OrderStatus.PENDING_DELIVERY) {
-        logger.warn("Order ${order.orderNumber} is not in PENDING_DELIVERY status, current status: ${order.status}")
+        logger.warn("Order ${order.orderNo} is not in PENDING_DELIVERY status, current status: ${order.status}")
         return
       }
 
@@ -84,7 +84,7 @@ class OrderPaidHandler(
       // 触发配送分配
       triggerDeliveryAssignment(order)
 
-      logger.info("Successfully processed ORDER_PAID event for order: ${order.orderNumber}")
+      logger.info("Successfully processed ORDER_PAID event for order: ${order.orderNo}")
     } catch (e: Exception) {
       logger.error("Failed to process ORDER_PAID event: ${event.id}", e)
       throw e // 重新抛出异常以触发重试机制
@@ -99,7 +99,7 @@ class OrderPaidHandler(
     val eventData =
       mapOf(
         "orderId" to order.id.toString(),
-        "orderNumber" to order.orderNumber,
+        "orderNumber" to order.orderNo,
         "userId" to order.userId.toString(),
         "productId" to order.productId.toString(),
         "addressId" to order.addressId.toString(),
@@ -111,6 +111,6 @@ class OrderPaidHandler(
       eventData = eventData,
     )
 
-    logger.info("Published ORDER_DELIVERY_ASSIGNMENT event for order: ${order.orderNumber}")
+    logger.info("Published ORDER_DELIVERY_ASSIGNMENT event for order: ${order.orderNo}")
   }
 }

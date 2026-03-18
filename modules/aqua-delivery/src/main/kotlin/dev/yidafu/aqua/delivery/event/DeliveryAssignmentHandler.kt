@@ -47,14 +47,14 @@ class DeliveryAssignmentHandler(
           .findById(orderId)
           .orElseThrow { IllegalStateException("Order not found: $orderId") }
 
-      logger.info("Processing DELIVERY_ASSIGNMENT event for order: ${order.orderNumber}")
+      logger.info("Processing DELIVERY_ASSIGNMENT event for order: ${order.orderNo}")
       val admin = adminService.findById(adminId)
       val deliveryWorker =
         deliveryWorkerRepository
           .findById(workerId)
           .orElseThrow { IllegalStateException("Delivery worker not found: $adminId") }
       val msg = "${admin?.realName ?: "管理员"}($adminId)将${order.user?.nickname ?: "用户"}的订单[${
-        order.orderNumber}]派给${deliveryWorker.name}"
+        order.orderNo}]派给${deliveryWorker.name}"
 
       orderOperationService.recordOperation(
         orderId,

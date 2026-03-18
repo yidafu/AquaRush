@@ -39,8 +39,8 @@ class OrderQueryServiceImpl(
       NotFoundException("订单不存在: $orderId")
     }
 
-  override fun getOrderByNumber(orderNumber: String): OrderModel =
-    orderRepository.findByOrderNumber(orderNumber)
+  override fun getOrderByNo(orderNumber: String): OrderModel =
+    orderRepository.findByOrderNo(orderNumber)
       ?: throw NotFoundException("订单不存在: $orderNumber")
 
   override fun getUserOrders(userId: Long): List<OrderModel> = orderRepository.findByUserId(userId)
@@ -66,7 +66,7 @@ class OrderQueryServiceImpl(
     orderNumber: String,
     userId: Long,
   ): OrderModel? {
-    val order = orderRepository.findByOrderNumber(orderNumber) ?: return null
+    val order = orderRepository.findByOrderNo(orderNumber) ?: return null
     return if (order.userId == userId) order else null
   }
 

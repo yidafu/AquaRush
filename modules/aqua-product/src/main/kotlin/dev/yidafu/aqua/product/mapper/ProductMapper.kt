@@ -36,9 +36,10 @@ object ProductMapper : ObjectMappie<ProductModel, Product>() {
     mapping {
       // Fields with same name and type - auto-mapped by Mappie
       to::status fromExpression {
-        ProductStatus
-          .valueOf(from.status.name)
+        ProductModelStatusMapper.map(from.status)
       }
+      // Map coverImageUrl to image field
+      to::coverImageUrl fromProperty from::coverImageUrl
     }
 }
 

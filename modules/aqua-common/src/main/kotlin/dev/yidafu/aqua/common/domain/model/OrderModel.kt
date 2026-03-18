@@ -35,7 +35,7 @@ data class OrderModel(
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   val id: Long = -1L,
   @Column(name = "order_no", unique = true, nullable = false)
-  val orderNumber: String = "",
+  val orderNo: String = "",
   @Column(name = "user_id", nullable = false)
   val userId: Long = -1L,
   @Column(name = "product_id", nullable = false)
@@ -82,6 +82,8 @@ data class OrderModel(
   override var deletedBy: Long? = null,
   @Column(name = "remark", length = 500)
   var remark: String? = null,
+  @Column(name = "delivery_remark", length = 500)
+  var deliveryRemark: String? = null,
   // ========================================================================
   // Hibernate Associations
   // ========================================================================

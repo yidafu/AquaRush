@@ -35,7 +35,7 @@ interface OrderQueryService {
   /**
    * 根据订单号获取订单
    */
-  fun getOrderByNumber(orderNumber: String): OrderModel
+  fun getOrderByNo(orderNumber: String): OrderModel
 
   /**
    * 获取用户订单列表

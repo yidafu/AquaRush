@@ -1911,4 +1911,304 @@
     <sql> DROP TABLE IF EXISTS order_domain_events </sql>
   </changeSet>
 
+  <!-- ======================================================================= -->
+  <!-- Order Operations Table (merged from v1.0.3) -->
+  <!-- ======================================================================= -->
+  <changeSet id="1.0.3-create-order-operations-table" author="aqua-rush">
+    <comment>Create order_operations table for order timeline tracking</comment>
+    <createTable tableName="order_operations">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="order_id" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="operation_type" type="varchar(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="operator_id" type="bigint">
+        <constraints nullable="true"/>
+      </column>
+      <column name="operator_type" type="varchar(20)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="description" type="varchar(500)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="extra_data" type="json">
+        <constraints nullable="true"/>
+      </column>
+      <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createIndex tableName="order_operations" indexName="idx_order_operations_order_id">
+      <column name="order_id"/>
+    </createIndex>
+
+    <createIndex tableName="order_operations" indexName="idx_order_operations_created_at">
+      <column name="created_at"/>
+    </createIndex>
+
+    <addForeignKeyConstraint
+      baseTableName="order_operations"
+      baseColumnNames="order_id"
+      referencedTableName="orders"
+      referencedColumnNames="id"
+      constraintName="fk_order_operations_order_id"/>
+
+    <sql>
+      <![CDATA[
+        ALTER TABLE order_operations
+          ADD CONSTRAINT chk_operation_type_valid
+            CHECK (operation_type IN (
+              'ORDER_CREATED',
+              'ORDER_PAID',
+              'ORDER_CANCELLED',
+              'DELIVERY_ASSIGNED',
+              'DELIVERY_STARTED',
+              'DELIVERY_COMPLETED',
+              'ORDER_COMPLETED',
+              'REFUND_INITIATED',
+              'REFUND_COMPLETED',
+              'PAYMENT_TIMEOUT'
+            )),
+          ADD CONSTRAINT chk_operator_type_valid
+            CHECK (operator_type IN (
+              'USER',
+              'ADMIN',
+              'DELIVERY_WORKER',
+              'SYSTEM'
+            ));
+      ]]>
+    </sql>
+  </changeSet>
+
+  <!-- ======================================================================= -->
+  <!-- API Logs Table (merged from v1.0.4) -->
+  <!-- ======================================================================= -->
+  <changeSet id="1.0.4-create-api-logs-table" author="aqua-rush">
+    <comment>Create api_logs table for HTTP and GraphQL request logging</comment>
+    <createTable tableName="api_logs">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="correlation_id" type="varchar(50)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="request_type" type="varchar(20)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="method" type="varchar(10)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="uri" type="varchar(500)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="query" type="text">
+        <constraints nullable="true"/>
+      </column>
+      <column name="request_body" type="text">
+        <constraints nullable="true"/>
+      </column>
+      <column name="response_status" type="int">
+        <constraints nullable="true"/>
+      </column>
+      <column name="duration_ms" type="bigint">
+        <constraints nullable="true"/>
+      </column>
+      <column name="ip_address" type="varchar(50)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="user_agent" type="varchar(500)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="user_id" type="bigint">
+        <constraints nullable="true"/>
+      </column>
+      <column name="username" type="varchar(100)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="error_message" type="text">
+        <constraints nullable="true"/>
+      </column>
+      <column name="operation_type" type="varchar(20)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="operation_name" type="varchar(100)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createIndex tableName="api_logs" indexName="idx_api_logs_correlation_id">
+      <column name="correlation_id"/>
+    </createIndex>
+
+    <createIndex tableName="api_logs" indexName="idx_api_logs_request_type">
+      <column name="request_type"/>
+    </createIndex>
+
+    <createIndex tableName="api_logs" indexName="idx_api_logs_created_at">
+      <column name="created_at"/>
+    </createIndex>
+
+    <createIndex tableName="api_logs" indexName="idx_api_logs_user_id">
+      <column name="user_id"/>
+    </createIndex>
+
+    <createIndex tableName="api_logs" indexName="idx_api_logs_response_status">
+      <column name="response_status"/>
+    </createIndex>
+
+    <createIndex tableName="api_logs" indexName="idx_api_logs_operation_type">
+      <column name="operation_type"/>
+    </createIndex>
+
+    <createIndex tableName="api_logs" indexName="idx_api_logs_operation_name">
+      <column name="operation_name"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ======================================================================= -->
+  <!-- Business Logs Table (merged from v1.0.4) -->
+  <!-- ======================================================================= -->
+  <changeSet id="1.0.4-create-business-logs-table" author="aqua-rush">
+    <comment>Create business_logs table for SLF4J business logging</comment>
+    <createTable tableName="business_logs">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="correlation_id" type="varchar(50)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="level" type="varchar(10)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="logger_name" type="varchar(200)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="message" type="text">
+        <constraints nullable="true"/>
+      </column>
+      <column name="stack_trace" type="text">
+        <constraints nullable="true"/>
+      </column>
+      <column name="user_id" type="bigint">
+        <constraints nullable="true"/>
+      </column>
+      <column name="username" type="varchar(100)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createIndex tableName="business_logs" indexName="idx_business_logs_correlation_id">
+      <column name="correlation_id"/>
+    </createIndex>
+
+    <createIndex tableName="business_logs" indexName="idx_business_logs_level">
+      <column name="level"/>
+    </createIndex>
+
+    <createIndex tableName="business_logs" indexName="idx_business_logs_created_at">
+      <column name="created_at"/>
+    </createIndex>
+
+    <createIndex tableName="business_logs" indexName="idx_business_logs_user_id">
+      <column name="user_id"/>
+    </createIndex>
+
+    <createIndex tableName="business_logs" indexName="idx_business_logs_logger_name">
+      <column name="logger_name"/>
+    </createIndex>
+
+    <sql>
+      <![CDATA[
+        ALTER TABLE business_logs
+          ADD CONSTRAINT chk_log_level_valid
+            CHECK (level IN ('TRACE', 'DEBUG', 'INFO', 'WARN', 'ERROR'));
+      ]]>
+    </sql>
+  </changeSet>
+
+  <!-- ======================================================================= -->
+  <!-- User Action Logs Table (merged from v1.0.6) -->
+  <!-- ======================================================================= -->
+  <changeSet id="1.0.6-create-user-action-logs-table" author="aqua-rush">
+    <comment>Create user_action_logs table for user action tracking</comment>
+    <createTable tableName="user_action_logs">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="user_id" type="varchar(50)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="username" type="varchar(100)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="action_type" type="varchar(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="target" type="varchar(500)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="page_url" type="varchar(1000)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="element_id" type="varchar(100)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="element_type" type="varchar(50)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="element_text" type="varchar(200)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="client_ip" type="varchar(50)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="user_agent" type="varchar(500)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="properties" type="text">
+        <constraints nullable="true"/>
+      </column>
+      <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createIndex tableName="user_action_logs" indexName="idx_user_action_logs_user_id">
+      <column name="user_id"/>
+    </createIndex>
+
+    <createIndex tableName="user_action_logs" indexName="idx_user_action_logs_action_type">
+      <column name="action_type"/>
+    </createIndex>
+
+    <createIndex tableName="user_action_logs" indexName="idx_user_action_logs_created_at">
+      <column name="created_at"/>
+    </createIndex>
+  </changeSet>
+
+  <!-- ======================================================================= -->
+  <!-- Add delivery_remark to orders table (merged from v1.0.7) -->
+  <!-- ======================================================================= -->
+  <changeSet id="v1.0.7-add-delivery-remark-to-orders" author="yidafu">
+    <addColumn tableName="orders">
+      <column name="delivery_remark" type="varchar(500)">
+        <constraints nullable="true"/>
+      </column>
+    </addColumn>
+    <rollback>
+      <dropColumn tableName="orders" columnName="delivery_remark"/>
+    </rollback>
+  </changeSet>
+
 </databaseChangeLog>

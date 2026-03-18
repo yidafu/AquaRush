@@ -33,7 +33,7 @@ import java.time.LocalDateTime
  */
 data class OrderDTO(
   val id: Long,
-  val orderNumber: String,
+  val orderNo: String,
   val userId: Long,
   val user: User? = null,
   val productId: Long,

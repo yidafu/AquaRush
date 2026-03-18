@@ -17,7 +17,7 @@
       <column name="phone" value="13800138201"/>
       <column name="avatar_url" value="https://example.com/avatars/zhang_ming.png"/>
       <column name="email" value="zhangming@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="15050"/>
       <column name="total_spent_cents" valueNumeric="89000"/>
@@ -35,7 +35,7 @@
       <column name="phone" value="13800138202"/>
       <column name="avatar_url" value="https://example.com/avatars/li_fang.png"/>
       <column name="email" value="lifang@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="8000"/>
       <column name="total_spent_cents" valueNumeric="45000"/>
@@ -53,7 +53,7 @@
       <column name="phone" value="13800138203"/>
       <column name="avatar_url" value="https://example.com/avatars/wang_wei.png"/>
       <column name="email" value="wangwei@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="0"/>
       <column name="total_spent_cents" valueNumeric="12000"/>
@@ -71,7 +71,7 @@
       <column name="phone" value="13800138204"/>
       <column name="avatar_url" value="https://example.com/avatars/liu_jing.png"/>
       <column name="email" value="liujing@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="4500"/>
       <column name="total_spent_cents" valueNumeric="68000"/>
@@ -89,7 +89,7 @@
       <column name="phone" value="13800138205"/>
       <column name="avatar_url" value="https://example.com/avatars/chen_qiang.png"/>
       <column name="email" value="chenqiang@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="20000"/>
       <column name="total_spent_cents" valueNumeric="150000"/>
@@ -107,7 +107,7 @@
       <column name="phone" value="13800138206"/>
       <column name="avatar_url" value="https://example.com/avatars/yang_mei.png"/>
       <column name="email" value="yangmei@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="3000"/>
       <column name="total_spent_cents" valueNumeric="22000"/>
@@ -125,7 +125,7 @@
       <column name="phone" value="13800138207"/>
       <column name="avatar_url" value="https://example.com/avatars/zhao_lei.png"/>
       <column name="email" value="zhaolei@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="7500"/>
       <column name="total_spent_cents" valueNumeric="45000"/>
@@ -143,7 +143,7 @@
       <column name="phone" value="13800138208"/>
       <column name="avatar_url" value="https://example.com/avatars/sun_li.png"/>
       <column name="email" value="sunli@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="12000"/>
       <column name="total_spent_cents" valueNumeric="78000"/>
@@ -161,7 +161,7 @@
       <column name="phone" value="13800138209"/>
       <column name="avatar_url" value="https://example.com/avatars/zhou_tao.png"/>
       <column name="email" value="zhoutao@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="0"/>
       <column name="total_spent_cents" valueNumeric="18000"/>
@@ -179,7 +179,7 @@
       <column name="phone" value="13800138210"/>
       <column name="avatar_url" value="https://example.com/avatars/wu_fang.png"/>
       <column name="email" value="wufang@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="6000"/>
       <column name="total_spent_cents" valueNumeric="34000"/>
@@ -197,7 +197,7 @@
       <column name="phone" value="13800138211"/>
       <column name="avatar_url" value="https://example.com/avatars/zheng_yong.png"/>
       <column name="email" value="zhengyong@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="15.00"/>
       <column name="total_spent_cents" valueNumeric="95.00"/>
@@ -215,7 +215,7 @@
       <column name="phone" value="13800138212"/>
       <column name="avatar_url" value="https://example.com/avatars/huang_yan.png"/>
       <column name="email" value="huangyan@example.com"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="role" value="USER"/>
       <column name="balance_cents" valueNumeric="18000"/>
       <column name="total_spent_cents" valueNumeric="120000"/>
@@ -1130,7 +1130,7 @@
       <column name="description"
               value="农夫山泉天然矿泉水，源自深层地下水源，经过天然过滤，富含多种矿物质和微量元素。水质清冽甘甜，是您日常补水的理想选择。"/>
       <column name="stock_quantity" valueNumeric="1000"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1146,7 +1146,7 @@
               value="[&quot;https://images.unsplash.com/photo-1548839140-29a74921eb34?w=800&amp;h=600&amp;fit=crop&quot;]"/>
       <column name="description" value="怡宝纯净水，采用多重净化工艺，去除杂质和细菌，口感纯净清爽，适合各种饮用场景。"/>
       <column name="stock_quantity" valueNumeric="800"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1163,7 +1163,7 @@
       <column name="description"
               value="景田百岁山天然矿泉水，源自地下深层矿泉，含有丰富的偏硅酸等天然矿物元素，口感甘甜清醇。"/>
       <column name="stock_quantity" valueNumeric="600"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1282,7 +1282,7 @@
       <column name="description"
               value="娃哈哈纯净水，采用反渗透技术净化，水质纯净甘甜，不含任何杂质，是日常饮用的健康选择。"/>
       <column name="stock_quantity" valueNumeric="1200"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1299,7 +1299,7 @@
       <column name="description"
               value="康师傅冰红茶，精选优质红茶为原料，加入清新柠檬汁，口感醇厚，甜而不腻，是夏日解渴的理想饮品。"/>
       <column name="stock_quantity" valueNumeric="800"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1316,7 +1316,7 @@
       <column name="description"
               value="统一阿萨姆奶茶，选用印度阿萨姆红茶与新西兰奶粉调制，口感香滑浓郁，茶香与奶香完美融合。"/>
       <column name="stock_quantity" valueNumeric="500"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1333,7 +1333,7 @@
       <column name="description"
               value="雀巢橙汁，选用新鲜甜橙榨取，富含维生素C，口感酸甜适中，不添加防腐剂，是健康饮品的选择。"/>
       <column name="stock_quantity" valueNumeric="400"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1350,7 +1350,7 @@
       <column name="description"
               value="可口可乐，全球知名碳酸饮料，独特的配方带来清爽的口感，是聚会和休闲时光的经典饮品。"/>
       <column name="stock_quantity" valueNumeric="900"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1367,7 +1367,7 @@
       <column name="description"
               value="农夫山泉东方树叶，采用传统工艺萃取茶叶精华，不添加糖分，保留茶叶原香，是健康饮茶的理想选择。"/>
       <column name="stock_quantity" valueNumeric="300"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1384,7 +1384,7 @@
       <column name="description"
               value="维他奶豆奶，选用优质非转基因大豆，富含植物蛋白，口感香滑，营养健康，是乳糖不耐人群的理想选择。"/>
       <column name="stock_quantity" valueNumeric="600"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1401,7 +1401,7 @@
       <column name="description"
               value="汤臣倍健蛋白粉，采用先进分离技术提取乳清蛋白，蛋白质含量高达80%，易于溶解吸收，是运动健身人群的理想营养补充。"/>
       <column name="stock_quantity" valueNumeric="100"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1418,7 +1418,7 @@
       <column name="description"
               value="康师傅绿茶，精选优质绿茶为原料，保留茶叶清香，口感清雅，是传统茶文化与现代工艺的完美结合。"/>
       <column name="stock_quantity" valueNumeric="700"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1435,7 +1435,7 @@
       <column name="description"
               value="农夫山泉维他命水，添加多种维生素和矿物质，口感清爽，是补充维生素的便捷选择，适合运动后饮用。"/>
       <column name="stock_quantity" valueNumeric="450"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1452,7 +1452,7 @@
       <column name="description"
               value="汇源苹果汁，选用新鲜红富士苹果，采用先进压榨技术，100%纯果汁，不添加糖分，保留苹果原有风味和营养。"/>
       <column name="stock_quantity" valueNumeric="200"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1469,7 +1469,7 @@
       <column name="description"
               value="养元六个核桃，选用优质核桃仁，采用现代工艺精制而成，富含核桃蛋白和多种营养元素，有益脑健康。"/>
       <column name="stock_quantity" valueNumeric="350"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1503,7 +1503,7 @@
       <column name="description"
               value="达利园花生牛奶，选用优质花生和鲜牛奶，口感香滑浓郁，营养丰富，是老少皆宜的营养饮品。"/>
       <column name="stock_quantity" valueNumeric="280"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1520,7 +1520,7 @@
       <column name="description"
               value="红牛功能饮料，含有咖啡因、牛磺酸、维生素B群等成分，能够提神醒脑，增强体力，适合加班和运动时饮用。"/>
       <column name="stock_quantity" valueNumeric="150"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1537,7 +1537,7 @@
       <column name="description"
               value="椰树椰汁，选用新鲜椰肉，采用传统工艺压制，保留椰子原有香味，口感香滑，营养丰富，是热带风味的经典饮品。"/>
       <column name="stock_quantity" valueNumeric="320"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>
@@ -1554,7 +1554,7 @@
       <column name="description"
               value="康师傅矿泉水，源自优质地下水源，经过多层过滤净化，水质清冽甘甜，价格实惠，是日常饮用的高性价比选择。"/>
       <column name="stock_quantity" valueNumeric="1500"/>
-      <column name="status" value="ACTIVE"/>
+      <column name="status" value="ONLINE"/>
       <column name="created_at" valueComputed="CURRENT_TIMESTAMP"/>
       <column name="updated_at" valueComputed="CURRENT_TIMESTAMP"/>
     </insert>

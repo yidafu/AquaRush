@@ -47,6 +47,7 @@ directive @max(
 # Enum types - Common across all services
 enum OrderStatus {
   PENDING_PAYMENT
+  PENDING_DISPATCH
   PENDING_DELIVERY
   DELIVERING
   COMPLETED
@@ -58,7 +59,6 @@ enum ProductStatus {
   ONLINE
   OFFLINE
   OUT_OF_STOCK
-  ACTIVE
 }
 
 enum UserRole {
@@ -73,6 +73,7 @@ enum UserStatus {
   INACTIVE
   SUSPENDED
   DELETED
+  ONLINE
 }
 
 enum DeliveryWorkerStatus {
@@ -110,6 +111,40 @@ enum PaymentType {
 enum BucketDepositStatus {
   DEPOSITED # 已押桶（待退还）
   REFUNDED # 已退还
+}
+
+# 订单操作类型枚举
+enum OrderOperationType {
+  ORDER_CREATED          # 订单创建
+  ORDER_PAID             # 支付成功
+  ORDER_CANCELLED        # 订单取消
+  DELIVERY_ASSIGNED      # 配送员分配
+  DELIVERY_STARTED       # 开始配送
+  DELIVERY_COMPLETED     # 配送完成
+  ORDER_COMPLETED        # 订单完成
+  REFUND_INITIATED       # 退款发起
+  REFUND_COMPLETED       # 退款完成
+  PAYMENT_TIMEOUT        # 支付超时
+}
+
+# 操作人类型枚举
+enum OperatorType {
+  USER              # 普通用户
+  ADMIN             # 管理员
+  DELIVERY_WORKER   # 配送员
+  SYSTEM            # 系统自动
+}
+
+# 订单操作记录类型
+type OrderOperation {
+  id: PrimaryId!
+  orderId: PrimaryId!
+  operationType: OrderOperationType!
+  operatorId: PrimaryId
+  operatorType: OperatorType
+  description: String
+  extraData: JsonObject
+  createdAt: LocalDateTime!
 }
 
 # 押桶记录类型
@@ -276,13 +311,13 @@ type Order {
   # 订单唯一标识ID
   id: PrimaryId!
   # 订单编号
-  orderNumber: String!
+  orderNo: String!
   # 下单用户
-  user: User!
+  user: User
   # 订购商品
-  product: Product!
+  product: Product
   # 配送地址
-  address: Address!
+  address: Address
   # 订购数量
   quantity: Int!
   # 订单金额（分）
@@ -1264,7 +1299,7 @@ input ProcessSuspiciousTransactionInput {
 # Additional Payment Types
 type OrderPaymentInfo {
   orderId: PrimaryId!
-  orderNumber: String!
+  orderNo: String!
   amount: Money!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
@@ -1686,21 +1721,26 @@ enum SalesReportGroupBy {
   MONTH
 }
 
+
 input ProductSearchInput {
+  page: Int = 0
+  size: Int = 20
+  search: String
+  status: ProductStatus
   keyword: String @size(max: 100, message: "搜索关键词长度不能超过100个字符")
-  waterSource: String @size(max: 200, message: "水源地长度不能超过200个字符")
-  minPh: BigDecimal
-    @min(value: 0, message: "最小PH值不能小于0")
-    @max(value: 14, message: "最小PH值不能大于14")
-  maxPh: BigDecimal
-    @min(value: 0, message: "最大PH值不能小于0")
-    @max(value: 14, message: "最大PH值不能大于14")
-  tags: [String!]
   minSalesVolume: Int @min(value: 0, message: "最小销量不能小于0")
   maxSalesVolume: Int @min(value: 0, message: "最大销量不能小于0")
-  hasOriginalPrice: Boolean
-  hasDepositPrice: Boolean
   sortBy: ProductSortBy! = SALES_VOLUME_DESC
+  minPrice: Money
+    @positive(message: "最小价格必须为正数")
+    @min(value: 1, message: "最小价格不能小于1分")
+    @max(value: 9999900, message: "最小价格不能大于99999元")
+  maxPrice: Money
+    @positive(message: "最大价格必须为正数")
+    @min(value: 1, message: "最大价格不能小于1分")
+    @max(value: 9999900, message: "最大价格不能大于99999元")
+  minStock: Int @min(value: 0, message: "最小库存不能小于0")
+  maxStock: Int @min(value: 0, message: "最大库存不能小于0")
 }
 
 enum ProductSortBy {

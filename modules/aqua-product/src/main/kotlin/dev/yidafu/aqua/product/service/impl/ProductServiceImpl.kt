@@ -10,7 +10,6 @@ import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductUpdateRequestInput
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
-import dev.yidafu.aqua.product.mapper.ProductModelStatusMapper
 import dev.yidafu.aqua.product.mapper.ProductStatusMapper
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -112,7 +111,6 @@ class ProductServiceImpl(
     specification?.let { product.specification = it }
     waterSource?.let { product.waterSource = it }
     mineralContent?.let { product.mineralContent = it }
-    imageGallery?.let { product.imageGallery = it }
     stock?.let { product.stock = it }
     salesVolume?.let { product.salesVolume = it }
     sortOrder?.let { product.sortOrder = it }
@@ -234,8 +232,7 @@ class ProductServiceImpl(
         name = update.name,
         priceYuan = update.price?.let { MoneyUtils.fromCents(it) },
         coverImageUrl = update.coverImageUrl,
-        // detailImages字段在ProductUpdateRequestInput中不存在
-        // description字段在ProductUpdateRequestInput中不存在
+        description = null, // ProductUpdateRequestInput doesn't have description field
         stock = update.stock,
         subtitle = update.subtitle,
         originalPriceYuan = update.originalPrice?.let { MoneyUtils.fromCents(it) },
@@ -250,7 +247,6 @@ class ProductServiceImpl(
         detailContent = update.detailContent,
         certificateImages = update.certificateImages,
         deliverySettings = update.deliverySettings,
-        description = TODO(), // isDeleted字段在ProductUpdateRequestInput中不存在
       )
     }
 
@@ -305,16 +301,5 @@ class ProductServiceImpl(
         .orElseThrow { IllegalArgumentException("Product not found: $productId") }
     product.salesVolume = volume
     productRepository.save(product)
-  }
-
-  fun ArrayNode.contains(value: String): Boolean {
-    this.forEach { node ->
-      if (node.isString) {
-        if (value == node.stringValue()) {
-          return true
-        }
-      }
-    }
-    return false
   }
 }

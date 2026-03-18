@@ -178,15 +178,17 @@ class AdminOrderMutationResolver(
    * 完成配送（拍照确认）
    * @param photos 配送照片列表
    * @param paymentType 收款方式（非自收订单需要记录）
+   * @param remark 配送员备注
    */
   @MutationMapping
   fun completeDelivery(
     @Argument orderId: Long,
     @Argument photos: List<String>,
     @Argument paymentType: PaymentType?,
+    @Argument remark: String?,
   ): Order {
-    logger.info("Completing delivery for order $orderId, paymentType: $paymentType")
-    return OrderMapper.map(deliveryTaskMutationService.completeDelivery(orderId, photos, paymentType))
+    logger.info("Completing delivery for order $orderId, paymentType: $paymentType, remark: $remark")
+    return OrderMapper.map(deliveryTaskMutationService.completeDelivery(orderId, photos, paymentType, remark))
   }
 
   private fun getAdminId(username: String): Long =

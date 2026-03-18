@@ -66,7 +66,7 @@ class OrderCancelledHandler(
       val shouldRefund = eventData["shouldRefund"] as? Boolean ?: false
       val paymentTransactionId = eventData["paymentTransactionId"] as? String
 
-      logger.info("Processing ORDER_CANCELLED event for order: ${order.orderNumber}, shouldRefund: $shouldRefund")
+      logger.info("Processing ORDER_CANCELLED event for order: ${order.orderNo}, shouldRefund: $shouldRefund")
 
       // 记录订单操作
       val cancelDescription = if (shouldRefund) "用户取消订单（需退款）" else "用户取消订单"
@@ -83,7 +83,7 @@ class OrderCancelledHandler(
         processRefund(order, paymentTransactionId)
       }
 
-      logger.info("Successfully processed ORDER_CANCELLED event for order: ${order.orderNumber}")
+      logger.info("Successfully processed ORDER_CANCELLED event for order: ${order.orderNo}")
     } catch (e: Exception) {
       logger.error("Failed to process ORDER_CANCELLED event: ${event.id}", e)
       throw e // 重新抛出异常以触发重试机制
@@ -102,7 +102,7 @@ class OrderCancelledHandler(
       val refundAmount = (order.amountCents)
       val totalAmount = refundAmount
 
-      logger.info("Processing refund for order ${order.orderNumber}, amount: ${order.amountCents}")
+      logger.info("Processing refund for order ${order.orderNo}, amount: ${order.amountCents}")
 
       // 调用退款接口
       val refundResult =
@@ -110,20 +110,20 @@ class OrderCancelledHandler(
           transactionId = paymentTransactionId,
           refundAmountCents = refundAmount,
           totalAmountCents = totalAmount,
-          reason = "订单取消退款 - 订单号: ${order.orderNumber}",
+          reason = "订单取消退款 - 订单号: ${order.orderNo}",
 //          refundAmountCents = order.amount,
 //          totalAmountCents = order.totalAmount,
         )
 
-      logger.info("Refund processed successfully for order ${order.orderNumber}, refundId: ${refundResult["refundId"]}")
+      logger.info("Refund processed successfully for order ${order.orderNo}, refundId: ${refundResult["refundId"]}")
 
       // 可以在这里发送退款成功通知给用户
       // sendRefundNotification(order.userId, refundResult)
     } catch (e: Exception) {
-      logger.error("Failed to process refund for order ${order.orderNumber}", e)
+      logger.error("Failed to process refund for order ${order.orderNo}", e)
 
       // 退款失败不抛出异常，但需要记录日志以便人工处理
-      logger.error("Refund failed for order ${order.orderNumber}, requires manual intervention")
+      logger.error("Refund failed for order ${order.orderNo}, requires manual intervention")
       // 可以发送告警通知给管理员
       // sendRefundFailureAlert(order, e)
     }

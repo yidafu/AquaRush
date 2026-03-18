@@ -62,7 +62,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     userId?.let { builder.and(orderModel.userId.eq(it)) }
     status?.let { builder.and(orderModel.status.eq(it)) }
     deliveryWorkerId?.let { builder.and(orderModel.deliveryWorkerId.eq(it)) }
-    orderNumber?.let { builder.and(orderModel.orderNumber.eq(it)) }
+    orderNumber?.let { builder.and(orderModel.orderNo.eq(it)) }
     statuses?.let { builder.and(orderModel.status.`in`(it)) }
     startDate?.let { start ->
       endDate?.let { end ->
@@ -153,7 +153,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
 
     keyword?.let { keywordVal ->
       // Search in order number (using contains)
-      builder.and(orderModel.orderNumber.containsIgnoreCase(keywordVal))
+      builder.and(orderModel.orderNo.containsIgnoreCase(keywordVal))
     }
     status?.let { builder.and(orderModel.status.eq(it)) }
     userId?.let { builder.and(orderModel.userId.eq(it)) }

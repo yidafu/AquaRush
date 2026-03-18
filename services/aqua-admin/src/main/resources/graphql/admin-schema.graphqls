@@ -35,20 +35,18 @@ type Query {
   deliveryAddress(id: PrimaryId!): DeliveryAddress
 
   # Products (Admin management)
-  products(page: Int = 0, size: Int = 20, status: ProductStatus, keyword: String): ProductPage!
   product(id: PrimaryId!): Product
   productStatistics(dateRange: DateRangeInput): ProductStatistics
   lowStockProducts(threshold: Int = 10): [LowStockAlert!]!
-  productsPaginated(input: ProductListInput): ProductPage
+  productsPaginated(input: ProductSearchInput): ProductPage
 
   # Enhanced Product Management Queries
   topSalesProducts(limit: Int = 10): [Product!]!
-  allActiveProducts: [Product!]!
   activeProducts(keyword: String, page: Int = 0, size: Int = 20): ProductPage!
 
   # Orders (Admin/Delivery perspective)
   order(orderId: PrimaryId!): Order
-  orderByNumber(orderNumber: String!): Order
+  orderByNo(orderNo: String!): Order
   orders(input: OrderListInput): OrderPage
   orderOperations(orderId: PrimaryId!): [OrderOperation!]!
 
@@ -147,7 +145,7 @@ type Mutation {
   # 配送员操作
   acceptDelivery(orderId: PrimaryId!): Order!           # 配送员接单
   startDelivery(orderId: PrimaryId!): Order!             # 开始配送
-  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType): Order!  # 完成配送
+  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType, remark: String): Order!  # 完成配送
 
   # Payment Management - Admin operations
   handleWechatCallback(input: WechatCallbackInput!): String!

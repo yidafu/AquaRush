@@ -85,7 +85,7 @@ class AdminOrderQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun orderByNumber(
-    @Argument orderNumber: String,
-  ): Order? = OrderMapper.map(orderQueryService.getOrderByNumber(orderNumber))
+  fun orderByNo(
+    @Argument orderNo: String,
+  ): Order? = OrderMapper.map(orderQueryService.getOrderByNo(orderNo))
 }

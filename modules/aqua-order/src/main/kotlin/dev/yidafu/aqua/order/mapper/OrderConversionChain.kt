@@ -85,7 +85,7 @@ class OrderConversionChain {
     // Instead, we create a new OrderModel with updated fields
     return OrderModel(
       id = existingOrderModel.id,
-      orderNumber = existingOrderModel.orderNumber,
+      orderNo = existingOrderModel.orderNo,
       userId = existingOrderModel.userId,
       productId = existingOrderModel.productId,
       quantity = existingOrderModel.quantity,

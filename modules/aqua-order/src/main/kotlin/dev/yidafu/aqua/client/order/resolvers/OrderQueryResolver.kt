@@ -61,9 +61,9 @@ class OrderQueryResolver(
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
   fun orderByNumber(
-    @Argument orderNumber: String,
+    @Argument orderNo: String,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
   ): OrderModel? =
-    orderQueryService.findOrderByNumberAndUserId(orderNumber, userPrincipal.id)
+    orderQueryService.findOrderByNumberAndUserId(orderNo, userPrincipal.id)
       ?: throw IllegalArgumentException("Order not found or access denied")
 }

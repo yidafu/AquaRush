@@ -27,7 +27,6 @@ import org.junit.jupiter.params.provider.ValueSource
 import java.math.BigDecimal
 
 class MoneyUtilsTest {
-
   // ========== Conversion Function Tests ==========
 
   @Test
@@ -52,33 +51,37 @@ class MoneyUtilsTest {
 
   @Test
   fun `toCents should throw exception for null input`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.toCents(null)
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.toCents(null)
+      }
     assertEquals("Yuan amount cannot be null", exception.message)
   }
 
   @Test
   fun `toCents should throw exception for negative amounts`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.toCents(BigDecimal("-1.00"))
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.toCents(BigDecimal("-1.00"))
+      }
     assertTrue(exception.message!!.contains("Yuan amount cannot be negative"))
   }
 
   @Test
   fun `toCents should throw exception for amounts with too many decimal places`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.toCents(BigDecimal("1.001"))
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.toCents(BigDecimal("1.001"))
+      }
     assertTrue(exception.message!!.contains("cannot have more than 2 decimal places"))
   }
 
   @Test
   fun `toCents should throw exception for amounts that would cause precision loss`() {
-    val exception = assertThrows<ArithmeticException> {
-      MoneyUtils.toCents(BigDecimal("92233720368547758.08")) // Would overflow
-    }
+    val exception =
+      assertThrows<ArithmeticException> {
+        MoneyUtils.toCents(BigDecimal("92233720368547758.08")) // Would overflow
+      }
     assertTrue(exception.message!!.contains("Conversion from yuan to cents would lose precision"))
   }
 
@@ -101,18 +104,27 @@ class MoneyUtilsTest {
 
   @Test
   fun `fromCents should throw exception for negative amounts`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.fromCents(-1L)
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.fromCents(-1L)
+      }
     assertTrue(exception.message!!.contains("Cents amount cannot be negative"))
   }
 
   @Test
   fun `conversion should be bidirectional and accurate`() {
-    val testAmounts = listOf(
-      "0.00", "0.01", "0.10", "1.00", "1.23", "9.99",
-      "100.00", "1234.56", "999999.99"
-    )
+    val testAmounts =
+      listOf(
+        "0.00",
+        "0.01",
+        "0.10",
+        "1.00",
+        "1.23",
+        "9.99",
+        "100.00",
+        "1234.56",
+        "999999.99",
+      )
 
     for (amountStr in testAmounts) {
       val yuan = BigDecimal(amountStr)
@@ -134,9 +146,10 @@ class MoneyUtilsTest {
 
   @Test
   fun `formatCents should throw exception for negative amounts`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.formatCents(-1L)
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.formatCents(-1L)
+      }
     assertTrue(exception.message!!.contains("Cents amount cannot be negative"))
   }
 
@@ -150,17 +163,19 @@ class MoneyUtilsTest {
 
   @Test
   fun `formatYuan should throw exception for null input`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.formatYuan(null)
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.formatYuan(null)
+      }
     assertEquals("Yuan amount cannot be null", exception.message)
   }
 
   @Test
   fun `formatYuan should throw exception for negative amounts`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.formatYuan(BigDecimal("-1.00"))
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.formatYuan(BigDecimal("-1.00"))
+      }
     assertTrue(exception.message!!.contains("Yuan amount cannot be negative"))
   }
 
@@ -224,9 +239,10 @@ class MoneyUtilsTest {
 
   @Test
   fun `subtractCents should throw exception for negative result`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.subtractCents(100L, 200L)
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.subtractCents(100L, 200L)
+      }
     assertTrue(exception.message!!.contains("Result would be negative"))
   }
 
@@ -248,17 +264,19 @@ class MoneyUtilsTest {
 
   @Test
   fun `multiplyCents should throw exception for null multiplier`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.multiplyCents(100L, null)
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.multiplyCents(100L, null)
+      }
     assertEquals("Multiplier cannot be null", exception.message)
   }
 
   @Test
   fun `multiplyCents should throw exception for negative multiplier`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.multiplyCents(100L, BigDecimal("-1.0"))
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.multiplyCents(100L, BigDecimal("-1.0"))
+      }
     assertTrue(exception.message!!.contains("Multiplier cannot be negative"))
   }
 
@@ -273,17 +291,19 @@ class MoneyUtilsTest {
 
   @Test
   fun `calculatePercentage should throw exception for null percentage`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.calculatePercentage(1000L, null)
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.calculatePercentage(1000L, null)
+      }
     assertEquals("Percentage cannot be null", exception.message)
   }
 
   @Test
   fun `calculatePercentage should throw exception for negative percentage`() {
-    val exception = assertThrows<IllegalArgumentException> {
-      MoneyUtils.calculatePercentage(1000L, BigDecimal("-1.0"))
-    }
+    val exception =
+      assertThrows<IllegalArgumentException> {
+        MoneyUtils.calculatePercentage(1000L, BigDecimal("-1.0"))
+      }
     assertTrue(exception.message!!.contains("Percentage cannot be negative"))
   }
 
@@ -363,13 +383,14 @@ class MoneyUtilsTest {
       val formattedFromYuan = MoneyUtils.formatYuan(yuan)
 
       assertEquals(
-        formattedFromCents, formattedFromYuan,
-        "Formatting inconsistency for cents: $cents"
+        formattedFromCents,
+        formattedFromYuan,
+        "Formatting inconsistency for cents: $cents",
       )
 
       assertTrue(
         formattedFromCents.startsWith("¥"),
-        "Should start with ¥ symbol: $formattedFromCents"
+        "Should start with ¥ symbol: $formattedFromCents",
       )
     }
   }

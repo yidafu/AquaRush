@@ -95,7 +95,7 @@ class OrderMutationServiceImpl(
     val amount = product.price
 
     // 5. 生成唯一订单号
-    val orderNumber = orderIdGenerator.generateOrderId(userId)
+    val orderNo = orderIdGenerator.generateOrderId(userId)
 
     // 6. 扣减库存（使用原子操作）
     val stockDecreased = productService.decreaseStock(productId, quantity)
@@ -107,7 +107,7 @@ class OrderMutationServiceImpl(
     val order =
       OrderModel(
         id = DefaultIdGenerator().generate(),
-        orderNumber = orderNumber,
+        orderNo = orderNo,
         userId = userId,
         productId = productId,
         quantity = quantity,
@@ -186,7 +186,7 @@ class OrderMutationServiceImpl(
     // 4. 计算订单金额 (product.price is already in cents)
     val amount = product.price
     // 5. 生成唯一订单号
-    val orderNumber = orderIdGenerator.generateOrderId(userId)
+    val orderNo = orderIdGenerator.generateOrderId(userId)
     // 6. 扣减库存（使用原子操作）
     val stockDecreased = productService.decreaseStock(productId, quantity)
     if (!stockDecreased) {
@@ -196,7 +196,7 @@ class OrderMutationServiceImpl(
     // 7. 创建订单
     val order =
       OrderModel(
-        orderNumber = orderNumber,
+        orderNo = orderNo,
         userId = userId,
         productId = productId,
         quantity = quantity,

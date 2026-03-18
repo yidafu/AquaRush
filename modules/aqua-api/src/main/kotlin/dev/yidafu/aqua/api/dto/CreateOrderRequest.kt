@@ -28,8 +28,8 @@ import jakarta.validation.constraints.Size
  * 创建订单请求DTO
  */
 data class CreateOrderRequest(
-  @field:JsonProperty("orderNumber")
-  val orderNumber: String,
+  @field:JsonProperty("orderNo")
+  val orderNo: String,
   @field:JsonProperty("userId")
   @field:NotNull(message = "用户ID不能为空")
   val userId: Long,

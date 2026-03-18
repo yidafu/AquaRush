@@ -56,7 +56,7 @@ type Query {
 
   # Orders
   order(orderId: PrimaryId!): Order
-  orderByNumber(orderNumber: String!): Order
+  orderByNo(orderNo: String!): Order
   orderOperations(orderId: PrimaryId!): [OrderOperation!]!
 
   # Payments
@@ -141,7 +141,7 @@ type Mutation {
 type UserPaymentTransaction {
   id: String!
   orderId: PrimaryId!
-  orderNumber: String!
+  orderNo: String!
   amount: BigDecimal!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
@@ -156,7 +156,7 @@ type UserPaymentTransaction {
 type PaymentStatusInfo {
   transactionId: String!
   status: PaymentStatus!
-  orderNumber: String!
+  orderNo: String!
   amount: BigDecimal!
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!

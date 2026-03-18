@@ -71,10 +71,12 @@ interface DeliveryTaskMutationService {
    * @param orderId 订单ID
    * @param deliveryPhotos 配送照片列表
    * @param paymentType 收款方式（非自收订单需要记录）
+   * @param remark 配送员备注
    */
   fun completeDelivery(
     orderId: Long,
     deliveryPhotos: List<String>,
     paymentType: PaymentType?,
+    remark: String?,
   ): OrderModel
 }
