@@ -17,6 +17,7 @@
   margin-bottom: 16px;
 }
 
+
 .card {
   background-color: #fff;
   border-radius: 20px;
@@ -157,68 +158,6 @@
   font-weight: bold;
 }
 
-/* 数量卡片 */
-.quantity-card {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-
-  .at-input-number {
-    width: 240px;
-  }
-
-  .at-input-number__input {
-    font-size: 32px;
-    height: 80px;
-    line-height: 80px;
-  }
-
-  .at-input-number__btn {
-    width: 80px;
-    height: 80px;
-    font-size: 32px;
-  }
-}
-
-/* 费用明细 */
-.summary-card {
-  .summary-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 16px 0;
-    border-bottom: 1px solid #f0f0f0;
-
-    &:last-child {
-      border-bottom: none;
-    }
-
-    &.total {
-      border-top: 2px solid #f0f0f0;
-      margin-top: 8px;
-      padding-top: 24px;
-
-      .summary-label,
-      .summary-value {
-        font-size: 24px;
-        font-weight: 600;
-        color: #ff4d4f;
-      }
-    }
-  }
-
-  .summary-label {
-    font-size: 18px;
-    color: #666;
-  }
-
-  .summary-value {
-    font-size: 18px;
-    color: #333;
-  }
-}
-
 /* 提交按钮 */
 .submit-section {
   position: fixed;
@@ -242,18 +181,6 @@
 /* 底部安全区域 */
 .safe-bottom {
   height: 32px;
-}
-
-/* Switch 卡片 */
-.switch-card {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  .switch-label {
-    font-size: 18px;
-    color: #333;
-  }
 }
 
 /* 备注输入 */

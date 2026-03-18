@@ -1,9 +1,8 @@
 import React, { useState } from 'react'
-import { View, Text, Textarea, Switch } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { AtButton, AtInputNumber } from 'taro-ui'
+import { AtButton } from 'taro-ui'
 import 'taro-ui/dist/style/components/button.scss'
-import 'taro-ui/dist/style/components/input-number.scss'
 import 'taro-ui/dist/style/components/icon.scss'
 import './index.scss'
 import { createOrder } from '../../services/delivery'
@@ -11,6 +10,7 @@ import { useAuth } from '../../hooks/useAuth'
 import { PageContainer } from '../../components/PageContainer'
 import AddressDisplay from '../../components/AddressDisplay'
 import ProductSelector, { Product } from '../../components/ProductSelector'
+import OrderSummaryCard from './components/OrderSummaryCard'
 
 const CreateTaskPage: React.FC = () => {
   const { workerInfo } = useAuth()
@@ -20,14 +20,6 @@ const CreateTaskPage: React.FC = () => {
   const [isSelfCollect, setIsSelfCollect] = useState<boolean>(false)
   const [remark, setRemark] = useState<string>('')
   const [submitting, setSubmitting] = useState(false)
-
-  // 格式化价格（分转元）
-  const formatPrice = (cents: number): string => {
-    return (cents / 100).toFixed(2)
-  }
-
-  // 计算总价
-  const totalAmount = selectedProduct ? selectedProduct.price * quantity : 0
 
   // 提交创建订单
   const handleSubmit = async () => {
@@ -94,66 +86,17 @@ const CreateTaskPage: React.FC = () => {
           />
         </View>
 
-        {/* 数量选择 */}
         <View className='section'>
-          <Text className='section-title'>数量</Text>
-          <View className='card quantity-card'>
-            <AtInputNumber
-              min={1}
-              max={99}
-              step={1}
-              value={quantity}
-              type='digit'
-              onChange={(value: number) => setQuantity(value)}
-            />
-          </View>
-        </View>
-
-        {/* 费用明细 */}
-          <View className='section'>
-            <Text className='section-title'>费用明细</Text>
-            <View className='card summary-card'>
-              <View className='summary-row'>
-                <Text className='summary-label'>商品单价</Text>
-                <Text className='summary-value'>¥{formatPrice(selectedProduct?.price ?? 0)}</Text>
-              </View>
-              <View className='summary-row'>
-                <Text className='summary-label'>数量</Text>
-                <Text className='summary-value'>× {quantity}</Text>
-              </View>
-              <View className='summary-row total'>
-                <Text className='summary-label'>合计</Text>
-                <Text className='summary-value'>¥{formatPrice(totalAmount)}</Text>
-              </View>
-            </View>
-          </View>
-
-        {/* 是否已收款 */}
-        <View className='section'>
-          <Text className='section-title'>是否已收款</Text>
-          <View className='card switch-card'>
-            <Text className='switch-label'>{isSelfCollect ? '已收款' : '未收款'}</Text>
-            <Switch
-              checked={isSelfCollect}
-              onChange={(e: any) => setIsSelfCollect(e.detail.value)}
-              color='#1890ff'
-            />
-          </View>
-        </View>
-
-        {/* 备注 */}
-        <View className='section'>
-          <Text className='section-title'>备注</Text>
-          <View className='card'>
-            <Textarea
-              className='remark-input'
-              value={remark}
-              onInput={(e) => setRemark(e.detail.value)}
-              placeholder='请输入订单备注（可选）'
-              maxlength={500}
-              autoHeight
-            />
-          </View>
+          <Text className='section-title'>订单详情</Text>
+          <OrderSummaryCard
+            product={selectedProduct}
+            quantity={quantity}
+            onQuantityChange={setQuantity}
+            isSelfCollect={isSelfCollect}
+            onSelfCollectChange={setIsSelfCollect}
+            remark={remark}
+            onRemarkChange={setRemark}
+          />
         </View>
 
         {/* 提交按钮 */}

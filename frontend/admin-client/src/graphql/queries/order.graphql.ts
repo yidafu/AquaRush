@@ -5,7 +5,7 @@ export const GET_ORDERS_QUERY = gql`
     orders(input: $input) {
       content {
         id
-        orderNumber
+        orderNo
         user {
           id
           nickname
@@ -41,7 +41,7 @@ export const GET_ORDER_DETAIL_QUERY = gql`
   query GetOrderDetail($id: PrimaryId!) {
     order(orderId: $id) {
       id
-      orderNumber
+      orderNo
       user {
         id
         nickname
@@ -92,7 +92,7 @@ export const GET_ORDERS_BY_STATUS_QUERY = gql`
   query GetOrdersByStatus($status: OrderStatus!) {
     ordersByStatus(status: $status) {
       id
-      orderNumber
+      orderNo
       user {
         id
         nickname

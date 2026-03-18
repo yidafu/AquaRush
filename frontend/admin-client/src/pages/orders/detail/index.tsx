@@ -104,7 +104,7 @@ const OrderDetailContent: React.FC = () => {
           <Button icon={<ReloadOutlined />} onClick={refreshOrder}> 更新状态</Button>
           <Button danger>取消订单</Button>
         </Space>
-        <Text type="secondary" >订单号: <Text copyable>{order.orderNumber}</Text></Text>
+        <Text type="secondary" >订单号: <Text copyable>{order.orderNo}</Text></Text>
       </div>
 
       {/* 订单卡片组件 */}

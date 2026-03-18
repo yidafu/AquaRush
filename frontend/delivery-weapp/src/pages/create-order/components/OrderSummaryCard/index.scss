@@ -1,0 +1,31 @@
+.order-summary-card {
+  border-radius: 20px;
+  overflow: hidden;
+
+
+  .quantity-editor {
+    display: flex;
+    align-items: center;
+
+    .at-input-number {
+      width: 160px;
+    }
+  }
+
+  /* 备注输入 */
+  .remark-input {
+    width: 100%;
+    min-height: 120px;
+    font-size: 32px;
+    color: #333;
+    line-height: 1.6;
+    padding: 24px;
+    border: none;
+    background: transparent;
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+}

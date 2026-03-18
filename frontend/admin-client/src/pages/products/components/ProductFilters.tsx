@@ -4,17 +4,40 @@ import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 
 const { Option } = Select;
 
+// 对应 GraphQL ProductSortBy 枚举
+export type ProductSortByOption =
+  | 'CREATED_AT_ASC'
+  | 'CREATED_AT_DESC'
+  | 'NAME_ASC'
+  | 'NAME_DESC'
+  | 'PRICE_ASC'
+  | 'PRICE_DESC'
+  | 'SALES_VOLUME_ASC'
+  | 'SALES_VOLUME_DESC'
+  | 'SORT_ORDER_ASC'
+  | 'SORT_ORDER_DESC';
+
 export interface ProductFilters {
   keyword?: string;
+  search?: string;
   status?: 'ONLINE' | 'OFFLINE' | 'OUT_OF_STOCK' | 'ACTIVE' | 'ALL';
-  priceRange?: [number | null, number | null];
-  stockLevel?: 'LOW' | 'NORMAL' | 'HIGH' | 'ALL';
+  // 价格范围（单位：分，转为元显示）
+  minPrice?: number | null;
+  maxPrice?: number | null;
+  // 库存范围
+  minStock?: number | null;
+  maxStock?: number | null;
+  // 销量范围
+  minSalesVolume?: number | null;
+  maxSalesVolume?: number | null;
   specification?: string;
-  salesVolumeRange?: [number | null, number | null];
   waterSource?: string;
   tags?: string;
-  sortBy?: 'createdAt' | 'salesVolume' | 'price' | 'sortOrder';
-  sortOrder?: 'asc' | 'desc';
+  // 排序（对应 ProductSortBy 枚举）
+  sortBy?: ProductSortByOption;
+  // 分页
+  page?: number;
+  size?: number;
 }
 
 interface ProductFiltersProps {
@@ -50,24 +73,32 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
     onFiltersChange?.(newFilters);
   };
 
-  const handleStockLevelChange = (stockLevel: string) => {
-    const newFilters = { ...localFilters, stockLevel: stockLevel as 'LOW' | 'NORMAL' | 'HIGH' | 'ALL' };
+  const handleMinPriceChange = (value: number | null) => {
+    const newFilters: ProductFilters = { ...localFilters, minPrice: value };
     setLocalFilters(newFilters);
     onFiltersChange?.(newFilters);
   };
 
-  const handlePriceRangeChange = (index: number, value: number | null) => {
-    const newPriceRange = [...(localFilters.priceRange || [null, null])] as [number | null, number | null];
-    newPriceRange[index] = value;
-    const newFilters = { ...localFilters, priceRange: newPriceRange };
+  const handleMaxPriceChange = (value: number | null) => {
+    const newFilters: ProductFilters = { ...localFilters, maxPrice: value };
     setLocalFilters(newFilters);
     onFiltersChange?.(newFilters);
   };
 
-  const handleSalesVolumeRangeChange = (index: number, value: number | null) => {
-    const newRange = [...(localFilters.salesVolumeRange || [null, null])] as [number | null, number | null];
-    newRange[index] = value;
-    const newFilters = { ...localFilters, salesVolumeRange: newRange };
+  const handleMinSalesVolumeChange = (value: number | null) => {
+    const newFilters: ProductFilters = { ...localFilters, minSalesVolume: value };
+    setLocalFilters(newFilters);
+    onFiltersChange?.(newFilters);
+  };
+
+  const handleMaxSalesVolumeChange = (value: number | null) => {
+    const newFilters: ProductFilters = { ...localFilters, maxSalesVolume: value };
+    setLocalFilters(newFilters);
+    onFiltersChange?.(newFilters);
+  };
+
+  const handleSortByChange = (value: ProductSortByOption) => {
+    const newFilters: ProductFilters = { ...localFilters, sortBy: value };
     setLocalFilters(newFilters);
     onFiltersChange?.(newFilters);
   };
@@ -75,15 +106,20 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
   const handleReset = () => {
     const emptyFilters: ProductFilters = {
       keyword: '',
+      search: '',
       status: 'ALL',
-      stockLevel: 'ALL',
+      minPrice: null,
+      maxPrice: null,
+      minStock: null,
+      maxStock: null,
+      minSalesVolume: null,
+      maxSalesVolume: null,
       specification: '',
-      priceRange: [null, null],
-      salesVolumeRange: [null, null],
       waterSource: '',
       tags: '',
-      sortBy: 'createdAt',
-      sortOrder: 'desc'
+      sortBy: 'CREATED_AT_DESC',
+      page: 0,
+      size: 20
     };
     setLocalFilters(emptyFilters);
     onFiltersChange?.(emptyFilters);
@@ -135,47 +171,10 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
               <Option value="ONLINE">在售</Option>
               <Option value="OFFLINE">下架</Option>
               <Option value="OUT_OF_STOCK">缺货</Option>
-              <Option value="ACTIVE">活跃</Option>
             </Select>
           </div>
         </Col>
 
-        <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
-              库存水平
-            </label>
-            <Select
-              style={{ width: '100%' }}
-              value={localFilters.stockLevel || 'ALL'}
-              onChange={handleStockLevelChange}
-              placeholder="选择库存水平"
-            >
-              <Option value="ALL">全部</Option>
-              <Option value="LOW">低库存 (&lt;10)</Option>
-              <Option value="NORMAL">正常 (10-100)</Option>
-              <Option value="HIGH">高库存 (&gt;100)</Option>
-            </Select>
-          </div>
-        </Col>
-
-        <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
-              规格
-            </label>
-            <Input
-              placeholder="搜索规格"
-              value={localFilters.specification || ''}
-              onChange={(e) => {
-                const newFilters = { ...localFilters, specification: e.target.value };
-                setLocalFilters(newFilters);
-                onFiltersChange?.(newFilters);
-              }}
-              allowClear
-            />
-          </div>
-        </Col>
 
         <Col xs={24} sm={12} md={6}>
           <div style={{ marginBottom: 8 }}>
@@ -186,16 +185,16 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
               <InputNumber
                 style={{ flex: 1 }}
                 placeholder="最低价"
-                value={localFilters.priceRange?.[0] || null}
-                onChange={(value) => handlePriceRangeChange(0, value)}
+                value={localFilters.minPrice || null}
+                onChange={handleMinPriceChange}
                 precision={2}
                 min={0}
               />
               <InputNumber
                 style={{ flex: 1 }}
                 placeholder="最高价"
-                value={localFilters.priceRange?.[1] || null}
-                onChange={(value) => handlePriceRangeChange(1, value)}
+                value={localFilters.maxPrice || null}
+                onChange={handleMaxPriceChange}
                 precision={2}
                 min={0}
               />
@@ -212,38 +211,21 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
               <InputNumber
                 style={{ flex: 1 }}
                 placeholder="最低销量"
-                value={localFilters.salesVolumeRange?.[0] || null}
-                onChange={(value) => handleSalesVolumeRangeChange(0, value)}
+                value={localFilters.minSalesVolume || null}
+                onChange={handleMinSalesVolumeChange}
                 min={0}
               />
               <InputNumber
                 style={{ flex: 1 }}
                 placeholder="最高销量"
-                value={localFilters.salesVolumeRange?.[1] || null}
-                onChange={(value) => handleSalesVolumeRangeChange(1, value)}
+                value={localFilters.maxSalesVolume || null}
+                onChange={handleMaxSalesVolumeChange}
                 min={0}
               />
             </div>
           </div>
         </Col>
 
-        <Col xs={24} sm={12} md={6}>
-          <div style={{ marginBottom: 8 }}>
-            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
-              水源地
-            </label>
-            <Input
-              placeholder="搜索水源地"
-              value={localFilters.waterSource || ''}
-              onChange={(e) => {
-                const newFilters = { ...localFilters, waterSource: e.target.value };
-                setLocalFilters(newFilters);
-                onFiltersChange?.(newFilters);
-              }}
-              allowClear
-            />
-          </div>
-        </Col>
 
         <Col xs={24} sm={12} md={6}>
           <div style={{ marginBottom: 8 }}>
@@ -268,35 +250,54 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
             <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
               排序方式
             </label>
+            <Select
+              style={{ width: '100%' }}
+              value={localFilters.sortBy || 'CREATED_AT_DESC'}
+              onChange={handleSortByChange}
+              placeholder="排序方式"
+            >
+              <Option value="CREATED_AT_DESC">创建时间 ↓</Option>
+              <Option value="CREATED_AT_ASC">创建时间 ↑</Option>
+              <Option value="SALES_VOLUME_DESC">销量 ↓</Option>
+              <Option value="SALES_VOLUME_ASC">销量 ↑</Option>
+              <Option value="PRICE_DESC">价格 ↓</Option>
+              <Option value="PRICE_ASC">价格 ↑</Option>
+              <Option value="SORT_ORDER_DESC">排序权重 ↓</Option>
+              <Option value="SORT_ORDER_ASC">排序权重 ↑</Option>
+              <Option value="NAME_ASC">名称 A-Z</Option>
+              <Option value="NAME_DESC">名称 Z-A</Option>
+            </Select>
+          </div>
+        </Col>
+
+        <Col xs={24} sm={12} md={6}>
+          <div style={{ marginBottom: 8 }}>
+            <label style={{ fontSize: '14px', color: '#666', marginBottom: '4px', display: 'block' }}>
+              库存范围
+            </label>
             <div style={{ display: 'flex', gap: '8px' }}>
-              <Select
+              <InputNumber
                 style={{ flex: 1 }}
-                value={localFilters.sortBy || 'createdAt'}
+                placeholder="最小库存"
+                value={localFilters.minStock || null}
                 onChange={(value) => {
-                  const newFilters = { ...localFilters, sortBy: value as any };
+                  const newFilters: ProductFilters = { ...localFilters, minStock: value };
                   setLocalFilters(newFilters);
                   onFiltersChange?.(newFilters);
                 }}
-                placeholder="排序字段"
-              >
-                <Option value="createdAt">创建时间</Option>
-                <Option value="salesVolume">销量</Option>
-                <Option value="price">价格</Option>
-                <Option value="sortOrder">排序权重</Option>
-              </Select>
-              <Select
-                style={{ width: '100px' }}
-                value={localFilters.sortOrder || 'desc'}
+                min={0}
+              />
+              <InputNumber
+                style={{ flex: 1 }}
+                placeholder="最大库存"
+                value={localFilters.maxStock || null}
                 onChange={(value) => {
-                  const newFilters = { ...localFilters, sortOrder: value as any };
+                  const newFilters: ProductFilters = { ...localFilters, maxStock: value };
                   setLocalFilters(newFilters);
                   onFiltersChange?.(newFilters);
                 }}
-                placeholder="顺序"
-              >
-                <Option value="asc">升序</Option>
-                <Option value="desc">降序</Option>
-              </Select>
+                min={0}
+              />
             </div>
           </div>
         </Col>

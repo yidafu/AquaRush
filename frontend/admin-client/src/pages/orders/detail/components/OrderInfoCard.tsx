@@ -22,7 +22,7 @@ const OrderInfoCard: React.FC = () => {
       style={{ marginBottom: '16px' }}
     >
       <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
-        <Descriptions.Item label="订单编号">{order.orderNumber}</Descriptions.Item>
+        <Descriptions.Item label="订单编号">{order.orderNo}</Descriptions.Item>
         <Descriptions.Item label="订单状态">
           <Tag color={statusInfo.color}>{statusInfo.text}</Tag>
         </Descriptions.Item>

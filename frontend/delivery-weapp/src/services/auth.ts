@@ -42,14 +42,18 @@ class DeliveryAuthService {
     }
   }
 
-  private storeAuth(token: string, workerInfo: WorkerInfo, openId: string) {
+  private storeAuth(token: string, workerInfo: WorkerInfo | null, openId: string) {
     try {
       this.token = token
       this.workerInfo = workerInfo
       this.openId = openId
 
       Taro.setStorageSync('auth_token', token)
-      Taro.setStorageSync('worker_info', JSON.stringify(workerInfo))
+      if (workerInfo) {
+        Taro.setStorageSync('worker_info', JSON.stringify(workerInfo))
+      } else {
+        Taro.removeStorageSync('worker_info')
+      }
       Taro.setStorageSync('worker_openid', openId)
     } catch (error) {
       console.error('Failed to store auth:', error)
@@ -102,9 +106,15 @@ class DeliveryAuthService {
       // Call backend API
       const loginData = await this.callLoginAPI(loginRes.code)
 
-      // Step 3: If already bound, store auth
-      if (loginData.workerInfo && loginData.token) {
-        this.storeAuth(loginData.token, loginData.workerInfo, loginData.openId || '')
+      // Step 3: Store auth token (either full token or pending token)
+      if (loginData.token) {
+        if (loginData.workerInfo) {
+          // Already bound, store full auth
+          this.storeAuth(loginData.token, loginData.workerInfo, '')
+        } else if (loginData.needBindPhone) {
+          // Need to bind phone, store pending token
+          this.storeAuth(loginData.token, null as any, '')
+        }
       }
 
       return loginData
@@ -154,7 +164,7 @@ class DeliveryAuthService {
     })
   }
 
-  private async callLoginAPI(code: string): Promise<DeliveryLoginResponse & { openId?: string }> {
+  private async callLoginAPI(code: string): Promise<DeliveryLoginResponse> {
 
     try {
       const response = await Taro.request({
@@ -175,27 +185,7 @@ class DeliveryAuthService {
         throw new Error(result.message || '登录失败')
       }
 
-      const loginResult = result.data
-
-      if (!loginResult.needBindPhone) {
-        return {
-          token: loginResult.token,
-          refreshToken: loginResult.refreshToken,
-          needBindPhone: loginResult.needBindPhone,
-          workerInfo: loginResult.workerInfo,
-          message: loginResult.message,
-          openId: '',
-        }
-      }
-
-      return {
-        needBindPhone: loginResult.needBindPhone,
-        message: loginResult.message,
-        openId: loginResult.openId,
-        token: '',
-        refreshToken: '',
-        workerInfo: null,
-      }
+      return result.data
     } catch (error) {
       console.error('Login REST call failed:', error)
       if (error instanceof Error) {
@@ -206,43 +196,38 @@ class DeliveryAuthService {
   }
 
   /**
-   * Bind phone number to delivery worker
+   * Bind phone number to delivery worker using HTTP API
    */
   async bindPhone(phoneNumber: string): Promise<DeliveryLoginResponse> {
-    if (!this.openId) {
-      throw new Error('OpenID不存在，请重新登录')
+    if (!this.token) {
+      throw new Error('登录态不存在，请重新登录')
     }
 
     try {
-      const mutation = `
-        mutation BindDeliveryPhone($input: BindDeliveryPhoneInput!) {
-          bindDeliveryPhone(input: $input) {
-            token
-            refreshToken
-            needBindPhone
-            workerInfo {
-              id
-              name
-              phone
-              avatarUrl
-              wechatOpenId
-            }
-            message
-            openId
-          }
-        }
-      `
+      const response = await Taro.request({
+        url: `${apiBaseUrl}/api/auth/delivery/bind-phone`,
+        method: 'POST',
+        header: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.token}`,
+        },
+        data: { phoneNumber },
+      })
 
-      const response = await networkManager.mutate<{ bindDeliveryPhone: DeliveryLoginResponse }>(
-        mutation,
-        { input: { openId: this.openId, phoneNumber } }
-      )
+      if (response.statusCode !== 200) {
+        throw new Error(response.data?.message || '绑定失败')
+      }
 
-      const bindResult = response.bindDeliveryPhone
+      const result = response.data
+      if (!result.success) {
+        throw new Error(result.message || '绑定失败')
+      }
+
+      const bindResult = result.data
 
       // Store auth after successful binding
       if (bindResult.workerInfo && bindResult.token) {
-        this.storeAuth(bindResult.token, bindResult.workerInfo, this.openId)
+        this.storeAuth(bindResult.token, bindResult.workerInfo, '')
       }
 
       return bindResult
@@ -299,7 +284,6 @@ class DeliveryAuthService {
           needBindPhone: data.needBindPhone,
           workerInfo: data.workerInfo,
           message: data.message,
-          openId: data.openId,
         }
       }
       return null

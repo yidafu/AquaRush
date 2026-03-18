@@ -136,7 +136,7 @@ export const DELIVERY_WORKER_ORDERS_QUERY = gql`
   query GetDeliveryWorkerOrders($deliveryWorkerId: PrimaryId!, $status: OrderStatus!) {
     ordersByUserAndStatus(userId: $deliveryWorkerId, status: $status) {
       id
-      orderNumber
+      orderNo
       status
       amount
       quantity
@@ -181,7 +181,7 @@ export const USER_ORDERS_QUERY = gql`
   query GetUserOrders($userId: PrimaryId!) {
     ordersByUser(userId: $userId) {
       id
-      orderNumber
+      orderNo
       status
       amount
       quantity

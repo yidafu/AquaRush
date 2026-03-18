@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Button } from '@tarojs/components'
+import { formatCentsToCurrency } from '@aquarush/common'
 import { getTodayStatistics } from '../../services/delivery'
 import { useAuth } from '../../hooks/useAuth'
 import {PageContainer} from '../../components/PageContainer'
@@ -37,11 +38,6 @@ const StatisticsPage: React.FC = () => {
     }
   }, [isAuthenticated, workerInfo?.id])
 
-  // 格式化金额
-  const formatAmount = (cents: number) => {
-    return `¥${(cents / 100).toFixed(2)}`
-  }
-
   // 获取日期字符串
   const getTodayDate = () => {
     const now = new Date()
@@ -73,7 +69,7 @@ const StatisticsPage: React.FC = () => {
           </View>
 
           <View className='stat-card highlight'>
-            <Text className='stat-value'>{formatAmount(statistics.earningCents)}</Text>
+            <Text className='stat-value'>{formatCentsToCurrency(statistics.earningCents)}</Text>
             <Text className='stat-label'>今日收入</Text>
           </View>
         </View>

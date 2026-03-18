@@ -5,7 +5,7 @@ export const GET_PENDING_DELIVERY_ORDERS_QUERY = gql`
   query GetPendingDeliveryOrders {
     pendingDeliveryOrders {
       id
-      orderNumber
+      orderNo
       quantity
       amount
       status
@@ -65,7 +65,7 @@ export const GET_ASSIGNED_ORDERS_QUERY = gql`
   query GetAssignedOrders($workerId: PrimaryId!) {
     assignedOrders(workerId: $workerId) {
       id
-      orderNumber
+      orderNo
       quantity
       amount
       status
@@ -92,7 +92,7 @@ export const GET_DELIVERING_ORDERS_QUERY = gql`
   query GetDeliveringOrders($workerId: PrimaryId!) {
     deliveringOrders(workerId: $workerId) {
       id
-      orderNumber
+      orderNo
       quantity
       amount
       status

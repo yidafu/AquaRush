@@ -28,9 +28,9 @@ const BindPhonePage: React.FC = () => {
   }
 
   useEffect(() => {
-    // Check if openId exists
-    const openId = deliveryAuthService.getOpenId()
-    if (!openId) {
+    // Check if token exists (user is in pending state)
+    const token = deliveryAuthService.getToken()
+    if (!token) {
       Taro.showToast({
         title: '请先登录',
         icon: 'none'

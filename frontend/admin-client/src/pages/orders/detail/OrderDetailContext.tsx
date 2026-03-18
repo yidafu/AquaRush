@@ -8,7 +8,7 @@ import type { OrderOperation } from '../../../components/OrderOperationTimeline'
 
 export interface OrderDetailData {
   id: number;
-  orderNumber: string;
+  orderNo: string;
   user: {
     id: number;
     nickname: string;

@@ -11,7 +11,7 @@ const { Title } = Typography;
 
 interface OrderData {
   id: number;
-  orderNumber: string;
+  orderNo: string;
   user: {
     id: number;
     nickname: string;
@@ -142,8 +142,8 @@ const Orders: React.FC = () => {
   const columns = [
     {
       title: '订单号',
-      dataIndex: 'orderNumber',
-      key: 'orderNumber',
+      dataIndex: 'orderNo',
+      key: 'orderNo',
       sorter: true,
     },
     {

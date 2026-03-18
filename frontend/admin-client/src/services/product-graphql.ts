@@ -4,10 +4,7 @@ import {
   GET_PRODUCTS_QUERY,
   GET_PRODUCT_DETAIL_QUERY,
   GET_PRODUCTS_PAGINATED_QUERY,
-  GET_TOP_SALES_PRODUCTS,
-  GET_PRODUCTS_BY_WATER_SOURCE,
-  GET_PRODUCTS_BY_TAG,
-  GET_ALL_ACTIVE_PRODUCTS,
+  GET_TOP_SALES_PRODUCTS,  GET_ALL_ACTIVE_PRODUCTS,
   GET_WATER_SOURCE_STATISTICS,
   GET_SPECIFICATION_STATISTICS,
   GET_LOW_STOCK_PRODUCTS,
@@ -26,24 +23,28 @@ import {
 } from '../graphql/mutations/product.graphql';
 
 // Product Query Hooks
-export const useProducts = (variables: any = {}) => {
+export const useProducts = (input: any = {}) => {
   return useQuery(GET_PRODUCTS_QUERY, {
     variables: {
-      page: 0,
-      size: 20,
-      ...variables
+      input: {
+        page: 0,
+        size: 20,
+        ...input
+      }
     },
     errorPolicy: 'all',
     notifyOnNetworkStatusChange: true,
   });
 };
 
-export const useProductsQuery = (variables: any = {}) => {
+export const useProductsQuery = (input: any = {}) => {
   return useQuery(GET_PRODUCTS_QUERY, {
     variables: {
-      page: 0,
-      size: 20,
-      ...variables
+      input: {
+        page: 0,
+        size: 20,
+        ...input
+      }
     },
     errorPolicy: 'all',
     notifyOnNetworkStatusChange: true,
@@ -149,13 +150,7 @@ export const useProductsByWaterSource = (waterSource: string) => {
 };
 
 
-export const useProductsByTag = (tag: string) => {
-  return useQuery(GET_PRODUCTS_BY_TAG, {
-    variables: { tag },
-    skip: !tag,
-    errorPolicy: 'all',
-  });
-};
+
 
 export const useAllActiveProducts = () => {
   return useQuery(GET_ALL_ACTIVE_PRODUCTS, {

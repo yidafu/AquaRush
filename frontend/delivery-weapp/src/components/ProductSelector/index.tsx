@@ -3,6 +3,7 @@ import { View, Text, Textarea, ScrollView, Image } from '@tarojs/components'
 import { AtFloatLayout, AtIcon } from 'taro-ui'
 import 'taro-ui/dist/style/components/float-layout.scss'
 import 'taro-ui/dist/style/components/icon.scss'
+import { formatCentsToCurrency } from '@aquarush/common'
 import { searchProducts } from '../../services/delivery'
 import './index.scss'
 
@@ -18,11 +19,6 @@ export interface Product {
 interface ProductSelectorProps {
   selectedProductId?: string
   onSelect: (product: Product) => void
-}
-
-// 格式化价格（分转元）
-const formatPrice = (cents: number): string => {
-  return (cents / 100).toFixed(2)
 }
 
 const ProductSelector: React.FC<ProductSelectorProps> = ({
@@ -47,8 +43,8 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
     setSearchLoading(true)
     searchProducts(keyword, 20)
       .then((res) => {
-        if (res?.data?.activeProducts?.list) {
-          setProducts(res.data.activeProducts.list)
+        if (res?.activeProducts?.list) {
+          setProducts(res.activeProducts.list)
           setInitialLoadDone(true)
         }
       })
@@ -117,7 +113,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
             />
             <View className='product-info'>
               <Text className='product-name'>{selectedProduct.name}</Text>
-              <Text className='product-price'>¥{formatPrice(selectedProduct.price)}</Text>
+              <Text className='product-price'>¥{formatCentsToCurrency(selectedProduct.price, { showSymbol: false })}</Text>
               <Text className='product-stock'>库存: {selectedProduct.stock}</Text>
             </View>
             <View className='chevron'>
@@ -179,7 +175,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                 />
                 <View className='product-info'>
                   <Text className='product-name'>{product.name}</Text>
-                  <Text className='product-price'>¥{formatPrice(product.price)}</Text>
+                  <Text className='product-price'>¥{formatCentsToCurrency(product.price, { showSymbol: false })}</Text>
                   <Text className='product-stock'>库存: {product.stock}</Text>
                 </View>
                 {selectedProductId === product.id && (

@@ -4,6 +4,7 @@ export default defineAppConfig({
     'pages/login/index',
     'pages/bind-phone/index',
     'pages/order-list/index',
+    'pages/order-detail/index',
     'pages/create-order/index',
     'pages/statistics/index',
     'pages/my/index'
@@ -20,7 +21,7 @@ export default defineAppConfig({
     list: [
       {
         pagePath: 'pages/order-list/index',
-        text: '任务',
+        text: '订单',
         iconPath: './assets/task.png',
         selectedIconPath: './assets/task-active.png'
       },

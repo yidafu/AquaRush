@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import NetworkManager, { AuthHandler, RequestHandler } from '@aquarush/common/utils/network'
+import { NetworkManager, AuthHandler, RequestHandler } from '@aquarush/common'
 
 const apiBaseUrl = 'http://localhost:9090'
 
@@ -55,7 +55,7 @@ export const networkManager = NetworkManager.getInstance(
       'Content-Type': 'application/json'
     }
   },
-  createAuthHandler(() => null),
+  createAuthHandler(() => Taro.getStorageSync('auth_token')),
   taroRequestHandler
 )
 
@@ -76,5 +76,6 @@ export const updateAuthHandler = (getToken: () => string | null, silentLogin?: (
     taroRequestHandler
   )
 }
+
 
 export { NetworkManager }

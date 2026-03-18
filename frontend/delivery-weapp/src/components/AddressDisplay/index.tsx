@@ -17,6 +17,46 @@ export interface Address {
   isDefault: boolean
 }
 
+// 地址列表项组件
+interface AddressListItemProps {
+  address: Address
+  selected?: boolean
+  onClick?: (address: Address) => void
+}
+
+export const AddressListItem: React.FC<AddressListItemProps> = ({
+  address,
+  selected = false,
+  onClick,
+}) => {
+  const handleClick = () => {
+    onClick?.(address)
+  }
+
+  return (
+    <View
+      className={`address-item ${selected ? 'selected' : ''}`}
+      onClick={handleClick}
+    >
+      <View className='address-content'>
+        <View className='address-header'>
+          <Text className='receiver-name'>{address.receiverName}</Text>
+          <Text className='phone'>{address.phone}</Text>
+          {address.isDefault && <Text className='default-tag'>默认</Text>}
+        </View>
+        <Text className='address-detail'>
+          {address.province}{address.city}{address.district}{address.detailAddress}
+        </Text>
+      </View>
+      {selected && (
+        <View className='check-icon'>
+          <AtIcon value='check' size='20' color='#1890ff' />
+        </View>
+      )}
+    </View>
+  )
+}
+
 interface AddressDisplayProps {
   selectedId?: string
   loading?: boolean
@@ -40,9 +80,9 @@ const AddressDisplay: React.FC<AddressDisplayProps> = ({
   useEffect(() => {
     searchAllAddresses('', 20)
       .then((res) => {
-        if (res?.data?.searchAllAddresses) {
-          setAddresses(res.data.searchAllAddresses)
-          setFilteredAddresses(res.data.searchAllAddresses)
+        if (res?.searchAllAddresses) {
+          setAddresses(res.searchAllAddresses)
+          setFilteredAddresses(res.searchAllAddresses)
         }
       })
       .catch((err) => {
@@ -198,27 +238,12 @@ const AddressDisplay: React.FC<AddressDisplayProps> = ({
               </View>
             ) : (
               filteredAddresses.map(addr => (
-                <View
+                <AddressListItem
                   key={addr.id}
-                  className={`address-item ${selectedId === addr.id ? 'selected' : ''}`}
-                  onClick={() => handleSelect(addr)}
-                >
-                  <View className='address-content'>
-                    <View className='address-header'>
-                      <Text className='receiver-name'>{addr.receiverName}</Text>
-                      <Text className='phone'>{addr.phone}</Text>
-                      {addr.isDefault && <Text className='default-tag'>默认</Text>}
-                    </View>
-                    <Text className='address-detail'>
-                      {addr.province}{addr.city}{addr.district}{addr.detailAddress}
-                    </Text>
-                  </View>
-                  {selectedId === addr.id && (
-                    <View className='check-icon'>
-                      <AtIcon value='check' size='20' color='#1890ff' />
-                    </View>
-                  )}
-                </View>
+                  address={addr}
+                  selected={selectedId === addr.id}
+                  onClick={handleSelect}
+                />
               ))
             )}
           </ScrollView>

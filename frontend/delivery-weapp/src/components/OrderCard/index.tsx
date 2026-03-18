@@ -1,12 +1,13 @@
 import React from 'react'
 import { View, Text, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import { formatCentsToCurrency } from '@aquarush/common'
 import './index.scss'
 
 interface OrderCardProps {
   order: {
     id: number
-    orderNumber: string
+    orderNo: string
     quantity: number
     amount: number
     isSelfCollect?: boolean
@@ -27,11 +28,6 @@ interface OrderCardProps {
   onAccept?: (orderId: number) => void
   onStartDelivery?: (orderId: number) => void
   onViewDetail?: (orderId: number) => void
-}
-
-// 格式化金额（分转元）
-const formatAmount = (cents: number): string => {
-  return `¥${(cents / 100).toFixed(2)}`
 }
 
 const OrderCard: React.FC<OrderCardProps> = ({
@@ -56,14 +52,14 @@ const OrderCard: React.FC<OrderCardProps> = ({
     if (onViewDetail) {
       onViewDetail(order.id)
     } else {
-      Taro.navigateTo({ url: `/pages/delivery-confirm/index?id=${order.id}` })
+      Taro.navigateTo({ url: `/pages/order-detail/index?id=${order.orderNo}` })
     }
   }
 
   return (
-    <View className='order-card'>
+    <View className='order-card' onClick={handleViewDetail}>
       <View className='order-header'>
-        <Text className='order-number'>{order.orderNumber}</Text>
+        <Text className='order-number'>{order.orderNo}</Text>
         {order.isSelfCollect && (
           <Text className='self-collect-tag'>自收</Text>
         )}
@@ -88,7 +84,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
         </View>
         <View className='info-row amount'>
           <Text className='label'>金额：</Text>
-          <Text className='amount-text'>{formatAmount(order.amount)}</Text>
+          <Text className='amount-text'>{formatCentsToCurrency(order.amount)}</Text>
         </View>
       </View>
 
@@ -96,7 +92,10 @@ const OrderCard: React.FC<OrderCardProps> = ({
         {type === 'pending' && (
           <Button
             className='action-btn accept-btn'
-            onClick={handleAccept}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleAccept()
+            }}
           >
             接单
           </Button>
@@ -104,7 +103,10 @@ const OrderCard: React.FC<OrderCardProps> = ({
         {type === 'assigned' && (
           <Button
             className='action-btn start-btn'
-            onClick={handleStartDelivery}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleStartDelivery()
+            }}
           >
             开始配送
           </Button>
@@ -112,7 +114,10 @@ const OrderCard: React.FC<OrderCardProps> = ({
         {type === 'delivering' && (
           <Button
             className='action-btn detail-btn'
-            onClick={handleViewDetail}
+            onClick={(e) => {
+              e.stopPropagation()
+              handleViewDetail()
+            }}
           >
             去确认
           </Button>

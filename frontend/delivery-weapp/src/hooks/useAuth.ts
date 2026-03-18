@@ -29,9 +29,6 @@ export const useAuth = (_options: UseAuthOptions = {}): UseAuthReturn => {
       console.log('needBindPhone:', loginData.needBindPhone)
       if (loginData.needBindPhone) {
         console.log('redirecting to bind-phone page')
-        if (loginData.openId) {
-          deliveryAuthService.setOpenId(loginData.openId)
-        }
         setNeedBindPhone(true)
         // 直接跳转到绑定手机页面
         const result = Taro.redirectTo({ url: '/pages/bind-phone/index' })

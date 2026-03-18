@@ -61,8 +61,8 @@ export const START_DELIVERY_MUTATION = gql`
 `;
 
 export const COMPLETE_DELIVERY_MUTATION = gql`
-  mutation CompleteDelivery($orderId: PrimaryId!, $photos: [String!]!, $paymentType: PaymentType) {
-    completeDelivery(orderId: $orderId, photos: $photos, paymentType: $paymentType) {
+  mutation CompleteDelivery($orderId: PrimaryId!, $photos: [String!]!, $paymentType: PaymentType, $remark: String) {
+    completeDelivery(orderId: $orderId, photos: $photos, paymentType: $paymentType, remark: $remark) {
       id
       status
       deliveryConfirmedAt

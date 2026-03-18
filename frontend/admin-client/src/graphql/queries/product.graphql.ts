@@ -1,8 +1,8 @@
 import { gql } from '@apollo/client';
 
 export const GET_PRODUCTS_QUERY = gql`
-  query GetProducts($page: Int = 0, $size: Int = 20, $status: ProductStatus, $keyword: String) {
-    products(page: $page, size: $size, status: $status, keyword: $keyword) {
+  query GetProducts($input: ProductSearchInput) {
+    productsPaginated(input: $input) {
       list {
         id
         name
@@ -125,39 +125,7 @@ export const GET_TOP_SALES_PRODUCTS = gql`
   }
 `;
 
-export const GET_PRODUCTS_BY_WATER_SOURCE = gql`
-  query GetProductsByWaterSource($waterSource: String!) {
-    productsByWaterSource(waterSource: $waterSource) {
-      id
-      name
-      subtitle
-      price
-      coverImageUrl
-      specification
-      waterSource
-      stock
-      salesVolume
-      status
-      createdAt
-    }
-  }
-`;
 
-
-export const GET_PRODUCTS_BY_TAG = gql`
-  query GetProductsByTag($tag: String!) {
-    productsByTag(tag: $tag) {
-      id
-      name
-      price
-      coverImageUrl
-      tags
-      stock
-      salesVolume
-      status
-    }
-  }
-`;
 
 export const GET_ALL_ACTIVE_PRODUCTS = gql`
   query GetAllActiveProducts {

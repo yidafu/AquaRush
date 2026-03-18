@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { View, Text } from '@tarojs/components'
-import Taro from '@tarojs/taro'
+import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import { AtTabs, AtTabsPane } from 'taro-ui'
 import 'taro-ui/dist/style/components/tabs.scss'
 import './index.scss'
@@ -33,8 +33,8 @@ const TaskListPage: React.FC = () => {
   const loadPendingOrders = async () => {
     try {
       const res = await getPendingDeliveryOrders()
-      if (res?.data?.pendingDeliveryOrders) {
-        setPendingOrders(res.data.pendingDeliveryOrders)
+      if (res?.pendingDeliveryOrders) {
+        setPendingOrders(res.pendingDeliveryOrders)
       }
     } catch (error) {
       console.error('加载待接单订单失败:', error)
@@ -47,9 +47,9 @@ const TaskListPage: React.FC = () => {
     if (!workerId) return
 
     try {
-      const res = await getMyAssignedOrders(workerId)
-      if (res?.data?.assignedOrders) {
-        setAssignedOrders(res.data.assignedOrders)
+      const res = await getMyAssignedOrders()
+      if (res?.assignedOrders) {
+        setAssignedOrders(res.assignedOrders)
       }
     } catch (error) {
       console.error('加载已接单订单失败:', error)
@@ -62,9 +62,10 @@ const TaskListPage: React.FC = () => {
     if (!workerId) return
 
     try {
-      const res = await getMyDeliveringOrders(workerId)
-      if (res?.data?.deliveringOrders) {
-        setDeliveringOrders(res.data.deliveringOrders)
+      const res = await getMyDeliveringOrders()
+      console.log('loadDeliveringOrders', res)
+      if (res?.deliveringOrders) {
+        setDeliveringOrders(res.deliveringOrders)
       }
     } catch (error) {
       console.error('加载配送中订单失败:', error)
@@ -82,14 +83,25 @@ const TaskListPage: React.FC = () => {
     setLoading(false)
   }
 
+  // 页面显示时加载数据
+  useDidShow(() => {
+    loadAllData()
+  })
+
+  // 下拉刷新
+  usePullDownRefresh(async () => {
+    await loadAllData()
+    Taro.stopPullDownRefresh()
+  })
+
   // 接单
-  const handleAcceptOrder = async (orderId: number) => {
+  const handleAcceptOrder = async (orderId: string) => {
     const workerId = getCurrentWorkerId()
     if (!workerId) return
 
     try {
       Taro.showLoading({ title: '接单中...' })
-      await acceptDelivery(orderId, workerId)
+      await acceptDelivery(orderId)
       Taro.hideLoading()
       Taro.showToast({ title: '接单成功', icon: 'success' })
       loadAllData()
@@ -118,6 +130,20 @@ const TaskListPage: React.FC = () => {
     { title: `已接单 (${assignedOrders.length})` },
     { title: `配送中 (${deliveringOrders.length})` },
   ]
+
+  // Tab 切换时加载对应数据
+  const handleTabClick = async (index: number) => {
+    setCurrentTab(index)
+    // 根据当前 tab 加载对应数据
+    if (index === 0) {
+      await loadPendingOrders()
+    } else if (index === 1) {
+      await loadAssignedOrders()
+    } else if (index === 2) {
+      await loadDeliveringOrders()
+    }
+  }
+
   const handleCreateTask = () => {
     Taro.navigateTo({
       url: '/pages/create-order/index'
@@ -131,7 +157,7 @@ const TaskListPage: React.FC = () => {
           <AtTabs
             current={currentTab}
             tabList={tabList}
-            onClick={setCurrentTab}
+            onClick={handleTabClick}
             swipeable={false}
             className='task-tabs'
           >

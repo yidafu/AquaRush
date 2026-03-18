@@ -10,8 +10,8 @@
  * @returns Amount in yuan
  */
 export const centsToYuan = (cents: number): number => {
-  return cents / 100;
-};
+  return cents / 100
+}
 
 /**
  * Convert yuan to cents (multiply by 100)
@@ -19,8 +19,8 @@ export const centsToYuan = (cents: number): number => {
  * @returns Amount in cents
  */
 export const yuanToCents = (yuan: number): number => {
-  return Math.round(yuan * 100);
-};
+  return Math.round(yuan * 100)
+}
 
 /**
  * Format cents as Chinese Yuan display string
@@ -31,20 +31,20 @@ export const yuanToCents = (yuan: number): number => {
 export const formatCentsToCurrency = (
   cents: number,
   options: {
-    showSymbol?: boolean;
-    decimalPlaces?: number;
-    symbol?: string;
+    showSymbol?: boolean
+    decimalPlaces?: number
+    symbol?: string
   } = {}
 ): string => {
-  const { showSymbol = true, decimalPlaces = 2, symbol = '¥' } = options;
-  const yuan = centsToYuan(cents);
+  const { showSymbol = true, decimalPlaces = 2, symbol = '¥' } = options
+  const yuan = centsToYuan(cents)
 
   if (showSymbol) {
-    return `${symbol}${yuan.toFixed(decimalPlaces)}`;
+    return `${symbol}${yuan.toFixed(decimalPlaces)}`
   }
 
-  return yuan.toFixed(decimalPlaces);
-};
+  return yuan.toFixed(decimalPlaces)
+}
 
 /**
  * Format a number as Chinese Yuan display string
@@ -55,19 +55,19 @@ export const formatCentsToCurrency = (
 export const formatCurrency = (
   amount: number,
   options: {
-    showSymbol?: boolean;
-    decimalPlaces?: number;
-    symbol?: string;
+    showSymbol?: boolean
+    decimalPlaces?: number
+    symbol?: string
   } = {}
 ): string => {
-  const { showSymbol = true, decimalPlaces = 2, symbol = '¥' } = options;
+  const { showSymbol = true, decimalPlaces = 2, symbol = '¥' } = options
 
   if (showSymbol) {
-    return `${symbol}${amount.toFixed(decimalPlaces)}`;
+    return `${symbol}${amount.toFixed(decimalPlaces)}`
   }
 
-  return amount.toFixed(decimalPlaces);
-};
+  return amount.toFixed(decimalPlaces)
+}
 
 /**
  * Parse currency string to cents
@@ -76,17 +76,17 @@ export const formatCurrency = (
  */
 export const parseCurrencyToCents = (currencyString: string): number => {
   // Remove currency symbol and whitespace
-  const cleanString = currencyString.replace(/[¥￥$,\s]/g, '');
+  const cleanString = currencyString.replace(/[¥￥$,\s]/g, '')
 
   // Parse to number and convert to cents
-  const yuan = parseFloat(cleanString);
+  const yuan = parseFloat(cleanString)
 
   if (isNaN(yuan)) {
-    throw new Error(`Invalid currency string: ${currencyString}`);
+    throw new Error(`Invalid currency string: ${currencyString}`)
   }
 
-  return yuanToCents(yuan);
-};
+  return yuanToCents(yuan)
+}
 
 /**
  * Calculate total amount from quantity and unit price in cents
@@ -98,8 +98,8 @@ export const calculateTotalCents = (
   quantity: number,
   unitPriceCents: number
 ): number => {
-  return Math.round(quantity * unitPriceCents);
-};
+  return Math.round(quantity * unitPriceCents)
+}
 
 /**
  * Calculate total amount from quantity and unit price in yuan
@@ -111,9 +111,9 @@ export const calculateTotalFromYuan = (
   quantity: number,
   unitPriceYuan: number
 ): number => {
-  const totalYuan = quantity * unitPriceYuan;
-  return yuanToCents(totalYuan);
-};
+  const totalYuan = quantity * unitPriceYuan
+  return yuanToCents(totalYuan)
+}
 
 /**
  * Get a safe display value for potentially null/undefined monetary amounts
@@ -125,32 +125,32 @@ export const safeCents = (
   cents: number | null | undefined,
   defaultValue: number = 0
 ): number => {
-  return cents ?? defaultValue;
-};
+  return cents ?? defaultValue
+}
 
 /**
- * Format cents for display in a table or list with proper null handling
+ * Format cents for display with proper null handling
  * @param cents Amount in cents (can be null/undefined)
  * @param options Formatting options
- * @returns Formatted currency string or placeholder
+ * @returns Formatted currency string
  */
 export const displayCents = (
   cents: number | null | undefined,
   options: {
-    showSymbol?: boolean;
-    decimalPlaces?: number;
-    symbol?: string;
-    placeholder?: string;
+    showSymbol?: boolean
+    decimalPlaces?: number
+    symbol?: string
+    placeholder?: string
   } = {}
 ): string => {
-  const { placeholder = '--' } = options;
+  const { placeholder = '--' } = options
 
   if (cents === null || cents === undefined) {
-    return placeholder;
+    return placeholder
   }
 
-  return formatCentsToCurrency(cents, options);
-};
+  return formatCentsToCurrency(cents, options)
+}
 
 /**
  * Validate if a value represents a valid monetary amount in cents
@@ -158,8 +158,8 @@ export const displayCents = (
  * @returns True if valid
  */
 export const isValidCentsAmount = (cents: number): boolean => {
-  return Number.isInteger(cents) && cents >= 0;
-};
+  return Number.isInteger(cents) && cents >= 0
+}
 
 /**
  * Round a yuan amount to the nearest cent
@@ -167,5 +167,5 @@ export const isValidCentsAmount = (cents: number): boolean => {
  * @returns Rounded amount in yuan
  */
 export const roundYuanToCent = (yuan: number): number => {
-  return Math.round(yuan * 100) / 100;
-};
+  return Math.round(yuan * 100) / 100
+}

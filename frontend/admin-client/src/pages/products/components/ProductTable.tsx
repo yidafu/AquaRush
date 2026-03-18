@@ -1,6 +1,7 @@
 import React from 'react';
 import { Table, Button, Space, Tag, message, Popconfirm, type PaginationProps } from 'antd';
-import { EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { useDeleteProduct } from '../../../services/product-graphql';
 import { formatAdminTableAmount } from '../../../utils/money';
 
@@ -32,10 +33,7 @@ interface ProductTableProps {
   data?: Product[];
   loading?: boolean;
   pagination?: false | PaginationProps;
-  onProductSelect: (productId: number) => void;
-  onProductEdit: (product: Product) => void;
   onViewDetail: (productId: number) => void;
-  selectedProductId?: number | null;
   onChange?: (pagination: any, filters: any, sorter: any) => void;
 }
 
@@ -43,12 +41,10 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   data = [],
   loading = false,
   pagination = false,
-  onProductSelect,
-  onProductEdit,
   onViewDetail,
-  selectedProductId,
   onChange
 }) => {
+  const navigate = useNavigate();
   const [deleteProduct] = useDeleteProduct();
 
   const columns = [
@@ -154,16 +150,8 @@ export const ProductTable: React.FC<ProductTableProps> = ({
             详情
           </Button>
           <Button
-            icon={<SearchOutlined />}
-            onClick={() => onProductSelect(record.id)}
-            type={selectedProductId === record.id ? 'primary' : 'default'}
-            size="small"
-          >
-            预览
-          </Button>
-          <Button
             icon={<EditOutlined />}
-            onClick={() => onProductEdit(record)}
+            onClick={() => navigate(`/products/${record.id}`)}
             size="small"
           >
             编辑

@@ -144,8 +144,8 @@ const DeliveryWorkerDetailPage: React.FC = () => {
   const orderColumns = [
     {
       title: '订单编号',
-      dataIndex: 'orderNumber',
-      key: 'orderNumber',
+      dataIndex: 'orderNo',
+      key: 'orderNo',
       width: 150,
     },
     {
