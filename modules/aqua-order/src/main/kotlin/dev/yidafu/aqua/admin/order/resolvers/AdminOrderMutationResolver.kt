@@ -30,6 +30,8 @@ import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.order.mapper.CreateDeliveryOrderInputMapper
+import dev.yidafu.aqua.order.mapper.CreateOrderInputMapper
 import dev.yidafu.aqua.order.mapper.OrderMapper
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -48,16 +50,6 @@ class AdminOrderMutationResolver(
   private val adminService: AdminService,
 ) {
   private val logger = LoggerFactory.getLogger(AdminOrderMutationResolver::class.java)
-
-  /**
-   * 创建订单 - 管理员权限（管理员可以为任何用户创建订单）
-   */
-  @MutationMapping
-  @PreAuthorize("hasRole('ADMIN')")
-  fun createOrder(
-    @Argument @Valid input: CreateOrderInput,
-    @Argument userId: Long,
-  ): Order = OrderMapper.map(orderMutationService.createOrder(input, userId))
 
   /**
    * 取消订单 - 管理员权限
@@ -136,17 +128,14 @@ class AdminOrderMutationResolver(
       "Delivery creating order: productId=${input.productId}, addressId=${input.addressId}, quantity=${input.quantity}, isSelfCollect=${input.isSelfCollect}",
     )
     val adminId = getAdminId(userDetail.username)
+    val request = CreateDeliveryOrderInputMapper.map(input)
     val order =
       orderMutationService.createDeliveryOrder(
         adminId,
-        input.productId,
-        input.addressId,
-        input.quantity,
-        input.isSelfCollect ?: false,
-        input.remark,
+        request,
       )
     return OrderMapper.map(
-      orderQueryService.getOrderById(order.id),
+      orderQueryService.getOrderById(order.id!!),
     )
   }
 

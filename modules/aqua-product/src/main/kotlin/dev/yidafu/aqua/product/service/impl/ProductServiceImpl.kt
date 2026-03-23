@@ -1,9 +1,9 @@
 package dev.yidafu.aqua.product.service.impl
 
-import dev.yidafu.aqua.api.dto.ProductQuery
+import dev.yidafu.aqua.api.query.ProductSearchRequest
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.ProductModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
@@ -185,7 +185,7 @@ class ProductServiceImpl(
   }
 
   override fun productsPaginated(
-    query: ProductQuery,
+    query: ProductSearchRequest,
     pageable: Pageable,
   ): Page<ProductModel> = productRepository.searchProducts(query, pageable)
 

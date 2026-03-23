@@ -19,18 +19,6 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-data class WeChatTemplateModel(
-  val touser: String,
-  val template_id: String,
-  val page: String? = null,
-  val data: Map<String, WeChatTemplateData>,
-)
-
-open class WeChatTemplateData(
-  val value: String,
-  val color: String? = null,
-)
-
 enum class MessageType(
   val templateId: String,
   val description: String,

@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.admin.user.resolvers.dto
 
-import dev.yidafu.aqua.common.domain.model.AdminRoleModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.graphql.generated.CreateAdminInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateAdminInput
 import dev.yidafu.aqua.user.mapper.AdminRoleMapper

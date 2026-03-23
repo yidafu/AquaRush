@@ -24,6 +24,7 @@ import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.order.mapper.CreateOrderInputMapper
 import jakarta.validation.Valid
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -44,7 +45,10 @@ class OrderMutationResolver(
   fun createOrder(
     @Argument @Valid input: CreateOrderInput,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): OrderModel = orderMutationService.createOrder(input, userPrincipal.id)
+  ): OrderModel {
+    val request = CreateOrderInputMapper.map(input).copy(userId = userPrincipal.id)
+    return orderMutationService.createOrder(request)
+  }
 
   /**
    * 取消订单（仅限当前用户的订单）- 客户端

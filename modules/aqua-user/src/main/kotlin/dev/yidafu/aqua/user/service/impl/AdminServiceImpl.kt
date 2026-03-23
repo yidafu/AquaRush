@@ -23,8 +23,8 @@ import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerMutationService
 import dev.yidafu.aqua.common.domain.model.AdminModel
-import dev.yidafu.aqua.common.domain.model.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
@@ -143,7 +143,7 @@ class AdminServiceImpl(
     // Create delivery worker record for ADMIN and DELIVERY_WORKER roles
     if (role == AdminRoleModel.ADMIN || role == AdminRoleModel.DELIVERY_WORKER) {
       deliveryWorkerMutationService.createDeliveryWorker(
-        adminId = savedAdmin.id,
+        adminId = savedAdmin.id!!,
         name = realName ?: username,
         phone = phone ?: "",
         wechatOpenId = "",

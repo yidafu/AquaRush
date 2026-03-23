@@ -1,12 +1,12 @@
 package dev.yidafu.aqua.delivery.service.impl
 
 import cn.binarywang.wx.miniapp.api.WxMaService
-import dev.yidafu.aqua.api.dto.DeliveryLoginRequest
 import dev.yidafu.aqua.api.dto.DeliveryLoginResponse
 import dev.yidafu.aqua.api.dto.DeliveryWorkerInfo
+import dev.yidafu.aqua.api.query.DeliveryLoginRequest
 import dev.yidafu.aqua.api.service.delivery.DeliveryAuthService
-import dev.yidafu.aqua.common.domain.model.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.JwtTokenException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
@@ -186,7 +186,7 @@ class DeliveryAuthServiceImpl(
     worker.userId = user.id
     worker.phone = phoneNumber
     worker.wechatOpenId = openId
-    worker.adminId = admin.id
+    worker.adminId = admin.id!!
     worker = deliveryWorkerRepository.save(worker)
 
     admin.deliveryWorkerId = worker.id
@@ -203,7 +203,7 @@ class DeliveryAuthServiceImpl(
     )
 
     // Generate token
-    val newToken = generateToken(admin.id)
+    val newToken = generateToken(admin.id!!)
 
     // 记录配送员手机绑定日志
     bizLogger.logLogin(
@@ -242,7 +242,7 @@ class DeliveryAuthServiceImpl(
     val admin = adminRepository.findById(adminId).orElseThrow { UserNotFoundException("管理员不存在") }
     val userPrincipal =
       UserPrincipal(
-        id = admin.id,
+        id = admin.id!!,
         _username = admin.username,
         userType = admin.role.name,
         _authorities = admin.role.toPermissionAuthorities(),

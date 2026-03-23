@@ -1,7 +1,7 @@
 package dev.yidafu.aqua.common.security
 
-import dev.yidafu.aqua.common.domain.model.AdminPermission
-import dev.yidafu.aqua.common.domain.model.AdminRoleModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminPermission
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 

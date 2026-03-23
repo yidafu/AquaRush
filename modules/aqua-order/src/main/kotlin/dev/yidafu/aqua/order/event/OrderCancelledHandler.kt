@@ -21,9 +21,9 @@ package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.api.service.PaymentService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
-import dev.yidafu.aqua.common.domain.model.OperatorType
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.OrderOperationType
+import dev.yidafu.aqua.common.domain.model.enums.OperatorType
+import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
@@ -71,7 +71,7 @@ class OrderCancelledHandler(
       // 记录订单操作
       val cancelDescription = if (shouldRefund) "用户取消订单（需退款）" else "用户取消订单"
       orderOperationService.recordOperation(
-        orderId = order.id,
+        orderId = order.id!!,
         operationType = OrderOperationType.ORDER_CANCELLED,
         operatorType = OperatorType.USER,
         operatorId = order.userId,

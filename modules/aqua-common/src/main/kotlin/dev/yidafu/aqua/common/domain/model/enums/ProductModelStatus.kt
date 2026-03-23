@@ -1,4 +1,4 @@
-package dev.yidafu.aqua.common.domain.model
+package dev.yidafu.aqua.common.domain.model.enums
 
 enum class ProductModelStatus(
   val label: String,

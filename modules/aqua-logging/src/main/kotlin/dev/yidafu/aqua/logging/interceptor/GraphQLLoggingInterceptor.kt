@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.logging.interceptor
 
+import dev.yidafu.aqua.common.domain.model.OperationType
+import dev.yidafu.aqua.common.domain.model.RequestType
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
-import dev.yidafu.aqua.logging.domain.OperationType
-import dev.yidafu.aqua.logging.domain.RequestType
 import dev.yidafu.aqua.logging.service.ApiLogService
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.server.WebGraphQlInterceptor

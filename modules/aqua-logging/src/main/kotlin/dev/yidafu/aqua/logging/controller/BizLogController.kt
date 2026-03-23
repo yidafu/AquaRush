@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.logging.controller
 
 import dev.yidafu.aqua.common.ApiResponse
-import dev.yidafu.aqua.logging.domain.BusinessLogModel
+import dev.yidafu.aqua.common.domain.model.BusinessLogModel
 import dev.yidafu.aqua.logging.service.BusinessLogService
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest

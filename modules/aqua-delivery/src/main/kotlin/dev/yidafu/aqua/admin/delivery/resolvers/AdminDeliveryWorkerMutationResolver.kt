@@ -22,9 +22,9 @@ package dev.yidafu.aqua.admin.delivery.resolvers
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.AdminModel
-import dev.yidafu.aqua.common.domain.model.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker

@@ -19,6 +19,9 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.domain.model.enums.OperatorType
+import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.type.SqlTypes
@@ -38,30 +41,29 @@ import java.time.LocalDateTime
 )
 class OrderOperationModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
-
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "order_id", nullable = false)
   val orderId: Long = -1L,
-
   @Column(name = "operation_type", nullable = false, length = 50)
   @Enumerated(EnumType.STRING)
   val operationType: OrderOperationType = OrderOperationType.ORDER_CREATED,
-
   @Column(name = "operator_id")
   val operatorId: Long? = null,
-
   @Column(name = "operator_type", length = 20)
   @Enumerated(EnumType.STRING)
   val operatorType: OperatorType = OperatorType.SYSTEM,
-
   @Column(name = "description", length = 500)
   val description: String? = null,
-
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "extra_data", columnDefinition = "json")
   val extraData: String? = null,
-
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-)
+) {
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
+  }
+}

@@ -1,7 +1,7 @@
 package dev.yidafu.aqua.common.security
 
-import dev.yidafu.aqua.common.domain.model.AdminPermission
-import dev.yidafu.aqua.common.domain.model.AdminRoleModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminPermission
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 
 /**
  * 角色-权限映射配置

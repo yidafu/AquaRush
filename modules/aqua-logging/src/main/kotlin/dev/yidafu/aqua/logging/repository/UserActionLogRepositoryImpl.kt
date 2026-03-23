@@ -21,8 +21,8 @@ package dev.yidafu.aqua.logging.repository
 
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.logging.domain.QUserActionLogModel
-import dev.yidafu.aqua.logging.domain.UserActionLogModel
+import dev.yidafu.aqua.common.domain.model.QUserActionLogModel
+import dev.yidafu.aqua.common.domain.model.UserActionLogModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page

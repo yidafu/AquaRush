@@ -78,7 +78,7 @@ class StorageServiceImpl(
       // 检查是否已存在相同文件
       val existingFile = fileMetadataRepository.findByChecksum(checksum).orElse(null)
       if (existingFile != null) {
-        val fileUrl = storageStrategy.generateUrl(existingFile.id, existingFile.fileName)
+        val fileUrl = storageStrategy.generateUrl(existingFile.id!!, existingFile.fileName)
         return FileMetadataResponse(existingFile, fileUrl)
       }
 
@@ -108,7 +108,7 @@ class StorageServiceImpl(
       // 保存元数据
       val savedMetadata = fileMetadataRepository.save(fileMetadata)
 
-      val fileUrl = storageStrategy.generateUrl(savedMetadata.id, savedMetadata.fileName)
+      val fileUrl = storageStrategy.generateUrl(savedMetadata.id!!, savedMetadata.fileName)
       return FileMetadataResponse(savedMetadata, fileUrl)
     } catch (e: IOException) {
       throw RuntimeException("Failed to upload file", e)
@@ -143,7 +143,7 @@ class StorageServiceImpl(
       fileMetadataRepository.findByIdOrNull(id)
         ?: throw NoSuchElementException("File not found with id: $id")
 
-    val fileUrl = storageStrategy.generateUrl(metadata.id, metadata.fileName)
+    val fileUrl = storageStrategy.generateUrl(metadata.id!!, metadata.fileName)
     return FileMetadataResponse(metadata, fileUrl)
   }
 
@@ -165,7 +165,7 @@ class StorageServiceImpl(
 
   override fun listFiles(pageable: org.springframework.data.domain.Pageable): Page<FileMetadataResponse> =
     fileMetadataRepository.findAll(pageable).map { metadata ->
-      val fileUrl = storageStrategy.generateUrl(metadata.id, metadata.fileName)
+      val fileUrl = storageStrategy.generateUrl(metadata.id!!, metadata.fileName)
       FileMetadataResponse(metadata, fileUrl)
     }
 
@@ -174,7 +174,7 @@ class StorageServiceImpl(
     pageable: org.springframework.data.domain.Pageable,
   ): Page<FileMetadataResponse> =
     fileMetadataRepository.findByFileType(fileType, pageable).map { metadata ->
-      val fileUrl = storageStrategy.generateUrl(metadata.id, metadata.fileName)
+      val fileUrl = storageStrategy.generateUrl(metadata.id!!, metadata.fileName)
       FileMetadataResponse(metadata, fileUrl)
     }
 
@@ -183,7 +183,7 @@ class StorageServiceImpl(
     pageable: org.springframework.data.domain.Pageable,
   ): Page<FileMetadataResponse> =
     fileMetadataRepository.findByOwnerId(ownerId, pageable).map { metadata ->
-      val fileUrl = storageStrategy.generateUrl(metadata.id, metadata.fileName)
+      val fileUrl = storageStrategy.generateUrl(metadata.id!!, metadata.fileName)
       FileMetadataResponse(metadata, fileUrl)
     }
 
@@ -192,7 +192,7 @@ class StorageServiceImpl(
     pageable: org.springframework.data.domain.Pageable,
   ): Page<FileMetadataResponse> =
     fileMetadataRepository.findByFileNameContainingIgnoreCase(fileName, pageable).map { metadata ->
-      val fileUrl = storageStrategy.generateUrl(metadata.id, metadata.fileName)
+      val fileUrl = storageStrategy.generateUrl(metadata.id!!, metadata.fileName)
       FileMetadataResponse(metadata, fileUrl)
     }
 

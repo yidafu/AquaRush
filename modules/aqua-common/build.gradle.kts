@@ -1,7 +1,60 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
   id("aqua.kotlin.spring")
+  // Keep querydsl plugin but configure it properly
   id("aqua.kotlin.querydsl")
   id("aqua.kotlin.jpa")
+  id("aqua.spring.boot.library")
+}
+
+dependencies {
+  // Spring Boot starter for basic logging support
+//  implementation("org.springframework.boot:spring-boot-starter")
+
+  // Spring Data JPA for shared entities
+  implementation(libs.bundles.spring.boot.data)
+  implementation(libs.bundles.spring.boot.web)
+  implementation("jakarta.persistence:jakarta.persistence-api:4.0.0-M1")
+//  implementation("org.hibernate.orm:hibernate-core:6.4.1.Final")
+
+  // Spring Security for JWT authentication
+  implementation(libs.bundles.spring.boot.security)
+
+  // GraphQL support
+  implementation(libs.bundles.graphql)
+
+  // Spring Messaging support
+  implementation(libs.bundles.messaging)
+
+  // Reactor Netty for reactive support
+  implementation(libs.reactor.core)
+
+  // Tracing support
+  implementation(libs.micrometer.tracing.bridge.brave)
+
+  // Spring Boot Actuator for health checks
+  implementation(libs.spring.boot.starter.actuator)
+
+  implementation(libs.spring.boot.starter.aop)
+
+  implementation(libs.bundles.jackson)
+  // Validation
+  implementation("jakarta.validation:jakarta.validation-api:4.0.0-M1")
+
+  // JWT support
+  implementation(libs.bundles.jwt)
+
+  // MapDB for caching
+  implementation(libs.mapdb)
+  testImplementation(libs.spring.boot.starter.test)
+  implementation(libs.wechat.miniapp)
+
+  // QueryDSL - only needed as a compile dependency for Q-class references
+  // KSP code generation is handled by domain modules
+  implementation(platform("io.github.openfeign.querydsl:querydsl-bom:7.1"))
+  implementation("io.github.openfeign.querydsl:querydsl-jpa")
+  implementation("io.github.openfeign.querydsl:querydsl-core")
 }
 
 dependencies {
@@ -63,4 +116,8 @@ kotlin {
       kotlin.srcDir(layout.buildDirectory.dir("generated/kspKotlin/main"))
     }
   }
+}
+val compileKotlin: KotlinCompile by tasks
+compileKotlin.compilerOptions {
+  freeCompilerArgs.set(listOf("-Xannotation-default-target=param-property"))
 }

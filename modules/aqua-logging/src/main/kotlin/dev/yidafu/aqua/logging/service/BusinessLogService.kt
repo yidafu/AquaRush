@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.logging.service
 
+import dev.yidafu.aqua.common.domain.model.BusinessLogModel
 import dev.yidafu.aqua.logging.config.LoggingProperties
-import dev.yidafu.aqua.logging.domain.BusinessLogModel
 import dev.yidafu.aqua.logging.repository.BusinessLogRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -84,8 +84,8 @@ class BusinessLogService(
     startTime: LocalDateTime?,
     endTime: LocalDateTime?,
     pageable: Pageable,
-  ): Page<BusinessLogModel> {
-    return businessLogRepository.findByFilters(
+  ): Page<BusinessLogModel> =
+    businessLogRepository.findByFilters(
       level,
       loggerName,
       userId,
@@ -93,12 +93,9 @@ class BusinessLogService(
       endTime,
       pageable,
     )
-  }
 
   /**
    * 根据关联ID查询日志
    */
-  fun findByCorrelationId(correlationId: String): List<BusinessLogModel> {
-    return businessLogRepository.findByCorrelationId(correlationId)
-  }
+  fun findByCorrelationId(correlationId: String): List<BusinessLogModel> = businessLogRepository.findByCorrelationId(correlationId)
 }

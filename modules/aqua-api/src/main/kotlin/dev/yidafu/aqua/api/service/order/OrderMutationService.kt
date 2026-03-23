@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.api.service.order
 
+import dev.yidafu.aqua.api.query.CreateOrderRequest
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 
@@ -27,33 +28,16 @@ import dev.yidafu.aqua.common.domain.model.OrderStatus
  */
 interface OrderMutationService {
   /**
-   * 创建订单
+   * 创建订单，给普通用户使用
    */
-  fun createOrder(
-    userId: Long,
-    productId: Long,
-    addressId: Long,
-    quantity: Int,
-  ): OrderModel
-
-  /**
-   * 创建订单（GraphQL解析器使用）
-   */
-  fun createOrder(
-    input: Any,
-    userId: Long,
-  ): OrderModel
+  fun createOrder(input: CreateOrderRequest): OrderModel
 
   /**
    * 配送员创建订单
    */
   fun createDeliveryOrder(
     adminId: Long,
-    productId: Long,
-    addressId: Long,
-    quantity: Int,
-    isSelfCollect: Boolean = false,
-    remark: String? = null,
+    input: CreateOrderRequest,
   ): OrderModel
 
   /**

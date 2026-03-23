@@ -21,6 +21,7 @@ dependencies {
 
   // Validation
   implementation(libs.spring.boot.starter.validation)
+  implementation(libs.mapdb)
 
   // Order-specific dependencies can be added here
 

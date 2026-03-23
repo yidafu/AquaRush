@@ -32,7 +32,6 @@ include(
   "modules:aqua-storage",
   "modules:aqua-notice",
   "modules:aqua-review",
-  "modules:aqua-entry",
   "services:aqua-client",
   "services:aqua-admin",
 )

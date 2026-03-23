@@ -84,7 +84,7 @@ data class FileMetadataResponse(
     metadata: FileMetadata,
     fileUrl: String? = null,
   ) : this(
-    id = metadata.id,
+    id = metadata.id!!,
     fileName = metadata.fileName,
     fileType = metadata.fileType,
     fileSize = metadata.fileSize,

@@ -1,12 +1,12 @@
-package dev.yidafu.aqua.api.dto
+package dev.yidafu.aqua.api.query
 
-import dev.yidafu.aqua.common.domain.model.ProductModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
 
-data class ProductQuery(
+data class ProductSearchRequest(
   @field:Size(max = 100, message = "搜索关键词长度不能超过100个字符")
   val keyword: String? = null,
   @field:Min(value = 1, message = "最小价格不能小于1分")

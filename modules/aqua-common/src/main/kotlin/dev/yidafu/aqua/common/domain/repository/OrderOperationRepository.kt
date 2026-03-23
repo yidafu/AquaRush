@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.common.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.OrderOperationModel
-import dev.yidafu.aqua.common.domain.model.OrderOperationType
+import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 

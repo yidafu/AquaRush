@@ -156,9 +156,10 @@ class LocalStorageStrategyTest {
   fun `should generate URL`() {
     // Given
     val fileId = 123L
+    val filename = "test.jpg"
 
     // When
-    val url = localStorageStrategy.generateUrl(fileId)
+    val url = localStorageStrategy.generateUrl(fileId, filename)
 
     // Then
     assertNotNull(url)

@@ -1,8 +1,8 @@
 package dev.yidafu.aqua.api.service.order
 
-import dev.yidafu.aqua.common.domain.model.OperatorType
 import dev.yidafu.aqua.common.domain.model.OrderOperationModel
-import dev.yidafu.aqua.common.domain.model.OrderOperationType
+import dev.yidafu.aqua.common.domain.model.enums.OperatorType
+import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 
 /**
  * 订单操作记录服务接口

@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.logging.repository
 
-import dev.yidafu.aqua.logging.domain.ApiLogModel
+import dev.yidafu.aqua.common.domain.model.ApiLogModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
@@ -27,8 +27,9 @@ import org.springframework.stereotype.Repository
  * API日志Repository
  */
 @Repository
-interface ApiLogRepository : JpaRepository<ApiLogModel, Long>, ApiLogRepositoryCustom {
-
+interface ApiLogRepository :
+  JpaRepository<ApiLogModel, Long>,
+  ApiLogRepositoryCustom {
   fun findByCorrelationId(correlationId: String): List<ApiLogModel>
 
   fun findByUserId(userId: Long): List<ApiLogModel>

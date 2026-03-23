@@ -20,10 +20,10 @@
 package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.api.service.order.OrderOperationService
-import dev.yidafu.aqua.common.domain.model.OperatorType
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.OrderOperationType
 import dev.yidafu.aqua.common.domain.model.OrderStatus
+import dev.yidafu.aqua.common.domain.model.enums.OperatorType
+import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
@@ -74,7 +74,7 @@ class OrderPaidHandler(
 
       // 记录订单操作
       orderOperationService.recordOperation(
-        orderId = order.id,
+        orderId = order.id!!,
         operationType = OrderOperationType.ORDER_PAID,
         operatorType = OperatorType.USER,
         operatorId = order.userId,

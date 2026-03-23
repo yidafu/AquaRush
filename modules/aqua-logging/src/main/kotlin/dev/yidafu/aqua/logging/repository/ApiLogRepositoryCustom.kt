@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.logging.repository
 
-import dev.yidafu.aqua.logging.domain.ApiLogModel
-import dev.yidafu.aqua.logging.domain.RequestType
+import dev.yidafu.aqua.common.domain.model.ApiLogModel
+import dev.yidafu.aqua.common.domain.model.RequestType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime

@@ -24,17 +24,19 @@ package dev.yidafu.aqua.common.domain.model
  */
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
-import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
+import dev.yidafu.aqua.common.id.SnowflakeIdGenerator as GenericGeneratorKlass
 
 @Entity
 @SoftDelete(columnName = "is_deleted")
 @Table(name = "reconciliation_tasks")
 class ReconciliationTaskModel : SoftDeletable {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null
 
   @Column(name = "task_id", nullable = false, unique = true)
@@ -86,10 +88,15 @@ class ReconciliationTaskModel : SoftDeletable {
     updatedAt = LocalDateTime.now()
   }
 
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
+  }
+
   companion object {
     fun createPaymentTask(date: LocalDateTime): ReconciliationTaskModel =
       ReconciliationTaskModel().apply {
-        taskId = SnowflakeIdGenerator().generate().toString()
+        taskId = GenericGeneratorKlass().generate().toString()
         taskType = ReconciliationTaskType.PAYMENT
         taskDate = date
         status = ReconciliationTaskStatus.PENDING
@@ -97,7 +104,7 @@ class ReconciliationTaskModel : SoftDeletable {
 
     fun createRefundTask(date: LocalDateTime): ReconciliationTaskModel =
       ReconciliationTaskModel().apply {
-        taskId = SnowflakeIdGenerator().generate().toString()
+        taskId = GenericGeneratorKlass().generate().toString()
         taskType = ReconciliationTaskType.REFUND
         taskDate = date
         status = ReconciliationTaskStatus.PENDING
@@ -105,7 +112,7 @@ class ReconciliationTaskModel : SoftDeletable {
 
     fun createSettlementTask(date: LocalDateTime): ReconciliationTaskModel =
       ReconciliationTaskModel().apply {
-        taskId = SnowflakeIdGenerator().generate().toString()
+        taskId = GenericGeneratorKlass().generate().toString()
         taskType = ReconciliationTaskType.SETTLEMENT
         taskDate = date
         status = ReconciliationTaskStatus.PENDING

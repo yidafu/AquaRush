@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.admin.product.resolvers
 
-import dev.yidafu.aqua.api.dto.ProductQuery
+import dev.yidafu.aqua.api.query.ProductSearchRequest
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.*
@@ -83,7 +83,7 @@ class AdminProductQueryResolver(
     @Argument size: Int = 20,
   ): ProductPage {
     val pageable = PageRequest.of(page, size)
-    val productsPage = productService.productsPaginated(ProductQuery(keyword), pageable)
+    val productsPage = productService.productsPaginated(ProductSearchRequest(keyword), pageable)
     val (productList, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
     return ProductPage(
       list = productList,

@@ -19,11 +19,13 @@
 
 package dev.yidafu.aqua.order.mapper
 
-import dev.yidafu.aqua.api.dto.CreateOrderRequest
+import dev.yidafu.aqua.api.query.CreateOrderRequest
 import dev.yidafu.aqua.common.domain.model.DeliveryAddressModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentType
+import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
+import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.graphql.generated.DeliveryAddress
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
@@ -37,6 +39,7 @@ import dev.yidafu.aqua.user.mapper.UserMapper
 import org.springframework.stereotype.Component
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
+import tools.jackson.databind.ObjectMapper
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
@@ -57,6 +60,7 @@ object PaymentTypeMapper : EnumMappie<PaymentType, PaymentTypeG>()
 object OrderModelToDTOMapper : ObjectMappie<OrderModel, OrderDTO>() {
   override fun map(from: OrderModel) =
     mapping {
+      to::id fromValue (from.id ?: 0L)
       // Fields with same name and type - auto-mapped by Mappie
       to::amount fromProperty from::amountCents
       to::deliveryPhotos fromExpression {
@@ -197,6 +201,7 @@ object GenerateOrderStatusMapper : EnumMappie<OrderStatusG, OrderStatus>()
 object OrderMapper : ObjectMappie<OrderModel, Order>() {
   override fun map(from: OrderModel) =
     mapping {
+      to::id fromValue (from.id ?: 0L)
       // Create placeholder objects for required nested fields
       // In a real implementation, these should be loaded from their respective services
       to::amount fromProperty from::amountCents
@@ -235,6 +240,7 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
 object DeliveryAddressMapper : ObjectMappie<DeliveryAddressModel, DeliveryAddress>() {
   override fun map(from: DeliveryAddressModel) =
     mapping {
+      to::id fromValue (from.id ?: 0L)
       to::latitude fromValue from.latitude?.toFloat()
       to::longitude fromValue from.longitude?.toFloat()
       // Most fields map automatically by name
@@ -242,28 +248,16 @@ object DeliveryAddressMapper : ObjectMappie<DeliveryAddressModel, DeliveryAddres
     }
 }
 
-/**
- * CreateOrderRequest 到 Order 的映射器
- */
-@Component
-object CreateOrderRequestMapper : ObjectMappie<CreateOrderRequest, OrderModel>() {
-  override fun map(from: CreateOrderRequest) =
+object CreateDeliveryOrderInputMapper : ObjectMappie<CreateDeliveryOrderInput, CreateOrderRequest>() {
+  override fun map(from: CreateDeliveryOrderInput): CreateOrderRequest =
     mapping {
-      to::id fromValue DefaultIdGenerator().generate()
-      // Fields with same name and type - auto-mapped by Mappie
-      to::amountCents fromProperty from::amount
-      to::status fromValue OrderStatus.PENDING_PAYMENT
-      to::paymentMethod fromValue null
-      to::paymentTransactionId fromValue null
-      to::paymentTime fromValue null
-      to::deliveryWorkerId fromValue null
-      to::deliveryPhotos fromValue null
-      to::completedAt fromValue null
-      to::createdAt fromValue LocalDateTime.now()
-      to::updatedAt fromValue LocalDateTime.now()
-      to::deliveryStartedAt fromValue null
-      to::deliveryConfirmedAt fromValue null
-      to::isSelfCollect fromValue false
-      to::paymentType fromValue null
+      to::userId fromValue 0L
+    }
+}
+
+object CreateOrderInputMapper : ObjectMappie<CreateOrderInput, CreateOrderRequest>() {
+  override fun map(from: CreateOrderInput): CreateOrderRequest =
+    mapping {
+      to::userId fromValue 0L
     }
 }

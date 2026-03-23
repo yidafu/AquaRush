@@ -19,9 +19,8 @@
 
 package dev.yidafu.aqua.product.domain.repository
 
-import dev.yidafu.aqua.api.dto.ProductQuery
+import dev.yidafu.aqua.api.query.ProductSearchRequest
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 
@@ -37,7 +36,7 @@ interface ProductRepositoryCustom {
    * @return Page of matching products
    */
   fun searchProducts(
-    query: ProductQuery,
+    query: ProductSearchRequest,
     pageable: Pageable,
   ): Page<ProductModel>
 }

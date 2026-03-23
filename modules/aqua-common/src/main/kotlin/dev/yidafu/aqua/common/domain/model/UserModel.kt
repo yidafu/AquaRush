@@ -21,6 +21,7 @@ package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
@@ -32,8 +33,9 @@ import java.time.LocalDateTime
 @Table(name = "users")
 open class UserModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "wechat_openid", unique = true, nullable = false)
   val wechatOpenId: String = "",
   @Column(name = "nickname")
@@ -68,6 +70,11 @@ open class UserModel(
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
+  }
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
   }
 
   // Backward compatibility property

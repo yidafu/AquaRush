@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.api.service.order.OrderOperationService
-import dev.yidafu.aqua.common.domain.model.OperatorType
-import dev.yidafu.aqua.common.domain.model.OrderOperationType
+import dev.yidafu.aqua.common.domain.model.enums.OperatorType
+import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType

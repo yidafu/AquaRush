@@ -1,10 +1,12 @@
-package dev.yidafu.aqua.common.domain.model
+package dev.yidafu.aqua.common.domain.model.enums
 
 /**
  * 管理员权限枚举
  * 按模块区分查询(READ)和管理(WRITE)权限
  */
-enum class AdminPermission(val description: String) {
+enum class AdminPermission(
+  val description: String,
+) {
   // 用户模块
   USER_READ("用户查询"),
   USER_WRITE("用户管理"),

@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.product.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.ProductModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor

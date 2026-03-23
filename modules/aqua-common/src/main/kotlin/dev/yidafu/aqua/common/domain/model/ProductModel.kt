@@ -21,6 +21,8 @@ package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.converter.ArrayNodeConverter
 import dev.yidafu.aqua.common.converter.ObjectNodeConverter
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
@@ -38,8 +40,9 @@ import java.time.LocalDateTime
 @Table(name = "products")
 open class ProductModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long = 0L,
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "name", nullable = false)
   var name: String = "",
   @Column(name = "subtitle", length = 500)
@@ -97,6 +100,11 @@ open class ProductModel(
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
+  }
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
   }
 
   // Compatibility properties for existing code - returns prices in yuan as BigDecimal

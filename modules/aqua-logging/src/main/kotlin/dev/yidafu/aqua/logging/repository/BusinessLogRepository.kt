@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.logging.repository
 
-import dev.yidafu.aqua.logging.domain.BusinessLogModel
+import dev.yidafu.aqua.common.domain.model.BusinessLogModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
@@ -27,8 +27,9 @@ import org.springframework.stereotype.Repository
  * 业务日志Repository
  */
 @Repository
-interface BusinessLogRepository : JpaRepository<BusinessLogModel, Long>, BusinessLogRepositoryCustom {
-
+interface BusinessLogRepository :
+  JpaRepository<BusinessLogModel, Long>,
+  BusinessLogRepositoryCustom {
   fun findByCorrelationId(correlationId: String): List<BusinessLogModel>
 
   fun findByUserId(userId: Long): List<BusinessLogModel>

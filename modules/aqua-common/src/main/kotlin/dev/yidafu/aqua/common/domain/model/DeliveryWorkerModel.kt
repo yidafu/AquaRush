@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
@@ -32,8 +33,9 @@ import java.time.LocalDateTime
 @Table(name = "delivery_workers")
 open class DeliveryWorkerModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "user_id", nullable = true)
   var userId: Long? = null,
   @Column(name = "admin_id", nullable = false)
@@ -79,6 +81,11 @@ open class DeliveryWorkerModel(
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
+  }
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
   }
 
   // Backward compatibility property

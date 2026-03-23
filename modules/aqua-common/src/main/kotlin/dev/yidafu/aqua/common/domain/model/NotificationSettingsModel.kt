@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
@@ -28,8 +29,9 @@ import java.time.LocalDateTime
 @Table(name = "notification_settings")
 open class NotificationSettingsModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "user_id", unique = true, nullable = false)
   val userId: Long,
   @Column(name = "order_updates", nullable = false)
@@ -52,5 +54,10 @@ open class NotificationSettingsModel(
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
+  }
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
   }
 }

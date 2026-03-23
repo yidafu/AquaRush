@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.logging.repository
 
-import dev.yidafu.aqua.logging.domain.UserActionLogModel
+import dev.yidafu.aqua.common.domain.model.UserActionLogModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime

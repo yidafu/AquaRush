@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import java.math.BigDecimal
@@ -31,8 +32,9 @@ import java.time.LocalDateTime
 @Table(name = "bucket_deposits")
 data class BucketDepositModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long = -1L,
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "user_id", nullable = false)
   val userId: Long = -1L,
   @Column(name = "quantity", nullable = false)
@@ -60,6 +62,11 @@ data class BucketDepositModel(
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
+  }
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
   }
 
   // 金额转换为元

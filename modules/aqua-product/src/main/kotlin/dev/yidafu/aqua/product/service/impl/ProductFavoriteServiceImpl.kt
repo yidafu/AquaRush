@@ -24,7 +24,7 @@ import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.ProductModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.*
@@ -44,6 +44,7 @@ import java.io.ByteArrayOutputStream
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.math.ceil
 
 @Service
 @Transactional
@@ -280,7 +281,7 @@ class ProductFavoriteServiceImpl(
       }
 
     val totalElements = filtered.size.toLong()
-    val totalPages = Math.ceil(totalElements.toDouble() / size).toInt()
+    val totalPages = ceil(totalElements.toDouble() / size).toInt()
     val start = page * size
     val end = minOf(start + size, filtered.size)
     val pagedItems =

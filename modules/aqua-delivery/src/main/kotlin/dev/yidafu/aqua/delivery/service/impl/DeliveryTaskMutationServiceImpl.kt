@@ -22,11 +22,11 @@ package dev.yidafu.aqua.delivery.service.impl
 import dev.yidafu.aqua.api.service.delivery.DeliveryTaskMutationService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
-import dev.yidafu.aqua.common.domain.model.OperatorType
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.OrderOperationType
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentType
+import dev.yidafu.aqua.common.domain.model.enums.OperatorType
+import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
@@ -85,7 +85,7 @@ class DeliveryTaskMutationServiceImpl(
 
     // 发布配送分配事件
     eventPublishService.publishDeliveryAssigned(
-      orderId = savedOrder.id,
+      orderId = savedOrder.id!!,
       deliveryWorkerId = workerId,
       userId = savedOrder.userId,
       adminId = adminId,
@@ -132,7 +132,7 @@ class DeliveryTaskMutationServiceImpl(
           // 发布配送分配事件
           eventPublishService.publishDeliveryAssigned(
             adminId = adminId,
-            orderId = savedOrder.id,
+            orderId = savedOrder.id!!,
             deliveryWorkerId = workerId,
             userId = savedOrder.userId,
           )
@@ -175,7 +175,7 @@ class DeliveryTaskMutationServiceImpl(
 
     // 记录订单操作 - 配送员接单
     orderOperationService.recordOperation(
-      orderId = savedOrder.id,
+      orderId = savedOrder.id!!,
       operationType = OrderOperationType.DELIVERY_ASSIGNED,
       operatorType = OperatorType.DELIVERY_WORKER,
       operatorId = adminId,
@@ -185,7 +185,7 @@ class DeliveryTaskMutationServiceImpl(
     // 发布配送分配事件
     eventPublishService.publishDeliveryAssigned(
       adminId = adminId,
-      orderId = savedOrder.id,
+      orderId = savedOrder.id!!,
       deliveryWorkerId = workerId ?: 0L,
       userId = savedOrder.userId,
     )
@@ -216,7 +216,7 @@ class DeliveryTaskMutationServiceImpl(
 
     // 记录订单操作 - 开始配送
     orderOperationService.recordOperation(
-      orderId = savedOrder.id,
+      orderId = savedOrder.id!!,
       operationType = OrderOperationType.DELIVERY_STARTED,
       operatorType = OperatorType.DELIVERY_WORKER,
       operatorId = savedOrder.deliveryWorkerId,
@@ -225,7 +225,7 @@ class DeliveryTaskMutationServiceImpl(
 
     // 发布配送开始事件
     eventPublishService.publishDeliveryStarted(
-      orderId = savedOrder.id,
+      orderId = savedOrder.id!!,
       deliveryWorkerId = savedOrder.deliveryWorkerId!!,
     )
 
@@ -266,7 +266,7 @@ class DeliveryTaskMutationServiceImpl(
 
     // 记录订单操作 - 配送完成
     orderOperationService.recordOperation(
-      orderId = savedOrder.id,
+      orderId = savedOrder.id!!,
       operationType = OrderOperationType.DELIVERY_COMPLETED,
       operatorType = OperatorType.DELIVERY_WORKER,
       operatorId = savedOrder.deliveryWorkerId,
@@ -276,7 +276,7 @@ class DeliveryTaskMutationServiceImpl(
 
     // 记录订单操作 - 订单完成
     orderOperationService.recordOperation(
-      orderId = savedOrder.id,
+      orderId = savedOrder.id!!,
       operationType = OrderOperationType.ORDER_COMPLETED,
       operatorType = OperatorType.DELIVERY_WORKER,
       operatorId = savedOrder.deliveryWorkerId,
@@ -285,13 +285,13 @@ class DeliveryTaskMutationServiceImpl(
 
     // 发布配送完成事件
     eventPublishService.publishDeliveryCompleted(
-      orderId = savedOrder.id,
+      orderId = savedOrder.id!!,
       deliveryWorkerId = savedOrder.deliveryWorkerId!!,
     )
 
     // 发布订单完成事件
     eventPublishService.publishOrderCompleted(
-      orderId = savedOrder.id,
+      orderId = savedOrder.id!!,
       userId = savedOrder.userId,
       deliveryWorkerId = savedOrder.deliveryWorkerId!!,
     )

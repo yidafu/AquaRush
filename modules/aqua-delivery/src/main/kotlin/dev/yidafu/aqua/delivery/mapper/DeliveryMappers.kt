@@ -75,6 +75,7 @@ object DeliveryWorkerWithCurrentUserMapper : ObjectMappie<DeliveryWorkerModel, D
 object DeliveryAreaMapper : ObjectMappie<DeliveryAreaModel, DeliveryArea>() {
   override fun map(from: DeliveryAreaModel): DeliveryArea =
     mapping {
+      to::id fromValue (from.id ?: 0L)
       // All fields have same name and type - auto-mapped by Mappie
     }
 }

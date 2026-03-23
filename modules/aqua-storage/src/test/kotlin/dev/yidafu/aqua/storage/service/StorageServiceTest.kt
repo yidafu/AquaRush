@@ -103,7 +103,7 @@ class StorageServiceTest {
     every { fileMetadataRepository.findByChecksum(any()) } returns Optional.empty()
     every { storageStrategy.store(file, any()) } returns storagePath
     every { fileMetadataRepository.save(any()) } returns expectedMetadata
-    every { storageStrategy.generateUrl(1L) } returns "/api/v1/storage/files/1"
+    every { storageStrategy.generateUrl(1L, any()) } returns "/api/v1/storage/files/1"
 
     // When
     val result = storageService.uploadFile(file, request)
@@ -169,7 +169,7 @@ class StorageServiceTest {
       ).apply { id = fileId }
 
     every { fileMetadataRepository.findByIdOrNull(fileId) } returns metadata
-    every { storageStrategy.generateUrl(fileId) } returns "/api/v1/storage/files/$fileId"
+    every { storageStrategy.generateUrl(fileId, any()) } returns "/api/v1/storage/files/$fileId"
 
     // When
     val result = storageService.getFileMetadata(fileId)
@@ -219,7 +219,7 @@ class StorageServiceTest {
     val page = PageImpl(metadataList)
 
     every { fileMetadataRepository.findAll(pageable) } returns page
-    every { storageStrategy.generateUrl(any()) } returns "/api/v1/storage/files/test"
+    every { storageStrategy.generateUrl(any(), any()) } returns "/api/v1/storage/files/test"
 
     // When
     val result = storageService.listFiles(pageable)

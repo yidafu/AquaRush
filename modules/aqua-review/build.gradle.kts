@@ -2,6 +2,7 @@ plugins {
   id("aqua.kotlin.spring")
   alias(libs.plugins.mappie)
   id("aqua.kotlin.querydsl")
+  id("aqua.spring.boot.library")
 }
 
 dependencies {

@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -29,8 +30,9 @@ import java.time.LocalDateTime
 @Table(name = "system_settings")
 data class SystemSettingsModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long = -1L,
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "setting_key", nullable = false, unique = true)
   val settingKey: String = "",
   @Column(name = "setting_value")
@@ -45,6 +47,11 @@ data class SystemSettingsModel(
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
+  }
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
   }
 }
 

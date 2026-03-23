@@ -2,7 +2,8 @@ package dev.yidafu.aqua.api.service.order
 
 interface OrderIdGeneratorService {
   /**
-   * YYYYMMDD+用户后10位+6位全局的序列号
+   * 生成16位订单号: YYMMDD + 10位序列号
+   * 序列号使用专用MapDB持久化，重启后不重复
    */
-  fun generateOrderId(userId: Long): String
+  fun generateOrderId(): String
 }

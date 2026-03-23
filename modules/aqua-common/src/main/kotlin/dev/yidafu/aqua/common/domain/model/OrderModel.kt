@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
@@ -32,8 +33,9 @@ import java.time.LocalDateTime
 @Table(name = "orders")
 data class OrderModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long = -1L,
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "order_no", unique = true, nullable = false)
   val orderNo: String = "",
   @Column(name = "user_id", nullable = false)
@@ -103,6 +105,11 @@ data class OrderModel(
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
+  }
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
   }
 
   // Compatibility property for existing code - returns amount in yuan as BigDecimal

@@ -17,8 +17,9 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.logging.domain
+package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import java.time.LocalDateTime
 
@@ -39,30 +40,27 @@ import java.time.LocalDateTime
 )
 class BusinessLogModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
-
+  @SnowflakeIdGenerator
+  var id: Long? = null,
   @Column(name = "correlation_id", length = 50)
   val correlationId: String? = null,
-
   @Column(name = "level", nullable = false, length = 10)
   val level: String = "INFO",
-
   @Column(name = "logger_name", length = 200)
   val loggerName: String? = null,
-
   @Column(name = "message", columnDefinition = "text")
   val message: String? = null,
-
   @Column(name = "stack_trace", columnDefinition = "text")
   val stackTrace: String? = null,
-
   @Column(name = "user_id")
   val userId: Long? = null,
-
   @Column(name = "username", length = 100)
   val username: String? = null,
-
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-)
+) {
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
+  }
+}

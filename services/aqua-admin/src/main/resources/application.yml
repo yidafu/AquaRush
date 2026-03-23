@@ -42,24 +42,33 @@ spring:
     enabled: true            # Disable Liquibase for admin service since main app manages schema
 
   artemis:
-    mode: embedded
-    embedded:
+    mode: native
+    broker-url: tcp://localhost:61616
+    pool:
       enabled: true
+      max-connections: 10
+    embedded:
+      enabled: false
+      max-disk-usage: 98
       persistent: true
-      data-directory: ./data/artemis-delivery
-      queues:
-        - order-events
-        - payment-events
-        - delivery-events
-        - user-events
-      topics:
-        - broadcast-events
+      data-directory: ./data/artemis-admin
+      config-url: classpath:broker.xml
+      config-resource: classpath:broker.xml
+      server-config: classpath:broker.xml
+      queues: order-events,payment-events,delivery-events,user-events
+      topics: broadcast-events
+    user: admin
+    password: admin
 
   jms:
+    listener:
+      auto-startup: true
+      acknowledge-mode: client
+      concurrency: 1-5
     template:
       default-destination: delivery-events
       delivery-mode: persistent
-      priority: 100
+      priority: 5
       time-to-live: 3600000 # 1小时
 
   jackson:
@@ -124,6 +133,10 @@ logging:
     # Database access logging
     org.springframework.jdbc: DEBUG
     org.hibernate.SQL: DEBUG
+    org.hibernate: DEBUG
+    org.hibernate.orm.id: TRACE
+    org.hibernate.boot.model.internal: TRACE
+    org.hibernate.orm.metadata: TRACE
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
@@ -145,22 +158,6 @@ aqua:
     aes-key: "string"
   messaging:
     enabled: true
-    strategy: artemis # artemis, hybrid, outbox-only, memory-only
-    # 轻量级内存队列配置
-    memory-queue:
-      enabled: true
-      max-size: 8000      # 配送服务需要处理更多事件
-      batch-size: 100       # 批处理大小
-      poll-interval-ms: 25   # 25ms轮询间隔，更快的响应
-      high-frequency-events: ["ORDER_PAID", "DELIVERY_ASSIGNED", "DELIVERY_TIMEOUT", "DELIVERY_STARTED"]
-      low-frequency-events: ["ORDER_CREATED", "ORDER_DELIVERED", "DELIVERY_COMPLETED"]
-    # 传统Outbox配置（作为备份）
-    outbox:
-      enabled: true
-      poll-interval-seconds: 15  # 15秒轮询，最快的响应
-      max-retry-count: 5
-      retry-delays-ms: [15000, 30000, 60000, 300000, 900000] # 15s, 30s, 1min, 5min, 15min
-      cleanup-days: 30
   mode: admin
 
 # Storage configuration
@@ -169,7 +166,7 @@ storage:
   local:
     base-path: ${STORAGE_BASE_PATH:./data/storage}
     max-file-size: 104857600  # 100MB
-    allowed-extensions: ["jpg", "jpeg", "png", "gif", "bmp", "webp", "mp4", "avi", "mov", "wmv", "flv", "mp3", "wav", "flac", "aac", "pdf", "doc", "docx", "txt", "xls", "xlsx", "csv", "ppt", "pptx", "html", "css", "js", "zip", "rar", "7z", "tar", "gz", "exe", "msi", "sh", "bat", "bak", "backup"]
+    allowed-extensions: [ "jpg", "jpeg", "png", "gif", "bmp", "webp", "mp4", "avi", "mov", "wmv", "flv", "mp3", "wav", "flac", "aac", "pdf", "doc", "docx", "txt", "xls", "xlsx", "csv", "ppt", "pptx", "html", "css", "js", "zip", "rar", "7z", "tar", "gz", "exe", "msi", "sh", "bat", "bak", "backup" ]
 
 # JWT configuration
 app:

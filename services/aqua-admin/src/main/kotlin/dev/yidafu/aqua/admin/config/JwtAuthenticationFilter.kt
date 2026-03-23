@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.config
 
 import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.api.service.UserService
-import dev.yidafu.aqua.common.domain.model.AdminPermission
+import dev.yidafu.aqua.common.domain.model.enums.AdminPermission
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.common.security.toSimpleGrantedAuthority

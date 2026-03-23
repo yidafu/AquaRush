@@ -128,7 +128,7 @@ class ClientFavoriteQueryResolver(
     addedAt: LocalDateTime?,
   ): FavoriteProduct =
     FavoriteProduct(
-      id = product.id,
+      id = product.id!!,
       name = product.name,
       subtitle = product.subtitle ?: "",
       price = product.price,

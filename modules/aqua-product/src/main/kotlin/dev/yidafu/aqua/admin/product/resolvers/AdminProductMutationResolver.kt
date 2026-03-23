@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.ProductModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus

@@ -1,7 +1,7 @@
 package dev.yidafu.aqua.admin.delivery.controller
 
-import dev.yidafu.aqua.api.dto.DeliveryLoginRequest
 import dev.yidafu.aqua.api.dto.DeliveryLoginResponse
+import dev.yidafu.aqua.api.query.DeliveryLoginRequest
 import dev.yidafu.aqua.api.service.delivery.DeliveryAuthService
 import dev.yidafu.aqua.common.ApiResponse
 import jakarta.validation.Valid

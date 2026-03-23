@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.user.mapper
 
 import dev.yidafu.aqua.common.domain.model.*
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.graphql.generated.*
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
@@ -53,7 +54,7 @@ object UserMapper : ObjectMappie<UserModel, User>() {
 object AdminMapper : ObjectMappie<AdminModel, Admin>() {
   override fun map(from: AdminModel) =
     mapping {
-      to::id fromValue from.id
+      to::id fromValue (from.id ?: 0L)
       to::username fromProperty from::username
       to::realName fromProperty from::realName
       to::phone fromProperty from::phone
@@ -85,6 +86,7 @@ object AddressMapper : ObjectMappie<AddressModel, Address>() {
 object RegionMapper : ObjectMappie<RegionModel, Region>() {
   override fun map(from: RegionModel) =
     mapping {
+      to::id fromValue (from.id ?: 0L)
       // Most fields map automatically by name
       // No custom mapping needed as field names match
     }
@@ -118,7 +120,7 @@ fun fromCents(cents: Long): java.math.BigDecimal = java.math.BigDecimal(cents).d
 object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
   override fun map(from: AddressInput) =
     mapping {
-      to::id fromValue null
+      to::id fromValue -1L
       to::userId fromValue 0L // Will be set after mapping
       to::createdAt fromValue LocalDateTime.now()
       to::updatedAt fromValue LocalDateTime.now()
@@ -134,7 +136,7 @@ object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
 object AddressUpdateMapper : ObjectMappie<UpdateAddressInput, AddressModel>() {
   override fun map(from: UpdateAddressInput): AddressModel =
     mapping {
-      to::id fromValue null
+      to::id fromValue -1L
       to::userId fromValue 0L // Will be set after mapping
 
       to::province fromValue (from.province ?: "")

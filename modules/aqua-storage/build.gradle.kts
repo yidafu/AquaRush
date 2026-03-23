@@ -1,6 +1,7 @@
 plugins {
   id("aqua.kotlin.spring")
   id("aqua.kotlin.querydsl")
+  id("aqua.spring.boot.library")
 }
 
 dependencies {

@@ -1,6 +1,6 @@
 package dev.yidafu.aqua.common.security
 
-import dev.yidafu.aqua.common.domain.model.AdminPermission
+import dev.yidafu.aqua.common.domain.model.enums.AdminPermission
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 
@@ -23,16 +23,12 @@ class PermissionChecker {
   /**
    * 检查当前用户是否拥有指定权限之一
    */
-  fun hasAnyPermission(vararg permissions: AdminPermission): Boolean {
-    return permissions.any { hasPermission(it) }
-  }
+  fun hasAnyPermission(vararg permissions: AdminPermission): Boolean = permissions.any { hasPermission(it) }
 
   /**
    * 检查当前用户是否拥有所有指定权限
    */
-  fun hasAllPermissions(permissions: Set<AdminPermission>): Boolean {
-    return permissions.all { hasPermission(it) }
-  }
+  fun hasAllPermissions(permissions: Set<AdminPermission>): Boolean = permissions.all { hasPermission(it) }
 
   /**
    * 检查当前用户是否拥有指定权限（字符串形式）

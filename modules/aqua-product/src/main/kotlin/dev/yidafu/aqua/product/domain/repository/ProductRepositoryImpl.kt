@@ -20,13 +20,10 @@
 package dev.yidafu.aqua.product.domain.repository
 
 import com.querydsl.core.BooleanBuilder
-import com.querydsl.core.types.OrderSpecifier
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.api.dto.ProductQuery
+import dev.yidafu.aqua.api.query.ProductSearchRequest
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.ProductModelStatus
 import dev.yidafu.aqua.common.domain.model.QProductModel.Companion.productModel
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page
@@ -47,7 +44,7 @@ class ProductRepositoryImpl : ProductRepositoryCustom {
   }
 
   override fun searchProducts(
-    query: ProductQuery,
+    query: ProductSearchRequest,
     pageable: Pageable,
   ): Page<ProductModel> {
     val builder = BooleanBuilder()

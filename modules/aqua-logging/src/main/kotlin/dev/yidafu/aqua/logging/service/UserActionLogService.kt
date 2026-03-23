@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.logging.service
 
-import dev.yidafu.aqua.logging.domain.UserActionLogModel
+import dev.yidafu.aqua.common.domain.model.UserActionLogModel
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
@@ -87,8 +87,8 @@ class UserActionLogService(
     startTime: LocalDateTime?,
     endTime: LocalDateTime?,
     pageable: Pageable,
-  ): Page<UserActionLogModel> {
-    return userActionLogRepository.findByFilters(
+  ): Page<UserActionLogModel> =
+    userActionLogRepository.findByFilters(
       userId,
       actionType,
       username,
@@ -96,19 +96,14 @@ class UserActionLogService(
       endTime,
       pageable,
     )
-  }
 
   /**
    * 根据用户ID查询日志
    */
-  fun findByUserId(userId: String): List<UserActionLogModel> {
-    return userActionLogRepository.findByUserId(userId)
-  }
+  fun findByUserId(userId: String): List<UserActionLogModel> = userActionLogRepository.findByUserId(userId)
 
   /**
    * 根据操作类型查询日志
    */
-  fun findByActionType(actionType: String): List<UserActionLogModel> {
-    return userActionLogRepository.findByActionType(actionType)
-  }
+  fun findByActionType(actionType: String): List<UserActionLogModel> = userActionLogRepository.findByActionType(actionType)
 }

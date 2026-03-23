@@ -1,12 +1,11 @@
 package dev.yidafu.aqua.api.service.product
 
-import dev.yidafu.aqua.api.dto.ProductQuery
+import dev.yidafu.aqua.api.query.ProductSearchRequest
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import java.math.BigDecimal
 
 interface ProductService {
   fun findById(id: Long): ProductModel?
@@ -38,7 +37,7 @@ interface ProductService {
   ): Page<ProductModel>
 
   fun productsPaginated(
-    query: ProductQuery,
+    query: ProductSearchRequest,
     pageable: Pageable,
   ): Page<ProductModel>
 }

@@ -22,6 +22,7 @@ package dev.yidafu.aqua.common.domain.model
 /**
  * 对账报表实体
  */
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.annotations.SoftDelete
@@ -33,7 +34,8 @@ import java.time.LocalDateTime
 @Table(name = "reconciliation_reports")
 class ReconciliationReportModel : SoftDeletable {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null
 
   @Column(name = "task_id", nullable = false)
@@ -63,6 +65,11 @@ class ReconciliationReportModel : SoftDeletable {
 
   @Column(name = "deleted_by")
   override var deletedBy: Long? = null
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
+  }
 
   companion object {
     fun createSummaryReport(

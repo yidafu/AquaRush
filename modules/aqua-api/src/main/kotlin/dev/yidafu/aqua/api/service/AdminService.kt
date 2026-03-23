@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.api.service
 
 import dev.yidafu.aqua.common.domain.model.AdminModel
-import dev.yidafu.aqua.common.domain.model.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 
 /**

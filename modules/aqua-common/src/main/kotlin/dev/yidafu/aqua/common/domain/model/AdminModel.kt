@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
@@ -28,7 +30,9 @@ import java.time.LocalDateTime
 @Table(name = "admins")
 data class AdminModel(
   @Id
-  val id: Long = -1L,
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "username", unique = true, nullable = false, length = 50)
   var username: String,
   @Column(name = "password_hash", nullable = false)
@@ -58,5 +62,10 @@ data class AdminModel(
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
+  }
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
   }
 }

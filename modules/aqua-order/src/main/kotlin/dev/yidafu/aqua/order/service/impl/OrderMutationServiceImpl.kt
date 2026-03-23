@@ -19,16 +19,18 @@
 
 package dev.yidafu.aqua.order.service.impl
 
+import dev.yidafu.aqua.api.query.CreateOrderRequest
 import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryAreaQueryService
 import dev.yidafu.aqua.api.service.order.OrderIdGeneratorService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
-import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.api.service.product.ProductService
+import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
+import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
@@ -55,19 +57,30 @@ class OrderMutationServiceImpl(
   private val deliveryAreaQueryService: DeliveryAreaQueryService,
   private val orderIdGenerator: OrderIdGeneratorService,
   private val adminService: AdminService,
-  private val orderOperationService: OrderOperationService,
   private val orderQueryService: OrderQueryService,
 ) : OrderMutationService {
   private val logger = LoggerFactory.getLogger(OrderMutationServiceImpl::class.java)
-  private val objectMapper = jacksonObjectMapper()
 
-  @Transactional
-  override fun createOrder(
+  /**
+   * 订单验证结果，包含验证通过后所需的全部数据
+   */
+  private data class OrderValidationResult(
+    val product: ProductModel,
+    val address: AddressModel,
+    val userId: Long,
+    val amountCents: Long,
+    val orderNo: String,
+  )
+
+  /**
+   * 统一的订单验证逻辑，提取 createOrder 和 createDeliveryOrder 的公共验证步骤
+   */
+  private fun validateAndPrepareOrder(
     userId: Long,
     productId: Long,
     addressId: Long,
     quantity: Int,
-  ): OrderModel {
+  ): OrderValidationResult {
     // 1. 验证产品存在且有足够库存
     val product =
       productRepository
@@ -78,24 +91,20 @@ class OrderMutationServiceImpl(
       throw BadRequestException("库存不足，当前库存: ${product.stock}，需求数量: $quantity")
     }
 
-    // 2. 验证地址存在且属于当前用户
+    // 2. 验证地址存在
     val address =
       addressRepository
         .findById(addressId)
         .orElseThrow { NotFoundException("收货地址不存在: $addressId") }
-    // 这里需要区分管理员下单和不同用户下单
-    if (address.userId != userId) {
-      throw BadRequestException("无权使用此收货地址")
-    }
 
     // 3. 验证地址是否在配送范围内
     deliveryAreaQueryService.validateDeliveryAddress(address.province, address.city, address.district)
 
     // 4. 计算订单金额 (product.price is already in cents)
-    val amount = product.price
+    val amountCents = product.price * quantity
 
     // 5. 生成唯一订单号
-    val orderNo = orderIdGenerator.generateOrderId(userId)
+    val orderNo = orderIdGenerator.generateOrderId()
 
     // 6. 扣减库存（使用原子操作）
     val stockDecreased = productService.decreaseStock(productId, quantity)
@@ -103,109 +112,43 @@ class OrderMutationServiceImpl(
       throw BadRequestException("库存扣减失败，请重试")
     }
 
-    // 7. 创建订单
-    val order =
-      OrderModel(
-        id = DefaultIdGenerator().generate(),
-        orderNo = orderNo,
-        userId = userId,
-        productId = productId,
-        quantity = quantity,
-        amountCents = amount,
-        addressId = addressId,
-        status = OrderStatus.PENDING_DISPATCH,
-        paymentMethod = null,
-        paymentTransactionId = null,
-        paymentTime = null,
-        deliveryWorkerId = null,
-        deliveryPhotos = null,
-        completedAt = null,
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now(),
-      )
-
-    val savedOrder = orderRepository.save(order)
-
-    // 8. 发布订单创建事件
-    eventPublishService.publishOrderCreated(
-      orderId = savedOrder.id,
-      userId = savedOrder.userId,
-      productId = savedOrder.productId,
-      quantity = savedOrder.quantity,
-      amountCents = savedOrder.amountCents,
+    return OrderValidationResult(
+      product = product,
+      address = address,
+      userId = userId,
+      amountCents = amountCents,
+      orderNo = orderNo,
     )
-
-    return savedOrder
   }
 
-  @Transactional
-  override fun createOrder(
-    input: Any,
+  /**
+   * 保存订单的公共逻辑
+   */
+  private fun saveOrder(
     userId: Long,
-  ): OrderModel {
-    // Parse input based on type (assuming CreateOrderInput)
-    val inputMap = objectMapper.convertValue(input, Map::class.java)
-    val productId = (inputMap["productId"] as Number).toLong()
-    val addressId = (inputMap["addressId"] as Number).toLong()
-    val quantity = (inputMap["quantity"] as Number).toInt()
-
-    return createOrder(userId, productId, addressId, quantity)
-  }
-
-  @Transactional
-  override fun createDeliveryOrder(
-    adminId: Long,
-    productId: Long,
-    addressId: Long,
+    product: ProductModel,
     quantity: Int,
-    isSelfCollect: Boolean,
+    addressId: Long,
+    orderNo: String,
+    amountCents: Long,
+    paymentMethod: PaymentMethod?,
     remark: String?,
+    isSelfCollect: Boolean,
+    paymentTime: LocalDateTime?,
   ): OrderModel {
-    // 1. 验证地址存在并获取用户ID
-    val address =
-      addressRepository
-        .findById(addressId)
-        .orElseThrow { NotFoundException("收货地址不存在: $addressId") }
-
-    // 从地址中获取用户ID
-    val user = adminService.getUserById(adminId)
-    val userId = user.id!!
-    // 2. 验证产品存在且有足够库存
-    val product =
-      productRepository
-        .findById(productId)
-        .orElseThrow { NotFoundException("产品不存在: $productId") }
-
-    if (product.stock < quantity) {
-      throw BadRequestException("库存不足，当前库存: ${product.stock}，需求数量: $quantity")
-    }
-
-    // 3. 验证地址是否在配送范围内
-    deliveryAreaQueryService.validateDeliveryAddress(address.province, address.city, address.district)
-
-    // 4. 计算订单金额 (product.price is already in cents)
-    val amount = product.price
-    // 5. 生成唯一订单号
-    val orderNo = orderIdGenerator.generateOrderId(userId)
-    // 6. 扣减库存（使用原子操作）
-    val stockDecreased = productService.decreaseStock(productId, quantity)
-    if (!stockDecreased) {
-      throw BadRequestException("库存扣减失败，请重试")
-    }
-
-    // 7. 创建订单
     val order =
       OrderModel(
+//        id = DefaultIdGenerator().generate(),
         orderNo = orderNo,
         userId = userId,
-        productId = productId,
+        productId = product.id!!,
         quantity = quantity,
-        amountCents = amount,
+        amountCents = amountCents,
         addressId = addressId,
         status = OrderStatus.PENDING_DISPATCH,
-        paymentMethod = PaymentMethod.CASH,
+        paymentMethod = paymentMethod,
         paymentTransactionId = null,
-        paymentTime = if (isSelfCollect) LocalDateTime.now() else null,
+        paymentTime = paymentTime,
         deliveryWorkerId = null,
         deliveryPhotos = null,
         completedAt = null,
@@ -214,16 +157,80 @@ class OrderMutationServiceImpl(
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
+
     val savedOrder = orderRepository.save(order)
-    // 8. 发布订单创建事件
+
+    // 发布订单创建事件
     eventPublishService.publishOrderCreated(
-      orderId = savedOrder.id,
+      orderId = savedOrder.id!!,
       userId = savedOrder.userId,
       productId = savedOrder.productId,
       quantity = savedOrder.quantity,
       amountCents = savedOrder.amountCents,
     )
+
     return savedOrder
+  }
+
+  @Transactional
+  override fun createOrder(input: CreateOrderRequest): OrderModel {
+    val validation =
+      validateAndPrepareOrder(
+        userId = input.userId,
+        productId = input.productId,
+        addressId = input.addressId,
+        quantity = input.quantity,
+      )
+
+    // 验证地址属于当前用户
+    if (validation.address.userId != validation.userId) {
+      throw BadRequestException("无权使用此收货地址")
+    }
+
+    return saveOrder(
+      userId = validation.userId,
+      product = validation.product,
+      quantity = input.quantity,
+      addressId = validation.address.id!!,
+      orderNo = validation.orderNo,
+      amountCents = validation.amountCents,
+      paymentMethod = null,
+      remark = null,
+      isSelfCollect = false,
+      paymentTime = null,
+    )
+  }
+
+  @Transactional
+  override fun createDeliveryOrder(
+    adminId: Long,
+    input: CreateOrderRequest,
+  ): OrderModel {
+    // 获取下单用户信息（adminId 是管理员/配送员自己的ID）
+    val user = adminService.getUserById(adminId)
+    val userId = user.id!!
+
+    val validation =
+      validateAndPrepareOrder(
+        userId = userId,
+        productId = input.productId,
+        addressId = input.addressId,
+        quantity = input.quantity,
+      )
+    val isSelfCollect = input.isSelfCollect ?: false
+
+    return saveOrder(
+      userId = validation.userId,
+      product = validation.product,
+      quantity = input.quantity,
+      addressId = validation.address.id!!,
+      orderNo = validation.orderNo,
+      amountCents = validation.amountCents,
+      paymentMethod = PaymentMethod.CASH,
+      remark = input.remark,
+      isSelfCollect = isSelfCollect,
+      paymentTime = if (isSelfCollect) LocalDateTime.now() else null,
+    )
   }
 
   @Transactional
@@ -261,7 +268,7 @@ class OrderMutationServiceImpl(
     // 5. 发布订单取消事件
     val cancelDescription = if (shouldRefund) "用户取消订单（需退款）" else "用户取消订单"
     eventPublishService.publishOrderCancelled(
-      orderId = cancelledOrder.id,
+      orderId = cancelledOrder.id!!,
       userId = cancelledOrder.userId,
       reason = cancelDescription,
     )
@@ -334,7 +341,7 @@ class OrderMutationServiceImpl(
 
     // 发布支付成功事件
     eventPublishService.publishOrderPaid(
-      orderId = updatedOrder.id,
+      orderId = updatedOrder.id!!,
       userId = updatedOrder.userId,
       productId = updatedOrder.productId,
       amountCents = updatedOrder.amountCents,
@@ -358,7 +365,7 @@ class OrderMutationServiceImpl(
 
     // 发布支付超时事件
     eventPublishService.publishPaymentTimeout(
-      orderId = order.id,
+      orderId = order.id!!,
       userId = order.userId,
     )
   }

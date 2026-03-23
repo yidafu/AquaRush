@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.math.BigDecimal
@@ -34,8 +35,9 @@ import java.time.LocalDateTime
 )
 open class DeliveryWorkerStatisticsModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "delivery_worker_id", nullable = false, unique = true)
   val deliveryWorkerId: Long = -1L,
   @Column(name = "average_rating", nullable = false, precision = 3, scale = 2)
@@ -66,6 +68,11 @@ open class DeliveryWorkerStatisticsModel(
   @PreUpdate
   fun preUpdate() {
     lastUpdated = LocalDateTime.now()
+  }
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
   }
 
   fun updateStatistics(newRating: Int) {

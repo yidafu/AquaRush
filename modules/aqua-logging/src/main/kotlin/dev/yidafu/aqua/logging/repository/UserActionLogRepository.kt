@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.logging.repository
 
-import dev.yidafu.aqua.logging.domain.UserActionLogModel
+import dev.yidafu.aqua.common.domain.model.UserActionLogModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
@@ -27,8 +27,9 @@ import org.springframework.stereotype.Repository
  * 用户操作日志Repository
  */
 @Repository
-interface UserActionLogRepository : JpaRepository<UserActionLogModel, Long>, UserActionLogRepositoryCustom {
-
+interface UserActionLogRepository :
+  JpaRepository<UserActionLogModel, Long>,
+  UserActionLogRepositoryCustom {
   fun findByUserId(userId: String): List<UserActionLogModel>
 
   fun findByActionType(actionType: String): List<UserActionLogModel>

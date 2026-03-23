@@ -25,6 +25,7 @@ package dev.yidafu.aqua.common.domain.model
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.annotations.SoftDelete
@@ -36,7 +37,8 @@ import java.time.LocalDateTime
 @Table(name = "reconciliation_discrepancies")
 class ReconciliationDiscrepancyModel : SoftDeletable {
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
   var id: Long? = null
 
   @Column(name = "task_id", nullable = false)
@@ -85,6 +87,11 @@ class ReconciliationDiscrepancyModel : SoftDeletable {
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
+  }
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
   }
 
   companion object {

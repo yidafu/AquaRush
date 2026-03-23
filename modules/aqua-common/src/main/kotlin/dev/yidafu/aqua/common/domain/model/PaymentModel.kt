@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
@@ -28,8 +29,9 @@ import java.time.LocalDateTime
 @Table(name = "payments")
 open class PaymentModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long? = null,
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "order_id", nullable = false)
   val orderId: Long,
   @Column(name = "user_id", nullable = false)
@@ -64,7 +66,12 @@ open class PaymentModel(
   override var deletedAt: LocalDateTime? = null,
   @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
-) : SoftDeletable
+) : SoftDeletable {
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
+  }
+}
 
 enum class PaymentStatus {
   PENDING, // 待支付

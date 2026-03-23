@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
@@ -28,8 +29,9 @@ import java.time.LocalDateTime
 @Table(name = "message_history")
 open class MessageHistoryModel(
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  val id: Long = 0,
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
   @Column(name = "user_id", nullable = false)
   val userId: Long,
   @Column(name = "message_type", nullable = false, length = 50)
@@ -58,6 +60,11 @@ open class MessageHistoryModel(
   @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
 ) : SoftDeletable {
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
+  }
+
   companion object {
     fun createSuccess(
       userId: Long,

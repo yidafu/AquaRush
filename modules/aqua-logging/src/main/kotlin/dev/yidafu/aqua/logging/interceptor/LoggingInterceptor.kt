@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.logging.interceptor
 
+import dev.yidafu.aqua.common.domain.model.RequestType
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
-import dev.yidafu.aqua.logging.domain.RequestType
 import dev.yidafu.aqua.logging.service.ApiLogService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.servlet.HandlerInterceptor
 import org.springframework.web.servlet.ModelAndView
-import java.net.http.HttpHeaders
 
 /**
  * 日志拦截器，用于记录请求和响应信息

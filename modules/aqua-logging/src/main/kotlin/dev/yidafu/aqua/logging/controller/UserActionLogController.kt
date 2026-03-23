@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.logging.controller
 
 import dev.yidafu.aqua.common.ApiResponse
-import dev.yidafu.aqua.logging.domain.UserActionLogModel
+import dev.yidafu.aqua.common.domain.model.UserActionLogModel
 import dev.yidafu.aqua.logging.service.UserActionEventService
 import dev.yidafu.aqua.logging.service.UserActionLogService
 import jakarta.servlet.http.HttpServletRequest
@@ -49,6 +49,7 @@ class UserActionLogController(
   private val userActionEventService: UserActionEventService,
 ) {
   private val logger = LoggerFactory.getLogger(UserActionLogController::class.java)
+
   /**
    * 分页查询用户操作日志
    */

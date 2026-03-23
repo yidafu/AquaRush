@@ -1,6 +1,6 @@
 package dev.yidafu.aqua.api.service.delivery
 
-import dev.yidafu.aqua.api.dto.DeliveryLoginRequest
+import dev.yidafu.aqua.api.query.DeliveryLoginRequest
 import dev.yidafu.aqua.api.dto.DeliveryLoginResponse
 
 /**

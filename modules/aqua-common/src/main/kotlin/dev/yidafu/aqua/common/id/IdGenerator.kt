@@ -30,5 +30,5 @@ interface IdGenerator {
  * Default implementation using Snowflake algorithm
  */
 class DefaultIdGenerator : IdGenerator {
-  override fun generate(): Long = SnowflakeIdGenerator().generate()
+  override fun generate(): Long = SnowflakeIdGenerator.getInstance().generate()
 }

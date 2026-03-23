@@ -19,10 +19,10 @@
 
 package dev.yidafu.aqua.logging.service
 
+import dev.yidafu.aqua.common.domain.model.ApiLogModel
+import dev.yidafu.aqua.common.domain.model.OperationType
+import dev.yidafu.aqua.common.domain.model.RequestType
 import dev.yidafu.aqua.logging.config.LoggingProperties
-import dev.yidafu.aqua.logging.domain.ApiLogModel
-import dev.yidafu.aqua.logging.domain.OperationType
-import dev.yidafu.aqua.logging.domain.RequestType
 import dev.yidafu.aqua.logging.repository.ApiLogRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page

@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.admin.delivery.resolvers
 
-import dev.yidafu.aqua.api.dto.DeliveryLoginRequest
 import dev.yidafu.aqua.api.dto.DeliveryLoginResponse
+import dev.yidafu.aqua.api.query.DeliveryLoginRequest
 import dev.yidafu.aqua.api.service.delivery.DeliveryAuthService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.DeliveryLoginInput

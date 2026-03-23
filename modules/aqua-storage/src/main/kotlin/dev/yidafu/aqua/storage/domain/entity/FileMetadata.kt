@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.storage.domain.entity
 
+import dev.yidafu.aqua.common.domain.model.SnowflakeIdGenerator
+import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.storage.domain.enums.FileType
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -33,8 +35,8 @@ class FileMetadata {
    * 主键ID
    */
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  var id: Long = 0
+  @SnowflakeIdGenerator
+  var id: Long? = null
 
   /**
    * 原始文件名
@@ -148,6 +150,11 @@ class FileMetadata {
     val now = LocalDateTime.now()
     this.createdAt = now
     this.updatedAt = now
+  }
+
+  @PrePersist
+  fun onPrePersist() {
+    id = DefaultIdGenerator().generate()
   }
 
   @PreUpdate

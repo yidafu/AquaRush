@@ -57,7 +57,7 @@ class AdminAuthServiceImpl(
       val authorities = admin.getAuthorities()
       val userPrincipal =
         UserPrincipal(
-          id = admin.id,
+          id = admin.id!!,
           _username = admin.username,
           userType = admin.role.toString(),
           _authorities = authorities,
@@ -89,7 +89,7 @@ class AdminAuthServiceImpl(
         tokenType = "Bearer",
         userInfo =
           AdminUserInfo(
-            id = admin.id,
+            id = admin.id!!,
             username = admin.username,
             realName = admin.realName,
             role = admin.role.name,

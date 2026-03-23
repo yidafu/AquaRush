@@ -32,7 +32,6 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.http.HttpHeaders
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -76,7 +75,6 @@ class StorageController(
   fun getFile(
     @PathVariable id: Long,
     @RequestParam(value = "name", required = false) name: String?,
-    response: HttpServletResponse,
   ): ResponseEntity<Resource> {
     val resource = storageService.getFile(id)
     val metadata = storageService.getFileMetadata(id)
@@ -117,7 +115,6 @@ class StorageController(
       )
 
     val processedImage = storageService.getProcessedImage(id, parameters)
-    val metadata = storageService.getFileMetadata(id)
 
     // 确定响应的MIME类型
     val responseFormat = format?.uppercase() ?: "JPEG"
@@ -157,125 +154,5 @@ class StorageController(
   ): ResponseEntity<ApiResponse<Boolean>> {
     val result = storageService.deleteFile(id)
     return ResponseEntity.ok(ApiResponse.success(result))
-  }
-
-  /**
-   * 分页查询文件列表
-   */
-  @GetMapping("/files")
-  fun listFiles(
-    @RequestParam(value = "page", defaultValue = "0") page: Int,
-    @RequestParam(value = "size", defaultValue = "20") size: Int,
-    @RequestParam(value = "sort", defaultValue = "createdAt") sort: String,
-    @RequestParam(value = "direction", defaultValue = "desc") direction: String,
-  ): ResponseEntity<ApiResponse<Page<FileMetadataResponse>>> {
-    val sortDirection = if (direction.lowercase() == "desc") Sort.Direction.DESC else Sort.Direction.ASC
-    val pageable: Pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort))
-    val result = storageService.listFiles(pageable)
-    return ResponseEntity.ok(ApiResponse.success(result))
-  }
-
-  /**
-   * 根据文件类型查询文件
-   */
-  @GetMapping("/files/by-type/{fileType}")
-  fun listFilesByType(
-    @PathVariable fileType: FileType,
-    @RequestParam(value = "page", defaultValue = "0") page: Int,
-    @RequestParam(value = "size", defaultValue = "20") size: Int,
-    @RequestParam(value = "sort", defaultValue = "createdAt") sort: String,
-    @RequestParam(value = "direction", defaultValue = "desc") direction: String,
-  ): ResponseEntity<ApiResponse<Page<FileMetadataResponse>>> {
-    val sortDirection = if (direction.lowercase() == "desc") Sort.Direction.DESC else Sort.Direction.ASC
-    val pageable: Pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort))
-    val result = storageService.listFilesByType(fileType, pageable)
-    return ResponseEntity.ok(ApiResponse.success(result))
-  }
-
-  /**
-   * 根据所有者查询文件
-   */
-  @GetMapping("/files/by-owner/{ownerId}")
-  fun listFilesByOwner(
-    @PathVariable ownerId: Long?,
-    @RequestParam(value = "page", defaultValue = "0") page: Int,
-    @RequestParam(value = "size", defaultValue = "20") size: Int,
-    @RequestParam(value = "sort", defaultValue = "createdAt") sort: String,
-    @RequestParam(value = "direction", defaultValue = "desc") direction: String,
-  ): ResponseEntity<ApiResponse<Page<FileMetadataResponse>>> {
-    val sortDirection = if (direction.lowercase() == "desc") Sort.Direction.DESC else Sort.Direction.ASC
-    val pageable: Pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort))
-    val result = storageService.listFilesByOwner(ownerId, pageable)
-    return ResponseEntity.ok(ApiResponse.success(result))
-  }
-
-  /**
-   * 搜索文件
-   */
-  @GetMapping("/files/search")
-  fun searchFiles(
-    @RequestParam("q") fileName: String,
-    @RequestParam(value = "page", defaultValue = "0") page: Int,
-    @RequestParam(value = "size", defaultValue = "20") size: Int,
-    @RequestParam(value = "sort", defaultValue = "createdAt") sort: String,
-    @RequestParam(value = "direction", defaultValue = "desc") direction: String,
-  ): ResponseEntity<ApiResponse<Page<FileMetadataResponse>>> {
-    val sortDirection = if (direction.lowercase() == "desc") Sort.Direction.DESC else Sort.Direction.ASC
-    val pageable: Pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort))
-    val result = storageService.searchFiles(fileName, pageable)
-    return ResponseEntity.ok(ApiResponse.success(result))
-  }
-
-  /**
-   * 获取支持的文件类型列表
-   */
-  @GetMapping("/file-types")
-  fun getSupportedFileTypes(): ResponseEntity<ApiResponse<List<FileType>>> {
-    val fileTypes = FileType.values().toList()
-    return ResponseEntity.ok(ApiResponse.success(fileTypes))
-  }
-
-  /**
-   * 健康检查
-   */
-  @GetMapping("/health")
-  fun healthCheck(): ResponseEntity<ApiResponse<Map<String, String>>> =
-    ResponseEntity.ok(
-      ApiResponse.success(
-        mapOf(
-          "status" to "healthy",
-          "service" to "aqua-storage",
-          "timestamp" to System.currentTimeMillis().toString(),
-        ),
-      ),
-    )
-
-  /**
-   * 异常处理
-   */
-  @ExceptionHandler(IllegalArgumentException::class)
-  fun handleIllegalArgumentException(ex: IllegalArgumentException): ResponseEntity<ApiResponse<Nothing>> =
-    ResponseEntity
-      .badRequest()
-      .body(ApiResponse.error(HttpStatus.BAD_REQUEST.value().toString(), ex.message ?: "请求参数错误"))
-
-  @ExceptionHandler(NoSuchElementException::class)
-  fun handleNoSuchElementException(ex: NoSuchElementException): ResponseEntity<ApiResponse<Nothing>> =
-    ResponseEntity
-      .status(HttpStatus.NOT_FOUND)
-      .body(ApiResponse.error(HttpStatus.NOT_FOUND.value().toString(), ex.message ?: "文件不存在"))
-
-  @ExceptionHandler(RuntimeException::class)
-  fun handleRuntimeException(ex: RuntimeException): ResponseEntity<ApiResponse<Nothing>> {
-    // 如果错误消息包含文件路径信息，提供更友好的错误信息
-    val message =
-      when {
-        ex.message?.contains("File not found") == true -> "文件不存在或已被删除"
-        ex.message?.contains("Failed to store file") == true -> "文件存储失败，请重试"
-        else -> ex.message ?: "服务器内部错误"
-      }
-    return ResponseEntity
-      .internalServerError()
-      .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR.value().toString(), message))
   }
 }
