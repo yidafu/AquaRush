@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { formatCentsToCurrency } from '@aquarush/common'
+import { formatCurrency } from '@aquarush/common'
 import './index.scss'
 
 interface OrderCardProps {
@@ -84,7 +84,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
         </View>
         <View className='info-row amount'>
           <Text className='label'>金额：</Text>
-          <Text className='amount-text'>{formatCentsToCurrency(order.amount)}</Text>
+          <Text className='amount-text'>{formatCurrency(order.amount)}</Text>
         </View>
       </View>
 

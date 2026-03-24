@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react'
-import { View, Text, Image, ScrollView } from '@tarojs/components'
-import Taro, { useRouter } from '@tarojs/taro'
+import React, { useState, useEffect, useRef } from 'react'
+import { View, Text, ScrollView, Button } from '@tarojs/components'
+import Taro, { useRouter, useShareAppMessage } from '@tarojs/taro'
 import { AtButton, AtActionSheet, AtActionSheetItem, AtSteps } from 'taro-ui'
 import 'taro-ui/dist/style/components/button.scss'
 import 'taro-ui/dist/style/components/action-sheet.scss'
 import 'taro-ui/dist/style/components/icon.scss'
 import 'taro-ui/dist/style/components/steps.scss'
+import 'taro-ui/dist/style/components/modal.scss'
 import './index.scss'
 import { getOrderDetail, getOrderOperations, acceptDelivery, startDelivery, completeDelivery } from '../../services/delivery'
 import { formatDateTime, OrderStatus } from '@aquarush/common'
@@ -14,24 +15,8 @@ import { AddressCard } from './components/AddressCard'
 import { ProductCard } from './components/ProductCard'
 import { OrderInfoCard } from './components/OrderInfoCard'
 import { DeliveryInfoCard } from './components/DeliveryInfoCard'
+import { PosterCanvas } from './components/PosterCanvas'
 
-// Types
-interface OrderAddress {
-  id: string
-  receiverName: string
-  phone: string
-  province: string
-  city: string
-  district: string
-  detailAddress: string
-}
-
-interface OrderProduct {
-  id: string
-  name: string
-  price: number
-  image?: string
-}
 
 interface OrderOperation {
   id: string
@@ -139,7 +124,7 @@ const BottomButtons: React.FC<BottomButtonsProps> = ({
 }) => {
   return (
     <View className='bottom-buttons'>
-      {status === OrderStatus.PENDING_DISPATCH  && (
+      {status === OrderStatus.PENDING_DISPATCH && (
         <AtButton
           type='primary'
           loading={loading}
@@ -190,9 +175,56 @@ const OrderDetailPage: React.FC = () => {
   const [deliveryPhotos, setDeliveryPhotos] = useState<string[]>([])
   const [deliveryRemark, setDeliveryRemark] = useState('')
   const router = useRouter()
+
   // Get order No from params
 
   const orderNo = router.params.id || ''
+  // PosterCanvas 组件 ref
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const posterCanvasRef = useRef<any>(null)
+  // 标记海报是否已生成
+  const posterGeneratedRef = useRef(false)
+
+  // 使用 ref 存储 order 和海报，确保 useShareAppMessage 能获取最新数据
+  const orderRef = useRef(order)
+  const posterRef = useRef('')
+  useEffect(() => {
+    orderRef.current = order
+  }, [order])
+
+
+  // 分享订单地址
+  useShareAppMessage((res) => {
+    const currentOrder = orderRef.current
+    if (!currentOrder?.address) {
+      return {
+        title: '订单详情',
+        path: `/pages/order-detail/index?id=${currentOrder?.orderNo || ''}`,
+      }
+    }
+    const { address } = currentOrder
+    const fullAddress = `${address.province || ''}${address.city || ''}${address.district || ''}${address.detailAddress || ''}`
+
+    // 使用预生成的海报作为分享封面
+    const promise = new Promise((resolve) => {
+      const imageUrl = posterRef.current || undefined
+      if (imageUrl) {
+        return resolve({
+          title: `${address.receiverName} - ${fullAddress}`,
+          path: `/pages/order-detail/index?id=${currentOrder?.orderNo || ''}`,
+          imageUrl
+        });
+      }
+      handleGeneratePoster().then(() => {
+        resolve({
+          title: `${address.receiverName} - ${fullAddress}`,
+          path: `/pages/order-detail/index?id=${currentOrder?.orderNo || ''}`,
+          imageUrl: posterRef.current
+        })
+      })
+    })
+    return promise
+  })
 
   // Load order detail
   const loadOrderDetail = async () => {
@@ -223,6 +255,11 @@ const OrderDetailPage: React.FC = () => {
   }
 
   useEffect(() => {
+    // 启用分享菜单
+    Taro.showShareMenu({
+      withShareTicket: true,
+      showShareItems: ['shareAppMessage']
+    })
     loadOrderDetail()
   }, [orderNo])
 
@@ -282,6 +319,25 @@ const OrderDetailPage: React.FC = () => {
     }
   }
 
+  // 生成海报用于分享
+  const handleGeneratePoster = async () => {
+    if (!order) return
+
+    const canvasRef = posterCanvasRef.current
+    if (canvasRef?.render) {
+      try {
+        const posterPath = await canvasRef.render(order)
+        console.log('生成海报结果', posterPath)
+        if (posterPath) {
+          posterRef.current = posterPath
+          posterGeneratedRef.current = true
+        }
+      } catch (error) {
+        console.error('生成海报失败:', error)
+      }
+    }
+  }
+
   if (loading) {
     return (
       <PageContainer>
@@ -311,7 +367,7 @@ const OrderDetailPage: React.FC = () => {
           <AtSteps
             items={ORDER_STEPS}
             current={getCurrentStep(order.status)}
-            onChange={() => {}}
+            onChange={() => { }}
           />
 
         )}
@@ -329,6 +385,19 @@ const OrderDetailPage: React.FC = () => {
         {/* Address */}
         <AddressCard address={order.address} />
 
+        {/* 分享按钮 */}
+        {/* <View className='poster-actions'>
+          <Button
+            className='poster-action-btn'
+            open-type='share'
+          >
+            <Text>分享</Text>
+          </Button>
+        </View>
+ */}
+
+        {/* PosterCanvas 组件 */}
+        <PosterCanvas ref={posterCanvasRef} />
         {/* Product */}
         <ProductCard
           product={order.product}
@@ -382,6 +451,7 @@ const OrderDetailPage: React.FC = () => {
           二维码收款
         </AtActionSheetItem>
       </AtActionSheet>
+
     </PageContainer>
   )
 }

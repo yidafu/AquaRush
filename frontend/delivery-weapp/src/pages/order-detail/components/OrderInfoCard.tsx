@@ -1,5 +1,5 @@
-import { formatCentsToCurrency, formatDateTime, Order, Product } from "@aquarush/common"
-import { View, Text, Image } from "@tarojs/components"
+import { formatCurrency, formatDateTime, Order } from "@aquarush/common"
+import { View, Text } from "@tarojs/components"
 
 
 
@@ -24,7 +24,7 @@ export const OrderInfoCard: React.FC<OrderInfoCardProps> = ({ order }) => {
         </View>
         <View className='info-row'>
           <Text className='info-label'>订单金额</Text>
-          <Text className='info-value amount'>{formatCentsToCurrency(order.amount)}</Text>
+          <Text className='info-value amount'>{formatCurrency(order.amount)}</Text>
         </View>
         {order.paymentType && (
           <View className='info-row'>
