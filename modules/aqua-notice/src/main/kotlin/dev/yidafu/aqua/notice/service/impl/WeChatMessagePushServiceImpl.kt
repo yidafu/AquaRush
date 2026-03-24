@@ -119,7 +119,7 @@ class WeChatMessagePushServiceImpl(
           logger.info("Successfully sent WeChat message to user $userId")
 
           messageHistoryService.updateSuccess(
-            savedHistory.id,
+            savedHistory.id!!,
             responseBody.msgid ?: "",
           )
           CompletableFuture.completedFuture(true)
@@ -127,7 +127,7 @@ class WeChatMessagePushServiceImpl(
           logger.error("Failed to send WeChat message: ${responseBody.errcode} - ${responseBody.errmsg}")
 
           messageHistoryService.updateFailure(
-            savedHistory.id,
+            savedHistory.id!!,
             "${responseBody.errcode}: ${responseBody.errmsg}",
           )
           CompletableFuture.completedFuture(false)
@@ -136,7 +136,7 @@ class WeChatMessagePushServiceImpl(
         logger.error("HTTP error when sending WeChat message: ${response.statusCode}")
 
         messageHistoryService.updateFailure(
-          savedHistory.id,
+          savedHistory.id!!,
           "HTTP error: ${response.statusCode}",
         )
         CompletableFuture.completedFuture(false)
@@ -170,7 +170,7 @@ class WeChatMessagePushServiceImpl(
 
     for (message in failedMessages) {
       try {
-        messageHistoryService.updateToRetrying(message.id)
+        messageHistoryService.updateToRetrying(message.id!!)
 
         // Parse original content to get template data
         val originalTemplate = objectMapper.readValue(message.content, WeChatTemplateModel::class.java)
@@ -189,7 +189,7 @@ class WeChatMessagePushServiceImpl(
         }
       } catch (e: Exception) {
         logger.error("Failed to retry message ${message.id}", e)
-        messageHistoryService.incrementRetryCount(message.id)
+        messageHistoryService.incrementRetryCount(message.id!!)
       }
     }
 

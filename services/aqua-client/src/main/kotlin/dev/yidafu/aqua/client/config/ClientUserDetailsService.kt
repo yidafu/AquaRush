@@ -1,7 +1,7 @@
 package dev.yidafu.aqua.client.config
 
-import dev.yidafu.aqua.common.domain.model.AdminPermission
 import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminPermission
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.common.security.toSimpleGrantedAuthorities
 import dev.yidafu.aqua.user.domain.repository.UserRepository
@@ -56,37 +56,46 @@ class ClientUserDetailsService(
     authorities.add(SimpleGrantedAuthority("ROLE_$userType"))
 
     // Add specific permissions based on user type using AdminPermission enum
-    val permissions = when (userType) {
-      "ADMIN" -> setOf(
-        AdminPermission.USER_READ,
-        AdminPermission.USER_WRITE,
-        AdminPermission.ORDER_READ,
-        AdminPermission.ORDER_WRITE,
-        AdminPermission.PRODUCT_READ,
-        AdminPermission.PRODUCT_WRITE,
-        AdminPermission.DELIVERY_READ,
-        AdminPermission.DELIVERY_WRITE,
-        AdminPermission.PAYMENT_READ,
-        AdminPermission.PAYMENT_WRITE,
-        AdminPermission.STATISTICS_READ,
-      )
+    val permissions =
+      when (userType) {
+        "ADMIN" -> {
+          setOf(
+            AdminPermission.USER_READ,
+            AdminPermission.USER_WRITE,
+            AdminPermission.ORDER_READ,
+            AdminPermission.ORDER_WRITE,
+            AdminPermission.PRODUCT_READ,
+            AdminPermission.PRODUCT_WRITE,
+            AdminPermission.DELIVERY_READ,
+            AdminPermission.DELIVERY_WRITE,
+            AdminPermission.PAYMENT_READ,
+            AdminPermission.PAYMENT_WRITE,
+            AdminPermission.STATISTICS_READ,
+          )
+        }
 
-      "WORKER" -> setOf(
-        AdminPermission.DELIVERY_READ,
-        AdminPermission.DELIVERY_WRITE,
-        AdminPermission.ORDER_READ,
-      )
+        "WORKER" -> {
+          setOf(
+            AdminPermission.DELIVERY_READ,
+            AdminPermission.DELIVERY_WRITE,
+            AdminPermission.ORDER_READ,
+          )
+        }
 
-      "USER" -> setOf(
-        AdminPermission.USER_READ,
-        AdminPermission.USER_WRITE,
-        AdminPermission.ORDER_READ,
-        AdminPermission.ORDER_WRITE,
-        AdminPermission.PRODUCT_READ,
-      )
+        "USER" -> {
+          setOf(
+            AdminPermission.USER_READ,
+            AdminPermission.USER_WRITE,
+            AdminPermission.ORDER_READ,
+            AdminPermission.ORDER_WRITE,
+            AdminPermission.PRODUCT_READ,
+          )
+        }
 
-      else -> emptySet()
-    }
+        else -> {
+          emptySet()
+        }
+      }
 
     authorities.addAll(permissions.toSimpleGrantedAuthorities())
 

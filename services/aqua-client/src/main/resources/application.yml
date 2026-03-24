@@ -30,7 +30,6 @@ spring:
     generate-ddl: false        # 禁用 JPA 自动 DDL
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
   liquibase:
@@ -45,6 +44,7 @@ spring:
       enabled: true
       persistent: true
       data-directory: ./data/artemis-user
+      config-url: classpath:broker.xml
       queues:
         - order-events
         - payment-events
@@ -56,7 +56,7 @@ spring:
     template:
       default-destination: user-events
       delivery-mode: persistent
-      priority: 100
+      priority: 5
       time-to-live: 3600000 # 1小时
 
   jackson:
@@ -142,22 +142,6 @@ aqua:
     aes-key: "string"
   messaging:
     enabled: true
-    strategy: artemis # artemis, hybrid, outbox-only, memory-only
-    # 轻量级内存队列配置
-    memory-queue:
-      enabled: true
-      max-size: 3000      # 用户服务相对较少事件
-      batch-size: 30
-      poll-interval-ms: 50   # 50ms轮询间隔，低延迟
-      high-frequency-events: ["ORDER_PAID", "PAYMENT_TIMEOUT"]
-      low-frequency-events: ["ORDER_CREATED", "ORDER_CANCELLED", "ADDRESS_UPDATED"]
-    # 传统Outbox配置（作为备份）
-    outbox:
-      enabled: true
-      poll-interval-seconds: 30  # 30秒轮询，更快响应
-      max-retry-count: 5
-      retry-delays-ms: [30000, 90000, 300000, 900000, 1800000] # 30s, 90s, 5min, 15min, 30min
-      cleanup-days: 30
   mode: client
   # Default region configuration
   region:
@@ -169,7 +153,7 @@ storage:
   local:
     base-path: ${STORAGE_BASE_PATH:./storage}
     max-file-size: 104857600  # 100MB
-    allowed-extensions: ["jpg", "jpeg", "png", "gif", "bmp", "webp", "mp4", "avi", "mov", "wmv", "flv", "mp3", "wav", "flac", "aac", "pdf", "doc", "docx", "txt", "xls", "xlsx", "csv", "ppt", "pptx", "html", "css", "js", "zip", "rar", "7z", "tar", "gz", "bak", "backup"]
+    allowed-extensions: [ "jpg", "jpeg", "png", "gif", "bmp", "webp", "mp4", "avi", "mov", "wmv", "flv", "mp3", "wav", "flac", "aac", "pdf", "doc", "docx", "txt", "xls", "xlsx", "csv", "ppt", "pptx", "html", "css", "js", "zip", "rar", "7z", "tar", "gz", "bak", "backup" ]
 
 # JWT configuration
 app:

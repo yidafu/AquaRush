@@ -65,6 +65,7 @@ class SecurityConfig(
             "/api/auth/delivery/login",
             "/css/**",
             "/js/**",
+            "/static/**",
             "/images/**",
             "/graphiql",
           ).permitAll()

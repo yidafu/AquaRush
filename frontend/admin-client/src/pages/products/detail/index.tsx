@@ -36,13 +36,11 @@ interface Product {
   description?: string;
 }
 
-type ViewMode = 'readonly' | 'edit';
-
 const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [form] = Form.useForm();
-  const [viewMode, setViewMode] = useState<ViewMode>('readonly');
+  const [editable, setEditable] = useState(false);
   const [loading, setLoading] = useState(false);
   const [previewData, setPreviewData] = useState<Product | null>(null);
   const originalDataRef = useRef<Product | null>(null);
@@ -58,7 +56,7 @@ const ProductDetailPage: React.FC = () => {
     if (data?.product) {
       originalDataRef.current = data.product;
       setPreviewData(data.product);
-      setViewMode('edit');
+      setEditable(true);
     }
   };
 
@@ -96,7 +94,7 @@ const ProductDetailPage: React.FC = () => {
       console.log('Update result:', result);
 
       message.success('商品更新成功');
-      setViewMode('readonly');
+      setEditable(false);
 
       // Refetch data to get latest updates
       refetch();
@@ -117,13 +115,13 @@ const ProductDetailPage: React.FC = () => {
         okText: '确认取消',
         cancelText: '继续编辑',
         onOk: () => {
-          setViewMode('readonly');
+          setEditable(false);
           setPreviewData(null);
           form.resetFields();
         }
       });
     } else {
-      setViewMode('readonly');
+      setEditable(false);
       setPreviewData(null);
       form.resetFields();
     }
@@ -176,7 +174,7 @@ const ProductDetailPage: React.FC = () => {
   }
 
   const product = data.product;
-  const displayProduct = viewMode === 'edit' && previewData ? previewData : product;
+  const displayProduct = editable && previewData ? previewData : product;
 
   return (
     <div style={{ padding: '24px' }}>
@@ -196,7 +194,7 @@ const ProductDetailPage: React.FC = () => {
           </Title>
         </Space>
         <Space>
-          {viewMode === 'readonly' ? (
+          {!editable ? (
             <Button type="primary" icon={<EditOutlined />} onClick={handleEdit}>
               编辑商品
             </Button>
@@ -229,7 +227,7 @@ const ProductDetailPage: React.FC = () => {
         <Col xs={24} lg={12}>
           <ProductEditor
             product={product}
-            mode={viewMode}
+            editable={editable}
             form={form}
             onSave={handleSave}
             onPreviewUpdate={handlePreviewUpdate}

@@ -59,7 +59,7 @@ class ClientNoticeQueryResolver(
     val clientMessages =
       messageHistoryPage.content.map { messageHistory ->
         ClientMessage(
-          id = messageHistory.id,
+          id = messageHistory.id!!,
           messageType = messageHistory.messageType,
           title = null, // TODO: Extract title from message content or template
           content = messageHistory.content,
