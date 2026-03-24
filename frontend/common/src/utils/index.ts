@@ -3,3 +3,4 @@ export * from './money';
 export * from './date';
 export { default as NetworkManager } from './network';
 export * from './network'
+export * from './image'

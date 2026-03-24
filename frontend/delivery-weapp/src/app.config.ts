@@ -7,6 +7,7 @@ export default defineAppConfig({
     'pages/order-detail/index',
     'pages/create-order/index',
     'pages/statistics/index',
+    'pages/history-orders/index',
     'pages/my/index'
   ],
   window: {

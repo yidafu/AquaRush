@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Image, ScrollView } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
-import { AtButton, AtActionSheet, AtActionSheetItem } from 'taro-ui'
+import { AtButton, AtActionSheet, AtActionSheetItem, AtSteps } from 'taro-ui'
 import 'taro-ui/dist/style/components/button.scss'
 import 'taro-ui/dist/style/components/action-sheet.scss'
 import 'taro-ui/dist/style/components/icon.scss'
+import 'taro-ui/dist/style/components/steps.scss'
 import './index.scss'
 import { getOrderDetail, getOrderOperations, acceptDelivery, startDelivery, completeDelivery } from '../../services/delivery'
 import { formatDateTime, OrderStatus } from '@aquarush/common'
@@ -49,6 +50,25 @@ const ORDER_STATUS_MAP: Record<string, string> = {
   CANCELLED: '已取消',
   REFUNDED: '已退款',
   PENDING_PAYMENT: '待支付',
+}
+
+// Order progress steps for AtSteps component
+const ORDER_STEPS = [
+  { title: '待接单' },
+  { title: '待配送' },
+  { title: '配送中' },
+  { title: '已完成' },
+]
+
+// Get current step index based on order status
+const getCurrentStep = (status: string): number => {
+  const statusToStep: Record<string, number> = {
+    PENDING_DISPATCH: 0,
+    PENDING_DELIVERY: 1,
+    DELIVERING: 2,
+    COMPLETED: 3,
+  }
+  return statusToStep[status] ?? 0
 }
 
 // Operation type mapping
@@ -126,7 +146,7 @@ const BottomButtons: React.FC<BottomButtonsProps> = ({
           onClick={onAccept}
           className='action-button'
         >
-          接单（拍照确认）
+          接单
         </AtButton>
       )}
 
@@ -137,7 +157,7 @@ const BottomButtons: React.FC<BottomButtonsProps> = ({
           onClick={onStartDelivery}
           className='action-button'
         >
-          开始配送（拍照确认）
+          开始配送
         </AtButton>
       )}
 
@@ -206,40 +226,8 @@ const OrderDetailPage: React.FC = () => {
     loadOrderDetail()
   }, [orderNo])
 
-  // Take photo
-  const takePhoto = async (): Promise<string | null> => {
-    try {
-      const result = await Taro.chooseMedia({
-        count: 1,
-        mediaType: ['image'],
-        sourceType: ['camera'],
-      })
-
-      if (result?.tempFiles?.[0]?.tempFilePath) {
-        const uploadResult = await Taro.uploadFile({
-          url: `/upload`,
-          filePath: result.tempFiles[0].tempFilePath,
-          name: 'file',
-        })
-
-        if (uploadResult.statusCode === 200) {
-          const data = JSON.parse(uploadResult.data)
-          return data.url || result.tempFiles[0].tempFilePath
-        }
-      }
-      return result.tempFiles?.[0]?.tempFilePath || null
-    } catch (error) {
-      console.error('拍照失败:', error)
-      Taro.showToast({ title: '拍照失败', icon: 'none' })
-      return null
-    }
-  }
-
   // Handle accept order
   const handleAcceptOrder = async () => {
-    const photo = await takePhoto()
-    if (!photo) return
-
     setActionLoading(true)
     try {
       await acceptDelivery(order?.id)
@@ -255,9 +243,6 @@ const OrderDetailPage: React.FC = () => {
 
   // Handle start delivery
   const handleStartDelivery = async () => {
-    const photo = await takePhoto()
-    if (!photo) return
-
     setActionLoading(true)
     try {
       await startDelivery(order?.id)
@@ -320,10 +305,26 @@ const OrderDetailPage: React.FC = () => {
   return (
     <PageContainer>
       <ScrollView className='page-content' scrollY>
-        {/* Order Status */}
-        <View className='status-banner'>
-          <Text className='status-text'>{ORDER_STATUS_MAP[order.status] || order.status}</Text>
-        </View>
+        {/* Order Status Steps */}
+        {order.status !== 'CANCELLED' && order.status !== 'REFUNDED' && (
+          // @ts-ignore TypeScript compatibility issue between taro-ui and React 18
+          <AtSteps
+            items={ORDER_STEPS}
+            current={getCurrentStep(order.status)}
+            onChange={() => {}}
+          />
+
+        )}
+        {order.status === OrderStatus.CANCELLED && (
+          <View className='status-banner'>
+            <Text className='status-text'>{ORDER_STATUS_MAP[order.status]}</Text>
+          </View>
+        )}
+        {order.status === OrderStatus.REFUNDED && (
+          <View className='status-banner'>
+            <Text className='status-text'>{ORDER_STATUS_MAP[order.status]}</Text>
+          </View>
+        )}
 
         {/* Address */}
         <AddressCard address={order.address} />
@@ -336,7 +337,7 @@ const OrderDetailPage: React.FC = () => {
         />
 
         {/* Delivery Info Card - Only show in DELIVERING status */}
-        {order.status === 'DELIVERING' && (
+        {(order.status === OrderStatus.DELIVERING || order.status === OrderStatus.COMPLETED) && (
           <DeliveryInfoCard
             photos={deliveryPhotos}
             remark={deliveryRemark}

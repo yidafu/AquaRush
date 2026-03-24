@@ -1,5 +1,5 @@
 import { networkManager } from '../utils/networkManager'
-import type { Order, TodayStatistics, Address, ProductPage, Scalars } from '@aquarush/common'
+import type { Order, TodayStatistics, Address, ProductPage, Scalars, OrderStatus, OrderPage } from '@aquarush/common'
 
 // 订单操作记录类型
 interface OrderOperation {
@@ -220,6 +220,46 @@ export const getTodayStatistics = (workerId?: Scalars['PrimaryId']['input']) => 
       }
     }
   `, workerId ? { workerId } : {})
+}
+
+// 获取配送员历史订单（已完成、已取消、已退款）
+export const getDeliveryWorkerHistoryOrders = (
+  status?: OrderStatus,
+  page = 0,
+  size = 20
+) => {
+  return networkManager.query<{ deliveryWorkerHistoryOrders: OrderPage }>(`
+    query GetHistoryOrders($status: OrderStatus, $page: Int, $size: Int) {
+      deliveryWorkerHistoryOrders(status: $status, page: $page, size: $size) {
+        content {
+          id
+          orderNo
+          quantity
+          amount
+          status
+          isSelfCollect
+          createdAt
+          deliveryConfirmedAt
+          user {
+            nickname
+            phone
+          }
+          address {
+            detailAddress
+            receiverName
+            phone
+          }
+          product {
+            name
+          }
+        }
+        totalElements
+        totalPages
+        number
+        size
+      }
+    }
+  `, { status, page, size })
 }
 
 // ==================== 地址和商品相关 API ====================

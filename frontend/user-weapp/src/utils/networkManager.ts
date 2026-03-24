@@ -1,5 +1,5 @@
 import Taro from '@tarojs/taro'
-import NetworkManager, { AuthHandler, RequestHandler } from '@aquarush/common/utils/network'
+import { NetworkManager,AuthHandler, RequestHandler } from '@aquarush/common'
 
 const apiBaseUrl = import.meta.env.TARO_APP_API_BASE_URL || 'http://localhost:8080'
 

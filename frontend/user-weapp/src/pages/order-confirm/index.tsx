@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { View } from '@tarojs/components'
-import { AtToast, AtButton, AtCheckbox, AtIcon } from 'taro-ui'
+import { AtToast } from 'taro-ui'
 import Taro, {
   useReady,
   useDidShow
@@ -188,7 +188,7 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
         mutation CreateOrder($input: CreateOrderInput!) {
           createOrder(input: $input) {
             id
-            orderNumber
+            orderNo
             status
             totalAmountCents
           }
@@ -211,7 +211,7 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
       const response = await networkManager.mutate<{
         createOrder: {
           id: string
-          orderNumber: string
+          orderNo: string
           status: string
           totalAmountCents: number
         }

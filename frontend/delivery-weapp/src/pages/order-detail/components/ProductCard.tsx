@@ -1,4 +1,4 @@
-import { formatCentsToCurrency, Product } from "@aquarush/common"
+import { buildUrl, formatCentsToCurrency, Product } from "@aquarush/common"
 import { View, Text, Image } from "@tarojs/components"
 
 
@@ -21,7 +21,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, quantity, rem
           {product.coverImageUrl && (
             <Image
               className='product-image'
-              src={product.coverImageUrl}
+              src={buildUrl(product.coverImageUrl)}
               mode='aspectFill'
             />
           )}
