@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
-import Taro, { useDidShow, useReachBottom, usePullDownRefresh } from '@tarojs/taro'
+import Taro, { useDidShow, useReachBottom, usePullDownRefresh, useRouter } from '@tarojs/taro'
 import { AtTabs, AtTabsPane } from 'taro-ui'
 import 'taro-ui/dist/style/components/tabs.scss'
 import './index.scss'
@@ -45,6 +45,7 @@ interface OrderItem {
 
 const HistoryOrdersPage: React.FC = () => {
   const { workerInfo } = useAuth()
+  const router = useRouter()
   const [currentTab, setCurrentTab] = useState(0)
   const [orders, setOrders] = useState<OrderItem[]>([])
   const [loading, setLoading] = useState(false)
@@ -54,6 +55,18 @@ const HistoryOrdersPage: React.FC = () => {
   const [shouldReset, setShouldReset] = useState(false)
 
   const pageSize = 20
+
+  // 根据 URL 参数初始化 tab
+  useEffect(() => {
+    const tabParam = router.params.tab
+    if (tabParam !== undefined) {
+      const tabIndex = parseInt(tabParam, 10)
+      if (!isNaN(tabIndex) && tabIndex >= 0 && tabIndex < TAB_LIST.length) {
+        setCurrentTab(tabIndex)
+        setShouldReset(true)
+      }
+    }
+  }, [router.params.tab])
 
   // 获取当前 worker ID
   const getCurrentWorkerId = useCallback((): string => {

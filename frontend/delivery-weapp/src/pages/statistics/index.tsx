@@ -1,9 +1,13 @@
-import React, { useState, useEffect } from 'react'
-import { View, Text, Button } from '@tarojs/components'
+import React, { useState, useEffect, useCallback } from 'react'
+import { View, Text, ScrollView } from '@tarojs/components'
+import Taro, { usePullDownRefresh } from '@tarojs/taro'
 import { formatCentsToCurrency } from '@aquarush/common'
 import { getTodayStatistics } from '../../services/delivery'
 import { useAuth } from '../../hooks/useAuth'
-import {PageContainer} from '../../components/PageContainer'
+import { PageContainer } from '../../components/PageContainer'
+import { StatCard } from './components/StatCard'
+import WeekStatistics from './components/WeekStatistics'
+
 import './index.scss'
 
 const StatisticsPage: React.FC = () => {
@@ -11,32 +15,52 @@ const StatisticsPage: React.FC = () => {
   const [statistics, setStatistics] = useState({
     totalOrders: 0,
     completedOrders: 0,
-    pendingOrders: 0,
+    unfinishedOrders: 0,
     earningCents: 0,
   })
   const [loading, setLoading] = useState(false)
+  const [lastUpdateTime, setLastUpdateTime] = useState(new Date().toLocaleTimeString())
 
-  // 加载统计数据
-  const loadStatistics = async () => {
+  // 加载当日统计数据
+  const loadStatistics = useCallback(async () => {
     if (!workerInfo?.id) return
 
     setLoading(true)
     try {
-      const res = await getTodayStatistics(workerInfo.id)
-      if (res?.data?.todayStatistics) {
-        setStatistics(res.data.todayStatistics)
+      const res = await getTodayStatistics()
+      if (res?.todayStatistics) {
+        setStatistics(res.todayStatistics)
+        setLastUpdateTime(new Date().toLocaleTimeString())
       }
     } catch (error) {
       console.error('加载统计数据失败:', error)
     }
     setLoading(false)
-  }
+  }, [workerInfo?.id])
 
   useEffect(() => {
     if (isAuthenticated && workerInfo?.id) {
       loadStatistics()
+
+      // 30秒轮询
+      let timeoutId: ReturnType<typeof setTimeout>
+      const poll = () => {
+        timeoutId = setTimeout(() => {
+          loadStatistics()
+          poll()
+        }, 30000)
+      }
+      poll()
+
+      return () => clearTimeout(timeoutId)
     }
-  }, [isAuthenticated, workerInfo?.id])
+  }, [isAuthenticated, workerInfo?.id, loadStatistics])
+
+  // 下拉刷新
+  usePullDownRefresh(async () => {
+    await loadStatistics()
+    Taro.stopPullDownRefresh()
+  })
 
   // 获取日期字符串
   const getTodayDate = () => {
@@ -45,45 +69,42 @@ const StatisticsPage: React.FC = () => {
   }
 
   return (
-    <PageContainer title="当日统计">
-      <View className='statistics-page'>
+    <PageContainer title='当日统计'>
+      <ScrollView className='statistics-page' scrollY>
         <View className='statistics-header'>
           <Text className='date'>{getTodayDate()}</Text>
-          <Text className='title'>当日统计</Text>
         </View>
 
         <View className='statistics-cards'>
-          <View className='stat-card'>
-            <Text className='stat-value'>{statistics.totalOrders}</Text>
-            <Text className='stat-label'>今日总订单</Text>
-          </View>
-
-          <View className='stat-card'>
-            <Text className='stat-value'>{statistics.completedOrders}</Text>
-            <Text className='stat-label'>已完成</Text>
-          </View>
-
-          <View className='stat-card'>
-            <Text className='stat-value'>{statistics.pendingOrders}</Text>
-            <Text className='stat-label'>待配送</Text>
-          </View>
-
-          <View className='stat-card highlight'>
-            <Text className='stat-value'>{formatCentsToCurrency(statistics.earningCents)}</Text>
-            <Text className='stat-label'>今日收入</Text>
-          </View>
+          <StatCard
+            value={statistics.totalOrders}
+            label='今日总订单'
+            onClick={() => Taro.navigateTo({ url: '/pages/history-orders/index?tab=0' })}
+          />
+          <StatCard
+            value={statistics.completedOrders}
+            label='已完成'
+            onClick={() => Taro.navigateTo({ url: '/pages/history-orders/index?tab=1' })}
+          />
+          <StatCard
+            value={statistics.unfinishedOrders}
+            label='未完成'
+            onClick={() => Taro.navigateTo({ url: '/pages/history-orders/index?tab=2' })}
+          />
+          <StatCard
+            value={formatCentsToCurrency(statistics.earningCents)}
+            label='今日营收'
+            highlight
+          />
         </View>
 
-        <View className='statistics-actions'>
-          <Button className='refresh-btn' onClick={loadStatistics} loading={loading}>
-            刷新数据
-          </Button>
-        </View>
+        {/* 一周统计组件 */}
+        <WeekStatistics />
 
         <View className='statistics-tip'>
-          <Text>数据更新于: {new Date().toLocaleTimeString()}</Text>
+          <Text>数据更新于: {lastUpdateTime}</Text>
         </View>
-      </View>
+      </ScrollView>
     </PageContainer>
   )
 }

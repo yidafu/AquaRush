@@ -7,16 +7,17 @@ import 'taro-ui/dist/style/components/action-sheet.scss'
 import 'taro-ui/dist/style/components/icon.scss'
 import 'taro-ui/dist/style/components/steps.scss'
 import 'taro-ui/dist/style/components/modal.scss'
-import './index.scss'
-import { getOrderDetail, getOrderOperations, acceptDelivery, startDelivery, completeDelivery } from '../../services/delivery'
 import { formatDateTime, OrderStatus } from '@aquarush/common'
+
+import './index.scss'
+
+import { getOrderDetail, getOrderOperations, acceptDelivery, startDelivery, completeDelivery } from '../../services/delivery'
 import { PageContainer } from '../../components/PageContainer'
 import { AddressCard } from './components/AddressCard'
 import { ProductCard } from './components/ProductCard'
 import { OrderInfoCard } from './components/OrderInfoCard'
 import { DeliveryInfoCard } from './components/DeliveryInfoCard'
 import { PosterCanvas } from './components/PosterCanvas'
-
 
 interface OrderOperation {
   id: string

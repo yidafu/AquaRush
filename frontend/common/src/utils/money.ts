@@ -53,13 +53,16 @@ export const formatCentsToCurrency = (
  * @returns Formatted currency string
  */
 export const formatCurrency = (
-  amount: number,
+  amount: number | string,
   options: {
     showSymbol?: boolean
     decimalPlaces?: number
     symbol?: string
   } = {}
 ): string => {
+  if (typeof amount === 'string') {
+    amount = parseFloat(amount)
+  }
   const { showSymbol = true, decimalPlaces = 2, symbol = '¥' } = options
 
   if (showSymbol) {

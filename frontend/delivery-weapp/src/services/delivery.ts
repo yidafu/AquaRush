@@ -1,5 +1,5 @@
 import { networkManager } from '../utils/networkManager'
-import type { Order, TodayStatistics, Address, ProductPage, Scalars, OrderStatus, OrderPage } from '@aquarush/common'
+import type { Order, TodayStatistics, WeekStatistics, Address, ProductPage, Scalars, OrderStatus, OrderPage } from '@aquarush/common'
 
 // 订单操作记录类型
 interface OrderOperation {
@@ -209,17 +209,34 @@ export const completeDelivery = (orderId: Scalars['PrimaryId']['input'], photos:
 }
 
 // 获取当日统计数据
-export const getTodayStatistics = (workerId?: Scalars['PrimaryId']['input']) => {
+export const getTodayStatistics = () => {
   return networkManager.query<{ todayStatistics: TodayStatistics }>(`
-    query GetTodayStatistics($workerId: PrimaryId) {
-      todayStatistics(workerId: $workerId) {
+    query GetTodayStatistics {
+      todayStatistics {
         totalOrders
         completedOrders
-        pendingOrders
+        unfinishedOrders
         earningCents
       }
     }
-  `, workerId ? { workerId } : {})
+  `, {})
+}
+
+// 获取一周统计数据
+export const getWeekStatistics = () => {
+  return networkManager.query<{ weekStatistics: WeekStatistics }>(`
+    query GetWeekStatistics {
+      weekStatistics {
+        dailyStats {
+          date
+          orderCount
+          earning
+        }
+        totalOrders
+        totalEarning
+      }
+    }
+  `, {})
 }
 
 // 获取配送员历史订单（已完成、已取消、已退款）
