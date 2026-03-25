@@ -21,7 +21,7 @@ package dev.yidafu.aqua.api.service.order
 
 import dev.yidafu.aqua.api.query.CreateOrderRequest
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.OrderStatus
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 
 /**
  * 订单变更服务接口
@@ -58,21 +58,18 @@ interface OrderMutationService {
    */
   fun cancelOrderForAdmin(orderId: Long): OrderModel?
 
+  fun updateOrder(
+    orderId: Long,
+    orderDTO: OrderModel,
+  ): OrderModel
+
   /**
    * 更新订单状态
    */
   fun updateOrderStatus(
     orderId: Long,
-    status: OrderStatus,
+    status: OrderModelStatus,
   ): OrderModel
-
-  /**
-   * 更新订单状态（字符串版本）
-   */
-  fun updateOrderStatus(
-    orderId: Long,
-    status: String,
-  ): OrderModel?
 
   /**
    * 处理支付成功

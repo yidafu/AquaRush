@@ -19,7 +19,9 @@
 
 package dev.yidafu.aqua.reconciliation.service.impl
 
+import dev.yidafu.aqua.api.service.PaymentService
 import dev.yidafu.aqua.api.service.ReconciliationService
+import dev.yidafu.aqua.api.service.payment.PaymentQueryService
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
@@ -27,8 +29,6 @@ import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
-import dev.yidafu.aqua.common.domain.repository.OrderRepository
-import dev.yidafu.aqua.common.domain.repository.PaymentRepository
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import dev.yidafu.aqua.reconciliation.domain.repository.ReconciliationDiscrepancyRepository
@@ -58,8 +58,8 @@ class ReconciliationServiceImpl(
   private val reconciliationTaskRepository: ReconciliationTaskRepository,
   private val reconciliationDiscrepancyRepository: ReconciliationDiscrepancyRepository,
   private val reconciliationReportRepository: ReconciliationReportRepository,
-  private val paymentRepository: PaymentRepository,
-  private val orderRepository: OrderRepository,
+  private val paymentService: PaymentService,
+  private val paymentQueryService: PaymentQueryService,
   private val weChatReconciliationApi: WeChatReconciliationApi,
   private val eventPublishService: SimplifiedEventPublishService,
   private val config: ReconciliationConfig,
@@ -126,10 +126,11 @@ class ReconciliationServiceImpl(
 
         // 获取内部支付记录
         val internalPayments =
-          paymentRepository.findByCreatedAtBetween(
-            task.taskDate!!.toLocalDate().atStartOfDay(),
-            task.taskDate!!.toLocalDate().atTime(23, 59, 59, 999999999),
-          )
+          paymentQueryService
+            .getByDateRange(
+              task.taskDate!!.toLocalDate().atStartOfDay(),
+              task.taskDate!!.toLocalDate().atTime(23, 59, 59, 999999999),
+            )
 
         // 获取微信支付记录
         val weChatTransactions = weChatReconciliationApi.fetchTransactions(task.taskDate!!.toLocalDate())

@@ -2,9 +2,9 @@ package dev.yidafu.aqua.delivery.event
 
 import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
+import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.enums.OperatorType
 import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
-import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
@@ -16,7 +16,7 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 
 @Component
 class DeliveryAssignmentHandler(
-  private val orderRepository: OrderRepository,
+  private val orderService: OrderQueryService,
   private val orderOperationService: OrderOperationService,
   private val adminService: AdminService,
   private val deliveryWorkerRepository: DeliveryWorkerRepository,
@@ -43,9 +43,8 @@ class DeliveryAssignmentHandler(
       val adminId = eventData["adminId"].toString().toLong()
       val workerId = eventData["deliveryWorkerId"].toString().toLong()
       val order =
-        orderRepository
-          .findById(orderId)
-          .orElseThrow { IllegalStateException("Order not found: $orderId") }
+        orderService
+          .getOrderById(orderId)
 
       logger.info("Processing DELIVERY_ASSIGNMENT event for order: ${order.orderNo}")
       val admin = adminService.findById(adminId)

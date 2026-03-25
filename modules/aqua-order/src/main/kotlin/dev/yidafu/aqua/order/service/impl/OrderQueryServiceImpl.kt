@@ -21,9 +21,9 @@ package dev.yidafu.aqua.order.service.impl
 
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.OrderStatus
-import dev.yidafu.aqua.common.domain.repository.OrderRepository
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.NotFoundException
+import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import org.springframework.data.domain.Page
 import org.springframework.stereotype.Service
 
@@ -47,10 +47,10 @@ class OrderQueryServiceImpl(
 
   override fun getUserOrdersByStatus(
     userId: Long,
-    status: OrderStatus,
+    status: OrderModelStatus,
   ): List<OrderModel> = orderRepository.findByUserIdAndStatus(userId, status)
 
-  override fun getOrdersByStatus(status: OrderStatus): List<OrderModel> = orderRepository.findByStatus(status)
+  override fun getOrdersByStatus(status: OrderModelStatus): List<OrderModel> = orderRepository.findByStatus(status)
 
   override fun findAllOrders(): List<OrderModel> = orderRepository.findAll()
 
@@ -74,7 +74,7 @@ class OrderQueryServiceImpl(
 
   override fun findOrdersByStatus(status: String): List<OrderModel> =
     try {
-      val orderStatus = OrderStatus.valueOf(status.uppercase())
+      val orderStatus = OrderModelStatus.valueOf(status.uppercase())
       getOrdersByStatus(orderStatus)
     } catch (e: Exception) {
       emptyList()
@@ -85,7 +85,7 @@ class OrderQueryServiceImpl(
     status: String,
   ): List<OrderModel> =
     try {
-      val orderStatus = OrderStatus.valueOf(status.uppercase())
+      val orderStatus = OrderModelStatus.valueOf(status.uppercase())
       getUserOrdersByStatus(userId, orderStatus)
     } catch (e: Exception) {
       emptyList()
@@ -131,7 +131,7 @@ class OrderQueryServiceImpl(
     val orderStatus =
       status?.let {
         try {
-          OrderStatus.valueOf(it.uppercase())
+          OrderModelStatus.valueOf(it.uppercase())
         } catch (e: Exception) {
           null
         }
@@ -150,6 +150,28 @@ class OrderQueryServiceImpl(
       size = size,
       sortField = sortField,
       sortDirection = sortDirection,
+    )
+  }
+
+  override fun getDeliveryWorkerHistoryOrders(
+    workerId: Long?,
+    status: OrderModelStatus?,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel> {
+    // 历史订单状态：已完成、已取消、已退款
+    val historyStatuses =
+      if (status != null) {
+        listOf(status)
+      } else {
+        listOf(OrderModelStatus.COMPLETED, OrderModelStatus.CANCELLED, OrderModelStatus.REFUNDED)
+      }
+
+    return orderRepository.findByDeliveryWorkerIdAndStatusIn(
+      deliveryWorkerId = workerId,
+      statuses = historyStatuses,
+      page = page,
+      size = size,
     )
   }
 }

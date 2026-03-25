@@ -21,14 +21,14 @@ package dev.yidafu.aqua.order.event
 
 import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.enums.OperatorType
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
-import dev.yidafu.aqua.common.domain.repository.OrderRepository
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
+import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -67,7 +67,7 @@ class OrderPaidHandler(
       logger.info("Processing ORDER_PAID event for order: ${order.orderNo}")
 
       // 验证订单状态
-      if (order.status != OrderStatus.PENDING_DELIVERY) {
+      if (order.status != OrderModelStatus.PENDING_DELIVERY) {
         logger.warn("Order ${order.orderNo} is not in PENDING_DELIVERY status, current status: ${order.status}")
         return
       }

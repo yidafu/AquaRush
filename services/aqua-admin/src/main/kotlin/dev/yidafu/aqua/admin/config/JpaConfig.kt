@@ -38,6 +38,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
     "dev.yidafu.aqua.review.domain.repository",
     "dev.yidafu.aqua.storage.repository",
     "dev.yidafu.aqua.user.domain.repository",
+    "dev.yidafu.aqua.order.domain.repository",
   ],
 )
 @EnableJpaAuditing

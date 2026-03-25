@@ -20,10 +20,10 @@
 package dev.yidafu.aqua.review.service.impl
 
 import dev.yidafu.aqua.api.service.ReviewService
+import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
-import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.ReviewModel
-import dev.yidafu.aqua.common.domain.repository.OrderRepository
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.dto.CreateReviewRequest
 import dev.yidafu.aqua.common.dto.DeliveryWorkerStatisticsResponse
 import dev.yidafu.aqua.common.dto.ReviewResponse
@@ -47,8 +47,8 @@ import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerRankingResponse as
 class ReviewServiceImpl(
   private val reviewRepository: ReviewRepository,
   private val statisticsRepository: DeliveryWorkerStatisticsRepository,
-  private val orderRepository: OrderRepository,
   private val deliveryWorkerRepository: DeliveryWorkerRepository,
+  private val orderQueryService: OrderQueryService,
 ) : ReviewService {
   private val logger = LoggerFactory.getLogger(ReviewService::class.java)
 
@@ -62,16 +62,14 @@ class ReviewServiceImpl(
   ): ReviewResponse {
     // 1. 验证订单存在且属于当前用户
     val order =
-      orderRepository
-        .findById(request.orderId)
-        .orElseThrow { NotFoundException("订单不存在: ${request.orderId}") }
+      orderQueryService.getOrderById(request.orderId)
 
     if (order.userId != userId) {
       throw BadRequestException("无权评价此订单")
     }
 
     // 2. 验证订单状态为已完成
-    if (order.status != OrderStatus.COMPLETED) {
+    if (order.status != OrderModelStatus.COMPLETED) {
       throw BadRequestException("只能评价已完成的订单")
     }
 
@@ -128,10 +126,7 @@ class ReviewServiceImpl(
     orderId: Long,
   ): OrderReviewCheckResponse {
     // 验证订单存在且属于当前用户
-    val order =
-      orderRepository
-        .findById(orderId)
-        .orElseThrow { NotFoundException("订单不存在: $orderId") }
+    val order = orderQueryService.getOrderById(orderId)
 
     if (order.userId != userId) {
       throw BadRequestException("无权查看此订单评价状态")
@@ -158,7 +153,7 @@ class ReviewServiceImpl(
     } else {
       OrderReviewCheckResponse(
         hasReviewed = false,
-        canReview = order.status == OrderStatus.COMPLETED,
+        canReview = order.status == OrderModelStatus.COMPLETED,
         review = null,
       )
     }

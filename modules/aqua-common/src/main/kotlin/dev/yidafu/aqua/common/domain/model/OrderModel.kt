@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
@@ -50,7 +52,7 @@ data class OrderModel(
   val addressId: Long = 0,
   @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)
-  var status: OrderStatus = OrderStatus.PENDING_PAYMENT,
+  var status: OrderModelStatus = OrderModelStatus.PENDING_PAYMENT,
   @Column(name = "payment_method")
   @Enumerated(EnumType.STRING)
   var paymentMethod: PaymentMethod? = null,
@@ -117,24 +119,4 @@ data class OrderModel(
     get() = MoneyUtils.fromCents(amountCents)
   val totalAmount: BigDecimal
     get() = MoneyUtils.fromCents(amountCents)
-}
-
-enum class OrderStatus {
-  PENDING_PAYMENT, // 待支付
-  PENDING_DISPATCH, // 待分配
-  PENDING_DELIVERY, // 待配送
-  DELIVERING, // 配送中
-  COMPLETED, // 已完成
-  CANCELLED, // 已取消
-  REFUNDED, // 已退款
-}
-
-/**
- * 收款方式枚举
- * 用于记录配送员完成配送时的收款方式
- */
-enum class PaymentType {
-  WATER_TICKET, // 水票
-  CASH, // 现金
-  QR_CODE, // 扫码
 }

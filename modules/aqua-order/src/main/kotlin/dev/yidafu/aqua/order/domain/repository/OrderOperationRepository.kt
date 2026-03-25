@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.common.domain.repository
+package dev.yidafu.aqua.order.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.OrderOperationModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType

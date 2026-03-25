@@ -20,18 +20,20 @@
 package dev.yidafu.aqua.delivery.service.impl
 
 import dev.yidafu.aqua.api.service.delivery.DeliveryTaskMutationService
+import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
+import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.OrderStatus
-import dev.yidafu.aqua.common.domain.model.PaymentType
 import dev.yidafu.aqua.common.domain.model.enums.OperatorType
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
-import dev.yidafu.aqua.common.domain.repository.OrderRepository
+import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
+import dev.yidafu.aqua.common.util.JsonHelper
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -40,9 +42,11 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class DeliveryTaskMutationServiceImpl(
   private val workerRepository: DeliveryWorkerRepository,
-  private val orderRepository: OrderRepository,
+  private val orderQueryService: OrderQueryService,
+  private val orderMutationService: OrderMutationService,
   private val orderOperationService: OrderOperationService,
   private val eventPublishService: SimplifiedEventPublishService,
+  private val jsonHelper: JsonHelper,
 ) : DeliveryTaskMutationService {
   private val logger = LoggerFactory.getLogger(DeliveryTaskMutationService::class.java)
 
@@ -57,9 +61,7 @@ class DeliveryTaskMutationServiceImpl(
     isSelfCollect: Boolean,
   ): OrderModel {
     val order =
-      orderRepository.findById(orderId).orElseThrow {
-        NotFoundException("订单不存在: $orderId")
-      }
+      orderQueryService.getOrderById(orderId)
 
     val worker =
       workerRepository.findById(workerId).orElseThrow {
@@ -67,7 +69,7 @@ class DeliveryTaskMutationServiceImpl(
       }
 
     // 验证订单状态 - 待配送状态才能派单
-    if (order.status != OrderStatus.PENDING_DELIVERY) {
+    if (order.status != OrderModelStatus.PENDING_DELIVERY) {
       throw BadRequestException("订单状态不正确，无法分配配送员")
     }
 
@@ -79,9 +81,9 @@ class DeliveryTaskMutationServiceImpl(
     // 分配配送员，状态变为已接单（待开始配送）
     order.deliveryWorkerId = workerId
     order.isSelfCollect = isSelfCollect
-    order.status = OrderStatus.DELIVERING
+    order.status = OrderModelStatus.DELIVERING
 
-    val savedOrder = orderRepository.save(order)
+    val savedOrder = orderMutationService.updateOrder(orderId, order)
 
     // 发布配送分配事件
     eventPublishService.publishDeliveryAssigned(
@@ -119,15 +121,13 @@ class DeliveryTaskMutationServiceImpl(
     for (orderId in orderIds) {
       try {
         val order =
-          orderRepository.findById(orderId).orElseThrow {
-            NotFoundException("订单不存在: $orderId")
-          }
+          orderQueryService.getOrderById(orderId)
 
         // 只处理待配送状态的订单
-        if (order.status == OrderStatus.PENDING_DELIVERY) {
+        if (order.status == OrderModelStatus.PENDING_DELIVERY) {
           order.deliveryWorkerId = workerId
-          order.status = OrderStatus.DELIVERING
-          val savedOrder = orderRepository.save(order)
+          order.status = OrderModelStatus.DELIVERING
+          val savedOrder = orderMutationService.updateOrder(orderId, order)
 
           // 发布配送分配事件
           eventPublishService.publishDeliveryAssigned(
@@ -157,21 +157,19 @@ class DeliveryTaskMutationServiceImpl(
     adminId: Long,
   ): OrderModel {
     val order =
-      orderRepository.findById(orderId).orElseThrow {
-        NotFoundException("订单不存在: $orderId")
-      }
+      orderQueryService.getOrderById(orderId)
 
     // 验证订单状态
-    if (order.status != OrderStatus.PENDING_DISPATCH) {
+    if (order.status != OrderModelStatus.PENDING_DISPATCH) {
       throw BadRequestException("订单状态不正确，无法接单")
     }
     val worker = workerRepository.findByAdminId(adminId) ?: throw UserNotFoundException("管理员 $adminId 不存在")
     val workerId = worker.id
     // 分配配送员
     order.deliveryWorkerId = workerId
-    order.status = OrderStatus.PENDING_DELIVERY
+    order.status = OrderModelStatus.PENDING_DELIVERY
 
-    val savedOrder = orderRepository.save(order)
+    val savedOrder = orderMutationService.updateOrder(orderId, order)
 
     // 记录订单操作 - 配送员接单
     orderOperationService.recordOperation(
@@ -200,20 +198,17 @@ class DeliveryTaskMutationServiceImpl(
   @Transactional
   override fun startDelivery(orderId: Long): OrderModel {
     val order =
-      orderRepository.findById(orderId).orElseThrow {
-        NotFoundException("订单不存在: $orderId")
-      }
+      orderQueryService.getOrderById(orderId)
 
     // 验证订单状态
-    if (order.status != OrderStatus.PENDING_DELIVERY) {
+    if (order.status != OrderModelStatus.PENDING_DELIVERY) {
       throw BadRequestException("订单状态不正确，无法开始配送")
     }
 
     // 设置开始配送时间
     order.deliveryStartedAt = java.time.LocalDateTime.now()
-    order.status = OrderStatus.DELIVERING
-    val savedOrder = orderRepository.save(order)
-
+    order.status = OrderModelStatus.DELIVERING
+    val savedOrder = orderMutationService.updateOrder(orderId, order)
     // 记录订单操作 - 开始配送
     orderOperationService.recordOperation(
       orderId = savedOrder.id!!,
@@ -247,22 +242,20 @@ class DeliveryTaskMutationServiceImpl(
     remark: String?,
   ): OrderModel {
     val order =
-      orderRepository.findById(orderId).orElseThrow {
-        NotFoundException("订单不存在: $orderId")
-      }
+      orderQueryService.getOrderById(orderId)
 
-    if (order.status != OrderStatus.DELIVERING) {
+    if (order.status != OrderModelStatus.DELIVERING) {
       throw BadRequestException("订单状态不正确，无法完成配送")
     }
 
     // 更新订单状态
-    order.status = OrderStatus.COMPLETED
-    order.deliveryPhotos = deliveryPhotos.joinToString(",")
+    order.status = OrderModelStatus.COMPLETED
+    order.deliveryPhotos = jsonHelper.createArrayNode(deliveryPhotos).toString()
     order.paymentType = paymentType
     order.deliveryRemark = remark
     order.deliveryConfirmedAt = java.time.LocalDateTime.now()
     order.completedAt = java.time.LocalDateTime.now()
-    val savedOrder = orderRepository.save(order)
+    val savedOrder = orderMutationService.updateOrder(orderId, order)
 
     // 记录订单操作 - 配送完成
     orderOperationService.recordOperation(

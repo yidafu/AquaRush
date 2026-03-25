@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.api.service.order
 
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.OrderStatus
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import org.springframework.data.domain.Page
 
 /**
@@ -47,13 +47,13 @@ interface OrderQueryService {
    */
   fun getUserOrdersByStatus(
     userId: Long,
-    status: OrderStatus,
+    status: OrderModelStatus,
   ): List<OrderModel>
 
   /**
    * 根据状态获取订单列表
    */
-  fun getOrdersByStatus(status: OrderStatus): List<OrderModel>
+  fun getOrdersByStatus(status: OrderModelStatus): List<OrderModel>
 
   /**
    * 获取所有订单
@@ -109,5 +109,15 @@ interface OrderQueryService {
     page: Int = 0,
     size: Int = 20,
     sort: String = "createdAt,desc",
+  ): Page<OrderModel>
+
+  /**
+   * 获取配送员历史订单（已完成、已取消、已退款）
+   */
+  fun getDeliveryWorkerHistoryOrders(
+    workerId: Long?,
+    status: OrderModelStatus? = null,
+    page: Int = 0,
+    size: Int = 20,
   ): Page<OrderModel>
 }

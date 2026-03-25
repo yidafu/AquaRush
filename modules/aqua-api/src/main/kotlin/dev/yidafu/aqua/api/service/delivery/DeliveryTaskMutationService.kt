@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.api.service.delivery
 
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.PaymentType
+import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 
 /**
  * 配送任务变更服务接口

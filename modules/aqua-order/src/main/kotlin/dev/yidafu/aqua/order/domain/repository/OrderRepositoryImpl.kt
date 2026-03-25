@@ -17,22 +17,25 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.common.domain.repository
+package dev.yidafu.aqua.order.domain.repository
 
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.core.types.dsl.NumberExpression
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.QOrderModel.Companion.orderModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.dto.OrderAnalyticsRow
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -50,12 +53,12 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
 
   override fun findOrdersWithFilters(
     userId: Long?,
-    status: OrderStatus?,
+    status: OrderModelStatus?,
     deliveryWorkerId: Long?,
     startDate: LocalDateTime?,
     endDate: LocalDateTime?,
     orderNumber: String?,
-    statuses: List<OrderStatus>?,
+    statuses: List<OrderModelStatus>?,
   ): List<OrderModel> {
     val builder = BooleanBuilder()
 
@@ -79,7 +82,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
 
   override fun findDeliveryWorkerOrdersWithFilters(
     deliveryWorkerId: Long,
-    status: OrderStatus,
+    status: OrderModelStatus,
     startDate: LocalDateTime?,
     endDate: LocalDateTime?,
     limit: Int?,
@@ -110,11 +113,11 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
 
   override fun countOrdersWithFilters(
     userId: Long?,
-    status: OrderStatus?,
+    status: OrderModelStatus?,
     deliveryWorkerId: Long?,
     startDate: LocalDateTime?,
     endDate: LocalDateTime?,
-    statuses: List<OrderStatus>?,
+    statuses: List<OrderModelStatus>?,
   ): Long {
     val builder = BooleanBuilder()
 
@@ -137,7 +140,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
 
   override fun findOrdersPaginated(
     keyword: String?,
-    status: OrderStatus?,
+    status: OrderModelStatus?,
     userId: Long?,
     deliveryWorkerId: Long?,
     startDate: LocalDateTime?,
@@ -148,7 +151,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     size: Int,
     sortField: String,
     sortDirection: String,
-  ): org.springframework.data.domain.Page<OrderModel> {
+  ): Page<OrderModel> {
     val builder = BooleanBuilder()
 
     keyword?.let { keywordVal ->
@@ -231,10 +234,45 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     return PageImpl(content, pageable, total)
   }
 
+  override fun findByDeliveryWorkerIdAndStatusIn(
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel> {
+    val builder =
+      BooleanBuilder()
+        .and(orderModel.status.`in`(statuses))
+
+    if (deliveryWorkerId != null) {
+      builder.and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
+    }
+    val pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt")))
+
+    val query =
+      queryFactory
+        .selectFrom(orderModel)
+        .where(builder)
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .orderBy(orderModel.createdAt.desc())
+
+    @Suppress("UNCHECKED_CAST")
+    val content = query.fetch() as List<OrderModel>
+    val total =
+      queryFactory
+        .query()
+        .from(orderModel)
+        .where(builder)
+        .fetchCount()
+
+    return PageImpl(content, pageable, total)
+  }
+
   @Transactional
   override fun bulkUpdateOrderStatus(
     orderIds: List<Long>,
-    newStatus: OrderStatus,
+    newStatus: OrderModelStatus,
     deliveryWorkerId: Long?,
   ): Int {
     var update =
@@ -257,7 +295,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     // Create date expression for PostgreSQL DATE() function
     val dateExpr =
       Expressions.dateTemplate(
-        java.time.LocalDate::class.java,
+        LocalDate::class.java,
         "DATE({0})",
         orderModel.createdAt,
       )
@@ -284,8 +322,8 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     @Suppress("UNCHECKED_CAST")
     return results.map { tuple ->
       OrderAnalyticsRow(
-        orderDate = tuple.get(dateExpr) ?: java.time.LocalDate.now(),
-        status = tuple.get(orderModel.status) ?: OrderStatus.PENDING_PAYMENT,
+        orderDate = tuple.get(dateExpr) ?: LocalDate.now(),
+        status = tuple.get(orderModel.status) ?: OrderModelStatus.PENDING_PAYMENT,
         orderCount = tuple.get(orderModel.count()) ?: 0L,
         // Convert from cents to yuan (divide by 100)
         totalRevenue = (tuple.get(sumAmount) as? Long? ?: 0L).toDouble() / 100.0,
@@ -295,75 +333,53 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
       )
     }
   }
-}
 
-/**
- * Data class for order analytics results
- */
-data class OrderAnalyticsRow(
-  val orderDate: java.time.LocalDate,
-  val status: OrderStatus,
-  val orderCount: Long,
-  val totalRevenue: Double,
-  val averageOrderValue: Double,
-  val uniqueCustomers: Long,
-  val activeWorkers: Long,
-)
-
-interface OrderRepositoryCustom {
-  fun findOrdersWithFilters(
-    userId: Long?,
-    status: OrderStatus?,
+  override fun countOrdersByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
     deliveryWorkerId: Long?,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
-    orderNumber: String?,
-    statuses: List<OrderStatus>?,
-  ): List<OrderModel>
+    statuses: List<OrderModelStatus>?,
+  ): Long {
+    val baseCondition = orderModel.createdAt.goe(startOfDay).and(orderModel.createdAt.lt(endOfDay))
 
-  fun findDeliveryWorkerOrdersWithFilters(
-    deliveryWorkerId: Long,
-    status: OrderStatus,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
-    limit: Int?,
-  ): List<OrderModel>
+    val whereClauseBuilder = BooleanBuilder(baseCondition)
 
-  fun countOrdersWithFilters(
-    userId: Long?,
-    status: OrderStatus?,
+    if (deliveryWorkerId != null) {
+      whereClauseBuilder.and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
+    }
+
+    statuses?.let {
+      whereClauseBuilder.and(orderModel.status.`in`(it))
+    }
+
+    return queryFactory
+      .select(orderModel.count())
+      .from(orderModel)
+      .where(whereClauseBuilder)
+      .fetchOne() ?: 0L
+  }
+
+  override fun sumAmountCentsByStatusAndDateRange(
+    statuses: List<OrderModelStatus>,
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
     deliveryWorkerId: Long?,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
-    statuses: List<OrderStatus>?,
-  ): Long
+  ): Long {
+    val baseCondition = orderModel.createdAt.goe(startOfDay).and(orderModel.createdAt.lt(endOfDay))
 
-  /**
-   * 分页查询订单
-   */
-  fun findOrdersPaginated(
-    keyword: String? = null,
-    status: OrderStatus? = null,
-    userId: Long? = null,
-    deliveryWorkerId: Long? = null,
-    startDate: LocalDateTime? = null,
-    endDate: LocalDateTime? = null,
-    minAmount: Long? = null,
-    maxAmount: Long? = null,
-    page: Int = 0,
-    size: Int = 20,
-    sortField: String = "createdAt",
-    sortDirection: String = "desc",
-  ): org.springframework.data.domain.Page<OrderModel>
+    val whereClause =
+      if (deliveryWorkerId != null) {
+        baseCondition
+          .and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
+          .and(orderModel.status.`in`(statuses))
+      } else {
+        baseCondition.and(orderModel.status.`in`(statuses))
+      }
 
-  fun bulkUpdateOrderStatus(
-    orderIds: List<Long>,
-    newStatus: OrderStatus,
-    deliveryWorkerId: Long?,
-  ): Int
-
-  fun getOrderAnalytics(
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): List<OrderAnalyticsRow>
+    return queryFactory
+      .select(orderModel.amountCents.sumLong())
+      .from(orderModel)
+      .where(whereClause)
+      .fetchOne() ?: 0L
+  }
 }

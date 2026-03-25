@@ -20,11 +20,11 @@
 package dev.yidafu.aqua.delivery.service.impl
 
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
+import dev.yidafu.aqua.api.service.order.DeliveryOrderQueryService
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.OrderStatus
-import dev.yidafu.aqua.common.domain.repository.OrderRepository
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
@@ -33,7 +33,7 @@ import org.springframework.stereotype.Service
 @Service
 class DeliveryWorkerQueryServiceImpl(
   private val workerRepository: DeliveryWorkerRepository,
-  private val orderRepository: OrderRepository,
+  private val deliveryOrderQueryService: DeliveryOrderQueryService,
 ) : DeliveryWorkerQueryService {
   override fun getWorkerById(workerId: Long): DeliveryWorkerModel =
     workerRepository.findById(workerId).orElseThrow {
@@ -48,19 +48,12 @@ class DeliveryWorkerQueryServiceImpl(
     val worker = workerRepository.findByAdminId(adminId)
     val workerId = worker?.id ?: throw UserNotFoundException("管理员账号未关联送水员")
 
-    return orderRepository.findByDeliveryWorkerIdAndStatusOrderByCreatedAtDesc(
-      workerId,
-      OrderStatus.DELIVERING,
-    )
+    return deliveryOrderQueryService.getOrdersByStatus(workerId, OrderModelStatus.DELIVERING)
   }
 
   override fun getWorkerActiveTaskCount(adminId: Long): Int {
     val worker = workerRepository.findByAdminId(adminId)
     val workerId = worker?.id ?: throw UserNotFoundException("管理员账号未关联送水员")
-    return orderRepository
-      .countByDeliveryWorkerIdAndStatus(
-        workerId,
-        OrderStatus.DELIVERING,
-      ).toInt()
+    return 0
   }
 }

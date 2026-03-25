@@ -28,20 +28,18 @@ import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.repository.OrderRepository
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
+import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 
 /**
@@ -145,7 +143,7 @@ class OrderMutationServiceImpl(
         quantity = quantity,
         amountCents = amountCents,
         addressId = addressId,
-        status = OrderStatus.PENDING_DISPATCH,
+        status = OrderModelStatus.PENDING_DISPATCH,
         paymentMethod = paymentMethod,
         paymentTransactionId = null,
         paymentTime = paymentTime,
@@ -238,31 +236,31 @@ class OrderMutationServiceImpl(
     val order = orderQueryService.getOrderById(orderId)
 
     // 1. 验证订单状态是否可以取消
-    if (order.status == OrderStatus.CANCELLED) {
+    if (order.status == OrderModelStatus.CANCELLED) {
       throw BadRequestException("订单已取消")
     }
 
-    if (order.status == OrderStatus.COMPLETED) {
+    if (order.status == OrderModelStatus.COMPLETED) {
       throw BadRequestException("订单已完成，无法取消")
     }
 
-    if (order.status == OrderStatus.DELIVERING) {
+    if (order.status == OrderModelStatus.DELIVERING) {
       throw BadRequestException("订单配送中，无法取消")
     }
 
     // 2. 如果订单已支付，需要退款（先处理库存恢复，退款在支付服务中处理）
     var shouldRefund = false
-    if (order.status == OrderStatus.PENDING_DELIVERY && order.paymentTransactionId != null) {
+    if (order.status == OrderModelStatus.PENDING_DELIVERY && order.paymentTransactionId != null) {
       shouldRefund = true
     }
 
     // 3. 恢复库存（仅在未配送且已支付或待支付时恢复）
-    if (order.status != OrderStatus.DELIVERING && order.status != OrderStatus.COMPLETED) {
+    if (order.status != OrderModelStatus.DELIVERING && order.status != OrderModelStatus.COMPLETED) {
       productService.increaseStock(order.productId, order.quantity)
     }
 
     // 4. 更新订单状态
-    order.status = OrderStatus.CANCELLED
+    order.status = OrderModelStatus.CANCELLED
     val cancelledOrder = orderRepository.save(order)
 
     // 5. 发布订单取消事件
@@ -299,27 +297,23 @@ class OrderMutationServiceImpl(
       null
     }
 
-  @Transactional
-  override fun updateOrderStatus(
+  override fun updateOrder(
     orderId: Long,
-    status: OrderStatus,
+    orderDTO: OrderModel,
   ): OrderModel {
-    val order = orderQueryService.getOrderById(orderId)
-    order.status = status
-    return orderRepository.save(order)
+    orderDTO.id = orderId
+    return orderRepository.save(orderDTO)
   }
 
   @Transactional
   override fun updateOrderStatus(
     orderId: Long,
-    status: String,
-  ): OrderModel? =
-    try {
-      val orderStatus = OrderStatus.valueOf(status.uppercase())
-      updateOrderStatus(orderId, orderStatus)
-    } catch (e: Exception) {
-      null
-    }
+    status: OrderModelStatus,
+  ): OrderModel {
+    val order = orderQueryService.getOrderById(orderId)
+    order.status = status
+    return orderRepository.save(order)
+  }
 
   @Transactional
   override fun handlePaymentSuccess(
@@ -328,11 +322,11 @@ class OrderMutationServiceImpl(
   ) {
     val order = orderQueryService.getOrderById(orderId)
 
-    if (order.status != OrderStatus.PENDING_PAYMENT) {
+    if (order.status != OrderModelStatus.PENDING_PAYMENT) {
       throw BadRequestException("订单状态不正确，无法处理支付")
     }
 
-    order.status = OrderStatus.PENDING_DELIVERY
+    order.status = OrderModelStatus.PENDING_DELIVERY
     order.paymentTransactionId = paymentTransactionId
     order.paymentTime = LocalDateTime.now()
     order.paymentMethod = PaymentMethod.WECHAT_PAY
@@ -352,7 +346,7 @@ class OrderMutationServiceImpl(
   override fun handlePaymentTimeout(orderId: Long) {
     val order = orderQueryService.getOrderById(orderId)
 
-    if (order.status != OrderStatus.PENDING_PAYMENT) {
+    if (order.status != OrderModelStatus.PENDING_PAYMENT) {
       return // 已处理过，跳过
     }
 
@@ -360,7 +354,7 @@ class OrderMutationServiceImpl(
     productService.increaseStock(order.productId, order.quantity)
 
     // 取消订单
-    order.status = OrderStatus.CANCELLED
+    order.status = OrderModelStatus.CANCELLED
     orderRepository.save(order)
 
     // 发布支付超时事件

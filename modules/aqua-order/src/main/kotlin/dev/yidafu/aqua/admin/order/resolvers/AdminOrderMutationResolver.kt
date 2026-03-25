@@ -23,16 +23,15 @@ import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryTaskMutationService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
-import dev.yidafu.aqua.common.domain.model.OrderStatus
-import dev.yidafu.aqua.common.domain.model.PaymentType
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
-import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.order.mapper.CreateDeliveryOrderInputMapper
-import dev.yidafu.aqua.order.mapper.CreateOrderInputMapper
 import dev.yidafu.aqua.order.mapper.OrderMapper
+import dev.yidafu.aqua.order.mapper.OrderModelStatusMapper
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -70,12 +69,11 @@ class AdminOrderMutationResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun updateOrderStatus(
     @Argument orderId: Long,
-    @Argument status: OrderStatus,
+    @Argument status: OrderModelStatus,
   ): Order =
     orderMutationService
-      .updateOrderStatus(orderId, status.name)
-      ?.let { OrderMapper.map(it) }
-      ?: throw IllegalArgumentException("Order not found")
+      .updateOrderStatus(orderId, status)
+      .let { OrderMapper.map(it) }
 
   // ==================== 派单相关 mutations ====================
 

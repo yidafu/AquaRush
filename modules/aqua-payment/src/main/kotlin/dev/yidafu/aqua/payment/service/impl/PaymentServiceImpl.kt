@@ -24,7 +24,7 @@ import com.wechat.pay.java.core.exception.ValidationException
 import dev.yidafu.aqua.api.service.PaymentService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
-import dev.yidafu.aqua.common.domain.model.OrderStatus
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -84,7 +84,7 @@ class PaymentServiceImpl(
     try {
       // 验证订单存在且状态正确
       val order = orderQueryService.getOrderById(orderId)
-      if (order.status != OrderStatus.PENDING_PAYMENT) {
+      if (order.status != OrderModelStatus.PENDING_PAYMENT) {
         throw BadRequestException("订单状态不正确，无法创建支付")
       }
 
@@ -137,10 +137,10 @@ class PaymentServiceImpl(
     try {
       val order = orderQueryService.getOrderById(orderId)
 
-      if (order.status != OrderStatus.PENDING_PAYMENT) {
+      if (order.status != OrderModelStatus.PENDING_PAYMENT) {
         return when (order.status) {
-          OrderStatus.PENDING_DELIVERY -> "SUCCESS"
-          OrderStatus.CANCELLED -> "CLOSED"
+          OrderModelStatus.PENDING_DELIVERY -> "SUCCESS"
+          OrderModelStatus.CANCELLED -> "CLOSED"
           else -> "UNKNOWN"
         }
       }

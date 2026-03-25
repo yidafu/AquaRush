@@ -398,7 +398,7 @@ type TodayStatistics {
   # 今日已完成订单数
   completedOrders: Int!
   # 今日待配送订单数
-  pendingOrders: Int!
+  unfinishedOrders: Int!
   # 今日收入（分）
   earningCents: Long!
 }

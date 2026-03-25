@@ -1,34 +1,24 @@
-/*
- * AquaRush
- *
- * Copyright (C) 2025 AquaRush Team
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
-package dev.yidafu.aqua.api.service.delivery
+package dev.yidafu.aqua.api.service.order
 
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 
 /**
  * 配送任务查询服务接口
  */
-interface DeliveryTaskQueryService {
+interface DeliveryOrderQueryService {
   /**
    * 获取配送员的所有任务
    */
-  fun getWorkerTasks(adminId: Long): List<OrderModel>
+  fun getWorkerTasks(workerId: Long): List<OrderModel>
+
+  /**
+   * 获取配送员的所有任务
+   */
+  fun getOrdersByStatus(
+    workerId: Long,
+    status: OrderModelStatus,
+  ): List<OrderModel>
 
   /**
    * 获取所有待分配的订单
@@ -66,7 +56,7 @@ interface DeliveryTaskQueryService {
   data class TodayStatistics(
     val totalOrders: Int,
     val completedOrders: Int,
-    val pendingOrders: Int,
+    val unfinishedOrders: Int,
     val earningCents: Long,
   )
 }

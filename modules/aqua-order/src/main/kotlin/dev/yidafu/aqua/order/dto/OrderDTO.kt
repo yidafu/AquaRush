@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.order.dto
 
-import dev.yidafu.aqua.common.domain.model.OrderStatus
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.graphql.generated.*
 import java.time.LocalDateTime
 
@@ -42,7 +42,7 @@ data class OrderDTO(
   val amount: Long,
   val addressId: Long,
   val address: Address? = null,
-  val status: OrderStatus,
+  val status: OrderModelStatus,
   val paymentMethod: PaymentMethod? = null,
   val paymentTransactionId: String? = null,
   val paymentTime: LocalDateTime? = null,
@@ -77,7 +77,7 @@ data class CreateOrderDTO(
  * DTO for updating order status
  */
 data class UpdateOrderStatusDTO(
-  val status: OrderStatus,
+  val status: OrderModelStatus,
   val paymentMethod: PaymentMethod? = null,
   val paymentTransactionId: String? = null,
   val paymentTime: LocalDateTime? = null,
@@ -91,7 +91,7 @@ data class UpdateOrderStatusDTO(
  */
 data class OrderQueryDTO(
   val userId: Long? = null,
-  val status: OrderStatus? = null,
+  val status: OrderModelStatus? = null,
   val paymentMethod: PaymentMethod? = null,
   val deliveryWorkerId: Long? = null,
   val startDate: LocalDateTime? = null,

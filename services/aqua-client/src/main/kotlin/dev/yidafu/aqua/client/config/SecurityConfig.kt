@@ -65,6 +65,7 @@ class SecurityConfig(
             "/login",
             "/css/**",
             "/js/**",
+            "/static/**",
             "/images/**",
             "/graphiql",
           ).permitAll()

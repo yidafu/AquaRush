@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.common.domain.model.OrderOperationModel
 import dev.yidafu.aqua.common.domain.model.enums.OperatorType
 import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
-import dev.yidafu.aqua.common.domain.repository.OrderOperationRepository
+import dev.yidafu.aqua.order.domain.repository.OrderOperationRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
