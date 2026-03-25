@@ -27,9 +27,11 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
+import dev.yidafu.aqua.common.graphql.generated.DailyStat
 import dev.yidafu.aqua.common.graphql.generated.DeliveryAddress
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.TodayStatistics
+import dev.yidafu.aqua.common.graphql.generated.WeekStatistics
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
 import dev.yidafu.aqua.order.dto.CreateOrderDTO
 import dev.yidafu.aqua.order.dto.OrderDTO
@@ -264,3 +266,18 @@ object CreateOrderInputMapper : ObjectMappie<CreateOrderInput, CreateOrderReques
 }
 
 object TodayStatisticsMapper : ObjectMappie<DeliveryOrderQueryService.TodayStatistics, TodayStatistics>()
+
+object WeekStatisticsMapper : ObjectMappie<DeliveryOrderQueryService.WeekStatistics, WeekStatistics>() {
+  override fun map(from: DeliveryOrderQueryService.WeekStatistics): WeekStatistics =
+    mapping {
+      to::dailyStats fromExpression { DailyStatMapper.mapList(from.dailyStats) }
+      to::totalEarning fromValue from.totalEarningCents / 100
+    }
+}
+
+object DailyStatMapper : ObjectMappie<DeliveryOrderQueryService.DailyStat, DailyStat>() {
+  override fun map(from: DeliveryOrderQueryService.DailyStat): DailyStat =
+    mapping {
+      to::earning fromValue from.earningCents / 100
+    }
+}

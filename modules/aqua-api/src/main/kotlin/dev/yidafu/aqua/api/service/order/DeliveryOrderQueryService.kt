@@ -42,6 +42,12 @@ interface DeliveryOrderQueryService {
   fun getTodayStatistics(workerId: Long?): TodayStatistics
 
   /**
+   * 获取配送员一周统计数据
+   * @param workerId 配送员ID，如果为null则返回所有配送员的统计数据
+   */
+  fun getWeekStatistics(workerId: Long?): WeekStatistics
+
+  /**
    * 根据ID获取订单
    */
   fun getOrderById(orderId: Long): OrderModel
@@ -58,5 +64,17 @@ interface DeliveryOrderQueryService {
     val completedOrders: Int,
     val unfinishedOrders: Int,
     val earningCents: Long,
+  )
+
+  data class DailyStat(
+    val date: String,
+    val orderCount: Int,
+    val earningCents: Long,
+  )
+
+  data class WeekStatistics(
+    val dailyStats: List<DailyStat>,
+    val totalOrders: Int,
+    val totalEarningCents: Long,
   )
 }

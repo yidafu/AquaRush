@@ -10,6 +10,7 @@ import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.time.format.DateTimeFormatter
 
 @Service
 class DeliveryOrderQueryServiceImpl(
@@ -102,4 +103,45 @@ class DeliveryOrderQueryServiceImpl(
     orderRepository.findById(orderId).orElseThrow {
       NotFoundException("订单不存在: $orderId")
     }
+
+  override fun getWeekStatistics(workerId: Long?): DeliveryOrderQueryService.WeekStatistics {
+    val today = LocalDate.now()
+    val dateFormatter = DateTimeFormatter.ofPattern("MM/dd")
+    val dailyStats = mutableListOf<DeliveryOrderQueryService.DailyStat>()
+    var totalOrders = 0
+    var totalEarningCents = 0L
+
+    // 遍历最近7天
+    for (i in 6 downTo 0) {
+      val date = today.minusDays(i.toLong())
+      val startOfDay = date.atStartOfDay()
+      val endOfDay = date.plusDays(1).atStartOfDay()
+
+      val orderCount = orderRepository
+        .countOrdersByDateRange(startOfDay, endOfDay, workerId, listOf(OrderModelStatus.COMPLETED))
+        .toInt()
+      val earningCents = orderRepository.sumAmountCentsByStatusAndDateRange(
+        listOf(OrderModelStatus.COMPLETED),
+        startOfDay,
+        endOfDay,
+        workerId,
+      )
+
+      dailyStats.add(
+        DeliveryOrderQueryService.DailyStat(
+          date = date.format(dateFormatter),
+          orderCount = orderCount,
+          earningCents = earningCents,
+        ),
+      )
+      totalOrders += orderCount
+      totalEarningCents += earningCents
+    }
+
+    return DeliveryOrderQueryService.WeekStatistics(
+      dailyStats = dailyStats,
+      totalOrders = totalOrders,
+      totalEarningCents = totalEarningCents,
+    )
+  }
 }

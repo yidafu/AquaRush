@@ -403,6 +403,26 @@ type TodayStatistics {
   earningCents: Long!
 }
 
+# 每日统计数据
+type DailyStat {
+  # 日期（MM/dd格式）
+  date: String!
+  # 订单数
+  orderCount: Int!
+  # 营收金额（元）
+  earning: Long!
+}
+
+# 一周统计数据
+type WeekStatistics {
+  # 每日统计数据列表
+  dailyStats: [DailyStat!]!
+  # 总订单数
+  totalOrders: Int!
+  # 总营收金额（元）
+  totalEarning: Long!
+}
+
 type DeliveryArea {
   # 配送区域ID
   id: PrimaryId!

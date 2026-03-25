@@ -55,6 +55,19 @@ type Query {
   assignedOrders: [Order!]!  # 已分配订单
   deliveringOrders: [Order!]! # 配送中订单
 
+  # 配送员历史订单查询（已完成、已取消、已退款）
+  deliveryWorkerHistoryOrders(
+    status: OrderStatus
+    page: Int = 0
+    size: Int = 20
+  ): OrderPage!
+
+  # 当日统计数据
+  todayStatistics: TodayStatistics
+
+  # 一周统计数据
+  weekStatistics: WeekStatistics
+
   # 用户搜索
   findUserByPhone(phone: String!): User
   findUsersByAddress(address: String!): [User!]!
@@ -136,7 +149,6 @@ type Mutation {
   # Order Management - Admin/Delivery operations
   updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): Order!
   createDeliveryOrder(input: CreateDeliveryOrderInput!): Order!  # 配送员创建订单
-  createOrder(input: CreateOrderInput!): Order!  # 创建订单
 
   # 派单管理
   assignDeliveryWorker(orderId: PrimaryId!, workerId: PrimaryId!, isSelfCollect: Boolean!): Order!
