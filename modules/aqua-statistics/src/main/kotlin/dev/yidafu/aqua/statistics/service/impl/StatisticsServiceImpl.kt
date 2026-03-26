@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -20,11 +20,20 @@
 package dev.yidafu.aqua.statistics.service.impl
 
 import dev.yidafu.aqua.api.service.StatisticsService
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.order.domain.repository.OrderRepositoryCustom
+import dev.yidafu.aqua.statistics.model.repository.StatisticsOrderRepositoryCustom
 import org.springframework.stereotype.Service
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.temporal.WeekFields
 
 @Service
-class StatisticsServiceImpl : StatisticsService {
+class StatisticsServiceImpl(
+  private val orderRepository: OrderRepositoryCustom,
+  private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
+) : StatisticsService {
   /**
    * 获取日期范围内的订单统计
    */
@@ -32,13 +41,49 @@ class StatisticsServiceImpl : StatisticsService {
     startDate: LocalDate,
     endDate: LocalDate,
   ): StatisticsService.OrderStatistics {
-    // TODO: 实现订单统计逻辑
-    // Note: Implementations should work with cents internally
+    val startDateTime = startDate.atStartOfDay()
+    val endDateTime = endDate.atTime(LocalTime.MAX)
+
+    val allStatuses = OrderModelStatus.entries
+    val completedStatuses = listOf(OrderModelStatus.COMPLETED)
+
+    val totalOrders =
+      orderRepository.countOrdersByDateRange(
+        startDateTime,
+        endDateTime,
+        deliveryWorkerId = null,
+        statuses = null,
+      )
+
+    val totalAmountCents =
+      orderRepository.sumAmountCentsByStatusAndDateRange(
+        allStatuses,
+        startDateTime,
+        endDateTime,
+        deliveryWorkerId = null,
+      )
+
+    val completedOrders =
+      orderRepository.countOrdersByDateRange(
+        startDateTime,
+        endDateTime,
+        deliveryWorkerId = null,
+        statuses = completedStatuses,
+      )
+
+    val completedAmountCents =
+      orderRepository.sumAmountCentsByStatusAndDateRange(
+        completedStatuses,
+        startDateTime,
+        endDateTime,
+        deliveryWorkerId = null,
+      )
+
     return StatisticsService.OrderStatistics(
-      totalOrders = 0L,
-      totalAmountCents = 0L,
-      completedOrders = 0L,
-      completedAmountCents = 0L,
+      totalOrders = totalOrders,
+      totalAmountCents = totalAmountCents,
+      completedOrders = completedOrders,
+      completedAmountCents = completedAmountCents,
     )
   }
 
@@ -49,8 +94,32 @@ class StatisticsServiceImpl : StatisticsService {
     startDate: LocalDate,
     endDate: LocalDate,
   ): List<StatisticsService.DailyStatistics> {
-    // TODO: 实现每日统计逻辑
-    return emptyList()
+    val startDateTime = startDate.atStartOfDay()
+    val endDateTime = endDate.atTime(LocalTime.MAX)
+
+    val dailyStats =
+      statisticsOrderRepository.getDailyOrderStatistics(
+        startDateTime = startDateTime,
+        endDateTime = endDateTime,
+        deliveryWorkerId = null,
+        statuses = null,
+      )
+
+    // 构建日期到统计的映射
+    val statsMap = dailyStats.associateBy { it.date }
+
+    // 遍历日期范围，填充缺失日期（无订单的日期）
+    val result = mutableListOf<StatisticsService.DailyStatistics>()
+    var currentDate = startDate
+    while (!currentDate.isAfter(endDate)) {
+      val stat = statsMap[currentDate]
+      result.add(
+        stat ?: StatisticsService.DailyStatistics.default(currentDate),
+      )
+      currentDate = currentDate.plusDays(1)
+    }
+
+    return result
   }
 
   /**
@@ -60,8 +129,34 @@ class StatisticsServiceImpl : StatisticsService {
     startDate: LocalDate,
     endDate: LocalDate,
   ): List<StatisticsService.DailyStatistics> {
-    // TODO: 实现每周统计逻辑
-    return emptyList()
+    val startDateTime = startDate.atStartOfDay()
+    val endDateTime = endDate.atTime(LocalTime.MAX)
+
+    val weeklyStats =
+      statisticsOrderRepository.getWeeklyOrderStatistics(
+        startDateTime = startDateTime,
+        endDateTime = endDateTime,
+        deliveryWorkerId = null,
+        statuses = null,
+      )
+
+    // 构建周开始日期到统计的映射
+    val statsMap = weeklyStats.associateBy { it.date }
+
+    // 遍历周范围，填充缺失周（无订单的周）
+    val weekFields = WeekFields.of(DayOfWeek.MONDAY, 4)
+    val result = mutableListOf<StatisticsService.DailyStatistics>()
+    var currentWeekStart = startDate.with(weekFields.dayOfWeek(), 1)
+
+    while (!currentWeekStart.isAfter(endDate)) {
+      val stat = statsMap[currentWeekStart]
+      result.add(
+        stat ?: StatisticsService.DailyStatistics.default(currentWeekStart),
+      )
+      currentWeekStart = currentWeekStart.plusWeeks(1)
+    }
+
+    return result
   }
 
   /**
@@ -71,7 +166,32 @@ class StatisticsServiceImpl : StatisticsService {
     startDate: LocalDate,
     endDate: LocalDate,
   ): List<StatisticsService.DailyStatistics> {
-    // TODO: 实现每月统计逻辑
-    return emptyList()
+    val startDateTime = startDate.atStartOfDay()
+    val endDateTime = endDate.atTime(LocalTime.MAX)
+
+    val monthlyStats =
+      statisticsOrderRepository.getMonthlyOrderStatistics(
+        startDateTime = startDateTime,
+        endDateTime = endDateTime,
+        deliveryWorkerId = null,
+        statuses = null,
+      )
+
+    // 构建月份开始日期到统计的映射
+    val statsMap = monthlyStats.associateBy { it.date }
+
+    // 遍历月份范围，填充缺失月份（无订单的月份）
+    val result = mutableListOf<StatisticsService.DailyStatistics>()
+    var currentMonth = startDate.withDayOfMonth(1)
+
+    while (!currentMonth.isAfter(endDate)) {
+      val stat = statsMap[currentMonth]
+      result.add(
+        stat ?: StatisticsService.DailyStatistics.default(currentMonth),
+      )
+      currentMonth = currentMonth.plusMonths(1)
+    }
+
+    return result
   }
 }

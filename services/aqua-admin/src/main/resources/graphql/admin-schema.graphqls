@@ -58,6 +58,7 @@ type Query {
   # 配送员历史订单查询（已完成、已取消、已退款）
   deliveryWorkerHistoryOrders(
     status: OrderStatus
+    keyword: String
     page: Int = 0
     size: Int = 20
   ): OrderPage!
@@ -106,6 +107,13 @@ type Query {
   dailyStatistics(input: DateRangeInput!): [DailyStatistic!]!
   weeklyStatistics(input: DateRangeInput!): [WeeklyStatistic!]!
   monthlyStatistics(input: DateRangeInput!): [MonthlyStatistic!]!
+
+  # User Statistics - Admin only
+  userStatistics: UserStatistics!
+
+  # Delivery Worker Statistics - Admin only
+  deliveryWorkerStatistics: DeliveryWorkerOverview!
+  deliveryWorkerRanking(limit: Int = 10): [DeliveryWorkerRankingItem!]!
 
   # Regions (for admin)
   regions(level: Int, parentCode: String): [Region!]!

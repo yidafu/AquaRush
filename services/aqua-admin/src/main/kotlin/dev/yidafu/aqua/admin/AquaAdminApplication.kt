@@ -53,6 +53,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
     "dev.yidafu.aqua.admin.review.resolvers",
     "dev.yidafu.aqua.admin.payment.resolvers",
     "dev.yidafu.aqua.admin.order.resolvers",
+    "dev.yidafu.aqua.statistics.resolver",
   ],
   exclude = [CacheAutoConfiguration::class],
 )
