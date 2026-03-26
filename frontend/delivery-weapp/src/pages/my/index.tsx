@@ -23,14 +23,14 @@ const MyPage: React.FC = () => {
   // workerInfo 为空时不渲染，PageContainer 会处理重定向
   if (!workerInfo) {
     return (
-      <PageContainer title="我的">
+      <PageContainer title='我的'>
         <View />
       </PageContainer>
     )
   }
 
   return (
-    <PageContainer title="我的">
+    <PageContainer title='我的'>
       <View className='my-page'>
         {/* 用户信息 */}
         <View className='user-info'>
@@ -49,13 +49,6 @@ const MyPage: React.FC = () => {
 
         {/* 功能菜单 */}
         <View className='menu-list'>
-          <View
-            className='menu-item'
-            onClick={() => Taro.navigateTo({ url: '/pages/statistics/index' })}
-          >
-            <Text className='menu-label'>当日统计</Text>
-            <Text className='menu-arrow'>›</Text>
-          </View>
 
           <View
             className='menu-item'
@@ -65,17 +58,10 @@ const MyPage: React.FC = () => {
             <Text className='menu-arrow'>›</Text>
           </View>
 
-          <View className='menu-item'>
-            <Text className='menu-label'>账户设置</Text>
-            <Text className='menu-arrow'>›</Text>
-          </View>
-
-          <View className='menu-item'>
-            <Text className='menu-label'>帮助中心</Text>
-            <Text className='menu-arrow'>›</Text>
-          </View>
-
-          <View className='menu-item'>
+          <View
+            className='menu-item'
+            onClick={() => Taro.navigateTo({ url: '/pages/about/index' })}
+          >
             <Text className='menu-label'>关于我们</Text>
             <Text className='menu-arrow'>›</Text>
           </View>

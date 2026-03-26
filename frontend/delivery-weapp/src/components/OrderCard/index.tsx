@@ -1,38 +1,77 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import { View, Text, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { formatCurrency } from '@aquarush/common'
+import { OrderStatus, formatCurrency } from '@aquarush/common'
 import './index.scss'
 
-interface OrderCardProps {
-  order: {
-    id: number
-    orderNo: string
-    quantity: number
-    amount: number
-    isSelfCollect?: boolean
-    address?: {
-      receiverName?: string
-      phone?: string
-      detailAddress?: string
-    }
-    user?: {
-      nickname?: string
-      phone?: string
-    }
-    product?: {
-      name?: string
-    }
+// 订单状态映射
+const STATUS_MAP: Record<string, string> = {
+  [OrderStatus.COMPLETED]: '已完成',
+  [OrderStatus.CANCELLED]: '已取消',
+  [OrderStatus.REFUNDED]: '已退款',
+}
+
+// 统一的订单数据类型
+interface OrderData {
+  id: string | number
+  orderNo: string
+  quantity: number
+  amount: number
+  status?: string
+  isSelfCollect?: boolean
+  createdAt?: string
+  deliveryConfirmedAt?: string
+  address?: {
+    receiverName?: string
+    phone?: string
+    detailAddress?: string
   }
-  type: 'pending' | 'assigned' | 'delivering'
+  user?: {
+    nickname?: string
+    phone?: string
+  }
+  product?: {
+    name?: string
+  }
+}
+
+type OrderCardType = 'pending' | 'assigned' | 'delivering' | 'history'
+
+interface OrderCardProps {
+  order: OrderData
+  type?: OrderCardType
   onAccept?: (orderId: number) => void
   onStartDelivery?: (orderId: number) => void
-  onViewDetail?: (orderId: number) => void
+  onViewDetail?: (orderId: number | string) => void
+}
+
+const getStatusClassName = (status: string) => {
+  switch (status) {
+    case OrderStatus.COMPLETED:
+      return 'completed'
+    case OrderStatus.CANCELLED:
+      return 'cancelled'
+    case OrderStatus.REFUNDED:
+      return 'refunded'
+    default:
+      return ''
+  }
+}
+
+const formatDateTime = (dateStr?: string) => {
+  if (!dateStr) return '-'
+  const date = new Date(dateStr)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hour = String(date.getHours()).padStart(2, '0')
+  const minute = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day} ${hour}:${minute}`
 }
 
 const OrderCard: React.FC<OrderCardProps> = ({
   order,
-  type,
+  type = 'history',
   onAccept,
   onStartDelivery,
   onViewDetail,
@@ -40,27 +79,39 @@ const OrderCard: React.FC<OrderCardProps> = ({
   const address = order.address || {}
   const user = order.user || {}
 
-  const handleAccept = () => {
-    onAccept?.(order.id)
-  }
-
-  const handleStartDelivery = () => {
-    onStartDelivery?.(order.id)
-  }
-
-  const handleViewDetail = () => {
+  const handleClick = useCallback(() => {
     if (onViewDetail) {
       onViewDetail(order.id)
     } else {
       Taro.navigateTo({ url: `/pages/order-detail/index?id=${order.orderNo}` })
     }
+  }, [order.id, order.orderNo, onViewDetail])
+
+  const handleAccept = (e: any) => {
+    e.stopPropagation()
+    onAccept?.(order.id as number)
+  }
+
+  const handleStartDelivery = (e: any) => {
+    e.stopPropagation()
+    onStartDelivery?.(order.id as number)
+  }
+
+  const handleViewDetail = (e: any) => {
+    e.stopPropagation()
+    handleClick()
   }
 
   return (
-    <View className='order-card' onClick={handleViewDetail}>
+    <View className='order-card' onClick={handleClick}>
       <View className='order-header'>
         <Text className='order-number'>{order.orderNo}</Text>
-        {order.isSelfCollect && (
+        {type === 'history' && order.status && (
+          <Text className={`status-tag ${getStatusClassName(order.status)}`}>
+            {STATUS_MAP[order.status] || order.status}
+          </Text>
+        )}
+        {type !== 'history' && order.isSelfCollect && (
           <Text className='self-collect-tag'>自收</Text>
         )}
       </View>
@@ -86,43 +137,45 @@ const OrderCard: React.FC<OrderCardProps> = ({
           <Text className='label'>金额：</Text>
           <Text className='amount-text'>{formatCurrency(order.amount)}</Text>
         </View>
+        {type === 'history' && order.createdAt && (
+          <View className='info-row'>
+            <Text className='label'>下单时间：</Text>
+            <Text>{formatDateTime(order.createdAt)}</Text>
+          </View>
+        )}
+        {type === 'history' && order.deliveryConfirmedAt && (
+          <View className='info-row'>
+            <Text className='label'>完成时间：</Text>
+            <Text>{formatDateTime(order.deliveryConfirmedAt)}</Text>
+          </View>
+        )}
+        {type === 'history' && order.isSelfCollect && (
+          <View className='info-row'>
+            <Text className='label'>配送方式：</Text>
+            <Text>自提</Text>
+          </View>
+        )}
       </View>
 
-      <View className='order-actions'>
-        {type === 'pending' && (
-          <Button
-            className='action-btn accept-btn'
-            onClick={(e) => {
-              e.stopPropagation()
-              handleAccept()
-            }}
-          >
-            接单
-          </Button>
-        )}
-        {type === 'assigned' && (
-          <Button
-            className='action-btn start-btn'
-            onClick={(e) => {
-              e.stopPropagation()
-              handleStartDelivery()
-            }}
-          >
-            开始配送
-          </Button>
-        )}
-        {type === 'delivering' && (
-          <Button
-            className='action-btn detail-btn'
-            onClick={(e) => {
-              e.stopPropagation()
-              handleViewDetail()
-            }}
-          >
-            去确认
-          </Button>
-        )}
-      </View>
+      {type !== 'history' && (
+        <View className='order-actions'>
+          {type === 'pending' && (
+            <Button className='action-btn accept-btn' onClick={handleAccept}>
+              接单
+            </Button>
+          )}
+          {type === 'assigned' && (
+            <Button className='action-btn start-btn' onClick={handleStartDelivery}>
+              开始配送
+            </Button>
+          )}
+          {type === 'delivering' && (
+            <Button className='action-btn detail-btn' onClick={handleViewDetail}>
+              去确认
+            </Button>
+          )}
+        </View>
+      )}
     </View>
   )
 }

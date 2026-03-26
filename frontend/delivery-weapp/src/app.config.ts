@@ -8,7 +8,8 @@ export default defineAppConfig({
     'pages/create-order/index',
     'pages/statistics/index',
     'pages/history-orders/index',
-    'pages/my/index'
+    'pages/my/index',
+    'pages/about/index'
   ],
   window: {
     navigationBarTitleText: '配送管理',

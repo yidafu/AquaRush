@@ -28,6 +28,27 @@
   border-radius: 8px;
 }
 
+.status-tag {
+  font-size: 24px;
+  padding: 4px 12px;
+  border-radius: 4px;
+
+  &.completed {
+    background: #f6ffed;
+    color: #52c41a;
+  }
+
+  &.cancelled {
+    background: #fff1f0;
+    color: #f5222d;
+  }
+
+  &.refunded {
+    background: #fff7e6;
+    color: #fa8c16;
+  }
+}
+
 .order-info {
   margin-bottom: 16px;
 }
@@ -38,6 +59,7 @@
   margin-bottom: 12px;
   font-size: 28px;
   line-height: 1.5;
+  color: #666;
 }
 
 .info-row .label {
@@ -48,6 +70,7 @@
 .info-row .address {
   flex: 1;
   color: #333;
+  word-break: break-all;
 }
 
 .info-row.amount {

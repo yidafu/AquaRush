@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, ScrollView } from '@tarojs/components'
+import { View, Text, ScrollView, Input } from '@tarojs/components'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh, useRouter } from '@tarojs/taro'
 import { AtTabs, AtTabsPane } from 'taro-ui'
 import 'taro-ui/dist/style/components/tabs.scss'
@@ -8,7 +8,7 @@ import { getDeliveryWorkerHistoryOrders } from '../../services/delivery'
 import { useAuth } from '../../hooks/useAuth'
 import { PageContainer } from '../../components/PageContainer'
 import { OrderStatus } from '@aquarush/common'
-import { OrderCard } from './components/OrderCard'
+import OrderCard from '../../components/OrderCard'
 
 // Tab 列表
 const TAB_LIST = [
@@ -53,6 +53,7 @@ const HistoryOrdersPage: React.FC = () => {
   const [hasMore, setHasMore] = useState(true)
   const [totalElements, setTotalElements] = useState(0)
   const [shouldReset, setShouldReset] = useState(false)
+  const [keyword, setKeyword] = useState('')
 
   const pageSize = 20
 
@@ -85,6 +86,7 @@ const HistoryOrdersPage: React.FC = () => {
       setLoading(true)
       const res = await getDeliveryWorkerHistoryOrders(
         status,
+        keyword || undefined,
         currentPage,
         pageSize
       )
@@ -106,7 +108,20 @@ const HistoryOrdersPage: React.FC = () => {
     } finally {
       setLoading(false)
     }
-  }, [getCurrentWorkerId, page, currentTab])
+  }, [getCurrentWorkerId, page, currentTab, keyword])
+
+  // 搜索处理
+  const handleSearch = useCallback(() => {
+    setPage(0)
+    setOrders([])
+    setHasMore(true)
+    setShouldReset(true)
+  }, [])
+
+  // 输入框变化处理
+  const handleKeywordChange = useCallback((e: any) => {
+    setKeyword(e.detail.value)
+  }, [])
 
   // Tab 切换
   const handleTabClick = useCallback((index: number) => {
@@ -148,6 +163,15 @@ const HistoryOrdersPage: React.FC = () => {
   return (
     <PageContainer title='历史订单'>
       <View className='history-orders-page'>
+        <View className='search-bar'>
+          <Input
+            className='search-input'
+            placeholder='搜索地址、姓名、手机号、商品'
+            value={keyword}
+            onInput={handleKeywordChange}
+            onConfirm={handleSearch}
+          />
+        </View>
         <AtTabs
           current={currentTab}
           tabList={TAB_LIST}
@@ -159,7 +183,7 @@ const HistoryOrdersPage: React.FC = () => {
             <AtTabsPane current={currentTab} index={index} key={tab.status}>
               <ScrollView
                 scrollY
-                style={{ height: 'calc(100vh - 180px)' }}
+                style={{ height: '100%' }}
               >
                 {orders.length === 0 && !loading ? (
                   <View className='empty'>

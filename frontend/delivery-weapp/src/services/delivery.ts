@@ -242,12 +242,13 @@ export const getWeekStatistics = () => {
 // 获取配送员历史订单（已完成、已取消、已退款）
 export const getDeliveryWorkerHistoryOrders = (
   status?: OrderStatus,
+  keyword?: string,
   page = 0,
   size = 20
 ) => {
   return networkManager.query<{ deliveryWorkerHistoryOrders: OrderPage }>(`
-    query GetHistoryOrders($status: OrderStatus, $page: Int, $size: Int) {
-      deliveryWorkerHistoryOrders(status: $status, page: $page, size: $size) {
+    query GetHistoryOrders($status: OrderStatus, $keyword: String, $page: Int, $size: Int) {
+      deliveryWorkerHistoryOrders(status: $status, keyword: $keyword, page: $page, size: $size) {
         content {
           id
           orderNo
@@ -276,7 +277,7 @@ export const getDeliveryWorkerHistoryOrders = (
         size
       }
     }
-  `, { status, page, size })
+  `, { status, keyword, page, size })
 }
 
 // ==================== 地址和商品相关 API ====================
