@@ -8,6 +8,7 @@ import {
   TeamOutlined,
   CarOutlined,
   ShoppingOutlined,
+  ShoppingCartOutlined,
   FileTextOutlined,
   BarChartOutlined,
   LogoutOutlined,
@@ -39,7 +40,18 @@ const Layout: React.FC = () => {
     { key: '/addresses', icon: <EnvironmentOutlined />, label: '地址管理' },
     { key: '/orders', icon: <FileTextOutlined />, label: '订单管理' },
     { key: '/bucket-deposits', icon: <InboxOutlined />, label: '押桶管理' },
-    { key: '/statistics', icon: <BarChartOutlined />, label: '营收统计' },
+    {
+      key: 'statistics',
+      icon: <BarChartOutlined />,
+      label: '数据统计',
+      children: [
+        { key: '/statistics', icon: <BarChartOutlined />, label: '营收统计' },
+        { key: '/statistics/users', icon: <UserOutlined />, label: '用户统计' },
+        { key: '/statistics/delivery-workers', icon: <CarOutlined />, label: '送水员统计' },
+        { key: '/statistics/orders', icon: <FileTextOutlined />, label: '订单统计' },
+        { key: '/statistics/products', icon: <ShoppingCartOutlined />, label: '商品统计' },
+      ]
+    },
     {
       key: 'logs',
       icon: <HistoryOutlined />,

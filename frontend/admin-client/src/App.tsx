@@ -9,6 +9,10 @@ import ProductDetailPage from './pages/products/detail';
 import Orders from './pages/orders';
 import OrderDetailPage from './pages/orders/detail';
 import Statistics from './pages/statistics';
+import UserStatistics from './pages/statistics/users';
+import DeliveryWorkerStatistics from './pages/statistics/delivery-workers';
+import OrderStatistics from './pages/statistics/orders';
+import ProductStatistics from './pages/statistics/products';
 import BucketDeposits from './pages/bucket-deposits';
 import UserDetailPage from './pages/users/detail/index';
 import DeliveryWorkerDetailPage from './pages/users/delivery-workers/detail/index';
@@ -45,6 +49,10 @@ const App: React.FC = () => {
         <Route path="orders" element={<Orders />} />
         <Route path="orders/:id" element={<OrderDetailPage />} />
         <Route path="statistics" element={<Statistics />} />
+        <Route path="statistics/users" element={<UserStatistics />} />
+        <Route path="statistics/delivery-workers" element={<DeliveryWorkerStatistics />} />
+        <Route path="statistics/orders" element={<OrderStatistics />} />
+        <Route path="statistics/products" element={<ProductStatistics />} />
         <Route path="bucket-deposits" element={<BucketDeposits />} />
         <Route path="addresses" element={<AddressListPage />} />
         <Route path="logs/api" element={<ApiLogs />} />
