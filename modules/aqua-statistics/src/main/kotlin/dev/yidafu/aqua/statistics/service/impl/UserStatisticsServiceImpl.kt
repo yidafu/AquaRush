@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.statistics.service.impl
 
-import dev.yidafu.aqua.api.service.UserStatisticsService
+import dev.yidafu.aqua.statistics.service.UserStatisticsService
 import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import dev.yidafu.aqua.statistics.model.repository.StatisticsUserRepositoryCustom

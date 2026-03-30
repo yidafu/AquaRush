@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.statistics.model.repository
 
-import dev.yidafu.aqua.api.service.StatisticsService
+import dev.yidafu.aqua.statistics.service.StatisticsService
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import java.time.LocalDate
 import java.time.LocalDateTime

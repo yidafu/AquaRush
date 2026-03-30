@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -14,13 +14,15 @@
  * GNU Affero General Public License for more details.
  *
  * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.api.service
+package dev.yidafu.aqua.statistics.service
 
+import dev.yidafu.aqua.common.utils.MoneyUtils
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 /**
  * 统计服务接口
@@ -66,22 +68,27 @@ interface StatisticsService {
   ) {
     val totalAmount: BigDecimal
       get() =
-        dev.yidafu.aqua.common.utils.MoneyUtils
+        MoneyUtils
           .fromCents(totalAmountCents)
     val completedAmount: BigDecimal
       get() =
-        dev.yidafu.aqua.common.utils.MoneyUtils
+        MoneyUtils
           .fromCents(completedAmountCents)
   }
 
   data class DailyStatistics(
     val date: LocalDate,
     val orderCount: Long,
+    val orderProductCount: Long,
     val totalAmountCents: Long,
   ) {
     val totalAmount: BigDecimal
       get() =
-        dev.yidafu.aqua.common.utils.MoneyUtils
+        MoneyUtils
           .fromCents(totalAmountCents)
+
+    companion object {
+      fun default(date: LocalDate) = DailyStatistics(date, 0L, 0L, 0L)
+    }
   }
 }

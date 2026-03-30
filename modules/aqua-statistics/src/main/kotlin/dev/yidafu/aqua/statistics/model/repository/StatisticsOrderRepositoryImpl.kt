@@ -23,7 +23,7 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.api.service.StatisticsService
+import dev.yidafu.aqua.statistics.service.StatisticsService
 import dev.yidafu.aqua.common.domain.model.QOrderModel.Companion.orderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import jakarta.persistence.EntityManager

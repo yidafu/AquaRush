@@ -1,6 +1,6 @@
 package dev.yidafu.aqua.statistics.mapper
 
-import dev.yidafu.aqua.api.service.StatisticsService
+import dev.yidafu.aqua.statistics.service.StatisticsService
 import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

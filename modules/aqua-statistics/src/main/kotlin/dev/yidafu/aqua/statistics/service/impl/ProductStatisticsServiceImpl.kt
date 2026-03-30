@@ -19,15 +19,18 @@
 
 package dev.yidafu.aqua.statistics.service.impl
 
-import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
+import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
-import dev.yidafu.aqua.common.graphql.generated.ProductFavoriteStat
+import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
 import dev.yidafu.aqua.common.graphql.generated.ProductSalesStat
+import dev.yidafu.aqua.common.graphql.generated.ProductSalesTrend
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
-import dev.yidafu.aqua.product.domain.repository.ProductFavoriteRepository
+import dev.yidafu.aqua.statistics.model.repository.ProductInfo
+import dev.yidafu.aqua.statistics.model.repository.ProductSalesStatisticsRepositoryCustom
 import org.springframework.stereotype.Service
+import java.time.LocalDate
+import java.time.LocalTime
 
 /**
  * 商品统计服务
@@ -35,7 +38,8 @@ import org.springframework.stereotype.Service
 @Service
 class ProductStatisticsServiceImpl(
   private val productRepository: ProductRepository,
-  private val productFavoriteRepository: ProductFavoriteRepository,
+  private val productFavoriteService: ProductFavoriteService,
+  private val productSalesStatisticsRepository: ProductSalesStatisticsRepositoryCustom,
 ) {
   /**
    * 获取商品统计信息
@@ -52,34 +56,23 @@ class ProductStatisticsServiceImpl(
     val totalSales = allProducts.sumOf { it.salesVolume }
 
     // Get product ranking by sales volume
-    val productRanking: List<ProductSalesStat> = allProducts
-      .filter { it.status == ProductModelStatus.ONLINE }
-      .sortedByDescending { it.salesVolume }
-      .take(10)
-      .map { product ->
-        ProductSalesStat(
-          productId = product.id ?: 0L,
-          productName = product.name,
-          salesVolume = product.salesVolume,
-          revenue = product.price * product.salesVolume,
-        )
-      }
+    val productRanking: List<ProductSalesStat> =
+      allProducts
+        .filter { it.status == ProductModelStatus.ONLINE }
+        .sortedByDescending { it.salesVolume }
+        .take(10)
+        .map { product ->
+          ProductSalesStat(
+            productId = product.id ?: 0L,
+            productName = product.name,
+            salesVolume = product.salesVolume,
+            revenue = product.price * product.salesVolume,
+          )
+        }
 
-    // Get favorite statistics
-    val allFavorites = productFavoriteRepository.findAll()
-    val totalFavorites = allFavorites.size
-    val favoriteStats: List<ProductFavoriteStat> = allFavorites
-      .groupBy { it.productId }
-      .map { (productId, favorites) ->
-        val product = allProducts.find { it.id == productId }
-        ProductFavoriteStat(
-          productId = productId,
-          productName = product?.name ?: "未知商品",
-          favoriteCount = favorites.size.toLong(),
-        )
-      }
-      .sortedByDescending { it.favoriteCount }
-      .take(10)
+    // Get favorite statistics using ProductFavoriteService
+    val allFavoriteStats = productFavoriteService.getProductFavoriteStats()
+    val totalFavorites = allFavoriteStats.sumOf { it.favoriteCount }
 
     return ProductStatistics(
       totalProducts = allProducts.size,
@@ -90,8 +83,129 @@ class ProductStatisticsServiceImpl(
       averagePrice = averagePrice,
       totalSales = totalSales,
       productRanking = productRanking,
-      favoriteStatistics = favoriteStats,
-      totalFavorites = totalFavorites,
+      favoriteStatistics = allFavoriteStats,
+      totalFavorites = totalFavorites.toInt(),
     )
   }
+
+  /**
+   * 获取商品每日销量统计
+   * @param startDate 开始日期
+   * @param endDate 结束日期
+   */
+  fun getProductDailySales(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<ProductDailySales> {
+    val startDateTime = startDate.atStartOfDay()
+    val endDateTime = endDate.atTime(LocalTime.MAX)
+
+    val results =
+      productSalesStatisticsRepository.getProductDailySales(
+        startDateTime = startDateTime,
+        endDateTime = endDateTime,
+        productId = null,
+      )
+
+    // Create a map of existing results by date
+    val resultsByDate = results.groupBy { it.date }
+
+    // Generate all dates in the range and fill in zeros for missing dates
+    val allDates = generateSequence(startDate) { it.plusDays(1) }.takeWhile { !it.isAfter(endDate) }.toList()
+
+    return allDates.flatMap { date ->
+      val dateStr = date.toString()
+      val dayResults = resultsByDate[dateStr]
+      if (dayResults.isNullOrEmpty()) {
+        // No sales on this date, return a single entry with zero
+        listOf(
+          ProductDailySales(
+            date = dateStr,
+            productId = 0L,
+            productName = "无销售",
+            salesVolume = 0,
+            revenue = 0L,
+          ),
+        )
+      } else {
+        dayResults.map { result ->
+          ProductDailySales(
+            date = result.date,
+            productId = result.productId,
+            productName = result.productName,
+            salesVolume = result.salesVolume.toInt(),
+            revenue = result.revenue,
+          )
+        }
+      }
+    }
+  }
+
+  /**
+   * 获取商品销量趋势
+   * @param startDate 开始日期
+   * @param endDate 结束日期
+   * @param productId 商品ID（可选，为空则返回所有商品的汇总趋势）
+   */
+  fun getProductSalesTrend(
+    startDate: LocalDate,
+    endDate: LocalDate,
+    productId: Long?,
+  ): ProductSalesTrend {
+    val startDateTime = startDate.atStartOfDay()
+    val endDateTime = endDate.atTime(LocalTime.MAX)
+
+    val results =
+      productSalesStatisticsRepository.getProductDailySales(
+        startDateTime = startDateTime,
+        endDateTime = endDateTime,
+        productId = productId,
+      )
+
+    // Create a map of existing results by date
+    val resultsByDate = results.groupBy { it.date }
+
+    // Generate all dates in the range and fill in zeros for missing dates
+    val allDates = generateSequence(startDate) { it.plusDays(1) }.takeWhile { !it.isAfter(endDate) }.toList()
+
+    val dailySales =
+      allDates.flatMap { date ->
+        val dateStr = date.toString()
+        val dayResults = resultsByDate[dateStr]
+        if (dayResults.isNullOrEmpty()) {
+          listOf(
+            ProductDailySales(
+              date = dateStr,
+              productId = productId ?: 0L,
+              productName = "无销售",
+              salesVolume = 0,
+              revenue = 0L,
+            ),
+          )
+        } else {
+          dayResults.map { result ->
+            ProductDailySales(
+              date = result.date,
+              productId = result.productId,
+              productName = result.productName,
+              salesVolume = result.salesVolume.toInt(),
+              revenue = result.revenue,
+            )
+          }
+        }
+      }
+
+    val firstResult = results.firstOrNull()
+
+    return ProductSalesTrend(
+      productId = productId ?: firstResult?.productId,
+      productName = if (productId != null) firstResult?.productName else null,
+      dailySales = dailySales,
+    )
+  }
+
+  /**
+   * 获取所有商品列表（用于下拉选择）
+   */
+  fun getAllProducts(): List<ProductInfo> = productSalesStatisticsRepository.getAllProductIdsAndNames()
 }

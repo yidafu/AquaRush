@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.statistics.resolver
 
-import dev.yidafu.aqua.api.service.StatisticsService
+import dev.yidafu.aqua.statistics.service.StatisticsService
 import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
 import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
 import dev.yidafu.aqua.common.graphql.generated.MonthlyStatistic

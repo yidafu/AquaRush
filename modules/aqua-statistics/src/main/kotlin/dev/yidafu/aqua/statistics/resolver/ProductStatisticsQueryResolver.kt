@@ -19,8 +19,12 @@
 
 package dev.yidafu.aqua.statistics.resolver
 
+import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
+import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
+import dev.yidafu.aqua.common.graphql.generated.ProductSalesTrend
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
 import dev.yidafu.aqua.statistics.service.impl.ProductStatisticsServiceImpl
+import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
@@ -36,5 +40,25 @@ class ProductStatisticsQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun productStatistics(): ProductStatistics {
     return productStatisticsService.getProductStatistics()
+  }
+
+  @QueryMapping
+  @PreAuthorize("hasRole('ADMIN')")
+  fun productDailySales(
+    @Argument input: DateRangeInput,
+  ): List<ProductDailySales> {
+    val startDate = input.startDate.toLocalDate()
+    val endDate = input.endDate.toLocalDate()
+    return productStatisticsService.getProductDailySales(startDate, endDate)
+  }
+
+  @QueryMapping
+  @PreAuthorize("hasRole('ADMIN')")
+  fun productSalesTrend(
+    @Argument input: dev.yidafu.aqua.common.graphql.generated.ProductSalesTrendInput,
+  ): ProductSalesTrend {
+    val startDate = input.startDate.toLocalDate()
+    val endDate = input.endDate.toLocalDate()
+    return productStatisticsService.getProductSalesTrend(startDate, endDate, input.productId)
   }
 }

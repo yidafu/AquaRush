@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.statistics.service.impl
 
-import dev.yidafu.aqua.api.service.StatisticsService
+import dev.yidafu.aqua.statistics.service.StatisticsService
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.order.domain.repository.OrderRepositoryCustom
 import dev.yidafu.aqua.statistics.model.repository.StatisticsOrderRepositoryCustom

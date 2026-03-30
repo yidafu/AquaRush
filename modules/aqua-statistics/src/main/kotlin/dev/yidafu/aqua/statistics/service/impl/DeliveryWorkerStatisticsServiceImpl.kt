@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.statistics.service.impl
 
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.api.service.DeliveryWorkerStatisticsService
+import dev.yidafu.aqua.statistics.service.DeliveryWorkerStatisticsService
 import dev.yidafu.aqua.common.domain.model.QOrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
