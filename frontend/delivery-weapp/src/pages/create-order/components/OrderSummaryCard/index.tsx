@@ -1,5 +1,5 @@
 import React from 'react'
-import { View, Textarea } from '@tarojs/components'
+import { View, Textarea, CommonEventFunction, CommonEvent } from '@tarojs/components'
 import { AtList, AtListItem, AtInputNumber } from 'taro-ui'
 import 'taro-ui/dist/style/components/list.scss'
 import 'taro-ui/dist/style/components/input-number.scss'
@@ -11,27 +11,40 @@ interface Product {
   price: number
 }
 
+// 订单信息
+export interface OrderInfo {
+  quantity: number
+  isSelfCollect: boolean
+  remark: string
+}
+
 interface OrderSummaryCardProps {
   product: Product | null
-  quantity: number
-  onQuantityChange: (quantity: number) => void
-  isSelfCollect: boolean
-  onSelfCollectChange: (value: boolean) => void
-  remark: string
-  onRemarkChange: (value: string) => void
+  orderInfo: OrderInfo
+  onOrderInfoChange: (orderInfo: OrderInfo) => void
 }
 
 const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
   product,
-  quantity,
-  onQuantityChange,
-  isSelfCollect,
-  onSelfCollectChange,
-  remark,
-  onRemarkChange,
+  orderInfo,
+  onOrderInfoChange,
 }) => {
+  const { quantity, isSelfCollect, remark } = orderInfo
+
   // 计算总价
   const totalAmount = product ? product.price * quantity : 0
+
+  const handleQuantityChange = (value: number) => {
+    onOrderInfoChange({ ...orderInfo, quantity: value })
+  }
+
+  const handleSelfCollectChange = (evt: CommonEvent<{value: boolean}>) => {
+    onOrderInfoChange({ ...orderInfo, isSelfCollect: evt.detail.value })
+  }
+
+  const handleRemarkChange = (value: string) => {
+    onOrderInfoChange({ ...orderInfo, remark: value })
+  }
 
   return (
     <View className='order-summary-card'>
@@ -47,7 +60,7 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
                 step={1}
                 value={quantity}
                 type='digit'
-                onChange={(value: number) => onQuantityChange(value)}
+                onChange={handleQuantityChange}
               />
             </View>
           }
@@ -57,12 +70,12 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
           title='是否已收款'
           isSwitch
           switchIsCheck={isSelfCollect}
-          onSwitchChange={(e: any) => onSelfCollectChange(e.value)}
+          onSwitchChange={handleSelfCollectChange}
         />
         <Textarea
           className='remark-input'
           value={remark}
-          onInput={(e) => onRemarkChange(e.detail.value)}
+          onInput={(e) => handleRemarkChange(e.detail.value)}
           placeholder='请输入订单备注（可选）'
           maxlength={500}
           autoHeight

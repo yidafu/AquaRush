@@ -1,48 +1,48 @@
-import { formatCurrency, formatDateTime, Order } from "@aquarush/common"
-import { View, Text } from "@tarojs/components"
-
-
+import { formatCurrency, formatDateTime, Order, OrderStatus } from "@aquarush/common"
+import { AtList, AtListItem } from "taro-ui"
+import { View } from "@tarojs/components"
 
 interface OrderInfoCardProps {
   order: Order
 }
 
+const getPaymentTypeLabel = (paymentType: string) => {
+  switch (paymentType) {
+    case 'CASH':
+      return '现金'
+    case 'QR_CODE':
+      return '二维码'
+    case 'WATER_TICKET':
+      return '水票'
+    default:
+      return paymentType
+  }
+}
+
+function formatPayment(isSelfCollect: boolean,paymentType?: string) {
+  if (isSelfCollect) {
+    return '已收款'
+  }
+
+  return paymentType ? getPaymentTypeLabel(
+    paymentType) : '未付款'
+}
+
 export const OrderInfoCard: React.FC<OrderInfoCardProps> = ({ order }) => {
   return (
     <View className='card order-info-card'>
-      <View className='card-header'>
-        <Text className='card-title'>订单信息</Text>
-      </View>
-      <View className='card-content'>
-        <View className='info-row'>
-          <Text className='info-label'>订单号</Text>
-          <Text className='info-value'>{order.orderNo}</Text>
-        </View>
-        <View className='info-row'>
-          <Text className='info-label'>下单时间</Text>
-          <Text className='info-value'>{formatDateTime(order.createdAt)}</Text>
-        </View>
-        <View className='info-row'>
-          <Text className='info-label'>订单金额</Text>
-          <Text className='info-value amount'>{formatCurrency(order.amount)}</Text>
-        </View>
-        {order.paymentType && (
-          <View className='info-row'>
-            <Text className='info-label'>支付方式</Text>
-            <Text className='info-value'>
-              {order.paymentType === 'CASH' ? '现金' :
-                order.paymentType === 'QR_CODE' ? '二维码' :
-                  order.paymentType === 'WATER_TICKET' ? '水票' : order.paymentType}
-            </Text>
-          </View>
+      <AtList>
+        <AtListItem title='订单号' extraText={order.orderNo} />
+        <AtListItem title='下单时间' extraText={formatDateTime(order.createdAt)} />
+        <AtListItem title='订单金额' extraText={formatCurrency(order.amount)} />
+        <AtListItem title='是否自收' extraText={order.isSelfCollect ? '是' : '否'} />
+        {(order.status === OrderStatus.COMPLETED || order.status === OrderStatus.DELIVERING) && (
+          <AtListItem
+            title='收款状态'
+            extraText={formatPayment(order.isSelfCollect, order.paymentType)}
+          />
         )}
-        {order.isSelfCollect && (
-          <View className='info-row'>
-            <Text className='info-label'>取货方式</Text>
-            <Text className='info-value'>自提</Text>
-          </View>
-        )}
-      </View>
+      </AtList>
     </View>
   )
 }

@@ -6,19 +6,19 @@ import 'taro-ui/dist/style/components/button.scss'
 import 'taro-ui/dist/style/components/icon.scss'
 import './index.scss'
 import { createOrder } from '../../services/delivery'
-import { useAuth } from '../../hooks/useAuth'
 import { PageContainer } from '../../components/PageContainer'
 import AddressDisplay from '../../components/AddressDisplay'
 import ProductSelector, { Product } from '../../components/ProductSelector'
-import OrderSummaryCard from './components/OrderSummaryCard'
+import OrderSummaryCard, { OrderInfo } from './components/OrderSummaryCard'
 
 const CreateTaskPage: React.FC = () => {
-  const { workerInfo } = useAuth()
   const [selectedAddressId, setSelectedAddressId] = useState<string>('')
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [quantity, setQuantity] = useState<number>(1)
-  const [isSelfCollect, setIsSelfCollect] = useState<boolean>(false)
-  const [remark, setRemark] = useState<string>('')
+  const [orderInfo, setOrderInfo] = useState<OrderInfo>({
+    quantity: 1,
+    isSelfCollect: false,
+    remark: '',
+  })
   const [submitting, setSubmitting] = useState(false)
 
   // 提交创建订单
@@ -33,7 +33,7 @@ const CreateTaskPage: React.FC = () => {
       return
     }
 
-    if (quantity < 1) {
+    if (orderInfo.quantity < 1) {
       Taro.showToast({ title: '数量不能少于1', icon: 'none' })
       return
     }
@@ -45,9 +45,9 @@ const CreateTaskPage: React.FC = () => {
       await createOrder(
         selectedProduct.id,
         selectedAddressId,
-        quantity,
-        isSelfCollect,
-        remark || undefined
+        orderInfo.quantity,
+        orderInfo.isSelfCollect,
+        orderInfo.remark || undefined
       )
 
       Taro.hideLoading()
@@ -90,12 +90,8 @@ const CreateTaskPage: React.FC = () => {
           <Text className='section-title'>订单详情</Text>
           <OrderSummaryCard
             product={selectedProduct}
-            quantity={quantity}
-            onQuantityChange={setQuantity}
-            isSelfCollect={isSelfCollect}
-            onSelfCollectChange={setIsSelfCollect}
-            remark={remark}
-            onRemarkChange={setRemark}
+            orderInfo={orderInfo}
+            onOrderInfoChange={setOrderInfo}
           />
         </View>
 
@@ -104,7 +100,7 @@ const CreateTaskPage: React.FC = () => {
           <AtButton
             type='primary'
             loading={submitting}
-            disabled={submitting || !selectedAddressId || !selectedProduct || quantity < 1}
+            disabled={submitting || !selectedAddressId || !selectedProduct || orderInfo.quantity < 1}
             onClick={handleSubmit}
             className='submit-button'
           >

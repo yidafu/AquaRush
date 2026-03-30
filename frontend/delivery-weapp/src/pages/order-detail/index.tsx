@@ -112,7 +112,9 @@ interface BottomButtonsProps {
   onAccept: () => void
   onStartDelivery: () => void
   onOpenPaymentSheet: () => void
+  onConfirmSelfCollect: () => void
   hasDeliveryInfo?: boolean
+  isSelfCollect?: boolean
 }
 
 const BottomButtons: React.FC<BottomButtonsProps> = ({
@@ -121,7 +123,9 @@ const BottomButtons: React.FC<BottomButtonsProps> = ({
   onAccept,
   onStartDelivery,
   onOpenPaymentSheet,
+  onConfirmSelfCollect,
   hasDeliveryInfo = false,
+  isSelfCollect = false,
 }) => {
   return (
     <View className='bottom-buttons'>
@@ -152,7 +156,7 @@ const BottomButtons: React.FC<BottomButtonsProps> = ({
           <AtButton
             type={hasDeliveryInfo ? 'primary' : 'secondary'}
             loading={loading}
-            onClick={onOpenPaymentSheet}
+            onClick={isSelfCollect ? onConfirmSelfCollect : onOpenPaymentSheet}
             className='action-button'
             disabled={!hasDeliveryInfo}
           >
@@ -433,7 +437,9 @@ const OrderDetailPage: React.FC = () => {
         onAccept={handleAcceptOrder}
         onStartDelivery={handleStartDelivery}
         onOpenPaymentSheet={() => setPaymentSheetVisible(true)}
+        onConfirmSelfCollect={() => handlePaymentCollection(null)}
         hasDeliveryInfo={deliveryPhotos.length > 0}
+        isSelfCollect={order.isSelfCollect}
       />
 
       {/* Payment Action Sheet */}

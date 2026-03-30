@@ -4,6 +4,32 @@ import Taro from '@tarojs/taro'
 import { OrderStatus, formatCurrency } from '@aquarush/common'
 import './index.scss'
 
+// 通用的信息行组件
+interface InfoRowProps {
+  label: string
+  value?: string | number | React.ReactNode
+  className?: string
+  valueClassName?: string
+}
+
+const InfoRow: React.FC<InfoRowProps> = ({
+  label,
+  value,
+  className = '',
+  valueClassName = '',
+}) => {
+  return (
+    <View className={`info-row ${className}`}>
+      <Text className='label'>{label}</Text>
+      {typeof value === 'string' || typeof value === 'number' ? (
+        <Text className={valueClassName}>{value}</Text>
+      ) : (
+        value
+      )}
+    </View>
+  )
+}
+
 // 订单状态映射
 const STATUS_MAP: Record<string, string> = {
   [OrderStatus.COMPLETED]: '已完成',
@@ -76,9 +102,6 @@ const OrderCard: React.FC<OrderCardProps> = ({
   onStartDelivery,
   onViewDetail,
 }) => {
-  const address = order.address || {}
-  const user = order.user || {}
-
   const handleClick = useCallback(() => {
     if (onViewDetail) {
       onViewDetail(order.id)
@@ -106,55 +129,30 @@ const OrderCard: React.FC<OrderCardProps> = ({
     <View className='order-card' onClick={handleClick}>
       <View className='order-header'>
         <Text className='order-number'>{order.orderNo}</Text>
-        {type === 'history' && order.status && (
-          <Text className={`status-tag ${getStatusClassName(order.status)}`}>
-            {STATUS_MAP[order.status] || order.status}
-          </Text>
-        )}
-        {type !== 'history' && order.isSelfCollect && (
-          <Text className='self-collect-tag'>自收</Text>
-        )}
+        <View>
+          {type === 'history' && order.status && (
+            <Text className={`status-tag ${getStatusClassName(order.status)} `}>
+              {STATUS_MAP[order.status] || order.status}
+            </Text>
+          )}
+          {order.isSelfCollect && (
+            <Text className='self-collect-tag'>自收</Text>
+          )}
+        </View>
+
       </View>
 
       <View className='order-info'>
-        <View className='info-row'>
-          <Text className='label'>客户：</Text>
-          <Text>{address.receiverName || user.nickname || '未知'}</Text>
-        </View>
-        <View className='info-row'>
-          <Text className='label'>电话：</Text>
-          <Text>{address.phone || user.phone || '未知'}</Text>
-        </View>
-        <View className='info-row'>
-          <Text className='label'>地址：</Text>
-          <Text className='address'>{address.detailAddress || '未知'}</Text>
-        </View>
-        <View className='info-row'>
-          <Text className='label'>商品：</Text>
-          <Text>{order.product?.name || '未知'} x {order.quantity}</Text>
-        </View>
-        <View className='info-row amount'>
-          <Text className='label'>金额：</Text>
-          <Text className='amount-text'>{formatCurrency(order.amount)}</Text>
-        </View>
-        {type === 'history' && order.createdAt && (
-          <View className='info-row'>
-            <Text className='label'>下单时间：</Text>
-            <Text>{formatDateTime(order.createdAt)}</Text>
-          </View>
-        )}
+        <InfoRow label='客户：' value={order.address?.receiverName || order.user?.nickname || '未知'} />
+        <InfoRow label='电话：' value={order.address?.phone || order.user?.phone || '未知'} />
+        <InfoRow label='地址：' value={order.address?.detailAddress || '未知'} valueClassName='address' />
+        <InfoRow label='商品：' value={`${order.product?.name || '未知'} x ${order.quantity}`} />
+        <InfoRow label='下单时间：' value={formatDateTime(order.createdAt)} />
         {type === 'history' && order.deliveryConfirmedAt && (
-          <View className='info-row'>
-            <Text className='label'>完成时间：</Text>
-            <Text>{formatDateTime(order.deliveryConfirmedAt)}</Text>
-          </View>
+          <InfoRow label='完成时间：' value={formatDateTime(order.deliveryConfirmedAt)} />
         )}
-        {type === 'history' && order.isSelfCollect && (
-          <View className='info-row'>
-            <Text className='label'>配送方式：</Text>
-            <Text>自提</Text>
-          </View>
-        )}
+
+        <InfoRow label='金额：' value={formatCurrency(order.amount)} valueClassName='amount-text' className='amount' />
       </View>
 
       {type !== 'history' && (
