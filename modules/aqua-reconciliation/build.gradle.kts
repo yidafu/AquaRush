@@ -15,6 +15,8 @@ dependencies {
   // AquaRush modules
   implementation(project(":modules:aqua-common"))
   implementation(project(":modules:aqua-api"))
+  implementation(project(":modules:aqua-delivery"))
+  implementation(project(":modules:aqua-order"))
 
   // Spring Boot
   implementation(libs.bundles.spring.boot.web)
@@ -44,6 +46,9 @@ dependencies {
   // Retry and resilience
   implementation(libs.spring.retry)
   implementation(libs.resilience4j.spring.boot3)
+
+  // Mappie for object mapping
+  implementation(libs.mappie.api)
 
   // Testing
   testImplementation(libs.spring.boot.starter.test)
