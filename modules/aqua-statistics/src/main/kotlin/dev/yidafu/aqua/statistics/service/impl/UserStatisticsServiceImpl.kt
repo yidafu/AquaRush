@@ -19,6 +19,9 @@
 
 package dev.yidafu.aqua.statistics.service.impl
 
+import dev.yidafu.aqua.statistics.dto.DailyLoginStatisticDTO
+import dev.yidafu.aqua.statistics.dto.LoginStatisticsDTO
+import dev.yidafu.aqua.statistics.dto.UserStatisticsDTO
 import dev.yidafu.aqua.statistics.service.UserStatisticsService
 import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
@@ -33,7 +36,7 @@ class UserStatisticsServiceImpl(
   private val statisticsUserRepository: StatisticsUserRepositoryCustom,
   private val userActionLogRepository: UserActionLogRepository,
 ) : UserStatisticsService {
-  override fun getUserStatistics(): UserStatisticsService.UserStatisticsResult {
+  override fun getUserStatistics(): UserStatisticsDTO {
     // 总用户数
     val totalUsers = userRepository.count()
 
@@ -50,7 +53,7 @@ class UserStatisticsServiceImpl(
     val thirtyDaysAgo = today.minusDays(30).atStartOfDay()
     val activeUsers = statisticsUserRepository.countActiveUsersSince(thirtyDaysAgo)
 
-    return UserStatisticsService.UserStatisticsResult(
+    return UserStatisticsDTO(
       totalUsers = totalUsers,
       todayNewUsers = todayNewUsers,
       monthNewUsers = monthNewUsers,
@@ -89,7 +92,7 @@ class UserStatisticsServiceImpl(
   override fun getLoginStatistics(
     startDate: LocalDate,
     endDate: LocalDate,
-  ): UserStatisticsService.LoginStatisticsResult {
+  ): LoginStatisticsDTO {
     val startDateTime = startDate.atStartOfDay()
     val endDateTime = endDate.atTime(java.time.LocalTime.MAX)
 
@@ -115,12 +118,12 @@ class UserStatisticsServiceImpl(
     // 每日登录趋势
     val dailyLoginsMap = userActionLogRepository.countDailyLoginsByDateRange(startDateTime, endDateTime)
 
-    val filledResults = mutableListOf<UserStatisticsService.DailyLoginStatistic>()
+    val filledResults = mutableListOf<DailyLoginStatisticDTO>()
     var currentDate = startDate
     while (!currentDate.isAfter(endDate)) {
       val count = dailyLoginsMap[currentDate] ?: 0
       filledResults.add(
-        UserStatisticsService.DailyLoginStatistic(
+        DailyLoginStatisticDTO(
           date = currentDate.toString(),
           loginCount = count.toInt(),
         ),
@@ -128,7 +131,7 @@ class UserStatisticsServiceImpl(
       currentDate = currentDate.plusDays(1)
     }
 
-    return UserStatisticsService.LoginStatisticsResult(
+    return LoginStatisticsDTO(
       todayLogins = todayLogins,
       totalLogins = totalLogins,
       dailyLogins = filledResults,

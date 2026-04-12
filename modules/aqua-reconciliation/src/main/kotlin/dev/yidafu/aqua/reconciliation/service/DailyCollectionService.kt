@@ -27,6 +27,8 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.delivery.domain.repository.DailyCollectionRecordRepository
 import dev.yidafu.aqua.delivery.domain.repository.DailyReconciliationRepository
+import dev.yidafu.aqua.reconciliation.dto.OrderStatsDTO
+import dev.yidafu.aqua.reconciliation.dto.PaymentStatsDTO
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -52,30 +54,13 @@ class DailyCollectionService(
   }
 
   /**
-   * 订单统计结果
-   */
-  data class OrderStatsVO(
-    val orderCount: Int,
-    val orderAmountCents: Long,
-  )
-
-  /**
-   * 支付类型统计结果
-   */
-  data class PaymentStatsVO(
-    val cashAmountCents: Long,
-    val waterTicketCount: Int,
-    val qrCodeAmountCents: Long,
-  )
-
-  /**
    * 获取配送员今日按支付类型的收款统计
    * 从已完成的订单中按支付类型统计
    */
   fun getTodayPaymentStats(
     deliveryWorkerId: Long,
     date: LocalDate = LocalDate.now(),
-  ): PaymentStatsVO {
+  ): PaymentStatsDTO {
     val startOfDay = date.atStartOfDay()
     val endOfDay = date.atTime(LocalTime.MAX)
     val completedStatus = OrderModelStatus.COMPLETED
@@ -111,7 +96,7 @@ class DailyCollectionService(
     )
     val qrCodeAmountCents = if (qrCodeResult[0] != null && qrCodeResult[0] > 0) qrCodeResult[1] ?: 0L else 0L
 
-    return PaymentStatsVO(
+    return PaymentStatsDTO(
       cashAmountCents = cashAmountCents,
       waterTicketCount = waterTicketCount,
       qrCodeAmountCents = qrCodeAmountCents,
@@ -124,7 +109,7 @@ class DailyCollectionService(
   fun getTodayOrderStats(
     deliveryWorkerId: Long,
     date: LocalDate = LocalDate.now(),
-  ): OrderStatsVO {
+  ): OrderStatsDTO {
     val startOfDay = date.atStartOfDay()
     val endOfDay = date.atTime(LocalTime.MAX)
     val completedStatuses = listOf(OrderModelStatus.COMPLETED)
@@ -146,7 +131,7 @@ class DailyCollectionService(
         deliveryWorkerId,
       )
 
-    return OrderStatsVO(orderCount, orderAmountCents)
+    return OrderStatsDTO(orderCount, orderAmountCents)
   }
 
   /**
@@ -302,6 +287,11 @@ class DailyCollectionService(
   ): List<DailyCollectionRecordModel> = collectionRecordRepository.findByCollectionDate(collectionDate).ifEmpty { emptyList() }
 
   /**
+   * 获取所有收款记录（管理员用）
+   */
+  fun getAllCollections(): List<DailyCollectionRecordModel> = collectionRecordRepository.findAll().ifEmpty { emptyList() }
+
+  /**
    * 获取指定日期范围的所有收款记录
    */
   fun getCollectionsByDateRange(
@@ -322,17 +312,12 @@ class DailyCollectionService(
 
   /**
    * 定时任务：执行每日对账
-   * 对账昨日的收款和订单数据
+   * 对账指定日期的收款和订单数据
+   * 如果记录已存在，则更新（而不是删除后重建，避免唯一约束冲突）
    */
   @Transactional
   fun executeDailyReconciliation(reconciliationDate: LocalDate = LocalDate.now().minusDays(1)) {
     logger.info("开始执行每日对账: {}", reconciliationDate)
-
-    // 如果已经存在对账记录，跳过
-    if (reconciliationRepository.existsByReconciliationDate(reconciliationDate)) {
-      logger.info("对账记录已存在，跳过: {}", reconciliationDate)
-      return
-    }
 
     // 获取当日所有收款记录
     val collections = collectionRecordRepository.findByCollectionDate(reconciliationDate)
@@ -384,24 +369,41 @@ class DailyCollectionService(
         }
       }
 
-    // 创建对账记录
+    // 检查是否已存在对账记录，存在则更新，不存在则创建
+    val existingReconciliation = reconciliationRepository.findByReconciliationDate(reconciliationDate)
     val reconciliation =
-      DailyReconciliationModel(
-        reconciliationDate = reconciliationDate,
-        totalCashAmountCents = totalCashAmountCents,
-        totalWaterTicketCount = totalWaterTicketCount,
-        totalQrCodeAmountCents = totalQrCodeAmountCents,
-        totalOrderCount = totalOrderCount,
-        totalOrderAmountCents = totalOrderAmountCents,
-        totalCollectionAmountCents = totalCollectionAmountCents,
-        discrepancyAmountCents = discrepancyAmountCents,
-        status = status,
-        reportData =
+      existingReconciliation?.apply {
+        this.totalCashAmountCents = totalCashAmountCents
+        this.totalWaterTicketCount = totalWaterTicketCount
+        this.totalQrCodeAmountCents = totalQrCodeAmountCents
+        this.totalOrderCount = totalOrderCount
+        this.totalOrderAmountCents = totalOrderAmountCents
+        this.totalCollectionAmountCents = totalCollectionAmountCents
+        this.discrepancyAmountCents = discrepancyAmountCents
+        this.status = status
+        this.reportData =
           mapOf(
             "workerReports" to workerReports,
             "totalWorkers" to collections.size,
-          ),
-      )
+          )
+        this.updatedAt = LocalDateTime.now()
+      }
+        ?: DailyReconciliationModel(
+          reconciliationDate = reconciliationDate,
+          totalCashAmountCents = totalCashAmountCents,
+          totalWaterTicketCount = totalWaterTicketCount,
+          totalQrCodeAmountCents = totalQrCodeAmountCents,
+          totalOrderCount = totalOrderCount,
+          totalOrderAmountCents = totalOrderAmountCents,
+          totalCollectionAmountCents = totalCollectionAmountCents,
+          discrepancyAmountCents = discrepancyAmountCents,
+          status = status,
+          reportData =
+            mapOf(
+              "workerReports" to workerReports,
+              "totalWorkers" to collections.size,
+            ),
+        )
 
     reconciliationRepository.save(reconciliation)
 

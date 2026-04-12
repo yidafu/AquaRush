@@ -19,24 +19,40 @@
 
 package dev.yidafu.aqua.api.dto
 
-import com.fasterxml.jackson.annotation.JsonProperty
-import jakarta.validation.constraints.Email
-import jakarta.validation.constraints.Pattern
-import jakarta.validation.constraints.Size
+/**
+ * 配送统计数据DTO
+ */
+data class DeliveryStatisticsDTO(
+  val totalWorkers: Int,
+  val onlineWorkers: Int,
+  val pendingOrders: Int,
+  val deliveringOrders: Int,
+)
 
 /**
- * 更新用户请求DTO
+ * 配送员当日统计数据DTO
  */
-data class UpdateUserRequest(
-  @field:JsonProperty("nickname")
-  @field:Size(max = 50, message = "昵称长度不能超过50个字符")
-  val nickname: String?,
-  @field:JsonProperty("phone")
-  @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-  val phone: String?,
-  @field:JsonProperty("email")
-  @field:Email(message = "邮箱格式不正确")
-  val email: String?,
-  @field:JsonProperty("avatar")
-  val avatar: String?,
+data class TodayStatisticsDTO(
+  val totalOrders: Int,
+  val completedOrders: Int,
+  val unfinishedOrders: Int,
+  val earningCents: Long,
+)
+
+/**
+ * 每日统计DTO
+ */
+data class DailyStatDTO(
+  val date: String,
+  val orderCount: Int,
+  val earningCents: Long,
+)
+
+/**
+ * 周统计数据DTO
+ */
+data class WeekStatisticsDTO(
+  val dailyStats: List<DailyStatDTO>,
+  val totalOrders: Int,
+  val totalEarningCents: Long,
 )

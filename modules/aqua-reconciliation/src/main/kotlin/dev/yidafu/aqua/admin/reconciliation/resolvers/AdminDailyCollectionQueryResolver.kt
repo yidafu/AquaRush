@@ -27,13 +27,15 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
+import dev.yidafu.aqua.common.graphql.generated.DailyReconciliation
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo
+import dev.yidafu.aqua.common.graphql.generated.OrderPage
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import dev.yidafu.aqua.reconciliation.mapper.MyTodayCollectionResultMapper
+import dev.yidafu.aqua.reconciliation.dto.OrderStatsDTO
+import dev.yidafu.aqua.reconciliation.dto.PaymentStatsDTO
 import dev.yidafu.aqua.reconciliation.service.DailyCollectionService
-import dev.yidafu.aqua.reconciliation.service.DailyCollectionService.OrderStatsVO
-import dev.yidafu.aqua.reconciliation.service.DailyCollectionService.PaymentStatsVO
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.graphql.data.method.annotation.Argument
@@ -56,6 +58,7 @@ class AdminDailyCollectionQueryResolver(
 
   /**
    * 获取指定日期的收款记录列表
+   * 如果不传日期，则返回所有记录
    */
   @QueryMapping
   fun dailyCollections(
@@ -67,9 +70,12 @@ class AdminDailyCollectionQueryResolver(
     }
     logger.info("管理员查询收款记录, date={}", collectionDate)
 
-    val date = collectionDate?.let {
-      LocalDate.parse(it, DateTimeFormatter.ISO_LOCAL_DATE)
-    } ?: LocalDate.now()
+    // 如果不传日期，返回所有记录
+    if (collectionDate == null) {
+      return dailyCollectionService.getAllCollections().ifEmpty { emptyList() }
+    }
+
+    val date = LocalDate.parse(collectionDate, DateTimeFormatter.ISO_LOCAL_DATE)
 
     // 获取当前管理员
     val admin = adminService.findByUsername(userDetails.username)
@@ -82,17 +88,25 @@ class AdminDailyCollectionQueryResolver(
 
   /**
    * 获取对账记录列表
+   * 注意: 当前返回全部数据，前端分页处理
+   * TODO: 后续可添加后端分页支持
    */
   @QueryMapping
   fun dailyReconciliations(
+    @Argument page: Int = 0,
+    @Argument size: Int = 20,
     @AuthenticationPrincipal userDetails: UserDetails?,
   ): List<DailyReconciliationModel> {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
-    logger.info("管理员查询对账记录列表")
+    logger.info("管理员查询对账记录列表, page={}, size={}", page, size)
 
-    return dailyCollectionService.getAllReconciliations().ifEmpty { emptyList() }
+    val allReconciliations = dailyCollectionService.getAllReconciliations()
+      .sortedByDescending { it.reconciliationDate }
+
+    // TODO: 实现后端分页
+    return allReconciliations
   }
 
   /**
@@ -119,13 +133,13 @@ class AdminDailyCollectionQueryResolver(
     val today = LocalDate.now()
 
     // 2. 查询今日订单统计（系统自动计算）
-    val orderStats: OrderStatsVO = dailyCollectionService.getTodayOrderStats(workerId, today)
+    val orderStats: OrderStatsDTO = dailyCollectionService.getTodayOrderStats(workerId, today)
 
     // 3. 查询已存在的记录（如果有）
     val existingRecord = dailyCollectionService.getCollectionByWorkerAndDate(workerId, today)
 
     // 4. 查询今日支付统计（从订单计算）
-    val paymentStats: PaymentStatsVO = dailyCollectionService.getTodayPaymentStats(workerId, today)
+    val paymentStats: PaymentStatsDTO = dailyCollectionService.getTodayPaymentStats(workerId, today)
 
     val result =
       if (existingRecord != null) {

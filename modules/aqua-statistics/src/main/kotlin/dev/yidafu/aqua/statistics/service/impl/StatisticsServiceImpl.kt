@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.statistics.service.impl
 
+import dev.yidafu.aqua.statistics.dto.DailyStatisticsDTO
+import dev.yidafu.aqua.statistics.dto.OrderStatisticsDTO
 import dev.yidafu.aqua.statistics.service.StatisticsService
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.order.domain.repository.OrderRepositoryCustom
@@ -40,7 +42,7 @@ class StatisticsServiceImpl(
   override fun getOrderStatistics(
     startDate: LocalDate,
     endDate: LocalDate,
-  ): StatisticsService.OrderStatistics {
+  ): OrderStatisticsDTO {
     val startDateTime = startDate.atStartOfDay()
     val endDateTime = endDate.atTime(LocalTime.MAX)
 
@@ -79,7 +81,7 @@ class StatisticsServiceImpl(
         deliveryWorkerId = null,
       )
 
-    return StatisticsService.OrderStatistics(
+    return OrderStatisticsDTO(
       totalOrders = totalOrders,
       totalAmountCents = totalAmountCents,
       completedOrders = completedOrders,
@@ -93,7 +95,7 @@ class StatisticsServiceImpl(
   override fun getDailyStatistics(
     startDate: LocalDate,
     endDate: LocalDate,
-  ): List<StatisticsService.DailyStatistics> {
+  ): List<DailyStatisticsDTO> {
     val startDateTime = startDate.atStartOfDay()
     val endDateTime = endDate.atTime(LocalTime.MAX)
 
@@ -109,12 +111,12 @@ class StatisticsServiceImpl(
     val statsMap = dailyStats.associateBy { it.date }
 
     // 遍历日期范围，填充缺失日期（无订单的日期）
-    val result = mutableListOf<StatisticsService.DailyStatistics>()
+    val result = mutableListOf<DailyStatisticsDTO>()
     var currentDate = startDate
     while (!currentDate.isAfter(endDate)) {
       val stat = statsMap[currentDate]
       result.add(
-        stat ?: StatisticsService.DailyStatistics.default(currentDate),
+        stat ?: DailyStatisticsDTO.default(currentDate),
       )
       currentDate = currentDate.plusDays(1)
     }
@@ -128,7 +130,7 @@ class StatisticsServiceImpl(
   override fun getWeeklyStatistics(
     startDate: LocalDate,
     endDate: LocalDate,
-  ): List<StatisticsService.DailyStatistics> {
+  ): List<DailyStatisticsDTO> {
     val startDateTime = startDate.atStartOfDay()
     val endDateTime = endDate.atTime(LocalTime.MAX)
 
@@ -145,13 +147,13 @@ class StatisticsServiceImpl(
 
     // 遍历周范围，填充缺失周（无订单的周）
     val weekFields = WeekFields.of(DayOfWeek.MONDAY, 4)
-    val result = mutableListOf<StatisticsService.DailyStatistics>()
+    val result = mutableListOf<DailyStatisticsDTO>()
     var currentWeekStart = startDate.with(weekFields.dayOfWeek(), 1)
 
     while (!currentWeekStart.isAfter(endDate)) {
       val stat = statsMap[currentWeekStart]
       result.add(
-        stat ?: StatisticsService.DailyStatistics.default(currentWeekStart),
+        stat ?: DailyStatisticsDTO.default(currentWeekStart),
       )
       currentWeekStart = currentWeekStart.plusWeeks(1)
     }
@@ -165,7 +167,7 @@ class StatisticsServiceImpl(
   override fun getMonthlyStatistics(
     startDate: LocalDate,
     endDate: LocalDate,
-  ): List<StatisticsService.DailyStatistics> {
+  ): List<DailyStatisticsDTO> {
     val startDateTime = startDate.atStartOfDay()
     val endDateTime = endDate.atTime(LocalTime.MAX)
 
@@ -181,13 +183,13 @@ class StatisticsServiceImpl(
     val statsMap = monthlyStats.associateBy { it.date }
 
     // 遍历月份范围，填充缺失月份（无订单的月份）
-    val result = mutableListOf<StatisticsService.DailyStatistics>()
+    val result = mutableListOf<DailyStatisticsDTO>()
     var currentMonth = startDate.withDayOfMonth(1)
 
     while (!currentMonth.isAfter(endDate)) {
       val stat = statsMap[currentMonth]
       result.add(
-        stat ?: StatisticsService.DailyStatistics.default(currentMonth),
+        stat ?: DailyStatisticsDTO.default(currentMonth),
       )
       currentMonth = currentMonth.plusMonths(1)
     }

@@ -20,6 +20,9 @@
 package dev.yidafu.aqua.statistics.service
 
 import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
+import dev.yidafu.aqua.statistics.dto.DailyLoginStatisticDTO
+import dev.yidafu.aqua.statistics.dto.LoginStatisticsDTO
+import dev.yidafu.aqua.statistics.dto.UserStatisticsDTO
 import java.time.LocalDate
 
 /**
@@ -29,7 +32,7 @@ interface UserStatisticsService {
   /**
    * 获取用户统计数据
    */
-  fun getUserStatistics(): UserStatisticsResult
+  fun getUserStatistics(): UserStatisticsDTO
 
   /**
    * 获取每日新增用户趋势
@@ -45,23 +48,5 @@ interface UserStatisticsService {
   fun getLoginStatistics(
     startDate: LocalDate,
     endDate: LocalDate,
-  ): LoginStatisticsResult
-
-  data class UserStatisticsResult(
-    val totalUsers: Long,
-    val todayNewUsers: Long,
-    val monthNewUsers: Long,
-    val activeUsers: Long,
-  )
-
-  data class LoginStatisticsResult(
-    val todayLogins: Long,
-    val totalLogins: Long,
-    val dailyLogins: List<DailyLoginStatistic>,
-  )
-
-  data class DailyLoginStatistic(
-    val date: String,
-    val loginCount: Int,
-  )
+  ): LoginStatisticsDTO
 }

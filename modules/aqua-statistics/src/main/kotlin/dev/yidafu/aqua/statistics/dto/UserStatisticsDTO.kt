@@ -17,26 +17,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.api.dto
-
-import com.fasterxml.jackson.annotation.JsonProperty
-import jakarta.validation.constraints.Email
-import jakarta.validation.constraints.Pattern
-import jakarta.validation.constraints.Size
+package dev.yidafu.aqua.statistics.dto
 
 /**
- * 更新用户请求DTO
+ * 用户统计结果DTO
  */
-data class UpdateUserRequest(
-  @field:JsonProperty("nickname")
-  @field:Size(max = 50, message = "昵称长度不能超过50个字符")
-  val nickname: String?,
-  @field:JsonProperty("phone")
-  @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
-  val phone: String?,
-  @field:JsonProperty("email")
-  @field:Email(message = "邮箱格式不正确")
-  val email: String?,
-  @field:JsonProperty("avatar")
-  val avatar: String?,
+data class UserStatisticsDTO(
+  val totalUsers: Long,
+  val todayNewUsers: Long,
+  val monthNewUsers: Long,
+  val activeUsers: Long,
+)
+
+/**
+ * 登录统计结果DTO
+ */
+data class LoginStatisticsDTO(
+  val todayLogins: Long,
+  val totalLogins: Long,
+  val dailyLogins: List<DailyLoginStatisticDTO>,
+)
+
+/**
+ * 每日登录统计DTO
+ */
+data class DailyLoginStatisticDTO(
+  val date: String,
+  val loginCount: Int,
 )

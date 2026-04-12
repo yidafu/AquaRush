@@ -1,5 +1,7 @@
 package dev.yidafu.aqua.statistics.mapper
 
+import dev.yidafu.aqua.statistics.dto.DailyStatisticsDTO
+import dev.yidafu.aqua.statistics.dto.OrderStatisticsDTO
 import dev.yidafu.aqua.statistics.service.StatisticsService
 import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
@@ -11,8 +13,8 @@ import dev.yidafu.aqua.common.graphql.generated.WeeklyStatistic as WeeklyStatist
 
 private val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
-object DailyStatisticMapper : ObjectMappie<StatisticsService.DailyStatistics, DailyStatisticG>() {
-  override fun map(from: StatisticsService.DailyStatistics): DailyStatisticG =
+object DailyStatisticMapper : ObjectMappie<DailyStatisticsDTO, DailyStatisticG>() {
+  override fun map(from: DailyStatisticsDTO): DailyStatisticG =
     mapping {
       to::revenue fromValue (from.totalAmountCents.toDouble() / 100.0).toFloat()
       to::date fromValue formatter.format(from.date)
@@ -21,8 +23,8 @@ object DailyStatisticMapper : ObjectMappie<StatisticsService.DailyStatistics, Da
     }
 }
 
-object OrderStatisticsMapper : ObjectMappie<StatisticsService.OrderStatistics, OrderStatisticsG>() {
-  override fun map(from: StatisticsService.OrderStatistics): OrderStatisticsG =
+object OrderStatisticsMapper : ObjectMappie<OrderStatisticsDTO, OrderStatisticsG>() {
+  override fun map(from: OrderStatisticsDTO): OrderStatisticsG =
     mapping {
       to::totalOrders fromValue from.totalOrders.toInt()
       to::totalRevenue fromValue from.totalAmountCents
@@ -35,8 +37,8 @@ object OrderStatisticsMapper : ObjectMappie<StatisticsService.OrderStatistics, O
     }
 }
 
-object WeeklyStatisticMapper : ObjectMappie<StatisticsService.DailyStatistics, WeeklyStatisticG>() {
-  override fun map(from: StatisticsService.DailyStatistics): WeeklyStatisticG =
+object WeeklyStatisticMapper : ObjectMappie<DailyStatisticsDTO, WeeklyStatisticG>() {
+  override fun map(from: DailyStatisticsDTO): WeeklyStatisticG =
     mapping {
       to::weekNumber fromValue from.date.dayOfWeek.value
       to::year fromValue from.date.year
@@ -48,8 +50,8 @@ object WeeklyStatisticMapper : ObjectMappie<StatisticsService.DailyStatistics, W
     }
 }
 
-object MonthlyStatisticMapper : ObjectMappie<StatisticsService.DailyStatistics, MonthlyStatisticG>() {
-  override fun map(from: StatisticsService.DailyStatistics): MonthlyStatisticG =
+object MonthlyStatisticMapper : ObjectMappie<DailyStatisticsDTO, MonthlyStatisticG>() {
+  override fun map(from: DailyStatisticsDTO): MonthlyStatisticG =
     mapping {
       to::month fromValue from.date.monthValue
       to::year fromValue from.date.year

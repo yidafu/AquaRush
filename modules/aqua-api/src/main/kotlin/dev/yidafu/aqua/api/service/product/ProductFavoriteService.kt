@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -87,6 +87,12 @@ interface ProductFavoriteService {
    * Get all products favorite statistics
    */
   fun getAllProductsFavoriteStats(): AllProductsFavoriteStats
+
+  /**
+   * Get product favorite statistics by product
+   * @return list of product favorite stats
+   */
+  fun getProductFavoriteStats(): List<ProductFavoriteStat>
 
   /**
    * Get products sorted by favorite count with pagination

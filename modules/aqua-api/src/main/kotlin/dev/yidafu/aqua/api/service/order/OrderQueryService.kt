@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -22,6 +22,7 @@ package dev.yidafu.aqua.api.service.order
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import org.springframework.data.domain.Page
+import java.time.LocalDateTime
 
 /**
  * 订单查询服务接口
@@ -117,7 +118,28 @@ interface OrderQueryService {
   fun getDeliveryWorkerHistoryOrders(
     workerId: Long?,
     status: OrderModelStatus? = null,
+    keyword: String? = null,
     page: Int = 0,
     size: Int = 20,
   ): Page<OrderModel>
+
+  /**
+   * 统计指定日期范围内的订单数量（可按配送员筛选，可按状态筛选）
+   */
+  fun countOrdersByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>? = null,
+  ): Long
+
+  /**
+   * 统计指定日期范围内指定状态订单的金额总和（可按配送员筛选）
+   */
+  fun sumAmountCentsByStatusAndDateRange(
+    statuses: List<OrderModelStatus>,
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long
 }

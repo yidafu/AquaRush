@@ -19,6 +19,9 @@
 
 package dev.yidafu.aqua.statistics.service
 
+import dev.yidafu.aqua.statistics.dto.DeliveryWorkerRankingItemDTO
+import dev.yidafu.aqua.statistics.dto.DeliveryWorkerStatisticsDTO
+
 /**
  * 送水员统计服务接口
  */
@@ -26,25 +29,10 @@ interface DeliveryWorkerStatisticsService {
   /**
    * 获取送水员统计数据
    */
-  fun getDeliveryWorkerStatistics(): DeliveryWorkerStatisticsResult
+  fun getDeliveryWorkerStatistics(): DeliveryWorkerStatisticsDTO
 
   /**
    * 获取送水员排行榜
    */
-  fun getDeliveryWorkerRanking(limit: Int): List<DeliveryWorkerRankingItem>
-
-  data class DeliveryWorkerStatisticsResult(
-    val totalWorkers: Long,
-    val todayActiveWorkers: Long,
-    val deliveringOrders: Long,
-    val todayCompletedOrders: Long,
-  )
-
-  data class DeliveryWorkerRankingItem(
-    val workerId: Long,
-    val name: String,
-    val todayCompletedOrders: Int,
-    val rating: Float,
-    val totalEarnings: Long,
-  )
+  fun getDeliveryWorkerRanking(limit: Int): List<DeliveryWorkerRankingItemDTO>
 }

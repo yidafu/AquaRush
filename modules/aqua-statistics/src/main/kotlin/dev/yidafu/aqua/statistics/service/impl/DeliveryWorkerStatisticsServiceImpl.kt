@@ -20,6 +20,8 @@
 package dev.yidafu.aqua.statistics.service.impl
 
 import com.querydsl.jpa.impl.JPAQueryFactory
+import dev.yidafu.aqua.statistics.dto.DeliveryWorkerRankingItemDTO
+import dev.yidafu.aqua.statistics.dto.DeliveryWorkerStatisticsDTO
 import dev.yidafu.aqua.statistics.service.DeliveryWorkerStatisticsService
 import dev.yidafu.aqua.common.domain.model.QOrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
@@ -44,7 +46,7 @@ class DeliveryWorkerStatisticsServiceImpl(
     JPAQueryFactory(entityManager)
   }
 
-  override fun getDeliveryWorkerStatistics(): DeliveryWorkerStatisticsService.DeliveryWorkerStatisticsResult {
+  override fun getDeliveryWorkerStatistics(): DeliveryWorkerStatisticsDTO {
     // 送水员总数
     val totalWorkers = deliveryWorkerRepository.count()
 
@@ -59,7 +61,7 @@ class DeliveryWorkerStatisticsServiceImpl(
     // 今日已完成订单数
     val todayCompletedOrders = statisticsDeliveryWorkerRepository.countCompletedOrdersSince(todayStart)
 
-    return DeliveryWorkerStatisticsService.DeliveryWorkerStatisticsResult(
+    return DeliveryWorkerStatisticsDTO(
       totalWorkers = totalWorkers,
       todayActiveWorkers = todayActiveWorkers,
       deliveringOrders = deliveringOrders,
@@ -67,7 +69,7 @@ class DeliveryWorkerStatisticsServiceImpl(
     )
   }
 
-  override fun getDeliveryWorkerRanking(limit: Int): List<DeliveryWorkerStatisticsService.DeliveryWorkerRankingItem> {
+  override fun getDeliveryWorkerRanking(limit: Int): List<DeliveryWorkerRankingItemDTO> {
     val orderModel = QOrderModel.orderModel
 
     val today = LocalDate.now()
@@ -92,7 +94,7 @@ class DeliveryWorkerStatisticsServiceImpl(
     return workers
       .map { worker ->
         val stats = deliveryWorkerStatisticsRepository.findByDeliveryWorkerId(worker.id!!)
-        DeliveryWorkerStatisticsService.DeliveryWorkerRankingItem(
+        DeliveryWorkerRankingItemDTO(
           workerId = worker.id!!,
           name = worker.name,
           todayCompletedOrders = todayOrderCounts[worker.id] ?: 0,

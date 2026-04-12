@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.statistics.model.repository
 
-import dev.yidafu.aqua.statistics.service.StatisticsService
+import dev.yidafu.aqua.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -37,7 +37,7 @@ interface StatisticsOrderRepositoryCustom {
     endDateTime: LocalDateTime,
     deliveryWorkerId: Long? = null,
     statuses: List<OrderModelStatus>? = null,
-  ): List<StatisticsService.DailyStatistics>
+  ): List<DailyStatisticsDTO>
 
   /**
    * 按周分组统计订单数量和金额（周一作为周开始）
@@ -47,7 +47,7 @@ interface StatisticsOrderRepositoryCustom {
     endDateTime: LocalDateTime,
     deliveryWorkerId: Long? = null,
     statuses: List<OrderModelStatus>? = null,
-  ): List<StatisticsService.DailyStatistics>
+  ): List<DailyStatisticsDTO>
 
   /**
    * 按月分组统计订单数量和金额
@@ -57,5 +57,5 @@ interface StatisticsOrderRepositoryCustom {
     endDateTime: LocalDateTime,
     deliveryWorkerId: Long? = null,
     statuses: List<OrderModelStatus>? = null,
-  ): List<StatisticsService.DailyStatistics>
+  ): List<DailyStatisticsDTO>
 }

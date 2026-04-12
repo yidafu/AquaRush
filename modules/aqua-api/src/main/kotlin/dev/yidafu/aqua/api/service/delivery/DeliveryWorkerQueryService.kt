@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -30,6 +30,11 @@ interface DeliveryWorkerQueryService {
    * 根据ID获取配送员
    */
   fun getWorkerById(workerId: Long): DeliveryWorkerModel
+
+  /**
+   * 根据ID获取配送员
+   */
+  fun getWorkerByAdminId(adminId: Long): DeliveryWorkerModel
 
   /**
    * 获取所有配送员

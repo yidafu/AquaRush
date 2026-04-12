@@ -23,7 +23,7 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.statistics.service.StatisticsService
+import dev.yidafu.aqua.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.common.domain.model.QOrderModel.Companion.orderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import jakarta.persistence.EntityManager
@@ -46,7 +46,7 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
     endDateTime: LocalDateTime,
     deliveryWorkerId: Long?,
     statuses: List<OrderModelStatus>?,
-  ): List<StatisticsService.DailyStatistics> {
+  ): List<DailyStatisticsDTO> {
     val whereClause = buildWhereClause(startDateTime, endDateTime, deliveryWorkerId, statuses)
 
     // 使用 DATE(created_at) 按日期分组
@@ -65,7 +65,7 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
         .fetch()
 
     return results.map { row ->
-      StatisticsService.DailyStatistics(
+      DailyStatisticsDTO(
         date = row.get(dateExpr)!!,
         orderCount = row.get(orderModel.count())!!,
         orderProductCount = row.get(orderModel.quantity.sumLong()) ?: 0L,
@@ -79,7 +79,7 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
     endDateTime: LocalDateTime,
     deliveryWorkerId: Long?,
     statuses: List<OrderModelStatus>?,
-  ): List<StatisticsService.DailyStatistics> {
+  ): List<DailyStatisticsDTO> {
     val whereClause = buildWhereClause(startDateTime, endDateTime, deliveryWorkerId, statuses)
 
     // 使用 DATE_TRUNC('week', created_at) 按周分组（周一作为周开始）
@@ -99,7 +99,7 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
         .fetch()
 
     return results.map { row ->
-      StatisticsService.DailyStatistics(
+      DailyStatisticsDTO(
         date = row.get(weekExpr)!!.toLocalDate(),
         orderCount = row.get(orderModel.count())!!,
         orderProductCount = row.get(orderModel.quantity.sumLong()) ?: 0L,
@@ -113,7 +113,7 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
     endDateTime: LocalDateTime,
     deliveryWorkerId: Long?,
     statuses: List<OrderModelStatus>?,
-  ): List<StatisticsService.DailyStatistics> {
+  ): List<DailyStatisticsDTO> {
     val whereClause = buildWhereClause(startDateTime, endDateTime, deliveryWorkerId, statuses)
 
     // 使用 DATE_TRUNC('month', created_at) 按月分组，返回 LocalDateTime 需要转换为 LocalDate
@@ -132,7 +132,7 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
         .fetch()
 
     return results.map { row ->
-      StatisticsService.DailyStatistics(
+      DailyStatisticsDTO(
         date = row.get(monthExpr)!!.toLocalDate(),
         orderCount = row.get(orderModel.count())!!,
         orderProductCount = row.get(orderModel.quantity.sumLong()) ?: 0L,

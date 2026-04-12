@@ -24,10 +24,13 @@ import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.common.exception.BadRequestException
+import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
+import dev.yidafu.aqua.common.graphql.generated.ConfirmDailyCollectionInput
+import dev.yidafu.aqua.common.graphql.generated.ReviewReconciliationInput
 import dev.yidafu.aqua.common.graphql.generated.SubmitDailyCollectionInput
-import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.reconciliation.service.DailyCollectionService
+import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -45,6 +48,8 @@ class AdminDailyCollectionMutationResolver(
   private val deliveryWorkerQueryResolver: DeliveryWorkerQueryService,
   private val adminService: AdminService,
 ) : BaseGraphQLResolver() {
+  private val logger = LoggerFactory.getLogger(AdminDailyCollectionMutationResolver::class.java)
+
   /**
    * 配送员或管理员提交每日收款
    * 配送员录入时会自动从当前用户关联的配送员获取ID
@@ -77,15 +82,24 @@ class AdminDailyCollectionMutationResolver(
   @PreAuthorize("hasRole('ADMIN')")
   @MutationMapping
   fun confirmDailyCollection(
-    @Argument recordId: Long,
-    @Argument notes: String?,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): DailyCollectionRecordModel =
-    dailyCollectionService.confirmCollection(
-      recordId = recordId,
-      confirmedBy = userPrincipal.id,
-      notes = notes,
+    @Argument input: ConfirmDailyCollectionInput?,
+    @AuthenticationPrincipal userDetails: UserDetails?,
+  ): DailyCollectionRecordModel {
+    if (userDetails == null) {
+      throw UnauthorizedException("请先登录")
+    }
+    if (input == null || input.recordId == null) {
+      throw BadRequestException("收款记录ID不能为空")
+    }
+    val admin = adminService.findByUsername(userDetails.username)
+      ?: throw BadRequestException("管理员不存在")
+    val adminId = admin.id ?: throw BadRequestException("管理员ID无效")
+    return dailyCollectionService.confirmCollection(
+      recordId = input.recordId,
+      confirmedBy = adminId,
+      notes = input.notes,
     )
+  }
 
   /**
    * 管理员复核对账记录
@@ -93,13 +107,50 @@ class AdminDailyCollectionMutationResolver(
   @PreAuthorize("hasRole('ADMIN')")
   @MutationMapping
   fun reviewReconciliation(
-    @Argument reconciliationId: Long,
-    @Argument reviewNotes: String,
-    @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): DailyReconciliationModel =
-    dailyCollectionService.reviewReconciliation(
-      reconciliationId = reconciliationId,
-      reviewedBy = userPrincipal.id,
-      reviewNotes = reviewNotes,
+    @Argument input: ReviewReconciliationInput?,
+    @AuthenticationPrincipal userDetails: UserDetails?,
+  ): DailyReconciliationModel {
+    if (userDetails == null) {
+      throw UnauthorizedException("请先登录")
+    }
+    if (input == null || input.reconciliationId == null) {
+      throw BadRequestException("对账记录ID不能为空")
+    }
+    if (input.reviewNotes.isNullOrBlank()) {
+      throw BadRequestException("复核备注不能为空")
+    }
+    val admin = adminService.findByUsername(userDetails.username)
+      ?: throw BadRequestException("管理员不存在")
+    val adminId = admin.id ?: throw BadRequestException("管理员ID无效")
+    return dailyCollectionService.reviewReconciliation(
+      reconciliationId = input.reconciliationId,
+      reviewedBy = adminId,
+      reviewNotes = input.reviewNotes,
     )
+  }
+
+  /**
+   * 手动执行每日对账
+   * 管理员可以手动触发对账任务
+   * 如果记录已存在会更新（删除后重新创建）
+   */
+  @PreAuthorize("hasRole('ADMIN')")
+  @MutationMapping
+  fun executeDailyReconciliation(
+    @Argument reconciliationDate: String?,
+    @AuthenticationPrincipal userDetails: UserDetails?,
+  ): DailyReconciliationModel {
+    if (userDetails == null) {
+      throw UnauthorizedException("请先登录")
+    }
+    val date = reconciliationDate?.let {
+      LocalDate.parse(it)
+    } ?: LocalDate.now().minusDays(1)
+
+    logger.info("管理员 {} 手动触发对账: {}", userDetails.username, date)
+    dailyCollectionService.executeDailyReconciliation(date)
+    // 返回更新后的对账记录
+    return dailyCollectionService.getReconciliationByDate(date)
+      ?: throw BadRequestException("对账执行失败")
+  }
 }
