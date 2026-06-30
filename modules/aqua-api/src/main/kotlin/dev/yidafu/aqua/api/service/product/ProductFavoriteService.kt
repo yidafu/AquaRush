@@ -101,7 +101,7 @@ interface ProductFavoriteService {
     page: Int,
     size: Int,
     minFavorites: Int?,
-  ): ProductFavoritePage
+  ): ProductFavoriteVoPage
 
   /**
    * Perform batch operations on user favorites

@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -21,7 +21,6 @@ package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
@@ -88,6 +87,8 @@ data class OrderModel(
   var remark: String? = null,
   @Column(name = "delivery_remark", length = 500)
   var deliveryRemark: String? = null,
+  @Column(name = "search_content", columnDefinition = "text")
+  var searchContent: String? = null,
   // ========================================================================
   // Hibernate Associations
   // ========================================================================
@@ -109,10 +110,6 @@ data class OrderModel(
     updatedAt = LocalDateTime.now()
   }
 
-  @PrePersist
-  fun onPrePersist() {
-    id = DefaultIdGenerator().generate()
-  }
 
   // Compatibility property for existing code - returns amount in yuan as BigDecimal
   val amount: BigDecimal

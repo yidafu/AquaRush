@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -22,6 +22,7 @@ package dev.yidafu.aqua.logging.repository
 import dev.yidafu.aqua.common.domain.model.UserActionLogModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -39,4 +40,21 @@ interface UserActionLogRepositoryCustom {
     endTime: LocalDateTime?,
     pageable: Pageable,
   ): Page<UserActionLogModel>
+
+  /**
+   * 统计指定时间范围内指定操作类型的唯一用户数
+   */
+  fun countDistinctUsersByActionTypeAndDateRange(
+    actionType: String,
+    startTime: LocalDateTime,
+    endTime: LocalDateTime,
+  ): Long
+
+  /**
+   * 统计每日登录用户数（按日期分组）
+   */
+  fun countDailyLoginsByDateRange(
+    startTime: LocalDateTime,
+    endTime: LocalDateTime,
+  ): Map<LocalDate, Long>
 }

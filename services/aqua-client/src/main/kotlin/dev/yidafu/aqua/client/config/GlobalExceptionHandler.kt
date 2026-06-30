@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.client.config
 
+import dev.yidafu.aqua.common.exception.BadRequestException
+import dev.yidafu.aqua.common.exception.BusinessException
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
 import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
@@ -34,6 +36,35 @@ class GlobalExceptionHandler {
   private val logger = LoggerFactory.getLogger("dev.yidafu.aqua.exception")
   private val errorLogger = LoggerFactory.getLogger("dev.yidafu.aqua.error")
   private val auditLogger = LoggerFactory.getLogger("dev.yidafu.aqua.audit")
+
+  @ExceptionHandler(BusinessException::class)
+  fun handleBusinessException(
+    ex: BusinessException,
+    request: HttpServletRequest,
+  ): ResponseEntity<ErrorResponse> {
+    val correlationId = CorrelationIdHolder.getCorrelationId() ?: generateCorrelationId()
+
+    logger.warn(
+      "BUSINESS_EXCEPTION - CorrelationId: {}, Code: {}, Method: {}, URI: {}, Message: {}",
+      correlationId,
+      ex.code,
+      request.method,
+      request.requestURI,
+      ex.message,
+    )
+
+    val error =
+      ErrorResponse(
+        code = when (ex) {
+          is BadRequestException -> 400
+          else -> 400
+        },
+        message = ex.message,
+        timestamp = LocalDateTime.now(),
+        correlationId = correlationId,
+      )
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
+  }
 
   @ExceptionHandler(IllegalArgumentException::class)
   fun handleIllegalArgument(

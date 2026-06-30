@@ -8,12 +8,6 @@ dependencies {
   implementation(project(":modules:aqua-logging"))
   implementation(project(":modules:aqua-common"))
   implementation(project(":modules:aqua-api"))
-  implementation(project(":modules:aqua-order"))
-  implementation(project(":modules:aqua-delivery"))
-  implementation(project(":modules:aqua-payment"))
-  implementation(project(":modules:aqua-review"))
-  implementation(project(":modules:aqua-user"))
-  implementation(project(":modules:aqua-product"))
 
   implementation(libs.bundles.graphql)
 

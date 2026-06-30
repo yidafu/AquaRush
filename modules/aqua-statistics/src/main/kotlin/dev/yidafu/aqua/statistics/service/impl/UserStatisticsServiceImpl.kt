@@ -19,26 +19,26 @@
 
 package dev.yidafu.aqua.statistics.service.impl
 
+import dev.yidafu.aqua.api.service.UserQueryApiService
+import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
+import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import dev.yidafu.aqua.statistics.dto.DailyLoginStatisticDTO
 import dev.yidafu.aqua.statistics.dto.LoginStatisticsDTO
 import dev.yidafu.aqua.statistics.dto.UserStatisticsDTO
-import dev.yidafu.aqua.statistics.service.UserStatisticsService
-import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
-import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import dev.yidafu.aqua.statistics.model.repository.StatisticsUserRepositoryCustom
-import dev.yidafu.aqua.user.domain.repository.UserRepository
+import dev.yidafu.aqua.statistics.service.UserStatisticsService
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 @Service
 class UserStatisticsServiceImpl(
-  private val userRepository: UserRepository,
+  private val userQueryApiService: UserQueryApiService,
   private val statisticsUserRepository: StatisticsUserRepositoryCustom,
   private val userActionLogRepository: UserActionLogRepository,
 ) : UserStatisticsService {
   override fun getUserStatistics(): UserStatisticsDTO {
     // 总用户数
-    val totalUsers = userRepository.count()
+    val totalUsers = userQueryApiService.findAll().size.toLong()
 
     // 今日新增用户数
     val today = LocalDate.now()

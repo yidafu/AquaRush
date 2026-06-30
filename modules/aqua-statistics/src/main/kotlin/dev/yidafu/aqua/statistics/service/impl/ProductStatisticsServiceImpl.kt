@@ -20,12 +20,12 @@
 package dev.yidafu.aqua.statistics.service.impl
 
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
+import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
 import dev.yidafu.aqua.common.graphql.generated.ProductSalesStat
 import dev.yidafu.aqua.common.graphql.generated.ProductSalesTrend
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
-import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import dev.yidafu.aqua.statistics.model.repository.ProductInfo
 import dev.yidafu.aqua.statistics.model.repository.ProductSalesStatisticsRepositoryCustom
 import org.springframework.stereotype.Service
@@ -37,7 +37,7 @@ import java.time.LocalTime
  */
 @Service
 class ProductStatisticsServiceImpl(
-  private val productRepository: ProductRepository,
+  private val productQueryApiService: ProductQueryApiService,
   private val productFavoriteService: ProductFavoriteService,
   private val productSalesStatisticsRepository: ProductSalesStatisticsRepositoryCustom,
 ) {
@@ -45,11 +45,11 @@ class ProductStatisticsServiceImpl(
    * 获取商品统计信息
    */
   fun getProductStatistics(): ProductStatistics {
-    val allProducts = productRepository.findAll()
+    val allProducts = productQueryApiService.findByStatus(ProductModelStatus.ONLINE)
     val onlineProducts = allProducts.filter { it.status == ProductModelStatus.ONLINE }
     val offlineProducts = allProducts.filter { it.status == ProductModelStatus.OFFLINE }
     val lowStockThreshold = 10 // Default threshold
-    val lowStockProducts = allProducts.filter { it.stock <= lowStockThreshold }
+    val lowStockProducts = allProducts.filter { (it.stock ?: 0) <= lowStockThreshold }
 
     val totalValue = allProducts.sumOf { it.price }
     val averagePrice = if (allProducts.isNotEmpty()) totalValue / allProducts.size else 0L

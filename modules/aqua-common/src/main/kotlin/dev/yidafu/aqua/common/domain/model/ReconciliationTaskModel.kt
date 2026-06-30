@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -24,7 +24,6 @@ package dev.yidafu.aqua.common.domain.model
  */
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
@@ -88,10 +87,6 @@ class ReconciliationTaskModel : SoftDeletable {
     updatedAt = LocalDateTime.now()
   }
 
-  @PrePersist
-  fun onPrePersist() {
-    id = DefaultIdGenerator().generate()
-  }
 
   companion object {
     fun createPaymentTask(date: LocalDateTime): ReconciliationTaskModel =

@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -20,7 +20,6 @@
 package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
@@ -64,8 +63,4 @@ data class AdminModel(
     updatedAt = LocalDateTime.now()
   }
 
-  @PrePersist
-  fun onPrePersist() {
-    id = DefaultIdGenerator().generate()
-  }
 }

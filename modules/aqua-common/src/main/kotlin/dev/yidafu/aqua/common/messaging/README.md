@@ -55,7 +55,6 @@ interface EventPublisher {
 aqua:
   messaging:
     enabled: true
-    strategy: artemis # artemis, hybrid, outbox-only, memory-only
     artemis:
       retry:
         max-attempts: 3
@@ -83,12 +82,9 @@ spring:
         - broadcast-events
 ```
 
-### 策略选择
+### 消息队列模式
 
-- **artemis**: 推荐模式，基于ActiveMQ Artemis提供高性能和持久化保障
-- **hybrid**: 混合模式，优先使用ActiveMQ Artemis，失败时回退到数据库Outbox
-- **outbox-only**: 仅使用数据库模式，适用于可靠性优先的场景
-- **memory-only**: 仅使用内存队列，适用于高性能场景
+AquaRush 使用 ActiveMQ Artemis 作为消息队列，提供高性能和持久化保障。
 
 ## 使用示例
 

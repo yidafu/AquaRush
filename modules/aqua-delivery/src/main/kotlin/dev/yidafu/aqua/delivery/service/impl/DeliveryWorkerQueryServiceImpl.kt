@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.delivery.service.impl
 
+import dev.yidafu.aqua.api.service.DeliveryOrderQueryService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
-import dev.yidafu.aqua.api.service.order.DeliveryOrderQueryService
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
@@ -39,6 +39,9 @@ class DeliveryWorkerQueryServiceImpl(
     workerRepository.findById(workerId).orElseThrow {
       NotFoundException("配送员不存在: $workerId")
     }
+
+  override fun getWorkerByAdminId(adminId: Long): DeliveryWorkerModel =
+    workerRepository.findByAdminId(adminId) ?: throw NotFoundException("配送员不存在: $adminId")
 
   override fun getAllWorkers(): List<DeliveryWorkerModel> = workerRepository.findAll()
 

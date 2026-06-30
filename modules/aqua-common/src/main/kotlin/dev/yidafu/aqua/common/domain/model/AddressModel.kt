@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,7 +19,6 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
@@ -67,10 +66,6 @@ open class AddressModel(
   @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
 ) : SoftDeletable {
-  @PrePersist
-  fun onPrePersist() {
-    id = DefaultIdGenerator().generate()
-  }
 
   @PreUpdate
   fun preUpdate() {

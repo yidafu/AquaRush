@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -26,6 +26,7 @@ import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import org.springframework.data.domain.Page
 import org.springframework.stereotype.Service
+import java.time.LocalDateTime
 
 /**
  * 订单查询服务实现
@@ -156,6 +157,7 @@ class OrderQueryServiceImpl(
   override fun getDeliveryWorkerHistoryOrders(
     workerId: Long?,
     status: OrderModelStatus?,
+    keyword: String?,
     page: Int,
     size: Int,
   ): Page<OrderModel> {
@@ -170,8 +172,37 @@ class OrderQueryServiceImpl(
     return orderRepository.findByDeliveryWorkerIdAndStatusIn(
       deliveryWorkerId = workerId,
       statuses = historyStatuses,
+      keyword = keyword,
       page = page,
       size = size,
+    )
+  }
+
+  override fun countOrdersByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Long {
+    return orderRepository.countOrdersByDateRange(
+      startOfDay = startOfDay,
+      endOfDay = endOfDay,
+      deliveryWorkerId = deliveryWorkerId,
+      statuses = statuses,
+    )
+  }
+
+  override fun sumAmountCentsByStatusAndDateRange(
+    statuses: List<OrderModelStatus>,
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long {
+    return orderRepository.sumAmountCentsByStatusAndDateRange(
+      statuses = statuses,
+      startOfDay = startOfDay,
+      endOfDay = endOfDay,
+      deliveryWorkerId = deliveryWorkerId,
     )
   }
 }

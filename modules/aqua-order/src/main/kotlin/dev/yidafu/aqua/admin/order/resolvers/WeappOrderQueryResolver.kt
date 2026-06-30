@@ -1,14 +1,14 @@
 package dev.yidafu.aqua.admin.order.resolvers
 
 import dev.yidafu.aqua.api.service.AdminService
+import dev.yidafu.aqua.api.service.DeliveryOrderQueryService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
-import dev.yidafu.aqua.api.service.order.DeliveryOrderQueryService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.Order
-import dev.yidafu.aqua.common.graphql.generated.OrderPage
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
+import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
 import dev.yidafu.aqua.common.graphql.generated.TodayStatistics
 import dev.yidafu.aqua.common.graphql.generated.WeekStatistics
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
@@ -84,10 +84,11 @@ class WeappOrderQueryResolver(
   @QueryMapping
   fun deliveryWorkerHistoryOrders(
     @Argument status: OrderStatus?,
+    @Argument keyword: String?,
     @Argument page: Int = 0,
     @Argument size: Int = 20,
     @AuthenticationPrincipal userDetail: UserDetails,
-  ): OrderPage {
+  ): OrderVoPage {
     val admin = adminService.findByUsername(userDetail.username)
     var workerId: Long? = null
     if (admin?.role === AdminRoleModel.DELIVERY_WORKER) {
@@ -97,12 +98,13 @@ class WeappOrderQueryResolver(
       orderQueryService.getDeliveryWorkerHistoryOrders(
         workerId = workerId,
         status = status?.let { OrderStatusMapper.map(it) },
+        keyword = keyword,
         page = page,
         size = size,
       )
 
     val (orderList, pageInfo) = ordersPage.toPageInfo { OrderMapper.map(it) }
-    return OrderPage(
+    return OrderVoPage(
       content = orderList,
       totalElements = pageInfo.total,
       totalPages = pageInfo.totalPages,

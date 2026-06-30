@@ -103,9 +103,6 @@ management:
 
 logging:
   level:
-    liquibase: DEBUG
-    org.springframework.boot.autoconfigure.liquibase: DEBUG
-    root: INFO
     dev.yidafu.aqua: DEBUG
     # Enhanced logging for request troubleshooting
     dev.yidafu.aqua.security: DEBUG
@@ -115,13 +112,7 @@ logging:
     dev.yidafu.aqua.security.request: DEBUG
     dev.yidafu.aqua.security.jwt: DEBUG
     dev.yidafu.aqua.interceptor.test: DEBUG
-    # Spring Security logging
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    # Database access logging
-    org.springframework.jdbc: DEBUG
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

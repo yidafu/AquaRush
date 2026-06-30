@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -37,4 +37,6 @@ interface DeliveryWorkerRepository : JpaRepository<DeliveryWorkerModel, Long> {
   fun findByPhone(phone: String): DeliveryWorkerModel?
 
   fun findByAdminId(adminId: Long): DeliveryWorkerModel?
+
+  fun findByUserId(userId: Long): DeliveryWorkerModel?
 }

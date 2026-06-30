@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -22,7 +22,7 @@ package dev.yidafu.aqua.client.product.resolvers
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.Product
-import dev.yidafu.aqua.common.graphql.generated.ProductPage
+import dev.yidafu.aqua.common.graphql.generated.ProductVoPage
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.product.mapper.ProductMapper

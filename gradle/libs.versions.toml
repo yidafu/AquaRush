@@ -50,6 +50,7 @@ spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-depe
 spring-boot-starter-liquibase = { module = "org.springframework.boot:spring-boot-starter-liquibase", version.ref = "spring-boot" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
+h2 = { module = "com.h2database:h2", version = "2.2.224" }
 
 # Jackson (Updated for Jackson 3.x)
 #implementation("tools.jackson.core:jackson-annotations:3.0.0")

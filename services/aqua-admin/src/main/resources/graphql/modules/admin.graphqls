@@ -1,0 +1,14 @@
+# Admin User Management - Admin only
+
+extend type Query {
+  # Admin queries
+  admins: [Admin!]!
+  admin(id: PrimaryId!): Admin
+}
+
+extend type Mutation {
+  # Admin mutations
+  createAdmin(input: CreateAdminInput!): Admin!
+  updateAdmin(id: PrimaryId!, input: UpdateAdminInput!): Admin!
+  deleteAdmin(id: PrimaryId!): Boolean!
+}

@@ -1,0 +1,14 @@
+# Delivery Worker management
+
+extend type Query {
+  # Delivery Worker queries
+  deliveryWorkers: [DeliveryWorker!]!
+  onlineDeliveryWorkers: [DeliveryWorker!]!
+  deliveryWorker(id: PrimaryId!): DeliveryWorker
+}
+
+extend type Mutation {
+  # Delivery Worker mutations
+  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorker!
+  updateDeliveryWorker(workerId: PrimaryId!, input: UpdateDeliveryWorkerInput!): DeliveryWorker!
+}

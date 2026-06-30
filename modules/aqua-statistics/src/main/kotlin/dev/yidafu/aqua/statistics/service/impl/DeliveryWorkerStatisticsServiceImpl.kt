@@ -20,14 +20,14 @@
 package dev.yidafu.aqua.statistics.service.impl
 
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.statistics.dto.DeliveryWorkerRankingItemDTO
-import dev.yidafu.aqua.statistics.dto.DeliveryWorkerStatisticsDTO
-import dev.yidafu.aqua.statistics.service.DeliveryWorkerStatisticsService
+import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryApiService
+import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerStatisticsQueryApiService
 import dev.yidafu.aqua.common.domain.model.QOrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
-import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
-import dev.yidafu.aqua.review.domain.repository.DeliveryWorkerStatisticsRepository
+import dev.yidafu.aqua.statistics.dto.DeliveryWorkerRankingItemDTO
+import dev.yidafu.aqua.statistics.dto.DeliveryWorkerStatisticsDTO
 import dev.yidafu.aqua.statistics.model.repository.StatisticsDeliveryWorkerRepositoryCustom
+import dev.yidafu.aqua.statistics.service.DeliveryWorkerStatisticsService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Service
@@ -35,8 +35,8 @@ import java.time.LocalDate
 
 @Service
 class DeliveryWorkerStatisticsServiceImpl(
-  private val deliveryWorkerRepository: DeliveryWorkerRepository,
-  private val deliveryWorkerStatisticsRepository: DeliveryWorkerStatisticsRepository,
+  private val deliveryWorkerQueryApiService: DeliveryWorkerQueryApiService,
+  private val deliveryWorkerStatisticsQueryApiService: DeliveryWorkerStatisticsQueryApiService,
   private val statisticsDeliveryWorkerRepository: StatisticsDeliveryWorkerRepositoryCustom,
 ) : DeliveryWorkerStatisticsService {
   @PersistenceContext
@@ -48,7 +48,7 @@ class DeliveryWorkerStatisticsServiceImpl(
 
   override fun getDeliveryWorkerStatistics(): DeliveryWorkerStatisticsDTO {
     // 送水员总数
-    val totalWorkers = deliveryWorkerRepository.count()
+    val totalWorkers = deliveryWorkerQueryApiService.findAll().size
 
     // 今日在岗送水员数
     val today = LocalDate.now()
@@ -62,7 +62,7 @@ class DeliveryWorkerStatisticsServiceImpl(
     val todayCompletedOrders = statisticsDeliveryWorkerRepository.countCompletedOrdersSince(todayStart)
 
     return DeliveryWorkerStatisticsDTO(
-      totalWorkers = totalWorkers,
+      totalWorkers = totalWorkers.toLong(),
       todayActiveWorkers = todayActiveWorkers,
       deliveringOrders = deliveringOrders,
       todayCompletedOrders = todayCompletedOrders,
@@ -89,11 +89,11 @@ class DeliveryWorkerStatisticsServiceImpl(
         .associate { it.get(orderModel.deliveryWorkerId) to it.get(orderModel.count())?.toInt() }
 
     // Get all workers and their statistics
-    val workers = deliveryWorkerRepository.findAll()
+    val workers = deliveryWorkerQueryApiService.findAll()
 
     return workers
       .map { worker ->
-        val stats = deliveryWorkerStatisticsRepository.findByDeliveryWorkerId(worker.id!!)
+        val stats = deliveryWorkerStatisticsQueryApiService.findByDeliveryWorkerId(worker.id!!)
         DeliveryWorkerRankingItemDTO(
           workerId = worker.id!!,
           name = worker.name,

@@ -37,6 +37,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
     "dev.yidafu.aqua.logging",
     "dev.yidafu.aqua.user",
     "dev.yidafu.aqua.product",
+    "dev.yidafu.aqua.product.service.impl",
     "dev.yidafu.aqua.delivery",
     "dev.yidafu.aqua.notice",
     "dev.yidafu.aqua.review",

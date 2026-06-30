@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,7 +19,6 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
@@ -63,10 +62,6 @@ open class OrderItemModel(
     updatedAt = LocalDateTime.now()
   }
 
-  @PrePersist
-  fun onPrePersist() {
-    id = DefaultIdGenerator().generate()
-  }
 
   // Backward compatibility property
   val unitPrice: BigDecimal

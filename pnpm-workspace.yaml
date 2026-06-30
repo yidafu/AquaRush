@@ -3,3 +3,4 @@ packages:
   - 'frontend/common'
   - 'frontend/admin-client'
   - 'frontend/user-weapp'
+  - 'frontend/delivery-weapp'

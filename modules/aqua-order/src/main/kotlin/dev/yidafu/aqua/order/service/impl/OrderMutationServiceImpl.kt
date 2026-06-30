@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -20,11 +20,13 @@
 package dev.yidafu.aqua.order.service.impl
 
 import dev.yidafu.aqua.api.query.CreateOrderRequest
+import dev.yidafu.aqua.api.service.AddressQueryApiService
 import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryAreaQueryService
 import dev.yidafu.aqua.api.service.order.OrderIdGeneratorService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
+import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
@@ -34,9 +36,8 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
+import dev.yidafu.aqua.common.utils.SearchContentBuilder
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
-import dev.yidafu.aqua.product.domain.repository.ProductRepository
-import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -48,8 +49,8 @@ import java.time.LocalDateTime
 @Service
 class OrderMutationServiceImpl(
   private val orderRepository: OrderRepository,
-  private val productRepository: ProductRepository,
-  private val addressRepository: AddressRepository,
+  private val productQueryApiService: ProductQueryApiService,
+  private val addressQueryApiService: AddressQueryApiService,
   private val eventPublishService: SimplifiedEventPublishService,
   private val productService: ProductService,
   private val deliveryAreaQueryService: DeliveryAreaQueryService,
@@ -81,9 +82,9 @@ class OrderMutationServiceImpl(
   ): OrderValidationResult {
     // 1. 验证产品存在且有足够库存
     val product =
-      productRepository
+      productQueryApiService
         .findById(productId)
-        .orElseThrow { NotFoundException("产品不存在: $productId") }
+        ?: throw NotFoundException("产品不存在: $productId")
 
     if (product.stock < quantity) {
       throw BadRequestException("库存不足，当前库存: ${product.stock}，需求数量: $quantity")
@@ -91,9 +92,9 @@ class OrderMutationServiceImpl(
 
     // 2. 验证地址存在
     val address =
-      addressRepository
+      addressQueryApiService
         .findById(addressId)
-        .orElseThrow { NotFoundException("收货地址不存在: $addressId") }
+        ?: throw NotFoundException("收货地址不存在: $addressId")
 
     // 3. 验证地址是否在配送范围内
     deliveryAreaQueryService.validateDeliveryAddress(address.province, address.city, address.district)
@@ -134,6 +135,13 @@ class OrderMutationServiceImpl(
     isSelfCollect: Boolean,
     paymentTime: LocalDateTime?,
   ): OrderModel {
+    // 构建搜索内容
+    val searchContent =
+      SearchContentBuilder.buildSearchContent(
+        address = null, // address 会在后续通过 repository 查询，这里传 null
+        product = product,
+      )
+
     val order =
       OrderModel(
 //        id = DefaultIdGenerator().generate(),
@@ -152,6 +160,7 @@ class OrderMutationServiceImpl(
         completedAt = null,
         remark = remark,
         isSelfCollect = isSelfCollect,
+        searchContent = searchContent,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )

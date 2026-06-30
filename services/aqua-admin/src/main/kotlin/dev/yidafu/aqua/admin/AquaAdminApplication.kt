@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush Admin Service
  *
  * Copyright (C) 2025 AquaRush Team

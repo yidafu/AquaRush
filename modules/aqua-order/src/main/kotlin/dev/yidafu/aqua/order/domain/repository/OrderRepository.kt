@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -42,6 +42,10 @@ interface OrderRepository :
   fun findByStatusOrderByCreatedAtAsc(status: OrderModelStatus): List<OrderModel>
 
   fun findByDeliveryWorkerIdOrderByCreatedAtDesc(deliveryWorkerId: Long): List<OrderModel>
+
+  fun findByAddressId(addressId: Long): List<OrderModel>
+
+  fun findByProductId(productId: Long): List<OrderModel>
 
   fun countByStatus(status: OrderModelStatus): Long
 }

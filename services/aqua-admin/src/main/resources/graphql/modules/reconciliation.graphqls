@@ -1,0 +1,18 @@
+# Daily collection & reconciliation management
+
+extend type Query {
+  # 每日收款查询
+  dailyCollections(collectionDate: String): [DailyCollectionRecord!]!
+  dailyReconciliations: [DailyReconciliation!]!
+  dailyReconciliation(reconciliationDate: String!): DailyReconciliation
+  # 配送员今日收款 - 获取今日收款预计算结果（订单统计）
+  myTodayCollection: MyTodayCollectionVO
+}
+
+extend type Mutation {
+  # 每日收款管理
+  submitDailyCollection(input: SubmitDailyCollectionInput!): DailyCollectionRecord!
+  confirmDailyCollection(input: ConfirmDailyCollectionInput!): DailyCollectionRecord!
+  reviewReconciliation(input: ReviewReconciliationInput!): DailyReconciliation!
+  executeDailyReconciliation(reconciliationDate: String): DailyReconciliation!
+}

@@ -1,0 +1,8 @@
+# Extend the User type with admin-specific fields
+extend type User {
+  status: UserStatus!
+  role: UserRole!
+  email: String!
+  balanceCents: Long!
+  totalSpentCents: Long!
+}

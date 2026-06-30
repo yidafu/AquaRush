@@ -29,16 +29,15 @@ import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliation
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo
-import dev.yidafu.aqua.common.graphql.generated.OrderPage
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
-import dev.yidafu.aqua.reconciliation.mapper.MyTodayCollectionResultMapper
 import dev.yidafu.aqua.reconciliation.dto.OrderStatsDTO
 import dev.yidafu.aqua.reconciliation.dto.PaymentStatsDTO
+import dev.yidafu.aqua.reconciliation.mapper.MyTodayCollectionResultMapper
 import dev.yidafu.aqua.reconciliation.service.DailyCollectionService
 import org.slf4j.LoggerFactory
-import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Controller
@@ -78,8 +77,9 @@ class AdminDailyCollectionQueryResolver(
     val date = LocalDate.parse(collectionDate, DateTimeFormatter.ISO_LOCAL_DATE)
 
     // 获取当前管理员
-    val admin = adminService.findByUsername(userDetails.username)
-      ?: throw UserNotFoundException("管理员不存在")
+    val admin =
+      adminService.findByUsername(userDetails.username)
+        ?: throw UserNotFoundException("管理员不存在")
 
     val adminId = admin.id ?: throw BadRequestException("管理员ID无效")
 
@@ -102,8 +102,10 @@ class AdminDailyCollectionQueryResolver(
     }
     logger.info("管理员查询对账记录列表, page={}, size={}", page, size)
 
-    val allReconciliations = dailyCollectionService.getAllReconciliations()
-      .sortedByDescending { it.reconciliationDate }
+    val allReconciliations =
+      dailyCollectionService
+        .getAllReconciliations()
+        .sortedByDescending { it.reconciliationDate }
 
     // TODO: 实现后端分页
     return allReconciliations

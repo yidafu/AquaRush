@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush GraphQL Service Scope Configuration
  *
  * Copyright (C) 2025 AquaRush Team

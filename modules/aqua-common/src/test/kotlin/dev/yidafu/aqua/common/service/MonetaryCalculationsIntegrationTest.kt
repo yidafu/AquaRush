@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -28,33 +28,40 @@ import java.math.BigDecimal
 
 @DisplayName("Monetary Calculations Integration Tests")
 class MonetaryCalculationsIntegrationTest {
-
   // Mock service layer classes for testing monetary calculations
   class OrderCalculationService {
-    fun calculateOrderTotal(unitPriceCents: Long, quantity: Int): Long {
-      return unitPriceCents * quantity
-    }
+    fun calculateOrderTotal(
+      unitPriceCents: Long,
+      quantity: Int,
+    ): Long = unitPriceCents * quantity
 
-    fun applyDiscount(originalAmountCents: Long, discountPercentage: BigDecimal): Long {
+    fun applyDiscount(
+      originalAmountCents: Long,
+      discountPercentage: BigDecimal,
+    ): Long {
       val discountAmount = MoneyUtils.calculatePercentage(originalAmountCents, discountPercentage)
       return MoneyUtils.subtractCents(originalAmountCents, discountAmount)
     }
 
-    fun calculateTax(baseAmountCents: Long, taxRatePercentage: BigDecimal): Long {
-      return MoneyUtils.calculatePercentage(baseAmountCents, taxRatePercentage)
-    }
+    fun calculateTax(
+      baseAmountCents: Long,
+      taxRatePercentage: BigDecimal,
+    ): Long = MoneyUtils.calculatePercentage(baseAmountCents, taxRatePercentage)
 
     fun calculateFinalAmount(
       baseAmountCents: Long,
       discountPercentage: BigDecimal,
-      taxRatePercentage: BigDecimal
+      taxRatePercentage: BigDecimal,
     ): Long {
       val discountedAmount = applyDiscount(baseAmountCents, discountPercentage)
       val taxAmount = calculateTax(discountedAmount, taxRatePercentage)
       return MoneyUtils.addCents(discountedAmount, taxAmount)
     }
 
-    fun splitAmount(amountCents: Long, parts: Int): List<Long> {
+    fun splitAmount(
+      amountCents: Long,
+      parts: Int,
+    ): List<Long> {
       require(parts > 0) { "Number of parts must be positive" }
       val basePart = amountCents / parts
       val remainder = amountCents % parts
@@ -70,7 +77,7 @@ class MonetaryCalculationsIntegrationTest {
       unitPriceCents: Long,
       quantity: Int,
       bulkDiscountThreshold: Int,
-      bulkDiscountPercentage: BigDecimal
+      bulkDiscountPercentage: BigDecimal,
     ): Long {
       val totalPrice = unitPriceCents * quantity
       return if (quantity >= bulkDiscountThreshold) {
@@ -80,28 +87,33 @@ class MonetaryCalculationsIntegrationTest {
       }
     }
 
-    fun calculateLoyaltyPoints(amountCents: Long, pointsRate: BigDecimal): Long {
-      return MoneyUtils.calculatePercentage(amountCents, pointsRate)
-    }
+    fun calculateLoyaltyPoints(
+      amountCents: Long,
+      pointsRate: BigDecimal,
+    ): Long = MoneyUtils.calculatePercentage(amountCents, pointsRate)
 
-    fun calculateCommission(orderAmountCents: Long, commissionRate: BigDecimal): Long {
-      return MoneyUtils.calculatePercentage(orderAmountCents, commissionRate)
-    }
+    fun calculateCommission(
+      orderAmountCents: Long,
+      commissionRate: BigDecimal,
+    ): Long = MoneyUtils.calculatePercentage(orderAmountCents, commissionRate)
   }
 
   class PaymentProcessingService {
-    fun calculatePaymentFee(amountCents: Long, feeRate: BigDecimal, minFeeCents: Long = 0L): Long {
+    fun calculatePaymentFee(
+      amountCents: Long,
+      feeRate: BigDecimal,
+      minFeeCents: Long = 0L,
+    ): Long {
       val calculatedFee = MoneyUtils.calculatePercentage(amountCents, feeRate)
       return maxOf(calculatedFee, minFeeCents)
     }
 
-    fun calculateRefundAmount(originalAmountCents: Long, refundPercentage: BigDecimal): Long {
-      return MoneyUtils.calculatePercentage(originalAmountCents, refundPercentage)
-    }
+    fun calculateRefundAmount(
+      originalAmountCents: Long,
+      refundPercentage: BigDecimal,
+    ): Long = MoneyUtils.calculatePercentage(originalAmountCents, refundPercentage)
 
-    fun validatePaymentAmount(amountCents: Long): Boolean {
-      return amountCents > 0 && amountCents <= MoneyUtils.toCents(BigDecimal("999999.99"))
-    }
+    fun validatePaymentAmount(amountCents: Long): Boolean = amountCents > 0 && amountCents <= MoneyUtils.toCents(BigDecimal("999999.99"))
   }
 
   private lateinit var orderCalculationService: OrderCalculationService
@@ -120,19 +132,21 @@ class MonetaryCalculationsIntegrationTest {
   @Test
   @DisplayName("Should calculate order totals correctly with cents-based amounts")
   fun `calculate order totals correctly with cents`() {
-    val testCases = listOf(
-      Triple(2500L, 1, 2500L),   // ¥25.00 × 1 = ¥25.00
-      Triple(2500L, 3, 7500L),   // ¥25.00 × 3 = ¥75.00
-      Triple(999L, 5, 4995L),    // ¥9.99 × 5 = ¥49.95
-      Triple(100L, 100, 10000L), // ¥1.00 × 100 = ¥100.00
-      Triple(1L, 1, 1L)          // ¥0.01 × 1 = ¥0.01
-    )
+    val testCases =
+      listOf(
+        Triple(2500L, 1, 2500L), // ¥25.00 × 1 = ¥25.00
+        Triple(2500L, 3, 7500L), // ¥25.00 × 3 = ¥75.00
+        Triple(999L, 5, 4995L), // ¥9.99 × 5 = ¥49.95
+        Triple(100L, 100, 10000L), // ¥1.00 × 100 = ¥100.00
+        Triple(1L, 1, 1L), // ¥0.01 × 1 = ¥0.01
+      )
 
     testCases.forEach { (unitPriceCents, quantity, expectedTotal) ->
       val actualTotal = orderCalculationService.calculateOrderTotal(unitPriceCents, quantity)
       assertEquals(
-        expectedTotal, actualTotal,
-        "Order total calculation failed for unit price: $unitPriceCents, quantity: $quantity"
+        expectedTotal,
+        actualTotal,
+        "Order total calculation failed for unit price: $unitPriceCents, quantity: $quantity",
       )
     }
   }
@@ -140,19 +154,21 @@ class MonetaryCalculationsIntegrationTest {
   @Test
   @DisplayName("Should apply discounts correctly")
   fun `apply discounts correctly`() {
-    val testCases = listOf(
-      Triple(10000L, BigDecimal("10.0"), 9000L),   // ¥100.00 with 10% discount = ¥90.00
-      Triple(25000L, BigDecimal("25.0"), 18750L),  // ¥250.00 with 25% discount = ¥187.50
-      Triple(9999L, BigDecimal("50.0"), 4999L),    // ¥99.99 with 50% discount = ¥49.99
-      Triple(5000L, BigDecimal("0.0"), 5000L),     // ¥50.00 with 0% discount = ¥50.00
-      Triple(12345L, BigDecimal("33.33"), 8231L)   // ¥123.45 with 33.33% discount = ¥82.31
-    )
+    val testCases =
+      listOf(
+        Triple(10000L, BigDecimal("10.0"), 9000L), // ¥100.00 with 10% discount = ¥90.00
+        Triple(25000L, BigDecimal("25.0"), 18750L), // ¥250.00 with 25% discount = ¥187.50
+        Triple(9999L, BigDecimal("50.0"), 4999L), // ¥99.99 with 50% discount = ¥49.99
+        Triple(5000L, BigDecimal("0.0"), 5000L), // ¥50.00 with 0% discount = ¥50.00
+        Triple(12345L, BigDecimal("33.33"), 8231L), // ¥123.45 with 33.33% discount = ¥82.31
+      )
 
     testCases.forEach { (originalAmount, discountPercentage, expectedDiscounted) ->
       val actualDiscounted = orderCalculationService.applyDiscount(originalAmount, discountPercentage)
       assertEquals(
-        expectedDiscounted, actualDiscounted,
-        "Discount calculation failed for amount: $originalAmount, discount: $discountPercentage"
+        expectedDiscounted,
+        actualDiscounted,
+        "Discount calculation failed for amount: $originalAmount, discount: $discountPercentage",
       )
     }
   }
@@ -160,19 +176,21 @@ class MonetaryCalculationsIntegrationTest {
   @Test
   @DisplayName("Should calculate tax correctly")
   fun `calculate tax correctly`() {
-    val testCases = listOf(
-      Triple(10000L, BigDecimal("10.0"), 1000L),   // ¥100.00 with 10% tax = ¥10.00
-      Triple(25000L, BigDecimal("8.0"), 2000L),     // ¥250.00 with 8% tax = ¥20.00
-      Triple(9999L, BigDecimal("15.0"), 1500L),     // ¥99.99 with 15% tax = ¥15.00
-      Triple(5000L, BigDecimal("0.0"), 0L),         // ¥50.00 with 0% tax = ¥0.00
-      Triple(12345L, BigDecimal("13.5"), 1666L)     // ¥123.45 with 13.5% tax = ¥16.66
-    )
+    val testCases =
+      listOf(
+        Triple(10000L, BigDecimal("10.0"), 1000L), // ¥100.00 with 10% tax = ¥10.00
+        Triple(25000L, BigDecimal("8.0"), 2000L), // ¥250.00 with 8% tax = ¥20.00
+        Triple(9999L, BigDecimal("15.0"), 1500L), // ¥99.99 with 15% tax = ¥15.00
+        Triple(5000L, BigDecimal("0.0"), 0L), // ¥50.00 with 0% tax = ¥0.00
+        Triple(12345L, BigDecimal("13.5"), 1666L), // ¥123.45 with 13.5% tax = ¥16.66
+      )
 
     testCases.forEach { (baseAmount, taxRate, expectedTax) ->
       val actualTax = orderCalculationService.calculateTax(baseAmount, taxRate)
       assertEquals(
-        expectedTax, actualTax,
-        "Tax calculation failed for amount: $baseAmount, rate: $taxRate"
+        expectedTax,
+        actualTax,
+        "Tax calculation failed for amount: $baseAmount, rate: $taxRate",
       )
     }
   }
@@ -194,8 +212,9 @@ class MonetaryCalculationsIntegrationTest {
     val expectedFinalAmount = 9720L
 
     assertEquals(
-      expectedFinalAmount, finalAmount,
-      "Final amount calculation failed"
+      expectedFinalAmount,
+      finalAmount,
+      "Final amount calculation failed",
     )
 
     // Verify by manual calculation
@@ -210,13 +229,14 @@ class MonetaryCalculationsIntegrationTest {
   @Test
   @DisplayName("Should split amounts correctly")
   fun `split amounts correctly`() {
-    val testCases = listOf(
-      Triple(10000L, 4, listOf(2500L, 2500L, 2500L, 2500L)),     // ¥100.00 ÷ 4 = ¥25.00 each
-      Triple(10001L, 4, listOf(2501L, 2500L, 2500L, 2500L)),     // ¥100.01 ÷ 4 = 3×¥25.00 + 1×¥25.01
-      Triple(333L, 3, listOf(111L, 111L, 111L)),                  // ¥3.33 ÷ 3 = ¥1.11 each
-      Triple(1L, 1, listOf(1L)),                                    // ¥0.01 ÷ 1 = ¥0.01
-      Triple(999L, 7, listOf(143L, 143L, 143L, 143L, 143L, 142L, 142L)) // ¥9.99 ÷ 7
-    )
+    val testCases =
+      listOf(
+        Triple(10000L, 4, listOf(2500L, 2500L, 2500L, 2500L)), // ¥100.00 ÷ 4 = ¥25.00 each
+        Triple(10001L, 4, listOf(2501L, 2500L, 2500L, 2500L)), // ¥100.01 ÷ 4 = 3×¥25.00 + 1×¥25.01
+        Triple(333L, 3, listOf(111L, 111L, 111L)), // ¥3.33 ÷ 3 = ¥1.11 each
+        Triple(1L, 1, listOf(1L)), // ¥0.01 ÷ 1 = ¥0.01
+        Triple(999L, 7, listOf(143L, 143L, 143L, 143L, 143L, 142L, 142L)), // ¥9.99 ÷ 7
+      )
 
     testCases.forEach { (amount, parts, expectedSplit) ->
       val actualSplit = orderCalculationService.splitAmount(amount, parts)
@@ -251,18 +271,20 @@ class MonetaryCalculationsIntegrationTest {
   @Test
   @DisplayName("Should calculate loyalty points correctly")
   fun `calculate loyalty points correctly`() {
-    val testCases = listOf(
-      Triple(10000L, BigDecimal("1.0"), 100L),   // ¥100.00 × 1% = 100 points
-      Triple(25000L, BigDecimal("2.0"), 500L),   // ¥250.00 × 2% = 500 points
-      Triple(9999L, BigDecimal("0.5"), 50L),     // ¥99.99 × 0.5% = 50 points
-      Triple(5000L, BigDecimal("10.0"), 500L)    // ¥50.00 × 10% = 500 points
-    )
+    val testCases =
+      listOf(
+        Triple(10000L, BigDecimal("1.0"), 100L), // ¥100.00 × 1% = 100 points
+        Triple(25000L, BigDecimal("2.0"), 500L), // ¥250.00 × 2% = 500 points
+        Triple(9999L, BigDecimal("0.5"), 50L), // ¥99.99 × 0.5% = 50 points
+        Triple(5000L, BigDecimal("10.0"), 500L), // ¥50.00 × 10% = 500 points
+      )
 
     testCases.forEach { (amountCents, pointsRate, expectedPoints) ->
       val actualPoints = pricingService.calculateLoyaltyPoints(amountCents, pointsRate)
       assertEquals(
-        expectedPoints, actualPoints,
-        "Loyalty points calculation failed for amount: $amountCents, rate: $pointsRate"
+        expectedPoints,
+        actualPoints,
+        "Loyalty points calculation failed for amount: $amountCents, rate: $pointsRate",
       )
     }
   }
@@ -270,18 +292,20 @@ class MonetaryCalculationsIntegrationTest {
   @Test
   @DisplayName("Should calculate commission correctly")
   fun `calculate commission correctly`() {
-    val testCases = listOf(
-      Triple(10000L, BigDecimal("5.0"), 500L),     // ¥100.00 × 5% = ¥5.00
-      Triple(50000L, BigDecimal("3.5"), 1750L),    // ¥500.00 × 3.5% = ¥17.50
-      Triple(25000L, BigDecimal("10.0"), 2500L),   // ¥250.00 × 10% = ¥25.00
-      Triple(9999L, BigDecimal("15.0"), 1500L)     // ¥99.99 × 15% = ¥15.00
-    )
+    val testCases =
+      listOf(
+        Triple(10000L, BigDecimal("5.0"), 500L), // ¥100.00 × 5% = ¥5.00
+        Triple(50000L, BigDecimal("3.5"), 1750L), // ¥500.00 × 3.5% = ¥17.50
+        Triple(25000L, BigDecimal("10.0"), 2500L), // ¥250.00 × 10% = ¥25.00
+        Triple(9999L, BigDecimal("15.0"), 1500L), // ¥99.99 × 15% = ¥15.00
+      )
 
     testCases.forEach { (orderAmount, commissionRate, expectedCommission) ->
       val actualCommission = pricingService.calculateCommission(orderAmount, commissionRate)
       assertEquals(
-        expectedCommission, actualCommission,
-        "Commission calculation failed for amount: $orderAmount, rate: $commissionRate"
+        expectedCommission,
+        actualCommission,
+        "Commission calculation failed for amount: $orderAmount, rate: $commissionRate",
       )
     }
   }
@@ -291,18 +315,20 @@ class MonetaryCalculationsIntegrationTest {
   @Test
   @DisplayName("Should calculate payment fees correctly")
   fun `calculate payment fees correctly`() {
-    val testCases = listOf(
-      Triple(10000L, BigDecimal("2.9"), 290L),     // ¥100.00 × 2.9% = ¥2.90
-      Triple(5000L, BigDecimal("3.0"), 150L),      // ¥50.00 × 3.0% = ¥1.50
-      Triple(1000L, BigDecimal("1.5"), 15L),       // ¥10.00 × 1.5% = ¥0.15
-      Triple(100L, BigDecimal("5.0"), 5L)          // ¥1.00 × 5.0% = ¥0.05
-    )
+    val testCases =
+      listOf(
+        Triple(10000L, BigDecimal("2.9"), 290L), // ¥100.00 × 2.9% = ¥2.90
+        Triple(5000L, BigDecimal("3.0"), 150L), // ¥50.00 × 3.0% = ¥1.50
+        Triple(1000L, BigDecimal("1.5"), 15L), // ¥10.00 × 1.5% = ¥0.15
+        Triple(100L, BigDecimal("5.0"), 5L), // ¥1.00 × 5.0% = ¥0.05
+      )
 
     testCases.forEach { (amount, feeRate, expectedFee) ->
       val actualFee = paymentProcessingService.calculatePaymentFee(amount, feeRate)
       assertEquals(
-        expectedFee, actualFee,
-        "Payment fee calculation failed for amount: $amount, rate: $feeRate"
+        expectedFee,
+        actualFee,
+        "Payment fee calculation failed for amount: $amount, rate: $feeRate",
       )
     }
   }
@@ -321,18 +347,20 @@ class MonetaryCalculationsIntegrationTest {
   @Test
   @DisplayName("Should calculate refund amounts correctly")
   fun `calculate refund amounts correctly`() {
-    val testCases = listOf(
-      Triple(10000L, BigDecimal("100.0"), 10000L), // Full refund
-      Triple(10000L, BigDecimal("50.0"), 5000L),   // 50% refund
-      Triple(25000L, BigDecimal("25.0"), 6250L),   // 25% refund
-      Triple(9999L, BigDecimal("10.0"), 1000L)     // 10% refund
-    )
+    val testCases =
+      listOf(
+        Triple(10000L, BigDecimal("100.0"), 10000L), // Full refund
+        Triple(10000L, BigDecimal("50.0"), 5000L), // 50% refund
+        Triple(25000L, BigDecimal("25.0"), 6250L), // 25% refund
+        Triple(9999L, BigDecimal("10.0"), 1000L), // 10% refund
+      )
 
     testCases.forEach { (originalAmount, refundPercentage, expectedRefund) ->
       val actualRefund = paymentProcessingService.calculateRefundAmount(originalAmount, refundPercentage)
       assertEquals(
-        expectedRefund, actualRefund,
-        "Refund calculation failed for amount: $originalAmount, percentage: $refundPercentage"
+        expectedRefund,
+        actualRefund,
+        "Refund calculation failed for amount: $originalAmount, percentage: $refundPercentage",
       )
     }
   }
@@ -341,13 +369,13 @@ class MonetaryCalculationsIntegrationTest {
   @DisplayName("Should validate payment amounts correctly")
   fun `validate payment amounts correctly`() {
     // Valid amounts
-    assertTrue(paymentProcessingService.validatePaymentAmount(1L))      // ¥0.01
-    assertTrue(paymentProcessingService.validatePaymentAmount(100L))    // ¥1.00
+    assertTrue(paymentProcessingService.validatePaymentAmount(1L)) // ¥0.01
+    assertTrue(paymentProcessingService.validatePaymentAmount(100L)) // ¥1.00
     assertTrue(paymentProcessingService.validatePaymentAmount(99999999L)) // Large valid amount
 
     // Invalid amounts
-    assertFalse(paymentProcessingService.validatePaymentAmount(0L))       // Zero amount
-    assertFalse(paymentProcessingService.validatePaymentAmount(-1L))     // Negative amount
+    assertFalse(paymentProcessingService.validatePaymentAmount(0L)) // Zero amount
+    assertFalse(paymentProcessingService.validatePaymentAmount(-1L)) // Negative amount
     assertFalse(paymentProcessingService.validatePaymentAmount(100000000L)) // Too large amount
   }
 
@@ -417,11 +445,11 @@ class MonetaryCalculationsIntegrationTest {
     val smallAmount = 1L // ¥0.01
     assertEquals(
       0L,
-      orderCalculationService.calculateTax(smallAmount, BigDecimal("1.0"))
+      orderCalculationService.calculateTax(smallAmount, BigDecimal("1.0")),
     ) // 1% of ¥0.01 rounds to ¥0.00
     assertEquals(
       1L,
-      orderCalculationService.applyDiscount(smallAmount, BigDecimal("50.0"))
+      orderCalculationService.applyDiscount(smallAmount, BigDecimal("50.0")),
     ) // 50% of ¥0.01 rounds to ¥0.01
 
     // Test very large amounts

@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -23,6 +23,7 @@ import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.dto.AddressUpdateRequest
 import dev.yidafu.aqua.common.exception.NotFoundException
+import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.user.domain.exception.AquaException
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
@@ -40,6 +41,7 @@ class AddressServiceImpl(
   private val addressRepository: AddressRepository,
   private val regionRepository: RegionRepository,
   private val geolocationService: GeolocationService,
+  private val eventPublishService: SimplifiedEventPublishService,
 ) : AddressService {
   /**
    * 获取用户的所有地址
@@ -291,7 +293,12 @@ class AddressServiceImpl(
     value = ["user_addresses", "user_default_address", "address"],
     allEntries = true,
   )
-  override fun save(address: AddressModel): AddressModel = addressRepository.save(address)
+  override fun save(address: AddressModel): AddressModel {
+    val saved = addressRepository.save(address)
+    // 发布地址更新事件
+    eventPublishService.publishAddressUpdate(address.userId, saved.id!!)
+    return saved
+  }
 
   // Legacy method for backward compatibility
   @CacheEvict(

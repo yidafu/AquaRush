@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -262,13 +262,30 @@ class ProductFavoriteServiceImpl(
   }
 
   /**
+   * Get product favorite statistics for each product
+   */
+  override fun getProductFavoriteStats(): List<ProductFavoriteStat> {
+    val mostFavorited = productFavoriteRepository.findMostFavoritedProducts()
+    val allProducts = productRepository.findAll()
+
+    return mostFavorited.map { favoriteCount ->
+      val product = allProducts.find { it.id == favoriteCount.productId }
+      ProductFavoriteStat(
+        productId = favoriteCount.productId,
+        productName = product?.name ?: "未知商品",
+        favoriteCount = favoriteCount.favoriteCount,
+      )
+    }.sortedByDescending { it.favoriteCount }.take(10)
+  }
+
+  /**
    * Get products sorted by favorite count with pagination
    */
   override fun getProductsByFavorites(
     page: Int,
     size: Int,
     minFavorites: Int?,
-  ): ProductFavoritePage {
+  ): ProductFavoriteVoPage {
     val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "favoriteCount"))
 
     val mostFavorited = productFavoriteRepository.findMostFavoritedProducts()
@@ -311,7 +328,7 @@ class ProductFavoriteServiceImpl(
           )
         }.filterNotNull()
 
-    return ProductFavoritePage(
+    return ProductFavoriteVoPage(
       list = list,
       pageInfo =
         PageInfo(

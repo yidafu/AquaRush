@@ -1,12 +1,35 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package dev.yidafu.aqua.order.service.impl
 
-import dev.yidafu.aqua.api.service.order.DeliveryOrderQueryService
+import dev.yidafu.aqua.api.dto.DailyStatDTO
+import dev.yidafu.aqua.api.dto.DeliveryStatisticsDTO
+import dev.yidafu.aqua.api.dto.TodayStatisticsDTO
+import dev.yidafu.aqua.api.dto.WeekStatisticsDTO
+import dev.yidafu.aqua.api.service.DeliveryOrderQueryService
+import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryApiService
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
-import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDate
@@ -14,7 +37,7 @@ import java.time.format.DateTimeFormatter
 
 @Service
 class DeliveryOrderQueryServiceImpl(
-  private val workerRepository: DeliveryWorkerRepository,
+  private val deliveryWorkerQueryApiService: DeliveryWorkerQueryApiService,
   private val orderRepository: OrderRepository,
 ) : DeliveryOrderQueryService {
   override fun getWorkerTasks(workerId: Long): List<OrderModel> = orderRepository.findByDeliveryWorkerIdOrderByCreatedAtDesc(workerId)
@@ -33,15 +56,17 @@ class DeliveryOrderQueryServiceImpl(
     )
 
   override fun getAssignedOrders(adminId: Long): List<OrderModel> {
-    val worker = workerRepository.findByAdminId(adminId)
-    val workerId = worker?.id ?: throw UserNotFoundException("管理员账号未关联送水员")
+    val workers = deliveryWorkerQueryApiService.findByAdminId(adminId)
+    val worker = workers.firstOrNull() ?: throw UserNotFoundException("管理员账号未关联送水员")
+    val workerId = worker.id ?: throw UserNotFoundException("管理员账号未关联送水员")
     return getOrdersByStatus(workerId, OrderModelStatus.PENDING_DELIVERY)
   }
 
-  override fun getDeliveryStatistics(): DeliveryOrderQueryService.DeliveryStatistics {
-    val totalWorkers = workerRepository.count()
+  override fun getDeliveryStatistics(): DeliveryStatisticsDTO {
+    val allWorkers = deliveryWorkerQueryApiService.findAll()
+    val totalWorkers = allWorkers.size
     val onlineWorkers =
-      workerRepository
+      deliveryWorkerQueryApiService
         .findByOnlineStatus(
           DeliverWorkerModelStatus.ONLINE,
         ).size
@@ -51,7 +76,7 @@ class DeliveryOrderQueryServiceImpl(
         OrderModelStatus.DELIVERING,
       )
 
-    return DeliveryOrderQueryService.DeliveryStatistics(
+    return DeliveryStatisticsDTO(
       totalWorkers = totalWorkers.toInt(),
       onlineWorkers = onlineWorkers,
       pendingOrders = pendingOrders,
@@ -59,7 +84,7 @@ class DeliveryOrderQueryServiceImpl(
     )
   }
 
-  override fun getTodayStatistics(workerId: Long?): DeliveryOrderQueryService.TodayStatistics {
+  override fun getTodayStatistics(workerId: Long?): TodayStatisticsDTO {
     val today = LocalDate.now()
     val startOfDay = today.atStartOfDay()
     val endOfDay = today.plusDays(1).atStartOfDay()
@@ -91,7 +116,7 @@ class DeliveryOrderQueryServiceImpl(
         workerId,
       )
 
-    return DeliveryOrderQueryService.TodayStatistics(
+    return TodayStatisticsDTO(
       totalOrders = totalOrders,
       completedOrders = completedOrders,
       unfinishedOrders = unfinishedOrders,
@@ -104,10 +129,10 @@ class DeliveryOrderQueryServiceImpl(
       NotFoundException("订单不存在: $orderId")
     }
 
-  override fun getWeekStatistics(workerId: Long?): DeliveryOrderQueryService.WeekStatistics {
+  override fun getWeekStatistics(workerId: Long?): WeekStatisticsDTO {
     val today = LocalDate.now()
     val dateFormatter = DateTimeFormatter.ofPattern("MM/dd")
-    val dailyStats = mutableListOf<DeliveryOrderQueryService.DailyStat>()
+    val dailyStats = mutableListOf<DailyStatDTO>()
     var totalOrders = 0
     var totalEarningCents = 0L
 
@@ -117,18 +142,20 @@ class DeliveryOrderQueryServiceImpl(
       val startOfDay = date.atStartOfDay()
       val endOfDay = date.plusDays(1).atStartOfDay()
 
-      val orderCount = orderRepository
-        .countOrdersByDateRange(startOfDay, endOfDay, workerId, listOf(OrderModelStatus.COMPLETED))
-        .toInt()
-      val earningCents = orderRepository.sumAmountCentsByStatusAndDateRange(
-        listOf(OrderModelStatus.COMPLETED),
-        startOfDay,
-        endOfDay,
-        workerId,
-      )
+      val orderCount =
+        orderRepository
+          .countOrdersByDateRange(startOfDay, endOfDay, workerId, listOf(OrderModelStatus.COMPLETED))
+          .toInt()
+      val earningCents =
+        orderRepository.sumAmountCentsByStatusAndDateRange(
+          listOf(OrderModelStatus.COMPLETED),
+          startOfDay,
+          endOfDay,
+          workerId,
+        )
 
       dailyStats.add(
-        DeliveryOrderQueryService.DailyStat(
+        DailyStatDTO(
           date = date.format(dateFormatter),
           orderCount = orderCount,
           earningCents = earningCents,
@@ -138,7 +165,7 @@ class DeliveryOrderQueryServiceImpl(
       totalEarningCents += earningCents
     }
 
-    return DeliveryOrderQueryService.WeekStatistics(
+    return WeekStatisticsDTO(
       dailyStats = dailyStats,
       totalOrders = totalOrders,
       totalEarningCents = totalEarningCents,

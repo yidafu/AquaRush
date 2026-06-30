@@ -7,7 +7,6 @@ plugins {
 dependencies {
   implementation(project(":modules:aqua-common"))
   implementation(project(":modules:aqua-api"))
-  implementation(project(":modules:aqua-user"))
 
   // GraphQL dependencies
   implementation(libs.bundles.graphql)

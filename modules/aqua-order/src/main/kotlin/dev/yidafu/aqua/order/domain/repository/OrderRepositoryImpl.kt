@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -26,6 +26,7 @@ import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.QOrderModel.Companion.orderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.dto.OrderAnalyticsRow
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
@@ -237,6 +238,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
   override fun findByDeliveryWorkerIdAndStatusIn(
     deliveryWorkerId: Long?,
     statuses: List<OrderModelStatus>,
+    keyword: String?,
     page: Int,
     size: Int,
   ): Page<OrderModel> {
@@ -247,6 +249,13 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     if (deliveryWorkerId != null) {
       builder.and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
     }
+
+    // 添加关键字搜索条件
+    if (!keyword.isNullOrBlank()) {
+      // 使用 ilike 进行模糊匹配搜索内容
+//      builder.and(orderModel.searchContent.eq("%$keyword%"))
+    }
+
     val pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt")))
 
     val query =
@@ -381,5 +390,32 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
       .from(orderModel)
       .where(whereClause)
       .fetchOne() ?: 0L
+  }
+
+  override fun countAndSumByPaymentType(
+    deliveryWorkerId: Long,
+    status: OrderModelStatus,
+    paymentType: PaymentType,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): Array<Long> {
+    val whereClause =
+      orderModel.deliveryWorkerId
+        .eq(deliveryWorkerId)
+        .and(orderModel.status.eq(status))
+        .and(orderModel.paymentType.eq(paymentType))
+        .and(orderModel.completedAt.goe(startDate))
+        .and(orderModel.completedAt.lt(endDate))
+
+    val count = queryFactory.select(orderModel.count()).from(orderModel).where(whereClause).fetchOne() ?: 0L
+
+    val sum =
+      queryFactory
+        .select(orderModel.amountCents.sumLong())
+        .from(orderModel)
+        .where(whereClause)
+        .fetchOne() ?: 0L
+
+    return arrayOf(count, sum)
   }
 }

@@ -267,6 +267,10 @@ class ProductServiceImpl(
       lowStockProducts = lowStockProducts.size,
       totalValue = totalValue,
       averagePrice = averagePrice,
+      productRanking = emptyList(),
+      favoriteStatistics = emptyList(),
+      totalSales = 0,
+      totalFavorites = 0,
     )
   }
 

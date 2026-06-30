@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush Admin Order Query Resolver
  *
  * Copyright (C) 2025 AquaRush Team
@@ -22,7 +22,7 @@ package dev.yidafu.aqua.admin.order.resolvers
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderListInput
-import dev.yidafu.aqua.common.graphql.generated.OrderPage
+import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.order.mapper.OrderMapper
 import org.springframework.graphql.data.method.annotation.Argument
@@ -41,7 +41,7 @@ class AdminOrderQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun orders(
     @Argument input: OrderListInput?,
-  ): OrderPage {
+  ): OrderVoPage {
     val page = input?.page ?: 0
     val size = input?.size ?: 20
     val sort = input?.sort ?: "createdAt,desc"
@@ -62,7 +62,7 @@ class AdminOrderQueryResolver(
       )
 
     val (orderList, pageInfo) = ordersPage.toPageInfo { OrderMapper.map(it) }
-    return OrderPage(
+    return OrderVoPage(
       content = orderList,
       totalElements = pageInfo.total,
       totalPages = pageInfo.totalPages,

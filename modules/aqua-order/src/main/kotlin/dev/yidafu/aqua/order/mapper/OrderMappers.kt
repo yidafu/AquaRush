@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -20,7 +20,10 @@
 package dev.yidafu.aqua.order.mapper
 
 import dev.yidafu.aqua.api.query.CreateOrderRequest
-import dev.yidafu.aqua.api.service.order.DeliveryOrderQueryService
+import dev.yidafu.aqua.api.dto.DailyStatDTO
+import dev.yidafu.aqua.api.dto.DeliveryStatisticsDTO
+import dev.yidafu.aqua.api.dto.TodayStatisticsDTO
+import dev.yidafu.aqua.api.dto.WeekStatisticsDTO
 import dev.yidafu.aqua.common.domain.model.DeliveryAddressModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
@@ -255,6 +258,7 @@ object CreateDeliveryOrderInputMapper : ObjectMappie<CreateDeliveryOrderInput, C
   override fun map(from: CreateDeliveryOrderInput): CreateOrderRequest =
     mapping {
       to::userId fromValue 0L
+      to::isSelfCollect fromProperty from::isSelfCollect
     }
 }
 
@@ -265,18 +269,18 @@ object CreateOrderInputMapper : ObjectMappie<CreateOrderInput, CreateOrderReques
     }
 }
 
-object TodayStatisticsMapper : ObjectMappie<DeliveryOrderQueryService.TodayStatistics, TodayStatistics>()
+object TodayStatisticsMapper : ObjectMappie<TodayStatisticsDTO, TodayStatistics>()
 
-object WeekStatisticsMapper : ObjectMappie<DeliveryOrderQueryService.WeekStatistics, WeekStatistics>() {
-  override fun map(from: DeliveryOrderQueryService.WeekStatistics): WeekStatistics =
+object WeekStatisticsMapper : ObjectMappie<WeekStatisticsDTO, WeekStatistics>() {
+  override fun map(from: WeekStatisticsDTO): WeekStatistics =
     mapping {
       to::dailyStats fromExpression { DailyStatMapper.mapList(from.dailyStats) }
       to::totalEarning fromValue from.totalEarningCents / 100
     }
 }
 
-object DailyStatMapper : ObjectMappie<DeliveryOrderQueryService.DailyStat, DailyStat>() {
-  override fun map(from: DeliveryOrderQueryService.DailyStat): DailyStat =
+object DailyStatMapper : ObjectMappie<DailyStatDTO, DailyStat>() {
+  override fun map(from: DailyStatDTO): DailyStat =
     mapping {
       to::earning fromValue from.earningCents / 100
     }

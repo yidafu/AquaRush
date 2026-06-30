@@ -2,6 +2,7 @@ package dev.yidafu.aqua.order.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.dto.OrderAnalyticsRow
 import org.springframework.data.domain.Page
 import java.time.LocalDateTime
@@ -69,6 +70,7 @@ interface OrderRepositoryCustom {
   fun findByDeliveryWorkerIdAndStatusIn(
     deliveryWorkerId: Long?,
     statuses: List<OrderModelStatus>,
+    keyword: String? = null,
     page: Int,
     size: Int,
   ): Page<OrderModel>
@@ -92,4 +94,15 @@ interface OrderRepositoryCustom {
     endOfDay: LocalDateTime,
     deliveryWorkerId: Long?,
   ): Long
+
+  /**
+   * 按支付类型和日期范围统计订单数量和金额
+   */
+  fun countAndSumByPaymentType(
+    deliveryWorkerId: Long,
+    status: OrderModelStatus,
+    paymentType: PaymentType,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): Array<Long>
 }

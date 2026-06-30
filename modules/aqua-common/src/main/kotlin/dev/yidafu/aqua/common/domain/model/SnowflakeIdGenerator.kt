@@ -6,17 +6,10 @@ import org.hibernate.annotations.IdGeneratorType
 import org.hibernate.engine.spi.SharedSessionContractImplementor
 import org.hibernate.generator.BeforeExecutionGenerator
 import org.hibernate.generator.EventType
-import org.hibernate.id.IdentifierGenerator
-import org.hibernate.service.ServiceRegistry
-import org.hibernate.type.Type
 import java.util.*
 
-inline fun isEmptyId(id: Any?): Boolean = Objects.isNull(id) || (id is String && id.isEmpty()) || (id is Long && id <= 0)
-
-class SnowflakeIdentifierGenerator :
-  IdentifierGenerator,
-  BeforeExecutionGenerator {
-  // Hibernate 6.x requires no-arg constructor for SPI discovery
+class SnowflakeIdentifierGenerator : BeforeExecutionGenerator {
+  // Hibernate 6.x requires no-arg constructor for SPI discovery via @IdGeneratorType
   constructor() : this(DefaultIdGenerator())
 
   private val generator: IdGenerator
@@ -25,44 +18,19 @@ class SnowflakeIdentifierGenerator :
     this.generator = generator
   }
 
-  override fun configure(
-    type: Type?,
-    parameters: Properties?,
-    serviceRegistry: ServiceRegistry?,
-  ) {
-  }
-
-  private fun getId(
-    entity: Any?,
+  override fun generate(
     session: SharedSessionContractImplementor,
-  ): Any? = session.getEntityPersister(null, entity!!).getIdentifier(entity, session)
+    owner: Any?,
+    currentValue: Any?,
+    eventType: EventType,
+  ): Any = generator.generate()
 
   override fun generatedOnExecution(
     entity: Any?,
     session: SharedSessionContractImplementor?,
-  ): Boolean {
-    val id = getId(entity, session!!)
-    return isEmptyId(id)
-  }
+  ): Boolean = false
 
-  override fun generate(
-    session: SharedSessionContractImplementor?,
-    entity: Any?,
-  ): Any? {
-    val id = getId(entity, session!!)
-    if (isEmptyId(id)) {
-      if (entity != null) {
-        val newId = generator.generate()
-        session.getEntityPersister(null, entity).setIdentifier(entity, newId, session)
-        return newId
-      }
-    }
-    return id
-  }
-
-  override fun getEventTypes(): EnumSet<EventType?> = EnumSet.of(EventType.INSERT)
-
-  override fun generatesSometimes(): Boolean = true
+  override fun getEventTypes(): EnumSet<EventType> = EnumSet.of(EventType.INSERT)
 }
 
 @Retention(AnnotationRetention.RUNTIME)

@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,7 +19,6 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.math.BigDecimal
@@ -70,10 +69,6 @@ open class DeliveryWorkerStatisticsModel(
     lastUpdated = LocalDateTime.now()
   }
 
-  @PrePersist
-  fun onPrePersist() {
-    id = DefaultIdGenerator().generate()
-  }
 
   fun updateStatistics(newRating: Int) {
     totalReviews++

@@ -19,12 +19,12 @@
 
 package dev.yidafu.aqua.statistics.service.impl
 
+import dev.yidafu.aqua.api.service.order.OrderQueryApiService
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.statistics.dto.OrderStatisticsDTO
-import dev.yidafu.aqua.statistics.service.StatisticsService
-import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
-import dev.yidafu.aqua.order.domain.repository.OrderRepositoryCustom
 import dev.yidafu.aqua.statistics.model.repository.StatisticsOrderRepositoryCustom
+import dev.yidafu.aqua.statistics.service.StatisticsService
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -33,7 +33,7 @@ import java.time.temporal.WeekFields
 
 @Service
 class StatisticsServiceImpl(
-  private val orderRepository: OrderRepositoryCustom,
+  private val orderQueryApiService: OrderQueryApiService,
   private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
 ) : StatisticsService {
   /**
@@ -50,7 +50,7 @@ class StatisticsServiceImpl(
     val completedStatuses = listOf(OrderModelStatus.COMPLETED)
 
     val totalOrders =
-      orderRepository.countOrdersByDateRange(
+      orderQueryApiService.countByStatusAndCreatedAtBetween(
         startDateTime,
         endDateTime,
         deliveryWorkerId = null,
@@ -58,7 +58,7 @@ class StatisticsServiceImpl(
       )
 
     val totalAmountCents =
-      orderRepository.sumAmountCentsByStatusAndDateRange(
+      orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(
         allStatuses,
         startDateTime,
         endDateTime,
@@ -66,7 +66,7 @@ class StatisticsServiceImpl(
       )
 
     val completedOrders =
-      orderRepository.countOrdersByDateRange(
+      orderQueryApiService.countByStatusAndCreatedAtBetween(
         startDateTime,
         endDateTime,
         deliveryWorkerId = null,
@@ -74,7 +74,7 @@ class StatisticsServiceImpl(
       )
 
     val completedAmountCents =
-      orderRepository.sumAmountCentsByStatusAndDateRange(
+      orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(
         completedStatuses,
         startDateTime,
         endDateTime,

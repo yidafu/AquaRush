@@ -14,6 +14,11 @@ sourceSets {
       srcDir("../shared-config")
     }
   }
+  test {
+    resources {
+      srcDir("../shared-config")
+    }
+  }
 }
 
 // Copy shared GraphQL schemas to the correct location for Spring Boot GraphQL
@@ -40,6 +45,18 @@ tasks.named("processResources") {
   dependsOn("copyDatabaseChangelog")
 }
 
+// Copy GraphQL schemas for tests
+tasks.register<Copy>("copyGraphQLForTest") {
+  from("../../shared-config/graphql")
+  into("src/test/resources/graphql")
+  include("*.graphqls")
+  duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+}
+
+tasks.named("processTestResources") {
+  dependsOn("copyGraphQLForTest")
+}
+
 dependencies {
   // Include delivery/admin service specific modules
   implementation(project(":modules:aqua-logging"))
@@ -53,6 +70,7 @@ dependencies {
   implementation(project(":modules:aqua-storage"))
   implementation(project(":modules:aqua-reconciliation"))
   implementation(project(":modules:aqua-user")) // For admin user operations
+  implementation(project(":modules:aqua-product")) // For product services
 
   // Entry module specific dependencies
   implementation(libs.spring.boot.starter.web)
@@ -64,4 +82,14 @@ dependencies {
   implementation(libs.bundles.graphql)
   implementation(libs.liquibase.core)
   runtimeOnly(libs.postgresql)
+
+  // Test dependencies
+  testImplementation(libs.h2)
+  testImplementation(libs.spring.boot.starter.test)
+  testImplementation(libs.springmockk)
+  testImplementation(libs.mockk.core)
+  testImplementation("org.springframework.graphql:spring-graphql-test:2.0.0")
+  testImplementation("org.springframework.security:spring-security-test")
+  // Source: https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-graphql-test
+  testImplementation("org.springframework.boot:spring-boot-starter-graphql-test:4.1.0-M4")
 }

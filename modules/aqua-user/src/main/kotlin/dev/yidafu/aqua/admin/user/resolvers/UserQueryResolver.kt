@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.graphql.generated.UserListInput
-import dev.yidafu.aqua.common.graphql.generated.UserPage
+import dev.yidafu.aqua.common.graphql.generated.UserVoPage
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.common.graphql.utils.GraphQLSecurityContext
 import dev.yidafu.aqua.user.mapper.UserMapper
@@ -59,7 +59,7 @@ class UserQueryResolver(
   @PreAuthorize("hasRole('ADMIN')")
   fun users(
     @Argument input: UserListInput?,
-  ): UserPage {
+  ): UserVoPage {
     // Provide default values if input is null
     val sort = input?.sort ?: "createdAt,desc"
     val page = input?.page ?: 0
@@ -99,7 +99,7 @@ class UserQueryResolver(
       }
 
     val (userList, pageInfo) = userPage.toPageInfo { UserMapper.map(it) }
-    return UserPage(
+    return UserVoPage(
       list = userList,
       pageInfo = pageInfo,
     )

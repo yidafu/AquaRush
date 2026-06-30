@@ -68,10 +68,9 @@ class SecurityConfig(
             "/static/**",
             "/images/**",
             "/graphiql",
+            "/graphql",
           ).permitAll()
           .requestMatchers("/api/**")
-          .authenticated()
-          .requestMatchers("/graphql")
           .authenticated()
       }.csrf {
         it.disable()

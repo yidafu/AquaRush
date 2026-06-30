@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -22,7 +22,6 @@ package dev.yidafu.aqua.common.domain.model
 /**
  * 对账报表实体
  */
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.annotations.SoftDelete
@@ -66,10 +65,6 @@ class ReconciliationReportModel : SoftDeletable {
   @Column(name = "deleted_by")
   override var deletedBy: Long? = null
 
-  @PrePersist
-  fun onPrePersist() {
-    id = DefaultIdGenerator().generate()
-  }
 
   companion object {
     fun createSummaryReport(

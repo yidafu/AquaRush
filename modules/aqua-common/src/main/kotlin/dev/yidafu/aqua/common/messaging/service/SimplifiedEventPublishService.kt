@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -271,6 +271,17 @@ class SimplifiedEventPublishService(
           "timestamp" to System.currentTimeMillis(),
         ),
     )
+
+  fun publishAddressUpdate(
+    aggregateId: Long,
+    addressId: Long,
+  ) {
+    publishDomainEvent(
+      eventType = DomainEventType.ADDRESS_UPDATED.value,
+      aggregateId = aggregateId.toString(),
+      eventData = mapOf("addressId" to addressId),
+    )
+  }
 
   /**
    * 获取简化的系统状态

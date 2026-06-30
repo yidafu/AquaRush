@@ -1,0 +1,29 @@
+# Admin-specific Input Types
+
+input CreateAdminInput {
+  username: String!
+  password: String
+  realName: String
+  phone: String
+  role: AdminRole!
+  avatarUrl: String
+  status: DeliveryWorkerStatus
+  isAvailable: Boolean
+}
+
+input UpdateAdminInput {
+  username: String
+  realName: String
+  phone: String
+  role: AdminRole
+  avatarUrl: String
+  status: DeliveryWorkerStatus
+  isAvailable: Boolean
+}
+
+# Batch Import Result Types
+type BatchImportAddressesResult {
+  successCount: Int!
+  failureCount: Int!
+  totalCount: Int!
+}

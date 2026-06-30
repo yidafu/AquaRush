@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -20,7 +20,6 @@
 package dev.yidafu.aqua.storage.domain.entity
 
 import dev.yidafu.aqua.common.domain.model.SnowflakeIdGenerator
-import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.storage.domain.enums.FileType
 import jakarta.persistence.*
 import java.time.LocalDateTime
@@ -152,10 +151,6 @@ class FileMetadata {
     this.updatedAt = now
   }
 
-  @PrePersist
-  fun onPrePersist() {
-    id = DefaultIdGenerator().generate()
-  }
 
   @PreUpdate
   fun preUpdate() {

@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -20,10 +20,10 @@
 package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.api.query.ProductSearchRequest
-import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.graphql.generated.*
-import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
+import dev.yidafu.aqua.common.graphql.generated.Product
+import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
+import dev.yidafu.aqua.common.graphql.generated.ProductVoPage
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.product.mapper.ProductMapper
 import dev.yidafu.aqua.product.mapper.ProductQueryMapper
@@ -39,7 +39,6 @@ import org.springframework.stereotype.Controller
  * 管理端产品查询解析器
  * 提供产品管理的完整查询功能，仅管理员可访问
  */
-@AdminService
 @Controller
 class AdminProductQueryResolver(
   private val productService: ProductServiceImpl,
@@ -51,7 +50,7 @@ class AdminProductQueryResolver(
   @QueryMapping
   fun productsPaginated(
     @Argument input: ProductSearchInput,
-  ): ProductPage {
+  ): ProductVoPage {
     val actualPage = input.page ?: 0
     val actualSize = input.size ?: 20
     val pageable: Pageable = PageRequest.of(actualPage, actualSize)
@@ -59,7 +58,7 @@ class AdminProductQueryResolver(
     val productsPage = productService.productsPaginated(query, pageable)
 
     val (productList, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
-    return ProductPage(
+    return ProductVoPage(
       list = productList,
       pageInfo = pageInfo,
     )
@@ -81,22 +80,15 @@ class AdminProductQueryResolver(
     @Argument keyword: String?,
     @Argument page: Int = 0,
     @Argument size: Int = 20,
-  ): ProductPage {
+  ): ProductVoPage {
     val pageable = PageRequest.of(page, size)
     val productsPage = productService.productsPaginated(ProductSearchRequest(keyword), pageable)
     val (productList, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
-    return ProductPage(
+    return ProductVoPage(
       list = productList,
       pageInfo = pageInfo,
     )
   }
-
-  /**
-   * 获取产品统计信息（管理员功能）- GraphQL
-   */
-  @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
-  fun productStatistics(): ProductStatistics = productService.getProductStatistics()
 
   /**
    * 获取热销产品（管理员功能）

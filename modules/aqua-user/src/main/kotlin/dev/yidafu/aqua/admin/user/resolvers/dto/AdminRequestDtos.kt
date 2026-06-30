@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush Admin User Resolver DTOs
  *
  * Copyright (C) 2025 AquaRush Team

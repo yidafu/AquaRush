@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -45,7 +45,7 @@ class MonetaryFieldsIntegrationTest {
       val order =
         OrderModel(
           id = 1L,
-          orderNumber = "TEST-001",
+          orderNo = "TEST-001",
           userId = 100L,
           productId = 200L,
           quantity = 1,
@@ -75,7 +75,7 @@ class MonetaryFieldsIntegrationTest {
     val order =
       OrderModel(
         id = 1L,
-        orderNumber = "LARGE-001",
+        orderNo = "LARGE-001",
         userId = 100L,
         productId = 200L,
         quantity = 1,
@@ -95,7 +95,7 @@ class MonetaryFieldsIntegrationTest {
     val baseOrder =
       OrderModel(
         id = 1L,
-        orderNumber = "PRECISION-001",
+        orderNo = "PRECISION-001",
         userId = 100L,
         productId = 200L,
         quantity = 3,
@@ -123,7 +123,7 @@ class MonetaryFieldsIntegrationTest {
     val order1 =
       OrderModel(
         id = 1L,
-        orderNumber = "ORDER-001",
+        orderNo = "ORDER-001",
         userId = 100L,
         productId = 200L,
         quantity = 1,
@@ -135,7 +135,7 @@ class MonetaryFieldsIntegrationTest {
     val order2 =
       OrderModel(
         id = 2L,
-        orderNumber = "ORDER-002",
+        orderNo = "ORDER-002",
         userId = 100L,
         productId = 201L,
         quantity = 1,
@@ -172,7 +172,7 @@ class MonetaryFieldsIntegrationTest {
     val zeroOrder =
       OrderModel(
         id = 1L,
-        orderNumber = "ZERO-001",
+        orderNo = "ZERO-001",
         userId = 100L,
         productId = 200L,
         quantity = 1,
@@ -186,7 +186,7 @@ class MonetaryFieldsIntegrationTest {
     val minOrder =
       OrderModel(
         id = 2L,
-        orderNumber = "MIN-001",
+        orderNo = "MIN-001",
         userId = 100L,
         productId = 200L,
         quantity = 1,
@@ -200,7 +200,7 @@ class MonetaryFieldsIntegrationTest {
     val oneYuanOrder =
       OrderModel(
         id = 3L,
-        orderNumber = "ONE-001",
+        orderNo = "ONE-001",
         userId = 100L,
         productId = 200L,
         quantity = 1,
@@ -217,7 +217,7 @@ class MonetaryFieldsIntegrationTest {
     val order =
       OrderModel(
         id = 1L,
-        orderNumber = "FORMAT-001",
+        orderNo = "FORMAT-001",
         userId = 100L,
         productId = 200L,
         quantity = 1,
@@ -244,7 +244,7 @@ class MonetaryFieldsIntegrationTest {
       val order =
         OrderModel(
           id = 1L,
-          orderNumber = "CONSISTENCY-001",
+          orderNo = "CONSISTENCY-001",
           userId = 100L,
           productId = 200L,
           quantity = 1,
@@ -306,7 +306,7 @@ class MonetaryFieldsIntegrationTest {
       assertDoesNotThrow {
         OrderModel(
           id = 1L,
-          orderNumber = "VALID-001",
+          orderNo = "VALID-001",
           userId = 100L,
           productId = 200L,
           quantity = 1,
@@ -322,7 +322,7 @@ class MonetaryFieldsIntegrationTest {
     val negativeOrder =
       OrderModel(
         id = 2L,
-        orderNumber = "INVALID-001",
+        orderNo = "INVALID-001",
         userId = 100L,
         productId = 200L,
         quantity = 1,

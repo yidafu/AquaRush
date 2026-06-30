@@ -8,10 +8,12 @@ dependencies {
   implementation(project(":modules:aqua-logging"))
   implementation(project(":modules:aqua-common"))
   implementation(project(":modules:aqua-api"))
-  implementation(project(":modules:aqua-user"))
-  implementation(project(":modules:aqua-product"))
-  implementation(project(":modules:aqua-delivery"))
-  implementation(project(":modules:aqua-payment"))
+
+  // Mapper dependencies - needed for OrderMappers to reference other module mappers
+  // These are compileOnly because they are only used for object mapping, not data access
+  compileOnly(project(":modules:aqua-product"))
+  compileOnly(project(":modules:aqua-user"))
+  compileOnly(project(":modules:aqua-delivery"))
 
   // GraphQL support
   implementation(libs.bundles.graphql)

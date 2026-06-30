@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.graphql.exceptions
 
+import dev.yidafu.aqua.common.exception.BusinessException
 import graphql.ErrorType
 import graphql.GraphQLError
 import graphql.language.SourceLocation
@@ -34,6 +35,7 @@ class GraphQLErrorHandler {
       override fun getMessage(): String =
         when (throwable) {
           is ConstraintViolationException -> extractValidationMessage(throwable)
+          is BusinessException -> throwable.message
           is AuthenticationException -> "Authentication failed: ${throwable.message}"
           is AccessDeniedException -> "Access denied: ${throwable.message}"
           is IllegalArgumentException -> "Invalid input: ${throwable.message}"
@@ -45,6 +47,7 @@ class GraphQLErrorHandler {
       override fun getErrorType(): ErrorType? =
         when (throwable) {
           is ConstraintViolationException -> ErrorType.ValidationError
+          is BusinessException -> ErrorType.DataFetchingException
           is AuthenticationException -> ErrorType.DataFetchingException
           is AccessDeniedException -> ErrorType.DataFetchingException
           is IllegalArgumentException -> ErrorType.DataFetchingException
@@ -54,6 +57,7 @@ class GraphQLErrorHandler {
       override fun getExtensions(): Map<String, Any>? =
         when (throwable) {
           is ConstraintViolationException -> extractValidationExtensions(throwable)
+          is BusinessException -> mapOf("code" to throwable.code)
           is AuthenticationException -> mapOf("code" to "AUTHENTICATION_ERROR")
           is AccessDeniedException -> mapOf("code" to "ACCESS_DENIED")
           is IllegalArgumentException -> mapOf("code" to "INVALID_INPUT")

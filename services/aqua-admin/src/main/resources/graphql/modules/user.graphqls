@@ -1,0 +1,7 @@
+# User management - Admin only
+
+extend type Query {
+  # User queries
+  users(input: UserListInput): UserVoPage!
+  user(id: PrimaryId!): User
+}

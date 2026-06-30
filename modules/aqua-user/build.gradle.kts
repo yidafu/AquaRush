@@ -25,6 +25,12 @@ dependencies {
 
   // QueryDSL dependencies are handled by aqua.kotlin.querydsl plugin
   implementation(libs.wechat.miniapp)
+
+  // Test dependencies
+  testImplementation(libs.h2)
+  testImplementation(libs.spring.boot.starter.test)
+  testImplementation(libs.mockk.core)
+  testImplementation("org.springframework.graphql:spring-graphql-test:1.3.0")
 }
 
 // QueryDSL configuration is now handled by aqua.kotlin.querydsl plugin

@@ -1,5 +1,8 @@
 # 用户操作日志增强模块
 
+> **重要说明**: 本模块 (`UserActionLogger`) 仅用于记录**前端用户行为**（如页面访问、点击、输入等）。
+> 后端业务操作请使用 `BusinessLogService`，详见 [BusinessLogService](../aqua-logging/src/main/kotlin/dev/yidafu/aqua/logging/service/BusinessLogService.kt)
+
 本文档介绍了 AquaRush 项目中新增的用户操作日志功能，该功能允许系统记录和监控用户的各种操作行为，包括页面访问、点击、表单提交、搜索等。
 
 ## 功能概述
@@ -7,33 +10,37 @@
 ### 核心特性
 
 1. **多类型用户操作记录**
-  - 页面访问 (PAGE_VIEW)
-  - 点击事件 (CLICK)
-  - 拖拽操作 (DRAG)
-  - 输入事件 (INPUT)
-  - 表单提交 (FORM_SUBMIT)
-  - 搜索操作 (SEARCH)
-  - 分享操作 (SHARE)
-  - 滚动操作 (SCROLL)
-  - 文件操作 (FILE_OPERATION)
-  - 自定义操作
+
+- 页面访问 (PAGE_VIEW)
+- 点击事件 (CLICK)
+- 拖拽操作 (DRAG)
+- 输入事件 (INPUT)
+- 表单提交 (FORM_SUBMIT)
+- 搜索操作 (SEARCH)
+- 分享操作 (SHARE)
+- 滚动操作 (SCROLL)
+- 文件操作 (FILE_OPERATION)
+- 自定义操作
 
 2. **异步批量处理**
-  - 高性能异步处理机制
-  - 批量处理减少I/O开销
-  - 可配置的批处理大小和刷新间隔
-  - 降级机制确保可靠性
+
+- 高性能异步处理机制
+- 批量处理减少I/O开销
+- 可配置的批处理大小和刷新间隔
+- 降级机制确保可靠性
 
 3. **灵活的配置选项**
-  - 可独立控制各种操作类型的记录
-  - 敏感数据自动脱敏
-  - 冷热数据分离存储
-  - 日志保留策略
+
+- 可独立控制各种操作类型的记录
+- 敏感数据自动脱敏
+- 冷热数据分离存储
+- 日志保留策略
 
 4. **RESTful API接口**
-  - 单个用户操作记录接口
-  - 批量用户操作记录接口
-  - 完整的请求验证和错误处理
+
+- 单个用户操作记录接口
+- 批量用户操作记录接口
+- 完整的请求验证和错误处理
 
 ## 配置说明
 
@@ -290,26 +297,26 @@ aqua:
 
 ### 后端代码中使用
 
+> **注意**: 后端业务操作应使用 `BusinessLogService` 而非 `UserActionLogger`。
+> 详见 [BusinessLogService](../aqua-logging/src/main/kotlin/dev/yidafu/aqua/logging/service/BusinessLogService.kt)
+
 ```kotlin
 @Service
 class OrderService(
-  private val userActionLogger: UserActionLogger
+  private val businessLogService: BusinessLogService
 ) {
 
   fun createOrder(orderRequest: CreateOrderRequest): Order {
     // 业务逻辑...
 
-    // 记录订单创建操作
-    userActionLogger.logBackendOperation(
-      operation = "CREATE_ORDER",
-      module = "ORDER",
-      result = "SUCCESS",
-      target = orderRequest.productId,
-      additionalData = mapOf(
-        "orderId" to order.id,
-        "amount" to order.amount,
-        "customerId" to order.userId
-      )
+    // 记录订单创建操作 - 使用 BusinessLogService
+    businessLogService.saveBusinessLog(
+      correlationId = CorrelationIdHolder.getCorrelationId(),
+      level = "INFO",
+      loggerName = "ORDER",
+      message = "Order created: ${order.id}",
+      userId = order.userId,
+      username = order.username,
     )
 
     return order
@@ -468,19 +475,22 @@ interface UserActionProcessor {
 ### 常见问题
 
 1. **用户操作日志未记录**
-  - 检查配置是否启用
-  - 确认日志级别设置
-  - 查看错误日志
+
+- 检查配置是否启用
+- 确认日志级别设置
+- 查看错误日志
 
 2. **异步处理延迟**
-  - 检查队列大小配置
-  - 确认处理线程状态
-  - 监控系统资源使用
+
+- 检查队列大小配置
+- 确认处理线程状态
+- 监控系统资源使用
 
 3. **日志文件过大**
-  - 调整轮转策略
-  - 减少记录的操作类型
-  - 启用数据压缩
+
+- 调整轮转策略
+- 减少记录的操作类型
+- 启用数据压缩
 
 ### 日志级别
 

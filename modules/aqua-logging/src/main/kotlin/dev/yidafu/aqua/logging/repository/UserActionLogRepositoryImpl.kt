@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.logging.repository
 
 import com.querydsl.core.BooleanBuilder
+import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.QUserActionLogModel
 import dev.yidafu.aqua.common.domain.model.UserActionLogModel
@@ -29,6 +30,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -81,5 +83,43 @@ class UserActionLogRepositoryImpl : UserActionLogRepositoryCustom {
         .fetch()
 
     return PageImpl(results, pageable, total)
+  }
+
+  override fun countDistinctUsersByActionTypeAndDateRange(
+    actionType: String,
+    startTime: LocalDateTime,
+    endTime: LocalDateTime,
+  ): Long =
+    queryFactory
+      .query()
+      .from(userActionLog)
+      .where(
+        userActionLog.actionType.eq(actionType),
+        userActionLog.createdAt.goe(startTime),
+        userActionLog.createdAt.loe(endTime),
+      ).select(userActionLog.userId.countDistinct())
+      .fetchOne() ?: 0
+
+  override fun countDailyLoginsByDateRange(
+    startTime: LocalDateTime,
+    endTime: LocalDateTime,
+  ): Map<LocalDate, Long> {
+    // Use DATE template to group by date
+    val dateExpr = Expressions.dateTemplate(LocalDate::class.java, "DATE({0})", userActionLog.createdAt)
+
+    val results =
+      queryFactory
+        .select(
+          dateExpr,
+          userActionLog.userId.countDistinct(),
+        ).from(userActionLog)
+        .where(
+          userActionLog.actionType.eq("USER_LOGIN"),
+          userActionLog.createdAt.goe(startTime),
+          userActionLog.createdAt.loe(endTime),
+        ).groupBy(dateExpr)
+        .fetch()
+
+    return results.associate { tuple -> tuple.get(dateExpr)!! to tuple.get(userActionLog.userId.countDistinct())!! }
   }
 }

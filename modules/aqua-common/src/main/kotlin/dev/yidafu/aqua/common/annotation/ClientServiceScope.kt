@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush Service Scope Annotation
  *
  * Copyright (C) 2025 AquaRush Team

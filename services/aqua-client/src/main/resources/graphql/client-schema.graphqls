@@ -29,29 +29,9 @@ type Query {
   region(code: String!): Region
   # 获取所有地区数据，用于前端构建树形结构
   allRegions: [Region!]!
-  regionByCoordinates(
-    longitude: Float!
-    latitude: Float!
-  ): RegionCoordinatesPayload
-  searchRegions(keyword: String!, level: Int): [Region!]!
-
-  # Geolocation Services
-  nearbyAddresses(
-    longitude: Float!
-    latitude: Float!
-    radiusKm: Float
-  ): NearbyAddressesPayload
-  calculateDistance(
-    lng1: Float!
-    lat1: Float!
-    lng2: Float!
-    lat2: Float!
-  ): DistancePayload
-  isInServiceArea(longitude: Float!, latitude: Float!): ServiceAreaPayload
 
   # Products
-  allProducts: [Product!]!
-  activeProducts(keyword: String, page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductPage!
+  activeProducts(keyword: String, page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductVoPage!
   product(id: PrimaryId!): Product
 
   # Orders
@@ -59,37 +39,11 @@ type Query {
   orderByNo(orderNo: String!): Order
   orderOperations(orderId: PrimaryId!): [OrderOperation!]!
 
-  # Payments
-  orderPaymentInfo(orderId: PrimaryId!): OrderPaymentInfo!
-  myPaymentTransactions(
-    page: Int = 0
-    size: Int = 20
-  ): [UserPaymentTransaction!]!
-  refundEligibility(orderId: PrimaryId!): RefundEligibility!
-  myRefundRequests(page: Int = 0, size: Int = 20): [RefundRequest!]!
-
-  # Review queries
-  checkOrderReview(orderId: PrimaryId!): OrderReviewCheckResponse!
-  myReviews(page: Int, size: Int): [Review!]!
-
   # Favorites queries
-  favoriteProducts(page: Int = 0, size: Int = 20): FavoriteProductPage!
+  favoriteProducts(page: Int = 0, size: Int = 20): FavoriteProductVoPage!
   isProductFavorited(productId: PrimaryId!): Boolean!
   favoritesCount: Long!
 
-  # Notification queries
-  getUserNotificationSettings: UserNotificationSettings!
-  getMessageHistory(page: CustomPageRequest): MessageHistoryPage!
-  getMessageStatistics: MessageStatistics!
-  isNotificationEnabled(messageType: String!): Boolean!
-  getUnreadMessageCount: Int!
-  getRecentMessages(limit: Int = 10, messageType: String): [ClientMessage!]!
-  getMessageDetail(messageId: PrimaryId!): ClientMessage
-  searchMessages(keyword: String!, page: Int = 0, size: Int = 20, dateFrom: LocalDateTime, dateTo: LocalDateTime): MessageHistoryPage!
-  getMessageTypes: [MessageTypeInfo!]!
-
-  # Default region hierarchy
-  defaultRegionHierarchy: RegionHierarchy
 }
 
 # Client-specific Mutation Schema
@@ -110,157 +64,10 @@ type Mutation {
   cancelOrder(orderId: PrimaryId!): Order!
 
 
-  # Payments
-  createWechatPayment(input: CreateWechatPaymentInput!): PaymentData!
-  handleWechatCallback(input: WechatCallbackInput!): String!
-  refund(input: RefundInput!): Boolean!
-  requestRefund(input: RequestRefundInput!): RefundRequest!
-
-  # Review mutations
-  createReview(input: CreateReviewRequest!): Review!
-
   # Favorites mutations
   toggleProductFavorites(productId: PrimaryId!): Boolean!
 
-  # Notification mutations
-  updateNotificationSettings(input: UpdateNotificationSettingsInput!): UserNotificationSettings!
-  enableAllNotifications: UserNotificationSettings!
-  disableAllNotifications: UserNotificationSettings!
-  markMessageAsRead(messageId: PrimaryId!): Boolean!
-  markMessagesAsRead(messageIds: [PrimaryId!]!): Boolean!
-  deleteMessage(messageId: PrimaryId!): Boolean!
-  deleteMessages(messageIds: [PrimaryId!]!): Boolean!
-
-  # Region mutations (Admin only)
-  createRegion(input: CreateRegionInput!): Region!
-  updateRegion(code: String!, input: UpdateRegionInput!): Region!
-  deleteRegion(code: String!): Boolean!
+  # 配送员每日收款（配送员小程序使用）
+  submitDailyCollection(input: SubmitDailyCollectionInput!): DailyCollectionRecord!
 }
 
-# Additional Client-specific Payment Types
-type UserPaymentTransaction {
-  id: String!
-  orderId: PrimaryId!
-  orderNo: String!
-  amount: BigDecimal!
-  status: PaymentStatus!
-  paymentMethod: PaymentMethod!
-  transactionId: String
-  createdAt: LocalDateTime!
-  completedAt: LocalDateTime
-  refundedAt: LocalDateTime
-  refundAmount: BigDecimal
-  failureReason: String
-}
-
-type PaymentStatusInfo {
-  transactionId: String!
-  status: PaymentStatus!
-  orderNo: String!
-  amount: BigDecimal!
-  createdAt: LocalDateTime!
-  updatedAt: LocalDateTime!
-  paidAt: LocalDateTime
-  refundedAt: LocalDateTime
-  refundAmount: BigDecimal
-  failureReason: String
-}
-
-input RequestRefundInput {
-  orderId: PrimaryId!
-  outTradeNo: String!
-  amount: BigDecimal!
-  reason: String!
-}
-
-# Region mutation inputs
-input CreateRegionInput {
-  name: String!
-  @notBlank(message: "地区名称不能为空")
-  @size(min: 2, max: 50, message: "地区名称长度应在2-50个字符之间")
-  code: String!
-  @notBlank(message: "地区代码不能为空")
-  @size(min: 1, max: 20, message: "地区代码长度应在1-20个字符之间")
-  @pattern(regexp: "^[A-Z0-9]+$", message: "地区代码只能包含大写字母和数字")
-  level: Int!
-  @min(value: 1, message: "地区级别不能小于1")
-  @max(value: 5, message: "地区级别不能大于5")
-  parentCode: String
-  @size(min: 1, max: 20, message: "上级地区代码长度应在1-20个字符之间")
-}
-
-input UpdateRegionInput {
-  name: String @size(min: 2, max: 50, message: "地区名称长度应在2-50个字符之间")
-  parentCode: String
-  @size(min: 1, max: 20, message: "上级地区代码长度应在1-20个字符之间")
-}
-
-# Region hierarchy for default region configuration
-type RegionHierarchy {
-  province: Region!
-  city: Region!
-  district: Region!
-  provinces: [Region!]!
-  cities: [Region!]!
-  districts: [Region!]!
-}
-
-# Notification Types
-type UserNotificationSettings {
-  id: PrimaryId!
-  userId: PrimaryId!
-  orderUpdates: Boolean!
-  paymentNotifications: Boolean!
-  deliveryNotifications: Boolean!
-  promotionalNotifications: Boolean!
-  createdAt: LocalDateTime!
-  updatedAt: LocalDateTime!
-}
-
-type ClientMessage {
-  id: PrimaryId!
-  messageType: String!
-  title: String
-  content: String!
-  sentAt: LocalDateTime!
-  readAt: LocalDateTime
-  isRead: Boolean!
-  data: Map
-}
-
-type MessageTypeInfo {
-  type: String!
-  name: String!
-  description: String!
-}
-
-type DoNotDisturbSettings {
-  enabled: Boolean!
-  startTime: String
-  endTime: String
-}
-
-type MessageHistoryPage {
-  list: [ClientMessage!]!
-  pageInfo: PageInfo!
-}
-
-type MessageStatistics {
-  totalMessages: Long!
-  readMessages: Long!
-  unreadMessages: Long!
-  messageTypes: Map!
-}
-
-# Notification Input Types
-input UpdateNotificationSettingsInput {
-  orderUpdates: Boolean
-  paymentNotifications: Boolean
-  deliveryNotifications: Boolean
-  promotionalNotifications: Boolean
-}
-
-input CustomPageRequest {
-  page: Int = 0
-  size: Int = 20
-}

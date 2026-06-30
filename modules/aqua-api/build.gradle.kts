@@ -4,7 +4,7 @@ plugins {
 }
 
 dependencies {
-  // Only depend on common-module
+  // Only depend on common-module (cannot depend on business modules to avoid circular dependency)
   implementation(project(":modules:aqua-common"))
 
   // GraphQL

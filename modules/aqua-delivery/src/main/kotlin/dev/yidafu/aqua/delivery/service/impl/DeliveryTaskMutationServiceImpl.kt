@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -203,6 +203,11 @@ class DeliveryTaskMutationServiceImpl(
     // 验证订单状态
     if (order.status != OrderModelStatus.PENDING_DELIVERY) {
       throw BadRequestException("订单状态不正确，无法开始配送")
+    }
+
+    // 验证配送员已分配
+    if (order.deliveryWorkerId == null) {
+      throw BadRequestException("订单未分配配送员，无法开始配送")
     }
 
     // 设置开始配送时间

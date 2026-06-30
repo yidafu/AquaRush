@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -45,6 +45,12 @@ enum class DomainEventType(
   // 用户事件
   USER_REGISTERED("USER_REGISTERED"),
   USER_UPDATED("USER_UPDATED"),
+
+  // 地址事件
+  ADDRESS_UPDATED("ADDRESS_UPDATED"),
+
+  // 商品事件
+  PRODUCT_UPDATED("PRODUCT_UPDATED"),
 
   // 通用事件
   UNKNOWN("UNKNOWN"),

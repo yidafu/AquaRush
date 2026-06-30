@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -36,7 +36,8 @@ class ValidationDirectivesTest {
 
     // 测试有效的输入
     val validInput =
-      ExecutionInput.newExecutionInput()
+      ExecutionInput
+        .newExecutionInput()
         .query("mutation { test(input: { name: \"valid name\" }) }")
         .build()
 
@@ -45,7 +46,8 @@ class ValidationDirectivesTest {
 
     // 测试无效的输入（空字符串）
     val invalidInput =
-      ExecutionInput.newExecutionInput()
+      ExecutionInput
+        .newExecutionInput()
         .query("mutation { test(input: { name: \"\" }) }")
         .build()
 
@@ -61,7 +63,8 @@ class ValidationDirectivesTest {
 
     // 测试有效的输入（长度在范围内）
     val validInput =
-      ExecutionInput.newExecutionInput()
+      ExecutionInput
+        .newExecutionInput()
         .query("mutation { test(input: { name: \"valid name\" }) }")
         .build()
 
@@ -70,7 +73,8 @@ class ValidationDirectivesTest {
 
     // 测试无效的输入（长度超过最大值）
     val invalidInput =
-      ExecutionInput.newExecutionInput()
+      ExecutionInput
+        .newExecutionInput()
         .query("mutation { test(input: { name: \"${"a".repeat(30)}\" }) }")
         .build()
 
@@ -86,7 +90,8 @@ class ValidationDirectivesTest {
 
     // 测试有效的输入（符合手机号格式）
     val validInput =
-      ExecutionInput.newExecutionInput()
+      ExecutionInput
+        .newExecutionInput()
         .query("mutation { test(input: { phone: \"13812345678\" }) }")
         .build()
 
@@ -95,7 +100,8 @@ class ValidationDirectivesTest {
 
     // 测试无效的输入（不符合手机号格式）
     val invalidInput =
-      ExecutionInput.newExecutionInput()
+      ExecutionInput
+        .newExecutionInput()
         .query("mutation { test(input: { phone: \"123\" }) }")
         .build()
 
@@ -135,17 +141,16 @@ class ValidationDirectivesTest {
 
     val validationHandler = ValidationDirectiveHandler()
     val runtimeWiring =
-      RuntimeWiring.newRuntimeWiring()
+      RuntimeWiring
+        .newRuntimeWiring()
         .directive("notBlank", validationHandler)
         .directive("size", validationHandler)
         .directive("pattern", validationHandler)
         .type("Query") { builder ->
           builder.dataFetcher("hello") { env -> "Hello World" }
-        }
-        .type("Mutation") { builder ->
+        }.type("Mutation") { builder ->
           builder.dataFetcher("test") { env -> "Success" }
-        }
-        .build()
+        }.build()
 
     val schemaGenerator = SchemaGenerator()
     return schemaGenerator.makeExecutableSchema(typeDefinitionRegistry, runtimeWiring)

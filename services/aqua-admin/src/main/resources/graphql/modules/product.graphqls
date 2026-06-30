@@ -1,0 +1,26 @@
+# Product management (Admin)
+
+extend type Query {
+  # Product queries
+  product(id: PrimaryId!): Product
+  productStatistics(dateRange: DateRangeInput): ProductStatistics
+  productDailySales(input: DateRangeInput!): [ProductDailySales!]!
+  lowStockProducts(threshold: Int = 10): [LowStockAlert!]!
+  productsPaginated(input: ProductSearchInput): ProductVoPage
+  topSalesProducts(limit: Int = 10): [Product!]!
+  activeProducts(keyword: String, page: Int = 0, size: Int = 20): ProductVoPage!
+}
+
+extend type Mutation {
+  # Product mutations
+  createProduct(input: CreateProductInput!): Product!
+  updateProduct(id: PrimaryId!, input: UpdateProductInput!): Product!
+  deleteProduct(id: PrimaryId!): Boolean!
+  increaseStock(productId: PrimaryId!, quantity: Int!): String!
+  decreaseStock(productId: PrimaryId!, quantity: Int!): Boolean!
+  batchUpdateProducts(input: [ProductUpdateRequest!]!): [Product!]!
+  updateProductStatus(productId: PrimaryId!, status: ProductStatus!): Product!
+  onlineProduct(id: PrimaryId!): Product!
+  offlineProduct(id: PrimaryId!): Product!
+  batchAdjustStock(input: BatchStockAdjustmentInput!): BatchStockAdjustmentResult!
+}

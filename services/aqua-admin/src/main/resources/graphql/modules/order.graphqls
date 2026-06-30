@@ -1,0 +1,37 @@
+# Order management (Admin/Delivery perspective)
+
+extend type Query {
+  # Order queries
+  order(orderId: PrimaryId!): Order
+  orderByNo(orderNo: String!): Order
+  orders(input: OrderListInput): OrderVoPage
+  orderOperations(orderId: PrimaryId!): [OrderOperation!]!
+
+  # 派单相关查询
+  pendingDeliveryOrders: [Order!]!              # 待派单订单
+  assignedOrders: [Order!]!  # 已分配订单
+  deliveringOrders: [Order!]! # 配送中订单
+
+  # 配送员历史订单查询（已完成、已取消、已退款）
+  deliveryWorkerHistoryOrders(
+    status: OrderStatus
+    keyword: String
+    page: Int = 0
+    size: Int = 20
+  ): OrderVoPage!
+}
+
+extend type Mutation {
+  # Order mutations
+  updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): Order!
+  createDeliveryOrder(input: CreateDeliveryOrderInput!): Order!  # 配送员创建订单
+
+  # 派单管理
+  assignDeliveryWorker(orderId: PrimaryId!, workerId: PrimaryId!, isSelfCollect: Boolean!): Order!
+  batchAssignOrders(orderIds: [PrimaryId!]!, workerId: PrimaryId!): [Order!]!
+
+  # 配送员操作
+  acceptDelivery(orderId: PrimaryId!): Order!           # 配送员接单
+  startDelivery(orderId: PrimaryId!): Order!             # 开始配送
+  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType, remark: String): Order!  # 完成配送
+}

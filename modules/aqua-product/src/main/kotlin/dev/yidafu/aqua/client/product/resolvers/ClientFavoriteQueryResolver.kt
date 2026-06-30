@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.FavoriteProduct
-import dev.yidafu.aqua.common.graphql.generated.FavoriteProductPage
+import dev.yidafu.aqua.common.graphql.generated.FavoriteProductVoPage
 import dev.yidafu.aqua.common.graphql.generated.PageInfo
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.product.mapper.ProductModelStatusMapper
@@ -56,7 +56,7 @@ class ClientFavoriteQueryResolver(
     @Argument page: Int,
     @Argument size: Int,
     @AuthenticationPrincipal userPrincipal: UserPrincipal,
-  ): FavoriteProductPage =
+  ): FavoriteProductVoPage =
     try {
       val pageable = PageRequest.of(page, size)
       val productPage = productFavoriteService.getFavoriteProducts(userPrincipal.id, pageable)
@@ -72,7 +72,7 @@ class ClientFavoriteQueryResolver(
           createFavoriteProduct(product, favoriteMap[product.id])
         }
 
-      FavoriteProductPage(
+      FavoriteProductVoPage(
         list = favoriteProducts,
         pageInfo =
           PageInfo(

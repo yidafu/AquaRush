@@ -9,7 +9,6 @@ dependencies {
   implementation(project(":modules:aqua-common"))
   implementation(project(":modules:aqua-api"))
   implementation(project(":modules:aqua-logging"))
-  implementation(project(":modules:aqua-delivery"))
   implementation(libs.bundles.spring.boot.web)
   implementation(libs.bundles.spring.boot.data)
   implementation(libs.bundles.graphql)

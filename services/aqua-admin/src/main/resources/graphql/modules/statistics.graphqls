@@ -1,0 +1,22 @@
+# Statistics and Analytics - Admin only
+
+extend type Query {
+  # 当日统计数据
+  todayStatistics: TodayStatistics
+
+  # 一周统计数据
+  weekStatistics: WeekStatistics
+
+  # Statistics and Analytics
+  orderStatistics(input: DateRangeInput!): OrderStatistics!
+  dailyStatistics(input: DateRangeInput!): [DailyStatistic!]!
+  weeklyStatistics(input: DateRangeInput!): [WeeklyStatistic!]!
+  monthlyStatistics(input: DateRangeInput!): [MonthlyStatistic!]!
+
+  # User Statistics - Admin only
+  userStatistics: UserStatistics!
+
+  # Delivery Worker Statistics - Admin only
+  deliveryWorkerStatistics: DeliveryWorkerOverview!
+  deliveryWorkerRanking(limit: Int = 10): [DeliveryWorkerRankingItem!]!
+}

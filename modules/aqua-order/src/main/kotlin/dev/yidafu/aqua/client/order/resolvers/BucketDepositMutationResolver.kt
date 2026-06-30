@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush Client BucketDeposit Mutation Resolver
  *
  * Copyright (C) 2025 AquaRush Team

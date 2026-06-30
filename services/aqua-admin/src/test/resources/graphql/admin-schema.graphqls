@@ -1,0 +1,259 @@
+# Aqua Admin GraphQL Schema
+# Schema for the Admin dashboard and delivery worker management
+
+# Extend shared schema
+# The shared types are imported from shared-config/graphql/shared-types.graphqls
+
+# Schema definition
+schema {
+  query: Query
+  mutation: Mutation
+}
+
+# Admin-specific Query Schema
+type Query {
+  # Admin queries - Admin only
+  admins: [Admin!]!
+  admin(id: PrimaryId!): Admin
+
+  # User management - Admin only
+  users(input: UserListInput): UserVoPage!
+  user(id: PrimaryId!): User
+
+  # Delivery Worker queries
+  deliveryWorkers: [DeliveryWorker!]!
+  onlineDeliveryWorkers: [DeliveryWorker!]!
+  deliveryWorker(id: PrimaryId!): DeliveryWorker
+
+  # Addresses (for admin management)
+  userAddresses(userId: Long): [Address!]!
+  addresses: [Address!]!
+  address(id: PrimaryId!): Address
+  searchUserAddresses(keyword: String!, userId: Long, page: Int = 0, size: Int = 10): [Address!]!
+  searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): [Address!]!
+  deliveryAddresses: [DeliveryAddress!]!
+  deliveryAddress(id: PrimaryId!): DeliveryAddress
+
+  # Products (Admin management)
+  product(id: PrimaryId!): Product
+  productStatistics(dateRange: DateRangeInput): ProductStatistics
+  productDailySales(input: DateRangeInput!): [ProductDailySales!]!
+  productSalesTrend(input: ProductSalesTrendInput!): ProductSalesTrend
+  lowStockProducts(threshold: Int = 10): [LowStockAlert!]!
+  productsPaginated(input: ProductSearchInput): ProductVoPage
+
+  # Enhanced Product Management Queries
+  topSalesProducts(limit: Int = 10): [Product!]!
+  activeProducts(keyword: String, page: Int = 0, size: Int = 20): ProductVoPage!
+
+  # Orders (Admin/Delivery perspective)
+  order(orderId: PrimaryId!): Order
+  orderByNo(orderNo: String!): Order
+  orders(input: OrderListInput): OrderVoPage
+  orderOperations(orderId: PrimaryId!): [OrderOperation!]!
+
+  # 派单相关查询
+  pendingDeliveryOrders: [Order!]!              # 待派单订单
+  assignedOrders: [Order!]!  # 已分配订单
+  deliveringOrders: [Order!]! # 配送中订单
+
+  # 配送员历史订单查询（已完成、已取消、已退款）
+  deliveryWorkerHistoryOrders(
+    status: OrderStatus
+    keyword: String
+    page: Int = 0
+    size: Int = 20
+  ): OrderVoPage!
+
+  # 当日统计数据
+  todayStatistics: TodayStatistics
+
+  # 一周统计数据
+  weekStatistics: WeekStatistics
+
+  # 每日收款查询
+  dailyCollections(collectionDate: String): [DailyCollectionRecord!]!
+  dailyReconciliations: [DailyReconciliation!]!
+  dailyReconciliation(reconciliationDate: String!): DailyReconciliation
+  # 配送员今日收款 - 获取今日收款预计算结果（订单统计）
+  myTodayCollection: MyTodayCollectionVO
+
+  # 用户搜索
+  findUserByPhone(phone: String!): User
+  findUsersByAddress(address: String!): [User!]!
+
+  # Payment queries (Admin perspective)
+  paymentStatus(transactionId: String!): String!
+  paymentTransaction(id: String!): PaymentTransaction
+  paymentTransactions(
+    page: Int = 0
+    size: Int = 20
+    userId: Long
+    status: PaymentStatus
+    dateFrom: LocalDateTime
+    dateTo: LocalDateTime
+    minAmount: BigDecimal
+    maxAmount: BigDecimal
+  ): [PaymentTransaction!]!
+  userPaymentTransactions(userId: PrimaryId!, page: Int = 0, size: Int = 20): [PaymentTransaction!]!
+  refundRequests(
+    page: Int = 0
+    size: Int = 20
+    status: RefundStatus
+    dateFrom: LocalDateTime
+    dateTo: LocalDateTime
+  ): [RefundRequest!]!
+  refundRequest(id: String!): RefundRequest
+  suspiciousTransactions(
+    page: Int = 0
+    size: Int = 20
+    dateFrom: LocalDateTime
+    dateTo: LocalDateTime
+  ): [SuspiciousTransaction!]!
+
+  # Statistics and Analytics - Admin only
+  orderStatistics(input: DateRangeInput!): OrderStatistics!
+  dailyStatistics(input: DateRangeInput!): [DailyStatistic!]!
+  weeklyStatistics(input: DateRangeInput!): [WeeklyStatistic!]!
+  monthlyStatistics(input: DateRangeInput!): [MonthlyStatistic!]!
+
+  # User Statistics - Admin only
+  userStatistics: UserStatistics!
+
+  # Delivery Worker Statistics - Admin only
+  deliveryWorkerStatistics: DeliveryWorkerOverview!
+  deliveryWorkerRanking(limit: Int = 10): [DeliveryWorkerRankingItem!]!
+
+  # Regions (for admin)
+  regions(level: Int, parentCode: String): [Region!]!
+  region(code: String!): Region
+  # 获取所有地区数据，用于前端构建树形结构
+  allRegions: [Region!]!
+
+  # Admin review queries
+  reviews(
+    deliveryWorkerId: Long
+    minRating: Int
+    maxRating: Int
+    dateFrom: LocalDateTime
+    dateTo: LocalDateTime
+    userId: Long
+    page: Int
+    size: Int
+  ): [Review!]!
+
+  # Admin User Favorites Management - Admin only
+  allProductsFavoriteStats: AllProductsFavoriteStats!
+  productsByFavorites(page: Int = 0, size: Int = 20, minFavorites: Int): ProductFavoriteVoPage!
+}
+
+# Admin-specific Mutation Schema
+type Mutation {
+  # Product Management - Admin only
+  createProduct(input: CreateProductInput!): Product!
+  updateProduct(id: PrimaryId!, input: UpdateProductInput!): Product!
+  deleteProduct(id: PrimaryId!): Boolean!
+  increaseStock(productId: PrimaryId!, quantity: Int!): String!
+  decreaseStock(productId: PrimaryId!, quantity: Int!): Boolean!
+  batchUpdateProducts(input: [ProductUpdateRequest!]!): [Product!]!
+  updateProductStatus(productId: PrimaryId!, status: ProductStatus!): Product!
+
+  # Enhanced Product Management Mutations
+  onlineProduct(id: PrimaryId!): Product!
+  offlineProduct(id: PrimaryId!): Product!
+  batchAdjustStock(input: BatchStockAdjustmentInput!): BatchStockAdjustmentResult!
+
+  # Order Management - Admin/Delivery operations
+  updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): Order!
+  createDeliveryOrder(input: CreateDeliveryOrderInput!): Order!  # 配送员创建订单
+
+  # 派单管理
+  assignDeliveryWorker(orderId: PrimaryId!, workerId: PrimaryId!, isSelfCollect: Boolean!): Order!
+  batchAssignOrders(orderIds: [PrimaryId!]!, workerId: PrimaryId!): [Order!]!
+
+  # 配送员操作
+  acceptDelivery(orderId: PrimaryId!): Order!           # 配送员接单
+  startDelivery(orderId: PrimaryId!): Order!             # 开始配送
+  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType, remark: String): Order!  # 完成配送
+
+  # Payment Management - Admin operations
+  handleWechatCallback(input: WechatCallbackInput!): String!
+  refund(input: RefundInput!): Boolean!
+  processRefund(input: ProcessRefundInput!): RefundRequest!
+  createManualRefund(input: CreateManualRefundInput!): RefundRequest!
+  forceCompletePayment(transactionId: String!, adminNote: String!): Boolean!
+  forceRefund(transactionId: String!, amount: BigDecimal!, reason: String!, adminNote: String!): Boolean!
+  updateTransactionNote(transactionId: String!, note: String!): Boolean!
+  freezeSuspiciousTransaction(transactionId: String!, reason: String!): Boolean!
+  exportTransactions(input: ExportTransactionsInput!): String!
+  updateTransaction(transactionId: String!, input: UpdateTransactionInput!): PaymentTransaction!
+  processSuspiciousTransaction(input: ProcessSuspiciousTransactionInput!): SuspiciousTransaction!
+
+  # Delivery Area Management - Admin only
+  createDeliveryArea(input: CreateDeliveryAreaInput!): DeliveryArea!
+  updateDeliveryArea(id: PrimaryId!, input: CreateDeliveryAreaInput!): DeliveryArea!
+  deleteDeliveryArea(id: PrimaryId!): Boolean!
+
+  # Delivery Worker Management - Admin only
+  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorker!
+  updateDeliveryWorker(workerId: PrimaryId!, input: UpdateDeliveryWorkerInput!): DeliveryWorker!
+  updateWorkerStatus(workerId: PrimaryId!, status: DeliveryWorkerStatus!): DeliveryWorker!
+
+  # 每日收款管理
+  submitDailyCollection(input: SubmitDailyCollectionInput!): DailyCollectionRecord!
+  confirmDailyCollection(input: ConfirmDailyCollectionInput!): DailyCollectionRecord!
+  reviewReconciliation(input: ReviewReconciliationInput!): DailyReconciliation!
+  executeDailyReconciliation(reconciliationDate: String): DailyReconciliation!
+
+  # Admin User Favorites Management - Admin only
+  batchFavoriteOperation(input: BatchFavoriteOperationInput!): BatchOperationResult!
+  exportFavorites(input: ExportFavoritesInput!): ExportFavoritesResult!
+
+  # Admin User Management
+  createAdmin(input: CreateAdminInput!): Admin!
+  updateAdmin(id: PrimaryId!, input: UpdateAdminInput!): Admin!
+  deleteAdmin(id: PrimaryId!): Boolean!
+
+  # Admin Address Management
+  createAdminAddress(input: AddressInput!): Address!
+  batchImportAddresses(input: [AddressInput!]!): BatchImportAddressesResult!
+  deleteAdminAddress(id: PrimaryId!): Boolean!
+}
+
+# Admin User Input Types
+input CreateAdminInput {
+  username: String!
+  password: String
+  realName: String
+  phone: String
+  role: AdminRole!
+  avatarUrl: String
+  status: DeliveryWorkerStatus
+  isAvailable: Boolean
+}
+
+input UpdateAdminInput {
+  username: String
+  realName: String
+  phone: String
+  role: AdminRole
+  avatarUrl: String
+  status: DeliveryWorkerStatus
+  isAvailable: Boolean
+}
+
+# Extend the User type with admin-specific fields
+extend type User {
+  status: UserStatus!
+  role: UserRole!
+  email: String!
+  balanceCents: Long!
+  totalSpentCents: Long!
+}
+
+# Batch Import Result Types
+type BatchImportAddressesResult {
+  successCount: Int!
+  failureCount: Int!
+  totalCount: Int!
+}

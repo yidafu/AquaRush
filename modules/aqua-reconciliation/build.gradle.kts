@@ -15,8 +15,11 @@ dependencies {
   // AquaRush modules
   implementation(project(":modules:aqua-common"))
   implementation(project(":modules:aqua-api"))
-  implementation(project(":modules:aqua-delivery"))
-  implementation(project(":modules:aqua-order"))
+
+  // Needed for repository access - compileOnly because these are internal dependencies
+  // The proper way is to use API services, but these are needed for complex queries
+  compileOnly(project(":modules:aqua-delivery"))
+  compileOnly(project(":modules:aqua-order"))
 
   // Spring Boot
   implementation(libs.bundles.spring.boot.web)
