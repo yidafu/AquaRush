@@ -1,0 +1,42 @@
+# Test Schema for AddressResolver GraphQL Integration Tests
+
+type Query {
+  addresses: [Address!]!
+  address(id: Long!): Address
+  searchAllAddresses(keyword: String, page: Int, size: Int): [Address!]!
+  searchUserAddresses(keyword: String!, userId: Long, page: Int, size: Int): [Address!]!
+  userAddresses(userId: Long): [Address!]!
+}
+
+type Mutation {
+  createAdminAddress(input: AddressInput!): Address!
+  deleteAdminAddress(id: Long!): Boolean!
+}
+
+type Address {
+  id: Long!
+  userId: Long!
+  receiverName: String!
+  phone: String!
+  province: String!
+  provinceCode: String
+  city: String!
+  cityCode: String
+  district: String!
+  districtCode: String
+  detailAddress: String!
+  isDefault: Boolean!
+}
+
+input AddressInput {
+  receiverName: String!
+  phone: String!
+  province: String!
+  provinceCode: String
+  city: String!
+  cityCode: String
+  district: String!
+  districtCode: String
+  detailAddress: String!
+  isDefault: Boolean
+}

@@ -6,9 +6,9 @@ extend type Query {
   productStatistics(dateRange: DateRangeInput): ProductStatistics
   productDailySales(input: DateRangeInput!): [ProductDailySales!]!
   lowStockProducts(threshold: Int = 10): [LowStockAlert!]!
-  productsPaginated(input: ProductSearchInput): ProductVoPage
+  productsPaginated(input: ProductSearchInput): ProductVOPage
   topSalesProducts(limit: Int = 10): [Product!]!
-  activeProducts(keyword: String, page: Int = 0, size: Int = 20): ProductVoPage!
+  activeProducts(keyword: String, page: Int = 0, size: Int = 20): ProductVOPage!
 }
 
 extend type Mutation {

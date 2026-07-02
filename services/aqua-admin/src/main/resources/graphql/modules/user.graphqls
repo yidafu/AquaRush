@@ -2,6 +2,6 @@
 
 extend type Query {
   # User queries
-  users(input: UserListInput): UserVoPage!
+  users(input: UserListInput): UserVOPage!
   user(id: PrimaryId!): User
 }

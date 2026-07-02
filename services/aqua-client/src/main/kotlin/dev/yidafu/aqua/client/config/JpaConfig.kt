@@ -38,8 +38,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
     "dev.yidafu.aqua.payment.domain.model",
     "dev.yidafu.aqua.delivery.domain.model",
     "dev.yidafu.aqua.review.domain.model",
-    "dev.yidafu.aqua.notice.domain.model",
-    "dev.yidafu.aqua.reconciliation.domain.model",
+    "dev.yidafu.aqua.analytics.reconciliation.domain.model",
     "dev.yidafu.aqua.storage.domain.entity",
   ],
 )

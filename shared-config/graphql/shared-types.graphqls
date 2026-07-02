@@ -169,6 +169,18 @@ type BucketDepositVOPage {
   pageInfo: PageInfo!
 }
 
+# Product pagination type used by client queries
+type ProductVoPage {
+  list: [Product!]!
+  pageInfo: PageInfo!
+}
+
+# FavoriteProduct pagination type used by client queries
+type FavoriteProductVoPage {
+  list: [FavoriteProduct!]!
+  pageInfo: PageInfo!
+}
+
 # 押桶输入类型
 input CreateBucketDepositInput {
   quantity: Int!

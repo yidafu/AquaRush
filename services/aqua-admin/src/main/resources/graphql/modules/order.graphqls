@@ -4,7 +4,7 @@ extend type Query {
   # Order queries
   order(orderId: PrimaryId!): Order
   orderByNo(orderNo: String!): Order
-  orders(input: OrderListInput): OrderVoPage
+  orders(input: OrderListInput): OrderVOPage
   orderOperations(orderId: PrimaryId!): [OrderOperation!]!
 
   # 派单相关查询
@@ -18,7 +18,7 @@ extend type Query {
     keyword: String
     page: Int = 0
     size: Int = 20
-  ): OrderVoPage!
+  ): OrderVOPage!
 }
 
 extend type Mutation {

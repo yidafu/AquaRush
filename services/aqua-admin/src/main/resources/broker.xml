@@ -1,0 +1,97 @@
+
+<configuration xmlns="urn:activemq"
+               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+               xmlns:xi="http://www.w3.org/2001/XInclude"
+               xsi:schemaLocation="urn:activemq /schema/artemis-configuration.xsd">
+
+  <core xmlns="urn:activemq:core"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="urn:activemq:core ">
+
+
+    <persistence-enabled>true</persistence-enabled>
+    <max-disk-usage>98</max-disk-usage>
+
+    <!-- In-VM acceptor for JMS clients within the same JVM -->
+    <acceptors>
+      <acceptor name="in-vm">vm://0</acceptor>
+    </acceptors>
+
+    <address-settings>
+      <!-- 对所有地址应用非阻塞策略 -->
+      <address-setting match="#">
+
+        <!-- 不阻塞生产者，使用 DROP 策略 -->
+        <address-full-policy>DROP</address-full-policy>
+        <!-- 页面文件大小 -->
+        <page-size-bytes>2097152</page-size-bytes>
+        <!-- 超过磁盘限制时直接丢弃消息，不阻塞 -->
+        <max-size-bytes>-1</max-size-bytes>
+        <!-- 死信队列配置 -->
+        <dead-letter-address>DLQ</dead-letter-address>
+        <expiry-address>ExpiryQueue</expiry-address>
+        <!-- 消息重试配置 -->
+        <max-delivery-attempts>3</max-delivery-attempts>
+        <redelivery-delay>1000</redelivery-delay>
+      </address-setting>
+    </address-settings>
+
+    <addresses>
+      <address name="order-events">
+        <anycast>
+          <queue name="order-events"/>
+        </anycast>
+      </address>
+      <address name="payment-events">
+        <anycast>
+          <queue name="payment-events"/>
+        </anycast>
+      </address>
+      <address name="delivery-events">
+        <anycast>
+          <queue name="delivery-events"/>
+        </anycast>
+      </address>
+      <address name="user-events">
+        <anycast>
+          <queue name="user-events"/>
+        </anycast>
+      </address>
+      <address name="broadcast-events">
+        <multicast/>
+      </address>
+      <!-- 死信队列 -->
+      <address name="DLQ">
+        <anycast>
+          <queue name="DLQ"/>
+        </anycast>
+      </address>
+      <address name="ExpiryQueue">
+        <anycast>
+          <queue name="ExpiryQueue"/>
+        </anycast>
+      </address>
+    </addresses>
+
+    <!-- Security settings for embedded broker - allow guest access for development -->
+    <security-settings>
+      <security-setting match="#">
+        <permission type="createAddress" roles="guest"/>
+        <permission type="deleteAddress" roles="guest"/>
+        <permission type="createQueue" roles="guest"/>
+        <permission type="deleteQueue" roles="guest"/>
+        <permission type="send" roles="guest"/>
+        <permission type="consume" roles="guest"/>
+        <permission type="browse" roles="guest"/>
+        <permission type="manage" roles="guest"/>
+      </security-setting>
+    </security-settings>
+
+    <!-- Default user for embedded broker -->
+    <default-user>
+      <user name="guest" password="guest"/>
+    </default-user>
+
+
+  </core>
+</configuration>

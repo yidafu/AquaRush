@@ -42,16 +42,12 @@ tasks.named("processResources") {
 
 dependencies {
   // Include user service specific modules
-  implementation(project(":modules:aqua-logging"))
-  implementation(project(":modules:aqua-common"))
-  implementation(project(":modules:aqua-api"))
+  implementation(project(":modules:aqua-foundation"))
+  implementation(project(":modules:aqua-trade"))
+  implementation(project(":modules:aqua-analytics"))
+  implementation(project(":modules:aqua-platform"))
   implementation(project(":modules:aqua-user"))
   implementation(project(":modules:aqua-product"))
-  implementation(project(":modules:aqua-order"))
-  implementation(project(":modules:aqua-payment"))
-  implementation(project(":modules:aqua-notice"))
-  implementation(project(":modules:aqua-review"))
-  implementation(project(":modules:aqua-storage"))
 
   // Entry module specific dependencies
   implementation(libs.spring.boot.starter.web)
@@ -60,6 +56,8 @@ dependencies {
   implementation(libs.spring.boot.starter.thymeleaf)
   implementation(libs.bundles.spring.boot.data)
   implementation(libs.bundles.graphql)
+  implementation(libs.mappie.api)
+  implementation(libs.spring.boot.starter.validation)
   implementation(libs.liquibase.core)
   runtimeOnly(libs.postgresql)
 }

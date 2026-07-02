@@ -59,16 +59,10 @@ tasks.named("processTestResources") {
 
 dependencies {
   // Include delivery/admin service specific modules
-  implementation(project(":modules:aqua-logging"))
-  implementation(project(":modules:aqua-common"))
-  implementation(project(":modules:aqua-api"))
-  implementation(project(":modules:aqua-delivery"))
-  implementation(project(":modules:aqua-order"))
-  implementation(project(":modules:aqua-review"))
-  implementation(project(":modules:aqua-payment"))
-  implementation(project(":modules:aqua-statistics"))
-  implementation(project(":modules:aqua-storage"))
-  implementation(project(":modules:aqua-reconciliation"))
+  implementation(project(":modules:aqua-foundation"))
+  implementation(project(":modules:aqua-trade"))
+  implementation(project(":modules:aqua-analytics"))
+  implementation(project(":modules:aqua-platform"))
   implementation(project(":modules:aqua-user")) // For admin user operations
   implementation(project(":modules:aqua-product")) // For product services
 
@@ -80,6 +74,9 @@ dependencies {
   implementation(libs.spring.boot.starter.thymeleaf)
   implementation(libs.bundles.spring.boot.liqiubase)
   implementation(libs.bundles.graphql)
+  implementation(libs.spring.boot.starter.graphql)
+  implementation(libs.spring.boot.starter.validation)
+  implementation(libs.mappie.api)
   implementation(libs.liquibase.core)
   runtimeOnly(libs.postgresql)
 

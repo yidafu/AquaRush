@@ -19,19 +19,12 @@ plugins {
 
 rootProject.name = "AquaRush"
 include(
-  "modules:aqua-logging",
-  "modules:aqua-common",
-  "modules:aqua-api",
+  "modules:aqua-foundation",
   "modules:aqua-user",
   "modules:aqua-product",
-  "modules:aqua-order",
-  "modules:aqua-delivery",
-  "modules:aqua-payment",
-  "modules:aqua-reconciliation",
-  "modules:aqua-statistics",
-  "modules:aqua-storage",
-  "modules:aqua-notice",
-  "modules:aqua-review",
+  "modules:aqua-trade",
+  "modules:aqua-analytics",
+  "modules:aqua-platform",
   "services:aqua-client",
   "services:aqua-admin",
 )

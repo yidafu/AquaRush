@@ -1,0 +1,2 @@
+dev.yidafu.aqua.common.cache.CacheAutoConfiguration
+dev.yidafu.aqua.common.cache.spring.MapDBCacheAutoConfiguration

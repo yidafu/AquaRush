@@ -28,35 +28,14 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 @Configuration
 @EnableJpaRepositories(
   basePackages = [
-    "dev.yidafu.aqua.common.domain.repository",
-    "dev.yidafu.aqua.delivery.domain.repository",
-    "dev.yidafu.aqua.logging.repository",
-    "dev.yidafu.aqua.notice.domain.repository",
-    "dev.yidafu.aqua.payment.domain.repository",
-    "dev.yidafu.aqua.product.domain.repository",
-    "dev.yidafu.aqua.reconciliation.domain.repository",
-    "dev.yidafu.aqua.review.domain.repository",
-    "dev.yidafu.aqua.storage.repository",
-    "dev.yidafu.aqua.user.domain.repository",
-    "dev.yidafu.aqua.order.domain.repository",
+    "dev.yidafu.aqua",
   ],
 )
 @EnableJpaAuditing
 @EnableTransactionManagement
 @EntityScan(
   basePackages = [
-    "dev.yidafu.aqua.common.domain.model",
-    "dev.yidafu.aqua.common.domain.id",
-    "dev.yidafu.aqua.user.domain.model",
-    "dev.yidafu.aqua.product.domain.model",
-    "dev.yidafu.aqua.order.domain.model",
-    "dev.yidafu.aqua.payment.domain.model",
-    "dev.yidafu.aqua.delivery.domain.model",
-    "dev.yidafu.aqua.review.domain.model",
-    "dev.yidafu.aqua.notice.domain.model",
-    "dev.yidafu.aqua.reconciliation.domain.model",
-    "dev.yidafu.aqua.storage.domain.entity",
-    "dev.yidafu.aqua.logging.domain",
+    "dev.yidafu.aqua",
   ],
 )
 class JpaConfig

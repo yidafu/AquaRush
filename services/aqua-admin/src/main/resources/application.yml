@@ -88,7 +88,7 @@ spring:
       printer:
         enabled: true
       file-extensions: .graphqls
-      locations: classpath:graphql/, classpath:shared-config/graphql/
+      locations: classpath:graphql/, classpath:graphql/modules/, classpath:graphql/inputs/, classpath:graphql/extensions/, classpath:shared-config/graphql/
     graphiql:
       enabled: true
       path: /graphiql

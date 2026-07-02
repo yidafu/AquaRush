@@ -6,9 +6,7 @@ plugins {
 }
 
 dependencies {
-  implementation(project(":modules:aqua-common"))
-  implementation(project(":modules:aqua-api"))
-  implementation(project(":modules:aqua-logging"))
+  implementation(project(":modules:aqua-foundation"))
 
   // Spring Data JPA for AddressRepository
   implementation(libs.bundles.spring.boot.data)
@@ -26,11 +24,15 @@ dependencies {
   // QueryDSL dependencies are handled by aqua.kotlin.querydsl plugin
   implementation(libs.wechat.miniapp)
 
+  // Used by WeChat code (kept after notice migration)
+  implementation(libs.bundles.kotlin)
+  implementation(libs.bundles.http.client)
+
   // Test dependencies
   testImplementation(libs.h2)
   testImplementation(libs.spring.boot.starter.test)
   testImplementation(libs.mockk.core)
-  testImplementation("org.springframework.graphql:spring-graphql-test:1.3.0")
+  testImplementation("org.springframework.graphql:spring-graphql-test:2.0.0")
 }
 
 // QueryDSL configuration is now handled by aqua.kotlin.querydsl plugin

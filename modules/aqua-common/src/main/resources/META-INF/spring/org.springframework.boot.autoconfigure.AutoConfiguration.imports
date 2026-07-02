@@ -1,3 +1,0 @@
-dev.yidafu.aqua.common.cache.CacheAutoConfiguration
-dev.yidafu.aqua.common.cache.spring.MapDBCacheAutoConfiguration
-dev.yidafu.aqua.common.id.config.SnowflakeConfig
