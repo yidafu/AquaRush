@@ -27,10 +27,6 @@ import dev.yidafu.aqua.storage.dto.ImageParameters
 import dev.yidafu.aqua.storage.service.StorageService
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.core.io.Resource
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
-import org.springframework.data.domain.Sort
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity

@@ -66,7 +66,6 @@ open class AddressModel(
   @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
 ) : SoftDeletable {
-
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()

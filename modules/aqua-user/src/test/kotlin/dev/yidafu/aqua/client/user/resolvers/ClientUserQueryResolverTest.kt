@@ -21,8 +21,8 @@ package dev.yidafu.aqua.client.user.resolvers
 
 import dev.yidafu.aqua.api.service.UserService
 import dev.yidafu.aqua.common.domain.model.UserModel
-import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdateProfileInput
+import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import dev.yidafu.aqua.user.service.WeChatAuthService
@@ -45,8 +45,8 @@ class ClientUserQueryResolverTest {
   private lateinit var resolver: ClientUserQueryResolver
   private lateinit var userPrincipal: UserPrincipal
 
-  private fun createSampleUser(): UserModel {
-    return UserModel(
+  private fun createSampleUser(): UserModel =
+    UserModel(
       id = 1L,
       wechatOpenId = "test_openid",
       nickname = "testuser",
@@ -55,7 +55,6 @@ class ClientUserQueryResolverTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
   @BeforeEach
   fun setUp() {
@@ -135,7 +134,11 @@ class ClientUserQueryResolverTest {
   fun `updateProfile should update user profile`() {
     // Given
     val input = UpdateProfileInput(nickname = "新昵称", avatar = "http://example.com/avatar.jpg")
-    val updatedUser = createSampleUser().also { it.nickname = "新昵称"; it.avatarUrl = "http://example.com/avatar.jpg" }
+    val updatedUser =
+      createSampleUser().also {
+        it.nickname = "新昵称"
+        it.avatarUrl = "http://example.com/avatar.jpg"
+      }
     every { userService.updateUserInfo(1L, "新昵称", null, "http://example.com/avatar.jpg") } returns updatedUser
 
     // When

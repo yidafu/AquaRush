@@ -62,5 +62,4 @@ data class DeliveryAddressModel(
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
   }
-
 }

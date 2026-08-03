@@ -65,7 +65,6 @@ open class ReviewModel(
     updatedAt = LocalDateTime.now()
   }
 
-
   init {
     require(rating in 1..5) { "Rating must be between 1 and 5" }
     require(comment?.length ?: 0 <= 500) { "Comment cannot exceed 500 characters" }

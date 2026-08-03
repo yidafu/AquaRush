@@ -233,13 +233,13 @@ const ApolloExample: React.FC = () => {
       {/* Data table */}
       <Table
         columns={columns}
-        dataSource={data?.users?.content || []}
+        dataSource={data?.users?.list || []}
         loading={loading}
         rowKey="id"
         pagination={{
           current: pagination.current,
           pageSize: pagination.pageSize,
-          total: data?.users?.totalElements,
+          total: data?.users?.pageInfo?.total,
           showSizeChanger: true,
           showQuickJumper: true,
           showTotal: (total) => `共 ${total} 条记录`,

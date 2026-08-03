@@ -57,5 +57,4 @@ class BusinessLogModel(
   val username: String? = null,
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-) {
-}
+)

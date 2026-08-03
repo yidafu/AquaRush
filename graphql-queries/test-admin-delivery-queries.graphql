@@ -1,0 +1,357 @@
+# GraphQL查询 - 测试数据查询（管理员和送水工）
+# 用于查询我们生成的测试数据中的管理员和送水工信息
+
+# ==================== 管理员测试数据查询 ====================
+
+# 查询所有管理员（包含我们创建的2个测试管理员）
+query GetAllTestAdmins {
+  admins {
+    id
+    username
+    realName
+    phone
+    role
+    lastLoginAt
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询超级管理员（用户名：superadmin）
+query GetSuperAdmin {
+  admin(id: 1) {
+    id
+    username
+    realName
+    phone
+    role
+    lastLoginAt
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询普通管理员（用户名：admin）
+query GetNormalAdmin {
+  admin(id: 2) {
+    id
+    username
+    realName
+    phone
+    role
+    lastLoginAt
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 送水工测试数据查询 ====================
+
+# 查询所有送水工（包含我们创建的3个测试送水工）
+query GetAllTestDeliveryWorkers {
+  deliveryWorkers {
+    id
+    userId
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询在线送水工（张师傅和李师傅）
+query GetOnlineTestWorkers {
+  onlineDeliveryWorkers {
+    id
+    userId
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询张师傅（ID: 1000000000000000001）
+query GetWorkerZhang {
+  deliveryWorker(id: 1000000000000000001) {
+    id
+    userId
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询李师傅（ID: 1000000000000000002）
+query GetWorkerLi {
+  deliveryWorker(id: 1000000000000000002) {
+    id
+    userId
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询王师傅（ID: 1000000000000000003）
+query GetWorkerWang {
+  deliveryWorker(id: 1000000000000000003) {
+    id
+    userId
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 综合系统状态查询 ====================
+
+# 查询系统管理员概览
+query GetSystemAdminsOverview {
+  admins {
+    id
+    username
+    realName
+    phone
+    role
+    lastLoginAt
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询送水工团队状态
+query GetDeliveryTeamStatus {
+  deliveryWorkers {
+    id
+    name
+    phone
+    status
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+
+  onlineDeliveryWorkers {
+    id
+    name
+    phone
+    status
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    lastLoginAt
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 批量查询（使用别名） ====================
+
+# 批量查询所有测试管理员
+query GetAllTestAdminsBatch {
+  admin1: admin(id: 1) {
+    id
+    username
+    realName
+    phone
+    role
+    lastLoginAt
+    createdAt
+    updatedAt
+  }
+
+  admin2: admin(id: 2) {
+    id
+    username
+    realName
+    phone
+    role
+    lastLoginAt
+    createdAt
+    updatedAt
+  }
+}
+
+# 批量查询所有测试送水工
+query GetAllTestWorkersBatch {
+  worker1: deliveryWorker(id: 1000000000000000001) {
+    id
+    name
+    phone
+    status
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+
+  worker2: deliveryWorker(id: 1000000000000000002) {
+    id
+    name
+    phone
+    status
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+
+  worker3: deliveryWorker(id: 1000000000000000003) {
+    id
+    name
+    phone
+    status
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 测试数据信息 ====================
+
+/*
+管理员测试数据：
+1. 超级管理员
+   - ID: 1
+   - 用户名: superadmin
+   - 姓名: 系统管理员
+   - 电话: 13800138000
+   - 角色: SUPER_ADMIN
+   - 密码hash: $2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iKVIbOBWvTPOrK.K8MZKW6xJUSfS
+
+2. 普通管理员
+   - ID: 2
+   - 用户名: admin
+   - 姓名: 系统管理员
+   - 电话: 13800138001
+   - 角色: ADMIN
+   - 密码hash: $2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iKVIbOBWvTPOrK.K8MZKW6xJUSfS
+
+送水工测试数据：
+1. 张师傅
+   - ID: 1000000000000000001
+   - 微信OpenID: delivery_worker_001
+   - 姓名: 张师傅
+   - 电话: 13800138101
+   - 状态: ONLINE
+
+2. 李师傅
+   - ID: 1000000000000000002
+   - 微信OpenID: delivery_worker_002
+   - 姓名: 李师傅
+   - 电话: 13800138102
+   - 状态: ONLINE
+
+3. 王师傅
+   - ID: 1000000000000000003
+   - 微信OpenID: delivery_worker_003
+   - 姓名: 王师傅
+   - 电话: 13800138103
+   - 状态: OFFLINE
+
+所有管理员和送水工都使用相同的密码hash，对应的明文密码是"admin123"
+*/
+
+# ==================== 使用示例 ====================
+
+# 1. 查询系统所有管理员
+# POST /graphql
+# Content-Type: application/json
+# Authorization: Bearer <admin_jwt_token>
+#
+# {
+#   "query": "query GetAllTestAdmins { admins { id username realName phone role lastLoginAt createdAt updatedAt } }"
+# }
+
+# 2. 查询在线送水工
+# POST /graphql
+# Content-Type: application/json
+# Authorization: Bearer <admin_or_worker_jwt_token>
+#
+# {
+#   "query": "query GetOnlineTestWorkers { onlineDeliveryWorkers { id name phone status totalOrders completedOrders averageRating earning isAvailable } }"
+# }
+
+# 3. 查询特定送水工详情
+# POST /graphql
+# Content-Type: application/json
+# Authorization: Bearer <admin_or_worker_jwt_token>
+#
+# {
+#   "query": "query GetWorkerZhang { deliveryWorker(id: 1000000000000000001) { id name phone status totalOrders completedOrders averageRating earning coordinates currentLocation } }",
+#   "variables": {
+#     "workerId": 1000000000000000001
+#   }
+# }

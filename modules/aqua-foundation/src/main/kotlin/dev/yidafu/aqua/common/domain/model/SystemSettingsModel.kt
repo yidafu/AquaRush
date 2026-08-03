@@ -47,7 +47,6 @@ data class SystemSettingsModel(
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
   }
-
 }
 
 /**

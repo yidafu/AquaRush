@@ -31,8 +31,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
@@ -41,8 +39,8 @@ class ClientAddressMutationResolverTest {
   private lateinit var resolver: ClientAddressMutationResolver
   private lateinit var userPrincipal: UserPrincipal
 
-  private fun createSampleAddress(): AddressModel {
-    return AddressModel(
+  private fun createSampleAddress(): AddressModel =
+    AddressModel(
       id = 1L,
       userId = 1L,
       receiverName = "张三",
@@ -55,10 +53,9 @@ class ClientAddressMutationResolverTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
-  private fun createOtherUserAddress(): AddressModel {
-    return AddressModel(
+  private fun createOtherUserAddress(): AddressModel =
+    AddressModel(
       id = 1L,
       userId = 2L,
       receiverName = "李四",
@@ -71,7 +68,6 @@ class ClientAddressMutationResolverTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
   @BeforeEach
   fun setUp() {
@@ -90,18 +86,19 @@ class ClientAddressMutationResolverTest {
   @Test
   fun `createAddress should create address successfully`() {
     // Given
-    val input = AddressInput(
-      receiverName = "张三",
-      phone = "13800138000",
-      province = "广东省",
-      provinceCode = "440000",
-      city = "深圳市",
-      cityCode = "440300",
-      district = "南山区",
-      districtCode = "440305",
-      detailAddress = "测试地址1号",
-      isDefault = false,
-    )
+    val input =
+      AddressInput(
+        receiverName = "张三",
+        phone = "13800138000",
+        province = "广东省",
+        provinceCode = "440000",
+        city = "深圳市",
+        cityCode = "440300",
+        district = "南山区",
+        districtCode = "440305",
+        detailAddress = "测试地址1号",
+        isDefault = false,
+      )
     every { addressService.countByUserId(1L) } returns 0
     every { addressService.save(any()) } returns createSampleAddress()
 

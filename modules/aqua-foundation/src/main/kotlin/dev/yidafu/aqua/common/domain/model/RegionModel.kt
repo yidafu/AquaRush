@@ -52,5 +52,4 @@ open class RegionModel(
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
   }
-
 }

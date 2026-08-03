@@ -53,10 +53,6 @@ echo "✅ 目标目录已准备: $TARGET_DIR"
 echo "🔨 开始执行H5构建..."
 cd "$WEAPP_DIR"
 
-# 设置环境变量并构建
-export OUTPUT_DIR="../admin-client/public/weapp"
-export BUILD_PAGES="product-detail"
-
 if command -v pnpm &> /dev/null; then
     echo "📦 使用 pnpm 构建..."
     pnpm run build:h5
@@ -65,6 +61,18 @@ elif command -v npm &> /dev/null; then
     npm run build:h5
 else
     echo "❌ 错误: 未找到 npm 或 pnpm"
+    # 恢复原始配置
+    mv "$TEMP_CONFIG_FILE" "$WEAPP_DIR/src/app.config.ts"
+    exit 1
+fi
+
+# 4.5. 复制构建结果到admin-client
+echo "📁 复制构建文件到admin-client..."
+if [ -d "$WEAPP_DIR/dist" ] && [ "$(ls -A "$WEAPP_DIR/dist")" ]; then
+    cp -r "$WEAPP_DIR/dist"/* "$TARGET_DIR/"
+    echo "✅ 已复制构建文件到: $TARGET_DIR"
+else
+    echo "❌ 构建失败: dist目录为空或不存在"
     # 恢复原始配置
     mv "$TEMP_CONFIG_FILE" "$WEAPP_DIR/src/app.config.ts"
     exit 1

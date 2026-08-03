@@ -100,5 +100,4 @@ data class DailyCollectionRecordModel(
   @Deprecated("Use calculatedOrderAmountCents instead", ReplaceWith("calculatedOrderAmountCents"))
   @Transient
   fun getOrderAmountCentsLegacy(): Long = orderAmountCents
-
 }

@@ -22,7 +22,6 @@ package dev.yidafu.aqua.common.messaging.publisher
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.jms.core.JmsTemplate
 import org.springframework.stereotype.Component
 import tools.jackson.module.kotlin.jacksonObjectMapper

@@ -153,27 +153,6 @@
   height: env(safe-area-inset-bottom);
 }
 
-// Taro UI 组件样式覆盖
-.at-form {
-  background: transparent;
-
-  .at-input {
-    background: var(--theme-background-primary, #ffffff);
-    margin-bottom: 1px;
-
-    &:last-child {
-      margin-bottom: 0;
-    }
-  }
-
-  .at-input__input {
-    color: var(--theme-text-primary, #333);
-  }
-
-  .at-input__container {
-    border-bottom: none;
-  }
-}
 
 .at-divider {
   background-color: var(--theme-background-page, #f5f5f5);

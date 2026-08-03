@@ -71,7 +71,6 @@ open class UserModel(
     updatedAt = LocalDateTime.now()
   }
 
-
   // Backward compatibility property
   val balance: BigDecimal
     get() = MoneyUtils.fromCents(balanceCents)

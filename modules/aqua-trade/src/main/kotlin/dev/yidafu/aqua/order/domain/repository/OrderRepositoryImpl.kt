@@ -407,7 +407,12 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
         .and(orderModel.completedAt.goe(startDate))
         .and(orderModel.completedAt.lt(endDate))
 
-    val count = queryFactory.select(orderModel.count()).from(orderModel).where(whereClause).fetchOne() ?: 0L
+    val count =
+      queryFactory
+        .select(orderModel.count())
+        .from(orderModel)
+        .where(whereClause)
+        .fetchOne() ?: 0L
 
     val sum =
       queryFactory

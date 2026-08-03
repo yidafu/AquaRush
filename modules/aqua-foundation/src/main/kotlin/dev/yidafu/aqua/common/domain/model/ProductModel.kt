@@ -101,7 +101,6 @@ open class ProductModel(
     updatedAt = LocalDateTime.now()
   }
 
-
   // Compatibility properties for existing code - returns prices in yuan as BigDecimal
   val priceYuan: BigDecimal
     get() = MoneyUtils.fromCents(price)

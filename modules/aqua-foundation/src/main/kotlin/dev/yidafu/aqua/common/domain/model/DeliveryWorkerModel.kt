@@ -82,7 +82,6 @@ open class DeliveryWorkerModel(
     updatedAt = LocalDateTime.now()
   }
 
-
   // Backward compatibility property
   val earning: BigDecimal?
     get() = earningCents?.let { MoneyUtils.fromCents(it) }

@@ -1,3 +1,7 @@
+// 设置 $hd: 1 修复 Taro UI 字体过大的问题
+// Taro UI 默认使用 $hd: 2 作为基础倍增器，导致字体比标准大 2 倍
+$hd: 1;
+
 @import './styles/theme.scss';
 
 page {

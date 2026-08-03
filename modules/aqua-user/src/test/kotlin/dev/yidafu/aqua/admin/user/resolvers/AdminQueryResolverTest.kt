@@ -40,8 +40,8 @@ class AdminQueryResolverTest {
   private lateinit var regionRepository: RegionRepository
   private lateinit var resolver: AdminQueryResolver
 
-  private fun createSampleAdmin(): AdminModel {
-    return AdminModel(
+  private fun createSampleAdmin(): AdminModel =
+    AdminModel(
       id = 1L,
       username = "admin",
       passwordHash = "hashed_password",
@@ -50,10 +50,9 @@ class AdminQueryResolverTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
-  private fun createSampleRegion(): RegionModel {
-    return RegionModel(
+  private fun createSampleRegion(): RegionModel =
+    RegionModel(
       id = 1L,
       name = "广东省",
       code = "440000",
@@ -62,7 +61,6 @@ class AdminQueryResolverTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
   @BeforeEach
   fun setUp() {

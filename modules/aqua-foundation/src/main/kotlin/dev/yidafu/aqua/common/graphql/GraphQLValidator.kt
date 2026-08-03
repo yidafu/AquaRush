@@ -100,7 +100,9 @@ object GraphQLValidator {
     val activeProfiles = System.getProperty("spring.profiles.active") ?: ""
     val environmentProfiles = System.getenv("SPRING_PROFILES_ACTIVE") ?: ""
 
-    return activeProfiles.contains("dev") || activeProfiles.contains("development") ||
-      environmentProfiles.contains("dev") || environmentProfiles.contains("development")
+    return activeProfiles.contains("dev") ||
+      activeProfiles.contains("development") ||
+      environmentProfiles.contains("dev") ||
+      environmentProfiles.contains("development")
   }
 }

@@ -19,11 +19,11 @@
 
 package dev.yidafu.aqua.analytics.statistics.resolver
 
+import dev.yidafu.aqua.analytics.statistics.service.impl.ProductStatisticsServiceImpl
 import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
 import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
 import dev.yidafu.aqua.common.graphql.generated.ProductSalesTrend
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
-import dev.yidafu.aqua.analytics.statistics.service.impl.ProductStatisticsServiceImpl
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -38,9 +38,7 @@ class ProductStatisticsQueryResolver(
 ) {
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
-  fun productStatistics(): ProductStatistics {
-    return productStatisticsService.getProductStatistics()
-  }
+  fun productStatistics(): ProductStatistics = productStatisticsService.getProductStatistics()
 
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")

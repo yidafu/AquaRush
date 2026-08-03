@@ -65,7 +65,6 @@ class ReconciliationReportModel : SoftDeletable {
   @Column(name = "deleted_by")
   override var deletedBy: Long? = null
 
-
   companion object {
     fun createSummaryReport(
       taskId: String,

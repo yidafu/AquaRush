@@ -1,0 +1,32 @@
+.order-info-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+
+  .order-info-label {
+    font-size: 16px;
+    color: #666;
+  }
+
+  .order-info-value {
+    font-size: 16px;
+    color: #333;
+    font-weight: 500;
+
+    &.highlight {
+      color: #1890ff;
+    }
+
+    &.warning {
+      color: #faad14;
+    }
+
+    &.error {
+      color: #ff4d4f;
+    }
+
+    &.success {
+      color: #52c41a;
+    }
+  }
+}

@@ -27,13 +27,13 @@ import dev.yidafu.aqua.common.domain.model.AdminModel
  * 由 aqua-user 模块实现，供其他模块使用
  */
 interface AddressQueryApiService {
-    fun findById(id: Long): AddressModel?
+  fun findById(id: Long): AddressModel?
 
-    fun findByUserId(userId: Long): List<AddressModel>
+  fun findByUserId(userId: Long): List<AddressModel>
 
-    fun findDefaultByUserId(userId: Long): AddressModel?
+  fun findDefaultByUserId(userId: Long): AddressModel?
 
-    fun existsById(id: Long): Boolean
+  fun existsById(id: Long): Boolean
 }
 
 /**
@@ -41,11 +41,11 @@ interface AddressQueryApiService {
  * 由 aqua-user 模块实现，供其他模块使用
  */
 interface AdminQueryApiService {
-    fun findById(id: Long): AdminModel?
+  fun findById(id: Long): AdminModel?
 
-    fun findByUsername(username: String): AdminModel?
+  fun findByUsername(username: String): AdminModel?
 
-    fun findAll(): List<AdminModel>
+  fun findAll(): List<AdminModel>
 
-    fun existsById(id: Long): Boolean
+  fun existsById(id: Long): Boolean
 }

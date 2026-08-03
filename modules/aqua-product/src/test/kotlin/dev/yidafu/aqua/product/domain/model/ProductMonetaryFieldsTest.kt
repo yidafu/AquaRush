@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.product.domain.model
 
+import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import org.junit.jupiter.api.Assertions.*

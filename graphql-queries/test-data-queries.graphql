@@ -1,0 +1,364 @@
+# GraphQL查询 - 测试数据用户查询
+# 用于查询我们生成的测试数据中的用户信息
+
+# 查询当前登录用户
+query GetCurrentUser {
+  me {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询所有测试用户（需要逐个查询，因为没有批量查询接口）
+# 用户ID范围：1000000000000000011 到 1000000000000000022
+
+query GetTestUser01 {
+  user(id: 1000000000000000011) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTestUser02 {
+  user(id: 1000000000000000012) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTestUser03 {
+  user(id: 1000000000000000013) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTestUser04 {
+  user(id: 1000000000000000014) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTestUser05 {
+  user(id: 1000000000000000015) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTestUser06 {
+  user(id: 1000000000000000016) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTestUser07 {
+  user(id: 1000000000000000017) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTestUser08 {
+  user(id: 1000000000000000018) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTestUser09 {
+  user(id: 1000000000000000019) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTestUser10 {
+  user(id: 1000000000000000020) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTestUser11 {
+  user(id: 1000000000000000021) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+query GetTestUser12 {
+  user(id: 1000000000000000022) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+# 批量查询多个用户（使用别名）
+query GetMultipleTestUsers {
+  user1: user(id: 1000000000000000011) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+
+  user2: user(id: 1000000000000000012) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+
+  user3: user(id: 1000000000000000013) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+
+  user4: user(id: 1000000000000000014) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+
+  user5: user(id: 1000000000000000015) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询张明（用户ID: 1000000000000000011）的完整信息
+query GetUserZhangMingComplete {
+  user: user(id: 1000000000000000011) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+
+  orders: ordersByUser(userId: 1000000000000000011) {
+    id
+    orderNumber
+    product {
+      id
+      name
+      price
+    }
+    address {
+      id
+      receiverName
+      phone
+      province
+      city
+      district
+      detailAddress
+      isDefault
+    }
+    quantity
+    amount
+    status
+    paymentMethod
+    paymentTime
+    deliveryWorker {
+      id
+      name
+      phone
+      status
+    }
+    deliveryPhotos
+    completedAt
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询陈强（用户ID: 1000000000000000015）的待配送订单
+query GetUserChenQiangPendingOrders {
+  user: user(id: 1000000000000000015) {
+    id
+    wechatOpenId
+    nickname
+    phone
+  }
+
+  pendingOrders: ordersByUserAndStatus(userId: 1000000000000000015, status: PENDING) {
+    id
+    orderNumber
+    product {
+      id
+      name
+      price
+    }
+    address {
+      id
+      receiverName
+      phone
+      province
+      city
+      district
+      detailAddress
+    }
+    quantity
+    amount
+    status
+    createdAt
+  }
+}
+
+# 获取所有用户的送货地址（需要逐个查询用户对应的地址）
+# 地址ID范围：2000000000000000011 到 2000000000000000123
+
+query GetTestUserAddresses {
+  address1: address(id: 2000000000000000011) {
+    id
+    userId
+    receiverName
+    phone
+    province
+    city
+    district
+    detailAddress
+    isDefault
+    createdAt
+    updatedAt
+  }
+
+  address2: address(id: 2000000000000000021) {
+    id
+    userId
+    receiverName
+    phone
+    province
+    city
+    district
+    detailAddress
+    isDefault
+    createdAt
+    updatedAt
+  }
+
+  address3: address(id: 2000000000000000031) {
+    id
+    userId
+    receiverName
+    phone
+    province
+    city
+    district
+    detailAddress
+    isDefault
+    createdAt
+    updatedAt
+  }
+}
+
+# 测试用户信息表：
+# 1. 张明 (ID: 1000000000000000011) - 3个地址，余额150.50元
+# 2. 李芳 (ID: 1000000000000000012) - 2个地址，余额80.00元
+# 3. 王伟 (ID: 1000000000000000013) - 1个地址，余额0.00元
+# 4. 刘静 (ID: 1000000000000000014) - 2个地址，余额45.00元
+# 5. 陈强 (ID: 1000000000000000015) - 3个地址，余额200.00元
+# 6. 杨梅 (ID: 1000000000000000016) - 1个地址，余额30.00元
+# 7. 赵磊 (ID: 1000000000000000017) - 2个地址，余额75.00元
+# 8. 孙丽 (ID: 1000000000000000018) - 3个地址，余额120.00元
+# 9. 周涛 (ID: 1000000000000000019) - 1个地址，余额0.00元
+# 10. 吴芳 (ID: 1000000000000000020) - 2个地址，余额60.00元
+# 11. 郑勇 (ID: 1000000000000000021) - 1个地址，余额15.00元
+# 12. 黄燕 (ID: 1000000000000000022) - 3个地址，余额180.00元
+
+# 送水工信息：
+# 1. 张师傅 (ID: 1000000000000000001) - 在线
+# 2. 李师傅 (ID: 1000000000000000002) - 在线
+# 3. 王师傅 (ID: 1000000000000000003) - 离线
+
+# 所有地址都位于：浙江省杭州市上城区

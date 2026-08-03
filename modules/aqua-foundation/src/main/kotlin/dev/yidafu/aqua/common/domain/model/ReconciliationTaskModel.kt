@@ -87,7 +87,6 @@ class ReconciliationTaskModel : SoftDeletable {
     updatedAt = LocalDateTime.now()
   }
 
-
   companion object {
     fun createPaymentTask(date: LocalDateTime): ReconciliationTaskModel =
       ReconciliationTaskModel().apply {

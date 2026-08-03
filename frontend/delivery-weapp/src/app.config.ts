@@ -7,6 +7,8 @@ export default defineAppConfig({
     'pages/order-detail/index',
     'pages/create-order/index',
     'pages/statistics/index',
+    'pages/daily-collection/index',
+    'pages/reconciliation-records/index',
     'pages/history-orders/index',
     'pages/my/index',
     'pages/about/index'

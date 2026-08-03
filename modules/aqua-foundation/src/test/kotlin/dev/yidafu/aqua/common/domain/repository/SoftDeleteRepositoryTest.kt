@@ -33,9 +33,9 @@ import java.util.*
 
 class SoftDeleteRepositoryTest {
 
-  private lateinit var repository: SoftDeleteRepositoryImpl & lt;TestEntity, Long&gt;
+  private lateinit var repository: SoftDeleteRepositoryImpl<TestEntity, Long>
   private lateinit var entityManager: EntityManager
-  private lateinit var entityInformation: JpaEntityInformation & lt;TestEntity, *&gt;
+  private lateinit var entityInformation: JpaEntityInformation<TestEntity, *>
 
   @BeforeEach
   fun setUp() {

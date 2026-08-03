@@ -40,8 +40,8 @@ class ClientAddressQueryResolverTest {
   private lateinit var resolver: ClientAddressQueryResolver
   private lateinit var userPrincipal: UserPrincipal
 
-  private fun createSampleAddress(): AddressModel {
-    return AddressModel(
+  private fun createSampleAddress(): AddressModel =
+    AddressModel(
       id = 1L,
       userId = 1L,
       receiverName = "张三",
@@ -54,10 +54,9 @@ class ClientAddressQueryResolverTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
-  private fun createOtherUserAddress(): AddressModel {
-    return AddressModel(
+  private fun createOtherUserAddress(): AddressModel =
+    AddressModel(
       id = 2L,
       userId = 2L,
       receiverName = "李四",
@@ -70,7 +69,6 @@ class ClientAddressQueryResolverTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
   @BeforeEach
   fun setUp() {

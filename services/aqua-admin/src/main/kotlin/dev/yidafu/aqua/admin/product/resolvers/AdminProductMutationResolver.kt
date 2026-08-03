@@ -320,10 +320,6 @@ class AdminProductMutationResolver(
   }
 
   companion object {
-    /**
-     * 产品操作输入类型
-     */
-
     // UpdateProductInput moved to GraphQL generated classes
 
     data class StockAdjustmentInput(

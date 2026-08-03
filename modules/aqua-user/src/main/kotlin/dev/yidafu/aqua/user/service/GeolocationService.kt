@@ -201,8 +201,10 @@ class GeolocationService(
     longitude: Double,
     latitude: Double,
   ): Boolean =
-    longitude >= -180.0 && longitude <= 180.0 &&
-      latitude >= -90.0 && latitude <= 90.0
+    longitude >= -180.0 &&
+      longitude <= 180.0 &&
+      latitude >= -90.0 &&
+      latitude <= 90.0
 
   /**
    * 坐标格式化

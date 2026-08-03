@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.admin.product.resolvers
 
+import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.graphql.generated.*
 import dev.yidafu.aqua.product.domain.model.ProductModel
-import dev.yidafu.aqua.product.service.ProductService
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows

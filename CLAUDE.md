@@ -91,10 +91,9 @@ The project follows a clean multi-module architecture where each module has a sp
 - **aqua-order**: Order processing, domain events, and business logic
 - **aqua-delivery**: Delivery worker management and task assignment
 - **aqua-payment**: WeChat Pay integration and refund processing
-- **aqua-statistics**: Revenue analytics and business metrics
+- **aqua-analytics**: Business analytics — financial reconciliation with external systems (e.g. WeChat Pay) and business statistics (revenue, delivery workers, products, users)
 - **aqua-storage**: File storage service for product images and delivery photos
 - **aqua-notice**: WeChat notification system and template management
-- **aqua-reconciliation**: Financial reconciliation with external systems
 - **aqua-review**: User reviews and delivery worker ratings
 - **aqua-entry**: Main Spring Boot application entry point with global configurations
 

@@ -54,5 +54,4 @@ open class UserNotificationSettingsModel(
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
   }
-
 }

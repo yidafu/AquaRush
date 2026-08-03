@@ -62,7 +62,6 @@ open class OrderItemModel(
     updatedAt = LocalDateTime.now()
   }
 
-
   // Backward compatibility property
   val unitPrice: BigDecimal
     get() = MoneyUtils.fromCents(unitPriceCents)

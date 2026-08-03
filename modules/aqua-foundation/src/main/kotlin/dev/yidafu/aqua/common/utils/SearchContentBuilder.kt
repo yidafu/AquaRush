@@ -27,7 +27,6 @@ import dev.yidafu.aqua.common.domain.model.ProductModel
  * 用于生成 orders 表的 search_content 字段值
  */
 object SearchContentBuilder {
-
   /**
    * 构建搜索内容字符串
    * 包含：详细地址、收货人姓名、手机号、商品名称

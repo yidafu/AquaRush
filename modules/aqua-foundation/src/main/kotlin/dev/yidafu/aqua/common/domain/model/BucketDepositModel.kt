@@ -63,7 +63,6 @@ data class BucketDepositModel(
     updatedAt = LocalDateTime.now()
   }
 
-
   // 金额转换为元
   val amount: BigDecimal
     get() = MoneyUtils.fromCents(amountCents)

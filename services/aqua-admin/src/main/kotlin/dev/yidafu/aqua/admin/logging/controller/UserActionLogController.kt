@@ -27,8 +27,6 @@ import dev.yidafu.aqua.logging.service.UserActionEventService
 import dev.yidafu.aqua.logging.service.UserActionLogService
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.Valid
-import jakarta.validation.constraints.NotBlank
-import jakarta.validation.constraints.NotNull
 import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.data.domain.Page
@@ -150,8 +148,5 @@ class UserActionLogController(
     return request.remoteAddr
   }
 
-  /**
-   * 用户操作日志请求体
-   */
   // DTOs moved to dev.yidafu.aqua.logging.dto package
 }

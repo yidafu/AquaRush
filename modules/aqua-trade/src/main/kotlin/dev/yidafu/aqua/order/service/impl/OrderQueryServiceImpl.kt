@@ -183,26 +183,24 @@ class OrderQueryServiceImpl(
     endOfDay: LocalDateTime,
     deliveryWorkerId: Long?,
     statuses: List<OrderModelStatus>?,
-  ): Long {
-    return orderRepository.countOrdersByDateRange(
+  ): Long =
+    orderRepository.countOrdersByDateRange(
       startOfDay = startOfDay,
       endOfDay = endOfDay,
       deliveryWorkerId = deliveryWorkerId,
       statuses = statuses,
     )
-  }
 
   override fun sumAmountCentsByStatusAndDateRange(
     statuses: List<OrderModelStatus>,
     startOfDay: LocalDateTime,
     endOfDay: LocalDateTime,
     deliveryWorkerId: Long?,
-  ): Long {
-    return orderRepository.sumAmountCentsByStatusAndDateRange(
+  ): Long =
+    orderRepository.sumAmountCentsByStatusAndDateRange(
       statuses = statuses,
       startOfDay = startOfDay,
       endOfDay = endOfDay,
       deliveryWorkerId = deliveryWorkerId,
     )
-  }
 }

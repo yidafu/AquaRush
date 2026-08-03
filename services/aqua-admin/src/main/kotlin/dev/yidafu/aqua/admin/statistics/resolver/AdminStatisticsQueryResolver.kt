@@ -19,14 +19,13 @@
 
 package dev.yidafu.aqua.analytics.statistics.resolver
 
+import dev.yidafu.aqua.analytics.statistics.service.DeliveryWorkerStatisticsService
+import dev.yidafu.aqua.analytics.statistics.service.UserStatisticsService
 import dev.yidafu.aqua.common.graphql.generated.DailyLoginStatistic
-import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerOverview
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerRankingItem
 import dev.yidafu.aqua.common.graphql.generated.LoginStatistics
 import dev.yidafu.aqua.common.graphql.generated.UserStatistics
-import dev.yidafu.aqua.analytics.statistics.service.DeliveryWorkerStatisticsService
-import dev.yidafu.aqua.analytics.statistics.service.UserStatisticsService
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -54,17 +53,19 @@ class AdminStatisticsQueryResolver(
 
     // 获取登录统计
     val loginResult = userStatisticsService.getLoginStatistics(thirtyDaysAgo, LocalDate.now())
-    val loginStats = loginResult.dailyLogins.map {
-      DailyLoginStatistic(
-        date = it.date,
-        loginCount = it.loginCount,
+    val loginStats =
+      loginResult.dailyLogins.map {
+        DailyLoginStatistic(
+          date = it.date,
+          loginCount = it.loginCount,
+        )
+      }
+    val loginStatistics =
+      LoginStatistics(
+        todayLogins = loginResult.todayLogins.toInt(),
+        totalLogins = loginResult.totalLogins.toInt(),
+        dailyLogins = loginStats,
       )
-    }
-    val loginStatistics = LoginStatistics(
-      todayLogins = loginResult.todayLogins.toInt(),
-      totalLogins = loginResult.totalLogins.toInt(),
-      dailyLogins = loginStats,
-    )
 
     return UserStatistics(
       totalUsers = result.totalUsers.toInt(),

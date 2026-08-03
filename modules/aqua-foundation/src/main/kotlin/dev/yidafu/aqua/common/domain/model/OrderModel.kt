@@ -110,7 +110,6 @@ data class OrderModel(
     updatedAt = LocalDateTime.now()
   }
 
-
   // Compatibility property for existing code - returns amount in yuan as BigDecimal
   val amount: BigDecimal
     get() = MoneyUtils.fromCents(amountCents)

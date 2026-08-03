@@ -23,6 +23,7 @@ import AddressListPage from './pages/addresses/list';
 import ApiLogs from './pages/logs/api';
 import UserActionLogs from './pages/logs/user-actions';
 import BusinessLogs from './pages/logs/business';
+import DailyCollection from './pages/daily-collection';
 
 const App: React.FC = () => {
   return (
@@ -58,6 +59,7 @@ const App: React.FC = () => {
         <Route path="logs/api" element={<ApiLogs />} />
         <Route path="logs/user-actions" element={<UserActionLogs />} />
         <Route path="logs/business" element={<BusinessLogs />} />
+        <Route path="daily-collection" element={<DailyCollection />} />
       </Route>
     </Routes>
   );

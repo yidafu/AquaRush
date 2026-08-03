@@ -1,0 +1,181 @@
+# Query regions by level and parent code
+query GetRegionsByLevelAndParent {
+  regions(level: 1, parentCode: "110000") {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Query all regions (no filters)
+query GetAllRegions {
+  regions {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Query root regions (level = 1, no parent code)
+query GetRootRegions {
+  regions(level: 1) {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Query child regions by parent code
+query GetChildRegions {
+  regions(parentCode: "110000") {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Query provinces (level = 1)
+query GetProvinces {
+  regions(level: 1) {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Query cities by province code
+query GetCitiesByProvince {
+  regions(level: 2, parentCode: "110000") {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Query districts by city code
+query GetDistrictsByCity {
+  regions(level: 3, parentCode: "110101") {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Query specific region by code
+query GetRegionByCode {
+  region(code: "110101") {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Query region by ID
+query GetRegionById {
+  region(id: 1) {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Test query for Jiangsu Province (example with real data)
+query GetJiangsuRegions {
+  regions(level: 1, parentCode: null) {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Test query for cities in Jiangsu Province
+query GetJiangsuCities {
+  regions(level: 2, parentCode: "320000") {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Test query for districts in Nanjing City
+query GetNanjingDistricts {
+  regions(level: 3, parentCode: "320100") {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Query with all parameters
+query GetRegionsWithAllParams {
+  regions(level: 2, parentCode: "110000") {
+    id
+    name
+    code
+    parentCode
+    level
+    createdAt
+    updatedAt
+  }
+}
+
+# Variables example for the above queries
+"""
+Variables for testing:
+{
+  "level": 1,
+  "parentCode": "110000",
+  "regionCode": "110101",
+  "regionId": 1
+  "provinceCode": "320000",
+  "cityCode": "320100"
+}
+"""

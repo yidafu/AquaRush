@@ -22,16 +22,11 @@ package dev.yidafu.aqua.client.product.resolvers
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.Product
-import dev.yidafu.aqua.common.graphql.generated.ProductVoPage
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.product.mapper.ProductMapper
 import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
-import org.springframework.data.domain.Sort
-import org.springframework.data.domain.Sort.Direction
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize

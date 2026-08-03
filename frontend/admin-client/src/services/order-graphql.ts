@@ -15,7 +15,6 @@ import type {
 } from '@aquarush/common';
 
 // Order Query Hooks
-// TODO: Fix this query - GET_ORDERS_QUERY uses non-existent 'orders' query in schema
 export const useOrders = (input?: any) => {
   return useQuery(GET_ORDERS_QUERY, {
     variables: { input },

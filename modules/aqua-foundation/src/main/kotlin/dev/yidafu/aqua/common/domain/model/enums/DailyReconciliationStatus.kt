@@ -23,8 +23,8 @@ package dev.yidafu.aqua.common.domain.model.enums
  * 每日对账记录状态
  */
 enum class DailyReconciliationStatus {
-  PENDING,    // 待对账
-  MATCHED,    // 匹配（差异在容差范围内）
+  PENDING, // 待对账
+  MATCHED, // 匹配（差异在容差范围内）
   DISCREPANCY, // 有差异（超出容差范围）
-  REVIEWED,  // 已人工复核
+  REVIEWED, // 已人工复核
 }

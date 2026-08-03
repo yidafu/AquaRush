@@ -111,8 +111,6 @@ class AdminPaymentQueryResolver(
     return null
   }
 
-
-
   /**
    * 查询异常交易（管理员功能）
    */
@@ -128,5 +126,4 @@ class AdminPaymentQueryResolver(
     val pageable: Pageable = PageRequest.of(page, size)
     return Page.empty(pageable)
   }
-
 }

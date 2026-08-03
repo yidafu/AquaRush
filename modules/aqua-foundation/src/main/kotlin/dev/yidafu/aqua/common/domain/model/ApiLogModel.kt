@@ -76,8 +76,7 @@ data class ApiLogModel(
   val errorMessage: String? = null,
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
-) {
-}
+)
 
 /**
  * 请求类型枚举

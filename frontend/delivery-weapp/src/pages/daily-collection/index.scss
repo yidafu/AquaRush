@@ -1,0 +1,361 @@
+.daily-collection-page {
+  min-height: 100vh;
+  // margin: 32px;
+  background-color: #f5f5f5;
+}
+
+.section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  margin: 32px;
+}
+
+.section-title {
+  font-size: 28px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.date-display {
+  font-size: 32px;
+  font-weight: bold;
+  color: #1890ff;
+  text-align: center;
+  padding: 16px;
+}
+
+// 订单信息
+.order-info {
+  background: #e6f7ff;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 20px;
+
+  .order-info-title {
+    font-size: 26px;
+    font-weight: 600;
+    color: #1890ff;
+    margin-bottom: 12px;
+  }
+
+  .order-info-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+  }
+
+  .order-info-label {
+    font-size: 26px;
+    color: #666;
+  }
+
+  .order-info-value {
+    font-size: 26px;
+    color: #333;
+    font-weight: 500;
+  }
+}
+
+// 状态卡片
+.status-card {
+  background: #f9f9f9;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+
+  .label {
+    font-size: 26px;
+    color: #666;
+  }
+
+  .value {
+    font-size: 26px;
+    color: #333;
+
+    &.status-draft {
+      color: #999;
+    }
+
+    &.status-submitted {
+      color: #1890ff;
+    }
+
+    &.status-confirmed {
+      color: #52c41a;
+    }
+
+    &.status-disputed {
+      color: #ff4d4f;
+    }
+  }
+}
+
+// 表单项
+.form-item {
+  display: flex;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid #eee;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .label {
+    font-size: 26px;
+    color: #333;
+    min-width: 200px;
+  }
+
+  .input {
+    flex: 1;
+    height: 64px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 0 20px;
+    font-size: 26px;
+  }
+
+  &.total {
+    padding-top: 20px;
+    margin-top: 10px;
+    border-top: 2px solid #eee;
+    border-bottom: none;
+
+    .label {
+      font-size: 28px;
+      font-weight: 600;
+    }
+
+    .value {
+      font-size: 32px;
+      font-weight: bold;
+      color: #ff4d4f;
+    }
+  }
+
+  &.compare {
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: 16px;
+
+    .label {
+      font-weight: 600;
+    }
+
+    .value {
+      font-size: 28px;
+      font-weight: 600;
+
+      &.matched {
+        color: #52c41a;
+      }
+
+      &.diff {
+        color: #ff4d4f;
+      }
+    }
+  }
+}
+
+// 对比卡片
+.comparison-card {
+  background: #f9f9f9;
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.comparison-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+
+  .label {
+    font-size: 26px;
+    color: #666;
+  }
+
+  .value {
+    font-size: 26px;
+    color: #333;
+    font-weight: 500;
+
+    &.matched {
+      color: #52c41a;
+    }
+
+    &.diff {
+      color: #ff4d4f;
+    }
+  }
+
+  &.difference {
+    padding-top: 16px;
+    margin-top: 8px;
+    border-top: 1px dashed #ddd;
+  }
+}
+
+.match-status {
+  text-align: center;
+  padding: 16px;
+  font-size: 26px;
+  font-weight: 600;
+  border-radius: 8px;
+  margin-top: 12px;
+
+  &.matched {
+    background: #f6ffed;
+    color: #52c41a;
+  }
+
+  &.diff {
+    background: #fff2f0;
+    color: #ff4d4f;
+  }
+}
+
+// 按钮组
+.button-group {
+  padding: 24px 0;
+}
+
+.submit-btn {
+  height: 88px;
+  background: #1890ff;
+  border-radius: 16px;
+  font-size: 32px;
+  font-weight: 600;
+}
+
+// 提示
+.tips {
+  padding: 20px;
+  background: #fffbe6;
+  border-radius: 12px;
+  margin-top: 16px;
+
+  .tips-title {
+    font-size: 24px;
+    color: #faad14;
+    font-weight: 600;
+    display: block;
+    margin-bottom: 8px;
+  }
+
+  .tips-content {
+    font-size: 22px;
+    color: #666;
+    line-height: 1.6;
+    display: block;
+  }
+}
+
+// 确认弹窗
+.modal-mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  width: 600px;
+  background: #fff;
+  border-radius: 20px;
+  padding: 32px;
+  margin: 32px;
+}
+
+.modal-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: #333;
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+.modal-body {
+  margin-bottom: 24px;
+
+  .modal-warning {
+    display: block;
+    font-size: 28px;
+    font-weight: 600;
+    color: #ff4d4f;
+    text-align: center;
+    margin-bottom: 12px;
+  }
+
+  .modal-desc {
+    display: block;
+    font-size: 24px;
+    color: #666;
+    text-align: center;
+    margin-bottom: 16px;
+  }
+
+  .modal-input {
+    width: 100%;
+    height: 120px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 26px;
+    box-sizing: border-box;
+  }
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 24px;
+
+  .modal-btn {
+    flex: 1;
+    height: 80px;
+    border-radius: 12px;
+    font-size: 28px;
+    font-weight: 600;
+
+    &.cancel {
+      background: #f5f5f5;
+      color: #666;
+    }
+
+    &.confirm {
+      background: #ff4d4f;
+      color: #fff;
+    }
+  }
+}
+
+// AtModal 输入框包装
+.modal-input-wrap {
+  padding: 24px 32px;
+
+  .modal-input {
+    width: 100%;
+    height: 100px;
+    background: #f5f5f5;
+    border-radius: 12px;
+    padding: 16px;
+    font-size: 26px;
+    box-sizing: border-box;
+  }
+}

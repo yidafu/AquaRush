@@ -308,6 +308,7 @@ export const ProductEditor: React.FC<ProductEditorProps> = ({
                   <InputNumber
                     min={0}
                     placeholder="0"
+                    disabled
                     style={{ width: '100%' }}
                     addonAfter="件"
                   />

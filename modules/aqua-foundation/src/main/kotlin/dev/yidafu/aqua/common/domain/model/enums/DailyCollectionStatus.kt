@@ -23,8 +23,8 @@ package dev.yidafu.aqua.common.domain.model.enums
  * 每日收款记录状态
  */
 enum class DailyCollectionStatus {
-  DRAFT,      // 草稿（配送员刚录入）
-  SUBMITTED,  // 已提交（待管理员确认）
-  CONFIRMED,  // 已确认（管理员已确认）
-  DISPUTED,   // 有争议（金额不匹配）
+  DRAFT, // 草稿（配送员刚录入）
+  SUBMITTED, // 已提交（待管理员确认）
+  CONFIRMED, // 已确认（管理员已确认）
+  DISPUTED, // 有争议（金额不匹配）
 }

@@ -19,8 +19,6 @@
 
 package dev.yidafu.aqua.admin.user.resolvers
 
-import dev.yidafu.aqua.admin.user.resolvers.dto.CreateAdminRequest
-import dev.yidafu.aqua.admin.user.resolvers.dto.UpdateAdminRequest
 import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
@@ -34,7 +32,6 @@ import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
@@ -43,8 +40,8 @@ class AdminUserMutationResolverTest {
   private lateinit var adminService: AdminService
   private lateinit var resolver: AdminUserMutationResolver
 
-  private fun createSampleAdmin(): AdminModel {
-    return AdminModel(
+  private fun createSampleAdmin(): AdminModel =
+    AdminModel(
       id = 1L,
       username = "admin",
       passwordHash = "hashed_password",
@@ -53,7 +50,6 @@ class AdminUserMutationResolverTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
   @BeforeEach
   fun setUp() {
@@ -64,13 +60,14 @@ class AdminUserMutationResolverTest {
   @Test
   fun `createAdmin should create admin successfully`() {
     // Given
-    val input = CreateAdminInput(
-      username = "newadmin",
-      password = "password123",
-      realName = "新管理员",
-      phone = "13900139001",
-      role = AdminRole.ADMIN,
-    )
+    val input =
+      CreateAdminInput(
+        username = "newadmin",
+        password = "password123",
+        realName = "新管理员",
+        phone = "13900139001",
+        role = AdminRole.ADMIN,
+      )
     every { adminService.createAdmin(any(), any(), any(), any(), any()) } returns createSampleAdmin()
 
     // When
@@ -84,13 +81,14 @@ class AdminUserMutationResolverTest {
   @Test
   fun `createAdmin should throw exception when username is blank`() {
     // Given
-    val input = CreateAdminInput(
-      username = "",
-      password = "password123",
-      realName = "新管理员",
-      phone = "13900139001",
-      role = AdminRole.ADMIN,
-    )
+    val input =
+      CreateAdminInput(
+        username = "",
+        password = "password123",
+        realName = "新管理员",
+        phone = "13900139001",
+        role = AdminRole.ADMIN,
+      )
 
     // When & Then
     val exception = assertFailsWith<BadRequestException> { resolver.createAdmin(input) }
@@ -100,13 +98,14 @@ class AdminUserMutationResolverTest {
   @Test
   fun `createAdmin should throw exception when username is too short`() {
     // Given
-    val input = CreateAdminInput(
-      username = "ab",
-      password = "password123",
-      realName = "新管理员",
-      phone = "13900139001",
-      role = AdminRole.ADMIN,
-    )
+    val input =
+      CreateAdminInput(
+        username = "ab",
+        password = "password123",
+        realName = "新管理员",
+        phone = "13900139001",
+        role = AdminRole.ADMIN,
+      )
 
     // When & Then
     val exception = assertFailsWith<BadRequestException> { resolver.createAdmin(input) }
@@ -116,13 +115,14 @@ class AdminUserMutationResolverTest {
   @Test
   fun `createAdmin should throw exception when username contains invalid characters`() {
     // Given
-    val input = CreateAdminInput(
-      username = "admin@123",
-      password = "password123",
-      realName = "新管理员",
-      phone = "13900139001",
-      role = AdminRole.ADMIN,
-    )
+    val input =
+      CreateAdminInput(
+        username = "admin@123",
+        password = "password123",
+        realName = "新管理员",
+        phone = "13900139001",
+        role = AdminRole.ADMIN,
+      )
 
     // When & Then
     val exception = assertFailsWith<BadRequestException> { resolver.createAdmin(input) }

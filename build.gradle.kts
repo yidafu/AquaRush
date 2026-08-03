@@ -49,19 +49,25 @@ subprojects {
 
   apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
-  // Configure Kotlin allopen to make JPA entity methods open for Hibernate proxy
-  tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-    compilerOptions {
-      freeCompilerArgs.addAll(
-        listOf(
-          "-Xallopen",
-          "-Xannotation=jakarta.persistence.Entity",
-          "-Xannotation=jakarta.persistence.MappedSuperclass",
-          "-Xannotation=jakarta.persistence.Embeddable",
-        ),
-      )
+  // The ktlint version must be configured per-project. Setting it on the root
+  // project's KtlintExtension does NOT propagate to subprojects, so they fall back
+  // to the plugin's default (1.0.1), which is incompatible with Kotlin 2.x
+  // (ktlint 1.0.1 references KtTokens.HEADER_KEYWORD, removed in Kotlin 2.2+).
+  configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+    version.set("1.5.0")
+    debug.set(false)
+    filter {
+      // Generated sources (QueryDSL/KSP output under build/generated) must not be
+      // linted. They are also outputs of compileJava, so including them makes Gradle 9
+      // fail the ktlint tasks with an implicit-dependency validation error.
+      exclude("**/build/generated/**")
     }
   }
+
+  // JPA all-open is configured via the aqua.kotlin.jpa convention plugin,
+  // which applies kotlin("plugin.allopen") and registers @Entity / @MappedSuperclass
+  // / @Embeddable as all-open annotations. Using -Xallopen / -Xannotation flags here
+  // is unsupported in Kotlin 2.x and emits warnings.
 }
 
 configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {

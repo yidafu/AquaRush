@@ -1,0 +1,148 @@
+.bucket-deposit-list-page {
+  min-height: 100vh;
+  padding: 32px;
+  padding-bottom: 160px;
+  background-color: #f5f5f5;
+}
+
+.active-bucket-card {
+  background: linear-gradient(135deg, #007AFF 0%, #00BFFF 100%);
+  border-radius: 20px;
+  padding: 40px 32px;
+  margin-bottom: 32px;
+}
+
+.active-bucket-info {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+}
+
+.active-bucket-label {
+  font-size: 20px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-right: 16px;
+}
+
+.active-bucket-count {
+  font-size: 64px;
+  font-weight: bold;
+  color: #fff;
+}
+
+.active-bucket-unit {
+  font-size: 24px;
+  color: rgba(255, 255, 255, 0.9);
+  margin-left: 8px;
+}
+
+.deposit-list {
+  margin-bottom: 32px;
+}
+
+.list-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 16px;
+  display: block;
+}
+
+.loading-container,
+.empty-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 80px 0;
+}
+
+.loading-text,
+.empty-text {
+  font-size: 20px;
+  color: #999;
+}
+
+.deposit-card {
+  margin-bottom: 16px;
+  border-radius: 16px;
+}
+
+.deposit-item {
+  padding: 8px 0;
+}
+
+.deposit-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.deposit-quantity {
+  font-size: 24px;
+  font-weight: 600;
+  color: #333;
+}
+
+.deposit-status {
+  font-size: 16px;
+  padding: 4px 16px;
+  border-radius: 20px;
+}
+
+.status-deposited {
+  background-color: #e6f7ff;
+  color: #1890ff;
+}
+
+.status-refunded {
+  background-color: #f5f5f5;
+  color: #999;
+}
+
+.deposit-amount,
+.deposit-time,
+.deposit-remark {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.amount-label,
+.time-label,
+.remark-label {
+  font-size: 16px;
+  color: #666;
+}
+
+.amount-value {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ff6b00;
+}
+
+.time-value,
+.remark-value {
+  font-size: 16px;
+  color: #333;
+}
+
+.add-bucket-container {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 32px;
+  padding-bottom: calc(24px + env(safe-area-inset-bottom));
+  background-color: #fff;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.add-bucket-button {
+  height: 64px;
+  font-size: 20px;
+  border-radius: 16px;
+  font-weight: 600;
+  background-color: #007AFF;
+  border: none;
+}

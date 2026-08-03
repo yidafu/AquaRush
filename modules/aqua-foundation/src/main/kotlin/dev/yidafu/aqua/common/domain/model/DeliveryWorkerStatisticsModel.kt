@@ -69,7 +69,6 @@ open class DeliveryWorkerStatisticsModel(
     lastUpdated = LocalDateTime.now()
   }
 
-
   fun updateStatistics(newRating: Int) {
     totalReviews++
 

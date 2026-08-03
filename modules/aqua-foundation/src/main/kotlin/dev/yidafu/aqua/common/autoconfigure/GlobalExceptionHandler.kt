@@ -55,10 +55,11 @@ class GlobalExceptionHandler {
 
     val error =
       ErrorResponse(
-        code = when (ex) {
-          is BadRequestException -> 400
-          else -> 400
-        },
+        code =
+          when (ex) {
+            is BadRequestException -> 400
+            else -> 400
+          },
         message = ex.message,
         timestamp = LocalDateTime.now(),
         correlationId = correlationId,

@@ -140,7 +140,6 @@ class FileMetadata {
     this.updatedAt = now
   }
 
-
   @PreUpdate
   fun preUpdate() {
     updatedAt = LocalDateTime.now()

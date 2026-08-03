@@ -268,14 +268,16 @@ class ProductFavoriteServiceImpl(
     val mostFavorited = productFavoriteRepository.findMostFavoritedProducts()
     val allProducts = productRepository.findAll()
 
-    return mostFavorited.map { favoriteCount ->
-      val product = allProducts.find { it.id == favoriteCount.productId }
-      ProductFavoriteStat(
-        productId = favoriteCount.productId,
-        productName = product?.name ?: "未知商品",
-        favoriteCount = favoriteCount.favoriteCount,
-      )
-    }.sortedByDescending { it.favoriteCount }.take(10)
+    return mostFavorited
+      .map { favoriteCount ->
+        val product = allProducts.find { it.id == favoriteCount.productId }
+        ProductFavoriteStat(
+          productId = favoriteCount.productId,
+          productName = product?.name ?: "未知商品",
+          favoriteCount = favoriteCount.favoriteCount,
+        )
+      }.sortedByDescending { it.favoriteCount }
+      .take(10)
   }
 
   /**

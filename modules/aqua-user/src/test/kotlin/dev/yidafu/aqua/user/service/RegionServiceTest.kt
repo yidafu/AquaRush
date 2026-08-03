@@ -37,8 +37,8 @@ class RegionServiceTest {
   private lateinit var regionRepository: RegionRepository
   private lateinit var regionService: RegionService
 
-  private fun createSampleProvince(): RegionModel {
-    return RegionModel(
+  private fun createSampleProvince(): RegionModel =
+    RegionModel(
       id = 1L,
       name = "广东省",
       code = "440000",
@@ -47,10 +47,9 @@ class RegionServiceTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
-  private fun createSampleCity(): RegionModel {
-    return RegionModel(
+  private fun createSampleCity(): RegionModel =
+    RegionModel(
       id = 2L,
       name = "深圳市",
       code = "440300",
@@ -59,10 +58,9 @@ class RegionServiceTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
-  private fun createSampleDistrict(): RegionModel {
-    return RegionModel(
+  private fun createSampleDistrict(): RegionModel =
+    RegionModel(
       id = 3L,
       name = "南山区",
       code = "440305",
@@ -71,18 +69,21 @@ class RegionServiceTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
-  private fun createUpdatedRegion(original: RegionModel, name: String? = null): RegionModel {
-    val updated = RegionModel(
-      id = original.id,
-      name = name ?: original.name,
-      code = original.code,
-      parentCode = original.parentCode,
-      level = original.level,
-      createdAt = original.createdAt,
-      updatedAt = LocalDateTime.now(),
-    )
+  private fun createUpdatedRegion(
+    original: RegionModel,
+    name: String? = null,
+  ): RegionModel {
+    val updated =
+      RegionModel(
+        id = original.id,
+        name = name ?: original.name,
+        code = original.code,
+        parentCode = original.parentCode,
+        level = original.level,
+        createdAt = original.createdAt,
+        updatedAt = LocalDateTime.now(),
+      )
     return updated
   }
 
@@ -96,24 +97,26 @@ class RegionServiceTest {
   fun `createRegion should create new region successfully`() {
     // Given
     val sampleProvince = createSampleProvince()
-    val input = CreateRegionInput(
-      name = "东莞市",
-      code = "441900",
-      level = 2,
-      parentCode = "440000",
-    )
+    val input =
+      CreateRegionInput(
+        name = "东莞市",
+        code = "441900",
+        level = 2,
+        parentCode = "440000",
+      )
     every { regionRepository.existsByCode("441900") } returns false
     every { regionRepository.findByCode("440000") } returns sampleProvince
     every { regionRepository.existsByNameAndLevelAndParentCode("东莞市", 2, "440000") } returns false
-    every { regionRepository.save(any()) } returns RegionModel(
-      id = 1L,
-      name = "东莞市",
-      code = "441900",
-      parentCode = "440000",
-      level = 2,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
+    every { regionRepository.save(any()) } returns
+      RegionModel(
+        id = 1L,
+        name = "东莞市",
+        code = "441900",
+        parentCode = "440000",
+        level = 2,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
 
     // When
     val result = regionService.createRegion(input)
@@ -126,12 +129,13 @@ class RegionServiceTest {
   @Test
   fun `createRegion should throw exception when code already exists`() {
     // Given
-    val input = CreateRegionInput(
-      name = "深圳市",
-      code = "440300",
-      level = 2,
-      parentCode = "440000",
-    )
+    val input =
+      CreateRegionInput(
+        name = "深圳市",
+        code = "440300",
+        level = 2,
+        parentCode = "440000",
+      )
     every { regionRepository.existsByCode("440300") } returns true
 
     // When & Then
@@ -142,12 +146,13 @@ class RegionServiceTest {
   @Test
   fun `createRegion should throw exception when level is invalid`() {
     // Given
-    val input = CreateRegionInput(
-      name = "测试",
-      code = "440000",
-      level = 5,
-      parentCode = null,
-    )
+    val input =
+      CreateRegionInput(
+        name = "测试",
+        code = "440000",
+        level = 5,
+        parentCode = null,
+      )
 
     // When & Then
     val exception = assertThrows<AquaException> { regionService.createRegion(input) }
@@ -157,12 +162,13 @@ class RegionServiceTest {
   @Test
   fun `createRegion should throw exception when parent region does not exist`() {
     // Given
-    val input = CreateRegionInput(
-      name = "测试",
-      code = "441900",
-      level = 2,
-      parentCode = "440000",
-    )
+    val input =
+      CreateRegionInput(
+        name = "测试",
+        code = "441900",
+        level = 2,
+        parentCode = "440000",
+      )
     every { regionRepository.existsByCode("441900") } returns false
     every { regionRepository.findByCode("440000") } returns null
 
@@ -175,12 +181,13 @@ class RegionServiceTest {
   fun `createRegion should throw exception when name already exists under same parent`() {
     // Given
     val sampleProvince = createSampleProvince()
-    val input = CreateRegionInput(
-      name = "深圳市",
-      code = "441900",
-      level = 2,
-      parentCode = "440000",
-    )
+    val input =
+      CreateRegionInput(
+        name = "深圳市",
+        code = "441900",
+        level = 2,
+        parentCode = "440000",
+      )
     every { regionRepository.existsByCode("441900") } returns false
     every { regionRepository.findByCode("440000") } returns sampleProvince
     every { regionRepository.existsByNameAndLevelAndParentCode("深圳市", 2, "440000") } returns true
@@ -198,10 +205,11 @@ class RegionServiceTest {
     every { regionRepository.existsByNameAndLevelAndParentCode(any(), any(), any()) } returns false
     every { regionRepository.save(any()) } returns createSampleCity()
 
-    val input = UpdateRegionInput(
-      name = "新深圳市",
-      parentCode = null,
-    )
+    val input =
+      UpdateRegionInput(
+        name = "新深圳市",
+        parentCode = null,
+      )
 
     // When
     val result = regionService.updateRegion("440300", input)
@@ -215,10 +223,11 @@ class RegionServiceTest {
     // Given
     every { regionRepository.findByCode("999999") } returns null
 
-    val input = UpdateRegionInput(
-      name = "测试",
-      parentCode = null,
-    )
+    val input =
+      UpdateRegionInput(
+        name = "测试",
+        parentCode = null,
+      )
 
     // When & Then
     val exception = assertThrows<AquaException> { regionService.updateRegion("999999", input) }

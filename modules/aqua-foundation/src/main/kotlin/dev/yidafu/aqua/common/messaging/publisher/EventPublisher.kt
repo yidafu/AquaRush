@@ -20,7 +20,6 @@
 package dev.yidafu.aqua.common.messaging.publisher
 
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
-import org.apache.activemq.artemis.core.server.plugin.impl.LoggingActiveMQServerPlugin
 
 /**
  * 事件发布器接口

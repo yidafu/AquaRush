@@ -1,0 +1,106 @@
+.bucket-deposit-create-page {
+  min-height: 100vh;
+  padding: 32px;
+  background-color: #f5f5f5;
+}
+
+.info-card {
+  background-color: #e6f7ff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  border: 1px solid #91d5ff;
+}
+
+.info-title {
+  font-size: 20px;
+  font-weight: 600;
+  color: #1890ff;
+  display: block;
+  margin-bottom: 12px;
+}
+
+.info-content {
+  font-size: 16px;
+  color: #666;
+  line-height: 1.6;
+}
+
+.quantity-card {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.quantity-label {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  display: block;
+  margin-bottom: 16px;
+}
+
+.quantity-input-container {
+  display: flex;
+  align-items: center;
+}
+
+.quantity-input {
+  flex: 1;
+}
+
+.quantity-unit {
+  font-size: 20px;
+  color: #333;
+  margin-left: 16px;
+}
+
+.amount-card {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 32px;
+}
+
+.amount-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.amount-label {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.amount-value {
+  font-size: 32px;
+  font-weight: bold;
+  color: #ff6b00;
+}
+
+.amount-detail {
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.detail-text {
+  font-size: 16px;
+  color: #999;
+}
+
+.submit-container {
+  padding: 0 32px;
+}
+
+.submit-button {
+  height: 64px;
+  font-size: 20px;
+  border-radius: 16px;
+  font-weight: 600;
+  background-color: #007AFF;
+  border: none;
+}

@@ -59,7 +59,6 @@ open class MessageHistoryModel(
   @Column(name = "deleted_by")
   override var deletedBy: Long? = null,
 ) : SoftDeletable {
-
   companion object {
     fun createSuccess(
       userId: Long,

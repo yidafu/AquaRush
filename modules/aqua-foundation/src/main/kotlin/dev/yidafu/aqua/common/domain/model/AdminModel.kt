@@ -62,5 +62,4 @@ data class AdminModel(
   fun preUpdate() {
     updatedAt = LocalDateTime.now()
   }
-
 }

@@ -71,5 +71,4 @@ data class DailyReconciliationModel(
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "updated_at", nullable = false)
   var updatedAt: LocalDateTime = LocalDateTime.now(),
-) {
-}
+)

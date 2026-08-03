@@ -60,6 +60,14 @@ const MyPage: React.FC = () => {
 
           <View
             className='menu-item'
+            onClick={() => Taro.navigateTo({ url: '/pages/reconciliation-records/index' })}
+          >
+            <Text className='menu-label'>对账记录</Text>
+            <Text className='menu-arrow'>›</Text>
+          </View>
+
+          <View
+            className='menu-item'
             onClick={() => Taro.navigateTo({ url: '/pages/history-orders/index' })}
           >
             <Text className='menu-label'>历史订单</Text>

@@ -25,9 +25,7 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 @Repository
-interface DailyCollectionRecordRepository :
-  JpaRepository<DailyCollectionRecordModel, Long> {
-
+interface DailyCollectionRecordRepository : JpaRepository<DailyCollectionRecordModel, Long> {
   fun findByDeliveryWorkerIdAndCollectionDate(
     deliveryWorkerId: Long,
     collectionDate: LocalDate,

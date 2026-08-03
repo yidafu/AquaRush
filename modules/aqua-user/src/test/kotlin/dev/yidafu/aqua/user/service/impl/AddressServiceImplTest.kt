@@ -19,7 +19,6 @@
 
 package dev.yidafu.aqua.user.service.impl
 
-import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.dto.AddressUpdateRequest
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
@@ -31,7 +30,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
@@ -49,8 +47,8 @@ class AddressServiceImplTest {
   private lateinit var eventPublishService: SimplifiedEventPublishService
   private lateinit var addressService: AddressServiceImpl
 
-  private fun createSampleAddress(): AddressModel {
-    return AddressModel(
+  private fun createSampleAddress(): AddressModel =
+    AddressModel(
       id = 1L,
       userId = 1L,
       receiverName = "张三",
@@ -68,10 +66,9 @@ class AddressServiceImplTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
-  private fun createSampleAddress2(): AddressModel {
-    return AddressModel(
+  private fun createSampleAddress2(): AddressModel =
+    AddressModel(
       id = 2L,
       userId = 1L,
       receiverName = "李四",
@@ -89,7 +86,6 @@ class AddressServiceImplTest {
       createdAt = LocalDateTime.now(),
       updatedAt = LocalDateTime.now(),
     )
-  }
 
   @BeforeEach
   fun setUp() {
@@ -163,7 +159,11 @@ class AddressServiceImplTest {
     // Given
     val newAddress = createSampleAddress().also { it.id = null }
     every { addressRepository.findByUserId(1L) } returns emptyList()
-    every { addressRepository.save(any()) } returns createSampleAddress().also { it.id = 5L; it.isDefault = true }
+    every { addressRepository.save(any()) } returns
+      createSampleAddress().also {
+        it.id = 5L
+        it.isDefault = true
+      }
 
     // When
     val result = addressService.createAddress(newAddress)
@@ -176,9 +176,17 @@ class AddressServiceImplTest {
   @Test
   fun `createAddress should clear other defaults when setting as default`() {
     // Given
-    val newAddress = createSampleAddress().also { it.id = null; it.isDefault = true }
+    val newAddress =
+      createSampleAddress().also {
+        it.id = null
+        it.isDefault = true
+      }
     every { addressRepository.findByUserId(1L) } returns listOf(createSampleAddress(), createSampleAddress2())
-    every { addressRepository.save(any()) } returns createSampleAddress().also { it.id = 5L; it.isDefault = true }
+    every { addressRepository.save(any()) } returns
+      createSampleAddress().also {
+        it.id = 5L
+        it.isDefault = true
+      }
 
     // When
     addressService.createAddress(newAddress)
@@ -311,11 +319,12 @@ class AddressServiceImplTest {
   @Test
   fun `isDuplicateAddress should return false when no duplicate`() {
     // Given
-    val newAddress = createSampleAddress().also {
-      it.id = null
-      it.district = "福田区"
-      it.detailAddress = "新地址"
-    }
+    val newAddress =
+      createSampleAddress().also {
+        it.id = null
+        it.district = "福田区"
+        it.detailAddress = "新地址"
+      }
     every { addressRepository.findByUserId(1L) } returns listOf(createSampleAddress(), createSampleAddress2())
 
     // When

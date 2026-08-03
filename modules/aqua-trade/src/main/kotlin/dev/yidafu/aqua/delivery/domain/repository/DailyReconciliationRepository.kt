@@ -25,9 +25,7 @@ import org.springframework.stereotype.Repository
 import java.time.LocalDate
 
 @Repository
-interface DailyReconciliationRepository :
-  JpaRepository<DailyReconciliationModel, Long> {
-
+interface DailyReconciliationRepository : JpaRepository<DailyReconciliationModel, Long> {
   fun findByReconciliationDate(reconciliationDate: LocalDate): DailyReconciliationModel?
 
   fun findByReconciliationDateBetween(

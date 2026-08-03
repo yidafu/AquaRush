@@ -88,7 +88,6 @@ class ReconciliationDiscrepancyModel : SoftDeletable {
     updatedAt = LocalDateTime.now()
   }
 
-
   companion object {
     fun createMissingRecord(
       taskId: String,
