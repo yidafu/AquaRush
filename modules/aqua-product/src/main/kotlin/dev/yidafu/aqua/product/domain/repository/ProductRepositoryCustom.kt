@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.product.domain.repository
 
-import dev.yidafu.aqua.api.query.ProductSearchRequest
+import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable

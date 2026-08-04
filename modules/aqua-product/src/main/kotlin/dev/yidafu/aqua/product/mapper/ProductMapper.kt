@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.product.mapper
 
-import dev.yidafu.aqua.api.query.ProductSearchRequest
+import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.Product

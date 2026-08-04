@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.user.service.impl
 
 import dev.yidafu.aqua.common.domain.model.AddressModel
-import dev.yidafu.aqua.common.dto.AddressUpdateRequest
+import dev.yidafu.aqua.api.dto.AddressUpdateRequest
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import dev.yidafu.aqua.user.domain.repository.RegionRepository

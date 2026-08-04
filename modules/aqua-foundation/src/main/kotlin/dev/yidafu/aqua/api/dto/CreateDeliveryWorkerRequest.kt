@@ -1,4 +1,4 @@
-package dev.yidafu.aqua.api.query
+package dev.yidafu.aqua.api.dto
 
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import jakarta.validation.constraints.NotBlank

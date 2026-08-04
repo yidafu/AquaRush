@@ -22,7 +22,7 @@ package dev.yidafu.aqua.order.mapper
 import dev.yidafu.aqua.api.dto.DailyStatDTO
 import dev.yidafu.aqua.api.dto.TodayStatisticsDTO
 import dev.yidafu.aqua.api.dto.WeekStatisticsDTO
-import dev.yidafu.aqua.api.query.CreateOrderRequest
+import dev.yidafu.aqua.api.dto.CreateOrderRequest
 import dev.yidafu.aqua.common.domain.model.DeliveryAddressModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus

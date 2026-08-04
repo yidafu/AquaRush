@@ -17,31 +17,32 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.common.dto
+package dev.yidafu.aqua.api.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
-import java.time.LocalDateTime
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
 
 /**
- * 评价响应DTO
+ * 创建评价请求DTO
  */
-data class ReviewResponse(
-  @field:JsonProperty("reviewId")
-  val reviewId: Long,
+data class CreateReviewRequest(
   @field:JsonProperty("orderId")
+  @field:NotNull(message = "订单ID不能为空")
   val orderId: Long,
-  @field:JsonProperty("userId")
-  val userId: Long? = null, // 匿名评价时隐藏
   @field:JsonProperty("deliveryWorkerId")
+  @field:NotNull(message = "配送员ID不能为空")
   val deliveryWorkerId: Long,
-  @field:JsonProperty("deliveryWorkerName")
-  val deliveryWorkerName: String? = null,
   @field:JsonProperty("rating")
+  @field:NotNull(message = "评分不能为空")
+  @field:Min(value = 1, message = "评分不能低于1星")
+  @field:Max(value = 5, message = "评分不能高于5星")
   val rating: Int,
   @field:JsonProperty("comment")
+  @field:Size(max = 500, message = "评论长度不能超过500个字符")
   val comment: String? = null,
   @field:JsonProperty("isAnonymous")
-  val isAnonymous: Boolean,
-  @field:JsonProperty("createdAt")
-  val createdAt: LocalDateTime,
+  val isAnonymous: Boolean = false,
 )

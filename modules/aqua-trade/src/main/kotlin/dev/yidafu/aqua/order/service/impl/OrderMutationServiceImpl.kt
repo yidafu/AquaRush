@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.order.service.impl
 
-import dev.yidafu.aqua.api.query.CreateOrderRequest
+import dev.yidafu.aqua.api.dto.CreateOrderRequest
 import dev.yidafu.aqua.api.service.AddressQueryApiService
 import dev.yidafu.aqua.api.service.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryAreaQueryService

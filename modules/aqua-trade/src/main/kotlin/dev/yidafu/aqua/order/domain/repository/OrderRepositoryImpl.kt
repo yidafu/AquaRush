@@ -27,7 +27,7 @@ import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.QOrderModel.Companion.orderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
-import dev.yidafu.aqua.common.dto.OrderAnalyticsRow
+import dev.yidafu.aqua.api.dto.OrderAnalyticsRow
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page

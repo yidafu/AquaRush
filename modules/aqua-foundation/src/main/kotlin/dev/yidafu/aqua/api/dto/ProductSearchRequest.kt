@@ -1,4 +1,4 @@
-package dev.yidafu.aqua.api.query
+package dev.yidafu.aqua.api.dto
 
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import jakarta.validation.constraints.Max

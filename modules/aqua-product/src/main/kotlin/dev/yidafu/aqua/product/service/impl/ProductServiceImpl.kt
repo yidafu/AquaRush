@@ -1,6 +1,6 @@
 package dev.yidafu.aqua.product.service.impl
 
-import dev.yidafu.aqua.api.query.ProductSearchRequest
+import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus

@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.common.dto
+package dev.yidafu.aqua.api.dto
 
 data class AddressUpdateRequest(
   val province: String? = null,

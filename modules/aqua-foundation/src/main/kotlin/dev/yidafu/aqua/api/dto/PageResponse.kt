@@ -1,4 +1,4 @@
-package dev.yidafu.aqua.common.dto
+package dev.yidafu.aqua.api.dto
 
 import org.springframework.data.domain.Page
 

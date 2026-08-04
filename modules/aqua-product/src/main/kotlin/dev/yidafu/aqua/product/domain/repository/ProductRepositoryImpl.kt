@@ -21,7 +21,7 @@ package dev.yidafu.aqua.product.domain.repository
 
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.api.query.ProductSearchRequest
+import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.QProductModel.Companion.productModel
 import jakarta.persistence.EntityManager

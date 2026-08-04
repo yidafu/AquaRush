@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.api.service.admin
 
 import dev.yidafu.aqua.common.domain.model.AddressModel
-import dev.yidafu.aqua.common.dto.AddressUpdateRequest
+import dev.yidafu.aqua.api.dto.AddressUpdateRequest
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 

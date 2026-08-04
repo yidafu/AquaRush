@@ -1,4 +1,4 @@
-package dev.yidafu.aqua.api.query
+package dev.yidafu.aqua.api.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.Min

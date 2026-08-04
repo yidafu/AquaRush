@@ -17,24 +17,27 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.common.dto
+package dev.yidafu.aqua.api.dto
+
+import com.fasterxml.jackson.annotation.JsonProperty
+import java.math.BigDecimal
 
 /**
- * 分页请求参数
+ * 配送员统计数据响应DTO
  */
-data class PageRequest(
-  val page: Int = 0,
-  val size: Int = 20,
-  val sort: String? = null,
-)
-
-/**
- * 分页响应
- */
-data class PageResponse<T>(
-  val content: List<T>,
-  val page: Int,
-  val size: Int,
-  val totalElements: Long,
-  val totalPages: Int,
+data class DeliveryWorkerStatisticsResponse(
+  @field:JsonProperty("workerId")
+  val workerId: Long,
+  @field:JsonProperty("totalDeliveries")
+  val totalDeliveries: Int,
+  @field:JsonProperty("averageRating")
+  val averageRating: BigDecimal,
+  @field:JsonProperty("totalReviews")
+  val totalReviews: Int,
+  @field:JsonProperty("onTimeRate")
+  val onTimeRate: Double,
+  @field:JsonProperty("positiveRatingCount")
+  val positiveRatingCount: Int,
+  @field:JsonProperty("negativeRatingCount")
+  val negativeRatingCount: Int,
 )
