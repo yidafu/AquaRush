@@ -36,7 +36,7 @@ spring:
     change-log: classpath:db/changelog/db.changelog-master.xml
     default-schema: public
     drop-first: false         # 生产环境必须为 false！
-    enabled: true             # Enable Liquibase for client service
+    enabled: false            # Schema is managed by the admin service; client has no db changelog resources
 
   artemis:
     mode: embedded
@@ -107,11 +107,6 @@ logging:
     # Enhanced logging for request troubleshooting
     dev.yidafu.aqua.security: DEBUG
     dev.yidafu.aqua.exception: DEBUG
-    dev.yidafu.aqua.error: DEBUG
-    dev.yidafu.aqua.audit: INFO
-    dev.yidafu.aqua.security.request: DEBUG
-    dev.yidafu.aqua.security.jwt: DEBUG
-    dev.yidafu.aqua.interceptor.test: DEBUG
     org.hibernate.SQL: DEBUG
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"

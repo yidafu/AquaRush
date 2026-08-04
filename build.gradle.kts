@@ -57,9 +57,14 @@ subprojects {
     version.set("1.5.0")
     debug.set(false)
     filter {
-      // Generated sources (QueryDSL/KSP output under build/generated) must not be
-      // linted. They are also outputs of compileJava, so including them makes Gradle 9
-      // fail the ktlint tasks with an implicit-dependency validation error.
+      // Generated sources (QueryDSL/KSP output under build/generated, GraphQL
+      // codegen output under src/main/graphql-gen) must not be linted. They are
+      // also outputs of compileJava, so including them makes Gradle 9 fail the
+      // ktlint tasks with an implicit-dependency validation error.
+      // The actual per-file exclusion of generated code is handled by the
+      // [**/graphql-gen/**] and [**/build/generated/**] sections in .editorconfig,
+      // since ktlint matches those globs against project-relative paths while
+      // this filter matches against per-source-root paths.
       exclude("**/build/generated/**")
     }
   }

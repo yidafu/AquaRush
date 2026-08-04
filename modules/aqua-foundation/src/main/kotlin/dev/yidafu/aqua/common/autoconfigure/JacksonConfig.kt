@@ -60,26 +60,6 @@ class JacksonConfig {
       .build()
 
   /**
-   * Jackson2ObjectMapperBuilder 自定义器，保持与 Spring Boot 自动配置的兼容性
-   */
-//    @Bean
-//    fun jacksonObjectMapperBuilderCustomizer(): Jackson2ObjectMapperBuilderCustomizer {
-//        return Jackson2ObjectMapperBuilderCustomizer { builder ->
-//            // 配置 Kotlin 模块
-//            builder.modulesToInstall(KotlinModule.Builder().build(), JavaTimeModule())
-//
-//            // Spring Boot 4.0 配置属性兼容
-//            builder.featuresToDisable(
-//                SerializationFeature.WRITE_DATES_AS_TIMESTAMPS,
-//                SerializationFeature.FAIL_ON_EMPTY_BEANS,
-//                DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-//                DeserializationFeature.FAIL_ON_NULL_FOR_PRIMITIVES,
-//                DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES
-//            )
-//        }
-//    }
-
-  /**
    * 用于 API 响应的专用 ObjectMapper
    */
   @Bean("apiObjectMapper")

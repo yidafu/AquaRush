@@ -60,10 +60,9 @@ dependencies {
 kotlin {
   sourceSets {
     main {
-      // aqua-common 的 graphql-gen 源码
+      // GraphQL codegen 生成的 Kotlin 源码（schema.kt）
       kotlin.srcDir("src/main/graphql-gen")
-      // QueryDSL KSP 生成源码
-      kotlin.srcDir(layout.buildDirectory.dir("generated/kspKotlin/main"))
+      // QueryDSL KSP 输出（build/generated/ksp/main/kotlin）由 KSP 插件自动加入 source set
     }
   }
 }

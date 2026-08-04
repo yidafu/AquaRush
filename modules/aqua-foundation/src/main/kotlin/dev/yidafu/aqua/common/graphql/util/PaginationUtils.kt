@@ -4,11 +4,6 @@ import dev.yidafu.aqua.common.graphql.generated.PageInfo
 import org.springframework.data.domain.Page
 
 /**
- * Utility object for consistent pagination mapping from Spring Data Page to GraphQL Page types
- */
-// object PaginationUtils {
-
-/**
  * Converts a Spring Data Page to a GraphQL Page structure with PageInfo
  *
  * @param page The Spring Data Page to convert

@@ -28,21 +28,13 @@ tasks.register<Copy>("copySharedGraphQL") {
   include("*.graphqls")
 }
 
-// Copy database changelog files from aqua-entry module
-tasks.register<Copy>("copyDatabaseChangelog") {
-  from("../../modules/aqua-entry/src/main/resources/db")
-  into("src/main/resources/db")
-}
-
 // Ensure resources are copied before compilation
 tasks.named("compileKotlin") {
   dependsOn("copySharedGraphQL")
-  dependsOn("copyDatabaseChangelog")
 }
 
 tasks.named("processResources") {
   dependsOn("copySharedGraphQL")
-  dependsOn("copyDatabaseChangelog")
 }
 
 // Copy GraphQL schemas for tests

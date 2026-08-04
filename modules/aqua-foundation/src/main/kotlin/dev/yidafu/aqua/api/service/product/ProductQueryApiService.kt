@@ -3,7 +3,7 @@ package dev.yidafu.aqua.api.service.product
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 
-/**
+/*
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team

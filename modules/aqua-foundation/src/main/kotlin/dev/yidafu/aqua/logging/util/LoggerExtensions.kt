@@ -23,10 +23,6 @@ import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
 /**
- * Logger 扩展函数，提供便捷的日志记录方法
- */
-
-/**
  * 记录业务操作日志
  */
 fun Logger.logBusiness(

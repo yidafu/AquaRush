@@ -6,10 +6,6 @@ import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 
 /**
- * 权限转换扩展函数
- */
-
-/**
  * 将 AdminPermission 转换为 Spring Security 的 GrantedAuthority
  */
 fun AdminPermission.toSimpleGrantedAuthority(): SimpleGrantedAuthority = SimpleGrantedAuthority("PERMISSION_${this.name}")

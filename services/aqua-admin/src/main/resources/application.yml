@@ -122,11 +122,6 @@ logging:
     # Enhanced logging for request troubleshooting
     dev.yidafu.aqua.security: DEBUG
     dev.yidafu.aqua.exception: DEBUG
-    dev.yidafu.aqua.error: DEBUG
-    dev.yidafu.aqua.audit: INFO
-    dev.yidafu.aqua.security.request: DEBUG
-    dev.yidafu.aqua.security.jwt: DEBUG
-    dev.yidafu.aqua.interceptor.test: DEBUG
     # Spring Security logging
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG

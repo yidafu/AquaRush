@@ -59,11 +59,4 @@ dependencies {
 }
 
 // QueryDSL 生成源码目录
-kotlin {
-  sourceSets {
-    main {
-      kotlin.srcDir(layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main"))
-      kotlin.srcDir(layout.buildDirectory.dir("generated/kspKotlin/main"))
-    }
-  }
-}
+// Q 类由 querydsl-ksp 生成到 build/generated/ksp/main/kotlin，由 KSP 插件自动加入 source set
