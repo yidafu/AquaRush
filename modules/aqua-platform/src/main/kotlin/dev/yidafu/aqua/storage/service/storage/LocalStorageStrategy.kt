@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.storage.service.storage
 
 import dev.yidafu.aqua.storage.config.StorageProperties
-import dev.yidafu.aqua.storage.domain.entity.FileMetadata
+import dev.yidafu.aqua.storage.domain.model.FileMetadata
 import org.springframework.core.io.FileSystemResource
 import org.springframework.core.io.Resource
 import org.springframework.stereotype.Component
@@ -116,7 +116,7 @@ class LocalStorageStrategy(
   /**
    * 根据文件类型生成存储路径
    */
-  private fun generatePathByFileType(fileType: dev.yidafu.aqua.storage.domain.enums.FileType): String {
+  private fun generatePathByFileType(fileType: dev.yidafu.aqua.storage.domain.model.enums.FileType): String {
     val now = java.time.LocalDateTime.now()
     return "${fileType.name.lowercase()}/${now.year}/${String.format("%02d", now.monthValue)}"
   }
@@ -146,7 +146,7 @@ class LocalStorageStrategy(
    * 生成相对路径
    */
   private fun generateRelativePath(
-    fileType: dev.yidafu.aqua.storage.domain.enums.FileType,
+    fileType: dev.yidafu.aqua.storage.domain.model.enums.FileType,
     fileName: String,
   ): String = "${generatePathByFileType(fileType)}/$fileName"
 }

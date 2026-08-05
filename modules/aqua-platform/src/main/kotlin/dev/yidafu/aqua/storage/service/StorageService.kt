@@ -88,7 +88,7 @@ interface StorageService {
    * @return 文件元数据分页
    */
   fun listFilesByType(
-    fileType: dev.yidafu.aqua.storage.domain.enums.FileType,
+    fileType: dev.yidafu.aqua.storage.domain.model.enums.FileType,
     pageable: Pageable,
   ): Page<FileMetadataResponse>
 

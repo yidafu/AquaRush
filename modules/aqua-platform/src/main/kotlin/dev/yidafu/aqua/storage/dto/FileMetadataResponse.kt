@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.storage.dto
 
-import dev.yidafu.aqua.storage.domain.entity.FileMetadata
-import dev.yidafu.aqua.storage.domain.enums.FileType
+import dev.yidafu.aqua.storage.domain.model.FileMetadata
+import dev.yidafu.aqua.storage.domain.model.enums.FileType
 import java.time.LocalDateTime
 
 /**

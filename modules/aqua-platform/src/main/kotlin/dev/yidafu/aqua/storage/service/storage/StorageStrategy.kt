@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.storage.service.storage
 
-import dev.yidafu.aqua.storage.domain.entity.FileMetadata
+import dev.yidafu.aqua.storage.domain.model.FileMetadata
 import org.springframework.core.io.Resource
 import org.springframework.web.multipart.MultipartFile
 

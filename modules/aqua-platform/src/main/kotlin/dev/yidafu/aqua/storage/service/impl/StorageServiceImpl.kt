@@ -20,12 +20,12 @@
 package dev.yidafu.aqua.storage.service.impl
 
 import dev.yidafu.aqua.storage.config.StorageProperties
-import dev.yidafu.aqua.storage.domain.entity.FileMetadata
-import dev.yidafu.aqua.storage.domain.enums.FileType
+import dev.yidafu.aqua.storage.domain.model.FileMetadata
+import dev.yidafu.aqua.storage.domain.model.enums.FileType
 import dev.yidafu.aqua.storage.dto.FileMetadataResponse
 import dev.yidafu.aqua.storage.dto.FileUploadRequest
 import dev.yidafu.aqua.storage.dto.ImageParameters
-import dev.yidafu.aqua.storage.repository.FileMetadataRepository
+import dev.yidafu.aqua.storage.domain.repository.FileMetadataRepository
 import dev.yidafu.aqua.storage.service.ImageProcessingService
 import dev.yidafu.aqua.storage.service.StorageService
 import dev.yidafu.aqua.storage.service.storage.StorageStrategy

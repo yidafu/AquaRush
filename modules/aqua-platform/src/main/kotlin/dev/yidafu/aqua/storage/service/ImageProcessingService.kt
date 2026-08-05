@@ -239,11 +239,11 @@ class ImageProcessingService(
   /**
    * 创建临时文件元数据
    */
-  private fun createTempFileMetadata(cachePath: String): dev.yidafu.aqua.storage.domain.entity.FileMetadata =
-    dev.yidafu.aqua.storage.domain.entity.FileMetadata(
+  private fun createTempFileMetadata(cachePath: String): dev.yidafu.aqua.storage.domain.model.FileMetadata =
+    dev.yidafu.aqua.storage.domain.model.FileMetadata(
       fileName = cachePath.split("/").last(),
       storagePath = cachePath,
-      fileType = dev.yidafu.aqua.storage.domain.enums.FileType.IMAGE,
+      fileType = dev.yidafu.aqua.storage.domain.model.enums.FileType.IMAGE,
       fileSize = 0L, // 这将在实际存储时更新
       mimeType = "image/jpeg",
       checksum = "temp",

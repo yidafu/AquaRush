@@ -39,7 +39,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
     "dev.yidafu.aqua.delivery.domain.model",
     "dev.yidafu.aqua.review.domain.model",
     "dev.yidafu.aqua.analytics.reconciliation.domain.model",
-    "dev.yidafu.aqua.storage.domain.entity",
+    "dev.yidafu.aqua.storage.domain.model",
   ],
 )
 class JpaConfig

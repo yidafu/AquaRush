@@ -17,10 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.storage.repository
+package dev.yidafu.aqua.storage.domain.repository
 
-import dev.yidafu.aqua.storage.domain.entity.FileMetadata
-import dev.yidafu.aqua.storage.domain.enums.FileType
+import dev.yidafu.aqua.storage.domain.model.FileMetadata
+import dev.yidafu.aqua.storage.domain.model.enums.FileType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository

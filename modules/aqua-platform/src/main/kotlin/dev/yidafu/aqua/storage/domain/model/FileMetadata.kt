@@ -17,10 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.storage.domain.entity
+package dev.yidafu.aqua.storage.domain.model
 
 import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
-import dev.yidafu.aqua.storage.domain.enums.FileType
+import dev.yidafu.aqua.storage.domain.model.enums.FileType
 import jakarta.persistence.*
 import java.time.LocalDateTime
 

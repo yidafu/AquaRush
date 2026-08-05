@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.storage.dto
 
-import dev.yidafu.aqua.storage.domain.enums.FileType
+import dev.yidafu.aqua.storage.domain.model.enums.FileType
 
 /**
  * 文件上传请求

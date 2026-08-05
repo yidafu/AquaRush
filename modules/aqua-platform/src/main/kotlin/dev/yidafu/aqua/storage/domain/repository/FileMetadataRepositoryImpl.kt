@@ -17,14 +17,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.storage.repository
+package dev.yidafu.aqua.storage.domain.repository
 
 import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.Tuple
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.storage.domain.entity.FileMetadata
-import dev.yidafu.aqua.storage.domain.entity.QFileMetadata
-import dev.yidafu.aqua.storage.domain.enums.FileType
+import dev.yidafu.aqua.storage.domain.model.FileMetadata
+import dev.yidafu.aqua.storage.domain.model.QFileMetadata
+import dev.yidafu.aqua.storage.domain.model.enums.FileType
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page

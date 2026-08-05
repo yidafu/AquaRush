@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.storage.exception
+package dev.yidafu.aqua.storage.domain.exception
 
 /**
  * 存储相关异常基类

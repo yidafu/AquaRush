@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.storage.domain.enums
+package dev.yidafu.aqua.storage.domain.model.enums
 
 /**
  * 文件类型枚举
