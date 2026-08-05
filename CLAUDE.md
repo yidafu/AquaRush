@@ -28,8 +28,8 @@ AquaRush is a WeChat Mini Program-based bottled water ordering and delivery mana
 ./gradlew test
 
 # Run specific module tests
-./gradlew :modules:aqua-common:test
-./gradlew :modules:aqua-order:test
+./gradlew :modules:aqua-foundation:test
+./gradlew :modules:aqua-trade:test
 
 # Update database schema (Liquibase)
 ./gradlew :services:aqua-admin:update
@@ -81,28 +81,57 @@ npm run dev:h5             # H5 development build
 
 ### Backend Module Structure
 
-The project follows a clean multi-module architecture where each module has a specific domain responsibility:
+The project follows a clean multi-module architecture. Modules (`modules/`) hold domain logic, services (`services/`) are the deployable application entry points:
 
-- **aqua-common**: Shared utilities, caching system (MapDB), GraphQL configuration, messaging infrastructure
-- **aqua-api**: API interfaces and DTOs for external communication
-- **aqua-logging**: Structured logging with correlation IDs and user action tracking
+- **aqua-foundation**: Shared infrastructure — `common/` (caching MapDB, GraphQL config, messaging/Artemis, security, id generation, exceptions), `api/` (cross-module service interfaces and DTOs), `logging/` (structured logging with correlation IDs)
 - **aqua-user**: User management, authentication (JWT), addresses, WeChat integration
 - **aqua-product**: Product catalog and inventory management
-- **aqua-order**: Order processing, domain events, and business logic
-- **aqua-delivery**: Delivery worker management and task assignment
-- **aqua-payment**: WeChat Pay integration and refund processing
-- **aqua-analytics**: Business analytics — financial reconciliation with external systems (e.g. WeChat Pay) and business statistics (revenue, delivery workers, products, users)
-- **aqua-storage**: File storage service for product images and delivery photos
-- **aqua-notice**: WeChat notification system and template management
-- **aqua-review**: User reviews and delivery worker ratings
-- **aqua-entry**: Main Spring Boot application entry point with global configurations
+- **aqua-trade**: Order processing, delivery worker management, payment (WeChat Pay), reviews — each as a sub-domain (`order/`, `delivery/`, `payment/`, `review/`)
+- **aqua-analytics**: Reconciliation with external systems (e.g. WeChat Pay) and business statistics (revenue, delivery workers, products, users)
+- **aqua-platform**: Storage (file upload/images), notice (WeChat notifications)
+
+Services (deployable Spring Boot applications):
+
+- **aqua-admin**: Admin dashboard backend — GraphQL resolvers, REST controllers, security
+- **aqua-client**: Mini Program backend — client-facing resolvers and controllers
+
+### Module Directory Conventions
+
+Every domain module follows the same package layout:
+
+```text
+dev/yidafu/aqua/<domain>/
+├── config/           # module-local configuration
+├── controller/       # REST controllers (only when needed)
+├── domain/
+│   ├── model/        # module-private models (+ enums/)
+│   ├── repository/   # Spring Data repositories + custom impls
+│   └── exception/    # domain exceptions
+├── dto/              # module-private DTOs
+├── event/            # domain events and handlers
+├── mapper/           # Mappie mappers
+├── resolver/         # GraphQL resolvers that are thin module adapters
+└── service/
+    └── impl/         # implementations (interfaces live in aqua-foundation api/service)
+```
+
+Services use `<admin|client>/{config, <domain>/{resolvers, controller, dto}}`.
+
+**Core rules**:
+
+1. **JPA entities are centralized** in `modules/aqua-foundation/.../common/domain/model/` (the client service's `@EntityScan` depends on this). Domain modules keep only private non-entity models.
+2. **Cross-module DTOs live in `aqua-foundation` `api/dto`** (one class per file). Module-private DTOs stay in the module `dto/`; service-local DTOs in `<domain>/dto/`. Do not create `api/query` or `common/dto`.
+3. **Resolver placement**: pure module adapters may live in the module (`analytics/reconciliation/resolvers`); resolvers that depend on service-layer DTOs/security live in the service `<domain>/resolvers/` (always plural).
+
+Prohibited: new `*ApiService` interface suffixes (use `*QueryService`/`*MutationService`); `util`/`utils` dual packages (use `util`); module-root `exception/` (use `domain/exception/`); `.imports` files outside `META-INF/spring/`.
 
 ### Key Design Patterns
 
 **Module Dependency Rule**:
-- **IMPORTANT**: Domain modules (aqua-user, aqua-product, aqua-order, etc.) **MUST NOT** directly call Repository interfaces from other modules
-- All cross-module data access must go through **aqua-api** services
-- Each domain module should only expose its functionality via Service interfaces in aqua-api
+
+- **IMPORTANT**: Domain modules **MUST NOT** directly call Repository interfaces from other modules (known exception: aqua-analytics imports `delivery.domain.repository` — tracked as debt)
+- All cross-module data access must go through the service interfaces in `aqua-foundation` `api/service/**`
+- Each domain module only exposes its functionality via Service interfaces in `api/service`
 - This ensures clean module boundaries and proper encapsulation
 
 **Event-Driven Architecture with Artemis MQ**:
@@ -119,8 +148,8 @@ The project follows a clean multi-module architecture where each module has a sp
 ### Database Configuration
 
 - **Primary Database**: PostgreSQL (configurable to MySQL)
-- **Migration**: Liquibase with XML-based changelogs in `modules/aqua-entry/src/main/resources/db/changelog/`
-- **Schema Management**: Automatic on startup, manual via `./gradlew :modules:aqua-entry:update`
+- **Migration**: Liquibase with XML-based changelogs in `services/aqua-admin/src/main/resources/db/changelog/`
+- **Schema Management**: Automatic on startup, manual via `./gradlew :services:aqua-admin:update` (schema is managed by the admin service; liquibase is disabled on aqua-client)
 - **ORM**: Spring Data JPA with Hibernate
 
 ### Key Database Tables
@@ -153,9 +182,9 @@ The project follows a clean multi-module architecture where each module has a sp
 
 ### GraphQL Schema Configuration
 
-**IMPORTANT**: GraphQL schema files are located in `graphql-schema/schema.graphqls`. The project uses:
+**IMPORTANT**: GraphQL schema files are located in `shared-config/graphql/` (shared types) plus per-service `src/main/resources/graphql/` directories. The project uses:
 - `Long` types for all entity IDs (not UUID)
-- Generated GraphQL types in `modules/aqua-common/src/main/graphql-gen/schema.kt`
+- Generated GraphQL types in `modules/aqua-foundation/src/main/graphql-gen/schema.kt` (package `dev.yidafu.aqua.common.graphql.generated` — do not change; regenerated via `pnpm codegen` with `graphql-codegen.yml`)
 - Schema consistency between GraphQL schema and resolver implementations
 - Spring Boot auto-configuration for GraphQL endpoints at `/graphql`
 
@@ -167,7 +196,7 @@ The project follows a clean multi-module architecture where each module has a sp
 
 ### Configuration Management
 
-Primary configuration in `modules/aqua-entry/src/main/resources/application.yml`:
+Primary configuration in `services/aqua-admin/src/main/resources/application.yml` (client counterpart in `services/aqua-client/src/main/resources/application.yml`):
 
 - Database connection with HikariCP pooling
 - WeChat Mini Program integration (app-id, app-secret)
@@ -339,8 +368,9 @@ Shell scripts are still used for specific scenarios:
 ### Module Dependencies
 
 Modules are structured with clear dependency hierarchy:
-- Domain modules (user, product, order, etc.) depend on aqua-common
-- aqua-entry depends on all domain modules
+- All modules depend on aqua-foundation (common/api/logging)
+- aqua-trade depends on aqua-product/aqua-user (compileOnly)
+- Both services (aqua-admin, aqua-client) depend on all six modules
 - Avoid circular dependencies between business modules
 
 ### GraphQL Resolver Development
@@ -465,9 +495,7 @@ class MyResolver(
 3. **Error Handling**: Throw `IllegalArgumentException` for not found, handle authorization via `@PreAuthorize`
 4. **Validation**: Use `@Valid` with input DTOs for automatic validation
 
-**File Location**: Resolvers are placed in each module's `resolvers/` directory:
-- `modules/aqua-order/src/main/kotlin/dev/yidafu/aqua/client/order/resolvers/`
-- `modules/aqua-user/src/main/kotlin/dev/yidafu/aqua/admin/user/resolvers/`
+**File Location**: Resolvers live in the service modules under `<domain>/resolvers/` (e.g. `services/aqua-admin/.../admin/order/resolvers/`, `services/aqua-client/.../client/user/resolvers/`). Thin module adapters may stay in the module (e.g. `analytics/reconciliation/resolvers`).
 
 ### Object Mapping with Mappie
 
