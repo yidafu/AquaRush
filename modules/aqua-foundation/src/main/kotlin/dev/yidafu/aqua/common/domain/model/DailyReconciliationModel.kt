@@ -26,6 +26,7 @@ import org.hibernate.annotations.SoftDelete
 import org.hibernate.type.SqlTypes
 import java.time.LocalDate
 import java.time.LocalDateTime
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 
 /**
  * 每日对账记录实体

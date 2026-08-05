@@ -1,6 +1,6 @@
 package dev.yidafu.aqua.admin.config
 
-import dev.yidafu.aqua.api.service.AdminService
+import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.security.toPermissionAuthorities
 import org.springframework.context.annotation.Primary

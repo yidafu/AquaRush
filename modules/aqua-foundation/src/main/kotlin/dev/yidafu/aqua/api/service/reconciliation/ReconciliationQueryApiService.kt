@@ -17,35 +17,29 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.api.service
+package dev.yidafu.aqua.api.service.reconciliation
 
-import dev.yidafu.aqua.common.domain.model.UserModel
-import java.time.LocalDateTime
+import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
+import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 
 /**
- * 跨模块用户查询服务接口
- * 由 aqua-user 模块实现，供其他模块使用
+ * 跨模块对账查询服务接口
+ * 由 aqua-delivery 模块实现，供其他模块使用
  */
-interface UserQueryApiService {
-  fun findAll(): List<UserModel>
+interface DailyCollectionQueryApiService {
+  fun findByDate(date: String): List<DailyCollectionRecordModel>
 
-  fun findById(id: Long): UserModel?
+  fun findByDateBetween(
+    startDate: String,
+    endDate: String,
+  ): List<DailyCollectionRecordModel>
+}
 
-  fun findByIds(ids: List<Long>): List<UserModel>
+interface DailyReconciliationQueryApiService {
+  fun findByDate(date: String): DailyReconciliationModel?
 
-  fun findByPhone(phone: String): UserModel?
-
-  fun existsById(id: Long): Boolean
-
-  fun findUsersCreatedAfter(startDate: LocalDateTime): List<UserModel>
-
-  fun findUsersCreatedBetween(
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): List<UserModel>
-
-  fun countUsersCreatedBetween(
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): Long
+  fun findByDateBetween(
+    startDate: String,
+    endDate: String,
+  ): List<DailyReconciliationModel>
 }

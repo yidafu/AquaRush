@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.admin.user.resolvers
 
-import dev.yidafu.aqua.api.service.AdminService
+import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.BadRequestException

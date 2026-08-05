@@ -24,6 +24,7 @@ import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDate
 import java.time.LocalDateTime
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 
 /**
  * 每日收款记录实体

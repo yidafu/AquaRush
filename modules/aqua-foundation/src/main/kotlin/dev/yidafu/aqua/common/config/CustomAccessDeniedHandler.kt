@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.common.config
 
-import dev.yidafu.aqua.common.web.ApiResponse
+import dev.yidafu.aqua.common.ApiResponse
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory

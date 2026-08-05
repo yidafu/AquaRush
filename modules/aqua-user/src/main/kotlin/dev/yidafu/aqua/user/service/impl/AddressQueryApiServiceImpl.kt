@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.user.service.impl
 
-import dev.yidafu.aqua.api.service.AddressQueryApiService
-import dev.yidafu.aqua.api.service.AdminQueryApiService
+import dev.yidafu.aqua.api.service.user.AddressQueryApiService
+import dev.yidafu.aqua.api.service.user.AdminQueryApiService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.user.domain.repository.AddressRepository

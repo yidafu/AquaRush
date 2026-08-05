@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.order.service.impl
 
-import dev.yidafu.aqua.api.service.BucketDepositService
-import dev.yidafu.aqua.api.service.PaymentService
+import dev.yidafu.aqua.api.service.order.BucketDepositService
+import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.common.domain.model.BucketDepositModel
 import dev.yidafu.aqua.common.domain.model.BucketDepositStatus
 import dev.yidafu.aqua.common.domain.model.SystemSettingKeys

@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.product.service.impl
 
-import dev.yidafu.aqua.api.service.UserService
+import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel

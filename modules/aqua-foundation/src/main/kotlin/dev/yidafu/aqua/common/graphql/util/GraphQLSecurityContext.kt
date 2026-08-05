@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.common.graphql.utils
+package dev.yidafu.aqua.common.graphql.util
 
 import dev.yidafu.aqua.common.security.UserPrincipal
 import org.springframework.security.core.Authentication

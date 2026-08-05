@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.api.service
+package dev.yidafu.aqua.api.service.order
 
 import dev.yidafu.aqua.common.domain.model.BucketDepositModel
 import dev.yidafu.aqua.common.domain.model.BucketDepositStatus

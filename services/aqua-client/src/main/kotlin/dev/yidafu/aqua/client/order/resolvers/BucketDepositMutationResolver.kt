@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.client.order.resolvers
 
-import dev.yidafu.aqua.api.service.BucketDepositService
+import dev.yidafu.aqua.api.service.order.BucketDepositService
 import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.BucketDepositModel
 import dev.yidafu.aqua.common.security.UserPrincipal

@@ -33,6 +33,7 @@ import tools.jackson.databind.node.ObjectNode
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 
 @Entity
 @SoftDelete(columnName = "is_deleted")

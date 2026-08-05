@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.client.user.resolvers
 
-import dev.yidafu.aqua.api.service.UserService
+import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UpdateProfileInput
 import dev.yidafu.aqua.common.graphql.generated.UserStatus

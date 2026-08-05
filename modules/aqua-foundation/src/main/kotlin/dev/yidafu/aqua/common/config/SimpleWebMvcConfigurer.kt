@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.common.autoconfigure
+package dev.yidafu.aqua.common.config
 
 import org.springframework.context.annotation.Configuration
 import org.springframework.core.Ordered

@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.client.user.controller
 
-import dev.yidafu.aqua.api.service.UserService
+import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.client.user.controller.dto.RefreshTokenRequest
 import dev.yidafu.aqua.client.user.controller.dto.UpdateProfileRequest
 import dev.yidafu.aqua.client.user.controller.dto.WeChatLoginRequest

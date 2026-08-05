@@ -33,7 +33,7 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
-import dev.yidafu.aqua.common.util.JsonHelper
+import dev.yidafu.aqua.common.utils.JsonHelper
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

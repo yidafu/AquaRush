@@ -21,6 +21,7 @@ package dev.yidafu.aqua.common.domain.model
 
 import jakarta.persistence.*
 import java.time.LocalDateTime
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 
 /**
  * API请求日志实体类

@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.common
 
+import java.time.LocalDateTime
+
 /**
  * Common result wrapper for API responses
  */
@@ -27,13 +29,63 @@ data class ApiResponse<T>(
   val data: T? = null,
   val message: String? = null,
   val code: String? = null,
+  val timestamp: LocalDateTime = LocalDateTime.now(),
 ) {
   companion object {
     fun <T> success(data: T): ApiResponse<T> = ApiResponse(success = true, data = data)
 
+    fun <T> success(
+      data: T,
+      message: String,
+    ): ApiResponse<T> = ApiResponse(success = true, data = data, message = message)
+
+    /**
+     * 失败响应
+     */
     fun <T> error(
       message: String,
       code: String? = null,
-    ): ApiResponse<T> = ApiResponse(success = false, message = message, code = code)
+      data: T? = null,
+    ): ApiResponse<T> = ApiResponse(success = false, message = message, code = code, data = data)
+
+    /**
+     * 认证失败响应
+     */
+    fun unauthorized(message: String = "认证失败，请先登录"): ApiResponse<Unit> =
+      ApiResponse(
+        success = false,
+        message = message,
+        code = "UNAUTHORIZED",
+      )
+
+    /**
+     * 权限不足响应
+     */
+    fun forbidden(message: String = "权限不足"): ApiResponse<Unit> =
+      ApiResponse(
+        success = false,
+        message = message,
+        code = "FORBIDDEN",
+      )
+
+    /**
+     * 资源未找到响应
+     */
+    fun notFound(message: String = "资源未找到"): ApiResponse<Unit> =
+      ApiResponse(
+        success = false,
+        message = message,
+        code = "NOT_FOUND",
+      )
+
+    /**
+     * 服务器错误响应
+     */
+    fun internalServerError(message: String = "服务器内部错误"): ApiResponse<Unit> =
+      ApiResponse(
+        success = false,
+        message = message,
+        code = "INTERNAL_SERVER_ERROR",
+      )
   }
 }

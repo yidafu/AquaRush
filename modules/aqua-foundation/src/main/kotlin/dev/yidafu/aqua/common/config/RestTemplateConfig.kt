@@ -17,13 +17,20 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.common.autoconfigure
+package dev.yidafu.aqua.common.config
 
+import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.scheduling.annotation.EnableScheduling
+import org.springframework.http.client.SimpleClientHttpRequestFactory
+import org.springframework.web.client.RestTemplate
 
 @Configuration
-@EnableScheduling
-class SchedulingConfig {
-  // 启用定时任务支持，用于 Outbox 事件轮询
+class RestTemplateConfig {
+  @Bean
+  fun restTemplate(): RestTemplate {
+    val factory = SimpleClientHttpRequestFactory()
+    factory.setConnectTimeout(5000) // 5 seconds
+    factory.setReadTimeout(10000) // 10 seconds
+    return RestTemplate(factory)
+  }
 }

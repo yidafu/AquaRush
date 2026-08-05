@@ -28,6 +28,7 @@ import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator as GenericGeneratorKlass
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 
 @Entity
 @SoftDelete(columnName = "is_deleted")

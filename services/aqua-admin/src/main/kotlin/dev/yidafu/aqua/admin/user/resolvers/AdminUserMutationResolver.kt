@@ -21,7 +21,7 @@ package dev.yidafu.aqua.admin.user.resolvers
 
 import dev.yidafu.aqua.admin.user.resolvers.dto.CreateAdminRequest
 import dev.yidafu.aqua.admin.user.resolvers.dto.UpdateAdminRequest
-import dev.yidafu.aqua.api.service.AdminService
+import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.common.graphql.generated.CreateAdminInput

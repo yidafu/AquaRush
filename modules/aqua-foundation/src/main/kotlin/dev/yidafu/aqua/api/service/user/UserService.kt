@@ -17,7 +17,7 @@
  * along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.
  */
 
-package dev.yidafu.aqua.api.service
+package dev.yidafu.aqua.api.service.user
 
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UserStatus

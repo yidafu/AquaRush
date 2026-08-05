@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.common.util
+package dev.yidafu.aqua.common.utils
 
 import org.springframework.stereotype.Component
 import tools.jackson.core.type.TypeReference

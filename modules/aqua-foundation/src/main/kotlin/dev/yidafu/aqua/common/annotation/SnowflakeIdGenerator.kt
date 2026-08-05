@@ -1,4 +1,4 @@
-package dev.yidafu.aqua.common.domain.model
+package dev.yidafu.aqua.common.annotation
 
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.id.IdGenerator

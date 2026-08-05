@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.admin.payment.resolvers
 
-import dev.yidafu.aqua.api.service.PaymentService
+import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.*
 import org.springframework.data.domain.Page

@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.admin.order.resolvers
 
-import dev.yidafu.aqua.api.service.AdminService
+import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryTaskMutationService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService

@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.delivery.service.impl
 
-import dev.yidafu.aqua.api.service.DailyCollectionQueryApiService
-import dev.yidafu.aqua.api.service.DailyReconciliationQueryApiService
+import dev.yidafu.aqua.api.service.reconciliation.DailyCollectionQueryApiService
+import dev.yidafu.aqua.api.service.reconciliation.DailyReconciliationQueryApiService
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.delivery.domain.repository.DailyCollectionRecordRepository

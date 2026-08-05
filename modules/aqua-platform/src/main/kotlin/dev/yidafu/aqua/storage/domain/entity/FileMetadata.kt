@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.storage.domain.entity
 
-import dev.yidafu.aqua.common.domain.model.SnowflakeIdGenerator
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.storage.domain.enums.FileType
 import jakarta.persistence.*
 import java.time.LocalDateTime

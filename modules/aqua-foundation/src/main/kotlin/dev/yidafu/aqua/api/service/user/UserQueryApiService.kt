@@ -17,35 +17,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.api.service
+package dev.yidafu.aqua.api.service.user
 
-import dev.yidafu.aqua.common.domain.model.AddressModel
-import dev.yidafu.aqua.common.domain.model.AdminModel
-
-/**
- * 跨模块地址查询服务接口
- * 由 aqua-user 模块实现，供其他模块使用
- */
-interface AddressQueryApiService {
-  fun findById(id: Long): AddressModel?
-
-  fun findByUserId(userId: Long): List<AddressModel>
-
-  fun findDefaultByUserId(userId: Long): AddressModel?
-
-  fun existsById(id: Long): Boolean
-}
+import dev.yidafu.aqua.common.domain.model.UserModel
+import java.time.LocalDateTime
 
 /**
- * 跨模块管理员查询服务接口
+ * 跨模块用户查询服务接口
  * 由 aqua-user 模块实现，供其他模块使用
  */
-interface AdminQueryApiService {
-  fun findById(id: Long): AdminModel?
+interface UserQueryApiService {
+  fun findAll(): List<UserModel>
 
-  fun findByUsername(username: String): AdminModel?
+  fun findById(id: Long): UserModel?
 
-  fun findAll(): List<AdminModel>
+  fun findByIds(ids: List<Long>): List<UserModel>
+
+  fun findByPhone(phone: String): UserModel?
 
   fun existsById(id: Long): Boolean
+
+  fun findUsersCreatedAfter(startDate: LocalDateTime): List<UserModel>
+
+  fun findUsersCreatedBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<UserModel>
+
+  fun countUsersCreatedBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): Long
 }

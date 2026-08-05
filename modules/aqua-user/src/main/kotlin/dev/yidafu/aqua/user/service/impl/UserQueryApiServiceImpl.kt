@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.user.service.impl
 
-import dev.yidafu.aqua.api.service.UserQueryApiService
+import dev.yidafu.aqua.api.service.user.UserQueryApiService
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.springframework.stereotype.Service

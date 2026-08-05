@@ -1,6 +1,6 @@
 package dev.yidafu.aqua.delivery.event
 
-import dev.yidafu.aqua.api.service.AdminService
+import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.enums.OperatorType

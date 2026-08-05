@@ -17,7 +17,7 @@
  * along with this program.  If not, see &lt;https://www.gnu.org/licenses/&gt;.
  */
 
-package dev.yidafu.aqua.api.service
+package dev.yidafu.aqua.api.service.admin
 
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.UserModel

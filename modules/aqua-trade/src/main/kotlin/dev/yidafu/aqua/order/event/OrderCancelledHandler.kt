@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.order.event
 
-import dev.yidafu.aqua.api.service.PaymentService
+import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OperatorType

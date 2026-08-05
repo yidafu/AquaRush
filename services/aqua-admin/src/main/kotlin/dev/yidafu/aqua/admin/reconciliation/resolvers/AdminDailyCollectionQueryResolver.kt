@@ -23,7 +23,7 @@ import dev.yidafu.aqua.analytics.reconciliation.dto.OrderStatsDTO
 import dev.yidafu.aqua.analytics.reconciliation.dto.PaymentStatsDTO
 import dev.yidafu.aqua.analytics.reconciliation.mapper.MyTodayCollectionResultMapper
 import dev.yidafu.aqua.analytics.reconciliation.service.DailyCollectionService
-import dev.yidafu.aqua.api.service.AdminService
+import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
