@@ -17,29 +17,47 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.analytics.statistics.model.repository
+package dev.yidafu.aqua.analytics.statistics.domain.repository
 
 import java.time.LocalDateTime
 
 /**
- * 用户统计 Repository 自定义接口
+ * 商品销量统计 Repository 自定义接口
  */
-interface StatisticsUserRepositoryCustom {
+interface ProductSalesStatisticsRepositoryCustom {
   /**
-   * 统计指定日期范围内每日新增用户数
+   * 按日期分组统计商品销量
+   * @param startDateTime 开始时间
+   * @param endDateTime 结束时间
+   * @param productId 商品ID，可为空表示查询所有商品
    */
-  fun countDailyNewUsers(
+  fun getProductDailySales(
     startDateTime: LocalDateTime,
     endDateTime: LocalDateTime,
-  ): Map<java.time.LocalDate, Long>
+    productId: Long? = null,
+  ): List<ProductDailySalesResult>
 
   /**
-   * 统计指定日期之后创建的用户总数
+   * 获取所有商品列表（用于下拉选择）
    */
-  fun countUsersCreatedAfter(dateTime: LocalDateTime): Long
-
-  /**
-   * 统计指定时间范围内有订单的用户数
-   */
-  fun countActiveUsersSince(dateTime: LocalDateTime): Long
+  fun getAllProductIdsAndNames(): List<ProductInfo>
 }
+
+/**
+ * 商品每日销量结果
+ */
+data class ProductDailySalesResult(
+  val date: String,
+  val productId: Long,
+  val productName: String,
+  val salesVolume: Long,
+  val revenue: Long,
+)
+
+/**
+ * 商品基本信息
+ */
+data class ProductInfo(
+  val productId: Long,
+  val productName: String,
+)

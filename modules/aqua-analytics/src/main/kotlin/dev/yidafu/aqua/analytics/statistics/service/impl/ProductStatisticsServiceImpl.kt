@@ -26,8 +26,8 @@ import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
 import dev.yidafu.aqua.common.graphql.generated.ProductSalesStat
 import dev.yidafu.aqua.common.graphql.generated.ProductSalesTrend
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
-import dev.yidafu.aqua.analytics.statistics.model.repository.ProductInfo
-import dev.yidafu.aqua.analytics.statistics.model.repository.ProductSalesStatisticsRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductInfo
+import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepositoryCustom
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalTime

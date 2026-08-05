@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderStatisticsDTO
-import dev.yidafu.aqua.analytics.statistics.model.repository.StatisticsOrderRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek

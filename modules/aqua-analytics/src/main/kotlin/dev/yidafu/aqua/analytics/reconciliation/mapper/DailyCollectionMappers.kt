@@ -1,6 +1,6 @@
 package dev.yidafu.aqua.analytics.reconciliation.mapper
 
-import dev.yidafu.aqua.analytics.admin.reconciliation.resolvers.MyTodayCollectionResult
+import dev.yidafu.aqua.analytics.reconciliation.resolvers.MyTodayCollectionResult
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.graphql.generated.DailyCollectionRecord
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo

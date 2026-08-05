@@ -17,19 +17,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.analytics.statistics.model.repository
+package dev.yidafu.aqua.analytics.statistics.domain.repository
 
 import com.querydsl.jpa.impl.JPAQueryFactory
+import dev.yidafu.aqua.common.domain.model.QDeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.QOrderModel
-import dev.yidafu.aqua.common.domain.model.QUserModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
 import java.time.LocalDateTime
 
 @Repository
-class StatisticsUserRepositoryImpl : StatisticsUserRepositoryCustom {
+class StatisticsDeliveryWorkerRepositoryImpl : StatisticsDeliveryWorkerRepositoryCustom {
   @PersistenceContext
   private lateinit var entityManager: EntityManager
 
@@ -37,54 +37,45 @@ class StatisticsUserRepositoryImpl : StatisticsUserRepositoryCustom {
     JPAQueryFactory(entityManager)
   }
 
-  override fun countDailyNewUsers(
-    startDateTime: LocalDateTime,
-    endDateTime: LocalDateTime,
-  ): Map<LocalDate, Long> {
-    val userModel = QUserModel.userModel
+  override fun countTodayActiveWorkers(sinceDateTime: LocalDateTime): Long {
+    val workerModel = QDeliveryWorkerModel.deliveryWorkerModel
+    val orderModel = QOrderModel.orderModel
 
-    val results =
-      queryFactory
-        .select(userModel.createdAt)
-        .from(userModel)
-        .where(
-          userModel.createdAt.goe(startDateTime),
-          userModel.createdAt.lt(endDateTime),
-        )
-        .fetch()
-
-    return results
-      .map { it.toLocalDate() }
-      .groupingBy { it }
-      .eachCount()
-      .mapValues { it.value.toLong() }
-  }
-
-  override fun countUsersCreatedAfter(dateTime: LocalDateTime): Long {
-    val userModel = QUserModel.userModel
     return queryFactory
-      .query()
-      .from(userModel)
-      .where(userModel.createdAt.goe(dateTime))
-      .fetchCount()
+      .select(workerModel.id)
+      .from(workerModel)
+      .where(
+        workerModel.id.`in`(
+          queryFactory
+            .select(orderModel.deliveryWorkerId)
+            .from(orderModel)
+            .where(
+              orderModel.createdAt.goe(sinceDateTime),
+              orderModel.deliveryWorkerId.isNotNull,
+            ).distinct(),
+        ),
+      ).fetchCount()
   }
 
-  override fun countActiveUsersSince(dateTime: LocalDateTime): Long {
-    val userModel = QUserModel.userModel
+  override fun countDeliveringOrders(): Long {
     val orderModel = QOrderModel.orderModel
 
     return queryFactory
       .query()
-      .from(userModel)
-      .where(
-        userModel.id.`in`(
-          queryFactory
-            .select(orderModel.userId)
-            .from(orderModel)
-            .where(orderModel.createdAt.goe(dateTime))
-            .distinct(),
-        ),
-      )
+      .from(orderModel)
+      .where(orderModel.status.eq(OrderModelStatus.DELIVERING))
       .fetchCount()
+  }
+
+  override fun countCompletedOrdersSince(dateTime: LocalDateTime): Long {
+    val orderModel = QOrderModel.orderModel
+
+    return queryFactory
+      .query()
+      .from(orderModel)
+      .where(
+        orderModel.status.eq(OrderModelStatus.COMPLETED),
+        orderModel.updatedAt.goe(dateTime),
+      ).fetchCount()
   }
 }

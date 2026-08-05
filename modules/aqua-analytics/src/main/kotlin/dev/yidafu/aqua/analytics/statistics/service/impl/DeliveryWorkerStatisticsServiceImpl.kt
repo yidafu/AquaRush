@@ -26,7 +26,7 @@ import dev.yidafu.aqua.common.domain.model.QOrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.analytics.statistics.dto.DeliveryWorkerRankingItemDTO
 import dev.yidafu.aqua.analytics.statistics.dto.DeliveryWorkerStatisticsDTO
-import dev.yidafu.aqua.analytics.statistics.model.repository.StatisticsDeliveryWorkerRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsDeliveryWorkerRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.service.DeliveryWorkerStatisticsService
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext

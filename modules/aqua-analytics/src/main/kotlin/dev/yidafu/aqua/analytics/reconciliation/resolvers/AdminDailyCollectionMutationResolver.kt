@@ -17,9 +17,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.analytics.admin.reconciliation.resolvers
+package dev.yidafu.aqua.analytics.reconciliation.resolvers
 
-import dev.yidafu.aqua.analytics.reconciliation.service.DailyCollectionService
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
@@ -30,6 +29,7 @@ import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.ConfirmDailyCollectionInput
 import dev.yidafu.aqua.common.graphql.generated.ReviewReconciliationInput
 import dev.yidafu.aqua.common.graphql.generated.SubmitDailyCollectionInput
+import dev.yidafu.aqua.analytics.reconciliation.service.DailyCollectionService
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -91,9 +91,8 @@ class AdminDailyCollectionMutationResolver(
     if (input == null || input.recordId == null) {
       throw BadRequestException("收款记录ID不能为空")
     }
-    val admin =
-      adminService.findByUsername(userDetails.username)
-        ?: throw BadRequestException("管理员不存在")
+    val admin = adminService.findByUsername(userDetails.username)
+      ?: throw BadRequestException("管理员不存在")
     val adminId = admin.id ?: throw BadRequestException("管理员ID无效")
     return dailyCollectionService.confirmCollection(
       recordId = input.recordId,
@@ -120,9 +119,8 @@ class AdminDailyCollectionMutationResolver(
     if (input.reviewNotes.isNullOrBlank()) {
       throw BadRequestException("复核备注不能为空")
     }
-    val admin =
-      adminService.findByUsername(userDetails.username)
-        ?: throw BadRequestException("管理员不存在")
+    val admin = adminService.findByUsername(userDetails.username)
+      ?: throw BadRequestException("管理员不存在")
     val adminId = admin.id ?: throw BadRequestException("管理员ID无效")
     return dailyCollectionService.reviewReconciliation(
       reconciliationId = input.reconciliationId,
@@ -145,10 +143,9 @@ class AdminDailyCollectionMutationResolver(
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
-    val date =
-      reconciliationDate?.let {
-        LocalDate.parse(it)
-      } ?: LocalDate.now().minusDays(1)
+    val date = reconciliationDate?.let {
+      LocalDate.parse(it)
+    } ?: LocalDate.now().minusDays(1)
 
     logger.info("管理员 {} 手动触发对账: {}", userDetails.username, date)
     dailyCollectionService.executeDailyReconciliation(date)

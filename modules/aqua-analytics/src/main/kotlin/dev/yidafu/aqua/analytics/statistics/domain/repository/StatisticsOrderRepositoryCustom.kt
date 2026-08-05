@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.analytics.statistics.model.repository
+package dev.yidafu.aqua.analytics.statistics.domain.repository
 
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus

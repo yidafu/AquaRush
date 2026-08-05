@@ -25,7 +25,7 @@ import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import dev.yidafu.aqua.analytics.statistics.dto.DailyLoginStatisticDTO
 import dev.yidafu.aqua.analytics.statistics.dto.LoginStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.UserStatisticsDTO
-import dev.yidafu.aqua.analytics.statistics.model.repository.StatisticsUserRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.service.UserStatisticsService
 import org.springframework.stereotype.Service
 import java.time.LocalDate
