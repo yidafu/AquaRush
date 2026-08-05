@@ -2,8 +2,12 @@
 schema:
   # Shared types first
   - "shared-config/graphql/shared-types.graphqls"
-  # Admin-specific schema
+  # Admin-specific schema (mirrors spring.graphql.schema.locations in
+  # services/aqua-admin application.yml)
   - "services/aqua-admin/src/main/resources/graphql/admin-schema.graphqls"
+  - "services/aqua-admin/src/main/resources/graphql/modules/*.graphqls"
+  - "services/aqua-admin/src/main/resources/graphql/inputs/*.graphqls"
+  - "services/aqua-admin/src/main/resources/graphql/extensions/*.graphqls"
   # Client-specific schema
   - "services/aqua-client/src/main/resources/graphql/client-schema.graphqls"
 

@@ -31,7 +31,7 @@ type Query {
   allRegions: [Region!]!
 
   # Products
-  activeProducts(keyword: String, page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductVoPage!
+  activeProducts(keyword: String, page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductVOPage!
   product(id: PrimaryId!): Product
 
   # Orders
@@ -40,7 +40,7 @@ type Query {
   orderOperations(orderId: PrimaryId!): [OrderOperation!]!
 
   # Favorites queries
-  favoriteProducts(page: Int = 0, size: Int = 20): FavoriteProductVoPage!
+  favoriteProducts(page: Int = 0, size: Int = 20): FavoriteProductVOPage!
   isProductFavorited(productId: PrimaryId!): Boolean!
   favoritesCount: Long!
 

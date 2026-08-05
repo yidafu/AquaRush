@@ -196,17 +196,6 @@ export type BucketDepositVoPage = {
   readonly pageInfo: PageInfo;
 };
 
-export type ClientMessage = {
-  readonly content: Scalars['String']['output'];
-  readonly data?: Maybe<Scalars['Map']['output']>;
-  readonly id: Scalars['PrimaryId']['output'];
-  readonly isRead: Scalars['Boolean']['output'];
-  readonly messageType: Scalars['String']['output'];
-  readonly readAt?: Maybe<Scalars['LocalDateTime']['output']>;
-  readonly sentAt: Scalars['LocalDateTime']['output'];
-  readonly title?: Maybe<Scalars['String']['output']>;
-};
-
 export type ConfirmDailyCollectionInput = {
   readonly notes?: InputMaybe<Scalars['String']['input']>;
   readonly recordId: Scalars['PrimaryId']['input'];
@@ -303,13 +292,6 @@ export type CreateProductInput = {
   readonly waterSource?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type CreateRegionInput = {
-  readonly code: Scalars['String']['input'];
-  readonly level: Scalars['Int']['input'];
-  readonly name: Scalars['String']['input'];
-  readonly parentCode?: InputMaybe<Scalars['String']['input']>;
-};
-
 export type CreateReviewRequest = {
   readonly comment?: InputMaybe<Scalars['String']['input']>;
   readonly deliveryWorkerId: Scalars['PrimaryId']['input'];
@@ -322,11 +304,6 @@ export type CreateWechatPaymentInput = {
   readonly amount: Scalars['Money']['input'];
   readonly description: Scalars['String']['input'];
   readonly orderId: Scalars['PrimaryId']['input'];
-};
-
-export type CustomPageRequest = {
-  readonly page?: InputMaybe<Scalars['Int']['input']>;
-  readonly size?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type DailyCollectionRecord = {
@@ -550,12 +527,6 @@ export type DistancePayload = {
   readonly success: Scalars['Boolean']['output'];
 };
 
-export type DoNotDisturbSettings = {
-  readonly enabled: Scalars['Boolean']['output'];
-  readonly endTime?: Maybe<Scalars['String']['output']>;
-  readonly startTime?: Maybe<Scalars['String']['output']>;
-};
-
 export type ExportFavoritesInput = {
   readonly dateFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
   readonly dateTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
@@ -669,24 +640,6 @@ export type LowStockAlert = {
   readonly threshold: Scalars['Int']['output'];
 };
 
-export type MessageHistoryVoPage = {
-  readonly list: ReadonlyArray<ClientMessage>;
-  readonly pageInfo: PageInfo;
-};
-
-export type MessageStatistics = {
-  readonly messageTypes: Scalars['Map']['output'];
-  readonly readMessages: Scalars['Long']['output'];
-  readonly totalMessages: Scalars['Long']['output'];
-  readonly unreadMessages: Scalars['Long']['output'];
-};
-
-export type MessageTypeInfo = {
-  readonly description: Scalars['String']['output'];
-  readonly name: Scalars['String']['output'];
-  readonly type: Scalars['String']['output'];
-};
-
 export type MonthlyStatistic = {
   readonly month: Scalars['Int']['output'];
   readonly monthName: Scalars['String']['output'];
@@ -697,11 +650,11 @@ export type MonthlyStatistic = {
 };
 
 export type Mutation = {
+  readonly _dummy?: Maybe<Scalars['String']['output']>;
   readonly acceptDelivery: Order;
   readonly assignDeliveryWorker: Order;
   readonly batchAdjustStock: BatchStockAdjustmentResult;
   readonly batchAssignOrders: ReadonlyArray<Order>;
-  readonly batchFavoriteOperation: BatchOperationResult;
   readonly batchImportAddresses: BatchImportAddressesResult;
   readonly batchUpdateProducts: ReadonlyArray<Product>;
   readonly cancelOrder: Order;
@@ -710,42 +663,19 @@ export type Mutation = {
   readonly createAddress: Address;
   readonly createAdmin: Admin;
   readonly createAdminAddress: Address;
-  readonly createDeliveryArea: DeliveryArea;
   readonly createDeliveryOrder: Order;
   readonly createDeliveryWorker: DeliveryWorker;
-  readonly createManualRefund: RefundRequest;
   readonly createOrder: Order;
   readonly createProduct: Product;
-  readonly createRegion: Region;
-  readonly createReview: Review;
-  readonly createWechatPayment: PaymentData;
   readonly decreaseStock: Scalars['Boolean']['output'];
   readonly deleteAddress: Scalars['Boolean']['output'];
   readonly deleteAdmin: Scalars['Boolean']['output'];
   readonly deleteAdminAddress: Scalars['Boolean']['output'];
-  readonly deleteDeliveryArea: Scalars['Boolean']['output'];
-  readonly deleteMessage: Scalars['Boolean']['output'];
-  readonly deleteMessages: Scalars['Boolean']['output'];
   readonly deleteProduct: Scalars['Boolean']['output'];
-  readonly deleteRegion: Scalars['Boolean']['output'];
-  readonly disableAllNotifications: UserNotificationSettings;
-  readonly enableAllNotifications: UserNotificationSettings;
   readonly executeDailyReconciliation: DailyReconciliation;
-  readonly exportFavorites: ExportFavoritesResult;
-  readonly exportTransactions: Scalars['String']['output'];
-  readonly forceCompletePayment: Scalars['Boolean']['output'];
-  readonly forceRefund: Scalars['Boolean']['output'];
-  readonly freezeSuspiciousTransaction: Scalars['Boolean']['output'];
-  readonly handleWechatCallback: Scalars['String']['output'];
   readonly increaseStock: Scalars['String']['output'];
-  readonly markMessageAsRead: Scalars['Boolean']['output'];
-  readonly markMessagesAsRead: Scalars['Boolean']['output'];
   readonly offlineProduct: Product;
   readonly onlineProduct: Product;
-  readonly processRefund: RefundRequest;
-  readonly processSuspiciousTransaction: SuspiciousTransaction;
-  readonly refund: Scalars['Boolean']['output'];
-  readonly requestRefund: RefundRequest;
   readonly reviewReconciliation: DailyReconciliation;
   readonly setDefaultAddress: Scalars['Boolean']['output'];
   readonly startDelivery: Order;
@@ -753,17 +683,11 @@ export type Mutation = {
   readonly toggleProductFavorites: Scalars['Boolean']['output'];
   readonly updateAddress: Address;
   readonly updateAdmin: Admin;
-  readonly updateDeliveryArea: DeliveryArea;
   readonly updateDeliveryWorker: DeliveryWorker;
-  readonly updateNotificationSettings: UserNotificationSettings;
   readonly updateOrderStatus: Order;
   readonly updateProduct: Product;
   readonly updateProductStatus: Product;
   readonly updateProfile: UserInfo;
-  readonly updateRegion: Region;
-  readonly updateTransaction: PaymentTransaction;
-  readonly updateTransactionNote: Scalars['Boolean']['output'];
-  readonly updateWorkerStatus: DeliveryWorker;
   readonly validateAddress: AddressValidationPayload;
 };
 
@@ -788,11 +712,6 @@ export type MutationBatchAdjustStockArgs = {
 export type MutationBatchAssignOrdersArgs = {
   orderIds: ReadonlyArray<Scalars['PrimaryId']['input']>;
   workerId: Scalars['PrimaryId']['input'];
-};
-
-
-export type MutationBatchFavoriteOperationArgs = {
-  input: BatchFavoriteOperationInput;
 };
 
 
@@ -839,11 +758,6 @@ export type MutationCreateAdminAddressArgs = {
 };
 
 
-export type MutationCreateDeliveryAreaArgs = {
-  input: CreateDeliveryAreaInput;
-};
-
-
 export type MutationCreateDeliveryOrderArgs = {
   input: CreateDeliveryOrderInput;
 };
@@ -854,11 +768,6 @@ export type MutationCreateDeliveryWorkerArgs = {
 };
 
 
-export type MutationCreateManualRefundArgs = {
-  input: CreateManualRefundInput;
-};
-
-
 export type MutationCreateOrderArgs = {
   input: CreateOrderInput;
 };
@@ -866,21 +775,6 @@ export type MutationCreateOrderArgs = {
 
 export type MutationCreateProductArgs = {
   input: CreateProductInput;
-};
-
-
-export type MutationCreateRegionArgs = {
-  input: CreateRegionInput;
-};
-
-
-export type MutationCreateReviewArgs = {
-  input: CreateReviewRequest;
-};
-
-
-export type MutationCreateWechatPaymentArgs = {
-  input: CreateWechatPaymentInput;
 };
 
 
@@ -905,28 +799,8 @@ export type MutationDeleteAdminAddressArgs = {
 };
 
 
-export type MutationDeleteDeliveryAreaArgs = {
-  id: Scalars['PrimaryId']['input'];
-};
-
-
-export type MutationDeleteMessageArgs = {
-  messageId: Scalars['PrimaryId']['input'];
-};
-
-
-export type MutationDeleteMessagesArgs = {
-  messageIds: ReadonlyArray<Scalars['PrimaryId']['input']>;
-};
-
-
 export type MutationDeleteProductArgs = {
   id: Scalars['PrimaryId']['input'];
-};
-
-
-export type MutationDeleteRegionArgs = {
-  code: Scalars['String']['input'];
 };
 
 
@@ -935,54 +809,9 @@ export type MutationExecuteDailyReconciliationArgs = {
 };
 
 
-export type MutationExportFavoritesArgs = {
-  input: ExportFavoritesInput;
-};
-
-
-export type MutationExportTransactionsArgs = {
-  input: ExportTransactionsInput;
-};
-
-
-export type MutationForceCompletePaymentArgs = {
-  adminNote: Scalars['String']['input'];
-  transactionId: Scalars['String']['input'];
-};
-
-
-export type MutationForceRefundArgs = {
-  adminNote: Scalars['String']['input'];
-  amount: Scalars['BigDecimal']['input'];
-  reason: Scalars['String']['input'];
-  transactionId: Scalars['String']['input'];
-};
-
-
-export type MutationFreezeSuspiciousTransactionArgs = {
-  reason: Scalars['String']['input'];
-  transactionId: Scalars['String']['input'];
-};
-
-
-export type MutationHandleWechatCallbackArgs = {
-  input: WechatCallbackInput;
-};
-
-
 export type MutationIncreaseStockArgs = {
   productId: Scalars['PrimaryId']['input'];
   quantity: Scalars['Int']['input'];
-};
-
-
-export type MutationMarkMessageAsReadArgs = {
-  messageId: Scalars['PrimaryId']['input'];
-};
-
-
-export type MutationMarkMessagesAsReadArgs = {
-  messageIds: ReadonlyArray<Scalars['PrimaryId']['input']>;
 };
 
 
@@ -993,26 +822,6 @@ export type MutationOfflineProductArgs = {
 
 export type MutationOnlineProductArgs = {
   id: Scalars['PrimaryId']['input'];
-};
-
-
-export type MutationProcessRefundArgs = {
-  input: ProcessRefundInput;
-};
-
-
-export type MutationProcessSuspiciousTransactionArgs = {
-  input: ProcessSuspiciousTransactionInput;
-};
-
-
-export type MutationRefundArgs = {
-  input: RefundInput;
-};
-
-
-export type MutationRequestRefundArgs = {
-  input: RequestRefundInput;
 };
 
 
@@ -1053,20 +862,9 @@ export type MutationUpdateAdminArgs = {
 };
 
 
-export type MutationUpdateDeliveryAreaArgs = {
-  id: Scalars['PrimaryId']['input'];
-  input: CreateDeliveryAreaInput;
-};
-
-
 export type MutationUpdateDeliveryWorkerArgs = {
   input: UpdateDeliveryWorkerInput;
   workerId: Scalars['PrimaryId']['input'];
-};
-
-
-export type MutationUpdateNotificationSettingsArgs = {
-  input: UpdateNotificationSettingsInput;
 };
 
 
@@ -1090,30 +888,6 @@ export type MutationUpdateProductStatusArgs = {
 
 export type MutationUpdateProfileArgs = {
   input: UpdateProfileInput;
-};
-
-
-export type MutationUpdateRegionArgs = {
-  code: Scalars['String']['input'];
-  input: UpdateRegionInput;
-};
-
-
-export type MutationUpdateTransactionArgs = {
-  input: UpdateTransactionInput;
-  transactionId: Scalars['String']['input'];
-};
-
-
-export type MutationUpdateTransactionNoteArgs = {
-  note: Scalars['String']['input'];
-  transactionId: Scalars['String']['input'];
-};
-
-
-export type MutationUpdateWorkerStatusArgs = {
-  status: DeliveryWorkerStatus;
-  workerId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -1330,19 +1104,6 @@ export enum PaymentStatus {
   SUCCESS = 'SUCCESS'
 }
 
-export type PaymentStatusInfo = {
-  readonly amount: Scalars['BigDecimal']['output'];
-  readonly createdAt: Scalars['LocalDateTime']['output'];
-  readonly failureReason?: Maybe<Scalars['String']['output']>;
-  readonly orderNo: Scalars['String']['output'];
-  readonly paidAt?: Maybe<Scalars['LocalDateTime']['output']>;
-  readonly refundAmount?: Maybe<Scalars['BigDecimal']['output']>;
-  readonly refundedAt?: Maybe<Scalars['LocalDateTime']['output']>;
-  readonly status: PaymentStatus;
-  readonly transactionId: Scalars['String']['output'];
-  readonly updatedAt: Scalars['LocalDateTime']['output'];
-};
-
 export type PaymentTransaction = {
   readonly adminNote?: Maybe<Scalars['String']['output']>;
   readonly amount: Scalars['Money']['output'];
@@ -1554,25 +1315,19 @@ export type ProductVoPage = {
 };
 
 export type Query = {
+  readonly _dummy?: Maybe<Scalars['String']['output']>;
   readonly activeProducts: ProductVoPage;
   readonly address?: Maybe<Address>;
   readonly addresses: ReadonlyArray<Address>;
   readonly admin?: Maybe<Admin>;
   readonly admins: ReadonlyArray<Admin>;
-  readonly allProducts: ReadonlyArray<Product>;
-  readonly allProductsFavoriteStats: AllProductsFavoriteStats;
   readonly allRegions: ReadonlyArray<Region>;
   readonly assignedOrders: ReadonlyArray<Order>;
-  readonly calculateDistance?: Maybe<DistancePayload>;
-  readonly checkOrderReview: OrderReviewCheckResponse;
   readonly dailyCollections: ReadonlyArray<DailyCollectionRecord>;
   readonly dailyReconciliation?: Maybe<DailyReconciliation>;
   readonly dailyReconciliations: ReadonlyArray<DailyReconciliation>;
   readonly dailyStatistics: ReadonlyArray<DailyStatistic>;
-  readonly defaultRegionHierarchy?: Maybe<RegionHierarchy>;
   readonly deliveringOrders: ReadonlyArray<Order>;
-  readonly deliveryAddress?: Maybe<DeliveryAddress>;
-  readonly deliveryAddresses: ReadonlyArray<DeliveryAddress>;
   readonly deliveryWorker?: Maybe<DeliveryWorker>;
   readonly deliveryWorkerHistoryOrders: OrderVoPage;
   readonly deliveryWorkerRanking: ReadonlyArray<DeliveryWorkerRankingItem>;
@@ -1580,61 +1335,31 @@ export type Query = {
   readonly deliveryWorkers: ReadonlyArray<DeliveryWorker>;
   readonly favoriteProducts: FavoriteProductVoPage;
   readonly favoritesCount: Scalars['Long']['output'];
-  readonly findUserByPhone?: Maybe<User>;
-  readonly findUsersByAddress: ReadonlyArray<User>;
-  readonly getMessageDetail?: Maybe<ClientMessage>;
-  readonly getMessageHistory: MessageHistoryVoPage;
-  readonly getMessageStatistics: MessageStatistics;
-  readonly getMessageTypes: ReadonlyArray<MessageTypeInfo>;
-  readonly getRecentMessages: ReadonlyArray<ClientMessage>;
-  readonly getUnreadMessageCount: Scalars['Int']['output'];
-  readonly getUserNotificationSettings: UserNotificationSettings;
-  readonly isInServiceArea?: Maybe<ServiceAreaPayload>;
-  readonly isNotificationEnabled: Scalars['Boolean']['output'];
   readonly isProductFavorited: Scalars['Boolean']['output'];
   readonly lowStockProducts: ReadonlyArray<LowStockAlert>;
   readonly me?: Maybe<UserInfo>;
   readonly monthlyStatistics: ReadonlyArray<MonthlyStatistic>;
-  readonly myPaymentTransactions: ReadonlyArray<UserPaymentTransaction>;
-  readonly myRefundRequests: ReadonlyArray<RefundRequest>;
-  readonly myReviews: ReadonlyArray<Review>;
   readonly myTodayCollection?: Maybe<MyTodayCollectionVo>;
-  readonly nearbyAddresses?: Maybe<NearbyAddressesPayload>;
   readonly onlineDeliveryWorkers: ReadonlyArray<DeliveryWorker>;
   readonly order?: Maybe<Order>;
   readonly orderByNo?: Maybe<Order>;
   readonly orderOperations: ReadonlyArray<OrderOperation>;
-  readonly orderPaymentInfo: OrderPaymentInfo;
   readonly orderStatistics: OrderStatistics;
   readonly orders?: Maybe<OrderVoPage>;
-  readonly paymentStatus: Scalars['String']['output'];
-  readonly paymentTransaction?: Maybe<PaymentTransaction>;
-  readonly paymentTransactions: ReadonlyArray<PaymentTransaction>;
   readonly pendingDeliveryOrders: ReadonlyArray<Order>;
   readonly product?: Maybe<Product>;
   readonly productDailySales: ReadonlyArray<ProductDailySales>;
-  readonly productSalesTrend?: Maybe<ProductSalesTrend>;
   readonly productStatistics?: Maybe<ProductStatistics>;
-  readonly productsByFavorites: ProductFavoriteVoPage;
   readonly productsPaginated?: Maybe<ProductVoPage>;
-  readonly refundEligibility: RefundEligibility;
-  readonly refundRequest?: Maybe<RefundRequest>;
-  readonly refundRequests: ReadonlyArray<RefundRequest>;
   readonly region?: Maybe<Region>;
-  readonly regionByCoordinates?: Maybe<RegionCoordinatesPayload>;
   readonly regions: ReadonlyArray<Region>;
-  readonly reviews: ReadonlyArray<Review>;
   readonly searchAllAddresses: ReadonlyArray<Address>;
-  readonly searchMessages: MessageHistoryVoPage;
-  readonly searchRegions: ReadonlyArray<Region>;
   readonly searchUserAddresses: ReadonlyArray<Address>;
-  readonly suspiciousTransactions: ReadonlyArray<SuspiciousTransaction>;
   readonly todayStatistics?: Maybe<TodayStatistics>;
   readonly topSalesProducts: ReadonlyArray<Product>;
   readonly user?: Maybe<User>;
   readonly userAddresses: ReadonlyArray<Address>;
   readonly userDefaultAddress?: Maybe<Address>;
-  readonly userPaymentTransactions: ReadonlyArray<PaymentTransaction>;
   readonly userStatistics: UserStatistics;
   readonly users: UserVoPage;
   readonly weekStatistics?: Maybe<WeekStatistics>;
@@ -1661,19 +1386,6 @@ export type QueryAdminArgs = {
 };
 
 
-export type QueryCalculateDistanceArgs = {
-  lat1: Scalars['Float']['input'];
-  lat2: Scalars['Float']['input'];
-  lng1: Scalars['Float']['input'];
-  lng2: Scalars['Float']['input'];
-};
-
-
-export type QueryCheckOrderReviewArgs = {
-  orderId: Scalars['PrimaryId']['input'];
-};
-
-
 export type QueryDailyCollectionsArgs = {
   collectionDate?: InputMaybe<Scalars['String']['input']>;
 };
@@ -1686,11 +1398,6 @@ export type QueryDailyReconciliationArgs = {
 
 export type QueryDailyStatisticsArgs = {
   input: DateRangeInput;
-};
-
-
-export type QueryDeliveryAddressArgs = {
-  id: Scalars['PrimaryId']['input'];
 };
 
 
@@ -1718,43 +1425,6 @@ export type QueryFavoriteProductsArgs = {
 };
 
 
-export type QueryFindUserByPhoneArgs = {
-  phone: Scalars['String']['input'];
-};
-
-
-export type QueryFindUsersByAddressArgs = {
-  address: Scalars['String']['input'];
-};
-
-
-export type QueryGetMessageDetailArgs = {
-  messageId: Scalars['PrimaryId']['input'];
-};
-
-
-export type QueryGetMessageHistoryArgs = {
-  page?: InputMaybe<CustomPageRequest>;
-};
-
-
-export type QueryGetRecentMessagesArgs = {
-  limit?: InputMaybe<Scalars['Int']['input']>;
-  messageType?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QueryIsInServiceAreaArgs = {
-  latitude: Scalars['Float']['input'];
-  longitude: Scalars['Float']['input'];
-};
-
-
-export type QueryIsNotificationEnabledArgs = {
-  messageType: Scalars['String']['input'];
-};
-
-
 export type QueryIsProductFavoritedArgs = {
   productId: Scalars['PrimaryId']['input'];
 };
@@ -1767,31 +1437,6 @@ export type QueryLowStockProductsArgs = {
 
 export type QueryMonthlyStatisticsArgs = {
   input: DateRangeInput;
-};
-
-
-export type QueryMyPaymentTransactionsArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryMyRefundRequestsArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryMyReviewsArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QueryNearbyAddressesArgs = {
-  latitude: Scalars['Float']['input'];
-  longitude: Scalars['Float']['input'];
-  radiusKm?: InputMaybe<Scalars['Float']['input']>;
 };
 
 
@@ -1810,11 +1455,6 @@ export type QueryOrderOperationsArgs = {
 };
 
 
-export type QueryOrderPaymentInfoArgs = {
-  orderId: Scalars['PrimaryId']['input'];
-};
-
-
 export type QueryOrderStatisticsArgs = {
   input: DateRangeInput;
 };
@@ -1822,28 +1462,6 @@ export type QueryOrderStatisticsArgs = {
 
 export type QueryOrdersArgs = {
   input?: InputMaybe<OrderListInput>;
-};
-
-
-export type QueryPaymentStatusArgs = {
-  transactionId: Scalars['String']['input'];
-};
-
-
-export type QueryPaymentTransactionArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type QueryPaymentTransactionsArgs = {
-  dateFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  dateTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  maxAmount?: InputMaybe<Scalars['BigDecimal']['input']>;
-  minAmount?: InputMaybe<Scalars['BigDecimal']['input']>;
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
-  status?: InputMaybe<PaymentStatus>;
-  userId?: InputMaybe<Scalars['Long']['input']>;
 };
 
 
@@ -1857,20 +1475,8 @@ export type QueryProductDailySalesArgs = {
 };
 
 
-export type QueryProductSalesTrendArgs = {
-  input: ProductSalesTrendInput;
-};
-
-
 export type QueryProductStatisticsArgs = {
   dateRange?: InputMaybe<DateRangeInput>;
-};
-
-
-export type QueryProductsByFavoritesArgs = {
-  minFavorites?: InputMaybe<Scalars['Int']['input']>;
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1879,51 +1485,14 @@ export type QueryProductsPaginatedArgs = {
 };
 
 
-export type QueryRefundEligibilityArgs = {
-  orderId: Scalars['PrimaryId']['input'];
-};
-
-
-export type QueryRefundRequestArgs = {
-  id: Scalars['String']['input'];
-};
-
-
-export type QueryRefundRequestsArgs = {
-  dateFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  dateTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
-  status?: InputMaybe<RefundStatus>;
-};
-
-
 export type QueryRegionArgs = {
   code: Scalars['String']['input'];
-};
-
-
-export type QueryRegionByCoordinatesArgs = {
-  latitude: Scalars['Float']['input'];
-  longitude: Scalars['Float']['input'];
 };
 
 
 export type QueryRegionsArgs = {
   level?: InputMaybe<Scalars['Int']['input']>;
   parentCode?: InputMaybe<Scalars['String']['input']>;
-};
-
-
-export type QueryReviewsArgs = {
-  dateFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  dateTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  deliveryWorkerId?: InputMaybe<Scalars['Long']['input']>;
-  maxRating?: InputMaybe<Scalars['Int']['input']>;
-  minRating?: InputMaybe<Scalars['Int']['input']>;
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
-  userId?: InputMaybe<Scalars['Long']['input']>;
 };
 
 
@@ -1934,34 +1503,11 @@ export type QuerySearchAllAddressesArgs = {
 };
 
 
-export type QuerySearchMessagesArgs = {
-  dateFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  dateTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  keyword: Scalars['String']['input'];
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
-export type QuerySearchRegionsArgs = {
-  keyword: Scalars['String']['input'];
-  level?: InputMaybe<Scalars['Int']['input']>;
-};
-
-
 export type QuerySearchUserAddressesArgs = {
   keyword: Scalars['String']['input'];
   page?: InputMaybe<Scalars['Int']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
   userId?: InputMaybe<Scalars['Long']['input']>;
-};
-
-
-export type QuerySuspiciousTransactionsArgs = {
-  dateFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  dateTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
 };
 
 
@@ -1977,13 +1523,6 @@ export type QueryUserArgs = {
 
 export type QueryUserAddressesArgs = {
   userId?: InputMaybe<Scalars['Long']['input']>;
-};
-
-
-export type QueryUserPaymentTransactionsArgs = {
-  page?: InputMaybe<Scalars['Int']['input']>;
-  size?: InputMaybe<Scalars['Int']['input']>;
-  userId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -2063,22 +1602,6 @@ export type RegionCoordinatesPayload = {
   readonly message: Scalars['String']['output'];
   readonly region?: Maybe<Region>;
   readonly success: Scalars['Boolean']['output'];
-};
-
-export type RegionHierarchy = {
-  readonly cities: ReadonlyArray<Region>;
-  readonly city: Region;
-  readonly district: Region;
-  readonly districts: ReadonlyArray<Region>;
-  readonly province: Region;
-  readonly provinces: ReadonlyArray<Region>;
-};
-
-export type RequestRefundInput = {
-  readonly amount: Scalars['BigDecimal']['input'];
-  readonly orderId: Scalars['PrimaryId']['input'];
-  readonly outTradeNo: Scalars['String']['input'];
-  readonly reason: Scalars['String']['input'];
 };
 
 export type ReverseGeocodePayload = {
@@ -2250,13 +1773,6 @@ export type UpdateDeliveryWorkerInput = {
   readonly wechatOpenId?: InputMaybe<Scalars['String']['input']>;
 };
 
-export type UpdateNotificationSettingsInput = {
-  readonly deliveryNotifications?: InputMaybe<Scalars['Boolean']['input']>;
-  readonly orderUpdates?: InputMaybe<Scalars['Boolean']['input']>;
-  readonly paymentNotifications?: InputMaybe<Scalars['Boolean']['input']>;
-  readonly promotionalNotifications?: InputMaybe<Scalars['Boolean']['input']>;
-};
-
 export type UpdateProductInput = {
   readonly certificateImages?: InputMaybe<Scalars['JsonArray']['input']>;
   readonly coverImageUrl?: InputMaybe<Scalars['String']['input']>;
@@ -2282,11 +1798,6 @@ export type UpdateProfileInput = {
   readonly avatar?: InputMaybe<Scalars['String']['input']>;
   readonly nickname?: InputMaybe<Scalars['String']['input']>;
   readonly phone?: InputMaybe<Scalars['String']['input']>;
-};
-
-export type UpdateRegionInput = {
-  readonly name?: InputMaybe<Scalars['String']['input']>;
-  readonly parentCode?: InputMaybe<Scalars['String']['input']>;
 };
 
 export type UpdateTransactionInput = {
@@ -2390,32 +1901,6 @@ export type UserListInput = {
   readonly size?: InputMaybe<Scalars['Int']['input']>;
   readonly sort?: InputMaybe<Scalars['String']['input']>;
   readonly status?: InputMaybe<UserStatus>;
-};
-
-export type UserNotificationSettings = {
-  readonly createdAt: Scalars['LocalDateTime']['output'];
-  readonly deliveryNotifications: Scalars['Boolean']['output'];
-  readonly id: Scalars['PrimaryId']['output'];
-  readonly orderUpdates: Scalars['Boolean']['output'];
-  readonly paymentNotifications: Scalars['Boolean']['output'];
-  readonly promotionalNotifications: Scalars['Boolean']['output'];
-  readonly updatedAt: Scalars['LocalDateTime']['output'];
-  readonly userId: Scalars['PrimaryId']['output'];
-};
-
-export type UserPaymentTransaction = {
-  readonly amount: Scalars['BigDecimal']['output'];
-  readonly completedAt?: Maybe<Scalars['LocalDateTime']['output']>;
-  readonly createdAt: Scalars['LocalDateTime']['output'];
-  readonly failureReason?: Maybe<Scalars['String']['output']>;
-  readonly id: Scalars['String']['output'];
-  readonly orderId: Scalars['PrimaryId']['output'];
-  readonly orderNo: Scalars['String']['output'];
-  readonly paymentMethod: PaymentMethod;
-  readonly refundAmount?: Maybe<Scalars['BigDecimal']['output']>;
-  readonly refundedAt?: Maybe<Scalars['LocalDateTime']['output']>;
-  readonly status: PaymentStatus;
-  readonly transactionId?: Maybe<Scalars['String']['output']>;
 };
 
 export enum UserRole {

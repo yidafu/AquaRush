@@ -9,11 +9,13 @@ schema {
 }
 
 # Root Query type - extended by modules
+# (placeholder field required: graphql-js rejects empty type definitions)
 type Query {
-  # Fields are defined in modules/*.graphqls using extend
+  _dummy: String
 }
 
 # Root Mutation type - extended by modules
+# (placeholder field required: graphql-js rejects empty type definitions)
 type Mutation {
-  # Fields are defined in modules/*.graphqls using extend
+  _dummy: String
 }
