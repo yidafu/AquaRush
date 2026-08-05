@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.product.exception
+package dev.yidafu.aqua.product.domain.exception
 
 /**
  * 产品未找到异常
