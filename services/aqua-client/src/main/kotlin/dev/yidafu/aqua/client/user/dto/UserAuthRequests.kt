@@ -17,16 +17,35 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.admin.user.controller.dto
-
-import jakarta.validation.constraints.NotBlank
+package dev.yidafu.aqua.client.user.dto
 
 /**
- * Request DTO for binding phone number to delivery worker
+ * Request DTO for WeChat login
  */
-data class BindPhoneRequest(
-  @NotBlank(message = "OpenID不能为空")
-  val openId: String,
-  @NotBlank(message = "手机号不能为空")
-  val phoneNumber: String,
+data class WeChatLoginRequest(
+  val code: String,
+)
+
+/**
+ * Request DTO for refreshing token
+ */
+data class RefreshTokenRequest(
+  val refreshToken: String,
+)
+
+/**
+ * Request DTO for user login
+ */
+data class LoginRequest(
+  val username: String,
+  val password: String,
+)
+
+/**
+ * Request DTO for updating user profile
+ */
+data class UpdateProfileRequest(
+  val nickname: String? = null,
+  val phone: String? = null,
+  val avatar: String? = null,
 )

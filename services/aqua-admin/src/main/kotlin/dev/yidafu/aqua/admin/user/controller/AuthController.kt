@@ -1,6 +1,6 @@
 package dev.yidafu.aqua.admin.user.controller
 
-import dev.yidafu.aqua.admin.user.controller.dto.AdminLoginRequest
+import dev.yidafu.aqua.admin.user.dto.AdminLoginRequest
 import dev.yidafu.aqua.api.dto.LoginResponse
 import dev.yidafu.aqua.common.ApiResponse
 import dev.yidafu.aqua.user.service.impl.AdminAuthServiceImpl

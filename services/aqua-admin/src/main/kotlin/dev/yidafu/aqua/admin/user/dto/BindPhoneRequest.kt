@@ -17,16 +17,16 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.admin.user.controller.dto
+package dev.yidafu.aqua.admin.user.dto
 
 import jakarta.validation.constraints.NotBlank
 
 /**
- * Request DTO for admin login
+ * Request DTO for binding phone number to delivery worker
  */
-data class AdminLoginRequest(
-  @field:NotBlank(message = "Username is required")
-  val username: String,
-  @field:NotBlank(message = "Password is required")
-  val password: String,
+data class BindPhoneRequest(
+  @NotBlank(message = "OpenID不能为空")
+  val openId: String,
+  @NotBlank(message = "手机号不能为空")
+  val phoneNumber: String,
 )

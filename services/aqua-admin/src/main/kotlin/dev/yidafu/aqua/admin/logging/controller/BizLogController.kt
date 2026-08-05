@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.logging.controller
+package dev.yidafu.aqua.admin.logging.controller
 
 import dev.yidafu.aqua.common.ApiResponse
 import dev.yidafu.aqua.common.domain.model.BusinessLogModel

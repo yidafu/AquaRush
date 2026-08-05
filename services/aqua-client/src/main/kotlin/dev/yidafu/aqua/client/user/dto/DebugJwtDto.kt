@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.client.user.controller.dto
+package dev.yidafu.aqua.client.user.dto
 
 import jakarta.validation.constraints.NotNull
 import java.time.LocalDateTime

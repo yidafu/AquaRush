@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.analytics.statistics.resolver
+package dev.yidafu.aqua.admin.statistics.resolvers
 
 import dev.yidafu.aqua.analytics.statistics.service.impl.ProductStatisticsServiceImpl
 import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
