@@ -21,6 +21,7 @@ package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -51,7 +52,6 @@ class MonetaryFieldsIntegrationTest {
           quantity = 1,
           amountCents = centsInCents,
           addressId = 300L,
-          deliveryAddressId = 301L,
         )
 
       // Test direct cents field
@@ -81,7 +81,6 @@ class MonetaryFieldsIntegrationTest {
         quantity = 1,
         amountCents = largeCents,
         addressId = 300L,
-        deliveryAddressId = 301L,
       )
 
     assertEquals(largeCents, order.amountCents)
@@ -101,7 +100,6 @@ class MonetaryFieldsIntegrationTest {
         quantity = 3,
         amountCents = 12345L, // ¥123.45
         addressId = 300L,
-        deliveryAddressId = 301L,
       )
 
     // Test calculations using the monetary field
@@ -129,7 +127,6 @@ class MonetaryFieldsIntegrationTest {
         quantity = 1,
         amountCents = 10000L, // ¥100.00
         addressId = 300L,
-        deliveryAddressId = 301L,
       )
 
     val order2 =
@@ -141,7 +138,6 @@ class MonetaryFieldsIntegrationTest {
         quantity = 1,
         amountCents = 15000L, // ¥150.00
         addressId = 300L,
-        deliveryAddressId = 301L,
       )
 
     // Test addition
@@ -178,7 +174,6 @@ class MonetaryFieldsIntegrationTest {
         quantity = 1,
         amountCents = 0L,
         addressId = 300L,
-        deliveryAddressId = 301L,
       )
     assertEquals(BigDecimal("0.00"), zeroOrder.totalAmount)
 
@@ -192,7 +187,6 @@ class MonetaryFieldsIntegrationTest {
         quantity = 1,
         amountCents = 1L, // ¥0.01
         addressId = 300L,
-        deliveryAddressId = 301L,
       )
     assertEquals(BigDecimal("0.01"), minOrder.totalAmount)
 
@@ -206,7 +200,6 @@ class MonetaryFieldsIntegrationTest {
         quantity = 1,
         amountCents = 100L, // ¥1.00
         addressId = 300L,
-        deliveryAddressId = 301L,
       )
     assertEquals(BigDecimal("1.00"), oneYuanOrder.totalAmount)
   }
@@ -223,7 +216,6 @@ class MonetaryFieldsIntegrationTest {
         quantity = 1,
         amountCents = 12345L, // ¥123.45
         addressId = 300L,
-        deliveryAddressId = 301L,
       )
 
     // Test formatting using MoneyUtils
@@ -250,7 +242,6 @@ class MonetaryFieldsIntegrationTest {
           quantity = 1,
           amountCents = amount,
           addressId = 300L,
-          deliveryAddressId = 301L,
         )
 
       // Verify internal consistency
@@ -272,10 +263,10 @@ class MonetaryFieldsIntegrationTest {
   fun `OrderModel works correctly in collection operations`() {
     val orders =
       listOf(
-        OrderModel(1L, "ORDER-001", 100L, 200L, 1, 10000L, 300L, 301L), // ¥100.00
-        OrderModel(2L, "ORDER-002", 100L, 201L, 2, 15000L, 300L, 301L), // ¥150.00
-        OrderModel(3L, "ORDER-003", 100L, 202L, 1, 20000L, 300L, 301L), // ¥200.00
-        OrderModel(4L, "ORDER-004", 100L, 203L, 3, 5000L, 300L, 301L), // ¥50.00
+        OrderModel(orderNo = "ORDER-001", userId = 100L, productId = 200L, quantity = 1, amountCents = 10000L, addressId = 300L), // ¥100.00
+        OrderModel(orderNo = "ORDER-002", userId = 100L, productId = 201L, quantity = 2, amountCents = 15000L, addressId = 300L), // ¥150.00
+        OrderModel(orderNo = "ORDER-003", userId = 100L, productId = 202L, quantity = 1, amountCents = 20000L, addressId = 300L), // ¥200.00
+        OrderModel(orderNo = "ORDER-004", userId = 100L, productId = 203L, quantity = 3, amountCents = 5000L, addressId = 300L), // ¥50.00
       )
 
     // Test aggregation operations
@@ -312,7 +303,6 @@ class MonetaryFieldsIntegrationTest {
           quantity = 1,
           amountCents = amount,
           addressId = 300L,
-          deliveryAddressId = 301L,
         )
       }
     }
@@ -328,7 +318,6 @@ class MonetaryFieldsIntegrationTest {
         quantity = 1,
         amountCents = -100L,
         addressId = 300L,
-        deliveryAddressId = 301L,
       )
 
     // The model allows negative amounts, but MoneyUtils should handle validation

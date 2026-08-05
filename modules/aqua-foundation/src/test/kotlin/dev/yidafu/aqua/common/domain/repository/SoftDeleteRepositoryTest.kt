@@ -55,7 +55,7 @@ class SoftDeleteRepositoryTest {
     repository.deleteSoft(entity)
 
     // Then
-    assertTrue(entity.isDeleted)
+    assertNotNull(entity.deletedAt)
     assertNotNull(entity.deletedAt)
     verify { entityManager.merge(entity) }
   }
@@ -64,7 +64,7 @@ class SoftDeleteRepositoryTest {
   fun `test restore should mark entity as not deleted`() {
     // Given
     val entity = TestEntity().apply {
-      isDeleted = true
+      deletedAt = LocalDateTime.now()
       deletedAt = LocalDateTime.now()
     }
     val optional = Optional.of(entity)
@@ -74,14 +74,13 @@ class SoftDeleteRepositoryTest {
     repository.restore(1L)
 
     // Then
-    assertFalse(entity.isDeleted)
+    assertNull(entity.deletedAt)
     assertNull(entity.deletedAt)
     verify { entityManager.merge(entity) }
   }
 
   data class TestEntity(
-    override var isDeleted: Boolean = false,
-    var deletedAt: LocalDateTime? = null,
-    var deletedBy: Long? = null
+    override var deletedAt: LocalDateTime? = null,
+    override var deletedBy: Long? = null
   ) : SoftDeletable
 }

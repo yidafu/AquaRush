@@ -20,7 +20,9 @@
 package dev.yidafu.aqua.common.domain.model
 
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Test
+import java.time.LocalDateTime
 
 class UserModelSoftDeleteTest {
   @Test
@@ -33,7 +35,6 @@ class UserModelSoftDeleteTest {
       )
 
     // When & Then
-    assertFalse(user.isDeleted)
     assertNull(user.deletedAt)
     assertNull(user.deletedBy)
   }
@@ -48,11 +49,9 @@ class UserModelSoftDeleteTest {
       )
 
     // When
-    user.isDeleted = true
+    user.deletedAt = LocalDateTime.now()
 
     // Then
-    assertTrue(user.isDeleted)
-    assertTrue(user.isDeleted())
-    assertFalse(user.isActive())
+    assertNotNull(user.deletedAt)
   }
 }

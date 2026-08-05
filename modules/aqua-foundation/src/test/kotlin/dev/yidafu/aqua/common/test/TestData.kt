@@ -23,8 +23,8 @@ import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.domain.model.UserModel
-import dev.yidafu.aqua.common.enums.AdminRoleModel
-import dev.yidafu.aqua.common.enums.UserStatus
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import java.time.LocalDateTime
 
 /**

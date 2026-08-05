@@ -20,9 +20,10 @@
 package dev.yidafu.aqua.product.domain.model
 
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
@@ -50,7 +51,7 @@ class ProductMonetaryFieldsTest {
           name = "Test Product",
           price = priceInCents,
           coverImageUrl = "https://example.com/image.jpg",
-          status = ProductStatus.ONLINE,
+          status = ProductModelStatus.ONLINE,
         )
 
       // Test direct cents field
@@ -77,7 +78,7 @@ class ProductMonetaryFieldsTest {
         name = "Expensive Product",
         price = largeCents,
         coverImageUrl = "https://example.com/luxury.jpg",
-        status = ProductStatus.ONLINE,
+        status = ProductModelStatus.ONLINE,
       )
 
     assertEquals(largeCents, product.price)
@@ -94,7 +95,7 @@ class ProductMonetaryFieldsTest {
         name = "Test Product",
         price = 2500L, // ¥25.00
         coverImageUrl = "https://example.com/image.jpg",
-        status = ProductStatus.ONLINE,
+        status = ProductModelStatus.ONLINE,
       )
 
     // Test bulk pricing calculations
@@ -136,7 +137,7 @@ class ProductMonetaryFieldsTest {
         name = "Premium Product",
         price = 12345L, // ¥123.45
         coverImageUrl = "https://example.com/premium.jpg",
-        status = ProductStatus.ONLINE,
+        status = ProductModelStatus.ONLINE,
       )
 
     // Test formatting using MoneyUtils
@@ -150,9 +151,9 @@ class ProductMonetaryFieldsTest {
     // Test boundary values
     val boundaryCases =
       listOf(
-        ProductModel(2L, "Free Product", 0L, "https://example.com/free.jpg", ProductStatus.ONLINE),
-        ProductModel(3L, "Cheap Product", 1L, "https://example.com/cheap.jpg", ProductStatus.ONLINE),
-        ProductModel(4L, "Round Product", 100L, "https://example.com/round.jpg", ProductStatus.ONLINE),
+        ProductModel(id = 2L, name = "Free Product", price = 0L, coverImageUrl = "https://example.com/free.jpg", status = ProductModelStatus.ONLINE),
+        ProductModel(id = 3L, name = "Cheap Product", price = 1L, coverImageUrl = "https://example.com/cheap.jpg", status = ProductModelStatus.ONLINE),
+        ProductModel(id = 4L, name = "Round Product", price = 100L, coverImageUrl = "https://example.com/round.jpg", status = ProductModelStatus.ONLINE),
       )
 
     boundaryCases.forEach { product ->
@@ -174,7 +175,7 @@ class ProductMonetaryFieldsTest {
           name = "Test Product",
           price = price,
           coverImageUrl = "https://example.com/test.jpg",
-          status = ProductStatus.ONLINE,
+          status = ProductModelStatus.ONLINE,
         )
 
       // Verify internal consistency
@@ -196,11 +197,11 @@ class ProductMonetaryFieldsTest {
   fun `ProductModel works correctly in price-based operations`() {
     val products =
       listOf(
-        ProductModel(1L, "Product A", 10000L, "https://example.com/a.jpg", ProductStatus.ONLINE), // ¥100.00
-        ProductModel(2L, "Product B", 15000L, "https://example.com/b.jpg", ProductStatus.ONLINE), // ¥150.00
-        ProductModel(3L, "Product C", 5000L, "https://example.com/c.jpg", ProductStatus.ONLINE), // ¥50.00
-        ProductModel(4L, "Product D", 20000L, "https://example.com/d.jpg", ProductStatus.OFFLINE), // ¥200.00
-        ProductModel(5L, "Product E", 7500L, "https://example.com/e.jpg", ProductStatus.ONLINE), // ¥75.00
+        ProductModel(id = 1L, name = "Product A", price = 10000L, coverImageUrl = "https://example.com/a.jpg", status = ProductModelStatus.ONLINE), // ¥100.00
+        ProductModel(id = 2L, name = "Product B", price = 15000L, coverImageUrl = "https://example.com/b.jpg", status = ProductModelStatus.ONLINE), // ¥150.00
+        ProductModel(id = 3L, name = "Product C", price = 5000L, coverImageUrl = "https://example.com/c.jpg", status = ProductModelStatus.ONLINE), // ¥50.00
+        ProductModel(id = 4L, name = "Product D", price = 20000L, coverImageUrl = "https://example.com/d.jpg", status = ProductModelStatus.OFFLINE), // ¥200.00
+        ProductModel(id = 5L, name = "Product E", price = 7500L, coverImageUrl = "https://example.com/e.jpg", status = ProductModelStatus.ONLINE), // ¥75.00
       )
 
     // Test price filtering
@@ -220,12 +221,12 @@ class ProductMonetaryFieldsTest {
     // Test status and price combined filtering
     val onlineAndAffordable =
       products.filter {
-        it.status == ProductStatus.ONLINE && it.price <= 15000L
+        it.status == ProductModelStatus.ONLINE && it.price <= 15000L
       }
     assertEquals(4, onlineAndAffordable.size)
 
     // Test price aggregation for online products
-    val onlineProducts = products.filter { it.status == ProductStatus.ONLINE }
+    val onlineProducts = products.filter { it.status == ProductModelStatus.ONLINE }
     val totalInventoryValue = onlineProducts.sumOf { it.price }
     assertEquals(37500L, totalInventoryValue) // ¥375.00
 
@@ -242,7 +243,7 @@ class ProductMonetaryFieldsTest {
         name = "Product 1",
         price = 12000L, // ¥120.00
         coverImageUrl = "https://example.com/1.jpg",
-        status = ProductStatus.ONLINE,
+        status = ProductModelStatus.ONLINE,
       )
 
     val product2 =
@@ -251,7 +252,7 @@ class ProductMonetaryFieldsTest {
         name = "Product 2",
         price = 8000L, // ¥80.00
         coverImageUrl = "https://example.com/2.jpg",
-        status = ProductStatus.ONLINE,
+        status = ProductModelStatus.ONLINE,
       )
 
     // Test price difference
@@ -286,7 +287,7 @@ class ProductMonetaryFieldsTest {
           name = "Valid Product",
           price = price,
           coverImageUrl = "https://example.com/valid.jpg",
-          status = ProductStatus.ONLINE,
+          status = ProductModelStatus.ONLINE,
         )
       }
     }
@@ -298,7 +299,7 @@ class ProductMonetaryFieldsTest {
         name = "Free Product",
         price = 0L,
         coverImageUrl = "https://example.com/free.jpg",
-        status = ProductStatus.ONLINE,
+        status = ProductModelStatus.ONLINE,
       )
     assertEquals(BigDecimal("0.00"), freeProduct.priceYuan)
     assertEquals("¥0.00", MoneyUtils.formatCents(freeProduct.price))
@@ -309,7 +310,7 @@ class ProductMonetaryFieldsTest {
         name = "Minimum Price Product",
         price = 1L,
         coverImageUrl = "https://example.com/minimum.jpg",
-        status = ProductStatus.ONLINE,
+        status = ProductModelStatus.ONLINE,
       )
     assertEquals(BigDecimal("0.01"), minimumPriceProduct.priceYuan)
     assertEquals("¥0.01", MoneyUtils.formatCents(minimumPriceProduct.price))
@@ -322,7 +323,7 @@ class ProductMonetaryFieldsTest {
         name = "Invalid Product",
         price = -100L,
         coverImageUrl = "https://example.com/invalid.jpg",
-        status = ProductStatus.ONLINE,
+        status = ProductModelStatus.ONLINE,
       )
 
     // The model allows negative prices, but MoneyUtils should handle validation
@@ -341,7 +342,7 @@ class ProductMonetaryFieldsTest {
         price = 2500L, // ¥25.00
         coverImageUrl = "https://example.com/inventory.jpg",
         stock = 100,
-        status = ProductStatus.ONLINE,
+        status = ProductModelStatus.ONLINE,
       )
 
     // Test total inventory value

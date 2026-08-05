@@ -23,6 +23,7 @@ class OrderIdGeneratorServiceImpl : OrderIdGeneratorService {
   private val logger = LoggerFactory.getLogger(OrderIdGeneratorServiceImpl::class.java)
 
   private val formatter = DateTimeFormatter.ofPattern("yyMMdd")
+
   constructor() {
     val dbFile = java.io.File("./order-id-sequence.db").absoluteFile
     val db =
@@ -42,6 +43,12 @@ class OrderIdGeneratorServiceImpl : OrderIdGeneratorService {
     sequenceMap = db.hashMap("order_sequence", Serializer.STRING, Serializer.LONG).createOrOpen()
   }
 
+  // 测试注入：使用传入的 MapDB 实例，不打开文件型存储
+  internal constructor(db: DB) {
+    orderIdDb = db
+    sequenceMap = db.hashMap("order_sequence", Serializer.STRING, Serializer.LONG).createOrOpen()
+  }
+
   // 专用MapDB实例，用于持久化订单序列号
   private val orderIdDb: DB
 
@@ -50,36 +57,7 @@ class OrderIdGeneratorServiceImpl : OrderIdGeneratorService {
 
   // 用于测试: 使用传入的DB实例
   companion object {
-    private val testFormatter = DateTimeFormatter.ofPattern("yyMMdd")
-
-    fun createWithDb(db: DB): OrderIdGeneratorServiceImpl {
-      return object : OrderIdGeneratorServiceImpl() {
-        private val testDb = db
-        private val testMap = db.hashMap("order_sequence", Serializer.STRING, Serializer.LONG).createOrOpen()
-
-        @Synchronized
-        override fun generateOrderId(): String {
-          val dateKey = LocalDate.now().format(testFormatter)
-          val sequence = getNextSequenceInternal(dateKey)
-          return "$dateKey${sequence.toString().padStart(10, '0')}"
-        }
-
-        private fun getNextSequenceInternal(dateKey: String): Long {
-          val currentSequence = testMap[dateKey] ?: 0L
-          val randomIncrement = (1..1000).random()
-          val nextSequence = currentSequence + randomIncrement
-
-          require(nextSequence < 10_000_000_000L) {
-            "订单号序列号已达到每日上限: $nextSequence"
-          }
-
-          testMap[dateKey] = nextSequence
-          testDb.commit()
-
-          return nextSequence
-        }
-      }
-    }
+    fun createWithDb(db: DB): OrderIdGeneratorServiceImpl = OrderIdGeneratorServiceImpl(db)
   }
 
   @Synchronized

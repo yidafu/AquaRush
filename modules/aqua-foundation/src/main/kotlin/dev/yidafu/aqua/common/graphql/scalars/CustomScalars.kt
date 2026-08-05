@@ -689,10 +689,16 @@ object MoneyScalar {
       override fun serialize(dataFetcherResult: Any): String =
         when (dataFetcherResult) {
           is Long -> {
+            if (dataFetcherResult < 0) {
+              throw CoercingSerializeException("Money value cannot be negative: $dataFetcherResult")
+            }
             dataFetcherResult.toString()
           }
 
           is Int -> {
+            if (dataFetcherResult < 0) {
+              throw CoercingSerializeException("Money value cannot be negative: $dataFetcherResult")
+            }
             dataFetcherResult.toLong().toString()
           }
 
