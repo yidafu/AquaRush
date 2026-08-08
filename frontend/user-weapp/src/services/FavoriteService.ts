@@ -7,8 +7,8 @@ export interface FavoriteProduct {
   id: string
   name: string
   subtitle?: string
-  price: string
-  originalPrice?: string
+  priceCents: number
+  originalPriceCents?: number
   coverImageUrl: string
   stock: number
   salesVolume: number
@@ -81,8 +81,8 @@ class FavoriteService {
               id
               name
               subtitle
-              price
-              originalPrice
+              priceCents
+              originalPriceCents
               coverImageUrl
               stock
               salesVolume

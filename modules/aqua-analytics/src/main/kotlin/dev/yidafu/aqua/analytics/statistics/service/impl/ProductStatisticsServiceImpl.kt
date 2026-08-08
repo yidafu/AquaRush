@@ -65,7 +65,7 @@ class ProductStatisticsServiceImpl(
             productId = product.id ?: 0L,
             productName = product.name,
             salesVolume = product.salesVolume,
-            revenue = product.price * product.salesVolume,
+            revenueCents = product.price * product.salesVolume,
           )
         }
 
@@ -78,8 +78,8 @@ class ProductStatisticsServiceImpl(
       onlineProducts = onlineProducts.size,
       offlineProducts = offlineProducts.size,
       lowStockProducts = lowStockProducts.size,
-      totalValue = totalValue,
-      averagePrice = averagePrice,
+      totalValueCents = totalValue,
+      averagePriceCents = averagePrice,
       totalSales = totalSales,
       productRanking = productRanking,
       favoriteStatistics = allFavoriteStats,
@@ -123,7 +123,7 @@ class ProductStatisticsServiceImpl(
             productId = 0L,
             productName = "无销售",
             salesVolume = 0,
-            revenue = 0L,
+            revenueCents = 0L,
           ),
         )
       } else {
@@ -133,7 +133,7 @@ class ProductStatisticsServiceImpl(
             productId = result.productId,
             productName = result.productName,
             salesVolume = result.salesVolume.toInt(),
-            revenue = result.revenue,
+            revenueCents = result.revenue,
           )
         }
       }

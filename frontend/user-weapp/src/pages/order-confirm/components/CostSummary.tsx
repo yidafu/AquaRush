@@ -1,5 +1,6 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
+import { Money } from '@aquarush/common'
 import './CostSummary.scss'
 
 interface CostSummaryProps {
@@ -17,17 +18,17 @@ const CostSummary: React.FC<CostSummaryProps> = ({
     <View className='cost-section'>
       <View className='cost-item'>
         <Text className='cost-label'>商品总价</Text>
-        <Text className='cost-value'>¥{totalAmount.toFixed(2)}</Text>
+        <Text className='cost-value'><Money cents={totalAmount} /></Text>
       </View>
       <View className='cost-item'>
         <Text className='cost-label'>配送费</Text>
         <Text className='cost-value'>
-          {deliveryFee === 0 ? '免配送费' : `¥${deliveryFee.toFixed(2)}`}
+          {deliveryFee === 0 ? '免配送费' : <Money cents={deliveryFee} />}
         </Text>
       </View>
       <View className='cost-item total'>
         <Text className='cost-label'>实付金额</Text>
-        <Text className='cost-value total-amount'>¥{finalAmount.toFixed(2)}</Text>
+        <Text className='cost-value total-amount'><Money cents={finalAmount} /></Text>
       </View>
     </View>
   )

@@ -1,4 +1,4 @@
-import { formatCurrency, formatDateTime, Order, OrderStatus } from "@aquarush/common"
+import { Money, formatDateTime, Order, OrderStatus } from "@aquarush/common"
 import { AtList, AtListItem } from "taro-ui"
 import { View } from "@tarojs/components"
 
@@ -34,7 +34,7 @@ export const OrderInfoCard: React.FC<OrderInfoCardProps> = ({ order }) => {
       <AtList>
         <AtListItem title='订单号' extraText={order.orderNo} />
         <AtListItem title='下单时间' extraText={formatDateTime(order.createdAt)} />
-        <AtListItem title='订单金额' extraText={formatCurrency(order.amount)} />
+        <AtListItem title='订单金额' extraText={<Money cents={order.amountCents} />} />
         <AtListItem title='是否自收' extraText={order.isSelfCollect ? '是' : '否'} />
         {(order.status === OrderStatus.COMPLETED || order.status === OrderStatus.DELIVERING) && (
           <AtListItem

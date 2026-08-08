@@ -13,6 +13,7 @@ import {
   Legend,
 } from 'recharts';
 import { useQuery, gql } from '@apollo/client';
+import { centsToYuan } from '@aquarush/common';
 import StatisticsCard from '@/components/StatisticsCard';
 import dayjs, { Dayjs } from 'dayjs';
 
@@ -31,7 +32,7 @@ const GET_PRODUCT_STATISTICS = gql`
         productId
         productName
         salesVolume
-        revenue
+        revenueCents
       }
       favoriteStatistics {
         productId
@@ -49,7 +50,7 @@ const GET_PRODUCT_DAILY_SALES = gql`
       productId
       productName
       salesVolume
-      revenue
+      revenueCents
     }
   }
 `;
@@ -69,7 +70,7 @@ interface ProductSalesStat {
   productId: number;
   productName: string;
   salesVolume: number;
-  revenue: number;
+  revenueCents: number;
 }
 
 interface ProductFavoriteStat {
@@ -83,7 +84,7 @@ interface ProductDailySalesData {
   productId: number;
   productName: string;
   salesVolume: number;
-  revenue: number;
+  revenueCents: number;
 }
 
 interface ProductStatisticsData {
@@ -152,7 +153,7 @@ const ProductStatisticsPage: React.FC = () => {
   const salesChartData = stats?.productRanking.map((item) => ({
     name: item.productName.length > 10 ? item.productName.slice(0, 10) + '...' : item.productName,
     sales: item.salesVolume,
-    revenue: item.revenue / 100, // Convert cents to yuan
+    revenue: centsToYuan(item.revenueCents),
   })) || [];
 
   // Prepare chart data for favorite ranking
@@ -170,12 +171,12 @@ const ProductStatisticsPage: React.FC = () => {
     const existing = dailyTrendMap.get(item.date);
     if (existing) {
       existing.sales += item.salesVolume;
-      existing.revenue += item.revenue;
+      existing.revenue += item.revenueCents;
     } else {
       dailyTrendMap.set(item.date, {
         date: item.date,
         sales: item.salesVolume,
-        revenue: item.revenue,
+        revenue: item.revenueCents,
       });
     }
   });
@@ -185,7 +186,7 @@ const ProductStatisticsPage: React.FC = () => {
     .map((item) => ({
       date: item.date.slice(5), // Show MM-DD format
       sales: item.sales,
-      revenue: item.revenue / 100, // Convert cents to yuan
+      revenue: centsToYuan(item.revenue),
     }));
 
   // If a specific product is selected, show its daily trend
@@ -199,7 +200,7 @@ const ProductStatisticsPage: React.FC = () => {
         .map((item) => ({
           date: item.date.slice(5),
           sales: item.salesVolume,
-          revenue: item.revenue / 100,
+          revenue: centsToYuan(item.revenueCents),
         }))
     : [];
 

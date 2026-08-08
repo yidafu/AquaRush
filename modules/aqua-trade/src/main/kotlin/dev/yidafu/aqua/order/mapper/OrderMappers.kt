@@ -149,7 +149,7 @@ object OrderDTOToGraphQLMapper : ObjectMappie<OrderDTO, Order>() {
     mapping {
       // Note: GraphQL Order requires non-null nested objects (address, product, user)
       // This mapper should only be used when nested objects are properly populated
-      to::amount fromProperty from::amount
+      to::amountCents fromProperty from::amount
       to::deliveryPhotos fromExpression { from.deliveryPhotos }
       to::paymentMethod fromExpression { from.paymentMethod?.name }
       to::status fromExpression { OrderStatusG.valueOf(from.status.name) }
@@ -170,7 +170,7 @@ object GraphQLToOrderDTOMapper : ObjectMappie<Order, OrderDTO>() {
       to::user fromValue from.user
       to::productId fromExpression { from.product?.id ?: 0L }
       to::product fromValue from.product
-      to::amount fromProperty from::amount
+      to::amount fromProperty from::amountCents
       to::addressId fromExpression { from.address?.id ?: 0L }
       to::address fromValue from.address
       to::status fromExpression {
@@ -185,7 +185,7 @@ object GraphQLToOrderDTOMapper : ObjectMappie<Order, OrderDTO>() {
       to::deliveryWorkerId fromExpression { from.deliveryWorker?.id }
       to::deliveryWorker fromValue from.deliveryWorker
       to::deliveryPhotos fromExpression { from.deliveryPhotos?.toList() }
-      to::totalAmount fromProperty from::amount
+      to::totalAmount fromProperty from::amountCents
     }
 }
 
@@ -209,7 +209,7 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       to::id fromValue (from.id ?: 0L)
       // Create placeholder objects for required nested fields
       // In a real implementation, these should be loaded from their respective services
-      to::amount fromValue from.amount.toLong()
+      to::amountCents fromProperty from::amountCents
       to::deliveryPhotos fromExpression {
         from.deliveryPhotos?.let { photos ->
           try {
@@ -274,13 +274,13 @@ object WeekStatisticsMapper : ObjectMappie<WeekStatisticsDTO, WeekStatistics>() 
   override fun map(from: WeekStatisticsDTO): WeekStatistics =
     mapping {
       to::dailyStats fromExpression { DailyStatMapper.mapList(from.dailyStats) }
-      to::totalEarning fromValue from.totalEarningCents / 100
+      to::totalEarningCents fromValue from.totalEarningCents
     }
 }
 
 object DailyStatMapper : ObjectMappie<DailyStatDTO, DailyStat>() {
   override fun map(from: DailyStatDTO): DailyStat =
     mapping {
-      to::earning fromValue from.earningCents / 100
+      to::earningCents fromValue from.earningCents
     }
 }

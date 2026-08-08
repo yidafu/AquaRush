@@ -1,14 +1,14 @@
 import React from "react";
 import { View, Text } from "@tarojs/components";
 import { useProduct } from "../context/ProductContext";
-import { displayCents } from "@/utils/money";
+import { Money } from "@aquarush/common";
 
 const ProductInfo: React.FC = () => {
   const { product } = useProduct();
 
   // Price calculations
   const hasMarketPrice =
-    product.originalPrice && parseFloat(product.originalPrice) > 0;
+    product.originalPriceCents && product.originalPriceCents > 0;
 
   return (
     <View className="px-4 py-2 mt-4 bg-white animate-fade-in-up">
@@ -36,7 +36,7 @@ const ProductInfo: React.FC = () => {
         {/* 价格信息 */}
         <View className="flex items-baseline gap-1">
           <Text className="text-xl font-extrabold tracking-tight text-red-500">
-            {displayCents(parseFloat(product.price))}
+            <Money cents={product.priceCents} />
           </Text>
         </View>
         <View className="flex flex-row justify-between">
@@ -46,7 +46,7 @@ const ProductInfo: React.FC = () => {
               <View className="flex flex-col items-end gap-2 text-right">
                 <Text className="text-xs font-normal text-gray-400">
                   原价 <Text className="line-through">
-                  {displayCents(parseFloat(product.originalPrice!))}
+                  <Money cents={product.originalPriceCents} />
                   </Text>
 
                 </Text>

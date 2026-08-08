@@ -26,7 +26,7 @@ export interface DeliveryWorker {
   totalOrders: number;
   completedOrders: number;
   averageRating?: number;
-  earning?: number;
+  earningCents?: number;
   isAvailable: boolean;
   createdAt: string;
   updatedAt: string;

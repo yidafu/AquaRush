@@ -4,7 +4,7 @@ import { UserOutlined, EnvironmentOutlined, PhoneOutlined } from '@ant-design/ic
 import type { DeliveryWorker, Address, ModalProps } from './types';
 import { WORKER_STATUS_MAPPINGS } from './types';
 import AddressList from './AddressList';
-import { centsToYuan } from '../../../utils/money';
+import { centsToYuan } from '@aquarush/common';
 
 interface DeliveryWorkerDetailModalProps extends ModalProps {
   deliveryWorker: DeliveryWorker | null;
@@ -76,7 +76,7 @@ const DeliveryWorkerDetailModal: React.FC<DeliveryWorkerDetailModalProps> = ({
             <Col span={6}>
               <Statistic
                 title="总收入"
-                value={centsToYuan(deliveryWorker.earning || 0)}
+                value={centsToYuan(deliveryWorker.earningCents || 0)}
                 precision={2}
                 prefix="¥"
               />

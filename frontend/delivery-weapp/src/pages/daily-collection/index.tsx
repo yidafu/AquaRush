@@ -10,7 +10,7 @@ import 'taro-ui/dist/style/components/list.scss'
 import 'taro-ui/dist/style/components/modal.scss'
 import "taro-ui/dist/style/components/noticebar.scss";
 
-import { formatCentsToCurrency } from '../../utils/money'
+import { formatCentsToCurrency, centsToYuan, yuanToCents } from '@aquarush/common'
 import { submitDailyCollection, getTodayCollection, SubmitDailyCollectionInput, MyTodayCollectionVO } from '../../services/dailyCollection'
 import { useAuth } from '../../hooks/useAuth'
 import { PageContainer } from '../../components/PageContainer'
@@ -64,9 +64,9 @@ const DailyCollectionPage: React.FC = () => {
         // 回填表单（如果有已填写的数据）
         if (res.myTodayCollection.cashAmountCents != null) {
           setFormData({
-            cashAmount: String(res.myTodayCollection.cashAmountCents! / 100),
+            cashAmount: String(centsToYuan(res.myTodayCollection.cashAmountCents!)),
             waterTicketCount: res.myTodayCollection.waterTicketCount ?? 0,
-            qrCodeAmount: String(res.myTodayCollection.qrCodeAmountCents! / 100),
+            qrCodeAmount: String(centsToYuan(res.myTodayCollection.qrCodeAmountCents!)),
           })
         }
       }
@@ -100,8 +100,8 @@ const DailyCollectionPage: React.FC = () => {
 
     // 先计算差异，判断是否需要二次确认（分别判断3个分项）
     if (orderStats) {
-      const cashCents = Math.round(cashAmount * 100)
-      const qrCodeCents = Math.round(qrCodeAmount * 100)
+      const cashCents = yuanToCents(cashAmount)
+      const qrCodeCents = yuanToCents(qrCodeAmount)
       const waterTicketNum = formData.waterTicketCount
 
       // 现金差异
@@ -137,9 +137,9 @@ const DailyCollectionPage: React.FC = () => {
     setSubmitting(true)
     try {
       const input: SubmitDailyCollectionInput = {
-        cashAmountCents: Math.round(cashAmount * 100),
+        cashAmountCents: yuanToCents(cashAmount),
         waterTicketCount: formData.waterTicketCount,
-        qrCodeAmountCents: Math.round(qrCodeAmount * 100),
+        qrCodeAmountCents: yuanToCents(qrCodeAmount),
         notes: submitNotes || undefined,
       }
 
@@ -192,8 +192,8 @@ const DailyCollectionPage: React.FC = () => {
 
   // 计算对比结果
   const calculateComparison = () => {
-    const cashCents = Math.round(parseFloat(formData.cashAmount || '0') * 100)
-    const qrCodeCents = Math.round(parseFloat(formData.qrCodeAmount || '0') * 100)
+    const cashCents = yuanToCents(parseFloat(formData.cashAmount || '0'))
+    const qrCodeCents = yuanToCents(parseFloat(formData.qrCodeAmount || '0'))
     const totalInput = cashCents + qrCodeCents
 
     if (orderStats) {
@@ -310,8 +310,8 @@ const DailyCollectionPage: React.FC = () => {
             <Text className='label'>合计：</Text>
             <Text className='value'>
               {formatCentsToCurrency(
-                Math.round(parseFloat(formData.cashAmount || '0') * 100) +
-                Math.round(parseFloat(formData.qrCodeAmount || '0') * 100)
+                yuanToCents(parseFloat(formData.cashAmount || '0')) +
+                yuanToCents(parseFloat(formData.qrCodeAmount || '0'))
               )}
             </Text>
           </View>

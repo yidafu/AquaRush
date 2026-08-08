@@ -334,9 +334,8 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
         orderDate = tuple.get(dateExpr) ?: LocalDate.now(),
         status = tuple.get(orderModel.status) ?: OrderModelStatus.PENDING_PAYMENT,
         orderCount = tuple.get(orderModel.count()) ?: 0L,
-        // Convert from cents to yuan (divide by 100)
-        totalRevenue = (tuple.get(sumAmount) as? Long? ?: 0L).toDouble() / 100.0,
-        averageOrderValue = (tuple.get(avgAmount) as? Double? ?: 0.0) / 100.0,
+        totalRevenueCents = tuple.get(sumAmount) ?: 0L,
+        averageOrderValueCents = Math.round(tuple.get(avgAmount) ?: 0.0).toLong(),
         uniqueCustomers = tuple.get(orderModel.userId.countDistinct()) ?: 0L,
         activeWorkers = tuple.get(orderModel.deliveryWorkerId.countDistinct()) ?: 0L,
       )

@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import type { DeliveryWorker, TableActionProps } from './types';
 import { WORKER_STATUS_MAPPINGS } from './types';
-import { formatAdminTableAmount } from '../../../utils/money';
+import { displayCents } from '@aquarush/common'
 
 interface DeliveryWorkerTableProps extends TableActionProps {
   data: DeliveryWorker[];
@@ -119,12 +119,12 @@ const DeliveryWorkerTable: React.FC<DeliveryWorkerTableProps> = ({
     },
     {
       title: '总收入',
-      dataIndex: 'earning',
-      key: 'earning',
+      dataIndex: 'earningCents',
+      key: 'earningCents',
       width: 100,
       render: (earning: number | null | undefined) => (
         <span style={{ fontWeight: 'bold', color: '#52c41a' }}>
-          {formatAdminTableAmount(earning)}
+          {displayCents(earning)}
         </span>
       ),
     },

@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text, Image } from '@tarojs/components'
-import { displayCents } from '@/utils/money'
+import { Money } from '@aquarush/common'
 import './ProductList.scss'
 
 interface OrderItem {
@@ -38,7 +38,7 @@ const ProductList: React.FC<ProductListProps> = ({ orderItems }) => {
                 </Text>
               )}
               <View className='product-bottom'>
-                <Text className='product-price'>{displayCents(item.price)}</Text>
+                <Text className='product-price'><Money cents={item.price} /></Text>
                 <Text className='product-quantity'>x{item.quantity}</Text>
               </View>
             </View>

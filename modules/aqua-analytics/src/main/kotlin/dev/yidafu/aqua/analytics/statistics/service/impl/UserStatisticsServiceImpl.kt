@@ -80,7 +80,7 @@ class UserStatisticsServiceImpl(
           date = currentDate.toString(),
           orderCount = count.toInt(),
           orderProductCount = 0,
-          revenue = 0f,
+          revenueCents = 0L,
         ),
       )
       currentDate = currentDate.plusDays(1)

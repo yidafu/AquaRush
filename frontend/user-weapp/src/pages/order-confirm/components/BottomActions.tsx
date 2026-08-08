@@ -1,6 +1,7 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
 import { AtButton } from 'taro-ui'
+import { Money } from '@aquarush/common'
 import './BottomActions.scss'
 
 interface BottomActionsProps {
@@ -18,7 +19,7 @@ const BottomActions: React.FC<BottomActionsProps> = ({
     <View className='bottom-actions'>
       <View className='total-info'>
         <Text className='total-label'>合计：</Text>
-        <Text className='total-amount'>¥{totalAmount.toFixed(2)}</Text>
+        <Text className='total-amount'><Money cents={totalAmount} /></Text>
       </View>
       <AtButton
         type='primary'

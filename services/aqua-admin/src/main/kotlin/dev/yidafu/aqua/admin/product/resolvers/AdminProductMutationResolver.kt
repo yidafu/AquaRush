@@ -26,7 +26,6 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdateProductInput
-import dev.yidafu.aqua.common.utils.MoneyUtils
 import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -93,15 +92,15 @@ class AdminProductMutationResolver(
         productService.updateProduct(
           productId = id,
           name = input.name,
-          priceYuan = input.price?.let { MoneyUtils.fromCents(it) },
+          priceCents = input.priceCents,
           coverImageUrl = input.coverImageUrl,
           // detailImages字段在ProductUpdateRequestInput中不存在，使用imageGallery替代
           // detailImages = input.detailImages?.joinToString(","),
           description = input.detailContent,
           stock = input.stock,
           subtitle = input.subtitle,
-          originalPriceYuan = input.originalPrice?.let { MoneyUtils.fromCents(it) },
-          depositPriceYuan = input.depositPrice?.let { MoneyUtils.fromCents(it) },
+          originalPriceCents = input.originalPriceCents,
+          depositPriceCents = input.depositPriceCents,
           imageGallery = input.imageGallery,
           specification = input.specification,
           waterSource = input.waterSource,
@@ -156,7 +155,7 @@ class AdminProductMutationResolver(
     if (input.name.length > 100) {
       throw BadRequestException("产品名称长度不能超过100个字符")
     }
-    if (input.price <= 0) {
+    if (input.priceCents <= 0) {
       throw BadRequestException("产品价格必须大于0")
     }
     if (input.stock < 0) {
@@ -180,7 +179,7 @@ class AdminProductMutationResolver(
       }
     }
 
-    input.price?.let { price ->
+    input.priceCents?.let { price ->
       if (price <= 0) {
         throw BadRequestException("产品价格必须大于0")
       }

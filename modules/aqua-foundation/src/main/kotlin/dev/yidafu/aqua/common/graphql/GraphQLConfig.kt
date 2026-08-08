@@ -36,7 +36,6 @@ class GraphQLConfig {
         .scalar(MapScalar.GraphQL_TYPE)
         .scalar(JsonObjectScalar.GraphQL_TYPE)
         .scalar(JsonArrayScalar.GraphQL_TYPE)
-        .scalar(MoneyScalar.GraphQL_TYPE)
         .scalar(PrimaryIdScalar.GraphQL_TYPE)
     }
 }

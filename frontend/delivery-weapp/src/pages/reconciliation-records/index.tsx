@@ -3,7 +3,7 @@ import { View, Text, ScrollView } from '@tarojs/taro'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh } from '@tarojs/taro'
 import './index.scss'
 import { getDailyReconciliations, DailyReconciliation } from '../../services/dailyCollection'
-import { formatCentsToCurrency } from '../../utils/money'
+import { formatCentsToCurrency } from '@aquarush/common'
 import { PageContainer } from '../../components/PageContainer'
 
 // 状态颜色映射

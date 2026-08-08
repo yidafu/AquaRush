@@ -7,9 +7,9 @@ export const GET_PRODUCTS_QUERY = gql`
         id
         name
         subtitle
-        price
-        originalPrice
-        depositPrice
+        priceCents
+        originalPriceCents
+        depositPriceCents
         coverImageUrl
         imageGallery
         specification

@@ -11,6 +11,7 @@ import {
   Legend,
 } from 'recharts';
 import { useQuery, gql } from '@apollo/client';
+import { centsToYuan } from '@aquarush/common';
 import StatisticsCard from '@/components/StatisticsCard';
 import dayjs, { Dayjs } from 'dayjs';
 
@@ -33,14 +34,14 @@ const GET_DAILY_STATISTICS = gql`
   query GetDailyStatistics($input: DateRangeInput!) {
     orderStatistics(input: $input) {
       totalOrders
-      totalRevenue
-      averageOrderValue
+      totalRevenueCents
+      averageOrderValueCents
     }
     dailyStatistics(input: $input) {
       date
       orderCount
       orderProductCount
-      revenue
+      revenueCents
     }
   }
 `;
@@ -49,14 +50,14 @@ const GET_WEEKLY_STATISTICS = gql`
   query GetWeeklyStatistics($input: DateRangeInput!) {
     orderStatistics(input: $input) {
       totalOrders
-      totalRevenue
-      averageOrderValue
+      totalRevenueCents
+      averageOrderValueCents
     }
     weeklyStatistics(input: $input) {
       startDate
       orderCount
       orderProductCount
-      revenue
+      revenueCents
     }
   }
 `;
@@ -65,8 +66,8 @@ const GET_MONTHLY_STATISTICS = gql`
   query GetMonthlyStatistics($input: DateRangeInput!) {
     orderStatistics(input: $input) {
       totalOrders
-      totalRevenue
-      averageOrderValue
+      totalRevenueCents
+      averageOrderValueCents
     }
     monthlyStatistics(input: $input) {
       year
@@ -74,29 +75,29 @@ const GET_MONTHLY_STATISTICS = gql`
       monthName
       orderCount
       orderProductCount
-      revenue
+      revenueCents
     }
   }
 `;
 
 interface OrderStats {
   totalOrders: number;
-  totalRevenue: number;
-  averageOrderValue: number;
+  totalRevenueCents: number;
+  averageOrderValueCents: number;
 }
 
 interface DailyStat {
   date: string;
   orderCount: number;
   orderProductCount: number;
-  revenue: number;
+  revenueCents: number;
 }
 
 interface WeeklyStat {
   startDate: string;
   orderCount: number;
   orderProductCount: number;
-  revenue: number;
+  revenueCents: number;
 }
 
 interface MonthlyStat {
@@ -105,7 +106,7 @@ interface MonthlyStat {
   monthName: string;
   orderCount: number;
   orderProductCount: number;
-  revenue: number;
+  revenueCents: number;
 }
 
 interface DailyStatisticsData {
@@ -192,7 +193,7 @@ const OrderStatisticsPage: React.FC = () => {
     chartData = dailyData.dailyStatistics.map((item: DailyStat) => ({
       date: item.date.slice(5),
       orders: item.orderCount,
-      revenue: item.revenue ,
+      revenue: centsToYuan(item.revenueCents),
       products: item.orderProductCount,
     }));
   } else if (granularity === 'WEEK' && weeklyData) {
@@ -200,7 +201,7 @@ const OrderStatisticsPage: React.FC = () => {
     chartData = weeklyData.weeklyStatistics.map((item: WeeklyStat) => ({
       date: item.startDate.slice(5),
       orders: item.orderCount,
-      revenue: item.revenue ,
+      revenue: centsToYuan(item.revenueCents),
       products: item.orderProductCount,
     }));
   } else if (granularity === 'MONTH' && monthlyData) {
@@ -208,13 +209,13 @@ const OrderStatisticsPage: React.FC = () => {
     chartData = monthlyData.monthlyStatistics.map((item: MonthlyStat) => ({
       date: `${item.year}-${item.month}`,
       orders: item.orderCount,
-      revenue: item.revenue ,
+      revenue: centsToYuan(item.revenueCents),
       products: item.orderProductCount,
     }));
   }
 
-  const totalRevenue = orderStats?.totalRevenue ? orderStats.totalRevenue  : 0;
-  const avgOrderValue = orderStats?.averageOrderValue ? orderStats.averageOrderValue  : 0;
+  const totalRevenue = orderStats?.totalRevenueCents ? centsToYuan(orderStats.totalRevenueCents) : 0;
+  const avgOrderValue = orderStats?.averageOrderValueCents ? centsToYuan(orderStats.averageOrderValueCents) : 0;
 
   return (
     <div style={{ padding: 24 }}>

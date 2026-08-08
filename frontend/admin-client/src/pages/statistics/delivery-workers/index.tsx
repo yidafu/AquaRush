@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { useQuery, gql } from '@apollo/client';
+import { displayCents } from '@aquarush/common';
 import StatisticsCard from '@/components/StatisticsCard';
 
 const GET_DELIVERY_WORKER_STATISTICS = gql`
@@ -25,7 +26,7 @@ const GET_DELIVERY_WORKER_STATISTICS = gql`
       name
       todayCompletedOrders
       rating
-      totalEarnings
+      totalEarningsCents
     }
   }
 `;
@@ -35,7 +36,7 @@ interface RankingItem {
   name: string;
   todayCompletedOrders: number;
   rating: number;
-  totalEarnings: number;
+  totalEarningsCents: number;
 }
 
 interface DeliveryWorkerStatisticsData {
@@ -95,9 +96,9 @@ const DeliveryWorkerStatisticsPage: React.FC = () => {
     },
     {
       title: '累计收入',
-      dataIndex: 'totalEarnings',
-      key: 'totalEarnings',
-      render: (earnings: number) => `¥${(earnings / 100).toFixed(2)}`,
+      dataIndex: 'totalEarningsCents',
+      key: 'totalEarningsCents',
+      render: (earnings: number) => displayCents(earnings),
     },
   ];
 

@@ -44,7 +44,7 @@ object DeliveryWorkerMapper : ObjectMappie<DeliveryWorkerModel, DeliveryWorker>(
       to::id fromValue (from.id ?: 0L)
       to::userId fromValue (from.userId ?: 0L)
       // Fields with same name and type - auto-mapped by Mappie
-      to::earning fromProperty from::earningCents
+      to::earningCents fromProperty from::earningCents
       to::onlineStatus fromExpression {
         DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
       }
@@ -61,7 +61,7 @@ object DeliveryWorkerWithCurrentUserMapper : ObjectMappie<DeliveryWorkerModel, D
       to::id fromValue (from.id ?: 0L)
       to::userId fromValue (from.userId ?: 0L)
       // Fields with same name and type - auto-mapped by Mappie
-      to::earning fromProperty from::earningCents
+      to::earningCents fromProperty from::earningCents
       to::onlineStatus fromExpression {
         DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
       }
@@ -96,7 +96,7 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       to::id fromValue (from.id ?: -1L)
       to::orderNo fromProperty from::orderNo
       to::quantity fromProperty from::quantity
-      to::amount fromProperty from::amountCents
+      to::amountCents fromProperty from::amountCents
       to::isSelfCollect fromProperty from::isSelfCollect
       to::status fromExpression { OrderStatus.valueOf(from.status.name) }
       to::createdAt fromProperty from::createdAt
@@ -142,14 +142,14 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       coverImageUrl = "",
       createdAt = LocalDateTime.now(),
       deliverySettings = null,
-      depositPrice = null,
+      depositPriceCents = null,
       detailContent = null,
       id = productId,
       imageGallery = null,
       mineralContent = null,
       name = "",
-      originalPrice = null,
-      price = 0L,
+      originalPriceCents = null,
+      priceCents = 0L,
       salesVolume = 0,
       sortOrder = 0,
       specification = "",

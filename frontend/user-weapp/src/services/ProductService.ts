@@ -8,7 +8,7 @@ import {
   ProductServiceResult,
   ProductServiceError
 } from '../types/product'
-import { parseMoneyString } from '../utils/graphql-money'
+import { normalizeCents } from '@aquarush/common'
 
 // Extended Product type for homepage compatibility
 interface ExtendedProduct {
@@ -85,9 +85,9 @@ class ProductService {
             id
             name
             subtitle
-            price
-            originalPrice
-            depositPrice
+            priceCents
+            originalPriceCents
+            depositPriceCents
             coverImageUrl
             imageGallery
             specification
@@ -182,9 +182,9 @@ query GetActiveProducts(
       id
       name
       subtitle
-      price
-      originalPrice
-      depositPrice
+      priceCents
+      originalPriceCents
+      depositPriceCents
       coverImageUrl
       stock
       status
@@ -286,9 +286,9 @@ query GetActiveProducts(
       id: product.id,
       name: product.name,
       subtitle: product.subtitle,
-      price: parseMoneyString(product.price), // Use parseMoneyString to handle Money scalar properly
-      originalPrice: product.originalPrice ? parseMoneyString(product.originalPrice) : undefined,
-      depositPrice: product.depositPrice ? parseMoneyString(product.depositPrice) : undefined,
+      price: normalizeCents(product.priceCents) ?? 0,
+      originalPrice: normalizeCents(product.originalPriceCents) ?? undefined,
+      depositPrice: normalizeCents(product.depositPriceCents) ?? undefined,
       coverImageUrl: product.coverImageUrl,
       image: product.coverImageUrl, // Map coverImageUrl to image for homepage compatibility
       imageGallery: product.imageGallery,

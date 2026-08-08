@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { formatCentsToCurrency, formatCurrency } from '@aquarush/common'
+import { Money, centsToYuan } from '@aquarush/common'
 import { getWeekStatistics } from '../../../services/delivery'
 import { useAuth } from '../../../hooks/useAuth'
 import { Chart, Line, Axis, Tooltip } from '@antv/f2'
@@ -45,7 +45,7 @@ const WeekStatistics: React.FC = () => {
     return weekStatistics.dailyStats.map((item: DailyStat) => ({
       date: item.date,
       orderCount: item.orderCount,
-      earning: item.earning,
+      earning: centsToYuan(item.earningCents),
     }))
   }, [weekStatistics])
 
@@ -75,7 +75,7 @@ const WeekStatistics: React.FC = () => {
         <Axis
           field='earning'
           tickCount={5}
-          label={(text) => ({ text: `¥${(Number(text) * 100).toFixed(0)}` })}
+          label={(text) => ({ text: `¥${Number(text).toFixed(0)}` })}
           line={null}
           labelOffset={10}
           position='right'
@@ -103,7 +103,7 @@ const WeekStatistics: React.FC = () => {
           onPress={(ev) => {
             const item = ev.data as { date: string; orderCount: number; earning: number }
             Taro.showToast({
-              title: `${item.date}: 订单${item.orderCount}单, 营收¥${(item.earning * 100).toFixed(0)}`,
+              title: `${item.date}: 订单${item.orderCount}单, 营收¥${item.earning.toFixed(2)}`,
               icon: 'none',
             })
           }}
@@ -130,7 +130,7 @@ const WeekStatistics: React.FC = () => {
         <View className='week-summary'>
           <Text className='summary-text'>
             订单: {weekStatistics.totalOrders || 0} |
-            营收: {formatCurrency(weekStatistics.totalEarning)}
+            营收: <Money cents={weekStatistics.totalEarningCents} />
           </Text>
         </View>
       </View>

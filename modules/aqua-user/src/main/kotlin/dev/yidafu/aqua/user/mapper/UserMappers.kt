@@ -93,24 +93,6 @@ object RegionMapper : ObjectMappie<RegionModel, Region>() {
 }
 
 // ============================================================================
-// Monetary Conversion Utility Functions
-// ============================================================================
-
-/**
- * Convert BigDecimal amount to cents (Long)
- * @param amount BigDecimal amount in currency units (e.g., 12.34 for ¥12.34)
- * @return amount in cents (e.g., 1234 for ¥12.34)
- */
-fun toCents(amount: java.math.BigDecimal): Long = (amount * java.math.BigDecimal(100)).toLong()
-
-/**
- * Convert cents (Long) to BigDecimal amount
- * @param cents amount in cents (e.g., 1234)
- * @return BigDecimal amount in currency units (e.g., 12.34)
- */
-fun fromCents(cents: Long): java.math.BigDecimal = java.math.BigDecimal(cents).divide(java.math.BigDecimal(100))
-
-// ============================================================================
 // Request → Domain Model Mappers (with additional parameters)
 // ============================================================================
 

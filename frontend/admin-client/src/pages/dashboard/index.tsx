@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, Row, Col, Statistic, Spin } from 'antd';
 import { ShoppingCartOutlined, DollarOutlined } from '@ant-design/icons';
 import { useQuery, gql } from '@apollo/client';
+import { centsToYuan } from '@aquarush/common';
 import dayjs from 'dayjs';
 import DailyRevenueChart from './components/DailyRevenueChart';
 import DailyOrderChart from './components/DailyOrderChart';
@@ -12,7 +13,7 @@ const GET_DAILY_STATISTICS = gql`
       date
       orderCount
       orderProductCount
-      revenue
+      revenueCents
     }
   }
 `;
@@ -33,11 +34,12 @@ const Dashboard: React.FC = () => {
   const dailyData = data?.dailyStatistics || [];
 
   const todayOrders = dailyData[dailyData.length - 1]?.orderCount || 0;
-  const todayRevenue = (dailyData[dailyData.length - 1]?.revenue || 0);
+  const todayRevenue = centsToYuan(dailyData[dailyData.length - 1]?.revenueCents || 0);
 
-  const totalRevenue = dailyData.reduce((sum: number, item: { revenue?: number }) => {
-    return sum + (item.revenue || 0);
+  const totalRevenueCents = dailyData.reduce((sum: number, item: { revenueCents?: number }) => {
+    return sum + (item.revenueCents || 0);
   }, 0);
+  const totalRevenue = centsToYuan(totalRevenueCents);
 
   return (
     <div>

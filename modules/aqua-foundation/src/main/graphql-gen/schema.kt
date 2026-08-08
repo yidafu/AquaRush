@@ -309,7 +309,7 @@ data class CreateDeliveryWorkerInput(
     val currentLocation: kotlin.String? = null,
     @field:Min(value = 0, message = "收入不能小于0")
     @field:Max(value = 99999900, message = "收入不能大于999999元")
-    val earning: kotlin.Long? = null,
+    val earningCents: kotlin.Long? = null,
     val isAvailable: kotlin.Boolean? = null,
     @field:NotBlank(message = "配送员姓名不能为空")
     @field:Size(min = 2, max = 20, message = "配送员姓名长度应在2-20个字符之间")
@@ -328,7 +328,7 @@ data class CreateDeliveryWorkerInput(
       args["avatarUrl"] as kotlin.String?,
       args["coordinates"] as kotlin.String?,
       args["currentLocation"] as kotlin.String?,
-      args["earning"] as kotlin.Long?,
+      args["earningCents"] as kotlin.Long?,
       args["isAvailable"] as kotlin.Boolean?,
       args["name"] as kotlin.String,
       args["phone"] as kotlin.String,
@@ -343,7 +343,7 @@ data class CreateManualRefundInput(
     @field:Positive(message = "退款金额必须为正数")
     @field:Min(value = 1, message = "退款金额不能小于1分")
     @field:Max(value = 9999900, message = "退款金额不能大于99999元")
-    val amount: kotlin.Long,
+    val amountCents: kotlin.Long,
     @field:Positive(message = "订单ID必须为正数")
     val orderId: kotlin.Long,
     @field:NotBlank(message = "原交易ID不能为空")
@@ -357,7 +357,7 @@ data class CreateManualRefundInput(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["adminNote"] as kotlin.String?,
-      args["amount"] as kotlin.Long,
+      args["amountCents"] as kotlin.Long,
       args["orderId"] as kotlin.Long,
       args["originalTransactionId"] as kotlin.String,
       args["reason"] as kotlin.String,
@@ -392,7 +392,7 @@ data class CreateProductInput(
     val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
     @field:Min(value = 0, message = "押金不能小于0")
     @field:Max(value = 9999900, message = "押金不能大于99999元")
-    val depositPrice: kotlin.Long? = null,
+    val depositPriceCents: kotlin.Long? = null,
     @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
     val detailContent: kotlin.String? = null,
     val imageGallery: tools.jackson.databind.node.ArrayNode? = null,
@@ -404,11 +404,11 @@ data class CreateProductInput(
     @field:Positive(message = "原价必须为正数")
     @field:Min(value = 1, message = "原价不能小于1分")
     @field:Max(value = 9999900, message = "原价不能大于99999元")
-    val originalPrice: kotlin.Long? = null,
+    val originalPriceCents: kotlin.Long? = null,
     @field:Positive(message = "商品价格必须为正数")
     @field:Min(value = 1, message = "商品价格不能小于1分")
     @field:Max(value = 9999900, message = "商品价格不能大于99999元")
-    val price: kotlin.Long,
+    val priceCents: kotlin.Long,
     @field:Min(value = 0, message = "销量不能小于0")
     val salesVolume: kotlin.Int,
     @field:Min(value = 0, message = "排序权重不能小于0")
@@ -431,13 +431,13 @@ data class CreateProductInput(
       args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
       args["coverImageUrl"] as kotlin.String,
       args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
-      args["depositPrice"] as kotlin.Long?,
+      args["depositPriceCents"] as kotlin.Long?,
       args["detailContent"] as kotlin.String?,
       args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
       args["mineralContent"] as kotlin.String?,
       args["name"] as kotlin.String,
-      args["originalPrice"] as kotlin.Long?,
-      args["price"] as kotlin.Long,
+      args["originalPriceCents"] as kotlin.Long?,
+      args["priceCents"] as kotlin.Long,
       args["salesVolume"] as kotlin.Int,
       args["sortOrder"] as kotlin.Int,
       args["specification"] as kotlin.String,
@@ -474,7 +474,7 @@ data class CreateWechatPaymentInput(
     @field:Positive(message = "支付金额必须为正数")
     @field:Min(value = 1, message = "支付金额不能小于1分")
     @field:Max(value = 9999900, message = "支付金额不能大于99999元")
-    val amount: kotlin.Long,
+    val amountCents: kotlin.Long,
     @field:NotBlank(message = "支付描述不能为空")
     @field:Size(min = 1, max = 127, message = "支付描述长度应在1-127个字符之间")
     val description: kotlin.String,
@@ -482,7 +482,7 @@ data class CreateWechatPaymentInput(
     val orderId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["amount"] as kotlin.Long,
+      args["amountCents"] as kotlin.Long,
       args["description"] as kotlin.String,
       args["orderId"] as kotlin.Long
   )
@@ -530,15 +530,15 @@ data class DailyLoginStatistic(
 )
 
 data class DailyPaymentStats(
-    val averageTransactionAmount: kotlin.Long,
+    val averageTransactionAmountCents: kotlin.Long,
     val date: kotlin.String,
     val failedTransactions: kotlin.Long,
     val paymentMethodBreakdown: Iterable<PaymentMethodStats>,
     val peakHour: kotlin.Int,
     val refundCount: kotlin.Long,
-    val refundedAmount: kotlin.Long,
+    val refundedAmountCents: kotlin.Long,
     val successfulTransactions: kotlin.Long,
-    val totalAmount: kotlin.Long,
+    val totalAmountCents: kotlin.Long,
     val totalTransactions: kotlin.Long
 )
 
@@ -577,7 +577,7 @@ enum class DailyReconciliationStatus(val label: String) {
 
 data class DailyStat(
     val date: kotlin.String,
-    val earning: kotlin.Long,
+    val earningCents: kotlin.Long,
     val orderCount: kotlin.Int
 )
 
@@ -585,7 +585,7 @@ data class DailyStatistic(
     val date: kotlin.String,
     val orderCount: kotlin.Int,
     val orderProductCount: kotlin.Int,
-    val revenue: kotlin.Float
+    val revenueCents: kotlin.Long
 )
 
 data class DateRange(
@@ -652,7 +652,7 @@ data class DeliveryWorker(
     val createdAt: java.time.LocalDateTime,
     val currentLocation: kotlin.String?,
     val currentTaskCount: kotlin.Int,
-    val earning: kotlin.Long?,
+    val earningCents: kotlin.Long?,
     val id: kotlin.Long,
     val isAvailable: kotlin.Boolean,
     val name: kotlin.String,
@@ -684,7 +684,7 @@ data class DeliveryWorkerRankingItem(
     val name: kotlin.String,
     val rating: kotlin.Float,
     val todayCompletedOrders: kotlin.Int,
-    val totalEarnings: kotlin.Long,
+    val totalEarningsCents: kotlin.Long,
     val workerId: Any
 )
 
@@ -785,11 +785,11 @@ data class ExportTransactionsInput(
     @field:Positive(message = "最大金额必须为正数")
     @field:Min(value = 1, message = "最大金额不能小于1分")
     @field:Max(value = 9999900, message = "最大金额不能大于99999元")
-    val maxAmount: kotlin.Long? = null,
+    val maxAmountCents: kotlin.Long? = null,
     @field:Positive(message = "最小金额必须为正数")
     @field:Min(value = 1, message = "最小金额不能小于1分")
     @field:Max(value = 9999900, message = "最小金额不能大于99999元")
-    val minAmount: kotlin.Long? = null,
+    val minAmountCents: kotlin.Long? = null,
     val paymentMethod: PaymentMethod? = null,
     val status: PaymentStatus? = null,
     @field:Positive(message = "用户ID必须为正数")
@@ -800,8 +800,8 @@ data class ExportTransactionsInput(
       args["dateTo"] as java.time.LocalDateTime?,
       args["format"] as kotlin.String? ?: """CSV""".trimIndent(),
       args["includeMetadata"] as kotlin.Boolean? ?: false,
-      args["maxAmount"] as kotlin.Long?,
-      args["minAmount"] as kotlin.Long?,
+      args["maxAmountCents"] as kotlin.Long?,
+      args["minAmountCents"] as kotlin.Long?,
       args["paymentMethod"] as PaymentMethod?,
       args["status"] as PaymentStatus?,
       args["userId"] as kotlin.Long?
@@ -813,8 +813,8 @@ data class FavoriteProduct(
     val coverImageUrl: kotlin.String,
     val id: kotlin.Long,
     val name: kotlin.String,
-    val originalPrice: kotlin.Long?,
-    val price: kotlin.Long,
+    val originalPriceCents: kotlin.Long?,
+    val priceCents: kotlin.Long,
     val salesVolume: kotlin.Int,
     val status: ProductStatus,
     val stock: kotlin.Int,
@@ -827,7 +827,7 @@ data class FavoriteProductStats(
     val favoriteCount: kotlin.Long,
     val productId: kotlin.Long,
     val productName: kotlin.String,
-    val revenueFromFavorites: kotlin.Long
+    val revenueFromFavoritesCents: kotlin.Long
 )
 
 data class FavoriteProductVoPage(
@@ -895,7 +895,7 @@ data class MonthlyStatistic(
     val monthName: kotlin.String,
     val orderCount: kotlin.Int,
     val orderProductCount: kotlin.Int,
-    val revenue: kotlin.Float,
+    val revenueCents: kotlin.Long,
     val year: kotlin.Int
 )
 
@@ -1221,7 +1221,7 @@ enum class OperatorType(val label: String) {
 
 data class Order(
     val address: Address?,
-    val amount: kotlin.Long,
+    val amountCents: kotlin.Long,
     val completedAt: java.time.LocalDateTime?,
     val createdAt: java.time.LocalDateTime,
     val deliveryConfirmedAt: java.time.LocalDateTime?,
@@ -1247,8 +1247,8 @@ data class OrderListInput(
     val dateFrom: java.time.LocalDateTime? = null,
     val dateTo: java.time.LocalDateTime? = null,
     val deliveryWorkerId: kotlin.Long? = null,
-    val maxAmount: kotlin.Long? = null,
-    val minAmount: kotlin.Long? = null,
+    val maxAmountCents: kotlin.Long? = null,
+    val minAmountCents: kotlin.Long? = null,
     val page: kotlin.Int? = 0,
     val search: kotlin.String? = null,
     val size: kotlin.Int? = 20,
@@ -1260,8 +1260,8 @@ data class OrderListInput(
       args["dateFrom"] as java.time.LocalDateTime?,
       args["dateTo"] as java.time.LocalDateTime?,
       args["deliveryWorkerId"] as kotlin.Long?,
-      args["maxAmount"] as kotlin.Long?,
-      args["minAmount"] as kotlin.Long?,
+      args["maxAmountCents"] as kotlin.Long?,
+      args["minAmountCents"] as kotlin.Long?,
       args["page"] as kotlin.Int? ?: 0,
       args["search"] as kotlin.String?,
       args["size"] as kotlin.Int? ?: 20,
@@ -1303,13 +1303,13 @@ enum class OrderOperationType(val label: String) {
 }
 
 data class OrderPaymentInfo(
-    val amount: kotlin.Long,
+    val amountCents: kotlin.Long,
     val createdAt: java.time.LocalDateTime,
     val orderId: kotlin.Long,
     val orderNo: kotlin.String,
     val paidAt: java.time.LocalDateTime?,
     val paymentMethod: PaymentMethod,
-    val refundAmount: kotlin.Long?,
+    val refundAmountCents: kotlin.Long?,
     val refundedAt: java.time.LocalDateTime?,
     val status: PaymentStatus,
     val transactionId: kotlin.String?
@@ -1322,10 +1322,10 @@ data class OrderReviewCheckResponse(
 )
 
 data class OrderStatistics(
-    val averageOrderValue: kotlin.Long,
+    val averageOrderValueCents: kotlin.Long,
     val dateRange: DateRange,
     val totalOrders: kotlin.Int,
-    val totalRevenue: kotlin.Long
+    val totalRevenueCents: kotlin.Long
 )
 
 enum class OrderStatus(val label: String) {
@@ -1387,34 +1387,34 @@ enum class PaymentMethod(val label: String) {
 }
 
 data class PaymentMethodStats(
-    val averageAmount: kotlin.Long,
+    val averageAmountCents: kotlin.Long,
     val failureCount: kotlin.Long,
     val paymentMethod: PaymentMethod,
     val refundCount: kotlin.Long,
     val successCount: kotlin.Long,
     val successRate: kotlin.Float,
-    val totalAmount: kotlin.Long,
+    val totalAmountCents: kotlin.Long,
     val transactionCount: kotlin.Long
 )
 
 data class PaymentPeriodStats(
-    val averageTransactionAmount: kotlin.Long,
+    val averageTransactionAmountCents: kotlin.Long,
     val failedTransactions: kotlin.Long,
     val paymentMethodBreakdown: Iterable<PaymentMethodStats>,
     val period: kotlin.String,
     val successfulTransactions: kotlin.Long,
-    val totalAmount: kotlin.Long,
+    val totalAmountCents: kotlin.Long,
     val totalTransactions: kotlin.Long
 )
 
 data class PaymentStatistics(
-    val averageTransactionAmount: kotlin.Long,
+    val averageTransactionAmountCents: kotlin.Long,
     val dailyStats: Iterable<DailyPaymentStats>,
     val failedTransactions: kotlin.Long,
     val refundCount: kotlin.Long,
-    val refundedAmount: kotlin.Long,
+    val refundedAmountCents: kotlin.Long,
     val successfulTransactions: kotlin.Long,
-    val totalAmount: kotlin.Long,
+    val totalAmountCents: kotlin.Long,
     val totalTransactions: kotlin.Long
 )
 
@@ -1434,7 +1434,7 @@ enum class PaymentStatus(val label: String) {
 
 data class PaymentTransaction(
     val adminNote: kotlin.String?,
-    val amount: kotlin.Long,
+    val amountCents: kotlin.Long,
     val completedAt: java.time.LocalDateTime?,
     val createdAt: java.time.LocalDateTime,
     val externalTransactionId: kotlin.String?,
@@ -1470,7 +1470,7 @@ data class ProcessRefundInput(
     @field:Positive(message = "退款金额必须为正数")
     @field:Min(value = 1, message = "退款金额不能小于1分")
     @field:Max(value = 9999900, message = "退款金额不能大于99999元")
-    val amount: kotlin.Long,
+    val amountCents: kotlin.Long,
     @field:Positive(message = "订单ID必须为正数")
     val orderId: kotlin.Long,
     @field:NotBlank(message = "原交易ID不能为空")
@@ -1488,7 +1488,7 @@ data class ProcessRefundInput(
   constructor(args: Map<String, Any>) : this(
       args["action"] as RefundAction,
       args["adminNote"] as kotlin.String?,
-      args["amount"] as kotlin.Long,
+      args["amountCents"] as kotlin.Long,
       args["orderId"] as kotlin.Long,
       args["originalTransactionId"] as kotlin.String,
       args["reason"] as kotlin.String,
@@ -1519,14 +1519,14 @@ data class Product(
     val coverImageUrl: kotlin.String,
     val createdAt: java.time.LocalDateTime,
     val deliverySettings: tools.jackson.databind.node.ObjectNode?,
-    val depositPrice: kotlin.Long?,
+    val depositPriceCents: kotlin.Long?,
     val detailContent: kotlin.String?,
     val id: kotlin.Long,
     val imageGallery: tools.jackson.databind.node.ArrayNode?,
     val mineralContent: kotlin.String?,
     val name: kotlin.String,
-    val originalPrice: kotlin.Long?,
-    val price: kotlin.Long,
+    val originalPriceCents: kotlin.Long?,
+    val priceCents: kotlin.Long,
     val salesVolume: kotlin.Int,
     val sortOrder: kotlin.Int,
     val specification: kotlin.String,
@@ -1542,7 +1542,7 @@ data class ProductDailySales(
     val date: kotlin.String,
     val productId: kotlin.Long,
     val productName: kotlin.String,
-    val revenue: kotlin.Long,
+    val revenueCents: kotlin.Long,
     val salesVolume: kotlin.Int
 )
 
@@ -1575,13 +1575,13 @@ data class ProductListInput(
     @field:Positive(message = "最大价格必须为正数")
     @field:Min(value = 1, message = "最大价格不能小于1分")
     @field:Max(value = 9999900, message = "最大价格不能大于99999元")
-    val maxPrice: kotlin.Long? = null,
+    val maxPriceCents: kotlin.Long? = null,
     @field:Min(value = 0, message = "最大库存不能小于0")
     val maxStock: kotlin.Int? = null,
     @field:Positive(message = "最小价格必须为正数")
     @field:Min(value = 1, message = "最小价格不能小于1分")
     @field:Max(value = 9999900, message = "最小价格不能大于99999元")
-    val minPrice: kotlin.Long? = null,
+    val minPriceCents: kotlin.Long? = null,
     @field:Min(value = 0, message = "最小库存不能小于0")
     val minStock: kotlin.Int? = null,
     val page: kotlin.Int? = 0,
@@ -1591,9 +1591,9 @@ data class ProductListInput(
     val status: ProductStatus? = null
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["maxPrice"] as kotlin.Long?,
+      args["maxPriceCents"] as kotlin.Long?,
       args["maxStock"] as kotlin.Int?,
-      args["minPrice"] as kotlin.Long?,
+      args["minPriceCents"] as kotlin.Long?,
       args["minStock"] as kotlin.Int?,
       args["page"] as kotlin.Int? ?: 0,
       args["search"] as kotlin.String?,
@@ -1605,7 +1605,7 @@ data class ProductListInput(
 
 data class ProductSalesInfo(
     val product: Product,
-    val revenue: kotlin.Long,
+    val revenueCents: kotlin.Long,
     val salesPercentage: kotlin.Float,
     val salesVolume: kotlin.Int
 )
@@ -1613,7 +1613,7 @@ data class ProductSalesInfo(
 data class ProductSalesStat(
     val productId: kotlin.Long,
     val productName: kotlin.String,
-    val revenue: kotlin.Long,
+    val revenueCents: kotlin.Long,
     val salesVolume: kotlin.Int
 )
 
@@ -1623,7 +1623,7 @@ data class ProductSearchInput(
     @field:Positive(message = "最大价格必须为正数")
     @field:Min(value = 1, message = "最大价格不能小于1分")
     @field:Max(value = 9999900, message = "最大价格不能大于99999元")
-    val maxPrice: kotlin.Long? = null,
+    val maxPriceCents: kotlin.Long? = null,
     @field:Min(value = 0, message = "最大销量不能小于0")
     val maxSalesVolume: kotlin.Int? = null,
     @field:Min(value = 0, message = "最大库存不能小于0")
@@ -1631,7 +1631,7 @@ data class ProductSearchInput(
     @field:Positive(message = "最小价格必须为正数")
     @field:Min(value = 1, message = "最小价格不能小于1分")
     @field:Max(value = 9999900, message = "最小价格不能大于99999元")
-    val minPrice: kotlin.Long? = null,
+    val minPriceCents: kotlin.Long? = null,
     @field:Min(value = 0, message = "最小销量不能小于0")
     val minSalesVolume: kotlin.Int? = null,
     @field:Min(value = 0, message = "最小库存不能小于0")
@@ -1644,10 +1644,10 @@ data class ProductSearchInput(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["keyword"] as kotlin.String?,
-      args["maxPrice"] as kotlin.Long?,
+      args["maxPriceCents"] as kotlin.Long?,
       args["maxSalesVolume"] as kotlin.Int?,
       args["maxStock"] as kotlin.Int?,
-      args["minPrice"] as kotlin.Long?,
+      args["minPriceCents"] as kotlin.Long?,
       args["minSalesVolume"] as kotlin.Int?,
       args["minStock"] as kotlin.Int?,
       args["page"] as kotlin.Int? ?: 0,
@@ -1679,7 +1679,7 @@ enum class ProductSortBy(val label: String) {
 }
 
 data class ProductStatistics(
-    val averagePrice: kotlin.Long,
+    val averagePriceCents: kotlin.Long,
     val favoriteStatistics: Iterable<ProductFavoriteStat>,
     val lowStockProducts: kotlin.Int,
     val offlineProducts: kotlin.Int,
@@ -1688,7 +1688,7 @@ data class ProductStatistics(
     val totalFavorites: kotlin.Int,
     val totalProducts: kotlin.Int,
     val totalSales: kotlin.Int,
-    val totalValue: kotlin.Long
+    val totalValueCents: kotlin.Long
 )
 
 enum class ProductStatus(val label: String) {
@@ -1711,7 +1711,7 @@ data class ProductUpdateRequestInput(
     val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
     @field:Min(value = 0, message = "押金不能小于0")
     @field:Max(value = 9999900, message = "押金不能大于99999元")
-    val depositPrice: kotlin.Long? = null,
+    val depositPriceCents: kotlin.Long? = null,
     @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
     val detailContent: kotlin.String? = null,
     @field:Positive(message = "商品ID必须为正数")
@@ -1725,11 +1725,11 @@ data class ProductUpdateRequestInput(
     @field:Positive(message = "原价必须为正数")
     @field:Min(value = 1, message = "原价不能小于1分")
     @field:Max(value = 9999900, message = "原价不能大于99999元")
-    val originalPrice: kotlin.Long? = null,
+    val originalPriceCents: kotlin.Long? = null,
     @field:Positive(message = "商品价格必须为正数")
     @field:Min(value = 1, message = "商品价格不能小于1分")
     @field:Max(value = 9999900, message = "商品价格不能大于99999元")
-    val price: kotlin.Long? = null,
+    val priceCents: kotlin.Long? = null,
     @field:Min(value = 0, message = "销量不能小于0")
     val salesVolume: kotlin.Int? = null,
     @field:Min(value = 0, message = "排序权重不能小于0")
@@ -1751,14 +1751,14 @@ data class ProductUpdateRequestInput(
       args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
       args["coverImageUrl"] as kotlin.String?,
       args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
-      args["depositPrice"] as kotlin.Long?,
+      args["depositPriceCents"] as kotlin.Long?,
       args["detailContent"] as kotlin.String?,
       args["id"] as kotlin.Long,
       args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
       args["mineralContent"] as kotlin.String?,
       args["name"] as kotlin.String?,
-      args["originalPrice"] as kotlin.Long?,
-      args["price"] as kotlin.Long?,
+      args["originalPriceCents"] as kotlin.Long?,
+      args["priceCents"] as kotlin.Long?,
       args["salesVolume"] as kotlin.Int?,
       args["sortOrder"] as kotlin.Int?,
       args["specification"] as kotlin.String?,
@@ -2059,37 +2059,37 @@ enum class RefundAction(val label: String) {
 data class RefundEligibility(
     val deadline: java.time.LocalDateTime?,
     val eligible: kotlin.Boolean,
-    val orderAmount: kotlin.Long,
+    val orderAmountCents: kotlin.Long,
     val orderId: kotlin.Long,
-    val paidAmount: kotlin.Long,
+    val paidAmountCents: kotlin.Long,
     val refundPolicy: kotlin.String?,
     val refundReason: kotlin.String?,
-    val refundableAmount: kotlin.Long
+    val refundableAmountCents: kotlin.Long
 )
 
 data class RefundInput(
     @field:Positive(message = "退款金额必须为正数")
     @field:Min(value = 1, message = "退款金额不能小于1分")
     @field:Max(value = 9999900, message = "退款金额不能大于99999元")
-    val refundAmount: kotlin.Long,
+    val refundAmountCents: kotlin.Long,
     @field:Positive(message = "总金额必须为正数")
     @field:Min(value = 1, message = "总金额不能小于1分")
     @field:Max(value = 9999900, message = "总金额不能大于99999元")
-    val totalAmount: kotlin.Long,
+    val totalAmountCents: kotlin.Long,
     @field:NotBlank(message = "交易ID不能为空")
     @field:Size(min = 10, max = 100, message = "交易ID长度应在10-100个字符之间")
     val transactionId: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["refundAmount"] as kotlin.Long,
-      args["totalAmount"] as kotlin.Long,
+      args["refundAmountCents"] as kotlin.Long,
+      args["totalAmountCents"] as kotlin.Long,
       args["transactionId"] as kotlin.String
   )
 }
 
 data class RefundRequest(
     val adminNote: kotlin.String?,
-    val amount: kotlin.Long,
+    val amountCents: kotlin.Long,
     val id: kotlin.String,
     val orderId: kotlin.Long,
     val originalTransactionId: kotlin.String,
@@ -2153,7 +2153,7 @@ data class SalesReport(
     val salesBySpecification: Iterable<SpecificationStatistics>,
     val salesByWaterSource: Iterable<WaterSourceStatistics>,
     val topSellingProducts: Iterable<ProductSalesInfo>,
-    val totalRevenue: kotlin.Long,
+    val totalRevenueCents: kotlin.Long,
     val totalSales: kotlin.Int
 )
 
@@ -2190,7 +2190,7 @@ data class SalesReportInput(
 }
 
 data class SpecificationStatistics(
-    val averagePrice: kotlin.Long,
+    val averagePriceCents: kotlin.Long,
     val productCount: kotlin.Int,
     val specification: kotlin.String,
     val totalSalesVolume: kotlin.Int
@@ -2214,7 +2214,7 @@ data class SubmitDailyCollectionInput(
 
 data class SuspiciousTransaction(
     val adminNote: kotlin.String?,
-    val amount: kotlin.Long,
+    val amountCents: kotlin.Long,
     val createdAt: java.time.LocalDateTime,
     val frozenAt: java.time.LocalDateTime?,
     val frozenBy: kotlin.Long?,
@@ -2344,7 +2344,7 @@ data class UpdateDeliveryWorkerInput(
     val currentLocation: kotlin.String? = null,
     @field:Min(value = 0, message = "收入不能小于0")
     @field:Max(value = 99999900, message = "收入不能大于999999元")
-    val earning: kotlin.Long? = null,
+    val earningCents: kotlin.Long? = null,
     val isAvailable: kotlin.Boolean? = null,
     @field:Size(min = 2, max = 20, message = "配送员姓名长度应在2-20个字符之间")
     val name: kotlin.String? = null,
@@ -2360,7 +2360,7 @@ data class UpdateDeliveryWorkerInput(
       args["avatarUrl"] as kotlin.String?,
       args["coordinates"] as kotlin.String?,
       args["currentLocation"] as kotlin.String?,
-      args["earning"] as kotlin.Long?,
+      args["earningCents"] as kotlin.Long?,
       args["isAvailable"] as kotlin.Boolean?,
       args["name"] as kotlin.String?,
       args["phone"] as kotlin.String?,
@@ -2376,7 +2376,7 @@ data class UpdateProductInput(
     val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
     @field:Min(value = 0, message = "押金不能小于0")
     @field:Max(value = 9999900, message = "押金不能大于99999元")
-    val depositPrice: kotlin.Long? = null,
+    val depositPriceCents: kotlin.Long? = null,
     @field:Size(max = 5000, message = "详情内容长度不能超过5000个字符")
     val detailContent: kotlin.String? = null,
     val imageGallery: tools.jackson.databind.node.ArrayNode? = null,
@@ -2387,11 +2387,11 @@ data class UpdateProductInput(
     @field:Positive(message = "原价必须为正数")
     @field:Min(value = 1, message = "原价不能小于1分")
     @field:Max(value = 9999900, message = "原价不能大于99999元")
-    val originalPrice: kotlin.Long? = null,
+    val originalPriceCents: kotlin.Long? = null,
     @field:Positive(message = "商品价格必须为正数")
     @field:Min(value = 1, message = "商品价格不能小于1分")
     @field:Max(value = 9999900, message = "商品价格不能大于99999元")
-    val price: kotlin.Long? = null,
+    val priceCents: kotlin.Long? = null,
     @field:Min(value = 0, message = "销量不能小于0")
     val salesVolume: kotlin.Int? = null,
     @field:Min(value = 0, message = "排序权重不能小于0")
@@ -2413,13 +2413,13 @@ data class UpdateProductInput(
       args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
       args["coverImageUrl"] as kotlin.String?,
       args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
-      args["depositPrice"] as kotlin.Long?,
+      args["depositPriceCents"] as kotlin.Long?,
       args["detailContent"] as kotlin.String?,
       args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
       args["mineralContent"] as kotlin.String?,
       args["name"] as kotlin.String?,
-      args["originalPrice"] as kotlin.Long?,
-      args["price"] as kotlin.Long?,
+      args["originalPriceCents"] as kotlin.Long?,
+      args["priceCents"] as kotlin.Long?,
       args["salesVolume"] as kotlin.Int?,
       args["sortOrder"] as kotlin.Int?,
       args["specification"] as kotlin.String?,
@@ -2508,7 +2508,7 @@ data class UserFavoriteAnalytics(
 )
 
 data class UserFavoriteInsights(
-    val averageFavoritePrice: kotlin.Long,
+    val averageFavoritePriceCents: kotlin.Long,
     val engagementLevel: UserEngagementLevel,
     val favoriteCategories: Iterable<kotlin.String>,
     val favoriteToOrderRate: kotlin.Float,
@@ -2523,7 +2523,7 @@ data class UserFavoriteSummary(
     val favoriteCount: kotlin.Long,
     val lastFavoriteAdded: java.time.LocalDateTime?,
     val mostFavoritedCategory: kotlin.String?,
-    val totalValueOfFavoritedProducts: kotlin.Long,
+    val totalValueOfFavoritedProductsCents: kotlin.Long,
     val user: User
 )
 
@@ -2640,7 +2640,7 @@ data class ValidateAddressInput(
 }
 
 data class WaterSourceStatistics(
-    val averagePrice: kotlin.Long,
+    val averagePriceCents: kotlin.Long,
     val productCount: kotlin.Int,
     val totalSalesVolume: kotlin.Int,
     val waterSource: kotlin.String
@@ -2700,7 +2700,7 @@ data class WechatLoginInput(
 
 data class WeekStatistics(
     val dailyStats: Iterable<DailyStat>,
-    val totalEarning: kotlin.Long,
+    val totalEarningCents: kotlin.Long,
     val totalOrders: kotlin.Int
 )
 
@@ -2708,7 +2708,7 @@ data class WeeklyStatistic(
     val endDate: kotlin.String,
     val orderCount: kotlin.Int,
     val orderProductCount: kotlin.Int,
-    val revenue: kotlin.Float,
+    val revenueCents: kotlin.Long,
     val startDate: kotlin.String,
     val weekNumber: kotlin.Int,
     val year: kotlin.Int

@@ -6,9 +6,9 @@ export const CREATE_PRODUCT_MUTATION = gql`
       id
       name
       subtitle
-      price
-      originalPrice
-      depositPrice
+      priceCents
+      originalPriceCents
+      depositPriceCents
       coverImageUrl
       imageGallery
       specification
@@ -34,9 +34,9 @@ export const UPDATE_PRODUCT_MUTATION = gql`
       id
       name
       subtitle
-      price
-      originalPrice
-      depositPrice
+      priceCents
+      originalPriceCents
+      depositPriceCents
       coverImageUrl
       imageGallery
       specification

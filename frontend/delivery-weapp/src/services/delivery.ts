@@ -19,7 +19,7 @@ export const getPendingDeliveryOrders = () => {
         id
         orderNo
         quantity
-        amount
+        amountCents
         status
         isSelfCollect
         createdAt
@@ -48,7 +48,7 @@ export const getMyAssignedOrders = () => {
         id
         orderNo
         quantity
-        amount
+        amountCents
         status
         isSelfCollect
         createdAt
@@ -77,7 +77,7 @@ export const getMyDeliveringOrders = () => {
         id
         orderNo
         quantity
-        amount
+        amountCents
         status
         isSelfCollect
         deliveryStartedAt
@@ -119,7 +119,7 @@ export const getOrderDetail = (orderNo: string) => {
         product {
           id
           name
-          price
+          priceCents
           coverImageUrl
         }
         user {
@@ -215,10 +215,10 @@ export const getWeekStatistics = () => {
         dailyStats {
           date
           orderCount
-          earning
+          earningCents
         }
         totalOrders
-        totalEarning
+        totalEarningCents
       }
     }
   `, {})
@@ -293,7 +293,7 @@ export const searchProducts = (keyword: string, size: number = 20) => {
         list {
           id
           name
-          price
+          priceCents
           stock
           coverImageUrl
           status

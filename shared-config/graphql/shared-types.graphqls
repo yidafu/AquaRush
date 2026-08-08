@@ -4,7 +4,6 @@
 # Scalar types
 scalar Long
 scalar BigDecimal
-scalar Money
 scalar Float
 scalar LocalDateTime
 scalar Map
@@ -167,11 +166,11 @@ type Product {
   # 商品副标题
   subtitle: String
   # 商品价格（分）
-  price: Money!
+  priceCents: Long!
   # 商品原价（分）
-  originalPrice: Money
+  originalPriceCents: Long
   # 押金价格（分）
-  depositPrice: Money
+  depositPriceCents: Long
   # 商品封面图片URL
   coverImageUrl: String!
   # 商品图片画廊
@@ -280,7 +279,7 @@ type Order {
   # 订购数量
   quantity: Int!
   # 订单金额（分）
-  amount: Money!
+  amountCents: Long!
   # 订单状态
   status: OrderStatus!
   # 支付方式
@@ -339,7 +338,7 @@ type DeliveryWorker {
   # 平均评分
   averageRating: BigDecimal
   # 收入（分）
-  earning: Money
+  earningCents: Long
   # 是否可接单
   isAvailable: Boolean!
   # 当前任务数（待配送订单数）
@@ -368,8 +367,8 @@ type DailyStat {
   date: String!
   # 订单数
   orderCount: Int!
-  # 营收金额（元）
-  earning: Long!
+  # 营收金额（分）
+  earningCents: Long!
 }
 
 # 一周统计数据
@@ -378,8 +377,8 @@ type WeekStatistics {
   dailyStats: [DailyStat!]!
   # 总订单数
   totalOrders: Int!
-  # 总营收金额（元）
-  totalEarning: Long!
+  # 总营收金额（分）
+  totalEarningCents: Long!
 }
 
 type DeliveryArea {
@@ -504,9 +503,9 @@ type OrderStatistics {
   # 订单总数
   totalOrders: Int!
   # 总收入
-  totalRevenue: Money!
+  totalRevenueCents: Long!
   # 平均订单金额
-  averageOrderValue: Money!
+  averageOrderValueCents: Long!
   # 日期范围
   dateRange: DateRange!
 }
@@ -524,8 +523,8 @@ type DailyStatistic {
   # 订单数量
   orderCount: Int!
   orderProductCount: Int!
-  # 收入（单位：元）
-  revenue: Float!
+  # 收入（单位：分）
+  revenueCents: Long!
 }
 
 type WeeklyStatistic {
@@ -540,8 +539,8 @@ type WeeklyStatistic {
   # 订单数量
   orderCount: Int!
   orderProductCount: Int!
-  # 收入
-  revenue: Float!
+  # 收入（单位：分）
+  revenueCents: Long!
 }
 
 type MonthlyStatistic {
@@ -554,8 +553,8 @@ type MonthlyStatistic {
   # 订单数量
   orderCount: Int!
   orderProductCount: Int!
-  # 收入
-  revenue: Float!
+  # 收入（单位：分）
+  revenueCents: Long!
 }
 
 # Common Input Types
@@ -665,15 +664,15 @@ input CreateProductInput {
     @notBlank(message: "商品名称不能为空")
     @size(min: 2, max: 200, message: "商品名称长度应在2-200个字符之间")
   subtitle: String @size(max: 500, message: "商品副标题长度不能超过500个字符")
-  price: Money!
+  priceCents: Long!
     @positive(message: "商品价格必须为正数")
     @min(value: 1, message: "商品价格不能小于1分")
     @max(value: 9999900, message: "商品价格不能大于99999元")
-  originalPrice: Money
+  originalPriceCents: Long
     @positive(message: "原价必须为正数")
     @min(value: 1, message: "原价不能小于1分")
     @max(value: 9999900, message: "原价不能大于99999元")
-  depositPrice: Money
+  depositPriceCents: Long
     @min(value: 0, message: "押金不能小于0")
     @max(value: 9999900, message: "押金不能大于99999元")
   coverImageUrl: String!
@@ -706,15 +705,15 @@ input UpdateProductInput {
   name: String
     @size(min: 2, max: 200, message: "商品名称长度应在2-200个字符之间")
   subtitle: String @size(max: 500, message: "商品副标题长度不能超过500个字符")
-  price: Money
+  priceCents: Long
     @positive(message: "商品价格必须为正数")
     @min(value: 1, message: "商品价格不能小于1分")
     @max(value: 9999900, message: "商品价格不能大于99999元")
-  originalPrice: Money
+  originalPriceCents: Long
     @positive(message: "原价必须为正数")
     @min(value: 1, message: "原价不能小于1分")
     @max(value: 9999900, message: "原价不能大于99999元")
-  depositPrice: Money
+  depositPriceCents: Long
     @min(value: 0, message: "押金不能小于0")
     @max(value: 9999900, message: "押金不能大于99999元")
   coverImageUrl: String
@@ -743,7 +742,7 @@ input UpdateProductInput {
 
 input CreateWechatPaymentInput {
   orderId: PrimaryId! @positive(message: "订单ID必须为正数")
-  amount: Money!
+  amountCents: Long!
     @positive(message: "支付金额必须为正数")
     @min(value: 1, message: "支付金额不能小于1分")
     @max(value: 9999900, message: "支付金额不能大于99999元")
@@ -771,11 +770,11 @@ input RefundInput {
   transactionId: String!
     @notBlank(message: "交易ID不能为空")
     @size(min: 10, max: 100, message: "交易ID长度应在10-100个字符之间")
-  refundAmount: Money!
+  refundAmountCents: Long!
     @positive(message: "退款金额必须为正数")
     @min(value: 1, message: "退款金额不能小于1分")
     @max(value: 9999900, message: "退款金额不能大于99999元")
-  totalAmount: Money!
+  totalAmountCents: Long!
     @positive(message: "总金额必须为正数")
     @min(value: 1, message: "总金额不能小于1分")
     @max(value: 9999900, message: "总金额不能大于99999元")
@@ -790,7 +789,7 @@ input ProcessRefundInput {
     @size(min: 1, max: 100, message: "原交易ID长度应在1-100个字符之间")
   orderId: PrimaryId! @positive(message: "订单ID必须为正数")
   userId: PrimaryId! @positive(message: "用户ID必须为正数")
-  amount: Money!
+  amountCents: Long!
     @positive(message: "退款金额必须为正数")
     @min(value: 1, message: "退款金额不能小于1分")
     @max(value: 9999900, message: "退款金额不能大于99999元")
@@ -808,7 +807,7 @@ input CreateManualRefundInput {
     @size(min: 1, max: 100, message: "原交易ID长度应在1-100个字符之间")
   orderId: PrimaryId! @positive(message: "订单ID必须为正数")
   userId: PrimaryId! @positive(message: "用户ID必须为正数")
-  amount: Money!
+  amountCents: Long!
     @positive(message: "退款金额必须为正数")
     @min(value: 1, message: "退款金额不能小于1分")
     @max(value: 9999900, message: "退款金额不能大于99999元")
@@ -869,7 +868,7 @@ input CreateDeliveryWorkerInput {
   rating: BigDecimal
     @min(value: 0, message: "评分不能小于0")
     @max(value: 5, message: "评分不能大于5")
-  earning: Money
+  earningCents: Long
     @min(value: 0, message: "收入不能小于0")
     @max(value: 99999900, message: "收入不能大于999999元")
   isAvailable: Boolean
@@ -889,7 +888,7 @@ input UpdateDeliveryWorkerInput {
   rating: BigDecimal
     @min(value: 0, message: "评分不能小于0")
     @max(value: 5, message: "评分不能大于5")
-  earning: Money
+  earningCents: Long
     @min(value: 0, message: "收入不能小于0")
     @max(value: 99999900, message: "收入不能大于999999元")
   isAvailable: Boolean
@@ -1030,7 +1029,7 @@ type RefundRequest {
   # 用户ID
   userId: PrimaryId!
   # 退款金额（分）
-  amount: Money!
+  amountCents: Long!
   # 退款原因
   reason: String!
   # 退款状态
@@ -1062,7 +1061,7 @@ type PaymentTransaction {
   # 用户ID
   userId: PrimaryId!
   # 交易金额（分）
-  amount: Money!
+  amountCents: Long!
   # 交易状态
   status: PaymentStatus!
   # 支付方式
@@ -1093,11 +1092,11 @@ input ExportTransactionsInput {
   status: PaymentStatus
   paymentMethod: PaymentMethod
   userId: PrimaryId @positive(message: "用户ID必须为正数")
-  minAmount: Money
+  minAmountCents: Long
     @positive(message: "最小金额必须为正数")
     @min(value: 1, message: "最小金额不能小于1分")
     @max(value: 9999900, message: "最小金额不能大于99999元")
-  maxAmount: Money
+  maxAmountCents: Long
     @positive(message: "最大金额必须为正数")
     @min(value: 1, message: "最大金额不能小于1分")
     @max(value: 9999900, message: "最大金额不能大于99999元")
@@ -1108,24 +1107,24 @@ input ExportTransactionsInput {
 
 # Payment Statistics Types
 type PaymentStatistics {
-  totalAmount: Money!
+  totalAmountCents: Long!
   totalTransactions: Long!
   successfulTransactions: Long!
   failedTransactions: Long!
-  refundedAmount: Money!
+  refundedAmountCents: Long!
   refundCount: Long!
-  averageTransactionAmount: Money!
+  averageTransactionAmountCents: Long!
   dailyStats: [DailyPaymentStats!]!
 }
 
 type PaymentMethodStats {
   paymentMethod: PaymentMethod!
-  totalAmount: Money!
+  totalAmountCents: Long!
   transactionCount: Long!
   successCount: Long!
   failureCount: Long!
   refundCount: Long!
-  averageAmount: Money!
+  averageAmountCents: Long!
   successRate: Float!
 }
 
@@ -1133,7 +1132,7 @@ type SuspiciousTransaction {
   id: String!
   orderId: PrimaryId!
   userId: PrimaryId!
-  amount: Money!
+  amountCents: Long!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
   transactionId: String
@@ -1149,13 +1148,13 @@ type SuspiciousTransaction {
 
 type DailyPaymentStats {
   date: String!
-  totalAmount: Money!
+  totalAmountCents: Long!
   totalTransactions: Long!
   successfulTransactions: Long!
   failedTransactions: Long!
-  refundedAmount: Money!
+  refundedAmountCents: Long!
   refundCount: Long!
-  averageTransactionAmount: Money!
+  averageTransactionAmountCents: Long!
   peakHour: Int!
   paymentMethodBreakdown: [PaymentMethodStats!]!
 }
@@ -1184,32 +1183,32 @@ input ProcessSuspiciousTransactionInput {
 type OrderPaymentInfo {
   orderId: PrimaryId!
   orderNo: String!
-  amount: Money!
+  amountCents: Long!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
   transactionId: String
   createdAt: LocalDateTime!
   paidAt: LocalDateTime
   refundedAt: LocalDateTime
-  refundAmount: Money
+  refundAmountCents: Long
 }
 
 type PaymentPeriodStats {
   period: String!
-  totalAmount: Money!
+  totalAmountCents: Long!
   totalTransactions: Long!
   successfulTransactions: Long!
   failedTransactions: Long!
-  averageTransactionAmount: Money!
+  averageTransactionAmountCents: Long!
   paymentMethodBreakdown: [PaymentMethodStats!]!
 }
 
 type RefundEligibility {
   eligible: Boolean!
   orderId: PrimaryId!
-  orderAmount: Money!
-  paidAmount: Money!
-  refundableAmount: Money!
+  orderAmountCents: Long!
+  paidAmountCents: Long!
+  refundableAmountCents: Long!
   refundReason: String
   deadline: LocalDateTime
   refundPolicy: String
@@ -1251,8 +1250,8 @@ type ProductStatistics {
   onlineProducts: Int!
   offlineProducts: Int!
   lowStockProducts: Int!
-  totalValue: Money!
-  averagePrice: Money!
+  totalValueCents: Long!
+  averagePriceCents: Long!
   productRanking: [ProductSalesStat!]!
   favoriteStatistics: [ProductFavoriteStat!]!
   totalSales: Int!
@@ -1263,7 +1262,7 @@ type ProductSalesStat {
   productId: PrimaryId!
   productName: String!
   salesVolume: Int!
-  revenue: Money!
+  revenueCents: Long!
 }
 
 type ProductFavoriteStat {
@@ -1277,7 +1276,7 @@ type ProductDailySales {
   productId: PrimaryId!
   productName: String!
   salesVolume: Int!
-  revenue: Money!
+  revenueCents: Long!
 }
 
 type ProductVOPage {
@@ -1303,8 +1302,8 @@ input OrderListInput {
   userId: PrimaryId
   dateFrom: LocalDateTime
   dateTo: LocalDateTime
-  minAmount: Money
-  maxAmount: Money
+  minAmountCents: Long
+  maxAmountCents: Long
   deliveryWorkerId: PrimaryId
 }
 
@@ -1313,8 +1312,8 @@ type FavoriteProduct {
   id: PrimaryId!
   name: String!
   subtitle: String
-  price: Money!
-  originalPrice: Money
+  priceCents: Long!
+  originalPriceCents: Long
   coverImageUrl: String!
   stock: Int!
   salesVolume: Int!
@@ -1368,7 +1367,7 @@ type UserFavoriteSummary {
   user: User!
   favoriteCount: Long!
   lastFavoriteAdded: LocalDateTime
-  totalValueOfFavoritedProducts: Money!
+  totalValueOfFavoritedProductsCents: Long!
   categories: [String!]!
   mostFavoritedCategory: String
 }
@@ -1399,7 +1398,7 @@ type FavoriteProductStats {
   favoriteCount: Long!
   addToOrderRate: Float!
   averageTimeToOrder: Float! # days from favorite to order
-  revenueFromFavorites: Money!
+  revenueFromFavoritesCents: Long!
 }
 
 type AllProductsFavoriteStats {
@@ -1424,7 +1423,7 @@ type UserFavoriteInsights {
   userNickname: String!
   totalFavorites: Long!
   favoriteCategories: [String!]!
-  averageFavoritePrice: Money!
+  averageFavoritePriceCents: Long!
   favoriteToOrderRate: Float!
   lastActiveAt: LocalDateTime!
   engagementLevel: UserEngagementLevel!
@@ -1521,11 +1520,11 @@ input ProductListInput {
   sort: String = "createdAt,desc"
   search: String
   status: ProductStatus
-  minPrice: Money
+  minPriceCents: Long
     @positive(message: "最小价格必须为正数")
     @min(value: 1, message: "最小价格不能小于1分")
     @max(value: 9999900, message: "最小价格不能大于99999元")
-  maxPrice: Money
+  maxPriceCents: Long
     @positive(message: "最大价格必须为正数")
     @min(value: 1, message: "最大价格不能小于1分")
     @max(value: 9999900, message: "最大价格不能大于99999元")
@@ -1538,15 +1537,15 @@ input ProductUpdateRequest {
   name: String
     @size(min: 2, max: 200, message: "商品名称长度应在2-200个字符之间")
   subtitle: String @size(max: 500, message: "商品副标题长度不能超过500个字符")
-  price: Money
+  priceCents: Long
     @positive(message: "商品价格必须为正数")
     @min(value: 1, message: "商品价格不能小于1分")
     @max(value: 9999900, message: "商品价格不能大于99999元")
-  originalPrice: Money
+  originalPriceCents: Long
     @positive(message: "原价必须为正数")
     @min(value: 1, message: "原价不能小于1分")
     @max(value: 9999900, message: "原价不能大于99999元")
-  depositPrice: Money
+  depositPriceCents: Long
     @min(value: 0, message: "押金不能小于0")
     @max(value: 9999900, message: "押金不能大于99999元")
   coverImageUrl: String
@@ -1580,20 +1579,20 @@ type WaterSourceStatistics {
   waterSource: String!
   productCount: Int!
   totalSalesVolume: Int!
-  averagePrice: Money!
+  averagePriceCents: Long!
 }
 
 type SpecificationStatistics {
   specification: String!
   productCount: Int!
   totalSalesVolume: Int!
-  averagePrice: Money!
+  averagePriceCents: Long!
 }
 
 type SalesReport {
   dateRange: DateRange!
   totalSales: Int!
-  totalRevenue: Money!
+  totalRevenueCents: Long!
   topSellingProducts: [ProductSalesInfo!]!
   salesByWaterSource: [WaterSourceStatistics!]!
   salesBySpecification: [SpecificationStatistics!]!
@@ -1602,7 +1601,7 @@ type SalesReport {
 type ProductSalesInfo {
   product: Product!
   salesVolume: Int!
-  revenue: Money!
+  revenueCents: Long!
   salesPercentage: Float!
 }
 
@@ -1632,11 +1631,11 @@ input ProductSearchInput {
   minSalesVolume: Int @min(value: 0, message: "最小销量不能小于0")
   maxSalesVolume: Int @min(value: 0, message: "最大销量不能小于0")
   sortBy: ProductSortBy! = SALES_VOLUME_DESC
-  minPrice: Money
+  minPriceCents: Long
     @positive(message: "最小价格必须为正数")
     @min(value: 1, message: "最小价格不能小于1分")
     @max(value: 9999900, message: "最小价格不能大于99999元")
-  maxPrice: Money
+  maxPriceCents: Long
     @positive(message: "最大价格必须为正数")
     @min(value: 1, message: "最大价格不能小于1分")
     @max(value: 9999900, message: "最大价格不能大于99999元")
@@ -1741,7 +1740,7 @@ type DeliveryWorkerRankingItem {
   # 好评率
   rating: Float!
   # 累计收入（分）
-  totalEarnings: Long!
+  totalEarningsCents: Long!
 }
 
 # 每日收款记录状态枚举

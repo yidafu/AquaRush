@@ -33,7 +33,7 @@ import type {
   Address,
 } from '@aquarush/common';
 import { OrderStatus } from '@aquarush/common';
-import { formatAdminTableAmount } from '../../../utils/money';
+import { displayCents } from '@aquarush/common'
 import AddressListUsingList from '../components/AddressListUsingList';
 
 const { Text } = Typography;
@@ -133,7 +133,7 @@ const UserDetailPage: React.FC = () => {
       key: 'amount',
       width: 120,
       render: (amount: number | null | undefined) => (
-        <span>{formatAdminTableAmount(amount)}</span>
+        <span>{displayCents(amount)}</span>
       ),
     },
     {

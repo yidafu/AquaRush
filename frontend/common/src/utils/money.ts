@@ -47,29 +47,18 @@ export const formatCentsToCurrency = (
 }
 
 /**
- * Format a number as Chinese Yuan display string
- * @param amount Amount in yuan
- * @param options Formatting options
- * @returns Formatted currency string
+ * Normalize a monetary value to cents as a number.
+ * Backend Long fields arrive on the wire as strings (LongScalar serializes to string),
+ * so callers must tolerate `number | string`.
+ * @param value Amount in cents (number or string, may be null/undefined)
+ * @returns Amount in cents as number, or null if invalid/empty
  */
-export const formatCurrency = (
-  amount: number | string,
-  options: {
-    showSymbol?: boolean
-    decimalPlaces?: number
-    symbol?: string
-  } = {}
-): string => {
-  if (typeof amount === 'string') {
-    amount = parseFloat(amount)
-  }
-  const { showSymbol = true, decimalPlaces = 2, symbol = '¥' } = options
-
-  if (showSymbol) {
-    return `${symbol}${amount.toFixed(decimalPlaces)}`
-  }
-
-  return amount.toFixed(decimalPlaces)
+export const normalizeCents = (
+  value: number | string | null | undefined
+): number | null => {
+  if (value === null || value === undefined || value === '') return null
+  const n = Number(value)
+  return Number.isNaN(n) ? null : n
 }
 
 /**

@@ -38,7 +38,7 @@ import type {
   DeliveryWorkerStatisticsResponse,
   Order,
 } from '@aquarush/common';
-import { formatAdminTableAmount } from '../../../../utils/money';
+import { displayCents } from '@aquarush/common'
 import { OrderStatus } from '@aquarush/common';
 
 
@@ -181,7 +181,7 @@ const DeliveryWorkerDetailPage: React.FC = () => {
       key: 'amount',
       width: 100,
       render: (amount: number | null | undefined) => (
-        <span>{formatAdminTableAmount(amount)}</span>
+        <span>{displayCents(amount)}</span>
       ),
     },
     {

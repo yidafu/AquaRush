@@ -5,7 +5,7 @@ import { useLazyQuery } from '@apollo/client';
 import { GET_ORDERS_QUERY } from '../../graphql/queries/order.graphql';
 import AssignDeliveryButton from '../../components/AssignDeliveryButton';
 import { OrderFilters, OrderFilters as FilterType } from './components/OrderFilters';
-import { formatAdminTableAmount } from '../utils/money';
+import { displayCents, yuanToCents } from '@aquarush/common';
 
 const { Title } = Typography;
 
@@ -98,8 +98,8 @@ const Orders: React.FC = () => {
           userId: filters.userId || undefined,
           dateFrom: filters.dateFrom || undefined,
           dateTo: filters.dateTo || undefined,
-          minAmount: filters.minAmount ? filters.minAmount * 100 : undefined,
-          maxAmount: filters.maxAmount ? filters.maxAmount * 100 : undefined,
+          minAmount: filters.minAmount ? yuanToCents(filters.minAmount) : undefined,
+          maxAmount: filters.maxAmount ? yuanToCents(filters.maxAmount) : undefined,
           deliveryWorkerId: filters.deliveryWorkerId || undefined,
           sort: sort,
         },
@@ -174,7 +174,7 @@ const Orders: React.FC = () => {
       key: 'amount',
       sorter: true,
       render: (amount: number | null | undefined) => (
-        <span>{formatAdminTableAmount(amount)}</span>
+        <span>{displayCents(amount)}</span>
       ),
     },
     {

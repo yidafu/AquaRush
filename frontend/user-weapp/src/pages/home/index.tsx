@@ -10,7 +10,7 @@ import {
 } from '@tarojs/taro'
 import CustomNavBar from '../../components/CustomNavBar'
 import { authService } from '../../utils/auth'
-import { displayCents } from '../../utils/money'
+import { Money } from '@aquarush/common'
 import ProductService from '../../services/ProductService'
 
 import "taro-ui/dist/style/components/button.scss"
@@ -408,7 +408,7 @@ const HomePage: React.FC = () => {
                     <Text className='product-name'>{product.name}</Text>
                     <Text className='product-desc' numberOfLines={2}>{product.description}</Text>
                     <View className='product-bottom'>
-                      <Text className='product-price'>{displayCents(product.price)}</Text>
+                      <Text className='product-price'><Money cents={product.price} /></Text>
                       <Text className='product-stock'>库存{product.stock}</Text>
                     </View>
                   </View>

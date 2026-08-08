@@ -16,6 +16,7 @@ import {
   AutoComplete
 } from 'antd';
 import { useCreateProduct, useUpdateProduct } from '../../../services/product-graphql';
+import { centsToYuan, yuanToCents } from '@aquarush/common';
 import { SingleImageUpload, MultiImageUpload } from '../../../components/ImageUpload';
 import { SimpleRichTextEditor } from '../../../components/RichTextEditor';
 import { TagsEditor, DeliverySettingsEditor } from '../../../components/JsonEditor';
@@ -104,9 +105,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
       // Convert price values from yuan to cents
       const valuesInCents = {
         ...values,
-        price: Math.round(values.price * 100),
-        originalPrice: values.originalPrice ? Math.round(values.originalPrice * 100) : null,
-        depositPrice: values.depositPrice ? Math.round(values.depositPrice * 100) : null,
+        priceCents: yuanToCents(values.price),
+        originalPriceCents: values.originalPrice ? yuanToCents(values.originalPrice) : null,
+        depositPriceCents: values.depositPrice ? yuanToCents(values.depositPrice) : null,
         salesVolume: values.salesVolume || 0,
         sortOrder: values.sortOrder || 0,
       };
@@ -211,9 +212,9 @@ export const ProductForm: React.FC<ProductFormProps> = ({
         layout="vertical"
         initialValues={{
           ...product,
-          price: product ? product.price / 100 : undefined,
-          originalPrice: product?.originalPrice ? product.originalPrice / 100 : undefined,
-          depositPrice: product?.depositPrice ? product.depositPrice / 100 : undefined,
+          price: product ? centsToYuan(product.price) : undefined,
+          originalPrice: product?.originalPrice ? centsToYuan(product.originalPrice) : undefined,
+          depositPrice: product?.depositPrice ? centsToYuan(product.depositPrice) : undefined,
           status: product?.status || 'OFFLINE',
           salesVolume: product?.salesVolume || 0,
           sortOrder: product?.sortOrder || 0,

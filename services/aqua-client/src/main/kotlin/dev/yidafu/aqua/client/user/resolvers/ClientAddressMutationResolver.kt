@@ -224,4 +224,5 @@ class ClientAddressMutationResolver(
       logger.error("Failed to copy user address", e)
       throw BadRequestException("复制地址失败: ${e.message}")
     }
+  }
 }

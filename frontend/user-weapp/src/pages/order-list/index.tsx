@@ -11,7 +11,7 @@ import "taro-ui/dist/style/components/tabs.scss"
 import "taro-ui/dist/style/components/badge.scss"
 import "taro-ui/dist/style/components/tag.scss"
 import './index.scss'
-import { displayCents } from '@/utils/money'
+import { Money } from '@aquarush/common'
 
 interface OrderItem {
   id: string
@@ -470,7 +470,7 @@ export default class OrderList extends Component<{}, OrderListState> {
         <View className='order-footer'>
           <View className='order-amount'>
             <Text className='amount-label'>实付：</Text>
-            <Text className='amount-value'>{displayCents(order.finalAmount)}</Text>
+            <Text className='amount-value'><Money cents={order.finalAmount} /></Text>
           </View>
 
           <View className='order-actions'>

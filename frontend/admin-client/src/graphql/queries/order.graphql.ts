@@ -12,7 +12,7 @@ export const GET_ORDERS_QUERY = gql`
           phone
         }
         status
-        amount
+        amountCents
         address {
           receiverName
           phone
@@ -49,7 +49,7 @@ export const GET_ORDER_DETAIL_QUERY = gql`
         avatarUrl
       }
       status
-      amount
+      amountCents
       quantity
       product {
         id

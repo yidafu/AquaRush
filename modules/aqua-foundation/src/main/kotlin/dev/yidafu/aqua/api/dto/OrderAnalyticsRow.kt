@@ -10,8 +10,8 @@ data class OrderAnalyticsRow(
   val orderDate: LocalDate,
   val status: OrderModelStatus,
   val orderCount: Long,
-  val totalRevenue: Double,
-  val averageOrderValue: Double,
+  val totalRevenueCents: Long,
+  val averageOrderValueCents: Long,
   val uniqueCustomers: Long,
   val activeWorkers: Long,
 )

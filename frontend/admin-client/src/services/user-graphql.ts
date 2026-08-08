@@ -34,7 +34,7 @@ export interface CreateDeliveryWorkerInput {
   readonly coordinates?: string;
   readonly currentLocation?: string;
   readonly rating?: number;
-  readonly earning?: number;
+  readonly earningCents?: number;
   readonly isAvailable?: boolean;
 }
 

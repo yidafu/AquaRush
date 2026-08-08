@@ -3,7 +3,7 @@ import { Table, Button, Space, Tag, message, Popconfirm, type PaginationProps } 
 import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteProduct } from '../../../services/product-graphql';
-import { formatAdminTableAmount } from '../../../utils/money';
+import { displayCents } from '@aquarush/common'
 
 interface Product {
   id: number;
@@ -74,7 +74,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       title: '价格',
       dataIndex: 'price',
       key: 'price',
-      render: (price: number) => formatAdminTableAmount(price),
+      render: (price: number) => displayCents(price),
       sorter: (a: Product, b: Product) => a.price - b.price,
       width: 100,
     },
@@ -82,7 +82,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       title: '原价',
       dataIndex: 'originalPrice',
       key: 'originalPrice',
-      render: (price: number) => price ? <del>{formatAdminTableAmount(price)}</del> : '-',
+      render: (price: number) => price ? <del>{displayCents(price)}</del> : '-',
       sorter: (a: Product, b: Product) => (a.originalPrice || 0) - (b.originalPrice || 0),
       width: 100,
     },

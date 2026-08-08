@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { formatAdminTableAmount } from '../../../../utils/money';
+import { centsToYuan, yuanToCents, displayCents } from '@aquarush/common';
 
 export interface Product {
   id: number;
@@ -68,9 +68,9 @@ export function productToFormData(product: Product): ProductFormData {
 
   return {
     ...product,
-    price: product.price / 100,
-    originalPrice: product.originalPrice ? product.originalPrice / 100 : undefined,
-    depositPrice: product.depositPrice ? product.depositPrice / 100 : undefined,
+    price: centsToYuan(product.price),
+    originalPrice: product.originalPrice ? centsToYuan(product.originalPrice) : undefined,
+    depositPrice: product.depositPrice ? centsToYuan(product.depositPrice) : undefined,
     status: product.status === 'ACTIVE' ? 'ONLINE' : product.status,
     // Convert JSON string fields to arrays for form
     imageGallery: parseArrayField(product.imageGallery),
@@ -89,9 +89,9 @@ export function productToFormData(product: Product): ProductFormData {
 export function formDataToProduct(formData: ProductFormData): Partial<Product> {
   const result: Partial<Product> = {
     ...formData,
-    price: Math.round(formData.price * 100),
-    originalPrice: formData.originalPrice ? Math.round(formData.originalPrice * 100) : undefined,
-    depositPrice: formData.depositPrice ? Math.round(formData.depositPrice * 100) : undefined,
+    priceCents: yuanToCents(formData.price),
+    originalPriceCents: formData.originalPrice ? yuanToCents(formData.originalPrice) : undefined,
+    depositPriceCents: formData.depositPrice ? yuanToCents(formData.depositPrice) : undefined,
     salesVolume: formData.salesVolume || 0,
     sortOrder: formData.sortOrder || 0,
   };
@@ -118,9 +118,9 @@ export function formDataToProduct(formData: ProductFormData): Partial<Product> {
  */
 export function useFormattedPrices(product: Product) {
   return useMemo(() => ({
-    price: formatAdminTableAmount(product.price),
-    originalPrice: product.originalPrice ? formatAdminTableAmount(product.originalPrice) : null,
-    depositPrice: product.depositPrice ? formatAdminTableAmount(product.depositPrice) : null,
+    price: displayCents(product.price),
+    originalPrice: product.originalPrice ? displayCents(product.originalPrice) : null,
+    depositPrice: product.depositPrice ? displayCents(product.depositPrice) : null,
   }), [product.price, product.originalPrice, product.depositPrice]);
 }
 

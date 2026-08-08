@@ -2,6 +2,7 @@ import { Component } from 'react'
 import { View, Text, Image, Button, Progress, Steps } from '@tarojs/components'
 import { AtCard, AtIcon, AtButton, AtToast, AtTag, AtTimeline, AtProgress } from 'taro-ui'
 import Taro from '@tarojs/taro'
+import { Money } from '@aquarush/common'
 
 import "taro-ui/dist/style/components/card.scss"
 import "taro-ui/dist/style/components/icon.scss"
@@ -16,7 +17,7 @@ interface OrderItem {
   id: string
   name: string
   image: string
-  price: number
+  priceCents: number
   quantity: number
   specifications?: string[]
 }
@@ -163,7 +164,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
             id: '1',
             name: '农夫山泉 天然矿泉水 550ml',
             image: '/assets/product-water.jpg',
-            price: 2.00,
+            priceCents: 200,
             quantity: 2,
             specifications: ['24瓶装']
           },
@@ -171,14 +172,14 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
             id: '2',
             name: '怡宝 纯净水 380ml',
             image: '/assets/product-water.jpg',
-            price: 1.50,
+            priceCents: 150,
             quantity: 3,
             specifications: ['36瓶装']
           }
         ],
-        totalAmount: 87.00,
+        totalAmount: 8700,
         deliveryFee: 0,
-        finalAmount: 87.00,
+        finalAmount: 8700,
         address: {
           receiverName: '张三',
           phone: '13800138000',
@@ -334,7 +335,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       products: order.items.map(item => ({
         id: item.id,
         name: item.name || '商品名称',
-        price: item.price || 0,
+        price: item.priceCents || 0,
         quantity: item.quantity || 0,
         image: item.image || '/assets/default-product.png',
         specifications: Array.isArray(item.specifications) ? item.specifications : []
@@ -412,7 +413,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
                 </Text>
               )}
               <View className='item-bottom'>
-                <Text className='item-price'>¥{(item.price || 0).toFixed(2)}</Text>
+                <Text className='item-price'><Money cents={item.priceCents || 0} /></Text>
                 <Text className='item-quantity'>x{item.quantity || 0}</Text>
               </View>
             </View>
@@ -583,17 +584,17 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
           <View className='order-summary'>
             <View className='summary-item'>
               <Text className='summary-label'>商品总价</Text>
-              <Text className='summary-value'>¥{order.totalAmount.toFixed(2)}</Text>
+              <Text className='summary-value'><Money cents={order.totalAmount} /></Text>
             </View>
             <View className='summary-item'>
               <Text className='summary-label'>配送费</Text>
               <Text className='summary-value'>
-                {order.deliveryFee === 0 ? '免配送费' : `¥${order.deliveryFee.toFixed(2)}`}
+                {order.deliveryFee === 0 ? '免配送费' : <Money cents={order.deliveryFee} />}
               </Text>
             </View>
             <View className='summary-item total'>
               <Text className='summary-label'>实付金额</Text>
-              <Text className='summary-value total-amount'>¥{order.finalAmount.toFixed(2)}</Text>
+              <Text className='summary-value total-amount'><Money cents={order.finalAmount} /></Text>
             </View>
           </View>
         </AtCard>

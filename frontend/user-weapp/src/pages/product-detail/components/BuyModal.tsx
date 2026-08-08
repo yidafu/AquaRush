@@ -3,16 +3,16 @@ import { View, Text, Image, Button } from '@tarojs/components'
 import { AtFloatLayout, AtInputNumber } from 'taro-ui'
 import "taro-ui/dist/style/components/float-layout.scss"
 import "taro-ui/dist/style/components/input-number.scss"
-import { displayCents, calculateAndFormatTotal } from '@/utils/money'
+import { Money, calculateTotalCents, formatCentsToCurrency } from '@aquarush/common'
 
 interface BuyModalProps {
   isOpened: boolean
   product: {
     id: string
     name: string
-    price: string
-    originalPrice?: string
-    depositPrice?: string
+    priceCents: number
+    originalPriceCents?: number
+    depositPriceCents?: number
     specification: string
     coverImageUrl: string
     stock: number
@@ -33,7 +33,7 @@ const BuyModal: React.FC<BuyModalProps> = ({
 }) => {
   if (!product) return null
 
-  const hasDeposit = product.depositPrice && parseFloat(product.depositPrice) > 0
+  const hasDeposit = product.depositPriceCents && product.depositPriceCents > 0
 
   return (
     <AtFloatLayout
@@ -56,7 +56,7 @@ const BuyModal: React.FC<BuyModalProps> = ({
           />
           <View className='flex flex-col flex-1 gap-3'>
             <Text className='text-base font-semibold leading-tight text-gray-900'>{product.name}</Text>
-            <Text className='text-sm font-bold text-red-500'>{displayCents(parseFloat(product.price))}</Text>
+            <Text className='text-sm font-bold text-red-500'><Money cents={product.priceCents} /></Text>
             <Text className='text-sm text-gray-600'>规格: {product.specification}</Text>
             <Text className='text-sm text-gray-600'>库存: {product.stock}</Text>
           </View>
@@ -81,7 +81,7 @@ const BuyModal: React.FC<BuyModalProps> = ({
         >
           <Text className='text-base text-gray-600'>合计：</Text>
           <Text className='text-xl font-bold text-red-500'>
-            {calculateAndFormatTotal(quantity, parseFloat(product.price))}
+            {formatCentsToCurrency(calculateTotalCents(quantity, product.priceCents))}
           </Text>
         </View>
       </View>

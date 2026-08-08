@@ -165,12 +165,12 @@ const ProductDetail: React.FC = () => {
       products: [{
         id: state.product.id.toString(),
         name: state.product.name,
-        price: parseFloat(state.product.price),
+        price: state.product.priceCents,
         quantity: state.buyModalQuantity,
         image: state.product.coverImageUrl,
         specification: state.product.specification
       }],
-      totalAmount: parseFloat(state.product.price) * state.buyModalQuantity,
+      totalAmount: state.product.priceCents * state.buyModalQuantity,
       specification: state.product.specification
     }
 
@@ -239,7 +239,7 @@ const ProductDetail: React.FC = () => {
     const cartItem = {
       id: state.product.id,
       name: state.product.name,
-      price: parseFloat(state.product.price),
+      price: state.product.priceCents,
       quantity: 1,
       image: state.product.coverImageUrl,
       specification: state.product.specification

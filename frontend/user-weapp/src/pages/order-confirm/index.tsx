@@ -159,9 +159,9 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
   }
 
   const calculateDeliveryFee = (): number => {
-    // 配送费计算逻辑
+    // 配送费计算逻辑（金额单位为分）
     const totalAmount = calculateTotalAmount()
-    return totalAmount >= 30 ? 0 : 5 // 满30元免配送费
+    return totalAmount >= 3000 ? 0 : 500 // 满30元（3000分）免配送费
   }
 
   const handleSubmitOrder = async (): Promise<void> => {
@@ -190,7 +190,7 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
             id
             orderNo
             status
-            totalAmountCents
+            amountCents
           }
         }
       `
@@ -213,7 +213,7 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
           id: string
           orderNo: string
           status: string
-          totalAmountCents: number
+          amountCents: number
         }
       }>(mutation, variables)
 

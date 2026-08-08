@@ -4,7 +4,7 @@ import { AtGrid, AtLoadMore } from 'taro-ui'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh } from '@tarojs/taro'
 import FavoriteService from '../../services/FavoriteService'
 import { authService } from '../../utils/auth'
-import { displayCents } from '../../utils/money'
+import { Money } from '@aquarush/common'
 import BasePageLayout from '../../components/BasePageLayout'
 
 import "taro-ui/dist/style/components/grid.scss"
@@ -15,8 +15,8 @@ interface FavoriteProduct {
   id: string
   name: string
   subtitle?: string
-  price: string
-  originalPrice?: string
+  priceCents: number
+  originalPriceCents?: number
   coverImageUrl: string
   stock: number
   salesVolume: number
@@ -163,7 +163,7 @@ const FavoritesPage: React.FC = () => {
             <View className='product-details'>
               <Text className='product-name'>{product.name}</Text>
               <View className='product-meta'>
-                <Text className='product-price'>¥{displayCents(product.price)}</Text>
+                <Text className='product-price'><Money cents={product.priceCents} /></Text>
                 {product.salesVolume > 0 && (
                   <Text className='product-sales'>已售{product.salesVolume}</Text>
                 )}

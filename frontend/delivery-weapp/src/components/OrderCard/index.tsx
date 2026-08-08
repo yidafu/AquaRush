@@ -1,7 +1,7 @@
 import React, { useCallback } from 'react'
 import { View, Text, Button } from '@tarojs/components'
 import Taro from '@tarojs/taro'
-import { OrderStatus, formatCurrency } from '@aquarush/common'
+import { OrderStatus, Money } from '@aquarush/common'
 import './index.scss'
 
 // 通用的信息行组件
@@ -42,7 +42,7 @@ interface OrderData {
   id: string | number
   orderNo: string
   quantity: number
-  amount: number
+  amountCents: number
   status?: string
   isSelfCollect?: boolean
   createdAt?: string
@@ -152,7 +152,7 @@ const OrderCard: React.FC<OrderCardProps> = ({
           <InfoRow label='完成时间：' value={formatDateTime(order.deliveryConfirmedAt)} />
         )}
 
-        <InfoRow label='金额：' value={formatCurrency(order.amount)} valueClassName='amount-text' className='amount' />
+        <InfoRow label='金额：' value={<Money cents={order.amountCents} />} valueClassName='amount-text' className='amount' />
       </View>
 
       {type !== 'history' && (

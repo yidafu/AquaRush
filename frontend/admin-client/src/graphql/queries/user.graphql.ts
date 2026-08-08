@@ -107,7 +107,7 @@ export const DELIVERY_WORKER_DETAIL_QUERY = gql`
       isAvailable
       coordinates
       currentLocation
-      earning
+      earningCents
       createdAt
       updatedAt
     }
@@ -138,7 +138,7 @@ export const DELIVERY_WORKER_ORDERS_QUERY = gql`
       id
       orderNo
       status
-      amount
+      amountCents
       quantity
       createdAt
       updatedAt
@@ -149,7 +149,7 @@ export const DELIVERY_WORKER_ORDERS_QUERY = gql`
       product {
         id
         name
-        price
+        priceCents
         coverImageUrl
       }
       user {
@@ -183,7 +183,7 @@ export const USER_ORDERS_QUERY = gql`
       id
       orderNo
       status
-      amount
+      amountCents
       quantity
       createdAt
       updatedAt
@@ -194,7 +194,7 @@ export const USER_ORDERS_QUERY = gql`
       product {
         id
         name
-        price
+        priceCents
         coverImageUrl
       }
       user {

@@ -8,11 +8,12 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
+import { centsToYuan } from '@aquarush/common';
 
 interface DailyStatistic {
   date: string;
   orderCount: number;
-  revenue: number;
+  revenueCents: number;
 }
 
 interface DailyRevenueChartProps {
@@ -22,7 +23,7 @@ interface DailyRevenueChartProps {
 const DailyRevenueChart: React.FC<DailyRevenueChartProps> = ({ data }) => {
   const chartData = data.map((item) => ({
     date: item.date.slice(5),
-    revenue: (item.revenue || 0) / 100,
+    revenue: centsToYuan(item.revenueCents || 0),
   }));
 
   return (

@@ -6,7 +6,7 @@ import { CONFIRM_DAILY_COLLECTION, REVIEW_RECONCILIATION, EXECUTE_DAILY_RECONCIL
 import type { DailyCollectionRecord, DailyReconciliation } from '../../types/daily-collection'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
-import { formatAdminTableAmount } from '../utils/money'
+import { displayCents, centsToYuan } from '@aquarush/common'
 
 // 状态颜色映射
 const statusColorMap: Record<string, string> = {
@@ -152,7 +152,7 @@ const DailyCollectionPage: React.FC = () => {
       title: '现金金额',
       dataIndex: 'cashAmountCents',
       key: 'cashAmountCents',
-      render: (cents: number) => formatAdminTableAmount(cents),
+      render: (cents: number) => displayCents(cents),
     },
     {
       title: '水票数量',
@@ -163,7 +163,7 @@ const DailyCollectionPage: React.FC = () => {
       title: '扫码金额',
       dataIndex: 'qrCodeAmountCents',
       key: 'qrCodeAmountCents',
-      render: (cents: number) => formatAdminTableAmount(cents),
+      render: (cents: number) => displayCents(cents),
     },
     {
       title: '订单数量',
@@ -174,19 +174,19 @@ const DailyCollectionPage: React.FC = () => {
       title: '订单金额',
       dataIndex: 'orderAmountCents',
       key: 'orderAmountCents',
-      render: (cents: number) => formatAdminTableAmount(cents),
+      render: (cents: number) => displayCents(cents),
     },
     {
       title: '系统计算现金',
       dataIndex: 'calculatedCashAmountCents',
       key: 'calculatedCashAmountCents',
-      render: (cents: number) => formatAdminTableAmount(cents),
+      render: (cents: number) => displayCents(cents),
     },
     {
       title: '系统计算扫码',
       dataIndex: 'calculatedQrCodeAmountCents',
       key: 'calculatedQrCodeAmountCents',
-      render: (cents: number) => formatAdminTableAmount(cents),
+      render: (cents: number) => displayCents(cents),
     },
     {
       title: '系统计算水票',
@@ -197,7 +197,7 @@ const DailyCollectionPage: React.FC = () => {
       title: '系统计算订单金额',
       dataIndex: 'calculatedOrderAmountCents',
       key: 'calculatedOrderAmountCents',
-      render: (cents: number) => formatAdminTableAmount(cents),
+      render: (cents: number) => displayCents(cents),
     },
     {
       title: '差异',
@@ -205,7 +205,7 @@ const DailyCollectionPage: React.FC = () => {
       key: 'differenceAmountCents',
       render: (cents: number) => {
         const color = Math.abs(cents) <= 100 ? '#52c41a' : '#ff4d4f'
-        return <span style={{ color }}>{formatAdminTableAmount(cents)}</span>
+        return <span style={{ color }}>{displayCents(cents)}</span>
       },
     },
     {
@@ -247,19 +247,19 @@ const DailyCollectionPage: React.FC = () => {
       title: '订单金额',
       dataIndex: 'totalOrderAmountCents',
       key: 'totalOrderAmountCents',
-      render: (cents: number) => formatAdminTableAmount(cents),
+      render: (cents: number) => displayCents(cents),
     },
     {
       title: '总收款金额',
       dataIndex: 'totalCollectionAmountCents',
       key: 'totalCollectionAmountCents',
-      render: (cents: number) => formatAdminTableAmount(cents),
+      render: (cents: number) => displayCents(cents),
     },
     {
       title: '现金收款',
       dataIndex: 'totalCashAmountCents',
       key: 'totalCashAmountCents',
-      render: (cents: number) => formatAdminTableAmount(cents),
+      render: (cents: number) => displayCents(cents),
     },
     {
       title: '水票数量',
@@ -270,7 +270,7 @@ const DailyCollectionPage: React.FC = () => {
       title: '扫码收款',
       dataIndex: 'totalQrCodeAmountCents',
       key: 'totalQrCodeAmountCents',
-      render: (cents: number) => formatAdminTableAmount(cents),
+      render: (cents: number) => displayCents(cents),
     },
     {
       title: '差异金额',
@@ -278,7 +278,7 @@ const DailyCollectionPage: React.FC = () => {
       key: 'discrepancyAmountCents',
       render: (cents: number) => {
         const color = Math.abs(cents) <= 100 ? '#52c41a' : '#ff4d4f'
-        return <span style={{ color }}>{formatAdminTableAmount(cents)}</span>
+        return <span style={{ color }}>{displayCents(cents)}</span>
       },
     },
     {
@@ -325,7 +325,7 @@ const DailyCollectionPage: React.FC = () => {
             <Card>
               <Statistic
                 title="现金收款"
-                value={todayStats.totalCash / 100}
+                value={todayStats.centsToYuan(totalCash)}
                 precision={2}
                 prefix="¥"
               />
@@ -335,7 +335,7 @@ const DailyCollectionPage: React.FC = () => {
             <Card>
               <Statistic
                 title="扫码收款"
-                value={todayStats.totalQrCode / 100}
+                value={todayStats.centsToYuan(totalQrCode)}
                 precision={2}
                 prefix="¥"
               />
@@ -353,7 +353,7 @@ const DailyCollectionPage: React.FC = () => {
             <Card>
               <Statistic
                 title="订单金额"
-                value={todayStats.totalOrderAmount / 100}
+                value={todayStats.centsToYuan(totalOrderAmount)}
                 precision={2}
                 prefix="¥"
               />
@@ -419,7 +419,7 @@ const DailyCollectionPage: React.FC = () => {
               <Col span={12}>
                 <Statistic
                   title="订单金额"
-                  value={selectedReconciliation.totalOrderAmountCents / 100}
+                  value={selectedReconciliation.centsToYuan(totalOrderAmountCents)}
                   precision={2}
                   prefix="¥"
                 />
@@ -429,7 +429,7 @@ const DailyCollectionPage: React.FC = () => {
               <Col span={12}>
                 <Statistic
                   title="现金收款"
-                  value={selectedReconciliation.totalCashAmountCents / 100}
+                  value={selectedReconciliation.centsToYuan(totalCashAmountCents)}
                   precision={2}
                   prefix="¥"
                 />
@@ -437,7 +437,7 @@ const DailyCollectionPage: React.FC = () => {
               <Col span={12}>
                 <Statistic
                   title="扫码收款"
-                  value={selectedReconciliation.totalQrCodeAmountCents / 100}
+                  value={selectedReconciliation.centsToYuan(totalQrCodeAmountCents)}
                   precision={2}
                   prefix="¥"
                 />
@@ -447,7 +447,7 @@ const DailyCollectionPage: React.FC = () => {
               <Col span={12}>
                 <Statistic
                   title="差异金额"
-                  value={selectedReconciliation.discrepancyAmountCents / 100}
+                  value={selectedReconciliation.centsToYuan(discrepancyAmountCents)}
                   precision={2}
                   prefix="¥"
                   valueStyle={{ color: Math.abs(selectedReconciliation.discrepancyAmountCents) <= 100 ? '#52c41a' : '#ff4d4f' }}

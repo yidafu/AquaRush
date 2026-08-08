@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react'
 import { View, Text, ScrollView } from '@tarojs/components'
 import Taro, { usePullDownRefresh } from '@tarojs/taro'
-import { formatCentsToCurrency } from '@aquarush/common'
+import { displayCents } from '@aquarush/common'
 import { getTodayStatistics } from '../../services/delivery'
 import { useAuth } from '../../hooks/useAuth'
 import { PageContainer } from '../../components/PageContainer'
@@ -92,7 +92,7 @@ const StatisticsPage: React.FC = () => {
             onClick={() => Taro.navigateTo({ url: '/pages/history-orders/index?tab=2' })}
           />
           <StatCard
-            value={formatCentsToCurrency(statistics.earningCents)}
+            value={displayCents(statistics.earningCents)}
             label='今日营收'
             highlight
           />

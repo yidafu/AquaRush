@@ -3,14 +3,14 @@ import { View, Text, Textarea, ScrollView, Image } from '@tarojs/components'
 import { AtFloatLayout, AtIcon } from 'taro-ui'
 import 'taro-ui/dist/style/components/float-layout.scss'
 import 'taro-ui/dist/style/components/icon.scss'
-import { formatCentsToCurrency } from '@aquarush/common'
+import { Money } from '@aquarush/common'
 import { searchProducts } from '../../services/delivery'
 import './index.scss'
 
 export interface Product {
   id: string
   name: string
-  price: number
+  priceCents: number
   image: string
   stock: number
   status: string
@@ -113,7 +113,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
             />
             <View className='product-info'>
               <Text className='product-name'>{selectedProduct.name}</Text>
-              <Text className='product-price'>¥{formatCentsToCurrency(selectedProduct.price, { showSymbol: false })}</Text>
+              <Text className='product-price'><Money cents={selectedProduct.priceCents} /></Text>
               <Text className='product-stock'>库存: {selectedProduct.stock}</Text>
             </View>
             <View className='chevron'>
@@ -175,7 +175,7 @@ const ProductSelector: React.FC<ProductSelectorProps> = ({
                 />
                 <View className='product-info'>
                   <Text className='product-name'>{product.name}</Text>
-                  <Text className='product-price'>¥{formatCentsToCurrency(product.price, { showSymbol: false })}</Text>
+                  <Text className='product-price'><Money cents={product.priceCents} /></Text>
                   <Text className='product-stock'>库存: {product.stock}</Text>
                 </View>
                 {selectedProductId === product.id && (

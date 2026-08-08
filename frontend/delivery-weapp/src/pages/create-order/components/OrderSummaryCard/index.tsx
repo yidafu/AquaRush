@@ -3,12 +3,12 @@ import { View, Textarea, CommonEventFunction, CommonEvent } from '@tarojs/compon
 import { AtList, AtListItem, AtInputNumber } from 'taro-ui'
 import 'taro-ui/dist/style/components/list.scss'
 import 'taro-ui/dist/style/components/input-number.scss'
-import { formatCentsToCurrency } from '@aquarush/common'
+import { Money } from '@aquarush/common'
 import './index.scss'
 
 interface Product {
   id: string
-  price: number
+  priceCents: number
 }
 
 // 订单信息
@@ -31,8 +31,8 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
 }) => {
   const { quantity, isSelfCollect, remark } = orderInfo
 
-  // 计算总价
-  const totalAmount = product ? product.price * quantity : 0
+  // 计算总价（金额单位为分）
+  const totalAmount = product ? product.priceCents * quantity : 0
 
   const handleQuantityChange = (value: number) => {
     onOrderInfoChange({ ...orderInfo, quantity: value })
@@ -49,7 +49,7 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
   return (
     <View className='order-summary-card'>
       <AtList>
-        <AtListItem title='商品单价' extraText={formatCentsToCurrency(product?.price ?? 0)} />
+        <AtListItem title='商品单价' extraText={<Money cents={product?.priceCents ?? 0} />} />
         <AtListItem
           title='数量'
           extraText={
@@ -65,7 +65,7 @@ const OrderSummaryCard: React.FC<OrderSummaryCardProps> = ({
             </View>
           }
         />
-        <AtListItem title='合计' extraText={formatCentsToCurrency(totalAmount)} />
+        <AtListItem title='合计' extraText={<Money cents={totalAmount} />} />
         <AtListItem
           title='是否已收款'
           isSwitch

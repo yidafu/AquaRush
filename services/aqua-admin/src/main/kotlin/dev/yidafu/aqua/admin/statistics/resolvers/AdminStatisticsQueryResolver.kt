@@ -108,7 +108,7 @@ class AdminStatisticsQueryResolver(
           name = it.name,
           todayCompletedOrders = it.todayCompletedOrders,
           rating = it.rating,
-          totalEarnings = it.totalEarnings,
+          totalEarningsCents = it.totalEarnings,
         )
       }
 }

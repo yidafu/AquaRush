@@ -7,7 +7,6 @@ import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.common.utils.MoneyUtils
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import dev.yidafu.aqua.product.mapper.ProductStatusMapper
 import org.springframework.data.domain.Page
@@ -16,7 +15,6 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.node.ArrayNode
 import tools.jackson.databind.node.ObjectNode
-import java.math.BigDecimal
 
 @Service
 @Transactional(readOnly = true)
@@ -27,28 +25,13 @@ class ProductServiceImpl(
 
   @Transactional
   override fun createProduct(request: CreateProductInput): ProductModel {
-    // Convert prices from yuan to cents for storage
-    val priceCents = MoneyUtils.toCents(BigDecimal.valueOf(request.price).divide(BigDecimal(100)))
-    val originalPriceCents =
-      request.originalPrice?.let {
-        MoneyUtils.toCents(
-          BigDecimal.valueOf(it).divide(
-            BigDecimal(
-              100,
-            ),
-          ),
-        )
-      }
-    val depositPriceCents =
-      request.depositPrice?.let { MoneyUtils.toCents(BigDecimal.valueOf(it).divide(BigDecimal(100))) }
-
     val product =
       ProductModel(
         name = request.name,
         subtitle = request.subtitle,
-        price = priceCents,
-        originalPrice = originalPriceCents,
-        depositPrice = depositPriceCents,
+        price = request.priceCents,
+        originalPrice = request.originalPriceCents,
+        depositPrice = request.depositPriceCents,
         coverImageUrl = request.coverImageUrl,
         imageGallery = request.imageGallery,
         specification = request.specification,
@@ -73,13 +56,13 @@ class ProductServiceImpl(
   fun updateProduct(
     productId: Long,
     name: String?,
-    priceYuan: BigDecimal?,
+    priceCents: Long?,
     coverImageUrl: String?,
     description: String?,
     stock: Int?,
     subtitle: String? = null,
-    originalPriceYuan: BigDecimal? = null,
-    depositPriceYuan: BigDecimal? = null,
+    originalPriceCents: Long? = null,
+    depositPriceCents: Long? = null,
     imageGallery: ArrayNode? = null,
     specification: String? = null,
     waterSource: String? = null,
@@ -99,9 +82,9 @@ class ProductServiceImpl(
 
     name?.let { product.name = it }
     subtitle?.let { product.subtitle = it }
-    priceYuan?.let { product.price = MoneyUtils.toCents(priceYuan) }
-    originalPriceYuan?.let { product.originalPrice = MoneyUtils.toCents(originalPriceYuan) }
-    depositPriceYuan?.let { product.depositPrice = MoneyUtils.toCents(depositPriceYuan) }
+    priceCents?.let { product.price = it }
+    originalPriceCents?.let { product.originalPrice = it }
+    depositPriceCents?.let { product.depositPrice = it }
     coverImageUrl?.let { product.coverImageUrl = it }
     imageGallery?.let { product.imageGallery = it }
     specification?.let { product.specification = it }
@@ -189,8 +172,8 @@ class ProductServiceImpl(
       onlineProducts = onlineProducts.size,
       offlineProducts = offlineProducts.size,
       lowStockProducts = lowStockProducts.size,
-      totalValue = totalValue,
-      averagePrice = averagePrice,
+      totalValueCents = totalValue,
+      averagePriceCents = averagePrice,
       productRanking = emptyList(),
       favoriteStatistics = emptyList(),
       totalSales = 0,
