@@ -23,16 +23,6 @@ const ServiceSection: React.FC<ServiceSectionProps> = () => {
   // 在组件内部定义所有服务项目
   const serviceItems: ServiceItem[] = React.useMemo(() => [
     {
-      icon: '/assets/icons/service/bucket.png',
-      title: '押桶管理',
-      description: '押桶与退还',
-      onClick: () => {
-        Taro.navigateTo({
-          url: '/pages/bucket-deposit/list/index'
-        })
-      }
-    },
-    {
       icon: '/assets/icons/service/heart.png',
       title: '我的收藏',
       description: '查看收藏商品',

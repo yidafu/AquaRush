@@ -50,8 +50,7 @@ class StatisticsUserRepositoryImpl : StatisticsUserRepositoryCustom {
         .where(
           userModel.createdAt.goe(startDateTime),
           userModel.createdAt.lt(endDateTime),
-        )
-        .fetch()
+        ).fetch()
 
     return results
       .map { it.toLocalDate() }
@@ -84,7 +83,6 @@ class StatisticsUserRepositoryImpl : StatisticsUserRepositoryCustom {
             .where(orderModel.createdAt.goe(dateTime))
             .distinct(),
         ),
-      )
-      .fetchCount()
+      ).fetchCount()
   }
 }

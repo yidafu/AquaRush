@@ -68,55 +68,6 @@ data class AddressInput(
   )
 }
 
-data class AddressValidationInput(
-    @field:NotBlank(message = "城市不能为空")
-    @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
-    val city: kotlin.String,
-    @field:Size(min = 1, max = 20, message = "城市代码长度应在1-20个字符之间")
-    val cityCode: kotlin.String? = null,
-    @field:NotBlank(message = "详细地址不能为空")
-    @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
-    val detailAddress: kotlin.String,
-    @field:NotBlank(message = "区县不能为空")
-    @field:Size(min = 2, max = 50, message = "区县名称长度应在2-50个字符之间")
-    val district: kotlin.String,
-    @field:Size(min = 1, max = 20, message = "区县代码长度应在1-20个字符之间")
-    val districtCode: kotlin.String? = null,
-    @field:Min(value = -90, message = "纬度不能小于-90")
-    @field:Max(value = 90, message = "纬度不能大于90")
-    val latitude: kotlin.Float? = null,
-    @field:Min(value = -180, message = "经度不能小于-180")
-    @field:Max(value = 180, message = "经度不能大于180")
-    val longitude: kotlin.Float? = null,
-    @field:NotBlank(message = "省份不能为空")
-    @field:Size(min = 2, max = 50, message = "省份名称长度应在2-50个字符之间")
-    val province: kotlin.String,
-    @field:Size(min = 1, max = 20, message = "省份代码长度应在1-20个字符之间")
-    val provinceCode: kotlin.String? = null
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["city"] as kotlin.String,
-      args["cityCode"] as kotlin.String?,
-      args["detailAddress"] as kotlin.String,
-      args["district"] as kotlin.String,
-      args["districtCode"] as kotlin.String?,
-      args["latitude"] as kotlin.Float?,
-      args["longitude"] as kotlin.Float?,
-      args["province"] as kotlin.String,
-      args["provinceCode"] as kotlin.String?
-  )
-}
-
-data class AddressValidationPayload(
-    val coordinatesValid: kotlin.Boolean,
-    val errors: Iterable<kotlin.String>,
-    val isDuplicate: kotlin.Boolean,
-    val isValid: kotlin.Boolean,
-    val message: kotlin.String,
-    val normalizedAddress: NormalizedAddress?,
-    val success: kotlin.Boolean
-)
-
 data class Admin(
     val createdAt: java.time.LocalDateTime,
     val id: kotlin.Long,
@@ -224,23 +175,6 @@ data class BatchOperationResult(
     val successCount: kotlin.Int
 )
 
-data class BatchStockAdjustmentInput(
-    @field:Size(min = 1, max = 100, message = "调整项目数量应在1-100之间")
-    val adjustments: Iterable<StockAdjustmentInput>
-) {
-  @Suppress("UNCHECKED_CAST")
-  constructor(args: Map<String, Any>) : this(
-      args["adjustments"]!!.let { adjustments -> (adjustments as List<Map<String, Any>>).map { StockAdjustmentInput(it) } }
-  )
-}
-
-data class BatchStockAdjustmentResult(
-    val failureCount: kotlin.Int,
-    val results: Iterable<StockAdjustmentResult>,
-    val success: kotlin.Boolean,
-    val successCount: kotlin.Int
-)
-
 data class BindDeliveryPhoneInput(
     val openId: kotlin.String,
     val phoneNumber: kotlin.String
@@ -250,43 +184,6 @@ data class BindDeliveryPhoneInput(
       args["phoneNumber"] as kotlin.String
   )
 }
-
-data class BooleanPayload(
-    val message: kotlin.String,
-    val success: kotlin.Boolean
-)
-
-data class BucketDeposit(
-    val amountCents: kotlin.Long,
-    val createdAt: java.time.LocalDateTime,
-    val id: kotlin.Long,
-    val paymentTime: java.time.LocalDateTime?,
-    val paymentTransactionId: kotlin.String?,
-    val quantity: kotlin.Int,
-    val refundedAt: java.time.LocalDateTime?,
-    val refundedBy: kotlin.Long?,
-    val remark: kotlin.String?,
-    val status: BucketDepositStatus,
-    val updatedAt: java.time.LocalDateTime,
-    val userId: kotlin.Long
-)
-
-enum class BucketDepositStatus(val label: String) {
-      DEPOSITED("DEPOSITED"),
-      REFUNDED("REFUNDED");
-
-  companion object {
-    @JvmStatic
-    fun valueOfLabel(label: String): BucketDepositStatus? {
-      return values().find { it.label == label }
-    }
-  }
-}
-
-data class BucketDepositVoPage(
-    val list: Iterable<BucketDeposit>,
-    val pageInfo: PageInfo
-)
 
 data class ConfirmDailyCollectionInput(
     val notes: kotlin.String? = null,
@@ -317,16 +214,6 @@ data class CreateAdminInput(
       args["role"] as AdminRole,
       args["status"] as DeliveryWorkerStatus?,
       args["username"] as kotlin.String
-  )
-}
-
-data class CreateBucketDepositInput(
-    @field:Min(value = 1, message = "押桶数量不能少于1")
-    @field:Max(value = 99, message = "押桶数量不能超过99")
-    val quantity: kotlin.Int
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["quantity"] as kotlin.Int
   )
 }
 
@@ -846,12 +733,6 @@ enum class DeliveryWorkerStatus(val label: String) {
   }
 }
 
-data class DistancePayload(
-    val distanceKm: kotlin.Float?,
-    val message: kotlin.String,
-    val success: kotlin.Boolean
-)
-
 data class ExportFavoritesInput(
     val dateFrom: java.time.LocalDateTime? = null,
     val dateTo: java.time.LocalDateTime? = null,
@@ -1003,25 +884,10 @@ data class GeocodeInput(
   )
 }
 
-data class GeocodePayload(
-    val latitude: kotlin.Float?,
-    val longitude: kotlin.Float?,
-    val message: kotlin.String,
-    val success: kotlin.Boolean
-)
-
 data class LoginStatistics(
     val dailyLogins: Iterable<DailyLoginStatistic>,
     val todayLogins: kotlin.Int,
     val totalLogins: kotlin.Int
-)
-
-data class LowStockAlert(
-    val currentStock: kotlin.Int,
-    val productId: kotlin.Long,
-    val productName: kotlin.String,
-    val status: ProductStatus,
-    val threshold: kotlin.Int
 )
 
 data class MonthlyStatistic(
@@ -1051,14 +917,6 @@ data class MutationAssignDeliveryWorkerArgs(
       args["workerId"] as kotlin.Long
   )
 }
-data class MutationBatchAdjustStockArgs(
-    val input: BatchStockAdjustmentInput
-) {
-  @Suppress("UNCHECKED_CAST")
-  constructor(args: Map<String, Any>) : this(
-      BatchStockAdjustmentInput(args["input"] as Map<String, Any>)
-  )
-}
 data class MutationBatchAssignOrdersArgs(
     val orderIds: Iterable<kotlin.Long>,
     val workerId: kotlin.Long
@@ -1074,21 +932,6 @@ data class MutationBatchImportAddressesArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       args["input"]!!.let { input -> (input as List<Map<String, Any>>).map { AddressInput(it) } }
-  )
-}
-data class MutationBatchUpdateProductsArgs(
-    val input: Iterable<ProductUpdateRequestInput>
-) {
-  @Suppress("UNCHECKED_CAST")
-  constructor(args: Map<String, Any>) : this(
-      args["input"]!!.let { input -> (input as List<Map<String, Any>>).map { ProductUpdateRequestInput(it) } }
-  )
-}
-data class MutationCancelOrderArgs(
-    val orderId: kotlin.Long
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["orderId"] as kotlin.Long
   )
 }
 data class MutationCompleteDeliveryArgs(
@@ -1168,23 +1011,7 @@ data class MutationCreateProductArgs(
       CreateProductInput(args["input"] as Map<String, Any>)
   )
 }
-data class MutationDecreaseStockArgs(
-    val productId: kotlin.Long,
-    val quantity: kotlin.Int
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["productId"] as kotlin.Long,
-      args["quantity"] as kotlin.Int
-  )
-}
 data class MutationDeleteAddressArgs(
-    val id: kotlin.Long
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
-  )
-}
-data class MutationDeleteAdminArgs(
     val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
@@ -1210,15 +1037,6 @@ data class MutationExecuteDailyReconciliationArgs(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["reconciliationDate"] as kotlin.String?
-  )
-}
-data class MutationIncreaseStockArgs(
-    val productId: kotlin.Long,
-    val quantity: kotlin.Int
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["productId"] as kotlin.Long,
-      args["quantity"] as kotlin.Int
   )
 }
 data class MutationOfflineProductArgs(
@@ -1338,23 +1156,12 @@ data class MutationUpdateProfileArgs(
       UpdateProfileInput(args["input"] as Map<String, Any>)
   )
 }
-data class MutationValidateAddressArgs(
-    val input: AddressValidationInput
-) {
-  @Suppress("UNCHECKED_CAST")
-  constructor(args: Map<String, Any>) : this(
-      AddressValidationInput(args["input"] as Map<String, Any>)
-  )
-}
 data class Mutation(
     val _dummy: kotlin.String?,
     val acceptDelivery: Order,
     val assignDeliveryWorker: Order,
-    val batchAdjustStock: BatchStockAdjustmentResult,
     val batchAssignOrders: Iterable<Order>,
     val batchImportAddresses: BatchImportAddressesResult,
-    val batchUpdateProducts: Iterable<Product>,
-    val cancelOrder: Order,
     val completeDelivery: Order,
     val confirmDailyCollection: DailyCollectionRecord,
     val createAddress: Address,
@@ -1364,13 +1171,10 @@ data class Mutation(
     val createDeliveryWorker: DeliveryWorker,
     val createOrder: Order,
     val createProduct: Product,
-    val decreaseStock: kotlin.Boolean,
     val deleteAddress: kotlin.Boolean,
-    val deleteAdmin: kotlin.Boolean,
     val deleteAdminAddress: kotlin.Boolean,
     val deleteProduct: kotlin.Boolean,
     val executeDailyReconciliation: DailyReconciliation,
-    val increaseStock: kotlin.String,
     val offlineProduct: Product,
     val onlineProduct: Product,
     val reviewReconciliation: DailyReconciliation,
@@ -1384,8 +1188,7 @@ data class Mutation(
     val updateOrderStatus: Order,
     val updateProduct: Product,
     val updateProductStatus: Product,
-    val updateProfile: UserInfo,
-    val validateAddress: AddressValidationPayload
+    val updateProfile: UserInfo
 )
 
 data class MyTodayCollectionVo(
@@ -1400,23 +1203,6 @@ data class MyTodayCollectionVo(
     val qrCodeAmountCents: kotlin.Long?,
     val status: DailyCollectionStatus?,
     val waterTicketCount: kotlin.Int?
-)
-
-data class NearbyAddressesPayload(
-    val addresses: Iterable<Address>,
-    val distanceMap: kotlin.collections.Map<String, Any>,
-    val message: kotlin.String,
-    val success: kotlin.Boolean
-)
-
-data class NormalizedAddress(
-    val city: kotlin.String,
-    val cityCode: kotlin.String?,
-    val detailAddress: kotlin.String,
-    val district: kotlin.String,
-    val districtCode: kotlin.String?,
-    val province: kotlin.String,
-    val provinceCode: kotlin.String?
 )
 
 enum class OperatorType(val label: String) {
@@ -1831,24 +1617,6 @@ data class ProductSalesStat(
     val salesVolume: kotlin.Int
 )
 
-data class ProductSalesTrend(
-    val dailySales: Iterable<ProductDailySales>,
-    val productId: kotlin.Long?,
-    val productName: kotlin.String?
-)
-
-data class ProductSalesTrendInput(
-    val endDate: java.time.LocalDateTime,
-    val productId: kotlin.Long? = null,
-    val startDate: java.time.LocalDateTime
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["endDate"] as java.time.LocalDateTime,
-      args["productId"] as kotlin.Long?,
-      args["startDate"] as java.time.LocalDateTime
-  )
-}
-
 data class ProductSearchInput(
     @field:Size(max = 100, message = "搜索关键词长度不能超过100个字符")
     val keyword: kotlin.String? = null,
@@ -2029,25 +1797,11 @@ data class QueryAddressArgs(
       args["id"] as kotlin.Long
   )
 }
-data class QueryAdminArgs(
-    val id: kotlin.Long
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["id"] as kotlin.Long
-  )
-}
 data class QueryDailyCollectionsArgs(
     val collectionDate: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
       args["collectionDate"] as kotlin.String?
-  )
-}
-data class QueryDailyReconciliationArgs(
-    val reconciliationDate: kotlin.String
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["reconciliationDate"] as kotlin.String
   )
 }
 data class QueryDailyStatisticsArgs(
@@ -2099,13 +1853,6 @@ data class QueryIsProductFavoritedArgs(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["productId"] as kotlin.Long
-  )
-}
-data class QueryLowStockProductsArgs(
-    val threshold: kotlin.Int? = 10
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["threshold"] as kotlin.Int? ?: 10
   )
 }
 data class QueryMonthlyStatisticsArgs(
@@ -2211,26 +1958,6 @@ data class QuerySearchAllAddressesArgs(
       args["size"] as kotlin.Int? ?: 10
   )
 }
-data class QuerySearchUserAddressesArgs(
-    val keyword: kotlin.String,
-    val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 10,
-    val userId: kotlin.Long? = null
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["keyword"] as kotlin.String,
-      args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 10,
-      args["userId"] as kotlin.Long?
-  )
-}
-data class QueryTopSalesProductsArgs(
-    val limit: kotlin.Int? = 10
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["limit"] as kotlin.Int? ?: 10
-  )
-}
 data class QueryUserArgs(
     val id: kotlin.Long
 ) {
@@ -2266,12 +1993,10 @@ data class Query(
     val activeProducts: ProductVoPage,
     val address: Address?,
     val addresses: Iterable<Address>,
-    val admin: Admin?,
     val admins: Iterable<Admin>,
     val allRegions: Iterable<Region>,
     val assignedOrders: Iterable<Order>,
     val dailyCollections: Iterable<DailyCollectionRecord>,
-    val dailyReconciliation: DailyReconciliation?,
     val dailyReconciliations: Iterable<DailyReconciliation>,
     val dailyStatistics: Iterable<DailyStatistic>,
     val deliveringOrders: Iterable<Order>,
@@ -2283,7 +2008,6 @@ data class Query(
     val favoriteProducts: FavoriteProductVoPage,
     val favoritesCount: kotlin.Long,
     val isProductFavorited: kotlin.Boolean,
-    val lowStockProducts: Iterable<LowStockAlert>,
     val me: UserInfo?,
     val monthlyStatistics: Iterable<MonthlyStatistic>,
     val myTodayCollection: MyTodayCollectionVo?,
@@ -2301,12 +2025,9 @@ data class Query(
     val region: Region?,
     val regions: Iterable<Region>,
     val searchAllAddresses: Iterable<Address>,
-    val searchUserAddresses: Iterable<Address>,
     val todayStatistics: TodayStatistics?,
-    val topSalesProducts: Iterable<Product>,
     val user: User?,
     val userAddresses: Iterable<Address>,
-    val userDefaultAddress: Address?,
     val userStatistics: UserStatistics,
     val users: UserVoPage,
     val weekStatistics: WeekStatistics?,
@@ -2333,18 +2054,6 @@ enum class RefundAction(val label: String) {
       return values().find { it.label == label }
     }
   }
-}
-
-data class RefundBucketDepositInput(
-    @field:Positive(message = "押桶记录ID必须为正数")
-    val depositId: kotlin.Long,
-    @field:Size(max = 500, message = "备注长度不能超过500个字符")
-    val remark: kotlin.String? = null
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["depositId"] as kotlin.Long,
-      args["remark"] as kotlin.String?
-  )
 }
 
 data class RefundEligibility(
@@ -2417,26 +2126,6 @@ data class Region(
     val updatedAt: java.time.LocalDateTime
 )
 
-data class RegionCoordinatesPayload(
-    val message: kotlin.String,
-    val region: Region?,
-    val success: kotlin.Boolean
-)
-
-data class ReverseGeocodePayload(
-    val city: kotlin.String?,
-    val cityCode: kotlin.String?,
-    val confidence: kotlin.Float?,
-    val district: kotlin.String?,
-    val districtCode: kotlin.String?,
-    val formattedAddress: kotlin.String?,
-    val message: kotlin.String,
-    val province: kotlin.String?,
-    val provinceCode: kotlin.String?,
-    val street: kotlin.String?,
-    val success: kotlin.Boolean
-)
-
 data class Review(
     val comment: kotlin.String?,
     val createdAt: java.time.LocalDateTime,
@@ -2500,57 +2189,12 @@ data class SalesReportInput(
   )
 }
 
-data class ServiceAreaPayload(
-    val inServiceArea: kotlin.Boolean,
-    val message: kotlin.String,
-    val success: kotlin.Boolean
-)
-
 data class SpecificationStatistics(
     val averagePrice: kotlin.Long,
     val productCount: kotlin.Int,
     val specification: kotlin.String,
     val totalSalesVolume: kotlin.Int
 )
-
-data class StockAdjustmentInput(
-    @field:Positive(message = "商品ID必须为正数")
-    val productId: kotlin.Long,
-    @field:Min(value = 1, message = "调整数量不能小于1")
-    @field:Max(value = 99999, message = "调整数量不能大于99999")
-    val quantity: kotlin.Int,
-    @field:Size(max = 500, message = "调整原因长度不能超过500个字符")
-    val reason: kotlin.String? = null,
-    val type: StockAdjustmentType
-) {
-  constructor(args: Map<String, Any>) : this(
-      args["productId"] as kotlin.Long,
-      args["quantity"] as kotlin.Int,
-      args["reason"] as kotlin.String?,
-      args["type"] as StockAdjustmentType
-  )
-}
-
-data class StockAdjustmentResult(
-    val message: kotlin.String,
-    val newStock: kotlin.Int?,
-    val previousStock: kotlin.Int?,
-    val productId: kotlin.Long,
-    val success: kotlin.Boolean
-)
-
-enum class StockAdjustmentType(val label: String) {
-      DECREASE("DECREASE"),
-      INCREASE("INCREASE"),
-      SET("SET");
-
-  companion object {
-    @JvmStatic
-    fun valueOfLabel(label: String): StockAdjustmentType? {
-      return values().find { it.label == label }
-    }
-  }
-}
 
 data class SubmitDailyCollectionInput(
     val cashAmountCents: kotlin.Long,

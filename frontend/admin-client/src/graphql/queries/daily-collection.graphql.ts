@@ -52,28 +52,4 @@ export const GET_DAILY_RECONCILIATIONS = gql`
   }
 `
 
-// 查询指定日期对账记录
-export const GET_DAILY_RECONCILIATION = gql`
-  query GetDailyReconciliation($reconciliationDate: String!) {
-    dailyReconciliation(reconciliationDate: $reconciliationDate) {
-      id
-      reconciliationDate
-      totalCashAmountCents
-      totalWaterTicketCount
-      totalQrCodeAmountCents
-      totalOrderCount
-      totalOrderAmountCents
-      totalCollectionAmountCents
-      discrepancyAmountCents
-      status
-      reportData
-      reviewedAt
-      reviewedBy
-      reviewNotes
-      createdAt
-      updatedAt
-    }
-  }
-`
-
 export type { DailyCollectionRecord, DailyReconciliation }

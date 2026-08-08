@@ -4,7 +4,6 @@ extend type Query {
   # 每日收款查询
   dailyCollections(collectionDate: String): [DailyCollectionRecord!]!
   dailyReconciliations: [DailyReconciliation!]!
-  dailyReconciliation(reconciliationDate: String!): DailyReconciliation
   # 配送员今日收款 - 获取今日收款预计算结果（订单统计）
   myTodayCollection: MyTodayCollectionVO
 }

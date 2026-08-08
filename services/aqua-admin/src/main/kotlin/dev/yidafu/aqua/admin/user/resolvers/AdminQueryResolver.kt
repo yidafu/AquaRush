@@ -24,7 +24,6 @@ import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
 import dev.yidafu.aqua.user.mapper.AdminMapper
-import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
@@ -40,15 +39,6 @@ class AdminQueryResolver(
   @QueryMapping
   @PreAuthorize("hasRole('ADMIN')")
   fun admins(): List<Admin> = adminRepository.findAllAdmins().map { AdminMapper.map(it) }
-
-  /**
-   * 根据ID获取管理员 - 管理员权限
-   */
-  @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
-  fun admin(
-    @Argument id: Long,
-  ): Admin? = adminRepository.findAdminById(id)?.let { AdminMapper.map(it) }
 
   /**
    * 获取所有地区数据，用于前端构建树形结构

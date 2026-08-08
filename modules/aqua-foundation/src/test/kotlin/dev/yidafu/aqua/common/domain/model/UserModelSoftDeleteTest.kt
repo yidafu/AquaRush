@@ -20,7 +20,6 @@
 package dev.yidafu.aqua.common.domain.model
 
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 

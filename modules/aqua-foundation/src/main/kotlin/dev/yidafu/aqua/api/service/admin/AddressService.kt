@@ -20,7 +20,6 @@
 package dev.yidafu.aqua.api.service.admin
 
 import dev.yidafu.aqua.common.domain.model.AddressModel
-import dev.yidafu.aqua.api.dto.AddressUpdateRequest
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 
@@ -28,60 +27,6 @@ import org.springframework.data.domain.PageRequest
  * 地址服务接口
  */
 interface AddressService {
-  /**
-   * 获取用户的所有地址
-   */
-  fun getUserAddresses(userId: Long): List<AddressModel>
-
-  /**
-   * 获取用户默认地址
-   */
-  fun getUserDefaultAddress(userId: Long): AddressModel?
-
-  /**
-   * 根据ID获取地址
-   */
-  fun getAddressById(addressId: Long): AddressModel?
-
-  /**
-   * 创建新地址 (使用Address对象)
-   */
-  fun createAddress(address: AddressModel): AddressModel
-
-  /**
-   * 更新地址
-   */
-  fun updateAddress(
-    addressId: Long,
-    userId: Long,
-    province: String? = null,
-    city: String? = null,
-    district: String? = null,
-    detailAddress: String? = null,
-    provinceCode: String? = null,
-    cityCode: String? = null,
-    districtCode: String? = null,
-    longitude: Double? = null,
-    latitude: Double? = null,
-    isDefault: Boolean? = null,
-  ): AddressModel?
-
-  /**
-   * 更新地址 (使用AddressUpdateRequest对象)
-   */
-  fun updateAddress(
-    addressId: Long,
-    updates: AddressUpdateRequest,
-  ): AddressModel?
-
-  /**
-   * 删除地址
-   */
-  fun deleteAddress(
-    addressId: Long,
-    userId: Long,
-  ): Boolean
-
   /**
    * 设置默认地址
    */
@@ -115,23 +60,9 @@ interface AddressService {
   fun findByUserId(userId: Long): List<AddressModel>
 
   /**
-   * 获取用户默认地址
-   */
-  fun findDefaultByUserId(userId: Long): AddressModel?
-
-  /**
    * 根据ID获取地址
    */
   fun findById(addressId: Long): AddressModel?
-
-  /**
-   * 搜索用户地址
-   */
-  fun searchByUserIdAndKeyword(
-    userId: Long,
-    keyword: String,
-    pageable: PageRequest,
-  ): Page<AddressModel>
 
   /**
    * 搜索所有地址 (管理员功能)

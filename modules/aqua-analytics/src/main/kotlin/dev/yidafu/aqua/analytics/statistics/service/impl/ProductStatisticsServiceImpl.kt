@@ -19,15 +19,14 @@
 
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
+import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductInfo
+import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepositoryCustom
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
 import dev.yidafu.aqua.common.graphql.generated.ProductSalesStat
-import dev.yidafu.aqua.common.graphql.generated.ProductSalesTrend
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
-import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductInfo
-import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepositoryCustom
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalTime
@@ -139,69 +138,6 @@ class ProductStatisticsServiceImpl(
         }
       }
     }
-  }
-
-  /**
-   * 获取商品销量趋势
-   * @param startDate 开始日期
-   * @param endDate 结束日期
-   * @param productId 商品ID（可选，为空则返回所有商品的汇总趋势）
-   */
-  fun getProductSalesTrend(
-    startDate: LocalDate,
-    endDate: LocalDate,
-    productId: Long?,
-  ): ProductSalesTrend {
-    val startDateTime = startDate.atStartOfDay()
-    val endDateTime = endDate.atTime(LocalTime.MAX)
-
-    val results =
-      productSalesStatisticsRepository.getProductDailySales(
-        startDateTime = startDateTime,
-        endDateTime = endDateTime,
-        productId = productId,
-      )
-
-    // Create a map of existing results by date
-    val resultsByDate = results.groupBy { it.date }
-
-    // Generate all dates in the range and fill in zeros for missing dates
-    val allDates = generateSequence(startDate) { it.plusDays(1) }.takeWhile { !it.isAfter(endDate) }.toList()
-
-    val dailySales =
-      allDates.flatMap { date ->
-        val dateStr = date.toString()
-        val dayResults = resultsByDate[dateStr]
-        if (dayResults.isNullOrEmpty()) {
-          listOf(
-            ProductDailySales(
-              date = dateStr,
-              productId = productId ?: 0L,
-              productName = "无销售",
-              salesVolume = 0,
-              revenue = 0L,
-            ),
-          )
-        } else {
-          dayResults.map { result ->
-            ProductDailySales(
-              date = result.date,
-              productId = result.productId,
-              productName = result.productName,
-              salesVolume = result.salesVolume.toInt(),
-              revenue = result.revenue,
-            )
-          }
-        }
-      }
-
-    val firstResult = results.firstOrNull()
-
-    return ProductSalesTrend(
-      productId = productId ?: firstResult?.productId,
-      productName = if (productId != null) firstResult?.productName else null,
-      dailySales = dailySales,
-    )
   }
 
   /**

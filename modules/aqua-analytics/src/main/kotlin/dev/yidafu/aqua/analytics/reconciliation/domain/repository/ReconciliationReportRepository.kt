@@ -49,25 +49,7 @@ interface ReconciliationReportRepository :
   fun findByReportType(reportType: String): List<ReconciliationReportModel>
 
   /**
-   * 根据生成时间范围查找报表
-   * Implementation moved to ReconciliationReportRepositoryCustom
-   */
-  // fun findByGeneratedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationReport>
-
-  /**
    * 查找最新的报表
    */
   fun findFirstByOrderByGeneratedAtDesc(): ReconciliationReportModel?
-
-  /**
-   * 删除旧报表
-   * Implementation moved to ReconciliationReportRepositoryCustom
-   */
-  // fun deleteReportsBefore(beforeDate: LocalDateTime): Int
-
-  /**
-   * 统计报表数量
-   * Implementation moved to ReconciliationReportRepositoryCustom
-   */
-  // fun countByTaskIdAndReportType(taskId: String, reportType: String): Long
 }

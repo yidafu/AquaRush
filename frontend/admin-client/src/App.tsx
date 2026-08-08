@@ -13,7 +13,6 @@ import UserStatistics from './pages/statistics/users';
 import DeliveryWorkerStatistics from './pages/statistics/delivery-workers';
 import OrderStatistics from './pages/statistics/orders';
 import ProductStatistics from './pages/statistics/products';
-import BucketDeposits from './pages/bucket-deposits';
 import UserDetailPage from './pages/users/detail/index';
 import DeliveryWorkerDetailPage from './pages/users/delivery-workers/detail/index';
 import AdminUsers from './pages/users/admins';
@@ -54,7 +53,6 @@ const App: React.FC = () => {
         <Route path="statistics/delivery-workers" element={<DeliveryWorkerStatistics />} />
         <Route path="statistics/orders" element={<OrderStatistics />} />
         <Route path="statistics/products" element={<ProductStatistics />} />
-        <Route path="bucket-deposits" element={<BucketDeposits />} />
         <Route path="addresses" element={<AddressListPage />} />
         <Route path="logs/api" element={<ApiLogs />} />
         <Route path="logs/user-actions" element={<UserActionLogs />} />

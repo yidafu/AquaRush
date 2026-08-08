@@ -20,8 +20,8 @@
 package dev.yidafu.aqua.user.service.impl
 
 import dev.yidafu.aqua.api.service.admin.AdminService
-import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerMutationService
+import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
@@ -187,24 +187,6 @@ class AdminServiceImpl(
     val savedAdmin = adminRepository.save(existingAdmin)
     logger.info("Successfully updated admin user: ${savedAdmin.id}")
     return savedAdmin
-  }
-
-  /**
-   * Delete an admin user
-   */
-  override fun deleteAdmin(id: Long): Boolean {
-    val existingAdmin =
-      adminRepository.findAdminById(id)
-        ?: throw BadRequestException("管理员不存在: $id")
-
-    // Cannot delete super admin
-    if (existingAdmin.role == AdminRoleModel.SUPER_ADMIN) {
-      throw BadRequestException("不能删除超级管理员")
-    }
-
-    adminRepository.delete(existingAdmin)
-    logger.info("Successfully deleted admin user: $id")
-    return true
   }
 
   override fun getDeliveryWorkerById(id: Long): DeliveryWorker? = null

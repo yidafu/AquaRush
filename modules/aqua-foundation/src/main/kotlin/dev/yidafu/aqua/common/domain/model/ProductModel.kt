@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.converter.ArrayNodeConverter
 import dev.yidafu.aqua.common.converter.ObjectNodeConverter
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
@@ -33,7 +34,6 @@ import tools.jackson.databind.node.ObjectNode
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 
 @Entity
 @SoftDelete(columnName = "is_deleted")

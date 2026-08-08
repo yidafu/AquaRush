@@ -3,9 +3,9 @@ package dev.yidafu.aqua.client.user.controller
 import dev.yidafu.aqua.client.user.dto.JwtGenerationRequest
 import dev.yidafu.aqua.client.user.dto.JwtGenerationResponse
 import dev.yidafu.aqua.client.user.dto.UserDebugInfo
+import dev.yidafu.aqua.common.ApiResponse
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.common.ApiResponse
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.ResponseEntity

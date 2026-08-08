@@ -64,31 +64,7 @@ interface ReconciliationDiscrepancyRepository :
   ): List<ReconciliationDiscrepancyModel>
 
   /**
-   * 统计未解决的差异数量
-   * Implementation moved to ReconciliationDiscrepancyRepositoryCustom
-   */
-  // fun countUnresolvedByTaskId(taskId: String): Long
-
-  /**
-   * 统计各种差异类型的数量
-   * Implementation moved to ReconciliationDiscrepancyRepositoryCustom
-   */
-  // fun countByDiscrepancyTypeGroup(taskId: String): List<Array<Any>>
-
-  /**
-   * 根据创建时间范围查找差异
-   * Implementation moved to ReconciliationDiscrepancyRepositoryCustom
-   */
-  // fun findByCreatedAtBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationDiscrepancy>
-
-  /**
    * 查找所有未解决的差异
    */
   fun findByStatus(status: String = "UNRESOLVED"): List<ReconciliationDiscrepancyModel>
-
-  /**
-   * 删除已解决的旧差异
-   * Implementation moved to ReconciliationDiscrepancyRepositoryCustom
-   */
-  // fun deleteResolvedBefore(beforeDate: LocalDateTime): Int
 }

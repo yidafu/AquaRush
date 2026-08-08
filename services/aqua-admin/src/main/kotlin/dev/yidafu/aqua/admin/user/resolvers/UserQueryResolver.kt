@@ -24,8 +24,8 @@ import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.graphql.generated.UserListInput
 import dev.yidafu.aqua.common.graphql.generated.UserVoPage
-import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.common.graphql.util.GraphQLSecurityContext
+import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.user.mapper.UserMapper
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable

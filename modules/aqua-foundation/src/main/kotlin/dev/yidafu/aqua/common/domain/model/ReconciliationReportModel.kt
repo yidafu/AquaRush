@@ -22,12 +22,12 @@ package dev.yidafu.aqua.common.domain.model
 /**
  * 对账报表实体
  */
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.annotations.SoftDelete
 import org.hibernate.type.SqlTypes
 import java.time.LocalDateTime
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 
 @Entity
 @SoftDelete(columnName = "is_deleted")

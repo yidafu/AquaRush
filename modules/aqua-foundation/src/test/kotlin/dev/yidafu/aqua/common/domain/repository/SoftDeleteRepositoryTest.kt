@@ -32,7 +32,6 @@ import java.time.LocalDateTime
 import java.util.*
 
 class SoftDeleteRepositoryTest {
-
   private lateinit var repository: SoftDeleteRepositoryImpl<TestEntity, Long>
   private lateinit var entityManager: EntityManager
   private lateinit var entityInformation: JpaEntityInformation<TestEntity, *>
@@ -63,10 +62,11 @@ class SoftDeleteRepositoryTest {
   @Test
   fun `test restore should mark entity as not deleted`() {
     // Given
-    val entity = TestEntity().apply {
-      deletedAt = LocalDateTime.now()
-      deletedAt = LocalDateTime.now()
-    }
+    val entity =
+      TestEntity().apply {
+        deletedAt = LocalDateTime.now()
+        deletedAt = LocalDateTime.now()
+      }
     val optional = Optional.of(entity)
     every { entityManager.find(TestEntity::class.java, 1L) } returns entity
 
@@ -81,6 +81,6 @@ class SoftDeleteRepositoryTest {
 
   data class TestEntity(
     override var deletedAt: LocalDateTime? = null,
-    override var deletedBy: Long? = null
+    override var deletedBy: Long? = null,
   ) : SoftDeletable
 }

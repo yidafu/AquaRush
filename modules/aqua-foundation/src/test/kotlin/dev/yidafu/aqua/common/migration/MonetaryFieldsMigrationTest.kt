@@ -21,9 +21,9 @@ package dev.yidafu.aqua.common.migration
 
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 

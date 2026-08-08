@@ -13,7 +13,6 @@ import {
   BarChartOutlined,
   LogoutOutlined,
   SettingOutlined,
-  InboxOutlined,
   EnvironmentOutlined,
   HistoryOutlined,
   AuditOutlined,
@@ -40,7 +39,6 @@ const Layout: React.FC = () => {
     { key: '/products', icon: <ShoppingOutlined />, label: '产品管理' },
     { key: '/addresses', icon: <EnvironmentOutlined />, label: '地址管理' },
     { key: '/orders', icon: <FileTextOutlined />, label: '订单管理' },
-    { key: '/bucket-deposits', icon: <InboxOutlined />, label: '押桶管理' },
     { key: '/daily-collection', icon: <DollarOutlined />, label: '收银对账' },
     {
       key: 'statistics',

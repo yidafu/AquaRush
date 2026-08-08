@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.product.service.impl
 
-import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.api.service.product.ProductService
+import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus

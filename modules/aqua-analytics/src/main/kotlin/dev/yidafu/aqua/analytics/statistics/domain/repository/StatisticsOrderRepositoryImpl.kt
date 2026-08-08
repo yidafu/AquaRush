@@ -20,7 +20,6 @@
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
 import com.querydsl.core.BooleanBuilder
-import com.querydsl.core.types.Projections
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO

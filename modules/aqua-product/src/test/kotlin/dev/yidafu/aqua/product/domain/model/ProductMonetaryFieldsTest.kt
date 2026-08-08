@@ -23,9 +23,9 @@ import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import java.math.BigDecimal
 
 @DisplayName("Product Model Monetary Fields Tests")
@@ -151,9 +151,27 @@ class ProductMonetaryFieldsTest {
     // Test boundary values
     val boundaryCases =
       listOf(
-        ProductModel(id = 2L, name = "Free Product", price = 0L, coverImageUrl = "https://example.com/free.jpg", status = ProductModelStatus.ONLINE),
-        ProductModel(id = 3L, name = "Cheap Product", price = 1L, coverImageUrl = "https://example.com/cheap.jpg", status = ProductModelStatus.ONLINE),
-        ProductModel(id = 4L, name = "Round Product", price = 100L, coverImageUrl = "https://example.com/round.jpg", status = ProductModelStatus.ONLINE),
+        ProductModel(
+          id = 2L,
+          name = "Free Product",
+          price = 0L,
+          coverImageUrl = "https://example.com/free.jpg",
+          status = ProductModelStatus.ONLINE,
+        ),
+        ProductModel(
+          id = 3L,
+          name = "Cheap Product",
+          price = 1L,
+          coverImageUrl = "https://example.com/cheap.jpg",
+          status = ProductModelStatus.ONLINE,
+        ),
+        ProductModel(
+          id = 4L,
+          name = "Round Product",
+          price = 100L,
+          coverImageUrl = "https://example.com/round.jpg",
+          status = ProductModelStatus.ONLINE,
+        ),
       )
 
     boundaryCases.forEach { product ->
@@ -197,11 +215,41 @@ class ProductMonetaryFieldsTest {
   fun `ProductModel works correctly in price-based operations`() {
     val products =
       listOf(
-        ProductModel(id = 1L, name = "Product A", price = 10000L, coverImageUrl = "https://example.com/a.jpg", status = ProductModelStatus.ONLINE), // ¥100.00
-        ProductModel(id = 2L, name = "Product B", price = 15000L, coverImageUrl = "https://example.com/b.jpg", status = ProductModelStatus.ONLINE), // ¥150.00
-        ProductModel(id = 3L, name = "Product C", price = 5000L, coverImageUrl = "https://example.com/c.jpg", status = ProductModelStatus.ONLINE), // ¥50.00
-        ProductModel(id = 4L, name = "Product D", price = 20000L, coverImageUrl = "https://example.com/d.jpg", status = ProductModelStatus.OFFLINE), // ¥200.00
-        ProductModel(id = 5L, name = "Product E", price = 7500L, coverImageUrl = "https://example.com/e.jpg", status = ProductModelStatus.ONLINE), // ¥75.00
+        ProductModel(
+          id = 1L,
+          name = "Product A",
+          price = 10000L,
+          coverImageUrl = "https://example.com/a.jpg",
+          status = ProductModelStatus.ONLINE,
+        ), // ¥100.00
+        ProductModel(
+          id = 2L,
+          name = "Product B",
+          price = 15000L,
+          coverImageUrl = "https://example.com/b.jpg",
+          status = ProductModelStatus.ONLINE,
+        ), // ¥150.00
+        ProductModel(
+          id = 3L,
+          name = "Product C",
+          price = 5000L,
+          coverImageUrl = "https://example.com/c.jpg",
+          status = ProductModelStatus.ONLINE,
+        ), // ¥50.00
+        ProductModel(
+          id = 4L,
+          name = "Product D",
+          price = 20000L,
+          coverImageUrl = "https://example.com/d.jpg",
+          status = ProductModelStatus.OFFLINE,
+        ), // ¥200.00
+        ProductModel(
+          id = 5L,
+          name = "Product E",
+          price = 7500L,
+          coverImageUrl = "https://example.com/e.jpg",
+          status = ProductModelStatus.ONLINE,
+        ), // ¥75.00
       )
 
     // Test price filtering

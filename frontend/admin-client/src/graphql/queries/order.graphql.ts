@@ -88,24 +88,6 @@ export const GET_ORDER_DETAIL_QUERY = gql`
   }
 `;
 
-export const GET_ORDERS_BY_STATUS_QUERY = gql`
-  query GetOrdersByStatus($status: OrderStatus!) {
-    ordersByStatus(status: $status) {
-      id
-      orderNo
-      user {
-        id
-        nickname
-        phone
-      }
-      status
-      amount
-      createdAt
-      updatedAt
-    }
-  }
-`;
-
 export const GET_ORDER_OPERATIONS_QUERY = gql`
   query GetOrderOperations($orderId: PrimaryId!) {
     orderOperations(orderId: $orderId) {

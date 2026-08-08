@@ -42,26 +42,3 @@ export const GET_ADDRESSES_QUERY = gql`
     }
   }
 `;
-
-export const GET_ADDRESS_BY_ID_QUERY = gql`
-  query GetAddressById($id: PrimaryId!) {
-    address(id: $id) {
-      id
-      userId
-      receiverName
-      phone
-      province
-      provinceCode
-      city
-      cityCode
-      district
-      districtCode
-      detailAddress
-      longitude
-      latitude
-      isDefault
-      createdAt
-      updatedAt
-    }
-  }
-`;

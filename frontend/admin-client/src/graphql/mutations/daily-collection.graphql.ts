@@ -1,25 +1,5 @@
 import { gql } from '@apollo/client'
 
-// 提交每日收款
-export const SUBMIT_DAILY_COLLECTION = gql`
-  mutation SubmitDailyCollection($input: SubmitDailyCollectionInput!) {
-    submitDailyCollection(input: $input) {
-      id
-      deliveryWorkerId
-      collectionDate
-      cashAmountCents
-      waterTicketCount
-      qrCodeAmountCents
-      orderCount
-      orderAmountCents
-      differenceAmountCents
-      status
-      createdAt
-      updatedAt
-    }
-  }
-`
-
 // 确认每日收款
 export const CONFIRM_DAILY_COLLECTION = gql`
   mutation ConfirmDailyCollection($input: ConfirmDailyCollectionInput!) {

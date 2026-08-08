@@ -143,27 +143,4 @@ class AdminUserMutationResolverTest {
     assertNotNull(result)
     verify { adminService.updateAdmin(1L, "新名称", "13900139002", AdminRoleModel.ADMIN) }
   }
-
-  @Test
-  fun `deleteAdmin should delete admin successfully`() {
-    // Given
-    every { adminService.deleteAdmin(1L) } returns true
-
-    // When
-    val result = resolver.deleteAdmin(1L)
-
-    // Then
-    assertTrue(result)
-    verify { adminService.deleteAdmin(1L) }
-  }
-
-  @Test
-  fun `deleteAdmin should throw exception when service fails`() {
-    // Given
-    every { adminService.deleteAdmin(1L) } throws RuntimeException("Cannot delete")
-
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.deleteAdmin(1L) }
-    assertTrue(exception.message!!.contains("删除管理员失败"))
-  }
 }

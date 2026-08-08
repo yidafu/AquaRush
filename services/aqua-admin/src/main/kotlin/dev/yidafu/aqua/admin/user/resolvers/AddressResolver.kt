@@ -23,7 +23,6 @@ import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
 import dev.yidafu.aqua.common.graphql.generated.BatchImportAddressesResult
-import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.user.mapper.AddressInputMapper
 import dev.yidafu.aqua.user.mapper.AddressMapper
 import jakarta.validation.Valid
@@ -31,8 +30,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
-import org.springframework.security.access.AccessDeniedException
-import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Controller
 
 @Controller
@@ -49,41 +46,6 @@ class AddressResolver(
     return AddressMapper.mapList(list)
   }
 
-  @QueryMapping
-  fun getMyAddresses(): List<Address> {
-    val authentication = SecurityContextHolder.getContext().authentication
-    val userId = authentication?.name!!.toLong()
-    val addresses = addressService.getUserAddresses(userId)
-    return AddressMapper.mapList(addresses)
-  }
-
-  @QueryMapping
-  fun getAddressById(
-    @Argument id: Long,
-  ): Address? {
-    val authentication = SecurityContextHolder.getContext().authentication
-    val address = addressService.getAddressById(id)
-    val userId = authentication!!.name.toLong()
-
-    // Check if user owns this address or is admin
-    if (address != null &&
-      !authentication.authorities.any { it.authority == "ROLE_ADMIN" } &&
-      address.userId != userId
-    ) {
-      throw AccessDeniedException("无权访问此地址")
-    }
-
-    return address?.let { AddressMapper.map(it) }
-  }
-
-  @QueryMapping
-  fun getDefaultAddress(): Address? {
-    val authentication = SecurityContextHolder.getContext().authentication
-    val userId = authentication!!.name.toLong()
-    val defaultAddress = addressService.getUserDefaultAddress(userId)
-    return defaultAddress?.let { AddressMapper.map(it) }
-  }
-
   // Admin-only queries
 
   /**
@@ -93,34 +55,6 @@ class AddressResolver(
   fun addresses(): List<Address> {
     val allAddresses = addressService.findAllAddresses()
     return AddressMapper.mapList(allAddresses)
-  }
-
-  /**
-   * 根据ID获取地址 (管理员)
-   */
-  @QueryMapping
-  fun address(
-    @Argument id: Long,
-  ): Address? {
-    val address = addressService.getAddressById(id)
-    return address?.let { AddressMapper.map(it) }
-  }
-
-  /**
-   * 搜索用户地址 (管理员)
-   */
-  @QueryMapping
-  fun searchUserAddresses(
-    @Argument keyword: String,
-    @Argument userId: Long,
-    @Argument page: Int = 0,
-    @Argument size: Int = 10,
-  ): List<Address> {
-    val pageable =
-      org.springframework.data.domain.PageRequest
-        .of(page, size)
-    val addresses = addressService.searchByUserIdAndKeyword(userId, keyword, pageable)
-    return AddressMapper.mapList(addresses.content)
   }
 
   /**
@@ -212,68 +146,4 @@ class AddressResolver(
   fun deleteAdminAddress(
     @Argument id: Long,
   ): Boolean = addressService.deleteAddressById(id)
-
-  @MutationMapping
-  fun createAddress(
-    @Argument @Valid input: AddressInput,
-  ): Address {
-    val authentication = SecurityContextHolder.getContext().authentication
-    val userId = authentication!!.name.toLong()
-    val address = AddressInputMapper.map(input)
-    address.userId = userId
-    val createdAddress =
-      addressService.createAddress(
-        address,
-      )
-
-    return createdAddress.let { AddressMapper.map(it) }
-  }
-
-  @MutationMapping
-  fun updateAddress(
-    @Argument id: Long,
-    @Argument @Valid input: UpdateAddressInput,
-  ): Address? {
-    val authentication = SecurityContextHolder.getContext().authentication
-    val userId = authentication!!.name.toLong()
-    val request = input
-
-    val updatedAddress =
-      addressService.updateAddress(
-        addressId = id,
-        userId = userId,
-        province = request.province?.toString(),
-        city = request.city?.toString(),
-        district = request.district?.toString(),
-        detailAddress = request.detailAddress?.toString(),
-        provinceCode = request.provinceCode?.toString(),
-        cityCode = request.cityCode?.toString(),
-        districtCode = request.districtCode?.toString(),
-        longitude = request.longitude?.toDouble(),
-        latitude = request.latitude?.toDouble(),
-        isDefault = (request.isDefault as Boolean?) ?: false,
-      )
-
-    return updatedAddress?.let { AddressMapper.map(it) }
-  }
-
-  @MutationMapping
-  fun setDefaultAddress(
-    @Argument id: Long,
-  ): Boolean {
-    val authentication = SecurityContextHolder.getContext().authentication
-    val userId = authentication!!.name.toLong()
-
-    return addressService.setDefaultAddress(id, userId)
-  }
-
-  @MutationMapping
-  fun deleteAddress(
-    @Argument id: Long,
-  ): Boolean {
-    val authentication = SecurityContextHolder.getContext().authentication
-    val userId = authentication!!.name.toLong()
-
-    return addressService.deleteAddress(id, userId)
-  }
 }

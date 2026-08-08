@@ -132,10 +132,3 @@ export const queryUserActionLogs = (params: UserActionLogQueryParams) => {
 export const queryBusinessLogs = (params: BizLogQueryParams) => {
   return http.get<PageResponse<BizLogItem>>('/logs/business', { params });
 };
-
-/**
- * 根据关联ID查询 API 日志
- */
-export const getApiLogsByCorrelationId = (correlationId: string) => {
-  return http.get<ApiLogItem[]>(`/logs/api/correlation/${correlationId}`);
-};

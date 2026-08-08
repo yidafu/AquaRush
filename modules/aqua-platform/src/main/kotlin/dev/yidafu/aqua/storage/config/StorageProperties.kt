@@ -64,7 +64,7 @@ data class LocalStorageProperties(
   /**
    * 最大文件大小（字节）
    */
-  var maxFileSize: Long = 100L * 1024L * 1024L, // 100MB
+  var maxFileSize: Long = 100L * 1024L * 1024L,
   /**
    * 允许的文件扩展名
    */

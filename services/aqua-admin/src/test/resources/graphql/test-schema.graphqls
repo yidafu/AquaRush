@@ -2,9 +2,7 @@
 
 type Query {
   addresses: [Address!]!
-  address(id: Long!): Address
   searchAllAddresses(keyword: String, page: Int, size: Int): [Address!]!
-  searchUserAddresses(keyword: String!, userId: Long, page: Int, size: Int): [Address!]!
   userAddresses(userId: Long): [Address!]!
 }
 

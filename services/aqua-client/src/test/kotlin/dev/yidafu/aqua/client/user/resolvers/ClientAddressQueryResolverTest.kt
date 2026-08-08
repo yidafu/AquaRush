@@ -99,30 +99,6 @@ class ClientAddressQueryResolverTest {
   }
 
   @Test
-  fun `userDefaultAddress should return default address`() {
-    // Given
-    every { addressService.findDefaultByUserId(1L) } returns createSampleAddress()
-
-    // When
-    val result = resolver.userDefaultAddress(userPrincipal)
-
-    // Then
-    assertNotNull(result)
-  }
-
-  @Test
-  fun `userDefaultAddress should return null when no default`() {
-    // Given
-    every { addressService.findDefaultByUserId(1L) } returns null
-
-    // When
-    val result = resolver.userDefaultAddress(userPrincipal)
-
-    // Then
-    assertNull(result)
-  }
-
-  @Test
   fun `address should return address when it belongs to user`() {
     // Given
     every { addressService.findById(1L) } returns createSampleAddress()
@@ -155,73 +131,5 @@ class ClientAddressQueryResolverTest {
 
     // Then
     assertNull(result)
-  }
-
-  @Test
-  fun `userAddressCount should return address count`() {
-    // Given
-    every { addressService.countByUserId(1L) } returns 5
-
-    // When
-    val result = resolver.userAddressCount(userPrincipal)
-
-    // Then
-    assertEquals(5, result)
-  }
-
-  @Test
-  fun `getNearbyDeliveryWorkers should throw exception when accessing other user address`() {
-    // Given
-    every { addressService.findById(1L) } returns createOtherUserAddress()
-
-    // When & Then
-    val exception = assertFailsWith<IllegalArgumentException> { resolver.getNearbyDeliveryWorkers(1L, 5.0, 10, userPrincipal) }
-    assertTrue(exception.message!!.contains("无权访问"))
-  }
-
-  @Test
-  fun `getNearbyDeliveryWorkers should return empty list`() {
-    // Given
-    every { addressService.findById(1L) } returns createSampleAddress()
-
-    // When
-    val result = resolver.getNearbyDeliveryWorkers(1L, 5.0, 10, userPrincipal)
-
-    // Then
-    assertTrue(result.isEmpty())
-  }
-
-  @Test
-  fun `getNearbyAddresses should return empty list`() {
-    // When
-    val result = resolver.getNearbyAddresses(114.0579, 22.5431, 2.0, 20, userPrincipal)
-
-    // Then
-    assertTrue(result.isEmpty())
-  }
-
-  @Test
-  fun `validateAddressForDelivery should throw exception when accessing other user address`() {
-    // Given
-    every { addressService.findById(1L) } returns createOtherUserAddress()
-
-    // When & Then
-    val exception = assertFailsWith<IllegalArgumentException> { resolver.validateAddressForDelivery(1L, userPrincipal) }
-    assertTrue(exception.message!!.contains("无权访问"))
-  }
-
-  @Test
-  fun `validateAddressForDelivery should return validation result`() {
-    // Given
-    every { addressService.findById(1L) } returns createSampleAddress()
-
-    // When
-    val result = resolver.validateAddressForDelivery(1L, userPrincipal)
-
-    // Then
-    assertNotNull(result)
-    assertTrue(result.isValid)
-    assertTrue(result.isInRange)
-    assertEquals("30-45分钟", result.estimatedDeliveryTime)
   }
 }

@@ -179,20 +179,6 @@ class ClientAddressGraphQLIntegrationTest {
   }
 
   @Test
-  @DisplayName("copyUserAddress should copy address successfully")
-  fun `copyUserAddress copies address successfully`() {
-    val newAddress = createSampleAddress()
-    newAddress.id = 2L
-    every { addressService.findById(1L) } returns createSampleAddress()
-    every { addressService.save(any()) } returns newAddress
-
-    val result = resolver.copyUserAddress(1L, "新地址名称", userPrincipal)
-
-    assertNotNull(result)
-    verify { addressService.save(any()) }
-  }
-
-  @Test
   @DisplayName("deleteAddress should fail when address not found")
   fun `deleteAddress fails when address not found`() {
     every { addressService.findById(999L) } returns null
@@ -221,5 +207,19 @@ class ClientAddressGraphQLIntegrationTest {
     assertFailsWith<BadRequestException> {
       resolver.setDefaultAddress(999L, userPrincipal)
     }
+  }
+
+  @Test
+  @DisplayName("copyUserAddress should copy address successfully")
+  fun `copyUserAddress copies address successfully`() {
+    val newAddress = createSampleAddress()
+    newAddress.id = 2L
+    every { addressService.findById(1L) } returns createSampleAddress()
+    every { addressService.save(any()) } returns newAddress
+
+    val result = resolver.copyUserAddress(1L, "新地址名称", userPrincipal)
+
+    assertNotNull(result)
+    verify { addressService.save(any()) }
   }
 }

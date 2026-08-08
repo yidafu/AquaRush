@@ -10,8 +10,6 @@ import org.springframework.data.domain.Pageable
 interface ProductService {
   fun findById(id: Long): ProductModel?
 
-  fun findOnlineProducts(pageable: Pageable): Page<ProductModel>
-
   fun createProduct(request: CreateProductInput): ProductModel
 
   fun updateProductStatus(
@@ -28,13 +26,6 @@ interface ProductService {
     productId: Long,
     quantity: Int,
   ): Boolean
-
-  fun countByStatus(status: ProductStatus): Long
-
-  fun findPopularProducts(
-    pageable: Pageable,
-    limit: Int,
-  ): Page<ProductModel>
 
   fun productsPaginated(
     query: ProductSearchRequest,

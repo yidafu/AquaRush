@@ -96,11 +96,6 @@ interface AdminService {
     role: AdminRoleModel?,
   ): AdminModel
 
-  /**
-   * Delete an admin user
-   */
-  fun deleteAdmin(id: Long): Boolean
-
   fun getDeliveryWorkerById(id: Long): DeliveryWorker?
 
   fun getUserById(id: Long): UserModel

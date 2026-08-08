@@ -1,9 +1,9 @@
 package dev.yidafu.aqua.order.domain.repository
 
+import dev.yidafu.aqua.api.dto.OrderAnalyticsRow
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
-import dev.yidafu.aqua.api.dto.OrderAnalyticsRow
 import org.springframework.data.domain.Page
 import java.time.LocalDateTime
 

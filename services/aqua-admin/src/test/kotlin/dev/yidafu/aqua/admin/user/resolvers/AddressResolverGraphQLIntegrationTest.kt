@@ -126,36 +126,6 @@ class AddressResolverGraphQLIntegrationTest {
   }
 
   @Test
-  @DisplayName("address query should return address by id for admin")
-  fun `address query returns address by id`() {
-    // Seed test data
-    val savedAddress = addressService.save(createSampleAddress())
-
-    // Execute GraphQL query
-    webGraphQlTester
-      .document(
-        $$"""
-        query addressQuery($id: Long!) {
-          address(id: $id) {
-            id
-            userId
-            receiverName
-            phone
-            province
-            city
-            district
-            detailAddress
-            isDefault
-          }
-        }
-        """.trimIndent(),
-      ).variable("id", savedAddress.id)
-      .execute()
-      .path("data.address.id")
-      .matchesJson($$"""${"id":$${savedAddress.id}}""")
-  }
-
-  @Test
   @DisplayName("searchAllAddresses query should search addresses for admin")
   fun `searchAllAddresses query searches addresses`() {
     // Seed test data
@@ -186,39 +156,6 @@ class AddressResolverGraphQLIntegrationTest {
 
     org.junit.jupiter.api.Assertions
       .assertTrue(searchResult.size >= 1)
-  }
-
-  @Test
-  @DisplayName("searchUserAddresses query should search user addresses for admin")
-  fun `searchUserAddresses query searches user addresses`() {
-    // Seed test data
-    addressService.save(createSampleAddress(userId = testUserId, city = "深圳市", detailAddress = "南山科技园"))
-
-    // Execute GraphQL query
-    val userSearchResult =
-      webGraphQlTester
-        .document(
-          $$"""
-          query searchUserAddresses($keyword: String!, $userId: Long) {
-            searchUserAddresses(keyword: $keyword, userId: $userId, page: 0, size: 10) {
-              id
-              userId
-              receiverName
-              phone
-              city
-              detailAddress
-            }
-          }
-          """.trimIndent(),
-        ).variable("keyword", "深圳")
-        .variable("userId", testUserId)
-        .execute()
-        .path("data.searchUserAddresses")
-        .entityList(Map::class.java)
-        .get()
-
-    org.junit.jupiter.api.Assertions
-      .assertTrue(userSearchResult.size >= 1)
   }
 
   @Test

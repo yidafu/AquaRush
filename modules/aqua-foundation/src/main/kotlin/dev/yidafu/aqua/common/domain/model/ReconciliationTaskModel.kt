@@ -22,13 +22,13 @@ package dev.yidafu.aqua.common.domain.model
 /**
  * 对账任务实体
  */
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator as GenericGeneratorKlass
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 
 @Entity
 @SoftDelete(columnName = "is_deleted")

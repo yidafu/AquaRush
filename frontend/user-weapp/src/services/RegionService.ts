@@ -4,9 +4,7 @@ import {
   Region,
   RegionCacheItem,
   RegionsResponse,
-  RegionVariables,
-  RegionHierarchy,
-  DefaultRegionResponse
+  RegionVariables
 } from '../types/region'
 
 class RegionService {
@@ -195,51 +193,6 @@ class RegionService {
     }).catch(error => {
       console.warn('Failed to preload region data:', error)
     })
-  }
-
-  /**
-   * Get default region hierarchy from backend configuration
-   */
-  public async getDefaultRegionHierarchy(): Promise<RegionHierarchy | null> {
-    const query = `
-      query GetDefaultRegionHierarchy {
-        defaultRegionHierarchy {
-          province {
-            name
-            code
-          }
-          city {
-            name
-            code
-          }
-          district {
-            name
-            code
-          }
-          provinces {
-            name
-            code
-          }
-          cities {
-            name
-            code
-          }
-          districts {
-            name
-            code
-          }
-        }
-      }
-    `
-
-    try {
-      const response = await networkManager.query<DefaultRegionResponse>(query, {}, {})
-      console.log('Default region hierarchy response:', response)
-      return response?.defaultRegionHierarchy || null
-    } catch (error) {
-      console.error('Failed to fetch default region hierarchy:', error)
-      return null
-    }
   }
 }
 

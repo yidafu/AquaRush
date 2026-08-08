@@ -14,30 +14,20 @@ schema {
 type Query {
   # Authentication
   me: UserInfo
-  user(id: PrimaryId!): User
 
   # Addresses
-  addresses: [Address!]!
   address(id: PrimaryId!): Address
 
   # Enhanced Address Management
   userAddresses: [Address!]!
-  userDefaultAddress: Address
 
   # Regions
   regions(level: Int, parentCode: String): [Region!]!
   region(code: String!): Region
-  # 获取所有地区数据，用于前端构建树形结构
-  allRegions: [Region!]!
 
   # Products
   activeProducts(keyword: String, page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductVOPage!
   product(id: PrimaryId!): Product
-
-  # Orders
-  order(orderId: PrimaryId!): Order
-  orderByNo(orderNo: String!): Order
-  orderOperations(orderId: PrimaryId!): [OrderOperation!]!
 
   # Favorites queries
   favoriteProducts(page: Int = 0, size: Int = 20): FavoriteProductVOPage!
@@ -57,17 +47,11 @@ type Mutation {
   deleteAddress(id: PrimaryId!): Boolean!
   setDefaultAddress(id: PrimaryId!): Boolean!
 
-  validateAddress(input: AddressValidationInput!): AddressValidationPayload!
-
   # Orders
   createOrder(input: CreateOrderInput!): Order!
-  cancelOrder(orderId: PrimaryId!): Order!
 
 
   # Favorites mutations
   toggleProductFavorites(productId: PrimaryId!): Boolean!
-
-  # 配送员每日收款（配送员小程序使用）
-  submitDailyCollection(input: SubmitDailyCollectionInput!): DailyCollectionRecord!
 }
 

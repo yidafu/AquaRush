@@ -83,24 +83,12 @@ class RegionQueryResolverTest {
       updatedAt = LocalDateTime.now(),
     )
 
-  private val anotherDistrict =
-    RegionModel(
-      id = 5L,
-      name = "天河区",
-      code = "440106",
-      parentCode = "440100",
-      level = 3,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
   @BeforeEach
   fun setUp() {
     regionRepository = mockk()
     regionQueryResolver =
       RegionQueryResolver(
         regionRepository = regionRepository,
-        defaultDistrictCode = "440305",
       )
 
     userPrincipal =
@@ -211,107 +199,6 @@ class RegionQueryResolverTest {
   }
 
   @Test
-  fun `should return default region hierarchy when default district code is set`() {
-    // Given
-    every { regionRepository.findByCode("440305") } returns sampleDistrict
-    every { regionRepository.findByCode("440300") } returns sampleCity
-    every { regionRepository.findByCode("440000") } returns sampleProvince
-    every { regionRepository.findByLevelOrderByCode(1) } returns listOf(sampleProvince)
-    every { regionRepository.findByParentCodeOrderByCode("440000") } returns listOf(sampleCity, anotherCity)
-    every { regionRepository.findByParentCodeOrderByCode("440300") } returns listOf(sampleDistrict)
-
-    // When
-    val result = regionQueryResolver.defaultRegionHierarchy(userPrincipal)
-
-    // Then
-    assertNotNull(result)
-    assertEquals(sampleProvince, result.province)
-    assertEquals(sampleCity, result.city)
-    assertEquals(sampleDistrict, result.district)
-    assertEquals(1, result.provinces.size)
-    assertEquals(sampleProvince, result.provinces[0])
-    assertEquals(2, result.cities.size)
-    assertEquals(sampleCity, result.cities[0])
-    assertEquals(anotherCity, result.cities[1])
-    assertEquals(1, result.districts.size)
-    assertEquals(sampleDistrict, result.districts[0])
-  }
-
-  @Test
-  fun `should return null when default district code is not set`() {
-    // Given
-    val resolverWithoutDefault =
-      RegionQueryResolver(
-        regionRepository = regionRepository,
-        defaultDistrictCode = null,
-      )
-
-    // When
-    val result = resolverWithoutDefault.defaultRegionHierarchy(userPrincipal)
-
-    // Then
-    assertNull(result)
-  }
-
-  @Test
-  fun `should return null when default district not found`() {
-    // Given
-    every { regionRepository.findByCode("440305") } returns null
-
-    // When
-    val result = regionQueryResolver.defaultRegionHierarchy(userPrincipal)
-
-    // Then
-    assertNull(result)
-    verify { regionRepository.findByCode("440305") }
-  }
-
-  @Test
-  fun `should return null when parent region not found in hierarchy`() {
-    // Given
-    every { regionRepository.findByCode("440305") } returns sampleDistrict
-    every { regionRepository.findByCode("440300") } returns null // City not found
-
-    // When
-    val result = regionQueryResolver.defaultRegionHierarchy(userPrincipal)
-
-    // Then
-    assertNull(result)
-    verify { regionRepository.findByCode("440305") }
-    verify { regionRepository.findByCode("440300") }
-  }
-
-  @Test
-  fun `should return null when grandparent region not found in hierarchy`() {
-    // Given
-    every { regionRepository.findByCode("440305") } returns sampleDistrict
-    every { regionRepository.findByCode("440300") } returns sampleCity
-    every { regionRepository.findByCode("440000") } returns null // Province not found
-
-    // When
-    val result = regionQueryResolver.defaultRegionHierarchy(userPrincipal)
-
-    // Then
-    assertNull(result)
-    verify { regionRepository.findByCode("440305") }
-    verify { regionRepository.findByCode("440300") }
-    verify { regionRepository.findByCode("440000") }
-  }
-
-  @Test
-  fun `should handle exception gracefully in hierarchy building`() {
-    // Given
-    every { regionRepository.findByCode("440305") } throws RuntimeException("Database error")
-
-    // When
-    val result = regionQueryResolver.defaultRegionHierarchy(userPrincipal)
-
-    // Then
-    assertNull(result)
-    verify { regionRepository.findByCode("440305") }
-  }
-
-  @Test
   fun `should work with null user principal`() {
     // Given
     every { regionRepository.findAll() } returns listOf(sampleProvince)
@@ -364,31 +251,5 @@ class RegionQueryResolverTest {
     // Then
     assertEquals(2, result.size)
     verify { regionRepository.findByLevel(0) }
-  }
-
-  @Test
-  fun `should build complete hierarchy with multiple children correctly`() {
-    // Given
-    val allProvinces = listOf(sampleProvince)
-    val citiesInProvince = listOf(sampleCity, anotherCity)
-    val districtsInCity = listOf(sampleDistrict, anotherDistrict)
-
-    every { regionRepository.findByCode("440305") } returns sampleDistrict
-    every { regionRepository.findByCode("440300") } returns sampleCity
-    every { regionRepository.findByCode("440000") } returns sampleProvince
-    every { regionRepository.findByLevelOrderByCode(1) } returns allProvinces
-    every { regionRepository.findByParentCodeOrderByCode("440000") } returns citiesInProvince
-    every { regionRepository.findByParentCodeOrderByCode("440300") } returns districtsInCity
-
-    // When
-    val result = regionQueryResolver.defaultRegionHierarchy(userPrincipal)
-
-    // Then
-    assertNotNull(result)
-    assertEquals(allProvinces, result.provinces)
-    assertEquals(citiesInProvince, result.cities)
-    assertEquals(districtsInCity, result.districts)
-    assertEquals(2, result.cities.size)
-    assertEquals(2, result.districts.size)
   }
 }

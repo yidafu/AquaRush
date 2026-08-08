@@ -147,126 +147,6 @@ class AdminProductMutationResolver(
     }
 
   /**
-   * 批量调整产品库存（管理员功能）
-   */
-  @PreAuthorize("hasRole('ADMIN')")
-  @Transactional
-  fun batchAdjustStock(input: BatchStockAdjustmentInput): BatchStockAdjustmentResult {
-    try {
-      val results = mutableListOf<StockAdjustmentResult>()
-
-      input.adjustments.forEach { adjustment ->
-        try {
-          val success =
-            when (adjustment.type) {
-              StockAdjustmentType.INCREASE -> {
-                productService.increaseStock(adjustment.productId, adjustment.quantity)
-                true
-              }
-
-              StockAdjustmentType.DECREASE -> {
-                productService.decreaseStock(adjustment.productId, adjustment.quantity)
-                true
-              }
-
-              StockAdjustmentType.SET -> {
-                val product = productService.findById(adjustment.productId)
-                if (product != null) {
-                  val targetStock = adjustment.quantity
-                  val currentStock = product.stock
-                  if (targetStock > currentStock) {
-                    productService.increaseStock(adjustment.productId, targetStock - currentStock)
-                  } else {
-                    productService.decreaseStock(adjustment.productId, currentStock - targetStock)
-                  }
-                  true
-                } else {
-                  false
-                }
-              }
-            }
-
-          results.add(
-            StockAdjustmentResult(
-              productId = adjustment.productId,
-              success = success,
-              message = if (success) "调整成功" else "调整失败",
-            ),
-          )
-        } catch (e: Exception) {
-          logger.warn("Failed to adjust stock for product ${adjustment.productId}", e)
-          results.add(
-            StockAdjustmentResult(
-              productId = adjustment.productId,
-              success = false,
-              message = "调整失败: ${e.message}",
-            ),
-          )
-        }
-      }
-
-      val successCount = results.count { it.success }
-      val totalCount = results.size
-
-      return BatchStockAdjustmentResult(
-        success = successCount == totalCount,
-        successCount = successCount,
-        failureCount = totalCount - successCount,
-        results = results,
-      )
-    } catch (e: Exception) {
-      logger.error("Failed to batch adjust stock", e)
-      throw BadRequestException("批量调整库存失败: ${e.message}")
-    }
-  }
-
-  /**
-   * 上线产品（管理员功能）
-   */
-  @PreAuthorize("hasRole('ADMIN')")
-  @Transactional
-  fun onlineProduct(id: Long): ProductModel =
-    try {
-      val product =
-        productService.findById(id)
-          ?: throw BadRequestException("产品不存在: $id")
-
-      if (product.status == ProductModelStatus.ONLINE) {
-        throw BadRequestException("产品已上线")
-      }
-
-      productService.updateProductStatus(id, ProductStatus.ONLINE)
-      logger.info("Successfully online product: $id")
-      productService.findById(id)!!
-    } catch (e: Exception) {
-      logger.error("Failed to online product", e)
-      throw BadRequestException("上线产品失败: ${e.message}")
-    }
-
-  /**
-   * 下线产品（管理员功能）
-   */
-  @PreAuthorize("hasRole('ADMIN')")
-  @Transactional
-  fun offlineProduct(id: Long): ProductModel =
-    try {
-      val product =
-        productService.findById(id)
-          ?: throw BadRequestException("产品不存在: $id")
-
-      if (product.status == ProductModelStatus.OFFLINE) {
-        throw BadRequestException("产品已下线")
-      }
-
-      productService.updateProductStatus(id, ProductStatus.OFFLINE)
-      logger.info("Successfully offline product: $id")
-      productService.findById(id)!!
-    } catch (e: Exception) {
-      logger.error("Failed to offline product", e)
-      throw BadRequestException("下线产品失败: ${e.message}")
-    }
-
-  /**
    * 验证创建产品输入
    */
   private fun validateCreateProductInput(input: CreateProductInput) {
@@ -319,50 +199,50 @@ class AdminProductMutationResolver(
     }
   }
 
-  companion object {
-    // UpdateProductInput moved to GraphQL generated classes
-
-    data class StockAdjustmentInput(
-      val productId: Long,
-      val quantity: Int,
-      val type: StockAdjustmentType,
-    )
-
-    data class BatchStockAdjustmentInput(
-      val adjustments: List<StockAdjustmentInput>,
-    )
-
-    data class StockAdjustmentResult(
-      val productId: Long,
-      val success: Boolean,
-      val message: String,
-    )
-
-    data class BatchStockAdjustmentResult(
-      val success: Boolean,
-      val successCount: Int,
-      val failureCount: Int,
-      val results: List<StockAdjustmentResult>,
-    )
-
-    enum class StockAdjustmentType {
-      INCREASE,
-      DECREASE,
-      SET,
-    }
-  }
-
   /**
-   * 批量更新产品（管理员功能）
+   * 上线产品（管理员功能）
    */
   @PreAuthorize("hasRole('ADMIN')")
   @Transactional
-  fun batchUpdateProducts(input: List<dev.yidafu.aqua.common.graphql.generated.ProductUpdateRequestInput>): List<ProductModel> =
+  fun onlineProduct(id: Long): ProductModel =
     try {
-      productService.batchUpdateProducts(input)
+      val product =
+        productService.findById(id)
+          ?: throw BadRequestException("产品不存在: $id")
+
+      if (product.status == ProductModelStatus.ONLINE) {
+        throw BadRequestException("产品已上线")
+      }
+
+      productService.updateProductStatus(id, ProductStatus.ONLINE)
+      logger.info("Successfully online product: $id")
+      productService.findById(id)!!
     } catch (e: Exception) {
-      logger.error("Failed to batch update products", e)
-      throw BadRequestException("批量更新产品失败: ${e.message}")
+      logger.error("Failed to online product", e)
+      throw BadRequestException("上线产品失败: ${e.message}")
+    }
+
+  /**
+   * 下线产品（管理员功能）
+   */
+  @PreAuthorize("hasRole('ADMIN')")
+  @Transactional
+  fun offlineProduct(id: Long): ProductModel =
+    try {
+      val product =
+        productService.findById(id)
+          ?: throw BadRequestException("产品不存在: $id")
+
+      if (product.status == ProductModelStatus.OFFLINE) {
+        throw BadRequestException("产品已下线")
+      }
+
+      productService.updateProductStatus(id, ProductStatus.OFFLINE)
+      logger.info("Successfully offline product: $id")
+      productService.findById(id)!!
+    } catch (e: Exception) {
+      logger.error("Failed to offline product", e)
+      throw BadRequestException("下线产品失败: ${e.message}")
     }
 
   /**

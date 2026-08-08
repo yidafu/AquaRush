@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.common.domain.model
 
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
@@ -26,7 +27,6 @@ import org.hibernate.annotations.SoftDelete
 import org.hibernate.type.SqlTypes
 import java.time.LocalDate
 import java.time.LocalDateTime
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 
 /**
  * 每日对账记录实体

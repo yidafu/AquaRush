@@ -20,13 +20,9 @@
 package dev.yidafu.aqua.client.product.resolvers
 
 import dev.yidafu.aqua.common.annotation.ClientService
-import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.product.mapper.ProductMapper
 import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Pageable
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -52,99 +48,5 @@ class ClientProductQueryResolver(
     val product = productService.findById(id)
 
     return product?.let { ProductMapper.map(it) }
-  }
-
-  /**
-   * 查询热销产品
-   */
-  @PreAuthorize("isAuthenticated()")
-  fun popularProducts(
-    limit: Int = 10,
-    page: Int = 0,
-    size: Int = 20,
-  ): Page<ProductModel> {
-    val pageable: Pageable = PageRequest.of(page, size)
-    return productService.findPopularProducts(pageable, limit)
-  }
-
-  /**
-   * 查询新产品
-   */
-  @PreAuthorize("isAuthenticated()")
-  fun newProducts(
-    days: Int = 7,
-    page: Int = 0,
-    size: Int = 20,
-  ): Page<ProductModel> {
-    val pageable: Pageable = PageRequest.of(page, size)
-    return productService.findNewProducts(pageable, days)
-  }
-
-  /**
-   * 查询推荐产品
-   */
-  @PreAuthorize("isAuthenticated()")
-  fun recommendedProducts(
-    limit: Int = 10,
-    page: Int = 0,
-    size: Int = 20,
-  ): Page<ProductModel> {
-    val pageable: Pageable = PageRequest.of(page, size)
-    return productService.findRecommendedProducts(pageable, limit)
-  }
-
-  /**
-   * 检查产品库存
-   */
-  @PreAuthorize("isAuthenticated()")
-  fun checkProductStock(productId: Long): StockInfo {
-    val product =
-      productService.findById(productId)
-        ?: throw IllegalArgumentException("产品不存在: $productId")
-
-    return StockInfo(
-      productId = productId,
-      productName = product.name,
-      currentStock = product.stock,
-      isAvailable = product.isAvailable(),
-      lowStockWarning = product.stock <= 5,
-    )
-  }
-
-  companion object {
-    /**
-     * 产品搜索输入类型
-     */
-    data class ProductSearchInput(
-      val keyword: String?,
-      val category: String?,
-      val minPrice: java.math.BigDecimal?,
-      val maxPrice: java.math.BigDecimal?,
-      val page: Int?,
-      val size: Int?,
-      val sortBy: String?,
-      val sortDirection: String?,
-    )
-
-    /**
-     * 价格区间
-     */
-    data class PriceRange(
-      val min: java.math.BigDecimal,
-      val max: java.math.BigDecimal,
-      val count: Long,
-      val label: String,
-    )
-
-    /**
-     * 库存信息
-     */
-    data class StockInfo(
-      val productId: Long,
-      val productName: String,
-      val currentStock: Int,
-      val isAvailable: Boolean,
-      val lowStockWarning: Boolean,
-    )
   }
 }

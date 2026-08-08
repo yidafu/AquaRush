@@ -20,7 +20,6 @@
 package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.api.dto.ProductSearchRequest
-import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
 import dev.yidafu.aqua.common.graphql.generated.ProductVoPage
@@ -89,13 +88,4 @@ class AdminProductQueryResolver(
       pageInfo = pageInfo,
     )
   }
-
-  /**
-   * 获取热销产品（管理员功能）
-   */
-  @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
-  fun topSalesProducts(
-    @Argument limit: Int? = 10,
-  ): List<ProductModel> = productService.getTopSalesProducts(limit ?: 10)
 }

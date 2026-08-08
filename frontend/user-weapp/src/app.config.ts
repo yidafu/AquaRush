@@ -13,9 +13,7 @@ export default defineAppConfig({
     'pages/theme-settings/index',
     'pages/about/index',
     'pages/feedback/index',
-    'pages/favorites/index',
-    'pages/bucket-deposit/list/index',
-    'pages/bucket-deposit/create/index'
+    'pages/favorites/index'
   ],
   window: {
     backgroundTextStyle: 'light',

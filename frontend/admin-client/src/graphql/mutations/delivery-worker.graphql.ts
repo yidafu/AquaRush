@@ -38,9 +38,3 @@ export const UPDATE_DELIVERY_WORKER_MUTATION = gql`
   }
 `;
 
-// 删除送水员
-export const DELETE_DELIVERY_WORKER_MUTATION = gql`
-  mutation DeleteDeliveryWorker($workerId: PrimaryId!) {
-    deleteDeliveryWorker(workerId: $workerId)
-  }
-`;

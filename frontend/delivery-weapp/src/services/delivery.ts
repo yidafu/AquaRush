@@ -1,5 +1,5 @@
 import { networkManager } from '../utils/networkManager'
-import type { Order, TodayStatistics, WeekStatistics, Address, ProductPage, Scalars, OrderStatus, OrderPage } from '@aquarush/common'
+import type { Order, TodayStatistics, WeekStatistics, Address, ProductVoPage, Scalars, OrderStatus, OrderVoPage } from '@aquarush/common'
 
 // 订单操作记录类型
 interface OrderOperation {
@@ -7,21 +7,6 @@ interface OrderOperation {
   operationType: string
   description?: string
   createdAt: string
-}
-
-// 获取配送任务列表
-export const getDeliveryTasks = (workerId: string) => {
-  return networkManager.get(`/orders/delivery-worker/${workerId}`)
-}
-
-// 更新配送员状态
-export const updateWorkerStatus = (workerId: string, status: 'ONLINE' | 'OFFLINE') => {
-  return networkManager.post(`/delivery/workers/${workerId}/status`, { status })
-}
-
-// 确认送达
-export const confirmDelivery = (orderId: string, photos: string[]) => {
-  return networkManager.post(`/delivery/confirm/${orderId}`, { photos })
 }
 
 // ==================== 派单相关 API ====================
@@ -246,7 +231,7 @@ export const getDeliveryWorkerHistoryOrders = (
   page = 0,
   size = 20
 ) => {
-  return networkManager.query<{ deliveryWorkerHistoryOrders: OrderPage }>(`
+  return networkManager.query<{ deliveryWorkerHistoryOrders: OrderVoPage }>(`
     query GetHistoryOrders($status: OrderStatus, $keyword: String, $page: Int, $size: Int) {
       deliveryWorkerHistoryOrders(status: $status, keyword: $keyword, page: $page, size: $size) {
         content {
@@ -282,42 +267,6 @@ export const getDeliveryWorkerHistoryOrders = (
 
 // ==================== 地址和商品相关 API ====================
 
-// 获取用户地址列表
-export const getAddresses = () => {
-  return networkManager.query<{ addresses: ReadonlyArray<Address> }>(`
-    query {
-      addresses {
-        id
-        receiverName
-        phone
-        province
-        city
-        district
-        detailAddress
-        isDefault
-      }
-    }
-  `)
-}
-
-// 搜索用户地址
-export const searchAddresses = (keyword: string, size = 10) => {
-  return networkManager.query<{ searchUserAddresses: ReadonlyArray<Address> }>(`
-    query searchUserAddresses($keyword: String!, $size: Int) {
-      searchUserAddresses(keyword: $keyword, size: $size) {
-        id
-        receiverName
-        phone
-        province
-        city
-        district
-        detailAddress
-        isDefault
-      }
-    }
-  `, { keyword, size })
-}
-
 // 搜索所有地址 (管理员/配送员)
 export const searchAllAddresses = (keyword: string = '', size = 10) => {
   return networkManager.query<{ searchAllAddresses: ReadonlyArray<Address> }>(`
@@ -336,29 +285,9 @@ export const searchAllAddresses = (keyword: string = '', size = 10) => {
   `, { keyword, size })
 }
 
-// 获取商品列表
-export const getProducts = () => {
-  return networkManager.query<{ products: ProductPage }>(`
-    query {
-      products {
-        list {
-          id
-          name
-          price
-          image
-          stock
-        }
-        pageInfo {
-          total
-        }
-      }
-    }
-  `)
-}
-
 // 搜索上架商品（带关键字过滤）- 使用admin GraphQL端点
 export const searchProducts = (keyword: string, size: number = 20) => {
-  return networkManager.query<{ activeProducts: ProductPage }>(`
+  return networkManager.query<{ activeProducts: ProductVoPage }>(`
     query SearchActiveProducts($keyword: String, $size: Int) {
       activeProducts(keyword: $keyword, size: $size) {
         list {

@@ -108,25 +108,6 @@ class AdminUserMutationResolver(
     }
   }
 
-  /**
-   * 删除管理员用户
-   */
-  @PreAuthorize("hasRole('SUPER_ADMIN')")
-  @MutationMapping
-  fun deleteAdmin(
-    @Argument id: Long,
-  ): Boolean {
-    try {
-      // 调用服务删除管理员
-      adminService.deleteAdmin(id)
-      logger.info("Successfully deleted admin user through resolver: $id")
-      return true
-    } catch (e: Exception) {
-      logger.error("Failed to delete admin user", e)
-      throw BadRequestException("删除管理员失败: ${e.message}")
-    }
-  }
-
   private fun validateCreateAdminInput(input: CreateAdminInput) {
     if (input.username.isBlank()) {
       throw BadRequestException("用户名不能为空")

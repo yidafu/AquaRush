@@ -22,6 +22,7 @@ package dev.yidafu.aqua.common.domain.model
 /**
  * 对账差异实体
  */
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
@@ -30,7 +31,6 @@ import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.annotations.SoftDelete
 import org.hibernate.type.SqlTypes
 import java.time.LocalDateTime
-import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 
 @Entity
 @SoftDelete(columnName = "is_deleted")

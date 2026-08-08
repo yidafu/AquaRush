@@ -20,30 +20,22 @@
 package dev.yidafu.aqua.user.service.impl
 
 import dev.yidafu.aqua.common.domain.model.AddressModel
-import dev.yidafu.aqua.api.dto.AddressUpdateRequest
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
-import dev.yidafu.aqua.user.domain.repository.RegionRepository
-import dev.yidafu.aqua.user.service.GeolocationService
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 import java.util.Optional
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class AddressServiceImplTest {
   private lateinit var addressRepository: AddressRepository
-  private lateinit var regionRepository: RegionRepository
-  private lateinit var geolocationService: GeolocationService
   private lateinit var eventPublishService: SimplifiedEventPublishService
   private lateinit var addressService: AddressServiceImpl
 
@@ -90,184 +82,12 @@ class AddressServiceImplTest {
   @BeforeEach
   fun setUp() {
     addressRepository = mockk(relaxed = true)
-    regionRepository = mockk()
-    geolocationService = mockk()
     eventPublishService = mockk(relaxed = true)
     addressService =
       AddressServiceImpl(
         addressRepository,
-        regionRepository,
-        geolocationService,
         eventPublishService,
       )
-  }
-
-  @Test
-  fun `getUserAddresses should return user addresses`() {
-    // Given
-    val addresses = listOf(createSampleAddress(), createSampleAddress2())
-    every { addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(1L) } returns addresses
-
-    // When
-    val result = addressService.getUserAddresses(1L)
-
-    // Then
-    assertEquals(2, result.size)
-    verify { addressRepository.findByUserIdOrderByIsDefaultDescCreatedAtDesc(1L) }
-  }
-
-  @Test
-  fun `getUserDefaultAddress should return default address`() {
-    // Given
-    every { addressRepository.findByUserIdAndIsDefaultTrue(1L) } returns createSampleAddress()
-
-    // When
-    val result = addressService.getUserDefaultAddress(1L)
-
-    // Then
-    assertNotNull(result)
-    assertTrue(result!!.isDefault)
-  }
-
-  @Test
-  fun `getUserDefaultAddress should return null when no default`() {
-    // Given
-    every { addressRepository.findByUserIdAndIsDefaultTrue(1L) } returns null
-
-    // When
-    val result = addressService.getUserDefaultAddress(1L)
-
-    // Then
-    assertNull(result)
-  }
-
-  @Test
-  fun `getAddressById should return address when found`() {
-    // Given
-    every { addressRepository.findById(1L) } returns Optional.of(createSampleAddress())
-
-    // When
-    val result = addressService.getAddressById(1L)
-
-    // Then
-    assertNotNull(result)
-    assertEquals(1L, result?.id)
-  }
-
-  @Test
-  fun `createAddress should create address and set as default when no existing addresses`() {
-    // Given
-    val newAddress = createSampleAddress().also { it.id = null }
-    every { addressRepository.findByUserId(1L) } returns emptyList()
-    every { addressRepository.save(any()) } returns
-      createSampleAddress().also {
-        it.id = 5L
-        it.isDefault = true
-      }
-
-    // When
-    val result = addressService.createAddress(newAddress)
-
-    // Then
-    assertTrue(result.isDefault)
-    verify { addressRepository.save(any()) }
-  }
-
-  @Test
-  fun `createAddress should clear other defaults when setting as default`() {
-    // Given
-    val newAddress =
-      createSampleAddress().also {
-        it.id = null
-        it.isDefault = true
-      }
-    every { addressRepository.findByUserId(1L) } returns listOf(createSampleAddress(), createSampleAddress2())
-    every { addressRepository.save(any()) } returns
-      createSampleAddress().also {
-        it.id = 5L
-        it.isDefault = true
-      }
-
-    // When
-    addressService.createAddress(newAddress)
-
-    // Then
-    verify { addressRepository.clearDefaultAddresses(1L) }
-  }
-
-  @Test
-  fun `updateAddress should update address successfully`() {
-    // Given
-    val updateRequest = AddressUpdateRequest(detailAddress = "新地址")
-    every { addressRepository.findById(1L) } returns Optional.of(createSampleAddress())
-    every { addressRepository.save(any()) } answers {
-      val saved = createSampleAddress()
-      saved.detailAddress = "新地址"
-      saved
-    }
-
-    // When
-    val result = addressService.updateAddress(1L, updateRequest)
-
-    // Then
-    assertNotNull(result)
-  }
-
-  @Test
-  fun `deleteAddress should delete address successfully`() {
-    // Given
-    val sampleAddress = createSampleAddress()
-    every { addressRepository.findById(1L) } returns Optional.of(sampleAddress)
-
-    // When
-    val result = addressService.deleteAddress(1L, 1L)
-
-    // Then
-    assertTrue(result)
-  }
-
-  @Test
-  fun `deleteAddress should set new default when deleting default address`() {
-    // Given
-    val sampleAddress2 = createSampleAddress2()
-    every { addressRepository.findById(1L) } returns Optional.of(createSampleAddress())
-    every { addressRepository.findByUserId(1L) } returns listOf(sampleAddress2)
-    every { addressRepository.save(any()) } answers {
-      val saved = createSampleAddress2()
-      saved.isDefault = true
-      saved
-    }
-
-    // When
-    val result = addressService.deleteAddress(1L, 1L)
-
-    // Then
-    assertTrue(result)
-    verify { addressRepository.save(any()) }
-  }
-
-  @Test
-  fun `deleteAddress should return false when address not found`() {
-    // Given
-    every { addressRepository.findById(1L) } returns Optional.empty()
-
-    // When
-    val result = addressService.deleteAddress(1L, 1L)
-
-    // Then
-    assertFalse(result)
-  }
-
-  @Test
-  fun `deleteAddress should return false when userId mismatch`() {
-    // Given
-    every { addressRepository.findById(1L) } returns Optional.of(createSampleAddress())
-
-    // When
-    val result = addressService.deleteAddress(1L, 999L)
-
-    // Then
-    assertFalse(result)
   }
 
   @Test
@@ -412,19 +232,5 @@ class AddressServiceImplTest {
     // Then
     assertTrue(result)
     verify { addressRepository.deleteById(1L) }
-  }
-
-  @Test
-  fun `searchByUserIdAndKeyword should return page of addresses`() {
-    // Given
-    val page: Page<AddressModel> = Page.empty()
-    every { addressRepository.searchByUserIdAndKeyword(any(), any(), any()) } returns page
-
-    // When
-    val result = addressService.searchByUserIdAndKeyword(1L, "深圳", PageRequest.of(0, 10))
-
-    // Then
-    assertTrue(result.isEmpty)
-    verify { addressRepository.searchByUserIdAndKeyword(1L, "深圳", PageRequest.of(0, 10)) }
   }
 }

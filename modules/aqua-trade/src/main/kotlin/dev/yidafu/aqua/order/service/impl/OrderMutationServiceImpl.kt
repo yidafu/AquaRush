@@ -20,7 +20,6 @@
 package dev.yidafu.aqua.order.service.impl
 
 import dev.yidafu.aqua.api.dto.CreateOrderRequest
-import dev.yidafu.aqua.api.service.user.AddressQueryApiService
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryAreaQueryService
 import dev.yidafu.aqua.api.service.order.OrderIdGeneratorService
@@ -28,6 +27,7 @@ import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductService
+import dev.yidafu.aqua.api.service.user.AddressQueryApiService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
@@ -306,14 +306,6 @@ class OrderMutationServiceImpl(
       null
     }
 
-  override fun updateOrder(
-    orderId: Long,
-    orderDTO: OrderModel,
-  ): OrderModel {
-    orderDTO.id = orderId
-    return orderRepository.save(orderDTO)
-  }
-
   @Transactional
   override fun updateOrderStatus(
     orderId: Long,
@@ -322,6 +314,14 @@ class OrderMutationServiceImpl(
     val order = orderQueryService.getOrderById(orderId)
     order.status = status
     return orderRepository.save(order)
+  }
+
+  override fun updateOrder(
+    orderId: Long,
+    orderDTO: OrderModel,
+  ): OrderModel {
+    orderDTO.id = orderId
+    return orderRepository.save(orderDTO)
   }
 
   @Transactional

@@ -4,8 +4,6 @@ extend type Query {
   # Address queries
   userAddresses(userId: Long): [Address!]!
   addresses: [Address!]!
-  address(id: PrimaryId!): Address
-  searchUserAddresses(keyword: String!, userId: Long, page: Int = 0, size: Int = 10): [Address!]!
   searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): [Address!]!
 }
 

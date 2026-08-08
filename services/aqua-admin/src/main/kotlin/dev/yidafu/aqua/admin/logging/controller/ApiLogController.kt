@@ -19,10 +19,10 @@
 
 package dev.yidafu.aqua.admin.logging.controller
 
+import dev.yidafu.aqua.api.dto.PageImpl
 import dev.yidafu.aqua.common.ApiResponse
 import dev.yidafu.aqua.common.domain.model.ApiLogModel
 import dev.yidafu.aqua.common.domain.model.RequestType
-import dev.yidafu.aqua.api.dto.PageImpl
 import dev.yidafu.aqua.logging.service.ApiLogService
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort

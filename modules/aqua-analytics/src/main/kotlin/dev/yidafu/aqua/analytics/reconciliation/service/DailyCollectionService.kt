@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.analytics.reconciliation.service
 
+import dev.yidafu.aqua.analytics.reconciliation.dto.OrderStatsDTO
+import dev.yidafu.aqua.analytics.reconciliation.dto.PaymentStatsDTO
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
@@ -27,8 +29,6 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.delivery.domain.repository.DailyCollectionRecordRepository
 import dev.yidafu.aqua.delivery.domain.repository.DailyReconciliationRepository
-import dev.yidafu.aqua.analytics.reconciliation.dto.OrderStatsDTO
-import dev.yidafu.aqua.analytics.reconciliation.dto.PaymentStatsDTO
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -66,34 +66,37 @@ class DailyCollectionService(
     val completedStatus = OrderModelStatus.COMPLETED
 
     // 统计现金订单
-    val cashResult = orderRepository.countAndSumByPaymentType(
-      deliveryWorkerId,
-      completedStatus,
-      PaymentType.CASH,
-      startOfDay,
-      endOfDay,
-    )
+    val cashResult =
+      orderRepository.countAndSumByPaymentType(
+        deliveryWorkerId,
+        completedStatus,
+        PaymentType.CASH,
+        startOfDay,
+        endOfDay,
+      )
     val cashAmountCents = if (cashResult[0] != null && cashResult[0] > 0) cashResult[1] ?: 0L else 0L
     val cashOrderCount = (cashResult[0] ?: 0L).toInt()
 
     // 统计水票订单
-    val waterTicketResult = orderRepository.countAndSumByPaymentType(
-      deliveryWorkerId,
-      completedStatus,
-      PaymentType.WATER_TICKET,
-      startOfDay,
-      endOfDay,
-    )
+    val waterTicketResult =
+      orderRepository.countAndSumByPaymentType(
+        deliveryWorkerId,
+        completedStatus,
+        PaymentType.WATER_TICKET,
+        startOfDay,
+        endOfDay,
+      )
     val waterTicketCount = (waterTicketResult[0] ?: 0L).toInt()
 
     // 统计扫码订单
-    val qrCodeResult = orderRepository.countAndSumByPaymentType(
-      deliveryWorkerId,
-      completedStatus,
-      PaymentType.QR_CODE,
-      startOfDay,
-      endOfDay,
-    )
+    val qrCodeResult =
+      orderRepository.countAndSumByPaymentType(
+        deliveryWorkerId,
+        completedStatus,
+        PaymentType.QR_CODE,
+        startOfDay,
+        endOfDay,
+      )
     val qrCodeAmountCents = if (qrCodeResult[0] != null && qrCodeResult[0] > 0) qrCodeResult[1] ?: 0L else 0L
 
     return PaymentStatsDTO(

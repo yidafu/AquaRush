@@ -7,12 +7,10 @@ import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.common.graphql.generated.ProductUpdateRequestInput
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import dev.yidafu.aqua.product.mapper.ProductStatusMapper
 import org.springframework.data.domain.Page
-import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -26,8 +24,6 @@ class ProductServiceImpl(
   val productRepository: ProductRepository,
 ) : ProductService {
   override fun findById(id: Long): ProductModel? = productRepository.findById(id).orElse(null)
-
-  override fun findOnlineProducts(pageable: Pageable): Page<ProductModel> = findByStatus(ProductStatus.ONLINE, pageable)
 
   @Transactional
   override fun createProduct(request: CreateProductInput): ProductModel {
@@ -173,82 +169,10 @@ class ProductServiceImpl(
     }
   }
 
-  fun findByStatus(
-    status: ProductStatus,
-    pageable: Pageable,
-  ): Page<ProductModel> {
-    val products = productRepository.findByStatus(status)
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
   override fun productsPaginated(
     query: ProductSearchRequest,
     pageable: Pageable,
   ): Page<ProductModel> = productRepository.searchProducts(query, pageable)
-
-  override fun countByStatus(status: ProductStatus): Long = productRepository.findByStatus(status).size.toLong()
-
-  override fun findPopularProducts(
-    pageable: Pageable,
-    limit: Int,
-  ): Page<ProductModel> {
-    // Simplified: just return online products ordered by name (would normally sort by popularity)
-    val products = productRepository.findByStatus(ProductStatus.ONLINE).sortedBy { it.name }
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, minOf(products.size, limit))
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
-  fun findNewProducts(
-    pageable: Pageable,
-    days: Int,
-  ): Page<ProductModel> {
-    // Simplified: return all online products (would normally filter by creation date)
-    return findByStatus(ProductStatus.ONLINE, pageable)
-  }
-
-  fun findRecommendedProducts(
-    pageable: Pageable,
-    limit: Int,
-  ): Page<ProductModel> {
-    // Simplified: return first few online products (would normally have recommendation logic)
-    val products = productRepository.findByStatus(ProductStatus.ONLINE).take(limit)
-    val start = pageable.pageNumber * pageable.pageSize
-    val end = minOf(start + pageable.pageSize, products.size)
-    val pageContent = if (start < products.size) products.subList(start, end) else emptyList()
-    return PageImpl(pageContent, pageable, products.size.toLong())
-  }
-
-  // New methods for admin functionality
-  @Transactional
-  fun batchUpdateProducts(updates: List<ProductUpdateRequestInput>): List<ProductModel> =
-    updates.map { update ->
-      updateProduct(
-        productId = update.id,
-        name = update.name,
-        priceYuan = update.price?.let { MoneyUtils.fromCents(it) },
-        coverImageUrl = update.coverImageUrl,
-        description = null, // ProductUpdateRequestInput doesn't have description field
-        stock = update.stock,
-        subtitle = update.subtitle,
-        originalPriceYuan = update.originalPrice?.let { MoneyUtils.fromCents(it) },
-        depositPriceYuan = update.depositPrice?.let { MoneyUtils.fromCents(it) },
-        imageGallery = update.imageGallery,
-        specification = update.specification,
-        waterSource = update.waterSource,
-        mineralContent = update.mineralContent,
-        salesVolume = update.salesVolume,
-        sortOrder = update.sortOrder,
-        tags = update.tags,
-        detailContent = update.detailContent,
-        certificateImages = update.certificateImages,
-        deliverySettings = update.deliverySettings,
-      )
-    }
 
   fun getProductStatistics(): ProductStatistics {
     val allProducts = productRepository.findAll()
@@ -287,12 +211,6 @@ class ProductServiceImpl(
     product.salesVolume += quantity
     productRepository.save(product)
   }
-
-  fun getTopSalesProducts(limit: Int = 10): List<ProductModel> =
-    productRepository
-      .findAllByOrderBySalesVolumeDesc()
-      .filter { it.status == ProductModelStatus.ONLINE }
-      .take(limit)
 
   @Transactional
   fun updateSalesVolume(

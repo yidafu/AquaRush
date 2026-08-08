@@ -2,7 +2,6 @@ package dev.yidafu.aqua.analytics.statistics.mapper
 
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderStatisticsDTO
-import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
 import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter

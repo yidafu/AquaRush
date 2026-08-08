@@ -31,8 +31,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class AdminQueryResolverTest {
@@ -93,31 +91,6 @@ class AdminQueryResolverTest {
 
     // Then
     assertTrue(result.isEmpty())
-  }
-
-  @Test
-  fun `admin should return admin when found`() {
-    // Given
-    every { adminRepository.findAdminById(1L) } returns createSampleAdmin()
-
-    // When
-    val result = resolver.admin(1L)
-
-    // Then
-    assertNotNull(result)
-    assertEquals(1L, result?.id)
-  }
-
-  @Test
-  fun `admin should return null when not found`() {
-    // Given
-    every { adminRepository.findAdminById(999L) } returns null
-
-    // When
-    val result = resolver.admin(999L)
-
-    // Then
-    assertNull(result)
   }
 
   @Test

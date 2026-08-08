@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.order.event
 
-import dev.yidafu.aqua.api.service.user.AddressQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
+import dev.yidafu.aqua.api.service.user.AddressQueryApiService
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType

@@ -56,24 +56,6 @@ interface ReconciliationTaskRepository :
   fun findByStatusIn(statuses: List<ReconciliationTaskStatus>): List<ReconciliationTaskModel>
 
   /**
-   * 根据任务日期范围查找任务
-   * Implementation moved to ReconciliationTaskRepositoryCustom
-   */
-  // fun findByTaskDateBetween(startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationTask>
-
-  /**
-   * 根据任务类型和日期范围查找任务
-   * Implementation moved to ReconciliationTaskRepositoryCustom
-   */
-  // fun findByTaskTypeAndTaskDateBetween(taskType: TaskType, startDate: LocalDateTime, endDate: LocalDateTime): List<ReconciliationTask>
-
-  /**
-   * 统计任务数量
-   * Implementation moved to ReconciliationTaskRepositoryCustom
-   */
-  // fun countByTaskTypeAndStatus(taskType: TaskType, status: TaskStatus): Long
-
-  /**
    * 查找最新的任务
    */
   fun findFirstByOrderByTaskDateDesc(): ReconciliationTaskModel?
