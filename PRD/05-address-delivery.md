@@ -138,7 +138,7 @@
 - **组件清单**: AtForm、AtInput、Picker、AtList、AtListItem、AtSwitch、AtButton、AtToast、AtMessage、AtActivityIndicator、AddressMap(components/AddressMap)、useRegionSelector(hooks/)。
 - **关键交互流程**:
 
-  1)进入:有 `id` 加载详情(isEdit)回填并初始化三级联动;`fromWechat=true` 预填微信地址;无参为新增;导航栏标题「编辑地址」/「新增地址」;
+  1)进入:有 `id` 加载详情(isEdit)回填并初始化三级联动;`fromWechat=true` 预填微信地址;无参为新增;
   2)三级联动:onColumnChange 逐列联动、onChange 确认选值;
   3)地图:自动按地址定位,可手动选点 → 逆地理编码回填详细地址并记录经纬度;
   4)保存:校验通过 → create/update → toast → 1.5s navigateBack。

@@ -388,7 +388,7 @@
 | 主题                               | 参考路径                                                             |
 | ---------------------------------- | -------------------------------------------------------------------- |
 | 用户端小程序页面                   | `frontend/user-weapp/src/pages/`(页面路由见 `src/app.config.ts`)     |
-| 送水工端小程序页面                 | `frontend/delivery-weapp/src/pages/`(页面路由见 `src/app.config.ts`) |
+| 送水工端应用页面                   | `frontend/delivery-app/src/app/`(expo-router 文件路由)              |
 | 管理后台页面与菜单                 | `frontend/admin-client/src/pages/`、`src/components/Layout.tsx`      |
 | GraphQL 共享类型与业务枚举         | `shared-config/graphql/shared-types.graphqls`                        |
 | 订单状态机与派单/履约逻辑          | `modules/aqua-trade`                                                 |
