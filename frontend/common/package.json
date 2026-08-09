@@ -49,5 +49,8 @@
   "license": "ISC",
   "dependencies": {
     "taro-ui": "^3.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.2"
   }
 }

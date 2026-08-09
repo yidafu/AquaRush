@@ -7,8 +7,10 @@ interface StatisticsCardProps {
   value: number | string;
   prefix?: React.ReactNode;
   suffix?: string;
+  precision?: number;
   trend?: 'up' | 'down' | 'neutral';
-  trendValue?: number;
+  trendValue?: number | null;
+  trendLabel?: string;
   loading?: boolean;
 }
 
@@ -17,8 +19,10 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
   value,
   prefix,
   suffix,
+  precision,
   trend = 'neutral',
   trendValue,
+  trendLabel = '较昨日',
   loading = false,
 }) => {
   const getTrendIcon = () => {
@@ -33,6 +37,8 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
     return '#999';
   };
 
+  const showTrendLine = trendValue !== undefined;
+
   return (
     <Card loading={loading}>
       <Statistic
@@ -40,13 +46,20 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
         value={value}
         prefix={prefix}
         suffix={suffix}
+        precision={precision}
         valueStyle={{ color: getTrendColor() }}
-        prefix={trend !== 'neutral' ? getTrendIcon() : prefix}
       />
-      {trendValue !== undefined && trend !== 'neutral' && (
+      {showTrendLine && (
         <span style={{ color: getTrendColor(), fontSize: 14 }}>
-          {trendValue > 0 ? '+' : ''}
-          {trendValue}% 较昨日
+          {trendValue === null || trendValue === undefined || !Number.isFinite(trendValue) ? (
+            '—'
+          ) : (
+            <>
+              {getTrendIcon()}
+              {trendValue > 0 ? '+' : ''}
+              {trendValue.toFixed(1)}% {trendLabel}
+            </>
+          )}
         </span>
       )}
     </Card>

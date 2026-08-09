@@ -29,7 +29,6 @@ const authLink = setContext((_, { headers }) => {
 
 // 错误处理 Link
 const errorLink = onError(({ graphQLErrors, networkError }) => {
-  console.log('errorLink', graphQLErrors, networkError.statusCode)
   // 检查 networkError 中的 HTTP 401（后端返回的认证失败）
   if (networkError) {
     // 检测 HTTP 401 认证失败

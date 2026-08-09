@@ -21,6 +21,7 @@ package dev.yidafu.aqua.analytics.statistics.service
 
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderStatisticsDTO
+import dev.yidafu.aqua.analytics.statistics.dto.PendingOrderBreakdownDTO
 import java.time.LocalDate
 
 /**
@@ -58,4 +59,9 @@ interface StatisticsService {
     startDate: LocalDate,
     endDate: LocalDate,
   ): List<DailyStatisticsDTO>
+
+  /**
+   * 获取待处理订单存量快照（待支付/待派单/待配送三态合计）
+   */
+  fun getPendingOrderBreakdown(): PendingOrderBreakdownDTO
 }

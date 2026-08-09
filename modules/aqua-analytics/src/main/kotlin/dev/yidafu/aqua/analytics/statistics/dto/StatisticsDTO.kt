@@ -60,3 +60,15 @@ data class DailyStatisticsDTO(
     fun default(date: LocalDate) = DailyStatisticsDTO(date, 0L, 0L, 0L)
   }
 }
+
+/**
+ * 待处理订单存量快照 DTO（待支付/待派单/待配送，当前状态，与日期窗口无关）
+ */
+data class PendingOrderBreakdownDTO(
+  val pendingPayment: Long,
+  val pendingDispatch: Long,
+  val pendingDelivery: Long,
+) {
+  val total: Long
+    get() = pendingPayment + pendingDispatch + pendingDelivery
+}

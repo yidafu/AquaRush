@@ -978,6 +978,13 @@ export enum PaymentType {
   WATER_TICKET = 'WATER_TICKET'
 }
 
+export type PendingOrderBreakdown = {
+  readonly pendingDelivery: Scalars['Int']['output'];
+  readonly pendingDispatch: Scalars['Int']['output'];
+  readonly pendingPayment: Scalars['Int']['output'];
+  readonly total: Scalars['Int']['output'];
+};
+
 export type ProcessRefundInput = {
   readonly action: RefundAction;
   readonly adminNote?: InputMaybe<Scalars['String']['input']>;
@@ -1182,6 +1189,7 @@ export type Query = {
   readonly orderStatistics: OrderStatistics;
   readonly orders?: Maybe<OrderVoPage>;
   readonly pendingDeliveryOrders: ReadonlyArray<Order>;
+  readonly pendingOrderBreakdown: PendingOrderBreakdown;
   readonly product?: Maybe<Product>;
   readonly productDailySales: ReadonlyArray<ProductDailySales>;
   readonly productStatistics?: Maybe<ProductStatistics>;

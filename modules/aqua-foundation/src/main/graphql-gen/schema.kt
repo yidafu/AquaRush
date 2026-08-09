@@ -1463,6 +1463,13 @@ enum class PaymentType(val label: String) {
   }
 }
 
+data class PendingOrderBreakdown(
+    val pendingDelivery: kotlin.Int,
+    val pendingDispatch: kotlin.Int,
+    val pendingPayment: kotlin.Int,
+    val total: kotlin.Int
+)
+
 data class ProcessRefundInput(
     val action: RefundAction,
     @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
@@ -2018,6 +2025,7 @@ data class Query(
     val orderStatistics: OrderStatistics,
     val orders: OrderVoPage?,
     val pendingDeliveryOrders: Iterable<Order>,
+    val pendingOrderBreakdown: PendingOrderBreakdown,
     val product: Product?,
     val productDailySales: Iterable<ProductDailySales>,
     val productStatistics: ProductStatistics?,

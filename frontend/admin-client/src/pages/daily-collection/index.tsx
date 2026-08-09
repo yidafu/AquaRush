@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
 import { Card, Table, Tag, Button, Space, Modal, Form, Input, message, Row, Col, Statistic, Tabs } from 'antd'
 import { useQuery, useMutation } from '@apollo/client'
 import { GET_DAILY_COLLECTIONS, GET_DAILY_RECONCILIATIONS } from '../../graphql/queries/daily-collection.graphql'
@@ -325,7 +325,7 @@ const DailyCollectionPage: React.FC = () => {
             <Card>
               <Statistic
                 title="现金收款"
-                value={todayStats.centsToYuan(totalCash)}
+                value={centsToYuan(todayStats.totalCash)}
                 precision={2}
                 prefix="¥"
               />
@@ -335,7 +335,7 @@ const DailyCollectionPage: React.FC = () => {
             <Card>
               <Statistic
                 title="扫码收款"
-                value={todayStats.centsToYuan(totalQrCode)}
+                value={centsToYuan(todayStats.totalQrCode)}
                 precision={2}
                 prefix="¥"
               />
@@ -353,7 +353,7 @@ const DailyCollectionPage: React.FC = () => {
             <Card>
               <Statistic
                 title="订单金额"
-                value={todayStats.centsToYuan(totalOrderAmount)}
+                value={centsToYuan(todayStats.totalOrderAmount)}
                 precision={2}
                 prefix="¥"
               />
@@ -419,7 +419,7 @@ const DailyCollectionPage: React.FC = () => {
               <Col span={12}>
                 <Statistic
                   title="订单金额"
-                  value={selectedReconciliation.centsToYuan(totalOrderAmountCents)}
+                  value={centsToYuan(selectedReconciliation.totalOrderAmountCents)}
                   precision={2}
                   prefix="¥"
                 />
@@ -429,7 +429,7 @@ const DailyCollectionPage: React.FC = () => {
               <Col span={12}>
                 <Statistic
                   title="现金收款"
-                  value={selectedReconciliation.centsToYuan(totalCashAmountCents)}
+                  value={centsToYuan(selectedReconciliation.totalCashAmountCents)}
                   precision={2}
                   prefix="¥"
                 />
@@ -437,7 +437,7 @@ const DailyCollectionPage: React.FC = () => {
               <Col span={12}>
                 <Statistic
                   title="扫码收款"
-                  value={selectedReconciliation.centsToYuan(totalQrCodeAmountCents)}
+                  value={centsToYuan(selectedReconciliation.totalQrCodeAmountCents)}
                   precision={2}
                   prefix="¥"
                 />
@@ -447,7 +447,7 @@ const DailyCollectionPage: React.FC = () => {
               <Col span={12}>
                 <Statistic
                   title="差异金额"
-                  value={selectedReconciliation.centsToYuan(discrepancyAmountCents)}
+                  value={centsToYuan(selectedReconciliation.discrepancyAmountCents)}
                   precision={2}
                   prefix="¥"
                   valueStyle={{ color: Math.abs(selectedReconciliation.discrepancyAmountCents) <= 100 ? '#52c41a' : '#ff4d4f' }}

@@ -13,7 +13,7 @@ import {
 interface DailyStatistic {
   date: string;
   orderCount: number;
-  revenue: number;
+  revenueCents: number;
 }
 
 interface DailyOrderChartProps {

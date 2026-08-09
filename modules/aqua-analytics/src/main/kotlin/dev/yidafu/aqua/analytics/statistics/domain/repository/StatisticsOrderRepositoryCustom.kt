@@ -57,4 +57,9 @@ interface StatisticsOrderRepositoryCustom {
     deliveryWorkerId: Long? = null,
     statuses: List<OrderModelStatus>? = null,
   ): List<DailyStatisticsDTO>
+
+  /**
+   * 按当前状态快照计数（无日期过滤，存量统计）
+   */
+  fun countByStatusIn(statuses: List<OrderModelStatus>): Map<OrderModelStatus, Long>
 }

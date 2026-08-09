@@ -140,6 +140,17 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
     }
   }
 
+  override fun countByStatusIn(statuses: List<OrderModelStatus>): Map<OrderModelStatus, Long> =
+    queryFactory
+      .select(orderModel.status, orderModel.count())
+      .from(orderModel)
+      .where(orderModel.status.`in`(statuses))
+      .groupBy(orderModel.status)
+      .fetch()
+      .associate { row ->
+        row.get(orderModel.status)!! to (row.get(orderModel.count()) ?: 0L)
+      }
+
   private fun buildWhereClause(
     startDateTime: LocalDateTime,
     endDateTime: LocalDateTime,

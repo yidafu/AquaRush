@@ -1,5 +1,13 @@
 # Statistics and Analytics - Admin only
 
+# 待处理订单存量快照（当前状态，与日期窗口无关）
+type PendingOrderBreakdown {
+  pendingPayment: Int!    # 待支付
+  pendingDispatch: Int!   # 待派单
+  pendingDelivery: Int!   # 待配送
+  total: Int!             # 三态合计
+}
+
 extend type Query {
   # 当日统计数据
   todayStatistics: TodayStatistics
@@ -19,4 +27,7 @@ extend type Query {
   # Delivery Worker Statistics - Admin only
   deliveryWorkerStatistics: DeliveryWorkerOverview!
   deliveryWorkerRanking(limit: Int = 10): [DeliveryWorkerRankingItem!]!
+
+  # 待处理订单三态细分（仪表盘）
+  pendingOrderBreakdown: PendingOrderBreakdown!
 }

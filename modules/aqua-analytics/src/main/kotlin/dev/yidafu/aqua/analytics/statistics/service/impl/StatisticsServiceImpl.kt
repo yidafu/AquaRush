@@ -22,6 +22,7 @@ package dev.yidafu.aqua.analytics.statistics.service.impl
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderStatisticsDTO
+import dev.yidafu.aqua.analytics.statistics.dto.PendingOrderBreakdownDTO
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
@@ -91,6 +92,7 @@ class StatisticsServiceImpl(
 
   /**
    * 获取每日订单统计
+   * 订单数口径：当日全部订单；营收口径：已完成订单金额合计（PRD F-STA-002 定稿）
    */
   override fun getDailyStatistics(
     startDate: LocalDate,
@@ -107,6 +109,16 @@ class StatisticsServiceImpl(
         statuses = null,
       )
 
+    // 营收按已完成订单口径聚合（与订单数分两次聚合，口径不同）
+    val dailyRevenueStats =
+      statisticsOrderRepository.getDailyOrderStatistics(
+        startDateTime = startDateTime,
+        endDateTime = endDateTime,
+        deliveryWorkerId = null,
+        statuses = listOf(OrderModelStatus.COMPLETED),
+      )
+    val revenueMap = dailyRevenueStats.associateBy { it.date }
+
     // 构建日期到统计的映射
     val statsMap = dailyStats.associateBy { it.date }
 
@@ -116,7 +128,8 @@ class StatisticsServiceImpl(
     while (!currentDate.isAfter(endDate)) {
       val stat = statsMap[currentDate]
       result.add(
-        stat ?: DailyStatisticsDTO.default(currentDate),
+        stat?.copy(totalAmountCents = revenueMap[currentDate]?.totalAmountCents ?: 0L)
+          ?: DailyStatisticsDTO.default(currentDate),
       )
       currentDate = currentDate.plusDays(1)
     }
@@ -195,5 +208,24 @@ class StatisticsServiceImpl(
     }
 
     return result
+  }
+
+  /**
+   * 获取待处理订单存量快照（待支付/待派单/待配送三态合计，当前状态，与日期窗口无关）
+   */
+  override fun getPendingOrderBreakdown(): PendingOrderBreakdownDTO {
+    val counts =
+      statisticsOrderRepository.countByStatusIn(
+        listOf(
+          OrderModelStatus.PENDING_PAYMENT,
+          OrderModelStatus.PENDING_DISPATCH,
+          OrderModelStatus.PENDING_DELIVERY,
+        ),
+      )
+    return PendingOrderBreakdownDTO(
+      pendingPayment = counts[OrderModelStatus.PENDING_PAYMENT] ?: 0L,
+      pendingDispatch = counts[OrderModelStatus.PENDING_DISPATCH] ?: 0L,
+      pendingDelivery = counts[OrderModelStatus.PENDING_DELIVERY] ?: 0L,
+    )
   }
 }

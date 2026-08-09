@@ -36,7 +36,7 @@ const DailyRevenueChart: React.FC<DailyRevenueChartProps> = ({ data }) => {
           tick={{ fontSize: 12 }}
         />
         <Tooltip
-          formatter={(value: number) => [`¥${value.toFixed(2)}`, '营收']}
+          formatter={(value) => [`¥${Number(value).toFixed(2)}`, '营收']}
           labelFormatter={(label) => `日期: ${label}`}
         />
         <Line
