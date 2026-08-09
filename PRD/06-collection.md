@@ -258,8 +258,8 @@
 ## 4. 交叉引用
 
 - 状态机与流程:见 02-business-flows.md §收款与对账流程(跨两端)、§现状与目标差异。
-- 缺口:见 11-misc.md(本域暂未登记 G;R-COL-02 状态偏差、争议日报流程、对账差异明细展示为候补缺口)。
-- 实体:收款日报、对账记录、对账差异见 11-misc.md §核心实体。
-- 异常场景:见 11-misc.md §对账类(日报差异超容差、重复提交日报、日报已提交后发现填错、对账不匹配)。
+- 缺口:见 13-misc.md(本域暂未登记 G;R-COL-02 状态偏差、争议日报流程、对账差异明细展示为候补缺口)。
+- 实体:收款日报、对账记录、对账差异见 13-misc.md §核心实体。
+- 异常场景:见 13-misc.md §对账类(日报差异超容差、重复提交日报、日报已提交后发现填错、对账不匹配)。
 - 全局金额精度:见 01-overview.md §全局约束 R-MON-01。
-- 页面清单:见 11-misc.md 附录A(送水工端 daily-collection/reconciliation-records/statistics;后台收银对账)。
+- 页面清单:见 13-misc.md 附录A(送水工端 daily-collection/reconciliation-records/statistics;后台收银对账)。

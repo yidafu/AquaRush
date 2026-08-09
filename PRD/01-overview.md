@@ -36,7 +36,7 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 
 ### 当前阶段说明
 
-系统主体框架与主要业务链路已搭建完成:商品展示、地址管理、下单、送水工接单配送收款、日报对账、后台管理均已具备可用雏形。**支付链路、用户端订单数据真实性、评论、押金、订阅消息通知**等环节存在缺口(详见 11-misc.md),是后续迭代重点。
+系统主体框架与主要业务链路已搭建完成:商品展示、地址管理、下单、送水工接单配送收款、日报对账、后台管理均已具备可用雏形。**支付链路、用户端订单数据真实性、评论、押金、订阅消息通知**等环节存在缺口(详见 13-misc.md),是后续迭代重点。
 
 ## 产品目标与成功指标
 
@@ -85,9 +85,9 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 | 管理员     | `AdminRoleModel.ADMIN`           | 后台账号(用户名/密码) | 管理后台       | 业务域管理:商品/订单/用户/送水员/对账,统计与日志 |
 | 超级管理员 | `AdminRoleModel.SUPER_ADMIN`     | 后台账号(用户名/密码) | 管理后台       | 全部权限,含管理员账号管理与系统配置              |
 
-### 权限码目录(32 码)
+### 权限码目录(36 码)
 
-后台权限模型为**代码级静态矩阵 + 方法级强制生效**:单一来源 `AdminPermission`(32 码)与 `RolePermissionMapping`(角色→权限矩阵),不建数据库 RBAC 表。权限码按域(模块)+操作拆分,查询(READ)/管理(WRITE)分离,关键操作(派单、核验、确认、审核、执行、导出、退款、删除、重置密码)独立成码。
+后台权限模型为**代码级静态矩阵 + 方法级强制生效**:单一来源 `AdminPermission`(32 码,规划新增 4 码后共 36 码)与 `RolePermissionMapping`(角色→权限矩阵),不建数据库 RBAC 表。权限码按域(模块)+操作拆分,查询(READ)/管理(WRITE)分离,关键操作(派单、核验、确认、审核、执行、导出、退款、删除、重置密码、反馈处理)独立成码。
 
 | 权限码                         | 说明                         | 权限码                 | 说明                        |
 | ------------------------------ | ---------------------------- | ---------------------- | --------------------------- |
@@ -107,6 +107,8 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 | PAYMENT_REFUND                 | 退款                         | STATISTICS_READ        | 统计查询                    |
 | LOG_READ                       | 日志查询                     | STATISTICS_EXPORT      | 统计导出                    |
 | SYSTEM_CONFIG_READ             | 系统配置查询                 | SYSTEM_CONFIG_WRITE    | 系统配置修改                |
+| OPS_CONFIG_READ                | 运营配置查询                 | OPS_CONFIG_WRITE       | 运营配置修改                |
+| FEEDBACK_READ                  | 意见反馈查询                 | FEEDBACK_REVIEW        | 意见反馈处理(回复·标记)     |
 
 ### 角色权限矩阵(后台三角色 × 权限码)
 
@@ -124,16 +126,18 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 | DELIVERY_WORKER_WRITE            | ✅          | ✅      | —      | ADMIN_USER_WRITE               | ✅          | —      | —      |
 | RECONCILIATION_READ              | ✅          | ✅      | ✅      | SYSTEM_CONFIG_READ             | ✅          | —      | —      |
 | RECONCILIATION_SUBMIT(日报提交)  | ✅          | —      | ✅      | SYSTEM_CONFIG_WRITE            | ✅          | —      | —      |
+| OPS_CONFIG_READ                  | ✅          | ✅      | —      | FEEDBACK_READ                  | ✅          | ✅      | —      |
+| OPS_CONFIG_WRITE                 | ✅          | ✅      | —      | FEEDBACK_REVIEW(反馈处理)      | ✅          | ✅      | —      |
 | RECONCILIATION_CONFIRM(日报确认) | ✅          | ✅      | —      | PAYMENT_READ                   | ✅          | ✅      | —      |
 | RECONCILIATION_REVIEW(对账审核)  | ✅          | ✅      | —      | PAYMENT_REFUND(退款)           | ✅          | ✅      | —      |
 | RECONCILIATION_EXECUTE(执行对账) | ✅          | ✅      | —      | STATISTICS_READ                | ✅          | ✅      | ✅      |
 | LOG_READ                         | ✅          | ✅      | —      | STATISTICS_EXPORT              | ✅          | ✅      | —      |
 
 > 权限模型说明:
-> - 超级管理员全 32 码;管理员 25 码(缺 ADMIN_USER_*/SYSTEM_CONFIG_*/ORDER_CREATE/DELIVERY_TASK/RECONCILIATION_SUBMIT);送水工 8 码(ORDER_READ/PRODUCT_READ/ADDRESS_READ/ORDER_CREATE/DELIVERY_TASK/RECONCILIATION_READ/RECONCILIATION_SUBMIT/STATISTICS_READ)。
+> - 超级管理员全 36 码;管理员 29 码(缺 ADMIN_USER_*/SYSTEM_CONFIG_*/ORDER_CREATE/DELIVERY_TASK/RECONCILIATION_SUBMIT,共 7 码);送水工 8 码(ORDER_READ/PRODUCT_READ/ADDRESS_READ/ORDER_CREATE/DELIVERY_TASK/RECONCILIATION_READ/RECONCILIATION_SUBMIT/STATISTICS_READ)。
 > - **普通用户(USER)独立于本矩阵**:走 `isAuthenticated()` + 本人数据隔离(R-AUTH-02),不授予后台权限码;client 侧以 `ROLE_USER` 标记身份。
 > - 超级管理员额外携带 `ROLE_ADMIN`(兼容 `hasRole('ADMIN')` 表达式);`users.role=WORKER` 对应 `ROLE_DELIVERY_WORKER`。
-> - `SYSTEM_CONFIG_*`/`PAYMENT_*` 当前无对应接口(G01 支付 stub、系统配置未规划),保留在矩阵待接线。
+> - `SYSTEM_CONFIG_*` 当前无对应接口(系统设置域为规划中,见 11-system-settings.md,G64);`OPS_CONFIG_*`/`FEEDBACK_*` 为 v0.12 新增规划码(运营配置域为规划中,见 12-operations-config.md,G61~G63);`PAYMENT_*` 同理(G01 支付 stub)。均保留在矩阵待接线。
 > - 强制链路与方法级校验见 **R-AUTH-04**(定义于 07-user.md)。后台「照片核验」当前仅为照片展示(F-ORD-021,部分实现),核验/通过/驳回流程缺失(G23)。
 
 ### 角色层级关系
