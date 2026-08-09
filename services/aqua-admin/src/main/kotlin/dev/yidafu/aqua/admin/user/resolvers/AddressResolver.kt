@@ -30,6 +30,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.graphql.data.method.annotation.QueryMapping
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
 @Controller
@@ -39,6 +40,7 @@ class AddressResolver(
   private val logger = LoggerFactory.getLogger(AddressResolver::class.java)
 
   @QueryMapping
+  @PreAuthorize("isAuthenticated()")
   fun userAddresses(
     @Argument userId: Long,
   ): List<Address> {
@@ -52,6 +54,7 @@ class AddressResolver(
    * 获取所有地址 (管理员)
    */
   @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_READ')")
   fun addresses(): List<Address> {
     val allAddresses = addressService.findAllAddresses()
     return AddressMapper.mapList(allAddresses)
@@ -61,6 +64,7 @@ class AddressResolver(
    * 搜索所有地址 (管理员)
    */
   @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_READ')")
   fun searchAllAddresses(
     @Argument keyword: String?,
     @Argument page: Int = 0,
@@ -79,6 +83,7 @@ class AddressResolver(
    * 管理员创建地址 (userId 可以为 null)
    */
   @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_WRITE')")
   fun createAdminAddress(
     @Argument @Valid input: AddressInput,
   ): Address {
@@ -98,6 +103,7 @@ class AddressResolver(
    * 批量导入地址 (管理员)
    */
   @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_WRITE')")
   fun batchImportAddresses(
     @Argument input: List<AddressInput>,
   ): BatchImportAddressesResult {
@@ -143,6 +149,7 @@ class AddressResolver(
    * 管理员删除地址 (不校验 userId)
    */
   @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_WRITE')")
   fun deleteAdminAddress(
     @Argument id: Long,
   ): Boolean = addressService.deleteAddressById(id)

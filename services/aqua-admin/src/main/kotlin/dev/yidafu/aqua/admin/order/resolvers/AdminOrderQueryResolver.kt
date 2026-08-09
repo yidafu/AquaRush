@@ -38,7 +38,7 @@ class AdminOrderQueryResolver(
    * 分页查询订单 - 管理员权限
    */
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun orders(
     @Argument input: OrderListInput?,
   ): OrderVoPage {
@@ -75,7 +75,7 @@ class AdminOrderQueryResolver(
    * 根据ID获取订单 - 管理员权限
    */
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun order(
     @Argument orderId: Long,
   ): Order? = OrderMapper.map(orderQueryService.getOrderById(orderId))
@@ -84,7 +84,7 @@ class AdminOrderQueryResolver(
    * 根据订单号获取订单 - 管理员权限
    */
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun orderByNo(
     @Argument orderNo: String,
   ): Order? = OrderMapper.map(orderQueryService.getOrderByNo(orderNo))

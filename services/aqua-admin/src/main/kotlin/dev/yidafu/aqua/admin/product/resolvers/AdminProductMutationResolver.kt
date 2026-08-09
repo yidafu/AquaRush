@@ -49,7 +49,7 @@ class AdminProductMutationResolver(
   /**
    * 创建新产品（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_WRITE')")
   @Transactional
   @MutationMapping
   fun createProduct(
@@ -72,7 +72,7 @@ class AdminProductMutationResolver(
   /**
    * 更新产品信息（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_WRITE')")
   @Transactional
   @MutationMapping
   fun updateProduct(
@@ -125,7 +125,7 @@ class AdminProductMutationResolver(
   /**
    * 删除产品（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_WRITE')")
   @Transactional
   fun deleteProduct(id: Long): Boolean =
     try {
@@ -201,7 +201,7 @@ class AdminProductMutationResolver(
   /**
    * 上线产品（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_WRITE')")
   @Transactional
   fun onlineProduct(id: Long): ProductModel =
     try {
@@ -224,7 +224,7 @@ class AdminProductMutationResolver(
   /**
    * 下线产品（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_WRITE')")
   @Transactional
   fun offlineProduct(id: Long): ProductModel =
     try {
@@ -247,7 +247,7 @@ class AdminProductMutationResolver(
   /**
    * 更新产品状态（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_WRITE')")
   @Transactional
   fun updateProductStatus(
     productId: Long,

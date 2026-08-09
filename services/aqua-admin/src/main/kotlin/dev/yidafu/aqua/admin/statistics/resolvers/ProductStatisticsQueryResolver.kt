@@ -36,11 +36,11 @@ class ProductStatisticsQueryResolver(
   private val productStatisticsService: ProductStatisticsServiceImpl,
 ) {
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun productStatistics(): ProductStatistics = productStatisticsService.getProductStatistics()
 
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun productDailySales(
     @Argument input: DateRangeInput,
   ): List<ProductDailySales> {

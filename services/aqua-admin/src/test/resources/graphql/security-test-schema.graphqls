@@ -1,0 +1,27 @@
+# Security integration test schema
+# Only exposes what AdminSecurityIntegrationTest exercises.
+# graphql-java 内建 Long scalar，无需显式声明。
+
+type Query {
+  _dummy: String
+}
+
+type Mutation {
+  createAdmin(input: CreateAdminInput!): Admin!
+}
+
+type Admin {
+  id: Long!
+  username: String!
+  realName: String
+  phone: String
+  role: String!
+}
+
+input CreateAdminInput {
+  username: String!
+  realName: String
+  phone: String
+  password: String
+  role: String!
+}

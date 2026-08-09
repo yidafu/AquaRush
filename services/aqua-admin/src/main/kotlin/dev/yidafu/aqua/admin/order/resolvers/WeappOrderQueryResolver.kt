@@ -37,13 +37,14 @@ class WeappOrderQueryResolver(
    * 获取待派单订单列表 - 管理员权限
    */
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun pendingDeliveryOrders(): List<Order> = deliveryTaskQueryService.getPendingDeliveryOrders().map { OrderMapper.map(it) }
 
   /**
    * 获取配送员的已接单订单
    */
   @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun assignedOrders(
     @AuthenticationPrincipal userDetail: UserDetails,
   ): List<Order> = deliveryTaskQueryService.getAssignedOrders(getAdminIdByUsername(userDetail.username)).map { OrderMapper.map(it) }
@@ -52,6 +53,7 @@ class WeappOrderQueryResolver(
    * 获取配送员的配送中订单
    */
   @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun deliveringOrders(
     @AuthenticationPrincipal userDetail: UserDetails,
   ): List<Order> = deliveryWorkerQueryService.getWorkerActiveTasks(getAdminIdByUsername(userDetail.username)).map { OrderMapper.map(it) }
@@ -60,6 +62,7 @@ class WeappOrderQueryResolver(
    * 获取配送员当日统计数据
    */
   @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun todayStatistics(
     @AuthenticationPrincipal userDetail: UserDetails,
   ): TodayStatistics {
@@ -71,6 +74,7 @@ class WeappOrderQueryResolver(
    * 获取配送员一周统计数据
    */
   @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun weekStatistics(
     @AuthenticationPrincipal userDetail: UserDetails,
   ): WeekStatistics {
@@ -82,6 +86,7 @@ class WeappOrderQueryResolver(
    * 获取配送员历史订单（已完成、已取消、已退款）
    */
   @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun deliveryWorkerHistoryOrders(
     @Argument status: OrderStatus?,
     @Argument keyword: String?,

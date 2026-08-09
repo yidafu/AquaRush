@@ -101,6 +101,8 @@ export interface ModalProps {
 export interface FormModalProps<T> extends ModalProps {
   record?: T;
   onSubmit: (values: T) => Promise<void>;
+  /** 当前登录者是否为超级管理员；非超管角色字段只读（后端以 PERMISSION_ADMIN_USER_WRITE 强制） */
+  isSuperAdmin?: boolean;
 }
 
 // Role and status mappings for UI display

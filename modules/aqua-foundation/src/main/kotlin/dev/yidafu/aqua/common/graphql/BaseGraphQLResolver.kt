@@ -53,25 +53,6 @@ abstract class BaseGraphQLResolver {
   }
 
   /**
-   * 检查用户权限（开发环境跳过验证）
-   * @param userPrincipal 注入的用户主体
-   * @param operation 操作名称，用于日志记录
-   */
-  protected fun checkPermission(
-    userPrincipal: UserPrincipal?,
-    operation: String,
-  ) {
-    // 在开发环境跳过权限检查，方便调试
-    if (GraphQLValidator.isDevelopmentEnvironment()) {
-      logger.debug("Development environment - skipping permission check for $operation")
-      return
-    }
-
-    // 生产环境要求认证
-    requireAuthenticated(userPrincipal)
-  }
-
-  /**
    * 记录 GraphQL 操作日志
    * @param userPrincipal 用户主体
    * @param operation 操作名称

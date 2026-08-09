@@ -30,6 +30,7 @@ import org.springframework.core.io.Resource
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import org.springframework.web.multipart.MultipartFile
 
@@ -44,6 +45,7 @@ class StorageController(
   /**
    * 文件上传
    */
+  @PreAuthorize("isAuthenticated()")
   @PostMapping("/files", consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
   fun uploadFile(
     @RequestParam("file") file: MultipartFile,
@@ -144,6 +146,7 @@ class StorageController(
   /**
    * 删除文件
    */
+  @PreAuthorize("isAuthenticated()")
   @DeleteMapping("/files/{id}")
   fun deleteFile(
     @PathVariable id: Long,

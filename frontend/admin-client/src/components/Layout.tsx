@@ -24,6 +24,10 @@ const { Header, Sider, Content } = AntLayout;
 const Layout: React.FC = () => {
   const navigate = useNavigate();
 
+  // 仅超级管理员可管理管理员账号（后端以 PERMISSION_ADMIN_USER_* 强制，前端菜单隐藏为 UX 层）
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const isSuperAdmin = userInfo.role === 'SUPER_ADMIN';
+
   const menuItems = [
     { key: '/dashboard', icon: <DashboardOutlined />, label: '仪表盘' },
     {
@@ -31,7 +35,7 @@ const Layout: React.FC = () => {
       icon: <UserOutlined />,
       label: '用户管理',
       children: [
-        { key: '/users/admins', icon: <TeamOutlined />, label: '管理员' },
+        ...(isSuperAdmin ? [{ key: '/users/admins', icon: <TeamOutlined />, label: '管理员' }] : []),
         { key: '/users/delivery-workers', icon: <CarOutlined />, label: '送水员' },
         { key: '/users/customers', icon: <UserOutlined />, label: '用户' },
       ]

@@ -22,6 +22,10 @@ fun AdminRoleModel.toPermissionAuthorities(): List<GrantedAuthority> {
   val authorities = mutableListOf<GrantedAuthority>()
   // 添加角色本身
   authorities.add(SimpleGrantedAuthority("ROLE_${this.name}"))
+  // 超级管理员隐含 ADMIN 角色，保证 hasRole('ADMIN') / hasAnyRole('ADMIN', 'DELIVERY_WORKER') 对超管成立
+  if (this == AdminRoleModel.SUPER_ADMIN) {
+    authorities.add(SimpleGrantedAuthority("ROLE_ADMIN"))
+  }
   // 添加角色对应的权限
   authorities.addAll(RolePermissionMapping.getPermissions(this).toSimpleGrantedAuthorities())
   return authorities

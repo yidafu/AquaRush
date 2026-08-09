@@ -23,13 +23,14 @@ import dev.yidafu.aqua.common.config.CustomAccessDeniedHandler
 import dev.yidafu.aqua.common.config.CustomAuthenticationEntryPoint
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
+import org.springframework.http.HttpMethod
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.authentication.AuthenticationManager
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
@@ -37,6 +38,7 @@ import org.springframework.security.web.context.HttpSessionSecurityContextReposi
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 class SecurityConfig(
   private val jwtAuthenticationFilter: JwtAuthenticationFilter,
   private val customAccessDeniedHandler: CustomAccessDeniedHandler,
@@ -67,10 +69,18 @@ class SecurityConfig(
             "/static/**",
             "/images/**",
             "/graphiql",
-            "/graphql",
           ).permitAll()
+          // 公开文件/图片服务（后台 <img> 无法携带 Authorization header）
+          .requestMatchers(HttpMethod.GET, "/api/v1/storage/files/**")
+          .permitAll()
+          // GraphQL 必须认证；方法级权限由 @EnableMethodSecurity + @PreAuthorize 强制
+          .requestMatchers("/graphql")
+          .authenticated()
           .requestMatchers("/api/**")
           .authenticated()
+          // 保留遗留 HTML 页与静态资源
+          .anyRequest()
+          .permitAll()
       }.csrf {
         it.disable()
       }.formLogin { form ->
@@ -92,16 +102,13 @@ class SecurityConfig(
     return http.build()
   }
 
-  @Bean
-  fun passwordEncoder(): PasswordEncoder {
-    val encoder = BCryptPasswordEncoder()
-    return encoder
-  }
+  // PasswordEncoder Bean 由 aqua-foundation common/config/PasswordEncoderConfig 提供，
+  // 避免 SecurityConfig → AdminUserDetailsService → AdminServiceImpl → PasswordEncoder 循环依赖。
 
   @Bean
-  fun authenticationProvider(): DaoAuthenticationProvider {
+  fun authenticationProvider(passwordEncoder: PasswordEncoder): DaoAuthenticationProvider {
     val provider = DaoAuthenticationProvider(adminUserDetailsService)
-    provider.setPasswordEncoder(passwordEncoder())
+    provider.setPasswordEncoder(passwordEncoder)
     return provider
   }
 

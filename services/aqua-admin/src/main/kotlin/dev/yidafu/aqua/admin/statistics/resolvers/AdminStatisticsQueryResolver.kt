@@ -45,7 +45,7 @@ class AdminStatisticsQueryResolver(
    * 获取用户统计数据（管理员功能）
    */
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun userStatistics(): UserStatistics {
     val result = userStatisticsService.getUserStatistics()
     val thirtyDaysAgo = LocalDate.now().minusDays(30)
@@ -81,7 +81,7 @@ class AdminStatisticsQueryResolver(
    * 获取送水员统计数据（管理员功能）
    */
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun deliveryWorkerStatistics(): DeliveryWorkerOverview {
     val result = deliveryWorkerStatisticsService.getDeliveryWorkerStatistics()
     return DeliveryWorkerOverview(
@@ -96,7 +96,7 @@ class AdminStatisticsQueryResolver(
    * 获取送水员排行榜（管理员功能）
    */
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
   fun deliveryWorkerRanking(
     @Argument limit: Int = 10,
   ): List<DeliveryWorkerRankingItem> =

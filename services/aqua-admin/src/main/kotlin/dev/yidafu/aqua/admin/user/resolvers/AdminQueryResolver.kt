@@ -37,13 +37,14 @@ class AdminQueryResolver(
    * 获取所有管理员 - 管理员权限
    */
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_ADMIN_USER_READ')")
   fun admins(): List<Admin> = adminRepository.findAllAdmins().map { AdminMapper.map(it) }
 
   /**
    * 获取所有地区数据，用于前端构建树形结构
    */
   @QueryMapping
+  @PreAuthorize("isAuthenticated()")
   fun allRegions(): List<RegionModel> =
     try {
       regionRepository.findAll() ?: emptyList()

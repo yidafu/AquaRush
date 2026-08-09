@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -25,6 +26,7 @@ class AdminStorageController(
   /**
    * 分页查询文件列表
    */
+  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/files")
   fun listFiles(
     @RequestParam(value = "page", defaultValue = "0") page: Int,
@@ -41,6 +43,7 @@ class AdminStorageController(
   /**
    * 根据文件类型查询文件
    */
+  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/files/by-type/{fileType}")
   fun listFilesByType(
     @PathVariable fileType: FileType,
@@ -58,6 +61,7 @@ class AdminStorageController(
   /**
    * 根据所有者查询文件
    */
+  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/files/by-owner/{ownerId}")
   fun listFilesByOwner(
     @PathVariable ownerId: Long?,
@@ -75,6 +79,7 @@ class AdminStorageController(
   /**
    * 搜索文件
    */
+  @PreAuthorize("hasRole('ADMIN')")
   @GetMapping("/files/search")
   fun searchFiles(
     @RequestParam("q") fileName: String,

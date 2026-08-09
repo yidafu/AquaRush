@@ -55,7 +55,7 @@ class AdminProductFavoriteController(
    * @return 导出结果，包含下载链接和文件信息
    */
   @PostMapping("/export")
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
   fun exportFavorites(
     @RequestBody @Valid request: ExportFavoritesRequest,
   ): ResponseEntity<ExportFavoritesResult> {

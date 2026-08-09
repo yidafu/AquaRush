@@ -43,7 +43,7 @@ class ApiLogController(
   /**
    * 分页查询API日志
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_LOG_READ')")
   @GetMapping
   fun queryApiLogs(
     @RequestParam(required = false) requestType: RequestType?,
@@ -76,6 +76,7 @@ class ApiLogController(
    * 根据关联ID查询日志
    */
   @GetMapping("/correlation/{correlationId}")
+  @PreAuthorize("hasAuthority('PERMISSION_LOG_READ')")
   fun getApiLogsByCorrelationId(
     @PathVariable correlationId: String,
   ): ApiResponse<List<ApiLogModel>> = ApiResponse.success(apiLogService.findByCorrelationId(correlationId))

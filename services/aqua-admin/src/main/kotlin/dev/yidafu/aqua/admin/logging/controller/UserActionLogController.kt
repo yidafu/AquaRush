@@ -34,6 +34,7 @@ import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
 
@@ -54,6 +55,7 @@ class UserActionLogController(
    * 分页查询用户操作日志
    */
   @GetMapping("/user-actions")
+  @PreAuthorize("hasAuthority('PERMISSION_LOG_READ')")
   fun queryUserActionLogs(
     @RequestParam(required = false) userId: String?,
     @RequestParam(required = false) actionType: String?,
@@ -77,6 +79,7 @@ class UserActionLogController(
   /**
    * 记录用户操作日志
    */
+  @PreAuthorize("isAuthenticated()")
   @PostMapping("/user-actions/log")
   fun logUserAction(
     @Valid @RequestBody request: UserActionLogRequest,
@@ -95,6 +98,7 @@ class UserActionLogController(
   /**
    * 批量记录用户操作日志
    */
+  @PreAuthorize("isAuthenticated()")
   @PostMapping("/user-actions/batch")
   fun logUserActionsBatch(
     @Valid @RequestBody request: BatchUserActionLogRequest,

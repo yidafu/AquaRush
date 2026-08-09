@@ -36,6 +36,7 @@ import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.security.core.userdetails.UserDetails
 import org.springframework.stereotype.Controller
@@ -58,6 +59,7 @@ class AdminDailyCollectionQueryResolver(
    * 如果不传日期，则返回所有记录
    */
   @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_READ')")
   fun dailyCollections(
     @Argument collectionDate: String?,
     @AuthenticationPrincipal userDetails: UserDetails?,
@@ -90,6 +92,7 @@ class AdminDailyCollectionQueryResolver(
    * TODO: 后续可添加后端分页支持
    */
   @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_READ')")
   fun dailyReconciliations(
     @Argument page: Int = 0,
     @Argument size: Int = 20,
@@ -114,6 +117,7 @@ class AdminDailyCollectionQueryResolver(
    * 返回系统计算的订单统计和已填写的收款数据
    */
   @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_READ')")
   fun myTodayCollection(
     @AuthenticationPrincipal userDetails: UserDetails?,
   ): MyTodayCollectionVo {

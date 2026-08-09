@@ -90,19 +90,4 @@ object GraphQLValidator {
       throw SecurityException("权限不足，需要角色: $requiredRole")
     }
   }
-
-  /**
-   * 检查是否为开发环境，用于调试权限控制
-   * @return 是否为开发环境
-   */
-  fun isDevelopmentEnvironment(): Boolean {
-    // 检查系统属性和环境变量中的Spring profiles配置
-    val activeProfiles = System.getProperty("spring.profiles.active") ?: ""
-    val environmentProfiles = System.getenv("SPRING_PROFILES_ACTIVE") ?: ""
-
-    return activeProfiles.contains("dev") ||
-      activeProfiles.contains("development") ||
-      environmentProfiles.contains("dev") ||
-      environmentProfiles.contains("development")
-  }
 }

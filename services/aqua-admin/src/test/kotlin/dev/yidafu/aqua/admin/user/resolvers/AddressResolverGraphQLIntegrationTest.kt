@@ -22,21 +22,31 @@ package dev.yidafu.aqua.admin.user.resolvers
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.domain.model.AddressModel
-import org.junit.jupiter.api.BeforeEach
+import dev.yidafu.aqua.common.domain.model.AdminModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import dev.yidafu.aqua.common.security.JwtTokenService
+import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.common.security.toPermissionAuthorities
+import dev.yidafu.aqua.user.domain.repository.AdminRepository
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.graphql.test.tester.HttpGraphQlTester
-import org.springframework.graphql.test.tester.WebGraphQlTester
+import org.springframework.http.HttpHeaders
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.reactive.server.WebTestClient
 
 /**
  * Integration tests for AddressResolver (admin)
- * Tests the GraphQL endpoint with real Spring context and H2 database
+ * Tests the GraphQL endpoint with real Spring context and H2 database.
+ *
+ * /graphql 已开启认证：@BeforeAll 中种子化一个 ADMIN 角色管理员并为其签发 JWT，
+ * 请求附带 Authorization header 通过 URL 与方法级权限校验。
  */
 @SpringBootTest(
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
@@ -44,17 +54,54 @@ import org.springframework.test.web.reactive.server.WebTestClient
 )
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/test-schema.graphqls"])
+@TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @DisplayName("AddressResolver GraphQL Integration Tests")
 class AddressResolverGraphQLIntegrationTest {
-  @Value($$"${local.server.port}")
+  @Value("\${local.server.port}")
   private var port: Int = 0
-
-  private lateinit var webGraphQlTester: WebGraphQlTester
 
   @Autowired
   private lateinit var addressService: AddressService
 
+  @Autowired
+  private lateinit var adminRepository: AdminRepository
+
+  @Autowired
+  private lateinit var jwtTokenService: JwtTokenService
+
+  private lateinit var webGraphQlTester: HttpGraphQlTester
+
   private var testUserId: Long = 1L
+
+  @BeforeAll
+  fun setUp() {
+    // 种子化 ADMIN 角色管理员并签发 JWT（ADMIN 具备 PERMISSION_ADDRESS_READ/WRITE）
+    val admin =
+      AdminModel(
+        id = 1001L,
+        username = "testadmin",
+        passwordHash = "unused-in-test",
+        role = AdminRoleModel.ADMIN,
+      )
+    adminRepository.save(admin)
+    val token =
+      jwtTokenService.generateAccessToken(
+        UserPrincipal(
+          id = admin.id!!,
+          _username = admin.username,
+          userType = admin.role.name,
+          _authorities = admin.role.toPermissionAuthorities(),
+        ),
+      )
+
+    val webTestClient =
+      WebTestClient
+        .bindToServer()
+        .baseUrl("http://localhost:$port")
+        .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer $token")
+        .build()
+    webGraphQlTester = HttpGraphQlTester.create(webTestClient)
+  }
 
   private fun createSampleAddress(
     userId: Long = testUserId,
@@ -79,17 +126,6 @@ class AddressResolverGraphQLIntegrationTest {
       detailAddress = detailAddress,
       isDefault = isDefault,
     )
-
-  @BeforeEach
-  fun setUp() {
-    testUserId = 1L
-    val webTestClient =
-      WebTestClient
-        .bindToServer()
-        .baseUrl("http://localhost:$port")
-        .build()
-    webGraphQlTester = HttpGraphQlTester.create(webTestClient)
-  }
 
   @Test
   @DisplayName("addresses query should return all addresses for admin")
@@ -135,9 +171,9 @@ class AddressResolverGraphQLIntegrationTest {
     val searchResult =
       webGraphQlTester
         .document(
-          $$"""
-          query searchAddresses($keyword: String) {
-            searchAllAddresses(keyword: $keyword, page: 0, size: 10) {
+          """
+          query searchAddresses(${'$'}keyword: String) {
+            searchAllAddresses(keyword: ${'$'}keyword, page: 0, size: 10) {
               id
               receiverName
               phone
@@ -164,9 +200,9 @@ class AddressResolverGraphQLIntegrationTest {
     // Execute GraphQL mutation
     webGraphQlTester
       .document(
-        $$"""
-        mutation createAddress($input: AddressInput!) {
-          createAdminAddress(input: $input) {
+        """
+        mutation createAddress(${'$'}input: AddressInput!) {
+          createAdminAddress(input: ${'$'}input) {
             id
             userId
             receiverName
@@ -208,9 +244,9 @@ class AddressResolverGraphQLIntegrationTest {
     // Execute GraphQL mutation
     webGraphQlTester
       .document(
-        $$"""
-        mutation deleteAddress($id: Long!) {
-          deleteAdminAddress(id: $id)
+        """
+        mutation deleteAddress(${'$'}id: Long!) {
+          deleteAdminAddress(id: ${'$'}id)
         }
         """.trimIndent(),
       ).variable("id", savedAddress.id)
@@ -230,9 +266,9 @@ class AddressResolverGraphQLIntegrationTest {
     val userAddrResult =
       webGraphQlTester
         .document(
-          $$"""
-          query userAddresses($userId: Long) {
-            userAddresses(userId: $userId) {
+          """
+          query userAddresses(${'$'}userId: Long) {
+            userAddresses(userId: ${'$'}userId) {
               id
               userId
               receiverName

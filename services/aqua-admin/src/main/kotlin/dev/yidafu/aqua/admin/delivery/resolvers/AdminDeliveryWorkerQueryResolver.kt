@@ -38,24 +38,24 @@ class AdminDeliveryWorkerQueryResolver(
   /**
    * 查询所有配送员（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
   fun deliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryWorkerQueryService.getAllWorkers())
 
   /**
    * 查询在线配送员（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
   fun onlineDeliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryWorkerQueryService.getOnlineWorkers())
 
   /**
    * 根据ID查询配送员（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
   fun deliveryWorker(id: Long): DeliveryWorker? = DeliveryWorkerMapper.map(deliveryWorkerQueryService.getWorkerById(id))
 
   /**
    * 查询配送员的活跃任务数量（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
   fun deliveryWorkerActiveTasks(workerId: Long): Int = deliveryWorkerQueryService.getWorkerActiveTasks(workerId).size
 }

@@ -1,39 +1,66 @@
 package dev.yidafu.aqua.common.domain.model.enums
 
 /**
- * 管理员权限枚举
- * 按模块区分查询(READ)和管理(WRITE)权限
+ * 后台权限枚举
+ * 按域(模块)拆分:查询(READ)/管理(WRITE)分离,关键操作(派单、核验、确认、审核、执行、导出、退款、删除、重置密码)独立成码。
+ * 与 PRD 01-overview.md §权限码目录 保持一致。
  */
 enum class AdminPermission(
   val description: String,
 ) {
-  // 用户模块
-  USER_READ("用户查询"),
-  USER_WRITE("用户管理"),
+  // 商品
+  PRODUCT_READ("商品查询"),
+  PRODUCT_WRITE("商品管理"),
 
-  // 订单模块
+  // 订单
   ORDER_READ("订单查询"),
   ORDER_WRITE("订单管理"),
+  ORDER_CREATE("代客下单"),
+  ORDER_ASSIGN("派单"),
+  ORDER_REVIEW("配送照片核验"),
 
-  // 产品模块
-  PRODUCT_READ("产品查询"),
-  PRODUCT_WRITE("产品管理"),
+  // 配送执行
+  DELIVERY_TASK("配送任务执行"),
 
-  // 配送模块
-  DELIVERY_READ("配送查询"),
-  DELIVERY_WRITE("配送管理"),
+  // 送水工管理
+  DELIVERY_WORKER_READ("送水工查询"),
+  DELIVERY_WORKER_WRITE("送水工管理"),
+  DELIVERY_WORKER_DELETE("删除送水工"),
+  DELIVERY_WORKER_RESET_PASSWORD("重置送水工密码"),
 
-  // 支付模块
+  // 用户
+  USER_READ("用户查询"),
+  USER_WRITE("用户管理"),
+  USER_DELETE("删除用户"),
+  USER_RESET_PASSWORD("重置用户密码"),
+
+  // 地址
+  ADDRESS_READ("地址查询"),
+  ADDRESS_WRITE("地址维护"),
+
+  // 管理员
+  ADMIN_USER_READ("管理员查询"),
+  ADMIN_USER_WRITE("管理员管理"),
+
+  // 对账
+  RECONCILIATION_READ("对账/日报查询"),
+  RECONCILIATION_SUBMIT("日报提交"),
+  RECONCILIATION_CONFIRM("日报确认"),
+  RECONCILIATION_REVIEW("对账审核"),
+  RECONCILIATION_EXECUTE("执行对账"),
+
+  // 支付
   PAYMENT_READ("支付查询"),
-  PAYMENT_WRITE("支付管理"),
+  PAYMENT_REFUND("退款"),
 
-  // 统计模块
+  // 统计
   STATISTICS_READ("统计查询"),
   STATISTICS_EXPORT("统计导出"),
 
-  // 系统管理
-  ADMIN_USER_READ("管理员查询"),
-  ADMIN_USER_WRITE("管理员管理"),
+  // 日志
+  LOG_READ("日志查询"),
+
+  // 系统配置
   SYSTEM_CONFIG_READ("系统配置查询"),
   SYSTEM_CONFIG_WRITE("系统配置修改"),
 }

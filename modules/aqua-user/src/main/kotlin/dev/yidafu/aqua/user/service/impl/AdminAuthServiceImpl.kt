@@ -5,9 +5,9 @@ import dev.yidafu.aqua.api.dto.LoginResponse
 import dev.yidafu.aqua.api.service.admin.AdminAuthService
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.common.security.toPermissionAuthorities
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
-import dev.yidafu.aqua.user.ext.getAuthorities
 import dev.yidafu.aqua.user.service.WeChatAuthException
 import org.slf4j.LoggerFactory
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
@@ -54,7 +54,7 @@ class AdminAuthServiceImpl(
           ?: throw WeChatAuthException("Invalid username or password")
 
       // Create user principal
-      val authorities = admin.getAuthorities()
+      val authorities = admin.role.toPermissionAuthorities()
       val userPrincipal =
         UserPrincipal(
           id = admin.id!!,

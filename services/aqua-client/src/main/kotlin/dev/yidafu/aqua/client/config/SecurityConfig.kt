@@ -22,19 +22,20 @@ package dev.yidafu.aqua.client.config
 import dev.yidafu.aqua.common.config.CustomAccessDeniedHandler
 import dev.yidafu.aqua.common.config.CustomAuthenticationEntryPoint
 import org.slf4j.LoggerFactory
+import org.springframework.http.HttpMethod
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.core.userdetails.UserDetailsService
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
-import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
 import org.springframework.web.cors.CorsUtils
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 class SecurityConfig(
   private val customAccessDeniedHandler: CustomAccessDeniedHandler,
   private val customAuthenticationEntryPoint: CustomAuthenticationEntryPoint,
@@ -54,9 +55,13 @@ class SecurityConfig(
           .permitAll()
           .requestMatchers("/api/auth/delivery/check")
           .permitAll()
-          .requestMatchers("/api/debug/*")
+          // 刷新 token：access token 可能已过期，必须可匿名到达
+          .requestMatchers("/api/auth/refresh")
           .permitAll()
-          .requestMatchers("/api/*")
+          // 公开文件/图片服务（小程序 <Image> 无法携带 Authorization header）
+          .requestMatchers(HttpMethod.GET, "/api/v1/storage/files/**")
+          .permitAll()
+          .requestMatchers("/api/**")
           .authenticated()
           // 允许 GraphQL 端点（用于调试和开发）
           .requestMatchers("/graphql")
@@ -93,7 +98,4 @@ class SecurityConfig(
       }
     return http.build()
   }
-
-  @Bean
-  fun passwordEncoder(): PasswordEncoder = BCryptPasswordEncoder()
 }

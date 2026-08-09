@@ -2,6 +2,9 @@ package dev.yidafu.aqua.client.config
 
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminPermission
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import dev.yidafu.aqua.common.graphql.generated.UserRole
+import dev.yidafu.aqua.common.security.RolePermissionMapping
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.common.security.toSimpleGrantedAuthorities
 import dev.yidafu.aqua.user.domain.repository.UserRepository
@@ -25,80 +28,48 @@ class ClientUserDetailsService(
       userRepository.findByWechatOpenId(username)
         ?: throw UsernameNotFoundException("User not found with openid: $username")
 
-    // Determine user type and authorities based on user data
-    val userType = determineUserType(user)
-    val authorities = determineAuthorities(userType)
+    // 角色唯一来源为持久化的 users.role (R-AUTH-04: 禁止按手机号前缀等不可信信息推断角色)
+    val authorities = buildAuthorities(user)
 
     return UserPrincipal(
       id = user.id!!,
       _username = user.wechatOpenId,
-      userType = userType,
+      userType = roleName(user.role),
       _authorities = authorities,
     )
   }
 
-  private fun determineUserType(user: UserModel): String {
-    // Check if user is an admin (this could be based on a field in User entity)
-    // For now, we'll use a simple logic - you can extend this based on your requirements
-    return if (user.phone?.startsWith("admin") == true) {
-      "ADMIN"
-    } else if (user.phone?.startsWith("worker") == true) {
-      "WORKER"
-    } else {
-      "USER"
+  private fun roleName(role: UserRole): String =
+    when (role) {
+      UserRole.ADMIN -> "ADMIN"
+      // 与后端 AdminRoleModel.DELIVERY_WORKER 对齐
+      UserRole.WORKER -> "DELIVERY_WORKER"
+      UserRole.USER, UserRole.NONE -> "USER"
     }
-  }
 
-  private fun determineAuthorities(userType: String): List<SimpleGrantedAuthority> {
+  private fun buildAuthorities(user: UserModel): List<SimpleGrantedAuthority> {
     val authorities = mutableListOf<SimpleGrantedAuthority>()
-
-    // Add role based on user type
-    authorities.add(SimpleGrantedAuthority("ROLE_$userType"))
-
-    // Add specific permissions based on user type using AdminPermission enum
-    val permissions =
-      when (userType) {
-        "ADMIN" -> {
+    val role = user.role
+    val permissions: Set<AdminPermission> =
+      when (role) {
+        UserRole.WORKER -> RolePermissionMapping.getPermissions(AdminRoleModel.DELIVERY_WORKER)
+        UserRole.ADMIN -> RolePermissionMapping.getPermissions(AdminRoleModel.ADMIN)
+        // 普通用户仅授予本人数据操作相关权限，备将来细控；实际由 isAuthenticated() + 数据隔离(R-AUTH-02) 强制
+        UserRole.USER, UserRole.NONE -> {
           setOf(
             AdminPermission.USER_READ,
             AdminPermission.USER_WRITE,
             AdminPermission.ORDER_READ,
             AdminPermission.ORDER_WRITE,
             AdminPermission.PRODUCT_READ,
-            AdminPermission.PRODUCT_WRITE,
-            AdminPermission.DELIVERY_READ,
-            AdminPermission.DELIVERY_WRITE,
-            AdminPermission.PAYMENT_READ,
-            AdminPermission.PAYMENT_WRITE,
-            AdminPermission.STATISTICS_READ,
+            AdminPermission.ADDRESS_READ,
+            AdminPermission.ADDRESS_WRITE,
           )
-        }
-
-        "WORKER" -> {
-          setOf(
-            AdminPermission.DELIVERY_READ,
-            AdminPermission.DELIVERY_WRITE,
-            AdminPermission.ORDER_READ,
-          )
-        }
-
-        "USER" -> {
-          setOf(
-            AdminPermission.USER_READ,
-            AdminPermission.USER_WRITE,
-            AdminPermission.ORDER_READ,
-            AdminPermission.ORDER_WRITE,
-            AdminPermission.PRODUCT_READ,
-          )
-        }
-
-        else -> {
-          emptySet()
         }
       }
 
+    authorities.add(SimpleGrantedAuthority("ROLE_${roleName(role)}"))
     authorities.addAll(permissions.toSimpleGrantedAuthorities())
-
     return authorities
   }
 }

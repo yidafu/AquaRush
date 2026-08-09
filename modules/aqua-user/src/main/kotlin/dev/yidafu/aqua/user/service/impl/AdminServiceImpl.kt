@@ -21,6 +21,7 @@ package dev.yidafu.aqua.user.service.impl
 
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerMutationService
+import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.UserModel
@@ -31,6 +32,7 @@ import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import org.slf4j.LoggerFactory
+import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -42,7 +44,9 @@ import org.springframework.transaction.annotation.Transactional
 class AdminServiceImpl(
   private val adminRepository: AdminRepository,
   private val deliveryWorkerMutationService: DeliveryWorkerMutationService,
+  private val deliveryWorkerQueryService: DeliveryWorkerQueryService,
   private val userService: UserService,
+  private val passwordEncoder: PasswordEncoder,
 ) : AdminService {
   private val logger = LoggerFactory.getLogger(AdminServiceImpl::class.java)
 
@@ -123,9 +127,10 @@ class AdminServiceImpl(
       throw BadRequestException("手机号已存在: $phone")
     }
 
-    // Encode password
+    // Encode password（passwordToEncode 非空，Security 7 下 encode 返回 @Nullable，此处必非空）
     val passwordToEncode = password ?: DEFAULT_PASSWORD
-    val passwordHash = "" // passwordEncoder.encode(passwordToEncode) ?: ""
+    val passwordHash =
+      requireNotNull(passwordEncoder.encode(passwordToEncode)) { "Password encoding returned null" }
 
     // Create admin user
     val admin =
@@ -185,6 +190,28 @@ class AdminServiceImpl(
     role?.let { existingAdmin.role = it }
 
     val savedAdmin = adminRepository.save(existingAdmin)
+
+    // 角色切到 ADMIN/DELIVERY_WORKER 时确保存在关联的 delivery_worker 记录(与 createAdmin 一致)
+    val newRole = savedAdmin.role
+    if (newRole == AdminRoleModel.ADMIN || newRole == AdminRoleModel.DELIVERY_WORKER) {
+      val workerExists =
+        try {
+          deliveryWorkerQueryService.getWorkerByAdminId(savedAdmin.id!!)
+          true
+        } catch (e: Exception) {
+          false
+        }
+      if (!workerExists) {
+        deliveryWorkerMutationService.createDeliveryWorker(
+          adminId = savedAdmin.id!!,
+          name = savedAdmin.realName ?: savedAdmin.username,
+          phone = savedAdmin.phone ?: "",
+          wechatOpenId = "",
+        )
+        logger.info("Created delivery worker record for admin: ${savedAdmin.id}")
+      }
+    }
+
     logger.info("Successfully updated admin user: ${savedAdmin.id}")
     return savedAdmin
   }

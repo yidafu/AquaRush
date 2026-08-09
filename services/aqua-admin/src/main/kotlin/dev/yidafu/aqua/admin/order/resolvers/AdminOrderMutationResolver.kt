@@ -53,7 +53,7 @@ class AdminOrderMutationResolver(
    * 取消订单 - 管理员权限
    */
   @MutationMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_WRITE')")
   fun cancelOrder(
     @Argument orderId: Long,
   ): Order =
@@ -65,7 +65,7 @@ class AdminOrderMutationResolver(
    * 更新订单状态 - 管理员权限
    */
   @MutationMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_WRITE')")
   fun updateOrderStatus(
     @Argument orderId: Long,
     @Argument status: OrderModelStatus,
@@ -83,7 +83,7 @@ class AdminOrderMutationResolver(
    * @param isSelfCollect 是否自收（水钱已收/水票已扣）
    */
   @MutationMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_ASSIGN')")
   fun assignDeliveryWorker(
     @Argument orderId: Long,
     @Argument workerId: Long,
@@ -100,7 +100,7 @@ class AdminOrderMutationResolver(
    * 批量分配订单给配送员（管理员功能）
    */
   @MutationMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_ASSIGN')")
   fun batchAssignOrders(
     @Argument orderIds: List<Long>,
     @Argument workerId: Long,
@@ -117,6 +117,7 @@ class AdminOrderMutationResolver(
    * 配送员不需要用户认证，直接通过地址ID获取用户信息
    */
   @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_CREATE')")
   fun createDeliveryOrder(
     @Argument @Valid input: CreateDeliveryOrderInput,
     @AuthenticationPrincipal userDetail: UserDetails,
@@ -140,6 +141,7 @@ class AdminOrderMutationResolver(
    * 配送员接单（配送员或管理员可调用）
    */
   @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
   fun acceptDelivery(
     @Argument orderId: Long,
     @AuthenticationPrincipal userDetail: UserDetails,
@@ -153,6 +155,7 @@ class AdminOrderMutationResolver(
    * 开始配送（配送员点击开始配送按钮）
    */
   @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
   fun startDelivery(
     @Argument orderId: Long,
   ): Order {
@@ -167,6 +170,7 @@ class AdminOrderMutationResolver(
    * @param remark 配送员备注
    */
   @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
   fun completeDelivery(
     @Argument orderId: Long,
     @Argument photos: List<String>,

@@ -54,7 +54,7 @@ class AdminDeliveryWorkerMutationResolver(
   /**
    * 创建新的配送员（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_WRITE')")
   @Transactional
   fun createDeliveryWorker(input: CreateDeliveryWorkerInput): DeliveryWorker {
     try {
@@ -122,7 +122,7 @@ class AdminDeliveryWorkerMutationResolver(
   /**
    * 更新现有配送员（管理员功能）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_WRITE')")
   @Transactional
   fun updateDeliveryWorker(
     workerId: Long,

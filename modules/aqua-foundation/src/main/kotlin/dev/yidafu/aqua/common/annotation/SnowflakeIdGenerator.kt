@@ -34,6 +34,11 @@ class SnowflakeIdentifierGenerator : BeforeExecutionGenerator {
 }
 
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FIELD, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.VALUE_PARAMETER)
+// Restrict to FIELD so Kotlin places the annotation on the entity's backing field.
+// Hibernate resolves the @IdGeneratorType from the field (field access), and if the
+// annotation landed on the constructor parameter (the Kotlin default when VALUE_PARAMETER
+// is allowed), Hibernate would treat the id as "assigned" and persist() with a null id
+// would fail with "must be manually assigned before calling persist()".
+@Target(AnnotationTarget.FIELD)
 @IdGeneratorType(SnowflakeIdentifierGenerator::class)
 annotation class SnowflakeIdGenerator

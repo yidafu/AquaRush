@@ -8,6 +8,7 @@ const AdminForm: React.FC<FormModalProps<AdminFormData>> = ({
   record,
   onSubmit,
   loading = false,
+  isSuperAdmin = true,
 }) => {
   const [form] = Form.useForm();
 
@@ -112,7 +113,7 @@ const AdminForm: React.FC<FormModalProps<AdminFormData>> = ({
         >
           <Select
             placeholder="请选择角色"
-            disabled={!!record}
+            disabled={!isSuperAdmin}
           >
             <Select.Option value="ADMIN">管理员</Select.Option>
             <Select.Option value="SUPER_ADMIN">超级管理员</Select.Option>

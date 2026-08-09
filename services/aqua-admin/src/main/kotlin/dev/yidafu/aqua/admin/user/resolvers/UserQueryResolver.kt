@@ -50,13 +50,13 @@ class UserQueryResolver(
   }
 
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+  @PreAuthorize("hasAuthority('PERMISSION_USER_READ') or #id == authentication.principal.id")
   fun user(
     @Argument id: Long,
   ): User? = userService.findById(id)?.let { UserMapper.map(it) }
 
   @QueryMapping
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_USER_READ')")
   fun users(
     @Argument input: UserListInput?,
   ): UserVoPage {

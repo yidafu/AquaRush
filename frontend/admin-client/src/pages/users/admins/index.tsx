@@ -40,6 +40,10 @@ const AdminUsers: React.FC = () => {
   // Use GraphQL data only
   const admins = adminsData?.admins || [];
 
+  // 仅超级管理员可管理管理员账号（菜单已隐藏，此处为防御性降级）
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const isSuperAdmin = userInfo.role === 'SUPER_ADMIN';
+
   // Action handlers
   const handleViewAdmin = (admin: Admin) => {
     setViewingAdmin(admin);
@@ -93,12 +97,14 @@ const AdminUsers: React.FC = () => {
   const handleAdminSubmit = async (values: AdminFormData) => {
     setLoading(true);
     try {
+      // 非超管强制沿用现有角色，防止前端篡改（后端以 PERMISSION_ADMIN_USER_WRITE 拦截为准）
+      const role = isSuperAdmin ? values.role : (editingAdmin?.role ?? values.role);
       const input: CreateAdminInput = {
         username: values.username,
         realName: values.realName,
         phone: values.phone,
         password: values.password,
-        role: values.role,
+        role,
       };
 
       if (editingAdmin && editingAdmin.id) {
@@ -164,6 +170,7 @@ const AdminUsers: React.FC = () => {
         record={editingAdmin || undefined}
         onSubmit={handleAdminSubmit}
         loading={loading || createLoading || updateLoading}
+        isSuperAdmin={isSuperAdmin}
       />
 
       {/* Detail Modal */}

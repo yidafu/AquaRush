@@ -55,6 +55,7 @@ class AdminDailyCollectionMutationResolver(
    * 配送员录入时会自动从当前用户关联的配送员获取ID
    */
   @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_SUBMIT')")
   fun submitDailyCollection(
     @Argument input: SubmitDailyCollectionInput,
     @AuthenticationPrincipal userDetails: UserDetails,
@@ -79,7 +80,7 @@ class AdminDailyCollectionMutationResolver(
   /**
    * 管理员确认收款记录
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_CONFIRM')")
   @MutationMapping
   fun confirmDailyCollection(
     @Argument input: ConfirmDailyCollectionInput?,
@@ -105,7 +106,7 @@ class AdminDailyCollectionMutationResolver(
   /**
    * 管理员复核对账记录
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_REVIEW')")
   @MutationMapping
   fun reviewReconciliation(
     @Argument input: ReviewReconciliationInput?,
@@ -136,7 +137,7 @@ class AdminDailyCollectionMutationResolver(
    * 管理员可以手动触发对账任务
    * 如果记录已存在会更新（删除后重新创建）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_EXECUTE')")
   @MutationMapping
   fun executeDailyReconciliation(
     @Argument reconciliationDate: String?,

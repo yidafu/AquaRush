@@ -21,10 +21,9 @@ package dev.yidafu.aqua.admin.config
 
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.user.UserService
-import dev.yidafu.aqua.common.domain.model.enums.AdminPermission
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.common.security.toSimpleGrantedAuthority
+import dev.yidafu.aqua.common.security.toPermissionAuthorities
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
@@ -182,7 +181,7 @@ class JwtAuthenticationFilter(
       )
 
       // Extract username from token
-      var username = jwtTokenService.extractUsername(token)
+      val username = jwtTokenService.extractUsername(token)
       if (username.isNullOrBlank()) {
         jwtLogger.warn(
           "JWT_VALIDATION_FAILED - CorrelationId: {}, Reason: Cannot extract username from token",
@@ -197,39 +196,46 @@ class JwtAuthenticationFilter(
         username,
       )
 
-      // query by openId
-      val userModal = userService.findByWechatOpenId(username)
-      if (userModal != null) {
-        jwtLogger.debug(
-          "JWT_VALIDATION_SUCCESS - CorrelationId: {}, Username: {}",
+      // 1) 微信 openid 路径：token.subject 为 openid，命中 users → admins 关联则该 admin 身份
+      val userModel = userService.findByWechatOpenId(username)
+      if (userModel != null) {
+        val admin = adminService.findByUserId(userModel.id!!)
+        if (admin != null) {
+          val authorities = admin.role.toPermissionAuthorities()
+          val principal = UserPrincipal(admin.id!!, admin.username, admin.role.name, authorities)
+          setAuthentication(principal, request)
+          auditLogger.info(
+            "JWT_AUTHENTICATION_SUCCESS - CorrelationId: {}, Username: {}, Method: {}, URI: {}",
+            correlationId,
+            admin.username,
+            request.method,
+            request.requestURI,
+          )
+          return true
+        }
+        // 已注册微信用户但无 admin 关联：不授予任何权限（移除原 Anonymous 越权兜底）
+        jwtLogger.warn(
+          "JWT_VALIDATION_FAILED - CorrelationId: {}, Username: {}, Reason: openid has no admin association",
           correlationId,
           username,
         )
-        val userId = userModal.id!!
-        val admin = adminService.findByUserId(userId)
-        if (admin != null) {
-          username = admin.username
-        } else {
-          // If it's a pending delivery worker token (userType = DELIVERY_WORKER, id = 0),
-          // use proper authentication instead of AnonymousAuthenticationToken
-          val authorities = listOf(AdminPermission.PRODUCT_READ.toSimpleGrantedAuthority())
-
-          val authentication =
-            UsernamePasswordAuthenticationToken(
-              UserPrincipal(0L, username, "Anonymous", authorities),
-              null,
-              authorities,
-            )
-          SecurityContextHolder.getContext().authentication = authentication
-
-          return true
-        }
+        return false
       }
 
-      // Load user details and set authentication
-      val userDetails = customUserDetailsService.loadUserByUsername(username)
+      // 2) 后台账号路径：token.subject 为 admin.username
+      val admin =
+        adminService.findByUsername(username)
+          ?: run {
+            jwtLogger.warn(
+              "JWT_VALIDATION_FAILED - CorrelationId: {}, Username: {}, Reason: admin not found",
+              correlationId,
+              username,
+            )
+            return false
+          }
 
-      // Check if token is valid
+      // 校验 token 与用户一致
+      val userDetails = customUserDetailsService.loadUserByUsername(username)
       if (!jwtTokenService.validateToken(token, userDetails)) {
         jwtLogger.warn(
           "JWT_VALIDATION_FAILED - CorrelationId: {}, Username: {}, Reason: Token validation failed",
@@ -245,15 +251,10 @@ class JwtAuthenticationFilter(
         username,
       )
 
-      val authentication =
-        UsernamePasswordAuthenticationToken(
-          userDetails,
-          null,
-          userDetails.authorities,
-        )
-      authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
-
-      SecurityContextHolder.getContext().authentication = authentication
+      // 统一 principal 为 UserPrincipal（含 ROLE_* 与 PERMISSION_*）
+      val authorities = admin.role.toPermissionAuthorities()
+      val principal = UserPrincipal(admin.id!!, admin.username, admin.role.name, authorities)
+      setAuthentication(principal, request)
 
       auditLogger.info(
         "JWT_AUTHENTICATION_SUCCESS - CorrelationId: {}, Username: {}, Method: {}, URI: {}",
@@ -281,5 +282,19 @@ class JwtAuthenticationFilter(
 
       false
     }
+  }
+
+  private fun setAuthentication(
+    principal: UserPrincipal,
+    request: HttpServletRequest,
+  ) {
+    val authentication =
+      UsernamePasswordAuthenticationToken(
+        principal,
+        null,
+        principal.authorities,
+      )
+    authentication.details = WebAuthenticationDetailsSource().buildDetails(request)
+    SecurityContextHolder.getContext().authentication = authentication
   }
 }

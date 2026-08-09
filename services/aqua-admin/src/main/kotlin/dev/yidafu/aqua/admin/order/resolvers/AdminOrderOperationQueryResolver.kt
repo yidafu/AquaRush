@@ -34,7 +34,7 @@ class AdminOrderOperationQueryResolver(
    * 获取订单的操作历史 - 管理员权限
    */
   @QueryMapping
-  @PreAuthorize("hasAnyRole('ADMIN', 'DELIVERY_WORKER')")
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun orderOperations(
     @Argument orderId: Long,
   ): List<OrderOperationModel> = orderOperationService.getOrderOperations(orderId)

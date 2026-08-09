@@ -26,6 +26,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.format.annotation.DateTimeFormat
+import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.*
 import java.time.LocalDateTime
 
@@ -42,6 +43,7 @@ class BizLogController(
    * 分页查询业务日志
    */
   @GetMapping
+  @PreAuthorize("hasAuthority('PERMISSION_LOG_READ')")
   fun queryBusinessLogs(
     @RequestParam(required = false) level: String?,
     @RequestParam(required = false) loggerName: String?,
@@ -68,6 +70,7 @@ class BizLogController(
    * 根据关联ID查询业务日志
    */
   @GetMapping("/correlation/{correlationId}")
+  @PreAuthorize("hasAuthority('PERMISSION_LOG_READ')")
   fun getBusinessLogsByCorrelationId(
     @PathVariable correlationId: String,
   ): List<BusinessLogModel> = businessLogService.findByCorrelationId(correlationId)

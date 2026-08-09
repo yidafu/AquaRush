@@ -5,6 +5,8 @@ export interface LoginDto {
   password: string;
 }
 
+export type AdminRole = 'SUPER_ADMIN' | 'ADMIN' | 'DELIVERY_WORKER';
+
 export interface LoginResponse {
   accessToken: string;
   refreshToken?: string;
@@ -14,7 +16,7 @@ export interface LoginResponse {
     id: string;
     username: string;
     nickname?: string;
-    role: 'ADMIN' | 'CUSTOMER' | 'DELIVERY';
+    role: AdminRole;
     avatar?: string;
   };
 }
@@ -25,7 +27,7 @@ export interface UserInfo {
   nickname?: string;
   phone?: string;
   email?: string;
-  role: 'ADMIN' | 'CUSTOMER' | 'DELIVERY';
+  role: AdminRole;
   avatar?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'BANNED';
   createdAt: string;

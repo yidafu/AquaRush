@@ -45,7 +45,7 @@ class AdminProductQueryResolver(
   /**
    * 查询所有产品（管理员功能，包括下线产品）
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
   @QueryMapping
   fun productsPaginated(
     @Argument input: ProductSearchInput,
@@ -67,13 +67,13 @@ class AdminProductQueryResolver(
    * 根据ID查询产品详细信息（管理员功能）
    */
 
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
   @QueryMapping
   fun product(
     @Argument id: Long,
   ): Product? = productService.findById(id)?.let { ProductMapper.map(it) }
 
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
   @QueryMapping
   fun activeProducts(
     @Argument keyword: String?,

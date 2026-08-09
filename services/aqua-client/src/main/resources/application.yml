@@ -148,4 +148,4 @@ app:
     expiration: 86400 # 24 hours in seconds
     refresh-expiration: 604800 # 7 days in seconds
   debug:
-    enabled: ${DEBUG_ENABLED:true} # Enable debug endpoints (should only be true in development)
+    enabled: ${DEBUG_ENABLED:false} # Enable debug endpoints (should only be true in development)

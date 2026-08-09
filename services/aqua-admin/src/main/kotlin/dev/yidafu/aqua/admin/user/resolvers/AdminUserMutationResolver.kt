@@ -48,7 +48,7 @@ class AdminUserMutationResolver(
   /**
    * 创建管理员用户
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_ADMIN_USER_WRITE')")
   @MutationMapping
   fun createAdmin(
     @Argument input: CreateAdminInput,
@@ -81,7 +81,7 @@ class AdminUserMutationResolver(
   /**
    * 更新管理员用户
    */
-  @PreAuthorize("hasRole('ADMIN')")
+  @PreAuthorize("hasAuthority('PERMISSION_ADMIN_USER_WRITE')")
   @MutationMapping
   fun updateAdmin(
     @Argument id: Long,
