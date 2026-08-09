@@ -44,7 +44,6 @@ dependencies {
   // Database
   // ========================================================
   runtimeOnly(libs.postgresql)
-  implementation(libs.flyway.core)
 
   // ========================================================
   // 各模块特有依赖
