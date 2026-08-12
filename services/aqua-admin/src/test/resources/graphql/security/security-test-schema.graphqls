@@ -1,6 +1,7 @@
 # Security integration test schema
 # Only exposes what AdminSecurityIntegrationTest exercises.
-# graphql-java 内建 Long scalar，无需显式声明。
+
+scalar Long
 
 type Query {
   _dummy: String

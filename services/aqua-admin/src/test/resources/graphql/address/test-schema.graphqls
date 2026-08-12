@@ -1,5 +1,7 @@
 # Test Schema for AddressResolver GraphQL Integration Tests
 
+scalar Long
+
 type Query {
   addresses: [Address!]!
   searchAllAddresses(keyword: String, page: Int, size: Int): [Address!]!

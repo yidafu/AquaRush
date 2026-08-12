@@ -42,7 +42,9 @@ class DailyStatisticsQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_STATISTICS_READ')")
-  fun dailyStatistics(@Argument input: DateRangeInput): List<DailyStatistic> =
+  fun dailyStatistics(
+    @Argument input: DateRangeInput,
+  ): List<DailyStatistic> =
     statisticsService
       .getDailyStatistics(input.startDate.toLocalDate(), input.endDate.toLocalDate())
       .map {

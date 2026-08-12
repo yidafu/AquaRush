@@ -33,7 +33,6 @@ import kotlin.test.assertTrue
  * 验证 client 端角色唯一来源为 users.role(R-AUTH-04),手机号前缀不再影响角色。
  */
 class ClientUserDetailsServiceTest {
-
   private val userRepository = mockk<UserRepository>(relaxed = true)
   private val service = ClientUserDetailsService(userRepository)
 

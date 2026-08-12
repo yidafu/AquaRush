@@ -23,6 +23,8 @@ import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
@@ -38,20 +40,25 @@ class AdminDeliveryWorkerQueryResolver(
   /**
    * 查询所有配送员（管理员功能）
    */
+  @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
   fun deliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryWorkerQueryService.getAllWorkers())
 
   /**
    * 查询在线配送员（管理员功能）
    */
+  @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
   fun onlineDeliveryWorkers(): List<DeliveryWorker> = DeliveryWorkerMapper.mapList(deliveryWorkerQueryService.getOnlineWorkers())
 
   /**
    * 根据ID查询配送员（管理员功能）
    */
+  @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_WORKER_READ')")
-  fun deliveryWorker(id: Long): DeliveryWorker? = DeliveryWorkerMapper.map(deliveryWorkerQueryService.getWorkerById(id))
+  fun deliveryWorker(
+    @Argument id: Long,
+  ): DeliveryWorker? = DeliveryWorkerMapper.map(deliveryWorkerQueryService.getWorkerById(id))
 
   /**
    * 查询配送员的活跃任务数量（管理员功能）

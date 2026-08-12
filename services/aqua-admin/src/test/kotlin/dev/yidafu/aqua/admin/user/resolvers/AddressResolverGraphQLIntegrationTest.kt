@@ -22,89 +22,58 @@ package dev.yidafu.aqua.admin.user.resolvers
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.domain.model.AddressModel
-import dev.yidafu.aqua.common.domain.model.AdminModel
-import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
-import dev.yidafu.aqua.common.security.JwtTokenService
-import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.common.security.toPermissionAuthorities
-import dev.yidafu.aqua.user.domain.repository.AdminRepository
-import org.junit.jupiter.api.BeforeAll
+import org.hamcrest.Matchers.greaterThanOrEqualTo
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.graphql.test.tester.HttpGraphQlTester
-import org.springframework.http.HttpHeaders
+import org.springframework.http.MediaType
+import org.springframework.security.test.context.support.WithMockUser
+import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
-import org.springframework.test.web.reactive.server.WebTestClient
+import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.setup.DefaultMockMvcBuilder
+import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.context.WebApplicationContext
 
 /**
- * Integration tests for AddressResolver (admin)
- * Tests the GraphQL endpoint with real Spring context and H2 database.
+ * Integration tests for AddressResolver (admin).
+ * Mirrors AdminSecurityIntegrationTest's MockMvc pattern（WebEnvironment.MOCK）.
  *
- * /graphql 已开启认证：@BeforeAll 中种子化一个 ADMIN 角色管理员并为其签发 JWT，
- * 请求附带 Authorization header 通过 URL 与方法级权限校验。
+ * /graphql 已开启认证：通过 @WithMockUser 授予 ADDRESS_READ/WRITE 权限绕过 JWT 链路。
  */
 @SpringBootTest(
-  webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
+  webEnvironment = SpringBootTest.WebEnvironment.MOCK,
   classes = [AquaAdminApplication::class],
 )
 @ActiveProfiles("test")
-@TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/test-schema.graphqls"])
-@TestInstance(TestInstance.Lifecycle.PER_CLASS)
+@TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/address/"])
 @DisplayName("AddressResolver GraphQL Integration Tests")
 class AddressResolverGraphQLIntegrationTest {
-  @Value("\${local.server.port}")
-  private var port: Int = 0
+  @Autowired
+  private lateinit var context: WebApplicationContext
 
   @Autowired
   private lateinit var addressService: AddressService
 
-  @Autowired
-  private lateinit var adminRepository: AdminRepository
+  private lateinit var mockMvc: MockMvc
 
-  @Autowired
-  private lateinit var jwtTokenService: JwtTokenService
-
-  private lateinit var webGraphQlTester: HttpGraphQlTester
-
-  private var testUserId: Long = 1L
-
-  @BeforeAll
+  @BeforeEach
   fun setUp() {
-    // 种子化 ADMIN 角色管理员并签发 JWT（ADMIN 具备 PERMISSION_ADDRESS_READ/WRITE）
-    val admin =
-      AdminModel(
-        id = 1001L,
-        username = "testadmin",
-        passwordHash = "unused-in-test",
-        role = AdminRoleModel.ADMIN,
-      )
-    adminRepository.save(admin)
-    val token =
-      jwtTokenService.generateAccessToken(
-        UserPrincipal(
-          id = admin.id!!,
-          _username = admin.username,
-          userType = admin.role.name,
-          _authorities = admin.role.toPermissionAuthorities(),
-        ),
-      )
-
-    val webTestClient =
-      WebTestClient
-        .bindToServer()
-        .baseUrl("http://localhost:$port")
-        .defaultHeader(HttpHeaders.AUTHORIZATION, "Bearer $token")
+    mockMvc =
+      MockMvcBuilders
+        .webAppContextSetup(context)
+        .apply<DefaultMockMvcBuilder>(springSecurity())
         .build()
-    webGraphQlTester = HttpGraphQlTester.create(webTestClient)
   }
 
   private fun createSampleAddress(
-    userId: Long = testUserId,
+    userId: Long = 1L,
     receiverName: String = "张三",
     phone: String = "13800138000",
     province: String = "广东省",
@@ -127,166 +96,58 @@ class AddressResolverGraphQLIntegrationTest {
       isDefault = isDefault,
     )
 
+  private fun graphql(body: String) =
+    mockMvc.perform(post("/graphql").contentType(MediaType.APPLICATION_JSON).content(body)).andExpect(status().isOk)
+
   @Test
+  @WithMockUser(authorities = ["PERMISSION_ADDRESS_READ", "PERMISSION_ADDRESS_WRITE"])
   @DisplayName("addresses query should return all addresses for admin")
   fun `addresses query returns all addresses`() {
-    // Seed test data
     addressService.save(createSampleAddress())
 
-    // Execute GraphQL query
-    val result =
-      webGraphQlTester
-        .document(
-          """
-          query {
-            addresses {
-              id
-              userId
-              receiverName
-              phone
-              province
-              city
-              district
-              detailAddress
-              isDefault
-            }
-          }
-          """.trimIndent(),
-        ).execute()
-        .path("data.addresses")
-        .entityList(Map::class.java)
-        .get()
-
-    org.junit.jupiter.api.Assertions
-      .assertTrue(result.size >= 1)
+    graphql("""{"query":"{ addresses { id userId receiverName phone province city district detailAddress isDefault } }"}""")
+      .andExpect(jsonPath("$.data.addresses.length()").value(greaterThanOrEqualTo(1)))
   }
 
   @Test
+  @WithMockUser(authorities = ["PERMISSION_ADDRESS_READ", "PERMISSION_ADDRESS_WRITE"])
   @DisplayName("searchAllAddresses query should search addresses for admin")
   fun `searchAllAddresses query searches addresses`() {
-    // Seed test data
     addressService.save(createSampleAddress(city = "深圳市", detailAddress = "南山科技园"))
 
-    // Execute GraphQL query
-    val searchResult =
-      webGraphQlTester
-        .document(
-          """
-          query searchAddresses(${'$'}keyword: String) {
-            searchAllAddresses(keyword: ${'$'}keyword, page: 0, size: 10) {
-              id
-              receiverName
-              phone
-              province
-              city
-              district
-              detailAddress
-            }
-          }
-          """.trimIndent(),
-        ).variable("keyword", "深圳")
-        .execute()
-        .path("data.searchAllAddresses")
-        .entityList(Map::class.java)
-        .get()
-
-    org.junit.jupiter.api.Assertions
-      .assertTrue(searchResult.size >= 1)
+    // searchAllAddresses 仅按 detailAddress / phone / receiverName 模糊匹配，不匹配 city
+    graphql(
+      """{"query":"{ searchAllAddresses(keyword: \"科技园\", page: 0, size: 10) { id receiverName phone province city district detailAddress } }"}""",
+    ).andExpect(jsonPath("$.data.searchAllAddresses.length()").value(greaterThanOrEqualTo(1)))
   }
 
   @Test
+  @WithMockUser(authorities = ["PERMISSION_ADDRESS_READ", "PERMISSION_ADDRESS_WRITE"])
   @DisplayName("createAdminAddress mutation should create address for admin")
   fun `createAdminAddress mutation creates address`() {
-    // Execute GraphQL mutation
-    webGraphQlTester
-      .document(
-        """
-        mutation createAddress(${'$'}input: AddressInput!) {
-          createAdminAddress(input: ${'$'}input) {
-            id
-            userId
-            receiverName
-            phone
-            province
-            city
-            district
-            detailAddress
-            isDefault
-          }
-        }
-        """.trimIndent(),
-      ).variable(
-        "input",
-        mapOf(
-          "receiverName" to "测试用户",
-          "phone" to "13800138000",
-          "province" to "广东省",
-          "provinceCode" to "440000",
-          "city" to "深圳市",
-          "cityCode" to "440300",
-          "district" to "南山区",
-          "districtCode" to "440305",
-          "detailAddress" to "测试地址1号",
-          "isDefault" to false,
-        ),
-      ).execute()
-      .path("data.createAdminAddress.receiverName")
-      .entity(String::class.java)
-      .isEqualTo("测试用户")
+    graphql(
+      """{"query":"mutation createAddress(${'$'}input: AddressInput!) { createAdminAddress(input: ${'$'}input) { id userId receiverName phone province city district detailAddress isDefault } }","variables":{"input":{"receiverName":"测试用户","phone":"13800138000","province":"广东省","provinceCode":"440000","city":"深圳市","cityCode":"440300","district":"南山区","districtCode":"440305","detailAddress":"测试地址1号","isDefault":false}}}""",
+    ).andExpect(jsonPath("$.data.createAdminAddress.receiverName").value("测试用户"))
   }
 
   @Test
+  @WithMockUser(authorities = ["PERMISSION_ADDRESS_READ", "PERMISSION_ADDRESS_WRITE"])
   @DisplayName("deleteAdminAddress mutation should delete address for admin")
   fun `deleteAdminAddress mutation deletes address`() {
-    // Seed test data
     val savedAddress = addressService.save(createSampleAddress())
 
-    // Execute GraphQL mutation
-    webGraphQlTester
-      .document(
-        """
-        mutation deleteAddress(${'$'}id: Long!) {
-          deleteAdminAddress(id: ${'$'}id)
-        }
-        """.trimIndent(),
-      ).variable("id", savedAddress.id)
-      .execute()
-      .path("data.deleteAdminAddress")
-      .entity(Boolean::class.java)
-      .isEqualTo(true)
+    graphql(
+      """{"query":"mutation deleteAddress(${'$'}id: Long!) { deleteAdminAddress(id: ${'$'}id) }","variables":{"id":${savedAddress.id}}}""",
+    ).andExpect(jsonPath("$.data.deleteAdminAddress").value(true))
   }
 
   @Test
+  @WithMockUser(authorities = ["PERMISSION_ADDRESS_READ", "PERMISSION_ADDRESS_WRITE"])
   @DisplayName("userAddresses query should return addresses for specific user")
   fun `userAddresses query returns addresses for specific user`() {
-    // Seed test data
-    addressService.save(createSampleAddress(userId = testUserId))
+    addressService.save(createSampleAddress(userId = 1L))
 
-    // Execute GraphQL query
-    val userAddrResult =
-      webGraphQlTester
-        .document(
-          """
-          query userAddresses(${'$'}userId: Long) {
-            userAddresses(userId: ${'$'}userId) {
-              id
-              userId
-              receiverName
-              phone
-              province
-              city
-              district
-              detailAddress
-            }
-          }
-          """.trimIndent(),
-        ).variable("userId", testUserId)
-        .execute()
-        .path("data.userAddresses")
-        .entityList(Map::class.java)
-        .get()
-
-    org.junit.jupiter.api.Assertions
-      .assertTrue(userAddrResult.size >= 1)
+    graphql("""{"query":"{ userAddresses(userId: 1) { id userId receiverName phone province city district detailAddress } }"}""")
+      .andExpect(jsonPath("$.data.userAddresses.length()").value(greaterThanOrEqualTo(1)))
   }
 }

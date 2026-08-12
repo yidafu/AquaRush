@@ -52,7 +52,7 @@ import org.springframework.web.context.WebApplicationContext
   classes = [AquaAdminApplication::class],
 )
 @ActiveProfiles("test")
-@TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/security-test-schema.graphqls"])
+@TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/security/"])
 @DisplayName("Admin Security Integration Tests")
 class AdminSecurityIntegrationTest {
   @Autowired
@@ -73,8 +73,10 @@ class AdminSecurityIntegrationTest {
         .build()
   }
 
-  private fun graphqlBody(query: String, variables: String): String =
-    """{"query": "$query", "variables": $variables}"""
+  private fun graphqlBody(
+    query: String,
+    variables: String,
+  ): String = """{"query": "$query", "variables": $variables}"""
 
   @Test
   @DisplayName("unauthenticated POST /graphql returns 401")
@@ -106,18 +108,23 @@ class AdminSecurityIntegrationTest {
         ).andReturn()
     println("=== DENIED RESPONSE STATUS: ${result.response.status}")
     println("=== DENIED RESPONSE BODY: ${result.response.contentAsString}")
-    org.junit.jupiter.api.Assertions.assertEquals(200, result.response.status)
-    org.junit.jupiter.api.Assertions.assertTrue(result.response.contentAsString.contains("\"errors\"") || !result.response.contentAsString.contains("\"data\":{\"createAdmin\""))
+    org.junit.jupiter.api.Assertions
+      .assertEquals(200, result.response.status)
+    org.junit.jupiter.api.Assertions.assertTrue(
+      result.response.contentAsString.contains("\"errors\"") || !result.response.contentAsString.contains("\"data\":{\"createAdmin\""),
+    )
   }
 
   @Test
   @WithMockUser(authorities = ["ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_ADMIN_USER_WRITE"])
   @DisplayName("SUPER_ADMIN with ADMIN_USER_WRITE can createAdmin")
   fun `super admin can create admin`() {
+    // 用户名带时间戳后缀，避免共享 H2 在多次运行间重复创建导致唯一键冲突
+    val username = "allowedadmin${System.currentTimeMillis()}"
     val body =
       graphqlBody(
         createAdminQuery,
-        """{"input": {"username": "allowedadmin", "password": "password123", "role": "SUPER_ADMIN"}}""",
+        """{"input": {"username": "$username", "password": "password123", "role": "SUPER_ADMIN"}}""",
       )
 
     mockMvc
@@ -126,6 +133,6 @@ class AdminSecurityIntegrationTest {
           .contentType(MediaType.APPLICATION_JSON)
           .content(body),
       ).andExpect(status().isOk)
-      .andExpect(jsonPath("$.data.createAdmin.username").value("allowedadmin"))
+      .andExpect(jsonPath("$.data.createAdmin.username").value(username))
   }
 }
