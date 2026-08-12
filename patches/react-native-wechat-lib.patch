@@ -1,0 +1,34 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index 872fb6b08b0ee2e269a5fabeb6df82f4046568ec..026754dceed875bd70025d0b407146a6695e7d6c 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -5,24 +5,15 @@ def safeExtGet(prop, fallback) {
+ }
+ 
+ android {
+-  compileSdkVersion safeExtGet('compileSdkVersion', 23)
+-  buildToolsVersion safeExtGet('buildToolsVersion', '23.0.1')
++  // 兼容 AGP 8+：compileSdkVersion 已更名为 compileSdk
++  compileSdk safeExtGet('compileSdkVersion', 34)
+ 
+   defaultConfig {
+-    minSdkVersion safeExtGet('minSdkVersion', 16)
+-    targetSdkVersion safeExtGet('targetSdkVersion', 22)
++    // 兼容 AGP 8+：minSdkVersion / targetSdkVersion 已更名为 minSdk / targetSdk
++    minSdk safeExtGet('minSdkVersion', 21)
++    targetSdk safeExtGet('targetSdkVersion', 34)
+     versionCode 1
+     versionName "1.0"
+-    ndk {
+-      abiFilters "armeabi-v7a", "x86"
+-    }
+-  }
+-}
+-
+-allprojects {
+-  repositories {
+-    jcenter()
+-    maven { url "$projectDir/../../react-native/android" }
+   }
+ }
+ 
