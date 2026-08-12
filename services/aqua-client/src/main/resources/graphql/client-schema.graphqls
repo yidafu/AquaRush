@@ -34,6 +34,9 @@ type Query {
   isProductFavorited(productId: PrimaryId!): Boolean!
   favoritesCount: Long!
 
+  # Operations config queries (运营配置域 F-OPS-001)
+  activeBanners: [Banner!]!
+
 }
 
 # Client-specific Mutation Schema
@@ -53,5 +56,20 @@ type Mutation {
 
   # Favorites mutations
   toggleProductFavorites(productId: PrimaryId!): Boolean!
+
+  # Operations config mutations (意见反馈提交, F-USR-005)
+  submitFeedback(input: FeedbackSubmitInput!): Boolean!
+}
+
+# 反馈提交输入
+input FeedbackSubmitInput {
+  # 反馈类型
+  feedbackType: FeedbackType!
+  # 反馈内容(10~500字)
+  content: String! @notBlank @size(min: 10, max: 500)
+  # 图片地址数组(≤3张,平台存储服务上传后回传)
+  images: [String!]
+  # 联系方式(可选)
+  contactInfo: String @size(max: 100)
 }
 

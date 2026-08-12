@@ -1,0 +1,136 @@
+# Operations config domain (OPS)
+# 与 PRD 12-operations-config.md 保持一致:F-OPS-001 轮播图配置、F-OPS-003 意见反馈管理
+
+extend type Query {
+  # 轮播图列表(分页,按排序号升序)
+  banners(input: BannerListInput): BannerVOPage
+  # 轮播图详情
+  banner(id: PrimaryId!): Banner
+  # 意见反馈列表(分页,按提交时间倒序)
+  feedbacks(input: FeedbackListInput): FeedbackVOPage
+  # 意见反馈详情
+  feedback(id: PrimaryId!): Feedback
+}
+
+extend type Mutation {
+  # 新建轮播图
+  createBanner(input: CreateBannerInput!): Banner!
+  # 编辑轮播图
+  updateBanner(id: PrimaryId!, input: UpdateBannerInput!): Banner!
+  # 删除轮播图
+  deleteBanner(id: PrimaryId!): Boolean!
+  # 上移/下移调整排序,返回重排后的全量列表(按排序号升序)
+  reorderBanner(id: PrimaryId!, direction: ReorderDirection!): [Banner!]!
+  # 处理反馈(填写处理结果并流转状态)
+  reviewFeedback(id: PrimaryId!, input: FeedbackReviewInput!): Feedback!
+}
+
+# 轮播图分页(新式分页,参照 OrderVOPage)
+type BannerVOPage {
+  content: [Banner!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 意见反馈
+type Feedback {
+  id: PrimaryId!
+  userId: PrimaryId!
+  feedbackType: FeedbackType!
+  content: String!
+  images: [String!]
+  contactInfo: String
+  status: FeedbackStatus!
+  handleResult: String
+  handledById: PrimaryId
+  handledByName: String
+  handledAt: LocalDateTime
+  createdAt: LocalDateTime!
+}
+
+# 意见反馈分页
+type FeedbackVOPage {
+  content: [Feedback!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 反馈处理状态
+enum FeedbackStatus {
+  # 待处理
+  PENDING
+  # 处理中
+  PROCESSING
+  # 已处理
+  RESOLVED
+}
+
+# 排序调整方向
+enum ReorderDirection {
+  # 上移
+  UP
+  # 下移
+  DOWN
+}
+
+input BannerListInput {
+  keyword: String
+  enabled: Boolean
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateBannerInput {
+  # 图片地址(平台存储服务上传素材,≤5MB)
+  imageUrl: String! @notBlank @size(max: 1000)
+  # 标题(≤20字)
+  title: String! @notBlank @size(max: 20)
+  # 副标题
+  subtitle: String @size(max: 100)
+  # 跳转类型
+  linkType: BannerLinkType!
+  # 跳转目标(PRODUCT 为商品ID,CUSTOM_PAGE 为页面路径)
+  linkTarget: String! @notBlank @size(max: 1000)
+  # 排序号(缺省=当前最大+1)
+  sortOrder: Int
+  # 是否启用
+  enabled: Boolean = false
+  # 时间窗开始(空=长期)
+  startAt: LocalDateTime
+  # 时间窗结束(空=长期)
+  endAt: LocalDateTime
+}
+
+input UpdateBannerInput {
+  imageUrl: String! @notBlank @size(max: 1000)
+  title: String! @notBlank @size(max: 20)
+  subtitle: String @size(max: 100)
+  linkType: BannerLinkType!
+  linkTarget: String! @notBlank @size(max: 1000)
+  sortOrder: Int
+  enabled: Boolean = false
+  startAt: LocalDateTime
+  endAt: LocalDateTime
+}
+
+input FeedbackListInput {
+  feedbackType: FeedbackType
+  status: FeedbackStatus
+  # 联系方式关键字
+  contactKeyword: String
+  dateFrom: LocalDateTime
+  dateTo: LocalDateTime
+  page: Int = 0
+  size: Int = 20
+}
+
+input FeedbackReviewInput {
+  # 处理结果(≤500字,选填)
+  handleResult: String @size(max: 500)
+  # 处理状态(仅允许前进:待处理→处理中→已处理)
+  status: FeedbackStatus!
+}

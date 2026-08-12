@@ -102,7 +102,8 @@ object RegionMapper : ObjectMappie<RegionModel, Region>() {
 object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
   override fun map(from: AddressInput) =
     mapping {
-      to::id fromValue -1L
+      // id 置空交由 @SnowflakeIdGenerator 在 INSERT 时生成；固定 -1 会导致 save() 走 merge 抛 StaleObjectState
+      to::id fromValue null
       to::userId fromValue 0L // Will be set after mapping
       to::createdAt fromValue LocalDateTime.now()
       to::updatedAt fromValue LocalDateTime.now()

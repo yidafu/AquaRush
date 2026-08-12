@@ -115,8 +115,10 @@ export const ImageUpload: React.FC<ImageUploadProps> = ({
       formData.append('fileType', 'IMAGE');
       formData.append('isPublic', 'true');
 
-      const response = await fetch('http://localhost:9090/api/v1/storage/files', {
+      const token = localStorage.getItem('token');
+      const response = await fetch('/api/v1/storage/files', {
         method: 'POST',
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
         body: formData,
       });
 

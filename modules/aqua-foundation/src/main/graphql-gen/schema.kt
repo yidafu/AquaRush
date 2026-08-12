@@ -128,6 +128,55 @@ data class AuthPayload(
     val user: User
 )
 
+data class Banner(
+    val createdAt: java.time.LocalDateTime,
+    val enabled: kotlin.Boolean,
+    val endAt: java.time.LocalDateTime?,
+    val id: kotlin.Long,
+    val imageUrl: kotlin.String,
+    val linkTarget: kotlin.String,
+    val linkType: BannerLinkType,
+    val sortOrder: kotlin.Int,
+    val startAt: java.time.LocalDateTime?,
+    val subtitle: kotlin.String?,
+    val title: kotlin.String,
+    val updatedAt: java.time.LocalDateTime
+)
+
+enum class BannerLinkType(val label: String) {
+      CUSTOM_PAGE("CUSTOM_PAGE"),
+      PRODUCT("PRODUCT");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): BannerLinkType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class BannerListInput(
+    val enabled: kotlin.Boolean? = null,
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["enabled"] as kotlin.Boolean?,
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
+
+data class BannerVoPage(
+    val content: Iterable<Banner>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
 enum class BatchFavoriteOperation(val label: String) {
       ANALYZE_FAVORITES("ANALYZE_FAVORITES"),
       CLEAR_ALL_FAVORITES("CLEAR_ALL_FAVORITES"),
@@ -214,6 +263,37 @@ data class CreateAdminInput(
       args["role"] as AdminRole,
       args["status"] as DeliveryWorkerStatus?,
       args["username"] as kotlin.String
+  )
+}
+
+data class CreateBannerInput(
+    val enabled: kotlin.Boolean? = false,
+    val endAt: java.time.LocalDateTime? = null,
+    @field:NotBlank
+    @field:Size(max = 1000)
+    val imageUrl: kotlin.String,
+    @field:NotBlank
+    @field:Size(max = 1000)
+    val linkTarget: kotlin.String,
+    val linkType: BannerLinkType,
+    val sortOrder: kotlin.Int? = null,
+    val startAt: java.time.LocalDateTime? = null,
+    @field:Size(max = 100)
+    val subtitle: kotlin.String? = null,
+    @field:NotBlank
+    @field:Size(max = 20)
+    val title: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["enabled"] as kotlin.Boolean? ?: false,
+      args["endAt"] as java.time.LocalDateTime?,
+      args["imageUrl"] as kotlin.String,
+      args["linkTarget"] as kotlin.String,
+      args["linkType"] as BannerLinkType,
+      args["sortOrder"] as kotlin.Int?,
+      args["startAt"] as java.time.LocalDateTime?,
+      args["subtitle"] as kotlin.String?,
+      args["title"] as kotlin.String
   )
 }
 
@@ -862,6 +942,106 @@ data class FavoriteTrendData(
     val totalFavorites: kotlin.Long
 )
 
+data class Feedback(
+    val contactInfo: kotlin.String?,
+    val content: kotlin.String,
+    val createdAt: java.time.LocalDateTime,
+    val feedbackType: FeedbackType,
+    val handleResult: kotlin.String?,
+    val handledAt: java.time.LocalDateTime?,
+    val handledById: kotlin.Long?,
+    val handledByName: kotlin.String?,
+    val id: kotlin.Long,
+    val images: Iterable<kotlin.String>?,
+    val status: FeedbackStatus,
+    val userId: kotlin.Long
+)
+
+data class FeedbackListInput(
+    val contactKeyword: kotlin.String? = null,
+    val dateFrom: java.time.LocalDateTime? = null,
+    val dateTo: java.time.LocalDateTime? = null,
+    val feedbackType: FeedbackType? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val status: FeedbackStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["contactKeyword"] as kotlin.String?,
+      args["dateFrom"] as java.time.LocalDateTime?,
+      args["dateTo"] as java.time.LocalDateTime?,
+      args["feedbackType"] as FeedbackType?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["status"] as FeedbackStatus?
+  )
+}
+
+data class FeedbackReviewInput(
+    @field:Size(max = 500)
+    val handleResult: kotlin.String? = null,
+    val status: FeedbackStatus
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["handleResult"] as kotlin.String?,
+      args["status"] as FeedbackStatus
+  )
+}
+
+enum class FeedbackStatus(val label: String) {
+      PENDING("PENDING"),
+      PROCESSING("PROCESSING"),
+      RESOLVED("RESOLVED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): FeedbackStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class FeedbackSubmitInput(
+    @field:Size(max = 100)
+    val contactInfo: kotlin.String? = null,
+    @field:NotBlank
+    @field:Size(min = 10, max = 500)
+    val content: kotlin.String,
+    val feedbackType: FeedbackType,
+    val images: Iterable<kotlin.String>? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["contactInfo"] as kotlin.String?,
+      args["content"] as kotlin.String,
+      args["feedbackType"] as FeedbackType,
+      args["images"] as Iterable<kotlin.String>?
+  )
+}
+
+enum class FeedbackType(val label: String) {
+      APP_USAGE("APP_USAGE"),
+      COMPLAINT("COMPLAINT"),
+      DELIVERY_SERVICE("DELIVERY_SERVICE"),
+      OTHER("OTHER"),
+      PRODUCT_QUALITY("PRODUCT_QUALITY"),
+      SUGGESTION("SUGGESTION");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): FeedbackType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class FeedbackVoPage(
+    val content: Iterable<Feedback>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
 data class GeocodeInput(
     @field:NotBlank(message = "城市不能为空")
     @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
@@ -979,6 +1159,14 @@ data class MutationCreateAdminAddressArgs(
       AddressInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationCreateBannerArgs(
+    val input: CreateBannerInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateBannerInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationCreateDeliveryOrderArgs(
     val input: CreateDeliveryOrderInput
 ) {
@@ -1025,6 +1213,13 @@ data class MutationDeleteAdminAddressArgs(
       args["id"] as kotlin.Long
   )
 }
+data class MutationDeleteBannerArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
 data class MutationDeleteProductArgs(
     val id: kotlin.Long
 ) {
@@ -1051,6 +1246,25 @@ data class MutationOnlineProductArgs(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["id"] as kotlin.Long
+  )
+}
+data class MutationReorderBannerArgs(
+    val direction: ReorderDirection,
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["direction"] as ReorderDirection,
+      args["id"] as kotlin.Long
+  )
+}
+data class MutationReviewFeedbackArgs(
+    val id: kotlin.Long,
+    val input: FeedbackReviewInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      FeedbackReviewInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationReviewReconciliationArgs(
@@ -1083,6 +1297,14 @@ data class MutationSubmitDailyCollectionArgs(
       SubmitDailyCollectionInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationSubmitFeedbackArgs(
+    val input: FeedbackSubmitInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      FeedbackSubmitInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationToggleProductFavoritesArgs(
     val productId: kotlin.Long
 ) {
@@ -1108,6 +1330,16 @@ data class MutationUpdateAdminArgs(
   constructor(args: Map<String, Any>) : this(
       args["id"] as kotlin.Long,
       UpdateAdminInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationUpdateBannerArgs(
+    val id: kotlin.Long,
+    val input: UpdateBannerInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdateBannerInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationUpdateDeliveryWorkerArgs(
@@ -1167,23 +1399,29 @@ data class Mutation(
     val createAddress: Address,
     val createAdmin: Admin,
     val createAdminAddress: Address,
+    val createBanner: Banner,
     val createDeliveryOrder: Order,
     val createDeliveryWorker: DeliveryWorker,
     val createOrder: Order,
     val createProduct: Product,
     val deleteAddress: kotlin.Boolean,
     val deleteAdminAddress: kotlin.Boolean,
+    val deleteBanner: kotlin.Boolean,
     val deleteProduct: kotlin.Boolean,
     val executeDailyReconciliation: DailyReconciliation,
     val offlineProduct: Product,
     val onlineProduct: Product,
+    val reorderBanner: Iterable<Banner>,
+    val reviewFeedback: Feedback,
     val reviewReconciliation: DailyReconciliation,
     val setDefaultAddress: kotlin.Boolean,
     val startDelivery: Order,
     val submitDailyCollection: DailyCollectionRecord,
+    val submitFeedback: kotlin.Boolean,
     val toggleProductFavorites: kotlin.Boolean,
     val updateAddress: Address,
     val updateAdmin: Admin,
+    val updateBanner: Banner,
     val updateDeliveryWorker: DeliveryWorker,
     val updateOrderStatus: Order,
     val updateProduct: Product,
@@ -1804,6 +2042,21 @@ data class QueryAddressArgs(
       args["id"] as kotlin.Long
   )
 }
+data class QueryBannerArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class QueryBannersArgs(
+    val input: BannerListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { BannerListInput(it as Map<String, Any>) }
+  )
+}
 data class QueryDailyCollectionsArgs(
     val collectionDate: kotlin.String? = null
 ) {
@@ -1853,6 +2106,21 @@ data class QueryFavoriteProductsArgs(
   constructor(args: Map<String, Any>) : this(
       args["page"] as kotlin.Int? ?: 0,
       args["size"] as kotlin.Int? ?: 20
+  )
+}
+data class QueryFeedbackArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class QueryFeedbacksArgs(
+    val input: FeedbackListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { FeedbackListInput(it as Map<String, Any>) }
   )
 }
 data class QueryIsProductFavoritedArgs(
@@ -1997,12 +2265,15 @@ data class QueryWeeklyStatisticsArgs(
 }
 data class Query(
     val _dummy: kotlin.String?,
+    val activeBanners: Iterable<Banner>,
     val activeProducts: ProductVoPage,
     val address: Address?,
     val addresses: Iterable<Address>,
     val admins: Iterable<Admin>,
     val allRegions: Iterable<Region>,
     val assignedOrders: Iterable<Order>,
+    val banner: Banner?,
+    val banners: BannerVoPage?,
     val dailyCollections: Iterable<DailyCollectionRecord>,
     val dailyReconciliations: Iterable<DailyReconciliation>,
     val dailyStatistics: Iterable<DailyStatistic>,
@@ -2014,6 +2285,8 @@ data class Query(
     val deliveryWorkers: Iterable<DeliveryWorker>,
     val favoriteProducts: FavoriteProductVoPage,
     val favoritesCount: kotlin.Long,
+    val feedback: Feedback?,
+    val feedbacks: FeedbackVoPage?,
     val isProductFavorited: kotlin.Boolean,
     val me: UserInfo?,
     val monthlyStatistics: Iterable<MonthlyStatistic>,
@@ -2133,6 +2406,18 @@ data class Region(
     val parentCode: kotlin.String?,
     val updatedAt: java.time.LocalDateTime
 )
+
+enum class ReorderDirection(val label: String) {
+      DOWN("DOWN"),
+      UP("UP");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): ReorderDirection? {
+      return values().find { it.label == label }
+    }
+  }
+}
 
 data class Review(
     val comment: kotlin.String?,
@@ -2308,6 +2593,37 @@ data class UpdateAdminInput(
       args["role"] as AdminRole?,
       args["status"] as DeliveryWorkerStatus?,
       args["username"] as kotlin.String?
+  )
+}
+
+data class UpdateBannerInput(
+    val enabled: kotlin.Boolean? = false,
+    val endAt: java.time.LocalDateTime? = null,
+    @field:NotBlank
+    @field:Size(max = 1000)
+    val imageUrl: kotlin.String,
+    @field:NotBlank
+    @field:Size(max = 1000)
+    val linkTarget: kotlin.String,
+    val linkType: BannerLinkType,
+    val sortOrder: kotlin.Int? = null,
+    val startAt: java.time.LocalDateTime? = null,
+    @field:Size(max = 100)
+    val subtitle: kotlin.String? = null,
+    @field:NotBlank
+    @field:Size(max = 20)
+    val title: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["enabled"] as kotlin.Boolean? ?: false,
+      args["endAt"] as java.time.LocalDateTime?,
+      args["imageUrl"] as kotlin.String,
+      args["linkTarget"] as kotlin.String,
+      args["linkType"] as BannerLinkType,
+      args["sortOrder"] as kotlin.Int?,
+      args["startAt"] as java.time.LocalDateTime?,
+      args["subtitle"] as kotlin.String?,
+      args["title"] as kotlin.String
   )
 }
 

@@ -1,12 +1,15 @@
 import React, { useState } from 'react'
-import { View, Text, Textarea, Button, Image } from '@tarojs/components'
+import { View, Text, Textarea, Input, Button, Image } from '@tarojs/components'
 import Taro, { useLoad, showToast } from '@tarojs/taro'
 import './index.scss'
 
 // 导入常量
 import { CONTACT_INFO } from '../../constants'
+// 反馈提交服务(G04 目标形态:真实落库)
+import FeedbackService from '../../services/FeedbackService'
+import { FeedbackType } from '@aquarush/common'
 
-// 反馈类型
+// 反馈类型(与后端 FeedbackType 枚举一一对应)
 const FEEDBACK_TYPES = [
   { value: 'quality', label: '产品质量问题' },
   { value: 'delivery', label: '配送服务问题' },
@@ -16,17 +19,29 @@ const FEEDBACK_TYPES = [
   { value: 'other', label: '其他问题' }
 ] as const
 
+// 前端类型 → 后端 FeedbackType 枚举映射
+const TYPE_TO_ENUM: Record<string, FeedbackType> = {
+  quality: FeedbackType.PRODUCT_QUALITY,
+  delivery: FeedbackType.DELIVERY_SERVICE,
+  app: FeedbackType.APP_USAGE,
+  suggestion: FeedbackType.SUGGESTION,
+  complaint: FeedbackType.COMPLAINT,
+  other: FeedbackType.OTHER
+}
+
 interface FeedbackForm {
   type: string
   content: string
   images: string[]
+  contactInfo: string
 }
 
 const Feedback: React.FC = () => {
   const [form, setForm] = useState<FeedbackForm>({
     type: '',
     content: '',
-    images: []
+    images: [],
+    contactInfo: ''
   })
 
   const [submitting, setSubmitting] = useState(false)
@@ -79,26 +94,27 @@ const Feedback: React.FC = () => {
     setSubmitting(true)
 
     try {
-      // 这里应该调用API提交反馈数据
-      // await submitFeedback(form)
-
-      // 模拟API调用
-      await new Promise(resolve => setTimeout(resolve, 1500))
-
-      showToast({ title: '提交成功，感谢您的反馈', icon: 'success' })
-
-      // 重置表单
-      setForm({
-        type: '',
-        content: '',
-        images: []
+      // 真实提交:图片先经平台存储上传,再提交反馈落库(F-USR-005 目标形态)
+      const result = await FeedbackService.submitFeedback({
+        feedbackType: TYPE_TO_ENUM[form.type],
+        content: form.content,
+        images: form.images,
+        contactInfo: form.contactInfo.trim() || undefined
       })
 
-      // 延迟返回上一页
-      setTimeout(() => {
-        // navigateBack() 如果需要的话
-      }, 1500)
+      if (result.success) {
+        showToast({ title: '提交成功，感谢您的反馈', icon: 'success' })
 
+        // 重置表单
+        setForm({
+          type: '',
+          content: '',
+          images: [],
+          contactInfo: ''
+        })
+      } else {
+        showToast({ title: result.error.message || '提交失败，请重试', icon: 'none' })
+      }
     } catch (error) {
       console.error('Submit feedback failed:', error)
       showToast({ title: '提交失败，请重试', icon: 'error' })
@@ -189,6 +205,17 @@ const Feedback: React.FC = () => {
               </View>
             )}
           </View>
+        </View>
+
+        <View className='form-item'>
+          <Text className='label'>联系方式 (选填)</Text>
+          <Input
+            className='contact-input'
+            placeholder='手机号或微信号，便于我们联系您'
+            value={form.contactInfo}
+            onInput={(e) => handleInputChange('contactInfo', e.detail.value)}
+            maxlength={100}
+          />
         </View>
 
         <View className='submit-section'>

@@ -17,6 +17,9 @@ import {
   HistoryOutlined,
   AuditOutlined,
   DollarOutlined,
+  ControlOutlined,
+  PictureOutlined,
+  MessageOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = AntLayout;
@@ -44,6 +47,15 @@ const Layout: React.FC = () => {
     { key: '/addresses', icon: <EnvironmentOutlined />, label: '地址管理' },
     { key: '/orders', icon: <FileTextOutlined />, label: '订单管理' },
     { key: '/daily-collection', icon: <DollarOutlined />, label: '收银对账' },
+    {
+      key: 'ops',
+      icon: <ControlOutlined />,
+      label: '运营配置',
+      children: [
+        { key: '/ops/banners', icon: <PictureOutlined />, label: '首页轮播' },
+        { key: '/ops/feedbacks', icon: <MessageOutlined />, label: '意见反馈' },
+      ]
+    },
     {
       key: 'statistics',
       icon: <BarChartOutlined />,

@@ -1892,3 +1892,58 @@ input ReviewReconciliationInput {
   # 复核备注
   reviewNotes: String!
 }
+
+# ==================== 运营配置域(OPS) ====================
+# 与 PRD 12-operations-config.md 保持一致;共享类型供 admin/client 两端使用
+
+# 轮播图(运营位)
+type Banner {
+  # 主键
+  id: PrimaryId!
+  # 图片地址(平台存储服务上传素材)
+  imageUrl: String!
+  # 标题(≤20字)
+  title: String!
+  # 副标题
+  subtitle: String
+  # 跳转类型
+  linkType: BannerLinkType!
+  # 跳转目标(PRODUCT 为商品ID,CUSTOM_PAGE 为页面路径)
+  linkTarget: String!
+  # 排序号
+  sortOrder: Int!
+  # 是否启用
+  enabled: Boolean!
+  # 时间窗开始(空=长期)
+  startAt: LocalDateTime
+  # 时间窗结束(空=长期)
+  endAt: LocalDateTime
+  # 创建时间
+  createdAt: LocalDateTime!
+  # 更新时间
+  updatedAt: LocalDateTime!
+}
+
+# 轮播跳转链接类型
+enum BannerLinkType {
+  # 商品详情
+  PRODUCT
+  # 自定义页面
+  CUSTOM_PAGE
+}
+
+# 意见反馈类型
+enum FeedbackType {
+  # 产品质量问题
+  PRODUCT_QUALITY
+  # 配送服务问题
+  DELIVERY_SERVICE
+  # 小程序使用问题
+  APP_USAGE
+  # 功能建议
+  SUGGESTION
+  # 投诉建议
+  COMPLAINT
+  # 其他问题
+  OTHER
+}

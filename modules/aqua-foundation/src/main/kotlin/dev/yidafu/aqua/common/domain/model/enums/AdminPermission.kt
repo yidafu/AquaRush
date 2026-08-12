@@ -63,4 +63,12 @@ enum class AdminPermission(
   // 系统配置
   SYSTEM_CONFIG_READ("系统配置查询"),
   SYSTEM_CONFIG_WRITE("系统配置修改"),
+
+  // 运营配置
+  OPS_CONFIG_READ("运营配置查询"),
+  OPS_CONFIG_WRITE("运营配置修改"),
+
+  // 意见反馈
+  FEEDBACK_READ("意见反馈查询"),
+  FEEDBACK_REVIEW("意见反馈处理"),
 }

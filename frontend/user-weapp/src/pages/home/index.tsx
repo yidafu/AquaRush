@@ -10,8 +10,9 @@ import {
 } from '@tarojs/taro'
 import CustomNavBar from '../../components/CustomNavBar'
 import { authService } from '../../utils/auth'
-import { Money } from '@aquarush/common'
+import { Money, Banner } from '@aquarush/common'
 import ProductService from '../../services/ProductService'
+import ConfigService from '../../services/ConfigService'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/card.scss"
@@ -60,11 +61,13 @@ const HomePage: React.FC = () => {
   const [hasMore, setHasMore] = useState<boolean>(true)
   const [totalCount, setTotalCount] = useState<number>(0)
   const [error, setError] = useState<string | undefined>(undefined)
+  const [banners, setBanners] = useState<Banner[]>([])
 
   // 组件挂载时执行
   useEffect(() => {
     loadUserInfo()
     loadProducts()
+    loadBanners()
   }, [])
 
   // 页面准备就绪时执行
@@ -74,9 +77,10 @@ const HomePage: React.FC = () => {
 
   // 页面显示时执行
   useDidShow(() => {
-    // 页面显示时刷新用户信息和产品数据
+    // 页面显示时刷新用户信息、产品数据与轮播配置(停用/到期即时生效,R-OPS-01)
     loadUserInfo()
     refreshProducts()
+    loadBanners()
   })
 
   // 下拉刷新
@@ -235,31 +239,16 @@ const HomePage: React.FC = () => {
     }
   }
 
-  // 轮播图数据
-  const getCarouselData = () => {
-    return [
-      {
-        id: 1,
-        title: '新鲜好水',
-        subtitle: '送货上门 • 即时配送',
-        image: '/assets/home-active.png',
-        buttonText: '快速下单'
-      },
-      {
-        id: 2,
-        title: '品质保证',
-        subtitle: '正品行货 • 假一赔十',
-        image: '/assets/order-active.png',
-        buttonText: '立即选购'
-      },
-      {
-        id: 3,
-        title: '优惠活动',
-        subtitle: '新用户专享 • 满减优惠',
-        image: '/assets/my-active.png',
-        buttonText: '查看详情'
-      }
-    ]
+  // 加载轮播图配置(F-OPS-001:后台运营配置动态读取,时间窗过期/停用由服务端过滤)
+  const loadBanners = async () => {
+    const result = await ConfigService.getActiveBanners()
+    if (result.success) {
+      setBanners(result.data)
+    } else {
+      console.error('Load banners failed:', result.error.message)
+      // 加载失败保持空列表,轮播位隐藏(空态)
+      setBanners([])
+    }
   }
 
   // 轮播图切换
@@ -270,12 +259,6 @@ const HomePage: React.FC = () => {
   const handleProductClick = (product: ExtendedProduct) => {
     Taro.navigateTo({
       url: `/pages/product-detail/index?id=${product.id}`
-    })
-  }
-
-  const handleQuickOrder = () => {
-    Taro.navigateTo({
-      url: '/pages/order-confirm/index'
     })
   }
 
@@ -318,51 +301,66 @@ const HomePage: React.FC = () => {
     })
   }
 
-  const carouselData = getCarouselData()
+  // 轮播图数据:后台运营配置动态读取(F-OPS-001,G18 硬编码替换)
+  const carouselData = banners
+
+  const handleBannerClick = (item: Banner) => {
+    if (item.linkType === 'PRODUCT') {
+      Taro.navigateTo({
+        url: `/pages/product-detail/index?id=${item.linkTarget}`
+      })
+    } else {
+      Taro.navigateTo({
+        url: item.linkTarget
+      })
+    }
+  }
 
   return (
     <View className='home-page'>
-      {/* 顶部轮播图 */}
-      <View className='carousel-section'>
-        <Swiper
-          className='carousel-swiper'
-          indicatorColor='rgba(255, 255, 255, 0.4)'
-          indicatorActiveColor='white'
-          indicatorDots
-          circular
-          autoplay
-          interval={3000}
-          duration={500}
-          onChange={handleSwiperChange}
-        >
-          {carouselData.map((item) => (
-            <SwiperItem key={item.id} className='carousel-swiper-item'>
-              <View className='carousel-slide'>
-                <View className='carousel-background'>
-                  <Image
-                    src={item.image}
-                    className='carousel-bg-image'
-                    mode='aspectFill'
-                  />
-                  <View className='carousel-overlay' />
+      {/* 顶部轮播图(未配置/无生效条目时隐藏) */}
+      {carouselData.length > 0 && (
+        <View className='carousel-section'>
+          <Swiper
+            className='carousel-swiper'
+            indicatorColor='rgba(255, 255, 255, 0.4)'
+            indicatorActiveColor='white'
+            indicatorDots
+            circular
+            autoplay
+            interval={3000}
+            duration={500}
+            onChange={handleSwiperChange}
+          >
+            {carouselData.map((item) => (
+              <SwiperItem key={item.id} className='carousel-swiper-item' onClick={() => handleBannerClick(item)}>
+                <View className='carousel-slide'>
+                  <View className='carousel-background'>
+                    <Image
+                      src={item.imageUrl}
+                      className='carousel-bg-image'
+                      mode='aspectFill'
+                    />
+                    <View className='carousel-overlay' />
+                  </View>
+                  <View className='carousel-content'>
+                    <Text className='carousel-title'>{item.title}</Text>
+                    <Text className='carousel-subtitle'>{item.subtitle}</Text>
+                    <AtButton
+                      type='primary'
+                      size='small'
+                      onClick={() => handleBannerClick(item)}
+                      className='carousel-button'
+                    >
+                      查看详情
+                    </AtButton>
+                  </View>
                 </View>
-                <View className='carousel-content'>
-                  <Text className='carousel-title'>{item.title}</Text>
-                  <Text className='carousel-subtitle'>{item.subtitle}</Text>
-                  <AtButton
-                    type='primary'
-                    size='small'
-                    onClick={handleQuickOrder}
-                    className='carousel-button'
-                  >
-                    {item.buttonText}
-                  </AtButton>
-                </View>
-              </View>
-            </SwiperItem>
-          ))}
-        </Swiper>
-      </View>
+              </SwiperItem>
+            ))}
+          </Swiper>
+        </View>
+      )}
 
       <AtDivider content='推荐产品' />
 

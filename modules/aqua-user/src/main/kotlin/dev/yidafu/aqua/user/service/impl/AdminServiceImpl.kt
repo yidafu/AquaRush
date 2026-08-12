@@ -29,7 +29,6 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
-import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -133,9 +132,10 @@ class AdminServiceImpl(
       requireNotNull(passwordEncoder.encode(passwordToEncode)) { "Password encoding returned null" }
 
     // Create admin user
+    // id 置空交由 Hibernate @SnowflakeIdGenerator 在 INSERT 时生成；
+    // 手动预分配 id 会让 save() 走 merge，重复运行/并发时抛 StaleObjectState
     val admin =
       AdminModel(
-        id = SnowflakeIdGenerator().generate(),
         username = username,
         passwordHash = passwordHash,
         realName = realName,

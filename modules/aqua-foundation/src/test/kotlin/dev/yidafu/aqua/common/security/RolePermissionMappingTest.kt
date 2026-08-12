@@ -29,10 +29,9 @@ import kotlin.test.assertTrue
  * 验证角色→权限矩阵(PRD 01-overview.md §角色权限矩阵)与角色→authority 映射。
  */
 class RolePermissionMappingTest {
-
   @Test
-  fun `permission catalog should contain exactly 32 codes`() {
-    assertEquals(32, AdminPermission.entries.size)
+  fun `permission catalog should contain exactly 36 codes`() {
+    assertEquals(36, AdminPermission.entries.size)
   }
 
   @Test
@@ -42,9 +41,9 @@ class RolePermissionMappingTest {
   }
 
   @Test
-  fun `ADMIN should have 25 permissions excluding admin-user system-config and worker-specific ops`() {
+  fun `ADMIN should have 29 permissions excluding admin-user system-config and worker-specific ops`() {
     val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.ADMIN)
-    assertEquals(25, permissions.size)
+    assertEquals(29, permissions.size)
     assertTrue(AdminPermission.ADMIN_USER_READ !in permissions)
     assertTrue(AdminPermission.ADMIN_USER_WRITE !in permissions)
     assertTrue(AdminPermission.SYSTEM_CONFIG_READ !in permissions)
@@ -52,6 +51,11 @@ class RolePermissionMappingTest {
     assertTrue(AdminPermission.ORDER_CREATE !in permissions)
     assertTrue(AdminPermission.DELIVERY_TASK !in permissions)
     assertTrue(AdminPermission.RECONCILIATION_SUBMIT !in permissions)
+    // 运营配置/意见反馈 4 码属于管理员
+    assertTrue(AdminPermission.OPS_CONFIG_READ in permissions)
+    assertTrue(AdminPermission.OPS_CONFIG_WRITE in permissions)
+    assertTrue(AdminPermission.FEEDBACK_READ in permissions)
+    assertTrue(AdminPermission.FEEDBACK_REVIEW in permissions)
   }
 
   @Test
@@ -63,6 +67,8 @@ class RolePermissionMappingTest {
     assertTrue(AdminPermission.RECONCILIATION_SUBMIT in permissions)
     assertTrue(AdminPermission.ORDER_READ in permissions)
     assertTrue(AdminPermission.PRODUCT_READ in permissions)
+    assertTrue(AdminPermission.FEEDBACK_REVIEW !in permissions)
+    assertTrue(AdminPermission.OPS_CONFIG_READ !in permissions)
   }
 
   @Test

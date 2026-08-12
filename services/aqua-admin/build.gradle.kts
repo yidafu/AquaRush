@@ -57,6 +57,7 @@ dependencies {
   implementation(project(":modules:aqua-platform"))
   implementation(project(":modules:aqua-user")) // For admin user operations
   implementation(project(":modules:aqua-product")) // For product services
+  implementation(project(":modules:aqua-ops")) // For operations config domain
 
   // Entry module specific dependencies
   implementation(libs.spring.boot.starter.web)

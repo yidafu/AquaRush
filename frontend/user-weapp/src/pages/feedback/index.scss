@@ -87,6 +87,22 @@
         }
       }
 
+      .contact-input {
+        height: 64px;
+        padding: 0 20px;
+        border: 2px solid var(--theme-border);
+        border-radius: 12px;
+        font-size: 28px;
+        color: var(--theme-text-primary);
+        background: var(--theme-background);
+        box-sizing: border-box;
+
+        &:focus {
+          border-color: var(--theme-primary);
+          box-shadow: 0 0 0 4px rgba(24, 144, 255, 0.15);
+        }
+      }
+
       .char-count {
         font-size: 24px;
         color: var(--theme-text-tertiary);

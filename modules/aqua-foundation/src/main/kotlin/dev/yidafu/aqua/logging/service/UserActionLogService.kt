@@ -38,6 +38,41 @@ class UserActionLogService(
   private val logger = LoggerFactory.getLogger(UserActionLogService::class.java)
 
   /**
+   * 同步保存用户操作日志(审计关键链路)
+   * 与业务同事务写入,不吞异常——审计失败使业务事务回滚,保证留痕一致(R-OPS-01,见 12-operations-config.md)。
+   */
+  fun saveUserActionLogSync(
+    userId: String? = null,
+    username: String? = null,
+    actionType: String,
+    target: String? = null,
+    pageUrl: String? = null,
+    elementId: String? = null,
+    elementType: String? = null,
+    elementText: String? = null,
+    clientIp: String? = null,
+    userAgent: String? = null,
+    properties: String? = null,
+  ) {
+    val userActionLog =
+      UserActionLogModel(
+        userId = userId,
+        username = username,
+        actionType = actionType,
+        target = target,
+        pageUrl = pageUrl,
+        elementId = elementId,
+        elementType = elementType,
+        elementText = elementText,
+        clientIp = clientIp,
+        userAgent = userAgent,
+        properties = properties,
+        createdAt = LocalDateTime.now(),
+      )
+    userActionLogRepository.save(userActionLog)
+  }
+
+  /**
    * 保存用户操作日志
    */
   @Async

@@ -11,5 +11,6 @@
   <include file="db/changelog/changes/v1.0.3-add-order-search-content.xml"/>
   <include file="db/changelog/changes/v1.0.4-add-daily-collection-tables.xml"/>
   <include file="db/changelog/changes/v1.0.5-add-calculated-fields.xml"/>
+  <include file="db/changelog/changes/v1.0.6-add-ops-config-tables.xml"/>
 
 </databaseChangeLog>
