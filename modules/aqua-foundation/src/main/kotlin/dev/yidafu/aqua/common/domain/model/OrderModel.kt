@@ -48,6 +48,9 @@ data class OrderModel(
   val quantity: Int = 0,
   @Column(name = "total_amount_cents", nullable = false)
   val amountCents: Long = 0,
+  // 配送费(分,下单时按配送费规则快照,规则变更不影响已生成订单 —— R-MON-02)
+  @Column(name = "delivery_fee_cents", nullable = false)
+  val deliveryFeeCents: Long = 0,
   @Column(name = "address_id", nullable = false)
   val addressId: Long = 0,
   @Column(name = "status", nullable = false)
@@ -116,4 +119,7 @@ data class OrderModel(
     get() = MoneyUtils.fromCents(amountCents)
   val totalAmount: BigDecimal
     get() = MoneyUtils.fromCents(amountCents)
+  // 应付合计(分)= 商品金额 + 配送费(纯展示口径,支付流暂不包含配送费 —— G17 待接)
+  val payAmountCents: Long
+    get() = amountCents + deliveryFeeCents
 }

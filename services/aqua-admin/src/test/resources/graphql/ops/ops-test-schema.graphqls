@@ -9,6 +9,10 @@ type Query {
   banner(id: Long!): Banner
   feedbacks(input: FeedbackListInput): FeedbackVOPage
   feedback(id: Long!): Feedback
+  notices(input: NoticeListInput): NoticeVOPage
+  notice(id: Long!): Notice
+  storeProfile: StoreProfile
+  deliveryFeeRule: DeliveryFeeRule
 }
 
 type Mutation {
@@ -17,6 +21,14 @@ type Mutation {
   deleteBanner(id: Long!): Boolean!
   reorderBanner(id: Long!, direction: ReorderDirection!): [Banner!]!
   reviewFeedback(id: Long!, input: FeedbackReviewInput!): Feedback!
+  createNotice(input: CreateNoticeInput!): Notice!
+  updateNotice(id: Long!, input: UpdateNoticeInput!): Notice!
+  publishNotice(id: Long!): Notice!
+  stopNotice(id: Long!): Notice!
+  setNoticePinned(id: Long!, pinned: Boolean!): Notice!
+  deleteNotice(id: Long!): Boolean!
+  saveStoreProfile(input: SaveStoreProfileInput!): StoreProfile!
+  saveDeliveryFeeRule(input: SaveDeliveryFeeRuleInput!): DeliveryFeeRule!
 }
 
 type Banner {
@@ -134,4 +146,96 @@ input FeedbackListInput {
 input FeedbackReviewInput {
   handleResult: String
   status: FeedbackStatus!
+}
+
+type Notice {
+  id: Long!
+  title: String!
+  content: String!
+  type: NoticeType!
+  pinned: Boolean!
+  startAt: LocalDateTime
+  endAt: LocalDateTime
+  status: NoticeStatus!
+  publishedAt: LocalDateTime
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+enum NoticeType {
+  PLATFORM_NOTICE
+  WATER_OUTAGE
+  ACTIVITY_PREVIEW
+}
+
+enum NoticeStatus {
+  DRAFT
+  PUBLISHED
+  STOPPED
+}
+
+type NoticeVOPage {
+  content: [Notice!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+type StoreProfile {
+  shopName: String!
+  logoUrl: String
+  serviceHotline: String!
+  businessHoursStart: String
+  businessHoursEnd: String
+  shopIntro: String
+  aboutUs: String
+  updatedAt: LocalDateTime
+}
+
+type DeliveryFeeRule {
+  freeFloorLimit: Int!
+  surchargeCents: Long!
+  updatedAt: LocalDateTime
+}
+
+input NoticeListInput {
+  keyword: String
+  type: NoticeType
+  status: NoticeStatus
+  page: Int
+  size: Int
+}
+
+input CreateNoticeInput {
+  title: String!
+  content: String!
+  type: NoticeType!
+  pinned: Boolean
+  startAt: LocalDateTime
+  endAt: LocalDateTime
+}
+
+input UpdateNoticeInput {
+  title: String!
+  content: String!
+  type: NoticeType!
+  pinned: Boolean
+  startAt: LocalDateTime
+  endAt: LocalDateTime
+}
+
+input SaveStoreProfileInput {
+  shopName: String!
+  logoUrl: String
+  serviceHotline: String!
+  businessHoursStart: String
+  businessHoursEnd: String
+  shopIntro: String
+  aboutUs: String
+}
+
+input SaveDeliveryFeeRuleInput {
+  freeFloorLimit: Int!
+  surchargeCents: Long!
 }

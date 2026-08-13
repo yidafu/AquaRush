@@ -16,6 +16,8 @@ export interface Address {
   districtCode?: string
   latitude?: number
   longitude?: number
+  // 楼层(空=无楼层信息/平房,配送费楼层判定用 —— R-MON-02)
+  floor?: number
 }
 
 // Error types for service operations
@@ -46,5 +48,7 @@ export interface AddressFormData {
   districtCode?: string
   latitude?: number
   longitude?: number
+  // 楼层(空=无楼层信息/平房,配送费楼层判定用 —— R-MON-02)
+  floor?: number
 }
 

@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Switch, DatePicker } from 'antd';
+import { Modal, Form, Input, InputNumber, Select, Switch, DatePicker, Spin } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { SingleImageUpload } from '../../../../components/ImageUpload';
 import type { Banner, BannerLinkType } from '@aquarush/common';
+import { useBanner } from '../../../../services/ops-graphql';
 
 const { RangePicker } = DatePicker;
 
@@ -47,30 +48,44 @@ export const LINK_TYPE_OPTIONS = [
 const BannerFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, onSubmit }) => {
   const [form] = Form.useForm<FormValues>();
   const [linkType, setLinkType] = useState<BannerLinkType>('CUSTOM_PAGE');
+  const [loadBanner, { data, error }] = useBanner();
 
+  // 编辑模式:打开弹窗后按 ID 拉取轮播图详情(回填数据源)
+  useEffect(() => {
+    if (!open || !record) return;
+    loadBanner({ variables: { id: record.id } });
+  }, [open, record, loadBanner]);
+
+  // 详情返回后再回填;查询失败退化为用列表记录回填;新建模式给默认值
   useEffect(() => {
     if (!open) return;
-    if (record) {
-      form.setFieldsValue({
-        imageUrl: record.imageUrl,
-        title: record.title,
-        subtitle: record.subtitle || undefined,
-        linkType: record.linkType,
-        linkTarget: record.linkTarget,
-        sortOrder: record.sortOrder,
-        enabled: record.enabled,
-        timeWindow:
-          record.startAt && record.endAt
-            ? [dayjs(record.startAt), dayjs(record.endAt)]
-            : undefined,
-      });
-      setLinkType(record.linkType);
-    } else {
+    if (!record) {
       form.resetFields();
       form.setFieldsValue({ linkType: 'CUSTOM_PAGE', enabled: false });
       setLinkType('CUSTOM_PAGE');
+      return;
     }
-  }, [open, record, form]);
+    const detail = data?.banner;
+    const source = detail && detail.id === record.id ? detail : error ? record : null;
+    if (!source) return; // 详情未就绪
+    form.setFieldsValue({
+      imageUrl: source.imageUrl,
+      title: source.title,
+      subtitle: source.subtitle || undefined,
+      linkType: source.linkType,
+      linkTarget: source.linkTarget,
+      sortOrder: source.sortOrder,
+      enabled: source.enabled,
+      timeWindow:
+        source.startAt && source.endAt
+          ? [dayjs(source.startAt), dayjs(source.endAt)]
+          : undefined,
+    });
+    setLinkType(source.linkType);
+  }, [open, record, data, error, form]);
+
+  // 编辑模式且详情尚未返回(且未失败)时不可提交
+  const detailReady = !record || !!error || (!!data?.banner && data.banner.id === record.id);
 
   const handleOk = async () => {
     const values = await form.validateFields();
@@ -101,7 +116,9 @@ const BannerFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
       confirmLoading={submitting}
       destroyOnClose
       width={560}
+      okButtonProps={{ disabled: !detailReady }}
     >
+      <Spin spinning={!detailReady} tip="加载轮播图详情...">
       <Form form={form} layout="vertical" preserve={false}>
         <Form.Item
           name="imageUrl"
@@ -148,6 +165,7 @@ const BannerFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
           <Switch />
         </Form.Item>
       </Form>
+      </Spin>
     </Modal>
   );
 };

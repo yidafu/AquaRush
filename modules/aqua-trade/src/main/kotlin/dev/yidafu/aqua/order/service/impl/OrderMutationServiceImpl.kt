@@ -25,6 +25,7 @@ import dev.yidafu.aqua.api.service.delivery.DeliveryAreaQueryService
 import dev.yidafu.aqua.api.service.order.OrderIdGeneratorService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
+import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.api.service.user.AddressQueryApiService
@@ -57,6 +58,7 @@ class OrderMutationServiceImpl(
   private val orderIdGenerator: OrderIdGeneratorService,
   private val adminService: AdminService,
   private val orderQueryService: OrderQueryService,
+  private val deliveryFeeRuleQueryApiService: DeliveryFeeRuleQueryApiService,
 ) : OrderMutationService {
   private val logger = LoggerFactory.getLogger(OrderMutationServiceImpl::class.java)
 
@@ -68,6 +70,7 @@ class OrderMutationServiceImpl(
     val address: AddressModel,
     val userId: Long,
     val amountCents: Long,
+    val deliveryFeeCents: Long,
     val orderNo: String,
   )
 
@@ -79,6 +82,7 @@ class OrderMutationServiceImpl(
     productId: Long,
     addressId: Long,
     quantity: Int,
+    isSelfCollect: Boolean,
   ): OrderValidationResult {
     // 1. 验证产品存在且有足够库存
     val product =
@@ -102,7 +106,10 @@ class OrderMutationServiceImpl(
     // 4. 计算订单金额 (product.price is already in cents)
     val amountCents = product.price * quantity
 
-    // 5. 生成唯一订单号
+    // 5. 计算配送费(楼层口径 R-MON-02):免费楼层内免运费,超过免费楼层一次性加收;自提免运费
+    val deliveryFeeCents = computeDeliveryFee(address.floor, isSelfCollect)
+
+    // 6. 生成唯一订单号
     val orderNo = orderIdGenerator.generateOrderId()
 
     // 6. 扣减库存（使用原子操作）
@@ -116,8 +123,30 @@ class OrderMutationServiceImpl(
       address = address,
       userId = userId,
       amountCents = amountCents,
+      deliveryFeeCents = deliveryFeeCents,
       orderNo = orderNo,
     )
+  }
+
+  /**
+   * 配送费计算(R-MON-02 楼层口径,PRD 12-operations-config.md §F-OPS-005):
+   * - 自提订单免运费(无配送行为,楼层不参与判定);
+   * - 收货楼层为空(平房/无楼层信息)免运费;
+   * - 楼层 > 免费楼层(默认4)时一次性加收 surchargeCents(默认2元),不随层数累加。
+   * 金额以分存储与服务端计算(R-MON-01);规则配置变更即时生效,已生成订单不受影响(运费按下单时快照)。
+   */
+  private fun computeDeliveryFee(
+    floor: Int?,
+    isSelfCollect: Boolean,
+  ): Long {
+    if (isSelfCollect) {
+      return 0
+    }
+    val rule = deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule()
+    if (floor == null || floor <= rule.freeFloorLimit) {
+      return 0
+    }
+    return rule.surchargeCents
   }
 
   /**
@@ -130,6 +159,7 @@ class OrderMutationServiceImpl(
     addressId: Long,
     orderNo: String,
     amountCents: Long,
+    deliveryFeeCents: Long,
     paymentMethod: PaymentMethod?,
     remark: String?,
     isSelfCollect: Boolean,
@@ -150,6 +180,7 @@ class OrderMutationServiceImpl(
         productId = product.id!!,
         quantity = quantity,
         amountCents = amountCents,
+        deliveryFeeCents = deliveryFeeCents,
         addressId = addressId,
         status = OrderModelStatus.PENDING_DISPATCH,
         paymentMethod = paymentMethod,
@@ -187,6 +218,7 @@ class OrderMutationServiceImpl(
         productId = input.productId,
         addressId = input.addressId,
         quantity = input.quantity,
+        isSelfCollect = false,
       )
 
     // 验证地址属于当前用户
@@ -201,6 +233,7 @@ class OrderMutationServiceImpl(
       addressId = validation.address.id!!,
       orderNo = validation.orderNo,
       amountCents = validation.amountCents,
+      deliveryFeeCents = validation.deliveryFeeCents,
       paymentMethod = null,
       remark = null,
       isSelfCollect = false,
@@ -223,6 +256,7 @@ class OrderMutationServiceImpl(
         productId = input.productId,
         addressId = input.addressId,
         quantity = input.quantity,
+        isSelfCollect = input.isSelfCollect ?: false,
       )
     val isSelfCollect = input.isSelfCollect ?: false
 
@@ -233,6 +267,7 @@ class OrderMutationServiceImpl(
       addressId = validation.address.id!!,
       orderNo = validation.orderNo,
       amountCents = validation.amountCents,
+      deliveryFeeCents = validation.deliveryFeeCents,
       paymentMethod = PaymentMethod.CASH,
       remark = input.remark,
       isSelfCollect = isSelfCollect,

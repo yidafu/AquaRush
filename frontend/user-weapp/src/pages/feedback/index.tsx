@@ -1,13 +1,14 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { View, Text, Textarea, Input, Button, Image } from '@tarojs/components'
 import Taro, { useLoad, showToast } from '@tarojs/taro'
 import './index.scss'
 
-// 导入常量
+// 导入常量(店铺信息未配置时兜底展示)
 import { CONTACT_INFO } from '../../constants'
 // 反馈提交服务(G04 目标形态:真实落库)
 import FeedbackService from '../../services/FeedbackService'
-import { FeedbackType } from '@aquarush/common'
+import StoreProfileService from '../../services/StoreProfileService'
+import { FeedbackType, StoreProfile } from '@aquarush/common'
 
 // 反馈类型(与后端 FeedbackType 枚举一一对应)
 const FEEDBACK_TYPES = [
@@ -45,10 +46,24 @@ const Feedback: React.FC = () => {
   })
 
   const [submitting, setSubmitting] = useState(false)
+  // 店铺信息(F-OPS-004):客服热线动态读取,未配置时兜底常量
+  const [storeProfile, setStoreProfile] = useState<StoreProfile | null>(null)
 
   useLoad(() => {
     console.log('Feedback page loaded.')
   })
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      const result = await StoreProfileService.getStoreProfile()
+      if (result.success) {
+        setStoreProfile(result.data)
+      } else {
+        console.error('Load store profile failed:', result.error.message)
+      }
+    }
+    loadProfile()
+  }, [])
 
 
   const feedbackTypes = FEEDBACK_TYPES
@@ -232,7 +247,7 @@ const Feedback: React.FC = () => {
 
       <View className='footer'>
         <Text className='footer-text'>我们会在1-2个工作日内处理您的反馈</Text>
-        <Text className='footer-text'>如有紧急问题，请拨打客服热线：{CONTACT_INFO.SERVICE_HOTLINE}</Text>
+        <Text className='footer-text'>如有紧急问题，请拨打客服热线：{storeProfile?.serviceHotline || CONTACT_INFO.SERVICE_HOTLINE}</Text>
       </View>
     </View>
   )

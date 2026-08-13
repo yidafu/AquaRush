@@ -10,6 +10,7 @@ data class Address(
     val detailAddress: kotlin.String,
     val district: kotlin.String,
     val districtCode: kotlin.String?,
+    val floor: kotlin.Int?,
     val id: kotlin.Long,
     val isDefault: kotlin.Boolean,
     val latitude: kotlin.Float?,
@@ -34,6 +35,8 @@ data class AddressInput(
     val district: kotlin.String,
     @field:Size(min = 1, max = 20, message = "区县代码长度应在1-20个字符之间")
     val districtCode: kotlin.String,
+    @field:Min(value = 1, message = "楼层必须大于0")
+    val floor: kotlin.Int? = null,
     val isDefault: kotlin.Boolean = false,
     @field:Min(value = -90, message = "纬度不能小于-90")
     @field:Max(value = 90, message = "纬度不能大于90")
@@ -58,6 +61,7 @@ data class AddressInput(
       args["detailAddress"] as kotlin.String,
       args["district"] as kotlin.String,
       args["districtCode"] as kotlin.String,
+      args["floor"] as kotlin.Int?,
       args["isDefault"] as kotlin.Boolean? ?: false,
       args["latitude"] as kotlin.Float?,
       args["longitude"] as kotlin.Float?,
@@ -445,6 +449,28 @@ data class CreateManualRefundInput(
   )
 }
 
+data class CreateNoticeInput(
+    @field:NotBlank(message = "公告内容不能为空")
+    @field:Size(max = 2000, message = "公告内容不能超过2000个字")
+    val content: kotlin.String,
+    val endAt: java.time.LocalDateTime? = null,
+    val pinned: kotlin.Boolean? = false,
+    val startAt: java.time.LocalDateTime? = null,
+    @field:NotBlank(message = "公告标题不能为空")
+    @field:Size(max = 50, message = "公告标题不能超过50个字")
+    val title: kotlin.String,
+    val type: NoticeType
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["content"] as kotlin.String,
+      args["endAt"] as java.time.LocalDateTime?,
+      args["pinned"] as kotlin.Boolean? ?: false,
+      args["startAt"] as java.time.LocalDateTime?,
+      args["title"] as kotlin.String,
+      args["type"] as NoticeType
+  )
+}
+
 data class CreateOrderInput(
     @field:Positive(message = "地址ID必须为正数")
     val addressId: kotlin.Long,
@@ -705,6 +731,12 @@ data class DeliveryArea(
     val id: kotlin.Long,
     val name: kotlin.String,
     val province: kotlin.String
+)
+
+data class DeliveryFeeRule(
+    val freeFloorLimit: kotlin.Int,
+    val surchargeCents: kotlin.Long,
+    val updatedAt: java.time.LocalDateTime?
 )
 
 data class DeliveryLoginInput(
@@ -1183,6 +1215,14 @@ data class MutationCreateDeliveryWorkerArgs(
       CreateDeliveryWorkerInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationCreateNoticeArgs(
+    val input: CreateNoticeInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateNoticeInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationCreateOrderArgs(
     val input: CreateOrderInput
 ) {
@@ -1220,6 +1260,13 @@ data class MutationDeleteBannerArgs(
       args["id"] as kotlin.Long
   )
 }
+data class MutationDeleteNoticeArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
 data class MutationDeleteProductArgs(
     val id: kotlin.Long
 ) {
@@ -1242,6 +1289,13 @@ data class MutationOfflineProductArgs(
   )
 }
 data class MutationOnlineProductArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class MutationPublishNoticeArgs(
     val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
@@ -1275,6 +1329,22 @@ data class MutationReviewReconciliationArgs(
       ReviewReconciliationInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationSaveDeliveryFeeRuleArgs(
+    val input: SaveDeliveryFeeRuleInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      SaveDeliveryFeeRuleInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationSaveStoreProfileArgs(
+    val input: SaveStoreProfileInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      SaveStoreProfileInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationSetDefaultAddressArgs(
     val id: kotlin.Long
 ) {
@@ -1282,11 +1352,27 @@ data class MutationSetDefaultAddressArgs(
       args["id"] as kotlin.Long
   )
 }
+data class MutationSetNoticePinnedArgs(
+    val id: kotlin.Long,
+    val pinned: kotlin.Boolean
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      args["pinned"] as kotlin.Boolean
+  )
+}
 data class MutationStartDeliveryArgs(
     val orderId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
       args["orderId"] as kotlin.Long
+  )
+}
+data class MutationStopNoticeArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
   )
 }
 data class MutationSubmitDailyCollectionArgs(
@@ -1352,6 +1438,16 @@ data class MutationUpdateDeliveryWorkerArgs(
       args["workerId"] as kotlin.Long
   )
 }
+data class MutationUpdateNoticeArgs(
+    val id: kotlin.Long,
+    val input: UpdateNoticeInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdateNoticeInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationUpdateOrderStatusArgs(
     val orderId: kotlin.Long,
     val status: OrderStatus
@@ -1402,20 +1498,27 @@ data class Mutation(
     val createBanner: Banner,
     val createDeliveryOrder: Order,
     val createDeliveryWorker: DeliveryWorker,
+    val createNotice: Notice,
     val createOrder: Order,
     val createProduct: Product,
     val deleteAddress: kotlin.Boolean,
     val deleteAdminAddress: kotlin.Boolean,
     val deleteBanner: kotlin.Boolean,
+    val deleteNotice: kotlin.Boolean,
     val deleteProduct: kotlin.Boolean,
     val executeDailyReconciliation: DailyReconciliation,
     val offlineProduct: Product,
     val onlineProduct: Product,
+    val publishNotice: Notice,
     val reorderBanner: Iterable<Banner>,
     val reviewFeedback: Feedback,
     val reviewReconciliation: DailyReconciliation,
+    val saveDeliveryFeeRule: DeliveryFeeRule,
+    val saveStoreProfile: StoreProfile,
     val setDefaultAddress: kotlin.Boolean,
+    val setNoticePinned: Notice,
     val startDelivery: Order,
+    val stopNotice: Notice,
     val submitDailyCollection: DailyCollectionRecord,
     val submitFeedback: kotlin.Boolean,
     val toggleProductFavorites: kotlin.Boolean,
@@ -1423,6 +1526,7 @@ data class Mutation(
     val updateAdmin: Admin,
     val updateBanner: Banner,
     val updateDeliveryWorker: DeliveryWorker,
+    val updateNotice: Notice,
     val updateOrderStatus: Order,
     val updateProduct: Product,
     val updateProductStatus: Product,
@@ -1441,6 +1545,70 @@ data class MyTodayCollectionVo(
     val qrCodeAmountCents: kotlin.Long?,
     val status: DailyCollectionStatus?,
     val waterTicketCount: kotlin.Int?
+)
+
+data class Notice(
+    val content: kotlin.String,
+    val createdAt: java.time.LocalDateTime,
+    val endAt: java.time.LocalDateTime?,
+    val id: kotlin.Long,
+    val pinned: kotlin.Boolean,
+    val publishedAt: java.time.LocalDateTime?,
+    val startAt: java.time.LocalDateTime?,
+    val status: NoticeStatus,
+    val title: kotlin.String,
+    val type: NoticeType,
+    val updatedAt: java.time.LocalDateTime
+)
+
+data class NoticeListInput(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val status: NoticeStatus? = null,
+    val type: NoticeType? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["status"] as NoticeStatus?,
+      args["type"] as NoticeType?
+  )
+}
+
+enum class NoticeStatus(val label: String) {
+      DRAFT("DRAFT"),
+      PUBLISHED("PUBLISHED"),
+      STOPPED("STOPPED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): NoticeStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+enum class NoticeType(val label: String) {
+      ACTIVITY_PREVIEW("ACTIVITY_PREVIEW"),
+      PLATFORM_NOTICE("PLATFORM_NOTICE"),
+      WATER_OUTAGE("WATER_OUTAGE");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): NoticeType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class NoticeVoPage(
+    val content: Iterable<Notice>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
 )
 
 enum class OperatorType(val label: String) {
@@ -1463,12 +1631,14 @@ data class Order(
     val completedAt: java.time.LocalDateTime?,
     val createdAt: java.time.LocalDateTime,
     val deliveryConfirmedAt: java.time.LocalDateTime?,
+    val deliveryFeeCents: kotlin.Long,
     val deliveryPhotos: Iterable<kotlin.String>?,
     val deliveryStartedAt: java.time.LocalDateTime?,
     val deliveryWorker: DeliveryWorker?,
     val id: kotlin.Long,
     val isSelfCollect: kotlin.Boolean,
     val orderNo: kotlin.String,
+    val payAmountCents: kotlin.Long,
     val paymentMethod: kotlin.String?,
     val paymentTime: java.time.LocalDateTime?,
     val paymentTransactionId: kotlin.String?,
@@ -2138,6 +2308,21 @@ data class QueryMonthlyStatisticsArgs(
       DateRangeInput(args["input"] as Map<String, Any>)
   )
 }
+data class QueryNoticeArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class QueryNoticesArgs(
+    val input: NoticeListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { NoticeListInput(it as Map<String, Any>) }
+  )
+}
 data class QueryOrderArgs(
     val orderId: kotlin.Long
 ) {
@@ -2266,6 +2451,7 @@ data class QueryWeeklyStatisticsArgs(
 data class Query(
     val _dummy: kotlin.String?,
     val activeBanners: Iterable<Banner>,
+    val activeNotices: Iterable<Notice>,
     val activeProducts: ProductVoPage,
     val address: Address?,
     val addresses: Iterable<Address>,
@@ -2278,6 +2464,7 @@ data class Query(
     val dailyReconciliations: Iterable<DailyReconciliation>,
     val dailyStatistics: Iterable<DailyStatistic>,
     val deliveringOrders: Iterable<Order>,
+    val deliveryFeeRule: DeliveryFeeRule,
     val deliveryWorker: DeliveryWorker?,
     val deliveryWorkerHistoryOrders: OrderVoPage,
     val deliveryWorkerRanking: Iterable<DeliveryWorkerRankingItem>,
@@ -2291,6 +2478,8 @@ data class Query(
     val me: UserInfo?,
     val monthlyStatistics: Iterable<MonthlyStatistic>,
     val myTodayCollection: MyTodayCollectionVo?,
+    val notice: Notice?,
+    val notices: NoticeVoPage?,
     val onlineDeliveryWorkers: Iterable<DeliveryWorker>,
     val order: Order?,
     val orderByNo: Order?,
@@ -2306,6 +2495,7 @@ data class Query(
     val region: Region?,
     val regions: Iterable<Region>,
     val searchAllAddresses: Iterable<Address>,
+    val storeProfile: StoreProfile?,
     val todayStatistics: TodayStatistics?,
     val user: User?,
     val userAddresses: Iterable<Address>,
@@ -2482,11 +2672,64 @@ data class SalesReportInput(
   )
 }
 
+data class SaveDeliveryFeeRuleInput(
+    @field:Min(value = 0, message = "免费楼层不能小于0")
+    val freeFloorLimit: kotlin.Int,
+    @field:Min(value = 0, message = "运费金额无效")
+    @field:Max(value = 99900, message = "运费金额无效")
+    val surchargeCents: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["freeFloorLimit"] as kotlin.Int,
+      args["surchargeCents"] as kotlin.Long
+  )
+}
+
+data class SaveStoreProfileInput(
+    @field:Size(max = 2000, message = "关于我们内容不能超过2000个字")
+    val aboutUs: kotlin.String? = null,
+    @field:Pattern(regexp = "^([01]\\d|2[0-3]):[0-5]\\d$", message = "营业时间格式不正确")
+    val businessHoursEnd: kotlin.String? = null,
+    @field:Pattern(regexp = "^([01]\\d|2[0-3]):[0-5]\\d$", message = "营业时间格式不正确")
+    val businessHoursStart: kotlin.String? = null,
+    @field:Size(max = 1000, message = "LOGO 地址长度不能超过1000个字符")
+    val logoUrl: kotlin.String? = null,
+    @field:NotBlank(message = "客服电话不能为空")
+    @field:Pattern(regexp = "^1[3-9]\\d{9}$|^0\\d{2,3}-?\\d{7,8}$|^400-?\\d{3}-?\\d{4}$", message = "客服电话格式不正确")
+    val serviceHotline: kotlin.String,
+    @field:Size(max = 100, message = "店铺简介不能超过100个字")
+    val shopIntro: kotlin.String? = null,
+    @field:NotBlank(message = "店铺名称不能为空")
+    @field:Size(max = 20, message = "店铺名称不能超过20个字")
+    val shopName: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["aboutUs"] as kotlin.String?,
+      args["businessHoursEnd"] as kotlin.String?,
+      args["businessHoursStart"] as kotlin.String?,
+      args["logoUrl"] as kotlin.String?,
+      args["serviceHotline"] as kotlin.String,
+      args["shopIntro"] as kotlin.String?,
+      args["shopName"] as kotlin.String
+  )
+}
+
 data class SpecificationStatistics(
     val averagePriceCents: kotlin.Long,
     val productCount: kotlin.Int,
     val specification: kotlin.String,
     val totalSalesVolume: kotlin.Int
+)
+
+data class StoreProfile(
+    val aboutUs: kotlin.String?,
+    val businessHoursEnd: kotlin.String?,
+    val businessHoursStart: kotlin.String?,
+    val logoUrl: kotlin.String?,
+    val serviceHotline: kotlin.String,
+    val shopIntro: kotlin.String?,
+    val shopName: kotlin.String,
+    val updatedAt: java.time.LocalDateTime?
 )
 
 data class SubmitDailyCollectionInput(
@@ -2542,6 +2785,8 @@ data class UpdateAddressInput(
     val district: kotlin.String? = null,
     @field:Size(min = 1, max = 20, message = "区县代码长度应在1-20个字符之间")
     val districtCode: kotlin.String? = null,
+    @field:Min(value = 1, message = "楼层必须大于0")
+    val floor: kotlin.Int? = null,
     val isDefault: kotlin.Boolean? = null,
     @field:Min(value = -90, message = "纬度不能小于-90")
     @field:Max(value = 90, message = "纬度不能大于90")
@@ -2566,6 +2811,7 @@ data class UpdateAddressInput(
       args["detailAddress"] as kotlin.String?,
       args["district"] as kotlin.String?,
       args["districtCode"] as kotlin.String?,
+      args["floor"] as kotlin.Int?,
       args["isDefault"] as kotlin.Boolean?,
       args["latitude"] as kotlin.Float?,
       args["longitude"] as kotlin.Float?,
@@ -2690,6 +2936,28 @@ data class UpdateDeliveryWorkerInput(
       args["phone"] as kotlin.String?,
       args["rating"] as java.math.BigDecimal?,
       args["wechatOpenId"] as kotlin.String?
+  )
+}
+
+data class UpdateNoticeInput(
+    @field:NotBlank(message = "公告内容不能为空")
+    @field:Size(max = 2000, message = "公告内容不能超过2000个字")
+    val content: kotlin.String,
+    val endAt: java.time.LocalDateTime? = null,
+    val pinned: kotlin.Boolean? = false,
+    val startAt: java.time.LocalDateTime? = null,
+    @field:NotBlank(message = "公告标题不能为空")
+    @field:Size(max = 50, message = "公告标题不能超过50个字")
+    val title: kotlin.String,
+    val type: NoticeType
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["content"] as kotlin.String,
+      args["endAt"] as java.time.LocalDateTime?,
+      args["pinned"] as kotlin.Boolean? ?: false,
+      args["startAt"] as java.time.LocalDateTime?,
+      args["title"] as kotlin.String,
+      args["type"] as NoticeType
   )
 }
 

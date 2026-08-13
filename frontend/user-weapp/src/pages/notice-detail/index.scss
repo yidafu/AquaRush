@@ -1,0 +1,110 @@
+// 公告详情页(F-OPS-002 用户端)
+.notice-detail-page {
+  min-height: 100vh;
+  padding: 32px;
+  box-sizing: border-box;
+  background: #f5f6f8;
+}
+
+.loading-container,
+.empty-container {
+  padding: 120px 0;
+  text-align: center;
+  color: #999;
+  font-size: 26px;
+}
+
+.notice-detail-body {
+  display: flex;
+  flex-direction: column;
+}
+
+// 公告列表
+.notice-list {
+  background: #fff;
+  border-radius: 16px;
+  padding: 8px 24px;
+  margin-bottom: 24px;
+}
+
+.notice-list-item {
+  display: flex;
+  align-items: center;
+  padding: 24px 0;
+  border-bottom: 1px solid #f0f0f0;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  .notice-pin-tag {
+    flex-shrink: 0;
+    font-size: 18px;
+    color: #d46b08;
+    background: #fff7e6;
+    border: 1px solid #ffd591;
+    border-radius: 8px;
+    padding: 2px 8px;
+    margin-right: 12px;
+  }
+
+  .notice-list-title {
+    flex: 1;
+    font-size: 26px;
+    color: #333;
+    overflow: hidden;
+  }
+}
+
+.notice-list-item-active {
+  .notice-list-title {
+    color: #1890ff;
+    font-weight: 600;
+  }
+}
+
+// 公告全文
+.notice-content-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 32px;
+
+  .notice-type-tag {
+    display: inline-block;
+    font-size: 18px;
+    color: #1890ff;
+    background: #e6f7ff;
+    border-radius: 8px;
+    padding: 4px 12px;
+    margin-bottom: 16px;
+  }
+
+  .notice-content-title {
+    display: block;
+    font-size: 36px;
+    font-weight: 600;
+    color: #222;
+    line-height: 1.4;
+  }
+
+  .notice-publish-time {
+    display: block;
+    margin-top: 12px;
+    font-size: 22px;
+    color: #999;
+  }
+
+  .notice-content-divider {
+    height: 1px;
+    background: #f0f0f0;
+    margin: 24px 0;
+  }
+
+  .notice-content-text {
+    display: block;
+    font-size: 28px;
+    color: #444;
+    line-height: 1.8;
+    white-space: pre-wrap;
+  }
+}

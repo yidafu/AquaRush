@@ -13,7 +13,8 @@ export default defineAppConfig({
     'pages/theme-settings/index',
     'pages/about/index',
     'pages/feedback/index',
-    'pages/favorites/index'
+    'pages/favorites/index',
+    'pages/notice-detail/index'
   ],
   window: {
     backgroundTextStyle: 'light',

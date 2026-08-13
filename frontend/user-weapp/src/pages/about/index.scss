@@ -23,6 +23,13 @@
           filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
 
+        .logo-image {
+          width: 96px;
+          height: 96px;
+          margin-right: 12px;
+          border-radius: 16px;
+        }
+
         .logo-text {
           font-size: 32px;
           font-weight: bold;

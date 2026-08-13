@@ -226,6 +226,8 @@ type Address {
   districtCode: String
   # 详细地址
   detailAddress: String!
+  # 楼层(空=无楼层信息/平房,配送费楼层判定用 —— R-MON-02)
+  floor: Int
   # 经度
   longitude: Float
   # 纬度
@@ -280,6 +282,10 @@ type Order {
   quantity: Int!
   # 订单金额（分）
   amountCents: Long!
+  # 配送费(分,下单时按配送费规则快照,规则变更不影响已生成订单 —— R-MON-02)
+  deliveryFeeCents: Long!
+  # 应付合计(分)= amountCents + deliveryFeeCents(纯展示口径)
+  payAmountCents: Long!
   # 订单状态
   status: OrderStatus!
   # 支付方式
@@ -595,6 +601,7 @@ input UpdateAddressInput {
   detailAddress: String
     @notBlank(message: "详细地址不能为空")
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
+  floor: Int @min(value: 1, message: "楼层必须大于0")
   longitude: Float
     @min(value: -180, message: "经度不能小于-180")
     @max(value: 180, message: "经度不能大于180")
@@ -623,6 +630,7 @@ input AddressInput {
   detailAddress: String!
     @notBlank(message: "详细地址不能为空")
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
+  floor: Int @min(value: 1, message: "楼层必须大于0")
   longitude: Float
     @min(value: -180, message: "经度不能小于-180")
     @max(value: 180, message: "经度不能大于180")
@@ -1946,4 +1954,80 @@ enum FeedbackType {
   COMPLAINT
   # 其他问题
   OTHER
+}
+
+# 公告 (F-OPS-002)
+type Notice {
+  # 主键
+  id: PrimaryId!
+  # 标题(≤50字)
+  title: String!
+  # 内容(≤2000字)
+  content: String!
+  # 类型
+  type: NoticeType!
+  # 是否置顶(置顶公告在公告栏最前展示)
+  pinned: Boolean!
+  # 时间窗开始(空=长期)
+  startAt: LocalDateTime
+  # 时间窗结束(空=长期)
+  endAt: LocalDateTime
+  # 状态(草稿/已发布/已停用)
+  status: NoticeStatus!
+  # 发布时间(每次发布重置为当前时间)
+  publishedAt: LocalDateTime
+  # 创建时间
+  createdAt: LocalDateTime!
+  # 更新时间
+  updatedAt: LocalDateTime!
+}
+
+# 公告类型
+enum NoticeType {
+  # 平台公告
+  PLATFORM_NOTICE
+  # 停水通知
+  WATER_OUTAGE
+  # 活动预告
+  ACTIVITY_PREVIEW
+}
+
+# 公告状态
+enum NoticeStatus {
+  # 草稿
+  DRAFT
+  # 已发布
+  PUBLISHED
+  # 已停用
+  STOPPED
+}
+
+# 店铺信息 (F-OPS-004,单行配置;未配置时用户端按默认值兜底)
+type StoreProfile {
+  # 店铺名称(≤20字)
+  shopName: String!
+  # LOGO 图片地址
+  logoUrl: String
+  # 客服电话
+  serviceHotline: String!
+  # 营业开始时间("HH:mm")
+  businessHoursStart: String
+  # 营业结束时间("HH:mm")
+  businessHoursEnd: String
+  # 店铺简介(≤100字)
+  shopIntro: String
+  # 关于我们文案(≤2000字)
+  aboutUs: String
+  # 更新时间
+  updatedAt: LocalDateTime
+}
+
+# 配送费规则 (F-OPS-005;楼层口径,未配置按默认 免费4楼/加价2元)
+type DeliveryFeeRule {
+  # 免费楼层(楼层 ≤ 该值免运费)
+  freeFloorLimit: Int!
+  # 超出免费楼层的一次性加价(分,0-99900)
+  surchargeCents: Long!
+  # 更新时间
+  updatedAt: LocalDateTime
 }

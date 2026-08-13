@@ -345,6 +345,32 @@
   }
 }
 
+// 顶部公告栏(F-OPS-002:无生效公告时整体隐藏)
+.notice-bar {
+  display: flex;
+  align-items: center;
+  margin: 16px 24px 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  background: #fff7e6;
+  border: 1px solid #ffd591;
+
+  .notice-bar-label {
+    flex-shrink: 0;
+    font-size: 20px;
+    font-weight: 600;
+    color: #d46b08;
+    margin-right: 16px;
+  }
+
+  .notice-bar-title {
+    flex: 1;
+    font-size: 24px;
+    color: #333;
+    overflow: hidden;
+  }
+}
+
 // 大屏幕优化
 @media (min-width: 414px) {
   .product-grid {

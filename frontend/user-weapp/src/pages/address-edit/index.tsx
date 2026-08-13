@@ -29,7 +29,8 @@ const AddressEdit: React.FC = () => {
     city: '',
     district: '',
     detailAddress: '',
-    isDefault: false
+    isDefault: false,
+    floor: undefined
   })
 
   const [errors, setErrors] = useState<Record<keyof AddressFormData, string>>({} as Record<keyof AddressFormData, string>)
@@ -169,7 +170,8 @@ const AddressEdit: React.FC = () => {
         detailAddress: address.detailAddress || '',
         isDefault: address.isDefault || false,
         latitude: address.latitude,
-        longitude: address.longitude
+        longitude: address.longitude,
+        floor: address.floor ?? undefined
       }))
 
       showToastMessage('地址详情加载成功', 'success')
@@ -238,6 +240,11 @@ const AddressEdit: React.FC = () => {
       newErrors.detailAddress = '详细地址不能超过100个字符'
     }
 
+    // 楼层验证(选填;填了必须 ≥ 1,配送费楼层判定用 —— R-MON-02)
+    if (formData.floor !== undefined && formData.floor !== null && formData.floor < 1) {
+      newErrors.floor = '楼层必须大于0'
+    }
+
 
     setErrors(newErrors as Record<keyof AddressFormData, string>)
     return Object.keys(newErrors).length === 0
@@ -287,6 +294,7 @@ const AddressEdit: React.FC = () => {
           district: formData.district,
           districtCode: formData.districtCode || '',
           detailAddress: formData.detailAddress,
+          floor: formData.floor,
           longitude: formData.longitude,
           latitude: formData.latitude,
           isDefault: formData.isDefault
@@ -308,6 +316,7 @@ const AddressEdit: React.FC = () => {
           city: formData.city,
           district: formData.district,
           detailAddress: formData.detailAddress,
+          floor: formData.floor,
           longitude: formData.longitude || undefined,
           latitude: formData.latitude || undefined,
           isDefault: formData.isDefault,
@@ -440,6 +449,26 @@ const AddressEdit: React.FC = () => {
           maxlength={100}
         />
         <Text className='input-hint'>请输入详细的收货地址，不少于5个字符</Text>
+
+        {/* 楼层(配送费判定用:超过免费楼层加收运费) */}
+        <AtInput
+          name='floor'
+          title='楼层'
+          type='number'
+          placeholder='选填,如 5'
+          value={formData.floor !== undefined ? String(formData.floor) : ''}
+          onChange={(value) => {
+            const str = typeof value === 'number' ? value.toString() : value
+            const floor = str.trim() === '' ? undefined : parseInt(str, 10)
+            setFormData(prev => ({
+              ...prev,
+              floor: floor === undefined || isNaN(floor) ? undefined : floor
+            }))
+            setErrors(prev => (prev.floor ? { ...prev, floor: '' } : prev))
+          }}
+          error={!!errors.floor}
+        />
+        <Text className='input-hint'>配送费按楼层计算:免费楼层内免运费,超过免费楼层加收运费</Text>
 
         {/* 地址地图预览 */}
         <View className='address-map-section'>

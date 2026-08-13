@@ -6,8 +6,10 @@ import Taro, {
   useDidShow
 } from '@tarojs/taro'
 import AddressService from '../../services/AddressService'
+import ConfigService from '../../services/ConfigService'
 import { networkManager } from '../../utils/networkManager'
 import { Address } from '../../types/address'
+import type { DeliveryFeeRule } from '@aquarush/common'
 
 import "taro-ui/dist/style/components/toast.scss"
 import "taro-ui/dist/style/components/button.scss"
@@ -54,6 +56,8 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
   const [toastText, setToastText] = useState<string>('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
   const [agreeTerms, setAgreeTerms] = useState<boolean[]>([false])
+  // 配送费规则(F-OPS-005):楼层口径,查询失败回退默认规则(免费4楼/加价2元)
+  const [deliveryFeeRule, setDeliveryFeeRule] = useState<DeliveryFeeRule | null>(null)
 
   const addressService = AddressService.getInstance()
 
@@ -61,6 +65,7 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
   useReady(() => {
     loadOrderData()
     loadAddresses()
+    loadDeliveryFeeRule()
   })
 
   // Refresh addresses when page is shown
@@ -154,14 +159,33 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
     setAgreeTerms(value)
   }
 
+  const loadDeliveryFeeRule = async (): Promise<void> => {
+    try {
+      const result = await ConfigService.getDeliveryFeeRule()
+      if (result.success) {
+        setDeliveryFeeRule(result.data)
+      } else {
+        throw new Error(result.error.message)
+      }
+    } catch (error) {
+      console.error('加载配送费规则失败:', error)
+      // 回退默认规则:免费4楼/加价2元(与后端默认一致)
+      setDeliveryFeeRule({ freeFloorLimit: 4, surchargeCents: 200 })
+    }
+  }
+
   const calculateTotalAmount = (): number => {
     return orderItems.reduce((total: number, item: OrderItem) => total + (item.price * item.quantity), 0)
   }
 
+  // 配送费计算(F-OPS-005 楼层口径,R-MON-02):收货楼层 > 免费楼层 → 一次性加收,否则免运费;金额单位为分
   const calculateDeliveryFee = (): number => {
-    // 配送费计算逻辑（金额单位为分）
-    const totalAmount = calculateTotalAmount()
-    return totalAmount >= 3000 ? 0 : 500 // 满30元（3000分）免配送费
+    if (!deliveryFeeRule) return 0
+    const floor = selectedAddress?.floor
+    if (floor === undefined || floor === null || floor <= deliveryFeeRule.freeFloorLimit) {
+      return 0
+    }
+    return deliveryFeeRule.surchargeCents
   }
 
   const handleSubmitOrder = async (): Promise<void> => {

@@ -40,6 +40,7 @@ data class OrderDTO(
   val product: Product? = null,
   val quantity: Int,
   val amount: Long,
+  val deliveryFeeCents: Long = 0,
   val addressId: Long,
   val address: Address? = null,
   val status: OrderModelStatus,
@@ -58,7 +59,11 @@ data class OrderDTO(
   val remark: String? = null,
   val createdAt: LocalDateTime,
   val updatedAt: LocalDateTime,
-)
+) {
+  // 应付合计(分)= 商品金额 + 配送费(纯展示口径,支付流暂不包含配送费 —— G17 待接)
+  val payAmountCents: Long
+    get() = amount + deliveryFeeCents
+}
 
 /**
  * DTO for creating new orders

@@ -26,6 +26,9 @@ import BusinessLogs from './pages/logs/business';
 import DailyCollection from './pages/daily-collection';
 import OpsBanners from './pages/ops/banners';
 import OpsFeedbacks from './pages/ops/feedbacks';
+import OpsNotices from './pages/ops/notices';
+import OpsStoreProfile from './pages/ops/store-profile';
+import OpsDeliveryFeeRule from './pages/ops/delivery-fee-rule';
 
 // 浏览器标签页标题由 react-helmet-async 统一管理,与 Layout 菜单文案保持一致;
 // 页面标题属于实现细节,不在 PRD 中逐页描述。
@@ -72,6 +75,9 @@ const App: React.FC = () => {
         <Route path="daily-collection" element={page('收银对账', <DailyCollection />)} />
         <Route path="ops/banners" element={page('首页轮播', <OpsBanners />)} />
         <Route path="ops/feedbacks" element={page('意见反馈', <OpsFeedbacks />)} />
+        <Route path="ops/notices" element={page('公告', <OpsNotices />)} />
+        <Route path="ops/store-profile" element={page('店铺信息', <OpsStoreProfile />)} />
+        <Route path="ops/delivery-fee-rule" element={page('运费规则', <OpsDeliveryFeeRule />)} />
       </Route>
     </Routes>
   );

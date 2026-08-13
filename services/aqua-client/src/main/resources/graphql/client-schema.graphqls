@@ -34,8 +34,14 @@ type Query {
   isProductFavorited(productId: PrimaryId!): Boolean!
   favoritesCount: Long!
 
-  # Operations config queries (运营配置域 F-OPS-001)
+  # Operations config queries (运营配置域 F-OPS-001/002/004/005)
   activeBanners: [Banner!]!
+  # 当前生效公告(已发布且在时间窗内,置顶优先、发布时间倒序)
+  activeNotices: [Notice!]!
+  # 店铺信息(未配置返回 null,用户端按默认值兜底)
+  storeProfile: StoreProfile
+  # 配送费规则(未配置返回默认规则 免费4楼/加价2元)
+  deliveryFeeRule: DeliveryFeeRule!
 
 }
 

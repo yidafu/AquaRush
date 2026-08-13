@@ -1,5 +1,5 @@
 import { networkManager } from '../utils/networkManager'
-import { Banner } from '@aquarush/common'
+import { Banner, DeliveryFeeRule } from '@aquarush/common'
 
 export interface ConfigServiceResult<T> {
   success: true
@@ -65,6 +65,44 @@ class ConfigService {
         success: false,
         error: {
           message: error?.message || '获取轮播图失败',
+          code: error?.code
+        }
+      }
+    }
+  }
+
+  /**
+   * 获取配送费规则(F-OPS-005,楼层口径):免费楼层 + 超出一次性加价
+   * 未配置时服务端返回默认规则(免费4楼/加价2元);金额为分(Long 以字符串返回,normalize 转 number)。
+   */
+  public async getDeliveryFeeRule(): Promise<ConfigServiceResponse<DeliveryFeeRule>> {
+    const query = `
+      query DeliveryFeeRule {
+        deliveryFeeRule {
+          freeFloorLimit
+          surchargeCents
+          updatedAt
+        }
+      }
+    `
+
+    try {
+      const response = await networkManager.query<{ deliveryFeeRule: DeliveryFeeRule }>(query)
+      const rule = response.data?.deliveryFeeRule
+      return {
+        success: true,
+        data: {
+          ...rule,
+          // Long 标量在 JSON 中可能为字符串,统一转 number
+          surchargeCents: Number(rule?.surchargeCents ?? 0)
+        }
+      }
+    } catch (error: any) {
+      console.error('Get delivery fee rule failed:', error)
+      return {
+        success: false,
+        error: {
+          message: error?.message || '获取配送费规则失败',
           code: error?.code
         }
       }

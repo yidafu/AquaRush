@@ -69,6 +69,7 @@ const AddressCard: React.FC<AddressCardProps> = ({
       <View className='py-2 border-b-2 border-gray-300 border-solid'>
         <Text className='text-sm theme-text-tertiary'>
           {address.province} {address.city} {address.district} {address.detailAddress}
+          {address.floor ? ` ${address.floor}楼` : ''}
         </Text>
       </View>
       {!hideActions && (

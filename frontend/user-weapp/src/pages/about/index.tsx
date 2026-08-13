@@ -1,5 +1,5 @@
-import React from 'react'
-import { View, Text } from '@tarojs/components'
+import React, { useState, useEffect } from 'react'
+import { View, Text, Image } from '@tarojs/components'
 import { useLoad } from '@tarojs/taro'
 import './index.scss'
 
@@ -8,7 +8,7 @@ import ContentSection from './components/ContentSection'
 import FeatureItem from './components/FeatureItem'
 import ContactItem from './components/ContactItem'
 
-// 导入常量
+// 导入常量(店铺信息未配置时兜底展示)
 import {
   BRAND_INFO,
   WATER_SOURCE_INFO,
@@ -16,22 +16,51 @@ import {
 import {
   CONTACT_INFO,
 } from '@/constants'
+import StoreProfileService from '../../services/StoreProfileService'
+import type { StoreProfile } from '@aquarush/common'
 
 const About: React.FC = () => {
+  // 店铺信息(F-OPS-004):后台可维护,未配置时按默认常量兜底
+  const [storeProfile, setStoreProfile] = useState<StoreProfile | null>(null)
+
   useLoad(() => {
     console.log('About page loaded.')
   })
+
+  useEffect(() => {
+    loadStoreProfile()
+  }, [])
+
+  const loadStoreProfile = async () => {
+    const result = await StoreProfileService.getStoreProfile()
+    if (result.success) {
+      setStoreProfile(result.data)
+    } else {
+      console.error('Load store profile failed:', result.error.message)
+      // 加载失败保持兜底常量展示
+      setStoreProfile(null)
+    }
+  }
+
+  // 兜底:配置缺失时回退硬编码常量(PRD 12-operations-config.md §F-OPS-004:未配置时按默认值兜底)
+  const shopName = storeProfile?.shopName || BRAND_INFO.NAME
+  const hotline = storeProfile?.serviceHotline || CONTACT_INFO.SERVICE_HOTLINE
+  const serviceHours =
+    storeProfile?.businessHoursStart && storeProfile?.businessHoursEnd
+      ? `${storeProfile.businessHoursStart} - ${storeProfile.businessHoursEnd}`
+      : CONTACT_INFO.SERVICE_HOURS
+  const shopIntro = storeProfile?.shopIntro
 
   const features = BRAND_FEATURES
 
   const contactInfo = [
     {
       label: '服务热线',
-      value: CONTACT_INFO.SERVICE_HOTLINE
+      value: hotline
     },
     {
       label: '客服时间',
-      value: CONTACT_INFO.SERVICE_HOURS
+      value: serviceHours
     },
     {
       label: '品牌合作',
@@ -48,20 +77,21 @@ const About: React.FC = () => {
       <View className='header'>
         <View className='logo-container'>
           <View className='logo'>
-            <View className='logo-icon'>{BRAND_INFO.LOGO_EMOJI}</View>
-            <Text className='logo-text'>{BRAND_INFO.NAME}</Text>
+            {storeProfile?.logoUrl ? (
+              <Image src={storeProfile.logoUrl} className='logo-image' mode='aspectFit' />
+            ) : (
+              <View className='logo-icon'>{BRAND_INFO.LOGO_EMOJI}</View>
+            )}
+            <Text className='logo-text'>{shopName}</Text>
           </View>
           <Text className='logo-subtitle'>{BRAND_INFO.SUBTITLE}</Text>
         </View>
       </View>
 
       <View className='content'>
-        <ContentSection title='品牌故事'>
+        <ContentSection title='店铺简介'>
           <Text className='section-text'>
-            好喝山泉始于2020年，是一家专注于天然山泉水的品牌企业。我们坚持从海拔1000米以上的原始森林深处取水，每一滴水都经过大自然层层过滤，富含多种矿物质和微量元素。
-          </Text>
-          <Text className='section-text'>
-            我们秉承"让每个家庭都能喝上真正的好水"的理念，建立了从水源地到用户餐桌的全程质量追溯体系，确保每一瓶水都保持着大自然的纯净与甘甜。
+            {shopIntro || '好喝山泉始于2020年，是一家专注于天然山泉水的品牌企业。我们坚持从海拔1000米以上的原始森林深处取水，每一滴水都经过大自然层层过滤，富含多种矿物质和微量元素。'}
           </Text>
         </ContentSection>
 
@@ -98,6 +128,12 @@ const About: React.FC = () => {
             ))}
           </View>
         </ContentSection>
+
+        {storeProfile?.aboutUs && (
+          <ContentSection title='关于我们'>
+            <Text className='section-text'>{storeProfile.aboutUs}</Text>
+          </ContentSection>
+        )}
 
         <ContentSection title='品牌荣誉'>
           <Text className='section-text'>

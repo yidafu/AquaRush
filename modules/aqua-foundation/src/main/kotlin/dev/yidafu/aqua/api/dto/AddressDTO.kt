@@ -59,6 +59,8 @@ data class AddressDTO(
   @field:JsonProperty("detailAddress")
   @field:NotBlank(message = "详细地址不能为空")
   val detailAddress: String,
+  @field:JsonProperty("floor")
+  val floor: Int? = null,
   @field:JsonProperty("longitude")
   val longitude: Double? = null,
   @field:JsonProperty("latitude")

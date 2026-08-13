@@ -3,6 +3,7 @@ package dev.yidafu.aqua.api.dto
 import com.fasterxml.jackson.annotation.JsonProperty
 import jakarta.validation.constraints.DecimalMax
 import jakarta.validation.constraints.DecimalMin
+import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
@@ -41,6 +42,9 @@ data class CreateAddressRequest(
   @field:NotBlank(message = "详细地址不能为空")
   @field:Size(min = 5, max = 200, message = "详细地址长度应在5-200个字符之间")
   val detailAddress: String,
+  @field:JsonProperty("floor")
+  @field:Min(value = 1, message = "楼层必须大于0")
+  val floor: Int? = null,
   @field:JsonProperty("longitude")
   @field:DecimalMin(value = "-180.0", message = "经度必须在-180到180之间")
   @field:DecimalMax(value = "180.0", message = "经度必须在-180到180之间")

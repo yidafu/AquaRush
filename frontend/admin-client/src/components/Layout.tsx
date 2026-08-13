@@ -20,6 +20,9 @@ import {
   ControlOutlined,
   PictureOutlined,
   MessageOutlined,
+  SoundOutlined,
+  ShopOutlined,
+  CarOutlined as DeliveryCarOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = AntLayout;
@@ -53,7 +56,10 @@ const Layout: React.FC = () => {
       label: '运营配置',
       children: [
         { key: '/ops/banners', icon: <PictureOutlined />, label: '首页轮播' },
+        { key: '/ops/notices', icon: <SoundOutlined />, label: '公告' },
         { key: '/ops/feedbacks', icon: <MessageOutlined />, label: '意见反馈' },
+        { key: '/ops/store-profile', icon: <ShopOutlined />, label: '店铺信息' },
+        { key: '/ops/delivery-fee-rule', icon: <DeliveryCarOutlined />, label: '运费规则' },
       ]
     },
     {

@@ -10,9 +10,10 @@ import {
 } from '@tarojs/taro'
 import CustomNavBar from '../../components/CustomNavBar'
 import { authService } from '../../utils/auth'
-import { Money, Banner } from '@aquarush/common'
+import { Money, Banner, Notice } from '@aquarush/common'
 import ProductService from '../../services/ProductService'
 import ConfigService from '../../services/ConfigService'
+import NoticeService from '../../services/NoticeService'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/card.scss"
@@ -62,12 +63,14 @@ const HomePage: React.FC = () => {
   const [totalCount, setTotalCount] = useState<number>(0)
   const [error, setError] = useState<string | undefined>(undefined)
   const [banners, setBanners] = useState<Banner[]>([])
+  const [notices, setNotices] = useState<Notice[]>([])
 
   // 组件挂载时执行
   useEffect(() => {
     loadUserInfo()
     loadProducts()
     loadBanners()
+    loadNotices()
   }, [])
 
   // 页面准备就绪时执行
@@ -77,10 +80,11 @@ const HomePage: React.FC = () => {
 
   // 页面显示时执行
   useDidShow(() => {
-    // 页面显示时刷新用户信息、产品数据与轮播配置(停用/到期即时生效,R-OPS-01)
+    // 页面显示时刷新用户信息、产品数据与运营配置(停用/到期即时生效,R-OPS-01)
     loadUserInfo()
     refreshProducts()
     loadBanners()
+    loadNotices()
   })
 
   // 下拉刷新
@@ -251,6 +255,23 @@ const HomePage: React.FC = () => {
     }
   }
 
+  // 加载公告配置(F-OPS-002:已发布且在时间窗内、置顶优先/发布时间倒序由服务端过滤;无公告时隐藏公告栏)
+  const loadNotices = async () => {
+    const result = await NoticeService.getActiveNotices()
+    if (result.success) {
+      setNotices(result.data)
+    } else {
+      console.error('Load notices failed:', result.error.message)
+      setNotices([])
+    }
+  }
+
+  const handleNoticeClick = (notice: Notice) => {
+    Taro.navigateTo({
+      url: `/pages/notice-detail/index?id=${notice.id}`
+    })
+  }
+
   // 轮播图切换
   const handleSwiperChange = (e: any) => {
     setCurrentSlide(e.detail.current)
@@ -318,6 +339,16 @@ const HomePage: React.FC = () => {
 
   return (
     <View className='home-page'>
+      {/* 顶部公告栏(无生效公告时隐藏;展示第 1 条=置顶优先/发布时间倒序,AC-OPS-002-02) */}
+      {notices.length > 0 && (
+        <View className='notice-bar' onClick={() => handleNoticeClick(notices[0])}>
+          <Text className='notice-bar-label'>公告</Text>
+          <Text className='notice-bar-title' numberOfLines={1}>
+            {notices[0].title}
+          </Text>
+        </View>
+      )}
+
       {/* 顶部轮播图(未配置/无生效条目时隐藏) */}
       {carouselData.length > 0 && (
         <View className='carousel-section'>

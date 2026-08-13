@@ -85,9 +85,21 @@ class OpsConfigAuditService(
     const val ACTION_BANNER_DELETE = "OPS_BANNER_DELETE"
     const val ACTION_BANNER_REORDER = "OPS_BANNER_REORDER"
     const val ACTION_FEEDBACK_PROCESS = "OPS_FEEDBACK_PROCESS"
+    const val ACTION_NOTICE_CREATE = "OPS_NOTICE_CREATE"
+    const val ACTION_NOTICE_UPDATE = "OPS_NOTICE_UPDATE"
+    const val ACTION_NOTICE_PUBLISH = "OPS_NOTICE_PUBLISH"
+    const val ACTION_NOTICE_PIN = "OPS_NOTICE_PIN"
+    const val ACTION_NOTICE_UNPIN = "OPS_NOTICE_UNPIN"
+    const val ACTION_NOTICE_STOP = "OPS_NOTICE_STOP"
+    const val ACTION_NOTICE_DELETE = "OPS_NOTICE_DELETE"
+    const val ACTION_STORE_PROFILE_SAVE = "OPS_STORE_PROFILE_SAVE"
+    const val ACTION_DELIVERY_FEE_RULE_SAVE = "OPS_DELIVERY_FEE_RULE_SAVE"
 
     // targetType
     const val TARGET_BANNER = "banner"
     const val TARGET_FEEDBACK = "feedback"
+    const val TARGET_NOTICE = "notice"
+    const val TARGET_STORE_PROFILE = "store_profile"
+    const val TARGET_DELIVERY_FEE_RULE = "delivery_fee_rule"
   }
 }

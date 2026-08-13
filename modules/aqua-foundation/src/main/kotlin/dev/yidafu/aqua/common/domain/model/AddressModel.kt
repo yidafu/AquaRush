@@ -52,6 +52,8 @@ open class AddressModel(
   var districtCode: String = "",
   @Column(name = "detail_address", nullable = false, length = 500)
   var detailAddress: String,
+  @Column(name = "floor")
+  var floor: Int? = null,
   @Column(name = "longitude")
   var longitude: Double? = null,
   @Column(name = "latitude")

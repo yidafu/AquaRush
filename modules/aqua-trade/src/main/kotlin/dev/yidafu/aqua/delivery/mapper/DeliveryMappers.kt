@@ -169,6 +169,7 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       detailAddress = "",
       district = "",
       districtCode = null,
+      floor = null,
       id = addressId,
       isDefault = false,
       latitude = null,

@@ -151,6 +151,7 @@ fun AddressModel.merge(inputInput: UpdateAddressInput) {
   inputInput.district?.let { this.district = it }
   inputInput.districtCode?.let { this.districtCode = it }
   inputInput.detailAddress?.let { this.detailAddress = it }
+  inputInput.floor?.let { this.floor = it }
   inputInput.longitude?.let { this.longitude = it.toDouble() }
   inputInput.latitude?.let { this.latitude = it.toDouble() }
   inputInput.isDefault?.let { this.isDefault = it }

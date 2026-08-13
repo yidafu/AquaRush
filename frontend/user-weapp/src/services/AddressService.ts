@@ -42,6 +42,7 @@ class AddressService {
             district
             districtCode
             detailAddress
+            floor
             longitude
             latitude
             isDefault
@@ -111,6 +112,7 @@ class AddressService {
             city
             district
             detailAddress
+            floor
             longitude
             latitude
             isDefault
@@ -181,6 +183,7 @@ class AddressService {
             district
             districtCode
             detailAddress
+            floor
             longitude
             latitude
             isDefault
@@ -266,6 +269,7 @@ class AddressService {
             district
             districtCode
             detailAddress
+            floor
             longitude
             latitude
             isDefault
