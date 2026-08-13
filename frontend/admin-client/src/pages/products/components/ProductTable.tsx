@@ -33,6 +33,8 @@ interface ProductTableProps {
   data?: Product[];
   loading?: boolean;
   pagination?: false | PaginationProps;
+  // 库存预警阈值(F-SYS-003,R-PRO-02):缺省 10/50,商品列表着色按系统参数动态计算
+  stockThresholds?: { low: number; mid: number };
   onViewDetail: (productId: number) => void;
   onChange?: (pagination: any, filters: any, sorter: any) => void;
 }
@@ -41,6 +43,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   data = [],
   loading = false,
   pagination = false,
+  stockThresholds = { low: 10, mid: 50 },
   onViewDetail,
   onChange
 }) => {
@@ -91,7 +94,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       dataIndex: 'stock',
       key: 'stock',
       render: (stock: number) => (
-        <Tag color={stock < 10 ? 'red' : stock < 50 ? 'orange' : 'green'}>
+        <Tag color={stock < stockThresholds.low ? 'red' : stock < stockThresholds.mid ? 'orange' : 'green'}>
           {stock}
         </Tag>
       ),

@@ -95,11 +95,16 @@ class OpsConfigAuditService(
     const val ACTION_STORE_PROFILE_SAVE = "OPS_STORE_PROFILE_SAVE"
     const val ACTION_DELIVERY_FEE_RULE_SAVE = "OPS_DELIVERY_FEE_RULE_SAVE"
 
+    // 系统设置域(F-SYS-001~003,R-SYS-01)
+    const val ACTION_SYS_CONFIG_SAVE = "SYS_CONFIG_SAVE"
+    const val ACTION_SYS_CONFIG_RESTORE = "SYS_CONFIG_RESTORE"
+
     // targetType
     const val TARGET_BANNER = "banner"
     const val TARGET_FEEDBACK = "feedback"
     const val TARGET_NOTICE = "notice"
     const val TARGET_STORE_PROFILE = "store_profile"
     const val TARGET_DELIVERY_FEE_RULE = "delivery_fee_rule"
+    const val TARGET_SYSTEM_CONFIG = "system_config"
   }
 }

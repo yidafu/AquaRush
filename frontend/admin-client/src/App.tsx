@@ -29,6 +29,9 @@ import OpsFeedbacks from './pages/ops/feedbacks';
 import OpsNotices from './pages/ops/notices';
 import OpsStoreProfile from './pages/ops/store-profile';
 import OpsDeliveryFeeRule from './pages/ops/delivery-fee-rule';
+import SystemParameters from './pages/system/parameters';
+import SystemOrderConfig from './pages/system/order';
+import SystemStockConfig from './pages/system/stock';
 
 // 浏览器标签页标题由 react-helmet-async 统一管理,与 Layout 菜单文案保持一致;
 // 页面标题属于实现细节,不在 PRD 中逐页描述。
@@ -78,6 +81,9 @@ const App: React.FC = () => {
         <Route path="ops/notices" element={page('公告', <OpsNotices />)} />
         <Route path="ops/store-profile" element={page('店铺信息', <OpsStoreProfile />)} />
         <Route path="ops/delivery-fee-rule" element={page('运费规则', <OpsDeliveryFeeRule />)} />
+        <Route path="system-config/parameters" element={page('系统参数', <SystemParameters />)} />
+        <Route path="system-config/order" element={page('订单与履约参数', <SystemOrderConfig />)} />
+        <Route path="system-config/stock" element={page('库存预警阈值', <SystemStockConfig />)} />
       </Route>
     </Routes>
   );

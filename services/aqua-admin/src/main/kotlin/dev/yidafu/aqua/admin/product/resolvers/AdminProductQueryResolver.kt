@@ -20,9 +20,12 @@
 package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.api.dto.ProductSearchRequest
+import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
+import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
 import dev.yidafu.aqua.common.graphql.generated.ProductVoPage
+import dev.yidafu.aqua.common.graphql.generated.StockWarningThresholds
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.product.mapper.ProductMapper
 import dev.yidafu.aqua.product.mapper.ProductQueryMapper
@@ -41,7 +44,19 @@ import org.springframework.stereotype.Controller
 @Controller
 class AdminProductQueryResolver(
   private val productService: ProductServiceImpl,
+  private val systemConfigQueryApiService: SystemConfigQueryApiService,
 ) {
+  /**
+   * 库存预警阈值(读系统参数 F-SYS-003,缺省 10/50;供商品列表着色,普通管理员亦可访问)
+   */
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
+  @QueryMapping
+  fun stockWarningThresholds(): StockWarningThresholds =
+    StockWarningThresholds(
+      lowThreshold = systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L).toInt(),
+      midThreshold = systemConfigQueryApiService.getLongValue(SystemSettingKeys.STOCK_WARNING_TIER_MID, 50L).toInt(),
+    )
+
   /**
    * 查询所有产品（管理员功能，包括下线产品）
    */

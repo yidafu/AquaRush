@@ -36,6 +36,7 @@ interface UserActionLogRepositoryCustom {
     userId: String?,
     actionType: String?,
     username: String?,
+    target: String?,
     startTime: LocalDateTime?,
     endTime: LocalDateTime?,
     pageable: Pageable,

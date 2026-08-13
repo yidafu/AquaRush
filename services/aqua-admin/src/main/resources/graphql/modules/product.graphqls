@@ -7,6 +7,16 @@ extend type Query {
   productDailySales(input: DateRangeInput!): [ProductDailySales!]!
   productsPaginated(input: ProductSearchInput): ProductVOPage
   activeProducts(keyword: String, page: Int = 0, size: Int = 20): ProductVOPage!
+  # 库存预警阈值(商品列表着色/低库存判断用,读系统参数 F-SYS-003,缺省 10/50)
+  stockWarningThresholds: StockWarningThresholds!
+}
+
+# 库存预警阈值(低库存红 < lowThreshold,中档橙 < midThreshold,其余绿;R-PRO-02)
+type StockWarningThresholds {
+  # 低库存阈值(件)
+  lowThreshold: Int!
+  # 中档预警阈值(件,须大于 lowThreshold)
+  midThreshold: Int!
 }
 
 extend type Mutation {

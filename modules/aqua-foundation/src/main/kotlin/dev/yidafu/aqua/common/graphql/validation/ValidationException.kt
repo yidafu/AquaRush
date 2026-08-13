@@ -21,7 +21,8 @@ package dev.yidafu.aqua.common.graphql.validation
 
 /**
  * 验证异常类，用于表示输入验证失败
+ * 开放继承:领域异常可继承本类,使校验文案经 ValidationExceptionHandler 透出到 GraphQL errors。
  */
-class ValidationException(
+open class ValidationException(
   message: String,
 ) : RuntimeException(message)

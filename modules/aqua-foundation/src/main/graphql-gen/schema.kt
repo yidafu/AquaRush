@@ -1311,6 +1311,13 @@ data class MutationReorderBannerArgs(
       args["id"] as kotlin.Long
   )
 }
+data class MutationRestoreSystemConfigArgs(
+    val settingKey: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["settingKey"] as kotlin.String
+  )
+}
 data class MutationReviewFeedbackArgs(
     val id: kotlin.Long,
     val input: FeedbackReviewInput
@@ -1343,6 +1350,14 @@ data class MutationSaveStoreProfileArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       SaveStoreProfileInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationSaveSystemConfigsArgs(
+    val input: Iterable<SaveSystemConfigInput>
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]!!.let { input -> (input as List<Map<String, Any>>).map { SaveSystemConfigInput(it) } }
   )
 }
 data class MutationSetDefaultAddressArgs(
@@ -1511,10 +1526,12 @@ data class Mutation(
     val onlineProduct: Product,
     val publishNotice: Notice,
     val reorderBanner: Iterable<Banner>,
+    val restoreSystemConfig: SystemConfigVo,
     val reviewFeedback: Feedback,
     val reviewReconciliation: DailyReconciliation,
     val saveDeliveryFeeRule: DeliveryFeeRule,
     val saveStoreProfile: StoreProfile,
+    val saveSystemConfigs: Iterable<SystemConfigVo>,
     val setDefaultAddress: kotlin.Boolean,
     val setNoticePinned: Notice,
     val startDelivery: Order,
@@ -2418,6 +2435,13 @@ data class QuerySearchAllAddressesArgs(
       args["size"] as kotlin.Int? ?: 10
   )
 }
+data class QuerySystemConfigsArgs(
+    val group: SystemConfigGroup
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["group"] as SystemConfigGroup
+  )
+}
 data class QueryUserArgs(
     val id: kotlin.Long
 ) {
@@ -2495,7 +2519,9 @@ data class Query(
     val region: Region?,
     val regions: Iterable<Region>,
     val searchAllAddresses: Iterable<Address>,
+    val stockWarningThresholds: StockWarningThresholds,
     val storeProfile: StoreProfile?,
+    val systemConfigs: Iterable<SystemConfigVo>,
     val todayStatistics: TodayStatistics?,
     val user: User?,
     val userAddresses: Iterable<Address>,
@@ -2714,11 +2740,30 @@ data class SaveStoreProfileInput(
   )
 }
 
+data class SaveSystemConfigInput(
+    @field:NotBlank(message = "参数键不能为空")
+    @field:Size(max = 64, message = "参数键不能超过64个字符")
+    @field:Pattern(regexp = "^[a-zA-Z0-9_]+$", message = "参数键只能包含字母数字和下划线")
+    val settingKey: kotlin.String,
+    @field:Size(max = 255, message = "参数值不能超过255个字符")
+    val settingValue: kotlin.String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["settingKey"] as kotlin.String,
+      args["settingValue"] as kotlin.String?
+  )
+}
+
 data class SpecificationStatistics(
     val averagePriceCents: kotlin.Long,
     val productCount: kotlin.Int,
     val specification: kotlin.String,
     val totalSalesVolume: kotlin.Int
+)
+
+data class StockWarningThresholds(
+    val lowThreshold: kotlin.Int,
+    val midThreshold: kotlin.Int
 )
 
 data class StoreProfile(
@@ -2765,6 +2810,50 @@ data class SuspiciousTransaction(
     val transactionId: kotlin.String?,
     val userId: kotlin.Long
 )
+
+enum class SystemConfigGroup(val label: String) {
+      DATA_MAINTENANCE("DATA_MAINTENANCE"),
+      INVENTORY("INVENTORY"),
+      NOTIFICATION("NOTIFICATION"),
+      ORDER_AND_FULFILLMENT("ORDER_AND_FULFILLMENT"),
+      SECURITY("SECURITY");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): SystemConfigGroup? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class SystemConfigVo(
+    val defaultValue: kotlin.String?,
+    val description: kotlin.String?,
+    val id: kotlin.Long,
+    val maxValue: kotlin.String?,
+    val minValue: kotlin.String?,
+    val options: kotlin.String?,
+    val settingGroup: SystemConfigGroup,
+    val settingKey: kotlin.String,
+    val settingType: SystemSettingType,
+    val settingValue: kotlin.String?,
+    val updatedAt: java.time.LocalDateTime,
+    val updatedBy: kotlin.String?
+)
+
+enum class SystemSettingType(val label: String) {
+      BOOLEAN("BOOLEAN"),
+      ENUM("ENUM"),
+      NUMBER("NUMBER"),
+      STRING("STRING");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): SystemSettingType? {
+      return values().find { it.label == label }
+    }
+  }
+}
 
 data class TodayStatistics(
     val completedOrders: kotlin.Int,

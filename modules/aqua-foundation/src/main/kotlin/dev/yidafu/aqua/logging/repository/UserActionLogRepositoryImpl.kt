@@ -51,6 +51,7 @@ class UserActionLogRepositoryImpl : UserActionLogRepositoryCustom {
     userId: String?,
     actionType: String?,
     username: String?,
+    target: String?,
     startTime: LocalDateTime?,
     endTime: LocalDateTime?,
     pageable: Pageable,
@@ -61,6 +62,7 @@ class UserActionLogRepositoryImpl : UserActionLogRepositoryCustom {
     userId?.let { builder.and(userActionLog.userId.eq(it)) }
     actionType?.let { builder.and(userActionLog.actionType.eq(it)) }
     username?.let { builder.and(userActionLog.username.like("%$it%")) }
+    target?.let { builder.and(userActionLog.target.eq(it)) }
     startTime?.let { builder.and(userActionLog.createdAt.goe(it)) }
     endTime?.let { builder.and(userActionLog.createdAt.loe(it)) }
 

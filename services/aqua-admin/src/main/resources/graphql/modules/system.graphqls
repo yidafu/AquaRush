@@ -1,0 +1,79 @@
+# System settings domain (SYS)
+# 与 PRD 11-system-settings.md 保持一致:F-SYS-001 系统参数管理、F-SYS-002 订单与履约参数配置、
+# F-SYS-003 库存预警阈值配置;仅超级管理员可读写(SYSTEM_CONFIG_READ/WRITE,R-SYS-03)
+
+extend type Query {
+  # 系统参数列表(按参数组返回,未配置组返回空列表)
+  systemConfigs(group: SystemConfigGroup!): [SystemConfigVO!]!
+}
+
+extend type Mutation {
+  # 批量保存系统参数(按声明类型/范围校验,即时生效;每次修改留审计日志)
+  saveSystemConfigs(input: [SaveSystemConfigInput!]!): [SystemConfigVO!]!
+  # 恢复参数默认值(留审计日志)
+  restoreSystemConfig(settingKey: String!): SystemConfigVO!
+}
+
+# 参数组
+enum SystemConfigGroup {
+  # 订单与履约
+  ORDER_AND_FULFILLMENT
+  # 库存
+  INVENTORY
+  # 安全(预留)
+  SECURITY
+  # 通知(预留)
+  NOTIFICATION
+  # 数据维护(预留)
+  DATA_MAINTENANCE
+}
+
+# 参数类型
+enum SystemSettingType {
+  # 数值
+  NUMBER
+  # 布尔
+  BOOLEAN
+  # 文本
+  STRING
+  # 枚举
+  ENUM
+}
+
+# 系统参数
+type SystemConfigVO {
+  # 主键
+  id: PrimaryId!
+  # 参数键(字母数字下划线,唯一,R-SYS-01)
+  settingKey: String!
+  # 参数类型
+  settingType: SystemSettingType!
+  # 参数组
+  settingGroup: SystemConfigGroup!
+  # 当前值(按类型以字符串存储;数值类单位为分/件等)
+  settingValue: String
+  # 默认值
+  defaultValue: String
+  # 参数说明
+  description: String
+  # 最小值(数值型)
+  minValue: String
+  # 最大值(数值型)
+  maxValue: String
+  # 枚举选项(逗号分隔)
+  options: String
+  # 最近修改人
+  updatedBy: String
+  # 更新时间
+  updatedAt: LocalDateTime!
+}
+
+input SaveSystemConfigInput {
+  # 参数键
+  settingKey: String!
+    @notBlank(message: "参数键不能为空")
+    @size(max: 64, message: "参数键不能超过64个字符")
+    @pattern(regexp: "^[a-zA-Z0-9_]+$", message: "参数键只能包含字母数字和下划线")
+  # 参数值(按声明类型校验:数值区间/布尔/枚举/长度,服务端按类型校验)
+  settingValue: String @size(max: 255, message: "参数值不能超过255个字符")
+}

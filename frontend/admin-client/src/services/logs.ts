@@ -21,6 +21,7 @@ export interface UserActionLogQueryParams {
   userId?: string;
   actionType?: string;
   username?: string;
+  target?: string;
   startTime?: string;
   endTime?: string;
   page?: number;
@@ -70,18 +71,14 @@ export interface UserActionLogItem {
 }
 
 /**
- * 分页响应 - 与后端 PageImpl 匹配
+ * 分页响应 - 与后端 Spring Data Page 匹配(content/totalElements)
  */
 export interface PageResponse<T> {
-  list: T[];
-  pageInfo: {
-    hasNext: boolean;
-    hasPrevious: boolean;
-    pageNum: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-  };
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  size: number;
+  number: number;
 }
 
 /**

@@ -711,10 +711,12 @@ export type Mutation = {
   readonly onlineProduct: Product;
   readonly publishNotice: Notice;
   readonly reorderBanner: ReadonlyArray<Banner>;
+  readonly restoreSystemConfig: SystemConfigVo;
   readonly reviewFeedback: Feedback;
   readonly reviewReconciliation: DailyReconciliation;
   readonly saveDeliveryFeeRule: DeliveryFeeRule;
   readonly saveStoreProfile: StoreProfile;
+  readonly saveSystemConfigs: ReadonlyArray<SystemConfigVo>;
   readonly setDefaultAddress: Scalars['Boolean']['output'];
   readonly setNoticePinned: Notice;
   readonly startDelivery: Order;
@@ -866,6 +868,11 @@ export type MutationReorderBannerArgs = {
 };
 
 
+export type MutationRestoreSystemConfigArgs = {
+  settingKey: Scalars['String']['input'];
+};
+
+
 export type MutationReviewFeedbackArgs = {
   id: Scalars['PrimaryId']['input'];
   input: FeedbackReviewInput;
@@ -884,6 +891,11 @@ export type MutationSaveDeliveryFeeRuleArgs = {
 
 export type MutationSaveStoreProfileArgs = {
   input: SaveStoreProfileInput;
+};
+
+
+export type MutationSaveSystemConfigsArgs = {
+  input: ReadonlyArray<SaveSystemConfigInput>;
 };
 
 
@@ -1463,7 +1475,9 @@ export type Query = {
   readonly region?: Maybe<Region>;
   readonly regions: ReadonlyArray<Region>;
   readonly searchAllAddresses: ReadonlyArray<Address>;
+  readonly stockWarningThresholds: StockWarningThresholds;
   readonly storeProfile?: Maybe<StoreProfile>;
+  readonly systemConfigs: ReadonlyArray<SystemConfigVo>;
   readonly todayStatistics?: Maybe<TodayStatistics>;
   readonly user?: Maybe<User>;
   readonly userAddresses: ReadonlyArray<Address>;
@@ -1625,6 +1639,11 @@ export type QuerySearchAllAddressesArgs = {
 };
 
 
+export type QuerySystemConfigsArgs = {
+  group: SystemConfigGroup;
+};
+
+
 export type QueryUserArgs = {
   id: Scalars['PrimaryId']['input'];
 };
@@ -1762,11 +1781,21 @@ export type SaveStoreProfileInput = {
   readonly shopName: Scalars['String']['input'];
 };
 
+export type SaveSystemConfigInput = {
+  readonly settingKey: Scalars['String']['input'];
+  readonly settingValue?: InputMaybe<Scalars['String']['input']>;
+};
+
 export type SpecificationStatistics = {
   readonly averagePriceCents: Scalars['Long']['output'];
   readonly productCount: Scalars['Int']['output'];
   readonly specification: Scalars['String']['output'];
   readonly totalSalesVolume: Scalars['Int']['output'];
+};
+
+export type StockWarningThresholds = {
+  readonly lowThreshold: Scalars['Int']['output'];
+  readonly midThreshold: Scalars['Int']['output'];
 };
 
 export type StoreProfile = {
@@ -1805,6 +1834,36 @@ export type SuspiciousTransaction = {
   readonly transactionId?: Maybe<Scalars['String']['output']>;
   readonly userId: Scalars['PrimaryId']['output'];
 };
+
+export enum SystemConfigGroup {
+  DATA_MAINTENANCE = 'DATA_MAINTENANCE',
+  INVENTORY = 'INVENTORY',
+  NOTIFICATION = 'NOTIFICATION',
+  ORDER_AND_FULFILLMENT = 'ORDER_AND_FULFILLMENT',
+  SECURITY = 'SECURITY'
+}
+
+export type SystemConfigVo = {
+  readonly defaultValue?: Maybe<Scalars['String']['output']>;
+  readonly description?: Maybe<Scalars['String']['output']>;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly maxValue?: Maybe<Scalars['String']['output']>;
+  readonly minValue?: Maybe<Scalars['String']['output']>;
+  readonly options?: Maybe<Scalars['String']['output']>;
+  readonly settingGroup: SystemConfigGroup;
+  readonly settingKey: Scalars['String']['output'];
+  readonly settingType: SystemSettingType;
+  readonly settingValue?: Maybe<Scalars['String']['output']>;
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+  readonly updatedBy?: Maybe<Scalars['String']['output']>;
+};
+
+export enum SystemSettingType {
+  BOOLEAN = 'BOOLEAN',
+  ENUM = 'ENUM',
+  NUMBER = 'NUMBER',
+  STRING = 'STRING'
+}
 
 export type TodayStatistics = {
   readonly completedOrders: Scalars['Int']['output'];

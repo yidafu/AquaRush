@@ -17,15 +17,22 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.common.domain.repository
+package dev.yidafu.aqua.ops.systemconfig.service.impl
 
+import dev.yidafu.aqua.api.service.ops.SystemConfigQueryService
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
+import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
+import dev.yidafu.aqua.ops.systemconfig.domain.repository.SystemSettingsRepository
+import org.springframework.stereotype.Service
 
-@Repository
-interface SystemSettingsRepository : JpaRepository<SystemSettingsModel, Long> {
-  fun findBySettingKey(key: String): SystemSettingsModel?
-
-  fun findAllBySettingKeyIn(keys: List<String>): List<SystemSettingsModel>
+/**
+ * 系统参数查询服务实现(管理后台)
+ * 与 PRD 11-system-settings.md §F-SYS-001 保持一致(按参数组浏览)。
+ */
+@Service
+class SystemConfigQueryServiceImpl(
+  private val systemSettingsRepository: SystemSettingsRepository,
+) : SystemConfigQueryService {
+  override fun listByGroup(group: SystemSettingGroup): List<SystemSettingsModel> =
+    systemSettingsRepository.findAllBySettingGroupOrderBySettingKey(group)
 }

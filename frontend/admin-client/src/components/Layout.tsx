@@ -62,6 +62,21 @@ const Layout: React.FC = () => {
         { key: '/ops/delivery-fee-rule', icon: <DeliveryCarOutlined />, label: '运费规则' },
       ]
     },
+    // 仅超级管理员可见(后端以 PERMISSION_SYSTEM_CONFIG_* 强制,前端菜单隐藏为 UX 层,R-SYS-03)
+    ...(isSuperAdmin
+      ? [
+          {
+            key: 'system',
+            icon: <SettingOutlined />,
+            label: '系统设置',
+            children: [
+              { key: '/system-config/parameters', icon: <ControlOutlined />, label: '系统参数' },
+              { key: '/system-config/order', icon: <ShoppingCartOutlined />, label: '订单与履约参数' },
+              { key: '/system-config/stock', icon: <DollarOutlined />, label: '库存预警阈值' },
+            ],
+          },
+        ]
+      : []),
     {
       key: 'statistics',
       icon: <BarChartOutlined />,
