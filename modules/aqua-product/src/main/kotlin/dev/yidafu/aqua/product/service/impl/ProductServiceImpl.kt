@@ -1,8 +1,10 @@
 package dev.yidafu.aqua.product.service.impl
 
 import dev.yidafu.aqua.api.dto.ProductSearchRequest
+import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
@@ -20,6 +22,7 @@ import tools.jackson.databind.node.ObjectNode
 @Transactional(readOnly = true)
 class ProductServiceImpl(
   val productRepository: ProductRepository,
+  private val systemConfigQueryApiService: SystemConfigQueryApiService,
 ) : ProductService {
   override fun findById(id: Long): ProductModel? = productRepository.findById(id).orElse(null)
 
@@ -161,7 +164,8 @@ class ProductServiceImpl(
     val allProducts = productRepository.findAll()
     val onlineProducts = allProducts.filter { it.status == ProductModelStatus.ONLINE }
     val offlineProducts = allProducts.filter { it.status == ProductModelStatus.OFFLINE }
-    val lowStockThreshold = 10 // Default threshold
+    // 低库存阈值由系统参数提供(F-SYS-003,R-PRO-02),缺省 10
+    val lowStockThreshold = systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L)
     val lowStockProducts = allProducts.filter { it.stock <= lowStockThreshold }
 
     val totalValue = allProducts.sumOf { it.price }

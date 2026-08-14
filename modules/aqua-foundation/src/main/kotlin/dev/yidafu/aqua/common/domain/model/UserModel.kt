@@ -56,6 +56,9 @@ open class UserModel(
   val balanceCents: Long = 0L,
   @Column(name = "total_spent_cents", nullable = false)
   val totalSpentCents: Long = 0L,
+  // 所属客户分组(单分组,空=未分组;营销受众维度,PRD 10-marketing.md §F-MKT-001)
+  @Column(name = "customer_group_id")
+  var customerGroupId: Long? = null,
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "updated_at", nullable = false)

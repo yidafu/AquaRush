@@ -13,5 +13,7 @@
   <include file="db/changelog/changes/v1.0.5-add-calculated-fields.xml"/>
   <include file="db/changelog/changes/v1.0.6-add-ops-config-tables.xml"/>
   <include file="db/changelog/changes/v1.0.7-add-ops-notice-store-delivery-fee.xml"/>
+  <include file="db/changelog/changes/v1.0.8-add-system-config-params.xml"/>
+  <include file="db/changelog/changes/v1.0.9-add-marketing-tables.xml"/>
 
 </databaseChangeLog>

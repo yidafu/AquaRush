@@ -1,17 +1,15 @@
-import React, { useState } from 'react'
-import { View } from '@tarojs/components'
-import { AtToast } from 'taro-ui'
+import React, { useState, useCallback, useEffect, useRef } from 'react'
+import { View, Text } from '@tarojs/components'
 import Taro, {
   useReady,
   useDidShow
 } from '@tarojs/taro'
 import AddressService from '../../services/AddressService'
-import ConfigService from '../../services/ConfigService'
-import { networkManager } from '../../utils/networkManager'
+import OrderService from '../../services/OrderService'
+import ProductService, { ProductPriceInfo } from '../../services/ProductService'
 import { Address } from '../../types/address'
-import type { DeliveryFeeRule } from '@aquarush/common'
+import { normalizeCents, OrderPreviewVo } from '@aquarush/common'
 
-import "taro-ui/dist/style/components/toast.scss"
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/checkbox.scss"
 import "taro-ui/dist/style/components/icon.scss"
@@ -20,6 +18,8 @@ import './index.scss'
 // 导入子组件
 import AddressDisplay from './components/AddressDisplay'
 import ProductList from './components/ProductList'
+import TicketRedeemSection from './components/TicketRedeemSection'
+import CouponSelector from './components/CouponSelector'
 import DeliveryTimeSelector from './components/DeliveryTimeSelector'
 import PaymentMethodSelector from './components/PaymentMethodSelector'
 import OrderRemark from './components/OrderRemark'
@@ -34,55 +34,58 @@ interface OrderItem {
   quantity: number
   image: string
   specifications?: string[]
+  specification?: string
 }
-
-// 使用导入的 Address 类型，这里只需要定义扩展字段
-interface AddressDisplay extends Address {
-  // 扩展字段如果需要
-}
-
 
 interface OrderConfirmProps {}
 
+/**
+ * 确认订单页(F-ORD-023)
+ * 计价全部由服务端 orderPreview 计算(R-MON-01,促销引擎 R-MKT-02/07/08 全链路):
+ * 成交单价/水票抵扣/满减/优惠券(最优默认勾选,可改选/取消)/配送费/实付;
+ * 提交订单时回传 preferredCouponId(0=不用券)与 ticketRedeemCount,服务端原子核销。
+ */
 const OrderConfirm: React.FC<OrderConfirmProps> = () => {
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null)
-  const [addresses, setAddresses] = useState<Address[]>([])
+  const [preview, setPreview] = useState<OrderPreviewVo | null>(null)
+  const [previewLoading, setPreviewLoading] = useState<boolean>(false)
+  const [previewError, setPreviewError] = useState<string | null>(null)
+  const [previewRetryTick, setPreviewRetryTick] = useState<number>(0)
+  // 选中的优惠券 ID(null = 不用券;初始由引擎 isBest 自动选中)
+  const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null)
+  const [ticketRedeemCount, setTicketRedeemCount] = useState<number>(0)
+  // 商品价格信息(熟客价划线展示,R-MKT-01)
+  const [productPriceInfo, setProductPriceInfo] = useState<ProductPriceInfo | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<string>('wechat')
   const [deliveryTime, setDeliveryTime] = useState<string>('immediate')
   const [remark, setRemark] = useState<string>('')
-  const [loading, setLoading] = useState<boolean>(false)
-  const [showToast, setShowToast] = useState<boolean>(false)
-  const [toastText, setToastText] = useState<string>('')
-  const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
+  const [submitting, setSubmitting] = useState<boolean>(false)
   const [agreeTerms, setAgreeTerms] = useState<boolean[]>([false])
-  // 配送费规则(F-OPS-005):楼层口径,查询失败回退默认规则(免费4楼/加价2元)
-  const [deliveryFeeRule, setDeliveryFeeRule] = useState<DeliveryFeeRule | null>(null)
+
+  // 请求序号:丢弃过期计价响应(水票/优惠券连续调整时只采纳最后一次)
+  const previewRequestSeq = useRef<number>(0)
+  // 最优券自动勾选只执行一次
+  const autoSelectedCouponRef = useRef<boolean>(false)
 
   const addressService = AddressService.getInstance()
 
-  // Load initial data
-  useReady(() => {
-    loadOrderData()
-    loadAddresses()
-    loadDeliveryFeeRule()
-  })
+  const firstItem = orderItems.length > 0 ? orderItems[0] : null
+  const productId = firstItem?.id ?? ''
+  const quantity = firstItem?.quantity ?? 0
+  const fallbackUnitPrice = normalizeCents(firstItem?.price) ?? 0
 
-  // Refresh addresses when page is shown
-  useDidShow(() => {
-    loadAddresses()
-  })
-
-  const loadOrderData = (): void => {
+  // 加载订单数据(本地待支付订单,单个商品)
+  const loadOrderData = useCallback((): void => {
     try {
       // 从本地存储获取订单数据
       const pendingOrder = Taro.getStorageSync('pendingOrder')
 
-      if (pendingOrder && pendingOrder.products) {
+      if (pendingOrder && pendingOrder.products && pendingOrder.products.length > 0) {
         setOrderItems(pendingOrder.products)
       } else {
         // 如果没有订单数据，跳转到首页
-        displayToast('订单数据异常，请重新选择商品', 'error')
+        Taro.showToast({ title: '订单数据异常，请重新选择商品', icon: 'none' })
         setTimeout(() => {
           Taro.switchTab({
             url: '/pages/home/index'
@@ -91,14 +94,15 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
       }
     } catch (error) {
       console.error('加载订单数据失败:', error)
-      displayToast('加载订单数据失败', 'error')
+      Taro.showToast({ title: '加载订单数据失败', icon: 'none' })
     }
-  }
+  }, [])
 
-  const loadAddresses = async (): Promise<void> => {
+  // 加载地址列表并选中默认地址(地址变更后计价随 selectedAddress 变化自动刷新)
+  const loadAddresses = useCallback(async (): Promise<void> => {
     try {
       // 首先检查是否有从地址列表页面选中的地址
-      const selectedAddr = Taro.getStorageSync('selectedAddress')
+      const selectedAddr = Taro.getStorageSync('selectedAddress') as Address | null
       if (selectedAddr) {
         setSelectedAddress(selectedAddr)
         // 清除缓存的选中地址
@@ -110,13 +114,13 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
 
       if (result.success && result.data) {
         const addressList = result.data
-        setAddresses(addressList)
 
         // 如果没有选中地址，选择默认地址
         if (!selectedAddress && !selectedAddr) {
           const defaultAddress = addressList.find(addr => addr.isDefault) || addressList[0]
           if (defaultAddress) {
-            setSelectedAddress(defaultAddress)
+            // PrimaryId 传输层为字符串,本地类型沿用 number 与既有页面保持一致
+            setSelectedAddress(defaultAddress as unknown as Address)
           }
         }
       } else {
@@ -125,17 +129,91 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
     } catch (error) {
       console.error('获取地址列表失败:', error)
     }
-  }
+  }, [addressService, selectedAddress])
 
-  const displayToast = (text: string, type: 'success' | 'error' | 'loading' = 'success'): void => {
-    setToastText(text)
-    setToastType(type)
-    setShowToast(true)
-  }
+  // Load initial data
+  useReady(() => {
+    loadOrderData()
+    loadAddresses()
+  })
 
-  const hideToast = (): void => {
-    setShowToast(false)
-  }
+  // Refresh addresses when page is shown(用户从地址列表选择后返回)
+  useDidShow(() => {
+    loadAddresses()
+  })
+
+  // 服务端计价预览:商品/地址/优惠券/水票任一变化即重新计价
+  useEffect(() => {
+    if (!productId || !selectedAddress || quantity <= 0) return
+
+    const seq = ++previewRequestSeq.current
+    setPreviewLoading(true)
+    setPreviewError(null)
+
+    const run = async (): Promise<void> => {
+      try {
+        const result = await OrderService.getInstance().getOrderPreview({
+          productId,
+          quantity,
+          addressId: selectedAddress.id,
+          // null = 不用券(0);引擎最优券自动勾选后传入券 ID
+          preferredCouponId: selectedCouponId ?? 0,
+          ticketRedeemCount
+        })
+
+        if (seq !== previewRequestSeq.current) return
+
+        if (!result.success || !result.data) {
+          const message = result.error?.message || '计价失败，请重试'
+          setPreviewError(message)
+          Taro.showToast({ title: message, icon: 'none' })
+          return
+        }
+
+        setPreview(result.data)
+
+        // 引擎最优券自动勾选(仅首次,用户改选后不再干预)
+        if (!autoSelectedCouponRef.current && selectedCouponId === null) {
+          const best = (result.data.couponOptions ?? []).find(option => option.isBest)
+          if (best) {
+            autoSelectedCouponRef.current = true
+            setSelectedCouponId(best.couponId)
+          }
+        }
+      } catch (error) {
+        console.error('获取订单计价失败:', error)
+        if (seq !== previewRequestSeq.current) return
+        setPreviewError('计价失败，请检查网络后重试')
+        Taro.showToast({ title: '计价失败，请检查网络后重试', icon: 'none' })
+      } finally {
+        if (seq === previewRequestSeq.current) {
+          setPreviewLoading(false)
+        }
+      }
+    }
+
+    run()
+  }, [productId, quantity, selectedAddress, selectedCouponId, ticketRedeemCount, previewRetryTick])
+
+  // 商品价格信息(熟客价/目录价,划线展示用)
+  useEffect(() => {
+    if (!productId) return
+
+    let cancelled = false
+    ProductService.getInstance().getProductPrice(productId)
+      .then(result => {
+        if (!cancelled && result.success && result.data) {
+          setProductPriceInfo(result.data)
+        }
+      })
+      .catch(error => {
+        console.error('获取商品价格信息失败:', error)
+      })
+
+    return () => {
+      cancelled = true
+    }
+  }, [productId])
 
   const handleAddressSelect = (): void => {
     Taro.navigateTo({
@@ -151,108 +229,72 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
     setDeliveryTime(time)
   }
 
-  const handleRemarkChange = (remark: string): void => {
-    setRemark(remark)
+  const handleRemarkChange = (value: string): void => {
+    setRemark(value)
   }
 
   const handleTermsChange = (value: boolean[]): void => {
     setAgreeTerms(value)
   }
 
-  const loadDeliveryFeeRule = async (): Promise<void> => {
-    try {
-      const result = await ConfigService.getDeliveryFeeRule()
-      if (result.success) {
-        setDeliveryFeeRule(result.data)
-      } else {
-        throw new Error(result.error.message)
-      }
-    } catch (error) {
-      console.error('加载配送费规则失败:', error)
-      // 回退默认规则:免费4楼/加价2元(与后端默认一致)
-      setDeliveryFeeRule({ freeFloorLimit: 4, surchargeCents: 200 })
-    }
-  }
+  const handleCouponSelect = useCallback((couponId: string | null): void => {
+    setSelectedCouponId(couponId)
+  }, [])
 
-  const calculateTotalAmount = (): number => {
-    return orderItems.reduce((total: number, item: OrderItem) => total + (item.price * item.quantity), 0)
-  }
+  const handleTicketRedeemChange = useCallback((value: number): void => {
+    setTicketRedeemCount(value)
+  }, [])
 
-  // 配送费计算(F-OPS-005 楼层口径,R-MON-02):收货楼层 > 免费楼层 → 一次性加收,否则免运费;金额单位为分
-  const calculateDeliveryFee = (): number => {
-    if (!deliveryFeeRule) return 0
-    const floor = selectedAddress?.floor
-    if (floor === undefined || floor === null || floor <= deliveryFeeRule.freeFloorLimit) {
-      return 0
-    }
-    return deliveryFeeRule.surchargeCents
-  }
+  const handleRetryPreview = useCallback((): void => {
+    setPreviewRetryTick(tick => tick + 1)
+  }, [])
 
-  const handleSubmitOrder = async (): Promise<void> => {
+  const handleSubmitOrder = useCallback(async (): Promise<void> => {
     if (!selectedAddress) {
-      displayToast('请选择收货地址', 'error')
+      Taro.showToast({ title: '请选择收货地址', icon: 'none' })
       return
     }
 
-    if (orderItems.length === 0) {
-      displayToast('订单中没有商品', 'error')
+    if (!firstItem) {
+      Taro.showToast({ title: '订单中没有商品', icon: 'none' })
       return
     }
 
     if (!agreeTerms[0]) {
-      displayToast('请同意服务条款', 'error')
+      Taro.showToast({ title: '请同意服务条款', icon: 'none' })
       return
     }
 
-    setLoading(true)
+    if (!preview || previewError || previewLoading) {
+      Taro.showToast({ title: '计价失败，请刷新后重试', icon: 'none' })
+      return
+    }
+
+    setSubmitting(true)
 
     try {
-      // 创建订单 GraphQL mutation
-      const mutation = `
-        mutation CreateOrder($input: CreateOrderInput!) {
-          createOrder(input: $input) {
-            id
-            orderNo
-            status
-            amountCents
-          }
-        }
-      `
+      const result = await OrderService.getInstance().createOrder({
+        productId,
+        addressId: selectedAddress.id,
+        quantity,
+        // 0 = 用户选择不用券/无券可选;否则回传选中的券 ID
+        preferredCouponId: selectedCouponId ?? 0,
+        ticketRedeemCount,
+        remark: remark || undefined
+      })
 
-      // 只支持单个商品，使用第一个商品
-      const firstItem = orderItems[0]
-
-      const variables = {
-        input: {
-          productId: parseInt(firstItem.id, 10),
-          addressId: selectedAddress.id,
-          quantity: firstItem.quantity
-        }
+      if (!result.success || !result.data) {
+        throw new Error(result.error?.message || '创建订单失败')
       }
 
-      console.log('Creating order with input:', variables)
-
-      const response = await networkManager.mutate<{
-        createOrder: {
-          id: string
-          orderNo: string
-          status: string
-          amountCents: number
-        }
-      }>(mutation, variables)
-
-      if (!response?.createOrder) {
-        throw new Error('创建订单失败')
-      }
-
-      const createdOrder = response.createOrder
+      const createdOrder = result.data
 
       console.log('Order created successfully:', createdOrder)
 
       // 清除缓存的订单数据
       Taro.removeStorageSync('pendingOrder')
 
-      displayToast('订单创建成功', 'success')
+      Taro.showToast({ title: '订单创建成功', icon: 'success' })
 
       // 跳转到订单详情页面
       setTimeout(() => {
@@ -262,25 +304,28 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
       }, 1500)
     } catch (error) {
       console.error('创建订单失败:', error)
-
-      let errorMessage = '创建订单失败，请重试'
-      if (error && typeof error === 'object' && 'errors' in error) {
-        const graphqlErrors = (error as any).errors
-        if (Array.isArray(graphqlErrors) && graphqlErrors.length > 0) {
-          errorMessage = graphqlErrors[0].message || errorMessage
-        }
-      }
-
-      displayToast(errorMessage, 'error')
+      const message = error instanceof Error ? error.message : '创建订单失败，请重试'
+      Taro.showToast({ title: message, icon: 'none' })
     } finally {
-      setLoading(false)
+      setSubmitting(false)
     }
-  }
+  }, [
+    selectedAddress,
+    firstItem,
+    agreeTerms,
+    preview,
+    previewError,
+    previewLoading,
+    productId,
+    quantity,
+    selectedCouponId,
+    ticketRedeemCount,
+    remark
+  ])
 
-
-  const totalAmount = calculateTotalAmount()
-  const deliveryFee = calculateDeliveryFee()
-  const finalAmount = totalAmount + deliveryFee
+  // 计价展示数据(服务端为准,未就绪时回退本地兜底价)
+  const unitPriceCents = preview ? normalizeCents(preview.unitPriceCents) ?? fallbackUnitPrice : fallbackUnitPrice
+  const finalAmount = preview ? normalizeCents(preview.payAmountCents) ?? 0 : fallbackUnitPrice * quantity
 
   return (
     <View className='order-confirm-page'>
@@ -290,14 +335,58 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
         onAddressSelect={handleAddressSelect}
       />
 
-      {/* 商品列表 */}
-      <ProductList orderItems={orderItems} />
+      {/* 商品列表(单价以服务端计价为准) */}
+      <ProductList
+        name={firstItem?.name ?? ''}
+        image={firstItem?.image ?? ''}
+        specification={firstItem?.specification}
+        quantity={quantity}
+        unitPriceCents={unitPriceCents}
+        catalogPriceCents={productPriceInfo?.catalogPriceCents}
+        hasGroupPrice={productPriceInfo?.hasGroupPrice}
+        priceSource={preview?.priceSource}
+      />
+
+      {/* 计价状态提示 */}
+      {previewError ? (
+        <View className='preview-status preview-error' onClick={handleRetryPreview}>
+          <Text className='preview-status-text'>计价失败：{previewError}，点击重试</Text>
+        </View>
+      ) : !preview ? (
+        <View className='preview-status'>
+          <Text className='preview-status-text'>价格计算中...</Text>
+        </View>
+      ) : (
+        <View className='preview-status preview-loading'>
+          <Text className='preview-status-text'>{previewLoading ? '价格更新中...' : ''}</Text>
+        </View>
+      )}
 
       {/* 配送时间 */}
       <DeliveryTimeSelector
         selectedTime={deliveryTime}
         onTimeChange={handleDeliveryTimeChange}
       />
+
+      {/* 水票抵扣(无可用水票时隐藏) */}
+      {preview && preview.availableTicketCount > 0 && (
+        <TicketRedeemSection
+          availableTicketCount={preview.availableTicketCount}
+          quantity={quantity}
+          value={ticketRedeemCount}
+          onChange={handleTicketRedeemChange}
+        />
+      )}
+
+      {/* 优惠券选择(最优默认勾选,可改选/取消) */}
+      {preview && (
+        <CouponSelector
+          coupons={preview.availableCoupons ?? []}
+          options={preview.couponOptions ?? []}
+          selectedCouponId={selectedCouponId}
+          onSelect={handleCouponSelect}
+        />
+      )}
 
       {/* 支付方式 */}
       <PaymentMethodSelector
@@ -311,12 +400,31 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
         onRemarkChange={handleRemarkChange}
       />
 
-      {/* 费用明细 */}
-      <CostSummary
-        totalAmount={totalAmount}
-        deliveryFee={deliveryFee}
-        finalAmount={finalAmount}
-      />
+      {/* 费用明细(服务端计价) */}
+      {preview ? (
+        <CostSummary
+          subtotalCents={normalizeCents(preview.subtotalCents) ?? 0}
+          ticketCoveredQuantity={preview.ticketCoveredQuantity}
+          promotionDiscountCents={normalizeCents(preview.promotionDiscountCents) ?? 0}
+          promotionActivityName={preview.promotionActivityName}
+          firstOrderDiscountCents={normalizeCents(preview.firstOrderDiscountCents) ?? 0}
+          firstOrderActivityName={preview.firstOrderActivityName}
+          couponDiscountCents={normalizeCents(preview.couponDiscountCents) ?? 0}
+          selectedCouponName={preview.selectedCouponName}
+          giftItems={preview.giftItems}
+          deliveryFeeCents={normalizeCents(preview.deliveryFeeCents) ?? 0}
+          payAmountCents={normalizeCents(preview.payAmountCents) ?? 0}
+        />
+      ) : (
+        !previewError && (
+          <View className='cost-section'>
+            <View className='cost-item'>
+              <Text className='cost-label'>费用明细</Text>
+              <Text className='cost-value'>计算中...</Text>
+            </View>
+          </View>
+        )
+      )}
 
       {/* 服务条款 */}
       <TermsAgreement
@@ -324,19 +432,12 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
         onTermsChange={handleTermsChange}
       />
 
-      {/* 底部操作栏 */}
+      {/* 底部操作栏(计价失败时禁用提交) */}
       <BottomActions
         totalAmount={finalAmount}
-        loading={loading}
+        loading={submitting}
+        disabled={!preview || !!previewError || previewLoading}
         onSubmit={handleSubmitOrder}
-      />
-
-      {/* Toast 提示 */}
-      <AtToast
-        isOpened={showToast}
-        text={toastText}
-        status={toastType}
-        onClose={hideToast}
       />
 
       {/* 底部安全区域 */}

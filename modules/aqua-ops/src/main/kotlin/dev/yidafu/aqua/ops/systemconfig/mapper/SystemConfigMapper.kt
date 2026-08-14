@@ -21,14 +21,14 @@ package dev.yidafu.aqua.ops.systemconfig.mapper
 
 import dev.yidafu.aqua.api.dto.SaveSystemConfigItemRequest
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
-import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup as DomainSystemSettingGroup
-import dev.yidafu.aqua.common.domain.model.enums.SystemSettingType as DomainSystemSettingType
 import dev.yidafu.aqua.common.graphql.generated.SaveSystemConfigInput
 import dev.yidafu.aqua.common.graphql.generated.SystemConfigGroup
 import dev.yidafu.aqua.common.graphql.generated.SystemConfigVo
 import dev.yidafu.aqua.common.graphql.generated.SystemSettingType
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
+import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup as DomainSystemSettingGroup
+import dev.yidafu.aqua.common.domain.model.enums.SystemSettingType as DomainSystemSettingType
 
 /**
  * 系统参数映射器:域实体 → GraphQL 类型

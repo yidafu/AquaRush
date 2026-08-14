@@ -21,6 +21,7 @@ package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
+import dev.yidafu.aqua.ops.storeprofile.domain.repository.StoreProfileRepository
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -57,6 +58,9 @@ class AdminStoreProfileResolverGraphQLIntegrationTest {
   @Autowired
   private lateinit var userActionLogRepository: UserActionLogRepository
 
+  @Autowired
+  private lateinit var storeProfileRepository: StoreProfileRepository
+
   private lateinit var mockMvc: MockMvc
 
   @BeforeEach
@@ -85,12 +89,14 @@ class AdminStoreProfileResolverGraphQLIntegrationTest {
   @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_READ"])
   @DisplayName("storeProfile query should return null when unconfigured")
   fun `storeProfile returns null when unconfigured`() {
+    // 清空已保存店铺信息(共享 H2 可能被其他用例/历史运行写入)
+    storeProfileRepository.hardDeleteAll()
     val json = postGraphql("{ storeProfile { shopName serviceHotline } }")
     assertTrue(json.contains("\"storeProfile\"") && json.contains("null") && !json.contains("\"errors\""))
   }
 
   @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE"])
+  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE", "PERMISSION_OPS_CONFIG_READ"])
   @DisplayName("saveStoreProfile then query should round-trip (AC-OPS-004-01/02)")
   fun `save and query store profile round trip`() {
     val title = "好喝山泉${System.currentTimeMillis() % 10000}"

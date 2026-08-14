@@ -14,7 +14,11 @@ export default defineAppConfig({
     'pages/about/index',
     'pages/feedback/index',
     'pages/favorites/index',
-    'pages/notice-detail/index'
+    'pages/notice-detail/index',
+    'pages/coupon-center/index',
+    'pages/coupon-list/index',
+    'pages/ticket-shop/index',
+    'pages/ticket-list/index'
   ],
   window: {
     backgroundTextStyle: 'light',

@@ -362,6 +362,38 @@
   height: 40px;
 }
 
+// 计价状态提示(服务端计价预览加载/失败)
+.preview-status {
+  margin: 0 32px 32px;
+  padding: 24px 32px;
+  background: var(--theme-primary-light);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-error {
+  background: var(--theme-error);
+}
+
+.preview-status-text {
+  font-size: 24px;
+  color: var(--theme-primary);
+
+  .preview-error & {
+    color: #ffffff;
+  }
+
+  .preview-loading & {
+    color: var(--theme-text-tertiary);
+  }
+}
+
+.preview-status:empty {
+  display: none;
+}
+
 // 响应式设计
 @media (max-width: 375px) {
   .order-confirm-page {

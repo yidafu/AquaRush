@@ -44,15 +44,18 @@ class SystemConfigQueryApiServiceImplTest {
     service = SystemConfigQueryApiServiceImpl(systemSettingsRepository)
   }
 
-  private fun setting(key: String, value: String?, defaultValue: String?) =
-    SystemSettingsModel(
-      id = 1L,
-      settingKey = key,
-      settingValue = value,
-      settingType = SystemSettingType.NUMBER,
-      settingGroup = SystemSettingGroup.INVENTORY,
-      defaultValue = defaultValue,
-    )
+  private fun setting(
+    key: String,
+    value: String?,
+    defaultValue: String?,
+  ) = SystemSettingsModel(
+    id = 1L,
+    settingKey = key,
+    settingValue = value,
+    settingType = SystemSettingType.NUMBER,
+    settingGroup = SystemSettingGroup.INVENTORY,
+    defaultValue = defaultValue,
+  )
 
   @Test
   @DisplayName("读取当前值")

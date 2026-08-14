@@ -22,6 +22,7 @@ package dev.yidafu.aqua.product.mapper
 import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
+import dev.yidafu.aqua.common.graphql.generated.PriceSource
 import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
@@ -44,6 +45,11 @@ object ProductMapper : ObjectMappie<ProductModel, Product>() {
       }
       // Map coverImageUrl to image field
       to::coverImageUrl fromProperty from::coverImageUrl
+      // 管理侧无用户分组上下文:有效价=目录价,未命中熟客价(R-MKT-01)
+      to::effectivePriceCents fromProperty from::price
+      to::hasGroupPrice fromValue false
+      // 管理侧成交单价来源=目录价(R-MKT-02,用户端按登录用户解析)
+      to::priceSource fromValue PriceSource.CATALOG_PRICE
     }
 }
 

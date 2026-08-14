@@ -71,4 +71,8 @@ enum class AdminPermission(
   // 意见反馈
   FEEDBACK_READ("意见反馈查询"),
   FEEDBACK_REVIEW("意见反馈处理"),
+
+  // 营销(F-MKT-001/002/003/004/007:客户分组、分组价、优惠券、满减/折扣、桶水票)
+  MKT_READ("营销查询"),
+  MKT_WRITE("营销配置修改"),
 }

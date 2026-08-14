@@ -20,11 +20,16 @@
 package dev.yidafu.aqua.order.service.impl
 
 import dev.yidafu.aqua.api.dto.CreateOrderRequest
+import dev.yidafu.aqua.api.dto.OrderPricingRequest
+import dev.yidafu.aqua.api.dto.OrderPricingResult
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryAreaQueryService
+import dev.yidafu.aqua.api.service.marketing.CouponMutationApiService
+import dev.yidafu.aqua.api.service.marketing.PromotionPricingService
+import dev.yidafu.aqua.api.service.marketing.TicketMutationApiService
+import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderIdGeneratorService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
-import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.api.service.user.AddressQueryApiService
@@ -33,7 +38,9 @@ import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.domain.model.enums.PriceSource
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
+import dev.yidafu.aqua.order.domain.repository.OrderGiftRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import io.mockk.every
 import io.mockk.mockk
@@ -49,6 +56,7 @@ import kotlin.test.assertEquals
  */
 class OrderMutationServiceImplTest {
   private lateinit var orderRepository: OrderRepository
+  private lateinit var orderGiftRepository: OrderGiftRepository
   private lateinit var productQueryApiService: ProductQueryApiService
   private lateinit var addressQueryApiService: AddressQueryApiService
   private lateinit var eventPublishService: SimplifiedEventPublishService
@@ -58,26 +66,32 @@ class OrderMutationServiceImplTest {
   private lateinit var adminService: AdminService
   private lateinit var orderQueryService: OrderQueryService
   private lateinit var deliveryFeeRuleQueryApiService: DeliveryFeeRuleQueryApiService
+  private lateinit var promotionPricingService: PromotionPricingService
+  private lateinit var couponMutationApiService: CouponMutationApiService
+  private lateinit var ticketMutationApiService: TicketMutationApiService
   private lateinit var service: OrderMutationServiceImpl
 
   private val product = ProductModel(id = 1L, name = "桶装水", price = 1000, stock = 100)
 
-  private fun address(floor: Int? = null, userId: Long = 100L) =
-    AddressModel(
-      id = 1L,
-      userId = userId,
-      receiverName = "张三",
-      phone = "13800138000",
-      province = "浙江省",
-      city = "杭州市",
-      district = "西湖区",
-      detailAddress = "文一西路100号",
-      floor = floor,
-    )
+  private fun address(
+    floor: Int? = null,
+    userId: Long = 100L,
+  ) = AddressModel(
+    id = 1L,
+    userId = userId,
+    receiverName = "张三",
+    phone = "13800138000",
+    province = "浙江省",
+    city = "杭州市",
+    district = "西湖区",
+    detailAddress = "文一西路100号",
+    floor = floor,
+  )
 
   @BeforeEach
   fun setUp() {
     orderRepository = mockk(relaxed = true)
+    orderGiftRepository = mockk(relaxed = true)
     productQueryApiService = mockk(relaxed = true)
     addressQueryApiService = mockk(relaxed = true)
     eventPublishService = mockk(relaxed = true)
@@ -87,9 +101,13 @@ class OrderMutationServiceImplTest {
     adminService = mockk(relaxed = true)
     orderQueryService = mockk(relaxed = true)
     deliveryFeeRuleQueryApiService = mockk(relaxed = true)
+    promotionPricingService = mockk(relaxed = true)
+    couponMutationApiService = mockk(relaxed = true)
+    ticketMutationApiService = mockk(relaxed = true)
     service =
       OrderMutationServiceImpl(
         orderRepository,
+        orderGiftRepository,
         productQueryApiService,
         addressQueryApiService,
         eventPublishService,
@@ -99,11 +117,15 @@ class OrderMutationServiceImplTest {
         adminService,
         orderQueryService,
         deliveryFeeRuleQueryApiService,
+        promotionPricingService,
+        couponMutationApiService,
+        ticketMutationApiService,
       )
   }
 
   /**
-   * 组装 createOrder 公共 mock:产品/地址/订单号/库存扣减/落库返回
+   * 组装 createOrder 公共 mock:产品/地址/订单号/库存扣减/落库返回/促销引擎计价
+   * 计价链路(促销引擎):目录价成交单价,无营销优惠(R-MKT-02)
    */
   private fun stubCreateOrderCommon(addr: AddressModel) {
     every { productQueryApiService.findById(1L) } returns product
@@ -112,6 +134,34 @@ class OrderMutationServiceImplTest {
     every { productService.decreaseStock(any(), any()) } returns true
     // save 返回时回填主键(模拟 @SnowflakeIdGenerator,避免 publishOrderCreated(savedOrder.id!!) NPE)
     every { orderRepository.save(any()) } answers { (firstArg() as OrderModel).also { it.id = 999L } }
+    every { promotionPricingService.preview(any()) } answers { pricingFor(firstArg()) }
+    every { promotionPricingService.applyForOrder(any(), any()) } answers { pricingFor(secondArg()) }
+  }
+
+  private fun pricingFor(request: OrderPricingRequest): OrderPricingResult {
+    val subtotal = product.price * request.quantity
+    return OrderPricingResult(
+      unitPriceCents = product.price,
+      priceSource = PriceSource.CATALOG_PRICE,
+      subtotalCents = subtotal,
+      ticketRedeemCount = 0,
+      ticketCoveredQuantity = 0,
+      cashSubtotalCents = subtotal,
+      promotionDiscountCents = 0,
+      promotionActivityId = null,
+      promotionActivityName = null,
+      firstOrderDiscountCents = 0,
+      firstOrderActivityId = null,
+      firstOrderActivityName = null,
+      couponDiscountCents = 0,
+      selectedCouponId = null,
+      selectedCouponName = null,
+      totalDiscountCents = 0,
+      payableProductCents = subtotal,
+      availableTicketCount = 0,
+      couponOptions = emptyList(),
+      giftItems = emptyList(),
+    )
   }
 
   private fun createRequest(quantity: Int = 1) =

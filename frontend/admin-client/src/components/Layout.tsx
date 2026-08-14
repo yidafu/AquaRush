@@ -23,6 +23,14 @@ import {
   SoundOutlined,
   ShopOutlined,
   CarOutlined as DeliveryCarOutlined,
+  TagsOutlined,
+  GiftOutlined,
+  PercentageOutlined,
+  SkinOutlined,
+  GroupOutlined,
+  ThunderboltOutlined,
+  GiftTwoTone,
+  RocketOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = AntLayout;
@@ -60,6 +68,21 @@ const Layout: React.FC = () => {
         { key: '/ops/feedbacks', icon: <MessageOutlined />, label: '意见反馈' },
         { key: '/ops/store-profile', icon: <ShopOutlined />, label: '店铺信息' },
         { key: '/ops/delivery-fee-rule', icon: <DeliveryCarOutlined />, label: '运费规则' },
+      ]
+    },
+    {
+      key: 'marketing',
+      icon: <TagsOutlined />,
+      label: '营销管理',
+      children: [
+        { key: '/marketing/customer-groups', icon: <GroupOutlined />, label: '客户分组' },
+        { key: '/marketing/group-prices', icon: <DollarOutlined />, label: '分组价格' },
+        { key: '/marketing/coupons', icon: <GiftOutlined />, label: '优惠券' },
+        { key: '/marketing/promotions', icon: <PercentageOutlined />, label: '满减/折扣' },
+        { key: '/marketing/water-tickets', icon: <SkinOutlined />, label: '桶水票' },
+        { key: '/marketing/flash-sale', icon: <ThunderboltOutlined />, label: '限时特价' },
+        { key: '/marketing/buy-gift', icon: <GiftTwoTone />, label: '买赠/满赠' },
+        { key: '/marketing/newcomer', icon: <RocketOutlined />, label: '首单立减/新人价' },
       ]
     },
     // 仅超级管理员可见(后端以 PERMISSION_SYSTEM_CONFIG_* 强制,前端菜单隐藏为 UX 层,R-SYS-03)

@@ -41,6 +41,7 @@ dependencies {
   implementation(project(":modules:aqua-user"))
   implementation(project(":modules:aqua-product"))
   implementation(project(":modules:aqua-ops")) // For operations config domain
+  implementation(project(":modules:aqua-marketing")) // For marketing domain (F-MKT-001/002/003/004/007)
 
   // Entry module specific dependencies
   implementation(libs.spring.boot.starter.web)

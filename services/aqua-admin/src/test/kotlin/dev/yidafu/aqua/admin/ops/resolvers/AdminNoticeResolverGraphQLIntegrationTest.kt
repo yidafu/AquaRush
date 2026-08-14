@@ -134,7 +134,8 @@ class AdminNoticeResolverGraphQLIntegrationTest {
         """mutation { createNotice(input: {title: "$title", content: "内容", type: PLATFORM_NOTICE}) { id status pinned } }""",
       )
     assertTrue(json.contains("\"DRAFT\"") && !json.contains("\"errors\""))
-    val noticeId = Regex("\"id\"\\s*:\\s*(\\d+)").find(json)!!.groupValues[1]
+    // PrimaryId(Long) 在线上序列化为字符串,如 "id" : "7434..."
+    val noticeId = Regex("\"id\"\\s*:\\s*\"(\\d+)\"").find(json)!!.groupValues[1]
 
     json = postGraphql("mutation { publishNotice(id: $noticeId) { id status publishedAt } }")
     assertTrue(json.contains("\"PUBLISHED\"") && !json.contains("\"errors\""))
@@ -149,7 +150,9 @@ class AdminNoticeResolverGraphQLIntegrationTest {
   @DisplayName("publishNotice on STOPPED notice should fail")
   fun `publish stopped notice fails`() {
     val stopped =
-      noticeRepository.save(seedNotice("停用公告${System.currentTimeMillis()}", NoticeType.PLATFORM_NOTICE, NoticeStatus.STOPPED, pinned = false))
+      noticeRepository.save(
+        seedNotice("停用公告${System.currentTimeMillis()}", NoticeType.PLATFORM_NOTICE, NoticeStatus.STOPPED, pinned = false),
+      )
     val json = postGraphql("mutation { publishNotice(id: ${stopped.id}) { id } }")
     assertTrue(json.contains("\"errors\""))
   }
@@ -158,7 +161,10 @@ class AdminNoticeResolverGraphQLIntegrationTest {
   @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE"])
   @DisplayName("setNoticePinned on DRAFT notice should fail")
   fun `pin draft notice fails`() {
-    val draft = noticeRepository.save(seedNotice("草稿公告${System.currentTimeMillis()}", NoticeType.PLATFORM_NOTICE, NoticeStatus.DRAFT, pinned = false))
+    val draft =
+      noticeRepository.save(
+        seedNotice("草稿公告${System.currentTimeMillis()}", NoticeType.PLATFORM_NOTICE, NoticeStatus.DRAFT, pinned = false),
+      )
     val json = postGraphql("mutation { setNoticePinned(id: ${draft.id}, pinned: true) { id } }")
     assertTrue(json.contains("\"errors\""))
   }
@@ -194,7 +200,10 @@ class AdminNoticeResolverGraphQLIntegrationTest {
   @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE"])
   @DisplayName("deleteNotice should remove notice from list")
   fun `deleteNotice removes notice`() {
-    val notice = noticeRepository.save(seedNotice("待删公告${System.currentTimeMillis()}", NoticeType.PLATFORM_NOTICE, NoticeStatus.PUBLISHED, pinned = false))
+    val notice =
+      noticeRepository.save(
+        seedNotice("待删公告${System.currentTimeMillis()}", NoticeType.PLATFORM_NOTICE, NoticeStatus.PUBLISHED, pinned = false),
+      )
     val json = postGraphql("mutation { deleteNotice(id: ${notice.id}) }")
     assertTrue(json.contains("\"deleteNotice\" : true") && !json.contains("\"errors\""))
     val listJson = postGraphql("{ notices { content { title } } }")

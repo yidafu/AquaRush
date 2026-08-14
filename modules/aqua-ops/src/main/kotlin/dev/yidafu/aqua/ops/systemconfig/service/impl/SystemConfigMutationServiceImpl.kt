@@ -117,7 +117,10 @@ class SystemConfigMutationServiceImpl(
   /**
    * 按参数声明类型校验值(R-SYS-01:数值区间/布尔/枚举/长度)
    */
-  private fun validateValue(setting: SystemSettingsModel, value: String?): String {
+  private fun validateValue(
+    setting: SystemSettingsModel,
+    value: String?,
+  ): String {
     val v = value ?: throw InvalidSettingValueException("参数值格式不正确")
     return when (setting.settingType) {
       SystemSettingType.NUMBER -> {
@@ -135,7 +138,11 @@ class SystemConfigMutationServiceImpl(
         v
       }
       SystemSettingType.ENUM -> {
-        val allowed = setting.options?.split(",")?.map { it.trim() }.orEmpty()
+        val allowed =
+          setting.options
+            ?.split(",")
+            ?.map { it.trim() }
+            .orEmpty()
         if (v !in allowed) throw InvalidSettingValueException("参数值格式不正确")
         v
       }

@@ -9,6 +9,8 @@ export const GET_USERS_QUERY = gql`
         nickname
         phone
         avatarUrl
+        customerGroupId
+        customerGroupName
         createdAt
         updatedAt
       }

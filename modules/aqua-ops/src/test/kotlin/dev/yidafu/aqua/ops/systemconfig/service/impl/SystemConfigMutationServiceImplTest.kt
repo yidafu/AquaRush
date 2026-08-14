@@ -52,47 +52,59 @@ class SystemConfigMutationServiceImplTest {
     service = SystemConfigMutationServiceImpl(systemSettingsRepository, opsConfigAuditService)
   }
 
-  private fun numberSetting(key: String, value: String?, min: String? = null, max: String? = null, defaultValue: String? = null) =
-    SystemSettingsModel(
-      id = 1L,
-      settingKey = key,
-      settingValue = value,
-      settingType = SystemSettingType.NUMBER,
-      settingGroup = SystemSettingGroup.INVENTORY,
-      defaultValue = defaultValue,
-      minValue = min,
-      maxValue = max,
-    )
+  private fun numberSetting(
+    key: String,
+    value: String?,
+    min: String? = null,
+    max: String? = null,
+    defaultValue: String? = null,
+  ) = SystemSettingsModel(
+    id = 1L,
+    settingKey = key,
+    settingValue = value,
+    settingType = SystemSettingType.NUMBER,
+    settingGroup = SystemSettingGroup.INVENTORY,
+    defaultValue = defaultValue,
+    minValue = min,
+    maxValue = max,
+  )
 
-  private fun booleanSetting(key: String, value: String?) =
-    SystemSettingsModel(
-      id = 2L,
-      settingKey = key,
-      settingValue = value,
-      settingType = SystemSettingType.BOOLEAN,
-      settingGroup = SystemSettingGroup.ORDER_AND_FULFILLMENT,
-      defaultValue = "true",
-    )
+  private fun booleanSetting(
+    key: String,
+    value: String?,
+  ) = SystemSettingsModel(
+    id = 2L,
+    settingKey = key,
+    settingValue = value,
+    settingType = SystemSettingType.BOOLEAN,
+    settingGroup = SystemSettingGroup.ORDER_AND_FULFILLMENT,
+    defaultValue = "true",
+  )
 
-  private fun enumSetting(key: String, value: String?, options: String) =
-    SystemSettingsModel(
-      id = 3L,
-      settingKey = key,
-      settingValue = value,
-      settingType = SystemSettingType.ENUM,
-      settingGroup = SystemSettingGroup.ORDER_AND_FULFILLMENT,
-      options = options,
-    )
+  private fun enumSetting(
+    key: String,
+    value: String?,
+    options: String,
+  ) = SystemSettingsModel(
+    id = 3L,
+    settingKey = key,
+    settingValue = value,
+    settingType = SystemSettingType.ENUM,
+    settingGroup = SystemSettingGroup.ORDER_AND_FULFILLMENT,
+    options = options,
+  )
 
-  private fun stringSetting(key: String, value: String?) =
-    SystemSettingsModel(
-      id = 4L,
-      settingKey = key,
-      settingValue = value,
-      settingType = SystemSettingType.STRING,
-      settingGroup = SystemSettingGroup.ORDER_AND_FULFILLMENT,
-      defaultValue = "09:00",
-    )
+  private fun stringSetting(
+    key: String,
+    value: String?,
+  ) = SystemSettingsModel(
+    id = 4L,
+    settingKey = key,
+    settingValue = value,
+    settingType = SystemSettingType.STRING,
+    settingGroup = SystemSettingGroup.ORDER_AND_FULFILLMENT,
+    defaultValue = "09:00",
+  )
 
   @Test
   @DisplayName("批量保存更新值并落审计(含前后值)")

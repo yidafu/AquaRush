@@ -45,6 +45,9 @@ object UserMapper : ObjectMappie<UserModel, User>() {
       // No conversion needed as both source and target use cent-based Long fields
       to::balanceCents fromValue from.balanceCents
       to::totalSpentCents fromValue from.totalSpentCents
+      // 所属客户分组(F-MKT-001):分组名由 resolver 联查填充(默认 null=未分组)
+      to::customerGroupId fromProperty from::customerGroupId
+      to::customerGroupName fromValue null
     }
 }
 

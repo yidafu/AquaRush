@@ -49,10 +49,22 @@
   align-items: center;
 }
 
+.product-price-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .product-price {
   font-size: 18px;
   font-weight: 600;
   color: var(--theme-primary);
+}
+
+.product-catalog-price {
+  font-size: 14px;
+  color: var(--theme-text-tertiary);
+  text-decoration: line-through;
 }
 
 .product-quantity {

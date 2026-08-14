@@ -9,6 +9,7 @@ import ProductService from '../../services/ProductService'
 import FavoriteService from '../../services/FavoriteService'
 import { authService } from '../../utils/auth'
 import { Product } from '../../types/product'
+import { normalizeCents } from '@aquarush/common'
 
 // Import extracted components
 import ProductImageGallery from './components/ProductImageGallery'
@@ -160,17 +161,20 @@ const ProductDetail: React.FC = () => {
       return
     }
 
+    // 熟客价优先写入待支付订单(正式计价以服务端 orderPreview 为准,本地价仅作兜底 —— R-MKT-01)
+    const unitPriceCents = normalizeCents(state.product.effectivePriceCents) ?? normalizeCents(state.product.priceCents) ?? 0
+
     // 跳转到订单确认页面
     const orderData = {
       products: [{
         id: state.product.id.toString(),
         name: state.product.name,
-        price: state.product.priceCents,
+        price: unitPriceCents,
         quantity: state.buyModalQuantity,
         image: state.product.coverImageUrl,
         specification: state.product.specification
       }],
-      totalAmount: state.product.priceCents * state.buyModalQuantity,
+      totalAmount: unitPriceCents * state.buyModalQuantity,
       specification: state.product.specification
     }
 

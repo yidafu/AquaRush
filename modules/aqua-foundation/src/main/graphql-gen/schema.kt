@@ -174,7 +174,7 @@ data class BannerListInput(
 }
 
 data class BannerVoPage(
-    val content: Iterable<Banner>,
+    val content: kotlin.collections.List<Banner>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -198,17 +198,17 @@ enum class BatchFavoriteOperation(val label: String) {
 data class BatchFavoriteOperationInput(
     val operation: BatchFavoriteOperation,
     @field:Size(min = 1, max = 1000, message = "商品ID数量应在1-1000之间")
-    val productIds: Iterable<kotlin.Long>,
+    val productIds: kotlin.collections.List<kotlin.Long>,
     @field:Size(max = 500, message = "操作原因长度不能超过500个字符")
     val reason: kotlin.String? = null,
     @field:Size(min = 1, max = 1000, message = "用户ID数量应在1-1000之间")
-    val userIds: Iterable<kotlin.Long>
+    val userIds: kotlin.collections.List<kotlin.Long>
 ) {
   constructor(args: Map<String, Any>) : this(
       args["operation"] as BatchFavoriteOperation,
-      args["productIds"] as Iterable<kotlin.Long>,
+      args["productIds"] as kotlin.collections.List<kotlin.Long>,
       args["reason"] as kotlin.String?,
-      args["userIds"] as Iterable<kotlin.Long>
+      args["userIds"] as kotlin.collections.List<kotlin.Long>
   )
 }
 
@@ -220,7 +220,7 @@ data class BatchImportAddressesResult(
 
 data class BatchOperationResult(
     val details: kotlin.collections.Map<String, Any>,
-    val errors: Iterable<kotlin.String>,
+    val errors: kotlin.collections.List<kotlin.String>,
     val failureCount: kotlin.Int,
     val message: kotlin.String,
     val processedCount: kotlin.Int,
@@ -246,6 +246,124 @@ data class ConfirmDailyCollectionInput(
       args["notes"] as kotlin.String?,
       args["recordId"] as kotlin.Long
   )
+}
+
+enum class CouponIssuanceType(val label: String) {
+      AUTO_CLAIM("AUTO_CLAIM"),
+      TARGETED("TARGETED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): CouponIssuanceType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class CouponOptionVo(
+    val couponId: kotlin.Long,
+    val discountCents: kotlin.Long,
+    val isBest: kotlin.Boolean,
+    val name: kotlin.String,
+    val usable: kotlin.Boolean
+)
+
+enum class CouponScope(val label: String) {
+      ALL("ALL"),
+      PRODUCT("PRODUCT");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): CouponScope? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class CouponTemplate(
+    val couponType: CouponType,
+    val createdAt: java.time.LocalDateTime,
+    val discountAmountCents: kotlin.Long?,
+    val discountRatePermille: kotlin.Long?,
+    val id: kotlin.Long,
+    val issuanceType: CouponIssuanceType,
+    val name: kotlin.String,
+    val perUserLimit: kotlin.Int,
+    val productId: kotlin.Long?,
+    val receivedCount: kotlin.Int,
+    val scope: CouponScope,
+    val status: CouponTemplateStatus,
+    val thresholdCents: kotlin.Long?,
+    val updatedAt: java.time.LocalDateTime,
+    val usedCount: kotlin.Int,
+    val validDays: kotlin.Int?,
+    val validFrom: java.time.LocalDateTime?,
+    val validTo: java.time.LocalDateTime?,
+    val validityType: ValidityType
+)
+
+data class CouponTemplateListInput(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val status: CouponTemplateStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["status"] as CouponTemplateStatus?
+  )
+}
+
+enum class CouponTemplateStatus(val label: String) {
+      ACTIVE("ACTIVE"),
+      DISABLED("DISABLED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): CouponTemplateStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class CouponTemplateVo(
+    val claimedCount: kotlin.Int,
+    val couponType: CouponType,
+    val discountAmountCents: kotlin.Long?,
+    val discountRatePermille: kotlin.Long?,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val perUserLimit: kotlin.Int,
+    val productId: kotlin.Long?,
+    val scope: CouponScope,
+    val thresholdCents: kotlin.Long?,
+    val validDays: kotlin.Int?,
+    val validFrom: java.time.LocalDateTime?,
+    val validTo: java.time.LocalDateTime?,
+    val validityType: ValidityType
+)
+
+data class CouponTemplateVoPage(
+    val content: kotlin.collections.List<CouponTemplate>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+enum class CouponType(val label: String) {
+      CASH("CASH"),
+      DISCOUNT("DISCOUNT"),
+      NO_THRESHOLD_CASH("NO_THRESHOLD_CASH");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): CouponType? {
+      return values().find { it.label == label }
+    }
+  }
 }
 
 data class CreateAdminInput(
@@ -298,6 +416,62 @@ data class CreateBannerInput(
       args["startAt"] as java.time.LocalDateTime?,
       args["subtitle"] as kotlin.String?,
       args["title"] as kotlin.String
+  )
+}
+
+data class CreateCouponTemplateInput(
+    val couponType: CouponType,
+    @field:Min(value = 1, message = "券面额无效")
+    @field:Max(value = 9999900, message = "券面额无效(0.01-99999元)")
+    val discountAmountCents: kotlin.Long? = null,
+    @field:Min(value = 100, message = "折扣率超出范围(0.1-9.9折)")
+    @field:Max(value = 9990, message = "折扣率超出范围(0.1-9.9折)")
+    val discountRatePermille: kotlin.Long? = null,
+    val issuanceType: CouponIssuanceType,
+    @field:NotBlank(message = "券名称不能为空")
+    @field:Size(max = 100, message = "券名称不能超过100个字")
+    val name: kotlin.String,
+    @field:Min(value = 1, message = "限领数不能小于1")
+    @field:Max(value = 100, message = "限领数不能超过100")
+    val perUserLimit: kotlin.Int,
+    val productId: kotlin.Long? = null,
+    val scope: CouponScope,
+    @field:Min(value = 0, message = "门槛金额无效")
+    val thresholdCents: kotlin.Long? = null,
+    @field:Min(value = 1, message = "有效天数无效")
+    @field:Max(value = 3650, message = "有效天数不能超过3650天")
+    val validDays: kotlin.Int? = null,
+    val validFrom: java.time.LocalDateTime? = null,
+    val validTo: java.time.LocalDateTime? = null,
+    val validityType: ValidityType
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["couponType"] as CouponType,
+      args["discountAmountCents"] as kotlin.Long?,
+      args["discountRatePermille"] as kotlin.Long?,
+      args["issuanceType"] as CouponIssuanceType,
+      args["name"] as kotlin.String,
+      args["perUserLimit"] as kotlin.Int,
+      args["productId"] as kotlin.Long?,
+      args["scope"] as CouponScope,
+      args["thresholdCents"] as kotlin.Long?,
+      args["validDays"] as kotlin.Int?,
+      args["validFrom"] as java.time.LocalDateTime?,
+      args["validTo"] as java.time.LocalDateTime?,
+      args["validityType"] as ValidityType
+  )
+}
+
+data class CreateCustomerGroupInput(
+    @field:Size(max = 500, message = "分组描述不能超过500个字")
+    val description: kotlin.String? = null,
+    @field:NotBlank(message = "分组名称不能为空")
+    @field:Size(max = 50, message = "分组名称不能超过50个字")
+    val name: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["description"] as kotlin.String?,
+      args["name"] as kotlin.String
   )
 }
 
@@ -474,19 +648,26 @@ data class CreateNoticeInput(
 data class CreateOrderInput(
     @field:Positive(message = "地址ID必须为正数")
     val addressId: kotlin.Long,
+    @field:Min(value = 0, message = "优惠券ID无效")
+    val preferredCouponId: kotlin.Long? = null,
     @field:Positive(message = "商品ID必须为正数")
     val productId: kotlin.Long,
     @field:Min(value = 1, message = "购买数量不能少于1")
     @field:Max(value = 999, message = "购买数量不能超过999")
     val quantity: kotlin.Int,
     @field:Size(max = 500, message = "备注长度不能超过500个字符")
-    val remark: kotlin.String? = null
+    val remark: kotlin.String? = null,
+    @field:Min(value = 0, message = "水票核销张数无效")
+    @field:Max(value = 999, message = "水票核销张数不能超过999")
+    val ticketRedeemCount: kotlin.Int? = null
 ) {
   constructor(args: Map<String, Any>) : this(
       args["addressId"] as kotlin.Long,
+      args["preferredCouponId"] as kotlin.Long?,
       args["productId"] as kotlin.Long,
       args["quantity"] as kotlin.Int,
-      args["remark"] as kotlin.String?
+      args["remark"] as kotlin.String?,
+      args["ticketRedeemCount"] as kotlin.Int?
   )
 }
 
@@ -555,6 +736,32 @@ data class CreateProductInput(
   )
 }
 
+data class CreatePromotionActivityInput(
+    val activityType: PromotionActivityType,
+    val customerGroupId: kotlin.Long? = null,
+    @field:NotBlank(message = "活动名称不能为空")
+    @field:Size(max = 100, message = "活动名称不能超过100个字")
+    val name: kotlin.String,
+    val productId: kotlin.Long? = null,
+    val scope: PromotionScope,
+    @field:Size(min = 1, message = "至少需要一个档位")
+    val tiers: kotlin.collections.List<PromotionTierInput>,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["activityType"] as PromotionActivityType,
+      args["customerGroupId"] as kotlin.Long?,
+      args["name"] as kotlin.String,
+      args["productId"] as kotlin.Long?,
+      args["scope"] as PromotionScope,
+      args["tiers"]!!.let { tiers -> (tiers as List<Map<String, Any>>).map { PromotionTierInput(it) } },
+      args["validFrom"] as java.time.LocalDateTime,
+      args["validTo"] as java.time.LocalDateTime
+  )
+}
+
 data class CreateReviewRequestInput(
     @field:Size(max = 1000, message = "评论长度不能超过1000个字符")
     val comment: kotlin.String? = null,
@@ -576,6 +783,49 @@ data class CreateReviewRequestInput(
   )
 }
 
+data class CreateTicketTypeInput(
+    @field:Min(value = 0, message = "赠送张数无效")
+    @field:Max(value = 1000, message = "赠送张数不能超过1000")
+    val giftCount: kotlin.Int,
+    @field:NotBlank(message = "票种名称不能为空")
+    @field:Size(max = 100, message = "票种名称不能超过100个字")
+    val name: kotlin.String,
+    @field:Min(value = 1, message = "套餐张数必须大于0")
+    @field:Max(value = 1000, message = "套餐张数不能超过1000")
+    val packageCount: kotlin.Int,
+    @field:Min(value = 1, message = "购票价无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "购票价无效(0.01-99999元)")
+    val packagePriceCents: kotlin.Long,
+    @field:Min(value = 0, message = "限购数无效")
+    @field:Max(value = 1000, message = "限购数不能超过1000")
+    val perUserLimit: kotlin.Int,
+    val productId: kotlin.Long? = null,
+    @field:Size(max = 100, message = "适用规格不能超过100个字符")
+    val specification: kotlin.String? = null,
+    val ticketType: TicketTypeKind,
+    @field:Min(value = 1, message = "有效天数无效")
+    @field:Max(value = 3650, message = "有效天数不能超过3650天")
+    val validDays: kotlin.Int? = null,
+    val validFrom: java.time.LocalDateTime? = null,
+    val validTo: java.time.LocalDateTime? = null,
+    val validityType: ValidityType
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["giftCount"] as kotlin.Int,
+      args["name"] as kotlin.String,
+      args["packageCount"] as kotlin.Int,
+      args["packagePriceCents"] as kotlin.Long,
+      args["perUserLimit"] as kotlin.Int,
+      args["productId"] as kotlin.Long?,
+      args["specification"] as kotlin.String?,
+      args["ticketType"] as TicketTypeKind,
+      args["validDays"] as kotlin.Int?,
+      args["validFrom"] as java.time.LocalDateTime?,
+      args["validTo"] as java.time.LocalDateTime?,
+      args["validityType"] as ValidityType
+  )
+}
+
 data class CreateWechatPaymentInput(
     @field:Positive(message = "支付金额必须为正数")
     @field:Min(value = 1, message = "支付金额不能小于1分")
@@ -593,6 +843,35 @@ data class CreateWechatPaymentInput(
       args["orderId"] as kotlin.Long
   )
 }
+
+data class CustomerGroup(
+    val createdAt: java.time.LocalDateTime,
+    val description: kotlin.String?,
+    val id: kotlin.Long,
+    val memberCount: kotlin.Int,
+    val name: kotlin.String,
+    val updatedAt: java.time.LocalDateTime
+)
+
+data class CustomerGroupListInput(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
+
+data class CustomerGroupVoPage(
+    val content: kotlin.collections.List<CustomerGroup>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
 
 data class DailyCollectionRecord(
     val calculatedCashAmountCents: kotlin.Long,
@@ -639,7 +918,7 @@ data class DailyPaymentStats(
     val averageTransactionAmountCents: kotlin.Long,
     val date: kotlin.String,
     val failedTransactions: kotlin.Long,
-    val paymentMethodBreakdown: Iterable<PaymentMethodStats>,
+    val paymentMethodBreakdown: kotlin.collections.List<PaymentMethodStats>,
     val peakHour: kotlin.Int,
     val refundCount: kotlin.Long,
     val refundedAmountCents: kotlin.Long,
@@ -851,7 +1130,7 @@ data class ExportFavoritesInput(
     val format: ExportFormat = ExportFormat.CSV,
     val includeProductInfo: kotlin.Boolean = true,
     val includeUserInfo: kotlin.Boolean = true,
-    val productIds: Iterable<kotlin.Long>? = null,
+    val productIds: kotlin.collections.List<kotlin.Long>? = null,
     val userId: kotlin.Long? = null
 ) {
   constructor(args: Map<String, Any>) : this(
@@ -860,7 +1139,7 @@ data class ExportFavoritesInput(
       args["format"] as ExportFormat? ?: ExportFormat.CSV,
       args["includeProductInfo"] as kotlin.Boolean? ?: true,
       args["includeUserInfo"] as kotlin.Boolean? ?: true,
-      args["productIds"] as Iterable<kotlin.Long>?,
+      args["productIds"] as kotlin.collections.List<kotlin.Long>?,
       args["userId"] as kotlin.Long?
   )
 }
@@ -943,7 +1222,7 @@ data class FavoriteProductStats(
 )
 
 data class FavoriteProductVoPage(
-    val list: Iterable<FavoriteProduct>,
+    val list: kotlin.collections.List<FavoriteProduct>,
     val pageInfo: PageInfo
 )
 
@@ -984,7 +1263,7 @@ data class Feedback(
     val handledById: kotlin.Long?,
     val handledByName: kotlin.String?,
     val id: kotlin.Long,
-    val images: Iterable<kotlin.String>?,
+    val images: kotlin.collections.List<kotlin.String>?,
     val status: FeedbackStatus,
     val userId: kotlin.Long
 )
@@ -1040,13 +1319,13 @@ data class FeedbackSubmitInput(
     @field:Size(min = 10, max = 500)
     val content: kotlin.String,
     val feedbackType: FeedbackType,
-    val images: Iterable<kotlin.String>? = null
+    val images: kotlin.collections.List<kotlin.String>? = null
 ) {
   constructor(args: Map<String, Any>) : this(
       args["contactInfo"] as kotlin.String?,
       args["content"] as kotlin.String,
       args["feedbackType"] as FeedbackType,
-      args["images"] as Iterable<kotlin.String>?
+      args["images"] as kotlin.collections.List<kotlin.String>?
   )
 }
 
@@ -1067,7 +1346,7 @@ enum class FeedbackType(val label: String) {
 }
 
 data class FeedbackVoPage(
-    val content: Iterable<Feedback>,
+    val content: kotlin.collections.List<Feedback>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -1096,8 +1375,81 @@ data class GeocodeInput(
   )
 }
 
+data class GroupProductPrice(
+    val catalogPriceCents: kotlin.Long,
+    val customerGroupId: kotlin.Long,
+    val id: kotlin.Long,
+    val priceCents: kotlin.Long?,
+    val productId: kotlin.Long,
+    val productName: kotlin.String?,
+    val productSpecification: kotlin.String?
+)
+
+data class GroupProductPriceItemInput(
+    @field:Min(value = 1, message = "分组价格无效")
+    @field:Max(value = 9999900, message = "分组价格无效(0.01-99999元)")
+    val priceCents: kotlin.Long? = null,
+    @field:Positive(message = "商品ID必须为正数")
+    val productId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["priceCents"] as kotlin.Long?,
+      args["productId"] as kotlin.Long
+  )
+}
+
+data class GroupProductPriceListInput(
+    @field:Positive(message = "客户分组ID必须为正数")
+    val customerGroupId: kotlin.Long,
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["customerGroupId"] as kotlin.Long,
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
+
+data class GroupProductPriceVoPage(
+    val content: kotlin.collections.List<GroupProductPrice>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+data class IssueCouponsInput(
+    @field:Positive(message = "优惠券模板ID必须为正数")
+    val couponTemplateId: kotlin.Long,
+    val customerGroupId: kotlin.Long? = null,
+    val targetType: IssueTargetType,
+    val userIds: kotlin.collections.List<kotlin.Long>? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["couponTemplateId"] as kotlin.Long,
+      args["customerGroupId"] as kotlin.Long?,
+      args["targetType"] as IssueTargetType,
+      args["userIds"] as kotlin.collections.List<kotlin.Long>?
+  )
+}
+
+enum class IssueTargetType(val label: String) {
+      GROUP("GROUP"),
+      USER("USER");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): IssueTargetType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
 data class LoginStatistics(
-    val dailyLogins: Iterable<DailyLoginStatistic>,
+    val dailyLogins: kotlin.collections.List<DailyLoginStatistic>,
     val todayLogins: kotlin.Int,
     val totalLogins: kotlin.Int
 )
@@ -1130,32 +1482,39 @@ data class MutationAssignDeliveryWorkerArgs(
   )
 }
 data class MutationBatchAssignOrdersArgs(
-    val orderIds: Iterable<kotlin.Long>,
+    val orderIds: kotlin.collections.List<kotlin.Long>,
     val workerId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
-      args["orderIds"] as Iterable<kotlin.Long>,
+      args["orderIds"] as kotlin.collections.List<kotlin.Long>,
       args["workerId"] as kotlin.Long
   )
 }
 data class MutationBatchImportAddressesArgs(
-    val input: Iterable<AddressInput>
+    val input: kotlin.collections.List<AddressInput>
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       args["input"]!!.let { input -> (input as List<Map<String, Any>>).map { AddressInput(it) } }
   )
 }
+data class MutationClaimCouponArgs(
+    val couponTemplateId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["couponTemplateId"] as kotlin.Long
+  )
+}
 data class MutationCompleteDeliveryArgs(
     val orderId: kotlin.Long,
     val paymentType: PaymentType? = null,
-    val photos: Iterable<kotlin.String>,
+    val photos: kotlin.collections.List<kotlin.String>,
     val remark: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
       args["orderId"] as kotlin.Long,
       args["paymentType"] as PaymentType?,
-      args["photos"] as Iterable<kotlin.String>,
+      args["photos"] as kotlin.collections.List<kotlin.String>,
       args["remark"] as kotlin.String?
   )
 }
@@ -1199,6 +1558,22 @@ data class MutationCreateBannerArgs(
       CreateBannerInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationCreateCouponTemplateArgs(
+    val input: CreateCouponTemplateInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateCouponTemplateInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationCreateCustomerGroupArgs(
+    val input: CreateCustomerGroupInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateCustomerGroupInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationCreateDeliveryOrderArgs(
     val input: CreateDeliveryOrderInput
 ) {
@@ -1239,6 +1614,22 @@ data class MutationCreateProductArgs(
       CreateProductInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationCreatePromotionActivityArgs(
+    val input: CreatePromotionActivityInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreatePromotionActivityInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationCreateTicketTypeArgs(
+    val input: CreateTicketTypeInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateTicketTypeInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationDeleteAddressArgs(
     val id: kotlin.Long
 ) {
@@ -1260,6 +1651,13 @@ data class MutationDeleteBannerArgs(
       args["id"] as kotlin.Long
   )
 }
+data class MutationDeleteCustomerGroupArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
 data class MutationDeleteNoticeArgs(
     val id: kotlin.Long
 ) {
@@ -1274,11 +1672,40 @@ data class MutationDeleteProductArgs(
       args["id"] as kotlin.Long
   )
 }
+data class MutationDisableCouponTemplateArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class MutationDisablePromotionActivityArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class MutationDisableTicketTypeArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
 data class MutationExecuteDailyReconciliationArgs(
     val reconciliationDate: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
       args["reconciliationDate"] as kotlin.String?
+  )
+}
+data class MutationIssueCouponsArgs(
+    val input: IssueCouponsInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      IssueCouponsInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationOfflineProductArgs(
@@ -1300,6 +1727,14 @@ data class MutationPublishNoticeArgs(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["id"] as kotlin.Long
+  )
+}
+data class MutationPurchaseTicketsArgs(
+    val input: PurchaseTicketsInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      PurchaseTicketsInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationReorderBannerArgs(
@@ -1344,6 +1779,14 @@ data class MutationSaveDeliveryFeeRuleArgs(
       SaveDeliveryFeeRuleInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationSaveGroupProductPricesArgs(
+    val input: SaveGroupProductPricesInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      SaveGroupProductPricesInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationSaveStoreProfileArgs(
     val input: SaveStoreProfileInput
 ) {
@@ -1353,7 +1796,7 @@ data class MutationSaveStoreProfileArgs(
   )
 }
 data class MutationSaveSystemConfigsArgs(
-    val input: Iterable<SaveSystemConfigInput>
+    val input: kotlin.collections.List<SaveSystemConfigInput>
 ) {
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
@@ -1374,6 +1817,15 @@ data class MutationSetNoticePinnedArgs(
   constructor(args: Map<String, Any>) : this(
       args["id"] as kotlin.Long,
       args["pinned"] as kotlin.Boolean
+  )
+}
+data class MutationSetUserCustomerGroupArgs(
+    val customerGroupId: kotlin.Long? = null,
+    val userId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["customerGroupId"] as kotlin.Long?,
+      args["userId"] as kotlin.Long
   )
 }
 data class MutationStartDeliveryArgs(
@@ -1443,6 +1895,26 @@ data class MutationUpdateBannerArgs(
       UpdateBannerInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationUpdateCouponTemplateArgs(
+    val id: kotlin.Long,
+    val input: UpdateCouponTemplateInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdateCouponTemplateInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationUpdateCustomerGroupArgs(
+    val id: kotlin.Long,
+    val input: UpdateCustomerGroupInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdateCustomerGroupInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationUpdateDeliveryWorkerArgs(
     val input: UpdateDeliveryWorkerInput,
     val workerId: kotlin.Long
@@ -1499,41 +1971,74 @@ data class MutationUpdateProfileArgs(
       UpdateProfileInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationUpdatePromotionActivityArgs(
+    val id: kotlin.Long,
+    val input: UpdatePromotionActivityInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdatePromotionActivityInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationUpdateTicketTypeArgs(
+    val id: kotlin.Long,
+    val input: UpdateTicketTypeInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdateTicketTypeInput(args["input"] as Map<String, Any>)
+  )
+}
 data class Mutation(
     val _dummy: kotlin.String?,
     val acceptDelivery: Order,
     val assignDeliveryWorker: Order,
-    val batchAssignOrders: Iterable<Order>,
+    val batchAssignOrders: kotlin.collections.List<Order>,
     val batchImportAddresses: BatchImportAddressesResult,
+    val claimCoupon: UserCouponVo,
     val completeDelivery: Order,
     val confirmDailyCollection: DailyCollectionRecord,
     val createAddress: Address,
     val createAdmin: Admin,
     val createAdminAddress: Address,
     val createBanner: Banner,
+    val createCouponTemplate: CouponTemplate,
+    val createCustomerGroup: CustomerGroup,
     val createDeliveryOrder: Order,
     val createDeliveryWorker: DeliveryWorker,
     val createNotice: Notice,
     val createOrder: Order,
     val createProduct: Product,
+    val createPromotionActivity: PromotionActivity,
+    val createTicketType: TicketType,
     val deleteAddress: kotlin.Boolean,
     val deleteAdminAddress: kotlin.Boolean,
     val deleteBanner: kotlin.Boolean,
+    val deleteCustomerGroup: kotlin.Boolean,
     val deleteNotice: kotlin.Boolean,
     val deleteProduct: kotlin.Boolean,
+    val disableCouponTemplate: CouponTemplate,
+    val disablePromotionActivity: PromotionActivity,
+    val disableTicketType: TicketType,
     val executeDailyReconciliation: DailyReconciliation,
+    val issueCoupons: kotlin.Int,
     val offlineProduct: Product,
     val onlineProduct: Product,
     val publishNotice: Notice,
-    val reorderBanner: Iterable<Banner>,
+    val purchaseTickets: TicketPurchaseVo,
+    val reorderBanner: kotlin.collections.List<Banner>,
     val restoreSystemConfig: SystemConfigVo,
     val reviewFeedback: Feedback,
     val reviewReconciliation: DailyReconciliation,
     val saveDeliveryFeeRule: DeliveryFeeRule,
+    val saveGroupProductPrices: kotlin.Boolean,
     val saveStoreProfile: StoreProfile,
-    val saveSystemConfigs: Iterable<SystemConfigVo>,
+    val saveSystemConfigs: kotlin.collections.List<SystemConfigVo>,
     val setDefaultAddress: kotlin.Boolean,
     val setNoticePinned: Notice,
+    val setUserCustomerGroup: kotlin.Boolean,
     val startDelivery: Order,
     val stopNotice: Notice,
     val submitDailyCollection: DailyCollectionRecord,
@@ -1542,12 +2047,16 @@ data class Mutation(
     val updateAddress: Address,
     val updateAdmin: Admin,
     val updateBanner: Banner,
+    val updateCouponTemplate: CouponTemplate,
+    val updateCustomerGroup: CustomerGroup,
     val updateDeliveryWorker: DeliveryWorker,
     val updateNotice: Notice,
     val updateOrderStatus: Order,
     val updateProduct: Product,
     val updateProductStatus: Product,
-    val updateProfile: UserInfo
+    val updateProfile: UserInfo,
+    val updatePromotionActivity: PromotionActivity,
+    val updateTicketType: TicketType
 )
 
 data class MyTodayCollectionVo(
@@ -1621,7 +2130,7 @@ enum class NoticeType(val label: String) {
 }
 
 data class NoticeVoPage(
-    val content: Iterable<Notice>,
+    val content: kotlin.collections.List<Notice>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -1649,7 +2158,7 @@ data class Order(
     val createdAt: java.time.LocalDateTime,
     val deliveryConfirmedAt: java.time.LocalDateTime?,
     val deliveryFeeCents: kotlin.Long,
-    val deliveryPhotos: Iterable<kotlin.String>?,
+    val deliveryPhotos: kotlin.collections.List<kotlin.String>?,
     val deliveryStartedAt: java.time.LocalDateTime?,
     val deliveryWorker: DeliveryWorker?,
     val id: kotlin.Long,
@@ -1740,6 +2249,51 @@ data class OrderPaymentInfo(
     val transactionId: kotlin.String?
 )
 
+data class OrderPreviewInput(
+    @field:Positive(message = "地址ID必须为正数")
+    val addressId: kotlin.Long,
+    @field:Min(value = 0, message = "优惠券ID无效")
+    val preferredCouponId: kotlin.Long? = null,
+    @field:Positive(message = "商品ID必须为正数")
+    val productId: kotlin.Long,
+    @field:Min(value = 1, message = "购买数量不能少于1")
+    @field:Max(value = 999, message = "购买数量不能超过999")
+    val quantity: kotlin.Int,
+    @field:Min(value = 0, message = "水票核销张数无效")
+    @field:Max(value = 999, message = "水票核销张数不能超过999")
+    val ticketRedeemCount: kotlin.Int? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["addressId"] as kotlin.Long,
+      args["preferredCouponId"] as kotlin.Long?,
+      args["productId"] as kotlin.Long,
+      args["quantity"] as kotlin.Int,
+      args["ticketRedeemCount"] as kotlin.Int?
+  )
+}
+
+data class OrderPreviewVo(
+    val availableCoupons: kotlin.collections.List<UserCouponVo>,
+    val availableTicketCount: kotlin.Int,
+    val cashSubtotalCents: kotlin.Long,
+    val couponDiscountCents: kotlin.Long,
+    val couponOptions: kotlin.collections.List<CouponOptionVo>,
+    val deliveryFeeCents: kotlin.Long,
+    val payAmountCents: kotlin.Long,
+    val payableProductCents: kotlin.Long,
+    val priceSource: PriceSource,
+    val promotionActivityId: kotlin.Long?,
+    val promotionActivityName: kotlin.String?,
+    val promotionDiscountCents: kotlin.Long,
+    val selectedCouponId: kotlin.Long?,
+    val selectedCouponName: kotlin.String?,
+    val subtotalCents: kotlin.Long,
+    val ticketCoveredQuantity: kotlin.Int,
+    val ticketRedeemCount: kotlin.Int,
+    val totalDiscountCents: kotlin.Long,
+    val unitPriceCents: kotlin.Long
+)
+
 data class OrderReviewCheckResponse(
     val canReview: kotlin.Boolean,
     val hasReviewed: kotlin.Boolean,
@@ -1771,7 +2325,7 @@ enum class OrderStatus(val label: String) {
 }
 
 data class OrderVoPage(
-    val content: Iterable<Order>,
+    val content: kotlin.collections.List<Order>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -1825,7 +2379,7 @@ data class PaymentMethodStats(
 data class PaymentPeriodStats(
     val averageTransactionAmountCents: kotlin.Long,
     val failedTransactions: kotlin.Long,
-    val paymentMethodBreakdown: Iterable<PaymentMethodStats>,
+    val paymentMethodBreakdown: kotlin.collections.List<PaymentMethodStats>,
     val period: kotlin.String,
     val successfulTransactions: kotlin.Long,
     val totalAmountCents: kotlin.Long,
@@ -1834,7 +2388,7 @@ data class PaymentPeriodStats(
 
 data class PaymentStatistics(
     val averageTransactionAmountCents: kotlin.Long,
-    val dailyStats: Iterable<DailyPaymentStats>,
+    val dailyStats: kotlin.collections.List<DailyPaymentStats>,
     val failedTransactions: kotlin.Long,
     val refundCount: kotlin.Long,
     val refundedAmountCents: kotlin.Long,
@@ -1895,6 +2449,19 @@ data class PendingOrderBreakdown(
     val total: kotlin.Int
 )
 
+enum class PriceSource(val label: String) {
+      CATALOG_PRICE("CATALOG_PRICE"),
+      GROUP_PRICE("GROUP_PRICE"),
+      MANUAL("MANUAL");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): PriceSource? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
 data class ProcessRefundInput(
     val action: RefundAction,
     @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
@@ -1953,6 +2520,8 @@ data class Product(
     val deliverySettings: tools.jackson.databind.node.ObjectNode?,
     val depositPriceCents: kotlin.Long?,
     val detailContent: kotlin.String?,
+    val effectivePriceCents: kotlin.Long,
+    val hasGroupPrice: kotlin.Boolean,
     val id: kotlin.Long,
     val imageGallery: tools.jackson.databind.node.ArrayNode?,
     val mineralContent: kotlin.String?,
@@ -1999,7 +2568,7 @@ data class ProductFavoriteStat(
 )
 
 data class ProductFavoriteVoPage(
-    val list: Iterable<ProductFavoriteItem>,
+    val list: kotlin.collections.List<ProductFavoriteItem>,
     val pageInfo: PageInfo
 )
 
@@ -2034,6 +2603,13 @@ data class ProductListInput(
       args["status"] as ProductStatus?
   )
 }
+
+data class ProductPriceVo(
+    val catalogPriceCents: kotlin.Long,
+    val effectivePriceCents: kotlin.Long,
+    val hasGroupPrice: kotlin.Boolean,
+    val productId: kotlin.Long
+)
 
 data class ProductSalesInfo(
     val product: Product,
@@ -2112,11 +2688,11 @@ enum class ProductSortBy(val label: String) {
 
 data class ProductStatistics(
     val averagePriceCents: kotlin.Long,
-    val favoriteStatistics: Iterable<ProductFavoriteStat>,
+    val favoriteStatistics: kotlin.collections.List<ProductFavoriteStat>,
     val lowStockProducts: kotlin.Int,
     val offlineProducts: kotlin.Int,
     val onlineProducts: kotlin.Int,
-    val productRanking: Iterable<ProductSalesStat>,
+    val productRanking: kotlin.collections.List<ProductSalesStat>,
     val totalFavorites: kotlin.Int,
     val totalProducts: kotlin.Int,
     val totalSales: kotlin.Int,
@@ -2203,9 +2779,134 @@ data class ProductUpdateRequestInput(
 }
 
 data class ProductVoPage(
-    val list: Iterable<Product>,
+    val list: kotlin.collections.List<Product>,
     val pageInfo: PageInfo
 )
+
+data class PromotionActivity(
+    val activityType: PromotionActivityType,
+    val createdAt: java.time.LocalDateTime,
+    val currentStatus: PromotionActivityDisplayStatus,
+    val customerGroupId: kotlin.Long?,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val productId: kotlin.Long?,
+    val scope: PromotionScope,
+    val status: PromotionActivityStatus,
+    val tiers: kotlin.collections.List<PromotionActivityTier>,
+    val updatedAt: java.time.LocalDateTime,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+)
+
+enum class PromotionActivityDisplayStatus(val label: String) {
+      DISABLED("DISABLED"),
+      ENDED("ENDED"),
+      ONGOING("ONGOING"),
+      UPCOMING("UPCOMING");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): PromotionActivityDisplayStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class PromotionActivityListInput(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
+
+enum class PromotionActivityStatus(val label: String) {
+      ACTIVE("ACTIVE"),
+      DISABLED("DISABLED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): PromotionActivityStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class PromotionActivityTier(
+    val discountAmountCents: kotlin.Long?,
+    val discountRatePermille: kotlin.Long?,
+    val id: kotlin.Long,
+    val thresholdCents: kotlin.Long
+)
+
+enum class PromotionActivityType(val label: String) {
+      FULL_DISCOUNT("FULL_DISCOUNT"),
+      FULL_REDUCE("FULL_REDUCE");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): PromotionActivityType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class PromotionActivityVoPage(
+    val content: kotlin.collections.List<PromotionActivity>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+enum class PromotionScope(val label: String) {
+      ALL("ALL"),
+      GROUP("GROUP"),
+      PRODUCT("PRODUCT");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): PromotionScope? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class PromotionTierInput(
+    @field:Min(value = 1, message = "满减金额无效")
+    @field:Max(value = 9999900, message = "满减金额无效(0.01-99999元)")
+    val discountAmountCents: kotlin.Long? = null,
+    @field:Min(value = 100, message = "折扣率超出范围(1-9.9折)")
+    @field:Max(value = 9900, message = "折扣率超出范围(1-9.9折)")
+    val discountRatePermille: kotlin.Long? = null,
+    @field:Min(value = 1, message = "档位门槛无效")
+    @field:Max(value = 9999900, message = "档位门槛无效(0.01-99999元)")
+    val thresholdCents: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["discountAmountCents"] as kotlin.Long?,
+      args["discountRatePermille"] as kotlin.Long?,
+      args["thresholdCents"] as kotlin.Long
+  )
+}
+
+data class PurchaseTicketsInput(
+    @field:Min(value = 1, message = "购票张数必须大于0")
+    @field:Max(value = 10, message = "单次购票张数不能超过10")
+    val packageCount: kotlin.Int,
+    @field:Positive(message = "票种ID必须为正数")
+    val ticketTypeId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["packageCount"] as kotlin.Int,
+      args["ticketTypeId"] as kotlin.Long
+  )
+}
 
 data class QueryActiveProductsArgs(
     val keyword: kotlin.String? = null,
@@ -2242,6 +2943,36 @@ data class QueryBannersArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       args["input"]?.let { BannerListInput(it as Map<String, Any>) }
+  )
+}
+data class QueryCouponTemplateArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class QueryCouponTemplatesArgs(
+    val input: CouponTemplateListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { CouponTemplateListInput(it as Map<String, Any>) }
+  )
+}
+data class QueryCustomerGroupArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class QueryCustomerGroupsArgs(
+    val input: CustomerGroupListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { CustomerGroupListInput(it as Map<String, Any>) }
   )
 }
 data class QueryDailyCollectionsArgs(
@@ -2310,6 +3041,14 @@ data class QueryFeedbacksArgs(
       args["input"]?.let { FeedbackListInput(it as Map<String, Any>) }
   )
 }
+data class QueryGroupProductPricesArgs(
+    val input: GroupProductPriceListInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      GroupProductPriceListInput(args["input"] as Map<String, Any>)
+  )
+}
 data class QueryIsProductFavoritedArgs(
     val productId: kotlin.Long
 ) {
@@ -2323,6 +3062,20 @@ data class QueryMonthlyStatisticsArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       DateRangeInput(args["input"] as Map<String, Any>)
+  )
+}
+data class QueryMyCouponsArgs(
+    val status: UserCouponStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["status"] as UserCouponStatus?
+  )
+}
+data class QueryMyTicketsArgs(
+    val status: UserTicketStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["status"] as UserTicketStatus?
   )
 }
 data class QueryNoticeArgs(
@@ -2361,6 +3114,14 @@ data class QueryOrderOperationsArgs(
       args["orderId"] as kotlin.Long
   )
 }
+data class QueryOrderPreviewArgs(
+    val input: OrderPreviewInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      OrderPreviewInput(args["input"] as Map<String, Any>)
+  )
+}
 data class QueryOrderStatisticsArgs(
     val input: DateRangeInput
 ) {
@@ -2392,6 +3153,13 @@ data class QueryProductDailySalesArgs(
       DateRangeInput(args["input"] as Map<String, Any>)
   )
 }
+data class QueryProductPriceArgs(
+    val productId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["productId"] as kotlin.Long
+  )
+}
 data class QueryProductStatisticsArgs(
     val dateRange: DateRangeInput? = null
 ) {
@@ -2406,6 +3174,21 @@ data class QueryProductsPaginatedArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       args["input"]?.let { ProductSearchInput(it as Map<String, Any>) }
+  )
+}
+data class QueryPromotionActivitiesArgs(
+    val input: PromotionActivityListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { PromotionActivityListInput(it as Map<String, Any>) }
+  )
+}
+data class QueryPromotionActivityArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
   )
 }
 data class QueryRegionArgs(
@@ -2442,6 +3225,21 @@ data class QuerySystemConfigsArgs(
       args["group"] as SystemConfigGroup
   )
 }
+data class QueryTicketTypeArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class QueryTicketTypesArgs(
+    val input: TicketTypeListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { TicketTypeListInput(it as Map<String, Any>) }
+  )
+}
 data class QueryUserArgs(
     val id: kotlin.Long
 ) {
@@ -2474,61 +3272,76 @@ data class QueryWeeklyStatisticsArgs(
 }
 data class Query(
     val _dummy: kotlin.String?,
-    val activeBanners: Iterable<Banner>,
-    val activeNotices: Iterable<Notice>,
+    val activeBanners: kotlin.collections.List<Banner>,
+    val activeNotices: kotlin.collections.List<Notice>,
     val activeProducts: ProductVoPage,
     val address: Address?,
-    val addresses: Iterable<Address>,
-    val admins: Iterable<Admin>,
-    val allRegions: Iterable<Region>,
-    val assignedOrders: Iterable<Order>,
+    val addresses: kotlin.collections.List<Address>,
+    val admins: kotlin.collections.List<Admin>,
+    val allRegions: kotlin.collections.List<Region>,
+    val assignedOrders: kotlin.collections.List<Order>,
     val banner: Banner?,
     val banners: BannerVoPage?,
-    val dailyCollections: Iterable<DailyCollectionRecord>,
-    val dailyReconciliations: Iterable<DailyReconciliation>,
-    val dailyStatistics: Iterable<DailyStatistic>,
-    val deliveringOrders: Iterable<Order>,
+    val couponCenter: kotlin.collections.List<CouponTemplateVo>,
+    val couponTemplate: CouponTemplate?,
+    val couponTemplates: CouponTemplateVoPage?,
+    val customerGroup: CustomerGroup?,
+    val customerGroups: CustomerGroupVoPage?,
+    val dailyCollections: kotlin.collections.List<DailyCollectionRecord>,
+    val dailyReconciliations: kotlin.collections.List<DailyReconciliation>,
+    val dailyStatistics: kotlin.collections.List<DailyStatistic>,
+    val deliveringOrders: kotlin.collections.List<Order>,
     val deliveryFeeRule: DeliveryFeeRule,
     val deliveryWorker: DeliveryWorker?,
     val deliveryWorkerHistoryOrders: OrderVoPage,
-    val deliveryWorkerRanking: Iterable<DeliveryWorkerRankingItem>,
+    val deliveryWorkerRanking: kotlin.collections.List<DeliveryWorkerRankingItem>,
     val deliveryWorkerStatistics: DeliveryWorkerOverview,
-    val deliveryWorkers: Iterable<DeliveryWorker>,
+    val deliveryWorkers: kotlin.collections.List<DeliveryWorker>,
     val favoriteProducts: FavoriteProductVoPage,
     val favoritesCount: kotlin.Long,
     val feedback: Feedback?,
     val feedbacks: FeedbackVoPage?,
+    val groupProductPrices: GroupProductPriceVoPage?,
     val isProductFavorited: kotlin.Boolean,
     val me: UserInfo?,
-    val monthlyStatistics: Iterable<MonthlyStatistic>,
+    val monthlyStatistics: kotlin.collections.List<MonthlyStatistic>,
+    val myCoupons: kotlin.collections.List<UserCouponVo>,
+    val myTickets: kotlin.collections.List<UserTicketVo>,
     val myTodayCollection: MyTodayCollectionVo?,
     val notice: Notice?,
     val notices: NoticeVoPage?,
-    val onlineDeliveryWorkers: Iterable<DeliveryWorker>,
+    val onlineDeliveryWorkers: kotlin.collections.List<DeliveryWorker>,
     val order: Order?,
     val orderByNo: Order?,
-    val orderOperations: Iterable<OrderOperation>,
+    val orderOperations: kotlin.collections.List<OrderOperation>,
+    val orderPreview: OrderPreviewVo,
     val orderStatistics: OrderStatistics,
     val orders: OrderVoPage?,
-    val pendingDeliveryOrders: Iterable<Order>,
+    val pendingDeliveryOrders: kotlin.collections.List<Order>,
     val pendingOrderBreakdown: PendingOrderBreakdown,
     val product: Product?,
-    val productDailySales: Iterable<ProductDailySales>,
+    val productDailySales: kotlin.collections.List<ProductDailySales>,
+    val productPrice: ProductPriceVo?,
     val productStatistics: ProductStatistics?,
     val productsPaginated: ProductVoPage?,
+    val promotionActivities: PromotionActivityVoPage?,
+    val promotionActivity: PromotionActivity?,
     val region: Region?,
-    val regions: Iterable<Region>,
-    val searchAllAddresses: Iterable<Address>,
+    val regions: kotlin.collections.List<Region>,
+    val searchAllAddresses: kotlin.collections.List<Address>,
     val stockWarningThresholds: StockWarningThresholds,
     val storeProfile: StoreProfile?,
-    val systemConfigs: Iterable<SystemConfigVo>,
+    val systemConfigs: kotlin.collections.List<SystemConfigVo>,
+    val ticketShop: kotlin.collections.List<TicketTypeVo>,
+    val ticketType: TicketType?,
+    val ticketTypes: TicketTypeVoPage?,
     val todayStatistics: TodayStatistics?,
     val user: User?,
-    val userAddresses: Iterable<Address>,
+    val userAddresses: kotlin.collections.List<Address>,
     val userStatistics: UserStatistics,
     val users: UserVoPage,
     val weekStatistics: WeekStatistics?,
-    val weeklyStatistics: Iterable<WeeklyStatistic>
+    val weeklyStatistics: kotlin.collections.List<WeeklyStatistic>
 )
 
 data class RefreshTokenInput(
@@ -2659,9 +3472,9 @@ data class ReviewReconciliationInput(
 
 data class SalesReport(
     val dateRange: DateRange,
-    val salesBySpecification: Iterable<SpecificationStatistics>,
-    val salesByWaterSource: Iterable<WaterSourceStatistics>,
-    val topSellingProducts: Iterable<ProductSalesInfo>,
+    val salesBySpecification: kotlin.collections.List<SpecificationStatistics>,
+    val salesByWaterSource: kotlin.collections.List<WaterSourceStatistics>,
+    val topSellingProducts: kotlin.collections.List<ProductSalesInfo>,
     val totalRevenueCents: kotlin.Long,
     val totalSales: kotlin.Int
 )
@@ -2708,6 +3521,21 @@ data class SaveDeliveryFeeRuleInput(
   constructor(args: Map<String, Any>) : this(
       args["freeFloorLimit"] as kotlin.Int,
       args["surchargeCents"] as kotlin.Long
+  )
+}
+
+data class SaveGroupProductPricesInput(
+    val clearUnlisted: kotlin.Boolean? = false,
+    @field:Positive(message = "客户分组ID必须为正数")
+    val customerGroupId: kotlin.Long,
+    @field:Size(min = 1, max = 500, message = "商品价格列表不能为空")
+    val items: kotlin.collections.List<GroupProductPriceItemInput>
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["clearUnlisted"] as kotlin.Boolean? ?: false,
+      args["customerGroupId"] as kotlin.Long,
+      args["items"]!!.let { items -> (items as List<Map<String, Any>>).map { GroupProductPriceItemInput(it) } }
   )
 }
 
@@ -2855,6 +3683,113 @@ enum class SystemSettingType(val label: String) {
   }
 }
 
+enum class TicketPurchaseStatus(val label: String) {
+      CANCELLED("CANCELLED"),
+      FAILED("FAILED"),
+      PAID("PAID"),
+      PENDING("PENDING");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): TicketPurchaseStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class TicketPurchaseVo(
+    val id: kotlin.Long,
+    val orderNo: kotlin.String,
+    val packagePriceCents: kotlin.Long,
+    val paymentParams: tools.jackson.databind.node.ObjectNode?,
+    val paymentStatus: TicketPurchaseStatus,
+    val requiresSimulation: kotlin.Boolean,
+    val ticketTypeName: kotlin.String,
+    val totalCount: kotlin.Int
+)
+
+data class TicketType(
+    val createdAt: java.time.LocalDateTime,
+    val giftCount: kotlin.Int,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val packageCount: kotlin.Int,
+    val packagePriceCents: kotlin.Long,
+    val perUserLimit: kotlin.Int,
+    val productId: kotlin.Long?,
+    val specification: kotlin.String?,
+    val status: TicketTypeStatus,
+    val ticketType: TicketTypeKind,
+    val updatedAt: java.time.LocalDateTime,
+    val validDays: kotlin.Int?,
+    val validFrom: java.time.LocalDateTime?,
+    val validTo: java.time.LocalDateTime?,
+    val validityType: ValidityType
+)
+
+enum class TicketTypeKind(val label: String) {
+      SPECIFIC_PRODUCT("SPECIFIC_PRODUCT"),
+      UNIVERSAL("UNIVERSAL");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): TicketTypeKind? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class TicketTypeListInput(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val status: TicketTypeStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["status"] as TicketTypeStatus?
+  )
+}
+
+enum class TicketTypeStatus(val label: String) {
+      ACTIVE("ACTIVE"),
+      DISABLED("DISABLED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): TicketTypeStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class TicketTypeVo(
+    val giftCount: kotlin.Int,
+    val id: kotlin.Long,
+    val myPurchasedCount: kotlin.Int,
+    val name: kotlin.String,
+    val packageCount: kotlin.Int,
+    val packagePriceCents: kotlin.Long,
+    val perUserLimit: kotlin.Int,
+    val productId: kotlin.Long?,
+    val specification: kotlin.String?,
+    val ticketType: TicketTypeKind,
+    val validDays: kotlin.Int?,
+    val validFrom: java.time.LocalDateTime?,
+    val validTo: java.time.LocalDateTime?,
+    val validityType: ValidityType
+)
+
+data class TicketTypeVoPage(
+    val content: kotlin.collections.List<TicketType>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
 data class TodayStatistics(
     val completedOrders: kotlin.Int,
     val earningCents: kotlin.Long,
@@ -2959,6 +3894,60 @@ data class UpdateBannerInput(
       args["startAt"] as java.time.LocalDateTime?,
       args["subtitle"] as kotlin.String?,
       args["title"] as kotlin.String
+  )
+}
+
+data class UpdateCouponTemplateInput(
+    val couponType: CouponType,
+    @field:Min(value = 1, message = "券面额无效")
+    @field:Max(value = 9999900, message = "券面额无效(0.01-99999元)")
+    val discountAmountCents: kotlin.Long? = null,
+    @field:Min(value = 100, message = "折扣率超出范围(0.1-9.9折)")
+    @field:Max(value = 9990, message = "折扣率超出范围(0.1-9.9折)")
+    val discountRatePermille: kotlin.Long? = null,
+    @field:NotBlank(message = "券名称不能为空")
+    @field:Size(max = 100, message = "券名称不能超过100个字")
+    val name: kotlin.String,
+    @field:Min(value = 1, message = "限领数不能小于1")
+    @field:Max(value = 100, message = "限领数不能超过100")
+    val perUserLimit: kotlin.Int,
+    val productId: kotlin.Long? = null,
+    val scope: CouponScope,
+    @field:Min(value = 0, message = "门槛金额无效")
+    val thresholdCents: kotlin.Long? = null,
+    @field:Min(value = 1, message = "有效天数无效")
+    @field:Max(value = 3650, message = "有效天数不能超过3650天")
+    val validDays: kotlin.Int? = null,
+    val validFrom: java.time.LocalDateTime? = null,
+    val validTo: java.time.LocalDateTime? = null,
+    val validityType: ValidityType
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["couponType"] as CouponType,
+      args["discountAmountCents"] as kotlin.Long?,
+      args["discountRatePermille"] as kotlin.Long?,
+      args["name"] as kotlin.String,
+      args["perUserLimit"] as kotlin.Int,
+      args["productId"] as kotlin.Long?,
+      args["scope"] as CouponScope,
+      args["thresholdCents"] as kotlin.Long?,
+      args["validDays"] as kotlin.Int?,
+      args["validFrom"] as java.time.LocalDateTime?,
+      args["validTo"] as java.time.LocalDateTime?,
+      args["validityType"] as ValidityType
+  )
+}
+
+data class UpdateCustomerGroupInput(
+    @field:Size(max = 500, message = "分组描述不能超过500个字")
+    val description: kotlin.String? = null,
+    @field:NotBlank(message = "分组名称不能为空")
+    @field:Size(max = 50, message = "分组名称不能超过50个字")
+    val name: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["description"] as kotlin.String?,
+      args["name"] as kotlin.String
   )
 }
 
@@ -3127,6 +4116,75 @@ data class UpdateProfileInput(
   )
 }
 
+data class UpdatePromotionActivityInput(
+    val activityType: PromotionActivityType,
+    val customerGroupId: kotlin.Long? = null,
+    @field:NotBlank(message = "活动名称不能为空")
+    @field:Size(max = 100, message = "活动名称不能超过100个字")
+    val name: kotlin.String,
+    val productId: kotlin.Long? = null,
+    val scope: PromotionScope,
+    @field:Size(min = 1, message = "至少需要一个档位")
+    val tiers: kotlin.collections.List<PromotionTierInput>,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["activityType"] as PromotionActivityType,
+      args["customerGroupId"] as kotlin.Long?,
+      args["name"] as kotlin.String,
+      args["productId"] as kotlin.Long?,
+      args["scope"] as PromotionScope,
+      args["tiers"]!!.let { tiers -> (tiers as List<Map<String, Any>>).map { PromotionTierInput(it) } },
+      args["validFrom"] as java.time.LocalDateTime,
+      args["validTo"] as java.time.LocalDateTime
+  )
+}
+
+data class UpdateTicketTypeInput(
+    @field:Min(value = 0, message = "赠送张数无效")
+    @field:Max(value = 1000, message = "赠送张数不能超过1000")
+    val giftCount: kotlin.Int,
+    @field:NotBlank(message = "票种名称不能为空")
+    @field:Size(max = 100, message = "票种名称不能超过100个字")
+    val name: kotlin.String,
+    @field:Min(value = 1, message = "套餐张数必须大于0")
+    @field:Max(value = 1000, message = "套餐张数不能超过1000")
+    val packageCount: kotlin.Int,
+    @field:Min(value = 1, message = "购票价无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "购票价无效(0.01-99999元)")
+    val packagePriceCents: kotlin.Long,
+    @field:Min(value = 0, message = "限购数无效")
+    @field:Max(value = 1000, message = "限购数不能超过1000")
+    val perUserLimit: kotlin.Int,
+    val productId: kotlin.Long? = null,
+    @field:Size(max = 100, message = "适用规格不能超过100个字符")
+    val specification: kotlin.String? = null,
+    val ticketType: TicketTypeKind,
+    @field:Min(value = 1, message = "有效天数无效")
+    @field:Max(value = 3650, message = "有效天数不能超过3650天")
+    val validDays: kotlin.Int? = null,
+    val validFrom: java.time.LocalDateTime? = null,
+    val validTo: java.time.LocalDateTime? = null,
+    val validityType: ValidityType
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["giftCount"] as kotlin.Int,
+      args["name"] as kotlin.String,
+      args["packageCount"] as kotlin.Int,
+      args["packagePriceCents"] as kotlin.Long,
+      args["perUserLimit"] as kotlin.Int,
+      args["productId"] as kotlin.Long?,
+      args["specification"] as kotlin.String?,
+      args["ticketType"] as TicketTypeKind,
+      args["validDays"] as kotlin.Int?,
+      args["validFrom"] as java.time.LocalDateTime?,
+      args["validTo"] as java.time.LocalDateTime?,
+      args["validityType"] as ValidityType
+  )
+}
+
 data class UpdateTransactionInput(
     @field:Size(max = 1000, message = "管理员备注长度不能超过1000个字符")
     val adminNote: kotlin.String? = null,
@@ -3147,6 +4205,8 @@ data class User(
     val avatarUrl: kotlin.String?,
     val balanceCents: kotlin.Long,
     val createdAt: java.time.LocalDateTime,
+    val customerGroupId: kotlin.Long?,
+    val customerGroupName: kotlin.String?,
     val email: kotlin.String,
     val id: kotlin.Long,
     val nickname: kotlin.String?,
@@ -3156,6 +4216,34 @@ data class User(
     val totalSpentCents: kotlin.Long,
     val updatedAt: java.time.LocalDateTime,
     val wechatOpenId: kotlin.String
+)
+
+enum class UserCouponStatus(val label: String) {
+      EXPIRED("EXPIRED"),
+      RECEIVED("RECEIVED"),
+      RETURNED("RETURNED"),
+      USED("USED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): UserCouponStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class UserCouponVo(
+    val couponType: CouponType,
+    val discountAmountCents: kotlin.Long?,
+    val discountRatePermille: kotlin.Long?,
+    val expireTime: java.time.LocalDateTime,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val productId: kotlin.Long?,
+    val scope: CouponScope,
+    val status: UserCouponStatus,
+    val thresholdCents: kotlin.Long?,
+    val usable: kotlin.Boolean
 )
 
 enum class UserEngagementLevel(val label: String) {
@@ -3191,7 +4279,7 @@ data class UserFavoriteAnalytics(
 data class UserFavoriteInsights(
     val averageFavoritePriceCents: kotlin.Long,
     val engagementLevel: UserEngagementLevel,
-    val favoriteCategories: Iterable<kotlin.String>,
+    val favoriteCategories: kotlin.collections.List<kotlin.String>,
     val favoriteToOrderRate: kotlin.Float,
     val lastActiveAt: java.time.LocalDateTime,
     val totalFavorites: kotlin.Long,
@@ -3200,7 +4288,7 @@ data class UserFavoriteInsights(
 )
 
 data class UserFavoriteSummary(
-    val categories: Iterable<kotlin.String>,
+    val categories: kotlin.collections.List<kotlin.String>,
     val favoriteCount: kotlin.Long,
     val lastFavoriteAdded: java.time.LocalDateTime?,
     val mostFavoritedCategory: kotlin.String?,
@@ -3209,7 +4297,7 @@ data class UserFavoriteSummary(
 )
 
 data class UserFavoriteVoPage(
-    val list: Iterable<UserFavorite>,
+    val list: kotlin.collections.List<UserFavorite>,
     val pageInfo: PageInfo
 )
 
@@ -3224,7 +4312,7 @@ data class UserFavoriteWithProduct(
 )
 
 data class UserFavoriteWithProductVoPage(
-    val list: Iterable<UserFavoriteWithProduct>,
+    val list: kotlin.collections.List<UserFavoriteWithProduct>,
     val pageInfo: PageInfo
 )
 
@@ -3239,6 +4327,7 @@ data class UserInfo(
 )
 
 data class UserListInput(
+    val customerGroupId: kotlin.Long? = null,
     val page: kotlin.Int? = 0,
     val search: kotlin.String? = null,
     val size: kotlin.Int? = 20,
@@ -3246,6 +4335,7 @@ data class UserListInput(
     val status: UserStatus? = null
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["customerGroupId"] as kotlin.Long?,
       args["page"] as kotlin.Int? ?: 0,
       args["search"] as kotlin.String?,
       args["size"] as kotlin.Int? ?: 20,
@@ -3270,7 +4360,7 @@ enum class UserRole(val label: String) {
 
 data class UserStatistics(
     val activeUsers: kotlin.Int,
-    val dailyNewUsers: Iterable<DailyStatistic>,
+    val dailyNewUsers: kotlin.collections.List<DailyStatistic>,
     val loginStatistics: LoginStatistics?,
     val monthNewUsers: kotlin.Int,
     val todayNewUsers: kotlin.Int,
@@ -3293,12 +4383,35 @@ enum class UserStatus(val label: String) {
 }
 
 data class UserSummaryVoPage(
-    val list: Iterable<UserFavoriteSummary>,
+    val list: kotlin.collections.List<UserFavoriteSummary>,
     val pageInfo: PageInfo
 )
 
+enum class UserTicketStatus(val label: String) {
+      EXPIRED("EXPIRED"),
+      RETURNED("RETURNED"),
+      UNUSED("UNUSED"),
+      USED("USED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): UserTicketStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class UserTicketVo(
+    val expireTime: java.time.LocalDateTime,
+    val id: kotlin.Long,
+    val isGift: kotlin.Boolean,
+    val specification: kotlin.String?,
+    val status: UserTicketStatus,
+    val ticketTypeName: kotlin.String
+)
+
 data class UserVoPage(
-    val list: Iterable<User>,
+    val list: kotlin.collections.List<User>,
     val pageInfo: PageInfo
 )
 
@@ -3318,6 +4431,19 @@ data class ValidateAddressInput(
       args["district"] as kotlin.String,
       args["province"] as kotlin.String
   )
+}
+
+enum class ValidityType(val label: String) {
+      DAYS_AFTER_CLAIM("DAYS_AFTER_CLAIM"),
+      DAYS_AFTER_PURCHASE("DAYS_AFTER_PURCHASE"),
+      FIXED_RANGE("FIXED_RANGE");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): ValidityType? {
+      return values().find { it.label == label }
+    }
+  }
 }
 
 data class WaterSourceStatistics(
@@ -3380,7 +4506,7 @@ data class WechatLoginInput(
 }
 
 data class WeekStatistics(
-    val dailyStats: Iterable<DailyStat>,
+    val dailyStats: kotlin.collections.List<DailyStat>,
     val totalEarningCents: kotlin.Long,
     val totalOrders: kotlin.Int
 )

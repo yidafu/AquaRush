@@ -22,6 +22,7 @@ package dev.yidafu.aqua.admin.ops.resolvers
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
+import dev.yidafu.aqua.ops.deliveryfeerule.domain.repository.DeliveryFeeRuleRepository
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -57,6 +58,9 @@ class AdminDeliveryFeeRuleResolverGraphQLIntegrationTest {
   @Autowired
   private lateinit var userActionLogRepository: UserActionLogRepository
 
+  @Autowired
+  private lateinit var deliveryFeeRuleRepository: DeliveryFeeRuleRepository
+
   private lateinit var mockMvc: MockMvc
 
   @BeforeEach
@@ -85,22 +89,24 @@ class AdminDeliveryFeeRuleResolverGraphQLIntegrationTest {
   @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_READ"])
   @DisplayName("deliveryFeeRule query should return default rule 4/200 when unconfigured (AC-OPS-005-01)")
   fun `deliveryFeeRule returns default when unconfigured`() {
+    // 清空已保存规则(共享 H2 可能被其他用例/历史运行写入),回到未配置态
+    deliveryFeeRuleRepository.hardDeleteAll()
     val json = postGraphql("{ deliveryFeeRule { freeFloorLimit surchargeCents } }")
-    assertTrue(json.contains("\"freeFloorLimit\" : 4") && json.contains("\"surchargeCents\" : 200") && !json.contains("\"errors\""))
+    assertTrue(json.contains("\"freeFloorLimit\" : 4") && json.contains("\"surchargeCents\" : \"200\"") && !json.contains("\"errors\""))
   }
 
   @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE"])
+  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE", "PERMISSION_OPS_CONFIG_READ"])
   @DisplayName("saveDeliveryFeeRule then query should round-trip (AC-OPS-005-02)")
   fun `save and query delivery fee rule round trip`() {
     val json =
       postGraphql(
         """mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 6, surchargeCents: 500}) { freeFloorLimit surchargeCents } }""",
       )
-    assertTrue(json.contains("\"freeFloorLimit\" : 6") && json.contains("\"surchargeCents\" : 500") && !json.contains("\"errors\""))
+    assertTrue(json.contains("\"freeFloorLimit\" : 6") && json.contains("\"surchargeCents\" : \"500\"") && !json.contains("\"errors\""))
 
     val queryJson = postGraphql("{ deliveryFeeRule { freeFloorLimit surchargeCents } }")
-    assertTrue(queryJson.contains("\"freeFloorLimit\" : 6") && queryJson.contains("\"surchargeCents\" : 500"))
+    assertTrue(queryJson.contains("\"freeFloorLimit\" : 6") && queryJson.contains("\"surchargeCents\" : \"500\""))
   }
 
   @Test

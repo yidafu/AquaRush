@@ -144,9 +144,16 @@ object LocalDateTimeScalar {
         }
 
       override fun parseLiteral(input: Any): LocalDateTime {
-        if (input is String) {
+        // graphql-java 对内联字面量传入 StringValue(AST 节点),变量经 parseValue 传 String
+        val value =
+          when (input) {
+            is String -> input
+            is graphql.language.StringValue -> input.value
+            else -> null
+          }
+        if (value != null) {
           try {
-            return LocalDateTime.parse(input, formatter)
+            return LocalDateTime.parse(value, formatter)
           } catch (e: Exception) {
             throw CoercingParseLiteralException("Expected valid ISO datetime string but got: $input")
           }

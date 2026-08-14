@@ -60,4 +60,9 @@ class UserQueryApiServiceImpl(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Long = userRepository.count()
+
+  // ===== 客户分组(F-MKT-001,营销受众维度)=====
+  override fun findByCustomerGroupId(groupId: Long): List<UserModel> = userRepository.findByCustomerGroupId(groupId)
+
+  override fun countUsersByCustomerGroupId(groupId: Long): Long = userRepository.countByCustomerGroupId(groupId)
 }

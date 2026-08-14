@@ -241,10 +241,25 @@
   margin-top: auto;
 }
 
+.product-price-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .product-price {
   font-size: 28px;
   font-weight: bold;
   color: var(--theme-secondary);
+}
+
+.product-group-tag {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--theme-secondary);
+  background: var(--theme-primary-light);
+  padding: 2px 8px;
+  border-radius: 8px;
 }
 
 .product-stock {

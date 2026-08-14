@@ -37,6 +37,11 @@ interface OrderRepository :
     status: OrderModelStatus,
   ): List<OrderModel>
 
+  fun existsByUserIdAndStatus(
+    userId: Long,
+    status: OrderModelStatus,
+  ): Boolean
+
   fun findByStatus(status: OrderModelStatus): List<OrderModel>
 
   fun findByStatusOrderByCreatedAtAsc(status: OrderModelStatus): List<OrderModel>

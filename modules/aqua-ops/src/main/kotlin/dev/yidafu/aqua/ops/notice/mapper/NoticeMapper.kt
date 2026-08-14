@@ -23,8 +23,6 @@ import dev.yidafu.aqua.api.dto.CreateNoticeRequest
 import dev.yidafu.aqua.api.dto.NoticeListRequest
 import dev.yidafu.aqua.api.dto.UpdateNoticeRequest
 import dev.yidafu.aqua.common.domain.model.NoticeModel
-import dev.yidafu.aqua.common.domain.model.enums.NoticeStatus as DomainNoticeStatus
-import dev.yidafu.aqua.common.domain.model.enums.NoticeType as DomainNoticeType
 import dev.yidafu.aqua.common.graphql.generated.CreateNoticeInput
 import dev.yidafu.aqua.common.graphql.generated.Notice
 import dev.yidafu.aqua.common.graphql.generated.NoticeListInput
@@ -33,6 +31,8 @@ import dev.yidafu.aqua.common.graphql.generated.NoticeType
 import dev.yidafu.aqua.common.graphql.generated.UpdateNoticeInput
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
+import dev.yidafu.aqua.common.domain.model.enums.NoticeStatus as DomainNoticeStatus
+import dev.yidafu.aqua.common.domain.model.enums.NoticeType as DomainNoticeType
 
 /**
  * 公告映射器:域实体 → GraphQL 类型

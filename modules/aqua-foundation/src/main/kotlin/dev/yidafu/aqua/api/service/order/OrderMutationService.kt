@@ -20,6 +20,8 @@
 package dev.yidafu.aqua.api.service.order
 
 import dev.yidafu.aqua.api.dto.CreateOrderRequest
+import dev.yidafu.aqua.api.dto.OrderPricingRequest
+import dev.yidafu.aqua.api.dto.OrderPricingResult
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 
@@ -83,4 +85,10 @@ interface OrderMutationService {
    * 处理支付超时
    */
   fun handlePaymentTimeout(orderId: Long)
+
+  /**
+   * 确认订单计价预览(F-ORD-023,PRD 10-marketing.md §R-MKT-02/07/08):
+   * 委托促销引擎纯计算,无副作用;返回完整费用明细(单价/水票核销/满减/优惠券/封顶)。
+   */
+  fun confirmOrderPreview(input: OrderPricingRequest): OrderPricingResult
 }

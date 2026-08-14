@@ -1,0 +1,657 @@
+# Marketing domain (MKT)
+# 与 PRD 10-marketing.md 保持一致:F-MKT-001 客户分组管理、F-MKT-002 分组商品专属价、
+# F-MKT-003 优惠券管理、F-MKT-004 满减/折扣活动、F-MKT-007 桶水票(电子票)
+# 促销引擎按 R-MKT-02/07 链路统一计价(订单域 F-ORD-023 应用,用户端 F-PRO-002 展示)
+
+extend type Query {
+  # 客户分组列表(分页,关键字按名称模糊)
+  customerGroups(input: CustomerGroupListInput): CustomerGroupVOPage
+  # 客户分组详情
+  customerGroup(id: PrimaryId!): CustomerGroup
+  # 分组商品专属价列表(分页)
+  groupProductPrices(input: GroupProductPriceListInput!): GroupProductPriceVOPage
+  # 优惠券模板列表(分页,含已领未用/已核销统计)
+  couponTemplates(input: CouponTemplateListInput): CouponTemplateVOPage
+  # 优惠券模板详情
+  couponTemplate(id: PrimaryId!): CouponTemplate
+  # 满减/折扣活动列表(分页)
+  promotionActivities(input: PromotionActivityListInput): PromotionActivityVOPage
+  # 满减/折扣活动详情(含档位)
+  promotionActivity(id: PrimaryId!): PromotionActivity
+  # 桶水票票种列表(分页)
+  ticketTypes(input: TicketTypeListInput): TicketTypeVOPage
+  # 桶水票票种详情
+  ticketType(id: PrimaryId!): TicketType
+  # 限时特价活动列表(分页)
+  flashSaleActivities(input: FlashSaleActivityListInput): FlashSaleActivityVOPage
+  # 限时特价活动详情
+  flashSaleActivity(id: PrimaryId!): FlashSaleActivity
+  # 买赠/满赠活动列表(分页)
+  giftActivities(input: GiftActivityListInput): GiftActivityVOPage
+  # 买赠/满赠活动详情
+  giftActivity(id: PrimaryId!): GiftActivity
+  # 首单立减/新人专享价活动列表(分页)
+  firstOrderActivities(input: FirstOrderActivityListInput): FirstOrderActivityVOPage
+  # 首单立减/新人专享价活动详情
+  firstOrderActivity(id: PrimaryId!): FirstOrderActivity
+}
+
+extend type Mutation {
+  # 新建客户分组
+  createCustomerGroup(input: CreateCustomerGroupInput!): CustomerGroup!
+  # 编辑客户分组
+  updateCustomerGroup(id: PrimaryId!, input: UpdateCustomerGroupInput!): CustomerGroup!
+  # 删除客户分组(成员回「未分组」)
+  deleteCustomerGroup(id: PrimaryId!): Boolean!
+  # 设置用户所属分组(空=未分组,即时生效)
+  setUserCustomerGroup(userId: PrimaryId!, customerGroupId: PrimaryId): Boolean!
+  # 批量保存分组商品专属价(空=清空该项回退目录价)
+  saveGroupProductPrices(input: SaveGroupProductPricesInput!): Boolean!
+  # 新建优惠券模板
+  createCouponTemplate(input: CreateCouponTemplateInput!): CouponTemplate!
+  # 编辑优惠券模板
+  updateCouponTemplate(id: PrimaryId!, input: UpdateCouponTemplateInput!): CouponTemplate!
+  # 停用优惠券模板(已领券按快照继续有效)
+  disableCouponTemplate(id: PrimaryId!): CouponTemplate!
+  # 定向发放优惠券(按用户列表/客户分组),返回实际发放张数
+  issueCoupons(input: IssueCouponsInput!): Int!
+  # 新建满减/折扣活动
+  createPromotionActivity(input: CreatePromotionActivityInput!): PromotionActivity!
+  # 编辑满减/折扣活动(全量覆盖,含档位)
+  updatePromotionActivity(id: PrimaryId!, input: UpdatePromotionActivityInput!): PromotionActivity!
+  # 停用满减/折扣活动(立即失效)
+  disablePromotionActivity(id: PrimaryId!): PromotionActivity!
+  # 新建桶水票票种
+  createTicketType(input: CreateTicketTypeInput!): TicketType!
+  # 编辑桶水票票种
+  updateTicketType(id: PrimaryId!, input: UpdateTicketTypeInput!): TicketType!
+  # 停用桶水票票种(不可再购,已购票不受影响)
+  disableTicketType(id: PrimaryId!): TicketType!
+  # 新建限时特价活动
+  createFlashSaleActivity(input: CreateFlashSaleActivityInput!): FlashSaleActivity!
+  # 编辑限时特价活动(全量覆盖)
+  updateFlashSaleActivity(id: PrimaryId!, input: UpdateFlashSaleActivityInput!): FlashSaleActivity!
+  # 停用限时特价活动(立即失效,商品回退分组价/目录价)
+  disableFlashSaleActivity(id: PrimaryId!): FlashSaleActivity!
+  # 新建买赠/满赠活动
+  createGiftActivity(input: CreateGiftActivityInput!): GiftActivity!
+  # 编辑买赠/满赠活动(全量覆盖)
+  updateGiftActivity(id: PrimaryId!, input: UpdateGiftActivityInput!): GiftActivity!
+  # 停用买赠/满赠活动(立即失效,不再触发赠品)
+  disableGiftActivity(id: PrimaryId!): GiftActivity!
+  # 新建首单立减/新人专享价活动
+  createFirstOrderActivity(input: CreateFirstOrderActivityInput!): FirstOrderActivity!
+  # 编辑首单立减/新人专享价活动(全量覆盖)
+  updateFirstOrderActivity(id: PrimaryId!, input: UpdateFirstOrderActivityInput!): FirstOrderActivity!
+  # 停用首单立减/新人专享价活动(立即失效)
+  disableFirstOrderActivity(id: PrimaryId!): FirstOrderActivity!
+}
+
+# ============ 客户分组(F-MKT-001) ============
+
+type CustomerGroup {
+  id: PrimaryId!
+  name: String!
+  description: String
+  # 分组下成员数
+  memberCount: Int!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type CustomerGroupVOPage {
+  content: [CustomerGroup!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input CustomerGroupListInput {
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateCustomerGroupInput {
+  name: String! @notBlank(message: "分组名称不能为空") @size(max: 50, message: "分组名称不能超过50个字")
+  description: String @size(max: 500, message: "分组描述不能超过500个字")
+  # 初始成员(用户ID列表,可选;为空则不划入成员)
+  memberIds: [PrimaryId!]
+}
+
+input UpdateCustomerGroupInput {
+  name: String! @notBlank(message: "分组名称不能为空") @size(max: 50, message: "分组名称不能超过50个字")
+  description: String @size(max: 500, message: "分组描述不能超过500个字")
+  # 成员列表(覆盖式):缺省/null 表示不调整成员;空数组清空全部成员;非空则仅保留该成员集合
+  memberIds: [PrimaryId!]
+}
+
+# ============ 分组商品专属价(F-MKT-002) ============
+
+type GroupProductPrice {
+  id: PrimaryId!
+  customerGroupId: PrimaryId!
+  productId: PrimaryId!
+  # 商品名称(展示联查)
+  productName: String
+  # 商品规格
+  productSpecification: String
+  # 商品目录价(分)
+  catalogPriceCents: Long!
+  # 分组专属价(分,空=未设置,回退目录价)
+  priceCents: Long
+}
+
+type GroupProductPriceVOPage {
+  content: [GroupProductPrice!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input GroupProductPriceListInput {
+  customerGroupId: PrimaryId! @positive(message: "客户分组ID必须为正数")
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input GroupProductPriceItemInput {
+  productId: PrimaryId! @positive(message: "商品ID必须为正数")
+  # 分组价(分,空=清空该项回退目录价)
+  priceCents: Long @min(value: 1, message: "分组价格无效") @max(value: 9999900, message: "分组价格无效(0.01-99999元)")
+}
+
+input SaveGroupProductPricesInput {
+  customerGroupId: PrimaryId! @positive(message: "客户分组ID必须为正数")
+  items: [GroupProductPriceItemInput!]! @size(min: 1, max: 500, message: "商品价格列表不能为空")
+  # 是否清空本批未包含的已配置价格(批量覆盖语义)
+  clearUnlisted: Boolean = false
+}
+
+# ============ 优惠券(F-MKT-003) ============
+
+type CouponTemplate {
+  id: PrimaryId!
+  name: String!
+  couponType: CouponType!
+  # 门槛(分,空=无门槛)
+  thresholdCents: Long
+  # 现金券面额(分)
+  discountAmountCents: Long
+  # 折扣券折扣率(千分比,8500=8.5折)
+  discountRatePermille: Long
+  scope: CouponScope!
+  productId: PrimaryId
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  issuanceType: CouponIssuanceType!
+  perUserLimit: Int!
+  status: CouponTemplateStatus!
+  # 已领未用数
+  receivedCount: Int!
+  # 已核销数
+  usedCount: Int!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type CouponTemplateVOPage {
+  content: [CouponTemplate!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+enum CouponIssuanceType {
+  # 自动领取
+  AUTO_CLAIM
+  # 定向发放
+  TARGETED
+}
+
+enum CouponTemplateStatus {
+  # 上架
+  ACTIVE
+  # 停用
+  DISABLED
+}
+
+input CouponTemplateListInput {
+  keyword: String
+  status: CouponTemplateStatus
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateCouponTemplateInput {
+  name: String! @notBlank(message: "券名称不能为空") @size(max: 100, message: "券名称不能超过100个字")
+  couponType: CouponType!
+  thresholdCents: Long @min(value: 0, message: "门槛金额无效")
+  discountAmountCents: Long @min(value: 1, message: "券面额无效") @max(value: 9999900, message: "券面额无效(0.01-99999元)")
+  discountRatePermille: Long @min(value: 100, message: "折扣率超出范围(0.1-9.9折)") @max(value: 9990, message: "折扣率超出范围(0.1-9.9折)")
+  scope: CouponScope!
+  productId: PrimaryId
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int @min(value: 1, message: "有效天数无效") @max(value: 3650, message: "有效天数不能超过3650天")
+  issuanceType: CouponIssuanceType!
+  perUserLimit: Int! @min(value: 1, message: "限领数不能小于1") @max(value: 100, message: "限领数不能超过100")
+}
+
+input UpdateCouponTemplateInput {
+  name: String! @notBlank(message: "券名称不能为空") @size(max: 100, message: "券名称不能超过100个字")
+  couponType: CouponType!
+  thresholdCents: Long @min(value: 0, message: "门槛金额无效")
+  discountAmountCents: Long @min(value: 1, message: "券面额无效") @max(value: 9999900, message: "券面额无效(0.01-99999元)")
+  discountRatePermille: Long @min(value: 100, message: "折扣率超出范围(0.1-9.9折)") @max(value: 9990, message: "折扣率超出范围(0.1-9.9折)")
+  scope: CouponScope!
+  productId: PrimaryId
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int @min(value: 1, message: "有效天数无效") @max(value: 3650, message: "有效天数不能超过3650天")
+  perUserLimit: Int! @min(value: 1, message: "限领数不能小于1") @max(value: 100, message: "限领数不能超过100")
+}
+
+input IssueCouponsInput {
+  couponTemplateId: PrimaryId! @positive(message: "优惠券模板ID必须为正数")
+  targetType: IssueTargetType!
+  # targetType=USER 时必填
+  userIds: [PrimaryId!]
+  # targetType=GROUP 时必填
+  customerGroupId: PrimaryId
+}
+
+enum IssueTargetType {
+  # 按用户列表发放
+  USER
+  # 按客户分组发放(全组成员)
+  GROUP
+}
+
+# ============ 满减/折扣活动(F-MKT-004) ============
+
+type PromotionActivity {
+  id: PrimaryId!
+  name: String!
+  activityType: PromotionActivityType!
+  scope: PromotionScope!
+  productId: PrimaryId
+  customerGroupId: PrimaryId
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  status: PromotionActivityStatus!
+  # 展示状态(未开始/进行中/已结束/已停用,按时间窗与存储状态计算)
+  currentStatus: PromotionActivityDisplayStatus!
+  # 档位(递增且互斥)
+  tiers: [PromotionActivityTier!]!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type PromotionActivityTier {
+  id: PrimaryId!
+  thresholdCents: Long!
+  discountAmountCents: Long
+  discountRatePermille: Long
+}
+
+type PromotionActivityVOPage {
+  content: [PromotionActivity!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+enum PromotionActivityType {
+  # 满减(满X减Y)
+  FULL_REDUCE
+  # 满折(满X打N折)
+  FULL_DISCOUNT
+}
+
+enum PromotionScope {
+  # 全场
+  ALL
+  # 指定商品
+  PRODUCT
+  # 指定客户分组
+  GROUP
+}
+
+enum PromotionActivityStatus {
+  # 启用
+  ACTIVE
+  # 停用
+  DISABLED
+}
+
+enum PromotionActivityDisplayStatus {
+  # 未开始
+  UPCOMING
+  # 进行中
+  ONGOING
+  # 已结束
+  ENDED
+  # 已停用
+  DISABLED
+}
+
+input PromotionActivityListInput {
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input PromotionTierInput {
+  thresholdCents: Long! @min(value: 1, message: "档位门槛无效") @max(value: 9999900, message: "档位门槛无效(0.01-99999元)")
+  discountAmountCents: Long @min(value: 1, message: "满减金额无效") @max(value: 9999900, message: "满减金额无效(0.01-99999元)")
+  discountRatePermille: Long @min(value: 100, message: "折扣率超出范围(1-9.9折)") @max(value: 9900, message: "折扣率超出范围(1-9.9折)")
+}
+
+input CreatePromotionActivityInput {
+  name: String! @notBlank(message: "活动名称不能为空") @size(max: 100, message: "活动名称不能超过100个字")
+  activityType: PromotionActivityType!
+  scope: PromotionScope!
+  productId: PrimaryId
+  customerGroupId: PrimaryId
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  tiers: [PromotionTierInput!]! @size(min: 1, message: "至少需要一个档位")
+}
+
+input UpdatePromotionActivityInput {
+  name: String! @notBlank(message: "活动名称不能为空") @size(max: 100, message: "活动名称不能超过100个字")
+  activityType: PromotionActivityType!
+  scope: PromotionScope!
+  productId: PrimaryId
+  customerGroupId: PrimaryId
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  tiers: [PromotionTierInput!]! @size(min: 1, message: "至少需要一个档位")
+}
+
+# ============ 桶水票(F-MKT-007) ============
+
+type TicketType {
+  id: PrimaryId!
+  name: String!
+  ticketType: TicketTypeKind!
+  productId: PrimaryId
+  # 通兑票限定规格(如 "19L",与商品 specification 匹配)
+  specification: String
+  packageCount: Int!
+  packagePriceCents: Long!
+  giftCount: Int!
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  perUserLimit: Int!
+  status: TicketTypeStatus!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type TicketTypeVOPage {
+  content: [TicketType!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+enum TicketTypeStatus {
+  # 上架
+  ACTIVE
+  # 停用
+  DISABLED
+}
+
+input TicketTypeListInput {
+  keyword: String
+  status: TicketTypeStatus
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateTicketTypeInput {
+  name: String! @notBlank(message: "票种名称不能为空") @size(max: 100, message: "票种名称不能超过100个字")
+  ticketType: TicketTypeKind!
+  productId: PrimaryId
+  specification: String @size(max: 100, message: "适用规格不能超过100个字符")
+  packageCount: Int! @min(value: 1, message: "套餐张数必须大于0") @max(value: 1000, message: "套餐张数不能超过1000")
+  packagePriceCents: Long! @min(value: 1, message: "购票价无效(0.01-99999元)") @max(value: 9999900, message: "购票价无效(0.01-99999元)")
+  giftCount: Int! @min(value: 0, message: "赠送张数无效") @max(value: 1000, message: "赠送张数不能超过1000")
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int @min(value: 1, message: "有效天数无效") @max(value: 3650, message: "有效天数不能超过3650天")
+  perUserLimit: Int! @min(value: 0, message: "限购数无效") @max(value: 1000, message: "限购数不能超过1000")
+}
+
+input UpdateTicketTypeInput {
+  name: String! @notBlank(message: "票种名称不能为空") @size(max: 100, message: "票种名称不能超过100个字")
+  ticketType: TicketTypeKind!
+  productId: PrimaryId
+  specification: String @size(max: 100, message: "适用规格不能超过100个字符")
+  packageCount: Int! @min(value: 1, message: "套餐张数必须大于0") @max(value: 1000, message: "套餐张数不能超过1000")
+  packagePriceCents: Long! @min(value: 1, message: "购票价无效(0.01-99999元)") @max(value: 9999900, message: "购票价无效(0.01-99999元)")
+  giftCount: Int! @min(value: 0, message: "赠送张数无效") @max(value: 1000, message: "赠送张数不能超过1000")
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int @min(value: 1, message: "有效天数无效") @max(value: 3650, message: "有效天数不能超过3650天")
+  perUserLimit: Int! @min(value: 0, message: "限购数无效") @max(value: 1000, message: "限购数不能超过1000")
+}
+
+# ============ 限时特价活动(F-MKT-005,R-MKT-02 单价链③) ============
+
+type FlashSaleActivity {
+  id: PrimaryId!
+  name: String!
+  productId: PrimaryId!
+  # 商品名称(展示联查)
+  productName: String
+  # 商品目录价(分,展示联查)
+  catalogPriceCents: Long
+  # 特价(分,须低于目录价)
+  salePriceCents: Long!
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  status: PromotionActivityStatus!
+  # 展示状态(未开始/进行中/已结束/已停用,按时间窗与存储状态计算)
+  currentStatus: PromotionActivityDisplayStatus!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type FlashSaleActivityVOPage {
+  content: [FlashSaleActivity!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input FlashSaleActivityListInput {
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateFlashSaleActivityInput {
+  name: String! @notBlank(message: "活动名称不能为空") @size(max: 100, message: "活动名称不能超过100个字")
+  productId: PrimaryId! @positive(message: "商品ID必须为正数")
+  salePriceCents: Long! @min(value: 1, message: "特价无效(0.01-99999元)") @max(value: 9999900, message: "特价无效(0.01-99999元)")
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}
+
+input UpdateFlashSaleActivityInput {
+  name: String! @notBlank(message: "活动名称不能为空") @size(max: 100, message: "活动名称不能超过100个字")
+  productId: PrimaryId! @positive(message: "商品ID必须为正数")
+  salePriceCents: Long! @min(value: 1, message: "特价无效(0.01-99999元)") @max(value: 9999900, message: "特价无效(0.01-99999元)")
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}
+
+# ============ 买赠/满赠活动(F-MKT-008,R-MKT-09) ============
+
+enum GiftActivityType {
+  # 满赠(订单现金部分商品小计满X元赠Y桶)
+  FULL_GIFT
+  # 买赠(指定商品满X桶送Y桶)
+  BUY_GIFT
+}
+
+type GiftActivity {
+  id: PrimaryId!
+  name: String!
+  giftType: GiftActivityType!
+  # 满赠门槛(分)
+  thresholdCents: Long
+  # 买赠门槛(桶)
+  thresholdQuantity: Int
+  scope: PromotionScope!
+  productId: PrimaryId
+  customerGroupId: PrimaryId
+  # 赠品商品ID
+  giftProductId: PrimaryId!
+  # 赠品商品名称(展示联查)
+  giftProductName: String
+  # 赠品数量
+  giftQuantity: Int!
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  status: PromotionActivityStatus!
+  # 展示状态(未开始/进行中/已结束/已停用,按时间窗与存储状态计算)
+  currentStatus: PromotionActivityDisplayStatus!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type GiftActivityVOPage {
+  content: [GiftActivity!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input GiftActivityListInput {
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateGiftActivityInput {
+  name: String! @notBlank(message: "活动名称不能为空") @size(max: 100, message: "活动名称不能超过100个字")
+  giftType: GiftActivityType!
+  thresholdCents: Long @min(value: 1, message: "满赠门槛无效(0.01-99999元)") @max(value: 9999900, message: "满赠门槛无效(0.01-99999元)")
+  thresholdQuantity: Int @min(value: 1, message: "买赠门槛数量无效") @max(value: 999, message: "买赠门槛数量不能超过999")
+  scope: PromotionScope!
+  productId: PrimaryId
+  customerGroupId: PrimaryId
+  giftProductId: PrimaryId! @positive(message: "赠品商品ID必须为正数")
+  giftQuantity: Int! @min(value: 1, message: "赠品数量无效") @max(value: 999, message: "赠品数量不能超过999")
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}
+
+input UpdateGiftActivityInput {
+  name: String! @notBlank(message: "活动名称不能为空") @size(max: 100, message: "活动名称不能超过100个字")
+  giftType: GiftActivityType!
+  thresholdCents: Long @min(value: 1, message: "满赠门槛无效(0.01-99999元)") @max(value: 9999900, message: "满赠门槛无效(0.01-99999元)")
+  thresholdQuantity: Int @min(value: 1, message: "买赠门槛数量无效") @max(value: 999, message: "买赠门槛数量不能超过999")
+  scope: PromotionScope!
+  productId: PrimaryId
+  customerGroupId: PrimaryId
+  giftProductId: PrimaryId! @positive(message: "赠品商品ID必须为正数")
+  giftQuantity: Int! @min(value: 1, message: "赠品数量无效") @max(value: 999, message: "赠品数量不能超过999")
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}
+
+# ============ 首单立减/新人专享价(F-MKT-009,R-MKT-10) ============
+
+enum FirstOrderActivityType {
+  # 首单立减(订单级,满X减Y或打N折,与满减互斥取最大)
+  FIRST_ORDER_REDUCE
+  # 新人专享价(商品级,指定商品对新用户按专享单价计价)
+  NEWCOMER_PRICE
+}
+
+type FirstOrderActivity {
+  id: PrimaryId!
+  name: String!
+  activityType: FirstOrderActivityType!
+  # 立减门槛(分)
+  thresholdCents: Long
+  # 立减金额(分,与折扣率二选一)
+  discountAmountCents: Long
+  # 立减折扣率(千分比,9000=9折,与减金额二选一)
+  discountRatePermille: Long
+  scope: PromotionScope!
+  # 新人专享价商品ID
+  productId: PrimaryId
+  # 商品名称(展示联查)
+  productName: String
+  # 新人专享价(分,须低于目录价)
+  newcomerPriceCents: Long
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  status: PromotionActivityStatus!
+  # 展示状态(未开始/进行中/已结束/已停用,按时间窗与存储状态计算)
+  currentStatus: PromotionActivityDisplayStatus!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type FirstOrderActivityVOPage {
+  content: [FirstOrderActivity!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input FirstOrderActivityListInput {
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateFirstOrderActivityInput {
+  name: String! @notBlank(message: "活动名称不能为空") @size(max: 100, message: "活动名称不能超过100个字")
+  activityType: FirstOrderActivityType!
+  thresholdCents: Long @min(value: 1, message: "立减门槛无效(0.01-99999元)") @max(value: 9999900, message: "立减门槛无效(0.01-99999元)")
+  discountAmountCents: Long @min(value: 1, message: "立减金额无效(0.01-99999元)") @max(value: 9999900, message: "立减金额无效(0.01-99999元)")
+  discountRatePermille: Long @min(value: 100, message: "折扣率超出范围(1%-99%)") @max(value: 9900, message: "折扣率超出范围(1%-99%)")
+  scope: PromotionScope!
+  productId: PrimaryId
+  newcomerPriceCents: Long @min(value: 1, message: "新人专享价无效(0.01-99999元)") @max(value: 9999900, message: "新人专享价无效(0.01-99999元)")
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}
+
+input UpdateFirstOrderActivityInput {
+  name: String! @notBlank(message: "活动名称不能为空") @size(max: 100, message: "活动名称不能超过100个字")
+  activityType: FirstOrderActivityType!
+  thresholdCents: Long @min(value: 1, message: "立减门槛无效(0.01-99999元)") @max(value: 9999900, message: "立减门槛无效(0.01-99999元)")
+  discountAmountCents: Long @min(value: 1, message: "立减金额无效(0.01-99999元)") @max(value: 9999900, message: "立减金额无效(0.01-99999元)")
+  discountRatePermille: Long @min(value: 100, message: "折扣率超出范围(1%-99%)") @max(value: 9900, message: "折扣率超出范围(1%-99%)")
+  scope: PromotionScope!
+  productId: PrimaryId
+  newcomerPriceCents: Long @min(value: 1, message: "新人专享价无效(0.01-99999元)") @max(value: 9999900, message: "新人专享价无效(0.01-99999元)")
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}

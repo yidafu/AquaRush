@@ -157,6 +157,9 @@ object OrderDTOToGraphQLMapper : ObjectMappie<OrderDTO, Order>() {
       to::address fromExpression { requireNotNull(from.address) { "address must not be null" } }
       to::product fromExpression { requireNotNull(from.product) { "product must not be null" } }
       to::user fromExpression { requireNotNull(from.user) { "user must not be null" } }
+      // DTO 无首单立减/赠品快照(由 OrderModel 直映或字段级 Resolver 提供 —— R-MKT-09/10)
+      to::firstOrderDiscountCents fromValue 0L
+      to::giftItems fromValue null
     }
 }
 
@@ -236,6 +239,8 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
         from.user?.let { UserMapper.map(it) }
       }
       to::paymentType fromExpression { from.paymentType?.let { PaymentTypeMapper.map(it) } }
+      // 赠品行由字段级 Resolver 联查 order_gifts 提供(R-MKT-09,配置变更不影响已生成订单)
+      to::giftItems fromValue null
     }
 }
 
@@ -265,6 +270,10 @@ object CreateOrderInputMapper : ObjectMappie<CreateOrderInput, CreateOrderReques
   override fun map(from: CreateOrderInput): CreateOrderRequest =
     mapping {
       to::userId fromValue 0L
+      // 促销引擎(R-MKT-07 叠加③):省略=引擎自动选最优,0=不用券;一单一券
+      to::preferredCouponId fromProperty from::preferredCouponId
+      // 水票核销张数(一票抵一桶 R-MKT-08)
+      to::ticketRedeemCount fromValue (from.ticketRedeemCount ?: 0)
     }
 }
 

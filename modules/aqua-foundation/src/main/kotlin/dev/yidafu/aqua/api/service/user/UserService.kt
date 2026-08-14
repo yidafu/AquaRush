@@ -64,4 +64,22 @@ interface UserService {
     status: UserStatus,
     pageable: Pageable,
   ): Page<UserModel>
+
+  // ===== 客户分组(F-MKT-001,营销受众维度)=====
+
+  /**
+   * 按客户分组查询用户(分页,用户列表分组筛选 F-USR-022)
+   */
+  fun findUsersByCustomerGroupId(
+    groupId: Long,
+    pageable: Pageable,
+  ): Page<UserModel>
+
+  /**
+   * 设置用户所属分组(单分组;customerGroupId=null 回「未分组」)
+   */
+  fun setCustomerGroup(
+    userId: Long,
+    customerGroupId: Long?,
+  ): UserModel
 }

@@ -1,0 +1,583 @@
+# Test Schema for Admin Marketing Resolvers GraphQL Integration Tests
+# 自包含 schema(仿 ops 测试目录模式),仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/marketing/) 加载
+# 与 services/aqua-admin/src/main/resources/graphql/modules/marketing.graphqls 保持一致(F-MKT-001/002/003/004/007)
+
+scalar Long
+scalar LocalDateTime
+
+type Query {
+  customerGroups(input: CustomerGroupListInput): CustomerGroupVOPage
+  customerGroup(id: Long!): CustomerGroup
+  groupProductPrices(input: GroupProductPriceListInput!): GroupProductPriceVOPage
+  couponTemplates(input: CouponTemplateListInput): CouponTemplateVOPage
+  couponTemplate(id: Long!): CouponTemplate
+  promotionActivities(input: PromotionActivityListInput): PromotionActivityVOPage
+  promotionActivity(id: Long!): PromotionActivity
+  ticketTypes(input: TicketTypeListInput): TicketTypeVOPage
+  ticketType(id: Long!): TicketType
+  flashSaleActivities(input: FlashSaleActivityListInput): FlashSaleActivityVOPage
+  flashSaleActivity(id: Long!): FlashSaleActivity
+  giftActivities(input: GiftActivityListInput): GiftActivityVOPage
+  giftActivity(id: Long!): GiftActivity
+  firstOrderActivities(input: FirstOrderActivityListInput): FirstOrderActivityVOPage
+  firstOrderActivity(id: Long!): FirstOrderActivity
+}
+
+type Mutation {
+  createCustomerGroup(input: CreateCustomerGroupInput!): CustomerGroup!
+  updateCustomerGroup(id: Long!, input: UpdateCustomerGroupInput!): CustomerGroup!
+  deleteCustomerGroup(id: Long!): Boolean!
+  setUserCustomerGroup(userId: Long!, customerGroupId: Long): Boolean!
+  saveGroupProductPrices(input: SaveGroupProductPricesInput!): Boolean!
+  createCouponTemplate(input: CreateCouponTemplateInput!): CouponTemplate!
+  updateCouponTemplate(id: Long!, input: UpdateCouponTemplateInput!): CouponTemplate!
+  disableCouponTemplate(id: Long!): CouponTemplate!
+  issueCoupons(input: IssueCouponsInput!): Int!
+  createPromotionActivity(input: CreatePromotionActivityInput!): PromotionActivity!
+  updatePromotionActivity(id: Long!, input: UpdatePromotionActivityInput!): PromotionActivity!
+  disablePromotionActivity(id: Long!): PromotionActivity!
+  createTicketType(input: CreateTicketTypeInput!): TicketType!
+  updateTicketType(id: Long!, input: UpdateTicketTypeInput!): TicketType!
+  disableTicketType(id: Long!): TicketType!
+  createFlashSaleActivity(input: CreateFlashSaleActivityInput!): FlashSaleActivity!
+  updateFlashSaleActivity(id: Long!, input: UpdateFlashSaleActivityInput!): FlashSaleActivity!
+  disableFlashSaleActivity(id: Long!): FlashSaleActivity!
+  createGiftActivity(input: CreateGiftActivityInput!): GiftActivity!
+  updateGiftActivity(id: Long!, input: UpdateGiftActivityInput!): GiftActivity!
+  disableGiftActivity(id: Long!): GiftActivity!
+  createFirstOrderActivity(input: CreateFirstOrderActivityInput!): FirstOrderActivity!
+  updateFirstOrderActivity(id: Long!, input: UpdateFirstOrderActivityInput!): FirstOrderActivity!
+  disableFirstOrderActivity(id: Long!): FirstOrderActivity!
+}
+
+# ============ 客户分组(F-MKT-001) ============
+
+type CustomerGroup {
+  id: Long!
+  name: String!
+  description: String
+  memberCount: Int!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type CustomerGroupVOPage {
+  content: [CustomerGroup!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input CustomerGroupListInput {
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateCustomerGroupInput {
+  name: String!
+  description: String
+  memberIds: [Long!]
+}
+
+input UpdateCustomerGroupInput {
+  name: String!
+  description: String
+  memberIds: [Long!]
+}
+
+# ============ 分组商品专属价(F-MKT-002) ============
+
+type GroupProductPrice {
+  id: Long!
+  customerGroupId: Long!
+  productId: Long!
+  productName: String
+  productSpecification: String
+  catalogPriceCents: Long!
+  priceCents: Long
+}
+
+type GroupProductPriceVOPage {
+  content: [GroupProductPrice!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input GroupProductPriceListInput {
+  customerGroupId: Long!
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input GroupProductPriceItemInput {
+  productId: Long!
+  priceCents: Long
+}
+
+input SaveGroupProductPricesInput {
+  customerGroupId: Long!
+  items: [GroupProductPriceItemInput!]!
+  clearUnlisted: Boolean = false
+}
+
+# ============ 优惠券(F-MKT-003) ============
+
+type CouponTemplate {
+  id: Long!
+  name: String!
+  couponType: CouponType!
+  thresholdCents: Long
+  discountAmountCents: Long
+  discountRatePermille: Long
+  scope: CouponScope!
+  productId: Long
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  issuanceType: CouponIssuanceType!
+  perUserLimit: Int!
+  status: CouponTemplateStatus!
+  receivedCount: Int!
+  usedCount: Int!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type CouponTemplateVOPage {
+  content: [CouponTemplate!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+enum CouponType {
+  CASH
+  DISCOUNT
+  NO_THRESHOLD_CASH
+}
+
+enum CouponScope {
+  ALL
+  PRODUCT
+}
+
+enum ValidityType {
+  FIXED_RANGE
+  DAYS_AFTER_CLAIM
+  DAYS_AFTER_PURCHASE
+}
+
+enum CouponIssuanceType {
+  AUTO_CLAIM
+  TARGETED
+}
+
+enum CouponTemplateStatus {
+  ACTIVE
+  DISABLED
+}
+
+input CouponTemplateListInput {
+  keyword: String
+  status: CouponTemplateStatus
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateCouponTemplateInput {
+  name: String!
+  couponType: CouponType!
+  thresholdCents: Long
+  discountAmountCents: Long
+  discountRatePermille: Long
+  scope: CouponScope!
+  productId: Long
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  issuanceType: CouponIssuanceType!
+  perUserLimit: Int!
+}
+
+input UpdateCouponTemplateInput {
+  name: String!
+  couponType: CouponType!
+  thresholdCents: Long
+  discountAmountCents: Long
+  discountRatePermille: Long
+  scope: CouponScope!
+  productId: Long
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  perUserLimit: Int!
+}
+
+input IssueCouponsInput {
+  couponTemplateId: Long!
+  targetType: IssueTargetType!
+  userIds: [Long!]
+  customerGroupId: Long
+}
+
+enum IssueTargetType {
+  USER
+  GROUP
+}
+
+# ============ 满减/折扣活动(F-MKT-004) ============
+
+type PromotionActivity {
+  id: Long!
+  name: String!
+  activityType: PromotionActivityType!
+  scope: PromotionScope!
+  productId: Long
+  customerGroupId: Long
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  status: PromotionActivityStatus!
+  currentStatus: PromotionActivityDisplayStatus!
+  tiers: [PromotionActivityTier!]!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type PromotionActivityTier {
+  id: Long!
+  thresholdCents: Long!
+  discountAmountCents: Long
+  discountRatePermille: Long
+}
+
+type PromotionActivityVOPage {
+  content: [PromotionActivity!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+enum PromotionActivityType {
+  FULL_REDUCE
+  FULL_DISCOUNT
+}
+
+enum PromotionScope {
+  ALL
+  PRODUCT
+  GROUP
+}
+
+enum PromotionActivityStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum PromotionActivityDisplayStatus {
+  UPCOMING
+  ONGOING
+  ENDED
+  DISABLED
+}
+
+input PromotionActivityListInput {
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input PromotionTierInput {
+  thresholdCents: Long!
+  discountAmountCents: Long
+  discountRatePermille: Long
+}
+
+input CreatePromotionActivityInput {
+  name: String!
+  activityType: PromotionActivityType!
+  scope: PromotionScope!
+  productId: Long
+  customerGroupId: Long
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  tiers: [PromotionTierInput!]!
+}
+
+input UpdatePromotionActivityInput {
+  name: String!
+  activityType: PromotionActivityType!
+  scope: PromotionScope!
+  productId: Long
+  customerGroupId: Long
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  tiers: [PromotionTierInput!]!
+}
+
+# ============ 桶水票(F-MKT-007) ============
+
+type TicketType {
+  id: Long!
+  name: String!
+  ticketType: TicketTypeKind!
+  productId: Long
+  specification: String
+  packageCount: Int!
+  packagePriceCents: Long!
+  giftCount: Int!
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  perUserLimit: Int!
+  status: TicketTypeStatus!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type TicketTypeVOPage {
+  content: [TicketType!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+enum TicketTypeKind {
+  SPECIFIC_PRODUCT
+  UNIVERSAL
+}
+
+enum TicketTypeStatus {
+  ACTIVE
+  DISABLED
+}
+
+input TicketTypeListInput {
+  keyword: String
+  status: TicketTypeStatus
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateTicketTypeInput {
+  name: String!
+  ticketType: TicketTypeKind!
+  productId: Long
+  specification: String
+  packageCount: Int!
+  packagePriceCents: Long!
+  giftCount: Int!
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  perUserLimit: Int!
+}
+
+input UpdateTicketTypeInput {
+  name: String!
+  ticketType: TicketTypeKind!
+  productId: Long
+  specification: String
+  packageCount: Int!
+  packagePriceCents: Long!
+  giftCount: Int!
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  perUserLimit: Int!
+}
+
+# ============ 限时特价活动(F-MKT-005) ============
+
+type FlashSaleActivity {
+  id: Long!
+  name: String!
+  productId: Long!
+  productName: String
+  catalogPriceCents: Long
+  salePriceCents: Long!
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  status: PromotionActivityStatus!
+  currentStatus: PromotionActivityDisplayStatus!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type FlashSaleActivityVOPage {
+  content: [FlashSaleActivity!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input FlashSaleActivityListInput {
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateFlashSaleActivityInput {
+  name: String!
+  productId: Long!
+  salePriceCents: Long!
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}
+
+input UpdateFlashSaleActivityInput {
+  name: String!
+  productId: Long!
+  salePriceCents: Long!
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}
+
+# ============ 买赠/满赠活动(F-MKT-008) ============
+
+enum GiftActivityType {
+  FULL_GIFT
+  BUY_GIFT
+}
+
+type GiftActivity {
+  id: Long!
+  name: String!
+  giftType: GiftActivityType!
+  thresholdCents: Long
+  thresholdQuantity: Int
+  scope: PromotionScope!
+  productId: Long
+  customerGroupId: Long
+  giftProductId: Long!
+  giftProductName: String
+  giftQuantity: Int!
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  status: PromotionActivityStatus!
+  currentStatus: PromotionActivityDisplayStatus!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type GiftActivityVOPage {
+  content: [GiftActivity!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input GiftActivityListInput {
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateGiftActivityInput {
+  name: String!
+  giftType: GiftActivityType!
+  thresholdCents: Long
+  thresholdQuantity: Int
+  scope: PromotionScope!
+  productId: Long
+  customerGroupId: Long
+  giftProductId: Long!
+  giftQuantity: Int!
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}
+
+input UpdateGiftActivityInput {
+  name: String!
+  giftType: GiftActivityType!
+  thresholdCents: Long
+  thresholdQuantity: Int
+  scope: PromotionScope!
+  productId: Long
+  customerGroupId: Long
+  giftProductId: Long!
+  giftQuantity: Int!
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}
+
+# ============ 首单立减/新人专享价(F-MKT-009) ============
+
+enum FirstOrderActivityType {
+  FIRST_ORDER_REDUCE
+  NEWCOMER_PRICE
+}
+
+type FirstOrderActivity {
+  id: Long!
+  name: String!
+  activityType: FirstOrderActivityType!
+  thresholdCents: Long
+  discountAmountCents: Long
+  discountRatePermille: Long
+  scope: PromotionScope!
+  productId: Long
+  productName: String
+  newcomerPriceCents: Long
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+  status: PromotionActivityStatus!
+  currentStatus: PromotionActivityDisplayStatus!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type FirstOrderActivityVOPage {
+  content: [FirstOrderActivity!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input FirstOrderActivityListInput {
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateFirstOrderActivityInput {
+  name: String!
+  activityType: FirstOrderActivityType!
+  thresholdCents: Long
+  discountAmountCents: Long
+  discountRatePermille: Long
+  scope: PromotionScope!
+  productId: Long
+  newcomerPriceCents: Long
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}
+
+input UpdateFirstOrderActivityInput {
+  name: String!
+  activityType: FirstOrderActivityType!
+  thresholdCents: Long
+  discountAmountCents: Long
+  discountRatePermille: Long
+  scope: PromotionScope!
+  productId: Long
+  newcomerPriceCents: Long
+  validFrom: LocalDateTime!
+  validTo: LocalDateTime!
+}

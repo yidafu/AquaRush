@@ -21,10 +21,13 @@ package dev.yidafu.aqua.payment.service.impl
 
 import com.wechat.pay.java.core.Config
 import com.wechat.pay.java.core.exception.ValidationException
+import dev.yidafu.aqua.api.service.marketing.TicketMutationApiService
+import dev.yidafu.aqua.api.service.marketing.TicketQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -35,6 +38,8 @@ import org.springframework.transaction.annotation.Transactional
 class PaymentServiceImpl(
   private val orderQueryService: OrderQueryService,
   private val orderMutationService: OrderMutationService,
+  private val ticketQueryApiService: TicketQueryApiService,
+  private val ticketMutationApiService: TicketMutationApiService,
 ) : PaymentService {
   private val logger = LoggerFactory.getLogger(PaymentService::class.java)
 
@@ -116,14 +121,21 @@ class PaymentServiceImpl(
       val outTradeNo = resource["out_trade_no"] as String
       val transactionId = resource["transaction_id"] as String
 
-      // 查找订单
+      // 派发:先查订单,再查购票单(桶水票购票支付,PRD 10-marketing.md §F-MKT-007)
       val order = orderQueryService.getOrderByNo(outTradeNo)
-
-      // 处理支付成功
-      orderMutationService.handlePaymentSuccess(order.id!!, transactionId)
-
-      logger.info("支付回调处理成功: 订单号=$outTradeNo, 交易号=$transactionId")
-      return true
+      if (order != null) {
+        orderMutationService.handlePaymentSuccess(order.id!!, transactionId)
+        logger.info("支付回调处理成功(订单): 订单号=$outTradeNo, 交易号=$transactionId")
+        return true
+      }
+      val purchase = ticketQueryApiService.findPurchaseByOrderNo(outTradeNo)
+      if (purchase != null) {
+        ticketMutationApiService.handleTicketPurchasePaid(purchase.id!!, transactionId)
+        logger.info("支付回调处理成功(购票): 单号=$outTradeNo, 交易号=$transactionId")
+        return true
+      }
+      logger.error("支付回调未匹配业务单: out_trade_no=$outTradeNo")
+      return false
     } catch (e: Exception) {
       logger.error("处理支付回调失败", e)
       return false
@@ -213,6 +225,27 @@ class PaymentServiceImpl(
     // 注意：这里需要按照微信支付小程序签名规则生成
     // 实际实现需要使用SDK提供的签名方法
     return "mock_sign_${prepayId}_${timeStamp}_$nonceStr"
+  }
+
+  /**
+   * 创建桶水票购票支付订单(F-MKT-007):
+   * 校验购票单存在且待支付;购票即预收款项,不支持退款;
+   * 微信支付 SDK 为桩实现(与订单支付现状一致),SDK 修复后自动可用;集成测试用模拟回调验证入账。
+   */
+  override fun createWechatJsapiPayForTicket(
+    ticketPurchaseId: Long,
+    orderNo: String,
+    amountCents: Long,
+    description: String,
+    openId: String,
+  ): Map<String, Any> {
+    val purchase =
+      ticketQueryApiService.findPurchaseById(ticketPurchaseId)
+        ?: throw BadRequestException("购票单不存在: $ticketPurchaseId")
+    if (purchase.paymentStatus != TicketPurchaseStatus.PENDING) {
+      throw BadRequestException("购票单状态不正确,无法创建支付")
+    }
+    throw NotImplementedError("WeChat Pay SDK integration needs to be implemented for version 0.2.17")
   }
 
   /**

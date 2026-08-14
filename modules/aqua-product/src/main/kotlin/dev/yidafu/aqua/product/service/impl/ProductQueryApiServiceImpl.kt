@@ -22,7 +22,6 @@ package dev.yidafu.aqua.product.service.impl
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
-import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import org.springframework.stereotype.Service
 
@@ -38,17 +37,9 @@ class ProductQueryApiServiceImpl(
 
   override fun findByIds(ids: List<Long>): List<ProductModel> = productRepository.findAllById(ids)
 
-  override fun findOnlineProducts(): List<ProductModel> = productRepository.findByStatus(ProductStatus.ONLINE)
+  override fun findOnlineProducts(): List<ProductModel> = productRepository.findByStatus(ProductModelStatus.ONLINE)
 
-  override fun findByStatus(status: ProductModelStatus): List<ProductModel> = productRepository.findByStatus(status.toGraphql())
+  override fun findByStatus(status: ProductModelStatus): List<ProductModel> = productRepository.findByStatus(status)
 
   override fun existsById(id: Long): Boolean = productRepository.existsById(id)
 }
-
-// Extension function to convert ProductModelStatus to ProductStatus
-fun ProductModelStatus.toGraphql(): ProductStatus =
-  when (this) {
-    ProductModelStatus.ONLINE -> ProductStatus.ONLINE
-    ProductModelStatus.OFFLINE -> ProductStatus.OFFLINE
-    ProductModelStatus.OUT_OF_STOCK -> ProductStatus.OUT_OF_STOCK
-  }

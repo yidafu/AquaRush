@@ -29,6 +29,14 @@ import OpsFeedbacks from './pages/ops/feedbacks';
 import OpsNotices from './pages/ops/notices';
 import OpsStoreProfile from './pages/ops/store-profile';
 import OpsDeliveryFeeRule from './pages/ops/delivery-fee-rule';
+import MarketingCustomerGroups from './pages/marketing/customer-groups';
+import MarketingGroupPrices from './pages/marketing/group-prices';
+import MarketingCoupons from './pages/marketing/coupons';
+import MarketingPromotions from './pages/marketing/promotions';
+import MarketingWaterTickets from './pages/marketing/water-tickets';
+import MarketingFlashSale from './pages/marketing/flash-sale';
+import MarketingBuyGift from './pages/marketing/buy-gift';
+import MarketingNewcomer from './pages/marketing/newcomer';
 import SystemParameters from './pages/system/parameters';
 import SystemOrderConfig from './pages/system/order';
 import SystemStockConfig from './pages/system/stock';
@@ -81,6 +89,14 @@ const App: React.FC = () => {
         <Route path="ops/notices" element={page('公告', <OpsNotices />)} />
         <Route path="ops/store-profile" element={page('店铺信息', <OpsStoreProfile />)} />
         <Route path="ops/delivery-fee-rule" element={page('运费规则', <OpsDeliveryFeeRule />)} />
+        <Route path="marketing/customer-groups" element={page('客户分组', <MarketingCustomerGroups />)} />
+        <Route path="marketing/group-prices" element={page('分组价格', <MarketingGroupPrices />)} />
+        <Route path="marketing/coupons" element={page('优惠券', <MarketingCoupons />)} />
+        <Route path="marketing/promotions" element={page('满减/折扣', <MarketingPromotions />)} />
+        <Route path="marketing/water-tickets" element={page('桶水票', <MarketingWaterTickets />)} />
+        <Route path="marketing/flash-sale" element={page('限时特价', <MarketingFlashSale />)} />
+        <Route path="marketing/buy-gift" element={page('买赠/满赠', <MarketingBuyGift />)} />
+        <Route path="marketing/newcomer" element={page('首单立减/新人价', <MarketingNewcomer />)} />
         <Route path="system-config/parameters" element={page('系统参数', <SystemParameters />)} />
         <Route path="system-config/order" element={page('订单与履约参数', <SystemOrderConfig />)} />
         <Route path="system-config/stock" element={page('库存预警阈值', <SystemStockConfig />)} />

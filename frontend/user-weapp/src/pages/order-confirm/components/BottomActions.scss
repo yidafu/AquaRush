@@ -39,6 +39,12 @@
   background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
   border: none;
   transition: transform 0.2s ease;
+  line-height: 64px;
+  color: #ffffff;
+
+  &::after {
+    border: none;
+  }
 
   &:active {
     transform: scale(0.95);

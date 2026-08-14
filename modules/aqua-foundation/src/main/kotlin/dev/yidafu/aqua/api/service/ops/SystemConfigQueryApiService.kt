@@ -28,15 +28,24 @@ interface SystemConfigQueryApiService {
   /**
    * 读取数值型参数(分/件等长整型),失败时按 当前值 → 默认值 → fallback 兜底
    */
-  fun getLongValue(key: String, fallback: Long): Long
+  fun getLongValue(
+    key: String,
+    fallback: Long,
+  ): Long
 
   /**
    * 读取布尔型参数,失败时按 当前值 → 默认值 → fallback 兜底
    */
-  fun getBooleanValue(key: String, fallback: Boolean): Boolean
+  fun getBooleanValue(
+    key: String,
+    fallback: Boolean,
+  ): Boolean
 
   /**
    * 读取文本型参数,失败时按 当前值 → 默认值 → fallback 兜底
    */
-  fun getStringValue(key: String, fallback: String?): String?
+  fun getStringValue(
+    key: String,
+    fallback: String?,
+  ): String?
 }

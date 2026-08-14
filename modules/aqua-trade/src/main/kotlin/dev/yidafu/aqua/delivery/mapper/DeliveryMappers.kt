@@ -118,6 +118,8 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       to::product fromExpression { createPlaceholderProduct(from.productId) }
       to::address fromExpression { createPlaceholderAddress(from.addressId) }
       to::deliveryWorker fromExpression { null }
+      // 赠品行由字段级 Resolver 联查 order_gifts 提供(R-MKT-09)
+      to::giftItems fromValue null
     }
 
   private fun createPlaceholderUser(userId: Long) =
@@ -125,6 +127,8 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       avatarUrl = null,
       balanceCents = 0L,
       createdAt = java.time.LocalDateTime.now(),
+      customerGroupId = null,
+      customerGroupName = null,
       email = "",
       id = userId,
       nickname = null,
@@ -144,6 +148,9 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       deliverySettings = null,
       depositPriceCents = null,
       detailContent = null,
+      effectivePriceCents = 0L,
+      hasGroupPrice = false,
+      priceSource = dev.yidafu.aqua.common.graphql.generated.PriceSource.CATALOG_PRICE,
       id = productId,
       imageGallery = null,
       mineralContent = null,

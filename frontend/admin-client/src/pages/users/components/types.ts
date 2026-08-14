@@ -40,6 +40,8 @@ export interface User {
   avatarUrl?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'DELETED';
   role: 'USER' | 'ADMIN' | 'WORKER' | 'NONE';
+  customerGroupId?: string;
+  customerGroupName?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -90,6 +92,7 @@ export interface TableActionProps {
   onView?: (record: any) => void;
   onDelete: (record: any) => void;
   onResetPassword: (record: any) => void;
+  onSetGroup?: (record: any) => void;
 }
 
 export interface ModalProps {

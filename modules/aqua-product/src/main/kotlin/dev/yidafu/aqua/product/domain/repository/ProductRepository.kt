@@ -31,7 +31,8 @@ interface ProductRepository :
   JpaRepository<ProductModel, Long>,
   JpaSpecificationExecutor<ProductModel>,
   ProductRepositoryCustom {
-  fun findByStatus(status: ProductStatus): List<ProductModel>
+  // 参数须用域枚举 ProductModelStatus(实体字段类型),传 GraphQL 生成枚举会在运行期报 QueryArgumentException
+  fun findByStatus(status: ProductModelStatus): List<ProductModel>
 
   fun findByStatus(
     status: ProductStatus,

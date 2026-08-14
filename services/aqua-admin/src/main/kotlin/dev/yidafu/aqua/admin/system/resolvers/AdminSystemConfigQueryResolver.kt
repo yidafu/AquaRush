@@ -42,7 +42,9 @@ class AdminSystemConfigQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_SYSTEM_CONFIG_READ')")
-  fun systemConfigs(@Argument group: SystemConfigGroup): List<SystemConfigVo> {
+  fun systemConfigs(
+    @Argument group: SystemConfigGroup,
+  ): List<SystemConfigVo> {
     val domainGroup = SystemSettingGroup.valueOf(group.name)
     return systemConfigQueryService.listByGroup(domainGroup).map { SystemConfigMapper.map(it) }
   }

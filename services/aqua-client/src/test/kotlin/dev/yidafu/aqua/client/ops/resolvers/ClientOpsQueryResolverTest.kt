@@ -117,7 +117,14 @@ class ClientOpsQueryResolverTest {
   fun `activeNotices returns mapped notices`() {
     val notices =
       listOf(
-        NoticeModel(id = 1L, title = "停水通知", content = "内容", type = NoticeType.WATER_OUTAGE, status = NoticeStatus.PUBLISHED, pinned = true),
+        NoticeModel(
+          id = 1L,
+          title = "停水通知",
+          content = "内容",
+          type = NoticeType.WATER_OUTAGE,
+          status = NoticeStatus.PUBLISHED,
+          pinned = true,
+        ),
         NoticeModel(id = 2L, title = "活动预告", content = "内容", type = NoticeType.ACTIVITY_PREVIEW, status = NoticeStatus.PUBLISHED),
       )
     every { noticeQueryApiService.getActiveNotices() } returns notices

@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.admin.user.resolvers
 
+import dev.yidafu.aqua.api.service.marketing.CustomerGroupQueryApiService
 import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.graphql.generated.User
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Controller
 @Controller
 class UserQueryResolver(
   private val userService: UserService,
+  private val customerGroupQueryApiService: CustomerGroupQueryApiService,
 ) {
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
@@ -46,14 +48,14 @@ class UserQueryResolver(
     val currentUserId =
       GraphQLSecurityContext.getCurrentUserId()
         ?: throw IllegalArgumentException("User not authenticated")
-    return userService.findById(currentUserId)?.let { UserMapper.map(it) }
+    return userService.findById(currentUserId)?.let { mapWithGroupName(it) }
   }
 
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_USER_READ') or #id == authentication.principal.id")
   fun user(
     @Argument id: Long,
-  ): User? = userService.findById(id)?.let { UserMapper.map(it) }
+  ): User? = userService.findById(id)?.let { mapWithGroupName(it) }
 
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_USER_READ')")
@@ -66,6 +68,7 @@ class UserQueryResolver(
     val size = input?.size ?: 20
     val search = input?.search
     val status = input?.status
+    val customerGroupId = input?.customerGroupId
 
     // Parse sort parameter (format: "field,direction")
     val sortParams = sort.split(",")
@@ -81,6 +84,10 @@ class UserQueryResolver(
 
     val userPage =
       when {
+        customerGroupId != null -> {
+          userService.findUsersByCustomerGroupId(customerGroupId, pageable)
+        }
+
         search != null && status != null -> {
           userService.findUsersByKeywordAndStatus(search, status, pageable)
         }
@@ -98,10 +105,18 @@ class UserQueryResolver(
         }
       }
 
-    val (userList, pageInfo) = userPage.toPageInfo { UserMapper.map(it) }
+    val (userList, pageInfo) = userPage.toPageInfo { mapWithGroupName(it) }
     return UserVoPage(
       list = userList,
       pageInfo = pageInfo,
     )
+  }
+
+  /**
+   * 映射用户并联查所属分组名称(F-MKT-001 营销受众维度,未分组=null)
+   */
+  private fun mapWithGroupName(model: dev.yidafu.aqua.common.domain.model.UserModel): User {
+    val groupName = model.customerGroupId?.let { customerGroupQueryApiService.findById(it)?.name }
+    return UserMapper.map(model).copy(customerGroupName = groupName)
   }
 }

@@ -256,7 +256,8 @@ class DeliveryTaskMutationServiceImpl(
     // 更新订单状态
     order.status = OrderModelStatus.COMPLETED
     order.deliveryPhotos = jsonHelper.createArrayNode(deliveryPhotos).toString()
-    order.paymentType = paymentType
+    // 电子票核销订单:未指定收款方式时自动记为「水票」(R-COL-04,PRD 10-marketing.md §F-MKT-007)
+    order.paymentType = paymentType ?: if (order.ticketRedeemCount > 0) PaymentType.WATER_TICKET else null
     order.deliveryRemark = remark
     order.deliveryConfirmedAt = java.time.LocalDateTime.now()
     order.completedAt = java.time.LocalDateTime.now()
@@ -269,7 +270,7 @@ class DeliveryTaskMutationServiceImpl(
       operatorType = OperatorType.DELIVERY_WORKER,
       operatorId = savedOrder.deliveryWorkerId,
       description = if (remark.isNullOrBlank()) "配送员完成配送" else "配送员完成配送: $remark",
-      extraData = """{"paymentType": "${paymentType?.name}"}""",
+      extraData = """{"paymentType": "${savedOrder.paymentType?.name}"}""",
     )
 
     // 记录订单操作 - 订单完成

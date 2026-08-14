@@ -64,6 +64,9 @@ object RolePermissionMapping {
           // 意见反馈
           AdminPermission.FEEDBACK_READ,
           AdminPermission.FEEDBACK_REVIEW,
+          // 营销(客户分组/分组价/优惠券/满减折扣/桶水票)
+          AdminPermission.MKT_READ,
+          AdminPermission.MKT_WRITE,
         )
       }
 

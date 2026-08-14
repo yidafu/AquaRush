@@ -121,4 +121,23 @@ class UserServiceImpl(
       status,
       pageable,
     )
+
+  // ===== 客户分组(F-MKT-001,营销受众维度)=====
+  override fun findUsersByCustomerGroupId(
+    groupId: Long,
+    pageable: Pageable,
+  ): Page<UserModel> = userRepository.findByCustomerGroupId(groupId, pageable)
+
+  @Transactional
+  override fun setCustomerGroup(
+    userId: Long,
+    customerGroupId: Long?,
+  ): UserModel {
+    val user =
+      userRepository
+        .findById(userId)
+        .orElseThrow { IllegalArgumentException("User not found: $userId") }
+    user.customerGroupId = customerGroupId
+    return userRepository.save(user)
+  }
 }

@@ -46,4 +46,14 @@ interface UserRepository :
     status: UserStatus,
     pageable: Pageable,
   ): Page<UserModel>
+
+  // ===== 客户分组(F-MKT-001,营销受众维度)=====
+  fun findByCustomerGroupId(groupId: Long): List<UserModel>
+
+  fun findByCustomerGroupId(
+    groupId: Long,
+    pageable: Pageable,
+  ): Page<UserModel>
+
+  fun countByCustomerGroupId(groupId: Long): Long
 }

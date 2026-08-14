@@ -1,6 +1,7 @@
 package dev.yidafu.aqua.api.dto
 
 import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
@@ -23,4 +24,11 @@ data class CreateOrderRequest(
   @field:Size(max = 500, message = "备注长度不能超过500个字符")
   val remark: String? = null,
   val isSelfCollect: Boolean? = false,
+  // 优惠券选择(促销引擎 R-MKT-07 叠加③):null=引擎自动选最优,0=不用券;一单一券
+  @field:Min(value = 0, message = "优惠券ID无效")
+  val preferredCouponId: Long? = null,
+  // 水票核销张数(一票抵一桶 R-MKT-08,≤下单桶数 ∩ 可用张数)
+  @field:Min(value = 0, message = "水票核销张数无效")
+  @field:Max(value = 999, message = "水票核销张数不能超过999")
+  val ticketRedeemCount: Int = 0,
 )

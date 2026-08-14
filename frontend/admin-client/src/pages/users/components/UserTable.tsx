@@ -1,6 +1,6 @@
 import React from 'react';
 import { Table, Button, Space, Tag, Avatar } from 'antd';
-import { EditOutlined, LockOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { EditOutlined, LockOutlined, DeleteOutlined, EyeOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import type { ColumnsType } from 'antd/es/table';
 import type { User, TableActionProps } from './types';
@@ -17,6 +17,7 @@ const UserTable: React.FC<UserTableProps> = ({
   onEdit,
   onDelete,
   onResetPassword,
+  onSetGroup,
 }) => {
   const navigate = useNavigate();
   const columns: ColumnsType<User> = [
@@ -88,6 +89,14 @@ const UserTable: React.FC<UserTableProps> = ({
       },
     },
     {
+      title: '所属分组',
+      dataIndex: 'customerGroupName',
+      key: 'customerGroupName',
+      width: 130,
+      render: (customerGroupName: string | null | undefined) =>
+        customerGroupName ? <Tag color="geekblue">{customerGroupName}</Tag> : <Tag>未分组</Tag>,
+    },
+    {
       title: '注册时间',
       dataIndex: 'createdAt',
       key: 'createdAt',
@@ -132,6 +141,16 @@ const UserTable: React.FC<UserTableProps> = ({
           >
             重置密码
           </Button>
+          {onSetGroup && (
+            <Button
+              type="link"
+              icon={<UsergroupAddOutlined />}
+              onClick={() => onSetGroup(record)}
+              size="small"
+            >
+              设置分组
+            </Button>
+          )}
           <Button
             type="link"
             danger

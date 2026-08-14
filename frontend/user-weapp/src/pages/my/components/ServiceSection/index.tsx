@@ -43,6 +43,26 @@ const ServiceSection: React.FC<ServiceSectionProps> = () => {
       }
     },
     {
+      icon: '/assets/icons/service/info-circle.png',
+      title: '领券中心',
+      description: '优惠券免费领',
+      onClick: () => {
+        Taro.navigateTo({
+          url: '/pages/coupon-center/index'
+        })
+      }
+    },
+    {
+      icon: '/assets/icons/service/heart.png',
+      title: '我的水票',
+      description: '查看已购水票',
+      onClick: () => {
+        Taro.navigateTo({
+          url: '/pages/ticket-list/index'
+        })
+      }
+    },
+    {
       icon: '/assets/icons/service/comments.png',
       title: '客服中心',
       description: '联系在线客服',

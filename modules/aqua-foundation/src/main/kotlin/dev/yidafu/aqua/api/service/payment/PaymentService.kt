@@ -61,6 +61,18 @@ interface PaymentService {
    */
   fun handlePaymentTimeout(orderId: Long)
 
+  /**
+   * 创建桶水票购票支付订单(PRD 10-marketing.md §F-MKT-007):
+   * orderNo 为购票单号(微信 out_trade_no);购票即预收款项,不支持退款。
+   */
+  fun createWechatJsapiPayForTicket(
+    ticketPurchaseId: Long,
+    orderNo: String,
+    amountCents: Long,
+    description: String,
+    openId: String,
+  ): Map<String, Any>
+
   // 保持原有接口兼容性
   fun createWechatPayOrder(
     orderId: Long,

@@ -43,6 +43,20 @@ type Query {
   # 配送费规则(未配置返回默认规则 免费4楼/加价2元)
   deliveryFeeRule: DeliveryFeeRule!
 
+  # Marketing queries (营销域 F-MKT-002/003/007,PRD 10-marketing.md)
+  # 商品成交单价解析(按登录用户分组价,R-MKT-01)
+  productPrice(productId: PrimaryId!): ProductPriceVO
+  # 领券中心(F-MKT-003,仅自动领取模板)
+  couponCenter: [CouponTemplateVO!]!
+  # 我的券包(按状态过滤,空=全部)
+  myCoupons(status: UserCouponStatus): [UserCouponVO!]!
+  # 水票商城(F-MKT-007,仅上架票种)
+  ticketShop: [TicketTypeVO!]!
+  # 我的水票(按状态过滤,空=全部)
+  myTickets(status: UserTicketStatus): [UserTicketVO!]!
+  # 确认订单计价预览(F-ORD-023,促销引擎 R-MKT-02/07/08 全链路,服务端计算 R-MON-01)
+  orderPreview(input: OrderPreviewInput!): OrderPreviewVO!
+
 }
 
 # Client-specific Mutation Schema
@@ -65,7 +79,209 @@ type Mutation {
 
   # Operations config mutations (意见反馈提交, F-USR-005)
   submitFeedback(input: FeedbackSubmitInput!): Boolean!
+
+  # Marketing mutations (营销域 F-MKT-003/007)
+  # 领取优惠券(领券中心)
+  claimCoupon(couponTemplateId: PrimaryId!): UserCouponVO!
+  # 购买桶水票(在线支付,购票即预收款项,一经购买不支持退款 R-MKT-08)
+  purchaseTickets(input: PurchaseTicketsInput!): TicketPurchaseVO!
 }
+
+# ============ 商品价格(R-MKT-01) ============
+
+type ProductPriceVO {
+  productId: PrimaryId!
+  # 有效成交单价(分,R-MKT-02:分组价→特价→新人价→目录价)
+  effectivePriceCents: Long!
+  # 成交单价来源(展示标签依据:熟客价/特价/新人价/目录价 —— R-MKT-01)
+  priceSource: PriceSource!
+  # 是否命中熟客价(分组价)
+  hasGroupPrice: Boolean!
+  # 商品目录价(分)
+  catalogPriceCents: Long!
+}
+
+# 用户端商品成交单价(按登录用户解析,分组价/特价/新人价/目录价 —— R-MKT-01)
+extend type Product {
+  # 当前用户有效成交单价(分,R-MKT-02 链路解析)
+  effectivePriceCents: Long!
+  # 成交单价来源(展示标签依据 —— R-MKT-01)
+  priceSource: PriceSource!
+  # 是否命中熟客价(分组价)
+  hasGroupPrice: Boolean!
+}
+
+# ============ 优惠券用户端(F-MKT-003) ============
+
+type CouponTemplateVO {
+  id: PrimaryId!
+  name: String!
+  couponType: CouponType!
+  thresholdCents: Long
+  discountAmountCents: Long
+  discountRatePermille: Long
+  scope: CouponScope!
+  productId: PrimaryId
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  perUserLimit: Int!
+  # 当前用户已领数量
+  claimedCount: Int!
+}
+
+type UserCouponVO {
+  id: PrimaryId!
+  name: String!
+  couponType: CouponType!
+  thresholdCents: Long
+  discountAmountCents: Long
+  discountRatePermille: Long
+  scope: CouponScope!
+  productId: PrimaryId
+  status: UserCouponStatus!
+  expireTime: LocalDateTime!
+  # 当前订单上下文是否可用(引擎计算,门槛不足/过期置灰)
+  usable: Boolean!
+}
+
+enum UserCouponStatus {
+  RECEIVED
+  USED
+  RETURNED
+  EXPIRED
+}
+
+# ============ 桶水票用户端(F-MKT-007) ============
+
+type TicketTypeVO {
+  id: PrimaryId!
+  name: String!
+  ticketType: TicketTypeKind!
+  productId: PrimaryId
+  specification: String
+  packageCount: Int!
+  packagePriceCents: Long!
+  giftCount: Int!
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  perUserLimit: Int!
+  # 当前用户已购张数(限购判定展示)
+  myPurchasedCount: Int!
+}
+
+type UserTicketVO {
+  id: PrimaryId!
+  # 票种名称
+  ticketTypeName: String!
+  # 通兑票限定规格
+  specification: String
+  status: UserTicketStatus!
+  expireTime: LocalDateTime!
+  # 是否赠送票
+  isGift: Boolean!
+}
+
+enum UserTicketStatus {
+  UNUSED
+  USED
+  RETURNED
+  EXPIRED
+}
+
+input PurchaseTicketsInput {
+  ticketTypeId: PrimaryId! @positive(message: "票种ID必须为正数")
+  packageCount: Int! @min(value: 1, message: "购票张数必须大于0") @max(value: 10, message: "单次购票张数不能超过10")
+}
+
+type TicketPurchaseVO {
+  id: PrimaryId!
+  orderNo: String!
+  ticketTypeName: String!
+  # 入账总张数(N 张 + 赠送 M 张)
+  totalCount: Int!
+  packagePriceCents: Long!
+  paymentStatus: TicketPurchaseStatus!
+  # 微信支付参数(真实支付待 SDK 接入;当前桩实现)
+  paymentParams: JsonObject
+  # true=支付功能待接入(桩实现),前端提示后返回;false=可发起 Taro.requestPayment
+  requiresSimulation: Boolean!
+}
+
+enum TicketPurchaseStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+# ============ 确认订单计价预览(F-ORD-023) ============
+
+input OrderPreviewInput {
+  productId: PrimaryId! @positive(message: "商品ID必须为正数")
+  quantity: Int! @min(value: 1, message: "购买数量不能少于1") @max(value: 999, message: "购买数量不能超过999")
+  addressId: PrimaryId! @positive(message: "地址ID必须为正数")
+  # 优惠券偏好(省略=引擎自动选最优,0=不用券)
+  preferredCouponId: PrimaryId @min(value: 0, message: "优惠券ID无效")
+  # 水票核销张数
+  ticketRedeemCount: Int @min(value: 0, message: "水票核销张数无效") @max(value: 999, message: "水票核销张数不能超过999")
+}
+
+type OrderPreviewVO {
+  # 成交单价(分,R-MKT-02:分组价→目录价)
+  unitPriceCents: Long!
+  priceSource: PriceSource!
+  # 商品小计(分)
+  subtotalCents: Long!
+  # 水票核销张数
+  ticketRedeemCount: Int!
+  # 被水票覆盖的商品数量(按单价 0 计入)
+  ticketCoveredQuantity: Int!
+  # 现金部分商品小计(分)
+  cashSubtotalCents: Long!
+  # 满减/折扣优惠(叠加①)
+  promotionDiscountCents: Long!
+  promotionActivityId: PrimaryId
+  promotionActivityName: String
+  # 首单立减优惠(叠加①,与满减互斥取最大 —— R-MKT-10)
+  firstOrderDiscountCents: Long!
+  firstOrderActivityId: PrimaryId
+  firstOrderActivityName: String
+  # 优惠券优惠(叠加③)
+  couponDiscountCents: Long!
+  selectedCouponId: PrimaryId
+  selectedCouponName: String
+  # 总优惠(分)
+  totalDiscountCents: Long!
+  # 商品应付(分,封顶 ≥ 0)
+  payableProductCents: Long!
+  # 配送费(分,订单域计算)
+  deliveryFeeCents: Long!
+  # 实付合计(分)= 商品应付 + 配送费
+  payAmountCents: Long!
+  # 可用水票张数
+  availableTicketCount: Int!
+  # 全部可用券及各自优惠金额(最优默认勾选,用户可改选/取消)
+  couponOptions: [CouponOptionVO!]!
+  # 可用券列表(含不可用置灰项)
+  availableCoupons: [UserCouponVO!]!
+  # 买赠/满赠赠品(附加 0 价行 —— R-MKT-09)
+  giftItems: [GiftItemVO!]!
+}
+
+type CouponOptionVO {
+  couponId: PrimaryId!
+  name: String!
+  # 该券在本订单上下文下的优惠金额(分)
+  discountCents: Long!
+  usable: Boolean!
+  # 引擎选出的最优券(默认勾选)
+  isBest: Boolean!
+}
+
 
 # 反馈提交输入
 input FeedbackSubmitInput {

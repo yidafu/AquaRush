@@ -1,0 +1,138 @@
+@import '@/styles/theme.scss';
+
+.ticket-list-page {
+  min-height: 100vh;
+  background-color: var(--theme-background-page);
+  padding: 32px;
+  box-sizing: border-box;
+}
+
+.ticket-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 8px 24px;
+}
+
+.ticket-available {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ticket-available-label {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.ticket-available-count {
+  font-size: 56px;
+  font-weight: 800;
+  color: var(--theme-primary);
+  line-height: 1;
+}
+
+.ticket-available-unit {
+  font-size: 24px;
+  color: var(--theme-text-secondary);
+}
+
+.ticket-shop-link {
+  font-size: 24px;
+  color: var(--theme-text-secondary);
+}
+
+.ticket-tabs {
+  display: flex;
+  background: var(--theme-background);
+  border-radius: 20px;
+  padding: 8px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.ticket-tab {
+  flex: 1;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 16px;
+}
+
+.ticket-tab-active {
+  background: var(--theme-primary-light);
+}
+
+.ticket-tab-text {
+  font-size: 24px;
+  color: var(--theme-text-secondary);
+}
+
+.ticket-tab-active .ticket-tab-text {
+  color: var(--theme-primary);
+  font-weight: 600;
+}
+
+.ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.ticket-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--theme-background);
+  border-radius: 20px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.ticket-item-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.ticket-item-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ticket-item-name {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.ticket-item-gift {
+  font-size: 20px;
+  font-weight: 600;
+  color: #ffffff;
+  background: var(--theme-secondary);
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
+.ticket-item-spec {
+  font-size: 22px;
+  color: var(--theme-text-secondary);
+}
+
+.ticket-item-expire {
+  font-size: 22px;
+  color: var(--theme-text-tertiary);
+}
+
+.ticket-item-status {
+  font-size: 24px;
+  font-weight: 500;
+  color: var(--theme-text-secondary);
+  margin-left: 32px;
+  flex-shrink: 0;
+}

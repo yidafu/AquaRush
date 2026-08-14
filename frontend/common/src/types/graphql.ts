@@ -169,10 +169,138 @@ export type BindDeliveryPhoneInput = {
   readonly phoneNumber: Scalars['String']['input'];
 };
 
+export enum BizLogDomain {
+  AUTH = 'AUTH',
+  DELIVERY = 'DELIVERY',
+  ORDER = 'ORDER',
+  PAYMENT = 'PAYMENT',
+  USER = 'USER'
+}
+
+export enum BizLogLevel {
+  DEBUG = 'DEBUG',
+  ERROR = 'ERROR',
+  INFO = 'INFO',
+  TRACE = 'TRACE',
+  WARN = 'WARN'
+}
+
+export type BusinessLog = {
+  readonly correlationId?: Maybe<Scalars['String']['output']>;
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly level: BizLogLevel;
+  readonly loggerName?: Maybe<Scalars['String']['output']>;
+  readonly message?: Maybe<Scalars['String']['output']>;
+  readonly operation?: Maybe<Scalars['String']['output']>;
+  readonly stackTrace?: Maybe<Scalars['String']['output']>;
+  readonly userId?: Maybe<Scalars['Long']['output']>;
+  readonly username?: Maybe<Scalars['String']['output']>;
+};
+
+export type BusinessLogListInput = {
+  readonly domain?: InputMaybe<BizLogDomain>;
+  readonly endTime?: InputMaybe<Scalars['LocalDateTime']['input']>;
+  readonly level?: InputMaybe<BizLogLevel>;
+  readonly operationType?: InputMaybe<Scalars['String']['input']>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+  readonly startTime?: InputMaybe<Scalars['LocalDateTime']['input']>;
+  readonly userId?: InputMaybe<Scalars['Long']['input']>;
+};
+
+export type BusinessLogVoPage = {
+  readonly list: ReadonlyArray<BusinessLog>;
+  readonly pageInfo: PageInfo;
+};
+
 export type ConfirmDailyCollectionInput = {
   readonly notes?: InputMaybe<Scalars['String']['input']>;
   readonly recordId: Scalars['PrimaryId']['input'];
 };
+
+export enum CouponIssuanceType {
+  AUTO_CLAIM = 'AUTO_CLAIM',
+  TARGETED = 'TARGETED'
+}
+
+export type CouponOptionVo = {
+  readonly couponId: Scalars['PrimaryId']['output'];
+  readonly discountCents: Scalars['Long']['output'];
+  readonly isBest: Scalars['Boolean']['output'];
+  readonly name: Scalars['String']['output'];
+  readonly usable: Scalars['Boolean']['output'];
+};
+
+export enum CouponScope {
+  ALL = 'ALL',
+  PRODUCT = 'PRODUCT'
+}
+
+export type CouponTemplate = {
+  readonly couponType: CouponType;
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly discountAmountCents?: Maybe<Scalars['Long']['output']>;
+  readonly discountRatePermille?: Maybe<Scalars['Long']['output']>;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly issuanceType: CouponIssuanceType;
+  readonly name: Scalars['String']['output'];
+  readonly perUserLimit: Scalars['Int']['output'];
+  readonly productId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly receivedCount: Scalars['Int']['output'];
+  readonly scope: CouponScope;
+  readonly status: CouponTemplateStatus;
+  readonly thresholdCents?: Maybe<Scalars['Long']['output']>;
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+  readonly usedCount: Scalars['Int']['output'];
+  readonly validDays?: Maybe<Scalars['Int']['output']>;
+  readonly validFrom?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly validTo?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly validityType: ValidityType;
+};
+
+export type CouponTemplateListInput = {
+  readonly keyword?: InputMaybe<Scalars['String']['input']>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+  readonly status?: InputMaybe<CouponTemplateStatus>;
+};
+
+export enum CouponTemplateStatus {
+  ACTIVE = 'ACTIVE',
+  DISABLED = 'DISABLED'
+}
+
+export type CouponTemplateVo = {
+  readonly claimedCount: Scalars['Int']['output'];
+  readonly couponType: CouponType;
+  readonly discountAmountCents?: Maybe<Scalars['Long']['output']>;
+  readonly discountRatePermille?: Maybe<Scalars['Long']['output']>;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly name: Scalars['String']['output'];
+  readonly perUserLimit: Scalars['Int']['output'];
+  readonly productId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly scope: CouponScope;
+  readonly thresholdCents?: Maybe<Scalars['Long']['output']>;
+  readonly validDays?: Maybe<Scalars['Int']['output']>;
+  readonly validFrom?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly validTo?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly validityType: ValidityType;
+};
+
+export type CouponTemplateVoPage = {
+  readonly content: ReadonlyArray<CouponTemplate>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
+export enum CouponType {
+  CASH = 'CASH',
+  DISCOUNT = 'DISCOUNT',
+  NO_THRESHOLD_CASH = 'NO_THRESHOLD_CASH'
+}
 
 export type CreateAdminInput = {
   readonly avatarUrl?: InputMaybe<Scalars['String']['input']>;
@@ -195,6 +323,28 @@ export type CreateBannerInput = {
   readonly startAt?: InputMaybe<Scalars['LocalDateTime']['input']>;
   readonly subtitle?: InputMaybe<Scalars['String']['input']>;
   readonly title: Scalars['String']['input'];
+};
+
+export type CreateCouponTemplateInput = {
+  readonly couponType: CouponType;
+  readonly discountAmountCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly discountRatePermille?: InputMaybe<Scalars['Long']['input']>;
+  readonly issuanceType: CouponIssuanceType;
+  readonly name: Scalars['String']['input'];
+  readonly perUserLimit: Scalars['Int']['input'];
+  readonly productId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly scope: CouponScope;
+  readonly thresholdCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly validDays?: InputMaybe<Scalars['Int']['input']>;
+  readonly validFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
+  readonly validTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
+  readonly validityType: ValidityType;
+};
+
+export type CreateCustomerGroupInput = {
+  readonly description?: InputMaybe<Scalars['String']['input']>;
+  readonly memberIds?: InputMaybe<ReadonlyArray<Scalars['PrimaryId']['input']>>;
+  readonly name: Scalars['String']['input'];
 };
 
 export type CreateDeliveryAddressInput = {
@@ -236,6 +386,41 @@ export type CreateDeliveryWorkerInput = {
   readonly wechatOpenId: Scalars['String']['input'];
 };
 
+export type CreateFirstOrderActivityInput = {
+  readonly activityType: FirstOrderActivityType;
+  readonly discountAmountCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly discountRatePermille?: InputMaybe<Scalars['Long']['input']>;
+  readonly name: Scalars['String']['input'];
+  readonly newcomerPriceCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly productId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly scope: PromotionScope;
+  readonly thresholdCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly validFrom: Scalars['LocalDateTime']['input'];
+  readonly validTo: Scalars['LocalDateTime']['input'];
+};
+
+export type CreateFlashSaleActivityInput = {
+  readonly name: Scalars['String']['input'];
+  readonly productId: Scalars['PrimaryId']['input'];
+  readonly salePriceCents: Scalars['Long']['input'];
+  readonly validFrom: Scalars['LocalDateTime']['input'];
+  readonly validTo: Scalars['LocalDateTime']['input'];
+};
+
+export type CreateGiftActivityInput = {
+  readonly customerGroupId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly giftProductId: Scalars['PrimaryId']['input'];
+  readonly giftQuantity: Scalars['Int']['input'];
+  readonly giftType: GiftActivityType;
+  readonly name: Scalars['String']['input'];
+  readonly productId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly scope: PromotionScope;
+  readonly thresholdCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly thresholdQuantity?: InputMaybe<Scalars['Int']['input']>;
+  readonly validFrom: Scalars['LocalDateTime']['input'];
+  readonly validTo: Scalars['LocalDateTime']['input'];
+};
+
 export type CreateManualRefundInput = {
   readonly adminNote?: InputMaybe<Scalars['String']['input']>;
   readonly amountCents: Scalars['Long']['input'];
@@ -256,9 +441,11 @@ export type CreateNoticeInput = {
 
 export type CreateOrderInput = {
   readonly addressId: Scalars['PrimaryId']['input'];
+  readonly preferredCouponId?: InputMaybe<Scalars['PrimaryId']['input']>;
   readonly productId: Scalars['PrimaryId']['input'];
   readonly quantity: Scalars['Int']['input'];
   readonly remark?: InputMaybe<Scalars['String']['input']>;
+  readonly ticketRedeemCount?: InputMaybe<Scalars['Int']['input']>;
 };
 
 export type CreateProductInput = {
@@ -282,6 +469,17 @@ export type CreateProductInput = {
   readonly waterSource?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type CreatePromotionActivityInput = {
+  readonly activityType: PromotionActivityType;
+  readonly customerGroupId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly name: Scalars['String']['input'];
+  readonly productId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly scope: PromotionScope;
+  readonly tiers: ReadonlyArray<PromotionTierInput>;
+  readonly validFrom: Scalars['LocalDateTime']['input'];
+  readonly validTo: Scalars['LocalDateTime']['input'];
+};
+
 export type CreateReviewRequest = {
   readonly comment?: InputMaybe<Scalars['String']['input']>;
   readonly deliveryWorkerId: Scalars['PrimaryId']['input'];
@@ -290,10 +488,48 @@ export type CreateReviewRequest = {
   readonly rating: Scalars['Int']['input'];
 };
 
+export type CreateTicketTypeInput = {
+  readonly giftCount: Scalars['Int']['input'];
+  readonly name: Scalars['String']['input'];
+  readonly packageCount: Scalars['Int']['input'];
+  readonly packagePriceCents: Scalars['Long']['input'];
+  readonly perUserLimit: Scalars['Int']['input'];
+  readonly productId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly specification?: InputMaybe<Scalars['String']['input']>;
+  readonly ticketType: TicketTypeKind;
+  readonly validDays?: InputMaybe<Scalars['Int']['input']>;
+  readonly validFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
+  readonly validTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
+  readonly validityType: ValidityType;
+};
+
 export type CreateWechatPaymentInput = {
   readonly amountCents: Scalars['Long']['input'];
   readonly description: Scalars['String']['input'];
   readonly orderId: Scalars['PrimaryId']['input'];
+};
+
+export type CustomerGroup = {
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly description?: Maybe<Scalars['String']['output']>;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly memberCount: Scalars['Int']['output'];
+  readonly name: Scalars['String']['output'];
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+};
+
+export type CustomerGroupListInput = {
+  readonly keyword?: InputMaybe<Scalars['String']['input']>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type CustomerGroupVoPage = {
+  readonly content: ReadonlyArray<CustomerGroup>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
 };
 
 export type DailyCollectionRecord = {
@@ -662,12 +898,166 @@ export type FeedbackVoPage = {
   readonly totalPages: Scalars['Int']['output'];
 };
 
+export type FirstOrderActivity = {
+  readonly activityType: FirstOrderActivityType;
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly currentStatus: PromotionActivityDisplayStatus;
+  readonly discountAmountCents?: Maybe<Scalars['Long']['output']>;
+  readonly discountRatePermille?: Maybe<Scalars['Long']['output']>;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly name: Scalars['String']['output'];
+  readonly newcomerPriceCents?: Maybe<Scalars['Long']['output']>;
+  readonly productId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly productName?: Maybe<Scalars['String']['output']>;
+  readonly scope: PromotionScope;
+  readonly status: PromotionActivityStatus;
+  readonly thresholdCents?: Maybe<Scalars['Long']['output']>;
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+  readonly validFrom: Scalars['LocalDateTime']['output'];
+  readonly validTo: Scalars['LocalDateTime']['output'];
+};
+
+export type FirstOrderActivityListInput = {
+  readonly keyword?: InputMaybe<Scalars['String']['input']>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum FirstOrderActivityType {
+  FIRST_ORDER_REDUCE = 'FIRST_ORDER_REDUCE',
+  NEWCOMER_PRICE = 'NEWCOMER_PRICE'
+}
+
+export type FirstOrderActivityVoPage = {
+  readonly content: ReadonlyArray<FirstOrderActivity>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
+export type FlashSaleActivity = {
+  readonly catalogPriceCents?: Maybe<Scalars['Long']['output']>;
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly currentStatus: PromotionActivityDisplayStatus;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly name: Scalars['String']['output'];
+  readonly productId: Scalars['PrimaryId']['output'];
+  readonly productName?: Maybe<Scalars['String']['output']>;
+  readonly salePriceCents: Scalars['Long']['output'];
+  readonly status: PromotionActivityStatus;
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+  readonly validFrom: Scalars['LocalDateTime']['output'];
+  readonly validTo: Scalars['LocalDateTime']['output'];
+};
+
+export type FlashSaleActivityListInput = {
+  readonly keyword?: InputMaybe<Scalars['String']['input']>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type FlashSaleActivityVoPage = {
+  readonly content: ReadonlyArray<FlashSaleActivity>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
 export type GeocodeInput = {
   readonly city: Scalars['String']['input'];
   readonly detailAddress: Scalars['String']['input'];
   readonly district: Scalars['String']['input'];
   readonly province: Scalars['String']['input'];
 };
+
+export type GiftActivity = {
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly currentStatus: PromotionActivityDisplayStatus;
+  readonly customerGroupId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly giftProductId: Scalars['PrimaryId']['output'];
+  readonly giftProductName?: Maybe<Scalars['String']['output']>;
+  readonly giftQuantity: Scalars['Int']['output'];
+  readonly giftType: GiftActivityType;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly name: Scalars['String']['output'];
+  readonly productId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly scope: PromotionScope;
+  readonly status: PromotionActivityStatus;
+  readonly thresholdCents?: Maybe<Scalars['Long']['output']>;
+  readonly thresholdQuantity?: Maybe<Scalars['Int']['output']>;
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+  readonly validFrom: Scalars['LocalDateTime']['output'];
+  readonly validTo: Scalars['LocalDateTime']['output'];
+};
+
+export type GiftActivityListInput = {
+  readonly keyword?: InputMaybe<Scalars['String']['input']>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum GiftActivityType {
+  BUY_GIFT = 'BUY_GIFT',
+  FULL_GIFT = 'FULL_GIFT'
+}
+
+export type GiftActivityVoPage = {
+  readonly content: ReadonlyArray<GiftActivity>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
+export type GiftItemVo = {
+  readonly productId: Scalars['PrimaryId']['output'];
+  readonly productName: Scalars['String']['output'];
+  readonly quantity: Scalars['Int']['output'];
+};
+
+export type GroupProductPrice = {
+  readonly catalogPriceCents: Scalars['Long']['output'];
+  readonly customerGroupId: Scalars['PrimaryId']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly priceCents?: Maybe<Scalars['Long']['output']>;
+  readonly productId: Scalars['PrimaryId']['output'];
+  readonly productName?: Maybe<Scalars['String']['output']>;
+  readonly productSpecification?: Maybe<Scalars['String']['output']>;
+};
+
+export type GroupProductPriceItemInput = {
+  readonly priceCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly productId: Scalars['PrimaryId']['input'];
+};
+
+export type GroupProductPriceListInput = {
+  readonly customerGroupId: Scalars['PrimaryId']['input'];
+  readonly keyword?: InputMaybe<Scalars['String']['input']>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type GroupProductPriceVoPage = {
+  readonly content: ReadonlyArray<GroupProductPrice>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
+export type IssueCouponsInput = {
+  readonly couponTemplateId: Scalars['PrimaryId']['input'];
+  readonly customerGroupId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly targetType: IssueTargetType;
+  readonly userIds?: InputMaybe<ReadonlyArray<Scalars['PrimaryId']['input']>>;
+};
+
+export enum IssueTargetType {
+  GROUP = 'GROUP',
+  USER = 'USER'
+}
 
 export type LoginStatistics = {
   readonly dailyLogins: ReadonlyArray<DailyLoginStatistic>;
@@ -690,35 +1080,54 @@ export type Mutation = {
   readonly assignDeliveryWorker: Order;
   readonly batchAssignOrders: ReadonlyArray<Order>;
   readonly batchImportAddresses: BatchImportAddressesResult;
+  readonly claimCoupon: UserCouponVo;
   readonly completeDelivery: Order;
   readonly confirmDailyCollection: DailyCollectionRecord;
   readonly createAddress: Address;
   readonly createAdmin: Admin;
   readonly createAdminAddress: Address;
   readonly createBanner: Banner;
+  readonly createCouponTemplate: CouponTemplate;
+  readonly createCustomerGroup: CustomerGroup;
   readonly createDeliveryOrder: Order;
   readonly createDeliveryWorker: DeliveryWorker;
+  readonly createFirstOrderActivity: FirstOrderActivity;
+  readonly createFlashSaleActivity: FlashSaleActivity;
+  readonly createGiftActivity: GiftActivity;
   readonly createNotice: Notice;
   readonly createOrder: Order;
   readonly createProduct: Product;
+  readonly createPromotionActivity: PromotionActivity;
+  readonly createTicketType: TicketType;
   readonly deleteAddress: Scalars['Boolean']['output'];
   readonly deleteAdminAddress: Scalars['Boolean']['output'];
   readonly deleteBanner: Scalars['Boolean']['output'];
+  readonly deleteCustomerGroup: Scalars['Boolean']['output'];
   readonly deleteNotice: Scalars['Boolean']['output'];
   readonly deleteProduct: Scalars['Boolean']['output'];
+  readonly disableCouponTemplate: CouponTemplate;
+  readonly disableFirstOrderActivity: FirstOrderActivity;
+  readonly disableFlashSaleActivity: FlashSaleActivity;
+  readonly disableGiftActivity: GiftActivity;
+  readonly disablePromotionActivity: PromotionActivity;
+  readonly disableTicketType: TicketType;
   readonly executeDailyReconciliation: DailyReconciliation;
+  readonly issueCoupons: Scalars['Int']['output'];
   readonly offlineProduct: Product;
   readonly onlineProduct: Product;
   readonly publishNotice: Notice;
+  readonly purchaseTickets: TicketPurchaseVo;
   readonly reorderBanner: ReadonlyArray<Banner>;
   readonly restoreSystemConfig: SystemConfigVo;
   readonly reviewFeedback: Feedback;
   readonly reviewReconciliation: DailyReconciliation;
   readonly saveDeliveryFeeRule: DeliveryFeeRule;
+  readonly saveGroupProductPrices: Scalars['Boolean']['output'];
   readonly saveStoreProfile: StoreProfile;
   readonly saveSystemConfigs: ReadonlyArray<SystemConfigVo>;
   readonly setDefaultAddress: Scalars['Boolean']['output'];
   readonly setNoticePinned: Notice;
+  readonly setUserCustomerGroup: Scalars['Boolean']['output'];
   readonly startDelivery: Order;
   readonly stopNotice: Notice;
   readonly submitDailyCollection: DailyCollectionRecord;
@@ -727,12 +1136,19 @@ export type Mutation = {
   readonly updateAddress: Address;
   readonly updateAdmin: Admin;
   readonly updateBanner: Banner;
+  readonly updateCouponTemplate: CouponTemplate;
+  readonly updateCustomerGroup: CustomerGroup;
   readonly updateDeliveryWorker: DeliveryWorker;
+  readonly updateFirstOrderActivity: FirstOrderActivity;
+  readonly updateFlashSaleActivity: FlashSaleActivity;
+  readonly updateGiftActivity: GiftActivity;
   readonly updateNotice: Notice;
   readonly updateOrderStatus: Order;
   readonly updateProduct: Product;
   readonly updateProductStatus: Product;
   readonly updateProfile: UserInfo;
+  readonly updatePromotionActivity: PromotionActivity;
+  readonly updateTicketType: TicketType;
 };
 
 
@@ -756,6 +1172,11 @@ export type MutationBatchAssignOrdersArgs = {
 
 export type MutationBatchImportAddressesArgs = {
   input: ReadonlyArray<AddressInput>;
+};
+
+
+export type MutationClaimCouponArgs = {
+  couponTemplateId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -792,6 +1213,16 @@ export type MutationCreateBannerArgs = {
 };
 
 
+export type MutationCreateCouponTemplateArgs = {
+  input: CreateCouponTemplateInput;
+};
+
+
+export type MutationCreateCustomerGroupArgs = {
+  input: CreateCustomerGroupInput;
+};
+
+
 export type MutationCreateDeliveryOrderArgs = {
   input: CreateDeliveryOrderInput;
 };
@@ -799,6 +1230,21 @@ export type MutationCreateDeliveryOrderArgs = {
 
 export type MutationCreateDeliveryWorkerArgs = {
   input: CreateDeliveryWorkerInput;
+};
+
+
+export type MutationCreateFirstOrderActivityArgs = {
+  input: CreateFirstOrderActivityInput;
+};
+
+
+export type MutationCreateFlashSaleActivityArgs = {
+  input: CreateFlashSaleActivityInput;
+};
+
+
+export type MutationCreateGiftActivityArgs = {
+  input: CreateGiftActivityInput;
 };
 
 
@@ -817,6 +1263,16 @@ export type MutationCreateProductArgs = {
 };
 
 
+export type MutationCreatePromotionActivityArgs = {
+  input: CreatePromotionActivityInput;
+};
+
+
+export type MutationCreateTicketTypeArgs = {
+  input: CreateTicketTypeInput;
+};
+
+
 export type MutationDeleteAddressArgs = {
   id: Scalars['PrimaryId']['input'];
 };
@@ -832,6 +1288,11 @@ export type MutationDeleteBannerArgs = {
 };
 
 
+export type MutationDeleteCustomerGroupArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
 export type MutationDeleteNoticeArgs = {
   id: Scalars['PrimaryId']['input'];
 };
@@ -842,8 +1303,43 @@ export type MutationDeleteProductArgs = {
 };
 
 
+export type MutationDisableCouponTemplateArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type MutationDisableFirstOrderActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type MutationDisableFlashSaleActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type MutationDisableGiftActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type MutationDisablePromotionActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type MutationDisableTicketTypeArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
 export type MutationExecuteDailyReconciliationArgs = {
   reconciliationDate?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationIssueCouponsArgs = {
+  input: IssueCouponsInput;
 };
 
 
@@ -859,6 +1355,11 @@ export type MutationOnlineProductArgs = {
 
 export type MutationPublishNoticeArgs = {
   id: Scalars['PrimaryId']['input'];
+};
+
+
+export type MutationPurchaseTicketsArgs = {
+  input: PurchaseTicketsInput;
 };
 
 
@@ -889,6 +1390,11 @@ export type MutationSaveDeliveryFeeRuleArgs = {
 };
 
 
+export type MutationSaveGroupProductPricesArgs = {
+  input: SaveGroupProductPricesInput;
+};
+
+
 export type MutationSaveStoreProfileArgs = {
   input: SaveStoreProfileInput;
 };
@@ -907,6 +1413,12 @@ export type MutationSetDefaultAddressArgs = {
 export type MutationSetNoticePinnedArgs = {
   id: Scalars['PrimaryId']['input'];
   pinned: Scalars['Boolean']['input'];
+};
+
+
+export type MutationSetUserCustomerGroupArgs = {
+  customerGroupId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  userId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -953,9 +1465,39 @@ export type MutationUpdateBannerArgs = {
 };
 
 
+export type MutationUpdateCouponTemplateArgs = {
+  id: Scalars['PrimaryId']['input'];
+  input: UpdateCouponTemplateInput;
+};
+
+
+export type MutationUpdateCustomerGroupArgs = {
+  id: Scalars['PrimaryId']['input'];
+  input: UpdateCustomerGroupInput;
+};
+
+
 export type MutationUpdateDeliveryWorkerArgs = {
   input: UpdateDeliveryWorkerInput;
   workerId: Scalars['PrimaryId']['input'];
+};
+
+
+export type MutationUpdateFirstOrderActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
+  input: UpdateFirstOrderActivityInput;
+};
+
+
+export type MutationUpdateFlashSaleActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
+  input: UpdateFlashSaleActivityInput;
+};
+
+
+export type MutationUpdateGiftActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
+  input: UpdateGiftActivityInput;
 };
 
 
@@ -985,6 +1527,18 @@ export type MutationUpdateProductStatusArgs = {
 
 export type MutationUpdateProfileArgs = {
   input: UpdateProfileInput;
+};
+
+
+export type MutationUpdatePromotionActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
+  input: UpdatePromotionActivityInput;
+};
+
+
+export type MutationUpdateTicketTypeArgs = {
+  id: Scalars['PrimaryId']['input'];
+  input: UpdateTicketTypeInput;
 };
 
 export type MyTodayCollectionVo = {
@@ -1060,6 +1614,8 @@ export type Order = {
   readonly deliveryPhotos?: Maybe<ReadonlyArray<Scalars['String']['output']>>;
   readonly deliveryStartedAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly deliveryWorker?: Maybe<DeliveryWorker>;
+  readonly firstOrderDiscountCents?: Maybe<Scalars['Long']['output']>;
+  readonly giftItems?: Maybe<ReadonlyArray<GiftItemVo>>;
   readonly id: Scalars['PrimaryId']['output'];
   readonly isSelfCollect: Scalars['Boolean']['output'];
   readonly orderNo: Scalars['String']['output'];
@@ -1125,6 +1681,40 @@ export type OrderPaymentInfo = {
   readonly refundedAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly status: PaymentStatus;
   readonly transactionId?: Maybe<Scalars['String']['output']>;
+};
+
+export type OrderPreviewInput = {
+  readonly addressId: Scalars['PrimaryId']['input'];
+  readonly preferredCouponId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly productId: Scalars['PrimaryId']['input'];
+  readonly quantity: Scalars['Int']['input'];
+  readonly ticketRedeemCount?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type OrderPreviewVo = {
+  readonly availableCoupons: ReadonlyArray<UserCouponVo>;
+  readonly availableTicketCount: Scalars['Int']['output'];
+  readonly cashSubtotalCents: Scalars['Long']['output'];
+  readonly couponDiscountCents: Scalars['Long']['output'];
+  readonly couponOptions: ReadonlyArray<CouponOptionVo>;
+  readonly deliveryFeeCents: Scalars['Long']['output'];
+  readonly firstOrderActivityId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly firstOrderActivityName?: Maybe<Scalars['String']['output']>;
+  readonly firstOrderDiscountCents: Scalars['Long']['output'];
+  readonly giftItems: ReadonlyArray<GiftItemVo>;
+  readonly payAmountCents: Scalars['Long']['output'];
+  readonly payableProductCents: Scalars['Long']['output'];
+  readonly priceSource: PriceSource;
+  readonly promotionActivityId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly promotionActivityName?: Maybe<Scalars['String']['output']>;
+  readonly promotionDiscountCents: Scalars['Long']['output'];
+  readonly selectedCouponId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly selectedCouponName?: Maybe<Scalars['String']['output']>;
+  readonly subtotalCents: Scalars['Long']['output'];
+  readonly ticketCoveredQuantity: Scalars['Int']['output'];
+  readonly ticketRedeemCount: Scalars['Int']['output'];
+  readonly totalDiscountCents: Scalars['Long']['output'];
+  readonly unitPriceCents: Scalars['Long']['output'];
 };
 
 export type OrderReviewCheckResponse = {
@@ -1254,6 +1844,14 @@ export type PendingOrderBreakdown = {
   readonly total: Scalars['Int']['output'];
 };
 
+export enum PriceSource {
+  CATALOG_PRICE = 'CATALOG_PRICE',
+  FLASH_SALE_PRICE = 'FLASH_SALE_PRICE',
+  GROUP_PRICE = 'GROUP_PRICE',
+  MANUAL = 'MANUAL',
+  NEWCOMER_PRICE = 'NEWCOMER_PRICE'
+}
+
 export type ProcessRefundInput = {
   readonly action: RefundAction;
   readonly adminNote?: InputMaybe<Scalars['String']['input']>;
@@ -1278,12 +1876,15 @@ export type Product = {
   readonly deliverySettings?: Maybe<Scalars['JsonObject']['output']>;
   readonly depositPriceCents?: Maybe<Scalars['Long']['output']>;
   readonly detailContent?: Maybe<Scalars['String']['output']>;
+  readonly effectivePriceCents: Scalars['Long']['output'];
+  readonly hasGroupPrice: Scalars['Boolean']['output'];
   readonly id: Scalars['PrimaryId']['output'];
   readonly imageGallery?: Maybe<Scalars['JsonArray']['output']>;
   readonly mineralContent?: Maybe<Scalars['String']['output']>;
   readonly name: Scalars['String']['output'];
   readonly originalPriceCents?: Maybe<Scalars['Long']['output']>;
   readonly priceCents: Scalars['Long']['output'];
+  readonly priceSource: PriceSource;
   readonly salesVolume: Scalars['Int']['output'];
   readonly sortOrder: Scalars['Int']['output'];
   readonly specification: Scalars['String']['output'];
@@ -1338,6 +1939,14 @@ export type ProductListInput = {
   readonly size?: InputMaybe<Scalars['Int']['input']>;
   readonly sort?: InputMaybe<Scalars['String']['input']>;
   readonly status?: InputMaybe<ProductStatus>;
+};
+
+export type ProductPriceVo = {
+  readonly catalogPriceCents: Scalars['Long']['output'];
+  readonly effectivePriceCents: Scalars['Long']['output'];
+  readonly hasGroupPrice: Scalars['Boolean']['output'];
+  readonly priceSource: PriceSource;
+  readonly productId: Scalars['PrimaryId']['output'];
 };
 
 export type ProductSalesInfo = {
@@ -1428,6 +2037,77 @@ export type ProductVoPage = {
   readonly pageInfo: PageInfo;
 };
 
+export type PromotionActivity = {
+  readonly activityType: PromotionActivityType;
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly currentStatus: PromotionActivityDisplayStatus;
+  readonly customerGroupId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly name: Scalars['String']['output'];
+  readonly productId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly scope: PromotionScope;
+  readonly status: PromotionActivityStatus;
+  readonly tiers: ReadonlyArray<PromotionActivityTier>;
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+  readonly validFrom: Scalars['LocalDateTime']['output'];
+  readonly validTo: Scalars['LocalDateTime']['output'];
+};
+
+export enum PromotionActivityDisplayStatus {
+  DISABLED = 'DISABLED',
+  ENDED = 'ENDED',
+  ONGOING = 'ONGOING',
+  UPCOMING = 'UPCOMING'
+}
+
+export type PromotionActivityListInput = {
+  readonly keyword?: InputMaybe<Scalars['String']['input']>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export enum PromotionActivityStatus {
+  ACTIVE = 'ACTIVE',
+  DISABLED = 'DISABLED'
+}
+
+export type PromotionActivityTier = {
+  readonly discountAmountCents?: Maybe<Scalars['Long']['output']>;
+  readonly discountRatePermille?: Maybe<Scalars['Long']['output']>;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly thresholdCents: Scalars['Long']['output'];
+};
+
+export enum PromotionActivityType {
+  FULL_DISCOUNT = 'FULL_DISCOUNT',
+  FULL_REDUCE = 'FULL_REDUCE'
+}
+
+export type PromotionActivityVoPage = {
+  readonly content: ReadonlyArray<PromotionActivity>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
+export enum PromotionScope {
+  ALL = 'ALL',
+  GROUP = 'GROUP',
+  PRODUCT = 'PRODUCT'
+}
+
+export type PromotionTierInput = {
+  readonly discountAmountCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly discountRatePermille?: InputMaybe<Scalars['Long']['input']>;
+  readonly thresholdCents: Scalars['Long']['input'];
+};
+
+export type PurchaseTicketsInput = {
+  readonly packageCount: Scalars['Int']['input'];
+  readonly ticketTypeId: Scalars['PrimaryId']['input'];
+};
+
 export type Query = {
   readonly _dummy?: Maybe<Scalars['String']['output']>;
   readonly activeBanners: ReadonlyArray<Banner>;
@@ -1440,6 +2120,12 @@ export type Query = {
   readonly assignedOrders: ReadonlyArray<Order>;
   readonly banner?: Maybe<Banner>;
   readonly banners?: Maybe<BannerVoPage>;
+  readonly businessLogs?: Maybe<BusinessLogVoPage>;
+  readonly couponCenter: ReadonlyArray<CouponTemplateVo>;
+  readonly couponTemplate?: Maybe<CouponTemplate>;
+  readonly couponTemplates?: Maybe<CouponTemplateVoPage>;
+  readonly customerGroup?: Maybe<CustomerGroup>;
+  readonly customerGroups?: Maybe<CustomerGroupVoPage>;
   readonly dailyCollections: ReadonlyArray<DailyCollectionRecord>;
   readonly dailyReconciliations: ReadonlyArray<DailyReconciliation>;
   readonly dailyStatistics: ReadonlyArray<DailyStatistic>;
@@ -1454,9 +2140,18 @@ export type Query = {
   readonly favoritesCount: Scalars['Long']['output'];
   readonly feedback?: Maybe<Feedback>;
   readonly feedbacks?: Maybe<FeedbackVoPage>;
+  readonly firstOrderActivities?: Maybe<FirstOrderActivityVoPage>;
+  readonly firstOrderActivity?: Maybe<FirstOrderActivity>;
+  readonly flashSaleActivities?: Maybe<FlashSaleActivityVoPage>;
+  readonly flashSaleActivity?: Maybe<FlashSaleActivity>;
+  readonly giftActivities?: Maybe<GiftActivityVoPage>;
+  readonly giftActivity?: Maybe<GiftActivity>;
+  readonly groupProductPrices?: Maybe<GroupProductPriceVoPage>;
   readonly isProductFavorited: Scalars['Boolean']['output'];
   readonly me?: Maybe<UserInfo>;
   readonly monthlyStatistics: ReadonlyArray<MonthlyStatistic>;
+  readonly myCoupons: ReadonlyArray<UserCouponVo>;
+  readonly myTickets: ReadonlyArray<UserTicketVo>;
   readonly myTodayCollection?: Maybe<MyTodayCollectionVo>;
   readonly notice?: Maybe<Notice>;
   readonly notices?: Maybe<NoticeVoPage>;
@@ -1464,20 +2159,27 @@ export type Query = {
   readonly order?: Maybe<Order>;
   readonly orderByNo?: Maybe<Order>;
   readonly orderOperations: ReadonlyArray<OrderOperation>;
+  readonly orderPreview: OrderPreviewVo;
   readonly orderStatistics: OrderStatistics;
   readonly orders?: Maybe<OrderVoPage>;
   readonly pendingDeliveryOrders: ReadonlyArray<Order>;
   readonly pendingOrderBreakdown: PendingOrderBreakdown;
   readonly product?: Maybe<Product>;
   readonly productDailySales: ReadonlyArray<ProductDailySales>;
+  readonly productPrice?: Maybe<ProductPriceVo>;
   readonly productStatistics?: Maybe<ProductStatistics>;
   readonly productsPaginated?: Maybe<ProductVoPage>;
+  readonly promotionActivities?: Maybe<PromotionActivityVoPage>;
+  readonly promotionActivity?: Maybe<PromotionActivity>;
   readonly region?: Maybe<Region>;
   readonly regions: ReadonlyArray<Region>;
   readonly searchAllAddresses: ReadonlyArray<Address>;
   readonly stockWarningThresholds: StockWarningThresholds;
   readonly storeProfile?: Maybe<StoreProfile>;
   readonly systemConfigs: ReadonlyArray<SystemConfigVo>;
+  readonly ticketShop: ReadonlyArray<TicketTypeVo>;
+  readonly ticketType?: Maybe<TicketType>;
+  readonly ticketTypes?: Maybe<TicketTypeVoPage>;
   readonly todayStatistics?: Maybe<TodayStatistics>;
   readonly user?: Maybe<User>;
   readonly userAddresses: ReadonlyArray<Address>;
@@ -1509,6 +2211,31 @@ export type QueryBannerArgs = {
 
 export type QueryBannersArgs = {
   input?: InputMaybe<BannerListInput>;
+};
+
+
+export type QueryBusinessLogsArgs = {
+  input?: InputMaybe<BusinessLogListInput>;
+};
+
+
+export type QueryCouponTemplateArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryCouponTemplatesArgs = {
+  input?: InputMaybe<CouponTemplateListInput>;
+};
+
+
+export type QueryCustomerGroupArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryCustomerGroupsArgs = {
+  input?: InputMaybe<CustomerGroupListInput>;
 };
 
 
@@ -1556,6 +2283,41 @@ export type QueryFeedbacksArgs = {
 };
 
 
+export type QueryFirstOrderActivitiesArgs = {
+  input?: InputMaybe<FirstOrderActivityListInput>;
+};
+
+
+export type QueryFirstOrderActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryFlashSaleActivitiesArgs = {
+  input?: InputMaybe<FlashSaleActivityListInput>;
+};
+
+
+export type QueryFlashSaleActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryGiftActivitiesArgs = {
+  input?: InputMaybe<GiftActivityListInput>;
+};
+
+
+export type QueryGiftActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryGroupProductPricesArgs = {
+  input: GroupProductPriceListInput;
+};
+
+
 export type QueryIsProductFavoritedArgs = {
   productId: Scalars['PrimaryId']['input'];
 };
@@ -1563,6 +2325,16 @@ export type QueryIsProductFavoritedArgs = {
 
 export type QueryMonthlyStatisticsArgs = {
   input: DateRangeInput;
+};
+
+
+export type QueryMyCouponsArgs = {
+  status?: InputMaybe<UserCouponStatus>;
+};
+
+
+export type QueryMyTicketsArgs = {
+  status?: InputMaybe<UserTicketStatus>;
 };
 
 
@@ -1591,6 +2363,11 @@ export type QueryOrderOperationsArgs = {
 };
 
 
+export type QueryOrderPreviewArgs = {
+  input: OrderPreviewInput;
+};
+
+
 export type QueryOrderStatisticsArgs = {
   input: DateRangeInput;
 };
@@ -1611,6 +2388,11 @@ export type QueryProductDailySalesArgs = {
 };
 
 
+export type QueryProductPriceArgs = {
+  productId: Scalars['PrimaryId']['input'];
+};
+
+
 export type QueryProductStatisticsArgs = {
   dateRange?: InputMaybe<DateRangeInput>;
 };
@@ -1618,6 +2400,16 @@ export type QueryProductStatisticsArgs = {
 
 export type QueryProductsPaginatedArgs = {
   input?: InputMaybe<ProductSearchInput>;
+};
+
+
+export type QueryPromotionActivitiesArgs = {
+  input?: InputMaybe<PromotionActivityListInput>;
+};
+
+
+export type QueryPromotionActivityArgs = {
+  id: Scalars['PrimaryId']['input'];
 };
 
 
@@ -1641,6 +2433,16 @@ export type QuerySearchAllAddressesArgs = {
 
 export type QuerySystemConfigsArgs = {
   group: SystemConfigGroup;
+};
+
+
+export type QueryTicketTypeArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryTicketTypesArgs = {
+  input?: InputMaybe<TicketTypeListInput>;
 };
 
 
@@ -1771,6 +2573,12 @@ export type SaveDeliveryFeeRuleInput = {
   readonly surchargeCents: Scalars['Long']['input'];
 };
 
+export type SaveGroupProductPricesInput = {
+  readonly clearUnlisted?: InputMaybe<Scalars['Boolean']['input']>;
+  readonly customerGroupId: Scalars['PrimaryId']['input'];
+  readonly items: ReadonlyArray<GroupProductPriceItemInput>;
+};
+
 export type SaveStoreProfileInput = {
   readonly aboutUs?: InputMaybe<Scalars['String']['input']>;
   readonly businessHoursEnd?: InputMaybe<Scalars['String']['input']>;
@@ -1865,6 +2673,85 @@ export enum SystemSettingType {
   STRING = 'STRING'
 }
 
+export enum TicketPurchaseStatus {
+  CANCELLED = 'CANCELLED',
+  FAILED = 'FAILED',
+  PAID = 'PAID',
+  PENDING = 'PENDING'
+}
+
+export type TicketPurchaseVo = {
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly orderNo: Scalars['String']['output'];
+  readonly packagePriceCents: Scalars['Long']['output'];
+  readonly paymentParams?: Maybe<Scalars['JsonObject']['output']>;
+  readonly paymentStatus: TicketPurchaseStatus;
+  readonly requiresSimulation: Scalars['Boolean']['output'];
+  readonly ticketTypeName: Scalars['String']['output'];
+  readonly totalCount: Scalars['Int']['output'];
+};
+
+export type TicketType = {
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly giftCount: Scalars['Int']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly name: Scalars['String']['output'];
+  readonly packageCount: Scalars['Int']['output'];
+  readonly packagePriceCents: Scalars['Long']['output'];
+  readonly perUserLimit: Scalars['Int']['output'];
+  readonly productId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly specification?: Maybe<Scalars['String']['output']>;
+  readonly status: TicketTypeStatus;
+  readonly ticketType: TicketTypeKind;
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+  readonly validDays?: Maybe<Scalars['Int']['output']>;
+  readonly validFrom?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly validTo?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly validityType: ValidityType;
+};
+
+export enum TicketTypeKind {
+  SPECIFIC_PRODUCT = 'SPECIFIC_PRODUCT',
+  UNIVERSAL = 'UNIVERSAL'
+}
+
+export type TicketTypeListInput = {
+  readonly keyword?: InputMaybe<Scalars['String']['input']>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+  readonly status?: InputMaybe<TicketTypeStatus>;
+};
+
+export enum TicketTypeStatus {
+  ACTIVE = 'ACTIVE',
+  DISABLED = 'DISABLED'
+}
+
+export type TicketTypeVo = {
+  readonly giftCount: Scalars['Int']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly myPurchasedCount: Scalars['Int']['output'];
+  readonly name: Scalars['String']['output'];
+  readonly packageCount: Scalars['Int']['output'];
+  readonly packagePriceCents: Scalars['Long']['output'];
+  readonly perUserLimit: Scalars['Int']['output'];
+  readonly productId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly specification?: Maybe<Scalars['String']['output']>;
+  readonly ticketType: TicketTypeKind;
+  readonly validDays?: Maybe<Scalars['Int']['output']>;
+  readonly validFrom?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly validTo?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly validityType: ValidityType;
+};
+
+export type TicketTypeVoPage = {
+  readonly content: ReadonlyArray<TicketType>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
 export type TodayStatistics = {
   readonly completedOrders: Scalars['Int']['output'];
   readonly earningCents: Scalars['Long']['output'];
@@ -1910,6 +2797,27 @@ export type UpdateBannerInput = {
   readonly title: Scalars['String']['input'];
 };
 
+export type UpdateCouponTemplateInput = {
+  readonly couponType: CouponType;
+  readonly discountAmountCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly discountRatePermille?: InputMaybe<Scalars['Long']['input']>;
+  readonly name: Scalars['String']['input'];
+  readonly perUserLimit: Scalars['Int']['input'];
+  readonly productId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly scope: CouponScope;
+  readonly thresholdCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly validDays?: InputMaybe<Scalars['Int']['input']>;
+  readonly validFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
+  readonly validTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
+  readonly validityType: ValidityType;
+};
+
+export type UpdateCustomerGroupInput = {
+  readonly description?: InputMaybe<Scalars['String']['input']>;
+  readonly memberIds?: InputMaybe<ReadonlyArray<Scalars['PrimaryId']['input']>>;
+  readonly name: Scalars['String']['input'];
+};
+
 export type UpdateDeliveryAddressInput = {
   readonly city?: InputMaybe<Scalars['String']['input']>;
   readonly detailAddress?: InputMaybe<Scalars['String']['input']>;
@@ -1931,6 +2839,41 @@ export type UpdateDeliveryWorkerInput = {
   readonly phone?: InputMaybe<Scalars['String']['input']>;
   readonly rating?: InputMaybe<Scalars['BigDecimal']['input']>;
   readonly wechatOpenId?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateFirstOrderActivityInput = {
+  readonly activityType: FirstOrderActivityType;
+  readonly discountAmountCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly discountRatePermille?: InputMaybe<Scalars['Long']['input']>;
+  readonly name: Scalars['String']['input'];
+  readonly newcomerPriceCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly productId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly scope: PromotionScope;
+  readonly thresholdCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly validFrom: Scalars['LocalDateTime']['input'];
+  readonly validTo: Scalars['LocalDateTime']['input'];
+};
+
+export type UpdateFlashSaleActivityInput = {
+  readonly name: Scalars['String']['input'];
+  readonly productId: Scalars['PrimaryId']['input'];
+  readonly salePriceCents: Scalars['Long']['input'];
+  readonly validFrom: Scalars['LocalDateTime']['input'];
+  readonly validTo: Scalars['LocalDateTime']['input'];
+};
+
+export type UpdateGiftActivityInput = {
+  readonly customerGroupId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly giftProductId: Scalars['PrimaryId']['input'];
+  readonly giftQuantity: Scalars['Int']['input'];
+  readonly giftType: GiftActivityType;
+  readonly name: Scalars['String']['input'];
+  readonly productId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly scope: PromotionScope;
+  readonly thresholdCents?: InputMaybe<Scalars['Long']['input']>;
+  readonly thresholdQuantity?: InputMaybe<Scalars['Int']['input']>;
+  readonly validFrom: Scalars['LocalDateTime']['input'];
+  readonly validTo: Scalars['LocalDateTime']['input'];
 };
 
 export type UpdateNoticeInput = {
@@ -1969,6 +2912,32 @@ export type UpdateProfileInput = {
   readonly phone?: InputMaybe<Scalars['String']['input']>;
 };
 
+export type UpdatePromotionActivityInput = {
+  readonly activityType: PromotionActivityType;
+  readonly customerGroupId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly name: Scalars['String']['input'];
+  readonly productId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly scope: PromotionScope;
+  readonly tiers: ReadonlyArray<PromotionTierInput>;
+  readonly validFrom: Scalars['LocalDateTime']['input'];
+  readonly validTo: Scalars['LocalDateTime']['input'];
+};
+
+export type UpdateTicketTypeInput = {
+  readonly giftCount: Scalars['Int']['input'];
+  readonly name: Scalars['String']['input'];
+  readonly packageCount: Scalars['Int']['input'];
+  readonly packagePriceCents: Scalars['Long']['input'];
+  readonly perUserLimit: Scalars['Int']['input'];
+  readonly productId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly specification?: InputMaybe<Scalars['String']['input']>;
+  readonly ticketType: TicketTypeKind;
+  readonly validDays?: InputMaybe<Scalars['Int']['input']>;
+  readonly validFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
+  readonly validTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
+  readonly validityType: ValidityType;
+};
+
 export type UpdateTransactionInput = {
   readonly adminNote?: InputMaybe<Scalars['String']['input']>;
   readonly freezeReason?: InputMaybe<Scalars['String']['input']>;
@@ -1980,6 +2949,8 @@ export type User = {
   readonly avatarUrl?: Maybe<Scalars['String']['output']>;
   readonly balanceCents: Scalars['Long']['output'];
   readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly customerGroupId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly customerGroupName?: Maybe<Scalars['String']['output']>;
   readonly email: Scalars['String']['output'];
   readonly id: Scalars['PrimaryId']['output'];
   readonly nickname?: Maybe<Scalars['String']['output']>;
@@ -1989,6 +2960,27 @@ export type User = {
   readonly totalSpentCents: Scalars['Long']['output'];
   readonly updatedAt: Scalars['LocalDateTime']['output'];
   readonly wechatOpenId: Scalars['String']['output'];
+};
+
+export enum UserCouponStatus {
+  EXPIRED = 'EXPIRED',
+  RECEIVED = 'RECEIVED',
+  RETURNED = 'RETURNED',
+  USED = 'USED'
+}
+
+export type UserCouponVo = {
+  readonly couponType: CouponType;
+  readonly discountAmountCents?: Maybe<Scalars['Long']['output']>;
+  readonly discountRatePermille?: Maybe<Scalars['Long']['output']>;
+  readonly expireTime: Scalars['LocalDateTime']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly name: Scalars['String']['output'];
+  readonly productId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly scope: CouponScope;
+  readonly status: UserCouponStatus;
+  readonly thresholdCents?: Maybe<Scalars['Long']['output']>;
+  readonly usable: Scalars['Boolean']['output'];
 };
 
 export enum UserEngagementLevel {
@@ -2065,6 +3057,7 @@ export type UserInfo = {
 };
 
 export type UserListInput = {
+  readonly customerGroupId?: InputMaybe<Scalars['PrimaryId']['input']>;
   readonly page?: InputMaybe<Scalars['Int']['input']>;
   readonly search?: InputMaybe<Scalars['String']['input']>;
   readonly size?: InputMaybe<Scalars['Int']['input']>;
@@ -2101,6 +3094,22 @@ export type UserSummaryVoPage = {
   readonly pageInfo: PageInfo;
 };
 
+export enum UserTicketStatus {
+  EXPIRED = 'EXPIRED',
+  RETURNED = 'RETURNED',
+  UNUSED = 'UNUSED',
+  USED = 'USED'
+}
+
+export type UserTicketVo = {
+  readonly expireTime: Scalars['LocalDateTime']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly isGift: Scalars['Boolean']['output'];
+  readonly specification?: Maybe<Scalars['String']['output']>;
+  readonly status: UserTicketStatus;
+  readonly ticketTypeName: Scalars['String']['output'];
+};
+
 export type UserVoPage = {
   readonly list: ReadonlyArray<User>;
   readonly pageInfo: PageInfo;
@@ -2111,6 +3120,12 @@ export type ValidateAddressInput = {
   readonly district: Scalars['String']['input'];
   readonly province: Scalars['String']['input'];
 };
+
+export enum ValidityType {
+  DAYS_AFTER_CLAIM = 'DAYS_AFTER_CLAIM',
+  DAYS_AFTER_PURCHASE = 'DAYS_AFTER_PURCHASE',
+  FIXED_RANGE = 'FIXED_RANGE'
+}
 
 export type WaterSourceStatistics = {
   readonly averagePriceCents: Scalars['Long']['output'];

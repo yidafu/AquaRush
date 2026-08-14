@@ -31,20 +31,28 @@ import org.springframework.stereotype.Service
 class SystemConfigQueryApiServiceImpl(
   private val systemSettingsRepository: SystemSettingsRepository,
 ) : SystemConfigQueryApiService {
-  override fun getLongValue(key: String, fallback: Long): Long {
+  override fun getLongValue(
+    key: String,
+    fallback: Long,
+  ): Long {
     val raw = rawValue(key)
     return raw?.toLongOrNull() ?: fallback
   }
 
-  override fun getBooleanValue(key: String, fallback: Boolean): Boolean =
+  override fun getBooleanValue(
+    key: String,
+    fallback: Boolean,
+  ): Boolean =
     when (rawValue(key)) {
       "true" -> true
       "false" -> false
       else -> fallback
     }
 
-  override fun getStringValue(key: String, fallback: String?): String? =
-    rawValue(key) ?: fallback
+  override fun getStringValue(
+    key: String,
+    fallback: String?,
+  ): String? = rawValue(key) ?: fallback
 
   private fun rawValue(key: String): String? {
     val setting = systemSettingsRepository.findBySettingKey(key) ?: return null

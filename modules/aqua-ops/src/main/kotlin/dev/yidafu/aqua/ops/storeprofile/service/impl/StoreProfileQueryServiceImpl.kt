@@ -31,6 +31,5 @@ import org.springframework.stereotype.Service
 class StoreProfileQueryServiceImpl(
   private val storeProfileRepository: StoreProfileRepository,
 ) : StoreProfileQueryService {
-  override fun getStoreProfile(): StoreProfileModel? =
-    storeProfileRepository.findById(StoreProfileRepository.SINGLETON_ID).orElse(null)
+  override fun getStoreProfile(): StoreProfileModel? = storeProfileRepository.findById(StoreProfileRepository.SINGLETON_ID).orElse(null)
 }

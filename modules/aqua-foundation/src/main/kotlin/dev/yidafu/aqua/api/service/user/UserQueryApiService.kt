@@ -48,4 +48,9 @@ interface UserQueryApiService {
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Long
+
+  // ===== 客户分组(F-MKT-001,营销受众维度)=====
+  fun findByCustomerGroupId(groupId: Long): List<UserModel>
+
+  fun countUsersByCustomerGroupId(groupId: Long): Long
 }

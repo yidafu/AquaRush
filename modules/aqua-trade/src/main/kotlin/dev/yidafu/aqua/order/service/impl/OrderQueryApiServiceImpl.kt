@@ -47,6 +47,8 @@ class OrderQueryApiServiceImpl(
     status: OrderModelStatus,
   ): List<OrderModel> = orderRepository.findByUserIdAndStatus(userId, status)
 
+  override fun hasCompletedOrders(userId: Long): Boolean = orderRepository.existsByUserIdAndStatus(userId, OrderModelStatus.COMPLETED)
+
   override fun findByStatus(status: OrderModelStatus): List<OrderModel> = orderRepository.findByStatus(status)
 
   override fun findByDeliveryWorkerId(deliveryWorkerId: Long): List<OrderModel> =

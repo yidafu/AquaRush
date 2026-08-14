@@ -1,0 +1,60 @@
+@import './Section.styles.scss';
+
+.ticket-redeem-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px;
+}
+
+.ticket-redeem-info {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ticket-redeem-text {
+  font-size: 16px;
+  color: var(--theme-text-primary);
+  font-weight: 500;
+}
+
+.ticket-redeem-hint {
+  font-size: 14px;
+  color: var(--theme-text-tertiary);
+}
+
+.ticket-stepper {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.stepper-btn {
+  width: 64px;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--theme-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepper-btn-disabled {
+  background: var(--theme-background-page);
+  opacity: 0.5;
+}
+
+.stepper-btn-icon {
+  font-size: 32px;
+  color: var(--theme-primary);
+  line-height: 1;
+}
+
+.stepper-value {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+  min-width: 48px;
+  text-align: center;
+}

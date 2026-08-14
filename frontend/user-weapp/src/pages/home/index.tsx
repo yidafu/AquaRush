@@ -10,7 +10,7 @@ import {
 } from '@tarojs/taro'
 import CustomNavBar from '../../components/CustomNavBar'
 import { authService } from '../../utils/auth'
-import { Money, Banner, Notice } from '@aquarush/common'
+import { displayCents, Banner, Notice } from '@aquarush/common'
 import ProductService from '../../services/ProductService'
 import ConfigService from '../../services/ConfigService'
 import NoticeService from '../../services/NoticeService'
@@ -29,6 +29,10 @@ interface ExtendedProduct {
   name: string
   subtitle?: string
   price: number // Converted to number for displayCents compatibility
+  // 当前用户有效成交单价(分,熟客价优先 —— R-MKT-01)
+  effectivePrice?: number
+  // 是否命中熟客价(分组价)
+  hasGroupPrice?: boolean
   originalPrice?: number
   depositPrice?: number
   coverImageUrl: string
@@ -420,29 +424,46 @@ const HomePage: React.FC = () => {
         ) : (
           <>
             <View className='product-grid'>
-              {products.map((product) => (
-                <View
-                  key={product.id}
-                  className='product-card'
-                  onClick={() => handleProductClick(product)}
-                >
-                  <View className='product-image-container'>
-                    <Image
-                      src={product.image}
-                      mode='aspectFill'
-                      className='product-image'
-                    />
-                  </View>
-                  <View className='product-content'>
-                    <Text className='product-name'>{product.name}</Text>
-                    <Text className='product-desc' numberOfLines={2}>{product.description}</Text>
-                    <View className='product-bottom'>
-                      <Text className='product-price'><Money cents={product.price} /></Text>
-                      <Text className='product-stock'>库存{product.stock}</Text>
+              {products.map((product) => {
+                // 促销价展示(R-MKT-02 单价链):特价/熟客价/新人价 命中且有效价低于目录价时优先展示
+                const source = product.priceSource
+                const hasDiscountedPrice =
+                  (source === 'GROUP_PRICE' || source === 'FLASH_SALE_PRICE' || source === 'NEWCOMER_PRICE') &&
+                  product.effectivePrice != null &&
+                  product.effectivePrice < product.price
+                const displayPrice = hasDiscountedPrice ? product.effectivePrice : product.price
+                const priceTag =
+                  source === 'FLASH_SALE_PRICE' ? '特价' : source === 'NEWCOMER_PRICE' ? '新人价' : source === 'GROUP_PRICE' ? '熟客价' : ''
+
+                return (
+                  <View
+                    key={product.id}
+                    className='product-card'
+                    onClick={() => handleProductClick(product)}
+                  >
+                    <View className='product-image-container'>
+                      <Image
+                        src={product.image}
+                        mode='aspectFill'
+                        className='product-image'
+                      />
+                    </View>
+                    <View className='product-content'>
+                      <Text className='product-name'>{product.name}</Text>
+                      <Text className='product-desc' numberOfLines={2}>{product.description}</Text>
+                      <View className='product-bottom'>
+                        <View className='product-price-wrap'>
+                          <Text className='product-price'>{displayCents(displayPrice)}</Text>
+                          {hasDiscountedPrice && priceTag && (
+                            <Text className='product-group-tag'>{priceTag}</Text>
+                          )}
+                        </View>
+                        <Text className='product-stock'>库存{product.stock}</Text>
+                      </View>
                     </View>
                   </View>
-                </View>
-              ))}
+                )
+              })}
             </View>
 
             {/* 加载更多组件 */}

@@ -169,7 +169,12 @@ class AdminSystemConfigResolverGraphQLIntegrationTest {
 
     val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_SYS_CONFIG_SAVE)
     assertTrue(audits.isNotEmpty(), "no audit rows for SAVE")
-    assertTrue(audits.any { it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true }, "audit content: ${audits.map { it.properties }}")
+    assertTrue(
+      audits.any {
+        it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true
+      },
+      "audit content: ${audits.map { it.properties }}",
+    )
   }
 
   @Test
