@@ -10,6 +10,7 @@ import {
   getCouponThresholdText
 } from '../../utils/marketing'
 import BasePageLayout from '../../components/BasePageLayout'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 import './index.scss'
 
@@ -30,6 +31,8 @@ const TABS: CouponTab[] = [
  * 按状态 Tab 查看已领取优惠券(可用/已用/已退回/已过期)。
  */
 const CouponListPage: React.FC = () => {
+  usePageViewTracking()
+
   const [coupons, setCoupons] = useState<UserCouponVo[]>([])
   const [activeTab, setActiveTab] = useState<UserCouponStatus>(UserCouponStatus.RECEIVED)
   const [loading, setLoading] = useState<boolean>(true)

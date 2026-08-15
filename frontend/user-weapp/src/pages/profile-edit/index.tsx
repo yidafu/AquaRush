@@ -4,6 +4,7 @@ import { AtForm, AtInput, AtButton, AtToast, AtDivider } from 'taro-ui'
 import Taro, { showToast } from '@tarojs/taro'
 import { authService, type UserInfo } from '../../utils/auth'
 import AvatarUpload from './components/AvatarUpload'
+import { userActionTracker } from '../../utils/tracking'
 
 import "taro-ui/dist/style/components/form.scss"
 import "taro-ui/dist/style/components/input.scss"
@@ -57,6 +58,7 @@ export default class ProfileEditPage extends Component<{}, ProfileEditPageState>
   }
 
   componentDidShow() {
+    userActionTracker.trackPageView()
     // 页面显示时刷新用户信息
     this.loadUserInfo()
   }
@@ -372,8 +374,13 @@ export default class ProfileEditPage extends Component<{}, ProfileEditPageState>
           </View>
           <View className='header-right'>
             <Text
-              className={`save-btn ${hasChanges ? 'active' : 'disabled'}`}
+              trackTarget="profile-save"
+              trackAction="FORM_SUBMIT"
+              trackElementType="button"
+              trackElementText="保存"
+              trackDisabled={!hasChanges}
               onClick={hasChanges ? this.handleSave : undefined}
+              className={`save-btn ${hasChanges ? 'active' : 'disabled'}`}
             >
               保存
             </Text>

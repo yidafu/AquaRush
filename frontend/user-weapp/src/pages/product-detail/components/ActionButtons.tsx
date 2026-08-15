@@ -31,16 +31,22 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         {/* 收藏按钮 */}
         <View className='flex-shrink-0'>
           <View
-            className={`w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 transition-all duration-300 cursor-pointer ${isFavorite ? 'bg-gradient-to-br from-red-500 to-red-400 transform scale-105 shadow-lg' : ''}`}
+            trackTarget="toggle-favorite"
+            trackElementType="button"
+            trackElementText={isFavorite ? '取消收藏' : '收藏'}
             onClick={onToggleFavorite}
+            className={`w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 transition-all duration-300 cursor-pointer ${isFavorite ? 'bg-gradient-to-br from-red-500 to-red-400 transform scale-105 shadow-lg' : ''}`}
           >
             <Text className={`text-xl transition-colors duration-300 ${isFavorite ? 'text-white' : 'text-gray-400'}`}>{isFavorite ? '♥' : '♡'}</Text>
           </View>
         </View>
         {/* 客服按钮 */}
         <View
-          className='flex flex-col items-center justify-center w-10 h-10 transition-all duration-300 rounded cursor-pointer bg-gray-50 active:bg-gray-200 active:scale-95'
+          trackTarget="contact-service"
+          trackElementType="button"
+          trackElementText="客服"
           onClick={onContactService}
+          className='flex flex-col items-center justify-center w-10 h-10 transition-all duration-300 rounded cursor-pointer bg-gray-50 active:bg-gray-200 active:scale-95'
         >
           <Text className='mb-1 text-base'>📞</Text>
           {/* <Text className='text-sm font-medium text-gray-600'>客服</Text> */}
@@ -51,6 +57,11 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
           <View className='flex-1 h-10'>
               {/* 立即购买按钮 */}
               <AtButton
+                trackTarget="buy-now"
+                trackElementType="button"
+                trackElementText={stock <= 0 ? '暂时缺货' : '立即购买'}
+                trackDisabled={stock <= 0}
+                onClick={onBuyNow}
                 type='primary'
                 size='small'
                 className='h-10'
@@ -59,8 +70,6 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
                   borderColor: stock <= 0 ? '#f5f5f5' : '#ff6700',
                   color: stock <= 0 ? '#999' : '#ffffff'
                 }}
-                onClick={onBuyNow}
-                disabled={stock <= 0}
               >
                 {stock <= 0 ? '暂时缺货' : '立即购买'}
               </AtButton>

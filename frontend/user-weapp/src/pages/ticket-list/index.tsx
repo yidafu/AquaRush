@@ -6,6 +6,7 @@ import { authService } from '../../utils/auth'
 import { UserTicketStatus, UserTicketVo, formatDateTime } from '@aquarush/common'
 import { getTicketStatusLabel } from '../../utils/marketing'
 import BasePageLayout from '../../components/BasePageLayout'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 import './index.scss'
 
@@ -29,6 +30,8 @@ const TABS: TicketTab[] = [
  * 展示已购水票,按状态 Tab 过滤;可用张数 = 未用 + 已退回。
  */
 const TicketListPage: React.FC = () => {
+  usePageViewTracking()
+
   const [tickets, setTickets] = useState<UserTicketVo[]>([])
   const [activeTab, setActiveTab] = useState<string>(AVAILABLE_TAB_KEY)
   const [loading, setLoading] = useState<boolean>(true)

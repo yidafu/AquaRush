@@ -113,8 +113,12 @@ const BuyModal: React.FC<BuyModalProps> = ({
           取消
         </Button>
         <Button
-          type='primary'
+          trackTarget="buy-confirm"
+          trackElementType="button"
+          trackElementText="确认购买"
+          trackProps={{ productId: product.id }}
           onClick={onConfirm}
+          type='primary'
           style={{
             flex: 1,
             height: '32px',

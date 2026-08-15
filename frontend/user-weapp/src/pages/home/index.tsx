@@ -14,6 +14,8 @@ import { displayCents, Banner, Notice } from '@aquarush/common'
 import ProductService from '../../services/ProductService'
 import ConfigService from '../../services/ConfigService'
 import NoticeService from '../../services/NoticeService'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
+import { userActionTracker } from '../../utils/tracking'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/card.scss"
@@ -55,6 +57,8 @@ interface ExtendedProduct {
 }
 
 const HomePage: React.FC = () => {
+  usePageViewTracking()
+
   const productService = ProductService.getInstance()
 
   const [products, setProducts] = useState<ExtendedProduct[]>([])
@@ -303,11 +307,16 @@ const HomePage: React.FC = () => {
 
   const handleSearch = (query: string) => {
     console.log('Search query:', query)
+    // 埋点:首页搜索(SEARCH)
+    if (query.trim()) {
+      userActionTracker.track('SEARCH', 'home-search', {
+        elementType: 'input',
+        elementText: '搜索框',
+        properties: { searchQuery: query.trim() }
+      })
+    }
     // TODO: Implement search functionality
     // You can filter products based on the query
-    if (query.trim()) {
-      // Filter products logic here
-    }
   }
 
   const handleProfileClick = () => {

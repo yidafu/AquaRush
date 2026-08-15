@@ -33,6 +33,10 @@
     "./types/graphql": {
       "types": "./src/types/graphql.ts",
       "import": "./src/types/graphql.ts"
+    },
+    "./tracking": {
+      "types": "./src/tracking/index.ts",
+      "import": "./src/tracking/index.ts"
     }
   },
   "scripts": {

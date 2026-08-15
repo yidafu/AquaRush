@@ -7,6 +7,7 @@ import { HelmetProvider } from 'react-helmet-async';
 import zhCN from 'antd/locale/zh_CN';
 import { apolloClient } from './lib/apollo-client';
 import App from './App';
+import './utils/tracking';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

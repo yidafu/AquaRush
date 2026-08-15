@@ -10,6 +10,7 @@ import {
   AddressInput as GraphQLAddressInput,
   UpdateAddressInput as GraphQLUpdateAddressInput
 } from '@aquarush/common'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/form.scss"
@@ -22,6 +23,8 @@ import "taro-ui/dist/style/components/icon.scss"
 import './index.scss'
 
 const AddressEdit: React.FC = () => {
+  usePageViewTracking()
+
   const [formData, setFormData] = useState<AddressFormData>({
     receiverName: '',
     phone: '',
@@ -500,11 +503,16 @@ const AddressEdit: React.FC = () => {
         {/* 提交按钮 */}
         <View className='submit-section'>
           <AtButton
+            trackTarget="address-save"
+            trackAction="FORM_SUBMIT"
+            trackElementType="button"
+            trackElementText="保存地址"
+            trackDisabled={loading}
+            onClick={handleSubmit}
             type='primary'
             size='normal'
             loading={loading}
             disabled={loading}
-            onClick={handleSubmit}
             className='submit-button'
           >
             {loading ? '保存中...' : '保存地址'}

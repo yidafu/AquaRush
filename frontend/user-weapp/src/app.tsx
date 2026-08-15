@@ -2,6 +2,7 @@ import { PropsWithChildren, useEffect } from 'react'
 import { useDidShow, useDidHide } from '@tarojs/taro'
 import { ThemeProvider } from './components/ThemeProvider'
 import { authService } from './utils/auth'
+import { userActionTracker } from './utils/tracking'
 import { testConfigurationInDevelopment } from './config/config-test'
 
 import './app.scss'
@@ -30,6 +31,8 @@ function App({ children }: PropsWithChildren) {
       const success = await authService.silentLogin()
       if (success) {
         console.log('Silent login successful')
+        // 登录成功:补发登录前暂存的操作日志
+        void userActionTracker.flush()
       } else {
         console.log('Silent login failed')
       }
@@ -97,7 +100,8 @@ function App({ children }: PropsWithChildren) {
 
   // 对应 onHide
   useDidHide(() => {
-    // 应用隐藏时的处理逻辑（如果需要）
+    // 应用切后台时立即上报缓冲队列,避免事件滞留丢失
+    void userActionTracker.flush()
   })
 
   return (

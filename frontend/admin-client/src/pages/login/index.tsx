@@ -3,6 +3,7 @@ import { Form, Input, Button, Card, Checkbox, message, Spin } from 'antd';
 import { UserOutlined, LockOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { login } from '../../services/auth';
+import { userActionTracker } from '../../utils/tracking';
 import './index.css';
 
 interface LoginForm {
@@ -59,6 +60,12 @@ const Login: React.FC = () => {
       }
 
       message.success('登录成功！');
+      // 埋点:登录成功
+      userActionTracker.track('CLICK', 'login-submit', {
+        elementType: 'button',
+        elementText: '登录',
+        properties: { username: values.username },
+      });
       navigate('/dashboard');
     } catch (error: any) {
       message.error(error.message || '登录失败，请检查用户名和密码');

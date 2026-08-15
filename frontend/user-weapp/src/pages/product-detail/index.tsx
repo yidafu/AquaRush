@@ -10,6 +10,7 @@ import FavoriteService from '../../services/FavoriteService'
 import { authService } from '../../utils/auth'
 import { Product } from '../../types/product'
 import { normalizeCents } from '@aquarush/common'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 // Import extracted components
 import ProductImageGallery from './components/ProductImageGallery'
@@ -40,6 +41,8 @@ const MAX_RETRIES = 3
 const RETRY_DELAY = 1000 // 1 second
 
 const ProductDetail: React.FC = () => {
+  usePageViewTracking()
+
   const [state, setState] = useState<ProductDetailState>({
     product: null,
     loading: true,

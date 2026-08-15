@@ -1,14 +1,30 @@
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
-import { ActivityIndicator, StyleSheet, useColorScheme, View } from 'react-native';
+import { useEffect } from 'react';
+import { ActivityIndicator, AppState, StyleSheet, useColorScheme, View } from 'react-native';
 
 import { RootStatusBar } from '@/components/root-status-bar';
 import { TypeScale } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
+import { usePageViewTracking } from '@/hooks/usePageViewTracking';
 import { useTheme } from '@/hooks/use-theme';
+import { userActionTracker } from '@/utils/tracking';
 
 function RootNavigator() {
   const { isHydrating, isAuthenticated } = useAuth();
   const theme = useTheme();
+
+  // 埋点:路由变化上报 PAGE_VIEW(覆盖全部页面,含登录页)
+  usePageViewTracking();
+
+  // 埋点:应用切后台时立即上报缓冲队列,避免事件滞留丢失
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') {
+        void userActionTracker.flush();
+      }
+    });
+    return () => sub.remove();
+  }, []);
 
   if (isHydrating) {
     return (

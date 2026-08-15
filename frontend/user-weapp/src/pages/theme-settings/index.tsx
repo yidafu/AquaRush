@@ -2,9 +2,12 @@ import React, { useState } from 'react'
 import { View, Text } from '@tarojs/components'
 import { useTheme, ThemePreview } from '../../components/ThemeProvider'
 import Taro from '@tarojs/taro'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import './index.scss'
 
 const ThemeSettings: React.FC = () => {
+  usePageViewTracking()
+
   const { themeName, setTheme } = useTheme()
   const [isSaving, setIsSaving] = useState(false)
 

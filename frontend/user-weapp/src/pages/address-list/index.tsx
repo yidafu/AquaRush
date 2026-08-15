@@ -5,6 +5,7 @@ import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import AddressService from '../../services/AddressService'
 import { Address } from '../../types/address'
 import AddressCard from '../../components/AddressCard'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/toast.scss"
@@ -17,6 +18,8 @@ interface AddressListProps {
 }
 
 const AddressList: React.FC<AddressListProps> = () => {
+  usePageViewTracking()
+
   const [addresses, setAddresses] = useState<Address[]>([])
   const [filteredAddresses, setFilteredAddresses] = useState<Address[]>([])
   const [loading, setLoading] = useState<boolean>(true)

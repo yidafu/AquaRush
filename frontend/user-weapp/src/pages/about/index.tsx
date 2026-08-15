@@ -18,8 +18,11 @@ import {
 } from '@/constants'
 import StoreProfileService from '../../services/StoreProfileService'
 import type { StoreProfile } from '@aquarush/common'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 const About: React.FC = () => {
+  usePageViewTracking()
+
   // 店铺信息(F-OPS-004):后台可维护,未配置时按默认常量兜底
   const [storeProfile, setStoreProfile] = useState<StoreProfile | null>(null)
 

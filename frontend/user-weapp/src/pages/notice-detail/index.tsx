@@ -3,6 +3,7 @@ import { View, Text, Image } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { Notice } from '@aquarush/common'
 import NoticeService from '../../services/NoticeService'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import './index.scss'
 
 // 公告类型文案
@@ -17,6 +18,8 @@ const NOTICE_TYPE_LABELS: Record<string, string> = {
  * 展示公告列表(置顶优先/发布时间倒序) + 选中公告全文;id 来自路由参数,缺省选第 1 条。
  */
 const NoticeDetailPage: React.FC = () => {
+  usePageViewTracking()
+
   const router = useRouter()
   const [notices, setNotices] = useState<Notice[]>([])
   const [selectedId, setSelectedId] = useState<string>('')

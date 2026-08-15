@@ -6,6 +6,7 @@ import FavoriteService from '../../services/FavoriteService'
 import { authService } from '../../utils/auth'
 import { Money } from '@aquarush/common'
 import BasePageLayout from '../../components/BasePageLayout'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 import "taro-ui/dist/style/components/grid.scss"
 import "taro-ui/dist/style/components/load-more.scss"
@@ -34,6 +35,8 @@ interface PageInfo {
 }
 
 const FavoritesPage: React.FC = () => {
+  usePageViewTracking()
+
   const [products, setProducts] = useState<FavoriteProduct[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)

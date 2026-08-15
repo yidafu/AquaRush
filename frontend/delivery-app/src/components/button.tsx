@@ -1,4 +1,5 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
+import type { TrackAttributes } from '@aquarush/common/tracking';
 
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
@@ -6,7 +7,7 @@ import { useTheme } from '@/hooks/use-theme';
 export type ButtonVariant = 'primary' | 'ghost' | 'danger' | 'dangerGhost';
 export type ButtonSize = 'sm' | 'md' | 'lg';
 
-interface ButtonProps {
+interface ButtonProps extends TrackAttributes {
   title: string;
   onPress: () => void;
   variant?: ButtonVariant;

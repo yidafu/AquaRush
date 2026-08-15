@@ -12,6 +12,7 @@ import "taro-ui/dist/style/components/badge.scss"
 import "taro-ui/dist/style/components/tag.scss"
 import './index.scss'
 import { Money } from '@aquarush/common'
+import { userActionTracker } from '../../utils/tracking'
 
 interface OrderItem {
   id: string
@@ -95,6 +96,7 @@ export default class OrderList extends Component<{}, OrderListState> {
   }
 
   componentDidShow() {
+    userActionTracker.trackPageView()
     // 页面显示时刷新第一页数据
     this.setState({ page: 1, hasMore: true }, () => {
       this.loadOrders(true)
@@ -477,20 +479,28 @@ export default class OrderList extends Component<{}, OrderListState> {
             {order.status === 'pending_payment' && (
               <>
                 <AtButton
+                  trackTarget="order-cancel"
+                  trackElementType="button"
+                  trackElementText="取消订单"
+                  trackProps={{ orderId: order.id }}
+                  onClick={() => this.handleCancelOrder(order)}
                   type='secondary'
                   size='small'
-                  onClick={() => this.handleCancelOrder(order)}
                   className='action-button'
                 >
-                  取消订单
+                    取消订单
                 </AtButton>
                 <AtButton
+                  trackTarget="order-pay"
+                  trackElementType="button"
+                  trackElementText="立即支付"
+                  trackProps={{ orderId: order.id }}
+                  onClick={() => this.handlePayment(order)}
                   type='primary'
                   size='small'
-                  onClick={() => this.handlePayment(order)}
                   className='action-button'
                 >
-                  立即支付
+                    立即支付
                 </AtButton>
               </>
             )}
@@ -527,12 +537,16 @@ export default class OrderList extends Component<{}, OrderListState> {
                   查看详情
                 </AtButton>
                 <AtButton
+                  trackTarget="order-confirm-receive"
+                  trackElementType="button"
+                  trackElementText="确认收货"
+                  trackProps={{ orderId: order.id }}
+                  onClick={() => this.handleConfirmReceive(order)}
                   type='primary'
                   size='small'
-                  onClick={() => this.handleConfirmReceive(order)}
                   className='action-button'
                 >
-                  确认收货
+                    确认收货
                 </AtButton>
               </>
             )}
@@ -540,12 +554,16 @@ export default class OrderList extends Component<{}, OrderListState> {
             {order.status === 'completed' && (
               <>
                 <AtButton
+                  trackTarget="order-reorder"
+                  trackElementType="button"
+                  trackElementText="再次购买"
+                  trackProps={{ orderId: order.id }}
+                  onClick={() => this.handleReorder(order)}
                   type='secondary'
                   size='small'
-                  onClick={() => this.handleReorder(order)}
                   className='action-button'
                 >
-                  再次购买
+                    再次购买
                 </AtButton>
                 <AtButton
                   type='secondary'

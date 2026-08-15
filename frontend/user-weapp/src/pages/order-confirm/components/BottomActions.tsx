@@ -24,10 +24,15 @@ const BottomActions: React.FC<BottomActionsProps> = ({
         <Text className='total-amount'>{displayCents(totalAmount)}</Text>
       </View>
       <Button
+        trackTarget="order-submit"
+        trackAction="FORM_SUBMIT"
+        trackElementType="button"
+        trackElementText="提交订单"
+        trackDisabled={disabled || loading}
+        onClick={onSubmit}
         className='submit-button'
         loading={loading}
         disabled={disabled || loading}
-        onClick={onSubmit}
       >
         {loading ? '提交中...' : '提交订单'}
       </Button>

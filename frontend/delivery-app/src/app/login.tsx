@@ -104,7 +104,16 @@ export default function LoginScreen() {
               editable={!submitting}
             />
 
-            <Button title="登录" size="lg" loading={submitting} onPress={handleSubmit} />
+            <Button
+              title="登录"
+              size="lg"
+              loading={submitting}
+              trackTarget="login-submit"
+              trackElementType="button"
+              trackElementText="登录"
+              trackProps={{ username: username.trim() }}
+              onPress={handleSubmit}
+            />
 
             <ThemedText type="caption" themeColor="textTertiary" style={styles.tips}>
               {'登录即表示同意'}

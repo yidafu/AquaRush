@@ -11,6 +11,7 @@ import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { useTheme } from '@/hooks/use-theme';
+import { userActionTracker } from '@/utils/tracking';
 
 const ROLE_LABELS: Record<string, string> = {
   DELIVERY_WORKER: '送水员',
@@ -39,6 +40,13 @@ export default function ProfileScreen() {
 
   const handleLogout = () => {
     const doLogout = async () => {
+      // 埋点:登出(显式携带用户上下文,避免登出清空本地存储后上报丢失归属)
+      userActionTracker.track('CLICK', 'logout', {
+        elementType: 'button',
+        elementText: '退出登录',
+        userId: userInfo?.id != null ? String(userInfo.id) : undefined,
+        username: userInfo?.username || userInfo?.realName || undefined,
+      });
       await logout();
       router.replace('/login');
     };

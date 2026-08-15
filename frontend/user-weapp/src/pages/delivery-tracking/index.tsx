@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { View, Text, Button, Image, Map } from '@tarojs/components'
 import { AtCard, AtButton, AtIcon, AtToast, AtLoading, AtTag } from 'taro-ui'
 import Taro, { useReady, useDidShow, useDidHide, usePullDownRefresh } from '@tarojs/taro'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 import "taro-ui/dist/style/components/card.scss"
 import "taro-ui/dist/style/components/button.scss"
@@ -60,6 +61,8 @@ interface DeliveryTrackingState {
 }
 
 const DeliveryTracking: React.FC = () => {
+  usePageViewTracking()
+
   const [state, setState] = useState<DeliveryTrackingState>({
     orderId: '',
     order: null,

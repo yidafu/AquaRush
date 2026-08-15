@@ -11,6 +11,7 @@ import {
   getValidityText
 } from '../../utils/marketing'
 import BasePageLayout from '../../components/BasePageLayout'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 import './index.scss'
 
@@ -19,6 +20,8 @@ import './index.scss'
  * 展示可领取的优惠券模板(仅自动领取),点击领取后刷新已领数量。
  */
 const CouponCenterPage: React.FC = () => {
+  usePageViewTracking()
+
   const [templates, setTemplates] = useState<CouponTemplateVo[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -114,8 +117,12 @@ const CouponCenterPage: React.FC = () => {
                       </View>
                     ) : (
                       <View
-                        className='coupon-claim-btn'
+                        trackTarget="coupon-claim"
+                        trackElementType="button"
+                        trackElementText={claimingId === template.id ? '领取中...' : '领取'}
+                        trackProps={{ couponTemplateId: template.id }}
                         onClick={() => handleClaim(template)}
+                        className='coupon-claim-btn'
                       >
                         <Text className='coupon-claim-text'>
                           {claimingId === template.id ? '领取中...' : '领取'}

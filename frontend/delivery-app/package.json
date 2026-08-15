@@ -41,6 +41,8 @@
   },
   "devDependencies": {
     "@types/react": "~19.2.2",
+    "babel-plugin-aquarush-track": "workspace:*",
+    "babel-preset-expo": "~57.0.6",
     "eslint-config-expo": "~57.0.1",
     "typescript": "~6.0.3"
   },

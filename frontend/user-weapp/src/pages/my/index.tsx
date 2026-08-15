@@ -7,6 +7,7 @@ import OrderSection from './components/OrderSection'
 import ServiceSection from './components/ServiceSection'
 import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import { authService, type UserInfo as AuthUserInfo } from '../../utils/auth'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 // Taro UI 样式已在 app.scss 中全局引入，无需重复引入
 import './index.scss'
@@ -22,6 +23,8 @@ interface OrderStats {
 }
 
 const MyPage: React.FC = () => {
+  usePageViewTracking()
+
   // State management
   const [userInfo, setUserInfo] = useState<AuthUserInfo | null>(null)
   const [orderStats, setOrderStats] = useState<OrderStats>({

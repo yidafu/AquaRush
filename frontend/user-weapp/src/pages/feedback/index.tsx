@@ -9,6 +9,7 @@ import { CONTACT_INFO } from '../../constants'
 import FeedbackService from '../../services/FeedbackService'
 import StoreProfileService from '../../services/StoreProfileService'
 import { FeedbackType, StoreProfile } from '@aquarush/common'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 // 反馈类型(与后端 FeedbackType 枚举一一对应)
 const FEEDBACK_TYPES = [
@@ -38,6 +39,8 @@ interface FeedbackForm {
 }
 
 const Feedback: React.FC = () => {
+  usePageViewTracking()
+
   const [form, setForm] = useState<FeedbackForm>({
     type: '',
     content: '',
@@ -235,8 +238,13 @@ const Feedback: React.FC = () => {
 
         <View className='submit-section'>
           <Button
-            className='submit-btn'
+            trackTarget="feedback-submit"
+            trackAction="FORM_SUBMIT"
+            trackElementType="button"
+            trackElementText="提交反馈"
+            trackDisabled={submitting}
             onClick={handleSubmit}
+            className='submit-btn'
             loading={submitting}
             disabled={submitting}
           >

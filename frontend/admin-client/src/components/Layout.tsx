@@ -2,6 +2,8 @@ import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import { Layout as AntLayout, Menu, Dropdown, Avatar, message } from 'antd';
 import type { MenuProps } from 'antd';
+import { usePageViewTracking } from '../hooks/usePageViewTracking';
+import { userActionTracker } from '../utils/tracking';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -37,6 +39,9 @@ const { Header, Sider, Content } = AntLayout;
 
 const Layout: React.FC = () => {
   const navigate = useNavigate();
+
+  // 埋点:路由变化上报 PAGE_VIEW
+  usePageViewTracking();
 
   // 仅超级管理员可管理管理员账号（后端以 PERMISSION_ADMIN_USER_* 强制，前端菜单隐藏为 UX 层）
   const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
@@ -127,6 +132,14 @@ const Layout: React.FC = () => {
   const handleLogout = () => {
     // TODO: 调用登出 API
     // await logout();
+    // 埋点:登出(显式携带用户上下文,避免登出清空本地存储后上报丢失归属)
+    const logoutUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
+    userActionTracker.track('CLICK', 'logout', {
+      elementType: 'menu',
+      elementText: '退出登录',
+      userId: logoutUser?.id != null ? String(logoutUser.id) : undefined,
+      username: logoutUser?.username || logoutUser?.nickname || undefined,
+    });
     localStorage.removeItem('token');
     localStorage.removeItem('userInfo');
     message.success('已退出登录');

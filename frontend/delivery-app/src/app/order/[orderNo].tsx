@@ -31,6 +31,7 @@ import { Radius, Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
 import { useTheme } from '@/hooks/use-theme';
 import { assignDeliveryWorker, getDeliveryWorkers } from '@/services/admin';
+import { userActionTracker } from '@/utils/tracking';
 import {
   acceptDelivery,
   completeDelivery,
@@ -145,6 +146,12 @@ export default function OrderDetailScreen() {
         return;
       }
 
+      // 埋点:确认送达
+      userActionTracker.track('CLICK', 'order-complete', {
+        elementType: 'button',
+        elementText: '确认送达',
+        properties: { orderNo: order.orderNo, paymentType: paymentType ?? undefined },
+      });
       setActionLoading(true);
       try {
         await completeDelivery(order.id, deliveryPhotos, paymentType ?? undefined, deliveryRemark || undefined);
@@ -330,10 +337,30 @@ export default function OrderDetailScreen() {
         ) : (
           <>
             {order.status === 'PENDING_DISPATCH' ? (
-              <Button title="接单" size="lg" loading={actionLoading} onPress={handleAccept} style={styles.actionButton} />
+              <Button
+                title="接单"
+                size="lg"
+                loading={actionLoading}
+                trackTarget="order-accept"
+                trackElementType="button"
+                trackElementText="接单"
+                trackProps={{ orderNo: order.orderNo }}
+                onPress={handleAccept}
+                style={styles.actionButton}
+              />
             ) : null}
             {order.status === 'PENDING_DELIVERY' ? (
-              <Button title="开始配送" size="lg" loading={actionLoading} onPress={handleStart} style={styles.actionButton} />
+              <Button
+                title="开始配送"
+                size="lg"
+                loading={actionLoading}
+                trackTarget="order-start"
+                trackElementType="button"
+                trackElementText="开始配送"
+                trackProps={{ orderNo: order.orderNo }}
+                onPress={handleStart}
+                style={styles.actionButton}
+              />
             ) : null}
             {order.status === 'DELIVERING' ? (
               <Button
