@@ -35,6 +35,8 @@ import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
+import tools.jackson.databind.ObjectMapper
+import tools.jackson.databind.node.ObjectNode
 
 /**
  * 用户端桶水票变更 Resolver(F-MKT-007 购票)
@@ -47,6 +49,7 @@ class ClientTicketMutationResolver(
   private val ticketTypeQueryService: TicketTypeQueryService,
   private val userQueryApiService: UserQueryApiService,
   private val paymentService: PaymentService,
+  private val objectMapper: ObjectMapper,
 ) {
   /**
    * 购买桶水票:创建 PENDING 购票单(orderNo 作为支付 out_trade_no)后发起微信小程序支付;
@@ -65,22 +68,28 @@ class ClientTicketMutationResolver(
       )
     val ticketTypeName = ticketTypeQueryService.getTicketType(purchase.ticketTypeId)?.name ?: "桶水票"
     var requiresSimulation = false
+    var paymentParams: ObjectNode? = null
     try {
       val openId = userQueryApiService.findById(principal.id)?.wechatOpenId.orEmpty()
-      paymentService.createWechatJsapiPayForTicket(
-        ticketPurchaseId = purchase.id!!,
-        orderNo = purchase.orderNo,
-        amountCents = purchase.packagePriceCents,
-        description = "桶水票",
-        openId = openId,
-      )
+      val params =
+        paymentService.createWechatJsapiPayForTicket(
+          ticketPurchaseId = purchase.id!!,
+          orderNo = purchase.orderNo,
+          amountCents = purchase.packagePriceCents,
+          description = "桶水票",
+          openId = openId,
+        )
+      // 测试环境假支付返回 mock 参数(已自动完成);真实模式返回 requestPayment 参数
+      if (params.isNotEmpty()) {
+        paymentParams = objectMapper.valueToTree(params) as ObjectNode
+      }
     } catch (e: NotImplementedError) {
       requiresSimulation = true
     }
     return purchase.toGraphQL(
       ticketTypeName = ticketTypeName,
       requiresSimulation = requiresSimulation,
-      paymentParams = null,
+      paymentParams = paymentParams,
     )
   }
 }

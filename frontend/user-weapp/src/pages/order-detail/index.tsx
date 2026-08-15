@@ -3,6 +3,8 @@ import { View, Text, Image, Button, Progress, Steps } from '@tarojs/components'
 import { AtCard, AtIcon, AtButton, AtToast, AtTag, AtTimeline, AtProgress } from 'taro-ui'
 import Taro from '@tarojs/taro'
 import { Money } from '@aquarush/common'
+import OrderService from '../../services/OrderService'
+import { userActionTracker } from '../../utils/tracking'
 
 import "taro-ui/dist/style/components/card.scss"
 import "taro-ui/dist/style/components/icon.scss"
@@ -121,6 +123,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
   }
 
   componentDidShow() {
+    userActionTracker.trackPageView()
     // 页面显示时刷新订单详情
     if (this.orderId && !this.state.loading) {
       this.loadOrderDetail()
@@ -151,8 +154,12 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     try {
       this.setState({ loading: true })
 
-      // TODO: 实际项目中这里应该调用获取订单详情的API
-      // const order = await getOrderDetail(this.orderId)
+      // 优先加载真实订单数据(F-ORD-003);失败回退模拟数据(离线/演示场景)
+      const result = await OrderService.getInstance().getOrder(this.orderId)
+      if (result.success && result.data) {
+        this.setState({ order: this.mapRealOrder(result.data) })
+        return
+      }
 
       // 模拟订单详情数据
       const mockOrder = {
@@ -248,14 +255,118 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     }
   }
 
-  handlePayment = () => {
+  /**
+   * GraphQL OrderStatus → 页面状态键
+   */
+  mapStatus = (status: string): 'pending_payment' | 'pending_delivery' | 'delivering' | 'completed' | 'cancelled' => {
+    const map: Record<string, 'pending_payment' | 'pending_delivery' | 'delivering' | 'completed' | 'cancelled'> = {
+      PENDING_PAYMENT: 'pending_payment',
+      PENDING_DELIVERY: 'pending_delivery',
+      PENDING_DISPATCH: 'pending_delivery',
+      DELIVERING: 'delivering',
+      COMPLETED: 'completed',
+      CANCELLED: 'cancelled',
+      REFUNDED: 'cancelled'
+    }
+    return map[status] || 'pending_payment'
+  }
+
+  /**
+   * 真实订单 → 页面订单结构(商品信息来自订单快照,金额均为分)
+   */
+  mapRealOrder = (order: any) => {
+    const items: OrderItem[] = order.product
+      ? [{
+          id: order.product.id,
+          name: order.product.name,
+          image: order.product.coverImageUrl || '/assets/default-product.png',
+          priceCents: order.product.priceCents,
+          quantity: order.quantity,
+          specifications: order.product.specification ? [order.product.specification] : []
+        }]
+      : []
+
+    const status = this.mapStatus(order.status)
+    const timeline: OrderTimeline[] = []
+    if (order.createdAt) {
+      timeline.push({ time: order.createdAt, title: '订单创建', content: '您的订单已创建', icon: 'bookmark', color: 'var(--theme-primary)' })
+    }
+    if (order.paymentTime) {
+      timeline.push({ time: order.paymentTime, title: '支付成功', content: '使用微信支付成功', icon: 'credit-card', color: 'var(--theme-secondary)' })
+    }
+    if (order.deliveryStartedAt) {
+      timeline.push({ time: order.deliveryStartedAt, title: '开始配送', content: '配送员正在配送中', icon: 'truck', color: 'var(--theme-success)' })
+    }
+    if (order.completedAt) {
+      timeline.push({ time: order.completedAt, title: '订单完成', content: '订单已完成', icon: 'check-circle', color: 'var(--theme-success)' })
+    }
+
+    return {
+      id: order.id,
+      orderNo: order.orderNo,
+      status,
+      items,
+      totalAmount: order.amountCents,
+      deliveryFee: order.deliveryFeeCents,
+      finalAmount: order.payAmountCents,
+      address: order.address ? {
+        receiverName: order.address.receiverName,
+        phone: order.address.phone,
+        province: order.address.province,
+        city: order.address.city,
+        district: order.address.district,
+        detailAddress: order.address.detailAddress
+      } : { receiverName: '', phone: '', province: '', city: '', district: '', detailAddress: '' },
+      paymentMethod: order.paymentMethod === 'WECHAT_PAY' ? 'wechat' : (order.paymentMethod || 'wechat'),
+      deliveryTime: 'immediate',
+      createTime: order.createdAt || '',
+      paymentTime: order.paymentTime || undefined,
+      remark: order.remark || undefined,
+      timeline
+    }
+  }
+
+  /**
+   * 立即支付(F-ORD-005):测试环境假支付自动完成,真实环境拉起微信支付
+   */
+  handlePayment = async () => {
     const { order } = this.state
     if (!order) return
 
-    // 跳转到支付页面
-    Taro.navigateTo({
-      url: `/pages/payment/index?orderId=${order.id}&amount=${order.finalAmount}`
-    })
+    this.showToast('正在发起支付...', 'loading')
+
+    const payResult = await OrderService.getInstance().createOrderPayment(order.id)
+    if (!payResult.success || !payResult.data) {
+      this.showToast(payResult.error?.message || '支付发起失败', 'error')
+      return
+    }
+    const { autoCompleted, requiresSimulation, paymentParams } = payResult.data
+
+    // 测试环境假支付:服务端已自动完成,直接刷新订单状态
+    if (autoCompleted) {
+      this.showToast('支付成功（模拟支付自动完成）', 'success')
+      setTimeout(() => this.loadOrderDetail(), 800)
+      return
+    }
+    if (requiresSimulation || !paymentParams) {
+      this.showToast('支付功能待接入', 'error')
+      return
+    }
+
+    try {
+      await Taro.requestPayment({
+        timeStamp: paymentParams.timeStamp as string,
+        nonceStr: paymentParams.nonceStr as string,
+        package: paymentParams.package as string,
+        signType: paymentParams.signType as 'MD5' | 'HMAC-SHA256' | 'RSA',
+        paySign: paymentParams.paySign as string
+      })
+      this.showToast('支付成功', 'success')
+      setTimeout(() => this.loadOrderDetail(), 800)
+    } catch (e) {
+      console.error('微信支付未完成:', e)
+      this.showToast('支付未完成，请重试', 'error')
+    }
   }
 
   handleCancelOrder = () => {
@@ -653,21 +764,29 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
           {order.status === 'pending_payment' && (
             <>
               <AtButton
-                type='secondary'
-                size='normal'
+                trackTarget="order-cancel"
+                trackElementType="button"
+                trackElementText="取消订单"
+                trackProps={{ orderId: order.id }}
                 onClick={this.handleCancelOrder}
-                className='action-button'
-              >
-                取消订单
-              </AtButton>
+                  type='secondary'
+                  size='normal'
+                  className='action-button'
+                >
+                  取消订单
+                </AtButton>
               <AtButton
-                type='primary'
-                size='normal'
+                trackTarget="order-pay"
+                trackElementType="button"
+                trackElementText="立即支付"
+                trackProps={{ orderId: order.id }}
                 onClick={this.handlePayment}
-                className='action-button primary'
-              >
-                立即支付
-              </AtButton>
+                  type='primary'
+                  size='normal'
+                  className='action-button primary'
+                >
+                  立即支付
+                </AtButton>
             </>
           )}
 
@@ -682,26 +801,34 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
                 查看配送
               </AtButton>
               <AtButton
-                type='primary'
-                size='normal'
+                trackTarget="order-confirm-receive"
+                trackElementType="button"
+                trackElementText="确认收货"
+                trackProps={{ orderId: order.id }}
                 onClick={this.handleConfirmReceive}
-                className='action-button primary'
-              >
-                确认收货
-              </AtButton>
+                  type='primary'
+                  size='normal'
+                  className='action-button primary'
+                >
+                  确认收货
+                </AtButton>
             </>
           )}
 
           {order.status === 'completed' && (
             <>
               <AtButton
-                type='secondary'
-                size='normal'
+                trackTarget="order-reorder"
+                trackElementType="button"
+                trackElementText="再次购买"
+                trackProps={{ orderId: order.id }}
                 onClick={this.handleReorder}
-                className='action-button'
-              >
-                再次购买
-              </AtButton>
+                  type='secondary'
+                  size='normal'
+                  className='action-button'
+                >
+                  再次购买
+                </AtButton>
               <AtButton
                 type='secondary'
                 size='normal'

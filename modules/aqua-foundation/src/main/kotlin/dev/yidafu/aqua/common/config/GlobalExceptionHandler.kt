@@ -26,6 +26,7 @@ import jakarta.servlet.http.HttpServletRequest
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
 import java.time.LocalDateTime
@@ -65,6 +66,32 @@ class GlobalExceptionHandler {
         correlationId = correlationId,
       )
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error)
+  }
+
+  @ExceptionHandler(AccessDeniedException::class)
+  fun handleAccessDenied(
+    ex: AccessDeniedException,
+    request: HttpServletRequest,
+  ): ResponseEntity<ErrorResponse> {
+    val correlationId = CorrelationIdHolder.getCorrelationId() ?: generateCorrelationId()
+
+    logger.warn(
+      "ACCESS_DENIED - CorrelationId: {}, Method: {}, URI: {}, User: {}, Message: {}",
+      correlationId,
+      request.method,
+      request.requestURI,
+      request.userPrincipal?.name ?: "anonymous",
+      ex.message,
+    )
+
+    val error =
+      ErrorResponse(
+        code = 403,
+        message = "没有权限执行该操作",
+        timestamp = LocalDateTime.now(),
+        correlationId = correlationId,
+      )
+    return ResponseEntity.status(HttpStatus.FORBIDDEN).body(error)
   }
 
   @ExceptionHandler(IllegalArgumentException::class)

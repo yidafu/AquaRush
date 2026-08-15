@@ -19,66 +19,73 @@
 
 package dev.yidafu.aqua.payment.service.impl
 
-import com.wechat.pay.java.core.Config
-import com.wechat.pay.java.core.exception.ValidationException
 import dev.yidafu.aqua.api.service.marketing.TicketMutationApiService
 import dev.yidafu.aqua.api.service.marketing.TicketQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
+import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.api.service.payment.PaymentService
+import dev.yidafu.aqua.common.domain.model.PaymentMethod
+import dev.yidafu.aqua.common.domain.model.PaymentModel
+import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
+import dev.yidafu.aqua.logging.util.BizLogger
+import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
+import dev.yidafu.aqua.payment.service.WechatPayGateway
+import dev.yidafu.aqua.payment.service.WechatPrepayRequest
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 
+/**
+ * 支付服务实现(PRD 04-order.md §F-ORD-005/R-PAY-01~03):
+ * - 真实模式:对接微信支付 V3(JSAPI 小程序支付),发起预支付/验签解析回调/查询交易/申请退款;
+ * - 假支付模式(测试环境,wechat.pay.mock-enabled=true 默认开启):发起支付即自动完成
+ *   (与回调共用同一完成路径),不依赖商户密钥与微信沙箱,便于开发测试;
+ * - 安全:回调必须验签且金额与订单一致(R-PAY-01);重复回调幂等;已取消订单回调不流转状态。
+ */
 @Service
 class PaymentServiceImpl(
   private val orderQueryService: OrderQueryService,
+  private val orderQueryApiService: OrderQueryApiService,
   private val orderMutationService: OrderMutationService,
   private val ticketQueryApiService: TicketQueryApiService,
   private val ticketMutationApiService: TicketMutationApiService,
+  private val paymentRepository: PaymentRepository,
+  private val wechatPayGateway: WechatPayGateway,
+  private val bizLogger: BizLogger,
 ) : PaymentService {
   private val logger = LoggerFactory.getLogger(PaymentService::class.java)
 
   @Value("\${wechat.pay.appid:}")
-  private lateinit var appId: String
+  private val appId: String = ""
 
   @Value("\${wechat.pay.mchid:}")
-  private lateinit var mchId: String
-
-  @Value("\${wechat.pay.private-key-path:}")
-  private lateinit var privateKeyPath: String
-
-  @Value("\${wechat.pay.merchant-serial-number:}")
-  private lateinit var merchantSerialNumber: String
-
-  @Value("\${wechat.pay.api-v3-key:}")
-  private lateinit var apiV3Key: String
+  private val mchId: String = ""
 
   @Value("\${wechat.pay.notify-url:}")
-  private lateinit var notifyUrl: String
+  private val notifyUrl: String = ""
 
-  private val config: Config by lazy {
-    // TODO: Fix WeChat Pay SDK configuration
-    // The current SDK version (0.2.17) has different API than expected
-    // Need to update configuration logic according to the correct API
-    throw NotImplementedError("WeChat Pay SDK configuration needs to be updated for version 0.2.17")
+  /** 测试环境假支付开关(默认开启;生产置 WECHAT_PAY_MOCK_ENABLED=false 并配置商户参数) */
+  @Value("\${wechat.pay.mock-enabled:true}")
+  var mockEnabled: Boolean = true
+
+  companion object {
+    /** 支付时限(分钟,R-ORD-04:待支付订单超过 30 分钟自动取消) */
+    private const val PAYMENT_EXPIRE_MINUTES = 30L
+
+    /** 假支付交易号前缀(保证 payments.transaction_id 唯一) */
+    private const val MOCK_PREFIX = "MOCK-"
   }
 
-  // TODO: Fix WeChat Pay SDK service initialization after config is fixed
-  // private val jsapiService: JsapiService by lazy { JsapiService.Builder().config(config).build() }
-  // private val refundService: RefundService by lazy { RefundService.Builder().config(config).build() }
-
   /**
-   * 创建微信小程序支付订单
-   * @param orderId 订单ID
-   * @param amountCents 支付金额（分）
-   * @param description 支付描述
-   * @param openId 微信用户OpenID
-   * @return 支付参数
+   * 创建微信小程序支付订单(F-ORD-005):
+   * 校验订单待支付;金额一律服务端计算(R-MON-01,实付=商品金额+配送费);
+   * 假支付模式:直接自动完成支付;真实模式:调用微信预支付并返回 Taro.requestPayment 参数。
    */
   override fun createWechatJsapiPay(
     orderId: Long,
@@ -86,80 +93,198 @@ class PaymentServiceImpl(
     description: String,
     openId: String,
   ): Map<String, Any> {
-    try {
-      // 验证订单存在且状态正确
-      val order = orderQueryService.getOrderById(orderId)
-      if (order.status != OrderModelStatus.PENDING_PAYMENT) {
-        throw BadRequestException("订单状态不正确，无法创建支付")
-      }
+    val order = orderQueryService.getOrderById(orderId)
+    if (order.status != OrderModelStatus.PENDING_PAYMENT) {
+      throw BadRequestException("订单状态不正确，无法创建支付")
+    }
+    // 金额一律服务端计算:实付 = 商品金额 + 配送费(R-MON-01)
+    val payAmountCents = order.payAmountCents
+    if (amountCents != payAmountCents) {
+      throw BadRequestException("支付金额与订单不一致，无法创建支付")
+    }
+    upsertPendingPayment(orderId, order.userId, order.orderNo, payAmountCents, description)
 
-      // TODO: Implement WeChat Pay SDK integration with correct 0.2.17 API
-      // The Amount, Payer, PrepayRequest classes are from newer SDK version
-      throw NotImplementedError("WeChat Pay SDK integration needs to be implemented for version 0.2.17")
+    // 测试环境假支付:发起即自动完成(与回调共用完成路径)
+    if (mockEnabled) {
+      logger.info("假支付模式:订单 {} 支付自动完成", orderId)
+      completePaymentSuccess(orderId, mockTransactionId(order.orderNo))
+      return mockPaymentParams(order.orderNo)
+    }
+
+    if (!wechatPayGateway.isConfigured) {
+      throw NotImplementedError("微信支付未配置(wechat.pay.*),请配置商户参数或开启假支付模式")
+    }
+    return try {
+      val params =
+        wechatPayGateway.prepayWithRequestPayment(
+          WechatPrepayRequest(
+            appId = appId,
+            mchId = mchId,
+            description = description,
+            outTradeNo = order.orderNo,
+            amountCents = payAmountCents,
+            openId = openId,
+            notifyUrl = notifyUrl,
+          ),
+        )
+      // 回填 prepay_id 便于对账与超时处理
+      paymentRepository.findByOrderId(orderId).ifPresent { payment ->
+        payment.prepayId = params.packageVal.removePrefix("prepay_id=")
+        paymentRepository.save(payment)
+      }
+      // 业务日志(F-LOG-003 PAYMENT 域):支付发起
+      bizLogger.logPaymentOperation(
+        paymentId = orderId,
+        operation = "PAYMENT_CREATED",
+        result = "SUCCESS",
+        userId = order.userId,
+        additionalData = mapOf("amountCents" to payAmountCents),
+      )
+      mapOf(
+        "appId" to params.appId,
+        "timeStamp" to params.timeStamp,
+        "nonceStr" to params.nonceStr,
+        "package" to params.packageVal,
+        "signType" to params.signType,
+        "paySign" to params.paySign,
+      )
     } catch (e: Exception) {
       logger.error("创建微信支付失败", e)
+      // 业务日志(F-LOG-003 PAYMENT 域):支付发起失败
+      bizLogger.logOperation(
+        operation = "PAYMENT_FAILED",
+        module = "PAYMENT",
+        result = "FAILURE",
+        target = orderId.toString(),
+        additionalData = mapOf("error" to (e.message ?: "unknown error")),
+      )
       throw BadRequestException("创建支付失败: ${e.message}")
     }
   }
 
   /**
-   * 处理微信支付回调
+   * 处理微信支付回调(PRD 04-order.md §F-ORD-005):
+   * 1) SDK 验签并解密(R-PAY-01,验签失败抛异常 → 返回 false 由微信重试);
+   * 2) 按 out_trade_no 匹配订单/购票单,校验回调金额与业务单一致(R-PAY-01);
+   * 3) 幂等:重复回调/已取消订单均返回成功但不重复流转状态(AC-ORD-005-05/08)。
    */
   @Transactional
   override fun handleWechatPayCallback(
-    callbackData: Map<String, Any>,
+    rawBody: String,
     headers: Map<String, String>,
   ): Boolean {
     try {
-      // 验证回调签名
-      if (!verifyCallbackSignature(headers, callbackData)) {
-        logger.error("支付回调签名验证失败")
-        throw ValidationException("签名验证失败")
-      }
+      // 1. 验签并解密回调内容
+      val transaction =
+        wechatPayGateway.parseNotification(
+          rawBody = rawBody,
+          serialNumber = headers["wechatpay-serial"] ?: "",
+          timestamp = headers["wechatpay-timestamp"] ?: "",
+          nonce = headers["wechatpay-nonce"] ?: "",
+          signature = headers["wechatpay-signature"] ?: "",
+        )
+      val outTradeNo = transaction.outTradeNo
 
-      val resource = callbackData["resource"] as Map<String, Any>
-      val outTradeNo = resource["out_trade_no"] as String
-      val transactionId = resource["transaction_id"] as String
-
-      // 派发:先查订单,再查购票单(桶水票购票支付,PRD 10-marketing.md §F-MKT-007)
-      val order = orderQueryService.getOrderByNo(outTradeNo)
+      // 2. 派发:先查订单,再查购票单(桶水票购票支付,PRD 10-marketing.md §F-MKT-007)
+      val order = orderQueryApiService.findByOrderNumber(outTradeNo)
       if (order != null) {
-        orderMutationService.handlePaymentSuccess(order.id!!, transactionId)
-        logger.info("支付回调处理成功(订单): 订单号=$outTradeNo, 交易号=$transactionId")
-        return true
+        if (transaction.amountCents != order.payAmountCents) {
+          logger.error(
+            "支付回调金额不一致: 单号={}, 回调金额={}, 订单应付={}",
+            outTradeNo,
+            transaction.amountCents,
+            order.payAmountCents,
+          )
+          bizLogger.logOperation(
+            operation = "PAYMENT_FAILED",
+            module = "PAYMENT",
+            result = "FAILURE",
+            target = outTradeNo,
+            additionalData = mapOf("error" to "amount mismatch, callback=${transaction.amountCents}, expected=${order.payAmountCents}"),
+          )
+          return false
+        }
+        val processed = completePaymentSuccess(order.id!!, transaction.transactionId)
+        logger.info("支付回调处理成功(订单): 订单号={}, 交易号={}", outTradeNo, transaction.transactionId)
+        return processed
       }
+
       val purchase = ticketQueryApiService.findPurchaseByOrderNo(outTradeNo)
       if (purchase != null) {
-        ticketMutationApiService.handleTicketPurchasePaid(purchase.id!!, transactionId)
-        logger.info("支付回调处理成功(购票): 单号=$outTradeNo, 交易号=$transactionId")
+        if (transaction.amountCents != purchase.packagePriceCents) {
+          logger.error(
+            "支付回调金额不一致(购票): 单号={}, 回调金额={}, 应付={}",
+            outTradeNo,
+            transaction.amountCents,
+            purchase.packagePriceCents,
+          )
+          return false
+        }
+        // 幂等:已支付/已取消的购票单不重复流转
+        if (purchase.paymentStatus != TicketPurchaseStatus.PENDING) {
+          logger.info("购票单 {} 状态为 {},回调跳过", outTradeNo, purchase.paymentStatus)
+          return true
+        }
+        ticketMutationApiService.handleTicketPurchasePaid(purchase.id!!, transaction.transactionId)
+        logger.info("支付回调处理成功(购票): 单号={}, 交易号={}", outTradeNo, transaction.transactionId)
+        // 业务日志(F-LOG-003 PAYMENT 域):支付完成(购票)
+        bizLogger.logOperation(
+          operation = "PAYMENT_COMPLETED",
+          module = "PAYMENT",
+          result = "SUCCESS",
+          target = "purchase:$outTradeNo",
+          additionalData = mapOf("transactionId" to transaction.transactionId),
+        )
         return true
       }
-      logger.error("支付回调未匹配业务单: out_trade_no=$outTradeNo")
+
+      logger.error("支付回调未匹配业务单: out_trade_no={}", outTradeNo)
+      bizLogger.logOperation(
+        operation = "PAYMENT_FAILED",
+        module = "PAYMENT",
+        result = "FAILURE",
+        target = outTradeNo,
+        additionalData = mapOf("error" to "no matching business order"),
+      )
       return false
     } catch (e: Exception) {
       logger.error("处理支付回调失败", e)
+      // 业务日志(F-LOG-003 PAYMENT 域):支付回调失败
+      bizLogger.logOperation(
+        operation = "PAYMENT_FAILED",
+        module = "PAYMENT",
+        result = "FAILURE",
+        target = "callback",
+        additionalData = mapOf("error" to (e.message ?: "unknown error")),
+      )
       return false
     }
   }
 
   /**
-   * 查询支付状态
+   * 查询支付状态:待支付订单在假支付模式下以订单状态为准;
+   * 真实模式调用微信交易查询接口映射 SUCCESS/CLOSED/UNKNOWN。
    */
   override fun queryPaymentStatus(orderId: Long): String {
-    try {
-      val order = orderQueryService.getOrderById(orderId)
+    val order = orderQueryService.getOrderById(orderId)
 
-      if (order.status != OrderModelStatus.PENDING_PAYMENT) {
-        return when (order.status) {
-          OrderModelStatus.PENDING_DELIVERY -> "SUCCESS"
-          OrderModelStatus.CANCELLED -> "CLOSED"
-          else -> "UNKNOWN"
-        }
+    if (order.status != OrderModelStatus.PENDING_PAYMENT) {
+      return when (order.status) {
+        OrderModelStatus.PENDING_DELIVERY -> "SUCCESS"
+        OrderModelStatus.CANCELLED -> "CLOSED"
+        else -> "UNKNOWN"
       }
-
-      // TODO: Implement WeChat Pay SDK query with correct 0.2.17 API
-      // QueryOrderByOutTradeNoRequest, jsapiService, TradeState are from newer SDK version
-      return "UNKNOWN" // Placeholder until WeChat Pay SDK integration is implemented
+    }
+    if (mockEnabled || !wechatPayGateway.isConfigured) {
+      return "UNKNOWN"
+    }
+    return try {
+      val transaction = wechatPayGateway.queryTransaction(order.orderNo) ?: return "UNKNOWN"
+      when (transaction.tradeState) {
+        "SUCCESS" -> "SUCCESS"
+        "CLOSED", "REVOKED", "PAYERROR" -> "CLOSED"
+        else -> "UNKNOWN"
+      }
     } catch (e: Exception) {
       logger.error("查询支付状态失败", e)
       throw BadRequestException("查询支付状态失败: ${e.message}")
@@ -167,12 +292,8 @@ class PaymentServiceImpl(
   }
 
   /**
-   * 申请退款
-   * @param transactionId 原交易ID
-   * @param refundAmountCents 退款金额（分）
-   * @param totalAmountCents 原订单总金额（分）
-   * @param reason 退款原因
-   * @return 退款结果
+   * 申请退款(订单取消触发,R-PAY-02 退款能力):
+   * 真实模式调用微信退款接口;假支付模式直接标记成功。
    */
   @Transactional
   override fun refund(
@@ -182,55 +303,52 @@ class PaymentServiceImpl(
     reason: String,
   ): Map<String, Any> {
     try {
-      // TODO: Implement WeChat Pay SDK refund with correct 0.2.17 API
-      // AmountReq, CreateRequest, refundService are from newer SDK version
-      throw NotImplementedError("WeChat Pay SDK refund integration needs to be implemented for version 0.2.17")
+      val result =
+        if (mockEnabled) {
+          mapOf("refundId" to "MOCK-REFUND-${System.currentTimeMillis()}", "mock" to true)
+        } else {
+          if (!wechatPayGateway.isConfigured) {
+            throw NotImplementedError("微信支付未配置(wechat.pay.*),无法执行真实退款")
+          }
+          val payment = paymentRepository.findByTransactionId(transactionId).orElse(null)
+          val orderNo =
+            payment?.let { orderQueryService.getOrderById(it.orderId).orderNo }
+              ?: System.currentTimeMillis().toString()
+          val outRefundNo = "R-$orderNo-${System.currentTimeMillis()}"
+          mapOf("refundId" to wechatPayGateway.createRefund(outRefundNo, transactionId, refundAmountCents, totalAmountCents, reason))
+        }
+
+      paymentRepository.findByTransactionId(transactionId).ifPresent { payment ->
+        payment.status = PaymentStatus.REFUNDED
+        paymentRepository.save(payment)
+      }
+      // 业务日志(F-LOG-003 PAYMENT 域):退款申请成功
+      bizLogger.logOperation(
+        operation = "PAYMENT_REFUNDED",
+        module = "PAYMENT",
+        result = "SUCCESS",
+        target = transactionId,
+        additionalData = mapOf("refundAmountCents" to refundAmountCents, "totalAmountCents" to totalAmountCents, "reason" to reason),
+      )
+      return result
     } catch (e: Exception) {
       logger.error("申请退款失败", e)
+      // 业务日志(F-LOG-003 PAYMENT 域):退款失败
+      bizLogger.logOperation(
+        operation = "PAYMENT_REFUNDED",
+        module = "PAYMENT",
+        result = "FAILURE",
+        target = transactionId,
+        additionalData = mapOf("error" to (e.message ?: "unknown error"), "reason" to reason),
+      )
       throw BadRequestException("申请退款失败: ${e.message}")
     }
   }
 
   /**
-   * 验证回调签名
-   */
-  private fun verifyCallbackSignature(
-    headers: Map<String, String>,
-    body: Map<String, Any>,
-  ): Boolean {
-    try {
-      val signature = headers["wechatpay-signature"] ?: return false
-      val timestamp = headers["wechatpay-timestamp"] ?: return false
-      val nonce = headers["wechatpay-nonce"] ?: return false
-      val serialNo = headers["wechatpay-serial"] ?: return false
-
-      // 这里应该使用微信支付SDK的签名验证方法
-      // 由于SDK版本和配置可能不同，这里简化实现
-      // 实际生产环境需要使用SDK提供的验证方法
-      return true // 临时返回true，实际需要实现签名验证
-    } catch (e: Exception) {
-      logger.error("验证回调签名失败", e)
-      return false
-    }
-  }
-
-  /**
-   * 生成小程序支付签名
-   */
-  private fun generateMiniProgramSign(
-    prepayId: String,
-    timeStamp: String,
-    nonceStr: String,
-  ): String {
-    // 注意：这里需要按照微信支付小程序签名规则生成
-    // 实际实现需要使用SDK提供的签名方法
-    return "mock_sign_${prepayId}_${timeStamp}_$nonceStr"
-  }
-
-  /**
-   * 创建桶水票购票支付订单(F-MKT-007):
+   * 创建桶水票购票支付订单(F-MKT-007,PRD 10-marketing.md):
    * 校验购票单存在且待支付;购票即预收款项,不支持退款;
-   * 微信支付 SDK 为桩实现(与订单支付现状一致),SDK 修复后自动可用;集成测试用模拟回调验证入账。
+   * 假支付模式自动完成入账;真实模式走微信预支付。
    */
   override fun createWechatJsapiPayForTicket(
     ticketPurchaseId: Long,
@@ -245,33 +363,184 @@ class PaymentServiceImpl(
     if (purchase.paymentStatus != TicketPurchaseStatus.PENDING) {
       throw BadRequestException("购票单状态不正确,无法创建支付")
     }
-    throw NotImplementedError("WeChat Pay SDK integration needs to be implemented for version 0.2.17")
+    if (mockEnabled) {
+      logger.info("假支付模式:购票单 {} 支付自动完成", ticketPurchaseId)
+      ticketMutationApiService.handleTicketPurchasePaid(ticketPurchaseId, mockTransactionId(orderNo))
+      // 业务日志(F-LOG-003 PAYMENT 域):购票支付完成
+      bizLogger.logOperation(
+        operation = "PAYMENT_COMPLETED",
+        module = "PAYMENT",
+        result = "SUCCESS",
+        target = "purchase:$orderNo",
+        additionalData = mapOf("transactionId" to mockTransactionId(orderNo)),
+      )
+      return mockPaymentParams(orderNo)
+    }
+    if (!wechatPayGateway.isConfigured) {
+      throw NotImplementedError("微信支付未配置(wechat.pay.*),请配置商户参数或开启假支付模式")
+    }
+    return try {
+      val params =
+        wechatPayGateway.prepayWithRequestPayment(
+          WechatPrepayRequest(
+            appId = appId,
+            mchId = mchId,
+            description = description,
+            outTradeNo = orderNo,
+            amountCents = amountCents,
+            openId = openId,
+            notifyUrl = notifyUrl,
+          ),
+        )
+      // 业务日志(F-LOG-003 PAYMENT 域):购票支付发起
+      bizLogger.logPaymentOperation(
+        paymentId = ticketPurchaseId,
+        operation = "PAYMENT_CREATED",
+        result = "SUCCESS",
+        userId = purchase.userId,
+        additionalData = mapOf("amountCents" to amountCents, "orderNo" to orderNo),
+      )
+      mapOf(
+        "appId" to params.appId,
+        "timeStamp" to params.timeStamp,
+        "nonceStr" to params.nonceStr,
+        "package" to params.packageVal,
+        "signType" to params.signType,
+        "paySign" to params.paySign,
+      )
+    } catch (e: Exception) {
+      logger.error("创建购票支付失败", e)
+      throw BadRequestException("创建支付失败: ${e.message}")
+    }
   }
 
   /**
-   * 处理支付超时
+   * 处理支付超时(R-ORD-04):由 PaymentExpiryScheduler 周期扫描触发。
    */
   @Transactional
   override fun handlePaymentTimeout(orderId: Long) {
     try {
       orderMutationService.handlePaymentTimeout(orderId)
-      logger.info("支付超时处理成功: 订单ID=$orderId")
+      logger.info("支付超时处理成功: 订单ID={}", orderId)
+      // 业务日志(F-LOG-003 PAYMENT 域):支付超时
+      bizLogger.logPaymentOperation(
+        paymentId = orderId,
+        operation = "PAYMENT_TIMEOUT",
+        result = "SUCCESS",
+        additionalData = mapOf("orderId" to orderId),
+      )
     } catch (e: Exception) {
       logger.error("支付超时处理失败", e)
+      // 业务日志(F-LOG-003 PAYMENT 域):支付超时处理失败
+      bizLogger.logOperation(
+        operation = "PAYMENT_TIMEOUT",
+        module = "PAYMENT",
+        result = "FAILURE",
+        target = orderId.toString(),
+        additionalData = mapOf("error" to (e.message ?: "unknown error")),
+      )
     }
   }
+
+  // ================================================================
+  // 内部方法
+  // ================================================================
+
+  /**
+   * 幂等落库/更新待支付记录(同一订单重复发起支付时复用并重置)。
+   */
+  private fun upsertPendingPayment(
+    orderId: Long,
+    userId: Long,
+    orderNo: String,
+    amountCents: Long,
+    description: String,
+  ) {
+    val existing = paymentRepository.findByOrderId(orderId).orElse(null)
+    val payment =
+      existing
+        ?: PaymentModel(
+          orderId = orderId,
+          userId = userId,
+          amount = amountCents,
+          description = description,
+          status = PaymentStatus.PENDING,
+          paymentMethod = PaymentMethod.WECHAT_PAY,
+          expiredAt = LocalDateTime.now().plusMinutes(PAYMENT_EXPIRE_MINUTES),
+        )
+    if (existing != null && existing.status != PaymentStatus.PENDING) {
+      // 重新支付:重置为待支付
+      existing.status = PaymentStatus.PENDING
+      existing.transactionId = null
+      existing.prepayId = null
+      existing.paidAt = null
+      existing.expiredAt = LocalDateTime.now().plusMinutes(PAYMENT_EXPIRE_MINUTES)
+    }
+    paymentRepository.save(payment)
+  }
+
+  /**
+   * 支付成功公共完成路径(假支付与真实回调共用):
+   * 幂等处理,已取消/已完成的订单不流转状态(AC-ORD-005-08),支付记录置 SUCCESS。
+   */
+  private fun completePaymentSuccess(
+    orderId: Long,
+    transactionId: String,
+  ): Boolean {
+    val order = orderQueryService.getOrderById(orderId)
+    // 幂等:已支付且交易号一致 → 视为成功,不重复流转(R-PAY-01)
+    if (order.status == OrderModelStatus.PENDING_DELIVERY && order.paymentTransactionId == transactionId) {
+      markPaymentSuccess(orderId, transactionId)
+      return true
+    }
+    if (order.status != OrderModelStatus.PENDING_PAYMENT) {
+      logger.warn("订单 {} 状态为 {},支付回调不流转状态", orderId, order.status)
+      return true
+    }
+    orderMutationService.handlePaymentSuccess(orderId, transactionId)
+    markPaymentSuccess(orderId, transactionId)
+    // 业务日志(F-LOG-003 PAYMENT 域):支付完成(订单)
+    bizLogger.logPaymentOperation(
+      paymentId = orderId,
+      operation = "PAYMENT_COMPLETED",
+      result = "SUCCESS",
+      userId = order.userId,
+      additionalData = mapOf("transactionId" to transactionId),
+    )
+    return true
+  }
+
+  private fun markPaymentSuccess(
+    orderId: Long,
+    transactionId: String,
+  ) {
+    paymentRepository.findByOrderId(orderId).ifPresent { payment ->
+      if (payment.status != PaymentStatus.SUCCESS) {
+        payment.status = PaymentStatus.SUCCESS
+        payment.transactionId = transactionId
+        payment.paidAt = LocalDateTime.now()
+        paymentRepository.save(payment)
+      }
+    }
+  }
+
+  /** 假支付交易号(基于商户订单号,保证唯一) */
+  private fun mockTransactionId(orderNo: String): String = MOCK_PREFIX + orderNo
+
+  /** 假支付返回参数:前端据此跳过 Taro.requestPayment 直接刷新订单状态 */
+  private fun mockPaymentParams(orderNo: String): Map<String, Any> =
+    mapOf(
+      "mock" to true,
+      "paid" to true,
+      "transactionId" to mockTransactionId(orderNo),
+    )
 
   // 保持原有接口兼容性
   override fun createWechatPayOrder(
     orderId: Long,
     amountCents: Long,
     description: String,
-  ): Map<String, Any> {
-    // 简化版本，实际使用时需要传入openId
-    return createWechatJsapiPay(orderId, amountCents, description, "mock_openid")
-  }
-
-  override fun handleWechatPayCallback(callbackData: Map<String, Any>): Boolean = handleWechatPayCallback(callbackData, emptyMap())
+  ): Map<String, Any> = createWechatJsapiPay(orderId, amountCents, description, "mock_openid")
 
   override fun refund(
     transactionId: String,
@@ -279,7 +548,7 @@ class PaymentServiceImpl(
     totalAmountCents: Long,
   ): Boolean =
     try {
-      refund(transactionId, refundAmountCents, totalAmountCents)
+      refund(transactionId, refundAmountCents, totalAmountCents, "订单取消退款")
       true
     } catch (e: Exception) {
       false

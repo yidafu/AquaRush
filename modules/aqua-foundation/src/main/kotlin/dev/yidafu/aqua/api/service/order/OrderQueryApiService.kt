@@ -41,6 +41,11 @@ interface OrderQueryApiService {
     status: OrderModelStatus,
   ): List<OrderModel>
 
+  /**
+   * 用户是否已有已完成订单(PRD 10-marketing.md §R-MKT-10 新用户判定=无已完成订单)
+   */
+  fun hasCompletedOrders(userId: Long): Boolean
+
   fun findByStatus(status: OrderModelStatus): List<OrderModel>
 
   fun findByDeliveryWorkerId(deliveryWorkerId: Long): List<OrderModel>

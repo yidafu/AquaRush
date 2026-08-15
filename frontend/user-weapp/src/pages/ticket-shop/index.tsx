@@ -6,6 +6,7 @@ import { authService } from '../../utils/auth'
 import { TicketTypeVo, displayCents, normalizeCents } from '@aquarush/common'
 import { getValidityText } from '../../utils/marketing'
 import BasePageLayout from '../../components/BasePageLayout'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 import './index.scss'
 
@@ -15,6 +16,8 @@ import './index.scss'
  * 当前支付为桩实现(requiresSimulation),真实微信支付待 SDK 接入。
  */
 const TicketShopPage: React.FC = () => {
+  usePageViewTracking()
+
   const [ticketTypes, setTicketTypes] = useState<TicketTypeVo[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [error, setError] = useState<string | null>(null)
@@ -63,6 +66,15 @@ const TicketShopPage: React.FC = () => {
         setTimeout(() => {
           Taro.navigateTo({ url: '/pages/ticket-list/index' })
         }, 1500)
+        return
+      }
+
+      // 测试环境假支付:服务端已自动完成,直接跳转水票列表
+      if (purchase.paymentParams && (purchase.paymentParams as Record<string, any>).mock) {
+        Taro.showToast({ title: '支付成功（模拟支付自动完成）', icon: 'success' })
+        setTimeout(() => {
+          Taro.navigateTo({ url: '/pages/ticket-list/index' })
+        }, 1200)
         return
       }
 
@@ -157,10 +169,15 @@ const TicketShopPage: React.FC = () => {
                 <View className='ticket-card-right'>
                   <Text className='ticket-price'>{displayCents(normalizeCents(ticketType.packagePriceCents))}</Text>
                   <View
-                    className={`ticket-buy-btn ${limitReached ? 'ticket-buy-btn-disabled' : ''}`}
+                    trackTarget="ticket-buy"
+                    trackElementType="button"
+                    trackElementText={purchasingId === ticketType.id ? '购买中...' : limitReached ? '已购满' : '购买'}
+                    trackDisabled={limitReached}
+                    trackProps={{ ticketTypeId: ticketType.id }}
                     onClick={() => {
                       if (!limitReached) handlePurchase(ticketType)
                     }}
+                    className={`ticket-buy-btn ${limitReached ? 'ticket-buy-btn-disabled' : ''}`}
                   >
                     <Text className='ticket-buy-text'>
                       {purchasingId === ticketType.id ? '购买中...' : limitReached ? '已购满' : '购买'}

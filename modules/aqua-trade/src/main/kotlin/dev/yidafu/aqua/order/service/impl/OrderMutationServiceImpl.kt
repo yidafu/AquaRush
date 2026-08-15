@@ -176,6 +176,7 @@ class OrderMutationServiceImpl(
     isSelfCollect: Boolean,
     paymentTime: LocalDateTime?,
     pricing: OrderPricingResult,
+    initialStatus: OrderModelStatus,
   ): OrderModel {
     // 构建搜索内容
     val searchContent =
@@ -203,7 +204,7 @@ class OrderMutationServiceImpl(
         couponDiscountCents = pricing.couponDiscountCents,
         ticketRedeemCount = pricing.ticketRedeemCount,
         addressId = addressId,
-        status = OrderModelStatus.PENDING_DISPATCH,
+        status = initialStatus,
         paymentMethod = paymentMethod,
         paymentTransactionId = null,
         paymentTime = paymentTime,
@@ -319,6 +320,8 @@ class OrderMutationServiceImpl(
         isSelfCollect = false,
         paymentTime = null,
         pricing = preview,
+        // 用户在线下单进入「待支付」(G09/R-ORD-01:支付成功后才进入「待派单」)
+        initialStatus = OrderModelStatus.PENDING_PAYMENT,
       )
 
     // 5. 引擎消费(同事务):原子核销水票/优惠券;实际核销数 < 预检 → 抛异常整体回滚
@@ -388,6 +391,8 @@ class OrderMutationServiceImpl(
         isSelfCollect = isSelfCollect,
         paymentTime = if (isSelfCollect) LocalDateTime.now() else null,
         pricing = preview,
+        // 代客下单现场收款(现金/水票):直接进入「待分配」(R-PAY-03)
+        initialStatus = OrderModelStatus.PENDING_DISPATCH,
       )
 
     val finalPricing = promotionPricingService.applyForOrder(savedOrder.id!!, pricingRequest)
@@ -454,6 +459,8 @@ class OrderMutationServiceImpl(
       orderId = cancelledOrder.id!!,
       userId = cancelledOrder.userId,
       reason = cancelDescription,
+      shouldRefund = shouldRefund,
+      paymentTransactionId = if (shouldRefund) cancelledOrder.paymentTransactionId else null,
     )
 
     // 业务日志(F-LOG-003 ORDER 域):记录取消

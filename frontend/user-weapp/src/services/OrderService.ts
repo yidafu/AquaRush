@@ -21,6 +21,16 @@ export interface OrderPreviewRequest {
 }
 
 /**
+ * 发起订单支付结果(F-ORD-005)
+ * autoCompleted=true 表示测试环境假支付已自动完成
+ */
+export interface OrderPaymentResult {
+  paymentParams: Record<string, any> | null
+  requiresSimulation: boolean
+  autoCompleted: boolean
+}
+
+/**
  * 创建订单请求参数(CreateOrderInput)
  */
 export interface CreateOrderRequest {
@@ -123,6 +133,96 @@ class OrderService {
       return {
         success: false,
         error: this.extractError(error, '获取订单计价失败')
+      }
+    }
+  }
+
+  /**
+   * 发起订单支付(F-ORD-005):
+   * - autoCompleted=true:测试环境假支付已自动完成,无需调起微信支付;
+   * - requiresSimulation=true:支付未接入(未配置商户参数),前端提示;
+   * - 否则 paymentParams 为 Taro.requestPayment 所需参数。
+   */
+  public async createOrderPayment(
+    orderId: string
+  ): Promise<ProductServiceResult<OrderPaymentResult>> {
+    const mutation = `
+      mutation CreateOrderPayment($orderId: PrimaryId!) {
+        createOrderPayment(orderId: $orderId) {
+          paymentParams
+          requiresSimulation
+          autoCompleted
+        }
+      }
+    `
+
+    try {
+      const response = await networkManager.mutate<{ createOrderPayment: OrderPaymentResult }>(
+        mutation,
+        { orderId }
+      )
+      return {
+        success: true,
+        data: response.createOrderPayment
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: this.extractError(error, '发起支付失败')
+      }
+    }
+  }
+
+  /**
+   * 订单详情(仅本人可见,F-ORD-003):支付结果回显与「去支付」依赖真实订单状态
+   */
+  public async getOrder(id: string): Promise<ProductServiceResult<Order>> {
+    const query = `
+      query Order($id: PrimaryId!) {
+        order(id: $id) {
+          id
+          orderNo
+          status
+          amountCents
+          deliveryFeeCents
+          payAmountCents
+          paymentTransactionId
+          paymentTime
+          deliveryStartedAt
+          completedAt
+          createdAt
+          remark
+          product {
+            id
+            name
+            priceCents
+            coverImageUrl
+            specification
+          }
+          address {
+            id
+            receiverName
+            phone
+            province
+            city
+            district
+            detailAddress
+            floor
+          }
+        }
+      }
+    `
+
+    try {
+      const response = await networkManager.query<{ order: Order }>(query, { id })
+      return {
+        success: true,
+        data: response.order
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: this.extractError(error, '获取订单详情失败')
       }
     }
   }

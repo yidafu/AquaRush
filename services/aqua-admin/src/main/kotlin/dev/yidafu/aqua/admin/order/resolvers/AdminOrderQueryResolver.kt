@@ -20,20 +20,37 @@
 package dev.yidafu.aqua.admin.order.resolvers
 
 import dev.yidafu.aqua.api.service.order.OrderQueryService
+import dev.yidafu.aqua.common.graphql.generated.GiftItemVo
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderListInput
 import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
+import dev.yidafu.aqua.order.domain.repository.OrderGiftRepository
 import dev.yidafu.aqua.order.mapper.OrderMapper
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
+import org.springframework.graphql.data.method.annotation.SchemaMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
 
 @Controller
 class AdminOrderQueryResolver(
   private val orderQueryService: OrderQueryService,
+  private val orderGiftRepository: OrderGiftRepository,
 ) {
+  /**
+   * Order 字段级解析:赠品行(随单快照,配置变更不影响已生成订单 —— R-MKT-09)
+   */
+  @SchemaMapping(typeName = "Order", field = "giftItems")
+  fun giftItems(order: Order): List<GiftItemVo> =
+    orderGiftRepository.findByOrderId(order.id).map {
+      GiftItemVo(
+        productId = it.productId,
+        productName = it.productName,
+        quantity = it.quantity,
+      )
+    }
+
   /**
    * 分页查询订单 - 管理员权限
    */

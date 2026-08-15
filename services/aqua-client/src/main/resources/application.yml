@@ -126,6 +126,18 @@ aqua:
     app-secret: ${WECHAT_APP_SECRET:your-app-secret}
     token: "token"
     aes-key: "string"
+    # 微信支付 V3(PRD 04-order.md §F-ORD-005):
+    # 测试环境默认假支付自动完成(mock-enabled=true);生产置 WECHAT_PAY_MOCK_ENABLED=false
+    # 并配置真实商户参数(商户号/商户私钥路径/证书序列号/APIv3 密钥),密钥不落库;
+    # 回调地址 notify-url 需为公网可达的 HTTPS 地址(生产),本地开发用 localhost。
+    pay:
+      appid: ${WECHAT_PAY_APPID:}
+      mchid: ${WECHAT_PAY_MCHID:}
+      private-key-path: ${WECHAT_PAY_PRIVATE_KEY_PATH:}
+      merchant-serial-number: ${WECHAT_PAY_MERCHANT_SERIAL_NUMBER:}
+      api-v3-key: ${WECHAT_PAY_API_V3_KEY:}
+      notify-url: ${WECHAT_PAY_NOTIFY_URL:http://localhost:8080/api/pay/notify}
+      mock-enabled: ${WECHAT_PAY_MOCK_ENABLED:true}
   messaging:
     enabled: true
   mode: client

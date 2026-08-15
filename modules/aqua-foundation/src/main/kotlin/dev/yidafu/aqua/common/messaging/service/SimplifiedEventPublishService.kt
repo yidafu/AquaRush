@@ -127,17 +127,21 @@ class SimplifiedEventPublishService(
     orderId: Long,
     userId: Long,
     reason: String,
+    shouldRefund: Boolean = false,
+    paymentTransactionId: String? = null,
   ): Boolean =
     publishDomainEvent(
       eventType = DomainEventType.ORDER_CANCELLED.value,
       aggregateId = orderId.toString(),
       eventData =
-        mapOf(
-          "orderId" to orderId,
-          "userId" to userId,
-          "reason" to reason,
-          "timestamp" to System.currentTimeMillis(),
-        ),
+        buildMap {
+          put("orderId", orderId)
+          put("userId", userId)
+          put("reason", reason)
+          put("shouldRefund", shouldRefund)
+          paymentTransactionId?.let { put("paymentTransactionId", it) }
+          put("timestamp", System.currentTimeMillis())
+        },
     )
 
   /**

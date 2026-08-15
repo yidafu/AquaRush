@@ -58,6 +58,9 @@ class SecurityConfig(
           // 刷新 token：access token 可能已过期，必须可匿名到达
           .requestMatchers("/api/auth/refresh")
           .permitAll()
+          // 微信支付回调(验签由支付服务内部完成,必须可匿名到达)
+          .requestMatchers("/api/pay/notify")
+          .permitAll()
           // 公开文件/图片服务（小程序 <Image> 无法携带 Authorization header）
           .requestMatchers(HttpMethod.GET, "/api/v1/storage/files/**")
           .permitAll()

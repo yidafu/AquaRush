@@ -20,11 +20,12 @@
 package dev.yidafu.aqua.api.service.payment
 
 /**
- * 支付服务接口
+ * 支付服务接口(PRD 04-order.md §F-ORD-005/R-PAY-01~03)
  */
 interface PaymentService {
   /**
-   * 创建微信小程序支付订单
+   * 创建微信小程序支付订单(JSAPI):
+   * 测试环境(假支付模式)返回 mock 参数并自动完成支付;真实模式返回 Taro.requestPayment 参数。
    */
   fun createWechatJsapiPay(
     orderId: Long,
@@ -34,15 +35,17 @@ interface PaymentService {
   ): Map<String, Any>
 
   /**
-   * 处理微信支付回调
+   * 处理微信支付回调:
+   * rawBody 为回调原始报文(验签必需),headers 携带 wechatpay-serial/timestamp/nonce/signature;
+   * 验签/金额校验失败返回 false(微信将重试),成功返回 true。
    */
   fun handleWechatPayCallback(
-    callbackData: Map<String, Any>,
+    rawBody: String,
     headers: Map<String, String>,
   ): Boolean
 
   /**
-   * 查询支付状态
+   * 查询支付状态(SUCCESS/CLOSED/UNKNOWN)
    */
   fun queryPaymentStatus(orderId: Long): String
 
@@ -79,8 +82,6 @@ interface PaymentService {
     amountCents: Long,
     description: String,
   ): Map<String, Any>
-
-  fun handleWechatPayCallback(callbackData: Map<String, Any>): Boolean
 
   fun refund(
     transactionId: String,

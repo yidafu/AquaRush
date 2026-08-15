@@ -34,6 +34,9 @@ type Query {
   isProductFavorited(productId: PrimaryId!): Boolean!
   favoritesCount: Long!
 
+  # Orders (F-ORD-003 订单详情/支付回显)
+  order(id: PrimaryId!): Order
+
   # Operations config queries (运营配置域 F-OPS-001/002/004/005)
   activeBanners: [Banner!]!
   # 当前生效公告(已发布且在时间窗内,置顶优先、发布时间倒序)
@@ -72,6 +75,8 @@ type Mutation {
 
   # Orders
   createOrder(input: CreateOrderInput!): Order!
+  # 发起订单支付(F-ORD-005):测试环境假支付自动完成(autoCompleted=true)
+  createOrderPayment(orderId: PrimaryId!): OrderPaymentParams!
 
 
   # Favorites mutations
@@ -218,6 +223,18 @@ enum TicketPurchaseStatus {
   CANCELLED
 }
 
+# ============ 订单支付(F-ORD-005) ============
+
+type OrderPaymentParams {
+  # 微信支付参数(真实支付:appId/timeStamp/nonceStr/package/signType/paySign;
+  # 测试环境假支付:mock=true 且已自动完成,前端直接刷新订单状态)
+  paymentParams: JsonObject
+  # true=支付未接入(未配置商户参数),前端提示后返回
+  requiresSimulation: Boolean!
+  # true=测试环境假支付已自动完成,无需调起 Taro.requestPayment
+  autoCompleted: Boolean!
+}
+
 # ============ 确认订单计价预览(F-ORD-023) ============
 
 input OrderPreviewInput {
@@ -294,4 +311,3 @@ input FeedbackSubmitInput {
   # 联系方式(可选)
   contactInfo: String @size(max: 100)
 }
-

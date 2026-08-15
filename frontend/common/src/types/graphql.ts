@@ -1096,6 +1096,7 @@ export type Mutation = {
   readonly createGiftActivity: GiftActivity;
   readonly createNotice: Notice;
   readonly createOrder: Order;
+  readonly createOrderPayment: OrderPaymentParams;
   readonly createProduct: Product;
   readonly createPromotionActivity: PromotionActivity;
   readonly createTicketType: TicketType;
@@ -1255,6 +1256,11 @@ export type MutationCreateNoticeArgs = {
 
 export type MutationCreateOrderArgs = {
   input: CreateOrderInput;
+};
+
+
+export type MutationCreateOrderPaymentArgs = {
+  orderId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -1681,6 +1687,12 @@ export type OrderPaymentInfo = {
   readonly refundedAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly status: PaymentStatus;
   readonly transactionId?: Maybe<Scalars['String']['output']>;
+};
+
+export type OrderPaymentParams = {
+  readonly autoCompleted: Scalars['Boolean']['output'];
+  readonly paymentParams?: Maybe<Scalars['JsonObject']['output']>;
+  readonly requiresSimulation: Scalars['Boolean']['output'];
 };
 
 export type OrderPreviewInput = {
@@ -2349,6 +2361,7 @@ export type QueryNoticesArgs = {
 
 
 export type QueryOrderArgs = {
+  id: Scalars['PrimaryId']['input'];
   orderId: Scalars['PrimaryId']['input'];
 };
 

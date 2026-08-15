@@ -9,6 +9,7 @@ import OrderService from '../../services/OrderService'
 import ProductService, { ProductPriceInfo } from '../../services/ProductService'
 import { Address } from '../../types/address'
 import { normalizeCents, OrderPreviewVo } from '@aquarush/common'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/checkbox.scss"
@@ -46,6 +47,8 @@ interface OrderConfirmProps {}
  * 提交订单时回传 preferredCouponId(0=不用券)与 ticketRedeemCount,服务端原子核销。
  */
 const OrderConfirm: React.FC<OrderConfirmProps> = () => {
+  usePageViewTracking()
+
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null)
   const [preview, setPreview] = useState<OrderPreviewVo | null>(null)
@@ -294,6 +297,10 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
       // 清除缓存的订单数据
       Taro.removeStorageSync('pendingOrder')
 
+      // 发起支付(F-ORD-005):测试环境假支付自动完成(autoCompleted),
+      // 真实环境拉起微信支付;失败/取消均保留订单(待支付)可再次发起
+      await doPay(createdOrder.id)
+
       Taro.showToast({ title: '订单创建成功', icon: 'success' })
 
       // 跳转到订单详情页面
@@ -322,6 +329,42 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
     ticketRedeemCount,
     remark
   ])
+
+  /**
+   * 发起订单支付(F-ORD-005):
+   * - autoCompleted=true:假支付已自动完成(测试环境),无需调起微信支付;
+   * - requiresSimulation=true:支付未接入,提示后返回;
+   * - 否则调起 Taro.requestPayment,用户取消/失败保留「待支付」可再次发起。
+   */
+  const doPay = useCallback(async (orderId: string): Promise<void> => {
+    const payResult = await OrderService.getInstance().createOrderPayment(orderId)
+    if (!payResult.success || !payResult.data) {
+      Taro.showToast({ title: payResult.error?.message || '支付发起失败', icon: 'none' })
+      return
+    }
+    const { autoCompleted, requiresSimulation, paymentParams } = payResult.data
+    if (autoCompleted) {
+      Taro.showToast({ title: '支付成功（模拟支付自动完成）', icon: 'success' })
+      return
+    }
+    if (requiresSimulation || !paymentParams) {
+      Taro.showToast({ title: '支付功能待接入', icon: 'none' })
+      return
+    }
+    try {
+      await Taro.requestPayment({
+        timeStamp: paymentParams.timeStamp as string,
+        nonceStr: paymentParams.nonceStr as string,
+        package: paymentParams.package as string,
+        signType: paymentParams.signType as 'MD5' | 'HMAC-SHA256' | 'RSA',
+        paySign: paymentParams.paySign as string
+      })
+      Taro.showToast({ title: '支付成功', icon: 'success' })
+    } catch (e) {
+      console.error('微信支付未完成:', e)
+      Taro.showToast({ title: '支付未完成，可在订单详情继续支付', icon: 'none' })
+    }
+  }, [])
 
   // 计价展示数据(服务端为准,未就绪时回退本地兜底价)
   const unitPriceCents = preview ? normalizeCents(preview.unitPriceCents) ?? fallbackUnitPrice : fallbackUnitPrice

@@ -66,6 +66,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
+import tools.jackson.databind.ObjectMapper
 import java.time.LocalDateTime
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -302,13 +303,46 @@ class ClientMarketingResolverTest {
     every { userQueryApiService.findById(1L) } returns
       UserModel(id = 1L, wechatOpenId = "openid-1", email = "", lastLoginAt = LocalDateTime.now())
     every { paymentService.createWechatJsapiPayForTicket(1L, "TP201", 10000, any(), "openid-1") } throws NotImplementedError("stub")
-    val resolver = ClientTicketMutationResolver(ticketMutationApiService, ticketTypeQueryService, userQueryApiService, paymentService)
+    val resolver =
+      ClientTicketMutationResolver(ticketMutationApiService, ticketTypeQueryService, userQueryApiService, paymentService, ObjectMapper())
 
     val result = resolver.purchaseTickets(PurchaseTicketsInput(packageCount = 1, ticketTypeId = 20L), principal)
 
     assertTrue(result.requiresSimulation)
     assertEquals(TicketPurchaseStatus.PENDING, TicketPurchaseStatus.valueOf(result.paymentStatus.name))
     assertEquals("通兑19L", result.ticketTypeName)
+  }
+
+  @Test
+  @DisplayName("购票:假支付模式返回 mock 参数且已自动完成入账")
+  fun purchaseTicketsAutoCompletedInMockMode() {
+    val purchase =
+      TicketPurchaseModel(
+        id = 2L,
+        userId = 1L,
+        ticketTypeId = 20L,
+        orderNo = "TP202",
+        packageCount = 10,
+        giftCount = 0,
+        totalCount = 10,
+        packagePriceCents = 10000,
+        paymentStatus = TicketPurchaseStatus.PENDING,
+      )
+    every { ticketMutationApiService.purchaseTickets(1L, PurchaseTicketsRequest(20L, 1)) } returns purchase
+    every { ticketTypeQueryService.getTicketType(20L) } returns ticketType()
+    every { userQueryApiService.findById(1L) } returns
+      UserModel(id = 1L, wechatOpenId = "openid-1", email = "", lastLoginAt = LocalDateTime.now())
+    every { paymentService.createWechatJsapiPayForTicket(2L, "TP202", 10000, any(), "openid-1") } returns
+      mapOf("mock" to true, "paid" to true, "transactionId" to "MOCK-TP202")
+    val resolver =
+      ClientTicketMutationResolver(ticketMutationApiService, ticketTypeQueryService, userQueryApiService, paymentService, ObjectMapper())
+
+    val result = resolver.purchaseTickets(PurchaseTicketsInput(packageCount = 1, ticketTypeId = 20L), principal)
+
+    assertFalse(result.requiresSimulation)
+    assertNotNull(result.paymentParams)
+    assertTrue(result.paymentParams!!.get("mock").asBoolean())
+    assertEquals(TicketPurchaseStatus.PENDING, TicketPurchaseStatus.valueOf(result.paymentStatus.name))
   }
 
   @Test
