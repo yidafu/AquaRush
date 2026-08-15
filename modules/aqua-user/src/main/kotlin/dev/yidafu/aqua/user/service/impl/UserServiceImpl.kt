@@ -120,6 +120,106 @@ class UserServiceImpl(
 
   override fun existsByWechatOpenId(wechatOpenId: String): Boolean = userRepository.existsByWechatOpenId(wechatOpenId)
 
+  // ===== 后台用户管理(F-USR-022,G11 落地)=====
+
+  @Transactional
+  override fun createUserByAdmin(
+    nickname: String?,
+    phone: String?,
+    avatarUrl: String?,
+  ): UserModel {
+    // 微信登录用户由登录自动创建;后台手动创建的用户以 manual_{随机} 占位 openid
+    // (WeChat openid 不以 manual_ 开头,不会与真实微信登录冲突)
+    val placeholderOpenId = "manual_${java.util.UUID.randomUUID().toString().replace("-", "")}"
+    val user =
+      UserModel(
+        wechatOpenId = placeholderOpenId,
+        nickname = nickname,
+        avatarUrl = avatarUrl,
+        phone = phone,
+        email = "",
+        status = UserStatus.ACTIVE,
+        role = UserRole.USER,
+        lastLoginAt = LocalDateTime.now(),
+      )
+
+    val savedUser = userRepository.save(user)
+
+    // Create default notification settings for the user
+    val notificationSettings =
+      NotificationSettingsModel(
+        userId = savedUser.id!!,
+        orderUpdates = true,
+        paymentNotifications = true,
+        deliveryNotifications = true,
+        promotionalNotifications = false,
+      )
+    notificationSettingsRepository.save(notificationSettings)
+
+    // 业务日志(F-LOG-003 USER 域):后台创建用户
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logUserOperation(
+      targetUserId = savedUser.id!!,
+      operation = "USER_CREATED",
+      result = "SUCCESS",
+      operatorId = operatorId,
+      operatorName = operatorName,
+      additionalData = mapOf("source" to "ADMIN"),
+    )
+    return savedUser
+  }
+
+  @Transactional
+  override fun updateUserByAdmin(
+    id: Long,
+    nickname: String?,
+    phone: String?,
+    avatarUrl: String?,
+    status: UserStatus?,
+  ): UserModel {
+    val user =
+      userRepository
+        .findById(id)
+        .orElseThrow { IllegalArgumentException("User not found: $id") }
+
+    nickname?.let { user.nickname = it }
+    phone?.let { user.phone = it }
+    avatarUrl?.let { user.avatarUrl = it }
+    status?.let { user.status = it }
+    val saved = userRepository.save(user)
+
+    // 业务日志(F-LOG-003 USER 域):后台编辑用户
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logUserOperation(
+      targetUserId = saved.id!!,
+      operation = "USER_UPDATED",
+      result = "SUCCESS",
+      operatorId = operatorId,
+      operatorName = operatorName,
+      additionalData = mapOf("source" to "ADMIN"),
+    )
+    return saved
+  }
+
+  @Transactional
+  override fun deleteUserById(id: Long): Boolean {
+    if (!userRepository.existsById(id)) {
+      return false
+    }
+    userRepository.deleteById(id)
+
+    // 业务日志(F-LOG-003 USER 域):后台删除用户(软删除)
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logUserOperation(
+      targetUserId = id,
+      operation = "USER_DELETED",
+      result = "SUCCESS",
+      operatorId = operatorId,
+      operatorName = operatorName,
+    )
+    return true
+  }
+
   override fun findAllUsers(pageable: Pageable): Page<UserModel> = userRepository.findAll(pageable)
 
   override fun findUsersByKeyword(

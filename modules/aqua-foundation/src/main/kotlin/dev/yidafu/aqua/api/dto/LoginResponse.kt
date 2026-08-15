@@ -19,4 +19,6 @@ data class AdminUserInfo(
   val username: String,
   val realName: String?,
   val role: String,
+  // 头像URL(后台顶栏展示当前管理员头像;未设置时前端按用户名自动生成,见 F-USR-020)
+  val avatar: String? = null,
 )

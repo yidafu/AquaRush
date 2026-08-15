@@ -22,11 +22,18 @@ package dev.yidafu.aqua.admin.user.resolvers
 import dev.yidafu.aqua.admin.user.dto.CreateAdminRequest
 import dev.yidafu.aqua.admin.user.dto.UpdateAdminRequest
 import dev.yidafu.aqua.api.service.admin.AdminService
+import dev.yidafu.aqua.api.service.user.UserService
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.common.graphql.generated.CreateAdminInput
+import dev.yidafu.aqua.common.graphql.generated.CreateUserInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateAdminInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateUserInput
+import dev.yidafu.aqua.common.graphql.generated.User
+import dev.yidafu.aqua.common.graphql.util.GraphQLSecurityContext
 import dev.yidafu.aqua.user.mapper.AdminMapper
+import dev.yidafu.aqua.user.mapper.UserMapper
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -35,13 +42,17 @@ import org.springframework.stereotype.Controller
 import dev.yidafu.aqua.common.annotation.AdminService as AdminServiceAnnotation
 
 /**
- * 管理端管理员用户变更解析器
- * 提供管理员用户的创建、更新、删除功能
+ * 管理端后台账号与用户变更解析器
+ *
+ * 管理员:创建/更新/删除/重置密码/停用(F-USR-020,G11 落地)
+ * 送水员:删除/重置密码经 AdminDeliveryWorkerMutationResolver(F-USR-021,G11 落地)
+ * 用户:创建/更新/删除(F-USR-022,G11 落地)
  */
 @AdminServiceAnnotation
 @Controller
 class AdminUserMutationResolver(
   private val adminService: AdminService,
+  private val userService: UserService,
 ) {
   private val logger = LoggerFactory.getLogger(AdminUserMutationResolver::class.java)
 
@@ -68,6 +79,10 @@ class AdminUserMutationResolver(
           realName = request.realName,
           phone = request.phone,
           role = request.role,
+          avatarUrl = request.avatarUrl,
+          onlineStatus = request.onlineStatus,
+          isAvailable = request.isAvailable,
+          accountStatus = request.accountStatus,
         )
 
       logger.info("Successfully created admin user through resolver: ${createdAdmin.id}")
@@ -98,6 +113,10 @@ class AdminUserMutationResolver(
           realName = request.realName,
           phone = request.phone,
           role = request.role,
+          avatarUrl = request.avatarUrl,
+          onlineStatus = request.onlineStatus,
+          isAvailable = request.isAvailable,
+          accountStatus = request.accountStatus,
         )
 
       logger.info("Successfully updated admin user through resolver: ${updatedAdmin.id}")
@@ -108,14 +127,145 @@ class AdminUserMutationResolver(
     }
   }
 
+  /**
+   * 删除管理员(G11 落地)
+   *
+   * 保护:不能删除当前登录账号;不能删除最后一个超级管理员
+   */
+  @PreAuthorize("hasAuthority('PERMISSION_ADMIN_USER_WRITE')")
+  @MutationMapping
+  fun deleteAdmin(
+    @Argument id: Long,
+  ): Boolean {
+    try {
+      val currentUserId = GraphQLSecurityContext.getCurrentUserId()
+      if (id == currentUserId) {
+        throw BadRequestException("不能删除当前登录账号")
+      }
+
+      val target = adminService.findById(id)
+      if (target == null) {
+        return false
+      }
+      if (target.role == AdminRoleModel.SUPER_ADMIN && adminService.countByRole(AdminRoleModel.SUPER_ADMIN) <= 1) {
+        throw BadRequestException("至少保留一个超级管理员账号")
+      }
+
+      val deleted = adminService.deleteById(id)
+      logger.info("Admin deleted: $id")
+      return deleted
+    } catch (e: Exception) {
+      if (e is BadRequestException) {
+        throw e
+      }
+      logger.error("Failed to delete admin user", e)
+      throw BadRequestException("删除管理员失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 重置管理员密码(G11 落地;newPassword 留空则重置为默认密码 123456)
+   */
+  @PreAuthorize("hasAuthority('PERMISSION_ADMIN_USER_WRITE')")
+  @MutationMapping
+  fun resetAdminPassword(
+    @Argument id: Long,
+    @Argument newPassword: String?,
+  ): Boolean {
+    try {
+      adminService.resetPassword(id, newPassword)
+      logger.info("Admin password reset: $id")
+      return true
+    } catch (e: Exception) {
+      if (e is BadRequestException) {
+        throw e
+      }
+      logger.error("Failed to reset admin password", e)
+      throw BadRequestException("重置管理员密码失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 后台创建用户(F-USR-022,G11 落地;wechatOpenId 由后端自动生成占位)
+   */
+  @PreAuthorize("hasAuthority('PERMISSION_USER_WRITE')")
+  @MutationMapping
+  fun createUser(
+    @Argument input: CreateUserInput,
+  ): User {
+    try {
+      val created =
+        userService.createUserByAdmin(
+          nickname = input.nickname,
+          phone = input.phone,
+          avatarUrl = input.avatarUrl,
+        )
+      return UserMapper.map(created)
+    } catch (e: Exception) {
+      logger.error("Failed to create user", e)
+      throw BadRequestException("创建用户失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 后台编辑用户(F-USR-022)
+   */
+  @PreAuthorize("hasAuthority('PERMISSION_USER_WRITE')")
+  @MutationMapping
+  fun updateUser(
+    @Argument id: Long,
+    @Argument input: UpdateUserInput,
+  ): User {
+    try {
+      val updated =
+        userService.updateUserByAdmin(
+          id = id,
+          nickname = input.nickname,
+          phone = input.phone,
+          avatarUrl = input.avatarUrl,
+          status = input.status,
+        )
+      return UserMapper.map(updated)
+    } catch (e: Exception) {
+      logger.error("Failed to update user", e)
+      throw BadRequestException("更新用户失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 后台删除用户(F-USR-022,软删除)
+   */
+  @PreAuthorize("hasAuthority('PERMISSION_USER_DELETE')")
+  @MutationMapping
+  fun deleteUser(
+    @Argument id: Long,
+  ): Boolean {
+    try {
+      val deleted = userService.deleteUserById(id)
+      logger.info("User deleted: $id")
+      return deleted
+    } catch (e: Exception) {
+      logger.error("Failed to delete user", e)
+      throw BadRequestException("删除用户失败: ${e.message}")
+    }
+  }
+
   private fun validateCreateAdminInput(input: CreateAdminInput) {
-    if (input.username.isBlank()) {
+    // 送水员角色(DELIVERY_WORKER)可不传用户名,后端自动生成 delivery_{账号ID}(F-USR-021)
+    val username = input.username
+    if (username == null) {
+      if (input.role != dev.yidafu.aqua.common.graphql.generated.AdminRole.DELIVERY_WORKER) {
+        throw BadRequestException("用户名不能为空")
+      }
+      return
+    }
+    if (username.isBlank()) {
       throw BadRequestException("用户名不能为空")
     }
-    if (input.username.length !in 3..50) {
+    if (username.length !in 3..50) {
       throw BadRequestException("用户名长度应在3-50个字符之间")
     }
-    if (!input.username.matches(Regex("^[a-zA-Z0-9_]+$"))) {
+    if (!username.matches(Regex("^[a-zA-Z0-9_]+$"))) {
       throw BadRequestException("用户名只能包含字母、数字和下划线")
     }
   }

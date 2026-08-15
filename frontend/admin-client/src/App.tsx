@@ -15,9 +15,8 @@ import DeliveryWorkerStatistics from './pages/statistics/delivery-workers';
 import OrderStatistics from './pages/statistics/orders';
 import ProductStatistics from './pages/statistics/products';
 import UserDetailPage from './pages/users/detail/index';
-import DeliveryWorkerDetailPage from './pages/users/delivery-workers/detail/index';
-import AdminUsers from './pages/users/admins';
-import DeliveryWorkerUsers from './pages/users/delivery-workers';
+import AccountUsers from './pages/users/accounts';
+import AccountDetailPage from './pages/users/accounts/detail/index';
 import CustomerUsers from './pages/users/customers';
 import AddressListPage from './pages/addresses/list';
 import ApiLogs from './pages/logs/api';
@@ -40,6 +39,7 @@ import MarketingNewcomer from './pages/marketing/newcomer';
 import SystemParameters from './pages/system/parameters';
 import SystemOrderConfig from './pages/system/order';
 import SystemStockConfig from './pages/system/stock';
+import DeliveryTrajectories from './pages/trajectories';
 
 // 浏览器标签页标题由 react-helmet-async 统一管理,与 Layout 菜单文案保持一致;
 // 页面标题属于实现细节,不在 PRD 中逐页描述。
@@ -64,12 +64,11 @@ const App: React.FC = () => {
       >
         <Route index element={<Navigate to="/dashboard" replace />} />
         <Route path="dashboard" element={page('仪表盘', <Dashboard />)} />
-        <Route path="users/admins" element={page('管理员', <AdminUsers />)} />
-        <Route path="users/delivery-workers" element={page('送水员', <DeliveryWorkerUsers />)} />
+        <Route path="users/accounts" element={page('账号管理', <AccountUsers />)} />
+        <Route path="users/accounts/:id" element={page('账号详情', <AccountDetailPage />)} />
         <Route path="users/customers" element={page('用户', <CustomerUsers />)} />
-        <Route path="users" element={<Navigate to="/users/admins" replace />} />
+        <Route path="users" element={<Navigate to="/users/accounts" replace />} />
         <Route path="users/:id" element={page('用户详情', <UserDetailPage />)} />
-        <Route path="users/delivery-workers/:id" element={page('送水员详情', <DeliveryWorkerDetailPage />)} />
         <Route path="products" element={page('产品管理', <ProductListPage />)} />
         <Route path="products/:id" element={page('产品详情', <ProductDetailPage />)} />
         <Route path="orders" element={page('订单管理', <Orders />)} />
@@ -80,6 +79,7 @@ const App: React.FC = () => {
         <Route path="statistics/orders" element={page('订单统计', <OrderStatistics />)} />
         <Route path="statistics/products" element={page('商品统计', <ProductStatistics />)} />
         <Route path="addresses" element={page('地址管理', <AddressListPage />)} />
+        <Route path="trajectories" element={page('配送轨迹', <DeliveryTrajectories />)} />
         <Route path="logs/api" element={page('API日志', <ApiLogs />)} />
         <Route path="logs/user-actions" element={page('用户操作', <UserActionLogs />)} />
         <Route path="logs/business" element={page('业务日志', <BusinessLogs />)} />

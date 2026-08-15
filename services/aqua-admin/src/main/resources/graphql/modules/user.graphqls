@@ -5,3 +5,12 @@ extend type Query {
   users(input: UserListInput): UserVOPage!
   user(id: PrimaryId!): User
 }
+
+extend type Mutation {
+  # 后台创建用户(F-USR-022,G11 落地;wechatOpenId 自动生成占位)
+  createUser(input: CreateUserInput!): User!
+  # 后台编辑用户(昵称/手机号/头像/状态)
+  updateUser(id: PrimaryId!, input: UpdateUserInput!): User!
+  # 后台删除用户(软删除)
+  deleteUser(id: PrimaryId!): Boolean!
+}

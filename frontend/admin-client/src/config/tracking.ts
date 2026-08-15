@@ -18,9 +18,9 @@ export const PAGE_TRACK_CONFIG: Record<string, PageTrackConfig> = {
   '/statistics/products': { title: '商品统计' },
   '/statistics/delivery-workers': { title: '配送员统计' },
   '/users': { title: '用户管理' },
-  '/users/admins': { title: '管理员列表' },
+  '/users/accounts': { title: '账号列表' },
   '/users/customers': { title: '客户列表' },
-  '/users/delivery-workers': { title: '配送员列表' },
+
   '/addresses': { title: '地址管理' },
   '/logs/api': { title: 'API 日志' },
   '/logs/user-actions': { title: '用户操作日志' },

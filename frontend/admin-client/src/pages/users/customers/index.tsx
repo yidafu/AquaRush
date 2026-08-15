@@ -1,40 +1,66 @@
 import React, { useState, useEffect } from 'react';
-import { Button, Modal, Select, Space, message } from 'antd';
+import { Button, Input, Modal, Select, Space, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 
 // Import components
 import UserTable from '../components/UserTable';
 import UserForm from '../components/UserForm';
-import UserDetailModal from '../components/UserDetailModal';
 
 // Import GraphQL hooks and types
 import {
   useUsers,
+  useCreateUser,
+  useUpdateUser,
+  useDeleteUser,
+  type CreateUserInput,
+  type UpdateUserInput,
 } from '../../../services/user-graphql';
 import {
   useCustomerGroups,
   useSetUserCustomerGroup,
 } from '../../../services/marketing-graphql';
 import type { User } from '@aquarush/common';
+import { UserStatus } from '@aquarush/common';
 
 // Import types for forms
 import type { UserFormData } from '../components/types';
+import { STATUS_MAPPINGS } from '../components/types';
 
 // 未分组选项占位值(提交时转换为 null)
 const NO_GROUP_VALUE = '__NONE__';
 
+/** 客户分组选项最小形状(marketing-graphql 返回类型为 any,这里显式标注) */
+interface CustomerGroupOption {
+  id: string | number;
+  name: string;
+  memberCount?: number;
+}
+
 const CustomerUsers: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [groupFilter, setGroupFilter] = useState<string | undefined>(undefined);
+  const [statusFilter, setStatusFilter] = useState<UserStatus | undefined>(undefined);
+  const [search, setSearch] = useState<string | undefined>(undefined);
 
-  // GraphQL data fetching(customerGroupId 为可选筛选)
+  // GraphQL data fetching(search 为关键字搜索,与分组/状态筛选可组合;F-USR-022)
   const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useUsers(
-    groupFilter ? { customerGroupId: groupFilter } : undefined,
+    (() => {
+      const input: { customerGroupId?: string; search?: string; status?: UserStatus } = {};
+      if (groupFilter) input.customerGroupId = groupFilter;
+      if (statusFilter) input.status = statusFilter;
+      if (search) input.search = search;
+      return Object.keys(input).length > 0 ? input : undefined;
+    })(),
   );
 
   // 客户分组(筛选器 + 设置分组弹窗共用)
   const [loadGroups, { data: groupsData }] = useCustomerGroups();
   const [setUserGroup, { loading: settingGroup }] = useSetUserCustomerGroup();
+
+  // 用户增改删(G11 落地,F-USR-022)
+  const [createUser] = useCreateUser();
+  const [updateUser] = useUpdateUser();
+  const [deleteUser] = useDeleteUser();
 
   useEffect(() => {
     loadGroups({ variables: { input: { page: 0, size: 200 } } });
@@ -42,11 +68,9 @@ const CustomerUsers: React.FC = () => {
 
   // State for modals
   const [userFormVisible, setUserFormVisible] = useState<boolean>(false);
-  const [userDetailVisible, setUserDetailVisible] = useState<boolean>(false);
 
-  // State for editing/viewing records
+  // State for editing records
   const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [viewingUser, setViewingUser] = useState<User | null>(null);
 
   // 设置分组弹窗状态
   const [groupTarget, setGroupTarget] = useState<User | null>(null);
@@ -54,10 +78,14 @@ const CustomerUsers: React.FC = () => {
 
   // Use GraphQL data only
   const users = usersData?.users?.list || [];
-  const groups = groupsData?.customerGroups?.content ?? [];
+  const groups = (groupsData?.customerGroups?.content ?? []) as CustomerGroupOption[];
 
   const handleGroupFilterChange = (value: string | undefined) => {
     setGroupFilter(value === NO_GROUP_VALUE ? undefined : value);
+  };
+
+  const handleSearch = (value: string) => {
+    setSearch(value.trim() || undefined);
   };
 
   const handleSetGroup = (user: User) => {
@@ -81,11 +109,6 @@ const CustomerUsers: React.FC = () => {
   };
 
   // Action handlers
-  const handleViewUser = (user: User) => {
-    setViewingUser(user);
-    setUserDetailVisible(true);
-  };
-
   const handleEditUser = (user: User) => {
     setEditingUser(user);
     setUserFormVisible(true);
@@ -97,51 +120,50 @@ const CustomerUsers: React.FC = () => {
       content: `确定要删除用户 ${user.nickname || user.wechatOpenId} 吗？此操作不可恢复。`,
       okType: 'danger',
       onOk: async () => {
-        setLoading(true);
         try {
-          // TODO: Call delete API
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          const res = await deleteUser({ variables: { id: user.id } });
+          if (res.data?.deleteUser) {
+            message.success('用户删除成功');
+          } else {
+            message.warning('该用户不存在或已删除');
+          }
           await refetchUsers();
-          message.success('用户删除成功');
         } catch (error) {
-          message.error('删除失败');
-        } finally {
-          setLoading(false);
+          message.error(error instanceof Error ? error.message : '删除失败');
         }
       },
     });
   };
 
-  const handleResetPassword = (record: User) => {
-    const name = record.nickname || record.wechatOpenId || '';
-    Modal.confirm({
-      title: '确认重置密码',
-      content: `确定要重置 ${name} 的密码吗？`,
-      onOk: async () => {
-        setLoading(true);
-        try {
-          // TODO: Call reset password API
-          await new Promise(resolve => setTimeout(resolve, 1000));
-          message.success('密码重置成功，新密码已发送至用户手机');
-        } catch (error) {
-          message.error('重置密码失败');
-        } finally {
-          setLoading(false);
-        }
-      },
-    });
-  };
-
-  // Form submission handler
-  const handleUserSubmit = async (_values: UserFormData) => {
+  // Form submission handler(G11 落地:真实调用 createUser/updateUser)
+  const handleUserSubmit = async (values: UserFormData) => {
     setLoading(true);
     try {
-      // TODO: Call create/update API with values
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      if (editingUser) {
+      if (editingUser && editingUser.id) {
+        const input: UpdateUserInput = {
+          nickname: values.nickname,
+          phone: values.phone,
+          avatarUrl: values.avatarUrl,
+          status: values.status,
+        };
+        await updateUser({
+          variables: {
+            id: editingUser.id,
+            input,
+          },
+        });
         message.success('用户更新成功');
       } else {
+        const input: CreateUserInput = {
+          nickname: values.nickname,
+          phone: values.phone,
+          avatarUrl: values.avatarUrl,
+        };
+        await createUser({
+          variables: {
+            input,
+          },
+        });
         message.success('用户创建成功');
       }
 
@@ -149,7 +171,7 @@ const CustomerUsers: React.FC = () => {
       setUserFormVisible(false);
       setEditingUser(null);
     } catch (error) {
-      message.error('操作失败');
+      message.error(error instanceof Error ? error.message : '操作失败');
     } finally {
       setLoading(false);
     }
@@ -160,6 +182,12 @@ const CustomerUsers: React.FC = () => {
       <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Space>
           <h3 style={{ margin: 0 }}>用户列表</h3>
+          <Input.Search
+            placeholder="搜索昵称/手机号"
+            allowClear
+            style={{ width: 220 }}
+            onSearch={handleSearch}
+          />
           <Select
             allowClear
             placeholder="筛选客户分组"
@@ -172,6 +200,19 @@ const CustomerUsers: React.FC = () => {
               { value: NO_GROUP_VALUE, label: '未分组' },
               ...groups.map((g) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` })),
             ]}
+          />
+          <Select
+            allowClear
+            placeholder="筛选账户状态"
+            style={{ width: 160 }}
+            value={statusFilter}
+            onChange={(value: UserStatus | undefined) => setStatusFilter(value)}
+            options={(
+              ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'DELETED'] as const
+            ).map((status) => ({
+              value: status,
+              label: STATUS_MAPPINGS[status].text,
+            }))}
           />
         </Space>
         <Button
@@ -190,9 +231,7 @@ const CustomerUsers: React.FC = () => {
         data={users}
         loading={usersLoading}
         onEdit={handleEditUser}
-        onView={handleViewUser}
         onDelete={handleDeleteUser}
-        onResetPassword={handleResetPassword}
         onSetGroup={handleSetGroup}
       />
 
@@ -230,21 +269,14 @@ const CustomerUsers: React.FC = () => {
           setUserFormVisible(false);
           setEditingUser(null);
         }}
-        record={editingUser || undefined}
+        record={editingUser ? {
+          nickname: editingUser.nickname ?? undefined,
+          phone: editingUser.phone ?? undefined,
+          avatarUrl: editingUser.avatarUrl ?? undefined,
+          status: editingUser.status as UserFormData['status'],
+        } : undefined}
         onSubmit={handleUserSubmit}
         loading={loading}
-      />
-
-      {/* Detail Modal */}
-      <UserDetailModal
-        open={userDetailVisible}
-        onClose={() => {
-          setUserDetailVisible(false);
-          setViewingUser(null);
-        }}
-        user={viewingUser}
-        addresses={[]}
-        loading={usersLoading}
       />
     </div>
   );

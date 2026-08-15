@@ -1,0 +1,540 @@
+import React, { useMemo, useState } from 'react';
+import { Button, Table, Space, Tag, Avatar, Modal, message, Select } from 'antd';
+import {
+  PlusOutlined,
+  EditOutlined,
+  LockOutlined,
+  DeleteOutlined,
+  EyeOutlined,
+} from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
+import { useQuery } from '@apollo/client';
+import { avatarFromName } from '@aquarush/common/utils';
+import type { ColumnsType } from 'antd/es/table';
+import AdminForm from '../components/AdminForm';
+import DeliveryWorkerForm from '../components/DeliveryWorkerForm';
+import ResetPasswordModal from '../components/ResetPasswordModal';
+import {
+  GET_ADMINS_QUERY,
+  GET_DELIVERY_WORKERS_QUERY,
+} from '../../../graphql/queries/user.graphql';
+import {
+  useCreateAdmin,
+  useUpdateAdmin,
+  useDeleteAdmin,
+  useResetAdminPassword,
+  useCreateDeliveryWorker,
+  useUpdateDeliveryWorker,
+  useDeleteDeliveryWorker,
+  useResetDeliveryWorkerPassword,
+  type CreateAdminInput,
+  type CreateDeliveryWorkerInput,
+  type UpdateAdminInput,
+  type UpdateDeliveryWorkerInput,
+} from '../../../services/user-graphql';
+import type { Admin as AdminDTO, DeliveryWorker as DeliveryWorkerDTO } from '@aquarush/common';
+import type {
+  AdminFormData,
+  DeliveryWorkerFormData,
+} from '../components/types';
+import { ROLE_MAPPINGS, WORKER_STATUS_MAPPINGS } from '../components/types';
+
+/**
+ * 账号管理(管理员管理与送水员管理合并,PRD/07-user.md §F-USR-020/021):
+ * - 数据源按登录角色切换:超管查 admins(全部账号,含送水员);普通管理员查 deliveryWorkers(配送能力角色),
+ *   权限隔离以 PERMISSION_ADMIN_USER_* / PERMISSION_DELIVERY_WORKER_* 后端强制(R-AUTH-04);
+ * - 统一表单:超管走 create/updateAdmin(送水员角色展示配送字段);普通管理员走 create/updateDeliveryWorker;
+ * - 2026-08 设计调整:角色 Tab →「用户类型」过滤参数(下拉 Select,无 Tab);「查看」统一跳转
+ *   独立详情页 users/accounts/:id(按角色渲染:管理账号→管理员详情、送水员→送水员详情,见 F-USR-020/021);
+ * - 删除/重置密码走真实接口(超管 deleteAdmin/resetAdminPassword;普通管理员 deleteDeliveryWorker/
+ *   resetDeliveryWorkerPassword,后端仅允许 DELIVERY_WORKER 账号行)。
+ */
+type AccountRole = 'SUPER_ADMIN' | 'ADMIN' | 'DELIVERY_WORKER';
+
+interface AccountRow {
+  id: string;
+  username?: string;
+  realName?: string;
+  name?: string;
+  phone?: string;
+  role: AccountRole;
+  avatarUrl?: string;
+  onlineStatus?: 'ONLINE' | 'OFFLINE';
+  isAvailable?: boolean;
+  accountStatus?: 'ACTIVE' | 'DISABLED';
+  lastLoginAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+/** 编辑态记录:表单数据 + 主键/时间戳(供 handleAdminSubmit 判断新建/更新) */
+type EditingAdmin = AdminFormData & {
+  id: string;
+  createdAt: string;
+  updatedAt: string;
+  lastLoginAt?: string;
+};
+
+type EditingWorker = DeliveryWorkerFormData & {
+  id: string;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+const AccountUsers: React.FC = () => {
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState<boolean>(false);
+  const [activeRole, setActiveRole] = useState<string>('ALL');
+
+  // 仅超级管理员可管理管理员账号(菜单对普通管理员隐藏管理员项,后端以权限强制)
+  const userInfo = JSON.parse(localStorage.getItem('userInfo') || '{}');
+  const isSuperAdmin = userInfo.role === 'SUPER_ADMIN';
+
+  // 数据源按角色切换:超管查 admins 全量账号;普通管理员查 deliveryWorkers(配送能力角色)
+  const { data: adminsData, loading: adminsLoading, refetch: refetchAdmins } = useQuery(
+    GET_ADMINS_QUERY,
+    { skip: !isSuperAdmin, errorPolicy: 'all' },
+  );
+  const { data: workersData, loading: workersLoading, refetch: refetchWorkers } = useQuery(
+    GET_DELIVERY_WORKERS_QUERY,
+    { skip: isSuperAdmin, errorPolicy: 'all' },
+  );
+
+  // Mutations
+  const [createAdmin, { loading: createAdminLoading }] = useCreateAdmin();
+  const [updateAdmin, { loading: updateAdminLoading }] = useUpdateAdmin();
+  const [deleteAdmin] = useDeleteAdmin();
+  const [resetAdminPassword] = useResetAdminPassword();
+  const [createWorker, { loading: createWorkerLoading }] = useCreateDeliveryWorker();
+  const [updateWorker, { loading: updateWorkerLoading }] = useUpdateDeliveryWorker();
+  const [deleteWorker] = useDeleteDeliveryWorker();
+  const [resetWorkerPassword] = useResetDeliveryWorkerPassword();
+
+  // 表单/弹窗状态
+  const [adminFormVisible, setAdminFormVisible] = useState<boolean>(false);
+  const [workerFormVisible, setWorkerFormVisible] = useState<boolean>(false);
+  const [resetTarget, setResetTarget] = useState<AccountRow | null>(null);
+  const [editingAdmin, setEditingAdmin] = useState<EditingAdmin | null>(null);
+  const [editingWorker, setEditingWorker] = useState<EditingWorker | null>(null);
+
+  const accounts: AccountRow[] = useMemo(() => {
+    if (isSuperAdmin) {
+      return (adminsData?.admins || []).map((a: AdminDTO) => ({
+        id: a.id,
+        username: a.username,
+        realName: a.realName,
+        phone: a.phone,
+        role: a.role as AccountRole,
+        avatarUrl: a.avatarUrl || undefined,
+        onlineStatus: a.onlineStatus,
+        isAvailable: a.isAvailable,
+        accountStatus: a.accountStatus,
+        lastLoginAt: a.lastLoginAt || undefined,
+        createdAt: a.createdAt,
+        updatedAt: a.updatedAt,
+      }));
+    }
+    return (workersData?.deliveryWorkers || []).map((w: DeliveryWorkerDTO) => ({
+      id: w.id,
+      name: w.name,
+      phone: w.phone,
+      role: (w.role as AccountRole) || 'DELIVERY_WORKER',
+      avatarUrl: w.avatarUrl || undefined,
+      onlineStatus: w.onlineStatus,
+      isAvailable: w.isAvailable,
+      accountStatus: w.accountStatus,
+      createdAt: w.createdAt,
+      updatedAt: w.updatedAt,
+    }));
+  }, [isSuperAdmin, adminsData, workersData]);
+
+  const loadingAccounts = isSuperAdmin ? adminsLoading : workersLoading;
+
+  // 「用户类型」过滤参数(2026-08 设计调整:替代原角色 Tab,无 Tab 切换)
+  const roleFilterOptions = useMemo(() => {
+    if (isSuperAdmin) {
+      return [
+        { value: 'ALL', label: '全部' },
+        { value: 'SUPER_ADMIN', label: '超级管理员' },
+        { value: 'ADMIN', label: '管理员' },
+        { value: 'DELIVERY_WORKER', label: '送水员' },
+      ];
+    }
+    return [
+      { value: 'ALL', label: '全部' },
+      { value: 'ADMIN', label: '兼送水管理员' },
+      { value: 'DELIVERY_WORKER', label: '送水员' },
+    ];
+  }, [isSuperAdmin]);
+
+  const filtered = activeRole === 'ALL' ? accounts : accounts.filter((a) => a.role === activeRole);
+
+  const refetch = () => {
+    if (isSuperAdmin) {
+      refetchAdmins();
+    } else {
+      refetchWorkers();
+    }
+  };
+
+  // 操作处理
+
+  const handleView = (record: AccountRow) => {
+    // 统一跳转独立详情页 users/accounts/:id(按角色渲染,2026-08 设计调整)
+    navigate(`/users/accounts/${record.id}`);
+  };
+
+  const handleEdit = (record: AccountRow) => {
+    if (isSuperAdmin) {
+      setEditingAdmin({
+        id: record.id,
+        username: record.username || '',
+        realName: record.realName,
+        phone: record.phone,
+        role: record.role,
+        status: record.onlineStatus,
+        accountStatus: record.accountStatus ?? 'ACTIVE',
+        lastLoginAt: record.lastLoginAt,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt,
+        avatarUrl: record.avatarUrl,
+        isAvailable: record.isAvailable,
+      });
+      setAdminFormVisible(true);
+    } else {
+      setEditingWorker({
+        id: record.id,
+        userId: record.id,
+        wechatOpenId: '',
+        name: record.name || record.realName || record.username || '',
+        phone: record.phone || '',
+        avatarUrl: record.avatarUrl,
+        status: record.onlineStatus || 'OFFLINE',
+        accountStatus: record.accountStatus ?? 'ACTIVE',
+        isAvailable: record.isAvailable ?? true,
+        createdAt: record.createdAt,
+        updatedAt: record.updatedAt,
+      });
+      setWorkerFormVisible(true);
+    }
+  };
+
+  // 普通管理员视图:兼送水管理员(role=ADMIN)不可删除/重置密码(后端仅允许 DELIVERY_WORKER 账号行)
+  const canDeleteOrReset = (record: AccountRow) => isSuperAdmin || record.role === 'DELIVERY_WORKER';
+
+  const handleDelete = (record: AccountRow) => {
+    const name = record.realName || record.name || record.username || '';
+    Modal.confirm({
+      title: '确认删除',
+      content: `确定要删除${record.role === 'DELIVERY_WORKER' ? '送水员' : '账号'} ${name} 吗？此操作不可恢复。`,
+      okType: 'danger',
+      onOk: async () => {
+        setLoading(true);
+        try {
+          if (isSuperAdmin) {
+            await deleteAdmin({ variables: { id: record.id } });
+          } else {
+            await deleteWorker({ variables: { id: record.id } });
+          }
+          message.success('删除成功');
+          await refetch();
+        } catch {
+          // 错误提示已由 hook onError 处理
+        } finally {
+          setLoading(false);
+        }
+      },
+    });
+  };
+
+  const handleResetPassword = async (newPassword?: string) => {
+    if (!resetTarget) return;
+    setLoading(true);
+    try {
+      if (isSuperAdmin) {
+        await resetAdminPassword({ variables: { id: resetTarget.id, newPassword } });
+      } else {
+        await resetWorkerPassword({ variables: { id: resetTarget.id, newPassword } });
+      }
+      message.success('密码重置成功');
+      setResetTarget(null);
+    } catch {
+      // 错误提示已由 hook onError 处理
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 超管表单提交(create/updateAdmin,送水员角色含配送字段)
+  const handleAdminSubmit = async (values: AdminFormData) => {
+    setLoading(true);
+    try {
+      // 非超管强制沿用现有角色(后端以 PERMISSION_ADMIN_USER_WRITE 拦截为准)
+      const role = isSuperAdmin ? values.role : (editingAdmin?.role ?? values.role);
+      // 送水员角色用户名留空由后端自动生成 delivery_{账号ID}(F-USR-021 单表架构)
+      const input: CreateAdminInput = {
+        username: values.username || undefined,
+        realName: values.realName,
+        phone: values.phone,
+        password: values.password,
+        role,
+        avatarUrl: values.avatarUrl,
+        status: values.status,
+        isAvailable: values.isAvailable,
+        accountStatus: values.accountStatus ?? 'ACTIVE',
+      };
+
+      if (editingAdmin && editingAdmin.id) {
+        const updateInput: UpdateAdminInput = {
+          realName: input.realName,
+          phone: input.phone,
+          role: input.role,
+          avatarUrl: input.avatarUrl,
+          status: input.status,
+          isAvailable: input.isAvailable,
+          accountStatus: input.accountStatus,
+        };
+        await updateAdmin({ variables: { id: editingAdmin.id, input: updateInput } });
+        message.success('账号更新成功');
+      } else {
+        await createAdmin({ variables: { input } });
+        message.success('账号创建成功');
+      }
+      await refetchAdmins();
+      setAdminFormVisible(false);
+      setEditingAdmin(null);
+    } catch (error) {
+      console.error('Account submit error:', error);
+      message.error('操作失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 普通管理员表单提交(create/updateDeliveryWorker)
+  const handleWorkerSubmit = async (values: DeliveryWorkerFormData) => {
+    setLoading(true);
+    try {
+      const input: CreateDeliveryWorkerInput = {
+        name: values.name,
+        phone: values.phone,
+        password: values.password,
+        avatarUrl: values.avatarUrl,
+        wechatOpenId: values.wechatOpenId || undefined,
+        isAvailable: values.isAvailable,
+        status: values.status,
+        accountStatus: values.accountStatus ?? 'ACTIVE',
+      };
+
+      if (editingWorker && editingWorker.id) {
+        const updateInput: UpdateDeliveryWorkerInput = {
+          name: input.name,
+          phone: input.phone,
+          avatarUrl: input.avatarUrl,
+          isAvailable: input.isAvailable,
+          status: input.status,
+          accountStatus: input.accountStatus,
+        };
+        await updateWorker({ variables: { workerId: editingWorker.id, input: updateInput } });
+        message.success('送水员信息更新成功');
+      } else {
+        await createWorker({ variables: { input } });
+        message.success('送水员创建成功');
+      }
+      await refetchWorkers();
+      setWorkerFormVisible(false);
+      setEditingWorker(null);
+    } catch (error) {
+      console.error('Delivery worker submit error:', error);
+      message.error('操作失败');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const columns: ColumnsType<AccountRow> = [
+    {
+      title: '头像',
+      dataIndex: 'avatarUrl',
+      key: 'avatarUrl',
+      width: 70,
+      render: (avatarUrl: string, record: AccountRow) => (
+        <Avatar
+          src={avatarUrl || avatarFromName(record.username || record.name || record.realName || '账号')}
+          size="small"
+        />
+      ),
+    },
+    {
+      title: '账号',
+      dataIndex: 'username',
+      key: 'username',
+      width: 170,
+      render: (username: string, record: AccountRow) => username || record.name || '-',
+    },
+    {
+      title: '姓名',
+      dataIndex: 'realName',
+      key: 'realName',
+      width: 120,
+      render: (realName: string, record: AccountRow) => realName || (record.role === 'DELIVERY_WORKER' ? record.name || '-' : '-'),
+    },
+    {
+      title: '手机号',
+      dataIndex: 'phone',
+      key: 'phone',
+      width: 130,
+      render: (phone: string) => phone || '-',
+    },
+    {
+      title: '角色',
+      dataIndex: 'role',
+      key: 'role',
+      width: 120,
+      render: (role: AccountRole) => {
+        const config = ROLE_MAPPINGS[role as keyof typeof ROLE_MAPPINGS];
+        return <Tag color={config.color}>{config.text}</Tag>;
+      },
+    },
+    {
+      title: '在线状态',
+      dataIndex: 'onlineStatus',
+      key: 'onlineStatus',
+      width: 100,
+      render: (onlineStatus: string, record: AccountRow) => {
+        if (record.role !== 'DELIVERY_WORKER') return '-';
+        const config = WORKER_STATUS_MAPPINGS[onlineStatus as keyof typeof WORKER_STATUS_MAPPINGS];
+        return config ? <Tag color={config.color}>{config.text}</Tag> : '-';
+      },
+    },
+    {
+      title: '最后登录时间',
+      dataIndex: 'lastLoginAt',
+      key: 'lastLoginAt',
+      width: 160,
+      render: (lastLoginAt: string) => {
+        if (!lastLoginAt) return '从未登录';
+        return new Date(lastLoginAt).toLocaleString('zh-CN');
+      },
+    },
+    {
+      title: '创建时间',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
+      width: 160,
+      render: (createdAt: string) => new Date(createdAt).toLocaleString('zh-CN'),
+    },
+    {
+      title: '操作',
+      key: 'action',
+      width: 240,
+      fixed: 'right',
+      render: (_, record) => (
+        <Space size="small">
+          <Button type="link" icon={<EyeOutlined />} onClick={() => handleView(record)} size="small">
+            查看
+          </Button>
+          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)} size="small">
+            编辑
+          </Button>
+          {canDeleteOrReset(record) && (
+            <>
+              <Button
+                type="link"
+                icon={<LockOutlined />}
+                onClick={() => setResetTarget(record)}
+                size="small"
+              >
+                重置密码
+              </Button>
+              <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)} size="small">
+                删除
+              </Button>
+            </>
+          )}
+        </Space>
+      ),
+    },
+  ];
+
+  return (
+    <div>
+      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Space>
+          <h3 style={{ margin: 0 }}>账号列表</h3>
+          <Select
+            value={activeRole}
+            onChange={setActiveRole}
+            options={roleFilterOptions}
+            style={{ width: 160 }}
+          />
+        </Space>
+        <Button
+          type="primary"
+          icon={<PlusOutlined />}
+          onClick={() => {
+            if (isSuperAdmin) {
+              setEditingAdmin(null);
+              setAdminFormVisible(true);
+            } else {
+              setEditingWorker(null);
+              setWorkerFormVisible(true);
+            }
+          }}
+        >
+          {isSuperAdmin ? '新增账号' : '新增送水员'}
+        </Button>
+      </div>
+
+      <Table
+        columns={columns}
+        dataSource={filtered}
+        loading={loadingAccounts}
+        rowKey="id"
+        scroll={{ x: 1200 }}
+        pagination={{ pageSize: 20, showSizeChanger: true }}
+      />
+
+      {/* 重置密码弹窗(新密码留空=默认 123456,G11 落地) */}
+      <ResetPasswordModal
+        targetName={resetTarget?.realName || resetTarget?.name || resetTarget?.username}
+        open={resetTarget !== null}
+        confirmLoading={loading}
+        onOk={handleResetPassword}
+        onCancel={() => setResetTarget(null)}
+      />
+
+      {/* 超管表单:统一账号表单(送水员角色含配送字段) */}
+      {isSuperAdmin && (
+        <AdminForm
+          open={adminFormVisible}
+          onClose={() => {
+            setAdminFormVisible(false);
+            setEditingAdmin(null);
+          }}
+          record={editingAdmin || undefined}
+          onSubmit={handleAdminSubmit}
+          loading={loading || createAdminLoading || updateAdminLoading}
+          isSuperAdmin={isSuperAdmin}
+        />
+      )}
+
+      {/* 普通管理员表单:送水员表单 */}
+      {!isSuperAdmin && (
+        <DeliveryWorkerForm
+          open={workerFormVisible}
+          onClose={() => {
+            setWorkerFormVisible(false);
+            setEditingWorker(null);
+          }}
+          record={editingWorker || undefined}
+          onSubmit={handleWorkerSubmit}
+          loading={loading || createWorkerLoading || updateWorkerLoading}
+        />
+      )}
+    </div>
+  );
+};
+
+export default AccountUsers;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Card, Row,
@@ -13,7 +13,6 @@ import {
   Typography,
   Empty,
   Tabs,
-
 } from 'antd';
 import {
   UserOutlined,
@@ -21,6 +20,9 @@ import {
   ShoppingOutlined,
   DollarOutlined,
   CalendarOutlined,
+  TeamOutlined,
+  WalletOutlined,
+  MailOutlined,
 } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import {
@@ -31,16 +33,37 @@ import type {
   User,
   Order,
   Address,
+  UserRole,
 } from '@aquarush/common';
-import { OrderStatus } from '@aquarush/common';
+import { OrderStatus, UserRole as UserRoleEnum } from '@aquarush/common';
 import { displayCents } from '@aquarush/common'
 import AddressListUsingList from '../components/AddressListUsingList';
+import { STATUS_MAPPINGS } from '../components/types';
+import CouponSection from './sections/CouponSection';
+import TicketSection from './sections/TicketSection';
+import FeedbackSection from './sections/FeedbackSection';
+import ReviewSection from './sections/ReviewSection';
+import FavoriteSection from './sections/FavoriteSection';
 
 const { Text } = Typography;
 
+const ROLE_LABELS: Record<UserRole, string> = {
+  [UserRoleEnum.NONE]: '未分配',
+  [UserRoleEnum.USER]: '普通用户',
+  [UserRoleEnum.ADMIN]: '管理员',
+  [UserRoleEnum.WORKER]: '送水员',
+};
+
+/**
+ * 用户详情页(users/:id,PRD/07-user.md §F-USR-022):
+ * 基本信息卡(含角色/邮箱/所属分组/余额/总消费) → 统计卡(全量口径) → Tabs
+ * (收货地址/订单记录/优惠券/水票/意见反馈/评价记录/收藏商品),订单记录可下钻。
+ */
 const UserDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const userId = id;
 
@@ -55,19 +78,43 @@ const UserDetailPage: React.FC = () => {
     errorPolicy: 'all',
   });
 
-  // Query for user orders
+  // Query for user orders (全量订单)
   const {
     data: ordersData,
     loading: ordersLoading,
+    refetch: refetchOrders,
   } = useQuery(USER_ORDERS_QUERY, {
-    variables: { userId },
+    variables: { userId, page, size: pageSize },
     skip: !userId,
     errorPolicy: 'all',
   });
 
+  // Query for completed orders count (全量口径:已完成订单数)
+  const {
+    data: completedOrdersData,
+  } = useQuery(USER_ORDERS_QUERY, {
+    variables: { userId, page: 0, size: 1, status: OrderStatus.COMPLETED },
+    skip: !userId,
+    errorPolicy: 'all',
+  });
+
+  // 最近下单时间(orders 默认 createdAt 倒序,取第 0 页首条,分页时保持首载值)
+  const [latestOrderTime, setLatestOrderTime] = useState<string | null>(null);
+  useEffect(() => {
+    if (page === 0 && ordersData?.orders?.content?.length) {
+      setLatestOrderTime(ordersData.orders.content[0].createdAt);
+    }
+  }, [ordersData, page]);
+
+  useEffect(() => {
+    if (userId) {
+      refetchOrders({ userId, page, size: pageSize });
+    }
+  }, [page, pageSize, userId, refetchOrders]);
+
   const user: User | undefined = userData?.user;
   const userAddresses: Address[] = userData?.userAddresses || [];
-  const orders: Order[] = ordersData?.ordersByUser || [];
+  const orders: Order[] = ordersData?.orders.content || [];
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
@@ -113,27 +160,44 @@ const UserDetailPage: React.FC = () => {
       dataIndex: 'orderNo',
       key: 'orderNo',
       width: 150,
-    },
-    {
-      title: '商品信息',
-      dataIndex: ['product', 'name'],
-      key: 'product',
-      render: (productName: string, record: Order) => (
-        <div>
-          <div>{productName}</div>
-          <div style={{ fontSize: '12px', color: '#999' }}>
-            数量: {record.quantity}
-          </div>
-        </div>
+      render: (orderNo: string, record: Order) => (
+        <Button
+          type="link"
+          size="small"
+          style={{ padding: 0 }}
+          onClick={(e) => {
+            e.stopPropagation();
+            navigate(`/orders/${record.id}`);
+          }}
+        >
+          {orderNo}
+        </Button>
       ),
     },
     {
+      title: '商品信息',
+      dataIndex: 'items',
+      key: 'items',
+      render: (items: Order['items']) => {
+        const productNames = (items ?? []).map((item) => item.product?.name).filter(Boolean);
+        const quantity = (items ?? []).reduce((sum, item) => sum + item.quantity, 0);
+        return (
+          <div>
+            <div>{productNames.join('、') || '-'}</div>
+            <div style={{ fontSize: '12px', color: '#999' }}>
+              数量: {quantity}
+            </div>
+          </div>
+        );
+      },
+    },
+    {
       title: '订单金额',
-      dataIndex: 'amount',
-      key: 'amount',
+      dataIndex: 'amountCents',
+      key: 'amountCents',
       width: 120,
-      render: (amount: number | null | undefined) => (
-        <span>{displayCents(amount)}</span>
+      render: (amountCents: number | null | undefined) => (
+        <span>{displayCents(amountCents)}</span>
       ),
     },
     {
@@ -202,34 +266,17 @@ const UserDetailPage: React.FC = () => {
     },
   ];
 
-  // Calculate statistics
-  const totalOrders = orders.length;
-  const totalAmount = orders.reduce((sum, order) => {
-    // order.amount is a string in yuan format, sum as number
-    const amountValue = parseFloat(order.amount || '0');
-    return sum + amountValue;
-  }, 0);
-  const totalAmountInYuan = totalAmount;
-  const completedOrders = orders.filter(order => order.status === OrderStatus.COMPLETED).length;
-  const lastOrderTime = orders.length > 0
-    ? new Date(Math.max(...orders.map(order => new Date(order.createdAt).getTime()))).toLocaleString()
+  // 统计口径(2026-09 修正:不再按当前分页计算)
+  // 总订单数 = orders.totalElements(全量);总消费 = user.totalSpentCents(持久化权威值);
+  // 已完成订单 = 按状态 COMPLETED 计数查询;平均订单金额 = 总消费/总订单(除零守卫)
+  const totalOrders = ordersData?.orders.totalElements ?? 0;
+  const totalSpentCents = user?.totalSpentCents ?? 0;
+  const totalAmountInYuan = totalSpentCents / 100;
+  const completedOrders = completedOrdersData?.orders.totalElements ?? 0;
+  const averageAmountInYuan = totalOrders > 0 ? totalAmountInYuan / totalOrders : 0;
+  const lastOrderTime = latestOrderTime
+    ? new Date(latestOrderTime).toLocaleString()
     : '暂无订单';
-
-  // Handle address actions
-  const handleEditAddress = (id: string) => {
-    console.log('Edit address:', id);
-    // Implement edit address logic here
-  };
-
-  const handleDeleteAddress = (id: string) => {
-    console.log('Delete address:', id);
-    // Implement delete address logic here
-  };
-
-  const handleSetDefaultAddress = (id: string) => {
-    console.log('Set default address:', id);
-    // Implement set default address logic here
-  };
 
   if (userLoading) {
     return (
@@ -251,49 +298,7 @@ const UserDetailPage: React.FC = () => {
     );
   }
 
-  const tabItems = [
-    {
-      key: 'address',
-      label: '收货地址',
-      children: (
-        <>
-          {userAddresses && userAddresses.length > 0 ? (
-            <AddressListUsingList
-              addresses={userAddresses}
-              loading={userLoading}
-              onEdit={handleEditAddress}
-              onDelete={handleDeleteAddress}
-              onSetDefault={handleSetDefaultAddress}
-            />
-          ) : (
-            <Empty description="暂无收货地址" />
-          )}
-        </>
-      )
-    }, {
-      key: 'order',
-      label: '订单记录',
-      children: (
-        <Table
-          columns={orderColumns}
-          dataSource={orders}
-          rowKey="id"
-          loading={ordersLoading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
-          }}
-          scroll={{ x: 1400 }}
-          locale={{
-            emptyText: '该用户暂无订单记录',
-          }}
-        />
-      )
-    }
-  ]
+  const statusConfig = STATUS_MAPPINGS[user.status as keyof typeof STATUS_MAPPINGS];
 
   return (
     <div style={{  minHeight: '100vh' }}>
@@ -332,12 +337,34 @@ const UserDetailPage: React.FC = () => {
                 {user.wechatOpenId}
               </Descriptions.Item>
 
+              <Descriptions.Item label="用户角色">
+                <Tag color="geekblue">{ROLE_LABELS[user.role] ?? user.role}</Tag>
+              </Descriptions.Item>
+
               <Descriptions.Item label="账户状态">
-                <Tag color="success">正常</Tag>
+                <Tag color={statusConfig?.color ?? 'default'}>
+                  {statusConfig?.text ?? user.status}
+                </Tag>
+              </Descriptions.Item>
+
+              <Descriptions.Item label="所属客户分组">
+                <TeamOutlined /> {user.customerGroupName || '未分组'}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="账户余额">
+                <WalletOutlined /> {displayCents(user.balanceCents)}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="总消费金额">
+                <DollarOutlined /> {displayCents(user.totalSpentCents)}
+              </Descriptions.Item>
+
+              <Descriptions.Item label="邮箱">
+                <MailOutlined /> {user.email || '未设置'}
               </Descriptions.Item>
 
               <Descriptions.Item label="最近下单时间">
-                <CalendarOutlined /> {new Date(lastOrderTime).toLocaleString()}
+                <CalendarOutlined /> {lastOrderTime}
               </Descriptions.Item>
 
               <Descriptions.Item label="注册时间">
@@ -352,7 +379,7 @@ const UserDetailPage: React.FC = () => {
       </Card>
 
 
-      {/* Statistics Cards */}
+      {/* Statistics Cards (全量口径) */}
       <Row gutter={16} style={{ marginBottom: '24px' }}>
         <Col span={6}>
           <Card>
@@ -390,7 +417,7 @@ const UserDetailPage: React.FC = () => {
           <Card>
             <Statistic
               title="平均订单金额"
-              value={totalOrders > 0 ? totalAmountInYuan / totalOrders : 0}
+              value={averageAmountInYuan}
               prefix={<DollarOutlined />}
               precision={2}
               suffix="元"
@@ -400,8 +427,88 @@ const UserDetailPage: React.FC = () => {
         </Col>
       </Row>
 
-      <Tabs items={ tabItems}>
-      </Tabs>
+      {/* 各区块以 Tab 切换(2026-09 决策:保持 Tabs 布局,PRD 07-user.md §F-USR-022) */}
+      <Tabs
+        defaultActiveKey="address"
+        items={[
+          {
+            key: 'address',
+            label: '收货地址',
+            children: (
+              <Card>
+                {userAddresses && userAddresses.length > 0 ? (
+                  <AddressListUsingList
+                    addresses={userAddresses}
+                    loading={userLoading}
+                  />
+                ) : (
+                  <Empty description="暂无收货地址" />
+                )}
+              </Card>
+            ),
+          },
+          {
+            key: 'orders',
+            label: '订单记录',
+            children: (
+              <Card>
+                <Table
+                  columns={orderColumns}
+                  dataSource={orders}
+                  rowKey="id"
+                  loading={ordersLoading}
+                  onRow={(record) => ({
+                    onClick: () => navigate(`/orders/${record.id}`),
+                  })}
+                  rowClassName={() => 'clickable-row'}
+                  pagination={{
+                    current: page + 1,
+                    pageSize,
+                    total: ordersData?.orders.totalElements ?? 0,
+                    showSizeChanger: true,
+                    showQuickJumper: true,
+                    showTotal: (total, range) =>
+                      `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
+                    onChange: (nextPage, nextPageSize) => {
+                      setPage(nextPage - 1);
+                      setPageSize(nextPageSize);
+                    },
+                  }}
+                  scroll={{ x: 1400 }}
+                  locale={{
+                    emptyText: '该用户暂无订单记录',
+                  }}
+                />
+              </Card>
+            ),
+          },
+          {
+            key: 'coupons',
+            label: '优惠券',
+            children: <CouponSection userId={user.id} />,
+          },
+          {
+            key: 'tickets',
+            label: '水票',
+            children: <TicketSection userId={user.id} />,
+          },
+          {
+            key: 'feedback',
+            label: '意见反馈',
+            children: <FeedbackSection userId={user.id} />,
+          },
+          {
+            key: 'reviews',
+            label: '评价记录',
+            children: <ReviewSection userId={user.id} />,
+          },
+          {
+            key: 'favorites',
+            label: '收藏商品',
+            children: <FavoriteSection userId={user.id} />,
+          },
+        ]}
+      />
 
     </div>
   );

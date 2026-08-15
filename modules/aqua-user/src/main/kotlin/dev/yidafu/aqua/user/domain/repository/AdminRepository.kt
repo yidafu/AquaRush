@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.user.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.AdminModel
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
@@ -41,6 +42,16 @@ interface AdminRepository :
   fun findByPhone(phone: String): AdminModel?
 
   fun findByRole(role: AdminRoleModel): List<AdminModel>
+
+  /**
+   * 按角色集合查询(送水员档案并入 admins 单表后,配送能力角色查询走这里)
+   */
+  fun findAllByRoleIn(roles: Collection<AdminRoleModel>): List<AdminModel>
+
+  /**
+   * 按在线状态查询(DeliverWorkerStatusConverter 自动转换)
+   */
+  fun findByOnlineStatus(status: DeliverWorkerModelStatus): List<AdminModel>
 
   fun countByRole(role: AdminRoleModel): Long {
     val specification = AdminSpecifications.byRole(role)

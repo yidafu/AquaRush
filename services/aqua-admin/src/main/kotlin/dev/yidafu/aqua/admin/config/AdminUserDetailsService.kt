@@ -1,6 +1,7 @@
 package dev.yidafu.aqua.admin.config
 
 import dev.yidafu.aqua.api.service.admin.AdminService
+import dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.security.toPermissionAuthorities
 import org.springframework.context.annotation.Primary
@@ -28,7 +29,8 @@ class AdminUserDetailsService(
         .authorities(admin.role.toPermissionAuthorities())
         .accountExpired(false)
         .accountLocked(false)
-        .disabled(false)
+        // 停用账号(DISABLED)不可登录(AC-USR-020-07,PRD/07-user.md §F-USR-020)
+        .disabled(admin.accountStatus == AdminAccountStatus.DISABLED)
         .build()
 
     return user

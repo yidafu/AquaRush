@@ -1,8 +1,7 @@
 import React from 'react';
-import { Form, Input, Select, Modal, Upload } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Form, Input, Select, Modal } from 'antd';
+import { AvatarUpload } from '../../../components/AvatarUpload';
 import type { UserFormData, FormModalProps } from './types';
-import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 
 const UserForm: React.FC<FormModalProps<UserFormData>> = ({
   open,
@@ -12,7 +11,8 @@ const UserForm: React.FC<FormModalProps<UserFormData>> = ({
   loading = false,
 }) => {
   const [form] = Form.useForm();
-  const [fileList, setFileList] = React.useState<UploadFile[]>([]);
+  // 头像/昵称联动:未上传头像时预览根据昵称自动生成的默认头像
+  const nickname = Form.useWatch('nickname', form);
 
   React.useEffect(() => {
     if (record) {
@@ -23,38 +23,19 @@ const UserForm: React.FC<FormModalProps<UserFormData>> = ({
         avatarUrl: record.avatarUrl,
         status: record.status,
       });
-
-      if (record.avatarUrl) {
-        setFileList([
-          {
-            uid: '-1',
-            name: 'avatar.jpg',
-            status: 'done',
-            url: record.avatarUrl,
-          },
-        ]);
-      }
     } else {
       form.resetFields();
       form.setFieldsValue({
         status: 'ACTIVE',
       });
-      setFileList([]);
     }
   }, [record, form]);
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-
-      // Handle avatar URL from upload if present
-      if (fileList.length > 0 && fileList[0].url) {
-        values.avatarUrl = fileList[0].url;
-      }
-
       await onSubmit(values);
       form.resetFields();
-      setFileList([]);
     } catch (error) {
       console.error('Form validation failed:', error);
     }
@@ -62,43 +43,8 @@ const UserForm: React.FC<FormModalProps<UserFormData>> = ({
 
   const handleCancel = () => {
     form.resetFields();
-    setFileList([]);
     onClose();
   };
-
-  const uploadProps: UploadProps = {
-    name: 'file',
-    listType: 'picture-card',
-    fileList,
-    maxCount: 1,
-    accept: 'image/*',
-    beforeUpload: (file) => {
-      const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-      if (!isJpgOrPng) {
-        console.error('只能上传 JPG/PNG 格式的图片!');
-        return false;
-      }
-      const isLt2M = file.size / 1024 / 1024 < 2;
-      if (!isLt2M) {
-        console.error('图片大小不能超过 2MB!');
-        return false;
-      }
-      return false; // Prevent auto upload
-    },
-    onChange: (info) => {
-      setFileList(info.fileList.slice(-1));
-    },
-    onRemove: () => {
-      setFileList([]);
-    },
-  };
-
-  const uploadButton = (
-    <div>
-      <PlusOutlined />
-      <div style={{ marginTop: 8 }}>上传头像</div>
-    </div>
-  );
 
   return (
     <Modal
@@ -121,9 +67,7 @@ const UserForm: React.FC<FormModalProps<UserFormData>> = ({
           label="头像"
           name="avatarUrl"
         >
-          <Upload {...uploadProps}>
-            {fileList.length >= 1 ? null : uploadButton}
-          </Upload>
+          <AvatarUpload name={nickname} fallbackName="用户" />
         </Form.Item>
 
         <Form.Item
@@ -149,12 +93,9 @@ const UserForm: React.FC<FormModalProps<UserFormData>> = ({
         <Form.Item
           label="微信OpenID"
           name="wechatOpenId"
-          rules={[
-            { required: true, message: '请输入微信OpenID' },
-            { min: 1, max: 100, message: '微信OpenID长度为1-100个字符' },
-          ]}
+          extra={record ? undefined : '后台创建的用户由系统自动生成占位 OpenID（微信登录用户无需填写）'}
         >
-          <Input placeholder="请输入微信OpenID" />
+          <Input placeholder={record ? undefined : '系统自动生成'} disabled={!record} />
         </Form.Item>
 
         <Form.Item

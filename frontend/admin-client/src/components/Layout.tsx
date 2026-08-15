@@ -4,6 +4,8 @@ import { Layout as AntLayout, Menu, Dropdown, Avatar, message } from 'antd';
 import type { MenuProps } from 'antd';
 import { usePageViewTracking } from '../hooks/usePageViewTracking';
 import { userActionTracker } from '../utils/tracking';
+import { avatarFromName } from '@aquarush/common/utils';
+import { logout } from '../services/auth';
 import {
   DashboardOutlined,
   UserOutlined,
@@ -54,13 +56,16 @@ const Layout: React.FC = () => {
       icon: <UserOutlined />,
       label: '用户管理',
       children: [
-        ...(isSuperAdmin ? [{ key: '/users/admins', icon: <TeamOutlined />, label: '管理员' }] : []),
-        { key: '/users/delivery-workers', icon: <CarOutlined />, label: '送水员' },
+        // 管理员与送水员合并为账号管理(PRD/07-user.md §F-USR-020/021 单表架构);
+        // 超管查看全部账号,普通管理员仅见配送能力账号(后端权限隔离)
+        { key: '/users/accounts', icon: <TeamOutlined />, label: '账号' },
         { key: '/users/customers', icon: <UserOutlined />, label: '用户' },
       ]
     },
     { key: '/products', icon: <ShoppingOutlined />, label: '产品管理' },
     { key: '/addresses', icon: <EnvironmentOutlined />, label: '地址管理' },
+    // 配送轨迹(F-ADR-012):送水工实时位置与轨迹回放,仅管理员可见(后端 PERMISSION_DELIVERY_WORKER_READ 强制)
+    { key: '/trajectories', icon: <HistoryOutlined />, label: '配送轨迹' },
     { key: '/orders', icon: <FileTextOutlined />, label: '订单管理' },
     { key: '/daily-collection', icon: <DollarOutlined />, label: '收银对账' },
     {
@@ -129,9 +134,13 @@ const Layout: React.FC = () => {
     },
   ];
 
-  const handleLogout = () => {
-    // TODO: 调用登出 API
-    // await logout();
+  const handleLogout = async () => {
+    // 调用后端登出接口(G15 落地:记录登出业务日志;JWT 无状态,服务端仅记账)
+    try {
+      await logout();
+    } catch (e) {
+      console.warn('登出接口调用失败，仍将清除本地凭证', e);
+    }
     // 埋点:登出(显式携带用户上下文,避免登出清空本地存储后上报丢失归属)
     const logoutUser = JSON.parse(localStorage.getItem('userInfo') || '{}');
     userActionTracker.track('CLICK', 'logout', {
@@ -186,8 +195,11 @@ const Layout: React.FC = () => {
           <h2 style={{ margin: 0 }}>管理后台</h2>
           <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
             <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
-              <Avatar icon={<UserOutlined />} />
-              <span>管理员</span>
+              <Avatar
+                src={userInfo.avatar || avatarFromName(userInfo.username || userInfo.nickname || '管理员')}
+                icon={<UserOutlined />}
+              />
+              <span>{userInfo.username || userInfo.nickname || '管理员'}</span>
             </div>
           </Dropdown>
         </Header>

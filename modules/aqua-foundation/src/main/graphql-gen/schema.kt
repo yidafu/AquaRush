@@ -73,15 +73,38 @@ data class AddressInput(
 }
 
 data class Admin(
+    val accountStatus: AdminAccountStatus,
+    val avatarUrl: kotlin.String?,
+    val averageRating: java.math.BigDecimal?,
+    val completedOrders: kotlin.Int,
+    val coordinates: kotlin.String?,
     val createdAt: java.time.LocalDateTime,
+    val currentLocation: kotlin.String?,
+    val earningCents: kotlin.Long?,
     val id: kotlin.Long,
+    val isAvailable: kotlin.Boolean,
     val lastLoginAt: java.time.LocalDateTime?,
+    val onlineStatus: DeliveryWorkerStatus,
     val phone: kotlin.String?,
+    val rating: java.math.BigDecimal?,
     val realName: kotlin.String?,
     val role: kotlin.String,
+    val totalOrders: kotlin.Int,
     val updatedAt: java.time.LocalDateTime,
     val username: kotlin.String
 )
+
+enum class AdminAccountStatus(val label: String) {
+      ACTIVE("ACTIVE"),
+      DISABLED("DISABLED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): AdminAccountStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
 
 data class AdminFavoriteListInput(
     val dateFrom: java.time.LocalDateTime? = null,
@@ -437,6 +460,7 @@ enum class CouponType(val label: String) {
 }
 
 data class CreateAdminInput(
+    val accountStatus: AdminAccountStatus? = null,
     val avatarUrl: kotlin.String? = null,
     val isAvailable: kotlin.Boolean? = null,
     val password: kotlin.String? = null,
@@ -444,9 +468,10 @@ data class CreateAdminInput(
     val realName: kotlin.String? = null,
     val role: AdminRole,
     val status: DeliveryWorkerStatus? = null,
-    val username: kotlin.String
+    val username: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["accountStatus"] as AdminAccountStatus?,
       args["avatarUrl"] as kotlin.String?,
       args["isAvailable"] as kotlin.Boolean?,
       args["password"] as kotlin.String?,
@@ -454,7 +479,7 @@ data class CreateAdminInput(
       args["realName"] as kotlin.String?,
       args["role"] as AdminRole,
       args["status"] as DeliveryWorkerStatus?,
-      args["username"] as kotlin.String
+      args["username"] as kotlin.String?
   )
 }
 
@@ -631,6 +656,7 @@ data class CreateDeliveryOrderInput(
 }
 
 data class CreateDeliveryWorkerInput(
+    val accountStatus: AdminAccountStatus? = null,
     @field:Size(max = 500, message = "头像URL长度不能超过500个字符")
     val avatarUrl: kotlin.String? = null,
     @field:Size(max = 100, message = "坐标信息长度不能超过100个字符")
@@ -644,26 +670,28 @@ data class CreateDeliveryWorkerInput(
     @field:NotBlank(message = "配送员姓名不能为空")
     @field:Size(min = 2, max = 20, message = "配送员姓名长度应在2-20个字符之间")
     val name: kotlin.String,
+    val password: kotlin.String? = null,
     @field:NotBlank(message = "手机号不能为空")
     @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     val phone: kotlin.String,
     @field:Min(value = 0, message = "评分不能小于0")
     @field:Max(value = 5, message = "评分不能大于5")
     val rating: java.math.BigDecimal? = null,
-    @field:NotBlank(message = "微信OpenID不能为空")
     @field:Size(min = 1, max = 100, message = "微信OpenID长度应在1-100个字符之间")
-    val wechatOpenId: kotlin.String
+    val wechatOpenId: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["accountStatus"] as AdminAccountStatus?,
       args["avatarUrl"] as kotlin.String?,
       args["coordinates"] as kotlin.String?,
       args["currentLocation"] as kotlin.String?,
       args["earningCents"] as kotlin.Long?,
       args["isAvailable"] as kotlin.Boolean?,
       args["name"] as kotlin.String,
+      args["password"] as kotlin.String?,
       args["phone"] as kotlin.String,
       args["rating"] as java.math.BigDecimal?,
-      args["wechatOpenId"] as kotlin.String
+      args["wechatOpenId"] as kotlin.String?
   )
 }
 
@@ -988,6 +1016,18 @@ data class CreateTicketTypeInput(
   )
 }
 
+data class CreateUserInput(
+    val avatarUrl: kotlin.String? = null,
+    val nickname: kotlin.String? = null,
+    val phone: kotlin.String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["avatarUrl"] as kotlin.String?,
+      args["nickname"] as kotlin.String?,
+      args["phone"] as kotlin.String?
+  )
+}
+
 data class CreateWechatPaymentInput(
     @field:Positive(message = "支付金额必须为正数")
     @field:Min(value = 1, message = "支付金额不能小于1分")
@@ -1197,7 +1237,19 @@ data class DeliveryLoginResponse(
     val workerInfo: DeliveryWorkerInfo?
 )
 
+data class DeliveryTrajectory(
+    val accuracy: kotlin.Float?,
+    val createdAt: java.time.LocalDateTime,
+    val deliveryWorkerId: kotlin.Long,
+    val id: kotlin.Long,
+    val latitude: kotlin.Float,
+    val longitude: kotlin.Float,
+    val orderId: kotlin.Long,
+    val reportedAt: java.time.LocalDateTime
+)
+
 data class DeliveryWorker(
+    val accountStatus: AdminAccountStatus,
     val avatarUrl: kotlin.String?,
     val averageRating: java.math.BigDecimal?,
     val completedOrders: kotlin.Int,
@@ -1212,6 +1264,7 @@ data class DeliveryWorker(
     val onlineStatus: DeliveryWorkerStatus,
     val phone: kotlin.String,
     val rating: java.math.BigDecimal?,
+    val role: kotlin.String,
     val totalOrders: kotlin.Int,
     val updatedAt: java.time.LocalDateTime,
     val userId: kotlin.Long,
@@ -1437,7 +1490,8 @@ data class FeedbackListInput(
     val feedbackType: FeedbackType? = null,
     val page: kotlin.Int? = 0,
     val size: kotlin.Int? = 20,
-    val status: FeedbackStatus? = null
+    val status: FeedbackStatus? = null,
+    val userId: kotlin.Long? = null
 ) {
   constructor(args: Map<String, Any>) : this(
       args["contactKeyword"] as kotlin.String?,
@@ -1446,9 +1500,30 @@ data class FeedbackListInput(
       args["feedbackType"] as FeedbackType?,
       args["page"] as kotlin.Int? ?: 0,
       args["size"] as kotlin.Int? ?: 20,
-      args["status"] as FeedbackStatus?
+      args["status"] as FeedbackStatus?,
+      args["userId"] as kotlin.Long?
   )
 }
+
+data class FeedbackRecordVo(
+    val content: kotlin.String,
+    val createdAt: java.time.LocalDateTime,
+    val feedbackType: FeedbackType,
+    val handleResult: kotlin.String?,
+    val handledAt: java.time.LocalDateTime?,
+    val handledByName: kotlin.String?,
+    val id: kotlin.Long,
+    val images: kotlin.collections.List<kotlin.String>?,
+    val status: FeedbackStatus
+)
+
+data class FeedbackRecordVoPage(
+    val content: kotlin.collections.List<FeedbackRecordVo>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
 
 data class FeedbackReviewInput(
     @field:Size(max = 500)
@@ -1982,7 +2057,22 @@ data class MutationCreateTicketTypeArgs(
       CreateTicketTypeInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationCreateUserArgs(
+    val input: CreateUserInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateUserInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationDeleteAddressArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class MutationDeleteAdminArgs(
     val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
@@ -2010,6 +2100,13 @@ data class MutationDeleteCustomerGroupArgs(
       args["id"] as kotlin.Long
   )
 }
+data class MutationDeleteDeliveryWorkerArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
 data class MutationDeleteNoticeArgs(
     val id: kotlin.Long
 ) {
@@ -2018,6 +2115,13 @@ data class MutationDeleteNoticeArgs(
   )
 }
 data class MutationDeleteProductArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class MutationDeleteUserArgs(
     val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
@@ -2117,6 +2221,32 @@ data class MutationReorderBannerArgs(
   constructor(args: Map<String, Any>) : this(
       args["direction"] as ReorderDirection,
       args["id"] as kotlin.Long
+  )
+}
+data class MutationReportTrajectoryArgs(
+    val input: ReportTrajectoryInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      ReportTrajectoryInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationResetAdminPasswordArgs(
+    val id: kotlin.Long,
+    val newPassword: kotlin.String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      args["newPassword"] as kotlin.String?
+  )
+}
+data class MutationResetDeliveryWorkerPasswordArgs(
+    val id: kotlin.Long,
+    val newPassword: kotlin.String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      args["newPassword"] as kotlin.String?
   )
 }
 data class MutationRestoreSystemConfigArgs(
@@ -2394,6 +2524,16 @@ data class MutationUpdateTicketTypeArgs(
       UpdateTicketTypeInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationUpdateUserArgs(
+    val id: kotlin.Long,
+    val input: UpdateUserInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdateUserInput(args["input"] as Map<String, Any>)
+  )
+}
 data class Mutation(
     val _dummy: kotlin.String?,
     val acceptDelivery: Order,
@@ -2422,12 +2562,16 @@ data class Mutation(
     val createPromotionActivity: PromotionActivity,
     val createReview: Review,
     val createTicketType: TicketType,
+    val createUser: User,
     val deleteAddress: kotlin.Boolean,
+    val deleteAdmin: kotlin.Boolean,
     val deleteAdminAddress: kotlin.Boolean,
     val deleteBanner: kotlin.Boolean,
     val deleteCustomerGroup: kotlin.Boolean,
+    val deleteDeliveryWorker: kotlin.Boolean,
     val deleteNotice: kotlin.Boolean,
     val deleteProduct: kotlin.Boolean,
+    val deleteUser: kotlin.Boolean,
     val disableCouponTemplate: CouponTemplate,
     val disableFirstOrderActivity: FirstOrderActivity,
     val disableFlashSaleActivity: FlashSaleActivity,
@@ -2441,6 +2585,9 @@ data class Mutation(
     val publishNotice: Notice,
     val purchaseTickets: TicketPurchaseVo,
     val reorderBanner: kotlin.collections.List<Banner>,
+    val reportTrajectory: kotlin.Boolean,
+    val resetAdminPassword: kotlin.Boolean,
+    val resetDeliveryWorkerPassword: kotlin.Boolean,
     val restoreSystemConfig: SystemConfigVo,
     val reviewFeedback: Feedback,
     val reviewReconciliation: DailyReconciliation,
@@ -2471,7 +2618,8 @@ data class Mutation(
     val updateProductStatus: Product,
     val updateProfile: UserInfo,
     val updatePromotionActivity: PromotionActivity,
-    val updateTicketType: TicketType
+    val updateTicketType: TicketType,
+    val updateUser: User
 )
 
 data class MyTodayCollectionVo(
@@ -3459,6 +3607,19 @@ data class QueryDailyStatisticsArgs(
       DateRangeInput(args["input"] as Map<String, Any>)
   )
 }
+data class QueryDeliveryTrajectoriesArgs(
+    val endTime: java.time.LocalDateTime? = null,
+    val orderId: kotlin.Long? = null,
+    val startTime: java.time.LocalDateTime? = null,
+    val workerId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["endTime"] as java.time.LocalDateTime?,
+      args["orderId"] as kotlin.Long?,
+      args["startTime"] as java.time.LocalDateTime?,
+      args["workerId"] as kotlin.Long
+  )
+}
 data class QueryDeliveryWorkerArgs(
     val id: kotlin.Long
 ) {
@@ -3479,6 +3640,13 @@ data class QueryDeliveryWorkerHistoryOrdersArgs(
       args["status"] as OrderStatus?
   )
 }
+data class QueryDeliveryWorkerLatestLocationArgs(
+    val workerId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["workerId"] as kotlin.Long
+  )
+}
 data class QueryDeliveryWorkerRankingArgs(
     val limit: kotlin.Int? = 10
 ) {
@@ -3488,11 +3656,13 @@ data class QueryDeliveryWorkerRankingArgs(
 }
 data class QueryFavoriteProductsArgs(
     val page: kotlin.Int? = 0,
-    val size: kotlin.Int? = 20
+    val size: kotlin.Int? = 20,
+    val userId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
       args["page"] as kotlin.Int? ?: 0,
-      args["size"] as kotlin.Int? ?: 20
+      args["size"] as kotlin.Int? ?: 20,
+      args["userId"] as kotlin.Long
   )
 }
 data class QueryFeedbackArgs(
@@ -3583,6 +3753,15 @@ data class QueryMyCouponsArgs(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["status"] as UserCouponStatus?
+  )
+}
+data class QueryMyFeedbacksArgs(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 10
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 10
   )
 }
 data class QueryMyOrdersArgs(
@@ -3741,6 +3920,17 @@ data class QueryRegionsArgs(
       args["parentCode"] as kotlin.String?
   )
 }
+data class QueryReviewsByUserArgs(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val userId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["userId"] as kotlin.Long
+  )
+}
 data class QuerySearchAllAddressesArgs(
     val keyword: kotlin.String? = null,
     val page: kotlin.Int? = 0,
@@ -3788,6 +3978,24 @@ data class QueryUserAddressesArgs(
       args["userId"] as kotlin.Long?
   )
 }
+data class QueryUserCouponsArgs(
+    val status: UserCouponStatus? = null,
+    val userId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["status"] as UserCouponStatus?,
+      args["userId"] as kotlin.Long
+  )
+}
+data class QueryUserTicketsArgs(
+    val status: UserTicketStatus? = null,
+    val userId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["status"] as UserTicketStatus?,
+      args["userId"] as kotlin.Long
+  )
+}
 data class QueryUsersArgs(
     val input: UserListInput? = null
 ) {
@@ -3827,8 +4035,10 @@ data class Query(
     val dailyStatistics: kotlin.collections.List<DailyStatistic>,
     val deliveringOrders: kotlin.collections.List<Order>,
     val deliveryFeeRule: DeliveryFeeRule,
+    val deliveryTrajectories: kotlin.collections.List<DeliveryTrajectory>,
     val deliveryWorker: DeliveryWorker?,
     val deliveryWorkerHistoryOrders: OrderVoPage,
+    val deliveryWorkerLatestLocation: DeliveryTrajectory?,
     val deliveryWorkerRanking: kotlin.collections.List<DeliveryWorkerRankingItem>,
     val deliveryWorkerStatistics: DeliveryWorkerOverview,
     val deliveryWorkers: kotlin.collections.List<DeliveryWorker>,
@@ -3847,6 +4057,7 @@ data class Query(
     val me: UserInfo?,
     val monthlyStatistics: kotlin.collections.List<MonthlyStatistic>,
     val myCoupons: kotlin.collections.List<UserCouponVo>,
+    val myFeedbacks: FeedbackRecordVoPage,
     val myOrders: OrderVoPage,
     val myTickets: kotlin.collections.List<UserTicketVo>,
     val myTodayCollection: MyTodayCollectionVo?,
@@ -3871,6 +4082,7 @@ data class Query(
     val promotionActivity: PromotionActivity?,
     val region: Region?,
     val regions: kotlin.collections.List<Region>,
+    val reviewsByUser: ReviewVoPage,
     val searchAllAddresses: kotlin.collections.List<Address>,
     val stockWarningThresholds: StockWarningThresholds,
     val storeProfile: StoreProfile?,
@@ -3881,7 +4093,9 @@ data class Query(
     val todayStatistics: TodayStatistics?,
     val user: User?,
     val userAddresses: kotlin.collections.List<Address>,
+    val userCoupons: kotlin.collections.List<UserCouponVo>,
     val userStatistics: UserStatistics,
+    val userTickets: kotlin.collections.List<UserTicketVo>,
     val users: UserVoPage,
     val weekStatistics: WeekStatistics?,
     val weeklyStatistics: kotlin.collections.List<WeeklyStatistic>
@@ -3991,6 +4205,23 @@ enum class ReorderDirection(val label: String) {
   }
 }
 
+data class ReportTrajectoryInput(
+    val accuracy: kotlin.Float? = null,
+    val latitude: kotlin.Float,
+    val longitude: kotlin.Float,
+    @field:Positive(message = "订单ID必须为正数")
+    val orderId: kotlin.Long,
+    val reportedAt: java.time.LocalDateTime? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["accuracy"] as kotlin.Float?,
+      args["latitude"] as kotlin.Float,
+      args["longitude"] as kotlin.Float,
+      args["orderId"] as kotlin.Long,
+      args["reportedAt"] as java.time.LocalDateTime?
+  )
+}
+
 data class Review(
     val comment: kotlin.String?,
     val createdAt: java.time.LocalDateTime,
@@ -4012,6 +4243,14 @@ data class ReviewReconciliationInput(
       args["reviewNotes"] as kotlin.String
   )
 }
+
+data class ReviewVoPage(
+    val content: kotlin.collections.List<Review>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
 
 data class SalesReport(
     val dateRange: DateRange,
@@ -4390,6 +4629,7 @@ data class UpdateAddressInput(
 }
 
 data class UpdateAdminInput(
+    val accountStatus: AdminAccountStatus? = null,
     val avatarUrl: kotlin.String? = null,
     val isAvailable: kotlin.Boolean? = null,
     val phone: kotlin.String? = null,
@@ -4399,6 +4639,7 @@ data class UpdateAdminInput(
     val username: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["accountStatus"] as AdminAccountStatus?,
       args["avatarUrl"] as kotlin.String?,
       args["isAvailable"] as kotlin.Boolean?,
       args["phone"] as kotlin.String?,
@@ -4529,6 +4770,7 @@ data class UpdateDeliveryAddressInput(
 }
 
 data class UpdateDeliveryWorkerInput(
+    val accountStatus: AdminAccountStatus? = null,
     @field:Size(max = 500, message = "头像URL长度不能超过500个字符")
     val avatarUrl: kotlin.String? = null,
     @field:Size(max = 100, message = "坐标信息长度不能超过100个字符")
@@ -4546,10 +4788,12 @@ data class UpdateDeliveryWorkerInput(
     @field:Min(value = 0, message = "评分不能小于0")
     @field:Max(value = 5, message = "评分不能大于5")
     val rating: java.math.BigDecimal? = null,
+    val status: DeliveryWorkerStatus? = null,
     @field:Size(min = 1, max = 100, message = "微信OpenID长度应在1-100个字符之间")
     val wechatOpenId: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["accountStatus"] as AdminAccountStatus?,
       args["avatarUrl"] as kotlin.String?,
       args["coordinates"] as kotlin.String?,
       args["currentLocation"] as kotlin.String?,
@@ -4558,6 +4802,7 @@ data class UpdateDeliveryWorkerInput(
       args["name"] as kotlin.String?,
       args["phone"] as kotlin.String?,
       args["rating"] as java.math.BigDecimal?,
+      args["status"] as DeliveryWorkerStatus?,
       args["wechatOpenId"] as kotlin.String?
   )
 }
@@ -4837,6 +5082,20 @@ data class UpdateTransactionInput(
       args["freezeReason"] as kotlin.String?,
       args["isFrozen"] as kotlin.Boolean?,
       args["status"] as PaymentStatus?
+  )
+}
+
+data class UpdateUserInput(
+    val avatarUrl: kotlin.String? = null,
+    val nickname: kotlin.String? = null,
+    val phone: kotlin.String? = null,
+    val status: UserStatus? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["avatarUrl"] as kotlin.String?,
+      args["nickname"] as kotlin.String?,
+      args["phone"] as kotlin.String?,
+      args["status"] as UserStatus?
   )
 }
 

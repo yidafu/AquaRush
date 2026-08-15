@@ -45,6 +45,33 @@ interface UserService {
     avatarUrl: String?,
   ): UserModel
 
+  // ===== 后台用户管理(F-USR-022,G11 落地)=====
+
+  /**
+   * 后台创建用户(wechatOpenId 自动生成 `manual_{账号ID}` 占位,微信登录用户由登录自动创建)
+   */
+  fun createUserByAdmin(
+    nickname: String?,
+    phone: String?,
+    avatarUrl: String?,
+  ): UserModel
+
+  /**
+   * 后台编辑用户(昵称/手机号/头像/状态)
+   */
+  fun updateUserByAdmin(
+    id: Long,
+    nickname: String?,
+    phone: String?,
+    avatarUrl: String?,
+    status: UserStatus?,
+  ): UserModel
+
+  /**
+   * 后台删除用户(软删除 @SoftDelete(is_deleted),历史订单引用不破坏)
+   */
+  fun deleteUserById(id: Long): Boolean
+
   fun existsByWechatOpenId(wechatOpenId: String): Boolean
 
   fun findAllUsers(pageable: Pageable): Page<UserModel>

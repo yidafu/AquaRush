@@ -6,8 +6,8 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 /**
  * 角色-权限映射配置
  * 与 PRD 01-overview.md §角色权限矩阵 保持一致。
- * - SUPER_ADMIN: 全部 36 码
- * - ADMIN: 业务域 29 码(缺 ADMIN_USER_*、SYSTEM_CONFIG_*、ORDER_CREATE、DELIVERY_TASK、RECONCILIATION_SUBMIT)
+ * - SUPER_ADMIN: 全部 38 码
+ * - ADMIN: 业务域 32 码(缺 ADMIN_USER_*、SYSTEM_CONFIG_*、ORDER_CREATE、RECONCILIATION_SUBMIT 共 6 码)
  * - DELIVERY_WORKER: 8 码(ORDER_READ/PRODUCT_READ/ADDRESS_READ/ORDER_CREATE/DELIVERY_TASK/RECONCILIATION_READ/RECONCILIATION_SUBMIT/STATISTICS_READ)
  */
 object RolePermissionMapping {
@@ -21,7 +21,8 @@ object RolePermissionMapping {
         AdminPermission.entries.toSet()
       }
 
-      // 管理员拥有业务域权限(不含管理员账号管理与系统配置、不含送水工专属操作)
+      // 管理员拥有业务域权限(不含管理员账号管理与系统配置;DELIVERY_TASK 已授予,
+      // 支持「管理员兼送水」F-USR-023 —— 见 PRD 01-overview.md §角色权限矩阵)
       AdminRoleModel.ADMIN -> {
         setOf(
           // 商品
@@ -32,6 +33,8 @@ object RolePermissionMapping {
           AdminPermission.ORDER_WRITE,
           AdminPermission.ORDER_ASSIGN,
           AdminPermission.ORDER_REVIEW,
+          // 配送执行(管理员兼送水,F-USR-023)
+          AdminPermission.DELIVERY_TASK,
           // 送水工管理
           AdminPermission.DELIVERY_WORKER_READ,
           AdminPermission.DELIVERY_WORKER_WRITE,

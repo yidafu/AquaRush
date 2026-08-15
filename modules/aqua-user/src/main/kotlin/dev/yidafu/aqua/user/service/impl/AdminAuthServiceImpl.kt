@@ -94,8 +94,21 @@ class AdminAuthServiceImpl(
             username = admin.username,
             realName = admin.realName,
             role = admin.role.name,
+            avatar = admin.avatarUrl,
           ),
       )
+    } catch (e: org.springframework.security.authentication.DisabledException) {
+      // 停用账号登录(AC-USR-020-07,PRD/07-user.md §F-USR-020)
+      logger.warn("Admin login failed, account disabled: username={}", username)
+      bizLogger.logLogin(
+        userId = "0",
+        username = username,
+        loginMethod = "PASSWORD",
+        success = false,
+        operation = "LOGIN_FAILED",
+        additionalData = mapOf("error" to "ACCOUNT_DISABLED"),
+      )
+      throw WeChatAuthException("账号已停用，请联系管理员")
     } catch (e: Exception) {
       logger.error("Admin authentication failed", e)
       // 记录登录失败日志

@@ -9,6 +9,8 @@ export const GET_USERS_QUERY = gql`
         nickname
         phone
         avatarUrl
+        status
+        role
         customerGroupId
         customerGroupName
         createdAt
@@ -34,6 +36,13 @@ query GetUserDetail($id: PrimaryId!) {
     nickname
     phone
     avatarUrl
+    status
+    role
+    email
+    balanceCents
+    totalSpentCents
+    customerGroupId
+    customerGroupName
     createdAt
     updatedAt
     __typename
@@ -56,6 +65,130 @@ query GetUserDetail($id: PrimaryId!) {
 }
 `;
 
+/** 用户持有的优惠券(用户详情页「优惠券」Tab,状态空=全部;F-MKT-003) */
+export const USER_COUPONS_QUERY = gql`
+  query GetUserCoupons($userId: PrimaryId!, $status: UserCouponStatus) {
+    userCoupons(userId: $userId, status: $status) {
+      id
+      name
+      couponType
+      thresholdCents
+      discountAmountCents
+      discountRatePermille
+      scope
+      productId
+      status
+      expireTime
+      usable
+    }
+  }
+`;
+
+/** 用户持有的桶水票(用户详情页「水票」Tab,状态空=全部;F-MKT-007) */
+export const USER_TICKETS_QUERY = gql`
+  query GetUserTickets($userId: PrimaryId!, $status: UserTicketStatus) {
+    userTickets(userId: $userId, status: $status) {
+      id
+      ticketTypeName
+      specification
+      status
+      expireTime
+      isGift
+    }
+  }
+`;
+
+/** 用户评价记录(用户详情页「评价记录」Tab,分页;F-ORD-007) */
+export const REVIEWS_BY_USER_QUERY = gql`
+  query GetReviewsByUser($userId: PrimaryId!, $page: Int, $size: Int) {
+    reviewsByUser(userId: $userId, page: $page, size: $size) {
+      content {
+        reviewId
+        orderId
+        deliveryWorkerId
+        deliveryWorkerName
+        rating
+        comment
+        isAnonymous
+        createdAt
+      }
+      totalElements
+      totalPages
+      size
+      number
+    }
+  }
+`;
+
+/** 配送员收到的评价记录(账号详情页「评价记录」Tab,分页;deliveryWorkerId=账号 id,F-USR-020/021) */
+export const REVIEWS_BY_DELIVERY_WORKER_QUERY = gql`
+  query GetReviewsByDeliveryWorker($deliveryWorkerId: PrimaryId!, $page: Int, $size: Int) {
+    reviewsByDeliveryWorker(deliveryWorkerId: $deliveryWorkerId, page: $page, size: $size) {
+      content {
+        reviewId
+        orderId
+        deliveryWorkerId
+        deliveryWorkerName
+        rating
+        comment
+        isAnonymous
+        createdAt
+      }
+      totalElements
+      totalPages
+      size
+      number
+    }
+  }
+`;
+
+/** 配送员评分分布/总评价数(账号详情页「评价记录」Tab;数据源 delivery_worker_statistics,F-USR-020/021) */
+export const DELIVERY_WORKER_RATING_STATISTICS_QUERY = gql`
+  query GetDeliveryWorkerRatingStatistics($deliveryWorkerId: PrimaryId!) {
+    deliveryWorkerRatingStatistics(deliveryWorkerId: $deliveryWorkerId) {
+      deliveryWorkerId
+      workerName
+      averageRating
+      totalReviews
+      oneStarReviews
+      twoStarReviews
+      threeStarReviews
+      fourStarReviews
+      fiveStarReviews
+      ratingDistribution
+      lastUpdated
+    }
+  }
+`;
+
+/** 用户收藏的商品(用户详情页「收藏商品」Tab,分页) */
+export const USER_FAVORITES_QUERY = gql`
+  query GetUserFavorites($userId: PrimaryId!, $page: Int, $size: Int) {
+    favoriteProducts(userId: $userId, page: $page, size: $size) {
+      list {
+        id
+        name
+        subtitle
+        priceCents
+        originalPriceCents
+        coverImageUrl
+        stock
+        salesVolume
+        status
+        addedAt
+      }
+      pageInfo {
+        total
+        pageSize
+        pageNum
+        hasNext
+        hasPrevious
+        totalPages
+      }
+    }
+  }
+`;
+
 export const GET_ADMINS_QUERY = gql`
   query GetAdmins {
     admins {
@@ -64,9 +197,20 @@ export const GET_ADMINS_QUERY = gql`
       realName
       phone
       role
+      accountStatus
       lastLoginAt
       createdAt
       updatedAt
+      avatarUrl
+      onlineStatus
+      isAvailable
+      coordinates
+      currentLocation
+      rating
+      totalOrders
+      completedOrders
+      averageRating
+      earningCents
     }
   }
 `;
@@ -81,6 +225,7 @@ export const GET_DELIVERY_WORKERS_QUERY = gql`
       phone
       avatarUrl
       onlineStatus
+      role
       rating
       totalOrders
       completedOrders
@@ -102,124 +247,142 @@ export const DELIVERY_WORKER_DETAIL_QUERY = gql`
       phone
       avatarUrl
       onlineStatus
+      role
       rating
       totalOrders
       completedOrders
       averageRating
       isAvailable
+      accountStatus
       coordinates
       currentLocation
       earningCents
+      currentTaskCount
       createdAt
       updatedAt
     }
   }
 `;
 
-export const DELIVERY_WORKER_STATISTICS_QUERY = gql`
-  query GetDeliveryWorkerStatistics($deliveryWorkerId: PrimaryId!) {
-    deliveryWorkerStatistics(deliveryWorkerId: $deliveryWorkerId) {
-      deliveryWorkerId
-      workerName
-      averageRating
-      totalReviews
-      fiveStarReviews
-      fourStarReviews
-      threeStarReviews
-      twoStarReviews
-      oneStarReviews
-      ratingDistribution
-      lastUpdated
-    }
-  }
-`;
-
+// 配送员订单分页查询(admin `orders` 按 deliveryWorkerId+status 过滤)
 export const DELIVERY_WORKER_ORDERS_QUERY = gql`
-  query GetDeliveryWorkerOrders($deliveryWorkerId: PrimaryId!, $status: OrderStatus!) {
-    ordersByUserAndStatus(userId: $deliveryWorkerId, status: $status) {
-      id
-      orderNo
-      status
-      amountCents
-      quantity
-      createdAt
-      updatedAt
-      completedAt
-      paymentMethod
-      paymentTime
-      deliveryPhotos
-      product {
-        id
-        name
-        priceCents
-        coverImageUrl
+  query GetDeliveryWorkerOrders(
+    $deliveryWorkerId: PrimaryId!
+    $status: OrderStatus
+    $page: Int
+    $size: Int
+  ) {
+    orders(
+      input: {
+        deliveryWorkerId: $deliveryWorkerId
+        status: $status
+        page: $page
+        size: $size
       }
-      user {
+    ) {
+      content {
         id
-        nickname
-        phone
-        avatarUrl
+        orderNo
+        status
+        amountCents
+        createdAt
+        updatedAt
+        completedAt
+        paymentMethod
+        paymentTime
+        deliveryPhotos
+        items {
+          product {
+            id
+            name
+            priceCents
+            coverImageUrl
+          }
+          quantity
+          unitPriceCents
+          totalPriceCents
+        }
+        user {
+          id
+          nickname
+          phone
+          avatarUrl
+        }
+        address {
+          id
+          receiverName
+          phone
+          province
+          city
+          district
+          detailAddress
+        }
+        deliveryWorker {
+          id
+          name
+          phone
+          avatarUrl
+        }
       }
-      address {
-        id
-        receiverName
-        phone
-        province
-        city
-        district
-        detailAddress
-      }
-      deliveryWorker {
-        id
-        name
-        phone
-        avatarUrl
-      }
+      totalElements
+      totalPages
+      number
+      size
     }
   }
 `;
 
 export const USER_ORDERS_QUERY = gql`
-  query GetUserOrders($userId: PrimaryId!) {
-    ordersByUser(userId: $userId) {
-      id
-      orderNo
-      status
-      amountCents
-      quantity
-      createdAt
-      updatedAt
-      completedAt
-      paymentMethod
-      paymentTime
-      deliveryPhotos
-      product {
+  query GetUserOrders($userId: PrimaryId!, $page: Int, $size: Int, $status: OrderStatus) {
+    orders(input: { userId: $userId, page: $page, size: $size, status: $status }) {
+      content {
         id
-        name
-        priceCents
-        coverImageUrl
+        orderNo
+        status
+        amountCents
+        createdAt
+        updatedAt
+        completedAt
+        paymentMethod
+        paymentTime
+        deliveryPhotos
+        items {
+          product {
+            id
+            name
+            priceCents
+            coverImageUrl
+          }
+          quantity
+          unitPriceCents
+          totalPriceCents
+        }
+        user {
+          id
+          nickname
+          phone
+          avatarUrl
+        }
+        address {
+          id
+          receiverName
+          phone
+          province
+          city
+          district
+          detailAddress
+        }
+        deliveryWorker {
+          id
+          name
+          phone
+          avatarUrl
+        }
       }
-      user {
-        id
-        nickname
-        phone
-        avatarUrl
-      }
-      address {
-        id
-        receiverName
-        phone
-        province
-        city
-        district
-        detailAddress
-      }
-      deliveryWorker {
-        id
-        name
-        phone
-        avatarUrl
-      }
+      totalElements
+      totalPages
+      number
+      size
     }
   }
 `;

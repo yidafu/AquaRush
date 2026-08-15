@@ -41,16 +41,17 @@ class RolePermissionMappingTest {
   }
 
   @Test
-  fun `ADMIN should have 31 permissions excluding admin-user system-config and worker-specific ops`() {
+  fun `ADMIN should have 32 permissions excluding admin-user system-config and worker-only ops`() {
     val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.ADMIN)
-    assertEquals(31, permissions.size)
+    assertEquals(32, permissions.size)
     assertTrue(AdminPermission.ADMIN_USER_READ !in permissions)
     assertTrue(AdminPermission.ADMIN_USER_WRITE !in permissions)
     assertTrue(AdminPermission.SYSTEM_CONFIG_READ !in permissions)
     assertTrue(AdminPermission.SYSTEM_CONFIG_WRITE !in permissions)
     assertTrue(AdminPermission.ORDER_CREATE !in permissions)
-    assertTrue(AdminPermission.DELIVERY_TASK !in permissions)
     assertTrue(AdminPermission.RECONCILIATION_SUBMIT !in permissions)
+    // 管理员兼送水(F-USR-023):DELIVERY_TASK 已授予管理员(PRD 01-overview §角色权限矩阵)
+    assertTrue(AdminPermission.DELIVERY_TASK in permissions)
     // 运营配置/意见反馈/营销 6 码属于管理员
     assertTrue(AdminPermission.OPS_CONFIG_READ in permissions)
     assertTrue(AdminPermission.OPS_CONFIG_WRITE in permissions)

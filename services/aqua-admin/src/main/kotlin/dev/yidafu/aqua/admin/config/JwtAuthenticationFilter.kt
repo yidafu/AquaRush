@@ -21,6 +21,7 @@ package dev.yidafu.aqua.admin.config
 
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.user.UserService
+import dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.common.security.toPermissionAuthorities
@@ -201,6 +202,15 @@ class JwtAuthenticationFilter(
       if (userModel != null) {
         val admin = adminService.findByUserId(userModel.id!!)
         if (admin != null) {
+          // 停用账号(DISABLED)旧 token 立即失效(AC-USR-020-07,F-USR-020)
+          if (admin.accountStatus == AdminAccountStatus.DISABLED) {
+            jwtLogger.warn(
+              "JWT_VALIDATION_FAILED - CorrelationId: {}, Username: {}, Reason: admin account disabled",
+              correlationId,
+              username,
+            )
+            return false
+          }
           val authorities = admin.role.toPermissionAuthorities()
           val principal = UserPrincipal(admin.id!!, admin.username, admin.role.name, authorities)
           setAuthentication(principal, request)
@@ -233,6 +243,16 @@ class JwtAuthenticationFilter(
             )
             return false
           }
+
+      // 停用账号(DISABLED)旧 token 立即失效(AC-USR-020-07,F-USR-020)
+      if (admin.accountStatus == AdminAccountStatus.DISABLED) {
+        jwtLogger.warn(
+          "JWT_VALIDATION_FAILED - CorrelationId: {}, Username: {}, Reason: admin account disabled",
+          correlationId,
+          username,
+        )
+        return false
+      }
 
       // 校验 token 与用户一致
       val userDetails = customUserDetailsService.loadUserByUsername(username)

@@ -22,6 +22,7 @@ package dev.yidafu.aqua.user.mapper
 import dev.yidafu.aqua.common.domain.model.*
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.graphql.generated.*
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatus
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
@@ -53,6 +54,8 @@ object UserMapper : ObjectMappie<UserModel, User>() {
 
 /**
  * Mapper for converting Admin domain entity to GraphQL Admin type
+ *
+ * 送水员档案并入 admins 单表后,Admin 类型同时承载配送业务字段(F-USR-021)
  */
 object AdminMapper : ObjectMappie<AdminModel, Admin>() {
   override fun map(from: AdminModel) =
@@ -65,6 +68,15 @@ object AdminMapper : ObjectMappie<AdminModel, Admin>() {
       to::createdAt fromProperty from::createdAt
       to::updatedAt fromProperty from::updatedAt
       to::lastLoginAt fromProperty from::lastLoginAt
+      // 账号状态(枚举需显式转换;F-USR-020)
+      to::accountStatus fromExpression {
+        AdminAccountStatus.valueOf(from.accountStatus.name)
+      }
+      // 配送业务字段(与 AdminModel 同名同类型自动映射;枚举需显式转换)
+      to::onlineStatus fromExpression {
+        DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
+      }
+      to::isAvailable fromProperty from::isAvailable
     }
 }
 

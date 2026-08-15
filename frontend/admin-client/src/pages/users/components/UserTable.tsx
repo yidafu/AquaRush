@@ -2,6 +2,7 @@ import React from 'react';
 import { Table, Button, Space, Tag, Avatar } from 'antd';
 import { EditOutlined, LockOutlined, DeleteOutlined, EyeOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { avatarFromName } from '@aquarush/common/utils';
 import type { ColumnsType } from 'antd/es/table';
 import type { User, TableActionProps } from './types';
 import { STATUS_MAPPINGS, ROLE_MAPPINGS } from './types';
@@ -28,7 +29,7 @@ const UserTable: React.FC<UserTableProps> = ({
       width: 80,
       render: (avatarUrl: string, record: User) => (
         <Avatar
-          src={avatarUrl}
+          src={avatarUrl || avatarFromName(record.nickname || '用户')}
           size={40}
           style={{ backgroundColor: '#1890ff' }}
         >
@@ -133,14 +134,16 @@ const UserTable: React.FC<UserTableProps> = ({
           >
             编辑
           </Button>
-          <Button
-            type="link"
-            icon={<LockOutlined />}
-            onClick={() => onResetPassword(record)}
-            size="small"
-          >
-            重置密码
-          </Button>
+          {onResetPassword && (
+            <Button
+              type="link"
+              icon={<LockOutlined />}
+              onClick={() => onResetPassword(record)}
+              size="small"
+            >
+              重置密码
+            </Button>
+          )}
           {onSetGroup && (
             <Button
               type="link"

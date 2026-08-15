@@ -46,9 +46,10 @@ open class UserModel(
   var avatarUrl: String? = null,
   @Column(name = "email", nullable = false)
   var email: String = "",
+  // 后台用户管理可编辑状态(F-USR-022;微信登录创建时为 ACTIVE)
   @Column(name = "status", nullable = false)
   @Enumerated(EnumType.STRING)
-  val status: UserStatus = UserStatus.INACTIVE,
+  var status: UserStatus = UserStatus.INACTIVE,
   @Column(name = "role", nullable = false)
   @Enumerated(EnumType.STRING)
   val role: UserRole = UserRole.NONE,

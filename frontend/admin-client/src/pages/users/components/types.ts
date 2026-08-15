@@ -7,9 +7,15 @@ export interface Admin {
   realName?: string;
   phone?: string;
   role: 'SUPER_ADMIN' | 'ADMIN' | 'DELIVERY_WORKER';
+  // 账号状态(停用后不可登录;F-USR-020)
+  accountStatus: 'ACTIVE' | 'DISABLED';
   lastLoginAt?: string;
   createdAt: string;
   updatedAt: string;
+  // 配送业务字段(送水员档案并入账号行,纯管理账号留空 —— F-USR-021 目标架构)
+  avatarUrl?: string;
+  onlineStatus?: 'ONLINE' | 'OFFLINE';
+  isAvailable?: boolean;
 }
 
 export interface DeliveryWorker {
@@ -20,6 +26,8 @@ export interface DeliveryWorker {
   phone: string;
   avatarUrl?: string;
   status: 'ONLINE' | 'OFFLINE';
+  // 账号状态(停用后不可派单/接单;F-USR-021)
+  accountStatus: 'ACTIVE' | 'DISABLED';
   coordinates?: string;
   currentLocation?: string;
   rating?: number;
@@ -61,11 +69,17 @@ export interface Address {
 
 // Form interfaces for creation/editing
 export interface AdminFormData {
-  username: string;
+  username?: string;
   realName?: string;
   phone?: string;
   password?: string;
   role: 'SUPER_ADMIN' | 'ADMIN' | 'DELIVERY_WORKER';
+  // 配送字段(送水员角色)
+  avatarUrl?: string;
+  status?: 'ONLINE' | 'OFFLINE';
+  isAvailable?: boolean;
+  // 账号状态(缺省 ACTIVE;F-USR-020)
+  accountStatus?: 'ACTIVE' | 'DISABLED';
 }
 
 export interface DeliveryWorkerFormData {
@@ -76,12 +90,13 @@ export interface DeliveryWorkerFormData {
   avatarUrl?: string;
   status: 'ONLINE' | 'OFFLINE';
   isAvailable: boolean;
+  accountStatus?: 'ACTIVE' | 'DISABLED';
 }
 
 export interface UserFormData {
   nickname?: string;
   phone?: string;
-  wechatOpenId: string;
+  wechatOpenId?: string;
   avatarUrl?: string;
   status: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'DELETED';
 }
@@ -91,7 +106,8 @@ export interface TableActionProps {
   onEdit: (record: any) => void;
   onView?: (record: any) => void;
   onDelete: (record: any) => void;
-  onResetPassword: (record: any) => void;
+  /** 可选:微信登录用户无密码,用户列表不提供重置密码(F-USR-022) */
+  onResetPassword?: (record: any) => void;
   onSetGroup?: (record: any) => void;
 }
 
