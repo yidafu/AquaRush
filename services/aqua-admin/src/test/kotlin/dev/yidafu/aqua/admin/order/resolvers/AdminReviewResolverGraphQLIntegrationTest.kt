@@ -96,9 +96,9 @@ class AdminReviewResolverGraphQLIntegrationTest {
     return result.response.contentAsString
   }
 
-  /** 种子配送员账号(用户名唯一),返回账号 id */
+  /** 种子配送员账号(用户名唯一,nanoTime 保证跨调用/跨测试方法不冲突),返回账号 id */
   private fun seedWorker(realName: String): Long {
-    val username = "review-worker-${System.currentTimeMillis()}"
+    val username = "review-worker-${System.nanoTime()}"
     return adminRepository
       .save(
         AdminModel(

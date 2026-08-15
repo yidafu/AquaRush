@@ -1,0 +1,202 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.yidafu.aqua.marketing.pricing.service.impl
+
+import dev.yidafu.aqua.api.dto.GroupProductPriceItem
+import dev.yidafu.aqua.api.dto.SaveGroupProductPricesRequest
+import dev.yidafu.aqua.common.domain.model.GroupProductPriceModel
+import dev.yidafu.aqua.logging.util.BizLogger
+import dev.yidafu.aqua.marketing.pricing.domain.repository.GroupProductPriceRepository
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.slot
+import io.mockk.verify
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
+
+/** 分组商品专属价变更服务单元测试(F-MKT-002):批量 upsert/清空/clearUnlisted。 */
+class GroupProductPriceMutationServiceImplTest {
+  private lateinit var groupProductPriceRepository: GroupProductPriceRepository
+  private lateinit var bizLogger: BizLogger
+  private lateinit var service: GroupProductPriceMutationServiceImpl
+
+  @BeforeEach
+  fun setUp() {
+    groupProductPriceRepository = mockk()
+    bizLogger = mockk(relaxed = true)
+    service = GroupProductPriceMutationServiceImpl(groupProductPriceRepository, bizLogger)
+  }
+
+  private fun price(
+    id: Long,
+    groupId: Long,
+    productId: Long,
+    priceCents: Long,
+  ): GroupProductPriceModel =
+    GroupProductPriceModel(
+      id = id,
+      customerGroupId = groupId,
+      productId = productId,
+      priceCents = priceCents,
+    )
+
+  @Test
+  @DisplayName("保存:新商品插入(AC-MKT-002-02)")
+  fun `savePrices creates new price`() {
+    every { groupProductPriceRepository.findByCustomerGroupIdAndProductId(5L, 1L) } returns null
+    val slot = slot<GroupProductPriceModel>()
+    every { groupProductPriceRepository.save(capture(slot)) } answers { firstArg() }
+
+    val result =
+      service.savePrices(
+        1L,
+        "admin",
+        SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = 1500))),
+      )
+
+    assertTrue(result)
+    assertEquals(5L, slot.captured.customerGroupId)
+    assertEquals(1L, slot.captured.productId)
+    assertEquals(1500, slot.captured.priceCents)
+    verify {
+      bizLogger.logMarketingOperation(
+        targetId = 5L,
+        operation = "GROUP_PRICE_SAVED",
+        result = "SUCCESS",
+        userId = 1L,
+        username = "admin",
+        additionalData = any(),
+      )
+    }
+  }
+
+  @Test
+  @DisplayName("保存:已存在商品更新价格")
+  fun `savePrices updates existing price`() {
+    val existing = price(1L, 5L, 1L, 1000)
+    every { groupProductPriceRepository.findByCustomerGroupIdAndProductId(5L, 1L) } returns existing
+    every { groupProductPriceRepository.save(any()) } answers { firstArg() }
+
+    service.savePrices(
+      1L,
+      "admin",
+      SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = 1800))),
+    )
+
+    assertEquals(1800, existing.priceCents)
+    verify { groupProductPriceRepository.save(existing) }
+  }
+
+  @Test
+  @DisplayName("保存:priceCents=null 清空该项(回退目录价)(AC-MKT-002-03)")
+  fun `savePrices null price deletes existing`() {
+    val existing = price(1L, 5L, 1L, 1000)
+    every { groupProductPriceRepository.findByCustomerGroupIdAndProductId(5L, 1L) } returns existing
+    every { groupProductPriceRepository.delete(any<GroupProductPriceModel>()) } returns Unit
+
+    service.savePrices(
+      1L,
+      "admin",
+      SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = null))),
+    )
+
+    verify { groupProductPriceRepository.delete(existing) }
+  }
+
+  @Test
+  @DisplayName("保存:priceCents=null 且无既有价格 → 无操作")
+  fun `savePrices null price without existing does nothing`() {
+    every { groupProductPriceRepository.findByCustomerGroupIdAndProductId(5L, 1L) } returns null
+
+    service.savePrices(
+      1L,
+      "admin",
+      SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = null))),
+    )
+
+    verify(exactly = 0) { groupProductPriceRepository.delete(any<GroupProductPriceModel>()) }
+    verify(exactly = 0) { groupProductPriceRepository.save(any()) }
+  }
+
+  @Test
+  @DisplayName("保存:clearUnlisted 清空本批外已配置价格(AC-MKT-002-04)")
+  fun `savePrices clearUnlisted deletes unlisted`() {
+    val listed = price(2L, 5L, 2L, 1200)
+    val unlisted = price(3L, 5L, 3L, 1300)
+    every { groupProductPriceRepository.findByCustomerGroupId(5L) } returns listOf(listed, unlisted)
+    every { groupProductPriceRepository.findByCustomerGroupIdAndProductId(5L, 2L) } returns listed
+    every { groupProductPriceRepository.save(any()) } answers { firstArg() }
+    every { groupProductPriceRepository.delete(any<GroupProductPriceModel>()) } returns Unit
+
+    service.savePrices(
+      1L,
+      "admin",
+      SaveGroupProductPricesRequest(
+        customerGroupId = 5L,
+        items = listOf(GroupProductPriceItem(productId = 2L, priceCents = 1100)),
+        clearUnlisted = true,
+      ),
+    )
+
+    verify { groupProductPriceRepository.delete(unlisted) }
+    verify(exactly = 0) { groupProductPriceRepository.delete(listed) }
+  }
+
+  @Test
+  @DisplayName("保存:clearUnlisted=false 不清空")
+  fun `savePrices without clearUnlisted keeps others`() {
+    every { groupProductPriceRepository.findByCustomerGroupIdAndProductId(5L, 1L) } returns null
+    every { groupProductPriceRepository.save(any()) } answers { firstArg() }
+
+    service.savePrices(
+      1L,
+      "admin",
+      SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = 1500))),
+    )
+
+    verify(exactly = 0) { groupProductPriceRepository.findByCustomerGroupId(5L) }
+  }
+
+  @Test
+  @DisplayName("保存:金额越界 → IllegalArgumentException")
+  fun `savePrices invalid price throws`() {
+    every { groupProductPriceRepository.findByCustomerGroupIdAndProductId(5L, 1L) } returns null
+
+    assertFailsWith<IllegalArgumentException> {
+      service.savePrices(
+        1L,
+        "admin",
+        SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = 0))),
+      )
+    }
+
+    assertFailsWith<IllegalArgumentException> {
+      service.savePrices(
+        1L,
+        "admin",
+        SaveGroupProductPricesRequest(customerGroupId = 5L, items = listOf(GroupProductPriceItem(productId = 1L, priceCents = 9999901))),
+      )
+    }
+  }
+}

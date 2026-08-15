@@ -105,18 +105,19 @@ tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
 //   - @Configuration 配置类
 // 说明：Kover 校验任务默认挂接在 `check` 上，`./gradlew build` / `check` 不达标即失败。
 // ================================================================
-val koverModuleBounds: Map<String, Int> = mapOf(
-  "aqua-trade" to 80,
-  "aqua-marketing" to 80,
-  "aqua-ops" to 70,
-  "aqua-user" to 70,
-  "aqua-product" to 70,
-  "aqua-analytics" to 70,
-  "aqua-foundation" to 60,
-  "aqua-platform" to 60,
-  "aqua-admin" to 55,
-  "aqua-client" to 55,
-)
+val koverModuleBounds: Map<String, Int> =
+  mapOf(
+    "aqua-trade" to 80,
+    "aqua-marketing" to 80,
+    "aqua-ops" to 70,
+    "aqua-user" to 70,
+    "aqua-product" to 70,
+    "aqua-analytics" to 70,
+    "aqua-foundation" to 60,
+    "aqua-platform" to 60,
+    "aqua-admin" to 55,
+    "aqua-client" to 55,
+  )
 
 kover {
   // 合并所有子模块覆盖率数据到根工程，生成全库统一报告（配置缓存未开启，merge 可用）
@@ -154,5 +155,11 @@ subprojects {
         }
       }
     }
+  }
+
+  // 集成测试(Spring 上下文 + Artemis + H2)在默认 512m worker 堆下会 OOM,
+  // 显式分配 1g 保证测试进程稳定运行。
+  tasks.withType<Test>().configureEach {
+    maxHeapSize = "1g"
   }
 }

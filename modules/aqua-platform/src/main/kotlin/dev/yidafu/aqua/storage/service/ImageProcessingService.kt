@@ -83,8 +83,9 @@ class ImageProcessingService(
       val quality = parameters.quality ?: imageProcessingProperties.defaultQuality
       thumbnailBuilder.outputQuality(quality.toDouble())
 
-      // 格式转换
+      // 格式转换(必须显式设置,否则 toOutputStream 抛 "Output format not specified")
       val format = parameters.format?.uppercase() ?: "JPEG"
+      thumbnailBuilder = thumbnailBuilder.outputFormat(format)
 
       // 添加水印
       if (parameters.watermark) {
