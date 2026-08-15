@@ -21,7 +21,6 @@ package dev.yidafu.aqua.analytics.reconciliation.resolvers
 
 import dev.yidafu.aqua.analytics.reconciliation.service.DailyCollectionService
 import dev.yidafu.aqua.api.service.admin.AdminService
-import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.common.exception.BadRequestException
@@ -46,7 +45,6 @@ import java.time.LocalDate
 @Controller
 class AdminDailyCollectionMutationResolver(
   private val dailyCollectionService: DailyCollectionService,
-  private val deliveryWorkerQueryResolver: DeliveryWorkerQueryService,
   private val adminService: AdminService,
   private val bizLogger: BizLogger,
 ) : BaseGraphQLResolver() {
@@ -54,7 +52,7 @@ class AdminDailyCollectionMutationResolver(
 
   /**
    * 配送员或管理员提交每日收款
-   * 配送员录入时会自动从当前用户关联的配送员获取ID
+   * 送水员档案并入 admins 单表后,账号 id 即送水员 id,无需档案转换
    */
   @MutationMapping
   @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_SUBMIT')")
@@ -62,11 +60,8 @@ class AdminDailyCollectionMutationResolver(
     @Argument input: SubmitDailyCollectionInput,
     @AuthenticationPrincipal userDetails: UserDetails,
   ): DailyCollectionRecordModel {
-    // 从当前用户获取配送员ID
-    val adminId = adminService.findByUsername(userDetails.username)?.id ?: throw BadRequestException("用户不存在")
-    val workerId =
-      deliveryWorkerQueryResolver.getWorkerByAdminId(adminId).id
-        ?: throw BadRequestException("未绑定配送员")
+    // 从当前用户获取配送员ID(账号 id 即送水员 id)
+    val workerId = adminService.findByUsername(userDetails.username)?.id ?: throw BadRequestException("用户不存在")
 
     val date = input.collectionDate?.let { LocalDate.parse(it) } ?: LocalDate.now()
 
@@ -85,7 +80,7 @@ class AdminDailyCollectionMutationResolver(
       module = "RECONCILIATION",
       result = "SUCCESS",
       target = record.id?.toString() ?: "daily-collection",
-      userId = adminId,
+      userId = workerId,
       username = userDetails.username,
       additionalData =
         mapOf(

@@ -1,6 +1,6 @@
 import { networkManager } from '../utils/networkManager'
 import FileUploadService from './FileUploadService'
-import { FeedbackType } from '@aquarush/common'
+import { FeedbackRecordVoPage, FeedbackType } from '@aquarush/common'
 
 export interface FeedbackSubmitParams {
   feedbackType: FeedbackType
@@ -23,6 +23,13 @@ export interface FeedbackServiceError {
 }
 
 export type FeedbackServiceResponse = FeedbackServiceResult | FeedbackServiceError
+
+export interface FeedbackRecordsResult {
+  success: true
+  data: FeedbackRecordVoPage
+}
+
+export type FeedbackRecordsResponse = FeedbackRecordsResult | FeedbackServiceError
 
 /**
  * 意见反馈提交服务(用户端)
@@ -47,11 +54,10 @@ class FeedbackService {
    */
   public async submitFeedback(params: FeedbackSubmitParams): Promise<FeedbackServiceResponse> {
     try {
-      // 1. 图片上传:本地临时路径 → 平台存储 fileUrl
+      // 1. 图片上传:本地临时路径 → 平台存储 fileUrl(FileUploadService 默认导出即单例实例)
       const imageUrls: string[] = []
       if (params.images && params.images.length > 0) {
-        const uploadService = FileUploadService.getInstance()
-        const uploaded = await uploadService.uploadMultipleFiles(params.images)
+        const uploaded = await FileUploadService.uploadMultipleFiles(params.images)
         imageUrls.push(...uploaded.map((f) => f.fileUrl))
       }
 
@@ -71,7 +77,7 @@ class FeedbackService {
       }
 
       const response = await networkManager.mutate<{ submitFeedback: boolean }>(mutation, variables)
-      if (response.data?.submitFeedback) {
+      if (response.submitFeedback) {
         return { success: true }
       }
       return {
@@ -84,6 +90,53 @@ class FeedbackService {
         success: false,
         error: {
           message: error?.message || '提交失败,请重试',
+          code: error?.code
+        }
+      }
+    }
+  }
+
+  /**
+   * 我的-反馈记录(F-USR-005 处理结果回传):分页查询本人反馈,展示状态与处理结果
+   * @param page 页码(0 起)
+   * @param size 每页条数(默认 10)
+   */
+  public async getMyFeedbacks(page: number = 0, size: number = 10): Promise<FeedbackRecordsResponse> {
+    const query = `
+      query MyFeedbacks($page: Int, $size: Int) {
+        myFeedbacks(page: $page, size: $size) {
+          content {
+            id
+            feedbackType
+            content
+            images
+            status
+            handleResult
+            handledByName
+            handledAt
+            createdAt
+          }
+          totalElements
+          totalPages
+          size
+          number
+        }
+      }
+    `
+
+    try {
+      const variables = { page, size }
+      const response = await networkManager.query<{ myFeedbacks: FeedbackRecordVoPage }>(query, variables)
+      return {
+        success: true,
+        data: response.myFeedbacks
+      }
+    } catch (error: any) {
+      console.error('Load my feedbacks failed:', error)
+      return {
+        success: false,
+        error: {
+          message: error?.message || '获取反馈记录失败,请重试',
           code: error?.code
         }
       }

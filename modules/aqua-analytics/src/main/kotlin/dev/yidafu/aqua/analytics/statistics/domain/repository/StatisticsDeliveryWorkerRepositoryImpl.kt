@@ -20,8 +20,9 @@
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
 import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.common.domain.model.QDeliveryWorkerModel
+import dev.yidafu.aqua.common.domain.model.QAdminModel
 import dev.yidafu.aqua.common.domain.model.QOrderModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
@@ -38,14 +39,17 @@ class StatisticsDeliveryWorkerRepositoryImpl : StatisticsDeliveryWorkerRepositor
   }
 
   override fun countTodayActiveWorkers(sinceDateTime: LocalDateTime): Long {
-    val workerModel = QDeliveryWorkerModel.deliveryWorkerModel
+    // 送水员档案并入 admins 单表:在岗送水员 = 具备配送能力的账号(role ∈ DELIVERY_WORKER/ADMIN)
+    val adminModel = QAdminModel.adminModel
     val orderModel = QOrderModel.orderModel
+    val deliveryCapableRoles = listOf(AdminRoleModel.DELIVERY_WORKER, AdminRoleModel.ADMIN)
 
     return queryFactory
-      .select(workerModel.id)
-      .from(workerModel)
+      .select(adminModel.id)
+      .from(adminModel)
       .where(
-        workerModel.id.`in`(
+        adminModel.role.`in`(deliveryCapableRoles),
+        adminModel.id.`in`(
           queryFactory
             .select(orderModel.deliveryWorkerId)
             .from(orderModel)

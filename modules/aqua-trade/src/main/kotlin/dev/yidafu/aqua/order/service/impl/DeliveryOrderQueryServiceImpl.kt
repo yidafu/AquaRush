@@ -23,10 +23,11 @@ import dev.yidafu.aqua.api.dto.DailyStatDTO
 import dev.yidafu.aqua.api.dto.DeliveryStatisticsDTO
 import dev.yidafu.aqua.api.dto.TodayStatisticsDTO
 import dev.yidafu.aqua.api.dto.WeekStatisticsDTO
-import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryApiService
+import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.order.DeliveryOrderQueryService
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
@@ -37,7 +38,7 @@ import java.time.format.DateTimeFormatter
 
 @Service
 class DeliveryOrderQueryServiceImpl(
-  private val deliveryWorkerQueryApiService: DeliveryWorkerQueryApiService,
+  private val adminService: AdminService,
   private val orderRepository: OrderRepository,
 ) : DeliveryOrderQueryService {
   override fun getWorkerTasks(workerId: Long): List<OrderModel> = orderRepository.findByDeliveryWorkerIdOrderByCreatedAtDesc(workerId)
@@ -56,17 +57,20 @@ class DeliveryOrderQueryServiceImpl(
     )
 
   override fun getAssignedOrders(adminId: Long): List<OrderModel> {
-    val workers = deliveryWorkerQueryApiService.findByAdminId(adminId)
-    val worker = workers.firstOrNull() ?: throw UserNotFoundException("管理员账号未关联送水员")
+    // 送水员档案并入 admins 单表后,账号 id 即送水员 id(迁移 v1.2.1)
+    val worker = adminService.findById(adminId) ?: throw UserNotFoundException("管理员账号未关联送水员")
+    if (worker.role != AdminRoleModel.DELIVERY_WORKER && worker.role != AdminRoleModel.ADMIN) {
+      throw UserNotFoundException("管理员账号未关联送水员")
+    }
     val workerId = worker.id ?: throw UserNotFoundException("管理员账号未关联送水员")
     return getOrdersByStatus(workerId, OrderModelStatus.PENDING_DELIVERY)
   }
 
   override fun getDeliveryStatistics(): DeliveryStatisticsDTO {
-    val allWorkers = deliveryWorkerQueryApiService.findAll()
+    val allWorkers = adminService.findAllDeliveryCapable()
     val totalWorkers = allWorkers.size
     val onlineWorkers =
-      deliveryWorkerQueryApiService
+      adminService
         .findByOnlineStatus(
           DeliverWorkerModelStatus.ONLINE,
         ).size

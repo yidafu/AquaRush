@@ -19,18 +19,19 @@
 
 package dev.yidafu.aqua.delivery.service.impl
 
+import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
+import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
-import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.common.utils.JsonHelper
-import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import dev.yidafu.aqua.logging.util.BizLogger
 import io.mockk.every
 import io.mockk.mockk
@@ -47,9 +48,12 @@ import kotlin.test.assertTrue
  * - R-ORD-01/G09 状态机:派单仅接受「待派单」(待派单→配送中),二次派单/已接单订单被拦截;
  * - R-ORD-07 完成配送服务端硬校验:照片非空、收款方式必选(自提/水票核销豁免);
  * - R-ORD-08 派单约束:离线送水工不可派。
+ *
+ * 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021),配送员即账号行,
+ * workerId 即账号 id,校验走 AdminService。
  */
 class DeliveryTaskMutationServiceImplTest {
-  private lateinit var workerRepository: DeliveryWorkerRepository
+  private lateinit var adminService: AdminService
   private lateinit var orderQueryService: OrderQueryService
   private lateinit var orderMutationService: OrderMutationService
   private lateinit var orderOperationService: OrderOperationService
@@ -60,27 +64,29 @@ class DeliveryTaskMutationServiceImplTest {
   private fun order(status: OrderModelStatus) = OrderModel(id = 1L, userId = 100L, status = status)
 
   private val onlineWorker =
-    DeliveryWorkerModel(
+    AdminModel(
       id = 1L,
-      userId = 200L,
-      name = "送水工甲",
+      username = "delivery_1",
+      passwordHash = "hash",
+      realName = "送水工甲",
       phone = "13800138000",
+      role = AdminRoleModel.DELIVERY_WORKER,
       onlineStatus = DeliverWorkerModelStatus.ONLINE,
     )
 
   @BeforeEach
   fun setUp() {
-    workerRepository = mockk(relaxed = true)
+    adminService = mockk(relaxed = true)
     orderQueryService = mockk(relaxed = true)
     orderMutationService = mockk(relaxed = true)
     orderOperationService = mockk(relaxed = true)
     eventPublishService = mockk(relaxed = true)
     bizLogger = mockk(relaxed = true)
-    every { workerRepository.findById(1L) } returns java.util.Optional.of(onlineWorker)
+    every { adminService.findById(1L) } returns onlineWorker
     every { orderMutationService.updateOrder(any(), any()) } answers { secondArg() as OrderModel }
     service =
       DeliveryTaskMutationServiceImpl(
-        workerRepository,
+        adminService,
         orderQueryService,
         orderMutationService,
         orderOperationService,
@@ -121,15 +127,15 @@ class DeliveryTaskMutationServiceImplTest {
   @DisplayName("R-ORD-08:离线送水工不可派单")
   fun `assign rejects offline worker`() {
     every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)
-    every { workerRepository.findById(1L) } returns
-      java.util.Optional.of(
-        DeliveryWorkerModel(
-          id = 1L,
-          userId = 200L,
-          name = "送水工甲",
-          phone = "13800138000",
-          onlineStatus = DeliverWorkerModelStatus.OFFLINE,
-        ),
+    every { adminService.findById(1L) } returns
+      AdminModel(
+        id = 1L,
+        username = "delivery_1",
+        passwordHash = "hash",
+        realName = "送水工甲",
+        phone = "13800138000",
+        role = AdminRoleModel.DELIVERY_WORKER,
+        onlineStatus = DeliverWorkerModelStatus.OFFLINE,
       )
 
     assertFailsWith<BadRequestException> { service.assignDeliveryWorker(1L, 1L, 1L, false) }
@@ -190,5 +196,45 @@ class DeliveryTaskMutationServiceImplTest {
     every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DELIVERY)
 
     assertFailsWith<BadRequestException> { service.completeDelivery(1L, listOf("https://x/1.jpg"), PaymentType.CASH, null) }
+  }
+
+  @Test
+  @DisplayName("AC-USR-021-07:停用送水员不可派单")
+  fun `assign rejects disabled worker`() {
+    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)
+    every { adminService.findById(1L) } returns
+      AdminModel(
+        id = 1L,
+        username = "delivery_1",
+        passwordHash = "hash",
+        realName = "送水工甲",
+        phone = "13800138000",
+        role = AdminRoleModel.DELIVERY_WORKER,
+        onlineStatus = DeliverWorkerModelStatus.ONLINE,
+        accountStatus = dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.DISABLED,
+      )
+
+    val exception = assertFailsWith<BadRequestException> { service.assignDeliveryWorker(1L, 1L, 1L, false) }
+    assertTrue(exception.message!!.contains("停用"))
+  }
+
+  @Test
+  @DisplayName("AC-USR-021-07:停用账号不可接单")
+  fun `accept rejects disabled worker`() {
+    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)
+    every { adminService.findById(1L) } returns
+      AdminModel(
+        id = 1L,
+        username = "delivery_1",
+        passwordHash = "hash",
+        realName = "送水工甲",
+        phone = "13800138000",
+        role = AdminRoleModel.DELIVERY_WORKER,
+        onlineStatus = DeliverWorkerModelStatus.ONLINE,
+        accountStatus = dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.DISABLED,
+      )
+
+    val exception = assertFailsWith<BadRequestException> { service.acceptDelivery(1L, 1L) }
+    assertTrue(exception.message!!.contains("停用"))
   }
 }

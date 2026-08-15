@@ -141,6 +141,23 @@ class AdminFeedbackResolverGraphQLIntegrationTest {
 
   @Test
   @WithMockUserPrincipal(authorities = ["PERMISSION_FEEDBACK_READ"])
+  @DisplayName("feedbacks query should filter by userId (用户详情页「意见反馈」Tab)")
+  fun `feedbacks query filters by userId`() {
+    // 种子反馈 userId=100L
+    val json = postGraphql("{ feedbacks(input: {userId: 100}) { content { userId } totalElements } }")
+    assertTrue(
+      json.contains("\"userId\" : \"100\"") && !json.contains("\"errors\""),
+      "feedbacks with userId 100 should return seeded feedbacks: $json",
+    )
+    val emptyJson = postGraphql("{ feedbacks(input: {userId: 999}) { content { id } totalElements } }")
+    assertTrue(
+      emptyJson.contains("\"totalElements\" : 0") && !emptyJson.contains("\"errors\""),
+      "feedbacks with unknown userId should be empty: $emptyJson",
+    )
+  }
+
+  @Test
+  @WithMockUserPrincipal(authorities = ["PERMISSION_FEEDBACK_READ"])
   @DisplayName("feedback(id) query should return detail")
   fun `feedback query returns detail`() {
     val feedback = feedbackRepository.findFirstByContentContaining("水质发黄")!!

@@ -15,6 +15,7 @@ export default defineAppConfig({
     'pages/theme-settings/index',
     'pages/about/index',
     'pages/feedback/index',
+    'pages/feedback-records/index',
     'pages/favorites/index',
     'pages/notice-detail/index',
     'pages/coupon-center/index',

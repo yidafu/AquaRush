@@ -49,6 +49,8 @@ type Query {
   storeProfile: StoreProfile
   # 配送费规则(未配置返回默认规则 免费4楼/加价2元)
   deliveryFeeRule: DeliveryFeeRule!
+  # 我的-反馈记录(F-USR-005 处理结果回传):仅本人反馈,按提交时间倒序分页
+  myFeedbacks(page: Int = 0, size: Int = 10): FeedbackRecordVOPage!
 
   # Marketing queries (营销域 F-MKT-002/003/007,PRD 10-marketing.md)
   # 商品成交单价解析(按登录用户分组价,R-MKT-01)
@@ -144,27 +146,8 @@ type CouponTemplateVO {
   claimedCount: Int!
 }
 
-type UserCouponVO {
-  id: PrimaryId!
-  name: String!
-  couponType: CouponType!
-  thresholdCents: Long
-  discountAmountCents: Long
-  discountRatePermille: Long
-  scope: CouponScope!
-  productId: PrimaryId
-  status: UserCouponStatus!
-  expireTime: LocalDateTime!
-  # 当前订单上下文是否可用(引擎计算,门槛不足/过期置灰)
-  usable: Boolean!
-}
-
-enum UserCouponStatus {
-  RECEIVED
-  USED
-  RETURNED
-  EXPIRED
-}
+# UserCouponVO / UserCouponStatus 已上移 shared-config/graphql/shared-types.graphqls
+# (管理后台用户详情页「优惠券」Tab 共用,避免 admin/client schema 重复定义)
 
 # ============ 桶水票用户端(F-MKT-007) ============
 
@@ -186,24 +169,8 @@ type TicketTypeVO {
   myPurchasedCount: Int!
 }
 
-type UserTicketVO {
-  id: PrimaryId!
-  # 票种名称
-  ticketTypeName: String!
-  # 通兑票限定规格
-  specification: String
-  status: UserTicketStatus!
-  expireTime: LocalDateTime!
-  # 是否赠送票
-  isGift: Boolean!
-}
-
-enum UserTicketStatus {
-  UNUSED
-  USED
-  RETURNED
-  EXPIRED
-}
+# UserTicketVO / UserTicketStatus 已上移 shared-config/graphql/shared-types.graphqls
+# (管理后台用户详情页「水票」Tab 共用,避免 admin/client schema 重复定义)
 
 input PurchaseTicketsInput {
   ticketTypeId: PrimaryId! @positive(message: "票种ID必须为正数")
@@ -337,4 +304,34 @@ input FeedbackSubmitInput {
   images: [String!]
   # 联系方式(可选)
   contactInfo: String @size(max: 100)
+}
+
+# ============ 我的-反馈记录(F-USR-005 处理结果回传) ============
+
+# 反馈记录(用户端,仅本人数据;不含联系方式)
+type FeedbackRecordVO {
+  id: PrimaryId!
+  feedbackType: FeedbackType!
+  # 反馈内容
+  content: String!
+  # 图片地址数组(≤3张)
+  images: [String!]
+  status: FeedbackStatus!
+  # 处理结果(后台填写,未处理为空)
+  handleResult: String
+  # 处理人姓名(未处理为空)
+  handledByName: String
+  # 处理时间(未处理为空)
+  handledAt: LocalDateTime
+  # 提交时间
+  createdAt: LocalDateTime!
+}
+
+# 反馈记录分页(新式分页,参照 OrderVOPage)
+type FeedbackRecordVOPage {
+  content: [FeedbackRecordVO!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
 }

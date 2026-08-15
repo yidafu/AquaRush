@@ -1,0 +1,49 @@
+# Test Schema for Admin Review Resolver GraphQL Integration Tests
+# 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/order/) 加载
+# 与 services/aqua-admin/src/main/resources/graphql/modules/order.graphqls 的 reviewsByUser/reviewsByDeliveryWorker
+# 保持一致(用户详情页「评价记录」Tab,F-USR-022;账号详情页「评价记录」Tab,F-USR-020/021)
+
+scalar Long
+scalar LocalDateTime
+scalar Map
+scalar BigDecimal
+
+type Query {
+  reviewsByUser(userId: Long!, page: Int = 0, size: Int = 20): ReviewVOPage!
+  reviewsByDeliveryWorker(deliveryWorkerId: Long!, page: Int = 0, size: Int = 20): ReviewVOPage!
+  deliveryWorkerRatingStatistics(deliveryWorkerId: Long!): DeliveryWorkerStatisticsResponse!
+}
+
+type ReviewVOPage {
+  content: [Review!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+type Review {
+  reviewId: Long!
+  orderId: Long!
+  userId: Long
+  deliveryWorkerId: Long!
+  deliveryWorkerName: String
+  rating: Int!
+  comment: String
+  isAnonymous: Boolean!
+  createdAt: LocalDateTime!
+}
+
+type DeliveryWorkerStatisticsResponse {
+  deliveryWorkerId: Long!
+  workerName: String
+  averageRating: BigDecimal!
+  totalReviews: Long!
+  oneStarReviews: Long!
+  twoStarReviews: Long!
+  threeStarReviews: Long!
+  fourStarReviews: Long!
+  fiveStarReviews: Long!
+  ratingDistribution: Map!
+  lastUpdated: LocalDateTime!
+}

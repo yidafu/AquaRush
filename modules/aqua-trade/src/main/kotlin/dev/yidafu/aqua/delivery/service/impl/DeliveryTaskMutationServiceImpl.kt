@@ -19,12 +19,16 @@
 
 package dev.yidafu.aqua.delivery.service.impl
 
+import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryTaskMutationService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
+import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.OperatorType
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
@@ -34,7 +38,6 @@ import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.common.utils.JsonHelper
-import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import dev.yidafu.aqua.logging.util.BizLogger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -42,7 +45,7 @@ import org.springframework.transaction.annotation.Transactional
 
 @Service
 class DeliveryTaskMutationServiceImpl(
-  private val workerRepository: DeliveryWorkerRepository,
+  private val adminService: AdminService,
   private val orderQueryService: OrderQueryService,
   private val orderMutationService: OrderMutationService,
   private val orderOperationService: OrderOperationService,
@@ -51,6 +54,27 @@ class DeliveryTaskMutationServiceImpl(
   private val bizLogger: BizLogger,
 ) : DeliveryTaskMutationService {
   private val logger = LoggerFactory.getLogger(DeliveryTaskMutationService::class.java)
+
+  /**
+   * 校验账号具备配送能力且在线(送水员档案并入 admins 单表后,workerId 即账号 id)
+   *
+   * 停用账号(DISABLED)不可派单/接单(AC-USR-021-07,PRD/07-user.md §F-USR-021)。
+   */
+  private fun requireOnlineDeliveryWorker(workerId: Long): AdminModel {
+    val worker =
+      adminService.findById(workerId)
+        ?: throw NotFoundException("配送员不存在: $workerId")
+    if (worker.role != AdminRoleModel.DELIVERY_WORKER && worker.role != AdminRoleModel.ADMIN) {
+      throw NotFoundException("配送员不存在: $workerId")
+    }
+    if (worker.accountStatus == AdminAccountStatus.DISABLED) {
+      throw BadRequestException("配送员账号已停用，无法分配任务")
+    }
+    if (worker.onlineStatus != DeliverWorkerModelStatus.ONLINE) {
+      throw BadRequestException("配送员不在线，无法分配任务")
+    }
+    return worker
+  }
 
   /**
    * 分配送水员给订单
@@ -65,20 +89,12 @@ class DeliveryTaskMutationServiceImpl(
     val order =
       orderQueryService.getOrderById(orderId)
 
-    val worker =
-      workerRepository.findById(workerId).orElseThrow {
-        NotFoundException("配送员不存在: $workerId")
-      }
+    requireOnlineDeliveryWorker(workerId)
 
     // 验证订单状态 - 仅待派单可派单(R-ORD-01 状态机「待派单→配送中」,G09;
     // 待配送=已被抢单/接单,二次派单由状态拦截,幂等成立)
     if (order.status != OrderModelStatus.PENDING_DISPATCH) {
       throw BadRequestException("订单状态不正确，仅待派单订单可分配配送员")
-    }
-
-    // 验证配送员状态
-    if (worker.onlineStatus != DeliverWorkerModelStatus.ONLINE) {
-      throw BadRequestException("配送员不在线，无法分配任务")
     }
 
     // 分配配送员，状态变为已接单（待开始配送）
@@ -118,15 +134,7 @@ class DeliveryTaskMutationServiceImpl(
     orderIds: List<Long>,
     workerId: Long,
   ): List<OrderModel> {
-    val worker =
-      workerRepository.findById(workerId).orElseThrow {
-        NotFoundException("配送员不存在: $workerId")
-      }
-
-    // 验证配送员状态
-    if (worker.onlineStatus != DeliverWorkerModelStatus.ONLINE) {
-      throw BadRequestException("配送员不在线，无法分配任务")
-    }
+    requireOnlineDeliveryWorker(workerId)
 
     val assignedOrders = mutableListOf<OrderModel>()
 
@@ -184,8 +192,18 @@ class DeliveryTaskMutationServiceImpl(
     if (order.status != OrderModelStatus.PENDING_DISPATCH) {
       throw BadRequestException("订单状态不正确，无法接单")
     }
-    val worker = workerRepository.findByAdminId(adminId) ?: throw UserNotFoundException("管理员 $adminId 不存在")
-    val workerId = worker.id
+    // 账号即送水员身份(单表);校验账号存在且具备配送能力
+    val worker =
+      adminService.findById(adminId)
+        ?: throw UserNotFoundException("管理员 $adminId 不存在")
+    if (worker.role != AdminRoleModel.DELIVERY_WORKER && worker.role != AdminRoleModel.ADMIN) {
+      throw UserNotFoundException("管理员 $adminId 不存在")
+    }
+    // 停用账号不可接单(AC-USR-021-07)
+    if (worker.accountStatus == AdminAccountStatus.DISABLED) {
+      throw BadRequestException("账号已停用，无法接单")
+    }
+    val workerId = worker.id ?: throw UserNotFoundException("管理员 $adminId 不存在")
     // 分配配送员
     order.deliveryWorkerId = workerId
     order.status = OrderModelStatus.PENDING_DELIVERY
@@ -205,7 +223,7 @@ class DeliveryTaskMutationServiceImpl(
     eventPublishService.publishDeliveryAssigned(
       adminId = adminId,
       orderId = savedOrder.id!!,
-      deliveryWorkerId = workerId ?: 0L,
+      deliveryWorkerId = workerId,
       userId = savedOrder.userId,
     )
 
@@ -217,7 +235,7 @@ class DeliveryTaskMutationServiceImpl(
       operation = "DELIVERY_ACCEPTED",
       result = "SUCCESS",
       userId = adminId,
-      additionalData = mapOf("workerId" to (workerId ?: 0L)),
+      additionalData = mapOf("workerId" to workerId),
     )
     return savedOrder
   }

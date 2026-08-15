@@ -31,7 +31,13 @@ dependencies {
   // ========================================================
   implementation("net.coobird:thumbnailator:0.4.20")
   implementation("org.apache.tika:tika-core:2.9.1")
-  implementation("org.apache.tika:tika-parsers-standard-package:2.9.1")
+  implementation("org.apache.tika:tika-parsers-standard-package:2.9.1") {
+    // 排除已 EOL 的 Xerces 2.x：它会覆盖 JDK 内置 JAXP 解析器，
+    // 导致 Liquibase 无法启用 accessExternalSchema 安全属性（SAXNotRecognizedException），
+    // 并携带已知 CVE（如 CVE-2022-23437）。移除后回退到 JDK 自带解析器。
+    exclude(group = "xerces", module = "xercesImpl")
+    exclude(group = "xml-apis", module = "xml-apis")
+  }
   implementation("software.amazon.awssdk:s3:2.20.26")
   implementation("com.aliyun.oss:aliyun-sdk-oss:3.17.0")
 

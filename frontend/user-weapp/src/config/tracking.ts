@@ -21,6 +21,7 @@ export const PAGE_TRACK_CONFIG: Record<string, PageTrackConfig> = {
   '/pages/theme-settings/index': { title: '主题设置' },
   '/pages/about/index': { title: '关于我们' },
   '/pages/feedback/index': { title: '意见反馈' },
+  '/pages/feedback-records/index': { title: '反馈记录' },
   '/pages/favorites/index': { title: '我的收藏' },
   '/pages/notice-detail/index': { title: '公告详情' },
   '/pages/coupon-center/index': { title: '领券中心' },

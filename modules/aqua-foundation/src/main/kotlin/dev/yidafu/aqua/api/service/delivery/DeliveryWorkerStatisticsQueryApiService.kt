@@ -19,40 +19,12 @@
 
 package dev.yidafu.aqua.api.service.delivery
 
-import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
 
 /**
- * 配送员查询服务接口
+ * 跨模块送水员统计查询服务接口
+ * 由 aqua-review 模块实现,供其他模块使用(delivery_worker_id 值=账号 id,迁移见 v1.2.1)
  */
-interface DeliveryWorkerQueryService {
-  /**
-   * 根据ID获取配送员
-   */
-  fun getWorkerById(workerId: Long): DeliveryWorkerModel
-
-  /**
-   * 根据ID获取配送员
-   */
-  fun getWorkerByAdminId(adminId: Long): DeliveryWorkerModel
-
-  /**
-   * 获取所有配送员
-   */
-  fun getAllWorkers(): List<DeliveryWorkerModel>
-
-  /**
-   * 获取在线配送员
-   */
-  fun getOnlineWorkers(): List<DeliveryWorkerModel>
-
-  /**
-   * 获取配送员的进行中任务
-   */
-  fun getWorkerActiveTasks(adminId: Long): List<OrderModel>
-
-  /**
-   * 获取配送员的活跃任务数量
-   */
-  fun getWorkerActiveTaskCount(adminId: Long): Int
+interface DeliveryWorkerStatisticsQueryApiService {
+  fun findByDeliveryWorkerId(deliveryWorkerId: Long): DeliveryWorkerStatisticsModel?
 }

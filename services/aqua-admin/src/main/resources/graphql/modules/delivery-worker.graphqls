@@ -5,10 +5,30 @@ extend type Query {
   deliveryWorkers: [DeliveryWorker!]!
   onlineDeliveryWorkers: [DeliveryWorker!]!
   deliveryWorker(id: PrimaryId!): DeliveryWorker
+  # 送水工配送轨迹(F-ADR-012,仅管理员 PERMISSION_DELIVERY_WORKER_READ;
+  # orderId 指定=查该订单轨迹,否则按时间范围;startTime/endTime 为空=全部)
+  deliveryTrajectories(
+    workerId: PrimaryId!
+    orderId: PrimaryId
+    startTime: LocalDateTime
+    endTime: LocalDateTime
+  ): [DeliveryTrajectory!]!
+  # 送水工最近轨迹点(实时位置,F-ADR-012;无轨迹返回 null)
+  deliveryWorkerLatestLocation(workerId: PrimaryId!): DeliveryTrajectory
+  # 配送员评分分布/总评价数(账号详情页「评价记录」Tab,F-USR-020/021;
+  # 数据源 delivery_worker_statistics,deliveryWorkerId=账号 id,PERMISSION_DELIVERY_WORKER_READ)
+  deliveryWorkerRatingStatistics(deliveryWorkerId: PrimaryId!): DeliveryWorkerStatisticsResponse!
 }
 
 extend type Mutation {
   # Delivery Worker mutations
   createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorker!
   updateDeliveryWorker(workerId: PrimaryId!, input: UpdateDeliveryWorkerInput!): DeliveryWorker!
+  # 删除送水员(软删除,G11 落地)
+  deleteDeliveryWorker(id: PrimaryId!): Boolean!
+  # 重置送水员密码(newPassword 留空则重置为默认密码 123456,G11 落地)
+  resetDeliveryWorkerPassword(id: PrimaryId!, newPassword: String): Boolean!
+  # 送水工上报配送轨迹点(F-ADR-012,R-ADR-03;仅本人 DELIVERING 订单,
+  # 非配送中上报丢弃;成功返回 true)
+  reportTrajectory(input: ReportTrajectoryInput!): Boolean!
 }

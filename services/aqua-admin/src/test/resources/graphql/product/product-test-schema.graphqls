@@ -1,0 +1,44 @@
+# Test Schema for Admin Product Favorites Resolver GraphQL Integration Tests
+# 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/product/) 加载
+# 与 services/aqua-admin/src/main/resources/graphql/modules/product.graphqls 的 favoriteProducts 保持一致
+# (用户详情页「收藏商品」Tab,F-USR-022)
+
+scalar Long
+scalar LocalDateTime
+
+type Query {
+  favoriteProducts(userId: Long!, page: Int = 0, size: Int = 20): FavoriteProductVOPage!
+}
+
+type FavoriteProduct {
+  id: Long!
+  name: String!
+  subtitle: String
+  priceCents: Long!
+  originalPriceCents: Long
+  coverImageUrl: String!
+  stock: Int!
+  salesVolume: Int!
+  status: ProductStatus!
+  addedAt: LocalDateTime!
+}
+
+type FavoriteProductVOPage {
+  list: [FavoriteProduct!]!
+  pageInfo: PageInfo!
+}
+
+type PageInfo {
+  total: Int!
+  pageSize: Int!
+  pageNum: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
+  totalPages: Int!
+}
+
+enum ProductStatus {
+  ONLINE
+  OFFLINE
+  OUT_OF_STOCK
+}

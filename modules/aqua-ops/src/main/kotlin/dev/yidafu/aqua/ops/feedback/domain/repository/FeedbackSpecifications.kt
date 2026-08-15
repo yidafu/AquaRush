@@ -42,6 +42,14 @@ class FeedbackSpecifications {
       }
 
     /**
+     * 按用户过滤(用户详情页「意见反馈」Tab)
+     */
+    fun userIdEquals(userId: Long): Specification<FeedbackModel> =
+      Specification { root, _, cb ->
+        cb.equal(root.get<Long>("userId"), userId)
+      }
+
+    /**
      * 联系方式关键字模糊匹配(大小写不敏感)
      */
     fun contactKeywordContains(keyword: String): Specification<FeedbackModel> =

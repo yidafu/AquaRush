@@ -84,16 +84,7 @@ type FeedbackVOPage {
   number: Int!
 }
 
-# 反馈处理状态
-enum FeedbackStatus {
-  # 待处理
-  PENDING
-  # 处理中
-  PROCESSING
-  # 已处理
-  RESOLVED
-}
-
+# 反馈处理状态(枚举定义收敛于 shared-types.graphqls,两端共用)
 # 排序调整方向
 enum ReorderDirection {
   # 上移
@@ -145,6 +136,8 @@ input UpdateBannerInput {
 input FeedbackListInput {
   feedbackType: FeedbackType
   status: FeedbackStatus
+  # 用户ID(用户详情页「意见反馈」Tab 按用户过滤)
+  userId: PrimaryId
   # 联系方式关键字
   contactKeyword: String
   dateFrom: LocalDateTime

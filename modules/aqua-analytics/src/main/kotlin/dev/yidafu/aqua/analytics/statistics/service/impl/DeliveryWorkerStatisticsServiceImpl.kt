@@ -24,7 +24,7 @@ import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsDelivery
 import dev.yidafu.aqua.analytics.statistics.dto.DeliveryWorkerRankingItemDTO
 import dev.yidafu.aqua.analytics.statistics.dto.DeliveryWorkerStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.service.DeliveryWorkerStatisticsService
-import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryApiService
+import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerStatisticsQueryApiService
 import dev.yidafu.aqua.common.domain.model.QOrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
@@ -35,7 +35,7 @@ import java.time.LocalDate
 
 @Service
 class DeliveryWorkerStatisticsServiceImpl(
-  private val deliveryWorkerQueryApiService: DeliveryWorkerQueryApiService,
+  private val adminService: AdminService,
   private val deliveryWorkerStatisticsQueryApiService: DeliveryWorkerStatisticsQueryApiService,
   private val statisticsDeliveryWorkerRepository: StatisticsDeliveryWorkerRepositoryCustom,
 ) : DeliveryWorkerStatisticsService {
@@ -47,8 +47,8 @@ class DeliveryWorkerStatisticsServiceImpl(
   }
 
   override fun getDeliveryWorkerStatistics(): DeliveryWorkerStatisticsDTO {
-    // 送水员总数
-    val totalWorkers = deliveryWorkerQueryApiService.findAll().size
+    // 送水员总数(账号单表,配送能力角色)
+    val totalWorkers = adminService.findAllDeliveryCapable().size
 
     // 今日在岗送水员数
     val today = LocalDate.now()
@@ -88,15 +88,15 @@ class DeliveryWorkerStatisticsServiceImpl(
         .fetch()
         .associate { it.get(orderModel.deliveryWorkerId) to it.get(orderModel.count())?.toInt() }
 
-    // Get all workers and their statistics
-    val workers = deliveryWorkerQueryApiService.findAll()
+    // Get all workers and their statistics(账号单表,配送能力角色)
+    val workers = adminService.findAllDeliveryCapable()
 
     return workers
       .map { worker ->
         val stats = deliveryWorkerStatisticsQueryApiService.findByDeliveryWorkerId(worker.id!!)
         DeliveryWorkerRankingItemDTO(
           workerId = worker.id!!,
-          name = worker.name,
+          name = worker.realName ?: worker.username,
           todayCompletedOrders = todayOrderCounts[worker.id] ?: 0,
           rating = stats?.averageRating?.toFloat() ?: 0f,
           totalEarnings = worker.earningCents ?: 0L,

@@ -121,7 +121,6 @@ export const getAdminOrders = (options: AdminOrderListOptions = {}) => {
         content {
           id
           orderNo
-          quantity
           amountCents
           status
           isSelfCollect
@@ -136,8 +135,11 @@ export const getAdminOrders = (options: AdminOrderListOptions = {}) => {
             receiverName
             phone
           }
-          product {
-            name
+          items {
+            product {
+              name
+            }
+            quantity
           }
           deliveryWorker {
             id

@@ -17,30 +17,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.api.service.delivery
+package dev.yidafu.aqua.api.service.ops
 
-import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
-import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
+import dev.yidafu.aqua.common.domain.model.FeedbackModel
+import org.springframework.data.domain.Page
 
 /**
- * 配送员变更服务接口
+ * 意见反馈查询服务接口(用户端)
+ * 与 PRD 07-user.md §F-USR-005 保持一致:我的-反馈记录(feedback-records)分页查询,
+ * userId 由登录主体强制注入(防越权),按提交时间倒序。
  */
-interface DeliveryWorkerMutationService {
+interface FeedbackQueryApiService {
   /**
-   * 创建配送员记录
+   * 分页查询当前用户的反馈记录(仅本人数据)
    */
-  fun createDeliveryWorker(
-    adminId: Long,
-    name: String,
-    phone: String,
-    wechatOpenId: String = "",
-  ): DeliveryWorkerModel
-
-  /**
-   * 更新配送员状态
-   */
-  fun updateWorkerStatus(
-    workerId: Long,
-    status: DeliverWorkerModelStatus,
-  ): DeliveryWorkerModel
+  fun findMyFeedbacks(
+    userId: Long,
+    page: Int,
+    size: Int,
+  ): Page<FeedbackModel>
 }

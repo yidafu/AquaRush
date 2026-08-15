@@ -20,6 +20,8 @@
 package dev.yidafu.aqua.ops.feedback.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
@@ -35,4 +37,13 @@ interface FeedbackRepository :
    * 按内容模糊查询首条(测试种子数据定位用)
    */
   fun findFirstByContentContaining(content: String): FeedbackModel?
+
+  /**
+   * 按用户分页查询(我的-反馈记录,F-USR-005 处理结果回传)
+   * 仅返回该用户提交的反馈;软删除记录自动过滤(@SoftDelete)。
+   */
+  fun findByUserId(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<FeedbackModel>
 }

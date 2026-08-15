@@ -21,6 +21,9 @@ type Query {
   giftActivity(id: Long!): GiftActivity
   firstOrderActivities(input: FirstOrderActivityListInput): FirstOrderActivityVOPage
   firstOrderActivity(id: Long!): FirstOrderActivity
+  # 用户持有券/票(用户详情页 Tab;F-USR-022)
+  userCoupons(userId: Long!, status: UserCouponStatus): [UserCouponVO!]!
+  userTickets(userId: Long!, status: UserTicketStatus): [UserTicketVO!]!
 }
 
 type Mutation {
@@ -166,6 +169,44 @@ enum CouponType {
 enum CouponScope {
   ALL
   PRODUCT
+}
+
+# 用户持有券/票(用户详情页 Tab;与 shared-config UserCouponVO/UserTicketVO 保持一致)
+type UserCouponVO {
+  id: Long!
+  name: String!
+  couponType: CouponType!
+  thresholdCents: Long
+  discountAmountCents: Long
+  discountRatePermille: Long
+  scope: CouponScope!
+  productId: Long
+  status: UserCouponStatus!
+  expireTime: LocalDateTime!
+  usable: Boolean!
+}
+
+enum UserCouponStatus {
+  RECEIVED
+  USED
+  RETURNED
+  EXPIRED
+}
+
+type UserTicketVO {
+  id: Long!
+  ticketTypeName: String!
+  specification: String
+  status: UserTicketStatus!
+  expireTime: LocalDateTime!
+  isGift: Boolean!
+}
+
+enum UserTicketStatus {
+  UNUSED
+  USED
+  RETURNED
+  EXPIRED
 }
 
 enum ValidityType {

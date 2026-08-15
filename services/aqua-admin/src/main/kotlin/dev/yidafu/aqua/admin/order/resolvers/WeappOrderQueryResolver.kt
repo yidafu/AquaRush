@@ -2,7 +2,6 @@ package dev.yidafu.aqua.admin.order.resolvers
 
 import dev.yidafu.aqua.admin.order.mapper.AdminOrderMapper
 import dev.yidafu.aqua.api.service.admin.AdminService
-import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.api.service.order.DeliveryOrderQueryService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
@@ -26,7 +25,6 @@ import org.springframework.stereotype.Controller
 @Controller
 class WeappOrderQueryResolver(
   private val deliveryTaskQueryService: DeliveryOrderQueryService,
-  private val deliveryWorkerQueryService: DeliveryWorkerQueryService,
   private val orderQueryService: OrderQueryService,
   private val adminService: AdminService,
   private val adminOrderMapper: AdminOrderMapper,
@@ -58,7 +56,11 @@ class WeappOrderQueryResolver(
   fun deliveringOrders(
     @AuthenticationPrincipal userDetail: UserDetails,
   ): List<Order> =
-    deliveryWorkerQueryService.getWorkerActiveTasks(getAdminIdByUsername(userDetail.username)).map { adminOrderMapper.map(it) }
+    deliveryTaskQueryService
+      .getOrdersByStatus(
+        getAdminIdByUsername(userDetail.username),
+        dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.DELIVERING,
+      ).map { adminOrderMapper.map(it) }
 
   /**
    * 获取配送员当日统计数据
@@ -68,7 +70,8 @@ class WeappOrderQueryResolver(
   fun todayStatistics(
     @AuthenticationPrincipal userDetail: UserDetails,
   ): TodayStatistics {
-    val actualWorkerId = adminService.findByUsername(userDetail.username)?.deliveryWorkerId
+    // 送水员档案并入 admins 单表后,账号 id 即送水员 id(迁移 v1.2.1)
+    val actualWorkerId = adminService.findByUsername(userDetail.username)?.id
     return TodayStatisticsMapper.map(deliveryTaskQueryService.getTodayStatistics(actualWorkerId))
   }
 
@@ -80,7 +83,7 @@ class WeappOrderQueryResolver(
   fun weekStatistics(
     @AuthenticationPrincipal userDetail: UserDetails,
   ): WeekStatistics {
-    val actualWorkerId = adminService.findByUsername(userDetail.username)?.deliveryWorkerId
+    val actualWorkerId = adminService.findByUsername(userDetail.username)?.id
     return WeekStatisticsMapper.map(deliveryTaskQueryService.getWeekStatistics(actualWorkerId))
   }
 
@@ -98,8 +101,8 @@ class WeappOrderQueryResolver(
   ): OrderVoPage {
     val admin = adminService.findByUsername(userDetail.username)
     var workerId: Long? = null
-    if (admin?.role === AdminRoleModel.DELIVERY_WORKER) {
-      workerId = admin.deliveryWorkerId
+    if (admin?.role === AdminRoleModel.DELIVERY_WORKER || admin?.role === AdminRoleModel.ADMIN) {
+      workerId = admin.id
     }
     val ordersPage =
       orderQueryService.getDeliveryWorkerHistoryOrders(

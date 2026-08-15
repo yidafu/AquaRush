@@ -1,0 +1,38 @@
+# Test Schema for DeliveryTrajectory GraphQL Integration Tests
+# (F-ADR-012 实时轨迹上报与后台轨迹查看)
+
+scalar Long
+scalar LocalDateTime
+
+type Query {
+  deliveryTrajectories(
+    workerId: Long!
+    orderId: Long
+    startTime: LocalDateTime
+    endTime: LocalDateTime
+  ): [DeliveryTrajectory!]!
+  deliveryWorkerLatestLocation(workerId: Long!): DeliveryTrajectory
+}
+
+type Mutation {
+  reportTrajectory(input: ReportTrajectoryInput!): Boolean!
+}
+
+type DeliveryTrajectory {
+  id: Long!
+  deliveryWorkerId: Long!
+  orderId: Long!
+  longitude: Float!
+  latitude: Float!
+  accuracy: Float
+  reportedAt: LocalDateTime!
+  createdAt: LocalDateTime!
+}
+
+input ReportTrajectoryInput {
+  orderId: Long!
+  longitude: Float!
+  latitude: Float!
+  accuracy: Float
+  reportedAt: LocalDateTime
+}

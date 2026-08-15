@@ -32,6 +32,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useTheme } from '@/hooks/use-theme';
 import { assignDeliveryWorker, getDeliveryWorkers } from '@/services/admin';
 import { userActionTracker } from '@/utils/tracking';
+import { trajectoryReporter } from '@/utils/trajectory-reporter';
 import {
   acceptDelivery,
   completeDelivery,
@@ -107,6 +108,21 @@ export default function OrderDetailScreen() {
   useEffect(() => {
     loadOrderDetail();
   }, [loadOrderDetail]);
+
+  // 轨迹上报(F-ADR-012,R-ADR-03):订单进入「配送中」自动启动持续定位上报,
+  // 「完成配送/取消/退款」停止;页面卸载不停止(配送中会话级持续,App 重启后由根布局恢复)。
+  useEffect(() => {
+    if (!order?.id) return;
+    if (order.status === 'DELIVERING') {
+      void trajectoryReporter.startForOrder(order.id);
+    } else if (
+      order.status === 'COMPLETED' ||
+      order.status === 'CANCELLED' ||
+      order.status === 'REFUNDED'
+    ) {
+      void trajectoryReporter.stopForOrder(order.id);
+    }
+  }, [order?.id, order?.status]);
 
   const handleAccept = useCallback(async () => {
     if (!order) return;
@@ -291,11 +307,11 @@ export default function OrderDetailScreen() {
 
         {order.status === 'DELIVERING' || isCompleted ? (
           <DeliveryInfoCard
-            photos={isCompleted || isAdmin ? [...(order.deliveryPhotos ?? [])] : deliveryPhotos}
-            remark={isCompleted || isAdmin ? (order.remark ?? '') : deliveryRemark}
+            photos={isCompleted ? [...(order.deliveryPhotos ?? [])] : deliveryPhotos}
+            remark={isCompleted ? (order.remark ?? '') : deliveryRemark}
             onPhotosChange={setDeliveryPhotos}
             onRemarkChange={setDeliveryRemark}
-            disabled={isCompleted || isAdmin}
+            disabled={isCompleted}
           />
         ) : null}
 
@@ -334,57 +350,54 @@ export default function OrderDetailScreen() {
               </ThemedText>
             ) : null}
           </>
-        ) : (
-          <>
-            {order.status === 'PENDING_DISPATCH' ? (
-              <Button
-                title="接单"
-                size="lg"
-                loading={actionLoading}
-                trackTarget="order-accept"
-                trackElementType="button"
-                trackElementText="接单"
-                trackProps={{ orderNo: order.orderNo }}
-                onPress={handleAccept}
-                style={styles.actionButton}
-              />
-            ) : null}
-            {order.status === 'PENDING_DELIVERY' ? (
-              <Button
-                title="开始配送"
-                size="lg"
-                loading={actionLoading}
-                trackTarget="order-start"
-                trackElementType="button"
-                trackElementText="开始配送"
-                trackProps={{ orderNo: order.orderNo }}
-                onPress={handleStart}
-                style={styles.actionButton}
-              />
-            ) : null}
-            {order.status === 'DELIVERING' ? (
-              <Button
-                title={deliveryPhotos.length > 0 ? '确认送达' : '请先填写配送信息'}
-                size="lg"
-                loading={actionLoading}
-                disabled={deliveryPhotos.length === 0}
-                onPress={() =>
-                  order.isSelfCollect ? handlePaymentCollection(null) : setPaymentSheetVisible(true)
-                }
-                style={styles.actionButton}
-              />
-            ) : null}
-            {isCompleted ? (
-              <Button
-                title="分享海报"
-                size="lg"
-                variant="ghost"
-                onPress={() => setPosterVisible(true)}
-                style={styles.actionButton}
-              />
-            ) : null}
-          </>
-        )}
+        ) : null}
+        {order.status === 'PENDING_DISPATCH' ? (
+          <Button
+            title="接单"
+            size="lg"
+            loading={actionLoading}
+            trackTarget="order-accept"
+            trackElementType="button"
+            trackElementText="接单"
+            trackProps={{ orderNo: order.orderNo }}
+            onPress={handleAccept}
+            style={styles.actionButton}
+          />
+        ) : null}
+        {order.status === 'PENDING_DELIVERY' ? (
+          <Button
+            title="开始配送"
+            size="lg"
+            loading={actionLoading}
+            trackTarget="order-start"
+            trackElementType="button"
+            trackElementText="开始配送"
+            trackProps={{ orderNo: order.orderNo }}
+            onPress={handleStart}
+            style={styles.actionButton}
+          />
+        ) : null}
+        {order.status === 'DELIVERING' ? (
+          <Button
+            title={deliveryPhotos.length > 0 ? '确认送达' : '请先填写配送信息'}
+            size="lg"
+            loading={actionLoading}
+            disabled={deliveryPhotos.length === 0}
+            onPress={() =>
+              order.isSelfCollect ? handlePaymentCollection(null) : setPaymentSheetVisible(true)
+            }
+            style={styles.actionButton}
+          />
+        ) : null}
+        {isCompleted ? (
+          <Button
+            title="分享海报"
+            size="lg"
+            variant="ghost"
+            onPress={() => setPosterVisible(true)}
+            style={styles.actionButton}
+          />
+        ) : null}
       </View>
 
       <Modal

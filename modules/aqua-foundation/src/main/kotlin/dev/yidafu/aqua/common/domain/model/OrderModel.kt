@@ -128,6 +128,7 @@ data class OrderModel(
   // ========================================================================
   // Hibernate Associations
   // ========================================================================
+  // 送水员档案并入 admins 单表后,delivery_worker_id 引用账号 id(迁移 v1.2.1)
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "user_id", insertable = false, updatable = false)
   val user: UserModel? = null,
@@ -136,7 +137,7 @@ data class OrderModel(
   val address: AddressModel? = null,
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "delivery_worker_id", insertable = false, updatable = false)
-  val deliveryWorker: DeliveryWorkerModel? = null,
+  val deliveryWorker: AdminModel? = null,
 ) : SoftDeletable {
   @PreUpdate
   fun preUpdate() {

@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { usePageViewTracking } from '@/hooks/usePageViewTracking';
 import { useTheme } from '@/hooks/use-theme';
 import { userActionTracker } from '@/utils/tracking';
+import { trajectoryReporter } from '@/utils/trajectory-reporter';
 
 function RootNavigator() {
   const { isHydrating, isAuthenticated } = useAuth();
@@ -15,6 +16,16 @@ function RootNavigator() {
 
   // 埋点:路由变化上报 PAGE_VIEW(覆盖全部页面,含登录页)
   usePageViewTracking();
+
+  // 轨迹上报(F-ADR-012):登录/App 启动后恢复配送中订单的轨迹上报,
+  // 登出时停止全部上报并清空活动订单。
+  useEffect(() => {
+    if (isAuthenticated) {
+      void trajectoryReporter.resumeActive();
+    } else {
+      void trajectoryReporter.stopAll();
+    }
+  }, [isAuthenticated]);
 
   // 埋点:应用切后台时立即上报缓冲队列,避免事件滞留丢失
   useEffect(() => {

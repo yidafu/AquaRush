@@ -34,6 +34,10 @@ extend type Query {
   firstOrderActivities(input: FirstOrderActivityListInput): FirstOrderActivityVOPage
   # 首单立减/新人专享价活动详情
   firstOrderActivity(id: PrimaryId!): FirstOrderActivity
+  # 用户持有的优惠券(用户详情页「优惠券」Tab,状态空=全部)
+  userCoupons(userId: PrimaryId!, status: UserCouponStatus): [UserCouponVO!]!
+  # 用户持有的桶水票(用户详情页「水票」Tab,状态空=全部)
+  userTickets(userId: PrimaryId!, status: UserTicketStatus): [UserTicketVO!]!
 }
 
 extend type Mutation {

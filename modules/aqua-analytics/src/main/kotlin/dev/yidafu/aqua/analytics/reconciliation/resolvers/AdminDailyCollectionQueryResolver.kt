@@ -32,7 +32,6 @@ import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo
-import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -49,7 +48,6 @@ import java.time.format.DateTimeFormatter
 @Controller
 class AdminDailyCollectionQueryResolver(
   private val dailyCollectionService: DailyCollectionService,
-  private val deliveryWorkerRepository: DeliveryWorkerRepository,
   private val adminService: AdminService,
 ) : BaseGraphQLResolver() {
   private val logger = LoggerFactory.getLogger(AdminDailyCollectionQueryResolver::class.java)
@@ -127,13 +125,8 @@ class AdminDailyCollectionQueryResolver(
     }
     logger.info("配送员 {} 查询今日收款预计算结果", userDetails.username)
 
-    // 1. 获取当前配送员
-    val adminId = adminService.findByUsername(userDetails.username)?.id ?: throw UserNotFoundException("配送员 ${userDetails.username} 不存在")
-    val worker =
-      deliveryWorkerRepository.findByAdminId(adminId)
-        ?: throw BadRequestException("您还没有绑定配送员账号")
-
-    val workerId = worker.id ?: throw BadRequestException("配送员ID无效")
+    // 1. 获取当前配送员(账号 id 即送水员 id,单表)
+    val workerId = adminService.findByUsername(userDetails.username)?.id ?: throw UserNotFoundException("配送员 ${userDetails.username} 不存在")
     val today = LocalDate.now()
 
     // 2. 查询今日订单统计（系统自动计算）

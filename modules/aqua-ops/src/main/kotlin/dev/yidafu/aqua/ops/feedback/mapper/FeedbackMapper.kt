@@ -25,6 +25,7 @@ import dev.yidafu.aqua.api.dto.FeedbackSubmitRequest
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
 import dev.yidafu.aqua.common.graphql.generated.Feedback
 import dev.yidafu.aqua.common.graphql.generated.FeedbackListInput
+import dev.yidafu.aqua.common.graphql.generated.FeedbackRecordVo
 import dev.yidafu.aqua.common.graphql.generated.FeedbackReviewInput
 import dev.yidafu.aqua.common.graphql.generated.FeedbackStatus
 import dev.yidafu.aqua.common.graphql.generated.FeedbackSubmitInput
@@ -50,6 +51,20 @@ object FeedbackMapper : ObjectMappie<FeedbackModel, Feedback>() {
 object FeedbackTypeMapper : EnumMappie<DomainFeedbackType, FeedbackType>()
 
 object FeedbackStatusMapper : EnumMappie<DomainFeedbackStatus, FeedbackStatus>()
+
+/**
+ * 我的-反馈记录映射器:域实体 → 用户端 GraphQL 类型(F-USR-005 处理结果回传)
+ * 不含联系方式(用户端展示本人反馈,联系方式仅后台管理侧可见)。
+ */
+object FeedbackRecordVoMapper : ObjectMappie<FeedbackModel, FeedbackRecordVo>() {
+  override fun map(from: FeedbackModel): FeedbackRecordVo =
+    mapping {
+      to::id fromValue (from.id ?: 0L)
+      to::feedbackType fromExpression { FeedbackTypeMapper.map(from.feedbackType) }
+      to::status fromExpression { FeedbackStatusMapper.map(from.status) }
+      to::images fromExpression { from.getImagesAsList() }
+    }
+}
 
 /**
  * 反馈提交输入映射器:GraphQL 输入 → 服务请求
@@ -80,6 +95,7 @@ object FeedbackListInputMapper : ObjectMappie<FeedbackListInput, FeedbackListReq
     mapping {
       to::page fromValue (from.page ?: 0)
       to::size fromValue (from.size ?: 20)
+      to::userId fromProperty from::userId
       to::feedbackType fromExpression { from.feedbackType?.let { FeedbackTypeInputMapper.map(it) } }
       to::status fromExpression { from.status?.let { FeedbackStatusInputMapper.map(it) } }
     }

@@ -1,3 +1,5 @@
+import kotlinx.kover.gradle.plugin.dsl.KoverProjectExtension
+
 plugins {
   alias(libs.plugins.kotlin.jvm)
   alias(libs.plugins.kotlin.spring)
@@ -5,6 +7,7 @@ plugins {
   alias(libs.plugins.spring.boot)
   alias(libs.plugins.spring.dependency.management)
   alias(libs.plugins.ktlint)
+  alias(libs.plugins.kover)
 }
 
 group = "dev.yidafu.aqua"
@@ -83,4 +86,73 @@ configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
 // Disable bootJar task in root project (root is not an application)
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
   enabled = false
+}
+
+// ================================================================
+// Kover 测试覆盖率门禁（标准详见 claude/deployment.md §Testing Strategy）
+// ----------------------------------------------------------------
+// 分模块行覆盖率阈值（开发中必须达到的标准）：
+//   Tier S 80% : aqua-trade, aqua-marketing —— 订单/支付/营销（钱与状态机，最高优先级）
+//   Tier A 70% : aqua-ops, aqua-user, aqua-product, aqua-analytics
+//   Tier B 60% : aqua-foundation, aqua-platform
+//   Tier C 55% : aqua-admin, aqua-client —— 以 GraphQL 集成测试为主，Resolver 为薄壳
+// 统一排除项（均为无业务逻辑或生成代码，避免稀释真实数字）：
+//   - DTO 请求/响应体（dev.yidafu.aqua.api.dto）
+//   - GraphQL 生成代码（dev.yidafu.aqua.common.graphql.generated）
+//   - Mappie 映射类（*Mapper*，编译期生成实现）
+//   - 异常工厂（*Exception / *Exceptions）
+//   - 启动类（*Application）
+//   - @Configuration 配置类
+// 说明：Kover 校验任务默认挂接在 `check` 上，`./gradlew build` / `check` 不达标即失败。
+// ================================================================
+val koverModuleBounds: Map<String, Int> = mapOf(
+  "aqua-trade" to 80,
+  "aqua-marketing" to 80,
+  "aqua-ops" to 70,
+  "aqua-user" to 70,
+  "aqua-product" to 70,
+  "aqua-analytics" to 70,
+  "aqua-foundation" to 60,
+  "aqua-platform" to 60,
+  "aqua-admin" to 55,
+  "aqua-client" to 55,
+)
+
+kover {
+  // 合并所有子模块覆盖率数据到根工程，生成全库统一报告（配置缓存未开启，merge 可用）
+  merge {
+    subprojects()
+  }
+  reports {
+    // 全库总体阈值（所有模块合并后的总覆盖率）
+    verify {
+      rule {
+        minBound(60)
+      }
+    }
+  }
+}
+
+subprojects {
+  // 给每个子模块应用 Kover 并配置分模块门禁（阈值见 koverModuleBounds）
+  pluginManager.apply("org.jetbrains.kotlinx.kover")
+  extensions.configure<KoverProjectExtension> {
+    reports {
+      filters {
+        excludes {
+          packages(
+            "dev.yidafu.aqua.api.dto",
+            "dev.yidafu.aqua.common.graphql.generated",
+          )
+          classes("*Mapper*", "*Exception", "*Exceptions", "*Application")
+          annotatedBy("org.springframework.context.annotation.Configuration")
+        }
+      }
+      verify {
+        rule {
+          minBound(koverModuleBounds[name] ?: 60)
+        }
+      }
+    }
+  }
 }

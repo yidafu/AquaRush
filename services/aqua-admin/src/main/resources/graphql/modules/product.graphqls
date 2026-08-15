@@ -9,6 +9,8 @@ extend type Query {
   activeProducts(keyword: String, page: Int = 0, size: Int = 20): ProductVOPage!
   # 库存预警阈值(商品列表着色/低库存判断用,读系统参数 F-SYS-003,缺省 10/50)
   stockWarningThresholds: StockWarningThresholds!
+  # 用户收藏的商品(用户详情页「收藏商品」Tab,分页)
+  favoriteProducts(userId: PrimaryId!, page: Int = 0, size: Int = 20): FavoriteProductVOPage!
 }
 
 # 库存预警阈值(低库存红 < lowThreshold,中档橙 < midThreshold,其余绿;R-PRO-02)

@@ -3,8 +3,6 @@ import { Alert, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 
-import { useAuth } from '@/hooks/use-auth';
-
 import { EmptyState } from '@/components/empty-state';
 import { FloatingButton } from '@/components/floating-button';
 import { OrderCard } from '@/components/order-card';
@@ -24,7 +22,6 @@ const TAB_EMPTY_ICONS = ['📋', '🕐', '🚚'];
 
 export default function TasksScreen() {
   const router = useRouter();
-  const { isAdmin } = useAuth();
   const [currentTab, setCurrentTab] = useState(0);
   const [pendingOrders, setPendingOrders] = useState<any[]>([]);
   const [assignedOrders, setAssignedOrders] = useState<any[]>([]);
@@ -42,11 +39,8 @@ export default function TasksScreen() {
     setDeliveringOrders([...(results[2]?.deliveringOrders ?? [])]);
   }, []);
 
-  // 管理员的「订单」Tab 跳回管理枢纽（送水员任务流仅送水员使用）
-  useEffect(() => {
-    if (isAdmin) router.replace('/manage');
-  }, [isAdmin, router]);
-
+  // 管理员兼送水(F-USR-023):管理员账号同样可在「订单」Tab 执行任务流,
+  // 「管理」Tab 仍保留经营看板;不再重定向。
   useFocusEffect(
     useCallback(() => {
       loadAllData().catch((e) => console.error('加载订单列表失败:', e));

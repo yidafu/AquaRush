@@ -19,6 +19,22 @@ extend type Query {
     page: Int = 0
     size: Int = 20
   ): OrderVOPage!
+
+  # 用户评价记录(用户详情页「评价记录」Tab,分页,F-ORD-007)
+  reviewsByUser(userId: PrimaryId!, page: Int = 0, size: Int = 20): ReviewVOPage!
+
+  # 配送员收到的评价记录(账号详情页「评价记录」Tab,分页,F-USR-020/021;
+  # deliveryWorkerId=账号 id,管理员兼送水同口径,PERMISSION_DELIVERY_WORKER_READ)
+  reviewsByDeliveryWorker(deliveryWorkerId: PrimaryId!, page: Int = 0, size: Int = 20): ReviewVOPage!
+}
+
+# 用户评价分页
+type ReviewVOPage {
+  content: [Review!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
 }
 
 extend type Mutation {

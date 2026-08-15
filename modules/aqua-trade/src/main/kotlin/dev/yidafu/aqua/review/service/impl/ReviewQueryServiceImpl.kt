@@ -22,14 +22,27 @@ package dev.yidafu.aqua.review.service.impl
 import dev.yidafu.aqua.api.service.review.ReviewQueryService
 import dev.yidafu.aqua.common.domain.model.ReviewModel
 import dev.yidafu.aqua.review.domain.repository.ReviewRepository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 
 /**
- * 订单评价查询服务实现(F-ORD-007):按订单查询评价(一单一评,唯一)。
+ * 订单评价查询服务实现(F-ORD-007):按订单查询评价(一单一评,唯一);
+ * 按用户分页查询评价(用户详情页「评价记录」Tab);按配送员分页查询评价(账号详情页「评价记录」Tab)。
  */
 @Service
 class ReviewQueryServiceImpl(
   private val reviewRepository: ReviewRepository,
 ) : ReviewQueryService {
   override fun findByOrderId(orderId: Long): ReviewModel? = reviewRepository.findByOrderId(orderId)
+
+  override fun findByUserIdPaginated(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<ReviewModel> = reviewRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
+
+  override fun findByDeliveryWorkerIdPaginated(
+    deliveryWorkerId: Long,
+    pageable: Pageable,
+  ): Page<ReviewModel> = reviewRepository.findReviewsWithFilters(deliveryWorkerId = deliveryWorkerId, pageable = pageable)
 }

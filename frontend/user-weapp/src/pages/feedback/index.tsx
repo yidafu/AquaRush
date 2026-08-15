@@ -256,6 +256,16 @@ const Feedback: React.FC = () => {
       <View className='footer'>
         <Text className='footer-text'>我们会在1-2个工作日内处理您的反馈</Text>
         <Text className='footer-text'>如有紧急问题，请拨打客服热线：{storeProfile?.serviceHotline || CONTACT_INFO.SERVICE_HOTLINE}</Text>
+        <Text
+          className='footer-link'
+          trackTarget="feedback-records-link"
+          trackAction="CLICK"
+          trackElementType="link"
+          trackElementText="我的反馈记录"
+          onClick={() => Taro.navigateTo({ url: '/pages/feedback-records/index' })}
+        >
+          我的反馈记录 ›
+        </Text>
       </View>
     </View>
   )

@@ -26,11 +26,13 @@ import java.time.LocalDateTime
 
 /**
  * 意见反馈列表查询请求
- * 与 PRD 12-operations-config.md §F-OPS-003 保持一致:类型/状态/联系方式关键字/时间范围筛选。
+ * 与 PRD 12-operations-config.md §F-OPS-003 保持一致:类型/状态/联系方式关键字/时间范围筛选;
+ * userId 用于用户详情页「意见反馈」Tab 按用户过滤。
  */
 data class FeedbackListRequest(
   val feedbackType: FeedbackType? = null,
   val status: FeedbackStatus? = null,
+  val userId: Long? = null,
   val contactKeyword: String? = null,
   val dateFrom: LocalDateTime? = null,
   val dateTo: LocalDateTime? = null,

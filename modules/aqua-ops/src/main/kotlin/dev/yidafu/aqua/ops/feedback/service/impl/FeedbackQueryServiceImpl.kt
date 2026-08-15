@@ -41,6 +41,7 @@ class FeedbackQueryServiceImpl(
     var spec: Specification<FeedbackModel> = Specification { _, _, cb -> cb.conjunction() }
     request.feedbackType?.let { spec = spec.and(FeedbackSpecifications.feedbackTypeEquals(it)) }
     request.status?.let { spec = spec.and(FeedbackSpecifications.statusEquals(it)) }
+    request.userId?.let { spec = spec.and(FeedbackSpecifications.userIdEquals(it)) }
     request.contactKeyword?.takeIf { it.isNotBlank() }?.let { spec = spec.and(FeedbackSpecifications.contactKeywordContains(it)) }
     val dateFrom = request.dateFrom
     val dateTo = request.dateTo

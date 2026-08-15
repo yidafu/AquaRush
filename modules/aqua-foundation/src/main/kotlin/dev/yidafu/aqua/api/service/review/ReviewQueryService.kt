@@ -20,11 +20,30 @@
 package dev.yidafu.aqua.api.service.review
 
 import dev.yidafu.aqua.common.domain.model.ReviewModel
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 
 /**
  * 订单评价查询服务接口(F-ORD-007):按订单查询评价(一单一评,唯一)。
- * 由 aqua-trade 模块实现,供 aqua-client 等调用。
+ * 由 aqua-trade 模块实现,供 aqua-client / aqua-admin 等调用。
  */
 interface ReviewQueryService {
   fun findByOrderId(orderId: Long): ReviewModel?
+
+  /**
+   * 按用户分页查询评价(用户详情页「评价记录」Tab,创建时间倒序)
+   */
+  fun findByUserIdPaginated(
+    userId: Long,
+    pageable: Pageable,
+  ): Page<ReviewModel>
+
+  /**
+   * 按配送员分页查询评价(账号详情页「评价记录」Tab,创建时间倒序;送水员档案并入
+   * admins 单表后 deliveryWorkerId=账号 id,管理员兼送水同口径)
+   */
+  fun findByDeliveryWorkerIdPaginated(
+    deliveryWorkerId: Long,
+    pageable: Pageable,
+  ): Page<ReviewModel>
 }

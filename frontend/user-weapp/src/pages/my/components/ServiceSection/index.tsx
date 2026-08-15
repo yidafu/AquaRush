@@ -93,6 +93,16 @@ const ServiceSection: React.FC<ServiceSectionProps> = () => {
       }
     },
     {
+      icon: '/assets/icons/service/comments.png',
+      title: '反馈记录',
+      description: '查看处理结果',
+      onClick: () => {
+        Taro.navigateTo({
+          url: '/pages/feedback-records/index'
+        })
+      }
+    },
+    {
       icon: '/assets/icons/service/info-circle.png',
       title: '关于我们',
       description: '了解好喝山泉',

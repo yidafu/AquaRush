@@ -11,7 +11,6 @@ import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { WeekLineChart } from '@/components/week-line-chart';
 import { Spacing } from '@/constants/theme';
-import { useAuth } from '@/hooks/use-auth';
 import { getTodayStatistics, getWeekStatistics } from '@/services/delivery';
 
 function getTodayDate(): string {
@@ -22,7 +21,6 @@ function getTodayDate(): string {
 
 export default function StatisticsScreen() {
   const router = useRouter();
-  const { isAdmin } = useAuth();
   const [statistics, setStatistics] = useState<TodayStatistics | null>(null);
   const [weekStatistics, setWeekStatistics] = useState<WeekStatistics | null>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,11 +37,7 @@ export default function StatisticsScreen() {
     }
   }, []);
 
-  // 管理员的「统计」Tab 跳回管理枢纽（本页为送水员个人统计）
-  useEffect(() => {
-    if (isAdmin) router.replace('/manage');
-  }, [isAdmin, router]);
-
+  // 管理员兼送水(F-USR-023):统计 Tab 展示本人(关联账号)配送统计,不再重定向管理枢纽
   // 首载 + 30 秒轮询（weapp 行为）
   useEffect(() => {
     loadData().catch((e) => console.error('加载统计数据失败:', e));

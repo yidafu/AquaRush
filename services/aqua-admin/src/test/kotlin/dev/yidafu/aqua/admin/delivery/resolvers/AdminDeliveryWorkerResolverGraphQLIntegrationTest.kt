@@ -20,9 +20,10 @@
 package dev.yidafu.aqua.admin.delivery.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
+import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
-import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
-import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -60,7 +61,7 @@ class AdminDeliveryWorkerResolverGraphQLIntegrationTest {
   private lateinit var context: WebApplicationContext
 
   @Autowired
-  private lateinit var deliveryWorkerRepository: DeliveryWorkerRepository
+  private lateinit var adminRepository: AdminRepository
 
   private lateinit var mockMvc: MockMvc
 
@@ -72,13 +73,16 @@ class AdminDeliveryWorkerResolverGraphQLIntegrationTest {
         .apply<DefaultMockMvcBuilder>(springSecurity())
         .build()
 
-    // 幂等种子化一个在线送水员（findByPhone 去重，避免共享 H2 遗留行导致的唯一键冲突）
-    if (deliveryWorkerRepository.findByPhone("13900139000") == null) {
-      deliveryWorkerRepository.save(
-        DeliveryWorkerModel(
-          name = "张三",
+    // 幂等种子化一个在线送水员账号（findByPhone 去重，避免共享 H2 遗留行导致的唯一键冲突）
+    // 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021)，送水员即 role=DELIVERY_WORKER 的账号行
+    if (adminRepository.findByPhone("13900139000") == null) {
+      adminRepository.save(
+        AdminModel(
+          username = "delivery_test_seed",
+          passwordHash = "hash",
+          realName = "张三",
           phone = "13900139000",
-          wechatOpenId = "WX_TEST_DELIVERY_1",
+          role = AdminRoleModel.DELIVERY_WORKER,
           onlineStatus = DeliverWorkerModelStatus.ONLINE,
           isAvailable = true,
           earningCents = 1000L,
@@ -121,7 +125,7 @@ class AdminDeliveryWorkerResolverGraphQLIntegrationTest {
   @WithMockUser(authorities = ["PERMISSION_DELIVERY_WORKER_READ"])
   @DisplayName("deliveryWorker(id) query should return the delivery worker for admin")
   fun `deliveryWorker query returns worker by id`() {
-    val workerId = deliveryWorkerRepository.findByPhone("13900139000")?.id
+    val workerId = adminRepository.findByPhone("13900139000")?.id
 
     val json =
       mockMvc

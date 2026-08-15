@@ -246,8 +246,42 @@ const MyPage: React.FC = () => {
   }
 
   const handleSettings = (): void => {
+    // F-USR-002/004:设置入口指向主题设置页(原 /pages/settings/index 不存在,死链)
     Taro.navigateTo({
-      url: '/pages/settings/index'
+      url: '/pages/theme-settings/index'
+    })
+  }
+
+  const handleLogout = (): void => {
+    Taro.showModal({
+      title: '退出登录',
+      content: '确定要退出登录吗？',
+      confirmText: '退出',
+      confirmColor: '#e64340',
+      success: async (res) => {
+        if (!res.confirm) return
+        try {
+          await authService.logout()
+          setUserInfo({
+            id: '',
+            nickname: '游客',
+            avatarUrl: '',
+            phone: '',
+            wechatOpenId: ''
+          })
+          setOrderStats({
+            pendingPayment: 0,
+            pendingDelivery: 0,
+            delivering: 0,
+            completed: 0,
+            afterSales: 0
+          })
+          showToastMessage('已退出登录', 'success')
+        } catch (error) {
+          console.error('退出登录失败:', error)
+          showToastMessage('退出登录失败', 'error')
+        }
+      }
     })
   }
 
@@ -295,6 +329,13 @@ const MyPage: React.FC = () => {
             iconInfo={{ value: '/assets/icons/service/settings.png', color: 'var(--theme-primary)' }}
             onClick={handleSettings}
           />
+          {authService.isAuthenticated() && (
+            <AtListItem
+              title='退出登录'
+              arrow='right'
+              onClick={handleLogout}
+            />
+          )}
         </AtList>
 
       </AtCard>

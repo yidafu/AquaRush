@@ -2,7 +2,7 @@
 
 extend type Query {
   # Address queries
-  userAddresses(userId: Long): [Address!]!
+  userAddresses(userId: PrimaryId): [Address!]!
   addresses: [Address!]!
   searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): [Address!]!
 }

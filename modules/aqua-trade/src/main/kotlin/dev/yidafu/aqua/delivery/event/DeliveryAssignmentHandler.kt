@@ -8,7 +8,6 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
-import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
@@ -19,7 +18,6 @@ class DeliveryAssignmentHandler(
   private val orderService: OrderQueryService,
   private val orderOperationService: OrderOperationService,
   private val adminService: AdminService,
-  private val deliveryWorkerRepository: DeliveryWorkerRepository,
 ) : EventProcessor {
   private val logger = LoggerFactory.getLogger(DeliveryAssignmentHandler::class.java)
   private val objectMapper = jacksonObjectMapper()
@@ -48,12 +46,12 @@ class DeliveryAssignmentHandler(
 
       logger.info("Processing DELIVERY_ASSIGNMENT event for order: ${order.orderNo}")
       val admin = adminService.findById(adminId)
+      // 送水员档案并入 admins 单表后,deliveryWorkerId 即账号 id(迁移 v1.2.1)
       val deliveryWorker =
-        deliveryWorkerRepository
-          .findById(workerId)
-          .orElseThrow { IllegalStateException("Delivery worker not found: $adminId") }
+        adminService.findById(workerId)
+          ?: throw IllegalStateException("Delivery worker not found: $workerId")
       val msg = "${admin?.realName ?: "管理员"}($adminId)将${order.user?.nickname ?: "用户"}的订单[${
-        order.orderNo}]派给${deliveryWorker.name}"
+        order.orderNo}]派给${deliveryWorker.realName ?: deliveryWorker.username}"
 
       orderOperationService.recordOperation(
         orderId,
