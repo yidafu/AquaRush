@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.admin.order.resolvers
 
+import dev.yidafu.aqua.admin.order.mapper.AdminOrderMapper
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryTaskMutationService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
@@ -30,7 +31,6 @@ import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.order.mapper.CreateDeliveryOrderInputMapper
-import dev.yidafu.aqua.order.mapper.OrderMapper
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -46,6 +46,7 @@ class AdminOrderMutationResolver(
   private val orderQueryService: OrderQueryService,
   private val deliveryTaskMutationService: DeliveryTaskMutationService,
   private val adminService: AdminService,
+  private val adminOrderMapper: AdminOrderMapper,
 ) {
   private val logger = LoggerFactory.getLogger(AdminOrderMutationResolver::class.java)
 
@@ -57,7 +58,7 @@ class AdminOrderMutationResolver(
   fun cancelOrder(
     @Argument orderId: Long,
   ): Order =
-    orderMutationService.cancelOrderForAdmin(orderId)?.let { OrderMapper.map(it) }
+    orderMutationService.cancelOrderForAdmin(orderId)?.let { adminOrderMapper.map(it) }
 
       ?: throw IllegalArgumentException("Order not found")
 
@@ -72,7 +73,7 @@ class AdminOrderMutationResolver(
   ): Order =
     orderMutationService
       .updateOrderStatus(orderId, status)
-      .let { OrderMapper.map(it) }
+      .let { adminOrderMapper.map(it) }
 
   // ==================== 派单相关 mutations ====================
 
@@ -93,7 +94,7 @@ class AdminOrderMutationResolver(
     val adminId = principal.id
     val username = principal.username
     logger.info("Admin $username($adminId) assigning worker $workerId to order $orderId, isSelfCollect: $isSelfCollect")
-    return OrderMapper.map(deliveryTaskMutationService.assignDeliveryWorker(adminId, orderId, workerId, isSelfCollect))
+    return adminOrderMapper.map(deliveryTaskMutationService.assignDeliveryWorker(adminId, orderId, workerId, isSelfCollect))
   }
 
   /**
@@ -109,7 +110,7 @@ class AdminOrderMutationResolver(
     val adminId = principal.id
     val username = principal.username
     logger.info("Admin $username($adminId)  batch assigning orders $orderIds to worker $workerId")
-    return deliveryTaskMutationService.batchAssignOrders(adminId, orderIds, workerId).map { OrderMapper.map(it) }
+    return deliveryTaskMutationService.batchAssignOrders(adminId, orderIds, workerId).map { adminOrderMapper.map(it) }
   }
 
   /**
@@ -132,7 +133,7 @@ class AdminOrderMutationResolver(
         adminId,
         request,
       )
-    return OrderMapper.map(
+    return adminOrderMapper.map(
       orderQueryService.getOrderById(order.id!!),
     )
   }
@@ -148,7 +149,7 @@ class AdminOrderMutationResolver(
   ): Order {
     val username = userDetail.username
     logger.info("Worker $username accepting delivery for order $orderId")
-    return OrderMapper.map(deliveryTaskMutationService.acceptDelivery(orderId, getAdminId(username)))
+    return adminOrderMapper.map(deliveryTaskMutationService.acceptDelivery(orderId, getAdminId(username)))
   }
 
   /**
@@ -160,7 +161,7 @@ class AdminOrderMutationResolver(
     @Argument orderId: Long,
   ): Order {
     logger.info("Starting delivery for order $orderId")
-    return OrderMapper.map(deliveryTaskMutationService.startDelivery(orderId))
+    return adminOrderMapper.map(deliveryTaskMutationService.startDelivery(orderId))
   }
 
   /**
@@ -178,7 +179,7 @@ class AdminOrderMutationResolver(
     @Argument remark: String?,
   ): Order {
     logger.info("Completing delivery for order $orderId, paymentType: $paymentType, remark: $remark")
-    return OrderMapper.map(deliveryTaskMutationService.completeDelivery(orderId, photos, paymentType, remark))
+    return adminOrderMapper.map(deliveryTaskMutationService.completeDelivery(orderId, photos, paymentType, remark))
   }
 
   private fun getAdminId(username: String): Long =

@@ -29,7 +29,11 @@ const OrderInfoCard: React.FC = () => {
         <Descriptions.Item label="订单金额">
           {displayCents(order.amount)}
         </Descriptions.Item>
-        <Descriptions.Item label="商品数量">{order.quantity}</Descriptions.Item>
+        <Descriptions.Item label="商品数量">
+          {Array.isArray(order.items) && order.items.length > 0
+            ? order.items.reduce((sum, it) => sum + (Number(it.quantity) || 0), 0)
+            : '-'}
+        </Descriptions.Item>
         <Descriptions.Item label="下单时间">{formatDateTime(order.createdAt)}</Descriptions.Item>
         <Descriptions.Item label="更新时间">{formatDateTime(order.updatedAt)}</Descriptions.Item>
         <Descriptions.Item label="收款类型">

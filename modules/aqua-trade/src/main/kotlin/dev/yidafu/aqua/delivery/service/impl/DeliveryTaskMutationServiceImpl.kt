@@ -70,9 +70,10 @@ class DeliveryTaskMutationServiceImpl(
         NotFoundException("配送员不存在: $workerId")
       }
 
-    // 验证订单状态 - 待配送状态才能派单
-    if (order.status != OrderModelStatus.PENDING_DELIVERY) {
-      throw BadRequestException("订单状态不正确，无法分配配送员")
+    // 验证订单状态 - 仅待派单可派单(R-ORD-01 状态机「待派单→配送中」,G09;
+    // 待配送=已被抢单/接单,二次派单由状态拦截,幂等成立)
+    if (order.status != OrderModelStatus.PENDING_DISPATCH) {
+      throw BadRequestException("订单状态不正确，仅待派单订单可分配配送员")
     }
 
     // 验证配送员状态
@@ -134,8 +135,8 @@ class DeliveryTaskMutationServiceImpl(
         val order =
           orderQueryService.getOrderById(orderId)
 
-        // 只处理待配送状态的订单
-        if (order.status == OrderModelStatus.PENDING_DELIVERY) {
+        // 只处理待派单状态的订单(R-ORD-01 状态机「待派单→配送中」,G09)
+        if (order.status == OrderModelStatus.PENDING_DISPATCH) {
           order.deliveryWorkerId = workerId
           order.status = OrderModelStatus.DELIVERING
           val savedOrder = orderMutationService.updateOrder(orderId, order)
@@ -290,11 +291,21 @@ class DeliveryTaskMutationServiceImpl(
       throw BadRequestException("订单状态不正确，无法完成配送")
     }
 
+    // 服务端硬校验(R-ORD-07,PRD 04-order.md §2.1):配送照片必传 ≥1 张,防止绕过客户端
+    if (deliveryPhotos.isEmpty()) {
+      throw BadRequestException("请先拍摄配送照片")
+    }
+
     // 更新订单状态
     order.status = OrderModelStatus.COMPLETED
     order.deliveryPhotos = jsonHelper.createArrayNode(deliveryPhotos).toString()
     // 电子票核销订单:未指定收款方式时自动记为「水票」(R-COL-04,PRD 10-marketing.md §F-MKT-007)
-    order.paymentType = paymentType ?: if (order.ticketRedeemCount > 0) PaymentType.WATER_TICKET else null
+    val resolvedPaymentType = paymentType ?: if (order.ticketRedeemCount > 0) PaymentType.WATER_TICKET else null
+    // 收款方式必选(R-ORD-07):非自提订单未选择收款方式且无水票核销 → 拦截;自提订单默认已收款(R-ORD-09)
+    if (resolvedPaymentType == null && !order.isSelfCollect) {
+      throw BadRequestException("请选择收款方式")
+    }
+    order.paymentType = resolvedPaymentType
     order.deliveryRemark = remark
     order.deliveryConfirmedAt = java.time.LocalDateTime.now()
     order.completedAt = java.time.LocalDateTime.now()

@@ -40,7 +40,6 @@ class OrderConversionChain {
   fun toGraphQL(
     orderModel: OrderModel,
     user: User? = null,
-    product: Product? = null,
     address: Address? = null,
     deliveryWorker: DeliveryWorker? = null,
   ): Order {
@@ -48,7 +47,6 @@ class OrderConversionChain {
     val orderDTO =
       OrderModelToDTOMapper.map(orderModel).copy(
         user = user,
-        product = product,
         address = address,
         deliveryWorker = deliveryWorker,
       )
@@ -63,13 +61,11 @@ class OrderConversionChain {
   fun toDTO(
     orderModel: OrderModel,
     user: User? = null,
-    product: Product? = null,
     address: Address? = null,
     deliveryWorker: DeliveryWorker? = null,
   ): OrderDTO =
     OrderModelToDTOMapper.map(orderModel).copy(
       user = user,
-      product = product,
       address = address,
       deliveryWorker = deliveryWorker,
     )
@@ -87,8 +83,6 @@ class OrderConversionChain {
       id = existingOrderModel.id,
       orderNo = existingOrderModel.orderNo,
       userId = existingOrderModel.userId,
-      productId = existingOrderModel.productId,
-      quantity = existingOrderModel.quantity,
       amountCents = existingOrderModel.amountCents,
       addressId = existingOrderModel.addressId,
       status = orderDTO.status,
@@ -113,7 +107,6 @@ class OrderConversionChain {
     orderModels: List<OrderModel>,
     // Provide lookup functions for nested objects
     userLookup: (Long) -> User? = { null },
-    productLookup: (Long) -> Product? = { null },
     addressLookup: (Long) -> Address? = { null },
     deliveryWorkerLookup: (Long?) -> DeliveryWorker? = { null },
   ): List<Order> =
@@ -121,7 +114,6 @@ class OrderConversionChain {
       toGraphQL(
         orderModel = orderModel,
         user = userLookup(orderModel.userId),
-        product = productLookup(orderModel.productId),
         address = addressLookup(orderModel.addressId),
         deliveryWorker = orderModel.deliveryWorkerId?.let(deliveryWorkerLookup),
       )

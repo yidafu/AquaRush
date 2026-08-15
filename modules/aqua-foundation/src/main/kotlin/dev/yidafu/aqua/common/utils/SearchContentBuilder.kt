@@ -28,12 +28,12 @@ import dev.yidafu.aqua.common.domain.model.ProductModel
  */
 object SearchContentBuilder {
   /**
-   * 构建搜索内容字符串
-   * 包含：详细地址、收货人姓名、手机号、商品名称
+   * 构建搜索内容字符串(多商品订单 F-ORD-004):
+   * 包含：详细地址、收货人姓名、手机号、全部商品名称
    */
   fun buildSearchContent(
     address: AddressModel?,
-    product: ProductModel?,
+    products: List<ProductModel>,
   ): String {
     val parts = mutableListOf<String>()
 
@@ -43,8 +43,8 @@ object SearchContentBuilder {
       it.phone?.let { phone -> parts.add(phone) }
     }
 
-    product?.let {
-      it.name?.let { name -> parts.add(name) }
+    products.forEach { product ->
+      product.name?.let { name -> parts.add(name) }
     }
 
     return parts.joinToString(" ")

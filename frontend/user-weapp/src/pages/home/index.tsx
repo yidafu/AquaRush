@@ -319,6 +319,12 @@ const HomePage: React.FC = () => {
     // You can filter products based on the query
   }
 
+  const handleCartClick = () => {
+    Taro.navigateTo({
+      url: '/pages/cart/index'
+    })
+  }
+
   const handleProfileClick = () => {
     Taro.navigateTo({
       url: '/pages/my/index'
@@ -497,6 +503,13 @@ const HomePage: React.FC = () => {
 
       {/* 底部安全区域 */}
       <View className='safe-bottom' />
+
+      {/* 购物车悬浮按钮(F-PRO-004:本地购物车多商品结算入口) */}
+      <View className='fab-button fab-cart-button'>
+        <AtFab onClick={handleCartClick} size='small'>
+          <Text className='fab-icon'>🛒</Text>
+        </AtFab>
+      </View>
 
       {/* + 号悬浮按钮 */}
       <View className='fab-button'>

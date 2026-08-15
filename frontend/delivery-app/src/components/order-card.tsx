@@ -13,7 +13,6 @@ import { Spacing } from '@/constants/theme';
 export interface OrderCardData {
   id: string;
   orderNo: string;
-  quantity: number;
   amountCents?: number | string;
   status?: string;
   isSelfCollect?: boolean;
@@ -28,9 +27,15 @@ export interface OrderCardData {
     nickname?: string | null;
     phone?: string | null;
   } | null;
-  product?: {
-    name?: string | null;
-  } | null;
+  /** 商品明细(F-ORD-004 多商品下单,首件用于卡片展示) */
+  items?: ReadonlyArray<{
+    productId?: string | number | null;
+    quantity?: number;
+    product?: {
+      name?: string | null;
+      coverImageUrl?: string | null;
+    } | null;
+  }> | null;
   /** 已分配送水员（管理端列表展示） */
   deliveryWorker?: {
     id?: string | null;
@@ -75,7 +80,14 @@ export function OrderCard({ order, type = 'history', onAccept, onStartDelivery }
         <OrderInfoRow label="客户" value={order.address?.receiverName || order.user?.nickname || '未知'} />
         <OrderInfoRow label="电话" value={order.address?.phone || order.user?.phone || '未知'} />
         <OrderInfoRow label="地址" value={order.address?.detailAddress || '未知'} />
-        <OrderInfoRow label="商品" value={`${order.product?.name || '未知'} x ${order.quantity}`} />
+        <OrderInfoRow
+          label="商品"
+          value={
+            (order.items && order.items.length > 0
+              ? (order.items[0]?.product?.name || '未知') + (order.items.length > 1 ? ' 等' + order.items.length + '件' : '')
+              : '未知')
+          }
+        />
         <OrderInfoRow label="下单时间" value={formatDateTime(order.createdAt)} />
         {order.deliveryWorker?.name ? (
           <OrderInfoRow label="配送员" value={order.deliveryWorker.name} />

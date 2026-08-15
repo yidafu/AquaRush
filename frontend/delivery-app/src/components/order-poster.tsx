@@ -10,13 +10,17 @@ import { resolveAssetUrl } from '@/utils/url';
 /** 海报数据（与 weapp PosterCanvas 的 OrderData 对应） */
 export interface PosterOrderData {
   orderNo?: string;
-  quantity?: number;
   amountCents?: number | string;
   createdAt?: string;
-  product?: {
-    name?: string;
-    coverImageUrl?: string;
-  };
+  /** 商品明细(F-ORD-004 多商品下单,海报展示首件) */
+  items?: Array<{
+    productId?: string | number;
+    quantity?: number;
+    product?: {
+      name?: string;
+      coverImageUrl?: string;
+    } | null;
+  }>;
   address?: {
     receiverName?: string;
     phone?: string;
@@ -31,14 +35,18 @@ export interface PosterOrderData {
 export function toPosterOrderData(order: Order): PosterOrderData {
   return {
     orderNo: order.orderNo,
-    quantity: order.quantity,
     amountCents: order.amountCents,
     createdAt: order.createdAt,
-    product: order.product
-      ? {
-          name: order.product.name ?? undefined,
-          coverImageUrl: order.product.coverImageUrl ?? undefined,
-        }
+    // F-ORD-004 多商品:海报展示首件商品
+    items: order.items
+      ? order.items.map(item => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          product: {
+            name: item.product?.name ?? undefined,
+            coverImageUrl: item.product?.coverImageUrl ?? undefined,
+          },
+        }))
       : undefined,
     address: order.address
       ? {
@@ -93,11 +101,12 @@ function buildFullAddress(order: PosterOrderData): string {
  * 预览直接渲染本组件；导出用 capturePosterView 捕获。
  */
 export function PosterView({ order }: { order: PosterOrderData }) {
-  const productName = (order.product?.name || '商品').slice(0, 12);
+  const firstItem = order.items?.[0];
+  const productName = (firstItem?.product?.name || '商品').slice(0, 12);
   const receiver = order.address?.receiverName || '';
   const maskedPhone = maskPhone(order.address?.phone);
-  const coverImageUrl = order.product?.coverImageUrl
-    ? resolveAssetUrl(order.product.coverImageUrl)
+  const coverImageUrl = firstItem?.product?.coverImageUrl
+    ? resolveAssetUrl(firstItem.product.coverImageUrl)
     : null;
 
   return (
@@ -117,7 +126,7 @@ export function PosterView({ order }: { order: PosterOrderData }) {
             <Text style={styles.productPrice}>
               {formatCentsToCurrency(normalizeCents(order.amountCents) ?? 0)}
             </Text>
-            <Text style={styles.productQuantity}>X {order.quantity ?? 1}</Text>
+            <Text style={styles.productQuantity}>X {firstItem?.quantity ?? 1}</Text>
           </View>
         </View>
       </View>

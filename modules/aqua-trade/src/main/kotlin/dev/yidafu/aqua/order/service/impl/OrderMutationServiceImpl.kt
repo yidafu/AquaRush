@@ -20,9 +20,10 @@
 package dev.yidafu.aqua.order.service.impl
 
 import dev.yidafu.aqua.api.dto.CreateOrderRequest
+import dev.yidafu.aqua.api.dto.OrderItemRequest
+import dev.yidafu.aqua.api.dto.OrderPricingItemRequest
 import dev.yidafu.aqua.api.dto.OrderPricingRequest
 import dev.yidafu.aqua.api.dto.OrderPricingResult
-import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryAreaQueryService
 import dev.yidafu.aqua.api.service.marketing.CouponMutationApiService
 import dev.yidafu.aqua.api.service.marketing.PromotionPricingService
@@ -36,6 +37,7 @@ import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.api.service.user.AddressQueryApiService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.OrderGiftModel
+import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.model.ProductModel
@@ -46,21 +48,25 @@ import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.common.utils.SearchContentBuilder
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.order.domain.repository.OrderGiftRepository
+import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 
 /**
- * 订单变更服务实现
+ * 订单变更服务实现(F-ORD-004 多商品下单):
+ * 商品明细(items)为唯一下单口径,订单商品权威数据落 order_items 表(orders 仅存聚合金额/营销快照);
  * 计价链路(PRD 10-marketing.md §R-MKT-02/07/08,由促销引擎统一计算):
- * 成交单价解析(分组价→目录价)→ 水票核销(被覆盖桶单价 0)→ 满减/折扣 → 优惠券(自动最优,用户可改)→ 封顶;
+ * 成交单价逐商品解析(分组价→目录价)→ 水票核销(被覆盖桶单价 0)→ 满减/折扣 → 优惠券(自动最优,用户可改)→ 封顶;
  * 下单时营销结果快照到订单,营销配置变更不影响已生成订单(R-MKT-01)。
  */
 @Service
 class OrderMutationServiceImpl(
   private val orderRepository: OrderRepository,
+  private val orderItemRepository: OrderItemRepository,
   private val orderGiftRepository: OrderGiftRepository,
   private val productQueryApiService: ProductQueryApiService,
   private val addressQueryApiService: AddressQueryApiService,
@@ -68,7 +74,6 @@ class OrderMutationServiceImpl(
   private val productService: ProductService,
   private val deliveryAreaQueryService: DeliveryAreaQueryService,
   private val orderIdGenerator: OrderIdGeneratorService,
-  private val adminService: AdminService,
   private val orderQueryService: OrderQueryService,
   private val deliveryFeeRuleQueryApiService: DeliveryFeeRuleQueryApiService,
   private val promotionPricingService: PromotionPricingService,
@@ -77,12 +82,19 @@ class OrderMutationServiceImpl(
   private val bizLogger: BizLogger,
 ) : OrderMutationService {
   private val logger = LoggerFactory.getLogger(OrderMutationServiceImpl::class.java)
+  private val objectMapper = jacksonObjectMapper()
+
+  /** 校验通过的商品明细项 */
+  private data class ValidatedOrderItem(
+    val product: ProductModel,
+    val quantity: Int,
+  )
 
   /**
    * 订单验证结果，包含验证通过后所需的全部数据
    */
   private data class OrderValidationResult(
-    val product: ProductModel,
+    val items: List<ValidatedOrderItem>,
     val address: AddressModel,
     val userId: Long,
     val deliveryFeeCents: Long,
@@ -90,24 +102,29 @@ class OrderMutationServiceImpl(
   )
 
   /**
-   * 统一的订单验证逻辑，提取 createOrder 和 createDeliveryOrder 的公共验证步骤
+   * 统一的订单验证逻辑，提取 createOrder 和 createDeliveryOrder 的公共验证步骤:
+   * 多商品(F-ORD-004)先对全部商品做存在/库存校验(任一不足整体拦截、不扣任何库存),
+   * 全部通过后逐商品原子扣减(事务回滚保证原子性)。
    */
   private fun validateAndPrepareOrder(
     userId: Long,
-    productId: Long,
+    items: List<OrderItemRequest>,
     addressId: Long,
-    quantity: Int,
     isSelfCollect: Boolean,
   ): OrderValidationResult {
-    // 1. 验证产品存在且有足够库存
-    val product =
-      productQueryApiService
-        .findById(productId)
-        ?: throw NotFoundException("产品不存在: $productId")
-
-    if (product.stock < quantity) {
-      throw BadRequestException("库存不足，当前库存: ${product.stock}，需求数量: $quantity")
-    }
+    // 1. 验证全部商品存在且有足够库存(整体校验,列出全部缺货项)
+    val validatedItems =
+      items.map { item ->
+        val product =
+          productQueryApiService.findById(item.productId)
+            ?: throw NotFoundException("产品不存在: ${item.productId}")
+        if (product.stock < item.quantity) {
+          throw BadRequestException(
+            "以下商品库存不足:${product.name}(当前库存 ${product.stock},需求 ${item.quantity} 件)",
+          )
+        }
+        ValidatedOrderItem(product = product, quantity = item.quantity)
+      }
 
     // 2. 验证地址存在
     val address =
@@ -124,14 +141,16 @@ class OrderMutationServiceImpl(
     // 5. 生成唯一订单号
     val orderNo = orderIdGenerator.generateOrderId()
 
-    // 6. 扣减库存（使用原子操作）
-    val stockDecreased = productService.decreaseStock(productId, quantity)
-    if (!stockDecreased) {
-      throw BadRequestException("库存扣减失败，请重试")
+    // 6. 全部校验通过后逐商品扣减库存(原子操作;任一失败抛异常整体回滚)
+    validatedItems.forEach { item ->
+      val stockDecreased = productService.decreaseStock(item.product.id!!, item.quantity)
+      if (!stockDecreased) {
+        throw BadRequestException("库存扣减失败:${item.product.name},请重试")
+      }
     }
 
     return OrderValidationResult(
-      product = product,
+      items = validatedItems,
       address = address,
       userId = userId,
       deliveryFeeCents = deliveryFeeCents,
@@ -161,12 +180,11 @@ class OrderMutationServiceImpl(
   }
 
   /**
-   * 保存订单的公共逻辑(含营销计价快照 R-MKT-02/07/08)
+   * 保存订单的公共逻辑(含营销计价快照 R-MKT-02/07/08 与多商品明细落库 F-ORD-004)
    */
   private fun saveOrder(
     userId: Long,
-    product: ProductModel,
-    quantity: Int,
+    items: List<ValidatedOrderItem>,
     addressId: Long,
     orderNo: String,
     amountCents: Long,
@@ -178,20 +196,17 @@ class OrderMutationServiceImpl(
     pricing: OrderPricingResult,
     initialStatus: OrderModelStatus,
   ): OrderModel {
-    // 构建搜索内容
+    // 构建搜索内容(多商品:全部商品名称拼接,便于后台按商品名检索)
     val searchContent =
       SearchContentBuilder.buildSearchContent(
         address = null, // address 会在后续通过 repository 查询，这里传 null
-        product = product,
+        products = items.map { it.product },
       )
 
     val order =
       OrderModel(
-//        id = DefaultIdGenerator().generate(),
         orderNo = orderNo,
         userId = userId,
-        productId = product.id!!,
-        quantity = quantity,
         amountCents = amountCents,
         deliveryFeeCents = deliveryFeeCents,
         unitPriceCents = pricing.unitPriceCents,
@@ -220,12 +235,34 @@ class OrderMutationServiceImpl(
 
     val savedOrder = orderRepository.save(order)
 
-    // 发布订单创建事件
+    // 多商品明细落库(F-ORD-004):商品名/规格/封面/目录价快照,配置变更不影响已生成订单
+    val pricingById = pricing.items.associateBy { it.productId }
+    orderItemRepository.saveAll(
+      items.map { item ->
+        val priced = pricingById[item.product.id]
+        OrderItemModel.create(
+          orderId = savedOrder.id!!,
+          productId = item.product.id!!,
+          quantity = item.quantity,
+          unitPriceCents = priced?.unitPriceCents ?: item.product.price,
+          productSnapshot =
+            objectMapper.writeValueAsString(
+              mapOf(
+                "id" to item.product.id,
+                "name" to item.product.name,
+                "specification" to item.product.specification,
+                "coverImageUrl" to item.product.coverImageUrl,
+                "priceCents" to item.product.price,
+              ),
+            ),
+        )
+      },
+    )
+
+    // 发布订单创建事件(商品明细以 order_items 为准,事件载荷仅订单级信息)
     eventPublishService.publishOrderCreated(
       orderId = savedOrder.id!!,
       userId = savedOrder.userId,
-      productId = savedOrder.productId,
-      quantity = savedOrder.quantity,
       amountCents = savedOrder.amountCents,
     )
 
@@ -281,8 +318,7 @@ class OrderMutationServiceImpl(
     val pricingRequest =
       OrderPricingRequest(
         userId = input.userId,
-        productId = input.productId,
-        quantity = input.quantity,
+        items = input.items.map { OrderPricingItemRequest(productId = it.productId, quantity = it.quantity) },
         isSelfCollect = false,
         preferredCouponId = input.preferredCouponId,
         ticketRedeemCount = input.ticketRedeemCount,
@@ -294,9 +330,8 @@ class OrderMutationServiceImpl(
     val validation =
       validateAndPrepareOrder(
         userId = input.userId,
-        productId = input.productId,
+        items = input.items,
         addressId = input.addressId,
-        quantity = input.quantity,
         isSelfCollect = false,
       )
 
@@ -305,12 +340,11 @@ class OrderMutationServiceImpl(
       throw BadRequestException("无权使用此收货地址")
     }
 
-    // 4. 保存订单(按预检结果快照)
+    // 4. 保存订单(按预检结果快照,明细落 order_items)
     val savedOrder =
       saveOrder(
         userId = validation.userId,
-        product = validation.product,
-        quantity = input.quantity,
+        items = validation.items,
         addressId = validation.address.id!!,
         orderNo = validation.orderNo,
         amountCents = preview.payableProductCents,
@@ -338,8 +372,8 @@ class OrderMutationServiceImpl(
       userId = result.userId,
       additionalData =
         mapOf(
-          "productId" to result.productId,
-          "quantity" to result.quantity,
+          "itemCount" to result.orderItemCount(),
+          "productIds" to result.orderItemIds().joinToString(","),
           "amountCents" to result.amountCents,
         ),
     )
@@ -351,17 +385,19 @@ class OrderMutationServiceImpl(
     adminId: Long,
     input: CreateOrderRequest,
   ): OrderModel {
-    // 获取下单用户信息（adminId 是管理员/配送员自己的ID）
-    val user = adminService.getUserById(adminId)
-    val userId = user.id!!
+    // 代客下单归属(G51,PRD 04-order.md §F-ORD-012):订单 userId 取收货地址所属客户,
+    // 而非送水工本人 —— 熟客分组价按客户解析(R-MKT-01①)且订单归属/统计口径正确
+    val address =
+      addressQueryApiService.findById(input.addressId)
+        ?: throw NotFoundException("收货地址不存在: ${input.addressId}")
+    val userId = address.userId
 
     val isSelfCollect = input.isSelfCollect ?: false
     // 代客下单:默认禁用自动营销优惠(满减/券),水票核销不适用(R-MKT-07 边界场景)
     val pricingRequest =
       OrderPricingRequest(
         userId = userId,
-        productId = input.productId,
-        quantity = input.quantity,
+        items = input.items.map { OrderPricingItemRequest(productId = it.productId, quantity = it.quantity) },
         isSelfCollect = isSelfCollect,
         preferredCouponId = 0L,
         ticketRedeemCount = 0,
@@ -371,17 +407,15 @@ class OrderMutationServiceImpl(
     val validation =
       validateAndPrepareOrder(
         userId = userId,
-        productId = input.productId,
+        items = input.items,
         addressId = input.addressId,
-        quantity = input.quantity,
         isSelfCollect = isSelfCollect,
       )
 
     val savedOrder =
       saveOrder(
         userId = validation.userId,
-        product = validation.product,
-        quantity = input.quantity,
+        items = validation.items,
         addressId = validation.address.id!!,
         orderNo = validation.orderNo,
         amountCents = preview.payableProductCents,
@@ -408,14 +442,23 @@ class OrderMutationServiceImpl(
       userId = result.userId,
       additionalData =
         mapOf(
-          "productId" to result.productId,
-          "quantity" to result.quantity,
+          "itemCount" to result.orderItemCount(),
+          "productIds" to result.orderItemIds().joinToString(","),
           "amountCents" to result.amountCents,
           "isSelfCollect" to result.isSelfCollect,
           "operatorAdminId" to adminId,
         ),
     )
     return result
+  }
+
+  /**
+   * 逐商品恢复库存(F-ORD-004 多商品:按 order_items 明细逐项恢复)
+   */
+  private fun restoreStock(order: OrderModel) {
+    orderItemRepository.findByOrderId(order.id!!).forEach { item ->
+      productService.increaseStock(item.productId, item.quantity)
+    }
   }
 
   @Transactional
@@ -427,6 +470,10 @@ class OrderMutationServiceImpl(
       throw BadRequestException("订单已取消")
     }
 
+    if (order.status == OrderModelStatus.REFUNDED) {
+      throw BadRequestException("订单已退款，无法取消")
+    }
+
     if (order.status == OrderModelStatus.COMPLETED) {
       throw BadRequestException("订单已完成，无法取消")
     }
@@ -436,14 +483,18 @@ class OrderMutationServiceImpl(
     }
 
     // 2. 如果订单已支付，需要退款（先处理库存恢复，退款在支付服务中处理）
+    // 已支付订单位于「待派单」(支付成功回调 R-ORD-01 状态机);兼容历史「待配送」已支付数据
     var shouldRefund = false
-    if (order.status == OrderModelStatus.PENDING_DELIVERY && order.paymentTransactionId != null) {
+    if (
+      (order.status == OrderModelStatus.PENDING_DISPATCH || order.status == OrderModelStatus.PENDING_DELIVERY) &&
+      order.paymentTransactionId != null
+    ) {
       shouldRefund = true
     }
 
-    // 3. 恢复库存（仅在未配送且已支付或待支付时恢复）
+    // 3. 恢复库存(逐商品明细 R-ORD-02;未配送且已支付或待支付时恢复)
     if (order.status != OrderModelStatus.DELIVERING && order.status != OrderModelStatus.COMPLETED) {
-      productService.increaseStock(order.productId, order.quantity)
+      restoreStock(order)
     }
 
     // 4. 更新订单状态
@@ -507,6 +558,7 @@ class OrderMutationServiceImpl(
   ): OrderModel {
     val order = orderQueryService.getOrderById(orderId)
     val beforeStatus = order.status
+    validateTransition(beforeStatus, status)
     order.status = status
     val saved = orderRepository.save(order)
 
@@ -531,6 +583,30 @@ class OrderMutationServiceImpl(
     return orderRepository.save(orderDTO)
   }
 
+  /**
+   * 状态流转表校验(R-ORD-01,PRD 02-business-flows.md §订单状态机):
+   * updateOrderStatus 为后台兜底接口,仅允许流转表中的合法流转;
+   * 其余触发动作(支付回调/派单/抢单/开始配送/完成配送/取消)走各自专用接口,不在此放开。
+   * 非法流转直接拒绝,防止任意改状态破坏履约链路。
+   */
+  private fun validateTransition(
+    from: OrderModelStatus,
+    to: OrderModelStatus,
+  ) {
+    val allowed =
+      when (from) {
+        // 用户取消(未支付)/商家取消/支付超时
+        OrderModelStatus.PENDING_PAYMENT -> setOf(OrderModelStatus.CANCELLED)
+        // 用户/管理员取消(已支付) → 已取消(触发退款流程);退款审核通过 → 已退款
+        OrderModelStatus.PENDING_DISPATCH -> setOf(OrderModelStatus.CANCELLED)
+        OrderModelStatus.CANCELLED -> setOf(OrderModelStatus.REFUNDED)
+        else -> emptySet()
+      }
+    if (to !in allowed) {
+      throw BadRequestException("非法订单状态流转: ${from.name} → ${to.name}")
+    }
+  }
+
   @Transactional
   override fun handlePaymentSuccess(
     orderId: Long,
@@ -542,18 +618,19 @@ class OrderMutationServiceImpl(
       throw BadRequestException("订单状态不正确，无法处理支付")
     }
 
-    order.status = OrderModelStatus.PENDING_DELIVERY
+    // 支付成功回调:待支付 → 待派单(PRD 02-business-flows.md §订单状态机,
+    // R-ORD-01 差异①/G09:在线支付订单进入「待派单」,可抢单也可后台派单)
+    order.status = OrderModelStatus.PENDING_DISPATCH
     order.paymentTransactionId = paymentTransactionId
     order.paymentTime = LocalDateTime.now()
     order.paymentMethod = PaymentMethod.WECHAT_PAY
 
     val updatedOrder = orderRepository.save(order)
 
-    // 发布支付成功事件
+    // 发布支付成功事件(商品明细以 order_items 为准,事件载荷仅订单级信息)
     eventPublishService.publishOrderPaid(
       orderId = updatedOrder.id!!,
       userId = updatedOrder.userId,
-      productId = updatedOrder.productId,
       amountCents = updatedOrder.amountCents,
     )
 
@@ -575,8 +652,8 @@ class OrderMutationServiceImpl(
       return // 已处理过，跳过
     }
 
-    // 恢复库存
-    productService.increaseStock(order.productId, order.quantity)
+    // 恢复库存(逐商品明细)
+    restoreStock(order)
 
     // 取消订单
     order.status = OrderModelStatus.CANCELLED
@@ -614,4 +691,10 @@ class OrderMutationServiceImpl(
       logger.info("Order {} cancelled: returned {} coupons, {} tickets", orderId, returnedCoupons, returnedTickets)
     }
   }
+
+  /** 订单商品明细数(日志用) */
+  private fun OrderModel.orderItemCount(): Int = orderItemRepository.findByOrderId(id!!).size
+
+  /** 订单商品 ID 列表(日志用) */
+  private fun OrderModel.orderItemIds(): List<Long> = orderItemRepository.findByOrderId(id!!).map { it.productId }
 }

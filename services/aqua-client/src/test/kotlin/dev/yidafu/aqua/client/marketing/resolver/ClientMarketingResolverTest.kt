@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.client.marketing.resolver
 
 import dev.yidafu.aqua.api.dto.ClaimCouponRequest
+import dev.yidafu.aqua.api.dto.OrderPricingItemResult
 import dev.yidafu.aqua.api.dto.OrderPricingRequest
 import dev.yidafu.aqua.api.dto.OrderPricingResult
 import dev.yidafu.aqua.api.dto.PurchaseTicketsRequest
@@ -56,6 +57,7 @@ import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
+import dev.yidafu.aqua.common.graphql.generated.OrderItemInput
 import dev.yidafu.aqua.common.graphql.generated.OrderPreviewInput
 import dev.yidafu.aqua.common.graphql.generated.PurchaseTicketsInput
 import dev.yidafu.aqua.common.security.UserPrincipal
@@ -366,6 +368,19 @@ class ClientMarketingResolverTest {
   fun `orderPreview computes breakdown`() {
     val pricing =
       OrderPricingResult(
+        items =
+          listOf(
+            OrderPricingItemResult(
+              productId = 1L,
+              quantity = 2,
+              unitPriceCents = 2100,
+              priceSource = PriceSource.CATALOG_PRICE,
+              catalogPriceCents = 2100,
+              subtotalCents = 4200,
+              ticketCoveredQuantity = 0,
+              cashSubtotalCents = 4200,
+            ),
+          ),
         unitPriceCents = 2100,
         priceSource = PriceSource.CATALOG_PRICE,
         subtotalCents = 4200,
@@ -396,7 +411,12 @@ class ClientMarketingResolverTest {
 
     val result =
       resolver.orderPreview(
-        OrderPreviewInput(productId = 1L, quantity = 2, addressId = 1L, preferredCouponId = null, ticketRedeemCount = 0),
+        OrderPreviewInput(
+          items = listOf(OrderItemInput(productId = 1L, quantity = 2)),
+          addressId = 1L,
+          preferredCouponId = null,
+          ticketRedeemCount = 0,
+        ),
         principal,
       )
 
@@ -417,7 +437,12 @@ class ClientMarketingResolverTest {
     val result =
       kotlin.runCatching {
         resolver.orderPreview(
-          OrderPreviewInput(productId = 1L, quantity = 2, addressId = 1L, preferredCouponId = null, ticketRedeemCount = 0),
+          OrderPreviewInput(
+            items = listOf(OrderItemInput(productId = 1L, quantity = 2)),
+            addressId = 1L,
+            preferredCouponId = null,
+            ticketRedeemCount = 0,
+          ),
           principal,
         )
       }

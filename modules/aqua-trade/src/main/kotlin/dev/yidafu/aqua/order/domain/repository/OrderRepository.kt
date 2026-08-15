@@ -50,7 +50,5 @@ interface OrderRepository :
 
   fun findByAddressId(addressId: Long): List<OrderModel>
 
-  fun findByProductId(productId: Long): List<OrderModel>
-
   fun countByStatus(status: OrderModelStatus): Long
 }

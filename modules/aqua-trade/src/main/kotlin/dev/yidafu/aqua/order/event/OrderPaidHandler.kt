@@ -101,7 +101,6 @@ class OrderPaidHandler(
         "orderId" to order.id.toString(),
         "orderNumber" to order.orderNo,
         "userId" to order.userId.toString(),
-        "productId" to order.productId.toString(),
         "addressId" to order.addressId.toString(),
       )
 

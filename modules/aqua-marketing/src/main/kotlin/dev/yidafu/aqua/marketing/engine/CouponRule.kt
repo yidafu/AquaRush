@@ -58,7 +58,7 @@ class CouponRule(
         val scopeOk =
           when (coupon.scope) {
             CouponScope.ALL -> true
-            CouponScope.PRODUCT -> coupon.productId == ctx.productId
+            CouponScope.PRODUCT -> coupon.productId != null && coupon.productId in ctx.productIds
           }
         val eligible = thresholdOk && scopeOk
         val discount =

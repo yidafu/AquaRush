@@ -814,24 +814,20 @@ data class CreateNoticeInput(
 data class CreateOrderInput(
     @field:Positive(message = "地址ID必须为正数")
     val addressId: kotlin.Long,
+    val items: kotlin.collections.List<OrderItemInput>,
     @field:Min(value = 0, message = "优惠券ID无效")
     val preferredCouponId: kotlin.Long? = null,
-    @field:Positive(message = "商品ID必须为正数")
-    val productId: kotlin.Long,
-    @field:Min(value = 1, message = "购买数量不能少于1")
-    @field:Max(value = 999, message = "购买数量不能超过999")
-    val quantity: kotlin.Int,
     @field:Size(max = 500, message = "备注长度不能超过500个字符")
     val remark: kotlin.String? = null,
     @field:Min(value = 0, message = "水票核销张数无效")
     @field:Max(value = 999, message = "水票核销张数不能超过999")
     val ticketRedeemCount: kotlin.Int? = null
 ) {
+  @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       args["addressId"] as kotlin.Long,
+      args["items"]!!.let { items -> (items as List<Map<String, Any>>).map { OrderItemInput(it) } },
       args["preferredCouponId"] as kotlin.Long?,
-      args["productId"] as kotlin.Long,
-      args["quantity"] as kotlin.Int,
       args["remark"] as kotlin.String?,
       args["ticketRedeemCount"] as kotlin.Int?
   )
@@ -1808,6 +1804,13 @@ data class MutationBatchImportAddressesArgs(
       args["input"]!!.let { input -> (input as List<Map<String, Any>>).map { AddressInput(it) } }
   )
 }
+data class MutationCancelOrderArgs(
+    val orderId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["orderId"] as kotlin.Long
+  )
+}
 data class MutationClaimCouponArgs(
     val couponTemplateId: kotlin.Long
 ) {
@@ -1961,6 +1964,14 @@ data class MutationCreatePromotionActivityArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       CreatePromotionActivityInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationCreateReviewArgs(
+    val input: CreateReviewRequestInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateReviewRequestInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationCreateTicketTypeArgs(
@@ -2389,6 +2400,7 @@ data class Mutation(
     val assignDeliveryWorker: Order,
     val batchAssignOrders: kotlin.collections.List<Order>,
     val batchImportAddresses: BatchImportAddressesResult,
+    val cancelOrder: Order,
     val claimCoupon: UserCouponVo,
     val completeDelivery: Order,
     val confirmDailyCollection: DailyCollectionRecord,
@@ -2408,6 +2420,7 @@ data class Mutation(
     val createOrderPayment: OrderPaymentParams,
     val createProduct: Product,
     val createPromotionActivity: PromotionActivity,
+    val createReview: Review,
     val createTicketType: TicketType,
     val deleteAddress: kotlin.Boolean,
     val deleteAdminAddress: kotlin.Boolean,
@@ -2557,6 +2570,7 @@ data class Order(
     val address: Address?,
     val amountCents: kotlin.Long,
     val completedAt: java.time.LocalDateTime?,
+    val couponDiscountCents: kotlin.Long?,
     val createdAt: java.time.LocalDateTime,
     val deliveryConfirmedAt: java.time.LocalDateTime?,
     val deliveryFeeCents: kotlin.Long,
@@ -2567,18 +2581,39 @@ data class Order(
     val giftItems: kotlin.collections.List<GiftItemVo>?,
     val id: kotlin.Long,
     val isSelfCollect: kotlin.Boolean,
+    val items: kotlin.collections.List<OrderItemVo>,
     val orderNo: kotlin.String,
     val payAmountCents: kotlin.Long,
     val paymentMethod: kotlin.String?,
     val paymentTime: java.time.LocalDateTime?,
     val paymentTransactionId: kotlin.String?,
     val paymentType: PaymentType?,
-    val product: Product?,
-    val quantity: kotlin.Int,
+    val promotionDiscountCents: kotlin.Long?,
     val remark: kotlin.String?,
     val status: OrderStatus,
     val updatedAt: java.time.LocalDateTime,
     val user: User?
+)
+
+data class OrderItemInput(
+    @field:Positive(message = "商品ID必须为正数")
+    val productId: kotlin.Long,
+    @field:Min(value = 1, message = "购买数量不能少于1")
+    @field:Max(value = 999, message = "购买数量不能超过999")
+    val quantity: kotlin.Int
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["productId"] as kotlin.Long,
+      args["quantity"] as kotlin.Int
+  )
+}
+
+data class OrderItemVo(
+    val product: Product,
+    val productId: kotlin.Long,
+    val quantity: kotlin.Int,
+    val totalPriceCents: kotlin.Long,
+    val unitPriceCents: kotlin.Long
 )
 
 data class OrderListInput(
@@ -2662,25 +2697,32 @@ data class OrderPaymentParams(
 data class OrderPreviewInput(
     @field:Positive(message = "地址ID必须为正数")
     val addressId: kotlin.Long,
+    val items: kotlin.collections.List<OrderItemInput>,
     @field:Min(value = 0, message = "优惠券ID无效")
     val preferredCouponId: kotlin.Long? = null,
-    @field:Positive(message = "商品ID必须为正数")
-    val productId: kotlin.Long,
-    @field:Min(value = 1, message = "购买数量不能少于1")
-    @field:Max(value = 999, message = "购买数量不能超过999")
-    val quantity: kotlin.Int,
     @field:Min(value = 0, message = "水票核销张数无效")
     @field:Max(value = 999, message = "水票核销张数不能超过999")
     val ticketRedeemCount: kotlin.Int? = null
 ) {
+  @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       args["addressId"] as kotlin.Long,
+      args["items"]!!.let { items -> (items as List<Map<String, Any>>).map { OrderItemInput(it) } },
       args["preferredCouponId"] as kotlin.Long?,
-      args["productId"] as kotlin.Long,
-      args["quantity"] as kotlin.Int,
       args["ticketRedeemCount"] as kotlin.Int?
   )
 }
+
+data class OrderPreviewItemVo(
+    val cashSubtotalCents: kotlin.Long,
+    val catalogPriceCents: kotlin.Long,
+    val priceSource: PriceSource,
+    val productId: kotlin.Long,
+    val quantity: kotlin.Int,
+    val subtotalCents: kotlin.Long,
+    val ticketCoveredQuantity: kotlin.Int,
+    val unitPriceCents: kotlin.Long
+)
 
 data class OrderPreviewVo(
     val availableCoupons: kotlin.collections.List<UserCouponVo>,
@@ -2693,6 +2735,7 @@ data class OrderPreviewVo(
     val firstOrderActivityName: kotlin.String?,
     val firstOrderDiscountCents: kotlin.Long,
     val giftItems: kotlin.collections.List<GiftItemVo>,
+    val items: kotlin.collections.List<OrderPreviewItemVo>,
     val payAmountCents: kotlin.Long,
     val payableProductCents: kotlin.Long,
     val priceSource: PriceSource,
@@ -3542,6 +3585,17 @@ data class QueryMyCouponsArgs(
       args["status"] as UserCouponStatus?
   )
 }
+data class QueryMyOrdersArgs(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 10,
+    val statuses: kotlin.collections.List<OrderStatus>? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 10,
+      args["statuses"] as kotlin.collections.List<OrderStatus>?
+  )
+}
 data class QueryMyTicketsArgs(
     val status: UserTicketStatus? = null
 ) {
@@ -3593,6 +3647,13 @@ data class QueryOrderPreviewArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       OrderPreviewInput(args["input"] as Map<String, Any>)
+  )
+}
+data class QueryOrderReviewCheckArgs(
+    val orderId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["orderId"] as kotlin.Long
   )
 }
 data class QueryOrderStatisticsArgs(
@@ -3786,6 +3847,7 @@ data class Query(
     val me: UserInfo?,
     val monthlyStatistics: kotlin.collections.List<MonthlyStatistic>,
     val myCoupons: kotlin.collections.List<UserCouponVo>,
+    val myOrders: OrderVoPage,
     val myTickets: kotlin.collections.List<UserTicketVo>,
     val myTodayCollection: MyTodayCollectionVo?,
     val notice: Notice?,
@@ -3795,6 +3857,7 @@ data class Query(
     val orderByNo: Order?,
     val orderOperations: kotlin.collections.List<OrderOperation>,
     val orderPreview: OrderPreviewVo,
+    val orderReviewCheck: OrderReviewCheckResponse,
     val orderStatistics: OrderStatistics,
     val orders: OrderVoPage?,
     val pendingDeliveryOrders: kotlin.collections.List<Order>,

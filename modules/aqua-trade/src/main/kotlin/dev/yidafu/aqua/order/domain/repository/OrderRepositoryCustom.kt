@@ -76,6 +76,17 @@ interface OrderRepositoryCustom {
   ): Page<OrderModel>
 
   /**
+   * 用户订单分页查询(F-ORD-002 用户端订单列表,G02):
+   * statuses 为空=全部状态;按下单时间倒序;userId 由调用方强制为登录用户(防越权)。
+   */
+  fun findUserOrdersPaginated(
+    userId: Long,
+    statuses: List<OrderModelStatus>?,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel>
+
+  /**
    * 统计指定日期范围内的订单数量（可按配送员筛选，可按状态筛选）
    */
   fun countOrdersByDateRange(

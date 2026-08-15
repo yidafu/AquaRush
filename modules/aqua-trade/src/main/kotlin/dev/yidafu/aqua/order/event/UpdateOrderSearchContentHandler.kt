@@ -25,6 +25,7 @@ import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import dev.yidafu.aqua.common.utils.SearchContentBuilder
+import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -34,6 +35,7 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 @Component
 class UpdateOrderSearchContentHandler(
   private val orderRepository: OrderRepository,
+  private val orderItemRepository: OrderItemRepository,
   private val addressQueryApiService: AddressQueryApiService,
   private val productQueryApiService: ProductQueryApiService,
 ) : EventProcessor {
@@ -65,13 +67,16 @@ class UpdateOrderSearchContentHandler(
       // 获取地址信息
       val address = addressQueryApiService.findById(addressId) ?: return
 
-      // 更新每个订单的搜索内容
+      // 更新每个订单的搜索内容(多商品:F-ORD-004 按 order_items 全部商品名构建)
       orders.forEach { order ->
-        val product = order.productId?.let { productQueryApiService.findById(it) }
+        val products =
+          orderItemRepository.findByOrderId(order.id!!).mapNotNull { item ->
+            productQueryApiService.findById(item.productId)
+          }
         val searchContent =
           SearchContentBuilder.buildSearchContent(
             address = address,
-            product = product,
+            products = products,
           )
         order.searchContent = searchContent
         orderRepository.save(order)

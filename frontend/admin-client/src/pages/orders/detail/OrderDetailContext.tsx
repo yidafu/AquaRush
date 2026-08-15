@@ -17,12 +17,19 @@ export interface OrderDetailData {
   };
   status: string;
   amount: number;
-  quantity: number;
-  product: {
-    id: number;
-    name: string;
-    imageUrl?: string;
-  };
+  items: Array<{
+    productId: number;
+    quantity: number;
+    unitPriceCents?: number;
+    totalPriceCents?: number;
+    product?: {
+      id: number;
+      name: string;
+      coverImageUrl?: string;
+      specification?: string;
+      priceCents?: number;
+    };
+  }>;
   address: {
     receiverName: string;
     phone: string;

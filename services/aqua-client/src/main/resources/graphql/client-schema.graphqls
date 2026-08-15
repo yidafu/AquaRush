@@ -36,6 +36,10 @@ type Query {
 
   # Orders (F-ORD-003 订单详情/支付回显)
   order(id: PrimaryId!): Order
+  # 我的订单列表(F-ORD-002,仅本人,分页;statuses 为空=全部)
+  myOrders(statuses: [OrderStatus!], page: Int = 0, size: Int = 10): OrderVOPage!
+  # 订单评价检查(F-ORD-007):已评价内容 + 是否可评(仅已完成订单)
+  orderReviewCheck(orderId: PrimaryId!): OrderReviewCheckResponse!
 
   # Operations config queries (运营配置域 F-OPS-001/002/004/005)
   activeBanners: [Banner!]!
@@ -77,6 +81,10 @@ type Mutation {
   createOrder(input: CreateOrderInput!): Order!
   # 发起订单支付(F-ORD-005):测试环境假支付自动完成(autoCompleted=true)
   createOrderPayment(orderId: PrimaryId!): OrderPaymentParams!
+  # 取消订单(F-ORD-006,仅本人):未支付即时取消恢复库存;已支付(待派单)取消自动退款
+  cancelOrder(orderId: PrimaryId!): Order!
+  # 订单评价(F-ORD-007,R-EVL-01 一单一评):仅已完成订单,评分计入送水工统计
+  createReview(input: CreateReviewRequest!): Review!
 
 
   # Favorites mutations
@@ -238,8 +246,8 @@ type OrderPaymentParams {
 # ============ 确认订单计价预览(F-ORD-023) ============
 
 input OrderPreviewInput {
-  productId: PrimaryId! @positive(message: "商品ID必须为正数")
-  quantity: Int! @min(value: 1, message: "购买数量不能少于1") @max(value: 999, message: "购买数量不能超过999")
+  # 商品明细列表(F-ORD-004 多商品下单;单商品=单元素;同一商品不可重复)
+  items: [OrderItemInput!]!
   addressId: PrimaryId! @positive(message: "地址ID必须为正数")
   # 优惠券偏好(省略=引擎自动选最优,0=不用券)
   preferredCouponId: PrimaryId @min(value: 0, message: "优惠券ID无效")
@@ -248,7 +256,9 @@ input OrderPreviewInput {
 }
 
 type OrderPreviewVO {
-  # 成交单价(分,R-MKT-02:分组价→目录价)
+  # 逐商品计价明细(F-ORD-004 多商品下单:单价/小计/水票覆盖/目录价)
+  items: [OrderPreviewItemVO!]!
+  # 成交单价(分,首件商品,R-MKT-02:分组价→目录价)
   unitPriceCents: Long!
   priceSource: PriceSource!
   # 商品小计(分)
@@ -287,6 +297,23 @@ type OrderPreviewVO {
   availableCoupons: [UserCouponVO!]!
   # 买赠/满赠赠品(附加 0 价行 —— R-MKT-09)
   giftItems: [GiftItemVO!]!
+}
+
+# 商品计价明细项(F-ORD-004 多商品下单:服务端按 R-MKT-02 逐商品解析)
+type OrderPreviewItemVO {
+  productId: PrimaryId!
+  quantity: Int!
+  # 成交单价(分,R-MKT-02:分组价→特价→新人价→目录价)
+  unitPriceCents: Long!
+  priceSource: PriceSource!
+  # 目录价(分,非目录价成交时划线展示)
+  catalogPriceCents: Long!
+  # 商品小计(分)= 成交单价 × 数量
+  subtotalCents: Long!
+  # 被水票覆盖的商品数量(按单价 0 计入应付)
+  ticketCoveredQuantity: Int!
+  # 现金部分商品小计(分)
+  cashSubtotalCents: Long!
 }
 
 type CouponOptionVO {

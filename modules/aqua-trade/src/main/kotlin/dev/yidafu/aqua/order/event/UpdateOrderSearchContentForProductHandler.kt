@@ -25,6 +25,7 @@ import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import dev.yidafu.aqua.common.utils.SearchContentBuilder
+import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
@@ -34,6 +35,7 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 @Component
 class UpdateOrderSearchContentForProductHandler(
   private val orderRepository: OrderRepository,
+  private val orderItemRepository: OrderItemRepository,
   private val addressQueryApiService: AddressQueryApiService,
   private val productQueryApiService: ProductQueryApiService,
 ) : EventProcessor {
@@ -54,30 +56,32 @@ class UpdateOrderSearchContentForProductHandler(
       val productId = (eventData["productId"] as Number).toLong()
       logger.info("Updating search content for orders with product: $productId")
 
-      // 查找使用该商品的所有订单
-      val orders = orderRepository.findByProductId(productId)
+      // 经 order_items 反查包含该商品的订单(F-ORD-004 多商品,商品级明细权威数据)
+      val orderIds = orderItemRepository.findByProductId(productId).map { it.orderId }.distinct()
 
-      if (orders.isEmpty()) {
+      if (orderIds.isEmpty()) {
         logger.info("No orders found for product: $productId")
         return
       }
 
-      // 获取商品信息
-      val product = productQueryApiService.findById(productId) ?: return
-
-      // 更新每个订单的搜索内容
-      orders.forEach { order ->
-        val address = order.addressId?.let { addressQueryApiService.findById(it) }
+      // 更新每个订单的搜索内容(按订单全部商品名重建)
+      orderIds.forEach { orderId ->
+        val order = orderRepository.findById(orderId).orElse(null) ?: return@forEach
+        val address = addressQueryApiService.findById(order.addressId)
+        val products =
+          orderItemRepository.findByOrderId(orderId).mapNotNull { item ->
+            productQueryApiService.findById(item.productId)
+          }
         val searchContent =
           SearchContentBuilder.buildSearchContent(
             address = address,
-            product = product,
+            products = products,
           )
         order.searchContent = searchContent
         orderRepository.save(order)
       }
 
-      logger.info("Successfully updated search content for ${orders.size} orders")
+      logger.info("Successfully updated search content for ${orderIds.size} orders")
     } catch (e: Exception) {
       logger.error("Failed to update order search content for product: ${event.id}", e)
       throw e

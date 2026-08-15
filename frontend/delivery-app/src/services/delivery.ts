@@ -27,7 +27,6 @@ export const getPendingDeliveryOrders = () => {
       pendingDeliveryOrders {
         id
         orderNo
-        quantity
         amountCents
         status
         isSelfCollect
@@ -41,8 +40,13 @@ export const getPendingDeliveryOrders = () => {
           receiverName
           phone
         }
-        product {
-          name
+        items {
+          productId
+          quantity
+          product {
+            name
+            coverImageUrl
+          }
         }
       }
     }
@@ -56,7 +60,6 @@ export const getMyAssignedOrders = () => {
       assignedOrders {
         id
         orderNo
-        quantity
         amountCents
         status
         isSelfCollect
@@ -70,8 +73,13 @@ export const getMyAssignedOrders = () => {
           receiverName
           phone
         }
-        product {
-          name
+        items {
+          productId
+          quantity
+          product {
+            name
+            coverImageUrl
+          }
         }
       }
     }
@@ -85,7 +93,6 @@ export const getMyDeliveringOrders = () => {
       deliveringOrders {
         id
         orderNo
-        quantity
         amountCents
         status
         isSelfCollect
@@ -100,8 +107,13 @@ export const getMyDeliveringOrders = () => {
           receiverName
           phone
         }
-        product {
-          name
+        items {
+          productId
+          quantity
+          product {
+            name
+            coverImageUrl
+          }
         }
       }
     }
@@ -117,7 +129,6 @@ export const getOrderDetail = (orderNo: string) => {
         id
         orderNo
         status
-        quantity
         amountCents
         isSelfCollect
         remark
@@ -126,11 +137,18 @@ export const getOrderDetail = (orderNo: string) => {
         deliveryConfirmedAt
         paymentType
         deliveryPhotos
-        product {
-          id
-          name
-          priceCents
-          coverImageUrl
+        items {
+          productId
+          quantity
+          unitPriceCents
+          totalPriceCents
+          product {
+            id
+            name
+            priceCents
+            coverImageUrl
+            specification
+          }
         }
         user {
           id
@@ -274,7 +292,6 @@ export const getDeliveryWorkerHistoryOrders = (
         content {
           id
           orderNo
-          quantity
           amountCents
           status
           isSelfCollect
@@ -289,8 +306,13 @@ export const getDeliveryWorkerHistoryOrders = (
             receiverName
             phone
           }
-          product {
-            name
+          items {
+            productId
+            quantity
+            product {
+              name
+              coverImageUrl
+            }
           }
         }
         totalElements
@@ -366,7 +388,6 @@ export const createOrder = (
         id
         orderNo
         status
-        quantity
         amountCents
         isSelfCollect
       }

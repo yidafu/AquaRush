@@ -1,44 +1,27 @@
-/**
- * AquaRush
- *
- * Copyright (C) 2025 AquaRush Team
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 package dev.yidafu.aqua.api.dto
 
 import dev.yidafu.aqua.common.domain.model.enums.PriceSource
 
 /**
- * 促销引擎计价结果(R-MKT-02/07/08/09/10 全链路):
- * 费用明细:成交单价×数量=小计;水票覆盖桶按单价 0 计入 → 现金小计;
+ * 促销引擎计价结果(R-MKT-02/07/08/09/10 全链路,多商品订单 F-ORD-004):
+ * 费用明细:逐商品 成交单价×数量=小计(items 明细);水票覆盖桶按单价 0 计入 → 现金小计(聚合);
  * 满减/折扣 或 首单立减(叠加①,互斥取最大)→ 优惠券(叠加③);赠品为附加 0 价行不参与现金;
  * 封顶:总优惠不超过现金小计,payableProductCents ≥ 0;券门槛按现金小计(未含优惠)判定。
  */
 data class OrderPricingResult(
-  // 成交单价(分,R-MKT-02:分组价→特价→新人价→目录价)
+  // 商品明细计价结果(F-ORD-004:逐商品单价/小计/水票覆盖,权威明细数据源)
+  val items: List<OrderPricingItemResult>,
+  // 成交单价(分,首件商品,订单快照列 unit_price_cents 用 —— R-MKT-02)
   val unitPriceCents: Long,
-  // 成交单价来源(R-MKT-01)
+  // 成交单价来源(首件商品,订单快照列 price_source 用 —— R-MKT-01)
   val priceSource: PriceSource,
-  // 商品小计(分)= 成交单价 × 数量
+  // 商品小计(分)= Σ(成交单价 × 数量)
   val subtotalCents: Long,
   // 水票核销张数(一票抵一桶 R-MKT-08)
   val ticketRedeemCount: Int,
-  // 被水票覆盖的商品数量(按单价 0 计入应付)
+  // 被水票覆盖的商品总数量(按单价 0 计入应付)
   val ticketCoveredQuantity: Int,
-  // 现金部分商品小计(分)= 小计 - 覆盖桶按单价计的小计(覆盖桶单价0,即 成交单价×(数量-核销数))
+  // 现金部分商品小计(分)= 小计 - 覆盖桶按单价计的小计(覆盖桶单价0)
   val cashSubtotalCents: Long,
   // 满减/折扣优惠(叠加①,R-MKT-07)
   val promotionDiscountCents: Long,
@@ -63,6 +46,29 @@ data class OrderPricingResult(
   val couponOptions: List<CouponOption>,
   // 买赠/满赠赠品(附加 0 价行,不参与现金计价与叠加,R-MKT-09)
   val giftItems: List<GiftItem>,
+)
+
+/**
+ * 商品明细计价结果(F-ORD-004 多商品下单):
+ * 成交单价与来源按 R-MKT-02 逐商品解析;subtotal=成交单价×数量;
+ * ticketCoveredQuantity 为该商品被水票覆盖的桶数(按单价 0 计入应付);
+ * cashSubtotal=(数量-覆盖数)×成交单价;catalogPriceCents 为目录价(划线展示用)。
+ */
+data class OrderPricingItemResult(
+  val productId: Long,
+  val quantity: Int,
+  // 成交单价(分,R-MKT-02:分组价→特价→新人价→目录价)
+  val unitPriceCents: Long,
+  // 成交单价来源(R-MKT-01)
+  val priceSource: PriceSource,
+  // 目录价(分,非目录价成交时划线展示)
+  val catalogPriceCents: Long,
+  // 商品小计(分)= 成交单价 × 数量
+  val subtotalCents: Long,
+  // 被水票覆盖的商品数量(按单价 0 计入应付)
+  val ticketCoveredQuantity: Int,
+  // 现金部分小计(分)=(数量-覆盖数)×成交单价
+  val cashSubtotalCents: Long,
 )
 
 /**

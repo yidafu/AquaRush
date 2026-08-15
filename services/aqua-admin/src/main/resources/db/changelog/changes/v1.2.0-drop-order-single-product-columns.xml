@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <!--
+    多商品下单(F-ORD-004,PRD 04-order.md):
+    orders 删除单商品冗余列 product_id/quantity,订单商品权威数据以 order_items 表为准
+    (order_items 建于 v1.0.0,changeSet 1.0.2-create-order-items-table,无 v1.0.1 文件)。
+  -->
+  <changeSet id="1.2.0-drop-order-single-product-columns" author="aqua-rush">
+    <!-- preConditions 必须位于 changeSet 子元素首位(comment 之前),见 dbchangelog-4.33.xsd changeSet 内容模型 -->
+    <preConditions onFail="CONTINUE" onErrorMessage="orders.product_id/quantity 已不存在,跳过">
+      <and>
+        <columnExists tableName="orders" columnName="product_id"/>
+        <columnExists tableName="orders" columnName="quantity"/>
+      </and>
+    </preConditions>
+    <comment>Drop single-product columns from orders (multi-product F-ORD-004)</comment>
+    <dropColumn tableName="orders">
+      <column name="product_id"/>
+      <column name="quantity"/>
+    </dropColumn>
+  </changeSet>
+
+</databaseChangeLog>

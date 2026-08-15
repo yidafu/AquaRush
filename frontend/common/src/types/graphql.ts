@@ -441,9 +441,8 @@ export type CreateNoticeInput = {
 
 export type CreateOrderInput = {
   readonly addressId: Scalars['PrimaryId']['input'];
+  readonly items: ReadonlyArray<OrderItemInput>;
   readonly preferredCouponId?: InputMaybe<Scalars['PrimaryId']['input']>;
-  readonly productId: Scalars['PrimaryId']['input'];
-  readonly quantity: Scalars['Int']['input'];
   readonly remark?: InputMaybe<Scalars['String']['input']>;
   readonly ticketRedeemCount?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1080,6 +1079,7 @@ export type Mutation = {
   readonly assignDeliveryWorker: Order;
   readonly batchAssignOrders: ReadonlyArray<Order>;
   readonly batchImportAddresses: BatchImportAddressesResult;
+  readonly cancelOrder: Order;
   readonly claimCoupon: UserCouponVo;
   readonly completeDelivery: Order;
   readonly confirmDailyCollection: DailyCollectionRecord;
@@ -1099,6 +1099,7 @@ export type Mutation = {
   readonly createOrderPayment: OrderPaymentParams;
   readonly createProduct: Product;
   readonly createPromotionActivity: PromotionActivity;
+  readonly createReview: Review;
   readonly createTicketType: TicketType;
   readonly deleteAddress: Scalars['Boolean']['output'];
   readonly deleteAdminAddress: Scalars['Boolean']['output'];
@@ -1173,6 +1174,11 @@ export type MutationBatchAssignOrdersArgs = {
 
 export type MutationBatchImportAddressesArgs = {
   input: ReadonlyArray<AddressInput>;
+};
+
+
+export type MutationCancelOrderArgs = {
+  orderId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -1271,6 +1277,11 @@ export type MutationCreateProductArgs = {
 
 export type MutationCreatePromotionActivityArgs = {
   input: CreatePromotionActivityInput;
+};
+
+
+export type MutationCreateReviewArgs = {
+  input: CreateReviewRequest;
 };
 
 
@@ -1614,6 +1625,7 @@ export type Order = {
   readonly address?: Maybe<Address>;
   readonly amountCents: Scalars['Long']['output'];
   readonly completedAt?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly couponDiscountCents?: Maybe<Scalars['Long']['output']>;
   readonly createdAt: Scalars['LocalDateTime']['output'];
   readonly deliveryConfirmedAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly deliveryFeeCents: Scalars['Long']['output'];
@@ -1624,18 +1636,31 @@ export type Order = {
   readonly giftItems?: Maybe<ReadonlyArray<GiftItemVo>>;
   readonly id: Scalars['PrimaryId']['output'];
   readonly isSelfCollect: Scalars['Boolean']['output'];
+  readonly items: ReadonlyArray<OrderItemVo>;
   readonly orderNo: Scalars['String']['output'];
   readonly payAmountCents: Scalars['Long']['output'];
   readonly paymentMethod?: Maybe<Scalars['String']['output']>;
   readonly paymentTime?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly paymentTransactionId?: Maybe<Scalars['String']['output']>;
   readonly paymentType?: Maybe<PaymentType>;
-  readonly product?: Maybe<Product>;
-  readonly quantity: Scalars['Int']['output'];
+  readonly promotionDiscountCents?: Maybe<Scalars['Long']['output']>;
   readonly remark?: Maybe<Scalars['String']['output']>;
   readonly status: OrderStatus;
   readonly updatedAt: Scalars['LocalDateTime']['output'];
   readonly user?: Maybe<User>;
+};
+
+export type OrderItemInput = {
+  readonly productId: Scalars['PrimaryId']['input'];
+  readonly quantity: Scalars['Int']['input'];
+};
+
+export type OrderItemVo = {
+  readonly product: Product;
+  readonly productId: Scalars['PrimaryId']['output'];
+  readonly quantity: Scalars['Int']['output'];
+  readonly totalPriceCents: Scalars['Long']['output'];
+  readonly unitPriceCents: Scalars['Long']['output'];
 };
 
 export type OrderListInput = {
@@ -1697,10 +1722,20 @@ export type OrderPaymentParams = {
 
 export type OrderPreviewInput = {
   readonly addressId: Scalars['PrimaryId']['input'];
+  readonly items: ReadonlyArray<OrderItemInput>;
   readonly preferredCouponId?: InputMaybe<Scalars['PrimaryId']['input']>;
-  readonly productId: Scalars['PrimaryId']['input'];
-  readonly quantity: Scalars['Int']['input'];
   readonly ticketRedeemCount?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type OrderPreviewItemVo = {
+  readonly cashSubtotalCents: Scalars['Long']['output'];
+  readonly catalogPriceCents: Scalars['Long']['output'];
+  readonly priceSource: PriceSource;
+  readonly productId: Scalars['PrimaryId']['output'];
+  readonly quantity: Scalars['Int']['output'];
+  readonly subtotalCents: Scalars['Long']['output'];
+  readonly ticketCoveredQuantity: Scalars['Int']['output'];
+  readonly unitPriceCents: Scalars['Long']['output'];
 };
 
 export type OrderPreviewVo = {
@@ -1714,6 +1749,7 @@ export type OrderPreviewVo = {
   readonly firstOrderActivityName?: Maybe<Scalars['String']['output']>;
   readonly firstOrderDiscountCents: Scalars['Long']['output'];
   readonly giftItems: ReadonlyArray<GiftItemVo>;
+  readonly items: ReadonlyArray<OrderPreviewItemVo>;
   readonly payAmountCents: Scalars['Long']['output'];
   readonly payableProductCents: Scalars['Long']['output'];
   readonly priceSource: PriceSource;
@@ -2163,6 +2199,7 @@ export type Query = {
   readonly me?: Maybe<UserInfo>;
   readonly monthlyStatistics: ReadonlyArray<MonthlyStatistic>;
   readonly myCoupons: ReadonlyArray<UserCouponVo>;
+  readonly myOrders: OrderVoPage;
   readonly myTickets: ReadonlyArray<UserTicketVo>;
   readonly myTodayCollection?: Maybe<MyTodayCollectionVo>;
   readonly notice?: Maybe<Notice>;
@@ -2172,6 +2209,7 @@ export type Query = {
   readonly orderByNo?: Maybe<Order>;
   readonly orderOperations: ReadonlyArray<OrderOperation>;
   readonly orderPreview: OrderPreviewVo;
+  readonly orderReviewCheck: OrderReviewCheckResponse;
   readonly orderStatistics: OrderStatistics;
   readonly orders?: Maybe<OrderVoPage>;
   readonly pendingDeliveryOrders: ReadonlyArray<Order>;
@@ -2345,6 +2383,13 @@ export type QueryMyCouponsArgs = {
 };
 
 
+export type QueryMyOrdersArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+  statuses?: InputMaybe<ReadonlyArray<OrderStatus>>;
+};
+
+
 export type QueryMyTicketsArgs = {
   status?: InputMaybe<UserTicketStatus>;
 };
@@ -2378,6 +2423,11 @@ export type QueryOrderOperationsArgs = {
 
 export type QueryOrderPreviewArgs = {
   input: OrderPreviewInput;
+};
+
+
+export type QueryOrderReviewCheckArgs = {
+  orderId: Scalars['PrimaryId']['input'];
 };
 
 

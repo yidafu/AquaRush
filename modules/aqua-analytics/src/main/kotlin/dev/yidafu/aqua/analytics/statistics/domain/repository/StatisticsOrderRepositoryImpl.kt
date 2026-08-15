@@ -23,6 +23,7 @@ import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
+import dev.yidafu.aqua.common.domain.model.QOrderItemModel.Companion.orderItemModel
 import dev.yidafu.aqua.common.domain.model.QOrderModel.Companion.orderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import jakarta.persistence.EntityManager
@@ -55,10 +56,13 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
       queryFactory
         .select(
           dateExpr,
-          orderModel.count(),
+          orderModel.id.countDistinct(),
           orderModel.amountCents.sumLong(),
-          orderModel.quantity.sumLong(),
+          // 商品件数按 order_items 明细汇总(F-ORD-004 多商品下单,orders 无 quantity 列)
+          orderItemModel.quantity.sumLong().coalesce(0L),
         ).from(orderModel)
+        .leftJoin(orderItemModel)
+        .on(orderItemModel.orderId.eq(orderModel.id))
         .where(whereClause)
         .groupBy(dateExpr)
         .fetch()
@@ -66,8 +70,8 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
     return results.map { row ->
       DailyStatisticsDTO(
         date = row.get(dateExpr)!!,
-        orderCount = row.get(orderModel.count())!!,
-        orderProductCount = row.get(orderModel.quantity.sumLong()) ?: 0L,
+        orderCount = row.get(orderModel.id.countDistinct())!!,
+        orderProductCount = row.get(orderItemModel.quantity.sumLong().coalesce(0L)) ?: 0L,
         totalAmountCents = row.get(orderModel.amountCents.sumLong()) ?: 0L,
       )
     }
@@ -89,10 +93,12 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
       queryFactory
         .select(
           weekExpr,
-          orderModel.count(),
+          orderModel.id.countDistinct(),
           orderModel.amountCents.sumLong(),
-          orderModel.quantity.sumLong(),
+          orderItemModel.quantity.sumLong().coalesce(0L),
         ).from(orderModel)
+        .leftJoin(orderItemModel)
+        .on(orderItemModel.orderId.eq(orderModel.id))
         .where(whereClause)
         .groupBy(weekExpr)
         .fetch()
@@ -100,8 +106,8 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
     return results.map { row ->
       DailyStatisticsDTO(
         date = row.get(weekExpr)!!.toLocalDate(),
-        orderCount = row.get(orderModel.count())!!,
-        orderProductCount = row.get(orderModel.quantity.sumLong()) ?: 0L,
+        orderCount = row.get(orderModel.id.countDistinct())!!,
+        orderProductCount = row.get(orderItemModel.quantity.sumLong().coalesce(0L)) ?: 0L,
         totalAmountCents = row.get(orderModel.amountCents.sumLong()) ?: 0L,
       )
     }
@@ -122,10 +128,12 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
       queryFactory
         .select(
           monthExpr,
-          orderModel.count(),
+          orderModel.id.countDistinct(),
           orderModel.amountCents.sumLong(),
-          orderModel.quantity.sumLong(),
+          orderItemModel.quantity.sumLong().coalesce(0L),
         ).from(orderModel)
+        .leftJoin(orderItemModel)
+        .on(orderItemModel.orderId.eq(orderModel.id))
         .where(whereClause)
         .groupBy(monthExpr)
         .fetch()
@@ -133,8 +141,8 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
     return results.map { row ->
       DailyStatisticsDTO(
         date = row.get(monthExpr)!!.toLocalDate(),
-        orderCount = row.get(orderModel.count())!!,
-        orderProductCount = row.get(orderModel.quantity.sumLong()) ?: 0L,
+        orderCount = row.get(orderModel.id.countDistinct())!!,
+        orderProductCount = row.get(orderItemModel.quantity.sumLong().coalesce(0L)) ?: 0L,
         totalAmountCents = row.get(orderModel.amountCents.sumLong()) ?: 0L,
       )
     }

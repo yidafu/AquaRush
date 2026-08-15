@@ -1,5 +1,6 @@
 package dev.yidafu.aqua.admin.order.resolvers
 
+import dev.yidafu.aqua.admin.order.mapper.AdminOrderMapper
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerQueryService
 import dev.yidafu.aqua.api.service.order.DeliveryOrderQueryService
@@ -12,7 +13,6 @@ import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
 import dev.yidafu.aqua.common.graphql.generated.TodayStatistics
 import dev.yidafu.aqua.common.graphql.generated.WeekStatistics
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
-import dev.yidafu.aqua.order.mapper.OrderMapper
 import dev.yidafu.aqua.order.mapper.OrderStatusMapper
 import dev.yidafu.aqua.order.mapper.TodayStatisticsMapper
 import dev.yidafu.aqua.order.mapper.WeekStatisticsMapper
@@ -29,6 +29,7 @@ class WeappOrderQueryResolver(
   private val deliveryWorkerQueryService: DeliveryWorkerQueryService,
   private val orderQueryService: OrderQueryService,
   private val adminService: AdminService,
+  private val adminOrderMapper: AdminOrderMapper,
 ) {
   fun getAdminIdByUsername(username: String): Long =
     adminService.findByUsername(username)?.id ?: throw UserNotFoundException("管理员 $username 不存在")
@@ -38,7 +39,7 @@ class WeappOrderQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
-  fun pendingDeliveryOrders(): List<Order> = deliveryTaskQueryService.getPendingDeliveryOrders().map { OrderMapper.map(it) }
+  fun pendingDeliveryOrders(): List<Order> = deliveryTaskQueryService.getPendingDeliveryOrders().map { adminOrderMapper.map(it) }
 
   /**
    * 获取配送员的已接单订单
@@ -47,7 +48,7 @@ class WeappOrderQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun assignedOrders(
     @AuthenticationPrincipal userDetail: UserDetails,
-  ): List<Order> = deliveryTaskQueryService.getAssignedOrders(getAdminIdByUsername(userDetail.username)).map { OrderMapper.map(it) }
+  ): List<Order> = deliveryTaskQueryService.getAssignedOrders(getAdminIdByUsername(userDetail.username)).map { adminOrderMapper.map(it) }
 
   /**
    * 获取配送员的配送中订单
@@ -56,7 +57,8 @@ class WeappOrderQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun deliveringOrders(
     @AuthenticationPrincipal userDetail: UserDetails,
-  ): List<Order> = deliveryWorkerQueryService.getWorkerActiveTasks(getAdminIdByUsername(userDetail.username)).map { OrderMapper.map(it) }
+  ): List<Order> =
+    deliveryWorkerQueryService.getWorkerActiveTasks(getAdminIdByUsername(userDetail.username)).map { adminOrderMapper.map(it) }
 
   /**
    * 获取配送员当日统计数据
@@ -108,7 +110,7 @@ class WeappOrderQueryResolver(
         size = size,
       )
 
-    val (orderList, pageInfo) = ordersPage.toPageInfo { OrderMapper.map(it) }
+    val (orderList, pageInfo) = ordersPage.toPageInfo { adminOrderMapper.map(it) }
     return OrderVoPage(
       content = orderList,
       totalElements = pageInfo.total,

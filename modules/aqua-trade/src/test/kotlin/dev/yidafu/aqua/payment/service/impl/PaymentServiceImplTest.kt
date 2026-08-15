@@ -97,8 +97,6 @@ class PaymentServiceImplTest {
     id = id,
     orderNo = orderNo,
     userId = 100L,
-    productId = 1L,
-    quantity = 1,
     amountCents = amountCents,
     deliveryFeeCents = deliveryFeeCents,
     status = status,

@@ -20,11 +20,16 @@
 package dev.yidafu.aqua.client.order.resolver
 
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
+import dev.yidafu.aqua.api.service.review.ReviewQueryService
 import dev.yidafu.aqua.client.order.mapper.toGraphQL
 import dev.yidafu.aqua.common.annotation.ClientService
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.common.graphql.generated.OrderReviewCheckResponse
+import dev.yidafu.aqua.common.graphql.generated.OrderStatus
+import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
 import dev.yidafu.aqua.common.security.UserPrincipal
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -33,13 +38,15 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
 
 /**
- * 用户端订单查询 Resolver(我的订单详情,仅本人可见):
- * 订单详情/支付结果回显使用真实订单数据(F-ORD-003)。
+ * 用户端订单查询 Resolver(我的订单,仅本人可见):
+ * 订单详情/支付结果回显使用真实订单数据(F-ORD-003);
+ * 订单列表分页查询(F-ORD-002);订单评价检查(F-ORD-007)。
  */
 @ClientService
 @Controller
 class ClientOrderQueryResolver(
   private val orderQueryApiService: OrderQueryApiService,
+  private val reviewQueryService: ReviewQueryService,
 ) {
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
@@ -53,6 +60,62 @@ class ClientOrderQueryResolver(
     if (order.userId != principal.id) {
       throw BadRequestException("无权查看此订单")
     }
-    return order.toGraphQL()
+    return order.toGraphQL(items = orderQueryApiService.findItemsByOrderId(order.id!!))
+  }
+
+  /**
+   * 我的订单列表(F-ORD-002,G02 真实化):userId 强制取登录用户(防越权);
+   * statuses 为空=全部;「待发货」口径=待派单+待配送;按下单时间倒序分页。
+   */
+  @QueryMapping
+  @PreAuthorize("isAuthenticated()")
+  fun myOrders(
+    @Argument statuses: List<OrderStatus>?,
+    @Argument page: Int,
+    @Argument size: Int,
+    @AuthenticationPrincipal principal: UserPrincipal,
+  ): OrderVoPage {
+    val safePage = page.coerceAtLeast(0)
+    val safeSize = size.coerceIn(1, 50)
+    val result =
+      orderQueryApiService.findByUserIdPaginated(
+        userId = principal.id,
+        statuses = statuses?.map { OrderModelStatus.valueOf(it.name) },
+        page = safePage,
+        size = safeSize,
+      )
+    return OrderVoPage(
+      content =
+        result.content.map { order ->
+          order.toGraphQL(items = orderQueryApiService.findItemsByOrderId(order.id!!))
+        },
+      totalElements = result.totalElements.toInt(),
+      totalPages = result.totalPages,
+      size = result.size,
+      number = result.number,
+    )
+  }
+
+  /**
+   * 订单评价检查(F-ORD-007):返回已评价内容与是否可评(仅已完成且未评价)。
+   */
+  @QueryMapping
+  @PreAuthorize("isAuthenticated()")
+  fun orderReviewCheck(
+    @Argument orderId: Long,
+    @AuthenticationPrincipal principal: UserPrincipal,
+  ): OrderReviewCheckResponse {
+    val order =
+      orderQueryApiService.findById(orderId)
+        ?: throw NotFoundException("订单不存在: $orderId")
+    if (order.userId != principal.id) {
+      throw BadRequestException("无权查看此订单")
+    }
+    val review = reviewQueryService.findByOrderId(orderId)
+    return OrderReviewCheckResponse(
+      hasReviewed = review != null,
+      canReview = order.status == OrderModelStatus.COMPLETED && review == null,
+      review = review?.toGraphQL(),
+    )
   }
 }

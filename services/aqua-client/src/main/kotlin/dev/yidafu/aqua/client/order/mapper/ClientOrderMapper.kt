@@ -20,8 +20,10 @@
 package dev.yidafu.aqua.client.order.mapper
 
 import dev.yidafu.aqua.common.domain.model.AddressModel
+import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.ReviewModel
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
@@ -29,6 +31,8 @@ import dev.yidafu.aqua.common.graphql.generated.PaymentType
 import dev.yidafu.aqua.common.graphql.generated.PriceSource
 import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.common.graphql.generated.Review
+import dev.yidafu.aqua.order.mapper.toOrderItemVo
 
 /**
  * 用户端订单域 GraphQL 映射(纯函数直构,不使用 mappie —— aqua-client 未应用 mappie 编译插件,
@@ -36,11 +40,10 @@ import dev.yidafu.aqua.common.graphql.generated.ProductStatus
  * 枚举按同名条目 valueOf 互转;金额一律为分(R-MON-01)。
  */
 
-fun OrderModel.toGraphQL(): Order =
+fun OrderModel.toGraphQL(items: List<OrderItemModel> = emptyList()): Order =
   Order(
     id = id ?: 0L,
     orderNo = orderNo,
-    quantity = quantity,
     amountCents = amountCents,
     deliveryFeeCents = deliveryFeeCents,
     payAmountCents = payAmountCents,
@@ -57,7 +60,11 @@ fun OrderModel.toGraphQL(): Order =
     createdAt = createdAt,
     updatedAt = updatedAt,
     firstOrderDiscountCents = firstOrderDiscountCents,
-    product = product?.toGraphQL(),
+    // 营销计价快照(R-MKT-01/02/07:优惠明细展示依据,2026-08 快照落库)
+    promotionDiscountCents = promotionDiscountCents,
+    couponDiscountCents = couponDiscountCents,
+    // 商品明细(F-ORD-004 多商品下单,order_items 权威数据源,随单快照映射)
+    items = items.map { it.toOrderItemVo() },
     address = address?.toGraphQL(),
     user = null,
     deliveryWorker = null,
@@ -113,4 +120,21 @@ fun AddressModel.toGraphQL(): Address =
     isDefault = isDefault,
     createdAt = createdAt,
     updatedAt = updatedAt,
+  )
+
+/**
+ * 订单评价 GraphQL 映射(F-ORD-007,一单一评):
+ * deliveryWorkerName 由送水工端/后台联查展示,用户端评价展示不依赖该字段。
+ */
+fun ReviewModel.toGraphQL(): Review =
+  Review(
+    reviewId = id ?: 0L,
+    orderId = orderId,
+    userId = userId,
+    deliveryWorkerId = deliveryWorkerId,
+    deliveryWorkerName = null,
+    rating = rating,
+    comment = comment,
+    isAnonymous = isAnonymous,
+    createdAt = createdAt,
   )

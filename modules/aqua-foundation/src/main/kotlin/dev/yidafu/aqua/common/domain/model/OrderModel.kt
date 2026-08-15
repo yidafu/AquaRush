@@ -43,10 +43,7 @@ data class OrderModel(
   val orderNo: String = "",
   @Column(name = "user_id", nullable = false)
   val userId: Long = -1L,
-  @Column(name = "product_id", nullable = false)
-  val productId: Long = 1L,
-  @Column(name = "quantity", nullable = false)
-  val quantity: Int = 0,
+  // 订单商品明细(F-ORD-004 多商品):权威数据在 order_items 表,经 OrderItemRepository 查询
   @Column(name = "total_amount_cents", nullable = false)
   var amountCents: Long = 0,
   // 配送费(分,下单时按配送费规则快照,规则变更不影响已生成订单 —— R-MON-02)
@@ -134,9 +131,6 @@ data class OrderModel(
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "user_id", insertable = false, updatable = false)
   val user: UserModel? = null,
-  @ManyToOne(fetch = FetchType.EAGER)
-  @JoinColumn(name = "product_id", insertable = false, updatable = false)
-  val product: ProductModel? = null,
   @ManyToOne(fetch = FetchType.EAGER)
   @JoinColumn(name = "address_id", insertable = false, updatable = false)
   val address: AddressModel? = null,

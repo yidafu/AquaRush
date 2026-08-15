@@ -70,8 +70,11 @@ class ClientOrderPreviewResolver(
       orderMutationService.confirmOrderPreview(
         OrderPricingRequest(
           userId = principal.id,
-          productId = input.productId,
-          quantity = input.quantity,
+          items =
+            input.items.map {
+              dev.yidafu.aqua.api.dto
+                .OrderPricingItemRequest(productId = it.productId, quantity = it.quantity)
+            },
           isSelfCollect = false,
           preferredCouponId = input.preferredCouponId,
           ticketRedeemCount = input.ticketRedeemCount ?: 0,

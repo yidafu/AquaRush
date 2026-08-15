@@ -9,6 +9,7 @@ import ProductService from '../../services/ProductService'
 import FavoriteService from '../../services/FavoriteService'
 import { authService } from '../../utils/auth'
 import { Product } from '../../types/product'
+import { addToCart } from '../../utils/cart'
 import { normalizeCents } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
@@ -242,22 +243,15 @@ const ProductDetail: React.FC = () => {
   const handleAddToCart = useCallback(() => {
     if (!state.product) return
 
-    // 简单的购物车添加逻辑（实际项目中应该调用购物车API）
-    const cartItem = {
-      id: state.product.id,
+    // 加入本地购物车(F-PRO-004:同商品合并数量,累积多商品)
+    addToCart({
+      id: state.product.id.toString(),
       name: state.product.name,
-      price: state.product.priceCents,
+      priceCents: normalizeCents(state.product.effectivePriceCents) ?? normalizeCents(state.product.priceCents) ?? 0,
       quantity: 1,
       image: state.product.coverImageUrl,
       specification: state.product.specification
-    }
-
-    // 获取现有购物车数据
-    const existingCart = Taro.getStorageSync('cart') || []
-    const updatedCart = [...existingCart, cartItem]
-
-    // 保存到本地存储
-    Taro.setStorageSync('cart', updatedCart)
+    })
 
     showToastMessage('已加入购物车', 'success')
   }, [state.product, showToastMessage])

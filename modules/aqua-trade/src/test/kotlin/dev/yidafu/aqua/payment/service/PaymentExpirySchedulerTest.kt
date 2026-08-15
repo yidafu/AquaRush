@@ -71,8 +71,6 @@ class PaymentExpirySchedulerTest {
         id = 1L,
         orderNo = "ORD-1",
         userId = 100L,
-        productId = 1L,
-        quantity = 1,
         amountCents = 1000,
         status = OrderModelStatus.CANCELLED,
       )
@@ -118,8 +116,6 @@ class PaymentExpirySchedulerTest {
         id = 1L,
         orderNo = "ORD-1",
         userId = 100L,
-        productId = 1L,
-        quantity = 1,
         amountCents = 1000,
         deliveryFeeCents = 200,
         status = OrderModelStatus.PENDING_DELIVERY,

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table, Tag, Space, Button, Card, Typography, message } from 'antd';
-import { useLazyQuery } from '@apollo/client';
+import { Table, Tag, Space, Button, Card, Typography, message, Modal, Form, Select } from 'antd';
+import { useLazyQuery, useQuery, useMutation } from '@apollo/client';
 import { GET_ORDERS_QUERY } from '../../graphql/queries/order.graphql';
+import { GET_ONLINE_DELIVERY_WORKERS_QUERY } from '../../graphql/queries/delivery.graphql';
+import { BATCH_ASSIGN_ORDERS_MUTATION } from '../../graphql/mutations/order.graphql';
 import AssignDeliveryButton from '../../components/AssignDeliveryButton';
 import { OrderFilters, OrderFilters as FilterType } from './components/OrderFilters';
 import { displayCents, yuanToCents } from '@aquarush/common';
@@ -75,6 +77,51 @@ const Orders: React.FC = () => {
     pageSize: 20,
     total: 0,
   });
+
+  // ==================== 批量派单(F-ORD-022,G10) ====================
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const [batchModalVisible, setBatchModalVisible] = useState(false);
+  const [batchWorkerId, setBatchWorkerId] = useState<number | null>(null);
+  const { data: workersData, loading: workersLoading } = useQuery(GET_ONLINE_DELIVERY_WORKERS_QUERY);
+  const [batchAssignOrders, { loading: batchAssigning }] = useMutation(BATCH_ASSIGN_ORDERS_MUTATION, {
+    onError: (error) => {
+      console.error('批量派单失败:', error);
+      message.error('批量派单失败: ' + error.message);
+    },
+  });
+
+  const workers = workersData?.onlineDeliveryWorkers || [];
+
+  const openBatchAssign = () => {
+    if (selectedRowKeys.length === 0) {
+      message.warning('请先勾选待派单订单');
+      return;
+    }
+    setBatchWorkerId(null);
+    setBatchModalVisible(true);
+  };
+
+  const handleBatchAssign = async () => {
+    if (!batchWorkerId) {
+      message.warning('请选择送水员');
+      return;
+    }
+    try {
+      const result = await batchAssignOrders({
+        variables: {
+          orderIds: selectedRowKeys,
+          workerId: batchWorkerId,
+        },
+      });
+      const assignedCount = result.data?.batchAssignOrders?.length ?? 0;
+      message.success(`批量派单成功（${assignedCount} 单）`);
+      setBatchModalVisible(false);
+      setSelectedRowKeys([]);
+      fetchOrders();
+    } catch (err) {
+      // onError 已提示
+    }
+  };
 
   const [loadOrders, { data, loading }] = useLazyQuery<OrdersQueryResult>(GET_ORDERS_QUERY, {
     fetchPolicy: 'cache-and-network',
@@ -214,7 +261,8 @@ const Orders: React.FC = () => {
           <Button type="link" size="small" onClick={() => navigate(`/orders/${record.id}`)}>
             查看
           </Button>
-          {record.status === 'PENDING_DELIVERY' && (
+          {/* 派单前置状态=待派单(R-ORD-01 状态机「待派单→配送中」,G09) */}
+          {record.status === 'PENDING_DISPATCH' && (
             <AssignDeliveryButton
               orderId={record.id}
               onAssigned={() => fetchOrders()}
@@ -225,17 +273,36 @@ const Orders: React.FC = () => {
     },
   ];
 
+  // 仅待派单订单可勾选批量派单(R-ORD-08:同一订单仅派单一次,已派单/已接单不可再派)
+  const rowSelection = {
+    selectedRowKeys,
+    onChange: (keys: React.Key[]) => setSelectedRowKeys(keys),
+    getCheckboxProps: (record: OrderData) => ({
+      disabled: record.status !== 'PENDING_DISPATCH',
+    }),
+  };
+
   return (
     <div style={{ padding: '24px' }}>
         <OrderFilters
           filters={filters}
           onFiltersChange={handleFiltersChange}
         />
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+          <Button
+            type="primary"
+            onClick={openBatchAssign}
+            disabled={selectedRowKeys.length === 0}
+          >
+            批量派单{selectedRowKeys.length > 0 ? `（已选 ${selectedRowKeys.length} 单）` : ''}
+          </Button>
+        </div>
         <Table
           columns={columns}
           dataSource={data?.orders?.content || []}
           loading={loading}
           rowKey="id"
+          rowSelection={rowSelection}
           pagination={{
             ...pagination,
             showSizeChanger: true,
@@ -244,6 +311,34 @@ const Orders: React.FC = () => {
           }}
           onChange={handleTableChange}
         />
+
+        {/* 批量派单弹窗(G10):多选待派单订单一次派给同一送水工 */}
+        <Modal
+          title={`批量派单（${selectedRowKeys.length} 单）`}
+          open={batchModalVisible}
+          onOk={handleBatchAssign}
+          onCancel={() => setBatchModalVisible(false)}
+          confirmLoading={batchAssigning}
+          width={500}
+        >
+          <Form layout="vertical">
+            <Form.Item label="选择送水员" required>
+              <Select
+                placeholder="选择送水员（仅在线可派单，R-ORD-08）"
+                loading={workersLoading}
+                value={batchWorkerId}
+                onChange={setBatchWorkerId}
+              >
+                {workers.map((worker: any) => (
+                  <Select.Option key={worker.id} value={worker.id}>
+                    {worker.name} - {worker.phone}
+                    {worker.onlineStatus === 'ONLINE' ? '' : '（离线）'}
+                  </Select.Option>
+                ))}
+              </Select>
+            </Form.Item>
+          </Form>
+        </Modal>
     </div>
   );
 };

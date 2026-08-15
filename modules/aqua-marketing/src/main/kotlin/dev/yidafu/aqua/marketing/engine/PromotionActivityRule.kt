@@ -22,7 +22,6 @@ package dev.yidafu.aqua.marketing.engine
 import dev.yidafu.aqua.api.service.marketing.MarketingPricingQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType
-import dev.yidafu.aqua.common.domain.model.enums.PriceSource
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
@@ -53,8 +52,8 @@ class PromotionActivityRule(
     ctx: PricingContext,
     state: PricingState,
   ) {
-    // 限时特价商品不参与叠加①(R-MKT-07 边界:避免双重让利)
-    if (state.priceSource == PriceSource.FLASH_SALE_PRICE) {
+    // 任一商品为限时特价价 → 跳过叠加①(R-MKT-07 边界:避免双重让利)
+    if (state.hasFlashSaleItem) {
       state.promotionDiscountCents = 0
       state.promotionActivityId = null
       state.promotionActivityName = null
@@ -76,7 +75,7 @@ class PromotionActivityRule(
       .filter { activity ->
         when (activity.scope) {
           PromotionScope.ALL -> true
-          PromotionScope.PRODUCT -> activity.productId == ctx.productId
+          PromotionScope.PRODUCT -> activity.productId != null && activity.productId in ctx.productIds
           PromotionScope.GROUP -> activity.customerGroupId != null && activity.customerGroupId == userGroupId
         }
       }.forEach { activity ->
@@ -112,7 +111,7 @@ class PromotionActivityRule(
         .filter { activity ->
           when (activity.scope) {
             PromotionScope.ALL -> true
-            PromotionScope.PRODUCT -> activity.productId == ctx.productId
+            PromotionScope.PRODUCT -> activity.productId != null && activity.productId in ctx.productIds
             PromotionScope.GROUP -> false
           }
         }.forEach { activity ->

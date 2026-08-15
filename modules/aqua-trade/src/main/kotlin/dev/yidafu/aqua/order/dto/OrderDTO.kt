@@ -36,9 +36,6 @@ data class OrderDTO(
   val orderNo: String,
   val userId: Long,
   val user: User? = null,
-  val productId: Long,
-  val product: Product? = null,
-  val quantity: Int,
   val amount: Long,
   val deliveryFeeCents: Long = 0,
   val addressId: Long,
@@ -64,19 +61,6 @@ data class OrderDTO(
   val payAmountCents: Long
     get() = amount + deliveryFeeCents
 }
-
-/**
- * DTO for creating new orders
- */
-data class CreateOrderDTO(
-  val userId: Long,
-  val productId: Long,
-  val quantity: Int,
-  val amount: Long,
-  val addressId: Long,
-  val deliveryAddressId: Long,
-  val paymentMethod: PaymentMethod? = null,
-)
 
 /**
  * DTO for updating order status

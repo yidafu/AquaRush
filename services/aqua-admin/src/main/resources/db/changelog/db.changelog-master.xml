@@ -17,5 +17,6 @@
   <include file="db/changelog/changes/v1.0.9-add-marketing-tables.xml"/>
   <include file="db/changelog/changes/v1.1.0-add-marketing-flash-gift-firstorder.xml"/>
   <include file="db/changelog/changes/v1.1.1-add-business-log-operation.xml"/>
+  <include file="db/changelog/changes/v1.2.0-drop-order-single-product-columns.xml"/>
 
 </databaseChangeLog>

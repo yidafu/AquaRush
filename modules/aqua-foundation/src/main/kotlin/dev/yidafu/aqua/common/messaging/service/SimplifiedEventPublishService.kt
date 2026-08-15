@@ -80,8 +80,6 @@ class SimplifiedEventPublishService(
   fun publishOrderCreated(
     orderId: Long,
     userId: Long,
-    productId: Long,
-    quantity: Int,
     amountCents: Long,
   ): Boolean =
     publishDomainEvent(
@@ -91,8 +89,6 @@ class SimplifiedEventPublishService(
         mapOf(
           "orderId" to orderId,
           "userId" to userId,
-          "productId" to productId,
-          "quantity" to quantity,
           "amountCents" to amountCents,
           "timestamp" to System.currentTimeMillis(),
         ),
@@ -104,7 +100,6 @@ class SimplifiedEventPublishService(
   fun publishOrderPaid(
     orderId: Long,
     userId: Long,
-    productId: Long,
     amountCents: Long,
   ): Boolean =
     publishDomainEvent(
@@ -114,7 +109,6 @@ class SimplifiedEventPublishService(
         mapOf(
           "orderId" to orderId,
           "userId" to userId,
-          "productId" to productId,
           "amountCents" to amountCents,
           "timestamp" to System.currentTimeMillis(),
         ),

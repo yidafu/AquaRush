@@ -5,11 +5,11 @@ import Taro, {
   useDidShow
 } from '@tarojs/taro'
 import AddressService from '../../services/AddressService'
-import OrderService from '../../services/OrderService'
-import ProductService, { ProductPriceInfo } from '../../services/ProductService'
+import OrderService, { OrderItemInput } from '../../services/OrderService'
 import { Address } from '../../types/address'
 import { normalizeCents, OrderPreviewVo } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
+import { removeSelectedCartItems } from '../../utils/cart'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/checkbox.scss"
@@ -38,15 +38,14 @@ interface OrderItem {
   specification?: string
 }
 
-interface OrderConfirmProps {}
-
 /**
- * 确认订单页(F-ORD-023)
+ * 确认订单页(F-ORD-004 多商品下单 / F-ORD-023 计价预览)
+ * 商品明细(items)为唯一下单口径:单商品「立即购买」=单元素,购物车结算=多元素;
  * 计价全部由服务端 orderPreview 计算(R-MON-01,促销引擎 R-MKT-02/07/08 全链路):
- * 成交单价/水票抵扣/满减/优惠券(最优默认勾选,可改选/取消)/配送费/实付;
- * 提交订单时回传 preferredCouponId(0=不用券)与 ticketRedeemCount,服务端原子核销。
+ * 逐商品成交单价/水票抵扣/满减/优惠券(最优默认勾选,可改选/取消)/配送费/实付;
+ * 提交订单时回传 items 与 preferredCouponId(0=不用券)/ticketRedeemCount,服务端原子核销。
  */
-const OrderConfirm: React.FC<OrderConfirmProps> = () => {
+const OrderConfirm: React.FC = () => {
   usePageViewTracking()
 
   const [orderItems, setOrderItems] = useState<OrderItem[]>([])
@@ -58,8 +57,6 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
   // 选中的优惠券 ID(null = 不用券;初始由引擎 isBest 自动选中)
   const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null)
   const [ticketRedeemCount, setTicketRedeemCount] = useState<number>(0)
-  // 商品价格信息(熟客价划线展示,R-MKT-01)
-  const [productPriceInfo, setProductPriceInfo] = useState<ProductPriceInfo | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<string>('wechat')
   const [deliveryTime, setDeliveryTime] = useState<string>('immediate')
   const [remark, setRemark] = useState<string>('')
@@ -73,12 +70,14 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
 
   const addressService = AddressService.getInstance()
 
-  const firstItem = orderItems.length > 0 ? orderItems[0] : null
-  const productId = firstItem?.id ?? ''
-  const quantity = firstItem?.quantity ?? 0
-  const fallbackUnitPrice = normalizeCents(firstItem?.price) ?? 0
+  // 多商品明细(F-ORD-004):items 为唯一下单口径
+  const items: OrderItemInput[] = orderItems.map(item => ({
+    productId: item.id,
+    quantity: item.quantity
+  }))
+  const totalQuantity = orderItems.reduce((sum, item) => sum + item.quantity, 0)
 
-  // 加载订单数据(本地待支付订单,单个商品)
+  // 加载订单数据(本地 pendingOrder:立即购买单元素 / 购物车结算多元素)
   const loadOrderData = useCallback((): void => {
     try {
       // 从本地存储获取订单数据
@@ -145,9 +144,9 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
     loadAddresses()
   })
 
-  // 服务端计价预览:商品/地址/优惠券/水票任一变化即重新计价
+  // 服务端计价预览:商品明细/地址/优惠券/水票任一变化即重新计价
   useEffect(() => {
-    if (!productId || !selectedAddress || quantity <= 0) return
+    if (items.length === 0 || !selectedAddress) return
 
     const seq = ++previewRequestSeq.current
     setPreviewLoading(true)
@@ -156,8 +155,7 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
     const run = async (): Promise<void> => {
       try {
         const result = await OrderService.getInstance().getOrderPreview({
-          productId,
-          quantity,
+          items,
           addressId: selectedAddress.id,
           // null = 不用券(0);引擎最优券自动勾选后传入券 ID
           preferredCouponId: selectedCouponId ?? 0,
@@ -196,27 +194,8 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
     }
 
     run()
-  }, [productId, quantity, selectedAddress, selectedCouponId, ticketRedeemCount, previewRetryTick])
-
-  // 商品价格信息(熟客价/目录价,划线展示用)
-  useEffect(() => {
-    if (!productId) return
-
-    let cancelled = false
-    ProductService.getInstance().getProductPrice(productId)
-      .then(result => {
-        if (!cancelled && result.success && result.data) {
-          setProductPriceInfo(result.data)
-        }
-      })
-      .catch(error => {
-        console.error('获取商品价格信息失败:', error)
-      })
-
-    return () => {
-      cancelled = true
-    }
-  }, [productId])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(items), selectedAddress, selectedCouponId, ticketRedeemCount, previewRetryTick])
 
   const handleAddressSelect = (): void => {
     Taro.navigateTo({
@@ -258,7 +237,7 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
       return
     }
 
-    if (!firstItem) {
+    if (orderItems.length === 0) {
       Taro.showToast({ title: '订单中没有商品', icon: 'none' })
       return
     }
@@ -277,9 +256,8 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
 
     try {
       const result = await OrderService.getInstance().createOrder({
-        productId,
+        items,
         addressId: selectedAddress.id,
-        quantity,
         // 0 = 用户选择不用券/无券可选;否则回传选中的券 ID
         preferredCouponId: selectedCouponId ?? 0,
         ticketRedeemCount,
@@ -296,6 +274,13 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
 
       // 清除缓存的订单数据
       Taro.removeStorageSync('pendingOrder')
+
+      // 购物车结算来源:移除已下单的勾选商品(F-PRO-004)
+      const fromCart = Taro.getStorageSync('cartCheckout')
+      if (fromCart) {
+        removeSelectedCartItems()
+        Taro.removeStorageSync('cartCheckout')
+      }
 
       // 发起支付(F-ORD-005):测试环境假支付自动完成(autoCompleted),
       // 真实环境拉起微信支付;失败/取消均保留订单(待支付)可再次发起
@@ -318,13 +303,12 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
     }
   }, [
     selectedAddress,
-    firstItem,
+    orderItems,
     agreeTerms,
     preview,
     previewError,
     previewLoading,
-    productId,
-    quantity,
+    items,
     selectedCouponId,
     ticketRedeemCount,
     remark
@@ -367,8 +351,13 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
   }, [])
 
   // 计价展示数据(服务端为准,未就绪时回退本地兜底价)
-  const unitPriceCents = preview ? normalizeCents(preview.unitPriceCents) ?? fallbackUnitPrice : fallbackUnitPrice
-  const finalAmount = preview ? normalizeCents(preview.payAmountCents) ?? 0 : fallbackUnitPrice * quantity
+  const finalAmount = preview ? normalizeCents(preview.payAmountCents) ?? 0 : 0
+
+  // 逐商品计价信息(服务端 preview.items 为准,兜底本地价)
+  const previewItemsById = new Map<string, OrderPreviewVo['items'][number]>()
+  ;(preview?.items ?? []).forEach(item => {
+    previewItemsById.set(String(item.productId), item)
+  })
 
   return (
     <View className='order-confirm-page'>
@@ -378,16 +367,18 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
         onAddressSelect={handleAddressSelect}
       />
 
-      {/* 商品列表(单价以服务端计价为准) */}
+      {/* 商品列表(多商品 F-ORD-004,单价以服务端计价为准) */}
       <ProductList
-        name={firstItem?.name ?? ''}
-        image={firstItem?.image ?? ''}
-        specification={firstItem?.specification}
-        quantity={quantity}
-        unitPriceCents={unitPriceCents}
-        catalogPriceCents={productPriceInfo?.catalogPriceCents}
-        hasGroupPrice={productPriceInfo?.hasGroupPrice}
-        priceSource={preview?.priceSource}
+        items={orderItems.map(item => ({
+          id: item.id,
+          name: item.name,
+          image: item.image,
+          specification: item.specification,
+          quantity: item.quantity,
+          unitPriceCents: previewItemsById.get(item.id) ? normalizeCents(previewItemsById.get(item.id)!.unitPriceCents) ?? item.price : item.price,
+          catalogPriceCents: previewItemsById.get(item.id) ? normalizeCents(previewItemsById.get(item.id)!.catalogPriceCents) ?? undefined : undefined,
+          priceSource: previewItemsById.get(item.id)?.priceSource
+        }))}
       />
 
       {/* 计价状态提示 */}
@@ -411,11 +402,11 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
         onTimeChange={handleDeliveryTimeChange}
       />
 
-      {/* 水票抵扣(无可用水票时隐藏) */}
+      {/* 水票抵扣(无可用水票时隐藏;核销上限=订单总桶数 Σquantity) */}
       {preview && preview.availableTicketCount > 0 && (
         <TicketRedeemSection
           availableTicketCount={preview.availableTicketCount}
-          quantity={quantity}
+          quantity={totalQuantity}
           value={ticketRedeemCount}
           onChange={handleTicketRedeemChange}
         />
@@ -454,7 +445,7 @@ const OrderConfirm: React.FC<OrderConfirmProps> = () => {
           firstOrderActivityName={preview.firstOrderActivityName}
           couponDiscountCents={normalizeCents(preview.couponDiscountCents) ?? 0}
           selectedCouponName={preview.selectedCouponName}
-          giftItems={preview.giftItems}
+          giftItems={[...(preview.giftItems ?? [])]}
           deliveryFeeCents={normalizeCents(preview.deliveryFeeCents) ?? 0}
           payAmountCents={normalizeCents(preview.payAmountCents) ?? 0}
         />

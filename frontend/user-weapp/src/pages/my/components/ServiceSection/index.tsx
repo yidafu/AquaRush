@@ -33,6 +33,16 @@ const ServiceSection: React.FC<ServiceSectionProps> = () => {
       }
     },
     {
+      icon: '/assets/icons/service/heart.png',
+      title: '购物车',
+      description: '多商品合并结算',
+      onClick: () => {
+        Taro.navigateTo({
+          url: '/pages/cart/index'
+        })
+      }
+    },
+    {
       icon: '/assets/icons/service/map-pin.png',
       title: '收货地址',
       description: '管理收货地址',

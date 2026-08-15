@@ -26,15 +26,15 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 
 /**
- * 创建评价请求DTO
+ * 创建评价请求DTO(F-ORD-007,PRD 04-order.md §R-EVL-01):
+ * deliveryWorkerId 由服务端按订单解析(评价对象=本次配送的送水工),调用方不传。
  */
 data class CreateReviewRequest(
   @field:JsonProperty("orderId")
   @field:NotNull(message = "订单ID不能为空")
   val orderId: Long,
   @field:JsonProperty("deliveryWorkerId")
-  @field:NotNull(message = "配送员ID不能为空")
-  val deliveryWorkerId: Long,
+  val deliveryWorkerId: Long? = null,
   @field:JsonProperty("rating")
   @field:NotNull(message = "评分不能为空")
   @field:Min(value = 1, message = "评分不能低于1星")

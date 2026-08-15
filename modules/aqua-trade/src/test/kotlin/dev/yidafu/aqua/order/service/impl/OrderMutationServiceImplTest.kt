@@ -20,9 +20,9 @@
 package dev.yidafu.aqua.order.service.impl
 
 import dev.yidafu.aqua.api.dto.CreateOrderRequest
+import dev.yidafu.aqua.api.dto.OrderItemRequest
 import dev.yidafu.aqua.api.dto.OrderPricingRequest
 import dev.yidafu.aqua.api.dto.OrderPricingResult
-import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryAreaQueryService
 import dev.yidafu.aqua.api.service.marketing.CouponMutationApiService
 import dev.yidafu.aqua.api.service.marketing.PromotionPricingService
@@ -35,14 +35,16 @@ import dev.yidafu.aqua.api.service.product.ProductService
 import dev.yidafu.aqua.api.service.user.AddressQueryApiService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
+import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PriceSource
+import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.order.domain.repository.OrderGiftRepository
+import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import io.mockk.every
 import io.mockk.mockk
@@ -51,13 +53,18 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 /**
- * 订单变更服务配送费计算单元测试(R-MON-02 楼层口径,F-OPS-005):
- * 免费楼层内免运费、超出一次性加收、楼层为空免运费、自提免运费、落库快照。
+ * 订单变更服务单元测试:
+ * - R-MON-02 配送费(楼层口径):免费楼层内免运费、超出一次性加收、楼层为空免运费、自提免运费、落库快照;
+ * - R-ORD-01 状态机(G09):支付成功→待派单、updateOrderStatus 流转校验、取消退款判定;
+ * - G51 代客下单归属:订单 userId 取收货地址所属客户。
  */
 class OrderMutationServiceImplTest {
   private lateinit var orderRepository: OrderRepository
+  private lateinit var orderItemRepository: OrderItemRepository
   private lateinit var orderGiftRepository: OrderGiftRepository
   private lateinit var productQueryApiService: ProductQueryApiService
   private lateinit var addressQueryApiService: AddressQueryApiService
@@ -65,7 +72,6 @@ class OrderMutationServiceImplTest {
   private lateinit var productService: ProductService
   private lateinit var deliveryAreaQueryService: DeliveryAreaQueryService
   private lateinit var orderIdGenerator: OrderIdGeneratorService
-  private lateinit var adminService: AdminService
   private lateinit var orderQueryService: OrderQueryService
   private lateinit var deliveryFeeRuleQueryApiService: DeliveryFeeRuleQueryApiService
   private lateinit var promotionPricingService: PromotionPricingService
@@ -94,6 +100,7 @@ class OrderMutationServiceImplTest {
   @BeforeEach
   fun setUp() {
     orderRepository = mockk(relaxed = true)
+    orderItemRepository = mockk(relaxed = true)
     orderGiftRepository = mockk(relaxed = true)
     productQueryApiService = mockk(relaxed = true)
     addressQueryApiService = mockk(relaxed = true)
@@ -101,7 +108,6 @@ class OrderMutationServiceImplTest {
     productService = mockk(relaxed = true)
     deliveryAreaQueryService = mockk(relaxed = true)
     orderIdGenerator = mockk(relaxed = true)
-    adminService = mockk(relaxed = true)
     orderQueryService = mockk(relaxed = true)
     deliveryFeeRuleQueryApiService = mockk(relaxed = true)
     promotionPricingService = mockk(relaxed = true)
@@ -113,6 +119,7 @@ class OrderMutationServiceImplTest {
     service =
       OrderMutationServiceImpl(
         orderRepository,
+        orderItemRepository,
         orderGiftRepository,
         productQueryApiService,
         addressQueryApiService,
@@ -120,7 +127,6 @@ class OrderMutationServiceImplTest {
         productService,
         deliveryAreaQueryService,
         orderIdGenerator,
-        adminService,
         orderQueryService,
         deliveryFeeRuleQueryApiService,
         promotionPricingService,
@@ -146,8 +152,21 @@ class OrderMutationServiceImplTest {
   }
 
   private fun pricingFor(request: OrderPricingRequest): OrderPricingResult {
-    val subtotal = product.price * request.quantity
+    val subtotal = product.price * request.items.sumOf { it.quantity }
     return OrderPricingResult(
+      items =
+        request.items.map {
+          dev.yidafu.aqua.api.dto.OrderPricingItemResult(
+            productId = it.productId,
+            quantity = it.quantity,
+            unitPriceCents = product.price,
+            priceSource = PriceSource.CATALOG_PRICE,
+            catalogPriceCents = product.price,
+            subtotalCents = product.price * it.quantity,
+            ticketCoveredQuantity = 0,
+            cashSubtotalCents = product.price * it.quantity,
+          )
+        },
       unitPriceCents = product.price,
       priceSource = PriceSource.CATALOG_PRICE,
       subtotalCents = subtotal,
@@ -174,9 +193,8 @@ class OrderMutationServiceImplTest {
   private fun createRequest(quantity: Int = 1) =
     CreateOrderRequest(
       userId = 100L,
-      productId = 1L,
+      items = listOf(OrderItemRequest(productId = 1L, quantity = quantity)),
       addressId = 1L,
-      quantity = quantity,
     )
 
   @Test
@@ -243,7 +261,6 @@ class OrderMutationServiceImplTest {
   @Test
   @DisplayName("自提订单免运费(楼层不参与判定)")
   fun `self collect order is free`() {
-    every { adminService.getUserById(1L) } returns UserModel(id = 100L)
     stubCreateOrderCommon(address(floor = 10))
     every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
       DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
@@ -251,7 +268,16 @@ class OrderMutationServiceImplTest {
     val order =
       service.createDeliveryOrder(
         1L,
-        CreateOrderRequest(userId = 0L, productId = 1L, addressId = 1L, quantity = 1, isSelfCollect = true),
+        CreateOrderRequest(
+          userId = 0L,
+          items =
+            listOf(
+              dev.yidafu.aqua.api.dto
+                .OrderItemRequest(1L, 1),
+            ),
+          addressId = 1L,
+          isSelfCollect = true,
+        ),
       )
 
     assertEquals(0, order.deliveryFeeCents)
@@ -291,7 +317,6 @@ class OrderMutationServiceImplTest {
   @Test
   @DisplayName("代客下单保持「待分配」(现场收款不进入支付链路,R-PAY-03)")
   fun deliveryOrderStaysPendingDispatch() {
-    every { adminService.getUserById(1L) } returns UserModel(id = 100L)
     stubCreateOrderCommon(address(floor = 4))
     every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
       DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
@@ -299,7 +324,16 @@ class OrderMutationServiceImplTest {
     val order =
       service.createDeliveryOrder(
         1L,
-        CreateOrderRequest(userId = 0L, productId = 1L, addressId = 1L, quantity = 1, isSelfCollect = false),
+        CreateOrderRequest(
+          userId = 0L,
+          items =
+            listOf(
+              dev.yidafu.aqua.api.dto
+                .OrderItemRequest(1L, 1),
+            ),
+          addressId = 1L,
+          isSelfCollect = false,
+        ),
       )
 
     assertEquals(OrderModelStatus.PENDING_DISPATCH, order.status)
@@ -328,7 +362,7 @@ class OrderMutationServiceImplTest {
   @Test
   @DisplayName("业务日志(F-LOG-003):取消订单记录 ORDER_CANCELLED 业务日志")
   fun `cancel order writes business log`() {
-    val order = OrderModel(id = 1L, userId = 100L, productId = 1L, quantity = 1, status = OrderModelStatus.PENDING_PAYMENT)
+    val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
     every { orderQueryService.getOrderById(1L) } returns order
     every { orderRepository.save(any()) } answers { firstArg() }
     every { productService.increaseStock(any(), any()) } returns true
@@ -345,5 +379,201 @@ class OrderMutationServiceImplTest {
         additionalData = any(),
       )
     }
+  }
+
+  @Test
+  @DisplayName("R-ORD-01/G09:支付成功回调 待支付→待派单(状态机,恢复抢单路径)")
+  fun `payment success transitions to pending dispatch`() {
+    val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
+    every { orderQueryService.getOrderById(1L) } returns order
+    every { orderRepository.save(any()) } answers { firstArg() }
+
+    service.handlePaymentSuccess(1L, "WX-TXN-001")
+
+    assertEquals(OrderModelStatus.PENDING_DISPATCH, order.status)
+    assertEquals("WX-TXN-001", order.paymentTransactionId)
+    assertTrue(order.paymentTime != null)
+  }
+
+  @Test
+  @DisplayName("R-ORD-01:支付成功回调仅接受待支付订单(已流转则拒绝)")
+  fun `payment success rejects non pending payment`() {
+    val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_DISPATCH)
+    every { orderQueryService.getOrderById(1L) } returns order
+
+    assertFailsWith<BadRequestException> { service.handlePaymentSuccess(1L, "WX-TXN-001") }
+  }
+
+  @Test
+  @DisplayName("R-ORD-01:updateOrderStatus 合法流转 待支付→已取消")
+  fun `update order status allows cancel from pending payment`() {
+    val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
+    every { orderQueryService.getOrderById(1L) } returns order
+    every { orderRepository.save(any()) } answers { firstArg() }
+
+    val updated = service.updateOrderStatus(1L, OrderModelStatus.CANCELLED)
+
+    assertEquals(OrderModelStatus.CANCELLED, updated.status)
+  }
+
+  @Test
+  @DisplayName("R-ORD-01:updateOrderStatus 合法流转 已取消→已退款(退款审核通过)")
+  fun `update order status allows refunded from cancelled`() {
+    val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.CANCELLED)
+    every { orderQueryService.getOrderById(1L) } returns order
+    every { orderRepository.save(any()) } answers { firstArg() }
+
+    val updated = service.updateOrderStatus(1L, OrderModelStatus.REFUNDED)
+
+    assertEquals(OrderModelStatus.REFUNDED, updated.status)
+  }
+
+  @Test
+  @DisplayName("R-ORD-01:updateOrderStatus 非法流转拒绝(如 待支付→配送中,任意改状态被拦截)")
+  fun `update order status rejects illegal transition`() {
+    val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
+    every { orderQueryService.getOrderById(1L) } returns order
+
+    assertFailsWith<BadRequestException> { service.updateOrderStatus(1L, OrderModelStatus.DELIVERING) }
+    assertFailsWith<BadRequestException> { service.updateOrderStatus(1L, OrderModelStatus.COMPLETED) }
+    // 已完成订单不可再流转
+    every { orderQueryService.getOrderById(2L) } returns
+      OrderModel(id = 2L, userId = 100L, status = OrderModelStatus.COMPLETED)
+    assertFailsWith<BadRequestException> { service.updateOrderStatus(2L, OrderModelStatus.CANCELLED) }
+  }
+
+  @Test
+  @DisplayName("R-ORD-03/R-PAY-02:已支付(待派单)订单取消自动触发退款事件")
+  fun `cancel paid pending dispatch order triggers refund`() {
+    val order =
+      OrderModel(
+        id = 1L,
+        userId = 100L,
+        status = OrderModelStatus.PENDING_DISPATCH,
+        paymentTransactionId = "WX-TXN-001",
+      )
+    every { orderQueryService.getOrderById(1L) } returns order
+    every { orderRepository.save(any()) } answers { firstArg() }
+    every { productService.increaseStock(any(), any()) } returns true
+
+    service.cancelOrder(1L)
+
+    assertEquals(OrderModelStatus.CANCELLED, order.status)
+    verify(exactly = 1) {
+      eventPublishService.publishOrderCancelled(
+        orderId = 1L,
+        userId = 100L,
+        reason = any(),
+        shouldRefund = true,
+        paymentTransactionId = "WX-TXN-001",
+      )
+    }
+  }
+
+  @Test
+  @DisplayName("R-ORD-03:已退款订单不可取消")
+  fun `refunded order cannot be cancelled`() {
+    val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.REFUNDED)
+    every { orderQueryService.getOrderById(1L) } returns order
+
+    assertFailsWith<BadRequestException> { service.cancelOrder(1L) }
+  }
+
+  @Test
+  @DisplayName("G51:代客下单订单归属收货地址所属客户(分组价按客户解析的前置)")
+  fun `delivery order belongs to address owner`() {
+    // 地址归属客户 200L(而非送水工本人)
+    stubCreateOrderCommon(address(floor = 4, userId = 200L))
+    every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+      DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+
+    val order =
+      service.createDeliveryOrder(
+        1L,
+        CreateOrderRequest(
+          userId = 0L,
+          items =
+            listOf(
+              dev.yidafu.aqua.api.dto
+                .OrderItemRequest(1L, 1),
+            ),
+          addressId = 1L,
+          isSelfCollect = false,
+        ),
+      )
+
+    assertEquals(200L, order.userId)
+    // 计价按客户解析(促销引擎入参 userId=客户)
+    verify(exactly = 1) {
+      promotionPricingService.preview(match { it.userId == 200L })
+    }
+  }
+  // ============ 多商品下单(F-ORD-004) ============
+
+  @Test
+  @DisplayName("F-ORD-004:多商品下单明细落 order_items,订单进入待支付(AC-ORD-004-05)")
+  fun `multi item order persists items`() {
+    val addr = address(floor = 4)
+    stubCreateOrderCommon(addr)
+    every { productQueryApiService.findById(2L) } returns ProductModel(id = 2L, name = "矿泉水", price = 500, stock = 100)
+    every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+      DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+    every { orderItemRepository.saveAll(any<List<OrderItemModel>>()) } answers { firstArg() }
+
+    val order =
+      service.createOrder(
+        CreateOrderRequest(
+          userId = 100L,
+          items = listOf(OrderItemRequest(1L, 2), OrderItemRequest(2L, 3)),
+          addressId = 1L,
+        ),
+      )
+
+    // 明细逐项落库(商品1×2 + 商品2×3)
+    verify(exactly = 1) { orderItemRepository.saveAll(any<List<OrderItemModel>>()) }
+    assertEquals(OrderModelStatus.PENDING_PAYMENT, order.status)
+  }
+
+  @Test
+  @DisplayName("F-ORD-004:部分商品缺货整体拦截,不扣任何库存(AC-ORD-004-03/04)")
+  fun `multi item partial stock shortage blocks order`() {
+    val addr = address(floor = 4)
+    stubCreateOrderCommon(addr)
+    val second = ProductModel(id = 2L, name = "矿泉水", price = 500, stock = 0)
+    every { productQueryApiService.findById(2L) } returns second
+    every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+      DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+
+    assertFailsWith<BadRequestException> {
+      service.createOrder(
+        CreateOrderRequest(
+          userId = 100L,
+          items = listOf(OrderItemRequest(1L, 1), OrderItemRequest(2L, 1)),
+          addressId = 1L,
+        ),
+      )
+    }
+
+    // 未扣减任何库存
+    verify(exactly = 0) { productService.decreaseStock(any(), any()) }
+  }
+
+  @Test
+  @DisplayName("F-ORD-004:取消订单逐商品恢复库存(R-ORD-02)")
+  fun `cancel multi item order restores each stock`() {
+    val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
+    every { orderQueryService.getOrderById(1L) } returns order
+    every { orderRepository.save(any()) } answers { firstArg() }
+    every { productService.increaseStock(any(), any()) } returns true
+    every { orderItemRepository.findByOrderId(1L) } returns
+      listOf(
+        OrderItemModel(orderId = 1L, productId = 1L, quantity = 2, unitPriceCents = 1000, totalPriceCents = 2000, productSnapshot = "{}"),
+        OrderItemModel(orderId = 1L, productId = 2L, quantity = 3, unitPriceCents = 500, totalPriceCents = 1500, productSnapshot = "{}"),
+      )
+
+    service.cancelOrder(1L)
+
+    verify(exactly = 1) { productService.increaseStock(1L, 2) }
+    verify(exactly = 1) { productService.increaseStock(2L, 3) }
   }
 }

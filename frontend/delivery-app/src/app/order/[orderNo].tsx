@@ -287,7 +287,7 @@ export default function OrderDetailScreen() {
 
         <AddressCard address={order.address ?? undefined} />
 
-        <ProductCard product={order.product ?? undefined} quantity={order.quantity} remark={order.remark ?? undefined} />
+          <ProductCard items={order.items ?? undefined} remark={order.remark ?? undefined} />
 
         {order.status === 'DELIVERING' || isCompleted ? (
           <DeliveryInfoCard

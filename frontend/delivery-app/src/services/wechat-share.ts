@@ -50,12 +50,13 @@ export async function shareOrderToWechat(
     return false;
   }
 
-  const { address, product, quantity, amountCents } = order;
+  const { address, amountCents } = order;
+  const firstItem = Array.isArray(order.items) && order.items.length > 0 ? order.items[0] : undefined;
   const fullAddress = address
     ? `${address.province || ''}${address.city || ''}${address.district || ''}${address.detailAddress || ''}`
     : '';
   const title = address ? `${address.receiverName || ''} - ${fullAddress}` : '订单详情';
-  const description = `${product?.name || '商品'} x${quantity ?? 1} ${formatCentsToCurrency(normalizeCents(amountCents) ?? 0)}`;
+  const description = `${firstItem?.product?.name || '商品'} x${firstItem?.quantity ?? 1} ${formatCentsToCurrency(normalizeCents(amountCents) ?? 0)}`;
   const webpageUrl = buildOrderDeepLink(order.orderNo || '');
 
   const share = (thumbImageUrl?: string) =>

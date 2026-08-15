@@ -31,6 +31,7 @@ import dev.yidafu.aqua.common.domain.model.UserTicketModel
 import dev.yidafu.aqua.common.graphql.generated.CouponOptionVo
 import dev.yidafu.aqua.common.graphql.generated.CouponTemplateVo
 import dev.yidafu.aqua.common.graphql.generated.GiftItemVo
+import dev.yidafu.aqua.common.graphql.generated.OrderPreviewItemVo
 import dev.yidafu.aqua.common.graphql.generated.OrderPreviewVo
 import dev.yidafu.aqua.common.graphql.generated.ProductPriceVo
 import dev.yidafu.aqua.common.graphql.generated.TicketPurchaseVo
@@ -206,6 +207,7 @@ fun OrderPricingResult.toGraphQL(
   availableCoupons: List<UserCouponVo>,
 ): OrderPreviewVo =
   OrderPreviewVo(
+    items = items.map { it.toGraphQL() },
     unitPriceCents = unitPriceCents,
     priceSource = priceSource.toGraphQL(),
     subtotalCents = subtotalCents,
@@ -258,4 +260,19 @@ fun PriceResolution.toGraphQL(
     priceSource = priceSource.toGraphQL(),
     hasGroupPrice = hasGroupPrice,
     catalogPriceCents = catalogPriceCents,
+  )
+
+/**
+ * 商品计价明细 → OrderPreviewItemVO(F-ORD-004 多商品下单)
+ */
+fun dev.yidafu.aqua.api.dto.OrderPricingItemResult.toGraphQL(): OrderPreviewItemVo =
+  OrderPreviewItemVo(
+    productId = productId,
+    quantity = quantity,
+    unitPriceCents = unitPriceCents,
+    priceSource = priceSource.toGraphQL(),
+    catalogPriceCents = catalogPriceCents,
+    subtotalCents = subtotalCents,
+    ticketCoveredQuantity = ticketCoveredQuantity,
+    cashSubtotalCents = cashSubtotalCents,
   )

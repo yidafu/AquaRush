@@ -1,22 +1,3 @@
-/**
- * AquaRush
- *
- * Copyright (C) 2025 AquaRush Team
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published
- * by the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program.  If not, see <https://www.gnu.org/licenses/>.
- */
-
 package dev.yidafu.aqua.marketing.engine
 
 import dev.yidafu.aqua.api.service.marketing.TicketQueryApiService
@@ -27,10 +8,11 @@ import dev.yidafu.aqua.marketing.ticket.domain.repository.UserTicketRepository
 import org.springframework.stereotype.Component
 
 /**
- * 桶水票核销规则(R-MKT-08):
+ * 桶水票核销规则(R-MKT-08,多商品订单 F-ORD-004):
  * 一票抵一桶,被核销商品数量按单价 0 计入应付,不参与现金计价(R-MKT-02/07);
- * 候选池 UNUSED/RETURNED 未过期,按类型过滤(指定商品票 productId 匹配/通兑票 specification 匹配),先过期先用(FIFO);
- * 核销张数 ≤ 下单桶数 ∩ 可用张数;下单消费时逐张原子核销,实际核销数 < 预检 → 回滚。
+ * 候选池 UNUSED/RETURNED 未过期,按类型过滤(指定商品票 productId 匹配任一商品/通兑票 specification 匹配任一商品),
+ * 先过期先用(FIFO);核销张数 ≤ 订单总桶数 ∩ 可用张数,按 items 顺序逐商品覆盖;
+ * 下单消费时逐张原子核销,实际核销数 < 预检 → 回滚。
  */
 @Component
 class TicketRule(
@@ -51,11 +33,24 @@ class TicketRule(
         .sortedBy { it.expireTime } // 先过期先用
 
     state.availableTicketCount = pool.size
-    val requested = minOf(ctx.ticketRedeemCount, ctx.quantity)
+    val requested = minOf(ctx.ticketRedeemCount, ctx.totalQuantity)
     val redeemCount = minOf(requested, pool.size)
+
+    // 按 items 顺序逐商品覆盖(记录每商品被覆盖桶数)
+    var remaining = redeemCount
+    val updatedItems =
+      state.items.map { item ->
+        val covered = minOf(item.quantity, remaining)
+        remaining -= covered
+        item.copy(
+          ticketCoveredQuantity = covered,
+          cashSubtotalCents = item.unitPriceCents * (item.quantity - covered),
+        )
+      }
+    state.items = updatedItems.toMutableList()
     state.ticketRedeemCount = redeemCount
     state.ticketCoveredQuantity = redeemCount
-    state.cashSubtotalCents = state.unitPriceCents * (ctx.quantity - redeemCount)
+    state.cashSubtotalCents = updatedItems.sumOf { it.cashSubtotalCents }
 
     // 下单消费:逐张原子核销,带 orderId 留痕
     val orderId = ctx.orderId
@@ -82,8 +77,9 @@ class TicketRule(
   ): Boolean {
     val type = ticketTypeRepository.findById(ticketTypeId).orElse(null) ?: return false
     return when (type.ticketType) {
-      TicketTypeKind.SPECIFIC_PRODUCT -> type.productId == ctx.productId
-      TicketTypeKind.UNIVERSAL -> type.specification != null && type.specification == ctx.product.specification
+      TicketTypeKind.SPECIFIC_PRODUCT -> type.productId in ctx.productIds
+      TicketTypeKind.UNIVERSAL ->
+        type.specification != null && ctx.items.any { type.specification == it.product.specification }
     }
   }
 }

@@ -1,0 +1,148 @@
+.order-review-page {
+  min-height: 100vh;
+  background: var(--theme-background-page);
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 200px;
+  color: var(--theme-text-secondary);
+  font-size: 28px;
+}
+
+/* ============ 已评价只读展示 ============ */
+.review-card {
+  background: var(--theme-background-card, #ffffff);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.review-card-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+  margin-bottom: 24px;
+}
+
+.review-hint {
+  display: block;
+  margin-top: 24px;
+  font-size: 22px;
+  color: var(--theme-text-tertiary);
+}
+
+/* ============ 评价表单 ============ */
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-section {
+  background: var(--theme-background-card, #ffffff);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+.form-section.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  display: block;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.section-desc {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  color: var(--theme-text-secondary);
+}
+
+/* 星级 */
+.stars {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.stars.picker .star {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.star {
+  font-size: 40px;
+  color: #d9d9d9;
+  transition: color 0.2s;
+}
+
+.star.active {
+  color: #ffb800;
+}
+
+/* 评论输入 */
+.comment-input {
+  width: 100%;
+  min-height: 200px;
+  margin-top: 16px;
+  padding: 20px;
+  background: var(--theme-background-page);
+  border-radius: 12px;
+  font-size: 28px;
+  color: var(--theme-text-primary);
+  box-sizing: border-box;
+}
+
+.char-count {
+  display: block;
+  text-align: right;
+  margin-top: 8px;
+  font-size: 22px;
+  color: var(--theme-text-tertiary);
+}
+
+.comment-text {
+  display: block;
+  margin-top: 16px;
+  font-size: 28px;
+  line-height: 1.6;
+  color: var(--theme-text-primary);
+}
+
+.review-meta {
+  display: block;
+  margin-top: 16px;
+  font-size: 22px;
+  color: var(--theme-text-secondary);
+}
+
+.anonymous-info {
+  flex: 1;
+}
+
+/* 提交按钮 */
+.submit-button {
+  margin-top: 16px;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  border-radius: 44px;
+  font-size: 30px;
+  font-weight: 600;
+  color: #ffffff;
+  border: none;
+}
+
+.submit-button::after {
+  border: none;
+}

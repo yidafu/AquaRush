@@ -20,9 +20,12 @@
 package dev.yidafu.aqua.order.service.impl
 
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
+import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
+import org.springframework.data.domain.Page
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
 
@@ -33,8 +36,14 @@ import java.time.LocalDateTime
 @Service
 class OrderQueryApiServiceImpl(
   private val orderRepository: OrderRepository,
+  private val orderItemRepository: OrderItemRepository,
 ) : OrderQueryApiService {
   override fun findById(id: Long): OrderModel? = orderRepository.findById(id).orElse(null)
+
+  /**
+   * 订单商品明细(F-ORD-004 多商品下单,order_items 权威数据源)
+   */
+  override fun findItemsByOrderId(orderId: Long): List<OrderItemModel> = orderItemRepository.findByOrderId(orderId)
 
   override fun findByIds(ids: List<Long>): List<OrderModel> = orderRepository.findAllById(ids)
 
@@ -46,6 +55,19 @@ class OrderQueryApiServiceImpl(
     userId: Long,
     status: OrderModelStatus,
   ): List<OrderModel> = orderRepository.findByUserIdAndStatus(userId, status)
+
+  override fun findByUserIdPaginated(
+    userId: Long,
+    statuses: List<OrderModelStatus>?,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel> =
+    orderRepository.findUserOrdersPaginated(
+      userId = userId,
+      statuses = statuses,
+      page = page,
+      size = size,
+    )
 
   override fun hasCompletedOrders(userId: Long): Boolean = orderRepository.existsByUserIdAndStatus(userId, OrderModelStatus.COMPLETED)
 

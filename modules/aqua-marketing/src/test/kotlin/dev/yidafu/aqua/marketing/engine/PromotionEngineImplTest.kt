@@ -253,11 +253,43 @@ class PromotionEngineImplTest {
   ): OrderPricingRequest =
     OrderPricingRequest(
       userId = 1L,
-      productId = 1L,
-      quantity = quantity,
+      items =
+        listOf(
+          dev.yidafu.aqua.api.dto
+            .OrderPricingItemRequest(productId = 1L, quantity = quantity),
+        ),
       preferredCouponId = preferredCouponId,
       ticketRedeemCount = ticketRedeemCount,
     )
+
+  /** 多商品请求(F-ORD-004):商品1×q1 + 商品2×q2 */
+  private fun multiRequest(
+    q1: Int,
+    q2: Int,
+    ticketRedeemCount: Int = 0,
+  ): OrderPricingRequest =
+    OrderPricingRequest(
+      userId = 1L,
+      items =
+        listOf(
+          dev.yidafu.aqua.api.dto
+            .OrderPricingItemRequest(productId = 1L, quantity = q1),
+          dev.yidafu.aqua.api.dto
+            .OrderPricingItemRequest(productId = 2L, quantity = q2),
+        ),
+      ticketRedeemCount = ticketRedeemCount,
+    )
+
+  /** 商品独立计价 stub */
+  private fun stubCatalogPriceFor(
+    productId: Long,
+    unitPrice: Long,
+  ) {
+    every { productQueryApiService.findById(productId) } returns product(id = productId, price = unitPrice)
+    every { marketingPricingQueryApiService.resolveUnitPrice(1L, productId) } returns
+      PriceResolution(unitPrice, PriceSource.CATALOG_PRICE, false)
+    every { marketingPricingQueryApiService.findGroupId(1L) } returns null
+  }
 
   private fun stubCatalogPrice() {
     every { productQueryApiService.findById(1L) } returns product()
@@ -684,5 +716,158 @@ class PromotionEngineImplTest {
 
     assertEquals(10500 * (10000 - 9000) / 10000, result.firstOrderDiscountCents) // 1050
     assertEquals(9450, result.payableProductCents)
+  }
+
+  // ============ 多商品下单(F-ORD-004) ============
+
+  @Test
+  @DisplayName("多商品:单价逐商品解析,聚合小计=Σ金额(AC-ORD-004-02)")
+  fun `multi item resolves unit price per item`() {
+    stubCatalogPriceFor(1L, 2100)
+    stubCatalogPriceFor(2L, 1500)
+    stubNoTickets()
+    stubNoPromotions()
+    stubNoCoupons()
+
+    val result = engine.preview(multiRequest(q1 = 2, q2 = 3))
+
+    assertEquals(2, result.items.size)
+    assertEquals(2100, result.items[0].unitPriceCents)
+    assertEquals(1500, result.items[1].unitPriceCents)
+    assertEquals(4200, result.items[0].subtotalCents)
+    assertEquals(4500, result.items[1].subtotalCents)
+    assertEquals(4200 + 4500, result.subtotalCents)
+    assertEquals(8700, result.cashSubtotalCents)
+    assertEquals(8700, result.payableProductCents)
+    // 聚合展示:首件成交单价
+    assertEquals(2100, result.unitPriceCents)
+    assertEquals(PriceSource.CATALOG_PRICE, result.priceSource)
+  }
+
+  @Test
+  @DisplayName("多商品:满减按聚合现金小计判定,PRODUCT 范围命中任一商品")
+  fun `multi item promotion uses aggregate subtotal`() {
+    stubCatalogPriceFor(1L, 2100)
+    stubCatalogPriceFor(2L, 1500)
+    stubNoTickets()
+    stubNoCoupons()
+    // 指定商品活动命中商品2(聚合小计 8700 ≥ 5000 → 减 1000)
+    every { promotionActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, any()) } returns
+      listOf(activity(1, scope = PromotionScope.PRODUCT, productId = 2L))
+    every { promotionActivityTierRepository.findByActivityIdOrderBySortAsc(1L) } returns
+      listOf(tier(5000, amount = 1000))
+
+    val result = engine.preview(multiRequest(q1 = 2, q2 = 3))
+
+    assertEquals(1000, result.promotionDiscountCents)
+    assertEquals(8700 - 1000, result.payableProductCents)
+  }
+
+  @Test
+  @DisplayName("多商品:水票跨商品核销,上限=Σ数量,按 items 顺序覆盖")
+  fun `multi item tickets redeem across items`() {
+    stubCatalogPriceFor(1L, 2100)
+    stubCatalogPriceFor(2L, 1500)
+    stubNoPromotions()
+    stubNoCoupons()
+    // 通兑票 4 张,规格 19L 匹配商品1
+    every { ticketQueryApiService.findUsableTickets(1L) } returns
+      listOf(ticket(1, 1), ticket(2, 1), ticket(3, 1), ticket(4, 1))
+    every { ticketTypeRepository.findById(1L) } returns
+      java.util.Optional.of(ticketType(1, TicketTypeKind.UNIVERSAL, specification = "19L"))
+
+    // 商品1×2 + 商品2×3,核销 4 张 → 商品1 覆盖 2 桶,商品2 覆盖 2 桶
+    val result = engine.preview(multiRequest(q1 = 2, q2 = 3, ticketRedeemCount = 4))
+
+    assertEquals(4, result.ticketRedeemCount)
+    assertEquals(4, result.ticketCoveredQuantity)
+    assertEquals(2, result.items[0].ticketCoveredQuantity)
+    assertEquals(2, result.items[1].ticketCoveredQuantity)
+    assertEquals(0, result.items[0].cashSubtotalCents)
+    assertEquals(1500, result.items[1].cashSubtotalCents)
+    assertEquals(1500, result.cashSubtotalCents)
+    assertEquals(1500, result.payableProductCents)
+  }
+
+  @Test
+  @DisplayName("多商品:PRODUCT 范围券命中任一商品,门槛按聚合现金小计")
+  fun `multi item product coupon matches any item`() {
+    stubCatalogPriceFor(1L, 2100)
+    stubCatalogPriceFor(2L, 1500)
+    stubNoTickets()
+    stubNoPromotions()
+    // 指定商品2的券:聚合小计 8700 ≥ 5000 可用,减 1000
+    every { couponQueryApiService.findUsableCoupons(1L) } returns
+      listOf(coupon(1, amount = 1000, threshold = 5000, scope = CouponScope.PRODUCT, productId = 2L))
+
+    val result = engine.preview(multiRequest(q1 = 2, q2 = 3))
+
+    assertEquals(1L, result.selectedCouponId)
+    assertEquals(1000, result.couponDiscountCents)
+    assertEquals(7700, result.payableProductCents)
+  }
+
+  @Test
+  @DisplayName("多商品:任一商品为限时特价 → 跳过订单层叠加①")
+  fun `multi item flash sale skips order level discounts`() {
+    stubCatalogPriceFor(1L, 2100)
+    stubNoTickets()
+    stubNoCoupons()
+    // 商品2 特价 1200
+    every { productQueryApiService.findById(2L) } returns product(id = 2L, price = 1500)
+    every { marketingPricingQueryApiService.resolveUnitPrice(1L, 2L) } returns
+      PriceResolution(1200, PriceSource.FLASH_SALE_PRICE, false, hasFlashSale = true)
+    every { promotionActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, any()) } returns
+      listOf(activity(1))
+    every { promotionActivityTierRepository.findByActivityIdOrderBySortAsc(1L) } returns
+      listOf(tier(1000, amount = 10000))
+
+    val result = engine.preview(multiRequest(q1 = 2, q2 = 3))
+
+    assertEquals(0, result.promotionDiscountCents)
+    assertEquals(0, result.firstOrderDiscountCents)
+  }
+
+  @Test
+  @DisplayName("多商品:重复商品拒绝(购物车按 productId 合并,后端兜底)")
+  fun `multi item rejects duplicate product`() {
+    stubCatalogPriceFor(1L, 2100)
+
+    assertFailsWith<BadRequestException> {
+      engine.preview(
+        OrderPricingRequest(
+          userId = 1L,
+          items =
+            listOf(
+              dev.yidafu.aqua.api.dto
+                .OrderPricingItemRequest(productId = 1L, quantity = 1),
+              dev.yidafu.aqua.api.dto
+                .OrderPricingItemRequest(productId = 1L, quantity = 2),
+            ),
+        ),
+      )
+    }
+  }
+
+  @Test
+  @DisplayName("多商品:商品不存在 → NotFoundException")
+  fun `multi item rejects missing product`() {
+    stubCatalogPriceFor(1L, 2100)
+    every { productQueryApiService.findById(999L) } returns null
+
+    assertFailsWith<dev.yidafu.aqua.common.exception.NotFoundException> {
+      engine.preview(
+        OrderPricingRequest(
+          userId = 1L,
+          items =
+            listOf(
+              dev.yidafu.aqua.api.dto
+                .OrderPricingItemRequest(productId = 1L, quantity = 1),
+              dev.yidafu.aqua.api.dto
+                .OrderPricingItemRequest(productId = 999L, quantity = 1),
+            ),
+        ),
+      )
+    }
   }
 }

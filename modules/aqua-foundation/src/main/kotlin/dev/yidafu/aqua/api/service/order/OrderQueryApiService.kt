@@ -1,7 +1,9 @@
 package dev.yidafu.aqua.api.service.order
 
+import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import org.springframework.data.domain.Page
 import java.time.LocalDateTime
 
 /*
@@ -30,6 +32,12 @@ import java.time.LocalDateTime
 interface OrderQueryApiService {
   fun findById(id: Long): OrderModel?
 
+  /**
+   * 查询订单商品明细(F-ORD-004 多商品下单,order_items 表):
+   * 订单商品以明细为准,按创建时间升序返回。
+   */
+  fun findItemsByOrderId(orderId: Long): List<OrderItemModel>
+
   fun findByIds(ids: List<Long>): List<OrderModel>
 
   fun findByOrderNumber(orderNumber: String): OrderModel?
@@ -40,6 +48,18 @@ interface OrderQueryApiService {
     userId: Long,
     status: OrderModelStatus,
   ): List<OrderModel>
+
+  /**
+   * 用户订单分页查询(用户端订单列表,F-ORD-002,PRD 04-order.md):
+   * statuses 为空=全部状态;「待发货」口径=待派单+待配送(PENDING_DISPATCH/PENDING_DELIVERY);
+   * 按下单时间倒序;userId 由调用方强制为登录用户(防越权)。
+   */
+  fun findByUserIdPaginated(
+    userId: Long,
+    statuses: List<OrderModelStatus>?,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel>
 
   /**
    * 用户是否已有已完成订单(PRD 10-marketing.md §R-MKT-10 新用户判定=无已完成订单)

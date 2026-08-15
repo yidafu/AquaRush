@@ -48,7 +48,7 @@ class GiftRule(
   ) {
     val userGroupId = marketingPricingQueryApiService.findGroupId(ctx.userId)
     val cashSubtotal = state.cashSubtotalCents
-    val cashQuantity = ctx.quantity - state.ticketCoveredQuantity
+    val cashQuantity = ctx.totalQuantity - state.ticketCoveredQuantity
 
     val candidates =
       giftActivityRepository
@@ -56,7 +56,7 @@ class GiftRule(
         .filter { activity ->
           when (activity.scope) {
             PromotionScope.ALL -> true
-            PromotionScope.PRODUCT -> activity.productId == ctx.productId
+            PromotionScope.PRODUCT -> activity.productId != null && activity.productId in ctx.productIds
             PromotionScope.GROUP -> activity.customerGroupId != null && activity.customerGroupId == userGroupId
           }
         }

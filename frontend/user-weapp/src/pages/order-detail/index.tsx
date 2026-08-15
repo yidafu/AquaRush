@@ -1,8 +1,8 @@
 import { Component } from 'react'
-import { View, Text, Image, Button, Progress, Steps } from '@tarojs/components'
+import { View, Text, Image } from '@tarojs/components'
 import { AtCard, AtIcon, AtButton, AtToast, AtTag, AtTimeline, AtProgress } from 'taro-ui'
 import Taro from '@tarojs/taro'
-import { Money } from '@aquarush/common'
+import { Money, OrderReviewCheckResponse, normalizeCents } from '@aquarush/common'
 import OrderService from '../../services/OrderService'
 import { userActionTracker } from '../../utils/tracking'
 
@@ -19,10 +19,18 @@ interface OrderItem {
   id: string
   name: string
   image: string
+  // 成交单价快照(分,R-MKT-02 优惠价;无营销价=目录价)
   priceCents: number
+  // 目录价(分,划线价展示依据)
+  originalPriceCents?: number
+  // 成交单价来源快照(CATALOG_PRICE=无营销价)
+  priceSource?: string | null
   quantity: number
   specifications?: string[]
 }
+
+// 评价信息(F-ORD-007):服务端返回结构(OrderReviewCheckResponse),含已评价内容与是否可评
+type ReviewCheckState = OrderReviewCheckResponse
 
 interface DeliveryInfo {
   deliveryWorkerId?: string
@@ -76,6 +84,8 @@ interface OrderDetailState {
   toastText: string
   toastType: 'success' | 'error' | 'loading'
   refreshing: boolean
+  // 评价信息(F-ORD-007):已完成订单的评价入口/已评内容
+  reviewInfo: ReviewCheckState | null
 }
 
 const STATUS_MAP = {
@@ -102,7 +112,8 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       showToast: false,
       toastText: '',
       toastType: 'success',
-      refreshing: false
+      refreshing: false,
+      reviewInfo: null
     }
   }
 
@@ -157,7 +168,12 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       // 优先加载真实订单数据(F-ORD-003);失败回退模拟数据(离线/演示场景)
       const result = await OrderService.getInstance().getOrder(this.orderId)
       if (result.success && result.data) {
-        this.setState({ order: this.mapRealOrder(result.data) })
+        const order = this.mapRealOrder(result.data)
+        this.setState({ order })
+        // 已完成订单:加载评价信息(F-ORD-007)
+        if (order.status === 'completed') {
+          this.loadReviewCheck()
+        }
         return
       }
 
@@ -272,19 +288,23 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
   }
 
   /**
-   * 真实订单 → 页面订单结构(商品信息来自订单快照,金额均为分)
+   * 真实订单 → 页面订单结构(F-ORD-004 多商品:商品信息来自 order.items 随单快照,金额均为分)
    */
   mapRealOrder = (order: any) => {
-    const items: OrderItem[] = order.product
-      ? [{
-          id: order.product.id,
-          name: order.product.name,
-          image: order.product.coverImageUrl || '/assets/default-product.png',
-          priceCents: order.product.priceCents,
-          quantity: order.quantity,
-          specifications: order.product.specification ? [order.product.specification] : []
-        }]
-      : []
+    const rawItems: any[] = Array.isArray(order.items) && order.items.length > 0 ? order.items : []
+    const items: OrderItem[] = rawItems.map((item: any) => ({
+      id: item.productId,
+      name: item.product?.name || '商品',
+      image: item.product?.coverImageUrl || '/assets/default-product.png',
+      // 优惠价=明细成交单价快照;无营销价时=目录价快照(AC-ORD-003-09 —— R-MKT-01/02)
+      priceCents: normalizeCents(item.unitPriceCents) ?? normalizeCents(item.product?.priceCents) ?? 0,
+      originalPriceCents: item.unitPriceCents != null && normalizeCents(item.unitPriceCents) !== normalizeCents(item.product?.priceCents)
+        ? normalizeCents(item.product?.priceCents) ?? undefined
+        : undefined,
+      priceSource: 'CATALOG_PRICE',
+      quantity: item.quantity,
+      specifications: item.product?.specification ? [item.product.specification] : []
+    }))
 
     const status = this.mapStatus(order.status)
     const timeline: OrderTimeline[] = []
@@ -379,19 +399,44 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       success: async (res) => {
         if (res.confirm) {
           try {
-            // TODO: 实际项目中这里应该调用取消订单的API
-            // await cancelOrder(order.id)
-
+            // 真实取消接口(F-ORD-006,G02 接线):未支付即时取消恢复库存;已支付自动退款
+            const result = await OrderService.getInstance().cancelOrder(order.id)
+            if (!result.success) {
+              throw new Error(result.error?.message || '取消订单失败')
+            }
             this.showToast('订单已取消', 'success')
 
             // 刷新订单详情
             this.loadOrderDetail()
           } catch (error) {
             console.error('取消订单失败:', error)
-            this.showToast('取消订单失败', 'error')
+            this.showToast(error instanceof Error ? error.message : '取消订单失败', 'error')
           }
         }
       }
+    })
+  }
+
+  /**
+   * 评价信息加载(F-ORD-007):一单一评,已评价展示内容,未评价展示入口
+   */
+  loadReviewCheck = async () => {
+    try {
+      const result = await OrderService.getInstance().getReviewCheck(this.orderId)
+      if (result.success && result.data) {
+        this.setState({ reviewInfo: result.data })
+      }
+    } catch (error) {
+      console.error('获取评价信息失败:', error)
+    }
+  }
+
+  /**
+   * 进入评价页(F-ORD-007)
+   */
+  handleReview = () => {
+    Taro.navigateTo({
+      url: `/pages/order-review/index?orderId=${this.orderId}`
     })
   }
 
@@ -401,32 +446,6 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
 
     Taro.makePhoneCall({
       phoneNumber: order.deliveryInfo.deliveryWorkerPhone
-    })
-  }
-
-  handleConfirmReceive = () => {
-    const { order } = this.state
-    if (!order) return
-
-    Taro.showModal({
-      title: '确认收货',
-      content: '确定已收到商品吗？',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            // TODO: 实际项目中这里应该调用确认收货的API
-            // await confirmReceive(order.id)
-
-            this.showToast('确认收货成功', 'success')
-
-            // 刷新订单详情
-            this.loadOrderDetail()
-          } catch (error) {
-            console.error('确认收货失败:', error)
-            this.showToast('确认收货失败', 'error')
-          }
-        }
-      }
     })
   }
 
@@ -524,7 +543,13 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
                 </Text>
               )}
               <View className='item-bottom'>
-                <Text className='item-price'><Money cents={item.priceCents || 0} /></Text>
+                <View className='item-price-row'>
+                  <Text className='item-price'><Money cents={item.priceCents || 0} /></Text>
+                  {/* 有营销价时划线目录价(AC-ORD-003-09 —— R-MKT-01/02) */}
+                  {item.priceSource && item.priceSource !== 'CATALOG_PRICE' && item.originalPriceCents != null && (
+                    <Text className='item-original-price'><Money cents={item.originalPriceCents} /></Text>
+                  )}
+                </View>
                 <Text className='item-quantity'>x{item.quantity || 0}</Text>
               </View>
             </View>
@@ -535,7 +560,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
   }
 
   render() {
-    const { order, loading, showToast, toastText, toastType } = this.state
+    const { order, loading, showToast, toastText, toastType, reviewInfo } = this.state
 
     if (loading) {
       return (
@@ -710,6 +735,34 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
           </View>
         </AtCard>
 
+        {/* 订单评价(F-ORD-007):已评价展示内容 */}
+        {order.status === 'completed' && reviewInfo?.hasReviewed && reviewInfo.review && (
+          <AtCard
+            title='我的评价'
+            className='review-card shadow-default'
+          >
+            <View className='review-content'>
+              <View className='review-stars'>
+                {[1, 2, 3, 4, 5].map(star => (
+                  <Text
+                    key={star}
+                    className={`review-star ${star <= reviewInfo.review!.rating ? 'active' : ''}`}
+                  >
+                    ★
+                  </Text>
+                ))}
+              </View>
+              {reviewInfo.review.comment && (
+                <Text className='review-comment'>{reviewInfo.review.comment}</Text>
+              )}
+              <Text className='review-time'>
+                {reviewInfo.review.createdAt}
+                {reviewInfo.review.isAnonymous ? ' · 匿名评价' : ''}
+              </Text>
+            </View>
+          </AtCard>
+        )}
+
         {/* 订单信息 */}
         <AtCard
           title='订单信息'
@@ -791,32 +844,30 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
           )}
 
           {order.status === 'delivering' && (
-            <>
-              <AtButton
-                type='secondary'
-                size='normal'
-                onClick={this.handleTrackDelivery}
-                className='action-button'
-              >
-                查看配送
-              </AtButton>
-              <AtButton
-                trackTarget="order-confirm-receive"
-                trackElementType="button"
-                trackElementText="确认收货"
-                trackProps={{ orderId: order.id }}
-                onClick={this.handleConfirmReceive}
-                  type='primary'
-                  size='normal'
-                  className='action-button primary'
-                >
-                  确认收货
-                </AtButton>
-            </>
+            <AtButton
+              type='secondary'
+              size='normal'
+              onClick={this.handleTrackDelivery}
+              className='action-button'
+            >
+              查看配送
+            </AtButton>
           )}
 
           {order.status === 'completed' && (
             <>
+              <AtButton
+                trackTarget="order-review"
+                trackElementType="button"
+                trackElementText={reviewInfo?.hasReviewed ? '查看评价' : '评价'}
+                trackProps={{ orderId: order.id }}
+                onClick={this.handleReview}
+                type='secondary'
+                size='normal'
+                className='action-button'
+              >
+                {reviewInfo?.hasReviewed ? '查看评价' : '评价'}
+              </AtButton>
               <AtButton
                 trackTarget="order-reorder"
                 trackElementType="button"

@@ -278,6 +278,40 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     return PageImpl(content, pageable, total)
   }
 
+  override fun findUserOrdersPaginated(
+    userId: Long,
+    statuses: List<OrderModelStatus>?,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel> {
+    val builder =
+      BooleanBuilder().and(orderModel.userId.eq(userId))
+    statuses?.takeIf { it.isNotEmpty() }?.let {
+      builder.and(orderModel.status.`in`(it))
+    }
+
+    val pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt")))
+
+    val query =
+      queryFactory
+        .selectFrom(orderModel)
+        .where(builder)
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .orderBy(orderModel.createdAt.desc())
+
+    @Suppress("UNCHECKED_CAST")
+    val content = query.fetch() as List<OrderModel>
+    val total =
+      queryFactory
+        .query()
+        .from(orderModel)
+        .where(builder)
+        .fetchCount()
+
+    return PageImpl(content, pageable, total)
+  }
+
   @Transactional
   override fun bulkUpdateOrderStatus(
     orderIds: List<Long>,

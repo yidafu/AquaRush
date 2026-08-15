@@ -274,12 +274,10 @@ type Order {
   orderNo: String!
   # 下单用户
   user: User
-  # 订购商品
-  product: Product
   # 配送地址
   address: Address
-  # 订购数量
-  quantity: Int!
+  # 订单商品明细(F-ORD-004 多商品下单,权威数据源 order_items 表)
+  items: [OrderItemVO!]!
   # 订单金额（分）
   amountCents: Long!
   # 配送费(分,下单时按配送费规则快照,规则变更不影响已生成订单 —— R-MON-02)
@@ -314,10 +312,27 @@ type Order {
   createdAt: LocalDateTime!
   # 更新时间
   updatedAt: LocalDateTime!
+  # 满减/折扣优惠快照(分,叠加① —— R-MKT-07)
+  promotionDiscountCents: Long
   # 首单立减优惠(分,叠加①与满减互斥取最大 —— R-MKT-10)
   firstOrderDiscountCents: Long
+  # 优惠券优惠快照(分,叠加③ —— R-MKT-07,一单一券)
+  couponDiscountCents: Long
   # 买赠/满赠赠品行(附加 0 价行,随单配送 —— R-MKT-09)
   giftItems: [GiftItemVO!]
+}
+
+# 订单商品明细项(F-ORD-004 多商品下单:成交单价/小计随单快照,商品信息取快照)
+type OrderItemVO {
+  productId: PrimaryId!
+  # 商品信息(下单时快照:名称/规格/封面/目录价)
+  product: Product!
+  # 购买数量
+  quantity: Int!
+  # 成交单价(分,下单时营销引擎解析结果 —— R-MKT-02)
+  unitPriceCents: Long!
+  # 商品小计(分)= 成交单价 × 数量
+  totalPriceCents: Long!
 }
 
 # 赠品行(R-MKT-09:赠品为附加 0 价行,单价 ¥0.00 由前端呈现,不传价)
@@ -651,12 +666,17 @@ input AddressInput {
   isDefault: Boolean! = false
 }
 
-input CreateOrderInput {
+input OrderItemInput {
   productId: PrimaryId! @positive(message: "商品ID必须为正数")
-  addressId: PrimaryId! @positive(message: "地址ID必须为正数")
   quantity: Int!
     @min(value: 1, message: "购买数量不能少于1")
     @max(value: 999, message: "购买数量不能超过999")
+}
+
+input CreateOrderInput {
+  # 商品明细列表(F-ORD-004 多商品下单;单商品=单元素;同一商品不可重复)
+  items: [OrderItemInput!]!
+  addressId: PrimaryId! @positive(message: "地址ID必须为正数")
   remark: String @size(max: 500, message: "备注长度不能超过500个字符")
   # 优惠券选择(促销引擎 R-MKT-07 叠加③):省略=引擎自动选最优,0=不用券;一单一券
   preferredCouponId: PrimaryId @min(value: 0, message: "优惠券ID无效")

@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.admin.order.resolvers
 
+import dev.yidafu.aqua.admin.order.mapper.AdminOrderMapper
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.graphql.generated.GiftItemVo
 import dev.yidafu.aqua.common.graphql.generated.Order
@@ -26,7 +27,6 @@ import dev.yidafu.aqua.common.graphql.generated.OrderListInput
 import dev.yidafu.aqua.common.graphql.generated.OrderVoPage
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
 import dev.yidafu.aqua.order.domain.repository.OrderGiftRepository
-import dev.yidafu.aqua.order.mapper.OrderMapper
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.graphql.data.method.annotation.SchemaMapping
@@ -37,6 +37,7 @@ import org.springframework.stereotype.Controller
 class AdminOrderQueryResolver(
   private val orderQueryService: OrderQueryService,
   private val orderGiftRepository: OrderGiftRepository,
+  private val adminOrderMapper: AdminOrderMapper,
 ) {
   /**
    * Order 字段级解析:赠品行(随单快照,配置变更不影响已生成订单 —— R-MKT-09)
@@ -78,7 +79,7 @@ class AdminOrderQueryResolver(
         sort = sort,
       )
 
-    val (orderList, pageInfo) = ordersPage.toPageInfo { OrderMapper.map(it) }
+    val (orderList, pageInfo) = ordersPage.toPageInfo { adminOrderMapper.map(it) }
     return OrderVoPage(
       content = orderList,
       totalElements = pageInfo.total,
@@ -95,7 +96,7 @@ class AdminOrderQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun order(
     @Argument orderId: Long,
-  ): Order? = OrderMapper.map(orderQueryService.getOrderById(orderId))
+  ): Order? = adminOrderMapper.map(orderQueryService.getOrderById(orderId))
 
   /**
    * 根据订单号获取订单 - 管理员权限
@@ -104,5 +105,5 @@ class AdminOrderQueryResolver(
   @PreAuthorize("hasAuthority('PERMISSION_ORDER_READ')")
   fun orderByNo(
     @Argument orderNo: String,
-  ): Order? = OrderMapper.map(orderQueryService.getOrderByNo(orderNo))
+  ): Order? = adminOrderMapper.map(orderQueryService.getOrderByNo(orderNo))
 }

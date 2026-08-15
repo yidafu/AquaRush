@@ -48,8 +48,6 @@ class MonetaryFieldsIntegrationTest {
           id = 1L,
           orderNo = "TEST-001",
           userId = 100L,
-          productId = 200L,
-          quantity = 1,
           amountCents = centsInCents,
           addressId = 300L,
         )
@@ -77,8 +75,6 @@ class MonetaryFieldsIntegrationTest {
         id = 1L,
         orderNo = "LARGE-001",
         userId = 100L,
-        productId = 200L,
-        quantity = 1,
         amountCents = largeCents,
         addressId = 300L,
       )
@@ -96,21 +92,19 @@ class MonetaryFieldsIntegrationTest {
         id = 1L,
         orderNo = "PRECISION-001",
         userId = 100L,
-        productId = 200L,
-        quantity = 3,
         amountCents = 12345L, // ¥123.45
         addressId = 300L,
       )
 
     // Test calculations using the monetary field
-    val unitPrice = baseOrder.amountCents / baseOrder.quantity // Should be integer division
+    val unitPrice = baseOrder.amountCents / 3 // Should be integer division
     val expectedUnitPrice = 4115L // ¥41.15
 
     assertEquals(expectedUnitPrice, unitPrice)
     assertEquals(BigDecimal("41.15"), MoneyUtils.fromCents(unitPrice))
 
     // Test total amount calculation
-    val recalculatedTotal = unitPrice * baseOrder.quantity
+    val recalculatedTotal = unitPrice * 3
     assertEquals(baseOrder.amountCents, recalculatedTotal)
     assertEquals(baseOrder.totalAmount, MoneyUtils.fromCents(recalculatedTotal))
   }
@@ -123,8 +117,6 @@ class MonetaryFieldsIntegrationTest {
         id = 1L,
         orderNo = "ORDER-001",
         userId = 100L,
-        productId = 200L,
-        quantity = 1,
         amountCents = 10000L, // ¥100.00
         addressId = 300L,
       )
@@ -134,8 +126,6 @@ class MonetaryFieldsIntegrationTest {
         id = 2L,
         orderNo = "ORDER-002",
         userId = 100L,
-        productId = 201L,
-        quantity = 1,
         amountCents = 15000L, // ¥150.00
         addressId = 300L,
       )
@@ -170,8 +160,6 @@ class MonetaryFieldsIntegrationTest {
         id = 1L,
         orderNo = "ZERO-001",
         userId = 100L,
-        productId = 200L,
-        quantity = 1,
         amountCents = 0L,
         addressId = 300L,
       )
@@ -183,8 +171,6 @@ class MonetaryFieldsIntegrationTest {
         id = 2L,
         orderNo = "MIN-001",
         userId = 100L,
-        productId = 200L,
-        quantity = 1,
         amountCents = 1L, // ¥0.01
         addressId = 300L,
       )
@@ -196,8 +182,6 @@ class MonetaryFieldsIntegrationTest {
         id = 3L,
         orderNo = "ONE-001",
         userId = 100L,
-        productId = 200L,
-        quantity = 1,
         amountCents = 100L, // ¥1.00
         addressId = 300L,
       )
@@ -212,8 +196,6 @@ class MonetaryFieldsIntegrationTest {
         id = 1L,
         orderNo = "FORMAT-001",
         userId = 100L,
-        productId = 200L,
-        quantity = 1,
         amountCents = 12345L, // ¥123.45
         addressId = 300L,
       )
@@ -238,8 +220,6 @@ class MonetaryFieldsIntegrationTest {
           id = 1L,
           orderNo = "CONSISTENCY-001",
           userId = 100L,
-          productId = 200L,
-          quantity = 1,
           amountCents = amount,
           addressId = 300L,
         )
@@ -263,10 +243,10 @@ class MonetaryFieldsIntegrationTest {
   fun `OrderModel works correctly in collection operations`() {
     val orders =
       listOf(
-        OrderModel(orderNo = "ORDER-001", userId = 100L, productId = 200L, quantity = 1, amountCents = 10000L, addressId = 300L), // ¥100.00
-        OrderModel(orderNo = "ORDER-002", userId = 100L, productId = 201L, quantity = 2, amountCents = 15000L, addressId = 300L), // ¥150.00
-        OrderModel(orderNo = "ORDER-003", userId = 100L, productId = 202L, quantity = 1, amountCents = 20000L, addressId = 300L), // ¥200.00
-        OrderModel(orderNo = "ORDER-004", userId = 100L, productId = 203L, quantity = 3, amountCents = 5000L, addressId = 300L), // ¥50.00
+        OrderModel(orderNo = "ORDER-001", userId = 100L, amountCents = 10000L, addressId = 300L), // ¥100.00
+        OrderModel(orderNo = "ORDER-002", userId = 100L, amountCents = 15000L, addressId = 300L), // ¥150.00
+        OrderModel(orderNo = "ORDER-003", userId = 100L, amountCents = 20000L, addressId = 300L), // ¥200.00
+        OrderModel(orderNo = "ORDER-004", userId = 100L, amountCents = 5000L, addressId = 300L), // ¥50.00
       )
 
     // Test aggregation operations
@@ -299,8 +279,6 @@ class MonetaryFieldsIntegrationTest {
           id = 1L,
           orderNo = "VALID-001",
           userId = 100L,
-          productId = 200L,
-          quantity = 1,
           amountCents = amount,
           addressId = 300L,
         )
@@ -314,8 +292,6 @@ class MonetaryFieldsIntegrationTest {
         id = 2L,
         orderNo = "INVALID-001",
         userId = 100L,
-        productId = 200L,
-        quantity = 1,
         amountCents = -100L,
         addressId = 300L,
       )

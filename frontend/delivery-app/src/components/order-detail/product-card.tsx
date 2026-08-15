@@ -8,32 +8,40 @@ import { Spacing } from '@/constants/theme';
 import { resolveAssetUrl } from '@/utils/url';
 
 interface ProductCardProps {
-  product?: {
-    id?: string;
-    name?: string;
-    priceCents?: number | string;
-    coverImageUrl?: string | null;
-  };
-  quantity: number;
+  /** 商品明细(F-ORD-004 多商品下单) */
+  items?: ReadonlyArray<{
+    productId?: string | number;
+    quantity?: number;
+    unitPriceCents?: number | string;
+    product?: {
+      id?: string;
+      name?: string;
+      priceCents?: number | string;
+      coverImageUrl?: string | null;
+      specification?: string | null;
+    };
+  }>;
   remark?: string;
 }
 
-export function ProductCard({ product, quantity, remark }: ProductCardProps) {
-  if (!product) return null;
+export function ProductCard({ items, remark }: ProductCardProps) {
+  if (!items || items.length === 0) return null;
 
   return (
     <Card title="商品详情">
-      <ThemedView style={styles.productRow}>
-        {product.coverImageUrl ? (
-          <Image source={{ uri: resolveAssetUrl(product.coverImageUrl) }} style={styles.image} />
-        ) : null}
-        <ThemedView style={styles.details}>
-          <ThemedText type="smallBold">{product.name}</ThemedText>
-          <ThemedText type="small" themeColor="primary">
-            <Money cents={product.priceCents} /> x {quantity}
-          </ThemedText>
+      {items.map((item, index) => (
+        <ThemedView key={String(item.productId || index)} style={[styles.productRow, index < items.length - 1 ? styles.rowGap : null]}>
+          {item.product?.coverImageUrl ? (
+            <Image source={{ uri: resolveAssetUrl(item.product.coverImageUrl) }} style={styles.image} />
+          ) : null}
+          <ThemedView style={styles.details}>
+            <ThemedText type="smallBold">{item.product?.name || '商品'}</ThemedText>
+            <ThemedText type="small" themeColor="primary">
+              <Money cents={item.unitPriceCents ?? item.product?.priceCents} /> x {item.quantity}
+            </ThemedText>
+          </ThemedView>
         </ThemedView>
-      </ThemedView>
+      ))}
       {remark ? (
         <ThemedText type="small" themeColor="textSecondary" style={styles.remark}>
           备注：{remark}
@@ -53,6 +61,9 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: Spacing.two,
+  },
+  rowGap: {
+    marginBottom: Spacing.three,
   },
   details: {
     flex: 1,

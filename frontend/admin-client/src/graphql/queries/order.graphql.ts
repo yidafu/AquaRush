@@ -26,6 +26,15 @@ export const GET_ORDERS_QUERY = gql`
           name
           phone
         }
+        items {
+          productId
+          quantity
+          product {
+            id
+            name
+            coverImageUrl
+          }
+        }
         createdAt
         updatedAt
       }
@@ -50,11 +59,18 @@ export const GET_ORDER_DETAIL_QUERY = gql`
       }
       status
       amountCents
-      quantity
-      product {
-        id
-        name
-        coverImageUrl
+      items {
+        productId
+        quantity
+        unitPriceCents
+        totalPriceCents
+        product {
+          id
+          name
+          coverImageUrl
+          specification
+          priceCents
+        }
       }
       address {
         receiverName

@@ -188,14 +188,59 @@
   align-items: center;
 }
 
+.item-price-row {
+  display: flex;
+  align-items: baseline;
+}
+
 .item-price {
   font-size: 28px;
   font-weight: 500;
   color: var(--theme-text-primary);
 }
 
+/* 划线目录价(有营销价时展示,AC-ORD-003-09 —— R-MKT-01/02) */
+.item-original-price {
+  font-size: 24px;
+  color: var(--theme-text-secondary);
+  text-decoration: line-through;
+  margin-left: 8px;
+}
+
 .item-quantity {
   font-size: 24px;
+  color: var(--theme-text-secondary);
+}
+
+/* 订单评价展示(F-ORD-007) */
+.review-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.review-star {
+  font-size: 32px;
+  color: #d9d9d9;
+}
+
+.review-star.active {
+  color: #ffb800;
+}
+
+.review-comment {
+  font-size: 26px;
+  color: var(--theme-text-primary);
+  line-height: 1.6;
+}
+
+.review-time {
+  font-size: 22px;
   color: var(--theme-text-secondary);
 }
 

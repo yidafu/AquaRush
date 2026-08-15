@@ -1,7 +1,11 @@
 import { networkManager } from '../utils/networkManager'
 import {
   Order,
-  OrderPreviewVo
+  OrderReviewCheckResponse,
+  OrderStatus,
+  OrderVoPage,
+  OrderPreviewVo,
+  Review
 } from '@aquarush/common'
 import {
   ProductServiceError,
@@ -12,9 +16,14 @@ import {
  * 确认订单计价预览请求参数(F-ORD-023)
  * preferredCouponId:省略=引擎自动选最优,0=不用券;ticketRedeemCount:水票核销张数
  */
-export interface OrderPreviewRequest {
+/** 订单商品明细项(F-ORD-004 多商品下单;单商品=单元素) */
+export interface OrderItemInput {
   productId: string
   quantity: number
+}
+
+export interface OrderPreviewRequest {
+  items: OrderItemInput[]
   addressId: string | number
   preferredCouponId?: string | number | null
   ticketRedeemCount?: number
@@ -34,9 +43,8 @@ export interface OrderPaymentResult {
  * 创建订单请求参数(CreateOrderInput)
  */
 export interface CreateOrderRequest {
-  productId: string
+  items: OrderItemInput[]
   addressId: string | number
-  quantity: number
   preferredCouponId?: string | number | null
   ticketRedeemCount?: number
   remark?: string
@@ -70,6 +78,16 @@ class OrderService {
     const query = `
       query OrderPreview($input: OrderPreviewInput!) {
         orderPreview(input: $input) {
+          items {
+            productId
+            quantity
+            unitPriceCents
+            priceSource
+            catalogPriceCents
+            subtotalCents
+            ticketCoveredQuantity
+            cashSubtotalCents
+          }
           unitPriceCents
           priceSource
           subtotalCents
@@ -192,12 +210,18 @@ class OrderService {
           completedAt
           createdAt
           remark
-          product {
-            id
-            name
-            priceCents
-            coverImageUrl
-            specification
+          items {
+            productId
+            quantity
+            unitPriceCents
+            totalPriceCents
+            product {
+              id
+              name
+              priceCents
+              coverImageUrl
+              specification
+            }
           }
           address {
             id
@@ -259,6 +283,193 @@ class OrderService {
       return {
         success: false,
         error: this.extractError(error, '创建订单失败')
+      }
+    }
+  }
+
+  /**
+   * 我的订单列表(F-ORD-002,G02 真实化):仅本人订单;statuses 为空=全部;
+   * 「待配送」Tab 传 [PENDING_DISPATCH, PENDING_DELIVERY];
+   * Long 字段传输为字符串,展示层经 normalizeCents 归一化。
+   */
+  public async getMyOrders(
+    statuses: OrderStatus[] | null,
+    page: number,
+    size: number
+  ): Promise<ProductServiceResult<OrderVoPage>> {
+    const query = `
+      query MyOrders($statuses: [OrderStatus!], $page: Int!, $size: Int!) {
+        myOrders(statuses: $statuses, page: $page, size: $size) {
+          content {
+            id
+            orderNo
+            status
+            amountCents
+            deliveryFeeCents
+            payAmountCents
+            promotionDiscountCents
+            couponDiscountCents
+            firstOrderDiscountCents
+            createdAt
+            remark
+            items {
+              productId
+              quantity
+              unitPriceCents
+              totalPriceCents
+              product {
+                id
+                name
+                priceCents
+                coverImageUrl
+                specification
+              }
+            }
+            address {
+              id
+              receiverName
+              phone
+              province
+              city
+              district
+              detailAddress
+            }
+          }
+          totalElements
+          totalPages
+          size
+          number
+        }
+      }
+    `
+
+    try {
+      const response = await networkManager.query<{ myOrders: OrderVoPage }>(
+        query,
+        { statuses, page, size }
+      )
+      return {
+        success: true,
+        data: response.myOrders
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: this.extractError(error, '获取订单列表失败')
+      }
+    }
+  }
+
+  /**
+   * 取消订单(F-ORD-006):未支付即时取消恢复库存;已支付(待派单)取消自动退款
+   */
+  public async cancelOrder(orderId: string): Promise<ProductServiceResult<Order>> {
+    const mutation = `
+      mutation CancelOrder($orderId: PrimaryId!) {
+        cancelOrder(orderId: $orderId) {
+          id
+          orderNo
+          status
+        }
+      }
+    `
+
+    try {
+      const response = await networkManager.mutate<{ cancelOrder: Order }>(
+        mutation,
+        { orderId }
+      )
+      return {
+        success: true,
+        data: response.cancelOrder
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: this.extractError(error, '取消订单失败')
+      }
+    }
+  }
+
+  /**
+   * 订单评价检查(F-ORD-007):返回已评价内容与是否可评(仅已完成订单)
+   */
+  public async getReviewCheck(orderId: string): Promise<ProductServiceResult<OrderReviewCheckResponse>> {
+    const query = `
+      query OrderReviewCheck($orderId: PrimaryId!) {
+        orderReviewCheck(orderId: $orderId) {
+          hasReviewed
+          canReview
+          review {
+            reviewId
+            rating
+            comment
+            isAnonymous
+            createdAt
+          }
+        }
+      }
+    `
+
+    try {
+      const response = await networkManager.query<{ orderReviewCheck: OrderReviewCheckResponse }>(
+        query,
+        { orderId }
+      )
+      return {
+        success: true,
+        data: response.orderReviewCheck
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: this.extractError(error, '获取评价信息失败')
+      }
+    }
+  }
+
+  /**
+   * 提交订单评价(F-ORD-007,R-EVL-01 一单一评):评分 1-5 星、评论 ≤500 字、可匿名
+   */
+  public async createReview(input: {
+    orderId: string
+    rating: number
+    comment?: string
+    isAnonymous?: boolean
+  }): Promise<ProductServiceResult<Review>> {
+    const mutation = `
+      mutation CreateReview($input: CreateReviewRequest!) {
+        createReview(input: $input) {
+          reviewId
+          orderId
+          rating
+          comment
+          isAnonymous
+          createdAt
+        }
+      }
+    `
+
+    try {
+      const response = await networkManager.mutate<{ createReview: Review }>(
+        mutation,
+        {
+          input: {
+            orderId: input.orderId,
+            rating: input.rating,
+            comment: input.comment || null,
+            isAnonymous: input.isAnonymous || false
+          }
+        }
+      )
+      return {
+        success: true,
+        data: response.createReview
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: this.extractError(error, '评价提交失败')
       }
     }
   }
