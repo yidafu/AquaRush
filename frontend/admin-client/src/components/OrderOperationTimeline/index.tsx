@@ -10,6 +10,7 @@ import {
   ClockCircleOutlined,
   SafetyOutlined,
 } from '@ant-design/icons';
+import JsonViewer from '../JsonViewer';
 
 const { Text } = Typography;
 
@@ -156,9 +157,7 @@ const OrderOperationTimeline: React.FC<OrderOperationTimelineProps> = ({ operati
                 )}
                 {extraDataObj && (
                   <div style={{ marginTop: '4px' }}>
-                    <Text type="secondary" style={{ fontSize: '12px' }}>
-                      {JSON.stringify(extraDataObj)}
-                    </Text>
+                    <JsonViewer value={extraDataObj} maxHeight={200} defaultExpandLevel={0} />
                   </div>
                 )}
                 <div style={{ marginTop: '4px' }}>

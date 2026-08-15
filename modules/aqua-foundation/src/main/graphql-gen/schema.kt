@@ -238,6 +238,76 @@ data class BindDeliveryPhoneInput(
   )
 }
 
+enum class BizLogDomain(val label: String) {
+      AUTH("AUTH"),
+      DELIVERY("DELIVERY"),
+      ORDER("ORDER"),
+      PAYMENT("PAYMENT"),
+      USER("USER");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): BizLogDomain? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+enum class BizLogLevel(val label: String) {
+      DEBUG("DEBUG"),
+      ERROR("ERROR"),
+      INFO("INFO"),
+      TRACE("TRACE"),
+      WARN("WARN");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): BizLogLevel? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class BusinessLog(
+    val correlationId: kotlin.String?,
+    val createdAt: java.time.LocalDateTime,
+    val id: kotlin.Long,
+    val level: BizLogLevel,
+    val loggerName: kotlin.String?,
+    val message: kotlin.String?,
+    val operation: kotlin.String?,
+    val stackTrace: kotlin.String?,
+    val userId: kotlin.Long?,
+    val username: kotlin.String?
+)
+
+data class BusinessLogListInput(
+    val domain: BizLogDomain? = null,
+    val endTime: java.time.LocalDateTime? = null,
+    val level: BizLogLevel? = null,
+    val operationType: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 10,
+    val startTime: java.time.LocalDateTime? = null,
+    val userId: kotlin.Long? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["domain"] as BizLogDomain?,
+      args["endTime"] as java.time.LocalDateTime?,
+      args["level"] as BizLogLevel?,
+      args["operationType"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 10,
+      args["startTime"] as java.time.LocalDateTime?,
+      args["userId"] as kotlin.Long?
+  )
+}
+
+data class BusinessLogVoPage(
+    val list: kotlin.collections.List<BusinessLog>,
+    val pageInfo: PageInfo
+)
+
 data class ConfirmDailyCollectionInput(
     val notes: kotlin.String? = null,
     val recordId: kotlin.Long
@@ -465,12 +535,14 @@ data class CreateCouponTemplateInput(
 data class CreateCustomerGroupInput(
     @field:Size(max = 500, message = "分组描述不能超过500个字")
     val description: kotlin.String? = null,
+    val memberIds: kotlin.collections.List<kotlin.Long>? = null,
     @field:NotBlank(message = "分组名称不能为空")
     @field:Size(max = 50, message = "分组名称不能超过50个字")
     val name: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
       args["description"] as kotlin.String?,
+      args["memberIds"] as kotlin.collections.List<kotlin.Long>?,
       args["name"] as kotlin.String
   )
 }
@@ -592,6 +664,100 @@ data class CreateDeliveryWorkerInput(
       args["phone"] as kotlin.String,
       args["rating"] as java.math.BigDecimal?,
       args["wechatOpenId"] as kotlin.String
+  )
+}
+
+data class CreateFirstOrderActivityInput(
+    val activityType: FirstOrderActivityType,
+    @field:Min(value = 1, message = "立减金额无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "立减金额无效(0.01-99999元)")
+    val discountAmountCents: kotlin.Long? = null,
+    @field:Min(value = 100, message = "折扣率超出范围(1%-99%)")
+    @field:Max(value = 9900, message = "折扣率超出范围(1%-99%)")
+    val discountRatePermille: kotlin.Long? = null,
+    @field:NotBlank(message = "活动名称不能为空")
+    @field:Size(max = 100, message = "活动名称不能超过100个字")
+    val name: kotlin.String,
+    @field:Min(value = 1, message = "新人专享价无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "新人专享价无效(0.01-99999元)")
+    val newcomerPriceCents: kotlin.Long? = null,
+    val productId: kotlin.Long? = null,
+    val scope: PromotionScope,
+    @field:Min(value = 1, message = "立减门槛无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "立减门槛无效(0.01-99999元)")
+    val thresholdCents: kotlin.Long? = null,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["activityType"] as FirstOrderActivityType,
+      args["discountAmountCents"] as kotlin.Long?,
+      args["discountRatePermille"] as kotlin.Long?,
+      args["name"] as kotlin.String,
+      args["newcomerPriceCents"] as kotlin.Long?,
+      args["productId"] as kotlin.Long?,
+      args["scope"] as PromotionScope,
+      args["thresholdCents"] as kotlin.Long?,
+      args["validFrom"] as java.time.LocalDateTime,
+      args["validTo"] as java.time.LocalDateTime
+  )
+}
+
+data class CreateFlashSaleActivityInput(
+    @field:NotBlank(message = "活动名称不能为空")
+    @field:Size(max = 100, message = "活动名称不能超过100个字")
+    val name: kotlin.String,
+    @field:Positive(message = "商品ID必须为正数")
+    val productId: kotlin.Long,
+    @field:Min(value = 1, message = "特价无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "特价无效(0.01-99999元)")
+    val salePriceCents: kotlin.Long,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["name"] as kotlin.String,
+      args["productId"] as kotlin.Long,
+      args["salePriceCents"] as kotlin.Long,
+      args["validFrom"] as java.time.LocalDateTime,
+      args["validTo"] as java.time.LocalDateTime
+  )
+}
+
+data class CreateGiftActivityInput(
+    val customerGroupId: kotlin.Long? = null,
+    @field:Positive(message = "赠品商品ID必须为正数")
+    val giftProductId: kotlin.Long,
+    @field:Min(value = 1, message = "赠品数量无效")
+    @field:Max(value = 999, message = "赠品数量不能超过999")
+    val giftQuantity: kotlin.Int,
+    val giftType: GiftActivityType,
+    @field:NotBlank(message = "活动名称不能为空")
+    @field:Size(max = 100, message = "活动名称不能超过100个字")
+    val name: kotlin.String,
+    val productId: kotlin.Long? = null,
+    val scope: PromotionScope,
+    @field:Min(value = 1, message = "满赠门槛无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "满赠门槛无效(0.01-99999元)")
+    val thresholdCents: kotlin.Long? = null,
+    @field:Min(value = 1, message = "买赠门槛数量无效")
+    @field:Max(value = 999, message = "买赠门槛数量不能超过999")
+    val thresholdQuantity: kotlin.Int? = null,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["customerGroupId"] as kotlin.Long?,
+      args["giftProductId"] as kotlin.Long,
+      args["giftQuantity"] as kotlin.Int,
+      args["giftType"] as GiftActivityType,
+      args["name"] as kotlin.String,
+      args["productId"] as kotlin.Long?,
+      args["scope"] as PromotionScope,
+      args["thresholdCents"] as kotlin.Long?,
+      args["thresholdQuantity"] as kotlin.Int?,
+      args["validFrom"] as java.time.LocalDateTime,
+      args["validTo"] as java.time.LocalDateTime
   )
 }
 
@@ -1353,6 +1519,92 @@ data class FeedbackVoPage(
     val totalPages: kotlin.Int
 )
 
+data class FirstOrderActivity(
+    val activityType: FirstOrderActivityType,
+    val createdAt: java.time.LocalDateTime,
+    val currentStatus: PromotionActivityDisplayStatus,
+    val discountAmountCents: kotlin.Long?,
+    val discountRatePermille: kotlin.Long?,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val newcomerPriceCents: kotlin.Long?,
+    val productId: kotlin.Long?,
+    val productName: kotlin.String?,
+    val scope: PromotionScope,
+    val status: PromotionActivityStatus,
+    val thresholdCents: kotlin.Long?,
+    val updatedAt: java.time.LocalDateTime,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+)
+
+data class FirstOrderActivityListInput(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
+
+enum class FirstOrderActivityType(val label: String) {
+      FIRST_ORDER_REDUCE("FIRST_ORDER_REDUCE"),
+      NEWCOMER_PRICE("NEWCOMER_PRICE");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): FirstOrderActivityType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class FirstOrderActivityVoPage(
+    val content: kotlin.collections.List<FirstOrderActivity>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+data class FlashSaleActivity(
+    val catalogPriceCents: kotlin.Long?,
+    val createdAt: java.time.LocalDateTime,
+    val currentStatus: PromotionActivityDisplayStatus,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val productId: kotlin.Long,
+    val productName: kotlin.String?,
+    val salePriceCents: kotlin.Long,
+    val status: PromotionActivityStatus,
+    val updatedAt: java.time.LocalDateTime,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+)
+
+data class FlashSaleActivityListInput(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
+
+data class FlashSaleActivityVoPage(
+    val content: kotlin.collections.List<FlashSaleActivity>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
 data class GeocodeInput(
     @field:NotBlank(message = "城市不能为空")
     @field:Size(min = 2, max = 50, message = "城市名称长度应在2-50个字符之间")
@@ -1374,6 +1626,64 @@ data class GeocodeInput(
       args["province"] as kotlin.String
   )
 }
+
+data class GiftActivity(
+    val createdAt: java.time.LocalDateTime,
+    val currentStatus: PromotionActivityDisplayStatus,
+    val customerGroupId: kotlin.Long?,
+    val giftProductId: kotlin.Long,
+    val giftProductName: kotlin.String?,
+    val giftQuantity: kotlin.Int,
+    val giftType: GiftActivityType,
+    val id: kotlin.Long,
+    val name: kotlin.String,
+    val productId: kotlin.Long?,
+    val scope: PromotionScope,
+    val status: PromotionActivityStatus,
+    val thresholdCents: kotlin.Long?,
+    val thresholdQuantity: kotlin.Int?,
+    val updatedAt: java.time.LocalDateTime,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+)
+
+data class GiftActivityListInput(
+    val keyword: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["keyword"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
+
+enum class GiftActivityType(val label: String) {
+      BUY_GIFT("BUY_GIFT"),
+      FULL_GIFT("FULL_GIFT");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): GiftActivityType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class GiftActivityVoPage(
+    val content: kotlin.collections.List<GiftActivity>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+data class GiftItemVo(
+    val productId: kotlin.Long,
+    val productName: kotlin.String,
+    val quantity: kotlin.Int
+)
 
 data class GroupProductPrice(
     val catalogPriceCents: kotlin.Long,
@@ -1590,6 +1900,30 @@ data class MutationCreateDeliveryWorkerArgs(
       CreateDeliveryWorkerInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationCreateFirstOrderActivityArgs(
+    val input: CreateFirstOrderActivityInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateFirstOrderActivityInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationCreateFlashSaleActivityArgs(
+    val input: CreateFlashSaleActivityInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateFlashSaleActivityInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationCreateGiftActivityArgs(
+    val input: CreateGiftActivityInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateGiftActivityInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationCreateNoticeArgs(
     val input: CreateNoticeInput
 ) {
@@ -1604,6 +1938,13 @@ data class MutationCreateOrderArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       CreateOrderInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationCreateOrderPaymentArgs(
+    val orderId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["orderId"] as kotlin.Long
   )
 }
 data class MutationCreateProductArgs(
@@ -1673,6 +2014,27 @@ data class MutationDeleteProductArgs(
   )
 }
 data class MutationDisableCouponTemplateArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class MutationDisableFirstOrderActivityArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class MutationDisableFlashSaleActivityArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class MutationDisableGiftActivityArgs(
     val id: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
@@ -1925,6 +2287,36 @@ data class MutationUpdateDeliveryWorkerArgs(
       args["workerId"] as kotlin.Long
   )
 }
+data class MutationUpdateFirstOrderActivityArgs(
+    val id: kotlin.Long,
+    val input: UpdateFirstOrderActivityInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdateFirstOrderActivityInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationUpdateFlashSaleActivityArgs(
+    val id: kotlin.Long,
+    val input: UpdateFlashSaleActivityInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdateFlashSaleActivityInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationUpdateGiftActivityArgs(
+    val id: kotlin.Long,
+    val input: UpdateGiftActivityInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdateGiftActivityInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationUpdateNoticeArgs(
     val id: kotlin.Long,
     val input: UpdateNoticeInput
@@ -2008,8 +2400,12 @@ data class Mutation(
     val createCustomerGroup: CustomerGroup,
     val createDeliveryOrder: Order,
     val createDeliveryWorker: DeliveryWorker,
+    val createFirstOrderActivity: FirstOrderActivity,
+    val createFlashSaleActivity: FlashSaleActivity,
+    val createGiftActivity: GiftActivity,
     val createNotice: Notice,
     val createOrder: Order,
+    val createOrderPayment: OrderPaymentParams,
     val createProduct: Product,
     val createPromotionActivity: PromotionActivity,
     val createTicketType: TicketType,
@@ -2020,6 +2416,9 @@ data class Mutation(
     val deleteNotice: kotlin.Boolean,
     val deleteProduct: kotlin.Boolean,
     val disableCouponTemplate: CouponTemplate,
+    val disableFirstOrderActivity: FirstOrderActivity,
+    val disableFlashSaleActivity: FlashSaleActivity,
+    val disableGiftActivity: GiftActivity,
     val disablePromotionActivity: PromotionActivity,
     val disableTicketType: TicketType,
     val executeDailyReconciliation: DailyReconciliation,
@@ -2050,6 +2449,9 @@ data class Mutation(
     val updateCouponTemplate: CouponTemplate,
     val updateCustomerGroup: CustomerGroup,
     val updateDeliveryWorker: DeliveryWorker,
+    val updateFirstOrderActivity: FirstOrderActivity,
+    val updateFlashSaleActivity: FlashSaleActivity,
+    val updateGiftActivity: GiftActivity,
     val updateNotice: Notice,
     val updateOrderStatus: Order,
     val updateProduct: Product,
@@ -2161,6 +2563,8 @@ data class Order(
     val deliveryPhotos: kotlin.collections.List<kotlin.String>?,
     val deliveryStartedAt: java.time.LocalDateTime?,
     val deliveryWorker: DeliveryWorker?,
+    val firstOrderDiscountCents: kotlin.Long?,
+    val giftItems: kotlin.collections.List<GiftItemVo>?,
     val id: kotlin.Long,
     val isSelfCollect: kotlin.Boolean,
     val orderNo: kotlin.String,
@@ -2249,6 +2653,12 @@ data class OrderPaymentInfo(
     val transactionId: kotlin.String?
 )
 
+data class OrderPaymentParams(
+    val autoCompleted: kotlin.Boolean,
+    val paymentParams: tools.jackson.databind.node.ObjectNode?,
+    val requiresSimulation: kotlin.Boolean
+)
+
 data class OrderPreviewInput(
     @field:Positive(message = "地址ID必须为正数")
     val addressId: kotlin.Long,
@@ -2279,6 +2689,10 @@ data class OrderPreviewVo(
     val couponDiscountCents: kotlin.Long,
     val couponOptions: kotlin.collections.List<CouponOptionVo>,
     val deliveryFeeCents: kotlin.Long,
+    val firstOrderActivityId: kotlin.Long?,
+    val firstOrderActivityName: kotlin.String?,
+    val firstOrderDiscountCents: kotlin.Long,
+    val giftItems: kotlin.collections.List<GiftItemVo>,
     val payAmountCents: kotlin.Long,
     val payableProductCents: kotlin.Long,
     val priceSource: PriceSource,
@@ -2451,8 +2865,10 @@ data class PendingOrderBreakdown(
 
 enum class PriceSource(val label: String) {
       CATALOG_PRICE("CATALOG_PRICE"),
+      FLASH_SALE_PRICE("FLASH_SALE_PRICE"),
       GROUP_PRICE("GROUP_PRICE"),
-      MANUAL("MANUAL");
+      MANUAL("MANUAL"),
+      NEWCOMER_PRICE("NEWCOMER_PRICE");
 
   companion object {
     @JvmStatic
@@ -2528,6 +2944,7 @@ data class Product(
     val name: kotlin.String,
     val originalPriceCents: kotlin.Long?,
     val priceCents: kotlin.Long,
+    val priceSource: PriceSource,
     val salesVolume: kotlin.Int,
     val sortOrder: kotlin.Int,
     val specification: kotlin.String,
@@ -2608,6 +3025,7 @@ data class ProductPriceVo(
     val catalogPriceCents: kotlin.Long,
     val effectivePriceCents: kotlin.Long,
     val hasGroupPrice: kotlin.Boolean,
+    val priceSource: PriceSource,
     val productId: kotlin.Long
 )
 
@@ -2945,6 +3363,14 @@ data class QueryBannersArgs(
       args["input"]?.let { BannerListInput(it as Map<String, Any>) }
   )
 }
+data class QueryBusinessLogsArgs(
+    val input: BusinessLogListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { BusinessLogListInput(it as Map<String, Any>) }
+  )
+}
 data class QueryCouponTemplateArgs(
     val id: kotlin.Long
 ) {
@@ -3041,6 +3467,51 @@ data class QueryFeedbacksArgs(
       args["input"]?.let { FeedbackListInput(it as Map<String, Any>) }
   )
 }
+data class QueryFirstOrderActivitiesArgs(
+    val input: FirstOrderActivityListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { FirstOrderActivityListInput(it as Map<String, Any>) }
+  )
+}
+data class QueryFirstOrderActivityArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class QueryFlashSaleActivitiesArgs(
+    val input: FlashSaleActivityListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { FlashSaleActivityListInput(it as Map<String, Any>) }
+  )
+}
+data class QueryFlashSaleActivityArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class QueryGiftActivitiesArgs(
+    val input: GiftActivityListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { GiftActivityListInput(it as Map<String, Any>) }
+  )
+}
+data class QueryGiftActivityArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
 data class QueryGroupProductPricesArgs(
     val input: GroupProductPriceListInput
 ) {
@@ -3094,9 +3565,11 @@ data class QueryNoticesArgs(
   )
 }
 data class QueryOrderArgs(
+    val id: kotlin.Long,
     val orderId: kotlin.Long
 ) {
   constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
       args["orderId"] as kotlin.Long
   )
 }
@@ -3282,6 +3755,7 @@ data class Query(
     val assignedOrders: kotlin.collections.List<Order>,
     val banner: Banner?,
     val banners: BannerVoPage?,
+    val businessLogs: BusinessLogVoPage?,
     val couponCenter: kotlin.collections.List<CouponTemplateVo>,
     val couponTemplate: CouponTemplate?,
     val couponTemplates: CouponTemplateVoPage?,
@@ -3301,6 +3775,12 @@ data class Query(
     val favoritesCount: kotlin.Long,
     val feedback: Feedback?,
     val feedbacks: FeedbackVoPage?,
+    val firstOrderActivities: FirstOrderActivityVoPage?,
+    val firstOrderActivity: FirstOrderActivity?,
+    val flashSaleActivities: FlashSaleActivityVoPage?,
+    val flashSaleActivity: FlashSaleActivity?,
+    val giftActivities: GiftActivityVoPage?,
+    val giftActivity: GiftActivity?,
     val groupProductPrices: GroupProductPriceVoPage?,
     val isProductFavorited: kotlin.Boolean,
     val me: UserInfo?,
@@ -3941,12 +4421,14 @@ data class UpdateCouponTemplateInput(
 data class UpdateCustomerGroupInput(
     @field:Size(max = 500, message = "分组描述不能超过500个字")
     val description: kotlin.String? = null,
+    val memberIds: kotlin.collections.List<kotlin.Long>? = null,
     @field:NotBlank(message = "分组名称不能为空")
     @field:Size(max = 50, message = "分组名称不能超过50个字")
     val name: kotlin.String
 ) {
   constructor(args: Map<String, Any>) : this(
       args["description"] as kotlin.String?,
+      args["memberIds"] as kotlin.collections.List<kotlin.Long>?,
       args["name"] as kotlin.String
   )
 }
@@ -4014,6 +4496,100 @@ data class UpdateDeliveryWorkerInput(
       args["phone"] as kotlin.String?,
       args["rating"] as java.math.BigDecimal?,
       args["wechatOpenId"] as kotlin.String?
+  )
+}
+
+data class UpdateFirstOrderActivityInput(
+    val activityType: FirstOrderActivityType,
+    @field:Min(value = 1, message = "立减金额无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "立减金额无效(0.01-99999元)")
+    val discountAmountCents: kotlin.Long? = null,
+    @field:Min(value = 100, message = "折扣率超出范围(1%-99%)")
+    @field:Max(value = 9900, message = "折扣率超出范围(1%-99%)")
+    val discountRatePermille: kotlin.Long? = null,
+    @field:NotBlank(message = "活动名称不能为空")
+    @field:Size(max = 100, message = "活动名称不能超过100个字")
+    val name: kotlin.String,
+    @field:Min(value = 1, message = "新人专享价无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "新人专享价无效(0.01-99999元)")
+    val newcomerPriceCents: kotlin.Long? = null,
+    val productId: kotlin.Long? = null,
+    val scope: PromotionScope,
+    @field:Min(value = 1, message = "立减门槛无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "立减门槛无效(0.01-99999元)")
+    val thresholdCents: kotlin.Long? = null,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["activityType"] as FirstOrderActivityType,
+      args["discountAmountCents"] as kotlin.Long?,
+      args["discountRatePermille"] as kotlin.Long?,
+      args["name"] as kotlin.String,
+      args["newcomerPriceCents"] as kotlin.Long?,
+      args["productId"] as kotlin.Long?,
+      args["scope"] as PromotionScope,
+      args["thresholdCents"] as kotlin.Long?,
+      args["validFrom"] as java.time.LocalDateTime,
+      args["validTo"] as java.time.LocalDateTime
+  )
+}
+
+data class UpdateFlashSaleActivityInput(
+    @field:NotBlank(message = "活动名称不能为空")
+    @field:Size(max = 100, message = "活动名称不能超过100个字")
+    val name: kotlin.String,
+    @field:Positive(message = "商品ID必须为正数")
+    val productId: kotlin.Long,
+    @field:Min(value = 1, message = "特价无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "特价无效(0.01-99999元)")
+    val salePriceCents: kotlin.Long,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["name"] as kotlin.String,
+      args["productId"] as kotlin.Long,
+      args["salePriceCents"] as kotlin.Long,
+      args["validFrom"] as java.time.LocalDateTime,
+      args["validTo"] as java.time.LocalDateTime
+  )
+}
+
+data class UpdateGiftActivityInput(
+    val customerGroupId: kotlin.Long? = null,
+    @field:Positive(message = "赠品商品ID必须为正数")
+    val giftProductId: kotlin.Long,
+    @field:Min(value = 1, message = "赠品数量无效")
+    @field:Max(value = 999, message = "赠品数量不能超过999")
+    val giftQuantity: kotlin.Int,
+    val giftType: GiftActivityType,
+    @field:NotBlank(message = "活动名称不能为空")
+    @field:Size(max = 100, message = "活动名称不能超过100个字")
+    val name: kotlin.String,
+    val productId: kotlin.Long? = null,
+    val scope: PromotionScope,
+    @field:Min(value = 1, message = "满赠门槛无效(0.01-99999元)")
+    @field:Max(value = 9999900, message = "满赠门槛无效(0.01-99999元)")
+    val thresholdCents: kotlin.Long? = null,
+    @field:Min(value = 1, message = "买赠门槛数量无效")
+    @field:Max(value = 999, message = "买赠门槛数量不能超过999")
+    val thresholdQuantity: kotlin.Int? = null,
+    val validFrom: java.time.LocalDateTime,
+    val validTo: java.time.LocalDateTime
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["customerGroupId"] as kotlin.Long?,
+      args["giftProductId"] as kotlin.Long,
+      args["giftQuantity"] as kotlin.Int,
+      args["giftType"] as GiftActivityType,
+      args["name"] as kotlin.String,
+      args["productId"] as kotlin.Long?,
+      args["scope"] as PromotionScope,
+      args["thresholdCents"] as kotlin.Long?,
+      args["thresholdQuantity"] as kotlin.Int?,
+      args["validFrom"] as java.time.LocalDateTime,
+      args["validTo"] as java.time.LocalDateTime
   )
 }
 

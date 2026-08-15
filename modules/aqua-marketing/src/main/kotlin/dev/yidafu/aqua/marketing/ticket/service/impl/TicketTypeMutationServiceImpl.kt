@@ -26,6 +26,7 @@ import dev.yidafu.aqua.common.domain.model.TicketTypeModel
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.ticket.domain.exception.TicketTypeNotFoundException
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketTypeRepository
 import org.slf4j.LoggerFactory
@@ -40,6 +41,7 @@ import java.time.LocalDateTime
 @Service
 class TicketTypeMutationServiceImpl(
   private val ticketTypeRepository: TicketTypeRepository,
+  private val bizLogger: BizLogger,
 ) : TicketTypeMutationService {
   private val logger = LoggerFactory.getLogger(TicketTypeMutationServiceImpl::class.java)
 
@@ -71,6 +73,16 @@ class TicketTypeMutationServiceImpl(
       )
     val saved = ticketTypeRepository.save(ticketType)
     logger.info("Admin {} created ticket type {}: {}", adminId, saved.id, saved.name)
+
+    // 业务日志(F-LOG-003 MARKETING 域):票种创建
+    bizLogger.logMarketingOperation(
+      targetId = saved.id!!,
+      operation = "TICKET_TYPE_CREATED",
+      result = "SUCCESS",
+      userId = adminId,
+      username = adminName,
+      additionalData = mapOf("name" to saved.name, "ticketType" to saved.ticketType.name),
+    )
     return saved
   }
 
@@ -98,6 +110,16 @@ class TicketTypeMutationServiceImpl(
     ticketType.perUserLimit = request.perUserLimit
     val saved = ticketTypeRepository.save(ticketType)
     logger.info("Admin {} updated ticket type {}", adminId, id)
+
+    // 业务日志(F-LOG-003 MARKETING 域):票种更新
+    bizLogger.logMarketingOperation(
+      targetId = saved.id!!,
+      operation = "TICKET_TYPE_UPDATED",
+      result = "SUCCESS",
+      userId = adminId,
+      username = adminName,
+      additionalData = mapOf("name" to saved.name),
+    )
     return saved
   }
 
@@ -111,6 +133,16 @@ class TicketTypeMutationServiceImpl(
     ticketType.status = TicketTypeStatus.DISABLED
     val saved = ticketTypeRepository.save(ticketType)
     logger.info("Admin {} disabled ticket type {}", adminId, id)
+
+    // 业务日志(F-LOG-003 MARKETING 域):票种停用
+    bizLogger.logMarketingOperation(
+      targetId = saved.id!!,
+      operation = "TICKET_TYPE_DISABLED",
+      result = "SUCCESS",
+      userId = adminId,
+      username = adminName,
+      additionalData = mapOf("name" to saved.name),
+    )
     return saved
   }
 

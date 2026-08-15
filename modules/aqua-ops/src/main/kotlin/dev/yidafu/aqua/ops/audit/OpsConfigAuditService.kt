@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.ops.audit
 
 import dev.yidafu.aqua.logging.service.UserActionLogService
+import dev.yidafu.aqua.logging.util.BizLogger
 import org.springframework.stereotype.Service
 import tools.jackson.databind.JsonNode
 import tools.jackson.module.kotlin.jacksonObjectMapper
@@ -35,6 +36,7 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 @Service
 class OpsConfigAuditService(
   private val userActionLogService: UserActionLogService,
+  private val bizLogger: BizLogger,
 ) {
   /**
    * 记录运营配置审计日志
@@ -58,6 +60,18 @@ class OpsConfigAuditService(
       target = if (targetId != null) "$targetType:$targetId" else targetType,
       pageUrl = "ops",
       properties = propertiesJson(before, after, description),
+    )
+
+    // 业务日志(F-LOG-003 OPS 域):与 user_action_logs 的 before/after 审计并存(R-OPS-01)
+    bizLogger.logOpsOperation(
+      targetType = targetType,
+      targetId = targetId,
+      operation = actionType,
+      result = "SUCCESS",
+      operatorId = operatorId,
+      operatorName = operatorName,
+      additionalData =
+        description?.let { mapOf("description" to it) } ?: emptyMap(),
     )
   }
 

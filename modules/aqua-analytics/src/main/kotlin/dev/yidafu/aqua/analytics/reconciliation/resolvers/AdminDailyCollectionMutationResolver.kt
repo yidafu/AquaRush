@@ -30,6 +30,7 @@ import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.ConfirmDailyCollectionInput
 import dev.yidafu.aqua.common.graphql.generated.ReviewReconciliationInput
 import dev.yidafu.aqua.common.graphql.generated.SubmitDailyCollectionInput
+import dev.yidafu.aqua.logging.util.BizLogger
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.MutationMapping
@@ -47,6 +48,7 @@ class AdminDailyCollectionMutationResolver(
   private val dailyCollectionService: DailyCollectionService,
   private val deliveryWorkerQueryResolver: DeliveryWorkerQueryService,
   private val adminService: AdminService,
+  private val bizLogger: BizLogger,
 ) : BaseGraphQLResolver() {
   private val logger = LoggerFactory.getLogger(AdminDailyCollectionMutationResolver::class.java)
 
@@ -68,13 +70,33 @@ class AdminDailyCollectionMutationResolver(
 
     val date = input.collectionDate?.let { LocalDate.parse(it) } ?: LocalDate.now()
 
-    return dailyCollectionService.submitDailyCollection(
-      deliveryWorkerId = workerId,
-      cashAmountCents = input.cashAmountCents,
-      waterTicketCount = input.waterTicketCount,
-      qrCodeAmountCents = input.qrCodeAmountCents,
-      collectionDate = date,
+    val record =
+      dailyCollectionService.submitDailyCollection(
+        deliveryWorkerId = workerId,
+        cashAmountCents = input.cashAmountCents,
+        waterTicketCount = input.waterTicketCount,
+        qrCodeAmountCents = input.qrCodeAmountCents,
+        collectionDate = date,
+      )
+
+    // 业务日志(F-LOG-003 RECONCILIATION 域):提交每日收款
+    bizLogger.logOperation(
+      operation = "RECON_DAILY_SUBMIT",
+      module = "RECONCILIATION",
+      result = "SUCCESS",
+      target = record.id?.toString() ?: "daily-collection",
+      userId = adminId,
+      username = userDetails.username,
+      additionalData =
+        mapOf(
+          "deliveryWorkerId" to workerId,
+          "collectionDate" to date.toString(),
+          "cashAmountCents" to input.cashAmountCents,
+          "waterTicketCount" to input.waterTicketCount,
+          "qrCodeAmountCents" to input.qrCodeAmountCents,
+        ),
     )
+    return record
   }
 
   /**
@@ -96,11 +118,24 @@ class AdminDailyCollectionMutationResolver(
       adminService.findByUsername(userDetails.username)
         ?: throw BadRequestException("管理员不存在")
     val adminId = admin.id ?: throw BadRequestException("管理员ID无效")
-    return dailyCollectionService.confirmCollection(
-      recordId = input.recordId,
-      confirmedBy = adminId,
-      notes = input.notes,
+    val record =
+      dailyCollectionService.confirmCollection(
+        recordId = input.recordId,
+        confirmedBy = adminId,
+        notes = input.notes,
+      )
+
+    // 业务日志(F-LOG-003 RECONCILIATION 域):确认每日收款
+    bizLogger.logOperation(
+      operation = "RECON_DAILY_CONFIRM",
+      module = "RECONCILIATION",
+      result = "SUCCESS",
+      target = record.id?.toString() ?: input.recordId.toString(),
+      userId = adminId,
+      username = userDetails.username,
+      additionalData = mapOf("recordId" to input.recordId, "notes" to (input.notes ?: "")),
     )
+    return record
   }
 
   /**
@@ -125,11 +160,24 @@ class AdminDailyCollectionMutationResolver(
       adminService.findByUsername(userDetails.username)
         ?: throw BadRequestException("管理员不存在")
     val adminId = admin.id ?: throw BadRequestException("管理员ID无效")
-    return dailyCollectionService.reviewReconciliation(
-      reconciliationId = input.reconciliationId,
-      reviewedBy = adminId,
-      reviewNotes = input.reviewNotes,
+    val model =
+      dailyCollectionService.reviewReconciliation(
+        reconciliationId = input.reconciliationId,
+        reviewedBy = adminId,
+        reviewNotes = input.reviewNotes,
+      )
+
+    // 业务日志(F-LOG-003 RECONCILIATION 域):对账复核
+    bizLogger.logOperation(
+      operation = "RECON_REVIEW",
+      module = "RECONCILIATION",
+      result = "SUCCESS",
+      target = input.reconciliationId.toString(),
+      userId = adminId,
+      username = userDetails.username,
+      additionalData = mapOf("reviewNotes" to input.reviewNotes),
     )
+    return model
   }
 
   /**
@@ -152,9 +200,21 @@ class AdminDailyCollectionMutationResolver(
       } ?: LocalDate.now().minusDays(1)
 
     logger.info("管理员 {} 手动触发对账: {}", userDetails.username, date)
+    val admin = adminService.findByUsername(userDetails.username)
     dailyCollectionService.executeDailyReconciliation(date)
     // 返回更新后的对账记录
-    return dailyCollectionService.getReconciliationByDate(date)
-      ?: throw BadRequestException("对账执行失败")
+    val result = dailyCollectionService.getReconciliationByDate(date) ?: throw BadRequestException("对账执行失败")
+
+    // 业务日志(F-LOG-003 RECONCILIATION 域):执行每日对账
+    bizLogger.logOperation(
+      operation = "RECON_EXECUTE",
+      module = "RECONCILIATION",
+      result = "SUCCESS",
+      target = result.id?.toString() ?: date.toString(),
+      userId = admin?.id,
+      username = userDetails.username,
+      additionalData = mapOf("reconciliationDate" to date.toString()),
+    )
+    return result
   }
 }

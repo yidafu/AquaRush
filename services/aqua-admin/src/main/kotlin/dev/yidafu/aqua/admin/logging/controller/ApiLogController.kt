@@ -19,11 +19,11 @@
 
 package dev.yidafu.aqua.admin.logging.controller
 
-import dev.yidafu.aqua.api.dto.PageImpl
 import dev.yidafu.aqua.common.ApiResponse
 import dev.yidafu.aqua.common.domain.model.ApiLogModel
 import dev.yidafu.aqua.common.domain.model.RequestType
 import dev.yidafu.aqua.logging.service.ApiLogService
+import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import org.springframework.format.annotation.DateTimeFormat
@@ -54,22 +54,20 @@ class ApiLogController(
     @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) endTime: LocalDateTime?,
     @RequestParam(defaultValue = "0") page: Int,
     @RequestParam(defaultValue = "20") size: Int,
-  ): ApiResponse<PageImpl<ApiLogModel>> {
+  ): ApiResponse<Page<ApiLogModel>> {
     val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
 
-    val data =
-      PageImpl.fromPage(
-        apiLogService.queryApiLogs(
-          requestType,
-          method,
-          responseStatus,
-          userId,
-          startTime,
-          endTime,
-          pageable,
-        ),
-      )
-    return ApiResponse.success(data)
+    return ApiResponse.success(
+      apiLogService.queryApiLogs(
+        requestType,
+        method,
+        responseStatus,
+        userId,
+        startTime,
+        endTime,
+        pageable,
+      ),
+    )
   }
 
   /**

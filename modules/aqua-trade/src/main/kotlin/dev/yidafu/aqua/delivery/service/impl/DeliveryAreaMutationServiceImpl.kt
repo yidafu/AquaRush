@@ -23,15 +23,31 @@ import dev.yidafu.aqua.api.service.delivery.DeliveryAreaMutationService
 import dev.yidafu.aqua.common.domain.model.DeliveryAreaModel
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryAreaRepository
+import dev.yidafu.aqua.logging.util.BizLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class DeliveryAreaMutationServiceImpl(
   private val areaRepository: DeliveryAreaRepository,
+  private val bizLogger: BizLogger,
 ) : DeliveryAreaMutationService {
   @Transactional
-  override fun createDeliveryArea(area: DeliveryAreaModel): DeliveryAreaModel = areaRepository.save(area)
+  override fun createDeliveryArea(area: DeliveryAreaModel): DeliveryAreaModel {
+    val saved = areaRepository.save(area)
+
+    // 业务日志(F-LOG-003 DELIVERY 域):配送区域创建
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logDeliveryOperation(
+      deliveryId = saved.id!!,
+      operation = "DELIVERY_AREA_CREATED",
+      result = "SUCCESS",
+      userId = operatorId,
+      username = operatorName,
+      additionalData = mapOf("province" to saved.province, "city" to saved.city, "district" to saved.district),
+    )
+    return saved
+  }
 
   @Transactional
   override fun updateDeliveryArea(
@@ -42,8 +58,20 @@ class DeliveryAreaMutationServiceImpl(
       areaRepository.findById(areaId).orElseThrow {
         NotFoundException("配送区域不存在: $areaId")
       }
+    val before = area.enabled
     area.enabled = enabled
     areaRepository.save(area)
+
+    // 业务日志(F-LOG-003 DELIVERY 域):配送区域更新
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logDeliveryOperation(
+      deliveryId = area.id!!,
+      operation = "DELIVERY_AREA_UPDATED",
+      result = "SUCCESS",
+      userId = operatorId,
+      username = operatorName,
+      additionalData = mapOf("from" to before, "to" to enabled),
+    )
     return area
   }
 }

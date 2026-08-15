@@ -26,6 +26,7 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdateProductInput
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -43,6 +44,7 @@ import org.springframework.transaction.annotation.Transactional
 @Controller
 class AdminProductMutationResolver(
   private val productService: ProductServiceImpl,
+  private val bizLogger: BizLogger,
 ) {
   private val logger = LoggerFactory.getLogger(AdminProductMutationResolver::class.java)
 
@@ -139,6 +141,17 @@ class AdminProductMutationResolver(
 
       productService.productRepository.deleteById(id)
       logger.info("Successfully deleted product: $id")
+
+      // 业务日志(F-LOG-003 PRODUCT 域):产品删除
+      val (operatorId, operatorName) = bizLogger.resolveOperator()
+      bizLogger.logProductOperation(
+        productId = id,
+        operation = "PRODUCT_DELETED",
+        result = "SUCCESS",
+        userId = operatorId,
+        username = operatorName,
+        additionalData = mapOf("name" to existingProduct.name),
+      )
       true
     } catch (e: Exception) {
       logger.error("Failed to delete product", e)

@@ -24,6 +24,7 @@ import dev.yidafu.aqua.common.domain.model.NotificationSettingsModel
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.NotificationSettingsRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import org.springframework.data.domain.Page
@@ -37,6 +38,7 @@ import java.time.LocalDateTime
 class UserServiceImpl(
   private val userRepository: UserRepository,
   private val notificationSettingsRepository: NotificationSettingsRepository,
+  private val bizLogger: BizLogger,
 ) : UserService {
   override fun findById(id: Long): UserModel? = userRepository.findById(id).orElse(null)
 
@@ -75,6 +77,15 @@ class UserServiceImpl(
       )
     notificationSettingsRepository.save(notificationSettings)
 
+    // 业务日志(F-LOG-003 USER 域):用户创建
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logUserOperation(
+      targetUserId = savedUser.id!!,
+      operation = "USER_CREATED",
+      result = "SUCCESS",
+      operatorId = operatorId,
+      operatorName = operatorName,
+    )
     return savedUser
   }
 
@@ -93,8 +104,18 @@ class UserServiceImpl(
     nickname?.let { user.nickname = it }
     phone?.let { user.phone = it }
     avatarUrl?.let { user.avatarUrl = it }
+    val saved = userRepository.save(user)
 
-    return userRepository.save(user)
+    // 业务日志(F-LOG-003 USER 域):用户资料更新
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logUserOperation(
+      targetUserId = saved.id!!,
+      operation = "USER_UPDATED",
+      result = "SUCCESS",
+      operatorId = operatorId,
+      operatorName = operatorName,
+    )
+    return saved
   }
 
   override fun existsByWechatOpenId(wechatOpenId: String): Boolean = userRepository.existsByWechatOpenId(wechatOpenId)
@@ -137,7 +158,24 @@ class UserServiceImpl(
       userRepository
         .findById(userId)
         .orElseThrow { IllegalArgumentException("User not found: $userId") }
+    val before = user.customerGroupId
     user.customerGroupId = customerGroupId
-    return userRepository.save(user)
+    val saved = userRepository.save(user)
+
+    // 业务日志(F-LOG-003 MARKETING 域):用户客户分组变更
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logMarketingOperation(
+      targetId = saved.id!!,
+      operation = "CUSTOMER_GROUP_USER_SET",
+      result = "SUCCESS",
+      userId = operatorId,
+      username = operatorName,
+      additionalData =
+        buildMap<String, Any> {
+          before?.let { put("from", it) }
+          customerGroupId?.let { put("to", it) }
+        },
+    )
+    return saved
   }
 }

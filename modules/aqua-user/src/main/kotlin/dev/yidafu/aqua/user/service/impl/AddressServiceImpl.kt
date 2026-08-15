@@ -22,6 +22,7 @@ package dev.yidafu.aqua.user.service.impl
 import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
@@ -35,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional
 class AddressServiceImpl(
   private val addressRepository: AddressRepository,
   private val eventPublishService: SimplifiedEventPublishService,
+  private val bizLogger: BizLogger,
 ) : AddressService {
   /**
    * 设置默认地址
@@ -63,6 +65,13 @@ class AddressServiceImpl(
     address.isDefault = true
     addressRepository.save(address)
 
+    // 业务日志(F-LOG-003 USER 域):默认地址变更
+    bizLogger.logUserOperation(
+      targetUserId = userId,
+      operation = "ADDRESS_DEFAULT_CHANGED",
+      result = "SUCCESS",
+      additionalData = mapOf("addressId" to addressId),
+    )
     return true
   }
 
@@ -118,9 +127,18 @@ class AddressServiceImpl(
     allEntries = true,
   )
   override fun save(address: AddressModel): AddressModel {
+    val isUpdate = address.id != null
     val saved = addressRepository.save(address)
     // 发布地址更新事件
     eventPublishService.publishAddressUpdate(address.userId, saved.id!!)
+
+    // 业务日志(F-LOG-003 USER 域):地址新增/更新
+    bizLogger.logUserOperation(
+      targetUserId = saved.userId,
+      operation = if (isUpdate) "ADDRESS_UPDATED" else "ADDRESS_CREATED",
+      result = "SUCCESS",
+      additionalData = mapOf("addressId" to saved.id!!),
+    )
     return saved
   }
 
@@ -130,7 +148,16 @@ class AddressServiceImpl(
     allEntries = true,
   )
   override fun deleteById(addressId: Long) {
+    val address = addressRepository.findById(addressId).orElse(null)
     addressRepository.deleteById(addressId)
+
+    // 业务日志(F-LOG-003 USER 域):地址删除
+    bizLogger.logUserOperation(
+      targetUserId = address?.userId ?: 0L,
+      operation = "ADDRESS_DELETED",
+      result = "SUCCESS",
+      additionalData = mapOf("addressId" to addressId),
+    )
   }
 
   // Legacy method for backward compatibility

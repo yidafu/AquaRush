@@ -29,6 +29,7 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -46,6 +47,7 @@ class AdminServiceImpl(
   private val deliveryWorkerQueryService: DeliveryWorkerQueryService,
   private val userService: UserService,
   private val passwordEncoder: PasswordEncoder,
+  private val bizLogger: BizLogger,
 ) : AdminService {
   private val logger = LoggerFactory.getLogger(AdminServiceImpl::class.java)
 
@@ -78,13 +80,24 @@ class AdminServiceImpl(
   /**
    * Delete admin by id
    */
-  override fun deleteById(id: Long): Boolean =
-    if (adminRepository.existsById(id)) {
-      adminRepository.deleteById(id)
-      true
-    } else {
-      false
+  override fun deleteById(id: Long): Boolean {
+    val existed = adminRepository.existsById(id)
+    if (!existed) {
+      return false
     }
+    adminRepository.deleteById(id)
+
+    // 业务日志(F-LOG-003 USER 域):管理员删除
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logUserOperation(
+      targetUserId = id,
+      operation = "ADMIN_DELETED",
+      result = "SUCCESS",
+      operatorId = operatorId,
+      operatorName = operatorName,
+    )
+    return true
+  }
 
   /**
    * Check if admin exists by username
@@ -157,6 +170,17 @@ class AdminServiceImpl(
     }
 
     logger.info("Successfully created admin user: ${savedAdmin.id} - ${savedAdmin.username} with role: ${role.name}")
+
+    // 业务日志(F-LOG-003 USER 域):管理员创建
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logUserOperation(
+      targetUserId = savedAdmin.id!!,
+      operation = "ADMIN_CREATED",
+      result = "SUCCESS",
+      operatorId = operatorId,
+      operatorName = operatorName,
+      additionalData = mapOf("username" to savedAdmin.username, "role" to savedAdmin.role.name),
+    )
     return savedAdmin
   }
 
@@ -213,6 +237,17 @@ class AdminServiceImpl(
     }
 
     logger.info("Successfully updated admin user: ${savedAdmin.id}")
+
+    // 业务日志(F-LOG-003 USER 域):管理员更新
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logUserOperation(
+      targetUserId = savedAdmin.id!!,
+      operation = "ADMIN_UPDATED",
+      result = "SUCCESS",
+      operatorId = operatorId,
+      operatorName = operatorName,
+      additionalData = mapOf("username" to savedAdmin.username, "role" to savedAdmin.role.name),
+    )
     return savedAdmin
   }
 

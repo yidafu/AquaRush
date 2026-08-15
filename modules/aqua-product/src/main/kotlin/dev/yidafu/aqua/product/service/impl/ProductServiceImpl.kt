@@ -9,6 +9,7 @@ import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
 import dev.yidafu.aqua.product.mapper.ProductStatusMapper
 import org.springframework.data.domain.Page
@@ -23,6 +24,7 @@ import tools.jackson.databind.node.ObjectNode
 class ProductServiceImpl(
   val productRepository: ProductRepository,
   private val systemConfigQueryApiService: SystemConfigQueryApiService,
+  private val bizLogger: BizLogger,
 ) : ProductService {
   override fun findById(id: Long): ProductModel? = productRepository.findById(id).orElse(null)
 
@@ -49,7 +51,19 @@ class ProductServiceImpl(
         certificateImages = request.certificateImages,
         deliverySettings = request.deliverySettings,
       )
-    return productRepository.save(product)
+    val saved = productRepository.save(product)
+
+    // 业务日志(F-LOG-003 PRODUCT 域):产品创建
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logProductOperation(
+      productId = saved.id!!,
+      operation = "PRODUCT_CREATED",
+      result = "SUCCESS",
+      userId = operatorId,
+      username = operatorName,
+      additionalData = mapOf("name" to saved.name, "priceCents" to saved.price),
+    )
+    return saved
   }
 
   // Legacy method for backward compatibility
@@ -101,8 +115,19 @@ class ProductServiceImpl(
     certificateImages?.let { product.certificateImages = it }
     deliverySettings?.let { product.deliverySettings = it }
     status?.let { product.status = ProductStatusMapper.map(it) }
+    val saved = productRepository.save(product)
 
-    return productRepository.save(product)
+    // 业务日志(F-LOG-003 PRODUCT 域):产品更新
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logProductOperation(
+      productId = saved.id!!,
+      operation = "PRODUCT_UPDATED",
+      result = "SUCCESS",
+      userId = operatorId,
+      username = operatorName,
+      additionalData = mapOf("name" to saved.name),
+    )
+    return saved
   }
 
   @Transactional
@@ -114,8 +139,21 @@ class ProductServiceImpl(
       productRepository
         .findById(productId)
         .orElseThrow { IllegalArgumentException("Product not found: $productId") }
+    val before = product.status
     product.status = ProductStatusMapper.map(status)
-    return productRepository.save(product)
+    val saved = productRepository.save(product)
+
+    // 业务日志(F-LOG-003 PRODUCT 域):产品状态变更
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logProductOperation(
+      productId = saved.id!!,
+      operation = "PRODUCT_STATUS_CHANGED",
+      result = "SUCCESS",
+      userId = operatorId,
+      username = operatorName,
+      additionalData = mapOf("from" to before.name, "to" to saved.status.name),
+    )
+    return saved
   }
 
   // Service methods for stock management

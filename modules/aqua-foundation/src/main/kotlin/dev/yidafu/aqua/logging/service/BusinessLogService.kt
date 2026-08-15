@@ -51,6 +51,7 @@ class BusinessLogService(
     stackTrace: String? = null,
     userId: Long? = null,
     username: String? = null,
+    operation: String? = null,
   ) {
     if (!loggingProperties.database.businessLogEnabled) {
       return
@@ -62,6 +63,7 @@ class BusinessLogService(
           correlationId = correlationId,
           level = level,
           loggerName = loggerName,
+          operation = operation,
           message = message,
           stackTrace = stackTrace,
           userId = userId,
@@ -75,7 +77,7 @@ class BusinessLogService(
   }
 
   /**
-   * 分页查询业务日志
+   * 分页查询业务日志(REST 用,operation 不做条件)
    */
   fun queryBusinessLogs(
     level: String?,
@@ -84,10 +86,26 @@ class BusinessLogService(
     startTime: LocalDateTime?,
     endTime: LocalDateTime?,
     pageable: Pageable,
+  ): Page<BusinessLogModel> = queryBusinessLogs(level, loggerName, null, userId, startTime, endTime, pageable)
+
+  /**
+   * 分页查询业务日志(GraphQL 用,含业务域/操作类型维度,恒 createdAt 倒序 —— F-LOG-003)
+   * @param domain 业务域枚举名(ORDER/PAYMENT/DELIVERY/USER/AUTH),映射 logger_name 模糊筛选
+   * @param operationType 操作类型,精确匹配 operation 列
+   */
+  fun queryBusinessLogs(
+    level: String?,
+    loggerName: String?,
+    operation: String?,
+    userId: Long?,
+    startTime: LocalDateTime?,
+    endTime: LocalDateTime?,
+    pageable: Pageable,
   ): Page<BusinessLogModel> =
     businessLogRepository.findByFilters(
       level,
       loggerName,
+      operation,
       userId,
       startTime,
       endTime,

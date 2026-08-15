@@ -79,6 +79,7 @@ class AdminAuthServiceImpl(
         username = username,
         loginMethod = "PASSWORD",
         success = true,
+        operation = "ADMIN_LOGIN",
         additionalData = mapOf("role" to admin.role.name),
       )
 
@@ -103,6 +104,7 @@ class AdminAuthServiceImpl(
         username = username,
         loginMethod = "PASSWORD",
         success = false,
+        operation = "LOGIN_FAILED",
         additionalData = mapOf("error" to (e.message ?: "unknown error")),
       )
       throw WeChatAuthException("Authentication failed: ${e.message}")

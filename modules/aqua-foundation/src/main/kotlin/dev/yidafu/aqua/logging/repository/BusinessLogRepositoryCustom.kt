@@ -34,6 +34,7 @@ interface BusinessLogRepositoryCustom {
   fun findByFilters(
     level: String?,
     loggerName: String?,
+    operation: String?,
     userId: Long?,
     startTime: LocalDateTime?,
     endTime: LocalDateTime?,

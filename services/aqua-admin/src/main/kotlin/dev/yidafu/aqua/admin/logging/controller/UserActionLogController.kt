@@ -65,16 +65,18 @@ class UserActionLogController(
     @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) endTime: LocalDateTime?,
     @RequestParam(defaultValue = "0") page: Int,
     @RequestParam(defaultValue = "20") size: Int,
-  ): Page<UserActionLogModel> {
+  ): ApiResponse<Page<UserActionLogModel>> {
     val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
-    return userActionLogService.queryUserActionLogs(
-      userId,
-      actionType,
-      username,
-      target,
-      startTime,
-      endTime,
-      pageable,
+    return ApiResponse.success(
+      userActionLogService.queryUserActionLogs(
+        userId,
+        actionType,
+        username,
+        target,
+        startTime,
+        endTime,
+        pageable,
+      ),
     )
   }
 
@@ -121,6 +123,10 @@ class UserActionLogController(
             username = action.username,
             actionType = action.actionType,
             target = action.target,
+            pageUrl = action.pageUrl,
+            elementId = action.elementId,
+            elementType = action.elementType,
+            elementText = action.elementText,
             coordinates = action.coordinates,
             properties = action.properties,
             timestamp = action.timestamp,

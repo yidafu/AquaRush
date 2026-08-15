@@ -23,12 +23,14 @@ import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerMutationService
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerModel
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
+import dev.yidafu.aqua.logging.util.BizLogger
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class DeliveryWorkerMutationServiceImpl(
   private val workerRepository: DeliveryWorkerRepository,
+  private val bizLogger: BizLogger,
 ) : DeliveryWorkerMutationService {
   override fun createDeliveryWorker(
     adminId: Long,
@@ -46,7 +48,17 @@ class DeliveryWorkerMutationServiceImpl(
         onlineStatus = DeliverWorkerModelStatus.OFFLINE,
         isAvailable = true,
       )
-    return workerRepository.save(worker)
+    val saved = workerRepository.save(worker)
+
+    // 业务日志(F-LOG-003 DELIVERY 域):配送员创建
+    bizLogger.logDeliveryOperation(
+      deliveryId = saved.id!!,
+      operation = "DELIVERY_WORKER_CREATED",
+      result = "SUCCESS",
+      userId = adminId,
+      additionalData = mapOf("name" to name, "phone" to phone),
+    )
+    return saved
   }
 
   @Transactional
@@ -58,7 +70,20 @@ class DeliveryWorkerMutationServiceImpl(
       workerRepository.findById(workerId).orElseThrow {
         throw IllegalArgumentException("配送员不存在: $workerId")
       }
+    val before = worker.onlineStatus
     worker.onlineStatus = status
-    return workerRepository.save(worker)
+    val saved = workerRepository.save(worker)
+
+    // 业务日志(F-LOG-003 DELIVERY 域):配送员状态变更
+    val (operatorId, operatorName) = bizLogger.resolveOperator()
+    bizLogger.logDeliveryOperation(
+      deliveryId = saved.id!!,
+      operation = "DELIVERY_WORKER_STATUS_CHANGED",
+      result = "SUCCESS",
+      userId = operatorId ?: saved.adminId,
+      username = operatorName,
+      additionalData = mapOf("from" to before.name, "to" to status.name),
+    )
+    return saved
   }
 }

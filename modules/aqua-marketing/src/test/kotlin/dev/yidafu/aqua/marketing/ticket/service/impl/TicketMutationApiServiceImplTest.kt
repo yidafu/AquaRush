@@ -28,6 +28,7 @@ import dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketPurchaseRepository
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketTypeRepository
 import dev.yidafu.aqua.marketing.ticket.domain.repository.UserTicketRepository
@@ -54,6 +55,7 @@ class TicketMutationApiServiceImplTest {
   private lateinit var ticketPurchaseRepository: TicketPurchaseRepository
   private lateinit var userTicketRepository: UserTicketRepository
   private lateinit var entityManager: EntityManager
+  private lateinit var bizLogger: BizLogger
   private lateinit var service: TicketMutationApiServiceImpl
 
   @BeforeEach
@@ -62,7 +64,8 @@ class TicketMutationApiServiceImplTest {
     ticketPurchaseRepository = mockk()
     userTicketRepository = mockk()
     entityManager = mockk(relaxed = true)
-    service = TicketMutationApiServiceImpl(ticketTypeRepository, ticketPurchaseRepository, userTicketRepository, entityManager)
+    bizLogger = mockk(relaxed = true)
+    service = TicketMutationApiServiceImpl(ticketTypeRepository, ticketPurchaseRepository, userTicketRepository, entityManager, bizLogger)
   }
 
   private fun ticketType(

@@ -30,6 +30,7 @@ import dev.yidafu.aqua.common.domain.model.enums.CouponScope
 import dev.yidafu.aqua.common.domain.model.enums.CouponTemplateStatus
 import dev.yidafu.aqua.common.domain.model.enums.CouponType
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.coupon.domain.exception.CouponNotClaimableException
 import dev.yidafu.aqua.marketing.coupon.domain.exception.CouponTemplateNotFoundException
 import dev.yidafu.aqua.marketing.coupon.domain.repository.CouponTemplateRepository
@@ -48,6 +49,7 @@ class CouponMutationServiceImpl(
   private val couponTemplateRepository: CouponTemplateRepository,
   private val userCouponRepository: UserCouponRepository,
   private val userQueryApiService: UserQueryApiService,
+  private val bizLogger: BizLogger,
 ) : CouponMutationService {
   private val logger = LoggerFactory.getLogger(CouponMutationServiceImpl::class.java)
 
@@ -80,6 +82,16 @@ class CouponMutationServiceImpl(
       )
     val saved = couponTemplateRepository.save(template)
     logger.info("Admin {} created coupon template {}: {}", adminId, saved.id, saved.name)
+
+    // 业务日志(F-LOG-003 MARKETING 域):券模板创建
+    bizLogger.logMarketingOperation(
+      targetId = saved.id!!,
+      operation = "COUPON_TEMPLATE_CREATED",
+      result = "SUCCESS",
+      userId = adminId,
+      username = adminName,
+      additionalData = mapOf("name" to saved.name, "couponType" to saved.couponType.name),
+    )
     return saved
   }
 
@@ -107,6 +119,16 @@ class CouponMutationServiceImpl(
     template.perUserLimit = request.perUserLimit
     val saved = couponTemplateRepository.save(template)
     logger.info("Admin {} updated coupon template {}", adminId, id)
+
+    // 业务日志(F-LOG-003 MARKETING 域):券模板更新
+    bizLogger.logMarketingOperation(
+      targetId = saved.id!!,
+      operation = "COUPON_TEMPLATE_UPDATED",
+      result = "SUCCESS",
+      userId = adminId,
+      username = adminName,
+      additionalData = mapOf("name" to saved.name),
+    )
     return saved
   }
 
@@ -120,6 +142,16 @@ class CouponMutationServiceImpl(
     template.status = CouponTemplateStatus.DISABLED
     val saved = couponTemplateRepository.save(template)
     logger.info("Admin {} disabled coupon template {}", adminId, id)
+
+    // 业务日志(F-LOG-003 MARKETING 域):券模板停用
+    bizLogger.logMarketingOperation(
+      targetId = saved.id!!,
+      operation = "COUPON_TEMPLATE_DISABLED",
+      result = "SUCCESS",
+      userId = adminId,
+      username = adminName,
+      additionalData = mapOf("name" to saved.name),
+    )
     return saved
   }
 
@@ -156,6 +188,16 @@ class CouponMutationServiceImpl(
       issued++
     }
     logger.info("Admin {} issued {} coupons from template {} (target={})", adminId, issued, template.id, request.targetType)
+
+    // 业务日志(F-LOG-003 MARKETING 域):优惠券发放
+    bizLogger.logMarketingOperation(
+      targetId = template.id!!,
+      operation = "COUPON_ISSUED",
+      result = "SUCCESS",
+      userId = adminId,
+      username = adminName,
+      additionalData = mapOf("issuedCount" to issued, "targetType" to request.targetType.name, "templateName" to template.name),
+    )
     return issued
   }
 

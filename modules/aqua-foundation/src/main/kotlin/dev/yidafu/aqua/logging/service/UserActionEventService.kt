@@ -252,24 +252,46 @@ class UserActionEventService(
 
   /**
    * 保存用户操作日志到数据库
+   * 显式字段优先(新客户端 attr 埋点上报),缺省回退从 properties 提取(兼容旧客户端);
+   * properties 以 pretty-print JSON 落库,便于后台展示与排查;
+   * 开启 sanitizeSensitiveData 时剔除敏感键(密码/令牌/手机号/证件号等)。
    */
   private fun saveToDatabase(request: UserActionLogRequest) {
     try {
+      val properties = sanitizeProperties(request.properties)
+
       userActionLogService?.saveUserActionLog(
         userId = request.userId,
         username = request.username,
         actionType = request.actionType,
         target = request.target,
-        pageUrl = request.properties["pageUrl"] as? String,
-        elementId = request.properties["elementId"] as? String,
-        elementType = request.properties["elementType"] as? String,
-        elementText = request.properties["elementText"] as? String,
-        clientIp = request.properties["clientIp"] as? String,
-        userAgent = request.properties["userAgent"] as? String,
-        properties = if (request.properties.isNotEmpty()) objectMapper.writeValueAsString(request.properties) else null,
+        pageUrl = request.pageUrl ?: properties["pageUrl"] as? String,
+        elementId = request.elementId ?: properties["elementId"] as? String,
+        elementType = request.elementType ?: properties["elementType"] as? String,
+        elementText = request.elementText ?: properties["elementText"] as? String,
+        clientIp = properties["clientIp"] as? String,
+        userAgent = properties["userAgent"] as? String,
+        properties =
+          if (properties.isNotEmpty()) {
+            objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(properties)
+          } else {
+            null
+          },
       )
     } catch (e: Exception) {
       logger.warn("Failed to save user action to database: {}", e.message)
+    }
+  }
+
+  /**
+   * 敏感键脱敏:开启配置时剔除含敏感关键字的顶层键,避免密码/令牌/手机号等落库
+   */
+  private fun sanitizeProperties(properties: Map<String, Any>): Map<String, Any> {
+    if (properties.isEmpty() || !loggingProperties.userAction.sanitizeSensitiveData) {
+      return properties
+    }
+    return properties.filterKeys { key ->
+      SENSITIVE_KEY_HINTS.none { hint -> key.contains(hint, ignoreCase = true) }
     }
   }
 
@@ -411,6 +433,12 @@ class UserActionEventService(
   }
 
   companion object {
+    /**
+     * 敏感键关键字:键名包含任一关键字即被剔除
+     */
+    private val SENSITIVE_KEY_HINTS =
+      listOf("password", "pwd", "token", "secret", "authorization", "idcard", "id_card", "phone", "mobile")
+
     @JvmStatic
     val instance: UserActionEventService by lazy {
       UserActionEventService(LoggingProperties(), UserActionLogger.instance)

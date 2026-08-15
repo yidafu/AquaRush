@@ -27,6 +27,7 @@ import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
 import dev.yidafu.aqua.common.domain.model.PromotionActivityTierModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.promotion.domain.exception.InvalidTierException
 import dev.yidafu.aqua.marketing.promotion.domain.exception.PromotionActivityNotFoundException
 import dev.yidafu.aqua.marketing.promotion.domain.repository.PromotionActivityRepository
@@ -44,6 +45,7 @@ import java.time.LocalDateTime
 class PromotionActivityMutationServiceImpl(
   private val promotionActivityRepository: PromotionActivityRepository,
   private val promotionActivityTierRepository: PromotionActivityTierRepository,
+  private val bizLogger: BizLogger,
 ) : PromotionActivityMutationService {
   private val logger = LoggerFactory.getLogger(PromotionActivityMutationServiceImpl::class.java)
 
@@ -78,6 +80,16 @@ class PromotionActivityMutationServiceImpl(
     val saved = promotionActivityRepository.save(activity)
     saveTiers(saved.id!!, request.tiers)
     logger.info("Admin {} created promotion activity {}: {}", adminId, saved.id, saved.name)
+
+    // 业务日志(F-LOG-003 MARKETING 域):促销活动创建
+    bizLogger.logMarketingOperation(
+      targetId = saved.id!!,
+      operation = "PROMOTION_CREATED",
+      result = "SUCCESS",
+      userId = adminId,
+      username = adminName,
+      additionalData = mapOf("name" to saved.name, "activityType" to saved.activityType.name),
+    )
     return saved
   }
 
@@ -110,6 +122,16 @@ class PromotionActivityMutationServiceImpl(
     promotionActivityTierRepository.findByActivityId(id).forEach { promotionActivityTierRepository.delete(it) }
     saveTiers(id, request.tiers)
     logger.info("Admin {} updated promotion activity {}", adminId, id)
+
+    // 业务日志(F-LOG-003 MARKETING 域):促销活动更新
+    bizLogger.logMarketingOperation(
+      targetId = saved.id!!,
+      operation = "PROMOTION_UPDATED",
+      result = "SUCCESS",
+      userId = adminId,
+      username = adminName,
+      additionalData = mapOf("name" to saved.name),
+    )
     return saved
   }
 
@@ -123,6 +145,16 @@ class PromotionActivityMutationServiceImpl(
     activity.status = dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus.DISABLED
     val saved = promotionActivityRepository.save(activity)
     logger.info("Admin {} disabled promotion activity {}", adminId, id)
+
+    // 业务日志(F-LOG-003 MARKETING 域):促销活动停用
+    bizLogger.logMarketingOperation(
+      targetId = saved.id!!,
+      operation = "PROMOTION_DISABLED",
+      result = "SUCCESS",
+      userId = adminId,
+      username = adminName,
+      additionalData = mapOf("name" to saved.name),
+    )
     return saved
   }
 

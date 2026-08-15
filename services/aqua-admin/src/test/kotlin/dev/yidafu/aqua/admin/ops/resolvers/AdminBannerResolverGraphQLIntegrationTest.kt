@@ -22,6 +22,7 @@ package dev.yidafu.aqua.admin.ops.resolvers
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.common.domain.model.BannerModel
 import dev.yidafu.aqua.common.domain.model.enums.BannerLinkType
+import dev.yidafu.aqua.logging.repository.BusinessLogRepository
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.banner.domain.repository.BannerRepository
@@ -62,6 +63,9 @@ class AdminBannerResolverGraphQLIntegrationTest {
 
   @Autowired
   private lateinit var userActionLogRepository: UserActionLogRepository
+
+  @Autowired
+  private lateinit var businessLogRepository: BusinessLogRepository
 
   private lateinit var mockMvc: MockMvc
 
@@ -142,6 +146,17 @@ class AdminBannerResolverGraphQLIntegrationTest {
     val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_BANNER_CREATE)
     assertTrue(audits.isNotEmpty())
     assertTrue(audits.any { it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true })
+
+    // F-LOG-003 业务日志:同操作同步写入 business_logs(OPS 域,BizLogger 异步落库需轮询等待)
+    var businessLogs = businessLogRepository.findByOperation(OpsConfigAuditService.ACTION_BANNER_CREATE)
+    var waited = 0
+    while (businessLogs.isEmpty() && waited < 50) {
+      Thread.sleep(100)
+      waited++
+      businessLogs = businessLogRepository.findByOperation(OpsConfigAuditService.ACTION_BANNER_CREATE)
+    }
+    assertTrue(businessLogs.isNotEmpty())
+    assertTrue(businessLogs.any { it.loggerName == "OPS" && it.userId == 1L && it.username == "admin" })
   }
 
   @Test

@@ -48,6 +48,7 @@ class BusinessLogRepositoryImpl : BusinessLogRepositoryCustom {
   override fun findByFilters(
     level: String?,
     loggerName: String?,
+    operation: String?,
     userId: Long?,
     startTime: LocalDateTime?,
     endTime: LocalDateTime?,
@@ -58,6 +59,7 @@ class BusinessLogRepositoryImpl : BusinessLogRepositoryCustom {
     // Build dynamic conditions
     level?.let { builder.and(businessLog.level.eq(it)) }
     loggerName?.let { builder.and(businessLog.loggerName.like("%$it%")) }
+    operation?.let { builder.and(businessLog.operation.eq(it)) }
     userId?.let { builder.and(businessLog.userId.eq(it)) }
     startTime?.let { builder.and(businessLog.createdAt.goe(it)) }
     endTime?.let { builder.and(businessLog.createdAt.loe(it)) }

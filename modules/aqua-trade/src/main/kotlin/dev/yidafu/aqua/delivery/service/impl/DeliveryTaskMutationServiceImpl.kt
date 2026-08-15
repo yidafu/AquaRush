@@ -35,6 +35,7 @@ import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.common.utils.JsonHelper
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryWorkerRepository
+import dev.yidafu.aqua.logging.util.BizLogger
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -47,6 +48,7 @@ class DeliveryTaskMutationServiceImpl(
   private val orderOperationService: OrderOperationService,
   private val eventPublishService: SimplifiedEventPublishService,
   private val jsonHelper: JsonHelper,
+  private val bizLogger: BizLogger,
 ) : DeliveryTaskMutationService {
   private val logger = LoggerFactory.getLogger(DeliveryTaskMutationService::class.java)
 
@@ -94,6 +96,15 @@ class DeliveryTaskMutationServiceImpl(
     )
 
     logger.info("Successfully assigned worker $workerId to order $orderId, isSelfCollect: $isSelfCollect")
+
+    // 业务日志(F-LOG-003 DELIVERY 域):派单
+    bizLogger.logDeliveryOperation(
+      deliveryId = savedOrder.id!!,
+      operation = "DELIVERY_ASSIGNED",
+      result = "SUCCESS",
+      userId = adminId,
+      additionalData = mapOf("workerId" to workerId, "isSelfCollect" to isSelfCollect),
+    )
     return savedOrder
   }
 
@@ -138,6 +149,15 @@ class DeliveryTaskMutationServiceImpl(
           )
 
           assignedOrders.add(savedOrder)
+
+          // 业务日志(F-LOG-003 DELIVERY 域):批量派单(逐单记录)
+          bizLogger.logDeliveryOperation(
+            deliveryId = savedOrder.id!!,
+            operation = "DELIVERY_ASSIGNED",
+            result = "SUCCESS",
+            userId = adminId,
+            additionalData = mapOf("workerId" to workerId, "batch" to true),
+          )
         }
       } catch (e: Exception) {
         logger.warn("Failed to assign order $orderId to worker $workerId: ${e.message}")
@@ -189,6 +209,15 @@ class DeliveryTaskMutationServiceImpl(
     )
 
     logger.info("Worker $adminId accepted delivery for order $orderId")
+
+    // 业务日志(F-LOG-003 DELIVERY 域):配送员接单
+    bizLogger.logDeliveryOperation(
+      deliveryId = savedOrder.id!!,
+      operation = "DELIVERY_ACCEPTED",
+      result = "SUCCESS",
+      userId = adminId,
+      additionalData = mapOf("workerId" to (workerId ?: 0L)),
+    )
     return savedOrder
   }
 
@@ -230,6 +259,14 @@ class DeliveryTaskMutationServiceImpl(
     )
 
     logger.info("Started delivery for order $orderId")
+
+    // 业务日志(F-LOG-003 DELIVERY 域):开始配送
+    bizLogger.logDeliveryOperation(
+      deliveryId = savedOrder.id!!,
+      operation = "DELIVERY_STARTED",
+      result = "SUCCESS",
+      userId = savedOrder.deliveryWorkerId,
+    )
     return savedOrder
   }
 
@@ -296,6 +333,15 @@ class DeliveryTaskMutationServiceImpl(
     )
 
     logger.info("Successfully completed delivery for order $orderId, paymentType: $paymentType")
+
+    // 业务日志(F-LOG-003 DELIVERY 域):配送完成
+    bizLogger.logDeliveryOperation(
+      deliveryId = savedOrder.id!!,
+      operation = "DELIVERY_COMPLETED",
+      result = "SUCCESS",
+      userId = savedOrder.deliveryWorkerId,
+      additionalData = mapOf("paymentType" to (savedOrder.paymentType?.name ?: "NONE")),
+    )
     return savedOrder
   }
 }

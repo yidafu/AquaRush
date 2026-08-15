@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.ops.audit
 
 import dev.yidafu.aqua.logging.service.UserActionLogService
+import dev.yidafu.aqua.logging.util.BizLogger
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
@@ -33,12 +34,14 @@ import kotlin.test.assertTrue
  */
 class OpsConfigAuditServiceTest {
   private lateinit var userActionLogService: UserActionLogService
+  private lateinit var bizLogger: BizLogger
   private lateinit var service: OpsConfigAuditService
 
   @BeforeEach
   fun setUp() {
     userActionLogService = mockk(relaxed = true)
-    service = OpsConfigAuditService(userActionLogService)
+    bizLogger = mockk(relaxed = true)
+    service = OpsConfigAuditService(userActionLogService, bizLogger)
   }
 
   @Test
@@ -99,6 +102,31 @@ class OpsConfigAuditServiceTest {
         target = OpsConfigAuditService.TARGET_FEEDBACK,
         pageUrl = "ops",
         properties = any(),
+      )
+    }
+  }
+
+  @Test
+  @DisplayName("业务日志(F-LOG-003):record 同时经 BizLogger 写入 business_logs(OPS 域)")
+  fun `record writes business log via bizLogger`() {
+    service.record(
+      targetType = OpsConfigAuditService.TARGET_BANNER,
+      targetId = 42L,
+      actionType = OpsConfigAuditService.ACTION_BANNER_CREATE,
+      operatorId = 1L,
+      operatorName = "admin",
+      description = "direction=UP",
+    )
+
+    verify(exactly = 1) {
+      bizLogger.logOpsOperation(
+        targetType = OpsConfigAuditService.TARGET_BANNER,
+        targetId = 42L,
+        operation = OpsConfigAuditService.ACTION_BANNER_CREATE,
+        result = "SUCCESS",
+        operatorId = 1L,
+        operatorName = "admin",
+        additionalData = mapOf("description" to "direction=UP"),
       )
     }
   }

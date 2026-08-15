@@ -38,8 +38,10 @@ import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PriceSource
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.order.domain.repository.OrderGiftRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import io.mockk.every
@@ -69,6 +71,7 @@ class OrderMutationServiceImplTest {
   private lateinit var promotionPricingService: PromotionPricingService
   private lateinit var couponMutationApiService: CouponMutationApiService
   private lateinit var ticketMutationApiService: TicketMutationApiService
+  private lateinit var bizLogger: BizLogger
   private lateinit var service: OrderMutationServiceImpl
 
   private val product = ProductModel(id = 1L, name = "桶装水", price = 1000, stock = 100)
@@ -104,6 +107,9 @@ class OrderMutationServiceImplTest {
     promotionPricingService = mockk(relaxed = true)
     couponMutationApiService = mockk(relaxed = true)
     ticketMutationApiService = mockk(relaxed = true)
+    bizLogger = mockk(relaxed = true)
+    // 单测无安全上下文,resolveOperator 返回空操作者(日志仅缺操作人,不阻断业务)
+    every { bizLogger.resolveOperator() } returns (null to null)
     service =
       OrderMutationServiceImpl(
         orderRepository,
@@ -120,6 +126,7 @@ class OrderMutationServiceImplTest {
         promotionPricingService,
         couponMutationApiService,
         ticketMutationApiService,
+        bizLogger,
       )
   }
 
@@ -267,5 +274,76 @@ class OrderMutationServiceImplTest {
     every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
       DeliveryFeeRuleModel(freeFloorLimit = 10, surchargeCents = 0)
     assertEquals(200, order.deliveryFeeCents)
+  }
+
+  @Test
+  @DisplayName("G09/R-ORD-01:用户下单进入「待支付」(支付链路前置)")
+  fun createOrderEntersPendingPayment() {
+    stubCreateOrderCommon(address(floor = 4))
+    every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+      DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+
+    val order = service.createOrder(createRequest())
+
+    assertEquals(OrderModelStatus.PENDING_PAYMENT, order.status)
+  }
+
+  @Test
+  @DisplayName("代客下单保持「待分配」(现场收款不进入支付链路,R-PAY-03)")
+  fun deliveryOrderStaysPendingDispatch() {
+    every { adminService.getUserById(1L) } returns UserModel(id = 100L)
+    stubCreateOrderCommon(address(floor = 4))
+    every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+      DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+
+    val order =
+      service.createDeliveryOrder(
+        1L,
+        CreateOrderRequest(userId = 0L, productId = 1L, addressId = 1L, quantity = 1, isSelfCollect = false),
+      )
+
+    assertEquals(OrderModelStatus.PENDING_DISPATCH, order.status)
+  }
+
+  @Test
+  @DisplayName("业务日志(F-LOG-003):下单记录 ORDER_CREATED 业务日志")
+  fun `create order writes business log`() {
+    stubCreateOrderCommon(address(floor = 4))
+    every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+      DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+
+    service.createOrder(createRequest())
+
+    verify(exactly = 1) {
+      bizLogger.logOrderOperation(
+        orderId = 999L,
+        operation = "ORDER_CREATED",
+        result = "SUCCESS",
+        userId = 100L,
+        additionalData = any(),
+      )
+    }
+  }
+
+  @Test
+  @DisplayName("业务日志(F-LOG-003):取消订单记录 ORDER_CANCELLED 业务日志")
+  fun `cancel order writes business log`() {
+    val order = OrderModel(id = 1L, userId = 100L, productId = 1L, quantity = 1, status = OrderModelStatus.PENDING_PAYMENT)
+    every { orderQueryService.getOrderById(1L) } returns order
+    every { orderRepository.save(any()) } answers { firstArg() }
+    every { productService.increaseStock(any(), any()) } returns true
+
+    service.cancelOrder(1L)
+
+    verify(exactly = 1) {
+      bizLogger.logOrderOperation(
+        orderId = 1L,
+        operation = "ORDER_CANCELLED",
+        result = "SUCCESS",
+        userId = any(),
+        username = any(),
+        additionalData = any(),
+      )
+    }
   }
 }

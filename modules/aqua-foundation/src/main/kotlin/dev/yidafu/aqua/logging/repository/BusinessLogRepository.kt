@@ -35,4 +35,6 @@ interface BusinessLogRepository :
   fun findByUserId(userId: Long): List<BusinessLogModel>
 
   fun findByLevel(level: String): List<BusinessLogModel>
+
+  fun findByOperation(operation: String): List<BusinessLogModel>
 }

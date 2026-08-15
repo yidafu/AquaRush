@@ -21,7 +21,10 @@ package dev.yidafu.aqua.ops.storeprofile.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.StoreProfileModel
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 
 /**
  * 店铺信息仓库(单行配置,固定 id = SINGLETON_ID)
@@ -33,4 +36,13 @@ interface StoreProfileRepository : JpaRepository<StoreProfileModel, Long> {
     /** 单行配置固定主键 */
     const val SINGLETON_ID = 1L
   }
+
+  /**
+   * 原生硬删除(绕过 @SoftDelete 的软删除改写):
+   * 软删行仍占用 SINGLETON_ID,单行配置重新保存会撞主键(测试复位用)。
+   */
+  @Modifying
+  @Transactional
+  @Query(value = "DELETE FROM store_profiles", nativeQuery = true)
+  fun hardDeleteAll()
 }

@@ -39,6 +39,9 @@ generates:
       validationAnnotations: true
       generateConstructorFromInput: false
       sealedClassUnionsForInterfaces: true
+      # 列表类型用 List 而非 Iterable:Spring GraphQL 参数绑定(GraphQlArgumentBinder)要求
+      # 集合属性为 Collection 实现,Iterable 无法解析元素类型("Unknown Collection element type")
+      listType: "kotlin.collections.List"
       namingConvention:
         enumValues: change-case#upperCase
 

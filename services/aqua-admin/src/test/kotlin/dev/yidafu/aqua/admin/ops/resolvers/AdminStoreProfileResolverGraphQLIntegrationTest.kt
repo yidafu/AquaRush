@@ -21,8 +21,8 @@ package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
-import dev.yidafu.aqua.ops.storeprofile.domain.repository.StoreProfileRepository
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
+import dev.yidafu.aqua.ops.storeprofile.domain.repository.StoreProfileRepository
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName

@@ -22,6 +22,7 @@ package dev.yidafu.aqua.marketing.pricing.service.impl
 import dev.yidafu.aqua.api.dto.SaveGroupProductPricesRequest
 import dev.yidafu.aqua.api.service.marketing.GroupProductPriceMutationService
 import dev.yidafu.aqua.common.domain.model.GroupProductPriceModel
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.pricing.domain.repository.GroupProductPriceRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -36,6 +37,7 @@ import java.time.LocalDateTime
 @Service
 class GroupProductPriceMutationServiceImpl(
   private val groupProductPriceRepository: GroupProductPriceRepository,
+  private val bizLogger: BizLogger,
 ) : GroupProductPriceMutationService {
   private val logger = LoggerFactory.getLogger(GroupProductPriceMutationServiceImpl::class.java)
 
@@ -85,6 +87,16 @@ class GroupProductPriceMutationServiceImpl(
       }
     }
     logger.info("Admin {} saved {} group prices for group {}", adminId, request.items.size, request.customerGroupId)
+
+    // 业务日志(F-LOG-003 MARKETING 域):分组定价保存
+    bizLogger.logMarketingOperation(
+      targetId = request.customerGroupId,
+      operation = "GROUP_PRICE_SAVED",
+      result = "SUCCESS",
+      userId = adminId,
+      username = adminName,
+      additionalData = mapOf("itemCount" to request.items.size, "clearUnlisted" to request.clearUnlisted),
+    )
     return true
   }
 }

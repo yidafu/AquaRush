@@ -48,6 +48,8 @@ class BusinessLogModel(
   val level: String = "INFO",
   @Column(name = "logger_name", length = 200)
   val loggerName: String? = null,
+  @Column(name = "operation", length = 100)
+  val operation: String? = null,
   @Column(name = "message", columnDefinition = "text")
   val message: String? = null,
   @Column(name = "stack_trace", columnDefinition = "text")

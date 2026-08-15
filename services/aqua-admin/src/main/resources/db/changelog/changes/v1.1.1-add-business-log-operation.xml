@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <changeSet id="1.1.1-add-business-log-operation" author="aqua-rush">
+    <comment>Add operation column to business_logs for F-LOG-003 (PRD 09-platform-logs.md): 操作类型结构化落库,老数据为 NULL(前端回退解析 message 前缀)</comment>
+    <addColumn tableName="business_logs">
+      <column name="operation" type="varchar(100)"/>
+    </addColumn>
+  </changeSet>
+
+</databaseChangeLog>

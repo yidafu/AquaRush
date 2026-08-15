@@ -21,6 +21,7 @@ package dev.yidafu.aqua.user.service.impl
 
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import io.mockk.every
 import io.mockk.mockk
@@ -37,6 +38,7 @@ import kotlin.test.assertTrue
 class AddressServiceImplTest {
   private lateinit var addressRepository: AddressRepository
   private lateinit var eventPublishService: SimplifiedEventPublishService
+  private lateinit var bizLogger: BizLogger
   private lateinit var addressService: AddressServiceImpl
 
   private fun createSampleAddress(): AddressModel =
@@ -83,10 +85,12 @@ class AddressServiceImplTest {
   fun setUp() {
     addressRepository = mockk(relaxed = true)
     eventPublishService = mockk(relaxed = true)
+    bizLogger = mockk(relaxed = true)
     addressService =
       AddressServiceImpl(
         addressRepository,
         eventPublishService,
+        bizLogger,
       )
   }
 
@@ -181,6 +185,9 @@ class AddressServiceImplTest {
 
   @Test
   fun `deleteById should delete address by id`() {
+    // Given(地址不存在时仍记录业务日志)
+    every { addressRepository.findById(1L) } returns Optional.empty()
+
     // When
     addressService.deleteById(1L)
 

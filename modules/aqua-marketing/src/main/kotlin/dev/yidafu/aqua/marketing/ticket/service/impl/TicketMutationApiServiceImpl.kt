@@ -26,6 +26,7 @@ import dev.yidafu.aqua.common.domain.model.UserTicketModel
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.ticket.domain.exception.TicketPurchaseNotFoundException
 import dev.yidafu.aqua.marketing.ticket.domain.exception.TicketTypeNotFoundException
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketPurchaseRepository
@@ -47,6 +48,7 @@ class TicketMutationApiServiceImpl(
   private val ticketPurchaseRepository: TicketPurchaseRepository,
   private val userTicketRepository: UserTicketRepository,
   private val entityManager: EntityManager,
+  private val bizLogger: BizLogger,
 ) : TicketMutationApiService {
   @Transactional
   override fun purchaseTickets(
@@ -81,7 +83,24 @@ class TicketMutationApiServiceImpl(
         createdAt = now,
         updatedAt = now,
       )
-    return ticketPurchaseRepository.save(purchase)
+    val saved = ticketPurchaseRepository.save(purchase)
+
+    // 业务日志(F-LOG-003 MARKETING 域):购票发起
+    bizLogger.logMarketingOperation(
+      targetId = saved.id ?: 0L,
+      operation = "TICKET_PURCHASED",
+      result = "SUCCESS",
+      userId = userId,
+      additionalData =
+        mapOf(
+          "ticketTypeId" to ticketTypeId,
+          "ticketTypeName" to ticketType.name,
+          "packageCount" to request.packageCount,
+          "totalCount" to totalCount,
+          "amountCents" to saved.packagePriceCents,
+        ),
+    )
+    return saved
   }
 
   @Transactional

@@ -60,7 +60,7 @@ class WeChatAuthService(
       }
       val wechatResp = wechatResult.getOrNull()!!
       // Find or create user
-      val user = findOrCreateUser(wechatResp.openid!!)
+      val (user, justCreated) = findOrCreateUser(wechatResp.openid!!)
 
       // Create user principal
       val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
@@ -86,6 +86,16 @@ class WeChatAuthService(
         success = true,
       )
 
+      // 新用户首次登录自动注册,记录用户创建(F-LOG-003 USER 域)
+      if (justCreated) {
+        bizLogger.logUserOperation(
+          targetUserId = user.id!!,
+          operation = "USER_CREATED",
+          result = "SUCCESS",
+          additionalData = mapOf("loginMethod" to "WECHAT"),
+        )
+      }
+
       return WeChatLoginResponse(
         accessToken = accessToken,
         refreshToken = refreshToken,
@@ -109,6 +119,7 @@ class WeChatAuthService(
         username = "unknown",
         loginMethod = "WECHAT",
         success = false,
+        operation = "LOGIN_FAILED",
         additionalData = mapOf("error" to (e.message ?: "unknown error")),
       )
       throw WeChatAuthException("Login failed: ${e.message}")
@@ -167,10 +178,12 @@ class WeChatAuthService(
 
   /**
    * Find existing user or create new one
+   * @return (用户, 是否本次新建)
    */
-  private fun findOrCreateUser(openid: String): UserModel =
-    userRepository.findByWechatOpenId(openid)
-      ?: UserModel(
+  private fun findOrCreateUser(openid: String): Pair<UserModel, Boolean> {
+    userRepository.findByWechatOpenId(openid)?.let { return it to false }
+    val newUser =
+      UserModel(
         wechatOpenId = openid,
         createdAt = LocalDateTime.now(),
         nickname = "",
@@ -183,10 +196,11 @@ class WeChatAuthService(
 //        balance = BigDecimal(0),
 //        totalSpent = BigDecimal(0),
         lastLoginAt = LocalDateTime.now(),
-      ).also { newUser ->
-        userRepository.save(newUser)
-        logger.info("Created new user with openid: {}", openid)
-      }
+      )
+    userRepository.save(newUser)
+    logger.info("Created new user with openid: {}", openid)
+    return newUser to true
+  }
 
   /**
    * Get user info by user principal
@@ -225,6 +239,22 @@ class WeChatAuthService(
     request.avatar?.let { user.avatarUrl = it }
 
     val updatedUser = userRepository.save(user)
+
+    // 记录用户资料更新(F-LOG-003 USER 域)
+    val changedFields =
+      buildList {
+        if (request.nickname != null) add("nickname")
+        if (request.phone != null) add("phone")
+        if (request.avatar != null) add("avatar")
+      }
+    bizLogger.logUserOperation(
+      targetUserId = updatedUser.id!!,
+      operation = "USER_UPDATED",
+      result = "SUCCESS",
+      operatorId = userPrincipal.id,
+      operatorName = userPrincipal.username,
+      additionalData = mapOf("fields" to changedFields),
+    )
 
     return UserInfo(
       id = updatedUser.id!!,
