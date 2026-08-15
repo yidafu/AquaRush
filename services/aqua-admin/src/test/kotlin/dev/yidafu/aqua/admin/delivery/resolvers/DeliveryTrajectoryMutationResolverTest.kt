@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.admin.delivery.resolvers
 
-import dev.yidafu.aqua.admin.delivery.resolvers.DeliveryTrajectoryMutationResolver.Companion.ReportTrajectoryInput
+import dev.yidafu.aqua.admin.delivery.dto.ReportTrajectoryInput
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryTrajectoryMutationService
 import dev.yidafu.aqua.common.domain.model.AdminModel

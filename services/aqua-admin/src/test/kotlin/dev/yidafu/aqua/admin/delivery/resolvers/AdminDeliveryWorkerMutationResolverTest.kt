@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.admin.delivery.resolvers
 
-import dev.yidafu.aqua.admin.delivery.resolvers.AdminDeliveryWorkerMutationResolver.Companion.CreateDeliveryWorkerInput
-import dev.yidafu.aqua.admin.delivery.resolvers.AdminDeliveryWorkerMutationResolver.Companion.UpdateDeliveryWorkerInput
+import dev.yidafu.aqua.admin.delivery.dto.CreateDeliveryWorkerInput
+import dev.yidafu.aqua.admin.delivery.dto.UpdateDeliveryWorkerInput
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus

@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.admin.delivery.resolvers
 
+import dev.yidafu.aqua.admin.delivery.dto.ReportTrajectoryInput
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryTrajectoryMutationService
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
@@ -75,18 +76,5 @@ class DeliveryTrajectoryMutationResolver(
     )
     logger.debug("Trajectory reported by worker $workerId for order ${input.orderId}")
     return true
-  }
-
-  companion object {
-    /**
-     * 轨迹上报输入类型(F-ADR-012,R-ADR-03;与 admin-inputs.graphqls ReportTrajectoryInput 一致)
-     */
-    data class ReportTrajectoryInput(
-      val orderId: Long,
-      val longitude: Float,
-      val latitude: Float,
-      val accuracy: Float? = null,
-      val reportedAt: LocalDateTime? = null,
-    )
   }
 }

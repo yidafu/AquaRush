@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.admin.delivery.resolvers
 
+import dev.yidafu.aqua.admin.delivery.dto.CreateDeliveryWorkerInput
+import dev.yidafu.aqua.admin.delivery.dto.UpdateDeliveryWorkerInput
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
@@ -278,37 +280,4 @@ class AdminDeliveryWorkerMutationResolver(
    * 验证手机号码格式（简单验证）
    */
   private fun isValidPhoneNumber(phone: String): Boolean = phone.matches(Regex("^1[3-9]\\d{9}$"))
-
-  companion object {
-    /**
-     * 配送员操作输入类型
-     */
-    data class CreateDeliveryWorkerInput(
-      val wechatOpenId: String?,
-      val name: String,
-      val phone: String,
-      val password: String?,
-      val avatarUrl: String?,
-      val coordinates: String?,
-      val currentLocation: String?,
-      val rating: Double?,
-      val earningCents: Long?,
-      val isAvailable: Boolean? = true,
-      val accountStatus: AdminAccountStatus? = null,
-    )
-
-    data class UpdateDeliveryWorkerInput(
-      val wechatOpenId: String?,
-      val name: String?,
-      val phone: String?,
-      val avatarUrl: String?,
-      val coordinates: String?,
-      val currentLocation: String?,
-      val rating: Double?,
-      val earningCents: Long?,
-      val isAvailable: Boolean?,
-      val status: DeliverWorkerModelStatus?,
-      val accountStatus: AdminAccountStatus?,
-    )
-  }
 }
