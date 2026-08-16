@@ -18,6 +18,7 @@ export default defineAppConfig({
     'pages/feedback-records/index',
     'pages/favorites/index',
     'pages/notice-detail/index',
+    'pages/message-center/index',
     'pages/coupon-center/index',
     'pages/coupon-list/index',
     'pages/ticket-shop/index',
@@ -41,6 +42,12 @@ export default defineAppConfig({
         text: '首页',
         iconPath: './assets/home.png',
         selectedIconPath: './assets/home-active.png'
+      },
+      {
+        pagePath: 'pages/cart/index',
+        text: '购物车',
+        iconPath: './assets/shopping-bag.png',
+        selectedIconPath: './assets/shopping-bag-active.png'
       },
       {
         pagePath: 'pages/order-list/index',

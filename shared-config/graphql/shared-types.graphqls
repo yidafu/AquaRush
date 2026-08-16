@@ -2283,3 +2283,52 @@ enum UserTicketStatus {
   RETURNED
   EXPIRED
 }
+# ============ 通知与消息(PRD 13-notification.md F-NTF-002/004/006,两个服务共用) ============
+
+# 站内消息分类(消息中心 Tab:全部/订单/公告/反馈;公告与反馈聚合为开放问题,枚举预留)
+enum NotificationType {
+  ORDER
+  SYSTEM
+  ANNOUNCEMENT
+  FEEDBACK
+}
+
+# 站内消息
+type NotificationVO {
+  id: PrimaryId!
+  type: NotificationType!
+  # 接收人类型(USER/WORKER,后台消息列表展示)
+  receiverType: NotificationReceiverType!
+  # 触发场景(领域事件名,如 ORDER_PAID)
+  scene: String!
+  title: String!
+  summary: String
+  # 关联单号(订单 id)
+  relatedNo: String
+  # 是否已读
+  read: Boolean!
+  readAt: LocalDateTime
+  createdAt: LocalDateTime!
+}
+
+# 站内消息分页
+type NotificationVOPage {
+  content: [NotificationVO!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 订阅消息模板配置项(R-NTF-01,下单确认页订阅授权用)
+type SubscribeTemplateVO {
+  scene: String!
+  templateId: String!
+  enabled: Boolean!
+}
+
+# 通知接收人类型(后台消息列表筛选,F-NTF-006)
+enum NotificationReceiverType {
+  USER
+  WORKER
+}

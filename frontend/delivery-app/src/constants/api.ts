@@ -24,3 +24,6 @@ export const GRAPHQL_URL = `${API_BASE_URL}/graphql`;
 
 /** Delivery-photo upload endpoint (multipart `file`). */
 export const UPLOAD_URL = `${API_BASE_URL}/api/v1/storage/files`;
+
+/** WebSocket 实时推送端点(与 API 同一主机,http→ws)。 */
+export const WS_PUSH_URL = `${API_BASE_URL.replace(/^http/, 'ws')}/ws/notifications`;

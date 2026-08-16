@@ -65,7 +65,16 @@ const Layout: React.FC = () => {
         { key: '/users/customers', icon: <UserOutlined />, label: '用户' },
       ]
     },
-    { key: '/products', icon: <ShoppingOutlined />, label: '产品管理' },
+    {
+      key: 'products',
+      icon: <ShoppingOutlined />,
+      label: '产品管理',
+      children: [
+        { key: '/products', icon: <ShoppingOutlined />, label: '商品列表' },
+        // 规格/水源地下拉选项的配置字典(F-PRO-009)
+        { key: '/products/options', icon: <SettingOutlined />, label: '规格/水源地配置' },
+      ],
+    },
     { key: '/addresses', icon: <EnvironmentOutlined />, label: '地址管理' },
     // 配送轨迹(F-ADR-012):送水工实时位置与轨迹回放,仅管理员可见(后端 PERMISSION_DELIVERY_WORKER_READ 强制)
     { key: '/trajectories', icon: <HistoryOutlined />, label: '配送轨迹' },
@@ -115,6 +124,14 @@ const Layout: React.FC = () => {
           },
         ]
       : []),
+    {
+      key: 'notifications',
+      icon: <BellOutlined />,
+      label: '通知与消息',
+      children: [
+        { key: '/notifications/messages', icon: <MessageOutlined />, label: '消息列表' },
+      ]
+    },
     {
       key: 'statistics',
       icon: <BarChartOutlined />,

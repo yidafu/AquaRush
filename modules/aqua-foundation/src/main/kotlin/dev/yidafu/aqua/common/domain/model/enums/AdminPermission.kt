@@ -75,4 +75,8 @@ enum class AdminPermission(
   // 营销(F-MKT-001/002/003/004/007:客户分组、分组价、优惠券、满减/折扣、桶水票)
   MKT_READ("营销查询"),
   MKT_WRITE("营销配置修改"),
+
+  // 通知与消息(PRD 13-notification.md v0.20 新增:消息列表查询 / 推送与消息配置)
+  NOTIFICATION_READ("通知与消息查询"),
+  NOTIFICATION_WRITE("推送与消息配置"),
 }

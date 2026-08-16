@@ -879,7 +879,6 @@ data class CreateProductInput(
     @field:NotBlank(message = "商品封面图片不能为空")
     @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
     val coverImageUrl: kotlin.String,
-    val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
     @field:Min(value = 0, message = "押金不能小于0")
     @field:Max(value = 9999900, message = "押金不能大于99999元")
     val depositPriceCents: kotlin.Long? = null,
@@ -920,7 +919,6 @@ data class CreateProductInput(
   constructor(args: Map<String, Any>) : this(
       args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
       args["coverImageUrl"] as kotlin.String,
-      args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
       args["depositPriceCents"] as kotlin.Long?,
       args["detailContent"] as kotlin.String?,
       args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
@@ -936,6 +934,23 @@ data class CreateProductInput(
       args["subtitle"] as kotlin.String?,
       args["tags"] as tools.jackson.databind.node.ArrayNode?,
       args["waterSource"] as kotlin.String?
+  )
+}
+
+data class CreateProductOptionInput(
+    val enabled: kotlin.Boolean? = true,
+    val optionType: ProductOptionType,
+    @field:Min(value = 0, message = "排序号不能小于0")
+    val sortOrder: kotlin.Int? = null,
+    @field:NotBlank(message = "选项值不能为空")
+    @field:Size(min = 1, max = 100, message = "选项值长度应在1-100个字符之间")
+    val value: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["enabled"] as kotlin.Boolean? ?: true,
+      args["optionType"] as ProductOptionType,
+      args["sortOrder"] as kotlin.Int?,
+      args["value"] as kotlin.String
   )
 }
 
@@ -2148,6 +2163,14 @@ data class MutationCreateProductArgs(
       CreateProductInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationCreateProductOptionArgs(
+    val input: CreateProductOptionInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      CreateProductOptionInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationCreatePromotionActivityArgs(
     val input: CreatePromotionActivityInput
 ) {
@@ -2236,6 +2259,13 @@ data class MutationDeleteProductArgs(
       args["id"] as kotlin.Long
   )
 }
+data class MutationDeleteProductOptionArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
 data class MutationDeleteUserArgs(
     val id: kotlin.Long
 ) {
@@ -2300,6 +2330,20 @@ data class MutationIssueCouponsArgs(
       IssueCouponsInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationMarkNotificationReadArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class MutationMarkWorkerNotificationReadArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
 data class MutationOfflineProductArgs(
     val id: kotlin.Long
 ) {
@@ -2327,6 +2371,13 @@ data class MutationPurchaseTicketsArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       PurchaseTicketsInput(args["input"] as Map<String, Any>)
+  )
+}
+data class MutationRecordSubscribeAuthArgs(
+    val templateIds: kotlin.collections.List<kotlin.String>
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["templateIds"] as kotlin.collections.List<kotlin.String>
   )
 }
 data class MutationReorderBannerArgs(
@@ -2602,6 +2653,16 @@ data class MutationUpdateProductArgs(
       UpdateProductInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationUpdateProductOptionArgs(
+    val id: kotlin.Long,
+    val input: UpdateProductOptionInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdateProductOptionInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationUpdateProductStatusArgs(
     val productId: kotlin.Long,
     val status: ProductStatus
@@ -2675,6 +2736,7 @@ data class Mutation(
     val createOrder: Order,
     val createOrderPayment: OrderPaymentParams,
     val createProduct: Product,
+    val createProductOption: ProductOption,
     val createPromotionActivity: PromotionActivity,
     val createReview: Review,
     val createTicketType: TicketType,
@@ -2687,6 +2749,7 @@ data class Mutation(
     val deleteDeliveryWorker: kotlin.Boolean,
     val deleteNotice: kotlin.Boolean,
     val deleteProduct: kotlin.Boolean,
+    val deleteProductOption: kotlin.Boolean,
     val deleteUser: kotlin.Boolean,
     val disableCouponTemplate: CouponTemplate,
     val disableFirstOrderActivity: FirstOrderActivity,
@@ -2696,10 +2759,15 @@ data class Mutation(
     val disableTicketType: TicketType,
     val executeDailyReconciliation: DailyReconciliation,
     val issueCoupons: kotlin.Int,
+    val markAllNotificationsRead: kotlin.Boolean,
+    val markAllWorkerNotificationsRead: kotlin.Boolean,
+    val markNotificationRead: kotlin.Boolean,
+    val markWorkerNotificationRead: kotlin.Boolean,
     val offlineProduct: Product,
     val onlineProduct: Product,
     val publishNotice: Notice,
     val purchaseTickets: TicketPurchaseVo,
+    val recordSubscribeAuth: kotlin.Boolean,
     val reorderBanner: kotlin.collections.List<Banner>,
     val reportTrajectory: kotlin.Boolean,
     val resetAdminPassword: kotlin.Boolean,
@@ -2731,6 +2799,7 @@ data class Mutation(
     val updateNotice: Notice,
     val updateOrderStatus: Order,
     val updateProduct: Product,
+    val updateProductOption: ProductOption,
     val updateProductStatus: Product,
     val updateProfile: UserInfo,
     val updatePromotionActivity: PromotionActivity,
@@ -2810,6 +2879,53 @@ enum class NoticeType(val label: String) {
 
 data class NoticeVoPage(
     val content: kotlin.collections.List<Notice>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+enum class NotificationReceiverType(val label: String) {
+      USER("USER"),
+      WORKER("WORKER");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): NotificationReceiverType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+enum class NotificationType(val label: String) {
+      ANNOUNCEMENT("ANNOUNCEMENT"),
+      FEEDBACK("FEEDBACK"),
+      ORDER("ORDER"),
+      SYSTEM("SYSTEM");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): NotificationType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class NotificationVo(
+    val createdAt: java.time.LocalDateTime,
+    val id: kotlin.Long,
+    val read: kotlin.Boolean,
+    val readAt: java.time.LocalDateTime?,
+    val receiverType: NotificationReceiverType,
+    val relatedNo: kotlin.String?,
+    val scene: kotlin.String,
+    val summary: kotlin.String?,
+    val title: kotlin.String,
+    val type: NotificationType
+)
+
+data class NotificationVoPage(
+    val content: kotlin.collections.List<NotificationVo>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
@@ -3264,7 +3380,6 @@ data class Product(
     val certificateImages: tools.jackson.databind.node.ArrayNode?,
     val coverImageUrl: kotlin.String,
     val createdAt: java.time.LocalDateTime,
-    val deliverySettings: tools.jackson.databind.node.ObjectNode?,
     val depositPriceCents: kotlin.Long?,
     val detailContent: kotlin.String?,
     val effectivePriceCents: kotlin.Long,
@@ -3350,6 +3465,28 @@ data class ProductListInput(
       args["sort"] as kotlin.String? ?: """createdAt,desc""".trimIndent(),
       args["status"] as ProductStatus?
   )
+}
+
+data class ProductOption(
+    val createdAt: java.time.LocalDateTime,
+    val enabled: kotlin.Boolean,
+    val id: kotlin.Long,
+    val optionType: ProductOptionType,
+    val sortOrder: kotlin.Int,
+    val updatedAt: java.time.LocalDateTime,
+    val value: kotlin.String
+)
+
+enum class ProductOptionType(val label: String) {
+      SPECIFICATION("SPECIFICATION"),
+      WATER_SOURCE("WATER_SOURCE");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): ProductOptionType? {
+      return values().find { it.label == label }
+    }
+  }
 }
 
 data class ProductPriceVo(
@@ -3465,7 +3602,6 @@ data class ProductUpdateRequestInput(
     val certificateImages: tools.jackson.databind.node.ArrayNode? = null,
     @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
     val coverImageUrl: kotlin.String? = null,
-    val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
     @field:Min(value = 0, message = "押金不能小于0")
     @field:Max(value = 9999900, message = "押金不能大于99999元")
     val depositPriceCents: kotlin.Long? = null,
@@ -3507,7 +3643,6 @@ data class ProductUpdateRequestInput(
   constructor(args: Map<String, Any>) : this(
       args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
       args["coverImageUrl"] as kotlin.String?,
-      args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
       args["depositPriceCents"] as kotlin.Long?,
       args["detailContent"] as kotlin.String?,
       args["id"] as kotlin.Long,
@@ -3919,6 +4054,17 @@ data class QueryMyFeedbacksArgs(
       args["size"] as kotlin.Int? ?: 10
   )
 }
+data class QueryMyNotificationsArgs(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 10,
+    val type: NotificationType? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 10,
+      args["type"] as NotificationType?
+  )
+}
 data class QueryMyOrdersArgs(
     val page: kotlin.Int? = 0,
     val size: kotlin.Int? = 10,
@@ -3937,6 +4083,17 @@ data class QueryMyTicketsArgs(
       args["status"] as UserTicketStatus?
   )
 }
+data class QueryMyWorkerNotificationsArgs(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 10,
+    val type: NotificationType? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 10,
+      args["type"] as NotificationType?
+  )
+}
 data class QueryNoticeArgs(
     val id: kotlin.Long
 ) {
@@ -3950,6 +4107,34 @@ data class QueryNoticesArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       args["input"]?.let { NoticeListInput(it as Map<String, Any>) }
+  )
+}
+data class QueryNotificationArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
+data class QueryNotificationsArgs(
+    val endAt: java.time.LocalDateTime? = null,
+    val keyword: kotlin.String? = null,
+    val messageType: NotificationType? = null,
+    val page: kotlin.Int? = 0,
+    val read: kotlin.Boolean? = null,
+    val receiverType: NotificationReceiverType? = null,
+    val size: kotlin.Int? = 10,
+    val startAt: java.time.LocalDateTime? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["endAt"] as java.time.LocalDateTime?,
+      args["keyword"] as kotlin.String?,
+      args["messageType"] as NotificationType?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["read"] as kotlin.Boolean?,
+      args["receiverType"] as NotificationReceiverType?,
+      args["size"] as kotlin.Int? ?: 10,
+      args["startAt"] as java.time.LocalDateTime?
   )
 }
 data class QueryOrderArgs(
@@ -4019,6 +4204,15 @@ data class QueryProductDailySalesArgs(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       DateRangeInput(args["input"] as Map<String, Any>)
+  )
+}
+data class QueryProductOptionsArgs(
+    val enabledOnly: kotlin.Boolean? = false,
+    val type: ProductOptionType
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["enabledOnly"] as kotlin.Boolean? ?: false,
+      args["type"] as ProductOptionType
   )
 }
 data class QueryProductPriceArgs(
@@ -4226,11 +4420,15 @@ data class Query(
     val monthlyStatistics: kotlin.collections.List<MonthlyStatistic>,
     val myCoupons: kotlin.collections.List<UserCouponVo>,
     val myFeedbacks: FeedbackRecordVoPage,
+    val myNotifications: NotificationVoPage,
     val myOrders: OrderVoPage,
     val myTickets: kotlin.collections.List<UserTicketVo>,
     val myTodayCollection: MyTodayCollectionVo?,
+    val myWorkerNotifications: NotificationVoPage,
     val notice: Notice?,
     val notices: NoticeVoPage?,
+    val notification: NotificationVo?,
+    val notifications: NotificationVoPage,
     val onlineDeliveryWorkers: kotlin.collections.List<DeliveryWorker>,
     val order: Order?,
     val orderByNo: Order?,
@@ -4243,6 +4441,7 @@ data class Query(
     val pendingOrderBreakdown: PendingOrderBreakdown,
     val product: Product?,
     val productDailySales: kotlin.collections.List<ProductDailySales>,
+    val productOptions: kotlin.collections.List<ProductOption>,
     val productPrice: ProductPriceVo?,
     val productStatistics: ProductStatistics?,
     val productsPaginated: ProductVoPage?,
@@ -4255,11 +4454,13 @@ data class Query(
     val searchAllAddresses: kotlin.collections.List<Address>,
     val stockWarningThresholds: StockWarningThresholds,
     val storeProfile: StoreProfile?,
+    val subscribeTemplates: kotlin.collections.List<SubscribeTemplateVo>,
     val systemConfigs: kotlin.collections.List<SystemConfigVo>,
     val ticketShop: kotlin.collections.List<TicketTypeVo>,
     val ticketType: TicketType?,
     val ticketTypes: TicketTypeVoPage?,
     val todayStatistics: TodayStatistics?,
+    val unreadNotificationCount: kotlin.Int,
     val user: User?,
     val userAddresses: kotlin.collections.List<Address>,
     val userCoupons: kotlin.collections.List<UserCouponVo>,
@@ -4267,7 +4468,8 @@ data class Query(
     val userTickets: kotlin.collections.List<UserTicketVo>,
     val users: UserVoPage,
     val weekStatistics: WeekStatistics?,
-    val weeklyStatistics: kotlin.collections.List<WeeklyStatistic>
+    val weeklyStatistics: kotlin.collections.List<WeeklyStatistic>,
+    val workerUnreadNotificationCount: kotlin.Long
 )
 
 data class RefreshTokenInput(
@@ -4571,6 +4773,12 @@ data class SubmitDailyCollectionInput(
       args["waterTicketCount"] as kotlin.Int
   )
 }
+
+data class SubscribeTemplateVo(
+    val enabled: kotlin.Boolean,
+    val scene: kotlin.String,
+    val templateId: kotlin.String
+)
 
 data class SuspiciousTransaction(
     val adminNote: kotlin.String?,
@@ -5096,7 +5304,6 @@ data class UpdateProductInput(
     val certificateImages: tools.jackson.databind.node.ArrayNode? = null,
     @field:Size(max = 500, message = "封面图片URL长度不能超过500个字符")
     val coverImageUrl: kotlin.String? = null,
-    val deliverySettings: tools.jackson.databind.node.ObjectNode? = null,
     @field:Min(value = 0, message = "押金不能小于0")
     @field:Max(value = 9999900, message = "押金不能大于99999元")
     val depositPriceCents: kotlin.Long? = null,
@@ -5135,7 +5342,6 @@ data class UpdateProductInput(
   constructor(args: Map<String, Any>) : this(
       args["certificateImages"] as tools.jackson.databind.node.ArrayNode?,
       args["coverImageUrl"] as kotlin.String?,
-      args["deliverySettings"] as tools.jackson.databind.node.ObjectNode?,
       args["depositPriceCents"] as kotlin.Long?,
       args["detailContent"] as kotlin.String?,
       args["imageGallery"] as tools.jackson.databind.node.ArrayNode?,
@@ -5151,6 +5357,21 @@ data class UpdateProductInput(
       args["subtitle"] as kotlin.String?,
       args["tags"] as tools.jackson.databind.node.ArrayNode?,
       args["waterSource"] as kotlin.String?
+  )
+}
+
+data class UpdateProductOptionInput(
+    val enabled: kotlin.Boolean? = true,
+    @field:Min(value = 0, message = "排序号不能小于0")
+    val sortOrder: kotlin.Int? = null,
+    @field:NotBlank(message = "选项值不能为空")
+    @field:Size(min = 1, max = 100, message = "选项值长度应在1-100个字符之间")
+    val value: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["enabled"] as kotlin.Boolean? ?: true,
+      args["sortOrder"] as kotlin.Int?,
+      args["value"] as kotlin.String
   )
 }
 

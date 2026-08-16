@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, R
 
 import { authService, AdminUserInfo } from '@/services/auth';
 import { registerSessionExpiredHandler } from '@/utils/network-manager';
+import { wsPushService } from '@/services/wsPush';
 
 export const ROLE_DELIVERY_WORKER = 'DELIVERY_WORKER';
 export const ROLE_ADMIN = 'ADMIN';
@@ -48,6 +49,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const info = await authService.login(username, password);
     setIsAuthenticated(true);
     setUserInfo(info);
+    // 登录成功后建立 WebSocket 实时推送连接(F-NTF-003,任务页也会兜底连接)
+    if (info.id != null) {
+      const session = await authService.getStoredSession();
+      if (session.token) {
+        wsPushService.connect(String(info.id), session.token).catch((e) => console.error('WS 连接失败:', e));
+      }
+    }
     return info;
   }, []);
 
@@ -55,6 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await authService.logout();
     setIsAuthenticated(false);
     setUserInfo(null);
+    await wsPushService.disconnect();
   }, []);
 
   const value = useMemo<AuthContextValue>(

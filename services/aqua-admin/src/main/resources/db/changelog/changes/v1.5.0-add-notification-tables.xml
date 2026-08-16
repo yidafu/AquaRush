@@ -1,0 +1,166 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <changeSet id="1.5.0-add-notification-tables" author="aqua-rush">
+    <comment>Notification &amp; message domain (PRD 13-notification.md F-NTF-001~006): unified in-app notification table + WeChat subscription auth table</comment>
+
+    <!-- ==================== 站内消息统一落库表(F-NTF-002/004/006,订阅消息发送记录亦落此表) ==================== -->
+    <createTable tableName="notifications">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="receiver_type" type="varchar(20)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="user_id" type="bigint"/>
+      <column name="worker_id" type="bigint"/>
+      <column name="message_type" type="varchar(20)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="scene" type="varchar(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="title" type="varchar(200)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="summary" type="varchar(500)"/>
+      <column name="related_no" type="varchar(64)"/>
+      <column name="idempotency_key" type="varchar(128)">
+        <constraints nullable="false" unique="true"/>
+      </column>
+      <column name="channel_status" type="varchar(20)" defaultValue="PENDING">
+        <constraints nullable="false"/>
+      </column>
+      <column name="wx_message_id" type="varchar(100)"/>
+      <column name="error_message" type="text"/>
+      <column name="sent_at" type="timestamp"/>
+      <column name="read_at" type="timestamp"/>
+      <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+        <constraints nullable="false"/>
+      </column>
+      <column name="deleted_at" type="timestamp"/>
+      <column name="deleted_by" type="bigint"/>
+      <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createIndex tableName="notifications" indexName="idx_notifications_receiver_user">
+      <column name="receiver_type"/>
+      <column name="user_id"/>
+      <column name="created_at"/>
+    </createIndex>
+
+    <createIndex tableName="notifications" indexName="idx_notifications_receiver_worker">
+      <column name="receiver_type"/>
+      <column name="worker_id"/>
+      <column name="created_at"/>
+    </createIndex>
+
+    <createIndex tableName="notifications" indexName="idx_notifications_created_at">
+      <column name="created_at"/>
+    </createIndex>
+
+    <createIndex tableName="notifications" indexName="idx_notifications_deleted">
+      <column name="is_deleted"/>
+    </createIndex>
+
+    <!-- ==================== 微信订阅消息授权记录(R-NTF-01,一次性模板:授权一次可发一次) ==================== -->
+    <createTable tableName="user_subscription_auths">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="user_id" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="template_id" type="varchar(100)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="remaining_count" type="int" defaultValueNumeric="1">
+        <constraints nullable="false"/>
+      </column>
+      <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+        <constraints nullable="false"/>
+      </column>
+      <column name="deleted_at" type="timestamp"/>
+      <column name="deleted_by" type="bigint"/>
+      <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createIndex tableName="user_subscription_auths" indexName="idx_sub_auth_user_template">
+      <column name="user_id"/>
+      <column name="template_id"/>
+    </createIndex>
+
+    <createIndex tableName="user_subscription_auths" indexName="idx_sub_auth_deleted">
+      <column name="is_deleted"/>
+    </createIndex>
+
+    <!-- ==================== 通知域新增系统参数(补齐 F-NTF-001 五节点模板 + R-NTF-04 保留时长) ==================== -->
+    <insert tableName="system_settings">
+      <column name="id">40</column>
+      <column name="setting_key">notification_template_delivery_assigned_id</column>
+      <column name="description">配送员接单订阅消息模板 ID(未配置为空)</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">41</column>
+      <column name="setting_key">notification_template_delivery_assigned_enabled</column>
+      <column name="setting_value">true</column>
+      <column name="description">配送员接单模板启用</column>
+      <column name="setting_type">BOOLEAN</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="default_value">true</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">42</column>
+      <column name="setting_key">notification_template_delivery_started_id</column>
+      <column name="description">开始配送订阅消息模板 ID(未配置为空)</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">43</column>
+      <column name="setting_key">notification_template_delivery_started_enabled</column>
+      <column name="setting_value">true</column>
+      <column name="description">开始配送模板启用</column>
+      <column name="setting_type">BOOLEAN</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="default_value">true</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">44</column>
+      <column name="setting_key">notification_retention_days</column>
+      <column name="setting_value">90</column>
+      <column name="description">站内消息保留天数,超期消息按策略清理(R-NTF-04,默认 90)</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="default_value">90</column>
+      <column name="min_value">1</column>
+      <column name="max_value">3650</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+
+  </changeSet>
+
+</databaseChangeLog>

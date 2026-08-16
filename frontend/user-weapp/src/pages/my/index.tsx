@@ -8,6 +8,8 @@ import ServiceSection from './components/ServiceSection'
 import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import { authService, type UserInfo as AuthUserInfo } from '../../utils/auth'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
+import NotificationService from '../../services/NotificationService'
+import { connectWsPushIfLoggedIn, wsPushService } from '../../services/wsPush'
 
 // Taro UI 样式已在 app.scss 中全局引入，无需重复引入
 import './index.scss'
@@ -39,6 +41,7 @@ const MyPage: React.FC = () => {
   const [toastText, setToastText] = useState<string>('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
   const [showAvatarNicknameForm, setShowAvatarNicknameForm] = useState<boolean>(false)
+  const [unreadCount, setUnreadCount] = useState<number>(0)
 
   // Lifecycle hooks
   useEffect(() => {
@@ -54,6 +57,14 @@ const MyPage: React.FC = () => {
 
     // 检查并刷新认证状态
     checkAuthStatus()
+
+    // 消息中心未读角标(F-NTF-002)
+    loadUnreadCount()
+
+    // 登录态下建立 WebSocket 实时推送连接(F-NTF-003)
+    if (authService.isAuthenticated()) {
+      connectWsPushIfLoggedIn()
+    }
   })
 
   usePullDownRefresh(() => {
@@ -170,6 +181,31 @@ const MyPage: React.FC = () => {
       setLoading(false)
     }
   }
+
+  const loadUnreadCount = async (): Promise<void> => {
+    if (!authService.isAuthenticated()) {
+      setUnreadCount(0)
+      return
+    }
+    try {
+      const count = await NotificationService.getUnreadCount()
+      setUnreadCount(count)
+    } catch (e) {
+      console.error('获取未读消息数失败:', e)
+    }
+  }
+
+  // WebSocket 推送实时更新未读角标
+  useEffect(() => {
+    const unsubscribe = wsPushService.onMessage((message) => {
+      if (typeof message.unreadCount === 'number') {
+        setUnreadCount(message.unreadCount)
+      } else {
+        loadUnreadCount()
+      }
+    })
+    return unsubscribe
+  }, [])
 
   const handleProfileEdit = (): void => {
     // 如果用户未登录，触发微信登录
@@ -317,7 +353,7 @@ const MyPage: React.FC = () => {
       />
 
       {/* 服务区域 */}
-      <ServiceSection />
+      <ServiceSection unreadCount={unreadCount} />
 
       {/* 其他设置 */}
       <AtCard title='其他' className='settings-section'>

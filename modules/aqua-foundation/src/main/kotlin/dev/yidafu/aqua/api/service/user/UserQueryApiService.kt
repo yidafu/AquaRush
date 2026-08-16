@@ -35,6 +35,9 @@ interface UserQueryApiService {
 
   fun findByPhone(phone: String): UserModel?
 
+  /** 按微信 openid 查找用户(WebSocket 推送会话鉴权用,F-NTF-003) */
+  fun findByWechatOpenId(openid: String): UserModel?
+
   fun existsById(id: Long): Boolean
 
   fun findUsersCreatedAfter(startDate: LocalDateTime): List<UserModel>

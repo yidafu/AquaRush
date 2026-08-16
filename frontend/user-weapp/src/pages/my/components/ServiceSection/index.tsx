@@ -12,16 +12,29 @@ interface ServiceItem {
   icon: string
   title: string
   description: string
+  badge?: number
   onClick: () => void
 }
 
 interface ServiceSectionProps {
-  // 不再需要外部传入serviceItems
+  /** 消息中心未读数(入口角标,F-NTF-002) */
+  unreadCount?: number
 }
 
-const ServiceSection: React.FC<ServiceSectionProps> = () => {
+const ServiceSection: React.FC<ServiceSectionProps> = ({ unreadCount = 0 }) => {
   // 在组件内部定义所有服务项目
   const serviceItems: ServiceItem[] = React.useMemo(() => [
+    {
+      icon: '/assets/icons/service/comments.png',
+      title: '消息中心',
+      description: '查看消息通知',
+      badge: unreadCount,
+      onClick: () => {
+        Taro.navigateTo({
+          url: '/pages/message-center/index'
+        })
+      }
+    },
     {
       icon: '/assets/icons/service/heart.png',
       title: '我的收藏',
@@ -112,7 +125,7 @@ const ServiceSection: React.FC<ServiceSectionProps> = () => {
         })
       }
     }
-  ], [])
+  ], [unreadCount])
   return (
     <AtCard title='常用服务' className='p-4 mb-4'>
       <View className='at-row at-row--wrap'>
@@ -122,8 +135,15 @@ const ServiceSection: React.FC<ServiceSectionProps> = () => {
             className='flex flex-col items-center my-2 at-col-3'
             onClick={item.onClick}
           >
-            <View className='flex items-center justify-center w-6 h-6 mb-1 rounded-xl bg-primary-light bg-opacity-10'>
+            <View className='relative flex items-center justify-center w-6 h-6 mb-1 rounded-xl bg-primary-light bg-opacity-10'>
               <CustomIcon value={item.icon} size={24} color='var(--theme-primary)' />
+              {!!item.badge && item.badge > 0 && (
+                <View className='absolute -top-1 -right-2 min-w-4 h-4 px-1 rounded-full bg-red-500 flex items-center justify-center'>
+                  <Text className='text-[10px] text-white leading-none'>
+                    {item.badge > 99 ? '99+' : item.badge}
+                  </Text>
+                </View>
+              )}
             </View>
             <Text className='mb-1 text-sm font-semibold text-center theme-text-primary'>{item.title}</Text>
             <Text className='text-xs leading-4 text-center theme-text-secondary'>{item.description}</Text>

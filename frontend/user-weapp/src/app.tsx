@@ -4,6 +4,7 @@ import { ThemeProvider } from './components/ThemeProvider'
 import { authService } from './utils/auth'
 import { userActionTracker } from './utils/tracking'
 import { testConfigurationInDevelopment } from './config/config-test'
+import { connectWsPushIfLoggedIn } from './services/wsPush'
 
 import './app.scss'
 
@@ -90,12 +91,16 @@ function App({ children }: PropsWithChildren) {
     initAppTheme()
     // 静默登录
     initSilentLogin()
+    // 已登录用户建立 WebSocket 实时推送连接(F-NTF-003;未登录时跳过,登录页/我的页会再连)
+    void connectWsPushIfLoggedIn()
   }, [])
 
   // 对应 onShow
   useDidShow(() => {
     // 应用显示时检查登录状态
     checkLoginStatus()
+    // 应用回前台时确保 WebSocket 推送连接可用
+    void connectWsPushIfLoggedIn()
   })
 
   // 对应 onHide

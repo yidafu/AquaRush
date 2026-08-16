@@ -96,6 +96,7 @@ object EventQueueConst {
   const val USER_QUEUE_NAME = "user-events"
   const val NOTIFICATIONS_QUEUE_NAME = "notifications-events"
   const val COMMON_QUEUE_NAME = "common-events"
+  const val BROADCAST_TOPIC_NAME = "broadcast-events"
 }
 
 enum class EventQueueName(

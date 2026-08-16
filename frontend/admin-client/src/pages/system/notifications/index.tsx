@@ -25,6 +25,20 @@ const SCENARIOS: TemplateScenario[] = [
     enabledKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_ORDER_CREATED_ENABLED,
   },
   {
+    key: 'delivery_assigned',
+    label: '配送员接单',
+    description: '配送员接单后推送',
+    idKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_DELIVERY_ASSIGNED_ID,
+    enabledKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_DELIVERY_ASSIGNED_ENABLED,
+  },
+  {
+    key: 'delivery_started',
+    label: '开始配送',
+    description: '开始配送后推送',
+    idKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_DELIVERY_STARTED_ID,
+    enabledKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_DELIVERY_STARTED_ENABLED,
+  },
+  {
     key: 'delivery_completed',
     label: '配送完成',
     description: '配送完成后推送送达确认',

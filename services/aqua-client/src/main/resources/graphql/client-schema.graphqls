@@ -66,6 +66,14 @@ type Query {
   # 确认订单计价预览(F-ORD-023,促销引擎 R-MKT-02/07/08 全链路,服务端计算 R-MON-01)
   orderPreview(input: OrderPreviewInput!): OrderPreviewVO!
 
+  # ============ 消息中心与订阅消息(PRD 13-notification.md F-NTF-002/001) ============
+  # 消息中心:分页查询本人消息(仅本人,R-AUTH-02),type 为空=全部
+  myNotifications(type: NotificationType, page: Int = 0, size: Int = 10): NotificationVOPage!
+  # 未读消息数(我的页消息中心入口角标)
+  unreadNotificationCount: Int!
+  # 已启用的订阅消息模板(下单确认页订阅授权 Taro.requestSubscribeMessage 用,R-NTF-01)
+  subscribeTemplates: [SubscribeTemplateVO!]!
+
 }
 
 # Client-specific Mutation Schema
@@ -100,6 +108,14 @@ type Mutation {
   claimCoupon(couponTemplateId: PrimaryId!): UserCouponVO!
   # 购买桶水票(在线支付,购票即预收款项,一经购买不支持退款 R-MKT-08)
   purchaseTickets(input: PurchaseTicketsInput!): TicketPurchaseVO!
+
+  # ============ 消息中心与订阅消息(PRD 13-notification.md R-NTF-01/04) ============
+  # 单条消息标已读(幂等,仅本人消息)
+  markNotificationRead(id: PrimaryId!): Boolean!
+  # 全部已读
+  markAllNotificationsRead: Boolean!
+  # 记录微信订阅消息授权结果(仅记录用户接受的模板,一次性模板授权一次可发一次)
+  recordSubscribeAuth(templateIds: [String!]!): Boolean!
 }
 
 # ============ 商品价格(R-MKT-01) ============

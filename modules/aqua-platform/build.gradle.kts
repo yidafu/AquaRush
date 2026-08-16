@@ -42,6 +42,15 @@ dependencies {
   implementation("com.aliyun.oss:aliyun-sdk-oss:3.17.0")
 
   // ========================================================
+  // 通知域第三方库(PRD 13-notification.md F-NTF-003)
+  // spring-jms 提供 @JmsListener(notifications-events 队列消费 + push-events 主题分发);
+  // spring-websocket 提供客户端实时推送端点(WebSocket 直连,替代 MQTT)
+  // ========================================================
+  implementation("org.springframework:spring-jms")
+  implementation("jakarta.jms:jakarta.jms-api")
+  implementation("org.springframework.boot:spring-boot-starter-websocket")
+
+  // ========================================================
   // 测试依赖
   // ========================================================
   testImplementation(libs.spring.boot.starter.test)

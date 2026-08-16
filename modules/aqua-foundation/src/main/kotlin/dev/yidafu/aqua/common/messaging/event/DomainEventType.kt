@@ -52,6 +52,9 @@ enum class DomainEventType(
   // 商品事件
   PRODUCT_UPDATED("PRODUCT_UPDATED"),
 
+  // 通知事件(PRD 13-notification.md:领域事件 → notifications-events 队列 → 消息网关)
+  NOTIFICATION_SEND("NOTIFICATION_SEND"),
+
   // 通用事件
   UNKNOWN("UNKNOWN"),
   ;

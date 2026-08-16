@@ -35,6 +35,10 @@ export const SystemSettingKeys = {
   // 通知与订阅消息参数组(F-SYS-005):每场景模板 ID(STRING,未配置为空)+ 启用开关(BOOLEAN)
   NOTIFICATION_TEMPLATE_ORDER_CREATED_ID: 'notification_template_order_created_id', // 下单通知模板 ID
   NOTIFICATION_TEMPLATE_ORDER_CREATED_ENABLED: 'notification_template_order_created_enabled', // 下单通知启用
+  NOTIFICATION_TEMPLATE_DELIVERY_ASSIGNED_ID: 'notification_template_delivery_assigned_id', // 配送员接单模板 ID
+  NOTIFICATION_TEMPLATE_DELIVERY_ASSIGNED_ENABLED: 'notification_template_delivery_assigned_enabled', // 配送员接单启用
+  NOTIFICATION_TEMPLATE_DELIVERY_STARTED_ID: 'notification_template_delivery_started_id', // 开始配送模板 ID
+  NOTIFICATION_TEMPLATE_DELIVERY_STARTED_ENABLED: 'notification_template_delivery_started_enabled', // 开始配送启用
   NOTIFICATION_TEMPLATE_DELIVERY_COMPLETED_ID: 'notification_template_delivery_completed_id', // 配送完成模板 ID
   NOTIFICATION_TEMPLATE_DELIVERY_COMPLETED_ENABLED: 'notification_template_delivery_completed_enabled', // 配送完成启用
   NOTIFICATION_TEMPLATE_ORDER_URGING_ID: 'notification_template_order_urging_id', // 催单模板 ID

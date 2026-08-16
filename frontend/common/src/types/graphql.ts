@@ -475,7 +475,6 @@ export type CreateOrderInput = {
 export type CreateProductInput = {
   readonly certificateImages?: InputMaybe<Scalars['JsonArray']['input']>;
   readonly coverImageUrl: Scalars['String']['input'];
-  readonly deliverySettings?: InputMaybe<Scalars['JsonObject']['input']>;
   readonly depositPriceCents?: InputMaybe<Scalars['Long']['input']>;
   readonly detailContent?: InputMaybe<Scalars['String']['input']>;
   readonly imageGallery?: InputMaybe<Scalars['JsonArray']['input']>;
@@ -491,6 +490,13 @@ export type CreateProductInput = {
   readonly subtitle?: InputMaybe<Scalars['String']['input']>;
   readonly tags?: InputMaybe<Scalars['JsonArray']['input']>;
   readonly waterSource?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type CreateProductOptionInput = {
+  readonly enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  readonly optionType: ProductOptionType;
+  readonly sortOrder?: InputMaybe<Scalars['Int']['input']>;
+  readonly value: Scalars['String']['input'];
 };
 
 export type CreatePromotionActivityInput = {
@@ -1231,6 +1237,7 @@ export type Mutation = {
   readonly createOrder: Order;
   readonly createOrderPayment: OrderPaymentParams;
   readonly createProduct: Product;
+  readonly createProductOption: ProductOption;
   readonly createPromotionActivity: PromotionActivity;
   readonly createReview: Review;
   readonly createTicketType: TicketType;
@@ -1243,6 +1250,7 @@ export type Mutation = {
   readonly deleteDeliveryWorker: Scalars['Boolean']['output'];
   readonly deleteNotice: Scalars['Boolean']['output'];
   readonly deleteProduct: Scalars['Boolean']['output'];
+  readonly deleteProductOption: Scalars['Boolean']['output'];
   readonly deleteUser: Scalars['Boolean']['output'];
   readonly disableCouponTemplate: CouponTemplate;
   readonly disableFirstOrderActivity: FirstOrderActivity;
@@ -1252,10 +1260,15 @@ export type Mutation = {
   readonly disableTicketType: TicketType;
   readonly executeDailyReconciliation: DailyReconciliation;
   readonly issueCoupons: Scalars['Int']['output'];
+  readonly markAllNotificationsRead: Scalars['Boolean']['output'];
+  readonly markAllWorkerNotificationsRead: Scalars['Boolean']['output'];
+  readonly markNotificationRead: Scalars['Boolean']['output'];
+  readonly markWorkerNotificationRead: Scalars['Boolean']['output'];
   readonly offlineProduct: Product;
   readonly onlineProduct: Product;
   readonly publishNotice: Notice;
   readonly purchaseTickets: TicketPurchaseVo;
+  readonly recordSubscribeAuth: Scalars['Boolean']['output'];
   readonly reorderBanner: ReadonlyArray<Banner>;
   readonly reportTrajectory: Scalars['Boolean']['output'];
   readonly resetAdminPassword: Scalars['Boolean']['output'];
@@ -1287,6 +1300,7 @@ export type Mutation = {
   readonly updateNotice: Notice;
   readonly updateOrderStatus: Order;
   readonly updateProduct: Product;
+  readonly updateProductOption: ProductOption;
   readonly updateProductStatus: Product;
   readonly updateProfile: UserInfo;
   readonly updatePromotionActivity: PromotionActivity;
@@ -1421,6 +1435,11 @@ export type MutationCreateProductArgs = {
 };
 
 
+export type MutationCreateProductOptionArgs = {
+  input: CreateProductOptionInput;
+};
+
+
 export type MutationCreatePromotionActivityArgs = {
   input: CreatePromotionActivityInput;
 };
@@ -1481,6 +1500,11 @@ export type MutationDeleteProductArgs = {
 };
 
 
+export type MutationDeleteProductOptionArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
 export type MutationDeleteUserArgs = {
   id: Scalars['PrimaryId']['input'];
 };
@@ -1526,6 +1550,16 @@ export type MutationIssueCouponsArgs = {
 };
 
 
+export type MutationMarkNotificationReadArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type MutationMarkWorkerNotificationReadArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
 export type MutationOfflineProductArgs = {
   id: Scalars['PrimaryId']['input'];
 };
@@ -1543,6 +1577,11 @@ export type MutationPublishNoticeArgs = {
 
 export type MutationPurchaseTicketsArgs = {
   input: PurchaseTicketsInput;
+};
+
+
+export type MutationRecordSubscribeAuthArgs = {
+  templateIds: ReadonlyArray<Scalars['String']['input']>;
 };
 
 
@@ -1719,6 +1758,12 @@ export type MutationUpdateProductArgs = {
 };
 
 
+export type MutationUpdateProductOptionArgs = {
+  id: Scalars['PrimaryId']['input'];
+  input: UpdateProductOptionInput;
+};
+
+
 export type MutationUpdateProductStatusArgs = {
   productId: Scalars['PrimaryId']['input'];
   status: ProductStatus;
@@ -1797,6 +1842,39 @@ export enum NoticeType {
 
 export type NoticeVoPage = {
   readonly content: ReadonlyArray<Notice>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
+export enum NotificationReceiverType {
+  USER = 'USER',
+  WORKER = 'WORKER'
+}
+
+export enum NotificationType {
+  ANNOUNCEMENT = 'ANNOUNCEMENT',
+  FEEDBACK = 'FEEDBACK',
+  ORDER = 'ORDER',
+  SYSTEM = 'SYSTEM'
+}
+
+export type NotificationVo = {
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly read: Scalars['Boolean']['output'];
+  readonly readAt?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly receiverType: NotificationReceiverType;
+  readonly relatedNo?: Maybe<Scalars['String']['output']>;
+  readonly scene: Scalars['String']['output'];
+  readonly summary?: Maybe<Scalars['String']['output']>;
+  readonly title: Scalars['String']['output'];
+  readonly type: NotificationType;
+};
+
+export type NotificationVoPage = {
+  readonly content: ReadonlyArray<NotificationVo>;
   readonly number: Scalars['Int']['output'];
   readonly size: Scalars['Int']['output'];
   readonly totalElements: Scalars['Int']['output'];
@@ -2134,7 +2212,6 @@ export type Product = {
   readonly certificateImages?: Maybe<Scalars['JsonArray']['output']>;
   readonly coverImageUrl: Scalars['String']['output'];
   readonly createdAt: Scalars['LocalDateTime']['output'];
-  readonly deliverySettings?: Maybe<Scalars['JsonObject']['output']>;
   readonly depositPriceCents?: Maybe<Scalars['Long']['output']>;
   readonly detailContent?: Maybe<Scalars['String']['output']>;
   readonly effectivePriceCents: Scalars['Long']['output'];
@@ -2201,6 +2278,21 @@ export type ProductListInput = {
   readonly sort?: InputMaybe<Scalars['String']['input']>;
   readonly status?: InputMaybe<ProductStatus>;
 };
+
+export type ProductOption = {
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly enabled: Scalars['Boolean']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly optionType: ProductOptionType;
+  readonly sortOrder: Scalars['Int']['output'];
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+  readonly value: Scalars['String']['output'];
+};
+
+export enum ProductOptionType {
+  SPECIFICATION = 'SPECIFICATION',
+  WATER_SOURCE = 'WATER_SOURCE'
+}
 
 export type ProductPriceVo = {
   readonly catalogPriceCents: Scalars['Long']['output'];
@@ -2274,7 +2366,6 @@ export enum ProductStatus {
 export type ProductUpdateRequest = {
   readonly certificateImages?: InputMaybe<Scalars['JsonArray']['input']>;
   readonly coverImageUrl?: InputMaybe<Scalars['String']['input']>;
-  readonly deliverySettings?: InputMaybe<Scalars['JsonObject']['input']>;
   readonly depositPriceCents?: InputMaybe<Scalars['Long']['input']>;
   readonly detailContent?: InputMaybe<Scalars['String']['input']>;
   readonly id: Scalars['PrimaryId']['input'];
@@ -2417,11 +2508,15 @@ export type Query = {
   readonly monthlyStatistics: ReadonlyArray<MonthlyStatistic>;
   readonly myCoupons: ReadonlyArray<UserCouponVo>;
   readonly myFeedbacks: FeedbackRecordVoPage;
+  readonly myNotifications: NotificationVoPage;
   readonly myOrders: OrderVoPage;
   readonly myTickets: ReadonlyArray<UserTicketVo>;
   readonly myTodayCollection?: Maybe<MyTodayCollectionVo>;
+  readonly myWorkerNotifications: NotificationVoPage;
   readonly notice?: Maybe<Notice>;
   readonly notices?: Maybe<NoticeVoPage>;
+  readonly notification?: Maybe<NotificationVo>;
+  readonly notifications: NotificationVoPage;
   readonly onlineDeliveryWorkers: ReadonlyArray<DeliveryWorker>;
   readonly order?: Maybe<Order>;
   readonly orderByNo?: Maybe<Order>;
@@ -2434,6 +2529,7 @@ export type Query = {
   readonly pendingOrderBreakdown: PendingOrderBreakdown;
   readonly product?: Maybe<Product>;
   readonly productDailySales: ReadonlyArray<ProductDailySales>;
+  readonly productOptions: ReadonlyArray<ProductOption>;
   readonly productPrice?: Maybe<ProductPriceVo>;
   readonly productStatistics?: Maybe<ProductStatistics>;
   readonly productsPaginated?: Maybe<ProductVoPage>;
@@ -2446,11 +2542,13 @@ export type Query = {
   readonly searchAllAddresses: ReadonlyArray<Address>;
   readonly stockWarningThresholds: StockWarningThresholds;
   readonly storeProfile?: Maybe<StoreProfile>;
+  readonly subscribeTemplates: ReadonlyArray<SubscribeTemplateVo>;
   readonly systemConfigs: ReadonlyArray<SystemConfigVo>;
   readonly ticketShop: ReadonlyArray<TicketTypeVo>;
   readonly ticketType?: Maybe<TicketType>;
   readonly ticketTypes?: Maybe<TicketTypeVoPage>;
   readonly todayStatistics?: Maybe<TodayStatistics>;
+  readonly unreadNotificationCount: Scalars['Int']['output'];
   readonly user?: Maybe<User>;
   readonly userAddresses: ReadonlyArray<Address>;
   readonly userCoupons: ReadonlyArray<UserCouponVo>;
@@ -2459,6 +2557,7 @@ export type Query = {
   readonly users: UserVoPage;
   readonly weekStatistics?: Maybe<WeekStatistics>;
   readonly weeklyStatistics: ReadonlyArray<WeeklyStatistic>;
+  readonly workerUnreadNotificationCount: Scalars['Long']['output'];
 };
 
 
@@ -2635,6 +2734,13 @@ export type QueryMyFeedbacksArgs = {
 };
 
 
+export type QueryMyNotificationsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+  type?: InputMaybe<NotificationType>;
+};
+
+
 export type QueryMyOrdersArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
@@ -2647,6 +2753,13 @@ export type QueryMyTicketsArgs = {
 };
 
 
+export type QueryMyWorkerNotificationsArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+  type?: InputMaybe<NotificationType>;
+};
+
+
 export type QueryNoticeArgs = {
   id: Scalars['PrimaryId']['input'];
 };
@@ -2654,6 +2767,23 @@ export type QueryNoticeArgs = {
 
 export type QueryNoticesArgs = {
   input?: InputMaybe<NoticeListInput>;
+};
+
+
+export type QueryNotificationArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryNotificationsArgs = {
+  endAt?: InputMaybe<Scalars['LocalDateTime']['input']>;
+  keyword?: InputMaybe<Scalars['String']['input']>;
+  messageType?: InputMaybe<NotificationType>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  read?: InputMaybe<Scalars['Boolean']['input']>;
+  receiverType?: InputMaybe<NotificationReceiverType>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+  startAt?: InputMaybe<Scalars['LocalDateTime']['input']>;
 };
 
 
@@ -2700,6 +2830,12 @@ export type QueryProductArgs = {
 
 export type QueryProductDailySalesArgs = {
   input: DateRangeInput;
+};
+
+
+export type QueryProductOptionsArgs = {
+  enabledOnly?: InputMaybe<Scalars['Boolean']['input']>;
+  type: ProductOptionType;
 };
 
 
@@ -2982,6 +3118,12 @@ export type SubmitDailyCollectionInput = {
   readonly waterTicketCount: Scalars['Int']['input'];
 };
 
+export type SubscribeTemplateVo = {
+  readonly enabled: Scalars['Boolean']['output'];
+  readonly scene: Scalars['String']['output'];
+  readonly templateId: Scalars['String']['output'];
+};
+
 export type SuspiciousTransaction = {
   readonly adminNote?: Maybe<Scalars['String']['output']>;
   readonly amountCents: Scalars['Long']['output'];
@@ -3248,7 +3390,6 @@ export type UpdateNoticeInput = {
 export type UpdateProductInput = {
   readonly certificateImages?: InputMaybe<Scalars['JsonArray']['input']>;
   readonly coverImageUrl?: InputMaybe<Scalars['String']['input']>;
-  readonly deliverySettings?: InputMaybe<Scalars['JsonObject']['input']>;
   readonly depositPriceCents?: InputMaybe<Scalars['Long']['input']>;
   readonly detailContent?: InputMaybe<Scalars['String']['input']>;
   readonly imageGallery?: InputMaybe<Scalars['JsonArray']['input']>;
@@ -3264,6 +3405,12 @@ export type UpdateProductInput = {
   readonly subtitle?: InputMaybe<Scalars['String']['input']>;
   readonly tags?: InputMaybe<Scalars['JsonArray']['input']>;
   readonly waterSource?: InputMaybe<Scalars['String']['input']>;
+};
+
+export type UpdateProductOptionInput = {
+  readonly enabled?: InputMaybe<Scalars['Boolean']['input']>;
+  readonly sortOrder?: InputMaybe<Scalars['Int']['input']>;
+  readonly value: Scalars['String']['input'];
 };
 
 export type UpdateProfileInput = {

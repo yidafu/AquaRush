@@ -41,6 +41,8 @@ class UserQueryApiServiceImpl(
 
   override fun findByPhone(phone: String): UserModel? = userRepository.findByPhone(phone)
 
+  override fun findByWechatOpenId(openid: String): UserModel? = userRepository.findByWechatOpenId(openid)
+
   override fun existsById(id: Long): Boolean = userRepository.existsById(id)
 
   override fun findUsersCreatedAfter(startDate: LocalDateTime): List<UserModel> =

@@ -120,6 +120,9 @@ class ArtemisEventPublisher(
       DomainEventType.USER_UPDATED,
       -> EventQueueName.USER_QUEUE.toString()
 
+      DomainEventType.NOTIFICATION_SEND,
+      -> EventQueueName.NOTIFICATION_QUEUE.toString()
+
       else -> EventQueueName.DELIVERY_QUEUE.toString()
     }
   }

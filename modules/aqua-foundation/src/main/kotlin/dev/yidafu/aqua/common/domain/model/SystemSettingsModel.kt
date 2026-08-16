@@ -104,12 +104,26 @@ object SystemSettingKeys {
   // 通知与订阅消息参数组(F-SYS-005):每场景模板 ID(STRING,未配置为空)+ 启用开关(BOOLEAN)
   const val NOTIFICATION_TEMPLATE_ORDER_CREATED_ID = "notification_template_order_created_id" // 下单通知模板 ID
   const val NOTIFICATION_TEMPLATE_ORDER_CREATED_ENABLED = "notification_template_order_created_enabled" // 下单通知启用
+  const val NOTIFICATION_TEMPLATE_DELIVERY_ASSIGNED_ID = "notification_template_delivery_assigned_id" // 配送员接单模板 ID
+  const val NOTIFICATION_TEMPLATE_DELIVERY_ASSIGNED_ENABLED = "notification_template_delivery_assigned_enabled" // 配送员接单启用
+  const val NOTIFICATION_TEMPLATE_DELIVERY_STARTED_ID = "notification_template_delivery_started_id" // 开始配送模板 ID
+  const val NOTIFICATION_TEMPLATE_DELIVERY_STARTED_ENABLED = "notification_template_delivery_started_enabled" // 开始配送启用
   const val NOTIFICATION_TEMPLATE_DELIVERY_COMPLETED_ID = "notification_template_delivery_completed_id" // 配送完成模板 ID
   const val NOTIFICATION_TEMPLATE_DELIVERY_COMPLETED_ENABLED = "notification_template_delivery_completed_enabled" // 配送完成启用
   const val NOTIFICATION_TEMPLATE_ORDER_URGING_ID = "notification_template_order_urging_id" // 催单模板 ID
   const val NOTIFICATION_TEMPLATE_ORDER_URGING_ENABLED = "notification_template_order_urging_enabled" // 催单启用
   const val NOTIFICATION_TEMPLATE_PAYMENT_RESULT_ID = "notification_template_payment_result_id" // 支付结果模板 ID
   const val NOTIFICATION_TEMPLATE_PAYMENT_RESULT_ENABLED = "notification_template_payment_result_enabled" // 支付结果启用
+  const val NOTIFICATION_RETENTION_DAYS = "notification_retention_days" // 站内消息保留天数(R-NTF-04,默认 90)
+
+  // 送水 App 实时推送配置(F-NTF-003):任务关键节点推送场景开关 + 离线/弱网轮询间隔(R-NTF-03,默认 30s)
+  const val DELIVERY_PUSH_NEW_ORDER_ENABLED = "delivery_push_new_order_enabled" // 新订单(可抢单)推送
+  const val DELIVERY_PUSH_ASSIGNED_ENABLED = "delivery_push_assigned_enabled" // 被派单推送
+  const val DELIVERY_PUSH_CANCELLED_ENABLED = "delivery_push_cancelled_enabled" // 订单取消推送
+  const val DELIVERY_PUSH_URGING_ENABLED = "delivery_push_urging_enabled" // 用户催单推送
+  const val DELIVERY_PUSH_TIMEOUT_ENABLED = "delivery_push_timeout_enabled" // 配送超时推送
+  const val DELIVERY_PUSH_PAYMENT_TIMEOUT_ENABLED = "delivery_push_payment_timeout_enabled" // 支付超时推送
+  const val DELIVERY_POLL_INTERVAL_SECONDS = "delivery_poll_interval_seconds" // 离线/弱网轮询间隔(秒),默认 30
 
   // 数据维护参数组(F-SYS-006)
   const val LOG_RETENTION_API_DAYS = "log_retention_api_days" // API 日志保留天数,默认 90

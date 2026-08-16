@@ -20,6 +20,7 @@ const ROLE_LABELS: Record<string, string> = {
 };
 
 const MENU_ITEMS: { label: string; href: Href }[] = [
+  { label: '消息中心', href: '/messages' as Href },
   { label: '每日收款', href: '/daily-collection' },
   { label: '对账记录', href: '/reconciliation-records' },
   { label: '历史订单', href: '/history-orders' },

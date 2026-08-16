@@ -17,6 +17,8 @@ import {
   getPendingDeliveryOrders,
   startDelivery,
 } from '@/services/delivery';
+import { wsPushService, connectWsPushIfLoggedIn, showPushBanner, WsPushMessage } from '@/services/wsPush';
+import { useAuth } from '@/hooks/use-auth';
 
 const TAB_EMPTY_ICONS = ['📋', '🕐', '🚚'];
 
@@ -27,6 +29,25 @@ export default function TasksScreen() {
   const [assignedOrders, setAssignedOrders] = useState<any[]>([]);
   const [deliveringOrders, setDeliveringOrders] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
+  const { userInfo } = useAuth();
+
+  // WebSocket 实时推送(F-NTF-003):登录后建立连接;推送到达 → 刷新任务列表 + 横幅提示
+  useEffect(() => {
+    const workerId = userInfo?.id != null ? String(userInfo.id) : null;
+    if (!workerId) {
+      return;
+    }
+    connectWsPushIfLoggedIn().catch((e) => console.error('WS 连接失败:', e));
+    const unsubscribe = wsPushService.onMessage((message: WsPushMessage) => {
+      showPushBanner(message);
+      loadAllData().catch((e) => console.error('推送刷新任务列表失败:', e));
+    });
+    return () => {
+      unsubscribe();
+      // 登出/切换账号时断开(由登出流程显式断开)
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userInfo?.id]);
 
   const loadAllData = useCallback(async () => {
     const results = await Promise.all([

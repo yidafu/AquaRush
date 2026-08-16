@@ -26,5 +26,6 @@
   <include file="db/changelog/changes/v1.2.6-add-delivery-push-config-params.xml"/>
   <include file="db/changelog/changes/v1.3.0-log-partition-backup.xml"/>
   <include file="db/changelog/changes/v1.4.0-fix-payment-refunds-status-check.xml"/>
+  <include file="db/changelog/changes/v1.5.0-add-notification-tables.xml"/>
 
 </databaseChangeLog>

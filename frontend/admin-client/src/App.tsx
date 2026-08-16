@@ -40,6 +40,7 @@ import SystemOrderConfig from './pages/system/order';
 import SystemStockConfig from './pages/system/stock';
 import SystemSecurityConfig from './pages/system/security';
 import SystemNotificationsConfig from './pages/system/notifications';
+import NotificationMessages from './pages/notifications/messages';
 import SystemDataMaintenanceConfig from './pages/system/data';
 import DeliveryTrajectories from './pages/trajectories';
 
@@ -103,6 +104,7 @@ const App: React.FC = () => {
         <Route path="system-config/stock" element={page('库存预警阈值', <SystemStockConfig />)} />
         <Route path="system-config/security" element={page('账号与安全', <SystemSecurityConfig />)} />
         <Route path="system-config/notifications" element={page('通知与订阅消息', <SystemNotificationsConfig />)} />
+        <Route path="notifications/messages" element={page('消息列表', <NotificationMessages />)} />
         <Route path="system-config/data" element={page('数据维护', <SystemDataMaintenanceConfig />)} />
       </Route>
     </Routes>
