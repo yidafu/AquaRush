@@ -22,6 +22,9 @@
   <include file="db/changelog/changes/v1.2.2-add-admin-account-status.xml"/>
   <include file="db/changelog/changes/v1.2.3-add-delivery-trajectory.xml"/>
   <include file="db/changelog/changes/v1.2.4-add-system-security-notification-data-config.xml"/>
+  <include file="db/changelog/changes/v1.2.5-add-order-idempotency-delivery-time.xml"/>
+  <include file="db/changelog/changes/v1.2.6-add-delivery-push-config-params.xml"/>
+  <include file="db/changelog/changes/v1.3.0-log-partition-backup.xml"/>
   <include file="db/changelog/changes/v1.4.0-fix-payment-refunds-status-check.xml"/>
 
 </databaseChangeLog>

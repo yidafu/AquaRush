@@ -6,6 +6,8 @@
 extend type Query {
   # 系统参数列表(按参数组返回,未配置组返回空列表)
   systemConfigs(group: SystemConfigGroup!): [SystemConfigVO!]!
+  # 数据维护页总览(单请求:F-SYS-006 保留策略 + 日志分区 + 离线备份记录)
+  dataMaintenanceOverview(input: LogBackupRecordListInput): DataMaintenanceOverviewVO!
 }
 
 extend type Mutation {
@@ -13,6 +15,8 @@ extend type Mutation {
   saveSystemConfigs(input: [SaveSystemConfigInput!]!): [SystemConfigVO!]!
   # 恢复参数默认值(留审计日志)
   restoreSystemConfig(settingKey: String!): SystemConfigVO!
+  # 离线备份指定超期日志分区(转储冷表 + 导出数据文件;成功后分区从热表移除)
+  backupLogPartition(input: BackupLogPartitionInput!): LogBackupRecord!
 }
 
 # 参数组
@@ -77,4 +81,116 @@ input SaveSystemConfigInput {
     @pattern(regexp: "^[a-zA-Z0-9_]+$", message: "参数键只能包含字母数字和下划线")
   # 参数值(按声明类型校验:数值区间/布尔/枚举/长度,服务端按类型校验)
   settingValue: String @size(max: 255, message: "参数值不能超过255个字符")
+}
+
+# ==================== 日志离线备份(F-SYS-006) ====================
+
+# 日志表类型
+enum LogTableType {
+  # API 请求日志
+  API_LOG
+  # 用户操作日志
+  USER_ACTION_LOG
+  # 业务日志
+  BUSINESS_LOG
+}
+
+# 离线备份记录状态
+enum LogBackupStatus {
+  # 备份进行中
+  RUNNING
+  # 备份成功(已转储冷表并导出文件)
+  SUCCEEDED
+  # 备份失败(数据仍在热表,未丢失)
+  FAILED
+}
+
+# 日志热表月度分区
+type LogPartitionVO {
+  # 所属日志表
+  logTable: LogTableType!
+  # 分区名,如 api_logs_2026_01
+  partitionName: String!
+  # 分区月份 yyyy-MM;DEFAULT 兜底分区为 null
+  partitionMonth: String
+  # 行数估算(展示用)
+  rowCount: Long!
+  # 分区占用字节数
+  sizeBytes: Long!
+  # 是否为 DEFAULT 兜底分区
+  isDefault: Boolean!
+  # 是否为当前月分区(仍在写入)
+  isCurrentMonth: Boolean!
+  # 是否超期(按保留天数判定)
+  expired: Boolean!
+  # 是否可备份(已超期历史月且未备份)
+  backupable: Boolean!
+}
+
+# 离线备份记录
+type LogBackupRecord {
+  # 主键
+  id: PrimaryId!
+  # 日志表
+  logTable: LogTableType!
+  # 热表分区名
+  partitionName: String!
+  # 分区月份 yyyy-MM
+  partitionMonth: String!
+  # 冷表名(按年份组织,如 log_archive.api_logs_2026)
+  coldTableName: String!
+  # 转储行数
+  rowCount: Long!
+  # 导出的数据文件路径
+  filePath: String
+  # 文件字节数
+  fileSizeBytes: Long
+  # 文件 SHA-256
+  checksum: String
+  # 状态
+  status: LogBackupStatus!
+  # 失败原因
+  errorMessage: String
+  # 操作人(自动备份为 system)
+  operatorName: String
+  # 开始时间
+  startedAt: LocalDateTime!
+  # 完成时间
+  finishedAt: LocalDateTime
+}
+
+# 离线备份记录分页查询输入
+input LogBackupRecordListInput {
+  # 日志表(不传查全部)
+  logTable: LogTableType
+  # 页码(从 0 开始)
+  page: Int = 0
+  # 每页条数
+  size: Int = 10
+}
+
+# 离线备份记录分页结果
+type LogBackupRecordPage {
+  list: [LogBackupRecord!]!
+  pageInfo: PageInfo!
+}
+
+# 离线备份请求输入
+input BackupLogPartitionInput {
+  # 日志表
+  logTable: LogTableType!
+  # 热表分区名
+  partitionName: String!
+    @notBlank(message: "分区名不能为空")
+    @size(max: 100, message: "分区名不能超过100个字符")
+}
+
+# 数据维护页总览(F-SYS-006,单请求)
+type DataMaintenanceOverviewVO {
+  # DATA_MAINTENANCE 组参数(保留策略)
+  settings: [SystemConfigVO!]!
+  # 三类日志热表分区合并(每项含 logTable)
+  partitions: [LogPartitionVO!]!
+  # 离线备份记录分页
+  backupRecords: LogBackupRecordPage!
 }

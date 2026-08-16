@@ -39,3 +39,25 @@ export const RESTORE_SYSTEM_CONFIG_MUTATION = gql`
     }
   }
 `;
+
+// 离线备份日志分区(F-SYS-006):转储冷表 + 导出数据文件,成功后分区从热表移除
+export const BACKUP_LOG_PARTITION_MUTATION = gql`
+  mutation BackupLogPartition($input: BackupLogPartitionInput!) {
+    backupLogPartition(input: $input) {
+      id
+      logTable
+      partitionName
+      partitionMonth
+      coldTableName
+      rowCount
+      filePath
+      fileSizeBytes
+      checksum
+      status
+      errorMessage
+      operatorName
+      startedAt
+      finishedAt
+    }
+  }
+`;

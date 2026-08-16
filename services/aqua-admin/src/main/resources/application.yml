@@ -146,6 +146,9 @@ aqua:
   id:
     snowflake:
       machine-id: ${SNOWFLAKE_MACHINE_ID:2} # Different machine ID for delivery service
+  # 数据维护(F-SYS-006):日志离线备份文件输出目录
+  data-maintenance:
+    backup-dir: ${LOG_BACKUP_DIR:./data/log-backup}
   wechat:
     app-id: ${WECHAT_APP_ID:your-app-id}
     app-secret: ${WECHAT_APP_SECRET:your-app-secret}

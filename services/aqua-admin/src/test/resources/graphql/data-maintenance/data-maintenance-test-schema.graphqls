@@ -1,0 +1,122 @@
+# Test Schema for Admin Data Maintenance Resolvers GraphQL Integration Tests
+# 自包含 schema(仿 system 测试目录模式),仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/data-maintenance/) 加载
+# 覆盖 F-SYS-006:dataMaintenanceOverview 总览 + backupLogPartition 离线备份
+
+scalar Long
+scalar LocalDateTime
+scalar PrimaryId
+
+type Query {
+  dataMaintenanceOverview(input: LogBackupRecordListInput): DataMaintenanceOverviewVO!
+}
+
+type Mutation {
+  backupLogPartition(input: BackupLogPartitionInput!): LogBackupRecord!
+}
+
+enum SystemConfigGroup {
+  ORDER_AND_FULFILLMENT
+  INVENTORY
+  SECURITY
+  NOTIFICATION
+  DATA_MAINTENANCE
+}
+
+enum SystemSettingType {
+  NUMBER
+  BOOLEAN
+  STRING
+  ENUM
+}
+
+type SystemConfigVO {
+  id: Long!
+  settingKey: String!
+  settingType: SystemSettingType!
+  settingGroup: SystemConfigGroup!
+  settingValue: String
+  defaultValue: String
+  description: String
+  minValue: String
+  maxValue: String
+  options: String
+  updatedBy: String
+  updatedAt: LocalDateTime!
+}
+
+input SaveSystemConfigInput {
+  settingKey: String!
+  settingValue: String
+}
+
+enum LogTableType {
+  API_LOG
+  USER_ACTION_LOG
+  BUSINESS_LOG
+}
+
+enum LogBackupStatus {
+  RUNNING
+  SUCCEEDED
+  FAILED
+}
+
+type LogPartitionVO {
+  logTable: LogTableType!
+  partitionName: String!
+  partitionMonth: String
+  rowCount: Long!
+  sizeBytes: Long!
+  isDefault: Boolean!
+  isCurrentMonth: Boolean!
+  expired: Boolean!
+  backupable: Boolean!
+}
+
+type LogBackupRecord {
+  id: PrimaryId!
+  logTable: LogTableType!
+  partitionName: String!
+  partitionMonth: String!
+  coldTableName: String!
+  rowCount: Long!
+  filePath: String
+  fileSizeBytes: Long
+  checksum: String
+  status: LogBackupStatus!
+  errorMessage: String
+  operatorName: String
+  startedAt: LocalDateTime!
+  finishedAt: LocalDateTime
+}
+
+input LogBackupRecordListInput {
+  logTable: LogTableType
+  page: Int = 0
+  size: Int = 10
+}
+
+type LogBackupRecordPage {
+  list: [LogBackupRecord!]!
+  pageInfo: PageInfo!
+}
+
+input BackupLogPartitionInput {
+  logTable: LogTableType!
+  partitionName: String!
+}
+
+type DataMaintenanceOverviewVO {
+  settings: [SystemConfigVO!]!
+  partitions: [LogPartitionVO!]!
+  backupRecords: LogBackupRecordPage!
+}
+
+type PageInfo {
+  total: Int!
+  pageSize: Int!
+  pageNum: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
+  totalPages: Int!
+}

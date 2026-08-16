@@ -155,6 +155,18 @@ data class AuthPayload(
     val user: User
 )
 
+data class BackupLogPartitionInput(
+    val logTable: LogTableType,
+    @field:NotBlank(message = "分区名不能为空")
+    @field:Size(max = 100, message = "分区名不能超过100个字符")
+    val partitionName: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["logTable"] as LogTableType,
+      args["partitionName"] as kotlin.String
+  )
+}
+
 data class Banner(
     val createdAt: java.time.LocalDateTime,
     val enabled: kotlin.Boolean,
@@ -638,19 +650,15 @@ data class CreateDeliveryOrderInput(
     @field:Positive(message = "地址ID必须为正数")
     val addressId: kotlin.Long,
     val isSelfCollect: kotlin.Boolean? = false,
-    @field:Positive(message = "商品ID必须为正数")
-    val productId: kotlin.Long,
-    @field:Min(value = 1, message = "购买数量不能少于1")
-    @field:Max(value = 999, message = "购买数量不能超过999")
-    val quantity: kotlin.Int,
+    val items: kotlin.collections.List<OrderItemInput>,
     @field:Size(max = 500, message = "备注长度不能超过500个字符")
     val remark: kotlin.String? = null
 ) {
+  @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       args["addressId"] as kotlin.Long,
       args["isSelfCollect"] as kotlin.Boolean? ?: false,
-      args["productId"] as kotlin.Long,
-      args["quantity"] as kotlin.Int,
+      args["items"]!!.let { items -> (items as List<Map<String, Any>>).map { OrderItemInput(it) } },
       args["remark"] as kotlin.String?
   )
 }
@@ -842,6 +850,9 @@ data class CreateNoticeInput(
 data class CreateOrderInput(
     @field:Positive(message = "地址ID必须为正数")
     val addressId: kotlin.Long,
+    @field:Size(max = 64, message = "clientRequestId长度不能超过64个字符")
+    val clientRequestId: kotlin.String? = null,
+    val deliveryTime: DeliveryTimeSlot? = null,
     val items: kotlin.collections.List<OrderItemInput>,
     @field:Min(value = 0, message = "优惠券ID无效")
     val preferredCouponId: kotlin.Long? = null,
@@ -854,6 +865,8 @@ data class CreateOrderInput(
   @Suppress("UNCHECKED_CAST")
   constructor(args: Map<String, Any>) : this(
       args["addressId"] as kotlin.Long,
+      args["clientRequestId"] as kotlin.String?,
+      args["deliveryTime"] as DeliveryTimeSlot?,
       args["items"]!!.let { items -> (items as List<Map<String, Any>>).map { OrderItemInput(it) } },
       args["preferredCouponId"] as kotlin.Long?,
       args["remark"] as kotlin.String?,
@@ -1176,6 +1189,12 @@ data class DailyStatistic(
     val revenueCents: kotlin.Long
 )
 
+data class DataMaintenanceOverviewVo(
+    val backupRecords: LogBackupRecordPage,
+    val partitions: kotlin.collections.List<LogPartitionVo>,
+    val settings: kotlin.collections.List<SystemConfigVo>
+)
+
 data class DateRange(
     val endDate: java.time.LocalDateTime,
     val startDate: java.time.LocalDateTime
@@ -1237,6 +1256,20 @@ data class DeliveryLoginResponse(
     val token: kotlin.String?,
     val workerInfo: DeliveryWorkerInfo?
 )
+
+enum class DeliveryTimeSlot(val label: String) {
+      AFTERNOON("AFTERNOON"),
+      EVENING("EVENING"),
+      IMMEDIATE("IMMEDIATE"),
+      MORNING("MORNING");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): DeliveryTimeSlot? {
+      return values().find { it.label == label }
+    }
+  }
+}
 
 data class DeliveryTrajectory(
     val accuracy: kotlin.Float?,
@@ -1830,6 +1863,78 @@ enum class IssueTargetType(val label: String) {
   }
 }
 
+data class LogBackupRecord(
+    val checksum: kotlin.String?,
+    val coldTableName: kotlin.String,
+    val errorMessage: kotlin.String?,
+    val filePath: kotlin.String?,
+    val fileSizeBytes: kotlin.Long?,
+    val finishedAt: java.time.LocalDateTime?,
+    val id: kotlin.Long,
+    val logTable: LogTableType,
+    val operatorName: kotlin.String?,
+    val partitionMonth: kotlin.String,
+    val partitionName: kotlin.String,
+    val rowCount: kotlin.Long,
+    val startedAt: java.time.LocalDateTime,
+    val status: LogBackupStatus
+)
+
+data class LogBackupRecordListInput(
+    val logTable: LogTableType? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 10
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["logTable"] as LogTableType?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 10
+  )
+}
+
+data class LogBackupRecordPage(
+    val list: kotlin.collections.List<LogBackupRecord>,
+    val pageInfo: PageInfo
+)
+
+enum class LogBackupStatus(val label: String) {
+      FAILED("FAILED"),
+      RUNNING("RUNNING"),
+      SUCCEEDED("SUCCEEDED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): LogBackupStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class LogPartitionVo(
+    val backupable: kotlin.Boolean,
+    val expired: kotlin.Boolean,
+    val isCurrentMonth: kotlin.Boolean,
+    val isDefault: kotlin.Boolean,
+    val logTable: LogTableType,
+    val partitionMonth: kotlin.String?,
+    val partitionName: kotlin.String,
+    val rowCount: kotlin.Long,
+    val sizeBytes: kotlin.Long
+)
+
+enum class LogTableType(val label: String) {
+      API_LOG("API_LOG"),
+      BUSINESS_LOG("BUSINESS_LOG"),
+      USER_ACTION_LOG("USER_ACTION_LOG");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): LogTableType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
 data class LoginStatistics(
     val dailyLogins: kotlin.collections.List<DailyLoginStatistic>,
     val todayLogins: kotlin.Int,
@@ -1862,6 +1967,14 @@ data class MutationAssignDeliveryWorkerArgs(
       args["isSelfCollect"] as kotlin.Boolean,
       args["orderId"] as kotlin.Long,
       args["workerId"] as kotlin.Long
+  )
+}
+data class MutationBackupLogPartitionArgs(
+    val input: BackupLogPartitionInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      BackupLogPartitionInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationBatchAssignOrdersArgs(
@@ -2540,6 +2653,7 @@ data class Mutation(
     val _dummy: kotlin.String?,
     val acceptDelivery: Order,
     val assignDeliveryWorker: Order,
+    val backupLogPartition: LogBackupRecord,
     val batchAssignOrders: kotlin.collections.List<Order>,
     val batchImportAddresses: BatchImportAddressesResult,
     val cancelOrder: Order,
@@ -2726,6 +2840,7 @@ data class Order(
     val deliveryFeeCents: kotlin.Long,
     val deliveryPhotos: kotlin.collections.List<kotlin.String>?,
     val deliveryStartedAt: java.time.LocalDateTime?,
+    val deliveryTimeSlot: DeliveryTimeSlot?,
     val deliveryWorker: DeliveryWorker?,
     val firstOrderDiscountCents: kotlin.Long?,
     val giftItems: kotlin.collections.List<GiftItemVo>?,
@@ -3632,6 +3747,14 @@ data class QueryDailyStatisticsArgs(
       DateRangeInput(args["input"] as Map<String, Any>)
   )
 }
+data class QueryDataMaintenanceOverviewArgs(
+    val input: LogBackupRecordListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { LogBackupRecordListInput(it as Map<String, Any>) }
+  )
+}
 data class QueryDeliveryTrajectoriesArgs(
     val endTime: java.time.LocalDateTime? = null,
     val orderId: kotlin.Long? = null,
@@ -4076,6 +4199,7 @@ data class Query(
     val dailyCollections: kotlin.collections.List<DailyCollectionRecord>,
     val dailyReconciliations: kotlin.collections.List<DailyReconciliation>,
     val dailyStatistics: kotlin.collections.List<DailyStatistic>,
+    val dataMaintenanceOverview: DataMaintenanceOverviewVo,
     val deliveringOrders: kotlin.collections.List<Order>,
     val deliveryFeeRule: DeliveryFeeRule,
     val deliveryTrajectories: kotlin.collections.List<DeliveryTrajectory>,

@@ -115,6 +115,11 @@ export type AuthPayload = {
   readonly user: User;
 };
 
+export type BackupLogPartitionInput = {
+  readonly logTable: LogTableType;
+  readonly partitionName: Scalars['String']['input'];
+};
+
 export type Banner = {
   readonly createdAt: Scalars['LocalDateTime']['output'];
   readonly enabled: Scalars['Boolean']['output'];
@@ -644,6 +649,12 @@ export type DailyStatistic = {
   readonly revenueCents: Scalars['Long']['output'];
 };
 
+export type DataMaintenanceOverviewVo = {
+  readonly backupRecords: LogBackupRecordPage;
+  readonly partitions: ReadonlyArray<LogPartitionVo>;
+  readonly settings: ReadonlyArray<SystemConfigVo>;
+};
+
 export type DateRange = {
   readonly endDate: Scalars['LocalDateTime']['output'];
   readonly startDate: Scalars['LocalDateTime']['output'];
@@ -1126,6 +1137,58 @@ export enum IssueTargetType {
   USER = 'USER'
 }
 
+export type LogBackupRecord = {
+  readonly checksum?: Maybe<Scalars['String']['output']>;
+  readonly coldTableName: Scalars['String']['output'];
+  readonly errorMessage?: Maybe<Scalars['String']['output']>;
+  readonly filePath?: Maybe<Scalars['String']['output']>;
+  readonly fileSizeBytes?: Maybe<Scalars['Long']['output']>;
+  readonly finishedAt?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly logTable: LogTableType;
+  readonly operatorName?: Maybe<Scalars['String']['output']>;
+  readonly partitionMonth: Scalars['String']['output'];
+  readonly partitionName: Scalars['String']['output'];
+  readonly rowCount: Scalars['Long']['output'];
+  readonly startedAt: Scalars['LocalDateTime']['output'];
+  readonly status: LogBackupStatus;
+};
+
+export type LogBackupRecordListInput = {
+  readonly logTable?: InputMaybe<LogTableType>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type LogBackupRecordPage = {
+  readonly list: ReadonlyArray<LogBackupRecord>;
+  readonly pageInfo: PageInfo;
+};
+
+export enum LogBackupStatus {
+  FAILED = 'FAILED',
+  RUNNING = 'RUNNING',
+  SUCCEEDED = 'SUCCEEDED'
+}
+
+export type LogPartitionVo = {
+  readonly backupable: Scalars['Boolean']['output'];
+  readonly expired: Scalars['Boolean']['output'];
+  readonly isCurrentMonth: Scalars['Boolean']['output'];
+  readonly isDefault: Scalars['Boolean']['output'];
+  readonly logTable: LogTableType;
+  readonly partitionMonth?: Maybe<Scalars['String']['output']>;
+  readonly partitionName: Scalars['String']['output'];
+  readonly rowCount: Scalars['Long']['output'];
+  readonly sizeBytes: Scalars['Long']['output'];
+};
+
+export enum LogTableType {
+  API_LOG = 'API_LOG',
+  BUSINESS_LOG = 'BUSINESS_LOG',
+  USER_ACTION_LOG = 'USER_ACTION_LOG'
+}
+
 export type LoginStatistics = {
   readonly dailyLogins: ReadonlyArray<DailyLoginStatistic>;
   readonly todayLogins: Scalars['Int']['output'];
@@ -1146,6 +1209,7 @@ export type Mutation = {
   readonly _dummy?: Maybe<Scalars['String']['output']>;
   readonly acceptDelivery: Order;
   readonly assignDeliveryWorker: Order;
+  readonly backupLogPartition: LogBackupRecord;
   readonly batchAssignOrders: ReadonlyArray<Order>;
   readonly batchImportAddresses: BatchImportAddressesResult;
   readonly cancelOrder: Order;
@@ -1240,6 +1304,11 @@ export type MutationAssignDeliveryWorkerArgs = {
   isSelfCollect: Scalars['Boolean']['input'];
   orderId: Scalars['PrimaryId']['input'];
   workerId: Scalars['PrimaryId']['input'];
+};
+
+
+export type MutationBackupLogPartitionArgs = {
+  input: BackupLogPartitionInput;
 };
 
 
@@ -2321,6 +2390,7 @@ export type Query = {
   readonly dailyCollections: ReadonlyArray<DailyCollectionRecord>;
   readonly dailyReconciliations: ReadonlyArray<DailyReconciliation>;
   readonly dailyStatistics: ReadonlyArray<DailyStatistic>;
+  readonly dataMaintenanceOverview: DataMaintenanceOverviewVo;
   readonly deliveringOrders: ReadonlyArray<Order>;
   readonly deliveryFeeRule: DeliveryFeeRule;
   readonly deliveryTrajectories: ReadonlyArray<DeliveryTrajectory>;
@@ -2448,6 +2518,11 @@ export type QueryDailyCollectionsArgs = {
 
 export type QueryDailyStatisticsArgs = {
   input: DateRangeInput;
+};
+
+
+export type QueryDataMaintenanceOverviewArgs = {
+  input?: InputMaybe<LogBackupRecordListInput>;
 };
 
 
