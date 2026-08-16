@@ -15,6 +15,8 @@ import {
 } from 'recharts';
 import dayjs, { Dayjs } from 'dayjs';
 import StatisticsCard from '@/components/StatisticsCard';
+import RefreshControls from '@/components/RefreshControls';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
 const { RangePicker } = DatePicker;
 
@@ -195,6 +197,11 @@ const RevenueStatistics: React.FC = () => {
   const error = granularity === 'DAY' ? dailyError : granularity === 'WEEK' ? weeklyError : monthlyError;
   const refetch = granularity === 'DAY' ? dailyRefetch : granularity === 'WEEK' ? weeklyRefetch : monthlyRefetch;
 
+  // 手动刷新 + 定时更新:仅作用于当前生效粒度查询(活跃 refetch 经 ref 保持最新)
+  const { intervalMs, setIntervalMs, refreshing, refresh, lastUpdated } = useAutoRefresh({
+    onRefresh: () => refetch(),
+  });
+
   const handleGranularityChange = (value: Granularity) => {
     setGranularity(value);
     const now = dayjs();
@@ -295,7 +302,16 @@ const RevenueStatistics: React.FC = () => {
 
   return (
     <div>
-      <h1>营收统计</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ margin: 0 }}>营收统计</h1>
+        <RefreshControls
+          interval={intervalMs}
+          onIntervalChange={setIntervalMs}
+          onRefresh={refresh}
+          refreshing={refreshing}
+          lastUpdated={lastUpdated}
+        />
+      </div>
       <Space style={{ marginTop: 16 }} wrap>
         <span>日期粒度:</span>
         <Select value={granularity} onChange={handleGranularityChange} style={{ width: 120 }}>

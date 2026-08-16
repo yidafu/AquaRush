@@ -5,7 +5,8 @@ import { ASSIGN_DELIVERY_WORKER_MUTATION } from '../../graphql/mutations/order.g
 import { GET_ONLINE_DELIVERY_WORKERS_QUERY } from '../../graphql/queries/delivery.graphql';
 
 export interface AssignDeliveryWorker {
-  id: number;
+  // PrimaryId 序列化为字符串(后端 Long Snowflake)
+  id: string;
   name: string;
   phone: string;
   onlineStatus?: string;
@@ -13,7 +14,7 @@ export interface AssignDeliveryWorker {
 }
 
 interface AssignDeliveryButtonProps {
-  orderId: number;
+  orderId: string;
   isSelfCollect?: boolean;
   onAssigned?: () => void;
   type?: 'link' | 'primary' | 'default' | 'dashed' | 'text';
@@ -35,7 +36,7 @@ export const AssignDeliveryButton: React.FC<AssignDeliveryButtonProps> = ({
   workersLoading: providedWorkersLoading,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
-  const [selectedWorkerId, setSelectedWorkerId] = useState<number | null>(null);
+  const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
   const [isSelfCollect, setIsSelfCollect] = useState(initialIsSelfCollect);
 
   // 父页面未提供配送员数据时才自行查询(避免同一页面重复发起在线配送员请求)

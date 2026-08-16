@@ -346,4 +346,31 @@ describe('配置与认证辅助方法', () => {
     manager.clearAuthToken()
     expect(clearToken).toHaveBeenCalled()
   })
+
+  it('setAuthHandler 在单例上替换认证处理器', async () => {
+    const handler = makeRequestHandler()
+    // 先初始化全局单例(基础 auth handler,silentLogin 缺失)
+    NetworkManager.getInstance({ baseURL: BASE_URL }, makeAuth(), handler)
+    expect(NetworkManager.getInstance().getAuthToken()).toBeNull()
+
+    // 运行时接入真实认证处理器(静默登录),模拟 401 自动重试路径
+    const clearToken = jest.fn()
+    const silentLogin = jest.fn(async () => true)
+    NetworkManager.setAuthHandler(makeAuth({ getToken: () => 'new-token', clearToken, silentLogin }))
+    expect(NetworkManager.getInstance().getAuthToken()).toBe('new-token')
+
+    handler.request = jest
+      .fn()
+      .mockResolvedValueOnce({ statusCode: 401, data: null })
+      .mockResolvedValueOnce({ statusCode: 200, data: { data: { ok: true } } })
+
+    const data = await NetworkManager.getInstance().query('{ me { id } }')
+    expect(data).toEqual({ ok: true })
+    expect(clearToken).toHaveBeenCalledTimes(1)
+    expect(silentLogin).toHaveBeenCalledTimes(1)
+    expect(handler.request).toHaveBeenCalledTimes(2)
+
+    // 清理单例,避免影响其它用例
+    ;(NetworkManager as any).instance = null
+  })
 })

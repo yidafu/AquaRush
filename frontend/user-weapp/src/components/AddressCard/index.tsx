@@ -12,9 +12,9 @@ interface AddressCardProps {
   isSelectMode?: boolean
   hideActions?: boolean
   onSelect?: (address: Address) => void
-  onEdit?: (addressId: number) => void
-  onSetDefault?: (addressId: number) => void
-  onDelete?: (addressId: number) => void
+  onEdit?: (addressId: string) => void
+  onSetDefault?: (addressId: string) => void
+  onDelete?: (addressId: string) => void
 }
 
 const AddressCard: React.FC<AddressCardProps> = ({

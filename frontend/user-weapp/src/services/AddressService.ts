@@ -24,10 +24,10 @@ class AddressService {
 
   /**
    * Get address details by ID
-   * @param id Address ID to fetch
+   * @param id Address ID to fetch (Snowflake Long 字符串,PrimaryId 标量)
    * @returns Promise with address details or error
    */
-  public async getAddressDetail(id: number): Promise<AddressServiceResult<GraphQLAddress>> {
+  public async getAddressDetail(id: string): Promise<AddressServiceResult<GraphQLAddress>> {
     try {
       const query = `
         query AddressDetail($id: PrimaryId!) {
@@ -249,11 +249,11 @@ class AddressService {
 
   /**
    * Update an existing address
-   * @param id Address ID to update
+   * @param id Address ID to update (Snowflake Long 字符串)
    * @param addressData Updated address data
    * @returns Promise with updated address or error
    */
-  public async updateAddress(id: number, addressData: GraphQLUpdateAddressInput): Promise<AddressServiceResult<GraphQLAddress>> {
+  public async updateAddress(id: string, addressData: GraphQLUpdateAddressInput): Promise<AddressServiceResult<GraphQLAddress>> {
     try {
       const mutation = `
         mutation UpdateAddress($id: Long!, $input: UpdateAddressInput!) {
@@ -335,10 +335,10 @@ class AddressService {
 
   /**
    * Delete an address
-   * @param id Address ID to delete
+   * @param id Address ID to delete (Snowflake Long 字符串)
    * @returns Promise with deletion result or error
    */
-  public async deleteAddress(id: number): Promise<AddressServiceResult<boolean>> {
+  public async deleteAddress(id: string): Promise<AddressServiceResult<boolean>> {
     try {
       const mutation = `
         mutation DeleteAddress($id: Long!) {
@@ -382,10 +382,10 @@ class AddressService {
 
   /**
    * Set address as default
-   * @param id Address ID to set as default
+   * @param id Address ID to set as default (Snowflake Long 字符串)
    * @returns Promise with operation result or error
    */
-  public async setDefaultAddress(id: number): Promise<AddressServiceResult<boolean>> {
+  public async setDefaultAddress(id: string): Promise<AddressServiceResult<boolean>> {
     try {
       const mutation = `
         mutation SetDefaultAddress($id: Long!) {

@@ -3,7 +3,8 @@
 
 // Address entity type
 export interface Address {
-  id: number
+  // 主键为 Snowflake Long,PrimaryId 标量序列化为字符串,禁止转 Number(精度丢失)
+  id: string
   receiverName: string
   phone: string
   province: string

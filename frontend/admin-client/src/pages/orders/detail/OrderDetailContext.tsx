@@ -6,23 +6,25 @@ import { ASSIGN_DELIVERY_WORKER_MUTATION } from '../../../graphql/mutations/orde
 import type { OrderOperation } from '../../../components/OrderOperationTimeline';
 
 export interface OrderDetailData {
-  id: number;
+  // 主键为 Snowflake Long,PrimaryId 标量在前后端边界序列化为字符串,禁止转 Number(精度丢失)
+  id: string;
   orderNo: string;
   user: {
-    id: number;
+    id: string;
     nickname: string;
     phone: string;
     avatarUrl?: string;
   };
   status: string;
-  amount: number;
+  // 金额(分),Long 标量序列化为字符串,展示时经 normalizeCents 转数字
+  amountCents: string;
   items: Array<{
-    productId: number;
+    productId: string;
     quantity: number;
     unitPriceCents?: number;
     totalPriceCents?: number;
     product?: {
-      id: number;
+      id: string;
       name: string;
       coverImageUrl?: string;
       specification?: string;
@@ -40,7 +42,7 @@ export interface OrderDetailData {
     latitude?: number;
   };
   deliveryWorker?: {
-    id: number;
+    id: string;
     name: string;
     phone: string;
     avatarUrl?: string;
@@ -66,7 +68,7 @@ export interface OrderDetailQueryResult {
 }
 
 export interface DeliveryWorker {
-  id: number;
+  id: string;
   name: string;
   phone: string;
   avatarUrl?: string;
@@ -95,15 +97,15 @@ interface OrderDetailContextType {
 
   // Modal state
   assignModalVisible: boolean;
-  selectedWorkerId: number | null;
+  selectedWorkerId: string | null;
   isSelfCollect: boolean;
 
   // Actions
-  loadOrder: (id: number) => void;
+  loadOrder: (id: string) => void;
   refreshOrder: () => void;
   openAssignModal: () => void;
   closeAssignModal: () => void;
-  setSelectedWorkerId: (id: number | null) => void;
+  setSelectedWorkerId: (id: string | null) => void;
   setIsSelfCollect: (value: boolean) => void;
   assignDeliveryWorker: () => Promise<void>;
 }
@@ -118,13 +120,14 @@ interface OrderDetailProviderProps {
 export const OrderDetailProvider: React.FC<OrderDetailProviderProps> = ({ children, orderId }) => {
   // Modal state
   const [assignModalVisible, setAssignModalVisible] = useState(false);
-  const [selectedWorkerId, setSelectedWorkerId] = useState<number | null>(null);
+  const [selectedWorkerId, setSelectedWorkerId] = useState<string | null>(null);
   const [isSelfCollect, setIsSelfCollect] = useState(false);
 
   // 单页单请求:订单详情 + 在线配送员 + 操作记录一次取回(规则 #10);
-  // orderId 变化经 variables 变化自动重取,refreshOrder = refetch
+  // orderId 变化经 variables 变化自动重取,refreshOrder = refetch。
+  // 注意:orderId 为 Snowflake Long 字符串,直接透传 PrimaryId 标量,禁止 parseInt/Number 转换(会精度丢失)。
   const { data, loading, error, refetch } = useQuery<OrderDetailQueryResult>(ORDER_DETAIL_PAGE_DATA_QUERY, {
-    variables: { orderId: parseInt(orderId, 10) },
+    variables: { orderId },
     skip: !orderId,
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
@@ -137,13 +140,13 @@ export const OrderDetailProvider: React.FC<OrderDetailProviderProps> = ({ childr
   const workers: DeliveryWorker[] = data?.onlineDeliveryWorkers ?? [];
   const orderOperations: OrderOperation[] = data?.orderOperations ?? [];
 
-  const loadOrder = useCallback((id: number) => {
+  const loadOrder = useCallback((id: string) => {
     refetch({ orderId: id });
   }, [refetch]);
 
   const refreshOrder = useCallback(() => {
     if (orderId) {
-      refetch({ orderId: parseInt(orderId, 10) });
+      refetch({ orderId });
     }
   }, [orderId, refetch]);
 
@@ -166,7 +169,7 @@ export const OrderDetailProvider: React.FC<OrderDetailProviderProps> = ({ childr
     try {
       await assignDeliveryWorkerMutation({
         variables: {
-          orderId: parseInt(orderId, 10),
+          orderId,
           workerId: selectedWorkerId,
           isSelfCollect,
         },

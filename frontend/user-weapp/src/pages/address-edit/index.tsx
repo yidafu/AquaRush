@@ -138,7 +138,7 @@ const AddressEdit: React.FC = () => {
       setLoading(true)
       showToastMessage('正在加载地址详情...', 'loading')
 
-      const result = await addressService.getAddressDetail(parseInt(addressId))
+      const result = await addressService.getAddressDetail(addressId)
 
       if (!result.success || !result.data) {
         showToastMessage(result.error?.message || '地址不存在', 'error')
@@ -304,7 +304,7 @@ const AddressEdit: React.FC = () => {
         }
 
         console.log('更新地址:', { id: addressId, updateInput })
-        const result = await addressService.updateAddress(parseInt(addressId), updateInput)
+        const result = await addressService.updateAddress(addressId, updateInput)
 
         if (!result.success) {
           showToastMessage(result.error?.message || '地址更新失败，请重试', 'error')

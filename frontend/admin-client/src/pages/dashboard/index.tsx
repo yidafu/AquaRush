@@ -6,6 +6,8 @@ import { centsToYuan, normalizeCents } from '@aquarush/common';
 import type { DailyStatistic, PendingOrderBreakdown } from '@aquarush/common';
 import dayjs, { Dayjs } from 'dayjs';
 import StatisticsCard from '../../components/StatisticsCard';
+import RefreshControls from '../../components/RefreshControls';
+import { useAutoRefresh } from '../../hooks/useAutoRefresh';
 import DailyRevenueChart from './components/DailyRevenueChart';
 import DailyOrderChart from './components/DailyOrderChart';
 import { DASHBOARD_PAGE_DATA_QUERY } from '../../graphql/queries/dashboard.graphql';
@@ -76,6 +78,11 @@ const Dashboard: React.FC = () => {
     variables: { input },
   });
 
+  // 手动刷新 + 定时更新
+  const { intervalMs, setIntervalMs, refreshing, refresh, lastUpdated } = useAutoRefresh({
+    onRefresh: () => refetch(),
+  });
+
   // 所选范围切片（YYYY-MM-DD 字符串字典序比较即日期比较）；线上 Long 为字符串，统一归一为数字
   const sliced = useMemo(() => {
     const startKey = range[0].format('YYYY-MM-DD');
@@ -139,6 +146,16 @@ const Dashboard: React.FC = () => {
 
   return (
     <div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h1 style={{ fontSize: 24, margin: 0 }}>仪表盘</h1>
+        <RefreshControls
+          interval={intervalMs}
+          onIntervalChange={setIntervalMs}
+          onRefresh={refresh}
+          refreshing={refreshing}
+          lastUpdated={lastUpdated}
+        />
+      </div>
       <Space style={{ marginTop: 24 }} wrap>
         <Segmented
           options={[

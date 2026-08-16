@@ -2,7 +2,7 @@ import React from 'react';
 import { Card, Descriptions, Tag, Space } from 'antd';
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import { useOrderDetail, ORDER_STATUS_MAP, formatDateTime } from '../OrderDetailContext';
-import { displayCents } from '@aquarush/common'
+import { displayCents, normalizeCents } from '@aquarush/common'
 
 const OrderInfoCard: React.FC = () => {
   const { order } = useOrderDetail();
@@ -27,7 +27,7 @@ const OrderInfoCard: React.FC = () => {
           <Tag color={statusInfo.color}>{statusInfo.text}</Tag>
         </Descriptions.Item>
         <Descriptions.Item label="订单金额">
-          {displayCents(order.amount)}
+          {displayCents(normalizeCents(order.amountCents))}
         </Descriptions.Item>
         <Descriptions.Item label="商品数量">
           {Array.isArray(order.items) && order.items.length > 0

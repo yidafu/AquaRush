@@ -77,9 +77,10 @@ const OPERATOR_TYPE_TAG: Record<string, { text: string; color: string }> = {
 };
 
 export interface OrderOperation {
-  id: number;
+  // PrimaryId 序列化为字符串(后端 Long Snowflake)
+  id: string;
   operationType: string;
-  operatorId?: number;
+  operatorId?: string;
   operatorType?: string;
   description?: string;
   extraData?: string;

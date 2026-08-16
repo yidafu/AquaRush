@@ -25,7 +25,7 @@ const AddressList: React.FC<AddressListProps> = () => {
   const [loading, setLoading] = useState<boolean>(true)
   const [isSelectMode, setIsSelectMode] = useState<boolean>(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState<boolean>(false)
-  const [deleteAddressId, setDeleteAddressId] = useState<number | null>(null)
+  const [deleteAddressId, setDeleteAddressId] = useState<string | null>(null)
   const [showToast, setShowToast] = useState<boolean>(false)
   const [toastText, setToastText] = useState<string>('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
@@ -129,13 +129,7 @@ const AddressList: React.FC<AddressListProps> = () => {
     setShowToast(false)
   }
 
-  const handleAddAddress = () => {
-    Taro.navigateTo({
-      url: '/pages/address-edit/index'
-    })
-  }
-
-  const handleEditAddress = (addressId: number) => {
+  const handleEditAddress = (addressId: string) => {
     Taro.navigateTo({
       url: `/pages/address-edit/index?id=${addressId}`
     })
@@ -151,7 +145,7 @@ const AddressList: React.FC<AddressListProps> = () => {
     Taro.navigateBack()
   }
 
-  const handleSetDefault = async (addressId: number) => {
+  const handleSetDefault = async (addressId: string) => {
     try {
       const result = await addressService.setDefaultAddress(addressId)
 
@@ -172,7 +166,7 @@ const AddressList: React.FC<AddressListProps> = () => {
     }
   }
 
-  const handleDeleteClick = (addressId: number) => {
+  const handleDeleteClick = (addressId: string) => {
     setDeleteModalVisible(true)
     setDeleteAddressId(addressId)
   }
@@ -299,18 +293,6 @@ const AddressList: React.FC<AddressListProps> = () => {
             />
           ))
         )}
-      </View>
-
-      {/* 底部添加按钮 */}
-      <View className='bottom-actions'>
-        <AtButton
-          type='primary'
-          size='normal'
-          onClick={handleAddAddress}
-          className='add-button'
-        >
-          <Text>新增收货地址</Text>
-        </AtButton>
       </View>
 
       {/* 删除确认弹窗 */}

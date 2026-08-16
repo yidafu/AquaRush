@@ -2,9 +2,9 @@
 	"miniprogramRoot": "dist/",
 	"projectname": "user-miniapp",
 	"description": "送水用户端小程序",
-	"appid": "touristappid",
+	"appid": "wxa52e21d51b10208f",
 	"setting": {
-		"urlCheck": true,
+		"urlCheck": false,
 		"es6": false,
     "enhance": false,
     "compileHotReLoad": false,

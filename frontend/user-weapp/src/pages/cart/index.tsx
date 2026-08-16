@@ -1,5 +1,5 @@
-import React, { useState, useCallback } from 'react'
-import { View, Text, ScrollView } from '@tarojs/components'
+import React, { useState, useCallback, useEffect } from 'react'
+import { View, Text, ScrollView, Image } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import { displayCents } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
@@ -11,7 +11,8 @@ import {
   setCartSelected,
   setCartAllSelected,
   getSelectedCartItems,
-  getSelectedTotalCents
+  getSelectedTotalCents,
+  syncCartTabBadge
 } from '../../utils/cart'
 
 import "taro-ui/dist/style/components/button.scss"
@@ -33,6 +34,11 @@ const CartPage: React.FC = () => {
   useDidShow(() => {
     refreshCart()
   })
+
+  // tabBar 角标:购物车数据变化时同步总件数(上限 99+),空购物车移除角标(F-PRO-004)
+  useEffect(() => {
+    syncCartTabBadge()
+  }, [cartItems])
 
   const handleQuantityChange = useCallback((id: string, quantity: number) => {
     setCartItems(updateCartQuantity(id, quantity))

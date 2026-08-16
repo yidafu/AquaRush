@@ -136,6 +136,17 @@ class NetworkManager {
   }
 
   /**
+   * 更新认证处理器(单例已初始化后)
+   * 用于运行时接入真实的 token 读取/清除与静默登录,使 401/UNAUTHORIZED 时能自动拉起登录验证
+   */
+  static setAuthHandler(authHandler: AuthHandler): void {
+    if (!NetworkManager.instance) {
+      throw new Error('NetworkManager must be initialized before setAuthHandler')
+    }
+    NetworkManager.instance.authHandler = authHandler
+  }
+
+  /**
    * 获取当前存储的认证 token
    */
   getAuthToken(): string | null {

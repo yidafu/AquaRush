@@ -64,6 +64,10 @@ function RootNavigator() {
           options={{ headerShown: true, title: '创建送水订单', ...headerOptions }}
         />
         <Stack.Screen
+          name="product/[id]"
+          options={{ headerShown: true, title: '商品详情', ...headerOptions }}
+        />
+        <Stack.Screen
           name="history-orders"
           options={{ headerShown: true, title: '历史订单', ...headerOptions }}
         />

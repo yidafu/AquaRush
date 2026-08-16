@@ -9,10 +9,11 @@ import { OrderFilters, OrderFilters as FilterType } from './components/OrderFilt
 import { displayCents, yuanToCents } from '@aquarush/common';
 
 interface OrderData {
-  id: number;
+  // PrimaryId 序列化为字符串(后端 Long Snowflake)
+  id: string;
   orderNo: string;
   user: {
-    id: number;
+    id: string;
     nickname: string;
     phone: string;
   };
@@ -27,7 +28,7 @@ interface OrderData {
     detailAddress: string;
   };
   deliveryWorker: {
-    id: number;
+    id: string;
     name: string;
     phone: string;
   } | null;
@@ -44,7 +45,7 @@ interface OrdersQueryResult {
     number: number;
   };
   onlineDeliveryWorkers: Array<{
-    id: number;
+    id: string;
     name: string;
     phone: string;
     onlineStatus: string;
@@ -85,7 +86,7 @@ const Orders: React.FC = () => {
   // ==================== 批量派单(F-ORD-022,G10) ====================
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [batchModalVisible, setBatchModalVisible] = useState(false);
-  const [batchWorkerId, setBatchWorkerId] = useState<number | null>(null);
+  const [batchWorkerId, setBatchWorkerId] = useState<string | null>(null);
   const [batchAssignOrders, { loading: batchAssigning }] = useMutation(BATCH_ASSIGN_ORDERS_MUTATION, {
     onError: (error) => {
       console.error('批量派单失败:', error);

@@ -15,6 +15,8 @@ import {
 import { useQuery } from '@apollo/client';
 import { centsToYuan } from '@aquarush/common';
 import StatisticsCard from '@/components/StatisticsCard';
+import RefreshControls from '@/components/RefreshControls';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { PRODUCT_STATISTICS_PAGE_DATA_QUERY } from '../../../graphql/queries/statistics.graphql';
 import dayjs, { Dayjs } from 'dayjs';
 
@@ -70,7 +72,7 @@ const ProductStatisticsPage: React.FC = () => {
 
   // 单页单请求:商品统计 + 日销量 + 商品目录一次取回(规则 #10);
   // 日期变化经 variables 变化自动重取,无需单独 refetch
-  const { data, loading, error } = useQuery<ProductStatisticsPageData>(PRODUCT_STATISTICS_PAGE_DATA_QUERY, {
+  const { data, loading, error, refetch } = useQuery<ProductStatisticsPageData>(PRODUCT_STATISTICS_PAGE_DATA_QUERY, {
     variables: {
       input: {
         startDate,
@@ -78,6 +80,11 @@ const ProductStatisticsPage: React.FC = () => {
       },
     },
     errorPolicy: 'all',
+  });
+
+  // 手动刷新 + 定时更新
+  const { intervalMs, setIntervalMs, refreshing, refresh, lastUpdated } = useAutoRefresh({
+    onRefresh: () => refetch(),
   });
 
   const statsData = data
@@ -151,7 +158,16 @@ const ProductStatisticsPage: React.FC = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 24, marginBottom: 24 }}>商品统计</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24, margin: 0 }}>商品统计</h1>
+        <RefreshControls
+          interval={intervalMs}
+          onIntervalChange={setIntervalMs}
+          onRefresh={refresh}
+          refreshing={refreshing}
+          lastUpdated={lastUpdated}
+        />
+      </div>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>

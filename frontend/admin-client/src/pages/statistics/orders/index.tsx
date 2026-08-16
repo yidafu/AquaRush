@@ -18,6 +18,8 @@ import {
 import { useQuery, gql } from '@apollo/client';
 import { centsToYuan } from '@aquarush/common';
 import StatisticsCard from '@/components/StatisticsCard';
+import RefreshControls from '@/components/RefreshControls';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import dayjs, { Dayjs } from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -240,6 +242,12 @@ const OrderStatisticsPage: React.FC = () => {
 
   const loading = granularity === 'DAY' ? dailyLoading : granularity === 'WEEK' ? weeklyLoading : monthlyLoading;
   const error = granularity === 'DAY' ? dailyError : granularity === 'WEEK' ? weeklyError : monthlyError;
+  const activeRefetch = granularity === 'DAY' ? dailyRefetch : granularity === 'WEEK' ? weeklyRefetch : monthlyRefetch;
+
+  // 手动刷新 + 定时更新:仅作用于当前生效粒度查询(活跃 refetch 经 ref 保持最新)
+  const { intervalMs, setIntervalMs, refreshing, refresh, lastUpdated } = useAutoRefresh({
+    onRefresh: () => activeRefetch(),
+  });
 
   useEffect(() => {
     if (granularity === 'DAY') {
@@ -331,7 +339,16 @@ const OrderStatisticsPage: React.FC = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 24, marginBottom: 24 }}>订单统计</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24, margin: 0 }}>订单统计</h1>
+        <RefreshControls
+          interval={intervalMs}
+          onIntervalChange={setIntervalMs}
+          onRefresh={refresh}
+          refreshing={refreshing}
+          lastUpdated={lastUpdated}
+        />
+      </div>
 
       <Space style={{ marginBottom: 16 }}>
         <span>日期粒度:</span>

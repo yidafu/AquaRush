@@ -31,7 +31,8 @@ export interface UserInfo {
   // vipExpireTime?: string
 }
 
-const apiBaseUrl = 'http://localhost:8080';
+// 与 utils/networkManager.ts 保持一致:优先取构建期环境变量,避免真机/非本机环境下 localhost 不可达
+const apiBaseUrl = import.meta.env.TARO_APP_API_BASE_URL || 'http://localhost:8080';
 
 // 初始化网络管理器
 const networkManager = NetworkManager.getInstance({
@@ -344,6 +345,22 @@ class AuthService {
       console.log('✅ 所有认证数据已强制清除')
     } catch (error) {
       console.error('Failed to force clear auth:', error)
+    }
+  }
+
+  /**
+   * 清除内存态与本地存储的认证数据(供网络层 401 处理调用)。
+   * 与 forceClearAuth 的区别:不打断进行中的静默登录(silentLoginPromise 保留),
+   * 这样并发的多个 401 会复用同一个 wx.login 流程,避免重复登录、且能接上启动时的静默登录。
+   */
+  clearAuthState(): void {
+    try {
+      this.token = null
+      this.userInfo = null
+      networkManager.clearAuthToken()
+      Taro.removeStorageSync('user_info')
+    } catch (error) {
+      console.error('Failed to clear auth state:', error)
     }
   }
 }

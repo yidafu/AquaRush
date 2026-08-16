@@ -108,3 +108,17 @@ export function getSelectedTotalCents(): number {
 export function clearCart(): void {
   Taro.removeStorageSync(CART_KEY)
 }
+
+/**
+ * 同步购物车 tabBar 角标(购物车为 tabBar 页,index=1):
+ * 显示购物车商品总件数(上限 99+),空购物车时移除角标。
+ * 在购物车页展示及任何页面加购/删除后调用,保证角标实时正确。
+ */
+export function syncCartTabBadge(): void {
+  const total = getCart().reduce((sum, it) => sum + it.quantity, 0)
+  if (total <= 0) {
+    Taro.removeTabBarBadge({ index: 1 })
+  } else {
+    Taro.setTabBarBadge({ index: 1, text: total > 99 ? '99+' : String(total) })
+  }
+}

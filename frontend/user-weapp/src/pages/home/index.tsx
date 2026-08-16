@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text, Image, Swiper, SwiperItem } from '@tarojs/components'
-import { AtButton, AtDivider, AtLoadMore, AtFab } from 'taro-ui'
+import { AtButton, AtDivider, AtLoadMore } from 'taro-ui'
 import Taro from '@tarojs/taro'
 import {
   useReady,
@@ -51,7 +51,6 @@ interface ExtendedProduct {
   tags?: any[]
   detailContent?: string
   certificateImages?: any[]
-  deliverySettings?: Record<string, any>
   createdAt: string
   updatedAt: string
 }
@@ -291,13 +290,6 @@ const HomePage: React.FC = () => {
     })
   }
 
-  const handleCreateOrder = () => {
-    // 点击 + 号悬浮按钮，先选择地址
-    Taro.navigateTo({
-      url: '/pages/address-list/index?select=true'
-    })
-  }
-
   const handleMenuClick = (item: any) => {
     const { url } = item
     if (url) {
@@ -319,14 +311,9 @@ const HomePage: React.FC = () => {
     // You can filter products based on the query
   }
 
-  const handleCartClick = () => {
-    Taro.navigateTo({
-      url: '/pages/cart/index'
-    })
-  }
-
   const handleProfileClick = () => {
-    Taro.navigateTo({
+    // 「我的」是 tabBar 页,必须用 switchTab 切换
+    Taro.switchTab({
       url: '/pages/my/index'
     })
   }
@@ -503,20 +490,6 @@ const HomePage: React.FC = () => {
 
       {/* 底部安全区域 */}
       <View className='safe-bottom' />
-
-      {/* 购物车悬浮按钮(F-PRO-004:本地购物车多商品结算入口) */}
-      <View className='fab-button fab-cart-button'>
-        <AtFab onClick={handleCartClick} size='small'>
-          <Text className='fab-icon'>🛒</Text>
-        </AtFab>
-      </View>
-
-      {/* + 号悬浮按钮 */}
-      <View className='fab-button'>
-        <AtFab onClick={handleCreateOrder}>
-          <Text className='fab-icon'>+</Text>
-        </AtFab>
-      </View>
     </View>
   )
 }

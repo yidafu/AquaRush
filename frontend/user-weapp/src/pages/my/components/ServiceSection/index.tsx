@@ -50,7 +50,8 @@ const ServiceSection: React.FC<ServiceSectionProps> = ({ unreadCount = 0 }) => {
       title: '购物车',
       description: '多商品合并结算',
       onClick: () => {
-        Taro.navigateTo({
+        // 购物车是 tabBar 页,用 switchTab 切换
+        Taro.switchTab({
           url: '/pages/cart/index'
         })
       }

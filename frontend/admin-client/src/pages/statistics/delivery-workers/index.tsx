@@ -12,6 +12,8 @@ import {
 import { useQuery, gql } from '@apollo/client';
 import { displayCents } from '@aquarush/common';
 import StatisticsCard from '@/components/StatisticsCard';
+import RefreshControls from '@/components/RefreshControls';
+import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 
 const GET_DELIVERY_WORKER_STATISTICS = gql`
   query GetDeliveryWorkerStatistics {
@@ -50,8 +52,13 @@ interface DeliveryWorkerStatisticsData {
 }
 
 const DeliveryWorkerStatisticsPage: React.FC = () => {
-  const { data, loading, error } = useQuery<DeliveryWorkerStatisticsData>(GET_DELIVERY_WORKER_STATISTICS);
+  const { data, loading, error, refetch } = useQuery<DeliveryWorkerStatisticsData>(GET_DELIVERY_WORKER_STATISTICS);
   const [chartData, setChartData] = useState<{ name: string; orders: number }[]>([]);
+
+  // 手动刷新 + 定时更新
+  const { intervalMs, setIntervalMs, refreshing, refresh, lastUpdated } = useAutoRefresh({
+    onRefresh: () => refetch(),
+  });
 
   useEffect(() => {
     if (data?.deliveryWorkerRanking) {
@@ -104,7 +111,16 @@ const DeliveryWorkerStatisticsPage: React.FC = () => {
 
   return (
     <div style={{ padding: 24 }}>
-      <h1 style={{ fontSize: 24, marginBottom: 24 }}>送水员统计</h1>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <h1 style={{ fontSize: 24, margin: 0 }}>送水员统计</h1>
+        <RefreshControls
+          interval={intervalMs}
+          onIntervalChange={setIntervalMs}
+          onRefresh={refresh}
+          refreshing={refreshing}
+          lastUpdated={lastUpdated}
+        />
+      </div>
 
       <Row gutter={[16, 16]}>
         <Col xs={24} sm={12} lg={6}>

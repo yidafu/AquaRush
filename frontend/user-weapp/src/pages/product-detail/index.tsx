@@ -9,7 +9,7 @@ import ProductService from '../../services/ProductService'
 import FavoriteService from '../../services/FavoriteService'
 import { authService } from '../../utils/auth'
 import { Product } from '../../types/product'
-import { addToCart } from '../../utils/cart'
+import { addToCart, syncCartTabBadge } from '../../utils/cart'
 import { normalizeCents } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
@@ -28,6 +28,8 @@ interface ProductDetailState {
   toastText: string
   toastType: 'success' | 'error' | 'loading'
   productId: string
+  // 来源标识(H5 嵌入场景:admin 预览 from=admin;RN WebView 纯展示 from=rn —— 见下方渲染分支)
+  from?: string
   showBuyModal: boolean
   buyModalQuantity: number
   imagesLoaded: boolean[]
@@ -41,6 +43,10 @@ interface ProductDetailState {
 const MAX_RETRIES = 3
 const RETRY_DELAY = 1000 // 1 second
 
+// 嵌入只读场景(from=rn,RN WebView / delivery web iframe):富文本移除 <a> 链接跳转,保留文本 —— 仅展示
+const stripRichTextLinks = (html: string): string =>
+  html.replace(/<a\b[^>]*>(.*?)<\/a>/gi, '$1')
+
 const ProductDetail: React.FC = () => {
   usePageViewTracking()
 
@@ -51,6 +57,7 @@ const ProductDetail: React.FC = () => {
     toastText: '',
     toastType: 'success',
     productId: '',
+    from: '',
     showBuyModal: false,
     buyModalQuantity: 1,
     imagesLoaded: [],
@@ -253,6 +260,9 @@ const ProductDetail: React.FC = () => {
       specification: state.product.specification
     })
 
+    // 实时同步购物车 tabBar 角标
+    syncCartTabBadge()
+
     showToastMessage('已加入购物车', 'success')
   }, [state.product, showToastMessage])
 
@@ -303,7 +313,7 @@ const ProductDetail: React.FC = () => {
   // 初始化
   useEffect(() => {
     const instance = Taro.getCurrentInstance()
-    const { id } = instance.router?.params || {}
+    const { id, from } = instance.router?.params || {}
 
     if (!id) {
       Taro.showToast({
@@ -315,7 +325,8 @@ const ProductDetail: React.FC = () => {
     }
 
     updateState({
-      productId: id
+      productId: id,
+      from: String(from || '')
     })
   }, [updateState])
 
@@ -347,13 +358,15 @@ const ProductDetail: React.FC = () => {
       <View className='min-h-screen pb-40 bg-gray-50'>
         <View className='flex flex-col items-center justify-center gap-20 min-h-96'>
           <Text>产品不存在</Text>
-          <AtButton
-            type='primary'
-            size='small'
-            onClick={() => Taro.navigateBack()}
-          >
-            返回
-          </AtButton>
+          {state.from !== 'rn' && (
+            <AtButton
+              type='primary'
+              size='small'
+              onClick={() => Taro.navigateBack()}
+            >
+              返回
+            </AtButton>
+          )}
         </View>
       </View>
     )
@@ -365,10 +378,10 @@ const ProductDetail: React.FC = () => {
 
   return (
     <View className='min-h-screen pb-10 bg-gray-100 md:max-w-md md:mx-auto md:shadow-xl md:rounded-3xl md:overflow-hidden'>
-      {/* 产品图片轮播 */}
+      {/* 产品图片轮播(嵌入只读场景 from=rn:不传 onImagePress,图片不可点击) */}
       <ProductImageGallery
         images={currentImages}
-        onImagePress={handleImagePress}
+        onImagePress={state.from === 'rn' ? undefined : handleImagePress}
         imagesLoaded={state.imagesLoaded}
         imagesWithError={state.imagesWithError}
         imageLoadingStates={state.imageLoadingStates}
@@ -383,26 +396,28 @@ const ProductDetail: React.FC = () => {
         <ProductInfo />
       </ProductProvider>
 
-      {/* 产品详情 */}
+      {/* 产品详情(嵌入只读场景 from=rn:剥离富文本链接,仅展示) */}
       {state.product.detailContent && (
         <View className='mt-4 mb-5 bg-white rounded animate-fade-in'>
           <View className='p-4'>
-            <RichText nodes={state.product.detailContent} />
+            <RichText nodes={state.from === 'rn' ? stripRichTextLinks(state.product.detailContent) : state.product.detailContent} />
           </View>
         </View>
       )}
 
-      {/* 操作按钮 */}
-      <ActionButtons
-        isFavorite={state.isFavorite}
-        onToggleFavorite={handleToggleFavorite}
-        onAddToCart={handleAddToCart}
-        onBuyNow={handleBuyNow}
-        onContactService={handleContactService}
-        onShare={handleShare}
-        stock={state.product.stock}
-        status={state.product.status}
-      />
+      {/* 操作按钮(RN WebView 纯展示场景 from=rn 时隐藏,避免跳转不存在的 H5 路由) */}
+      {state.from !== 'rn' && (
+        <ActionButtons
+          isFavorite={state.isFavorite}
+          onToggleFavorite={handleToggleFavorite}
+          onAddToCart={handleAddToCart}
+          onBuyNow={handleBuyNow}
+          onContactService={handleContactService}
+          onShare={handleShare}
+          stock={state.product.stock}
+          status={state.product.status}
+        />
+      )}
 
       {/* Toast 提示 */}
       <AtToast

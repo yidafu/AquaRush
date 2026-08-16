@@ -88,7 +88,8 @@ const FeedbackRecordsPage: React.FC = () => {
   }, [])
 
   const handleGoLogin = useCallback(() => {
-    Taro.navigateTo({ url: '/pages/my/index' })
+    // 「我的」是 tabBar 页,必须用 switchTab 切换
+    Taro.switchTab({ url: '/pages/my/index' })
   }, [])
 
   return (
