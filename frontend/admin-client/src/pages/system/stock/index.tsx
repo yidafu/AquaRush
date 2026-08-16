@@ -3,7 +3,6 @@ import { Card, Form, InputNumber, Button, Alert, Space, Modal, Typography, messa
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
-import SystemConfigAuditLog from '../components/SystemConfigAuditLog';
 
 // 库存预警阈值配置页(F-SYS-003,R-PRO-02):低库存阈值 + 中档色阶阈值,保存即生效
 // 仅超级管理员可读写(SYSTEM_CONFIG_WRITE,R-SYS-03);商品列表着色(F-PRO-006)与商品统计低库存明细(F-STA-006)按新阈值计算
@@ -117,10 +116,6 @@ const SystemStockConfig: React.FC = () => {
             <Typography.Text type="warning">当前账号无系统配置修改权限(SYSTEM_CONFIG_WRITE),仅可查看。</Typography.Text>
           )}
         </Form>
-      </Card>
-
-      <Card title="修改记录" style={{ marginTop: 16 }}>
-        <SystemConfigAuditLog />
       </Card>
     </div>
   );

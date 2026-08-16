@@ -42,6 +42,15 @@ export const SystemSettingKeys = {
   NOTIFICATION_TEMPLATE_PAYMENT_RESULT_ID: 'notification_template_payment_result_id', // 支付结果模板 ID
   NOTIFICATION_TEMPLATE_PAYMENT_RESULT_ENABLED: 'notification_template_payment_result_enabled', // 支付结果启用
 
+  // 送水 App 实时推送配置(F-NTF-003):推送场景启用开关 + 离线/弱网轮询间隔(R-NTF-03,默认 30s)
+  DELIVERY_PUSH_NEW_ORDER_ENABLED: 'delivery_push_new_order_enabled', // 新订单(可抢单)推送
+  DELIVERY_PUSH_ASSIGNED_ENABLED: 'delivery_push_assigned_enabled', // 被派单推送
+  DELIVERY_PUSH_CANCELLED_ENABLED: 'delivery_push_cancelled_enabled', // 订单取消推送
+  DELIVERY_PUSH_URGING_ENABLED: 'delivery_push_urging_enabled', // 用户催单推送
+  DELIVERY_PUSH_TIMEOUT_ENABLED: 'delivery_push_timeout_enabled', // 配送超时推送
+  DELIVERY_PUSH_PAYMENT_TIMEOUT_ENABLED: 'delivery_push_payment_timeout_enabled', // 支付超时推送
+  DELIVERY_POLL_INTERVAL_SECONDS: 'delivery_poll_interval_seconds', // 离线/弱网轮询间隔(秒),默认 30
+
   // 数据维护参数组(F-SYS-006)
   LOG_RETENTION_API_DAYS: 'log_retention_api_days', // API 日志保留天数,默认 90
   LOG_RETENTION_USER_ACTION_DAYS: 'log_retention_user_action_days', // 用户操作日志保留天数,默认 90

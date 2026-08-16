@@ -4,7 +4,6 @@ import dayjs, { Dayjs } from 'dayjs';
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
-import SystemConfigAuditLog from '../components/SystemConfigAuditLog';
 
 // 订单与履约参数配置页(F-SYS-002):支付超时/配送时段/派单与确认,保存即生效
 // 仅超级管理员可读写(SYSTEM_CONFIG_WRITE,R-SYS-03);已生成订单不受影响(快照原则,R-SYS-01)
@@ -219,10 +218,6 @@ const SystemOrderConfig: React.FC = () => {
             <Typography.Text type="warning">当前账号无系统配置修改权限(SYSTEM_CONFIG_WRITE),仅可查看。</Typography.Text>
           )}
         </Form>
-      </Card>
-
-      <Card title="修改记录" style={{ marginTop: 16 }}>
-        <SystemConfigAuditLog />
       </Card>
     </div>
   );

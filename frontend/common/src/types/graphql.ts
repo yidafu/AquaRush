@@ -386,8 +386,7 @@ export type CreateDeliveryAreaInput = {
 export type CreateDeliveryOrderInput = {
   readonly addressId: Scalars['PrimaryId']['input'];
   readonly isSelfCollect?: InputMaybe<Scalars['Boolean']['input']>;
-  readonly productId: Scalars['PrimaryId']['input'];
-  readonly quantity: Scalars['Int']['input'];
+  readonly items: ReadonlyArray<OrderItemInput>;
   readonly remark?: InputMaybe<Scalars['String']['input']>;
 };
 
@@ -460,6 +459,8 @@ export type CreateNoticeInput = {
 
 export type CreateOrderInput = {
   readonly addressId: Scalars['PrimaryId']['input'];
+  readonly clientRequestId?: InputMaybe<Scalars['String']['input']>;
+  readonly deliveryTime?: InputMaybe<DeliveryTimeSlot>;
   readonly items: ReadonlyArray<OrderItemInput>;
   readonly preferredCouponId?: InputMaybe<Scalars['PrimaryId']['input']>;
   readonly remark?: InputMaybe<Scalars['String']['input']>;
@@ -694,6 +695,13 @@ export type DeliveryLoginResponse = {
   readonly token?: Maybe<Scalars['String']['output']>;
   readonly workerInfo?: Maybe<DeliveryWorkerInfo>;
 };
+
+export enum DeliveryTimeSlot {
+  AFTERNOON = 'AFTERNOON',
+  EVENING = 'EVENING',
+  IMMEDIATE = 'IMMEDIATE',
+  MORNING = 'MORNING'
+}
 
 export type DeliveryTrajectory = {
   readonly accuracy?: Maybe<Scalars['Float']['output']>;
@@ -1741,6 +1749,7 @@ export type Order = {
   readonly deliveryFeeCents: Scalars['Long']['output'];
   readonly deliveryPhotos?: Maybe<ReadonlyArray<Scalars['String']['output']>>;
   readonly deliveryStartedAt?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly deliveryTimeSlot?: Maybe<DeliveryTimeSlot>;
   readonly deliveryWorker?: Maybe<DeliveryWorker>;
   readonly firstOrderDiscountCents?: Maybe<Scalars['Long']['output']>;
   readonly giftItems?: Maybe<ReadonlyArray<GiftItemVo>>;

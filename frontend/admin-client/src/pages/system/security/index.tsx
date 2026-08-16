@@ -3,7 +3,6 @@ import { Card, Form, InputNumber, Switch, Button, Alert, Space, Modal, Typograph
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
-import SystemConfigAuditLog from '../components/SystemConfigAuditLog';
 
 // 账号与安全策略配置页(F-SYS-004):密码强度/登录失败锁定/Token 有效期,保存即生效(登录校验类即时,Token 类重启生效)
 // 仅超级管理员可读写(SYSTEM_CONFIG_WRITE,R-SYS-03);生效接线(登录锁定/密码强度校验)为后续项,PRD 目标形态
@@ -162,10 +161,6 @@ const SystemSecurityConfig: React.FC = () => {
             <Typography.Text type="warning">当前账号无系统配置修改权限(SYSTEM_CONFIG_WRITE),仅可查看。</Typography.Text>
           )}
         </Form>
-      </Card>
-
-      <Card title="修改记录" style={{ marginTop: 16 }}>
-        <SystemConfigAuditLog />
       </Card>
     </div>
   );

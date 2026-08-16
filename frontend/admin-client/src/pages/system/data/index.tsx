@@ -3,7 +3,6 @@ import { Card, Form, InputNumber, Switch, Button, Alert, Space, Modal, Typograph
 import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
-import SystemConfigAuditLog from '../components/SystemConfigAuditLog';
 
 // 数据维护配置页(F-SYS-006):各类日志保留天数 + 清理开关,保存即生效(策略存储)
 // 仅超级管理员可读写(SYSTEM_CONFIG_WRITE,R-SYS-03);超期清理执行(定时任务/立即清理)为后续项;
@@ -144,10 +143,6 @@ const SystemDataMaintenanceConfig: React.FC = () => {
             <Typography.Text type="warning">当前账号无系统配置修改权限(SYSTEM_CONFIG_WRITE),仅可查看。</Typography.Text>
           )}
         </Form>
-      </Card>
-
-      <Card title="修改记录" style={{ marginTop: 16 }}>
-        <SystemConfigAuditLog />
       </Card>
     </div>
   );
