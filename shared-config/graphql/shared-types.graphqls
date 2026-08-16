@@ -587,12 +587,48 @@ type PaymentData {
 type OrderStatistics {
   # 订单总数
   totalOrders: Int!
-  # 总收入
+  # 已完成订单数（口径 = 状态为「已完成」的订单数，G38）
+  completedOrders: Int!
+  # 总收入（口径 = 已完成订单金额合计，仅 COMPLETED 状态）
   totalRevenueCents: Long!
-  # 平均订单金额
+  # 平均订单金额（客单价 = 已完成营收 / 已完成订单数）
   averageOrderValueCents: Long!
   # 日期范围
   dateRange: DateRange!
+  # 订单状态分布（G37，7 态聚合所选范围订单数，合计 = totalOrders）
+  statusDistribution: [OrderStatusStatistic!]!
+  # 客单价分布（G37，按金额区间聚合订单数，合计 = totalOrders）
+  orderValueDistribution: [OrderValueBucketStatistic!]!
+  # 高峰时段分析（G37，按订单创建小时 0-23 聚合，合计 = totalOrders）
+  peakHourDistribution: [PeakHourStatistic!]!
+}
+
+# 订单状态分布项（G37）
+type OrderStatusStatistic {
+  # 订单状态
+  status: OrderStatus!
+  # 该状态订单数
+  count: Int!
+}
+
+# 客单价分布区间（G37，金额单位分；fromCents 含下限、toCents 不含上限，null = 开区间）
+type OrderValueBucketStatistic {
+  # 区间下限（分，含）
+  fromCents: Long
+  # 区间上限（分，不含）
+  toCents: Long
+  # 区间标签（如「0-20元」）
+  label: String!
+  # 该区间订单数
+  count: Int!
+}
+
+# 高峰时段分析项（G37，0-23 时）
+type PeakHourStatistic {
+  # 小时（0-23）
+  hour: Int!
+  # 该小时订单数
+  count: Int!
 }
 
 type DateRange {

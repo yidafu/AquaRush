@@ -1,41 +1,17 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, Button, Card, Col, DatePicker, Empty, Row, Segmented, Space, Spin, Tooltip } from 'antd';
 import { ClockCircleOutlined, DollarOutlined, ShoppingCartOutlined } from '@ant-design/icons';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { centsToYuan, normalizeCents } from '@aquarush/common';
 import type { DailyStatistic, PendingOrderBreakdown } from '@aquarush/common';
 import dayjs, { Dayjs } from 'dayjs';
 import StatisticsCard from '../../components/StatisticsCard';
 import DailyRevenueChart from './components/DailyRevenueChart';
 import DailyOrderChart from './components/DailyOrderChart';
+import { DASHBOARD_PAGE_DATA_QUERY } from '../../graphql/queries/dashboard.graphql';
 
-const GET_DAILY_STATISTICS = gql`
-  query GetDailyStatistics($input: DateRangeInput!) {
-    dailyStatistics(input: $input) {
-      date
-      orderCount
-      orderProductCount
-      revenueCents
-    }
-  }
-`;
-
-const GET_PENDING_ORDER_BREAKDOWN = gql`
-  query GetPendingOrderBreakdown {
-    pendingOrderBreakdown {
-      pendingPayment
-      pendingDispatch
-      pendingDelivery
-      total
-    }
-  }
-`;
-
-interface DashboardStatisticsData {
+interface DashboardPageData {
   dailyStatistics: DailyStatistic[];
-}
-
-interface PendingOrderBreakdownData {
   pendingOrderBreakdown: PendingOrderBreakdown;
 }
 
@@ -95,13 +71,10 @@ const Dashboard: React.FC = () => {
     endDate: range[1].endOf('day').format('YYYY-MM-DDTHH:mm:ss'),
   };
 
-  const { data, loading, error, refetch } = useQuery<DashboardStatisticsData>(GET_DAILY_STATISTICS, {
+  // 单页单请求:日统计(时间范围)+ 待处理订单存量快照一次取回(规则 #10)
+  const { data, loading, error, refetch } = useQuery<DashboardPageData>(DASHBOARD_PAGE_DATA_QUERY, {
     variables: { input },
   });
-  // 待处理订单为存量快照，无变量，仅挂载时取一次
-  const { data: pendingData, loading: pendingLoading } = useQuery<PendingOrderBreakdownData>(
-    GET_PENDING_ORDER_BREAKDOWN,
-  );
 
   // 所选范围切片（YYYY-MM-DD 字符串字典序比较即日期比较）；线上 Long 为字符串，统一归一为数字
   const sliced = useMemo(() => {
@@ -138,8 +111,10 @@ const Dashboard: React.FC = () => {
     .reduce((sum, item) => sum + (normalizeCents(item.revenueCents) ?? 0), 0);
   const totalRevenueTrend = calcTrend(currentRangeRevenue, prevMonthRevenue);
 
-  const pending = pendingData?.pendingOrderBreakdown;
-  const isEmpty = sliced.length === 0 || sliced.every((d) => (d.orderCount || 0) === 0 && (d.revenueCents || 0) === 0);
+  const pending = data?.pendingOrderBreakdown;
+  // 后端按日期范围逐日返回，无订单的日期补零（见 StatisticsServiceImpl.getDailyStatistics）；
+  // 只要存在日期行（即使全部为 0）就渲染图表，仅在完全没有日期行时展示空态
+  const isEmpty = sliced.length === 0;
 
   if (error) {
     return (
@@ -230,7 +205,7 @@ const Dashboard: React.FC = () => {
               title="待处理订单"
               value={pending?.total ?? 0}
               prefix={<ClockCircleOutlined />}
-              loading={pendingLoading}
+              loading={loading}
             />
           </Tooltip>
         </Col>

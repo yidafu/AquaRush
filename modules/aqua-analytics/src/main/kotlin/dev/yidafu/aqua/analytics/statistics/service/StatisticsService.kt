@@ -21,6 +21,9 @@ package dev.yidafu.aqua.analytics.statistics.service
 
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderStatisticsDTO
+import dev.yidafu.aqua.analytics.statistics.dto.OrderStatusDistributionItemDTO
+import dev.yidafu.aqua.analytics.statistics.dto.OrderValueBucketDTO
+import dev.yidafu.aqua.analytics.statistics.dto.PeakHourDTO
 import dev.yidafu.aqua.analytics.statistics.dto.PendingOrderBreakdownDTO
 import java.time.LocalDate
 
@@ -64,4 +67,28 @@ interface StatisticsService {
    * 获取待处理订单存量快照（待支付/待派单/待配送三态合计）
    */
   fun getPendingOrderBreakdown(): PendingOrderBreakdownDTO
+
+  /**
+   * 获取日期窗口内订单状态分布（G37，7 态补零，合计 = 订单总数）
+   */
+  fun getOrderStatusDistribution(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<OrderStatusDistributionItemDTO>
+
+  /**
+   * 获取日期窗口内容单价分布（G37，默认金额区间补零，合计 = 订单总数）
+   */
+  fun getOrderValueDistribution(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<OrderValueBucketDTO>
+
+  /**
+   * 获取日期窗口内高峰时段分析（G37，0-23 时补零，合计 = 订单总数）
+   */
+  fun getPeakHourDistribution(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<PeakHourDTO>
 }

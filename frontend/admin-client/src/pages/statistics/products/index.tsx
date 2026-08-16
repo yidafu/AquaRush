@@ -57,7 +57,7 @@ const GET_PRODUCT_DAILY_SALES = gql`
 
 const GET_ALL_PRODUCTS = gql`
   query GetAllProducts {
-    productsPaginated(page: 0, size: 100) {
+    productsPaginated(input: { page: 0, size: 100 }) {
       list {
         id
         name
@@ -317,9 +317,9 @@ const ProductStatisticsPage: React.FC = () => {
                   <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} tickFormatter={(v) => `¥${v}`} />
                   <Tooltip
                     labelFormatter={(label) => `商品: ${label}`}
-                    formatter={(value: number, name: string) => {
-                      if (name === 'sales') return [`${value} 桶`, '销量'];
-                      return [`¥${value.toFixed(2)}`, '营收'];
+                    formatter={(value, name) => {
+                      if (name === 'sales') return [`${Number(value)} 桶`, '销量'];
+                      return [`¥${Number(value).toFixed(2)}`, '营收'];
                     }}
                   />
                   <Legend />
@@ -340,7 +340,7 @@ const ProductStatisticsPage: React.FC = () => {
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip
                     labelFormatter={(label) => `商品: ${label}`}
-                    formatter={(value: number) => [`${value} 人`, '收藏数']}
+                    formatter={(value) => [`${Number(value)} 人`, '收藏数']}
                   />
                   <Legend />
                   <Bar dataKey="favorites" name="收藏数" fill="#fa8c16" radius={[4, 4, 0, 0]} />

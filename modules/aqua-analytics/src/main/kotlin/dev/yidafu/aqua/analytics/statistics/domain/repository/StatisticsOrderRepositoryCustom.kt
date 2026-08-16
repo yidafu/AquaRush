@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
+import dev.yidafu.aqua.analytics.statistics.dto.OrderValueBucketDTO
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import java.time.LocalDateTime
 
@@ -62,4 +63,31 @@ interface StatisticsOrderRepositoryCustom {
    * 按当前状态快照计数（无日期过滤，存量统计）
    */
   fun countByStatusIn(statuses: List<OrderModelStatus>): Map<OrderModelStatus, Long>
+
+  /**
+   * 按状态分组统计日期窗口内订单数（G37 状态分布，全状态聚合）
+   */
+  fun countOrdersGroupByStatus(
+    startDateTime: LocalDateTime,
+    endDateTime: LocalDateTime,
+  ): Map<OrderModelStatus, Long>
+
+  /**
+   * 按订单创建小时(0-23)分组统计日期窗口内订单数（G37 高峰时段分析，全状态聚合）
+   */
+  fun countOrdersGroupByHour(
+    startDateTime: LocalDateTime,
+    endDateTime: LocalDateTime,
+  ): Map<Int, Long>
+
+  /**
+   * 按金额区间分桶统计日期窗口内订单数（G37 客单价分布，全状态聚合）
+   * 金额按订单 amountCents 只计一次；buckets 由服务层定义（默认 0-20/20-50/50-100/100-200/200+ 元）。
+   * @return label → 订单数
+   */
+  fun countOrdersByAmountBucket(
+    startDateTime: LocalDateTime,
+    endDateTime: LocalDateTime,
+    buckets: List<OrderValueBucketDTO>,
+  ): Map<String, Long>
 }

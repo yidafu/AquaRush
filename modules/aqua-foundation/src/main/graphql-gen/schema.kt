@@ -2907,7 +2907,11 @@ data class OrderReviewCheckResponse(
 
 data class OrderStatistics(
     val averageOrderValueCents: kotlin.Long,
+    val completedOrders: kotlin.Int,
     val dateRange: DateRange,
+    val orderValueDistribution: kotlin.collections.List<OrderValueBucketStatistic>,
+    val peakHourDistribution: kotlin.collections.List<PeakHourStatistic>,
+    val statusDistribution: kotlin.collections.List<OrderStatusStatistic>,
     val totalOrders: kotlin.Int,
     val totalRevenueCents: kotlin.Long
 )
@@ -2929,12 +2933,24 @@ enum class OrderStatus(val label: String) {
   }
 }
 
+data class OrderStatusStatistic(
+    val count: kotlin.Int,
+    val status: OrderStatus
+)
+
 data class OrderVoPage(
     val content: kotlin.collections.List<Order>,
     val number: kotlin.Int,
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
+)
+
+data class OrderValueBucketStatistic(
+    val count: kotlin.Int,
+    val fromCents: kotlin.Long?,
+    val label: kotlin.String,
+    val toCents: kotlin.Long?
 )
 
 data class PageInfo(
@@ -3046,6 +3062,11 @@ enum class PaymentType(val label: String) {
     }
   }
 }
+
+data class PeakHourStatistic(
+    val count: kotlin.Int,
+    val hour: kotlin.Int
+)
 
 data class PendingOrderBreakdown(
     val pendingDelivery: kotlin.Int,
@@ -3654,6 +3675,13 @@ data class QueryDeliveryWorkerRankingArgs(
       args["limit"] as kotlin.Int? ?: 10
   )
 }
+data class QueryDeliveryWorkerRatingStatisticsArgs(
+    val deliveryWorkerId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["deliveryWorkerId"] as kotlin.Long
+  )
+}
 data class QueryFavoriteProductsArgs(
     val page: kotlin.Int? = 0,
     val size: kotlin.Int? = 20,
@@ -3920,6 +3948,17 @@ data class QueryRegionsArgs(
       args["parentCode"] as kotlin.String?
   )
 }
+data class QueryReviewsByDeliveryWorkerArgs(
+    val deliveryWorkerId: kotlin.Long,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["deliveryWorkerId"] as kotlin.Long,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
 data class QueryReviewsByUserArgs(
     val page: kotlin.Int? = 0,
     val size: kotlin.Int? = 20,
@@ -4040,6 +4079,7 @@ data class Query(
     val deliveryWorkerHistoryOrders: OrderVoPage,
     val deliveryWorkerLatestLocation: DeliveryTrajectory?,
     val deliveryWorkerRanking: kotlin.collections.List<DeliveryWorkerRankingItem>,
+    val deliveryWorkerRatingStatistics: DeliveryWorkerStatisticsResponse,
     val deliveryWorkerStatistics: DeliveryWorkerOverview,
     val deliveryWorkers: kotlin.collections.List<DeliveryWorker>,
     val favoriteProducts: FavoriteProductVoPage,
@@ -4082,6 +4122,7 @@ data class Query(
     val promotionActivity: PromotionActivity?,
     val region: Region?,
     val regions: kotlin.collections.List<Region>,
+    val reviewsByDeliveryWorker: ReviewVoPage,
     val reviewsByUser: ReviewVoPage,
     val searchAllAddresses: kotlin.collections.List<Address>,
     val stockWarningThresholds: StockWarningThresholds,

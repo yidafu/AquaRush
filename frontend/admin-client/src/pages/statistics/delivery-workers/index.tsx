@@ -148,7 +148,7 @@ const DeliveryWorkerStatisticsPage: React.FC = () => {
                   <YAxis tick={{ fontSize: 12 }} />
                   <Tooltip
                     labelFormatter={(label) => `送水员: ${label}`}
-                    formatter={(value: number) => [`${value} 单`, '今日完成订单']}
+                    formatter={(value) => [`${Number(value)} 单`, '今日完成订单']}
                   />
                   <Bar dataKey="orders" name="今日完成订单" fill="#1890ff" radius={[4, 4, 0, 0]} />
                 </BarChart>

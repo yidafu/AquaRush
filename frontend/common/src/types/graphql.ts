@@ -1883,7 +1883,11 @@ export type OrderReviewCheckResponse = {
 
 export type OrderStatistics = {
   readonly averageOrderValueCents: Scalars['Long']['output'];
+  readonly completedOrders: Scalars['Int']['output'];
   readonly dateRange: DateRange;
+  readonly orderValueDistribution: ReadonlyArray<OrderValueBucketStatistic>;
+  readonly peakHourDistribution: ReadonlyArray<PeakHourStatistic>;
+  readonly statusDistribution: ReadonlyArray<OrderStatusStatistic>;
   readonly totalOrders: Scalars['Int']['output'];
   readonly totalRevenueCents: Scalars['Long']['output'];
 };
@@ -1898,12 +1902,24 @@ export enum OrderStatus {
   REFUNDED = 'REFUNDED'
 }
 
+export type OrderStatusStatistic = {
+  readonly count: Scalars['Int']['output'];
+  readonly status: OrderStatus;
+};
+
 export type OrderVoPage = {
   readonly content: ReadonlyArray<Order>;
   readonly number: Scalars['Int']['output'];
   readonly size: Scalars['Int']['output'];
   readonly totalElements: Scalars['Int']['output'];
   readonly totalPages: Scalars['Int']['output'];
+};
+
+export type OrderValueBucketStatistic = {
+  readonly count: Scalars['Int']['output'];
+  readonly fromCents?: Maybe<Scalars['Long']['output']>;
+  readonly label: Scalars['String']['output'];
+  readonly toCents?: Maybe<Scalars['Long']['output']>;
 };
 
 export type PageInfo = {
@@ -1994,6 +2010,11 @@ export enum PaymentType {
   QR_CODE = 'QR_CODE',
   WATER_TICKET = 'WATER_TICKET'
 }
+
+export type PeakHourStatistic = {
+  readonly count: Scalars['Int']['output'];
+  readonly hour: Scalars['Int']['output'];
+};
 
 export type PendingOrderBreakdown = {
   readonly pendingDelivery: Scalars['Int']['output'];
@@ -2294,6 +2315,7 @@ export type Query = {
   readonly deliveryWorkerHistoryOrders: OrderVoPage;
   readonly deliveryWorkerLatestLocation?: Maybe<DeliveryTrajectory>;
   readonly deliveryWorkerRanking: ReadonlyArray<DeliveryWorkerRankingItem>;
+  readonly deliveryWorkerRatingStatistics: DeliveryWorkerStatisticsResponse;
   readonly deliveryWorkerStatistics: DeliveryWorkerOverview;
   readonly deliveryWorkers: ReadonlyArray<DeliveryWorker>;
   readonly favoriteProducts: FavoriteProductVoPage;
@@ -2336,6 +2358,7 @@ export type Query = {
   readonly promotionActivity?: Maybe<PromotionActivity>;
   readonly region?: Maybe<Region>;
   readonly regions: ReadonlyArray<Region>;
+  readonly reviewsByDeliveryWorker: ReviewVoPage;
   readonly reviewsByUser: ReviewVoPage;
   readonly searchAllAddresses: ReadonlyArray<Address>;
   readonly stockWarningThresholds: StockWarningThresholds;
@@ -2443,6 +2466,11 @@ export type QueryDeliveryWorkerLatestLocationArgs = {
 
 export type QueryDeliveryWorkerRankingArgs = {
   limit?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryDeliveryWorkerRatingStatisticsArgs = {
+  deliveryWorkerId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -2620,6 +2648,13 @@ export type QueryRegionArgs = {
 export type QueryRegionsArgs = {
   level?: InputMaybe<Scalars['Int']['input']>;
   parentCode?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryReviewsByDeliveryWorkerArgs = {
+  deliveryWorkerId: Scalars['PrimaryId']['input'];
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
 };
 
 

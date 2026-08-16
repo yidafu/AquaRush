@@ -22,6 +22,9 @@ package dev.yidafu.aqua.analytics.statistics.service.impl
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderStatisticsDTO
+import dev.yidafu.aqua.analytics.statistics.dto.OrderStatusDistributionItemDTO
+import dev.yidafu.aqua.analytics.statistics.dto.OrderValueBucketDTO
+import dev.yidafu.aqua.analytics.statistics.dto.PeakHourDTO
 import dev.yidafu.aqua.analytics.statistics.dto.PendingOrderBreakdownDTO
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
@@ -37,6 +40,20 @@ class StatisticsServiceImpl(
   private val orderQueryApiService: OrderQueryApiService,
   private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
 ) : StatisticsService {
+  /**
+   * 客单价分布默认金额区间(单位分,PRD F-STA-005 G37 客单价分布):
+   * 0-20/20-50/50-100/100-200/200+ 元,末桶开区间(toCents = null,仓储层 CASE ELSE)。
+   * 区间边界为服务层常量,便于后续「区间可配置」扩展。
+   */
+  private val defaultOrderValueBuckets: List<OrderValueBucketDTO> =
+    listOf(
+      OrderValueBucketDTO(fromCents = 0L, toCents = 2000L, label = "0-20元"),
+      OrderValueBucketDTO(fromCents = 2000L, toCents = 5000L, label = "20-50元"),
+      OrderValueBucketDTO(fromCents = 5000L, toCents = 10000L, label = "50-100元"),
+      OrderValueBucketDTO(fromCents = 10000L, toCents = 20000L, label = "100-200元"),
+      OrderValueBucketDTO(fromCents = 20000L, toCents = null, label = "200元以上"),
+    )
+
   /**
    * 获取日期范围内的订单统计
    */
@@ -139,6 +156,7 @@ class StatisticsServiceImpl(
 
   /**
    * 获取每周订单统计
+   * 订单数口径：当周全部订单；营收口径：已完成订单金额合计（与 getDailyStatistics 对齐）
    */
   override fun getWeeklyStatistics(
     startDate: LocalDate,
@@ -155,6 +173,16 @@ class StatisticsServiceImpl(
         statuses = null,
       )
 
+    // 营收按已完成订单口径聚合（与订单数分两次聚合，口径不同）
+    val weeklyRevenueStats =
+      statisticsOrderRepository.getWeeklyOrderStatistics(
+        startDateTime = startDateTime,
+        endDateTime = endDateTime,
+        deliveryWorkerId = null,
+        statuses = listOf(OrderModelStatus.COMPLETED),
+      )
+    val revenueMap = weeklyRevenueStats.associateBy { it.date }
+
     // 构建周开始日期到统计的映射
     val statsMap = weeklyStats.associateBy { it.date }
 
@@ -166,7 +194,8 @@ class StatisticsServiceImpl(
     while (!currentWeekStart.isAfter(endDate)) {
       val stat = statsMap[currentWeekStart]
       result.add(
-        stat ?: DailyStatisticsDTO.default(currentWeekStart),
+        stat?.copy(totalAmountCents = revenueMap[currentWeekStart]?.totalAmountCents ?: 0L)
+          ?: DailyStatisticsDTO.default(currentWeekStart),
       )
       currentWeekStart = currentWeekStart.plusWeeks(1)
     }
@@ -176,6 +205,7 @@ class StatisticsServiceImpl(
 
   /**
    * 获取每月订单统计
+   * 订单数口径：当月全部订单；营收口径：已完成订单金额合计（与 getDailyStatistics 对齐）
    */
   override fun getMonthlyStatistics(
     startDate: LocalDate,
@@ -192,6 +222,16 @@ class StatisticsServiceImpl(
         statuses = null,
       )
 
+    // 营收按已完成订单口径聚合（与订单数分两次聚合，口径不同）
+    val monthlyRevenueStats =
+      statisticsOrderRepository.getMonthlyOrderStatistics(
+        startDateTime = startDateTime,
+        endDateTime = endDateTime,
+        deliveryWorkerId = null,
+        statuses = listOf(OrderModelStatus.COMPLETED),
+      )
+    val revenueMap = monthlyRevenueStats.associateBy { it.date }
+
     // 构建月份开始日期到统计的映射
     val statsMap = monthlyStats.associateBy { it.date }
 
@@ -202,7 +242,8 @@ class StatisticsServiceImpl(
     while (!currentMonth.isAfter(endDate)) {
       val stat = statsMap[currentMonth]
       result.add(
-        stat ?: DailyStatisticsDTO.default(currentMonth),
+        stat?.copy(totalAmountCents = revenueMap[currentMonth]?.totalAmountCents ?: 0L)
+          ?: DailyStatisticsDTO.default(currentMonth),
       )
       currentMonth = currentMonth.plusMonths(1)
     }
@@ -227,5 +268,58 @@ class StatisticsServiceImpl(
       pendingDispatch = counts[OrderModelStatus.PENDING_DISPATCH] ?: 0L,
       pendingDelivery = counts[OrderModelStatus.PENDING_DELIVERY] ?: 0L,
     )
+  }
+
+  /**
+   * 获取日期窗口内订单状态分布（G37，7 态补零，合计 = 订单总数 totalOrders）
+   */
+  override fun getOrderStatusDistribution(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<OrderStatusDistributionItemDTO> {
+    val counts =
+      statisticsOrderRepository.countOrdersGroupByStatus(
+        startDateTime = startDate.atStartOfDay(),
+        endDateTime = endDate.atTime(LocalTime.MAX),
+      )
+    return OrderModelStatus.entries.map { status ->
+      OrderStatusDistributionItemDTO(status = status, count = counts[status] ?: 0L)
+    }
+  }
+
+  /**
+   * 获取日期窗口内容单价分布（G37，默认金额区间补零，合计 = 订单总数 totalOrders）
+   * 金额按订单 amountCents 只计一次（与 P1-3 口径一致）。
+   */
+  override fun getOrderValueDistribution(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<OrderValueBucketDTO> {
+    val counts =
+      statisticsOrderRepository.countOrdersByAmountBucket(
+        startDateTime = startDate.atStartOfDay(),
+        endDateTime = endDate.atTime(LocalTime.MAX),
+        buckets = defaultOrderValueBuckets,
+      )
+    return defaultOrderValueBuckets.map { bucket ->
+      bucket.copy(count = counts[bucket.label] ?: 0L)
+    }
+  }
+
+  /**
+   * 获取日期窗口内高峰时段分析（G37，0-23 时补零，合计 = 订单总数 totalOrders，按 createdAt 小时聚合）
+   */
+  override fun getPeakHourDistribution(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<PeakHourDTO> {
+    val counts =
+      statisticsOrderRepository.countOrdersGroupByHour(
+        startDateTime = startDate.atStartOfDay(),
+        endDateTime = endDate.atTime(LocalTime.MAX),
+      )
+    return (0..23).map { hour ->
+      PeakHourDTO(hour = hour, count = counts[hour] ?: 0L)
+    }
   }
 }
