@@ -125,6 +125,8 @@ class UserActionLogControllerIntegrationTest(
       mockMvc
         .perform(
           post("/api/logs/user-actions/batch")
+            .header("X-Forwarded-For", "203.0.113.7")
+            .header("User-Agent", "MockUserAgent/1.0")
             .contentType(MediaType.APPLICATION_JSON)
             .content(body),
         ).andExpect(status().isOk)
@@ -139,6 +141,9 @@ class UserActionLogControllerIntegrationTest(
       click.elementId shouldBe "btn-add-cart"
       click.elementType shouldBe "button"
       click.elementText shouldBe "加入购物车"
+      // 服务端注入字段:批次上报必须带上真实客户端 IP / UA
+      click.clientIp shouldBe "203.0.113.7"
+      click.userAgent shouldBe "MockUserAgent/1.0"
 
       // properties pretty-print(含缩进换行)且敏感键被剔除
       val props = click.properties

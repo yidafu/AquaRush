@@ -108,7 +108,6 @@ class PromotionEngineImplTest :
         tags = null,
         detailContent = null,
         certificateImages = null,
-        deliverySettings = null,
       )
 
     fun ticket(

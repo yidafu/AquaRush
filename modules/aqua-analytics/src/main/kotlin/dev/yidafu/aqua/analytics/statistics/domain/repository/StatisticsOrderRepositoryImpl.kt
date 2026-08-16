@@ -214,13 +214,20 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
   /**
    * 按订单创建小时(0-23)分组统计日期窗口内订单数(G37 高峰时段分析,全状态聚合)
    * EXTRACT(HOUR FROM ...) 与现有 DATE()/DATE_TRUNC() 同为 H2(PostgreSQL 模式)/PostgreSQL 兼容写法。
+   * 注意:PostgreSQL 的 EXTRACT 返回 numeric,JDBC 无法直接转 Integer → 必须 CAST(... AS INT)
+   * (否则抛 "conversion to class java.lang.Integer from numeric not supported" → INTERNAL_ERROR)。
    */
   override fun countOrdersGroupByHour(
     startDateTime: LocalDateTime,
     endDateTime: LocalDateTime,
   ): Map<Int, Long> {
     val whereClause = buildWhereClause(startDateTime, endDateTime, deliveryWorkerId = null, statuses = null)
-    val hourExpr = Expressions.numberTemplate(Integer::class.java, "EXTRACT(HOUR FROM {0})", orderModel.createdAt)
+    val hourExpr =
+      Expressions.numberTemplate(
+        Integer::class.java,
+        "CAST(EXTRACT(HOUR FROM {0}) AS INTEGER)",
+        orderModel.createdAt,
+      )
     return queryFactory
       .select(hourExpr, orderModel.count())
       .from(orderModel)

@@ -23,13 +23,34 @@ import dev.yidafu.aqua.common.exception.BusinessException
 import graphql.ErrorType
 import graphql.GraphQLError
 import graphql.language.SourceLocation
+import graphql.schema.DataFetchingEnvironment
 import jakarta.validation.ConstraintViolationException
+import org.springframework.graphql.execution.DataFetcherExceptionResolverAdapter
 import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.core.AuthenticationException
 import org.springframework.stereotype.Component
 
+/**
+ * 业务异常 → GraphQL 错误解析器。
+ *
+ * 注册为 DataFetcherExceptionResolver 后,BusinessException(如 NotFoundException「订单不存在」)
+ * 会被转换为可读的 GraphQL 错误(message + extensions.code,如 NOT_FOUND),而不是被
+ * Spring GraphQL 默认掩码为 `INTERNAL_ERROR for <executionId>`(classification: INTERNAL_ERROR)。
+ *
+ * 只解析 BusinessException;校验异常仍由 ValidationExceptionHandler 提供字段级错误,
+ * 安全异常由 Spring Security 的 SecurityDataFetcherExceptionResolver 处理,其余未知异常维持默认掩码。
+ */
 @Component
-class GraphQLErrorHandler {
+class GraphQLErrorHandler : DataFetcherExceptionResolverAdapter() {
+  override fun resolveToSingleError(
+    exception: Throwable,
+    environment: DataFetchingEnvironment,
+  ): GraphQLError? =
+    when (exception) {
+      is BusinessException -> handleException(exception)
+      else -> null
+    }
+
   fun handleException(throwable: Throwable): GraphQLError =
     object : GraphQLError {
       override fun getMessage(): String =

@@ -22,6 +22,7 @@ package dev.yidafu.aqua.logging.service
 import dev.yidafu.aqua.common.id.DefaultIdGenerator
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.logging.config.LoggingProperties
+import dev.yidafu.aqua.logging.dto.BatchUserAction
 import dev.yidafu.aqua.logging.dto.UserActionLogRequest
 import dev.yidafu.aqua.logging.util.UserActionLogger
 import org.slf4j.LoggerFactory
@@ -74,6 +75,39 @@ class UserActionEventService(
       processUserActionSync(request)
       true
     }
+
+  /**
+   * 批量处理用户操作日志(批次上报端点共用入口)
+   *
+   * 将上报载荷(含服务端注入的 userAgent/clientIp)转换为内部请求后批量处理;
+   * admin / client 服务的 `POST /api/logs/user-actions/batch` 均委托本方法,
+   * 保证三端上报链路行为一致。
+   */
+  fun processUserActionsBatch(
+    actions: List<BatchUserAction>,
+    userAgent: String,
+    clientIp: String,
+  ): List<Boolean> {
+    val singleRequests =
+      actions.map { action ->
+        UserActionLogRequest(
+          userId = action.userId,
+          username = action.username,
+          actionType = action.actionType,
+          target = action.target,
+          pageUrl = action.pageUrl,
+          elementId = action.elementId,
+          elementType = action.elementType,
+          elementText = action.elementText,
+          coordinates = action.coordinates,
+          properties = action.properties,
+          timestamp = action.timestamp,
+          userAgent = userAgent,
+          clientIp = clientIp,
+        )
+      }
+    return processUserActionsBatch(singleRequests)
+  }
 
   /**
    * 批量处理用户操作日志
@@ -269,8 +303,8 @@ class UserActionEventService(
         elementId = request.elementId ?: properties["elementId"] as? String,
         elementType = request.elementType ?: properties["elementType"] as? String,
         elementText = request.elementText ?: properties["elementText"] as? String,
-        clientIp = properties["clientIp"] as? String,
-        userAgent = properties["userAgent"] as? String,
+        clientIp = request.clientIp ?: properties["clientIp"] as? String,
+        userAgent = request.userAgent ?: properties["userAgent"] as? String,
         properties =
           if (properties.isNotEmpty()) {
             objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(properties)

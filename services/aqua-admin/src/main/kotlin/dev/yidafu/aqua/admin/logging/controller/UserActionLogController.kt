@@ -112,29 +112,8 @@ class UserActionLogController(
       val userAgent = httpRequest.getHeader("User-Agent") ?: "Unknown"
       val clientIp = getClientIp(httpRequest)
 
-      // 转换为单个请求并批量处理
-      val singleRequests =
-        request.actions.map { action ->
-          action.userAgent = userAgent
-          action.clientIp = clientIp
-
-          UserActionLogRequest(
-            userId = action.userId,
-            username = action.username,
-            actionType = action.actionType,
-            target = action.target,
-            pageUrl = action.pageUrl,
-            elementId = action.elementId,
-            elementType = action.elementType,
-            elementText = action.elementText,
-            coordinates = action.coordinates,
-            properties = action.properties,
-            timestamp = action.timestamp,
-          )
-        }
-
-      // 批量处理用户操作
-      userActionEventService.processUserActionsBatch(singleRequests)
+      // 批量处理用户操作(userAgent/clientIp 由服务端注入,统一在共享入口转换)
+      userActionEventService.processUserActionsBatch(request.actions, userAgent, clientIp)
 
       return ResponseEntity.ok(ApiResponse.success("Batch user actions logged successfully"))
     } catch (e: Exception) {

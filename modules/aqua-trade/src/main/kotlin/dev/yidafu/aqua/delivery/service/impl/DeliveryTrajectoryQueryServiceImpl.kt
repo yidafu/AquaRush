@@ -35,6 +35,13 @@ import java.time.LocalDateTime
 class DeliveryTrajectoryQueryServiceImpl(
   private val trajectoryRepository: DeliveryTrajectoryRepository,
 ) : DeliveryTrajectoryQueryService {
+  companion object {
+    // PostgreSQL timestamp 支持范围 4713 BC ~ 294276 AD;单边时间过滤时用范围内的
+    // 安全边界兜底,避免 LocalDateTime.MIN/MAX(±999999999 年)导致 JDBC 绑定异常。
+    private val SAFE_MIN_TIMESTAMP: LocalDateTime = LocalDateTime.of(1970, 1, 1, 0, 0)
+    private val SAFE_MAX_TIMESTAMP: LocalDateTime = LocalDateTime.of(9999, 12, 31, 23, 59, 59)
+  }
+
   @Transactional(readOnly = true)
   override fun getTrajectoriesByOrder(
     deliveryWorkerId: Long,
@@ -51,8 +58,16 @@ class DeliveryTrajectoryQueryServiceImpl(
     if (orderId != null) {
       return trajectoryRepository.findByDeliveryWorkerIdAndOrderIdOrderByReportedAtAsc(deliveryWorkerId, orderId)
     }
-    val from = start ?: LocalDateTime.MIN.plusDays(1)
-    val to = end ?: LocalDateTime.MAX.minusNanos(1)
+    // start/end 均为空 = 全部轨迹,直接按送水工查询(不拼时间条件)。
+    // 注意:不要用 LocalDateTime.MIN/MAX 作为兜底边界 —— 其极端年份(±999999999)
+    // 超出 PostgreSQL timestamp 范围(4713 BC ~ 294276 AD),JDBC 绑定参数会抛异常
+    // (此前表现:deliveryTrajectories 无时间参数 → INTERNAL_ERROR)。
+    if (start == null && end == null) {
+      return trajectoryRepository.findByDeliveryWorkerIdOrderByReportedAtAsc(deliveryWorkerId)
+    }
+    // 单边为空:用 PostgreSQL timestamp 支持范围内的安全边界
+    val from = start ?: SAFE_MIN_TIMESTAMP
+    val to = end ?: SAFE_MAX_TIMESTAMP
     return trajectoryRepository.findByDeliveryWorkerIdAndReportedAtBetweenOrderByReportedAtAsc(deliveryWorkerId, from, to)
   }
 

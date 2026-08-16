@@ -64,13 +64,37 @@ class DeliveryTrajectoryQueryServiceImplTest :
 
       service.getTrajectories(5L, null, start, end) shouldBe list
     }
-    test("getTrajectories without order uses default range") {
+    test("getTrajectories without order and without range returns all trajectories") {
       val list = listOf(trajectory(1L))
-      every {
-        trajectoryRepository.findByDeliveryWorkerIdAndReportedAtBetweenOrderByReportedAtAsc(5L, any(), any())
-      } returns list
+      every { trajectoryRepository.findByDeliveryWorkerIdOrderByReportedAtAsc(5L) } returns list
 
       service.getTrajectories(5L, null, null, null) shouldBe list
+    }
+    test("getTrajectories with only start uses safe upper bound") {
+      val list = listOf(trajectory(1L))
+      val start = LocalDateTime.of(2025, 1, 1, 0, 0)
+      every {
+        trajectoryRepository.findByDeliveryWorkerIdAndReportedAtBetweenOrderByReportedAtAsc(
+          5L,
+          start,
+          LocalDateTime.of(9999, 12, 31, 23, 59, 59),
+        )
+      } returns list
+
+      service.getTrajectories(5L, null, start, null) shouldBe list
+    }
+    test("getTrajectories with only end uses safe lower bound") {
+      val list = listOf(trajectory(1L))
+      val end = LocalDateTime.of(2025, 1, 2, 0, 0)
+      every {
+        trajectoryRepository.findByDeliveryWorkerIdAndReportedAtBetweenOrderByReportedAtAsc(
+          5L,
+          LocalDateTime.of(1970, 1, 1, 0, 0),
+          end,
+        )
+      } returns list
+
+      service.getTrajectories(5L, null, null, end) shouldBe list
     }
     test("getLatestTrajectory returns latest or null") {
       val latest = trajectory(3L)

@@ -108,14 +108,6 @@ class DomainModelBehaviorTest :
       p.setCertificateImagesFromList(listOf("http://c.png"))
       p.getCertificateImagesAsList() shouldBe listOf("http://c.png")
     }
-    test("ProductModel delivery settings round trip") {
-      val p = product()
-      p.getDeliverySettingsAsMap().isEmpty() shouldBe true
-      p.setDeliverySettingsFromMap(mapOf("freeFloor" to 5))
-      p.getDeliverySettingsAsMap() shouldBe mapOf("freeFloor" to 5)
-      p.setDeliverySettingsFromMap(emptyMap())
-      p.deliverySettings.shouldBeNull()
-    }
     test("ProductModel should ignore non-textual array entries") {
       val mapper = jacksonObjectMapper()
       val p = product()

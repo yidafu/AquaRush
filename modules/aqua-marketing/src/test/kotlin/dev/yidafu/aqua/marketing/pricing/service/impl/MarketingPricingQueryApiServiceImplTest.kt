@@ -90,7 +90,6 @@ class MarketingPricingQueryApiServiceImplTest :
         tags = null,
         detailContent = null,
         certificateImages = null,
-        deliverySettings = null,
       )
 
     // ============ 限时特价/新人专享价单价链(③④⑤) ============

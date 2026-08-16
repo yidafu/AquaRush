@@ -15,6 +15,9 @@ data class UserActionLogRequest(
   val coordinates: CoordinatesDto? = null,
   val properties: Map<String, Any> = emptyMap(),
   val timestamp: Long = System.currentTimeMillis(),
+  // 服务端补充字段(批次上报时由控制器注入,不来自客户端请求体)
+  val userAgent: String? = null,
+  val clientIp: String? = null,
 )
 
 data class CoordinatesDto(

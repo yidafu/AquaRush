@@ -49,6 +49,11 @@ interface DeliveryTrajectoryRepository : JpaRepository<DeliveryTrajectoryModel, 
   ): List<DeliveryTrajectoryModel>
 
   /**
+   * 查询送水工全部轨迹点(按上报时间升序;不限定时间范围)
+   */
+  fun findByDeliveryWorkerIdOrderByReportedAtAsc(deliveryWorkerId: Long): List<DeliveryTrajectoryModel>
+
+  /**
    * 查询送水工最近一个轨迹点(实时位置)
    */
   fun findFirstByDeliveryWorkerIdOrderByReportedAtDesc(deliveryWorkerId: Long): DeliveryTrajectoryModel?

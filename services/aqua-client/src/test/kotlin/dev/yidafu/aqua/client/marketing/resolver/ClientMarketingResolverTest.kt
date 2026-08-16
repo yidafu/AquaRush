@@ -176,7 +176,6 @@ class ClientMarketingResolverTest :
         tags = null,
         detailContent = null,
         certificateImages = null,
-        deliverySettings = null,
       )
 
     fun address(): AddressModel =
