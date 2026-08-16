@@ -110,7 +110,7 @@ class UserActionLogControllerTest :
 
       // Then
       result.body!!.success shouldBe true
-      verify { userActionEventService.processUserActionsBatch(any()) }
+      verify { userActionEventService.processUserActionsBatch(any(), "Mozilla/5.0", "10.0.0.1") }
     }
     test("logUserActionsBatch should fall back to x-real-ip then remoteAddr") {
       // Given
@@ -129,11 +129,11 @@ class UserActionLogControllerTest :
 
       // Then
       result.body!!.success shouldBe true
-      verify { userActionEventService.processUserActionsBatch(any()) }
+      verify { userActionEventService.processUserActionsBatch(any(), "Mozilla/5.0", "192.168.1.10") }
     }
     test("logUserActionsBatch should not fail on service error") {
       // Given
-      every { userActionEventService.processUserActionsBatch(any()) } throws RuntimeException("boom")
+      every { userActionEventService.processUserActionsBatch(any(), any(), any()) } throws RuntimeException("boom")
       val httpRequest = mockk<HttpServletRequest>(relaxed = true)
       every { httpRequest.getHeader("X-Forwarded-For") } returns "10.0.0.1"
       val request =

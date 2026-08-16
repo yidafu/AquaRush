@@ -30,16 +30,16 @@ import io.kotest.matchers.shouldBe
 class RolePermissionMappingTest :
   FunSpec({
 
-    test("permission catalog should contain exactly 38 codes") {
-      AdminPermission.entries.size shouldBe 38
+    test("permission catalog should contain exactly 40 codes") {
+      AdminPermission.entries.size shouldBe 40
     }
     test("SUPER_ADMIN should have all permissions") {
       val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.SUPER_ADMIN)
       permissions shouldBe AdminPermission.entries.toSet()
     }
-    test("ADMIN should have 32 permissions excluding admin-user system-config and worker-only ops") {
+    test("ADMIN should have 33 permissions excluding admin-user system-config and worker-only ops") {
       val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.ADMIN)
-      permissions.size shouldBe 32
+      permissions.size shouldBe 33
       (AdminPermission.ADMIN_USER_READ !in permissions) shouldBe true
       (AdminPermission.ADMIN_USER_WRITE !in permissions) shouldBe true
       (AdminPermission.SYSTEM_CONFIG_READ !in permissions) shouldBe true

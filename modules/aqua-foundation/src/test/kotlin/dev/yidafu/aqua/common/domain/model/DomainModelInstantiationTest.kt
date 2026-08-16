@@ -93,7 +93,7 @@ class DomainModelInstantiationTest :
       operation.operatorType shouldBe OperatorType.SYSTEM
     }
     test("payment refund model should instantiate") {
-      val refund = PaymentRefundModel(paymentId = 1L, refundAmount = 100L)
+      val refund = PaymentRefundModel(paymentId = 1L, orderId = 2L, userId = 3L, refundAmount = 100L)
       refund.status shouldBe RefundStatus.PENDING
     }
     test("product favorite model should instantiate with defaults") {
