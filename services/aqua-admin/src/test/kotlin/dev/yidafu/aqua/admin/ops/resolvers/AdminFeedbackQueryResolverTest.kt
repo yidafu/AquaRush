@@ -23,73 +23,66 @@ import dev.yidafu.aqua.api.service.ops.FeedbackQueryService
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackStatus
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackType
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-class AdminFeedbackQueryResolverTest {
-  private lateinit var feedbackQueryService: FeedbackQueryService
-  private lateinit var resolver: AdminFeedbackQueryResolver
+class AdminFeedbackQueryResolverTest :
+  FunSpec({
+    var feedbackQueryService: FeedbackQueryService = mockk()
+    var resolver: AdminFeedbackQueryResolver = mockk()
 
-  private fun feedback(): FeedbackModel =
-    FeedbackModel(
-      id = 1L,
-      userId = 1L,
-      feedbackType = FeedbackType.OTHER,
-      content = "建议增加送水时段",
-      status = FeedbackStatus.PENDING,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
+    fun feedback(): FeedbackModel =
+      FeedbackModel(
+        id = 1L,
+        userId = 1L,
+        feedbackType = FeedbackType.OTHER,
+        content = "建议增加送水时段",
+        status = FeedbackStatus.PENDING,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    feedbackQueryService = mockk(relaxed = true)
-    resolver = AdminFeedbackQueryResolver(feedbackQueryService)
-  }
+    beforeTest {
+      feedbackQueryService = mockk(relaxed = true)
+      resolver = AdminFeedbackQueryResolver(feedbackQueryService)
+    }
+    test("feedbacks should list with default request") {
+      // Given
+      every { feedbackQueryService.listFeedbacks(any()) } returns PageImpl(listOf(feedback()))
 
-  @Test
-  fun `feedbacks should list with default request`() {
-    // Given
-    every { feedbackQueryService.listFeedbacks(any()) } returns PageImpl(listOf(feedback()))
+      // When
+      val result = resolver.feedbacks(null)
 
-    // When
-    val result = resolver.feedbacks(null)
+      // Then
+      result.content.size shouldBe 1
+      result.content[0].content shouldBe "建议增加送水时段"
+      verify { feedbackQueryService.listFeedbacks(any()) }
+    }
+    test("feedback should return null when missing") {
+      // Given
+      every { feedbackQueryService.getFeedback(999L) } returns null
 
-    // Then
-    assertEquals(1, result.content.size)
-    assertEquals("建议增加送水时段", result.content[0].content)
-    verify { feedbackQueryService.listFeedbacks(any()) }
-  }
+      // When
+      val result = resolver.feedback(999L)
 
-  @Test
-  fun `feedback should return null when missing`() {
-    // Given
-    every { feedbackQueryService.getFeedback(999L) } returns null
+      // Then
+      result.shouldBeNull()
+    }
+    test("feedback should map by id") {
+      // Given
+      every { feedbackQueryService.getFeedback(1L) } returns feedback()
 
-    // When
-    val result = resolver.feedback(999L)
+      // When
+      val result = resolver.feedback(1L)
 
-    // Then
-    assertNull(result)
-  }
-
-  @Test
-  fun `feedback should map by id`() {
-    // Given
-    every { feedbackQueryService.getFeedback(1L) } returns feedback()
-
-    // When
-    val result = resolver.feedback(1L)
-
-    // Then
-    assertEquals(1L, result!!.id)
-    verify { feedbackQueryService.getFeedback(1L) }
-  }
-}
+      // Then
+      result!!.id shouldBe 1L
+      verify { feedbackQueryService.getFeedback(1L) }
+    }
+  })

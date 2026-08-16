@@ -26,109 +26,99 @@ import dev.yidafu.aqua.common.graphql.generated.BannerLinkType
 import dev.yidafu.aqua.common.graphql.generated.CreateBannerInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateBannerInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import dev.yidafu.aqua.common.graphql.generated.ReorderDirection as GraphQLReorderDirection
 
-class AdminBannerMutationResolverTest {
-  private lateinit var bannerMutationService: BannerMutationService
-  private lateinit var resolver: AdminBannerMutationResolver
+class AdminBannerMutationResolverTest :
+  FunSpec({
+    var bannerMutationService: BannerMutationService = mockk()
+    var resolver: AdminBannerMutationResolver = mockk()
 
-  private fun banner(): BannerModel =
-    BannerModel(
-      id = 1L,
-      imageUrl = "http://x/banner.png",
-      title = "新客立减",
-      linkTarget = "coupon_center",
-      enabled = true,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "admin",
-      userType = "ADMIN",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    bannerMutationService = mockk(relaxed = true)
-    resolver = AdminBannerMutationResolver(bannerMutationService)
-  }
-
-  @Test
-  fun `createBanner should delegate`() {
-    // Given
-    every { bannerMutationService.createBanner(1L, "admin", any()) } returns banner()
-    val input =
-      CreateBannerInput(
+    fun banner(): BannerModel =
+      BannerModel(
+        id = 1L,
         imageUrl = "http://x/banner.png",
-        linkTarget = "coupon_center",
-        linkType = BannerLinkType.CUSTOM_PAGE,
         title = "新客立减",
+        linkTarget = "coupon_center",
+        enabled = true,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
 
-    // When
-    val result = resolver.createBanner(input, principal())
-
-    // Then
-    assertEquals("新客立减", result.title)
-    verify { bannerMutationService.createBanner(1L, "admin", any()) }
-  }
-
-  @Test
-  fun `updateBanner should delegate`() {
-    // Given
-    every { bannerMutationService.updateBanner(1L, "admin", 1L, any()) } returns banner()
-    val input =
-      UpdateBannerInput(
-        imageUrl = "http://x/banner.png",
-        linkTarget = "coupon_center",
-        linkType = BannerLinkType.CUSTOM_PAGE,
-        title = "新客立减",
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "admin",
+        userType = "ADMIN",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
       )
 
-    // When
-    val result = resolver.updateBanner(1L, input, principal())
+    beforeTest {
+      bannerMutationService = mockk(relaxed = true)
+      resolver = AdminBannerMutationResolver(bannerMutationService)
+    }
+    test("createBanner should delegate") {
+      // Given
+      every { bannerMutationService.createBanner(1L, "admin", any()) } returns banner()
+      val input =
+        CreateBannerInput(
+          imageUrl = "http://x/banner.png",
+          linkTarget = "coupon_center",
+          linkType = BannerLinkType.CUSTOM_PAGE,
+          title = "新客立减",
+        )
 
-    // Then
-    assertEquals("新客立减", result.title)
-    verify { bannerMutationService.updateBanner(1L, "admin", 1L, any()) }
-  }
+      // When
+      val result = resolver.createBanner(input, principal())
 
-  @Test
-  fun `deleteBanner should delegate`() {
-    // Given
-    every { bannerMutationService.deleteBanner(1L, "admin", 1L) } returns true
+      // Then
+      result.title shouldBe "新客立减"
+      verify { bannerMutationService.createBanner(1L, "admin", any()) }
+    }
+    test("updateBanner should delegate") {
+      // Given
+      every { bannerMutationService.updateBanner(1L, "admin", 1L, any()) } returns banner()
+      val input =
+        UpdateBannerInput(
+          imageUrl = "http://x/banner.png",
+          linkTarget = "coupon_center",
+          linkType = BannerLinkType.CUSTOM_PAGE,
+          title = "新客立减",
+        )
 
-    // When
-    val result = resolver.deleteBanner(1L, principal())
+      // When
+      val result = resolver.updateBanner(1L, input, principal())
 
-    // Then
-    assertTrue(result)
-    verify { bannerMutationService.deleteBanner(1L, "admin", 1L) }
-  }
+      // Then
+      result.title shouldBe "新客立减"
+      verify { bannerMutationService.updateBanner(1L, "admin", 1L, any()) }
+    }
+    test("deleteBanner should delegate") {
+      // Given
+      every { bannerMutationService.deleteBanner(1L, "admin", 1L) } returns true
 
-  @Test
-  fun `reorderBanner should map direction enum`() {
-    // Given
-    every { bannerMutationService.reorderBanner(1L, "admin", 1L, ReorderDirection.UP) } returns listOf(banner())
+      // When
+      val result = resolver.deleteBanner(1L, principal())
 
-    // When
-    val result = resolver.reorderBanner(1L, GraphQLReorderDirection.UP, principal())
+      // Then
+      result shouldBe true
+      verify { bannerMutationService.deleteBanner(1L, "admin", 1L) }
+    }
+    test("reorderBanner should map direction enum") {
+      // Given
+      every { bannerMutationService.reorderBanner(1L, "admin", 1L, ReorderDirection.UP) } returns listOf(banner())
 
-    // Then
-    assertEquals(1, result.size)
-    verify { bannerMutationService.reorderBanner(1L, "admin", 1L, ReorderDirection.UP) }
-  }
-}
+      // When
+      val result = resolver.reorderBanner(1L, GraphQLReorderDirection.UP, principal())
+
+      // Then
+      result.size shouldBe 1
+      verify { bannerMutationService.reorderBanner(1L, "admin", 1L, ReorderDirection.UP) }
+    }
+  })

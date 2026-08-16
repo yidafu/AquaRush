@@ -22,69 +22,61 @@ package dev.yidafu.aqua.ops.feedback.service.impl
 import dev.yidafu.aqua.common.domain.model.FeedbackModel
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackType
 import dev.yidafu.aqua.ops.feedback.domain.repository.FeedbackRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 
 /**
  * 用户端我的-反馈记录查询服务单元测试(F-USR-005 处理结果回传)
  * 验证 userId 透传、分页参数收敛、按提交时间倒序。
  */
-class FeedbackQueryApiServiceImplTest {
-  private lateinit var feedbackRepository: FeedbackRepository
-  private lateinit var service: FeedbackQueryApiServiceImpl
+class FeedbackQueryApiServiceImplTest :
+  FunSpec({
+    var feedbackRepository: FeedbackRepository = mockk()
+    var service: FeedbackQueryApiServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    feedbackRepository = mockk(relaxed = true)
-    service = FeedbackQueryApiServiceImpl(feedbackRepository)
-  }
-
-  @Test
-  @DisplayName("findMyFeedbacks 按登录用户分页查询并按提交时间倒序")
-  fun `findMyFeedbacks queries by userId with createdAt desc paging`() {
-    val feedback =
-      FeedbackModel(
-        id = 1L,
-        userId = 100L,
-        feedbackType = FeedbackType.SUGGESTION,
-        content = "希望增加夜间模式",
-        createdAt = LocalDateTime.of(2026, 8, 13, 9, 0),
-      )
-    every { feedbackRepository.findByUserId(any(), any()) } returns PageImpl(listOf(feedback))
-
-    val result = service.findMyFeedbacks(userId = 100L, page = 1, size = 10)
-
-    assertEquals(1, result.content.size)
-    val pageableSlot = slot<PageRequest>()
-    verify {
-      feedbackRepository.findByUserId(userId = 100L, pageable = capture(pageableSlot))
+    beforeTest {
+      feedbackRepository = mockk(relaxed = true)
+      service = FeedbackQueryApiServiceImpl(feedbackRepository)
     }
-    assertEquals(1, pageableSlot.captured.pageNumber)
-    assertEquals(10, pageableSlot.captured.pageSize)
-    val createdAtSortOrder = pageableSlot.captured.sort.getOrderFor("createdAt")
-    assertEquals(Sort.Direction.DESC, createdAtSortOrder?.direction)
-  }
+    test("findMyFeedbacks queries by userId with createdAt desc paging") {
+      val feedback =
+        FeedbackModel(
+          id = 1L,
+          userId = 100L,
+          feedbackType = FeedbackType.SUGGESTION,
+          content = "希望增加夜间模式",
+          createdAt = LocalDateTime.of(2026, 8, 13, 9, 0),
+        )
+      every { feedbackRepository.findByUserId(any(), any()) } returns PageImpl(listOf(feedback))
 
-  @Test
-  @DisplayName("findMyFeedbacks 收敛非法分页参数(page<0 归零,size 限制 1~50)")
-  fun `findMyFeedbacks clamps paging params`() {
-    every { feedbackRepository.findByUserId(any(), any()) } returns PageImpl(emptyList())
-    val pageableSlot = slot<PageRequest>()
+      val result = service.findMyFeedbacks(userId = 100L, page = 1, size = 10)
 
-    service.findMyFeedbacks(userId = 100L, page = -5, size = 999)
+      result.content.size shouldBe 1
+      val pageableSlot = slot<PageRequest>()
+      verify {
+        feedbackRepository.findByUserId(userId = 100L, pageable = capture(pageableSlot))
+      }
+      pageableSlot.captured.pageNumber shouldBe 1
+      pageableSlot.captured.pageSize shouldBe 10
+      val createdAtSortOrder = pageableSlot.captured.sort.getOrderFor("createdAt")
+      createdAtSortOrder?.direction shouldBe Sort.Direction.DESC
+    }
+    test("findMyFeedbacks clamps paging params") {
+      every { feedbackRepository.findByUserId(any(), any()) } returns PageImpl(emptyList())
+      val pageableSlot = slot<PageRequest>()
 
-    verify { feedbackRepository.findByUserId(any(), capture(pageableSlot)) }
-    assertEquals(0, pageableSlot.captured.pageNumber)
-    assertEquals(50, pageableSlot.captured.pageSize)
-  }
-}
+      service.findMyFeedbacks(userId = 100L, page = -5, size = 999)
+
+      verify { feedbackRepository.findByUserId(any(), capture(pageableSlot)) }
+      pageableSlot.captured.pageNumber shouldBe 0
+      pageableSlot.captured.pageSize shouldBe 50
+    }
+  })

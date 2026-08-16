@@ -50,6 +50,14 @@ subprojects {
     gradlePluginPortal()
   }
 
+  // 测试框架已从 JUnit 5 切换为 Kotest（Kotest 运行在 JUnit Platform 上）。
+  // 全局排除 JUnit Jupiter/Vintage 相关依赖，避免与 Kotest 混用。
+  configurations.all {
+    exclude(group = "org.junit.jupiter")
+    exclude(group = "org.junit.vintage")
+    exclude(group = "org.mockito", module = "mockito-junit-jupiter")
+  }
+
   apply(plugin = "org.jlleitschuh.gradle.ktlint")
 
   // The ktlint version must be configured per-project. Setting it on the root

@@ -22,78 +22,61 @@ package dev.yidafu.aqua.marketing.customer.service.impl
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
 import dev.yidafu.aqua.marketing.customer.domain.repository.CustomerGroupRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 /** 客户分组查询服务单元测试(F-MKT-001 列表/详情/成员数)。 */
-class CustomerGroupQueryServiceImplTest {
-  private lateinit var customerGroupRepository: CustomerGroupRepository
-  private lateinit var userQueryApiService: UserQueryApiService
-  private lateinit var service: CustomerGroupQueryServiceImpl
+class CustomerGroupQueryServiceImplTest :
+  FunSpec({
+    var customerGroupRepository: CustomerGroupRepository = mockk()
+    var userQueryApiService: UserQueryApiService = mockk()
+    var service: CustomerGroupQueryServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    customerGroupRepository = mockk()
-    userQueryApiService = mockk()
-    service = CustomerGroupQueryServiceImpl(customerGroupRepository, userQueryApiService)
-  }
+    beforeTest {
+      customerGroupRepository = mockk()
+      userQueryApiService = mockk()
+      service = CustomerGroupQueryServiceImpl(customerGroupRepository, userQueryApiService)
+    }
+    test("listGroups without keyword") {
+      val pageable: Pageable = PageRequest.of(0, 10)
+      every { customerGroupRepository.findAll(pageable) } returns PageImpl(listOf(CustomerGroupModel(id = 1L, name = "熟客")))
 
-  @Test
-  @DisplayName("列表:无关键字全量分页")
-  fun `listGroups without keyword`() {
-    val pageable: Pageable = PageRequest.of(0, 10)
-    every { customerGroupRepository.findAll(pageable) } returns PageImpl(listOf(CustomerGroupModel(id = 1L, name = "熟客")))
+      val result = service.listGroups(null, pageable)
 
-    val result = service.listGroups(null, pageable)
+      result.totalElements shouldBe 1
+      verify { customerGroupRepository.findAll(pageable) }
+    }
+    test("listGroups with keyword") {
+      val pageable: Pageable = PageRequest.of(0, 10)
+      every { customerGroupRepository.findByNameContainingIgnoreCaseOrderByCreatedAtDesc("客", pageable) } returns PageImpl(emptyList())
 
-    assertEquals(1, result.totalElements)
-    verify { customerGroupRepository.findAll(pageable) }
-  }
+      val result = service.listGroups("客", pageable)
 
-  @Test
-  @DisplayName("列表:关键字模糊查询(忽略大小写,创建时间倒序)")
-  fun `listGroups with keyword`() {
-    val pageable: Pageable = PageRequest.of(0, 10)
-    every { customerGroupRepository.findByNameContainingIgnoreCaseOrderByCreatedAtDesc("客", pageable) } returns PageImpl(emptyList())
+      result.totalElements shouldBe 0
+    }
+    test("getGroup found and missing") {
+      every { customerGroupRepository.findById(1L) } returns Optional.of(CustomerGroupModel(id = 1L, name = "熟客"))
+      every { customerGroupRepository.findById(99L) } returns Optional.empty()
 
-    val result = service.listGroups("客", pageable)
+      service.getGroup(1L)?.id shouldBe 1L
+      service.getGroup(99L).shouldBeNull()
+    }
+    test("findByName delegates") {
+      every { customerGroupRepository.findByName("熟客") } returns CustomerGroupModel(id = 1L, name = "熟客")
 
-    assertEquals(0, result.totalElements)
-  }
+      service.findByName("熟客")?.name shouldBe "熟客"
+    }
+    test("memberCount delegates") {
+      every { userQueryApiService.countUsersByCustomerGroupId(1L) } returns 8
 
-  @Test
-  @DisplayName("详情:存在返回,不存在返回 null")
-  fun `getGroup found and missing`() {
-    every { customerGroupRepository.findById(1L) } returns Optional.of(CustomerGroupModel(id = 1L, name = "熟客"))
-    every { customerGroupRepository.findById(99L) } returns Optional.empty()
-
-    assertEquals(1L, service.getGroup(1L)?.id)
-    assertNull(service.getGroup(99L))
-  }
-
-  @Test
-  @DisplayName("按名称查询")
-  fun `findByName delegates`() {
-    every { customerGroupRepository.findByName("熟客") } returns CustomerGroupModel(id = 1L, name = "熟客")
-
-    assertEquals("熟客", service.findByName("熟客")?.name)
-  }
-
-  @Test
-  @DisplayName("成员数:委托用户查询服务")
-  fun `memberCount delegates`() {
-    every { userQueryApiService.countUsersByCustomerGroupId(1L) } returns 8
-
-    assertEquals(8, service.memberCount(1L))
-  }
-}
+      service.memberCount(1L) shouldBe 8
+    }
+  })

@@ -23,68 +23,63 @@ import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.PendingOrderBreakdownDTO
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
 import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 
-class DailyStatisticsQueryResolverTest {
-  private lateinit var statisticsService: StatisticsService
-  private lateinit var resolver: DailyStatisticsQueryResolver
+class DailyStatisticsQueryResolverTest :
+  FunSpec({
+    var statisticsService: StatisticsService = mockk()
+    var resolver: DailyStatisticsQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    statisticsService = mockk(relaxed = true)
-    resolver = DailyStatisticsQueryResolver(statisticsService)
-  }
+    beforeTest {
+      statisticsService = mockk(relaxed = true)
+      resolver = DailyStatisticsQueryResolver(statisticsService)
+    }
+    test("dailyStatistics should map daily stats") {
+      // Given
+      every { statisticsService.getDailyStatistics(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 2)) } returns
+        listOf(
+          DailyStatisticsDTO(
+            date = LocalDate.of(2025, 6, 1),
+            orderCount = 10L,
+            orderProductCount = 12L,
+            totalAmountCents = 25000L,
+          ),
+        )
+      val input =
+        DateRangeInput(
+          startDate = LocalDateTime.of(2025, 6, 1, 0, 0),
+          endDate = LocalDateTime.of(2025, 6, 2, 0, 0),
+        )
 
-  @Test
-  fun `dailyStatistics should map daily stats`() {
-    // Given
-    every { statisticsService.getDailyStatistics(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 2)) } returns
-      listOf(
-        DailyStatisticsDTO(
-          date = LocalDate.of(2025, 6, 1),
-          orderCount = 10L,
-          orderProductCount = 12L,
-          totalAmountCents = 25000L,
-        ),
-      )
-    val input =
-      DateRangeInput(
-        startDate = LocalDateTime.of(2025, 6, 1, 0, 0),
-        endDate = LocalDateTime.of(2025, 6, 2, 0, 0),
-      )
+      // When
+      val result = resolver.dailyStatistics(input)
 
-    // When
-    val result = resolver.dailyStatistics(input)
+      // Then
+      result.size shouldBe 1
+      result[0].date shouldBe "2025-06-01"
+      result[0].orderCount shouldBe 10
+      result[0].orderProductCount shouldBe 12
+      result[0].revenueCents shouldBe 25000L
+      verify { statisticsService.getDailyStatistics(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 2)) }
+    }
+    test("pendingOrderBreakdown should map snapshot") {
+      // Given
+      every { statisticsService.getPendingOrderBreakdown() } returns
+        PendingOrderBreakdownDTO(pendingPayment = 2L, pendingDispatch = 3L, pendingDelivery = 4L)
 
-    // Then
-    assertEquals(1, result.size)
-    assertEquals("2025-06-01", result[0].date)
-    assertEquals(10, result[0].orderCount)
-    assertEquals(12, result[0].orderProductCount)
-    assertEquals(25000L, result[0].revenueCents)
-    verify { statisticsService.getDailyStatistics(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 2)) }
-  }
+      // When
+      val result = resolver.pendingOrderBreakdown()
 
-  @Test
-  fun `pendingOrderBreakdown should map snapshot`() {
-    // Given
-    every { statisticsService.getPendingOrderBreakdown() } returns
-      PendingOrderBreakdownDTO(pendingPayment = 2L, pendingDispatch = 3L, pendingDelivery = 4L)
-
-    // When
-    val result = resolver.pendingOrderBreakdown()
-
-    // Then
-    assertEquals(2, result.pendingPayment)
-    assertEquals(3, result.pendingDispatch)
-    assertEquals(4, result.pendingDelivery)
-    assertEquals(9, result.total)
-  }
-}
+      // Then
+      result.pendingPayment shouldBe 2
+      result.pendingDispatch shouldBe 3
+      result.pendingDelivery shouldBe 4
+      result.total shouldBe 9
+    }
+  })

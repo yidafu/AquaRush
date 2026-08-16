@@ -24,88 +24,74 @@ import dev.yidafu.aqua.common.domain.model.enums.CouponTemplateStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
 import dev.yidafu.aqua.marketing.coupon.domain.repository.CouponTemplateRepository
 import dev.yidafu.aqua.marketing.coupon.domain.repository.UserCouponRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 /** 优惠券模板查询服务单元测试(F-MKT-003 列表/统计)。 */
-class CouponQueryServiceImplTest {
-  private lateinit var couponTemplateRepository: CouponTemplateRepository
-  private lateinit var userCouponRepository: UserCouponRepository
-  private lateinit var service: CouponQueryServiceImpl
+class CouponQueryServiceImplTest :
+  FunSpec({
+    var couponTemplateRepository: CouponTemplateRepository = mockk()
+    var userCouponRepository: UserCouponRepository = mockk()
+    var service: CouponQueryServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    couponTemplateRepository = mockk()
-    userCouponRepository = mockk()
-    service = CouponQueryServiceImpl(couponTemplateRepository, userCouponRepository)
-  }
+    fun template(id: Long): CouponTemplateModel =
+      CouponTemplateModel(
+        id = id,
+        name = "券$id",
+        status = CouponTemplateStatus.ACTIVE,
+      )
 
-  private fun template(id: Long): CouponTemplateModel =
-    CouponTemplateModel(
-      id = id,
-      name = "券$id",
-      status = CouponTemplateStatus.ACTIVE,
-    )
+    beforeTest {
+      couponTemplateRepository = mockk()
+      userCouponRepository = mockk()
+      service = CouponQueryServiceImpl(couponTemplateRepository, userCouponRepository)
+    }
+    test("listTemplates with keyword and status") {
+      val pageable: Pageable = PageRequest.of(0, 10)
+      val page: Page<CouponTemplateModel> = PageImpl(listOf(template(1L)))
+      every {
+        couponTemplateRepository.findAll(any<Specification<CouponTemplateModel>>(), any<Pageable>())
+      } returns page
 
-  @Test
-  @DisplayName("列表:带关键字与状态过滤")
-  fun `listTemplates with keyword and status`() {
-    val pageable: Pageable = PageRequest.of(0, 10)
-    val page: Page<CouponTemplateModel> = PageImpl(listOf(template(1L)))
-    every {
-      couponTemplateRepository.findAll(any<Specification<CouponTemplateModel>>(), any<Pageable>())
-    } returns page
+      val result = service.listTemplates("券", CouponTemplateStatus.ACTIVE, pageable)
 
-    val result = service.listTemplates("券", CouponTemplateStatus.ACTIVE, pageable)
+      result.totalElements shouldBe 1
+      verify { couponTemplateRepository.findAll(any<Specification<CouponTemplateModel>>(), any<Pageable>()) }
+    }
+    test("listTemplates without filters") {
+      val pageable: Pageable = PageRequest.of(0, 10)
+      every { couponTemplateRepository.findAll(any<Specification<CouponTemplateModel>>(), any<Pageable>()) } returns PageImpl(emptyList())
 
-    assertEquals(1, result.totalElements)
-    verify { couponTemplateRepository.findAll(any<Specification<CouponTemplateModel>>(), any<Pageable>()) }
-  }
+      val result = service.listTemplates(null, null, pageable)
 
-  @Test
-  @DisplayName("列表:无关键字无状态(全量)")
-  fun `listTemplates without filters`() {
-    val pageable: Pageable = PageRequest.of(0, 10)
-    every { couponTemplateRepository.findAll(any<Specification<CouponTemplateModel>>(), any<Pageable>()) } returns PageImpl(emptyList())
+      result.totalElements shouldBe 0
+    }
+    test("getTemplate found and missing") {
+      every { couponTemplateRepository.findById(1L) } returns Optional.of(template(1L))
+      every { couponTemplateRepository.findById(99L) } returns Optional.empty()
 
-    val result = service.listTemplates(null, null, pageable)
+      service.getTemplate(1L)?.id shouldBe 1L
+      service.getTemplate(99L).shouldBeNull()
+    }
+    test("receivedCount and usedCount") {
+      every { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.RECEIVED) } returns 5
+      every { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.RETURNED) } returns 2
+      every { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.USED) } returns 3
 
-    assertEquals(0, result.totalElements)
-  }
-
-  @Test
-  @DisplayName("详情:存在返回,不存在返回 null")
-  fun `getTemplate found and missing`() {
-    every { couponTemplateRepository.findById(1L) } returns Optional.of(template(1L))
-    every { couponTemplateRepository.findById(99L) } returns Optional.empty()
-
-    assertEquals(1L, service.getTemplate(1L)?.id)
-    assertNull(service.getTemplate(99L))
-  }
-
-  @Test
-  @DisplayName("统计:已领未用数=RECEIVED+RETURNED,已核销数=USED")
-  fun `receivedCount and usedCount`() {
-    every { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.RECEIVED) } returns 5
-    every { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.RETURNED) } returns 2
-    every { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.USED) } returns 3
-
-    assertEquals(7, service.receivedCount(1L))
-    assertEquals(3, service.usedCount(1L))
-    verify { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.RECEIVED) }
-    verify { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.RETURNED) }
-    verify { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.USED) }
-  }
-}
+      service.receivedCount(1L) shouldBe 7
+      service.usedCount(1L) shouldBe 3
+      verify { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.RECEIVED) }
+      verify { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.RETURNED) }
+      verify { userCouponRepository.countByCouponTemplateIdAndStatus(1L, UserCouponStatus.USED) }
+    }
+  })

@@ -30,145 +30,123 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.userdetails.UserDetails
 import java.time.LocalDate
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 /**
  * 管理员每日收款查询解析器单元测试: 登录校验、日期解析、今日预计算(已有记录/无记录两条路径)
  */
-class AdminDailyCollectionQueryResolverTest {
-  private lateinit var dailyCollectionService: DailyCollectionService
-  private lateinit var adminService: AdminService
-  private lateinit var resolver: AdminDailyCollectionQueryResolver
+class AdminDailyCollectionQueryResolverTest :
+  FunSpec({
+    var dailyCollectionService: DailyCollectionService = mockk()
+    var adminService: AdminService = mockk()
+    var resolver: AdminDailyCollectionQueryResolver = mockk()
+    val user = mockk<UserDetails>(relaxed = true)
 
-  private val user = mockk<UserDetails>(relaxed = true)
+    fun admin(): AdminModel =
+      AdminModel(username = "admin1", passwordHash = "hash", role = AdminRoleModel.ADMIN).apply {
+        id = 1L
+      }
 
-  @BeforeEach
-  fun setUp() {
-    dailyCollectionService = mockk(relaxed = true)
-    adminService = mockk(relaxed = true)
-    resolver = AdminDailyCollectionQueryResolver(dailyCollectionService, adminService)
-    every { user.username } returns "admin1"
-  }
-
-  private fun admin(): AdminModel =
-    AdminModel(username = "admin1", passwordHash = "hash", role = AdminRoleModel.ADMIN).apply {
-      id = 1L
+    beforeTest {
+      dailyCollectionService = mockk(relaxed = true)
+      adminService = mockk(relaxed = true)
+      resolver = AdminDailyCollectionQueryResolver(dailyCollectionService, adminService)
+      every { user.username } returns "admin1"
     }
+    test("dailyCollections requires login") {
+      shouldThrow<UnauthorizedException> { resolver.dailyCollections(null, null) }
+    }
+    test("dailyCollections without date returns all collections") {
+      val records = listOf(DailyCollectionRecordModel(deliveryWorkerId = 1L))
+      every { dailyCollectionService.getAllCollections() } returns records
 
-  @Test
-  fun `dailyCollections requires login`() {
-    assertFailsWith<UnauthorizedException> { resolver.dailyCollections(null, null) }
-  }
+      val result = resolver.dailyCollections(null, user)
 
-  @Test
-  fun `dailyCollections without date returns all collections`() {
-    val records = listOf(DailyCollectionRecordModel(deliveryWorkerId = 1L))
-    every { dailyCollectionService.getAllCollections() } returns records
+      result shouldBe records
+    }
+    test("dailyCollections with date delegates by admin") {
+      val records = listOf(DailyCollectionRecordModel(deliveryWorkerId = 1L))
+      every { adminService.findByUsername("admin1") } returns admin()
+      every { dailyCollectionService.getCollectionsByDate(1L, LocalDate.of(2025, 6, 1)) } returns records
 
-    val result = resolver.dailyCollections(null, user)
+      val result = resolver.dailyCollections("2025-06-01", user)
 
-    assertEquals(records, result)
-  }
+      result shouldBe records
+    }
+    test("dailyCollections throws when admin missing") {
+      every { adminService.findByUsername("admin1") } returns null
 
-  @Test
-  fun `dailyCollections with date delegates by admin`() {
-    val records = listOf(DailyCollectionRecordModel(deliveryWorkerId = 1L))
-    every { adminService.findByUsername("admin1") } returns admin()
-    every { dailyCollectionService.getCollectionsByDate(1L, LocalDate.of(2025, 6, 1)) } returns records
+      shouldThrow<UserNotFoundException> { resolver.dailyCollections("2025-06-01", user) }
+    }
+    test("dailyCollections throws when admin id missing") {
+      val admin = AdminModel(username = "admin1", passwordHash = "hash", role = AdminRoleModel.ADMIN)
+      every { adminService.findByUsername("admin1") } returns admin
 
-    val result = resolver.dailyCollections("2025-06-01", user)
+      shouldThrow<dev.yidafu.aqua.common.exception.BadRequestException> { resolver.dailyCollections("2025-06-01", user) }
+    }
+    test("dailyReconciliations sorts by date desc") {
+      val older = DailyReconciliationModel(reconciliationDate = LocalDate.of(2025, 5, 1))
+      val newer = DailyReconciliationModel(reconciliationDate = LocalDate.of(2025, 6, 1))
+      every { dailyCollectionService.getAllReconciliations() } returns listOf(older, newer)
 
-    assertEquals(records, result)
-  }
+      val result = resolver.dailyReconciliations(page = 0, size = 20, userDetails = user)
 
-  @Test
-  fun `dailyCollections throws when admin missing`() {
-    every { adminService.findByUsername("admin1") } returns null
+      result shouldBe listOf(newer, older)
+    }
+    test("dailyReconciliations requires login") {
+      shouldThrow<UnauthorizedException> { resolver.dailyReconciliations(0, 20, null) }
+    }
+    test("myTodayCollection uses existing record when present") {
+      every { adminService.findByUsername("admin1") } returns admin()
+      every { dailyCollectionService.getTodayOrderStats(1L, any()) } returns OrderStatsDTO(orderCount = 3, orderAmountCents = 600L)
+      every { dailyCollectionService.getCollectionByWorkerAndDate(1L, any()) } returns
+        DailyCollectionRecordModel(
+          deliveryWorkerId = 1L,
+          cashAmountCents = 600L,
+          waterTicketCount = 1,
+          qrCodeAmountCents = 0L,
+          orderCount = 3,
+          orderAmountCents = 600L,
+          differenceAmountCents = 0L,
+          status = DailyCollectionStatus.SUBMITTED,
+          calculatedCashAmountCents = 600L,
+          calculatedQrCodeAmountCents = 0L,
+          calculatedWaterTicketCount = 1,
+          calculatedOrderAmountCents = 600L,
+        )
 
-    assertFailsWith<UserNotFoundException> { resolver.dailyCollections("2025-06-01", user) }
-  }
+      val result = resolver.myTodayCollection(user)
 
-  @Test
-  fun `dailyCollections throws when admin id missing`() {
-    val admin = AdminModel(username = "admin1", passwordHash = "hash", role = AdminRoleModel.ADMIN)
-    every { adminService.findByUsername("admin1") } returns admin
+      result.shouldNotBeNull()
+      result.orderCount shouldBe 3
+      result.cashAmountCents shouldBe 600L
+    }
+    test("myTodayCollection falls back to payment stats when no record") {
+      every { adminService.findByUsername("admin1") } returns admin()
+      every { dailyCollectionService.getTodayOrderStats(1L, any()) } returns OrderStatsDTO(orderCount = 2, orderAmountCents = 400L)
+      every { dailyCollectionService.getCollectionByWorkerAndDate(1L, any()) } returns null
+      every { dailyCollectionService.getTodayPaymentStats(1L, any()) } returns
+        PaymentStatsDTO(cashAmountCents = 300L, waterTicketCount = 1, qrCodeAmountCents = 100L)
 
-    assertFailsWith<dev.yidafu.aqua.common.exception.BadRequestException> { resolver.dailyCollections("2025-06-01", user) }
-  }
+      val result = resolver.myTodayCollection(user)
 
-  @Test
-  fun `dailyReconciliations sorts by date desc`() {
-    val older = DailyReconciliationModel(reconciliationDate = LocalDate.of(2025, 5, 1))
-    val newer = DailyReconciliationModel(reconciliationDate = LocalDate.of(2025, 6, 1))
-    every { dailyCollectionService.getAllReconciliations() } returns listOf(older, newer)
+      result.shouldNotBeNull()
+      result.orderCount shouldBe 2
+      result.cashAmountCents shouldBe 300L
+      result.differenceAmountCents.shouldBeNull()
+      result.status.shouldBeNull()
+    }
+    test("myTodayCollection throws when worker missing") {
+      every { adminService.findByUsername("admin1") } returns null
 
-    val result = resolver.dailyReconciliations(page = 0, size = 20, userDetails = user)
-
-    assertEquals(listOf(newer, older), result)
-  }
-
-  @Test
-  fun `dailyReconciliations requires login`() {
-    assertFailsWith<UnauthorizedException> { resolver.dailyReconciliations(0, 20, null) }
-  }
-
-  @Test
-  fun `myTodayCollection uses existing record when present`() {
-    every { adminService.findByUsername("admin1") } returns admin()
-    every { dailyCollectionService.getTodayOrderStats(1L, any()) } returns OrderStatsDTO(orderCount = 3, orderAmountCents = 600L)
-    every { dailyCollectionService.getCollectionByWorkerAndDate(1L, any()) } returns
-      DailyCollectionRecordModel(
-        deliveryWorkerId = 1L,
-        cashAmountCents = 600L,
-        waterTicketCount = 1,
-        qrCodeAmountCents = 0L,
-        orderCount = 3,
-        orderAmountCents = 600L,
-        differenceAmountCents = 0L,
-        status = DailyCollectionStatus.SUBMITTED,
-        calculatedCashAmountCents = 600L,
-        calculatedQrCodeAmountCents = 0L,
-        calculatedWaterTicketCount = 1,
-        calculatedOrderAmountCents = 600L,
-      )
-
-    val result = resolver.myTodayCollection(user)
-
-    assertNotNull(result)
-    assertEquals(3, result.orderCount)
-    assertEquals(600L, result.cashAmountCents)
-  }
-
-  @Test
-  fun `myTodayCollection falls back to payment stats when no record`() {
-    every { adminService.findByUsername("admin1") } returns admin()
-    every { dailyCollectionService.getTodayOrderStats(1L, any()) } returns OrderStatsDTO(orderCount = 2, orderAmountCents = 400L)
-    every { dailyCollectionService.getCollectionByWorkerAndDate(1L, any()) } returns null
-    every { dailyCollectionService.getTodayPaymentStats(1L, any()) } returns
-      PaymentStatsDTO(cashAmountCents = 300L, waterTicketCount = 1, qrCodeAmountCents = 100L)
-
-    val result = resolver.myTodayCollection(user)
-
-    assertNotNull(result)
-    assertEquals(2, result.orderCount)
-    assertEquals(300L, result.cashAmountCents)
-    assertNull(result.differenceAmountCents)
-    assertNull(result.status)
-  }
-
-  @Test
-  fun `myTodayCollection throws when worker missing`() {
-    every { adminService.findByUsername("admin1") } returns null
-
-    assertFailsWith<UserNotFoundException> { resolver.myTodayCollection(user) }
-  }
-}
+      shouldThrow<UserNotFoundException> { resolver.myTodayCollection(user) }
+    }
+  })

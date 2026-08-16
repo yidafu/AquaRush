@@ -21,51 +21,46 @@ package dev.yidafu.aqua.admin.logging.controller
 
 import dev.yidafu.aqua.common.domain.model.BusinessLogModel
 import dev.yidafu.aqua.logging.service.BusinessLogService
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
-import kotlin.test.assertEquals
 
-class BizLogControllerTest {
-  private lateinit var businessLogService: BusinessLogService
-  private lateinit var controller: BizLogController
+class BizLogControllerTest :
+  FunSpec({
+    var businessLogService: BusinessLogService = mockk()
+    var controller: BizLogController = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    businessLogService = mockk(relaxed = true)
-    controller = BizLogController(businessLogService)
-  }
+    beforeTest {
+      businessLogService = mockk(relaxed = true)
+      controller = BizLogController(businessLogService)
+    }
+    test("queryBusinessLogs should delegate with descending sort") {
+      // Given
+      val pageable = PageRequest.of(1, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
+      every { businessLogService.queryBusinessLogs("INFO", "ORDER", 1L, null, null, pageable) } returns
+        PageImpl(listOf(mockk<BusinessLogModel>(relaxed = true)))
 
-  @Test
-  fun `queryBusinessLogs should delegate with descending sort`() {
-    // Given
-    val pageable = PageRequest.of(1, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
-    every { businessLogService.queryBusinessLogs("INFO", "ORDER", 1L, null, null, pageable) } returns
-      PageImpl(listOf(mockk<BusinessLogModel>(relaxed = true)))
+      // When
+      val result = controller.queryBusinessLogs("INFO", "ORDER", 1L, null, null, 1, 10)
 
-    // When
-    val result = controller.queryBusinessLogs("INFO", "ORDER", 1L, null, null, 1, 10)
+      // Then
+      result.data!!.totalElements shouldBe 1
+      verify { businessLogService.queryBusinessLogs("INFO", "ORDER", 1L, null, null, pageable) }
+    }
+    test("getBusinessLogsByCorrelationId should return logs") {
+      // Given
+      every { businessLogService.findByCorrelationId("corr-2") } returns listOf(mockk<BusinessLogModel>(relaxed = true))
 
-    // Then
-    assertEquals(1, result.data!!.totalElements)
-    verify { businessLogService.queryBusinessLogs("INFO", "ORDER", 1L, null, null, pageable) }
-  }
+      // When
+      val result = controller.getBusinessLogsByCorrelationId("corr-2")
 
-  @Test
-  fun `getBusinessLogsByCorrelationId should return logs`() {
-    // Given
-    every { businessLogService.findByCorrelationId("corr-2") } returns listOf(mockk<BusinessLogModel>(relaxed = true))
-
-    // When
-    val result = controller.getBusinessLogsByCorrelationId("corr-2")
-
-    // Then
-    assertEquals(1, result.size)
-    verify { businessLogService.findByCorrelationId("corr-2") }
-  }
-}
+      // Then
+      result.size shouldBe 1
+      verify { businessLogService.findByCorrelationId("corr-2") }
+    }
+  })

@@ -19,74 +19,59 @@
 
 package dev.yidafu.aqua.common.converter
 
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 
-class JsonStringConverterTest {
-  @Test
-  fun `StringJsonConverter should pass through values`() {
-    val converter = StringJsonConverter()
-    assertEquals("abc", converter.convertToDatabaseColumn("abc"))
-    assertEquals("abc", converter.convertToEntityAttribute("abc"))
-    assertNull(converter.convertToDatabaseColumn(null))
-    assertNull(converter.convertToEntityAttribute(null))
-  }
+class JsonStringConverterTest :
+  FunSpec({
 
-  @Test
-  fun `StringListJsonConverter should round trip list`() {
-    val converter = StringListJsonConverter()
-    val column = converter.convertToDatabaseColumn(listOf("a", "b"))
-    assertEquals("""["a","b"]""", column)
-    assertEquals(listOf("a", "b"), converter.convertToEntityAttribute(column))
-  }
-
-  @Test
-  fun `StringListJsonConverter should return null for null`() {
-    val converter = StringListJsonConverter()
-    assertNull(converter.convertToDatabaseColumn(null))
-    assertNull(converter.convertToEntityAttribute(null))
-  }
-
-  @Test
-  fun `StringListJsonConverter should handle empty list`() {
-    val converter = StringListJsonConverter()
-    assertEquals("[]", converter.convertToDatabaseColumn(emptyList()))
-    assertEquals(emptyList<String>(), converter.convertToEntityAttribute("[]"))
-  }
-
-  @Test
-  fun `StringListJsonConverter should throw for invalid json`() {
-    val converter = StringListJsonConverter()
-    assertThrows<IllegalArgumentException> { converter.convertToEntityAttribute("not-json") }
-  }
-
-  @Test
-  fun `JsonMapConverter should round trip map`() {
-    val converter = JsonMapConverter()
-    val column = converter.convertToDatabaseColumn(mapOf("k" to "v", "n" to 1))
-    assertEquals("""{"k":"v","n":1}""", column)
-    assertEquals(mapOf("k" to "v", "n" to 1), converter.convertToEntityAttribute(column))
-  }
-
-  @Test
-  fun `JsonMapConverter should return null for null`() {
-    val converter = JsonMapConverter()
-    assertNull(converter.convertToDatabaseColumn(null))
-    assertNull(converter.convertToEntityAttribute(null))
-  }
-
-  @Test
-  fun `JsonMapConverter should handle empty map`() {
-    val converter = JsonMapConverter()
-    assertEquals("{}", converter.convertToDatabaseColumn(emptyMap()))
-    assertEquals(emptyMap<String, Any>(), converter.convertToEntityAttribute("{}"))
-  }
-
-  @Test
-  fun `JsonMapConverter should throw for invalid json`() {
-    val converter = JsonMapConverter()
-    assertThrows<IllegalArgumentException> { converter.convertToEntityAttribute("bad") }
-  }
-}
+    test("StringJsonConverter should pass through values") {
+      val converter = StringJsonConverter()
+      converter.convertToDatabaseColumn("abc") shouldBe "abc"
+      converter.convertToEntityAttribute("abc") shouldBe "abc"
+      converter.convertToDatabaseColumn(null).shouldBeNull()
+      converter.convertToEntityAttribute(null).shouldBeNull()
+    }
+    test("StringListJsonConverter should round trip list") {
+      val converter = StringListJsonConverter()
+      val column = converter.convertToDatabaseColumn(listOf("a", "b"))
+      column shouldBe """["a","b"]"""
+      converter.convertToEntityAttribute(column) shouldBe listOf("a", "b")
+    }
+    test("StringListJsonConverter should return null for null") {
+      val converter = StringListJsonConverter()
+      converter.convertToDatabaseColumn(null).shouldBeNull()
+      converter.convertToEntityAttribute(null).shouldBeNull()
+    }
+    test("StringListJsonConverter should handle empty list") {
+      val converter = StringListJsonConverter()
+      converter.convertToDatabaseColumn(emptyList()) shouldBe "[]"
+      converter.convertToEntityAttribute("[]") shouldBe (emptyList<String>())
+    }
+    test("StringListJsonConverter should throw for invalid json") {
+      val converter = StringListJsonConverter()
+      shouldThrow<IllegalArgumentException> { converter.convertToEntityAttribute("not-json") }
+    }
+    test("JsonMapConverter should round trip map") {
+      val converter = JsonMapConverter()
+      val column = converter.convertToDatabaseColumn(mapOf("k" to "v", "n" to 1))
+      column shouldBe """{"k":"v","n":1}"""
+      converter.convertToEntityAttribute(column) shouldBe mapOf("k" to "v", "n" to 1)
+    }
+    test("JsonMapConverter should return null for null") {
+      val converter = JsonMapConverter()
+      converter.convertToDatabaseColumn(null).shouldBeNull()
+      converter.convertToEntityAttribute(null).shouldBeNull()
+    }
+    test("JsonMapConverter should handle empty map") {
+      val converter = JsonMapConverter()
+      converter.convertToDatabaseColumn(emptyMap()) shouldBe "{}"
+      converter.convertToEntityAttribute("{}") shouldBe (emptyMap<String, Any>())
+    }
+    test("JsonMapConverter should throw for invalid json") {
+      val converter = JsonMapConverter()
+      shouldThrow<IllegalArgumentException> { converter.convertToEntityAttribute("bad") }
+    }
+  })

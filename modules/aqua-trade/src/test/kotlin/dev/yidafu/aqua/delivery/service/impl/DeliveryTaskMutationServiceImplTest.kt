@@ -33,15 +33,13 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.common.utils.JsonHelper
 import dev.yidafu.aqua.logging.util.BizLogger
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 /**
  * 配送任务变更服务单元测试:
@@ -52,189 +50,160 @@ import kotlin.test.assertTrue
  * 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021),配送员即账号行,
  * workerId 即账号 id,校验走 AdminService。
  */
-class DeliveryTaskMutationServiceImplTest {
-  private lateinit var adminService: AdminService
-  private lateinit var orderQueryService: OrderQueryService
-  private lateinit var orderMutationService: OrderMutationService
-  private lateinit var orderOperationService: OrderOperationService
-  private lateinit var eventPublishService: SimplifiedEventPublishService
-  private lateinit var bizLogger: BizLogger
-  private lateinit var service: DeliveryTaskMutationServiceImpl
-
-  private fun order(status: OrderModelStatus) = OrderModel(id = 1L, userId = 100L, status = status)
-
-  private val onlineWorker =
-    AdminModel(
-      id = 1L,
-      username = "delivery_1",
-      passwordHash = "hash",
-      realName = "送水工甲",
-      phone = "13800138000",
-      role = AdminRoleModel.DELIVERY_WORKER,
-      onlineStatus = DeliverWorkerModelStatus.ONLINE,
-    )
-
-  @BeforeEach
-  fun setUp() {
-    adminService = mockk(relaxed = true)
-    orderQueryService = mockk(relaxed = true)
-    orderMutationService = mockk(relaxed = true)
-    orderOperationService = mockk(relaxed = true)
-    eventPublishService = mockk(relaxed = true)
-    bizLogger = mockk(relaxed = true)
-    every { adminService.findById(1L) } returns onlineWorker
-    every { orderMutationService.updateOrder(any(), any()) } answers { secondArg() as OrderModel }
-    service =
-      DeliveryTaskMutationServiceImpl(
-        adminService,
-        orderQueryService,
-        orderMutationService,
-        orderOperationService,
-        eventPublishService,
-        JsonHelper(),
-        bizLogger,
+class DeliveryTaskMutationServiceImplTest :
+  FunSpec({
+    var adminService: AdminService = mockk()
+    var orderQueryService: OrderQueryService = mockk()
+    var orderMutationService: OrderMutationService = mockk()
+    var orderOperationService: OrderOperationService = mockk()
+    var eventPublishService: SimplifiedEventPublishService = mockk()
+    var bizLogger: BizLogger = mockk()
+    var service: DeliveryTaskMutationServiceImpl = mockk()
+    val onlineWorker =
+      AdminModel(
+        id = 1L,
+        username = "delivery_1",
+        passwordHash = "hash",
+        realName = "送水工甲",
+        phone = "13800138000",
+        role = AdminRoleModel.DELIVERY_WORKER,
+        onlineStatus = DeliverWorkerModelStatus.ONLINE,
       )
-  }
 
-  @Test
-  @DisplayName("R-ORD-01/G09:派单仅接受「待派单」订单(待派单→配送中)")
-  fun `assign accepts pending dispatch only`() {
-    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)
+    fun order(status: OrderModelStatus) = OrderModel(id = 1L, userId = 100L, status = status)
 
-    val assigned = service.assignDeliveryWorker(1L, 1L, 1L, false)
+    beforeTest {
+      adminService = mockk(relaxed = true)
+      orderQueryService = mockk(relaxed = true)
+      orderMutationService = mockk(relaxed = true)
+      orderOperationService = mockk(relaxed = true)
+      eventPublishService = mockk(relaxed = true)
+      bizLogger = mockk(relaxed = true)
+      every { adminService.findById(1L) } returns onlineWorker
+      every { orderMutationService.updateOrder(any(), any()) } answers { secondArg() as OrderModel }
+      service =
+        DeliveryTaskMutationServiceImpl(
+          adminService,
+          orderQueryService,
+          orderMutationService,
+          orderOperationService,
+          eventPublishService,
+          JsonHelper(),
+          bizLogger,
+        )
+    }
+    test("assign accepts pending dispatch only") {
+      every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)
 
-    assertEquals(OrderModelStatus.DELIVERING, assigned.status)
-    assertEquals(1L, assigned.deliveryWorkerId)
-  }
+      val assigned = service.assignDeliveryWorker(1L, 1L, 1L, false)
 
-  @Test
-  @DisplayName("R-ORD-01:已接单(待配送)/配送中/已完成订单不可再派单(二次派单拦截,R-ORD-08)")
-  fun `assign rejects non pending dispatch orders`() {
-    listOf(
-      OrderModelStatus.PENDING_DELIVERY,
-      OrderModelStatus.DELIVERING,
-      OrderModelStatus.COMPLETED,
-      OrderModelStatus.PENDING_PAYMENT,
-    ).forEach { status ->
-      every { orderQueryService.getOrderById(1L) } returns order(status)
-      assertFailsWith<BadRequestException>("status=$status 应被拦截") {
-        service.assignDeliveryWorker(1L, 1L, 1L, false)
+      assigned.status shouldBe OrderModelStatus.DELIVERING
+      assigned.deliveryWorkerId shouldBe 1L
+    }
+    test("assign rejects non pending dispatch orders") {
+      listOf(
+        OrderModelStatus.PENDING_DELIVERY,
+        OrderModelStatus.DELIVERING,
+        OrderModelStatus.COMPLETED,
+        OrderModelStatus.PENDING_PAYMENT,
+      ).forEach { status ->
+        every { orderQueryService.getOrderById(1L) } returns order(status)
+        withClue("status=$status 应被拦截") {
+          shouldThrow<BadRequestException> {
+            service.assignDeliveryWorker(1L, 1L, 1L, false)
+          }
+        }
       }
     }
-  }
+    test("assign rejects offline worker") {
+      every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)
+      every { adminService.findById(1L) } returns
+        AdminModel(
+          id = 1L,
+          username = "delivery_1",
+          passwordHash = "hash",
+          realName = "送水工甲",
+          phone = "13800138000",
+          role = AdminRoleModel.DELIVERY_WORKER,
+          onlineStatus = DeliverWorkerModelStatus.OFFLINE,
+        )
 
-  @Test
-  @DisplayName("R-ORD-08:离线送水工不可派单")
-  fun `assign rejects offline worker`() {
-    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)
-    every { adminService.findById(1L) } returns
-      AdminModel(
-        id = 1L,
-        username = "delivery_1",
-        passwordHash = "hash",
-        realName = "送水工甲",
-        phone = "13800138000",
-        role = AdminRoleModel.DELIVERY_WORKER,
-        onlineStatus = DeliverWorkerModelStatus.OFFLINE,
-      )
+      shouldThrow<BadRequestException> { service.assignDeliveryWorker(1L, 1L, 1L, false) }
+    }
+    test("complete delivery rejects empty photos") {
+      every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.DELIVERING)
 
-    assertFailsWith<BadRequestException> { service.assignDeliveryWorker(1L, 1L, 1L, false) }
-  }
+      shouldThrow<BadRequestException> { service.completeDelivery(1L, emptyList(), PaymentType.CASH, null) }
+    }
+    test("complete delivery rejects missing payment type") {
+      every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.DELIVERING)
 
-  @Test
-  @DisplayName("R-ORD-07:完成配送照片为空被服务端拦截(防止绕过客户端)")
-  fun `complete delivery rejects empty photos`() {
-    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.DELIVERING)
+      shouldThrow<BadRequestException> { service.completeDelivery(1L, listOf("https://x/1.jpg"), null, null) }
+    }
+    test("complete delivery defaults to water ticket for ticket orders") {
+      val ticketOrder =
+        order(OrderModelStatus.DELIVERING).also {
+          it.ticketRedeemCount = 1
+          it.deliveryWorkerId = 1L
+        }
+      every { orderQueryService.getOrderById(1L) } returns ticketOrder
 
-    assertFailsWith<BadRequestException> { service.completeDelivery(1L, emptyList(), PaymentType.CASH, null) }
-  }
+      val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), null, null)
 
-  @Test
-  @DisplayName("R-ORD-07:完成配送收款方式必选(非自提、无水票核销时拦截)")
-  fun `complete delivery rejects missing payment type`() {
-    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.DELIVERING)
+      completed.status shouldBe OrderModelStatus.COMPLETED
+      completed.paymentType shouldBe PaymentType.WATER_TICKET
+      (completed.deliveryPhotos != null) shouldBe true
+      verify(exactly = 1) { eventPublishService.publishDeliveryCompleted(1L, 1L) }
+    }
+    test("complete delivery allows self collect without payment type") {
+      val selfCollectOrder =
+        order(OrderModelStatus.DELIVERING).also {
+          it.isSelfCollect = true
+          it.deliveryWorkerId = 1L
+        }
+      every { orderQueryService.getOrderById(1L) } returns selfCollectOrder
 
-    assertFailsWith<BadRequestException> { service.completeDelivery(1L, listOf("https://x/1.jpg"), null, null) }
-  }
+      val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), null, null)
 
-  @Test
-  @DisplayName("R-ORD-07/R-COL-04:电子票核销订单未选收款方式自动记「水票」")
-  fun `complete delivery defaults to water ticket for ticket orders`() {
-    val ticketOrder =
-      order(OrderModelStatus.DELIVERING).also {
-        it.ticketRedeemCount = 1
-        it.deliveryWorkerId = 1L
-      }
-    every { orderQueryService.getOrderById(1L) } returns ticketOrder
+      completed.status shouldBe OrderModelStatus.COMPLETED
+    }
+    test("complete delivery rejects non delivering order") {
+      every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DELIVERY)
 
-    val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), null, null)
+      shouldThrow<BadRequestException> { service.completeDelivery(1L, listOf("https://x/1.jpg"), PaymentType.CASH, null) }
+    }
+    test("assign rejects disabled worker") {
+      every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)
+      every { adminService.findById(1L) } returns
+        AdminModel(
+          id = 1L,
+          username = "delivery_1",
+          passwordHash = "hash",
+          realName = "送水工甲",
+          phone = "13800138000",
+          role = AdminRoleModel.DELIVERY_WORKER,
+          onlineStatus = DeliverWorkerModelStatus.ONLINE,
+          accountStatus = dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.DISABLED,
+        )
 
-    assertEquals(OrderModelStatus.COMPLETED, completed.status)
-    assertEquals(PaymentType.WATER_TICKET, completed.paymentType)
-    assertTrue(completed.deliveryPhotos != null)
-    verify(exactly = 1) { eventPublishService.publishDeliveryCompleted(1L, 1L) }
-  }
+      val exception = shouldThrow<BadRequestException> { service.assignDeliveryWorker(1L, 1L, 1L, false) }
+      exception.message!!.contains("停用") shouldBe true
+    }
+    test("accept rejects disabled worker") {
+      every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)
+      every { adminService.findById(1L) } returns
+        AdminModel(
+          id = 1L,
+          username = "delivery_1",
+          passwordHash = "hash",
+          realName = "送水工甲",
+          phone = "13800138000",
+          role = AdminRoleModel.DELIVERY_WORKER,
+          onlineStatus = DeliverWorkerModelStatus.ONLINE,
+          accountStatus = dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.DISABLED,
+        )
 
-  @Test
-  @DisplayName("R-ORD-09:自提订单免收款方式(已收款,不强制选择)")
-  fun `complete delivery allows self collect without payment type`() {
-    val selfCollectOrder =
-      order(OrderModelStatus.DELIVERING).also {
-        it.isSelfCollect = true
-        it.deliveryWorkerId = 1L
-      }
-    every { orderQueryService.getOrderById(1L) } returns selfCollectOrder
-
-    val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), null, null)
-
-    assertEquals(OrderModelStatus.COMPLETED, completed.status)
-  }
-
-  @Test
-  @DisplayName("R-ORD-01:完成配送仅接受配送中订单")
-  fun `complete delivery rejects non delivering order`() {
-    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DELIVERY)
-
-    assertFailsWith<BadRequestException> { service.completeDelivery(1L, listOf("https://x/1.jpg"), PaymentType.CASH, null) }
-  }
-
-  @Test
-  @DisplayName("AC-USR-021-07:停用送水员不可派单")
-  fun `assign rejects disabled worker`() {
-    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)
-    every { adminService.findById(1L) } returns
-      AdminModel(
-        id = 1L,
-        username = "delivery_1",
-        passwordHash = "hash",
-        realName = "送水工甲",
-        phone = "13800138000",
-        role = AdminRoleModel.DELIVERY_WORKER,
-        onlineStatus = DeliverWorkerModelStatus.ONLINE,
-        accountStatus = dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.DISABLED,
-      )
-
-    val exception = assertFailsWith<BadRequestException> { service.assignDeliveryWorker(1L, 1L, 1L, false) }
-    assertTrue(exception.message!!.contains("停用"))
-  }
-
-  @Test
-  @DisplayName("AC-USR-021-07:停用账号不可接单")
-  fun `accept rejects disabled worker`() {
-    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DISPATCH)
-    every { adminService.findById(1L) } returns
-      AdminModel(
-        id = 1L,
-        username = "delivery_1",
-        passwordHash = "hash",
-        realName = "送水工甲",
-        phone = "13800138000",
-        role = AdminRoleModel.DELIVERY_WORKER,
-        onlineStatus = DeliverWorkerModelStatus.ONLINE,
-        accountStatus = dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.DISABLED,
-      )
-
-    val exception = assertFailsWith<BadRequestException> { service.acceptDelivery(1L, 1L) }
-    assertTrue(exception.message!!.contains("停用"))
-  }
-}
+      val exception = shouldThrow<BadRequestException> { service.acceptDelivery(1L, 1L) }
+      exception.message!!.contains("停用") shouldBe true
+    }
+  })

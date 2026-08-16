@@ -23,50 +23,47 @@ import dev.yidafu.aqua.api.service.marketing.GroupProductPriceQueryService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.GroupProductPriceModel
 import dev.yidafu.aqua.common.graphql.generated.GroupProductPriceListInput
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
-import kotlin.test.assertEquals
 
-class AdminGroupProductPriceQueryResolverTest {
-  private lateinit var groupProductPriceQueryService: GroupProductPriceQueryService
-  private lateinit var productQueryApiService: ProductQueryApiService
-  private lateinit var resolver: AdminGroupProductPriceQueryResolver
+class AdminGroupProductPriceQueryResolverTest :
+  FunSpec({
+    var groupProductPriceQueryService: GroupProductPriceQueryService = mockk()
+    var productQueryApiService: ProductQueryApiService = mockk()
+    var resolver: AdminGroupProductPriceQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    groupProductPriceQueryService = mockk(relaxed = true)
-    productQueryApiService = mockk(relaxed = true)
-    resolver = AdminGroupProductPriceQueryResolver(groupProductPriceQueryService, productQueryApiService)
-  }
+    beforeTest {
+      groupProductPriceQueryService = mockk(relaxed = true)
+      productQueryApiService = mockk(relaxed = true)
+      resolver = AdminGroupProductPriceQueryResolver(groupProductPriceQueryService, productQueryApiService)
+    }
+    test("groupProductPrices should list with product info") {
+      // Given
+      every { groupProductPriceQueryService.listByGroup(10L, PageRequest.of(0, 20)) } returns
+        PageImpl(listOf(GroupProductPriceModel(id = 1L, customerGroupId = 10L, productId = 1L, priceCents = 1900)))
+      every { productQueryApiService.findById(1L) } returns
+        dev.yidafu.aqua.common.domain.model.ProductModel(
+          id = 1L,
+          name = "桶装水19L",
+          price = 2100,
+          coverImageUrl = "http://x/c.png",
+          specification = "19L",
+          stock = 100,
+          salesVolume = 0,
+          status = dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus.ONLINE,
+        )
 
-  @Test
-  fun `groupProductPrices should list with product info`() {
-    // Given
-    every { groupProductPriceQueryService.listByGroup(10L, PageRequest.of(0, 20)) } returns
-      PageImpl(listOf(GroupProductPriceModel(id = 1L, customerGroupId = 10L, productId = 1L, priceCents = 1900)))
-    every { productQueryApiService.findById(1L) } returns
-      dev.yidafu.aqua.common.domain.model.ProductModel(
-        id = 1L,
-        name = "桶装水19L",
-        price = 2100,
-        coverImageUrl = "http://x/c.png",
-        specification = "19L",
-        stock = 100,
-        salesVolume = 0,
-        status = dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus.ONLINE,
-      )
+      // When
+      val result = resolver.groupProductPrices(GroupProductPriceListInput(customerGroupId = 10L))
 
-    // When
-    val result = resolver.groupProductPrices(GroupProductPriceListInput(customerGroupId = 10L))
-
-    // Then
-    assertEquals(1, result.content.size)
-    assertEquals(1900L, result.content[0].priceCents)
-    verify { groupProductPriceQueryService.listByGroup(10L, PageRequest.of(0, 20)) }
-  }
-}
+      // Then
+      result.content.size shouldBe 1
+      result.content[0].priceCents shouldBe 1900L
+      verify { groupProductPriceQueryService.listByGroup(10L, PageRequest.of(0, 20)) }
+    }
+  })

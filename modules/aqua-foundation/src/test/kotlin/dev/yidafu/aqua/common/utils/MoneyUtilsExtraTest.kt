@@ -19,45 +19,35 @@
 
 package dev.yidafu.aqua.common.utils
 
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import java.math.BigDecimal
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
 
 /**
  * 补充 MoneyUtilsTest 未覆盖的边界分支。
  */
-class MoneyUtilsExtraTest {
-  @Test
-  fun `canConvertToCents should return false when overflow occurs`() {
-    assertFalse(MoneyUtils.canConvertToCents(BigDecimal("92233720368547758.08")))
-  }
+class MoneyUtilsExtraTest :
+  FunSpec({
 
-  @Test
-  fun `canConvertToCents should return false when scale exceeds limit`() {
-    assertFalse(MoneyUtils.canConvertToCents(BigDecimal("1.001")))
-  }
-
-  @Test
-  fun `subtractCents should throw on overflow`() {
-    assertThrows<ArithmeticException> {
-      MoneyUtils.subtractCents(Long.MAX_VALUE, -1L)
+    test("canConvertToCents should return false when overflow occurs") {
+      MoneyUtils.canConvertToCents(BigDecimal("92233720368547758.08")) shouldBe false
     }
-  }
-
-  @Test
-  fun `subtractCents should allow equal values`() {
-    assertEquals(0L, MoneyUtils.subtractCents(100L, 100L))
-  }
-
-  @Test
-  fun `calculatePercentage with zero cents should return zero`() {
-    assertEquals(0L, MoneyUtils.calculatePercentage(0L, BigDecimal("50.0")))
-  }
-
-  @Test
-  fun `multiplyCents with zero cents should return zero`() {
-    assertEquals(0L, MoneyUtils.multiplyCents(0L, BigDecimal("3.5")))
-  }
-}
+    test("canConvertToCents should return false when scale exceeds limit") {
+      MoneyUtils.canConvertToCents(BigDecimal("1.001")) shouldBe false
+    }
+    test("subtractCents should throw on overflow") {
+      shouldThrow<ArithmeticException> {
+        MoneyUtils.subtractCents(Long.MAX_VALUE, -1L)
+      }
+    }
+    test("subtractCents should allow equal values") {
+      MoneyUtils.subtractCents(100L, 100L) shouldBe 0L
+    }
+    test("calculatePercentage with zero cents should return zero") {
+      MoneyUtils.calculatePercentage(0L, BigDecimal("50.0")) shouldBe 0L
+    }
+    test("multiplyCents with zero cents should return zero") {
+      MoneyUtils.multiplyCents(0L, BigDecimal("3.5")) shouldBe 0L
+    }
+  })

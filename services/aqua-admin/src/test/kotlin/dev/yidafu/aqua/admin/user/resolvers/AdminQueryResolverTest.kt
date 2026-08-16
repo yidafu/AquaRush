@@ -24,98 +24,88 @@ import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class AdminQueryResolverTest {
-  private lateinit var adminRepository: AdminRepository
-  private lateinit var regionRepository: RegionRepository
-  private lateinit var resolver: AdminQueryResolver
+class AdminQueryResolverTest :
+  FunSpec({
+    var adminRepository: AdminRepository = mockk()
+    var regionRepository: RegionRepository = mockk()
+    var resolver: AdminQueryResolver = mockk()
 
-  private fun createSampleAdmin(): AdminModel =
-    AdminModel(
-      id = 1L,
-      username = "admin",
-      passwordHash = "hashed_password",
-      phone = "13900139000",
-      role = AdminRoleModel.ADMIN,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
+    fun createSampleAdmin(): AdminModel =
+      AdminModel(
+        id = 1L,
+        username = "admin",
+        passwordHash = "hashed_password",
+        phone = "13900139000",
+        role = AdminRoleModel.ADMIN,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
 
-  private fun createSampleRegion(): RegionModel =
-    RegionModel(
-      id = 1L,
-      name = "广东省",
-      code = "440000",
-      parentCode = null,
-      level = 1,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
+    fun createSampleRegion(): RegionModel =
+      RegionModel(
+        id = 1L,
+        name = "广东省",
+        code = "440000",
+        parentCode = null,
+        level = 1,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    adminRepository = mockk(relaxed = true)
-    regionRepository = mockk(relaxed = true)
-    resolver = AdminQueryResolver(adminRepository, regionRepository)
-  }
+    beforeTest {
+      adminRepository = mockk(relaxed = true)
+      regionRepository = mockk(relaxed = true)
+      resolver = AdminQueryResolver(adminRepository, regionRepository)
+    }
+    test("admins should return all admins") {
+      // Given
+      val admins = listOf(createSampleAdmin())
+      every { adminRepository.findAllAdmins() } returns admins
 
-  @Test
-  fun `admins should return all admins`() {
-    // Given
-    val admins = listOf(createSampleAdmin())
-    every { adminRepository.findAllAdmins() } returns admins
+      // When
+      val result = resolver.admins()
 
-    // When
-    val result = resolver.admins()
+      // Then
+      result.size shouldBe 1
+      verify { adminRepository.findAllAdmins() }
+    }
+    test("admins should return empty list when no admins") {
+      // Given
+      every { adminRepository.findAllAdmins() } returns emptyList()
 
-    // Then
-    assertEquals(1, result.size)
-    verify { adminRepository.findAllAdmins() }
-  }
+      // When
+      val result = resolver.admins()
 
-  @Test
-  fun `admins should return empty list when no admins`() {
-    // Given
-    every { adminRepository.findAllAdmins() } returns emptyList()
+      // Then
+      result.isEmpty() shouldBe true
+    }
+    test("allRegions should return all regions") {
+      // Given
+      val regions = listOf(createSampleRegion())
+      every { regionRepository.findAll() } returns regions
 
-    // When
-    val result = resolver.admins()
+      // When
+      val result = resolver.allRegions()
 
-    // Then
-    assertTrue(result.isEmpty())
-  }
+      // Then
+      result.size shouldBe 1
+      verify { regionRepository.findAll() }
+    }
+    test("allRegions should return empty list on error") {
+      // Given
+      every { regionRepository.findAll() } throws RuntimeException("Database error")
 
-  @Test
-  fun `allRegions should return all regions`() {
-    // Given
-    val regions = listOf(createSampleRegion())
-    every { regionRepository.findAll() } returns regions
+      // When
+      val result = resolver.allRegions()
 
-    // When
-    val result = resolver.allRegions()
-
-    // Then
-    assertEquals(1, result.size)
-    verify { regionRepository.findAll() }
-  }
-
-  @Test
-  fun `allRegions should return empty list on error`() {
-    // Given
-    every { regionRepository.findAll() } throws RuntimeException("Database error")
-
-    // When
-    val result = resolver.allRegions()
-
-    // Then
-    assertTrue(result.isEmpty())
-  }
-}
+      // Then
+      result.isEmpty() shouldBe true
+    }
+  })

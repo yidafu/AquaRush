@@ -22,384 +22,267 @@ package dev.yidafu.aqua.common.domain.model
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
-class DomainModelBehaviorTest {
-  // ========== ProductModel ==========
-
-  private fun product(
-    price: Long = 1000L,
-    stock: Int = 5,
-    status: ProductModelStatus = ProductModelStatus.ONLINE,
-  ): ProductModel =
-    ProductModel(
-      id = 1L,
-      name = "水",
-      price = price,
-      originalPrice = 1200L,
-      depositPrice = 50L,
-      stock = stock,
-      status = status,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  @Test
-  fun `ProductModel priceYuan should convert cents`() {
-    assertEquals(BigDecimal("10.00"), product().priceYuan)
-    assertEquals(BigDecimal("12.00"), product().originalPriceYuan)
-    assertEquals(BigDecimal("0.50"), product().depositPriceYuan)
-  }
-
-  @Test
-  fun `ProductModel originalPriceYuan should be null when unset`() {
-    val p = ProductModel(name = "水", price = 100L)
-    assertNull(p.originalPriceYuan)
-    assertNull(p.depositPriceYuan)
-  }
-
-  @Test
-  fun `ProductModel isLowStock should check threshold`() {
-    assertTrue(product(stock = 5).isLowStock())
-    assertTrue(product(stock = 10).isLowStock())
-    assertFalse(product(stock = 11).isLowStock())
-    assertTrue(product(stock = 3).isLowStock(threshold = 5))
-    assertFalse(product(stock = 6).isLowStock(threshold = 5))
-  }
-
-  @Test
-  fun `ProductModel isAvailable should require online and stock`() {
-    assertTrue(product(stock = 1).isAvailable())
-    assertFalse(product(stock = 0).isAvailable())
-    assertFalse(product(status = ProductModelStatus.OFFLINE, stock = 5).isAvailable())
-    assertFalse(product(status = ProductModelStatus.OUT_OF_STOCK, stock = 5).isAvailable())
-  }
-
-  @Test
-  fun `ProductModel tags list round trip`() {
-    val p = product()
-    assertTrue(p.getTagsAsList().isEmpty())
-    p.setTagsFromList(listOf("hot", "new"))
-    assertEquals(listOf("hot", "new"), p.getTagsAsList())
-    p.setTagsFromList(emptyList())
-    assertNull(p.tags)
-  }
-
-  @Test
-  fun `ProductModel image gallery round trip`() {
-    val p = product()
-    assertTrue(p.getImageGalleryAsList().isEmpty())
-    p.setImageGalleryFromList(listOf("http://a.png", "http://b.png"))
-    assertEquals(listOf("http://a.png", "http://b.png"), p.getImageGalleryAsList())
-    p.setImageGalleryFromList(emptyList())
-    assertNull(p.imageGallery)
-  }
-
-  @Test
-  fun `ProductModel certificate images round trip`() {
-    val p = product()
-    assertTrue(p.getCertificateImagesAsList().isEmpty())
-    p.setCertificateImagesFromList(listOf("http://c.png"))
-    assertEquals(listOf("http://c.png"), p.getCertificateImagesAsList())
-  }
-
-  @Test
-  fun `ProductModel delivery settings round trip`() {
-    val p = product()
-    assertTrue(p.getDeliverySettingsAsMap().isEmpty())
-    p.setDeliverySettingsFromMap(mapOf("freeFloor" to 5))
-    assertEquals(mapOf("freeFloor" to 5), p.getDeliverySettingsAsMap())
-    p.setDeliverySettingsFromMap(emptyMap())
-    assertNull(p.deliverySettings)
-  }
-
-  @Test
-  fun `ProductModel should ignore non-textual array entries`() {
-    val mapper = jacksonObjectMapper()
-    val p = product()
-    val node = mapper.createArrayNode().add(123)
-    p.tags = node
-    assertTrue(p.getTagsAsList().isEmpty())
-  }
-
-  // ========== OrderModel ==========
-
-  @Test
-  fun `OrderModel amount and totalAmount should convert`() {
-    val order = OrderModel(orderNo = "O1", userId = 1L, amountCents = 12345L, addressId = 1L)
-    assertEquals(BigDecimal("123.45"), order.amount)
-    assertEquals(BigDecimal("123.45"), order.totalAmount)
-  }
-
-  @Test
-  fun `OrderModel payAmountCents should include delivery fee`() {
-    val order = OrderModel(orderNo = "O1", userId = 1L, amountCents = 1000L, deliveryFeeCents = 300L, addressId = 1L)
-    assertEquals(1300L, order.payAmountCents)
-  }
-
-  @Test
-  fun `OrderModel status transitions should be mutable`() {
-    val order = OrderModel(orderNo = "O1", userId = 1L, addressId = 1L)
-    assertEquals(dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.PENDING_PAYMENT, order.status)
-    order.status = dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.PENDING_DISPATCH
-    assertEquals(dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.PENDING_DISPATCH, order.status)
-  }
-
-  // ========== UserModel ==========
-
-  @Test
-  fun `UserModel balance and totalSpent should convert cents`() {
-    val user =
-      UserModel(
-        wechatOpenId = "openid",
-        email = "e@e.com",
-        balanceCents = 500L,
-        totalSpentCents = 12345L,
-        status = UserStatus.ACTIVE,
-        role = UserRole.USER,
+class DomainModelBehaviorTest :
+  FunSpec({
+    fun product(
+      price: Long = 1000L,
+      stock: Int = 5,
+      status: ProductModelStatus = ProductModelStatus.ONLINE,
+    ): ProductModel =
+      ProductModel(
+        id = 1L,
+        name = "水",
+        price = price,
+        originalPrice = 1200L,
+        depositPrice = 50L,
+        stock = stock,
+        status = status,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
-    assertEquals(BigDecimal("5.00"), user.balance)
-    assertEquals(BigDecimal("123.45"), user.totalSpent)
-  }
+    // ========== ProductModel ==========
 
-  @Test
-  fun `UserModel defaults should apply`() {
-    val user = UserModel(wechatOpenId = "openid", email = "e@e.com")
-    assertEquals(0L, user.balanceCents)
-    assertEquals(0L, user.totalSpentCents)
-    assertEquals(UserStatus.INACTIVE, user.status)
-    assertEquals(UserRole.NONE, user.role)
-  }
+    // ========== OrderModel ==========
 
-  // ========== AdminModel ==========
+    // ========== UserModel ==========
 
-  @Test
-  fun `AdminModel earning should convert cents`() {
-    val admin = AdminModel(username = "admin", passwordHash = "hash", earningCents = 9999L)
-    assertEquals(BigDecimal("99.99"), admin.earning)
-  }
+    // ========== AdminModel ==========
 
-  @Test
-  fun `AdminModel earning should be null when unset`() {
-    val admin = AdminModel(username = "admin", passwordHash = "hash")
-    assertNull(admin.earning)
-  }
+    // ========== DailyCollectionRecordModel ==========
 
-  @Test
-  fun `DeliverWorkerStatusConverter should convert to label`() {
-    val converter = DeliverWorkerStatusConverter()
-    assertEquals("ONLINE", converter.convertToDatabaseColumn(DeliverWorkerModelStatus.ONLINE))
-    assertEquals("OFFLINE", converter.convertToDatabaseColumn(DeliverWorkerModelStatus.OFFLINE))
-    assertNull(converter.convertToDatabaseColumn(null))
-  }
+    // ========== FeedbackModel ==========
 
-  @Test
-  fun `DeliverWorkerStatusConverter should parse labels`() {
-    val converter = DeliverWorkerStatusConverter()
-    assertEquals(DeliverWorkerModelStatus.ONLINE, converter.convertToEntityAttribute("ONLINE"))
-    assertEquals(DeliverWorkerModelStatus.ONLINE, converter.convertToEntityAttribute("Online"))
-    assertEquals(DeliverWorkerModelStatus.OFFLINE, converter.convertToEntityAttribute("OFFLINE"))
-    assertEquals(DeliverWorkerModelStatus.OFFLINE, converter.convertToEntityAttribute("Offline"))
-    assertEquals(DeliverWorkerModelStatus.OFFLINE, converter.convertToEntityAttribute("UNKNOWN"))
-    assertEquals(DeliverWorkerModelStatus.OFFLINE, converter.convertToEntityAttribute(null))
-  }
+    // ========== PaymentModel ==========
 
-  // ========== DailyCollectionRecordModel ==========
+    // ========== enums ==========
 
-  @Test
-  fun `DailyCollectionRecordModel totals should sum fields`() {
-    val record =
-      DailyCollectionRecordModel(
-        cashAmountCents = 1000L,
-        qrCodeAmountCents = 2000L,
-        calculatedCashAmountCents = 900L,
-        calculatedQrCodeAmountCents = 2100L,
-        orderAmountCents = 3000L,
-      )
-    assertEquals(3000L, record.getManualTotalCollectionAmountCents())
-    assertEquals(3000L, record.getCalculatedTotalCollectionAmountCents())
-    assertEquals(3000L, record.getOrderAmountCentsLegacy())
-  }
-
-  // ========== FeedbackModel ==========
-
-  @Test
-  fun `FeedbackModel images list round trip`() {
-    val feedback = FeedbackModel(userId = 1L, content = "feedback")
-    assertTrue(feedback.getImagesAsList().isEmpty())
-    feedback.setImagesFromList(listOf("http://img1.png"))
-    assertEquals(listOf("http://img1.png"), feedback.getImagesAsList())
-    feedback.setImagesFromList(emptyList())
-    assertNull(feedback.images)
-  }
-
-  // ========== PaymentModel ==========
-
-  @Test
-  fun `PaymentModel should expose status enum`() {
-    val payment = PaymentModel(orderId = 1L, userId = 1L, amount = 100L)
-    assertEquals(PaymentStatus.PENDING, payment.status)
-    assertEquals(PaymentMethod.WECHAT_PAY, payment.paymentMethod)
-    assertEquals("CNY", payment.currency)
-  }
-
-  // ========== enums ==========
-
-  @Test
-  fun `label enums should expose non-empty labels`() {
-    assertTrue(ProductModelStatus.entries.all { it.label.isNotBlank() })
-    assertTrue(
+    test("ProductModel priceYuan should convert cents") {
+      product().priceYuan shouldBe BigDecimal("10.00")
+      product().originalPriceYuan shouldBe BigDecimal("12.00")
+      product().depositPriceYuan shouldBe BigDecimal("0.50")
+    }
+    test("ProductModel originalPriceYuan should be null when unset") {
+      val p = ProductModel(name = "水", price = 100L)
+      p.originalPriceYuan.shouldBeNull()
+      p.depositPriceYuan.shouldBeNull()
+    }
+    test("ProductModel isLowStock should check threshold") {
+      product(stock = 5).isLowStock() shouldBe true
+      product(stock = 10).isLowStock() shouldBe true
+      product(stock = 11).isLowStock() shouldBe false
+      product(stock = 3).isLowStock(threshold = 5) shouldBe true
+      product(stock = 6).isLowStock(threshold = 5) shouldBe false
+    }
+    test("ProductModel isAvailable should require online and stock") {
+      product(stock = 1).isAvailable() shouldBe true
+      product(stock = 0).isAvailable() shouldBe false
+      product(status = ProductModelStatus.OFFLINE, stock = 5).isAvailable() shouldBe false
+      product(status = ProductModelStatus.OUT_OF_STOCK, stock = 5).isAvailable() shouldBe false
+    }
+    test("ProductModel tags list round trip") {
+      val p = product()
+      p.getTagsAsList().isEmpty() shouldBe true
+      p.setTagsFromList(listOf("hot", "new"))
+      p.getTagsAsList() shouldBe listOf("hot", "new")
+      p.setTagsFromList(emptyList())
+      p.tags.shouldBeNull()
+    }
+    test("ProductModel image gallery round trip") {
+      val p = product()
+      p.getImageGalleryAsList().isEmpty() shouldBe true
+      p.setImageGalleryFromList(listOf("http://a.png", "http://b.png"))
+      p.getImageGalleryAsList() shouldBe listOf("http://a.png", "http://b.png")
+      p.setImageGalleryFromList(emptyList())
+      p.imageGallery.shouldBeNull()
+    }
+    test("ProductModel certificate images round trip") {
+      val p = product()
+      p.getCertificateImagesAsList().isEmpty() shouldBe true
+      p.setCertificateImagesFromList(listOf("http://c.png"))
+      p.getCertificateImagesAsList() shouldBe listOf("http://c.png")
+    }
+    test("ProductModel delivery settings round trip") {
+      val p = product()
+      p.getDeliverySettingsAsMap().isEmpty() shouldBe true
+      p.setDeliverySettingsFromMap(mapOf("freeFloor" to 5))
+      p.getDeliverySettingsAsMap() shouldBe mapOf("freeFloor" to 5)
+      p.setDeliverySettingsFromMap(emptyMap())
+      p.deliverySettings.shouldBeNull()
+    }
+    test("ProductModel should ignore non-textual array entries") {
+      val mapper = jacksonObjectMapper()
+      val p = product()
+      val node = mapper.createArrayNode().add(123)
+      p.tags = node
+      p.getTagsAsList().isEmpty() shouldBe true
+    }
+    test("OrderModel amount and totalAmount should convert") {
+      val order = OrderModel(orderNo = "O1", userId = 1L, amountCents = 12345L, addressId = 1L)
+      order.amount shouldBe BigDecimal("123.45")
+      order.totalAmount shouldBe BigDecimal("123.45")
+    }
+    test("OrderModel payAmountCents should include delivery fee") {
+      val order = OrderModel(orderNo = "O1", userId = 1L, amountCents = 1000L, deliveryFeeCents = 300L, addressId = 1L)
+      order.payAmountCents shouldBe 1300L
+    }
+    test("OrderModel status transitions should be mutable") {
+      val order = OrderModel(orderNo = "O1", userId = 1L, addressId = 1L)
+      order.status shouldBe dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.PENDING_PAYMENT
+      order.status = dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.PENDING_DISPATCH
+      order.status shouldBe dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.PENDING_DISPATCH
+    }
+    test("UserModel balance and totalSpent should convert cents") {
+      val user =
+        UserModel(
+          wechatOpenId = "openid",
+          email = "e@e.com",
+          balanceCents = 500L,
+          totalSpentCents = 12345L,
+          status = UserStatus.ACTIVE,
+          role = UserRole.USER,
+        )
+      user.balance shouldBe BigDecimal("5.00")
+      user.totalSpent shouldBe BigDecimal("123.45")
+    }
+    test("UserModel defaults should apply") {
+      val user = UserModel(wechatOpenId = "openid", email = "e@e.com")
+      user.balanceCents shouldBe 0L
+      user.totalSpentCents shouldBe 0L
+      user.status shouldBe UserStatus.INACTIVE
+      user.role shouldBe UserRole.NONE
+    }
+    test("AdminModel earning should convert cents") {
+      val admin = AdminModel(username = "admin", passwordHash = "hash", earningCents = 9999L)
+      admin.earning shouldBe BigDecimal("99.99")
+    }
+    test("AdminModel earning should be null when unset") {
+      val admin = AdminModel(username = "admin", passwordHash = "hash")
+      admin.earning.shouldBeNull()
+    }
+    test("DeliverWorkerStatusConverter should convert to label") {
+      val converter = DeliverWorkerStatusConverter()
+      converter.convertToDatabaseColumn(DeliverWorkerModelStatus.ONLINE) shouldBe "ONLINE"
+      converter.convertToDatabaseColumn(DeliverWorkerModelStatus.OFFLINE) shouldBe "OFFLINE"
+      converter.convertToDatabaseColumn(null).shouldBeNull()
+    }
+    test("DeliverWorkerStatusConverter should parse labels") {
+      val converter = DeliverWorkerStatusConverter()
+      converter.convertToEntityAttribute("ONLINE") shouldBe DeliverWorkerModelStatus.ONLINE
+      converter.convertToEntityAttribute("Online") shouldBe DeliverWorkerModelStatus.ONLINE
+      converter.convertToEntityAttribute("OFFLINE") shouldBe DeliverWorkerModelStatus.OFFLINE
+      converter.convertToEntityAttribute("Offline") shouldBe DeliverWorkerModelStatus.OFFLINE
+      converter.convertToEntityAttribute("UNKNOWN") shouldBe DeliverWorkerModelStatus.OFFLINE
+      converter.convertToEntityAttribute(null) shouldBe DeliverWorkerModelStatus.OFFLINE
+    }
+    test("DailyCollectionRecordModel totals should sum fields") {
+      val record =
+        DailyCollectionRecordModel(
+          cashAmountCents = 1000L,
+          qrCodeAmountCents = 2000L,
+          calculatedCashAmountCents = 900L,
+          calculatedQrCodeAmountCents = 2100L,
+          orderAmountCents = 3000L,
+        )
+      record.getManualTotalCollectionAmountCents() shouldBe 3000L
+      record.getCalculatedTotalCollectionAmountCents() shouldBe 3000L
+      record.getOrderAmountCentsLegacy() shouldBe 3000L
+    }
+    test("FeedbackModel images list round trip") {
+      val feedback = FeedbackModel(userId = 1L, content = "feedback")
+      feedback.getImagesAsList().isEmpty() shouldBe true
+      feedback.setImagesFromList(listOf("http://img1.png"))
+      feedback.getImagesAsList() shouldBe listOf("http://img1.png")
+      feedback.setImagesFromList(emptyList())
+      feedback.images.shouldBeNull()
+    }
+    test("PaymentModel should expose status enum") {
+      val payment = PaymentModel(orderId = 1L, userId = 1L, amount = 100L)
+      payment.status shouldBe PaymentStatus.PENDING
+      payment.paymentMethod shouldBe PaymentMethod.WECHAT_PAY
+      payment.currency shouldBe "CNY"
+    }
+    test("label enums should expose non-empty labels") {
+      ProductModelStatus.entries.all { it.label.isNotBlank() } shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.NoticeStatus.entries
-        .all { it.label.isNotBlank() },
-    )
-    assertTrue(
+        .all { it.label.isNotBlank() } shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.NoticeType.entries
-        .all { it.label.isNotBlank() },
-    )
-    assertTrue(
+        .all { it.label.isNotBlank() } shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.FeedbackStatus.entries
-        .all { it.label.isNotBlank() },
-    )
-    assertTrue(
+        .all { it.label.isNotBlank() } shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.FeedbackType.entries
-        .all { it.label.isNotBlank() },
-    )
-    assertTrue(
+        .all { it.label.isNotBlank() } shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup.entries
-        .all { it.label.isNotBlank() },
-    )
-    assertTrue(
+        .all { it.label.isNotBlank() } shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.SystemSettingType.entries
-        .all { it.label.isNotBlank() },
-    )
-    assertTrue(
+        .all { it.label.isNotBlank() } shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.BannerLinkType.entries
-        .all { it.label.isNotBlank() },
-    )
-    assertTrue(
+        .all { it.label.isNotBlank() } shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.AdminPermission.entries
-        .all { it.description.isNotBlank() },
-    )
-    assertTrue(DeliverWorkerModelStatus.entries.all { it.label.isNotBlank() })
-  }
-
-  @Test
-  fun `plain enums should have expected entries`() {
-    assertTrue(
+        .all { it.description.isNotBlank() } shouldBe true
+      DeliverWorkerModelStatus.entries.all { it.label.isNotBlank() } shouldBe true
+    }
+    test("plain enums should have expected entries") {
       dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.PaymentType.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.CouponType.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.PromotionActivityType.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.GiftActivityType.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.CouponTemplateStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.CouponIssuanceType.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.CouponScope.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.PromotionScope.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.ValidityType.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.PriceSource.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.EventStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus.entries
-        .isNotEmpty(),
-    )
-    assertTrue(
+        .isNotEmpty() shouldBe true
       dev.yidafu.aqua.common.domain.model.enums.SourceSystem.entries
-        .isNotEmpty(),
-    )
-    assertTrue(MessageStatus.entries.isNotEmpty())
-  }
-}
+        .isNotEmpty() shouldBe true
+      MessageStatus.entries.isNotEmpty() shouldBe true
+    }
+  })

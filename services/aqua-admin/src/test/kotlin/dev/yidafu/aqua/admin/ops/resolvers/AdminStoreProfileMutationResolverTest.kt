@@ -23,51 +23,48 @@ import dev.yidafu.aqua.api.service.ops.StoreProfileMutationService
 import dev.yidafu.aqua.common.domain.model.StoreProfileModel
 import dev.yidafu.aqua.common.graphql.generated.SaveStoreProfileInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 
-class AdminStoreProfileMutationResolverTest {
-  private lateinit var storeProfileMutationService: StoreProfileMutationService
-  private lateinit var resolver: AdminStoreProfileMutationResolver
+class AdminStoreProfileMutationResolverTest :
+  FunSpec({
+    var storeProfileMutationService: StoreProfileMutationService = mockk()
+    var resolver: AdminStoreProfileMutationResolver = mockk()
 
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "admin",
-      userType = "ADMIN",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    storeProfileMutationService = mockk(relaxed = true)
-    resolver = AdminStoreProfileMutationResolver(storeProfileMutationService)
-  }
-
-  @Test
-  fun `saveStoreProfile should delegate`() {
-    // Given
-    every { storeProfileMutationService.saveStoreProfile(1L, "admin", any()) } returns
-      StoreProfileModel(
+    fun principal(): UserPrincipal =
+      UserPrincipal(
         id = 1L,
-        shopName = "AquaRush水站",
-        serviceHotline = "400-123-4567",
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now(),
+        _username = "admin",
+        userType = "ADMIN",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
       )
-    val input = SaveStoreProfileInput(shopName = "AquaRush水站", serviceHotline = "400-123-4567")
 
-    // When
-    val result = resolver.saveStoreProfile(input, principal())
+    beforeTest {
+      storeProfileMutationService = mockk(relaxed = true)
+      resolver = AdminStoreProfileMutationResolver(storeProfileMutationService)
+    }
+    test("saveStoreProfile should delegate") {
+      // Given
+      every { storeProfileMutationService.saveStoreProfile(1L, "admin", any()) } returns
+        StoreProfileModel(
+          id = 1L,
+          shopName = "AquaRush水站",
+          serviceHotline = "400-123-4567",
+          createdAt = LocalDateTime.now(),
+          updatedAt = LocalDateTime.now(),
+        )
+      val input = SaveStoreProfileInput(shopName = "AquaRush水站", serviceHotline = "400-123-4567")
 
-    // Then
-    assertEquals("AquaRush水站", result.shopName)
-    verify { storeProfileMutationService.saveStoreProfile(1L, "admin", any()) }
-  }
-}
+      // When
+      val result = resolver.saveStoreProfile(input, principal())
+
+      // Then
+      result.shopName shouldBe "AquaRush水站"
+      verify { storeProfileMutationService.saveStoreProfile(1L, "admin", any()) }
+    }
+  })

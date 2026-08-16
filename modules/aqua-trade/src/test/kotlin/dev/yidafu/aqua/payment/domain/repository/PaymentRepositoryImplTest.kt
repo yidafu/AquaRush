@@ -27,147 +27,117 @@ import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkConstructor
 import io.mockk.unmockkConstructor
 import jakarta.persistence.EntityManager
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 
 /**
  * 支付仓储 QueryDSL 实现单元测试:构造器 mock 拦截查询工厂,覆盖各类过滤查询与汇总。
  */
-class PaymentRepositoryImplTest {
-  private lateinit var selectQuery: JPAQuery<PaymentModel>
-  private lateinit var countQuery: JPAQuery<Void>
-  private lateinit var exprQuery: JPAQuery<Long>
-  private lateinit var repo: PaymentRepositoryImpl
+class PaymentRepositoryImplTest :
+  FunSpec({
+    var selectQuery: JPAQuery<PaymentModel> = mockk()
+    var countQuery: JPAQuery<Void> = mockk()
+    var exprQuery: JPAQuery<Long> = mockk()
+    var repo: PaymentRepositoryImpl = mockk()
+    val now = LocalDateTime.of(2025, 1, 1, 12, 0)
 
-  private val now = LocalDateTime.of(2025, 1, 1, 12, 0)
+    fun payment(
+      id: Long,
+      userId: Long = 100L,
+      status: PaymentStatus = PaymentStatus.SUCCESS,
+      amount: Long = 1200,
+    ) = PaymentModel(id = id, orderId = id, userId = userId, amount = amount, status = status)
 
-  private fun payment(
-    id: Long,
-    userId: Long = 100L,
-    status: PaymentStatus = PaymentStatus.SUCCESS,
-    amount: Long = 1200,
-  ) = PaymentModel(id = id, orderId = id, userId = userId, amount = amount, status = status)
+    beforeTest {
+      mockkConstructor(JPAQueryFactory::class)
+      selectQuery = mockk(relaxed = true)
+      countQuery = mockk(relaxed = true)
+      exprQuery = mockk(relaxed = true)
+      repo = PaymentRepositoryImpl()
+      val em = mockk<EntityManager>(relaxed = true)
+      val field = PaymentRepositoryImpl::class.java.getDeclaredField("entityManager")
+      field.isAccessible = true
+      field.set(repo, em)
 
-  @BeforeEach
-  fun setUp() {
-    mockkConstructor(JPAQueryFactory::class)
-    selectQuery = mockk(relaxed = true)
-    countQuery = mockk(relaxed = true)
-    exprQuery = mockk(relaxed = true)
-    repo = PaymentRepositoryImpl()
-    val em = mockk<EntityManager>(relaxed = true)
-    val field = PaymentRepositoryImpl::class.java.getDeclaredField("entityManager")
-    field.isAccessible = true
-    field.set(repo, em)
+      every { anyConstructed<JPAQueryFactory>().selectFrom(any<EntityPath<PaymentModel>>()) } returns selectQuery
+      every { anyConstructed<JPAQueryFactory>().query() } returns countQuery
+      every { anyConstructed<JPAQueryFactory>().select(any<Expression<Long>>()) } returns exprQuery
+      every { selectQuery.where(any<Predicate>()) } returns selectQuery
+      every { selectQuery.orderBy(any<OrderSpecifier<*>>()) } returns selectQuery
+      every { countQuery.from(any()) } returns countQuery
+      every { countQuery.where(any<Predicate>()) } returns countQuery
+      every { countQuery.select(any<Expression<Long>>()) } returns exprQuery
+    }
+    afterTest {
+      unmockkConstructor(JPAQueryFactory::class)
+    }
+    test("findByUserIdAndStatusEnhanced fetches matches") {
+      val payments = listOf(payment(1L))
+      every { selectQuery.fetch() } returns payments
 
-    every { anyConstructed<JPAQueryFactory>().selectFrom(any<EntityPath<PaymentModel>>()) } returns selectQuery
-    every { anyConstructed<JPAQueryFactory>().query() } returns countQuery
-    every { anyConstructed<JPAQueryFactory>().select(any<Expression<Long>>()) } returns exprQuery
-    every { selectQuery.where(any<Predicate>()) } returns selectQuery
-    every { selectQuery.orderBy(any<OrderSpecifier<*>>()) } returns selectQuery
-    every { countQuery.from(any()) } returns countQuery
-    every { countQuery.where(any<Predicate>()) } returns countQuery
-    every { countQuery.select(any<Expression<Long>>()) } returns exprQuery
-  }
+      repo.findByUserIdAndStatusEnhanced(100L, PaymentStatus.SUCCESS) shouldBe payments
+    }
+    test("findExpiredPaymentsEnhanced fetches expired") {
+      val payments = listOf(payment(1L, status = PaymentStatus.PENDING))
+      every { selectQuery.fetch() } returns payments
 
-  @AfterEach
-  fun tearDown() {
-    unmockkConstructor(JPAQueryFactory::class)
-  }
+      repo.findExpiredPaymentsEnhanced(now) shouldBe payments
+    }
+    test("findByCreatedAtBetweenEnhanced fetches by range") {
+      val payments = listOf(payment(1L))
+      every { selectQuery.fetch() } returns payments
 
-  @Test
-  @DisplayName("findByUserIdAndStatusEnhanced 返回匹配支付记录")
-  fun `findByUserIdAndStatusEnhanced fetches matches`() {
-    val payments = listOf(payment(1L))
-    every { selectQuery.fetch() } returns payments
+      repo.findByCreatedAtBetweenEnhanced(now.minusDays(1), now) shouldBe payments
+    }
+    test("countByStatusAndCreatedAtBetweenEnhanced counts") {
+      every { countQuery.fetchCount() } returns 3L
 
-    assertEquals(payments, repo.findByUserIdAndStatusEnhanced(100L, PaymentStatus.SUCCESS))
-  }
+      repo.countByStatusAndCreatedAtBetweenEnhanced(PaymentStatus.SUCCESS, now.minusDays(1), now) shouldBe 3L
+    }
+    test("sumAmountByStatusAndCreatedAtBetweenEnhanced sums") {
+      every { exprQuery.fetchOne() } returns 5000L
+      repo.sumAmountByStatusAndCreatedAtBetweenEnhanced(PaymentStatus.SUCCESS, now.minusDays(1), now) shouldBe 5000L
 
-  @Test
-  @DisplayName("findExpiredPaymentsEnhanced 返回过期待支付记录")
-  fun `findExpiredPaymentsEnhanced fetches expired`() {
-    val payments = listOf(payment(1L, status = PaymentStatus.PENDING))
-    every { selectQuery.fetch() } returns payments
+      every { exprQuery.fetchOne() } returns null
+      repo.sumAmountByStatusAndCreatedAtBetweenEnhanced(PaymentStatus.SUCCESS, now.minusDays(1), now) shouldBe 0L
+    }
+    test("findPaymentsWithFilters applies all filters") {
+      val payments = listOf(payment(1L))
+      every { selectQuery.fetch() } returns payments
 
-    assertEquals(payments, repo.findExpiredPaymentsEnhanced(now))
-  }
+      val result =
+        repo.findPaymentsWithFilters(
+          userId = 100L,
+          status = PaymentStatus.SUCCESS,
+          transactionId = "WX-1",
+          startDate = now.minusDays(1),
+          endDate = now,
+          minAmount = 100L,
+          maxAmount = 5000L,
+        )
 
-  @Test
-  @DisplayName("findByCreatedAtBetweenEnhanced 返回区间记录")
-  fun `findByCreatedAtBetweenEnhanced fetches by range`() {
-    val payments = listOf(payment(1L))
-    every { selectQuery.fetch() } returns payments
+      result shouldBe payments
+    }
+    test("findPaymentsWithFilters handles null filters") {
+      val payments = listOf(payment(1L), payment(2L))
+      every { selectQuery.fetch() } returns payments
 
-    assertEquals(payments, repo.findByCreatedAtBetweenEnhanced(now.minusDays(1), now))
-  }
+      val result = repo.findPaymentsWithFilters(null, null, null, null, null, null, null)
 
-  @Test
-  @DisplayName("countByStatusAndCreatedAtBetweenEnhanced 返回计数")
-  fun `countByStatusAndCreatedAtBetweenEnhanced counts`() {
-    every { countQuery.fetchCount() } returns 3L
+      result shouldBe payments
+    }
+    test("findPaymentsWithFilters skips partial date range") {
+      val payments = listOf(payment(1L))
+      every { selectQuery.fetch() } returns payments
 
-    assertEquals(3L, repo.countByStatusAndCreatedAtBetweenEnhanced(PaymentStatus.SUCCESS, now.minusDays(1), now))
-  }
+      val result = repo.findPaymentsWithFilters(null, null, null, now.minusDays(1), null, null, null)
 
-  @Test
-  @DisplayName("sumAmountByStatusAndCreatedAtBetweenEnhanced 返回金额,空结果兜底 0")
-  fun `sumAmountByStatusAndCreatedAtBetweenEnhanced sums`() {
-    every { exprQuery.fetchOne() } returns 5000L
-    assertEquals(5000L, repo.sumAmountByStatusAndCreatedAtBetweenEnhanced(PaymentStatus.SUCCESS, now.minusDays(1), now))
-
-    every { exprQuery.fetchOne() } returns null
-    assertEquals(0L, repo.sumAmountByStatusAndCreatedAtBetweenEnhanced(PaymentStatus.SUCCESS, now.minusDays(1), now))
-  }
-
-  @Test
-  @DisplayName("findPaymentsWithFilters 全过滤条件")
-  fun `findPaymentsWithFilters applies all filters`() {
-    val payments = listOf(payment(1L))
-    every { selectQuery.fetch() } returns payments
-
-    val result =
-      repo.findPaymentsWithFilters(
-        userId = 100L,
-        status = PaymentStatus.SUCCESS,
-        transactionId = "WX-1",
-        startDate = now.minusDays(1),
-        endDate = now,
-        minAmount = 100L,
-        maxAmount = 5000L,
-      )
-
-    assertEquals(payments, result)
-  }
-
-  @Test
-  @DisplayName("findPaymentsWithFilters 无过滤条件返回全部")
-  fun `findPaymentsWithFilters handles null filters`() {
-    val payments = listOf(payment(1L), payment(2L))
-    every { selectQuery.fetch() } returns payments
-
-    val result = repo.findPaymentsWithFilters(null, null, null, null, null, null, null)
-
-    assertEquals(payments, result)
-  }
-
-  @Test
-  @DisplayName("findPaymentsWithFilters 仅起点无终点时跳过时间过滤")
-  fun `findPaymentsWithFilters skips partial date range`() {
-    val payments = listOf(payment(1L))
-    every { selectQuery.fetch() } returns payments
-
-    val result = repo.findPaymentsWithFilters(null, null, null, now.minusDays(1), null, null, null)
-
-    assertEquals(payments, result)
-  }
-}
+      result shouldBe payments
+    }
+  })

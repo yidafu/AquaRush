@@ -25,125 +25,110 @@ import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.user.domain.repository.UserRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
-class DebugJwtControllerTest {
-  private lateinit var jwtTokenService: JwtTokenService
-  private lateinit var userRepository: UserRepository
-  private lateinit var controller: DebugJwtController
+class DebugJwtControllerTest :
+  FunSpec({
+    var jwtTokenService: JwtTokenService = mockk()
+    var userRepository: UserRepository = mockk()
+    var controller: DebugJwtController = mockk()
 
-  private fun user(): UserModel =
-    UserModel(
-      id = 1L,
-      wechatOpenId = "openid-1",
-      nickname = "用户甲",
-      phone = "13900139000",
-      email = "a@b.com",
-      status = UserStatus.ACTIVE,
-      role = UserRole.USER,
-      balanceCents = 1000L,
-      totalSpentCents = 5000L,
-      createdAt = LocalDateTime.of(2025, 1, 1, 0, 0),
-      lastLoginAt = LocalDateTime.of(2025, 1, 2, 0, 0),
-    )
+    fun user(): UserModel =
+      UserModel(
+        id = 1L,
+        wechatOpenId = "openid-1",
+        nickname = "用户甲",
+        phone = "13900139000",
+        email = "a@b.com",
+        status = UserStatus.ACTIVE,
+        role = UserRole.USER,
+        balanceCents = 1000L,
+        totalSpentCents = 5000L,
+        createdAt = LocalDateTime.of(2025, 1, 1, 0, 0),
+        lastLoginAt = LocalDateTime.of(2025, 1, 2, 0, 0),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    jwtTokenService = mockk(relaxed = true)
-    userRepository = mockk(relaxed = true)
-    controller = DebugJwtController(jwtTokenService, userRepository)
-  }
+    beforeTest {
+      jwtTokenService = mockk(relaxed = true)
+      userRepository = mockk(relaxed = true)
+      controller = DebugJwtController(jwtTokenService, userRepository)
+    }
+    test("generateJwtByUserId should generate token for existing user") {
+      // Given
+      every { userRepository.findById(1L) } returns Optional.of(user())
+      every { jwtTokenService.generateAccessToken(any()) } returns "jwt-token-1"
 
-  @Test
-  fun `generateJwtByUserId should generate token for existing user`() {
-    // Given
-    every { userRepository.findById(1L) } returns Optional.of(user())
-    every { jwtTokenService.generateAccessToken(any()) } returns "jwt-token-1"
+      // When
+      val result = controller.generateJwtByUserId(JwtGenerationRequest(userId = 1L))
 
-    // When
-    val result = controller.generateJwtByUserId(JwtGenerationRequest(userId = 1L))
+      // Then
+      result.body!!.success shouldBe true
+      val data = result.body!!.data!!
+      data.token shouldBe "jwt-token-1"
+      data.userId shouldBe 1L
+      data.username shouldBe "openid-1"
+      data.authorities.contains("ROLE_USER") shouldBe true
+    }
+    test("generateJwtByUserId should return error for missing user") {
+      // Given
+      every { userRepository.findById(999L) } returns Optional.empty()
 
-    // Then
-    assertTrue(result.body!!.success)
-    val data = result.body!!.data!!
-    assertEquals("jwt-token-1", data.token)
-    assertEquals(1L, data.userId)
-    assertEquals("openid-1", data.username)
-    assertTrue(data.authorities.contains("ROLE_USER"))
-  }
+      // When
+      val result = controller.generateJwtByUserId(JwtGenerationRequest(userId = 999L))
 
-  @Test
-  fun `generateJwtByUserId should return error for missing user`() {
-    // Given
-    every { userRepository.findById(999L) } returns Optional.empty()
+      // Then
+      result.body!!.success shouldBe false
+      result.body!!.message!!.contains("not found") shouldBe true
+    }
+    test("getUserById should return user debug info") {
+      // Given
+      every { userRepository.findById(1L) } returns Optional.of(user())
 
-    // When
-    val result = controller.generateJwtByUserId(JwtGenerationRequest(userId = 999L))
+      // When
+      val result = controller.getUserById(1L)
 
-    // Then
-    assertFalse(result.body!!.success)
-    assertTrue(result.body!!.message!!.contains("not found"))
-  }
+      // Then
+      result.body!!.success shouldBe true
+      result.body!!.data!!.nickname shouldBe "用户甲"
+      result.body!!.data!!.balance shouldBe 1000L
+    }
+    test("getUserById should return error for missing user") {
+      // Given
+      every { userRepository.findById(999L) } returns Optional.empty()
 
-  @Test
-  fun `getUserById should return user debug info`() {
-    // Given
-    every { userRepository.findById(1L) } returns Optional.of(user())
+      // When
+      val result = controller.getUserById(999L)
 
-    // When
-    val result = controller.getUserById(1L)
+      // Then
+      result.body!!.success shouldBe false
+    }
+    test("listUsers should return all users") {
+      // Given
+      every { userRepository.findAll() } returns listOf(user())
 
-    // Then
-    assertTrue(result.body!!.success)
-    assertEquals("用户甲", result.body!!.data!!.nickname)
-    assertEquals(1000L, result.body!!.data!!.balance)
-  }
+      // When
+      val result = controller.listUsers()
 
-  @Test
-  fun `getUserById should return error for missing user`() {
-    // Given
-    every { userRepository.findById(999L) } returns Optional.empty()
+      // Then
+      result.body!!.success shouldBe true
+      result.body!!.data!!.size shouldBe 1
+      result.body!!.data!![0].wechatOpenId shouldBe "openid-1"
+      verify { userRepository.findAll() }
+    }
+    test("listUsers should return error on failure") {
+      // Given
+      every { userRepository.findAll() } throws IllegalStateException("db down")
 
-    // When
-    val result = controller.getUserById(999L)
+      // When
+      val result = controller.listUsers()
 
-    // Then
-    assertFalse(result.body!!.success)
-  }
-
-  @Test
-  fun `listUsers should return all users`() {
-    // Given
-    every { userRepository.findAll() } returns listOf(user())
-
-    // When
-    val result = controller.listUsers()
-
-    // Then
-    assertTrue(result.body!!.success)
-    assertEquals(1, result.body!!.data!!.size)
-    assertEquals("openid-1", result.body!!.data!![0].wechatOpenId)
-    verify { userRepository.findAll() }
-  }
-
-  @Test
-  fun `listUsers should return error on failure`() {
-    // Given
-    every { userRepository.findAll() } throws IllegalStateException("db down")
-
-    // When
-    val result = controller.listUsers()
-
-    // Then
-    assertFalse(result.body!!.success)
-  }
-}
+      // Then
+      result.body!!.success shouldBe false
+    }
+  })

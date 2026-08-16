@@ -23,69 +23,60 @@ import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.repository.UserRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * 验证 client 端角色唯一来源为 users.role(R-AUTH-04),手机号前缀不再影响角色。
  */
-class ClientUserDetailsServiceTest {
-  private val userRepository = mockk<UserRepository>(relaxed = true)
-  private val service = ClientUserDetailsService(userRepository)
+class ClientUserDetailsServiceTest :
+  FunSpec({
+    val userRepository = mockk<UserRepository>(relaxed = true)
+    val service = ClientUserDetailsService(userRepository)
 
-  private fun user(
-    role: UserRole,
-    openId: String = "openid-123",
-    phone: String = "13900139000",
-  ): UserModel =
-    UserModel(
-      id = 1L,
-      wechatOpenId = openId,
-      phone = phone,
-      role = role,
-    )
+    fun user(
+      role: UserRole,
+      openId: String = "openid-123",
+      phone: String = "13900139000",
+    ): UserModel =
+      UserModel(
+        id = 1L,
+        wechatOpenId = openId,
+        phone = phone,
+        role = role,
+      )
 
-  @Test
-  fun `USER role should map to ROLE_USER`() {
-    every { userRepository.findByWechatOpenId("openid-123") } returns user(UserRole.USER)
-    val principal = service.loadUserByUsername("openid-123")
-    assertTrue(principal.authorities.any { it.authority == "ROLE_USER" })
-    assertEquals("USER", (principal as UserPrincipal).userType)
-  }
-
-  @Test
-  fun `WORKER role should map to ROLE_DELIVERY_WORKER aligned with AdminRoleModel`() {
-    every { userRepository.findByWechatOpenId("openid-123") } returns user(UserRole.WORKER)
-    val principal = service.loadUserByUsername("openid-123")
-    assertTrue(principal.authorities.any { it.authority == "ROLE_DELIVERY_WORKER" })
-    assertTrue(principal.authorities.any { it.authority == "PERMISSION_DELIVERY_TASK" })
-    assertEquals("DELIVERY_WORKER", (principal as UserPrincipal).userType)
-  }
-
-  @Test
-  fun `ADMIN role should map to ROLE_ADMIN`() {
-    every { userRepository.findByWechatOpenId("openid-123") } returns user(UserRole.ADMIN)
-    val principal = service.loadUserByUsername("openid-123")
-    assertTrue(principal.authorities.any { it.authority == "ROLE_ADMIN" })
-  }
-
-  @Test
-  fun `phone prefix should not influence role`() {
-    // 手机号以 admin 开头但 users.role=USER,仍应为普通用户(废除旧手机号前缀推断)
-    every { userRepository.findByWechatOpenId("openid-123") } returns
-      user(UserRole.USER, phone = "admin123456")
-    val principal = service.loadUserByUsername("openid-123")
-    assertTrue(principal.authorities.any { it.authority == "ROLE_USER" })
-    assertTrue(principal.authorities.none { it.authority == "ROLE_ADMIN" })
-  }
-
-  @Test
-  fun `NONE role should default to ROLE_USER`() {
-    every { userRepository.findByWechatOpenId("openid-123") } returns user(UserRole.NONE)
-    val principal = service.loadUserByUsername("openid-123")
-    assertTrue(principal.authorities.any { it.authority == "ROLE_USER" })
-  }
-}
+    test("USER role should map to ROLE_USER") {
+      every { userRepository.findByWechatOpenId("openid-123") } returns user(UserRole.USER)
+      val principal = service.loadUserByUsername("openid-123")
+      principal.authorities.any { it.authority == "ROLE_USER" } shouldBe true
+      (principal as UserPrincipal).userType shouldBe "USER"
+    }
+    test("WORKER role should map to ROLE_DELIVERY_WORKER aligned with AdminRoleModel") {
+      every { userRepository.findByWechatOpenId("openid-123") } returns user(UserRole.WORKER)
+      val principal = service.loadUserByUsername("openid-123")
+      principal.authorities.any { it.authority == "ROLE_DELIVERY_WORKER" } shouldBe true
+      principal.authorities.any { it.authority == "PERMISSION_DELIVERY_TASK" } shouldBe true
+      (principal as UserPrincipal).userType shouldBe "DELIVERY_WORKER"
+    }
+    test("ADMIN role should map to ROLE_ADMIN") {
+      every { userRepository.findByWechatOpenId("openid-123") } returns user(UserRole.ADMIN)
+      val principal = service.loadUserByUsername("openid-123")
+      principal.authorities.any { it.authority == "ROLE_ADMIN" } shouldBe true
+    }
+    test("phone prefix should not influence role") {
+      // 手机号以 admin 开头但 users.role=USER,仍应为普通用户(废除旧手机号前缀推断)
+      every { userRepository.findByWechatOpenId("openid-123") } returns
+        user(UserRole.USER, phone = "admin123456")
+      val principal = service.loadUserByUsername("openid-123")
+      principal.authorities.any { it.authority == "ROLE_USER" } shouldBe true
+      principal.authorities.none { it.authority == "ROLE_ADMIN" } shouldBe true
+    }
+    test("NONE role should default to ROLE_USER") {
+      every { userRepository.findByWechatOpenId("openid-123") } returns user(UserRole.NONE)
+      val principal = service.loadUserByUsername("openid-123")
+      principal.authorities.any { it.authority == "ROLE_USER" } shouldBe true
+    }
+  })

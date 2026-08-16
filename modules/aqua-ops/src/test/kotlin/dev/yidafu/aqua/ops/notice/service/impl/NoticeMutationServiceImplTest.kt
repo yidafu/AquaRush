@@ -29,255 +29,212 @@ import dev.yidafu.aqua.ops.notice.domain.exception.InvalidNoticeStateTransitionE
 import dev.yidafu.aqua.ops.notice.domain.exception.InvalidNoticeTimeWindowException
 import dev.yidafu.aqua.ops.notice.domain.exception.NoticeNotFoundException
 import dev.yidafu.aqua.ops.notice.domain.repository.NoticeRepository
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 /**
  * 公告变更服务单元测试(F-OPS-002 核心规则:状态机 草稿→发布→停用、置顶仅限已发布、时间窗合法、审计留痕)
  */
-class NoticeMutationServiceImplTest {
-  private lateinit var noticeRepository: NoticeRepository
-  private lateinit var opsConfigAuditService: OpsConfigAuditService
-  private lateinit var service: NoticeMutationServiceImpl
+class NoticeMutationServiceImplTest :
+  FunSpec({
+    var noticeRepository: NoticeRepository = mockk()
+    var opsConfigAuditService: OpsConfigAuditService = mockk()
+    var service: NoticeMutationServiceImpl = mockk()
 
-  private fun createRequest(
-    title: String = "测试公告",
-    type: NoticeType = NoticeType.PLATFORM_NOTICE,
-    startAt: LocalDateTime? = null,
-    endAt: LocalDateTime? = null,
-  ): CreateNoticeRequest =
-    CreateNoticeRequest(
-      title = title,
-      content = "公告内容",
-      type = type,
-      startAt = startAt,
-      endAt = endAt,
-    )
-
-  @BeforeEach
-  fun setUp() {
-    noticeRepository = mockk(relaxed = true)
-    opsConfigAuditService = mockk(relaxed = true)
-    service = NoticeMutationServiceImpl(noticeRepository, opsConfigAuditService)
-  }
-
-  @Test
-  @DisplayName("createNotice 默认草稿状态且未置顶")
-  fun `createNotice defaults to DRAFT and unpinned`() {
-    every { noticeRepository.save(any()) } answers { firstArg() }
-
-    val created = service.createNotice(1L, "admin", createRequest())
-
-    assertEquals(NoticeStatus.DRAFT, created.status)
-    assertFalse(created.pinned)
-    assertEquals(NoticeType.PLATFORM_NOTICE, created.type)
-  }
-
-  @Test
-  @DisplayName("createNotice 落审计日志(CREATE)")
-  fun `createNotice writes audit`() {
-    every { noticeRepository.save(any()) } answers { firstArg() }
-
-    service.createNotice(1L, "admin", createRequest())
-
-    verify {
-      opsConfigAuditService.record(
-        OpsConfigAuditService.TARGET_NOTICE,
-        any(),
-        OpsConfigAuditService.ACTION_NOTICE_CREATE,
-        1L,
-        "admin",
-        before = any(),
-        after = any(),
-        description = any(),
+    fun createRequest(
+      title: String = "测试公告",
+      type: NoticeType = NoticeType.PLATFORM_NOTICE,
+      startAt: LocalDateTime? = null,
+      endAt: LocalDateTime? = null,
+    ): CreateNoticeRequest =
+      CreateNoticeRequest(
+        title = title,
+        content = "公告内容",
+        type = type,
+        startAt = startAt,
+        endAt = endAt,
       )
+
+    beforeTest {
+      noticeRepository = mockk(relaxed = true)
+      opsConfigAuditService = mockk(relaxed = true)
+      service = NoticeMutationServiceImpl(noticeRepository, opsConfigAuditService)
     }
-  }
+    test("createNotice defaults to DRAFT and unpinned") {
+      every { noticeRepository.save(any()) } answers { firstArg() }
 
-  @Test
-  @DisplayName("createNotice 时间窗开始 >= 结束抛 InvalidNoticeTimeWindowException")
-  fun `createNotice rejects invalid time window`() {
-    assertFailsWith<InvalidNoticeTimeWindowException> {
-      service.createNotice(
-        1L,
-        "admin",
-        createRequest(startAt = LocalDateTime.of(2026, 8, 12, 12, 0), endAt = LocalDateTime.of(2026, 8, 12, 10, 0)),
-      )
+      val created = service.createNotice(1L, "admin", createRequest())
+
+      created.status shouldBe NoticeStatus.DRAFT
+      created.pinned shouldBe false
+      created.type shouldBe NoticeType.PLATFORM_NOTICE
     }
-  }
+    test("createNotice writes audit") {
+      every { noticeRepository.save(any()) } answers { firstArg() }
 
-  @Test
-  @DisplayName("publishNotice 从草稿发布:状态=已发布且发布时间非空")
-  fun `publishNotice transitions DRAFT to PUBLISHED`() {
-    val draft = NoticeModel(id = 1L, title = "草稿", content = "内容", status = NoticeStatus.DRAFT)
-    every { noticeRepository.findById(1L) } returns java.util.Optional.of(draft)
-    every { noticeRepository.save(any()) } answers { firstArg() }
+      service.createNotice(1L, "admin", createRequest())
 
-    val published = service.publishNotice(1L, "admin", 1L)
-
-    assertEquals(NoticeStatus.PUBLISHED, published.status)
-    assertNotNull(published.publishedAt)
-    verify {
-      opsConfigAuditService.record(
-        OpsConfigAuditService.TARGET_NOTICE,
-        1L,
-        OpsConfigAuditService.ACTION_NOTICE_PUBLISH,
-        1L,
-        "admin",
-        before = any(),
-        after = any(),
-        description = any(),
-      )
+      verify {
+        opsConfigAuditService.record(
+          OpsConfigAuditService.TARGET_NOTICE,
+          any(),
+          OpsConfigAuditService.ACTION_NOTICE_CREATE,
+          1L,
+          "admin",
+          before = any(),
+          after = any(),
+          description = any(),
+        )
+      }
     }
-  }
-
-  @Test
-  @DisplayName("publishNotice 已停用公告抛 InvalidNoticeStateTransitionException")
-  fun `publishNotice rejects STOPPED`() {
-    val stopped = NoticeModel(id = 1L, title = "已停用", content = "内容", status = NoticeStatus.STOPPED)
-    every { noticeRepository.findById(1L) } returns java.util.Optional.of(stopped)
-
-    assertFailsWith<InvalidNoticeStateTransitionException> {
-      service.publishNotice(1L, "admin", 1L)
+    test("createNotice rejects invalid time window") {
+      shouldThrow<InvalidNoticeTimeWindowException> {
+        service.createNotice(
+          1L,
+          "admin",
+          createRequest(startAt = LocalDateTime.of(2026, 8, 12, 12, 0), endAt = LocalDateTime.of(2026, 8, 12, 10, 0)),
+        )
+      }
     }
-  }
+    test("publishNotice transitions DRAFT to PUBLISHED") {
+      val draft = NoticeModel(id = 1L, title = "草稿", content = "内容", status = NoticeStatus.DRAFT)
+      every { noticeRepository.findById(1L) } returns java.util.Optional.of(draft)
+      every { noticeRepository.save(any()) } answers { firstArg() }
 
-  @Test
-  @DisplayName("updateNotice 已停用公告不可编辑")
-  fun `updateNotice rejects STOPPED`() {
-    val stopped = NoticeModel(id = 1L, title = "已停用", content = "内容", status = NoticeStatus.STOPPED)
-    every { noticeRepository.findById(1L) } returns java.util.Optional.of(stopped)
+      val published = service.publishNotice(1L, "admin", 1L)
 
-    assertFailsWith<InvalidNoticeStateTransitionException> {
-      service.updateNotice(1L, "admin", 1L, UpdateNoticeRequest("新标题", "新内容", NoticeType.WATER_OUTAGE))
+      published.status shouldBe NoticeStatus.PUBLISHED
+      published.publishedAt.shouldNotBeNull()
+      verify {
+        opsConfigAuditService.record(
+          OpsConfigAuditService.TARGET_NOTICE,
+          1L,
+          OpsConfigAuditService.ACTION_NOTICE_PUBLISH,
+          1L,
+          "admin",
+          before = any(),
+          after = any(),
+          description = any(),
+        )
+      }
     }
-  }
+    test("publishNotice rejects STOPPED") {
+      val stopped = NoticeModel(id = 1L, title = "已停用", content = "内容", status = NoticeStatus.STOPPED)
+      every { noticeRepository.findById(1L) } returns java.util.Optional.of(stopped)
 
-  @Test
-  @DisplayName("updateNotice 编辑已发布公告并落审计(含前后值)")
-  fun `updateNotice updates PUBLISHED with audit`() {
-    val published = NoticeModel(id = 1L, title = "旧标题", content = "旧内容", status = NoticeStatus.PUBLISHED)
-    every { noticeRepository.findById(1L) } returns java.util.Optional.of(published)
-    every { noticeRepository.save(any()) } answers { firstArg() }
-
-    val updated =
-      service.updateNotice(1L, "admin", 1L, UpdateNoticeRequest("新标题", "新内容", NoticeType.WATER_OUTAGE))
-
-    assertEquals("新标题", updated.title)
-    assertEquals(NoticeType.WATER_OUTAGE, updated.type)
-    verify {
-      opsConfigAuditService.record(
-        OpsConfigAuditService.TARGET_NOTICE,
-        1L,
-        OpsConfigAuditService.ACTION_NOTICE_UPDATE,
-        1L,
-        "admin",
-        before = any(),
-        after = any(),
-        description = any(),
-      )
+      shouldThrow<InvalidNoticeStateTransitionException> {
+        service.publishNotice(1L, "admin", 1L)
+      }
     }
-  }
+    test("updateNotice rejects STOPPED") {
+      val stopped = NoticeModel(id = 1L, title = "已停用", content = "内容", status = NoticeStatus.STOPPED)
+      every { noticeRepository.findById(1L) } returns java.util.Optional.of(stopped)
 
-  @Test
-  @DisplayName("stopNotice 停用已发布公告并取消置顶")
-  fun `stopNotice stops PUBLISHED and unpins`() {
-    val published = NoticeModel(id = 1L, title = "已发布", content = "内容", status = NoticeStatus.PUBLISHED, pinned = true)
-    every { noticeRepository.findById(1L) } returns java.util.Optional.of(published)
-    every { noticeRepository.save(any()) } answers { firstArg() }
-
-    val stopped = service.stopNotice(1L, "admin", 1L)
-
-    assertEquals(NoticeStatus.STOPPED, stopped.status)
-    assertFalse(stopped.pinned)
-  }
-
-  @Test
-  @DisplayName("stopNotice 草稿公告不可停用")
-  fun `stopNotice rejects DRAFT`() {
-    val draft = NoticeModel(id = 1L, title = "草稿", content = "内容", status = NoticeStatus.DRAFT)
-    every { noticeRepository.findById(1L) } returns java.util.Optional.of(draft)
-
-    assertFailsWith<InvalidNoticeStateTransitionException> {
-      service.stopNotice(1L, "admin", 1L)
+      shouldThrow<InvalidNoticeStateTransitionException> {
+        service.updateNotice(1L, "admin", 1L, UpdateNoticeRequest("新标题", "新内容", NoticeType.WATER_OUTAGE))
+      }
     }
-  }
+    test("updateNotice updates PUBLISHED with audit") {
+      val published = NoticeModel(id = 1L, title = "旧标题", content = "旧内容", status = NoticeStatus.PUBLISHED)
+      every { noticeRepository.findById(1L) } returns java.util.Optional.of(published)
+      every { noticeRepository.save(any()) } answers { firstArg() }
 
-  @Test
-  @DisplayName("setNoticePinned 仅已发布公告可置顶")
-  fun `setNoticePinned requires PUBLISHED`() {
-    val draft = NoticeModel(id = 1L, title = "草稿", content = "内容", status = NoticeStatus.DRAFT)
-    every { noticeRepository.findById(1L) } returns java.util.Optional.of(draft)
+      val updated =
+        service.updateNotice(1L, "admin", 1L, UpdateNoticeRequest("新标题", "新内容", NoticeType.WATER_OUTAGE))
 
-    assertFailsWith<InvalidNoticeStateTransitionException> {
-      service.setNoticePinned(1L, "admin", 1L, true)
+      updated.title shouldBe "新标题"
+      updated.type shouldBe NoticeType.WATER_OUTAGE
+      verify {
+        opsConfigAuditService.record(
+          OpsConfigAuditService.TARGET_NOTICE,
+          1L,
+          OpsConfigAuditService.ACTION_NOTICE_UPDATE,
+          1L,
+          "admin",
+          before = any(),
+          after = any(),
+          description = any(),
+        )
+      }
     }
-  }
+    test("stopNotice stops PUBLISHED and unpins") {
+      val published = NoticeModel(id = 1L, title = "已发布", content = "内容", status = NoticeStatus.PUBLISHED, pinned = true)
+      every { noticeRepository.findById(1L) } returns java.util.Optional.of(published)
+      every { noticeRepository.save(any()) } answers { firstArg() }
 
-  @Test
-  @DisplayName("setNoticePinned 置顶/取消置顶落对应审计动作")
-  fun `setNoticePinned pins and audits`() {
-    val published = NoticeModel(id = 1L, title = "已发布", content = "内容", status = NoticeStatus.PUBLISHED)
-    every { noticeRepository.findById(1L) } returns java.util.Optional.of(published)
-    every { noticeRepository.save(any()) } answers { firstArg() }
+      val stopped = service.stopNotice(1L, "admin", 1L)
 
-    val pinned = service.setNoticePinned(1L, "admin", 1L, true)
-
-    assertTrue(pinned.pinned)
-    verify {
-      opsConfigAuditService.record(
-        OpsConfigAuditService.TARGET_NOTICE,
-        1L,
-        OpsConfigAuditService.ACTION_NOTICE_PIN,
-        1L,
-        "admin",
-        before = any(),
-        after = any(),
-        description = any(),
-      )
+      stopped.status shouldBe NoticeStatus.STOPPED
+      stopped.pinned shouldBe false
     }
-  }
+    test("stopNotice rejects DRAFT") {
+      val draft = NoticeModel(id = 1L, title = "草稿", content = "内容", status = NoticeStatus.DRAFT)
+      every { noticeRepository.findById(1L) } returns java.util.Optional.of(draft)
 
-  @Test
-  @DisplayName("deleteNotice 任意状态可删除并落审计")
-  fun `deleteNotice deletes any status`() {
-    val stopped = NoticeModel(id = 1L, title = "已停用", content = "内容", status = NoticeStatus.STOPPED)
-    every { noticeRepository.findById(1L) } returns java.util.Optional.of(stopped)
-
-    val result = service.deleteNotice(1L, "admin", 1L)
-
-    assertTrue(result)
-    verify {
-      opsConfigAuditService.record(
-        OpsConfigAuditService.TARGET_NOTICE,
-        1L,
-        OpsConfigAuditService.ACTION_NOTICE_DELETE,
-        1L,
-        "admin",
-        before = any(),
-        after = any(),
-        description = any(),
-      )
+      shouldThrow<InvalidNoticeStateTransitionException> {
+        service.stopNotice(1L, "admin", 1L)
+      }
     }
-  }
+    test("setNoticePinned requires PUBLISHED") {
+      val draft = NoticeModel(id = 1L, title = "草稿", content = "内容", status = NoticeStatus.DRAFT)
+      every { noticeRepository.findById(1L) } returns java.util.Optional.of(draft)
 
-  @Test
-  @DisplayName("公告不存在抛 NoticeNotFoundException")
-  fun `notice not found throws`() {
-    every { noticeRepository.findById(999L) } returns java.util.Optional.empty()
-
-    assertFailsWith<NoticeNotFoundException> {
-      service.publishNotice(1L, "admin", 999L)
+      shouldThrow<InvalidNoticeStateTransitionException> {
+        service.setNoticePinned(1L, "admin", 1L, true)
+      }
     }
-  }
-}
+    test("setNoticePinned pins and audits") {
+      val published = NoticeModel(id = 1L, title = "已发布", content = "内容", status = NoticeStatus.PUBLISHED)
+      every { noticeRepository.findById(1L) } returns java.util.Optional.of(published)
+      every { noticeRepository.save(any()) } answers { firstArg() }
+
+      val pinned = service.setNoticePinned(1L, "admin", 1L, true)
+
+      pinned.pinned shouldBe true
+      verify {
+        opsConfigAuditService.record(
+          OpsConfigAuditService.TARGET_NOTICE,
+          1L,
+          OpsConfigAuditService.ACTION_NOTICE_PIN,
+          1L,
+          "admin",
+          before = any(),
+          after = any(),
+          description = any(),
+        )
+      }
+    }
+    test("deleteNotice deletes any status") {
+      val stopped = NoticeModel(id = 1L, title = "已停用", content = "内容", status = NoticeStatus.STOPPED)
+      every { noticeRepository.findById(1L) } returns java.util.Optional.of(stopped)
+
+      val result = service.deleteNotice(1L, "admin", 1L)
+
+      result shouldBe true
+      verify {
+        opsConfigAuditService.record(
+          OpsConfigAuditService.TARGET_NOTICE,
+          1L,
+          OpsConfigAuditService.ACTION_NOTICE_DELETE,
+          1L,
+          "admin",
+          before = any(),
+          after = any(),
+          description = any(),
+        )
+      }
+    }
+    test("notice not found throws") {
+      every { noticeRepository.findById(999L) } returns java.util.Optional.empty()
+
+      shouldThrow<NoticeNotFoundException> {
+        service.publishNotice(1L, "admin", 999L)
+      }
+    }
+  })

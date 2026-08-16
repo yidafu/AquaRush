@@ -26,95 +26,81 @@ import dev.yidafu.aqua.common.domain.model.enums.CouponTemplateStatus
 import dev.yidafu.aqua.common.domain.model.enums.CouponType
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 
 /** 优惠券快照构造单元测试(R-MKT-03 参数快照)。 */
-class CouponSnapshotSupportTest {
-  private val now: LocalDateTime = LocalDateTime.of(2026, 8, 14, 10, 0)
+class CouponSnapshotSupportTest :
+  FunSpec({
+    val now: LocalDateTime = LocalDateTime.of(2026, 8, 14, 10, 0)
 
-  private fun template(
-    validityType: ValidityType = ValidityType.FIXED_RANGE,
-    validTo: LocalDateTime? = now.plusDays(30),
-    validDays: Int? = null,
-  ): CouponTemplateModel =
-    CouponTemplateModel(
-      id = 1L,
-      name = "测试券",
-      couponType = CouponType.CASH,
-      thresholdCents = 5000,
-      discountAmountCents = 1000,
-      scope = CouponScope.ALL,
-      validityType = validityType,
-      validFrom = now.minusDays(1),
-      validTo = validTo,
-      validDays = validDays,
-      issuanceType = CouponIssuanceType.AUTO_CLAIM,
-      perUserLimit = 1,
-      status = CouponTemplateStatus.ACTIVE,
-    )
+    fun template(
+      validityType: ValidityType = ValidityType.FIXED_RANGE,
+      validTo: LocalDateTime? = now.plusDays(30),
+      validDays: Int? = null,
+    ): CouponTemplateModel =
+      CouponTemplateModel(
+        id = 1L,
+        name = "测试券",
+        couponType = CouponType.CASH,
+        thresholdCents = 5000,
+        discountAmountCents = 1000,
+        scope = CouponScope.ALL,
+        validityType = validityType,
+        validFrom = now.minusDays(1),
+        validTo = validTo,
+        validDays = validDays,
+        issuanceType = CouponIssuanceType.AUTO_CLAIM,
+        perUserLimit = 1,
+        status = CouponTemplateStatus.ACTIVE,
+      )
 
-  @Test
-  @DisplayName("过期时间:固定区间=validTo")
-  fun `computeExpireTime fixed range uses validTo`() {
-    val expire = CouponSnapshotSupport.computeExpireTime(template(validTo = now.plusDays(10)), now)
+    test("computeExpireTime fixed range uses validTo") {
+      val expire = CouponSnapshotSupport.computeExpireTime(template(validTo = now.plusDays(10)), now)
 
-    assertEquals(now.plusDays(10), expire)
-  }
+      expire shouldBe now.plusDays(10)
+    }
+    test("computeExpireTime fixed range missing validTo falls back") {
+      val expire = CouponSnapshotSupport.computeExpireTime(template(validTo = null), now)
 
-  @Test
-  @DisplayName("过期时间:固定区间无 validTo → 回退领取时间")
-  fun `computeExpireTime fixed range missing validTo falls back`() {
-    val expire = CouponSnapshotSupport.computeExpireTime(template(validTo = null), now)
+      expire shouldBe now
+    }
+    test("computeExpireTime days after claim") {
+      val expire =
+        CouponSnapshotSupport.computeExpireTime(template(validityType = ValidityType.DAYS_AFTER_CLAIM, validTo = null, validDays = 15), now)
 
-    assertEquals(now, expire)
-  }
+      expire shouldBe now.plusDays(15)
+    }
+    test("computeExpireTime days after claim missing days falls back") {
+      val expire =
+        CouponSnapshotSupport.computeExpireTime(
+          template(validityType = ValidityType.DAYS_AFTER_CLAIM, validTo = null, validDays = null),
+          now,
+        )
 
-  @Test
-  @DisplayName("过期时间:领取后N天=claimTime+validDays")
-  fun `computeExpireTime days after claim`() {
-    val expire =
-      CouponSnapshotSupport.computeExpireTime(template(validityType = ValidityType.DAYS_AFTER_CLAIM, validTo = null, validDays = 15), now)
+      expire shouldBe now
+    }
+    test("computeExpireTime other type falls back") {
+      val expire =
+        CouponSnapshotSupport.computeExpireTime(template(validityType = ValidityType.DAYS_AFTER_PURCHASE, validTo = null), now)
 
-    assertEquals(now.plusDays(15), expire)
-  }
+      expire shouldBe now
+    }
+    test("buildUserCoupon snapshots template params") {
+      val t = template()
+      val coupon = CouponSnapshotSupport.buildUserCoupon(userId = 7L, template = t, claimTime = now)
 
-  @Test
-  @DisplayName("过期时间:领取后N天无天数 → 回退领取时间")
-  fun `computeExpireTime days after claim missing days falls back`() {
-    val expire =
-      CouponSnapshotSupport.computeExpireTime(template(validityType = ValidityType.DAYS_AFTER_CLAIM, validTo = null, validDays = null), now)
-
-    assertEquals(now, expire)
-  }
-
-  @Test
-  @DisplayName("过期时间:其他类型回退领取时间")
-  fun `computeExpireTime other type falls back`() {
-    val expire =
-      CouponSnapshotSupport.computeExpireTime(template(validityType = ValidityType.DAYS_AFTER_PURCHASE, validTo = null), now)
-
-    assertEquals(now, expire)
-  }
-
-  @Test
-  @DisplayName("快照:由模板构造用户券,字段快照+状态 RECEIVED")
-  fun `buildUserCoupon snapshots template params`() {
-    val t = template()
-    val coupon = CouponSnapshotSupport.buildUserCoupon(userId = 7L, template = t, claimTime = now)
-
-    assertEquals(7L, coupon.userId)
-    assertEquals(1L, coupon.couponTemplateId)
-    assertEquals(UserCouponStatus.RECEIVED, coupon.status)
-    assertEquals("测试券", coupon.name)
-    assertEquals(CouponType.CASH, coupon.couponType)
-    assertEquals(5000, coupon.thresholdCents)
-    assertEquals(1000, coupon.discountAmountCents)
-    assertEquals(CouponScope.ALL, coupon.scope)
-    assertEquals(now.plusDays(30), coupon.expireTime)
-    assertEquals(now, coupon.claimTime)
-    assertEquals(now, coupon.createdAt)
-  }
-}
+      coupon.userId shouldBe 7L
+      coupon.couponTemplateId shouldBe 1L
+      coupon.status shouldBe UserCouponStatus.RECEIVED
+      coupon.name shouldBe "测试券"
+      coupon.couponType shouldBe CouponType.CASH
+      coupon.thresholdCents shouldBe 5000
+      coupon.discountAmountCents shouldBe 1000
+      coupon.scope shouldBe CouponScope.ALL
+      coupon.expireTime shouldBe now.plusDays(30)
+      coupon.claimTime shouldBe now
+      coupon.createdAt shouldBe now
+    }
+  })

@@ -21,51 +21,43 @@ package dev.yidafu.aqua.marketing.pricing.service.impl
 
 import dev.yidafu.aqua.common.domain.model.GroupProductPriceModel
 import dev.yidafu.aqua.marketing.pricing.domain.repository.GroupProductPriceRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 /** 分组商品专属价查询服务单元测试(F-MKT-002 列表/详情)。 */
-class GroupProductPriceQueryServiceImplTest {
-  private lateinit var groupProductPriceRepository: GroupProductPriceRepository
-  private lateinit var service: GroupProductPriceQueryServiceImpl
+class GroupProductPriceQueryServiceImplTest :
+  FunSpec({
+    var groupProductPriceRepository: GroupProductPriceRepository = mockk()
+    var service: GroupProductPriceQueryServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    groupProductPriceRepository = mockk()
-    service = GroupProductPriceQueryServiceImpl(groupProductPriceRepository)
-  }
+    beforeTest {
+      groupProductPriceRepository = mockk()
+      service = GroupProductPriceQueryServiceImpl(groupProductPriceRepository)
+    }
+    test("listByGroup") {
+      val pageable: Pageable = PageRequest.of(0, 10)
+      val page: Page<GroupProductPriceModel> =
+        PageImpl(listOf(GroupProductPriceModel(id = 1L, customerGroupId = 5L, productId = 1L, priceCents = 1500)))
+      every { groupProductPriceRepository.findByCustomerGroupId(5L, pageable) } returns page
 
-  @Test
-  @DisplayName("分组价格列表(分页)")
-  fun `listByGroup`() {
-    val pageable: Pageable = PageRequest.of(0, 10)
-    val page: Page<GroupProductPriceModel> =
-      PageImpl(listOf(GroupProductPriceModel(id = 1L, customerGroupId = 5L, productId = 1L, priceCents = 1500)))
-    every { groupProductPriceRepository.findByCustomerGroupId(5L, pageable) } returns page
+      val result = service.listByGroup(5L, pageable)
 
-    val result = service.listByGroup(5L, pageable)
+      result.totalElements shouldBe 1
+      result.content[0].priceCents shouldBe 1500
+    }
+    test("getByGroupAndProduct") {
+      every { groupProductPriceRepository.findByCustomerGroupIdAndProductId(5L, 1L) } returns
+        GroupProductPriceModel(id = 1L, customerGroupId = 5L, productId = 1L, priceCents = 1500)
+      every { groupProductPriceRepository.findByCustomerGroupIdAndProductId(5L, 2L) } returns null
 
-    assertEquals(1, result.totalElements)
-    assertEquals(1500, result.content[0].priceCents)
-  }
-
-  @Test
-  @DisplayName("分组×商品详情:存在/不存在")
-  fun `getByGroupAndProduct`() {
-    every { groupProductPriceRepository.findByCustomerGroupIdAndProductId(5L, 1L) } returns
-      GroupProductPriceModel(id = 1L, customerGroupId = 5L, productId = 1L, priceCents = 1500)
-    every { groupProductPriceRepository.findByCustomerGroupIdAndProductId(5L, 2L) } returns null
-
-    assertEquals(1500, service.getByGroupAndProduct(5L, 1L)?.priceCents)
-    assertNull(service.getByGroupAndProduct(5L, 2L))
-  }
-}
+      service.getByGroupAndProduct(5L, 1L)?.priceCents shouldBe 1500
+      service.getByGroupAndProduct(5L, 2L).shouldBeNull()
+    }
+  })

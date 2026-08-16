@@ -19,337 +19,277 @@
 
 package dev.yidafu.aqua.common.utils
 
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import java.math.BigDecimal
 
-class MoneyUtilsTest {
-  // ========== Conversion Function Tests ==========
+class MoneyUtilsTest :
+  FunSpec({
+    // ========== Conversion Function Tests ==========
 
-  @Test
-  fun `toCents should convert valid yuan amounts correctly`() {
-    // Test basic conversions
-    assertEquals(100L, MoneyUtils.toCents(BigDecimal("1.00")))
-    assertEquals(0L, MoneyUtils.toCents(BigDecimal("0.00")))
-    assertEquals(150L, MoneyUtils.toCents(BigDecimal("1.50")))
-    assertEquals(999L, MoneyUtils.toCents(BigDecimal("9.99")))
-    assertEquals(123456789L, MoneyUtils.toCents(BigDecimal("1234567.89")))
-  }
+    // ========== Formatting Function Tests ==========
 
-  @Test
-  fun `toCents should handle edge cases correctly`() {
-    // Test maximum safe values
-    assertEquals(Long.MAX_VALUE, MoneyUtils.toCents(BigDecimal("92233720368547758.07")))
+    // ========== Validation Function Tests ==========
 
-    // More than 2 decimal places is rejected by strict validation
-    val exception =
-      assertThrows<IllegalArgumentException> {
-        MoneyUtils.toCents(BigDecimal("1.245"))
-      }
-    assertTrue(exception.message!!.contains("more than 2 decimal places"))
-  }
+    // ========== Arithmetic Operation Tests ==========
 
-  @Test
-  fun `toCents should throw exception for negative amounts`() {
-    val exception =
-      assertThrows<IllegalArgumentException> {
-        MoneyUtils.toCents(BigDecimal("-1.00"))
-      }
-    assertTrue(exception.message!!.contains("Yuan amount cannot be negative"))
-  }
+    // ========== Utility Function Tests ==========
 
-  @Test
-  fun `toCents should throw exception for amounts with too many decimal places`() {
-    val exception =
-      assertThrows<IllegalArgumentException> {
-        MoneyUtils.toCents(BigDecimal("1.001"))
-      }
-    assertTrue(exception.message!!.contains("cannot have more than 2 decimal places"))
-  }
+    // ========== Performance and Edge Case Tests ==========
 
-  @Test
-  fun `toCents should throw exception for amounts that would cause precision loss`() {
-    val exception =
-      assertThrows<ArithmeticException> {
-        MoneyUtils.toCents(BigDecimal("92233720368547758.08")) // Would overflow
-      }
-    assertTrue(exception.message!!.contains("Conversion from yuan to cents would lose precision"))
-  }
-
-  @Test
-  fun `fromCents should convert valid cents correctly`() {
-    assertEquals(BigDecimal("0.00"), MoneyUtils.fromCents(0L))
-    assertEquals(BigDecimal("1.00"), MoneyUtils.fromCents(100L))
-    assertEquals(BigDecimal("1.50"), MoneyUtils.fromCents(150L))
-    assertEquals(BigDecimal("9.99"), MoneyUtils.fromCents(999L))
-    assertEquals(BigDecimal("1234567.89"), MoneyUtils.fromCents(123456789L))
-  }
-
-  @Test
-  fun `fromCents should handle large values correctly`() {
-    val largeCents = Long.MAX_VALUE
-    val result = MoneyUtils.fromCents(largeCents)
-    assertNotNull(result)
-    assertTrue(result.scale() <= 2)
-  }
-
-  @Test
-  fun `fromCents should throw exception for negative amounts`() {
-    val exception =
-      assertThrows<IllegalArgumentException> {
-        MoneyUtils.fromCents(-1L)
-      }
-    assertTrue(exception.message!!.contains("Cents amount cannot be negative"))
-  }
-
-  @Test
-  fun `conversion should be bidirectional and accurate`() {
-    val testAmounts =
-      listOf(
-        "0.00",
-        "0.01",
-        "0.10",
-        "1.00",
-        "1.23",
-        "9.99",
-        "100.00",
-        "1234.56",
-        "999999.99",
-      )
-
-    for (amountStr in testAmounts) {
-      val yuan = BigDecimal(amountStr)
-      val cents = MoneyUtils.toCents(yuan)
-      val convertedBack = MoneyUtils.fromCents(cents)
-      assertEquals(yuan, convertedBack, "Round-trip conversion failed for $amountStr")
+    test("toCents should convert valid yuan amounts correctly") {
+      // Test basic conversions
+      MoneyUtils.toCents(BigDecimal("1.00")) shouldBe 100L
+      MoneyUtils.toCents(BigDecimal("0.00")) shouldBe 0L
+      MoneyUtils.toCents(BigDecimal("1.50")) shouldBe 150L
+      MoneyUtils.toCents(BigDecimal("9.99")) shouldBe 999L
+      MoneyUtils.toCents(BigDecimal("1234567.89")) shouldBe 123456789L
     }
-  }
+    test("toCents should handle edge cases correctly") {
+      // Test maximum safe values
+      MoneyUtils.toCents(BigDecimal("92233720368547758.07")) shouldBe Long.MAX_VALUE
 
-  // ========== Formatting Function Tests ==========
-
-  @Test
-  fun `formatCents should format amounts correctly`() {
-    assertEquals("¥0.00", MoneyUtils.formatCents(0L))
-    assertEquals("¥1.00", MoneyUtils.formatCents(100L))
-    assertEquals("¥1.50", MoneyUtils.formatCents(150L))
-    assertEquals("¥123.45", MoneyUtils.formatCents(12345L))
-  }
-
-  @Test
-  fun `formatCents should throw exception for negative amounts`() {
-    val exception =
-      assertThrows<IllegalArgumentException> {
-        MoneyUtils.formatCents(-1L)
-      }
-    assertTrue(exception.message!!.contains("Cents amount cannot be negative"))
-  }
-
-  @Test
-  fun `formatYuan should format amounts correctly`() {
-    assertEquals("¥0.00", MoneyUtils.formatYuan(BigDecimal("0.00")))
-    assertEquals("¥1.00", MoneyUtils.formatYuan(BigDecimal("1.00")))
-    assertEquals("¥1.50", MoneyUtils.formatYuan(BigDecimal("1.50")))
-    assertEquals("¥123.45", MoneyUtils.formatYuan(BigDecimal("123.45")))
-  }
-
-  @Test
-  fun `formatYuan should throw exception for negative amounts`() {
-    val exception =
-      assertThrows<IllegalArgumentException> {
-        MoneyUtils.formatYuan(BigDecimal("-1.00"))
-      }
-    assertTrue(exception.message!!.contains("Yuan amount cannot be negative"))
-  }
-
-  // ========== Validation Function Tests ==========
-
-  @Test
-  fun `canConvertToCents should validate correctly`() {
-    // Valid cases
-    assertTrue(MoneyUtils.canConvertToCents(BigDecimal("0.00")))
-    assertTrue(MoneyUtils.canConvertToCents(BigDecimal("1.00")))
-    assertTrue(MoneyUtils.canConvertToCents(BigDecimal("1.23")))
-    assertTrue(MoneyUtils.canConvertToCents(BigDecimal("999999.99")))
-
-    // Invalid cases
-    assertFalse(MoneyUtils.canConvertToCents(BigDecimal("-1.00")))
-    assertFalse(MoneyUtils.canConvertToCents(BigDecimal("1.001"))) // Too many decimal places
-  }
-
-  @Test
-  fun `validateCentsConversion should validate correctly`() {
-    // Valid cases
-    assertTrue(MoneyUtils.validateCentsConversion(100L, BigDecimal("1.00")))
-    assertTrue(MoneyUtils.validateCentsConversion(150L, BigDecimal("1.50")))
-    assertTrue(MoneyUtils.validateCentsConversion(0L, BigDecimal("0.00")))
-
-    // Invalid cases
-    assertFalse(MoneyUtils.validateCentsConversion(-1L, BigDecimal("1.00")))
-    assertFalse(MoneyUtils.validateCentsConversion(100L, BigDecimal("-1.00")))
-    assertFalse(MoneyUtils.validateCentsConversion(100L, BigDecimal("2.00"))) // Mismatch
-  }
-
-  // ========== Arithmetic Operation Tests ==========
-
-  @Test
-  fun `addCents should add amounts correctly`() {
-    assertEquals(200L, MoneyUtils.addCents(100L, 100L))
-    assertEquals(0L, MoneyUtils.addCents(0L, 0L))
-    assertEquals(150L, MoneyUtils.addCents(100L, 50L))
-    assertEquals(Long.MAX_VALUE, MoneyUtils.addCents(Long.MAX_VALUE - 100L, 100L))
-  }
-
-  @Test
-  fun `addCents should throw exception for overflow`() {
-    assertThrows<ArithmeticException> {
-      MoneyUtils.addCents(Long.MAX_VALUE, 1L)
+      // More than 2 decimal places is rejected by strict validation
+      val exception =
+        shouldThrow<IllegalArgumentException> {
+          MoneyUtils.toCents(BigDecimal("1.245"))
+        }
+      exception.message!!.contains("more than 2 decimal places") shouldBe true
     }
-    assertThrows<ArithmeticException> {
-      MoneyUtils.addCents(Long.MAX_VALUE / 2 + 1, Long.MAX_VALUE / 2 + 1)
+    test("toCents should throw exception for negative amounts") {
+      val exception =
+        shouldThrow<IllegalArgumentException> {
+          MoneyUtils.toCents(BigDecimal("-1.00"))
+        }
+      exception.message!!.contains("Yuan amount cannot be negative") shouldBe true
     }
-  }
-
-  @Test
-  fun `subtractCents should subtract amounts correctly`() {
-    assertEquals(100L, MoneyUtils.subtractCents(200L, 100L))
-    assertEquals(0L, MoneyUtils.subtractCents(100L, 100L))
-    assertEquals(50L, MoneyUtils.subtractCents(100L, 50L))
-    assertEquals(1L, MoneyUtils.subtractCents(Long.MAX_VALUE, Long.MAX_VALUE - 1L))
-  }
-
-  @Test
-  fun `subtractCents should throw exception for negative result`() {
-    val exception =
-      assertThrows<IllegalArgumentException> {
-        MoneyUtils.subtractCents(100L, 200L)
-      }
-    assertTrue(exception.message!!.contains("Result would be negative"))
-  }
-
-  @Test
-  fun `multiplyCents should multiply amounts correctly`() {
-    assertEquals(200L, MoneyUtils.multiplyCents(100L, BigDecimal("2.0")))
-    assertEquals(150L, MoneyUtils.multiplyCents(100L, BigDecimal("1.5")))
-    assertEquals(50L, MoneyUtils.multiplyCents(100L, BigDecimal("0.5")))
-    assertEquals(33L, MoneyUtils.multiplyCents(100L, BigDecimal("0.333"))) // Should round
-    assertEquals(0L, MoneyUtils.multiplyCents(100L, BigDecimal("0.0")))
-  }
-
-  @Test
-  fun `multiplyCents should throw exception for negative multiplier`() {
-    val exception =
-      assertThrows<IllegalArgumentException> {
-        MoneyUtils.multiplyCents(100L, BigDecimal("-1.0"))
-      }
-    assertTrue(exception.message!!.contains("Multiplier cannot be negative"))
-  }
-
-  @Test
-  fun `calculatePercentage should calculate correctly`() {
-    assertEquals(10L, MoneyUtils.calculatePercentage(1000L, BigDecimal("1.0"))) // 1%
-    assertEquals(50L, MoneyUtils.calculatePercentage(1000L, BigDecimal("5.0"))) // 5%
-    assertEquals(100L, MoneyUtils.calculatePercentage(1000L, BigDecimal("10.0"))) // 10%
-    assertEquals(0L, MoneyUtils.calculatePercentage(1000L, BigDecimal("0.0"))) // 0%
-    assertEquals(1000L, MoneyUtils.calculatePercentage(1000L, BigDecimal("100.0"))) // 100%
-  }
-
-  @Test
-  fun `calculatePercentage should throw exception for negative percentage`() {
-    val exception =
-      assertThrows<IllegalArgumentException> {
-        MoneyUtils.calculatePercentage(1000L, BigDecimal("-1.0"))
-      }
-    assertTrue(exception.message!!.contains("Percentage cannot be negative"))
-  }
-
-  // ========== Utility Function Tests ==========
-
-  @Test
-  fun `roundToMonetaryScale should round correctly`() {
-    assertEquals(BigDecimal("1.00"), MoneyUtils.roundToMonetaryScale(BigDecimal("1.00")))
-    assertEquals(BigDecimal("1.24"), MoneyUtils.roundToMonetaryScale(BigDecimal("1.235"))) // Banker's rounding
-    assertEquals(BigDecimal("1.26"), MoneyUtils.roundToMonetaryScale(BigDecimal("1.255"))) // Banker's rounding
-    assertEquals(BigDecimal("1.23"), MoneyUtils.roundToMonetaryScale(BigDecimal("1.234")))
-    assertEquals(BigDecimal("1.24"), MoneyUtils.roundToMonetaryScale(BigDecimal("1.236")))
-
-    // Test that it always returns exactly 2 decimal places
-    assertEquals(2, MoneyUtils.roundToMonetaryScale(BigDecimal("1")).scale())
-    assertEquals(2, MoneyUtils.roundToMonetaryScale(BigDecimal("1.2")).scale())
-    assertEquals(2, MoneyUtils.roundToMonetaryScale(BigDecimal("1.23")).scale())
-    assertEquals(2, MoneyUtils.roundToMonetaryScale(BigDecimal("1.234")).scale())
-  }
-
-  // ========== Performance and Edge Case Tests ==========
-
-  @ParameterizedTest
-  @ValueSource(strings = ["0.01", "0.10", "0.99", "1.00", "1.01", "10.00", "99.99", "100.00"])
-  fun `conversion should handle all valid 2-decimal amounts correctly`(amountStr: String) {
-    val yuan = BigDecimal(amountStr)
-    val cents = MoneyUtils.toCents(yuan)
-    val convertedBack = MoneyUtils.fromCents(cents)
-
-    assertEquals(yuan, convertedBack, "Failed for amount: $amountStr")
-
-    // Also verify the cents value is correct
-    val expectedCents = (BigDecimal(amountStr) * BigDecimal(100)).toLong()
-    assertEquals(expectedCents, cents, "Incorrect cents for amount: $amountStr")
-  }
-
-  @Test
-  fun `large number operations should not overflow unexpectedly`() {
-    val largeAmount = Long.MAX_VALUE / 2
-
-    // These should work without overflow
-    assertNotNull(MoneyUtils.fromCents(largeAmount))
-    assertNotNull(MoneyUtils.formatCents(largeAmount))
-
-    // Addition should work within limits
-    val result = MoneyUtils.addCents(largeAmount, 1L)
-    assertEquals(largeAmount + 1, result)
-  }
-
-  @Test
-  fun `arithmetic operations should maintain precision`() {
-    // Test precision is maintained in complex operations
-    val base = 12345L // ¥123.45
-
-    val doubled = MoneyUtils.multiplyCents(base, BigDecimal("2.0"))
-    assertEquals(24690L, doubled)
-
-    val halved = MoneyUtils.multiplyCents(base, BigDecimal("0.5"))
-    assertEquals(6172L, halved) // HALF_EVEN rounds 6172.5 -> 6172
-
-    val percentage = MoneyUtils.calculatePercentage(base, BigDecimal("10.0"))
-    assertEquals(1234L, percentage) // 10% of 12345, HALF_EVEN rounds 1234.5 -> 1234
-
-    // Verify by converting back to yuan
-    assertEquals(BigDecimal("246.90"), MoneyUtils.fromCents(doubled))
-    assertEquals(BigDecimal("61.72"), MoneyUtils.fromCents(halved))
-    assertEquals(BigDecimal("12.34"), MoneyUtils.fromCents(percentage))
-  }
-
-  @Test
-  fun `formatting should be consistent with Chinese locale`() {
-    val testCents = listOf(0L, 1L, 100L, 1234L, 999999L)
-
-    for (cents in testCents) {
-      val formattedFromCents = MoneyUtils.formatCents(cents)
-      val yuan = MoneyUtils.fromCents(cents)
-      val formattedFromYuan = MoneyUtils.formatYuan(yuan)
-
-      assertEquals(
-        formattedFromCents,
-        formattedFromYuan,
-        "Formatting inconsistency for cents: $cents",
-      )
-
-      assertTrue(
-        formattedFromCents.startsWith("¥"),
-        "Should start with ¥ symbol: $formattedFromCents",
-      )
+    test("toCents should throw exception for amounts with too many decimal places") {
+      val exception =
+        shouldThrow<IllegalArgumentException> {
+          MoneyUtils.toCents(BigDecimal("1.001"))
+        }
+      exception.message!!.contains("cannot have more than 2 decimal places") shouldBe true
     }
-  }
-}
+    test("toCents should throw exception for amounts that would cause precision loss") {
+      val exception =
+        shouldThrow<ArithmeticException> {
+          MoneyUtils.toCents(BigDecimal("92233720368547758.08")) // Would overflow
+        }
+      exception.message!!.contains("Conversion from yuan to cents would lose precision") shouldBe true
+    }
+    test("fromCents should convert valid cents correctly") {
+      MoneyUtils.fromCents(0L) shouldBe BigDecimal("0.00")
+      MoneyUtils.fromCents(100L) shouldBe BigDecimal("1.00")
+      MoneyUtils.fromCents(150L) shouldBe BigDecimal("1.50")
+      MoneyUtils.fromCents(999L) shouldBe BigDecimal("9.99")
+      MoneyUtils.fromCents(123456789L) shouldBe BigDecimal("1234567.89")
+    }
+    test("fromCents should handle large values correctly") {
+      val largeCents = Long.MAX_VALUE
+      val result = MoneyUtils.fromCents(largeCents)
+      result.shouldNotBeNull()
+      (result.scale() <= 2) shouldBe true
+    }
+    test("fromCents should throw exception for negative amounts") {
+      val exception =
+        shouldThrow<IllegalArgumentException> {
+          MoneyUtils.fromCents(-1L)
+        }
+      exception.message!!.contains("Cents amount cannot be negative") shouldBe true
+    }
+    test("conversion should be bidirectional and accurate") {
+      val testAmounts =
+        listOf(
+          "0.00",
+          "0.01",
+          "0.10",
+          "1.00",
+          "1.23",
+          "9.99",
+          "100.00",
+          "1234.56",
+          "999999.99",
+        )
+
+      for (amountStr in testAmounts) {
+        val yuan = BigDecimal(amountStr)
+        val cents = MoneyUtils.toCents(yuan)
+        val convertedBack = MoneyUtils.fromCents(cents)
+        withClue("Round-trip conversion failed for $amountStr") { convertedBack shouldBe yuan }
+      }
+    }
+    test("formatCents should format amounts correctly") {
+      MoneyUtils.formatCents(0L) shouldBe "¥0.00"
+      MoneyUtils.formatCents(100L) shouldBe "¥1.00"
+      MoneyUtils.formatCents(150L) shouldBe "¥1.50"
+      MoneyUtils.formatCents(12345L) shouldBe "¥123.45"
+    }
+    test("formatCents should throw exception for negative amounts") {
+      val exception =
+        shouldThrow<IllegalArgumentException> {
+          MoneyUtils.formatCents(-1L)
+        }
+      exception.message!!.contains("Cents amount cannot be negative") shouldBe true
+    }
+    test("formatYuan should format amounts correctly") {
+      MoneyUtils.formatYuan(BigDecimal("0.00")) shouldBe "¥0.00"
+      MoneyUtils.formatYuan(BigDecimal("1.00")) shouldBe "¥1.00"
+      MoneyUtils.formatYuan(BigDecimal("1.50")) shouldBe "¥1.50"
+      MoneyUtils.formatYuan(BigDecimal("123.45")) shouldBe "¥123.45"
+    }
+    test("formatYuan should throw exception for negative amounts") {
+      val exception =
+        shouldThrow<IllegalArgumentException> {
+          MoneyUtils.formatYuan(BigDecimal("-1.00"))
+        }
+      exception.message!!.contains("Yuan amount cannot be negative") shouldBe true
+    }
+    test("canConvertToCents should validate correctly") {
+      // Valid cases
+      MoneyUtils.canConvertToCents(BigDecimal("0.00")) shouldBe true
+      MoneyUtils.canConvertToCents(BigDecimal("1.00")) shouldBe true
+      MoneyUtils.canConvertToCents(BigDecimal("1.23")) shouldBe true
+      MoneyUtils.canConvertToCents(BigDecimal("999999.99")) shouldBe true
+
+      // Invalid cases
+      MoneyUtils.canConvertToCents(BigDecimal("-1.00")) shouldBe false
+      MoneyUtils.canConvertToCents(BigDecimal("1.001")) shouldBe false // Too many decimal places
+    }
+    test("validateCentsConversion should validate correctly") {
+      // Valid cases
+      MoneyUtils.validateCentsConversion(100L, BigDecimal("1.00")) shouldBe true
+      MoneyUtils.validateCentsConversion(150L, BigDecimal("1.50")) shouldBe true
+      MoneyUtils.validateCentsConversion(0L, BigDecimal("0.00")) shouldBe true
+
+      // Invalid cases
+      MoneyUtils.validateCentsConversion(-1L, BigDecimal("1.00")) shouldBe false
+      MoneyUtils.validateCentsConversion(100L, BigDecimal("-1.00")) shouldBe false
+      MoneyUtils.validateCentsConversion(100L, BigDecimal("2.00")) shouldBe false // Mismatch
+    }
+    test("addCents should add amounts correctly") {
+      MoneyUtils.addCents(100L, 100L) shouldBe 200L
+      MoneyUtils.addCents(0L, 0L) shouldBe 0L
+      MoneyUtils.addCents(100L, 50L) shouldBe 150L
+      MoneyUtils.addCents(Long.MAX_VALUE - 100L, 100L) shouldBe Long.MAX_VALUE
+    }
+    test("addCents should throw exception for overflow") {
+      shouldThrow<ArithmeticException> {
+        MoneyUtils.addCents(Long.MAX_VALUE, 1L)
+      }
+      shouldThrow<ArithmeticException> {
+        MoneyUtils.addCents(Long.MAX_VALUE / 2 + 1, Long.MAX_VALUE / 2 + 1)
+      }
+    }
+    test("subtractCents should subtract amounts correctly") {
+      MoneyUtils.subtractCents(200L, 100L) shouldBe 100L
+      MoneyUtils.subtractCents(100L, 100L) shouldBe 0L
+      MoneyUtils.subtractCents(100L, 50L) shouldBe 50L
+      MoneyUtils.subtractCents(Long.MAX_VALUE, Long.MAX_VALUE - 1L) shouldBe 1L
+    }
+    test("subtractCents should throw exception for negative result") {
+      val exception =
+        shouldThrow<IllegalArgumentException> {
+          MoneyUtils.subtractCents(100L, 200L)
+        }
+      exception.message!!.contains("Result would be negative") shouldBe true
+    }
+    test("multiplyCents should multiply amounts correctly") {
+      MoneyUtils.multiplyCents(100L, BigDecimal("2.0")) shouldBe 200L
+      MoneyUtils.multiplyCents(100L, BigDecimal("1.5")) shouldBe 150L
+      MoneyUtils.multiplyCents(100L, BigDecimal("0.5")) shouldBe 50L
+      MoneyUtils.multiplyCents(100L, BigDecimal("0.333")) shouldBe 33L // Should round
+      MoneyUtils.multiplyCents(100L, BigDecimal("0.0")) shouldBe 0L
+    }
+    test("multiplyCents should throw exception for negative multiplier") {
+      val exception =
+        shouldThrow<IllegalArgumentException> {
+          MoneyUtils.multiplyCents(100L, BigDecimal("-1.0"))
+        }
+      exception.message!!.contains("Multiplier cannot be negative") shouldBe true
+    }
+    test("calculatePercentage should calculate correctly") {
+      MoneyUtils.calculatePercentage(1000L, BigDecimal("1.0")) shouldBe 10L // 1%
+      MoneyUtils.calculatePercentage(1000L, BigDecimal("5.0")) shouldBe 50L // 5%
+      MoneyUtils.calculatePercentage(1000L, BigDecimal("10.0")) shouldBe 100L // 10%
+      MoneyUtils.calculatePercentage(1000L, BigDecimal("0.0")) shouldBe 0L // 0%
+      MoneyUtils.calculatePercentage(1000L, BigDecimal("100.0")) shouldBe 1000L // 100%
+    }
+    test("calculatePercentage should throw exception for negative percentage") {
+      val exception =
+        shouldThrow<IllegalArgumentException> {
+          MoneyUtils.calculatePercentage(1000L, BigDecimal("-1.0"))
+        }
+      exception.message!!.contains("Percentage cannot be negative") shouldBe true
+    }
+    test("roundToMonetaryScale should round correctly") {
+      MoneyUtils.roundToMonetaryScale(BigDecimal("1.00")) shouldBe BigDecimal("1.00")
+      MoneyUtils.roundToMonetaryScale(BigDecimal("1.235")) shouldBe BigDecimal("1.24") // Banker's rounding
+      MoneyUtils.roundToMonetaryScale(BigDecimal("1.255")) shouldBe BigDecimal("1.26") // Banker's rounding
+      MoneyUtils.roundToMonetaryScale(BigDecimal("1.234")) shouldBe BigDecimal("1.23")
+      MoneyUtils.roundToMonetaryScale(BigDecimal("1.236")) shouldBe BigDecimal("1.24")
+
+      // Test that it always returns exactly 2 decimal places
+      MoneyUtils.roundToMonetaryScale(BigDecimal("1")).scale() shouldBe 2
+      MoneyUtils.roundToMonetaryScale(BigDecimal("1.2")).scale() shouldBe 2
+      MoneyUtils.roundToMonetaryScale(BigDecimal("1.23")).scale() shouldBe 2
+      MoneyUtils.roundToMonetaryScale(BigDecimal("1.234")).scale() shouldBe 2
+    }
+    test("conversion should handle all valid 2-decimal amounts correctly") {
+      for (amountStr in listOf("0.01", "0.10", "0.99", "1.00", "1.01", "10.00", "99.99", "100.00")) {
+        val yuan = BigDecimal(amountStr)
+        val cents = MoneyUtils.toCents(yuan)
+        val convertedBack = MoneyUtils.fromCents(cents)
+
+        withClue("Failed for amount: $amountStr") { convertedBack shouldBe yuan }
+
+        // Also verify the cents value is correct
+        val expectedCents = (BigDecimal(amountStr) * BigDecimal(100)).toLong()
+        withClue("Incorrect cents for amount: $amountStr") { cents shouldBe expectedCents }
+      }
+    }
+    test("large number operations should not overflow unexpectedly") {
+      val largeAmount = Long.MAX_VALUE / 2
+
+      // These should work without overflow
+      MoneyUtils.fromCents(largeAmount).shouldNotBeNull()
+      MoneyUtils.formatCents(largeAmount).shouldNotBeNull()
+
+      // Addition should work within limits
+      val result = MoneyUtils.addCents(largeAmount, 1L)
+      result shouldBe largeAmount + 1
+    }
+    test("arithmetic operations should maintain precision") {
+      // Test precision is maintained in complex operations
+      val base = 12345L // ¥123.45
+
+      val doubled = MoneyUtils.multiplyCents(base, BigDecimal("2.0"))
+      doubled shouldBe 24690L
+
+      val halved = MoneyUtils.multiplyCents(base, BigDecimal("0.5"))
+      halved shouldBe 6172L // HALF_EVEN rounds 6172.5 -> 6172
+
+      val percentage = MoneyUtils.calculatePercentage(base, BigDecimal("10.0"))
+      percentage shouldBe 1234L // 10% of 12345, HALF_EVEN rounds 1234.5 -> 1234
+
+      // Verify by converting back to yuan
+      MoneyUtils.fromCents(doubled) shouldBe BigDecimal("246.90")
+      MoneyUtils.fromCents(halved) shouldBe BigDecimal("61.72")
+      MoneyUtils.fromCents(percentage) shouldBe BigDecimal("12.34")
+    }
+    test("formatting should be consistent with Chinese locale") {
+      val testCents = listOf(0L, 1L, 100L, 1234L, 999999L)
+
+      for (cents in testCents) {
+        val formattedFromCents = MoneyUtils.formatCents(cents)
+        val yuan = MoneyUtils.fromCents(cents)
+        val formattedFromYuan = MoneyUtils.formatYuan(yuan)
+
+        withClue("Formatting inconsistency for cents: $cents") { formattedFromYuan shouldBe formattedFromCents }
+
+        withClue("Should start with ¥ symbol: $formattedFromCents") { formattedFromCents.startsWith("¥") shouldBe true }
+      }
+    }
+  })

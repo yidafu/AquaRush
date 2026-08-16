@@ -22,166 +22,144 @@ package dev.yidafu.aqua.storage.service
 import dev.yidafu.aqua.storage.config.ImageProcessingProperties
 import dev.yidafu.aqua.storage.dto.ImageParameters
 import dev.yidafu.aqua.storage.service.storage.StorageStrategy
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.core.io.ByteArrayResource
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
 /**
  * 图片处理服务单元测试: 参数校验、缩放/质量/水印、原图直通、缓存命中与回源
  */
-class ImageProcessingServiceTest {
-  private lateinit var storageStrategy: StorageStrategy
-  private lateinit var service: ImageProcessingService
-  private lateinit var originalPng: ByteArray
+class ImageProcessingServiceTest :
+  FunSpec({
+    var storageStrategy: StorageStrategy = mockk()
+    var service: ImageProcessingService = mockk()
+    var originalPng: ByteArray = byteArrayOf()
 
-  @BeforeEach
-  fun setUp() {
-    storageStrategy = mockk(relaxed = true)
-    val props =
-      ImageProcessingProperties().apply {
-        defaultQuality = 0.8f
+    fun createPng(
+      w: Int,
+      h: Int,
+    ): ByteArray {
+      val image = BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
+      val out = ByteArrayOutputStream()
+      ImageIO.write(image, "png", out)
+      return out.toByteArray()
+    }
+
+    beforeTest {
+      storageStrategy = mockk(relaxed = true)
+      val props =
+        ImageProcessingProperties().apply {
+          defaultQuality = 0.8f
+        }
+      service = ImageProcessingService(storageStrategy, props)
+      originalPng = createPng(10, 10)
+    }
+    test("processImage rejects invalid parameters") {
+      shouldThrow<IllegalArgumentException> {
+        service.processImage(ByteArrayResource(originalPng), ImageParameters(width = 0))
       }
-    service = ImageProcessingService(storageStrategy, props)
-    originalPng = createPng(10, 10)
-  }
-
-  private fun createPng(
-    w: Int,
-    h: Int,
-  ): ByteArray {
-    val image = BufferedImage(w, h, BufferedImage.TYPE_INT_RGB)
-    val out = ByteArrayOutputStream()
-    ImageIO.write(image, "png", out)
-    return out.toByteArray()
-  }
-
-  @Test
-  fun `processImage rejects invalid parameters`() {
-    assertFailsWith<IllegalArgumentException> {
-      service.processImage(ByteArrayResource(originalPng), ImageParameters(width = 0))
+      shouldThrow<IllegalArgumentException> {
+        service.processImage(ByteArrayResource(originalPng), ImageParameters(quality = 0.05f))
+      }
+      shouldThrow<IllegalArgumentException> {
+        service.processImage(ByteArrayResource(originalPng), ImageParameters(format = "TIFF"))
+      }
     }
-    assertFailsWith<IllegalArgumentException> {
-      service.processImage(ByteArrayResource(originalPng), ImageParameters(quality = 0.05f))
+    test("processImage produces output for plain resize") {
+      val result = service.processImage(ByteArrayResource(originalPng), ImageParameters(width = 5))
+
+      result.isNotEmpty() shouldBe true
     }
-    assertFailsWith<IllegalArgumentException> {
-      service.processImage(ByteArrayResource(originalPng), ImageParameters(format = "TIFF"))
+    test("processImage produces output with height only") {
+      val result = service.processImage(ByteArrayResource(originalPng), ImageParameters(height = 7))
+
+      result.isNotEmpty() shouldBe true
     }
-  }
+    test("processImage produces output with width and height") {
+      val result = service.processImage(ByteArrayResource(originalPng), ImageParameters(width = 5, height = 5))
 
-  @Test
-  fun `processImage produces output for plain resize`() {
-    val result = service.processImage(ByteArrayResource(originalPng), ImageParameters(width = 5))
+      result.isNotEmpty() shouldBe true
+    }
+    test("processImage produces output with quality and watermark") {
+      val result =
+        service.processImage(
+          ByteArrayResource(originalPng),
+          ImageParameters(width = 6, quality = 0.5f, watermark = true, watermarkText = "AquaRush"),
+        )
 
-    assertTrue(result.isNotEmpty())
-  }
+      result.isNotEmpty() shouldBe true
+    }
+    test("getOrProcessImage returns original when no parameters given") {
+      val original = byteArrayOf(1, 2, 3)
+      every { storageStrategy.retrieve("path") } returns ByteArrayResource(original)
 
-  @Test
-  fun `processImage produces output with height only`() {
-    val result = service.processImage(ByteArrayResource(originalPng), ImageParameters(height = 7))
+      val result = service.getOrProcessImage("path", ImageParameters())
 
-    assertTrue(result.isNotEmpty())
-  }
+      result.size shouldBe 3
+      verify(exactly = 0) { storageStrategy.exists(any()) }
+    }
+    test("getOrProcessImage returns cached image when cache hit") {
+      val cached = byteArrayOf(9, 9)
+      every { storageStrategy.exists(any()) } returns true
+      every { storageStrategy.retrieve(any()) } returns ByteArrayResource(cached)
 
-  @Test
-  fun `processImage produces output with width and height`() {
-    val result = service.processImage(ByteArrayResource(originalPng), ImageParameters(width = 5, height = 5))
+      val result = service.getOrProcessImage("path", ImageParameters(width = 5))
 
-    assertTrue(result.isNotEmpty())
-  }
+      result.size shouldBe 2
+      result[0] shouldBe 9
+      verify(exactly = 0) { storageStrategy.store(any(), any()) }
+    }
+    test("getOrProcessImage processes and caches on miss") {
+      every { storageStrategy.exists(any()) } returns false
+      every { storageStrategy.retrieve("path") } returns ByteArrayResource(originalPng)
 
-  @Test
-  fun `processImage produces output with quality and watermark`() {
-    val result =
-      service.processImage(
-        ByteArrayResource(originalPng),
-        ImageParameters(width = 6, quality = 0.5f, watermark = true, watermarkText = "AquaRush"),
-      )
+      val result = service.getOrProcessImage("path", ImageParameters(width = 5))
 
-    assertTrue(result.isNotEmpty())
-  }
+      result.isNotEmpty() shouldBe true
+      verify { storageStrategy.store(any(), any()) }
+    }
+    test("generateCacheKey includes all parameter dimensions") {
+      val keyA =
+        ImageParameters(
+          width = 100,
+          height = 50,
+          quality = 0.8f,
+          format = "JPEG",
+          watermark = true,
+          watermarkText = "AquaRush",
+        ).generateCacheKey()
+      val keyB =
+        ImageParameters(
+          width = 100,
+          height = 50,
+          quality = 0.8f,
+          format = "JPEG",
+          watermark = true,
+          watermarkText = "AquaRush",
+        ).generateCacheKey()
+      val keyC =
+        ImageParameters(
+          width = 200,
+          height = 50,
+          quality = 0.8f,
+          format = "JPEG",
+          watermark = true,
+          watermarkText = "AquaRush",
+        ).generateCacheKey()
 
-  @Test
-  fun `getOrProcessImage returns original when no parameters given`() {
-    val original = byteArrayOf(1, 2, 3)
-    every { storageStrategy.retrieve("path") } returns ByteArrayResource(original)
-
-    val result = service.getOrProcessImage("path", ImageParameters())
-
-    assertEquals(3, result.size)
-    verify(exactly = 0) { storageStrategy.exists(any()) }
-  }
-
-  @Test
-  fun `getOrProcessImage returns cached image when cache hit`() {
-    val cached = byteArrayOf(9, 9)
-    every { storageStrategy.exists(any()) } returns true
-    every { storageStrategy.retrieve(any()) } returns ByteArrayResource(cached)
-
-    val result = service.getOrProcessImage("path", ImageParameters(width = 5))
-
-    assertEquals(2, result.size)
-    assertEquals(9, result[0])
-    verify(exactly = 0) { storageStrategy.store(any(), any()) }
-  }
-
-  @Test
-  fun `getOrProcessImage processes and caches on miss`() {
-    every { storageStrategy.exists(any()) } returns false
-    every { storageStrategy.retrieve("path") } returns ByteArrayResource(originalPng)
-
-    val result = service.getOrProcessImage("path", ImageParameters(width = 5))
-
-    assertTrue(result.isNotEmpty())
-    verify { storageStrategy.store(any(), any()) }
-  }
-
-  @Test
-  fun `generateCacheKey includes all parameter dimensions`() {
-    val keyA =
-      ImageParameters(
-        width = 100,
-        height = 50,
-        quality = 0.8f,
-        format = "JPEG",
-        watermark = true,
-        watermarkText = "AquaRush",
-      ).generateCacheKey()
-    val keyB =
-      ImageParameters(
-        width = 100,
-        height = 50,
-        quality = 0.8f,
-        format = "JPEG",
-        watermark = true,
-        watermarkText = "AquaRush",
-      ).generateCacheKey()
-    val keyC =
-      ImageParameters(
-        width = 200,
-        height = 50,
-        quality = 0.8f,
-        format = "JPEG",
-        watermark = true,
-        watermarkText = "AquaRush",
-      ).generateCacheKey()
-
-    assertEquals(keyA, keyB)
-    assertTrue(keyA != keyC)
-  }
-
-  @Test
-  fun `validate rejects negative height and out-of-range quality`() {
-    assertEquals(false, ImageParameters(height = -1).validate())
-    assertEquals(false, ImageParameters(quality = 1.5f).validate())
-    assertEquals(true, ImageParameters(width = 10, quality = 0.9f, format = "png").validate())
-  }
-}
+      keyB shouldBe keyA
+      (keyA != keyC) shouldBe true
+    }
+    test("validate rejects negative height and out-of-range quality") {
+      ImageParameters(height = -1).validate() shouldBe false
+      ImageParameters(quality = 1.5f).validate() shouldBe false
+      ImageParameters(width = 10, quality = 0.9f, format = "png").validate() shouldBe true
+    }
+  })

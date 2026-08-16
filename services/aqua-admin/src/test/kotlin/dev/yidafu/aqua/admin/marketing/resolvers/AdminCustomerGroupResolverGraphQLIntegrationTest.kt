@@ -20,18 +20,18 @@
 package dev.yidafu.aqua.admin.marketing.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
-import dev.yidafu.aqua.admin.ops.resolvers.WithMockUserPrincipal
+import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.marketing.customer.domain.repository.CustomerGroupRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import io.kotest.core.extensions.ApplyExtension
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
@@ -54,217 +54,184 @@ import org.springframework.web.context.WebApplicationContext
 )
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/marketing/"])
-@DisplayName("AdminCustomerGroupResolver GraphQL Integration Tests")
-class AdminCustomerGroupResolverGraphQLIntegrationTest {
-  @Autowired
-  private lateinit var context: WebApplicationContext
+@ApplyExtension(SpringExtension::class)
+class AdminCustomerGroupResolverGraphQLIntegrationTest(
+  context: WebApplicationContext,
+  customerGroupRepository: CustomerGroupRepository,
+  userRepository: UserRepository,
+) : FunSpec({
+    var mockMvc: MockMvc = mockk()
 
-  @Autowired
-  private lateinit var customerGroupRepository: CustomerGroupRepository
-
-  @Autowired
-  private lateinit var userRepository: UserRepository
-
-  private lateinit var mockMvc: MockMvc
-
-  @BeforeEach
-  fun setUp() {
-    mockMvc =
-      MockMvcBuilders
-        .webAppContextSetup(context)
-        .apply<DefaultMockMvcBuilder>(springSecurity())
-        .build()
-
-    // 幂等种子 2 用户 + 2 分组(按 openid/名称去重,避免共享 H2 遗留数据重复)
-    if (userRepository.findByWechatOpenId("mkt-group-seed-a") == null) {
-      userRepository.save(
-        UserModel(
-          wechatOpenId = "mkt-group-seed-a",
-          nickname = "测试用户A",
-          email = "",
-          status = UserStatus.ACTIVE,
-          role = UserRole.USER,
-        ),
-      )
+    fun postGraphql(query: String): String {
+      val escaped = query.replace("\"", "\\\"")
+      val result =
+        mockMvc
+          .perform(
+            post("/graphql")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content("""{"query": "$escaped"}"""),
+          ).andExpect(status().isOk)
+          .andReturn()
+      return result.response.contentAsString
     }
-    if (userRepository.findByWechatOpenId("mkt-group-seed-b") == null) {
-      userRepository.save(
-        UserModel(
-          wechatOpenId = "mkt-group-seed-b",
-          nickname = "测试用户B",
-          email = "",
-          status = UserStatus.ACTIVE,
-          role = UserRole.USER,
-        ),
-      )
-    }
-    if (customerGroupRepository.findByName("熟客组") == null) {
-      val group =
-        customerGroupRepository.save(
-          CustomerGroupModel(
-            name = "熟客组",
-            description = "熟客分组(种子)",
+
+    beforeTest {
+      mockMvc =
+        MockMvcBuilders
+          .webAppContextSetup(context)
+          .apply<DefaultMockMvcBuilder>(springSecurity())
+          .build()
+
+      // 幂等种子 2 用户 + 2 分组(按 openid/名称去重,避免共享 H2 遗留数据重复)
+      if (userRepository.findByWechatOpenId("mkt-group-seed-a") == null) {
+        userRepository.save(
+          UserModel(
+            wechatOpenId = "mkt-group-seed-a",
+            nickname = "测试用户A",
+            email = "",
+            status = UserStatus.ACTIVE,
+            role = UserRole.USER,
           ),
         )
-      // 种子成员:A 归入「熟客组」
-      userRepository.findByWechatOpenId("mkt-group-seed-a")!!.also {
-        it.customerGroupId = group.id
+      }
+      if (userRepository.findByWechatOpenId("mkt-group-seed-b") == null) {
+        userRepository.save(
+          UserModel(
+            wechatOpenId = "mkt-group-seed-b",
+            nickname = "测试用户B",
+            email = "",
+            status = UserStatus.ACTIVE,
+            role = UserRole.USER,
+          ),
+        )
+      }
+      if (customerGroupRepository.findByName("熟客组") == null) {
+        val group =
+          customerGroupRepository.save(
+            CustomerGroupModel(
+              name = "熟客组",
+              description = "熟客分组(种子)",
+            ),
+          )
+        // 种子成员:A 归入「熟客组」
+        userRepository.findByWechatOpenId("mkt-group-seed-a")!!.also {
+          it.customerGroupId = group.id
+          userRepository.save(it)
+        }
+      }
+      if (customerGroupRepository.findByName("企业客户组") == null) {
+        customerGroupRepository.save(CustomerGroupModel(name = "企业客户组", description = "企业客户(种子)"))
+      }
+    }
+    test("createCustomerGroup creates group") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE"))
+      val name = "新分组${System.currentTimeMillis()}"
+      val json =
+        postGraphql(
+          """mutation { createCustomerGroup(input: {name: "$name", description: "测试新建"}) { id name description } }""",
+        )
+      json.contains("\"$name\"") && !json.contains("\"errors\"") shouldBe true
+      (customerGroupRepository.findByName(name) != null) shouldBe true
+    }
+    test("createCustomerGroup rejects duplicate name") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE"))
+      val json = postGraphql("""mutation { createCustomerGroup(input: {name: "熟客组"}) { id name } }""")
+      json.contains("\"errors\"") shouldBe true
+    }
+    test("createCustomerGroup with memberIds assigns members") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE"))
+      val userB = userRepository.findByWechatOpenId("mkt-group-seed-b")!!
+      val name = "成员组${System.currentTimeMillis()}"
+      val json =
+        postGraphql(
+          """mutation { createCustomerGroup(input: {name: "$name", memberIds: [${userB.id}]}) { id name memberCount } }""",
+        )
+      json.contains("\"memberCount\" : 1") && !json.contains("\"errors\"") shouldBe true
+      val group = customerGroupRepository.findByName(name)!!
+      (userRepository.findById(userB.id!!).get().customerGroupId == group.id) shouldBe true
+
+      // 清理:还原未分组,避免影响 memberCount 用例
+      userRepository.findById(userB.id!!).get().also {
+        it.customerGroupId = null
         userRepository.save(it)
       }
     }
-    if (customerGroupRepository.findByName("企业客户组") == null) {
-      customerGroupRepository.save(CustomerGroupModel(name = "企业客户组", description = "企业客户(种子)"))
-    }
-  }
+    test("updateCustomerGroup with memberIds replaces members") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE"))
+      val userA = userRepository.findByWechatOpenId("mkt-group-seed-a")!!
+      val userB = userRepository.findByWechatOpenId("mkt-group-seed-b")!!
+      val name = "改成员组${System.currentTimeMillis()}"
+      // 创建:成员 B
+      postGraphql("""mutation { createCustomerGroup(input: {name: "$name", memberIds: [${userB.id}]}) { id } }""")
+      val group = customerGroupRepository.findByName(name)!!
+      (userRepository.findById(userB.id!!).get().customerGroupId == group.id) shouldBe true
 
-  private fun postGraphql(query: String): String {
-    val escaped = query.replace("\"", "\\\"")
-    val result =
+      // 更新不带 memberIds:成员不调整
+      postGraphql("""mutation { updateCustomerGroup(id: ${group.id}, input: {name: "$name"}) { id } }""")
+      (userRepository.findById(userB.id!!).get().customerGroupId == group.id) shouldBe true
+
+      // 更新成员为 [A]:B 移出回未分组,A 划入
+      val json =
+        postGraphql(
+          """mutation { updateCustomerGroup(id: ${group.id}, input: {name: "$name", memberIds: [${userA.id}]}) { memberCount } }""",
+        )
+      json.contains("\"memberCount\" : 1") && !json.contains("\"errors\"") shouldBe true
+      (userRepository.findById(userB.id!!).get().customerGroupId == null) shouldBe true
+      (userRepository.findById(userA.id!!).get().customerGroupId == group.id) shouldBe true
+
+      // 清理:还原种子状态(A 回「熟客组」,B 未分组)
+      val seedGroup = customerGroupRepository.findByName("熟客组")!!
+      userRepository.findById(userA.id!!).get().also {
+        it.customerGroupId = seedGroup.id
+        userRepository.save(it)
+      }
+      userRepository.findById(userB.id!!).get().also {
+        it.customerGroupId = null
+        userRepository.save(it)
+      }
+    }
+    test("setUserCustomerGroup assigns user to group") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE"))
+      val userB = userRepository.findByWechatOpenId("mkt-group-seed-b")!!
+      val groupId = customerGroupRepository.findByName("熟客组")!!.id!!
+      val json = postGraphql("mutation { setUserCustomerGroup(userId: ${userB.id}, customerGroupId: $groupId) }")
+      json.contains("\"setUserCustomerGroup\" : true") && !json.contains("\"errors\"") shouldBe true
+      (userRepository.findById(userB.id!!).get().customerGroupId == groupId) shouldBe true
+
+      // 清理:还原未分组,避免影响 memberCount 用例
+      postGraphql("mutation { setUserCustomerGroup(userId: ${userB.id}, customerGroupId: null) }")
+      (userRepository.findById(userB.id!!).get().customerGroupId == null) shouldBe true
+    }
+    test("deleteCustomerGroup resets members to ungrouped") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE"))
+      val group =
+        customerGroupRepository.findByName("待删组")
+          ?: customerGroupRepository.save(CustomerGroupModel(name = "待删组", description = "删除用分组"))
+      val userB = userRepository.findByWechatOpenId("mkt-group-seed-b")!!
+      postGraphql("mutation { setUserCustomerGroup(userId: ${userB.id}, customerGroupId: ${group.id}) }")
+      (userRepository.findById(userB.id!!).get().customerGroupId == group.id) shouldBe true
+
+      val json = postGraphql("mutation { deleteCustomerGroup(id: ${group.id}) }")
+      json.contains("\"deleteCustomerGroup\" : true") && !json.contains("\"errors\"") shouldBe true
+      customerGroupRepository.findById(group.id!!).isEmpty shouldBe true
+      (userRepository.findById(userB.id!!).get().customerGroupId == null) shouldBe true
+    }
+    test("customerGroups query filters by keyword") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_READ"))
+      val json = postGraphql("{ customerGroups(input: {keyword: \"熟客\"}) { content { id name memberCount } totalElements } }")
+      json.contains("\"熟客组\"") && !json.contains("\"企业客户组\"") && !json.contains("\"errors\"") shouldBe true
+    }
+    test("customerGroups query returns memberCount") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_READ"))
+      val json = postGraphql("{ customerGroups(input: {keyword: \"熟客组\"}) { content { name memberCount } } }")
+      json.contains("\"memberCount\" : 1") && !json.contains("\"errors\"") shouldBe true
+    }
+    test("anonymous access is denied") {
       mockMvc
         .perform(
           post("/graphql")
             .contentType(MediaType.APPLICATION_JSON)
-            .content("""{"query": "$escaped"}"""),
-        ).andExpect(status().isOk)
-        .andReturn()
-    return result.response.contentAsString
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE"])
-  @DisplayName("createCustomerGroup 新建分组成功(AC-MKT-001-01)")
-  fun `createCustomerGroup creates group`() {
-    val name = "新分组${System.currentTimeMillis()}"
-    val json =
-      postGraphql(
-        """mutation { createCustomerGroup(input: {name: "$name", description: "测试新建"}) { id name description } }""",
-      )
-    assertTrue(json.contains("\"$name\"") && !json.contains("\"errors\""))
-    assertTrue(customerGroupRepository.findByName(name) != null)
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE"])
-  @DisplayName("createCustomerGroup 同名分组被拦截(AC-MKT-001-02)")
-  fun `createCustomerGroup rejects duplicate name`() {
-    val json = postGraphql("""mutation { createCustomerGroup(input: {name: "熟客组"}) { id name } }""")
-    assertTrue(json.contains("\"errors\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE"])
-  @DisplayName("createCustomerGroup 携带 memberIds 创建并划入成员")
-  fun `createCustomerGroup with memberIds assigns members`() {
-    val userB = userRepository.findByWechatOpenId("mkt-group-seed-b")!!
-    val name = "成员组${System.currentTimeMillis()}"
-    val json =
-      postGraphql(
-        """mutation { createCustomerGroup(input: {name: "$name", memberIds: [${userB.id}]}) { id name memberCount } }""",
-      )
-    assertTrue(json.contains("\"memberCount\" : 1") && !json.contains("\"errors\""))
-    val group = customerGroupRepository.findByName(name)!!
-    assertTrue(userRepository.findById(userB.id!!).get().customerGroupId == group.id)
-
-    // 清理:还原未分组,避免影响 memberCount 用例
-    userRepository.findById(userB.id!!).get().also {
-      it.customerGroupId = null
-      userRepository.save(it)
+            .content("""{"query": "{ customerGroups { content { id } } }"}"""),
+        ).andExpect(status().isUnauthorized)
     }
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE"])
-  @DisplayName("updateCustomerGroup 覆盖式同步成员:缺省不调整、非空仅保留该集合")
-  fun `updateCustomerGroup with memberIds replaces members`() {
-    val userA = userRepository.findByWechatOpenId("mkt-group-seed-a")!!
-    val userB = userRepository.findByWechatOpenId("mkt-group-seed-b")!!
-    val name = "改成员组${System.currentTimeMillis()}"
-    // 创建:成员 B
-    postGraphql("""mutation { createCustomerGroup(input: {name: "$name", memberIds: [${userB.id}]}) { id } }""")
-    val group = customerGroupRepository.findByName(name)!!
-    assertTrue(userRepository.findById(userB.id!!).get().customerGroupId == group.id)
-
-    // 更新不带 memberIds:成员不调整
-    postGraphql("""mutation { updateCustomerGroup(id: ${group.id}, input: {name: "$name"}) { id } }""")
-    assertTrue(userRepository.findById(userB.id!!).get().customerGroupId == group.id)
-
-    // 更新成员为 [A]:B 移出回未分组,A 划入
-    val json =
-      postGraphql(
-        """mutation { updateCustomerGroup(id: ${group.id}, input: {name: "$name", memberIds: [${userA.id}]}) { memberCount } }""",
-      )
-    assertTrue(json.contains("\"memberCount\" : 1") && !json.contains("\"errors\""))
-    assertTrue(userRepository.findById(userB.id!!).get().customerGroupId == null)
-    assertTrue(userRepository.findById(userA.id!!).get().customerGroupId == group.id)
-
-    // 清理:还原种子状态(A 回「熟客组」,B 未分组)
-    val seedGroup = customerGroupRepository.findByName("熟客组")!!
-    userRepository.findById(userA.id!!).get().also {
-      it.customerGroupId = seedGroup.id
-      userRepository.save(it)
-    }
-    userRepository.findById(userB.id!!).get().also {
-      it.customerGroupId = null
-      userRepository.save(it)
-    }
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE"])
-  @DisplayName("setUserCustomerGroup 将用户加入分组(AC-MKT-001-03)")
-  fun `setUserCustomerGroup assigns user to group`() {
-    val userB = userRepository.findByWechatOpenId("mkt-group-seed-b")!!
-    val groupId = customerGroupRepository.findByName("熟客组")!!.id!!
-    val json = postGraphql("mutation { setUserCustomerGroup(userId: ${userB.id}, customerGroupId: $groupId) }")
-    assertTrue(json.contains("\"setUserCustomerGroup\" : true") && !json.contains("\"errors\""))
-    assertTrue(userRepository.findById(userB.id!!).get().customerGroupId == groupId)
-
-    // 清理:还原未分组,避免影响 memberCount 用例
-    postGraphql("mutation { setUserCustomerGroup(userId: ${userB.id}, customerGroupId: null) }")
-    assertTrue(userRepository.findById(userB.id!!).get().customerGroupId == null)
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE"])
-  @DisplayName("deleteCustomerGroup 删除分组且成员回退未分组(AC-MKT-001-04)")
-  fun `deleteCustomerGroup resets members to ungrouped`() {
-    val group =
-      customerGroupRepository.findByName("待删组")
-        ?: customerGroupRepository.save(CustomerGroupModel(name = "待删组", description = "删除用分组"))
-    val userB = userRepository.findByWechatOpenId("mkt-group-seed-b")!!
-    postGraphql("mutation { setUserCustomerGroup(userId: ${userB.id}, customerGroupId: ${group.id}) }")
-    assertTrue(userRepository.findById(userB.id!!).get().customerGroupId == group.id)
-
-    val json = postGraphql("mutation { deleteCustomerGroup(id: ${group.id}) }")
-    assertTrue(json.contains("\"deleteCustomerGroup\" : true") && !json.contains("\"errors\""))
-    assertTrue(customerGroupRepository.findById(group.id!!).isEmpty)
-    assertTrue(userRepository.findById(userB.id!!).get().customerGroupId == null)
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_READ"])
-  @DisplayName("customerGroups 关键字过滤仅返回匹配分组(AC-MKT-001-05)")
-  fun `customerGroups query filters by keyword`() {
-    val json = postGraphql("{ customerGroups(input: {keyword: \"熟客\"}) { content { id name memberCount } totalElements } }")
-    assertTrue(json.contains("\"熟客组\"") && !json.contains("\"企业客户组\"") && !json.contains("\"errors\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_READ"])
-  @DisplayName("customerGroups 返回 memberCount 成员数")
-  fun `customerGroups query returns memberCount`() {
-    val json = postGraphql("{ customerGroups(input: {keyword: \"熟客组\"}) { content { name memberCount } } }")
-    assertTrue(json.contains("\"memberCount\" : 1") && !json.contains("\"errors\""))
-  }
-
-  @Test
-  @DisplayName("匿名访问被拒绝(401)")
-  fun `anonymous access is denied`() {
-    mockMvc
-      .perform(
-        post("/graphql")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content("""{"query": "{ customerGroups { content { id } } }"}"""),
-      ).andExpect(status().isUnauthorized)
-  }
-}
+  })

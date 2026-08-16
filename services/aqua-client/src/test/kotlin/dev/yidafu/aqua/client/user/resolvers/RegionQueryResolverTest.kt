@@ -22,234 +22,208 @@ package dev.yidafu.aqua.client.user.resolvers
 import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
-class RegionQueryResolverTest {
-  private lateinit var regionRepository: RegionRepository
-  private lateinit var regionQueryResolver: RegionQueryResolver
-  private lateinit var userPrincipal: UserPrincipal
-
-  // Test data
-  private val sampleProvince =
-    RegionModel(
-      id = 1L,
-      name = "广东省",
-      code = "440000",
-      parentCode = null,
-      level = 1,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private val sampleCity =
-    RegionModel(
-      id = 2L,
-      name = "深圳市",
-      code = "440300",
-      parentCode = "440000",
-      level = 2,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private val sampleDistrict =
-    RegionModel(
-      id = 3L,
-      name = "南山区",
-      code = "440305",
-      parentCode = "440300",
-      level = 3,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private val anotherCity =
-    RegionModel(
-      id = 4L,
-      name = "广州市",
-      code = "440100",
-      parentCode = "440000",
-      level = 2,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    regionRepository = mockk()
-    regionQueryResolver =
-      RegionQueryResolver(
-        regionRepository = regionRepository,
+class RegionQueryResolverTest :
+  FunSpec({
+    var regionRepository: RegionRepository = mockk()
+    var regionQueryResolver: RegionQueryResolver = mockk()
+    var userPrincipal: UserPrincipal = mockk()
+    val sampleProvince =
+      RegionModel(
+        id = 1L,
+        name = "广东省",
+        code = "440000",
+        parentCode = null,
+        level = 1,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
+    val sampleCity =
+      RegionModel(
+        id = 2L,
+        name = "深圳市",
+        code = "440300",
+        parentCode = "440000",
+        level = 2,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
+    val sampleDistrict =
+      RegionModel(
+        id = 3L,
+        name = "南山区",
+        code = "440305",
+        parentCode = "440300",
+        level = 3,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
+    val anotherCity =
+      RegionModel(
+        id = 4L,
+        name = "广州市",
+        code = "440100",
+        parentCode = "440000",
+        level = 2,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
 
-    userPrincipal =
-      UserPrincipal(
-        id = 123L,
-        _username = "testuser",
-        userType = "USER",
-        _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
-      )
-  }
+    // Test data
 
-  @Test
-  fun `should return all regions when no parameters provided`() {
-    // Given
-    val allRegions = listOf(sampleProvince, sampleCity, sampleDistrict)
-    every { regionRepository.findAll() } returns allRegions
+    beforeTest {
+      regionRepository = mockk()
+      regionQueryResolver =
+        RegionQueryResolver(
+          regionRepository = regionRepository,
+        )
 
-    // When
-    val result = regionQueryResolver.regions(null, null, userPrincipal)
+      userPrincipal =
+        UserPrincipal(
+          id = 123L,
+          _username = "testuser",
+          userType = "USER",
+          _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
+        )
+    }
+    test("should return all regions when no parameters provided") {
+      // Given
+      val allRegions = listOf(sampleProvince, sampleCity, sampleDistrict)
+      every { regionRepository.findAll() } returns allRegions
 
-    // Then
-    assertEquals(3, result.size)
-    assertEquals(allRegions, result)
-    verify { regionRepository.findAll() }
-  }
+      // When
+      val result = regionQueryResolver.regions(null, null, userPrincipal)
 
-  @Test
-  fun `should return regions by level when only level provided`() {
-    // Given
-    every { regionRepository.findRootRegions(1) } returns listOf(sampleProvince)
+      // Then
+      result.size shouldBe 3
+      result shouldBe allRegions
+      verify { regionRepository.findAll() }
+    }
+    test("should return regions by level when only level provided") {
+      // Given
+      every { regionRepository.findRootRegions(1) } returns listOf(sampleProvince)
 
-    // When
-    val result = regionQueryResolver.regions(1, null, userPrincipal)
+      // When
+      val result = regionQueryResolver.regions(1, null, userPrincipal)
 
-    // Then
-    assertEquals(1, result.size)
-    assertEquals(sampleProvince, result[0])
-    verify { regionRepository.findRootRegions(1) }
-  }
+      // Then
+      result.size shouldBe 1
+      result[0] shouldBe sampleProvince
+      verify { regionRepository.findRootRegions(1) }
+    }
+    test("should return root regions when level is 1") {
+      // Given
+      every { regionRepository.findRootRegions(1) } returns listOf(sampleProvince)
 
-  @Test
-  fun `should return root regions when level is 1`() {
-    // Given
-    every { regionRepository.findRootRegions(1) } returns listOf(sampleProvince)
+      // When
+      val result = regionQueryResolver.regions(1, null, userPrincipal)
 
-    // When
-    val result = regionQueryResolver.regions(1, null, userPrincipal)
+      // Then
+      result.size shouldBe 1
+      result[0] shouldBe sampleProvince
+      verify { regionRepository.findRootRegions(1) }
+    }
+    test("should call findByLevel for levels other than 1") {
+      // Given
+      every { regionRepository.findByLevel(2) } returns listOf(sampleCity, anotherCity)
 
-    // Then
-    assertEquals(1, result.size)
-    assertEquals(sampleProvince, result[0])
-    verify { regionRepository.findRootRegions(1) }
-  }
+      // When
+      val result = regionQueryResolver.regions(2, null, userPrincipal)
 
-  @Test
-  fun `should call findByLevel for levels other than 1`() {
-    // Given
-    every { regionRepository.findByLevel(2) } returns listOf(sampleCity, anotherCity)
+      // Then
+      result.size shouldBe 2
+      verify { regionRepository.findByLevel(2) }
+    }
+    test("should return regions by level and parent code when both provided") {
+      // Given
+      every { regionRepository.findByParentCodeAndLevel("440000", 2) } returns listOf(sampleCity, anotherCity)
 
-    // When
-    val result = regionQueryResolver.regions(2, null, userPrincipal)
+      // When
+      val result = regionQueryResolver.regions(2, "440000", userPrincipal)
 
-    // Then
-    assertEquals(2, result.size)
-    verify { regionRepository.findByLevel(2) }
-  }
+      // Then
+      result.size shouldBe 2
+      result[0] shouldBe sampleCity
+      result[1] shouldBe anotherCity
+      verify { regionRepository.findByParentCodeAndLevel("440000", 2) }
+    }
+    test("should return region by code") {
+      // Given
+      every { regionRepository.findByCode("440305") } returns sampleDistrict
 
-  @Test
-  fun `should return regions by level and parent code when both provided`() {
-    // Given
-    every { regionRepository.findByParentCodeAndLevel("440000", 2) } returns listOf(sampleCity, anotherCity)
+      // When
+      val result = regionQueryResolver.region("440305", userPrincipal)
 
-    // When
-    val result = regionQueryResolver.regions(2, "440000", userPrincipal)
+      // Then
+      result.shouldNotBeNull()
+      result shouldBe sampleDistrict
+      verify { regionRepository.findByCode("440305") }
+    }
+    test("should return null when region code not found") {
+      // Given
+      every { regionRepository.findByCode("999999") } returns null
 
-    // Then
-    assertEquals(2, result.size)
-    assertEquals(sampleCity, result[0])
-    assertEquals(anotherCity, result[1])
-    verify { regionRepository.findByParentCodeAndLevel("440000", 2) }
-  }
+      // When
+      val result = regionQueryResolver.region("999999", userPrincipal)
 
-  @Test
-  fun `should return region by code`() {
-    // Given
-    every { regionRepository.findByCode("440305") } returns sampleDistrict
+      // Then
+      result.shouldBeNull()
+      verify { regionRepository.findByCode("999999") }
+    }
+    test("should work with null user principal") {
+      // Given
+      every { regionRepository.findAll() } returns listOf(sampleProvince)
 
-    // When
-    val result = regionQueryResolver.region("440305", userPrincipal)
+      // When
+      val result = regionQueryResolver.regions(null, null, null)
 
-    // Then
-    assertNotNull(result)
-    assertEquals(sampleDistrict, result)
-    verify { regionRepository.findByCode("440305") }
-  }
+      // Then
+      result.size shouldBe 1
+      result[0] shouldBe sampleProvince
+      verify { regionRepository.findAll() }
+    }
+    test("should handle regions query with mixed parameters correctly") {
+      // Given
+      val cities = listOf(sampleCity, anotherCity)
+      every { regionRepository.findByParentCodeAndLevel("440000", 2) } returns cities
 
-  @Test
-  fun `should return null when region code not found`() {
-    // Given
-    every { regionRepository.findByCode("999999") } returns null
+      // When
+      val result = regionQueryResolver.regions(2, "440000", null)
 
-    // When
-    val result = regionQueryResolver.region("999999", userPrincipal)
+      // Then
+      result.size shouldBe 2
+      result shouldBe cities
+      verify { regionRepository.findByParentCodeAndLevel("440000", 2) }
+    }
+    test("should return empty list when no regions found for given criteria") {
+      // Given
+      every { regionRepository.findByLevel(99) } returns emptyList()
 
-    // Then
-    assertNull(result)
-    verify { regionRepository.findByCode("999999") }
-  }
+      // When
+      val result = regionQueryResolver.regions(99, null, userPrincipal)
 
-  @Test
-  fun `should work with null user principal`() {
-    // Given
-    every { regionRepository.findAll() } returns listOf(sampleProvince)
+      // Then
+      result.size shouldBe 0
+      verify { regionRepository.findByLevel(99) }
+    }
+    test("should handle level 0 correctly") {
+      // Given
+      every { regionRepository.findByLevel(0) } returns listOf(sampleProvince, sampleCity)
 
-    // When
-    val result = regionQueryResolver.regions(null, null, null)
+      // When
+      val result = regionQueryResolver.regions(0, null, userPrincipal)
 
-    // Then
-    assertEquals(1, result.size)
-    assertEquals(sampleProvince, result[0])
-    verify { regionRepository.findAll() }
-  }
-
-  @Test
-  fun `should handle regions query with mixed parameters correctly`() {
-    // Given
-    val cities = listOf(sampleCity, anotherCity)
-    every { regionRepository.findByParentCodeAndLevel("440000", 2) } returns cities
-
-    // When
-    val result = regionQueryResolver.regions(2, "440000", null)
-
-    // Then
-    assertEquals(2, result.size)
-    assertEquals(cities, result)
-    verify { regionRepository.findByParentCodeAndLevel("440000", 2) }
-  }
-
-  @Test
-  fun `should return empty list when no regions found for given criteria`() {
-    // Given
-    every { regionRepository.findByLevel(99) } returns emptyList()
-
-    // When
-    val result = regionQueryResolver.regions(99, null, userPrincipal)
-
-    // Then
-    assertEquals(0, result.size)
-    verify { regionRepository.findByLevel(99) }
-  }
-
-  @Test
-  fun `should handle level 0 correctly`() {
-    // Given
-    every { regionRepository.findByLevel(0) } returns listOf(sampleProvince, sampleCity)
-
-    // When
-    val result = regionQueryResolver.regions(0, null, userPrincipal)
-
-    // Then
-    assertEquals(2, result.size)
-    verify { regionRepository.findByLevel(0) }
-  }
-}
+      // Then
+      result.size shouldBe 2
+      verify { regionRepository.findByLevel(0) }
+    }
+  })

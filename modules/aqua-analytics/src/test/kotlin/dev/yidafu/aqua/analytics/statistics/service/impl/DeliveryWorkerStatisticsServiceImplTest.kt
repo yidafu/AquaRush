@@ -24,61 +24,58 @@ import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerStatisticsQueryApiService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 /**
  * 送水员统计服务单元测试: 总量/在岗/配送中/已完成, 排行榜按今日完成数排序
  */
-class DeliveryWorkerStatisticsServiceImplTest {
-  private lateinit var adminService: AdminService
-  private lateinit var deliveryWorkerStatisticsQueryApiService: DeliveryWorkerStatisticsQueryApiService
-  private lateinit var statisticsDeliveryWorkerRepository: StatisticsDeliveryWorkerRepositoryCustom
-  private lateinit var service: DeliveryWorkerStatisticsServiceImpl
+class DeliveryWorkerStatisticsServiceImplTest :
+  FunSpec({
+    var adminService: AdminService = mockk()
+    var deliveryWorkerStatisticsQueryApiService: DeliveryWorkerStatisticsQueryApiService = mockk()
+    var statisticsDeliveryWorkerRepository: StatisticsDeliveryWorkerRepositoryCustom = mockk()
+    var service: DeliveryWorkerStatisticsServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    adminService = mockk(relaxed = true)
-    deliveryWorkerStatisticsQueryApiService = mockk(relaxed = true)
-    statisticsDeliveryWorkerRepository = mockk(relaxed = true)
-    service =
-      DeliveryWorkerStatisticsServiceImpl(
-        adminService,
-        deliveryWorkerStatisticsQueryApiService,
-        statisticsDeliveryWorkerRepository,
-      )
-  }
+    fun worker(
+      id: Long,
+      name: String?,
+      earnings: Long?,
+    ): AdminModel =
+      AdminModel(
+        id = id,
+        username = "worker$id",
+        passwordHash = "hash",
+        role = AdminRoleModel.DELIVERY_WORKER,
+      ).apply {
+        realName = name
+        earningCents = earnings
+      }
 
-  private fun worker(
-    id: Long,
-    name: String?,
-    earnings: Long?,
-  ): AdminModel =
-    AdminModel(
-      id = id,
-      username = "worker$id",
-      passwordHash = "hash",
-      role = AdminRoleModel.DELIVERY_WORKER,
-    ).apply {
-      realName = name
-      earningCents = earnings
+    beforeTest {
+      adminService = mockk(relaxed = true)
+      deliveryWorkerStatisticsQueryApiService = mockk(relaxed = true)
+      statisticsDeliveryWorkerRepository = mockk(relaxed = true)
+      service =
+        DeliveryWorkerStatisticsServiceImpl(
+          adminService,
+          deliveryWorkerStatisticsQueryApiService,
+          statisticsDeliveryWorkerRepository,
+        )
     }
+    test("getDeliveryWorkerStatistics aggregates worker counts") {
+      every { adminService.findAllDeliveryCapable() } returns listOf(worker(1L, "张三", null), worker(2L, "李四", null))
+      every { statisticsDeliveryWorkerRepository.countTodayActiveWorkers(any()) } returns 2L
+      every { statisticsDeliveryWorkerRepository.countDeliveringOrders() } returns 5L
+      every { statisticsDeliveryWorkerRepository.countCompletedOrdersSince(any()) } returns 8L
 
-  @Test
-  fun `getDeliveryWorkerStatistics aggregates worker counts`() {
-    every { adminService.findAllDeliveryCapable() } returns listOf(worker(1L, "张三", null), worker(2L, "李四", null))
-    every { statisticsDeliveryWorkerRepository.countTodayActiveWorkers(any()) } returns 2L
-    every { statisticsDeliveryWorkerRepository.countDeliveringOrders() } returns 5L
-    every { statisticsDeliveryWorkerRepository.countCompletedOrdersSince(any()) } returns 8L
+      val result = service.getDeliveryWorkerStatistics()
 
-    val result = service.getDeliveryWorkerStatistics()
-
-    assertEquals(2L, result.totalWorkers)
-    assertEquals(2L, result.todayActiveWorkers)
-    assertEquals(5L, result.deliveringOrders)
-    assertEquals(8L, result.todayCompletedOrders)
-  }
-}
+      result.totalWorkers shouldBe 2L
+      result.todayActiveWorkers shouldBe 2L
+      result.deliveringOrders shouldBe 5L
+      result.todayCompletedOrders shouldBe 8L
+    }
+  })

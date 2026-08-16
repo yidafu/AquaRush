@@ -19,86 +19,67 @@
 
 package dev.yidafu.aqua.common
 
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 
-class ApiResponseTest {
-  @Test
-  fun `success with data should set success flag`() {
-    val response = ApiResponse.success("data")
-    assertTrue(response.success)
-    assertEquals("data", response.data)
-    assertNull(response.message)
-    assertNull(response.code)
-  }
+class ApiResponseTest :
+  FunSpec({
 
-  @Test
-  fun `success with message should include message`() {
-    val response = ApiResponse.success(42, "created")
-    assertTrue(response.success)
-    assertEquals(42, response.data)
-    assertEquals("created", response.message)
-  }
-
-  @Test
-  fun `error should set failure flags`() {
-    val response = ApiResponse.error("failed", code = "E1", data = "payload")
-    assertFalse(response.success)
-    assertEquals("failed", response.message)
-    assertEquals("E1", response.code)
-    assertEquals("payload", response.data)
-  }
-
-  @Test
-  fun `unauthorized should use default message`() {
-    val response = ApiResponse.unauthorized()
-    assertFalse(response.success)
-    assertEquals("认证失败，请先登录", response.message)
-    assertEquals("UNAUTHORIZED", response.code)
-  }
-
-  @Test
-  fun `unauthorized should accept custom message`() {
-    val response = ApiResponse.unauthorized("custom")
-    assertEquals("custom", response.message)
-  }
-
-  @Test
-  fun `forbidden should use default message`() {
-    val response = ApiResponse.forbidden()
-    assertFalse(response.success)
-    assertEquals("权限不足", response.message)
-    assertEquals("FORBIDDEN", response.code)
-  }
-
-  @Test
-  fun `notFound should use default message`() {
-    val response = ApiResponse.notFound()
-    assertFalse(response.success)
-    assertEquals("资源未找到", response.message)
-    assertEquals("NOT_FOUND", response.code)
-  }
-
-  @Test
-  fun `internalServerError should use default message`() {
-    val response = ApiResponse.internalServerError()
-    assertFalse(response.success)
-    assertEquals("服务器内部错误", response.message)
-    assertEquals("INTERNAL_SERVER_ERROR", response.code)
-  }
-
-  @Test
-  fun `timestamp should be set`() {
-    val response = ApiResponse.success(1)
-    assertTrue(
+    test("success with data should set success flag") {
+      val response = ApiResponse.success("data")
+      response.success shouldBe true
+      response.data shouldBe "data"
+      response.message.shouldBeNull()
+      response.code.shouldBeNull()
+    }
+    test("success with message should include message") {
+      val response = ApiResponse.success(42, "created")
+      response.success shouldBe true
+      response.data shouldBe 42
+      response.message shouldBe "created"
+    }
+    test("error should set failure flags") {
+      val response = ApiResponse.error("failed", code = "E1", data = "payload")
+      response.success shouldBe false
+      response.message shouldBe "failed"
+      response.code shouldBe "E1"
+      response.data shouldBe "payload"
+    }
+    test("unauthorized should use default message") {
+      val response = ApiResponse.unauthorized()
+      response.success shouldBe false
+      response.message shouldBe "认证失败，请先登录"
+      response.code shouldBe "UNAUTHORIZED"
+    }
+    test("unauthorized should accept custom message") {
+      val response = ApiResponse.unauthorized("custom")
+      response.message shouldBe "custom"
+    }
+    test("forbidden should use default message") {
+      val response = ApiResponse.forbidden()
+      response.success shouldBe false
+      response.message shouldBe "权限不足"
+      response.code shouldBe "FORBIDDEN"
+    }
+    test("notFound should use default message") {
+      val response = ApiResponse.notFound()
+      response.success shouldBe false
+      response.message shouldBe "资源未找到"
+      response.code shouldBe "NOT_FOUND"
+    }
+    test("internalServerError should use default message") {
+      val response = ApiResponse.internalServerError()
+      response.success shouldBe false
+      response.message shouldBe "服务器内部错误"
+      response.code shouldBe "INTERNAL_SERVER_ERROR"
+    }
+    test("timestamp should be set") {
+      val response = ApiResponse.success(1)
       response.timestamp.isAfter(
         java.time.LocalDateTime
           .now()
           .minusMinutes(1),
-      ),
-    )
-  }
-}
+      ) shouldBe true
+    }
+  })

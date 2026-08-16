@@ -23,73 +23,66 @@ import dev.yidafu.aqua.api.service.ops.NoticeQueryService
 import dev.yidafu.aqua.common.domain.model.NoticeModel
 import dev.yidafu.aqua.common.domain.model.enums.NoticeStatus
 import dev.yidafu.aqua.common.domain.model.enums.NoticeType
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-class AdminNoticeQueryResolverTest {
-  private lateinit var noticeQueryService: NoticeQueryService
-  private lateinit var resolver: AdminNoticeQueryResolver
+class AdminNoticeQueryResolverTest :
+  FunSpec({
+    var noticeQueryService: NoticeQueryService = mockk()
+    var resolver: AdminNoticeQueryResolver = mockk()
 
-  private fun notice(): NoticeModel =
-    NoticeModel(
-      id = 1L,
-      title = "系统维护通知",
-      content = "本周六凌晨维护",
-      type = NoticeType.PLATFORM_NOTICE,
-      status = NoticeStatus.PUBLISHED,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
+    fun notice(): NoticeModel =
+      NoticeModel(
+        id = 1L,
+        title = "系统维护通知",
+        content = "本周六凌晨维护",
+        type = NoticeType.PLATFORM_NOTICE,
+        status = NoticeStatus.PUBLISHED,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    noticeQueryService = mockk(relaxed = true)
-    resolver = AdminNoticeQueryResolver(noticeQueryService)
-  }
+    beforeTest {
+      noticeQueryService = mockk(relaxed = true)
+      resolver = AdminNoticeQueryResolver(noticeQueryService)
+    }
+    test("notices should list with default request") {
+      // Given
+      every { noticeQueryService.listNotices(any()) } returns PageImpl(listOf(notice()))
 
-  @Test
-  fun `notices should list with default request`() {
-    // Given
-    every { noticeQueryService.listNotices(any()) } returns PageImpl(listOf(notice()))
+      // When
+      val result = resolver.notices(null)
 
-    // When
-    val result = resolver.notices(null)
+      // Then
+      result.content.size shouldBe 1
+      result.content[0].title shouldBe "系统维护通知"
+      verify { noticeQueryService.listNotices(any()) }
+    }
+    test("notice should return null when missing") {
+      // Given
+      every { noticeQueryService.getNotice(999L) } returns null
 
-    // Then
-    assertEquals(1, result.content.size)
-    assertEquals("系统维护通知", result.content[0].title)
-    verify { noticeQueryService.listNotices(any()) }
-  }
+      // When
+      val result = resolver.notice(999L)
 
-  @Test
-  fun `notice should return null when missing`() {
-    // Given
-    every { noticeQueryService.getNotice(999L) } returns null
+      // Then
+      result.shouldBeNull()
+    }
+    test("notice should map by id") {
+      // Given
+      every { noticeQueryService.getNotice(1L) } returns notice()
 
-    // When
-    val result = resolver.notice(999L)
+      // When
+      val result = resolver.notice(1L)
 
-    // Then
-    assertNull(result)
-  }
-
-  @Test
-  fun `notice should map by id`() {
-    // Given
-    every { noticeQueryService.getNotice(1L) } returns notice()
-
-    // When
-    val result = resolver.notice(1L)
-
-    // Then
-    assertEquals("系统维护通知", result!!.title)
-    verify { noticeQueryService.getNotice(1L) }
-  }
-}
+      // Then
+      result!!.title shouldBe "系统维护通知"
+      verify { noticeQueryService.getNotice(1L) }
+    }
+  })

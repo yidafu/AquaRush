@@ -26,136 +26,123 @@ import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
-class AdminDeliveryWorkerQueryResolverTest {
-  private lateinit var adminService: AdminService
-  private lateinit var deliveryWorkerStatisticsQueryApiService: DeliveryWorkerStatisticsQueryApiService
-  private lateinit var resolver: AdminDeliveryWorkerQueryResolver
+class AdminDeliveryWorkerQueryResolverTest :
+  FunSpec({
+    var adminService: AdminService = mockk()
+    var deliveryWorkerStatisticsQueryApiService: DeliveryWorkerStatisticsQueryApiService = mockk()
+    var resolver: AdminDeliveryWorkerQueryResolver = mockk()
 
-  private fun createSampleWorker(): AdminModel =
-    AdminModel(
-      id = 2L,
-      username = "delivery_2",
-      passwordHash = "hashed_password",
-      realName = "送水员甲",
-      phone = "13900139000",
-      role = AdminRoleModel.DELIVERY_WORKER,
-      accountStatus = AdminAccountStatus.ACTIVE,
-      onlineStatus = DeliverWorkerModelStatus.ONLINE,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    adminService = mockk(relaxed = true)
-    deliveryWorkerStatisticsQueryApiService = mockk(relaxed = true)
-    resolver = AdminDeliveryWorkerQueryResolver(adminService, deliveryWorkerStatisticsQueryApiService)
-  }
-
-  @Test
-  fun `deliveryWorkers should return all delivery capable admins`() {
-    // Given
-    every { adminService.findAllDeliveryCapable() } returns listOf(createSampleWorker())
-
-    // When
-    val result = resolver.deliveryWorkers()
-
-    // Then
-    assertEquals(1, result.size)
-    assertEquals("送水员甲", result[0].name)
-    verify { adminService.findAllDeliveryCapable() }
-  }
-
-  @Test
-  fun `onlineDeliveryWorkers should filter by online status`() {
-    // Given
-    every { adminService.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE) } returns listOf(createSampleWorker())
-
-    // When
-    val result = resolver.onlineDeliveryWorkers()
-
-    // Then
-    assertEquals(1, result.size)
-    verify { adminService.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE) }
-  }
-
-  @Test
-  fun `deliveryWorker should map delivery capable roles`() {
-    // Given
-    every { adminService.findById(2L) } returns createSampleWorker()
-
-    // When
-    val result = resolver.deliveryWorker(2L)
-
-    // Then
-    assertNotNull(result)
-    assertEquals(2L, result.id)
-  }
-
-  @Test
-  fun `deliveryWorker should return null for non delivery roles`() {
-    // Given
-    every { adminService.findById(3L) } returns createSampleWorker().copy(id = 3L, role = AdminRoleModel.SUPER_ADMIN)
-
-    // When
-    val result = resolver.deliveryWorker(3L)
-
-    // Then
-    assertNull(result)
-  }
-
-  @Test
-  fun `deliveryWorkerRatingStatistics should return zeroed stats when missing`() {
-    // Given
-    every { deliveryWorkerStatisticsQueryApiService.findByDeliveryWorkerId(2L) } returns null
-    every { adminService.findById(2L) } returns createSampleWorker()
-
-    // When
-    val result = resolver.deliveryWorkerRatingStatistics(2L)
-
-    // Then
-    assertEquals(2L, result.deliveryWorkerId)
-    assertEquals(BigDecimal.ZERO, result.averageRating)
-    assertEquals(0L, result.totalReviews)
-    assertNotNull(result.workerName)
-  }
-
-  @Test
-  fun `deliveryWorkerRatingStatistics should map stats distribution`() {
-    // Given
-    every { deliveryWorkerStatisticsQueryApiService.findByDeliveryWorkerId(2L) } returns
-      DeliveryWorkerStatisticsModel(
-        id = 1L,
-        deliveryWorkerId = 2L,
-        averageRating = BigDecimal("4.80"),
-        totalReviews = 10,
-        oneStarReviews = 1,
-        twoStarReviews = 0,
-        threeStarReviews = 1,
-        fourStarReviews = 2,
-        fiveStarReviews = 6,
-        lastUpdated = LocalDateTime.now(),
+    fun createSampleWorker(): AdminModel =
+      AdminModel(
+        id = 2L,
+        username = "delivery_2",
+        passwordHash = "hashed_password",
+        realName = "送水员甲",
+        phone = "13900139000",
+        role = AdminRoleModel.DELIVERY_WORKER,
+        accountStatus = AdminAccountStatus.ACTIVE,
+        onlineStatus = DeliverWorkerModelStatus.ONLINE,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
-    every { adminService.findById(2L) } returns createSampleWorker()
 
-    // When
-    val result = resolver.deliveryWorkerRatingStatistics(2L)
+    beforeTest {
+      adminService = mockk(relaxed = true)
+      deliveryWorkerStatisticsQueryApiService = mockk(relaxed = true)
+      resolver = AdminDeliveryWorkerQueryResolver(adminService, deliveryWorkerStatisticsQueryApiService)
+    }
+    test("deliveryWorkers should return all delivery capable admins") {
+      // Given
+      every { adminService.findAllDeliveryCapable() } returns listOf(createSampleWorker())
 
-    // Then
-    assertEquals(BigDecimal("4.80"), result.averageRating)
-    assertEquals(10L, result.totalReviews)
-    assertEquals(6L, result.fiveStarReviews)
-    assertEquals(6L, result.ratingDistribution["5"])
-  }
-}
+      // When
+      val result = resolver.deliveryWorkers()
+
+      // Then
+      result.size shouldBe 1
+      result[0].name shouldBe "送水员甲"
+      verify { adminService.findAllDeliveryCapable() }
+    }
+    test("onlineDeliveryWorkers should filter by online status") {
+      // Given
+      every { adminService.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE) } returns listOf(createSampleWorker())
+
+      // When
+      val result = resolver.onlineDeliveryWorkers()
+
+      // Then
+      result.size shouldBe 1
+      verify { adminService.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE) }
+    }
+    test("deliveryWorker should map delivery capable roles") {
+      // Given
+      every { adminService.findById(2L) } returns createSampleWorker()
+
+      // When
+      val result = resolver.deliveryWorker(2L)
+
+      // Then
+      result.shouldNotBeNull()
+      result.id shouldBe 2L
+    }
+    test("deliveryWorker should return null for non delivery roles") {
+      // Given
+      every { adminService.findById(3L) } returns createSampleWorker().copy(id = 3L, role = AdminRoleModel.SUPER_ADMIN)
+
+      // When
+      val result = resolver.deliveryWorker(3L)
+
+      // Then
+      result.shouldBeNull()
+    }
+    test("deliveryWorkerRatingStatistics should return zeroed stats when missing") {
+      // Given
+      every { deliveryWorkerStatisticsQueryApiService.findByDeliveryWorkerId(2L) } returns null
+      every { adminService.findById(2L) } returns createSampleWorker()
+
+      // When
+      val result = resolver.deliveryWorkerRatingStatistics(2L)
+
+      // Then
+      result.deliveryWorkerId shouldBe 2L
+      result.averageRating shouldBe BigDecimal.ZERO
+      result.totalReviews shouldBe 0L
+      result.workerName.shouldNotBeNull()
+    }
+    test("deliveryWorkerRatingStatistics should map stats distribution") {
+      // Given
+      every { deliveryWorkerStatisticsQueryApiService.findByDeliveryWorkerId(2L) } returns
+        DeliveryWorkerStatisticsModel(
+          id = 1L,
+          deliveryWorkerId = 2L,
+          averageRating = BigDecimal("4.80"),
+          totalReviews = 10,
+          oneStarReviews = 1,
+          twoStarReviews = 0,
+          threeStarReviews = 1,
+          fourStarReviews = 2,
+          fiveStarReviews = 6,
+          lastUpdated = LocalDateTime.now(),
+        )
+      every { adminService.findById(2L) } returns createSampleWorker()
+
+      // When
+      val result = resolver.deliveryWorkerRatingStatistics(2L)
+
+      // Then
+      result.averageRating shouldBe BigDecimal("4.80")
+      result.totalReviews shouldBe 10L
+      result.fiveStarReviews shouldBe 6L
+      result.ratingDistribution["5"] shouldBe 6L
+    }
+  })

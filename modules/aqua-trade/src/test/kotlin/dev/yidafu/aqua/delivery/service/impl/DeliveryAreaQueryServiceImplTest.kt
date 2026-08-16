@@ -21,56 +21,44 @@ package dev.yidafu.aqua.delivery.service.impl
 
 import dev.yidafu.aqua.common.domain.model.DeliveryAreaModel
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryAreaRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /**
  * 配送区域查询服务单元测试。
  */
-class DeliveryAreaQueryServiceImplTest {
-  private lateinit var areaRepository: DeliveryAreaRepository
-  private lateinit var service: DeliveryAreaQueryServiceImpl
+class DeliveryAreaQueryServiceImplTest :
+  FunSpec({
+    var areaRepository: DeliveryAreaRepository = mockk()
+    var service: DeliveryAreaQueryServiceImpl = mockk()
 
-  private fun area(
-    id: Long,
-    enabled: Boolean = true,
-  ) = DeliveryAreaModel(id = id, name = "区域$id", province = "浙江省", city = "杭州市", district = "西湖区", enabled = enabled)
+    fun area(
+      id: Long,
+      enabled: Boolean = true,
+    ) = DeliveryAreaModel(id = id, name = "区域$id", province = "浙江省", city = "杭州市", district = "西湖区", enabled = enabled)
 
-  @BeforeEach
-  fun setUp() {
-    areaRepository = mockk(relaxed = true)
-    service = DeliveryAreaQueryServiceImpl(areaRepository)
-  }
+    beforeTest {
+      areaRepository = mockk(relaxed = true)
+      service = DeliveryAreaQueryServiceImpl(areaRepository)
+    }
+    test("isAddressInDeliveryArea always true") {
+      service.isAddressInDeliveryArea("浙江省", "杭州市", "西湖区") shouldBe true
+    }
+    test("validateDeliveryAddress does not throw") {
+      service.validateDeliveryAddress("浙江省", "杭州市", "西湖区")
+    }
+    test("list queries pass through") {
+      val all = listOf(area(1L), area(2L, enabled = false))
+      val enabled = listOf(area(1L))
+      every { areaRepository.findAll() } returns all
+      every { areaRepository.findByEnabledTrue() } returns enabled
 
-  @Test
-  @DisplayName("isAddressInDeliveryArea 当前恒为 true")
-  fun `isAddressInDeliveryArea always true`() {
-    assertTrue(service.isAddressInDeliveryArea("浙江省", "杭州市", "西湖区"))
-  }
-
-  @Test
-  @DisplayName("validateDeliveryAddress 不抛异常")
-  fun `validateDeliveryAddress does not throw`() {
-    service.validateDeliveryAddress("浙江省", "杭州市", "西湖区")
-  }
-
-  @Test
-  @DisplayName("getAllDeliveryAreas / getEnabledDeliveryAreas 透传")
-  fun `list queries pass through`() {
-    val all = listOf(area(1L), area(2L, enabled = false))
-    val enabled = listOf(area(1L))
-    every { areaRepository.findAll() } returns all
-    every { areaRepository.findByEnabledTrue() } returns enabled
-
-    assertEquals(all, service.getAllDeliveryAreas())
-    assertEquals(enabled, service.getEnabledDeliveryAreas())
-    verify(exactly = 1) { areaRepository.findAll() }
-    verify(exactly = 1) { areaRepository.findByEnabledTrue() }
-  }
-}
+      service.getAllDeliveryAreas() shouldBe all
+      service.getEnabledDeliveryAreas() shouldBe enabled
+      verify(exactly = 1) { areaRepository.findAll() }
+      verify(exactly = 1) { areaRepository.findByEnabledTrue() }
+    }
+  })

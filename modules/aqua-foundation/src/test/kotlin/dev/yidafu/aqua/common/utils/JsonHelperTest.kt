@@ -19,94 +19,71 @@
 
 package dev.yidafu.aqua.common.utils
 
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 
-class JsonHelperTest {
-  private val jsonHelper = JsonHelper()
+class JsonHelperTest :
+  FunSpec({
+    val jsonHelper = JsonHelper()
 
-  @Test
-  fun `createArrayNode should create empty array node`() {
-    val node = jsonHelper.createArrayNode()
-    assertTrue(node.isEmpty)
-  }
-
-  @Test
-  fun `createArrayNode from strings should add all strings`() {
-    val node = jsonHelper.createArrayNode(listOf("a", "b", "c"))
-    assertEquals(3, node.size())
-    assertEquals("a", node[0].asText())
-    assertEquals("c", node[2].asText())
-  }
-
-  @Test
-  fun `createObjectNode should create empty object node`() {
-    val node = jsonHelper.createObjectNode()
-    assertTrue(node.isEmpty)
-  }
-
-  @Test
-  fun `createObjectNode from map should populate fields`() {
-    val node = jsonHelper.createObjectNode(mapOf("name" to "test", "age" to 30))
-    assertEquals("test", node.get("name").asText())
-    assertEquals(30, node.get("age").asInt())
-  }
-
-  @Test
-  fun `arrayNodeToList should convert textual values`() {
-    val node = jsonHelper.createArrayNode(listOf("x", "y"))
-    val list = jsonHelper.arrayNodeToList(node)
-    assertEquals(listOf("x", "y"), list)
-  }
-
-  @Test
-  fun `arrayNodeToList should ignore non-textual values`() {
-    val node = jsonHelper.createArrayNode()
-    node.add(123)
-    node.add("text")
-    val list = jsonHelper.arrayNodeToList(node)
-    assertEquals(listOf("text"), list)
-  }
-
-  @Test
-  fun `arrayNodeToList should return empty list for null`() {
-    assertEquals(emptyList<String>(), jsonHelper.arrayNodeToList(null))
-  }
-
-  @Test
-  fun `arrayNodeToList typed should convert to target type`() {
-    data class Sample(
-      val name: String,
-    )
-    val node = jsonHelper.createArrayNode()
-    node.addObject().put("name", "hello")
-    val list = jsonHelper.arrayNodeToList(node, Sample::class.java)
-    assertEquals(1, list.size)
-    assertEquals("hello", list[0].name)
-  }
-
-  @Test
-  fun `arrayNodeToList typed should return empty list for null`() {
-    assertEquals(emptyList<String>(), jsonHelper.arrayNodeToList(null, String::class.java))
-  }
-
-  @Test
-  fun `objectNodeToMap should convert object node`() {
-    val node = jsonHelper.createObjectNode(mapOf("key" to "value", "num" to 1))
-    val map = jsonHelper.objectNodeToMap(node)
-    assertEquals("value", map["key"])
-    assertEquals(1, map["num"])
-  }
-
-  @Test
-  fun `objectNodeToMap should return empty map for null`() {
-    assertEquals(emptyMap<String, Any>(), jsonHelper.objectNodeToMap(null))
-  }
-
-  @Test
-  fun `getObjectMapper should return configured mapper`() {
-    assertNotNull(jsonHelper.getObjectMapper())
-  }
-}
+    test("createArrayNode should create empty array node") {
+      val node = jsonHelper.createArrayNode()
+      node.isEmpty shouldBe true
+    }
+    test("createArrayNode from strings should add all strings") {
+      val node = jsonHelper.createArrayNode(listOf("a", "b", "c"))
+      node.size() shouldBe 3
+      node[0].asText() shouldBe "a"
+      node[2].asText() shouldBe "c"
+    }
+    test("createObjectNode should create empty object node") {
+      val node = jsonHelper.createObjectNode()
+      node.isEmpty shouldBe true
+    }
+    test("createObjectNode from map should populate fields") {
+      val node = jsonHelper.createObjectNode(mapOf("name" to "test", "age" to 30))
+      node.get("name").asText() shouldBe "test"
+      node.get("age").asInt() shouldBe 30
+    }
+    test("arrayNodeToList should convert textual values") {
+      val node = jsonHelper.createArrayNode(listOf("x", "y"))
+      val list = jsonHelper.arrayNodeToList(node)
+      list shouldBe listOf("x", "y")
+    }
+    test("arrayNodeToList should ignore non-textual values") {
+      val node = jsonHelper.createArrayNode()
+      node.add(123)
+      node.add("text")
+      val list = jsonHelper.arrayNodeToList(node)
+      list shouldBe listOf("text")
+    }
+    test("arrayNodeToList should return empty list for null") {
+      jsonHelper.arrayNodeToList(null) shouldBe (emptyList<String>())
+    }
+    test("arrayNodeToList typed should convert to target type") {
+      data class Sample(
+        val name: String,
+      )
+      val node = jsonHelper.createArrayNode()
+      node.addObject().put("name", "hello")
+      val list = jsonHelper.arrayNodeToList(node, Sample::class.java)
+      list.size shouldBe 1
+      list[0].name shouldBe "hello"
+    }
+    test("arrayNodeToList typed should return empty list for null") {
+      jsonHelper.arrayNodeToList(null, String::class.java) shouldBe (emptyList<String>())
+    }
+    test("objectNodeToMap should convert object node") {
+      val node = jsonHelper.createObjectNode(mapOf("key" to "value", "num" to 1))
+      val map = jsonHelper.objectNodeToMap(node)
+      map["key"] shouldBe "value"
+      map["num"] shouldBe 1
+    }
+    test("objectNodeToMap should return empty map for null") {
+      jsonHelper.objectNodeToMap(null) shouldBe (emptyMap<String, Any>())
+    }
+    test("getObjectMapper should return configured mapper") {
+      jsonHelper.getObjectMapper().shouldNotBeNull()
+    }
+  })

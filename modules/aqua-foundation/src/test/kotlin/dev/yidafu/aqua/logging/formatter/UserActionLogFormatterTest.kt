@@ -22,209 +22,162 @@ package dev.yidafu.aqua.logging.formatter
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
 import dev.yidafu.aqua.logging.context.UserContext
 import dev.yidafu.aqua.logging.context.UserContextHolder
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import tools.jackson.databind.ObjectMapper
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class UserActionLogFormatterTest {
-  private val formatter = UserActionLogFormatter.instance
-  private val mapper = ObjectMapper()
+class UserActionLogFormatterTest :
+  FunSpec({
+    val formatter = UserActionLogFormatter.instance
+    val mapper = ObjectMapper()
 
-  @Suppress("UNCHECKED_CAST")
-  private fun parse(json: String): Map<String, Any> = mapper.readValue(json, Map::class.java) as Map<String, Any>
+    fun parse(json: String): Map<String, Any> = mapper.readValue(json, Map::class.java) as Map<String, Any>
 
-  @AfterEach
-  fun tearDown() {
-    CorrelationIdHolder.clear()
-    UserContextHolder.clear()
-  }
+    @Suppress("UNCHECKED_CAST")
 
-  @Test
-  fun `format should produce basic user action json`() {
-    val map = parse(formatter.format("CLICK", "button-1"))
-    assertEquals("INFO", map["level"])
-    assertEquals("user-action", map["logger"])
-    assertEquals("USER_ACTION", map["eventType"])
-    assertEquals("CLICK", map["actionType"])
-    assertEquals("button-1", map["target"])
-    assertEquals("aqua-rush", map["service"])
-  }
-
-  @Test
-  fun `format should include correlation and user context`() {
-    CorrelationIdHolder.setCorrelationId("corr-1")
-    UserContextHolder.setUserContext(UserContext(userId = "42", username = "alice", role = "ADMIN", tenantId = "t1"))
-    val map = parse(formatter.format("SEARCH", "products"))
-    assertEquals("corr-1", map["correlationId"])
-    assertEquals("42", map["userId"])
-    assertEquals("alice", map["username"])
-    assertEquals("ADMIN", map["userRole"])
-    assertEquals("t1", map["tenantId"])
-  }
-
-  @Test
-  fun `format should merge custom properties`() {
-    val map = parse(formatter.format("CUSTOM", "target", mapOf("extra" to "value")))
-    assertEquals("value", map["extra"])
-  }
-
-  @Test
-  fun `formatPageView should include page fields`() {
-    val map = parse(formatter.formatPageView("/home", pageTitle = "首页", referrer = "/login", userAgent = "wechat"))
-    assertEquals("PAGE_VIEW", map["actionType"])
-    assertEquals("/home", map["pageUrl"])
-    assertEquals("首页", map["pageTitle"])
-    assertEquals("/login", map["referrer"])
-    assertEquals("wechat", map["userAgent"])
-  }
-
-  @Test
-  fun `formatClick should include element fields`() {
-    val map =
-      parse(
-        formatter.formatClick(
-          elementId = "btn",
-          elementType = "button",
-          elementText = "确定",
-          coordinates = mapOf("screenX" to 10, "screenY" to 20, "pageX" to 30, "pageY" to 40),
-        ),
-      )
-    assertEquals("CLICK", map["actionType"])
-    assertEquals("btn", map["elementId"])
-    assertEquals("确定", map["elementText"])
-    assertEquals(10, map["screenX"])
-    assertEquals(30, map["pageX"])
-  }
-
-  @Test
-  fun `formatClick without coordinates should omit coordinate keys`() {
-    val map = parse(formatter.formatClick(elementId = "btn", elementType = "button"))
-    assertTrue(!map.containsKey("screenX"))
-  }
-
-  @Test
-  fun `formatDrag should compute distances`() {
-    val map =
-      parse(
-        formatter.formatDrag(
-          startCoordinates = mapOf("pageX" to 10, "pageY" to 20),
-          endCoordinates = mapOf("pageX" to 40, "pageY" to 60),
-          elementId = "drag",
-        ),
-      )
-    assertEquals("DRAG", map["actionType"])
-    assertEquals("drag", map["target"])
-    assertEquals(30, map["distanceX"])
-    assertEquals(40, map["distanceY"])
-  }
-
-  @Test
-  fun `formatDrag without element id should default target`() {
-    val map =
-      parse(
-        formatter.formatDrag(
-          startCoordinates = mapOf("pageX" to 0, "pageY" to 0),
-          endCoordinates = mapOf("pageX" to 5, "pageY" to 5),
-        ),
-      )
-    assertEquals("drag_operation", map["target"])
-  }
-
-  @Test
-  fun `formatInput should sanitize password`() {
-    val map = parse(formatter.formatInput("pwd-field", "secret123", inputType = "password"))
-    assertEquals("***", map["inputValue"])
-  }
-
-  @Test
-  fun `formatInput should sanitize email`() {
-    val map = parse(formatter.formatInput("email-field", "alice@example.com", inputType = "email"))
-    assertEquals("al***@example.com", map["inputValue"])
-  }
-
-  @Test
-  fun `formatInput should sanitize short email`() {
-    val map = parse(formatter.formatInput("email-field", "a@example.com", inputType = "email"))
-    assertEquals("***@example.com", map["inputValue"])
-  }
-
-  @Test
-  fun `formatInput should sanitize invalid email`() {
-    val map = parse(formatter.formatInput("email-field", "not-an-email", inputType = "email"))
-    assertEquals("***", map["inputValue"])
-  }
-
-  @Test
-  fun `formatInput should sanitize phone`() {
-    val map = parse(formatter.formatInput("phone-field", "13800138000", inputType = "phone"))
-    assertEquals("138***8000", map["inputValue"])
-  }
-
-  @Test
-  fun `formatInput should sanitize short phone`() {
-    val map = parse(formatter.formatInput("phone-field", "123", inputType = "tel"))
-    assertEquals("***", map["inputValue"])
-  }
-
-  @Test
-  fun `formatInput should sanitize credit card`() {
-    val map = parse(formatter.formatInput("card-field", "6222000011112222", inputType = "creditcard"))
-    assertEquals("6222***2222", map["inputValue"])
-  }
-
-  @Test
-  fun `formatInput should sanitize short card`() {
-    val map = parse(formatter.formatInput("card-field", "1234", inputType = "bankcard"))
-    assertEquals("***", map["inputValue"])
-  }
-
-  @Test
-  fun `formatInput should truncate long text input`() {
-    val longValue = "x".repeat(150)
-    val map = parse(formatter.formatInput("text-field", longValue, inputType = "text"))
-    val value = map["inputValue"] as String
-    assertTrue(value.contains("[TRUNCATED]"))
-  }
-
-  @Test
-  fun `formatInput should keep short text input`() {
-    val map = parse(formatter.formatInput("text-field", "hello", inputType = "text"))
-    assertEquals("hello", map["inputValue"])
-  }
-
-  @Test
-  fun `formatInput should include input length`() {
-    val map = parse(formatter.formatInput("text-field", "hello"))
-    assertEquals(5, map["inputLength"])
-    assertEquals("text", map["inputType"])
-  }
-
-  @Test
-  fun `formatBackendOperation success should produce INFO`() {
-    val map = parse(formatter.formatBackendOperation("CREATE", "order", "SUCCESS", "order-1"))
-    assertEquals("INFO", map["level"])
-    assertEquals("BACKEND_OPERATION", map["actionType"])
-    assertEquals("ORDER", map["module"])
-  }
-
-  @Test
-  fun `formatBackendOperation error should produce ERROR`() {
-    val map = parse(formatter.formatBackendOperation("CREATE", "order", "FAILURE", "order-1"))
-    assertEquals("ERROR", map["level"])
-  }
-
-  @Test
-  fun `formatBackendOperation warning should produce WARN`() {
-    val map = parse(formatter.formatBackendOperation("CREATE", "order", "WARNING", "order-1"))
-    assertEquals("WARN", map["level"])
-  }
-
-  @Test
-  fun `formatCustomAction should use provided level`() {
-    val map = parse(formatter.formatCustomAction("special", "target", level = "ERROR"))
-    assertEquals("ERROR", map["level"])
-    assertEquals("SPECIAL", map["actionType"])
-  }
-}
+    afterTest {
+      CorrelationIdHolder.clear()
+      UserContextHolder.clear()
+    }
+    test("format should produce basic user action json") {
+      val map = parse(formatter.format("CLICK", "button-1"))
+      map["level"] shouldBe "INFO"
+      map["logger"] shouldBe "user-action"
+      map["eventType"] shouldBe "USER_ACTION"
+      map["actionType"] shouldBe "CLICK"
+      map["target"] shouldBe "button-1"
+      map["service"] shouldBe "aqua-rush"
+    }
+    test("format should include correlation and user context") {
+      CorrelationIdHolder.setCorrelationId("corr-1")
+      UserContextHolder.setUserContext(UserContext(userId = "42", username = "alice", role = "ADMIN", tenantId = "t1"))
+      val map = parse(formatter.format("SEARCH", "products"))
+      map["correlationId"] shouldBe "corr-1"
+      map["userId"] shouldBe "42"
+      map["username"] shouldBe "alice"
+      map["userRole"] shouldBe "ADMIN"
+      map["tenantId"] shouldBe "t1"
+    }
+    test("format should merge custom properties") {
+      val map = parse(formatter.format("CUSTOM", "target", mapOf("extra" to "value")))
+      map["extra"] shouldBe "value"
+    }
+    test("formatPageView should include page fields") {
+      val map = parse(formatter.formatPageView("/home", pageTitle = "首页", referrer = "/login", userAgent = "wechat"))
+      map["actionType"] shouldBe "PAGE_VIEW"
+      map["pageUrl"] shouldBe "/home"
+      map["pageTitle"] shouldBe "首页"
+      map["referrer"] shouldBe "/login"
+      map["userAgent"] shouldBe "wechat"
+    }
+    test("formatClick should include element fields") {
+      val map =
+        parse(
+          formatter.formatClick(
+            elementId = "btn",
+            elementType = "button",
+            elementText = "确定",
+            coordinates = mapOf("screenX" to 10, "screenY" to 20, "pageX" to 30, "pageY" to 40),
+          ),
+        )
+      map["actionType"] shouldBe "CLICK"
+      map["elementId"] shouldBe "btn"
+      map["elementText"] shouldBe "确定"
+      map["screenX"] shouldBe 10
+      map["pageX"] shouldBe 30
+    }
+    test("formatClick without coordinates should omit coordinate keys") {
+      val map = parse(formatter.formatClick(elementId = "btn", elementType = "button"))
+      !map.containsKey("screenX") shouldBe true
+    }
+    test("formatDrag should compute distances") {
+      val map =
+        parse(
+          formatter.formatDrag(
+            startCoordinates = mapOf("pageX" to 10, "pageY" to 20),
+            endCoordinates = mapOf("pageX" to 40, "pageY" to 60),
+            elementId = "drag",
+          ),
+        )
+      map["actionType"] shouldBe "DRAG"
+      map["target"] shouldBe "drag"
+      map["distanceX"] shouldBe 30
+      map["distanceY"] shouldBe 40
+    }
+    test("formatDrag without element id should default target") {
+      val map =
+        parse(
+          formatter.formatDrag(
+            startCoordinates = mapOf("pageX" to 0, "pageY" to 0),
+            endCoordinates = mapOf("pageX" to 5, "pageY" to 5),
+          ),
+        )
+      map["target"] shouldBe "drag_operation"
+    }
+    test("formatInput should sanitize password") {
+      val map = parse(formatter.formatInput("pwd-field", "secret123", inputType = "password"))
+      map["inputValue"] shouldBe "***"
+    }
+    test("formatInput should sanitize email") {
+      val map = parse(formatter.formatInput("email-field", "alice@example.com", inputType = "email"))
+      map["inputValue"] shouldBe "al***@example.com"
+    }
+    test("formatInput should sanitize short email") {
+      val map = parse(formatter.formatInput("email-field", "a@example.com", inputType = "email"))
+      map["inputValue"] shouldBe "***@example.com"
+    }
+    test("formatInput should sanitize invalid email") {
+      val map = parse(formatter.formatInput("email-field", "not-an-email", inputType = "email"))
+      map["inputValue"] shouldBe "***"
+    }
+    test("formatInput should sanitize phone") {
+      val map = parse(formatter.formatInput("phone-field", "13800138000", inputType = "phone"))
+      map["inputValue"] shouldBe "138***8000"
+    }
+    test("formatInput should sanitize short phone") {
+      val map = parse(formatter.formatInput("phone-field", "123", inputType = "tel"))
+      map["inputValue"] shouldBe "***"
+    }
+    test("formatInput should sanitize credit card") {
+      val map = parse(formatter.formatInput("card-field", "6222000011112222", inputType = "creditcard"))
+      map["inputValue"] shouldBe "6222***2222"
+    }
+    test("formatInput should sanitize short card") {
+      val map = parse(formatter.formatInput("card-field", "1234", inputType = "bankcard"))
+      map["inputValue"] shouldBe "***"
+    }
+    test("formatInput should truncate long text input") {
+      val longValue = "x".repeat(150)
+      val map = parse(formatter.formatInput("text-field", longValue, inputType = "text"))
+      val value = map["inputValue"] as String
+      value.contains("[TRUNCATED]") shouldBe true
+    }
+    test("formatInput should keep short text input") {
+      val map = parse(formatter.formatInput("text-field", "hello", inputType = "text"))
+      map["inputValue"] shouldBe "hello"
+    }
+    test("formatInput should include input length") {
+      val map = parse(formatter.formatInput("text-field", "hello"))
+      map["inputLength"] shouldBe 5
+      map["inputType"] shouldBe "text"
+    }
+    test("formatBackendOperation success should produce INFO") {
+      val map = parse(formatter.formatBackendOperation("CREATE", "order", "SUCCESS", "order-1"))
+      map["level"] shouldBe "INFO"
+      map["actionType"] shouldBe "BACKEND_OPERATION"
+      map["module"] shouldBe "ORDER"
+    }
+    test("formatBackendOperation error should produce ERROR") {
+      val map = parse(formatter.formatBackendOperation("CREATE", "order", "FAILURE", "order-1"))
+      map["level"] shouldBe "ERROR"
+    }
+    test("formatBackendOperation warning should produce WARN") {
+      val map = parse(formatter.formatBackendOperation("CREATE", "order", "WARNING", "order-1"))
+      map["level"] shouldBe "WARN"
+    }
+    test("formatCustomAction should use provided level") {
+      val map = parse(formatter.formatCustomAction("special", "target", level = "ERROR"))
+      map["level"] shouldBe "ERROR"
+      map["actionType"] shouldBe "SPECIAL"
+    }
+  })

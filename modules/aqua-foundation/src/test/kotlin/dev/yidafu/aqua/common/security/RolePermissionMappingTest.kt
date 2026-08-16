@@ -21,80 +21,68 @@ package dev.yidafu.aqua.common.security
 
 import dev.yidafu.aqua.common.domain.model.enums.AdminPermission
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
 /**
  * 验证角色→权限矩阵(PRD 01-overview.md §角色权限矩阵)与角色→authority 映射。
  */
-class RolePermissionMappingTest {
-  @Test
-  fun `permission catalog should contain exactly 38 codes`() {
-    assertEquals(38, AdminPermission.entries.size)
-  }
+class RolePermissionMappingTest :
+  FunSpec({
 
-  @Test
-  fun `SUPER_ADMIN should have all permissions`() {
-    val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.SUPER_ADMIN)
-    assertEquals(AdminPermission.entries.toSet(), permissions)
-  }
-
-  @Test
-  fun `ADMIN should have 32 permissions excluding admin-user system-config and worker-only ops`() {
-    val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.ADMIN)
-    assertEquals(32, permissions.size)
-    assertTrue(AdminPermission.ADMIN_USER_READ !in permissions)
-    assertTrue(AdminPermission.ADMIN_USER_WRITE !in permissions)
-    assertTrue(AdminPermission.SYSTEM_CONFIG_READ !in permissions)
-    assertTrue(AdminPermission.SYSTEM_CONFIG_WRITE !in permissions)
-    assertTrue(AdminPermission.ORDER_CREATE !in permissions)
-    assertTrue(AdminPermission.RECONCILIATION_SUBMIT !in permissions)
-    // 管理员兼送水(F-USR-023):DELIVERY_TASK 已授予管理员(PRD 01-overview §角色权限矩阵)
-    assertTrue(AdminPermission.DELIVERY_TASK in permissions)
-    // 运营配置/意见反馈/营销 6 码属于管理员
-    assertTrue(AdminPermission.OPS_CONFIG_READ in permissions)
-    assertTrue(AdminPermission.OPS_CONFIG_WRITE in permissions)
-    assertTrue(AdminPermission.FEEDBACK_READ in permissions)
-    assertTrue(AdminPermission.FEEDBACK_REVIEW in permissions)
-    assertTrue(AdminPermission.MKT_READ in permissions)
-    assertTrue(AdminPermission.MKT_WRITE in permissions)
-  }
-
-  @Test
-  fun `DELIVERY_WORKER should have 8 permissions`() {
-    val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.DELIVERY_WORKER)
-    assertEquals(8, permissions.size)
-    assertTrue(AdminPermission.DELIVERY_TASK in permissions)
-    assertTrue(AdminPermission.ORDER_CREATE in permissions)
-    assertTrue(AdminPermission.RECONCILIATION_SUBMIT in permissions)
-    assertTrue(AdminPermission.ORDER_READ in permissions)
-    assertTrue(AdminPermission.PRODUCT_READ in permissions)
-    assertTrue(AdminPermission.FEEDBACK_REVIEW !in permissions)
-    assertTrue(AdminPermission.OPS_CONFIG_READ !in permissions)
-  }
-
-  @Test
-  fun `SUPER_ADMIN authorities should include ROLE_ADMIN and all permissions`() {
-    val authorities = AdminRoleModel.SUPER_ADMIN.toPermissionAuthorities()
-    assertTrue(authorities.any { it.authority == "ROLE_SUPER_ADMIN" })
-    assertTrue(authorities.any { it.authority == "ROLE_ADMIN" })
-    assertTrue(authorities.any { it.authority == "PERMISSION_ADMIN_USER_WRITE" })
-  }
-
-  @Test
-  fun `ADMIN authorities should not include admin-user permissions`() {
-    val authorities = AdminRoleModel.ADMIN.toPermissionAuthorities()
-    assertTrue(authorities.any { it.authority == "ROLE_ADMIN" })
-    assertTrue(authorities.none { it.authority == "PERMISSION_ADMIN_USER_WRITE" })
-    assertTrue(authorities.none { it.authority == "PERMISSION_SYSTEM_CONFIG_WRITE" })
-  }
-
-  @Test
-  fun `DELIVERY_WORKER authorities should carry worker task permissions`() {
-    val authorities = AdminRoleModel.DELIVERY_WORKER.toPermissionAuthorities()
-    assertTrue(authorities.any { it.authority == "ROLE_DELIVERY_WORKER" })
-    assertTrue(authorities.any { it.authority == "PERMISSION_DELIVERY_TASK" })
-    assertTrue(authorities.none { it.authority == "PERMISSION_ADMIN_USER_READ" })
-  }
-}
+    test("permission catalog should contain exactly 38 codes") {
+      AdminPermission.entries.size shouldBe 38
+    }
+    test("SUPER_ADMIN should have all permissions") {
+      val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.SUPER_ADMIN)
+      permissions shouldBe AdminPermission.entries.toSet()
+    }
+    test("ADMIN should have 32 permissions excluding admin-user system-config and worker-only ops") {
+      val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.ADMIN)
+      permissions.size shouldBe 32
+      (AdminPermission.ADMIN_USER_READ !in permissions) shouldBe true
+      (AdminPermission.ADMIN_USER_WRITE !in permissions) shouldBe true
+      (AdminPermission.SYSTEM_CONFIG_READ !in permissions) shouldBe true
+      (AdminPermission.SYSTEM_CONFIG_WRITE !in permissions) shouldBe true
+      (AdminPermission.ORDER_CREATE !in permissions) shouldBe true
+      (AdminPermission.RECONCILIATION_SUBMIT !in permissions) shouldBe true
+      // 管理员兼送水(F-USR-023):DELIVERY_TASK 已授予管理员(PRD 01-overview §角色权限矩阵)
+      (AdminPermission.DELIVERY_TASK in permissions) shouldBe true
+      // 运营配置/意见反馈/营销 6 码属于管理员
+      (AdminPermission.OPS_CONFIG_READ in permissions) shouldBe true
+      (AdminPermission.OPS_CONFIG_WRITE in permissions) shouldBe true
+      (AdminPermission.FEEDBACK_READ in permissions) shouldBe true
+      (AdminPermission.FEEDBACK_REVIEW in permissions) shouldBe true
+      (AdminPermission.MKT_READ in permissions) shouldBe true
+      (AdminPermission.MKT_WRITE in permissions) shouldBe true
+    }
+    test("DELIVERY_WORKER should have 8 permissions") {
+      val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.DELIVERY_WORKER)
+      permissions.size shouldBe 8
+      (AdminPermission.DELIVERY_TASK in permissions) shouldBe true
+      (AdminPermission.ORDER_CREATE in permissions) shouldBe true
+      (AdminPermission.RECONCILIATION_SUBMIT in permissions) shouldBe true
+      (AdminPermission.ORDER_READ in permissions) shouldBe true
+      (AdminPermission.PRODUCT_READ in permissions) shouldBe true
+      (AdminPermission.FEEDBACK_REVIEW !in permissions) shouldBe true
+      (AdminPermission.OPS_CONFIG_READ !in permissions) shouldBe true
+    }
+    test("SUPER_ADMIN authorities should include ROLE_ADMIN and all permissions") {
+      val authorities = AdminRoleModel.SUPER_ADMIN.toPermissionAuthorities()
+      authorities.any { it.authority == "ROLE_SUPER_ADMIN" } shouldBe true
+      authorities.any { it.authority == "ROLE_ADMIN" } shouldBe true
+      authorities.any { it.authority == "PERMISSION_ADMIN_USER_WRITE" } shouldBe true
+    }
+    test("ADMIN authorities should not include admin-user permissions") {
+      val authorities = AdminRoleModel.ADMIN.toPermissionAuthorities()
+      authorities.any { it.authority == "ROLE_ADMIN" } shouldBe true
+      authorities.none { it.authority == "PERMISSION_ADMIN_USER_WRITE" } shouldBe true
+      authorities.none { it.authority == "PERMISSION_SYSTEM_CONFIG_WRITE" } shouldBe true
+    }
+    test("DELIVERY_WORKER authorities should carry worker task permissions") {
+      val authorities = AdminRoleModel.DELIVERY_WORKER.toPermissionAuthorities()
+      authorities.any { it.authority == "ROLE_DELIVERY_WORKER" } shouldBe true
+      authorities.any { it.authority == "PERMISSION_DELIVERY_TASK" } shouldBe true
+      authorities.none { it.authority == "PERMISSION_ADMIN_USER_READ" } shouldBe true
+    }
+  })

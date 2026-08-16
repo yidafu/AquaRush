@@ -28,104 +28,97 @@ import dev.yidafu.aqua.common.graphql.generated.GiftActivityType
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdateGiftActivityInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 import dev.yidafu.aqua.common.graphql.generated.PromotionScope as GraphQLPromotionScope
 
-class AdminGiftActivityMutationResolverTest {
-  private lateinit var giftActivityMutationService: GiftActivityMutationService
-  private lateinit var productQueryApiService: ProductQueryApiService
-  private lateinit var resolver: AdminGiftActivityMutationResolver
+class AdminGiftActivityMutationResolverTest :
+  FunSpec({
+    var giftActivityMutationService: GiftActivityMutationService = mockk()
+    var productQueryApiService: ProductQueryApiService = mockk()
+    var resolver: AdminGiftActivityMutationResolver = mockk()
 
-  private fun activity(): GiftActivityModel =
-    GiftActivityModel(
-      id = 10L,
-      name = "买赠活动",
-      giftProductId = 2L,
-      giftQuantity = 1,
-      validFrom = LocalDateTime.now().minusDays(1),
-      validTo = LocalDateTime.now().plusDays(30),
-      status = PromotionActivityStatus.ACTIVE,
-    )
-
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "admin",
-      userType = "ADMIN",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    giftActivityMutationService = mockk(relaxed = true)
-    productQueryApiService = mockk(relaxed = true)
-    resolver = AdminGiftActivityMutationResolver(giftActivityMutationService, productQueryApiService)
-  }
-
-  @Test
-  fun `createGiftActivity should delegate and compute status`() {
-    // Given
-    every { giftActivityMutationService.createActivity(1L, "admin", any()) } returns activity()
-    val input =
-      CreateGiftActivityInput(
+    fun activity(): GiftActivityModel =
+      GiftActivityModel(
+        id = 10L,
+        name = "买赠活动",
         giftProductId = 2L,
         giftQuantity = 1,
-        giftType = GiftActivityType.BUY_GIFT,
-        name = "买赠活动",
-        scope = GraphQLPromotionScope.ALL,
-        validFrom = LocalDateTime.now(),
+        validFrom = LocalDateTime.now().minusDays(1),
         validTo = LocalDateTime.now().plusDays(30),
+        status = PromotionActivityStatus.ACTIVE,
       )
 
-    // When
-    val result = resolver.createGiftActivity(input, principal())
-
-    // Then
-    assertEquals("买赠活动", result.name)
-    assertEquals(PromotionActivityDisplayStatus.ONGOING, result.currentStatus)
-    verify { giftActivityMutationService.createActivity(1L, "admin", any()) }
-  }
-
-  @Test
-  fun `disableGiftActivity should compute disabled status`() {
-    // Given
-    every { giftActivityMutationService.disableActivity(1L, "admin", 10L) } returns
-      activity().apply { status = PromotionActivityStatus.DISABLED }
-
-    // When
-    val result = resolver.disableGiftActivity(10L, principal())
-
-    // Then
-    assertEquals(PromotionActivityDisplayStatus.DISABLED, result.currentStatus)
-  }
-
-  @Test
-  fun `updateGiftActivity should delegate`() {
-    // Given
-    every { giftActivityMutationService.updateActivity(1L, "admin", 10L, any()) } returns activity()
-    val input =
-      UpdateGiftActivityInput(
-        giftProductId = 2L,
-        giftQuantity = 1,
-        giftType = GiftActivityType.BUY_GIFT,
-        name = "买赠活动",
-        scope = GraphQLPromotionScope.ALL,
-        validFrom = LocalDateTime.now(),
-        validTo = LocalDateTime.now().plusDays(30),
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "admin",
+        userType = "ADMIN",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
       )
 
-    // When
-    val result = resolver.updateGiftActivity(10L, input, principal())
+    beforeTest {
+      giftActivityMutationService = mockk(relaxed = true)
+      productQueryApiService = mockk(relaxed = true)
+      resolver = AdminGiftActivityMutationResolver(giftActivityMutationService, productQueryApiService)
+    }
+    test("createGiftActivity should delegate and compute status") {
+      // Given
+      every { giftActivityMutationService.createActivity(1L, "admin", any()) } returns activity()
+      val input =
+        CreateGiftActivityInput(
+          giftProductId = 2L,
+          giftQuantity = 1,
+          giftType = GiftActivityType.BUY_GIFT,
+          name = "买赠活动",
+          scope = GraphQLPromotionScope.ALL,
+          validFrom = LocalDateTime.now(),
+          validTo = LocalDateTime.now().plusDays(30),
+        )
 
-    // Then
-    assertEquals(PromotionActivityDisplayStatus.ONGOING, result.currentStatus)
-    verify { giftActivityMutationService.updateActivity(1L, "admin", 10L, any()) }
-  }
-}
+      // When
+      val result = resolver.createGiftActivity(input, principal())
+
+      // Then
+      result.name shouldBe "买赠活动"
+      result.currentStatus shouldBe PromotionActivityDisplayStatus.ONGOING
+      verify { giftActivityMutationService.createActivity(1L, "admin", any()) }
+    }
+    test("disableGiftActivity should compute disabled status") {
+      // Given
+      every { giftActivityMutationService.disableActivity(1L, "admin", 10L) } returns
+        activity().apply { status = PromotionActivityStatus.DISABLED }
+
+      // When
+      val result = resolver.disableGiftActivity(10L, principal())
+
+      // Then
+      result.currentStatus shouldBe PromotionActivityDisplayStatus.DISABLED
+    }
+    test("updateGiftActivity should delegate") {
+      // Given
+      every { giftActivityMutationService.updateActivity(1L, "admin", 10L, any()) } returns activity()
+      val input =
+        UpdateGiftActivityInput(
+          giftProductId = 2L,
+          giftQuantity = 1,
+          giftType = GiftActivityType.BUY_GIFT,
+          name = "买赠活动",
+          scope = GraphQLPromotionScope.ALL,
+          validFrom = LocalDateTime.now(),
+          validTo = LocalDateTime.now().plusDays(30),
+        )
+
+      // When
+      val result = resolver.updateGiftActivity(10L, input, principal())
+
+      // Then
+      result.currentStatus shouldBe PromotionActivityDisplayStatus.ONGOING
+      verify { giftActivityMutationService.updateActivity(1L, "admin", 10L, any()) }
+    }
+  })

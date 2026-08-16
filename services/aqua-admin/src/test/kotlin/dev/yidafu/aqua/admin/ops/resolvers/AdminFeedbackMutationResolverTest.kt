@@ -25,57 +25,54 @@ import dev.yidafu.aqua.common.domain.model.enums.FeedbackStatus
 import dev.yidafu.aqua.common.domain.model.enums.FeedbackType
 import dev.yidafu.aqua.common.graphql.generated.FeedbackReviewInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 import dev.yidafu.aqua.common.graphql.generated.FeedbackStatus as GraphQLFeedbackStatus
 
-class AdminFeedbackMutationResolverTest {
-  private lateinit var feedbackMutationService: FeedbackMutationService
-  private lateinit var resolver: AdminFeedbackMutationResolver
+class AdminFeedbackMutationResolverTest :
+  FunSpec({
+    var feedbackMutationService: FeedbackMutationService = mockk()
+    var resolver: AdminFeedbackMutationResolver = mockk()
 
-  private fun feedback(): FeedbackModel =
-    FeedbackModel(
-      id = 1L,
-      userId = 1L,
-      feedbackType = FeedbackType.OTHER,
-      content = "建议增加送水时段",
-      status = FeedbackStatus.RESOLVED,
-      handleResult = "已处理",
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
+    fun feedback(): FeedbackModel =
+      FeedbackModel(
+        id = 1L,
+        userId = 1L,
+        feedbackType = FeedbackType.OTHER,
+        content = "建议增加送水时段",
+        status = FeedbackStatus.RESOLVED,
+        handleResult = "已处理",
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
 
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "admin",
-      userType = "ADMIN",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
-    )
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "admin",
+        userType = "ADMIN",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    feedbackMutationService = mockk(relaxed = true)
-    resolver = AdminFeedbackMutationResolver(feedbackMutationService)
-  }
+    beforeTest {
+      feedbackMutationService = mockk(relaxed = true)
+      resolver = AdminFeedbackMutationResolver(feedbackMutationService)
+    }
+    test("reviewFeedback should delegate") {
+      // Given
+      every { feedbackMutationService.reviewFeedback(1L, "admin", 1L, any()) } returns feedback()
+      val input = FeedbackReviewInput(status = GraphQLFeedbackStatus.RESOLVED, handleResult = "已处理")
 
-  @Test
-  fun `reviewFeedback should delegate`() {
-    // Given
-    every { feedbackMutationService.reviewFeedback(1L, "admin", 1L, any()) } returns feedback()
-    val input = FeedbackReviewInput(status = GraphQLFeedbackStatus.RESOLVED, handleResult = "已处理")
+      // When
+      val result = resolver.reviewFeedback(1L, input, principal())
 
-    // When
-    val result = resolver.reviewFeedback(1L, input, principal())
-
-    // Then
-    assertEquals(FeedbackStatus.RESOLVED, FeedbackStatus.valueOf(result.status.name))
-    verify { feedbackMutationService.reviewFeedback(1L, "admin", 1L, any()) }
-  }
-}
+      // Then
+      FeedbackStatus.valueOf(result.status.name) shouldBe FeedbackStatus.RESOLVED
+      verify { feedbackMutationService.reviewFeedback(1L, "admin", 1L, any()) }
+    }
+  })

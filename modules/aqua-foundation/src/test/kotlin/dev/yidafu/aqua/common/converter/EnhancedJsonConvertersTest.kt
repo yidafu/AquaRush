@@ -19,105 +19,85 @@
 
 package dev.yidafu.aqua.common.converter
 
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-class EnhancedJsonConvertersTest {
-  private val mapper = jacksonObjectMapper()
+class EnhancedJsonConvertersTest :
+  FunSpec({
+    val mapper = jacksonObjectMapper()
 
-  // ========== ObjectNodeConverter ==========
+    // ========== ObjectNodeConverter ==========
 
-  @Test
-  fun `ObjectNodeConverter should round trip object node`() {
-    val converter = ObjectNodeConverter()
-    val node = mapper.createObjectNode().put("name", "alice").put("age", 30)
-    val column = converter.convertToDatabaseColumn(node)
-    assertEquals("""{"name":"alice","age":30}""", column)
-    val restored = converter.convertToEntityAttribute(column)
-    assertEquals("alice", restored!!.get("name").asText())
-  }
+    // ========== ArrayNodeConverter ==========
 
-  @Test
-  fun `ObjectNodeConverter should return null for null attribute`() {
-    val converter = ObjectNodeConverter()
-    assertNull(converter.convertToDatabaseColumn(null))
-    assertNull(converter.convertToEntityAttribute(null))
-    assertNull(converter.convertToEntityAttribute("   "))
-  }
+    // ========== JsonNodeConverter ==========
 
-  @Test
-  fun `ObjectNodeConverter should throw for non-object json`() {
-    val converter = ObjectNodeConverter()
-    assertThrows<IllegalArgumentException> { converter.convertToEntityAttribute("[1,2]") }
-  }
-
-  @Test
-  fun `ObjectNodeConverter should throw for invalid json`() {
-    val converter = ObjectNodeConverter()
-    assertThrows<IllegalArgumentException> { converter.convertToEntityAttribute("not-json") }
-  }
-
-  // ========== ArrayNodeConverter ==========
-
-  @Test
-  fun `ArrayNodeConverter should round trip array node`() {
-    val converter = ArrayNodeConverter()
-    val node = mapper.createArrayNode().add("a").add(1)
-    val column = converter.convertToDatabaseColumn(node)
-    assertEquals("""["a",1]""", column)
-    val restored = converter.convertToEntityAttribute(column)
-    assertEquals(2, restored!!.size())
-  }
-
-  @Test
-  fun `ArrayNodeConverter should return null for null attribute`() {
-    val converter = ArrayNodeConverter()
-    assertNull(converter.convertToDatabaseColumn(null))
-    assertNull(converter.convertToEntityAttribute(null))
-    assertNull(converter.convertToEntityAttribute(""))
-  }
-
-  @Test
-  fun `ArrayNodeConverter should throw for non-array json`() {
-    val converter = ArrayNodeConverter()
-    assertThrows<IllegalArgumentException> { converter.convertToEntityAttribute("{}") }
-    assertThrows<IllegalArgumentException> { converter.convertToEntityAttribute("bad") }
-  }
-
-  // ========== JsonNodeConverter ==========
-
-  @Test
-  fun `JsonNodeConverter should round trip object json`() {
-    val converter = JsonNodeConverter()
-    val node = mapper.createObjectNode().put("k", "v")
-    val column = converter.convertToDatabaseColumn(node)
-    assertEquals("""{"k":"v"}""", column)
-    val restored = converter.convertToEntityAttribute(column)
-    assertEquals("v", restored!!.get("k").asText())
-  }
-
-  @Test
-  fun `JsonNodeConverter should round trip array json`() {
-    val converter = JsonNodeConverter()
-    val node = mapper.createArrayNode().add(1)
-    val column = converter.convertToDatabaseColumn(node)
-    val restored = converter.convertToEntityAttribute(column)
-    assertEquals(1, restored!!.size())
-  }
-
-  @Test
-  fun `JsonNodeConverter should return null for null attribute`() {
-    val converter = JsonNodeConverter()
-    assertNull(converter.convertToDatabaseColumn(null))
-    assertNull(converter.convertToEntityAttribute(null))
-  }
-
-  @Test
-  fun `JsonNodeConverter should throw for invalid json`() {
-    val converter = JsonNodeConverter()
-    assertThrows<IllegalArgumentException> { converter.convertToEntityAttribute("bad-json") }
-  }
-}
+    test("ObjectNodeConverter should round trip object node") {
+      val converter = ObjectNodeConverter()
+      val node = mapper.createObjectNode().put("name", "alice").put("age", 30)
+      val column = converter.convertToDatabaseColumn(node)
+      column shouldBe """{"name":"alice","age":30}"""
+      val restored = converter.convertToEntityAttribute(column)
+      restored!!.get("name").asText() shouldBe "alice"
+    }
+    test("ObjectNodeConverter should return null for null attribute") {
+      val converter = ObjectNodeConverter()
+      converter.convertToDatabaseColumn(null).shouldBeNull()
+      converter.convertToEntityAttribute(null).shouldBeNull()
+      converter.convertToEntityAttribute("   ").shouldBeNull()
+    }
+    test("ObjectNodeConverter should throw for non-object json") {
+      val converter = ObjectNodeConverter()
+      shouldThrow<IllegalArgumentException> { converter.convertToEntityAttribute("[1,2]") }
+    }
+    test("ObjectNodeConverter should throw for invalid json") {
+      val converter = ObjectNodeConverter()
+      shouldThrow<IllegalArgumentException> { converter.convertToEntityAttribute("not-json") }
+    }
+    test("ArrayNodeConverter should round trip array node") {
+      val converter = ArrayNodeConverter()
+      val node = mapper.createArrayNode().add("a").add(1)
+      val column = converter.convertToDatabaseColumn(node)
+      column shouldBe """["a",1]"""
+      val restored = converter.convertToEntityAttribute(column)
+      restored!!.size() shouldBe 2
+    }
+    test("ArrayNodeConverter should return null for null attribute") {
+      val converter = ArrayNodeConverter()
+      converter.convertToDatabaseColumn(null).shouldBeNull()
+      converter.convertToEntityAttribute(null).shouldBeNull()
+      converter.convertToEntityAttribute("").shouldBeNull()
+    }
+    test("ArrayNodeConverter should throw for non-array json") {
+      val converter = ArrayNodeConverter()
+      shouldThrow<IllegalArgumentException> { converter.convertToEntityAttribute("{}") }
+      shouldThrow<IllegalArgumentException> { converter.convertToEntityAttribute("bad") }
+    }
+    test("JsonNodeConverter should round trip object json") {
+      val converter = JsonNodeConverter()
+      val node = mapper.createObjectNode().put("k", "v")
+      val column = converter.convertToDatabaseColumn(node)
+      column shouldBe """{"k":"v"}"""
+      val restored = converter.convertToEntityAttribute(column)
+      restored!!.get("k").asText() shouldBe "v"
+    }
+    test("JsonNodeConverter should round trip array json") {
+      val converter = JsonNodeConverter()
+      val node = mapper.createArrayNode().add(1)
+      val column = converter.convertToDatabaseColumn(node)
+      val restored = converter.convertToEntityAttribute(column)
+      restored!!.size() shouldBe 1
+    }
+    test("JsonNodeConverter should return null for null attribute") {
+      val converter = JsonNodeConverter()
+      converter.convertToDatabaseColumn(null).shouldBeNull()
+      converter.convertToEntityAttribute(null).shouldBeNull()
+    }
+    test("JsonNodeConverter should throw for invalid json") {
+      val converter = JsonNodeConverter()
+      shouldThrow<IllegalArgumentException> { converter.convertToEntityAttribute("bad-json") }
+    }
+  })

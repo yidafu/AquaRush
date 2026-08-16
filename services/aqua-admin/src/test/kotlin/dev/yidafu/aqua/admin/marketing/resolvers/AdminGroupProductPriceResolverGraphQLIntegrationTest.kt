@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.admin.marketing.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
-import dev.yidafu.aqua.admin.ops.resolvers.WithMockUserPrincipal
+import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
 import dev.yidafu.aqua.common.domain.model.GroupProductPriceModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
@@ -28,11 +28,11 @@ import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.marketing.customer.domain.repository.CustomerGroupRepository
 import dev.yidafu.aqua.marketing.pricing.domain.repository.GroupProductPriceRepository
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import io.kotest.core.extensions.ApplyExtension
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
@@ -55,181 +55,156 @@ import org.springframework.web.context.WebApplicationContext
 )
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/marketing/"])
-@DisplayName("AdminGroupProductPriceResolver GraphQL Integration Tests")
-class AdminGroupProductPriceResolverGraphQLIntegrationTest {
-  @Autowired
-  private lateinit var context: WebApplicationContext
+@ApplyExtension(SpringExtension::class)
+class AdminGroupProductPriceResolverGraphQLIntegrationTest(
+  context: WebApplicationContext,
+  customerGroupRepository: CustomerGroupRepository,
+  groupProductPriceRepository: GroupProductPriceRepository,
+  productRepository: ProductRepository,
+) : FunSpec({
+    var mockMvc: MockMvc = mockk()
 
-  @Autowired
-  private lateinit var customerGroupRepository: CustomerGroupRepository
-
-  @Autowired
-  private lateinit var groupProductPriceRepository: GroupProductPriceRepository
-
-  @Autowired
-  private lateinit var productRepository: ProductRepository
-
-  private lateinit var mockMvc: MockMvc
-
-  @BeforeEach
-  fun setUp() {
-    mockMvc =
-      MockMvcBuilders
-        .webAppContextSetup(context)
-        .apply<DefaultMockMvcBuilder>(springSecurity())
-        .build()
-
-    // 幂等种子 1 分组 + 2 商品(按名称去重,避免共享 H2 遗留数据重复)
-    if (customerGroupRepository.findByName("价组") == null) {
-      customerGroupRepository.save(CustomerGroupModel(name = "价组", description = "专属价分组(种子)"))
+    fun postGraphql(query: String): String {
+      val escaped = query.replace("\"", "\\\"")
+      val result =
+        mockMvc
+          .perform(
+            post("/graphql")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content("""{"query": "$escaped"}"""),
+          ).andExpect(status().isOk)
+          .andReturn()
+      return result.response.contentAsString
     }
-    if (productRepository.findAll().none { it.name == "山泉19L" }) {
-      productRepository.save(
-        ProductModel(
-          name = "山泉19L",
-          price = 2100,
-          specification = "19L",
-          stock = 100,
-          status = ProductModelStatus.ONLINE,
-          coverImageUrl = "http://localhost:9090/api/v1/storage/files/mkt-p1.png",
-        ),
-      )
+
+    fun groupId(): Long = customerGroupRepository.findByName("价组")!!.id!!
+
+    fun product1(): ProductModel = productRepository.findAll().first { it.name == "山泉19L" }
+
+    fun product2(): ProductModel = productRepository.findAll().first { it.name == "桶装19L" }
+
+    beforeTest {
+      mockMvc =
+        MockMvcBuilders
+          .webAppContextSetup(context)
+          .apply<DefaultMockMvcBuilder>(springSecurity())
+          .build()
+
+      // 幂等种子 1 分组 + 2 商品(按名称去重,避免共享 H2 遗留数据重复)
+      if (customerGroupRepository.findByName("价组") == null) {
+        customerGroupRepository.save(CustomerGroupModel(name = "价组", description = "专属价分组(种子)"))
+      }
+      if (productRepository.findAll().none { it.name == "山泉19L" }) {
+        productRepository.save(
+          ProductModel(
+            name = "山泉19L",
+            price = 2100,
+            specification = "19L",
+            stock = 100,
+            status = ProductModelStatus.ONLINE,
+            coverImageUrl = "http://localhost:9090/api/v1/storage/files/mkt-p1.png",
+          ),
+        )
+      }
+      if (productRepository.findAll().none { it.name == "桶装19L" }) {
+        productRepository.save(
+          ProductModel(
+            name = "桶装19L",
+            price = 1500,
+            specification = "19L",
+            stock = 100,
+            status = ProductModelStatus.ONLINE,
+            coverImageUrl = "http://localhost:9090/api/v1/storage/files/mkt-p2.png",
+          ),
+        )
+      }
     }
-    if (productRepository.findAll().none { it.name == "桶装19L" }) {
-      productRepository.save(
-        ProductModel(
-          name = "桶装19L",
-          price = 1500,
-          specification = "19L",
-          stock = 100,
-          status = ProductModelStatus.ONLINE,
-          coverImageUrl = "http://localhost:9090/api/v1/storage/files/mkt-p2.png",
-        ),
-      )
-    }
-  }
+    test("saveGroupProductPrices saves group price") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"))
+      val gid = groupId()
+      val p1 = product1()
+      val json =
+        postGraphql(
+          """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1500}]}) }""",
+        )
+      json.contains("\"saveGroupProductPrices\" : true") && !json.contains("\"errors\"") shouldBe true
+      (groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p1.id!!)?.priceCents == 1500L) shouldBe true
 
-  private fun postGraphql(query: String): String {
-    val escaped = query.replace("\"", "\\\"")
-    val result =
-      mockMvc
-        .perform(
-          post("/graphql")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""{"query": "$escaped"}"""),
-        ).andExpect(status().isOk)
-        .andReturn()
-    return result.response.contentAsString
-  }
-
-  private fun groupId(): Long = customerGroupRepository.findByName("价组")!!.id!!
-
-  private fun product1(): ProductModel = productRepository.findAll().first { it.name == "山泉19L" }
-
-  private fun product2(): ProductModel = productRepository.findAll().first { it.name == "桶装19L" }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"])
-  @DisplayName("saveGroupProductPrices 保存分组价并回显目录价(AC-MKT-002-01)")
-  fun `saveGroupProductPrices saves group price`() {
-    val gid = groupId()
-    val p1 = product1()
-    val json =
-      postGraphql(
-        """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1500}]}) }""",
-      )
-    assertTrue(json.contains("\"saveGroupProductPrices\" : true") && !json.contains("\"errors\""))
-    assertTrue(groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p1.id!!)?.priceCents == 1500L)
-
-    // 查询接口:专属价 1500 + 划线目录价 2100
-    val listJson =
-      postGraphql(
-        "{ groupProductPrices(input: {customerGroupId: $gid}) { content { productId productName priceCents catalogPriceCents } } }",
-      )
-    assertTrue(
+      // 查询接口:专属价 1500 + 划线目录价 2100
+      val listJson =
+        postGraphql(
+          "{ groupProductPrices(input: {customerGroupId: $gid}) { content { productId productName priceCents catalogPriceCents } } }",
+        )
       listJson.contains("\"priceCents\" : \"1500\"") &&
         listJson.contains("\"catalogPriceCents\" : \"2100\"") &&
         listJson.contains("\"山泉19L\"") &&
-        !listJson.contains("\"errors\""),
-    )
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"])
-  @DisplayName("saveGroupProductPrices clearUnlisted 清空批外已配置价格(AC-MKT-002-02)")
-  fun `saveGroupProductPrices clears unlisted rows`() {
-    val gid = groupId()
-    val p1 = product1()
-    val p2 = product2()
-    postGraphql(
-      """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1500}, {productId: ${p2.id}, priceCents: 1200}]}) }""",
-    )
-    assertTrue(groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p2.id!!)?.priceCents == 1200L)
-
-    // 仅提交 p1 且 clearUnlisted=true → p2 行被清空
-    postGraphql(
-      """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1800}], clearUnlisted: true}) }""",
-    )
-    assertTrue(groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p2.id!!) == null)
-    assertTrue(groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p1.id!!)?.priceCents == 1800L)
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"])
-  @DisplayName("saveGroupProductPrices 无效价格 0 被拦截(AC-MKT-002-03)")
-  fun `saveGroupProductPrices rejects invalid price`() {
-    val gid = groupId()
-    val p1 = product1()
-    val json =
-      postGraphql(
-        """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 0}]}) }""",
-      )
-    assertTrue(json.contains("\"errors\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"])
-  @DisplayName("saveGroupProductPrices priceCents 为 null 时清空单项回退目录价")
-  fun `saveGroupProductPrices clears single item on null price`() {
-    val gid = groupId()
-    val p1 = product1()
-    val p2 = product2()
-    postGraphql(
-      """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1500}, {productId: ${p2.id}, priceCents: 1200}]}) }""",
-    )
-    postGraphql(
-      """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: null}]}) }""",
-    )
-    assertTrue(groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p1.id!!) == null)
-    assertTrue(groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p2.id!!)?.priceCents == 1200L)
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_READ", "PERMISSION_MKT_WRITE"])
-  @DisplayName("groupProductPrices 按分组过滤查询(AC-MKT-002-05)")
-  fun `groupProductPrices query filters by group`() {
-    val gid = groupId()
-    val p1 = product1()
-    val p2 = product2()
-    // 先确定价组仅含 p1
-    val resetJson =
-      postGraphql(
-        """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1500}], clearUnlisted: true}) }""",
-      )
-    // 另一分组「价组B」直接落 p2 专属价
-    val groupB =
-      customerGroupRepository.findByName("价组B")
-        ?: customerGroupRepository.save(CustomerGroupModel(name = "价组B", description = "专属价分组B(种子)"))
-    if (groupProductPriceRepository.findByCustomerGroupIdAndProductId(groupB.id!!, p2.id!!) == null) {
-      groupProductPriceRepository.save(
-        GroupProductPriceModel(customerGroupId = groupB.id!!, productId = p2.id!!, priceCents = 1300),
-      )
+        !listJson.contains("\"errors\"") shouldBe true
     }
-
-    val json =
+    test("saveGroupProductPrices clears unlisted rows") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"))
+      val gid = groupId()
+      val p1 = product1()
+      val p2 = product2()
       postGraphql(
-        "{ groupProductPrices(input: {customerGroupId: $gid}) { content { productId productName priceCents } } }",
+        """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1500}, {productId: ${p2.id}, priceCents: 1200}]}) }""",
       )
-    assertTrue(json.contains("\"山泉19L\"") && !json.contains("\"桶装19L\"") && !json.contains("\"errors\""))
-  }
-}
+      (groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p2.id!!)?.priceCents == 1200L) shouldBe true
+
+      // 仅提交 p1 且 clearUnlisted=true → p2 行被清空
+      postGraphql(
+        """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1800}], clearUnlisted: true}) }""",
+      )
+      (groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p2.id!!) == null) shouldBe true
+      (groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p1.id!!)?.priceCents == 1800L) shouldBe true
+    }
+    test("saveGroupProductPrices rejects invalid price") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"))
+      val gid = groupId()
+      val p1 = product1()
+      val json =
+        postGraphql(
+          """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 0}]}) }""",
+        )
+      json.contains("\"errors\"") shouldBe true
+    }
+    test("saveGroupProductPrices clears single item on null price") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"))
+      val gid = groupId()
+      val p1 = product1()
+      val p2 = product2()
+      postGraphql(
+        """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1500}, {productId: ${p2.id}, priceCents: 1200}]}) }""",
+      )
+      postGraphql(
+        """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: null}]}) }""",
+      )
+      (groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p1.id!!) == null) shouldBe true
+      (groupProductPriceRepository.findByCustomerGroupIdAndProductId(gid, p2.id!!)?.priceCents == 1200L) shouldBe true
+    }
+    test("groupProductPrices query filters by group") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_READ", "PERMISSION_MKT_WRITE"))
+      val gid = groupId()
+      val p1 = product1()
+      val p2 = product2()
+      // 先确定价组仅含 p1
+      val resetJson =
+        postGraphql(
+          """mutation { saveGroupProductPrices(input: {customerGroupId: $gid, items: [{productId: ${p1.id}, priceCents: 1500}], clearUnlisted: true}) }""",
+        )
+      // 另一分组「价组B」直接落 p2 专属价
+      val groupB =
+        customerGroupRepository.findByName("价组B")
+          ?: customerGroupRepository.save(CustomerGroupModel(name = "价组B", description = "专属价分组B(种子)"))
+      if (groupProductPriceRepository.findByCustomerGroupIdAndProductId(groupB.id!!, p2.id!!) == null) {
+        groupProductPriceRepository.save(
+          GroupProductPriceModel(customerGroupId = groupB.id!!, productId = p2.id!!, priceCents = 1300),
+        )
+      }
+
+      val json =
+        postGraphql(
+          "{ groupProductPrices(input: {customerGroupId: $gid}) { content { productId productName priceCents } } }",
+        )
+      json.contains("\"山泉19L\"") && !json.contains("\"桶装19L\"") && !json.contains("\"errors\"") shouldBe true
+    }
+  })

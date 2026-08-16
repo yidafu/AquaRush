@@ -20,14 +20,15 @@
 package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
+import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.storeprofile.domain.repository.StoreProfileRepository
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import io.kotest.core.extensions.ApplyExtension
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
@@ -50,100 +51,79 @@ import org.springframework.web.context.WebApplicationContext
 )
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/ops/"])
-@DisplayName("AdminStoreProfileResolver GraphQL Integration Tests")
-class AdminStoreProfileResolverGraphQLIntegrationTest {
-  @Autowired
-  private lateinit var context: WebApplicationContext
+@ApplyExtension(SpringExtension::class)
+class AdminStoreProfileResolverGraphQLIntegrationTest(
+  context: WebApplicationContext,
+  userActionLogRepository: UserActionLogRepository,
+  storeProfileRepository: StoreProfileRepository,
+) : FunSpec({
+    var mockMvc: MockMvc = mockk()
 
-  @Autowired
-  private lateinit var userActionLogRepository: UserActionLogRepository
+    fun postGraphql(query: String): String {
+      val escaped = query.replace("\"", "\\\"")
+      val result =
+        mockMvc
+          .perform(
+            post("/graphql")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content("""{"query": "$escaped"}"""),
+          ).andExpect(status().isOk)
+          .andReturn()
+      return result.response.contentAsString
+    }
 
-  @Autowired
-  private lateinit var storeProfileRepository: StoreProfileRepository
+    beforeTest {
+      mockMvc =
+        MockMvcBuilders
+          .webAppContextSetup(context)
+          .apply<DefaultMockMvcBuilder>(springSecurity())
+          .build()
+    }
+    test("storeProfile returns null when unconfigured") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_READ"))
+      // 清空已保存店铺信息(共享 H2 可能被其他用例/历史运行写入)
+      storeProfileRepository.hardDeleteAll()
+      val json = postGraphql("{ storeProfile { shopName serviceHotline } }")
+      json.contains("\"storeProfile\"") && json.contains("null") && !json.contains("\"errors\"") shouldBe true
+    }
+    test("save and query store profile round trip") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE", "PERMISSION_OPS_CONFIG_READ"))
+      val title = "好喝山泉${System.currentTimeMillis() % 10000}"
+      val json =
+        postGraphql(
+          """mutation { saveStoreProfile(input: {shopName: "$title", logoUrl: "http://localhost:9090/api/v1/storage/files/logo.png", serviceHotline: "400-800-8888", businessHoursStart: "08:00", businessHoursEnd: "21:00", shopIntro: "天然山泉水", aboutUs: "关于我们文案"}) { shopName logoUrl serviceHotline businessHoursStart businessHoursEnd shopIntro aboutUs } }""",
+        )
+      json.contains("\"$title\"") && json.contains("\"08:00\"") && !json.contains("\"errors\"") shouldBe true
 
-  private lateinit var mockMvc: MockMvc
+      val queryJson = postGraphql("{ storeProfile { shopName serviceHotline } }")
+      queryJson.contains("\"$title\"") && queryJson.contains("\"400-800-8888\"") shouldBe true
+    }
+    test("saveStoreProfile rejects invalid hotline") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE"))
+      val json =
+        postGraphql(
+          """mutation { saveStoreProfile(input: {shopName: "测试店", serviceHotline: "not-a-phone"}) { shopName } }""",
+        )
+      json.contains("\"errors\"") shouldBe true
+    }
+    test("saveStoreProfile writes audit") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE"))
+      val json =
+        postGraphql(
+          """mutation { saveStoreProfile(input: {shopName: "审计店铺", serviceHotline: "400-800-8888"}) { shopName } }""",
+        )
+      !json.contains("\"errors\"") shouldBe true
 
-  @BeforeEach
-  fun setUp() {
-    mockMvc =
-      MockMvcBuilders
-        .webAppContextSetup(context)
-        .apply<DefaultMockMvcBuilder>(springSecurity())
-        .build()
-  }
-
-  private fun postGraphql(query: String): String {
-    val escaped = query.replace("\"", "\\\"")
-    val result =
+      val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_STORE_PROFILE_SAVE)
+      audits.isNotEmpty() shouldBe true
+      audits.any { it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true } shouldBe true
+    }
+    test("anonymous access is denied") {
       mockMvc
         .perform(
           post("/graphql")
             .contentType(MediaType.APPLICATION_JSON)
-            .content("""{"query": "$escaped"}"""),
-        ).andExpect(status().isOk)
-        .andReturn()
-    return result.response.contentAsString
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_READ"])
-  @DisplayName("storeProfile query should return null when unconfigured")
-  fun `storeProfile returns null when unconfigured`() {
-    // 清空已保存店铺信息(共享 H2 可能被其他用例/历史运行写入)
-    storeProfileRepository.hardDeleteAll()
-    val json = postGraphql("{ storeProfile { shopName serviceHotline } }")
-    assertTrue(json.contains("\"storeProfile\"") && json.contains("null") && !json.contains("\"errors\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE", "PERMISSION_OPS_CONFIG_READ"])
-  @DisplayName("saveStoreProfile then query should round-trip (AC-OPS-004-01/02)")
-  fun `save and query store profile round trip`() {
-    val title = "好喝山泉${System.currentTimeMillis() % 10000}"
-    val json =
-      postGraphql(
-        """mutation { saveStoreProfile(input: {shopName: "$title", logoUrl: "http://localhost:9090/api/v1/storage/files/logo.png", serviceHotline: "400-800-8888", businessHoursStart: "08:00", businessHoursEnd: "21:00", shopIntro: "天然山泉水", aboutUs: "关于我们文案"}) { shopName logoUrl serviceHotline businessHoursStart businessHoursEnd shopIntro aboutUs } }""",
-      )
-    assertTrue(json.contains("\"$title\"") && json.contains("\"08:00\"") && !json.contains("\"errors\""))
-
-    val queryJson = postGraphql("{ storeProfile { shopName serviceHotline } }")
-    assertTrue(queryJson.contains("\"$title\"") && queryJson.contains("\"400-800-8888\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE"])
-  @DisplayName("saveStoreProfile with invalid hotline should fail (AC-OPS-004-03)")
-  fun `saveStoreProfile rejects invalid hotline`() {
-    val json =
-      postGraphql(
-        """mutation { saveStoreProfile(input: {shopName: "测试店", serviceHotline: "not-a-phone"}) { shopName } }""",
-      )
-    assertTrue(json.contains("\"errors\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE"])
-  @DisplayName("saveStoreProfile should write audit log with before/after (AC-OPS-004-04)")
-  fun `saveStoreProfile writes audit`() {
-    val json =
-      postGraphql(
-        """mutation { saveStoreProfile(input: {shopName: "审计店铺", serviceHotline: "400-800-8888"}) { shopName } }""",
-      )
-    assertTrue(!json.contains("\"errors\""))
-
-    val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_STORE_PROFILE_SAVE)
-    assertTrue(audits.isNotEmpty())
-    assertTrue(audits.any { it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true })
-  }
-
-  @Test
-  @DisplayName("anonymous should be denied")
-  fun `anonymous access is denied`() {
-    mockMvc
-      .perform(
-        post("/graphql")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content("""{"query": "{ storeProfile { shopName } }"}"""),
-      ).andExpect(status().isUnauthorized)
-  }
-}
+            .content("""{"query": "{ storeProfile { shopName } }"}"""),
+        ).andExpect(status().isUnauthorized)
+    }
+  })

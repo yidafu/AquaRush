@@ -23,67 +23,62 @@ import dev.yidafu.aqua.analytics.statistics.service.impl.ProductStatisticsServic
 import dev.yidafu.aqua.common.graphql.generated.DateRangeInput
 import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.LocalDate
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 
-class ProductStatisticsQueryResolverTest {
-  private lateinit var productStatisticsService: ProductStatisticsServiceImpl
-  private lateinit var resolver: ProductStatisticsQueryResolver
+class ProductStatisticsQueryResolverTest :
+  FunSpec({
+    var productStatisticsService: ProductStatisticsServiceImpl = mockk()
+    var resolver: ProductStatisticsQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    productStatisticsService = mockk(relaxed = true)
-    resolver = ProductStatisticsQueryResolver(productStatisticsService)
-  }
+    beforeTest {
+      productStatisticsService = mockk(relaxed = true)
+      resolver = ProductStatisticsQueryResolver(productStatisticsService)
+    }
+    test("productStatistics should delegate to service") {
+      // Given
+      val stats = mockk<ProductStatistics>(relaxed = true)
+      every { stats.totalProducts } returns 12
+      every { stats.onlineProducts } returns 10
+      every { productStatisticsService.getProductStatistics() } returns stats
 
-  @Test
-  fun `productStatistics should delegate to service`() {
-    // Given
-    val stats = mockk<ProductStatistics>(relaxed = true)
-    every { stats.totalProducts } returns 12
-    every { stats.onlineProducts } returns 10
-    every { productStatisticsService.getProductStatistics() } returns stats
+      // When
+      val result = resolver.productStatistics()
 
-    // When
-    val result = resolver.productStatistics()
+      // Then
+      result.totalProducts shouldBe 12
+      result.onlineProducts shouldBe 10
+      verify { productStatisticsService.getProductStatistics() }
+    }
+    test("productDailySales should query by date range") {
+      // Given
+      every { productStatisticsService.getProductDailySales(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 2)) } returns
+        listOf(
+          ProductDailySales(
+            date = "2025-06-01",
+            productId = 1L,
+            productName = "桶装水19L",
+            revenueCents = 4200L,
+            salesVolume = 2,
+          ),
+        )
+      val input =
+        DateRangeInput(
+          startDate = LocalDateTime.of(2025, 6, 1, 0, 0),
+          endDate = LocalDateTime.of(2025, 6, 2, 0, 0),
+        )
 
-    // Then
-    assertEquals(12, result.totalProducts)
-    assertEquals(10, result.onlineProducts)
-    verify { productStatisticsService.getProductStatistics() }
-  }
+      // When
+      val result = resolver.productDailySales(input)
 
-  @Test
-  fun `productDailySales should query by date range`() {
-    // Given
-    every { productStatisticsService.getProductDailySales(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 2)) } returns
-      listOf(
-        ProductDailySales(
-          date = "2025-06-01",
-          productId = 1L,
-          productName = "桶装水19L",
-          revenueCents = 4200L,
-          salesVolume = 2,
-        ),
-      )
-    val input =
-      DateRangeInput(
-        startDate = LocalDateTime.of(2025, 6, 1, 0, 0),
-        endDate = LocalDateTime.of(2025, 6, 2, 0, 0),
-      )
-
-    // When
-    val result = resolver.productDailySales(input)
-
-    // Then
-    assertEquals(1, result.size)
-    assertEquals("桶装水19L", result[0].productName)
-    verify { productStatisticsService.getProductDailySales(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 2)) }
-  }
-}
+      // Then
+      result.size shouldBe 1
+      result[0].productName shouldBe "桶装水19L"
+      verify { productStatisticsService.getProductDailySales(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 2)) }
+    }
+  })

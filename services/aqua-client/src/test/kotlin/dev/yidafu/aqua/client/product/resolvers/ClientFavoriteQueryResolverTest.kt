@@ -24,143 +24,128 @@ import dev.yidafu.aqua.common.domain.model.ProductFavoriteModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
-class ClientFavoriteQueryResolverTest {
-  private lateinit var productFavoriteService: ProductFavoriteService
-  private lateinit var resolver: ClientFavoriteQueryResolver
+class ClientFavoriteQueryResolverTest :
+  FunSpec({
+    var productFavoriteService: ProductFavoriteService = mockk()
+    var resolver: ClientFavoriteQueryResolver = mockk()
 
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "testuser",
-      userType = "USER",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
-    )
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "testuser",
+        userType = "USER",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
+      )
 
-  private fun product(): ProductModel =
-    ProductModel(
-      id = 1L,
-      name = "桶装水19L",
-      price = 2100,
-      originalPrice = null,
-      depositPrice = null,
-      coverImageUrl = "http://x/cover.png",
-      imageGallery = null,
-      specification = "19L",
-      waterSource = "山泉水",
-      mineralContent = null,
-      stock = 100,
-      salesVolume = 0,
-      status = ProductModelStatus.ONLINE,
-      sortOrder = 1,
-      tags = null,
-      detailContent = null,
-      certificateImages = null,
-      deliverySettings = null,
-    )
+    fun product(): ProductModel =
+      ProductModel(
+        id = 1L,
+        name = "桶装水19L",
+        price = 2100,
+        originalPrice = null,
+        depositPrice = null,
+        coverImageUrl = "http://x/cover.png",
+        imageGallery = null,
+        specification = "19L",
+        waterSource = "山泉水",
+        mineralContent = null,
+        stock = 100,
+        salesVolume = 0,
+        status = ProductModelStatus.ONLINE,
+        sortOrder = 1,
+        tags = null,
+        detailContent = null,
+        certificateImages = null,
+        deliverySettings = null,
+      )
 
-  private fun favorite(): ProductFavoriteModel =
-    ProductFavoriteModel(
-      id = 1L,
-      userId = 1L,
-      productId = 1L,
-      createdAt = LocalDateTime.of(2025, 1, 1, 10, 0),
-      updatedAt = LocalDateTime.of(2025, 1, 1, 10, 0),
-    )
+    fun favorite(): ProductFavoriteModel =
+      ProductFavoriteModel(
+        id = 1L,
+        userId = 1L,
+        productId = 1L,
+        createdAt = LocalDateTime.of(2025, 1, 1, 10, 0),
+        updatedAt = LocalDateTime.of(2025, 1, 1, 10, 0),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    productFavoriteService = mockk(relaxed = true)
-    resolver = ClientFavoriteQueryResolver(productFavoriteService)
-  }
+    beforeTest {
+      productFavoriteService = mockk(relaxed = true)
+      resolver = ClientFavoriteQueryResolver(productFavoriteService)
+    }
+    test("favoriteProducts should return paginated favorites") {
+      // Given
+      every { productFavoriteService.getFavoriteProducts(1L, PageRequest.of(0, 10)) } returns
+        PageImpl(listOf(product()))
+      every { productFavoriteService.getUserFavoriteEntities(1L, PageRequest.of(0, 10)) } returns
+        PageImpl(listOf(favorite()))
 
-  @Test
-  fun `favoriteProducts should return paginated favorites`() {
-    // Given
-    every { productFavoriteService.getFavoriteProducts(1L, PageRequest.of(0, 10)) } returns
-      PageImpl(listOf(product()))
-    every { productFavoriteService.getUserFavoriteEntities(1L, PageRequest.of(0, 10)) } returns
-      PageImpl(listOf(favorite()))
+      // When
+      val result = resolver.favoriteProducts(0, 10, principal())
 
-    // When
-    val result = resolver.favoriteProducts(0, 10, principal())
+      // Then
+      result.list.size shouldBe 1
+      result.list[0].name shouldBe "桶装水19L"
+      result.list[0].addedAt shouldBe LocalDateTime.of(2025, 1, 1, 10, 0)
+      verify { productFavoriteService.getFavoriteProducts(1L, PageRequest.of(0, 10)) }
+      verify { productFavoriteService.getUserFavoriteEntities(1L, PageRequest.of(0, 10)) }
+    }
+    test("favoriteProducts should throw on service error") {
+      // Given
+      every { productFavoriteService.getFavoriteProducts(1L, PageRequest.of(0, 10)) } throws RuntimeException("db down")
 
-    // Then
-    assertEquals(1, result.list.size)
-    assertEquals("桶装水19L", result.list[0].name)
-    assertEquals(LocalDateTime.of(2025, 1, 1, 10, 0), result.list[0].addedAt)
-    verify { productFavoriteService.getFavoriteProducts(1L, PageRequest.of(0, 10)) }
-    verify { productFavoriteService.getUserFavoriteEntities(1L, PageRequest.of(0, 10)) }
-  }
+      // When & Then
+      val exception = shouldThrow<RuntimeException> { resolver.favoriteProducts(0, 10, principal()) }
+      exception.message!!.contains("获取收藏列表失败") shouldBe true
+    }
+    test("isProductFavorited should return true when favorited") {
+      // Given
+      every { productFavoriteService.isProductFavorited(1L, 1L) } returns true
 
-  @Test
-  fun `favoriteProducts should throw on service error`() {
-    // Given
-    every { productFavoriteService.getFavoriteProducts(1L, PageRequest.of(0, 10)) } throws RuntimeException("db down")
+      // When
+      val result = resolver.isProductFavorited(1L, principal())
 
-    // When & Then
-    val exception = assertFailsWith<RuntimeException> { resolver.favoriteProducts(0, 10, principal()) }
-    assertTrue(exception.message!!.contains("获取收藏列表失败"))
-  }
+      // Then
+      result shouldBe true
+    }
+    test("isProductFavorited should return false on service error") {
+      // Given
+      every { productFavoriteService.isProductFavorited(1L, 1L) } throws RuntimeException("db down")
 
-  @Test
-  fun `isProductFavorited should return true when favorited`() {
-    // Given
-    every { productFavoriteService.isProductFavorited(1L, 1L) } returns true
+      // When
+      val result = resolver.isProductFavorited(1L, principal())
 
-    // When
-    val result = resolver.isProductFavorited(1L, principal())
+      // Then
+      result shouldBe false
+    }
+    test("favoritesCount should return count") {
+      // Given
+      every { productFavoriteService.getFavoritesCount(1L) } returns 3L
 
-    // Then
-    assertTrue(result)
-  }
+      // When
+      val result = resolver.favoritesCount(principal())
 
-  @Test
-  fun `isProductFavorited should return false on service error`() {
-    // Given
-    every { productFavoriteService.isProductFavorited(1L, 1L) } throws RuntimeException("db down")
+      // Then
+      result shouldBe 3L
+    }
+    test("favoritesCount should return zero on service error") {
+      // Given
+      every { productFavoriteService.getFavoritesCount(1L) } throws RuntimeException("db down")
 
-    // When
-    val result = resolver.isProductFavorited(1L, principal())
+      // When
+      val result = resolver.favoritesCount(principal())
 
-    // Then
-    assertFalse(result)
-  }
-
-  @Test
-  fun `favoritesCount should return count`() {
-    // Given
-    every { productFavoriteService.getFavoritesCount(1L) } returns 3L
-
-    // When
-    val result = resolver.favoritesCount(principal())
-
-    // Then
-    assertEquals(3L, result)
-  }
-
-  @Test
-  fun `favoritesCount should return zero on service error`() {
-    // Given
-    every { productFavoriteService.getFavoritesCount(1L) } throws RuntimeException("db down")
-
-    // When
-    val result = resolver.favoritesCount(principal())
-
-    // Then
-    assertEquals(0L, result)
-  }
-}
+      // Then
+      result shouldBe 0L
+    }
+  })

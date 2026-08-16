@@ -23,143 +23,127 @@ import dev.yidafu.aqua.storage.domain.model.FileMetadata
 import dev.yidafu.aqua.storage.domain.model.enums.FileType
 import dev.yidafu.aqua.storage.dto.FileMetadataResponse
 import dev.yidafu.aqua.storage.service.StorageService
+import io.kotest.assertions.withClue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import jakarta.servlet.http.HttpServletResponse
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 
 /**
  * 存储控制器单元测试: 上传/下载/图片处理/元数据/删除 的参数透传与响应组装
  */
-class StorageControllerTest {
-  private lateinit var storageService: StorageService
-  private lateinit var controller: StorageController
+class StorageControllerTest :
+  FunSpec({
+    var storageService: StorageService = mockk()
+    var controller: StorageController = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    storageService = mockk(relaxed = true)
-    controller = StorageController(storageService)
-  }
+    fun response(): FileMetadataResponse {
+      val meta =
+        FileMetadata().apply {
+          id = 1L
+          fileName = "a.jpg"
+          fileType = FileType.IMAGE
+          fileSize = 100L
+          mimeType = "image/jpeg"
+          extension = "jpg"
+          createdAt = LocalDateTime.of(2025, 6, 1, 10, 0)
+          updatedAt = LocalDateTime.of(2025, 6, 1, 10, 0)
+          isPublic = true
+        }
+      return FileMetadataResponse(meta, "http://x/a.jpg")
+    }
 
-  private fun response(): FileMetadataResponse {
-    val meta =
-      FileMetadata().apply {
-        id = 1L
-        fileName = "a.jpg"
-        fileType = FileType.IMAGE
-        fileSize = 100L
-        mimeType = "image/jpeg"
-        extension = "jpg"
-        createdAt = LocalDateTime.of(2025, 6, 1, 10, 0)
-        updatedAt = LocalDateTime.of(2025, 6, 1, 10, 0)
-        isPublic = true
+    fun file(): MultipartFile =
+      object : MultipartFile {
+        override fun getInputStream(): java.io.InputStream = ByteArrayInputStream(byteArrayOf(1, 2))
+
+        override fun getName(): String = "file"
+
+        override fun getOriginalFilename(): String? = "a.jpg"
+
+        override fun getContentType(): String? = "image/jpeg"
+
+        override fun isEmpty(): Boolean = false
+
+        override fun getSize(): Long = 2L
+
+        override fun getBytes(): ByteArray = byteArrayOf(1, 2)
+
+        override fun transferTo(dest: java.io.File) {}
       }
-    return FileMetadataResponse(meta, "http://x/a.jpg")
-  }
 
-  private fun file(): MultipartFile =
-    object : MultipartFile {
-      override fun getInputStream(): java.io.InputStream = ByteArrayInputStream(byteArrayOf(1, 2))
-
-      override fun getName(): String = "file"
-
-      override fun getOriginalFilename(): String? = "a.jpg"
-
-      override fun getContentType(): String? = "image/jpeg"
-
-      override fun isEmpty(): Boolean = false
-
-      override fun getSize(): Long = 2L
-
-      override fun getBytes(): ByteArray = byteArrayOf(1, 2)
-
-      override fun transferTo(dest: java.io.File) {}
+    beforeTest {
+      storageService = mockk(relaxed = true)
+      controller = StorageController(storageService)
     }
+    test("uploadFile passes params and returns success") {
+      val resp = response()
+      every { storageService.uploadFile(any(), any()) } returns resp
 
-  @Test
-  fun `uploadFile passes params and returns success`() {
-    val resp = response()
-    every { storageService.uploadFile(any(), any()) } returns resp
+      val result = controller.uploadFile(file(), FileType.IMAGE, "desc", true, 7L)
 
-    val result = controller.uploadFile(file(), FileType.IMAGE, "desc", true, 7L)
-
-    assertEquals(resp, result.data)
-    assertEquals(true, result.success)
-  }
-
-  @Test
-  fun `getFile returns resource with filename override`() {
-    every { storageService.getFile(1L) } returns ByteArrayResource(byteArrayOf(9))
-    every { storageService.getFileMetadata(1L) } returns response()
-
-    val result = controller.getFile(1L, "custom.png")
-
-    assertEquals(200, result.statusCode.value())
-    assertEquals("inline; filename=\"custom.png\"", result.headers.getFirst("Content-Disposition"))
-    assertEquals("image/jpeg", result.headers.getContentType().toString())
-  }
-
-  @Test
-  fun `getFile falls back to metadata filename`() {
-    every { storageService.getFile(1L) } returns ByteArrayResource(byteArrayOf(9))
-    every { storageService.getFileMetadata(1L) } returns response()
-
-    val result = controller.getFile(1L, null)
-
-    assertEquals("inline; filename=\"a.jpg\"", result.headers.getFirst("Content-Disposition"))
-  }
-
-  @Test
-  fun `getProcessedImage returns jpeg by default`() {
-    every { storageService.getProcessedImage(1L, any()) } returns byteArrayOf(1, 2)
-
-    val result = controller.getProcessedImage(1L, 100, null, null, null, false, null, mockk<HttpServletResponse>())
-
-    assertEquals("image/jpeg", result.headers.getContentType().toString())
-  }
-
-  @Test
-  fun `getProcessedImage maps png format`() {
-    every { storageService.getProcessedImage(1L, any()) } returns byteArrayOf(1, 2)
-
-    val result = controller.getProcessedImage(1L, null, null, null, "png", false, null, mockk<HttpServletResponse>())
-
-    assertEquals("image/png", result.headers.getContentType().toString())
-  }
-
-  @Test
-  fun `getProcessedImage maps webp gif bmp formats`() {
-    every { storageService.getProcessedImage(1L, any()) } returns byteArrayOf(1, 2)
-    val formats = mapOf("webp" to "image/webp", "gif" to "image/gif", "bmp" to "image/bmp")
-    for ((fmt, mime) in formats) {
-      val result = controller.getProcessedImage(1L, null, null, null, fmt, false, null, mockk<HttpServletResponse>())
-      assertEquals(mime, result.headers.getContentType().toString(), fmt)
+      result.data shouldBe resp
+      result.success shouldBe true
     }
-  }
+    test("getFile returns resource with filename override") {
+      every { storageService.getFile(1L) } returns ByteArrayResource(byteArrayOf(9))
+      every { storageService.getFileMetadata(1L) } returns response()
 
-  @Test
-  fun `getFileMetadata returns success`() {
-    val resp = response()
-    every { storageService.getFileMetadata(1L) } returns resp
+      val result = controller.getFile(1L, "custom.png")
 
-    val result = controller.getFileMetadata(1L)
+      result.statusCode.value() shouldBe 200
+      result.headers.getFirst("Content-Disposition") shouldBe "inline; filename=\"custom.png\""
+      result.headers.getContentType().toString() shouldBe "image/jpeg"
+    }
+    test("getFile falls back to metadata filename") {
+      every { storageService.getFile(1L) } returns ByteArrayResource(byteArrayOf(9))
+      every { storageService.getFileMetadata(1L) } returns response()
 
-    assertEquals(200, result.statusCode.value())
-    assertEquals(resp, result.body?.data)
-  }
+      val result = controller.getFile(1L, null)
 
-  @Test
-  fun `deleteFile returns success`() {
-    every { storageService.deleteFile(1L) } returns true
+      result.headers.getFirst("Content-Disposition") shouldBe "inline; filename=\"a.jpg\""
+    }
+    test("getProcessedImage returns jpeg by default") {
+      every { storageService.getProcessedImage(1L, any()) } returns byteArrayOf(1, 2)
 
-    val result = controller.deleteFile(1L)
+      val result = controller.getProcessedImage(1L, 100, null, null, null, false, null, mockk<HttpServletResponse>())
 
-    assertEquals(true, result.body?.data)
-  }
-}
+      result.headers.getContentType().toString() shouldBe "image/jpeg"
+    }
+    test("getProcessedImage maps png format") {
+      every { storageService.getProcessedImage(1L, any()) } returns byteArrayOf(1, 2)
+
+      val result = controller.getProcessedImage(1L, null, null, null, "png", false, null, mockk<HttpServletResponse>())
+
+      result.headers.getContentType().toString() shouldBe "image/png"
+    }
+    test("getProcessedImage maps webp gif bmp formats") {
+      every { storageService.getProcessedImage(1L, any()) } returns byteArrayOf(1, 2)
+      val formats = mapOf("webp" to "image/webp", "gif" to "image/gif", "bmp" to "image/bmp")
+      for ((fmt, mime) in formats) {
+        val result = controller.getProcessedImage(1L, null, null, null, fmt, false, null, mockk<HttpServletResponse>())
+        withClue(fmt) { result.headers.getContentType().toString() shouldBe mime }
+      }
+    }
+    test("getFileMetadata returns success") {
+      val resp = response()
+      every { storageService.getFileMetadata(1L) } returns resp
+
+      val result = controller.getFileMetadata(1L)
+
+      result.statusCode.value() shouldBe 200
+      result.body?.data shouldBe resp
+    }
+    test("deleteFile returns success") {
+      every { storageService.deleteFile(1L) } returns true
+
+      val result = controller.deleteFile(1L)
+
+      result.body?.data shouldBe true
+    }
+  })

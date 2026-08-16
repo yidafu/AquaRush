@@ -27,108 +27,101 @@ import dev.yidafu.aqua.common.domain.model.enums.ValidityType
 import dev.yidafu.aqua.common.graphql.generated.CreateTicketTypeInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateTicketTypeInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 import dev.yidafu.aqua.common.graphql.generated.TicketTypeKind as GraphQLTicketTypeKind
 import dev.yidafu.aqua.common.graphql.generated.ValidityType as GraphQLValidityType
 
-class AdminTicketTypeMutationResolverTest {
-  private lateinit var ticketTypeMutationService: TicketTypeMutationService
-  private lateinit var resolver: AdminTicketTypeMutationResolver
+class AdminTicketTypeMutationResolverTest :
+  FunSpec({
+    var ticketTypeMutationService: TicketTypeMutationService = mockk()
+    var resolver: AdminTicketTypeMutationResolver = mockk()
 
-  private fun ticketType(): TicketTypeModel =
-    TicketTypeModel(
-      id = 20L,
-      name = "通兑19L",
-      ticketType = TicketTypeKind.UNIVERSAL,
-      productId = null,
-      specification = "19L",
-      packageCount = 10,
-      packagePriceCents = 10000,
-      giftCount = 0,
-      validityType = ValidityType.FIXED_RANGE,
-      validFrom = LocalDateTime.now().minusDays(1),
-      validTo = LocalDateTime.now().plusDays(365),
-      perUserLimit = 0,
-      status = TicketTypeStatus.ACTIVE,
-    )
-
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "admin",
-      userType = "ADMIN",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    ticketTypeMutationService = mockk(relaxed = true)
-    resolver = AdminTicketTypeMutationResolver(ticketTypeMutationService)
-  }
-
-  @Test
-  fun `createTicketType should delegate`() {
-    // Given
-    every { ticketTypeMutationService.createTicketType(1L, "admin", any()) } returns ticketType()
-    val input =
-      CreateTicketTypeInput(
-        giftCount = 0,
+    fun ticketType(): TicketTypeModel =
+      TicketTypeModel(
+        id = 20L,
         name = "通兑19L",
+        ticketType = TicketTypeKind.UNIVERSAL,
+        productId = null,
+        specification = "19L",
         packageCount = 10,
         packagePriceCents = 10000,
-        perUserLimit = 0,
-        ticketType = GraphQLTicketTypeKind.UNIVERSAL,
-        validityType = GraphQLValidityType.FIXED_RANGE,
-      )
-
-    // When
-    val result = resolver.createTicketType(input, principal())
-
-    // Then
-    assertEquals("通兑19L", result.name)
-    verify { ticketTypeMutationService.createTicketType(1L, "admin", any()) }
-  }
-
-  @Test
-  fun `updateTicketType should delegate`() {
-    // Given
-    every { ticketTypeMutationService.updateTicketType(1L, "admin", 20L, any()) } returns ticketType()
-    val input =
-      UpdateTicketTypeInput(
         giftCount = 0,
-        name = "通兑19L",
-        packageCount = 10,
-        packagePriceCents = 10000,
+        validityType = ValidityType.FIXED_RANGE,
+        validFrom = LocalDateTime.now().minusDays(1),
+        validTo = LocalDateTime.now().plusDays(365),
         perUserLimit = 0,
-        ticketType = GraphQLTicketTypeKind.UNIVERSAL,
-        validityType = GraphQLValidityType.FIXED_RANGE,
+        status = TicketTypeStatus.ACTIVE,
       )
 
-    // When
-    val result = resolver.updateTicketType(20L, input, principal())
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "admin",
+        userType = "ADMIN",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
+      )
 
-    // Then
-    assertEquals("通兑19L", result.name)
-    verify { ticketTypeMutationService.updateTicketType(1L, "admin", 20L, any()) }
-  }
+    beforeTest {
+      ticketTypeMutationService = mockk(relaxed = true)
+      resolver = AdminTicketTypeMutationResolver(ticketTypeMutationService)
+    }
+    test("createTicketType should delegate") {
+      // Given
+      every { ticketTypeMutationService.createTicketType(1L, "admin", any()) } returns ticketType()
+      val input =
+        CreateTicketTypeInput(
+          giftCount = 0,
+          name = "通兑19L",
+          packageCount = 10,
+          packagePriceCents = 10000,
+          perUserLimit = 0,
+          ticketType = GraphQLTicketTypeKind.UNIVERSAL,
+          validityType = GraphQLValidityType.FIXED_RANGE,
+        )
 
-  @Test
-  fun `disableTicketType should delegate`() {
-    // Given
-    every { ticketTypeMutationService.disableTicketType(1L, "admin", 20L) } returns ticketType()
+      // When
+      val result = resolver.createTicketType(input, principal())
 
-    // When
-    val result = resolver.disableTicketType(20L, principal())
+      // Then
+      result.name shouldBe "通兑19L"
+      verify { ticketTypeMutationService.createTicketType(1L, "admin", any()) }
+    }
+    test("updateTicketType should delegate") {
+      // Given
+      every { ticketTypeMutationService.updateTicketType(1L, "admin", 20L, any()) } returns ticketType()
+      val input =
+        UpdateTicketTypeInput(
+          giftCount = 0,
+          name = "通兑19L",
+          packageCount = 10,
+          packagePriceCents = 10000,
+          perUserLimit = 0,
+          ticketType = GraphQLTicketTypeKind.UNIVERSAL,
+          validityType = GraphQLValidityType.FIXED_RANGE,
+        )
 
-    // Then
-    assertEquals("通兑19L", result.name)
-    verify { ticketTypeMutationService.disableTicketType(1L, "admin", 20L) }
-  }
-}
+      // When
+      val result = resolver.updateTicketType(20L, input, principal())
+
+      // Then
+      result.name shouldBe "通兑19L"
+      verify { ticketTypeMutationService.updateTicketType(1L, "admin", 20L, any()) }
+    }
+    test("disableTicketType should delegate") {
+      // Given
+      every { ticketTypeMutationService.disableTicketType(1L, "admin", 20L) } returns ticketType()
+
+      // When
+      val result = resolver.disableTicketType(20L, principal())
+
+      // Then
+      result.name shouldBe "通兑19L"
+      verify { ticketTypeMutationService.disableTicketType(1L, "admin", 20L) }
+    }
+  })

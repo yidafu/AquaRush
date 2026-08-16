@@ -25,89 +25,79 @@ import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
 import dev.yidafu.aqua.common.graphql.generated.CreateCustomerGroupInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateCustomerGroupInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class AdminCustomerGroupMutationResolverTest {
-  private lateinit var customerGroupMutationService: CustomerGroupMutationService
-  private lateinit var customerGroupQueryService: CustomerGroupQueryService
-  private lateinit var resolver: AdminCustomerGroupMutationResolver
+class AdminCustomerGroupMutationResolverTest :
+  FunSpec({
+    var customerGroupMutationService: CustomerGroupMutationService = mockk()
+    var customerGroupQueryService: CustomerGroupQueryService = mockk()
+    var resolver: AdminCustomerGroupMutationResolver = mockk()
 
-  private fun customerGroup(): CustomerGroupModel = CustomerGroupModel(id = 10L, name = "老客户")
+    fun customerGroup(): CustomerGroupModel = CustomerGroupModel(id = 10L, name = "老客户")
 
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "admin",
-      userType = "ADMIN",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
-    )
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "admin",
+        userType = "ADMIN",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    customerGroupMutationService = mockk(relaxed = true)
-    customerGroupQueryService = mockk(relaxed = true)
-    resolver = AdminCustomerGroupMutationResolver(customerGroupMutationService, customerGroupQueryService)
-  }
+    beforeTest {
+      customerGroupMutationService = mockk(relaxed = true)
+      customerGroupQueryService = mockk(relaxed = true)
+      resolver = AdminCustomerGroupMutationResolver(customerGroupMutationService, customerGroupQueryService)
+    }
+    test("createCustomerGroup should delegate with member count") {
+      // Given
+      every { customerGroupMutationService.createGroup(1L, "admin", any()) } returns customerGroup()
+      every { customerGroupQueryService.memberCount(10L) } returns 5L
 
-  @Test
-  fun `createCustomerGroup should delegate with member count`() {
-    // Given
-    every { customerGroupMutationService.createGroup(1L, "admin", any()) } returns customerGroup()
-    every { customerGroupQueryService.memberCount(10L) } returns 5L
+      // When
+      val result = resolver.createCustomerGroup(CreateCustomerGroupInput(name = "老客户"), principal())
 
-    // When
-    val result = resolver.createCustomerGroup(CreateCustomerGroupInput(name = "老客户"), principal())
+      // Then
+      result.name shouldBe "老客户"
+      result.memberCount shouldBe 5
+      verify { customerGroupMutationService.createGroup(1L, "admin", any()) }
+    }
+    test("updateCustomerGroup should delegate") {
+      // Given
+      every { customerGroupMutationService.updateGroup(1L, "admin", 10L, any()) } returns customerGroup()
+      every { customerGroupQueryService.memberCount(10L) } returns 0L
 
-    // Then
-    assertEquals("老客户", result.name)
-    assertEquals(5, result.memberCount)
-    verify { customerGroupMutationService.createGroup(1L, "admin", any()) }
-  }
+      // When
+      val result = resolver.updateCustomerGroup(10L, UpdateCustomerGroupInput(name = "老客户"), principal())
 
-  @Test
-  fun `updateCustomerGroup should delegate`() {
-    // Given
-    every { customerGroupMutationService.updateGroup(1L, "admin", 10L, any()) } returns customerGroup()
-    every { customerGroupQueryService.memberCount(10L) } returns 0L
+      // Then
+      result.name shouldBe "老客户"
+      verify { customerGroupMutationService.updateGroup(1L, "admin", 10L, any()) }
+    }
+    test("deleteCustomerGroup should delegate") {
+      // Given
+      every { customerGroupMutationService.deleteGroup(1L, "admin", 10L) } returns true
 
-    // When
-    val result = resolver.updateCustomerGroup(10L, UpdateCustomerGroupInput(name = "老客户"), principal())
+      // When
+      val result = resolver.deleteCustomerGroup(10L, principal())
 
-    // Then
-    assertEquals("老客户", result.name)
-    verify { customerGroupMutationService.updateGroup(1L, "admin", 10L, any()) }
-  }
+      // Then
+      result shouldBe true
+      verify { customerGroupMutationService.deleteGroup(1L, "admin", 10L) }
+    }
+    test("setUserCustomerGroup should delegate and return true") {
+      // Given
+      every { customerGroupMutationService.setUserGroup(1L, "admin", 5L, 10L) } returns null
 
-  @Test
-  fun `deleteCustomerGroup should delegate`() {
-    // Given
-    every { customerGroupMutationService.deleteGroup(1L, "admin", 10L) } returns true
+      // When
+      val result = resolver.setUserCustomerGroup(5L, 10L, principal())
 
-    // When
-    val result = resolver.deleteCustomerGroup(10L, principal())
-
-    // Then
-    assertTrue(result)
-    verify { customerGroupMutationService.deleteGroup(1L, "admin", 10L) }
-  }
-
-  @Test
-  fun `setUserCustomerGroup should delegate and return true`() {
-    // Given
-    every { customerGroupMutationService.setUserGroup(1L, "admin", 5L, 10L) } returns null
-
-    // When
-    val result = resolver.setUserCustomerGroup(5L, 10L, principal())
-
-    // Then
-    assertTrue(result)
-    verify { customerGroupMutationService.setUserGroup(1L, "admin", 5L, 10L) }
-  }
-}
+      // Then
+      result shouldBe true
+      verify { customerGroupMutationService.setUserGroup(1L, "admin", 5L, 10L) }
+    }
+  })

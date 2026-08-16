@@ -22,80 +22,71 @@ package dev.yidafu.aqua.admin.product.controller
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.common.graphql.generated.ExportFavoritesResult
 import dev.yidafu.aqua.common.graphql.generated.ExportFormat
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.http.ResponseEntity
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
-class AdminProductFavoriteControllerTest {
-  private lateinit var productFavoriteService: ProductFavoriteService
-  private lateinit var controller: AdminProductFavoriteController
+class AdminProductFavoriteControllerTest :
+  FunSpec({
+    var productFavoriteService: ProductFavoriteService = mockk()
+    var controller: AdminProductFavoriteController = mockk()
 
-  private fun successResult(): ExportFavoritesResult =
-    ExportFavoritesResult(
-      success = true,
-      message = "导出成功",
-      downloadUrl = "http://x/download.csv",
-      fileName = "favorites.csv",
-      fileSize = 1024,
-      recordCount = 10,
-      expiresAt = LocalDateTime.now().plusDays(1),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    productFavoriteService = mockk(relaxed = true)
-    controller = AdminProductFavoriteController(productFavoriteService)
-  }
-
-  @Test
-  fun `exportFavorites should export successfully`() {
-    // Given
-    every { productFavoriteService.exportFavorites(any()) } returns successResult()
-    val request = ExportFavoritesRequest(format = ExportFormat.CSV, userId = 1L)
-
-    // When
-    val result: ResponseEntity<ExportFavoritesResult> = controller.exportFavorites(request)
-
-    // Then
-    assertTrue(result.body!!.success)
-    assertEquals(10, result.body!!.recordCount)
-    verify { productFavoriteService.exportFavorites(any()) }
-  }
-
-  @Test
-  fun `exportFavorites should reject inverted date range`() {
-    // Given
-    val request =
-      ExportFavoritesRequest(
-        dateFrom = LocalDateTime.of(2025, 6, 2, 0, 0),
-        dateTo = LocalDateTime.of(2025, 6, 1, 0, 0),
+    fun successResult(): ExportFavoritesResult =
+      ExportFavoritesResult(
+        success = true,
+        message = "导出成功",
+        downloadUrl = "http://x/download.csv",
+        fileName = "favorites.csv",
+        fileSize = 1024,
+        recordCount = 10,
+        expiresAt = LocalDateTime.now().plusDays(1),
       )
 
-    // When
-    val result: ResponseEntity<ExportFavoritesResult> = controller.exportFavorites(request)
+    beforeTest {
+      productFavoriteService = mockk(relaxed = true)
+      controller = AdminProductFavoriteController(productFavoriteService)
+    }
+    test("exportFavorites should export successfully") {
+      // Given
+      every { productFavoriteService.exportFavorites(any()) } returns successResult()
+      val request = ExportFavoritesRequest(format = ExportFormat.CSV, userId = 1L)
 
-    // Then
-    assertFalse(result.body!!.success)
-    assertTrue(result.body!!.message.contains("开始时间不能晚于结束时间"))
-  }
+      // When
+      val result: ResponseEntity<ExportFavoritesResult> = controller.exportFavorites(request)
 
-  @Test
-  fun `exportFavorites should return failure result on service error`() {
-    // Given
-    every { productFavoriteService.exportFavorites(any()) } throws RuntimeException("boom")
+      // Then
+      result.body!!.success shouldBe true
+      result.body!!.recordCount shouldBe 10
+      verify { productFavoriteService.exportFavorites(any()) }
+    }
+    test("exportFavorites should reject inverted date range") {
+      // Given
+      val request =
+        ExportFavoritesRequest(
+          dateFrom = LocalDateTime.of(2025, 6, 2, 0, 0),
+          dateTo = LocalDateTime.of(2025, 6, 1, 0, 0),
+        )
 
-    // When
-    val result: ResponseEntity<ExportFavoritesResult> = controller.exportFavorites(ExportFavoritesRequest())
+      // When
+      val result: ResponseEntity<ExportFavoritesResult> = controller.exportFavorites(request)
 
-    // Then
-    assertFalse(result.body!!.success)
-    assertTrue(result.body!!.message.contains("导出失败"))
-  }
-}
+      // Then
+      result.body!!.success shouldBe false
+      result.body!!.message.contains("开始时间不能晚于结束时间") shouldBe true
+    }
+    test("exportFavorites should return failure result on service error") {
+      // Given
+      every { productFavoriteService.exportFavorites(any()) } throws RuntimeException("boom")
+
+      // When
+      val result: ResponseEntity<ExportFavoritesResult> = controller.exportFavorites(ExportFavoritesRequest())
+
+      // Then
+      result.body!!.success shouldBe false
+      result.body!!.message.contains("导出失败") shouldBe true
+    }
+  })

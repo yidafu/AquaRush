@@ -19,38 +19,38 @@
 
 package dev.yidafu.aqua.common.domain.model
 
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import java.time.LocalDateTime
 
-class UserModelSoftDeleteTest {
-  @Test
-  fun `test UserModel implements SoftDeletable`() {
-    // Given
-    val user =
-      UserModel(
-        wechatOpenId = "test_openid",
-        email = "test@example.com",
-      )
+class UserModelSoftDeleteTest :
+  FunSpec({
 
-    // When & Then
-    assertNull(user.deletedAt)
-    assertNull(user.deletedBy)
-  }
+    test("test UserModel implements SoftDeletable") {
+      // Given
+      val user =
+        UserModel(
+          wechatOpenId = "test_openid",
+          email = "test@example.com",
+        )
 
-  @Test
-  fun `test soft delete functionality`() {
-    // Given
-    val user =
-      UserModel(
-        wechatOpenId = "test_openid",
-        email = "test@example.com",
-      )
+      // When & Then
+      user.deletedAt.shouldBeNull()
+      user.deletedBy.shouldBeNull()
+    }
+    test("test soft delete functionality") {
+      // Given
+      val user =
+        UserModel(
+          wechatOpenId = "test_openid",
+          email = "test@example.com",
+        )
 
-    // When
-    user.deletedAt = LocalDateTime.now()
+      // When
+      user.deletedAt = LocalDateTime.now()
 
-    // Then
-    assertNotNull(user.deletedAt)
-  }
-}
+      // Then
+      user.deletedAt.shouldNotBeNull()
+    }
+  })

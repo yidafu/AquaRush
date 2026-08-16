@@ -19,80 +19,62 @@
 
 package dev.yidafu.aqua.common.security
 
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
-class UserPrincipalTest {
-  private fun principal(vararg authorities: String): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "alice",
-      userType = "USER",
-      _authorities = authorities.map { SimpleGrantedAuthority(it) },
-    )
+class UserPrincipalTest :
+  FunSpec({
+    fun principal(vararg authorities: String): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "alice",
+        userType = "USER",
+        _authorities = authorities.map { SimpleGrantedAuthority(it) },
+      )
 
-  @Test
-  fun `getAuthorities should return configured authorities`() {
-    val p = principal("ROLE_USER", "PERMISSION_ORDER_READ")
-    assertEquals(2, p.authorities.size)
-    assertEquals("ROLE_USER", p.authorities.first().authority)
-  }
-
-  @Test
-  fun `getUsername should return username`() {
-    assertEquals("alice", principal().username)
-  }
-
-  @Test
-  fun `getPassword should return null`() {
-    assertNull(principal().password)
-  }
-
-  @Test
-  fun `account flags should all be true`() {
-    val p = principal()
-    assertTrue(p.isAccountNonExpired)
-    assertTrue(p.isAccountNonLocked)
-    assertTrue(p.isCredentialsNonExpired)
-    assertTrue(p.isEnabled)
-  }
-
-  @Test
-  fun `hasRole should match role authority`() {
-    val p = principal("ROLE_USER")
-    assertTrue(p.hasRole("USER"))
-    assertFalse(p.hasRole("ADMIN"))
-  }
-
-  @Test
-  fun `hasAuthority should match exact authority`() {
-    val p = principal("PERMISSION_ORDER_READ")
-    assertTrue(p.hasAuthority("PERMISSION_ORDER_READ"))
-    assertFalse(p.hasAuthority("PERMISSION_ORDER_WRITE"))
-  }
-
-  @Test
-  fun `id and userType should be accessible`() {
-    val p = principal()
-    assertEquals(1L, p.id)
-    assertEquals("USER", p.userType)
-  }
-
-  @Test
-  fun `getOpenId and getPhone should return empty strings`() {
-    val p = principal()
-    assertEquals("", p.getOpenId())
-    assertEquals("", p.getPhone())
-  }
-
-  @Test
-  fun `equals should consider fields`() {
-    val a = principal()
-    val b = principal()
-    assertEquals(a, b)
-  }
-}
+    test("getAuthorities should return configured authorities") {
+      val p = principal("ROLE_USER", "PERMISSION_ORDER_READ")
+      p.authorities.size shouldBe 2
+      p.authorities.first().authority shouldBe "ROLE_USER"
+    }
+    test("getUsername should return username") {
+      principal().username shouldBe "alice"
+    }
+    test("getPassword should return null") {
+      principal().password.shouldBeNull()
+    }
+    test("account flags should all be true") {
+      val p = principal()
+      p.isAccountNonExpired shouldBe true
+      p.isAccountNonLocked shouldBe true
+      p.isCredentialsNonExpired shouldBe true
+      p.isEnabled shouldBe true
+    }
+    test("hasRole should match role authority") {
+      val p = principal("ROLE_USER")
+      p.hasRole("USER") shouldBe true
+      p.hasRole("ADMIN") shouldBe false
+    }
+    test("hasAuthority should match exact authority") {
+      val p = principal("PERMISSION_ORDER_READ")
+      p.hasAuthority("PERMISSION_ORDER_READ") shouldBe true
+      p.hasAuthority("PERMISSION_ORDER_WRITE") shouldBe false
+    }
+    test("id and userType should be accessible") {
+      val p = principal()
+      p.id shouldBe 1L
+      p.userType shouldBe "USER"
+    }
+    test("getOpenId and getPhone should return empty strings") {
+      val p = principal()
+      p.getOpenId() shouldBe ""
+      p.getPhone() shouldBe ""
+    }
+    test("equals should consider fields") {
+      val a = principal()
+      val b = principal()
+      b shouldBe a
+    }
+  })

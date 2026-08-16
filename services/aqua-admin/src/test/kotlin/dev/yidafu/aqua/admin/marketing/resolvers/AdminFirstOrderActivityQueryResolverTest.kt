@@ -24,62 +24,57 @@ import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
 import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivityListInput
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-class AdminFirstOrderActivityQueryResolverTest {
-  private lateinit var firstOrderActivityQueryService: FirstOrderActivityQueryService
-  private lateinit var productQueryApiService: ProductQueryApiService
-  private lateinit var resolver: AdminFirstOrderActivityQueryResolver
+class AdminFirstOrderActivityQueryResolverTest :
+  FunSpec({
+    var firstOrderActivityQueryService: FirstOrderActivityQueryService = mockk()
+    var productQueryApiService: ProductQueryApiService = mockk()
+    var resolver: AdminFirstOrderActivityQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    firstOrderActivityQueryService = mockk(relaxed = true)
-    productQueryApiService = mockk(relaxed = true)
-    resolver = AdminFirstOrderActivityQueryResolver(firstOrderActivityQueryService, productQueryApiService)
-  }
-
-  @Test
-  fun `firstOrderActivities should list with display status`() {
-    // Given
-    every { firstOrderActivityQueryService.listActivities("首单", PageRequest.of(0, 20)) } returns
-      PageImpl(
-        listOf(
-          FirstOrderActivityModel(
-            id = 10L,
-            name = "首单立减10元",
-            validFrom = LocalDateTime.now().minusDays(1),
-            validTo = LocalDateTime.now().plusDays(30),
+    beforeTest {
+      firstOrderActivityQueryService = mockk(relaxed = true)
+      productQueryApiService = mockk(relaxed = true)
+      resolver = AdminFirstOrderActivityQueryResolver(firstOrderActivityQueryService, productQueryApiService)
+    }
+    test("firstOrderActivities should list with display status") {
+      // Given
+      every { firstOrderActivityQueryService.listActivities("首单", PageRequest.of(0, 20)) } returns
+        PageImpl(
+          listOf(
+            FirstOrderActivityModel(
+              id = 10L,
+              name = "首单立减10元",
+              validFrom = LocalDateTime.now().minusDays(1),
+              validTo = LocalDateTime.now().plusDays(30),
+            ),
           ),
-        ),
-      )
+        )
 
-    // When
-    val result = resolver.firstOrderActivities(FirstOrderActivityListInput(keyword = "首单"))
+      // When
+      val result = resolver.firstOrderActivities(FirstOrderActivityListInput(keyword = "首单"))
 
-    // Then
-    assertEquals(1, result.content.size)
-    assertEquals(PromotionActivityDisplayStatus.ONGOING, result.content[0].currentStatus)
-    verify { firstOrderActivityQueryService.listActivities("首单", PageRequest.of(0, 20)) }
-  }
+      // Then
+      result.content.size shouldBe 1
+      result.content[0].currentStatus shouldBe PromotionActivityDisplayStatus.ONGOING
+      verify { firstOrderActivityQueryService.listActivities("首单", PageRequest.of(0, 20)) }
+    }
+    test("firstOrderActivity should return null when missing") {
+      // Given
+      every { firstOrderActivityQueryService.getActivity(999L) } returns null
 
-  @Test
-  fun `firstOrderActivity should return null when missing`() {
-    // Given
-    every { firstOrderActivityQueryService.getActivity(999L) } returns null
+      // When
+      val result = resolver.firstOrderActivity(999L)
 
-    // When
-    val result = resolver.firstOrderActivity(999L)
-
-    // Then
-    assertNull(result)
-  }
-}
+      // Then
+      result.shouldBeNull()
+    }
+  })

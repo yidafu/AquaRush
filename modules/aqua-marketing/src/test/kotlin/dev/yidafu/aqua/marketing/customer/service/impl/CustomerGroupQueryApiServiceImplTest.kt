@@ -21,52 +21,41 @@ package dev.yidafu.aqua.marketing.customer.service.impl
 
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
 import dev.yidafu.aqua.marketing.customer.domain.repository.CustomerGroupRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 /** 客户分组跨模块查询服务单元测试(用户列表/定向发放/营销引擎数据源)。 */
-class CustomerGroupQueryApiServiceImplTest {
-  private lateinit var customerGroupRepository: CustomerGroupRepository
-  private lateinit var service: CustomerGroupQueryApiServiceImpl
+class CustomerGroupQueryApiServiceImplTest :
+  FunSpec({
+    var customerGroupRepository: CustomerGroupRepository = mockk()
+    var service: CustomerGroupQueryApiServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    customerGroupRepository = mockk()
-    service = CustomerGroupQueryApiServiceImpl(customerGroupRepository)
-  }
+    beforeTest {
+      customerGroupRepository = mockk()
+      service = CustomerGroupQueryApiServiceImpl(customerGroupRepository)
+    }
+    test("findById") {
+      every { customerGroupRepository.findById(1L) } returns Optional.of(CustomerGroupModel(id = 1L, name = "熟客"))
+      every { customerGroupRepository.findById(99L) } returns Optional.empty()
 
-  @Test
-  @DisplayName("按 id 查询:存在/不存在")
-  fun `findById`() {
-    every { customerGroupRepository.findById(1L) } returns Optional.of(CustomerGroupModel(id = 1L, name = "熟客"))
-    every { customerGroupRepository.findById(99L) } returns Optional.empty()
+      service.findById(1L)?.id shouldBe 1L
+      service.findById(99L).shouldBeNull()
+    }
+    test("findByIds") {
+      every { customerGroupRepository.findAllById(listOf(1L, 2L)) } returns listOf(CustomerGroupModel(id = 1L, name = "A"))
 
-    assertEquals(1L, service.findById(1L)?.id)
-    assertNull(service.findById(99L))
-  }
+      val result = service.findByIds(listOf(1L, 2L))
 
-  @Test
-  @DisplayName("按 id 列表查询")
-  fun `findByIds`() {
-    every { customerGroupRepository.findAllById(listOf(1L, 2L)) } returns listOf(CustomerGroupModel(id = 1L, name = "A"))
+      result.size shouldBe 1
+    }
+    test("findAll") {
+      every { customerGroupRepository.findAll() } returns
+        listOf(CustomerGroupModel(id = 1L, name = "A"), CustomerGroupModel(id = 2L, name = "B"))
 
-    val result = service.findByIds(listOf(1L, 2L))
-
-    assertEquals(1, result.size)
-  }
-
-  @Test
-  @DisplayName("全量查询")
-  fun `findAll`() {
-    every { customerGroupRepository.findAll() } returns
-      listOf(CustomerGroupModel(id = 1L, name = "A"), CustomerGroupModel(id = 2L, name = "B"))
-
-    assertEquals(2, service.findAll().size)
-  }
-}
+      service.findAll().size shouldBe 2
+    }
+  })

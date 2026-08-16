@@ -27,89 +27,82 @@ import dev.yidafu.aqua.analytics.statistics.dto.UserStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.service.DeliveryWorkerStatisticsService
 import dev.yidafu.aqua.analytics.statistics.service.UserStatisticsService
 import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
-class AdminStatisticsQueryResolverTest {
-  private lateinit var userStatisticsService: UserStatisticsService
-  private lateinit var deliveryWorkerStatisticsService: DeliveryWorkerStatisticsService
-  private lateinit var resolver: AdminStatisticsQueryResolver
+class AdminStatisticsQueryResolverTest :
+  FunSpec({
+    var userStatisticsService: UserStatisticsService = mockk()
+    var deliveryWorkerStatisticsService: DeliveryWorkerStatisticsService = mockk()
+    var resolver: AdminStatisticsQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    userStatisticsService = mockk(relaxed = true)
-    deliveryWorkerStatisticsService = mockk(relaxed = true)
-    resolver = AdminStatisticsQueryResolver(userStatisticsService, deliveryWorkerStatisticsService)
-  }
+    beforeTest {
+      userStatisticsService = mockk(relaxed = true)
+      deliveryWorkerStatisticsService = mockk(relaxed = true)
+      resolver = AdminStatisticsQueryResolver(userStatisticsService, deliveryWorkerStatisticsService)
+    }
+    test("userStatistics should aggregate user and login statistics") {
+      // Given
+      every { userStatisticsService.getUserStatistics() } returns
+        UserStatisticsDTO(totalUsers = 100L, todayNewUsers = 5L, monthNewUsers = 30L, activeUsers = 50L)
+      every { userStatisticsService.getDailyNewUsers(any(), any()) } returns
+        listOf(DailyStatistic(date = "2025-01-01", orderCount = 1, orderProductCount = 1, revenueCents = 100L))
+      every { userStatisticsService.getLoginStatistics(any(), any()) } returns
+        LoginStatisticsDTO(todayLogins = 10L, totalLogins = 1000L, dailyLogins = listOf(DailyLoginStatisticDTO("2025-01-01", 3)))
 
-  @Test
-  fun `userStatistics should aggregate user and login statistics`() {
-    // Given
-    every { userStatisticsService.getUserStatistics() } returns
-      UserStatisticsDTO(totalUsers = 100L, todayNewUsers = 5L, monthNewUsers = 30L, activeUsers = 50L)
-    every { userStatisticsService.getDailyNewUsers(any(), any()) } returns
-      listOf(DailyStatistic(date = "2025-01-01", orderCount = 1, orderProductCount = 1, revenueCents = 100L))
-    every { userStatisticsService.getLoginStatistics(any(), any()) } returns
-      LoginStatisticsDTO(todayLogins = 10L, totalLogins = 1000L, dailyLogins = listOf(DailyLoginStatisticDTO("2025-01-01", 3)))
+      // When
+      val result = resolver.userStatistics()
 
-    // When
-    val result = resolver.userStatistics()
+      // Then
+      result.totalUsers shouldBe 100
+      result.todayNewUsers shouldBe 5
+      result.monthNewUsers shouldBe 30
+      result.activeUsers shouldBe 50
+      result.dailyNewUsers.size shouldBe 1
+      result.loginStatistics!!.todayLogins shouldBe 10
+      result.loginStatistics!!.totalLogins shouldBe 1000
+      result.loginStatistics!!.dailyLogins.size shouldBe 1
+      verify { userStatisticsService.getUserStatistics() }
+    }
+    test("deliveryWorkerStatistics should map overview") {
+      // Given
+      every { deliveryWorkerStatisticsService.getDeliveryWorkerStatistics() } returns
+        DeliveryWorkerStatisticsDTO(totalWorkers = 8L, todayActiveWorkers = 6L, deliveringOrders = 3L, todayCompletedOrders = 12L)
 
-    // Then
-    assertEquals(100, result.totalUsers)
-    assertEquals(5, result.todayNewUsers)
-    assertEquals(30, result.monthNewUsers)
-    assertEquals(50, result.activeUsers)
-    assertEquals(1, result.dailyNewUsers.size)
-    assertEquals(10, result.loginStatistics!!.todayLogins)
-    assertEquals(1000, result.loginStatistics!!.totalLogins)
-    assertEquals(1, result.loginStatistics!!.dailyLogins.size)
-    verify { userStatisticsService.getUserStatistics() }
-  }
+      // When
+      val result = resolver.deliveryWorkerStatistics()
 
-  @Test
-  fun `deliveryWorkerStatistics should map overview`() {
-    // Given
-    every { deliveryWorkerStatisticsService.getDeliveryWorkerStatistics() } returns
-      DeliveryWorkerStatisticsDTO(totalWorkers = 8L, todayActiveWorkers = 6L, deliveringOrders = 3L, todayCompletedOrders = 12L)
+      // Then
+      result.totalWorkers shouldBe 8
+      result.todayActiveWorkers shouldBe 6
+      result.deliveringOrders shouldBe 3
+      result.todayCompletedOrders shouldBe 12
+    }
+    test("deliveryWorkerRanking should map ranking items") {
+      // Given
+      every { deliveryWorkerStatisticsService.getDeliveryWorkerRanking(5) } returns
+        listOf(
+          DeliveryWorkerRankingItemDTO(
+            workerId = 1L,
+            name = "送水员甲",
+            todayCompletedOrders = 4,
+            rating = 4.9f,
+            totalEarnings = 8800L,
+          ),
+        )
 
-    // When
-    val result = resolver.deliveryWorkerStatistics()
+      // When
+      val result = resolver.deliveryWorkerRanking(5)
 
-    // Then
-    assertEquals(8, result.totalWorkers)
-    assertEquals(6, result.todayActiveWorkers)
-    assertEquals(3, result.deliveringOrders)
-    assertEquals(12, result.todayCompletedOrders)
-  }
-
-  @Test
-  fun `deliveryWorkerRanking should map ranking items`() {
-    // Given
-    every { deliveryWorkerStatisticsService.getDeliveryWorkerRanking(5) } returns
-      listOf(
-        DeliveryWorkerRankingItemDTO(
-          workerId = 1L,
-          name = "送水员甲",
-          todayCompletedOrders = 4,
-          rating = 4.9f,
-          totalEarnings = 8800L,
-        ),
-      )
-
-    // When
-    val result = resolver.deliveryWorkerRanking(5)
-
-    // Then
-    assertEquals(1, result.size)
-    assertEquals("1", result[0].workerId)
-    assertEquals("送水员甲", result[0].name)
-    assertEquals(4, result[0].todayCompletedOrders)
-    assertEquals(8800L, result[0].totalEarningsCents)
-    verify { deliveryWorkerStatisticsService.getDeliveryWorkerRanking(5) }
-  }
-}
+      // Then
+      result.size shouldBe 1
+      result[0].workerId shouldBe "1"
+      result[0].name shouldBe "送水员甲"
+      result[0].todayCompletedOrders shouldBe 4
+      result[0].totalEarningsCents shouldBe 8800L
+      verify { deliveryWorkerStatisticsService.getDeliveryWorkerRanking(5) }
+    }
+  })

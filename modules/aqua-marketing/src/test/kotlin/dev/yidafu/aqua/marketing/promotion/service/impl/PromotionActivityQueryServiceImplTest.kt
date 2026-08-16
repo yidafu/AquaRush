@@ -24,12 +24,12 @@ import dev.yidafu.aqua.common.domain.model.PromotionActivityTierModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.marketing.promotion.domain.repository.PromotionActivityRepository
 import dev.yidafu.aqua.marketing.promotion.domain.repository.PromotionActivityTierRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
@@ -37,73 +37,56 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 /** 满减/折扣活动查询服务单元测试(F-MKT-004 列表/详情/档位/生效活动)。 */
-class PromotionActivityQueryServiceImplTest {
-  private lateinit var promotionActivityRepository: PromotionActivityRepository
-  private lateinit var promotionActivityTierRepository: PromotionActivityTierRepository
-  private lateinit var service: PromotionActivityQueryServiceImpl
+class PromotionActivityQueryServiceImplTest :
+  FunSpec({
+    var promotionActivityRepository: PromotionActivityRepository = mockk()
+    var promotionActivityTierRepository: PromotionActivityTierRepository = mockk()
+    var service: PromotionActivityQueryServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    promotionActivityRepository = mockk()
-    promotionActivityTierRepository = mockk()
-    service = PromotionActivityQueryServiceImpl(promotionActivityRepository, promotionActivityTierRepository)
-  }
+    beforeTest {
+      promotionActivityRepository = mockk()
+      promotionActivityTierRepository = mockk()
+      service = PromotionActivityQueryServiceImpl(promotionActivityRepository, promotionActivityTierRepository)
+    }
+    test("listActivities with keyword") {
+      val pageable: Pageable = PageRequest.of(0, 10)
+      val page: Page<PromotionActivityModel> = PageImpl(listOf(PromotionActivityModel(id = 1L, name = "满减")))
+      every { promotionActivityRepository.findAll(any<Specification<PromotionActivityModel>>(), any<Pageable>()) } returns page
 
-  @Test
-  @DisplayName("列表:带关键字")
-  fun `listActivities with keyword`() {
-    val pageable: Pageable = PageRequest.of(0, 10)
-    val page: Page<PromotionActivityModel> = PageImpl(listOf(PromotionActivityModel(id = 1L, name = "满减")))
-    every { promotionActivityRepository.findAll(any<Specification<PromotionActivityModel>>(), any<Pageable>()) } returns page
+      val result = service.listActivities("满减", pageable)
 
-    val result = service.listActivities("满减", pageable)
+      result.totalElements shouldBe 1
+      verify { promotionActivityRepository.findAll(any<Specification<PromotionActivityModel>>(), any<Pageable>()) }
+    }
+    test("listActivities without keyword") {
+      val pageable: Pageable = PageRequest.of(0, 10)
+      every { promotionActivityRepository.findAll(any<Specification<PromotionActivityModel>>(), any<Pageable>()) } returns
+        PageImpl(emptyList())
 
-    assertEquals(1, result.totalElements)
-    verify { promotionActivityRepository.findAll(any<Specification<PromotionActivityModel>>(), any<Pageable>()) }
-  }
+      val result = service.listActivities(null, pageable)
 
-  @Test
-  @DisplayName("列表:无关键字")
-  fun `listActivities without keyword`() {
-    val pageable: Pageable = PageRequest.of(0, 10)
-    every { promotionActivityRepository.findAll(any<Specification<PromotionActivityModel>>(), any<Pageable>()) } returns
-      PageImpl(emptyList())
+      result.totalElements shouldBe 0
+    }
+    test("getActivity") {
+      every { promotionActivityRepository.findById(1L) } returns Optional.of(PromotionActivityModel(id = 1L, name = "满减"))
+      every { promotionActivityRepository.findById(99L) } returns Optional.empty()
 
-    val result = service.listActivities(null, pageable)
+      service.getActivity(1L)?.id shouldBe 1L
+      service.getActivity(99L).shouldBeNull()
+    }
+    test("listTiers") {
+      every { promotionActivityTierRepository.findByActivityIdOrderBySortAsc(1L) } returns
+        listOf(PromotionActivityTierModel(id = 1L, activityId = 1L, thresholdCents = 10000, sort = 0))
 
-    assertEquals(0, result.totalElements)
-  }
+      service.listTiers(1L).size shouldBe 1
+    }
+    test("findActiveActivities") {
+      val now = LocalDateTime.of(2026, 8, 14, 10, 0)
+      every { promotionActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, now) } returns
+        listOf(PromotionActivityModel(id = 1L, name = "进行中"))
 
-  @Test
-  @DisplayName("详情:存在返回,不存在返回 null")
-  fun `getActivity`() {
-    every { promotionActivityRepository.findById(1L) } returns Optional.of(PromotionActivityModel(id = 1L, name = "满减"))
-    every { promotionActivityRepository.findById(99L) } returns Optional.empty()
-
-    assertEquals(1L, service.getActivity(1L)?.id)
-    assertNull(service.getActivity(99L))
-  }
-
-  @Test
-  @DisplayName("档位:按 sort 升序返回")
-  fun `listTiers`() {
-    every { promotionActivityTierRepository.findByActivityIdOrderBySortAsc(1L) } returns
-      listOf(PromotionActivityTierModel(id = 1L, activityId = 1L, thresholdCents = 10000, sort = 0))
-
-    assertEquals(1, service.listTiers(1L).size)
-  }
-
-  @Test
-  @DisplayName("生效活动:委托仓库查询")
-  fun `findActiveActivities`() {
-    val now = LocalDateTime.of(2026, 8, 14, 10, 0)
-    every { promotionActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, now) } returns
-      listOf(PromotionActivityModel(id = 1L, name = "进行中"))
-
-    assertEquals(1, service.findActiveActivities(now).size)
-  }
-}
+      service.findActiveActivities(now).size shouldBe 1
+    }
+  })

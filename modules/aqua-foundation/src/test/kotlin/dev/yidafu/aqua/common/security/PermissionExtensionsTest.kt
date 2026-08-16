@@ -21,43 +21,35 @@ package dev.yidafu.aqua.common.security
 
 import dev.yidafu.aqua.common.domain.model.enums.AdminPermission
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
-class PermissionExtensionsTest {
-  @Test
-  fun `toSimpleGrantedAuthority should prefix permission name`() {
-    val authority = AdminPermission.ORDER_READ.toSimpleGrantedAuthority()
-    assertEquals("PERMISSION_ORDER_READ", authority.authority)
-  }
+class PermissionExtensionsTest :
+  FunSpec({
 
-  @Test
-  fun `toSimpleGrantedAuthorities should map all permissions`() {
-    val authorities = listOf(AdminPermission.ORDER_READ, AdminPermission.PRODUCT_WRITE).toSimpleGrantedAuthorities()
-    assertEquals(2, authorities.size)
-    assertEquals("PERMISSION_ORDER_READ", authorities[0].authority)
-    assertEquals("PERMISSION_PRODUCT_WRITE", authorities[1].authority)
-  }
-
-  @Test
-  fun `toPermissionAuthorities should include role authority`() {
-    val authorities = AdminRoleModel.ADMIN.toPermissionAuthorities()
-    assertTrue(authorities.any { it.authority == "ROLE_ADMIN" })
-    assertTrue(authorities.any { it.authority == "PERMISSION_ORDER_READ" })
-  }
-
-  @Test
-  fun `toPermissionAuthorities for super admin should include ROLE_ADMIN`() {
-    val authorities = AdminRoleModel.SUPER_ADMIN.toPermissionAuthorities()
-    assertTrue(authorities.any { it.authority == "ROLE_SUPER_ADMIN" })
-    assertTrue(authorities.any { it.authority == "ROLE_ADMIN" })
-  }
-
-  @Test
-  fun `toPermissionAuthorities for delivery worker should not include admin roles`() {
-    val authorities = AdminRoleModel.DELIVERY_WORKER.toPermissionAuthorities()
-    assertTrue(authorities.none { it.authority == "ROLE_ADMIN" })
-    assertTrue(authorities.any { it.authority == "ROLE_DELIVERY_WORKER" })
-  }
-}
+    test("toSimpleGrantedAuthority should prefix permission name") {
+      val authority = AdminPermission.ORDER_READ.toSimpleGrantedAuthority()
+      authority.authority shouldBe "PERMISSION_ORDER_READ"
+    }
+    test("toSimpleGrantedAuthorities should map all permissions") {
+      val authorities = listOf(AdminPermission.ORDER_READ, AdminPermission.PRODUCT_WRITE).toSimpleGrantedAuthorities()
+      authorities.size shouldBe 2
+      authorities[0].authority shouldBe "PERMISSION_ORDER_READ"
+      authorities[1].authority shouldBe "PERMISSION_PRODUCT_WRITE"
+    }
+    test("toPermissionAuthorities should include role authority") {
+      val authorities = AdminRoleModel.ADMIN.toPermissionAuthorities()
+      authorities.any { it.authority == "ROLE_ADMIN" } shouldBe true
+      authorities.any { it.authority == "PERMISSION_ORDER_READ" } shouldBe true
+    }
+    test("toPermissionAuthorities for super admin should include ROLE_ADMIN") {
+      val authorities = AdminRoleModel.SUPER_ADMIN.toPermissionAuthorities()
+      authorities.any { it.authority == "ROLE_SUPER_ADMIN" } shouldBe true
+      authorities.any { it.authority == "ROLE_ADMIN" } shouldBe true
+    }
+    test("toPermissionAuthorities for delivery worker should not include admin roles") {
+      val authorities = AdminRoleModel.DELIVERY_WORKER.toPermissionAuthorities()
+      authorities.none { it.authority == "ROLE_ADMIN" } shouldBe true
+      authorities.any { it.authority == "ROLE_DELIVERY_WORKER" } shouldBe true
+    }
+  })

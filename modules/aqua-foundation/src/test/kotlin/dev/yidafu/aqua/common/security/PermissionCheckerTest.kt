@@ -20,96 +20,69 @@
 package dev.yidafu.aqua.common.security
 
 import dev.yidafu.aqua.common.domain.model.enums.AdminPermission
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.security.core.context.SecurityContextHolder
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
-class PermissionCheckerTest {
-  private val checker = PermissionChecker()
+class PermissionCheckerTest :
+  FunSpec({
+    val checker = PermissionChecker()
 
-  @BeforeEach
-  fun setUp() {
-    SecurityContextHolder.clearContext()
-  }
+    fun authenticate(vararg authorities: String) {
+      val authentication =
+        UsernamePasswordAuthenticationToken(
+          "admin",
+          null,
+          authorities.map { SimpleGrantedAuthority(it) },
+        )
+      SecurityContextHolder.getContext().authentication = authentication
+    }
 
-  @AfterEach
-  fun tearDown() {
-    SecurityContextHolder.clearContext()
-  }
-
-  private fun authenticate(vararg authorities: String) {
-    val authentication =
-      UsernamePasswordAuthenticationToken(
-        "admin",
-        null,
-        authorities.map { SimpleGrantedAuthority(it) },
-      )
-    SecurityContextHolder.getContext().authentication = authentication
-  }
-
-  @Test
-  fun `hasPermission should return true when authority present`() {
-    authenticate("PERMISSION_ORDER_READ")
-    assertTrue(checker.hasPermission(AdminPermission.ORDER_READ))
-  }
-
-  @Test
-  fun `hasPermission should return false when authority missing`() {
-    authenticate("PERMISSION_ORDER_READ")
-    assertFalse(checker.hasPermission(AdminPermission.ORDER_WRITE))
-  }
-
-  @Test
-  fun `hasPermission should return false when no authentication`() {
-    assertFalse(checker.hasPermission(AdminPermission.ORDER_READ))
-  }
-
-  @Test
-  fun `hasAnyPermission should return true when any matches`() {
-    authenticate("PERMISSION_ORDER_READ")
-    assertTrue(
+    beforeTest {
+      SecurityContextHolder.clearContext()
+    }
+    afterTest {
+      SecurityContextHolder.clearContext()
+    }
+    test("hasPermission should return true when authority present") {
+      authenticate("PERMISSION_ORDER_READ")
+      checker.hasPermission(AdminPermission.ORDER_READ) shouldBe true
+    }
+    test("hasPermission should return false when authority missing") {
+      authenticate("PERMISSION_ORDER_READ")
+      checker.hasPermission(AdminPermission.ORDER_WRITE) shouldBe false
+    }
+    test("hasPermission should return false when no authentication") {
+      checker.hasPermission(AdminPermission.ORDER_READ) shouldBe false
+    }
+    test("hasAnyPermission should return true when any matches") {
+      authenticate("PERMISSION_ORDER_READ")
       checker.hasAnyPermission(
         AdminPermission.ORDER_WRITE,
         AdminPermission.ORDER_READ,
-      ),
-    )
-  }
-
-  @Test
-  fun `hasAnyPermission should return false when none match`() {
-    authenticate("PERMISSION_ORDER_READ")
-    assertFalse(checker.hasAnyPermission(AdminPermission.ORDER_WRITE, AdminPermission.PRODUCT_WRITE))
-  }
-
-  @Test
-  fun `hasAllPermissions should return true when all present`() {
-    authenticate("PERMISSION_ORDER_READ", "PERMISSION_ORDER_WRITE")
-    assertTrue(
+      ) shouldBe true
+    }
+    test("hasAnyPermission should return false when none match") {
+      authenticate("PERMISSION_ORDER_READ")
+      checker.hasAnyPermission(AdminPermission.ORDER_WRITE, AdminPermission.PRODUCT_WRITE) shouldBe false
+    }
+    test("hasAllPermissions should return true when all present") {
+      authenticate("PERMISSION_ORDER_READ", "PERMISSION_ORDER_WRITE")
       checker.hasAllPermissions(
         setOf(AdminPermission.ORDER_READ, AdminPermission.ORDER_WRITE),
-      ),
-    )
-  }
-
-  @Test
-  fun `hasAllPermissions should return false when one missing`() {
-    authenticate("PERMISSION_ORDER_READ")
-    assertFalse(
+      ) shouldBe true
+    }
+    test("hasAllPermissions should return false when one missing") {
+      authenticate("PERMISSION_ORDER_READ")
       checker.hasAllPermissions(
         setOf(AdminPermission.ORDER_READ, AdminPermission.ORDER_WRITE),
-      ),
-    )
-  }
-
-  @Test
-  fun `hasPermission with string should match exact authority`() {
-    authenticate("PERMISSION_ORDER_READ")
-    assertTrue(checker.hasPermission("PERMISSION_ORDER_READ"))
-    assertFalse(checker.hasPermission("PERMISSION_OTHER"))
-  }
-}
+      ) shouldBe false
+    }
+    test("hasPermission with string should match exact authority") {
+      authenticate("PERMISSION_ORDER_READ")
+      checker.hasPermission("PERMISSION_ORDER_READ") shouldBe true
+      checker.hasPermission("PERMISSION_OTHER") shouldBe false
+    }
+  })

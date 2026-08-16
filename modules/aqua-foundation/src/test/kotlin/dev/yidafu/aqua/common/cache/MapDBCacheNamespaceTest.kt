@@ -19,126 +19,103 @@
 
 package dev.yidafu.aqua.common.cache
 
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import java.time.Duration
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
-class MapDBCacheNamespaceTest {
-  @Test
-  fun `getCache should lazily create and reuse namespace`() {
-    val namespace = MapDBCacheNamespace()
-    val first = namespace.getCache("ns1")
-    val second = namespace.getCache("ns1")
-    assertEquals(first, second)
-    assertTrue(namespace.hasNamespace("ns1"))
-    namespace.shutdown()
-  }
+class MapDBCacheNamespaceTest :
+  FunSpec({
 
-  @Test
-  fun `getAllNamespaces should list created namespaces`() {
-    val namespace = MapDBCacheNamespace()
-    namespace.getCache("a")
-    namespace.getCache("b")
-    assertEquals(setOf("a", "b"), namespace.getAllNamespaces())
-    namespace.shutdown()
-  }
-
-  @Test
-  fun `clearNamespace should clear existing namespace`() {
-    val namespace = MapDBCacheNamespace()
-    val cache = namespace.getCache("a")
-    cache.put("k", "v")
-    namespace.clearNamespace("a")
-    assertEquals(0L, cache.size())
-    namespace.shutdown()
-  }
-
-  @Test
-  fun `clearNamespace should not fail for unknown namespace`() {
-    val namespace = MapDBCacheNamespace()
-    namespace.clearNamespace("missing")
-    assertFalse(namespace.hasNamespace("missing"))
-    namespace.shutdown()
-  }
-
-  @Test
-  fun `createNamespace should register namespace`() {
-    val namespace = MapDBCacheNamespace()
-    val cache = namespace.createNamespace("custom", CacheConfig(defaultTTL = Duration.ofMinutes(1)))
-    assertTrue(namespace.hasNamespace("custom"))
-    cache.put("k", "v")
-    assertEquals("v", cache.get("k", String::class.java))
-    namespace.shutdown()
-  }
-
-  @Test
-  fun `createNamespace should not duplicate existing namespace`() {
-    val namespace = MapDBCacheNamespace()
-    val first = namespace.getCache("dup")
-    val second = namespace.createNamespace("dup", CacheConfig())
-    assertEquals(first, second)
-    namespace.shutdown()
-  }
-
-  @Test
-  fun `deleteNamespace should remove and shutdown cache`() {
-    val namespace = MapDBCacheNamespace()
-    namespace.getCache("to-delete")
-    assertTrue(namespace.deleteNamespace("to-delete"))
-    assertFalse(namespace.hasNamespace("to-delete"))
-    namespace.shutdown()
-  }
-
-  @Test
-  fun `deleteNamespace should return false for unknown namespace`() {
-    val namespace = MapDBCacheNamespace()
-    assertFalse(namespace.deleteNamespace("missing"))
-    namespace.shutdown()
-  }
-
-  @Test
-  fun `getNamespaceStats should report per namespace stats`() {
-    val namespace = MapDBCacheNamespace()
-    val cache = namespace.getCache("stats-ns")
-    cache.put("k", "v")
-    cache.get("k", String::class.java)
-    val stats = namespace.getNamespaceStats()
-    assertEquals(1, stats.size)
-    assertEquals(1L, stats["stats-ns"]?.hitCount)
-    namespace.shutdown()
-  }
-
-  @Test
-  fun `shutdown should clear all namespaces`() {
-    val namespace = MapDBCacheNamespace()
-    namespace.getCache("a")
-    namespace.getCache("b")
-    namespace.shutdown()
-    assertFalse(namespace.hasNamespace("a"))
-    assertFalse(namespace.hasNamespace("b"))
-  }
-
-  @Test
-  fun `name should be mapdb cache namespace`() {
-    val namespace = MapDBCacheNamespace()
-    assertEquals("mapdb-cache-namespace", namespace.name)
-    namespace.shutdown()
-  }
-
-  @Test
-  fun `namespace cache should support full cache operations`() {
-    val namespace = MapDBCacheNamespace()
-    val cache = namespace.getCache("full")
-    cache.put("a", "1")
-    cache.put("b", "2", Duration.ofMinutes(5))
-    assertNotNull(cache.get("a", String::class.java))
-    assertTrue(cache.containsKey("b"))
-    assertEquals(2L, cache.size())
-    assertTrue(cache.remove("a"))
-    assertEquals(1L, cache.size())
-    namespace.shutdown()
-  }
-}
+    test("getCache should lazily create and reuse namespace") {
+      val namespace = MapDBCacheNamespace()
+      val first = namespace.getCache("ns1")
+      val second = namespace.getCache("ns1")
+      second shouldBe first
+      namespace.hasNamespace("ns1") shouldBe true
+      namespace.shutdown()
+    }
+    test("getAllNamespaces should list created namespaces") {
+      val namespace = MapDBCacheNamespace()
+      namespace.getCache("a")
+      namespace.getCache("b")
+      namespace.getAllNamespaces() shouldBe setOf("a", "b")
+      namespace.shutdown()
+    }
+    test("clearNamespace should clear existing namespace") {
+      val namespace = MapDBCacheNamespace()
+      val cache = namespace.getCache("a")
+      cache.put("k", "v")
+      namespace.clearNamespace("a")
+      cache.size() shouldBe 0L
+      namespace.shutdown()
+    }
+    test("clearNamespace should not fail for unknown namespace") {
+      val namespace = MapDBCacheNamespace()
+      namespace.clearNamespace("missing")
+      namespace.hasNamespace("missing") shouldBe false
+      namespace.shutdown()
+    }
+    test("createNamespace should register namespace") {
+      val namespace = MapDBCacheNamespace()
+      val cache = namespace.createNamespace("custom", CacheConfig(defaultTTL = Duration.ofMinutes(1)))
+      namespace.hasNamespace("custom") shouldBe true
+      cache.put("k", "v")
+      cache.get("k", String::class.java) shouldBe "v"
+      namespace.shutdown()
+    }
+    test("createNamespace should not duplicate existing namespace") {
+      val namespace = MapDBCacheNamespace()
+      val first = namespace.getCache("dup")
+      val second = namespace.createNamespace("dup", CacheConfig())
+      second shouldBe first
+      namespace.shutdown()
+    }
+    test("deleteNamespace should remove and shutdown cache") {
+      val namespace = MapDBCacheNamespace()
+      namespace.getCache("to-delete")
+      namespace.deleteNamespace("to-delete") shouldBe true
+      namespace.hasNamespace("to-delete") shouldBe false
+      namespace.shutdown()
+    }
+    test("deleteNamespace should return false for unknown namespace") {
+      val namespace = MapDBCacheNamespace()
+      namespace.deleteNamespace("missing") shouldBe false
+      namespace.shutdown()
+    }
+    test("getNamespaceStats should report per namespace stats") {
+      val namespace = MapDBCacheNamespace()
+      val cache = namespace.getCache("stats-ns")
+      cache.put("k", "v")
+      cache.get("k", String::class.java)
+      val stats = namespace.getNamespaceStats()
+      stats.size shouldBe 1
+      stats["stats-ns"]?.hitCount shouldBe 1L
+      namespace.shutdown()
+    }
+    test("shutdown should clear all namespaces") {
+      val namespace = MapDBCacheNamespace()
+      namespace.getCache("a")
+      namespace.getCache("b")
+      namespace.shutdown()
+      namespace.hasNamespace("a") shouldBe false
+      namespace.hasNamespace("b") shouldBe false
+    }
+    test("name should be mapdb cache namespace") {
+      val namespace = MapDBCacheNamespace()
+      namespace.name shouldBe "mapdb-cache-namespace"
+      namespace.shutdown()
+    }
+    test("namespace cache should support full cache operations") {
+      val namespace = MapDBCacheNamespace()
+      val cache = namespace.getCache("full")
+      cache.put("a", "1")
+      cache.put("b", "2", Duration.ofMinutes(5))
+      cache.get("a", String::class.java).shouldNotBeNull()
+      cache.containsKey("b") shouldBe true
+      cache.size() shouldBe 2L
+      cache.remove("a") shouldBe true
+      cache.size() shouldBe 1L
+      namespace.shutdown()
+    }
+  })

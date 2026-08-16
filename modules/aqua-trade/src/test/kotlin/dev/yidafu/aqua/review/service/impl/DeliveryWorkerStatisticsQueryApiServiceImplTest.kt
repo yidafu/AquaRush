@@ -21,37 +21,32 @@ package dev.yidafu.aqua.review.service.impl
 
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
 import dev.yidafu.aqua.review.domain.repository.DeliveryWorkerStatisticsRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 /**
  * 配送员统计跨模块查询服务单元测试。
  */
-class DeliveryWorkerStatisticsQueryApiServiceImplTest {
-  private lateinit var deliveryWorkerStatisticsRepository: DeliveryWorkerStatisticsRepository
-  private lateinit var service: DeliveryWorkerStatisticsQueryApiServiceImpl
+class DeliveryWorkerStatisticsQueryApiServiceImplTest :
+  FunSpec({
+    var deliveryWorkerStatisticsRepository: DeliveryWorkerStatisticsRepository = mockk()
+    var service: DeliveryWorkerStatisticsQueryApiServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    deliveryWorkerStatisticsRepository = mockk(relaxed = true)
-    service = DeliveryWorkerStatisticsQueryApiServiceImpl(deliveryWorkerStatisticsRepository)
-  }
+    beforeTest {
+      deliveryWorkerStatisticsRepository = mockk(relaxed = true)
+      service = DeliveryWorkerStatisticsQueryApiServiceImpl(deliveryWorkerStatisticsRepository)
+    }
+    test("findByDeliveryWorkerId returns stats or null") {
+      val stats = DeliveryWorkerStatisticsModel(id = 1L, deliveryWorkerId = 5L)
+      every { deliveryWorkerStatisticsRepository.findByDeliveryWorkerId(5L) } returns stats
+      every { deliveryWorkerStatisticsRepository.findByDeliveryWorkerId(6L) } returns null
 
-  @Test
-  @DisplayName("findByDeliveryWorkerId 命中返回统计,未命中返回 null")
-  fun `findByDeliveryWorkerId returns stats or null`() {
-    val stats = DeliveryWorkerStatisticsModel(id = 1L, deliveryWorkerId = 5L)
-    every { deliveryWorkerStatisticsRepository.findByDeliveryWorkerId(5L) } returns stats
-    every { deliveryWorkerStatisticsRepository.findByDeliveryWorkerId(6L) } returns null
-
-    assertEquals(stats, service.findByDeliveryWorkerId(5L))
-    assertNull(service.findByDeliveryWorkerId(6L))
-    verify(exactly = 1) { deliveryWorkerStatisticsRepository.findByDeliveryWorkerId(5L) }
-  }
-}
+      service.findByDeliveryWorkerId(5L) shouldBe stats
+      service.findByDeliveryWorkerId(6L).shouldBeNull()
+      verify(exactly = 1) { deliveryWorkerStatisticsRepository.findByDeliveryWorkerId(5L) }
+    }
+  })

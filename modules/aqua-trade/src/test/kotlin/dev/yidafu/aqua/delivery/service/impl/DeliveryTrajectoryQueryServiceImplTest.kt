@@ -21,81 +21,63 @@ package dev.yidafu.aqua.delivery.service.impl
 
 import dev.yidafu.aqua.common.domain.model.DeliveryTrajectoryModel
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryTrajectoryRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 /**
  * 配送轨迹查询服务单元测试:按订单/时间区间/最新轨迹查询。
  */
-class DeliveryTrajectoryQueryServiceImplTest {
-  private lateinit var trajectoryRepository: DeliveryTrajectoryRepository
-  private lateinit var service: DeliveryTrajectoryQueryServiceImpl
+class DeliveryTrajectoryQueryServiceImplTest :
+  FunSpec({
+    var trajectoryRepository: DeliveryTrajectoryRepository = mockk()
+    var service: DeliveryTrajectoryQueryServiceImpl = mockk()
 
-  private fun trajectory(id: Long) =
-    DeliveryTrajectoryModel(id = id, deliveryWorkerId = 5L, orderId = 1L, longitude = 120.1, latitude = 30.2)
+    fun trajectory(id: Long) = DeliveryTrajectoryModel(id = id, deliveryWorkerId = 5L, orderId = 1L, longitude = 120.1, latitude = 30.2)
 
-  @BeforeEach
-  fun setUp() {
-    trajectoryRepository = mockk(relaxed = true)
-    service = DeliveryTrajectoryQueryServiceImpl(trajectoryRepository)
-  }
+    beforeTest {
+      trajectoryRepository = mockk(relaxed = true)
+      service = DeliveryTrajectoryQueryServiceImpl(trajectoryRepository)
+    }
+    test("getTrajectoriesByOrder delegates") {
+      val list = listOf(trajectory(1L), trajectory(2L))
+      every { trajectoryRepository.findByDeliveryWorkerIdAndOrderIdOrderByReportedAtAsc(5L, 1L) } returns list
 
-  @Test
-  @DisplayName("getTrajectoriesByOrder 透传")
-  fun `getTrajectoriesByOrder delegates`() {
-    val list = listOf(trajectory(1L), trajectory(2L))
-    every { trajectoryRepository.findByDeliveryWorkerIdAndOrderIdOrderByReportedAtAsc(5L, 1L) } returns list
+      service.getTrajectoriesByOrder(5L, 1L) shouldBe list
+    }
+    test("getTrajectories with order id ignores range") {
+      val list = listOf(trajectory(1L))
+      every { trajectoryRepository.findByDeliveryWorkerIdAndOrderIdOrderByReportedAtAsc(5L, 1L) } returns list
 
-    assertEquals(list, service.getTrajectoriesByOrder(5L, 1L))
-  }
+      service.getTrajectories(5L, 1L, null, null) shouldBe list
+    }
+    test("getTrajectories without order uses time range") {
+      val list = listOf(trajectory(1L))
+      val start = LocalDateTime.of(2025, 1, 1, 0, 0)
+      val end = LocalDateTime.of(2025, 1, 2, 0, 0)
+      every {
+        trajectoryRepository.findByDeliveryWorkerIdAndReportedAtBetweenOrderByReportedAtAsc(5L, start, end)
+      } returns list
 
-  @Test
-  @DisplayName("getTrajectories 指定订单时忽略时间范围")
-  fun `getTrajectories with order id ignores range`() {
-    val list = listOf(trajectory(1L))
-    every { trajectoryRepository.findByDeliveryWorkerIdAndOrderIdOrderByReportedAtAsc(5L, 1L) } returns list
+      service.getTrajectories(5L, null, start, end) shouldBe list
+    }
+    test("getTrajectories without order uses default range") {
+      val list = listOf(trajectory(1L))
+      every {
+        trajectoryRepository.findByDeliveryWorkerIdAndReportedAtBetweenOrderByReportedAtAsc(5L, any(), any())
+      } returns list
 
-    assertEquals(list, service.getTrajectories(5L, 1L, null, null))
-  }
+      service.getTrajectories(5L, null, null, null) shouldBe list
+    }
+    test("getLatestTrajectory returns latest or null") {
+      val latest = trajectory(3L)
+      every { trajectoryRepository.findFirstByDeliveryWorkerIdOrderByReportedAtDesc(5L) } returns latest
+      every { trajectoryRepository.findFirstByDeliveryWorkerIdOrderByReportedAtDesc(6L) } returns null
 
-  @Test
-  @DisplayName("getTrajectories 未指定订单时按时间区间查询")
-  fun `getTrajectories without order uses time range`() {
-    val list = listOf(trajectory(1L))
-    val start = LocalDateTime.of(2025, 1, 1, 0, 0)
-    val end = LocalDateTime.of(2025, 1, 2, 0, 0)
-    every {
-      trajectoryRepository.findByDeliveryWorkerIdAndReportedAtBetweenOrderByReportedAtAsc(5L, start, end)
-    } returns list
-
-    assertEquals(list, service.getTrajectories(5L, null, start, end))
-  }
-
-  @Test
-  @DisplayName("getTrajectories 未指定订单与时间使用默认区间")
-  fun `getTrajectories without order uses default range`() {
-    val list = listOf(trajectory(1L))
-    every {
-      trajectoryRepository.findByDeliveryWorkerIdAndReportedAtBetweenOrderByReportedAtAsc(5L, any(), any())
-    } returns list
-
-    assertEquals(list, service.getTrajectories(5L, null, null, null))
-  }
-
-  @Test
-  @DisplayName("getLatestTrajectory 返回最新轨迹或 null")
-  fun `getLatestTrajectory returns latest or null`() {
-    val latest = trajectory(3L)
-    every { trajectoryRepository.findFirstByDeliveryWorkerIdOrderByReportedAtDesc(5L) } returns latest
-    every { trajectoryRepository.findFirstByDeliveryWorkerIdOrderByReportedAtDesc(6L) } returns null
-
-    assertEquals(latest, service.getLatestTrajectory(5L))
-    assertNull(service.getLatestTrajectory(6L))
-  }
-}
+      service.getLatestTrajectory(5L) shouldBe latest
+      service.getLatestTrajectory(6L).shouldBeNull()
+    }
+  })

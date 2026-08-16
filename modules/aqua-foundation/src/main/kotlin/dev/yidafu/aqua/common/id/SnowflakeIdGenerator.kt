@@ -71,7 +71,13 @@ class SnowflakeIdGenerator(
 
   /**
    * Generate a new Snowflake ID
+   *
+   * 并发安全:lastTimestamp 的“读-改-写”与 sequence 的分配必须原子,
+   * 否则同一毫秒内的并发调用会拿到相同序列号 → 主键冲突。
+   * (UserActionLogService#saveUserActionLog 为 @Async,批量上报会并发落库,
+   * 此前曾因此触发 PRIMARY KEY 冲突。)
    */
+  @Synchronized
   fun nextId(): Long {
     val currentTimestamp = timestamp()
 

@@ -25,141 +25,127 @@ import dev.yidafu.aqua.logging.dto.BatchUserActionLogRequest
 import dev.yidafu.aqua.logging.dto.UserActionLogRequest
 import dev.yidafu.aqua.logging.service.UserActionEventService
 import dev.yidafu.aqua.logging.service.UserActionLogService
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import jakarta.servlet.http.HttpServletRequest
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class UserActionLogControllerTest {
-  private lateinit var userActionLogService: UserActionLogService
-  private lateinit var userActionEventService: UserActionEventService
-  private lateinit var controller: UserActionLogController
+class UserActionLogControllerTest :
+  FunSpec({
+    var userActionLogService: UserActionLogService = mockk()
+    var userActionEventService: UserActionEventService = mockk()
+    var controller: UserActionLogController = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    userActionLogService = mockk(relaxed = true)
-    userActionEventService = mockk(relaxed = true)
-    controller = UserActionLogController(userActionLogService, userActionEventService)
-  }
+    beforeTest {
+      userActionLogService = mockk(relaxed = true)
+      userActionEventService = mockk(relaxed = true)
+      controller = UserActionLogController(userActionLogService, userActionEventService)
+    }
+    test("queryUserActionLogs should delegate with descending sort") {
+      // Given
+      val pageable = PageRequest.of(1, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
+      every { userActionLogService.queryUserActionLogs("1", "CLICK", "张三", null, null, null, pageable) } returns
+        PageImpl(listOf(mockk<UserActionLogModel>(relaxed = true)))
 
-  @Test
-  fun `queryUserActionLogs should delegate with descending sort`() {
-    // Given
-    val pageable = PageRequest.of(1, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
-    every { userActionLogService.queryUserActionLogs("1", "CLICK", "张三", null, null, null, pageable) } returns
-      PageImpl(listOf(mockk<UserActionLogModel>(relaxed = true)))
+      // When
+      val result = controller.queryUserActionLogs("1", "CLICK", "张三", null, null, null, 1, 10)
 
-    // When
-    val result = controller.queryUserActionLogs("1", "CLICK", "张三", null, null, null, 1, 10)
+      // Then
+      result.data!!.totalElements shouldBe 1
+      verify { userActionLogService.queryUserActionLogs("1", "CLICK", "张三", null, null, null, pageable) }
+    }
+    test("logUserAction should process asynchronously") {
+      // Given
+      val request =
+        UserActionLogRequest(
+          userId = "1",
+          username = "张三",
+          actionType = "CLICK",
+          target = "button-add",
+        )
 
-    // Then
-    assertEquals(1, result.data!!.totalElements)
-    verify { userActionLogService.queryUserActionLogs("1", "CLICK", "张三", null, null, null, pageable) }
-  }
+      // When
+      val result = controller.logUserAction(request, mockk(relaxed = true))
 
-  @Test
-  fun `logUserAction should process asynchronously`() {
-    // Given
-    val request =
-      UserActionLogRequest(
-        userId = "1",
-        username = "张三",
-        actionType = "CLICK",
-        target = "button-add",
-      )
+      // Then
+      result.body!!.success shouldBe true
+      verify { userActionEventService.processUserActionAsync(request) }
+    }
+    test("logUserAction should not fail on service error") {
+      // Given
+      every { userActionEventService.processUserActionAsync(any()) } throws RuntimeException("boom")
+      val request =
+        UserActionLogRequest(
+          userId = "1",
+          actionType = "CLICK",
+          target = "button-add",
+        )
 
-    // When
-    val result = controller.logUserAction(request, mockk(relaxed = true))
+      // When
+      val result = controller.logUserAction(request, mockk(relaxed = true))
 
-    // Then
-    assertTrue(result.body!!.success)
-    verify { userActionEventService.processUserActionAsync(request) }
-  }
+      // Then
+      result.body!!.success shouldBe true
+    }
+    test("logUserActionsBatch should use first x-forwarded-for ip") {
+      // Given
+      val httpRequest = mockk<HttpServletRequest>(relaxed = true)
+      every { httpRequest.getHeader("User-Agent") } returns "Mozilla/5.0"
+      every { httpRequest.getHeader("X-Forwarded-For") } returns "10.0.0.1, 10.0.0.2"
+      val request =
+        BatchUserActionLogRequest(
+          actions =
+            listOf(
+              BatchUserAction(actionType = "CLICK", target = "btn"),
+            ),
+        )
 
-  @Test
-  fun `logUserAction should not fail on service error`() {
-    // Given
-    every { userActionEventService.processUserActionAsync(any()) } throws RuntimeException("boom")
-    val request =
-      UserActionLogRequest(
-        userId = "1",
-        actionType = "CLICK",
-        target = "button-add",
-      )
+      // When
+      val result = controller.logUserActionsBatch(request, httpRequest)
 
-    // When
-    val result = controller.logUserAction(request, mockk(relaxed = true))
+      // Then
+      result.body!!.success shouldBe true
+      verify { userActionEventService.processUserActionsBatch(any()) }
+    }
+    test("logUserActionsBatch should fall back to x-real-ip then remoteAddr") {
+      // Given
+      val httpRequest = mockk<HttpServletRequest>(relaxed = true)
+      every { httpRequest.getHeader("User-Agent") } returns "Mozilla/5.0"
+      every { httpRequest.getHeader("X-Forwarded-For") } returns null
+      every { httpRequest.getHeader("X-Real-IP") } returns null
+      every { httpRequest.remoteAddr } returns "192.168.1.10"
+      val request =
+        BatchUserActionLogRequest(
+          actions = listOf(BatchUserAction(actionType = "VIEW", target = "page")),
+        )
 
-    // Then
-    assertTrue(result.body!!.success)
-  }
+      // When
+      val result = controller.logUserActionsBatch(request, httpRequest)
 
-  @Test
-  fun `logUserActionsBatch should use first x-forwarded-for ip`() {
-    // Given
-    val httpRequest = mockk<HttpServletRequest>(relaxed = true)
-    every { httpRequest.getHeader("User-Agent") } returns "Mozilla/5.0"
-    every { httpRequest.getHeader("X-Forwarded-For") } returns "10.0.0.1, 10.0.0.2"
-    val request =
-      BatchUserActionLogRequest(
-        actions =
-          listOf(
-            BatchUserAction(actionType = "CLICK", target = "btn"),
-          ),
-      )
+      // Then
+      result.body!!.success shouldBe true
+      verify { userActionEventService.processUserActionsBatch(any()) }
+    }
+    test("logUserActionsBatch should not fail on service error") {
+      // Given
+      every { userActionEventService.processUserActionsBatch(any()) } throws RuntimeException("boom")
+      val httpRequest = mockk<HttpServletRequest>(relaxed = true)
+      every { httpRequest.getHeader("X-Forwarded-For") } returns "10.0.0.1"
+      val request =
+        BatchUserActionLogRequest(
+          actions = listOf(BatchUserAction(actionType = "CLICK", target = "btn")),
+        )
 
-    // When
-    val result = controller.logUserActionsBatch(request, httpRequest)
+      // When
+      val result = controller.logUserActionsBatch(request, httpRequest)
 
-    // Then
-    assertTrue(result.body!!.success)
-    verify { userActionEventService.processUserActionsBatch(any()) }
-  }
-
-  @Test
-  fun `logUserActionsBatch should fall back to x-real-ip then remoteAddr`() {
-    // Given
-    val httpRequest = mockk<HttpServletRequest>(relaxed = true)
-    every { httpRequest.getHeader("User-Agent") } returns "Mozilla/5.0"
-    every { httpRequest.getHeader("X-Forwarded-For") } returns null
-    every { httpRequest.getHeader("X-Real-IP") } returns null
-    every { httpRequest.remoteAddr } returns "192.168.1.10"
-    val request =
-      BatchUserActionLogRequest(
-        actions = listOf(BatchUserAction(actionType = "VIEW", target = "page")),
-      )
-
-    // When
-    val result = controller.logUserActionsBatch(request, httpRequest)
-
-    // Then
-    assertTrue(result.body!!.success)
-    verify { userActionEventService.processUserActionsBatch(any()) }
-  }
-
-  @Test
-  fun `logUserActionsBatch should not fail on service error`() {
-    // Given
-    every { userActionEventService.processUserActionsBatch(any()) } throws RuntimeException("boom")
-    val httpRequest = mockk<HttpServletRequest>(relaxed = true)
-    every { httpRequest.getHeader("X-Forwarded-For") } returns "10.0.0.1"
-    val request =
-      BatchUserActionLogRequest(
-        actions = listOf(BatchUserAction(actionType = "CLICK", target = "btn")),
-      )
-
-    // When
-    val result = controller.logUserActionsBatch(request, httpRequest)
-
-    // Then
-    assertTrue(result.body!!.success)
-    assertTrue(result.body!!.data!!.contains("warnings"))
-  }
-}
+      // Then
+      result.body!!.success shouldBe true
+      result.body!!.data!!.contains("warnings") shouldBe true
+    }
+  })

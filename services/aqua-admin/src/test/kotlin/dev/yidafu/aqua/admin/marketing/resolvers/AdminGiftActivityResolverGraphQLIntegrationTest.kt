@@ -20,17 +20,17 @@
 package dev.yidafu.aqua.admin.marketing.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
-import dev.yidafu.aqua.admin.ops.resolvers.WithMockUserPrincipal
+import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.marketing.gift.domain.repository.GiftActivityRepository
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import io.kotest.core.extensions.ApplyExtension
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
@@ -55,114 +55,116 @@ import java.time.format.DateTimeFormatter
 )
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/marketing/"])
-@DisplayName("AdminGiftActivityResolver GraphQL Integration Tests")
-class AdminGiftActivityResolverGraphQLIntegrationTest {
-  @Autowired
-  private lateinit var context: WebApplicationContext
+@ApplyExtension(SpringExtension::class)
+class AdminGiftActivityResolverGraphQLIntegrationTest(
+  context: WebApplicationContext,
+  giftActivityRepository: GiftActivityRepository,
+  productRepository: ProductRepository,
+) : FunSpec({
+    var mockMvc: MockMvc = mockk()
 
-  @Autowired
-  private lateinit var giftActivityRepository: GiftActivityRepository
-
-  @Autowired
-  private lateinit var productRepository: ProductRepository
-
-  private lateinit var mockMvc: MockMvc
-
-  @BeforeEach
-  fun setUp() {
-    mockMvc =
-      MockMvcBuilders
-        .webAppContextSetup(context)
-        .apply<DefaultMockMvcBuilder>(springSecurity())
-        .build()
-
-    // 幂等种子 2 商品(活动商品 + 赠品,按名称去重)
-    if (productRepository.findAll().none { it.name == "满赠活动商品" }) {
-      productRepository.save(
-        ProductModel(
-          name = "满赠活动商品",
-          price = 2100,
-          specification = "19L",
-          stock = 100,
-          status = ProductModelStatus.ONLINE,
-          coverImageUrl = "http://localhost:9090/api/v1/storage/files/mkt-gift-main.png",
-        ),
-      )
+    fun postGraphql(query: String): String {
+      val escaped = query.replace("\"", "\\\"")
+      val result =
+        mockMvc
+          .perform(
+            post("/graphql")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content("""{"query": "$escaped"}"""),
+          ).andExpect(status().isOk)
+          .andReturn()
+      return result.response.contentAsString
     }
-    if (productRepository.findAll().none { it.name == "满赠赠品商品" }) {
-      productRepository.save(
-        ProductModel(
-          name = "满赠赠品商品",
-          price = 1200,
-          specification = "4L",
-          stock = 100,
-          status = ProductModelStatus.ONLINE,
-          coverImageUrl = "http://localhost:9090/api/v1/storage/files/mkt-gift-free.png",
-        ),
-      )
+
+    fun futureFrom(): String = LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+    fun futureTo(): String = LocalDateTime.now().plusDays(30).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+
+    fun giftProductId(): Long = productRepository.findAll().first { it.name == "满赠赠品商品" }.id!!
+
+    beforeTest {
+      mockMvc =
+        MockMvcBuilders
+          .webAppContextSetup(context)
+          .apply<DefaultMockMvcBuilder>(springSecurity())
+          .build()
+
+      // 幂等种子 2 商品(活动商品 + 赠品,按名称去重)
+      if (productRepository.findAll().none { it.name == "满赠活动商品" }) {
+        productRepository.save(
+          ProductModel(
+            name = "满赠活动商品",
+            price = 2100,
+            specification = "19L",
+            stock = 100,
+            status = ProductModelStatus.ONLINE,
+            coverImageUrl = "http://localhost:9090/api/v1/storage/files/mkt-gift-main.png",
+          ),
+        )
+      }
+      if (productRepository.findAll().none { it.name == "满赠赠品商品" }) {
+        productRepository.save(
+          ProductModel(
+            name = "满赠赠品商品",
+            price = 1200,
+            specification = "4L",
+            stock = 100,
+            status = ProductModelStatus.ONLINE,
+            coverImageUrl = "http://localhost:9090/api/v1/storage/files/mkt-gift-free.png",
+          ),
+        )
+      }
     }
-  }
-
-  private fun postGraphql(query: String): String {
-    val escaped = query.replace("\"", "\\\"")
-    val result =
-      mockMvc
-        .perform(
-          post("/graphql")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""{"query": "$escaped"}"""),
-        ).andExpect(status().isOk)
-        .andReturn()
-    return result.response.contentAsString
-  }
-
-  private fun futureFrom(): String = LocalDateTime.now().plusDays(1).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-
-  private fun futureTo(): String = LocalDateTime.now().plusDays(30).format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
-
-  private fun giftProductId(): Long = productRepository.findAll().first { it.name == "满赠赠品商品" }.id!!
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"])
-  @DisplayName("createGiftActivity 新建满赠活动,展示态 UPCOMING(AC-MKT-008-01)")
-  fun `createGiftActivity creates full gift with upcoming status`() {
-    val name = "满赠活动${System.currentTimeMillis()}"
-    val json =
-      postGraphql(
-        """mutation { createGiftActivity(input: {name: "$name", giftType: FULL_GIFT, thresholdCents: 10000, scope: ALL, giftProductId: ${giftProductId()}, giftQuantity: 1, validFrom: "${futureFrom()}", validTo: "${futureTo()}"}) { id name giftType giftProductName giftQuantity currentStatus } }""",
-      )
-    assertTrue(
+    test("createGiftActivity creates full gift with upcoming status") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"))
+      val name = "满赠活动${System.currentTimeMillis()}"
+      val json =
+        postGraphql(
+          """mutation { createGiftActivity(input: {name: "$name", giftType: FULL_GIFT, thresholdCents: 10000, scope: ALL, giftProductId: ${giftProductId()}, giftQuantity: 1, validFrom: "${futureFrom()}", validTo: "${futureTo()}"}) { id name giftType giftProductName giftQuantity currentStatus } }""",
+        )
       json.contains("\"$name\"") &&
         json.contains("\"giftType\" : \"FULL_GIFT\"") &&
         json.contains("\"giftProductName\" : \"满赠赠品商品\"") &&
         json.contains("\"giftQuantity\" : 1") &&
         json.contains("\"currentStatus\" : \"UPCOMING\"") &&
-        !json.contains("\"errors\""),
-    )
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"])
-  @DisplayName("createGiftActivity 满赠缺少门槛金额被拦截")
-  fun `createGiftActivity rejects full gift without threshold`() {
-    val name = "非法满赠${System.currentTimeMillis()}"
-    val json =
-      postGraphql(
-        """mutation { createGiftActivity(input: {name: "$name", giftType: FULL_GIFT, scope: ALL, giftProductId: ${giftProductId()}, giftQuantity: 1, validFrom: "${futureFrom()}", validTo: "${futureTo()}"}) { id } }""",
-      )
-    assertTrue(json.contains("\"errors\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"])
-  @DisplayName("disableGiftActivity 停用后展示态 DISABLED(AC-MKT-008-05)")
-  fun `disableGiftActivity sets currentStatus disabled`() {
-    val activity =
+        !json.contains("\"errors\"") shouldBe true
+    }
+    test("createGiftActivity rejects full gift without threshold") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"))
+      val name = "非法满赠${System.currentTimeMillis()}"
+      val json =
+        postGraphql(
+          """mutation { createGiftActivity(input: {name: "$name", giftType: FULL_GIFT, scope: ALL, giftProductId: ${giftProductId()}, giftQuantity: 1, validFrom: "${futureFrom()}", validTo: "${futureTo()}"}) { id } }""",
+        )
+      json.contains("\"errors\"") shouldBe true
+    }
+    test("disableGiftActivity sets currentStatus disabled") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"))
+      val activity =
+        giftActivityRepository.save(
+          dev.yidafu.aqua.common.domain.model.GiftActivityModel(
+            name = "停用满赠${System.currentTimeMillis()}",
+            giftType = dev.yidafu.aqua.common.domain.model.enums.GiftActivityType.FULL_GIFT,
+            thresholdCents = 10000,
+            scope = dev.yidafu.aqua.common.domain.model.enums.PromotionScope.ALL,
+            giftProductId = giftProductId(),
+            giftQuantity = 1,
+            validFrom = LocalDateTime.now().plusDays(1),
+            validTo = LocalDateTime.now().plusDays(30),
+            status = PromotionActivityStatus.ACTIVE,
+          ),
+        )
+      val json = postGraphql("mutation { disableGiftActivity(id: ${activity.id}) { id name status currentStatus } }")
+      json.contains("\"currentStatus\" : \"DISABLED\"") && !json.contains("\"errors\"") shouldBe true
+      (giftActivityRepository.findById(activity.id!!).get().status == PromotionActivityStatus.DISABLED) shouldBe true
+    }
+    test("giftActivities lists activities") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"))
       giftActivityRepository.save(
         dev.yidafu.aqua.common.domain.model.GiftActivityModel(
-          name = "停用满赠${System.currentTimeMillis()}",
-          giftType = dev.yidafu.aqua.common.domain.model.enums.GiftActivityType.FULL_GIFT,
-          thresholdCents = 10000,
+          name = "列表满赠${System.currentTimeMillis()}",
+          giftType = dev.yidafu.aqua.common.domain.model.enums.GiftActivityType.BUY_GIFT,
+          thresholdQuantity = 5,
           scope = dev.yidafu.aqua.common.domain.model.enums.PromotionScope.ALL,
           giftProductId = giftProductId(),
           giftQuantity = 1,
@@ -171,29 +173,7 @@ class AdminGiftActivityResolverGraphQLIntegrationTest {
           status = PromotionActivityStatus.ACTIVE,
         ),
       )
-    val json = postGraphql("mutation { disableGiftActivity(id: ${activity.id}) { id name status currentStatus } }")
-    assertTrue(json.contains("\"currentStatus\" : \"DISABLED\"") && !json.contains("\"errors\""))
-    assertTrue(giftActivityRepository.findById(activity.id!!).get().status == PromotionActivityStatus.DISABLED)
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_MKT_WRITE", "PERMISSION_MKT_READ"])
-  @DisplayName("giftActivities 列表分页查询")
-  fun `giftActivities lists activities`() {
-    giftActivityRepository.save(
-      dev.yidafu.aqua.common.domain.model.GiftActivityModel(
-        name = "列表满赠${System.currentTimeMillis()}",
-        giftType = dev.yidafu.aqua.common.domain.model.enums.GiftActivityType.BUY_GIFT,
-        thresholdQuantity = 5,
-        scope = dev.yidafu.aqua.common.domain.model.enums.PromotionScope.ALL,
-        giftProductId = giftProductId(),
-        giftQuantity = 1,
-        validFrom = LocalDateTime.now().plusDays(1),
-        validTo = LocalDateTime.now().plusDays(30),
-        status = PromotionActivityStatus.ACTIVE,
-      ),
-    )
-    val json = postGraphql("{ giftActivities(input: {page: 0, size: 20}) { totalElements content { id name } } }")
-    assertTrue(json.contains("\"totalElements\"") && !json.contains("\"errors\""))
-  }
-}
+      val json = postGraphql("{ giftActivities(input: {page: 0, size: 20}) { totalElements content { id name } } }")
+      json.contains("\"totalElements\"") && !json.contains("\"errors\"") shouldBe true
+    }
+  })

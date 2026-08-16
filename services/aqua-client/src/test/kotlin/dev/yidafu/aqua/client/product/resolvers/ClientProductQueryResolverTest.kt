@@ -22,69 +22,64 @@ package dev.yidafu.aqua.client.product.resolvers
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-class ClientProductQueryResolverTest {
-  private lateinit var productService: ProductServiceImpl
-  private lateinit var resolver: ClientProductQueryResolver
+class ClientProductQueryResolverTest :
+  FunSpec({
+    var productService: ProductServiceImpl = mockk()
+    var resolver: ClientProductQueryResolver = mockk()
 
-  private fun product(): ProductModel =
-    ProductModel(
-      id = 1L,
-      name = "桶装水19L",
-      price = 2100,
-      originalPrice = null,
-      depositPrice = null,
-      coverImageUrl = "http://x/cover.png",
-      imageGallery = null,
-      specification = "19L",
-      waterSource = "山泉水",
-      mineralContent = null,
-      stock = 100,
-      salesVolume = 0,
-      status = ProductModelStatus.ONLINE,
-      sortOrder = 1,
-      tags = null,
-      detailContent = null,
-      certificateImages = null,
-      deliverySettings = null,
-    )
+    fun product(): ProductModel =
+      ProductModel(
+        id = 1L,
+        name = "桶装水19L",
+        price = 2100,
+        originalPrice = null,
+        depositPrice = null,
+        coverImageUrl = "http://x/cover.png",
+        imageGallery = null,
+        specification = "19L",
+        waterSource = "山泉水",
+        mineralContent = null,
+        stock = 100,
+        salesVolume = 0,
+        status = ProductModelStatus.ONLINE,
+        sortOrder = 1,
+        tags = null,
+        detailContent = null,
+        certificateImages = null,
+        deliverySettings = null,
+      )
 
-  @BeforeEach
-  fun setUp() {
-    productService = mockk(relaxed = true)
-    resolver = ClientProductQueryResolver(productService)
-  }
+    beforeTest {
+      productService = mockk(relaxed = true)
+      resolver = ClientProductQueryResolver(productService)
+    }
+    test("product should map found product") {
+      // Given
+      every { productService.findById(1L) } returns product()
 
-  @Test
-  fun `product should map found product`() {
-    // Given
-    every { productService.findById(1L) } returns product()
+      // When
+      val result = resolver.product(1L)
 
-    // When
-    val result = resolver.product(1L)
+      // Then
+      result!!.name shouldBe "桶装水19L"
+      result.priceCents shouldBe 2100L
+      verify { productService.findById(1L) }
+    }
+    test("product should return null when missing") {
+      // Given
+      every { productService.findById(999L) } returns null
 
-    // Then
-    assertEquals("桶装水19L", result!!.name)
-    assertEquals(2100L, result.priceCents)
-    verify { productService.findById(1L) }
-  }
+      // When
+      val result = resolver.product(999L)
 
-  @Test
-  fun `product should return null when missing`() {
-    // Given
-    every { productService.findById(999L) } returns null
-
-    // When
-    val result = resolver.product(999L)
-
-    // Then
-    assertNull(result)
-  }
-}
+      // Then
+      result.shouldBeNull()
+    }
+  })

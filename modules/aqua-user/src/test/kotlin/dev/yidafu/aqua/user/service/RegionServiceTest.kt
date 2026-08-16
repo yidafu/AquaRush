@@ -22,334 +22,300 @@ package dev.yidafu.aqua.user.service
 import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.user.domain.exception.AquaException
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
-class RegionServiceTest {
-  private lateinit var regionRepository: RegionRepository
-  private lateinit var regionService: RegionService
+class RegionServiceTest :
+  FunSpec({
+    var regionRepository: RegionRepository = mockk()
+    var regionService: RegionService = mockk()
 
-  private fun createSampleProvince(): RegionModel =
-    RegionModel(
-      id = 1L,
-      name = "广东省",
-      code = "440000",
-      parentCode = null,
-      level = 1,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private fun createSampleCity(): RegionModel =
-    RegionModel(
-      id = 2L,
-      name = "深圳市",
-      code = "440300",
-      parentCode = "440000",
-      level = 2,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private fun createSampleDistrict(): RegionModel =
-    RegionModel(
-      id = 3L,
-      name = "南山区",
-      code = "440305",
-      parentCode = "440300",
-      level = 3,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private fun createUpdatedRegion(
-    original: RegionModel,
-    name: String? = null,
-  ): RegionModel {
-    val updated =
-      RegionModel(
-        id = original.id,
-        name = name ?: original.name,
-        code = original.code,
-        parentCode = original.parentCode,
-        level = original.level,
-        createdAt = original.createdAt,
-        updatedAt = LocalDateTime.now(),
-      )
-    return updated
-  }
-
-  @BeforeEach
-  fun setUp() {
-    regionRepository = mockk(relaxed = true)
-    regionService = RegionService(regionRepository)
-  }
-
-  @Test
-  fun `createRegion should create new region successfully`() {
-    // Given
-    val sampleProvince = createSampleProvince()
-    val input =
-      CreateRegionInput(
-        name = "东莞市",
-        code = "441900",
-        level = 2,
-        parentCode = "440000",
-      )
-    every { regionRepository.existsByCode("441900") } returns false
-    every { regionRepository.findByCode("440000") } returns sampleProvince
-    every { regionRepository.existsByNameAndLevelAndParentCode("东莞市", 2, "440000") } returns false
-    every { regionRepository.save(any()) } returns
+    fun createSampleProvince(): RegionModel =
       RegionModel(
         id = 1L,
-        name = "东莞市",
-        code = "441900",
+        name = "广东省",
+        code = "440000",
+        parentCode = null,
+        level = 1,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
+
+    fun createSampleCity(): RegionModel =
+      RegionModel(
+        id = 2L,
+        name = "深圳市",
+        code = "440300",
         parentCode = "440000",
         level = 2,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
 
-    // When
-    val result = regionService.createRegion(input)
-
-    // Then
-    assertNotNull(result)
-    verify { regionRepository.save(any()) }
-  }
-
-  @Test
-  fun `createRegion should throw exception when code already exists`() {
-    // Given
-    val input =
-      CreateRegionInput(
-        name = "深圳市",
-        code = "440300",
-        level = 2,
-        parentCode = "440000",
-      )
-    every { regionRepository.existsByCode("440300") } returns true
-
-    // When & Then
-    val exception = assertThrows<AquaException> { regionService.createRegion(input) }
-    assertTrue(exception.message!!.contains("代码已存在"))
-  }
-
-  @Test
-  fun `createRegion should throw exception when level is invalid`() {
-    // Given
-    val input =
-      CreateRegionInput(
-        name = "测试",
-        code = "440000",
-        level = 5,
-        parentCode = null,
+    fun createSampleDistrict(): RegionModel =
+      RegionModel(
+        id = 3L,
+        name = "南山区",
+        code = "440305",
+        parentCode = "440300",
+        level = 3,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
 
-    // When & Then
-    val exception = assertThrows<AquaException> { regionService.createRegion(input) }
-    assertTrue(exception.message!!.contains("层级必须在"))
-  }
+    fun createUpdatedRegion(
+      original: RegionModel,
+      name: String? = null,
+    ): RegionModel {
+      val updated =
+        RegionModel(
+          id = original.id,
+          name = name ?: original.name,
+          code = original.code,
+          parentCode = original.parentCode,
+          level = original.level,
+          createdAt = original.createdAt,
+          updatedAt = LocalDateTime.now(),
+        )
+      return updated
+    }
 
-  @Test
-  fun `createRegion should throw exception when parent region does not exist`() {
-    // Given
-    val input =
-      CreateRegionInput(
-        name = "测试",
-        code = "441900",
-        level = 2,
-        parentCode = "440000",
-      )
-    every { regionRepository.existsByCode("441900") } returns false
-    every { regionRepository.findByCode("440000") } returns null
+    beforeTest {
+      regionRepository = mockk(relaxed = true)
+      regionService = RegionService(regionRepository)
+    }
+    test("createRegion should create new region successfully") {
+      // Given
+      val sampleProvince = createSampleProvince()
+      val input =
+        CreateRegionInput(
+          name = "东莞市",
+          code = "441900",
+          level = 2,
+          parentCode = "440000",
+        )
+      every { regionRepository.existsByCode("441900") } returns false
+      every { regionRepository.findByCode("440000") } returns sampleProvince
+      every { regionRepository.existsByNameAndLevelAndParentCode("东莞市", 2, "440000") } returns false
+      every { regionRepository.save(any()) } returns
+        RegionModel(
+          id = 1L,
+          name = "东莞市",
+          code = "441900",
+          parentCode = "440000",
+          level = 2,
+          createdAt = LocalDateTime.now(),
+          updatedAt = LocalDateTime.now(),
+        )
 
-    // When & Then
-    val exception = assertThrows<AquaException> { regionService.createRegion(input) }
-    assertTrue(exception.message!!.contains("父级地区不存在"))
-  }
+      // When
+      val result = regionService.createRegion(input)
 
-  @Test
-  fun `createRegion should throw exception when name already exists under same parent`() {
-    // Given
-    val sampleProvince = createSampleProvince()
-    val input =
-      CreateRegionInput(
-        name = "深圳市",
-        code = "441900",
-        level = 2,
-        parentCode = "440000",
-      )
-    every { regionRepository.existsByCode("441900") } returns false
-    every { regionRepository.findByCode("440000") } returns sampleProvince
-    every { regionRepository.existsByNameAndLevelAndParentCode("深圳市", 2, "440000") } returns true
+      // Then
+      result.shouldNotBeNull()
+      verify { regionRepository.save(any()) }
+    }
+    test("createRegion should throw exception when code already exists") {
+      // Given
+      val input =
+        CreateRegionInput(
+          name = "深圳市",
+          code = "440300",
+          level = 2,
+          parentCode = "440000",
+        )
+      every { regionRepository.existsByCode("440300") } returns true
 
-    // When & Then
-    val exception = assertThrows<AquaException> { regionService.createRegion(input) }
-    assertTrue(exception.message!!.contains("同名地区"))
-  }
+      // When & Then
+      val exception = shouldThrow<AquaException> { regionService.createRegion(input) }
+      exception.message!!.contains("代码已存在") shouldBe true
+    }
+    test("createRegion should throw exception when level is invalid") {
+      // Given
+      val input =
+        CreateRegionInput(
+          name = "测试",
+          code = "440000",
+          level = 5,
+          parentCode = null,
+        )
 
-  @Test
-  fun `updateRegion should update region name successfully`() {
-    // Given
-    val sampleCity = createSampleCity()
-    every { regionRepository.findByCode("440300") } returns sampleCity
-    every { regionRepository.existsByNameAndLevelAndParentCode(any(), any(), any()) } returns false
-    every { regionRepository.save(any()) } returns createSampleCity()
+      // When & Then
+      val exception = shouldThrow<AquaException> { regionService.createRegion(input) }
+      exception.message!!.contains("层级必须在") shouldBe true
+    }
+    test("createRegion should throw exception when parent region does not exist") {
+      // Given
+      val input =
+        CreateRegionInput(
+          name = "测试",
+          code = "441900",
+          level = 2,
+          parentCode = "440000",
+        )
+      every { regionRepository.existsByCode("441900") } returns false
+      every { regionRepository.findByCode("440000") } returns null
 
-    val input =
-      UpdateRegionInput(
-        name = "新深圳市",
-        parentCode = null,
-      )
+      // When & Then
+      val exception = shouldThrow<AquaException> { regionService.createRegion(input) }
+      exception.message!!.contains("父级地区不存在") shouldBe true
+    }
+    test("createRegion should throw exception when name already exists under same parent") {
+      // Given
+      val sampleProvince = createSampleProvince()
+      val input =
+        CreateRegionInput(
+          name = "深圳市",
+          code = "441900",
+          level = 2,
+          parentCode = "440000",
+        )
+      every { regionRepository.existsByCode("441900") } returns false
+      every { regionRepository.findByCode("440000") } returns sampleProvince
+      every { regionRepository.existsByNameAndLevelAndParentCode("深圳市", 2, "440000") } returns true
 
-    // When
-    val result = regionService.updateRegion("440300", input)
+      // When & Then
+      val exception = shouldThrow<AquaException> { regionService.createRegion(input) }
+      exception.message!!.contains("同名地区") shouldBe true
+    }
+    test("updateRegion should update region name successfully") {
+      // Given
+      val sampleCity = createSampleCity()
+      every { regionRepository.findByCode("440300") } returns sampleCity
+      every { regionRepository.existsByNameAndLevelAndParentCode(any(), any(), any()) } returns false
+      every { regionRepository.save(any()) } returns createSampleCity()
 
-    // Then
-    assertNotNull(result)
-  }
+      val input =
+        UpdateRegionInput(
+          name = "新深圳市",
+          parentCode = null,
+        )
 
-  @Test
-  fun `updateRegion should throw exception when region not found`() {
-    // Given
-    every { regionRepository.findByCode("999999") } returns null
+      // When
+      val result = regionService.updateRegion("440300", input)
 
-    val input =
-      UpdateRegionInput(
-        name = "测试",
-        parentCode = null,
-      )
+      // Then
+      result.shouldNotBeNull()
+    }
+    test("updateRegion should throw exception when region not found") {
+      // Given
+      every { regionRepository.findByCode("999999") } returns null
 
-    // When & Then
-    val exception = assertThrows<AquaException> { regionService.updateRegion("999999", input) }
-    assertTrue(exception.message!!.contains("地区不存在"))
-  }
+      val input =
+        UpdateRegionInput(
+          name = "测试",
+          parentCode = null,
+        )
 
-  @Test
-  fun `deleteRegion should delete region successfully`() {
-    // Given
-    val sampleCity = createSampleCity()
-    every { regionRepository.findByCode("440300") } returns sampleCity
-    every { regionRepository.findByParentCodeOrderByCode("440300") } returns emptyList()
+      // When & Then
+      val exception = shouldThrow<AquaException> { regionService.updateRegion("999999", input) }
+      exception.message!!.contains("地区不存在") shouldBe true
+    }
+    test("deleteRegion should delete region successfully") {
+      // Given
+      val sampleCity = createSampleCity()
+      every { regionRepository.findByCode("440300") } returns sampleCity
+      every { regionRepository.findByParentCodeOrderByCode("440300") } returns emptyList()
 
-    // When
-    val result = regionService.deleteRegion("440300")
+      // When
+      val result = regionService.deleteRegion("440300")
 
-    // Then
-    assertTrue(result)
-    verify { regionRepository.delete(sampleCity) }
-  }
+      // Then
+      result shouldBe true
+      verify { regionRepository.delete(sampleCity) }
+    }
+    test("deleteRegion should throw exception when has children") {
+      // Given
+      val sampleProvince = createSampleProvince()
+      val sampleCity = createSampleCity()
+      every { regionRepository.findByCode("440000") } returns sampleProvince
+      every { regionRepository.findByParentCodeOrderByCode("440000") } returns listOf(sampleCity)
 
-  @Test
-  fun `deleteRegion should throw exception when has children`() {
-    // Given
-    val sampleProvince = createSampleProvince()
-    val sampleCity = createSampleCity()
-    every { regionRepository.findByCode("440000") } returns sampleProvince
-    every { regionRepository.findByParentCodeOrderByCode("440000") } returns listOf(sampleCity)
+      // When & Then
+      val exception = shouldThrow<AquaException> { regionService.deleteRegion("440000") }
+      exception.message!!.contains("存在子地区") shouldBe true
+    }
+    test("getRegions should return all regions when no parameters provided") {
+      // Given
+      val allRegions = listOf(createSampleProvince(), createSampleCity(), createSampleDistrict())
+      every { regionRepository.findAll() } returns allRegions
 
-    // When & Then
-    val exception = assertThrows<AquaException> { regionService.deleteRegion("440000") }
-    assertTrue(exception.message!!.contains("存在子地区"))
-  }
+      // When
+      val result = regionService.getRegions(null, null)
 
-  @Test
-  fun `getRegions should return all regions when no parameters provided`() {
-    // Given
-    val allRegions = listOf(createSampleProvince(), createSampleCity(), createSampleDistrict())
-    every { regionRepository.findAll() } returns allRegions
+      // Then
+      result.size shouldBe 3
+      verify { regionRepository.findAll() }
+    }
+    test("getRegions should return regions by level") {
+      // Given
+      every { regionRepository.findRootRegions(1) } returns listOf(createSampleProvince())
 
-    // When
-    val result = regionService.getRegions(null, null)
+      // When
+      val result = regionService.getRegions(1, null)
 
-    // Then
-    assertEquals(3, result.size)
-    verify { regionRepository.findAll() }
-  }
+      // Then
+      result.size shouldBe 1
+      verify { regionRepository.findRootRegions(1) }
+    }
+    test("getRegions should return regions by parent code and level") {
+      // Given
+      every { regionRepository.findByParentCodeAndLevel("440000", 2) } returns listOf(createSampleCity())
 
-  @Test
-  fun `getRegions should return regions by level`() {
-    // Given
-    every { regionRepository.findRootRegions(1) } returns listOf(createSampleProvince())
+      // When
+      val result = regionService.getRegions(2, "440000")
 
-    // When
-    val result = regionService.getRegions(1, null)
+      // Then
+      result.size shouldBe 1
+      verify { regionRepository.findByParentCodeAndLevel("440000", 2) }
+    }
+    test("getRegionByCode should return region when found") {
+      // Given
+      every { regionRepository.findByCode("440300") } returns createSampleCity()
 
-    // Then
-    assertEquals(1, result.size)
-    verify { regionRepository.findRootRegions(1) }
-  }
+      // When
+      val result = regionService.getRegionByCode("440300")
 
-  @Test
-  fun `getRegions should return regions by parent code and level`() {
-    // Given
-    every { regionRepository.findByParentCodeAndLevel("440000", 2) } returns listOf(createSampleCity())
+      // Then
+      result.shouldNotBeNull()
+      result?.code shouldBe "440300"
+    }
+    test("getRegionByCode should return null when not found") {
+      // Given
+      every { regionRepository.findByCode("999999") } returns null
 
-    // When
-    val result = regionService.getRegions(2, "440000")
+      // When
+      val result = regionService.getRegionByCode("999999")
 
-    // Then
-    assertEquals(1, result.size)
-    verify { regionRepository.findByParentCodeAndLevel("440000", 2) }
-  }
+      // Then
+      result shouldBe null
+    }
+    test("searchRegions should search by keyword and level") {
+      // Given
+      every { regionRepository.findByNameContainingAndLevelOrderByCode("深圳", 2) } returns listOf(createSampleCity())
 
-  @Test
-  fun `getRegionByCode should return region when found`() {
-    // Given
-    every { regionRepository.findByCode("440300") } returns createSampleCity()
+      // When
+      val result = regionService.searchRegions("深圳", 2)
 
-    // When
-    val result = regionService.getRegionByCode("440300")
+      // Then
+      result.size shouldBe 1
+      verify { regionRepository.findByNameContainingAndLevelOrderByCode("深圳", 2) }
+    }
+    test("searchRegions should search by keyword only") {
+      // Given
+      every { regionRepository.findByNameContainingOrderByCode("深圳") } returns listOf(createSampleCity(), createSampleDistrict())
 
-    // Then
-    assertNotNull(result)
-    assertEquals("440300", result?.code)
-  }
+      // When
+      val result = regionService.searchRegions("深圳", null)
 
-  @Test
-  fun `getRegionByCode should return null when not found`() {
-    // Given
-    every { regionRepository.findByCode("999999") } returns null
-
-    // When
-    val result = regionService.getRegionByCode("999999")
-
-    // Then
-    assertEquals(null, result)
-  }
-
-  @Test
-  fun `searchRegions should search by keyword and level`() {
-    // Given
-    every { regionRepository.findByNameContainingAndLevelOrderByCode("深圳", 2) } returns listOf(createSampleCity())
-
-    // When
-    val result = regionService.searchRegions("深圳", 2)
-
-    // Then
-    assertEquals(1, result.size)
-    verify { regionRepository.findByNameContainingAndLevelOrderByCode("深圳", 2) }
-  }
-
-  @Test
-  fun `searchRegions should search by keyword only`() {
-    // Given
-    every { regionRepository.findByNameContainingOrderByCode("深圳") } returns listOf(createSampleCity(), createSampleDistrict())
-
-    // When
-    val result = regionService.searchRegions("深圳", null)
-
-    // Then
-    assertEquals(2, result.size)
-    verify { regionRepository.findByNameContainingOrderByCode("深圳") }
-  }
-}
+      // Then
+      result.size shouldBe 2
+      verify { regionRepository.findByNameContainingOrderByCode("深圳") }
+    }
+  })

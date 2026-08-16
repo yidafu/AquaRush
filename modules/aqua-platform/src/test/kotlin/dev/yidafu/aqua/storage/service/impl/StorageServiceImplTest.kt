@@ -27,12 +27,14 @@ import dev.yidafu.aqua.storage.dto.FileUploadRequest
 import dev.yidafu.aqua.storage.dto.ImageParameters
 import dev.yidafu.aqua.storage.service.ImageProcessingService
 import dev.yidafu.aqua.storage.service.storage.StorageStrategy
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeSameInstanceAs
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.apache.tika.Tika
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.core.io.ByteArrayResource
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
@@ -42,280 +44,235 @@ import java.io.ByteArrayInputStream
 import java.io.IOException
 import java.time.LocalDateTime
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
 
 /**
  * 存储服务单元测试: 上传校验(空/大小/扩展名/去重)、MIME 检测、读写删、图片处理路由
  */
-class StorageServiceImplTest {
-  private lateinit var fileMetadataRepository: FileMetadataRepository
-  private lateinit var storageStrategy: StorageStrategy
-  private lateinit var imageProcessingService: ImageProcessingService
-  private lateinit var storageProperties: StorageProperties
-  private lateinit var tika: Tika
-  private lateinit var service: StorageServiceImpl
+class StorageServiceImplTest :
+  FunSpec({
+    var fileMetadataRepository: FileMetadataRepository = mockk()
+    var storageStrategy: StorageStrategy = mockk()
+    var imageProcessingService: ImageProcessingService = mockk()
+    var storageProperties: StorageProperties = mockk()
+    var tika: Tika = mockk()
+    var service: StorageServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    fileMetadataRepository = mockk(relaxed = true)
-    storageStrategy = mockk(relaxed = true)
-    imageProcessingService = mockk(relaxed = true)
-    storageProperties =
-      StorageProperties().apply {
-        local.maxFileSize = 1024L
-        local.allowedExtensions = setOf("jpg", "png", "txt")
-        local.baseUrl = "http://localhost:9090"
+    fun fakeFile(
+      name: String = "photo.jpg",
+      bytes: ByteArray = byteArrayOf(1, 2, 3),
+      contentType: String = "image/jpeg",
+    ): MultipartFile =
+      object : MultipartFile {
+        override fun getInputStream(): java.io.InputStream = ByteArrayInputStream(bytes)
+
+        override fun getName(): String = "file"
+
+        override fun getOriginalFilename(): String? = name
+
+        override fun getContentType(): String? = contentType
+
+        override fun isEmpty(): Boolean = bytes.isEmpty()
+
+        override fun getSize(): Long = bytes.size.toLong()
+
+        override fun getBytes(): ByteArray = bytes
+
+        override fun transferTo(dest: java.io.File) {
+          dest.writeBytes(bytes)
+        }
       }
-    tika = mockk(relaxed = true)
-    service = StorageServiceImpl(fileMetadataRepository, storageStrategy, imageProcessingService, storageProperties, tika)
-  }
 
-  private fun fakeFile(
-    name: String = "photo.jpg",
-    bytes: ByteArray = byteArrayOf(1, 2, 3),
-    contentType: String = "image/jpeg",
-  ): MultipartFile =
-    object : MultipartFile {
-      override fun getInputStream(): java.io.InputStream = ByteArrayInputStream(bytes)
-
-      override fun getName(): String = "file"
-
-      override fun getOriginalFilename(): String? = name
-
-      override fun getContentType(): String? = contentType
-
-      override fun isEmpty(): Boolean = bytes.isEmpty()
-
-      override fun getSize(): Long = bytes.size.toLong()
-
-      override fun getBytes(): ByteArray = bytes
-
-      override fun transferTo(dest: java.io.File) {
-        dest.writeBytes(bytes)
+    fun metadata(
+      id: Long = 1L,
+      fileName: String = "photo.jpg",
+      fileType: FileType = FileType.IMAGE,
+      extension: String? = "jpg",
+    ): FileMetadata =
+      FileMetadata().apply {
+        this.id = id
+        this.fileName = fileName
+        this.storagePath = "image/2025/06/$fileName"
+        this.fileType = fileType
+        this.fileSize = 100L
+        this.mimeType = "image/jpeg"
+        this.checksum = "abc123"
+        this.extension = extension
+        this.createdAt = LocalDateTime.of(2025, 6, 1, 10, 0)
       }
+
+    beforeTest {
+      fileMetadataRepository = mockk(relaxed = true)
+      storageStrategy = mockk(relaxed = true)
+      imageProcessingService = mockk(relaxed = true)
+      storageProperties =
+        StorageProperties().apply {
+          local.maxFileSize = 1024L
+          local.allowedExtensions = setOf("jpg", "png", "txt")
+          local.baseUrl = "http://localhost:9090"
+        }
+      tika = mockk(relaxed = true)
+      service = StorageServiceImpl(fileMetadataRepository, storageStrategy, imageProcessingService, storageProperties, tika)
     }
+    test("uploadFile rejects empty file") {
+      val file = fakeFile(bytes = byteArrayOf())
 
-  private fun metadata(
-    id: Long = 1L,
-    fileName: String = "photo.jpg",
-    fileType: FileType = FileType.IMAGE,
-    extension: String? = "jpg",
-  ): FileMetadata =
-    FileMetadata().apply {
-      this.id = id
-      this.fileName = fileName
-      this.storagePath = "image/2025/06/$fileName"
-      this.fileType = fileType
-      this.fileSize = 100L
-      this.mimeType = "image/jpeg"
-      this.checksum = "abc123"
-      this.extension = extension
-      this.createdAt = LocalDateTime.of(2025, 6, 1, 10, 0)
+      shouldThrow<IllegalArgumentException> { service.uploadFile(file, FileUploadRequest()) }
     }
+    test("uploadFile rejects oversized file") {
+      val file = fakeFile(bytes = ByteArray(2048))
 
-  @Test
-  fun `uploadFile rejects empty file`() {
-    val file = fakeFile(bytes = byteArrayOf())
+      shouldThrow<IllegalArgumentException> { service.uploadFile(file, FileUploadRequest()) }
+    }
+    test("uploadFile rejects disallowed extension") {
+      val file = fakeFile(name = "virus.exe")
 
-    assertFailsWith<IllegalArgumentException> { service.uploadFile(file, FileUploadRequest()) }
-  }
+      shouldThrow<IllegalArgumentException> { service.uploadFile(file, FileUploadRequest()) }
+    }
+    test("uploadFile returns existing file by checksum without storing again") {
+      val existing = metadata()
+      every { fileMetadataRepository.findByChecksum(any()) } returns Optional.of(existing)
+      every { storageStrategy.generateUrl(existing.id!!, existing.fileName) } returns
+        "http://localhost:9090/api/v1/storage/files/1?name=photo.jpg"
 
-  @Test
-  fun `uploadFile rejects oversized file`() {
-    val file = fakeFile(bytes = ByteArray(2048))
+      val response = service.uploadFile(fakeFile(), FileUploadRequest())
 
-    assertFailsWith<IllegalArgumentException> { service.uploadFile(file, FileUploadRequest()) }
-  }
+      response.id shouldBe existing.id
+      response.fileUrl shouldBe "http://localhost:9090/api/v1/storage/files/1?name=photo.jpg"
+      verify(exactly = 0) { storageStrategy.store(any(), any()) }
+    }
+    test("uploadFile stores new file and saves metadata") {
+      every { fileMetadataRepository.findByChecksum(any()) } returns Optional.empty()
+      every { tika.detect(any<java.io.InputStream>(), any<String>()) } returns "image/png"
+      every { storageStrategy.store(any(), any()) } returns "image/2025/06/photo.png"
+      every { storageStrategy.generateUrl(any(), any()) } returns "http://localhost:9090/api/v1/storage/files/1?name=photo.png"
+      every { fileMetadataRepository.save(any()) } answers { (firstArg<FileMetadata>()).also { it.id = 1L } }
 
-  @Test
-  fun `uploadFile rejects disallowed extension`() {
-    val file = fakeFile(name = "virus.exe")
+      val response = service.uploadFile(fakeFile(name = "photo.png", contentType = "image/png"), FileUploadRequest())
 
-    assertFailsWith<IllegalArgumentException> { service.uploadFile(file, FileUploadRequest()) }
-  }
+      response.fileName shouldBe "photo.png"
+      response.fileType shouldBe FileType.IMAGE
+      verify { storageStrategy.store(any(), any()) }
+      verify { fileMetadataRepository.save(any()) }
+    }
+    test("uploadFile detects file type from mime") {
+      every { fileMetadataRepository.findByChecksum(any()) } returns Optional.empty()
+      every { tika.detect(any<java.io.InputStream>(), any<String>()) } returns "application/pdf"
+      every { storageStrategy.store(any(), any()) } returns "document/2025/06/doc.pdf"
+      every { fileMetadataRepository.save(any()) } answers { (firstArg<FileMetadata>()).also { it.id = 1L } }
 
-  @Test
-  fun `uploadFile returns existing file by checksum without storing again`() {
-    val existing = metadata()
-    every { fileMetadataRepository.findByChecksum(any()) } returns Optional.of(existing)
-    every { storageStrategy.generateUrl(existing.id!!, existing.fileName) } returns
-      "http://localhost:9090/api/v1/storage/files/1?name=photo.jpg"
+      val response = service.uploadFile(fakeFile(name = "doc.txt"), FileUploadRequest())
 
-    val response = service.uploadFile(fakeFile(), FileUploadRequest())
+      response.fileType shouldBe FileType.DOCUMENT
+    }
+    test("uploadFile honors requested file type") {
+      every { fileMetadataRepository.findByChecksum(any()) } returns Optional.empty()
+      every { storageStrategy.store(any(), any()) } returns "archive/2025/06/data.zip"
+      every { fileMetadataRepository.save(any()) } answers { (firstArg<FileMetadata>()).also { it.id = 1L } }
 
-    assertEquals(existing.id, response.id)
-    assertEquals("http://localhost:9090/api/v1/storage/files/1?name=photo.jpg", response.fileUrl)
-    verify(exactly = 0) { storageStrategy.store(any(), any()) }
-  }
+      val response = service.uploadFile(fakeFile(name = "data.txt"), FileUploadRequest(fileType = FileType.ARCHIVE))
 
-  @Test
-  fun `uploadFile stores new file and saves metadata`() {
-    every { fileMetadataRepository.findByChecksum(any()) } returns Optional.empty()
-    every { tika.detect(any<java.io.InputStream>(), any<String>()) } returns "image/png"
-    every { storageStrategy.store(any(), any()) } returns "image/2025/06/photo.png"
-    every { storageStrategy.generateUrl(any(), any()) } returns "http://localhost:9090/api/v1/storage/files/1?name=photo.png"
-    every { fileMetadataRepository.save(any()) } answers { (firstArg<FileMetadata>()).also { it.id = 1L } }
+      response.fileType shouldBe FileType.ARCHIVE
+    }
+    test("uploadFile wraps io exception in runtime exception") {
+      every { fileMetadataRepository.findByChecksum(any()) } throws IOException("disk error")
 
-    val response = service.uploadFile(fakeFile(name = "photo.png", contentType = "image/png"), FileUploadRequest())
+      shouldThrow<RuntimeException> { service.uploadFile(fakeFile(), FileUploadRequest()) }
+    }
+    test("getFile returns resource for existing metadata") {
+      val meta = metadata()
+      val resource = ByteArrayResource(byteArrayOf(9))
+      every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
+      every { storageStrategy.retrieve(meta.storagePath) } returns resource
 
-    assertEquals("photo.png", response.fileName)
-    assertEquals(FileType.IMAGE, response.fileType)
-    verify { storageStrategy.store(any(), any()) }
-    verify { fileMetadataRepository.save(any()) }
-  }
+      resource.shouldBeSameInstanceAs(service.getFile(1L))
+    }
+    test("getFile throws when metadata missing") {
+      every { fileMetadataRepository.findById(1L) } returns Optional.empty()
 
-  @Test
-  fun `uploadFile detects file type from mime`() {
-    every { fileMetadataRepository.findByChecksum(any()) } returns Optional.empty()
-    every { tika.detect(any<java.io.InputStream>(), any<String>()) } returns "application/pdf"
-    every { storageStrategy.store(any(), any()) } returns "document/2025/06/doc.pdf"
-    every { fileMetadataRepository.save(any()) } answers { (firstArg<FileMetadata>()).also { it.id = 1L } }
+      shouldThrow<NoSuchElementException> { service.getFile(1L) }
+    }
+    test("getProcessedImage returns processed bytes for image") {
+      val meta = metadata()
+      val params = ImageParameters(width = 100)
+      every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
+      every { imageProcessingService.getOrProcessImage(meta.storagePath, params) } returns byteArrayOf(1, 2)
 
-    val response = service.uploadFile(fakeFile(name = "doc.txt"), FileUploadRequest())
+      val bytes = service.getProcessedImage(1L, params)
 
-    assertEquals(FileType.DOCUMENT, response.fileType)
-  }
+      bytes.size shouldBe 2
+    }
+    test("getProcessedImage rejects non-image file") {
+      val meta = metadata(fileType = FileType.DOCUMENT, extension = "pdf")
+      every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
 
-  @Test
-  fun `uploadFile honors requested file type`() {
-    every { fileMetadataRepository.findByChecksum(any()) } returns Optional.empty()
-    every { storageStrategy.store(any(), any()) } returns "archive/2025/06/data.zip"
-    every { fileMetadataRepository.save(any()) } answers { (firstArg<FileMetadata>()).also { it.id = 1L } }
+      shouldThrow<IllegalArgumentException> { service.getProcessedImage(1L, ImageParameters(width = 100)) }
+    }
+    test("getFileMetadata returns response with url") {
+      val meta = metadata()
+      every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
+      every { storageStrategy.generateUrl(1L, meta.fileName) } returns "http://localhost:9090/api/v1/storage/files/1?name=photo.jpg"
 
-    val response = service.uploadFile(fakeFile(name = "data.txt"), FileUploadRequest(fileType = FileType.ARCHIVE))
+      val response = service.getFileMetadata(1L)
 
-    assertEquals(FileType.ARCHIVE, response.fileType)
-  }
+      response.id shouldBe 1L
+      response.fileUrl shouldBe "http://localhost:9090/api/v1/storage/files/1?name=photo.jpg"
+    }
+    test("deleteFile deletes storage and metadata") {
+      val meta = metadata()
+      every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
+      every { storageStrategy.delete(meta.storagePath) } returns true
 
-  @Test
-  fun `uploadFile wraps io exception in runtime exception`() {
-    every { fileMetadataRepository.findByChecksum(any()) } throws IOException("disk error")
+      service.deleteFile(1L) shouldBe true
+      verify { fileMetadataRepository.delete(meta) }
+    }
+    test("deleteFile returns false when storage delete fails") {
+      val meta = metadata()
+      every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
+      every { storageStrategy.delete(meta.storagePath) } throws RuntimeException("delete failed")
 
-    assertFailsWith<RuntimeException> { service.uploadFile(fakeFile(), FileUploadRequest()) }
-  }
+      service.deleteFile(1L) shouldBe false
+    }
+    test("deleteFile throws when metadata missing") {
+      every { fileMetadataRepository.findById(1L) } returns Optional.empty()
 
-  @Test
-  fun `getFile returns resource for existing metadata`() {
-    val meta = metadata()
-    val resource = ByteArrayResource(byteArrayOf(9))
-    every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
-    every { storageStrategy.retrieve(meta.storagePath) } returns resource
+      shouldThrow<NoSuchElementException> { service.deleteFile(1L) }
+    }
+    test("listFiles maps page to responses") {
+      val pageable = PageRequest.of(0, 10)
+      val page: Page<FileMetadata> = PageImpl(listOf(metadata(1L), metadata(2L, "a.png")))
+      every { fileMetadataRepository.findAll(pageable) } returns page
+      every { storageStrategy.generateUrl(any(), any()) } returns "url"
 
-    assertSame(resource, service.getFile(1L))
-  }
+      val result = service.listFiles(pageable)
 
-  @Test
-  fun `getFile throws when metadata missing`() {
-    every { fileMetadataRepository.findById(1L) } returns Optional.empty()
+      result.content.size shouldBe 2
+      result.content[0].fileUrl shouldBe "url"
+    }
+    test("listFilesByType filters by type") {
+      val pageable = PageRequest.of(0, 10)
+      val page: Page<FileMetadata> = PageImpl(listOf(metadata()))
+      every { fileMetadataRepository.findByFileType(FileType.IMAGE, pageable) } returns page
 
-    assertFailsWith<NoSuchElementException> { service.getFile(1L) }
-  }
+      val result = service.listFilesByType(FileType.IMAGE, pageable)
 
-  @Test
-  fun `getProcessedImage returns processed bytes for image`() {
-    val meta = metadata()
-    val params = ImageParameters(width = 100)
-    every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
-    every { imageProcessingService.getOrProcessImage(meta.storagePath, params) } returns byteArrayOf(1, 2)
+      result.content.size shouldBe 1
+    }
+    test("listFilesByOwner filters by owner") {
+      val pageable = PageRequest.of(0, 10)
+      val page: Page<FileMetadata> = PageImpl(emptyList())
+      every { fileMetadataRepository.findByOwnerId(1L, pageable) } returns page
 
-    val bytes = service.getProcessedImage(1L, params)
+      val result = service.listFilesByOwner(1L, pageable)
 
-    assertEquals(2, bytes.size)
-  }
+      result.content.size shouldBe 0
+    }
+    test("searchFiles searches by name") {
+      val pageable = PageRequest.of(0, 10)
+      val page: Page<FileMetadata> = PageImpl(listOf(metadata()))
+      every { fileMetadataRepository.findByFileNameContainingIgnoreCase("photo", pageable) } returns page
 
-  @Test
-  fun `getProcessedImage rejects non-image file`() {
-    val meta = metadata(fileType = FileType.DOCUMENT, extension = "pdf")
-    every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
+      val result = service.searchFiles("photo", pageable)
 
-    assertFailsWith<IllegalArgumentException> { service.getProcessedImage(1L, ImageParameters(width = 100)) }
-  }
-
-  @Test
-  fun `getFileMetadata returns response with url`() {
-    val meta = metadata()
-    every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
-    every { storageStrategy.generateUrl(1L, meta.fileName) } returns "http://localhost:9090/api/v1/storage/files/1?name=photo.jpg"
-
-    val response = service.getFileMetadata(1L)
-
-    assertEquals(1L, response.id)
-    assertEquals("http://localhost:9090/api/v1/storage/files/1?name=photo.jpg", response.fileUrl)
-  }
-
-  @Test
-  fun `deleteFile deletes storage and metadata`() {
-    val meta = metadata()
-    every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
-    every { storageStrategy.delete(meta.storagePath) } returns true
-
-    assertTrue(service.deleteFile(1L))
-    verify { fileMetadataRepository.delete(meta) }
-  }
-
-  @Test
-  fun `deleteFile returns false when storage delete fails`() {
-    val meta = metadata()
-    every { fileMetadataRepository.findById(1L) } returns Optional.of(meta)
-    every { storageStrategy.delete(meta.storagePath) } throws RuntimeException("delete failed")
-
-    assertFalse(service.deleteFile(1L))
-  }
-
-  @Test
-  fun `deleteFile throws when metadata missing`() {
-    every { fileMetadataRepository.findById(1L) } returns Optional.empty()
-
-    assertFailsWith<NoSuchElementException> { service.deleteFile(1L) }
-  }
-
-  @Test
-  fun `listFiles maps page to responses`() {
-    val pageable = PageRequest.of(0, 10)
-    val page: Page<FileMetadata> = PageImpl(listOf(metadata(1L), metadata(2L, "a.png")))
-    every { fileMetadataRepository.findAll(pageable) } returns page
-    every { storageStrategy.generateUrl(any(), any()) } returns "url"
-
-    val result = service.listFiles(pageable)
-
-    assertEquals(2, result.content.size)
-    assertEquals("url", result.content[0].fileUrl)
-  }
-
-  @Test
-  fun `listFilesByType filters by type`() {
-    val pageable = PageRequest.of(0, 10)
-    val page: Page<FileMetadata> = PageImpl(listOf(metadata()))
-    every { fileMetadataRepository.findByFileType(FileType.IMAGE, pageable) } returns page
-
-    val result = service.listFilesByType(FileType.IMAGE, pageable)
-
-    assertEquals(1, result.content.size)
-  }
-
-  @Test
-  fun `listFilesByOwner filters by owner`() {
-    val pageable = PageRequest.of(0, 10)
-    val page: Page<FileMetadata> = PageImpl(emptyList())
-    every { fileMetadataRepository.findByOwnerId(1L, pageable) } returns page
-
-    val result = service.listFilesByOwner(1L, pageable)
-
-    assertEquals(0, result.content.size)
-  }
-
-  @Test
-  fun `searchFiles searches by name`() {
-    val pageable = PageRequest.of(0, 10)
-    val page: Page<FileMetadata> = PageImpl(listOf(metadata()))
-    every { fileMetadataRepository.findByFileNameContainingIgnoreCase("photo", pageable) } returns page
-
-    val result = service.searchFiles("photo", pageable)
-
-    assertEquals(1, result.content.size)
-  }
-}
+      result.content.size shouldBe 1
+    }
+  })

@@ -27,228 +27,195 @@ import dev.yidafu.aqua.common.graphql.generated.CreateProductInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
  * 商品服务单元测试: 创建/更新/状态变更、库存增减与缺货状态机、销量、统计
  */
-class ProductServiceImplTest {
-  private lateinit var productRepository: ProductRepository
-  private lateinit var systemConfigQueryApiService: SystemConfigQueryApiService
-  private lateinit var bizLogger: BizLogger
-  private lateinit var service: ProductServiceImpl
+class ProductServiceImplTest :
+  FunSpec({
+    var productRepository: ProductRepository = mockk()
+    var systemConfigQueryApiService: SystemConfigQueryApiService = mockk()
+    var bizLogger: BizLogger = mockk()
+    var service: ProductServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    productRepository = mockk(relaxed = true)
-    systemConfigQueryApiService = mockk(relaxed = true)
-    bizLogger = mockk(relaxed = true)
-    service = ProductServiceImpl(productRepository, systemConfigQueryApiService, bizLogger)
-    // relaxed mock 的 Pair 解构会触发 ClassCastException, 显式 stub 操作人
-    every { bizLogger.resolveOperator() } returns (1L to "admin")
-  }
+    fun product(
+      id: Long = 1L,
+      status: ProductModelStatus = ProductModelStatus.ONLINE,
+      stock: Int = 10,
+      price: Long = 200L,
+    ): ProductModel =
+      ProductModel().apply {
+        this.id = id
+        name = "怡宝"
+        this.price = price
+        this.stock = stock
+        this.salesVolume = 0
+        this.status = status
+      }
 
-  private fun product(
-    id: Long = 1L,
-    status: ProductModelStatus = ProductModelStatus.ONLINE,
-    stock: Int = 10,
-    price: Long = 200L,
-  ): ProductModel =
-    ProductModel().apply {
-      this.id = id
-      name = "怡宝"
-      this.price = price
-      this.stock = stock
-      this.salesVolume = 0
-      this.status = status
+    beforeTest {
+      productRepository = mockk(relaxed = true)
+      systemConfigQueryApiService = mockk(relaxed = true)
+      bizLogger = mockk(relaxed = true)
+      service = ProductServiceImpl(productRepository, systemConfigQueryApiService, bizLogger)
+      // relaxed mock 的 Pair 解构会触发 ClassCastException, 显式 stub 操作人
+      every { bizLogger.resolveOperator() } returns (1L to "admin")
     }
+    test("findById returns product when exists") {
+      val p = product()
+      every { productRepository.findById(1L) } returns Optional.of(p)
 
-  @Test
-  fun `findById returns product when exists`() {
-    val p = product()
-    every { productRepository.findById(1L) } returns Optional.of(p)
-
-    assertEquals(p, service.findById(1L))
-  }
-
-  @Test
-  fun `findById returns null when missing`() {
-    every { productRepository.findById(1L) } returns Optional.empty()
-
-    assertNull(service.findById(1L))
-  }
-
-  @Test
-  fun `createProduct saves and logs operation`() {
-    val request =
-      CreateProductInput(
-        name = "农夫山泉",
-        coverImageUrl = "http://x/a.jpg",
-        priceCents = 300L,
-        specification = "550ml",
-        stock = 5,
-        salesVolume = 0,
-        sortOrder = 1,
-        status = ProductStatus.ONLINE,
-      )
-    every { productRepository.save(any()) } answers { (firstArg<ProductModel>()).also { it.id = 1L } }
-
-    val saved = service.createProduct(request)
-
-    assertEquals("农夫山泉", saved.name)
-    assertEquals(300L, saved.price)
-    assertEquals(ProductModelStatus.ONLINE, saved.status)
-    verify { bizLogger.logProductOperation(any(), any(), any(), any(), any(), any()) }
-  }
-
-  @Test
-  fun `updateProduct applies non-null fields only`() {
-    val p = product()
-    every { productRepository.findById(1L) } returns Optional.of(p)
-    every { productRepository.save(any()) } answers { firstArg() }
-
-    val updated =
-      service.updateProduct(
-        productId = 1L,
-        name = "新名字",
-        priceCents = 500L,
-        coverImageUrl = null,
-        description = null,
-        stock = null,
-        status = ProductStatus.OFFLINE,
-      )
-
-    assertEquals("新名字", updated.name)
-    assertEquals(500L, updated.price)
-    assertEquals(ProductModelStatus.OFFLINE, updated.status)
-    verify { bizLogger.logProductOperation(any(), any(), any(), any(), any(), any()) }
-  }
-
-  @Test
-  fun `updateProduct throws when product missing`() {
-    every { productRepository.findById(1L) } returns Optional.empty()
-
-    assertFailsWith<IllegalArgumentException> {
-      service.updateProduct(productId = 1L, name = "x", priceCents = null, coverImageUrl = null, description = null, stock = null)
+      service.findById(1L) shouldBe p
     }
-  }
+    test("findById returns null when missing") {
+      every { productRepository.findById(1L) } returns Optional.empty()
 
-  @Test
-  fun `updateProductStatus changes status and logs before after`() {
-    val p = product(status = ProductModelStatus.ONLINE)
-    every { productRepository.findById(1L) } returns Optional.of(p)
-    every { productRepository.save(any()) } answers { firstArg() }
+      service.findById(1L).shouldBeNull()
+    }
+    test("createProduct saves and logs operation") {
+      val request =
+        CreateProductInput(
+          name = "农夫山泉",
+          coverImageUrl = "http://x/a.jpg",
+          priceCents = 300L,
+          specification = "550ml",
+          stock = 5,
+          salesVolume = 0,
+          sortOrder = 1,
+          status = ProductStatus.ONLINE,
+        )
+      every { productRepository.save(any()) } answers { (firstArg<ProductModel>()).also { it.id = 1L } }
 
-    val updated = service.updateProductStatus(1L, ProductStatus.OFFLINE)
+      val saved = service.createProduct(request)
 
-    assertEquals(ProductModelStatus.OFFLINE, updated.status)
-    verify { bizLogger.logProductOperation(any(), "PRODUCT_STATUS_CHANGED", any(), any(), any(), any()) }
-  }
+      saved.name shouldBe "农夫山泉"
+      saved.price shouldBe 300L
+      saved.status shouldBe ProductModelStatus.ONLINE
+      verify { bizLogger.logProductOperation(any(), any(), any(), any(), any(), any()) }
+    }
+    test("updateProduct applies non-null fields only") {
+      val p = product()
+      every { productRepository.findById(1L) } returns Optional.of(p)
+      every { productRepository.save(any()) } answers { firstArg() }
 
-  @Test
-  fun `increaseStock adds quantity and revives out of stock product`() {
-    val p = product(status = ProductModelStatus.OUT_OF_STOCK, stock = 0)
-    every { productRepository.findById(1L) } returns Optional.of(p)
-    every { productRepository.save(any()) } answers { firstArg() }
+      val updated =
+        service.updateProduct(
+          productId = 1L,
+          name = "新名字",
+          priceCents = 500L,
+          coverImageUrl = null,
+          description = null,
+          stock = null,
+          status = ProductStatus.OFFLINE,
+        )
 
-    assertTrue(service.increaseStock(1L, 5))
-    assertEquals(5, p.stock)
-    assertEquals(ProductModelStatus.ONLINE, p.status)
-  }
+      updated.name shouldBe "新名字"
+      updated.price shouldBe 500L
+      updated.status shouldBe ProductModelStatus.OFFLINE
+      verify { bizLogger.logProductOperation(any(), any(), any(), any(), any(), any()) }
+    }
+    test("updateProduct throws when product missing") {
+      every { productRepository.findById(1L) } returns Optional.empty()
 
-  @Test
-  fun `increaseStock returns false when product missing`() {
-    every { productRepository.findById(1L) } returns Optional.empty()
+      shouldThrow<IllegalArgumentException> {
+        service.updateProduct(productId = 1L, name = "x", priceCents = null, coverImageUrl = null, description = null, stock = null)
+      }
+    }
+    test("updateProductStatus changes status and logs before after") {
+      val p = product(status = ProductModelStatus.ONLINE)
+      every { productRepository.findById(1L) } returns Optional.of(p)
+      every { productRepository.save(any()) } answers { firstArg() }
 
-    assertFalse(service.increaseStock(1L, 5))
-  }
+      val updated = service.updateProductStatus(1L, ProductStatus.OFFLINE)
 
-  @Test
-  fun `decreaseStock reduces quantity and marks out of stock at zero`() {
-    val p = product(stock = 3)
-    every { productRepository.findById(1L) } returns Optional.of(p)
-    every { productRepository.save(any()) } answers { firstArg() }
+      updated.status shouldBe ProductModelStatus.OFFLINE
+      verify { bizLogger.logProductOperation(any(), "PRODUCT_STATUS_CHANGED", any(), any(), any(), any()) }
+    }
+    test("increaseStock adds quantity and revives out of stock product") {
+      val p = product(status = ProductModelStatus.OUT_OF_STOCK, stock = 0)
+      every { productRepository.findById(1L) } returns Optional.of(p)
+      every { productRepository.save(any()) } answers { firstArg() }
 
-    assertTrue(service.decreaseStock(1L, 3))
-    assertEquals(0, p.stock)
-    assertEquals(ProductModelStatus.OUT_OF_STOCK, p.status)
-  }
+      service.increaseStock(1L, 5) shouldBe true
+      p.stock shouldBe 5
+      p.status shouldBe ProductModelStatus.ONLINE
+    }
+    test("increaseStock returns false when product missing") {
+      every { productRepository.findById(1L) } returns Optional.empty()
 
-  @Test
-  fun `decreaseStock refuses when quantity exceeds stock`() {
-    val p = product(stock = 2)
-    every { productRepository.findById(1L) } returns Optional.of(p)
+      service.increaseStock(1L, 5) shouldBe false
+    }
+    test("decreaseStock reduces quantity and marks out of stock at zero") {
+      val p = product(stock = 3)
+      every { productRepository.findById(1L) } returns Optional.of(p)
+      every { productRepository.save(any()) } answers { firstArg() }
 
-    assertFalse(service.decreaseStock(1L, 5))
-    assertEquals(2, p.stock)
-  }
+      service.decreaseStock(1L, 3) shouldBe true
+      p.stock shouldBe 0
+      p.status shouldBe ProductModelStatus.OUT_OF_STOCK
+    }
+    test("decreaseStock refuses when quantity exceeds stock") {
+      val p = product(stock = 2)
+      every { productRepository.findById(1L) } returns Optional.of(p)
 
-  @Test
-  fun `decreaseStock returns false when product missing`() {
-    every { productRepository.findById(1L) } returns Optional.empty()
+      service.decreaseStock(1L, 5) shouldBe false
+      p.stock shouldBe 2
+    }
+    test("decreaseStock returns false when product missing") {
+      every { productRepository.findById(1L) } returns Optional.empty()
 
-    assertFalse(service.decreaseStock(1L, 5))
-  }
+      service.decreaseStock(1L, 5) shouldBe false
+    }
+    test("incrementSalesVolume adds quantity") {
+      val p = product()
+      every { productRepository.findById(1L) } returns Optional.of(p)
+      every { productRepository.save(any()) } answers { firstArg() }
 
-  @Test
-  fun `incrementSalesVolume adds quantity`() {
-    val p = product()
-    every { productRepository.findById(1L) } returns Optional.of(p)
-    every { productRepository.save(any()) } answers { firstArg() }
+      service.incrementSalesVolume(1L, 7)
 
-    service.incrementSalesVolume(1L, 7)
+      p.salesVolume shouldBe 7
+      verify { productRepository.save(p) }
+    }
+    test("updateSalesVolume sets volume") {
+      val p = product()
+      every { productRepository.findById(1L) } returns Optional.of(p)
+      every { productRepository.save(any()) } answers { firstArg() }
 
-    assertEquals(7, p.salesVolume)
-    verify { productRepository.save(p) }
-  }
+      service.updateSalesVolume(1L, 9)
 
-  @Test
-  fun `updateSalesVolume sets volume`() {
-    val p = product()
-    every { productRepository.findById(1L) } returns Optional.of(p)
-    every { productRepository.save(any()) } answers { firstArg() }
+      p.salesVolume shouldBe 9
+    }
+    test("getProductStatistics aggregates statuses and low stock") {
+      val online = product(1L, ProductModelStatus.ONLINE, stock = 50, price = 200L)
+      val offline = product(2L, ProductModelStatus.OFFLINE, stock = 8, price = 300L)
+      val out = product(3L, ProductModelStatus.OUT_OF_STOCK, stock = 0, price = 400L)
+      every { productRepository.findAll() } returns listOf(online, offline, out)
+      every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) } returns 10L
 
-    service.updateSalesVolume(1L, 9)
+      val stats = service.getProductStatistics()
 
-    assertEquals(9, p.salesVolume)
-  }
+      stats.totalProducts shouldBe 3
+      stats.onlineProducts shouldBe 1
+      stats.offlineProducts shouldBe 1
+      stats.lowStockProducts shouldBe 2
+      stats.totalValueCents shouldBe 900L
+      stats.averagePriceCents shouldBe 300L
+    }
+    test("getProductStatistics handles empty product list") {
+      every { productRepository.findAll() } returns emptyList()
 
-  @Test
-  fun `getProductStatistics aggregates statuses and low stock`() {
-    val online = product(1L, ProductModelStatus.ONLINE, stock = 50, price = 200L)
-    val offline = product(2L, ProductModelStatus.OFFLINE, stock = 8, price = 300L)
-    val out = product(3L, ProductModelStatus.OUT_OF_STOCK, stock = 0, price = 400L)
-    every { productRepository.findAll() } returns listOf(online, offline, out)
-    every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) } returns 10L
+      val stats = service.getProductStatistics()
 
-    val stats = service.getProductStatistics()
-
-    assertEquals(3, stats.totalProducts)
-    assertEquals(1, stats.onlineProducts)
-    assertEquals(1, stats.offlineProducts)
-    assertEquals(2, stats.lowStockProducts)
-    assertEquals(900L, stats.totalValueCents)
-    assertEquals(300L, stats.averagePriceCents)
-  }
-
-  @Test
-  fun `getProductStatistics handles empty product list`() {
-    every { productRepository.findAll() } returns emptyList()
-
-    val stats = service.getProductStatistics()
-
-    assertEquals(0, stats.totalProducts)
-    assertEquals(0L, stats.averagePriceCents)
-    assertEquals(0, stats.lowStockProducts)
-  }
-}
+      stats.totalProducts shouldBe 0
+      stats.averagePriceCents shouldBe 0L
+      stats.lowStockProducts shouldBe 0
+    }
+  })

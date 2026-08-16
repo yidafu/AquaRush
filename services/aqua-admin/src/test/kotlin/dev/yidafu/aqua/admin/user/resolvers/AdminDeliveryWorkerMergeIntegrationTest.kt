@@ -20,18 +20,18 @@
 package dev.yidafu.aqua.admin.user.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
+import dev.yidafu.aqua.admin.testutil.setMockUser
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import io.kotest.assertions.withClue
+import io.kotest.core.extensions.ApplyExtension
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
@@ -55,158 +55,142 @@ import org.springframework.web.context.WebApplicationContext
 )
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/merge/"])
-@DisplayName("Admin Delivery Worker Single-Table Merge Integration Tests")
-class AdminDeliveryWorkerMergeIntegrationTest {
-  @Autowired
-  private lateinit var context: WebApplicationContext
+@ApplyExtension(SpringExtension::class)
+class AdminDeliveryWorkerMergeIntegrationTest(
+  context: WebApplicationContext,
+  adminRepository: AdminRepository,
+) : FunSpec({
+    var mockMvc: MockMvc = mockk()
 
-  @Autowired
-  private lateinit var adminRepository: AdminRepository
+    fun graphqlBody(
+      query: String,
+      variables: String,
+    ): String = """{"query": "$query", "variables": $variables}"""
 
-  private lateinit var mockMvc: MockMvc
+    beforeTest {
+      mockMvc =
+        MockMvcBuilders
+          .webAppContextSetup(context)
+          .apply<DefaultMockMvcBuilder>(springSecurity())
+          .build()
+    }
+    test("createAdmin with delivery worker role auto generates delivery username") {
+      setMockUser(authorities = listOf("ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_ADMIN_USER_WRITE"))
+      val before = adminRepository.count()
+      val body =
+        graphqlBody(
+          "mutation CreateAdmin(\$input: CreateAdminInput!) { createAdmin(input: \$input) { id username role onlineStatus isAvailable } }",
+          """{"input": {"password": "password123", "realName": "送水员甲", "phone": "13900139001", "role": "DELIVERY_WORKER", "isAvailable": true}}""",
+        )
 
-  @BeforeEach
-  fun setUp() {
-    mockMvc =
-      MockMvcBuilders
-        .webAppContextSetup(context)
-        .apply<DefaultMockMvcBuilder>(springSecurity())
-        .build()
-  }
+      val result =
+        mockMvc
+          .perform(
+            post("/graphql")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(body),
+          ).andExpect(status().isOk)
+          .andReturn()
+          .response
+          .contentAsString
 
-  private fun graphqlBody(
-    query: String,
-    variables: String,
-  ): String = """{"query": "$query", "variables": $variables}"""
+      // 单表落库:仅新增一条 admins 记录(不再创建 delivery_workers 档案)
+      adminRepository.count() shouldBe before + 1
 
-  @Test
-  @WithMockUser(authorities = ["ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_ADMIN_USER_WRITE"])
-  @DisplayName("createAdmin with DELIVERY_WORKER role and no username creates single admins row with delivery_ username")
-  fun `createAdmin with delivery worker role auto generates delivery username`() {
-    val before = adminRepository.count()
-    val body =
-      graphqlBody(
-        "mutation CreateAdmin(\$input: CreateAdminInput!) { createAdmin(input: \$input) { id username role onlineStatus isAvailable } }",
-        """{"input": {"password": "password123", "realName": "送水员甲", "phone": "13900139001", "role": "DELIVERY_WORKER", "isAvailable": true}}""",
-      )
+      // 用户名自动生成 delivery_{账号ID}
+      val created = adminRepository.findByPhone("13900139001")
+      created.shouldNotBeNull()
+      created!!.role shouldBe AdminRoleModel.DELIVERY_WORKER
+      created.username shouldBe "delivery_${created.id}"
+      created.isAvailable shouldBe true
+      // JSON 序列化键值冒号带空格,仅校验用户名值片段
+      result.contains("delivery_${created.id}") shouldBe true
+    }
+    test("createAdmin with delivery worker role and explicit username keeps it") {
+      setMockUser(authorities = listOf("ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_ADMIN_USER_WRITE"))
+      val username = "dw_keep_${System.currentTimeMillis()}"
+      val body =
+        graphqlBody(
+          "mutation CreateAdmin(\$input: CreateAdminInput!) { createAdmin(input: \$input) { id username role } }",
+          """{"input": {"username": "$username", "password": "password123", "role": "DELIVERY_WORKER"}}""",
+        )
 
-    val result =
       mockMvc
         .perform(
           post("/graphql")
             .contentType(MediaType.APPLICATION_JSON)
             .content(body),
         ).andExpect(status().isOk)
-        .andReturn()
-        .response
-        .contentAsString
+        .andExpect(jsonPath("$.data.createAdmin.username").value(username))
+    }
+    test("createDeliveryWorker creates single admins row") {
+      setMockUser(authorities = listOf("ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_DELIVERY_WORKER_WRITE"))
+      val before = adminRepository.count()
+      val body =
+        graphqlBody(
+          "mutation CreateDeliveryWorker(\$input: CreateDeliveryWorkerInput!) { createDeliveryWorker(input: \$input) { id name phone isAvailable } }",
+          """{"input": {"name": "送水员乙", "phone": "13900139002", "password": "password123", "isAvailable": true}}""",
+        )
 
-    // 单表落库:仅新增一条 admins 记录(不再创建 delivery_workers 档案)
-    assertEquals(before + 1, adminRepository.count())
+      val result =
+        mockMvc
+          .perform(
+            post("/graphql")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(body),
+          ).andExpect(status().isOk)
+          .andReturn()
+          .response
+          .contentAsString
 
-    // 用户名自动生成 delivery_{账号ID}
-    val created = adminRepository.findByPhone("13900139001")
-    assertNotNull(created)
-    assertEquals(AdminRoleModel.DELIVERY_WORKER, created!!.role)
-    assertEquals("delivery_${created.id}", created.username)
-    assertTrue(created.isAvailable)
-    // JSON 序列化键值冒号带空格,仅校验用户名值片段
-    assertTrue(result.contains("delivery_${created.id}"))
-  }
-
-  @Test
-  @WithMockUser(authorities = ["ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_ADMIN_USER_WRITE"])
-  @DisplayName("createAdmin with DELIVERY_WORKER role and explicit username keeps given username")
-  fun `createAdmin with delivery worker role and explicit username keeps it`() {
-    val username = "dw_keep_${System.currentTimeMillis()}"
-    val body =
-      graphqlBody(
-        "mutation CreateAdmin(\$input: CreateAdminInput!) { createAdmin(input: \$input) { id username role } }",
-        """{"input": {"username": "$username", "password": "password123", "role": "DELIVERY_WORKER"}}""",
+      adminRepository.count() shouldBe before + 1
+      result.contains("\"送水员乙\"") shouldBe true
+      val created = adminRepository.findByPhone("13900139002")
+      created.shouldNotBeNull()
+      created!!.role shouldBe AdminRoleModel.DELIVERY_WORKER
+      created.username shouldBe "delivery_${created.id}"
+    }
+    test("deliveryWorkers query returns delivery capable accounts") {
+      setMockUser(authorities = listOf("ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_DELIVERY_WORKER_READ"))
+      // 种子:DELIVERY_WORKER 与 ADMIN(具备配送能力)各一;SUPER_ADMIN 不返回
+      adminRepository.save(
+        dev.yidafu.aqua.common.domain.model.AdminModel(
+          username = "dw_list_${System.currentTimeMillis()}",
+          passwordHash = "hash",
+          realName = "送水员丙",
+          phone = "13900139003",
+          role = AdminRoleModel.DELIVERY_WORKER,
+        ),
+      )
+      adminRepository.save(
+        dev.yidafu.aqua.common.domain.model.AdminModel(
+          username = "admin_list_${System.currentTimeMillis()}",
+          passwordHash = "hash",
+          realName = "兼送水管理员",
+          phone = "13900139004",
+          role = AdminRoleModel.ADMIN,
+        ),
       )
 
-    mockMvc
-      .perform(
-        post("/graphql")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(body),
-      ).andExpect(status().isOk)
-      .andExpect(jsonPath("$.data.createAdmin.username").value(username))
-  }
+      val body =
+        graphqlBody(
+          "query { deliveryWorkers { id name phone } }",
+          "{}",
+        )
 
-  @Test
-  @WithMockUser(authorities = ["ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_DELIVERY_WORKER_WRITE"])
-  @DisplayName("createDeliveryWorker compat mutation creates single admins row")
-  fun `createDeliveryWorker creates single admins row`() {
-    val before = adminRepository.count()
-    val body =
-      graphqlBody(
-        "mutation CreateDeliveryWorker(\$input: CreateDeliveryWorkerInput!) { createDeliveryWorker(input: \$input) { id name phone isAvailable } }",
-        """{"input": {"name": "送水员乙", "phone": "13900139002", "password": "password123", "isAvailable": true}}""",
-      )
+      val result =
+        mockMvc
+          .perform(
+            post("/graphql")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(body),
+          ).andExpect(status().isOk)
+          .andReturn()
+          .response
+          .contentAsString
 
-    val result =
-      mockMvc
-        .perform(
-          post("/graphql")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(body),
-        ).andExpect(status().isOk)
-        .andReturn()
-        .response
-        .contentAsString
-
-    assertEquals(before + 1, adminRepository.count())
-    assertTrue(result.contains("\"送水员乙\""))
-    val created = adminRepository.findByPhone("13900139002")
-    assertNotNull(created)
-    assertEquals(AdminRoleModel.DELIVERY_WORKER, created!!.role)
-    assertEquals("delivery_${created.id}", created.username)
-  }
-
-  @Test
-  @WithMockUser(authorities = ["ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_DELIVERY_WORKER_READ"])
-  @DisplayName("deliveryWorkers query returns delivery-capable accounts only")
-  fun `deliveryWorkers query returns delivery capable accounts`() {
-    // 种子:DELIVERY_WORKER 与 ADMIN(具备配送能力)各一;SUPER_ADMIN 不返回
-    adminRepository.save(
-      dev.yidafu.aqua.common.domain.model.AdminModel(
-        username = "dw_list_${System.currentTimeMillis()}",
-        passwordHash = "hash",
-        realName = "送水员丙",
-        phone = "13900139003",
-        role = AdminRoleModel.DELIVERY_WORKER,
-      ),
-    )
-    adminRepository.save(
-      dev.yidafu.aqua.common.domain.model.AdminModel(
-        username = "admin_list_${System.currentTimeMillis()}",
-        passwordHash = "hash",
-        realName = "兼送水管理员",
-        phone = "13900139004",
-        role = AdminRoleModel.ADMIN,
-      ),
-    )
-
-    val body =
-      graphqlBody(
-        "query { deliveryWorkers { id name phone } }",
-        "{}",
-      )
-
-    val result =
-      mockMvc
-        .perform(
-          post("/graphql")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content(body),
-        ).andExpect(status().isOk)
-        .andReturn()
-        .response
-        .contentAsString
-
-    assertTrue(result.contains("送水员丙"), "DELIVERY_WORKER 账号应在 deliveryWorkers 中")
-    assertTrue(result.contains("兼送水管理员"), "ADMIN 账号(兼送水)应在 deliveryWorkers 中")
-    assertTrue(!result.contains("\"errors\""))
-  }
-}
+      withClue("DELIVERY_WORKER 账号应在 deliveryWorkers 中") { result.contains("送水员丙") shouldBe true }
+      withClue("ADMIN 账号(兼送水)应在 deliveryWorkers 中") { result.contains("兼送水管理员") shouldBe true }
+      !result.contains("\"errors\"") shouldBe true
+    }
+  })

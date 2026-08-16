@@ -29,194 +29,166 @@ import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.UserRepository
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import me.chanjar.weixin.common.error.WxErrorException
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
-class WeChatAuthServiceTest {
-  private lateinit var userRepository: UserRepository
-  private lateinit var jwtTokenService: JwtTokenService
-  private lateinit var wxMaService: WxMaService
-  private lateinit var bizLogger: BizLogger
-  private lateinit var service: WeChatAuthService
+class WeChatAuthServiceTest :
+  FunSpec({
+    var userRepository: UserRepository = mockk()
+    var jwtTokenService: JwtTokenService = mockk()
+    var wxMaService: WxMaService = mockk()
+    var bizLogger: BizLogger = mockk()
+    var service: WeChatAuthService = mockk()
 
-  private fun session(openid: String = "openid_1"): WxMaJscode2SessionResult {
-    val session = mockk<WxMaJscode2SessionResult>()
-    every { session.openid } returns openid
-    every { session.sessionKey } returns "session_key"
-    every { session.unionid } returns null
-    return session
-  }
+    fun session(openid: String = "openid_1"): WxMaJscode2SessionResult {
+      val session = mockk<WxMaJscode2SessionResult>()
+      every { session.openid } returns openid
+      every { session.sessionKey } returns "session_key"
+      every { session.unionid } returns null
+      return session
+    }
 
-  private fun user(
-    id: Long = 1L,
-    openId: String = "openid_1",
-  ): UserModel =
-    UserModel(
-      id = id,
-      wechatOpenId = openId,
-      nickname = "alice",
-      phone = "13800138000",
-      avatarUrl = null,
-      email = "e@e.com",
-      status = UserStatus.ACTIVE,
-      role = UserRole.USER,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private fun principal(id: Long = 1L): UserPrincipal =
-    UserPrincipal(
-      id = id,
-      _username = "openid_1",
-      userType = "USER",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    userRepository = mockk(relaxed = true)
-    jwtTokenService = mockk(relaxed = true)
-    val userServiceApi: WxMaUserService = mockk(relaxed = true)
-    wxMaService = mockk(relaxed = true)
-    every { wxMaService.userService } returns userServiceApi
-    bizLogger = mockk(relaxed = true)
-    service =
-      WeChatAuthService(
-        userRepository,
-        jwtTokenService,
-        tools.jackson.module.kotlin
-          .jacksonObjectMapper(),
-        wxMaService,
-        bizLogger,
+    fun user(
+      id: Long = 1L,
+      openId: String = "openid_1",
+    ): UserModel =
+      UserModel(
+        id = id,
+        wechatOpenId = openId,
+        nickname = "alice",
+        phone = "13800138000",
+        avatarUrl = null,
+        email = "e@e.com",
+        status = UserStatus.ACTIVE,
+        role = UserRole.USER,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
-  }
 
-  @Test
-  fun `login should return tokens for existing user`() {
-    every { wxMaService.userService.getSessionInfo("code") } returns session()
-    every { userRepository.findByWechatOpenId("openid_1") } returns user()
-    every { jwtTokenService.generateAccessToken(any()) } returns "access"
-    every { jwtTokenService.generateRefreshToken(any()) } returns "refresh"
+    fun principal(id: Long = 1L): UserPrincipal =
+      UserPrincipal(
+        id = id,
+        _username = "openid_1",
+        userType = "USER",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
+      )
 
-    val response = service.login("code")
+    beforeTest {
+      userRepository = mockk(relaxed = true)
+      jwtTokenService = mockk(relaxed = true)
+      val userServiceApi: WxMaUserService = mockk(relaxed = true)
+      wxMaService = mockk(relaxed = true)
+      every { wxMaService.userService } returns userServiceApi
+      bizLogger = mockk(relaxed = true)
+      service =
+        WeChatAuthService(
+          userRepository,
+          jwtTokenService,
+          tools.jackson.module.kotlin
+            .jacksonObjectMapper(),
+          wxMaService,
+          bizLogger,
+        )
+    }
+    test("login should return tokens for existing user") {
+      every { wxMaService.userService.getSessionInfo("code") } returns session()
+      every { userRepository.findByWechatOpenId("openid_1") } returns user()
+      every { jwtTokenService.generateAccessToken(any()) } returns "access"
+      every { jwtTokenService.generateRefreshToken(any()) } returns "refresh"
 
-    assertEquals("access", response.accessToken)
-    assertEquals("refresh", response.refreshToken)
-    assertEquals("Bearer", response.tokenType)
-    assertEquals(1L, response.userInfo.id)
-    verify { bizLogger.logLogin("1", "openid_1", "WECHAT", true, "USER_LOGIN", any()) }
-  }
+      val response = service.login("code")
 
-  @Test
-  fun `login should create new user when absent`() {
-    every { wxMaService.userService.getSessionInfo("code") } returns session("openid_new")
-    every { userRepository.findByWechatOpenId("openid_new") } returns null
-    every { userRepository.save(any()) } answers { firstArg<UserModel>().also { it.id = 5L } }
+      response.accessToken shouldBe "access"
+      response.refreshToken shouldBe "refresh"
+      response.tokenType shouldBe "Bearer"
+      response.userInfo.id shouldBe 1L
+      verify { bizLogger.logLogin("1", "openid_1", "WECHAT", true, "USER_LOGIN", any()) }
+    }
+    test("login should create new user when absent") {
+      every { wxMaService.userService.getSessionInfo("code") } returns session("openid_new")
+      every { userRepository.findByWechatOpenId("openid_new") } returns null
+      every { userRepository.save(any()) } answers { firstArg<UserModel>().also { it.id = 5L } }
 
-    val response = service.login("code")
+      val response = service.login("code")
 
-    assertEquals(5L, response.userInfo.id)
-    verify { bizLogger.logUserOperation(5L, "USER_CREATED", "SUCCESS", null, null, mapOf("loginMethod" to "WECHAT")) }
-  }
+      response.userInfo.id shouldBe 5L
+      verify { bizLogger.logUserOperation(5L, "USER_CREATED", "SUCCESS", null, null, mapOf("loginMethod" to "WECHAT")) }
+    }
+    test("login should throw when wechat api fails") {
+      every { wxMaService.userService.getSessionInfo("code") } throws WxErrorException("api error")
+      val exception = shouldThrow<WeChatAuthException> { service.login("code") }
+      exception.message!!.contains("WeChat API error") shouldBe true
+    }
+    test("login should throw when unexpected exception occurs") {
+      every { wxMaService.userService.getSessionInfo("code") } throws RuntimeException("boom")
+      val exception = shouldThrow<WeChatAuthException> { service.login("code") }
+      exception.message!!.contains("Login failed") shouldBe true
+    }
+    test("refreshToken should issue new tokens") {
+      every { jwtTokenService.getUserPrincipalFromToken("refresh") } returns principal()
+      every { userRepository.findById(1L) } returns Optional.of(user())
+      every { jwtTokenService.generateAccessToken(any()) } returns "new-access"
+      every { jwtTokenService.generateRefreshToken(any()) } returns "new-refresh"
 
-  @Test
-  fun `login should throw when wechat api fails`() {
-    every { wxMaService.userService.getSessionInfo("code") } throws WxErrorException("api error")
-    val exception = assertThrows<WeChatAuthException> { service.login("code") }
-    assertTrue(exception.message!!.contains("WeChat API error"))
-  }
+      val response = service.refreshToken("refresh")
 
-  @Test
-  fun `login should throw when unexpected exception occurs`() {
-    every { wxMaService.userService.getSessionInfo("code") } throws RuntimeException("boom")
-    val exception = assertThrows<WeChatAuthException> { service.login("code") }
-    assertTrue(exception.message!!.contains("Login failed"))
-  }
+      response.accessToken shouldBe "new-access"
+      response.refreshToken shouldBe "new-refresh"
+    }
+    test("refreshToken should throw when principal is null") {
+      every { jwtTokenService.getUserPrincipalFromToken("bad") } returns null
+      shouldThrow<WeChatAuthException> { service.refreshToken("bad") }
+    }
+    test("refreshToken should throw when user missing") {
+      every { jwtTokenService.getUserPrincipalFromToken("refresh") } returns principal()
+      every { userRepository.findById(1L) } returns Optional.empty()
+      shouldThrow<WeChatAuthException> { service.refreshToken("refresh") }
+    }
+    test("getUserInfo should return user info") {
+      every { userRepository.findById(1L) } returns Optional.of(user())
+      val info = service.getUserInfo(principal())
+      info.id shouldBe 1L
+      info.nickname shouldBe "alice"
+    }
+    test("getUserInfo should throw when user missing") {
+      every { userRepository.findById(1L) } returns Optional.empty()
+      shouldThrow<WeChatAuthException> { service.getUserInfo(principal()) }
+    }
+    test("updateUserProfile should update fields") {
+      val existing = user()
+      every { userRepository.findById(1L) } returns Optional.of(existing)
+      every { userRepository.save(any()) } answers { firstArg() }
 
-  @Test
-  fun `refreshToken should issue new tokens`() {
-    every { jwtTokenService.getUserPrincipalFromToken("refresh") } returns principal()
-    every { userRepository.findById(1L) } returns Optional.of(user())
-    every { jwtTokenService.generateAccessToken(any()) } returns "new-access"
-    every { jwtTokenService.generateRefreshToken(any()) } returns "new-refresh"
+      val info = service.updateUserProfile(principal(), UpdateUserRequest(nickname = "bob", phone = "139", avatar = "http://a"))
 
-    val response = service.refreshToken("refresh")
-
-    assertEquals("new-access", response.accessToken)
-    assertEquals("new-refresh", response.refreshToken)
-  }
-
-  @Test
-  fun `refreshToken should throw when principal is null`() {
-    every { jwtTokenService.getUserPrincipalFromToken("bad") } returns null
-    assertThrows<WeChatAuthException> { service.refreshToken("bad") }
-  }
-
-  @Test
-  fun `refreshToken should throw when user missing`() {
-    every { jwtTokenService.getUserPrincipalFromToken("refresh") } returns principal()
-    every { userRepository.findById(1L) } returns Optional.empty()
-    assertThrows<WeChatAuthException> { service.refreshToken("refresh") }
-  }
-
-  @Test
-  fun `getUserInfo should return user info`() {
-    every { userRepository.findById(1L) } returns Optional.of(user())
-    val info = service.getUserInfo(principal())
-    assertEquals(1L, info.id)
-    assertEquals("alice", info.nickname)
-  }
-
-  @Test
-  fun `getUserInfo should throw when user missing`() {
-    every { userRepository.findById(1L) } returns Optional.empty()
-    assertThrows<WeChatAuthException> { service.getUserInfo(principal()) }
-  }
-
-  @Test
-  fun `updateUserProfile should update fields`() {
-    val existing = user()
-    every { userRepository.findById(1L) } returns Optional.of(existing)
-    every { userRepository.save(any()) } answers { firstArg() }
-
-    val info = service.updateUserProfile(principal(), UpdateUserRequest(nickname = "bob", phone = "139", avatar = "http://a"))
-
-    assertEquals("bob", info.nickname)
-    assertEquals("139", info.phone)
-    verify { bizLogger.logUserOperation(1L, "USER_UPDATED", "SUCCESS", 1L, "openid_1", any()) }
-  }
-
-  @Test
-  fun `updateUserProfile should throw when user missing`() {
-    every { userRepository.findById(1L) } returns Optional.empty()
-    assertThrows<WeChatAuthException> { service.updateUserProfile(principal(), UpdateUserRequest()) }
-  }
-
-  @Test
-  fun `updateUserProfile with null fields should keep existing`() {
-    val existing = user()
-    every { userRepository.findById(1L) } returns Optional.of(existing)
-    every { userRepository.save(any()) } answers { firstArg() }
-    val info = service.updateUserProfile(principal(), UpdateUserRequest())
-    assertEquals("alice", info.nickname)
-    assertEquals("13800138000", info.phone)
-  }
-
-  @Test
-  fun `WeChatLoginResponse should expose fields`() {
-    val response = WeChatLoginResponse("a", "r", 86400, "Bearer", UserInfo(1L, "openid", "n", null, null, "openid"))
-    assertNotNull(response.userInfo)
-    assertEquals(86400, response.expiresIn)
-  }
-}
+      info.nickname shouldBe "bob"
+      info.phone shouldBe "139"
+      verify { bizLogger.logUserOperation(1L, "USER_UPDATED", "SUCCESS", 1L, "openid_1", any()) }
+    }
+    test("updateUserProfile should throw when user missing") {
+      every { userRepository.findById(1L) } returns Optional.empty()
+      shouldThrow<WeChatAuthException> { service.updateUserProfile(principal(), UpdateUserRequest()) }
+    }
+    test("updateUserProfile with null fields should keep existing") {
+      val existing = user()
+      every { userRepository.findById(1L) } returns Optional.of(existing)
+      every { userRepository.save(any()) } answers { firstArg() }
+      val info = service.updateUserProfile(principal(), UpdateUserRequest())
+      info.nickname shouldBe "alice"
+      info.phone shouldBe "13800138000"
+    }
+    test("WeChatLoginResponse should expose fields") {
+      val response = WeChatLoginResponse("a", "r", 86400, "Bearer", UserInfo(1L, "openid", "n", null, null, "openid"))
+      response.userInfo.shouldNotBeNull()
+      response.expiresIn shouldBe 86400
+    }
+  })

@@ -20,67 +20,62 @@
 package dev.yidafu.aqua.common.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.SoftDeletable
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import jakarta.persistence.EntityManager
-import org.junit.jupiter.api.Assertions.*
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.jpa.repository.support.JpaEntityInformation
 import java.time.LocalDateTime
 import java.util.*
 
-class SoftDeleteRepositoryTest {
-  private lateinit var repository: SoftDeleteRepositoryImpl<TestEntity, Long>
-  private lateinit var entityManager: EntityManager
-  private lateinit var entityInformation: JpaEntityInformation<TestEntity, *>
+class SoftDeleteRepositoryTest :
+  FunSpec({
+    data class TestEntity(
+      override var deletedAt: LocalDateTime? = null,
+      override var deletedBy: Long? = null,
+    ) : SoftDeletable
+    var repository: SoftDeleteRepositoryImpl<TestEntity, Long> = mockk()
+    var entityManager: EntityManager = mockk()
+    var entityInformation: JpaEntityInformation<TestEntity, *> = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    entityManager = mockk(relaxed = true)
-    entityInformation = mockk()
-    every { entityInformation.javaType } returns TestEntity::class.java
+    beforeTest {
+      entityManager = mockk(relaxed = true)
+      entityInformation = mockk()
+      every { entityInformation.javaType } returns TestEntity::class.java
 
-    repository = SoftDeleteRepositoryImpl(entityInformation, entityManager)
-  }
+      repository = SoftDeleteRepositoryImpl(entityInformation, entityManager)
+    }
+    test("test deleteSoft should mark entity as deleted") {
+      // Given
+      val entity = TestEntity()
 
-  @Test
-  fun `test deleteSoft should mark entity as deleted`() {
-    // Given
-    val entity = TestEntity()
+      // When
+      repository.deleteSoft(entity)
 
-    // When
-    repository.deleteSoft(entity)
+      // Then
+      entity.deletedAt.shouldNotBeNull()
+      entity.deletedAt.shouldNotBeNull()
+      verify { entityManager.merge(entity) }
+    }
+    test("test restore should mark entity as not deleted") {
+      // Given
+      val entity =
+        TestEntity().apply {
+          deletedAt = LocalDateTime.now()
+          deletedAt = LocalDateTime.now()
+        }
+      val optional = Optional.of(entity)
+      every { entityManager.find(TestEntity::class.java, 1L) } returns entity
 
-    // Then
-    assertNotNull(entity.deletedAt)
-    assertNotNull(entity.deletedAt)
-    verify { entityManager.merge(entity) }
-  }
+      // When
+      repository.restore(1L)
 
-  @Test
-  fun `test restore should mark entity as not deleted`() {
-    // Given
-    val entity =
-      TestEntity().apply {
-        deletedAt = LocalDateTime.now()
-        deletedAt = LocalDateTime.now()
-      }
-    val optional = Optional.of(entity)
-    every { entityManager.find(TestEntity::class.java, 1L) } returns entity
-
-    // When
-    repository.restore(1L)
-
-    // Then
-    assertNull(entity.deletedAt)
-    assertNull(entity.deletedAt)
-    verify { entityManager.merge(entity) }
-  }
-
-  data class TestEntity(
-    override var deletedAt: LocalDateTime? = null,
-    override var deletedBy: Long? = null,
-  ) : SoftDeletable
-}
+      // Then
+      entity.deletedAt.shouldBeNull()
+      entity.deletedAt.shouldBeNull()
+      verify { entityManager.merge(entity) }
+    }
+  })

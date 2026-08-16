@@ -19,76 +19,55 @@
 
 package dev.yidafu.aqua.logging.context
 
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 
-class UserContextHolderTest {
-  private val context = UserContext(userId = "1", username = "alice", role = "ADMIN", tenantId = "t1")
+class UserContextHolderTest :
+  FunSpec({
+    val context = UserContext(userId = "1", username = "alice", role = "ADMIN", tenantId = "t1")
 
-  @AfterEach
-  fun tearDown() {
-    UserContextHolder.clear()
-  }
-
-  @Test
-  fun `set and get should round trip`() {
-    UserContextHolder.setUserContext(context)
-    assertEquals(context, UserContextHolder.getUserContext())
-  }
-
-  @Test
-  fun `get should return null when unset`() {
-    assertNull(UserContextHolder.getUserContext())
-  }
-
-  @Test
-  fun `getUserId should return user id`() {
-    UserContextHolder.setUserContext(context)
-    assertEquals("1", UserContextHolder.getUserId())
-  }
-
-  @Test
-  fun `getUsername should return username`() {
-    UserContextHolder.setUserContext(context)
-    assertEquals("alice", UserContextHolder.getUsername())
-  }
-
-  @Test
-  fun `getUserRole should return role`() {
-    UserContextHolder.setUserContext(context)
-    assertEquals("ADMIN", UserContextHolder.getUserRole())
-  }
-
-  @Test
-  fun `getUserRole should return null when role is null`() {
-    UserContextHolder.setUserContext(UserContext(userId = "1", username = "alice"))
-    assertNull(UserContextHolder.getUserRole())
-  }
-
-  @Test
-  fun `accessors should return null when no context`() {
-    assertNull(UserContextHolder.getUserId())
-    assertNull(UserContextHolder.getUsername())
-    assertNull(UserContextHolder.getUserRole())
-  }
-
-  @Test
-  fun `clear should remove context`() {
-    UserContextHolder.setUserContext(context)
-    UserContextHolder.clear()
-    assertNull(UserContextHolder.getUserContext())
-  }
-
-  @Test
-  fun `hasUserContext should reflect state`() {
-    assertFalse(UserContextHolder.hasUserContext())
-    UserContextHolder.setUserContext(context)
-    assertTrue(UserContextHolder.hasUserContext())
-    UserContextHolder.clear()
-    assertFalse(UserContextHolder.hasUserContext())
-  }
-}
+    afterTest {
+      UserContextHolder.clear()
+    }
+    test("set and get should round trip") {
+      UserContextHolder.setUserContext(context)
+      UserContextHolder.getUserContext() shouldBe context
+    }
+    test("get should return null when unset") {
+      UserContextHolder.getUserContext().shouldBeNull()
+    }
+    test("getUserId should return user id") {
+      UserContextHolder.setUserContext(context)
+      UserContextHolder.getUserId() shouldBe "1"
+    }
+    test("getUsername should return username") {
+      UserContextHolder.setUserContext(context)
+      UserContextHolder.getUsername() shouldBe "alice"
+    }
+    test("getUserRole should return role") {
+      UserContextHolder.setUserContext(context)
+      UserContextHolder.getUserRole() shouldBe "ADMIN"
+    }
+    test("getUserRole should return null when role is null") {
+      UserContextHolder.setUserContext(UserContext(userId = "1", username = "alice"))
+      UserContextHolder.getUserRole().shouldBeNull()
+    }
+    test("accessors should return null when no context") {
+      UserContextHolder.getUserId().shouldBeNull()
+      UserContextHolder.getUsername().shouldBeNull()
+      UserContextHolder.getUserRole().shouldBeNull()
+    }
+    test("clear should remove context") {
+      UserContextHolder.setUserContext(context)
+      UserContextHolder.clear()
+      UserContextHolder.getUserContext().shouldBeNull()
+    }
+    test("hasUserContext should reflect state") {
+      UserContextHolder.hasUserContext() shouldBe false
+      UserContextHolder.setUserContext(context)
+      UserContextHolder.hasUserContext() shouldBe true
+      UserContextHolder.clear()
+      UserContextHolder.hasUserContext() shouldBe false
+    }
+  })

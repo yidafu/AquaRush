@@ -21,64 +21,53 @@ package dev.yidafu.aqua.marketing.flashsale.service.impl
 
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
 import dev.yidafu.aqua.marketing.flashsale.domain.repository.FlashSaleActivityRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.domain.Specification
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 /** 限时特价活动查询服务单元测试(F-MKT-005 列表/详情)。 */
-class FlashSaleActivityQueryServiceImplTest {
-  private lateinit var flashSaleActivityRepository: FlashSaleActivityRepository
-  private lateinit var service: FlashSaleActivityQueryServiceImpl
+class FlashSaleActivityQueryServiceImplTest :
+  FunSpec({
+    var flashSaleActivityRepository: FlashSaleActivityRepository = mockk()
+    var service: FlashSaleActivityQueryServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    flashSaleActivityRepository = mockk()
-    service = FlashSaleActivityQueryServiceImpl(flashSaleActivityRepository)
-  }
+    beforeTest {
+      flashSaleActivityRepository = mockk()
+      service = FlashSaleActivityQueryServiceImpl(flashSaleActivityRepository)
+    }
+    test("listActivities with keyword") {
+      val pageable: Pageable = PageRequest.of(0, 10)
+      val page: Page<FlashSaleActivityModel> = PageImpl(listOf(FlashSaleActivityModel(id = 1L, name = "特价")))
+      every { flashSaleActivityRepository.findAll(any<Specification<FlashSaleActivityModel>>(), any<Pageable>()) } returns page
 
-  @Test
-  @DisplayName("列表:带关键字")
-  fun `listActivities with keyword`() {
-    val pageable: Pageable = PageRequest.of(0, 10)
-    val page: Page<FlashSaleActivityModel> = PageImpl(listOf(FlashSaleActivityModel(id = 1L, name = "特价")))
-    every { flashSaleActivityRepository.findAll(any<Specification<FlashSaleActivityModel>>(), any<Pageable>()) } returns page
+      val result = service.listActivities("特价", pageable)
 
-    val result = service.listActivities("特价", pageable)
+      result.totalElements shouldBe 1
+      verify { flashSaleActivityRepository.findAll(any<Specification<FlashSaleActivityModel>>(), any<Pageable>()) }
+    }
+    test("listActivities without keyword") {
+      val pageable: Pageable = PageRequest.of(0, 10)
+      every { flashSaleActivityRepository.findAll(any<Specification<FlashSaleActivityModel>>(), any<Pageable>()) } returns
+        PageImpl(emptyList())
 
-    assertEquals(1, result.totalElements)
-    verify { flashSaleActivityRepository.findAll(any<Specification<FlashSaleActivityModel>>(), any<Pageable>()) }
-  }
+      val result = service.listActivities(null, pageable)
 
-  @Test
-  @DisplayName("列表:无关键字")
-  fun `listActivities without keyword`() {
-    val pageable: Pageable = PageRequest.of(0, 10)
-    every { flashSaleActivityRepository.findAll(any<Specification<FlashSaleActivityModel>>(), any<Pageable>()) } returns
-      PageImpl(emptyList())
+      result.totalElements shouldBe 0
+    }
+    test("getActivity") {
+      every { flashSaleActivityRepository.findById(1L) } returns Optional.of(FlashSaleActivityModel(id = 1L, name = "特价"))
+      every { flashSaleActivityRepository.findById(99L) } returns Optional.empty()
 
-    val result = service.listActivities(null, pageable)
-
-    assertEquals(0, result.totalElements)
-  }
-
-  @Test
-  @DisplayName("详情:存在返回,不存在返回 null")
-  fun `getActivity`() {
-    every { flashSaleActivityRepository.findById(1L) } returns Optional.of(FlashSaleActivityModel(id = 1L, name = "特价"))
-    every { flashSaleActivityRepository.findById(99L) } returns Optional.empty()
-
-    assertEquals(1L, service.getActivity(1L)?.id)
-    assertNull(service.getActivity(99L))
-  }
-}
+      service.getActivity(1L)?.id shouldBe 1L
+      service.getActivity(99L).shouldBeNull()
+    }
+  })

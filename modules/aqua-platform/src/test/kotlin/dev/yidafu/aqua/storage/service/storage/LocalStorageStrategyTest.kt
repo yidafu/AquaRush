@@ -22,146 +22,121 @@ package dev.yidafu.aqua.storage.service.storage
 import dev.yidafu.aqua.storage.config.StorageProperties
 import dev.yidafu.aqua.storage.domain.model.FileMetadata
 import dev.yidafu.aqua.storage.domain.model.enums.FileType
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.io.TempDir
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import org.springframework.web.multipart.MultipartFile
 import java.io.ByteArrayInputStream
 import java.nio.file.Files
 import java.nio.file.Path
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
 /**
  * 本地存储策略单元测试: 按类型/年月落盘、读取、删除、URL 生成、文件大小
  */
-class LocalStorageStrategyTest {
-  @TempDir
-  lateinit var tempDir: Path
+class LocalStorageStrategyTest :
+  FunSpec({
+    var tempDir: Path = mockk()
+    var strategy: LocalStorageStrategy = mockk()
 
-  private lateinit var strategy: LocalStorageStrategy
+    fun file(
+      name: String = "a.jpg",
+      bytes: ByteArray = byteArrayOf(1, 2, 3, 4),
+    ): MultipartFile =
+      object : MultipartFile {
+        override fun getInputStream(): java.io.InputStream = ByteArrayInputStream(bytes)
 
-  @BeforeEach
-  fun setUp() {
-    val props =
-      StorageProperties().apply {
-        local.basePath = tempDir.toString()
-        local.baseUrl = "http://localhost:9090"
+        override fun getName(): String = "file"
+
+        override fun getOriginalFilename(): String? = name
+
+        override fun getContentType(): String? = "image/jpeg"
+
+        override fun isEmpty(): Boolean = bytes.isEmpty()
+
+        override fun getSize(): Long = bytes.size.toLong()
+
+        override fun getBytes(): ByteArray = bytes
+
+        override fun transferTo(dest: java.io.File) {
+          dest.writeBytes(bytes)
+        }
       }
-    strategy = LocalStorageStrategy(props)
-  }
 
-  @AfterEach
-  fun tearDown() {
-    tempDir.toFile().deleteRecursively()
-  }
+    fun metadata(fileType: FileType = FileType.IMAGE): FileMetadata =
+      FileMetadata().apply {
+        fileName = "a.jpg"
+        this.fileType = fileType
+      }
 
-  private fun file(
-    name: String = "a.jpg",
-    bytes: ByteArray = byteArrayOf(1, 2, 3, 4),
-  ): MultipartFile =
-    object : MultipartFile {
-      override fun getInputStream(): java.io.InputStream = ByteArrayInputStream(bytes)
+    beforeTest { tempDir = Files.createTempDirectory("aqua-storage-test") }
+    beforeTest {
+      val props =
+        StorageProperties().apply {
+          local.basePath = tempDir.toString()
+          local.baseUrl = "http://localhost:9090"
+        }
+      strategy = LocalStorageStrategy(props)
+    }
+    afterTest {
+      tempDir.toFile().deleteRecursively()
+    }
+    test("store writes file under type and returns relative path") {
+      val path = strategy.store(file(), metadata())
 
-      override fun getName(): String = "file"
+      path.startsWith("image/") shouldBe true
+      path.endsWith(".jpg") shouldBe true
+      withClue("stored file should exist") { Files.exists(tempDir.resolve(path)) shouldBe true }
+    }
+    test("retrieve returns file content") {
+      val path = strategy.store(file(name = "b.png", bytes = byteArrayOf(9, 8, 7)), metadata(FileType.IMAGE))
 
-      override fun getOriginalFilename(): String? = name
+      val resource = strategy.retrieve(path)
 
-      override fun getContentType(): String? = "image/jpeg"
-
-      override fun isEmpty(): Boolean = bytes.isEmpty()
-
-      override fun getSize(): Long = bytes.size.toLong()
-
-      override fun getBytes(): ByteArray = bytes
-
-      override fun transferTo(dest: java.io.File) {
-        dest.writeBytes(bytes)
+      resource.contentLength() shouldBe 3
+      resource.inputStream.read() shouldBe 9
+    }
+    test("retrieve throws for missing file") {
+      shouldThrow<RuntimeException> {
+        strategy.retrieve("image/2025/06/nope.jpg")
       }
     }
+    test("delete removes file and returns true") {
+      val path = strategy.store(file(), metadata())
 
-  private fun metadata(fileType: FileType = FileType.IMAGE): FileMetadata =
-    FileMetadata().apply {
-      fileName = "a.jpg"
-      this.fileType = fileType
+      val deleted = strategy.delete(path)
+
+      deleted shouldBe true
+      Files.exists(tempDir.resolve(path)) shouldBe false
     }
-
-  @Test
-  fun `store writes file under type and returns relative path`() {
-    val path = strategy.store(file(), metadata())
-
-    assertTrue(path.startsWith("image/"))
-    assertTrue(path.endsWith(".jpg"))
-    assertTrue(Files.exists(tempDir.resolve(path)), "stored file should exist")
-  }
-
-  @Test
-  fun `retrieve returns file content`() {
-    val path = strategy.store(file(name = "b.png", bytes = byteArrayOf(9, 8, 7)), metadata(FileType.IMAGE))
-
-    val resource = strategy.retrieve(path)
-
-    assertEquals(3, resource.contentLength())
-    assertEquals(9, resource.inputStream.read())
-  }
-
-  @Test
-  fun `retrieve throws for missing file`() {
-    org.junit.jupiter.api.assertThrows<RuntimeException> {
-      strategy.retrieve("image/2025/06/nope.jpg")
+    test("delete returns false when file missing") {
+      strategy.delete("image/2025/06/never.jpg") shouldBe false
     }
-  }
+    test("generateUrl builds download url with id and name") {
+      val url = strategy.generateUrl(42L, "a.jpg")
 
-  @Test
-  fun `delete removes file and returns true`() {
-    val path = strategy.store(file(), metadata())
+      url shouldBe "http://localhost:9090/api/v1/storage/files/42?name=a.jpg"
+    }
+    test("exists reflects file presence") {
+      val path = strategy.store(file(), metadata())
 
-    val deleted = strategy.delete(path)
+      strategy.exists(path) shouldBe true
+      strategy.exists("image/2025/06/ghost.jpg") shouldBe false
+    }
+    test("getFileSize returns stored size") {
+      val path = strategy.store(file(bytes = ByteArray(123)), metadata())
 
-    assertTrue(deleted)
-    assertFalse(Files.exists(tempDir.resolve(path)))
-  }
+      strategy.getFileSize(path) shouldBe 123L
+    }
+    test("getFileSize returns zero for missing file") {
+      strategy.getFileSize("image/2025/06/ghost.jpg") shouldBe 0L
+    }
+    test("store handles file without extension") {
+      val path = strategy.store(file(name = "noext", bytes = byteArrayOf(5)), metadata(FileType.DOCUMENT))
 
-  @Test
-  fun `delete returns false when file missing`() {
-    assertFalse(strategy.delete("image/2025/06/never.jpg"))
-  }
-
-  @Test
-  fun `generateUrl builds download url with id and name`() {
-    val url = strategy.generateUrl(42L, "a.jpg")
-
-    assertEquals("http://localhost:9090/api/v1/storage/files/42?name=a.jpg", url)
-  }
-
-  @Test
-  fun `exists reflects file presence`() {
-    val path = strategy.store(file(), metadata())
-
-    assertTrue(strategy.exists(path))
-    assertFalse(strategy.exists("image/2025/06/ghost.jpg"))
-  }
-
-  @Test
-  fun `getFileSize returns stored size`() {
-    val path = strategy.store(file(bytes = ByteArray(123)), metadata())
-
-    assertEquals(123L, strategy.getFileSize(path))
-  }
-
-  @Test
-  fun `getFileSize returns zero for missing file`() {
-    assertEquals(0L, strategy.getFileSize("image/2025/06/ghost.jpg"))
-  }
-
-  @Test
-  fun `store handles file without extension`() {
-    val path = strategy.store(file(name = "noext", bytes = byteArrayOf(5)), metadata(FileType.DOCUMENT))
-
-    assertTrue(path.startsWith("document/"))
-    assertFalse(path.endsWith("."))
-    assertTrue(Files.exists(tempDir.resolve(path)))
-  }
-}
+      path.startsWith("document/") shouldBe true
+      path.endsWith(".") shouldBe false
+      Files.exists(tempDir.resolve(path)) shouldBe true
+    }
+  })

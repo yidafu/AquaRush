@@ -20,16 +20,17 @@
 package dev.yidafu.aqua.admin.product.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
-import dev.yidafu.aqua.admin.ops.resolvers.WithMockUserPrincipal
+import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.product.domain.repository.ProductFavoriteRepository
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import io.kotest.assertions.withClue
+import io.kotest.core.extensions.ApplyExtension
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
@@ -52,116 +53,101 @@ import org.springframework.web.context.WebApplicationContext
 )
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/product/"])
-@DisplayName("AdminFavoriteResolver GraphQL Integration Tests")
-class AdminFavoriteResolverGraphQLIntegrationTest {
-  @Autowired
-  private lateinit var context: WebApplicationContext
+@ApplyExtension(SpringExtension::class)
+class AdminFavoriteResolverGraphQLIntegrationTest(
+  context: WebApplicationContext,
+  productRepository: ProductRepository,
+  productFavoriteRepository: ProductFavoriteRepository,
+) : FunSpec({
+    var mockMvc: MockMvc = mockk()
 
-  @Autowired
-  private lateinit var productRepository: ProductRepository
+    fun postGraphql(query: String): String {
+      val escaped = query.replace("\"", "\\\"")
+      val result =
+        mockMvc
+          .perform(
+            post("/graphql")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content("""{"query": "$escaped"}"""),
+          ).andExpect(status().isOk)
+          .andReturn()
+      return result.response.contentAsString
+    }
 
-  @Autowired
-  private lateinit var productFavoriteRepository: ProductFavoriteRepository
+    fun seedProduct(name: String): Long =
+      productRepository
+        .save(
+          ProductModel(
+            name = name,
+            price = 2000,
+            coverImageUrl = "https://example.com/$name.jpg",
+            specification = "19L",
+            stock = 100,
+            salesVolume = 10,
+            status = ProductModelStatus.ONLINE,
+          ),
+        ).id!!
 
-  private lateinit var mockMvc: MockMvc
+    /** 种子商品(名称唯一),返回商品 id */
 
-  @BeforeEach
-  fun setUp() {
-    mockMvc =
-      MockMvcBuilders
-        .webAppContextSetup(context)
-        .apply<DefaultMockMvcBuilder>(springSecurity())
-        .build()
-  }
-
-  private fun postGraphql(query: String): String {
-    val escaped = query.replace("\"", "\\\"")
-    val result =
-      mockMvc
-        .perform(
-          post("/graphql")
-            .contentType(MediaType.APPLICATION_JSON)
-            .content("""{"query": "$escaped"}"""),
-        ).andExpect(status().isOk)
-        .andReturn()
-    return result.response.contentAsString
-  }
-
-  /** 种子商品(名称唯一),返回商品 id */
-  private fun seedProduct(name: String): Long =
-    productRepository
-      .save(
-        ProductModel(
-          name = name,
-          price = 2000,
-          coverImageUrl = "https://example.com/$name.jpg",
-          specification = "19L",
-          stock = 100,
-          salesVolume = 10,
-          status = ProductModelStatus.ONLINE,
+    beforeTest {
+      mockMvc =
+        MockMvcBuilders
+          .webAppContextSetup(context)
+          .apply<DefaultMockMvcBuilder>(springSecurity())
+          .build()
+    }
+    test("favoriteProducts returns user favorites") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_USER_READ"))
+      val productId = seedProduct("收藏商品${System.currentTimeMillis()}")
+      productFavoriteRepository.save(
+        dev.yidafu.aqua.common.domain.model.ProductFavoriteModel(
+          userId = 1L,
+          productId = productId,
+          enable = true,
         ),
-      ).id!!
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_USER_READ"])
-  @DisplayName("favoriteProducts 返回该用户收藏商品(含 addedAt/价格/销量)")
-  fun `favoriteProducts returns user favorites`() {
-    val productId = seedProduct("收藏商品${System.currentTimeMillis()}")
-    productFavoriteRepository.save(
-      dev.yidafu.aqua.common.domain.model.ProductFavoriteModel(
-        userId = 1L,
-        productId = productId,
-        enable = true,
-      ),
-    )
-    val json =
-      postGraphql(
-        "{ favoriteProducts(userId: 1, page: 0, size: 20) { list { id name priceCents salesVolume status addedAt } pageInfo { total pageSize pageNum } } }",
       )
-    assertTrue(
-      json.contains("\"id\" : \"$productId\"") &&
-        json.contains("\"priceCents\" : \"2000\"") &&
-        json.contains("\"salesVolume\" : 10") &&
-        json.contains("\"status\" : \"ONLINE\"") &&
-        json.contains("\"addedAt\"") &&
-        json.contains("\"total\" : 1") &&
-        !json.contains("\"errors\""),
-      "favoriteProducts should return seeded favorite: $json",
-    )
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_USER_READ"])
-  @DisplayName("favoriteProducts 分页生效(size=1 返回 1 条,total 为 2)")
-  fun `favoriteProducts paginates`() {
-    val p1 = seedProduct("收藏分页商品A${System.currentTimeMillis()}")
-    val p2 = seedProduct("收藏分页商品B${System.currentTimeMillis()}")
-    val favorite =
-      dev.yidafu.aqua.common.domain.model
-        .ProductFavoriteModel(userId = 2L, productId = p1, enable = true)
-    productFavoriteRepository.save(favorite)
-    productFavoriteRepository.save(
-      dev.yidafu.aqua.common.domain.model
-        .ProductFavoriteModel(userId = 2L, productId = p2, enable = true),
-    )
-    val json = postGraphql("{ favoriteProducts(userId: 2, page: 0, size: 1) { list { id } pageInfo { total pageSize hasNext } } }")
-    assertTrue(
-      json.contains("\"total\" : 2") &&
-        json.contains("\"pageSize\" : 1") &&
-        json.contains("\"hasNext\" : true") &&
-        !json.contains("\"errors\""),
-      "favoriteProducts should paginate: $json",
-    )
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_USER_READ"])
-  @DisplayName("favoriteProducts 无收藏返回空列表")
-  fun `favoriteProducts returns empty for user without favorites`() {
-    val json = postGraphql("{ favoriteProducts(userId: 999999, page: 0, size: 20) { list { id } pageInfo { total } } }")
-    assertTrue(
-      json.contains("\"list\" : [ ]") && json.contains("\"total\" : 0") && !json.contains("\"errors\""),
-      "favoriteProducts should be empty: $json",
-    )
-  }
-}
+      val json =
+        postGraphql(
+          "{ favoriteProducts(userId: 1, page: 0, size: 20) { list { id name priceCents salesVolume status addedAt } pageInfo { total pageSize pageNum } } }",
+        )
+      withClue("favoriteProducts should return seeded favorite: $json") {
+        json.contains("\"id\" : \"$productId\"") &&
+          json.contains("\"priceCents\" : \"2000\"") &&
+          json.contains("\"salesVolume\" : 10") &&
+          json.contains("\"status\" : \"ONLINE\"") &&
+          json.contains("\"addedAt\"") &&
+          json.contains("\"total\" : 1") &&
+          !json.contains("\"errors\"") shouldBe true
+      }
+    }
+    test("favoriteProducts paginates") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_USER_READ"))
+      val p1 = seedProduct("收藏分页商品A${System.currentTimeMillis()}")
+      val p2 = seedProduct("收藏分页商品B${System.currentTimeMillis()}")
+      val favorite =
+        dev.yidafu.aqua.common.domain.model
+          .ProductFavoriteModel(userId = 2L, productId = p1, enable = true)
+      productFavoriteRepository.save(favorite)
+      productFavoriteRepository.save(
+        dev.yidafu.aqua.common.domain.model
+          .ProductFavoriteModel(userId = 2L, productId = p2, enable = true),
+      )
+      val json = postGraphql("{ favoriteProducts(userId: 2, page: 0, size: 1) { list { id } pageInfo { total pageSize hasNext } } }")
+      withClue("favoriteProducts should paginate: $json") {
+        json.contains("\"total\" : 2") &&
+          json.contains("\"pageSize\" : 1") &&
+          json.contains("\"hasNext\" : true") &&
+          !json.contains("\"errors\"") shouldBe true
+      }
+    }
+    test("favoriteProducts returns empty for user without favorites") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_USER_READ"))
+      val json = postGraphql("{ favoriteProducts(userId: 999999, page: 0, size: 20) { list { id } pageInfo { total } } }")
+      withClue("favoriteProducts should be empty: $json") {
+        json.contains("\"list\" : [ ]") &&
+          json.contains("\"total\" : 0") &&
+          !json.contains("\"errors\"") shouldBe true
+      }
+    }
+  })

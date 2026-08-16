@@ -27,340 +27,301 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminAccountStatus
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
 import java.time.LocalDateTime
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
-class AdminDeliveryWorkerMutationResolverTest {
-  private lateinit var adminService: AdminService
-  private lateinit var resolver: AdminDeliveryWorkerMutationResolver
+class AdminDeliveryWorkerMutationResolverTest :
+  FunSpec({
+    var adminService: AdminService = mockk()
+    var resolver: AdminDeliveryWorkerMutationResolver = mockk()
 
-  private fun createSampleWorker(): AdminModel =
-    AdminModel(
-      id = 2L,
-      username = "delivery_2",
-      passwordHash = "hashed_password",
-      realName = "送水员甲",
-      phone = "13900139000",
-      role = AdminRoleModel.DELIVERY_WORKER,
-      accountStatus = AdminAccountStatus.ACTIVE,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private fun validCreateInput(): CreateDeliveryWorkerInput =
-    CreateDeliveryWorkerInput(
-      wechatOpenId = null,
-      name = "送水员甲",
-      phone = "13900139000",
-      password = "password123",
-      avatarUrl = null,
-      coordinates = null,
-      currentLocation = null,
-      rating = 4.5,
-      earningCents = 1000L,
-      isAvailable = true,
-      accountStatus = AdminAccountStatus.ACTIVE,
-    )
-
-  private fun mockCurrentUser(id: Long) {
-    SecurityContextHolder.getContext().authentication =
-      UsernamePasswordAuthenticationToken(
-        UserPrincipal(id, "admin", "ADMIN", emptyList()),
-        null,
-        emptyList(),
+    fun createSampleWorker(): AdminModel =
+      AdminModel(
+        id = 2L,
+        username = "delivery_2",
+        passwordHash = "hashed_password",
+        realName = "送水员甲",
+        phone = "13900139000",
+        role = AdminRoleModel.DELIVERY_WORKER,
+        accountStatus = AdminAccountStatus.ACTIVE,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
-  }
 
-  @BeforeEach
-  fun setUp() {
-    adminService = mockk(relaxed = true)
-    resolver = AdminDeliveryWorkerMutationResolver(adminService)
-  }
-
-  @AfterEach
-  fun tearDown() {
-    SecurityContextHolder.clearContext()
-  }
-
-  @Test
-  fun `createDeliveryWorker should create worker account`() {
-    // Given
-    every { adminService.createAdmin(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns
-      createSampleWorker()
-
-    // When
-    val result = resolver.createDeliveryWorker(validCreateInput())
-
-    // Then
-    assertNotNull(result)
-    verify {
-      adminService.createAdmin(
-        null,
-        "password123",
-        "送水员甲",
-        "13900139000",
-        AdminRoleModel.DELIVERY_WORKER,
-        null,
-        dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus.OFFLINE,
-        true,
-        null,
-        null,
-        4.5,
-        1000L,
-        AdminAccountStatus.ACTIVE,
-      )
-    }
-  }
-
-  @Test
-  fun `createDeliveryWorker should reject blank name`() {
-    // Given
-    val input = validCreateInput().copy(name = "  ")
-
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.createDeliveryWorker(input) }
-    assertTrue(exception.message!!.contains("姓名不能为空"))
-  }
-
-  @Test
-  fun `createDeliveryWorker should reject blank phone`() {
-    // Given
-    val input = validCreateInput().copy(phone = " ")
-
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.createDeliveryWorker(input) }
-    assertTrue(exception.message!!.contains("手机号码不能为空"))
-  }
-
-  @Test
-  fun `createDeliveryWorker should reject invalid phone`() {
-    // Given
-    val input = validCreateInput().copy(phone = "12345")
-
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.createDeliveryWorker(input) }
-    assertTrue(exception.message!!.contains("手机号码格式不正确"))
-  }
-
-  @Test
-  fun `createDeliveryWorker should reject negative rating`() {
-    // Given
-    val input = validCreateInput().copy(rating = -1.0)
-
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.createDeliveryWorker(input) }
-    assertTrue(exception.message!!.contains("评分不能为负数"))
-  }
-
-  @Test
-  fun `createDeliveryWorker should reject negative earnings`() {
-    // Given
-    val input = validCreateInput().copy(earningCents = -10L)
-
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.createDeliveryWorker(input) }
-    assertTrue(exception.message!!.contains("收入不能为负数"))
-  }
-
-  @Test
-  fun `createDeliveryWorker should wrap service errors`() {
-    // Given
-    every { adminService.createAdmin(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } throws
-      RuntimeException("db down")
-
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.createDeliveryWorker(validCreateInput()) }
-    assertTrue(exception.message!!.contains("创建送水工失败"))
-  }
-
-  @Test
-  fun `updateDeliveryWorker should update existing worker`() {
-    // Given
-    every { adminService.findById(2L) } returns createSampleWorker()
-    every { adminService.updateAdmin(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns
-      createSampleWorker()
-    val input =
-      UpdateDeliveryWorkerInput(
+    fun validCreateInput(): CreateDeliveryWorkerInput =
+      CreateDeliveryWorkerInput(
         wechatOpenId = null,
-        name = "送水员乙",
-        phone = "13800138000",
+        name = "送水员甲",
+        phone = "13900139000",
+        password = "password123",
         avatarUrl = null,
         coordinates = null,
         currentLocation = null,
-        rating = 5.0,
-        earningCents = 2000L,
+        rating = 4.5,
+        earningCents = 1000L,
         isAvailable = true,
-        status = null,
-        accountStatus = null,
+        accountStatus = AdminAccountStatus.ACTIVE,
       )
 
-    // When
-    val result = resolver.updateDeliveryWorker(2L, input)
-
-    // Then
-    assertNotNull(result)
-    verify {
-      adminService.updateAdmin(
-        2L,
-        "送水员乙",
-        "13800138000",
-        null,
-        null,
-        null,
-        true,
-        null,
-        null,
-        5.0,
-        2000L,
-        null,
-      )
+    fun mockCurrentUser(id: Long) {
+      SecurityContextHolder.getContext().authentication =
+        UsernamePasswordAuthenticationToken(
+          UserPrincipal(id, "admin", "ADMIN", emptyList()),
+          null,
+          emptyList(),
+        )
     }
-  }
 
-  @Test
-  fun `updateDeliveryWorker should wrap not found error`() {
-    // Given
-    every { adminService.findById(999L) } returns null
+    beforeTest {
+      adminService = mockk(relaxed = true)
+      resolver = AdminDeliveryWorkerMutationResolver(adminService)
+    }
+    afterTest {
+      SecurityContextHolder.clearContext()
+    }
+    test("createDeliveryWorker should create worker account") {
+      // Given
+      every { adminService.createAdmin(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns
+        createSampleWorker()
 
-    // When & Then
-    val exception =
-      assertFailsWith<BadRequestException> {
-        resolver.updateDeliveryWorker(
-          999L,
-          UpdateDeliveryWorkerInput(
-            wechatOpenId = null,
-            name = "x",
-            phone = null,
-            avatarUrl = null,
-            coordinates = null,
-            currentLocation = null,
-            rating = null,
-            earningCents = null,
-            isAvailable = null,
-            status = null,
-            accountStatus = null,
-          ),
+      // When
+      val result = resolver.createDeliveryWorker(validCreateInput())
+
+      // Then
+      result.shouldNotBeNull()
+      verify {
+        adminService.createAdmin(
+          null,
+          "password123",
+          "送水员甲",
+          "13900139000",
+          AdminRoleModel.DELIVERY_WORKER,
+          null,
+          dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus.OFFLINE,
+          true,
+          null,
+          null,
+          4.5,
+          1000L,
+          AdminAccountStatus.ACTIVE,
         )
       }
-    assertTrue(exception.message!!.contains("更新送水工失败"))
-  }
+    }
+    test("createDeliveryWorker should reject blank name") {
+      // Given
+      val input = validCreateInput().copy(name = "  ")
 
-  @Test
-  fun `updateDeliveryWorker should reject invalid phone`() {
-    // Given
-    every { adminService.findById(2L) } returns createSampleWorker()
-    val input =
-      UpdateDeliveryWorkerInput(
-        wechatOpenId = null,
-        name = null,
-        phone = "123",
-        avatarUrl = null,
-        coordinates = null,
-        currentLocation = null,
-        rating = null,
-        earningCents = null,
-        isAvailable = null,
-        status = null,
-        accountStatus = null,
-      )
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.createDeliveryWorker(input) }
+      exception.message!!.contains("姓名不能为空") shouldBe true
+    }
+    test("createDeliveryWorker should reject blank phone") {
+      // Given
+      val input = validCreateInput().copy(phone = " ")
 
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.updateDeliveryWorker(2L, input) }
-    assertTrue(exception.message!!.contains("手机号码格式不正确"))
-  }
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.createDeliveryWorker(input) }
+      exception.message!!.contains("手机号码不能为空") shouldBe true
+    }
+    test("createDeliveryWorker should reject invalid phone") {
+      // Given
+      val input = validCreateInput().copy(phone = "12345")
 
-  @Test
-  fun `deleteDeliveryWorker should reject deleting self`() {
-    // Given
-    mockCurrentUser(2L)
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.createDeliveryWorker(input) }
+      exception.message!!.contains("手机号码格式不正确") shouldBe true
+    }
+    test("createDeliveryWorker should reject negative rating") {
+      // Given
+      val input = validCreateInput().copy(rating = -1.0)
 
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.deleteDeliveryWorker(2L) }
-    assertTrue(exception.message!!.contains("不能删除当前登录账号"))
-  }
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.createDeliveryWorker(input) }
+      exception.message!!.contains("评分不能为负数") shouldBe true
+    }
+    test("createDeliveryWorker should reject negative earnings") {
+      // Given
+      val input = validCreateInput().copy(earningCents = -10L)
 
-  @Test
-  fun `deleteDeliveryWorker should return false when worker not found`() {
-    // Given
-    mockCurrentUser(1L)
-    every { adminService.findById(999L) } returns null
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.createDeliveryWorker(input) }
+      exception.message!!.contains("收入不能为负数") shouldBe true
+    }
+    test("createDeliveryWorker should wrap service errors") {
+      // Given
+      every { adminService.createAdmin(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } throws
+        RuntimeException("db down")
 
-    // When
-    val result = resolver.deleteDeliveryWorker(999L)
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.createDeliveryWorker(validCreateInput()) }
+      exception.message!!.contains("创建送水工失败") shouldBe true
+    }
+    test("updateDeliveryWorker should update existing worker") {
+      // Given
+      every { adminService.findById(2L) } returns createSampleWorker()
+      every { adminService.updateAdmin(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()) } returns
+        createSampleWorker()
+      val input =
+        UpdateDeliveryWorkerInput(
+          wechatOpenId = null,
+          name = "送水员乙",
+          phone = "13800138000",
+          avatarUrl = null,
+          coordinates = null,
+          currentLocation = null,
+          rating = 5.0,
+          earningCents = 2000L,
+          isAvailable = true,
+          status = null,
+          accountStatus = null,
+        )
 
-    // Then
-    assertFalse(result)
-  }
+      // When
+      val result = resolver.updateDeliveryWorker(2L, input)
 
-  @Test
-  fun `deleteDeliveryWorker should reject non delivery worker accounts`() {
-    // Given
-    mockCurrentUser(1L)
-    val admin = createSampleWorker().copy(id = 3L, role = AdminRoleModel.ADMIN)
-    every { adminService.findById(3L) } returns admin
+      // Then
+      result.shouldNotBeNull()
+      verify {
+        adminService.updateAdmin(
+          2L,
+          "送水员乙",
+          "13800138000",
+          null,
+          null,
+          null,
+          true,
+          null,
+          null,
+          5.0,
+          2000L,
+          null,
+        )
+      }
+    }
+    test("updateDeliveryWorker should wrap not found error") {
+      // Given
+      every { adminService.findById(999L) } returns null
 
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.deleteDeliveryWorker(3L) }
-    assertTrue(exception.message!!.contains("不是送水员"))
-  }
+      // When & Then
+      val exception =
+        shouldThrow<BadRequestException> {
+          resolver.updateDeliveryWorker(
+            999L,
+            UpdateDeliveryWorkerInput(
+              wechatOpenId = null,
+              name = "x",
+              phone = null,
+              avatarUrl = null,
+              coordinates = null,
+              currentLocation = null,
+              rating = null,
+              earningCents = null,
+              isAvailable = null,
+              status = null,
+              accountStatus = null,
+            ),
+          )
+        }
+      exception.message!!.contains("更新送水工失败") shouldBe true
+    }
+    test("updateDeliveryWorker should reject invalid phone") {
+      // Given
+      every { adminService.findById(2L) } returns createSampleWorker()
+      val input =
+        UpdateDeliveryWorkerInput(
+          wechatOpenId = null,
+          name = null,
+          phone = "123",
+          avatarUrl = null,
+          coordinates = null,
+          currentLocation = null,
+          rating = null,
+          earningCents = null,
+          isAvailable = null,
+          status = null,
+          accountStatus = null,
+        )
 
-  @Test
-  fun `deleteDeliveryWorker should delete worker`() {
-    // Given
-    mockCurrentUser(1L)
-    every { adminService.findById(2L) } returns createSampleWorker()
-    every { adminService.deleteById(2L) } returns true
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.updateDeliveryWorker(2L, input) }
+      exception.message!!.contains("手机号码格式不正确") shouldBe true
+    }
+    test("deleteDeliveryWorker should reject deleting self") {
+      // Given
+      mockCurrentUser(2L)
 
-    // When
-    val result = resolver.deleteDeliveryWorker(2L)
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.deleteDeliveryWorker(2L) }
+      exception.message!!.contains("不能删除当前登录账号") shouldBe true
+    }
+    test("deleteDeliveryWorker should return false when worker not found") {
+      // Given
+      mockCurrentUser(1L)
+      every { adminService.findById(999L) } returns null
 
-    // Then
-    assertTrue(result)
-    verify { adminService.deleteById(2L) }
-  }
+      // When
+      val result = resolver.deleteDeliveryWorker(999L)
 
-  @Test
-  fun `resetDeliveryWorkerPassword should reject missing worker`() {
-    // Given
-    every { adminService.findById(999L) } returns null
+      // Then
+      result shouldBe false
+    }
+    test("deleteDeliveryWorker should reject non delivery worker accounts") {
+      // Given
+      mockCurrentUser(1L)
+      val admin = createSampleWorker().copy(id = 3L, role = AdminRoleModel.ADMIN)
+      every { adminService.findById(3L) } returns admin
 
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.resetDeliveryWorkerPassword(999L, "newpass") }
-    assertTrue(exception.message!!.contains("送水员不存在"))
-  }
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.deleteDeliveryWorker(3L) }
+      exception.message!!.contains("不是送水员") shouldBe true
+    }
+    test("deleteDeliveryWorker should delete worker") {
+      // Given
+      mockCurrentUser(1L)
+      every { adminService.findById(2L) } returns createSampleWorker()
+      every { adminService.deleteById(2L) } returns true
 
-  @Test
-  fun `resetDeliveryWorkerPassword should reject non delivery worker`() {
-    // Given
-    every { adminService.findById(3L) } returns createSampleWorker().copy(id = 3L, role = AdminRoleModel.ADMIN)
+      // When
+      val result = resolver.deleteDeliveryWorker(2L)
 
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.resetDeliveryWorkerPassword(3L, "newpass") }
-    assertTrue(exception.message!!.contains("无法重置密码"))
-  }
+      // Then
+      result shouldBe true
+      verify { adminService.deleteById(2L) }
+    }
+    test("resetDeliveryWorkerPassword should reject missing worker") {
+      // Given
+      every { adminService.findById(999L) } returns null
 
-  @Test
-  fun `resetDeliveryWorkerPassword should reset password`() {
-    // Given
-    every { adminService.findById(2L) } returns createSampleWorker()
-    every { adminService.resetPassword(2L, "newpass") } returns createSampleWorker()
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.resetDeliveryWorkerPassword(999L, "newpass") }
+      exception.message!!.contains("送水员不存在") shouldBe true
+    }
+    test("resetDeliveryWorkerPassword should reject non delivery worker") {
+      // Given
+      every { adminService.findById(3L) } returns createSampleWorker().copy(id = 3L, role = AdminRoleModel.ADMIN)
 
-    // When
-    val result = resolver.resetDeliveryWorkerPassword(2L, "newpass")
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.resetDeliveryWorkerPassword(3L, "newpass") }
+      exception.message!!.contains("无法重置密码") shouldBe true
+    }
+    test("resetDeliveryWorkerPassword should reset password") {
+      // Given
+      every { adminService.findById(2L) } returns createSampleWorker()
+      every { adminService.resetPassword(2L, "newpass") } returns createSampleWorker()
 
-    // Then
-    assertTrue(result)
-    verify { adminService.resetPassword(2L, "newpass") }
-  }
-}
+      // When
+      val result = resolver.resetDeliveryWorkerPassword(2L, "newpass")
+
+      // Then
+      result shouldBe true
+      verify { adminService.resetPassword(2L, "newpass") }
+    }
+  })

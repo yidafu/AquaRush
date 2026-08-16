@@ -23,59 +23,54 @@ import dev.yidafu.aqua.api.service.ops.SystemConfigMutationService
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
 import dev.yidafu.aqua.common.graphql.generated.SaveSystemConfigInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import kotlin.test.assertEquals
 
-class AdminSystemConfigMutationResolverTest {
-  private lateinit var systemConfigMutationService: SystemConfigMutationService
-  private lateinit var resolver: AdminSystemConfigMutationResolver
+class AdminSystemConfigMutationResolverTest :
+  FunSpec({
+    var systemConfigMutationService: SystemConfigMutationService = mockk()
+    var resolver: AdminSystemConfigMutationResolver = mockk()
 
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "admin",
-      userType = "ADMIN",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
-    )
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "admin",
+        userType = "ADMIN",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    systemConfigMutationService = mockk(relaxed = true)
-    resolver = AdminSystemConfigMutationResolver(systemConfigMutationService)
-  }
+    beforeTest {
+      systemConfigMutationService = mockk(relaxed = true)
+      resolver = AdminSystemConfigMutationResolver(systemConfigMutationService)
+    }
+    test("saveSystemConfigs should delegate with operator info") {
+      // Given
+      every { systemConfigMutationService.saveSystemConfigs(1L, "admin", any()) } returns
+        listOf(SystemSettingsModel(settingKey = "LOW_STOCK_THRESHOLD", settingValue = "15"))
+      val input = listOf(SaveSystemConfigInput(settingKey = "LOW_STOCK_THRESHOLD", settingValue = "15"))
 
-  @Test
-  fun `saveSystemConfigs should delegate with operator info`() {
-    // Given
-    every { systemConfigMutationService.saveSystemConfigs(1L, "admin", any()) } returns
-      listOf(SystemSettingsModel(settingKey = "LOW_STOCK_THRESHOLD", settingValue = "15"))
-    val input = listOf(SaveSystemConfigInput(settingKey = "LOW_STOCK_THRESHOLD", settingValue = "15"))
+      // When
+      val result = resolver.saveSystemConfigs(input, principal())
 
-    // When
-    val result = resolver.saveSystemConfigs(input, principal())
+      // Then
+      result.size shouldBe 1
+      result[0].settingKey shouldBe "LOW_STOCK_THRESHOLD"
+      verify { systemConfigMutationService.saveSystemConfigs(1L, "admin", any()) }
+    }
+    test("restoreSystemConfig should delegate with operator info") {
+      // Given
+      every { systemConfigMutationService.restoreSystemConfig("LOW_STOCK_THRESHOLD", 1L, "admin") } returns
+        SystemSettingsModel(settingKey = "LOW_STOCK_THRESHOLD", settingValue = "10")
 
-    // Then
-    assertEquals(1, result.size)
-    assertEquals("LOW_STOCK_THRESHOLD", result[0].settingKey)
-    verify { systemConfigMutationService.saveSystemConfigs(1L, "admin", any()) }
-  }
+      // When
+      val result = resolver.restoreSystemConfig("LOW_STOCK_THRESHOLD", principal())
 
-  @Test
-  fun `restoreSystemConfig should delegate with operator info`() {
-    // Given
-    every { systemConfigMutationService.restoreSystemConfig("LOW_STOCK_THRESHOLD", 1L, "admin") } returns
-      SystemSettingsModel(settingKey = "LOW_STOCK_THRESHOLD", settingValue = "10")
-
-    // When
-    val result = resolver.restoreSystemConfig("LOW_STOCK_THRESHOLD", principal())
-
-    // Then
-    assertEquals("LOW_STOCK_THRESHOLD", result.settingKey)
-    verify { systemConfigMutationService.restoreSystemConfig("LOW_STOCK_THRESHOLD", 1L, "admin") }
-  }
-}
+      // Then
+      result.settingKey shouldBe "LOW_STOCK_THRESHOLD"
+      verify { systemConfigMutationService.restoreSystemConfig("LOW_STOCK_THRESHOLD", 1L, "admin") }
+    }
+  })

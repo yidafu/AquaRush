@@ -26,112 +26,95 @@ import dev.yidafu.aqua.common.domain.model.enums.CouponTemplateStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
 import dev.yidafu.aqua.marketing.coupon.domain.repository.CouponTemplateRepository
 import dev.yidafu.aqua.marketing.coupon.domain.repository.UserCouponRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 /** 优惠券用户侧查询服务单元测试(领券中心/我的券包/可用券)。 */
-class CouponQueryApiServiceImplTest {
-  private lateinit var couponTemplateRepository: CouponTemplateRepository
-  private lateinit var userCouponRepository: UserCouponRepository
-  private lateinit var service: CouponQueryApiServiceImpl
+class CouponQueryApiServiceImplTest :
+  FunSpec({
+    var couponTemplateRepository: CouponTemplateRepository = mockk()
+    var userCouponRepository: UserCouponRepository = mockk()
+    var service: CouponQueryApiServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    couponTemplateRepository = mockk()
-    userCouponRepository = mockk()
-    service = CouponQueryApiServiceImpl(couponTemplateRepository, userCouponRepository)
-  }
-
-  private fun template(
-    id: Long,
-    issuanceType: CouponIssuanceType,
-  ): CouponTemplateModel =
-    CouponTemplateModel(
-      id = id,
-      name = "券$id",
-      issuanceType = issuanceType,
-      status = CouponTemplateStatus.ACTIVE,
-    )
-
-  private fun coupon(
-    id: Long,
-    expireTime: LocalDateTime,
-    status: UserCouponStatus = UserCouponStatus.RECEIVED,
-  ): UserCouponModel =
-    UserCouponModel(
-      id = id,
-      userId = 1L,
-      couponTemplateId = 1L,
-      status = status,
-      expireTime = expireTime,
-    )
-
-  @Test
-  @DisplayName("领券中心:仅 ACTIVE+AUTO_CLAIM(AC-MKT-003-07)")
-  fun `findClaimableTemplates filters`() {
-    every { couponTemplateRepository.findByStatus(CouponTemplateStatus.ACTIVE) } returns
-      listOf(template(1L, CouponIssuanceType.AUTO_CLAIM), template(2L, CouponIssuanceType.TARGETED))
-
-    val result = service.findClaimableTemplates(1L)
-
-    assertEquals(1, result.size)
-    assertEquals(1L, result[0].id)
-  }
-
-  @Test
-  @DisplayName("我的券包:无状态=全部,有状态=按状态过滤")
-  fun `findUserCoupons by status`() {
-    every { userCouponRepository.findByUserId(1L) } returns listOf(coupon(1L, LocalDateTime.now().plusDays(1)))
-    every { userCouponRepository.findByUserIdAndStatus(1L, UserCouponStatus.USED) } returns
-      listOf(coupon(2L, LocalDateTime.now().plusDays(1), UserCouponStatus.USED))
-
-    assertEquals(1, service.findUserCoupons(1L, null).size)
-    assertEquals(1, service.findUserCoupons(1L, UserCouponStatus.USED).size)
-  }
-
-  @Test
-  @DisplayName("可用券:仅未过期 RECEIVED/RETURNED")
-  fun `findUsableCoupons filters expired`() {
-    val now = LocalDateTime.now()
-    every {
-      userCouponRepository.findByUserIdAndStatusIn(1L, listOf(UserCouponStatus.RECEIVED, UserCouponStatus.RETURNED))
-    } returns
-      listOf(
-        coupon(1L, now.plusDays(1)),
-        coupon(2L, now.minusDays(1)),
-        coupon(3L, now.plusDays(1), UserCouponStatus.RETURNED),
+    fun template(
+      id: Long,
+      issuanceType: CouponIssuanceType,
+    ): CouponTemplateModel =
+      CouponTemplateModel(
+        id = id,
+        name = "券$id",
+        issuanceType = issuanceType,
+        status = CouponTemplateStatus.ACTIVE,
       )
 
-    val result = service.findUsableCoupons(1L)
+    fun coupon(
+      id: Long,
+      expireTime: LocalDateTime,
+      status: UserCouponStatus = UserCouponStatus.RECEIVED,
+    ): UserCouponModel =
+      UserCouponModel(
+        id = id,
+        userId = 1L,
+        couponTemplateId = 1L,
+        status = status,
+        expireTime = expireTime,
+      )
 
-    assertEquals(listOf(1L, 3L), result.map { it.id })
-  }
+    beforeTest {
+      couponTemplateRepository = mockk()
+      userCouponRepository = mockk()
+      service = CouponQueryApiServiceImpl(couponTemplateRepository, userCouponRepository)
+    }
+    test("findClaimableTemplates filters") {
+      every { couponTemplateRepository.findByStatus(CouponTemplateStatus.ACTIVE) } returns
+        listOf(template(1L, CouponIssuanceType.AUTO_CLAIM), template(2L, CouponIssuanceType.TARGETED))
 
-  @Test
-  @DisplayName("按用户查券:券归属非本人 → null")
-  fun `findUserCouponByIdAndUser checks ownership`() {
-    every { userCouponRepository.findById(1L) } returns
-      Optional.of(UserCouponModel(id = 1L, userId = 9L, couponTemplateId = 1L, expireTime = LocalDateTime.now().plusDays(1)))
-    every { userCouponRepository.findById(2L) } returns Optional.of(coupon(2L, LocalDateTime.now().plusDays(1)))
-    every { userCouponRepository.findById(3L) } returns Optional.empty()
+      val result = service.findClaimableTemplates(1L)
 
-    assertNull(service.findUserCouponByIdAndUser(1L, 1L))
-    assertEquals(2L, service.findUserCouponByIdAndUser(1L, 2L)?.id)
-    assertNull(service.findUserCouponByIdAndUser(1L, 3L))
-  }
+      result.size shouldBe 1
+      result[0].id shouldBe 1L
+    }
+    test("findUserCoupons by status") {
+      every { userCouponRepository.findByUserId(1L) } returns listOf(coupon(1L, LocalDateTime.now().plusDays(1)))
+      every { userCouponRepository.findByUserIdAndStatus(1L, UserCouponStatus.USED) } returns
+        listOf(coupon(2L, LocalDateTime.now().plusDays(1), UserCouponStatus.USED))
 
-  @Test
-  @DisplayName("用户已领某模板数量")
-  fun `countUserCouponsByTemplate delegates`() {
-    every { userCouponRepository.countByUserIdAndCouponTemplateId(1L, 5L) } returns 2
+      service.findUserCoupons(1L, null).size shouldBe 1
+      service.findUserCoupons(1L, UserCouponStatus.USED).size shouldBe 1
+    }
+    test("findUsableCoupons filters expired") {
+      val now = LocalDateTime.now()
+      every {
+        userCouponRepository.findByUserIdAndStatusIn(1L, listOf(UserCouponStatus.RECEIVED, UserCouponStatus.RETURNED))
+      } returns
+        listOf(
+          coupon(1L, now.plusDays(1)),
+          coupon(2L, now.minusDays(1)),
+          coupon(3L, now.plusDays(1), UserCouponStatus.RETURNED),
+        )
 
-    assertEquals(2, service.countUserCouponsByTemplate(1L, 5L))
-  }
-}
+      val result = service.findUsableCoupons(1L)
+
+      result.map { it.id } shouldBe listOf(1L, 3L)
+    }
+    test("findUserCouponByIdAndUser checks ownership") {
+      every { userCouponRepository.findById(1L) } returns
+        Optional.of(UserCouponModel(id = 1L, userId = 9L, couponTemplateId = 1L, expireTime = LocalDateTime.now().plusDays(1)))
+      every { userCouponRepository.findById(2L) } returns Optional.of(coupon(2L, LocalDateTime.now().plusDays(1)))
+      every { userCouponRepository.findById(3L) } returns Optional.empty()
+
+      service.findUserCouponByIdAndUser(1L, 1L).shouldBeNull()
+      service.findUserCouponByIdAndUser(1L, 2L)?.id shouldBe 2L
+      service.findUserCouponByIdAndUser(1L, 3L).shouldBeNull()
+    }
+    test("countUserCouponsByTemplate delegates") {
+      every { userCouponRepository.countByUserIdAndCouponTemplateId(1L, 5L) } returns 2
+
+      service.countUserCouponsByTemplate(1L, 5L) shouldBe 2
+    }
+  })

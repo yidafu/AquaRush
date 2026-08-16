@@ -21,36 +21,31 @@ package dev.yidafu.aqua.ops.notice.service.impl
 
 import dev.yidafu.aqua.common.domain.model.NoticeModel
 import dev.yidafu.aqua.ops.notice.domain.repository.NoticeRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 /**
  * 公告查询服务(用户端)单元测试:委托仓库按当前时间过滤已发布且在时间窗内的公告
  */
-class NoticeQueryApiServiceImplTest {
-  private lateinit var noticeRepository: NoticeRepository
-  private lateinit var service: NoticeQueryApiServiceImpl
+class NoticeQueryApiServiceImplTest :
+  FunSpec({
+    var noticeRepository: NoticeRepository = mockk()
+    var service: NoticeQueryApiServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    noticeRepository = mockk(relaxed = true)
-    service = NoticeQueryApiServiceImpl(noticeRepository)
-  }
+    beforeTest {
+      noticeRepository = mockk(relaxed = true)
+      service = NoticeQueryApiServiceImpl(noticeRepository)
+    }
+    test("getActiveNotices delegates to repository") {
+      val active = listOf(NoticeModel(id = 1L, title = "生效公告", content = "内容"))
+      every { noticeRepository.findActiveNotices(any()) } returns active
 
-  @Test
-  @DisplayName("getActiveNotices 委托 findActiveNotices(now)")
-  fun `getActiveNotices delegates to repository`() {
-    val active = listOf(NoticeModel(id = 1L, title = "生效公告", content = "内容"))
-    every { noticeRepository.findActiveNotices(any()) } returns active
+      val result = service.getActiveNotices()
 
-    val result = service.getActiveNotices()
-
-    assertEquals(1, result.size)
-    verify { noticeRepository.findActiveNotices(any()) }
-  }
-}
+      result.size shouldBe 1
+      verify { noticeRepository.findActiveNotices(any()) }
+    }
+  })

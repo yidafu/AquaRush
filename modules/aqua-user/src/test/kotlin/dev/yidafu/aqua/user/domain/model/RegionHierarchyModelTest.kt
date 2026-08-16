@@ -20,58 +20,56 @@
 package dev.yidafu.aqua.user.domain.model
 
 import dev.yidafu.aqua.common.domain.model.RegionModel
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 
-class RegionHierarchyModelTest {
-  private fun region(
-    id: Long,
-    name: String,
-    code: String,
-  ): RegionModel =
-    RegionModel(
-      id = id,
-      name = name,
-      code = code,
-      parentCode = null,
-      level = 1,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  @Test
-  fun `RegionHierarchyModel should hold default selections and options`() {
-    val province = region(1L, "广东省", "440000")
-    val city = region(2L, "深圳市", "440300")
-    val district = region(3L, "南山区", "440305")
-
-    val hierarchy =
-      RegionHierarchyModel(
-        province = province,
-        city = city,
-        district = district,
-        provinces = listOf(province),
-        cities = listOf(city),
-        districts = listOf(district),
+class RegionHierarchyModelTest :
+  FunSpec({
+    fun region(
+      id: Long,
+      name: String,
+      code: String,
+    ): RegionModel =
+      RegionModel(
+        id = id,
+        name = name,
+        code = code,
+        parentCode = null,
+        level = 1,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
 
-    assertEquals(province, hierarchy.province)
-    assertEquals(city, hierarchy.city)
-    assertEquals(district, hierarchy.district)
-    assertEquals(1, hierarchy.provinces.size)
-    assertEquals(1, hierarchy.cities.size)
-    assertEquals(1, hierarchy.districts.size)
-  }
+    test("RegionHierarchyModel should hold default selections and options") {
+      val province = region(1L, "广东省", "440000")
+      val city = region(2L, "深圳市", "440300")
+      val district = region(3L, "南山区", "440305")
 
-  @Test
-  fun `RegionHierarchyModel should be data class with equality`() {
-    val p = region(1L, "广东省", "440000")
-    val c = region(2L, "深圳市", "440300")
-    val d = region(3L, "南山区", "440305")
-    val a = RegionHierarchyModel(p, c, d, listOf(p), listOf(c), listOf(d))
-    val b = RegionHierarchyModel(p, c, d, listOf(p), listOf(c), listOf(d))
-    assertEquals(a, b)
-    assertEquals(a.hashCode(), b.hashCode())
-  }
-}
+      val hierarchy =
+        RegionHierarchyModel(
+          province = province,
+          city = city,
+          district = district,
+          provinces = listOf(province),
+          cities = listOf(city),
+          districts = listOf(district),
+        )
+
+      hierarchy.province shouldBe province
+      hierarchy.city shouldBe city
+      hierarchy.district shouldBe district
+      hierarchy.provinces.size shouldBe 1
+      hierarchy.cities.size shouldBe 1
+      hierarchy.districts.size shouldBe 1
+    }
+    test("RegionHierarchyModel should be data class with equality") {
+      val p = region(1L, "广东省", "440000")
+      val c = region(2L, "深圳市", "440300")
+      val d = region(3L, "南山区", "440305")
+      val a = RegionHierarchyModel(p, c, d, listOf(p), listOf(c), listOf(d))
+      val b = RegionHierarchyModel(p, c, d, listOf(p), listOf(c), listOf(d))
+      b shouldBe a
+      b.hashCode() shouldBe a.hashCode()
+    }
+  })

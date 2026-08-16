@@ -19,58 +19,44 @@
 
 package dev.yidafu.aqua.logging.context
 
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 
-class CorrelationIdHolderTest {
-  @AfterEach
-  fun tearDown() {
-    CorrelationIdHolder.clear()
-  }
+class CorrelationIdHolderTest :
+  FunSpec({
 
-  @Test
-  fun `set and get should round trip`() {
-    CorrelationIdHolder.setCorrelationId("abc")
-    assertEquals("abc", CorrelationIdHolder.getCorrelationId())
-  }
-
-  @Test
-  fun `get should return null when unset`() {
-    assertNull(CorrelationIdHolder.getCorrelationId())
-  }
-
-  @Test
-  fun `generateAndSet should produce non-empty id`() {
-    val id = CorrelationIdHolder.generateAndSet()
-    assertNotNull(id)
-    assertTrue(id.length >= 32)
-    assertEquals(id, CorrelationIdHolder.getCorrelationId())
-  }
-
-  @Test
-  fun `generateAndSet should produce unique ids`() {
-    assertNotEquals(CorrelationIdHolder.generateAndSet(), CorrelationIdHolder.generateAndSet())
-  }
-
-  @Test
-  fun `clear should remove correlation id`() {
-    CorrelationIdHolder.setCorrelationId("abc")
-    CorrelationIdHolder.clear()
-    assertNull(CorrelationIdHolder.getCorrelationId())
-  }
-
-  @Test
-  fun `hasCorrelationId should reflect state`() {
-    assertFalse(CorrelationIdHolder.hasCorrelationId())
-    CorrelationIdHolder.setCorrelationId("abc")
-    assertTrue(CorrelationIdHolder.hasCorrelationId())
-    CorrelationIdHolder.clear()
-    assertFalse(CorrelationIdHolder.hasCorrelationId())
-  }
-}
+    afterTest {
+      CorrelationIdHolder.clear()
+    }
+    test("set and get should round trip") {
+      CorrelationIdHolder.setCorrelationId("abc")
+      CorrelationIdHolder.getCorrelationId() shouldBe "abc"
+    }
+    test("get should return null when unset") {
+      CorrelationIdHolder.getCorrelationId().shouldBeNull()
+    }
+    test("generateAndSet should produce non-empty id") {
+      val id = CorrelationIdHolder.generateAndSet()
+      id.shouldNotBeNull()
+      (id.length >= 32) shouldBe true
+      CorrelationIdHolder.getCorrelationId() shouldBe id
+    }
+    test("generateAndSet should produce unique ids") {
+      CorrelationIdHolder.generateAndSet() shouldNotBe CorrelationIdHolder.generateAndSet()
+    }
+    test("clear should remove correlation id") {
+      CorrelationIdHolder.setCorrelationId("abc")
+      CorrelationIdHolder.clear()
+      CorrelationIdHolder.getCorrelationId().shouldBeNull()
+    }
+    test("hasCorrelationId should reflect state") {
+      CorrelationIdHolder.hasCorrelationId() shouldBe false
+      CorrelationIdHolder.setCorrelationId("abc")
+      CorrelationIdHolder.hasCorrelationId() shouldBe true
+      CorrelationIdHolder.clear()
+      CorrelationIdHolder.hasCorrelationId() shouldBe false
+    }
+  })

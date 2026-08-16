@@ -32,115 +32,108 @@ import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 import dev.yidafu.aqua.common.graphql.generated.UserCouponStatus as GraphQLUserCouponStatus
 import dev.yidafu.aqua.common.graphql.generated.UserTicketStatus as GraphQLUserTicketStatus
 
-class AdminUserCouponTicketQueryResolverTest {
-  private lateinit var couponQueryApiService: CouponQueryApiService
-  private lateinit var ticketQueryApiService: TicketQueryApiService
-  private lateinit var ticketTypeQueryService: TicketTypeQueryService
-  private lateinit var resolver: AdminUserCouponTicketQueryResolver
+class AdminUserCouponTicketQueryResolverTest :
+  FunSpec({
+    var couponQueryApiService: CouponQueryApiService = mockk()
+    var ticketQueryApiService: TicketQueryApiService = mockk()
+    var ticketTypeQueryService: TicketTypeQueryService = mockk()
+    var resolver: AdminUserCouponTicketQueryResolver = mockk()
 
-  private fun userCoupon(): UserCouponModel =
-    UserCouponModel(
-      id = 1L,
-      userId = 1L,
-      couponTemplateId = 10L,
-      status = UserCouponStatus.RECEIVED,
-      name = "满50减10",
-      couponType = CouponType.CASH,
-      thresholdCents = 5000,
-      discountAmountCents = 1000,
-      discountRatePermille = null,
-      scope = CouponScope.ALL,
-      productId = null,
-      expireTime = LocalDateTime.now().plusDays(30),
-    )
+    fun userCoupon(): UserCouponModel =
+      UserCouponModel(
+        id = 1L,
+        userId = 1L,
+        couponTemplateId = 10L,
+        status = UserCouponStatus.RECEIVED,
+        name = "满50减10",
+        couponType = CouponType.CASH,
+        thresholdCents = 5000,
+        discountAmountCents = 1000,
+        discountRatePermille = null,
+        scope = CouponScope.ALL,
+        productId = null,
+        expireTime = LocalDateTime.now().plusDays(30),
+      )
 
-  private fun userTicket(): UserTicketModel =
-    UserTicketModel(
-      id = 1L,
-      userId = 1L,
-      ticketTypeId = 20L,
-      purchaseId = 1L,
-      status = UserTicketStatus.UNUSED,
-      expireTime = LocalDateTime.now().plusDays(30),
-      isGift = false,
-    )
+    fun userTicket(): UserTicketModel =
+      UserTicketModel(
+        id = 1L,
+        userId = 1L,
+        ticketTypeId = 20L,
+        purchaseId = 1L,
+        status = UserTicketStatus.UNUSED,
+        expireTime = LocalDateTime.now().plusDays(30),
+        isGift = false,
+      )
 
-  private fun ticketType(): TicketTypeModel =
-    TicketTypeModel(
-      id = 20L,
-      name = "通兑19L",
-      ticketType = TicketTypeKind.UNIVERSAL,
-      productId = null,
-      specification = "19L",
-      packageCount = 10,
-      packagePriceCents = 10000,
-      giftCount = 0,
-      validityType = ValidityType.FIXED_RANGE,
-      validFrom = LocalDateTime.now().minusDays(1),
-      validTo = LocalDateTime.now().plusDays(365),
-      perUserLimit = 0,
-      status = TicketTypeStatus.ACTIVE,
-    )
+    fun ticketType(): TicketTypeModel =
+      TicketTypeModel(
+        id = 20L,
+        name = "通兑19L",
+        ticketType = TicketTypeKind.UNIVERSAL,
+        productId = null,
+        specification = "19L",
+        packageCount = 10,
+        packagePriceCents = 10000,
+        giftCount = 0,
+        validityType = ValidityType.FIXED_RANGE,
+        validFrom = LocalDateTime.now().minusDays(1),
+        validTo = LocalDateTime.now().plusDays(365),
+        perUserLimit = 0,
+        status = TicketTypeStatus.ACTIVE,
+      )
 
-  @BeforeEach
-  fun setUp() {
-    couponQueryApiService = mockk(relaxed = true)
-    ticketQueryApiService = mockk(relaxed = true)
-    ticketTypeQueryService = mockk(relaxed = true)
-    resolver = AdminUserCouponTicketQueryResolver(couponQueryApiService, ticketQueryApiService, ticketTypeQueryService)
-  }
+    beforeTest {
+      couponQueryApiService = mockk(relaxed = true)
+      ticketQueryApiService = mockk(relaxed = true)
+      ticketTypeQueryService = mockk(relaxed = true)
+      resolver = AdminUserCouponTicketQueryResolver(couponQueryApiService, ticketQueryApiService, ticketTypeQueryService)
+    }
+    test("userCoupons should map user coupons") {
+      // Given
+      every { couponQueryApiService.findUserCoupons(1L, UserCouponStatus.RECEIVED) } returns listOf(userCoupon())
 
-  @Test
-  fun `userCoupons should map user coupons`() {
-    // Given
-    every { couponQueryApiService.findUserCoupons(1L, UserCouponStatus.RECEIVED) } returns listOf(userCoupon())
+      // When
+      val result = resolver.userCoupons(1L, GraphQLUserCouponStatus.RECEIVED)
 
-    // When
-    val result = resolver.userCoupons(1L, GraphQLUserCouponStatus.RECEIVED)
+      // Then
+      result.size shouldBe 1
+      result[0].name shouldBe "满50减10"
+      result[0].usable shouldBe false
+      verify { couponQueryApiService.findUserCoupons(1L, UserCouponStatus.RECEIVED) }
+    }
+    test("userTickets should resolve ticket type info") {
+      // Given
+      every { ticketQueryApiService.findUserTickets(1L, UserTicketStatus.UNUSED) } returns listOf(userTicket())
+      every { ticketTypeQueryService.getTicketType(20L) } returns ticketType()
 
-    // Then
-    assertEquals(1, result.size)
-    assertEquals("满50减10", result[0].name)
-    assertEquals(false, result[0].usable)
-    verify { couponQueryApiService.findUserCoupons(1L, UserCouponStatus.RECEIVED) }
-  }
+      // When
+      val result = resolver.userTickets(1L, GraphQLUserTicketStatus.UNUSED)
 
-  @Test
-  fun `userTickets should resolve ticket type info`() {
-    // Given
-    every { ticketQueryApiService.findUserTickets(1L, UserTicketStatus.UNUSED) } returns listOf(userTicket())
-    every { ticketTypeQueryService.getTicketType(20L) } returns ticketType()
+      // Then
+      result.size shouldBe 1
+      result[0].ticketTypeName shouldBe "通兑19L"
+      result[0].specification shouldBe "19L"
+      verify { ticketQueryApiService.findUserTickets(1L, UserTicketStatus.UNUSED) }
+    }
+    test("userTickets should fall back to default name when ticket type missing") {
+      // Given
+      every { ticketQueryApiService.findUserTickets(1L, null) } returns listOf(userTicket())
+      every { ticketTypeQueryService.getTicketType(20L) } returns null
 
-    // When
-    val result = resolver.userTickets(1L, GraphQLUserTicketStatus.UNUSED)
+      // When
+      val result = resolver.userTickets(1L, null)
 
-    // Then
-    assertEquals(1, result.size)
-    assertEquals("通兑19L", result[0].ticketTypeName)
-    assertEquals("19L", result[0].specification)
-    verify { ticketQueryApiService.findUserTickets(1L, UserTicketStatus.UNUSED) }
-  }
-
-  @Test
-  fun `userTickets should fall back to default name when ticket type missing`() {
-    // Given
-    every { ticketQueryApiService.findUserTickets(1L, null) } returns listOf(userTicket())
-    every { ticketTypeQueryService.getTicketType(20L) } returns null
-
-    // When
-    val result = resolver.userTickets(1L, null)
-
-    // Then
-    assertEquals("水票", result[0].ticketTypeName)
-  }
-}
+      // Then
+      result[0].ticketTypeName shouldBe "水票"
+    }
+  })

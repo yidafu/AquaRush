@@ -24,98 +24,91 @@ import dev.yidafu.aqua.api.service.review.ReviewQueryService
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.ReviewModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-class AdminReviewQueryResolverTest {
-  private lateinit var reviewQueryService: ReviewQueryService
-  private lateinit var adminService: AdminService
-  private lateinit var resolver: AdminReviewQueryResolver
+class AdminReviewQueryResolverTest :
+  FunSpec({
+    var reviewQueryService: ReviewQueryService = mockk()
+    var adminService: AdminService = mockk()
+    var resolver: AdminReviewQueryResolver = mockk()
 
-  private fun createSampleReview(): ReviewModel =
-    ReviewModel(
-      id = 1L,
-      orderId = 100L,
-      userId = 1L,
-      deliveryWorkerId = 2L,
-      rating = 5,
-      comment = "送得快",
-      isAnonymous = false,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
+    fun createSampleReview(): ReviewModel =
+      ReviewModel(
+        id = 1L,
+        orderId = 100L,
+        userId = 1L,
+        deliveryWorkerId = 2L,
+        rating = 5,
+        comment = "送得快",
+        isAnonymous = false,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
 
-  private fun createSampleWorker(): AdminModel =
-    AdminModel(
-      id = 2L,
-      username = "worker1",
-      passwordHash = "hashed_password",
-      realName = "送水员甲",
-      phone = "13900139000",
-      role = AdminRoleModel.DELIVERY_WORKER,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
+    fun createSampleWorker(): AdminModel =
+      AdminModel(
+        id = 2L,
+        username = "worker1",
+        passwordHash = "hashed_password",
+        realName = "送水员甲",
+        phone = "13900139000",
+        role = AdminRoleModel.DELIVERY_WORKER,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    reviewQueryService = mockk(relaxed = true)
-    adminService = mockk(relaxed = true)
-    resolver = AdminReviewQueryResolver(reviewQueryService, adminService)
-  }
+    beforeTest {
+      reviewQueryService = mockk(relaxed = true)
+      adminService = mockk(relaxed = true)
+      resolver = AdminReviewQueryResolver(reviewQueryService, adminService)
+    }
+    test("reviewsByUser should return paginated reviews") {
+      // Given
+      every { reviewQueryService.findByUserIdPaginated(1L, PageRequest.of(0, 10)) } returns
+        PageImpl(listOf(createSampleReview()))
+      every { adminService.findById(2L) } returns createSampleWorker()
 
-  @Test
-  fun `reviewsByUser should return paginated reviews`() {
-    // Given
-    every { reviewQueryService.findByUserIdPaginated(1L, PageRequest.of(0, 10)) } returns
-      PageImpl(listOf(createSampleReview()))
-    every { adminService.findById(2L) } returns createSampleWorker()
+      // When
+      val result = resolver.reviewsByUser(1L, 0, 10)
 
-    // When
-    val result = resolver.reviewsByUser(1L, 0, 10)
+      // Then
+      result.content.size shouldBe 1
+      result.content[0].deliveryWorkerName shouldBe "送水员甲"
+      result.content[0].rating shouldBe 5
+      verify { reviewQueryService.findByUserIdPaginated(1L, PageRequest.of(0, 10)) }
+    }
+    test("reviewsByUser should resolve null worker name when admin missing") {
+      // Given
+      every { reviewQueryService.findByUserIdPaginated(1L, PageRequest.of(0, 10)) } returns
+        PageImpl(listOf(createSampleReview()))
+      every { adminService.findById(2L) } returns null
 
-    // Then
-    assertEquals(1, result.content.size)
-    assertEquals("送水员甲", result.content[0].deliveryWorkerName)
-    assertEquals(5, result.content[0].rating)
-    verify { reviewQueryService.findByUserIdPaginated(1L, PageRequest.of(0, 10)) }
-  }
+      // When
+      val result = resolver.reviewsByUser(1L, 0, 10)
 
-  @Test
-  fun `reviewsByUser should resolve null worker name when admin missing`() {
-    // Given
-    every { reviewQueryService.findByUserIdPaginated(1L, PageRequest.of(0, 10)) } returns
-      PageImpl(listOf(createSampleReview()))
-    every { adminService.findById(2L) } returns null
+      // Then
+      result.content[0].deliveryWorkerName.shouldBeNull()
+    }
+    test("reviewsByDeliveryWorker should return paginated reviews") {
+      // Given
+      every { reviewQueryService.findByDeliveryWorkerIdPaginated(2L, PageRequest.of(1, 5)) } returns
+        PageImpl(listOf(createSampleReview()), PageRequest.of(1, 5), 1)
+      every { adminService.findById(2L) } returns createSampleWorker()
 
-    // When
-    val result = resolver.reviewsByUser(1L, 0, 10)
+      // When
+      val result = resolver.reviewsByDeliveryWorker(2L, 1, 5)
 
-    // Then
-    assertNull(result.content[0].deliveryWorkerName)
-  }
-
-  @Test
-  fun `reviewsByDeliveryWorker should return paginated reviews`() {
-    // Given
-    every { reviewQueryService.findByDeliveryWorkerIdPaginated(2L, PageRequest.of(1, 5)) } returns
-      PageImpl(listOf(createSampleReview()), PageRequest.of(1, 5), 1)
-    every { adminService.findById(2L) } returns createSampleWorker()
-
-    // When
-    val result = resolver.reviewsByDeliveryWorker(2L, 1, 5)
-
-    // Then
-    assertEquals(1, result.content.size)
-    assertEquals(1, result.number)
-    verify { reviewQueryService.findByDeliveryWorkerIdPaginated(2L, PageRequest.of(1, 5)) }
-  }
-}
+      // Then
+      result.content.size shouldBe 1
+      result.number shouldBe 1
+      verify { reviewQueryService.findByDeliveryWorkerIdPaginated(2L, PageRequest.of(1, 5)) }
+    }
+  })

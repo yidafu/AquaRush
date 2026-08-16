@@ -22,156 +22,122 @@ package dev.yidafu.aqua.logging.util
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
 import dev.yidafu.aqua.logging.context.UserContext
 import dev.yidafu.aqua.logging.context.UserContextHolder
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import tools.jackson.databind.ObjectMapper
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
-class LogBuilderTest {
-  private val mapper = ObjectMapper()
+class LogBuilderTest :
+  FunSpec({
+    val mapper = ObjectMapper()
 
-  @AfterEach
-  fun tearDown() {
-    CorrelationIdHolder.clear()
-    UserContextHolder.clear()
-  }
+    fun parse(json: String): Map<String, Any> = mapper.readValue(json, Map::class.java) as Map<String, Any>
 
-  @Suppress("UNCHECKED_CAST")
-  private fun parse(json: String): Map<String, Any> = mapper.readValue(json, Map::class.java) as Map<String, Any>
+    @Suppress("UNCHECKED_CAST")
 
-  @Test
-  fun `buildJson should include default timestamp and context`() {
-    CorrelationIdHolder.setCorrelationId("corr")
-    UserContextHolder.setUserContext(UserContext(userId = "1", username = "u"))
-    val json = LogBuilder().message("hi").buildJson()
-    val map = parse(json)
-    assertEquals("hi", map["message"])
-    assertEquals("corr", map["correlationId"])
-    assertEquals("1", map["userId"])
-    assertNotNull(map["timestamp"])
-  }
-
-  @Test
-  fun `field should add single field`() {
-    val builder = LogBuilder().field("key", "value")
-    assertEquals("value", builder.getData()["key"])
-  }
-
-  @Test
-  fun `fields should add multiple fields`() {
-    val builder = LogBuilder().fields(mapOf("a" to 1, "b" to 2))
-    assertEquals(1, builder.getData()["a"])
-    assertEquals(2, builder.getData()["b"])
-  }
-
-  @Test
-  fun `eventType should set event type`() {
-    val builder = LogBuilder().eventType("USER_ACTION")
-    assertEquals("USER_ACTION", builder.getData()["eventType"])
-  }
-
-  @Test
-  fun `result success should set success flag`() {
-    val builder = LogBuilder().result(true)
-    assertEquals(true, builder.getData()["success"])
-  }
-
-  @Test
-  fun `result failure with error should include error details`() {
-    val builder = LogBuilder().result(false, IllegalStateException("boom"))
-    val data = builder.getData()
-    assertEquals(false, data["success"])
-    assertEquals("IllegalStateException", data["errorType"])
-    assertEquals("boom", data["errorMessage"])
-    assertTrue((data["errorStackTrace"] as String).contains("boom"))
-  }
-
-  @Test
-  fun `result failure without error should omit error details`() {
-    val builder = LogBuilder().result(false)
-    assertFalse(builder.getData().containsKey("errorType"))
-  }
-
-  @Test
-  fun `performance should add duration and flag`() {
-    val builder = LogBuilder().performance(123)
-    assertEquals(123L, builder.getData()["durationMs"])
-    assertEquals(true, builder.getData()["performance"])
-  }
-
-  @Test
-  fun `audit should add audit fields`() {
-    val builder = LogBuilder().audit("CREATE", "order", "SUCCESS")
-    val data = builder.getData()
-    assertEquals(true, data["audit"])
-    assertEquals("CREATE", data["auditAction"])
-    assertEquals("order", data["auditResource"])
-    assertEquals("SUCCESS", data["auditResult"])
-  }
-
-  @Test
-  fun `security should add security fields`() {
-    val builder = LogBuilder().security("LOGIN", "HIGH", details = mapOf("ip" to "1.1.1.1"))
-    val data = builder.getData()
-    assertEquals(true, data["security"])
-    assertEquals("LOGIN", data["securityEventType"])
-    assertEquals("HIGH", data["securitySeverity"])
-    assertEquals(mapOf("ip" to "1.1.1.1"), data["securityDetails"])
-  }
-
-  @Test
-  fun `security without details should omit details`() {
-    val builder = LogBuilder().security("LOGIN", "HIGH")
-    assertFalse(builder.getData().containsKey("securityDetails"))
-  }
-
-  @Test
-  fun `business should add business fields`() {
-    val builder = LogBuilder().business("CREATE", "ORDER", "SUCCESS")
-    val data = builder.getData()
-    assertEquals(true, data["business"])
-    assertEquals("CREATE", data["businessOperation"])
-    assertEquals("ORDER", data["businessModule"])
-    assertEquals("SUCCESS", data["businessResult"])
-  }
-
-  @Test
-  fun `buildString should join key-value parts`() {
-    val result = LogBuilder().message("hi").eventType("EVT").buildString()
-    assertTrue(result.contains("message=hi"))
-    assertTrue(result.contains("eventType=EVT"))
-  }
-
-  @Test
-  fun `buildString should include error and business fields`() {
-    val result = LogBuilder().result(false, RuntimeException("err")).business("OP", "MOD", "FAILED").buildString()
-    assertTrue(result.contains("errorType=RuntimeException"))
-    assertTrue(result.contains("errorMessage=err"))
-    assertTrue(result.contains("businessOperation=OP"))
-  }
-
-  @Test
-  fun `buildJson should serialize all chained data`() {
-    val json =
-      LogBuilder()
-        .field("trace", "t1")
-        .eventType("PERF")
-        .performance(10)
-        .buildJson()
-    val map = parse(json)
-    assertEquals("t1", map["trace"])
-    assertEquals("PERF", map["eventType"])
-    assertEquals(10, map["durationMs"])
-  }
-
-  @Test
-  fun `getData should return immutable snapshot`() {
-    val builder = LogBuilder()
-    val snapshot = builder.getData()
-    builder.field("later", 1)
-    assertFalse(snapshot.containsKey("later"))
-  }
-}
+    afterTest {
+      CorrelationIdHolder.clear()
+      UserContextHolder.clear()
+    }
+    test("buildJson should include default timestamp and context") {
+      CorrelationIdHolder.setCorrelationId("corr")
+      UserContextHolder.setUserContext(UserContext(userId = "1", username = "u"))
+      val json = LogBuilder().message("hi").buildJson()
+      val map = parse(json)
+      map["message"] shouldBe "hi"
+      map["correlationId"] shouldBe "corr"
+      map["userId"] shouldBe "1"
+      map["timestamp"].shouldNotBeNull()
+    }
+    test("field should add single field") {
+      val builder = LogBuilder().field("key", "value")
+      builder.getData()["key"] shouldBe "value"
+    }
+    test("fields should add multiple fields") {
+      val builder = LogBuilder().fields(mapOf("a" to 1, "b" to 2))
+      builder.getData()["a"] shouldBe 1
+      builder.getData()["b"] shouldBe 2
+    }
+    test("eventType should set event type") {
+      val builder = LogBuilder().eventType("USER_ACTION")
+      builder.getData()["eventType"] shouldBe "USER_ACTION"
+    }
+    test("result success should set success flag") {
+      val builder = LogBuilder().result(true)
+      builder.getData()["success"] shouldBe true
+    }
+    test("result failure with error should include error details") {
+      val builder = LogBuilder().result(false, IllegalStateException("boom"))
+      val data = builder.getData()
+      data["success"] shouldBe false
+      data["errorType"] shouldBe "IllegalStateException"
+      data["errorMessage"] shouldBe "boom"
+      (data["errorStackTrace"] as String).contains("boom") shouldBe true
+    }
+    test("result failure without error should omit error details") {
+      val builder = LogBuilder().result(false)
+      builder.getData().containsKey("errorType") shouldBe false
+    }
+    test("performance should add duration and flag") {
+      val builder = LogBuilder().performance(123)
+      builder.getData()["durationMs"] shouldBe 123L
+      builder.getData()["performance"] shouldBe true
+    }
+    test("audit should add audit fields") {
+      val builder = LogBuilder().audit("CREATE", "order", "SUCCESS")
+      val data = builder.getData()
+      data["audit"] shouldBe true
+      data["auditAction"] shouldBe "CREATE"
+      data["auditResource"] shouldBe "order"
+      data["auditResult"] shouldBe "SUCCESS"
+    }
+    test("security should add security fields") {
+      val builder = LogBuilder().security("LOGIN", "HIGH", details = mapOf("ip" to "1.1.1.1"))
+      val data = builder.getData()
+      data["security"] shouldBe true
+      data["securityEventType"] shouldBe "LOGIN"
+      data["securitySeverity"] shouldBe "HIGH"
+      data["securityDetails"] shouldBe mapOf("ip" to "1.1.1.1")
+    }
+    test("security without details should omit details") {
+      val builder = LogBuilder().security("LOGIN", "HIGH")
+      builder.getData().containsKey("securityDetails") shouldBe false
+    }
+    test("business should add business fields") {
+      val builder = LogBuilder().business("CREATE", "ORDER", "SUCCESS")
+      val data = builder.getData()
+      data["business"] shouldBe true
+      data["businessOperation"] shouldBe "CREATE"
+      data["businessModule"] shouldBe "ORDER"
+      data["businessResult"] shouldBe "SUCCESS"
+    }
+    test("buildString should join key-value parts") {
+      val result = LogBuilder().message("hi").eventType("EVT").buildString()
+      result.contains("message=hi") shouldBe true
+      result.contains("eventType=EVT") shouldBe true
+    }
+    test("buildString should include error and business fields") {
+      val result = LogBuilder().result(false, RuntimeException("err")).business("OP", "MOD", "FAILED").buildString()
+      result.contains("errorType=RuntimeException") shouldBe true
+      result.contains("errorMessage=err") shouldBe true
+      result.contains("businessOperation=OP") shouldBe true
+    }
+    test("buildJson should serialize all chained data") {
+      val json =
+        LogBuilder()
+          .field("trace", "t1")
+          .eventType("PERF")
+          .performance(10)
+          .buildJson()
+      val map = parse(json)
+      map["trace"] shouldBe "t1"
+      map["eventType"] shouldBe "PERF"
+      map["durationMs"] shouldBe 10
+    }
+    test("getData should return immutable snapshot") {
+      val builder = LogBuilder()
+      val snapshot = builder.getData()
+      builder.field("later", 1)
+      snapshot.containsKey("later") shouldBe false
+    }
+  })

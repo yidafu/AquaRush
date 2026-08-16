@@ -23,47 +23,44 @@ import dev.yidafu.aqua.api.service.marketing.GroupProductPriceMutationService
 import dev.yidafu.aqua.common.graphql.generated.GroupProductPriceItemInput
 import dev.yidafu.aqua.common.graphql.generated.SaveGroupProductPricesInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import kotlin.test.assertTrue
 
-class AdminGroupProductPriceMutationResolverTest {
-  private lateinit var groupProductPriceMutationService: GroupProductPriceMutationService
-  private lateinit var resolver: AdminGroupProductPriceMutationResolver
+class AdminGroupProductPriceMutationResolverTest :
+  FunSpec({
+    var groupProductPriceMutationService: GroupProductPriceMutationService = mockk()
+    var resolver: AdminGroupProductPriceMutationResolver = mockk()
 
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "admin",
-      userType = "ADMIN",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    groupProductPriceMutationService = mockk(relaxed = true)
-    resolver = AdminGroupProductPriceMutationResolver(groupProductPriceMutationService)
-  }
-
-  @Test
-  fun `saveGroupProductPrices should delegate and return true`() {
-    // Given
-    every { groupProductPriceMutationService.savePrices(1L, "admin", any()) } returns true
-    val input =
-      SaveGroupProductPricesInput(
-        customerGroupId = 10L,
-        items = listOf(GroupProductPriceItemInput(productId = 1L, priceCents = 1900)),
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "admin",
+        userType = "ADMIN",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
       )
 
-    // When
-    val result = resolver.saveGroupProductPrices(input, principal())
+    beforeTest {
+      groupProductPriceMutationService = mockk(relaxed = true)
+      resolver = AdminGroupProductPriceMutationResolver(groupProductPriceMutationService)
+    }
+    test("saveGroupProductPrices should delegate and return true") {
+      // Given
+      every { groupProductPriceMutationService.savePrices(1L, "admin", any()) } returns true
+      val input =
+        SaveGroupProductPricesInput(
+          customerGroupId = 10L,
+          items = listOf(GroupProductPriceItemInput(productId = 1L, priceCents = 1900)),
+        )
 
-    // Then
-    assertTrue(result)
-    verify { groupProductPriceMutationService.savePrices(1L, "admin", any()) }
-  }
-}
+      // When
+      val result = resolver.saveGroupProductPrices(input, principal())
+
+      // Then
+      result shouldBe true
+      verify { groupProductPriceMutationService.savePrices(1L, "admin", any()) }
+    }
+  })

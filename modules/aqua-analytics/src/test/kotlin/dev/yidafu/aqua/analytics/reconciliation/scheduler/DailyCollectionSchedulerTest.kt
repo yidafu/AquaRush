@@ -20,38 +20,33 @@
 package dev.yidafu.aqua.analytics.reconciliation.scheduler
 
 import dev.yidafu.aqua.analytics.reconciliation.service.DailyCollectionService
+import io.kotest.assertions.throwables.shouldNotThrowAny
+import io.kotest.core.spec.style.FunSpec
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.Assertions.assertDoesNotThrow
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
 /**
  * 每日收银对账调度器单元测试
  */
-class DailyCollectionSchedulerTest {
-  private lateinit var dailyCollectionService: DailyCollectionService
-  private lateinit var scheduler: DailyCollectionScheduler
+class DailyCollectionSchedulerTest :
+  FunSpec({
+    var dailyCollectionService: DailyCollectionService = mockk()
+    var scheduler: DailyCollectionScheduler = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    dailyCollectionService = mockk(relaxed = true)
-    scheduler = DailyCollectionScheduler(dailyCollectionService)
-  }
+    beforeTest {
+      dailyCollectionService = mockk(relaxed = true)
+      scheduler = DailyCollectionScheduler(dailyCollectionService)
+    }
+    test("daily collection reconciliation executes for yesterday") {
+      scheduler.executeDailyCollectionReconciliation()
 
-  @Test
-  fun `daily collection reconciliation executes for yesterday`() {
-    scheduler.executeDailyCollectionReconciliation()
+      val yesterday = LocalDate.now().minusDays(1)
+      verify(exactly = 1) { dailyCollectionService.executeDailyReconciliation(yesterday) }
+    }
+    test("daily collection reconciliation swallows exceptions") {
+      io.mockk.every { dailyCollectionService.executeDailyReconciliation(any()) } throws RuntimeException("boom")
 
-    val yesterday = LocalDate.now().minusDays(1)
-    verify(exactly = 1) { dailyCollectionService.executeDailyReconciliation(yesterday) }
-  }
-
-  @Test
-  fun `daily collection reconciliation swallows exceptions`() {
-    io.mockk.every { dailyCollectionService.executeDailyReconciliation(any()) } throws RuntimeException("boom")
-
-    assertDoesNotThrow { scheduler.executeDailyCollectionReconciliation() }
-  }
-}
+      shouldNotThrowAny { scheduler.executeDailyCollectionReconciliation() }
+    }
+  })

@@ -24,64 +24,59 @@ import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
 import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivityListInput
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-class AdminFlashSaleQueryResolverTest {
-  private lateinit var flashSaleActivityQueryService: FlashSaleActivityQueryService
-  private lateinit var productQueryApiService: ProductQueryApiService
-  private lateinit var resolver: AdminFlashSaleQueryResolver
+class AdminFlashSaleQueryResolverTest :
+  FunSpec({
+    var flashSaleActivityQueryService: FlashSaleActivityQueryService = mockk()
+    var productQueryApiService: ProductQueryApiService = mockk()
+    var resolver: AdminFlashSaleQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    flashSaleActivityQueryService = mockk(relaxed = true)
-    productQueryApiService = mockk(relaxed = true)
-    resolver = AdminFlashSaleQueryResolver(flashSaleActivityQueryService, productQueryApiService)
-  }
-
-  @Test
-  fun `flashSaleActivities should list with display status`() {
-    // Given
-    every { flashSaleActivityQueryService.listActivities("特价", PageRequest.of(0, 20)) } returns
-      PageImpl(
-        listOf(
-          FlashSaleActivityModel(
-            id = 10L,
-            name = "限时特价",
-            productId = 1L,
-            salePriceCents = 1500,
-            validFrom = LocalDateTime.now().minusDays(1),
-            validTo = LocalDateTime.now().plusDays(30),
+    beforeTest {
+      flashSaleActivityQueryService = mockk(relaxed = true)
+      productQueryApiService = mockk(relaxed = true)
+      resolver = AdminFlashSaleQueryResolver(flashSaleActivityQueryService, productQueryApiService)
+    }
+    test("flashSaleActivities should list with display status") {
+      // Given
+      every { flashSaleActivityQueryService.listActivities("特价", PageRequest.of(0, 20)) } returns
+        PageImpl(
+          listOf(
+            FlashSaleActivityModel(
+              id = 10L,
+              name = "限时特价",
+              productId = 1L,
+              salePriceCents = 1500,
+              validFrom = LocalDateTime.now().minusDays(1),
+              validTo = LocalDateTime.now().plusDays(30),
+            ),
           ),
-        ),
-      )
+        )
 
-    // When
-    val result = resolver.flashSaleActivities(FlashSaleActivityListInput(keyword = "特价"))
+      // When
+      val result = resolver.flashSaleActivities(FlashSaleActivityListInput(keyword = "特价"))
 
-    // Then
-    assertEquals(1, result.content.size)
-    assertEquals(PromotionActivityDisplayStatus.ONGOING, result.content[0].currentStatus)
-    verify { flashSaleActivityQueryService.listActivities("特价", PageRequest.of(0, 20)) }
-  }
+      // Then
+      result.content.size shouldBe 1
+      result.content[0].currentStatus shouldBe PromotionActivityDisplayStatus.ONGOING
+      verify { flashSaleActivityQueryService.listActivities("特价", PageRequest.of(0, 20)) }
+    }
+    test("flashSaleActivity should return null when missing") {
+      // Given
+      every { flashSaleActivityQueryService.getActivity(999L) } returns null
 
-  @Test
-  fun `flashSaleActivity should return null when missing`() {
-    // Given
-    every { flashSaleActivityQueryService.getActivity(999L) } returns null
+      // When
+      val result = resolver.flashSaleActivity(999L)
 
-    // When
-    val result = resolver.flashSaleActivity(999L)
-
-    // Then
-    assertNull(result)
-  }
-}
+      // Then
+      result.shouldBeNull()
+    }
+  })

@@ -21,113 +21,102 @@ package dev.yidafu.aqua.ops.audit
 
 import dev.yidafu.aqua.logging.service.UserActionLogService
 import dev.yidafu.aqua.logging.util.BizLogger
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import kotlin.test.assertTrue
 
 /**
  * 运营配置审计服务单元测试(R-OPS-01:统一写入 user_action_logs,操作人/时间/前后值)
  */
-class OpsConfigAuditServiceTest {
-  private lateinit var userActionLogService: UserActionLogService
-  private lateinit var bizLogger: BizLogger
-  private lateinit var service: OpsConfigAuditService
+class OpsConfigAuditServiceTest :
+  FunSpec({
+    var userActionLogService: UserActionLogService = mockk()
+    var bizLogger: BizLogger = mockk()
+    var service: OpsConfigAuditService = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    userActionLogService = mockk(relaxed = true)
-    bizLogger = mockk(relaxed = true)
-    service = OpsConfigAuditService(userActionLogService, bizLogger)
-  }
-
-  @Test
-  @DisplayName("record 经 saveUserActionLogSync 写入 user_action_logs,properties 含前后值 JSON")
-  fun `record writes to user action log with before and after`() {
-    val propertiesSlot = slot<String>()
-    val userIdSlot = slot<String>()
-    val usernameSlot = slot<String>()
-    val actionTypeSlot = slot<String>()
-    val targetSlot = slot<String>()
-
-    service.record(
-      targetType = OpsConfigAuditService.TARGET_BANNER,
-      targetId = 42L,
-      actionType = OpsConfigAuditService.ACTION_BANNER_UPDATE,
-      operatorId = 1L,
-      operatorName = "admin",
-      before = mapOf("title" to "旧标题"),
-      after = mapOf("title" to "新标题"),
-    )
-
-    verify {
-      userActionLogService.saveUserActionLogSync(
-        userId = capture(userIdSlot),
-        username = capture(usernameSlot),
-        actionType = capture(actionTypeSlot),
-        target = capture(targetSlot),
-        pageUrl = "ops",
-        properties = capture(propertiesSlot),
-      )
+    beforeTest {
+      userActionLogService = mockk(relaxed = true)
+      bizLogger = mockk(relaxed = true)
+      service = OpsConfigAuditService(userActionLogService, bizLogger)
     }
-    assertTrue(userIdSlot.captured == "1")
-    assertTrue(usernameSlot.captured == "admin")
-    assertTrue(actionTypeSlot.captured == OpsConfigAuditService.ACTION_BANNER_UPDATE)
-    assertTrue(targetSlot.captured == "banner:42")
-    assertTrue(propertiesSlot.captured.contains("\"before\""))
-    assertTrue(propertiesSlot.captured.contains("\"after\""))
-    assertTrue(propertiesSlot.captured.contains("旧标题"))
-    assertTrue(propertiesSlot.captured.contains("新标题"))
-  }
+    test("record writes to user action log with before and after") {
+      val propertiesSlot = slot<String>()
+      val userIdSlot = slot<String>()
+      val usernameSlot = slot<String>()
+      val actionTypeSlot = slot<String>()
+      val targetSlot = slot<String>()
 
-  @Test
-  @DisplayName("record 无 targetId 时 target 仅含 targetType")
-  fun `record target without id`() {
-    service.record(
-      targetType = OpsConfigAuditService.TARGET_FEEDBACK,
-      targetId = null,
-      actionType = OpsConfigAuditService.ACTION_FEEDBACK_PROCESS,
-      operatorId = 1L,
-      operatorName = "admin",
-    )
-
-    verify {
-      userActionLogService.saveUserActionLogSync(
-        userId = "1",
-        username = "admin",
-        actionType = OpsConfigAuditService.ACTION_FEEDBACK_PROCESS,
-        target = OpsConfigAuditService.TARGET_FEEDBACK,
-        pageUrl = "ops",
-        properties = any(),
-      )
-    }
-  }
-
-  @Test
-  @DisplayName("业务日志(F-LOG-003):record 同时经 BizLogger 写入 business_logs(OPS 域)")
-  fun `record writes business log via bizLogger`() {
-    service.record(
-      targetType = OpsConfigAuditService.TARGET_BANNER,
-      targetId = 42L,
-      actionType = OpsConfigAuditService.ACTION_BANNER_CREATE,
-      operatorId = 1L,
-      operatorName = "admin",
-      description = "direction=UP",
-    )
-
-    verify(exactly = 1) {
-      bizLogger.logOpsOperation(
+      service.record(
         targetType = OpsConfigAuditService.TARGET_BANNER,
         targetId = 42L,
-        operation = OpsConfigAuditService.ACTION_BANNER_CREATE,
-        result = "SUCCESS",
+        actionType = OpsConfigAuditService.ACTION_BANNER_UPDATE,
         operatorId = 1L,
         operatorName = "admin",
-        additionalData = mapOf("description" to "direction=UP"),
+        before = mapOf("title" to "旧标题"),
+        after = mapOf("title" to "新标题"),
       )
+
+      verify {
+        userActionLogService.saveUserActionLogSync(
+          userId = capture(userIdSlot),
+          username = capture(usernameSlot),
+          actionType = capture(actionTypeSlot),
+          target = capture(targetSlot),
+          pageUrl = "ops",
+          properties = capture(propertiesSlot),
+        )
+      }
+      (userIdSlot.captured == "1") shouldBe true
+      (usernameSlot.captured == "admin") shouldBe true
+      (actionTypeSlot.captured == OpsConfigAuditService.ACTION_BANNER_UPDATE) shouldBe true
+      (targetSlot.captured == "banner:42") shouldBe true
+      propertiesSlot.captured.contains("\"before\"") shouldBe true
+      propertiesSlot.captured.contains("\"after\"") shouldBe true
+      propertiesSlot.captured.contains("旧标题") shouldBe true
+      propertiesSlot.captured.contains("新标题") shouldBe true
     }
-  }
-}
+    test("record target without id") {
+      service.record(
+        targetType = OpsConfigAuditService.TARGET_FEEDBACK,
+        targetId = null,
+        actionType = OpsConfigAuditService.ACTION_FEEDBACK_PROCESS,
+        operatorId = 1L,
+        operatorName = "admin",
+      )
+
+      verify {
+        userActionLogService.saveUserActionLogSync(
+          userId = "1",
+          username = "admin",
+          actionType = OpsConfigAuditService.ACTION_FEEDBACK_PROCESS,
+          target = OpsConfigAuditService.TARGET_FEEDBACK,
+          pageUrl = "ops",
+          properties = any(),
+        )
+      }
+    }
+    test("record writes business log via bizLogger") {
+      service.record(
+        targetType = OpsConfigAuditService.TARGET_BANNER,
+        targetId = 42L,
+        actionType = OpsConfigAuditService.ACTION_BANNER_CREATE,
+        operatorId = 1L,
+        operatorName = "admin",
+        description = "direction=UP",
+      )
+
+      verify(exactly = 1) {
+        bizLogger.logOpsOperation(
+          targetType = OpsConfigAuditService.TARGET_BANNER,
+          targetId = 42L,
+          operation = OpsConfigAuditService.ACTION_BANNER_CREATE,
+          result = "SUCCESS",
+          operatorId = 1L,
+          operatorName = "admin",
+          additionalData = mapOf("description" to "direction=UP"),
+        )
+      }
+    }
+  })

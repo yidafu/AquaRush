@@ -26,119 +26,108 @@ import dev.yidafu.aqua.common.domain.model.enums.NoticeType
 import dev.yidafu.aqua.common.graphql.generated.CreateNoticeInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateNoticeInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 import dev.yidafu.aqua.common.graphql.generated.NoticeType as GraphQLNoticeType
 
-class AdminNoticeMutationResolverTest {
-  private lateinit var noticeMutationService: NoticeMutationService
-  private lateinit var resolver: AdminNoticeMutationResolver
+class AdminNoticeMutationResolverTest :
+  FunSpec({
+    var noticeMutationService: NoticeMutationService = mockk()
+    var resolver: AdminNoticeMutationResolver = mockk()
 
-  private fun notice(): NoticeModel =
-    NoticeModel(
-      id = 1L,
-      title = "系统维护通知",
-      content = "本周六凌晨维护",
-      type = NoticeType.PLATFORM_NOTICE,
-      status = NoticeStatus.PUBLISHED,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "admin",
-      userType = "ADMIN",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    noticeMutationService = mockk(relaxed = true)
-    resolver = AdminNoticeMutationResolver(noticeMutationService)
-  }
-
-  @Test
-  fun `createNotice should delegate`() {
-    // Given
-    every { noticeMutationService.createNotice(1L, "admin", any()) } returns notice()
-    val input = CreateNoticeInput(content = "本周六凌晨维护", title = "系统维护通知", type = GraphQLNoticeType.PLATFORM_NOTICE)
-
-    // When
-    val result = resolver.createNotice(input, principal())
-
-    // Then
-    assertEquals("系统维护通知", result.title)
-    verify { noticeMutationService.createNotice(1L, "admin", any()) }
-  }
-
-  @Test
-  fun `publishNotice should delegate`() {
-    // Given
-    every { noticeMutationService.publishNotice(1L, "admin", 1L) } returns notice()
-
-    // When
-    val result = resolver.publishNotice(1L, principal())
-
-    // Then
-    assertEquals("系统维护通知", result.title)
-    verify { noticeMutationService.publishNotice(1L, "admin", 1L) }
-  }
-
-  @Test
-  fun `stopNotice should delegate`() {
-    // Given
-    every { noticeMutationService.stopNotice(1L, "admin", 1L) } returns notice()
-
-    // When
-    val result = resolver.stopNotice(1L, principal())
-
-    // Then
-    assertEquals(NoticeStatus.PUBLISHED, NoticeStatus.valueOf(result.status.name))
-    verify { noticeMutationService.stopNotice(1L, "admin", 1L) }
-  }
-
-  @Test
-  fun `setNoticePinned should delegate`() {
-    // Given
-    every { noticeMutationService.setNoticePinned(1L, "admin", 1L, true) } returns
+    fun notice(): NoticeModel =
       NoticeModel(
         id = 1L,
         title = "系统维护通知",
         content = "本周六凌晨维护",
         type = NoticeType.PLATFORM_NOTICE,
         status = NoticeStatus.PUBLISHED,
-        pinned = true,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
 
-    // When
-    val result = resolver.setNoticePinned(1L, true, principal())
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "admin",
+        userType = "ADMIN",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
+      )
 
-    // Then
-    assertEquals(true, result.pinned)
-    verify { noticeMutationService.setNoticePinned(1L, "admin", 1L, true) }
-  }
+    beforeTest {
+      noticeMutationService = mockk(relaxed = true)
+      resolver = AdminNoticeMutationResolver(noticeMutationService)
+    }
+    test("createNotice should delegate") {
+      // Given
+      every { noticeMutationService.createNotice(1L, "admin", any()) } returns notice()
+      val input = CreateNoticeInput(content = "本周六凌晨维护", title = "系统维护通知", type = GraphQLNoticeType.PLATFORM_NOTICE)
 
-  @Test
-  fun `updateNotice should delegate`() {
-    // Given
-    every { noticeMutationService.updateNotice(1L, "admin", 1L, any()) } returns notice()
-    val input = UpdateNoticeInput(content = "本周六凌晨维护", title = "系统维护通知", type = GraphQLNoticeType.PLATFORM_NOTICE)
+      // When
+      val result = resolver.createNotice(input, principal())
 
-    // When
-    val result = resolver.updateNotice(1L, input, principal())
+      // Then
+      result.title shouldBe "系统维护通知"
+      verify { noticeMutationService.createNotice(1L, "admin", any()) }
+    }
+    test("publishNotice should delegate") {
+      // Given
+      every { noticeMutationService.publishNotice(1L, "admin", 1L) } returns notice()
 
-    // Then
-    assertEquals("系统维护通知", result.title)
-    verify { noticeMutationService.updateNotice(1L, "admin", 1L, any()) }
-  }
-}
+      // When
+      val result = resolver.publishNotice(1L, principal())
+
+      // Then
+      result.title shouldBe "系统维护通知"
+      verify { noticeMutationService.publishNotice(1L, "admin", 1L) }
+    }
+    test("stopNotice should delegate") {
+      // Given
+      every { noticeMutationService.stopNotice(1L, "admin", 1L) } returns notice()
+
+      // When
+      val result = resolver.stopNotice(1L, principal())
+
+      // Then
+      NoticeStatus.valueOf(result.status.name) shouldBe NoticeStatus.PUBLISHED
+      verify { noticeMutationService.stopNotice(1L, "admin", 1L) }
+    }
+    test("setNoticePinned should delegate") {
+      // Given
+      every { noticeMutationService.setNoticePinned(1L, "admin", 1L, true) } returns
+        NoticeModel(
+          id = 1L,
+          title = "系统维护通知",
+          content = "本周六凌晨维护",
+          type = NoticeType.PLATFORM_NOTICE,
+          status = NoticeStatus.PUBLISHED,
+          pinned = true,
+          createdAt = LocalDateTime.now(),
+          updatedAt = LocalDateTime.now(),
+        )
+
+      // When
+      val result = resolver.setNoticePinned(1L, true, principal())
+
+      // Then
+      result.pinned shouldBe true
+      verify { noticeMutationService.setNoticePinned(1L, "admin", 1L, true) }
+    }
+    test("updateNotice should delegate") {
+      // Given
+      every { noticeMutationService.updateNotice(1L, "admin", 1L, any()) } returns notice()
+      val input = UpdateNoticeInput(content = "本周六凌晨维护", title = "系统维护通知", type = GraphQLNoticeType.PLATFORM_NOTICE)
+
+      // When
+      val result = resolver.updateNotice(1L, input, principal())
+
+      // Then
+      result.title shouldBe "系统维护通知"
+      verify { noticeMutationService.updateNotice(1L, "admin", 1L, any()) }
+    }
+  })

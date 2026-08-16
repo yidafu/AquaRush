@@ -22,62 +22,55 @@ package dev.yidafu.aqua.admin.marketing.resolvers
 import dev.yidafu.aqua.api.service.marketing.CustomerGroupQueryService
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
 import dev.yidafu.aqua.common.graphql.generated.CustomerGroupListInput
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
-class AdminCustomerGroupQueryResolverTest {
-  private lateinit var customerGroupQueryService: CustomerGroupQueryService
-  private lateinit var resolver: AdminCustomerGroupQueryResolver
+class AdminCustomerGroupQueryResolverTest :
+  FunSpec({
+    var customerGroupQueryService: CustomerGroupQueryService = mockk()
+    var resolver: AdminCustomerGroupQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    customerGroupQueryService = mockk(relaxed = true)
-    resolver = AdminCustomerGroupQueryResolver(customerGroupQueryService)
-  }
+    beforeTest {
+      customerGroupQueryService = mockk(relaxed = true)
+      resolver = AdminCustomerGroupQueryResolver(customerGroupQueryService)
+    }
+    test("customerGroups should list with member counts") {
+      // Given
+      every { customerGroupQueryService.listGroups("老", PageRequest.of(0, 20)) } returns
+        PageImpl(listOf(CustomerGroupModel(id = 10L, name = "老客户")))
+      every { customerGroupQueryService.memberCount(10L) } returns 5L
 
-  @Test
-  fun `customerGroups should list with member counts`() {
-    // Given
-    every { customerGroupQueryService.listGroups("老", PageRequest.of(0, 20)) } returns
-      PageImpl(listOf(CustomerGroupModel(id = 10L, name = "老客户")))
-    every { customerGroupQueryService.memberCount(10L) } returns 5L
+      // When
+      val result = resolver.customerGroups(CustomerGroupListInput(keyword = "老"))
 
-    // When
-    val result = resolver.customerGroups(CustomerGroupListInput(keyword = "老"))
+      // Then
+      result.content.size shouldBe 1
+      result.content[0].memberCount shouldBe 5
+      verify { customerGroupQueryService.listGroups("老", PageRequest.of(0, 20)) }
+    }
+    test("customerGroup should throw when missing") {
+      // Given
+      every { customerGroupQueryService.getGroup(999L) } returns null
 
-    // Then
-    assertEquals(1, result.content.size)
-    assertEquals(5, result.content[0].memberCount)
-    verify { customerGroupQueryService.listGroups("老", PageRequest.of(0, 20)) }
-  }
+      // When & Then
+      shouldThrow<IllegalArgumentException> { resolver.customerGroup(999L) }
+    }
+    test("customerGroup should map group with member count") {
+      // Given
+      every { customerGroupQueryService.getGroup(10L) } returns CustomerGroupModel(id = 10L, name = "老客户")
+      every { customerGroupQueryService.memberCount(10L) } returns 3L
 
-  @Test
-  fun `customerGroup should throw when missing`() {
-    // Given
-    every { customerGroupQueryService.getGroup(999L) } returns null
+      // When
+      val result = resolver.customerGroup(10L)
 
-    // When & Then
-    assertFailsWith<IllegalArgumentException> { resolver.customerGroup(999L) }
-  }
-
-  @Test
-  fun `customerGroup should map group with member count`() {
-    // Given
-    every { customerGroupQueryService.getGroup(10L) } returns CustomerGroupModel(id = 10L, name = "老客户")
-    every { customerGroupQueryService.memberCount(10L) } returns 3L
-
-    // When
-    val result = resolver.customerGroup(10L)
-
-    // Then
-    assertEquals("老客户", result!!.name)
-    assertEquals(3, result.memberCount)
-  }
-}
+      // Then
+      result!!.name shouldBe "老客户"
+      result.memberCount shouldBe 3
+    }
+  })

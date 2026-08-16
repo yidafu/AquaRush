@@ -22,134 +22,120 @@ package dev.yidafu.aqua.admin.user.resolvers
 import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class AddressResolverTest {
-  private lateinit var addressService: AddressService
-  private lateinit var resolver: AddressResolver
+class AddressResolverTest :
+  FunSpec({
+    var addressService: AddressService = mockk()
+    var resolver: AddressResolver = mockk()
 
-  private fun createSampleAddress(): AddressModel =
-    AddressModel(
-      id = 1L,
-      userId = 1L,
-      receiverName = "张三",
-      phone = "13800138000",
-      province = "广东省",
-      provinceCode = "440000",
-      city = "深圳市",
-      cityCode = "440300",
-      district = "南山区",
-      districtCode = "440305",
-      detailAddress = "科技园路1号",
-      floor = 5,
-    )
+    fun createSampleAddress(): AddressModel =
+      AddressModel(
+        id = 1L,
+        userId = 1L,
+        receiverName = "张三",
+        phone = "13800138000",
+        province = "广东省",
+        provinceCode = "440000",
+        city = "深圳市",
+        cityCode = "440300",
+        district = "南山区",
+        districtCode = "440305",
+        detailAddress = "科技园路1号",
+        floor = 5,
+      )
 
-  private fun validAddressInput(): AddressInput =
-    AddressInput(
-      city = "深圳市",
-      cityCode = "440300",
-      detailAddress = "科技园路1号",
-      district = "南山区",
-      districtCode = "440305",
-      phone = "13800138000",
-      province = "广东省",
-      provinceCode = "440000",
-      receiverName = "张三",
-    )
+    fun validAddressInput(): AddressInput =
+      AddressInput(
+        city = "深圳市",
+        cityCode = "440300",
+        detailAddress = "科技园路1号",
+        district = "南山区",
+        districtCode = "440305",
+        phone = "13800138000",
+        province = "广东省",
+        provinceCode = "440000",
+        receiverName = "张三",
+      )
 
-  @BeforeEach
-  fun setUp() {
-    addressService = mockk(relaxed = true)
-    resolver = AddressResolver(addressService)
-  }
+    beforeTest {
+      addressService = mockk(relaxed = true)
+      resolver = AddressResolver(addressService)
+    }
+    test("userAddresses should map user addresses") {
+      // Given
+      every { addressService.findByUserId(1L) } returns listOf(createSampleAddress())
 
-  @Test
-  fun `userAddresses should map user addresses`() {
-    // Given
-    every { addressService.findByUserId(1L) } returns listOf(createSampleAddress())
+      // When
+      val result = resolver.userAddresses(1L)
 
-    // When
-    val result = resolver.userAddresses(1L)
+      // Then
+      result.size shouldBe 1
+      result[0].receiverName shouldBe "张三"
+      verify { addressService.findByUserId(1L) }
+    }
+    test("addresses should return all addresses") {
+      // Given
+      every { addressService.findAllAddresses() } returns listOf(createSampleAddress())
 
-    // Then
-    assertEquals(1, result.size)
-    assertEquals("张三", result[0].receiverName)
-    verify { addressService.findByUserId(1L) }
-  }
+      // When
+      val result = resolver.addresses()
 
-  @Test
-  fun `addresses should return all addresses`() {
-    // Given
-    every { addressService.findAllAddresses() } returns listOf(createSampleAddress())
+      // Then
+      result.size shouldBe 1
+      verify { addressService.findAllAddresses() }
+    }
+    test("searchAllAddresses should search with keyword") {
+      // Given
+      every { addressService.searchAllAddresses("张三", PageRequest.of(0, 10)) } returns
+        PageImpl(listOf(createSampleAddress()))
 
-    // When
-    val result = resolver.addresses()
+      // When
+      val result = resolver.searchAllAddresses("张三", 0, 10)
 
-    // Then
-    assertEquals(1, result.size)
-    verify { addressService.findAllAddresses() }
-  }
+      // Then
+      result.size shouldBe 1
+      verify { addressService.searchAllAddresses("张三", PageRequest.of(0, 10)) }
+    }
+    test("createAdminAddress should save mapped address") {
+      // Given
+      every { addressService.save(any()) } returns createSampleAddress()
 
-  @Test
-  fun `searchAllAddresses should search with keyword`() {
-    // Given
-    every { addressService.searchAllAddresses("张三", PageRequest.of(0, 10)) } returns
-      PageImpl(listOf(createSampleAddress()))
+      // When
+      val result = resolver.createAdminAddress(validAddressInput())
 
-    // When
-    val result = resolver.searchAllAddresses("张三", 0, 10)
+      // Then
+      result.id shouldBe 1L
+      verify { addressService.save(any()) }
+    }
+    test("batchImportAddresses should report counts") {
+      // Given
+      every { addressService.saveAll(any()) } returns listOf(createSampleAddress())
 
-    // Then
-    assertEquals(1, result.size)
-    verify { addressService.searchAllAddresses("张三", PageRequest.of(0, 10)) }
-  }
+      // When
+      val result = resolver.batchImportAddresses(listOf(validAddressInput(), validAddressInput()))
 
-  @Test
-  fun `createAdminAddress should save mapped address`() {
-    // Given
-    every { addressService.save(any()) } returns createSampleAddress()
+      // Then
+      result.totalCount shouldBe 2
+      result.successCount shouldBe 2
+      result.failureCount shouldBe 0
+      verify { addressService.saveAll(any()) }
+    }
+    test("deleteAdminAddress should delegate") {
+      // Given
+      every { addressService.deleteAddressById(1L) } returns true
 
-    // When
-    val result = resolver.createAdminAddress(validAddressInput())
+      // When
+      val result = resolver.deleteAdminAddress(1L)
 
-    // Then
-    assertEquals(1L, result.id)
-    verify { addressService.save(any()) }
-  }
-
-  @Test
-  fun `batchImportAddresses should report counts`() {
-    // Given
-    every { addressService.saveAll(any()) } returns listOf(createSampleAddress())
-
-    // When
-    val result = resolver.batchImportAddresses(listOf(validAddressInput(), validAddressInput()))
-
-    // Then
-    assertEquals(2, result.totalCount)
-    assertEquals(2, result.successCount)
-    assertEquals(0, result.failureCount)
-    verify { addressService.saveAll(any()) }
-  }
-
-  @Test
-  fun `deleteAdminAddress should delegate`() {
-    // Given
-    every { addressService.deleteAddressById(1L) } returns true
-
-    // When
-    val result = resolver.deleteAdminAddress(1L)
-
-    // Then
-    assertTrue(result)
-    verify { addressService.deleteAddressById(1L) }
-  }
-}
+      // Then
+      result shouldBe true
+      verify { addressService.deleteAddressById(1L) }
+    }
+  })

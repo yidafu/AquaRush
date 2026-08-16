@@ -33,161 +33,138 @@ import dev.yidafu.aqua.common.graphql.generated.ConfirmDailyCollectionInput
 import dev.yidafu.aqua.common.graphql.generated.ReviewReconciliationInput
 import dev.yidafu.aqua.common.graphql.generated.SubmitDailyCollectionInput
 import dev.yidafu.aqua.logging.util.BizLogger
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.userdetails.UserDetails
 import java.time.LocalDate
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
 
 /**
  * 管理员每日收款变更解析器单元测试: 提交/确认/复核/手动对账的成功与校验分支
  */
-class AdminDailyCollectionMutationResolverTest {
-  private lateinit var dailyCollectionService: DailyCollectionService
-  private lateinit var adminService: AdminService
-  private lateinit var bizLogger: BizLogger
-  private lateinit var resolver: AdminDailyCollectionMutationResolver
+class AdminDailyCollectionMutationResolverTest :
+  FunSpec({
+    var dailyCollectionService: DailyCollectionService = mockk()
+    var adminService: AdminService = mockk()
+    var bizLogger: BizLogger = mockk()
+    var resolver: AdminDailyCollectionMutationResolver = mockk()
+    val user = mockk<UserDetails>(relaxed = true)
 
-  private val user = mockk<UserDetails>(relaxed = true)
+    fun admin(): AdminModel =
+      AdminModel(username = "admin1", passwordHash = "hash", role = AdminRoleModel.DELIVERY_WORKER).apply {
+        id = 1L
+      }
 
-  @BeforeEach
-  fun setUp() {
-    dailyCollectionService = mockk(relaxed = true)
-    adminService = mockk(relaxed = true)
-    bizLogger = mockk(relaxed = true)
-    resolver = AdminDailyCollectionMutationResolver(dailyCollectionService, adminService, bizLogger)
-    every { user.username } returns "admin1"
-  }
-
-  private fun admin(): AdminModel =
-    AdminModel(username = "admin1", passwordHash = "hash", role = AdminRoleModel.DELIVERY_WORKER).apply {
-      id = 1L
+    beforeTest {
+      dailyCollectionService = mockk(relaxed = true)
+      adminService = mockk(relaxed = true)
+      bizLogger = mockk(relaxed = true)
+      resolver = AdminDailyCollectionMutationResolver(dailyCollectionService, adminService, bizLogger)
+      every { user.username } returns "admin1"
     }
+    test("submitDailyCollection resolves worker and logs") {
+      every { adminService.findByUsername("admin1") } returns admin()
+      val record = DailyCollectionRecordModel(deliveryWorkerId = 1L, status = DailyCollectionStatus.SUBMITTED)
+      every { dailyCollectionService.submitDailyCollection(any(), any(), any(), any(), any()) } returns record
 
-  @Test
-  fun `submitDailyCollection resolves worker and logs`() {
-    every { adminService.findByUsername("admin1") } returns admin()
-    val record = DailyCollectionRecordModel(deliveryWorkerId = 1L, status = DailyCollectionStatus.SUBMITTED)
-    every { dailyCollectionService.submitDailyCollection(any(), any(), any(), any(), any()) } returns record
+      val result =
+        resolver.submitDailyCollection(
+          SubmitDailyCollectionInput(
+            cashAmountCents = 1000L,
+            qrCodeAmountCents = 200L,
+            waterTicketCount = 1,
+            collectionDate = "2025-06-01",
+          ),
+          user,
+        )
 
-    val result =
+      result shouldBe record
+      verify { bizLogger.logOperation("RECON_DAILY_SUBMIT", "RECONCILIATION", "SUCCESS", any(), 1L, "admin1", any()) }
+    }
+    test("submitDailyCollection uses today when date omitted") {
+      every { adminService.findByUsername("admin1") } returns admin()
+      every { dailyCollectionService.submitDailyCollection(any(), any(), any(), any(), any()) } returns
+        DailyCollectionRecordModel(deliveryWorkerId = 1L)
+
       resolver.submitDailyCollection(
-        SubmitDailyCollectionInput(cashAmountCents = 1000L, qrCodeAmountCents = 200L, waterTicketCount = 1, collectionDate = "2025-06-01"),
+        SubmitDailyCollectionInput(cashAmountCents = 100L, qrCodeAmountCents = 0L, waterTicketCount = 0),
         user,
       )
 
-    assertEquals(record, result)
-    verify { bizLogger.logOperation("RECON_DAILY_SUBMIT", "RECONCILIATION", "SUCCESS", any(), 1L, "admin1", any()) }
-  }
-
-  @Test
-  fun `submitDailyCollection uses today when date omitted`() {
-    every { adminService.findByUsername("admin1") } returns admin()
-    every { dailyCollectionService.submitDailyCollection(any(), any(), any(), any(), any()) } returns
-      DailyCollectionRecordModel(deliveryWorkerId = 1L)
-
-    resolver.submitDailyCollection(
-      SubmitDailyCollectionInput(cashAmountCents = 100L, qrCodeAmountCents = 0L, waterTicketCount = 0),
-      user,
-    )
-
-    verify { dailyCollectionService.submitDailyCollection(1L, 100L, 0, 0L, LocalDate.now()) }
-  }
-
-  @Test
-  fun `submitDailyCollection throws when user missing`() {
-    every { adminService.findByUsername("admin1") } returns null
-
-    assertFailsWith<BadRequestException> {
-      resolver.submitDailyCollection(SubmitDailyCollectionInput(cashAmountCents = 1L, qrCodeAmountCents = 0L, waterTicketCount = 0), user)
+      verify { dailyCollectionService.submitDailyCollection(1L, 100L, 0, 0L, LocalDate.now()) }
     }
-  }
+    test("submitDailyCollection throws when user missing") {
+      every { adminService.findByUsername("admin1") } returns null
 
-  @Test
-  fun `confirmDailyCollection requires login`() {
-    assertFailsWith<UnauthorizedException> { resolver.confirmDailyCollection(null, null) }
-  }
-
-  @Test
-  fun `confirmDailyCollection rejects null input`() {
-    assertFailsWith<BadRequestException> { resolver.confirmDailyCollection(null, user) }
-  }
-
-  @Test
-  fun `confirmDailyCollection confirms record and logs`() {
-    every { adminService.findByUsername("admin1") } returns admin()
-    val record = DailyCollectionRecordModel(deliveryWorkerId = 1L, status = DailyCollectionStatus.CONFIRMED)
-    every { dailyCollectionService.confirmCollection(9L, 1L, "OK") } returns record
-
-    val result = resolver.confirmDailyCollection(ConfirmDailyCollectionInput(recordId = 9L, notes = "OK"), user)
-
-    assertEquals(record, result)
-    verify { bizLogger.logOperation("RECON_DAILY_CONFIRM", "RECONCILIATION", "SUCCESS", any(), 1L, "admin1", any()) }
-  }
-
-  @Test
-  fun `reviewReconciliation requires login`() {
-    assertFailsWith<UnauthorizedException> { resolver.reviewReconciliation(null, null) }
-  }
-
-  @Test
-  fun `reviewReconciliation rejects blank notes`() {
-    assertFailsWith<BadRequestException> {
-      resolver.reviewReconciliation(ReviewReconciliationInput(reconciliationId = 3L, reviewNotes = "  "), user)
+      shouldThrow<BadRequestException> {
+        resolver.submitDailyCollection(SubmitDailyCollectionInput(cashAmountCents = 1L, qrCodeAmountCents = 0L, waterTicketCount = 0), user)
+      }
     }
-  }
+    test("confirmDailyCollection requires login") {
+      shouldThrow<UnauthorizedException> { resolver.confirmDailyCollection(null, null) }
+    }
+    test("confirmDailyCollection rejects null input") {
+      shouldThrow<BadRequestException> { resolver.confirmDailyCollection(null, user) }
+    }
+    test("confirmDailyCollection confirms record and logs") {
+      every { adminService.findByUsername("admin1") } returns admin()
+      val record = DailyCollectionRecordModel(deliveryWorkerId = 1L, status = DailyCollectionStatus.CONFIRMED)
+      every { dailyCollectionService.confirmCollection(9L, 1L, "OK") } returns record
 
-  @Test
-  fun `reviewReconciliation reviews and logs`() {
-    every { adminService.findByUsername("admin1") } returns admin()
-    val model = DailyReconciliationModel(status = DailyReconciliationStatus.REVIEWED)
-    every { dailyCollectionService.reviewReconciliation(3L, 1L, "无误") } returns model
+      val result = resolver.confirmDailyCollection(ConfirmDailyCollectionInput(recordId = 9L, notes = "OK"), user)
 
-    val result = resolver.reviewReconciliation(ReviewReconciliationInput(reconciliationId = 3L, reviewNotes = "无误"), user)
+      result shouldBe record
+      verify { bizLogger.logOperation("RECON_DAILY_CONFIRM", "RECONCILIATION", "SUCCESS", any(), 1L, "admin1", any()) }
+    }
+    test("reviewReconciliation requires login") {
+      shouldThrow<UnauthorizedException> { resolver.reviewReconciliation(null, null) }
+    }
+    test("reviewReconciliation rejects blank notes") {
+      shouldThrow<BadRequestException> {
+        resolver.reviewReconciliation(ReviewReconciliationInput(reconciliationId = 3L, reviewNotes = "  "), user)
+      }
+    }
+    test("reviewReconciliation reviews and logs") {
+      every { adminService.findByUsername("admin1") } returns admin()
+      val model = DailyReconciliationModel(status = DailyReconciliationStatus.REVIEWED)
+      every { dailyCollectionService.reviewReconciliation(3L, 1L, "无误") } returns model
 
-    assertEquals(model, result)
-    verify { bizLogger.logOperation("RECON_REVIEW", "RECONCILIATION", "SUCCESS", any(), 1L, "admin1", any()) }
-  }
+      val result = resolver.reviewReconciliation(ReviewReconciliationInput(reconciliationId = 3L, reviewNotes = "无误"), user)
 
-  @Test
-  fun `executeDailyReconciliation runs for explicit date`() {
-    every { adminService.findByUsername("admin1") } returns admin()
-    every { dailyCollectionService.getReconciliationByDate(any()) } returns
-      DailyReconciliationModel(reconciliationDate = LocalDate.of(2025, 6, 1))
+      result shouldBe model
+      verify { bizLogger.logOperation("RECON_REVIEW", "RECONCILIATION", "SUCCESS", any(), 1L, "admin1", any()) }
+    }
+    test("executeDailyReconciliation runs for explicit date") {
+      every { adminService.findByUsername("admin1") } returns admin()
+      every { dailyCollectionService.getReconciliationByDate(any()) } returns
+        DailyReconciliationModel(reconciliationDate = LocalDate.of(2025, 6, 1))
 
-    val result = resolver.executeDailyReconciliation("2025-06-01", user)
+      val result = resolver.executeDailyReconciliation("2025-06-01", user)
 
-    assertNotNull(result)
-    verify { dailyCollectionService.executeDailyReconciliation(LocalDate.of(2025, 6, 1)) }
-  }
+      result.shouldNotBeNull()
+      verify { dailyCollectionService.executeDailyReconciliation(LocalDate.of(2025, 6, 1)) }
+    }
+    test("executeDailyReconciliation defaults to yesterday") {
+      every { adminService.findByUsername("admin1") } returns admin()
+      every { dailyCollectionService.getReconciliationByDate(any()) } returns
+        DailyReconciliationModel(reconciliationDate = LocalDate.now().minusDays(1))
 
-  @Test
-  fun `executeDailyReconciliation defaults to yesterday`() {
-    every { adminService.findByUsername("admin1") } returns admin()
-    every { dailyCollectionService.getReconciliationByDate(any()) } returns
-      DailyReconciliationModel(reconciliationDate = LocalDate.now().minusDays(1))
+      val result = resolver.executeDailyReconciliation(null, user)
 
-    val result = resolver.executeDailyReconciliation(null, user)
+      result.shouldNotBeNull()
+      verify { dailyCollectionService.executeDailyReconciliation(LocalDate.now().minusDays(1)) }
+    }
+    test("executeDailyReconciliation throws when reconciliation missing") {
+      every { adminService.findByUsername("admin1") } returns admin()
+      every { dailyCollectionService.getReconciliationByDate(any()) } returns null
 
-    assertNotNull(result)
-    verify { dailyCollectionService.executeDailyReconciliation(LocalDate.now().minusDays(1)) }
-  }
-
-  @Test
-  fun `executeDailyReconciliation throws when reconciliation missing`() {
-    every { adminService.findByUsername("admin1") } returns admin()
-    every { dailyCollectionService.getReconciliationByDate(any()) } returns null
-
-    assertFailsWith<BadRequestException> { resolver.executeDailyReconciliation("2025-06-01", user) }
-  }
-
-  @Test
-  fun `executeDailyReconciliation requires login`() {
-    assertFailsWith<UnauthorizedException> { resolver.executeDailyReconciliation(null, null) }
-  }
-}
+      shouldThrow<BadRequestException> { resolver.executeDailyReconciliation("2025-06-01", user) }
+    }
+    test("executeDailyReconciliation requires login") {
+      shouldThrow<UnauthorizedException> { resolver.executeDailyReconciliation(null, null) }
+    }
+  })

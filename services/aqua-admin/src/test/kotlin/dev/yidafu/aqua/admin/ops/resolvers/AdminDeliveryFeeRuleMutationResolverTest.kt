@@ -23,45 +23,42 @@ import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleMutationService
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.common.graphql.generated.SaveDeliveryFeeRuleInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import kotlin.test.assertEquals
 
-class AdminDeliveryFeeRuleMutationResolverTest {
-  private lateinit var deliveryFeeRuleMutationService: DeliveryFeeRuleMutationService
-  private lateinit var resolver: AdminDeliveryFeeRuleMutationResolver
+class AdminDeliveryFeeRuleMutationResolverTest :
+  FunSpec({
+    var deliveryFeeRuleMutationService: DeliveryFeeRuleMutationService = mockk()
+    var resolver: AdminDeliveryFeeRuleMutationResolver = mockk()
 
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "admin",
-      userType = "ADMIN",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
-    )
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "admin",
+        userType = "ADMIN",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    deliveryFeeRuleMutationService = mockk(relaxed = true)
-    resolver = AdminDeliveryFeeRuleMutationResolver(deliveryFeeRuleMutationService)
-  }
+    beforeTest {
+      deliveryFeeRuleMutationService = mockk(relaxed = true)
+      resolver = AdminDeliveryFeeRuleMutationResolver(deliveryFeeRuleMutationService)
+    }
+    test("saveDeliveryFeeRule should delegate") {
+      // Given
+      every { deliveryFeeRuleMutationService.saveDeliveryFeeRule(1L, "admin", any()) } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+      val input = SaveDeliveryFeeRuleInput(freeFloorLimit = 4, surchargeCents = 200)
 
-  @Test
-  fun `saveDeliveryFeeRule should delegate`() {
-    // Given
-    every { deliveryFeeRuleMutationService.saveDeliveryFeeRule(1L, "admin", any()) } returns
-      DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
-    val input = SaveDeliveryFeeRuleInput(freeFloorLimit = 4, surchargeCents = 200)
+      // When
+      val result = resolver.saveDeliveryFeeRule(input, principal())
 
-    // When
-    val result = resolver.saveDeliveryFeeRule(input, principal())
-
-    // Then
-    assertEquals(4, result.freeFloorLimit)
-    assertEquals(200L, result.surchargeCents)
-    verify { deliveryFeeRuleMutationService.saveDeliveryFeeRule(1L, "admin", any()) }
-  }
-}
+      // Then
+      result.freeFloorLimit shouldBe 4
+      result.surchargeCents shouldBe 200L
+      verify { deliveryFeeRuleMutationService.saveDeliveryFeeRule(1L, "admin", any()) }
+    }
+  })

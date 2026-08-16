@@ -21,115 +21,101 @@ package dev.yidafu.aqua.common.messaging.processor
 
 import dev.yidafu.aqua.common.messaging.config.SimplifiedMessagingProperties
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
-class RetryableMessageProcessorTest {
-  private fun event() = DomainEvent(eventType = "ORDER_CREATED", payload = "{}")
+class RetryableMessageProcessorTest :
+  FunSpec({
+    fun event() = DomainEvent(eventType = "ORDER_CREATED", payload = "{}")
 
-  private fun properties(
-    maxAttempts: Int = 3,
-    initialInterval: Long = 5,
-    multiplier: Double = 2.0,
-    maxInterval: Long = 10,
-  ): SimplifiedMessagingProperties {
-    val props = SimplifiedMessagingProperties()
-    props.artemis.retry.maxAttempts = maxAttempts
-    props.artemis.retry.initialInterval = initialInterval
-    props.artemis.retry.multiplier = multiplier
-    props.artemis.retry.maxInterval = maxInterval
-    return props
-  }
+    fun properties(
+      maxAttempts: Int = 3,
+      initialInterval: Long = 5,
+      multiplier: Double = 2.0,
+      maxInterval: Long = 10,
+    ): SimplifiedMessagingProperties {
+      val props = SimplifiedMessagingProperties()
+      props.artemis.retry.maxAttempts = maxAttempts
+      props.artemis.retry.initialInterval = initialInterval
+      props.artemis.retry.multiplier = multiplier
+      props.artemis.retry.maxInterval = maxInterval
+      return props
+    }
 
-  @Test
-  fun `processWithRetry should succeed on first attempt`() {
-    val processor = RetryableMessageProcessor(properties())
-    var calls = 0
-    val result =
-      processor.processWithRetry(event()) {
-        calls++
-      }
-    assertTrue(result)
-    assertEquals(1, calls)
-  }
-
-  @Test
-  fun `processWithRetry should succeed after retries`() {
-    val processor = RetryableMessageProcessor(properties(maxAttempts = 3))
-    var calls = 0
-    val result =
-      processor.processWithRetry(event()) {
-        calls++
-        if (calls < 3) {
-          throw IllegalStateException("transient failure")
+    test("processWithRetry should succeed on first attempt") {
+      val processor = RetryableMessageProcessor(properties())
+      var calls = 0
+      val result =
+        processor.processWithRetry(event()) {
+          calls++
         }
-      }
-    assertTrue(result)
-    assertEquals(3, calls)
-  }
-
-  @Test
-  fun `processWithRetry should return false after exhausting attempts`() {
-    val processor = RetryableMessageProcessor(properties(maxAttempts = 2, initialInterval = 1))
-    var calls = 0
-    val result =
-      processor.processWithRetry(event()) {
-        calls++
-        throw IllegalStateException("always fails")
-      }
-    assertFalse(result)
-    assertEquals(2, calls)
-  }
-
-  @Test
-  fun `processWithRetry should cap delay at max interval`() {
-    val processor = RetryableMessageProcessor(properties(maxAttempts = 4, initialInterval = 3, multiplier = 10.0, maxInterval = 7))
-    var calls = 0
-    val result =
-      processor.processWithRetry(event()) {
-        calls++
-        throw IllegalStateException("always fails")
-      }
-    assertFalse(result)
-    assertEquals(4, calls)
-  }
-
-  @Test
-  fun `processWithRetry should return false when interrupted during wait`() {
-    val processor = RetryableMessageProcessor(properties(maxAttempts = 3, initialInterval = 1000))
-    var calls = 0
-    val result =
-      processor.processWithRetry(event()) {
-        calls++
-        if (calls == 1) {
-          Thread.currentThread().interrupt()
+      result shouldBe true
+      calls shouldBe 1
+    }
+    test("processWithRetry should succeed after retries") {
+      val processor = RetryableMessageProcessor(properties(maxAttempts = 3))
+      var calls = 0
+      val result =
+        processor.processWithRetry(event()) {
+          calls++
+          if (calls < 3) {
+            throw IllegalStateException("transient failure")
+          }
         }
-        throw IllegalStateException("fail")
-      }
-    assertFalse(result)
-    assertTrue(Thread.interrupted()) // clear the interrupt flag
-  }
-
-  @Test
-  fun `processBatchWithRetry should return per event results`() {
-    val processor = RetryableMessageProcessor(properties(maxAttempts = 2, initialInterval = 1))
-    val events = listOf(event(), event())
-    var calls = 0
-    val results =
-      processor.processBatchWithRetry(events) {
-        calls++
-        if (calls == 1) {
-          throw IllegalStateException("first fails once")
+      result shouldBe true
+      calls shouldBe 3
+    }
+    test("processWithRetry should return false after exhausting attempts") {
+      val processor = RetryableMessageProcessor(properties(maxAttempts = 2, initialInterval = 1))
+      var calls = 0
+      val result =
+        processor.processWithRetry(event()) {
+          calls++
+          throw IllegalStateException("always fails")
         }
-      }
-    assertEquals(listOf(true, true), results)
-  }
-
-  @Test
-  fun `processBatchWithRetry with empty list should return empty`() {
-    val processor = RetryableMessageProcessor(properties())
-    assertEquals(emptyList<Boolean>(), processor.processBatchWithRetry(emptyList()) { })
-  }
-}
+      result shouldBe false
+      calls shouldBe 2
+    }
+    test("processWithRetry should cap delay at max interval") {
+      val processor = RetryableMessageProcessor(properties(maxAttempts = 4, initialInterval = 3, multiplier = 10.0, maxInterval = 7))
+      var calls = 0
+      val result =
+        processor.processWithRetry(event()) {
+          calls++
+          throw IllegalStateException("always fails")
+        }
+      result shouldBe false
+      calls shouldBe 4
+    }
+    test("processWithRetry should return false when interrupted during wait") {
+      val processor = RetryableMessageProcessor(properties(maxAttempts = 3, initialInterval = 1000))
+      var calls = 0
+      val result =
+        processor.processWithRetry(event()) {
+          calls++
+          if (calls == 1) {
+            Thread.currentThread().interrupt()
+          }
+          throw IllegalStateException("fail")
+        }
+      result shouldBe false
+      Thread.interrupted() shouldBe true // clear the interrupt flag
+    }
+    test("processBatchWithRetry should return per event results") {
+      val processor = RetryableMessageProcessor(properties(maxAttempts = 2, initialInterval = 1))
+      val events = listOf(event(), event())
+      var calls = 0
+      val results =
+        processor.processBatchWithRetry(events) {
+          calls++
+          if (calls == 1) {
+            throw IllegalStateException("first fails once")
+          }
+        }
+      results shouldBe listOf(true, true)
+    }
+    test("processBatchWithRetry with empty list should return empty") {
+      val processor = RetryableMessageProcessor(properties())
+      processor.processBatchWithRetry(emptyList()) { } shouldBe (emptyList<Boolean>())
+    }
+  })

@@ -20,7 +20,7 @@
 package dev.yidafu.aqua.admin.system.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
-import dev.yidafu.aqua.admin.ops.resolvers.WithMockUserPrincipal
+import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
@@ -30,11 +30,12 @@ import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.systemconfig.domain.repository.SystemSettingsRepository
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import io.kotest.assertions.withClue
+import io.kotest.core.extensions.ApplyExtension
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
@@ -58,207 +59,176 @@ import org.springframework.web.context.WebApplicationContext
 )
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/system/"])
-@DisplayName("AdminSystemConfigResolver GraphQL Integration Tests")
-class AdminSystemConfigResolverGraphQLIntegrationTest {
-  @Autowired
-  private lateinit var context: WebApplicationContext
+@ApplyExtension(SpringExtension::class)
+class AdminSystemConfigResolverGraphQLIntegrationTest(
+  context: WebApplicationContext,
+  systemSettingsRepository: SystemSettingsRepository,
+  userActionLogRepository: UserActionLogRepository,
+  productRepository: ProductRepository,
+) : FunSpec({
+    var mockMvc: MockMvc = mockk()
 
-  @Autowired
-  private lateinit var systemSettingsRepository: SystemSettingsRepository
+    fun postGraphql(query: String): String {
+      val escaped = query.replace("\"", "\\\"")
+      val result =
+        mockMvc
+          .perform(
+            post("/graphql")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content("""{"query": "$escaped"}"""),
+          ).andExpect(status().isOk)
+          .andReturn()
+      return result.response.contentAsString
+    }
 
-  @Autowired
-  private lateinit var userActionLogRepository: UserActionLogRepository
+    fun seedSetting(
+      key: String,
+      value: String,
+      type: SystemSettingType,
+      group: SystemSettingGroup,
+      defaultValue: String?,
+      min: String?,
+      max: String?,
+    ) {
+      val existing = systemSettingsRepository.findBySettingKey(key)
+      if (existing != null) {
+        existing.settingValue = value
+        existing.updatedBy = null
+        systemSettingsRepository.save(existing)
+      } else {
+        systemSettingsRepository.save(
+          SystemSettingsModel(
+            settingKey = key,
+            settingValue = value,
+            settingType = type,
+            settingGroup = group,
+            defaultValue = defaultValue,
+            minValue = min,
+            maxValue = max,
+          ),
+        )
+      }
+    }
 
-  @Autowired
-  private lateinit var productRepository: ProductRepository
+    fun seedSettings() {
+      seedSetting("low_stock_threshold", "10", SystemSettingType.NUMBER, SystemSettingGroup.INVENTORY, "10", "0", "99999")
+      seedSetting("stock_warning_tier_mid", "50", SystemSettingType.NUMBER, SystemSettingGroup.INVENTORY, "50", "0", "99999")
+      seedSetting("payment_timeout_minutes", "30", SystemSettingType.NUMBER, SystemSettingGroup.ORDER_AND_FULFILLMENT, "30", "1", null)
+    }
 
-  private lateinit var mockMvc: MockMvc
+    /**
+     * 播种系统参数(键唯一,重复执行时更新值,保持幂等)
+     */
 
-  @BeforeEach
-  fun setUp() {
-    mockMvc =
-      MockMvcBuilders
-        .webAppContextSetup(context)
-        .apply<DefaultMockMvcBuilder>(springSecurity())
-        .build()
-    seedSettings()
-  }
+    beforeTest {
+      mockMvc =
+        MockMvcBuilders
+          .webAppContextSetup(context)
+          .apply<DefaultMockMvcBuilder>(springSecurity())
+          .build()
+      seedSettings()
+    }
+    test("systemConfigs returns seeded rows by group") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_READ"))
+      val json = postGraphql("{ systemConfigs(group: INVENTORY) { settingKey settingValue } }")
+      json.contains("\"settingKey\" : \"low_stock_threshold\"") &&
+        json.contains("\"settingKey\" : \"stock_warning_tier_mid\"") &&
+        !json.contains("\"settingKey\" : \"payment_timeout_minutes\"") &&
+        !json.contains("\"errors\"") shouldBe true
 
-  private fun postGraphql(query: String): String {
-    val escaped = query.replace("\"", "\\\"")
-    val result =
+      val emptyJson = postGraphql("{ systemConfigs(group: SECURITY) { settingKey } }")
+      !emptyJson.contains("\"settingKey\"") && !emptyJson.contains("\"errors\"") shouldBe true
+    }
+    test("save round trips and writes audit") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_READ", "PERMISSION_SYSTEM_CONFIG_WRITE"))
+      val json =
+        postGraphql(
+          """mutation { saveSystemConfigs(input: [{settingKey: "payment_timeout_minutes", settingValue: "15"}]) { settingKey settingValue } }""",
+        )
+      withClue("response: $json") { json.contains("\"settingValue\" : \"15\"") && !json.contains("\"errors\"") shouldBe true }
+
+      val queryJson = postGraphql("{ systemConfigs(group: ORDER_AND_FULFILLMENT) { settingKey settingValue } }")
+      withClue("queryJson: $queryJson") {
+        queryJson.contains("\"settingKey\" : \"payment_timeout_minutes\"") &&
+          queryJson.contains("\"settingValue\" : \"15\"") shouldBe true
+      }
+
+      val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_SYS_CONFIG_SAVE)
+      withClue("no audit rows for SAVE") { audits.isNotEmpty() shouldBe true }
+      withClue("audit content: ${audits.map { it.properties }}") {
+        audits.any {
+          it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true
+        } shouldBe true
+      }
+    }
+    test("out of range value rejected") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_WRITE"))
+      val json =
+        postGraphql(
+          """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "100000"}]) { settingKey } }""",
+        )
+      withClue("out-of-range json: $json") { json.contains("\"errors\"") shouldBe true }
+      withClue("out-of-range msg json: $json") { json.contains("参数值超出范围") shouldBe true }
+    }
+    test("stock tiers must increase") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_WRITE"))
+      val json =
+        postGraphql(
+          """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "20"}, {settingKey: "stock_warning_tier_mid", settingValue: "10"}]) { settingKey } }""",
+        )
+      withClue("tiers json: $json") { json.contains("\"errors\"") shouldBe true }
+      withClue("tiers msg json: $json") { json.contains("档位需递增") shouldBe true }
+    }
+    test("restore resets to default with audit") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_WRITE"))
+      postGraphql(
+        """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "30"}]) { settingKey } }""",
+      )
+      val json = postGraphql("""mutation { restoreSystemConfig(settingKey: "low_stock_threshold") { settingValue } }""")
+      json.contains("\"settingValue\" : \"10\"") && !json.contains("\"errors\"") shouldBe true
+
+      val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_SYS_CONFIG_RESTORE)
+      audits.any { it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true } shouldBe true
+    }
+    test("product statistics follows low stock threshold") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_WRITE", "PERMISSION_STATISTICS_READ"))
+      productRepository.save(
+        ProductModel(
+          name = "库存消费测试水",
+          price = 1000,
+          coverImageUrl = "http://test.local/cover.png",
+          specification = "5L",
+          stock = 15,
+          status = ProductModelStatus.ONLINE,
+        ),
+      )
+
+      postGraphql(
+        """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "20"}]) { settingKey } }""",
+      )
+      val afterRaise = postGraphql("{ productStatistics { lowStockProducts } }")
+      withClue("afterRaise: $afterRaise") {
+        afterRaise.contains("\"lowStockProducts\" : 1") &&
+          !afterRaise.contains("\"errors\"") shouldBe true
+      }
+
+      postGraphql(
+        """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "10"}]) { settingKey } }""",
+      )
+      val afterLower = postGraphql("{ productStatistics { lowStockProducts } }")
+      afterLower.contains("\"lowStockProducts\" : 0") && !afterLower.contains("\"errors\"") shouldBe true
+    }
+    test("admin without system config permission denied") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_READ"))
+      val json = postGraphql("{ systemConfigs(group: INVENTORY) { settingKey } }")
+      json.contains("\"errors\"") shouldBe true
+    }
+    test("anonymous access is denied") {
       mockMvc
         .perform(
           post("/graphql")
             .contentType(MediaType.APPLICATION_JSON)
-            .content("""{"query": "$escaped"}"""),
-        ).andExpect(status().isOk)
-        .andReturn()
-    return result.response.contentAsString
-  }
-
-  /**
-   * 播种系统参数(键唯一,重复执行时更新值,保持幂等)
-   */
-  private fun seedSettings() {
-    seedSetting("low_stock_threshold", "10", SystemSettingType.NUMBER, SystemSettingGroup.INVENTORY, "10", "0", "99999")
-    seedSetting("stock_warning_tier_mid", "50", SystemSettingType.NUMBER, SystemSettingGroup.INVENTORY, "50", "0", "99999")
-    seedSetting("payment_timeout_minutes", "30", SystemSettingType.NUMBER, SystemSettingGroup.ORDER_AND_FULFILLMENT, "30", "1", null)
-  }
-
-  private fun seedSetting(
-    key: String,
-    value: String,
-    type: SystemSettingType,
-    group: SystemSettingGroup,
-    defaultValue: String?,
-    min: String?,
-    max: String?,
-  ) {
-    val existing = systemSettingsRepository.findBySettingKey(key)
-    if (existing != null) {
-      existing.settingValue = value
-      existing.updatedBy = null
-      systemSettingsRepository.save(existing)
-    } else {
-      systemSettingsRepository.save(
-        SystemSettingsModel(
-          settingKey = key,
-          settingValue = value,
-          settingType = type,
-          settingGroup = group,
-          defaultValue = defaultValue,
-          minValue = min,
-          maxValue = max,
-        ),
-      )
+            .content("""{"query": "{ systemConfigs(group: INVENTORY) { settingKey } }"}"""),
+        ).andExpect(status().isUnauthorized)
     }
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_SYSTEM_CONFIG_READ"])
-  @DisplayName("systemConfigs query returns seeded rows by group (AC-SYS-001-01)")
-  fun `systemConfigs returns seeded rows by group`() {
-    val json = postGraphql("{ systemConfigs(group: INVENTORY) { settingKey settingValue } }")
-    assertTrue(
-      json.contains("\"settingKey\" : \"low_stock_threshold\"") &&
-        json.contains("\"settingKey\" : \"stock_warning_tier_mid\"") &&
-        !json.contains("\"settingKey\" : \"payment_timeout_minutes\"") &&
-        !json.contains("\"errors\""),
-    )
-
-    val emptyJson = postGraphql("{ systemConfigs(group: SECURITY) { settingKey } }")
-    assertTrue(!emptyJson.contains("\"settingKey\"") && !emptyJson.contains("\"errors\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_SYSTEM_CONFIG_READ", "PERMISSION_SYSTEM_CONFIG_WRITE"])
-  @DisplayName("saveSystemConfigs round-trip and writes audit (AC-SYS-001-02)")
-  fun `save round trips and writes audit`() {
-    val json =
-      postGraphql(
-        """mutation { saveSystemConfigs(input: [{settingKey: "payment_timeout_minutes", settingValue: "15"}]) { settingKey settingValue } }""",
-      )
-    assertTrue(json.contains("\"settingValue\" : \"15\"") && !json.contains("\"errors\""), "response: $json")
-
-    val queryJson = postGraphql("{ systemConfigs(group: ORDER_AND_FULFILLMENT) { settingKey settingValue } }")
-    assertTrue(
-      queryJson.contains("\"settingKey\" : \"payment_timeout_minutes\"") && queryJson.contains("\"settingValue\" : \"15\""),
-      "queryJson: $queryJson",
-    )
-
-    val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_SYS_CONFIG_SAVE)
-    assertTrue(audits.isNotEmpty(), "no audit rows for SAVE")
-    assertTrue(
-      audits.any {
-        it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true
-      },
-      "audit content: ${audits.map { it.properties }}",
-    )
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_SYSTEM_CONFIG_WRITE"])
-  @DisplayName("out-of-range value rejected with 参数值超出范围 (AC-SYS-001-02)")
-  fun `out of range value rejected`() {
-    val json =
-      postGraphql(
-        """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "100000"}]) { settingKey } }""",
-      )
-    assertTrue(json.contains("\"errors\""), "out-of-range json: $json")
-    assertTrue(json.contains("参数值超出范围"), "out-of-range msg json: $json")
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_SYSTEM_CONFIG_WRITE"])
-  @DisplayName("stock tiers not increasing rejected with 档位需递增 (AC-SYS-003-02)")
-  fun `stock tiers must increase`() {
-    val json =
-      postGraphql(
-        """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "20"}, {settingKey: "stock_warning_tier_mid", settingValue: "10"}]) { settingKey } }""",
-      )
-    assertTrue(json.contains("\"errors\""), "tiers json: $json")
-    assertTrue(json.contains("档位需递增"), "tiers msg json: $json")
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_SYSTEM_CONFIG_WRITE"])
-  @DisplayName("restoreSystemConfig resets to default and writes audit (AC-SYS-001-04)")
-  fun `restore resets to default with audit`() {
-    postGraphql(
-      """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "30"}]) { settingKey } }""",
-    )
-    val json = postGraphql("""mutation { restoreSystemConfig(settingKey: "low_stock_threshold") { settingValue } }""")
-    assertTrue(json.contains("\"settingValue\" : \"10\"") && !json.contains("\"errors\""))
-
-    val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_SYS_CONFIG_RESTORE)
-    assertTrue(audits.any { it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true })
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_SYSTEM_CONFIG_WRITE", "PERMISSION_STATISTICS_READ"])
-  @DisplayName("inventory consumption: low stock list follows threshold (AC-SYS-003-01)")
-  fun `product statistics follows low stock threshold`() {
-    productRepository.save(
-      ProductModel(
-        name = "库存消费测试水",
-        price = 1000,
-        coverImageUrl = "http://test.local/cover.png",
-        specification = "5L",
-        stock = 15,
-        status = ProductModelStatus.ONLINE,
-      ),
-    )
-
-    postGraphql(
-      """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "20"}]) { settingKey } }""",
-    )
-    val afterRaise = postGraphql("{ productStatistics { lowStockProducts } }")
-    assertTrue(afterRaise.contains("\"lowStockProducts\" : 1") && !afterRaise.contains("\"errors\""), "afterRaise: $afterRaise")
-
-    postGraphql(
-      """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "10"}]) { settingKey } }""",
-    )
-    val afterLower = postGraphql("{ productStatistics { lowStockProducts } }")
-    assertTrue(afterLower.contains("\"lowStockProducts\" : 0") && !afterLower.contains("\"errors\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_READ"])
-  @DisplayName("admin without SYSTEM_CONFIG_READ denied (AC-SYS-001-05, R-SYS-03)")
-  fun `admin without system config permission denied`() {
-    val json = postGraphql("{ systemConfigs(group: INVENTORY) { settingKey } }")
-    assertTrue(json.contains("\"errors\""))
-  }
-
-  @Test
-  @DisplayName("anonymous should be denied")
-  fun `anonymous access is denied`() {
-    mockMvc
-      .perform(
-        post("/graphql")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content("""{"query": "{ systemConfigs(group: INVENTORY) { settingKey } }"}"""),
-      ).andExpect(status().isUnauthorized)
-  }
-}
+  })

@@ -22,147 +22,112 @@ package dev.yidafu.aqua.logging.formatter
 import dev.yidafu.aqua.logging.context.CorrelationIdHolder
 import dev.yidafu.aqua.logging.context.UserContext
 import dev.yidafu.aqua.logging.context.UserContextHolder
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import tools.jackson.databind.ObjectMapper
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class StructuredLogFormatterTest {
-  private val formatter = StructuredLogFormatter.instance
-  private val mapper = ObjectMapper()
+class StructuredLogFormatterTest :
+  FunSpec({
+    val formatter = StructuredLogFormatter.instance
+    val mapper = ObjectMapper()
 
-  @Suppress("UNCHECKED_CAST")
-  private fun parse(json: String): Map<String, Any> = mapper.readValue(json, Map::class.java) as Map<String, Any>
+    fun parse(json: String): Map<String, Any> = mapper.readValue(json, Map::class.java) as Map<String, Any>
 
-  @AfterEach
-  fun tearDown() {
-    CorrelationIdHolder.clear()
-    UserContextHolder.clear()
-  }
+    @Suppress("UNCHECKED_CAST")
 
-  @Test
-  fun `format should produce base json fields`() {
-    val map = parse(formatter.format("info", "test-logger", "hello"))
-    assertEquals("INFO", map["level"])
-    assertEquals("test-logger", map["logger"])
-    assertEquals("hello", map["message"])
-    assertEquals("aqua-rush", map["service"])
-  }
-
-  @Test
-  fun `format should include exception details`() {
-    val exception = IllegalStateException("boom")
-    val map = parse(formatter.format("error", "logger", "msg", exception))
-    assertEquals("IllegalStateException", map["errorType"])
-    assertEquals("boom", map["errorMessage"])
-    assertTrue((map["errorStackTrace"] as String).contains("IllegalStateException"))
-  }
-
-  @Test
-  fun `format should include context and additional data`() {
-    CorrelationIdHolder.setCorrelationId("corr")
-    UserContextHolder.setUserContext(UserContext(userId = "1", username = "u", role = "R", tenantId = "T"))
-    val map = parse(formatter.format("info", "logger", "msg", additionalData = mapOf("custom" to "x")))
-    assertEquals("corr", map["correlationId"])
-    assertEquals("1", map["userId"])
-    assertEquals("R", map["userRole"])
-    assertEquals("T", map["tenantId"])
-    assertEquals("x", map["custom"])
-  }
-
-  @Test
-  fun `formatPerformance fast category`() {
-    val map = parse(formatter.formatPerformance("op", 10))
-    assertEquals("FAST", map["performanceCategory"])
-    assertEquals("INFO", map["level"])
-  }
-
-  @Test
-  fun `formatPerformance normal category`() {
-    val map = parse(formatter.formatPerformance("op", 100))
-    assertEquals("NORMAL", map["performanceCategory"])
-  }
-
-  @Test
-  fun `formatPerformance slow category`() {
-    val map = parse(formatter.formatPerformance("op", 500))
-    assertEquals("SLOW", map["performanceCategory"])
-  }
-
-  @Test
-  fun `formatPerformance very slow category`() {
-    val map = parse(formatter.formatPerformance("op", 5000))
-    assertEquals("VERY_SLOW", map["performanceCategory"])
-  }
-
-  @Test
-  fun `formatPerformance failure should produce WARN`() {
-    val map = parse(formatter.formatPerformance("op", 5000, success = false))
-    assertEquals("WARN", map["level"])
-    assertEquals(false, map["success"])
-  }
-
-  @Test
-  fun `formatPerformance should include operation and duration`() {
-    val map = parse(formatter.formatPerformance("op", 123))
-    assertEquals("op", map["operation"])
-    assertEquals(123, map["durationMs"])
-  }
-
-  @Test
-  fun `formatAudit should include audit fields`() {
-    val map = parse(formatter.formatAudit("DELETE", "order", "SUCCESS", details = mapOf("id" to 1)))
-    assertEquals("AUDIT", map["eventType"])
-    assertEquals("DELETE", map["auditAction"])
-    assertEquals("order", map["auditResource"])
-    assertEquals("SUCCESS", map["auditResult"])
-    assertEquals(mapOf("id" to 1), map["auditDetails"])
-  }
-
-  @Test
-  fun `formatSecurity critical should produce ERROR`() {
-    val map = parse(formatter.formatSecurity("LOGIN_FAILED", "CRITICAL", "msg"))
-    assertEquals("ERROR", map["level"])
-    assertEquals("SECURITY", map["eventType"])
-  }
-
-  @Test
-  fun `formatSecurity high should produce ERROR`() {
-    val map = parse(formatter.formatSecurity("X", "HIGH", "msg"))
-    assertEquals("ERROR", map["level"])
-  }
-
-  @Test
-  fun `formatSecurity medium should produce WARN`() {
-    val map = parse(formatter.formatSecurity("X", "MEDIUM", "msg"))
-    assertEquals("WARN", map["level"])
-  }
-
-  @Test
-  fun `formatSecurity low should produce INFO`() {
-    val map = parse(formatter.formatSecurity("X", "LOW", "msg"))
-    assertEquals("INFO", map["level"])
-  }
-
-  @Test
-  fun `formatSecurity should include details`() {
-    val map = parse(formatter.formatSecurity("LOGIN_FAILED", "MEDIUM", "msg", details = mapOf("ip" to "1.2.3.4")))
-    assertEquals(mapOf("ip" to "1.2.3.4"), map["securityDetails"])
-  }
-
-  @Test
-  fun `formatSecurity should include user context when present`() {
-    UserContextHolder.setUserContext(UserContext(userId = "9", username = "u"))
-    val map = parse(formatter.formatSecurity("X", "LOW", "msg"))
-    assertEquals("9", map["userId"])
-  }
-
-  @Test
-  fun `format should include user context without role and tenant`() {
-    UserContextHolder.setUserContext(UserContext(userId = "9", username = "u"))
-    val map = parse(formatter.format("info", "logger", "msg"))
-    assertEquals("9", map["userId"])
-    assertEquals("u", map["username"])
-  }
-}
+    afterTest {
+      CorrelationIdHolder.clear()
+      UserContextHolder.clear()
+    }
+    test("format should produce base json fields") {
+      val map = parse(formatter.format("info", "test-logger", "hello"))
+      map["level"] shouldBe "INFO"
+      map["logger"] shouldBe "test-logger"
+      map["message"] shouldBe "hello"
+      map["service"] shouldBe "aqua-rush"
+    }
+    test("format should include exception details") {
+      val exception = IllegalStateException("boom")
+      val map = parse(formatter.format("error", "logger", "msg", exception))
+      map["errorType"] shouldBe "IllegalStateException"
+      map["errorMessage"] shouldBe "boom"
+      (map["errorStackTrace"] as String).contains("IllegalStateException") shouldBe true
+    }
+    test("format should include context and additional data") {
+      CorrelationIdHolder.setCorrelationId("corr")
+      UserContextHolder.setUserContext(UserContext(userId = "1", username = "u", role = "R", tenantId = "T"))
+      val map = parse(formatter.format("info", "logger", "msg", additionalData = mapOf("custom" to "x")))
+      map["correlationId"] shouldBe "corr"
+      map["userId"] shouldBe "1"
+      map["userRole"] shouldBe "R"
+      map["tenantId"] shouldBe "T"
+      map["custom"] shouldBe "x"
+    }
+    test("formatPerformance fast category") {
+      val map = parse(formatter.formatPerformance("op", 10))
+      map["performanceCategory"] shouldBe "FAST"
+      map["level"] shouldBe "INFO"
+    }
+    test("formatPerformance normal category") {
+      val map = parse(formatter.formatPerformance("op", 100))
+      map["performanceCategory"] shouldBe "NORMAL"
+    }
+    test("formatPerformance slow category") {
+      val map = parse(formatter.formatPerformance("op", 500))
+      map["performanceCategory"] shouldBe "SLOW"
+    }
+    test("formatPerformance very slow category") {
+      val map = parse(formatter.formatPerformance("op", 5000))
+      map["performanceCategory"] shouldBe "VERY_SLOW"
+    }
+    test("formatPerformance failure should produce WARN") {
+      val map = parse(formatter.formatPerformance("op", 5000, success = false))
+      map["level"] shouldBe "WARN"
+      map["success"] shouldBe false
+    }
+    test("formatPerformance should include operation and duration") {
+      val map = parse(formatter.formatPerformance("op", 123))
+      map["operation"] shouldBe "op"
+      map["durationMs"] shouldBe 123
+    }
+    test("formatAudit should include audit fields") {
+      val map = parse(formatter.formatAudit("DELETE", "order", "SUCCESS", details = mapOf("id" to 1)))
+      map["eventType"] shouldBe "AUDIT"
+      map["auditAction"] shouldBe "DELETE"
+      map["auditResource"] shouldBe "order"
+      map["auditResult"] shouldBe "SUCCESS"
+      map["auditDetails"] shouldBe mapOf("id" to 1)
+    }
+    test("formatSecurity critical should produce ERROR") {
+      val map = parse(formatter.formatSecurity("LOGIN_FAILED", "CRITICAL", "msg"))
+      map["level"] shouldBe "ERROR"
+      map["eventType"] shouldBe "SECURITY"
+    }
+    test("formatSecurity high should produce ERROR") {
+      val map = parse(formatter.formatSecurity("X", "HIGH", "msg"))
+      map["level"] shouldBe "ERROR"
+    }
+    test("formatSecurity medium should produce WARN") {
+      val map = parse(formatter.formatSecurity("X", "MEDIUM", "msg"))
+      map["level"] shouldBe "WARN"
+    }
+    test("formatSecurity low should produce INFO") {
+      val map = parse(formatter.formatSecurity("X", "LOW", "msg"))
+      map["level"] shouldBe "INFO"
+    }
+    test("formatSecurity should include details") {
+      val map = parse(formatter.formatSecurity("LOGIN_FAILED", "MEDIUM", "msg", details = mapOf("ip" to "1.2.3.4")))
+      map["securityDetails"] shouldBe mapOf("ip" to "1.2.3.4")
+    }
+    test("formatSecurity should include user context when present") {
+      UserContextHolder.setUserContext(UserContext(userId = "9", username = "u"))
+      val map = parse(formatter.formatSecurity("X", "LOW", "msg"))
+      map["userId"] shouldBe "9"
+    }
+    test("format should include user context without role and tenant") {
+      UserContextHolder.setUserContext(UserContext(userId = "9", username = "u"))
+      val map = parse(formatter.format("info", "logger", "msg"))
+      map["userId"] shouldBe "9"
+      map["username"] shouldBe "u"
+    }
+  })

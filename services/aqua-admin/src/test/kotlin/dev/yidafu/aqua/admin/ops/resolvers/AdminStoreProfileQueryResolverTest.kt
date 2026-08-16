@@ -21,54 +21,49 @@ package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.StoreProfileQueryService
 import dev.yidafu.aqua.common.domain.model.StoreProfileModel
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-class AdminStoreProfileQueryResolverTest {
-  private lateinit var storeProfileQueryService: StoreProfileQueryService
-  private lateinit var resolver: AdminStoreProfileQueryResolver
+class AdminStoreProfileQueryResolverTest :
+  FunSpec({
+    var storeProfileQueryService: StoreProfileQueryService = mockk()
+    var resolver: AdminStoreProfileQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    storeProfileQueryService = mockk(relaxed = true)
-    resolver = AdminStoreProfileQueryResolver(storeProfileQueryService)
-  }
+    beforeTest {
+      storeProfileQueryService = mockk(relaxed = true)
+      resolver = AdminStoreProfileQueryResolver(storeProfileQueryService)
+    }
+    test("storeProfile should return mapped profile") {
+      // Given
+      every { storeProfileQueryService.getStoreProfile() } returns
+        StoreProfileModel(
+          id = 1L,
+          shopName = "AquaRush水站",
+          serviceHotline = "400-123-4567",
+          createdAt = LocalDateTime.now(),
+          updatedAt = LocalDateTime.now(),
+        )
 
-  @Test
-  fun `storeProfile should return mapped profile`() {
-    // Given
-    every { storeProfileQueryService.getStoreProfile() } returns
-      StoreProfileModel(
-        id = 1L,
-        shopName = "AquaRush水站",
-        serviceHotline = "400-123-4567",
-        createdAt = LocalDateTime.now(),
-        updatedAt = LocalDateTime.now(),
-      )
+      // When
+      val result = resolver.storeProfile()
 
-    // When
-    val result = resolver.storeProfile()
+      // Then
+      result!!.shopName shouldBe "AquaRush水站"
+      verify { storeProfileQueryService.getStoreProfile() }
+    }
+    test("storeProfile should return null when missing") {
+      // Given
+      every { storeProfileQueryService.getStoreProfile() } returns null
 
-    // Then
-    assertEquals("AquaRush水站", result!!.shopName)
-    verify { storeProfileQueryService.getStoreProfile() }
-  }
+      // When
+      val result = resolver.storeProfile()
 
-  @Test
-  fun `storeProfile should return null when missing`() {
-    // Given
-    every { storeProfileQueryService.getStoreProfile() } returns null
-
-    // When
-    val result = resolver.storeProfile()
-
-    // Then
-    assertNull(result)
-  }
-}
+      // Then
+      result.shouldBeNull()
+    }
+  })

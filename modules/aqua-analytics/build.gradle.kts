@@ -67,8 +67,6 @@ dependencies {
   // ========================================================
   testImplementation(libs.spring.boot.starter.test)
   testImplementation("org.springframework.graphql:spring-graphql-test:2.0.0")
-  testImplementation(libs.testcontainers.junit.jupiter)
-  testImplementation(libs.testcontainers.postgresql)
   testImplementation(libs.springmockk)
 }
 

@@ -20,14 +20,15 @@
 package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
+import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import dev.yidafu.aqua.ops.audit.OpsConfigAuditService
 import dev.yidafu.aqua.ops.deliveryfeerule.domain.repository.DeliveryFeeRuleRepository
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import io.kotest.core.extensions.ApplyExtension
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
@@ -50,96 +51,75 @@ import org.springframework.web.context.WebApplicationContext
 )
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/ops/"])
-@DisplayName("AdminDeliveryFeeRuleResolver GraphQL Integration Tests")
-class AdminDeliveryFeeRuleResolverGraphQLIntegrationTest {
-  @Autowired
-  private lateinit var context: WebApplicationContext
+@ApplyExtension(SpringExtension::class)
+class AdminDeliveryFeeRuleResolverGraphQLIntegrationTest(
+  context: WebApplicationContext,
+  userActionLogRepository: UserActionLogRepository,
+  deliveryFeeRuleRepository: DeliveryFeeRuleRepository,
+) : FunSpec({
+    var mockMvc: MockMvc = mockk()
 
-  @Autowired
-  private lateinit var userActionLogRepository: UserActionLogRepository
+    fun postGraphql(query: String): String {
+      val escaped = query.replace("\"", "\\\"")
+      val result =
+        mockMvc
+          .perform(
+            post("/graphql")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content("""{"query": "$escaped"}"""),
+          ).andExpect(status().isOk)
+          .andReturn()
+      return result.response.contentAsString
+    }
 
-  @Autowired
-  private lateinit var deliveryFeeRuleRepository: DeliveryFeeRuleRepository
+    beforeTest {
+      mockMvc =
+        MockMvcBuilders
+          .webAppContextSetup(context)
+          .apply<DefaultMockMvcBuilder>(springSecurity())
+          .build()
+    }
+    test("deliveryFeeRule returns default when unconfigured") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_READ"))
+      // 清空已保存规则(共享 H2 可能被其他用例/历史运行写入),回到未配置态
+      deliveryFeeRuleRepository.hardDeleteAll()
+      val json = postGraphql("{ deliveryFeeRule { freeFloorLimit surchargeCents } }")
+      json.contains("\"freeFloorLimit\" : 4") && json.contains("\"surchargeCents\" : \"200\"") && !json.contains("\"errors\"") shouldBe true
+    }
+    test("save and query delivery fee rule round trip") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE", "PERMISSION_OPS_CONFIG_READ"))
+      val json =
+        postGraphql(
+          """mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 6, surchargeCents: 500}) { freeFloorLimit surchargeCents } }""",
+        )
+      json.contains("\"freeFloorLimit\" : 6") && json.contains("\"surchargeCents\" : \"500\"") && !json.contains("\"errors\"") shouldBe true
 
-  private lateinit var mockMvc: MockMvc
+      val queryJson = postGraphql("{ deliveryFeeRule { freeFloorLimit surchargeCents } }")
+      queryJson.contains("\"freeFloorLimit\" : 6") && queryJson.contains("\"surchargeCents\" : \"500\"") shouldBe true
+    }
+    test("saveDeliveryFeeRule rejects invalid amount") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE"))
+      val json = postGraphql("mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 100000}) { freeFloorLimit } }")
+      json.contains("\"errors\"") shouldBe true
+    }
+    test("saveDeliveryFeeRule writes audit") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_OPS_CONFIG_WRITE"))
+      val json =
+        postGraphql(
+          """mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 200}) { freeFloorLimit } }""",
+        )
+      !json.contains("\"errors\"") shouldBe true
 
-  @BeforeEach
-  fun setUp() {
-    mockMvc =
-      MockMvcBuilders
-        .webAppContextSetup(context)
-        .apply<DefaultMockMvcBuilder>(springSecurity())
-        .build()
-  }
-
-  private fun postGraphql(query: String): String {
-    val escaped = query.replace("\"", "\\\"")
-    val result =
+      val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_DELIVERY_FEE_RULE_SAVE)
+      audits.isNotEmpty() shouldBe true
+      audits.any { it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true } shouldBe true
+    }
+    test("anonymous access is denied") {
       mockMvc
         .perform(
           post("/graphql")
             .contentType(MediaType.APPLICATION_JSON)
-            .content("""{"query": "$escaped"}"""),
-        ).andExpect(status().isOk)
-        .andReturn()
-    return result.response.contentAsString
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_READ"])
-  @DisplayName("deliveryFeeRule query should return default rule 4/200 when unconfigured (AC-OPS-005-01)")
-  fun `deliveryFeeRule returns default when unconfigured`() {
-    // 清空已保存规则(共享 H2 可能被其他用例/历史运行写入),回到未配置态
-    deliveryFeeRuleRepository.hardDeleteAll()
-    val json = postGraphql("{ deliveryFeeRule { freeFloorLimit surchargeCents } }")
-    assertTrue(json.contains("\"freeFloorLimit\" : 4") && json.contains("\"surchargeCents\" : \"200\"") && !json.contains("\"errors\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE", "PERMISSION_OPS_CONFIG_READ"])
-  @DisplayName("saveDeliveryFeeRule then query should round-trip (AC-OPS-005-02)")
-  fun `save and query delivery fee rule round trip`() {
-    val json =
-      postGraphql(
-        """mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 6, surchargeCents: 500}) { freeFloorLimit surchargeCents } }""",
-      )
-    assertTrue(json.contains("\"freeFloorLimit\" : 6") && json.contains("\"surchargeCents\" : \"500\"") && !json.contains("\"errors\""))
-
-    val queryJson = postGraphql("{ deliveryFeeRule { freeFloorLimit surchargeCents } }")
-    assertTrue(queryJson.contains("\"freeFloorLimit\" : 6") && queryJson.contains("\"surchargeCents\" : \"500\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE"])
-  @DisplayName("saveDeliveryFeeRule with invalid amount should fail (AC-OPS-005-05)")
-  fun `saveDeliveryFeeRule rejects invalid amount`() {
-    val json = postGraphql("mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 100000}) { freeFloorLimit } }")
-    assertTrue(json.contains("\"errors\""))
-  }
-
-  @Test
-  @WithMockUserPrincipal(authorities = ["PERMISSION_OPS_CONFIG_WRITE"])
-  @DisplayName("saveDeliveryFeeRule should write audit log (AC-OPS-005-06)")
-  fun `saveDeliveryFeeRule writes audit`() {
-    val json =
-      postGraphql(
-        """mutation { saveDeliveryFeeRule(input: {freeFloorLimit: 4, surchargeCents: 200}) { freeFloorLimit } }""",
-      )
-    assertTrue(!json.contains("\"errors\""))
-
-    val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_DELIVERY_FEE_RULE_SAVE)
-    assertTrue(audits.isNotEmpty())
-    assertTrue(audits.any { it.userId == "1" && it.username == "admin" && it.properties?.contains("\"after\"") == true })
-  }
-
-  @Test
-  @DisplayName("anonymous should be denied")
-  fun `anonymous access is denied`() {
-    mockMvc
-      .perform(
-        post("/graphql")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content("""{"query": "{ deliveryFeeRule { freeFloorLimit } }"}"""),
-      ).andExpect(status().isUnauthorized)
-  }
-}
+            .content("""{"query": "{ deliveryFeeRule { freeFloorLimit } }"}"""),
+        ).andExpect(status().isUnauthorized)
+    }
+  })

@@ -20,13 +20,14 @@
 package dev.yidafu.aqua.admin.config
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
+import dev.yidafu.aqua.admin.testutil.setMockUser
+import io.kotest.core.extensions.ApplyExtension
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.extensions.spring.SpringExtension
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.http.MediaType
-import org.springframework.security.test.context.support.WithMockUser
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.TestPropertySource
@@ -53,86 +54,72 @@ import org.springframework.web.context.WebApplicationContext
 )
 @ActiveProfiles("test")
 @TestPropertySource(properties = ["spring.graphql.schema.locations=classpath:graphql/security/"])
-@DisplayName("Admin Security Integration Tests")
-class AdminSecurityIntegrationTest {
-  @Autowired
-  private lateinit var context: WebApplicationContext
+@ApplyExtension(SpringExtension::class)
+class AdminSecurityIntegrationTest(
+  context: WebApplicationContext,
+) : FunSpec({
+    var mockMvc: MockMvc = mockk()
+    val createAdminQuery =
+      "mutation CreateAdmin(\$input: CreateAdminInput!) { createAdmin(input: \$input) { id username } }"
 
-  private lateinit var mockMvc: MockMvc
+    fun graphqlBody(
+      query: String,
+      variables: String,
+    ): String = """{"query": "$query", "variables": $variables}"""
 
-  private val createAdminQuery =
-    "mutation CreateAdmin(\$input: CreateAdminInput!) { createAdmin(input: \$input) { id username } }"
+    beforeTest {
+      // Boot 4.0 不再提供 @AutoConfigureMockMvc，手动装配并挂载 springSecurity 过滤器链
+      mockMvc =
+        MockMvcBuilders
+          .webAppContextSetup(context)
+          .apply<DefaultMockMvcBuilder>(springSecurity())
+          .build()
+    }
+    test("unauthenticated graphql returns 401") {
+      mockMvc
+        .perform(
+          post("/graphql")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("""{"query":"{ _dummy }"}"""),
+        ).andExpect(status().isUnauthorized)
+    }
+    test("admin without admin_user_write cannot create admin") {
+      setMockUser(authorities = listOf("ROLE_ADMIN", "PERMISSION_ORDER_READ", "PERMISSION_PRODUCT_WRITE"))
+      val body =
+        graphqlBody(
+          createAdminQuery,
+          """{"input": {"username": "deniedadmin", "password": "password123", "role": "ADMIN"}}""",
+        )
 
-  @BeforeEach
-  fun setUp() {
-    // Boot 4.0 不再提供 @AutoConfigureMockMvc，手动装配并挂载 springSecurity 过滤器链
-    mockMvc =
-      MockMvcBuilders
-        .webAppContextSetup(context)
-        .apply<DefaultMockMvcBuilder>(springSecurity())
-        .build()
-  }
+      val result =
+        mockMvc
+          .perform(
+            post("/graphql")
+              .contentType(MediaType.APPLICATION_JSON)
+              .content(body),
+          ).andReturn()
+      println("=== DENIED RESPONSE STATUS: ${result.response.status}")
+      println("=== DENIED RESPONSE BODY: ${result.response.contentAsString}")
+      result.response.status shouldBe 200
+      result.response.contentAsString.contains("\"errors\"") ||
+        !result.response.contentAsString.contains("\"data\":{\"createAdmin\"") shouldBe true
+    }
+    test("super admin can create admin") {
+      setMockUser(authorities = listOf("ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_ADMIN_USER_WRITE"))
+      // 用户名带时间戳后缀，避免共享 H2 在多次运行间重复创建导致唯一键冲突
+      val username = "allowedadmin${System.currentTimeMillis()}"
+      val body =
+        graphqlBody(
+          createAdminQuery,
+          """{"input": {"username": "$username", "password": "password123", "role": "SUPER_ADMIN"}}""",
+        )
 
-  private fun graphqlBody(
-    query: String,
-    variables: String,
-  ): String = """{"query": "$query", "variables": $variables}"""
-
-  @Test
-  @DisplayName("unauthenticated POST /graphql returns 401")
-  fun `unauthenticated graphql returns 401`() {
-    mockMvc
-      .perform(
-        post("/graphql")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content("""{"query":"{ _dummy }"}"""),
-      ).andExpect(status().isUnauthorized)
-  }
-
-  @Test
-  @WithMockUser(authorities = ["ROLE_ADMIN", "PERMISSION_ORDER_READ", "PERMISSION_PRODUCT_WRITE"])
-  @DisplayName("ADMIN without ADMIN_USER_WRITE is denied createAdmin")
-  fun `admin without admin_user_write cannot create admin`() {
-    val body =
-      graphqlBody(
-        createAdminQuery,
-        """{"input": {"username": "deniedadmin", "password": "password123", "role": "ADMIN"}}""",
-      )
-
-    val result =
       mockMvc
         .perform(
           post("/graphql")
             .contentType(MediaType.APPLICATION_JSON)
             .content(body),
-        ).andReturn()
-    println("=== DENIED RESPONSE STATUS: ${result.response.status}")
-    println("=== DENIED RESPONSE BODY: ${result.response.contentAsString}")
-    org.junit.jupiter.api.Assertions
-      .assertEquals(200, result.response.status)
-    org.junit.jupiter.api.Assertions.assertTrue(
-      result.response.contentAsString.contains("\"errors\"") || !result.response.contentAsString.contains("\"data\":{\"createAdmin\""),
-    )
-  }
-
-  @Test
-  @WithMockUser(authorities = ["ROLE_SUPER_ADMIN", "ROLE_ADMIN", "PERMISSION_ADMIN_USER_WRITE"])
-  @DisplayName("SUPER_ADMIN with ADMIN_USER_WRITE can createAdmin")
-  fun `super admin can create admin`() {
-    // 用户名带时间戳后缀，避免共享 H2 在多次运行间重复创建导致唯一键冲突
-    val username = "allowedadmin${System.currentTimeMillis()}"
-    val body =
-      graphqlBody(
-        createAdminQuery,
-        """{"input": {"username": "$username", "password": "password123", "role": "SUPER_ADMIN"}}""",
-      )
-
-    mockMvc
-      .perform(
-        post("/graphql")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content(body),
-      ).andExpect(status().isOk)
-      .andExpect(jsonPath("$.data.createAdmin.username").value(username))
-  }
-}
+        ).andExpect(status().isOk)
+        .andExpect(jsonPath("$.data.createAdmin.username").value(username))
+    }
+  })

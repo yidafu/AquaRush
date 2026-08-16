@@ -21,73 +21,66 @@ package dev.yidafu.aqua.admin.delivery.resolvers
 
 import dev.yidafu.aqua.api.service.delivery.DeliveryTrajectoryQueryService
 import dev.yidafu.aqua.common.domain.model.DeliveryTrajectoryModel
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
-class DeliveryTrajectoryQueryResolverTest {
-  private lateinit var deliveryTrajectoryQueryService: DeliveryTrajectoryQueryService
-  private lateinit var resolver: DeliveryTrajectoryQueryResolver
+class DeliveryTrajectoryQueryResolverTest :
+  FunSpec({
+    var deliveryTrajectoryQueryService: DeliveryTrajectoryQueryService = mockk()
+    var resolver: DeliveryTrajectoryQueryResolver = mockk()
 
-  private fun createSampleTrajectory(): DeliveryTrajectoryModel =
-    DeliveryTrajectoryModel(
-      id = 1L,
-      deliveryWorkerId = 2L,
-      orderId = 1L,
-      longitude = 113.94,
-      latitude = 22.54,
-      accuracy = 5.0,
-      reportedAt = LocalDateTime.now(),
-    )
+    fun createSampleTrajectory(): DeliveryTrajectoryModel =
+      DeliveryTrajectoryModel(
+        id = 1L,
+        deliveryWorkerId = 2L,
+        orderId = 1L,
+        longitude = 113.94,
+        latitude = 22.54,
+        accuracy = 5.0,
+        reportedAt = LocalDateTime.now(),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    deliveryTrajectoryQueryService = mockk(relaxed = true)
-    resolver = DeliveryTrajectoryQueryResolver(deliveryTrajectoryQueryService)
-  }
+    beforeTest {
+      deliveryTrajectoryQueryService = mockk(relaxed = true)
+      resolver = DeliveryTrajectoryQueryResolver(deliveryTrajectoryQueryService)
+    }
+    test("deliveryTrajectories should map trajectories") {
+      // Given
+      every { deliveryTrajectoryQueryService.getTrajectories(2L, null, null, null) } returns
+        listOf(createSampleTrajectory())
 
-  @Test
-  fun `deliveryTrajectories should map trajectories`() {
-    // Given
-    every { deliveryTrajectoryQueryService.getTrajectories(2L, null, null, null) } returns
-      listOf(createSampleTrajectory())
+      // When
+      val result = resolver.deliveryTrajectories(2L, null, null, null)
 
-    // When
-    val result = resolver.deliveryTrajectories(2L, null, null, null)
+      // Then
+      result.size shouldBe 1
+      verify { deliveryTrajectoryQueryService.getTrajectories(2L, null, null, null) }
+    }
+    test("deliveryWorkerLatestLocation should map latest trajectory") {
+      // Given
+      every { deliveryTrajectoryQueryService.getLatestTrajectory(2L) } returns createSampleTrajectory()
 
-    // Then
-    assertEquals(1, result.size)
-    verify { deliveryTrajectoryQueryService.getTrajectories(2L, null, null, null) }
-  }
+      // When
+      val result = resolver.deliveryWorkerLatestLocation(2L)
 
-  @Test
-  fun `deliveryWorkerLatestLocation should map latest trajectory`() {
-    // Given
-    every { deliveryTrajectoryQueryService.getLatestTrajectory(2L) } returns createSampleTrajectory()
+      // Then
+      result.shouldNotBeNull()
+      result!!.longitude shouldBe 113.94f
+    }
+    test("deliveryWorkerLatestLocation should return null when no trajectory") {
+      // Given
+      every { deliveryTrajectoryQueryService.getLatestTrajectory(2L) } returns null
 
-    // When
-    val result = resolver.deliveryWorkerLatestLocation(2L)
+      // When
+      val result = resolver.deliveryWorkerLatestLocation(2L)
 
-    // Then
-    assertNotNull(result)
-    assertEquals(113.94f, result!!.longitude)
-  }
-
-  @Test
-  fun `deliveryWorkerLatestLocation should return null when no trajectory`() {
-    // Given
-    every { deliveryTrajectoryQueryService.getLatestTrajectory(2L) } returns null
-
-    // When
-    val result = resolver.deliveryWorkerLatestLocation(2L)
-
-    // Then
-    assertNull(result)
-  }
-}
+      // Then
+      result.shouldBeNull()
+    }
+  })

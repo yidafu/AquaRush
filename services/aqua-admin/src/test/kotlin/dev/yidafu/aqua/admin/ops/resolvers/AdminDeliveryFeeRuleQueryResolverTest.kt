@@ -21,35 +21,32 @@ package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleQueryService
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
-class AdminDeliveryFeeRuleQueryResolverTest {
-  private lateinit var deliveryFeeRuleQueryService: DeliveryFeeRuleQueryService
-  private lateinit var resolver: AdminDeliveryFeeRuleQueryResolver
+class AdminDeliveryFeeRuleQueryResolverTest :
+  FunSpec({
+    var deliveryFeeRuleQueryService: DeliveryFeeRuleQueryService = mockk()
+    var resolver: AdminDeliveryFeeRuleQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    deliveryFeeRuleQueryService = mockk(relaxed = true)
-    resolver = AdminDeliveryFeeRuleQueryResolver(deliveryFeeRuleQueryService)
-  }
+    beforeTest {
+      deliveryFeeRuleQueryService = mockk(relaxed = true)
+      resolver = AdminDeliveryFeeRuleQueryResolver(deliveryFeeRuleQueryService)
+    }
+    test("deliveryFeeRule should return effective rule") {
+      // Given
+      every { deliveryFeeRuleQueryService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
 
-  @Test
-  fun `deliveryFeeRule should return effective rule`() {
-    // Given
-    every { deliveryFeeRuleQueryService.getEffectiveDeliveryFeeRule() } returns
-      DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+      // When
+      val result = resolver.deliveryFeeRule()
 
-    // When
-    val result = resolver.deliveryFeeRule()
-
-    // Then
-    assertEquals(4, result.freeFloorLimit)
-    assertEquals(200L, result.surchargeCents)
-    verify { deliveryFeeRuleQueryService.getEffectiveDeliveryFeeRule() }
-  }
-}
+      // Then
+      result.freeFloorLimit shouldBe 4
+      result.surchargeCents shouldBe 200L
+      verify { deliveryFeeRuleQueryService.getEffectiveDeliveryFeeRule() }
+    }
+  })

@@ -21,77 +21,64 @@ package dev.yidafu.aqua.logging.service
 
 import dev.yidafu.aqua.common.domain.model.UserActionLogModel
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
-import kotlin.test.assertEquals
 
-class UserActionLogServiceTest {
-  private lateinit var userActionLogRepository: UserActionLogRepository
-  private lateinit var service: UserActionLogService
+class UserActionLogServiceTest :
+  FunSpec({
+    var userActionLogRepository: UserActionLogRepository = mockk()
+    var service: UserActionLogService = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    userActionLogRepository = mockk(relaxed = true)
-    // relaxed mock 对泛型返回(save 返回 S)会生成 Object 导致 ClassCastException,需显式 stub
-    every { userActionLogRepository.save(any()) } answers { firstArg() }
-    service = UserActionLogService(userActionLogRepository)
-  }
-
-  @Test
-  fun `saveUserActionLogSync should persist log`() {
-    service.saveUserActionLogSync(
-      userId = "1",
-      username = "u",
-      actionType = "CLICK",
-      target = "btn",
-      pageUrl = "/home",
-      elementId = "e",
-      elementType = "button",
-      elementText = "确定",
-      clientIp = "127.0.0.1",
-      userAgent = "ua",
-      properties = "{}",
-    )
-    verify { userActionLogRepository.save(any<UserActionLogModel>()) }
-  }
-
-  @Test
-  fun `saveUserActionLog should persist log with defaults`() {
-    service.saveUserActionLog(actionType = "VIEW", target = "/home")
-    verify { userActionLogRepository.save(any<UserActionLogModel>()) }
-  }
-
-  @Test
-  fun `saveUserActionLog should swallow repository exceptions`() {
-    every { userActionLogRepository.save(any<UserActionLogModel>()) } throws RuntimeException("db down")
-    service.saveUserActionLog(actionType = "VIEW", target = "/home")
-  }
-
-  @Test
-  fun `queryUserActionLogs should delegate to repository`() {
-    val pageable = PageRequest.of(0, 10)
-    val page = PageImpl(listOf(UserActionLogModel(actionType = "CLICK")), pageable, 1)
-    every {
-      userActionLogRepository.findByFilters(any(), any(), any(), any(), any(), any(), any())
-    } returns page
-    val result = service.queryUserActionLogs("1", "CLICK", "u", "btn", null, null, pageable)
-    assertEquals(1, result.totalElements)
-  }
-
-  @Test
-  fun `findByUserId should delegate to repository`() {
-    every { userActionLogRepository.findByUserId("1") } returns listOf(UserActionLogModel(userId = "1"))
-    assertEquals(1, service.findByUserId("1").size)
-  }
-
-  @Test
-  fun `findByActionType should delegate to repository`() {
-    every { userActionLogRepository.findByActionType("CLICK") } returns listOf(UserActionLogModel(actionType = "CLICK"))
-    assertEquals(1, service.findByActionType("CLICK").size)
-  }
-}
+    beforeTest {
+      userActionLogRepository = mockk(relaxed = true)
+      // relaxed mock 对泛型返回(save 返回 S)会生成 Object 导致 ClassCastException,需显式 stub
+      every { userActionLogRepository.save(any()) } answers { firstArg() }
+      service = UserActionLogService(userActionLogRepository)
+    }
+    test("saveUserActionLogSync should persist log") {
+      service.saveUserActionLogSync(
+        userId = "1",
+        username = "u",
+        actionType = "CLICK",
+        target = "btn",
+        pageUrl = "/home",
+        elementId = "e",
+        elementType = "button",
+        elementText = "确定",
+        clientIp = "127.0.0.1",
+        userAgent = "ua",
+        properties = "{}",
+      )
+      verify { userActionLogRepository.save(any<UserActionLogModel>()) }
+    }
+    test("saveUserActionLog should persist log with defaults") {
+      service.saveUserActionLog(actionType = "VIEW", target = "/home")
+      verify { userActionLogRepository.save(any<UserActionLogModel>()) }
+    }
+    test("saveUserActionLog should swallow repository exceptions") {
+      every { userActionLogRepository.save(any<UserActionLogModel>()) } throws RuntimeException("db down")
+      service.saveUserActionLog(actionType = "VIEW", target = "/home")
+    }
+    test("queryUserActionLogs should delegate to repository") {
+      val pageable = PageRequest.of(0, 10)
+      val page = PageImpl(listOf(UserActionLogModel(actionType = "CLICK")), pageable, 1)
+      every {
+        userActionLogRepository.findByFilters(any(), any(), any(), any(), any(), any(), any())
+      } returns page
+      val result = service.queryUserActionLogs("1", "CLICK", "u", "btn", null, null, pageable)
+      result.totalElements shouldBe 1
+    }
+    test("findByUserId should delegate to repository") {
+      every { userActionLogRepository.findByUserId("1") } returns listOf(UserActionLogModel(userId = "1"))
+      service.findByUserId("1").size shouldBe 1
+    }
+    test("findByActionType should delegate to repository") {
+      every { userActionLogRepository.findByActionType("CLICK") } returns listOf(UserActionLogModel(actionType = "CLICK"))
+      service.findByActionType("CLICK").size shouldBe 1
+    }
+  })

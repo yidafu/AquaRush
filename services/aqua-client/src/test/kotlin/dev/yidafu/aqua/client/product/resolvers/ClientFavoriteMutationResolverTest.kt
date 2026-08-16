@@ -22,76 +22,66 @@ package dev.yidafu.aqua.client.product.resolvers
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
-import kotlin.test.assertFailsWith
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
 
-class ClientFavoriteMutationResolverTest {
-  private lateinit var productFavoriteService: ProductFavoriteService
-  private lateinit var resolver: ClientFavoriteMutationResolver
+class ClientFavoriteMutationResolverTest :
+  FunSpec({
+    var productFavoriteService: ProductFavoriteService = mockk()
+    var resolver: ClientFavoriteMutationResolver = mockk()
 
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "testuser",
-      userType = "USER",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
-    )
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "testuser",
+        userType = "USER",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    productFavoriteService = mockk(relaxed = true)
-    resolver = ClientFavoriteMutationResolver(productFavoriteService)
-  }
+    beforeTest {
+      productFavoriteService = mockk(relaxed = true)
+      resolver = ClientFavoriteMutationResolver(productFavoriteService)
+    }
+    test("toggleProductFavorites should return enabled when favorited") {
+      // Given
+      every { productFavoriteService.toggleFavorite(1L, 1L) } returns true
 
-  @Test
-  fun `toggleProductFavorites should return enabled when favorited`() {
-    // Given
-    every { productFavoriteService.toggleFavorite(1L, 1L) } returns true
+      // When
+      val result = resolver.toggleProductFavorites(1L, principal())
 
-    // When
-    val result = resolver.toggleProductFavorites(1L, principal())
+      // Then
+      result shouldBe true
+      verify { productFavoriteService.toggleFavorite(1L, 1L) }
+    }
+    test("toggleProductFavorites should return disabled when unfavorited") {
+      // Given
+      every { productFavoriteService.toggleFavorite(1L, 1L) } returns false
 
-    // Then
-    assertTrue(result)
-    verify { productFavoriteService.toggleFavorite(1L, 1L) }
-  }
+      // When
+      val result = resolver.toggleProductFavorites(1L, principal())
 
-  @Test
-  fun `toggleProductFavorites should return disabled when unfavorited`() {
-    // Given
-    every { productFavoriteService.toggleFavorite(1L, 1L) } returns false
+      // Then
+      result shouldBe false
+    }
+    test("toggleProductFavorites should rethrow bad request") {
+      // Given
+      every { productFavoriteService.toggleFavorite(1L, 1L) } throws BadRequestException("商品不存在")
 
-    // When
-    val result = resolver.toggleProductFavorites(1L, principal())
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.toggleProductFavorites(1L, principal()) }
+      exception.message!!.contains("商品不存在") shouldBe true
+    }
+    test("toggleProductFavorites should wrap unexpected errors") {
+      // Given
+      every { productFavoriteService.toggleFavorite(1L, 1L) } throws IllegalStateException("db down")
 
-    // Then
-    assertFalse(result)
-  }
-
-  @Test
-  fun `toggleProductFavorites should rethrow bad request`() {
-    // Given
-    every { productFavoriteService.toggleFavorite(1L, 1L) } throws BadRequestException("商品不存在")
-
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.toggleProductFavorites(1L, principal()) }
-    assertTrue(exception.message!!.contains("商品不存在"))
-  }
-
-  @Test
-  fun `toggleProductFavorites should wrap unexpected errors`() {
-    // Given
-    every { productFavoriteService.toggleFavorite(1L, 1L) } throws IllegalStateException("db down")
-
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.toggleProductFavorites(1L, principal()) }
-    assertTrue(exception.message!!.contains("切换收藏状态失败"))
-  }
-}
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.toggleProductFavorites(1L, principal()) }
+      exception.message!!.contains("切换收藏状态失败") shouldBe true
+    }
+  })

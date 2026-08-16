@@ -27,105 +27,96 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
 
-class DeliveryTrajectoryMutationResolverTest {
-  private lateinit var deliveryTrajectoryMutationService: DeliveryTrajectoryMutationService
-  private lateinit var adminService: AdminService
-  private lateinit var resolver: DeliveryTrajectoryMutationResolver
+class DeliveryTrajectoryMutationResolverTest :
+  FunSpec({
+    var deliveryTrajectoryMutationService: DeliveryTrajectoryMutationService = mockk()
+    var adminService: AdminService = mockk()
+    var resolver: DeliveryTrajectoryMutationResolver = mockk()
 
-  private fun createSampleWorker(): AdminModel =
-    AdminModel(
-      id = 2L,
-      username = "delivery_2",
-      passwordHash = "hashed_password",
-      realName = "送水员甲",
-      phone = "13900139000",
-      role = AdminRoleModel.DELIVERY_WORKER,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private fun workerPrincipal(): UserPrincipal =
-    UserPrincipal(
-      id = 2L,
-      _username = "delivery_2",
-      userType = "WORKER",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_WORKER")),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    deliveryTrajectoryMutationService = mockk(relaxed = true)
-    adminService = mockk(relaxed = true)
-    resolver = DeliveryTrajectoryMutationResolver(deliveryTrajectoryMutationService, adminService)
-  }
-
-  @Test
-  fun `reportTrajectory should report for delivery worker`() {
-    // Given
-    every { adminService.findByUsername("delivery_2") } returns createSampleWorker()
-    val input = ReportTrajectoryInput(orderId = 1L, longitude = 113.94f, latitude = 22.54f, accuracy = 5f)
-
-    // When
-    val result = resolver.reportTrajectory(input, workerPrincipal())
-
-    // Then
-    assertTrue(result)
-    verify {
-      deliveryTrajectoryMutationService.reportTrajectory(
-        deliveryWorkerId = 2L,
-        orderId = 1L,
-        longitude = any(),
-        latitude = any(),
-        accuracy = any(),
-        reportedAt = any(),
+    fun createSampleWorker(): AdminModel =
+      AdminModel(
+        id = 2L,
+        username = "delivery_2",
+        passwordHash = "hashed_password",
+        realName = "送水员甲",
+        phone = "13900139000",
+        role = AdminRoleModel.DELIVERY_WORKER,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
+
+    fun workerPrincipal(): UserPrincipal =
+      UserPrincipal(
+        id = 2L,
+        _username = "delivery_2",
+        userType = "WORKER",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_WORKER")),
+      )
+
+    beforeTest {
+      deliveryTrajectoryMutationService = mockk(relaxed = true)
+      adminService = mockk(relaxed = true)
+      resolver = DeliveryTrajectoryMutationResolver(deliveryTrajectoryMutationService, adminService)
     }
-  }
+    test("reportTrajectory should report for delivery worker") {
+      // Given
+      every { adminService.findByUsername("delivery_2") } returns createSampleWorker()
+      val input = ReportTrajectoryInput(orderId = 1L, longitude = 113.94f, latitude = 22.54f, accuracy = 5f)
 
-  @Test
-  fun `reportTrajectory should default reportedAt to now`() {
-    // Given
-    every { adminService.findByUsername("delivery_2") } returns createSampleWorker()
-    val input = ReportTrajectoryInput(orderId = 1L, longitude = 113.94f, latitude = 22.54f, accuracy = null)
+      // When
+      val result = resolver.reportTrajectory(input, workerPrincipal())
 
-    // When
-    val result = resolver.reportTrajectory(input, workerPrincipal())
+      // Then
+      result shouldBe true
+      verify {
+        deliveryTrajectoryMutationService.reportTrajectory(
+          deliveryWorkerId = 2L,
+          orderId = 1L,
+          longitude = any(),
+          latitude = any(),
+          accuracy = any(),
+          reportedAt = any(),
+        )
+      }
+    }
+    test("reportTrajectory should default reportedAt to now") {
+      // Given
+      every { adminService.findByUsername("delivery_2") } returns createSampleWorker()
+      val input = ReportTrajectoryInput(orderId = 1L, longitude = 113.94f, latitude = 22.54f, accuracy = null)
 
-    // Then
-    assertTrue(result)
-    verify { deliveryTrajectoryMutationService.reportTrajectory(2L, 1L, any(), any(), null, any()) }
-  }
+      // When
+      val result = resolver.reportTrajectory(input, workerPrincipal())
 
-  @Test
-  fun `reportTrajectory should throw when admin not found`() {
-    // Given
-    every { adminService.findByUsername("unknown") } returns null
-    val user = UserPrincipal(9L, "unknown", "WORKER", emptyList())
-    val input = ReportTrajectoryInput(orderId = 1L, longitude = 1f, latitude = 1f)
+      // Then
+      result shouldBe true
+      verify { deliveryTrajectoryMutationService.reportTrajectory(2L, 1L, any(), any(), null, any()) }
+    }
+    test("reportTrajectory should throw when admin not found") {
+      // Given
+      every { adminService.findByUsername("unknown") } returns null
+      val user = UserPrincipal(9L, "unknown", "WORKER", emptyList())
+      val input = ReportTrajectoryInput(orderId = 1L, longitude = 1f, latitude = 1f)
 
-    // When & Then
-    assertFailsWith<UserNotFoundException> { resolver.reportTrajectory(input, user) }
-  }
+      // When & Then
+      shouldThrow<UserNotFoundException> { resolver.reportTrajectory(input, user) }
+    }
+    test("reportTrajectory should reject non delivery roles") {
+      // Given
+      every { adminService.findByUsername("manager") } returns createSampleWorker().copy(role = AdminRoleModel.SUPER_ADMIN)
+      val user = UserPrincipal(9L, "manager", "ADMIN", emptyList())
+      val input = ReportTrajectoryInput(orderId = 1L, longitude = 1f, latitude = 1f)
 
-  @Test
-  fun `reportTrajectory should reject non delivery roles`() {
-    // Given
-    every { adminService.findByUsername("manager") } returns createSampleWorker().copy(role = AdminRoleModel.SUPER_ADMIN)
-    val user = UserPrincipal(9L, "manager", "ADMIN", emptyList())
-    val input = ReportTrajectoryInput(orderId = 1L, longitude = 1f, latitude = 1f)
-
-    // When & Then
-    val exception = assertFailsWith<BadRequestException> { resolver.reportTrajectory(input, user) }
-    assertTrue(exception.message!!.contains("不具备配送能力"))
-  }
-}
+      // When & Then
+      val exception = shouldThrow<BadRequestException> { resolver.reportTrajectory(input, user) }
+      exception.message!!.contains("不具备配送能力") shouldBe true
+    }
+  })

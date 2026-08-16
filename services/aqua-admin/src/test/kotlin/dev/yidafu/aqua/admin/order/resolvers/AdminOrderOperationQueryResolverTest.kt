@@ -22,57 +22,52 @@ package dev.yidafu.aqua.admin.order.resolvers
 import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.common.domain.model.OrderOperationModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 
-class AdminOrderOperationQueryResolverTest {
-  private lateinit var orderOperationService: OrderOperationService
-  private lateinit var resolver: AdminOrderOperationQueryResolver
+class AdminOrderOperationQueryResolverTest :
+  FunSpec({
+    var orderOperationService: OrderOperationService = mockk()
+    var resolver: AdminOrderOperationQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    orderOperationService = mockk(relaxed = true)
-    resolver = AdminOrderOperationQueryResolver(orderOperationService)
-  }
+    beforeTest {
+      orderOperationService = mockk(relaxed = true)
+      resolver = AdminOrderOperationQueryResolver(orderOperationService)
+    }
+    test("orderOperations should return operation history") {
+      // Given
+      val operations =
+        listOf(
+          OrderOperationModel(
+            id = 1L,
+            orderId = 1L,
+            operationType = OrderOperationType.ORDER_CREATED,
+            operatorId = 1L,
+            createdAt = LocalDateTime.now(),
+          ),
+        )
+      every { orderOperationService.getOrderOperations(1L) } returns operations
 
-  @Test
-  fun `orderOperations should return operation history`() {
-    // Given
-    val operations =
-      listOf(
-        OrderOperationModel(
-          id = 1L,
-          orderId = 1L,
-          operationType = OrderOperationType.ORDER_CREATED,
-          operatorId = 1L,
-          createdAt = LocalDateTime.now(),
-        ),
-      )
-    every { orderOperationService.getOrderOperations(1L) } returns operations
+      // When
+      val result = resolver.orderOperations(1L)
 
-    // When
-    val result = resolver.orderOperations(1L)
+      // Then
+      result.size shouldBe 1
+      result[0].operationType shouldBe OrderOperationType.ORDER_CREATED
+      verify { orderOperationService.getOrderOperations(1L) }
+    }
+    test("orderOperations should return empty list when no history") {
+      // Given
+      every { orderOperationService.getOrderOperations(2L) } returns emptyList()
 
-    // Then
-    assertEquals(1, result.size)
-    assertEquals(OrderOperationType.ORDER_CREATED, result[0].operationType)
-    verify { orderOperationService.getOrderOperations(1L) }
-  }
+      // When
+      val result = resolver.orderOperations(2L)
 
-  @Test
-  fun `orderOperations should return empty list when no history`() {
-    // Given
-    every { orderOperationService.getOrderOperations(2L) } returns emptyList()
-
-    // When
-    val result = resolver.orderOperations(2L)
-
-    // Then
-    assertEquals(0, result.size)
-  }
-}
+      // Then
+      result.size shouldBe 0
+    }
+  })

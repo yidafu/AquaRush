@@ -24,79 +24,74 @@ import dev.yidafu.aqua.common.graphql.generated.BizLogDomain
 import dev.yidafu.aqua.common.graphql.generated.BizLogLevel
 import dev.yidafu.aqua.common.graphql.generated.BusinessLogListInput
 import dev.yidafu.aqua.logging.service.BusinessLogService
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Sort
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 
-class AdminBusinessLogQueryResolverTest {
-  private lateinit var businessLogService: BusinessLogService
-  private lateinit var resolver: AdminBusinessLogQueryResolver
+class AdminBusinessLogQueryResolverTest :
+  FunSpec({
+    var businessLogService: BusinessLogService = mockk()
+    var resolver: AdminBusinessLogQueryResolver = mockk()
 
-  private fun createSampleLog(): BusinessLogModel =
-    BusinessLogModel(
-      id = 1L,
-      correlationId = "corr-1",
-      level = "INFO",
-      loggerName = "ORDER",
-      operation = "ORDER_CREATED",
-      message = "订单创建",
-      createdAt = LocalDateTime.now(),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    businessLogService = mockk(relaxed = true)
-    resolver = AdminBusinessLogQueryResolver(businessLogService)
-  }
-
-  @Test
-  fun `businessLogs should pass through input filters`() {
-    // Given
-    val pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
-    every {
-      businessLogService.queryBusinessLogs("INFO", "ORDER", "ORDER_CREATED", 1L, null, null, pageable)
-    } returns PageImpl(listOf(createSampleLog()))
-    val input =
-      BusinessLogListInput(
-        domain = BizLogDomain.ORDER,
-        endTime = null,
-        level = BizLogLevel.INFO,
-        operationType = "ORDER_CREATED",
-        page = 0,
-        size = 10,
-        startTime = null,
-        userId = 1L,
+    fun createSampleLog(): BusinessLogModel =
+      BusinessLogModel(
+        id = 1L,
+        correlationId = "corr-1",
+        level = "INFO",
+        loggerName = "ORDER",
+        operation = "ORDER_CREATED",
+        message = "订单创建",
+        createdAt = LocalDateTime.now(),
       )
 
-    // When
-    val result = resolver.businessLogs(input)
+    beforeTest {
+      businessLogService = mockk(relaxed = true)
+      resolver = AdminBusinessLogQueryResolver(businessLogService)
+    }
+    test("businessLogs should pass through input filters") {
+      // Given
+      val pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
+      every {
+        businessLogService.queryBusinessLogs("INFO", "ORDER", "ORDER_CREATED", 1L, null, null, pageable)
+      } returns PageImpl(listOf(createSampleLog()))
+      val input =
+        BusinessLogListInput(
+          domain = BizLogDomain.ORDER,
+          endTime = null,
+          level = BizLogLevel.INFO,
+          operationType = "ORDER_CREATED",
+          page = 0,
+          size = 10,
+          startTime = null,
+          userId = 1L,
+        )
 
-    // Then
-    assertEquals(1, result.list.size)
-    assertEquals(1, result.pageInfo.total)
-    verify { businessLogService.queryBusinessLogs("INFO", "ORDER", "ORDER_CREATED", 1L, null, null, pageable) }
-  }
+      // When
+      val result = resolver.businessLogs(input)
 
-  @Test
-  fun `businessLogs should use defaults when input is null`() {
-    // Given
-    val pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
-    every {
-      businessLogService.queryBusinessLogs(null, null, null, null, null, null, pageable)
-    } returns PageImpl(emptyList())
+      // Then
+      result.list.size shouldBe 1
+      result.pageInfo.total shouldBe 1
+      verify { businessLogService.queryBusinessLogs("INFO", "ORDER", "ORDER_CREATED", 1L, null, null, pageable) }
+    }
+    test("businessLogs should use defaults when input is null") {
+      // Given
+      val pageable = PageRequest.of(0, 10, Sort.by(Sort.Direction.DESC, "createdAt"))
+      every {
+        businessLogService.queryBusinessLogs(null, null, null, null, null, null, pageable)
+      } returns PageImpl(emptyList())
 
-    // When
-    val result = resolver.businessLogs(null)
+      // When
+      val result = resolver.businessLogs(null)
 
-    // Then
-    assertEquals(0, result.list.size)
-    verify { businessLogService.queryBusinessLogs(null, null, null, null, null, null, pageable) }
-  }
-}
+      // Then
+      result.list.size shouldBe 0
+      verify { businessLogService.queryBusinessLogs(null, null, null, null, null, null, pageable) }
+    }
+  })

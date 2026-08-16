@@ -30,146 +30,124 @@ import dev.yidafu.aqua.common.domain.model.StoreProfileModel
 import dev.yidafu.aqua.common.domain.model.enums.BannerLinkType
 import dev.yidafu.aqua.common.domain.model.enums.NoticeStatus
 import dev.yidafu.aqua.common.domain.model.enums.NoticeType
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
  * 用户端运营配置查询 Resolver 测试(F-OPS-001/002/004/005 用户端消费:
  * activeBanners / activeNotices / storeProfile / deliveryFeeRule)
  */
-@DisplayName("ClientOpsQueryResolver Tests")
-class ClientOpsQueryResolverTest {
-  private lateinit var bannerQueryApiService: BannerQueryApiService
-  private lateinit var noticeQueryApiService: NoticeQueryApiService
-  private lateinit var storeProfileQueryApiService: StoreProfileQueryApiService
-  private lateinit var deliveryFeeRuleQueryApiService: DeliveryFeeRuleQueryApiService
-  private lateinit var resolver: ClientOpsQueryResolver
+class ClientOpsQueryResolverTest :
+  FunSpec({
+    var bannerQueryApiService: BannerQueryApiService = mockk()
+    var noticeQueryApiService: NoticeQueryApiService = mockk()
+    var storeProfileQueryApiService: StoreProfileQueryApiService = mockk()
+    var deliveryFeeRuleQueryApiService: DeliveryFeeRuleQueryApiService = mockk()
+    var resolver: ClientOpsQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    bannerQueryApiService = mockk(relaxed = true)
-    noticeQueryApiService = mockk(relaxed = true)
-    storeProfileQueryApiService = mockk(relaxed = true)
-    deliveryFeeRuleQueryApiService = mockk(relaxed = true)
-    resolver =
-      ClientOpsQueryResolver(
-        bannerQueryApiService,
-        noticeQueryApiService,
-        storeProfileQueryApiService,
-        deliveryFeeRuleQueryApiService,
-      )
-  }
+    beforeTest {
+      bannerQueryApiService = mockk(relaxed = true)
+      noticeQueryApiService = mockk(relaxed = true)
+      storeProfileQueryApiService = mockk(relaxed = true)
+      deliveryFeeRuleQueryApiService = mockk(relaxed = true)
+      resolver =
+        ClientOpsQueryResolver(
+          bannerQueryApiService,
+          noticeQueryApiService,
+          storeProfileQueryApiService,
+          deliveryFeeRuleQueryApiService,
+        )
+    }
+    test("activeBanners returns mapped banners") {
+      val banners =
+        listOf(
+          BannerModel(
+            id = 1L,
+            imageUrl = "http://x/1.png",
+            title = "轮播A",
+            linkType = BannerLinkType.CUSTOM_PAGE,
+            linkTarget = "/pages/home/index",
+            sortOrder = 1,
+            enabled = true,
+          ),
+          BannerModel(
+            id = 2L,
+            imageUrl = "http://x/2.png",
+            title = "轮播B",
+            linkType = BannerLinkType.PRODUCT,
+            linkTarget = "10",
+            sortOrder = 2,
+            enabled = true,
+          ),
+        )
+      every { bannerQueryApiService.getActiveBanners() } returns banners
 
-  @Test
-  @DisplayName("activeBanners should return mapped banners")
-  fun `activeBanners returns mapped banners`() {
-    val banners =
-      listOf(
-        BannerModel(
-          id = 1L,
-          imageUrl = "http://x/1.png",
-          title = "轮播A",
-          linkType = BannerLinkType.CUSTOM_PAGE,
-          linkTarget = "/pages/home/index",
-          sortOrder = 1,
-          enabled = true,
-        ),
-        BannerModel(
-          id = 2L,
-          imageUrl = "http://x/2.png",
-          title = "轮播B",
-          linkType = BannerLinkType.PRODUCT,
-          linkTarget = "10",
-          sortOrder = 2,
-          enabled = true,
-        ),
-      )
-    every { bannerQueryApiService.getActiveBanners() } returns banners
+      val result = resolver.activeBanners()
 
-    val result = resolver.activeBanners()
+      result.size shouldBe 2
+      result[0].title shouldBe "轮播A"
+      result[1].linkType.name shouldBe "PRODUCT"
+      result[1].linkTarget.toLong() shouldBe 10L
+      verify { bannerQueryApiService.getActiveBanners() }
+    }
+    test("activeBanners returns empty when none") {
+      every { bannerQueryApiService.getActiveBanners() } returns emptyList()
 
-    assertEquals(2, result.size)
-    assertEquals("轮播A", result[0].title)
-    assertEquals("PRODUCT", result[1].linkType.name)
-    assertEquals(10L, result[1].linkTarget.toLong())
-    verify { bannerQueryApiService.getActiveBanners() }
-  }
+      val result = resolver.activeBanners()
 
-  @Test
-  @DisplayName("activeBanners should return empty list when no active banners")
-  fun `activeBanners returns empty when none`() {
-    every { bannerQueryApiService.getActiveBanners() } returns emptyList()
+      result.isEmpty() shouldBe true
+    }
+    test("activeNotices returns mapped notices") {
+      val notices =
+        listOf(
+          NoticeModel(
+            id = 1L,
+            title = "停水通知",
+            content = "内容",
+            type = NoticeType.WATER_OUTAGE,
+            status = NoticeStatus.PUBLISHED,
+            pinned = true,
+          ),
+          NoticeModel(id = 2L, title = "活动预告", content = "内容", type = NoticeType.ACTIVITY_PREVIEW, status = NoticeStatus.PUBLISHED),
+        )
+      every { noticeQueryApiService.getActiveNotices() } returns notices
 
-    val result = resolver.activeBanners()
+      val result = resolver.activeNotices()
 
-    assertTrue(result.isEmpty())
-  }
+      result.size shouldBe 2
+      result[0].title shouldBe "停水通知"
+      result[0].pinned shouldBe true
+      result[0].type.name shouldBe "WATER_OUTAGE"
+      verify { noticeQueryApiService.getActiveNotices() }
+    }
+    test("storeProfile returns mapped profile") {
+      val profile = StoreProfileModel(id = 1L, shopName = "好喝山泉", serviceHotline = "400-800-8888")
+      every { storeProfileQueryApiService.getStoreProfile() } returns profile
 
-  @Test
-  @DisplayName("activeNotices should return mapped notices")
-  fun `activeNotices returns mapped notices`() {
-    val notices =
-      listOf(
-        NoticeModel(
-          id = 1L,
-          title = "停水通知",
-          content = "内容",
-          type = NoticeType.WATER_OUTAGE,
-          status = NoticeStatus.PUBLISHED,
-          pinned = true,
-        ),
-        NoticeModel(id = 2L, title = "活动预告", content = "内容", type = NoticeType.ACTIVITY_PREVIEW, status = NoticeStatus.PUBLISHED),
-      )
-    every { noticeQueryApiService.getActiveNotices() } returns notices
+      val result = resolver.storeProfile()
 
-    val result = resolver.activeNotices()
+      result?.shopName shouldBe "好喝山泉"
+      result?.serviceHotline shouldBe "400-800-8888"
+    }
+    test("storeProfile returns null when unconfigured") {
+      every { storeProfileQueryApiService.getStoreProfile() } returns null
 
-    assertEquals(2, result.size)
-    assertEquals("停水通知", result[0].title)
-    assertTrue(result[0].pinned)
-    assertEquals("WATER_OUTAGE", result[0].type.name)
-    verify { noticeQueryApiService.getActiveNotices() }
-  }
+      val result = resolver.storeProfile()
 
-  @Test
-  @DisplayName("storeProfile should return mapped profile when configured")
-  fun `storeProfile returns mapped profile`() {
-    val profile = StoreProfileModel(id = 1L, shopName = "好喝山泉", serviceHotline = "400-800-8888")
-    every { storeProfileQueryApiService.getStoreProfile() } returns profile
+      result.shouldBeNull()
+    }
+    test("deliveryFeeRule returns mapped rule") {
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
 
-    val result = resolver.storeProfile()
+      val result = resolver.deliveryFeeRule()
 
-    assertEquals("好喝山泉", result?.shopName)
-    assertEquals("400-800-8888", result?.serviceHotline)
-  }
-
-  @Test
-  @DisplayName("storeProfile should return null when unconfigured")
-  fun `storeProfile returns null when unconfigured`() {
-    every { storeProfileQueryApiService.getStoreProfile() } returns null
-
-    val result = resolver.storeProfile()
-
-    assertNull(result)
-  }
-
-  @Test
-  @DisplayName("deliveryFeeRule should return mapped rule (default 4/200)")
-  fun `deliveryFeeRule returns mapped rule`() {
-    every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
-      DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
-
-    val result = resolver.deliveryFeeRule()
-
-    assertEquals(4, result.freeFloorLimit)
-    assertEquals(200L, result.surchargeCents)
-    verify { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() }
-  }
-}
+      result.freeFloorLimit shouldBe 4
+      result.surchargeCents shouldBe 200L
+      verify { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() }
+    }
+  })

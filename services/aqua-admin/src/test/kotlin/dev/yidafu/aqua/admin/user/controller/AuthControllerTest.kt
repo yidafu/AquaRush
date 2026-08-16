@@ -25,103 +25,90 @@ import dev.yidafu.aqua.api.dto.LoginResponse
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.service.impl.AdminAuthServiceImpl
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.http.HttpStatus
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
 import org.springframework.security.core.context.SecurityContextHolder
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class AuthControllerTest {
-  private lateinit var adminAuthService: AdminAuthServiceImpl
-  private lateinit var bizLogger: BizLogger
-  private lateinit var controller: AuthController
+class AuthControllerTest :
+  FunSpec({
+    var adminAuthService: AdminAuthServiceImpl = mockk()
+    var bizLogger: BizLogger = mockk()
+    var controller: AuthController = mockk()
 
-  private fun loginResponse(): LoginResponse =
-    LoginResponse(
-      accessToken = "access-token",
-      refreshToken = "refresh-token",
-      expiresIn = 7200L,
-      tokenType = "Bearer",
-      userInfo = AdminUserInfo(id = 1L, username = "admin", realName = "管理员", role = "ADMIN"),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    adminAuthService = mockk(relaxed = true)
-    bizLogger = mockk(relaxed = true)
-    controller = AuthController(adminAuthService, bizLogger)
-  }
-
-  @AfterEach
-  fun tearDown() {
-    SecurityContextHolder.clearContext()
-  }
-
-  @Test
-  fun `login should return token on success`() {
-    // Given
-    every { adminAuthService.authenticate("admin", "password123") } returns loginResponse()
-
-    // When
-    val result = controller.login(AdminLoginRequest(username = "admin", password = "password123"))
-
-    // Then
-    assertEquals(HttpStatus.OK, result.statusCode)
-    assertTrue(result.body!!.success)
-    assertEquals("access-token", result.body!!.data!!.accessToken)
-  }
-
-  @Test
-  fun `login should return bad request on failure`() {
-    // Given
-    every { adminAuthService.authenticate("admin", "wrong") } throws IllegalArgumentException("bad credentials")
-
-    // When
-    val result = controller.login(AdminLoginRequest(username = "admin", password = "wrong"))
-
-    // Then
-    assertEquals(HttpStatus.BAD_REQUEST, result.statusCode)
-    assertTrue(result.body!!.message!!.contains("Login failed"))
-  }
-
-  @Test
-  fun `logout should log audit entry for authenticated principal`() {
-    // Given
-    SecurityContextHolder.getContext().authentication =
-      UsernamePasswordAuthenticationToken(
-        UserPrincipal(1L, "admin", "ADMIN", emptyList()),
-        null,
-        emptyList(),
+    fun loginResponse(): LoginResponse =
+      LoginResponse(
+        accessToken = "access-token",
+        refreshToken = "refresh-token",
+        expiresIn = 7200L,
+        tokenType = "Bearer",
+        userInfo = AdminUserInfo(id = 1L, username = "admin", realName = "管理员", role = "ADMIN"),
       )
 
-    // When
-    val result = controller.logout()
-
-    // Then
-    assertEquals(HttpStatus.OK, result.statusCode)
-    verify {
-      bizLogger.logLogin(
-        userId = "1",
-        username = "admin",
-        loginMethod = "PASSWORD",
-        success = true,
-        operation = "ADMIN_LOGOUT",
-      )
+    beforeTest {
+      adminAuthService = mockk(relaxed = true)
+      bizLogger = mockk(relaxed = true)
+      controller = AuthController(adminAuthService, bizLogger)
     }
-  }
+    afterTest {
+      SecurityContextHolder.clearContext()
+    }
+    test("login should return token on success") {
+      // Given
+      every { adminAuthService.authenticate("admin", "password123") } returns loginResponse()
 
-  @Test
-  fun `logout should skip audit when not authenticated`() {
-    // When
-    val result = controller.logout()
+      // When
+      val result = controller.login(AdminLoginRequest(username = "admin", password = "password123"))
 
-    // Then
-    assertEquals(HttpStatus.OK, result.statusCode)
-  }
-}
+      // Then
+      result.statusCode shouldBe HttpStatus.OK
+      result.body!!.success shouldBe true
+      result.body!!.data!!.accessToken shouldBe "access-token"
+    }
+    test("login should return bad request on failure") {
+      // Given
+      every { adminAuthService.authenticate("admin", "wrong") } throws IllegalArgumentException("bad credentials")
+
+      // When
+      val result = controller.login(AdminLoginRequest(username = "admin", password = "wrong"))
+
+      // Then
+      result.statusCode shouldBe HttpStatus.BAD_REQUEST
+      result.body!!.message!!.contains("Login failed") shouldBe true
+    }
+    test("logout should log audit entry for authenticated principal") {
+      // Given
+      SecurityContextHolder.getContext().authentication =
+        UsernamePasswordAuthenticationToken(
+          UserPrincipal(1L, "admin", "ADMIN", emptyList()),
+          null,
+          emptyList(),
+        )
+
+      // When
+      val result = controller.logout()
+
+      // Then
+      result.statusCode shouldBe HttpStatus.OK
+      verify {
+        bizLogger.logLogin(
+          userId = "1",
+          username = "admin",
+          loginMethod = "PASSWORD",
+          success = true,
+          operation = "ADMIN_LOGOUT",
+        )
+      }
+    }
+    test("logout should skip audit when not authenticated") {
+      // When
+      val result = controller.logout()
+
+      // Then
+      result.statusCode shouldBe HttpStatus.OK
+    }
+  })

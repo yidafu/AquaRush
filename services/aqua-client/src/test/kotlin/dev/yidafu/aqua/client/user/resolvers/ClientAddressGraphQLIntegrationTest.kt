@@ -26,200 +26,170 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
 /**
  * Integration tests for Client Address Mutation Resolver
  * These tests verify the address mutation operations with full service integration
  */
-@DisplayName("Client Address Resolver Integration Tests")
-class ClientAddressGraphQLIntegrationTest {
-  private lateinit var addressService: AddressService
-  private lateinit var resolver: ClientAddressMutationResolver
-  private lateinit var userPrincipal: UserPrincipal
+class ClientAddressGraphQLIntegrationTest :
+  FunSpec({
+    var addressService: AddressService = mockk()
+    var resolver: ClientAddressMutationResolver = mockk()
+    var userPrincipal: UserPrincipal = mockk()
 
-  private fun createSampleAddress(): AddressModel =
-    AddressModel(
-      id = 1L,
-      userId = 1L,
-      receiverName = "张三",
-      phone = "13800138000",
-      province = "广东省",
-      city = "深圳市",
-      district = "南山区",
-      detailAddress = "测试地址1号",
-      isDefault = true,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private fun createOtherUserAddress(): AddressModel =
-    AddressModel(
-      id = 1L,
-      userId = 2L,
-      receiverName = "李四",
-      phone = "13800138001",
-      province = "广东省",
-      city = "深圳市",
-      district = "南山区",
-      detailAddress = "其他用户地址",
-      isDefault = false,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    addressService = mockk(relaxed = true)
-    resolver = ClientAddressMutationResolver(addressService)
-
-    userPrincipal =
-      UserPrincipal(
+    fun createSampleAddress(): AddressModel =
+      AddressModel(
         id = 1L,
-        _username = "testuser",
-        userType = "USER",
-        _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
-      )
-  }
-
-  @Test
-  @DisplayName("createAddress should create address successfully")
-  fun `createAddress creates address successfully`() {
-    val input =
-      AddressInput(
+        userId = 1L,
         receiverName = "张三",
         phone = "13800138000",
         province = "广东省",
-        provinceCode = "440000",
         city = "深圳市",
-        cityCode = "440300",
         district = "南山区",
-        districtCode = "440305",
         detailAddress = "测试地址1号",
-        isDefault = false,
+        isDefault = true,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
-    every { addressService.countByUserId(1L) } returns 0
-    every { addressService.save(any()) } returns createSampleAddress()
 
-    val result = resolver.createAddress(input, userPrincipal)
-
-    assertNotNull(result)
-    verify { addressService.save(any()) }
-  }
-
-  @Test
-  @DisplayName("createAddress should fail with invalid phone number")
-  fun `createAddress fails with invalid phone`() {
-    val input =
-      AddressInput(
-        receiverName = "张三",
-        phone = "invalid",
+    fun createOtherUserAddress(): AddressModel =
+      AddressModel(
+        id = 1L,
+        userId = 2L,
+        receiverName = "李四",
+        phone = "13800138001",
         province = "广东省",
-        provinceCode = "440000",
         city = "深圳市",
-        cityCode = "440300",
         district = "南山区",
-        districtCode = "440305",
-        detailAddress = "测试地址1号",
+        detailAddress = "其他用户地址",
         isDefault = false,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
-    every { addressService.countByUserId(1L) } returns 0
-    every { addressService.save(any()) } returns createSampleAddress()
 
-    // The resolver may allow invalid phone, validation happens at different layer
-    val result = resolver.createAddress(input, userPrincipal)
-    assertNotNull(result)
-  }
+    beforeTest {
+      addressService = mockk(relaxed = true)
+      resolver = ClientAddressMutationResolver(addressService)
 
-  @Test
-  @DisplayName("updateAddress should update address successfully")
-  fun `updateAddress updates address successfully`() {
-    val input = UpdateAddressInput(detailAddress = "新地址")
-    every { addressService.findById(1L) } returns createSampleAddress()
-    every { addressService.save(any()) } returns createSampleAddress()
-
-    val result = resolver.updateAddress(1L, input, userPrincipal)
-
-    assertNotNull(result)
-    verify { addressService.save(any()) }
-  }
-
-  @Test
-  @DisplayName("deleteAddress should delete address successfully")
-  fun `deleteAddress deletes address successfully`() {
-    every { addressService.findById(1L) } returns createSampleAddress()
-
-    val result = resolver.deleteAddress(1L, userPrincipal)
-
-    assertTrue(result)
-    verify { addressService.deleteById(1L) }
-  }
-
-  @Test
-  @DisplayName("setDefaultAddress should set default address successfully")
-  fun `setDefaultAddress sets default address successfully`() {
-    val sampleAddress = createSampleAddress()
-    sampleAddress.isDefault = false
-    every { addressService.findById(1L) } returns sampleAddress
-
-    val result = resolver.setDefaultAddress(1L, userPrincipal)
-
-    assertTrue(result)
-    verify { addressService.setDefaultAddress(1L, 1L) }
-  }
-
-  @Test
-  @DisplayName("deleteAddress should fail when address not found")
-  fun `deleteAddress fails when address not found`() {
-    every { addressService.findById(999L) } returns null
-
-    assertFailsWith<BadRequestException> {
-      resolver.deleteAddress(999L, userPrincipal)
+      userPrincipal =
+        UserPrincipal(
+          id = 1L,
+          _username = "testuser",
+          userType = "USER",
+          _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
+        )
     }
-  }
+    test("createAddress creates address successfully") {
+      val input =
+        AddressInput(
+          receiverName = "张三",
+          phone = "13800138000",
+          province = "广东省",
+          provinceCode = "440000",
+          city = "深圳市",
+          cityCode = "440300",
+          district = "南山区",
+          districtCode = "440305",
+          detailAddress = "测试地址1号",
+          isDefault = false,
+        )
+      every { addressService.countByUserId(1L) } returns 0
+      every { addressService.save(any()) } returns createSampleAddress()
 
-  @Test
-  @DisplayName("updateAddress should fail when address not found")
-  fun `updateAddress fails when address not found`() {
-    val input = UpdateAddressInput(detailAddress = "新地址")
-    every { addressService.findById(999L) } returns null
+      val result = resolver.createAddress(input, userPrincipal)
 
-    assertFailsWith<BadRequestException> {
-      resolver.updateAddress(999L, input, userPrincipal)
+      result.shouldNotBeNull()
+      verify { addressService.save(any()) }
     }
-  }
+    test("createAddress fails with invalid phone") {
+      val input =
+        AddressInput(
+          receiverName = "张三",
+          phone = "invalid",
+          province = "广东省",
+          provinceCode = "440000",
+          city = "深圳市",
+          cityCode = "440300",
+          district = "南山区",
+          districtCode = "440305",
+          detailAddress = "测试地址1号",
+          isDefault = false,
+        )
+      every { addressService.countByUserId(1L) } returns 0
+      every { addressService.save(any()) } returns createSampleAddress()
 
-  @Test
-  @DisplayName("setDefaultAddress should fail when address not found")
-  fun `setDefaultAddress fails when address not found`() {
-    every { addressService.findById(999L) } returns null
-
-    assertFailsWith<BadRequestException> {
-      resolver.setDefaultAddress(999L, userPrincipal)
+      // The resolver may allow invalid phone, validation happens at different layer
+      val result = resolver.createAddress(input, userPrincipal)
+      result.shouldNotBeNull()
     }
-  }
+    test("updateAddress updates address successfully") {
+      val input = UpdateAddressInput(detailAddress = "新地址")
+      every { addressService.findById(1L) } returns createSampleAddress()
+      every { addressService.save(any()) } returns createSampleAddress()
 
-  @Test
-  @DisplayName("copyUserAddress should copy address successfully")
-  fun `copyUserAddress copies address successfully`() {
-    val newAddress = createSampleAddress()
-    newAddress.id = 2L
-    every { addressService.findById(1L) } returns createSampleAddress()
-    every { addressService.save(any()) } returns newAddress
+      val result = resolver.updateAddress(1L, input, userPrincipal)
 
-    val result = resolver.copyUserAddress(1L, "新地址名称", userPrincipal)
+      result.shouldNotBeNull()
+      verify { addressService.save(any()) }
+    }
+    test("deleteAddress deletes address successfully") {
+      every { addressService.findById(1L) } returns createSampleAddress()
 
-    assertNotNull(result)
-    verify { addressService.save(any()) }
-  }
-}
+      val result = resolver.deleteAddress(1L, userPrincipal)
+
+      result shouldBe true
+      verify { addressService.deleteById(1L) }
+    }
+    test("setDefaultAddress sets default address successfully") {
+      val sampleAddress = createSampleAddress()
+      sampleAddress.isDefault = false
+      every { addressService.findById(1L) } returns sampleAddress
+
+      val result = resolver.setDefaultAddress(1L, userPrincipal)
+
+      result shouldBe true
+      verify { addressService.setDefaultAddress(1L, 1L) }
+    }
+    test("deleteAddress fails when address not found") {
+      every { addressService.findById(999L) } returns null
+
+      shouldThrow<BadRequestException> {
+        resolver.deleteAddress(999L, userPrincipal)
+      }
+    }
+    test("updateAddress fails when address not found") {
+      val input = UpdateAddressInput(detailAddress = "新地址")
+      every { addressService.findById(999L) } returns null
+
+      shouldThrow<BadRequestException> {
+        resolver.updateAddress(999L, input, userPrincipal)
+      }
+    }
+    test("setDefaultAddress fails when address not found") {
+      every { addressService.findById(999L) } returns null
+
+      shouldThrow<BadRequestException> {
+        resolver.setDefaultAddress(999L, userPrincipal)
+      }
+    }
+    test("copyUserAddress copies address successfully") {
+      val newAddress = createSampleAddress()
+      newAddress.id = 2L
+      every { addressService.findById(1L) } returns createSampleAddress()
+      every { addressService.save(any()) } returns newAddress
+
+      val result = resolver.copyUserAddress(1L, "新地址名称", userPrincipal)
+
+      result.shouldNotBeNull()
+      verify { addressService.save(any()) }
+    }
+  })

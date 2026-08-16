@@ -24,64 +24,59 @@ import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
 import dev.yidafu.aqua.common.graphql.generated.GiftActivityListInput
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-class AdminGiftActivityQueryResolverTest {
-  private lateinit var giftActivityQueryService: GiftActivityQueryService
-  private lateinit var productQueryApiService: ProductQueryApiService
-  private lateinit var resolver: AdminGiftActivityQueryResolver
+class AdminGiftActivityQueryResolverTest :
+  FunSpec({
+    var giftActivityQueryService: GiftActivityQueryService = mockk()
+    var productQueryApiService: ProductQueryApiService = mockk()
+    var resolver: AdminGiftActivityQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    giftActivityQueryService = mockk(relaxed = true)
-    productQueryApiService = mockk(relaxed = true)
-    resolver = AdminGiftActivityQueryResolver(giftActivityQueryService, productQueryApiService)
-  }
-
-  @Test
-  fun `giftActivities should list with display status`() {
-    // Given
-    every { giftActivityQueryService.listActivities("赠", PageRequest.of(0, 20)) } returns
-      PageImpl(
-        listOf(
-          GiftActivityModel(
-            id = 10L,
-            name = "买赠活动",
-            giftProductId = 2L,
-            giftQuantity = 1,
-            validFrom = LocalDateTime.now().minusDays(1),
-            validTo = LocalDateTime.now().plusDays(30),
+    beforeTest {
+      giftActivityQueryService = mockk(relaxed = true)
+      productQueryApiService = mockk(relaxed = true)
+      resolver = AdminGiftActivityQueryResolver(giftActivityQueryService, productQueryApiService)
+    }
+    test("giftActivities should list with display status") {
+      // Given
+      every { giftActivityQueryService.listActivities("赠", PageRequest.of(0, 20)) } returns
+        PageImpl(
+          listOf(
+            GiftActivityModel(
+              id = 10L,
+              name = "买赠活动",
+              giftProductId = 2L,
+              giftQuantity = 1,
+              validFrom = LocalDateTime.now().minusDays(1),
+              validTo = LocalDateTime.now().plusDays(30),
+            ),
           ),
-        ),
-      )
+        )
 
-    // When
-    val result = resolver.giftActivities(GiftActivityListInput(keyword = "赠"))
+      // When
+      val result = resolver.giftActivities(GiftActivityListInput(keyword = "赠"))
 
-    // Then
-    assertEquals(1, result.content.size)
-    assertEquals(PromotionActivityDisplayStatus.ONGOING, result.content[0].currentStatus)
-    verify { giftActivityQueryService.listActivities("赠", PageRequest.of(0, 20)) }
-  }
+      // Then
+      result.content.size shouldBe 1
+      result.content[0].currentStatus shouldBe PromotionActivityDisplayStatus.ONGOING
+      verify { giftActivityQueryService.listActivities("赠", PageRequest.of(0, 20)) }
+    }
+    test("giftActivity should return null when missing") {
+      // Given
+      every { giftActivityQueryService.getActivity(999L) } returns null
 
-  @Test
-  fun `giftActivity should return null when missing`() {
-    // Given
-    every { giftActivityQueryService.getActivity(999L) } returns null
+      // When
+      val result = resolver.giftActivity(999L)
 
-    // When
-    val result = resolver.giftActivity(999L)
-
-    // Then
-    assertNull(result)
-  }
-}
+      // Then
+      result.shouldBeNull()
+    }
+  })

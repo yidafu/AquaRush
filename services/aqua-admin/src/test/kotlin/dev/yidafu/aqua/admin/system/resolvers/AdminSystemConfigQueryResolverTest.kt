@@ -23,35 +23,32 @@ import dev.yidafu.aqua.api.service.ops.SystemConfigQueryService
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
 import dev.yidafu.aqua.common.graphql.generated.SystemConfigGroup
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
-class AdminSystemConfigQueryResolverTest {
-  private lateinit var systemConfigQueryService: SystemConfigQueryService
-  private lateinit var resolver: AdminSystemConfigQueryResolver
+class AdminSystemConfigQueryResolverTest :
+  FunSpec({
+    var systemConfigQueryService: SystemConfigQueryService = mockk()
+    var resolver: AdminSystemConfigQueryResolver = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    systemConfigQueryService = mockk(relaxed = true)
-    resolver = AdminSystemConfigQueryResolver(systemConfigQueryService)
-  }
+    beforeTest {
+      systemConfigQueryService = mockk(relaxed = true)
+      resolver = AdminSystemConfigQueryResolver(systemConfigQueryService)
+    }
+    test("systemConfigs should list by mapped group") {
+      // Given
+      every { systemConfigQueryService.listByGroup(SystemSettingGroup.INVENTORY) } returns
+        listOf(SystemSettingsModel(settingKey = "LOW_STOCK_THRESHOLD", settingValue = "10"))
 
-  @Test
-  fun `systemConfigs should list by mapped group`() {
-    // Given
-    every { systemConfigQueryService.listByGroup(SystemSettingGroup.INVENTORY) } returns
-      listOf(SystemSettingsModel(settingKey = "LOW_STOCK_THRESHOLD", settingValue = "10"))
+      // When
+      val result = resolver.systemConfigs(SystemConfigGroup.INVENTORY)
 
-    // When
-    val result = resolver.systemConfigs(SystemConfigGroup.INVENTORY)
-
-    // Then
-    assertEquals(1, result.size)
-    assertEquals("LOW_STOCK_THRESHOLD", result[0].settingKey)
-    verify { systemConfigQueryService.listByGroup(SystemSettingGroup.INVENTORY) }
-  }
-}
+      // Then
+      result.size shouldBe 1
+      result[0].settingKey shouldBe "LOW_STOCK_THRESHOLD"
+      verify { systemConfigQueryService.listByGroup(SystemSettingGroup.INVENTORY) }
+    }
+  })

@@ -26,15 +26,14 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.delivery.domain.repository.DeliveryTrajectoryRepository
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.assertions.withClue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 /**
  * 配送轨迹上报服务单元测试(PRD 05-address-delivery.md §F-ADR-012,R-ADR-03):
@@ -43,95 +42,86 @@ import kotlin.test.assertFailsWith
  * - 经纬度/精度合法性校验;
  * - 订单不存在视为不可上报。
  */
-class DeliveryTrajectoryMutationServiceImplTest {
-  private lateinit var trajectoryRepository: DeliveryTrajectoryRepository
-  private lateinit var orderQueryService: OrderQueryService
-  private lateinit var service: DeliveryTrajectoryMutationServiceImpl
+class DeliveryTrajectoryMutationServiceImplTest :
+  FunSpec({
+    var trajectoryRepository: DeliveryTrajectoryRepository = mockk()
+    var orderQueryService: OrderQueryService = mockk()
+    var service: DeliveryTrajectoryMutationServiceImpl = mockk()
 
-  private fun order(
-    status: OrderModelStatus,
-    workerId: Long? = 1L,
-  ) = OrderModel(id = 1L, userId = 100L, status = status, deliveryWorkerId = workerId)
+    fun order(
+      status: OrderModelStatus,
+      workerId: Long? = 1L,
+    ) = OrderModel(id = 1L, userId = 100L, status = status, deliveryWorkerId = workerId)
 
-  @BeforeEach
-  fun setUp() {
-    trajectoryRepository = mockk(relaxed = true)
-    orderQueryService = mockk(relaxed = true)
-    // JpaRepository.save 泛型擦除,relaxed mock 无法推断返回类型,改为返回入参
-    every { trajectoryRepository.save(any()) } answers { firstArg() as DeliveryTrajectoryModel }
-    service =
-      DeliveryTrajectoryMutationServiceImpl(
-        trajectoryRepository = trajectoryRepository,
-        orderQueryService = orderQueryService,
-      )
-  }
+    beforeTest {
+      trajectoryRepository = mockk(relaxed = true)
+      orderQueryService = mockk(relaxed = true)
+      // JpaRepository.save 泛型擦除,relaxed mock 无法推断返回类型,改为返回入参
+      every { trajectoryRepository.save(any()) } answers { firstArg() as DeliveryTrajectoryModel }
+      service =
+        DeliveryTrajectoryMutationServiceImpl(
+          trajectoryRepository = trajectoryRepository,
+          orderQueryService = orderQueryService,
+        )
+    }
+    test("report on delivering order by assigned worker saves point") {
+      every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.DELIVERING, workerId = 1L)
 
-  @Test
-  @DisplayName("R-ADR-03:配送中订单由本人上报 → 轨迹点落库")
-  fun `report on delivering order by assigned worker saves point`() {
-    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.DELIVERING, workerId = 1L)
+      val point = service.reportTrajectory(1L, 1L, 116.397428, 39.90923, 5.0, LocalDateTime.of(2026, 8, 16, 10, 0, 0))
 
-    val point = service.reportTrajectory(1L, 1L, 116.397428, 39.90923, 5.0, LocalDateTime.of(2026, 8, 16, 10, 0, 0))
+      point.deliveryWorkerId shouldBe 1L
+      point.orderId shouldBe 1L
+      point.longitude shouldBe 116.397428
+      point.latitude shouldBe 39.90923
+      point.accuracy shouldBe 5.0
+      verify { trajectoryRepository.save(any()) }
+    }
+    test("report on non delivering order is rejected") {
+      listOf(
+        OrderModelStatus.PENDING_DELIVERY,
+        OrderModelStatus.PENDING_DISPATCH,
+        OrderModelStatus.COMPLETED,
+        OrderModelStatus.CANCELLED,
+      ).forEach { status ->
+        every { orderQueryService.getOrderById(1L) } returns order(status, workerId = 1L)
+        withClue("status=$status 应被拦截") {
+          shouldThrow<BadRequestException> {
+            service.reportTrajectory(1L, 1L, 116.397428, 39.90923, null, null)
+          }
+        }
+      }
+    }
+    test("report on order assigned to another worker is rejected") {
+      every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.DELIVERING, workerId = 2L)
 
-    assertEquals(1L, point.deliveryWorkerId)
-    assertEquals(1L, point.orderId)
-    assertEquals(116.397428, point.longitude)
-    assertEquals(39.90923, point.latitude)
-    assertEquals(5.0, point.accuracy)
-    verify { trajectoryRepository.save(any()) }
-  }
+      withClue("非本人订单应被拦截") {
+        shouldThrow<BadRequestException> {
+          service.reportTrajectory(1L, 1L, 116.397428, 39.90923, null, null)
+        }
+      }
+    }
+    test("report on missing order is rejected") {
+      every { orderQueryService.getOrderById(1L) } throws NotFoundException("订单不存在")
 
-  @Test
-  @DisplayName("R-ADR-03:非配送中订单上报被丢弃(BadRequest)")
-  fun `report on non delivering order is rejected`() {
-    listOf(
-      OrderModelStatus.PENDING_DELIVERY,
-      OrderModelStatus.PENDING_DISPATCH,
-      OrderModelStatus.COMPLETED,
-      OrderModelStatus.CANCELLED,
-    ).forEach { status ->
-      every { orderQueryService.getOrderById(1L) } returns order(status, workerId = 1L)
-      assertFailsWith<BadRequestException>("status=$status 应被拦截") {
+      shouldThrow<BadRequestException> {
         service.reportTrajectory(1L, 1L, 116.397428, 39.90923, null, null)
       }
     }
-  }
+    test("report with invalid coordinates is rejected") {
+      every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.DELIVERING, workerId = 1L)
 
-  @Test
-  @DisplayName("R-ADR-03:只能上报本人配送中订单(非本人订单被拦截)")
-  fun `report on order assigned to another worker is rejected`() {
-    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.DELIVERING, workerId = 2L)
-
-    assertFailsWith<BadRequestException>("非本人订单应被拦截") {
-      service.reportTrajectory(1L, 1L, 116.397428, 39.90923, null, null)
-    }
-  }
-
-  @Test
-  @DisplayName("R-ADR-03:订单不存在视为不可上报")
-  fun `report on missing order is rejected`() {
-    every { orderQueryService.getOrderById(1L) } throws NotFoundException("订单不存在")
-
-    assertFailsWith<BadRequestException> {
-      service.reportTrajectory(1L, 1L, 116.397428, 39.90923, null, null)
-    }
-  }
-
-  @Test
-  @DisplayName("R-ADR-03:经纬度/精度非法被拒绝")
-  fun `report with invalid coordinates is rejected`() {
-    every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.DELIVERING, workerId = 1L)
-
-    listOf(
-      Triple(181.0, 39.9, null),
-      Triple(-181.0, 39.9, null),
-      Triple(116.4, 91.0, null),
-      Triple(116.4, -91.0, null),
-      Triple(116.4, 39.9, -1.0),
-    ).forEach { (lng, lat, acc) ->
-      assertFailsWith<BadRequestException>("($lng,$lat,acc=$acc) 应被拦截") {
-        service.reportTrajectory(1L, 1L, lng, lat, acc, null)
+      listOf(
+        Triple(181.0, 39.9, null),
+        Triple(-181.0, 39.9, null),
+        Triple(116.4, 91.0, null),
+        Triple(116.4, -91.0, null),
+        Triple(116.4, 39.9, -1.0),
+      ).forEach { (lng, lat, acc) ->
+        withClue("($lng,$lat,acc=$acc) 应被拦截") {
+          shouldThrow<BadRequestException> {
+            service.reportTrajectory(1L, 1L, lng, lat, acc, null)
+          }
+        }
       }
     }
-  }
-}
+  })

@@ -24,72 +24,65 @@ import dev.yidafu.aqua.api.service.user.UserQueryApiService
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.time.LocalDate
-import kotlin.test.assertEquals
 
 /**
  * 用户统计服务单元测试: 总量/新增/活跃口径、每日新增与登录趋势补零
  */
-class UserStatisticsServiceImplTest {
-  private lateinit var userQueryApiService: UserQueryApiService
-  private lateinit var statisticsUserRepository: StatisticsUserRepositoryCustom
-  private lateinit var userActionLogRepository: UserActionLogRepository
-  private lateinit var service: UserStatisticsServiceImpl
+class UserStatisticsServiceImplTest :
+  FunSpec({
+    var userQueryApiService: UserQueryApiService = mockk()
+    var statisticsUserRepository: StatisticsUserRepositoryCustom = mockk()
+    var userActionLogRepository: UserActionLogRepository = mockk()
+    var service: UserStatisticsServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    userQueryApiService = mockk(relaxed = true)
-    statisticsUserRepository = mockk(relaxed = true)
-    userActionLogRepository = mockk(relaxed = true)
-    service = UserStatisticsServiceImpl(userQueryApiService, statisticsUserRepository, userActionLogRepository)
-  }
+    beforeTest {
+      userQueryApiService = mockk(relaxed = true)
+      statisticsUserRepository = mockk(relaxed = true)
+      userActionLogRepository = mockk(relaxed = true)
+      service = UserStatisticsServiceImpl(userQueryApiService, statisticsUserRepository, userActionLogRepository)
+    }
+    test("getUserStatistics aggregates totals and actives") {
+      every { userQueryApiService.findAll() } returns listOf(mockk<UserModel>(relaxed = true), mockk(relaxed = true))
+      every { statisticsUserRepository.countUsersCreatedAfter(any()) } returnsMany listOf(5L, 20L)
+      every { statisticsUserRepository.countActiveUsersSince(any()) } returns 15L
 
-  @Test
-  fun `getUserStatistics aggregates totals and actives`() {
-    every { userQueryApiService.findAll() } returns listOf(mockk<UserModel>(relaxed = true), mockk(relaxed = true))
-    every { statisticsUserRepository.countUsersCreatedAfter(any()) } returnsMany listOf(5L, 20L)
-    every { statisticsUserRepository.countActiveUsersSince(any()) } returns 15L
+      val result = service.getUserStatistics()
 
-    val result = service.getUserStatistics()
+      result.totalUsers shouldBe 2L
+      result.todayNewUsers shouldBe 5L
+      result.monthNewUsers shouldBe 20L
+      result.activeUsers shouldBe 15L
+    }
+    test("getDailyNewUsers fills missing dates with zero") {
+      val start = LocalDate.of(2025, 6, 1)
+      val end = LocalDate.of(2025, 6, 3)
+      every { statisticsUserRepository.countDailyNewUsers(any(), any()) } returns mapOf(start to 2L)
 
-    assertEquals(2L, result.totalUsers)
-    assertEquals(5L, result.todayNewUsers)
-    assertEquals(20L, result.monthNewUsers)
-    assertEquals(15L, result.activeUsers)
-  }
+      val result = service.getDailyNewUsers(start, end)
 
-  @Test
-  fun `getDailyNewUsers fills missing dates with zero`() {
-    val start = LocalDate.of(2025, 6, 1)
-    val end = LocalDate.of(2025, 6, 3)
-    every { statisticsUserRepository.countDailyNewUsers(any(), any()) } returns mapOf(start to 2L)
+      result.size shouldBe 3
+      result[0].date shouldBe "2025-06-01"
+      result[0].orderCount shouldBe 2
+      result[1] shouldBe DailyStatistic(date = "2025-06-02", orderCount = 0, orderProductCount = 0, revenueCents = 0L)
+      result[2] shouldBe DailyStatistic(date = "2025-06-03", orderCount = 0, orderProductCount = 0, revenueCents = 0L)
+    }
+    test("getLoginStatistics aggregates today and range logins") {
+      val start = LocalDate.of(2025, 6, 1)
+      val end = LocalDate.of(2025, 6, 2)
+      every { userActionLogRepository.countDistinctUsersByActionTypeAndDateRange(any(), any(), any()) } returnsMany listOf(4L, 9L)
+      every { userActionLogRepository.countDailyLoginsByDateRange(any(), any()) } returns mapOf(start to 3L)
 
-    val result = service.getDailyNewUsers(start, end)
+      val result = service.getLoginStatistics(start, end)
 
-    assertEquals(3, result.size)
-    assertEquals("2025-06-01", result[0].date)
-    assertEquals(2, result[0].orderCount)
-    assertEquals(DailyStatistic(date = "2025-06-02", orderCount = 0, orderProductCount = 0, revenueCents = 0L), result[1])
-    assertEquals(DailyStatistic(date = "2025-06-03", orderCount = 0, orderProductCount = 0, revenueCents = 0L), result[2])
-  }
-
-  @Test
-  fun `getLoginStatistics aggregates today and range logins`() {
-    val start = LocalDate.of(2025, 6, 1)
-    val end = LocalDate.of(2025, 6, 2)
-    every { userActionLogRepository.countDistinctUsersByActionTypeAndDateRange(any(), any(), any()) } returnsMany listOf(4L, 9L)
-    every { userActionLogRepository.countDailyLoginsByDateRange(any(), any()) } returns mapOf(start to 3L)
-
-    val result = service.getLoginStatistics(start, end)
-
-    assertEquals(4L, result.todayLogins)
-    assertEquals(9L, result.totalLogins)
-    assertEquals(2, result.dailyLogins.size)
-    assertEquals(3, result.dailyLogins[0].loginCount)
-    assertEquals(0, result.dailyLogins[1].loginCount)
-  }
-}
+      result.todayLogins shouldBe 4L
+      result.totalLogins shouldBe 9L
+      result.dailyLogins.size shouldBe 2
+      result.dailyLogins[0].loginCount shouldBe 3
+      result.dailyLogins[1].loginCount shouldBe 0
+    }
+  })

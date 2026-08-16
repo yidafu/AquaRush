@@ -19,99 +19,78 @@
 
 package dev.yidafu.aqua.logging.context
 
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 
-class LoggingContextTest {
-  @AfterEach
-  fun tearDown() {
-    CorrelationIdHolder.clear()
-    UserContextHolder.clear()
-  }
+class LoggingContextTest :
+  FunSpec({
 
-  @Test
-  fun `put get remove should manage custom data`() {
-    val context = LoggingContext.current()
-    context.put("key", "value")
-    assertEquals("value", context.get("key"))
-    context.remove("key")
-    assertNull(context.get("key"))
-  }
-
-  @Test
-  fun `getAllCustomData should return snapshot`() {
-    val context = LoggingContext.current()
-    context.put("a", 1)
-    context.put("b", 2)
-    assertEquals(mapOf("a" to 1, "b" to 2), context.getAllCustomData())
-  }
-
-  @Test
-  fun `clearCustomData should remove all custom data`() {
-    val context = LoggingContext.current()
-    context.put("a", 1)
-    context.clearCustomData()
-    assertTrue(context.getAllCustomData().isEmpty())
-  }
-
-  @Test
-  fun `correlationId should reflect holder state`() {
-    CorrelationIdHolder.setCorrelationId("cid")
-    val context = LoggingContext.current()
-    assertEquals("cid", context.correlationId)
-  }
-
-  @Test
-  fun `userContext should reflect holder state`() {
-    UserContextHolder.setUserContext(UserContext(userId = "1", username = "u"))
-    val context = LoggingContext.current()
-    assertEquals("1", context.userContext?.userId)
-  }
-
-  @Test
-  fun `startTime should be set`() {
-    assertNotNull(LoggingContext.current().startTime)
-  }
-
-  @Test
-  fun `buildContextMap should include correlation and user info`() {
-    CorrelationIdHolder.setCorrelationId("cid")
-    UserContextHolder.setUserContext(UserContext(userId = "1", username = "u", role = "R", tenantId = "T"))
-    val context = LoggingContext.current()
-    context.put("custom", "x")
-    val map = context.buildContextMap()
-    assertEquals("cid", map["correlationId"])
-    assertEquals("1", map["userId"])
-    assertEquals("u", map["username"])
-    assertEquals("R", map["userRole"])
-    assertEquals("T", map["tenantId"])
-    assertEquals("x", map["custom"])
-    assertNotNull(map["timestamp"])
-  }
-
-  @Test
-  fun `buildContextMap should include additional user info`() {
-    UserContextHolder.setUserContext(UserContext(userId = "1", username = "u", additionalInfo = mapOf("dept" to "ops")))
-    val map = LoggingContext.current().buildContextMap()
-    assertEquals("ops", map["dept"])
-  }
-
-  @Test
-  fun `buildContextMap without context should only include timestamp`() {
-    val map = LoggingContext.current().buildContextMap()
-    assertTrue(!map.containsKey("correlationId"))
-    assertTrue(!map.containsKey("userId"))
-    assertNotNull(map["timestamp"])
-  }
-
-  @Test
-  fun `current should create fresh context each call`() {
-    val a = LoggingContext.current()
-    val b = LoggingContext.current()
-    assertTrue(a !== b)
-  }
-}
+    afterTest {
+      CorrelationIdHolder.clear()
+      UserContextHolder.clear()
+    }
+    test("put get remove should manage custom data") {
+      val context = LoggingContext.current()
+      context.put("key", "value")
+      context.get("key") shouldBe "value"
+      context.remove("key")
+      context.get("key").shouldBeNull()
+    }
+    test("getAllCustomData should return snapshot") {
+      val context = LoggingContext.current()
+      context.put("a", 1)
+      context.put("b", 2)
+      context.getAllCustomData() shouldBe mapOf("a" to 1, "b" to 2)
+    }
+    test("clearCustomData should remove all custom data") {
+      val context = LoggingContext.current()
+      context.put("a", 1)
+      context.clearCustomData()
+      context.getAllCustomData().isEmpty() shouldBe true
+    }
+    test("correlationId should reflect holder state") {
+      CorrelationIdHolder.setCorrelationId("cid")
+      val context = LoggingContext.current()
+      context.correlationId shouldBe "cid"
+    }
+    test("userContext should reflect holder state") {
+      UserContextHolder.setUserContext(UserContext(userId = "1", username = "u"))
+      val context = LoggingContext.current()
+      context.userContext?.userId shouldBe "1"
+    }
+    test("startTime should be set") {
+      LoggingContext.current().startTime.shouldNotBeNull()
+    }
+    test("buildContextMap should include correlation and user info") {
+      CorrelationIdHolder.setCorrelationId("cid")
+      UserContextHolder.setUserContext(UserContext(userId = "1", username = "u", role = "R", tenantId = "T"))
+      val context = LoggingContext.current()
+      context.put("custom", "x")
+      val map = context.buildContextMap()
+      map["correlationId"] shouldBe "cid"
+      map["userId"] shouldBe "1"
+      map["username"] shouldBe "u"
+      map["userRole"] shouldBe "R"
+      map["tenantId"] shouldBe "T"
+      map["custom"] shouldBe "x"
+      map["timestamp"].shouldNotBeNull()
+    }
+    test("buildContextMap should include additional user info") {
+      UserContextHolder.setUserContext(UserContext(userId = "1", username = "u", additionalInfo = mapOf("dept" to "ops")))
+      val map = LoggingContext.current().buildContextMap()
+      map["dept"] shouldBe "ops"
+    }
+    test("buildContextMap without context should only include timestamp") {
+      val map = LoggingContext.current().buildContextMap()
+      !map.containsKey("correlationId") shouldBe true
+      !map.containsKey("userId") shouldBe true
+      map["timestamp"].shouldNotBeNull()
+    }
+    test("current should create fresh context each call") {
+      val a = LoggingContext.current()
+      val b = LoggingContext.current()
+      (a !== b) shouldBe true
+    }
+  })

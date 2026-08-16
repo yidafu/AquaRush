@@ -21,47 +21,39 @@ package dev.yidafu.aqua.payment.service.impl
 
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 
 /**
  * 支付查询服务单元测试:按时间区间查询支付记录。
  */
-class PaymentQueryServiceImplTest {
-  private lateinit var paymentRepository: PaymentRepository
-  private lateinit var service: PaymentQueryServiceImpl
+class PaymentQueryServiceImplTest :
+  FunSpec({
+    var paymentRepository: PaymentRepository = mockk()
+    var service: PaymentQueryServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    paymentRepository = mockk(relaxed = true)
-    service = PaymentQueryServiceImpl(paymentRepository)
-  }
+    beforeTest {
+      paymentRepository = mockk(relaxed = true)
+      service = PaymentQueryServiceImpl(paymentRepository)
+    }
+    test("getByDateRange delegates to repository") {
+      val start = LocalDateTime.of(2025, 1, 1, 0, 0)
+      val end = LocalDateTime.of(2025, 1, 2, 0, 0)
+      val payments = listOf(PaymentModel(orderId = 1L, userId = 100L, amount = 1200))
+      every { paymentRepository.findByCreatedAtBetween(start, end) } returns payments
 
-  @Test
-  @DisplayName("getByDateRange 透传仓储查询")
-  fun `getByDateRange delegates to repository`() {
-    val start = LocalDateTime.of(2025, 1, 1, 0, 0)
-    val end = LocalDateTime.of(2025, 1, 2, 0, 0)
-    val payments = listOf(PaymentModel(orderId = 1L, userId = 100L, amount = 1200))
-    every { paymentRepository.findByCreatedAtBetween(start, end) } returns payments
+      service.getByDateRange(start, end) shouldBe payments
+      verify(exactly = 1) { paymentRepository.findByCreatedAtBetween(start, end) }
+    }
+    test("empty range returns empty list") {
+      val start = LocalDateTime.of(2025, 1, 1, 0, 0)
+      val end = LocalDateTime.of(2025, 1, 2, 0, 0)
+      every { paymentRepository.findByCreatedAtBetween(start, end) } returns emptyList()
 
-    assertEquals(payments, service.getByDateRange(start, end))
-    verify(exactly = 1) { paymentRepository.findByCreatedAtBetween(start, end) }
-  }
-
-  @Test
-  @DisplayName("空区间返回空列表")
-  fun `empty range returns empty list`() {
-    val start = LocalDateTime.of(2025, 1, 1, 0, 0)
-    val end = LocalDateTime.of(2025, 1, 2, 0, 0)
-    every { paymentRepository.findByCreatedAtBetween(start, end) } returns emptyList()
-
-    assertEquals(emptyList(), service.getByDateRange(start, end))
-  }
-}
+      service.getByDateRange(start, end) shouldBe emptyList()
+    }
+  })

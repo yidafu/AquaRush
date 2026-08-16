@@ -20,49 +20,41 @@
 package dev.yidafu.aqua.common.messaging.event
 
 import dev.yidafu.aqua.common.domain.model.enums.EventStatus
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
-class DomainEventTest {
-  @Test
-  fun `DomainEvent should have sensible defaults`() {
-    val event = DomainEvent(eventType = "ORDER_CREATED", payload = "{}")
-    assertEquals("ORDER_CREATED", event.eventType)
-    assertEquals("{}", event.payload)
-    assertEquals(0, event.retryCount)
-    assertEquals(EventStatus.PENDING, event.status)
-  }
+class DomainEventTest :
+  FunSpec({
 
-  @Test
-  fun `DomainEvent should be serializable`() {
-    val event = DomainEvent(eventType = "X", payload = "{}")
-    assertTrue(event is java.io.Serializable)
-  }
-
-  @Test
-  fun `DomainEvent should support mutation of mutable fields`() {
-    val event = DomainEvent(eventType = "X", payload = "{}")
-    event.eventType = "Y"
-    event.payload = "[]"
-    event.retryCount = 2
-    event.status = EventStatus.COMPLETED
-    assertEquals("Y", event.eventType)
-    assertEquals("[]", event.payload)
-    assertEquals(2, event.retryCount)
-    assertEquals(EventStatus.COMPLETED, event.status)
-  }
-
-  @Test
-  fun `DomainEvent should carry aggregate id`() {
-    val event = DomainEvent(id = 1L, aggregateId = "agg-1", eventType = "X", payload = "{}")
-    assertEquals(1L, event.id)
-    assertEquals("agg-1", event.aggregateId)
-  }
-
-  @Test
-  fun `DomainEventType should expose values`() {
-    assertTrue(DomainEventType.ORDER_CREATED.value.isNotBlank())
-    assertEquals(DomainEventType.ORDER_PAID.value, "ORDER_PAID")
-  }
-}
+    test("DomainEvent should have sensible defaults") {
+      val event = DomainEvent(eventType = "ORDER_CREATED", payload = "{}")
+      event.eventType shouldBe "ORDER_CREATED"
+      event.payload shouldBe "{}"
+      event.retryCount shouldBe 0
+      event.status shouldBe EventStatus.PENDING
+    }
+    test("DomainEvent should be serializable") {
+      val event = DomainEvent(eventType = "X", payload = "{}")
+      (event is java.io.Serializable) shouldBe true
+    }
+    test("DomainEvent should support mutation of mutable fields") {
+      val event = DomainEvent(eventType = "X", payload = "{}")
+      event.eventType = "Y"
+      event.payload = "[]"
+      event.retryCount = 2
+      event.status = EventStatus.COMPLETED
+      event.eventType shouldBe "Y"
+      event.payload shouldBe "[]"
+      event.retryCount shouldBe 2
+      event.status shouldBe EventStatus.COMPLETED
+    }
+    test("DomainEvent should carry aggregate id") {
+      val event = DomainEvent(id = 1L, aggregateId = "agg-1", eventType = "X", payload = "{}")
+      event.id shouldBe 1L
+      event.aggregateId shouldBe "agg-1"
+    }
+    test("DomainEventType should expose values") {
+      DomainEventType.ORDER_CREATED.value.isNotBlank() shouldBe true
+      "ORDER_PAID" shouldBe DomainEventType.ORDER_PAID.value
+    }
+  })

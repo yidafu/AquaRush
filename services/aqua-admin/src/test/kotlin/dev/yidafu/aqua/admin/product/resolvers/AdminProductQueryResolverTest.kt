@@ -25,114 +25,103 @@ import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
 import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
-class AdminProductQueryResolverTest {
-  private lateinit var productService: ProductServiceImpl
-  private lateinit var systemConfigQueryApiService: SystemConfigQueryApiService
-  private lateinit var resolver: AdminProductQueryResolver
+class AdminProductQueryResolverTest :
+  FunSpec({
+    var productService: ProductServiceImpl = mockk()
+    var systemConfigQueryApiService: SystemConfigQueryApiService = mockk()
+    var resolver: AdminProductQueryResolver = mockk()
 
-  private fun createSampleProduct(): ProductModel =
-    ProductModel(
-      id = 1L,
-      name = "桶装水19L",
-      price = 2100,
-      originalPrice = null,
-      depositPrice = null,
-      coverImageUrl = "http://x/cover.png",
-      imageGallery = null,
-      specification = "19L",
-      waterSource = "山泉水",
-      mineralContent = null,
-      stock = 100,
-      salesVolume = 0,
-      status = ProductModelStatus.ONLINE,
-      sortOrder = 1,
-      tags = null,
-      detailContent = null,
-      certificateImages = null,
-      deliverySettings = null,
-    )
+    fun createSampleProduct(): ProductModel =
+      ProductModel(
+        id = 1L,
+        name = "桶装水19L",
+        price = 2100,
+        originalPrice = null,
+        depositPrice = null,
+        coverImageUrl = "http://x/cover.png",
+        imageGallery = null,
+        specification = "19L",
+        waterSource = "山泉水",
+        mineralContent = null,
+        stock = 100,
+        salesVolume = 0,
+        status = ProductModelStatus.ONLINE,
+        sortOrder = 1,
+        tags = null,
+        detailContent = null,
+        certificateImages = null,
+        deliverySettings = null,
+      )
 
-  @BeforeEach
-  fun setUp() {
-    productService = mockk(relaxed = true)
-    systemConfigQueryApiService = mockk(relaxed = true)
-    resolver = AdminProductQueryResolver(productService, systemConfigQueryApiService)
-  }
+    beforeTest {
+      productService = mockk(relaxed = true)
+      systemConfigQueryApiService = mockk(relaxed = true)
+      resolver = AdminProductQueryResolver(productService, systemConfigQueryApiService)
+    }
+    test("stockWarningThresholds should read system config with defaults") {
+      // Given
+      every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) } returns 15L
+      every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.STOCK_WARNING_TIER_MID, 50L) } returns 60L
 
-  @Test
-  fun `stockWarningThresholds should read system config with defaults`() {
-    // Given
-    every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) } returns 15L
-    every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.STOCK_WARNING_TIER_MID, 50L) } returns 60L
+      // When
+      val result = resolver.stockWarningThresholds()
 
-    // When
-    val result = resolver.stockWarningThresholds()
+      // Then
+      result.lowThreshold shouldBe 15
+      result.midThreshold shouldBe 60
+    }
+    test("productsPaginated should map page results") {
+      // Given
+      every { productService.productsPaginated(any(), PageRequest.of(0, 20)) } returns PageImpl(listOf(createSampleProduct()))
 
-    // Then
-    assertEquals(15, result.lowThreshold)
-    assertEquals(60, result.midThreshold)
-  }
+      // When
+      val result = resolver.productsPaginated(ProductSearchInput())
 
-  @Test
-  fun `productsPaginated should map page results`() {
-    // Given
-    every { productService.productsPaginated(any(), PageRequest.of(0, 20)) } returns PageImpl(listOf(createSampleProduct()))
+      // Then
+      result.list.size shouldBe 1
+      result.list[0].name shouldBe "桶装水19L"
+      verify { productService.productsPaginated(any(), PageRequest.of(0, 20)) }
+    }
+    test("product should map by id") {
+      // Given
+      every { productService.findById(1L) } returns createSampleProduct()
 
-    // When
-    val result = resolver.productsPaginated(ProductSearchInput())
+      // When
+      val result = resolver.product(1L)
 
-    // Then
-    assertEquals(1, result.list.size)
-    assertEquals("桶装水19L", result.list[0].name)
-    verify { productService.productsPaginated(any(), PageRequest.of(0, 20)) }
-  }
+      // Then
+      result.shouldNotBeNull()
+      result.priceCents shouldBe 2100L
+    }
+    test("product should return null when missing") {
+      // Given
+      every { productService.findById(999L) } returns null
 
-  @Test
-  fun `product should map by id`() {
-    // Given
-    every { productService.findById(1L) } returns createSampleProduct()
+      // When
+      val result = resolver.product(999L)
 
-    // When
-    val result = resolver.product(1L)
+      // Then
+      result.shouldBeNull()
+    }
+    test("activeProducts should search with keyword") {
+      // Given
+      every { productService.productsPaginated(any(), PageRequest.of(1, 5)) } returns PageImpl(emptyList())
 
-    // Then
-    assertNotNull(result)
-    assertEquals(2100L, result.priceCents)
-  }
+      // When
+      val result = resolver.activeProducts("桶装水", 1, 5)
 
-  @Test
-  fun `product should return null when missing`() {
-    // Given
-    every { productService.findById(999L) } returns null
-
-    // When
-    val result = resolver.product(999L)
-
-    // Then
-    assertNull(result)
-  }
-
-  @Test
-  fun `activeProducts should search with keyword`() {
-    // Given
-    every { productService.productsPaginated(any(), PageRequest.of(1, 5)) } returns PageImpl(emptyList())
-
-    // When
-    val result = resolver.activeProducts("桶装水", 1, 5)
-
-    // Then
-    assertEquals(0, result.list.size)
-    verify { productService.productsPaginated(any(), PageRequest.of(1, 5)) }
-  }
-}
+      // Then
+      result.list.size shouldBe 0
+      verify { productService.productsPaginated(any(), PageRequest.of(1, 5)) }
+    }
+  })

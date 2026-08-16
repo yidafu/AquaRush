@@ -29,160 +29,133 @@ import dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketPurchaseRepository
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketTypeRepository
 import dev.yidafu.aqua.marketing.ticket.domain.repository.UserTicketRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
 /** 桶水票用户侧查询服务单元测试(水票商城/我的水票/可用张数预检)。 */
-class TicketQueryApiServiceImplTest {
-  private lateinit var ticketTypeRepository: TicketTypeRepository
-  private lateinit var userTicketRepository: UserTicketRepository
-  private lateinit var ticketPurchaseRepository: TicketPurchaseRepository
-  private lateinit var service: TicketQueryApiServiceImpl
+class TicketQueryApiServiceImplTest :
+  FunSpec({
+    var ticketTypeRepository: TicketTypeRepository = mockk()
+    var userTicketRepository: UserTicketRepository = mockk()
+    var ticketPurchaseRepository: TicketPurchaseRepository = mockk()
+    var service: TicketQueryApiServiceImpl = mockk()
+    val now: LocalDateTime = LocalDateTime.now()
 
-  private val now: LocalDateTime = LocalDateTime.now()
-
-  @BeforeEach
-  fun setUp() {
-    ticketTypeRepository = mockk()
-    userTicketRepository = mockk()
-    ticketPurchaseRepository = mockk()
-    service = TicketQueryApiServiceImpl(ticketTypeRepository, userTicketRepository, ticketPurchaseRepository)
-  }
-
-  private fun ticketType(
-    id: Long,
-    kind: TicketTypeKind = TicketTypeKind.UNIVERSAL,
-    productId: Long? = null,
-    specification: String? = "19L",
-  ): TicketTypeModel =
-    TicketTypeModel(
-      id = id,
-      name = "票$id",
-      ticketType = kind,
-      productId = productId,
-      specification = specification,
-      packageCount = 10,
-      packagePriceCents = 10000,
-      giftCount = 0,
-      validityType = dev.yidafu.aqua.common.domain.model.enums.ValidityType.FIXED_RANGE,
-      validFrom = now.minusDays(1),
-      validTo = now.plusDays(365),
-      perUserLimit = 0,
-      status = TicketTypeStatus.ACTIVE,
-    )
-
-  private fun ticket(
-    id: Long,
-    typeId: Long,
-    expireTime: LocalDateTime = now.plusDays(30),
-    status: UserTicketStatus = UserTicketStatus.UNUSED,
-  ): UserTicketModel =
-    UserTicketModel(
-      id = id,
-      userId = 1L,
-      ticketTypeId = typeId,
-      purchaseId = 1L,
-      status = status,
-      expireTime = expireTime,
-      isGift = false,
-    )
-
-  @Test
-  @DisplayName("水票商城:仅 ACTIVE 票种")
-  fun `findActiveTicketTypes`() {
-    every { ticketTypeRepository.findByStatus(TicketTypeStatus.ACTIVE) } returns listOf(ticketType(1L))
-
-    assertEquals(1, service.findActiveTicketTypes().size)
-  }
-
-  @Test
-  @DisplayName("我的水票:无状态=全部,有状态=过滤")
-  fun `findUserTickets by status`() {
-    every { userTicketRepository.findByUserId(1L) } returns listOf(ticket(1L, 1L))
-    every { userTicketRepository.findByUserIdAndStatus(1L, UserTicketStatus.USED) } returns
-      listOf(ticket(2L, 1L, status = UserTicketStatus.USED))
-
-    assertEquals(1, service.findUserTickets(1L, null).size)
-    assertEquals(1, service.findUserTickets(1L, UserTicketStatus.USED).size)
-  }
-
-  @Test
-  @DisplayName("可用票:仅未过期 UNUSED/RETURNED")
-  fun `findUsableTickets filters expired`() {
-    every {
-      userTicketRepository.findByUserIdAndStatusIn(1L, listOf(UserTicketStatus.UNUSED, UserTicketStatus.RETURNED))
-    } returns
-      listOf(
-        ticket(1L, 1L, now.plusDays(1)),
-        ticket(2L, 1L, now.minusDays(1)),
-        ticket(3L, 1L, now.plusDays(1), UserTicketStatus.RETURNED),
+    fun ticketType(
+      id: Long,
+      kind: TicketTypeKind = TicketTypeKind.UNIVERSAL,
+      productId: Long? = null,
+      specification: String? = "19L",
+    ): TicketTypeModel =
+      TicketTypeModel(
+        id = id,
+        name = "票$id",
+        ticketType = kind,
+        productId = productId,
+        specification = specification,
+        packageCount = 10,
+        packagePriceCents = 10000,
+        giftCount = 0,
+        validityType = dev.yidafu.aqua.common.domain.model.enums.ValidityType.FIXED_RANGE,
+        validFrom = now.minusDays(1),
+        validTo = now.plusDays(365),
+        perUserLimit = 0,
+        status = TicketTypeStatus.ACTIVE,
       )
 
-    val result = service.findUsableTickets(1L)
+    fun ticket(
+      id: Long,
+      typeId: Long,
+      expireTime: LocalDateTime = now.plusDays(30),
+      status: UserTicketStatus = UserTicketStatus.UNUSED,
+    ): UserTicketModel =
+      UserTicketModel(
+        id = id,
+        userId = 1L,
+        ticketTypeId = typeId,
+        purchaseId = 1L,
+        status = status,
+        expireTime = expireTime,
+        isGift = false,
+      )
 
-    assertEquals(listOf(1L, 3L), result.map { it.id })
-  }
+    beforeTest {
+      ticketTypeRepository = mockk()
+      userTicketRepository = mockk()
+      ticketPurchaseRepository = mockk()
+      service = TicketQueryApiServiceImpl(ticketTypeRepository, userTicketRepository, ticketPurchaseRepository)
+    }
+    test("findActiveTicketTypes") {
+      every { ticketTypeRepository.findByStatus(TicketTypeStatus.ACTIVE) } returns listOf(ticketType(1L))
 
-  @Test
-  @DisplayName("可用张数:指定商品票按 productId 匹配")
-  fun `countUsableFor specific product`() {
-    every { userTicketRepository.findByUserIdAndStatusIn(1L, listOf(UserTicketStatus.UNUSED, UserTicketStatus.RETURNED)) } returns
-      listOf(ticket(1L, 1L), ticket(2L, 2L))
-    every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(1L, TicketTypeKind.SPECIFIC_PRODUCT, productId = 10L))
-    every { ticketTypeRepository.findById(2L) } returns Optional.of(ticketType(2L, TicketTypeKind.SPECIFIC_PRODUCT, productId = 20L))
+      service.findActiveTicketTypes().size shouldBe 1
+    }
+    test("findUserTickets by status") {
+      every { userTicketRepository.findByUserId(1L) } returns listOf(ticket(1L, 1L))
+      every { userTicketRepository.findByUserIdAndStatus(1L, UserTicketStatus.USED) } returns
+        listOf(ticket(2L, 1L, status = UserTicketStatus.USED))
 
-    assertEquals(1, service.countUsableFor(1L, productId = 10L, specification = "19L"))
-    assertEquals(0, service.countUsableFor(1L, productId = 99L, specification = "19L"))
-  }
+      service.findUserTickets(1L, null).size shouldBe 1
+      service.findUserTickets(1L, UserTicketStatus.USED).size shouldBe 1
+    }
+    test("findUsableTickets filters expired") {
+      every {
+        userTicketRepository.findByUserIdAndStatusIn(1L, listOf(UserTicketStatus.UNUSED, UserTicketStatus.RETURNED))
+      } returns
+        listOf(
+          ticket(1L, 1L, now.plusDays(1)),
+          ticket(2L, 1L, now.minusDays(1)),
+          ticket(3L, 1L, now.plusDays(1), UserTicketStatus.RETURNED),
+        )
 
-  @Test
-  @DisplayName("可用张数:通兑票按规格字符串匹配(跨规格不通用)")
-  fun `countUsableFor universal spec match`() {
-    every { userTicketRepository.findByUserIdAndStatusIn(1L, listOf(UserTicketStatus.UNUSED, UserTicketStatus.RETURNED)) } returns
-      listOf(ticket(1L, 1L), ticket(2L, 1L))
-    every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(1L, TicketTypeKind.UNIVERSAL, specification = "19L"))
+      val result = service.findUsableTickets(1L)
 
-    assertEquals(2, service.countUsableFor(1L, productId = 1L, specification = "19L"))
-    assertEquals(0, service.countUsableFor(1L, productId = 1L, specification = "5L"))
-  }
+      result.map { it.id } shouldBe listOf(1L, 3L)
+    }
+    test("countUsableFor specific product") {
+      every { userTicketRepository.findByUserIdAndStatusIn(1L, listOf(UserTicketStatus.UNUSED, UserTicketStatus.RETURNED)) } returns
+        listOf(ticket(1L, 1L), ticket(2L, 2L))
+      every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(1L, TicketTypeKind.SPECIFIC_PRODUCT, productId = 10L))
+      every { ticketTypeRepository.findById(2L) } returns Optional.of(ticketType(2L, TicketTypeKind.SPECIFIC_PRODUCT, productId = 20L))
 
-  @Test
-  @DisplayName("可用张数:票种不存在则不计入")
-  fun `countUsableFor missing ticket type`() {
-    every { userTicketRepository.findByUserIdAndStatusIn(1L, listOf(UserTicketStatus.UNUSED, UserTicketStatus.RETURNED)) } returns
-      listOf(ticket(1L, 99L))
-    every { ticketTypeRepository.findById(99L) } returns Optional.empty()
+      service.countUsableFor(1L, productId = 10L, specification = "19L") shouldBe 1
+      service.countUsableFor(1L, productId = 99L, specification = "19L") shouldBe 0
+    }
+    test("countUsableFor universal spec match") {
+      every { userTicketRepository.findByUserIdAndStatusIn(1L, listOf(UserTicketStatus.UNUSED, UserTicketStatus.RETURNED)) } returns
+        listOf(ticket(1L, 1L), ticket(2L, 1L))
+      every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(1L, TicketTypeKind.UNIVERSAL, specification = "19L"))
 
-    assertEquals(0, service.countUsableFor(1L, productId = 1L, specification = "19L"))
-  }
+      service.countUsableFor(1L, productId = 1L, specification = "19L") shouldBe 2
+      service.countUsableFor(1L, productId = 1L, specification = "5L") shouldBe 0
+    }
+    test("countUsableFor missing ticket type") {
+      every { userTicketRepository.findByUserIdAndStatusIn(1L, listOf(UserTicketStatus.UNUSED, UserTicketStatus.RETURNED)) } returns
+        listOf(ticket(1L, 99L))
+      every { ticketTypeRepository.findById(99L) } returns Optional.empty()
 
-  @Test
-  @DisplayName("已购张数:委托购票单仓库")
-  fun `countPurchasedByTicketType`() {
-    every { ticketPurchaseRepository.countByUserIdAndTicketTypeIdAndPaymentStatus(1L, 5L, TicketPurchaseStatus.PAID) } returns 3
+      service.countUsableFor(1L, productId = 1L, specification = "19L") shouldBe 0
+    }
+    test("countPurchasedByTicketType") {
+      every { ticketPurchaseRepository.countByUserIdAndTicketTypeIdAndPaymentStatus(1L, 5L, TicketPurchaseStatus.PAID) } returns 3
 
-    assertEquals(3, service.countPurchasedByTicketType(1L, 5L))
-  }
+      service.countPurchasedByTicketType(1L, 5L) shouldBe 3
+    }
+    test("findPurchaseById and byOrderNo") {
+      val purchase = TicketPurchaseModel(id = 1L, userId = 1L, ticketTypeId = 5L, orderNo = "TP5")
+      every { ticketPurchaseRepository.findById(1L) } returns Optional.of(purchase)
+      every { ticketPurchaseRepository.findById(99L) } returns Optional.empty()
+      every { ticketPurchaseRepository.findByOrderNo("TP5") } returns purchase
+      every { ticketPurchaseRepository.findByOrderNo("NOPE") } returns null
 
-  @Test
-  @DisplayName("购票单:按 id / orderNo 查询")
-  fun `findPurchaseById and byOrderNo`() {
-    val purchase = TicketPurchaseModel(id = 1L, userId = 1L, ticketTypeId = 5L, orderNo = "TP5")
-    every { ticketPurchaseRepository.findById(1L) } returns Optional.of(purchase)
-    every { ticketPurchaseRepository.findById(99L) } returns Optional.empty()
-    every { ticketPurchaseRepository.findByOrderNo("TP5") } returns purchase
-    every { ticketPurchaseRepository.findByOrderNo("NOPE") } returns null
-
-    assertEquals(1L, service.findPurchaseById(1L)?.id)
-    assertNull(service.findPurchaseById(99L))
-    assertEquals("TP5", service.findPurchaseByOrderNo("TP5")?.orderNo)
-    assertNull(service.findPurchaseByOrderNo("NOPE"))
-  }
-}
+      service.findPurchaseById(1L)?.id shouldBe 1L
+      service.findPurchaseById(99L).shouldBeNull()
+      service.findPurchaseByOrderNo("TP5")?.orderNo shouldBe "TP5"
+      service.findPurchaseByOrderNo("NOPE").shouldBeNull()
+    }
+  })

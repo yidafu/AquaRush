@@ -32,134 +32,125 @@ import dev.yidafu.aqua.common.graphql.generated.IssueCouponsInput
 import dev.yidafu.aqua.common.graphql.generated.IssueTargetType
 import dev.yidafu.aqua.common.graphql.generated.UpdateCouponTemplateInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
 import dev.yidafu.aqua.common.graphql.generated.CouponIssuanceType as GraphQLCouponIssuanceType
 import dev.yidafu.aqua.common.graphql.generated.CouponScope as GraphQLCouponScope
 import dev.yidafu.aqua.common.graphql.generated.CouponType as GraphQLCouponType
 import dev.yidafu.aqua.common.graphql.generated.ValidityType as GraphQLValidityType
 
-class AdminCouponMutationResolverTest {
-  private lateinit var couponMutationService: CouponMutationService
-  private lateinit var couponQueryService: CouponQueryService
-  private lateinit var resolver: AdminCouponMutationResolver
+class AdminCouponMutationResolverTest :
+  FunSpec({
+    var couponMutationService: CouponMutationService = mockk()
+    var couponQueryService: CouponQueryService = mockk()
+    var resolver: AdminCouponMutationResolver = mockk()
 
-  private fun couponTemplate(): CouponTemplateModel =
-    CouponTemplateModel(
-      id = 10L,
-      name = "满50减10",
-      couponType = CouponType.CASH,
-      thresholdCents = 5000,
-      discountAmountCents = 1000,
-      discountRatePermille = null,
-      scope = CouponScope.ALL,
-      productId = null,
-      validityType = ValidityType.FIXED_RANGE,
-      validFrom = LocalDateTime.now().minusDays(1),
-      validTo = LocalDateTime.now().plusDays(30),
-      validDays = null,
-      issuanceType = CouponIssuanceType.AUTO_CLAIM,
-      perUserLimit = 1,
-      status = CouponTemplateStatus.ACTIVE,
-    )
-
-  private fun principal(): UserPrincipal =
-    UserPrincipal(
-      id = 1L,
-      _username = "admin",
-      userType = "ADMIN",
-      _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    couponMutationService = mockk(relaxed = true)
-    couponQueryService = mockk(relaxed = true)
-    resolver = AdminCouponMutationResolver(couponMutationService, couponQueryService)
-  }
-
-  @Test
-  fun `createCouponTemplate should delegate with operator info`() {
-    // Given
-    every { couponMutationService.createTemplate(1L, "admin", any()) } returns couponTemplate()
-    val input =
-      CreateCouponTemplateInput(
-        couponType = GraphQLCouponType.CASH,
-        issuanceType = GraphQLCouponIssuanceType.AUTO_CLAIM,
+    fun couponTemplate(): CouponTemplateModel =
+      CouponTemplateModel(
+        id = 10L,
         name = "满50减10",
-        perUserLimit = 1,
-        scope = GraphQLCouponScope.ALL,
+        couponType = CouponType.CASH,
         thresholdCents = 5000,
         discountAmountCents = 1000,
-        validityType = GraphQLValidityType.FIXED_RANGE,
-        validFrom = LocalDateTime.now(),
+        discountRatePermille = null,
+        scope = CouponScope.ALL,
+        productId = null,
+        validityType = ValidityType.FIXED_RANGE,
+        validFrom = LocalDateTime.now().minusDays(1),
         validTo = LocalDateTime.now().plusDays(30),
-      )
-
-    // When
-    val result = resolver.createCouponTemplate(input, principal())
-
-    // Then
-    assertEquals("满50减10", result.name)
-    verify { couponMutationService.createTemplate(1L, "admin", any()) }
-  }
-
-  @Test
-  fun `updateCouponTemplate should attach received and used counts`() {
-    // Given
-    every { couponMutationService.updateTemplate(1L, "admin", 10L, any()) } returns couponTemplate()
-    every { couponQueryService.receivedCount(10L) } returns 5L
-    every { couponQueryService.usedCount(10L) } returns 2L
-    val input =
-      UpdateCouponTemplateInput(
-        couponType = GraphQLCouponType.CASH,
-        name = "满50减10",
+        validDays = null,
+        issuanceType = CouponIssuanceType.AUTO_CLAIM,
         perUserLimit = 1,
-        scope = GraphQLCouponScope.ALL,
-        validityType = GraphQLValidityType.FIXED_RANGE,
+        status = CouponTemplateStatus.ACTIVE,
       )
 
-    // When
-    val result = resolver.updateCouponTemplate(10L, input, principal())
+    fun principal(): UserPrincipal =
+      UserPrincipal(
+        id = 1L,
+        _username = "admin",
+        userType = "ADMIN",
+        _authorities = listOf(SimpleGrantedAuthority("ROLE_ADMIN")),
+      )
 
-    // Then
-    assertEquals(5, result.receivedCount)
-    assertEquals(2, result.usedCount)
-    verify { couponMutationService.updateTemplate(1L, "admin", 10L, any()) }
-  }
+    beforeTest {
+      couponMutationService = mockk(relaxed = true)
+      couponQueryService = mockk(relaxed = true)
+      resolver = AdminCouponMutationResolver(couponMutationService, couponQueryService)
+    }
+    test("createCouponTemplate should delegate with operator info") {
+      // Given
+      every { couponMutationService.createTemplate(1L, "admin", any()) } returns couponTemplate()
+      val input =
+        CreateCouponTemplateInput(
+          couponType = GraphQLCouponType.CASH,
+          issuanceType = GraphQLCouponIssuanceType.AUTO_CLAIM,
+          name = "满50减10",
+          perUserLimit = 1,
+          scope = GraphQLCouponScope.ALL,
+          thresholdCents = 5000,
+          discountAmountCents = 1000,
+          validityType = GraphQLValidityType.FIXED_RANGE,
+          validFrom = LocalDateTime.now(),
+          validTo = LocalDateTime.now().plusDays(30),
+        )
 
-  @Test
-  fun `disableCouponTemplate should delegate`() {
-    // Given
-    every { couponMutationService.disableTemplate(1L, "admin", 10L) } returns couponTemplate()
-    every { couponQueryService.receivedCount(10L) } returns 0L
-    every { couponQueryService.usedCount(10L) } returns 0L
+      // When
+      val result = resolver.createCouponTemplate(input, principal())
 
-    // When
-    val result = resolver.disableCouponTemplate(10L, principal())
+      // Then
+      result.name shouldBe "满50减10"
+      verify { couponMutationService.createTemplate(1L, "admin", any()) }
+    }
+    test("updateCouponTemplate should attach received and used counts") {
+      // Given
+      every { couponMutationService.updateTemplate(1L, "admin", 10L, any()) } returns couponTemplate()
+      every { couponQueryService.receivedCount(10L) } returns 5L
+      every { couponQueryService.usedCount(10L) } returns 2L
+      val input =
+        UpdateCouponTemplateInput(
+          couponType = GraphQLCouponType.CASH,
+          name = "满50减10",
+          perUserLimit = 1,
+          scope = GraphQLCouponScope.ALL,
+          validityType = GraphQLValidityType.FIXED_RANGE,
+        )
 
-    // Then
-    assertEquals(0, result.receivedCount)
-    verify { couponMutationService.disableTemplate(1L, "admin", 10L) }
-  }
+      // When
+      val result = resolver.updateCouponTemplate(10L, input, principal())
 
-  @Test
-  fun `issueCoupons should return issued count`() {
-    // Given
-    every { couponMutationService.issueCoupons(1L, "admin", any()) } returns 8
-    val input = IssueCouponsInput(couponTemplateId = 10L, targetType = IssueTargetType.USER, userIds = listOf(1L, 2L))
+      // Then
+      result.receivedCount shouldBe 5
+      result.usedCount shouldBe 2
+      verify { couponMutationService.updateTemplate(1L, "admin", 10L, any()) }
+    }
+    test("disableCouponTemplate should delegate") {
+      // Given
+      every { couponMutationService.disableTemplate(1L, "admin", 10L) } returns couponTemplate()
+      every { couponQueryService.receivedCount(10L) } returns 0L
+      every { couponQueryService.usedCount(10L) } returns 0L
 
-    // When
-    val result = resolver.issueCoupons(input, principal())
+      // When
+      val result = resolver.disableCouponTemplate(10L, principal())
 
-    // Then
-    assertEquals(8, result)
-    verify { couponMutationService.issueCoupons(1L, "admin", any()) }
-  }
-}
+      // Then
+      result.receivedCount shouldBe 0
+      verify { couponMutationService.disableTemplate(1L, "admin", 10L) }
+    }
+    test("issueCoupons should return issued count") {
+      // Given
+      every { couponMutationService.issueCoupons(1L, "admin", any()) } returns 8
+      val input = IssueCouponsInput(couponTemplateId = 10L, targetType = IssueTargetType.USER, userIds = listOf(1L, 2L))
+
+      // When
+      val result = resolver.issueCoupons(input, principal())
+
+      // Then
+      result shouldBe 8
+      verify { couponMutationService.issueCoupons(1L, "admin", any()) }
+    }
+  })

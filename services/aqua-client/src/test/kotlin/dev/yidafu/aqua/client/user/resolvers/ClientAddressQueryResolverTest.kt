@@ -22,114 +22,104 @@ package dev.yidafu.aqua.client.user.resolvers
 import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.security.UserPrincipal
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotNull
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
-class ClientAddressQueryResolverTest {
-  private lateinit var addressService: AddressService
-  private lateinit var resolver: ClientAddressQueryResolver
-  private lateinit var userPrincipal: UserPrincipal
+class ClientAddressQueryResolverTest :
+  FunSpec({
+    var addressService: AddressService = mockk()
+    var resolver: ClientAddressQueryResolver = mockk()
+    var userPrincipal: UserPrincipal = mockk()
 
-  private fun createSampleAddress(): AddressModel =
-    AddressModel(
-      id = 1L,
-      userId = 1L,
-      receiverName = "张三",
-      phone = "13800138000",
-      province = "广东省",
-      city = "深圳市",
-      district = "南山区",
-      detailAddress = "测试地址1号",
-      isDefault = true,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  private fun createOtherUserAddress(): AddressModel =
-    AddressModel(
-      id = 2L,
-      userId = 2L,
-      receiverName = "李四",
-      phone = "13800138001",
-      province = "广东省",
-      city = "深圳市",
-      district = "南山区",
-      detailAddress = "其他用户地址",
-      isDefault = false,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
-
-  @BeforeEach
-  fun setUp() {
-    addressService = mockk(relaxed = true)
-    resolver = ClientAddressQueryResolver(addressService)
-
-    userPrincipal =
-      UserPrincipal(
+    fun createSampleAddress(): AddressModel =
+      AddressModel(
         id = 1L,
-        _username = "testuser",
-        userType = "USER",
-        _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
+        userId = 1L,
+        receiverName = "张三",
+        phone = "13800138000",
+        province = "广东省",
+        city = "深圳市",
+        district = "南山区",
+        detailAddress = "测试地址1号",
+        isDefault = true,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
       )
-  }
 
-  @Test
-  fun `userAddresses should return all user addresses`() {
-    // Given
-    val addresses = listOf(createSampleAddress())
-    every { addressService.findByUserId(1L) } returns addresses
+    fun createOtherUserAddress(): AddressModel =
+      AddressModel(
+        id = 2L,
+        userId = 2L,
+        receiverName = "李四",
+        phone = "13800138001",
+        province = "广东省",
+        city = "深圳市",
+        district = "南山区",
+        detailAddress = "其他用户地址",
+        isDefault = false,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
 
-    // When
-    val result = resolver.userAddresses(userPrincipal)
+    beforeTest {
+      addressService = mockk(relaxed = true)
+      resolver = ClientAddressQueryResolver(addressService)
 
-    // Then
-    assertEquals(1, result.size)
-    verify { addressService.findByUserId(1L) }
-  }
+      userPrincipal =
+        UserPrincipal(
+          id = 1L,
+          _username = "testuser",
+          userType = "USER",
+          _authorities = listOf(SimpleGrantedAuthority("ROLE_USER")),
+        )
+    }
+    test("userAddresses should return all user addresses") {
+      // Given
+      val addresses = listOf(createSampleAddress())
+      every { addressService.findByUserId(1L) } returns addresses
 
-  @Test
-  fun `address should return address when it belongs to user`() {
-    // Given
-    every { addressService.findById(1L) } returns createSampleAddress()
+      // When
+      val result = resolver.userAddresses(userPrincipal)
 
-    // When
-    val result = resolver.address(1L, userPrincipal)
+      // Then
+      result.size shouldBe 1
+      verify { addressService.findByUserId(1L) }
+    }
+    test("address should return address when it belongs to user") {
+      // Given
+      every { addressService.findById(1L) } returns createSampleAddress()
 
-    // Then
-    assertNotNull(result)
-    assertEquals(1L, result?.id)
-  }
+      // When
+      val result = resolver.address(1L, userPrincipal)
 
-  @Test
-  fun `address should throw exception when accessing other user address`() {
-    // Given
-    every { addressService.findById(1L) } returns createOtherUserAddress()
+      // Then
+      result.shouldNotBeNull()
+      result?.id shouldBe 1L
+    }
+    test("address should throw exception when accessing other user address") {
+      // Given
+      every { addressService.findById(1L) } returns createOtherUserAddress()
 
-    // When & Then
-    val exception = assertFailsWith<IllegalArgumentException> { resolver.address(1L, userPrincipal) }
-    assertTrue(exception.message!!.contains("无权访问"))
-  }
+      // When & Then
+      val exception = shouldThrow<IllegalArgumentException> { resolver.address(1L, userPrincipal) }
+      exception.message!!.contains("无权访问") shouldBe true
+    }
+    test("address should return null when address not found") {
+      // Given
+      every { addressService.findById(999L) } returns null
 
-  @Test
-  fun `address should return null when address not found`() {
-    // Given
-    every { addressService.findById(999L) } returns null
+      // When
+      val result = resolver.address(999L, userPrincipal)
 
-    // When
-    val result = resolver.address(999L, userPrincipal)
-
-    // Then
-    assertNull(result)
-  }
-}
+      // Then
+      result.shouldBeNull()
+    }
+  })

@@ -20,11 +20,9 @@
 package dev.yidafu.aqua.client.payment.controller
 
 import dev.yidafu.aqua.api.service.payment.PaymentService
+import io.kotest.core.spec.style.FunSpec
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -37,55 +35,45 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
  * 微信支付回调端点测试(PRD 04-order.md §F-ORD-005/R-PAY-01):
  * 原始报文+验签头透传;处理成功返回 SUCCESS,失败返回 500 FAIL(微信重试)。
  */
-@DisplayName("WechatPayNotifyController Tests")
-class WechatPayNotifyControllerTest {
-  private lateinit var paymentService: PaymentService
-  private lateinit var mockMvc: MockMvc
+class WechatPayNotifyControllerTest :
+  FunSpec({
+    var paymentService: PaymentService = mockk()
+    var mockMvc: MockMvc = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    paymentService = mockk()
-    mockMvc = MockMvcBuilders.standaloneSetup(WechatPayNotifyController(paymentService)).build()
-  }
+    beforeTest {
+      paymentService = mockk()
+      mockMvc = MockMvcBuilders.standaloneSetup(WechatPayNotifyController(paymentService)).build()
+    }
+    test("notifySuccessReturnsSuccess") {
+      every { paymentService.handleWechatPayCallback(any(), any()) } returns true
 
-  @Test
-  @DisplayName("回调处理成功:返回 200 SUCCESS")
-  fun notifySuccessReturnsSuccess() {
-    every { paymentService.handleWechatPayCallback(any(), any()) } returns true
+      mockMvc
+        .perform(
+          post("/api/pay/notify")
+            .contentType(MediaType.APPLICATION_JSON)
+            .content("{\"resource\":{\"out_trade_no\":\"ORD-1\"}}")
+            .header("wechatpay-serial", "SERIAL-1")
+            .header("wechatpay-timestamp", "1750000000")
+            .header("wechatpay-nonce", "nonce-1")
+            .header("wechatpay-signature", "sig-1"),
+        ).andExpect(status().isOk)
+        .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+        .andExpect(jsonPath("$.code").value("SUCCESS"))
+    }
+    test("notifyFailureReturnsFail") {
+      every { paymentService.handleWechatPayCallback(any(), any()) } returns false
 
-    mockMvc
-      .perform(
-        post("/api/pay/notify")
-          .contentType(MediaType.APPLICATION_JSON)
-          .content("{\"resource\":{\"out_trade_no\":\"ORD-1\"}}")
-          .header("wechatpay-serial", "SERIAL-1")
-          .header("wechatpay-timestamp", "1750000000")
-          .header("wechatpay-nonce", "nonce-1")
-          .header("wechatpay-signature", "sig-1"),
-      ).andExpect(status().isOk)
-      .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-      .andExpect(jsonPath("$.code").value("SUCCESS"))
-  }
+      mockMvc
+        .perform(post("/api/pay/notify").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isInternalServerError)
+        .andExpect(jsonPath("$.code").value("FAIL"))
+    }
+    test("notifyExceptionReturnsFail") {
+      every { paymentService.handleWechatPayCallback(any(), any()) } throws IllegalStateException("boom")
 
-  @Test
-  @DisplayName("回调处理失败:返回 500 FAIL(微信将重试)")
-  fun notifyFailureReturnsFail() {
-    every { paymentService.handleWechatPayCallback(any(), any()) } returns false
-
-    mockMvc
-      .perform(post("/api/pay/notify").contentType(MediaType.APPLICATION_JSON).content("{}"))
-      .andExpect(status().isInternalServerError)
-      .andExpect(jsonPath("$.code").value("FAIL"))
-  }
-
-  @Test
-  @DisplayName("回调处理异常:返回 500 FAIL")
-  fun notifyExceptionReturnsFail() {
-    every { paymentService.handleWechatPayCallback(any(), any()) } throws IllegalStateException("boom")
-
-    mockMvc
-      .perform(post("/api/pay/notify").contentType(MediaType.APPLICATION_JSON).content("{}"))
-      .andExpect(status().isInternalServerError)
-      .andExpect(jsonPath("$.code").value("FAIL"))
-  }
-}
+      mockMvc
+        .perform(post("/api/pay/notify").contentType(MediaType.APPLICATION_JSON).content("{}"))
+        .andExpect(status().isInternalServerError)
+        .andExpect(jsonPath("$.code").value("FAIL"))
+    }
+  })

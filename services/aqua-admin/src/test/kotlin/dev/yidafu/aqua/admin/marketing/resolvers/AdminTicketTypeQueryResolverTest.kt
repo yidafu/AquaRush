@@ -24,81 +24,74 @@ import dev.yidafu.aqua.common.domain.model.TicketTypeModel
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-class AdminTicketTypeQueryResolverTest {
-  private lateinit var ticketTypeQueryService: TicketTypeQueryService
-  private lateinit var resolver: AdminTicketTypeQueryResolver
+class AdminTicketTypeQueryResolverTest :
+  FunSpec({
+    var ticketTypeQueryService: TicketTypeQueryService = mockk()
+    var resolver: AdminTicketTypeQueryResolver = mockk()
 
-  private fun ticketType(): TicketTypeModel =
-    TicketTypeModel(
-      id = 20L,
-      name = "通兑19L",
-      ticketType = TicketTypeKind.UNIVERSAL,
-      productId = null,
-      specification = "19L",
-      packageCount = 10,
-      packagePriceCents = 10000,
-      giftCount = 0,
-      validityType = ValidityType.FIXED_RANGE,
-      validFrom = LocalDateTime.now().minusDays(1),
-      validTo = LocalDateTime.now().plusDays(365),
-      perUserLimit = 0,
-      status = TicketTypeStatus.ACTIVE,
-    )
+    fun ticketType(): TicketTypeModel =
+      TicketTypeModel(
+        id = 20L,
+        name = "通兑19L",
+        ticketType = TicketTypeKind.UNIVERSAL,
+        productId = null,
+        specification = "19L",
+        packageCount = 10,
+        packagePriceCents = 10000,
+        giftCount = 0,
+        validityType = ValidityType.FIXED_RANGE,
+        validFrom = LocalDateTime.now().minusDays(1),
+        validTo = LocalDateTime.now().plusDays(365),
+        perUserLimit = 0,
+        status = TicketTypeStatus.ACTIVE,
+      )
 
-  @BeforeEach
-  fun setUp() {
-    ticketTypeQueryService = mockk(relaxed = true)
-    resolver = AdminTicketTypeQueryResolver(ticketTypeQueryService)
-  }
+    beforeTest {
+      ticketTypeQueryService = mockk(relaxed = true)
+      resolver = AdminTicketTypeQueryResolver(ticketTypeQueryService)
+    }
+    test("ticketTypes should list with defaults") {
+      // Given
+      every { ticketTypeQueryService.listTicketTypes(null, null, PageRequest.of(0, 20)) } returns
+        PageImpl(listOf(ticketType()))
 
-  @Test
-  fun `ticketTypes should list with defaults`() {
-    // Given
-    every { ticketTypeQueryService.listTicketTypes(null, null, PageRequest.of(0, 20)) } returns
-      PageImpl(listOf(ticketType()))
+      // When
+      val result = resolver.ticketTypes(null)
 
-    // When
-    val result = resolver.ticketTypes(null)
+      // Then
+      result.content.size shouldBe 1
+      result.content[0].name shouldBe "通兑19L"
+      verify { ticketTypeQueryService.listTicketTypes(null, null, PageRequest.of(0, 20)) }
+    }
+    test("ticketType should return null when missing") {
+      // Given
+      every { ticketTypeQueryService.getTicketType(999L) } returns null
 
-    // Then
-    assertEquals(1, result.content.size)
-    assertEquals("通兑19L", result.content[0].name)
-    verify { ticketTypeQueryService.listTicketTypes(null, null, PageRequest.of(0, 20)) }
-  }
+      // When
+      val result = resolver.ticketType(999L)
 
-  @Test
-  fun `ticketType should return null when missing`() {
-    // Given
-    every { ticketTypeQueryService.getTicketType(999L) } returns null
+      // Then
+      result.shouldBeNull()
+    }
+    test("ticketType should map by id") {
+      // Given
+      every { ticketTypeQueryService.getTicketType(20L) } returns ticketType()
 
-    // When
-    val result = resolver.ticketType(999L)
+      // When
+      val result = resolver.ticketType(20L)
 
-    // Then
-    assertNull(result)
-  }
-
-  @Test
-  fun `ticketType should map by id`() {
-    // Given
-    every { ticketTypeQueryService.getTicketType(20L) } returns ticketType()
-
-    // When
-    val result = resolver.ticketType(20L)
-
-    // Then
-    assertEquals(10, result!!.packageCount)
-    verify { ticketTypeQueryService.getTicketType(20L) }
-  }
-}
+      // Then
+      result!!.packageCount shouldBe 10
+      verify { ticketTypeQueryService.getTicketType(20L) }
+    }
+  })

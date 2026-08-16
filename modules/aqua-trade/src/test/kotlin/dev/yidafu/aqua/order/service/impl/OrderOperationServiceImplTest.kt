@@ -23,93 +23,79 @@ import dev.yidafu.aqua.common.domain.model.OrderOperationModel
 import dev.yidafu.aqua.common.domain.model.enums.OperatorType
 import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.order.domain.repository.OrderOperationRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
 
 /**
  * 订单操作记录服务单元测试:记录/查询/计数均委托仓储。
  */
-class OrderOperationServiceImplTest {
-  private lateinit var orderOperationRepository: OrderOperationRepository
-  private lateinit var service: OrderOperationServiceImpl
+class OrderOperationServiceImplTest :
+  FunSpec({
+    var orderOperationRepository: OrderOperationRepository = mockk()
+    var service: OrderOperationServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    orderOperationRepository = mockk(relaxed = true)
-    service = OrderOperationServiceImpl(orderOperationRepository)
-  }
+    beforeTest {
+      orderOperationRepository = mockk(relaxed = true)
+      service = OrderOperationServiceImpl(orderOperationRepository)
+    }
+    test("recordOperation saves and returns the operation") {
+      every { orderOperationRepository.save(any()) } answers { firstArg() }
 
-  @Test
-  @DisplayName("recordOperation 落库并返回带完整字段的操作记录")
-  fun `recordOperation saves and returns the operation`() {
-    every { orderOperationRepository.save(any()) } answers { firstArg() }
+      val saved =
+        service.recordOperation(
+          orderId = 1L,
+          operationType = OrderOperationType.ORDER_CREATED,
+          operatorType = OperatorType.USER,
+          operatorId = 100L,
+          description = "用户创建订单",
+          extraData = "{}",
+        )
 
-    val saved =
-      service.recordOperation(
-        orderId = 1L,
-        operationType = OrderOperationType.ORDER_CREATED,
-        operatorType = OperatorType.USER,
-        operatorId = 100L,
-        description = "用户创建订单",
-        extraData = "{}",
-      )
+      saved.orderId shouldBe 1L
+      saved.operationType shouldBe OrderOperationType.ORDER_CREATED
+      saved.operatorType shouldBe OperatorType.USER
+      saved.operatorId shouldBe 100L
+      saved.description shouldBe "用户创建订单"
+      saved.extraData shouldBe "{}"
+      verify(exactly = 1) { orderOperationRepository.save(any()) }
+    }
+    test("recordOperation supports null operator and description") {
+      every { orderOperationRepository.save(any()) } answers { firstArg() }
 
-    assertEquals(1L, saved.orderId)
-    assertEquals(OrderOperationType.ORDER_CREATED, saved.operationType)
-    assertEquals(OperatorType.USER, saved.operatorType)
-    assertEquals(100L, saved.operatorId)
-    assertEquals("用户创建订单", saved.description)
-    assertEquals("{}", saved.extraData)
-    verify(exactly = 1) { orderOperationRepository.save(any()) }
-  }
+      val saved =
+        service.recordOperation(
+          orderId = 2L,
+          operationType = OrderOperationType.PAYMENT_TIMEOUT,
+          operatorType = OperatorType.SYSTEM,
+          operatorId = null,
+          description = null,
+          extraData = null,
+        )
 
-  @Test
-  @DisplayName("recordOperation 支持空操作者与空描述(系统操作)")
-  fun `recordOperation supports null operator and description`() {
-    every { orderOperationRepository.save(any()) } answers { firstArg() }
+      saved.orderId shouldBe 2L
+      saved.operatorType shouldBe OperatorType.SYSTEM
+      saved.operatorId shouldBe null
+      saved.description shouldBe null
+    }
+    test("getOrderOperations delegates to repository") {
+      val ops =
+        listOf(
+          OrderOperationModel(orderId = 1L, operationType = OrderOperationType.ORDER_PAID, operatorType = OperatorType.USER),
+          OrderOperationModel(orderId = 1L, operationType = OrderOperationType.ORDER_CREATED, operatorType = OperatorType.USER),
+        )
+      every { orderOperationRepository.findByOrderIdOrderByCreatedAtDesc(1L) } returns ops
 
-    val saved =
-      service.recordOperation(
-        orderId = 2L,
-        operationType = OrderOperationType.PAYMENT_TIMEOUT,
-        operatorType = OperatorType.SYSTEM,
-        operatorId = null,
-        description = null,
-        extraData = null,
-      )
+      val result = service.getOrderOperations(1L)
 
-    assertEquals(2L, saved.orderId)
-    assertEquals(OperatorType.SYSTEM, saved.operatorType)
-    assertEquals(null, saved.operatorId)
-    assertEquals(null, saved.description)
-  }
+      result shouldBe ops
+      verify(exactly = 1) { orderOperationRepository.findByOrderIdOrderByCreatedAtDesc(1L) }
+    }
+    test("countOrderOperations delegates to repository") {
+      every { orderOperationRepository.countByOrderId(1L) } returns 5L
 
-  @Test
-  @DisplayName("getOrderOperations 按创建时间倒序返回操作记录")
-  fun `getOrderOperations delegates to repository`() {
-    val ops =
-      listOf(
-        OrderOperationModel(orderId = 1L, operationType = OrderOperationType.ORDER_PAID, operatorType = OperatorType.USER),
-        OrderOperationModel(orderId = 1L, operationType = OrderOperationType.ORDER_CREATED, operatorType = OperatorType.USER),
-      )
-    every { orderOperationRepository.findByOrderIdOrderByCreatedAtDesc(1L) } returns ops
-
-    val result = service.getOrderOperations(1L)
-
-    assertEquals(ops, result)
-    verify(exactly = 1) { orderOperationRepository.findByOrderIdOrderByCreatedAtDesc(1L) }
-  }
-
-  @Test
-  @DisplayName("countOrderOperations 返回操作记录数")
-  fun `countOrderOperations delegates to repository`() {
-    every { orderOperationRepository.countByOrderId(1L) } returns 5L
-
-    assertEquals(5L, service.countOrderOperations(1L))
-  }
-}
+      service.countOrderOperations(1L) shouldBe 5L
+    }
+  })

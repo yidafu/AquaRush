@@ -24,55 +24,44 @@ import dev.yidafu.aqua.common.domain.model.enums.OperatorType
 import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 
 /**
  * 支付超时事件处理器单元测试:以系统身份记录超时操作。
  */
-class PaymentTimeoutHandlerTest {
-  private lateinit var orderOperationService: OrderOperationService
-  private lateinit var handler: PaymentTimeoutHandler
+class PaymentTimeoutHandlerTest :
+  FunSpec({
+    var orderOperationService: OrderOperationService = mockk()
+    var handler: PaymentTimeoutHandler = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    orderOperationService = mockk(relaxed = true)
-    handler = PaymentTimeoutHandler(orderOperationService)
-  }
-
-  @Test
-  @DisplayName("getSupportedEventType 返回 PAYMENT_TIMEOUT")
-  fun `supported event type is payment timeout`() {
-    assertEquals(DomainEventType.PAYMENT_TIMEOUT, handler.getSupportedEventType())
-  }
-
-  @Test
-  @DisplayName("记录 SYSTEM 身份的超时取消操作")
-  fun `records system timeout operation`() {
-    val event = DomainEvent(id = 1L, eventType = "PAYMENT_TIMEOUT", payload = """{"orderId": 1001, "userId": 2001}""")
-
-    handler.handle(event)
-
-    verify(exactly = 1) {
-      orderOperationService.recordOperation(
-        orderId = 1001,
-        operationType = OrderOperationType.PAYMENT_TIMEOUT,
-        operatorType = OperatorType.SYSTEM,
-        description = "订单支付超时，自动取消",
-      )
+    beforeTest {
+      orderOperationService = mockk(relaxed = true)
+      handler = PaymentTimeoutHandler(orderOperationService)
     }
-  }
+    test("supported event type is payment timeout") {
+      handler.getSupportedEventType() shouldBe DomainEventType.PAYMENT_TIMEOUT
+    }
+    test("records system timeout operation") {
+      val event = DomainEvent(id = 1L, eventType = "PAYMENT_TIMEOUT", payload = """{"orderId": 1001, "userId": 2001}""")
 
-  @Test
-  @DisplayName("非法 payload 解析失败后重新抛出")
-  fun `malformed payload rethrows`() {
-    val event = DomainEvent(id = 2L, eventType = "PAYMENT_TIMEOUT", payload = "bad")
+      handler.handle(event)
 
-    assertFailsWith<Exception> { handler.handle(event) }
-  }
-}
+      verify(exactly = 1) {
+        orderOperationService.recordOperation(
+          orderId = 1001,
+          operationType = OrderOperationType.PAYMENT_TIMEOUT,
+          operatorType = OperatorType.SYSTEM,
+          description = "订单支付超时，自动取消",
+        )
+      }
+    }
+    test("malformed payload rethrows") {
+      val event = DomainEvent(id = 2L, eventType = "PAYMENT_TIMEOUT", payload = "bad")
+
+      shouldThrow<Exception> { handler.handle(event) }
+    }
+  })

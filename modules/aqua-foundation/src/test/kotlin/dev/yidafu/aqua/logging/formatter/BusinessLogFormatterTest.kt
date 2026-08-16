@@ -19,191 +19,141 @@
 
 package dev.yidafu.aqua.logging.formatter
 
-import org.junit.jupiter.api.Test
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import tools.jackson.databind.ObjectMapper
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
-class BusinessLogFormatterTest {
-  private val formatter = BusinessLogFormatter.instance
-  private val mapper = ObjectMapper()
+class BusinessLogFormatterTest :
+  FunSpec({
+    val formatter = BusinessLogFormatter.instance
+    val mapper = ObjectMapper()
 
-  @Suppress("UNCHECKED_CAST")
-  private fun parse(json: String): Map<String, Any> = mapper.readValue(json, Map::class.java) as Map<String, Any>
+    fun parse(json: String): Map<String, Any> = mapper.readValue(json, Map::class.java) as Map<String, Any>
 
-  @Test
-  fun `formatBusinessOperation success should produce INFO json`() {
-    val json = formatter.formatBusinessOperation("CREATE", "ORDER", "SUCCESS", businessId = "1", description = "创建订单")
-    val map = parse(json)
-    assertEquals("INFO", map["level"])
-    assertEquals("business", map["logger"])
-    assertEquals("CREATE", map["businessOperation"])
-    assertEquals("ORDER", map["businessModule"])
-    assertEquals("ORDER_CREATION", map["businessCategory"])
-    assertEquals("1", map["businessId"])
-    assertEquals("ORDER_MANAGEMENT", map["businessDomain"])
-  }
+    @Suppress("UNCHECKED_CAST")
 
-  @Test
-  fun `formatBusinessOperation failure should produce ERROR level`() {
-    val map = parse(formatter.formatBusinessOperation("CREATE", "PAYMENT", "FAILURE"))
-    assertEquals("ERROR", map["level"])
-    assertEquals("PAYMENT_PROCESSING", map["businessCategory"])
-  }
-
-  @Test
-  fun `formatBusinessOperation warning should produce WARN level`() {
-    val map = parse(formatter.formatBusinessOperation("CREATE", "DELIVERY", "PARTIAL"))
-    assertEquals("WARN", map["level"])
-    assertEquals("DELIVERY_MANAGEMENT", map["businessCategory"])
-  }
-
-  @Test
-  fun `formatBusinessOperation default level should be INFO`() {
-    val map = parse(formatter.formatBusinessOperation("CREATE", "UNKNOWN_MODULE", "OTHER"))
-    assertEquals("INFO", map["level"])
-    assertEquals("GENERAL_BUSINESS", map["businessCategory"])
-  }
-
-  @Test
-  fun `formatBusinessOperation with metadata should include workflow stage`() {
-    val map = parse(formatter.formatBusinessOperation("UPDATE", "ORDER", "SUCCESS", metadata = mapOf("workflowStage" to "CONFIRMED")))
-    assertEquals("CONFIRMED", map["workflowStage"])
-  }
-
-  @Test
-  fun `formatBusinessOperation with metadata should include transaction type`() {
-    val map = parse(formatter.formatBusinessOperation("REFUND", "PAYMENT", "SUCCESS", metadata = mapOf("transactionType" to "REFUND")))
-    assertEquals("REFUND", map["transactionType"])
-  }
-
-  @Test
-  fun `formatBusinessOperation with delivery metadata should default delivery type`() {
-    val map = parse(formatter.formatBusinessOperation("ASSIGN", "DELIVERY", "SUCCESS"))
-    assertEquals("STANDARD", map["deliveryType"])
-  }
-
-  @Test
-  fun `formatBusinessOperation user metadata should default user type`() {
-    val map = parse(formatter.formatBusinessOperation("CREATE", "USER", "SUCCESS"))
-    assertEquals("CUSTOMER", map["userType"])
-  }
-
-  @Test
-  fun `formatBusinessOperation product metadata should default product type`() {
-    val map = parse(formatter.formatBusinessOperation("CREATE", "PRODUCT", "SUCCESS"))
-    assertEquals("WATER", map["productType"])
-  }
-
-  @Test
-  fun `formatOrderLog completed should produce INFO`() {
-    val map = parse(formatter.formatOrderLog("PAY", "100", status = "COMPLETED"))
-    assertEquals("INFO", map["level"])
-    assertEquals("ORDER_MANAGEMENT", map["businessCategory"])
-    assertEquals("100", map["orderId"])
-  }
-
-  @Test
-  fun `formatOrderLog cancelled should produce ERROR`() {
-    val map = parse(formatter.formatOrderLog("CANCEL", "100", status = "CANCELLED", userId = "7"))
-    assertEquals("ERROR", map["level"])
-    assertEquals("7", map["customerId"])
-  }
-
-  @Test
-  fun `formatOrderLog partial should produce WARN`() {
-    val map = parse(formatter.formatOrderLog("UPDATE", "100", status = "PARTIAL"))
-    assertEquals("WARN", map["level"])
-  }
-
-  @Test
-  fun `formatOrderLog with details should include order details`() {
-    val map = parse(formatter.formatOrderLog("CREATE", "100", status = "PENDING", details = mapOf("items" to 3)))
-    assertEquals(mapOf("items" to 3), map["orderDetails"])
-  }
-
-  @Test
-  fun `formatPaymentLog success should produce INFO with currency`() {
-    val map = parse(formatter.formatPaymentLog("PAY", "p1", "o1", 100.0, "SUCCESS", paymentMethod = "WECHAT"))
-    assertEquals("INFO", map["level"])
-    assertEquals("CNY", map["currency"])
-    assertEquals("WECHAT", map["paymentMethod"])
-  }
-
-  @Test
-  fun `formatPaymentLog declined should produce ERROR`() {
-    val map = parse(formatter.formatPaymentLog("PAY", "p1", "o1", 100.0, "DECLINED"))
-    assertEquals("ERROR", map["level"])
-  }
-
-  @Test
-  fun `formatPaymentLog refunded should produce INFO`() {
-    val map = parse(formatter.formatPaymentLog("REFUND", "p1", "o1", 50.0, "REFUNDED"))
-    assertEquals("INFO", map["level"])
-  }
-
-  @Test
-  fun `formatPaymentLog with details should include payment details`() {
-    val map = parse(formatter.formatPaymentLog("PAY", "p1", "o1", 100.0, "SUCCESS", details = mapOf("fee" to 1)))
-    assertEquals(mapOf("fee" to 1), map["paymentDetails"])
-  }
-
-  @Test
-  fun `formatDeliveryLog delivered should produce INFO`() {
-    val map = parse(formatter.formatDeliveryLog("COMPLETE", "d1", "o1", "DELIVERED", workerId = "w1"))
-    assertEquals("INFO", map["level"])
-    assertEquals("w1", map["workerId"])
-  }
-
-  @Test
-  fun `formatDeliveryLog failed should produce ERROR`() {
-    val map = parse(formatter.formatDeliveryLog("COMPLETE", "d1", "o1", "FAILED"))
-    assertEquals("ERROR", map["level"])
-  }
-
-  @Test
-  fun `formatDeliveryLog cancelled should produce WARN`() {
-    val map = parse(formatter.formatDeliveryLog("CANCEL", "d1", "o1", "CANCELLED"))
-    assertEquals("WARN", map["level"])
-  }
-
-  @Test
-  fun `formatUserLog success should produce INFO`() {
-    val map = parse(formatter.formatUserLog("CREATE", "u1", "SUCCESS", username = "alice"))
-    assertEquals("INFO", map["level"])
-    assertEquals("alice", map["targetUsername"])
-  }
-
-  @Test
-  fun `formatUserLog error should produce ERROR`() {
-    val map = parse(formatter.formatUserLog("CREATE", "u1", "ERROR"))
-    assertEquals("ERROR", map["level"])
-  }
-
-  @Test
-  fun `formatProductLog created should produce INFO`() {
-    val map = parse(formatter.formatProductLog("CREATE", "p1", "CREATED", productName = "水"))
-    assertEquals("INFO", map["level"])
-    assertEquals("水", map["productName"])
-  }
-
-  @Test
-  fun `formatProductLog error should produce ERROR`() {
-    val map = parse(formatter.formatProductLog("CREATE", "p1", "ERROR"))
-    assertEquals("ERROR", map["level"])
-  }
-
-  @Test
-  fun `formatBusinessOperation with null optional fields should omit them`() {
-    val map = parse(formatter.formatBusinessOperation("CREATE", "ORDER", "SUCCESS"))
-    assertTrue(!map.containsKey("businessId"))
-    assertTrue(!map.containsKey("businessDescription"))
-    assertTrue(!map.containsKey("businessMetadata"))
-  }
-
-  @Test
-  fun `formatOrderLog with null user should omit customer id`() {
-    val map = parse(formatter.formatOrderLog("PAY", "100", status = "COMPLETED"))
-    assertTrue(!map.containsKey("customerId"))
-  }
-}
+    test("formatBusinessOperation success should produce INFO json") {
+      val json = formatter.formatBusinessOperation("CREATE", "ORDER", "SUCCESS", businessId = "1", description = "创建订单")
+      val map = parse(json)
+      map["level"] shouldBe "INFO"
+      map["logger"] shouldBe "business"
+      map["businessOperation"] shouldBe "CREATE"
+      map["businessModule"] shouldBe "ORDER"
+      map["businessCategory"] shouldBe "ORDER_CREATION"
+      map["businessId"] shouldBe "1"
+      map["businessDomain"] shouldBe "ORDER_MANAGEMENT"
+    }
+    test("formatBusinessOperation failure should produce ERROR level") {
+      val map = parse(formatter.formatBusinessOperation("CREATE", "PAYMENT", "FAILURE"))
+      map["level"] shouldBe "ERROR"
+      map["businessCategory"] shouldBe "PAYMENT_PROCESSING"
+    }
+    test("formatBusinessOperation warning should produce WARN level") {
+      val map = parse(formatter.formatBusinessOperation("CREATE", "DELIVERY", "PARTIAL"))
+      map["level"] shouldBe "WARN"
+      map["businessCategory"] shouldBe "DELIVERY_MANAGEMENT"
+    }
+    test("formatBusinessOperation default level should be INFO") {
+      val map = parse(formatter.formatBusinessOperation("CREATE", "UNKNOWN_MODULE", "OTHER"))
+      map["level"] shouldBe "INFO"
+      map["businessCategory"] shouldBe "GENERAL_BUSINESS"
+    }
+    test("formatBusinessOperation with metadata should include workflow stage") {
+      val map = parse(formatter.formatBusinessOperation("UPDATE", "ORDER", "SUCCESS", metadata = mapOf("workflowStage" to "CONFIRMED")))
+      map["workflowStage"] shouldBe "CONFIRMED"
+    }
+    test("formatBusinessOperation with metadata should include transaction type") {
+      val map = parse(formatter.formatBusinessOperation("REFUND", "PAYMENT", "SUCCESS", metadata = mapOf("transactionType" to "REFUND")))
+      map["transactionType"] shouldBe "REFUND"
+    }
+    test("formatBusinessOperation with delivery metadata should default delivery type") {
+      val map = parse(formatter.formatBusinessOperation("ASSIGN", "DELIVERY", "SUCCESS"))
+      map["deliveryType"] shouldBe "STANDARD"
+    }
+    test("formatBusinessOperation user metadata should default user type") {
+      val map = parse(formatter.formatBusinessOperation("CREATE", "USER", "SUCCESS"))
+      map["userType"] shouldBe "CUSTOMER"
+    }
+    test("formatBusinessOperation product metadata should default product type") {
+      val map = parse(formatter.formatBusinessOperation("CREATE", "PRODUCT", "SUCCESS"))
+      map["productType"] shouldBe "WATER"
+    }
+    test("formatOrderLog completed should produce INFO") {
+      val map = parse(formatter.formatOrderLog("PAY", "100", status = "COMPLETED"))
+      map["level"] shouldBe "INFO"
+      map["businessCategory"] shouldBe "ORDER_MANAGEMENT"
+      map["orderId"] shouldBe "100"
+    }
+    test("formatOrderLog cancelled should produce ERROR") {
+      val map = parse(formatter.formatOrderLog("CANCEL", "100", status = "CANCELLED", userId = "7"))
+      map["level"] shouldBe "ERROR"
+      map["customerId"] shouldBe "7"
+    }
+    test("formatOrderLog partial should produce WARN") {
+      val map = parse(formatter.formatOrderLog("UPDATE", "100", status = "PARTIAL"))
+      map["level"] shouldBe "WARN"
+    }
+    test("formatOrderLog with details should include order details") {
+      val map = parse(formatter.formatOrderLog("CREATE", "100", status = "PENDING", details = mapOf("items" to 3)))
+      map["orderDetails"] shouldBe mapOf("items" to 3)
+    }
+    test("formatPaymentLog success should produce INFO with currency") {
+      val map = parse(formatter.formatPaymentLog("PAY", "p1", "o1", 100.0, "SUCCESS", paymentMethod = "WECHAT"))
+      map["level"] shouldBe "INFO"
+      map["currency"] shouldBe "CNY"
+      map["paymentMethod"] shouldBe "WECHAT"
+    }
+    test("formatPaymentLog declined should produce ERROR") {
+      val map = parse(formatter.formatPaymentLog("PAY", "p1", "o1", 100.0, "DECLINED"))
+      map["level"] shouldBe "ERROR"
+    }
+    test("formatPaymentLog refunded should produce INFO") {
+      val map = parse(formatter.formatPaymentLog("REFUND", "p1", "o1", 50.0, "REFUNDED"))
+      map["level"] shouldBe "INFO"
+    }
+    test("formatPaymentLog with details should include payment details") {
+      val map = parse(formatter.formatPaymentLog("PAY", "p1", "o1", 100.0, "SUCCESS", details = mapOf("fee" to 1)))
+      map["paymentDetails"] shouldBe mapOf("fee" to 1)
+    }
+    test("formatDeliveryLog delivered should produce INFO") {
+      val map = parse(formatter.formatDeliveryLog("COMPLETE", "d1", "o1", "DELIVERED", workerId = "w1"))
+      map["level"] shouldBe "INFO"
+      map["workerId"] shouldBe "w1"
+    }
+    test("formatDeliveryLog failed should produce ERROR") {
+      val map = parse(formatter.formatDeliveryLog("COMPLETE", "d1", "o1", "FAILED"))
+      map["level"] shouldBe "ERROR"
+    }
+    test("formatDeliveryLog cancelled should produce WARN") {
+      val map = parse(formatter.formatDeliveryLog("CANCEL", "d1", "o1", "CANCELLED"))
+      map["level"] shouldBe "WARN"
+    }
+    test("formatUserLog success should produce INFO") {
+      val map = parse(formatter.formatUserLog("CREATE", "u1", "SUCCESS", username = "alice"))
+      map["level"] shouldBe "INFO"
+      map["targetUsername"] shouldBe "alice"
+    }
+    test("formatUserLog error should produce ERROR") {
+      val map = parse(formatter.formatUserLog("CREATE", "u1", "ERROR"))
+      map["level"] shouldBe "ERROR"
+    }
+    test("formatProductLog created should produce INFO") {
+      val map = parse(formatter.formatProductLog("CREATE", "p1", "CREATED", productName = "水"))
+      map["level"] shouldBe "INFO"
+      map["productName"] shouldBe "水"
+    }
+    test("formatProductLog error should produce ERROR") {
+      val map = parse(formatter.formatProductLog("CREATE", "p1", "ERROR"))
+      map["level"] shouldBe "ERROR"
+    }
+    test("formatBusinessOperation with null optional fields should omit them") {
+      val map = parse(formatter.formatBusinessOperation("CREATE", "ORDER", "SUCCESS"))
+      !map.containsKey("businessId") shouldBe true
+      !map.containsKey("businessDescription") shouldBe true
+      !map.containsKey("businessMetadata") shouldBe true
+    }
+    test("formatOrderLog with null user should omit customer id") {
+      val map = parse(formatter.formatOrderLog("PAY", "100", status = "COMPLETED"))
+      !map.containsKey("customerId") shouldBe true
+    }
+  })

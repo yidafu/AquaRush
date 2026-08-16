@@ -21,73 +21,66 @@ package dev.yidafu.aqua.admin.ops.resolvers
 
 import dev.yidafu.aqua.api.service.ops.BannerQueryService
 import dev.yidafu.aqua.common.domain.model.BannerModel
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import org.springframework.data.domain.PageImpl
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertNull
 
-class AdminBannerQueryResolverTest {
-  private lateinit var bannerQueryService: BannerQueryService
-  private lateinit var resolver: AdminBannerQueryResolver
+class AdminBannerQueryResolverTest :
+  FunSpec({
+    var bannerQueryService: BannerQueryService = mockk()
+    var resolver: AdminBannerQueryResolver = mockk()
 
-  private fun banner(): BannerModel =
-    BannerModel(
-      id = 1L,
-      imageUrl = "http://x/banner.png",
-      title = "新客立减",
-      linkTarget = "coupon_center",
-      enabled = true,
-      createdAt = LocalDateTime.now(),
-      updatedAt = LocalDateTime.now(),
-    )
+    fun banner(): BannerModel =
+      BannerModel(
+        id = 1L,
+        imageUrl = "http://x/banner.png",
+        title = "新客立减",
+        linkTarget = "coupon_center",
+        enabled = true,
+        createdAt = LocalDateTime.now(),
+        updatedAt = LocalDateTime.now(),
+      )
 
-  @BeforeEach
-  fun setUp() {
-    bannerQueryService = mockk(relaxed = true)
-    resolver = AdminBannerQueryResolver(bannerQueryService)
-  }
+    beforeTest {
+      bannerQueryService = mockk(relaxed = true)
+      resolver = AdminBannerQueryResolver(bannerQueryService)
+    }
+    test("banners should list with default request") {
+      // Given
+      every { bannerQueryService.listBanners(any()) } returns PageImpl(listOf(banner()))
 
-  @Test
-  fun `banners should list with default request`() {
-    // Given
-    every { bannerQueryService.listBanners(any()) } returns PageImpl(listOf(banner()))
+      // When
+      val result = resolver.banners(null)
 
-    // When
-    val result = resolver.banners(null)
+      // Then
+      result.content.size shouldBe 1
+      result.content[0].title shouldBe "新客立减"
+      verify { bannerQueryService.listBanners(any()) }
+    }
+    test("banner should return null when missing") {
+      // Given
+      every { bannerQueryService.getBanner(999L) } returns null
 
-    // Then
-    assertEquals(1, result.content.size)
-    assertEquals("新客立减", result.content[0].title)
-    verify { bannerQueryService.listBanners(any()) }
-  }
+      // When
+      val result = resolver.banner(999L)
 
-  @Test
-  fun `banner should return null when missing`() {
-    // Given
-    every { bannerQueryService.getBanner(999L) } returns null
+      // Then
+      result.shouldBeNull()
+    }
+    test("banner should map by id") {
+      // Given
+      every { bannerQueryService.getBanner(1L) } returns banner()
 
-    // When
-    val result = resolver.banner(999L)
+      // When
+      val result = resolver.banner(1L)
 
-    // Then
-    assertNull(result)
-  }
-
-  @Test
-  fun `banner should map by id`() {
-    // Given
-    every { bannerQueryService.getBanner(1L) } returns banner()
-
-    // When
-    val result = resolver.banner(1L)
-
-    // Then
-    assertEquals("新客立减", result!!.title)
-    verify { bannerQueryService.getBanner(1L) }
-  }
-}
+      // Then
+      result!!.title shouldBe "新客立减"
+      verify { bannerQueryService.getBanner(1L) }
+    }
+  })

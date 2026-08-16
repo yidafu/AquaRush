@@ -22,74 +22,61 @@ package dev.yidafu.aqua.product.service.impl
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import java.util.Optional
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNull
-import kotlin.test.assertTrue
 
 /**
  * 跨模块商品查询服务单元测试
  */
-class ProductQueryApiServiceImplTest {
-  private lateinit var productRepository: ProductRepository
-  private lateinit var service: ProductQueryApiServiceImpl
+class ProductQueryApiServiceImplTest :
+  FunSpec({
+    var productRepository: ProductRepository = mockk()
+    var service: ProductQueryApiServiceImpl = mockk()
 
-  @BeforeEach
-  fun setUp() {
-    productRepository = mockk(relaxed = true)
-    service = ProductQueryApiServiceImpl(productRepository)
-  }
+    fun product(id: Long): ProductModel =
+      ProductModel().apply {
+        this.id = id
+        name = "P$id"
+      }
 
-  private fun product(id: Long): ProductModel =
-    ProductModel().apply {
-      this.id = id
-      name = "P$id"
+    beforeTest {
+      productRepository = mockk(relaxed = true)
+      service = ProductQueryApiServiceImpl(productRepository)
     }
+    test("findById returns product") {
+      val p = product(1L)
+      every { productRepository.findById(1L) } returns Optional.of(p)
+      every { productRepository.findById(2L) } returns Optional.empty()
 
-  @Test
-  fun `findById returns product`() {
-    val p = product(1L)
-    every { productRepository.findById(1L) } returns Optional.of(p)
-    every { productRepository.findById(2L) } returns Optional.empty()
+      service.findById(1L) shouldBe p
+      service.findById(2L).shouldBeNull()
+    }
+    test("findByIds delegates to repository") {
+      val expected = listOf(product(1L))
+      every { productRepository.findAllById(listOf(1L)) } returns expected
 
-    assertEquals(p, service.findById(1L))
-    assertNull(service.findById(2L))
-  }
+      service.findByIds(listOf(1L)) shouldBe expected
+    }
+    test("findOnlineProducts filters by online status") {
+      val expected = listOf(product(1L))
+      every { productRepository.findByStatus(ProductModelStatus.ONLINE) } returns expected
 
-  @Test
-  fun `findByIds delegates to repository`() {
-    val expected = listOf(product(1L))
-    every { productRepository.findAllById(listOf(1L)) } returns expected
+      service.findOnlineProducts() shouldBe expected
+    }
+    test("findByStatus delegates to repository") {
+      val expected = listOf(product(2L))
+      every { productRepository.findByStatus(ProductModelStatus.OFFLINE) } returns expected
 
-    assertEquals(expected, service.findByIds(listOf(1L)))
-  }
+      service.findByStatus(ProductModelStatus.OFFLINE) shouldBe expected
+    }
+    test("existsById delegates to repository") {
+      every { productRepository.existsById(1L) } returns true
 
-  @Test
-  fun `findOnlineProducts filters by online status`() {
-    val expected = listOf(product(1L))
-    every { productRepository.findByStatus(ProductModelStatus.ONLINE) } returns expected
-
-    assertEquals(expected, service.findOnlineProducts())
-  }
-
-  @Test
-  fun `findByStatus delegates to repository`() {
-    val expected = listOf(product(2L))
-    every { productRepository.findByStatus(ProductModelStatus.OFFLINE) } returns expected
-
-    assertEquals(expected, service.findByStatus(ProductModelStatus.OFFLINE))
-  }
-
-  @Test
-  fun `existsById delegates to repository`() {
-    every { productRepository.existsById(1L) } returns true
-
-    assertTrue(service.existsById(1L))
-    assertFalse(service.existsById(2L))
-  }
-}
+      service.existsById(1L) shouldBe true
+      service.existsById(2L) shouldBe false
+    }
+  })

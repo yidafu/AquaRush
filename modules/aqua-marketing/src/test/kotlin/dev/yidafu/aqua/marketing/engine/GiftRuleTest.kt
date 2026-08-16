@@ -27,130 +27,114 @@ import dev.yidafu.aqua.common.domain.model.enums.GiftActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
 import dev.yidafu.aqua.marketing.gift.domain.repository.GiftActivityRepository
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.DisplayName
-import org.junit.jupiter.api.Test
 import java.time.LocalDateTime
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 
 /** 买赠/满赠规则单元测试(R-MKT-09,聚焦引擎测试未覆盖分支:分组范围/赠品缺失)。 */
-class GiftRuleTest {
-  private lateinit var giftActivityRepository: GiftActivityRepository
-  private lateinit var marketingPricingQueryApiService: MarketingPricingQueryApiService
-  private lateinit var productQueryApiService: ProductQueryApiService
-  private lateinit var rule: GiftRule
+class GiftRuleTest :
+  FunSpec({
+    var giftActivityRepository: GiftActivityRepository = mockk()
+    var marketingPricingQueryApiService: MarketingPricingQueryApiService = mockk()
+    var productQueryApiService: ProductQueryApiService = mockk()
+    var rule: GiftRule = mockk()
+    val now: LocalDateTime = LocalDateTime.of(2026, 8, 14, 10, 0)
 
-  private val now: LocalDateTime = LocalDateTime.of(2026, 8, 14, 10, 0)
-
-  @BeforeEach
-  fun setUp() {
-    giftActivityRepository = mockk()
-    marketingPricingQueryApiService = mockk()
-    productQueryApiService = mockk()
-    rule = GiftRule(giftActivityRepository, marketingPricingQueryApiService, productQueryApiService)
-    every { marketingPricingQueryApiService.findGroupId(1L) } returns 5L
-  }
-
-  private fun ctx(cashQuantity: Int = 5): PricingContext =
-    PricingContext(
-      userId = 1L,
-      items =
-        listOf(
-          PricingItemContext(
-            productId = 1L,
-            quantity = cashQuantity,
-            product = ProductModel(id = 1L, name = "水", price = 2100, specification = "19L"),
+    fun ctx(cashQuantity: Int = 5): PricingContext =
+      PricingContext(
+        userId = 1L,
+        items =
+          listOf(
+            PricingItemContext(
+              productId = 1L,
+              quantity = cashQuantity,
+              product = ProductModel(id = 1L, name = "水", price = 2100, specification = "19L"),
+            ),
           ),
-        ),
-      isSelfCollect = false,
-      preferredCouponId = null,
-      ticketRedeemCount = 0,
-      now = now,
-    )
-
-  private fun state(cashSubtotal: Long = 10500): PricingState = PricingState(cashSubtotalCents = cashSubtotal)
-
-  private fun giftActivity(
-    id: Long,
-    type: GiftActivityType = GiftActivityType.FULL_GIFT,
-    scope: PromotionScope = PromotionScope.ALL,
-    productId: Long? = null,
-    customerGroupId: Long? = null,
-    thresholdCents: Long? = 10000,
-    thresholdQuantity: Int? = null,
-  ): GiftActivityModel =
-    GiftActivityModel(
-      id = id,
-      name = "赠品活动$id",
-      giftType = type,
-      thresholdCents = thresholdCents,
-      thresholdQuantity = thresholdQuantity,
-      scope = scope,
-      productId = productId,
-      customerGroupId = customerGroupId,
-      giftProductId = 2L,
-      giftQuantity = 1,
-      validFrom = now.minusDays(1),
-      validTo = now.plusDays(30),
-      status = PromotionActivityStatus.ACTIVE,
-    )
-
-  @Test
-  @DisplayName("分组范围:用户分组命中出赠品,未命中不出")
-  fun `group scope matches user group`() {
-    every { giftActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, now) } returns
-      listOf(
-        giftActivity(1L, scope = PromotionScope.GROUP, customerGroupId = 5L, thresholdCents = 10000),
-        giftActivity(2L, scope = PromotionScope.GROUP, customerGroupId = 9L, thresholdCents = 10000),
+        isSelfCollect = false,
+        preferredCouponId = null,
+        ticketRedeemCount = 0,
+        now = now,
       )
-    every { productQueryApiService.findById(2L) } returns ProductModel(id = 2L, name = "赠品水", price = 1200)
 
-    val s = state()
-    rule.evaluate(ctx(), s)
+    fun state(cashSubtotal: Long = 10500): PricingState = PricingState(cashSubtotalCents = cashSubtotal)
 
-    assertEquals(1, s.giftItems.size)
-    assertEquals(1L, s.giftItems[0].giftActivityId)
-  }
+    fun giftActivity(
+      id: Long,
+      type: GiftActivityType = GiftActivityType.FULL_GIFT,
+      scope: PromotionScope = PromotionScope.ALL,
+      productId: Long? = null,
+      customerGroupId: Long? = null,
+      thresholdCents: Long? = 10000,
+      thresholdQuantity: Int? = null,
+    ): GiftActivityModel =
+      GiftActivityModel(
+        id = id,
+        name = "赠品活动$id",
+        giftType = type,
+        thresholdCents = thresholdCents,
+        thresholdQuantity = thresholdQuantity,
+        scope = scope,
+        productId = productId,
+        customerGroupId = customerGroupId,
+        giftProductId = 2L,
+        giftQuantity = 1,
+        validFrom = now.minusDays(1),
+        validTo = now.plusDays(30),
+        status = PromotionActivityStatus.ACTIVE,
+      )
 
-  @Test
-  @DisplayName("指定商品范围:商品未命中不出赠品")
-  fun `product scope without matching product`() {
-    every { giftActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, now) } returns
-      listOf(giftActivity(1L, scope = PromotionScope.PRODUCT, productId = 99L, thresholdCents = 10000))
+    beforeTest {
+      giftActivityRepository = mockk()
+      marketingPricingQueryApiService = mockk()
+      productQueryApiService = mockk()
+      rule = GiftRule(giftActivityRepository, marketingPricingQueryApiService, productQueryApiService)
+      every { marketingPricingQueryApiService.findGroupId(1L) } returns 5L
+    }
+    test("group scope matches user group") {
+      every { giftActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, now) } returns
+        listOf(
+          giftActivity(1L, scope = PromotionScope.GROUP, customerGroupId = 5L, thresholdCents = 10000),
+          giftActivity(2L, scope = PromotionScope.GROUP, customerGroupId = 9L, thresholdCents = 10000),
+        )
+      every { productQueryApiService.findById(2L) } returns ProductModel(id = 2L, name = "赠品水", price = 1200)
 
-    val s = state()
-    rule.evaluate(ctx(), s)
+      val s = state()
+      rule.evaluate(ctx(), s)
 
-    assertTrue(s.giftItems.isEmpty())
-  }
+      s.giftItems.size shouldBe 1
+      s.giftItems[0].giftActivityId shouldBe 1L
+    }
+    test("product scope without matching product") {
+      every { giftActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, now) } returns
+        listOf(giftActivity(1L, scope = PromotionScope.PRODUCT, productId = 99L, thresholdCents = 10000))
 
-  @Test
-  @DisplayName("赠品商品不存在:赠品名回退「赠品」")
-  fun `missing gift product falls back to gift name`() {
-    every { giftActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, now) } returns
-      listOf(giftActivity(1L, thresholdCents = 10000))
-    every { productQueryApiService.findById(2L) } returns null
+      val s = state()
+      rule.evaluate(ctx(), s)
 
-    val s = state()
-    rule.evaluate(ctx(), s)
+      s.giftItems.isEmpty() shouldBe true
+    }
+    test("missing gift product falls back to gift name") {
+      every { giftActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, now) } returns
+        listOf(giftActivity(1L, thresholdCents = 10000))
+      every { productQueryApiService.findById(2L) } returns null
 
-    assertEquals(1, s.giftItems.size)
-    assertEquals("赠品", s.giftItems[0].productName)
-  }
+      val s = state()
+      rule.evaluate(ctx(), s)
 
-  @Test
-  @DisplayName("满赠门槛为空:视为 0 门槛恒命中")
-  fun `full gift with null threshold always matches`() {
-    every { giftActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, now) } returns
-      listOf(giftActivity(1L, thresholdCents = null))
-    every { productQueryApiService.findById(2L) } returns ProductModel(id = 2L, name = "赠品水", price = 1200)
+      s.giftItems.size shouldBe 1
+      s.giftItems[0].productName shouldBe "赠品"
+    }
+    test("full gift with null threshold always matches") {
+      every { giftActivityRepository.findActiveActivities(PromotionActivityStatus.ACTIVE, now) } returns
+        listOf(giftActivity(1L, thresholdCents = null))
+      every { productQueryApiService.findById(2L) } returns ProductModel(id = 2L, name = "赠品水", price = 1200)
 
-    val s = state(cashSubtotal = 0)
-    rule.evaluate(ctx(), s)
+      val s = state(cashSubtotal = 0)
+      rule.evaluate(ctx(), s)
 
-    assertEquals(1, s.giftItems.size)
-  }
-}
+      s.giftItems.size shouldBe 1
+    }
+  })
