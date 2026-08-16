@@ -27,29 +27,29 @@ const OrderSection: React.FC<OrderSectionProps> = ({ orderStats, onOrderNavigati
       icon: '/assets/icons/order/all.png',
       label: '全部',
       count: 0,
-      type: 'pending_payment',
-      color: '#ff6b35'
+      type: 'all',
+      color: 'var(--brand-primary)'
     },
     {
       icon: '/assets/icons/order/credit-card.png',
       label: '待付款',
       count: orderStats.pendingPayment,
       type: 'pending_payment',
-      color: '#ff6b35'
+      color: 'var(--brand-primary)'
     },
     {
       icon: '/assets/icons/order/shopping-bag.png',
       label: '待配送',
       count: orderStats.pendingDelivery,
       type: 'pending_delivery',
-      color: '#667eea'
+      color: 'var(--brand-primary)'
     },
     {
       icon: '/assets/icons/order/truck.png',
       label: '配送中',
       count: orderStats.delivering,
       type: 'delivering',
-      color: '#19be6b'
+      color: 'var(--brand-primary)'
     }
   ]
 

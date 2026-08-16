@@ -1,6 +1,5 @@
 import { PropsWithChildren, useEffect } from 'react'
 import { useDidShow, useDidHide } from '@tarojs/taro'
-import { ThemeProvider } from './components/ThemeProvider'
 import { authService } from './utils/auth'
 import { userActionTracker } from './utils/tracking'
 import { testConfigurationInDevelopment } from './config/config-test'
@@ -9,22 +8,6 @@ import { connectWsPushIfLoggedIn } from './services/wsPush'
 import './app.scss'
 
 function App({ children }: PropsWithChildren) {
-  // 初始化主题
-  const initAppTheme = () => {
-    // 可以在这里进行主题的初始化设置
-    // 例如根据系统主题、用户偏好等设置默认主题
-    try {
-      const hour = new Date().getHours()
-      // 根据时间自动切换主题（可选）
-      if (hour >= 18 || hour < 6) {
-        // 晚上可以使用更柔和的颜色
-        // setTheme('purple')
-      }
-    } catch (error) {
-      console.warn('Failed to initialize app theme:', error)
-    }
-  }
-
   // 执行静默登录
   const performSilentLogin = async () => {
     try {
@@ -87,8 +70,6 @@ function App({ children }: PropsWithChildren) {
     // 验证API配置（仅在开发环境）
     testConfigurationInDevelopment()
 
-    // 初始化主题
-    initAppTheme()
     // 静默登录
     initSilentLogin()
     // 已登录用户建立 WebSocket 实时推送连接(F-NTF-003;未登录时跳过,登录页/我的页会再连)
@@ -110,10 +91,10 @@ function App({ children }: PropsWithChildren) {
   })
 
   return (
-    <ThemeProvider defaultTheme="aqua">
+    <>
       {/* props.children 是将要被渲染的页面 */}
       {children}
-    </ThemeProvider>
+    </>
   )
 }
 

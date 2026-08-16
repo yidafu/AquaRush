@@ -18,7 +18,6 @@ export const PAGE_TRACK_CONFIG: Record<string, PageTrackConfig> = {
   '/pages/delivery-tracking/index': { title: '配送跟踪' },
   '/pages/my/index': { title: '我的', props: { tab: 'my' } },
   '/pages/profile-edit/index': { title: '个人资料' },
-  '/pages/theme-settings/index': { title: '主题设置' },
   '/pages/about/index': { title: '关于我们' },
   '/pages/feedback/index': { title: '意见反馈' },
   '/pages/feedback-records/index': { title: '反馈记录' },

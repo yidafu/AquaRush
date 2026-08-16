@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtCard, AtList, AtListItem, AtToast } from 'taro-ui'
+import { AtToast } from 'taro-ui'
 import AvatarNicknameForm from './components/AvatarNicknameForm'
 import UserSection from './components/UserSection'
 import OrderSection from './components/OrderSection'
@@ -13,7 +13,6 @@ import { connectWsPushIfLoggedIn, wsPushService } from '../../services/wsPush'
 
 // Taro UI 样式已在 app.scss 中全局引入，无需重复引入
 import './index.scss'
-import 'taro-ui/dist/style/components/list.scss'
 // Use AuthUserInfo from auth utility
 
 interface OrderStats {
@@ -281,19 +280,12 @@ const MyPage: React.FC = () => {
     })
   }
 
-  const handleSettings = (): void => {
-    // F-USR-002/004:设置入口指向主题设置页(原 /pages/settings/index 不存在,死链)
-    Taro.navigateTo({
-      url: '/pages/theme-settings/index'
-    })
-  }
-
   const handleLogout = (): void => {
     Taro.showModal({
       title: '退出登录',
       content: '确定要退出登录吗？',
       confirmText: '退出',
-      confirmColor: '#e64340',
+      confirmColor: '#FF4D4F',
       success: async (res) => {
         if (!res.confirm) return
         try {
@@ -356,25 +348,13 @@ const MyPage: React.FC = () => {
       <ServiceSection unreadCount={unreadCount} />
 
       {/* 其他设置 */}
-      <AtCard title='其他' className='settings-section'>
-        <AtList>
-
-          <AtListItem
-            title='设置'
-            arrow='right'
-            iconInfo={{ value: '/assets/icons/service/settings.png', color: 'var(--theme-primary)' }}
-            onClick={handleSettings}
-          />
-          {authService.isAuthenticated() && (
-            <AtListItem
-              title='退出登录'
-              arrow='right'
-              onClick={handleLogout}
-            />
-          )}
-        </AtList>
-
-      </AtCard>
+      {authService.isAuthenticated() && (
+        <View className='logout-section'>
+          <AtButton className='logout-button' onClick={handleLogout}>
+            退出登录
+          </AtButton>
+        </View>
+      )}
       {/* 底部安全区域 */}
       <View className='safe-bottom' />
 

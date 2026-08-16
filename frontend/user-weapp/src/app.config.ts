@@ -12,7 +12,6 @@ export default defineAppConfig({
     'pages/delivery-tracking/index',
     'pages/my/index',
     'pages/profile-edit/index',
-    'pages/theme-settings/index',
     'pages/about/index',
     'pages/feedback/index',
     'pages/feedback-records/index',
@@ -33,7 +32,7 @@ export default defineAppConfig({
 
   tabBar: {
     color: '#999999',
-    selectedColor: '#1890ff',
+    selectedColor: '#3A9BD9',
     backgroundColor: '#ffffff',
     borderStyle: 'white',
     list: [
