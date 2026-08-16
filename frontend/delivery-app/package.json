@@ -41,10 +41,14 @@
     "victory-native": "^36"
   },
   "devDependencies": {
+    "@react-native/jest-preset": "0.86.2",
+    "@types/jest": "^29.5.14",
     "@types/react": "~19.2.2",
     "babel-plugin-aquarush-track": "workspace:*",
     "babel-preset-expo": "~57.0.6",
     "eslint-config-expo": "~57.0.1",
+    "jest": "^29.7.0",
+    "jest-expo": "~57.0.4",
     "typescript": "~6.0.3"
   },
   "scripts": {
@@ -53,7 +57,10 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
   },
   "private": true,
   "expo": {

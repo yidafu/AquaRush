@@ -3,6 +3,7 @@
   "compilerOptions": {
     "strict": true,
     "useUnknownInCatchVariables": false,
+    "types": ["jest"],
     "paths": {
       "@/*": [
         "./src/*"
