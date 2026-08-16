@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.ops.systemconfig.service.impl
 
 import dev.yidafu.aqua.api.dto.SaveSystemConfigItemRequest
+import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingType
@@ -104,10 +105,10 @@ class SystemConfigMutationServiceImplTest :
       service = SystemConfigMutationServiceImpl(systemSettingsRepository, opsConfigAuditService)
     }
     test("batch save updates values with audit") {
-      val low = numberSetting("low_stock_threshold", "10", "0", "99999", "10")
-      val mid = numberSetting("stock_warning_tier_mid", "50", "0", "99999", "50")
-      every { systemSettingsRepository.findBySettingKey("low_stock_threshold") } returns low
-      every { systemSettingsRepository.findBySettingKey("stock_warning_tier_mid") } returns mid
+      val low = numberSetting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "10", "0", "99999", "10")
+      val mid = numberSetting(SystemSettingKeys.STOCK_WARNING_TIER_MID, "50", "0", "99999", "50")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns low
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.STOCK_WARNING_TIER_MID) } returns mid
       every { systemSettingsRepository.saveAll(any<Iterable<SystemSettingsModel>>()) } answers { firstArg() }
 
       val saved =
@@ -116,8 +117,8 @@ class SystemConfigMutationServiceImplTest :
           adminName = "admin",
           items =
             listOf(
-              SaveSystemConfigItemRequest("low_stock_threshold", "20"),
-              SaveSystemConfigItemRequest("stock_warning_tier_mid", "80"),
+              SaveSystemConfigItemRequest(SystemSettingKeys.LOW_STOCK_THRESHOLD, "20"),
+              SaveSystemConfigItemRequest(SystemSettingKeys.STOCK_WARNING_TIER_MID, "80"),
             ),
         )
 
@@ -138,30 +139,30 @@ class SystemConfigMutationServiceImplTest :
       }
     }
     test("number out of range rejected") {
-      val setting = numberSetting("low_stock_threshold", "10", "0", "99999", "10")
-      every { systemSettingsRepository.findBySettingKey("low_stock_threshold") } returns setting
+      val setting = numberSetting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "10", "0", "99999", "10")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns setting
 
       val ex =
         shouldThrow<InvalidSettingValueException> {
-          service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigItemRequest("low_stock_threshold", "100000")))
+          service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigItemRequest(SystemSettingKeys.LOW_STOCK_THRESHOLD, "100000")))
         }
       ex.message shouldBe "参数值超出范围"
     }
     test("number format rejected") {
-      val setting = numberSetting("low_stock_threshold", "10", "0", "99999", "10")
-      every { systemSettingsRepository.findBySettingKey("low_stock_threshold") } returns setting
+      val setting = numberSetting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "10", "0", "99999", "10")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns setting
 
       shouldThrow<InvalidSettingValueException> {
-        service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigItemRequest("low_stock_threshold", "abc")))
+        service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigItemRequest(SystemSettingKeys.LOW_STOCK_THRESHOLD, "abc")))
       }
     }
     test("boolean invalid value rejected") {
-      val setting = booleanSetting("delivery_slot_morning_enabled", "true")
-      every { systemSettingsRepository.findBySettingKey("delivery_slot_morning_enabled") } returns setting
+      val setting = booleanSetting(SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED, "true")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED) } returns setting
 
       val ex =
         shouldThrow<InvalidSettingValueException> {
-          service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigItemRequest("delivery_slot_morning_enabled", "yes")))
+          service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigItemRequest(SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED, "yes")))
         }
       ex.message shouldBe "参数值格式不正确"
     }
@@ -174,10 +175,10 @@ class SystemConfigMutationServiceImplTest :
       }
     }
     test("stock tiers must increase") {
-      val low = numberSetting("low_stock_threshold", "10", "0", "99999", "10")
-      val mid = numberSetting("stock_warning_tier_mid", "50", "0", "99999", "50")
-      every { systemSettingsRepository.findBySettingKey("low_stock_threshold") } returns low
-      every { systemSettingsRepository.findBySettingKey("stock_warning_tier_mid") } returns mid
+      val low = numberSetting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "10", "0", "99999", "10")
+      val mid = numberSetting(SystemSettingKeys.STOCK_WARNING_TIER_MID, "50", "0", "99999", "50")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns low
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.STOCK_WARNING_TIER_MID) } returns mid
 
       val ex =
         shouldThrow<InvalidSettingValueException> {
@@ -185,18 +186,18 @@ class SystemConfigMutationServiceImplTest :
             1L,
             "admin",
             listOf(
-              SaveSystemConfigItemRequest("low_stock_threshold", "20"),
-              SaveSystemConfigItemRequest("stock_warning_tier_mid", "10"),
+              SaveSystemConfigItemRequest(SystemSettingKeys.LOW_STOCK_THRESHOLD, "20"),
+              SaveSystemConfigItemRequest(SystemSettingKeys.STOCK_WARNING_TIER_MID, "10"),
             ),
           )
         }
       ex.message shouldBe "档位需递增"
     }
     test("time window must be legal") {
-      val start = stringSetting("delivery_slot_morning_start", "09:00")
-      val end = stringSetting("delivery_slot_morning_end", "12:00")
-      every { systemSettingsRepository.findBySettingKey("delivery_slot_morning_start") } returns start
-      every { systemSettingsRepository.findBySettingKey("delivery_slot_morning_end") } returns end
+      val start = stringSetting(SystemSettingKeys.DELIVERY_SLOT_MORNING_START, "09:00")
+      val end = stringSetting(SystemSettingKeys.DELIVERY_SLOT_MORNING_END, "12:00")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.DELIVERY_SLOT_MORNING_START) } returns start
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.DELIVERY_SLOT_MORNING_END) } returns end
 
       val ex =
         shouldThrow<InvalidSettingValueException> {
@@ -204,8 +205,8 @@ class SystemConfigMutationServiceImplTest :
             1L,
             "admin",
             listOf(
-              SaveSystemConfigItemRequest("delivery_slot_morning_start", "12:00"),
-              SaveSystemConfigItemRequest("delivery_slot_morning_end", "09:00"),
+              SaveSystemConfigItemRequest(SystemSettingKeys.DELIVERY_SLOT_MORNING_START, "12:00"),
+              SaveSystemConfigItemRequest(SystemSettingKeys.DELIVERY_SLOT_MORNING_END, "09:00"),
             ),
           )
         }
@@ -219,11 +220,11 @@ class SystemConfigMutationServiceImplTest :
       }
     }
     test("restore resets to default with audit") {
-      val setting = numberSetting("low_stock_threshold", "30", "0", "99999", "10")
-      every { systemSettingsRepository.findBySettingKey("low_stock_threshold") } returns setting
+      val setting = numberSetting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "30", "0", "99999", "10")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns setting
       every { systemSettingsRepository.save(any()) } answers { firstArg() }
 
-      val saved = service.restoreSystemConfig("low_stock_threshold", 1L, "admin")
+      val saved = service.restoreSystemConfig(SystemSettingKeys.LOW_STOCK_THRESHOLD, 1L, "admin")
 
       saved.settingValue shouldBe "10"
       saved.updatedBy shouldBe "admin"

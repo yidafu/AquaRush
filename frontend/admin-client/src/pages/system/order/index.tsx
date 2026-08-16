@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Form, InputNumber, Switch, TimePicker, Button, Alert, Space, Divider, Modal, Typography } from 'antd';
+import { Card, Form, InputNumber, Switch, TimePicker, Button, Alert, Space, Divider, Modal, Typography, message } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
-import { SystemConfigGroup } from '@aquarush/common';
+import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
 import SystemConfigAuditLog from '../components/SystemConfigAuditLog';
@@ -19,25 +19,25 @@ const SLOTS: { label: string; config: SlotConfig }[] = [
   {
     label: '上午',
     config: {
-      enabledKey: 'delivery_slot_morning_enabled',
-      startKey: 'delivery_slot_morning_start',
-      endKey: 'delivery_slot_morning_end',
+      enabledKey: SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED,
+      startKey: SystemSettingKeys.DELIVERY_SLOT_MORNING_START,
+      endKey: SystemSettingKeys.DELIVERY_SLOT_MORNING_END,
     },
   },
   {
     label: '下午',
     config: {
-      enabledKey: 'delivery_slot_afternoon_enabled',
-      startKey: 'delivery_slot_afternoon_start',
-      endKey: 'delivery_slot_afternoon_end',
+      enabledKey: SystemSettingKeys.DELIVERY_SLOT_AFTERNOON_ENABLED,
+      startKey: SystemSettingKeys.DELIVERY_SLOT_AFTERNOON_START,
+      endKey: SystemSettingKeys.DELIVERY_SLOT_AFTERNOON_END,
     },
   },
   {
     label: '晚上',
     config: {
-      enabledKey: 'delivery_slot_evening_enabled',
-      startKey: 'delivery_slot_evening_start',
-      endKey: 'delivery_slot_evening_end',
+      enabledKey: SystemSettingKeys.DELIVERY_SLOT_EVENING_ENABLED,
+      startKey: SystemSettingKeys.DELIVERY_SLOT_EVENING_START,
+      endKey: SystemSettingKeys.DELIVERY_SLOT_EVENING_END,
     },
   },
 ];
@@ -85,29 +85,39 @@ const SystemOrderConfig: React.FC = () => {
     }
 
     form.setFieldsValue({
-      paymentTimeoutMinutes: numberValue('payment_timeout_minutes'),
-      immediateMinutes: numberValue('delivery_slot_immediate_minutes'),
-      dispatchTimeoutReminderMinutes: numberValue('dispatch_timeout_reminder_minutes'),
-      autoConfirmReceiptDays: numberValue('auto_confirm_receipt_days'),
+      paymentTimeoutMinutes: numberValue(SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES),
+      immediateMinutes: numberValue(SystemSettingKeys.DELIVERY_SLOT_IMMEDIATE_MINUTES),
+      dispatchTimeoutReminderMinutes: numberValue(SystemSettingKeys.DISPATCH_TIMEOUT_REMINDER_MINUTES),
+      autoConfirmReceiptDays: numberValue(SystemSettingKeys.AUTO_CONFIRM_RECEIPT_DAYS),
       slots: slotValues,
     });
   }, [data, form]);
 
   const handleSave = async () => {
     const values = (await form.validateFields()) as OrderConfigValues;
-    const input: { settingKey: string; settingValue: string }[] = [
-      { settingKey: 'payment_timeout_minutes', settingValue: String(values.paymentTimeoutMinutes) },
-      { settingKey: 'delivery_slot_immediate_minutes', settingValue: String(values.immediateMinutes) },
-      { settingKey: 'dispatch_timeout_reminder_minutes', settingValue: String(values.dispatchTimeoutReminderMinutes) },
-      { settingKey: 'auto_confirm_receipt_days', settingValue: String(values.autoConfirmReceiptDays) },
-    ];
+    // 仅收集有效值:数值字段缺失/非法时跳过,避免把 "undefined"/"NaN" 发往后端触发"参数值格式不正确"
+    const input: { settingKey: string; settingValue: string }[] = [];
+    const pushNumber = (key: string, value: number | undefined) => {
+      if (value != null && Number.isFinite(value)) {
+        input.push({ settingKey: key, settingValue: String(value) });
+      }
+    };
+    pushNumber(SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES, values.paymentTimeoutMinutes);
+    pushNumber(SystemSettingKeys.DELIVERY_SLOT_IMMEDIATE_MINUTES, values.immediateMinutes);
+    pushNumber(SystemSettingKeys.DISPATCH_TIMEOUT_REMINDER_MINUTES, values.dispatchTimeoutReminderMinutes);
+    pushNumber(SystemSettingKeys.AUTO_CONFIRM_RECEIPT_DAYS, values.autoConfirmReceiptDays);
     for (const slot of SLOTS) {
-      const slotValue = values.slots[slot.label];
+      const slotValue = values.slots?.[slot.label];
+      if (!slotValue) continue;
       input.push({ settingKey: slot.config.enabledKey, settingValue: String(slotValue.enabled) });
-      if (slotValue.range) {
+      if (slotValue.range && slotValue.range[0] && slotValue.range[1]) {
         input.push({ settingKey: slot.config.startKey, settingValue: slotValue.range[0].format('HH:mm') });
         input.push({ settingKey: slot.config.endKey, settingValue: slotValue.range[1].format('HH:mm') });
       }
+    }
+    if (input.length === 0) {
+      message.warning('没有可保存的参数变更');
+      return;
     }
     Modal.confirm({
       title: '确定保存吗?将影响新订单的履约流程,已生成订单不受影响',
@@ -128,7 +138,7 @@ const SystemOrderConfig: React.FC = () => {
           style={{ marginBottom: 24 }}
           message="配置将影响新订单的履约流程,已生成订单不受影响;每次修改留审计日志。"
         />
-        <Form form={form} layout="vertical" style={{ maxWidth: 640 }} preserve={false}>
+        <Form form={form} layout="vertical" style={{ maxWidth: 640 }}>
           <Divider plain>支付参数</Divider>
           <Form.Item
             name="paymentTimeoutMinutes"

@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.ops.systemconfig.service.impl
 
+import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingType
@@ -55,20 +56,20 @@ class SystemConfigQueryApiServiceImplTest :
       service = SystemConfigQueryApiServiceImpl(systemSettingsRepository)
     }
     test("reads current value") {
-      every { systemSettingsRepository.findBySettingKey("low_stock_threshold") } returns setting("low_stock_threshold", "20", "10")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns setting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "20", "10")
 
-      service.getLongValue("low_stock_threshold", 10L) shouldBe 20L
+      service.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) shouldBe 20L
       service.getBooleanValue("flag", true) shouldBe true // 未配置回退
     }
     test("falls back to default value") {
-      every { systemSettingsRepository.findBySettingKey("low_stock_threshold") } returns setting("low_stock_threshold", null, "10")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns setting(SystemSettingKeys.LOW_STOCK_THRESHOLD, null, "10")
 
-      service.getLongValue("low_stock_threshold", 99L) shouldBe 10L
+      service.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 99L) shouldBe 10L
     }
     test("falls back to caller fallback") {
-      every { systemSettingsRepository.findBySettingKey("low_stock_threshold") } returns setting("low_stock_threshold", "abc", null)
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns setting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "abc", null)
 
-      service.getLongValue("low_stock_threshold", 99L) shouldBe 99L
+      service.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 99L) shouldBe 99L
     }
     test("missing row falls back") {
       every { systemSettingsRepository.findBySettingKey("not_exist") } returns null as SystemSettingsModel?
@@ -78,9 +79,9 @@ class SystemConfigQueryApiServiceImplTest :
       service.getStringValue("not_exist", null).shouldBeNull()
     }
     test("boolean values parsed") {
-      every { systemSettingsRepository.findBySettingKey("delivery_slot_morning_enabled") } returns
-        setting("delivery_slot_morning_enabled", "false", "true")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED) } returns
+        setting(SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED, "false", "true")
 
-      service.getBooleanValue("delivery_slot_morning_enabled", true) shouldBe false
+      service.getBooleanValue(SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED, true) shouldBe false
     }
   })

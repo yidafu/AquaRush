@@ -36,9 +36,11 @@ import MarketingWaterTickets from './pages/marketing/water-tickets';
 import MarketingFlashSale from './pages/marketing/flash-sale';
 import MarketingBuyGift from './pages/marketing/buy-gift';
 import MarketingNewcomer from './pages/marketing/newcomer';
-import SystemParameters from './pages/system/parameters';
 import SystemOrderConfig from './pages/system/order';
 import SystemStockConfig from './pages/system/stock';
+import SystemSecurityConfig from './pages/system/security';
+import SystemNotificationsConfig from './pages/system/notifications';
+import SystemDataMaintenanceConfig from './pages/system/data';
 import DeliveryTrajectories from './pages/trajectories';
 
 // 浏览器标签页标题由 react-helmet-async 统一管理,与 Layout 菜单文案保持一致;
@@ -97,9 +99,11 @@ const App: React.FC = () => {
         <Route path="marketing/flash-sale" element={page('限时特价', <MarketingFlashSale />)} />
         <Route path="marketing/buy-gift" element={page('买赠/满赠', <MarketingBuyGift />)} />
         <Route path="marketing/newcomer" element={page('首单立减/新人价', <MarketingNewcomer />)} />
-        <Route path="system-config/parameters" element={page('系统参数', <SystemParameters />)} />
         <Route path="system-config/order" element={page('订单与履约参数', <SystemOrderConfig />)} />
         <Route path="system-config/stock" element={page('库存预警阈值', <SystemStockConfig />)} />
+        <Route path="system-config/security" element={page('账号与安全', <SystemSecurityConfig />)} />
+        <Route path="system-config/notifications" element={page('通知与订阅消息', <SystemNotificationsConfig />)} />
+        <Route path="system-config/data" element={page('数据维护', <SystemDataMaintenanceConfig />)} />
       </Route>
     </Routes>
   );

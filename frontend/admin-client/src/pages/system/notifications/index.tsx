@@ -1,0 +1,217 @@
+import React, { useState, useEffect, useCallback } from 'react';
+import { Card, Table, Tag, Button, Alert, Modal, Form, Input, Switch, Typography } from 'antd';
+import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
+import type { SystemConfigVo } from '@aquarush/common';
+import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
+import SystemConfigAuditLog from '../components/SystemConfigAuditLog';
+
+// 通知与订阅消息配置页(F-SYS-005):按业务场景配置微信订阅消息模板 ID 与启用状态
+// 仅超级管理员可读写(SYSTEM_CONFIG_WRITE,R-SYS-03);密钥类(appid/secret)不在此在线配置(R-SYS-02);
+// 实际发送依赖订阅消息链路(F-ADR-011/G08,目标形态)
+
+interface TemplateScenario {
+  key: string;
+  label: string;
+  description: string;
+  idKey: string;
+  enabledKey: string;
+}
+
+const SCENARIOS: TemplateScenario[] = [
+  {
+    key: 'order_created',
+    label: '下单通知',
+    description: '用户下单成功后推送订单确认',
+    idKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_ORDER_CREATED_ID,
+    enabledKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_ORDER_CREATED_ENABLED,
+  },
+  {
+    key: 'delivery_completed',
+    label: '配送完成',
+    description: '配送完成后推送送达确认',
+    idKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_DELIVERY_COMPLETED_ID,
+    enabledKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_DELIVERY_COMPLETED_ENABLED,
+  },
+  {
+    key: 'order_urging',
+    label: '催单',
+    description: '配送超时用户催单提醒',
+    idKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_ORDER_URGING_ID,
+    enabledKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_ORDER_URGING_ENABLED,
+  },
+  {
+    key: 'payment_result',
+    label: '支付结果',
+    description: '支付成功/失败结果通知',
+    idKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_PAYMENT_RESULT_ID,
+    enabledKey: SystemSettingKeys.NOTIFICATION_TEMPLATE_PAYMENT_RESULT_ENABLED,
+  },
+];
+
+// 微信模板 ID:字母/数字/下划线/中划线,6-64 位(宽松校验,避免误拦)
+const TEMPLATE_ID_PATTERN = /^[A-Za-z0-9_-]{6,64}$/;
+
+interface TemplateRow {
+  scenario: TemplateScenario;
+  templateId: string | null;
+  enabled: boolean;
+}
+
+const SystemNotificationsConfig: React.FC = () => {
+  const canWrite = JSON.parse(localStorage.getItem('userInfo') || '{}').role === 'SUPER_ADMIN';
+  const [loadConfigs, { data, loading }] = useSystemConfigs();
+  const [saveConfigs, { loading: saving }] = useSaveSystemConfigs();
+  const [rows, setRows] = useState<TemplateRow[]>([]);
+  const [editing, setEditing] = useState<TemplateRow | null>(null);
+  const [form] = Form.useForm();
+
+  const loadGroup = useCallback(() => {
+    loadConfigs({ variables: { group: SystemConfigGroup.NOTIFICATION } });
+  }, [loadConfigs]);
+
+  useEffect(() => {
+    loadGroup();
+  }, [loadGroup]);
+
+  // 回显:键 → 模板行(模板 ID 未配置时展示「未设置」)
+  useEffect(() => {
+    const configs = data?.systemConfigs || [];
+    if (configs.length === 0) return;
+    const byKey = new Map<string, SystemConfigVo>(configs.map((c: SystemConfigVo) => [c.settingKey, c]));
+    setRows(
+      SCENARIOS.map((scenario) => ({
+        scenario,
+        templateId: byKey.get(scenario.idKey)?.settingValue ?? null,
+        enabled: byKey.get(scenario.enabledKey)?.settingValue !== 'false',
+      })),
+    );
+  }, [data]);
+
+  // 编辑弹窗打开时回填当前值
+  useEffect(() => {
+    if (!editing) return;
+    form.setFieldsValue({
+      templateId: editing.templateId ?? '',
+      enabled: editing.enabled,
+    });
+  }, [editing, form]);
+
+  const handleSaveEdit = async () => {
+    if (!editing) return;
+    const values = await form.validateFields();
+    // 模板 ID 必填(AC-SYS-005-02),空值由表单校验拦截
+    const input = [
+      { settingKey: editing.scenario.idKey, settingValue: values.templateId },
+      { settingKey: editing.scenario.enabledKey, settingValue: String(values.enabled) },
+    ];
+    await saveConfigs({ variables: { input } });
+    setEditing(null);
+  };
+
+  const columns = [
+    {
+      title: '业务场景',
+      dataIndex: ['scenario', 'label'],
+      key: 'label',
+      width: 140,
+      render: (_: unknown, record: TemplateRow) => <Typography.Text strong>{record.scenario.label}</Typography.Text>,
+    },
+    {
+      title: '模板 ID',
+      key: 'templateId',
+      width: 280,
+      render: (_: unknown, record: TemplateRow) =>
+        record.templateId ? <Typography.Text code>{record.templateId}</Typography.Text> : (
+          <Typography.Text type="secondary">未设置</Typography.Text>
+        ),
+    },
+    {
+      title: '状态',
+      key: 'enabled',
+      width: 90,
+      render: (_: unknown, record: TemplateRow) =>
+        record.enabled ? <Tag color="green">启用</Tag> : <Tag color="default">停用</Tag>,
+    },
+    {
+      title: '说明',
+      dataIndex: ['scenario', 'description'],
+      key: 'description',
+    },
+    {
+      title: '操作',
+      key: 'actions',
+      width: 100,
+      render: (_: unknown, record: TemplateRow) => (
+        <Button type="link" size="small" disabled={!canWrite} onClick={() => setEditing(record)}>
+          编辑
+        </Button>
+      ),
+    },
+  ];
+
+  return (
+    <div>
+      <Card title="通知与订阅消息" loading={loading}>
+        <Alert
+          type="info"
+          showIcon
+          style={{ marginBottom: 24 }}
+          message="此处仅配置非敏感模板参数;小程序 appid/secret 等密钥类参数不提供在线配置(R-SYS-02)。实际发送依赖订阅消息链路(F-ADR-011),接通后按模板发送。每次修改留审计日志。"
+        />
+        <Table
+          columns={columns}
+          dataSource={rows}
+          loading={loading}
+          rowKey={(record: TemplateRow) => record.scenario.key}
+          size="middle"
+          pagination={false}
+          locale={{ emptyText: '暂无模板配置' }}
+        />
+        {!canWrite && (
+          <Typography.Text type="warning" style={{ display: 'block', marginTop: 16 }}>
+            当前账号无系统配置修改权限(SYSTEM_CONFIG_WRITE),仅可查看。
+          </Typography.Text>
+        )}
+      </Card>
+
+      <Card title="修改记录" style={{ marginTop: 16 }}>
+        <SystemConfigAuditLog />
+      </Card>
+
+      <Modal
+        title={`编辑模板${editing ? `:${editing.scenario.label}` : ''}`}
+        open={!!editing}
+        onOk={handleSaveEdit}
+        onCancel={() => setEditing(null)}
+        okText="保存"
+        cancelText="取消"
+        confirmLoading={saving}
+        okButtonProps={{ disabled: !canWrite }}
+      >
+        {editing && (
+          <Form form={form} layout="vertical">
+            <Form.Item
+              name="templateId"
+              label="模板 ID"
+              extra="粘贴自微信公众平台订阅消息模板 ID"
+              rules={[
+                { required: true, message: '模板 ID 不能为空' },
+                { pattern: TEMPLATE_ID_PATTERN, message: '模板 ID 格式不正确' },
+              ]}
+            >
+              <Input maxLength={64} placeholder="请输入微信订阅消息模板 ID" disabled={!canWrite} />
+            </Form.Item>
+            <Form.Item name="enabled" label="启用" valuePropName="checked">
+              <Switch disabled={!canWrite} checkedChildren="启用" unCheckedChildren="停用" />
+            </Form.Item>
+            <Form.Item label="业务场景说明">
+              <Typography.Text type="secondary">{editing.scenario.description}</Typography.Text>
+            </Form.Item>
+          </Form>
+        )}
+      </Modal>
+    </div>
+  );
+};
+
+export default SystemNotificationsConfig;

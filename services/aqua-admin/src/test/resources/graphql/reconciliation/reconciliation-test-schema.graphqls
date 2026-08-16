@@ -1,0 +1,47 @@
+# Reconciliation integration test schema
+# Only exposes what AdminDailyCollectionGraphQLIntegrationTest exercises.
+
+scalar Long
+scalar LocalDateTime
+scalar JsonObject
+scalar PrimaryId
+
+type Query {
+  _dummy: String
+  dailyCollections(collectionDate: String): [DailyCollectionRecord!]!
+  dailyReconciliations: [DailyReconciliation!]!
+}
+
+type DailyCollectionRecord {
+  id: PrimaryId!
+  deliveryWorkerId: PrimaryId!
+  collectionDate: String!
+  cashAmountCents: Long!
+  waterTicketCount: Int!
+  qrCodeAmountCents: Long!
+  orderCount: Int!
+  orderAmountCents: Long!
+  differenceAmountCents: Long!
+  status: String!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type DailyReconciliation {
+  id: PrimaryId!
+  reconciliationDate: String!
+  totalCashAmountCents: Long!
+  totalWaterTicketCount: Int!
+  totalQrCodeAmountCents: Long!
+  totalOrderCount: Int!
+  totalOrderAmountCents: Long!
+  totalCollectionAmountCents: Long!
+  discrepancyAmountCents: Long!
+  status: String!
+  reportData: JsonObject
+  reviewedAt: LocalDateTime
+  reviewedBy: PrimaryId
+  reviewNotes: String
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}

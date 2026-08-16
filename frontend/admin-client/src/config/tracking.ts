@@ -39,7 +39,9 @@ export const PAGE_TRACK_CONFIG: Record<string, PageTrackConfig> = {
   '/marketing/flash-sale': { title: '限时抢购' },
   '/marketing/buy-gift': { title: '买赠活动' },
   '/marketing/newcomer': { title: '新人活动' },
-  '/system-config/parameters': { title: '系统参数' },
   '/system-config/order': { title: '订单配置' },
   '/system-config/stock': { title: '库存配置' },
+  '/system-config/security': { title: '安全配置' },
+  '/system-config/notifications': { title: '通知配置' },
+  '/system-config/data': { title: '数据维护' },
 }

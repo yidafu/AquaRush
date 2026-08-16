@@ -35,6 +35,9 @@ import {
   ThunderboltOutlined,
   GiftTwoTone,
   RocketOutlined,
+  SafetyOutlined,
+  BellOutlined,
+  DatabaseOutlined,
 } from '@ant-design/icons';
 
 const { Header, Sider, Content } = AntLayout;
@@ -103,9 +106,11 @@ const Layout: React.FC = () => {
             icon: <SettingOutlined />,
             label: '系统设置',
             children: [
-              { key: '/system-config/parameters', icon: <ControlOutlined />, label: '系统参数' },
               { key: '/system-config/order', icon: <ShoppingCartOutlined />, label: '订单与履约参数' },
               { key: '/system-config/stock', icon: <DollarOutlined />, label: '库存预警阈值' },
+              { key: '/system-config/security', icon: <SafetyOutlined />, label: '账号与安全' },
+              { key: '/system-config/notifications', icon: <BellOutlined />, label: '通知与订阅消息' },
+              { key: '/system-config/data', icon: <DatabaseOutlined />, label: '数据维护' },
             ],
           },
         ]

@@ -1,0 +1,209 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <changeSet id="1.2.4-add-system-security-notification-data-config" author="aqua-rush">
+    <comment>Seed system config params for F-SYS-004 account &amp; security, F-SYS-005 notification &amp; subscription message, F-SYS-006 data maintenance</comment>
+
+    <!-- ==================== 账号与安全策略参数组(F-SYS-004) ==================== -->
+    <insert tableName="system_settings">
+      <column name="id">16</column>
+      <column name="setting_key">password_min_length</column>
+      <column name="setting_value">8</column>
+      <column name="description">密码最小长度,新创建/重置密码按此校验</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">SECURITY</column>
+      <column name="default_value">8</column>
+      <column name="min_value">6</column>
+      <column name="max_value">32</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">17</column>
+      <column name="setting_key">password_require_alphanumeric</column>
+      <column name="setting_value">true</column>
+      <column name="description">是否要求密码字母数字混合</column>
+      <column name="setting_type">BOOLEAN</column>
+      <column name="setting_group">SECURITY</column>
+      <column name="default_value">true</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">18</column>
+      <column name="setting_key">login_fail_lock_threshold</column>
+      <column name="setting_value">5</column>
+      <column name="description">登录失败锁定次数,连续错误达该次数后账号锁定</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">SECURITY</column>
+      <column name="default_value">5</column>
+      <column name="min_value">1</column>
+      <column name="max_value">99</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">19</column>
+      <column name="setting_key">login_lock_duration_minutes</column>
+      <column name="setting_value">30</column>
+      <column name="description">账号锁定持续时间(分钟)</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">SECURITY</column>
+      <column name="default_value">30</column>
+      <column name="min_value">1</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">20</column>
+      <column name="setting_key">token_validity_hours</column>
+      <column name="setting_value">24</column>
+      <column name="description">Token 有效期(小时),修改后重启生效</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">SECURITY</column>
+      <column name="default_value">24</column>
+      <column name="min_value">1</column>
+      <column name="max_value">720</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+
+    <!-- ==================== 通知与订阅消息参数组(F-SYS-005) ==================== -->
+    <insert tableName="system_settings">
+      <column name="id">21</column>
+      <column name="setting_key">notification_template_order_created_id</column>
+      <column name="description">下单通知订阅消息模板 ID(未配置为空,密钥类不在此在线配置 R-SYS-02)</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">22</column>
+      <column name="setting_key">notification_template_order_created_enabled</column>
+      <column name="setting_value">true</column>
+      <column name="description">下单通知模板启用</column>
+      <column name="setting_type">BOOLEAN</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="default_value">true</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">23</column>
+      <column name="setting_key">notification_template_delivery_completed_id</column>
+      <column name="description">配送完成订阅消息模板 ID(未配置为空)</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">24</column>
+      <column name="setting_key">notification_template_delivery_completed_enabled</column>
+      <column name="setting_value">true</column>
+      <column name="description">配送完成模板启用</column>
+      <column name="setting_type">BOOLEAN</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="default_value">true</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">25</column>
+      <column name="setting_key">notification_template_order_urging_id</column>
+      <column name="description">催单订阅消息模板 ID(未配置为空)</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">26</column>
+      <column name="setting_key">notification_template_order_urging_enabled</column>
+      <column name="setting_value">true</column>
+      <column name="description">催单模板启用</column>
+      <column name="setting_type">BOOLEAN</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="default_value">true</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">27</column>
+      <column name="setting_key">notification_template_payment_result_id</column>
+      <column name="description">支付结果订阅消息模板 ID(未配置为空)</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">28</column>
+      <column name="setting_key">notification_template_payment_result_enabled</column>
+      <column name="setting_value">true</column>
+      <column name="description">支付结果模板启用</column>
+      <column name="setting_type">BOOLEAN</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="default_value">true</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+
+    <!-- ==================== 数据维护参数组(F-SYS-006) ==================== -->
+    <insert tableName="system_settings">
+      <column name="id">29</column>
+      <column name="setting_key">log_retention_api_days</column>
+      <column name="setting_value">90</column>
+      <column name="description">API 日志保留天数,超期日志按策略清理</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">DATA_MAINTENANCE</column>
+      <column name="default_value">90</column>
+      <column name="min_value">1</column>
+      <column name="max_value">3650</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">30</column>
+      <column name="setting_key">log_retention_user_action_days</column>
+      <column name="setting_value">90</column>
+      <column name="description">用户操作日志保留天数,超期日志按策略清理</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">DATA_MAINTENANCE</column>
+      <column name="default_value">90</column>
+      <column name="min_value">1</column>
+      <column name="max_value">3650</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">31</column>
+      <column name="setting_key">log_retention_business_days</column>
+      <column name="setting_value">90</column>
+      <column name="description">业务日志保留天数,超期日志按策略清理</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">DATA_MAINTENANCE</column>
+      <column name="default_value">90</column>
+      <column name="min_value">1</column>
+      <column name="max_value">3650</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">32</column>
+      <column name="setting_key">log_cleanup_enabled</column>
+      <column name="setting_value">true</column>
+      <column name="description">日志清理开关,关闭后不再按策略自动清理</column>
+      <column name="setting_type">BOOLEAN</column>
+      <column name="setting_group">DATA_MAINTENANCE</column>
+      <column name="default_value">true</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+
+  </changeSet>
+
+</databaseChangeLog>

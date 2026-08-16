@@ -1,6 +1,7 @@
 # System settings domain (SYS)
 # 与 PRD 11-system-settings.md 保持一致:F-SYS-001 系统参数管理、F-SYS-002 订单与履约参数配置、
-# F-SYS-003 库存预警阈值配置;仅超级管理员可读写(SYSTEM_CONFIG_READ/WRITE,R-SYS-03)
+# F-SYS-003 库存预警阈值配置、F-SYS-004 账号与安全策略、F-SYS-005 通知与订阅消息、F-SYS-006 数据维护;
+# 仅超级管理员可读写(SYSTEM_CONFIG_READ/WRITE,R-SYS-03)
 
 extend type Query {
   # 系统参数列表(按参数组返回,未配置组返回空列表)
@@ -20,11 +21,11 @@ enum SystemConfigGroup {
   ORDER_AND_FULFILLMENT
   # 库存
   INVENTORY
-  # 安全(预留)
+  # 账号与安全策略(F-SYS-004)
   SECURITY
-  # 通知(预留)
+  # 通知与订阅消息(F-SYS-005)
   NOTIFICATION
-  # 数据维护(预留)
+  # 数据维护(F-SYS-006)
   DATA_MAINTENANCE
 }
 

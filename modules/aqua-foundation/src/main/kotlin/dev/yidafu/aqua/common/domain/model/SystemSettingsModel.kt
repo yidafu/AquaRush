@@ -93,4 +93,27 @@ object SystemSettingKeys {
   // 库存预警参数组(F-SYS-003,R-PRO-02)
   const val LOW_STOCK_THRESHOLD = "low_stock_threshold" // 低库存阈值(件),默认 10
   const val STOCK_WARNING_TIER_MID = "stock_warning_tier_mid" // 中档预警阈值(件),默认 50;须大于低库存阈值
+
+  // 账号与安全策略参数组(F-SYS-004)
+  const val PASSWORD_MIN_LENGTH = "password_min_length" // 密码最小长度,默认 8
+  const val PASSWORD_REQUIRE_ALPHANUMERIC = "password_require_alphanumeric" // 是否要求密码字母数字混合
+  const val LOGIN_FAIL_LOCK_THRESHOLD = "login_fail_lock_threshold" // 登录失败锁定次数,默认 5
+  const val LOGIN_LOCK_DURATION_MINUTES = "login_lock_duration_minutes" // 锁定时长(分钟)
+  const val TOKEN_VALIDITY_HOURS = "token_validity_hours" // Token 有效期(小时,重启生效提示)
+
+  // 通知与订阅消息参数组(F-SYS-005):每场景模板 ID(STRING,未配置为空)+ 启用开关(BOOLEAN)
+  const val NOTIFICATION_TEMPLATE_ORDER_CREATED_ID = "notification_template_order_created_id" // 下单通知模板 ID
+  const val NOTIFICATION_TEMPLATE_ORDER_CREATED_ENABLED = "notification_template_order_created_enabled" // 下单通知启用
+  const val NOTIFICATION_TEMPLATE_DELIVERY_COMPLETED_ID = "notification_template_delivery_completed_id" // 配送完成模板 ID
+  const val NOTIFICATION_TEMPLATE_DELIVERY_COMPLETED_ENABLED = "notification_template_delivery_completed_enabled" // 配送完成启用
+  const val NOTIFICATION_TEMPLATE_ORDER_URGING_ID = "notification_template_order_urging_id" // 催单模板 ID
+  const val NOTIFICATION_TEMPLATE_ORDER_URGING_ENABLED = "notification_template_order_urging_enabled" // 催单启用
+  const val NOTIFICATION_TEMPLATE_PAYMENT_RESULT_ID = "notification_template_payment_result_id" // 支付结果模板 ID
+  const val NOTIFICATION_TEMPLATE_PAYMENT_RESULT_ENABLED = "notification_template_payment_result_enabled" // 支付结果启用
+
+  // 数据维护参数组(F-SYS-006)
+  const val LOG_RETENTION_API_DAYS = "log_retention_api_days" // API 日志保留天数,默认 90
+  const val LOG_RETENTION_USER_ACTION_DAYS = "log_retention_user_action_days" // 用户操作日志保留天数,默认 90
+  const val LOG_RETENTION_BUSINESS_DAYS = "log_retention_business_days" // 业务日志保留天数,默认 90
+  const val LOG_CLEANUP_ENABLED = "log_cleanup_enabled" // 日志清理开关
 }

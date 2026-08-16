@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Form, InputNumber, Button, Alert, Space, Modal, Typography } from 'antd';
-import { SystemConfigGroup } from '@aquarush/common';
+import { Card, Form, InputNumber, Button, Alert, Space, Modal, Typography, message } from 'antd';
+import { SystemConfigGroup, SystemSettingKeys } from '@aquarush/common';
 import type { SystemConfigVo } from '@aquarush/common';
 import { useSystemConfigs, useSaveSystemConfigs } from '../../../services/system-graphql';
 import SystemConfigAuditLog from '../components/SystemConfigAuditLog';
@@ -33,26 +33,31 @@ const SystemStockConfig: React.FC = () => {
       return raw == null ? undefined : Number(raw);
     };
     form.setFieldsValue({
-      lowStockThreshold: valueOf('low_stock_threshold') ?? 10,
-      midThreshold: valueOf('stock_warning_tier_mid') ?? 50,
+      lowStockThreshold: valueOf(SystemSettingKeys.LOW_STOCK_THRESHOLD) ?? 10,
+      midThreshold: valueOf(SystemSettingKeys.STOCK_WARNING_TIER_MID) ?? 50,
     });
   }, [data, form]);
 
   const handleSave = async () => {
     const values = (await form.validateFields()) as StockConfigValues;
+    // 仅收集有效值:字段缺失/非法时跳过,避免把 "undefined"/"NaN" 发往后端触发"参数值格式不正确"
+    const input: { settingKey: string; settingValue: string }[] = [];
+    if (values.lowStockThreshold != null && Number.isFinite(values.lowStockThreshold)) {
+      input.push({ settingKey: SystemSettingKeys.LOW_STOCK_THRESHOLD, settingValue: String(values.lowStockThreshold) });
+    }
+    if (values.midThreshold != null && Number.isFinite(values.midThreshold)) {
+      input.push({ settingKey: SystemSettingKeys.STOCK_WARNING_TIER_MID, settingValue: String(values.midThreshold) });
+    }
+    if (input.length === 0) {
+      message.warning('没有可保存的参数变更');
+      return;
+    }
     Modal.confirm({
       title: '确定保存吗?将影响商品列表与商品统计的库存预警展示。',
       okText: '确定保存',
       cancelText: '取消',
       onOk: async () => {
-        await saveConfigs({
-          variables: {
-            input: [
-              { settingKey: 'low_stock_threshold', settingValue: String(values.lowStockThreshold) },
-              { settingKey: 'stock_warning_tier_mid', settingValue: String(values.midThreshold) },
-            ],
-          },
-        });
+        await saveConfigs({ variables: { input } });
       },
     });
   };
@@ -66,7 +71,7 @@ const SystemStockConfig: React.FC = () => {
           style={{ marginBottom: 24 }}
           message="低库存阈值与色阶档位配置后,商品列表库存着色(F-PRO-006)与商品统计低库存预警明细(F-STA-006)按新阈值计算。每次修改留审计日志。"
         />
-        <Form form={form} layout="vertical" style={{ maxWidth: 480 }} preserve={false}>
+        <Form form={form} layout="vertical" style={{ maxWidth: 480 }}>
           <Form.Item
             name="lowStockThreshold"
             label="低库存阈值(件)"

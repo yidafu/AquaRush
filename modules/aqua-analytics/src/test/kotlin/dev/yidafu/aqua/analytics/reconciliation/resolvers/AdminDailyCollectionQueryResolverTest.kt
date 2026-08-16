@@ -97,12 +97,12 @@ class AdminDailyCollectionQueryResolverTest :
       val newer = DailyReconciliationModel(reconciliationDate = LocalDate.of(2025, 6, 1))
       every { dailyCollectionService.getAllReconciliations() } returns listOf(older, newer)
 
-      val result = resolver.dailyReconciliations(page = 0, size = 20, userDetails = user)
+      val result = resolver.dailyReconciliations(userDetails = user)
 
       result shouldBe listOf(newer, older)
     }
     test("dailyReconciliations requires login") {
-      shouldThrow<UnauthorizedException> { resolver.dailyReconciliations(0, 20, null) }
+      shouldThrow<UnauthorizedException> { resolver.dailyReconciliations(null) }
     }
     test("myTodayCollection uses existing record when present") {
       every { adminService.findByUsername("admin1") } returns admin()

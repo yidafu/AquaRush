@@ -92,14 +92,12 @@ class AdminDailyCollectionQueryResolver(
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_READ')")
   fun dailyReconciliations(
-    @Argument page: Int = 0,
-    @Argument size: Int = 20,
     @AuthenticationPrincipal userDetails: UserDetails?,
   ): List<DailyReconciliationModel> {
     if (userDetails == null) {
       throw UnauthorizedException("请先登录")
     }
-    logger.info("管理员查询对账记录列表, page={}, size={}", page, size)
+    logger.info("管理员查询对账记录列表")
 
     val allReconciliations =
       dailyCollectionService

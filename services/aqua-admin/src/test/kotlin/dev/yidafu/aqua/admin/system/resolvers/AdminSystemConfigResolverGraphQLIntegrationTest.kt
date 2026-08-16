@@ -22,6 +22,7 @@ package dev.yidafu.aqua.admin.system.resolvers
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.SystemSettingsModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
@@ -49,9 +50,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 
 /**
- * AdminSystemConfig Resolver GraphQL 集成测试(F-SYS-001/002/003, AC-SYS-001/002/003)
+ * AdminSystemConfig Resolver GraphQL 集成测试(F-SYS-001~006, AC-SYS-001/002/003)
  * 权限:查询 PERMISSION_SYSTEM_CONFIG_READ,变更 PERMISSION_SYSTEM_CONFIG_WRITE(仅超级管理员,R-SYS-03)。
- * 测试环境 Liquibase 禁用(H2 + create-drop),@BeforeEach 经仓库播种 system_settings 行。
+ * 测试环境 Liquibase 禁用(H2 + create-drop),@BeforeEach 经仓库播种 system_settings 行;
+ * 生产种子参数(含 F-SYS-004/005/006)由 Liquibase v1.2.4 提供,不在测试环境自动生效。
  */
 @SpringBootTest(
   webEnvironment = SpringBootTest.WebEnvironment.MOCK,
@@ -111,9 +113,10 @@ class AdminSystemConfigResolverGraphQLIntegrationTest(
     }
 
     fun seedSettings() {
-      seedSetting("low_stock_threshold", "10", SystemSettingType.NUMBER, SystemSettingGroup.INVENTORY, "10", "0", "99999")
-      seedSetting("stock_warning_tier_mid", "50", SystemSettingType.NUMBER, SystemSettingGroup.INVENTORY, "50", "0", "99999")
-      seedSetting("payment_timeout_minutes", "30", SystemSettingType.NUMBER, SystemSettingGroup.ORDER_AND_FULFILLMENT, "30", "1", null)
+      seedSetting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "10", SystemSettingType.NUMBER, SystemSettingGroup.INVENTORY, "10", "0", "99999")
+      seedSetting(SystemSettingKeys.STOCK_WARNING_TIER_MID, "50", SystemSettingType.NUMBER, SystemSettingGroup.INVENTORY, "50", "0", "99999")
+      seedSetting(SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES, "30", SystemSettingType.NUMBER, SystemSettingGroup.ORDER_AND_FULFILLMENT, "30", "1", null)
+      seedSetting(SystemSettingKeys.PASSWORD_MIN_LENGTH, "8", SystemSettingType.NUMBER, SystemSettingGroup.SECURITY, "8", "6", "32")
     }
 
     /**
@@ -131,25 +134,29 @@ class AdminSystemConfigResolverGraphQLIntegrationTest(
     test("systemConfigs returns seeded rows by group") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_READ"))
       val json = postGraphql("{ systemConfigs(group: INVENTORY) { settingKey settingValue } }")
-      json.contains("\"settingKey\" : \"low_stock_threshold\"") &&
-        json.contains("\"settingKey\" : \"stock_warning_tier_mid\"") &&
-        !json.contains("\"settingKey\" : \"payment_timeout_minutes\"") &&
+      json.contains("\"settingKey\" : \"${SystemSettingKeys.LOW_STOCK_THRESHOLD}\"") &&
+        json.contains("\"settingKey\" : \"${SystemSettingKeys.STOCK_WARNING_TIER_MID}\"") &&
+        !json.contains("\"settingKey\" : \"${SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES}\"") &&
         !json.contains("\"errors\"") shouldBe true
 
-      val emptyJson = postGraphql("{ systemConfigs(group: SECURITY) { settingKey } }")
+      val securityJson = postGraphql("{ systemConfigs(group: SECURITY) { settingKey } }")
+      securityJson.contains("\"settingKey\" : \"${SystemSettingKeys.PASSWORD_MIN_LENGTH}\"") && !securityJson.contains("\"errors\"") shouldBe true
+
+      // 未播种分组(生产由 Liquibase v1.2.4 提供,测试环境不自动生效)返回空列表
+      val emptyJson = postGraphql("{ systemConfigs(group: DATA_MAINTENANCE) { settingKey } }")
       !emptyJson.contains("\"settingKey\"") && !emptyJson.contains("\"errors\"") shouldBe true
     }
     test("save round trips and writes audit") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_READ", "PERMISSION_SYSTEM_CONFIG_WRITE"))
       val json =
         postGraphql(
-          """mutation { saveSystemConfigs(input: [{settingKey: "payment_timeout_minutes", settingValue: "15"}]) { settingKey settingValue } }""",
+          """mutation { saveSystemConfigs(input: [{settingKey: "${SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES}", settingValue: "15"}]) { settingKey settingValue } }""",
         )
       withClue("response: $json") { json.contains("\"settingValue\" : \"15\"") && !json.contains("\"errors\"") shouldBe true }
 
       val queryJson = postGraphql("{ systemConfigs(group: ORDER_AND_FULFILLMENT) { settingKey settingValue } }")
       withClue("queryJson: $queryJson") {
-        queryJson.contains("\"settingKey\" : \"payment_timeout_minutes\"") &&
+        queryJson.contains("\"settingKey\" : \"${SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES}\"") &&
           queryJson.contains("\"settingValue\" : \"15\"") shouldBe true
       }
 
@@ -165,7 +172,7 @@ class AdminSystemConfigResolverGraphQLIntegrationTest(
       setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_WRITE"))
       val json =
         postGraphql(
-          """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "100000"}]) { settingKey } }""",
+          """mutation { saveSystemConfigs(input: [{settingKey: "${SystemSettingKeys.LOW_STOCK_THRESHOLD}", settingValue: "100000"}]) { settingKey } }""",
         )
       withClue("out-of-range json: $json") { json.contains("\"errors\"") shouldBe true }
       withClue("out-of-range msg json: $json") { json.contains("参数值超出范围") shouldBe true }
@@ -174,7 +181,7 @@ class AdminSystemConfigResolverGraphQLIntegrationTest(
       setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_WRITE"))
       val json =
         postGraphql(
-          """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "20"}, {settingKey: "stock_warning_tier_mid", settingValue: "10"}]) { settingKey } }""",
+          """mutation { saveSystemConfigs(input: [{settingKey: "${SystemSettingKeys.LOW_STOCK_THRESHOLD}", settingValue: "20"}, {settingKey: "${SystemSettingKeys.STOCK_WARNING_TIER_MID}", settingValue: "10"}]) { settingKey } }""",
         )
       withClue("tiers json: $json") { json.contains("\"errors\"") shouldBe true }
       withClue("tiers msg json: $json") { json.contains("档位需递增") shouldBe true }
@@ -182,9 +189,9 @@ class AdminSystemConfigResolverGraphQLIntegrationTest(
     test("restore resets to default with audit") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_SYSTEM_CONFIG_WRITE"))
       postGraphql(
-        """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "30"}]) { settingKey } }""",
+        """mutation { saveSystemConfigs(input: [{settingKey: "${SystemSettingKeys.LOW_STOCK_THRESHOLD}", settingValue: "30"}]) { settingKey } }""",
       )
-      val json = postGraphql("""mutation { restoreSystemConfig(settingKey: "low_stock_threshold") { settingValue } }""")
+      val json = postGraphql("""mutation { restoreSystemConfig(settingKey: "${SystemSettingKeys.LOW_STOCK_THRESHOLD}") { settingValue } }""")
       json.contains("\"settingValue\" : \"10\"") && !json.contains("\"errors\"") shouldBe true
 
       val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_SYS_CONFIG_RESTORE)
@@ -204,7 +211,7 @@ class AdminSystemConfigResolverGraphQLIntegrationTest(
       )
 
       postGraphql(
-        """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "20"}]) { settingKey } }""",
+        """mutation { saveSystemConfigs(input: [{settingKey: "${SystemSettingKeys.LOW_STOCK_THRESHOLD}", settingValue: "20"}]) { settingKey } }""",
       )
       val afterRaise = postGraphql("{ productStatistics { lowStockProducts } }")
       withClue("afterRaise: $afterRaise") {
@@ -213,7 +220,7 @@ class AdminSystemConfigResolverGraphQLIntegrationTest(
       }
 
       postGraphql(
-        """mutation { saveSystemConfigs(input: [{settingKey: "low_stock_threshold", settingValue: "10"}]) { settingKey } }""",
+        """mutation { saveSystemConfigs(input: [{settingKey: "${SystemSettingKeys.LOW_STOCK_THRESHOLD}", settingValue: "10"}]) { settingKey } }""",
       )
       val afterLower = postGraphql("{ productStatistics { lowStockProducts } }")
       afterLower.contains("\"lowStockProducts\" : 0") && !afterLower.contains("\"errors\"") shouldBe true
