@@ -56,7 +56,6 @@ class AdminFavoriteQueryResolverTest :
         tags = null,
         detailContent = null,
         certificateImages = null,
-        deliverySettings = null,
       )
 
     fun createSampleFavorite(): ProductFavoriteModel =

@@ -76,7 +76,7 @@ class ProductRepositoryImpl : ProductRepositoryCustom {
     }
     val orderBy =
       when (query.sortBy) {
-        "CREATED_AT_ASC" -> productModel.status.asc()
+        "CREATED_AT_ASC" -> productModel.createdAt.asc()
         "CREATED_AT_DESC" -> productModel.createdAt.desc()
         "PRICE_ASC" -> productModel.price.asc()
         "PRICE_DESC" -> productModel.price.desc()

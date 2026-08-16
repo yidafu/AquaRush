@@ -46,7 +46,6 @@ interface ExtendedProduct {
   tags?: any[]
   detailContent?: string
   certificateImages?: any[]
-  deliverySettings?: Record<string, any>
   createdAt: string
   updatedAt: string
   image: string // Mapped from coverImageUrl for homepage compatibility
@@ -119,7 +118,6 @@ class ProductService {
             tags
             detailContent
             certificateImages
-            deliverySettings
             createdAt
             updatedAt
           }
@@ -394,7 +392,6 @@ query GetActiveProducts(
       tags: product.tags ?? undefined,
       detailContent: product.detailContent ?? undefined,
       certificateImages: product.certificateImages ?? undefined,
-      deliverySettings: product.deliverySettings ?? undefined,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
       // Add description field for homepage compatibility

@@ -6,7 +6,8 @@ import PageTitle from './components/PageTitle';
 import Login from './pages/login';
 import Dashboard from './pages/dashboard';
 import ProductListPage from './pages/products/list';
-import ProductDetailPage from './pages/products/detail';
+import ProductFormPage from './pages/products/form';
+import ProductOptionsPage from './pages/products/options';
 import Orders from './pages/orders';
 import OrderDetailPage from './pages/orders/detail';
 import Statistics from './pages/statistics';
@@ -73,7 +74,11 @@ const App: React.FC = () => {
         <Route path="users" element={<Navigate to="/users/accounts" replace />} />
         <Route path="users/:id" element={page('用户详情', <UserDetailPage />)} />
         <Route path="products" element={page('产品管理', <ProductListPage />)} />
-        <Route path="products/:id" element={page('产品详情', <ProductDetailPage />)} />
+        {/* 新增/编辑/详情共用一个页面组件,按路由区分模式 */}
+        <Route path="products/new" element={page('新增商品', <ProductFormPage />)} />
+        <Route path="products/:id" element={page('产品详情', <ProductFormPage />)} />
+        <Route path="products/:id/edit" element={page('编辑商品', <ProductFormPage />)} />
+        <Route path="products/options" element={page('规格与水源地配置', <ProductOptionsPage />)} />
         <Route path="orders" element={page('订单管理', <Orders />)} />
         <Route path="orders/:id" element={page('订单详情', <OrderDetailPage />)} />
         <Route path="statistics" element={page('营收统计', <Statistics />)} />

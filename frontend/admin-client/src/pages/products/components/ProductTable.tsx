@@ -9,9 +9,9 @@ interface Product {
   id: number;
   name: string;
   subtitle?: string;
-  price: number;
-  originalPrice?: number;
-  depositPrice?: number;
+  priceCents: number;
+  originalPriceCents?: number;
+  depositPriceCents?: number;
   coverImageUrl?: string;
   imageGallery?: string;
   specification: string;
@@ -24,7 +24,6 @@ interface Product {
   tags?: string;
   detailContent?: string;
   certificateImages?: string;
-  deliverySettings?: string;
   createdAt: string;
   updatedAt: string;
 }
@@ -75,18 +74,18 @@ export const ProductTable: React.FC<ProductTableProps> = ({
     },
     {
       title: '价格',
-      dataIndex: 'price',
-      key: 'price',
+      dataIndex: 'priceCents',
+      key: 'priceCents',
       render: (price: number) => displayCents(price),
-      sorter: (a: Product, b: Product) => a.price - b.price,
+      sorter: (a: Product, b: Product) => a.priceCents - b.priceCents,
       width: 100,
     },
     {
       title: '原价',
-      dataIndex: 'originalPrice',
-      key: 'originalPrice',
+      dataIndex: 'originalPriceCents',
+      key: 'originalPriceCents',
       render: (price: number) => price ? <del>{displayCents(price)}</del> : '-',
-      sorter: (a: Product, b: Product) => (a.originalPrice || 0) - (b.originalPrice || 0),
+      sorter: (a: Product, b: Product) => (a.originalPriceCents || 0) - (b.originalPriceCents || 0),
       width: 100,
     },
     {
@@ -154,7 +153,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
           </Button>
           <Button
             icon={<EditOutlined />}
-            onClick={() => navigate(`/products/${record.id}`)}
+            onClick={() => navigate(`/products/${record.id}/edit`)}
             size="small"
           >
             编辑

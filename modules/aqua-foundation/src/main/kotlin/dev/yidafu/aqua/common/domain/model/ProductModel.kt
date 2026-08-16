@@ -21,16 +21,13 @@ package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.converter.ArrayNodeConverter
-import dev.yidafu.aqua.common.converter.ObjectNodeConverter
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.utils.MoneyUtils
 import jakarta.persistence.*
 import org.hibernate.annotations.JdbcTypeCode
 import org.hibernate.annotations.SoftDelete
 import org.hibernate.type.SqlTypes
-import tools.jackson.core.type.TypeReference
 import tools.jackson.databind.node.ArrayNode
-import tools.jackson.databind.node.ObjectNode
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -84,10 +81,6 @@ open class ProductModel(
   @Column(name = "certificate_images", columnDefinition = "json")
   @Convert(converter = ArrayNodeConverter::class)
   var certificateImages: ArrayNode? = null,
-  @JdbcTypeCode(SqlTypes.JSON)
-  @Column(name = "delivery_settings", columnDefinition = "json")
-  @Convert(converter = ObjectNodeConverter::class)
-  var deliverySettings: ObjectNode? = null,
   @Column(name = "deleted_at")
   override var deletedAt: LocalDateTime? = null,
   @Column(name = "deleted_by")
@@ -172,28 +165,6 @@ open class ProductModel(
       } else {
         val objectMapper = jacksonObjectMapper()
         objectMapper.valueToTree<ArrayNode>(imageUrls)
-      }
-  }
-
-  /**
-   * Get delivery settings as a Map
-   */
-  fun getDeliverySettingsAsMap(): Map<String, Any> =
-    deliverySettings?.let {
-      val objectMapper = jacksonObjectMapper()
-      objectMapper.convertValue(it, object : TypeReference<Map<String, Any>>() {})
-    } ?: emptyMap()
-
-  /**
-   * Set delivery settings from a Map
-   */
-  fun setDeliverySettingsFromMap(settings: Map<String, Any>) {
-    deliverySettings =
-      if (settings.isEmpty()) {
-        null
-      } else {
-        val objectMapper = jacksonObjectMapper()
-        objectMapper.valueToTree<ObjectNode>(settings)
       }
   }
 }

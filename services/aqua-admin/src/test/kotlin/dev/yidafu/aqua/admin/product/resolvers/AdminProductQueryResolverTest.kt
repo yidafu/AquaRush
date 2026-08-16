@@ -60,7 +60,6 @@ class AdminProductQueryResolverTest :
         tags = null,
         detailContent = null,
         certificateImages = null,
-        deliverySettings = null,
       )
 
     beforeTest {
@@ -113,15 +112,34 @@ class AdminProductQueryResolverTest :
       // Then
       result.shouldBeNull()
     }
-    test("activeProducts should search with keyword") {
+    test("activeProducts should search with keyword and only return ONLINE products with stock") {
       // Given
-      every { productService.productsPaginated(any(), PageRequest.of(1, 5)) } returns PageImpl(emptyList())
+      val page = PageImpl(listOf(createSampleProduct()), PageRequest.of(1, 5), 1)
+      every {
+        productService.productsPaginated(
+          match {
+            it.keyword == "桶装水" &&
+              it.status == ProductModelStatus.ONLINE &&
+              it.minStock == 0
+          },
+          PageRequest.of(1, 5),
+        )
+      } returns page
 
       // When
       val result = resolver.activeProducts("桶装水", 1, 5)
 
       // Then
-      result.list.size shouldBe 0
-      verify { productService.productsPaginated(any(), PageRequest.of(1, 5)) }
+      result.list.size shouldBe 1
+      verify {
+        productService.productsPaginated(
+          match {
+            it.keyword == "桶装水" &&
+              it.status == ProductModelStatus.ONLINE &&
+              it.minStock == 0
+          },
+          PageRequest.of(1, 5),
+        )
+      }
     }
   })

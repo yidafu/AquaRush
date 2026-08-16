@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
-import { Row, Col, Card, Typography, Button, Space, message } from 'antd';
-import { PlusOutlined, EyeOutlined } from '@ant-design/icons';
+import { Button } from 'antd';
+import { PlusOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
 import { ProductTable } from '../components/ProductTable';
 import { ProductFilters } from '../components/ProductFilters';
-import { ProductForm } from '../components/ProductForm';
 import { PRODUCTS_PAGE_DATA_QUERY } from '../../../graphql/queries/product.graphql';
-import { EnhancedWeChatPreview } from '../components/EnhancedWeChatPreview';
 
 const ProductListPage: React.FC = () => {
   const navigate = useNavigate();
-  const [createModalVisible, setCreateModalVisible] = useState(false);
   const [filters, setFilters] = useState<ProductFilters>({
     keyword: '',
     status: 'ALL',
@@ -31,7 +28,7 @@ const ProductListPage: React.FC = () => {
 
   // 单页单请求:商品分页 + 库存预警阈值(着色)一次取回(规则 #10);
   // 筛选/分页变化经 variables 变化自动重取
-  const { data, loading, refetch } = useQuery(PRODUCTS_PAGE_DATA_QUERY, {
+  const { data, loading } = useQuery(PRODUCTS_PAGE_DATA_QUERY, {
     variables: {
       input: {
         page: filters.page || 0,
@@ -52,8 +49,9 @@ const ProductListPage: React.FC = () => {
     errorPolicy: 'all'
   });
 
+  // 新增商品:跳转独立的新增页(不弹框)
   const handleAddProduct = () => {
-    setCreateModalVisible(true);
+    navigate('/products/new');
   };
 
   const handleViewDetail = (productId: number) => {
@@ -64,28 +62,16 @@ const ProductListPage: React.FC = () => {
     setFilters(prev => ({ ...prev, ...newFilters }));
   };
 
-  const handleCreateSuccess = () => {
-    setCreateModalVisible(false);
-    refetch();
-    message.success('商品创建成功');
-  };
-
-  const handleModalCancel = () => {
-    setCreateModalVisible(false);
-  };
-
   return (
     <div style={{ padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-        <div></div>
-        <Button type="primary" icon={<PlusOutlined />} onClick={handleAddProduct}>
-          新增商品
-        </Button>
-      </div>
-
       <ProductFilters
         filters={filters}
         onFiltersChange={handleFiltersChange}
+        extra={
+          <Button type="primary" size="small" icon={<PlusOutlined />} onClick={handleAddProduct}>
+            新增商品
+          </Button>
+        }
       />
       <ProductTable
         loading={loading}
@@ -113,14 +99,6 @@ const ProductListPage: React.FC = () => {
           }));
         }}
       />
-      {/* Create Product Modal */}
-      <ProductForm
-        visible={createModalVisible}
-        product={null}
-        onCancel={handleModalCancel}
-        onSuccess={handleCreateSuccess}
-      />
-
     </div>
   );
 };

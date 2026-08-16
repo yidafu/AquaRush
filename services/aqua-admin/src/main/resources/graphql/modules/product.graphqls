@@ -11,6 +11,30 @@ extend type Query {
   stockWarningThresholds: StockWarningThresholds!
   # 用户收藏的商品(用户详情页「收藏商品」Tab,分页)
   favoriteProducts(userId: PrimaryId!, page: Int = 0, size: Int = 20): FavoriteProductVOPage!
+  # 商品属性选项字典(F-PRO-009):规格/水源地下拉选项;enabledOnly=true 仅返回启用项(商品表单用),false 返回全量(配置页用)
+  productOptions(type: ProductOptionType!, enabledOnly: Boolean = false): [ProductOption!]!
+}
+
+# 商品属性选项字典(F-PRO-009):规格/水源地下拉选项的配置来源,替换前端硬编码候选
+type ProductOption {
+  id: PrimaryId!
+  optionType: ProductOptionType!
+  # 选项值(如规格 "500ml"/"19L",水源地 "长白山")
+  value: String!
+  # 排序号(同类型内升序展示)
+  sortOrder: Int!
+  # 是否启用(禁用项不在商品表单下拉中展示)
+  enabled: Boolean!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+# 商品属性选项类型(F-PRO-009)
+enum ProductOptionType {
+  # 商品规格
+  SPECIFICATION
+  # 水源地
+  WATER_SOURCE
 }
 
 # 库存预警阈值(低库存红 < lowThreshold,中档橙 < midThreshold,其余绿;R-PRO-02)
@@ -29,4 +53,30 @@ extend type Mutation {
   updateProductStatus(productId: PrimaryId!, status: ProductStatus!): Product!
   onlineProduct(id: PrimaryId!): Product!
   offlineProduct(id: PrimaryId!): Product!
+  # 商品属性选项字典(F-PRO-009)
+  createProductOption(input: CreateProductOptionInput!): ProductOption!
+  updateProductOption(id: PrimaryId!, input: UpdateProductOptionInput!): ProductOption!
+  deleteProductOption(id: PrimaryId!): Boolean!
+}
+
+# 商品属性选项新建入参(F-PRO-009)
+input CreateProductOptionInput {
+  optionType: ProductOptionType!
+  # 选项值(1-100 字符,同类型内唯一)
+  value: String!
+    @notBlank(message: "选项值不能为空")
+    @size(min: 1, max: 100, message: "选项值长度应在1-100个字符之间")
+  # 排序号(缺省=同类型末尾)
+  sortOrder: Int @min(value: 0, message: "排序号不能小于0")
+  # 是否启用(缺省 true)
+  enabled: Boolean = true
+}
+
+# 商品属性选项更新入参(F-PRO-009)
+input UpdateProductOptionInput {
+  value: String!
+    @notBlank(message: "选项值不能为空")
+    @size(min: 1, max: 100, message: "选项值长度应在1-100个字符之间")
+  sortOrder: Int @min(value: 0, message: "排序号不能小于0")
+  enabled: Boolean = true
 }

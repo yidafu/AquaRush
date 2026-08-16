@@ -201,8 +201,6 @@ type Product {
   detailContent: String
   # 证书图片列表
   certificateImages: JsonArray
-  # 配送设置
-  deliverySettings: JsonObject
   # 创建时间
   createdAt: LocalDateTime!
   # 更新时间
@@ -842,7 +840,6 @@ input CreateProductInput {
   detailContent: String
     @size(max: 5000, message: "详情内容长度不能超过5000个字符")
   certificateImages: JsonArray
-  deliverySettings: JsonObject
 }
 
 input UpdateProductInput {
@@ -881,7 +878,6 @@ input UpdateProductInput {
   detailContent: String
     @size(max: 5000, message: "详情内容长度不能超过5000个字符")
   certificateImages: JsonArray
-  deliverySettings: JsonObject
 }
 
 input CreateWechatPaymentInput {
@@ -1723,7 +1719,6 @@ input ProductUpdateRequest {
   detailContent: String
     @size(max: 5000, message: "详情内容长度不能超过5000个字符")
   certificateImages: JsonArray
-  deliverySettings: JsonObject
 }
 
 # Enhanced Product Management Types

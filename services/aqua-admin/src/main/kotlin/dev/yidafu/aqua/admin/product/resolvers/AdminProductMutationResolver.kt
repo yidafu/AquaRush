@@ -112,7 +112,6 @@ class AdminProductMutationResolver(
           tags = input.tags,
           detailContent = input.detailContent,
           certificateImages = input.certificateImages,
-          deliverySettings = input.deliverySettings,
           status = input.status,
         )
 

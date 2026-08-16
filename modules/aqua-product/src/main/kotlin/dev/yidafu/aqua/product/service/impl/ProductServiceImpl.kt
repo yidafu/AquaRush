@@ -17,7 +17,6 @@ import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.node.ArrayNode
-import tools.jackson.databind.node.ObjectNode
 
 @Service
 @Transactional(readOnly = true)
@@ -49,7 +48,6 @@ class ProductServiceImpl(
         tags = request.tags,
         detailContent = request.detailContent,
         certificateImages = request.certificateImages,
-        deliverySettings = request.deliverySettings,
       )
     val saved = productRepository.save(product)
 
@@ -89,7 +87,6 @@ class ProductServiceImpl(
     tags: ArrayNode? = null,
     detailContent: String? = null,
     certificateImages: ArrayNode? = null,
-    deliverySettings: ObjectNode? = null,
     status: ProductStatus? = null,
   ): ProductModel {
     val product =
@@ -113,7 +110,6 @@ class ProductServiceImpl(
     tags?.let { product.tags = it }
     detailContent?.let { product.detailContent = it }
     certificateImages?.let { product.certificateImages = it }
-    deliverySettings?.let { product.deliverySettings = it }
     status?.let { product.status = ProductStatusMapper.map(it) }
     val saved = productRepository.save(product)
 

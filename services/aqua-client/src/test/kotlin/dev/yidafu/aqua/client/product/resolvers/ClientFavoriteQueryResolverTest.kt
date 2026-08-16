@@ -67,7 +67,6 @@ class ClientFavoriteQueryResolverTest :
         tags = null,
         detailContent = null,
         certificateImages = null,
-        deliverySettings = null,
       )
 
     fun favorite(): ProductFavoriteModel =

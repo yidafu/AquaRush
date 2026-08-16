@@ -5,9 +5,9 @@ export interface Product {
   id: number;
   name: string;
   subtitle?: string;
-  price: number; // in cents (分)
-  originalPrice?: number; // in cents (分)
-  depositPrice?: number; // in cents (分)
+  priceCents: number; // 销售价（分）
+  originalPriceCents?: number; // 原价（分）
+  depositPriceCents?: number; // 押金（分）
   coverImageUrl: string;
   imageGallery?: string[] | string; // JSON array from backend
   specification: string;
@@ -20,7 +20,6 @@ export interface Product {
   tags?: string[] | string; // JSON array from backend
   detailContent?: string;
   certificateImages?: string[] | string; // JSON array from backend
-  deliverySettings?: any; // JSON object from backend
   createdAt: string;
   updatedAt: string;
 }
@@ -43,7 +42,6 @@ export interface ProductFormData {
   tags?: string[]; // Form handles arrays directly
   detailContent?: string;
   certificateImages?: string[]; // Form handles arrays directly
-  deliverySettings?: any; // Form handles objects directly
 }
 
 /**
@@ -68,17 +66,14 @@ export function productToFormData(product: Product): ProductFormData {
 
   return {
     ...product,
-    price: centsToYuan(product.price),
-    originalPrice: product.originalPrice ? centsToYuan(product.originalPrice) : undefined,
-    depositPrice: product.depositPrice ? centsToYuan(product.depositPrice) : undefined,
+    price: centsToYuan(product.priceCents),
+    originalPrice: product.originalPriceCents ? centsToYuan(product.originalPriceCents) : undefined,
+    depositPrice: product.depositPriceCents ? centsToYuan(product.depositPriceCents) : undefined,
     status: product.status === 'ACTIVE' ? 'ONLINE' : product.status,
     // Convert JSON string fields to arrays for form
     imageGallery: parseArrayField(product.imageGallery),
     tags: parseArrayField(product.tags),
     certificateImages: parseArrayField(product.certificateImages),
-    deliverySettings: product.deliverySettings && typeof product.deliverySettings === 'string'
-      ? JSON.parse(product.deliverySettings)
-      : product.deliverySettings,
   };
 }
 
@@ -86,12 +81,12 @@ export function productToFormData(product: Product): ProductFormData {
  * 将表单数据转换为数据库格式
  * 主要处理价格从元转换为分
  */
-export function formDataToProduct(formData: ProductFormData): Partial<Product> {
+export function formDataToProduct({ price, originalPrice, depositPrice, ...formData }: ProductFormData): Partial<Product> {
   const result: Partial<Product> = {
     ...formData,
-    priceCents: yuanToCents(formData.price),
-    originalPriceCents: formData.originalPrice ? yuanToCents(formData.originalPrice) : undefined,
-    depositPriceCents: formData.depositPrice ? yuanToCents(formData.depositPrice) : undefined,
+    priceCents: yuanToCents(price),
+    originalPriceCents: originalPrice ? yuanToCents(originalPrice) : undefined,
+    depositPriceCents: depositPrice ? yuanToCents(depositPrice) : undefined,
     salesVolume: formData.salesVolume || 0,
     sortOrder: formData.sortOrder || 0,
   };
@@ -118,10 +113,10 @@ export function formDataToProduct(formData: ProductFormData): Partial<Product> {
  */
 export function useFormattedPrices(product: Product) {
   return useMemo(() => ({
-    price: displayCents(product.price),
-    originalPrice: product.originalPrice ? displayCents(product.originalPrice) : null,
-    depositPrice: product.depositPrice ? displayCents(product.depositPrice) : null,
-  }), [product.price, product.originalPrice, product.depositPrice]);
+    price: displayCents(product.priceCents),
+    originalPrice: product.originalPriceCents ? displayCents(product.originalPriceCents) : null,
+    depositPrice: product.depositPriceCents ? displayCents(product.depositPriceCents) : null,
+  }), [product.priceCents, product.originalPriceCents, product.depositPriceCents]);
 }
 
 /**
@@ -143,26 +138,12 @@ export function useParsedJSONFields(product: Product) {
       return [];
     };
 
-    const parseObjectField = (field?: any) => {
-      if (!field) return {};
-      if (typeof field === 'object' && field !== null) return field;
-      if (typeof field === 'string') {
-        try {
-          return JSON.parse(field);
-        } catch {
-          return {};
-        }
-      }
-      return {};
-    };
-
     return {
       imageGallery: parseJSONField(product.imageGallery),
       certificateImages: parseJSONField(product.certificateImages),
       tags: parseJSONField(product.tags),
-      deliverySettings: parseObjectField(product.deliverySettings),
     };
-  }, [product.imageGallery, product.certificateImages, product.tags, product.deliverySettings]);
+  }, [product.imageGallery, product.certificateImages, product.tags]);
 }
 
 /**

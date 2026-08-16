@@ -28,6 +28,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 
 class ClientProductQueryResolverTest :
   FunSpec({
@@ -53,7 +55,6 @@ class ClientProductQueryResolverTest :
         tags = null,
         detailContent = null,
         certificateImages = null,
-        deliverySettings = null,
       )
 
     beforeTest {
@@ -81,5 +82,49 @@ class ClientProductQueryResolverTest :
 
       // Then
       result.shouldBeNull()
+    }
+    test("activeProducts should query only ONLINE products with stock and default sort") {
+      // Given
+      val page = PageImpl(listOf(product()), PageRequest.of(0, 20), 1)
+      every {
+        productService.productsPaginated(
+          match {
+            it.status == ProductModelStatus.ONLINE &&
+              it.minStock == 0 &&
+              it.sortBy == "CREATED_AT_DESC"
+          },
+          PageRequest.of(0, 20),
+        )
+      } returns page
+
+      // When
+      val result = resolver.activeProducts(null, 0, 20)
+
+      // Then
+      result.list.size shouldBe 1
+      result.list[0].name shouldBe "桶装水19L"
+      result.pageInfo.total shouldBe 1
+    }
+    test("activeProducts should map sortBy and sortDirection") {
+      // Given
+      val page = PageImpl(listOf(product()), PageRequest.of(1, 5), 1)
+      every {
+        productService.productsPaginated(
+          match { it.status == ProductModelStatus.ONLINE && it.sortBy == "PRICE_ASC" },
+          PageRequest.of(1, 5),
+        )
+      } returns page
+
+      // When
+      val result = resolver.activeProducts("桶装水", 1, 5, "price", "asc")
+
+      // Then
+      result.list.size shouldBe 1
+      verify {
+        productService.productsPaginated(
+          match { it.status == ProductModelStatus.ONLINE && it.sortBy == "PRICE_ASC" },
+          PageRequest.of(1, 5),
+        )
+      }
     }
   })

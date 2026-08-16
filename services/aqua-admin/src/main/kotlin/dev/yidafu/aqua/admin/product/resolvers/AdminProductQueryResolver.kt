@@ -22,6 +22,7 @@ package dev.yidafu.aqua.admin.product.resolvers
 import dev.yidafu.aqua.api.dto.ProductSearchRequest
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
 import dev.yidafu.aqua.common.graphql.generated.ProductVoPage
@@ -88,6 +89,9 @@ class AdminProductQueryResolver(
     @Argument id: Long,
   ): Product? = productService.findById(id)?.let { ProductMapper.map(it) }
 
+  /**
+   * 查询在售商品列表(R-PRO-03:仅返回在售且库存>0 的商品,供用户端/预览使用)
+   */
   @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
   @QueryMapping
   fun activeProducts(
@@ -96,7 +100,15 @@ class AdminProductQueryResolver(
     @Argument size: Int = 20,
   ): ProductVoPage {
     val pageable = PageRequest.of(page, size)
-    val productsPage = productService.productsPaginated(ProductSearchRequest(keyword), pageable)
+    val productsPage =
+      productService.productsPaginated(
+        ProductSearchRequest(
+          keyword = keyword,
+          status = ProductModelStatus.ONLINE,
+          minStock = 0,
+        ),
+        pageable,
+      )
     val (productList, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
     return ProductVoPage(
       list = productList,

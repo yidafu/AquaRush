@@ -43,11 +43,14 @@ export interface ProductFilters {
 interface ProductFiltersProps {
   filters?: ProductFilters;
   onFiltersChange?: (filters: ProductFilters) => void;
+  /** 卡片右上角自定义操作（与重置按钮同行） */
+  extra?: React.ReactNode;
 }
 
 export const ProductFilters: React.FC<ProductFiltersProps> = ({
   filters = {},
-  onFiltersChange
+  onFiltersChange,
+  extra
 }) => {
   const [localFilters, setLocalFilters] = useState<ProductFilters>(filters);
 
@@ -131,13 +134,16 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
       style={{ marginBottom: 16 }}
       title="筛选条件"
       extra={
-        <Button
-          icon={<ClearOutlined />}
-          size="small"
-          onClick={handleReset}
-        >
-          重置
-        </Button>
+        <Space>
+          {extra}
+          <Button
+            icon={<ClearOutlined />}
+            size="small"
+            onClick={handleReset}
+          >
+            重置
+          </Button>
+        </Space>
       }
     >
       <Row gutter={16}>

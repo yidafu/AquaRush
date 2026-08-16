@@ -72,3 +72,18 @@ class BatchProductOperationException(
       failures.joinToString(", ")
     }",
   )
+
+/**
+ * 商品属性选项不存在(F-PRO-009 规格/水源地字典)
+ */
+class ProductOptionNotFoundException(
+  optionId: Long,
+) : RuntimeException("Product option not found with ID: $optionId")
+
+/**
+ * 商品属性选项值在同类型内重复(F-PRO-009 规格/水源地字典)
+ */
+class DuplicateProductOptionValueException(
+  val optionType: String,
+  val value: String,
+) : RuntimeException("Duplicate product option value [$value] for type $optionType")

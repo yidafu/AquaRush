@@ -21,7 +21,6 @@ export const CREATE_PRODUCT_MUTATION = gql`
       tags
       detailContent
       certificateImages
-      deliverySettings
       createdAt
       updatedAt
     }
@@ -49,7 +48,6 @@ export const UPDATE_PRODUCT_MUTATION = gql`
       tags
       detailContent
       certificateImages
-      deliverySettings
       updatedAt
     }
   }
@@ -58,5 +56,40 @@ export const UPDATE_PRODUCT_MUTATION = gql`
 export const DELETE_PRODUCT_MUTATION = gql`
   mutation DeleteProduct($id: PrimaryId!) {
     deleteProduct(id: $id)
+  }
+`;
+
+// 商品属性选项字典(F-PRO-009):规格/水源地下拉候选的配置
+export const CREATE_PRODUCT_OPTION_MUTATION = gql`
+  mutation CreateProductOption($input: CreateProductOptionInput!) {
+    createProductOption(input: $input) {
+      id
+      optionType
+      value
+      sortOrder
+      enabled
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const UPDATE_PRODUCT_OPTION_MUTATION = gql`
+  mutation UpdateProductOption($id: PrimaryId!, $input: UpdateProductOptionInput!) {
+    updateProductOption(id: $id, input: $input) {
+      id
+      optionType
+      value
+      sortOrder
+      enabled
+      createdAt
+      updatedAt
+    }
+  }
+`;
+
+export const DELETE_PRODUCT_OPTION_MUTATION = gql`
+  mutation DeleteProductOption($id: PrimaryId!) {
+    deleteProductOption(id: $id)
   }
 `;

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { Spin, Alert, Button, Tooltip, Space } from 'antd';
+import { Alert, Button, Tooltip, Space } from 'antd';
 import { ReloadOutlined, FullscreenOutlined, MobileOutlined } from '@ant-design/icons';
 
 interface EnhancedWeChatPreviewProps {
