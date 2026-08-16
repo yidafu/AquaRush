@@ -16,21 +16,10 @@ sourceSets {
   }
 }
 
-// Copy shared GraphQL schemas to the correct location for Spring Boot GraphQL
-tasks.register<Copy>("copySharedGraphQL") {
-  from("../../shared-config/graphql")
-  into("src/main/resources/graphql")
-  include("*.graphqls")
-}
+// Shared GraphQL types: `shared-config/graphql/shared-types.graphqls` is the single
+// source of truth. The copy under `src/main/resources/graphql` is a git-tracked
+// SYMLINK pointing to it — do not replace it with a regular copy or re-add a copy task here.
 
-// Ensure resources are copied before compilation
-tasks.named("compileKotlin") {
-  dependsOn("copySharedGraphQL")
-}
-
-tasks.named("processResources") {
-  dependsOn("copySharedGraphQL")
-}
 
 dependencies {
   // Include user service specific modules
