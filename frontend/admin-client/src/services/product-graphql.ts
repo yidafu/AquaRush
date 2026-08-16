@@ -2,6 +2,7 @@ import { useQuery, useMutation } from '@apollo/client';
 import { message } from 'antd';
 import {
   GET_PRODUCT_DETAIL_QUERY,
+  PRODUCTS_PAGE_DATA,
 } from '../graphql/queries/product.graphql';
 import {
   CREATE_PRODUCT_MUTATION,
@@ -26,7 +27,8 @@ export const useCreateProduct = () => {
     onError: (error) => {
       message.error(error.message || '产品创建失败');
     },
-    refetchQueries: ['GetProducts'],
+    // 商品列表页已合并为 ProductsPageData(规则 #10);GetProducts 仍被商品选择器懒查,一并刷新
+    refetchQueries: ['GetProducts', PRODUCTS_PAGE_DATA],
   });
 };
 
@@ -38,7 +40,7 @@ export const useUpdateProduct = () => {
     onError: (error) => {
       message.error(error.message || '产品更新失败');
     },
-    refetchQueries: ['GetProducts', 'GetProductDetail'],
+    refetchQueries: ['GetProducts', 'GetProductDetail', PRODUCTS_PAGE_DATA],
   });
 };
 
@@ -50,6 +52,6 @@ export const useDeleteProduct = () => {
     onError: (error) => {
       message.error(error.message || '产品删除失败');
     },
-    refetchQueries: ['GetProducts'],
+    refetchQueries: ['GetProducts', PRODUCTS_PAGE_DATA],
   });
 };

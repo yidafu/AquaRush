@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Button, Input, Modal, Select, Space, message } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 
@@ -7,8 +7,11 @@ import UserTable from '../components/UserTable';
 import UserForm from '../components/UserForm';
 
 // Import GraphQL hooks and types
+import { useQuery } from '@apollo/client';
 import {
-  useUsers,
+  CUSTOMER_USERS_PAGE_DATA_QUERY,
+} from '../../../graphql/queries/user.graphql';
+import {
   useCreateUser,
   useUpdateUser,
   useDeleteUser,
@@ -16,14 +19,12 @@ import {
   type UpdateUserInput,
 } from '../../../services/user-graphql';
 import {
-  useCustomerGroups,
   useSetUserCustomerGroup,
 } from '../../../services/marketing-graphql';
-import type { User } from '@aquarush/common';
 import { UserStatus } from '@aquarush/common';
 
 // Import types for forms
-import type { UserFormData } from '../components/types';
+import type { User as CustomerUser, UserFormData } from '../components/types';
 import { STATUS_MAPPINGS } from '../components/types';
 
 // 未分组选项占位值(提交时转换为 null)
@@ -36,25 +37,46 @@ interface CustomerGroupOption {
   memberCount?: number;
 }
 
+/** 客户列表页单页查询(CustomerUsersPageData)返回结构 */
+interface CustomerUsersPageData {
+  users?: {
+    list: CustomerUser[];
+    pageInfo?: {
+      total?: number;
+      pageSize?: number;
+      pageNum?: number;
+      hasNext?: boolean;
+      hasPrevious?: boolean;
+      totalPages?: number;
+    };
+  };
+  customerGroups?: {
+    content: CustomerGroupOption[];
+  };
+}
+
 const CustomerUsers: React.FC = () => {
   const [loading, setLoading] = useState<boolean>(false);
   const [groupFilter, setGroupFilter] = useState<string | undefined>(undefined);
   const [statusFilter, setStatusFilter] = useState<UserStatus | undefined>(undefined);
   const [search, setSearch] = useState<string | undefined>(undefined);
 
-  // GraphQL data fetching(search 为关键字搜索,与分组/状态筛选可组合;F-USR-022)
-  const { data: usersData, loading: usersLoading, refetch: refetchUsers } = useUsers(
-    (() => {
-      const input: { customerGroupId?: string; search?: string; status?: UserStatus } = {};
-      if (groupFilter) input.customerGroupId = groupFilter;
-      if (statusFilter) input.status = statusFilter;
-      if (search) input.search = search;
-      return Object.keys(input).length > 0 ? input : undefined;
-    })(),
-  );
+  // 单页单请求:用户分页 + 客户分组(筛选/设置分组弹窗)一次取回(规则 #10);
+  // 筛选/搜索变化经 variables 变化自动重取(search 为关键字搜索,与分组/状态筛选可组合;F-USR-022)
+  const { data, loading: usersLoading, refetch } = useQuery<CustomerUsersPageData>(CUSTOMER_USERS_PAGE_DATA_QUERY, {
+    variables: {
+      input: (() => {
+        const input: { customerGroupId?: string; search?: string; status?: UserStatus } = {};
+        if (groupFilter) input.customerGroupId = groupFilter;
+        if (statusFilter) input.status = statusFilter;
+        if (search) input.search = search;
+        return Object.keys(input).length > 0 ? input : undefined;
+      })(),
+    },
+    errorPolicy: 'all',
+  });
 
-  // 客户分组(筛选器 + 设置分组弹窗共用)
-  const [loadGroups, { data: groupsData }] = useCustomerGroups();
+  // 设置分组(弹窗提交)
   const [setUserGroup, { loading: settingGroup }] = useSetUserCustomerGroup();
 
   // 用户增改删(G11 落地,F-USR-022)
@@ -62,23 +84,19 @@ const CustomerUsers: React.FC = () => {
   const [updateUser] = useUpdateUser();
   const [deleteUser] = useDeleteUser();
 
-  useEffect(() => {
-    loadGroups({ variables: { input: { page: 0, size: 200 } } });
-  }, [loadGroups]);
-
   // State for modals
   const [userFormVisible, setUserFormVisible] = useState<boolean>(false);
 
   // State for editing records
-  const [editingUser, setEditingUser] = useState<User | null>(null);
+  const [editingUser, setEditingUser] = useState<CustomerUser | null>(null);
 
   // 设置分组弹窗状态
-  const [groupTarget, setGroupTarget] = useState<User | null>(null);
+  const [groupTarget, setGroupTarget] = useState<CustomerUser | null>(null);
   const [selectedGroup, setSelectedGroup] = useState<string | undefined>(undefined);
 
   // Use GraphQL data only
-  const users = usersData?.users?.list || [];
-  const groups = (groupsData?.customerGroups?.content ?? []) as CustomerGroupOption[];
+  const users = data?.users?.list || [];
+  const groups = (data?.customerGroups?.content ?? []) as CustomerGroupOption[];
 
   const handleGroupFilterChange = (value: string | undefined) => {
     setGroupFilter(value === NO_GROUP_VALUE ? undefined : value);
@@ -88,7 +106,7 @@ const CustomerUsers: React.FC = () => {
     setSearch(value.trim() || undefined);
   };
 
-  const handleSetGroup = (user: User) => {
+  const handleSetGroup = (user: CustomerUser) => {
     setGroupTarget(user);
     setSelectedGroup(user.customerGroupId ?? undefined);
   };
@@ -109,12 +127,12 @@ const CustomerUsers: React.FC = () => {
   };
 
   // Action handlers
-  const handleEditUser = (user: User) => {
+  const handleEditUser = (user: CustomerUser) => {
     setEditingUser(user);
     setUserFormVisible(true);
   };
 
-  const handleDeleteUser = (user: User) => {
+  const handleDeleteUser = (user: CustomerUser) => {
     Modal.confirm({
       title: '确认删除',
       content: `确定要删除用户 ${user.nickname || user.wechatOpenId} 吗？此操作不可恢复。`,
@@ -127,7 +145,7 @@ const CustomerUsers: React.FC = () => {
           } else {
             message.warning('该用户不存在或已删除');
           }
-          await refetchUsers();
+          await refetch();
         } catch (error) {
           message.error(error instanceof Error ? error.message : '删除失败');
         }
@@ -167,7 +185,7 @@ const CustomerUsers: React.FC = () => {
         message.success('用户创建成功');
       }
 
-      await refetchUsers();
+      await refetch();
       setUserFormVisible(false);
       setEditingUser(null);
     } catch (error) {

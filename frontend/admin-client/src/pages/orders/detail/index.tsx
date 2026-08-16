@@ -39,7 +39,9 @@ const OrderDetailContent: React.FC = () => {
     loading,
     error,
     refreshOrder,
-    orderOperations
+    orderOperations,
+    workers,
+    workersLoading,
   } = useOrderDetail();
 
   // 取消订单(F-ORD-006,G15 接线):仅待支付/待派单/待配送订单展示,其余状态后端亦拦截
@@ -121,6 +123,8 @@ const OrderDetailContent: React.FC = () => {
             <AssignDeliveryButton
               orderId={order.id}
               isSelfCollect={order.isSelfCollect}
+              workers={workers}
+              workersLoading={workersLoading}
               onAssigned={refreshOrder}
               type="primary"
             >

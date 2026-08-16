@@ -28,43 +28,6 @@ export const GET_USERS_QUERY = gql`
   }
 `;
 
-export const GET_USER_DETAIL_QUERY = gql`
-query GetUserDetail($id: PrimaryId!) {
-  user(id: $id) {
-    id
-    wechatOpenId
-    nickname
-    phone
-    avatarUrl
-    status
-    role
-    email
-    balanceCents
-    totalSpentCents
-    customerGroupId
-    customerGroupName
-    createdAt
-    updatedAt
-    __typename
-  }
-  userAddresses(userId: $id) {
-    id
-    province
-    provinceCode
-    city
-    cityCode
-    district
-    districtCode
-    receiverName
-    phone
-    detailAddress
-    longitude
-    latitude
-    isDefault
-  }
-}
-`;
-
 /** 用户持有的优惠券(用户详情页「优惠券」Tab,状态空=全部;F-MKT-003) */
 export const USER_COUPONS_QUERY = gql`
   query GetUserCoupons($userId: PrimaryId!, $status: UserCouponStatus) {
@@ -332,9 +295,47 @@ export const DELIVERY_WORKER_ORDERS_QUERY = gql`
   }
 `;
 
-export const USER_ORDERS_QUERY = gql`
-  query GetUserOrders($userId: PrimaryId!, $page: Int, $size: Int, $status: OrderStatus) {
-    orders(input: { userId: $userId, page: $page, size: $size, status: $status }) {
+/**
+ * 用户详情页(UserDetailPage)单页查询:
+ * 一次请求取回「用户基本信息 + 收货地址 + 分页订单 + 已完成订单数(全量口径,别名)」,
+ * 满足 CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ * Tab 区块(优惠券/水票/反馈/评价/收藏)由 Tabs 懒挂载,激活时才各自请求,不在此合并。
+ */
+export const USER_DETAIL_PAGE_DATA_QUERY = gql`
+  query UserDetailPageData($id: PrimaryId!, $page: Int!, $size: Int!) {
+    user(id: $id) {
+      id
+      wechatOpenId
+      nickname
+      phone
+      avatarUrl
+      status
+      role
+      email
+      balanceCents
+      totalSpentCents
+      customerGroupId
+      customerGroupName
+      createdAt
+      updatedAt
+      __typename
+    }
+    userAddresses(userId: $id) {
+      id
+      province
+      provinceCode
+      city
+      cityCode
+      district
+      districtCode
+      receiverName
+      phone
+      detailAddress
+      longitude
+      latitude
+      isDefault
+    }
+    orders(input: { userId: $id, page: $page, size: $size }) {
       content {
         id
         orderNo
@@ -384,5 +385,61 @@ export const USER_ORDERS_QUERY = gql`
       number
       size
     }
+    completedOrders: orders(input: { userId: $id, page: 0, size: 1, status: COMPLETED }) {
+      totalElements
+    }
   }
 `;
+
+/** UserDetailPageData 操作名(供 refetchQueries 引用) */
+export const USER_DETAIL_PAGE_DATA = 'UserDetailPageData';
+
+/**
+ * 客户列表页(CustomerUsersPage)单页查询:
+ * 一次请求取回「用户分页 + 客户分组(筛选器/设置分组弹窗)」,满足
+ * CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ */
+export const CUSTOMER_USERS_PAGE_DATA_QUERY = gql`
+  query CustomerUsersPageData($input: UserListInput) {
+    users(input: $input) {
+      list {
+        id
+        wechatOpenId
+        nickname
+        phone
+        avatarUrl
+        status
+        role
+        customerGroupId
+        customerGroupName
+        createdAt
+        updatedAt
+      }
+      pageInfo {
+        total
+        pageSize
+        pageNum
+        hasNext
+        hasPrevious
+        totalPages
+      }
+    }
+    customerGroups(input: { page: 0, size: 200 }) {
+      content {
+        id
+        name
+        description
+        memberCount
+        createdAt
+        updatedAt
+      }
+      totalElements
+      totalPages
+      size
+      number
+    }
+  }
+`;
+
+/** CustomerUsersPageData 操作名(供 refetchQueries 引用) */
+export const CUSTOMER_USERS_PAGE_DATA = 'CustomerUsersPageData';

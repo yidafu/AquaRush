@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Select, Spin, DatePicker, Space, Empty } from 'antd';
+import { Card, Row, Col, Select, Spin, DatePicker, Space } from 'antd';
 import {
   LineChart,
   Line,
@@ -301,25 +301,20 @@ const OrderStatisticsPage: React.FC = () => {
 
   // ===== G37 三分析维度数据 =====
   const totalOrders = orderStats?.totalOrders ?? 0;
-  const hasOrders = totalOrders > 0;
 
-  // 状态分布:过滤零值扇区,合计 = 订单总数
-  const statusPieData = (orderStats?.statusDistribution || [])
-    .filter((item) => item.count > 0)
-    .map((item) => ({
-      name: ORDER_STATUS_MAP[item.status]?.text ?? item.status,
-      status: item.status,
-      value: item.count,
-      color: ORDER_STATUS_MAP[item.status]?.color ?? '#8c8c8c',
-    }));
+  // 状态分布:7 态全量展示(零值状态无扇区但图例显示计数),合计 = 订单总数
+  const statusPieData = (orderStats?.statusDistribution || []).map((item) => ({
+    name: `${ORDER_STATUS_MAP[item.status]?.text ?? item.status} (${item.count}单)`,
+    status: item.status,
+    value: item.count,
+    color: ORDER_STATUS_MAP[item.status]?.color ?? '#8c8c8c',
+  }));
 
-  // 客单价分布:过滤零值区间(空态时无数据点),合计 = 订单总数
-  const valueDistributionData = (orderStats?.orderValueDistribution || [])
-    .filter((item) => item.count > 0)
-    .map((item) => ({
-      label: item.label,
-      count: item.count,
-    }));
+  // 客单价分布:5 档区间全量展示(含 0 值柱),合计 = 订单总数
+  const valueDistributionData = (orderStats?.orderValueDistribution || []).map((item) => ({
+    label: item.label,
+    count: item.count,
+  }));
 
   // 高峰时段:24 小时柱状,标注高峰小时
   const peakHourData = (orderStats?.peakHourDistribution || []).map((item) => ({
@@ -330,7 +325,7 @@ const OrderStatisticsPage: React.FC = () => {
   const peakHours = maxHourCount > 0
     ? peakHourData.filter((item) => item.count === maxHourCount).map((item) => item.hour)
     : [];
-  const peakHourExtra = hasOrders && peakHours.length > 0
+  const peakHourExtra = peakHours.length > 0
     ? `高峰时段: ${peakHours.join('、')} (${maxHourCount} 单)`
     : null;
 
@@ -424,41 +419,39 @@ const OrderStatisticsPage: React.FC = () => {
         <Col xs={24} lg={8}>
           <Card title="订单状态分布" style={{ height: '100%' }}>
             <Spin spinning={loading}>
-              {hasOrders ? (
-                <>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <PieChart>
-                      <Pie
-                        data={statusPieData}
-                        dataKey="value"
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={95}
-                        paddingAngle={2}
-                      >
-                        {statusPieData.map((entry) => (
-                          <Cell key={entry.status} fill={entry.color} />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value, name) => {
-                          const numValue = typeof value === 'number' ? value : Number(value ?? 0);
-                          const percent = totalOrders > 0 ? ((numValue / totalOrders) * 100).toFixed(1) : '0.0';
-                          return [`${numValue} 单 (${percent}%)`, String(name)];
-                        }}
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                  <div style={{ textAlign: 'center', color: '#999', fontSize: 13 }}>
-                    合计: {totalOrders} 单
-                  </div>
-                </>
-              ) : (
-                <Empty description="所选范围暂无数据" style={{ paddingTop: 80 }} />
-              )}
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={statusPieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={95}
+                    paddingAngle={2}
+                  >
+                    {statusPieData.map((entry) => (
+                      <Cell key={entry.status} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value, name, item) => {
+                      const numValue = typeof value === 'number' ? value : Number(value ?? 0);
+                      const percent = totalOrders > 0 ? ((numValue / totalOrders) * 100).toFixed(1) : '0.0';
+                      const rawStatus = (item as unknown as { payload?: { status?: string } } | undefined)?.payload?.status;
+                      const label = rawStatus
+                        ? (ORDER_STATUS_MAP[rawStatus]?.text ?? rawStatus)
+                        : String(name ?? '');
+                      return [`${numValue} 单 (${percent}%)`, label];
+                    }}
+                  />
+                  <Legend />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{ textAlign: 'center', color: '#999', fontSize: 13 }}>
+                合计: {totalOrders} 单
+              </div>
             </Spin>
           </Card>
         </Col>
@@ -466,29 +459,23 @@ const OrderStatisticsPage: React.FC = () => {
         <Col xs={24} lg={8}>
           <Card title="客单价分布" style={{ height: '100%' }}>
             <Spin spinning={loading}>
-              {hasOrders ? (
-                <>
-                  <ResponsiveContainer width="100%" height={280}>
-                    <BarChart data={valueDistributionData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="label" tick={{ fontSize: 11 }} />
-                      <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                      <Tooltip
-                        formatter={(value) => {
-                          const numValue = typeof value === 'number' ? value : Number(value ?? 0);
-                          return [`${numValue} 单`, '订单数'];
-                        }}
-                      />
-                      <Bar dataKey="count" name="订单数" fill="#1890ff" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                  <div style={{ textAlign: 'center', color: '#999', fontSize: 13 }}>
-                    区间合计 = 订单总数 ({totalOrders} 单)
-                  </div>
-                </>
-              ) : (
-                <Empty description="所选范围暂无数据" style={{ paddingTop: 80 }} />
-              )}
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={valueDistributionData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="label" tick={{ fontSize: 11 }} />
+                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                  <Tooltip
+                    formatter={(value) => {
+                      const numValue = typeof value === 'number' ? value : Number(value ?? 0);
+                      return [`${numValue} 单`, '订单数'];
+                    }}
+                  />
+                  <Bar dataKey="count" name="订单数" fill="#1890ff" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+              <div style={{ textAlign: 'center', color: '#999', fontSize: 13 }}>
+                区间合计 = 订单总数 ({totalOrders} 单)
+              </div>
             </Spin>
           </Card>
         </Col>
@@ -496,31 +483,27 @@ const OrderStatisticsPage: React.FC = () => {
         <Col xs={24} lg={8}>
           <Card title="高峰时段分析" extra={peakHourExtra} style={{ height: '100%' }}>
             <Spin spinning={loading}>
-              {hasOrders ? (
-                <ResponsiveContainer width="100%" height={280}>
-                  <BarChart data={peakHourData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={1} />
-                    <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-                    <Tooltip
-                      formatter={(value) => {
-                        const numValue = typeof value === 'number' ? value : Number(value ?? 0);
-                        return [`${numValue} 单`, '订单数'];
-                      }}
-                    />
-                    <Bar dataKey="count" name="订单数">
-                      {peakHourData.map((entry) => (
-                        <Cell
-                          key={entry.hour}
-                          fill={entry.count === maxHourCount && maxHourCount > 0 ? '#faad14' : '#1677ff'}
-                        />
-                      ))}
-                    </Bar>
-                  </BarChart>
-                </ResponsiveContainer>
-              ) : (
-                <Empty description="所选范围暂无数据" style={{ paddingTop: 80 }} />
-              )}
+              <ResponsiveContainer width="100%" height={280}>
+                <BarChart data={peakHourData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={1} />
+                  <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+                  <Tooltip
+                    formatter={(value) => {
+                      const numValue = typeof value === 'number' ? value : Number(value ?? 0);
+                      return [`${numValue} 单`, '订单数'];
+                    }}
+                  />
+                  <Bar dataKey="count" name="订单数">
+                    {peakHourData.map((entry) => (
+                      <Cell
+                        key={entry.hour}
+                        fill={entry.count === maxHourCount && maxHourCount > 0 ? '#faad14' : '#1677ff'}
+                      />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
             </Spin>
           </Card>
         </Col>

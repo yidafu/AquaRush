@@ -5,11 +5,12 @@ import {
   GET_GROUP_PRODUCT_PRICES_QUERY,
   GET_COUPON_TEMPLATES_QUERY,
   GET_PROMOTION_ACTIVITIES_QUERY,
-  GET_TICKET_TYPES_QUERY,
   GET_FLASH_SALE_ACTIVITIES_QUERY,
   GET_GIFT_ACTIVITIES_QUERY,
   GET_FIRST_ORDER_ACTIVITIES_QUERY,
+  WATER_TICKETS_PAGE_DATA,
 } from '../graphql/queries/marketing.graphql';
+import { CUSTOMER_USERS_PAGE_DATA } from '../graphql/queries/user.graphql';
 import {
   CREATE_CUSTOMER_GROUP_MUTATION,
   UPDATE_CUSTOMER_GROUP_MUTATION,
@@ -54,7 +55,7 @@ export const useCreateCustomerGroup = () => {
     onError: (error) => {
       message.error(error.message || '客户分组创建失败');
     },
-    refetchQueries: ['GetCustomerGroups'],
+    refetchQueries: ['GetCustomerGroups', CUSTOMER_USERS_PAGE_DATA],
   });
 };
 
@@ -66,7 +67,7 @@ export const useUpdateCustomerGroup = () => {
     onError: (error) => {
       message.error(error.message || '客户分组更新失败');
     },
-    refetchQueries: ['GetCustomerGroups'],
+    refetchQueries: ['GetCustomerGroups', CUSTOMER_USERS_PAGE_DATA],
   });
 };
 
@@ -78,7 +79,7 @@ export const useDeleteCustomerGroup = () => {
     onError: (error) => {
       message.error(error.message || '客户分组删除失败');
     },
-    refetchQueries: ['GetCustomerGroups', 'GetGroupProductPrices', 'GetUsers'],
+    refetchQueries: ['GetCustomerGroups', 'GetGroupProductPrices', 'GetUsers', CUSTOMER_USERS_PAGE_DATA],
   });
 };
 
@@ -90,7 +91,7 @@ export const useSetUserCustomerGroup = () => {
     onError: (error) => {
       message.error(error.message || '用户分组更新失败');
     },
-    refetchQueries: ['GetUsers'],
+    refetchQueries: ['GetUsers', CUSTOMER_USERS_PAGE_DATA],
   });
 };
 
@@ -215,13 +216,8 @@ export const useDisablePromotionActivity = () => {
 };
 
 // ==================== 桶水票(F-MKT-007) ====================
-
-export const useTicketTypes = () => {
-  return useLazyQuery(GET_TICKET_TYPES_QUERY, {
-    fetchPolicy: 'cache-and-network',
-    errorPolicy: 'all',
-  });
-};
+// 列表查询已并入 WATER_TICKETS_PAGE_DATA_QUERY(水票管理页单页查询,规则 #10),
+// 不再需要独立的 useTicketTypes 懒查询
 
 export const useCreateTicketType = () => {
   return useMutation(CREATE_TICKET_TYPE_MUTATION, {
@@ -231,7 +227,7 @@ export const useCreateTicketType = () => {
     onError: (error) => {
       message.error(error.message || '票种创建失败');
     },
-    refetchQueries: ['GetTicketTypes'],
+    refetchQueries: [WATER_TICKETS_PAGE_DATA],
   });
 };
 
@@ -243,7 +239,7 @@ export const useUpdateTicketType = () => {
     onError: (error) => {
       message.error(error.message || '票种更新失败');
     },
-    refetchQueries: ['GetTicketTypes'],
+    refetchQueries: [WATER_TICKETS_PAGE_DATA],
   });
 };
 
@@ -255,7 +251,7 @@ export const useDisableTicketType = () => {
     onError: (error) => {
       message.error(error.message || '票种停用失败');
     },
-    refetchQueries: ['GetTicketTypes'],
+    refetchQueries: [WATER_TICKETS_PAGE_DATA],
   });
 };
 

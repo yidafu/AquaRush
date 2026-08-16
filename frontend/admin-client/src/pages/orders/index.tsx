@@ -1,15 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Table, Tag, Space, Button, Card, Typography, message, Modal, Form, Select } from 'antd';
-import { useLazyQuery, useQuery, useMutation } from '@apollo/client';
-import { GET_ORDERS_QUERY } from '../../graphql/queries/order.graphql';
-import { GET_ONLINE_DELIVERY_WORKERS_QUERY } from '../../graphql/queries/delivery.graphql';
+import { Table, Tag, Space, Button, Card, message, Modal, Form, Select } from 'antd';
+import { useQuery, useMutation } from '@apollo/client';
+import { ORDERS_PAGE_DATA_QUERY } from '../../graphql/queries/order.graphql';
 import { BATCH_ASSIGN_ORDERS_MUTATION } from '../../graphql/mutations/order.graphql';
 import AssignDeliveryButton from '../../components/AssignDeliveryButton';
 import { OrderFilters, OrderFilters as FilterType } from './components/OrderFilters';
 import { displayCents, yuanToCents } from '@aquarush/common';
-
-const { Title } = Typography;
 
 interface OrderData {
   id: number;
@@ -46,6 +43,13 @@ interface OrdersQueryResult {
     size: number;
     number: number;
   };
+  onlineDeliveryWorkers: Array<{
+    id: number;
+    name: string;
+    phone: string;
+    onlineStatus: string;
+    currentTaskCount?: number;
+  }>;
 }
 
 const ORDER_STATUS_MAP: Record<string, { text: string; color: string }> = {
@@ -82,15 +86,12 @@ const Orders: React.FC = () => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
   const [batchModalVisible, setBatchModalVisible] = useState(false);
   const [batchWorkerId, setBatchWorkerId] = useState<number | null>(null);
-  const { data: workersData, loading: workersLoading } = useQuery(GET_ONLINE_DELIVERY_WORKERS_QUERY);
   const [batchAssignOrders, { loading: batchAssigning }] = useMutation(BATCH_ASSIGN_ORDERS_MUTATION, {
     onError: (error) => {
       console.error('批量派单失败:', error);
       message.error('批量派单失败: ' + error.message);
     },
   });
-
-  const workers = workersData?.onlineDeliveryWorkers || [];
 
   const openBatchAssign = () => {
     if (selectedRowKeys.length === 0) {
@@ -123,7 +124,24 @@ const Orders: React.FC = () => {
     }
   };
 
-  const [loadOrders, { data, loading }] = useLazyQuery<OrdersQueryResult>(GET_ORDERS_QUERY, {
+  // 单页单请求:订单分页 + 在线配送员(批量派单下拉)一次取回(规则 #10);
+  // 筛选/分页/排序变化经 variables 变化自动重取
+  const { data, loading, refetch } = useQuery<OrdersQueryResult>(ORDERS_PAGE_DATA_QUERY, {
+    variables: {
+      input: {
+        page: pagination.current - 1,
+        size: pagination.pageSize,
+        search: filters.search || undefined,
+        status: filters.status || undefined,
+        userId: filters.userId || undefined,
+        dateFrom: filters.dateFrom || undefined,
+        dateTo: filters.dateTo || undefined,
+        minAmount: filters.minAmount ? yuanToCents(filters.minAmount) : undefined,
+        maxAmount: filters.maxAmount ? yuanToCents(filters.maxAmount) : undefined,
+        deliveryWorkerId: filters.deliveryWorkerId || undefined,
+        sort: filters.sortBy ? `${filters.sortBy},${filters.sortOrder || 'desc'}` : 'createdAt,desc',
+      },
+    },
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
     onError: (error) => {
@@ -133,30 +151,11 @@ const Orders: React.FC = () => {
   });
 
   const fetchOrders = useCallback(() => {
-    const sort = filters.sortBy ? `${filters.sortBy},${filters.sortOrder || 'desc'}` : 'createdAt,desc';
+    refetch();
+  }, [refetch]);
 
-    loadOrders({
-      variables: {
-        input: {
-          page: pagination.current - 1,
-          size: pagination.pageSize,
-          search: filters.search || undefined,
-          status: filters.status || undefined,
-          userId: filters.userId || undefined,
-          dateFrom: filters.dateFrom || undefined,
-          dateTo: filters.dateTo || undefined,
-          minAmount: filters.minAmount ? yuanToCents(filters.minAmount) : undefined,
-          maxAmount: filters.maxAmount ? yuanToCents(filters.maxAmount) : undefined,
-          deliveryWorkerId: filters.deliveryWorkerId || undefined,
-          sort: sort,
-        },
-      },
-    });
-  }, [filters, pagination.current, pagination.pageSize, loadOrders]);
-
-  useEffect(() => {
-    fetchOrders();
-  }, [fetchOrders]);
+  const workers = data?.onlineDeliveryWorkers ?? [];
+  const workersLoading = loading;
 
   useEffect(() => {
     if (data?.orders) {
@@ -265,6 +264,8 @@ const Orders: React.FC = () => {
           {record.status === 'PENDING_DISPATCH' && (
             <AssignDeliveryButton
               orderId={record.id}
+              workers={workers}
+              workersLoading={workersLoading}
               onAssigned={() => fetchOrders()}
             />
           )}

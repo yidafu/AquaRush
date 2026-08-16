@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Card, Row, Col, Spin, Select, Space, DatePicker } from 'antd';
 import {
   LineChart,
@@ -12,59 +12,13 @@ import {
   ResponsiveContainer,
   Legend,
 } from 'recharts';
-import { useQuery, gql } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { centsToYuan } from '@aquarush/common';
 import StatisticsCard from '@/components/StatisticsCard';
+import { PRODUCT_STATISTICS_PAGE_DATA_QUERY } from '../../../graphql/queries/statistics.graphql';
 import dayjs, { Dayjs } from 'dayjs';
 
 const { RangePicker } = DatePicker;
-
-const GET_PRODUCT_STATISTICS = gql`
-  query GetProductStatistics {
-    productStatistics {
-      totalProducts
-      onlineProducts
-      offlineProducts
-      lowStockProducts
-      totalSales
-      totalFavorites
-      productRanking {
-        productId
-        productName
-        salesVolume
-        revenueCents
-      }
-      favoriteStatistics {
-        productId
-        productName
-        favoriteCount
-      }
-    }
-  }
-`;
-
-const GET_PRODUCT_DAILY_SALES = gql`
-  query GetProductDailySales($input: DateRangeInput!) {
-    productDailySales(input: $input) {
-      date
-      productId
-      productName
-      salesVolume
-      revenueCents
-    }
-  }
-`;
-
-const GET_ALL_PRODUCTS = gql`
-  query GetAllProducts {
-    productsPaginated(input: { page: 0, size: 100 }) {
-      list {
-        id
-        name
-      }
-    }
-  }
-`;
 
 interface ProductSalesStat {
   productId: number;
@@ -87,7 +41,7 @@ interface ProductDailySalesData {
   revenueCents: number;
 }
 
-interface ProductStatisticsData {
+interface ProductStatisticsPageData {
   productStatistics: {
     totalProducts: number;
     onlineProducts: number;
@@ -98,13 +52,7 @@ interface ProductStatisticsData {
     productRanking: ProductSalesStat[];
     favoriteStatistics: ProductFavoriteStat[];
   };
-}
-
-interface ProductDailySalesQueryData {
   productDailySales: ProductDailySalesData[];
-}
-
-interface ProductListData {
   productsPaginated: {
     list: { id: number; name: string }[];
   };
@@ -120,31 +68,26 @@ const ProductStatisticsPage: React.FC = () => {
   const startDate = dateRange[0].format('YYYY-MM-DDTHH:mm:ss');
   const endDate = dateRange[1].format('YYYY-MM-DDTHH:mm:ss');
 
-  const { data: statsData, loading: statsLoading, error: statsError } = useQuery<ProductStatisticsData>(GET_PRODUCT_STATISTICS);
-
-  const { data: dailySalesData, loading: dailySalesLoading, refetch: refetchDailySales } = useQuery<ProductDailySalesQueryData>(GET_PRODUCT_DAILY_SALES, {
+  // 单页单请求:商品统计 + 日销量 + 商品目录一次取回(规则 #10);
+  // 日期变化经 variables 变化自动重取,无需单独 refetch
+  const { data, loading, error } = useQuery<ProductStatisticsPageData>(PRODUCT_STATISTICS_PAGE_DATA_QUERY, {
     variables: {
       input: {
         startDate,
         endDate,
       },
     },
-    skip: !dateRange[0] || !dateRange[1],
+    errorPolicy: 'all',
   });
 
-  const { data: productsData } = useQuery<ProductListData>(GET_ALL_PRODUCTS);
+  const statsData = data
+  const dailySalesData = data
+  const productsData = data
+  const statsLoading = loading
+  const dailySalesLoading = loading
 
-  useEffect(() => {
-    refetchDailySales({
-      input: {
-        startDate,
-        endDate,
-      },
-    });
-  }, [dateRange, refetchDailySales, startDate, endDate]);
-
-  if (statsError) {
-    return <div>加载失败: {statsError.message}</div>;
+  if (error) {
+    return <div>加载失败: {error.message}</div>;
   }
 
   const stats = statsData?.productStatistics;

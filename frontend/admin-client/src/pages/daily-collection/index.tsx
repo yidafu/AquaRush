@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Card, Table, Tag, Button, Space, Modal, Form, Input, message, Row, Col, Statistic, Tabs } from 'antd'
 import { useQuery, useMutation } from '@apollo/client'
-import { GET_DAILY_COLLECTIONS, GET_DAILY_RECONCILIATIONS } from '../../graphql/queries/daily-collection.graphql'
+import { DAILY_COLLECTION_PAGE_DATA_QUERY } from '../../graphql/queries/daily-collection.graphql'
 import { CONFIRM_DAILY_COLLECTION, REVIEW_RECONCILIATION, EXECUTE_DAILY_RECONCILIATION } from '../../graphql/mutations/daily-collection.graphql'
 import type { DailyCollectionRecord, DailyReconciliation } from '../../types/daily-collection'
 import type { ColumnsType } from 'antd/es/table'
@@ -43,21 +43,22 @@ const DailyCollectionPage: React.FC = () => {
   const [selectedReconciliation, setSelectedReconciliation] = useState<DailyReconciliation | null>(null)
   const [reviewForm] = Form.useForm()
 
-  // 查询收款记录（不传日期则获取所有记录）
-  const { data: collectionData, loading: collectionLoading, refetch: refetchCollections } = useQuery<{ dailyCollections: DailyCollectionRecord[] }>(
-    GET_DAILY_COLLECTIONS
-  )
+  // 单页单请求:每日收款记录 + 对账记录一次取回(规则 #10)
+  const { data: pageData, loading: pageLoading, refetch } = useQuery<{
+    dailyCollections: DailyCollectionRecord[]
+    dailyReconciliations: DailyReconciliation[]
+  }>(DAILY_COLLECTION_PAGE_DATA_QUERY)
 
-  // 查询对账记录
-  const { data: reconciliationData, loading: reconciliationLoading, refetch: refetchReconciliations } = useQuery<{ dailyReconciliations: DailyReconciliation[] }>(
-    GET_DAILY_RECONCILIATIONS
-  )
+  const collectionData = pageData
+  const reconciliationData = pageData
+  const collectionLoading = pageLoading
+  const reconciliationLoading = pageLoading
 
   // 确认收款
   const [confirmCollection] = useMutation(CONFIRM_DAILY_COLLECTION, {
     onCompleted: () => {
       message.success('确认成功')
-      refetchCollections()
+      refetch()
     },
   })
 
@@ -67,7 +68,7 @@ const DailyCollectionPage: React.FC = () => {
       message.success('复核成功')
       setReconciliationModalVisible(false)
       reviewForm.resetFields()
-      refetchReconciliations()
+      refetch()
     },
   })
 
@@ -75,7 +76,7 @@ const DailyCollectionPage: React.FC = () => {
   const [executeReconciliation, { loading: executeLoading }] = useMutation(EXECUTE_DAILY_RECONCILIATION, {
     onCompleted: () => {
       message.success('对账执行成功')
-      refetchReconciliations()
+      refetch()
     },
     onError: (err) => {
       message.error('对账执行失败: ' + err.message)

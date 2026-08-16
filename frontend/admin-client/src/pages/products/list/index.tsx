@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Row, Col, Card, Typography, Button, Space, message } from 'antd';
 import { PlusOutlined, EyeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
-import { useLazyQuery } from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { ProductTable } from '../components/ProductTable';
 import { ProductFilters } from '../components/ProductFilters';
 import { ProductForm } from '../components/ProductForm';
-import { GET_PRODUCTS_QUERY, GET_STOCK_WARNING_THRESHOLDS_QUERY } from '../../../graphql/queries/product.graphql';
+import { PRODUCTS_PAGE_DATA_QUERY } from '../../../graphql/queries/product.graphql';
 import { EnhancedWeChatPreview } from '../components/EnhancedWeChatPreview';
 
 const ProductListPage: React.FC = () => {
@@ -29,14 +29,9 @@ const ProductListPage: React.FC = () => {
     size: 20
   });
 
-  // 库存预警阈值(F-SYS-003,R-PRO-02):商品列表着色按系统参数动态计算,缺省 10/50
-  const [loadThresholds, { data: thresholdData }] = useLazyQuery(GET_STOCK_WARNING_THRESHOLDS_QUERY, {
-    fetchPolicy: 'cache-and-network',
-    errorPolicy: 'all',
-  });
-
-  // Use lazy query to allow for filter variables
-  const [loadProducts, { data, loading, refetch }] = useLazyQuery(GET_PRODUCTS_QUERY, {
+  // 单页单请求:商品分页 + 库存预警阈值(着色)一次取回(规则 #10);
+  // 筛选/分页变化经 variables 变化自动重取
+  const { data, loading, refetch } = useQuery(PRODUCTS_PAGE_DATA_QUERY, {
     variables: {
       input: {
         page: filters.page || 0,
@@ -56,16 +51,6 @@ const ProductListPage: React.FC = () => {
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all'
   });
-
-  // Load products on mount and when filters change
-  useEffect(() => {
-    loadProducts();
-  }, [filters]);
-
-  // 加载库存预警阈值
-  useEffect(() => {
-    loadThresholds();
-  }, [loadThresholds]);
 
   const handleAddProduct = () => {
     setCreateModalVisible(true);
@@ -106,8 +91,8 @@ const ProductListPage: React.FC = () => {
         loading={loading}
         data={data?.productsPaginated?.list || []}
         stockThresholds={
-          thresholdData?.stockWarningThresholds
-            ? { low: thresholdData.stockWarningThresholds.lowThreshold, mid: thresholdData.stockWarningThresholds.midThreshold }
+          data?.stockWarningThresholds
+            ? { low: data.stockWarningThresholds.lowThreshold, mid: data.stockWarningThresholds.midThreshold }
             : { low: 10, mid: 50 }
         }
         pagination={{

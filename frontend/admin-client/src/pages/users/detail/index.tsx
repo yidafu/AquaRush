@@ -26,8 +26,7 @@ import {
 } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import {
-  GET_USER_DETAIL_QUERY,
-  USER_ORDERS_QUERY,
+  USER_DETAIL_PAGE_DATA_QUERY,
 } from '../../../graphql/queries/user.graphql';
 import type {
   User,
@@ -54,6 +53,22 @@ const ROLE_LABELS: Record<UserRole, string> = {
   [UserRoleEnum.WORKER]: '送水员',
 };
 
+/** 用户详情页单页查询(UserDetailPageData)返回结构 */
+interface UserDetailPageData {
+  user?: User;
+  userAddresses: Address[];
+  orders: {
+    content: Order[];
+    totalElements: number;
+    totalPages: number;
+    number: number;
+    size: number;
+  };
+  completedOrders: {
+    totalElements: number;
+  };
+}
+
 /**
  * 用户详情页(users/:id,PRD/07-user.md §F-USR-022):
  * 基本信息卡(含角色/邮箱/所属分组/余额/总消费) → 统计卡(全量口径) → Tabs
@@ -67,33 +82,14 @@ const UserDetailPage: React.FC = () => {
 
   const userId = id;
 
-  // Query for user basic info
+  // 单页单请求:用户基本信息 + 地址 + 分页订单 + 已完成订单数一次取回(规则 #10);
+  // 分页/尺寸变化经 variables 变化自动重取
   const {
-    data: userData,
+    data,
     loading: userLoading,
     error: userError,
-  } = useQuery(GET_USER_DETAIL_QUERY, {
-    variables: { id: userId },
-    skip: !userId,
-    errorPolicy: 'all',
-  });
-
-  // Query for user orders (全量订单)
-  const {
-    data: ordersData,
-    loading: ordersLoading,
-    refetch: refetchOrders,
-  } = useQuery(USER_ORDERS_QUERY, {
-    variables: { userId, page, size: pageSize },
-    skip: !userId,
-    errorPolicy: 'all',
-  });
-
-  // Query for completed orders count (全量口径:已完成订单数)
-  const {
-    data: completedOrdersData,
-  } = useQuery(USER_ORDERS_QUERY, {
-    variables: { userId, page: 0, size: 1, status: OrderStatus.COMPLETED },
+  } = useQuery<UserDetailPageData>(USER_DETAIL_PAGE_DATA_QUERY, {
+    variables: { id: userId as string, page, size: pageSize },
     skip: !userId,
     errorPolicy: 'all',
   });
@@ -101,20 +97,14 @@ const UserDetailPage: React.FC = () => {
   // 最近下单时间(orders 默认 createdAt 倒序,取第 0 页首条,分页时保持首载值)
   const [latestOrderTime, setLatestOrderTime] = useState<string | null>(null);
   useEffect(() => {
-    if (page === 0 && ordersData?.orders?.content?.length) {
-      setLatestOrderTime(ordersData.orders.content[0].createdAt);
+    if (page === 0 && data?.orders?.content?.length) {
+      setLatestOrderTime(data.orders.content[0].createdAt);
     }
-  }, [ordersData, page]);
+  }, [data, page]);
 
-  useEffect(() => {
-    if (userId) {
-      refetchOrders({ userId, page, size: pageSize });
-    }
-  }, [page, pageSize, userId, refetchOrders]);
-
-  const user: User | undefined = userData?.user;
-  const userAddresses: Address[] = userData?.userAddresses || [];
-  const orders: Order[] = ordersData?.orders.content || [];
+  const user: User | undefined = data?.user;
+  const userAddresses: Address[] = data?.userAddresses || [];
+  const orders: Order[] = data?.orders.content || [];
 
   const getStatusColor = (status: OrderStatus) => {
     switch (status) {
@@ -268,11 +258,11 @@ const UserDetailPage: React.FC = () => {
 
   // 统计口径(2026-09 修正:不再按当前分页计算)
   // 总订单数 = orders.totalElements(全量);总消费 = user.totalSpentCents(持久化权威值);
-  // 已完成订单 = 按状态 COMPLETED 计数查询;平均订单金额 = 总消费/总订单(除零守卫)
-  const totalOrders = ordersData?.orders.totalElements ?? 0;
+  // 已完成订单 = 按状态 COMPLETED 计数查询(completedOrders 别名);平均订单金额 = 总消费/总订单(除零守卫)
+  const totalOrders = data?.orders.totalElements ?? 0;
   const totalSpentCents = user?.totalSpentCents ?? 0;
   const totalAmountInYuan = totalSpentCents / 100;
-  const completedOrders = completedOrdersData?.orders.totalElements ?? 0;
+  const completedOrders = data?.completedOrders.totalElements ?? 0;
   const averageAmountInYuan = totalOrders > 0 ? totalAmountInYuan / totalOrders : 0;
   const lastOrderTime = latestOrderTime
     ? new Date(latestOrderTime).toLocaleString()
@@ -456,7 +446,7 @@ const UserDetailPage: React.FC = () => {
                   columns={orderColumns}
                   dataSource={orders}
                   rowKey="id"
-                  loading={ordersLoading}
+                  loading={userLoading}
                   onRow={(record) => ({
                     onClick: () => navigate(`/orders/${record.id}`),
                   })}
@@ -464,7 +454,7 @@ const UserDetailPage: React.FC = () => {
                   pagination={{
                     current: page + 1,
                     pageSize,
-                    total: ordersData?.orders.totalElements ?? 0,
+                    total: data?.orders.totalElements ?? 0,
                     showSizeChanger: true,
                     showQuickJumper: true,
                     showTotal: (total, range) =>

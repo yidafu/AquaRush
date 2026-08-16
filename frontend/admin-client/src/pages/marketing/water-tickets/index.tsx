@@ -1,13 +1,12 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Table, Tag, Space, Button, Card, Popconfirm, Input } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import type { TicketType } from '@aquarush/common';
-import { useLazyQuery } from '@apollo/client';
-import { GET_PRODUCTS_QUERY } from '../../../graphql/queries/product.graphql';
+import { useQuery } from '@apollo/client';
+import { WATER_TICKETS_PAGE_DATA_QUERY } from '../../../graphql/queries/marketing.graphql';
 import {
-  useTicketTypes,
   useCreateTicketType,
   useUpdateTicketType,
   useDisableTicketType,
@@ -16,7 +15,6 @@ import TicketTypeFormModal, { type TicketTypeFormPayload } from './components/Ti
 
 // 桶水票票种管理页(F-MKT-007):列表/新建/编辑/停用
 const WaterTickets: React.FC = () => {
-  const [loadTicketTypes, { data, loading }] = useTicketTypes();
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
   const [keyword, setKeyword] = useState('');
@@ -27,37 +25,28 @@ const WaterTickets: React.FC = () => {
   const [updateTicketType, { loading: updating }] = useUpdateTicketType();
   const [disableTicketType, { loading: disabling }] = useDisableTicketType();
 
-  // 商品目录映射(指定商品票展示商品名)
-  const [loadProducts, { data: productsData }] = useLazyQuery(GET_PRODUCTS_QUERY, {
+  // 单页单请求:票种分页 + 商品目录(指定商品票展示商品名)一次取回(规则 #10);
+  // 分页/关键字变化经 variables 变化自动重取
+  const { data, loading } = useQuery(WATER_TICKETS_PAGE_DATA_QUERY, {
+    variables: {
+      input: { page, size, keyword: keyword || undefined },
+      productsInput: { page: 0, size: 1000 },
+    },
     fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   });
 
   const productMap = useMemo(() => {
     const map = new Map<string, string>();
-    (productsData?.productsPaginated?.list ?? []).forEach((product) => {
+    (data?.productsPaginated?.list ?? []).forEach((product: { id: number | string; name: string; specification?: string | null }) => {
       map.set(String(product.id), product.specification ? `${product.name}(${product.specification})` : product.name);
     });
     return map;
-  }, [productsData]);
-
-  const load = useCallback(
-    (p = page, s = size, kw = keyword) => {
-      loadTicketTypes({ variables: { input: { page: p, size: s, keyword: kw || undefined } } });
-    },
-    [loadTicketTypes, page, size, keyword],
-  );
-
-  useEffect(() => {
-    load();
-    loadProducts({ variables: { input: { page: 0, size: 1000 } } });
-  }, [load, loadProducts]);
+  }, [data]);
 
   const handleTableChange = (pagination: any) => {
-    const nextPage = pagination.current - 1;
-    setPage(nextPage);
+    setPage(pagination.current - 1);
     setSize(pagination.pageSize);
-    load(nextPage, pagination.pageSize);
   };
 
   const handleCreate = () => {
@@ -174,8 +163,8 @@ const WaterTickets: React.FC = () => {
             allowClear
             style={{ width: 220 }}
             onSearch={(value) => {
+              setPage(0);
               setKeyword(value);
-              load(0, size, value);
             }}
           />
           <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>

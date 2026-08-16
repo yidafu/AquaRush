@@ -159,7 +159,7 @@ export const useCreateUser = () => {
     onError: (error) => {
       message.error(error.message || '创建用户失败');
     },
-    refetchQueries: ['GetUsers'],
+    refetchQueries: ['GetUsers', 'CustomerUsersPageData'],
   });
 };
 
@@ -168,7 +168,7 @@ export const useUpdateUser = () => {
     onError: (error) => {
       message.error(error.message || '更新用户失败');
     },
-    refetchQueries: ['GetUsers'],
+    refetchQueries: ['GetUsers', 'CustomerUsersPageData'],
   });
 };
 
@@ -177,7 +177,7 @@ export const useDeleteUser = () => {
     onError: (error) => {
       message.error(error.message || '删除用户失败');
     },
-    refetchQueries: ['GetUsers'],
+    refetchQueries: ['GetUsers', 'CustomerUsersPageData'],
   });
 };
 

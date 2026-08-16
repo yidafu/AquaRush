@@ -104,8 +104,13 @@ export const GET_PROMOTION_ACTIVITIES_QUERY = gql`
   }
 `;
 
-export const GET_TICKET_TYPES_QUERY = gql`
-  query GetTicketTypes($input: TicketTypeListInput) {
+/**
+ * 水票管理页(WaterTicketsPage)单页查询:
+ * 一次请求取回「票种分页 + 商品目录(指定商品票展示商品名)」,满足
+ * CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ */
+export const WATER_TICKETS_PAGE_DATA_QUERY = gql`
+  query WaterTicketsPageData($input: TicketTypeListInput, $productsInput: ProductSearchInput) {
     ticketTypes(input: $input) {
       content {
         id
@@ -130,8 +135,18 @@ export const GET_TICKET_TYPES_QUERY = gql`
       size
       number
     }
+    productsPaginated(input: $productsInput) {
+      list {
+        id
+        name
+        specification
+      }
+    }
   }
 `;
+
+/** WaterTicketsPageData 操作名(供 refetchQueries 引用) */
+export const WATER_TICKETS_PAGE_DATA = 'WaterTicketsPageData';
 
 // ==================== 限时特价活动(F-MKT-005) ====================
 

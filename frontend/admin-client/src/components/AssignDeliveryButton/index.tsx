@@ -4,6 +4,14 @@ import { useQuery, useMutation } from '@apollo/client';
 import { ASSIGN_DELIVERY_WORKER_MUTATION } from '../../graphql/mutations/order.graphql';
 import { GET_ONLINE_DELIVERY_WORKERS_QUERY } from '../../graphql/queries/delivery.graphql';
 
+export interface AssignDeliveryWorker {
+  id: number;
+  name: string;
+  phone: string;
+  onlineStatus?: string;
+  currentTaskCount?: number;
+}
+
 interface AssignDeliveryButtonProps {
   orderId: number;
   isSelfCollect?: boolean;
@@ -11,6 +19,9 @@ interface AssignDeliveryButtonProps {
   type?: 'link' | 'primary' | 'default' | 'dashed' | 'text';
   size?: 'small' | 'middle' | 'large';
   children?: React.ReactNode;
+  /** 父页面已通过页面级合并查询取回配送员时传入,跳过组件自身的重复请求(规则 #10) */
+  workers?: AssignDeliveryWorker[];
+  workersLoading?: boolean;
 }
 
 export const AssignDeliveryButton: React.FC<AssignDeliveryButtonProps> = ({
@@ -20,15 +31,21 @@ export const AssignDeliveryButton: React.FC<AssignDeliveryButtonProps> = ({
   type = 'link',
   size = 'small',
   children = '分配配送',
+  workers: providedWorkers,
+  workersLoading: providedWorkersLoading,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedWorkerId, setSelectedWorkerId] = useState<number | null>(null);
   const [isSelfCollect, setIsSelfCollect] = useState(initialIsSelfCollect);
 
-  const { data: workersData, loading: workersLoading } = useQuery(GET_ONLINE_DELIVERY_WORKERS_QUERY);
+  // 父页面未提供配送员数据时才自行查询(避免同一页面重复发起在线配送员请求)
+  const { data: workersData, loading: workersLoading } = useQuery(GET_ONLINE_DELIVERY_WORKERS_QUERY, {
+    skip: Array.isArray(providedWorkers),
+  });
   const [assignDeliveryWorker, { loading: assignLoading }] = useMutation(ASSIGN_DELIVERY_WORKER_MUTATION);
 
-  const workers = workersData?.onlineDeliveryWorkers || [];
+  const workers = providedWorkers ?? workersData?.onlineDeliveryWorkers ?? [];
+  const loading = providedWorkersLoading ?? workersLoading;
 
   const handleOpen = () => {
     setSelectedWorkerId(null);
@@ -74,7 +91,7 @@ export const AssignDeliveryButton: React.FC<AssignDeliveryButtonProps> = ({
           <Form.Item label="选择送水员" required>
             <Select
               placeholder="选择送水员"
-              loading={workersLoading}
+              loading={loading}
               value={selectedWorkerId}
               onChange={setSelectedWorkerId}
             >

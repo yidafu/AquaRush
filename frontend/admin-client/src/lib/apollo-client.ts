@@ -8,7 +8,6 @@ import {
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
 import { message } from 'antd';
-import { createMockApolloLink } from '../mock/apolloMockLink';
 
 // HTTP 连接到 GraphQL 服务器
 const httpLink = createHttpLink({
@@ -76,7 +75,7 @@ export const apolloClient = new ApolloClient({
     logLink,
     errorLink,
     authLink,
-    createMockApolloLink() || httpLink, // 如果有mock链接就使用，否则使用httpLink
+    httpLink,
   ]),
   cache: new InMemoryCache({
     // 配置缓存策略

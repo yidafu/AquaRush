@@ -1,9 +1,8 @@
 import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
-import { useLazyQuery, useQuery, useMutation } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { message } from 'antd';
-import { GET_ORDER_DETAIL_QUERY, GET_ORDER_OPERATIONS_QUERY } from '../../../graphql/queries/order.graphql';
+import { ORDER_DETAIL_PAGE_DATA_QUERY } from '../../../graphql/queries/order.graphql';
 import { ASSIGN_DELIVERY_WORKER_MUTATION } from '../../../graphql/mutations/order.graphql';
-import { GET_ONLINE_DELIVERY_WORKERS_QUERY } from '../../../graphql/queries/delivery.graphql';
 import type { OrderOperation } from '../../../components/OrderOperationTimeline';
 
 export interface OrderDetailData {
@@ -62,6 +61,8 @@ export interface OrderDetailData {
 
 export interface OrderDetailQueryResult {
   order: OrderDetailData;
+  onlineDeliveryWorkers: DeliveryWorker[];
+  orderOperations: OrderOperation[];
 }
 
 export interface DeliveryWorker {
@@ -120,53 +121,31 @@ export const OrderDetailProvider: React.FC<OrderDetailProviderProps> = ({ childr
   const [selectedWorkerId, setSelectedWorkerId] = useState<number | null>(null);
   const [isSelfCollect, setIsSelfCollect] = useState(false);
 
-  // Query for order detail
-  const [loadOrderQuery, { data, loading, error }] = useLazyQuery<OrderDetailQueryResult>(
-    GET_ORDER_DETAIL_QUERY,
-    {
-      fetchPolicy: 'cache-and-network',
-      errorPolicy: 'all',
-    }
-  );
-
-  // Query for online delivery workers
-  const { data: workersData, loading: workersLoading } = useQuery(GET_ONLINE_DELIVERY_WORKERS_QUERY, {
+  // 单页单请求:订单详情 + 在线配送员 + 操作记录一次取回(规则 #10);
+  // orderId 变化经 variables 变化自动重取,refreshOrder = refetch
+  const { data, loading, error, refetch } = useQuery<OrderDetailQueryResult>(ORDER_DETAIL_PAGE_DATA_QUERY, {
+    variables: { orderId: parseInt(orderId, 10) },
+    skip: !orderId,
+    fetchPolicy: 'cache-and-network',
     errorPolicy: 'all',
   });
-
-  // Query for order operations
-  const { data: operationsData } = useQuery(
-    GET_ORDER_OPERATIONS_QUERY,
-    {
-      variables: { orderId: parseInt(orderId, 10) },
-      skip: !orderId,
-      errorPolicy: 'all',
-    }
-  );
 
   // Mutation for assigning delivery worker
   const [assignDeliveryWorkerMutation, { loading: assignLoading }] = useMutation(ASSIGN_DELIVERY_WORKER_MUTATION);
 
   const order = data?.order ?? null;
-  const workers: DeliveryWorker[] = workersData?.onlineDeliveryWorkers ?? [];
-  const orderOperations: OrderOperation[] = operationsData?.orderOperations ?? [];
-
-  // Load order on mount
-  React.useEffect(() => {
-    if (orderId) {
-      loadOrderQuery({ variables: { id: parseInt(orderId, 10) } });
-    }
-  }, [orderId, loadOrderQuery]);
+  const workers: DeliveryWorker[] = data?.onlineDeliveryWorkers ?? [];
+  const orderOperations: OrderOperation[] = data?.orderOperations ?? [];
 
   const loadOrder = useCallback((id: number) => {
-    loadOrderQuery({ variables: { id } });
-  }, [loadOrderQuery]);
+    refetch({ orderId: id });
+  }, [refetch]);
 
   const refreshOrder = useCallback(() => {
     if (orderId) {
-      loadOrderQuery({ variables: { id: parseInt(orderId, 10) }, fetchPolicy: 'network-only' });
+      refetch({ orderId: parseInt(orderId, 10) });
     }
-  }, [orderId, loadOrderQuery]);
+  }, [orderId, refetch]);
 
   const openAssignModal = useCallback(() => {
     setSelectedWorkerId(null);
@@ -195,18 +174,18 @@ export const OrderDetailProvider: React.FC<OrderDetailProviderProps> = ({ childr
       message.success('分配配送员成功');
       setAssignModalVisible(false);
       // Refresh order data
-      loadOrderQuery({ variables: { id: parseInt(orderId, 10) }, fetchPolicy: 'network-only' });
+      refreshOrder();
     } catch (err: any) {
       message.error(err.message || '分配配送员失败');
     }
-  }, [selectedWorkerId, isSelfCollect, orderId, assignDeliveryWorkerMutation, loadOrderQuery]);
+  }, [selectedWorkerId, isSelfCollect, orderId, assignDeliveryWorkerMutation, refreshOrder]);
 
   const value: OrderDetailContextType = {
     order,
     orderOperations,
     workers,
     loading,
-    workersLoading,
+    workersLoading: loading,
     assignLoading,
     error: error ?? null,
     assignModalVisible,
