@@ -68,7 +68,13 @@ class LogBackupServiceTest :
       backupRecordRepository = mockk(relaxed = true)
       transactionService = mockk(relaxed = true)
       backupDir = Files.createTempDirectory("log-backup-test")
-      service = LogBackupService(partitionRepository, backupRecordRepository, transactionService, DataMaintenanceProperties(backupDir = backupDir.toString()))
+      service =
+        LogBackupService(
+          partitionRepository,
+          backupRecordRepository,
+          transactionService,
+          DataMaintenanceProperties(backupDir = backupDir.toString()),
+        )
       every { partitionRepository.listPartitions(LogTableType.API_LOG) } returns listOf(expiredPartition)
       every { backupRecordRepository.existsByPartitionNameAndStatusIn(any(), any()) } returns false
       // Spring Data save 为泛型方法,relaxed mock 默认返回类型擦除值会抛 ClassCastException,改为返回入参
@@ -143,7 +149,11 @@ class LogBackupServiceTest :
       Files.exists(target) shouldBe false
       verify {
         backupRecordRepository.save(
-          match<LogBackupRecordModel> { it.status == LogBackupStatus.FAILED && it.partitionName == "api_logs_2026_01" && it.errorMessage == "copy failed" },
+          match<LogBackupRecordModel> {
+            it.status == LogBackupStatus.FAILED &&
+              it.partitionName == "api_logs_2026_01" &&
+              it.errorMessage == "copy failed"
+          },
         )
       }
     }
@@ -183,7 +193,14 @@ class LogBackupServiceTest :
       every { partitionRepository.listPartitions(LogTableType.API_LOG) } returns listOf(expiredPartition, expired2)
       every { backupRecordRepository.existsByPartitionNameAndStatusIn("api_logs_2026_02", any()) } returns true // 已备份跳过
       every { transactionService.doBackup(expiredPartition, null, "system") } returns
-        LogBackupRecordModel(id = 1L, logTable = LogTableType.API_LOG, partitionName = "api_logs_2026_01", partitionMonth = "2026-01", coldTableName = "log_archive.api_logs_2026", status = LogBackupStatus.SUCCEEDED)
+        LogBackupRecordModel(
+          id = 1L,
+          logTable = LogTableType.API_LOG,
+          partitionName = "api_logs_2026_01",
+          partitionMonth = "2026-01",
+          coldTableName = "log_archive.api_logs_2026",
+          status = LogBackupStatus.SUCCEEDED,
+        )
 
       val done = service.backupExpiredPartitions(LogTableType.API_LOG, 90, "system")
 

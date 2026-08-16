@@ -61,6 +61,5 @@ class LogPartitionMaintenanceServiceImpl(
     logTable: LogTableType,
     retentionDays: Int,
     operatorName: String,
-  ): List<LogBackupRecordModel> =
-    logBackupService.backupExpiredPartitions(logTable, retentionDays, operatorName)
+  ): List<LogBackupRecordModel> = logBackupService.backupExpiredPartitions(logTable, retentionDays, operatorName)
 }

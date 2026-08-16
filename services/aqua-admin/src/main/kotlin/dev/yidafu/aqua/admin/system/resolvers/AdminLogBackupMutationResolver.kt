@@ -25,7 +25,6 @@ import dev.yidafu.aqua.common.domain.model.enums.SystemSettingGroup
 import dev.yidafu.aqua.common.graphql.generated.BackupLogPartitionInput
 import dev.yidafu.aqua.common.graphql.generated.LogBackupRecord
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.logging.partition.domain.model.enums.LogTableType as DomainLogTableType
 import dev.yidafu.aqua.logging.partition.mapper.LogBackupRecordMapper
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
@@ -34,6 +33,7 @@ import org.springframework.graphql.data.method.annotation.MutationMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.stereotype.Controller
+import dev.yidafu.aqua.logging.partition.domain.model.enums.LogTableType as DomainLogTableType
 
 /**
  * 日志离线备份 Resolver(管理后台,PERMISSION_SYSTEM_CONFIG_WRITE)

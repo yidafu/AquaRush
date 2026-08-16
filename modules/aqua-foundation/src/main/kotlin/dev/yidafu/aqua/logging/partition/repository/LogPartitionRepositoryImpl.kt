@@ -86,7 +86,7 @@ class LogPartitionRepositoryImpl(
             rowCount = rs.getLong("row_count"),
             sizeBytes = rs.getLong("size_bytes"),
             isDefault = bound == null,
-            isCurrentMonth = month == LocalDateTime.now().format(MONTH_FMT),
+            isCurrentMonth = month == LocalDateTime.now().format(monthFmt),
             fromBound = fromTo?.first,
             toBound = fromTo?.second,
           )
@@ -112,6 +112,8 @@ class LogPartitionRepositoryImpl(
     logTable: LogTableType,
     year: Int,
   ) {
+    // 幂等补建冷表 schema(迁移建过一次;防止 schema 被重置/删除后备份失败)
+    jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS $coldSchema")
     val coldTable = coldTableName(logTable, year)
     jdbcTemplate.execute(
       "CREATE TABLE IF NOT EXISTS $coldTable (LIKE public.${logTable.tableName} INCLUDING ALL)",
@@ -172,7 +174,7 @@ class LogPartitionRepositoryImpl(
 
   // ==================== helpers ====================
 
-  private val MONTH_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
+  private val monthFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
   /** 分区名:{table}_{yyyy}_{MM} */
   private fun partitionName(
@@ -191,20 +193,20 @@ class LogPartitionRepositoryImpl(
     val first = LogPartitionRules.firstDayOfMonth(yearMonth)
     val from = first.atStartOfDay()
     val to = first.plusMonths(1).atStartOfDay()
-    return from.format(TIMESTAMP_FMT) to to.format(TIMESTAMP_FMT)
+    return from.format(timestampFmt) to to.format(timestampFmt)
   }
 
   /** 解析 pg_get_expr(relpartbound) 形如 FOR VALUES FROM ('2026-01-01 00:00:00') TO ('2026-02-01 00:00:00') */
   private fun parseBound(bound: String?): Pair<LocalDateTime, LocalDateTime>? {
     if (bound == null) return null
-    val match = BOUND_PATTERN.matchEntire(bound) ?: return null
-    val from = LocalDateTime.parse(match.groupValues[1], TIMESTAMP_FMT)
-    val to = LocalDateTime.parse(match.groupValues[2], TIMESTAMP_FMT)
+    val match = boundPattern.matchEntire(bound) ?: return null
+    val from = LocalDateTime.parse(match.groupValues[1], timestampFmt)
+    val to = LocalDateTime.parse(match.groupValues[2], timestampFmt)
     return from to to
   }
 
-  private val TIMESTAMP_FMT: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
-  private val BOUND_PATTERN = Regex("^FOR VALUES FROM \\('([^']+)'\\) TO \\('([^']+)'\\)$")
+  private val timestampFmt: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+  private val boundPattern = Regex("^FOR VALUES FROM \\('([^']+)'\\) TO \\('([^']+)'\\)$")
 
   /** 双输出流:同时写目标流、SHA-256 摘要与字节计数 */
   private class TeeingOutputStream(

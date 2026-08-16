@@ -35,12 +35,18 @@ interface LogBackupRecordRepository : JpaRepository<LogBackupRecordModel, Long> 
   /**
    * 按日志表分页查询备份记录(恒 startedAt 倒序)
    */
-  fun findByLogTableOrderByStartedAtDesc(logTable: LogTableType, pageable: Pageable): Page<LogBackupRecordModel>
+  fun findByLogTableOrderByStartedAtDesc(
+    logTable: LogTableType,
+    pageable: Pageable,
+  ): Page<LogBackupRecordModel>
 
   /**
    * 查询某分区是否存在进行中/成功的备份记录(用于可备份校验与并发防重)
    */
-  fun existsByPartitionNameAndStatusIn(partitionName: String, statuses: List<LogBackupStatus>): Boolean
+  fun existsByPartitionNameAndStatusIn(
+    partitionName: String,
+    statuses: List<LogBackupStatus>,
+  ): Boolean
 
   /**
    * 查询某分区最近一次备份记录(幂等/去重判断)

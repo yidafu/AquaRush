@@ -54,8 +54,7 @@ object LogPartitionRules {
   /**
    * 由分区名解析年份 yyyy(冷表按年份组织,如 api_logs_2026_01 → 2026)
    */
-  fun yearOfPartition(partitionName: String): Int? =
-    monthOfPartition(partitionName)?.take(4)?.toIntOrNull()
+  fun yearOfPartition(partitionName: String): Int? = monthOfPartition(partitionName)?.take(4)?.toIntOrNull()
 
   /**
    * 由分区名解析月份 yyyy-MM(如 api_logs_2026_01 → 2026-01);非月度分区(如 DEFAULT)返回 null

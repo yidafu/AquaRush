@@ -39,8 +39,7 @@ class LogPartitionQueryServiceImpl(
   private val logPartitionRepository: LogPartitionRepository,
   private val logBackupRecordRepository: LogBackupRecordRepository,
 ) : LogPartitionQueryService {
-  override fun listPartitions(logTable: LogTableType): List<LogPartitionInfo> =
-    logPartitionRepository.listPartitions(logTable)
+  override fun listPartitions(logTable: LogTableType): List<LogPartitionInfo> = logPartitionRepository.listPartitions(logTable)
 
   override fun listBackupRecords(
     logTable: LogTableType?,

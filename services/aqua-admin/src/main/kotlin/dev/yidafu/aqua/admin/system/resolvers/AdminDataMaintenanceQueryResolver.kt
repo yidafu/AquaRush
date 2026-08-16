@@ -28,7 +28,6 @@ import dev.yidafu.aqua.common.graphql.generated.LogBackupRecordListInput
 import dev.yidafu.aqua.common.graphql.generated.LogBackupRecordPage
 import dev.yidafu.aqua.common.graphql.generated.LogTableType
 import dev.yidafu.aqua.common.graphql.generated.PageInfo
-import dev.yidafu.aqua.logging.partition.domain.model.enums.LogTableType as DomainLogTableType
 import dev.yidafu.aqua.logging.partition.mapper.LogBackupRecordMapper
 import dev.yidafu.aqua.logging.partition.mapper.LogPartitionVoMapper
 import dev.yidafu.aqua.ops.systemconfig.mapper.SystemConfigMapper
@@ -36,6 +35,7 @@ import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.stereotype.Controller
+import dev.yidafu.aqua.logging.partition.domain.model.enums.LogTableType as DomainLogTableType
 
 /**
  * 数据维护查询 Resolver(管理后台,PERMISSION_SYSTEM_CONFIG_READ)
@@ -98,9 +98,7 @@ class AdminDataMaintenanceQueryResolver(
   /**
    * DATA_MAINTENANCE 组参数 → 各日志表保留天数(未配置按默认 90 天)
    */
-  private fun buildRetentionDays(
-    settings: List<SystemSettingsModel>,
-  ): Map<DomainLogTableType, Int> {
+  private fun buildRetentionDays(settings: List<SystemSettingsModel>): Map<DomainLogTableType, Int> {
     val byKey = settings.associateBy { it.settingKey }
     return DomainLogTableType.entries.associateWith { table ->
       byKey[table.retentionKey]?.settingValue?.toIntOrNull() ?: DEFAULT_RETENTION_DAYS
