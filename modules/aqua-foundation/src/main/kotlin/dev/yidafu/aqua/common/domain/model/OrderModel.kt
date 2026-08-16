@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.domain.model.enums.PriceSource
@@ -43,6 +44,14 @@ data class OrderModel(
   val orderNo: String = "",
   @Column(name = "user_id", nullable = false)
   val userId: Long = -1L,
+  // 服务端下单幂等键(R-ORD-06):(user_id, client_request_id) 唯一,重复提交返回已存在订单;
+  // 可空 —— 旧请求/未携带幂等键时维持原行为
+  @Column(name = "client_request_id")
+  var clientRequestId: String? = null,
+  // 配送时段快照(AC-ORD-001-05,下单时随单落库;null=未指定,默认 IMMEDIATE)
+  @Column(name = "delivery_time_slot")
+  @Enumerated(EnumType.STRING)
+  var deliveryTimeSlot: DeliveryTimeSlot? = null,
   // 订单商品明细(F-ORD-004 多商品):权威数据在 order_items 表,经 OrderItemRepository 查询
   @Column(name = "total_amount_cents", nullable = false)
   var amountCents: Long = 0,

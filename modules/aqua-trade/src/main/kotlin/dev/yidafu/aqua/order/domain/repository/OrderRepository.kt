@@ -30,6 +30,15 @@ interface OrderRepository :
   OrderRepositoryCustom {
   fun findByOrderNo(orderNo: String): OrderModel?
 
+  /**
+   * 服务端下单幂等(R-ORD-06):同一用户同一 clientRequestId 已下单则直接返回已存在订单,
+   * 由 (user_id, client_request_id) 唯一索引兜底并发重复提交。
+   */
+  fun findByUserIdAndClientRequestId(
+    userId: Long,
+    clientRequestId: String,
+  ): OrderModel?
+
   fun findByUserId(userId: Long): List<OrderModel>
 
   fun findByUserIdAndStatus(

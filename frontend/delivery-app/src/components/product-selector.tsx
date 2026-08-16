@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { router } from 'expo-router';
 import { Money } from '@aquarush/common';
 
 import { Button } from '@/components/button';
@@ -21,11 +22,13 @@ export interface Product {
 }
 
 interface ProductSelectorProps {
-  selectedProductId?: string;
-  onSelect: (product: Product) => void;
+  /** 已添加商品数(F-ORD-012 多商品,触发卡片展示) */
+  addedCount: number;
+  /** 选择商品 → 加入代客下单明细(同商品由父级合并数量,弹窗保持打开可继续添加) */
+  onAdd: (product: Product) => void;
 }
 
-export function ProductSelector({ selectedProductId, onSelect }: ProductSelectorProps) {
+export function ProductSelector({ addedCount, onAdd }: ProductSelectorProps) {
   const theme = useTheme();
   const [modalVisible, setModalVisible] = useState(false);
   const [keyword, setKeyword] = useState('');
@@ -61,11 +64,9 @@ export function ProductSelector({ selectedProductId, onSelect }: ProductSelector
     }
   };
 
-  const selectedProduct = products.find((p) => p.id === selectedProductId);
-
-  const handleSelect = (product: Product) => {
-    onSelect?.(product);
-    setModalVisible(false);
+  const handleAdd = (product: Product) => {
+    onAdd?.(product);
+    // 多选添加:弹窗保持打开,可继续添加其他商品
     setKeyword('');
   };
 
@@ -94,11 +95,9 @@ export function ProductSelector({ selectedProductId, onSelect }: ProductSelector
       <Pressable onPress={handleOpen}>
         <ThemedView type="card" style={styles.triggerCard}>
           <View style={styles.cardContent}>
-            {selectedProductId && selectedProduct ? (
-              renderProductItem(selectedProduct)
-            ) : (
-              <ThemedText themeColor="textSecondary">点击选择商品</ThemedText>
-            )}
+            <ThemedText type="smallBold">
+              {addedCount > 0 ? `已选 ${addedCount} 种商品（点击继续添加）` : '点击添加商品'}
+            </ThemedText>
           </View>
           <ThemedText themeColor="textTertiary" style={styles.chevron}>
             ›
@@ -109,7 +108,7 @@ export function ProductSelector({ selectedProductId, onSelect }: ProductSelector
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
         <ThemedView type="pageBackground" style={styles.modalContainer}>
           <ThemedText type="heading" style={styles.modalTitle}>
-            选择商品
+            选择商品（可多选）
           </ThemedText>
           <Input
             placeholder="搜索商品名称"
@@ -127,24 +126,22 @@ export function ProductSelector({ selectedProductId, onSelect }: ProductSelector
                 {initialLoadDone ? '暂无可用商品' : '没有匹配的商品'}
               </ThemedText>
             ) : (
-              products.map((product) => {
-                const selected = selectedProductId === product.id;
-                return (
-                  <Pressable key={product.id} onPress={() => handleSelect(product)}>
-                    <ThemedView
-                      type={selected ? 'primaryBg' : 'card'}
-                      style={[
-                        styles.item,
-                        selected && { borderWidth: 1, borderColor: theme.primary },
-                      ]}>
-                      {renderProductItem(product)}
-                    </ThemedView>
-                  </Pressable>
-                );
-              })
+              products.map((product) => (
+                <Pressable key={product.id} onPress={() => router.push(`/product/${product.id}`)}>
+                  <ThemedView type="card" style={styles.item}>
+                    {renderProductItem(product)}
+                    {/* 点 + 直接加购(与进详情拆分,避免误触) */}
+                    <Pressable onPress={() => handleAdd(product)} hitSlop={12} style={styles.addHit}>
+                      <ThemedText type="small" themeColor="primary" style={styles.addHint}>
+                        +
+                      </ThemedText>
+                    </Pressable>
+                  </ThemedView>
+                </Pressable>
+              ))
             )}
           </ScrollView>
-          <Button title="取消" variant="ghost" onPress={() => setModalVisible(false)} />
+          <Button title="完成" variant="primary" onPress={() => setModalVisible(false)} />
         </ThemedView>
       </Modal>
     </>
@@ -200,6 +197,13 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     padding: Spacing.three,
     marginBottom: Spacing.two,
+  },
+  addHint: {
+    fontSize: 22,
+    marginLeft: 'auto',
+  },
+  addHit: {
+    padding: Spacing.two,
   },
   emptyText: {
     textAlign: 'center',

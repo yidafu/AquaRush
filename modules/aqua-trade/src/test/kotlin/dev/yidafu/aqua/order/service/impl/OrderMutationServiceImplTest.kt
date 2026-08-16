@@ -38,6 +38,7 @@ import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PriceSource
 import dev.yidafu.aqua.common.exception.BadRequestException
@@ -505,5 +506,99 @@ class OrderMutationServiceImplTest :
 
       verify(exactly = 1) { productService.increaseStock(1L, 2) }
       verify(exactly = 1) { productService.increaseStock(2L, 3) }
+    }
+
+    // ============ 服务端下单幂等(R-ORD-06) ============
+
+    test("create order with same clientRequestId returns existing order without side effects") {
+      // Given: 同一用户同一 clientRequestId 已存在订单(首次提交成功后的重复提交/网络重试)
+      val existing = OrderModel(id = 555L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
+      every { orderRepository.findByUserIdAndClientRequestId(100L, "req-001") } returns existing
+
+      // When
+      val result =
+        service.createOrder(
+          CreateOrderRequest(
+            userId = 100L,
+            items = listOf(OrderItemRequest(1L, 1)),
+            addressId = 1L,
+            clientRequestId = "req-001",
+          ),
+        )
+
+      // Then: 返回已存在订单,不重复计价/扣库存/落库/核销权益
+      result.id shouldBe 555L
+      verify(exactly = 0) { promotionPricingService.preview(any()) }
+      verify(exactly = 0) { productService.decreaseStock(any(), any()) }
+      verify(exactly = 0) { orderRepository.save(any()) }
+    }
+
+    test("create order without clientRequestId keeps legacy behavior") {
+      stubCreateOrderCommon(address(floor = 4))
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+
+      val order = service.createOrder(createRequest())
+
+      order.clientRequestId shouldBe null
+      order.status shouldBe OrderModelStatus.PENDING_PAYMENT
+    }
+
+    // ============ 配送时段落库(AC-ORD-001-05) ============
+
+    test("create order persists deliveryTimeSlot snapshot") {
+      stubCreateOrderCommon(address(floor = 4))
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+
+      val order =
+        service.createOrder(
+          CreateOrderRequest(
+            userId = 100L,
+            items = listOf(OrderItemRequest(1L, 1)),
+            addressId = 1L,
+            deliveryTimeSlot = DeliveryTimeSlot.AFTERNOON,
+          ),
+        )
+
+      order.deliveryTimeSlot shouldBe DeliveryTimeSlot.AFTERNOON
+    }
+
+    test("create order defaults deliveryTimeSlot to immediate") {
+      stubCreateOrderCommon(address(floor = 4))
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+
+      val order = service.createOrder(createRequest())
+
+      order.deliveryTimeSlot shouldBe DeliveryTimeSlot.IMMEDIATE
+    }
+
+    // ============ 代客下单多商品(F-ORD-012) ============
+
+    test("delivery order supports multi product items") {
+      val addr = address(floor = 4, userId = 200L)
+      stubCreateOrderCommon(addr)
+      every { productQueryApiService.findById(2L) } returns ProductModel(id = 2L, name = "矿泉水", price = 500, stock = 100)
+      every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
+        DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
+      every { orderItemRepository.saveAll(any<List<OrderItemModel>>()) } answers { firstArg() }
+
+      val order =
+        service.createDeliveryOrder(
+          1L,
+          CreateOrderRequest(
+            userId = 0L,
+            items = listOf(OrderItemRequest(1L, 2), OrderItemRequest(2L, 1)),
+            addressId = 1L,
+            isSelfCollect = false,
+          ),
+        )
+
+      // 归属收货地址客户;逐项明细落库;现场收款直接入「待派单」
+      order.userId shouldBe 200L
+      order.status shouldBe OrderModelStatus.PENDING_DISPATCH
+      order.deliveryTimeSlot shouldBe null
+      verify(exactly = 1) { orderItemRepository.saveAll(any<List<OrderItemModel>>()) }
     }
   })

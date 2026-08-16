@@ -23,7 +23,11 @@ import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.graphql.generated.Address
+import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
+import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
+import dev.yidafu.aqua.common.graphql.generated.DeliveryTimeSlot
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
+import dev.yidafu.aqua.common.graphql.generated.OrderItemInput
 import dev.yidafu.aqua.common.graphql.generated.User
 import dev.yidafu.aqua.common.graphql.generated.UserRole
 import dev.yidafu.aqua.common.graphql.generated.UserStatus
@@ -220,5 +224,44 @@ class OrderConversionChainTest :
 
       updated.deliveryPhotos shouldBe """["old.jpg"]"""
       updated.status shouldBe OrderModelStatus.COMPLETED
+    }
+
+    // ============ 下单输入映射(幂等键/配送时段/代客下单多商品) ============
+
+    test("CreateOrderInputMapper maps clientRequestId and deliveryTime (R-ORD-06 / AC-ORD-001-05)") {
+      val request =
+        CreateOrderInputMapper.map(
+          CreateOrderInput(
+            items = listOf(OrderItemInput(productId = 1L, quantity = 2)),
+            addressId = 7L,
+            clientRequestId = "req-abc-123",
+            deliveryTime = DeliveryTimeSlot.AFTERNOON,
+          ),
+        )
+
+      request.clientRequestId shouldBe "req-abc-123"
+      request.deliveryTimeSlot shouldBe dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot.AFTERNOON
+      request.items.size shouldBe 1
+      request.items[0].productId shouldBe 1L
+      request.items[0].quantity shouldBe 2
+    }
+
+    test("CreateDeliveryOrderInputMapper maps multi product items (F-ORD-012)") {
+      val request =
+        CreateDeliveryOrderInputMapper.map(
+          CreateDeliveryOrderInput(
+            items =
+              listOf(
+                OrderItemInput(productId = 1L, quantity = 2),
+                OrderItemInput(productId = 2L, quantity = 3),
+              ),
+            addressId = 7L,
+            isSelfCollect = true,
+          ),
+        )
+
+      request.items.size shouldBe 2
+      request.items.map { it.productId to it.quantity } shouldBe listOf(1L to 2, 2L to 3)
+      request.isSelfCollect shouldBe true
     }
   })

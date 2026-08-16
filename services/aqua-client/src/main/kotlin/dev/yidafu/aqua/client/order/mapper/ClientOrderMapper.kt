@@ -25,6 +25,7 @@ import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.ReviewModel
 import dev.yidafu.aqua.common.graphql.generated.Address
+import dev.yidafu.aqua.common.graphql.generated.DeliveryTimeSlot
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.PaymentType
@@ -57,6 +58,8 @@ fun OrderModel.toGraphQL(items: List<OrderItemModel> = emptyList()): Order =
     deliveryConfirmedAt = deliveryConfirmedAt,
     completedAt = completedAt,
     remark = remark,
+    // 配送时段(AC-ORD-001-05,领域枚举 → GraphQL 枚举同名互转)
+    deliveryTimeSlot = deliveryTimeSlot?.let { DeliveryTimeSlot.valueOf(it.name) },
     createdAt = createdAt,
     updatedAt = updatedAt,
     firstOrderDiscountCents = firstOrderDiscountCents,
@@ -92,7 +95,6 @@ fun ProductModel.toGraphQL(): Product =
     tags = tags,
     detailContent = detailContent,
     certificateImages = certificateImages,
-    deliverySettings = deliverySettings,
     createdAt = createdAt,
     updatedAt = updatedAt,
     // 订单快照视角:成交单价=目录价,不参与营销解析

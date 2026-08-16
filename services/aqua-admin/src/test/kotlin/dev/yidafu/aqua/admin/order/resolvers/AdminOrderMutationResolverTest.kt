@@ -32,6 +32,7 @@ import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.common.graphql.generated.OrderItemInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -156,9 +157,32 @@ class AdminOrderMutationResolverTest :
         CreateDeliveryOrderInput(
           addressId = 10L,
           isSelfCollect = false,
-          productId = 20L,
-          quantity = 2,
+          items = listOf(OrderItemInput(productId = 20L, quantity = 2)),
           remark = "放门口",
+        )
+      every { adminService.findByUsername("admin") } returns createSampleAdmin()
+      every { orderMutationService.createDeliveryOrder(1L, any()) } returns orderModel
+      every { orderQueryService.getOrderById(1L) } returns orderModel
+
+      // When
+      val result = resolver.createDeliveryOrder(input, principal())
+
+      // Then
+      result.shouldNotBeNull()
+      verify { orderMutationService.createDeliveryOrder(1L, any()) }
+      verify { orderQueryService.getOrderById(1L) }
+    }
+    test("createDeliveryOrder should support multi-product items (F-ORD-012)") {
+      // Given
+      val input =
+        CreateDeliveryOrderInput(
+          addressId = 10L,
+          isSelfCollect = true,
+          items =
+            listOf(
+              OrderItemInput(productId = 20L, quantity = 2),
+              OrderItemInput(productId = 30L, quantity = 1),
+            ),
         )
       every { adminService.findByUsername("admin") } returns createSampleAdmin()
       every { orderMutationService.createDeliveryOrder(1L, any()) } returns orderModel
@@ -175,7 +199,7 @@ class AdminOrderMutationResolverTest :
     test("createDeliveryOrder should throw when admin not found") {
       // Given
       every { adminService.findByUsername("unknown") } returns null
-      val input = CreateDeliveryOrderInput(addressId = 10L, productId = 20L, quantity = 1)
+      val input = CreateDeliveryOrderInput(addressId = 10L, items = listOf(OrderItemInput(productId = 20L, quantity = 1)))
       val user = UserPrincipal(2L, "unknown", "ADMIN", emptyList())
 
       // When & Then

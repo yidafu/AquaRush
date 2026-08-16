@@ -41,6 +41,7 @@ import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
@@ -195,6 +196,8 @@ class OrderMutationServiceImpl(
     paymentTime: LocalDateTime?,
     pricing: OrderPricingResult,
     initialStatus: OrderModelStatus,
+    clientRequestId: String? = null,
+    deliveryTimeSlot: DeliveryTimeSlot? = null,
   ): OrderModel {
     // 构建搜索内容(多商品:全部商品名称拼接,便于后台按商品名检索)
     val searchContent =
@@ -207,6 +210,8 @@ class OrderMutationServiceImpl(
       OrderModel(
         orderNo = orderNo,
         userId = userId,
+        clientRequestId = clientRequestId,
+        deliveryTimeSlot = deliveryTimeSlot,
         amountCents = amountCents,
         deliveryFeeCents = deliveryFeeCents,
         unitPriceCents = pricing.unitPriceCents,
@@ -315,6 +320,13 @@ class OrderMutationServiceImpl(
 
   @Transactional
   override fun createOrder(input: CreateOrderRequest): OrderModel {
+    // 服务端下单幂等(R-ORD-06):同一用户同一 clientRequestId 已下单则直接返回已存在订单,
+    // 不重复扣库存/核销权益;(user_id, client_request_id) 唯一索引为并发重复提交的最终防线
+    // (Snowflake 预分配 ID 下唯一冲突在提交时抛出,请求失败但不产生重复订单)。
+    input.clientRequestId?.let { requestId ->
+      orderRepository.findByUserIdAndClientRequestId(input.userId, requestId)?.let { return it }
+    }
+
     val pricingRequest =
       OrderPricingRequest(
         userId = input.userId,
@@ -340,7 +352,7 @@ class OrderMutationServiceImpl(
       throw BadRequestException("无权使用此收货地址")
     }
 
-    // 4. 保存订单(按预检结果快照,明细落 order_items)
+    // 4. 保存订单(按预检结果快照,明细落 order_items;幂等键与配送时段随单落库)
     val savedOrder =
       saveOrder(
         userId = validation.userId,
@@ -356,6 +368,9 @@ class OrderMutationServiceImpl(
         pricing = preview,
         // 用户在线下单进入「待支付」(G09/R-ORD-01:支付成功后才进入「待派单」)
         initialStatus = OrderModelStatus.PENDING_PAYMENT,
+        clientRequestId = input.clientRequestId,
+        // 配送时段(AC-ORD-001-05):缺省=立即配送
+        deliveryTimeSlot = input.deliveryTimeSlot ?: DeliveryTimeSlot.IMMEDIATE,
       )
 
     // 5. 引擎消费(同事务):原子核销水票/优惠券;实际核销数 < 预检 → 抛异常整体回滚

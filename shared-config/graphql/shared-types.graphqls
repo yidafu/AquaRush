@@ -112,6 +112,14 @@ enum PaymentType {
   QR_CODE # 扫码
 }
 
+# 配送时段枚举(AC-ORD-001-05 配送时间随单落库;与用户端 DeliveryTimeSelector 一一对应)
+enum DeliveryTimeSlot {
+  IMMEDIATE # 立即配送(30分钟内)
+  MORNING # 上午配送(9:00-12:00)
+  AFTERNOON # 下午配送(14:00-18:00)
+  EVENING # 晚上配送(18:00-21:00)
+}
+
 # 订单操作类型枚举
 enum OrderOperationType {
   ORDER_CREATED          # 订单创建
@@ -312,6 +320,8 @@ type Order {
   completedAt: LocalDateTime
   # 订单备注
   remark: String
+  # 配送时段(下单时快照,AC-ORD-001-05;null=未指定,默认立即配送)
+  deliveryTimeSlot: DeliveryTimeSlot
   # 创建时间
   createdAt: LocalDateTime!
   # 更新时间
@@ -775,6 +785,11 @@ input CreateOrderInput {
   items: [OrderItemInput!]!
   addressId: PrimaryId! @positive(message: "地址ID必须为正数")
   remark: String @size(max: 500, message: "备注长度不能超过500个字符")
+  # 服务端下单幂等键(R-ORD-06):同一用户同一 clientRequestId 重复提交不产生重复订单;
+  # 缺省时维持旧行为(仅前端 loading 防重)
+  clientRequestId: String @size(max: 64, message: "clientRequestId长度不能超过64个字符")
+  # 配送时段(AC-ORD-001-05,缺省=立即配送 IMMEDIATE)
+  deliveryTime: DeliveryTimeSlot
   # 优惠券选择(促销引擎 R-MKT-07 叠加③):省略=引擎自动选最优,0=不用券;一单一券
   preferredCouponId: PrimaryId @min(value: 0, message: "优惠券ID无效")
   # 水票核销张数(一票抵一桶 R-MKT-08,≤下单桶数 ∩ 可用张数)
@@ -783,13 +798,11 @@ input CreateOrderInput {
     @max(value: 999, message: "水票核销张数不能超过999")
 }
 
-# 配送员创建订单输入类型
+# 配送员创建订单输入类型(F-ORD-012 代客下单,多商品 items 口径 —— F-ORD-004)
 input CreateDeliveryOrderInput {
-  productId: PrimaryId! @positive(message: "商品ID必须为正数")
+  # 商品明细列表(多商品;单商品=单元素;同一商品不可重复)
+  items: [OrderItemInput!]!
   addressId: PrimaryId! @positive(message: "地址ID必须为正数")
-  quantity: Int!
-    @min(value: 1, message: "购买数量不能少于1")
-    @max(value: 999, message: "购买数量不能超过999")
   # 是否自收（水钱已收/水票已扣），默认 false
   isSelfCollect: Boolean = false
   remark: String @size(max: 500, message: "备注长度不能超过500个字符")

@@ -69,10 +69,11 @@ interface OrderDetailState {
     }
     paymentMethod: string
     deliveryTime: string
+    // 配送时段(AC-ORD-001-05,随单落库展示;IMMEDIATE/MORNING/AFTERNOON/EVENING)
+    deliveryTimeSlot?: string
     createTime: string
     paymentTime?: string
     acceptTime?: string
-    deliveryTime?: string
     completedTime?: string
     cancelledTime?: string
     remark?: string
@@ -99,6 +100,14 @@ const STATUS_MAP = {
 const PAYMENT_METHOD_MAP = {
   wechat: '微信支付',
   balance: '余额支付'
+}
+
+// 配送时段文案(AC-ORD-001-05,与 DeliveryTimeSelector/后端 DeliveryTimeSlot 枚举对应)
+const DELIVERY_TIME_SLOT_MAP: Record<string, string> = {
+  IMMEDIATE: '立即配送（30分钟内）',
+  MORNING: '上午配送（9:00-12:00）',
+  AFTERNOON: '下午配送（14:00-18:00）',
+  EVENING: '晚上配送（18:00-21:00）'
 }
 
 export default class OrderDetail extends Component<{}, OrderDetailState> {
@@ -339,6 +348,8 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       } : { receiverName: '', phone: '', province: '', city: '', district: '', detailAddress: '' },
       paymentMethod: order.paymentMethod === 'WECHAT_PAY' ? 'wechat' : (order.paymentMethod || 'wechat'),
       deliveryTime: 'immediate',
+      // 配送时段(AC-ORD-001-05):随单快照,缺省=立即配送
+      deliveryTimeSlot: order.deliveryTimeSlot || 'IMMEDIATE',
       createTime: order.createdAt || '',
       paymentTime: order.paymentTime || undefined,
       remark: order.remark || undefined,
@@ -776,6 +787,12 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
             <Text className='info-label'>下单时间</Text>
             <Text className='info-value'>{order.createTime}</Text>
           </View>
+          {order.deliveryTimeSlot && (
+            <View className='info-item'>
+              <Text className='info-label'>配送时段</Text>
+              <Text className='info-value'>{DELIVERY_TIME_SLOT_MAP[order.deliveryTimeSlot] || order.deliveryTimeSlot}</Text>
+            </View>
+          )}
           {order.paymentTime && (
             <View className='info-item'>
               <Text className='info-label'>支付时间</Text>

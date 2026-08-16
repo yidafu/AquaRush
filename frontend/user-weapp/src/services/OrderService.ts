@@ -41,10 +41,14 @@ export interface OrderPaymentResult {
 
 /**
  * 创建订单请求参数(CreateOrderInput)
+ * clientRequestId:服务端下单幂等键(R-ORD-06),确认页会话内生成一次,提交失败重试沿用
+ * deliveryTime:配送时段(AC-ORD-001-05,随单落库;缺省=立即配送)
  */
 export interface CreateOrderRequest {
   items: OrderItemInput[]
   addressId: string | number
+  clientRequestId?: string
+  deliveryTime?: 'IMMEDIATE' | 'MORNING' | 'AFTERNOON' | 'EVENING'
   preferredCouponId?: string | number | null
   ticketRedeemCount?: number
   remark?: string
@@ -210,6 +214,7 @@ class OrderService {
           completedAt
           createdAt
           remark
+          deliveryTimeSlot
           items {
             productId
             quantity
@@ -252,7 +257,8 @@ class OrderService {
   }
 
   /**
-   * 创建订单(水票核销/优惠券原子核销由服务端完成)
+   * 创建订单(水票核销/优惠券原子核销由服务端完成;
+   * clientRequestId 幂等 R-ORD-06,deliveryTime 配送时段落库 AC-ORD-001-05)
    */
   public async createOrder(
     input: CreateOrderRequest

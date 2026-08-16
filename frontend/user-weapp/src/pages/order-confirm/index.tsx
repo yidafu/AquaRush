@@ -5,11 +5,12 @@ import Taro, {
   useDidShow
 } from '@tarojs/taro'
 import AddressService from '../../services/AddressService'
-import OrderService, { OrderItemInput } from '../../services/OrderService'
+import OrderService, { CreateOrderRequest, OrderItemInput } from '../../services/OrderService'
+import NotificationService from '../../services/NotificationService'
 import { Address } from '../../types/address'
 import { normalizeCents, OrderPreviewVo } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
-import { removeSelectedCartItems } from '../../utils/cart'
+import { removeSelectedCartItems, syncCartTabBadge } from '../../utils/cart'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/checkbox.scss"
@@ -67,6 +68,9 @@ const OrderConfirm: React.FC = () => {
   const previewRequestSeq = useRef<number>(0)
   // 最优券自动勾选只执行一次
   const autoSelectedCouponRef = useRef<boolean>(false)
+  // 服务端下单幂等键(R-ORD-06):进入确认页生成一次,提交失败重试沿用同一值,
+  // 服务端按 (userId, clientRequestId) 去重,重复提交不产生重复订单
+  const clientRequestIdRef = useRef<string>(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`)
 
   const addressService = AddressService.getInstance()
 
@@ -231,6 +235,32 @@ const OrderConfirm: React.FC = () => {
     setPreviewRetryTick(tick => tick + 1)
   }, [])
 
+  /**
+   * 提交订单时申请微信订阅消息授权(R-NTF-01,F-NTF-001):
+   * 仅记录用户接受的模板(一次性模板授权一次可发一次);用户拒绝/接口异常不阻塞下单,
+   * 关键节点降级为站内消息中心查看。
+   */
+  const requestSubscribeAuth = useCallback(async (): Promise<void> => {
+    try {
+      const templates = await NotificationService.getSubscribeTemplates()
+      if (templates.length === 0) {
+        return
+      }
+      const result = await Taro.requestSubscribeMessage({
+        tmplIds: templates.map(t => t.templateId)
+      })
+      const accepted = templates
+        .filter(t => (result as Record<string, string>)[t.templateId] === 'accept')
+        .map(t => t.templateId)
+      if (accepted.length > 0) {
+        await NotificationService.recordSubscribeAuth(accepted)
+      }
+    } catch (e) {
+      // 已拒绝/达上限/接口异常:不打扰、不阻塞下单,降级站内查看
+      console.warn('订阅消息授权跳过(降级站内):', e)
+    }
+  }, [])
+
   const handleSubmitOrder = useCallback(async (): Promise<void> => {
     if (!selectedAddress) {
       Taro.showToast({ title: '请选择收货地址', icon: 'none' })
@@ -258,6 +288,10 @@ const OrderConfirm: React.FC = () => {
       const result = await OrderService.getInstance().createOrder({
         items,
         addressId: selectedAddress.id,
+        // 幂等键(R-ORD-06):同会话重复提交返回同一订单
+        clientRequestId: clientRequestIdRef.current,
+        // 配送时段(AC-ORD-001-05):与 DeliveryTimeSelector id 一一对应,大写枚举随单落库
+        deliveryTime: deliveryTime.toUpperCase() as CreateOrderRequest['deliveryTime'],
         // 0 = 用户选择不用券/无券可选;否则回传选中的券 ID
         preferredCouponId: selectedCouponId ?? 0,
         ticketRedeemCount,
@@ -272,6 +306,9 @@ const OrderConfirm: React.FC = () => {
 
       console.log('Order created successfully:', createdOrder)
 
+      // 提交订单时申请订阅消息授权(F-NTF-001,失败不影响下单流程)
+      await requestSubscribeAuth()
+
       // 清除缓存的订单数据
       Taro.removeStorageSync('pendingOrder')
 
@@ -280,6 +317,8 @@ const OrderConfirm: React.FC = () => {
       if (fromCart) {
         removeSelectedCartItems()
         Taro.removeStorageSync('cartCheckout')
+        // 下单后同步购物车 tabBar 角标
+        syncCartTabBadge()
       }
 
       // 发起支付(F-ORD-005):测试环境假支付自动完成(autoCompleted),

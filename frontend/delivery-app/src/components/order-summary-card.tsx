@@ -1,4 +1,4 @@
-import { StyleSheet, Switch, View } from 'react-native';
+import { Pressable, StyleSheet, Switch, View } from 'react-native';
 import { Money } from '@aquarush/common';
 
 import { Card } from '@/components/card';
@@ -9,44 +9,78 @@ import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
-export interface OrderInfo {
+/** 代客下单商品明细行(F-ORD-012 多商品下单,items 为唯一口径 —— F-ORD-004) */
+export interface OrderLine {
+  product: {
+    id: string;
+    name: string;
+    priceCents?: number | string;
+  };
   quantity: number;
+}
+
+export interface OrderInfo {
   isSelfCollect: boolean;
   remark: string;
 }
 
 interface OrderSummaryCardProps {
-  product?: {
-    id: string;
-    priceCents?: number | string;
-  } | null;
+  lines: OrderLine[];
+  onLinesChange: (lines: OrderLine[]) => void;
   orderInfo: OrderInfo;
   onOrderInfoChange: (orderInfo: OrderInfo) => void;
 }
 
-export function OrderSummaryCard({ product, orderInfo, onOrderInfoChange }: OrderSummaryCardProps) {
+export function OrderSummaryCard({ lines, onLinesChange, orderInfo, onOrderInfoChange }: OrderSummaryCardProps) {
   const theme = useTheme();
-  const { quantity, isSelfCollect, remark } = orderInfo;
-  const priceCents = Number(product?.priceCents ?? 0);
-  const totalAmount = product ? priceCents * quantity : 0;
+  const { isSelfCollect, remark } = orderInfo;
+
+  const totalAmount = lines.reduce(
+    (sum, line) => sum + Number(line.product.priceCents ?? 0) * line.quantity,
+    0,
+  );
+
+  const handleQuantityChange = (productId: string, quantity: number) => {
+    onLinesChange(
+      lines
+        .map((line) => (line.product.id === productId ? { ...line, quantity } : line))
+        .filter((line) => line.quantity > 0),
+    );
+  };
+
+  const handleRemove = (productId: string) => {
+    onLinesChange(lines.filter((line) => line.product.id !== productId));
+  };
 
   return (
-    <Card title="订单详情">
-      <OrderInfoRow
-        label="商品单价"
-        value={
-          <ThemedText type="small">
-            <Money cents={priceCents} />
-          </ThemedText>
-        }
-      />
-
-      <View style={styles.row}>
-        <ThemedText type="small" themeColor="textSecondary" style={styles.rowLabel}>
-          数量
+    <Card title={`订单详情${lines.length > 1 ? `（共${lines.length}种商品）` : ''}`}>
+      {lines.length === 0 ? (
+        <ThemedText type="small" themeColor="textSecondary">
+          请先添加商品
         </ThemedText>
-        <QuantityStepper value={quantity} onChange={(next) => onOrderInfoChange({ ...orderInfo, quantity: next })} />
-      </View>
+      ) : (
+        lines.map((line) => (
+          <View key={line.product.id} style={styles.line}>
+            <View style={styles.lineInfo}>
+              <ThemedText type="smallBold" numberOfLines={1} style={styles.lineName}>
+                {line.product.name}
+              </ThemedText>
+              <ThemedText type="small" themeColor="textSecondary">
+                <Money cents={line.product.priceCents} />
+              </ThemedText>
+            </View>
+            <QuantityStepper
+              value={line.quantity}
+              onChange={(next) => handleQuantityChange(line.product.id, next)}
+            />
+            <Pressable onPress={() => handleRemove(line.product.id)} hitSlop={8}>
+              <ThemedText type="small" themeColor="textTertiary" style={styles.remove}>
+                ×
+              </ThemedText>
+            </Pressable>
+          </View>
+        ))
+      )}
 
       <OrderInfoRow
         label="合计"
@@ -81,6 +115,23 @@ export function OrderSummaryCard({ product, orderInfo, onOrderInfoChange }: Orde
 }
 
 const styles = StyleSheet.create({
+  line: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    marginBottom: Spacing.two,
+  },
+  lineInfo: {
+    flex: 1,
+    gap: Spacing.half,
+  },
+  lineName: {
+    flexShrink: 1,
+  },
+  remove: {
+    fontSize: 22,
+    paddingHorizontal: Spacing.one,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

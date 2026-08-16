@@ -124,7 +124,7 @@ class AdminOrderMutationResolver(
     @AuthenticationPrincipal userDetail: UserDetails,
   ): Order {
     logger.info(
-      "Delivery creating order: productId=${input.productId}, addressId=${input.addressId}, quantity=${input.quantity}, isSelfCollect=${input.isSelfCollect}",
+      "Delivery creating order: items=${input.items.map { "productId=${it.productId},quantity=${it.quantity}" }.joinToString(";")}, addressId=${input.addressId}, isSelfCollect=${input.isSelfCollect}",
     )
     val adminId = getAdminId(userDetail.username)
     val request = CreateDeliveryOrderInputMapper.map(input)

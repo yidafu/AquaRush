@@ -27,6 +27,7 @@ import dev.yidafu.aqua.api.dto.WeekStatisticsDTO
 import dev.yidafu.aqua.common.domain.model.DeliveryAddressModel
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot as DeliveryTimeSlotModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.domain.model.enums.PriceSource
@@ -50,6 +51,7 @@ import tech.mappie.api.ObjectMappie
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
+import dev.yidafu.aqua.common.graphql.generated.DeliveryTimeSlot as DeliveryTimeSlotG
 import dev.yidafu.aqua.common.graphql.generated.PaymentType as PaymentTypeG
 import dev.yidafu.aqua.common.graphql.generated.PriceSource as PriceSourceG
 
@@ -140,6 +142,8 @@ object OrderDTOToGraphQLMapper : ObjectMappie<OrderDTO, Order>() {
       to::user fromExpression { requireNotNull(from.user) { "user must not be null" } }
       // 商品明细(F-ORD-004)由 OrderMapper 直映 OrderModel 提供,DTO 链路不承载
       to::items fromValue emptyList()
+      // DTO 链路不承载配送时段(AC-ORD-001-05,由 OrderModel 直映提供)
+      to::deliveryTimeSlot fromValue null
       // DTO 无首单立减/赠品快照(由 OrderModel 直映或字段级 Resolver 提供 —— R-MKT-09/10)
       to::firstOrderDiscountCents fromValue 0L
       to::giftItems fromValue null
@@ -217,6 +221,8 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
         from.user?.let { UserMapper.map(it) }
       }
       to::paymentType fromExpression { from.paymentType?.let { PaymentTypeMapper.map(it) } }
+      // 配送时段(AC-ORD-001-05,领域枚举 → GraphQL 枚举同名互转;null=未指定)
+      to::deliveryTimeSlot fromExpression { from.deliveryTimeSlot?.let { DeliveryTimeSlotG.valueOf(it.name) } }
       // 商品明细(F-ORD-004)由调用方经 OrderItemRepository 填充(见 OrderItemModel.toOrderItemVo)
       to::items fromValue emptyList()
       // 赠品行由字段级 Resolver 联查 order_gifts 提供(R-MKT-09,配置变更不影响已生成订单)
@@ -243,9 +249,9 @@ object CreateDeliveryOrderInputMapper : ObjectMappie<CreateDeliveryOrderInput, C
     mapping {
       to::userId fromValue 0L
       to::isSelfCollect fromProperty from::isSelfCollect
-      // 代客下单(F-ORD-012)单商品:包装为单元素 items(F-ORD-004 多商品唯一口径)
+      // 代客下单(F-ORD-012)多商品:items 直传(F-ORD-004 多商品唯一口径;单商品=单元素)
       to::items fromExpression {
-        listOf(OrderItemRequest(productId = from.productId, quantity = from.quantity))
+        from.items.map { OrderItemRequest(productId = it.productId, quantity = it.quantity) }
       }
     }
 }
@@ -257,6 +263,12 @@ object CreateOrderInputMapper : ObjectMappie<CreateOrderInput, CreateOrderReques
       // 商品明细(F-ORD-004 多商品下单;单商品=单元素)
       to::items fromExpression {
         from.items.map { OrderItemRequest(productId = it.productId, quantity = it.quantity) }
+      }
+      // 服务端下单幂等键(R-ORD-06)
+      to::clientRequestId fromProperty from::clientRequestId
+      // 配送时段(AC-ORD-001-05,缺省=立即配送 IMMEDIATE;GraphQL 枚举 → 领域枚举同名互转)
+      to::deliveryTimeSlot fromExpression {
+        from.deliveryTime?.let { dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot.valueOf(it.name) }
       }
       // 促销引擎(R-MKT-07 叠加③):省略=引擎自动选最优,0=不用券;一单一券
       to::preferredCouponId fromProperty from::preferredCouponId
@@ -302,7 +314,6 @@ fun OrderItemModel.toOrderItemVo(): OrderItemVo {
         certificateImages = null,
         coverImageUrl = snapshot?.get("coverImageUrl")?.toString() ?: "",
         createdAt = createdAt,
-        deliverySettings = null,
         depositPriceCents = null,
         detailContent = null,
         effectivePriceCents = unitPriceCents,

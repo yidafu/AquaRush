@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { AddressDisplay } from '@/components/address-display';
 import { Button } from '@/components/button';
-import { OrderSummaryCard, OrderInfo } from '@/components/order-summary-card';
+import { OrderSummaryCard, OrderLine, OrderInfo } from '@/components/order-summary-card';
 import { ProductSelector, Product } from '@/components/product-selector';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
-import { createOrder } from '@/services/delivery';
+import { createOrder, CreateDeliveryOrderItem } from '@/services/delivery';
 import type { Address } from '@aquarush/common';
 
 export default function CreateOrderScreen() {
@@ -18,36 +18,55 @@ export default function CreateOrderScreen() {
   const theme = useTheme();
 
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [lines, setLines] = useState<OrderLine[]>([]);
   const [orderInfo, setOrderInfo] = useState<OrderInfo>({
-    quantity: 1,
     isSelfCollect: false,
     remark: '',
   });
   const [submitting, setSubmitting] = useState(false);
 
-  const canSubmit = Boolean(selectedAddress && selectedProduct && orderInfo.quantity >= 1);
+  const totalQuantity = useMemo(
+    () => lines.reduce((sum, line) => sum + line.quantity, 0),
+    [lines],
+  );
+  const canSubmit = Boolean(selectedAddress) && lines.length > 0 && lines.every((line) => line.quantity >= 1);
+
+  /** 选择商品 → 加入明细(F-ORD-012 多商品:同商品合并数量) */
+  const handleAddProduct = useCallback((product: Product) => {
+    setLines((prev) => {
+      const existing = prev.find((line) => line.product.id === product.id);
+      if (existing) {
+        return prev.map((line) =>
+          line.product.id === product.id ? { ...line, quantity: line.quantity + 1 } : line,
+        );
+      }
+      return [...prev, { product: { id: product.id, name: product.name, priceCents: product.priceCents }, quantity: 1 }];
+    });
+  }, []);
 
   const handleSubmit = async () => {
     if (!selectedAddress) {
       Alert.alert('请选择地址');
       return;
     }
-    if (!selectedProduct) {
+    if (lines.length === 0) {
       Alert.alert('请选择商品');
       return;
     }
-    if (orderInfo.quantity < 1) {
+    if (lines.some((line) => line.quantity < 1)) {
       Alert.alert('数量不能少于1');
       return;
     }
 
     setSubmitting(true);
     try {
+      const items: CreateDeliveryOrderItem[] = lines.map((line) => ({
+        productId: line.product.id,
+        quantity: line.quantity,
+      }));
       await createOrder(
-        selectedProduct.id,
+        items,
         selectedAddress.id,
-        orderInfo.quantity,
         orderInfo.isSelfCollect,
         orderInfo.remark || undefined,
       );
@@ -74,12 +93,17 @@ export default function CreateOrderScreen() {
         <AddressDisplay selectedId={selectedAddress?.id} onSelect={setSelectedAddress} />
 
         {renderSectionTitle('选择商品')}
-        <ProductSelector selectedProductId={selectedProduct?.id} onSelect={setSelectedProduct} />
+        <ProductSelector addedCount={lines.length} onAdd={handleAddProduct} />
 
-        <OrderSummaryCard product={selectedProduct} orderInfo={orderInfo} onOrderInfoChange={setOrderInfo} />
+        <OrderSummaryCard
+          lines={lines}
+          onLinesChange={setLines}
+          orderInfo={orderInfo}
+          onOrderInfoChange={setOrderInfo}
+        />
 
         <Button
-          title="创建送水订单"
+          title={totalQuantity > 0 ? `创建送水订单（${totalQuantity}件）` : '创建送水订单'}
           size="lg"
           loading={submitting}
           disabled={!canSubmit}

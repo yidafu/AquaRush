@@ -373,11 +373,16 @@ export const searchProducts = (keyword: string, size: number = 20) => {
   );
 };
 
-// 创建订单（配送员为用户创建订单）
+// 代客下单商品明细项(F-ORD-012 多商品下单,items 为唯一口径 —— F-ORD-004)
+export type CreateDeliveryOrderItem = {
+  productId: Scalars['PrimaryId']['input'];
+  quantity: number;
+};
+
+// 创建订单（配送员为用户创建订单,支持多商品 items）
 export const createOrder = (
-  productId: Scalars['PrimaryId']['input'],
+  items: CreateDeliveryOrderItem[],
   addressId: Scalars['PrimaryId']['input'],
-  quantity: number,
   isSelfCollect: boolean = false,
   remark?: string,
 ) => {
@@ -395,9 +400,8 @@ export const createOrder = (
   `,
     {
       input: {
-        productId,
+        items,
         addressId,
-        quantity,
         isSelfCollect,
         remark: remark || null,
       },
