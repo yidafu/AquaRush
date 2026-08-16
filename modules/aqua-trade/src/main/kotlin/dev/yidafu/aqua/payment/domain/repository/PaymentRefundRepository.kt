@@ -25,7 +25,7 @@ import org.springframework.stereotype.Repository
 import java.util.*
 
 @Repository
-interface PaymentRefundRepository : JpaRepository<PaymentRefundModel, Long> {
+interface PaymentRefundRepository : JpaRepository<PaymentRefundModel, Long>, PaymentRefundRepositoryCustom {
   fun findByPaymentId(paymentId: Long): List<PaymentRefundModel>
 
   fun findByRefundId(refundId: String): Optional<PaymentRefundModel>

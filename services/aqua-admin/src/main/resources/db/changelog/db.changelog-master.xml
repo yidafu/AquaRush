@@ -22,5 +22,6 @@
   <include file="db/changelog/changes/v1.2.2-add-admin-account-status.xml"/>
   <include file="db/changelog/changes/v1.2.3-add-delivery-trajectory.xml"/>
   <include file="db/changelog/changes/v1.2.4-add-system-security-notification-data-config.xml"/>
+  <include file="db/changelog/changes/v1.4.0-fix-payment-refunds-status-check.xml"/>
 
 </databaseChangeLog>

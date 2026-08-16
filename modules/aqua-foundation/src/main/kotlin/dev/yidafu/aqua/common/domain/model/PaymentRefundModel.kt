@@ -35,20 +35,28 @@ data class PaymentRefundModel(
   var id: Long? = null,
   @Column(name = "payment_id", nullable = false)
   val paymentId: Long,
+  // 关联订单/用户(FK,见 v1.0.0 迁移 payment_refunds 表)
+  @Column(name = "order_id", nullable = false)
+  val orderId: Long,
+  @Column(name = "user_id", nullable = false)
+  val userId: Long,
   @Column(name = "refund_id", unique = true)
   var refundId: String? = null,
-  @Column(name = "out_refund_no", unique = true)
+  // 商户退款单号(微信 out_refund_no;迁移列名 refund_no)
+  @Column(name = "refund_no", unique = true)
   var outRefundNo: String? = null,
   @Column(name = "refund_amount_cents", nullable = false)
   var refundAmount: Long,
-  @Column(name = "refund_reason")
+  // 迁移列名 reason
+  @Column(name = "reason")
   var refundReason: String? = null,
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
   var status: RefundStatus = RefundStatus.PENDING,
   @Column(name = "refund_account")
   var refundAccount: String? = null,
-  @Column(name = "refunded_at")
+  // 退款处理完成时间(迁移列名 processed_at;退款统计按此归属时间窗口)
+  @Column(name = "processed_at")
   var refundedAt: LocalDateTime? = null,
   @Column(name = "created_at", nullable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),

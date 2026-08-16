@@ -30,7 +30,9 @@ import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
+import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import dev.yidafu.aqua.logging.util.BizLogger
+import dev.yidafu.aqua.payment.domain.repository.PaymentRefundRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
 import dev.yidafu.aqua.payment.service.WechatPayGateway
 import dev.yidafu.aqua.payment.service.WechatPrepayParams
@@ -56,6 +58,7 @@ class PaymentServiceImplTest :
     var ticketQueryApiService: TicketQueryApiService = mockk()
     var ticketMutationApiService: TicketMutationApiService = mockk()
     var paymentRepository: PaymentRepository = mockk()
+    var paymentRefundRepository: PaymentRefundRepository = mockk()
     var wechatPayGateway: WechatPayGateway = mockk()
     var bizLogger: BizLogger = mockk()
     var service: PaymentServiceImpl = mockk()
@@ -115,6 +118,7 @@ class PaymentServiceImplTest :
       ticketQueryApiService = mockk(relaxed = true)
       ticketMutationApiService = mockk(relaxed = true)
       paymentRepository = mockk(relaxed = true)
+      paymentRefundRepository = mockk(relaxed = true)
       wechatPayGateway = mockk(relaxed = true)
       bizLogger = mockk(relaxed = true)
       service =
@@ -125,11 +129,13 @@ class PaymentServiceImplTest :
           ticketQueryApiService,
           ticketMutationApiService,
           paymentRepository,
+          paymentRefundRepository,
           wechatPayGateway,
           bizLogger,
         )
-      // JpaRepository.save 返回泛型 S,MockK relaxed 无法构造 PaymentModel → 显式回传入参
+      // JpaRepository.save 返回泛型 S,MockK relaxed 无法构造实体 → 显式回传入参
       every { paymentRepository.save(any()) } answers { firstArg() }
+      every { paymentRefundRepository.save(any()) } answers { firstArg() }
     }
     test("mockModeAutoCompletesOrderPayment") {
       every { orderQueryService.getOrderById(1L) } returns order()
@@ -197,7 +203,7 @@ class PaymentServiceImplTest :
     }
     test("realModeRefundCallsGateway") {
       service.mockEnabled = false
-      val payment = PaymentModel(orderId = 1L, userId = 100L, transactionId = "WX-TXN-001", amount = 1200)
+      val payment = PaymentModel(id = 9L, orderId = 1L, userId = 100L, transactionId = "WX-TXN-001", amount = 1200)
       every { paymentRepository.findByTransactionId("WX-TXN-001") } returns Optional.of(payment)
       every { orderQueryService.getOrderById(1L) } returns order()
       every { wechatPayGateway.isConfigured } returns true
@@ -208,6 +214,18 @@ class PaymentServiceImplTest :
 
       result["refundId"] shouldBe "REFUND-001"
       verify { paymentRepository.save(match { it.status.name == "REFUNDED" }) }
+      // R-PAY-02:退款记录落库(status=COMPLETED),供退款/净营收统计聚合
+      verify {
+        paymentRefundRepository.save(
+          match {
+            it.status == RefundStatus.COMPLETED &&
+              it.refundAmount == 1000L &&
+              it.orderId == 1L &&
+              it.userId == 100L &&
+              it.refundId == "REFUND-001"
+          },
+        )
+      }
     }
     test("mockModeRefundSucceeds") {
       every { paymentRepository.findByTransactionId(any()) } returns Optional.empty()
@@ -216,6 +234,29 @@ class PaymentServiceImplTest :
 
       (result["mock"] == true) shouldBe true
       (result["refundId"] as String).startsWith("MOCK-REFUND-") shouldBe true
+      // 未命中支付记录:退款照常执行,但跳过退款记录落库(统计不计该笔)
+      verify(exactly = 0) { paymentRefundRepository.save(any()) }
+    }
+    test("mockModeRefundPersistsRefundRecord") {
+      val payment = PaymentModel(id = 9L, orderId = 1L, userId = 100L, transactionId = "MOCK-ORD-TEST-001", amount = 1200)
+      every { paymentRepository.findByTransactionId("MOCK-ORD-TEST-001") } returns Optional.of(payment)
+      every { orderQueryService.getOrderById(1L) } returns order()
+
+      val result = service.refund("MOCK-ORD-TEST-001", 1000, 1200, "订单取消退款")
+
+      (result["mock"] == true) shouldBe true
+      verify { paymentRepository.save(match { it.status.name == "REFUNDED" }) }
+      verify {
+        paymentRefundRepository.save(
+          match {
+            it.status == RefundStatus.COMPLETED &&
+              it.refundAmount == 1000L &&
+              it.orderId == 1L &&
+              it.userId == 100L &&
+              (it.refundId as String).startsWith("MOCK-REFUND-")
+          },
+        )
+      }
     }
     test("queryPaymentStatusDerivesFromOrder") {
       every { orderQueryService.getOrderById(1L) } returns order(status = OrderModelStatus.PENDING_DELIVERY)

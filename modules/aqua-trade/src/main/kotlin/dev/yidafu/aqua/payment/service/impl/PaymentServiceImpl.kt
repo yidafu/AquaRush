@@ -27,11 +27,14 @@ import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.model.PaymentModel
+import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
+import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import dev.yidafu.aqua.logging.util.BizLogger
+import dev.yidafu.aqua.payment.domain.repository.PaymentRefundRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
 import dev.yidafu.aqua.payment.service.WechatPayGateway
 import dev.yidafu.aqua.payment.service.WechatPrepayRequest
@@ -56,6 +59,7 @@ class PaymentServiceImpl(
   private val ticketQueryApiService: TicketQueryApiService,
   private val ticketMutationApiService: TicketMutationApiService,
   private val paymentRepository: PaymentRepository,
+  private val paymentRefundRepository: PaymentRefundRepository,
   private val wechatPayGateway: WechatPayGateway,
   private val bizLogger: BizLogger,
 ) : PaymentService {
@@ -294,6 +298,9 @@ class PaymentServiceImpl(
   /**
    * 申请退款(订单取消触发,R-PAY-02 退款能力):
    * 真实模式调用微信退款接口;假支付模式直接标记成功。
+   * 退款成功后落 `payment_refunds` 退款记录(status=COMPLETED,PRD「退款须与退款记录一致」),
+   * 供营收统计「退款/净营收」维度按退款成功时间(processed_at)聚合;
+   * 交易号未命中支付记录时退款仍执行,仅跳过落库(warn 日志,人工核对)。
    */
   @Transactional
   override fun refund(
@@ -303,24 +310,47 @@ class PaymentServiceImpl(
     reason: String,
   ): Map<String, Any> {
     try {
+      // 先取支付记录:退款记录落库与 payments.status 更新共用同一记录
+      val payment = paymentRepository.findByTransactionId(transactionId).orElse(null)
+      if (payment == null) {
+        logger.warn("退款未命中支付记录,跳过退款记录落库: transactionId={}", transactionId)
+      }
+      val orderNo =
+        payment?.let { orderQueryService.getOrderById(it.orderId).orderNo }
+          ?: System.currentTimeMillis().toString()
+      val outRefundNo = "R-$orderNo-${System.currentTimeMillis()}"
+
       val result =
         if (mockEnabled) {
-          mapOf("refundId" to "MOCK-REFUND-${System.currentTimeMillis()}", "mock" to true)
+          mapOf(
+            "refundId" to "MOCK-REFUND-${System.currentTimeMillis()}",
+            "outRefundNo" to outRefundNo,
+            "mock" to true,
+          )
         } else {
           if (!wechatPayGateway.isConfigured) {
             throw NotImplementedError("微信支付未配置(wechat.pay.*),无法执行真实退款")
           }
-          val payment = paymentRepository.findByTransactionId(transactionId).orElse(null)
-          val orderNo =
-            payment?.let { orderQueryService.getOrderById(it.orderId).orderNo }
-              ?: System.currentTimeMillis().toString()
-          val outRefundNo = "R-$orderNo-${System.currentTimeMillis()}"
           mapOf("refundId" to wechatPayGateway.createRefund(outRefundNo, transactionId, refundAmountCents, totalAmountCents, reason))
         }
 
-      paymentRepository.findByTransactionId(transactionId).ifPresent { payment ->
-        payment.status = PaymentStatus.REFUNDED
-        paymentRepository.save(payment)
+      payment?.let {
+        it.status = PaymentStatus.REFUNDED
+        paymentRepository.save(it)
+        // 退款记录落库(R-PAY-02:退款记录与支付记录一致;退款统计按 processed_at 归属窗口)
+        paymentRefundRepository.save(
+          PaymentRefundModel(
+            paymentId = it.id!!,
+            orderId = it.orderId,
+            userId = it.userId,
+            refundId = result["refundId"] as? String,
+            outRefundNo = outRefundNo,
+            refundAmount = refundAmountCents,
+            refundReason = reason,
+            status = RefundStatus.COMPLETED,
+            refundedAt = LocalDateTime.now(),
+          ),
+        )
       }
       // 业务日志(F-LOG-003 PAYMENT 域):退款申请成功
       bizLogger.logOperation(
