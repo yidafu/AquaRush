@@ -56,6 +56,9 @@ const config = {
     },
     plugins: [
       'expo-router',
+      // 配送地图(F-ADR-012 扩展):@maplibre/maplibre-react-native 需 dev build,
+      // 定位权限已在 android.permissions / ios.infoPlist 中声明,无需重复配置
+      '@maplibre/maplibre-react-native',
       [
         'expo-splash-screen',
         {

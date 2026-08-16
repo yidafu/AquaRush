@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { InputNumber, Card, Spin, Button, Input, message } from 'antd';
+import { InputNumber, Card, Button, Input, message } from 'antd';
 import { EnvironmentOutlined, AimOutlined, ReloadOutlined } from '@ant-design/icons';
-import { BaseMap, MultiMarker } from 'tlbs-map-react';
+import { gcj02ToWgs84, wgs84ToGcj02 } from '@aquarush/common';
+import MapLibreMap from '../MapLibreMap';
+import { geocodeAddress, reverseGeocodeAddress } from '../../lib/map/geocoding';
 
 export interface AddressMapPickerProps {
   province?: string;
@@ -28,69 +30,6 @@ export interface AddressMapPickerProps {
 const DEFAULT_LATITUDE = 39.9042;
 const DEFAULT_LONGITUDE = 116.4074;
 
-// Tencent Map key (shared with user-weapp)
-const TENCENT_MAP_KEY = '3YEBZ-G233L-GN7P7-M7EN6-YNLOH-VVBTT';
-
-// Marker styles
-const markerStyles = {
-  marker: {
-    width: 20,
-    height: 30,
-    anchor: { x: 10, y: 30 },
-    src: 'https://mapapi.qq.com/web/lbs/javascriptGL/demo/img/markerDefault.png',
-  },
-};
-
-// Geocoding API
-const geocodeAddress = async (address: string, region?: string): Promise<{
-  longitude: number;
-  latitude: number;
-  address: string;
-} | null> => {
-  if (!address) return null;
-
-  try {
-    const encodedAddress = encodeURIComponent(address);
-    const url = `https://apis.map.qq.com/ws/geocoder/v1/?address=${encodedAddress}&key=${TENCENT_MAP_KEY}${region ? `&region=${encodeURIComponent(region)}` : ''}`;
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.status === 0 && data.result) {
-      const location = data.result.location;
-      return {
-        longitude: location.lng,
-        latitude: location.lat,
-        address: data.result.title || address,
-      };
-    } else {
-      console.error('Geocoding failed:', data.message);
-      return null;
-    }
-  } catch (error) {
-    console.error('Geocoding error:', error);
-    return null;
-  }
-};
-
-// Reverse Geocoding: coordinates to address
-const reverseGeocodeAddress = async (lng: number, lat: number): Promise<string> => {
-  try {
-    const url = `https://apis.map.qq.com/ws/geocoder/v1/?location=${lat},${lng}&key=${TENCENT_MAP_KEY}&get_poi_info=0`;
-
-    const response = await fetch(url);
-    const data = await response.json();
-
-    if (data.status === 0 && data.result) {
-      return data.result.address;
-    }
-    return '';
-  } catch (error) {
-    console.error('Reverse geocoding error:', error);
-    return '';
-  }
-};
-
 export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({
   province = '',
   city = '',
@@ -108,11 +47,11 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({
   const [inputLng, setInputLng] = useState<number | undefined>(longitude);
   const [inputLat, setInputLat] = useState<number | undefined>(latitude);
   const [fullAddress, setFullAddress] = useState<string>('');
-  const [markerGeometries, setMarkerGeometries] = useState<Array<{
+  const [marker, setMarker] = useState<{
     id: string;
-    styleId: string;
-    position: { lat: number; lng: number };
-  }>>([]);
+    lng: number;
+    lat: number;
+  } | null>(null);
 
   // Build full address
   useEffect(() => {
@@ -130,21 +69,16 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({
     }
   }, [longitude, latitude]);
 
+  // 展示坐标:存储/接口坐标统一为 WGS-84(与 MapLibre / 天地图底图一致),直接上图
+  const displayLng = longitude ?? inputLng ?? DEFAULT_LONGITUDE;
+  const displayLat = latitude ?? inputLat ?? DEFAULT_LATITUDE;
+
   // Update marker when coordinates change
   useEffect(() => {
-    const currentLng = longitude ?? inputLng ?? DEFAULT_LONGITUDE;
-    const currentLat = latitude ?? inputLat ?? DEFAULT_LATITUDE;
-
     if (mapReady) {
-      setMarkerGeometries([
-        {
-          id: 'marker',
-          styleId: 'marker',
-          position: { lat: currentLat, lng: currentLng },
-        },
-      ]);
+      setMarker({ id: 'marker', lng: displayLng, lat: displayLat });
     }
-  }, [longitude, latitude, inputLng, inputLat, mapReady]);
+  }, [mapReady, displayLng, displayLat]);
 
   // Auto geocode when address changes (if autoLocate is enabled)
   const [prevFullAddress, setPrevFullAddress] = useState<string>('');
@@ -166,24 +100,19 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({
           const result = await geocodeAddress(fullAddress, city || undefined);
 
           if (result) {
-            setInputLng(result.longitude);
-            setInputLat(result.latitude);
-            setMarkerGeometries([
-              {
-                id: 'marker',
-                styleId: 'marker',
-                position: { lat: result.latitude, lng: result.longitude },
-              },
-            ]);
+            // 腾讯解析返回 GCJ-02 → 转 WGS-84 入库(后端坐标体系统一)
+            const wgs = gcj02ToWgs84(result.longitude, result.latitude);
+            setInputLng(wgs.longitude);
+            setInputLat(wgs.latitude);
 
             onChange?.({
-              longitude: result.longitude,
-              latitude: result.latitude,
+              longitude: wgs.longitude,
+              latitude: wgs.latitude,
               address: result.address,
             });
             onLocateSuccess?.({
-              longitude: result.longitude,
-              latitude: result.latitude,
+              longitude: wgs.longitude,
+              latitude: wgs.latitude,
               address: result.address,
             });
           }
@@ -215,19 +144,14 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({
       const result = await geocodeAddress(fullAddress, city || undefined);
 
       if (result) {
-        setInputLng(result.longitude);
-        setInputLat(result.latitude);
-        setMarkerGeometries([
-          {
-            id: 'marker',
-            styleId: 'marker',
-            position: { lat: result.latitude, lng: result.longitude },
-          },
-        ]);
+        // 腾讯解析返回 GCJ-02 → 转 WGS-84 入库(后端坐标体系统一)
+        const wgs = gcj02ToWgs84(result.longitude, result.latitude);
+        setInputLng(wgs.longitude);
+        setInputLat(wgs.latitude);
 
         onChange?.({
-          longitude: result.longitude,
-          latitude: result.latitude,
+          longitude: wgs.longitude,
+          latitude: wgs.latitude,
           address: result.address,
         });
         message.success('地址定位成功');
@@ -242,25 +166,27 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({
     }
   }, [fullAddress, city, onChange]);
 
-  // Handle marker click
-  const handleMarkerClick = useCallback(async (e: any) => {
-    const { lat, lng } = e.latLng || e.position;
-    if (lat && lng) {
-      setInputLng(lng);
-      setInputLat(lat);
+  // 地图/标记点选:MapLibre 点击即为 WGS-84,直接入库(后端坐标体系统一);
+  // 仅腾讯逆地理编码请求需要 GCJ-02,单独转换
+  const handleMapClick = useCallback(
+    async (lngLat: { lng: number; lat: number }) => {
+      setInputLng(lngLat.lng);
+      setInputLat(lngLat.lat);
 
-      // Reverse geocode to get address
-      const address = await reverseGeocodeAddress(lng, lat);
+      // Reverse geocode to get address(腾讯 API 入参为 GCJ-02)
+      const gcj = wgs84ToGcj02(lngLat.lng, lngLat.lat);
+      const address = await reverseGeocodeAddress(gcj.longitude, gcj.latitude);
 
       onChange?.({
-        longitude: lng,
-        latitude: lat,
+        longitude: lngLat.lng,
+        latitude: lngLat.lat,
         address,
       });
 
       message.success('已选择位置');
-    }
-  }, [onChange]);
+    },
+    [onChange],
+  );
 
   // Handle coordinate input change
   const handleLngChange = useCallback((value: number | null) => {
@@ -268,15 +194,6 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({
     setInputLng(newLng);
 
     const currentLat = latitude ?? inputLat ?? DEFAULT_LATITUDE;
-
-    setMarkerGeometries([
-      {
-        id: 'marker',
-        styleId: 'marker',
-        position: { lat: currentLat, lng: newLng },
-      },
-    ]);
-
     onChange?.({
       longitude: newLng,
       latitude: currentLat,
@@ -288,24 +205,11 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({
     setInputLat(newLat);
 
     const currentLng = longitude ?? inputLng ?? DEFAULT_LONGITUDE;
-
-    setMarkerGeometries([
-      {
-        id: 'marker',
-        styleId: 'marker',
-        position: { lat: newLat, lng: currentLng },
-      },
-    ]);
-
     onChange?.({
       longitude: currentLng,
       latitude: newLat,
     });
   }, [longitude, inputLng, onChange]);
-
-  // Display values
-  const displayLng = longitude ?? inputLng ?? DEFAULT_LONGITUDE;
-  const displayLat = latitude ?? inputLat ?? DEFAULT_LATITUDE;
 
   return (
     <div className="address-map-picker">
@@ -367,20 +271,15 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({
         style={{ marginBottom: 16, overflow: 'hidden' }}
       >
         <div style={{ position: 'relative', height: 350 }}>
-          <BaseMap
-            apiKey={TENCENT_MAP_KEY}
-            options={{
-              zoom: 16,
-              center: { lat: displayLat, lng: displayLng },
-            }}
-            onMapInited={handleMapInited}
-          >
-            <MultiMarker
-              styles={markerStyles}
-              geometries={markerGeometries}
-              onClick={handleMarkerClick}
-            />
-          </BaseMap>
+          <MapLibreMap
+            center={{ lng: displayLng, lat: displayLat }}
+            zoom={16}
+            height={350}
+            markers={marker ? [marker] : []}
+            onClick={handleMapClick}
+            disabled={disabled}
+            onMapLoad={handleMapInited}
+          />
           <div
             style={{
               position: 'absolute',
@@ -402,7 +301,7 @@ export const AddressMapPicker: React.FC<AddressMapPickerProps> = ({
 
       {/* Help Text */}
       <div style={{ fontSize: 12, color: '#999' }}>
-        提示：点击"定位"按钮根据地址自动获取坐标，或手动输入经纬度坐标。也可以直接点击地图或标记选择位置
+        提示：点击"定位"按钮根据地址自动获取坐标，或手动输入经纬度坐标。也可以直接点击地图或标记选择位置（底图:天地图）
       </div>
     </div>
   );

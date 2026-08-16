@@ -17,7 +17,9 @@ export interface IGeocoderOptions {
 }
 
 export interface IGeocoderResult {
+  /** GCJ-02 纬度(腾讯/微信地图坐标系;入库前需经 gcj02ToWgs84 转 WGS-84) */
   latitude: number,
+  /** GCJ-02 经度 */
   longitude: number,
   address: string,
 }

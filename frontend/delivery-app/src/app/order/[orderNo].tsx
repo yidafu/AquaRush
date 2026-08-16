@@ -21,6 +21,7 @@ import { DeliveryInfoCard } from '@/components/order-detail/delivery-info-card';
 import { OperationsCard } from '@/components/order-detail/operations-card';
 import { OrderInfoCard } from '@/components/order-detail/order-info-card';
 import { ProductCard } from '@/components/order-detail/product-card';
+import { DestinationMap } from '@/components/map/destination-map';
 import { capturePosterView, PosterView, toPosterOrderData } from '@/components/order-poster';
 import { StatusBadge } from '@/components/status-badge';
 import { StatusSteps } from '@/components/status-steps';
@@ -303,7 +304,15 @@ export default function OrderDetailScreen() {
 
         <AddressCard address={order.address ?? undefined} />
 
-          <ProductCard items={order.items ?? undefined} remark={order.remark ?? undefined} />
+        {order.address?.longitude != null && order.address?.latitude != null ? (
+          <DestinationMap
+            longitude={order.address.longitude}
+            latitude={order.address.latitude}
+            height={200}
+          />
+        ) : null}
+
+        <ProductCard items={order.items ?? undefined} remark={order.remark ?? undefined} />
 
         {order.status === 'DELIVERING' || isCompleted ? (
           <DeliveryInfoCard

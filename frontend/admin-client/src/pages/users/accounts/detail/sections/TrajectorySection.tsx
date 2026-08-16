@@ -20,7 +20,9 @@ import {
   SyncOutlined,
 } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
-import { BaseMap, MultiMarker, MultiPolyline } from 'tlbs-map-react';
+import MapLibreMap from '../../../../../components/MapLibreMap';
+import type { MapLine, MapMarker } from '../../../../../components/MapLibreMap';
+import { DEFAULT_MAP_CENTER } from '../../../../../lib/map/tianditu';
 import type { DeliveryTrajectory } from '@aquarush/common';
 import dayjs from 'dayjs';
 import {
@@ -30,39 +32,6 @@ import {
 
 const { RangePicker } = DatePicker;
 
-// 腾讯地图 key(与配送轨迹页一致)
-const TENCENT_MAP_KEY = '3YEBZ-G233L-GN7P7-M7EN6-YNLOH-VVBTT';
-
-// 默认中心(无轨迹时的兜底位置)
-const DEFAULT_CENTER = { lat: 39.9042, lng: 116.4074 };
-
-/** 送水工当前位置标记样式 */
-const workerMarkerStyles = {
-  worker: {
-    width: 28,
-    height: 36,
-    anchor: { x: 14, y: 36 },
-    src: 'https://mapapi.qq.com/web/lbs/javascriptGL/demo/img/markerDefault.png',
-  },
-  start: {
-    width: 24,
-    height: 24,
-    anchor: { x: 12, y: 12 },
-    src: 'https://mapapi.qq.com/web/lbs/javascriptGL/demo/img/start.png',
-  },
-};
-
-/** 轨迹折线样式 */
-const trajectoryStyles = {
-  line: {
-    color: '#2F80ED',
-    width: 6,
-    borderWidth: 2,
-    borderColor: '#ffffff',
-    lineCap: 'round' as const,
-  },
-};
-
 interface TrajectorySectionProps {
   /** 配送身份 id(送水员档案并入 admins 单表后=账号 id;F-USR-021/023) */
   workerId: string;
@@ -71,7 +40,7 @@ interface TrajectorySectionProps {
 /**
  * 账号详情页「配送轨迹」Tab(F-ADR-012):
  * 展示该送水员/兼送水管理员在时间范围内的配送轨迹(deliveryTrajectories)与
- * 最近实时位置(deliveryWorkerLatestLocation),地图复用 tlbs-map-react。
+ * 最近实时位置(deliveryWorkerLatestLocation),地图使用 MapLibre + 天地图底图。
  */
 const TrajectorySection: React.FC<TrajectorySectionProps> = ({ workerId }) => {
   // 默认最近 7 天
@@ -116,29 +85,35 @@ const TrajectorySection: React.FC<TrajectorySectionProps> = ({ workerId }) => {
   );
   const latest = latestData?.deliveryWorkerLatestLocation;
 
-  // 地图中心:优先最新位置,其次轨迹首点,兜底默认
+  // 地图中心:优先最新位置,其次轨迹首点,兜底默认(轨迹坐标为 WGS-84,天地图直接展示)
   const mapCenter = useMemo(() => {
-    if (latest) return { lat: latest.latitude, lng: latest.longitude };
-    if (points.length > 0) return { lat: points[0].lat, lng: points[0].lng };
-    return DEFAULT_CENTER;
+    if (latest) return { lng: latest.longitude, lat: latest.latitude };
+    if (points.length > 0) return { lng: points[0].lng, lat: points[0].lat };
+    return DEFAULT_MAP_CENTER;
   }, [latest, points]);
 
-  const fullPath = useMemo(() => points.map((p) => ({ lat: p.lat, lng: p.lng })), [points]);
+  const fullPath = useMemo(() => points.map((p) => ({ lng: p.lng, lat: p.lat })), [points]);
+
+  // 地图折线图层:完整轨迹(蓝)
+  const mapLines = useMemo<MapLine[]>(
+    () => (points.length > 1 ? [{ id: 'full', points: fullPath, color: '#2F80ED', width: 6 }] : []),
+    [points, fullPath],
+  );
 
   // 地图标记:当前位置 + 轨迹起点
-  const markerGeometries = useMemo(() => {
-    const geometries: Array<{ id: string; styleId: string; position: { lat: number; lng: number } }> = [];
+  const mapMarkers = useMemo<MapMarker[]>(() => {
+    const markers: MapMarker[] = [];
     if (latest) {
-      geometries.push({ id: 'worker', styleId: 'worker', position: { lat: latest.latitude, lng: latest.longitude } });
+      markers.push({ id: 'worker', lng: latest.longitude, lat: latest.latitude, label: '当前位置', color: '#F5222D' });
     } else if (points.length > 0) {
       // 非配送中无实时位置:以轨迹末点作为「最后位置」展示
       const last = points[points.length - 1];
-      geometries.push({ id: 'worker', styleId: 'worker', position: { lat: last.lat, lng: last.lng } });
+      markers.push({ id: 'worker', lng: last.lng, lat: last.lat, label: '最后位置', color: '#F5222D' });
     }
     if (points.length > 1) {
-      geometries.push({ id: 'start', styleId: 'start', position: { lat: points[0].lat, lng: points[0].lng } });
+      markers.push({ id: 'start', lng: points[0].lng, lat: points[0].lat, label: '起点', color: '#52C41A' });
     }
-    return geometries;
+    return markers;
   }, [latest, points]);
 
   const isDelivering = points.some((p) => p.orderId);
@@ -238,15 +213,13 @@ const TrajectorySection: React.FC<TrajectorySectionProps> = ({ workerId }) => {
           <Empty description="该账号暂无配送轨迹" style={{ padding: '48px 0' }} />
         ) : (
           <div style={{ position: 'relative', height: 420 }}>
-            <BaseMap apiKey={TENCENT_MAP_KEY} options={{ zoom: 14, center: mapCenter }}>
-              {points.length > 1 ? (
-                <MultiPolyline
-                  styles={trajectoryStyles}
-                  geometries={[{ id: 'full', styleId: 'line', paths: fullPath }]}
-                />
-              ) : null}
-              <MultiMarker styles={workerMarkerStyles} geometries={markerGeometries} />
-            </BaseMap>
+            <MapLibreMap
+              center={mapCenter}
+              zoom={14}
+              height={420}
+              markers={mapMarkers}
+              lines={mapLines}
+            />
             <div
               style={{
                 position: 'absolute',
