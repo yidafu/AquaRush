@@ -640,6 +640,7 @@ export type DailyStatistic = {
   readonly date: Scalars['String']['output'];
   readonly orderCount: Scalars['Int']['output'];
   readonly orderProductCount: Scalars['Int']['output'];
+  readonly refundCents: Scalars['Long']['output'];
   readonly revenueCents: Scalars['Long']['output'];
 };
 
@@ -1136,6 +1137,7 @@ export type MonthlyStatistic = {
   readonly monthName: Scalars['String']['output'];
   readonly orderCount: Scalars['Int']['output'];
   readonly orderProductCount: Scalars['Int']['output'];
+  readonly refundCents: Scalars['Long']['output'];
   readonly revenueCents: Scalars['Long']['output'];
   readonly year: Scalars['Int']['output'];
 };
@@ -1894,8 +1896,10 @@ export type OrderStatistics = {
   readonly averageOrderValueCents: Scalars['Long']['output'];
   readonly completedOrders: Scalars['Int']['output'];
   readonly dateRange: DateRange;
+  readonly netRevenueCents: Scalars['Long']['output'];
   readonly orderValueDistribution: ReadonlyArray<OrderValueBucketStatistic>;
   readonly peakHourDistribution: ReadonlyArray<PeakHourStatistic>;
+  readonly refundAmountCents: Scalars['Long']['output'];
   readonly statusDistribution: ReadonlyArray<OrderStatusStatistic>;
   readonly totalOrders: Scalars['Int']['output'];
   readonly totalRevenueCents: Scalars['Long']['output'];
@@ -3459,6 +3463,7 @@ export type WeeklyStatistic = {
   readonly endDate: Scalars['String']['output'];
   readonly orderCount: Scalars['Int']['output'];
   readonly orderProductCount: Scalars['Int']['output'];
+  readonly refundCents: Scalars['Long']['output'];
   readonly revenueCents: Scalars['Long']['output'];
   readonly startDate: Scalars['String']['output'];
   readonly weekNumber: Scalars['Int']['output'];

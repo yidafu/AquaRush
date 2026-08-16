@@ -72,6 +72,8 @@ class AdminOrderStatisticsQueryResolver(
       completedOrders = result.completedOrders.toInt(),
       totalRevenueCents = result.completedAmountCents,
       averageOrderValueCents = averageOrderValueCents,
+      refundAmountCents = result.refundedAmountCents,
+      netRevenueCents = result.netRevenueCents,
       dateRange =
         DateRange(
           startDate = input.startDate,
@@ -143,6 +145,7 @@ class AdminOrderStatisticsQueryResolver(
       orderCount = orderCount.toInt(),
       orderProductCount = orderProductCount.toInt(),
       revenueCents = totalAmountCents,
+      refundCents = refundedAmountCents,
     )
   }
 
@@ -155,6 +158,7 @@ class AdminOrderStatisticsQueryResolver(
       orderCount = orderCount.toInt(),
       orderProductCount = orderProductCount.toInt(),
       revenueCents = totalAmountCents,
+      refundCents = refundedAmountCents,
     )
   }
 }

@@ -81,6 +81,8 @@ class UserStatisticsServiceImpl(
           orderCount = count.toInt(),
           orderProductCount = 0,
           revenueCents = 0L,
+          // 用户统计不涉及退款维度,退款金额恒为 0(shared-types 非空字段)
+          refundCents = 0L,
         ),
       )
       currentDate = currentDate.plusDays(1)

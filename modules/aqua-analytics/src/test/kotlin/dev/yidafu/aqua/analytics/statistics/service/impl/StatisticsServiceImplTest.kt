@@ -22,6 +22,7 @@ package dev.yidafu.aqua.analytics.statistics.service.impl
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
+import dev.yidafu.aqua.api.service.payment.PaymentQueryService
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -30,22 +31,25 @@ import io.mockk.mockk
 import java.time.LocalDate
 
 /**
- * 订单统计服务单元测试(PRD F-STA-002: 订单数/营收口径、缺失日期补零、周月聚合)
+ * 订单统计服务单元测试(PRD F-STA-002: 订单数/营收口径、缺失日期补零、周月聚合、退款/净营收)
  */
 class StatisticsServiceImplTest :
   FunSpec({
     var orderQueryApiService: OrderQueryApiService = mockk()
+    var paymentQueryService: PaymentQueryService = mockk()
     var statisticsOrderRepository: StatisticsOrderRepositoryCustom = mockk()
     var service: StatisticsServiceImpl = mockk()
 
     beforeTest {
       orderQueryApiService = mockk(relaxed = true)
+      paymentQueryService = mockk(relaxed = true)
       statisticsOrderRepository = mockk(relaxed = true)
-      service = StatisticsServiceImpl(orderQueryApiService, statisticsOrderRepository)
+      service = StatisticsServiceImpl(orderQueryApiService, paymentQueryService, statisticsOrderRepository)
     }
     test("getOrderStatistics aggregates totals and completed") {
       every { orderQueryApiService.countByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returnsMany listOf(10L, 6L)
       every { orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returnsMany listOf(5000L, 3000L)
+      every { paymentQueryService.sumRefundedAmountCents(any(), any()) } returns 500L
 
       val result = service.getOrderStatistics(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 30))
 
@@ -53,6 +57,19 @@ class StatisticsServiceImplTest :
       result.totalAmountCents shouldBe 5000L
       result.completedOrders shouldBe 6L
       result.completedAmountCents shouldBe 3000L
+      // 退款/净营收(F-STA-002: 净营收 = 已完成营收 − 已退款金额)
+      result.refundedAmountCents shouldBe 500L
+      result.netRevenueCents shouldBe 2500L
+    }
+    test("getOrderStatistics refund defaults to zero when no refund records") {
+      every { orderQueryApiService.countByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returnsMany listOf(1L, 1L)
+      every { orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returnsMany listOf(100L, 100L)
+      every { paymentQueryService.sumRefundedAmountCents(any(), any()) } returns 0L
+
+      val result = service.getOrderStatistics(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 30))
+
+      result.refundedAmountCents shouldBe 0L
+      result.netRevenueCents shouldBe 100L
     }
     test("getDailyStatistics fills missing dates with zero") {
       val start = LocalDate.of(2025, 6, 1)
@@ -158,6 +175,67 @@ class StatisticsServiceImplTest :
       // 订单数来自全量口径, 营收来自已完成口径
       result[0].orderCount shouldBe 5L
       result[0].totalAmountCents shouldBe 1000L
+    }
+    test("getDailyStatistics merges refund amounts per day (F-STA-002)") {
+      val start = LocalDate.of(2025, 6, 1)
+      val end = LocalDate.of(2025, 6, 3)
+      val stat = DailyStatisticsDTO(start, orderCount = 3L, orderProductCount = 5L, totalAmountCents = 1200L)
+      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returnsMany
+        listOf(
+          listOf(stat),
+          listOf(stat),
+        )
+      every { paymentQueryService.getDailyRefundedAmountCents(any(), any()) } returns
+        mapOf(start to 200L, LocalDate.of(2025, 6, 2) to 100L)
+
+      val result = service.getDailyStatistics(start, end)
+
+      result.size shouldBe 3
+      result[0].refundedAmountCents shouldBe 200L
+      result[1].refundedAmountCents shouldBe 100L
+      result[2].refundedAmountCents shouldBe 0L
+    }
+    test("getWeeklyStatistics rolls up daily refunds into week buckets (F-STA-002)") {
+      val start = LocalDate.of(2025, 6, 1)
+      val end = LocalDate.of(2025, 6, 22)
+      val weekStart = LocalDate.of(2025, 6, 2)
+      val stat = DailyStatisticsDTO(weekStart, orderCount = 4L, orderProductCount = 4L, totalAmountCents = 800L)
+      every { statisticsOrderRepository.getWeeklyOrderStatistics(any(), any(), any(), any()) } returns listOf(stat)
+      // 6/3+6/5 同属 6/2(周一)周 → 300;6/10 属 6/9 周 → 50
+      every { paymentQueryService.getDailyRefundedAmountCents(any(), any()) } returns
+        mapOf(
+          LocalDate.of(2025, 6, 3) to 200L,
+          LocalDate.of(2025, 6, 5) to 100L,
+          LocalDate.of(2025, 6, 10) to 50L,
+        )
+
+      val result = service.getWeeklyStatistics(start, end)
+
+      result.size shouldBe 4
+      result[0].refundedAmountCents shouldBe 0L // 5/26 周
+      result[1].refundedAmountCents shouldBe 300L // 6/2 周
+      result[2].refundedAmountCents shouldBe 50L // 6/9 周
+      result[3].refundedAmountCents shouldBe 0L // 6/16 周
+    }
+    test("getMonthlyStatistics rolls up daily refunds into month buckets (F-STA-002)") {
+      val start = LocalDate.of(2025, 1, 15)
+      val end = LocalDate.of(2025, 3, 20)
+      val jan = DailyStatisticsDTO(LocalDate.of(2025, 1, 1), orderCount = 5L, orderProductCount = 5L, totalAmountCents = 1000L)
+      val mar = DailyStatisticsDTO(LocalDate.of(2025, 3, 1), orderCount = 7L, orderProductCount = 7L, totalAmountCents = 1400L)
+      every { statisticsOrderRepository.getMonthlyOrderStatistics(any(), any(), any(), any()) } returns listOf(jan, mar)
+      every { paymentQueryService.getDailyRefundedAmountCents(any(), any()) } returns
+        mapOf(
+          LocalDate.of(2025, 1, 20) to 100L,
+          LocalDate.of(2025, 2, 10) to 60L,
+          LocalDate.of(2025, 3, 5) to 40L,
+        )
+
+      val result = service.getMonthlyStatistics(start, end)
+
+      result.size shouldBe 3
+      result[0].refundedAmountCents shouldBe 100L // 1 月
+      result[1].refundedAmountCents shouldBe 60L // 2 月无订单也有退款
+      result[2].refundedAmountCents shouldBe 40L // 3 月
     }
     test("getPendingOrderBreakdown maps counts by status") {
       every {

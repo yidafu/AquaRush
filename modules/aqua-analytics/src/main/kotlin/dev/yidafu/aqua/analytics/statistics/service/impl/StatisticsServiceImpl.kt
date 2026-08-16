@@ -28,6 +28,7 @@ import dev.yidafu.aqua.analytics.statistics.dto.PeakHourDTO
 import dev.yidafu.aqua.analytics.statistics.dto.PendingOrderBreakdownDTO
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
+import dev.yidafu.aqua.api.service.payment.PaymentQueryService
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek
@@ -38,6 +39,7 @@ import java.time.temporal.WeekFields
 @Service
 class StatisticsServiceImpl(
   private val orderQueryApiService: OrderQueryApiService,
+  private val paymentQueryService: PaymentQueryService,
   private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
 ) : StatisticsService {
   /**
@@ -99,11 +101,15 @@ class StatisticsServiceImpl(
         deliveryWorkerId = null,
       )
 
+    // 已退款金额(分,payment_refunds status=COMPLETED 按退款成功时间归属窗口,PRD F-STA-002)
+    val refundedAmountCents = paymentQueryService.sumRefundedAmountCents(startDateTime, endDateTime)
+
     return OrderStatisticsDTO(
       totalOrders = totalOrders,
       totalAmountCents = totalAmountCents,
       completedOrders = completedOrders,
       completedAmountCents = completedAmountCents,
+      refundedAmountCents = refundedAmountCents,
     )
   }
 
@@ -136,6 +142,9 @@ class StatisticsServiceImpl(
       )
     val revenueMap = dailyRevenueStats.associateBy { it.date }
 
+    // 退款金额按退款成功时间(processed_at)归属当日(payment_refunds status=COMPLETED,PRD F-STA-002)
+    val refundMap = paymentQueryService.getDailyRefundedAmountCents(startDateTime, endDateTime)
+
     // 构建日期到统计的映射
     val statsMap = dailyStats.associateBy { it.date }
 
@@ -151,7 +160,7 @@ class StatisticsServiceImpl(
       currentDate = currentDate.plusDays(1)
     }
 
-    return result
+    return result.map { it.copy(refundedAmountCents = refundMap[it.date] ?: 0L) }
   }
 
   /**
@@ -183,11 +192,18 @@ class StatisticsServiceImpl(
       )
     val revenueMap = weeklyRevenueStats.associateBy { it.date }
 
+    // 退款金额按退款成功时间(processed_at)归属当周(周一作为周开始,与订单周趋势同桶口径)
+    val weekFields = WeekFields.of(DayOfWeek.MONDAY, 4)
+    val refundMap = paymentQueryService.getDailyRefundedAmountCents(startDateTime, endDateTime)
+    val refundWeekMap =
+      refundMap.entries
+        .groupBy({ it.key.with(weekFields.dayOfWeek(), 1) }, { it.value })
+        .mapValues { (_, amounts) -> amounts.sum() }
+
     // 构建周开始日期到统计的映射
     val statsMap = weeklyStats.associateBy { it.date }
 
     // 遍历周范围，填充缺失周（无订单的周）
-    val weekFields = WeekFields.of(DayOfWeek.MONDAY, 4)
     val result = mutableListOf<DailyStatisticsDTO>()
     var currentWeekStart = startDate.with(weekFields.dayOfWeek(), 1)
 
@@ -200,7 +216,7 @@ class StatisticsServiceImpl(
       currentWeekStart = currentWeekStart.plusWeeks(1)
     }
 
-    return result
+    return result.map { it.copy(refundedAmountCents = refundWeekMap[it.date] ?: 0L) }
   }
 
   /**
@@ -232,6 +248,13 @@ class StatisticsServiceImpl(
       )
     val revenueMap = monthlyRevenueStats.associateBy { it.date }
 
+    // 退款金额按退款成功时间(processed_at)归属当月(与订单月趋势同桶口径)
+    val refundMap = paymentQueryService.getDailyRefundedAmountCents(startDateTime, endDateTime)
+    val refundMonthMap =
+      refundMap.entries
+        .groupBy({ it.key.withDayOfMonth(1) }, { it.value })
+        .mapValues { (_, amounts) -> amounts.sum() }
+
     // 构建月份开始日期到统计的映射
     val statsMap = monthlyStats.associateBy { it.date }
 
@@ -248,7 +271,7 @@ class StatisticsServiceImpl(
       currentMonth = currentMonth.plusMonths(1)
     }
 
-    return result
+    return result.map { it.copy(refundedAmountCents = refundMonthMap[it.date] ?: 0L) }
   }
 
   /**

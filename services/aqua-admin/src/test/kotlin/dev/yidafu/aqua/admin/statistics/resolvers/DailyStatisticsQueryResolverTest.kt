@@ -49,6 +49,7 @@ class DailyStatisticsQueryResolverTest :
             orderCount = 10L,
             orderProductCount = 12L,
             totalAmountCents = 25000L,
+            refundedAmountCents = 300L,
           ),
         )
       val input =
@@ -66,6 +67,7 @@ class DailyStatisticsQueryResolverTest :
       result[0].orderCount shouldBe 10
       result[0].orderProductCount shouldBe 12
       result[0].revenueCents shouldBe 25000L
+      result[0].refundCents shouldBe 300L
       verify { statisticsService.getDailyStatistics(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 2)) }
     }
     test("pendingOrderBreakdown should map snapshot") {

@@ -1172,6 +1172,7 @@ data class DailyStatistic(
     val date: kotlin.String,
     val orderCount: kotlin.Int,
     val orderProductCount: kotlin.Int,
+    val refundCents: kotlin.Long,
     val revenueCents: kotlin.Long
 )
 
@@ -1840,6 +1841,7 @@ data class MonthlyStatistic(
     val monthName: kotlin.String,
     val orderCount: kotlin.Int,
     val orderProductCount: kotlin.Int,
+    val refundCents: kotlin.Long,
     val revenueCents: kotlin.Long,
     val year: kotlin.Int
 )
@@ -2909,8 +2911,10 @@ data class OrderStatistics(
     val averageOrderValueCents: kotlin.Long,
     val completedOrders: kotlin.Int,
     val dateRange: DateRange,
+    val netRevenueCents: kotlin.Long,
     val orderValueDistribution: kotlin.collections.List<OrderValueBucketStatistic>,
     val peakHourDistribution: kotlin.collections.List<PeakHourStatistic>,
+    val refundAmountCents: kotlin.Long,
     val statusDistribution: kotlin.collections.List<OrderStatusStatistic>,
     val totalOrders: kotlin.Int,
     val totalRevenueCents: kotlin.Long
@@ -5454,6 +5458,7 @@ data class WeeklyStatistic(
     val endDate: kotlin.String,
     val orderCount: kotlin.Int,
     val orderProductCount: kotlin.Int,
+    val refundCents: kotlin.Long,
     val revenueCents: kotlin.Long,
     val startDate: kotlin.String,
     val weekNumber: kotlin.Int,

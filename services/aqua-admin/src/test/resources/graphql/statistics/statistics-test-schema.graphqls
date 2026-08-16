@@ -39,6 +39,8 @@ type OrderStatistics {
   completedOrders: Int!
   totalRevenueCents: Long!
   averageOrderValueCents: Long!
+  refundAmountCents: Long!
+  netRevenueCents: Long!
   dateRange: DateRange!
   statusDistribution: [OrderStatusStatistic!]!
   orderValueDistribution: [OrderValueBucketStatistic!]!
@@ -67,6 +69,7 @@ type DailyStatistic {
   orderCount: Int!
   orderProductCount: Int!
   revenueCents: Long!
+  refundCents: Long!
 }
 
 type WeeklyStatistic {
@@ -77,6 +80,7 @@ type WeeklyStatistic {
   orderCount: Int!
   orderProductCount: Int!
   revenueCents: Long!
+  refundCents: Long!
 }
 
 type MonthlyStatistic {
@@ -86,6 +90,7 @@ type MonthlyStatistic {
   orderCount: Int!
   orderProductCount: Int!
   revenueCents: Long!
+  refundCents: Long!
 }
 
 type PendingOrderBreakdown {

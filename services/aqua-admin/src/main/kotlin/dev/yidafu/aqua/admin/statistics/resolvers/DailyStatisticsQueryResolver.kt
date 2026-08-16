@@ -53,6 +53,7 @@ class DailyStatisticsQueryResolver(
           orderCount = it.orderCount.toInt(),
           orderProductCount = it.orderProductCount.toInt(),
           revenueCents = it.totalAmountCents,
+          refundCents = it.refundedAmountCents,
         )
       }
 

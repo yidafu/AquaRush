@@ -63,6 +63,7 @@ class AdminOrderStatisticsQueryResolverTest :
           totalAmountCents = 5000L,
           completedOrders = 6L,
           completedAmountCents = 3000L,
+          refundedAmountCents = 500L,
         )
 
       // When
@@ -73,6 +74,9 @@ class AdminOrderStatisticsQueryResolverTest :
       result.completedOrders shouldBe 6
       result.totalRevenueCents shouldBe 3000L
       result.averageOrderValueCents shouldBe 500L // 3000 / 6
+      // F-STA-002:退款/净营收映射
+      result.refundAmountCents shouldBe 500L
+      result.netRevenueCents shouldBe 2500L
       result.dateRange.startDate shouldBe input.startDate
       result.dateRange.endDate shouldBe input.endDate
       verify { statisticsService.getOrderStatistics(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 30)) }
@@ -169,6 +173,7 @@ class AdminOrderStatisticsQueryResolverTest :
             orderCount = 4L,
             orderProductCount = 5L,
             totalAmountCents = 800L,
+            refundedAmountCents = 200L,
           ),
         )
 
@@ -184,6 +189,7 @@ class AdminOrderStatisticsQueryResolverTest :
       result[0].orderCount shouldBe 4
       result[0].orderProductCount shouldBe 5
       result[0].revenueCents shouldBe 800L
+      result[0].refundCents shouldBe 200L
     }
     test("monthlyStatistics should map month buckets") {
       // Given
@@ -196,6 +202,7 @@ class AdminOrderStatisticsQueryResolverTest :
             orderCount = 7L,
             orderProductCount = 9L,
             totalAmountCents = 1400L,
+            refundedAmountCents = 300L,
           ),
         )
 
@@ -210,5 +217,6 @@ class AdminOrderStatisticsQueryResolverTest :
       result[0].orderCount shouldBe 7
       result[0].orderProductCount shouldBe 9
       result[0].revenueCents shouldBe 1400L
+      result[0].refundCents shouldBe 300L
     }
   })

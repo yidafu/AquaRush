@@ -68,8 +68,8 @@ class UserStatisticsServiceImplTest :
       result.size shouldBe 3
       result[0].date shouldBe "2025-06-01"
       result[0].orderCount shouldBe 2
-      result[1] shouldBe DailyStatistic(date = "2025-06-02", orderCount = 0, orderProductCount = 0, revenueCents = 0L)
-      result[2] shouldBe DailyStatistic(date = "2025-06-03", orderCount = 0, orderProductCount = 0, revenueCents = 0L)
+      result[1] shouldBe DailyStatistic(date = "2025-06-02", orderCount = 0, orderProductCount = 0, revenueCents = 0L, refundCents = 0L)
+      result[2] shouldBe DailyStatistic(date = "2025-06-03", orderCount = 0, orderProductCount = 0, revenueCents = 0L, refundCents = 0L)
     }
     test("getLoginStatistics aggregates today and range logins") {
       val start = LocalDate.of(2025, 6, 1)

@@ -49,7 +49,7 @@ class AdminStatisticsQueryResolverTest :
       every { userStatisticsService.getUserStatistics() } returns
         UserStatisticsDTO(totalUsers = 100L, todayNewUsers = 5L, monthNewUsers = 30L, activeUsers = 50L)
       every { userStatisticsService.getDailyNewUsers(any(), any()) } returns
-        listOf(DailyStatistic(date = "2025-01-01", orderCount = 1, orderProductCount = 1, revenueCents = 100L))
+        listOf(DailyStatistic(date = "2025-01-01", orderCount = 1, orderProductCount = 1, revenueCents = 100L, refundCents = 0L))
       every { userStatisticsService.getLoginStatistics(any(), any()) } returns
         LoginStatisticsDTO(todayLogins = 10L, totalLogins = 1000L, dailyLogins = listOf(DailyLoginStatisticDTO("2025-01-01", 3)))
 

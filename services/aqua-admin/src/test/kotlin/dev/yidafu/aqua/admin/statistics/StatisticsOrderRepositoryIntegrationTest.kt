@@ -22,13 +22,20 @@ package dev.yidafu.aqua.admin.statistics
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.dto.OrderValueBucketDTO
+import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.PaymentModel
+import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
+import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
+import dev.yidafu.aqua.payment.domain.repository.PaymentRefundRepository
+import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import io.kotest.core.extensions.ApplyExtension
@@ -63,6 +70,9 @@ class StatisticsOrderRepositoryIntegrationTest(
   private val addressRepository: AddressRepository,
   private val userRepository: UserRepository,
   private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
+  private val statisticsService: StatisticsService,
+  private val paymentRepository: PaymentRepository,
+  private val paymentRefundRepository: PaymentRefundRepository,
 ) : FunSpec({
     // orders.user_id/address_id 存在外键,先种一条用户与地址供订单引用
     var userId = 1L
@@ -121,6 +131,42 @@ class StatisticsOrderRepositoryIntegrationTest(
             quantity = quantity,
             unitPriceCents = 1000L,
             productSnapshot = """{"name":"测试桶装水"}""",
+          ),
+        ).id!!
+
+    fun seedPayment(
+      orderId: Long,
+    ): Long =
+      paymentRepository
+        .save(
+          PaymentModel(
+            orderId = orderId,
+            userId = userId,
+            transactionId = "WX-REFUND-${System.nanoTime()}",
+            amount = 10000L,
+            status = PaymentStatus.SUCCESS,
+          ),
+        ).id!!
+
+    fun seedRefund(
+      paymentId: Long,
+      orderId: Long,
+      refundAmount: Long,
+      status: RefundStatus,
+      refundedAt: LocalDateTime,
+    ): Long =
+      paymentRefundRepository
+        .save(
+          PaymentRefundModel(
+            paymentId = paymentId,
+            orderId = orderId,
+            userId = userId,
+            refundId = "REF-${System.nanoTime()}",
+            outRefundNo = "R-${System.nanoTime()}",
+            refundAmount = refundAmount,
+            refundReason = "订单取消退款",
+            status = status,
+            refundedAt = refundedAt,
           ),
         ).id!!
 
@@ -293,5 +339,37 @@ class StatisticsOrderRepositoryIntegrationTest(
       result["100-200元"] shouldBe 1L
       result["200元以上"] shouldBe 1L
       result.values.sum() shouldBe 5L
+    }
+
+    test("getOrderStatistics aggregates refund and net revenue (F-STA-002)") {
+      // 种子数据在独立月内(12 月),避免与其它用例互相污染
+      val day = LocalDate.of(2031, 12, 10)
+      val orderId = seedOrder(amountCents = 10000L, status = OrderModelStatus.COMPLETED, createdAt = day.atTime(10, 0))
+      seedOrder(amountCents = 9999L, status = OrderModelStatus.PENDING_DISPATCH, createdAt = day.atTime(11, 0))
+      val paymentId = seedPayment(orderId)
+      seedRefund(paymentId, orderId, refundAmount = 400L, status = RefundStatus.COMPLETED, refundedAt = day.atTime(15, 0))
+      // 非 COMPLETED 退款记录不计入退款统计
+      seedRefund(paymentId, orderId, refundAmount = 300L, status = RefundStatus.PENDING, refundedAt = day.atTime(16, 0))
+
+      val result = statisticsService.getOrderStatistics(LocalDate.of(2031, 12, 1), LocalDate.of(2031, 12, 31))
+
+      result.completedOrders shouldBe 1L
+      result.completedAmountCents shouldBe 10000L
+      result.refundedAmountCents shouldBe 400L
+      result.netRevenueCents shouldBe 9600L
+    }
+
+    test("getDailyStatistics merges refund amounts by processed day (F-STA-002)") {
+      // 种子数据在独立月内(2032-01),避免与其它用例互相污染
+      val day = LocalDate.of(2032, 1, 10)
+      val orderId = seedOrder(amountCents = 8000L, status = OrderModelStatus.COMPLETED, createdAt = day.atTime(10, 0))
+      val paymentId = seedPayment(orderId)
+      seedRefund(paymentId, orderId, refundAmount = 250L, status = RefundStatus.COMPLETED, refundedAt = day.atTime(15, 0))
+
+      val result = statisticsService.getDailyStatistics(LocalDate.of(2032, 1, 1), LocalDate.of(2032, 1, 31))
+
+      val dayStat = result.first { it.date == day }
+      dayStat.totalAmountCents shouldBe 8000L
+      dayStat.refundedAmountCents shouldBe 250L
     }
   })

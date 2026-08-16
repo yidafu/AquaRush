@@ -30,7 +30,7 @@ const getRangePickerFormat = (granularity: Granularity): string => {
 };
 
 // 单页面一次渲染一个 GraphQL 请求(CLAUDE.md 规则 10):按粒度 skip 只启用当前粒度查询,
-// 每个查询 = orderStatistics(汇总卡)+ 对应粒度趋势(图表)
+// 每个查询 = orderStatistics(汇总卡,含退款/净营收)+ 对应粒度趋势(图表,含退款,PRD F-STA-002)
 const GET_DAILY_REVENUE_STATISTICS = gql`
   query GetDailyRevenueStatistics($input: DateRangeInput!) {
     orderStatistics(input: $input) {
@@ -38,12 +38,15 @@ const GET_DAILY_REVENUE_STATISTICS = gql`
       completedOrders
       totalRevenueCents
       averageOrderValueCents
+      refundAmountCents
+      netRevenueCents
     }
     dailyStatistics(input: $input) {
       date
       orderCount
       orderProductCount
       revenueCents
+      refundCents
     }
   }
 `;
@@ -55,12 +58,15 @@ const GET_WEEKLY_REVENUE_STATISTICS = gql`
       completedOrders
       totalRevenueCents
       averageOrderValueCents
+      refundAmountCents
+      netRevenueCents
     }
     weeklyStatistics(input: $input) {
       startDate
       orderCount
       orderProductCount
       revenueCents
+      refundCents
     }
   }
 `;
@@ -72,6 +78,8 @@ const GET_MONTHLY_REVENUE_STATISTICS = gql`
       completedOrders
       totalRevenueCents
       averageOrderValueCents
+      refundAmountCents
+      netRevenueCents
     }
     monthlyStatistics(input: $input) {
       year
@@ -79,6 +87,7 @@ const GET_MONTHLY_REVENUE_STATISTICS = gql`
       orderCount
       orderProductCount
       revenueCents
+      refundCents
     }
   }
 `;
@@ -88,6 +97,8 @@ interface OrderStats {
   completedOrders: number;
   totalRevenueCents: number;
   averageOrderValueCents: number;
+  refundAmountCents: number;
+  netRevenueCents: number;
 }
 
 interface DailyStat {
@@ -95,6 +106,7 @@ interface DailyStat {
   orderCount: number;
   orderProductCount: number;
   revenueCents: number;
+  refundCents: number;
 }
 
 interface WeeklyStat {
@@ -102,6 +114,7 @@ interface WeeklyStat {
   orderCount: number;
   orderProductCount: number;
   revenueCents: number;
+  refundCents: number;
 }
 
 interface MonthlyStat {
@@ -110,6 +123,7 @@ interface MonthlyStat {
   orderCount: number;
   orderProductCount: number;
   revenueCents: number;
+  refundCents: number;
 }
 
 interface DailyRevenueStatisticsData {
@@ -133,6 +147,9 @@ interface TrendPoint {
   products: number;
   revenueCents: number;
   revenue: number;
+  refundCents: number;
+  refund: number;
+  netRevenue: number;
 }
 
 /**
@@ -216,36 +233,48 @@ const RevenueStatistics: React.FC = () => {
     orderStats = dailyData.orderStatistics;
     chartData = dailyData.dailyStatistics.map((item: DailyStat) => {
       const revenueCents = toSafeNumber(item.revenueCents);
+      const refundCents = toSafeNumber(item.refundCents);
       return {
         date: item.date.slice(5),
         orders: toSafeNumber(item.orderCount),
         products: toSafeNumber(item.orderProductCount),
         revenueCents,
         revenue: centsToYuan(revenueCents),
+        refundCents,
+        refund: centsToYuan(refundCents),
+        netRevenue: centsToYuan(revenueCents - refundCents),
       };
     });
   } else if (granularity === 'WEEK' && weeklyData) {
     orderStats = weeklyData.orderStatistics;
     chartData = weeklyData.weeklyStatistics.map((item: WeeklyStat) => {
       const revenueCents = toSafeNumber(item.revenueCents);
+      const refundCents = toSafeNumber(item.refundCents);
       return {
         date: item.startDate.slice(5),
         orders: toSafeNumber(item.orderCount),
         products: toSafeNumber(item.orderProductCount),
         revenueCents,
         revenue: centsToYuan(revenueCents),
+        refundCents,
+        refund: centsToYuan(refundCents),
+        netRevenue: centsToYuan(revenueCents - refundCents),
       };
     });
   } else if (granularity === 'MONTH' && monthlyData) {
     orderStats = monthlyData.orderStatistics;
     chartData = monthlyData.monthlyStatistics.map((item: MonthlyStat) => {
       const revenueCents = toSafeNumber(item.revenueCents);
+      const refundCents = toSafeNumber(item.refundCents);
       return {
         date: `${item.year}-${item.month}`,
         orders: toSafeNumber(item.orderCount),
         products: toSafeNumber(item.orderProductCount),
         revenueCents,
         revenue: centsToYuan(revenueCents),
+        refundCents,
+        refund: centsToYuan(refundCents),
+        netRevenue: centsToYuan(revenueCents - refundCents),
       };
     });
   }
@@ -253,11 +282,16 @@ const RevenueStatistics: React.FC = () => {
   // 汇总卡:营收总额 = 已完成订单金额合计(PRD F-STA-002 域级口径);
   // 日均营收 = 营收总额 / 覆盖天数;最大周期营收 = 当前粒度趋势最大值
   const totalRevenueCents = orderStats ? toSafeNumber(orderStats.totalRevenueCents) : 0;
+  const totalRefundCents = orderStats ? toSafeNumber(orderStats.refundAmountCents) : 0;
+  const netRevenueCents = orderStats ? toSafeNumber(orderStats.netRevenueCents) : 0;
   const daysInRange = Math.max(1, dateRange[1].diff(dateRange[0], 'day') + 1);
   const averageDailyRevenueCents = totalRevenueCents / daysInRange;
   const maxPeriodRevenueCents = chartData.reduce((max, point) => Math.max(max, point.revenueCents), 0);
   const maxPeriodTitle =
     granularity === 'DAY' ? '最大单日营收' : granularity === 'WEEK' ? '最大周营收' : '最大月营收';
+  // 退款率 = 退款金额 / 营收总额;营收为 0 时显示「—」(避免除零)
+  const refundRate =
+    totalRevenueCents > 0 ? ((totalRefundCents / totalRevenueCents) * 100).toFixed(1) : null;
 
   return (
     <div>
@@ -311,6 +345,36 @@ const RevenueStatistics: React.FC = () => {
         </Col>
       </Row>
 
+      {/* 退款/净营收维度(PRD F-STA-002,G01 支付链路落地后补充):退款金额 = payment_refunds status=COMPLETED,
+          净营收 = 营收 − 退款金额,与退款记录一致;退款率 = 退款金额 / 营收总额,营收为 0 时显示「—」 */}
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col xs={24} sm={12} lg={8}>
+          <StatisticsCard
+            title="退款金额"
+            value={centsToYuan(totalRefundCents)}
+            prefix="¥"
+            precision={2}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} lg={8}>
+          <StatisticsCard
+            title="净营收"
+            value={centsToYuan(netRevenueCents)}
+            prefix="¥"
+            precision={2}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} lg={8}>
+          <StatisticsCard
+            title="退款率"
+            value={refundRate !== null ? `${refundRate}%` : '—'}
+            loading={loading}
+          />
+        </Col>
+      </Row>
+
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
         <Col xs={24} lg={12}>
           <Card title="订单趋势">
@@ -335,7 +399,7 @@ const RevenueStatistics: React.FC = () => {
           </Card>
         </Col>
         <Col xs={24} lg={12}>
-          <Card title="营收趋势">
+          <Card title="营收/净营收/退款趋势">
             <Spin spinning={loading}>
               {chartData.length === 0 ? (
                 <Empty description="所选范围暂无数据" style={{ padding: 40 }} />
@@ -347,7 +411,7 @@ const RevenueStatistics: React.FC = () => {
                     <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `¥${v}`} />
                     <Tooltip
                       labelFormatter={(label) => `日期: ${label}`}
-                      formatter={(value) => [`¥${Number(value).toFixed(2)}`, '营收']}
+                      formatter={(value, name) => [`¥${Number(value).toFixed(2)}`, name]}
                     />
                     <Line
                       type="monotone"
@@ -357,6 +421,23 @@ const RevenueStatistics: React.FC = () => {
                       strokeWidth={2}
                       dot={{ fill: '#52c41a', r: 3 }}
                     />
+                    <Line
+                      type="monotone"
+                      dataKey="netRevenue"
+                      name="净营收"
+                      stroke="#1890ff"
+                      strokeWidth={2}
+                      strokeDasharray="6 4"
+                      dot={{ fill: '#1890ff', r: 3 }}
+                    />
+                    <Line
+                      type="monotone"
+                      dataKey="refund"
+                      name="退款"
+                      stroke="#ff4d4f"
+                      strokeWidth={2}
+                      dot={{ fill: '#ff4d4f', r: 3 }}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               )}
@@ -364,14 +445,6 @@ const RevenueStatistics: React.FC = () => {
           </Card>
         </Col>
       </Row>
-
-      {/* 退款/净营收维度依赖支付链路(G01),链路落地后补充 —— PRD F-STA-002 */}
-      <Alert
-        style={{ marginTop: 24 }}
-        type="info"
-        showIcon
-        message="退款/净营收维度依赖支付链路(G01),链路落地后补充"
-      />
     </div>
   );
 };

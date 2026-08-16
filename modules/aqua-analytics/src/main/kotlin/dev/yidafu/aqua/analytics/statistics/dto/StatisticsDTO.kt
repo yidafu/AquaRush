@@ -31,6 +31,8 @@ data class OrderStatisticsDTO(
   val totalAmountCents: Long,
   val completedOrders: Long,
   val completedAmountCents: Long,
+  // 已退款金额(分,payment_refunds status=COMPLETED 按退款成功时间归属窗口,PRD F-STA-002)
+  val refundedAmountCents: Long = 0L,
 ) {
   val totalAmount: BigDecimal
     get() =
@@ -40,6 +42,9 @@ data class OrderStatisticsDTO(
     get() =
       MoneyUtils
         .fromCents(completedAmountCents)
+  /** 净营收(分)= 已完成营收 − 已退款金额;跨窗口退款时可为负(如实展示) */
+  val netRevenueCents: Long
+    get() = completedAmountCents - refundedAmountCents
 }
 
 /**
@@ -50,6 +55,8 @@ data class DailyStatisticsDTO(
   val orderCount: Long,
   val orderProductCount: Long,
   val totalAmountCents: Long,
+  // 该周期已退款金额(分,退款记录 status=COMPLETED 按退款成功时间归属)
+  val refundedAmountCents: Long = 0L,
 ) {
   val totalAmount: BigDecimal
     get() =
