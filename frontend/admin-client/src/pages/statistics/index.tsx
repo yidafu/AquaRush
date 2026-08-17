@@ -17,6 +17,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import StatisticsCard from '@/components/StatisticsCard';
 import RefreshControls from '@/components/RefreshControls';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { BRAND_PRIMARY } from '../../config/theme';
 
 const { RangePicker } = DatePicker;
 
@@ -407,7 +408,7 @@ const RevenueStatistics: React.FC = () => {
                       labelFormatter={(label) => `日期: ${label}`}
                       formatter={(value) => [`${Number(value)} 单`, '订单数']}
                     />
-                    <Bar dataKey="orders" name="订单数" fill="#1890ff" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="orders" name="订单数" fill={BRAND_PRIMARY} radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -441,10 +442,10 @@ const RevenueStatistics: React.FC = () => {
                       type="monotone"
                       dataKey="netRevenue"
                       name="净营收"
-                      stroke="#1890ff"
+                      stroke={BRAND_PRIMARY}
                       strokeWidth={2}
                       strokeDasharray="6 4"
-                      dot={{ fill: '#1890ff', r: 3 }}
+                      dot={{ fill: BRAND_PRIMARY, r: 3 }}
                     />
                     <Line
                       type="monotone"

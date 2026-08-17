@@ -14,6 +14,7 @@ import { displayCents } from '@aquarush/common';
 import StatisticsCard from '@/components/StatisticsCard';
 import RefreshControls from '@/components/RefreshControls';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { BRAND_PRIMARY } from '../../../config/theme';
 
 const GET_DELIVERY_WORKER_STATISTICS = gql`
   query GetDeliveryWorkerStatistics {
@@ -166,7 +167,7 @@ const DeliveryWorkerStatisticsPage: React.FC = () => {
                     labelFormatter={(label) => `送水员: ${label}`}
                     formatter={(value) => [`${Number(value)} 单`, '今日完成订单']}
                   />
-                  <Bar dataKey="orders" name="今日完成订单" fill="#1890ff" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="orders" name="今日完成订单" fill={BRAND_PRIMARY} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </Spin>

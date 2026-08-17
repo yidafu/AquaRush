@@ -23,5 +23,5 @@ body {
   cursor: pointer;
 }
 .ant-table-row.clickable-row:hover td {
-  background-color: #e6f4ff !important;
+  background-color: rgba(58, 155, 217, 0.10) !important;
 }

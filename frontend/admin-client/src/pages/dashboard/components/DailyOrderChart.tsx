@@ -9,6 +9,7 @@ import {
   Legend,
   ResponsiveContainer,
 } from 'recharts';
+import { BRAND_PRIMARY } from '../../../config/theme';
 
 interface DailyStatistic {
   date: string;
@@ -39,7 +40,7 @@ const DailyOrderChart: React.FC<DailyOrderChartProps> = ({ data }) => {
         <Bar
           dataKey="orderCount"
           name="订单数"
-          fill="#1890ff"
+          fill={BRAND_PRIMARY}
           radius={[4, 4, 0, 0]}
         />
       </BarChart>

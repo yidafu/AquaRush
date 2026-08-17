@@ -43,6 +43,7 @@ import TicketSection from './sections/TicketSection';
 import FeedbackSection from './sections/FeedbackSection';
 import ReviewSection from './sections/ReviewSection';
 import FavoriteSection from './sections/FavoriteSection';
+import { BRAND_PRIMARY } from '../../../config/theme';
 
 const { Text } = Typography;
 
@@ -377,7 +378,7 @@ const UserDetailPage: React.FC = () => {
               title="总订单数"
               value={totalOrders}
               prefix={<ShoppingOutlined />}
-              valueStyle={{ color: '#1890ff' }}
+              valueStyle={{ color: BRAND_PRIMARY }}
             />
           </Card>
         </Col>

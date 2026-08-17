@@ -10,6 +10,7 @@ import {
 } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import type { DeliveryTrajectory, DeliveryWorker } from '@aquarush/common';
+import { BRAND_PRIMARY, COLOR_SUCCESS, COLOR_ERROR } from '../../config/theme';
 import MapLibreMap from '../../components/MapLibreMap';
 import type { MapLine, MapMarker } from '../../components/MapLibreMap';
 import { DEFAULT_MAP_CENTER } from '../../lib/map/tianditu';
@@ -106,14 +107,14 @@ const DeliveryTrajectoriesPage: React.FC = () => {
     return points.slice(0, playIndex + 1).map((p) => ({ lng: p.lng, lat: p.lat }));
   }, [points, playIndex, fullPath]);
 
-  // 地图折线图层:完整轨迹(蓝)+ 回放进度(红,后添加置于上层)
+  // 地图折线图层:完整轨迹(品牌蓝)+ 回放进度(红,后添加置于上层)
   const mapLines = useMemo<MapLine[]>(() => {
     const lines: MapLine[] = [];
     if (points.length > 1) {
-      lines.push({ id: 'full', points: fullPath, color: '#2F80ED', width: 6 });
+      lines.push({ id: 'full', points: fullPath, color: BRAND_PRIMARY, width: 6 });
     }
     if (playIndex >= 0 && replayPath.length > 0) {
-      lines.push({ id: 'replay', points: replayPath, color: '#EB5757', width: 6 });
+      lines.push({ id: 'replay', points: replayPath, color: COLOR_ERROR, width: 6 });
     }
     return lines;
   }, [points, playIndex, replayPath, fullPath]);
@@ -122,14 +123,14 @@ const DeliveryTrajectoriesPage: React.FC = () => {
   const mapMarkers = useMemo<MapMarker[]>(() => {
     const markers: MapMarker[] = [];
     if (latest) {
-      markers.push({ id: 'worker', lng: latest.longitude, lat: latest.latitude, label: '当前位置', color: '#F5222D' });
+      markers.push({ id: 'worker', lng: latest.longitude, lat: latest.latitude, label: '当前位置', color: COLOR_ERROR });
     } else if (points.length > 0) {
       // 非配送中无实时位置:以轨迹末点作为「最后位置」展示
       const last = points[points.length - 1];
-      markers.push({ id: 'worker', lng: last.lng, lat: last.lat, label: '最后位置', color: '#F5222D' });
+      markers.push({ id: 'worker', lng: last.lng, lat: last.lat, label: '最后位置', color: COLOR_ERROR });
     }
     if (points.length > 1) {
-      markers.push({ id: 'start', lng: points[0].lng, lat: points[0].lat, label: '起点', color: '#52C41A' });
+      markers.push({ id: 'start', lng: points[0].lng, lat: points[0].lat, label: '起点', color: COLOR_SUCCESS });
     }
     return markers;
   }, [latest, points]);

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Statistic } from 'antd';
 import { ArrowUpOutlined, ArrowDownOutlined } from '@ant-design/icons';
+import { COLOR_SUCCESS, COLOR_ERROR, TEXT_SECONDARY } from '../../config/theme';
 
 interface StatisticsCardProps {
   title: string;
@@ -32,9 +33,9 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
   };
 
   const getTrendColor = () => {
-    if (trend === 'up') return '#3f8600';
-    if (trend === 'down') return '#cf1322';
-    return '#999';
+    if (trend === 'up') return COLOR_SUCCESS; // 涨绿
+    if (trend === 'down') return COLOR_ERROR; // 跌红
+    return TEXT_SECONDARY;
   };
 
   const showTrendLine = trendValue !== undefined;

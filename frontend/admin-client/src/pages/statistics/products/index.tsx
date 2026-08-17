@@ -18,6 +18,7 @@ import StatisticsCard from '@/components/StatisticsCard';
 import RefreshControls from '@/components/RefreshControls';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { PRODUCT_STATISTICS_PAGE_DATA_QUERY } from '../../../graphql/queries/statistics.graphql';
+import { BRAND_PRIMARY } from '../../../config/theme';
 import dayjs, { Dayjs } from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -257,7 +258,7 @@ const ProductStatisticsPage: React.FC = () => {
                 }}
               />
               <Legend />
-              <Line yAxisId="left" type="monotone" dataKey="sales" name="销量" stroke="#1890ff" strokeWidth={2} dot={{ fill: '#1890ff', r: 3 }} />
+              <Line yAxisId="left" type="monotone" dataKey="sales" name="销量" stroke={BRAND_PRIMARY} strokeWidth={2} dot={{ fill: BRAND_PRIMARY, r: 3 }} />
               <Line yAxisId="right" type="monotone" dataKey="revenue" name="营收" stroke="#52c41a" strokeWidth={2} dot={{ fill: '#52c41a', r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
@@ -282,7 +283,7 @@ const ProductStatisticsPage: React.FC = () => {
                     }}
                   />
                   <Legend />
-                  <Bar yAxisId="left" dataKey="sales" name="销量" fill="#1890ff" radius={[4, 4, 0, 0]} />
+                  <Bar yAxisId="left" dataKey="sales" name="销量" fill={BRAND_PRIMARY} radius={[4, 4, 0, 0]} />
                   <Bar yAxisId="right" dataKey="revenue" name="营收" fill="#52c41a" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>

@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { centsToYuan } from '@aquarush/common';
+import { BRAND_PRIMARY } from '../../../config/theme';
 
 interface DailyStatistic {
   date: string;
@@ -42,9 +43,9 @@ const DailyRevenueChart: React.FC<DailyRevenueChartProps> = ({ data }) => {
         <Line
           type="monotone"
           dataKey="revenue"
-          stroke="#1890ff"
+          stroke={BRAND_PRIMARY}
           strokeWidth={2}
-          dot={{ fill: '#1890ff', r: 4 }}
+          dot={{ fill: BRAND_PRIMARY, r: 4 }}
           activeDot={{ r: 6 }}
         />
       </LineChart>

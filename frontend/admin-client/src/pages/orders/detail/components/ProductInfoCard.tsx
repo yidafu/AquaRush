@@ -3,6 +3,7 @@ import { Card, Image, Typography, Space, List, Tag } from 'antd';
 import { ShoppingCartOutlined } from '@ant-design/icons';
 import { useOrderDetail } from '../OrderDetailContext';
 import { displayCents } from '@aquarush/common';
+import { BRAND_PRIMARY, TEXT_SECONDARY } from '../../../../config/theme';
 
 const { Text } = Typography;
 
@@ -50,11 +51,11 @@ const ProductInfoCard: React.FC = () => {
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      background: '#f5f5f5',
+                      background: '#F5F7FA',
                       borderRadius: '8px',
                     }}
                   >
-                    <ShoppingCartOutlined style={{ fontSize: 20, color: '#999' }} />
+                    <ShoppingCartOutlined style={{ fontSize: 20, color: TEXT_SECONDARY }} />
                   </div>
                 )}
                 <div style={{ flex: 1 }}>
@@ -70,7 +71,7 @@ const ProductInfoCard: React.FC = () => {
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div>
-                    <Text strong style={{ color: '#ff6700' }}>
+                    <Text strong style={{ color: BRAND_PRIMARY }}>
                       {displayCents(Number(item.unitPriceCents) || 0)}
                     </Text>
                     <Text type="secondary"> × {item.quantity}</Text>

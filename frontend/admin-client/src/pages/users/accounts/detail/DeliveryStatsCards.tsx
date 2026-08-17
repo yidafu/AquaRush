@@ -7,6 +7,7 @@ import {
   DollarOutlined,
 } from '@ant-design/icons';
 import { displayCents } from '@aquarush/common';
+import { BRAND_PRIMARY, COLOR_WARNING } from '../../../../config/theme';
 
 interface DeliveryStatsCardsProps {
   totalOrders: number;
@@ -34,7 +35,7 @@ const DeliveryStatsCards: React.FC<DeliveryStatsCardsProps> = ({
             title="总订单数"
             value={totalOrders}
             prefix={<ShoppingOutlined />}
-            valueStyle={{ color: '#1890ff' }}
+            valueStyle={{ color: BRAND_PRIMARY }}
           />
         </Card>
       </Col>
@@ -55,7 +56,7 @@ const DeliveryStatsCards: React.FC<DeliveryStatsCardsProps> = ({
             value={averageRating ?? 0}
             prefix={<StarOutlined />}
             precision={2}
-            valueStyle={{ color: '#faad14' }}
+            valueStyle={{ color: COLOR_WARNING }}
             suffix="/ 5.0"
           />
         </Card>

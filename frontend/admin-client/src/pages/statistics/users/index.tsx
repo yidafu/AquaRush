@@ -13,6 +13,7 @@ import { useQuery, gql } from '@apollo/client';
 import StatisticsCard from '@/components/StatisticsCard';
 import RefreshControls from '@/components/RefreshControls';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { BRAND_PRIMARY } from '../../../config/theme';
 
 const GET_USER_STATISTICS = gql`
   query GetUserStatistics {
@@ -181,9 +182,9 @@ const UserStatisticsPage: React.FC = () => {
                 type="monotone"
                 dataKey="count"
                 name="新增用户"
-                stroke="#1890ff"
+                stroke={BRAND_PRIMARY}
                 strokeWidth={2}
-                dot={{ fill: '#1890ff', r: 3 }}
+                dot={{ fill: BRAND_PRIMARY, r: 3 }}
                 activeDot={{ r: 6 }}
               />
             </LineChart>

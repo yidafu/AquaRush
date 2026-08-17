@@ -6,6 +6,7 @@ import { avatarFromName } from '@aquarush/common/utils';
 import type { ColumnsType } from 'antd/es/table';
 import type { User, TableActionProps } from './types';
 import { STATUS_MAPPINGS, ROLE_MAPPINGS } from './types';
+import { BRAND_PRIMARY } from '../../../config/theme';
 
 interface UserTableProps extends TableActionProps {
   data: User[];
@@ -31,7 +32,7 @@ const UserTable: React.FC<UserTableProps> = ({
         <Avatar
           src={avatarUrl || avatarFromName(record.nickname || '用户')}
           size={40}
-          style={{ backgroundColor: '#1890ff' }}
+          style={{ backgroundColor: BRAND_PRIMARY }}
         >
           {record.nickname?.charAt(0)?.toUpperCase() || 'U'}
         </Avatar>

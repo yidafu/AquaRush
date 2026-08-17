@@ -3,6 +3,7 @@ import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from '
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { displayCents, formatDateTime } from '@aquarush/common';
+import { BRAND_PRIMARY } from '../../../config/theme';
 import type { FlashSaleActivity } from '@aquarush/common';
 import {
   useFlashSaleActivities,
@@ -89,7 +90,7 @@ const FlashSale: React.FC = () => {
       dataIndex: 'salePriceCents',
       width: 110,
       render: (cents: number) => (
-        <Text strong style={{ color: '#f5222d' }}>
+        <Text strong style={{ color: BRAND_PRIMARY }}>
           {displayCents(cents)}
         </Text>
       ),

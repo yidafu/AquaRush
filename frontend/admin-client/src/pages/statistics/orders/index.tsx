@@ -20,6 +20,7 @@ import { centsToYuan } from '@aquarush/common';
 import StatisticsCard from '@/components/StatisticsCard';
 import RefreshControls from '@/components/RefreshControls';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
+import { BRAND_PRIMARY, COLOR_WARNING, TEXT_SECONDARY } from '../../../config/theme';
 import dayjs, { Dayjs } from 'dayjs';
 
 const { RangePicker } = DatePicker;
@@ -132,15 +133,15 @@ const GET_MONTHLY_STATISTICS = gql`
   }
 `;
 
-/** 订单状态中文名与图表色（G37 状态分布，7 态，与 OrderStatus 枚举一致） */
+/** 订单状态中文名与图表色（G37 状态分布，7 态，与 OrderStatus 枚举一致；色值按 docs/ui-spec.md §2.2） */
 const ORDER_STATUS_MAP: Record<string, { text: string; color: string }> = {
-  PENDING_PAYMENT: { text: '待支付', color: '#8c8c8c' },
-  PENDING_DISPATCH: { text: '待派单', color: '#13c2c2' },
-  PENDING_DELIVERY: { text: '待配送', color: '#1677ff' },
-  DELIVERING: { text: '配送中', color: '#fa8c16' },
-  COMPLETED: { text: '已完成', color: '#52c41a' },
-  CANCELLED: { text: '已取消', color: '#f5222d' },
-  REFUNDED: { text: '已退款', color: '#722ed1' },
+  PENDING_PAYMENT: { text: '待支付', color: '#FA8C16' },
+  PENDING_DISPATCH: { text: '待派单', color: BRAND_PRIMARY },
+  PENDING_DELIVERY: { text: '待配送', color: BRAND_PRIMARY },
+  DELIVERING: { text: '配送中', color: '#389E0D' },
+  COMPLETED: { text: '已完成', color: TEXT_SECONDARY },
+  CANCELLED: { text: '已取消', color: '#CF1322' },
+  REFUNDED: { text: '已退款', color: '#CF1322' },
 };
 
 interface OrderStatusStat {
@@ -424,8 +425,8 @@ const OrderStatisticsPage: React.FC = () => {
                 }}
               />
               <Legend />
-              <Line yAxisId="left" type="monotone" dataKey="orders" name="订单数" stroke="#1890ff" strokeWidth={2} dot={{ fill: '#1890ff', r: 3 }} />
-              <Line yAxisId="left" type="monotone" dataKey="products" name="送水桶数" stroke="#faad14" strokeWidth={2} dot={{ fill: '#faad14', r: 3 }} />
+              <Line yAxisId="left" type="monotone" dataKey="orders" name="订单数" stroke={BRAND_PRIMARY} strokeWidth={2} dot={{ fill: BRAND_PRIMARY, r: 3 }} />
+              <Line yAxisId="left" type="monotone" dataKey="products" name="送水桶数" stroke={COLOR_WARNING} strokeWidth={2} dot={{ fill: COLOR_WARNING, r: 3 }} />
               <Line yAxisId="right" type="monotone" dataKey="revenue" name="营收" stroke="#52c41a" strokeWidth={2} dot={{ fill: '#52c41a', r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
@@ -487,7 +488,7 @@ const OrderStatisticsPage: React.FC = () => {
                       return [`${numValue} 单`, '订单数'];
                     }}
                   />
-                  <Bar dataKey="count" name="订单数" fill="#1890ff" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="count" name="订单数" fill={BRAND_PRIMARY} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
               <div style={{ textAlign: 'center', color: '#999', fontSize: 13 }}>
@@ -515,7 +516,7 @@ const OrderStatisticsPage: React.FC = () => {
                     {peakHourData.map((entry) => (
                       <Cell
                         key={entry.hour}
-                        fill={entry.count === maxHourCount && maxHourCount > 0 ? '#faad14' : '#1677ff'}
+                        fill={entry.count === maxHourCount && maxHourCount > 0 ? COLOR_WARNING : BRAND_PRIMARY}
                       />
                     ))}
                   </Bar>
