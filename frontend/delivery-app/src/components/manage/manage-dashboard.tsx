@@ -14,6 +14,7 @@ import { StatCard } from '@/components/stat-card';
 import { ThemedText } from '@/components/themed-text';
 import { WeekLineChart } from '@/components/week-line-chart';
 import { Spacing } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   getDailyStatistics,
   getDeliveryWorkerRanking,
@@ -37,6 +38,7 @@ function daysAgo(days: number): Date {
 }
 
 export function ManageDashboard() {
+  const theme = useTheme();
   const [data, setData] = useState<DashboardData>({
     breakdown: null,
     workers: null,
@@ -141,7 +143,13 @@ export function ManageDashboard() {
           </ThemedText>
         ) : (
           data.ranking.map((item, index) => (
-            <View key={item.workerId} style={[styles.rankRow, index > 0 && styles.rankRowBorder]}>
+            <View
+              key={item.workerId}
+              style={[
+                styles.rankRow,
+                index > 0 && { borderTopColor: theme.border },
+                index > 0 && styles.rankRowBorder,
+              ]}>
               <ThemedText type="smallBold" themeColor={index < 3 ? 'primary' : 'textSecondary'}>
                 {index + 1}
               </ThemedText>
@@ -194,7 +202,6 @@ const styles = StyleSheet.create({
   },
   rankRowBorder: {
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#f0f0f0',
   },
   rankName: {
     flex: 1,

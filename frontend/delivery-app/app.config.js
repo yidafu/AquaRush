@@ -25,11 +25,9 @@ const config = {
     ios: {
       icon: './assets/expo.icon',
       bundleIdentifier: 'com.aquarush.delivery',
-      // 轨迹上报(F-ADR-012):react-native-fitness-geolocation 原生定位
+      // 配送地图用户定位(MapLibre UserLocation)
       infoPlist: {
-        NSLocationWhenInUseUsageDescription: '需要获取您的位置以向后台上报配送轨迹',
-        NSLocationAlwaysAndWhenInUseUsageDescription: '配送中需要持续获取您的位置以上报配送轨迹',
-        UIBackgroundModes: ['location'],
+        NSLocationWhenInUseUsageDescription: '需要获取您的位置以在地图中展示当前位置',
       },
     },
     android: {
@@ -41,13 +39,11 @@ const config = {
         monochromeImage: './assets/images/android-icon-monochrome.png',
       },
       predictiveBackGestureEnabled: false,
-      // 轨迹上报(F-ADR-012):react-native-fitness-geolocation 所需定位/前台服务权限
+      // 配送地图用户定位(MapLibre UserLocation)所需最小权限;
+      // 后台定位/前台服务权限已随轨迹上报 SDK 移除
       permissions: [
         'android.permission.ACCESS_FINE_LOCATION',
         'android.permission.ACCESS_COARSE_LOCATION',
-        'android.permission.ACCESS_BACKGROUND_LOCATION',
-        'android.permission.FOREGROUND_SERVICE',
-        'android.permission.FOREGROUND_SERVICE_LOCATION',
       ],
     },
     web: {

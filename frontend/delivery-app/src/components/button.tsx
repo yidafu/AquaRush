@@ -38,7 +38,7 @@ export function Button({
   const inactive = disabled || loading;
 
   const isFilled = variant === 'primary' || variant === 'danger';
-  const textColor = isFilled ? '#ffffff' : variant === 'ghost' ? theme.primary : theme.danger;
+  const textColor = isFilled ? theme.headerText : variant === 'ghost' ? theme.primary : theme.danger;
   const backgroundColor =
     variant === 'primary' ? theme.primary : variant === 'danger' ? theme.danger : 'transparent';
   const borderColor =

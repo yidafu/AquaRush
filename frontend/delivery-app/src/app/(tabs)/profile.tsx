@@ -85,7 +85,7 @@ export default function ProfileScreen() {
             <ThemedText type="heading" themeColor="headerText">
               {displayName}
             </ThemedText>
-            <View style={[styles.roleBadge, { backgroundColor: 'rgba(255,255,255,0.22)' }]}>
+            <View style={[styles.roleBadge, { backgroundColor: theme.headerBadgeBg }]}>
               <ThemedText type="caption" themeColor="headerText">
                 {roleLabel}
               </ThemedText>

@@ -61,7 +61,9 @@ export function toPosterOrderData(order: Order): PosterOrderData {
   };
 }
 
-// 海报固定白底 + 固定色（weapp wxml-to-canvas 坐标，380×304）
+// 海报固定白底 + 固定色（weapp wxml-to-canvas 坐标，380×304）。
+// 刻意不走主题：海报是微信分享产物，任何模式下都必须保持白底白卡。
+// 价格按品牌规则用主色（#3A9BD9）加粗，不用强调橙。
 const POSTER_WIDTH = 380;
 const POSTER_HEIGHT = 304;
 const COLORS = {
@@ -71,7 +73,7 @@ const COLORS = {
   textPrimary: '#333333',
   textSecondary: '#666666',
   textTertiary: '#999999',
-  price: '#ff4d4f',
+  price: '#3A9BD9',
   divider: '#f0f0f0',
   footerBg: '#f8f8f8',
 };

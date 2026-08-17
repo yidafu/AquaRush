@@ -9,18 +9,12 @@ import { Input } from '@/components/input';
 import { ThemedText } from '@/components/themed-text';
 import { Radius, Shadow, Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
-import { useColorScheme } from '@/hooks/use-color-scheme';
 import { useTheme } from '@/hooks/use-theme';
-
-// 登录页专属浅天空渐变（品牌 hero 装饰色）
-const LOGIN_GRADIENT = ['#e0f2fe', '#bae6fd'] as const;
 
 export default function LoginScreen() {
   const { login } = useAuth();
   const router = useRouter();
   const theme = useTheme();
-  const scheme = useColorScheme();
-  const isDark = scheme === 'dark';
 
   // 深链登录守卫：未登录时 Stack.Protected 渲染登录页但 pathname 保持深链目标，
   // 登录后跳回该目标（如微信分享卡片直达订单详情）
@@ -52,24 +46,21 @@ export default function LoginScreen() {
     }
   };
 
-  const gradientColors = isDark
-    ? ([theme.headerGradientStart, theme.headerGradientEnd] as const)
-    : LOGIN_GRADIENT;
+  // 登录页为全屏品牌渐变 hero（亮暗一致），状态栏恒为亮字（见 docs/ui-spec.md §6）
+  const gradientColors = [theme.headerGradientStart, theme.headerGradientEnd] as const;
 
   return (
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <Gradient colors={gradientColors} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.flex}>
-        <StatusBar style={isDark ? 'light' : 'dark'} />
+        <StatusBar style="light" />
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <View style={styles.logoSection}>
-            <ThemedText type="title" style={{ color: isDark ? theme.headerText : theme.primary }}>
+            <ThemedText type="title" style={{ color: theme.headerText }}>
               AquaRush
             </ThemedText>
-            <ThemedText
-              type="caption"
-              themeColor={isDark ? 'headerTextSecondary' : 'textSecondary'}>
+            <ThemedText type="caption" themeColor="headerTextSecondary">
               送水配送 · 运营管理
             </ThemedText>
           </View>

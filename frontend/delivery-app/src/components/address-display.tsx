@@ -164,7 +164,7 @@ export function AddressDisplay({ selectedId, onSelect }: AddressDisplayProps) {
 
 const styles = StyleSheet.create({
   triggerCard: {
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     padding: Spacing.three,
     marginBottom: Spacing.two,
     flexDirection: 'row',
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   item: {
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     padding: Spacing.three,
     marginBottom: Spacing.two,
     gap: Spacing.one,

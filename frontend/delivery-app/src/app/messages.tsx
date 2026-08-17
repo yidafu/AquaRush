@@ -6,10 +6,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { EmptyState } from '@/components/empty-state';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
+import { Radius, Shadow, Spacing } from '@/constants/theme';
 import { wsPushService, WsPushMessage } from '@/services/wsPush';
 import { notificationService, WorkerNotificationVO } from '@/services/notification';
-import { useAuth } from '@/hooks/use-auth';
+import { useTheme } from '@/hooks/use-theme';
 
 const PAGE_SIZE = 10;
 
@@ -32,7 +32,7 @@ function formatRelativeTime(time: string): string {
  */
 export default function MessagesScreen() {
   const router = useRouter();
-  const { userInfo } = useAuth();
+  const theme = useTheme();
 
   const [messages, setMessages] = useState<WorkerNotificationVO[]>([]);
   const [page, setPage] = useState(0);
@@ -112,7 +112,9 @@ export default function MessagesScreen() {
         <ThemedText style={styles.headerTitle}>消息中心</ThemedText>
         {messages.length > 0 && (
           <TouchableOpacity onPress={handleMarkAllRead}>
-            <ThemedText style={styles.markAll}>全部已读</ThemedText>
+            <ThemedText type="small" themeColor="primary" style={styles.markAll}>
+              全部已读
+            </ThemedText>
           </TouchableOpacity>
         )}
       </ThemedView>
@@ -130,26 +132,34 @@ export default function MessagesScreen() {
         ListFooterComponent={
           hasMore && messages.length > 0 ? (
             <View style={styles.footer}>
-              <ThemedText style={styles.footerText}>上拉加载更多</ThemedText>
+              <ThemedText type="caption" themeColor="textTertiary">
+                上拉加载更多
+              </ThemedText>
             </View>
           ) : null
         }
         renderItem={({ item }) => (
-          <TouchableOpacity style={styles.item} onPress={() => handleMarkRead(item)}>
-            <View style={styles.itemBody}>
-              <View style={styles.itemTitleRow}>
-                {!item.read && <View style={styles.dot} />}
-                <ThemedText style={[styles.itemTitle, !item.read && styles.itemTitleUnread]} numberOfLines={1}>
-                  {item.title}
-                </ThemedText>
-                <ThemedText style={styles.itemTime}>{formatRelativeTime(item.createdAt)}</ThemedText>
+          <TouchableOpacity onPress={() => handleMarkRead(item)}>
+            <ThemedView type="card" style={styles.item}>
+              <View style={styles.itemBody}>
+                <View style={styles.itemTitleRow}>
+                  {!item.read && <View style={[styles.dot, { backgroundColor: theme.primary }]} />}
+                  <ThemedText
+                    style={[styles.itemTitle, !item.read && styles.itemTitleUnread]}
+                    numberOfLines={1}>
+                    {item.title}
+                  </ThemedText>
+                  <ThemedText type="caption" themeColor="textTertiary" style={styles.itemTime}>
+                    {formatRelativeTime(item.createdAt)}
+                  </ThemedText>
+                </View>
+                {item.summary ? (
+                  <ThemedText themeColor="textSecondary" style={styles.itemSummary} numberOfLines={2}>
+                    {item.summary}
+                  </ThemedText>
+                ) : null}
               </View>
-              {item.summary ? (
-                <ThemedText style={styles.itemSummary} numberOfLines={2}>
-                  {item.summary}
-                </ThemedText>
-              ) : null}
-            </View>
+            </ThemedView>
           </TouchableOpacity>
         )}
       />
@@ -173,18 +183,18 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   markAll: {
-    color: '#1890ff',
     fontSize: 14,
+    lineHeight: 20,
   },
   listContent: {
     paddingBottom: Spacing.six,
   },
   item: {
     marginHorizontal: Spacing.three,
-    marginBottom: Spacing.two,
+    marginBottom: Spacing.three,
     padding: Spacing.three,
-    borderRadius: 12,
-    backgroundColor: '#f0f7ff',
+    borderRadius: Radius.lg,
+    ...Shadow.sm,
   },
   itemBody: {
     flex: 1,
@@ -197,34 +207,27 @@ const styles = StyleSheet.create({
     width: 8,
     height: 8,
     borderRadius: 4,
-    backgroundColor: '#ff4d4f',
     marginRight: 6,
   },
   itemTitle: {
     flex: 1,
     fontSize: 15,
-    color: '#666',
+    lineHeight: 21,
   },
   itemTitleUnread: {
     fontWeight: '600',
-    color: '#333',
   },
   itemTime: {
     fontSize: 11,
-    color: '#999',
+    lineHeight: 16,
   },
   itemSummary: {
     marginTop: Spacing.one,
     fontSize: 13,
-    color: '#666',
     lineHeight: 19,
   },
   footer: {
     paddingVertical: Spacing.three,
     alignItems: 'center',
-  },
-  footerText: {
-    color: '#999',
-    fontSize: 12,
   },
 });

@@ -150,7 +150,7 @@ export function ProductSelector({ addedCount, onAdd }: ProductSelectorProps) {
 
 const styles = StyleSheet.create({
   triggerCard: {
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     padding: Spacing.three,
     marginBottom: Spacing.two,
     flexDirection: 'row',
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.three,
     alignItems: 'center',
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     padding: Spacing.three,
     marginBottom: Spacing.two,
   },

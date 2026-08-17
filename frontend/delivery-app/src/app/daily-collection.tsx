@@ -191,7 +191,7 @@ export default function DailyCollectionScreen() {
   return (
     <ThemedView type="pageBackground" style={styles.container}>
       <View style={styles.content}>
-        <View style={[styles.notice, { backgroundColor: `${theme.warning}1A` }]}>
+        <View style={[styles.notice, { backgroundColor: theme.warningBg }]}>
           <ThemedText type="small" themeColor="textSecondary">
             1. 现金和扫码收款将自动与今日完成订单金额对比
           </ThemedText>

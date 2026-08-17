@@ -88,7 +88,7 @@ export function WeekLineChart({ data, height = 220 }: WeekLineChartProps) {
       flyoutPadding={6}
       cornerRadius={4}
       pointerLength={6}
-      style={{ fill: '#ffffff', fontSize: 11 }}
+      style={{ fill: theme.headerText, fontSize: 11 }}
     />
   );
 

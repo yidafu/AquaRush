@@ -29,7 +29,7 @@ export default function TasksScreen() {
   const [assignedOrders, setAssignedOrders] = useState<any[]>([]);
   const [deliveringOrders, setDeliveringOrders] = useState<any[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const { userInfo } = useAuth();
+  const { userInfo, isAdmin } = useAuth();
 
   // WebSocket 实时推送(F-NTF-003):登录后建立连接;推送到达 → 刷新任务列表 + 横幅提示
   useEffect(() => {
@@ -106,8 +106,8 @@ export default function TasksScreen() {
   const lists = [pendingOrders, assignedOrders, deliveringOrders];
   const empties = ['暂无未接单订单', '暂无已接单订单', '暂无配送中订单'];
   const tabTitles = [
-    `未接单 (${pendingOrders.length})`,
-    `已接单 (${assignedOrders.length})`,
+    `待接单 (${pendingOrders.length})`,
+    `待配送 (${assignedOrders.length})`,
     `配送中 (${deliveringOrders.length})`,
   ];
 
@@ -154,7 +154,8 @@ export default function TasksScreen() {
           }>
           {renderCards()}
         </ScrollView>
-        <FloatingButton onPress={() => router.push('/create-order')} />
+        {/* 代客下单(F-ORD-012)：仅 ADMIN/SUPER_ADMIN 可见（见 docs/ui-spec.md §7） */}
+        {isAdmin ? <FloatingButton onPress={() => router.push('/create-order')} /> : null}
       </SafeAreaView>
     </ThemedView>
   );

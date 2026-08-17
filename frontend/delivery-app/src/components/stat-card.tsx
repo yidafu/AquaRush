@@ -62,7 +62,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   card: {
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     padding: Spacing.three,
     minHeight: 88,
     alignItems: 'center',

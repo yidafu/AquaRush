@@ -112,6 +112,8 @@ export default function OrderDetailScreen() {
 
   // 轨迹上报(F-ADR-012,R-ADR-03):订单进入「配送中」自动启动持续定位上报,
   // 「完成配送/取消/退款」停止;页面卸载不停止(配送中会话级持续,App 重启后由根布局恢复)。
+  // 注:react-native-fitness-geolocation 已移除,trajectoryReporter 为空实现,
+  // 以下调用保留作集成点,当前不产生任何定位行为。
   useEffect(() => {
     if (!order?.id) return;
     if (order.status === 'DELIVERING') {
@@ -558,6 +560,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.three,
   },
   posterCard: {
+    // 海报预览白底：分享产物固定白卡（暗色下也必须白底），刻意保留固定色
     borderRadius: Radius.lg,
     backgroundColor: '#ffffff',
     padding: Spacing.three,

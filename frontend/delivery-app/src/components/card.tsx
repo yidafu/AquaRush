@@ -12,7 +12,7 @@ interface CardProps {
   children: ReactNode;
 }
 
-/** 卡片容器：card 底 + 12px 圆角 + 软阴影。见 docs/ui-spec.md §5。 */
+/** 卡片容器：card 底 + 16px 大圆角 + 软阴影。见 docs/ui-spec.md §5。 */
 export function Card({ title, right, children }: CardProps) {
   return (
     <ThemedView type="card" style={styles.card}>
@@ -33,7 +33,7 @@ export function Card({ title, right, children }: CardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    borderRadius: Radius.md,
+    borderRadius: Radius.lg,
     padding: Spacing.three,
     marginBottom: Spacing.three,
     ...Shadow.md,

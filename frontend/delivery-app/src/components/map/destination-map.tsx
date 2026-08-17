@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import {
   Camera,
   Layer,
@@ -7,7 +7,9 @@ import {
   RasterSource,
   UserLocation,
 } from '@maplibre/maplibre-react-native';
+import { ThemedText } from '@/components/themed-text';
 import { Radius } from '@/constants/theme';
+import { useTheme } from '@/hooks/use-theme';
 import {
   TIANDITU_KEY,
   buildTiandituStyle,
@@ -32,18 +34,24 @@ export function DestinationMap({
   latitude,
   height = 200,
 }: DestinationMapProps) {
+  const theme = useTheme();
+
   if (!TIANDITU_KEY) {
     return (
-      <View style={[styles.placeholder, { height }]}>
-        <Text style={styles.placeholderText}>未配置 EXPO_PUBLIC_TIANDITU_KEY，地图不可用</Text>
+      <View style={[styles.placeholder, { height, backgroundColor: theme.pageBackground }]}>
+        <ThemedText type="caption" themeColor="textTertiary">
+          未配置 EXPO_PUBLIC_TIANDITU_KEY，地图不可用
+        </ThemedText>
       </View>
     );
   }
 
   if (longitude == null || latitude == null) {
     return (
-      <View style={[styles.placeholder, { height }]}>
-        <Text style={styles.placeholderText}>该地址暂无坐标，无法上图</Text>
+      <View style={[styles.placeholder, { height, backgroundColor: theme.pageBackground }]}>
+        <ThemedText type="caption" themeColor="textTertiary">
+          该地址暂无坐标，无法上图
+        </ThemedText>
       </View>
     );
   }
@@ -95,14 +103,10 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f5f5f5',
     borderRadius: Radius.md,
   },
-  placeholderText: {
-    fontSize: 13,
-    color: '#999999',
-  },
   pin: {
+    // 地图 pin 为功能性地图元素：白底 + 高德红，需与主题无关的天地图瓦片保持对比，刻意保留固定色
     width: 24,
     height: 24,
     borderRadius: 12,

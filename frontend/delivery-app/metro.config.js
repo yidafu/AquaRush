@@ -17,8 +17,11 @@ config.resolver.nodeModulesPaths = [
   path.resolve(workspaceRoot, 'node_modules/.pnpm/node_modules'),
 ];
 
-// pnpm symlinks + workspace package -> strict resolution from the paths above.
-config.resolver.disableHierarchicalLookup = true;
+// Keep Metro's default hierarchical lookup ON so transitive/peer deps resolve through pnpm's
+// per-package symlinks in the virtual store (e.g. @expo/metro-runtime -> @expo/log-box,
+// expo -> expo-asset). The nodeModulesPaths above act as the fallback for workspace/@aquarush.
+// (Previously this was `disableHierarchicalLookup = true`, which made every non-direct dep
+// resolve only through the flat `.pnpm/node_modules` list and broke those transitive deps.)
 
 // expo-router / @react-navigation depend on query-string@^7 (CommonJS), but the flat
 // `.pnpm/node_modules` list above exposes query-string@9 (ESM-only). Bundling that ESM

@@ -20,7 +20,7 @@ export function FloatingButton({ onPress }: FloatingButtonProps) {
         { backgroundColor: theme.primary },
         pressed && styles.pressed,
       ]}>
-      <ThemedText style={styles.icon}>+</ThemedText>
+      <ThemedText style={[styles.icon, { color: theme.headerText }]}>+</ThemedText>
     </Pressable>
   );
 }
@@ -38,7 +38,6 @@ const styles = StyleSheet.create({
     ...Shadow.primaryGlow,
   },
   icon: {
-    color: '#ffffff',
     fontSize: 28,
     lineHeight: 32,
   },
