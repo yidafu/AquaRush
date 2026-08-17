@@ -2,7 +2,7 @@
 
 .order-detail-page {
   min-height: 100vh;
-  background-color: var(--theme-background-page);
+  background-color: var(--bg);
   padding-bottom: 80px;
 }
 
@@ -75,12 +75,12 @@
   font-size: 24px;
   opacity: 0.7;
   text-align: center;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
 
   .step-item.active & {
     opacity: 1;
     font-weight: 500;
-    color: var(--theme-text-primary);
+    color: var(--text-main);
   }
 }
 
@@ -121,17 +121,17 @@
 .worker-name {
   font-size: 32px;
   font-weight: 500;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
 }
 
 .worker-phone {
   font-size: 28px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
 }
 
 .delivery-location {
   font-size: 24px;
-  color: var(--theme-text-tertiary);
+  color: var(--text-weak);
   display: flex;
   align-items: center;
   gap: 4px;
@@ -171,14 +171,14 @@
 
 .item-name {
   font-size: 28px;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
   line-height: 1.4;
   margin-bottom: 4px;
 }
 
 .item-spec {
   font-size: 24px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
   margin-bottom: 4px;
 }
 
@@ -196,20 +196,20 @@
 .item-price {
   font-size: 28px;
   font-weight: 500;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
 }
 
 /* 划线目录价(有营销价时展示,AC-ORD-003-09 —— R-MKT-01/02) */
 .item-original-price {
   font-size: 24px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
   text-decoration: line-through;
   margin-left: 8px;
 }
 
 .item-quantity {
   font-size: 24px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
 }
 
 /* 订单评价展示(F-ORD-007) */
@@ -226,7 +226,7 @@
 
 .review-star {
   font-size: 32px;
-  color: #d9d9d9;
+  color: var(--text-weak);
 }
 
 .review-star.active {
@@ -235,19 +235,19 @@
 
 .review-comment {
   font-size: 26px;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
   line-height: 1.6;
 }
 
 .review-time {
   font-size: 22px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
 }
 
 .order-summary {
   margin-top: 16px;
   padding-top: 16px;
-  border-top: 1px solid #f0f0f0;
+  border-top: 1px solid var(--border);
 }
 
 .summary-item {
@@ -257,7 +257,7 @@
   padding: 8px 0;
 
   &.total {
-    border-top: 1px solid #f0f0f0;
+    border-top: 1px solid var(--border);
     margin-top: 8px;
     padding-top: 16px;
   }
@@ -265,29 +265,29 @@
 
 .summary-label {
   font-size: 28px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
 
   .total & {
     font-size: 32px;
-    color: var(--theme-text-primary);
+    color: var(--text-main);
     font-weight: 500;
   }
 }
 
 .summary-value {
   font-size: 28px;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
 
   .total & {
     font-size: 40px;
     font-weight: bold;
-    color: var(--theme-secondary);
+    color: var(--brand-primary); // 实付合计:主色加粗(§6)
   }
 
   &.total-amount {
     font-size: 40px;
     font-weight: bold;
-    color: var(--theme-secondary);
+    color: var(--brand-primary);
   }
 }
 
@@ -297,7 +297,7 @@
   justify-content: space-between;
   align-items: flex-start;
   padding: 12px 0;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border);
 
   &:last-child {
     border-bottom: none;
@@ -306,14 +306,14 @@
 
 .info-label {
   font-size: 28px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
   width: 80px;
   flex-shrink: 0;
 }
 
 .info-value {
   font-size: 28px;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
   flex: 1;
   text-align: right;
 }
@@ -333,17 +333,17 @@
 .receiver-name {
   font-size: 32px;
   font-weight: 500;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
 }
 
 .receiver-phone {
   font-size: 28px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
 }
 
 .address-detail {
   font-size: 28px;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
   line-height: 1.5;
   width: 100%;
 }
@@ -353,7 +353,7 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: white;
+  background: var(--bg-card);
   padding: 16px;
   display: flex;
   gap: 12px;
@@ -367,11 +367,13 @@
   font-weight: 500;
 
   &.primary {
-    background: linear-gradient(135deg, #ff6b35 0%, #ff8a65 100%);
+    background: var(--action); // 去支付/催单 = 消费者最高优先级 CTA(强调橙 #FF5436)
     color: white;
     border: none;
+    box-shadow: var(--shadow-btn);
 
     &:active {
+      background: #E64A30;
       opacity: 0.9;
     }
   }
@@ -381,15 +383,8 @@
   }
 }
 
-.safe-bottom {
-  height: 20px;
-}
 
 /* Taro UI 组件样式覆盖 */
-.at-card {
-  border-radius: 12px;
-  overflow: hidden;
-}
 
 .at-card__content {
   padding: 24px;
@@ -399,7 +394,7 @@
   padding: 24px 24px 0;
   font-size: 32px;
   font-weight: 600;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
 }
 
 .at-timeline {
@@ -421,19 +416,19 @@
 .at-timeline__item-title {
   font-size: 28px;
   font-weight: 500;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
   margin-bottom: 4px;
 }
 
 .at-timeline__item-subtitle {
   font-size: 24px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
   line-height: 1.4;
 }
 
 .at-timeline__item-time {
   font-size: 24px;
-  color: var(--theme-text-tertiary);
+  color: var(--text-weak);
   margin-bottom: 4px;
 }
 

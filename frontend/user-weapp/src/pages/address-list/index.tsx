@@ -129,6 +129,13 @@ const AddressList: React.FC<AddressListProps> = () => {
     setShowToast(false)
   }
 
+  const handleAddAddress = () => {
+    // 新增收货地址:无 id 进入编辑页为新增模式(F-ADR-002)
+    Taro.navigateTo({
+      url: '/pages/address-edit/index'
+    })
+  }
+
   const handleEditAddress = (addressId: string) => {
     Taro.navigateTo({
       url: `/pages/address-edit/index?id=${addressId}`
@@ -317,6 +324,23 @@ const AddressList: React.FC<AddressListProps> = () => {
         status={toastType}
         onClose={handleHideToast}
       />
+
+      {/* 底部新增收货地址主按钮 */}
+      <View className='add-address-bar'>
+        <AtButton
+          trackTarget="address-add"
+          trackAction="CLICK"
+          trackElementType="button"
+          trackElementText="新增收货地址"
+          type='primary'
+          size='normal'
+          full
+          className='add-address-button'
+          onClick={handleAddAddress}
+        >
+          <Text>新增收货地址</Text>
+        </AtButton>
+      </View>
 
       {/* 底部安全区域 */}
       <View className='safe-bottom' />

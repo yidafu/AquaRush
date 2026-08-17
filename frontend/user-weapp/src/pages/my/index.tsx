@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtToast } from 'taro-ui'
+import { AtButton, AtToast } from 'taro-ui'
 import AvatarNicknameForm from './components/AvatarNicknameForm'
 import UserSection from './components/UserSection'
 import OrderSection from './components/OrderSection'
@@ -13,7 +13,7 @@ import { connectWsPushIfLoggedIn, wsPushService } from '../../services/wsPush'
 
 // Taro UI 样式已在 app.scss 中全局引入，无需重复引入
 import './index.scss'
-// Use AuthUserInfo from auth utility
+import 'taro-ui/dist/style/components/button.scss'
 
 interface OrderStats {
   pendingPayment: number
@@ -262,18 +262,6 @@ const MyPage: React.FC = () => {
     }
   }
 
-  const handleRecharge = (): void => {
-    Taro.navigateTo({
-      url: '/pages/recharge/index'
-    })
-  }
-
-  const handlePointsMall = (): void => {
-    Taro.navigateTo({
-      url: '/pages/points-mall/index'
-    })
-  }
-
   const handleOrderNavigation = (type: string): void => {
     Taro.navigateTo({
       url: `/pages/order-list/index?tab=${type}`
@@ -310,12 +298,6 @@ const MyPage: React.FC = () => {
           showToastMessage('退出登录失败', 'error')
         }
       }
-    })
-  }
-
-  const handleShare = (): void => {
-    Taro.showShareMenu({
-      withShareTicket: true
     })
   }
 

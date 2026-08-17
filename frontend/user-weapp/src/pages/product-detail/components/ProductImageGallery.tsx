@@ -31,7 +31,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
         interval={3000}
         duration={500}
         indicatorColor='rgba(255, 255, 255, 0.5)'
-        indicatorActiveColor='#667eea'
+        indicatorActiveColor='#3A9BD9'
         circular
       >
         {images.map((image, index) => (

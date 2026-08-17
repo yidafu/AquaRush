@@ -1,6 +1,6 @@
 .delivery-tracking-page {
   min-height: 100vh;
-  background-color: var(--theme-background);
+  background-color: var(--bg);
   display: flex;
   flex-direction: column;
 
@@ -15,7 +15,7 @@
 
     .loading-text {
       font-size: 32px;
-      color: var(--theme-text-secondary);
+      color: var(--text-sub);
     }
   }
 
@@ -24,7 +24,7 @@
 
     text {
       font-size: 36px;
-      color: var(--theme-text-secondary);
+      color: var(--text-sub);
     }
   }
 }
@@ -56,7 +56,7 @@
       align-items: center;
       justify-content: center;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-      background: var(--theme-primary);
+      background: var(--brand-primary);
       border: none;
       border-radius: 50%;
     }
@@ -66,7 +66,7 @@
 .delivery-worker-card {
   margin: 32px;
   border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-card);
 
   .worker-info {
     .worker-header {
@@ -81,7 +81,7 @@
         height: 96px;
         border-radius: 50%;
         overflow: hidden;
-        background-color: var(--theme-background-secondary);
+        background-color: var(--bg);
 
         .avatar-image {
           width: 100%;
@@ -98,12 +98,12 @@
         .worker-name {
           font-size: 36px;
           font-weight: 600;
-          color: var(--theme-text-primary);
+          color: var(--text-main);
         }
 
         .worker-phone {
           font-size: 28px;
-          color: var(--theme-text-secondary);
+          color: var(--text-sub);
         }
 
         .worker-location {
@@ -111,7 +111,7 @@
           align-items: center;
           gap: 8px;
           font-size: 24px;
-          color: var(--theme-text-tertiary);
+          color: var(--text-weak);
         }
       }
 
@@ -132,13 +132,13 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background-color: var(--theme-background-secondary);
+      background-color: var(--bg);
       padding: 24px 32px;
       border-radius: 16px;
 
       .status-text {
         font-size: 28px;
-        color: var(--theme-text-secondary);
+        color: var(--text-sub);
       }
     }
   }
@@ -147,7 +147,7 @@
 .address-card {
   margin: 0 32px 32px;
   border-radius: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--shadow-card);
 
   .address-content {
     .address-header {
@@ -159,19 +159,19 @@
       .receiver-name {
         font-size: 36px;
         font-weight: 600;
-        color: var(--theme-text-primary);
+        color: var(--text-main);
       }
 
       .receiver-phone {
         font-size: 28px;
-        color: var(--theme-text-secondary);
+        color: var(--text-sub);
       }
     }
 
     .address-detail {
       font-size: 30px;
       line-height: 1.6;
-      color: var(--theme-text-secondary);
+      color: var(--text-sub);
     }
   }
 }
@@ -179,7 +179,7 @@
 .tracking-info {
   margin: 32px;
   padding: 24px;
-  background-color: var(--theme-primary);
+  background-color: var(--brand-primary);
   border-radius: 16px;
   display: flex;
   align-items: center;
@@ -198,22 +198,3 @@
   }
 }
 
-.safe-bottom {
-  height: env(safe-area-inset-bottom);
-  height: constant(safe-area-inset-bottom);
-}
-
-// 暗色主题适配
-.theme-dark {
-  .delivery-worker-card,
-  .address-card {
-    background-color: var(--theme-surface);
-    color: var(--theme-text-primary);
-  }
-
-  .delivery-worker-card {
-    .delivery-status {
-      background-color: var(--theme-background);
-    }
-  }
-}

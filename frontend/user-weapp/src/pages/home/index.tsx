@@ -1,397 +1,261 @@
-import React, { useState, useEffect } from 'react'
-import { View, Text, Image, Swiper, SwiperItem } from '@tarojs/components'
-import { AtButton, AtDivider, AtLoadMore } from 'taro-ui'
-import Taro from '@tarojs/taro'
-import {
-  useReady,
+import React, { useState, useEffect, useCallback } from 'react'
+import { View, Text, Image, Swiper, SwiperItem, ScrollView } from '@tarojs/components'
+import { AtButton } from 'taro-ui'
+import Taro, {
   useDidShow,
   usePullDownRefresh,
-  useReachBottom
+  useShareAppMessage
 } from '@tarojs/taro'
-import CustomNavBar from '../../components/CustomNavBar'
-import { authService } from '../../utils/auth'
-import { displayCents, Banner, Notice } from '@aquarush/common'
-import ProductService from '../../services/ProductService'
-import ConfigService from '../../services/ConfigService'
-import NoticeService from '../../services/NoticeService'
+import { displayCents } from '@aquarush/common'
+import HomeService, { HomeProduct, HomeData } from '../../services/HomeService'
+import { syncCartTabBadge } from '../../utils/cart'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { userActionTracker } from '../../utils/tracking'
 
 import "taro-ui/dist/style/components/button.scss"
-import "taro-ui/dist/style/components/card.scss"
-import "taro-ui/dist/style/components/grid.scss"
-import "taro-ui/dist/style/components/divider.scss"
-import "taro-ui/dist/style/components/load-more.scss"
-import "taro-ui/dist/style/components/fab.scss"
 import './index.scss'
 
-// Import the ExtendedProduct type from ProductService
-interface ExtendedProduct {
-  id: string
-  name: string
-  subtitle?: string
-  price: number // Converted to number for displayCents compatibility
-  // 当前用户有效成交单价(分,熟客价优先 —— R-MKT-01)
-  effectivePrice?: number
-  // 是否命中熟客价(分组价)
-  hasGroupPrice?: boolean
-  originalPrice?: number
-  depositPrice?: number
-  coverImageUrl: string
-  image: string // Mapped from coverImageUrl for homepage compatibility
-  description: string // Additional field for homepage compatibility
-  imageGallery?: any[]
-  specification: string
-  waterSource?: string
-  mineralContent?: string
-  stock: number
-  salesVolume: number
-  status: 'ONLINE' | 'OFFLINE' | 'OUT_OF_STOCK' | 'ACTIVE'
-  sortOrder: number
-  tags?: any[]
-  detailContent?: string
-  certificateImages?: any[]
-  createdAt: string
-  updatedAt: string
-}
-
+/**
+ * 首页(user-weapp §1 首屏详设)
+ * 首屏(100vh 内)只解决 3 件事:进入 → 看到 → 点击购买,路径最短。
+ * 布局:顶部地址栏 → 品牌水站 Banner → 活动轮播(有配置时) →
+ *      配送时效卡 → 最常买(横滑) → 更多商品(≤3)
+ * 数据:单次 GraphQL 请求聚合(规则 #10,HomeService.loadHomeData)
+ */
 const HomePage: React.FC = () => {
   usePageViewTracking()
 
-  const productService = ProductService.getInstance()
-
-  const [products, setProducts] = useState<ExtendedProduct[]>([])
   const [loading, setLoading] = useState<boolean>(true)
-  const [loadingMore, setLoadingMore] = useState<boolean>(false)
-  const [userInfo, setUserInfo] = useState<any>(null)
-  const [currentSlide, setCurrentSlide] = useState<number>(0)
-  const [currentPage, setCurrentPage] = useState<number>(0)
-  const [hasMore, setHasMore] = useState<boolean>(true)
-  const [totalCount, setTotalCount] = useState<number>(0)
   const [error, setError] = useState<string | undefined>(undefined)
-  const [banners, setBanners] = useState<Banner[]>([])
-  const [notices, setNotices] = useState<Notice[]>([])
+  const [hotProducts, setHotProducts] = useState<HomeProduct[]>([])
+  const [moreProducts, setMoreProducts] = useState<HomeProduct[]>([])
+  const [banners, setBanners] = useState<HomeData['banners']>([])
+  const [notices, setNotices] = useState<HomeData['notices']>([])
+  const [defaultAddress, setDefaultAddress] = useState<HomeData['defaultAddress']>(null)
+  const [businessHours, setBusinessHours] = useState<string>('07:00-22:00')
 
-  // 组件挂载时执行
-  useEffect(() => {
-    loadUserInfo()
-    loadProducts()
-    loadBanners()
-    loadNotices()
+  // 促销价展示(R-MKT-02 单价链):命中且低于目录价时展示促销价 + tint 标签
+  const getDisplayPrice = (p: HomeProduct): { price: number; tag: string } => {
+    const source = p.priceSource
+    const hasDiscounted =
+      (source === 'GROUP_PRICE' || source === 'FLASH_SALE_PRICE' || source === 'NEWCOMER_PRICE') &&
+      p.effectivePriceCents != null &&
+      p.effectivePriceCents < p.priceCents
+    const tag =
+      source === 'FLASH_SALE_PRICE' ? '特价' : source === 'NEWCOMER_PRICE' ? '新人价' : source === 'GROUP_PRICE' ? '熟客价' : ''
+    return { price: hasDiscounted && p.effectivePriceCents != null ? p.effectivePriceCents : p.priceCents, tag }
+  }
+
+  /**
+   * 加载首页数据(单次 GraphQL 请求,规则 #10)
+   */
+  const loadHomeData = useCallback(async () => {
+    try {
+      setLoading(true)
+      setError(undefined)
+      const result = await HomeService.loadHomeData(4, 3)
+      if (result.success && result.data) {
+        const d = result.data
+        setHotProducts(d.hotProducts)
+        setMoreProducts(d.moreProducts)
+        setBanners(d.banners)
+        setNotices(d.notices)
+        setDefaultAddress(d.defaultAddress)
+        setBusinessHours(d.businessHours)
+      } else {
+        throw new Error(result.error?.message || '加载失败')
+      }
+    } catch (e) {
+      console.error('Load home data error:', e)
+      setError(e instanceof Error ? e.message : '加载失败')
+      Taro.showToast({ title: '加载失败', icon: 'none' })
+    } finally {
+      setLoading(false)
+      Taro.stopPullDownRefresh()
+    }
   }, [])
 
-  // 页面准备就绪时执行
-  useReady(() => {
-    console.log('Home page ready')
-  })
+  useEffect(() => {
+    // tabBar 角标同步(不触发数据请求)
+    syncCartTabBadge()
+  }, [])
 
-  // 页面显示时执行
+  // 页面显示时加载首页数据(首次显示 + 每次回前台刷新;运营配置停用/到期即时生效,R-OPS-01)
   useDidShow(() => {
-    // 页面显示时刷新用户信息、产品数据与运营配置(停用/到期即时生效,R-OPS-01)
-    loadUserInfo()
-    refreshProducts()
-    loadBanners()
-    loadNotices()
+    loadHomeData()
   })
 
   // 下拉刷新
   usePullDownRefresh(async () => {
-    await refreshProducts()
+    await loadHomeData()
   })
 
-  // 滚动到底部
-  useReachBottom(() => {
-    loadMoreProducts()
-  })
+  // 分享
+  useShareAppMessage(() => ({
+    title: '好喝山泉 · 桶装水配送',
+    path: '/pages/home/index'
+  }))
 
-  /**
-   * 加载用户信息
-   */
-  const loadUserInfo = async () => {
-    try {
-      // 检查用户是否已登录，如果已登录则获取用户信息
-      if (authService.isAuthenticated()) {
-        const userInfo = authService.getUserInfo()
-        setUserInfo(userInfo)
-      } else {
-        // 如果用户未登录，设置为null，组件会根据状态显示不同的内容
-        setUserInfo(null)
-      }
-    } catch (error) {
-      console.error('获取用户信息失败:', error)
-      setUserInfo(null)
-    }
+  const addressText = useCallback(() => {
+    if (!defaultAddress) return '请选择收货地址'
+    return `${defaultAddress.city}${defaultAddress.district}${defaultAddress.detailAddress}`
+  }, [defaultAddress])
+
+  const handleAddressClick = () => {
+    Taro.navigateTo({ url: '/pages/address-list/index' })
   }
 
-  /**
-   * 加载产品列表（首次加载）
-   */
-  const loadProducts = async () => {
-    try {
-      setLoading(true)
-      setError(undefined)
+  const handleSearchClick = () => {
+    // 埋点:首页搜索入口(SEARCH)
+    userActionTracker.track('SEARCH', 'home-search-entry', {
+      elementType: 'icon',
+      elementText: '搜索'
+    })
+    Taro.showToast({ title: '搜索功能开发中', icon: 'none' })
+  }
 
-      const result = await productService.getActiveProducts({
-        page: 0,
-        size: 20,
-        sortBy: 'createdAt',
-        sortDirection: 'desc'
-      })
-
-      if (result.success && result.data) {
-        const { products, pagination } = result.data
-
-        // Products are already transformed in ProductService with image and description fields
-        setProducts(products)
-        setCurrentPage(pagination.page)
-        setHasMore(!pagination.last)
-        setTotalCount(pagination.totalElements)
-        setLoading(false)
-      } else {
-        throw new Error(result.error?.message || '获取产品列表失败')
-      }
-    } catch (error) {
-      console.error('Load products error:', error)
-      setLoading(false)
-      setError(error instanceof Error ? error.message : '加载失败')
-
-      Taro.showToast({
-        title: '加载失败',
-        icon: 'none'
-      })
-    }
+  const handleProductClick = (product: HomeProduct) => {
+    Taro.navigateTo({ url: `/pages/product-detail/index?id=${product.id}` })
   }
 
   /**
-   * 刷新产品列表（下拉刷新）
+   * 更多商品「更多」入口 → 全部商品列表页(排序/搜索/分页)
    */
-  const refreshProducts = async () => {
-    try {
-      setLoading(true)
-      setError(undefined)
-
-      const result = await productService.getActiveProducts({
-        page: 0,
-        size: 20,
-        sortBy: 'createdAt',
-        sortDirection: 'desc'
-      })
-
-      if (result.success && result.data) {
-        const { products, pagination } = result.data
-
-        // Products are already transformed in ProductService with image and description fields
-        setProducts(products)
-        setCurrentPage(pagination.page)
-        setHasMore(!pagination.last)
-        setTotalCount(pagination.totalElements)
-        setLoading(false)
-        setError(undefined)
-      } else {
-        throw new Error(result.error?.message || '刷新产品列表失败')
-      }
-    } catch (error) {
-      console.error('Refresh products error:', error)
-      setLoading(false)
-      setError(error instanceof Error ? error.message : '刷新失败')
-
-      Taro.showToast({
-        title: '刷新失败',
-        icon: 'none'
-      })
-    } finally {
-      Taro.stopPullDownRefresh()
-    }
+  const handleMoreClick = () => {
+    userActionTracker.track('CLICK', 'home-more-entry', {
+      elementType: 'link',
+      elementText: '更多',
+      properties: { target: '/pages/product-list/index' }
+    })
+    Taro.navigateTo({ url: '/pages/product-list/index' })
   }
 
   /**
-   * 加载更多产品
+   * 立即订水(最常买 CTA,强调橙 #FF5436):
+   * 跳商品详情走最短购买路径(详情页 立即购买 → 确认订单)
    */
-  const loadMoreProducts = async () => {
-    try {
-      if (loadingMore || !hasMore) {
-        return
-      }
-
-      setLoadingMore(true)
-
-      const nextPage = currentPage + 1
-      const result = await productService.loadMoreProducts(nextPage, {
-        size: 20,
-        sortBy: 'createdAt',
-        sortDirection: 'desc'
-      })
-
-      if (result.success && result.data) {
-        const { products, pagination } = result.data
-
-        // Transform products to match homepage expected format
-        const transformedProducts = products.map(product => ({
-          ...product,
-          image: product.coverImageUrl,
-          description: product.subtitle || product.specification || ''
-        }))
-
-        setProducts(prevProducts => [...prevProducts, ...transformedProducts])
-        setCurrentPage(pagination.page)
-        setHasMore(!pagination.last)
-        setLoadingMore(false)
-      } else {
-        throw new Error(result.error?.message || '加载更多产品失败')
-      }
-    } catch (error) {
-      console.error('Load more products error:', error)
-      setLoadingMore(false)
-
-      Taro.showToast({
-        title: '加载失败',
-        icon: 'none'
-      })
-    }
-  }
-
-  // 加载轮播图配置(F-OPS-001:后台运营配置动态读取,时间窗过期/停用由服务端过滤)
-  const loadBanners = async () => {
-    const result = await ConfigService.getActiveBanners()
-    if (result.success) {
-      setBanners(result.data)
-    } else {
-      console.error('Load banners failed:', result.error.message)
-      // 加载失败保持空列表,轮播位隐藏(空态)
-      setBanners([])
-    }
-  }
-
-  // 加载公告配置(F-OPS-002:已发布且在时间窗内、置顶优先/发布时间倒序由服务端过滤;无公告时隐藏公告栏)
-  const loadNotices = async () => {
-    const result = await NoticeService.getActiveNotices()
-    if (result.success) {
-      setNotices(result.data)
-    } else {
-      console.error('Load notices failed:', result.error.message)
-      setNotices([])
-    }
-  }
-
-  const handleNoticeClick = (notice: Notice) => {
-    Taro.navigateTo({
-      url: `/pages/notice-detail/index?id=${notice.id}`
+  const handleQuickOrder = (product: HomeProduct) => {
+    userActionTracker.track('CLICK', 'home-quick-order', {
+      elementType: 'button',
+      elementText: '立即订水',
+      properties: { productId: product.id }
     })
+    handleProductClick(product)
   }
 
-  // 轮播图切换
-  const handleSwiperChange = (e: any) => {
-    setCurrentSlide(e.detail.current)
-  }
-
-  const handleProductClick = (product: ExtendedProduct) => {
-    Taro.navigateTo({
-      url: `/pages/product-detail/index?id=${product.id}`
-    })
-  }
-
-  const handleMenuClick = (item: any) => {
-    const { url } = item
-    if (url) {
-      Taro.navigateTo({ url })
+  const handleBannerClick = (linkType: string, linkTarget: string) => {
+    if (linkType === 'PRODUCT') {
+      Taro.navigateTo({ url: `/pages/product-detail/index?id=${linkTarget}` })
+    } else if (linkTarget) {
+      Taro.navigateTo({ url: linkTarget })
     }
   }
 
-  const handleSearch = (query: string) => {
-    console.log('Search query:', query)
-    // 埋点:首页搜索(SEARCH)
-    if (query.trim()) {
-      userActionTracker.track('SEARCH', 'home-search', {
-        elementType: 'input',
-        elementText: '搜索框',
-        properties: { searchQuery: query.trim() }
-      })
-    }
-    // TODO: Implement search functionality
-    // You can filter products based on the query
+  const handleNoticeClick = (id: string) => {
+    Taro.navigateTo({ url: `/pages/notice-detail/index?id=${id}` })
   }
 
-  const handleProfileClick = () => {
-    // 「我的」是 tabBar 页,必须用 switchTab 切换
-    Taro.switchTab({
-      url: '/pages/my/index'
-    })
-  }
-
-  const handleCategoryToggle = () => {
-    Taro.showActionSheet({
-      itemList: ['全部商品', '矿泉水', '纯净水', '饮料'],
-      success: (res) => {
-        console.log('Selected category:', res.tapIndex)
-        // TODO: Implement category filtering
-      }
-    })
-  }
-
-  // 轮播图数据:后台运营配置动态读取(F-OPS-001,G18 硬编码替换)
-  const carouselData = banners
-
-  const handleBannerClick = (item: Banner) => {
-    if (item.linkType === 'PRODUCT') {
-      Taro.navigateTo({
-        url: `/pages/product-detail/index?id=${item.linkTarget}`
-      })
-    } else {
-      Taro.navigateTo({
-        url: item.linkTarget
-      })
-    }
+  // 商品卡(最常买/更多商品共用)
+  const renderProductCard = (product: HomeProduct, action?: boolean) => {
+    const { price, tag } = getDisplayPrice(product)
+    return (
+      <View
+        key={product.id}
+        className={action ? 'hot-card' : 'more-card'}
+        onClick={() => handleProductClick(product)}
+      >
+        <View className='product-img-wrap'>
+          <Image
+            src={product.coverImageUrl}
+            mode='aspectFill'
+            className='product-img'
+            lazyLoad
+          />
+        </View>
+        <View className='product-info'>
+          <Text className='product-name' numberOfLines={1}>{product.name}</Text>
+          <Text className='product-spec' numberOfLines={1}>{product.subtitle || product.specification}</Text>
+          <View className='product-bottom'>
+            <View className='product-price-wrap'>
+              <Text className='product-price'>{displayCents(price)}</Text>
+              {tag && <Text className='product-price-tag'>{tag}</Text>}
+            </View>
+            {action && (
+              <AtButton
+                size='small'
+                className='quick-order-btn'
+                onClick={(e: any) => {
+                  e.stopPropagation?.()
+                  handleQuickOrder(product)
+                }}
+              >
+                立即订水
+              </AtButton>
+            )}
+          </View>
+        </View>
+      </View>
+    )
   }
 
   return (
     <View className='home-page'>
-      {/* 顶部公告栏(无生效公告时隐藏;展示第 1 条=置顶优先/发布时间倒序,AC-OPS-002-02) */}
+      {/* 顶部公告栏(浅蓝 tint 底,仅生效公告时显示,F-OPS-002) */}
       {notices.length > 0 && (
-        <View className='notice-bar' onClick={() => handleNoticeClick(notices[0])}>
+        <View className='notice-bar' onClick={() => handleNoticeClick(notices[0].id)}>
           <Text className='notice-bar-label'>公告</Text>
-          <Text className='notice-bar-title' numberOfLines={1}>
-            {notices[0].title}
-          </Text>
+          <Text className='notice-bar-title' numberOfLines={1}>{notices[0].title}</Text>
         </View>
       )}
 
-      {/* 顶部轮播图(未配置/无生效条目时隐藏) */}
-      {carouselData.length > 0 && (
+      {/* ① 顶部地址栏(44px 白底固定顶部) */}
+      <View className='address-bar'>
+        <View className='address-bar-left' onClick={handleAddressClick}>
+          <Text className='address-location-icon'>📍</Text>
+          <Text className='address-text' numberOfLines={1}>{addressText()}</Text>
+          <Text className='address-arrow'>▾</Text>
+        </View>
+        <View className='address-bar-right' onClick={handleSearchClick}>
+          <Text className='search-icon'>🔍</Text>
+        </View>
+      </View>
+
+      {/* ② 品牌水站 Banner(清水蓝渐变,信任条) */}
+      <View className='brand-banner theme-gradient'>
+        <View className='brand-banner-text'>
+          <Text className='brand-banner-title'>最快 28 分钟送达</Text>
+          <Text className='brand-banner-subtitle'>正品保障 · 实拍认证 · 假一赔十</Text>
+        </View>
+      </View>
+
+      {/* ③ 活动轮播(卡片化,无生效条目隐藏) */}
+      {banners.length > 0 && (
         <View className='carousel-section'>
           <Swiper
             className='carousel-swiper'
-            indicatorColor='rgba(255, 255, 255, 0.4)'
-            indicatorActiveColor='white'
+            indicatorColor='rgba(58, 155, 217, 0.25)'
+            indicatorActiveColor='#3A9BD9'
             indicatorDots
             circular
             autoplay
             interval={3000}
             duration={500}
-            onChange={handleSwiperChange}
+            onChange={() => undefined}
           >
-            {carouselData.map((item) => (
-              <SwiperItem key={item.id} className='carousel-swiper-item' onClick={() => handleBannerClick(item)}>
-                <View className='carousel-slide'>
-                  <View className='carousel-background'>
-                    <Image
-                      src={item.imageUrl}
-                      className='carousel-bg-image'
-                      mode='aspectFill'
-                    />
-                    <View className='carousel-overlay' />
-                  </View>
-                  <View className='carousel-content'>
-                    <Text className='carousel-title'>{item.title}</Text>
-                    <Text className='carousel-subtitle'>{item.subtitle}</Text>
-                    <AtButton
-                      type='primary'
-                      size='small'
-                      onClick={() => handleBannerClick(item)}
-                      className='carousel-button'
-                    >
-                      查看详情
-                    </AtButton>
-                  </View>
+            {banners.map((item) => (
+              <SwiperItem
+                key={item.id}
+                className='carousel-swiper-item'
+                onClick={() => handleBannerClick(item.linkType, item.linkTarget)}
+              >
+                <View className='carousel-card'>
+                  <Image src={item.imageUrl} mode='aspectFill' className='carousel-img' />
+                  {(item.title || item.subtitle) && (
+                    <View className='carousel-mask'>
+                      <Text className='carousel-title'>{item.title}</Text>
+                      {item.subtitle && <Text className='carousel-subtitle'>{item.subtitle}</Text>}
+                    </View>
+                  )}
                 </View>
               </SwiperItem>
             ))}
@@ -399,94 +263,56 @@ const HomePage: React.FC = () => {
         </View>
       )}
 
-      <AtDivider content='推荐产品' />
+      {/* ④ 配送时效卡(浅蓝左侧色条) */}
+      <View className='delivery-time-card'>
+        <View className='delivery-time-bar' />
+        <View className='delivery-time-content'>
+          <Text className='delivery-time-main'>预计 28 分钟送达</Text>
+          <Text className='delivery-time-sub'>营业中 · 每日 {businessHours}</Text>
+        </View>
+      </View>
 
-      {/* 产品网格 */}
-      <View className='product-section'>
+      {/* ⑤ 最常买 · 快捷购买区(横滑卡片) */}
+      <View className='section-block'>
+        <View className='section-header'>
+          <Text className='section-title'>🔥 最常买</Text>
+        </View>
         {loading ? (
-          <View className='loading-container'>
-            <Text>加载中...</Text>
+          <View className='loading-box'>
+            <Text className='loading-text'>加载中...</Text>
           </View>
         ) : error ? (
-          <View className='error-container'>
-            <Text>{error}</Text>
-            <AtButton
-              type='primary'
-              size='small'
-              onClick={refreshProducts}
-              className='retry-button'
-            >
-              重试
-            </AtButton>
+          <View className='error-box'>
+            <Text className='error-text'>{error}</Text>
+            <AtButton size='small' type='primary' onClick={loadHomeData} className='retry-btn'>重试</AtButton>
           </View>
-        ) : products.length === 0 ? (
-          <View className='empty-container'>
-            <Text>暂无产品</Text>
+        ) : hotProducts.length === 0 ? (
+          <View className='empty-box'>
+            <Text className='empty-text'>暂无商品</Text>
           </View>
         ) : (
-          <>
-            <View className='product-grid'>
-              {products.map((product) => {
-                // 促销价展示(R-MKT-02 单价链):特价/熟客价/新人价 命中且有效价低于目录价时优先展示
-                const source = product.priceSource
-                const hasDiscountedPrice =
-                  (source === 'GROUP_PRICE' || source === 'FLASH_SALE_PRICE' || source === 'NEWCOMER_PRICE') &&
-                  product.effectivePrice != null &&
-                  product.effectivePrice < product.price
-                const displayPrice = hasDiscountedPrice ? product.effectivePrice : product.price
-                const priceTag =
-                  source === 'FLASH_SALE_PRICE' ? '特价' : source === 'NEWCOMER_PRICE' ? '新人价' : source === 'GROUP_PRICE' ? '熟客价' : ''
-
-                return (
-                  <View
-                    key={product.id}
-                    className='product-card'
-                    onClick={() => handleProductClick(product)}
-                  >
-                    <View className='product-image-container'>
-                      <Image
-                        src={product.image}
-                        mode='aspectFill'
-                        className='product-image'
-                      />
-                    </View>
-                    <View className='product-content'>
-                      <Text className='product-name'>{product.name}</Text>
-                      <Text className='product-desc' numberOfLines={2}>{product.description}</Text>
-                      <View className='product-bottom'>
-                        <View className='product-price-wrap'>
-                          <Text className='product-price'>{displayCents(displayPrice)}</Text>
-                          {hasDiscountedPrice && priceTag && (
-                            <Text className='product-group-tag'>{priceTag}</Text>
-                          )}
-                        </View>
-                        <Text className='product-stock'>库存{product.stock}</Text>
-                      </View>
-                    </View>
-                  </View>
-                )
-              })}
+          <ScrollView scrollX className='hot-scroll' showScrollbar={false}>
+            <View className='hot-list'>
+              {hotProducts.map((p) => renderProductCard(p, true))}
             </View>
-
-            {/* 加载更多组件 */}
-            {hasMore && (
-              <View className='load-more-container'>
-                <AtLoadMore
-                  status={loadingMore ? 'loading' : 'more'}
-                  onClick={loadMoreProducts}
-                />
-              </View>
-            )}
-
-            {/* 无更多数据提示 */}
-            {!hasMore && products.length > 0 && (
-              <View className='no-more-container'>
-                <Text>没有更多产品了</Text>
-              </View>
-            )}
-          </>
+          </ScrollView>
         )}
       </View>
+
+      {/* ⑥ 更多商品(仅 2-3 个 SKU,不做长信息流;「更多」入口 → 全部商品列表页) */}
+      {(hotProducts.length > 0 || moreProducts.length > 0) && (
+        <View className='section-block'>
+          <View className='section-header'>
+            <Text className='section-title'>📦 更多商品</Text>
+            <Text className='section-extra' onClick={handleMoreClick}>更多 ›</Text>
+          </View>
+          {moreProducts.length > 0 && (
+            <View className='more-list'>
+              {moreProducts.map((p) => renderProductCard(p, false))}
+            </View>
+          )}
+        </View>
+      )}
 
       {/* 底部安全区域 */}
       <View className='safe-bottom' />

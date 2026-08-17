@@ -10,6 +10,7 @@ import type { PageTrackConfig } from '@aquarush/common/tracking'
 export const PAGE_TRACK_CONFIG: Record<string, PageTrackConfig> = {
   '/pages/home/index': { title: '首页', props: { tab: 'home' } },
   '/pages/product-detail/index': { title: '商品详情' },
+  '/pages/product-list/index': { title: '全部商品' },
   '/pages/order-confirm/index': { title: '订单确认' },
   '/pages/address-list/index': { title: '地址列表' },
   '/pages/address-edit/index': { title: '地址编辑' },

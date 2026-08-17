@@ -39,14 +39,14 @@ describe('getFeedbackStatusLabel', () => {
 })
 
 describe('getFeedbackStatusColor', () => {
-  it('状态色与后台 Tag 一致:待处理橙/处理中蓝/已处理绿', () => {
-    expect(getFeedbackStatusColor(FeedbackStatus.PENDING)).toBe('#fa8c16')
-    expect(getFeedbackStatusColor(FeedbackStatus.PROCESSING)).toBe('#1890ff')
-    expect(getFeedbackStatusColor(FeedbackStatus.RESOLVED)).toBe('#52c41a')
+  it('状态色与后台 Tag 一致:待处理橙/处理中蓝/已处理绿(设计 token)', () => {
+    expect(getFeedbackStatusColor(FeedbackStatus.PENDING)).toBe('var(--status-pending-pay-text)')
+    expect(getFeedbackStatusColor(FeedbackStatus.PROCESSING)).toBe('var(--status-dispatch-text)')
+    expect(getFeedbackStatusColor(FeedbackStatus.RESOLVED)).toBe('var(--status-delivering-text)')
   })
 
-  it('未知状态回退灰色', () => {
+  it('未知状态回退弱色', () => {
     // @ts-expect-error 非法枚举值
-    expect(getFeedbackStatusColor('NOPE')).toBe('#999999')
+    expect(getFeedbackStatusColor('NOPE')).toBe('var(--text-weak)')
   })
 })

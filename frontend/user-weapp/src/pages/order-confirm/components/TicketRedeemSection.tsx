@@ -35,8 +35,8 @@ const TicketRedeemSection: React.FC<TicketRedeemSectionProps> = ({
 
   return (
     <View className='section ticket-redeem-section'>
-      <View className='section-header'>
-        <Text className='section-title'>水票抵扣</Text>
+      <View className='section-label-row'>
+        <Text className='section-label'>水票抵扣</Text>
       </View>
       <View className='ticket-redeem-content'>
         <View className='ticket-redeem-info'>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, Picker } from '@tarojs/components'
 import { AtButton, AtForm, AtInput, AtSwitch, AtToast, AtMessage, AtList, AtListItem, AtActivityIndicator } from 'taro-ui'
 import Taro from '@tarojs/taro'
@@ -43,6 +43,12 @@ const AddressEdit: React.FC = () => {
   const [showToast, setShowToast] = useState(false)
   const [toastText, setToastText] = useState('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
+
+  // 是否为「新增地址」模式(无 id 且非微信导入):路由参数同步可得,用于
+  // 地区级联加载,避免依赖异步 setState 的 isEdit 造成竞态
+  const isCreateModeRef = useRef(false)
+  // 地区级联加载步骤:0 未开始 / 1 城市已请求 / 2 区县已请求 / 3 完成
+  const regionCascadeStepRef = useRef(0)
 
   // Initialize services
   const addressService = AddressService.getInstance()
@@ -131,7 +137,42 @@ const AddressEdit: React.FC = () => {
         districtCode: selectedCodes.districtCode
       }
     })
+
+    // 地区变化时清除对应校验错误
+    setErrors(prev => {
+      if (!prev.province && !prev.city && !prev.district) return prev
+      return { ...prev, province: '', city: '', district: '' }
+    })
   }, [regionSelector.selectedProvince?.code, regionSelector.selectedCity?.code, regionSelector.selectedDistrict?.code])
+
+  // 新增地址:省份自动选中后级联加载城市/区县(F-ADR-002)。
+  // useRegionSelector 首次仅自动加载省份并选中第一项;城市/区县需滑动
+  // 选择器列才加载。直接打开选择器点「确定」时城市/区县为空 → 表单校验
+  // 静默失败(无请求、无提示)。此处为新增流程自动补齐级联数据,使选择器
+  // 首次打开即有完整数据且默认选中,保存可直接提交。
+  useEffect(() => {
+    if (isCreateModeRef.current !== true) return
+    const r = regionSelector
+    const step = regionCascadeStepRef.current
+
+    if (step === 0 && r.selectedProvince && r.cities.length === 0) {
+      // 第一步:为自动选中的首个省份加载城市
+      regionCascadeStepRef.current = 1
+      r.handleColumnChange({ detail: { column: 0, value: r.selectedIndex.province } })
+    } else if (step === 1 && r.selectedCity && r.districts.length === 0) {
+      // 第二步:为自动选中的首个城市加载区县
+      regionCascadeStepRef.current = 2
+      r.handleColumnChange({ detail: { column: 1, value: r.selectedIndex.city } })
+    } else if (step === 1 || step === 2) {
+      // 城市/区县已就绪(或该省份/城市无下级数据),级联完成
+      regionCascadeStepRef.current = 3
+    }
+  }, [
+    regionSelector.selectedProvince?.code,
+    regionSelector.selectedCity?.code,
+    regionSelector.cities.length,
+    regionSelector.districts.length
+  ])
 
   const loadAddressDetail = useCallback(async (addressId: string) => {
     try {
@@ -202,7 +243,7 @@ const AddressEdit: React.FC = () => {
     }
   }, [])
 
-  const validateForm = useCallback((): boolean => {
+  const validateForm = useCallback((): { valid: boolean; firstError?: string } => {
     const newErrors: Partial<Record<keyof AddressFormData, string>> = {}
 
     // 收货人姓名验证
@@ -250,7 +291,8 @@ const AddressEdit: React.FC = () => {
 
 
     setErrors(newErrors as Record<keyof AddressFormData, string>)
-    return Object.keys(newErrors).length === 0
+    const firstError = (Object.values(newErrors) as string[]).find((msg) => !!msg)
+    return { valid: Object.keys(newErrors).length === 0, firstError }
   }, [formData])
 
   // Handle map selection results
@@ -277,7 +319,11 @@ const AddressEdit: React.FC = () => {
   }, [showToastMessage])
 
   const handleSubmit = useCallback(async () => {
-    if (!validateForm()) {
+    const { valid, firstError } = validateForm()
+    if (!valid) {
+      // 校验失败:toast 提示首个错误,避免「点击保存无任何反应」的静默失败
+      // (此前地区未选中/错误不可见,导致点击只上报 track、不发地址请求)
+      showToastMessage(firstError || '请完善地址信息', 'error')
       return
     }
 
@@ -357,6 +403,10 @@ const AddressEdit: React.FC = () => {
     const instance = Taro.getCurrentInstance()
     const { id, fromWechat } = instance.router?.params || {}
 
+    // 新增地址模式(无 id 且非微信导入)才级联加载地区;编辑/微信导入跳过,
+    // 避免覆盖编辑回显或微信预填的省市区
+    isCreateModeRef.current = !id && fromWechat !== 'true'
+
     if (id) {
       setIsEdit(true)
       setAddressId(id)
@@ -385,7 +435,9 @@ const AddressEdit: React.FC = () => {
           placeholder='请输入收货人姓名'
           value={formData.receiverName}
           onChange={(value) => handleInputChange('receiverName', value)}
+          error={!!errors.receiverName}
         />
+        {errors.receiverName && <Text className='input-hint error-text'>{errors.receiverName}</Text>}
 
         {/* 手机号 */}
         <AtInput
@@ -397,6 +449,7 @@ const AddressEdit: React.FC = () => {
           onChange={(value) => handleInputChange('phone', value)}
           error={!!errors.phone}
         />
+        {errors.phone && <Text className='input-hint error-text'>{errors.phone}</Text>}
 
         {/* 地区选择 */}
         {regionSelector.provinces.length > 0 ? (
@@ -433,6 +486,9 @@ const AddressEdit: React.FC = () => {
             />
           </AtList>
         )}
+        {(errors.province || errors.city || errors.district) && (
+          <Text className='input-hint error-text'>{errors.province || errors.city || errors.district}</Text>
+        )}
 
         {/* Loading indicator for regions */}
         {(regionSelector.loading.provinces || regionSelector.loading.cities || regionSelector.loading.districts) && (
@@ -450,8 +506,13 @@ const AddressEdit: React.FC = () => {
           value={formData.detailAddress}
           onChange={(value) => handleInputChange('detailAddress', value)}
           maxlength={100}
+          error={!!errors.detailAddress}
         />
-        <Text className='input-hint'>请输入详细的收货地址，不少于5个字符</Text>
+        {errors.detailAddress ? (
+          <Text className='input-hint error-text'>{errors.detailAddress}</Text>
+        ) : (
+          <Text className='input-hint'>请输入详细的收货地址，不少于5个字符</Text>
+        )}
 
         {/* 楼层(配送费判定用:超过免费楼层加收运费) */}
         <AtInput

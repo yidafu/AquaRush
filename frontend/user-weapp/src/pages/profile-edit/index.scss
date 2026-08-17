@@ -2,7 +2,7 @@
 
 .profile-edit-page {
   min-height: 100vh;
-  background-color: var(--theme-background-page, #f5f5f5);
+  background-color: var(--bg);
   padding-bottom: constant(safe-area-inset-bottom);
   padding-bottom: env(safe-area-inset-bottom);
 }
@@ -12,7 +12,7 @@
   justify-content: center;
   align-items: center;
   height: 50vh;
-  color: var(--theme-text-secondary, #666);
+  color: var(--text-sub);
 }
 
 // 页面头部
@@ -21,8 +21,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 16px 20px;
-  background-color: var(--theme-background-primary, #ffffff);
-  border-bottom: 1px solid var(--theme-border-light, #f0f0f0);
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border);
 
   .header-left,
   .header-right {
@@ -32,8 +32,8 @@
 
   .header-left {
     .cancel-btn {
-      font-size: 16px;
-      color: var(--theme-text-secondary, #666);
+      font-size: 26px;
+      color: var(--text-sub);
 
       &:active {
         opacity: 0.6;
@@ -46,9 +46,9 @@
     text-align: center;
 
     .page-title {
-      font-size: 18px;
+      font-size: 32px;
       font-weight: 600;
-      color: var(--theme-text-primary, #333);
+      color: var(--text-main);
     }
   }
 
@@ -56,12 +56,12 @@
     text-align: right;
 
     .save-btn {
-      font-size: 16px;
-      color: var(--theme-text-secondary, #999);
+      font-size: 26px;
+      color: var(--text-sub);
       font-weight: 500;
 
       &.active {
-        color: var(--theme-primary, #00A8CC);
+        color: var(--brand-primary);
 
         &:active {
           opacity: 0.6;
@@ -69,7 +69,7 @@
       }
 
       &.disabled {
-        color: var(--theme-text-disabled, #ccc);
+        color: var(--text-weak);
         pointer-events: none;
       }
     }
@@ -82,15 +82,15 @@
 }
 
 .form-section {
-  background-color: var(--theme-background-primary, #ffffff);
+  background-color: var(--bg-card);
   padding: 20px 20px 10px;
   margin-bottom: 1px;
 
   .section-title {
     display: block;
-    font-size: 16px;
+    font-size: 32px;
     font-weight: 600;
-    color: var(--theme-text-primary, #333);
+    color: var(--text-main);
     margin-bottom: 16px;
   }
 }
@@ -116,20 +116,20 @@
     justify-content: space-between;
     align-items: center;
     padding: 12px 0;
-    border-bottom: 1px solid var(--theme-border-light, #f5f5f5);
+    border-bottom: 1px solid var(--border);
 
     &:last-child {
       border-bottom: none;
     }
 
     .field-label {
-      font-size: 14px;
-      color: var(--theme-text-secondary, #666);
+      font-size: 26px;
+      color: var(--text-sub);
     }
 
     .field-value {
-      font-size: 14px;
-      color: var(--theme-text-primary, #333);
+      font-size: 26px;
+      color: var(--text-main);
       font-weight: 500;
     }
   }
@@ -141,21 +141,17 @@
   padding: 0 5px;
 
   .error-text {
-    font-size: 12px;
-    color: var(--theme-error, #ff6b35);
+    font-size: 22px;
+    color: var(--error);
     line-height: 1.4;
   }
 }
 
 // 安全底部区域
-.safe-bottom {
-  height: constant(safe-area-inset-bottom);
-  height: env(safe-area-inset-bottom);
-}
 
 
 .at-divider {
-  background-color: var(--theme-background-page, #f5f5f5);
+  background-color: var(--bg);
   color: transparent;
   height: 8px;
   margin: 0;
@@ -190,15 +186,15 @@
   }
 
   .avatar-preview {
-    border: 3px solid var(--theme-primary-light, #66E0FF);
-    box-shadow: 0 4px 12px rgba(0, 168, 204, 0.2);
+    border: 3px solid var(--brand-primary-light);
+    box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.2);
   }
 
   .avatar-placeholder {
-    background-color: var(--theme-background-secondary, #f8f8f8);
-    border: 2px dashed var(--theme-border-primary, #e0e0e0);
-    color: var(--theme-text-secondary, #999);
-    font-size: 14px;
+    background-color: var(--bg);
+    border: 2px dashed var(--border);
+    color: var(--text-sub);
+    font-size: 26px;
   }
 
   .uploading-overlay {
@@ -214,8 +210,8 @@
     align-items: center;
 
     .uploading-text {
-      color: var(--theme-background-primary, #ffffff);
-      font-size: 12px;
+      color: var(--bg-card);
+      font-size: 22px;
     }
   }
 
@@ -225,10 +221,10 @@
     left: 50%;
     transform: translateX(-50%);
     background-color: rgba(0, 0, 0, 0.7);
-    color: var(--theme-background-primary, #ffffff);
+    color: var(--bg-card);
     padding: 4px 8px;
     border-radius: 4px;
-    font-size: 12px;
+    font-size: 22px;
     white-space: nowrap;
     opacity: 0;
     transition: opacity 0.2s ease;
@@ -240,8 +236,8 @@
     text-align: center;
 
     .tips-text {
-      font-size: 12px;
-      color: var(--theme-text-tertiary, #999);
+      font-size: 22px;
+      color: var(--text-weak);
       line-height: 1.4;
     }
   }
@@ -251,10 +247,10 @@
 .at-toast {
   .at-toast__body {
     background-color: rgba(0, 0, 0, 0.8);
-    color: var(--theme-background-primary, #ffffff);
+    color: var(--bg-card);
     border-radius: 8px;
     padding: 12px 16px;
-    font-size: 14px;
+    font-size: 28px;
     max-width: 80%;
   }
 }
@@ -270,12 +266,12 @@
     }
 
     .header-center .page-title {
-      font-size: 16px;
+      font-size: 28px;
     }
 
     .header-left .cancel-btn,
     .header-right .save-btn {
-      font-size: 14px;
+      font-size: 24px;
     }
   }
 
@@ -283,7 +279,7 @@
     padding: 16px 16px 8px;
 
     .section-title {
-      font-size: 15px;
+      font-size: 26px;
       margin-bottom: 12px;
     }
   }
@@ -311,43 +307,4 @@
 
 .form-section {
   animation: fadeInUp 0.3s ease-out;
-}
-
-// 主题适配
-[data-theme="dark"] {
-  .profile-edit-page {
-    background-color: #1a1a1a;
-  }
-
-  .page-header {
-    background-color: #2d2d2d;
-    border-bottom-color: #404040;
-  }
-
-  .form-section {
-    background-color: #2d2d2d;
-
-    .section-title {
-      color: #ffffff;
-    }
-  }
-
-  .readonly-section .readonly-field {
-    border-bottom-color: #404040;
-
-    .field-label {
-      color: #cccccc;
-    }
-
-    .field-value {
-      color: #ffffff;
-    }
-  }
-
-  :global(.avatar-upload) {
-    .avatar-placeholder {
-      background-color: #404040;
-      border-color: #555555;
-    }
-  }
 }

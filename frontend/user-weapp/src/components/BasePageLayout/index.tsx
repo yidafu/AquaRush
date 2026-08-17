@@ -88,7 +88,7 @@ interface EmptyStateProps {
   onAction?: () => void
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({
+export const EmptyState: React.FC<EmptyStateProps> = ({
   title = '暂无数据',
   subtitle = '',
   actionText = '去逛逛',

@@ -271,7 +271,9 @@ export const useRegionSelector = (options: UseRegionSelectorOptions = {}): UseRe
       if (column === 0) {
         // Province changed
         const province = provinces[value]
-        if (province && province !== selectedProvince) {
+        // 列表为空时也允许加载(修复:新增地址首次打开选择器城市列为空,
+        // 选中同一省份无法触发城市加载的问题)
+        if (province && (province !== selectedProvince || cities.length === 0)) {
           setSelectedProvince(province)
           setSelectedIndex(prev => ({ ...prev, province: value, city: 0, district: 0 }))
 
@@ -287,7 +289,8 @@ export const useRegionSelector = (options: UseRegionSelectorOptions = {}): UseRe
       } else if (column === 1) {
         // City changed
         const city = cities[value]
-        if (city && city !== selectedCity) {
+        // 区县列表为空时也允许加载(与省份列同理)
+        if (city && (city !== selectedCity || districts.length === 0)) {
           setSelectedCity(city)
           setSelectedIndex(prev => ({ ...prev, city: value, district: 0 }))
 

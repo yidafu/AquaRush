@@ -9,7 +9,7 @@ import {
   getCouponStatusLabel,
   getCouponThresholdText
 } from '../../utils/marketing'
-import BasePageLayout from '../../components/BasePageLayout'
+import BasePageLayout, { EmptyState } from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 import './index.scss'
@@ -76,11 +76,6 @@ const CouponListPage: React.FC = () => {
       loading={loading}
       error={error}
       onRetry={loadCoupons}
-      empty={filtered.length === 0 && !loading}
-      emptyTitle='暂无优惠券'
-      emptySubtitle='去领券中心领取更多优惠'
-      emptyActionText='去领券'
-      onEmptyAction={goCouponCenter}
       className='coupon-list-page'
     >
       {/* 状态 Tab */}
@@ -96,24 +91,34 @@ const CouponListPage: React.FC = () => {
         ))}
       </View>
 
-      {/* 优惠券列表 */}
-      <View className='coupon-list'>
-        {filtered.map(coupon => (
-          <View key={coupon.id} className='coupon-card'>
-            <View className='coupon-card-body'>
-              <View className='coupon-card-left'>
-                <Text className='coupon-name'>{coupon.name}</Text>
-                <Text className='coupon-discount'>{getCouponDiscountText(coupon)}</Text>
-                <Text className='coupon-threshold'>{getCouponThresholdText(coupon.thresholdCents)}</Text>
-              </View>
-              <View className='coupon-card-right'>
-                <Text className='coupon-expire'>有效期至 {formatDateTime(coupon.expireTime)}</Text>
-                <Text className='coupon-status'>{getCouponStatusLabel(coupon.status)}</Text>
+      {filtered.length === 0 ? (
+        // 仅列表区域展示空态，保留 Tab 以便切换其他状态
+        <EmptyState
+          title='暂无优惠券'
+          subtitle='去领券中心领取更多优惠'
+          actionText='去领券'
+          onAction={goCouponCenter}
+        />
+      ) : (
+        /* 优惠券列表 */
+        <View className='coupon-list'>
+          {filtered.map(coupon => (
+            <View key={coupon.id} className='coupon-card'>
+              <View className='coupon-card-body'>
+                <View className='coupon-card-left'>
+                  <Text className='coupon-name'>{coupon.name}</Text>
+                  <Text className='coupon-discount'>{getCouponDiscountText(coupon)}</Text>
+                  <Text className='coupon-threshold'>{getCouponThresholdText(coupon.thresholdCents)}</Text>
+                </View>
+                <View className='coupon-card-right'>
+                  <Text className='coupon-expire'>有效期至 {formatDateTime(coupon.expireTime)}</Text>
+                  <Text className='coupon-status'>{getCouponStatusLabel(coupon.status)}</Text>
+                </View>
               </View>
             </View>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+      )}
     </BasePageLayout>
   )
 }

@@ -113,8 +113,8 @@
 .ticket-item-gift {
   font-size: 20px;
   font-weight: 600;
-  color: #ffffff;
-  background: var(--theme-secondary);
+  color: var(--bg-card);
+  background: var(--brand-primary); // 赠票标记:品牌蓝,不用强调橙(§2.1 红线)
   border-radius: 8px;
   padding: 4px 10px;
 }

@@ -90,11 +90,11 @@ interface OrderDetailState {
 }
 
 const STATUS_MAP = {
-  pending_payment: { text: '待付款', color: 'var(--theme-secondary)', step: 1 },
-  pending_delivery: { text: '待配送', color: 'var(--theme-primary)', step: 2 },
-  delivering: { text: '配送中', color: 'var(--theme-success)', step: 3 },
-  completed: { text: '已完成', color: 'var(--theme-text-tertiary)', step: 4 },
-  cancelled: { text: '已取消', color: 'var(--theme-text-tertiary)', step: 0 }
+  pending_payment: { text: '待付款', color: 'var(--status-pending-pay-text)', bg: 'var(--status-pending-pay-bg)', step: 1 },
+  pending_delivery: { text: '待配送', color: 'var(--status-dispatch-text)', bg: 'var(--status-dispatch-bg)', step: 2 },
+  delivering: { text: '配送中', color: 'var(--status-delivering-text)', bg: 'var(--status-delivering-bg)', step: 3 },
+  completed: { text: '已完成', color: 'var(--status-completed-text)', bg: 'var(--status-completed-bg)', step: 4 },
+  cancelled: { text: '已取消', color: 'var(--status-cancelled-text)', bg: 'var(--status-cancelled-bg)', step: 0 }
 }
 
 const PAYMENT_METHOD_MAP = {
@@ -242,28 +242,28 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
             title: '订单创建',
             content: '您的订单已创建',
             icon: 'bookmark',
-            color: 'var(--theme-primary)'
+            color: 'var(--brand-primary)'
           },
           {
             time: '2024-12-02 10:35:00',
             title: '支付成功',
             content: '使用微信支付成功',
             icon: 'credit-card',
-            color: 'var(--theme-secondary)'
+            color: 'var(--success)'
           },
           {
             time: '2024-12-02 10:45:00',
             title: '商家接单',
             content: '商家已接单，正在准备商品',
             icon: 'shopping-bag',
-            color: 'var(--theme-primary)'
+            color: 'var(--brand-primary)'
           },
           {
             time: '2024-12-02 10:50:00',
             title: '配送员取货',
             content: '配送员小李已取货，正在配送中',
             icon: 'truck',
-            color: 'var(--theme-success)'
+            color: 'var(--success)'
           }
         ]
       }
@@ -318,16 +318,16 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     const status = this.mapStatus(order.status)
     const timeline: OrderTimeline[] = []
     if (order.createdAt) {
-      timeline.push({ time: order.createdAt, title: '订单创建', content: '您的订单已创建', icon: 'bookmark', color: 'var(--theme-primary)' })
+      timeline.push({ time: order.createdAt, title: '订单创建', content: '您的订单已创建', icon: 'bookmark', color: 'var(--brand-primary)' })
     }
     if (order.paymentTime) {
-      timeline.push({ time: order.paymentTime, title: '支付成功', content: '使用微信支付成功', icon: 'credit-card', color: 'var(--theme-secondary)' })
+      timeline.push({ time: order.paymentTime, title: '支付成功', content: '使用微信支付成功', icon: 'credit-card', color: 'var(--action)' })
     }
     if (order.deliveryStartedAt) {
-      timeline.push({ time: order.deliveryStartedAt, title: '开始配送', content: '配送员正在配送中', icon: 'truck', color: 'var(--theme-success)' })
+      timeline.push({ time: order.deliveryStartedAt, title: '开始配送', content: '配送员正在配送中', icon: 'truck', color: 'var(--success)' })
     }
     if (order.completedAt) {
-      timeline.push({ time: order.completedAt, title: '订单完成', content: '订单已完成', icon: 'check-circle', color: 'var(--theme-success)' })
+      timeline.push({ time: order.completedAt, title: '订单完成', content: '订单已完成', icon: 'check-circle', color: 'var(--success)' })
     }
 
     return {
@@ -517,10 +517,10 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     if (!color) return 'blue'
 
     const colorMap: Record<string, 'blue' | 'green' | 'red' | 'yellow'> = {
-      'var(--theme-primary)': 'blue',
-      'var(--theme-success)': 'green',
-      'var(--theme-secondary)': 'red',
-      'var(--theme-warning)': 'yellow',
+      'var(--brand-primary)': 'blue',
+      'var(--success)': 'green',
+      'var(--action)': 'red',
+      'var(--warning)': 'yellow',
       // Legacy color mappings for backward compatibility
       '#667eea': 'blue',
       '#19be6b': 'green',
@@ -604,8 +604,8 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
 
     return (
       <View className='order-detail-page'>
-        {/* 订单状态头部 */}
-        <View className='status-header' style={{ background: `linear-gradient(135deg, ${status.color}22, ${status.color}11)` }}>
+        {/* 订单状态头部(浅 tint 背景,按状态色,§6) */}
+        <View className='status-header' style={{ background: status.bg }}>
           <View className='status-info'>
             <AtTag
               type='primary'
@@ -624,7 +624,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
               <AtIcon
                 value='copy'
                 size='14'
-                color='#667eea'
+                color='var(--brand-primary)'
                 onClick={this.handleCopyOrderNo}
               />
             </Text>
@@ -679,7 +679,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
                 <Text className='worker-name'>{order.deliveryInfo.deliveryWorkerName}</Text>
                 <Text className='worker-phone'>{order.deliveryInfo.deliveryWorkerPhone}</Text>
                 <Text className='delivery-location'>
-                  <AtIcon value='map-pin' size='12' color='#999' />
+                  <AtIcon value='map-pin' size='12' color='var(--text-sub)' />
                   {order.deliveryInfo.currentLocation} · {order.deliveryInfo.deliveryDistance}
                 </Text>
               </View>
@@ -698,7 +698,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
                   circle
                   onClick={this.handleTrackDelivery}
                 >
-                  <AtIcon value='navigation' size='14' color='#666' />
+                  <AtIcon value='navigation' size='14' color='var(--text-sub)' />
                 </AtButton>
               </View>
             </View>

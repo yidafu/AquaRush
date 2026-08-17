@@ -2,17 +2,17 @@
 
 .address-edit-page {
   min-height: 100vh;
-  background-color: var(--theme-background-page);
+  background-color: var(--bg);
   padding-bottom: 100px;
   animation: fadeIn 0.4s ease-out;
 }
 
 .address-form {
-  background: var(--theme-background);
+  background: var(--bg-card);
   margin: 20px 16px;
   border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 8px 32px var(--theme-shadow-medium);
+  box-shadow: var(--shadow-card);
   animation: slideInUp 0.5s ease-out;
 }
 
@@ -20,7 +20,7 @@
 
 .input-hint {
   font-size: 24px;
-  color: var(--theme-text-tertiary);
+  color: var(--text-weak);
   margin-top: 8px;
   display: block;
   line-height: 1.5;
@@ -38,17 +38,17 @@
   // height: 56px;
   font-size: 34px;
   font-weight: 600;
-  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
-  color: white;
+  background: var(--brand-primary); // 保存地址:主按钮品牌蓝实底(§7)
+  color: var(--bg-card);
   border: none;
   border-radius: 28px;
-  box-shadow: 0 8px 24px rgba(var(--theme-primary-rgb), 0.4);
+  box-shadow: 0 8px 24px rgba(var(--brand-primary-rgb), 0.4);
   transition: all 0.3s ease;
 
 
   &:active {
     transform: scale(0.98);
-    box-shadow: 0 4px 16px rgba(var(--theme-primary-rgb), 0.5);
+    box-shadow: 0 4px 16px rgba(var(--brand-primary-rgb), 0.5);
   }
 
   &:active::before {
@@ -57,15 +57,12 @@
 
   &[disabled] {
     opacity: 0.6;
-    background: linear-gradient(135deg, #ccc 0%, #999 100%);
-    box-shadow: 0 2px 8px var(--theme-shadow-medium);
+    background: var(--text-weak);
+    box-shadow: var(--shadow-card);
     cursor: not-allowed;
   }
 }
 
-.safe-bottom {
-  height: 20px;
-}
 
 /* 动画效果 */
 @keyframes fadeIn {
@@ -119,7 +116,7 @@
 .at-message {
   border-radius: 12px;
   backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px var(--theme-shadow-medium);
+  box-shadow: var(--shadow-card);
 }
 
 /* 表单项动画 */
@@ -136,50 +133,14 @@
 
 /* 输入框聚焦效果 */
 .detail-input:focus {
-  border-color: var(--theme-primary);
-  box-shadow: 0 0 0 4px rgba(var(--theme-primary-rgb), 0.1);
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 4px rgba(var(--brand-primary-rgb), 0.1);
 }
 
-
-/* 暗色模式适配 */
-@media (prefers-color-scheme: dark) {
-  .address-edit-page {
-    background-color: #1a1a1a;
-  }
-
-  .address-form {
-    background: #2a2a2a;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
-  }
-
-  .form-label {
-    color: #e0e0e0;
-  }
-
-  .picker-display,
-  .detail-input {
-    background: linear-gradient(135deg, #333 0%, #444 100%);
-    color: #e0e0e0;
-  }
-
-  .picker-display:empty::before,
-  .detail-input::placeholder {
-    color: #999;
-  }
-
-  .error-text {
-    background: rgba(255, 107, 53, 0.1);
-    color: #ff8a65;
-  }
-
-  .input-hint {
-    color: #aaa;
-    text-align: right;
-  }
-}
 
 /* 错误状态动画 */
 .error-text {
+  color: var(--error);
   animation: shake 0.3s ease-in-out;
 }
 
@@ -195,7 +156,7 @@
   justify-content: center;
   align-items: center;
   padding: 16px;
-  background: var(--theme-background);
+  background: var(--bg-card);
   margin: 0 16px;
   border-radius: 12px;
   animation: fadeIn 0.3s ease-out;
@@ -205,9 +166,9 @@
 .location-selector {
   margin: 24px 0;
   padding: 20px;
-  background: linear-gradient(135deg, var(--theme-background-secondary), var(--theme-background));
+  background: linear-gradient(135deg, var(--bg), var(--bg-card));
   border-radius: 16px;
-  border: 2px dashed var(--theme-border-light);
+  border: 2px dashed var(--border);
   animation: fadeIn 0.4s ease-out;
   animation-delay: 0.2s;
 }
@@ -219,21 +180,21 @@
   font-weight: 600;
   border-radius: 12px;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, var(--theme-gradient-start), var(--theme-gradient-end));
+  background: var(--brand-primary); // 定位/选点:主按钮品牌蓝实底(§7)
   border: none;
-  color: white;
+  color: var(--bg-card);
   transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(var(--theme-primary-rgb), 0.2);
+  box-shadow: 0 4px 16px rgba(var(--brand-primary-rgb), 0.2);
 
   &:active {
     transform: scale(0.98);
-    box-shadow: 0 2px 8px rgba(var(--theme-primary-rgb), 0.3);
+    box-shadow: 0 2px 8px rgba(var(--brand-primary-rgb), 0.3);
   }
 }
 
 .location-hint {
   font-size: 24px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
   line-height: 1.4;
   text-align: center;
   font-weight: 500;
@@ -243,9 +204,9 @@
 .map-button-container {
   margin: 24px 0;
   padding: 20px;
-  background: linear-gradient(135deg, var(--theme-background-secondary), var(--theme-background));
+  background: linear-gradient(135deg, var(--bg), var(--bg-card));
   border-radius: 16px;
-  border: 2px solid var(--theme-primary-light);
+  border: 2px solid var(--brand-primary-light);
   animation: fadeIn 0.4s ease-out;
   animation-delay: 0.3s;
 }
@@ -257,11 +218,11 @@
   font-weight: 600;
   border-radius: 12px;
   margin-bottom: 12px;
-  background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary));
+  background: var(--brand-primary); // 地图选点:主按钮品牌蓝实底(§7)
   border: none;
-  color: white;
+  color: var(--bg-card);
   transition: all 0.3s ease;
-  box-shadow: 0 4px 16px rgba(var(--theme-primary-rgb), 0.2);
+  box-shadow: 0 4px 16px rgba(var(--brand-primary-rgb), 0.2);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -272,13 +233,13 @@
 
   &:active {
     transform: scale(0.98);
-    box-shadow: 0 2px 8px rgba(var(--theme-primary-rgb), 0.3);
+    box-shadow: 0 2px 8px rgba(var(--brand-primary-rgb), 0.3);
   }
 }
 
 .map-button-hint {
   font-size: 24px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
   line-height: 1.4;
   text-align: center;
   font-weight: 500;
@@ -289,16 +250,16 @@
 .address-map-section {
   margin: 32px 0;
   padding: 24px;
-  background: linear-gradient(135deg, var(--theme-background-secondary), var(--theme-background));
+  background: linear-gradient(135deg, var(--bg), var(--bg-card));
   border-radius: 16px;
-  border: 2px solid var(--theme-border-light);
+  border: 2px solid var(--border);
   animation: fadeIn 0.5s ease-out;
   animation-delay: 0.4s;
 
   .section-title {
     font-size: 32px;
     font-weight: bold;
-    color: var(--theme-primary);
+    color: var(--brand-primary);
     margin-bottom: 16px;
     display: block;
     text-align: center;
@@ -307,13 +268,13 @@
   .address-edit-map {
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 4px 16px var(--theme-shadow-medium);
+    box-shadow: var(--shadow-card);
     margin-bottom: 16px;
   }
 
   .map-hint {
     font-size: 24px;
-    color: var(--theme-text-secondary);
+    color: var(--text-sub);
     line-height: 1.4;
     text-align: center;
     font-style: italic;
@@ -321,40 +282,3 @@
   }
 }
 
-/* 暗色模式适配 */
-@media (prefers-color-scheme: dark) {
-  .location-selector {
-    background: linear-gradient(135deg, #2a2a2a, #333);
-    border-color: #555;
-  }
-
-  .location-hint {
-    color: #bbb;
-  }
-
-  .map-button-container {
-    background: linear-gradient(135deg, #2a2a2a, #333);
-    border-color: var(--theme-primary-dark);
-  }
-
-  .map-button-hint {
-    color: #bbb;
-  }
-
-  .address-map-section {
-    background: linear-gradient(135deg, #2a2a2a, #333);
-    border-color: #555;
-
-    .section-title {
-      color: var(--theme-primary);
-    }
-
-    .address-edit-map {
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
-    }
-
-    .map-hint {
-      color: #bbb;
-    }
-  }
-}

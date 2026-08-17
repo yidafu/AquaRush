@@ -157,7 +157,7 @@ const OrderReview: React.FC = () => {
             </View>
             <Switch
               checked={isAnonymous}
-              color='#667eea'
+              color='#3A9BD9'
               onChange={(e) => setIsAnonymous(e.detail.value)}
             />
           </View>

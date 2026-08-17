@@ -1,31 +1,56 @@
 @import './Section.styles.scss';
 
-.remark-wrapper {
-  padding: 0 32px 32px;
+// 单行头部:标签 + 字数计数
+.remark-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px 0;
 }
 
-.remark-input {
-  width: 100%;
-  min-height: 180px;
-  padding: 20px;
-  border: 2px solid var(--theme-border);
-  border-radius: 12px;
-  font-size: 20px;
-  line-height: 1.6;
-  resize: none;
-  background: var(--theme-background-page);
-  transition: border-color 0.2s ease;
-
-  &:focus {
-    border-color: var(--theme-primary);
-    box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.1);
-  }
+.remark-label {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-main);
 }
 
 .remark-count {
-  font-size: 14px;
-  color: var(--theme-text-tertiary);
-  text-align: right;
-  margin-top: 12px;
-  display: block;
+  font-size: 20px;
+  color: var(--text-weak);
+}
+
+.remark-wrapper {
+  padding: 12px 24px 24px;
+}
+
+// 输入框:恰好两行(24px × 1.6 × 2 行 + 上下内边距),选填项不占过多空间
+.remark-input {
+  width: 100%;
+  min-height: 96px;
+  padding: 10px 14px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 24px;
+  line-height: 1.6;
+  resize: none;
+  background: var(--bg);
+  box-sizing: border-box;
+  transition: border-color 0.2s ease;
+
+  &:focus {
+    border-color: var(--brand-primary);
+    box-shadow: 0 0 0 2px var(--brand-primary-light);
+  }
+}
+
+// 响应式
+@media (max-width: 375px) {
+  .remark-header {
+    padding: 12px 20px 0;
+  }
+
+  .remark-wrapper {
+    padding: 12px 20px 20px;
+  }
 }

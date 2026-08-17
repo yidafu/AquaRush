@@ -106,8 +106,8 @@ const BuyModal: React.FC<BuyModalProps> = ({
             height: '32px',
             fontSize: '16px',
             borderRadius: '8px',
-            backgroundColor: '#f5f5f5',
-            color: '#666'
+            backgroundColor: 'var(--bg)',
+            color: 'var(--text-sub)'
           }}
         >
           取消
@@ -124,8 +124,8 @@ const BuyModal: React.FC<BuyModalProps> = ({
             height: '32px',
             fontSize: '16px',
             borderRadius: '8px',
-            backgroundColor: '#ff6700',
-            borderColor: '#ff6700'
+            backgroundColor: 'var(--action)', // 立即购买 CTA:强调橙
+            borderColor: 'var(--action)'
           }}
         >
           确认购买

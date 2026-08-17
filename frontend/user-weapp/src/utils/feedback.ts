@@ -44,17 +44,17 @@ export const getFeedbackStatusLabel = (status: FeedbackStatus): string => {
 }
 
 /**
- * 反馈状态色(与后台 Tag 着色一致:待处理橙/处理中蓝/已处理绿)
+ * 反馈状态色(与后台 Tag 着色一致:待处理橙/处理中蓝/已处理绿;走设计 token)
  */
 export const getFeedbackStatusColor = (status: FeedbackStatus): string => {
   switch (status) {
     case FeedbackStatus.PENDING:
-      return '#fa8c16'
+      return 'var(--status-pending-pay-text)' // 待处理:warning 橙
     case FeedbackStatus.PROCESSING:
-      return '#1890ff'
+      return 'var(--status-dispatch-text)' // 处理中:主色蓝
     case FeedbackStatus.RESOLVED:
-      return '#52c41a'
+      return 'var(--status-delivering-text)' // 已处理:success 绿
     default:
-      return '#999999'
+      return 'var(--text-weak)'
   }
 }

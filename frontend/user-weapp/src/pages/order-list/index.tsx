@@ -1,13 +1,12 @@
 import { Component } from 'react'
 import { View, Text, Image } from '@tarojs/components'
-import { AtCard, AtIcon, AtButton, AtTabs, AtToast, AtTag } from 'taro-ui'
+import { AtCard, AtIcon, AtButton, AtToast } from 'taro-ui'
 import Taro from '@tarojs/taro'
 
 import "taro-ui/dist/style/components/card.scss"
 import "taro-ui/dist/style/components/icon.scss"
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/toast.scss"
-import "taro-ui/dist/style/components/tabs.scss"
 import "taro-ui/dist/style/components/tag.scss"
 import './index.scss'
 import { Money, OrderStatus, normalizeCents } from '@aquarush/common'
@@ -72,14 +71,15 @@ const TAB_LIST = [
   { title: '已完成', statuses: [OrderStatus.COMPLETED] }
 ]
 
-const STATUS_MAP: Record<string, { text: string; color: string; bg: string }> = {
-  [OrderStatus.PENDING_PAYMENT]: { text: '待付款', color: '#ff6b35', bg: 'rgba(255, 107, 53, 0.1)' },
-  [OrderStatus.PENDING_DISPATCH]: { text: '待配送', color: '#667eea', bg: 'rgba(102, 126, 234, 0.1)' },
-  [OrderStatus.PENDING_DELIVERY]: { text: '待配送', color: '#667eea', bg: 'rgba(102, 126, 234, 0.1)' },
-  [OrderStatus.DELIVERING]: { text: '配送中', color: '#19be6b', bg: 'rgba(25, 190, 107, 0.1)' },
-  [OrderStatus.COMPLETED]: { text: '已完成', color: '#999', bg: 'rgba(153, 153, 153, 0.1)' },
-  [OrderStatus.CANCELLED]: { text: '已取消', color: '#ccc', bg: 'rgba(204, 204, 204, 0.1)' },
-  [OrderStatus.REFUNDED]: { text: '已退款', color: '#ccc', bg: 'rgba(204, 204, 204, 0.1)' }
+// 状态标签(§2.2 设计系统:共享 .status-tag 类 + 修饰符,样式见 styles/common.scss)
+const STATUS_MAP: Record<string, { text: string; modifier: string }> = {
+  [OrderStatus.PENDING_PAYMENT]: { text: '待付款', modifier: 'status-tag--pending-pay' },
+  [OrderStatus.PENDING_DISPATCH]: { text: '待配送', modifier: 'status-tag--dispatch' },
+  [OrderStatus.PENDING_DELIVERY]: { text: '待配送', modifier: 'status-tag--dispatch' },
+  [OrderStatus.DELIVERING]: { text: '配送中', modifier: 'status-tag--delivering' },
+  [OrderStatus.COMPLETED]: { text: '已完成', modifier: 'status-tag--completed' },
+  [OrderStatus.CANCELLED]: { text: '已取消', modifier: 'status-tag--cancelled' },
+  [OrderStatus.REFUNDED]: { text: '已退款', modifier: 'status-tag--cancelled' }
 }
 
 export default class OrderList extends Component<{}, OrderListState> {
@@ -101,7 +101,19 @@ export default class OrderList extends Component<{}, OrderListState> {
   }
 
   componentDidMount() {
-    this.loadOrders(true)
+    // 从「我的」页订单宫格进入时定位对应 Tab(§8:全部/待付款/待配送/配送中)
+    const instance = Taro.getCurrentInstance()
+    const tabParam = instance.router?.params?.tab
+    const TAB_INDEX_MAP: Record<string, number> = {
+      all: 0,
+      pending_payment: 1,
+      pending_delivery: 2,
+      delivering: 3
+    }
+    const initialTab = typeof tabParam === 'string' && tabParam in TAB_INDEX_MAP ? TAB_INDEX_MAP[tabParam] : 0
+    this.setState({ currentTab: initialTab }, () => {
+      this.loadOrders(true)
+    })
   }
 
   componentDidShow() {
@@ -355,18 +367,7 @@ export default class OrderList extends Component<{}, OrderListState> {
         <View className='order-header'>
           <View className='order-info'>
             <Text className='order-no'>订单号：{order.orderNo}</Text>
-            <AtTag
-              type='primary'
-              size='small'
-              circle
-              customStyle={{
-                background: status.bg,
-                color: status.color,
-                border: 'none'
-              }}
-            >
-              {status.text}
-            </AtTag>
+            <Text className={`status-tag ${status.modifier}`}>{status.text}</Text>
           </View>
           <Text className='order-time'>{order.createTime}</Text>
         </View>
@@ -413,7 +414,7 @@ export default class OrderList extends Component<{}, OrderListState> {
 
         {order.address && (
           <View className='order-address'>
-            <AtIcon value='map-pin' size='14' color='#999' />
+            <AtIcon value='map-pin' size='14' color='var(--text-sub)' />
             <Text className='address-text'>
               {order.address.receiverName} {order.address.phone}
               {order.address.province} {order.address.city} {order.address.district} {order.address.detailAddress}
@@ -517,13 +518,18 @@ export default class OrderList extends Component<{}, OrderListState> {
 
     return (
       <View className='order-list-page'>
-        <AtTabs
-          current={currentTab}
-          tabList={TAB_LIST}
-          onClick={this.handleTabChange}
-          swipeable={false}
-          className='order-tabs'
-        />
+        {/* 状态 Tab 栏(分段胶囊:容器 tint 圆角,选中主色 tint 底 + 主色字,§5) */}
+        <View className='order-tabs'>
+          {TAB_LIST.map((tab, index) => (
+            <View
+              key={tab.title}
+              className={`order-tab-item ${index === currentTab ? 'order-tab-item-active' : ''}`}
+              onClick={() => this.handleTabChange(index)}
+            >
+              <Text className='order-tab-text'>{tab.title}</Text>
+            </View>
+          ))}
+        </View>
 
         <View className='order-content'>
           {loading && orders.length === 0 ? (

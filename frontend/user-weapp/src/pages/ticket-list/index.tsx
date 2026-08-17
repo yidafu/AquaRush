@@ -5,7 +5,7 @@ import TicketService from '../../services/TicketService'
 import { authService } from '../../utils/auth'
 import { UserTicketStatus, UserTicketVo, formatDateTime } from '@aquarush/common'
 import { getTicketStatusLabel } from '../../utils/marketing'
-import BasePageLayout from '../../components/BasePageLayout'
+import BasePageLayout, { EmptyState } from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 import './index.scss'
@@ -82,11 +82,6 @@ const TicketListPage: React.FC = () => {
       loading={loading}
       error={error}
       onRetry={loadTickets}
-      empty={filtered.length === 0 && !loading}
-      emptyTitle='暂无水票'
-      emptySubtitle='去水票商城购买水票'
-      emptyActionText='去购票'
-      onEmptyAction={goTicketShop}
       className='ticket-list-page'
     >
       {/* 头部:可用张数 + 水票商城入口 */}
@@ -112,26 +107,36 @@ const TicketListPage: React.FC = () => {
         ))}
       </View>
 
-      {/* 水票列表 */}
-      <View className='ticket-list'>
-        {filtered.map(ticket => (
-          <View key={ticket.id} className='ticket-item'>
-            <View className='ticket-item-left'>
-              <View className='ticket-item-name-row'>
-                <Text className='ticket-item-name'>{ticket.ticketTypeName}</Text>
-                {ticket.isGift && (
-                  <Text className='ticket-item-gift'>赠</Text>
+      {filtered.length === 0 ? (
+        // 仅列表区域展示空态，保留 Tab 以便切换其他状态
+        <EmptyState
+          title='暂无水票'
+          subtitle='去水票商城购买水票'
+          actionText='去购票'
+          onAction={goTicketShop}
+        />
+      ) : (
+        /* 水票列表 */
+        <View className='ticket-list'>
+          {filtered.map(ticket => (
+            <View key={ticket.id} className='ticket-item'>
+              <View className='ticket-item-left'>
+                <View className='ticket-item-name-row'>
+                  <Text className='ticket-item-name'>{ticket.ticketTypeName}</Text>
+                  {ticket.isGift && (
+                    <Text className='ticket-item-gift'>赠</Text>
+                  )}
+                </View>
+                {ticket.specification && (
+                  <Text className='ticket-item-spec'>限{ticket.specification}规格</Text>
                 )}
+                <Text className='ticket-item-expire'>有效期至 {formatDateTime(ticket.expireTime)}</Text>
               </View>
-              {ticket.specification && (
-                <Text className='ticket-item-spec'>限{ticket.specification}规格</Text>
-              )}
-              <Text className='ticket-item-expire'>有效期至 {formatDateTime(ticket.expireTime)}</Text>
+              <Text className='ticket-item-status'>{getTicketStatusLabel(ticket.status)}</Text>
             </View>
-            <Text className='ticket-item-status'>{getTicketStatusLabel(ticket.status)}</Text>
-          </View>
-        ))}
-      </View>
+          ))}
+        </View>
+      )}
     </BasePageLayout>
   )
 }

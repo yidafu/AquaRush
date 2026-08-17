@@ -73,8 +73,8 @@
 .ticket-gift {
   font-size: 20px;
   font-weight: 600;
-  color: #ffffff;
-  background: var(--theme-secondary);
+  color: var(--bg-card);
+  background: var(--brand-primary); // 赠票标记:品牌蓝,不用强调橙(§2.1 红线)
   border-radius: 8px;
   padding: 4px 10px;
 }
@@ -110,7 +110,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+  background: var(--action); // 水票购买 = 消费者最高优先级 CTA(强调橙 #FF5436)
+  box-shadow: var(--shadow-btn);
   border-radius: 30px;
   padding: 0 24px;
 }

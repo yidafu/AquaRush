@@ -1,6 +1,6 @@
 .favorites-page {
   min-height: 100vh;
-  background-color: #f8f8f8;
+  background-color: var(--bg);
 
   // Login prompt styles
   .login-prompt {
@@ -20,13 +20,13 @@
     .login-title {
       font-size: 36px;
       font-weight: 600;
-      color: #333;
+      color: var(--text-main);
       margin-bottom: 16px;
     }
 
     .login-subtitle {
       font-size: 28px;
-      color: #999;
+      color: var(--text-sub);
       margin-bottom: 48px;
     }
 
@@ -63,13 +63,13 @@
     .empty-title {
       font-size: 32px;
       font-weight: 500;
-      color: #333;
+      color: var(--text-main);
       margin-bottom: 12px;
     }
 
     .empty-subtitle {
       font-size: 28px;
-      color: #999;
+      color: var(--text-sub);
       margin-bottom: 48px;
     }
 
@@ -89,7 +89,7 @@
     padding: 0 32px;
 
     text {
-      color: #999;
+      color: var(--text-sub);
       font-size: 28px;
     }
   }
@@ -97,12 +97,12 @@
   // Favorites header
   .favorites-header {
     padding: 24px 32px;
-    background-color: #ffffff;
-    border-bottom: 1px solid #eeeeee;
+    background-color: var(--bg-card);
+    border-bottom: 1px solid var(--border);
 
     .count-text {
       font-size: 28px;
-      color: #666;
+      color: var(--text-sub);
       font-weight: 500;
     }
   }
@@ -118,15 +118,15 @@
   // Product item (horizontal card)
   .product-item {
     display: flex;
-    background-color: #ffffff;
+    background-color: var(--bg-card);
     border-radius: 16px;
-    border: 1px solid #eeeeee;
+    border: 1px solid var(--border);
     overflow: hidden;
     transition: all 0.2s ease;
 
     &:active {
       transform: scale(0.98);
-      background-color: #f8f8f8;
+      background-color: var(--bg);
     }
 
     .product-thumb {
@@ -148,7 +148,7 @@
     .product-name {
       font-size: 28px; // 14px at 1x scale
       font-weight: 600;
-      color: #333;
+      color: var(--text-main);
       line-height: 1.4;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -164,18 +164,18 @@
       .product-price {
         font-size: 32px; // 16px at 1x scale
         font-weight: bold;
-        color: #ff4d4f;
+        color: var(--brand-primary); // 价格:主色加粗,不用语义红(§3)
       }
 
       .product-sales {
         font-size: 24px; // 12px at 1x scale
-        color: #999;
+        color: var(--text-sub);
       }
     }
 
     .out-of-stock-label {
       font-size: 24px;
-      color: #ff4d4f;
+      color: var(--error); // 缺货:语义 error 红
       align-self: flex-start;
     }
   }

@@ -467,7 +467,7 @@ export type CreateOrderInput = {
   readonly clientRequestId?: InputMaybe<Scalars['String']['input']>;
   readonly deliveryTime?: InputMaybe<DeliveryTimeSlot>;
   readonly items: ReadonlyArray<OrderItemInput>;
-  readonly preferredCouponId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly preferredCouponId?: InputMaybe<Scalars['Long']['input']>;
   readonly remark?: InputMaybe<Scalars['String']['input']>;
   readonly ticketRedeemCount?: InputMaybe<Scalars['Int']['input']>;
 };
@@ -1991,7 +1991,7 @@ export type OrderPaymentParams = {
 export type OrderPreviewInput = {
   readonly addressId: Scalars['PrimaryId']['input'];
   readonly items: ReadonlyArray<OrderItemInput>;
-  readonly preferredCouponId?: InputMaybe<Scalars['PrimaryId']['input']>;
+  readonly preferredCouponId?: InputMaybe<Scalars['Long']['input']>;
   readonly ticketRedeemCount?: InputMaybe<Scalars['Int']['input']>;
 };
 

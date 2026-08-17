@@ -1,52 +1,71 @@
+// 底部操作栏(§4:白底 + 顶部发丝线 + 安全区 padding;主操作按钮靠右)
 .bottom-actions {
   position: fixed;
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--theme-background);
-  padding: 24px 32px;
-  padding-bottom: calc(24px + env(safe-area-inset-bottom)); // iOS 安全区域
-  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.08);
+  background: var(--bg-card);
+  padding: 20px 24px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom)); // iOS 安全区域
+  border-top: 1px solid var(--border); // 顶部发丝线(§4 底部操作栏规范)
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.04);
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   z-index: 1000;
 }
 
 .total-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.total-row {
   display: flex;
   align-items: baseline;
   gap: 8px;
 }
 
 .total-label {
-  font-size: 16px;
-  color: var(--theme-text-secondary);
+  font-size: 26px;
+  color: var(--text-sub);
 }
 
 .total-amount {
-  font-size: 24px;
-  font-weight: bold;
-  color: var(--theme-primary);
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--brand-primary); // 合计:主色加粗(§4 金额高亮,不用强调橙)
+  line-height: 1.2;
+}
+
+.total-discount {
+  font-size: 20px;
+  color: var(--text-weak);
+  margin-top: 2px;
 }
 
 .submit-button {
-  width: 160px;
-  height: 64px;
-  font-size: 20px;
+  width: 168px;
+  height: 68px;
+  font-size: 28px;
   font-weight: 600;
-  border-radius: 16px;
-  background: linear-gradient(135deg, var(--theme-primary) 0%, var(--theme-secondary) 100%);
+  border-radius: var(--radius-btn);
+  background: var(--action); // 提交订单 = 消费者最高优先级 CTA(强调橙 #FF5436)
+  box-shadow: var(--shadow-btn);
   border: none;
   transition: transform 0.2s ease;
-  line-height: 64px;
-  color: #ffffff;
+  line-height: 68px;
+  color: var(--bg-card);
+  flex-shrink: 0;
 
   &::after {
     border: none;
   }
 
   &:active {
+    background: #E64A30;
     transform: scale(0.95);
   }
 }

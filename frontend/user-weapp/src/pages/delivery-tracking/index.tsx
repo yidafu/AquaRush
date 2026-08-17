@@ -473,7 +473,7 @@ const DeliveryTracking: React.FC = () => {
                 <Text className='worker-phone'>{deliveryWorker.phone}</Text>
                 {deliveryWorker.currentLocation && (
                   <Text className='worker-location'>
-                    <AtIcon value='map-pin' size='12' color='#999' />
+                    <AtIcon value='map-pin' size='12' color='var(--text-sub)' />
                     {deliveryWorker.currentLocation.address || '位置更新中...'}
                   </Text>
                 )}
@@ -497,8 +497,8 @@ const DeliveryTracking: React.FC = () => {
                 size='small'
                 circle
                 customStyle={{
-                  background: 'var(--theme-success)',
-                  color: 'white',
+                  background: 'var(--status-delivering-bg)',
+                  color: 'var(--status-delivering-text)',
                   border: 'none'
                 }}
               >
@@ -531,7 +531,7 @@ const DeliveryTracking: React.FC = () => {
       {/* 实时跟踪提示 */}
       <View className='tracking-info'>
         <View className='tracking-status'>
-          <AtIcon value='clock' size='16' color='var(--theme-primary)' />
+          <AtIcon value='clock' size='16' color='var(--brand-primary)' />
           <Text className='tracking-text'>实时跟踪中，每10秒更新位置</Text>
         </View>
       </View>

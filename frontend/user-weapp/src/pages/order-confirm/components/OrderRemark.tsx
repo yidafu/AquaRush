@@ -14,8 +14,10 @@ const OrderRemark: React.FC<OrderRemarkProps> = ({ remark, onRemarkChange }) => 
 
   return (
     <View className='section remark-section'>
-      <View className='section-header'>
-        <Text className='section-title'>订单备注</Text>
+      {/* 单行头部:标签 + 字数计数(不再占独立行,压缩纵向空间) */}
+      <View className='remark-header'>
+        <Text className='remark-label'>订单备注</Text>
+        <Text className='remark-count'>{remark.length}/200</Text>
       </View>
       <View className='remark-wrapper'>
         <Textarea
@@ -25,7 +27,6 @@ const OrderRemark: React.FC<OrderRemarkProps> = ({ remark, onRemarkChange }) => 
           maxlength={200}
           className='remark-input'
         />
-        <Text className='remark-count'>{remark.length}/200</Text>
       </View>
     </View>
   )

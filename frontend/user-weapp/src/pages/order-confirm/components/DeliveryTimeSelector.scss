@@ -1,31 +1,57 @@
 @import './Section.styles.scss';
 
-.delivery-time-wrapper {
-  padding: 0 32px 32px;
+.delivery-grid {
+  padding: 16px 24px 24px;
+  display: flex;
+  flex-wrap: wrap;
 }
 
-.delivery-time {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  padding: 24px 0;
-  border-bottom: 1px solid var(--theme-border);
+// 2×2 芯片:两列,偶数项右移一列(避免依赖 flex gap 的兼容性)
+.delivery-chip {
+  width: calc(50% - 8px);
+  box-sizing: border-box;
+  padding: 16px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
+  transition: border-color 0.2s ease, background-color 0.2s ease;
 
-  &:last-child {
-    border-bottom: none;
+  &:nth-child(even) {
+    margin-left: 16px;
   }
 
   &:active {
-    background-color: var(--theme-background-page);
-    margin: 0 -32px;
-    padding: 24px 32px;
+    background-color: var(--brand-primary-light);
   }
 }
 
-.time-name {
-  font-size: 16px;
-  color: var(--theme-text-primary);
-  line-height: 1.5;
+.delivery-chip-selected {
+  border-color: var(--brand-primary);
+  background: var(--brand-primary-light); // 选中:主色描边 + tint 底(§4)
+
+  &:active {
+    background: var(--brand-primary-light);
+  }
+}
+
+.delivery-chip-name {
+  display: block;
+  font-size: 26px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.delivery-chip-hint {
+  display: block;
+  font-size: 20px;
+  color: var(--text-sub);
+  margin-top: 4px;
+}
+
+// 响应式
+@media (max-width: 375px) {
+  .delivery-grid {
+    padding: 12px 20px 20px;
+  }
 }

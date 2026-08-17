@@ -1,98 +1,69 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
-import { displayCents } from '@aquarush/common'
+import { OrderPreviewVo } from '@aquarush/common'
+import { buildCostRows } from '../../../utils/orderCost'
 import './CostSummary.scss'
 
 interface CostSummaryProps {
-  /** 商品金额(分,preview.subtotalCents) */
-  subtotalCents: number
-  /** 水票抵扣桶数(preview.ticketCoveredQuantity) */
-  ticketCoveredQuantity: number
-  /** 满减/折扣优惠(分,preview.promotionDiscountCents) */
-  promotionDiscountCents: number
-  /** 促销活动名称(preview.promotionActivityName) */
-  promotionActivityName?: string | null
-  /** 首单立减优惠(分,preview.firstOrderDiscountCents,与满减互斥取最大 —— R-MKT-10) */
-  firstOrderDiscountCents: number
-  /** 首单活动名称(preview.firstOrderActivityName) */
-  firstOrderActivityName?: string | null
-  /** 优惠券优惠(分,preview.couponDiscountCents) */
-  couponDiscountCents: number
-  /** 选中优惠券名称(preview.selectedCouponName) */
-  selectedCouponName?: string | null
-  /** 买赠/满赠赠品(preview.giftItems,附加 0 价行 —— R-MKT-09) */
-  giftItems?: Array<{ productName: string; quantity: number }>
-  /** 配送费(分,preview.deliveryFeeCents) */
-  deliveryFeeCents: number
-  /** 实付合计(分,preview.payAmountCents) */
-  payAmountCents: number
+  /** 服务端计价预览(R-MON-01);null=计价未就绪 */
+  preview: OrderPreviewVo | null
+  /** 计价错误信息(error 时展示「点击重试」行,底部提交禁用) */
+  error?: string | null
+  /** 计价刷新中(费用卡顶部展示「价格更新中…」细条) */
+  loading?: boolean
+  /** 计价失败重试回调 */
+  onRetry?: () => void
 }
 
 /**
- * 费用明细(服务端计价预览 R-MON-01)
- * 商品金额 / 水票抵扣 / 满减或首单立减 / 优惠券 / 赠品 / 配送费 / 实付,各项来自 orderPreview 服务端计算结果。
+ * 费用明细(F-ORD-023 服务端计价展示)
+ * 行数据全部由 buildCostRows(preview) 派生:商品金额 / 水票抵扣(-¥x,桶数入标签)/
+ * 满减或首单立减 / 优惠券 / 赠品(¥0.00) / 配送费 / 实付;计价失败/未就绪态内联展示。
  */
 const CostSummary: React.FC<CostSummaryProps> = ({
-  subtotalCents,
-  ticketCoveredQuantity,
-  promotionDiscountCents,
-  promotionActivityName,
-  firstOrderDiscountCents,
-  firstOrderActivityName,
-  couponDiscountCents,
-  selectedCouponName,
-  giftItems,
-  deliveryFeeCents,
-  payAmountCents
+  preview,
+  error,
+  loading = false,
+  onRetry
 }) => {
+  const rows = preview ? buildCostRows(preview) : []
+
   return (
     <View className='cost-section'>
-      <View className='cost-item'>
-        <Text className='cost-label'>商品金额</Text>
-        <Text className='cost-value'>{displayCents(subtotalCents)}</Text>
-      </View>
-      {ticketCoveredQuantity > 0 && (
-        <View className='cost-item'>
-          <Text className='cost-label'>水票抵扣（{ticketCoveredQuantity}桶）</Text>
-          <Text className='cost-value cost-discount'>-{ticketCoveredQuantity}桶</Text>
+      {/* 计价刷新中(细条提示,不占独立区块) */}
+      {preview && loading && !error && (
+        <View className='cost-hint'>
+          <Text className='cost-hint-text'>价格更新中…</Text>
         </View>
       )}
-      {promotionDiscountCents > 0 && (
-        <View className='cost-item'>
-          <Text className='cost-label'>满减{promotionActivityName ? `（${promotionActivityName}）` : ''}</Text>
-          <Text className='cost-value cost-discount'>-{displayCents(promotionDiscountCents)}</Text>
+
+      {/* 计价失败:内联重试行 */}
+      {error && (
+        <View className='cost-item cost-error-row' onClick={onRetry}>
+          <Text className='cost-label'>计价失败</Text>
+          <Text className='cost-value cost-error-text'>{error}，点击重试</Text>
         </View>
       )}
-      {firstOrderDiscountCents > 0 && (
-        <View className='cost-item'>
-          <Text className='cost-label'>首单立减{firstOrderActivityName ? `（${firstOrderActivityName}）` : ''}</Text>
-          <Text className='cost-value cost-discount'>-{displayCents(firstOrderDiscountCents)}</Text>
-        </View>
+
+      {rows.length > 0 ? (
+        rows.map(row => (
+          <View key={row.key} className={`cost-item${row.total ? ' total' : ''}`}>
+            <Text className='cost-label'>{row.label}</Text>
+            <Text
+              className={`cost-value${row.discount ? ' cost-discount' : ''}${row.total ? ' total-amount' : ''}`}
+            >
+              {row.value}
+            </Text>
+          </View>
+        ))
+      ) : (
+        !error && (
+          <View className='cost-item'>
+            <Text className='cost-label'>费用明细</Text>
+            <Text className='cost-value'>价格计算中...</Text>
+          </View>
+        )
       )}
-      {couponDiscountCents > 0 && (
-        <View className='cost-item'>
-          <Text className='cost-label'>优惠券{selectedCouponName ? `（${selectedCouponName}）` : ''}</Text>
-          <Text className='cost-value cost-discount'>-{displayCents(couponDiscountCents)}</Text>
-        </View>
-      )}
-      {giftItems && giftItems.length > 0 && (
-        <View className='cost-item'>
-          <Text className='cost-label'>赠品</Text>
-          <Text className='cost-value'>
-            {giftItems.map((gift) => `${gift.productName} ×${gift.quantity}`).join('、')}（¥0.00）
-          </Text>
-        </View>
-      )}
-      <View className='cost-item'>
-        <Text className='cost-label'>配送费</Text>
-        <Text className='cost-value'>
-          {deliveryFeeCents === 0 ? '免配送费' : displayCents(deliveryFeeCents)}
-        </Text>
-      </View>
-      <View className='cost-item total'>
-        <Text className='cost-label'>实付金额</Text>
-        <Text className='cost-value total-amount'>{displayCents(payAmountCents)}</Text>
-      </View>
     </View>
   )
 }

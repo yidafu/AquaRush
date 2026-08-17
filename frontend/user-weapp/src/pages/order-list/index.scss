@@ -2,15 +2,46 @@
 
 .order-list-page {
   min-height: 100vh;
-  background-color: var(--theme-background-page);
+  background-color: var(--bg);
   padding-bottom: 20px;
 }
 
 .order-tabs {
-  background: var(--theme-background);
+  display: flex;
+  gap: 4px;
+  margin: var(--spacing-md) var(--spacing-lg);
+  padding: 4px;
+  background: var(--bg-card); // 分段胶囊容器:白底圆角(§5)
+  border-radius: var(--radius-btn);
+  box-shadow: var(--shadow-card);
   position: sticky;
   top: 0;
   z-index: 100;
+
+  .order-tab-item {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 56px;
+    border-radius: var(--radius-btn);
+    transition: all 0.2s ease;
+
+    .order-tab-text {
+      font-size: 26px;
+      color: var(--text-sub);
+      transition: color 0.2s ease;
+    }
+
+    &.order-tab-item-active {
+      background: var(--brand-primary-light); // 选中:主色 tint 底 + 主色字(§5)
+
+      .order-tab-text {
+        color: var(--brand-primary);
+        font-weight: 600;
+      }
+    }
+  }
 }
 
 .order-content {
@@ -22,7 +53,7 @@
   justify-content: center;
   align-items: center;
   min-height: 300px;
-  color: var(--theme-text-tertiary);
+  color: var(--text-weak);
 }
 
 .empty-container {
@@ -41,13 +72,13 @@
 
 .empty-text {
   font-size: 28px;
-  color: var(--theme-text-tertiary);
+  color: var(--text-weak);
   margin-bottom: 8px;
 }
 
 .empty-desc {
   font-size: 24px;
-  color: var(--theme-text-tertiary);
+  color: var(--text-weak);
   text-align: center;
   line-height: 1.5;
   margin-bottom: 20px;
@@ -67,7 +98,7 @@
 .no-more {
   text-align: center;
   padding: 20px;
-  color: var(--theme-text-tertiary);
+  color: var(--text-weak);
   font-size: 24px;
 }
 
@@ -81,7 +112,7 @@
   align-items: center;
   margin-bottom: 12px;
   padding-bottom: 8px;
-  border-bottom: 1px solid var(--theme-border);
+  border-bottom: 1px solid var(--border);
 }
 
 .order-info {
@@ -92,12 +123,12 @@
 
 .order-no {
   font-size: 28px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
 }
 
 .order-time {
   font-size: 24px;
-  color: var(--theme-text-tertiary);
+  color: var(--text-weak);
 }
 
 .order-items {
@@ -130,14 +161,14 @@
 
 .item-name {
   font-size: 28px;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
   line-height: 1.4;
   margin-bottom: 4px;
 }
 
 .item-spec {
   font-size: 24px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
   margin-bottom: 4px;
 }
 
@@ -150,20 +181,20 @@
 .item-price {
   font-size: 28px;
   font-weight: 500;
-  color: var(--theme-text-primary);
+  color: var(--text-main);
 }
 
 /* 划线目录价(有营销价时展示,AC-ORD-002-09 —— R-MKT-01/02) */
 .item-original-price {
   font-size: 24px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
   text-decoration: line-through;
   margin-left: 8px;
 }
 
 .item-quantity {
   font-size: 24px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
 }
 
 .order-address {
@@ -172,7 +203,7 @@
   gap: 6px;
   padding: 8px 0;
   margin-bottom: 12px;
-  background: var(--theme-background-page);
+  background: var(--bg);
   border-radius: 6px;
   padding: 8px 12px;
 }
@@ -180,7 +211,7 @@
 .address-text {
   flex: 1;
   font-size: 24px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
   line-height: 1.4;
 }
 
@@ -189,7 +220,7 @@
   justify-content: space-between;
   align-items: center;
   padding-top: 12px;
-  border-top: 1px solid var(--theme-border);
+  border-top: 1px solid var(--border);
 }
 
 .order-amount {
@@ -201,19 +232,19 @@
 /* 订单层优惠标注(满减/券/首单立减,AC-ORD-002-10 —— R-MKT-07) */
 .amount-discount {
   font-size: 22px;
-  color: var(--theme-secondary);
+  color: var(--error); // 优惠金额:语义 error 红,禁用强调橙(§2.1 红线)
   margin-right: 8px;
 }
 
 .amount-label {
   font-size: 28px;
-  color: var(--theme-text-secondary);
+  color: var(--text-sub);
 }
 
 .amount-value {
   font-size: 32px;
   font-weight: bold;
-  color: var(--theme-secondary);
+  color: var(--brand-primary); // 合计金额:主色加粗(§5)
 }
 
 .order-actions {
@@ -228,41 +259,10 @@
   padding: 0;
 }
 
-/* 订单状态标签样式覆盖 */
-.at-tag {
-  padding: 4px 12px;
-  font-size: 24px;
-  height: auto;
-  line-height: 1.4;
-}
-
 /* Taro UI 组件样式覆盖 */
-.at-card {
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px var(--theme-shadow-medium);
-}
 
 .at-card__content {
   padding: 24px;
-}
-
-.at-tabs__header {
-  background: var(--theme-background);
-}
-
-.at-tabs__item {
-  font-size: 28px;
-  color: var(--theme-text-secondary);
-
-  &.at-tabs__item--active {
-    color: var(--theme-primary);
-    font-weight: 500;
-  }
-}
-
-.at-tabs__underline {
-  background: var(--theme-primary);
 }
 
 /* 响应式调整 */
@@ -372,6 +372,6 @@
 }
 .item-more {
   font-size: 20px;
-  color: #999;
+  color: var(--text-sub);
   margin-left: 8px;
 }

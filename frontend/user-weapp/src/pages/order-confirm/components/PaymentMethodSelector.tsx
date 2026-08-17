@@ -1,12 +1,13 @@
 import React from 'react'
-import { View, Text, Radio, RadioGroup } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import './PaymentMethodSelector.scss'
 
 interface PaymentMethod {
   id: string
   name: string
-  icon: string
   description: string
+  /** 未接入的支付方式置灰不可选(PRD F-ORD-001:余额支付未实现,仅展示) */
+  disabled?: boolean
 }
 
 interface PaymentMethodSelectorProps {
@@ -22,42 +23,47 @@ const PaymentMethodSelector: React.FC<PaymentMethodSelectorProps> = ({
     {
       id: 'wechat',
       name: '微信支付',
-      icon: '/assets/wechat-pay.png',
-      description: '推荐使用微信支付'
+      description: '使用微信支付，安全快捷'
     },
     {
       id: 'balance',
       name: '余额支付',
-      icon: '/assets/balance-pay.png',
-      description: '使用账户余额支付'
+      description: '使用账户余额支付',
+      disabled: true
     }
   ]
 
-  const handleMethodChange = (e: any) => {
-    onMethodChange(e.detail.value)
-  }
-
   return (
     <View className='section payment-section'>
-      <View className='section-header'>
-        <Text className='section-title'>支付方式</Text>
+      <View className='section-label-row'>
+        <Text className='section-label'>支付方式</Text>
       </View>
       <View className='payment-method-wrapper'>
-        <RadioGroup onChange={handleMethodChange}>
-          {paymentMethods.map(method => (
-            <View key={method.id} className='payment-method'>
-              <Radio
-                value={method.id}
-                checked={selectedMethod === method.id}
-                color='var(--theme-primary)'
-              />
+        {paymentMethods.map(method => {
+          const disabled = !!method.disabled
+          const selected = selectedMethod === method.id
+          return (
+            <View
+              key={method.id}
+              className={`payment-method${selected && !disabled ? ' payment-method-selected' : ''}${disabled ? ' payment-method-disabled' : ''}`}
+              onClick={() => {
+                if (!disabled) onMethodChange(method.id)
+              }}
+            >
               <View className='payment-info'>
-                <Text className='payment-name'>{method.name}</Text>
+                <View className='payment-name-row'>
+                  <Text className='payment-name'>{method.name}</Text>
+                  {!disabled && <Text className='payment-tag payment-tag-recommend'>推荐</Text>}
+                  {disabled && <Text className='payment-tag payment-tag-soon'>即将上线</Text>}
+                </View>
                 <Text className='payment-desc'>{method.description}</Text>
               </View>
+              <View className='payment-radio'>
+                {selected && !disabled && <View className='payment-radio-dot' />}
+              </View>
             </View>
-          ))}
-        </RadioGroup>
+          )
+        })}
       </View>
     </View>
   )

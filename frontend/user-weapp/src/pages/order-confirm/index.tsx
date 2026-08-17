@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
-import { View, Text } from '@tarojs/components'
+import { View } from '@tarojs/components'
 import Taro, {
   useReady,
   useDidShow
@@ -35,7 +35,6 @@ interface OrderItem {
   price: number
   quantity: number
   image: string
-  specifications?: string[]
   specification?: string
 }
 
@@ -420,21 +419,6 @@ const OrderConfirm: React.FC = () => {
         }))}
       />
 
-      {/* 计价状态提示 */}
-      {previewError ? (
-        <View className='preview-status preview-error' onClick={handleRetryPreview}>
-          <Text className='preview-status-text'>计价失败：{previewError}，点击重试</Text>
-        </View>
-      ) : !preview ? (
-        <View className='preview-status'>
-          <Text className='preview-status-text'>价格计算中...</Text>
-        </View>
-      ) : (
-        <View className='preview-status preview-loading'>
-          <Text className='preview-status-text'>{previewLoading ? '价格更新中...' : ''}</Text>
-        </View>
-      )}
-
       {/* 配送时间 */}
       <DeliveryTimeSelector
         selectedTime={deliveryTime}
@@ -451,8 +435,8 @@ const OrderConfirm: React.FC = () => {
         />
       )}
 
-      {/* 优惠券选择(最优默认勾选,可改选/取消) */}
-      {preview && (
+      {/* 优惠券选择(无可用券时区块整体隐藏;最优默认勾选,可改选/取消) */}
+      {preview && preview.availableCoupons && preview.availableCoupons.length > 0 && (
         <CouponSelector
           coupons={preview.availableCoupons ?? []}
           options={preview.couponOptions ?? []}
@@ -473,31 +457,13 @@ const OrderConfirm: React.FC = () => {
         onRemarkChange={handleRemarkChange}
       />
 
-      {/* 费用明细(服务端计价) */}
-      {preview ? (
-        <CostSummary
-          subtotalCents={normalizeCents(preview.subtotalCents) ?? 0}
-          ticketCoveredQuantity={preview.ticketCoveredQuantity}
-          promotionDiscountCents={normalizeCents(preview.promotionDiscountCents) ?? 0}
-          promotionActivityName={preview.promotionActivityName}
-          firstOrderDiscountCents={normalizeCents(preview.firstOrderDiscountCents) ?? 0}
-          firstOrderActivityName={preview.firstOrderActivityName}
-          couponDiscountCents={normalizeCents(preview.couponDiscountCents) ?? 0}
-          selectedCouponName={preview.selectedCouponName}
-          giftItems={[...(preview.giftItems ?? [])]}
-          deliveryFeeCents={normalizeCents(preview.deliveryFeeCents) ?? 0}
-          payAmountCents={normalizeCents(preview.payAmountCents) ?? 0}
-        />
-      ) : (
-        !previewError && (
-          <View className='cost-section'>
-            <View className='cost-item'>
-              <Text className='cost-label'>费用明细</Text>
-              <Text className='cost-value'>计算中...</Text>
-            </View>
-          </View>
-        )
-      )}
+      {/* 费用明细(服务端计价;失败/未就绪/更新中态内联展示) */}
+      <CostSummary
+        preview={preview}
+        error={previewError}
+        loading={previewLoading}
+        onRetry={handleRetryPreview}
+      />
 
       {/* 服务条款 */}
       <TermsAgreement
@@ -505,11 +471,12 @@ const OrderConfirm: React.FC = () => {
         onTermsChange={handleTermsChange}
       />
 
-      {/* 底部操作栏(计价失败时禁用提交) */}
+      {/* 底部操作栏(计价失败时禁用提交;展示已优惠金额) */}
       <BottomActions
         totalAmount={finalAmount}
         loading={submitting}
         disabled={!preview || !!previewError || previewLoading}
+        discountCents={preview ? preview.totalDiscountCents : 0}
         onSubmit={handleSubmitOrder}
       />
 

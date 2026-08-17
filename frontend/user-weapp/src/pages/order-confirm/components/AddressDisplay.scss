@@ -1,82 +1,115 @@
 @import './Section.styles.scss';
 
 .address-section {
-  .section-content {
-    padding: 0 32px 32px;
-  }
-}
-
-.address-card {
-  background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 123, 255, 0.1);
-  margin-bottom: 24px;
-  padding: 36px;
-  transition: all 0.3s ease;
-  border: 1px solid rgba(0, 123, 255, 0.1);
   cursor: pointer;
 
-  &:hover {
-    box-shadow: 0 12px 48px rgba(0, 123, 255, 0.15);
-    transform: translateY(-4px);
-  }
-
   &:active {
-    background-color: var(--theme-background-page);
-    transform: translateY(0);
+    background-color: var(--bg);
   }
 }
 
-.default-badge {
-  background: linear-gradient(135deg, #ff7043, #ff5722);
-  color: white;
-  padding: 4px 8px;
-  border-radius: 8px;
-  font-size: 22px;
-  font-weight: 600;
-  box-shadow: 0 4px 16px rgba(255, 87, 34, 0.3);
+// 紧凑两行地址(收货人+标签+电话 / 地址+右箭头)
+.address-display {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
+.address-display-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.address-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+
+.address-name {
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.address-default-tag {
+  background: var(--brand-primary-light); // 默认标签:tint 底 + 主色字(§2.2)
+  color: var(--brand-primary);
+  padding: 4px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 20px;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.address-phone {
+  font-size: 26px;
+  color: var(--text-sub);
+  flex-shrink: 0;
+}
+
+.address-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.address-detail {
+  flex: 1;
+  min-width: 0;
+  font-size: 24px;
+  color: var(--text-main);
+  line-height: 1.6;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.address-chevron {
+  color: var(--text-weak);
+  flex-shrink: 0;
+}
+
+// 空态(无地址引导)
 .address-empty {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 60px 32px;
+  padding: 32px 24px;
   text-align: center;
   cursor: pointer;
-  transition: background-color 0.2s ease;
-  background-color: #fff;
-  border-radius: 12px;
-  border: 2px dashed var(--theme-border);
-
-  &:active {
-    background-color: var(--theme-background-page);
-  }
 }
 
-.no-address-icon {
-  margin-bottom: 16px;
-  color: var(--theme-text-tertiary);
+.address-empty-icon {
+  margin-bottom: 12px;
+  color: var(--text-weak);
 }
 
-.no-address-text {
-  font-size: 20px;
-  color: var(--theme-text-secondary);
+.address-empty-text {
+  font-size: 26px;
+  color: var(--text-sub);
   margin-bottom: 16px;
 }
 
-.select-address-btn {
+.address-empty-action {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--theme-primary);
-  font-size: 18px;
+  color: var(--brand-primary);
+  font-size: 26px;
   font-weight: 500;
+}
 
-  .btn-text {
-    color: inherit;
-    font-size: inherit;
-    font-weight: inherit;
-  }
+.address-empty-btn {
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
 }

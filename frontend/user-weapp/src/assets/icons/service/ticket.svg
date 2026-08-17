@@ -1,0 +1,5 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- 我的水票：票券 + 水滴 -->
+  <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v2a2 2 0 0 0 0 3.9v2A2.5 2.5 0 0 1 17.5 17h-11A2.5 2.5 0 0 1 4 14.5v-2a2 2 0 0 0 0-3.9v-2z" stroke="#3A9BD9" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M12 8.2c1.7 2 2.7 3.5 2.7 4.9a2.7 2.7 0 0 1-5.4 0c0-1.4 1-2.9 2.7-4.9z" stroke="#3A9BD9" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

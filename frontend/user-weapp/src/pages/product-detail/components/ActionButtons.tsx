@@ -55,7 +55,7 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         {/* 主要操作按钮(F-PRO-004:加入购物车 + 立即购买) */}
         {status === 'ONLINE' && (
           <View className='flex-1 flex items-center gap-2'>
-            {/* 加入购物车按钮 */}
+            {/* 加入购物车按钮(幽灵按钮:品牌蓝边框字,§2) */}
             <AtButton
               trackTarget="add-to-cart"
               trackElementType="button"
@@ -65,14 +65,16 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               size='small'
               className='h-10 flex-1'
               customStyle={{
-                backgroundColor: stock <= 0 ? '#f5f5f5' : '#fff7f0',
-                borderColor: stock <= 0 ? '#f5f5f5' : '#ff6700',
-                color: stock <= 0 ? '#999' : '#ff6700'
+                backgroundColor: stock <= 0 ? 'var(--text-weak)' : 'transparent',
+                borderColor: stock <= 0 ? 'var(--text-weak)' : 'var(--brand-primary)',
+                color: stock <= 0 ? 'var(--bg-card)' : 'var(--brand-primary)',
+                borderWidth: '1px',
+                borderStyle: 'solid'
               }}
             >
               {stock <= 0 ? '暂时缺货' : '加入购物车'}
             </AtButton>
-            {/* 立即购买按钮 */}
+            {/* 立即购买按钮(强调色 #FF5436 底白字,§2) */}
             <AtButton
               trackTarget="buy-now"
               trackElementType="button"
@@ -83,9 +85,10 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
               size='small'
               className='h-10 flex-1'
               customStyle={{
-                backgroundColor: stock <= 0 ? '#f5f5f5' : '#ff6700',
-                borderColor: stock <= 0 ? '#f5f5f5' : '#ff6700',
-                color: stock <= 0 ? '#999' : '#ffffff'
+                backgroundColor: stock <= 0 ? 'var(--text-weak)' : 'var(--action)',
+                borderColor: stock <= 0 ? 'var(--text-weak)' : 'var(--action)',
+                color: stock <= 0 ? 'var(--bg-card)' : '#ffffff',
+                boxShadow: stock <= 0 ? 'none' : 'var(--shadow-btn)'
               }}
             >
               {stock <= 0 ? '暂时缺货' : '立即购买'}

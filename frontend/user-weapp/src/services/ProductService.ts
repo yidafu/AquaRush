@@ -71,6 +71,8 @@ interface ProductListParams {
   size?: number
   sortBy?: string
   sortDirection?: string
+  /** 关键词(按名称模糊匹配,服务端过滤) */
+  keyword?: string
 }
 
 class ProductService {
@@ -179,7 +181,8 @@ class ProductService {
         page = 0,
         size = 20,
         sortBy = "createdAt",
-        sortDirection = "desc"
+        sortDirection = "desc",
+        keyword
       } = params
 
       const query = `
@@ -188,17 +191,20 @@ query GetActiveProducts(
   $size: Int
   $sortBy: String
   $sortDirection: String
+  $keyword: String
 ) {
   activeProducts(
     page: $page
     size: $size
     sortBy: $sortBy
     sortDirection: $sortDirection
+    keyword: $keyword
   ) {
     list {
       id
       name
       subtitle
+      specification
       priceCents
       originalPriceCents
       depositPriceCents
@@ -221,7 +227,7 @@ query GetActiveProducts(
 
       `
 
-      const variables = { page, size, sortBy, sortDirection }
+      const variables = { page, size, sortBy, sortDirection, keyword }
 
       console.log('Fetching active products with params:', variables)
 

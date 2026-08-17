@@ -1,18 +1,18 @@
 .message-center-page {
   min-height: 100vh;
-  background: #f5f6f7;
+  background: var(--bg);
 }
 
 .message-center-toolbar {
   display: flex;
   justify-content: flex-end;
   padding: 16px 24px 4px;
-  background: #f5f6f7;
+  background: var(--bg);
 }
 
 .message-center-mark-all {
   font-size: 26px;
-  color: var(--theme-primary, #1890ff);
+  color: var(--brand-primary);
 }
 
 .message-center-list {
@@ -22,7 +22,7 @@
 .message-center-empty {
   padding: 120px 0;
   text-align: center;
-  color: #999;
+  color: var(--text-weak);
   font-size: 28px;
 }
 
@@ -31,12 +31,13 @@
   align-items: flex-start;
   margin: 16px 24px;
   padding: 24px;
-  background: #fff;
-  border-radius: 12px;
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
 }
 
 .message-center-item-unread {
-  background: #f0f7ff;
+  background: var(--brand-primary-light);
 }
 
 .message-center-item-body {
@@ -54,7 +55,7 @@
   width: 14px;
   height: 14px;
   border-radius: 50%;
-  background: #ff4d4f;
+  background: var(--brand-primary); // 未读圆点:主色(§9)
   flex-shrink: 0;
 }
 
@@ -63,7 +64,7 @@
   min-width: 0;
   font-size: 30px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-main);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -72,7 +73,7 @@
 .message-center-item-time {
   flex-shrink: 0;
   font-size: 22px;
-  color: #999;
+  color: var(--text-weak);
 }
 
 .message-center-item-summary {
@@ -82,6 +83,6 @@
   overflow: hidden;
   margin-top: 10px;
   font-size: 26px;
-  color: #666;
+  color: var(--text-sub);
   line-height: 1.5;
 }

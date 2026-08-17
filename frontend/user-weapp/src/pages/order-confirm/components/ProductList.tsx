@@ -24,12 +24,16 @@ interface ProductListProps {
 
 /**
  * 商品信息列表(F-ORD-004 多商品下单;单价以服务端计价为准)
+ * 标题右侧展示「共N件」;卡片内边距与图片尺寸与购物车页保持一致。
  */
 const ProductList: React.FC<ProductListProps> = ({ items }) => {
+  const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
+
   return (
     <View className='section product-section'>
       <View className='section-header'>
-        <Text className='section-title'>商品信息{items.length > 1 ? '（共' + items.length + '种）' : ''}</Text>
+        <Text className='section-title'>商品信息</Text>
+        <Text className='section-count'>共{totalQuantity}件</Text>
       </View>
       <View className='product-list'>
         {items.map(item => {

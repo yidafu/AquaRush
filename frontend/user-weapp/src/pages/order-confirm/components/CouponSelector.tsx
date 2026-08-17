@@ -26,7 +26,7 @@ interface CouponSelectorProps {
 /**
  * 优惠券选择(F-MKT-003,F-ORD-023)
  * 单选式选择;最优券默认勾选由父级(引擎 isBest)决定,用户可改选或取消(不用券);
- * 门槛不足/不可用的券置灰不可选,并展示提示文案。
+ * 门槛不足/不可用的券置灰不可选,并展示提示文案;无可用券时整个区块不渲染。
  */
 const CouponSelector: React.FC<CouponSelectorProps> = ({
   coupons,
@@ -34,6 +34,11 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
   selectedCouponId,
   onSelect
 }) => {
+  // 无可用券时区块整体隐藏(无可选即无展示价值,C5)
+  if (coupons.length === 0) {
+    return null
+  }
+
   const optionMap = new Map<string, CouponOptionVo>()
   options.forEach(option => {
     optionMap.set(option.couponId, option)
@@ -41,8 +46,8 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
 
   return (
     <View className='section coupon-selector-section'>
-      <View className='section-header'>
-        <Text className='section-title'>优惠券</Text>
+      <View className='section-label-row'>
+        <Text className='section-label'>优惠券</Text>
       </View>
       <View className='coupon-options'>
         {/* 不用券 */}
@@ -59,47 +64,43 @@ const CouponSelector: React.FC<CouponSelectorProps> = ({
           </View>
         </View>
 
-        {coupons.length === 0 ? (
-          <View className='coupon-options-empty'>
-            <Text className='coupon-options-empty-text'>暂无可用优惠券</Text>
-          </View>
-        ) : (
-          coupons.map(coupon => {
-            const option = optionMap.get(coupon.id)
-            const usable = option?.usable ?? false
-            const discountCents = option ? normalizeCents(option.discountCents) : null
-            const selected = selectedCouponId === coupon.id
+        {coupons.map(coupon => {
+          const option = optionMap.get(coupon.id)
+          const usable = option?.usable ?? false
+          const discountCents = option ? normalizeCents(option.discountCents) : null
+          const selected = selectedCouponId === coupon.id
 
-            return (
-              <View
-                key={coupon.id}
-                className={`coupon-option ${selected ? 'coupon-option-selected' : ''} ${usable ? '' : 'coupon-option-disabled'}`}
-                onClick={() => {
-                  if (usable) onSelect(coupon.id)
-                }}
-              >
-                <View className='coupon-option-info'>
-                  <View className='coupon-option-name-row'>
-                    <Text className='coupon-option-name'>{coupon.name}</Text>
-                    {option?.isBest && <Text className='coupon-option-best'>最优</Text>}
-                  </View>
-                  <Text className='coupon-option-desc'>
-                    {getCouponDiscountText(coupon)} · {getCouponThresholdText(coupon.thresholdCents)}
-                  </Text>
-                  {!usable && (
-                    <Text className='coupon-option-hint'>门槛不足/不可用</Text>
-                  )}
+          return (
+            <View
+              key={coupon.id}
+              className={`coupon-option ${selected ? 'coupon-option-selected' : ''} ${usable ? '' : 'coupon-option-disabled'}`}
+              onClick={() => {
+                if (usable) onSelect(coupon.id)
+              }}
+            >
+              <View className='coupon-option-info'>
+                <View className='coupon-option-name-row'>
+                  <Text className='coupon-option-name'>{coupon.name}</Text>
+                  {option?.isBest && <Text className='coupon-option-best'>最优</Text>}
                 </View>
-                <View className='coupon-option-right'>
+                <Text className='coupon-option-desc'>
+                  {getCouponDiscountText(coupon)} · {getCouponThresholdText(coupon.thresholdCents)}
+                </Text>
+                {!usable && (
+                  <Text className='coupon-option-hint'>门槛不足/不可用</Text>
+                )}
+              </View>
+              <View className='coupon-option-right'>
+                {discountCents != null && (
                   <Text className='coupon-option-discount'>-{displayCents(discountCents)}</Text>
-                  <View className='coupon-option-radio'>
-                    {selected && <View className='coupon-option-radio-dot' />}
-                  </View>
+                )}
+                <View className='coupon-option-radio'>
+                  {selected && <View className='coupon-option-radio-dot' />}
                 </View>
               </View>
-            )
-          })
-        )}
+            </View>
+          )
+        })}
       </View>
     </View>
   )
