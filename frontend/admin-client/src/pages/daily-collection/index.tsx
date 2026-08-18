@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import { Card, Table, Tag, Button, Space, Modal, Form, Input, message, Row, Col, Statistic, Tabs } from 'antd'
 import { useQuery, useMutation } from '@apollo/client'
 import { DAILY_COLLECTION_PAGE_DATA_QUERY } from '../../graphql/queries/daily-collection.graphql'
-import { CONFIRM_DAILY_COLLECTION, REVIEW_RECONCILIATION, EXECUTE_DAILY_RECONCILIATION } from '../../graphql/mutations/daily-collection.graphql'
+import { CONFIRM_DAILY_COLLECTION, REJECT_DAILY_COLLECTION, REVIEW_RECONCILIATION, EXECUTE_DAILY_RECONCILIATION } from '../../graphql/mutations/daily-collection.graphql'
 import type { DailyCollectionRecord, DailyReconciliation } from '../../types/daily-collection'
 import type { ColumnsType } from 'antd/es/table'
 import dayjs from 'dayjs'
@@ -42,6 +42,9 @@ const DailyCollectionPage: React.FC = () => {
   const [reconciliationModalVisible, setReconciliationModalVisible] = useState(false)
   const [selectedReconciliation, setSelectedReconciliation] = useState<DailyReconciliation | null>(null)
   const [reviewForm] = Form.useForm()
+  // 驳回弹窗(G28 争议处理)
+  const [rejectTarget, setRejectTarget] = useState<DailyCollectionRecord | null>(null)
+  const [rejectForm] = Form.useForm()
 
   // 单页单请求:每日收款记录 + 对账记录一次取回(规则 #10)
   const { data: pageData, loading: pageLoading, refetch } = useQuery<{
@@ -59,6 +62,19 @@ const DailyCollectionPage: React.FC = () => {
     onCompleted: () => {
       message.success('确认成功')
       refetch()
+    },
+  })
+
+  // 驳回收款(G28:驳回退回草稿,配送员可改可重提)
+  const [rejectCollection] = useMutation(REJECT_DAILY_COLLECTION, {
+    onCompleted: () => {
+      message.success('已驳回')
+      setRejectTarget(null)
+      rejectForm.resetFields()
+      refetch()
+    },
+    onError: (err) => {
+      message.error('驳回失败: ' + err.message)
     },
   })
 
@@ -97,6 +113,20 @@ const DailyCollectionPage: React.FC = () => {
             },
           },
         })
+      },
+    })
+  }
+
+  // 驳回(G28:必填驳回原因)
+  const handleRejectSubmit = async () => {
+    if (!rejectTarget) return
+    const values = await rejectForm.validateFields()
+    rejectCollection({
+      variables: {
+        input: {
+          recordId: rejectTarget.id,
+          reason: values.rejectReason,
+        },
       },
     })
   }
@@ -210,6 +240,13 @@ const DailyCollectionPage: React.FC = () => {
       },
     },
     {
+      title: '差异说明',
+      dataIndex: 'notes',
+      key: 'notes',
+      ellipsis: true,
+      render: (notes?: string) => notes || '-',
+    },
+    {
       title: '状态',
       dataIndex: 'status',
       key: 'status',
@@ -218,13 +255,32 @@ const DailyCollectionPage: React.FC = () => {
       ),
     },
     {
+      title: '驳回信息',
+      key: 'rejectInfo',
+      render: (_, record) =>
+        record.rejectedAt ? (
+          <span style={{ color: '#ff4d4f', fontSize: 12 }}>
+            驳回: {record.rejectReason || '-'}
+            <br />
+            时间: {record.rejectedAt}
+          </span>
+        ) : (
+          '-'
+        ),
+    },
+    {
       title: '操作',
       key: 'action',
       render: (_, record) => (
         <Space>
-          {record.status === 'SUBMITTED' && (
+          {(record.status === 'SUBMITTED' || record.status === 'DISPUTED') && (
             <Button type="link" onClick={() => handleConfirm(record)}>
               确认
+            </Button>
+          )}
+          {(record.status === 'SUBMITTED' || record.status === 'DISPUTED') && (
+            <Button type="link" danger onClick={() => setRejectTarget(record)}>
+              驳回
             </Button>
           )}
         </Space>
@@ -478,6 +534,34 @@ const DailyCollectionPage: React.FC = () => {
             )}
           </div>
         )}
+      </Modal>
+
+      {/* 驳回弹窗(G28:争议日报驳回,必填原因) */}
+      <Modal
+        title="驳回收款记录"
+        open={!!rejectTarget}
+        onCancel={() => {
+          setRejectTarget(null)
+          rejectForm.resetFields()
+        }}
+        onOk={handleRejectSubmit}
+        okText="确认驳回"
+        okButtonProps={{ danger: true }}
+      >
+        {rejectTarget && (
+          <div style={{ marginBottom: 12, color: '#666' }}>
+            配送员 {rejectTarget.deliveryWorkerId} · {rejectTarget.collectionDate}
+            {rejectTarget.notes ? ` · 差异说明: ${rejectTarget.notes}` : ''}
+          </div>
+        )}
+        <Form form={rejectForm}>
+          <Form.Item
+            name="rejectReason"
+            rules={[{ required: true, message: '请填写驳回原因' }]}
+          >
+            <Input.TextArea rows={3} maxLength={500} placeholder="请输入驳回原因(必填)" />
+          </Form.Item>
+        </Form>
       </Modal>
     </div>
   )

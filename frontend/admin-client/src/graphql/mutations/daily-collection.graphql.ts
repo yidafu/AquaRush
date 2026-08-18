@@ -17,6 +17,26 @@ export const CONFIRM_DAILY_COLLECTION = gql`
       confirmedAt
       confirmedBy
       notes
+      rejectedAt
+      rejectedBy
+      rejectReason
+      createdAt
+      updatedAt
+    }
+  }
+`
+
+// 驳回每日收款(G28 争议处理:驳回退回草稿,配送员可改可重提)
+export const REJECT_DAILY_COLLECTION = gql`
+  mutation RejectDailyCollection($input: RejectDailyCollectionInput!) {
+    rejectDailyCollection(input: $input) {
+      id
+      deliveryWorkerId
+      collectionDate
+      status
+      rejectedAt
+      rejectedBy
+      rejectReason
       createdAt
       updatedAt
     }

@@ -85,6 +85,7 @@ export default function DailyCollectionScreen() {
         };
         const res = await submitDailyCollection(input);
         if (res?.submitDailyCollection) {
+          // 以服务端落库状态回显(G28:超容差提交后为「有争议」DISPUTED,不再强置「已提交」)
           setOrderStats((prev) =>
             prev
               ? {
@@ -92,7 +93,7 @@ export default function DailyCollectionScreen() {
                   cashAmountCents: input.cashAmountCents,
                   waterTicketCount: input.waterTicketCount,
                   qrCodeAmountCents: input.qrCodeAmountCents,
-                  status: DailyCollectionStatus.SUBMITTED,
+                  status: res.submitDailyCollection?.status ?? DailyCollectionStatus.SUBMITTED,
                 }
               : prev,
           );

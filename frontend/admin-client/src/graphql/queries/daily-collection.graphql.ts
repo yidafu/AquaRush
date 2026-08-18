@@ -22,6 +22,9 @@ export const GET_DAILY_COLLECTIONS = gql`
       confirmedAt
       confirmedBy
       notes
+      rejectedAt
+      rejectedBy
+      rejectReason
       createdAt
       updatedAt
     }
@@ -53,6 +56,9 @@ export const DAILY_COLLECTION_PAGE_DATA_QUERY = gql`
       confirmedAt
       confirmedBy
       notes
+      rejectedAt
+      rejectedBy
+      rejectReason
       createdAt
       updatedAt
     }

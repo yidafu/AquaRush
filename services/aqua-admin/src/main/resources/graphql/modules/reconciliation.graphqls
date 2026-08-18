@@ -12,6 +12,7 @@ extend type Mutation {
   # 每日收款管理
   submitDailyCollection(input: SubmitDailyCollectionInput!): DailyCollectionRecord!
   confirmDailyCollection(input: ConfirmDailyCollectionInput!): DailyCollectionRecord!
+  rejectDailyCollection(input: RejectDailyCollectionInput!): DailyCollectionRecord!
   reviewReconciliation(input: ReviewReconciliationInput!): DailyReconciliation!
   executeDailyReconciliation(reconciliationDate: String): DailyReconciliation!
 }

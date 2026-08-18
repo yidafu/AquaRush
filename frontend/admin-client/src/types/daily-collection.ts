@@ -21,6 +21,10 @@ export interface DailyCollectionRecord {
   confirmedAt?: string
   confirmedBy?: string
   notes?: string
+  // 驳回留痕(G28:管理员驳回争议日报)
+  rejectedAt?: string
+  rejectedBy?: string
+  rejectReason?: string
   createdAt: string
   updatedAt: string
 }

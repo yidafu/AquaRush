@@ -76,6 +76,13 @@ data class DailyCollectionRecordModel(
   var confirmedBy: Long? = null,
   @Column(name = "notes", length = 500)
   var notes: String? = null,
+  // 管理员驳回留痕(G28 争议日报驳回,v2.0.0:rejected_at/by/reject_reason)
+  @Column(name = "rejected_at")
+  var rejectedAt: LocalDateTime? = null,
+  @Column(name = "rejected_by")
+  var rejectedBy: Long? = null,
+  @Column(name = "reject_reason", length = 500)
+  var rejectReason: String? = null,
   @Column(name = "created_at", nullable = false, updatable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "updated_at", nullable = false)
