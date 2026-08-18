@@ -38,7 +38,6 @@ object ProductMapper : ObjectMappie<ProductModel, Product>() {
       to::id fromValue (from.id ?: 0L)
       to::priceCents fromProperty from::price
       to::originalPriceCents fromProperty from::originalPrice
-      to::depositPriceCents fromProperty from::depositPrice
       // Fields with same name and type - auto-mapped by Mappie
       to::status fromExpression {
         ProductModelStatusMapper.map(from.status)

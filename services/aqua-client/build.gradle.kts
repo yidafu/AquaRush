@@ -15,7 +15,8 @@ springBoot {
 val dotenvFile = layout.projectDirectory.file(".env")
 val dotenv: Map<String, String> =
   if (dotenvFile.asFile.exists()) {
-    dotenvFile.asFile.readLines()
+    dotenvFile.asFile
+      .readLines()
       .map { it.trim() }
       .filter { it.isNotEmpty() && !it.startsWith("#") && it.contains('=') }
       .mapNotNull { line ->
@@ -24,10 +25,13 @@ val dotenv: Map<String, String> =
           null
         } else {
           line.substring(0, idx).trim() to
-            line.substring(idx + 1).trim().trim('"').trim('\'')
+            line
+              .substring(idx + 1)
+              .trim()
+              .trim('"')
+              .trim('\'')
         }
-      }
-      .toMap()
+      }.toMap()
   } else {
     emptyMap()
   }
@@ -73,6 +77,7 @@ dependencies {
   implementation(project(":modules:aqua-product"))
   implementation(project(":modules:aqua-ops")) // For operations config domain
   implementation(project(":modules:aqua-marketing")) // For marketing domain (F-MKT-001/002/003/004/007)
+  implementation(project(":modules:aqua-deposit")) // For deposit domain (G06 桶押金模块,下单随单收取)
 
   // Entry module specific dependencies
   implementation(libs.spring.boot.starter.web)

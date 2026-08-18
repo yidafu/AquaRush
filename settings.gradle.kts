@@ -27,6 +27,7 @@ include(
   "modules:aqua-platform",
   "modules:aqua-ops",
   "modules:aqua-marketing",
+  "modules:aqua-deposit",
   "services:aqua-client",
   "services:aqua-admin",
 )

@@ -38,6 +38,8 @@ type Query {
   order(id: PrimaryId!): Order
   # 我的订单列表(F-ORD-002,仅本人,分页;statuses 为空=全部)
   myOrders(statuses: [OrderStatus!], page: Int = 0, size: Int = 10): OrderVOPage!
+  # 我的订单状态计数(F-USR-002,G31):仅本人,单请求返回各状态订单数(我的页订单角标)
+  myOrderStatistics: MyOrderStatistics!
   # 订单评价检查(F-ORD-007):已评价内容 + 是否可评(仅已完成订单)
   orderReviewCheck(orderId: PrimaryId!): OrderReviewCheckResponse!
 
@@ -63,6 +65,10 @@ type Query {
   ticketShop: [TicketTypeVO!]!
   # 我的水票(按状态过滤,空=全部)
   myTickets(status: UserTicketStatus): [UserTicketVO!]!
+  # 水桶费商城(买水桶,G06:仅启用价目,按排序;一次性塑料水桶费,独立支付,与商品订单不捆绑)
+  barrelShop: [BarrelFeeVO!]!
+  # 我的水桶(G06:当前用户购桶单,未购买返回 null)
+  myBarrelPurchase: BarrelPurchaseVO
   # 确认订单计价预览(F-ORD-023,促销引擎 R-MKT-02/07/08 全链路,服务端计算 R-MON-01)
   orderPreview(input: OrderPreviewInput!): OrderPreviewVO!
 
@@ -108,6 +114,8 @@ type Mutation {
   claimCoupon(couponTemplateId: PrimaryId!): UserCouponVO!
   # 购买桶水票(在线支付,购票即预收款项,一经购买不支持退款 R-MKT-08)
   purchaseTickets(input: PurchaseTicketsInput!): TicketPurchaseVO!
+  # 购买水桶(一次性塑料水桶费,G06:独立支付,每用户总限购一次;测试环境假支付自动完成)
+  purchaseBarrel(input: PurchaseBarrelInput!): BarrelPurchaseVO!
 
   # ============ 消息中心与订阅消息(PRD 13-notification.md R-NTF-01/04) ============
   # 单条消息标已读(幂等,仅本人消息)
@@ -226,6 +234,22 @@ type OrderPaymentParams {
   autoCompleted: Boolean!
 }
 
+# ============ 我的订单状态计数(F-USR-002,G31) ============
+# 我的页订单角标:按当前用户各状态订单数聚合(仅本人,R-AUTH-02);待配送口径=待派单+待配送
+
+type MyOrderStatistics {
+  # 全部订单数(各状态合计)
+  total: Int!
+  pendingPayment: Int!
+  pendingDispatch: Int!
+  pendingDelivery: Int!
+  delivering: Int!
+  completed: Int!
+  cancelled: Int!
+  # 售后(已退款)
+  refunded: Int!
+}
+
 # ============ 确认订单计价预览(F-ORD-023) ============
 
 input OrderPreviewInput {
@@ -233,7 +257,8 @@ input OrderPreviewInput {
   items: [OrderItemInput!]!
   addressId: PrimaryId! @positive(message: "地址ID必须为正数")
   # 优惠券偏好(省略=引擎自动选最优,0=不用券)
-  preferredCouponId: PrimaryId @min(value: 0, message: "优惠券ID无效")
+  # 类型用 Long 而非 PrimaryId:0 是合法的「不用券」哨兵值,PrimaryId 标量会拒绝 0
+  preferredCouponId: Long @min(value: 0, message: "优惠券ID无效")
   # 水票核销张数
   ticketRedeemCount: Int @min(value: 0, message: "水票核销张数无效") @max(value: 999, message: "水票核销张数不能超过999")
 }
@@ -270,6 +295,8 @@ type OrderPreviewVO {
   payableProductCents: Long!
   # 配送费(分,订单域计算)
   deliveryFeeCents: Long!
+  # 水桶费快照(分,历史字段——2026-08 水桶费改造后新订单恒为 0,见 14-misc.md §G06)
+  depositCents: Long!
   # 实付合计(分)= 商品应付 + 配送费
   payAmountCents: Long!
   # 可用水票张数
@@ -350,4 +377,62 @@ type FeedbackRecordVOPage {
   totalPages: Int!
   size: Int!
   number: Int!
+}
+
+# ============ 水桶费(买水桶,G06:一次性塑料水桶费,独立支付) ============
+
+# 水桶费价目(用户端,仅启用项)
+type BarrelFeeVO {
+  id: PrimaryId!
+  # 规格(如 19L/5L)
+  specification: String!
+  # 价格(分)
+  priceCents: Long!
+}
+
+# 购桶单明细项(规格/单价/数量快照)
+type BarrelPurchaseItemVO {
+  specification: String!
+  unitPriceCents: Long!
+  quantity: Int!
+  amountCents: Long!
+}
+
+# 购桶支付状态
+enum BarrelPaymentStatus {
+  PENDING # 待支付
+  PAID # 已支付(入账)
+  CANCELLED # 已取消
+  REFUNDED # 已退还(管理员手动退还)
+}
+
+# 水桶购买单(用户端;paymentParams=微信支付参数,requiresSimulation=支付桩标记)
+type BarrelPurchaseVO {
+  id: PrimaryId!
+  orderNo: String!
+  totalAmountCents: Long!
+  paymentStatus: BarrelPaymentStatus!
+  # 支付时间(未支付为空)
+  paidAt: LocalDateTime
+  # 退还时间(未退还为空)
+  refundedAt: LocalDateTime
+  # 购买明细
+  items: [BarrelPurchaseItemVO!]!
+  createdAt: LocalDateTime!
+  requiresSimulation: Boolean!
+  paymentParams: JsonObject
+}
+
+# 购桶下单输入(每用户总限购一次,存在已支付购桶单即拦截)
+input PurchaseBarrelInput {
+  # 购桶明细(至少 1 项,数量 ≥ 1)
+  items: [PurchaseBarrelItemInput!]!
+    @size(min: 1, max: 20, message: "购桶明细数量应在1-20之间")
+}
+
+input PurchaseBarrelItemInput {
+  barrelFeeId: PrimaryId!
+  quantity: Int!
+    @min(value: 1, message: "购桶数量不能小于1")
+    @max(value: 99, message: "购桶数量不能大于99")
 }

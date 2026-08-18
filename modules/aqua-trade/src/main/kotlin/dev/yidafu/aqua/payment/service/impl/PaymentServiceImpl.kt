@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.payment.service.impl
 
+import dev.yidafu.aqua.api.service.barrel.BarrelPurchaseMutationService
+import dev.yidafu.aqua.api.service.barrel.BarrelPurchaseQueryService
 import dev.yidafu.aqua.api.service.marketing.TicketMutationApiService
 import dev.yidafu.aqua.api.service.marketing.TicketQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
@@ -29,10 +31,12 @@ import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
+import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
+import dev.yidafu.aqua.common.graphql.generated.RefundType
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.payment.domain.repository.PaymentRefundRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
@@ -58,6 +62,8 @@ class PaymentServiceImpl(
   private val orderMutationService: OrderMutationService,
   private val ticketQueryApiService: TicketQueryApiService,
   private val ticketMutationApiService: TicketMutationApiService,
+  private val barrelPurchaseQueryService: BarrelPurchaseQueryService,
+  private val barrelPurchaseMutationService: BarrelPurchaseMutationService,
   private val paymentRepository: PaymentRepository,
   private val paymentRefundRepository: PaymentRefundRepository,
   private val wechatPayGateway: WechatPayGateway,
@@ -213,6 +219,36 @@ class PaymentServiceImpl(
         return processed
       }
 
+      // 购桶单(水桶费独立支付,G06:一次性塑料水桶费,前缀 BK 单号,见 14-misc.md §G06)
+      val barrelPurchase = barrelPurchaseQueryService.findByOrderNo(outTradeNo)
+      if (barrelPurchase != null) {
+        if (transaction.amountCents != barrelPurchase.totalAmountCents) {
+          logger.error(
+            "支付回调金额不一致(购桶): 单号={}, 回调金额={}, 应付={}",
+            outTradeNo,
+            transaction.amountCents,
+            barrelPurchase.totalAmountCents,
+          )
+          return false
+        }
+        // 幂等:已支付/已退还/已取消的购桶单不重复流转
+        if (barrelPurchase.paymentStatus != BarrelPaymentStatus.PENDING) {
+          logger.info("购桶单 {} 状态为 {},回调跳过", outTradeNo, barrelPurchase.paymentStatus)
+          return true
+        }
+        barrelPurchaseMutationService.handleBarrelPurchasePaid(barrelPurchase.id!!, transaction.transactionId)
+        logger.info("支付回调处理成功(购桶): 单号={}, 交易号={}", outTradeNo, transaction.transactionId)
+        // 业务日志(F-LOG-003 PAYMENT 域):支付完成(购桶)
+        bizLogger.logOperation(
+          operation = "PAYMENT_COMPLETED",
+          module = "PAYMENT",
+          result = "SUCCESS",
+          target = "barrel:$outTradeNo",
+          additionalData = mapOf("transactionId" to transaction.transactionId),
+        )
+        return true
+      }
+
       val purchase = ticketQueryApiService.findPurchaseByOrderNo(outTradeNo)
       if (purchase != null) {
         if (transaction.amountCents != purchase.packagePriceCents) {
@@ -296,10 +332,22 @@ class PaymentServiceImpl(
   }
 
   /**
-   * 申请退款(订单取消触发,R-PAY-02 退款能力):
+   * 申请退款(订单取消触发,R-PAY-02 退款能力):默认订单退款类型 ORDER_REFUND
+   */
+  @Transactional
+  override fun refund(
+    transactionId: String,
+    refundAmountCents: Long,
+    totalAmountCents: Long,
+    reason: String,
+  ): Map<String, Any> = refund(transactionId, refundAmountCents, totalAmountCents, reason, RefundType.ORDER_REFUND)
+
+  /**
+   * 申请退款(带退款类型,R-PAY-02/G06):
    * 真实模式调用微信退款接口;假支付模式直接标记成功。
-   * 退款成功后落 `payment_refunds` 退款记录(status=COMPLETED,PRD「退款须与退款记录一致」),
-   * 供营收统计「退款/净营收」维度按退款成功时间(processed_at)聚合;
+   * 退款成功后落 `payment_refunds` 退款记录(status=COMPLETED + refund_type,
+   * PRD「退款须与退款记录一致」),供营收统计「退款/净营收」维度按退款成功时间(processed_at)聚合;
+   * DEPOSIT_REFUND(水桶费/桶押金退还)不计入退款统计(G06,见 14-misc.md);
    * 交易号未命中支付记录时退款仍执行,仅跳过落库(warn 日志,人工核对)。
    */
   @Transactional
@@ -308,6 +356,7 @@ class PaymentServiceImpl(
     refundAmountCents: Long,
     totalAmountCents: Long,
     reason: String,
+    refundType: RefundType,
   ): Map<String, Any> {
     try {
       // 先取支付记录:退款记录落库与 payments.status 更新共用同一记录
@@ -337,7 +386,7 @@ class PaymentServiceImpl(
       payment?.let {
         it.status = PaymentStatus.REFUNDED
         paymentRepository.save(it)
-        // 退款记录落库(R-PAY-02:退款记录与支付记录一致;退款统计按 processed_at 归属窗口)
+        // 退款记录落库(R-PAY-02:退款记录与支付记录一致;退款统计按 processed_at 归属窗口;refund_type 区分订单/押金退款)
         paymentRefundRepository.save(
           PaymentRefundModel(
             paymentId = it.id!!,
@@ -348,6 +397,7 @@ class PaymentServiceImpl(
             refundAmount = refundAmountCents,
             refundReason = reason,
             status = RefundStatus.COMPLETED,
+            refundType = refundType,
             refundedAt = LocalDateTime.now(),
           ),
         )
@@ -358,7 +408,13 @@ class PaymentServiceImpl(
         module = "PAYMENT",
         result = "SUCCESS",
         target = transactionId,
-        additionalData = mapOf("refundAmountCents" to refundAmountCents, "totalAmountCents" to totalAmountCents, "reason" to reason),
+        additionalData =
+          mapOf(
+            "refundAmountCents" to refundAmountCents,
+            "totalAmountCents" to totalAmountCents,
+            "reason" to reason,
+            "refundType" to refundType.name,
+          ),
       )
       return result
     } catch (e: Exception) {
@@ -440,6 +496,75 @@ class PaymentServiceImpl(
       )
     } catch (e: Exception) {
       logger.error("创建购票支付失败", e)
+      throw BadRequestException("创建支付失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 创建购桶(水桶费)支付订单(G06,PRD 14-misc.md):
+   * 校验购桶单存在且待支付;一次性塑料水桶费,独立支付,每用户总限购一次;
+   * 假支付模式自动完成入账;真实模式走微信预支付。
+   */
+  override fun createWechatJsapiPayForBarrelPurchase(
+    barrelPurchaseId: Long,
+    orderNo: String,
+    amountCents: Long,
+    description: String,
+    openId: String,
+  ): Map<String, Any> {
+    val purchase =
+      barrelPurchaseQueryService.getById(barrelPurchaseId)
+        ?: throw BadRequestException("购桶单不存在: $barrelPurchaseId")
+    if (purchase.paymentStatus != BarrelPaymentStatus.PENDING) {
+      throw BadRequestException("购桶单状态不正确,无法创建支付")
+    }
+    if (mockEnabled) {
+      logger.info("假支付模式:购桶单 {} 支付自动完成", barrelPurchaseId)
+      barrelPurchaseMutationService.handleBarrelPurchasePaid(barrelPurchaseId, mockTransactionId(orderNo))
+      // 业务日志(F-LOG-003 PAYMENT 域):购桶支付完成
+      bizLogger.logOperation(
+        operation = "PAYMENT_COMPLETED",
+        module = "PAYMENT",
+        result = "SUCCESS",
+        target = "barrel:$orderNo",
+        additionalData = mapOf("transactionId" to mockTransactionId(orderNo)),
+      )
+      return mockPaymentParams(orderNo)
+    }
+    if (!wechatPayGateway.isConfigured) {
+      throw NotImplementedError("微信支付未配置(wechat.pay.*),请配置商户参数或开启假支付模式")
+    }
+    return try {
+      val params =
+        wechatPayGateway.prepayWithRequestPayment(
+          WechatPrepayRequest(
+            appId = appId,
+            mchId = mchId,
+            description = description,
+            outTradeNo = orderNo,
+            amountCents = amountCents,
+            openId = openId,
+            notifyUrl = notifyUrl,
+          ),
+        )
+      // 业务日志(F-LOG-003 PAYMENT 域):购桶支付发起
+      bizLogger.logOperation(
+        operation = "PAYMENT_CREATED",
+        module = "PAYMENT",
+        result = "SUCCESS",
+        target = "barrel:$orderNo",
+        additionalData = mapOf("amountCents" to amountCents, "barrelPurchaseId" to barrelPurchaseId),
+      )
+      mapOf(
+        "appId" to params.appId,
+        "timeStamp" to params.timeStamp,
+        "nonceStr" to params.nonceStr,
+        "package" to params.packageVal,
+        "signType" to params.signType,
+        "paySign" to params.paySign,
+      )
+    } catch (e: Exception) {
+      logger.error("创建购桶支付失败", e)
       throw BadRequestException("创建支付失败: ${e.message}")
     }
   }

@@ -77,7 +77,6 @@ class MarketingPricingQueryApiServiceImplTest :
         name = "桶装水",
         price = price,
         originalPrice = null,
-        depositPrice = null,
         coverImageUrl = "http://x/cover.png",
         imageGallery = null,
         specification = "19L",

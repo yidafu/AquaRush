@@ -8,7 +8,6 @@ export const CREATE_PRODUCT_MUTATION = gql`
       subtitle
       priceCents
       originalPriceCents
-      depositPriceCents
       coverImageUrl
       imageGallery
       specification
@@ -35,7 +34,6 @@ export const UPDATE_PRODUCT_MUTATION = gql`
       subtitle
       priceCents
       originalPriceCents
-      depositPriceCents
       coverImageUrl
       imageGallery
       specification

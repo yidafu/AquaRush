@@ -11,7 +11,6 @@ interface Product {
   subtitle?: string;
   priceCents: number;
   originalPriceCents?: number;
-  depositPriceCents?: number;
   coverImageUrl?: string;
   imageGallery?: string;
   specification: string;

@@ -163,7 +163,6 @@ class ClientMarketingResolverTest :
         name = "桶装水19L",
         price = 2100,
         originalPrice = null,
-        depositPrice = null,
         coverImageUrl = "http://x/cover.png",
         imageGallery = null,
         specification = "19L",
@@ -375,7 +374,12 @@ class ClientMarketingResolverTest :
       every { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() } returns
         DeliveryFeeRuleModel(freeFloorLimit = 4, surchargeCents = 200)
       val resolver =
-        ClientOrderPreviewResolver(orderMutationService, deliveryFeeRuleQueryApiService, addressQueryApiService, couponQueryApiService)
+        ClientOrderPreviewResolver(
+          orderMutationService,
+          deliveryFeeRuleQueryApiService,
+          addressQueryApiService,
+          couponQueryApiService,
+        )
 
       val result =
         resolver.orderPreview(
@@ -397,7 +401,12 @@ class ClientMarketingResolverTest :
       val otherAddress = address().apply { userId = 999L }
       every { addressQueryApiService.findById(1L) } returns otherAddress
       val resolver =
-        ClientOrderPreviewResolver(orderMutationService, deliveryFeeRuleQueryApiService, addressQueryApiService, couponQueryApiService)
+        ClientOrderPreviewResolver(
+          orderMutationService,
+          deliveryFeeRuleQueryApiService,
+          addressQueryApiService,
+          couponQueryApiService,
+        )
 
       val result =
         kotlin.runCatching {

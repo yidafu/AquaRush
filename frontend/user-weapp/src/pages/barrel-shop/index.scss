@@ -1,0 +1,155 @@
+@import '@/styles/theme.scss';
+
+.barrel-shop-page {
+  min-height: 100vh;
+  background-color: var(--theme-background-page);
+  padding: 0 32px 160px; // 底部预留购买栏高度
+  box-sizing: border-box;
+}
+
+.barrel-shop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 8px 24px;
+}
+
+.barrel-shop-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--theme-text-primary);
+}
+
+.barrel-shop-link {
+  font-size: 24px;
+  color: var(--theme-text-secondary);
+}
+
+.barrel-tip {
+  background: var(--theme-background);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 32px;
+}
+
+.barrel-tip-text {
+  font-size: 22px;
+  line-height: 1.6;
+  color: var(--theme-text-secondary);
+}
+
+.barrel-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.barrel-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--theme-background);
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  padding: 28px 32px;
+}
+
+.barrel-card-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.barrel-name {
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.barrel-price {
+  font-size: 30px;
+  font-weight: 700;
+  color: #e64340;
+}
+
+.barrel-qty {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.barrel-qty-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--theme-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.barrel-qty-btn-disabled {
+  opacity: 0.4;
+}
+
+.barrel-qty-btn-text {
+  color: #ffffff;
+  font-size: 36px;
+  line-height: 1;
+}
+
+.barrel-qty-num {
+  min-width: 48px;
+  text-align: center;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.barrel-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  padding-bottom: calc(20px + env(safe-area-inset-bottom));
+  background: var(--theme-background);
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.06);
+  z-index: 10;
+}
+
+.barrel-footer-total {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.barrel-footer-label {
+  font-size: 26px;
+  color: var(--theme-text-secondary);
+}
+
+.barrel-footer-amount {
+  font-size: 36px;
+  font-weight: 700;
+  color: #e64340;
+}
+
+.barrel-buy-btn {
+  background: var(--theme-primary);
+  border-radius: 44px;
+  padding: 18px 56px;
+}
+
+.barrel-buy-btn-disabled {
+  opacity: 0.5;
+}
+
+.barrel-buy-text {
+  color: #ffffff;
+  font-size: 28px;
+  font-weight: 600;
+}

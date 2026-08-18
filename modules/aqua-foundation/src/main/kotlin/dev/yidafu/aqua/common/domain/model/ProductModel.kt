@@ -48,8 +48,6 @@ open class ProductModel(
   var price: Long = 0,
   @Column(name = "original_price_cents")
   var originalPrice: Long? = null,
-  @Column(name = "deposit_price_cents")
-  var depositPrice: Long? = null,
   @Column(name = "thumbnail_url", nullable = false)
   var coverImageUrl: String = "",
   @JdbcTypeCode(SqlTypes.JSON)
@@ -101,9 +99,6 @@ open class ProductModel(
 
   val originalPriceYuan: BigDecimal?
     get() = originalPrice?.let { MoneyUtils.fromCents(it) }
-
-  val depositPriceYuan: BigDecimal?
-    get() = depositPrice?.let { MoneyUtils.fromCents(it) }
 
   // Helper method to check if product is low stock
   fun isLowStock(threshold: Int = 10): Boolean = stock <= threshold

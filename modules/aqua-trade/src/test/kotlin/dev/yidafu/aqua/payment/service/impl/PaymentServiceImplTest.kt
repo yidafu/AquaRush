@@ -19,14 +19,18 @@
 
 package dev.yidafu.aqua.payment.service.impl
 
+import dev.yidafu.aqua.api.service.barrel.BarrelPurchaseMutationService
+import dev.yidafu.aqua.api.service.barrel.BarrelPurchaseQueryService
 import dev.yidafu.aqua.api.service.marketing.TicketMutationApiService
 import dev.yidafu.aqua.api.service.marketing.TicketQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
+import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
+import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
@@ -57,6 +61,8 @@ class PaymentServiceImplTest :
     var orderMutationService: OrderMutationService = mockk()
     var ticketQueryApiService: TicketQueryApiService = mockk()
     var ticketMutationApiService: TicketMutationApiService = mockk()
+    var barrelPurchaseQueryService: BarrelPurchaseQueryService = mockk()
+    var barrelPurchaseMutationService: BarrelPurchaseMutationService = mockk()
     var paymentRepository: PaymentRepository = mockk()
     var paymentRefundRepository: PaymentRefundRepository = mockk()
     var wechatPayGateway: WechatPayGateway = mockk()
@@ -89,6 +95,15 @@ class PaymentServiceImplTest :
         paymentStatus = TicketPurchaseStatus.PENDING,
       )
 
+    fun barrelPurchase(orderNo: String = "BK2025-001") =
+      BarrelPurchaseModel(
+        id = 1L,
+        userId = 100L,
+        orderNo = orderNo,
+        totalAmountCents = 4000,
+        paymentStatus = BarrelPaymentStatus.PENDING,
+      )
+
     fun callbackTransaction(
       orderNo: String = "ORD-TEST-001",
       transactionId: String = "WX-TXN-001",
@@ -117,6 +132,8 @@ class PaymentServiceImplTest :
       orderMutationService = mockk(relaxed = true)
       ticketQueryApiService = mockk(relaxed = true)
       ticketMutationApiService = mockk(relaxed = true)
+      barrelPurchaseQueryService = mockk(relaxed = true)
+      barrelPurchaseMutationService = mockk(relaxed = true)
       paymentRepository = mockk(relaxed = true)
       paymentRefundRepository = mockk(relaxed = true)
       wechatPayGateway = mockk(relaxed = true)
@@ -128,6 +145,8 @@ class PaymentServiceImplTest :
           orderMutationService,
           ticketQueryApiService,
           ticketMutationApiService,
+          barrelPurchaseQueryService,
+          barrelPurchaseMutationService,
           paymentRepository,
           paymentRefundRepository,
           wechatPayGateway,
@@ -155,6 +174,14 @@ class PaymentServiceImplTest :
 
       (result["mock"] == true) shouldBe true
       verify(exactly = 1) { ticketMutationApiService.handleTicketPurchasePaid(1L, "MOCK-TP2025-001") }
+    }
+    test("mockModeAutoCompletesBarrelPurchasePayment (G06)") {
+      every { barrelPurchaseQueryService.getById(1L) } returns barrelPurchase()
+
+      val result = service.createWechatJsapiPayForBarrelPurchase(1L, "BK2025-001", 4000, "水桶费", "openid-1")
+
+      (result["mock"] == true) shouldBe true
+      verify(exactly = 1) { barrelPurchaseMutationService.handleBarrelPurchasePaid(1L, "MOCK-BK2025-001") }
     }
     test("mockModeRejectsAmountMismatch") {
       every { orderQueryService.getOrderById(1L) } returns order()
@@ -318,6 +345,8 @@ class PaymentServiceImplTest :
       every { wechatPayGateway.parseNotification(any(), any(), any(), any(), any()) } returns
         callbackTransaction(orderNo = "TP2025-001", amountCents = 10000)
       every { orderQueryApiService.findByOrderNumber("TP2025-001") } returns null
+      // 购桶单先行匹配(回调派发顺序:订单 → 购桶 → 购票,G06):无匹配购桶单
+      every { barrelPurchaseQueryService.findByOrderNo("TP2025-001") } returns null
       every { ticketQueryApiService.findPurchaseByOrderNo("TP2025-001") } returns ticketPurchase()
 
       val ok = service.handleWechatPayCallback("{}", emptyMap())
@@ -330,6 +359,34 @@ class PaymentServiceImplTest :
       val ok2 = service.handleWechatPayCallback("{}", emptyMap())
       ok2 shouldBe true
       verify(exactly = 1) { ticketMutationApiService.handleTicketPurchasePaid(any(), any()) }
+    }
+    test("callbackProcessesBarrelPurchaseWithIdempotency (G06)") {
+      every { wechatPayGateway.parseNotification(any(), any(), any(), any(), any()) } returns
+        callbackTransaction(orderNo = "BK2025-001", amountCents = 4000)
+      every { orderQueryApiService.findByOrderNumber("BK2025-001") } returns null
+      every { barrelPurchaseQueryService.findByOrderNo("BK2025-001") } returns barrelPurchase()
+
+      val ok = service.handleWechatPayCallback("{}", emptyMap())
+      ok shouldBe true
+      verify(exactly = 1) { barrelPurchaseMutationService.handleBarrelPurchasePaid(1L, "WX-TXN-001") }
+
+      // 重复回调:已支付 → 幂等跳过
+      val paid = barrelPurchase().also { it.paymentStatus = BarrelPaymentStatus.PAID }
+      every { barrelPurchaseQueryService.findByOrderNo("BK2025-001") } returns paid
+      val ok2 = service.handleWechatPayCallback("{}", emptyMap())
+      ok2 shouldBe true
+      verify(exactly = 1) { barrelPurchaseMutationService.handleBarrelPurchasePaid(any(), any()) }
+    }
+    test("callbackWithBarrelAmountMismatchRejects (G06)") {
+      every { wechatPayGateway.parseNotification(any(), any(), any(), any(), any()) } returns
+        callbackTransaction(orderNo = "BK2025-001", amountCents = 999)
+      every { orderQueryApiService.findByOrderNumber("BK2025-001") } returns null
+      every { barrelPurchaseQueryService.findByOrderNo("BK2025-001") } returns barrelPurchase()
+
+      val ok = service.handleWechatPayCallback("{}", emptyMap())
+
+      ok shouldBe false
+      verify(exactly = 0) { barrelPurchaseMutationService.handleBarrelPurchasePaid(any(), any()) }
     }
     test("callbackWithoutMatchingOrderRejects") {
       every { wechatPayGateway.parseNotification(any(), any(), any(), any(), any()) } returns callbackTransaction(orderNo = "UNKNOWN-001")

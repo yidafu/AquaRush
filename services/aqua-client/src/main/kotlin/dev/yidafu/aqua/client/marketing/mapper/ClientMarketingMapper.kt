@@ -226,6 +226,8 @@ fun OrderPricingResult.toGraphQL(
     totalDiscountCents = totalDiscountCents,
     payableProductCents = payableProductCents,
     deliveryFeeCents = deliveryFeeCents,
+    // 水桶费快照(分,历史字段——2026-08 水桶费改造后新订单恒为 0,见 14-misc.md §G06)
+    depositCents = 0L,
     payAmountCents = payAmountCents,
     availableTicketCount = availableTicketCount,
     couponOptions = couponOptions.map { it.toGraphQL() },

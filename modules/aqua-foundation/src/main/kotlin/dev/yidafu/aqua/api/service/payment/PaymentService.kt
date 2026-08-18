@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.api.service.payment
 
+import dev.yidafu.aqua.common.graphql.generated.RefundType
+
 /**
  * 支付服务接口(PRD 04-order.md §F-ORD-005/R-PAY-01~03)
  */
@@ -60,6 +62,19 @@ interface PaymentService {
   ): Map<String, Any>
 
   /**
+   * 申请退款(带退款类型,R-PAY-02/G06):
+   * 退款记录落 payment_refunds.refund_type,供退款统计区分订单退款与押金/水桶费退还
+   * (DEPOSIT_REFUND 不计入退款/净营收统计,见 14-misc.md §G06)。
+   */
+  fun refund(
+    transactionId: String,
+    refundAmountCents: Long,
+    totalAmountCents: Long,
+    reason: String,
+    refundType: RefundType,
+  ): Map<String, Any>
+
+  /**
    * 处理支付超时
    */
   fun handlePaymentTimeout(orderId: Long)
@@ -70,6 +85,18 @@ interface PaymentService {
    */
   fun createWechatJsapiPayForTicket(
     ticketPurchaseId: Long,
+    orderNo: String,
+    amountCents: Long,
+    description: String,
+    openId: String,
+  ): Map<String, Any>
+
+  /**
+   * 创建购桶(水桶费)支付订单(PRD 14-misc.md §G06):
+   * orderNo 为购桶单号(前缀 BK,微信 out_trade_no);一次性塑料水桶费,独立支付,每用户总限购一次。
+   */
+  fun createWechatJsapiPayForBarrelPurchase(
+    barrelPurchaseId: Long,
     orderNo: String,
     amountCents: Long,
     description: String,

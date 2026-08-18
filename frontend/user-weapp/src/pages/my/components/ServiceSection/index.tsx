@@ -45,6 +45,14 @@ const ServiceSection: React.FC<ServiceSectionProps> = ({ unreadCount = 0 }) => {
       onClick: () => {
         Taro.navigateTo({ url: '/pages/ticket-list/index' })
       }
+    },
+    {
+      icon: '/assets/icons/service/ticket',
+      title: '买水桶',
+      description: '一次性购买塑料水桶',
+      onClick: () => {
+        Taro.navigateTo({ url: '/pages/barrel-shop/index' })
+      }
     }
   ]
 

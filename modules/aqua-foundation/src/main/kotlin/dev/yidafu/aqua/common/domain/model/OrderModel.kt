@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryPhotoReviewStatus
 import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
@@ -85,6 +86,9 @@ data class OrderModel(
   // 水票核销桶数(一票抵一桶,被核销桶按单价 0 计入 —— R-MKT-08)
   @Column(name = "ticket_redeem_count", nullable = false)
   var ticketRedeemCount: Int = 0,
+  // 水票抵扣金额(分,= 商品小计 - 现金小计,随单快照 —— R-MKT-08)
+  @Column(name = "ticket_discount_cents", nullable = false)
+  var ticketDiscountCents: Long = 0,
   // 首单立减(叠加①,与满减互斥取最大 —— R-MKT-10)
   @Column(name = "first_order_activity_id")
   var firstOrderActivityId: Long? = null,
@@ -109,6 +113,19 @@ data class OrderModel(
   @JdbcTypeCode(SqlTypes.JSON)
   @Column(name = "delivery_photos", columnDefinition = "json")
   var deliveryPhotos: String? = null,
+  // 配送照片核验(G23/F-ORD-021):核验状态/时间/核验人/备注留痕
+  @Column(name = "delivery_photo_review_status")
+  @Enumerated(EnumType.STRING)
+  var deliveryPhotoReviewStatus: DeliveryPhotoReviewStatus? = null,
+  @Column(name = "delivery_photo_reviewed_at")
+  var deliveryPhotoReviewedAt: LocalDateTime? = null,
+  @Column(name = "delivery_photo_reviewed_by")
+  var deliveryPhotoReviewedBy: Long? = null,
+  @Column(name = "delivery_photo_review_remark", length = 500)
+  var deliveryPhotoReviewRemark: String? = null,
+  // 桶押金(分,R-MON-03/G06:下单时按商品押金快照合计,随单一并收取;退还时退回)
+  @Column(name = "deposit_amount_cents", nullable = false)
+  var depositCents: Long = 0,
   @Column(name = "is_self_collect", nullable = false)
   var isSelfCollect: Boolean = false,
   @Column(name = "payment_type")
@@ -159,7 +176,7 @@ data class OrderModel(
   val totalAmount: BigDecimal
     get() = MoneyUtils.fromCents(amountCents)
 
-  // 应付合计(分)= 商品金额 + 配送费(纯展示口径,支付流暂不包含配送费 —— G17 待接)
+  // 应付合计(分)= 商品金额 + 配送费 + 桶押金(随单收取,R-MON-03/G06)
   val payAmountCents: Long
-    get() = amountCents + deliveryFeeCents
+    get() = amountCents + deliveryFeeCents + depositCents
 }

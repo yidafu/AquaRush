@@ -1,0 +1,136 @@
+# 水桶费管理(G06:一次性塑料水桶费——独立价目表 + 购桶单 + 管理员手动退还)
+# 水桶费为一次性塑料水桶费用,用户独立支付购桶(与商品订单不捆绑),每用户总限购一次;
+# 一般不可退,特殊情况由管理员手动退还(执行 DEPOSIT_REFUND,不计入退款/净营收统计)
+
+# 水桶费价目状态
+enum BarrelFeeStatus {
+  ENABLED # 启用(用户端可购)
+  DISABLED # 停用
+}
+
+# 购桶单支付状态
+enum BarrelPaymentStatus {
+  PENDING # 待支付
+  PAID # 已支付(入账)
+  CANCELLED # 已取消
+  REFUNDED # 已退还(管理员手动退还)
+}
+
+# 水桶费价目(按规格,与商品解耦)
+type BarrelFee {
+  id: PrimaryId!
+  # 规格(唯一,如 19L/5L)
+  specification: String!
+  # 价格(分)
+  priceCents: Long!
+  # 状态
+  status: BarrelFeeStatus!
+  # 排序权重(升序)
+  sortOrder: Int!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+# 水桶费价目分页
+type BarrelFeePage {
+  content: [BarrelFee!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 购桶单明细(规格/单价/数量快照,配置变更不影响已生成购桶单)
+type BarrelPurchaseItem {
+  # 规格快照
+  specification: String!
+  # 单价快照(分)
+  unitPriceCents: Long!
+  quantity: Int!
+  # 金额小计(分)= 单价 × 数量
+  amountCents: Long!
+}
+
+# 水桶购买单(一次性购桶,独立支付)
+type BarrelPurchase {
+  id: PrimaryId!
+  # 购桶单号(BK 前缀,支付 out_trade_no)
+  orderNo: String!
+  # 购买用户
+  userId: PrimaryId!
+  # 购桶总额(分)
+  totalAmountCents: Long!
+  paymentStatus: BarrelPaymentStatus!
+  # 支付时间
+  paidAt: LocalDateTime
+  # 退还时间
+  refundedAt: LocalDateTime
+  # 退还操作人(管理员)
+  refundedBy: PrimaryId
+  # 退还备注
+  refundRemark: String
+  # 用户备注
+  remark: String
+  # 购桶明细
+  items: [BarrelPurchaseItem!]!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+# 购桶单分页
+type BarrelPurchasePage {
+  content: [BarrelPurchase!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input CreateBarrelFeeInput {
+  specification: String! @notBlank(message: "规格不能为空") @size(max: 100, message: "规格不能超过100个字符")
+  priceCents: Long!
+    @min(value: 0, message: "水桶费不能小于0")
+    @max(value: 9999900, message: "水桶费不能大于99999元")
+  sortOrder: Int! @min(value: 0, message: "排序权重不能小于0") @max(value: 9999, message: "排序权重不能大于9999")
+}
+
+input UpdateBarrelFeeInput {
+  specification: String @notBlank(message: "规格不能为空") @size(max: 100, message: "规格不能超过100个字符")
+  priceCents: Long
+    @min(value: 0, message: "水桶费不能小于0")
+    @max(value: 9999900, message: "水桶费不能大于99999元")
+  sortOrder: Int @min(value: 0, message: "排序权重不能小于0") @max(value: 9999, message: "排序权重不能大于9999")
+}
+
+input BarrelFeeListInput {
+  status: BarrelFeeStatus
+  keyword: String
+  page: Int = 0
+  size: Int = 20
+}
+
+input BarrelPurchaseListInput {
+  status: BarrelPaymentStatus
+  dateFrom: LocalDateTime
+  dateTo: LocalDateTime
+  page: Int = 0
+  size: Int = 20
+}
+
+extend type Query {
+  # 水桶费价目分页查询(状态/关键词筛选;PERMISSION_PAYMENT_READ)
+  barrelFees(input: BarrelFeeListInput): BarrelFeePage!
+  # 购桶单分页查询(状态/时间范围筛选;PERMISSION_PAYMENT_READ)
+  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchasePage!
+}
+
+extend type Mutation {
+  # 新增水桶费价目(PERMISSION_PAYMENT_WRITE)
+  createBarrelFee(input: CreateBarrelFeeInput!): BarrelFee!
+  # 编辑水桶费价目(PERMISSION_PAYMENT_WRITE)
+  updateBarrelFee(id: PrimaryId!, input: UpdateBarrelFeeInput!): BarrelFee!
+  # 停用水桶费价目(停用后用户端不可购;不影响已生成购桶单;PERMISSION_PAYMENT_WRITE)
+  disableBarrelFee(id: PrimaryId!): BarrelFee!
+  # 退还水桶费(管理员手动退还,执行退款并置「已退还」;PERMISSION_PAYMENT_REFUND)
+  refundBarrelPurchase(purchaseId: PrimaryId!, remark: String): BarrelPurchase!
+}

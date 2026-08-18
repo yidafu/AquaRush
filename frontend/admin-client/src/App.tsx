@@ -44,6 +44,8 @@ import SystemNotificationsConfig from './pages/system/notifications';
 import NotificationMessages from './pages/notifications/messages';
 import SystemDataMaintenanceConfig from './pages/system/data';
 import DeliveryTrajectories from './pages/trajectories';
+import RefundManagementPage from './pages/payments/refunds';
+import BarrelManagementPage from './pages/barrels';
 
 // 浏览器标签页标题由 react-helmet-async 统一管理,与 Layout 菜单文案保持一致;
 // 页面标题属于实现细节,不在 PRD 中逐页描述。
@@ -92,6 +94,8 @@ const App: React.FC = () => {
         <Route path="logs/user-actions" element={page('用户操作', <UserActionLogs />)} />
         <Route path="logs/business" element={page('业务日志', <BusinessLogs />)} />
         <Route path="daily-collection" element={page('收银对账', <DailyCollection />)} />
+        <Route path="payments/refunds" element={page('退款管理', <RefundManagementPage />)} />
+        <Route path="barrels" element={page('水桶费管理', <BarrelManagementPage />)} />
         <Route path="ops/banners" element={page('首页轮播', <OpsBanners />)} />
         <Route path="ops/feedbacks" element={page('意见反馈', <OpsFeedbacks />)} />
         <Route path="ops/notices" element={page('公告', <OpsNotices />)} />

@@ -41,7 +41,6 @@ class DomainModelBehaviorTest :
         name = "水",
         price = price,
         originalPrice = 1200L,
-        depositPrice = 50L,
         stock = stock,
         status = status,
         createdAt = LocalDateTime.now(),
@@ -66,12 +65,10 @@ class DomainModelBehaviorTest :
     test("ProductModel priceYuan should convert cents") {
       product().priceYuan shouldBe BigDecimal("10.00")
       product().originalPriceYuan shouldBe BigDecimal("12.00")
-      product().depositPriceYuan shouldBe BigDecimal("0.50")
     }
     test("ProductModel originalPriceYuan should be null when unset") {
       val p = ProductModel(name = "水", price = 100L)
       p.originalPriceYuan.shouldBeNull()
-      p.depositPriceYuan.shouldBeNull()
     }
     test("ProductModel isLowStock should check threshold") {
       product(stock = 5).isLowStock() shouldBe true

@@ -182,19 +182,15 @@ export const ProductFormFields: React.FC<ProductFormFieldsProps> = ({
         </Col>
         <Col span={8}>
           <Form.Item
-            label="押金（元）"
-            name="depositPrice"
-            rules={[
-              { type: 'number', min: 0, max: 99999, message: '押金应在0-99999元之间' }
-            ]}
+            label="排序权重"
+            name="sortOrder"
           >
             <InputNumber
               min={0}
-              max={99999}
-              precision={2}
-              placeholder="0.00"
+              max={9999}
+              precision={0}
+              placeholder="0"
               style={{ width: '100%' }}
-              addonAfter="元"
             />
           </Form.Item>
         </Col>

@@ -43,7 +43,6 @@ class AdminFavoriteQueryResolverTest :
         name = "桶装水19L",
         price = 2100,
         originalPrice = null,
-        depositPrice = null,
         coverImageUrl = "http://x/cover.png",
         imageGallery = null,
         specification = "19L",

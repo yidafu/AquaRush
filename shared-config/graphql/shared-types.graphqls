@@ -54,6 +54,19 @@ enum OrderStatus {
   REFUNDED
 }
 
+# 配送照片核验状态(G23/F-ORD-021:后台「通过/驳回」核验流)
+enum DeliveryPhotoReviewStatus {
+  PENDING # 待核验(已上传照片,未审核)
+  APPROVED # 已通过
+  REJECTED # 已驳回
+}
+
+# 配送照片核验动作(G23:后台核验操作)
+enum DeliveryPhotoReviewAction {
+  APPROVE # 通过
+  REJECT # 驳回
+}
+
 enum ProductStatus {
   ONLINE
   OFFLINE
@@ -183,8 +196,6 @@ type Product {
   priceCents: Long!
   # 商品原价（分）
   originalPriceCents: Long
-  # 押金价格（分）
-  depositPriceCents: Long
   # 商品封面图片URL
   coverImageUrl: String!
   # 商品图片画廊
@@ -308,6 +319,16 @@ type Order {
   deliveryWorker: DeliveryWorker
   # 配送照片列表
   deliveryPhotos: [String!]
+  # 配送照片核验状态(PENDING/APPROVED/REJECTED;null=未核验 —— G23/F-ORD-021)
+  deliveryPhotoReviewStatus: DeliveryPhotoReviewStatus
+  # 配送照片核验时间
+  deliveryPhotoReviewedAt: LocalDateTime
+  # 配送照片核验人ID
+  deliveryPhotoReviewedBy: PrimaryId
+  # 配送照片核验备注
+  deliveryPhotoReviewRemark: String
+  # 水桶费快照(分,历史字段——2026-08 水桶费改造后新订单恒为 0,仅旧订单有值,见 14-misc.md §G06)
+  depositCents: Long!
   # 是否自收（水钱已收/水票已扣）
   isSelfCollect: Boolean!
   # 收款方式
@@ -328,10 +349,20 @@ type Order {
   updatedAt: LocalDateTime!
   # 满减/折扣优惠快照(分,叠加① —— R-MKT-07)
   promotionDiscountCents: Long
+  # 满减/折扣活动名快照(费用明细「满减(活动名)」展示 —— R-MKT-04)
+  promotionActivityName: String
   # 首单立减优惠(分,叠加①与满减互斥取最大 —— R-MKT-10)
   firstOrderDiscountCents: Long
+  # 首单立减活动名快照(费用明细「首单立减(活动名)」展示 —— R-MKT-10)
+  firstOrderActivityName: String
   # 优惠券优惠快照(分,叠加③ —— R-MKT-07,一单一券)
   couponDiscountCents: Long
+  # 优惠券名快照(费用明细「优惠券(券名)」展示 —— R-MKT-03)
+  couponName: String
+  # 水票核销张数快照(一票抵一桶,费用明细「水票抵扣(N桶)」展示 —— R-MKT-08)
+  ticketRedeemCount: Int
+  # 水票抵扣金额快照(分,被核销桶按单价 0 计入应付的差额 —— R-MKT-08)
+  ticketDiscountCents: Long
   # 买赠/满赠赠品行(附加 0 价行,随单配送 —— R-MKT-09)
   giftItems: [GiftItemVO!]
 }
@@ -744,6 +775,27 @@ input UpdateAddressInput {
   isDefault: Boolean
 }
 
+# 送水端订单页地址信息修改(F-ORD-024):配送员/管理员在配送任务中修正收货人信息、
+# 定位(WGS-84 经纬度)与楼层等;仅传入字段生效(不传=保持不变),空值字段不覆盖。
+input UpdateOrderAddressInput {
+  receiverName: String
+    @notBlank(message: "收货人姓名不能为空")
+    @size(min: 2, max: 20, message: "收货人姓名长度应在2-20个字符之间")
+  phone: String
+    @notBlank(message: "收货人手机号不能为空")
+    @pattern(regexp: "^1[3-9]\\d{9}$", message: "手机号格式不正确")
+  detailAddress: String
+    @notBlank(message: "详细地址不能为空")
+    @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
+  floor: Int @min(value: 1, message: "楼层必须大于0")
+  longitude: Float
+    @min(value: -180, message: "经度不能小于-180")
+    @max(value: 180, message: "经度不能大于180")
+  latitude: Float
+    @min(value: -90, message: "纬度不能小于-90")
+    @max(value: 90, message: "纬度不能大于90")
+}
+
 input AddressInput {
   receiverName: String!
     @notBlank(message: "收货人姓名不能为空")
@@ -791,7 +843,8 @@ input CreateOrderInput {
   # 配送时段(AC-ORD-001-05,缺省=立即配送 IMMEDIATE)
   deliveryTime: DeliveryTimeSlot
   # 优惠券选择(促销引擎 R-MKT-07 叠加③):省略=引擎自动选最优,0=不用券;一单一券
-  preferredCouponId: PrimaryId @min(value: 0, message: "优惠券ID无效")
+  # 类型用 Long 而非 PrimaryId:0 是合法的「不用券」哨兵值,PrimaryId 标量会拒绝 0
+  preferredCouponId: Long @min(value: 0, message: "优惠券ID无效")
   # 水票核销张数(一票抵一桶 R-MKT-08,≤下单桶数 ∩ 可用张数)
   ticketRedeemCount: Int
     @min(value: 0, message: "水票核销张数无效")
@@ -827,9 +880,6 @@ input CreateProductInput {
     @positive(message: "原价必须为正数")
     @min(value: 1, message: "原价不能小于1分")
     @max(value: 9999900, message: "原价不能大于99999元")
-  depositPriceCents: Long
-    @min(value: 0, message: "押金不能小于0")
-    @max(value: 9999900, message: "押金不能大于99999元")
   coverImageUrl: String!
     @notBlank(message: "商品封面图片不能为空")
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
@@ -867,9 +917,6 @@ input UpdateProductInput {
     @positive(message: "原价必须为正数")
     @min(value: 1, message: "原价不能小于1分")
     @max(value: 9999900, message: "原价不能大于99999元")
-  depositPriceCents: Long
-    @min(value: 0, message: "押金不能小于0")
-    @max(value: 9999900, message: "押金不能大于99999元")
   coverImageUrl: String
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
   imageGallery: JsonArray
@@ -1212,6 +1259,12 @@ enum RefundStatus {
   FAILED
 }
 
+# 退款类型(R-PAY-02/G06:退款账本区分口径,营收统计仅计入 ORDER_REFUND)
+enum RefundType {
+  ORDER_REFUND # 订单退款(含商品+配送费)
+  DEPOSIT_REFUND # 水桶费退还(含历史桶押金退还,不计入退款/净营收统计)
+}
+
 # Payment Transaction Types
 type PaymentTransaction {
   # 交易ID
@@ -1418,6 +1471,26 @@ type ProductStatistics {
   favoriteStatistics: [ProductFavoriteStat!]!
   totalSales: Int!
   totalFavorites: Int!
+  # 库存预警明细(F-STA-006,G39):库存≤阈值的在售商品,缺货(库存=0)置顶、按库存升序;
+  # 口径与 lowStockProducts 计数同源(R-PRO-02 阈值)
+  stockWarningItems: [StockWarningItem!]!
+}
+
+# 库存预警明细项(F-STA-006,G39,R-PRO-02)
+type StockWarningItem {
+  productId: PrimaryId!
+  productName: String!
+  specification: String!
+  currentStock: Int!
+  threshold: Int!
+  status: StockWarningStatus!
+}
+
+enum StockWarningStatus {
+  # 缺货:库存 = 0
+  OUT_OF_STOCK
+  # 预警:0 < 库存 ≤ 阈值
+  WARNING
 }
 
 type ProductSalesStat {
@@ -1707,9 +1780,6 @@ input ProductUpdateRequest {
     @positive(message: "原价必须为正数")
     @min(value: 1, message: "原价不能小于1分")
     @max(value: 9999900, message: "原价不能大于99999元")
-  depositPriceCents: Long
-    @min(value: 0, message: "押金不能小于0")
-    @max(value: 9999900, message: "押金不能大于99999元")
   coverImageUrl: String
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
   imageGallery: JsonArray
@@ -1858,6 +1928,28 @@ type UserStatistics {
   dailyNewUsers: [DailyStatistic!]!
   # 登录统计
   loginStatistics: LoginStatistics
+  # 下单用户分布(近30天,G35):下单次数分层 + 下单用户占比 + 复购率
+  orderDistribution: OrderUserDistribution!
+}
+
+# 下单用户分布(F-STA-003,G35):按近30天下单用户去重聚合
+type OrderUserDistribution {
+  # 下单用户数(近30天下单用户去重)
+  orderingUsers: Int!
+  # 下单用户占比 = 下单用户数 / 总用户数(0..1,总用户数为 0 时为 0)
+  orderingUserRatio: Float!
+  # 复购率 = 下单≥2次用户数 / 下单用户数(0..1,无下单用户时为 0)
+  repurchaseRate: Float!
+  # 下单次数分层(1次/2~3次/4次以上)
+  tiers: [OrderUserTier!]!
+}
+
+# 下单次数分层项(F-STA-003,G35)
+type OrderUserTier {
+  # 分层标签:1次 / 2~3次 / 4次以上
+  label: String!
+  # 该分层用户数
+  userCount: Int!
 }
 
 # 用户登录统计
@@ -1888,6 +1980,10 @@ type DeliveryWorkerOverview {
   deliveringOrders: Int!
   # 今日已完成订单数
   todayCompletedOrders: Int!
+  # 人均单量 = 今日完成订单总数 / 今日在岗送水员数(在岗为 0 时为 null,G36)
+  averageOrdersPerWorker: Float
+  # 平均履约时长(分钟)= Σ(completedAt − 派单时间) / 今日完成订单数;无完成订单时为 null(G36)
+  averageFulfillmentMinutes: Float
 }
 
 # 送水员排行
@@ -1954,8 +2050,14 @@ type DailyCollectionRecord {
   confirmedAt: LocalDateTime
   # 确认人ID
   confirmedBy: PrimaryId
-  # 备注
+  # 备注(配送员差异说明,超容差时必填 —— G28/G30)
   notes: String
+  # 驳回时间(管理员驳回争议日报 —— G28)
+  rejectedAt: LocalDateTime
+  # 驳回人ID
+  rejectedBy: PrimaryId
+  # 驳回原因
+  rejectReason: String
   # 创建时间
   createdAt: LocalDateTime!
   # 更新时间
@@ -2044,6 +2146,14 @@ input ConfirmDailyCollectionInput {
   recordId: PrimaryId!
   # 备注
   notes: String
+}
+
+# 驳回每日收款输入(G28:管理员驳回争议/待确认日报,退回草稿可改可重提)
+input RejectDailyCollectionInput {
+  # 记录ID
+  recordId: PrimaryId!
+  # 驳回原因(必填)
+  reason: String!
 }
 
 # 复核对账记录输入

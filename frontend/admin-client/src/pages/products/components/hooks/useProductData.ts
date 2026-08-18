@@ -7,7 +7,6 @@ export interface Product {
   subtitle?: string;
   priceCents: number; // 销售价（分）
   originalPriceCents?: number; // 原价（分）
-  depositPriceCents?: number; // 押金（分）
   coverImageUrl: string;
   imageGallery?: string[] | string; // JSON array from backend
   specification: string;
@@ -29,7 +28,6 @@ export interface ProductFormData {
   subtitle?: string;
   price: number; // in yuan (元) for form display
   originalPrice?: number; // in yuan (元) for form display
-  depositPrice?: number; // in yuan (元) for form display
   coverImageUrl?: string;
   imageGallery?: string[]; // Form handles arrays directly
   specification: string;
@@ -68,7 +66,6 @@ export function productToFormData(product: Product): ProductFormData {
     ...product,
     price: centsToYuan(product.priceCents),
     originalPrice: product.originalPriceCents ? centsToYuan(product.originalPriceCents) : undefined,
-    depositPrice: product.depositPriceCents ? centsToYuan(product.depositPriceCents) : undefined,
     status: product.status === 'ACTIVE' ? 'ONLINE' : product.status,
     // Convert JSON string fields to arrays for form
     imageGallery: parseArrayField(product.imageGallery),
@@ -81,12 +78,11 @@ export function productToFormData(product: Product): ProductFormData {
  * 将表单数据转换为数据库格式
  * 主要处理价格从元转换为分
  */
-export function formDataToProduct({ price, originalPrice, depositPrice, ...formData }: ProductFormData): Partial<Product> {
+export function formDataToProduct({ price, originalPrice, ...formData }: ProductFormData): Partial<Product> {
   const result: Partial<Product> = {
     ...formData,
     priceCents: yuanToCents(price),
     originalPriceCents: originalPrice ? yuanToCents(originalPrice) : undefined,
-    depositPriceCents: depositPrice ? yuanToCents(depositPrice) : undefined,
     salesVolume: formData.salesVolume || 0,
     sortOrder: formData.sortOrder || 0,
   };
@@ -115,8 +111,7 @@ export function useFormattedPrices(product: Product) {
   return useMemo(() => ({
     price: displayCents(product.priceCents),
     originalPrice: product.originalPriceCents ? displayCents(product.originalPriceCents) : null,
-    depositPrice: product.depositPriceCents ? displayCents(product.depositPriceCents) : null,
-  }), [product.priceCents, product.originalPriceCents, product.depositPriceCents]);
+  }), [product.priceCents, product.originalPriceCents]);
 }
 
 /**

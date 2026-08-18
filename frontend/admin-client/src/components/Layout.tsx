@@ -80,6 +80,16 @@ const Layout: React.FC = () => {
     { key: '/trajectories', icon: <HistoryOutlined />, label: '配送轨迹' },
     { key: '/orders', icon: <FileTextOutlined />, label: '订单管理' },
     { key: '/daily-collection', icon: <DollarOutlined />, label: '收银对账' },
+    // 支付管理(R-PAY-02 退款审核流 / G06 水桶费模块):退款申请审核 + 水桶费价目与购桶记录
+    {
+      key: 'payments',
+      icon: <DollarOutlined />,
+      label: '支付管理',
+      children: [
+        { key: '/payments/refunds', icon: <DollarOutlined />, label: '退款管理' },
+        { key: '/barrels', icon: <SafetyOutlined />, label: '水桶费管理' },
+      ],
+    },
     {
       key: 'ops',
       icon: <ControlOutlined />,

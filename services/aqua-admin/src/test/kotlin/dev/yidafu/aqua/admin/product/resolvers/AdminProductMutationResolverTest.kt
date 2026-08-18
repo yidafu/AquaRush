@@ -47,7 +47,6 @@ class AdminProductMutationResolverTest :
         name = "桶装水19L",
         price = 2100,
         originalPrice = null,
-        depositPrice = null,
         coverImageUrl = "http://x/cover.png",
         imageGallery = null,
         specification = "19L",
@@ -145,7 +144,6 @@ class AdminProductMutationResolverTest :
           any(),
           any(),
           any(),
-          any(),
         )
       } returns createSampleProduct()
       val input = UpdateProductInput(name = "新桶装水", priceCents = 2500)
@@ -160,7 +158,6 @@ class AdminProductMutationResolverTest :
           1L,
           "新桶装水",
           2500L,
-          null,
           null,
           null,
           null,

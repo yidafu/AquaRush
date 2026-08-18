@@ -33,7 +33,6 @@ interface ExtendedProduct {
   // 是否命中熟客价(分组价)
   hasGroupPrice?: boolean
   originalPrice?: number
-  depositPrice?: number
   coverImageUrl: string
   imageGallery?: any[]
   specification: string
@@ -104,7 +103,6 @@ class ProductService {
             subtitle
             priceCents
             originalPriceCents
-            depositPriceCents
             effectivePriceCents
             priceSource
             hasGroupPrice
@@ -207,7 +205,6 @@ query GetActiveProducts(
       specification
       priceCents
       originalPriceCents
-      depositPriceCents
       effectivePriceCents
       priceSource
       hasGroupPrice
@@ -384,7 +381,6 @@ query GetActiveProducts(
       priceSource: product.priceSource,
       hasGroupPrice: product.hasGroupPrice,
       originalPrice: normalizeCents(product.originalPriceCents) ?? undefined,
-      depositPrice: normalizeCents(product.depositPriceCents) ?? undefined,
       coverImageUrl: product.coverImageUrl,
       image: product.coverImageUrl, // Map coverImageUrl to image for homepage compatibility
       imageGallery: product.imageGallery ?? undefined,

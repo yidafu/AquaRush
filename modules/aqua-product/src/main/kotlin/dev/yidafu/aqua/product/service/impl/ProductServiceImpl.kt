@@ -35,7 +35,6 @@ class ProductServiceImpl(
         subtitle = request.subtitle,
         price = request.priceCents,
         originalPrice = request.originalPriceCents,
-        depositPrice = request.depositPriceCents,
         coverImageUrl = request.coverImageUrl,
         imageGallery = request.imageGallery,
         specification = request.specification,
@@ -77,7 +76,6 @@ class ProductServiceImpl(
     stock: Int?,
     subtitle: String? = null,
     originalPriceCents: Long? = null,
-    depositPriceCents: Long? = null,
     imageGallery: ArrayNode? = null,
     specification: String? = null,
     waterSource: String? = null,
@@ -98,7 +96,6 @@ class ProductServiceImpl(
     subtitle?.let { product.subtitle = it }
     priceCents?.let { product.price = it }
     originalPriceCents?.let { product.originalPrice = it }
-    depositPriceCents?.let { product.depositPrice = it }
     coverImageUrl?.let { product.coverImageUrl = it }
     imageGallery?.let { product.imageGallery = it }
     specification?.let { product.specification = it }
@@ -216,6 +213,7 @@ class ProductServiceImpl(
       favoriteStatistics = emptyList(),
       totalSales = 0,
       totalFavorites = 0,
+      stockWarningItems = emptyList(),
     )
   }
 

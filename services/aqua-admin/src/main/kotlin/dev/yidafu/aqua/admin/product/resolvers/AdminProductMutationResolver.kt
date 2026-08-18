@@ -102,7 +102,6 @@ class AdminProductMutationResolver(
           stock = input.stock,
           subtitle = input.subtitle,
           originalPriceCents = input.originalPriceCents,
-          depositPriceCents = input.depositPriceCents,
           imageGallery = input.imageGallery,
           specification = input.specification,
           waterSource = input.waterSource,

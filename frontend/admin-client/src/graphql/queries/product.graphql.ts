@@ -9,7 +9,6 @@ export const GET_PRODUCTS_QUERY = gql`
         subtitle
         priceCents
         originalPriceCents
-        depositPriceCents
         coverImageUrl
         imageGallery
         specification
@@ -54,7 +53,6 @@ export const PRODUCTS_PAGE_DATA_QUERY = gql`
         subtitle
         priceCents
         originalPriceCents
-        depositPriceCents
         coverImageUrl
         imageGallery
         specification
@@ -97,7 +95,6 @@ export const GET_PRODUCT_DETAIL_QUERY = gql`
       subtitle
       priceCents
       originalPriceCents
-      depositPriceCents
       coverImageUrl
       imageGallery
       specification
@@ -156,7 +153,6 @@ export const PRODUCT_FORM_PAGE_DATA_QUERY = gql`
       subtitle
       priceCents
       originalPriceCents
-      depositPriceCents
       coverImageUrl
       imageGallery
       specification

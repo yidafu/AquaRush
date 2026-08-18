@@ -49,7 +49,6 @@ function toProductInput(values: ProductFormData): Record<string, unknown> {
     ...values,
     priceCents: yuanToCents(values.price),
     originalPriceCents: values.originalPrice ? yuanToCents(values.originalPrice) : null,
-    depositPriceCents: values.depositPrice ? yuanToCents(values.depositPrice) : null,
     salesVolume: values.salesVolume || 0,
     sortOrder: values.sortOrder || 0,
   };
