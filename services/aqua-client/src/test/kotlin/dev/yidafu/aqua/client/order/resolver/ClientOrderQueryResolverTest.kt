@@ -150,6 +150,30 @@ class ClientOrderQueryResolverTest :
         )
       }
     }
+    test("myOrderStatisticsMapsCountsPerStatus") {
+      // G31: 我的页订单角标 —— 各状态计数映射 + total 合计 + 缺失状态补 0
+      every { orderQueryApiService.countByUserIdGroupByStatus(1L) } returns
+        mapOf(
+          OrderModelStatus.PENDING_PAYMENT to 2L,
+          OrderModelStatus.PENDING_DISPATCH to 1L,
+          OrderModelStatus.PENDING_DELIVERY to 0L,
+          OrderModelStatus.DELIVERING to 3L,
+          OrderModelStatus.COMPLETED to 25L,
+          OrderModelStatus.REFUNDED to 1L,
+        )
+
+      val result = resolver.myOrderStatistics(principal)
+
+      result.pendingPayment shouldBe 2
+      result.pendingDispatch shouldBe 1
+      result.pendingDelivery shouldBe 0
+      result.delivering shouldBe 3
+      result.completed shouldBe 25
+      result.cancelled shouldBe 0
+      result.refunded shouldBe 1
+      result.total shouldBe 32
+      verify(exactly = 1) { orderQueryApiService.countByUserIdGroupByStatus(1L) }
+    }
     test("reviewCheckReturnsCanReviewAndReview") {
       every { orderQueryApiService.findById(1L) } returns
         OrderModel(

@@ -161,4 +161,14 @@ class OrderQueryApiServiceImplTest :
       service.hasCompletedOrders(100L) shouldBe false
       verify { orderRepository.existsByUserIdAndStatus(100L, OrderModelStatus.COMPLETED) }
     }
+    test("countByUserIdGroupByStatus delegates to repository") {
+      // G31: 我的页订单角标 —— 委托仓库按用户分组计数
+      every { orderRepository.countOrdersByUserIdGroupByStatus(100L) } returns
+        mapOf(OrderModelStatus.PENDING_PAYMENT to 2L, OrderModelStatus.COMPLETED to 5L)
+
+      val result = service.countByUserIdGroupByStatus(100L)
+
+      result shouldBe mapOf(OrderModelStatus.PENDING_PAYMENT to 2L, OrderModelStatus.COMPLETED to 5L)
+      verify(exactly = 1) { orderRepository.countOrdersByUserIdGroupByStatus(100L) }
+    }
   })

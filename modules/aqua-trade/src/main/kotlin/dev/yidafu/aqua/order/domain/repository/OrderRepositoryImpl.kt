@@ -456,4 +456,15 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
 
     return arrayOf(count, sum)
   }
+
+  override fun countOrdersByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long> =
+    queryFactory
+      .select(orderModel.status, orderModel.count())
+      .from(orderModel)
+      .where(orderModel.userId.eq(userId))
+      .groupBy(orderModel.status)
+      .fetch()
+      .associate { row ->
+        row.get(orderModel.status)!! to (row.get(orderModel.count()) ?: 0L)
+      }
 }

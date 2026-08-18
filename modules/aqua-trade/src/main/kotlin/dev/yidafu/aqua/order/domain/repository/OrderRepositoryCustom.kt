@@ -116,4 +116,10 @@ interface OrderRepositoryCustom {
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Array<Long>
+
+  /**
+   * 按订单状态分组统计指定用户的订单数(F-USR-002,G31 我的页订单角标):
+   * 仅本人订单(软删除自动过滤);缺失状态不计入(调用方补 0)。
+   */
+  fun countOrdersByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long>
 }

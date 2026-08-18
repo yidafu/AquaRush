@@ -88,6 +88,12 @@ interface OrderQueryApiService {
     statuses: List<OrderModelStatus>?,
   ): Long
 
+  /**
+   * 按订单状态分组统计指定用户的订单数(F-USR-002,G31 我的页订单角标):
+   * 仅本人订单;缺失状态不计入(调用方补 0)。
+   */
+  fun countByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long>
+
   fun sumAmountCentsByStatusAndCreatedAtBetween(
     statuses: List<OrderModelStatus>,
     startDate: LocalDateTime,

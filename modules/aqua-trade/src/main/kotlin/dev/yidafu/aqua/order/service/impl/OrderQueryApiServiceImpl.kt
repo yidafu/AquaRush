@@ -111,6 +111,9 @@ class OrderQueryApiServiceImpl(
     return orders.size.toLong()
   }
 
+  override fun countByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long> =
+    orderRepository.countOrdersByUserIdGroupByStatus(userId)
+
   override fun sumAmountCentsByStatusAndCreatedAtBetween(
     statuses: List<OrderModelStatus>,
     startDate: LocalDateTime,

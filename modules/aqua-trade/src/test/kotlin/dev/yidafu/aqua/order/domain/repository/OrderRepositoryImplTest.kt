@@ -323,4 +323,19 @@ class OrderRepositoryImplTest :
       result[0] shouldBe 0L
       result[1] shouldBe 0L
     }
+    test("countOrdersByUserIdGroupByStatus groups by status") {
+      // G31: 我的页订单角标 —— select(status, count()) group by status → Map
+      val tuple = mockk<Tuple>()
+      val tupleQuery = mockk<JPAQuery<Tuple>>(relaxed = true)
+      every { tuple.get(any<Expression<*>>()) } returnsMany listOf(OrderModelStatus.PENDING_PAYMENT, 2L)
+      every { tupleQuery.fetch() } returns listOf(tuple)
+      every { anyConstructed<JPAQueryFactory>().select(any(), any()) } returns tupleQuery
+      every { tupleQuery.from(any()) } returns tupleQuery
+      every { tupleQuery.where(any<Predicate>()) } returns tupleQuery
+      every { tupleQuery.groupBy(any()) } returns tupleQuery
+
+      val result = repo.countOrdersByUserIdGroupByStatus(100L)
+
+      result shouldBe mapOf(OrderModelStatus.PENDING_PAYMENT to 2L)
+    }
   })

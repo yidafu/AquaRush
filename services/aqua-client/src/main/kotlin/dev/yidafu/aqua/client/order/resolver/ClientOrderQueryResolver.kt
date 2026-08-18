@@ -26,6 +26,7 @@ import dev.yidafu.aqua.common.annotation.ClientService
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
+import dev.yidafu.aqua.common.graphql.generated.MyOrderStatistics
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderReviewCheckResponse
 import dev.yidafu.aqua.common.graphql.generated.OrderStatus
@@ -93,6 +94,38 @@ class ClientOrderQueryResolver(
       totalPages = result.totalPages,
       size = result.size,
       number = result.number,
+    )
+  }
+
+  /**
+   * 我的订单状态计数(F-USR-002,G31 我的页订单角标真实化):
+   * userId 强制取登录用户(防越权);按状态分组计数,缺失状态补 0;
+   * total = 各状态合计(软删除自动过滤)。
+   */
+  @QueryMapping
+  @PreAuthorize("isAuthenticated()")
+  fun myOrderStatistics(
+    @AuthenticationPrincipal principal: UserPrincipal,
+  ): MyOrderStatistics {
+    val counts = orderQueryApiService.countByUserIdGroupByStatus(principal.id)
+
+    fun countOf(status: OrderModelStatus): Int = counts[status]?.toInt() ?: 0
+    val pendingPayment = countOf(OrderModelStatus.PENDING_PAYMENT)
+    val pendingDispatch = countOf(OrderModelStatus.PENDING_DISPATCH)
+    val pendingDelivery = countOf(OrderModelStatus.PENDING_DELIVERY)
+    val delivering = countOf(OrderModelStatus.DELIVERING)
+    val completed = countOf(OrderModelStatus.COMPLETED)
+    val cancelled = countOf(OrderModelStatus.CANCELLED)
+    val refunded = countOf(OrderModelStatus.REFUNDED)
+    return MyOrderStatistics(
+      total = pendingPayment + pendingDispatch + pendingDelivery + delivering + completed + cancelled + refunded,
+      pendingPayment = pendingPayment,
+      pendingDispatch = pendingDispatch,
+      pendingDelivery = pendingDelivery,
+      delivering = delivering,
+      completed = completed,
+      cancelled = cancelled,
+      refunded = refunded,
     )
   }
 

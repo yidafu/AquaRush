@@ -9,6 +9,7 @@ import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import { authService, type UserInfo as AuthUserInfo } from '../../utils/auth'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import NotificationService from '../../services/NotificationService'
+import OrderService from '../../services/OrderService'
 import { connectWsPushIfLoggedIn, wsPushService } from '../../services/wsPush'
 
 // Taro UI 样式已在 app.scss 中全局引入，无需重复引入
@@ -160,22 +161,42 @@ const MyPage: React.FC = () => {
   }
 
   const loadOrderStats = async (): Promise<void> => {
+    // 游客态:无真实订单统计,角标全 0 且不发起需登录的请求(F-USR-002,AC-USR-002-02)
+    if (!authService.isAuthenticated()) {
+      setOrderStats({
+        pendingPayment: 0,
+        pendingDelivery: 0,
+        delivering: 0,
+        completed: 0,
+        afterSales: 0
+      })
+      setLoading(false)
+      return
+    }
     try {
-      // TODO: 实际项目中这里应该调用获取订单统计的API
-      // const orderStats = await getOrderStats()
-
-      // 模拟订单统计数据
-      const mockOrderStats: OrderStats = {
-        pendingPayment: 2,
-        pendingDelivery: 1,
-        delivering: 3,
-        completed: 25,
-        afterSales: 1
+      // 真实订单统计(G31):myOrderStatistics 单请求返回当前用户各状态订单数;
+      // 待配送口径 = 待派单 + 待配送(与 order-list「待配送」Tab 一致);售后 = 已退款
+      const result = await OrderService.getInstance().getMyOrderStatistics()
+      if (!result.success || !result.data) {
+        throw new Error(result.error?.message || '获取订单统计失败')
       }
-
-      setOrderStats(mockOrderStats)
+      const stats = result.data
+      setOrderStats({
+        pendingPayment: stats.pendingPayment,
+        pendingDelivery: stats.pendingDispatch + stats.pendingDelivery,
+        delivering: stats.delivering,
+        completed: stats.completed,
+        afterSales: stats.refunded
+      })
     } catch (error) {
       console.error('获取订单统计失败:', error)
+      setOrderStats({
+        pendingPayment: 0,
+        pendingDelivery: 0,
+        delivering: 0,
+        completed: 0,
+        afterSales: 0
+      })
     } finally {
       setLoading(false)
     }
