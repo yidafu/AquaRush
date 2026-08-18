@@ -162,7 +162,11 @@ class SystemConfigMutationServiceImplTest :
 
       val ex =
         shouldThrow<InvalidSettingValueException> {
-          service.saveSystemConfigs(1L, "admin", listOf(SaveSystemConfigItemRequest(SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED, "yes")))
+          service.saveSystemConfigs(
+            1L,
+            "admin",
+            listOf(SaveSystemConfigItemRequest(SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED, "yes")),
+          )
         }
       ex.message shouldBe "参数值格式不正确"
     }

@@ -114,8 +114,24 @@ class AdminSystemConfigResolverGraphQLIntegrationTest(
 
     fun seedSettings() {
       seedSetting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "10", SystemSettingType.NUMBER, SystemSettingGroup.INVENTORY, "10", "0", "99999")
-      seedSetting(SystemSettingKeys.STOCK_WARNING_TIER_MID, "50", SystemSettingType.NUMBER, SystemSettingGroup.INVENTORY, "50", "0", "99999")
-      seedSetting(SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES, "30", SystemSettingType.NUMBER, SystemSettingGroup.ORDER_AND_FULFILLMENT, "30", "1", null)
+      seedSetting(
+        SystemSettingKeys.STOCK_WARNING_TIER_MID,
+        "50",
+        SystemSettingType.NUMBER,
+        SystemSettingGroup.INVENTORY,
+        "50",
+        "0",
+        "99999",
+      )
+      seedSetting(
+        SystemSettingKeys.PAYMENT_TIMEOUT_MINUTES,
+        "30",
+        SystemSettingType.NUMBER,
+        SystemSettingGroup.ORDER_AND_FULFILLMENT,
+        "30",
+        "1",
+        null,
+      )
       seedSetting(SystemSettingKeys.PASSWORD_MIN_LENGTH, "8", SystemSettingType.NUMBER, SystemSettingGroup.SECURITY, "8", "6", "32")
     }
 
@@ -140,7 +156,8 @@ class AdminSystemConfigResolverGraphQLIntegrationTest(
         !json.contains("\"errors\"") shouldBe true
 
       val securityJson = postGraphql("{ systemConfigs(group: SECURITY) { settingKey } }")
-      securityJson.contains("\"settingKey\" : \"${SystemSettingKeys.PASSWORD_MIN_LENGTH}\"") && !securityJson.contains("\"errors\"") shouldBe true
+      securityJson.contains("\"settingKey\" : \"${SystemSettingKeys.PASSWORD_MIN_LENGTH}\"") &&
+        !securityJson.contains("\"errors\"") shouldBe true
 
       // 未播种分组(生产由 Liquibase v1.2.4 提供,测试环境不自动生效)返回空列表
       val emptyJson = postGraphql("{ systemConfigs(group: DATA_MAINTENANCE) { settingKey } }")
@@ -191,7 +208,8 @@ class AdminSystemConfigResolverGraphQLIntegrationTest(
       postGraphql(
         """mutation { saveSystemConfigs(input: [{settingKey: "${SystemSettingKeys.LOW_STOCK_THRESHOLD}", settingValue: "30"}]) { settingKey } }""",
       )
-      val json = postGraphql("""mutation { restoreSystemConfig(settingKey: "${SystemSettingKeys.LOW_STOCK_THRESHOLD}") { settingValue } }""")
+      val json =
+        postGraphql("""mutation { restoreSystemConfig(settingKey: "${SystemSettingKeys.LOW_STOCK_THRESHOLD}") { settingValue } }""")
       json.contains("\"settingValue\" : \"10\"") && !json.contains("\"errors\"") shouldBe true
 
       val audits = userActionLogRepository.findByActionType(OpsConfigAuditService.ACTION_SYS_CONFIG_RESTORE)

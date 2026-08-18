@@ -12,7 +12,6 @@ interface BuyModalProps {
     name: string
     priceCents: number
     originalPriceCents?: number
-    depositPriceCents?: number
     specification: string
     coverImageUrl: string
     stock: number
@@ -33,7 +32,8 @@ const BuyModal: React.FC<BuyModalProps> = ({
 }) => {
   if (!product) return null
 
-  const hasDeposit = product.depositPriceCents && product.depositPriceCents > 0
+  // 水桶费不随商品订单捆绑收取(2026-08 改造,见 14-misc.md §G06)
+  const totalCents = calculateTotalCents(quantity, product.priceCents)
 
   return (
     <AtFloatLayout
@@ -81,7 +81,7 @@ const BuyModal: React.FC<BuyModalProps> = ({
         >
           <Text className='text-base text-gray-600'>合计：</Text>
           <Text className='text-xl font-bold text-red-500'>
-            {formatCentsToCurrency(calculateTotalCents(quantity, product.priceCents))}
+            {formatCentsToCurrency(totalCents)}
           </Text>
         </View>
       </View>

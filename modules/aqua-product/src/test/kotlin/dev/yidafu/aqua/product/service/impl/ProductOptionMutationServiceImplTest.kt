@@ -139,7 +139,8 @@ class ProductOptionMutationServiceImplTest :
       // Given
       val existing = option(5L, ProductOptionType.WATER_SOURCE, "长白山", 1, true)
       every { productOptionRepository.findById(5L) } returns Optional.of(existing)
-      every { productOptionRepository.findByOptionTypeAndValue(ProductOptionType.WATER_SOURCE, "昆仑山") } returns option(6L, ProductOptionType.WATER_SOURCE, "昆仑山")
+      every { productOptionRepository.findByOptionTypeAndValue(ProductOptionType.WATER_SOURCE, "昆仑山") } returns
+        option(6L, ProductOptionType.WATER_SOURCE, "昆仑山")
 
       // When / Then
       shouldThrow<DuplicateProductOptionValueException> {

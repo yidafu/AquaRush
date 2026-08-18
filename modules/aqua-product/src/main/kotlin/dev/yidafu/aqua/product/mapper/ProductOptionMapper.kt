@@ -22,13 +22,13 @@ package dev.yidafu.aqua.product.mapper
 import dev.yidafu.aqua.api.dto.ProductOptionCreateRequest
 import dev.yidafu.aqua.api.dto.ProductOptionUpdateRequest
 import dev.yidafu.aqua.common.domain.model.ProductOptionModel
-import dev.yidafu.aqua.common.domain.model.enums.ProductOptionType as DomainProductOptionType
 import dev.yidafu.aqua.common.graphql.generated.CreateProductOptionInput
 import dev.yidafu.aqua.common.graphql.generated.ProductOption
 import dev.yidafu.aqua.common.graphql.generated.ProductOptionType
 import dev.yidafu.aqua.common.graphql.generated.UpdateProductOptionInput
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
+import dev.yidafu.aqua.common.domain.model.enums.ProductOptionType as DomainProductOptionType
 
 /**
  * 商品属性选项字典 Mapper(F-PRO-009):

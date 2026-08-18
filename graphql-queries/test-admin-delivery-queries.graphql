@@ -67,7 +67,7 @@ query GetAllTestDeliveryWorkers {
   }
 }
 
-# 查询在线送水工（张师傅和李师傅）
+# 查询在线送水工（陈永强和刘志刚）
 query GetOnlineTestWorkers {
   onlineDeliveryWorkers {
     id
@@ -90,9 +90,9 @@ query GetOnlineTestWorkers {
   }
 }
 
-# 查询张师傅（ID: 1000000000000000001）
+# 查询陈永强（ID: 9000000000000000011）
 query GetWorkerZhang {
-  deliveryWorker(id: 1000000000000000001) {
+  deliveryWorker(id: 9000000000000000011) {
     id
     userId
     wechatOpenId
@@ -113,9 +113,9 @@ query GetWorkerZhang {
   }
 }
 
-# 查询李师傅（ID: 1000000000000000002）
+# 查询刘志刚（ID: 9000000000000000012）
 query GetWorkerLi {
-  deliveryWorker(id: 1000000000000000002) {
+  deliveryWorker(id: 9000000000000000012) {
     id
     userId
     wechatOpenId
@@ -136,9 +136,9 @@ query GetWorkerLi {
   }
 }
 
-# 查询王师傅（ID: 1000000000000000003）
+# 查询黄海涛（ID: 9000000000000000013）
 query GetWorkerWang {
-  deliveryWorker(id: 1000000000000000003) {
+  deliveryWorker(id: 9000000000000000013) {
     id
     userId
     wechatOpenId
@@ -236,7 +236,7 @@ query GetAllTestAdminsBatch {
 
 # 批量查询所有测试送水工
 query GetAllTestWorkersBatch {
-  worker1: deliveryWorker(id: 1000000000000000001) {
+  worker1: deliveryWorker(id: 9000000000000000011) {
     id
     name
     phone
@@ -250,7 +250,7 @@ query GetAllTestWorkersBatch {
     updatedAt
   }
 
-  worker2: deliveryWorker(id: 1000000000000000002) {
+  worker2: deliveryWorker(id: 9000000000000000012) {
     id
     name
     phone
@@ -264,7 +264,7 @@ query GetAllTestWorkersBatch {
     updatedAt
   }
 
-  worker3: deliveryWorker(id: 1000000000000000003) {
+  worker3: deliveryWorker(id: 9000000000000000013) {
     id
     name
     phone
@@ -295,33 +295,33 @@ query GetAllTestWorkersBatch {
    - ID: 2
    - 用户名: admin
    - 姓名: 系统管理员
-   - 电话: 13800138001
+   - 电话: 13800138999
    - 角色: ADMIN
    - 密码hash: $2a$10$N.zmdr9k7uOCQb376NoUnuTJ8iKVIbOBWvTPOrK.K8MZKW6xJUSfS
 
 送水工测试数据：
-1. 张师傅
-   - ID: 1000000000000000001
+1. 陈永强
+   - ID: 9000000000000000011
    - 微信OpenID: delivery_worker_001
-   - 姓名: 张师傅
+   - 姓名: 陈永强
    - 电话: 13800138101
    - 状态: ONLINE
 
-2. 李师傅
-   - ID: 1000000000000000002
+2. 刘志刚
+   - ID: 9000000000000000012
    - 微信OpenID: delivery_worker_002
-   - 姓名: 李师傅
+   - 姓名: 刘志刚
    - 电话: 13800138102
    - 状态: ONLINE
 
-3. 王师傅
-   - ID: 1000000000000000003
+3. 黄海涛
+   - ID: 9000000000000000013
    - 微信OpenID: delivery_worker_003
-   - 姓名: 王师傅
+   - 姓名: 黄海涛
    - 电话: 13800138103
    - 状态: OFFLINE
 
-所有管理员和送水工都使用相同的密码hash，对应的明文密码是"admin123"
+所有管理员和送水工都使用相同的密码hash，对应的明文密码是"123456"
 */
 
 # ==================== 使用示例 ====================
@@ -350,8 +350,8 @@ query GetAllTestWorkersBatch {
 # Authorization: Bearer <admin_or_worker_jwt_token>
 #
 # {
-#   "query": "query GetWorkerZhang { deliveryWorker(id: 1000000000000000001) { id name phone status totalOrders completedOrders averageRating earning coordinates currentLocation } }",
+#   "query": "query GetWorkerZhang { deliveryWorker(id: 9000000000000000011) { id name phone status totalOrders completedOrders averageRating earning coordinates currentLocation } }",
 #   "variables": {
-#     "workerId": 1000000000000000001
+#     "workerId": 9000000000000000011
 #   }
 # }

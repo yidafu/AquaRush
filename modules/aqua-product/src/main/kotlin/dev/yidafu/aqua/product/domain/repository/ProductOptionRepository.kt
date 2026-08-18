@@ -44,7 +44,10 @@ interface ProductOptionRepository : JpaRepository<ProductOptionModel, Long> {
   /**
    * 按类型与值查询未删除选项(唯一性校验用)
    */
-  fun findByOptionTypeAndValue(type: ProductOptionType, value: String): ProductOptionModel?
+  fun findByOptionTypeAndValue(
+    type: ProductOptionType,
+    value: String,
+  ): ProductOptionModel?
 
   /**
    * 同类型当前最大排序号(新建默认排末尾用)

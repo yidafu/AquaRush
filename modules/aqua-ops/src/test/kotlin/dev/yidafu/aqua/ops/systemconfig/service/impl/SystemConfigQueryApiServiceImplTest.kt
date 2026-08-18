@@ -56,18 +56,21 @@ class SystemConfigQueryApiServiceImplTest :
       service = SystemConfigQueryApiServiceImpl(systemSettingsRepository)
     }
     test("reads current value") {
-      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns setting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "20", "10")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns
+        setting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "20", "10")
 
       service.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) shouldBe 20L
       service.getBooleanValue("flag", true) shouldBe true // 未配置回退
     }
     test("falls back to default value") {
-      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns setting(SystemSettingKeys.LOW_STOCK_THRESHOLD, null, "10")
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns
+        setting(SystemSettingKeys.LOW_STOCK_THRESHOLD, null, "10")
 
       service.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 99L) shouldBe 10L
     }
     test("falls back to caller fallback") {
-      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns setting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "abc", null)
+      every { systemSettingsRepository.findBySettingKey(SystemSettingKeys.LOW_STOCK_THRESHOLD) } returns
+        setting(SystemSettingKeys.LOW_STOCK_THRESHOLD, "abc", null)
 
       service.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 99L) shouldBe 99L
     }

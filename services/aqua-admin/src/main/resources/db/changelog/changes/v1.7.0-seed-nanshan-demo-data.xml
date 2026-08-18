@@ -724,7 +724,6 @@
       <column name="subtitle" value="天目山泉 弱碱性 甘甜清冽"/>
       <column name="price_cents" valueNumeric="2500"/>
       <column name="original_price_cents" valueNumeric="2800"/>
-      <column name="deposit_price_cents" valueNumeric="4000"/>
       <column name="thumbnail_url" value="/static/default-product.jpeg"/>
       <column name="detail_images" value="[&quot;/static/default-product.jpeg&quot;, &quot;/static/default-product.jpeg&quot;]"/>
       <column name="specification" value="18.9L/桶"/>
@@ -735,7 +734,7 @@
       <column name="status" value="ONLINE"/>
       <column name="sort_order" valueNumeric="1"/>
       <column name="tags" value="[&quot;热销&quot;, &quot;山泉水&quot;, &quot;家庭装&quot;]"/>
-      <column name="description" value="南山牌天然山泉水,源自临安天目山脉深层山泉,富含偏硅酸等矿物质,弱碱性水质甘甜清冽。18.9L 大桶装满足家庭与办公饮水需求,桶装水统一收取桶押金,空桶可退押金。"/>
+      <column name="description" value="南山牌天然山泉水,源自临安天目山脉深层山泉,富含偏硅酸等矿物质,弱碱性水质甘甜清冽。18.9L 大桶装满足家庭与办公饮水需求,首次订水需购买塑料水桶(水桶费见「买水桶」)。"/>
       <column name="created_at" valueComputed="(CURRENT_TIMESTAMP - INTERVAL '400 days')"/>
       <column name="updated_at" valueComputed="(CURRENT_TIMESTAMP - INTERVAL '1 days')"/>
     </insert>
@@ -745,7 +744,6 @@
       <column name="name" value="南山牌 天然山泉水 11.3L 桶装水"/>
       <column name="subtitle" value="小桶轻量 适合小家庭"/>
       <column name="price_cents" valueNumeric="1800"/>
-      <column name="deposit_price_cents" valueNumeric="3000"/>
       <column name="thumbnail_url" value="/static/default-product.jpeg"/>
       <column name="detail_images" value="[&quot;/static/default-product.jpeg&quot;]"/>
       <column name="specification" value="11.3L/桶"/>
@@ -777,7 +775,7 @@
       <column name="status" value="ONLINE"/>
       <column name="sort_order" valueNumeric="3"/>
       <column name="tags" value="[&quot;便携&quot;, &quot;露营&quot;]"/>
-      <column name="description" value="南山牌 5L 便携袋装山泉水,适合露营、出行与办公室小场景,无需桶押金,即开即饮。"/>
+      <column name="description" value="南山牌 5L 便携袋装山泉水,适合露营、出行与办公室小场景,无需水桶,即开即饮。"/>
       <column name="created_at" valueComputed="(CURRENT_TIMESTAMP - INTERVAL '300 days')"/>
       <column name="updated_at" valueComputed="(CURRENT_TIMESTAMP - INTERVAL '1 days')"/>
     </insert>
@@ -807,7 +805,6 @@
       <column name="name" value="南山牌 饮用纯净水 18.9L 桶装水"/>
       <column name="subtitle" value="经济实惠 泡茶煮饭皆宜"/>
       <column name="price_cents" valueNumeric="1800"/>
-      <column name="deposit_price_cents" valueNumeric="4000"/>
       <column name="thumbnail_url" value="/static/default-product.jpeg"/>
       <column name="detail_images" value="[&quot;/static/default-product.jpeg&quot;]"/>
       <column name="specification" value="18.9L/桶"/>
@@ -956,6 +953,26 @@
       <column name="description" value="南山牌高端泡茶山泉水,小分子团水更易析出茶香,已下架,老客户可联系客服咨询。"/>
       <column name="created_at" valueComputed="(CURRENT_TIMESTAMP - INTERVAL '130 days')"/>
       <column name="updated_at" valueComputed="(CURRENT_TIMESTAMP - INTERVAL '15 days')"/>
+    </insert>
+
+    <!-- ==================== 水桶费价目(G06 一次性塑料水桶费,独立价目表) ==================== -->
+    <insert tableName="barrel_fees">
+      <column name="id" valueNumeric="3100000000000000001"/>
+      <column name="specification" value="18.9L/桶"/>
+      <column name="price_cents" valueNumeric="4000"/>
+      <column name="status" value="ENABLED"/>
+      <column name="sort_order" valueNumeric="1"/>
+      <column name="created_at" valueComputed="(CURRENT_TIMESTAMP - INTERVAL '30 days')"/>
+      <column name="updated_at" valueComputed="(CURRENT_TIMESTAMP - INTERVAL '1 days')"/>
+    </insert>
+    <insert tableName="barrel_fees">
+      <column name="id" valueNumeric="3100000000000000002"/>
+      <column name="specification" value="11.3L/桶"/>
+      <column name="price_cents" valueNumeric="3000"/>
+      <column name="status" value="ENABLED"/>
+      <column name="sort_order" valueNumeric="2"/>
+      <column name="created_at" valueComputed="(CURRENT_TIMESTAMP - INTERVAL '30 days')"/>
+      <column name="updated_at" valueComputed="(CURRENT_TIMESTAMP - INTERVAL '1 days')"/>
     </insert>
 
     <!-- ==================== 商品收藏(F-PRO 收藏演示) ==================== -->

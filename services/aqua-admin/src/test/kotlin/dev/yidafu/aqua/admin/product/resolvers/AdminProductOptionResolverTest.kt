@@ -26,7 +26,6 @@ import dev.yidafu.aqua.api.service.product.ProductOptionQueryService
 import dev.yidafu.aqua.common.domain.model.ProductOptionModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductOptionType
 import dev.yidafu.aqua.common.graphql.generated.CreateProductOptionInput
-import dev.yidafu.aqua.common.graphql.generated.ProductOptionType as GqlProductOptionType
 import dev.yidafu.aqua.common.graphql.generated.UpdateProductOptionInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import io.kotest.core.spec.style.FunSpec
@@ -34,6 +33,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import dev.yidafu.aqua.common.graphql.generated.ProductOptionType as GqlProductOptionType
 
 /**
  * 商品属性选项字典 Resolver 单元测试(F-PRO-009):
@@ -85,7 +85,8 @@ class AdminProductOptionResolverTest :
 
     test("productOptions should pass enabledOnly=false by default") {
       // Given
-      every { queryService.listOptions(ProductOptionType.WATER_SOURCE, false) } returns listOf(option(2L, ProductOptionType.WATER_SOURCE, "长白山", enabled = false))
+      every { queryService.listOptions(ProductOptionType.WATER_SOURCE, false) } returns
+        listOf(option(2L, ProductOptionType.WATER_SOURCE, "长白山", enabled = false))
 
       // When
       val result = queryResolver.productOptions(GqlProductOptionType.WATER_SOURCE)
@@ -102,7 +103,13 @@ class AdminProductOptionResolverTest :
         mutationService.createOption(1L, "admin", any())
       } answers {
         val request = arg<ProductOptionCreateRequest>(2)
-        ProductOptionModel(id = 9L, optionType = request.optionType, value = request.value, sortOrder = request.sortOrder ?: 1, enabled = request.enabled)
+        ProductOptionModel(
+          id = 9L,
+          optionType = request.optionType,
+          value = request.value,
+          sortOrder = request.sortOrder ?: 1,
+          enabled = request.enabled,
+        )
       }
 
       // When
@@ -126,7 +133,13 @@ class AdminProductOptionResolverTest :
         mutationService.updateOption(1L, "admin", 3L, any())
       } answers {
         val request = arg<ProductOptionUpdateRequest>(3)
-        ProductOptionModel(id = 3L, optionType = ProductOptionType.WATER_SOURCE, value = request.value, sortOrder = request.sortOrder ?: 1, enabled = request.enabled)
+        ProductOptionModel(
+          id = 3L,
+          optionType = ProductOptionType.WATER_SOURCE,
+          value = request.value,
+          sortOrder = request.sortOrder ?: 1,
+          enabled = request.enabled,
+        )
       }
 
       // When

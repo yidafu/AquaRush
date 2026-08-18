@@ -47,6 +47,5 @@ class AdminProductOptionQueryResolver(
       .listOptions(
         type = ProductOptionTypeInputMapper.map(type),
         enabledOnly = enabledOnly,
-      )
-      .map { ProductOptionMapper.map(it) }
+      ).map { ProductOptionMapper.map(it) }
 }

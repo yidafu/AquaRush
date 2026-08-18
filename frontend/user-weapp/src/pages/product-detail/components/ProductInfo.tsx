@@ -2,7 +2,6 @@ import React from "react";
 import { View, Text } from "@tarojs/components";
 import { useProduct } from "../context/ProductContext";
 import { displayCents, normalizeCents } from "@aquarush/common";
-
 const ProductInfo: React.FC = () => {
   const { product } = useProduct();
 
@@ -81,7 +80,7 @@ const ProductInfo: React.FC = () => {
 
           <View className="flex items-end gap-2 text-right">
             <Text className="text-xs font-normal text-gray-400">
-              已售 122 | 剩余 234
+              已售 {product.salesVolume ?? 0} | 剩余 {product.stock ?? 0}
             </Text>
           </View>
         </View>
