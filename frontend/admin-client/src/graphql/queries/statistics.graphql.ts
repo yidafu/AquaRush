@@ -25,6 +25,14 @@ export const PRODUCT_STATISTICS_PAGE_DATA_QUERY = gql`
         productName
         favoriteCount
       }
+      stockWarningItems {
+        productId
+        productName
+        specification
+        currentStock
+        threshold
+        status
+      }
     }
     productDailySales(input: $input) {
       date

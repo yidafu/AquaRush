@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
+import dev.yidafu.aqua.analytics.statistics.domain.repository.CompletedOrderTiming
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsDeliveryWorkerRepositoryCustom
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerStatisticsQueryApiService
@@ -70,6 +71,7 @@ class DeliveryWorkerStatisticsServiceImplTest :
       every { statisticsDeliveryWorkerRepository.countTodayActiveWorkers(any()) } returns 2L
       every { statisticsDeliveryWorkerRepository.countDeliveringOrders() } returns 5L
       every { statisticsDeliveryWorkerRepository.countCompletedOrdersSince(any()) } returns 8L
+      every { statisticsDeliveryWorkerRepository.findCompletedOrderTimingsSince(any()) } returns emptyList()
 
       val result = service.getDeliveryWorkerStatistics()
 
@@ -77,5 +79,58 @@ class DeliveryWorkerStatisticsServiceImplTest :
       result.todayActiveWorkers shouldBe 2L
       result.deliveringOrders shouldBe 5L
       result.todayCompletedOrders shouldBe 8L
+      // G36: 人均单量 = 今日完成 / 今日在岗;无今日完成订单 → 平均履约时长 null
+      result.averageOrdersPerWorker shouldBe 4.0f
+      result.averageFulfillmentMinutes shouldBe null
+    }
+    test("getDeliveryWorkerStatistics computes average fulfillment minutes") {
+      // G36: 平均履约时长 = Σ(completedAt − 派单时间)/N,派单时间取最早 DELIVERY_ASSIGNED 操作时间
+      val today = java.time.LocalDate.now()
+      val todayStart = today.atStartOfDay()
+      val completedAt1 = todayStart.plusHours(10)
+      val completedAt2 = todayStart.plusHours(11)
+      every { adminService.findAllDeliveryCapable() } returns listOf(worker(1L, "张三", null))
+      every { statisticsDeliveryWorkerRepository.countTodayActiveWorkers(any()) } returns 1L
+      every { statisticsDeliveryWorkerRepository.countDeliveringOrders() } returns 0L
+      every { statisticsDeliveryWorkerRepository.countCompletedOrdersSince(any()) } returns 2L
+      every { statisticsDeliveryWorkerRepository.findCompletedOrderTimingsSince(any()) } returns
+        listOf(
+          // 派单时间 09:00 → 10:00 完成 = 60 分钟
+          CompletedOrderTiming(
+            orderId = 1L,
+            completedAt = completedAt1,
+            deliveryStartedAt = null,
+            createdAt = todayStart.plusHours(8),
+          ),
+          // 无派单操作时间 → 回退 deliveryStartedAt 09:30 → 11:00 完成 = 90 分钟
+          CompletedOrderTiming(
+            orderId = 2L,
+            completedAt = completedAt2,
+            deliveryStartedAt = todayStart.plusHours(9).plusMinutes(30),
+            createdAt = todayStart.plusHours(8),
+          ),
+        )
+      every { statisticsDeliveryWorkerRepository.findEarliestAssignedAtByOrderIds(any()) } returns
+        mapOf(1L to todayStart.plusHours(9))
+
+      val result = service.getDeliveryWorkerStatistics()
+
+      result.todayCompletedOrders shouldBe 2L
+      result.averageOrdersPerWorker shouldBe 2.0f
+      // (60 + 90) / 2 = 75 分钟
+      result.averageFulfillmentMinutes!!.toDouble() shouldBe 75.0
+    }
+    test("getDeliveryWorkerStatistics handles zero active workers") {
+      // G36 边界:今日在岗为 0 → 人均单量 null;无完成订单 → 平均履约时长 null
+      every { adminService.findAllDeliveryCapable() } returns emptyList()
+      every { statisticsDeliveryWorkerRepository.countTodayActiveWorkers(any()) } returns 0L
+      every { statisticsDeliveryWorkerRepository.countDeliveringOrders() } returns 0L
+      every { statisticsDeliveryWorkerRepository.countCompletedOrdersSince(any()) } returns 0L
+      every { statisticsDeliveryWorkerRepository.findCompletedOrderTimingsSince(any()) } returns emptyList()
+
+      val result = service.getDeliveryWorkerStatistics()
+
+      result.averageOrdersPerWorker shouldBe null
+      result.averageFulfillmentMinutes shouldBe null
     }
   })

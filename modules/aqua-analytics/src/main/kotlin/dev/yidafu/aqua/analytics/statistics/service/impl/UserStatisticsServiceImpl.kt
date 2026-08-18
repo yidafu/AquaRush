@@ -19,9 +19,12 @@
 
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.dto.DailyLoginStatisticDTO
 import dev.yidafu.aqua.analytics.statistics.dto.LoginStatisticsDTO
+import dev.yidafu.aqua.analytics.statistics.dto.OrderUserDistributionDTO
+import dev.yidafu.aqua.analytics.statistics.dto.OrderUserTierDTO
 import dev.yidafu.aqua.analytics.statistics.dto.UserStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.service.UserStatisticsService
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
@@ -34,6 +37,7 @@ import java.time.LocalDate
 class UserStatisticsServiceImpl(
   private val userQueryApiService: UserQueryApiService,
   private val statisticsUserRepository: StatisticsUserRepositoryCustom,
+  private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
   private val userActionLogRepository: UserActionLogRepository,
 ) : UserStatisticsService {
   override fun getUserStatistics(): UserStatisticsDTO {
@@ -137,6 +141,42 @@ class UserStatisticsServiceImpl(
       todayLogins = todayLogins,
       totalLogins = totalLogins,
       dailyLogins = filledResults,
+    )
+  }
+
+  override fun getOrderUserDistribution(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): OrderUserDistributionDTO {
+    val startDateTime = startDate.atStartOfDay()
+    val endDateTime = endDate.atTime(java.time.LocalTime.MAX)
+
+    // 近30天下单用户聚合(orders 按 userId 去重分组计数,与活跃用户同窗口同源)
+    val ordersPerUser = statisticsOrderRepository.countOrdersPerUserInRange(startDateTime, endDateTime)
+    val orderingUsers = ordersPerUser.size.toLong()
+
+    // 下单次数分层(1次/2~3次/4次以上,F-STA-003,G35)
+    val oneOrder = ordersPerUser.values.count { it == 1L }.toLong()
+    val twoToThree = ordersPerUser.values.count { it in 2L..3L }.toLong()
+    val fourPlus = (ordersPerUser.size - (oneOrder + twoToThree)).coerceAtLeast(0L)
+    val tiers =
+      listOf(
+        OrderUserTierDTO(label = "1次", userCount = oneOrder),
+        OrderUserTierDTO(label = "2~3次", userCount = twoToThree),
+        OrderUserTierDTO(label = "4次以上", userCount = fourPlus),
+      )
+
+    // 下单用户占比 = 下单用户数 / 总用户数;复购率 = 下单≥2次用户数 / 下单用户数(除零为 0)
+    val totalUsers = userQueryApiService.findAll().size.toLong()
+    val orderingUserRatio = if (totalUsers > 0) orderingUsers.toFloat() / totalUsers.toFloat() else 0f
+    val repurchaseUsers = twoToThree + fourPlus
+    val repurchaseRate = if (orderingUsers > 0) repurchaseUsers.toFloat() / orderingUsers.toFloat() else 0f
+
+    return OrderUserDistributionDTO(
+      orderingUsers = orderingUsers,
+      orderingUserRatio = orderingUserRatio,
+      repurchaseRate = repurchaseRate,
+      tiers = tiers,
     )
   }
 }

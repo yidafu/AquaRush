@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.analytics.statistics.service
 
 import dev.yidafu.aqua.analytics.statistics.dto.LoginStatisticsDTO
+import dev.yidafu.aqua.analytics.statistics.dto.OrderUserDistributionDTO
 import dev.yidafu.aqua.analytics.statistics.dto.UserStatisticsDTO
 import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
 import java.time.LocalDate
@@ -48,4 +49,13 @@ interface UserStatisticsService {
     startDate: LocalDate,
     endDate: LocalDate,
   ): LoginStatisticsDTO
+
+  /**
+   * 获取下单用户分布(F-STA-003,G35):近30天下单用户去重,按累计下单次数分层,
+   * 下单用户占比 = 下单用户数/总用户数,复购率 = 下单≥2次用户数/下单用户数
+   */
+  fun getOrderUserDistribution(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): OrderUserDistributionDTO
 }

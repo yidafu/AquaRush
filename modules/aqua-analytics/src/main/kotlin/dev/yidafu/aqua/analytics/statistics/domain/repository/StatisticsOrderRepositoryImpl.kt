@@ -287,6 +287,23 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
   }
 
   /**
+   * 近30天下单用户分布(G35):orders 按 userId 分组计数(全状态聚合,与活跃用户同窗口同源)
+   */
+  override fun countOrdersPerUserInRange(
+    startDateTime: LocalDateTime,
+    endDateTime: LocalDateTime,
+  ): Map<Long, Long> =
+    queryFactory
+      .select(orderModel.userId, orderModel.id.count())
+      .from(orderModel)
+      .where(buildWhereClause(startDateTime, endDateTime, deliveryWorkerId = null, statuses = null))
+      .groupBy(orderModel.userId)
+      .fetch()
+      .associate { row ->
+        row.get(orderModel.userId)!! to (row.get(orderModel.id.count()) ?: 0L)
+      }
+
+  /**
    * 合并「仅订单聚合」与「明细件数聚合」两组结果(P1-3):
    * 金额只按订单计一次,商品件数按 order_items 明细汇总,两者按日期/周/月键合并。
    */

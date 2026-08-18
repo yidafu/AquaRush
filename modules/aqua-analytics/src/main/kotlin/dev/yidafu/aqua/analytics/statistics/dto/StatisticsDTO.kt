@@ -42,6 +42,7 @@ data class OrderStatisticsDTO(
     get() =
       MoneyUtils
         .fromCents(completedAmountCents)
+
   /** 净营收(分)= 已完成营收 − 已退款金额;跨窗口退款时可为负(如实展示) */
   val netRevenueCents: Long
     get() = completedAmountCents - refundedAmountCents

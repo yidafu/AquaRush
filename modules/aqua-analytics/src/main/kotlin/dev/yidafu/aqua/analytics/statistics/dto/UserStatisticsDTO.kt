@@ -45,3 +45,21 @@ data class DailyLoginStatisticDTO(
   val date: String,
   val loginCount: Int,
 )
+
+/**
+ * 下单用户分布DTO(F-STA-003,G35):按近30天下单用户去重聚合
+ */
+data class OrderUserDistributionDTO(
+  val orderingUsers: Long,
+  val orderingUserRatio: Float,
+  val repurchaseRate: Float,
+  val tiers: List<OrderUserTierDTO>,
+)
+
+/**
+ * 下单次数分层DTO(F-STA-003,G35):1次 / 2~3次 / 4次以上
+ */
+data class OrderUserTierDTO(
+  val label: String,
+  val userCount: Long,
+)

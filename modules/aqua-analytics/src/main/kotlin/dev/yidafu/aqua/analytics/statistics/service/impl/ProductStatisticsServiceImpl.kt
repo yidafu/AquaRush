@@ -29,6 +29,8 @@ import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
 import dev.yidafu.aqua.common.graphql.generated.ProductSalesStat
 import dev.yidafu.aqua.common.graphql.generated.ProductStatistics
+import dev.yidafu.aqua.common.graphql.generated.StockWarningItem
+import dev.yidafu.aqua.common.graphql.generated.StockWarningStatus
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.time.LocalTime
@@ -77,6 +79,28 @@ class ProductStatisticsServiceImpl(
     val allFavoriteStats = productFavoriteService.getProductFavoriteStats()
     val totalFavorites = allFavoriteStats.sumOf { it.favoriteCount }
 
+    // 库存预警明细(F-STA-006,G39):库存 ≤ 阈值(与 lowStockProducts 计数同源同口径,R-PRO-02);
+    // 缺货(库存=0)置顶、其余按库存升序;状态:缺货 OUT_OF_STOCK / 预警 WARNING
+    val stockWarningItems: List<StockWarningItem> =
+      allProducts
+        .filter { (it.stock ?: 0) <= lowStockThreshold }
+        .sortedWith(compareBy({ it.stock ?: 0 }, { it.id ?: 0L }))
+        .map { product ->
+          StockWarningItem(
+            productId = product.id ?: 0L,
+            productName = product.name,
+            specification = product.specification,
+            currentStock = product.stock ?: 0,
+            threshold = lowStockThreshold.toInt(),
+            status =
+              if ((product.stock ?: 0) == 0) {
+                StockWarningStatus.OUT_OF_STOCK
+              } else {
+                StockWarningStatus.WARNING
+              },
+          )
+        }
+
     return ProductStatistics(
       totalProducts = allProducts.size,
       onlineProducts = onlineProducts.size,
@@ -88,6 +112,7 @@ class ProductStatisticsServiceImpl(
       productRanking = productRanking,
       favoriteStatistics = allFavoriteStats,
       totalFavorites = totalFavorites.toInt(),
+      stockWarningItems = stockWarningItems,
     )
   }
 

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Spin } from 'antd';
+import { Card, Row, Col, Spin, Statistic } from 'antd';
 import {
   LineChart,
   Line,
@@ -8,6 +8,9 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
 } from 'recharts';
 import { useQuery, gql } from '@apollo/client';
 import StatisticsCard from '@/components/StatisticsCard';
@@ -34,6 +37,15 @@ const GET_USER_STATISTICS = gql`
           loginCount
         }
       }
+      orderDistribution {
+        orderingUsers
+        orderingUserRatio
+        repurchaseRate
+        tiers {
+          label
+          userCount
+        }
+      }
     }
   }
 `;
@@ -54,6 +66,18 @@ interface LoginStatistics {
   dailyLogins: DailyLoginStat[];
 }
 
+interface OrderUserTier {
+  label: string;
+  userCount: number;
+}
+
+interface OrderUserDistribution {
+  orderingUsers: number;
+  orderingUserRatio: number;
+  repurchaseRate: number;
+  tiers: OrderUserTier[];
+}
+
 interface UserStatisticsData {
   userStatistics: {
     totalUsers: number;
@@ -62,6 +86,7 @@ interface UserStatisticsData {
     activeUsers: number;
     dailyNewUsers: DailyUserStat[];
     loginStatistics: LoginStatistics;
+    orderDistribution: OrderUserDistribution;
   };
 }
 
@@ -101,6 +126,14 @@ const UserStatisticsPage: React.FC = () => {
 
   const stats = data?.userStatistics;
   const loginStats = stats?.loginStatistics;
+  const orderDistribution = stats?.orderDistribution;
+
+  // 下单次数分层环形图数据(G35)
+  const orderTierPieData = (orderDistribution?.tiers || []).map((tier, index) => ({
+    name: tier.label,
+    value: tier.userCount,
+    color: TIER_COLORS[index % TIER_COLORS.length],
+  }));
 
   return (
     <div style={{ padding: 24 }}>
@@ -216,8 +249,97 @@ const UserStatisticsPage: React.FC = () => {
           </ResponsiveContainer>
         </Spin>
       </Card>
+
+      {/* 下单用户分布(近30天,G35):环形图按累计下单次数分层 + 下单用户占比/复购率 */}
+      <Card title="下单用户分布（近30天）" style={{ marginTop: 24 }}>
+        <Spin spinning={loading}>
+          <Row gutter={[16, 16]} align="middle">
+            <Col xs={24} lg={12}>
+              <ResponsiveContainer width="100%" height={280}>
+                <PieChart>
+                  <Pie
+                    data={orderTierPieData}
+                    dataKey="value"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={95}
+                    paddingAngle={2}
+                  >
+                    {orderTierPieData.map((entry) => (
+                      <Cell key={entry.name} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    formatter={(value) => [`${Number(value ?? 0)} 人`, '用户数']}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{ textAlign: 'center', color: '#999', fontSize: 13 }}>
+                按累计下单次数分层（近30天下单用户去重）
+              </div>
+            </Col>
+            <Col xs={24} lg={12}>
+              <Row gutter={[16, 16]}>
+                <Col xs={24} sm={12}>
+                  <Card>
+                    <Statistic
+                      title="下单用户数"
+                      value={orderDistribution?.orderingUsers ?? 0}
+                      suffix="人"
+                    />
+                  </Card>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Card>
+                    <Statistic
+                      title="下单用户占比"
+                      value={formatRatio(orderDistribution?.orderingUserRatio)}
+                      suffix="%"
+                      precision={2}
+                    />
+                  </Card>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Card>
+                    <Statistic
+                      title="复购率"
+                      value={formatRatio(orderDistribution?.repurchaseRate)}
+                      suffix="%"
+                      precision={2}
+                    />
+                  </Card>
+                </Col>
+                <Col xs={24} sm={12}>
+                  <Card>
+                    <Statistic
+                      title="总用户数"
+                      value={stats?.totalUsers ?? 0}
+                      suffix="人"
+                    />
+                  </Card>
+                </Col>
+              </Row>
+            </Col>
+          </Row>
+        </Spin>
+      </Card>
     </div>
   );
 };
+
+/**
+ * 下单次数分层环形图配色(G35,复用订单状态分布色板风格)
+ */
+const TIER_COLORS = [BRAND_PRIMARY, '#52c41a', '#fa8c16'];
+
+/**
+ * 比率(0..1)转百分比文案(两位小数);null/非法值 → 0
+ */
+function formatRatio(ratio: number | undefined | null): number {
+  const value = typeof ratio === 'number' && Number.isFinite(ratio) ? ratio : 0;
+  return Number((value * 100).toFixed(2));
+}
 
 export default UserStatisticsPage;

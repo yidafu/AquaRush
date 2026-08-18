@@ -27,6 +27,10 @@ data class DeliveryWorkerStatisticsDTO(
   val todayActiveWorkers: Long,
   val deliveringOrders: Long,
   val todayCompletedOrders: Long,
+  // 人均单量 = 今日完成订单总数 / 今日在岗送水员数(在岗为 0 时为 null,G36)
+  val averageOrdersPerWorker: Float? = null,
+  // 平均履约时长(分钟)= Σ(completedAt − 派单时间) / 今日完成订单数;无完成订单时为 null(G36)
+  val averageFulfillmentMinutes: Float? = null,
 )
 
 /**

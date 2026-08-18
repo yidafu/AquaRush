@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
+import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepositoryCustom
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
 import dev.yidafu.aqua.common.domain.model.UserModel
@@ -37,14 +38,16 @@ class UserStatisticsServiceImplTest :
   FunSpec({
     var userQueryApiService: UserQueryApiService = mockk()
     var statisticsUserRepository: StatisticsUserRepositoryCustom = mockk()
+    var statisticsOrderRepository: StatisticsOrderRepositoryCustom = mockk()
     var userActionLogRepository: UserActionLogRepository = mockk()
     var service: UserStatisticsServiceImpl = mockk()
 
     beforeTest {
       userQueryApiService = mockk(relaxed = true)
       statisticsUserRepository = mockk(relaxed = true)
+      statisticsOrderRepository = mockk(relaxed = true)
       userActionLogRepository = mockk(relaxed = true)
-      service = UserStatisticsServiceImpl(userQueryApiService, statisticsUserRepository, userActionLogRepository)
+      service = UserStatisticsServiceImpl(userQueryApiService, statisticsUserRepository, statisticsOrderRepository, userActionLogRepository)
     }
     test("getUserStatistics aggregates totals and actives") {
       every { userQueryApiService.findAll() } returns listOf(mockk<UserModel>(relaxed = true), mockk(relaxed = true))
@@ -84,5 +87,46 @@ class UserStatisticsServiceImplTest :
       result.dailyLogins.size shouldBe 2
       result.dailyLogins[0].loginCount shouldBe 3
       result.dailyLogins[1].loginCount shouldBe 0
+    }
+    test("getOrderUserDistribution tiers ratio and repurchase") {
+      // G35: 近30天下单用户分布 —— 1次/2~3次/4次以上 分层 + 占比 + 复购率
+      val start = LocalDate.of(2025, 6, 1)
+      val end = LocalDate.of(2025, 6, 30)
+      every { statisticsOrderRepository.countOrdersPerUserInRange(any(), any()) } returns
+        mapOf(
+          1L to 1L, // 1次
+          2L to 1L, // 1次
+          3L to 2L, // 2~3次
+          4L to 3L, // 2~3次
+          5L to 5L, // 4次以上
+        )
+      every { userQueryApiService.findAll() } returns listOf(mockk<UserModel>(relaxed = true), mockk(relaxed = true))
+
+      val result = service.getOrderUserDistribution(start, end)
+
+      result.orderingUsers shouldBe 5L
+      result.orderingUserRatio shouldBe 2.5f // 5 / 2
+      result.repurchaseRate shouldBe 0.6f // 3 / 5
+      result.tiers.size shouldBe 3
+      result.tiers[0].label shouldBe "1次"
+      result.tiers[0].userCount shouldBe 2L
+      result.tiers[1].label shouldBe "2~3次"
+      result.tiers[1].userCount shouldBe 2L
+      result.tiers[2].label shouldBe "4次以上"
+      result.tiers[2].userCount shouldBe 1L
+    }
+    test("getOrderUserDistribution guards division by zero") {
+      // G35 边界:无下单用户 / 无总用户 —— 占比与复购率为 0,不抛异常
+      val start = LocalDate.of(2025, 6, 1)
+      val end = LocalDate.of(2025, 6, 30)
+      every { statisticsOrderRepository.countOrdersPerUserInRange(any(), any()) } returns emptyMap()
+      every { userQueryApiService.findAll() } returns emptyList()
+
+      val result = service.getOrderUserDistribution(start, end)
+
+      result.orderingUsers shouldBe 0L
+      result.orderingUserRatio shouldBe 0f
+      result.repurchaseRate shouldBe 0f
+      result.tiers.all { it.userCount == 0L } shouldBe true
     }
   })

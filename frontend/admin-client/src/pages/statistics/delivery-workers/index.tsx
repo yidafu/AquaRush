@@ -23,6 +23,8 @@ const GET_DELIVERY_WORKER_STATISTICS = gql`
       todayActiveWorkers
       deliveringOrders
       todayCompletedOrders
+      averageOrdersPerWorker
+      averageFulfillmentMinutes
     }
     deliveryWorkerRanking(limit: 10) {
       workerId
@@ -48,6 +50,8 @@ interface DeliveryWorkerStatisticsData {
     todayActiveWorkers: number;
     deliveringOrders: number;
     todayCompletedOrders: number;
+    averageOrdersPerWorker: number | null;
+    averageFulfillmentMinutes: number | null;
   };
   deliveryWorkerRanking: RankingItem[];
 }
@@ -149,6 +153,28 @@ const DeliveryWorkerStatisticsPage: React.FC = () => {
           <StatisticsCard
             title="今日完成"
             value={stats?.todayCompletedOrders ?? 0}
+            loading={loading}
+          />
+        </Col>
+      </Row>
+
+      {/* 履约效率指标卡(G36):人均单量 = 今日完成订单总数/今日在岗送水员数;平均履约时长 = Σ(completedAt − 派单时间)/完成订单数 */}
+      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+        <Col xs={24} sm={12} lg={6}>
+          <StatisticsCard
+            title="人均单量"
+            value={stats?.averageOrdersPerWorker != null ? Number(stats.averageOrdersPerWorker.toFixed(1)) : '—'}
+            suffix={stats?.averageOrdersPerWorker != null ? '单/人' : undefined}
+            precision={stats?.averageOrdersPerWorker != null ? 1 : undefined}
+            loading={loading}
+          />
+        </Col>
+        <Col xs={24} sm={12} lg={6}>
+          <StatisticsCard
+            title="平均履约时长"
+            value={stats?.averageFulfillmentMinutes != null ? Number(stats.averageFulfillmentMinutes.toFixed(1)) : '—'}
+            suffix={stats?.averageFulfillmentMinutes != null ? '分钟' : undefined}
+            precision={stats?.averageFulfillmentMinutes != null ? 1 : undefined}
             loading={loading}
           />
         </Col>

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Spin, Select, Space, DatePicker } from 'antd';
+import { Card, Row, Col, Spin, Select, Space, DatePicker, Table, Tag, Button } from 'antd';
+import { useNavigate } from 'react-router-dom';
 import {
   LineChart,
   Line,
@@ -44,6 +45,16 @@ interface ProductDailySalesData {
   revenueCents: number;
 }
 
+// 库存预警明细项(F-STA-006,G39)
+interface StockWarningItem {
+  productId: number;
+  productName: string;
+  specification: string;
+  currentStock: number;
+  threshold: number;
+  status: 'OUT_OF_STOCK' | 'WARNING';
+}
+
 interface ProductStatisticsPageData {
   productStatistics: {
     totalProducts: number;
@@ -54,6 +65,7 @@ interface ProductStatisticsPageData {
     totalFavorites: number;
     productRanking: ProductSalesStat[];
     favoriteStatistics: ProductFavoriteStat[];
+    stockWarningItems: StockWarningItem[];
   };
   productDailySales: ProductDailySalesData[];
   productsPaginated: {
@@ -62,6 +74,7 @@ interface ProductStatisticsPageData {
 }
 
 const ProductStatisticsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [dateRange, setDateRange] = useState<[Dayjs, Dayjs]>([
     dayjs().subtract(30, 'day'),
     dayjs(),
@@ -310,8 +323,72 @@ const ProductStatisticsPage: React.FC = () => {
           </Card>
         </Col>
       </Row>
+
+      {/* 库存预警明细(F-STA-006,G39):库存≤阈值(同 R-PRO-02 低库存计数口径),缺货(库存=0)置顶、按库存升序;
+          阈值配置入口跳转系统设置-库存预警阈值(F-SYS-003) */}
+      <Card
+        title="库存预警明细"
+        style={{ marginTop: 24 }}
+        extra={
+          <Button type="link" onClick={() => navigate('/system-config/stock')}>
+            阈值配置 ›
+          </Button>
+        }
+      >
+        <Table
+          rowKey="productId"
+          dataSource={stats?.stockWarningItems || []}
+          columns={stockWarningColumns}
+          pagination={false}
+          size="small"
+          loading={statsLoading}
+          locale={{ emptyText: '暂无库存预警商品' }}
+        />
+        <div style={{ marginTop: 8, color: '#999', fontSize: 13 }}>
+          口径:库存 ≤ 阈值({stats?.stockWarningItems?.[0]?.threshold ?? 10} 件)进入预警,库存 = 0 标记「缺货」并置顶;与「低库存预警」计数卡同源。
+        </div>
+      </Card>
     </div>
   );
 };
+
+// 库存预警明细列(F-STA-006,G39)
+const stockWarningColumns = [
+  {
+    title: '商品名',
+    dataIndex: 'productName',
+    key: 'productName',
+  },
+  {
+    title: '规格',
+    dataIndex: 'specification',
+    key: 'specification',
+    render: (spec: string) => (spec || '—'),
+  },
+  {
+    title: '当前库存',
+    dataIndex: 'currentStock',
+    key: 'currentStock',
+    width: 100,
+  },
+  {
+    title: '阈值',
+    dataIndex: 'threshold',
+    key: 'threshold',
+    width: 80,
+  },
+  {
+    title: '状态',
+    dataIndex: 'status',
+    key: 'status',
+    width: 100,
+    render: (status: StockWarningItem['status']) =>
+      status === 'OUT_OF_STOCK' ? (
+        <Tag color="red">缺货</Tag>
+      ) : (
+        <Tag color="orange">预警</Tag>
+      ),
+  },
+];
 
 export default ProductStatisticsPage;

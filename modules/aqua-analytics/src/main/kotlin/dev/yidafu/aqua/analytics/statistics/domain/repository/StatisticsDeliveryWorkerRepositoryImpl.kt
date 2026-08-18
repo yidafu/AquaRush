@@ -22,8 +22,10 @@ package dev.yidafu.aqua.analytics.statistics.domain.repository
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.QAdminModel
 import dev.yidafu.aqua.common.domain.model.QOrderModel
+import dev.yidafu.aqua.common.domain.model.QOrderOperationModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository
@@ -81,5 +83,48 @@ class StatisticsDeliveryWorkerRepositoryImpl : StatisticsDeliveryWorkerRepositor
         orderModel.status.eq(OrderModelStatus.COMPLETED),
         orderModel.updatedAt.goe(dateTime),
       ).fetchCount()
+  }
+
+  override fun findCompletedOrderTimingsSince(dateTime: LocalDateTime): List<CompletedOrderTiming> {
+    val orderModel = QOrderModel.orderModel
+
+    return queryFactory
+      .select(
+        orderModel.id,
+        orderModel.completedAt,
+        orderModel.deliveryStartedAt,
+        orderModel.createdAt,
+      ).from(orderModel)
+      .where(
+        orderModel.status.eq(OrderModelStatus.COMPLETED),
+        orderModel.completedAt.goe(dateTime),
+      ).fetch()
+      .map { row ->
+        CompletedOrderTiming(
+          orderId = row.get(orderModel.id)!!,
+          completedAt = row.get(orderModel.completedAt)!!,
+          deliveryStartedAt = row.get(orderModel.deliveryStartedAt),
+          createdAt = row.get(orderModel.createdAt)!!,
+        )
+      }
+  }
+
+  override fun findEarliestAssignedAtByOrderIds(orderIds: List<Long>): Map<Long, LocalDateTime> {
+    if (orderIds.isEmpty()) return emptyMap()
+    val orderOperationModel = QOrderOperationModel.orderOperationModel
+
+    // 派单时间 = 各订单最早 DELIVERY_ASSIGNED 操作时间(管理员派单/送水员接单均记录该操作)
+    val createdAtExpr = orderOperationModel.createdAt.min()
+    return queryFactory
+      .select(orderOperationModel.orderId, createdAtExpr)
+      .from(orderOperationModel)
+      .where(
+        orderOperationModel.orderId.`in`(orderIds),
+        orderOperationModel.operationType.eq(OrderOperationType.DELIVERY_ASSIGNED),
+      ).groupBy(orderOperationModel.orderId)
+      .fetch()
+      .associate { row ->
+        row.get(orderOperationModel.orderId)!! to row.get(createdAtExpr)!!
+      }
   }
 }

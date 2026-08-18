@@ -29,6 +29,7 @@ import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductFavoriteStat
+import dev.yidafu.aqua.common.graphql.generated.StockWarningStatus
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -126,6 +127,34 @@ class ProductStatisticsServiceImplTest :
       result.totalSales shouldBe 0
       result.totalFavorites shouldBe 0
       result.productRanking.size shouldBe 0
+      result.stockWarningItems.size shouldBe 0
+    }
+    test("getProductStatistics builds stock warning items sorted with out-of-stock first") {
+      // G39: 库存预警明细 —— 库存≤阈值(含缺货),缺货(库存=0)置顶,按库存升序,阈值与状态正确
+      val out = product(1L, "缺货水", 200L, stock = 0, salesVolume = 10, status = ProductModelStatus.ONLINE)
+      val low = product(2L, "低库存水", 300L, stock = 3, salesVolume = 20, status = ProductModelStatus.ONLINE)
+      val boundary = product(3L, "边界水", 400L, stock = 10, salesVolume = 5, status = ProductModelStatus.ONLINE)
+      val safe = product(4L, "充足水", 500L, stock = 50, salesVolume = 5, status = ProductModelStatus.ONLINE)
+      every { productQueryApiService.findByStatus(ProductModelStatus.ONLINE) } returns listOf(out, low, boundary, safe)
+      every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) } returns 10L
+      every { productFavoriteService.getProductFavoriteStats() } returns emptyList()
+
+      val result = service.getProductStatistics()
+
+      result.lowStockProducts shouldBe 3
+      result.stockWarningItems.size shouldBe 3
+      // 缺货置顶 → 其余按库存升序
+      result.stockWarningItems[0].productName shouldBe "缺货水"
+      result.stockWarningItems[0].currentStock shouldBe 0
+      result.stockWarningItems[0].status shouldBe StockWarningStatus.OUT_OF_STOCK
+      result.stockWarningItems[1].productName shouldBe "低库存水"
+      result.stockWarningItems[1].currentStock shouldBe 3
+      result.stockWarningItems[1].status shouldBe StockWarningStatus.WARNING
+      result.stockWarningItems[2].productName shouldBe "边界水"
+      result.stockWarningItems[2].threshold shouldBe 10
+      result.stockWarningItems[2].status shouldBe StockWarningStatus.WARNING
+      // 阈值与计数同源(R-PRO-02)
+      result.stockWarningItems.all { it.threshold == 10 } shouldBe true
     }
     test("getProductDailySales fills missing dates with zero entry") {
       val start = LocalDate.of(2025, 6, 1)

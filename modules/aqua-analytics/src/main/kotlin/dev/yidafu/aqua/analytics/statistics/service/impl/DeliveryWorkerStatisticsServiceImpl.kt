@@ -31,6 +31,7 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Service
+import java.time.Duration
 import java.time.LocalDate
 
 @Service
@@ -61,11 +62,39 @@ class DeliveryWorkerStatisticsServiceImpl(
     // 今日已完成订单数
     val todayCompletedOrders = statisticsDeliveryWorkerRepository.countCompletedOrdersSince(todayStart)
 
+    // 人均单量 = 今日完成订单总数 / 今日在岗送水员数(F-STA-004,G36;在岗为 0 时为 null)
+    val averageOrdersPerWorker =
+      if (todayActiveWorkers > 0) todayCompletedOrders.toFloat() / todayActiveWorkers.toFloat() else null
+
+    // 平均履约时长(分钟)= Σ(completedAt − 派单时间) / 今日完成订单数(F-STA-004,G36);
+    // 派单时间 = 最早 DELIVERY_ASSIGNED 操作时间,回退 deliveryStartedAt(出发时间),再回退 createdAt;
+    // 无今日完成订单时为 null
+    val completedOrders = statisticsDeliveryWorkerRepository.findCompletedOrderTimingsSince(todayStart)
+    val assignedAtByOrderId =
+      statisticsDeliveryWorkerRepository.findEarliestAssignedAtByOrderIds(completedOrders.map { it.orderId })
+    val averageFulfillmentMinutes =
+      if (completedOrders.isEmpty()) {
+        null
+      } else {
+        val totalSeconds =
+          completedOrders.sumOf { timing ->
+            val start =
+              assignedAtByOrderId[timing.orderId]
+                ?: timing.deliveryStartedAt
+                ?: timing.createdAt
+            Duration.between(start, timing.completedAt).seconds.coerceAtLeast(0L)
+          }
+        val averageSeconds = totalSeconds.toDouble() / completedOrders.size
+        (averageSeconds / 60.0).toFloat()
+      }
+
     return DeliveryWorkerStatisticsDTO(
       totalWorkers = totalWorkers.toLong(),
       todayActiveWorkers = todayActiveWorkers,
       deliveringOrders = deliveringOrders,
       todayCompletedOrders = todayCompletedOrders,
+      averageOrdersPerWorker = averageOrdersPerWorker,
+      averageFulfillmentMinutes = averageFulfillmentMinutes,
     )
   }
 

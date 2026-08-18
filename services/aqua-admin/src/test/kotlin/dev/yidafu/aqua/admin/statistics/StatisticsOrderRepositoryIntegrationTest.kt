@@ -134,9 +134,7 @@ class StatisticsOrderRepositoryIntegrationTest(
           ),
         ).id!!
 
-    fun seedPayment(
-      orderId: Long,
-    ): Long =
+    fun seedPayment(orderId: Long): Long =
       paymentRepository
         .save(
           PaymentModel(

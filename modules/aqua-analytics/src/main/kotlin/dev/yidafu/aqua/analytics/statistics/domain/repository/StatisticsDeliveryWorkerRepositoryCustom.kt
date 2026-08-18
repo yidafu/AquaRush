@@ -22,6 +22,16 @@ package dev.yidafu.aqua.analytics.statistics.domain.repository
 import java.time.LocalDateTime
 
 /**
+ * 已完成订单履约时间要素(F-STA-004,G36 平均履约时长):completedAt − 派单时间
+ */
+data class CompletedOrderTiming(
+  val orderId: Long,
+  val completedAt: LocalDateTime,
+  val deliveryStartedAt: LocalDateTime?,
+  val createdAt: LocalDateTime,
+)
+
+/**
  * 送水员统计 Repository 自定义接口
  */
 interface StatisticsDeliveryWorkerRepositoryCustom {
@@ -39,4 +49,16 @@ interface StatisticsDeliveryWorkerRepositoryCustom {
    * 统计指定时间范围内已完成的订单数
    */
   fun countCompletedOrdersSince(dateTime: LocalDateTime): Long
+
+  /**
+   * 查询指定时间范围内已完成订单的履约时间要素(F-STA-004,G36)
+   */
+  fun findCompletedOrderTimingsSince(dateTime: LocalDateTime): List<CompletedOrderTiming>
+
+  /**
+   * 查询各订单最早派单(DELIVERY_ASSIGNED)操作时间(F-STA-004,G36):
+   * 派单时间 = order_operations 中 operation_type=DELIVERY_ASSIGNED 的最早 createdAt;
+   * 未命中(历史订单/事件未落)的订单不在返回 map 中,由服务层回退 deliveryStartedAt/createdAt。
+   */
+  fun findEarliestAssignedAtByOrderIds(orderIds: List<Long>): Map<Long, LocalDateTime>
 }

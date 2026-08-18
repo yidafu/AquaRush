@@ -25,6 +25,8 @@ import dev.yidafu.aqua.common.graphql.generated.DailyLoginStatistic
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerOverview
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerRankingItem
 import dev.yidafu.aqua.common.graphql.generated.LoginStatistics
+import dev.yidafu.aqua.common.graphql.generated.OrderUserDistribution
+import dev.yidafu.aqua.common.graphql.generated.OrderUserTier
 import dev.yidafu.aqua.common.graphql.generated.UserStatistics
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -67,6 +69,22 @@ class AdminStatisticsQueryResolver(
         dailyLogins = loginStats,
       )
 
+    // 下单用户分布(G35,近30天窗口,与 activeUsers 同窗口)
+    val distribution = userStatisticsService.getOrderUserDistribution(thirtyDaysAgo, LocalDate.now())
+    val orderDistribution =
+      OrderUserDistribution(
+        orderingUsers = distribution.orderingUsers.toInt(),
+        orderingUserRatio = distribution.orderingUserRatio,
+        repurchaseRate = distribution.repurchaseRate,
+        tiers =
+          distribution.tiers.map {
+            OrderUserTier(
+              label = it.label,
+              userCount = it.userCount.toInt(),
+            )
+          },
+      )
+
     return UserStatistics(
       totalUsers = result.totalUsers.toInt(),
       todayNewUsers = result.todayNewUsers.toInt(),
@@ -74,6 +92,7 @@ class AdminStatisticsQueryResolver(
       activeUsers = result.activeUsers.toInt(),
       dailyNewUsers = dailyStats,
       loginStatistics = loginStatistics,
+      orderDistribution = orderDistribution,
     )
   }
 
@@ -89,6 +108,8 @@ class AdminStatisticsQueryResolver(
       todayActiveWorkers = result.todayActiveWorkers.toInt(),
       deliveringOrders = result.deliveringOrders.toInt(),
       todayCompletedOrders = result.todayCompletedOrders.toInt(),
+      averageOrdersPerWorker = result.averageOrdersPerWorker,
+      averageFulfillmentMinutes = result.averageFulfillmentMinutes,
     )
   }
 

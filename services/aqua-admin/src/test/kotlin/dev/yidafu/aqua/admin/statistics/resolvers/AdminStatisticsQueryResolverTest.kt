@@ -23,6 +23,8 @@ import dev.yidafu.aqua.analytics.statistics.dto.DailyLoginStatisticDTO
 import dev.yidafu.aqua.analytics.statistics.dto.DeliveryWorkerRankingItemDTO
 import dev.yidafu.aqua.analytics.statistics.dto.DeliveryWorkerStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.LoginStatisticsDTO
+import dev.yidafu.aqua.analytics.statistics.dto.OrderUserDistributionDTO
+import dev.yidafu.aqua.analytics.statistics.dto.OrderUserTierDTO
 import dev.yidafu.aqua.analytics.statistics.dto.UserStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.service.DeliveryWorkerStatisticsService
 import dev.yidafu.aqua.analytics.statistics.service.UserStatisticsService
@@ -52,6 +54,18 @@ class AdminStatisticsQueryResolverTest :
         listOf(DailyStatistic(date = "2025-01-01", orderCount = 1, orderProductCount = 1, revenueCents = 100L, refundCents = 0L))
       every { userStatisticsService.getLoginStatistics(any(), any()) } returns
         LoginStatisticsDTO(todayLogins = 10L, totalLogins = 1000L, dailyLogins = listOf(DailyLoginStatisticDTO("2025-01-01", 3)))
+      every { userStatisticsService.getOrderUserDistribution(any(), any()) } returns
+        OrderUserDistributionDTO(
+          orderingUsers = 40L,
+          orderingUserRatio = 0.4f,
+          repurchaseRate = 0.25f,
+          tiers =
+            listOf(
+              OrderUserTierDTO(label = "1次", userCount = 30L),
+              OrderUserTierDTO(label = "2~3次", userCount = 8L),
+              OrderUserTierDTO(label = "4次以上", userCount = 2L),
+            ),
+        )
 
       // When
       val result = resolver.userStatistics()
@@ -65,12 +79,26 @@ class AdminStatisticsQueryResolverTest :
       result.loginStatistics!!.todayLogins shouldBe 10
       result.loginStatistics!!.totalLogins shouldBe 1000
       result.loginStatistics!!.dailyLogins.size shouldBe 1
+      // G35 下单用户分布映射
+      result.orderDistribution.orderingUsers shouldBe 40
+      result.orderDistribution.orderingUserRatio shouldBe 0.4f
+      result.orderDistribution.repurchaseRate shouldBe 0.25f
+      result.orderDistribution.tiers.size shouldBe 3
+      result.orderDistribution.tiers[0].label shouldBe "1次"
+      result.orderDistribution.tiers[0].userCount shouldBe 30
       verify { userStatisticsService.getUserStatistics() }
     }
     test("deliveryWorkerStatistics should map overview") {
       // Given
       every { deliveryWorkerStatisticsService.getDeliveryWorkerStatistics() } returns
-        DeliveryWorkerStatisticsDTO(totalWorkers = 8L, todayActiveWorkers = 6L, deliveringOrders = 3L, todayCompletedOrders = 12L)
+        DeliveryWorkerStatisticsDTO(
+          totalWorkers = 8L,
+          todayActiveWorkers = 6L,
+          deliveringOrders = 3L,
+          todayCompletedOrders = 12L,
+          averageOrdersPerWorker = 2.0f,
+          averageFulfillmentMinutes = 45.5f,
+        )
 
       // When
       val result = resolver.deliveryWorkerStatistics()
@@ -80,6 +108,9 @@ class AdminStatisticsQueryResolverTest :
       result.todayActiveWorkers shouldBe 6
       result.deliveringOrders shouldBe 3
       result.todayCompletedOrders shouldBe 12
+      // G36 履约效率指标映射
+      result.averageOrdersPerWorker shouldBe 2.0f
+      result.averageFulfillmentMinutes shouldBe 45.5f
     }
     test("deliveryWorkerRanking should map ranking items") {
       // Given

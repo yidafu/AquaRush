@@ -90,4 +90,14 @@ interface StatisticsOrderRepositoryCustom {
     endDateTime: LocalDateTime,
     buckets: List<OrderValueBucketDTO>,
   ): Map<String, Long>
+
+  /**
+   * 统计日期窗口内每个用户的下单数（G35 下单用户分布，全状态聚合）:
+   * orders 按 userId 去重分组计数;缺失订单的用户不计入。
+   * @return userId → 窗口内订单数
+   */
+  fun countOrdersPerUserInRange(
+    startDateTime: LocalDateTime,
+    endDateTime: LocalDateTime,
+  ): Map<Long, Long>
 }
