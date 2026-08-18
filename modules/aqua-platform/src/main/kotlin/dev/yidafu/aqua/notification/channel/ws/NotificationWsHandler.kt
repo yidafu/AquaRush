@@ -67,11 +67,12 @@ class NotificationWsHandler(
       val token = body["token"] ?: return
       val receiverTypeValue = body["receiverType"] ?: return
       val receiverType = NotificationReceiverType.valueOf(receiverTypeValue)
-      val receiverId = resolveReceiverId(receiverType, token) ?: run {
-        logger.warn("WebSocket 鉴权失败,关闭会话: {}", receiverTypeValue)
-        session.close(CloseStatus.NOT_ACCEPTABLE)
-        return
-      }
+      val receiverId =
+        resolveReceiverId(receiverType, token) ?: run {
+          logger.warn("WebSocket 鉴权失败,关闭会话: {}", receiverTypeValue)
+          session.close(CloseStatus.NOT_ACCEPTABLE)
+          return
+        }
       session.attributes["ws-receiver-type"] = receiverType
       session.attributes["ws-receiver-id"] = receiverId
       session.attributes["ws-registered"] = true

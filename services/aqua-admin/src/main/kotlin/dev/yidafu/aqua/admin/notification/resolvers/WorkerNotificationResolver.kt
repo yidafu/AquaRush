@@ -80,7 +80,9 @@ class WorkerNotificationResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
-  fun workerUnreadNotificationCount(@AuthenticationPrincipal userDetail: UserDetails): Long {
+  fun workerUnreadNotificationCount(
+    @AuthenticationPrincipal userDetail: UserDetails,
+  ): Long {
     val workerId = resolveWorkerId(userDetail)
     return notificationQueryApiService.countUnread(
       receiverType = NotificationReceiverType.WORKER,
@@ -110,7 +112,9 @@ class WorkerNotificationResolver(
    */
   @MutationMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
-  fun markAllWorkerNotificationsRead(@AuthenticationPrincipal userDetail: UserDetails): Boolean {
+  fun markAllWorkerNotificationsRead(
+    @AuthenticationPrincipal userDetail: UserDetails,
+  ): Boolean {
     val workerId = resolveWorkerId(userDetail)
     notificationMutationApiService.markAllRead(
       receiverType = NotificationReceiverType.WORKER,

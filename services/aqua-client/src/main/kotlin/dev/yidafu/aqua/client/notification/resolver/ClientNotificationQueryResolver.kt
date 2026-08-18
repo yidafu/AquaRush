@@ -75,7 +75,9 @@ class ClientNotificationQueryResolver(
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
-  fun unreadNotificationCount(@AuthenticationPrincipal principal: UserPrincipal): Long =
+  fun unreadNotificationCount(
+    @AuthenticationPrincipal principal: UserPrincipal,
+  ): Long =
     notificationQueryApiService.countUnread(
       receiverType = NotificationReceiverType.USER,
       receiverId = principal.id,

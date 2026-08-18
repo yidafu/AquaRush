@@ -71,8 +71,10 @@ class WeChatSubscribeMessageServiceTest :
         idempotencyKey = "1001:$scene:1715000000000",
       )
 
-    fun authorizedAuth(templateId: String = "tpl_payment", remaining: Int = 1): UserSubscriptionAuthModel =
-      UserSubscriptionAuthModel(userId = 1L, templateId = templateId, remainingCount = remaining)
+    fun authorizedAuth(
+      templateId: String = "tpl_payment",
+      remaining: Int = 1,
+    ): UserSubscriptionAuthModel = UserSubscriptionAuthModel(userId = 1L, templateId = templateId, remainingCount = remaining)
 
     beforeTest {
       systemConfigQueryApiService = mockk(relaxed = true)

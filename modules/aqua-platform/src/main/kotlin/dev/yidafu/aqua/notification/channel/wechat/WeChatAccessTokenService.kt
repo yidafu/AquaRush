@@ -62,7 +62,7 @@ class WeChatAccessTokenService(
       cachedToken = token
       expiresAtMillis =
         System.currentTimeMillis() +
-          (weChatProperties.tokenCacheMinutes - 5).coerceAtLeast(1) * 60_000L
+        (weChatProperties.tokenCacheMinutes - 5).coerceAtLeast(1) * 60_000L
       logger.info("WeChat access_token refreshed, cache minutes: {}", weChatProperties.tokenCacheMinutes)
       return token
     }

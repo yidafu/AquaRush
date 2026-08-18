@@ -24,7 +24,6 @@ import dev.yidafu.aqua.common.domain.model.enums.NotificationReceiverType
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.notification.channel.wechat.WeChatSubscribeMessageService
 import dev.yidafu.aqua.notification.channel.ws.NotificationPushEventPublisher
-import dev.yidafu.aqua.notification.channel.ws.PushEvent
 import dev.yidafu.aqua.notification.domain.repository.NotificationRepository
 import dev.yidafu.aqua.notification.dto.NotificationEventData
 import io.kotest.core.spec.style.FunSpec
@@ -49,7 +48,8 @@ class NotificationGatewayServiceTest :
 
     // 同步执行器:使 afterCommit(无事务时立即执行)在测试线程内完成,便于 verify
     val syncExecutor =
-      org.springframework.core.task.TaskExecutor { task: Runnable -> task.run() }
+      org.springframework.core.task
+        .TaskExecutor { task: Runnable -> task.run() }
 
     beforeTest {
       repository = mockk(relaxed = true)
@@ -67,9 +67,10 @@ class NotificationGatewayServiceTest :
     fun event(data: NotificationEventData): DomainEvent =
       DomainEvent(
         eventType = "NOTIFICATION_SEND",
-        payload = objectMapper.writeValueAsString(
-          objectMapper.convertValue(data, Map::class.java),
-        ),
+        payload =
+          objectMapper.writeValueAsString(
+            objectMapper.convertValue(data, Map::class.java),
+          ),
       )
 
     test("新用户通知事件应落库并发布推送事件,无模板场景不调微信") {
@@ -162,7 +163,16 @@ class NotificationGatewayServiceTest :
       gateway.handle(event(data))
 
       verify { pushEventPublisher.publish(match { it.receiverType == "USER" && it.receiverId == 1L }) }
-      verify { weChatSubscribeMessageService.trySend(saved, "payment_result", "pages/order-detail/index?id=1001", mapOf("thing1" to "订单号:1001")) }
+      verify {
+        weChatSubscribeMessageService.trySend(
+          saved,
+          "payment_result",
+          "pages/order-detail/index?id=1001",
+          mapOf(
+            "thing1" to "订单号:1001",
+          ),
+        )
+      }
     }
 
     test("广播事件仅推送广播,不落库") {

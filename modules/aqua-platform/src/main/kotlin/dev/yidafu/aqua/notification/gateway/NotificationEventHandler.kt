@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.notification.gateway
 
-import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
+import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.common.messaging.consumer.EventProcessor
 import dev.yidafu.aqua.common.messaging.event.DomainEvent
 import dev.yidafu.aqua.common.messaging.event.DomainEventType
@@ -96,14 +96,14 @@ abstract class BaseNotificationEventHandler(
     key: String,
   ): Long? = data[key]?.toString()?.toLongOrNull()
 
-  protected fun eventTimeMillis(data: Map<String, Any>): Long =
-    longOrNull(data, "timestamp") ?: System.currentTimeMillis()
+  protected fun eventTimeMillis(data: Map<String, Any>): Long = longOrNull(data, "timestamp") ?: System.currentTimeMillis()
 
   /** 金额分 → 元字符串(展示用) */
   protected fun yuan(cents: Long): String = String.format("%.2f", cents / 100.0)
 
   protected fun formatTime(epochMillis: Long): String =
-    DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+    DateTimeFormatter
+      .ofPattern("yyyy-MM-dd HH:mm")
       .format(LocalDateTime.ofInstant(Instant.ofEpochMilli(epochMillis), ZoneId.systemDefault()))
 }
 

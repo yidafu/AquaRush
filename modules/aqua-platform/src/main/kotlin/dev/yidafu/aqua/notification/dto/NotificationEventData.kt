@@ -37,7 +37,8 @@ data class NotificationEventData(
   val title: String,
   val summary: String? = null,
   val relatedNo: String? = null,
-  val eventTime: Long, // 事件时间(epoch millis),幂等键组成
+  /** 事件时间(epoch millis),幂等键组成 */
+  val eventTime: Long,
   /** 微信订阅消息模板场景键(见 NotificationTemplateScenes),非空且接收人为 USER 时尝试发送 */
   val templateScene: String? = null,
   /** 微信订阅消息点击跳转的小程序页面路径 */
@@ -55,8 +56,7 @@ data class NotificationEventData(
     private val objectMapper = jacksonObjectMapper()
 
     /** 从领域事件 payload 解析 */
-    fun fromPayload(payload: String): NotificationEventData =
-      objectMapper.readValue(payload, NotificationEventData::class.java)
+    fun fromPayload(payload: String): NotificationEventData = objectMapper.readValue(payload, NotificationEventData::class.java)
   }
 }
 

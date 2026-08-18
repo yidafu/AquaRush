@@ -85,8 +85,9 @@ class WeChatSubscribeMessageService(
       if (settings != null && !categoryAllowed(settings, templateScene)) return
 
       // 门控 4:授权剩余次数
-      val auth = userSubscriptionAuthRepository.findByUserIdAndTemplateId(userId, templateId).orElse(null)
-        ?: return
+      val auth =
+        userSubscriptionAuthRepository.findByUserIdAndTemplateId(userId, templateId).orElse(null)
+          ?: return
       if (auth.remainingCount <= 0) return
 
       // 门控 5:真实 openid

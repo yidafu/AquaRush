@@ -20,11 +20,11 @@
 package dev.yidafu.aqua.notification.channel.ws
 
 import dev.yidafu.aqua.common.messaging.publisher.EventQueueConst
+import jakarta.jms.Topic
 import org.slf4j.LoggerFactory
 import org.springframework.jms.core.JmsTemplate
 import org.springframework.stereotype.Component
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import jakarta.jms.Topic
 
 /**
  * WebSocket 推送事件发布器(PRD 13-notification.md F-NTF-003)

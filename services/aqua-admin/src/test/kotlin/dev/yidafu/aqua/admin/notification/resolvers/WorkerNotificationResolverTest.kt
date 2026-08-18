@@ -19,7 +19,6 @@
 
 package dev.yidafu.aqua.admin.notification.resolvers
 
-import dev.yidafu.aqua.api.dto.notification.NotificationListRequest
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.notification.NotificationMutationApiService
 import dev.yidafu.aqua.api.service.notification.NotificationQueryApiService
@@ -33,10 +32,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.data.domain.PageImpl
-import org.springframework.data.domain.PageRequest
 import org.springframework.security.core.userdetails.User
 import org.springframework.security.core.userdetails.UserDetails
-import java.time.LocalDateTime
 
 /**
  * 送水工端消息中心 Resolver 测试(PRD 13-notification.md F-NTF-004):
@@ -68,7 +65,11 @@ class WorkerNotificationResolverTest :
       adminService = mockk(relaxed = true)
       resolver = WorkerNotificationResolver(queryApiService, mutationApiService, adminService)
       userDetails =
-        User.withUsername("delivery_9").password("x").authorities("PERMISSION_DELIVERY_TASK").build()
+        User
+          .withUsername("delivery_9")
+          .password("x")
+          .authorities("PERMISSION_DELIVERY_TASK")
+          .build()
       every { adminService.findByUsername("delivery_9") } returns AdminModel(id = 9L, username = "delivery_9", passwordHash = "x")
     }
 

@@ -27,6 +27,8 @@ import org.springframework.stereotype.Repository
  * 站内消息仓库(PRD 13-notification.md,统一落库表 notifications)
  */
 @Repository
-interface NotificationRepository : JpaRepository<NotificationModel, Long>, NotificationRepositoryCustom {
+interface NotificationRepository :
+  JpaRepository<NotificationModel, Long>,
+  NotificationRepositoryCustom {
   fun existsByIdempotencyKey(idempotencyKey: String): Boolean
 }

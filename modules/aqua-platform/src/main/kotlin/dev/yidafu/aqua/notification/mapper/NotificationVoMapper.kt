@@ -22,9 +22,9 @@ package dev.yidafu.aqua.notification.mapper
 import dev.yidafu.aqua.common.domain.model.NotificationModel
 import dev.yidafu.aqua.common.domain.model.enums.NotificationMessageType
 import dev.yidafu.aqua.common.domain.model.enums.NotificationReceiverType
-import dev.yidafu.aqua.common.graphql.generated.NotificationReceiverType as GraphQlNotificationReceiverType
 import dev.yidafu.aqua.common.graphql.generated.NotificationType
 import dev.yidafu.aqua.common.graphql.generated.NotificationVo
+import dev.yidafu.aqua.common.graphql.generated.NotificationReceiverType as GraphQlNotificationReceiverType
 
 /**
  * 站内消息 GraphQL VO 映射(PRD 13-notification.md F-NTF-002/004/006)

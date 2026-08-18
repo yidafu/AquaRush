@@ -58,7 +58,9 @@ class ClientNotificationMutationResolver(
    */
   @MutationMapping
   @PreAuthorize("isAuthenticated()")
-  fun markAllNotificationsRead(@AuthenticationPrincipal principal: UserPrincipal): Boolean {
+  fun markAllNotificationsRead(
+    @AuthenticationPrincipal principal: UserPrincipal,
+  ): Boolean {
     notificationMutationApiService.markAllRead(
       receiverType = NotificationReceiverType.USER,
       receiverId = principal.id,

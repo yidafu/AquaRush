@@ -162,7 +162,11 @@ class NotificationGatewayService(
       "title" to notification.title,
       "summary" to notification.summary,
       "relatedNo" to notification.relatedNo,
-      "createdAt" to notification.createdAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
+      "createdAt" to
+        notification.createdAt
+          .atZone(ZoneId.systemDefault())
+          .toInstant()
+          .toEpochMilli(),
       "unreadCount" to unreadCount,
     )
 

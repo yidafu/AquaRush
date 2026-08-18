@@ -80,6 +80,7 @@ class AdminNotificationResolver(
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_NOTIFICATION_READ')")
-  fun notification(@Argument id: Long): NotificationVo? =
-    notificationQueryApiService.findById(id)?.let { NotificationVoMapper.toVo(it) }
+  fun notification(
+    @Argument id: Long,
+  ): NotificationVo? = notificationQueryApiService.findById(id)?.let { NotificationVoMapper.toVo(it) }
 }
