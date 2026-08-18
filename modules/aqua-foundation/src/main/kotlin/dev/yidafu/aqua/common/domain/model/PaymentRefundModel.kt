@@ -21,6 +21,7 @@ package dev.yidafu.aqua.common.domain.model
 
 import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
+import dev.yidafu.aqua.common.graphql.generated.RefundType
 import jakarta.persistence.*
 import org.hibernate.annotations.SoftDelete
 import java.time.LocalDateTime
@@ -53,11 +54,24 @@ data class PaymentRefundModel(
   @Enumerated(EnumType.STRING)
   @Column(name = "status", nullable = false)
   var status: RefundStatus = RefundStatus.PENDING,
+  // 退款类型(v2.0.1,R-PAY-02/G06):ORDER_REFUND=订单退款(计入退款统计);DEPOSIT_REFUND=水桶费/桶押金退还(不计入)
+  @Enumerated(EnumType.STRING)
+  @Column(name = "refund_type", nullable = false)
+  var refundType: RefundType = RefundType.ORDER_REFUND,
   @Column(name = "refund_account")
   var refundAccount: String? = null,
   // 退款处理完成时间(迁移列名 processed_at;退款统计按此归属时间窗口)
   @Column(name = "processed_at")
   var refundedAt: LocalDateTime? = null,
+  // 审核/处理人(v2.0.1 退款审核流,R-PAY-02)
+  @Column(name = "processed_by")
+  var processedBy: Long? = null,
+  // 管理员审核备注(v2.0.1)
+  @Column(name = "admin_note", length = 1000)
+  var adminNote: String? = null,
+  // 退款失败原因(v1.0.0 基础 schema 已有列 payment_refunds.failure_reason)
+  @Column(name = "failure_reason", columnDefinition = "text")
+  var failureReason: String? = null,
   @Column(name = "created_at", nullable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "updated_at", nullable = false)

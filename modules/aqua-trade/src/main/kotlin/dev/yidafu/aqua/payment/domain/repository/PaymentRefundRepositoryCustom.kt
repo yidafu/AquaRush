@@ -19,6 +19,9 @@
 
 package dev.yidafu.aqua.payment.domain.repository
 
+import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
+import dev.yidafu.aqua.common.graphql.generated.RefundStatus
+import org.springframework.data.domain.Page
 import java.time.LocalDate
 import java.time.LocalDateTime
 
@@ -42,4 +45,16 @@ interface PaymentRefundRepositoryCustom {
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Map<LocalDate, Long>
+
+  /**
+   * 退款申请分页查询(R-PAY-02 后台退款管理页):
+   * status 为空=全部状态;日期按创建时间过滤(空=不限);按创建时间倒序。
+   */
+  fun findRefundRequests(
+    status: RefundStatus?,
+    dateFrom: LocalDateTime?,
+    dateTo: LocalDateTime?,
+    page: Int,
+    size: Int,
+  ): Page<PaymentRefundModel>
 }
