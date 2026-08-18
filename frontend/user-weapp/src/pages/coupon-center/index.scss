@@ -56,13 +56,13 @@
 .coupon-type {
   font-size: 24px;
   font-weight: 600;
-  color: var(--brand-primary);
+  color: var(--coupon-primary);
 }
 
 .coupon-discount {
   font-size: 36px;
   font-weight: 800;
-  color: var(--text-main);
+  color: var(--coupon-primary);
   line-height: 1.2;
 }
 
@@ -95,7 +95,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--brand-primary); // 领取按钮:品牌蓝(§9),不用强调橙
+  background: var(--coupon-primary); // 领取按钮:优惠券品牌橙红(§2.1)
   border-radius: 28px;
   padding: 0 24px;
 }

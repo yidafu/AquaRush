@@ -17,6 +17,7 @@ import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
 import { AddressCard } from '@/components/order-detail/address-card';
+import { CostSummaryCard } from '@/components/order-detail/cost-summary-card';
 import { DeliveryInfoCard } from '@/components/order-detail/delivery-info-card';
 import { OperationsCard } from '@/components/order-detail/operations-card';
 import { OrderInfoCard } from '@/components/order-detail/order-info-card';
@@ -315,6 +316,9 @@ export default function OrderDetailScreen() {
         ) : null}
 
         <ProductCard items={order.items ?? undefined} remark={order.remark ?? undefined} />
+
+        {/* 费用明细(营销优惠明细:水票抵扣/满减/首单立减/优惠券/赠品 —— R-MKT-02/07/08/09/10) */}
+        <CostSummaryCard order={order} />
 
         {order.status === 'DELIVERING' || isCompleted ? (
           <DeliveryInfoCard

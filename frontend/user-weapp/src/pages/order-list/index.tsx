@@ -32,13 +32,19 @@ interface OrderItem {
   quantity: number
   // 营销计价快照(R-MKT-01/02/07):优惠价+划线价/优惠明细展示依据
   unitPriceCents: string | number | null
-  priceSource: string | null
+  /** 是否命中营销价(成交单价 ≠ 目录价快照,划线价展示 —— AC-ORD-002-09) */
+  hasMarketingPrice: boolean
   amountCents: string | number
   deliveryFeeCents: string | number
   payAmountCents: string | number
   promotionDiscountCents: string | number | null
+  promotionActivityName?: string | null
   couponDiscountCents: string | number | null
+  couponName?: string | null
   firstOrderDiscountCents: string | number | null
+  firstOrderActivityName?: string | null
+  ticketRedeemCount?: number | null
+  ticketDiscountCents?: string | number | null
   address: {
     receiverName: string
     phone: string
@@ -200,6 +206,9 @@ export default class OrderList extends Component<{}, OrderListState> {
       specification: item.product?.specification
     }))
     const product = items[0] || null
+    // 营销价判定(AC-ORD-002-09):首件成交单价 ≠ 目录价快照即命中(熟客价/特价/新人价 —— R-MKT-01/02)
+    const unitPriceCents = normalizeCents(order.unitPriceCents) ?? normalizeCents(product?.priceCents) ?? null
+    const hasMarketingPrice = product != null && unitPriceCents != null && unitPriceCents !== normalizeCents(product.priceCents)
 
     return {
       id: order.id,
@@ -209,13 +218,18 @@ export default class OrderList extends Component<{}, OrderListState> {
       items,
       quantity: order.items && order.items.length > 0 ? order.items[0].quantity : 0,
       unitPriceCents: items[0]?.priceCents ?? null,
-      priceSource: 'CATALOG_PRICE',
+      hasMarketingPrice,
       amountCents: order.amountCents,
       deliveryFeeCents: order.deliveryFeeCents,
       payAmountCents: order.payAmountCents,
       promotionDiscountCents: order.promotionDiscountCents ?? null,
+      promotionActivityName: order.promotionActivityName || null,
       couponDiscountCents: order.couponDiscountCents ?? null,
+      couponName: order.couponName || null,
       firstOrderDiscountCents: order.firstOrderDiscountCents ?? null,
+      firstOrderActivityName: order.firstOrderActivityName || null,
+      ticketRedeemCount: order.ticketRedeemCount ?? null,
+      ticketDiscountCents: order.ticketDiscountCents ?? null,
       address: order.address
         ? {
             receiverName: order.address.receiverName,
@@ -231,18 +245,46 @@ export default class OrderList extends Component<{}, OrderListState> {
   }
 
   /**
-   * 订单层总优惠(分)= 满减/折扣 + 优惠券 + 首单立减(R-MKT-07 叠加)
+   * 订单层总优惠(分)= 满减/折扣 + 优惠券 + 首单立减 + 水票抵扣(R-MKT-07/08 叠加,「已优惠」口径)
    */
   totalDiscount = (order: OrderItem): number =>
     (normalizeCents(order.promotionDiscountCents) ?? 0) +
     (normalizeCents(order.couponDiscountCents) ?? 0) +
-    (normalizeCents(order.firstOrderDiscountCents) ?? 0)
+    (normalizeCents(order.firstOrderDiscountCents) ?? 0) +
+    (normalizeCents(order.ticketDiscountCents) ?? 0)
 
   /**
-   * 是否命中营销价(有优惠价时划线目录价,AC-ORD-002-09)
+   * 是否命中营销价(有优惠价时划线目录价,AC-ORD-002-09 —— R-MKT-01/02)
    */
-  hasMarketingPrice = (order: OrderItem): boolean =>
-    order.priceSource !== null && order.priceSource !== 'CATALOG_PRICE' && order.unitPriceCents != null
+  hasMarketingPrice = (order: OrderItem): boolean => order.hasMarketingPrice
+
+  /**
+   * 营销优惠标签行(AC-ORD-002-10 优惠明细:满减/首单立减/优惠券/水票 —— R-MKT-07/08)
+   */
+  renderDiscountTags = (order: OrderItem): React.ReactNode => {
+    const tags: string[] = []
+    if ((normalizeCents(order.promotionDiscountCents) ?? 0) > 0) {
+      tags.push(order.promotionActivityName ? `满减·${order.promotionActivityName}` : '满减')
+    }
+    if ((normalizeCents(order.firstOrderDiscountCents) ?? 0) > 0) {
+      tags.push(order.firstOrderActivityName ? `首单立减·${order.firstOrderActivityName}` : '首单立减')
+    }
+    if ((normalizeCents(order.couponDiscountCents) ?? 0) > 0) {
+      tags.push(order.couponName ? `优惠券·${order.couponName}` : '优惠券')
+    }
+    if ((order.ticketRedeemCount ?? 0) > 0 && (normalizeCents(order.ticketDiscountCents) ?? 0) > 0) {
+      tags.push(`水票抵扣${order.ticketRedeemCount}桶`)
+    }
+    if (tags.length === 0) return null
+
+    return (
+      <View className='order-discount-tags'>
+        {tags.map(tag => (
+          <Text key={tag} className='discount-tag'>{tag}</Text>
+        ))}
+      </View>
+    )
+  }
 
   handleTabChange = (value: number) => {
     this.setState({
@@ -421,6 +463,9 @@ export default class OrderList extends Component<{}, OrderListState> {
             </Text>
           </View>
         )}
+
+        {/* 营销优惠标签(AC-ORD-002-10:满减/首单立减/优惠券/水票,有优惠时展示) */}
+        {this.renderDiscountTags(order)}
 
         <View className='order-footer'>
           <View className='order-amount'>

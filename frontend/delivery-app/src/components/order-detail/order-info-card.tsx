@@ -10,6 +10,7 @@ interface OrderInfoCardProps {
     orderNo: string;
     createdAt?: string;
     amountCents?: number | string;
+    payAmountCents?: number | string;
     isSelfCollect?: boolean;
     status?: string;
     paymentType?: string | null;
@@ -32,10 +33,10 @@ export function OrderInfoCard({ order }: OrderInfoCardProps) {
       <OrderInfoRow label="订单号" value={order.orderNo} />
       <OrderInfoRow label="下单时间" value={formatDateTime(order.createdAt)} />
       <OrderInfoRow
-        label="订单金额"
+        label="实付金额"
         value={
           <ThemedText type="smallBold">
-            <Money cents={order.amountCents} />
+            <Money cents={order.payAmountCents ?? order.amountCents} />
           </ThemedText>
         }
       />

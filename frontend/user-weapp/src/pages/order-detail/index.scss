@@ -278,6 +278,11 @@
   font-size: 28px;
   color: var(--text-main);
 
+  // 优惠扣减行(满减/首单立减/优惠券/水票抵扣):语义红展示(§6)
+  &.summary-discount {
+    color: var(--action);
+  }
+
   .total & {
     font-size: 40px;
     font-weight: bold;

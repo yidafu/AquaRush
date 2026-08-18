@@ -3,9 +3,11 @@ import { View } from '@tarojs/components'
 import { AtCheckbox } from 'taro-ui'
 import './TermsAgreement.scss'
 
+// AtCheckbox.selectedList 是「已选 option value 数组」(string[]),而非 boolean 数组:
+// 勾选状态由 selectedList.includes(value) 判定,onChange 亦回传 string[]
 interface TermsAgreementProps {
-  agreeTerms: boolean[]
-  onTermsChange: (value: boolean[]) => void
+  agreeTerms: string[]
+  onTermsChange: (value: string[]) => void
 }
 
 const TermsAgreement: React.FC<TermsAgreementProps> = ({

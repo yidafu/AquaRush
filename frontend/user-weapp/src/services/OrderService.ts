@@ -1,5 +1,6 @@
 import { networkManager } from '../utils/networkManager'
 import {
+  MyOrderStatistics,
   Order,
   OrderReviewCheckResponse,
   OrderStatus,
@@ -110,6 +111,7 @@ class OrderService {
           totalDiscountCents
           payableProductCents
           deliveryFeeCents
+          depositCents
           payAmountCents
           availableTicketCount
           couponOptions {
@@ -207,7 +209,22 @@ class OrderService {
           status
           amountCents
           deliveryFeeCents
+          depositCents
           payAmountCents
+          # 营销计价快照(R-MKT-01/02/07/08:费用明细「满减/首单立减/券/水票」行展示依据)
+          promotionDiscountCents
+          promotionActivityName
+          firstOrderDiscountCents
+          firstOrderActivityName
+          couponDiscountCents
+          couponName
+          ticketRedeemCount
+          ticketDiscountCents
+          giftItems {
+            productId
+            productName
+            quantity
+          }
           paymentTransactionId
           paymentTime
           deliveryStartedAt
@@ -314,8 +331,13 @@ class OrderService {
             deliveryFeeCents
             payAmountCents
             promotionDiscountCents
+            promotionActivityName
             couponDiscountCents
+            couponName
             firstOrderDiscountCents
+            firstOrderActivityName
+            ticketRedeemCount
+            ticketDiscountCents
             createdAt
             remark
             items {
@@ -476,6 +498,40 @@ class OrderService {
       return {
         success: false,
         error: this.extractError(error, '评价提交失败')
+      }
+    }
+  }
+
+  /**
+   * 我的订单状态计数(F-USR-002,G31):我的页订单角标真实数据,
+   * 单请求返回当前用户各状态订单数(仅本人,服务端强制)。
+   */
+  public async getMyOrderStatistics(): Promise<ProductServiceResult<MyOrderStatistics>> {
+    const query = `
+      query MyOrderStatistics {
+        myOrderStatistics {
+          total
+          pendingPayment
+          pendingDispatch
+          pendingDelivery
+          delivering
+          completed
+          cancelled
+          refunded
+        }
+      }
+    `
+
+    try {
+      const response = await networkManager.query<{ myOrderStatistics: MyOrderStatistics }>(query)
+      return {
+        success: true,
+        data: response.myOrderStatistics
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: this.extractError(error, '获取订单统计失败')
       }
     }
   }

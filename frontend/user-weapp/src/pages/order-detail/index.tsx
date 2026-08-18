@@ -5,6 +5,7 @@ import Taro from '@tarojs/taro'
 import { Money, OrderReviewCheckResponse, normalizeCents } from '@aquarush/common'
 import OrderService from '../../services/OrderService'
 import { userActionTracker } from '../../utils/tracking'
+import { buildOrderDetailCostRows } from '../../utils/orderCost'
 
 import "taro-ui/dist/style/components/card.scss"
 import "taro-ui/dist/style/components/icon.scss"
@@ -23,10 +24,17 @@ interface OrderItem {
   priceCents: number
   // 目录价(分,划线价展示依据)
   originalPriceCents?: number
-  // 成交单价来源快照(CATALOG_PRICE=无营销价)
-  priceSource?: string | null
+  // 是否命中营销价(成交单价 ≠ 目录价快照,划线目录价展示依据 —— R-MKT-01/02)
+  hasMarketingPrice?: boolean
   quantity: number
   specifications?: string[]
+}
+
+// 赠品行(R-MKT-09:附加 0 价行,随单配送)
+interface OrderGiftItem {
+  productId: string
+  productName: string
+  quantity: number
 }
 
 // 评价信息(F-ORD-007):服务端返回结构(OrderReviewCheckResponse),含已评价内容与是否可评
@@ -59,6 +67,19 @@ interface OrderDetailState {
     totalAmount: number
     deliveryFee: number
     finalAmount: number
+    // 营销计价快照(R-MKT-01/02/07/08/09/10:费用明细行展示依据,均以分为单位)
+    subtotalCents?: number
+    promotionDiscountCents?: number
+    promotionActivityName?: string
+    firstOrderDiscountCents?: number
+    firstOrderActivityName?: string
+    couponDiscountCents?: number
+    couponName?: string
+    ticketRedeemCount?: number
+    ticketDiscountCents?: number
+    giftItems?: OrderGiftItem[]
+    // 水桶费快照(分,历史字段——2026-08 水桶费改造后新订单恒为 0,仅旧订单有值,见 14-misc.md §G06)
+    depositCents?: number
     address: {
       receiverName: string
       phone: string
@@ -301,19 +322,21 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
    */
   mapRealOrder = (order: any) => {
     const rawItems: any[] = Array.isArray(order.items) && order.items.length > 0 ? order.items : []
-    const items: OrderItem[] = rawItems.map((item: any) => ({
-      id: item.productId,
-      name: item.product?.name || '商品',
-      image: item.product?.coverImageUrl || '/assets/default-product.png',
-      // 优惠价=明细成交单价快照;无营销价时=目录价快照(AC-ORD-003-09 —— R-MKT-01/02)
-      priceCents: normalizeCents(item.unitPriceCents) ?? normalizeCents(item.product?.priceCents) ?? 0,
-      originalPriceCents: item.unitPriceCents != null && normalizeCents(item.unitPriceCents) !== normalizeCents(item.product?.priceCents)
-        ? normalizeCents(item.product?.priceCents) ?? undefined
-        : undefined,
-      priceSource: 'CATALOG_PRICE',
-      quantity: item.quantity,
-      specifications: item.product?.specification ? [item.product.specification] : []
-    }))
+    const items: OrderItem[] = rawItems.map((item: any) => {
+      // 成交单价(分,快照);目录价(分,商品快照) —— 划线价判定:成交单价 ≠ 目录价即命中营销价(AC-ORD-003-09,R-MKT-01/02)
+      const unitPriceCents = normalizeCents(item.unitPriceCents) ?? normalizeCents(item.product?.priceCents) ?? 0
+      const catalogPriceCents = normalizeCents(item.product?.priceCents) ?? unitPriceCents
+      return {
+        id: item.productId,
+        name: item.product?.name || '商品',
+        image: item.product?.coverImageUrl || '/assets/default-product.png',
+        priceCents: unitPriceCents,
+        originalPriceCents: unitPriceCents !== catalogPriceCents ? catalogPriceCents : undefined,
+        hasMarketingPrice: unitPriceCents !== catalogPriceCents,
+        quantity: item.quantity,
+        specifications: item.product?.specification ? [item.product.specification] : []
+      }
+    })
 
     const status = this.mapStatus(order.status)
     const timeline: OrderTimeline[] = []
@@ -338,6 +361,25 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       totalAmount: order.amountCents,
       deliveryFee: order.deliveryFeeCents,
       finalAmount: order.payAmountCents,
+      // 营销计价快照(分,费用明细行展示依据 —— R-MKT-02/07/08/09/10)
+      subtotalCents: items.reduce((sum, item) => sum + item.priceCents * item.quantity, 0),
+      promotionDiscountCents: normalizeCents(order.promotionDiscountCents) ?? 0,
+      promotionActivityName: order.promotionActivityName || undefined,
+      firstOrderDiscountCents: normalizeCents(order.firstOrderDiscountCents) ?? 0,
+      firstOrderActivityName: order.firstOrderActivityName || undefined,
+      couponDiscountCents: normalizeCents(order.couponDiscountCents) ?? 0,
+      couponName: order.couponName || undefined,
+      ticketRedeemCount: order.ticketRedeemCount ?? 0,
+      ticketDiscountCents: normalizeCents(order.ticketDiscountCents) ?? 0,
+      // 水桶费快照(历史字段,2026-08 水桶费改造后新订单恒为 0,仅旧订单有值,见 14-misc.md §G06)
+      depositCents: normalizeCents(order.depositCents) ?? 0,
+      giftItems: Array.isArray(order.giftItems)
+        ? order.giftItems.map((gift: any) => ({
+            productId: String(gift.productId),
+            productName: gift.productName || '赠品',
+            quantity: gift.quantity ?? 0
+          }))
+        : [],
       address: order.address ? {
         receiverName: order.address.receiverName,
         phone: order.address.phone,
@@ -556,8 +598,8 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
               <View className='item-bottom'>
                 <View className='item-price-row'>
                   <Text className='item-price'><Money cents={item.priceCents || 0} /></Text>
-                  {/* 有营销价时划线目录价(AC-ORD-003-09 —— R-MKT-01/02) */}
-                  {item.priceSource && item.priceSource !== 'CATALOG_PRICE' && item.originalPriceCents != null && (
+                  {/* 命中营销价时划线目录价(AC-ORD-003-09 —— R-MKT-01/02) */}
+                  {item.hasMarketingPrice && item.originalPriceCents != null && (
                     <Text className='item-original-price'><Money cents={item.originalPriceCents} /></Text>
                   )}
                 </View>
@@ -728,21 +770,23 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
           className='items-card shadow-default'
         >
           {this.renderOrderItems(order.items)}
+          {/* 费用明细(F-ORD-003,AC-ORD-003-09:商品金额/水票抵扣/满减/首单立减/优惠券/赠品/配送费/实付,
+              营销优惠明细来自订单快照 —— R-MKT-02/07/08/09/10) */}
           <View className='order-summary'>
-            <View className='summary-item'>
-              <Text className='summary-label'>商品总价</Text>
-              <Text className='summary-value'><Money cents={order.totalAmount} /></Text>
-            </View>
-            <View className='summary-item'>
-              <Text className='summary-label'>配送费</Text>
-              <Text className='summary-value'>
-                {order.deliveryFee === 0 ? '免配送费' : <Money cents={order.deliveryFee} />}
-              </Text>
-            </View>
-            <View className='summary-item total'>
-              <Text className='summary-label'>实付金额</Text>
-              <Text className='summary-value total-amount'><Money cents={order.finalAmount} /></Text>
-            </View>
+            {buildOrderDetailCostRows({
+              ...order,
+              deliveryFeeCents: order.deliveryFee,
+              payAmountCents: order.finalAmount
+            }).map(row => (
+              <View key={row.key} className={`summary-item${row.total ? ' total' : ''}`}>
+                <Text className='summary-label'>{row.label}</Text>
+                <Text
+                  className={`summary-value${row.discount ? ' summary-discount' : ''}${row.total ? ' total-amount' : ''}`}
+                >
+                  {row.value}
+                </Text>
+              </View>
+            ))}
           </View>
         </AtCard>
 

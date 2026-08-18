@@ -130,6 +130,8 @@ export const getOrderDetail = (orderNo: string) => {
         orderNo
         status
         amountCents
+        deliveryFeeCents
+        payAmountCents
         isSelfCollect
         remark
         createdAt
@@ -137,6 +139,20 @@ export const getOrderDetail = (orderNo: string) => {
         deliveryConfirmedAt
         paymentType
         deliveryPhotos
+        # 营销计价快照(R-MKT-02/07/08/09/10:费用明细行展示依据)
+        promotionDiscountCents
+        promotionActivityName
+        firstOrderDiscountCents
+        firstOrderActivityName
+        couponDiscountCents
+        couponName
+        ticketRedeemCount
+        ticketDiscountCents
+        giftItems {
+          productId
+          productName
+          quantity
+        }
         items {
           productId
           quantity

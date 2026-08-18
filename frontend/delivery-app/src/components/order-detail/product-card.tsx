@@ -1,5 +1,5 @@
-import { Image, StyleSheet } from 'react-native';
-import { Money } from '@aquarush/common';
+import { Image, StyleSheet, Text } from 'react-native';
+import { Money, normalizeCents } from '@aquarush/common';
 
 import { Card } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
@@ -29,19 +29,32 @@ export function ProductCard({ items, remark }: ProductCardProps) {
 
   return (
     <Card title="商品详情">
-      {items.map((item, index) => (
-        <ThemedView key={String(item.productId || index)} style={[styles.productRow, index < items.length - 1 ? styles.rowGap : null]}>
-          {item.product?.coverImageUrl ? (
-            <Image source={{ uri: resolveAssetUrl(item.product.coverImageUrl) }} style={styles.image} />
-          ) : null}
-          <ThemedView style={styles.details}>
-            <ThemedText type="smallBold">{item.product?.name || '商品'}</ThemedText>
-            <ThemedText type="small" themeColor="primary">
-              <Money cents={item.unitPriceCents ?? item.product?.priceCents} /> x {item.quantity}
-            </ThemedText>
+      {items.map((item, index) => {
+        // 营销价判定(AC-ORD-003-09):成交单价 ≠ 目录价快照即命中(熟客价/特价/新人价 —— R-MKT-01/02)
+        const unitPriceCents = normalizeCents(item.unitPriceCents) ?? normalizeCents(item.product?.priceCents) ?? 0;
+        const catalogPriceCents = normalizeCents(item.product?.priceCents) ?? unitPriceCents;
+        const hasMarketingPrice = unitPriceCents !== catalogPriceCents;
+        return (
+          <ThemedView key={String(item.productId || index)} style={[styles.productRow, index < items.length - 1 ? styles.rowGap : null]}>
+            {item.product?.coverImageUrl ? (
+              <Image source={{ uri: resolveAssetUrl(item.product.coverImageUrl) }} style={styles.image} />
+            ) : null}
+            <ThemedView style={styles.details}>
+              <ThemedText type="smallBold">{item.product?.name || '商品'}</ThemedText>
+              <ThemedView style={styles.priceRow}>
+                <ThemedText type="small" themeColor="primary">
+                  <Money cents={unitPriceCents} /> x {item.quantity}
+                </ThemedText>
+                {hasMarketingPrice && (
+                  <Text style={styles.originalPrice}>
+                    <Money cents={catalogPriceCents} />
+                  </Text>
+                )}
+              </ThemedView>
+            </ThemedView>
           </ThemedView>
-        </ThemedView>
-      ))}
+        );
+      })}
       {remark ? (
         <ThemedText type="small" themeColor="textSecondary" style={styles.remark}>
           备注：{remark}
@@ -68,6 +81,17 @@ const styles = StyleSheet.create({
   details: {
     flex: 1,
     gap: Spacing.one,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.one,
+  },
+  // 划线目录价(营销价命中时展示 —— R-MKT-01/02)
+  originalPrice: {
+    textDecorationLine: 'line-through',
+    color: '#999999',
+    fontSize: 12,
   },
   remark: {
     marginTop: Spacing.two,

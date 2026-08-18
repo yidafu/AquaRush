@@ -215,6 +215,23 @@
   line-height: 1.4;
 }
 
+/* 营销优惠标签行(AC-ORD-002-10:满减/首单立减/优惠券/水票抵扣明细 —— R-MKT-07/08) */
+.order-discount-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 4px 0 12px;
+}
+
+.discount-tag {
+  font-size: 20px;
+  color: var(--action);
+  background: var(--action-tint, rgba(255, 84, 54, 0.08));
+  border-radius: 6px;
+  padding: 2px 8px;
+  line-height: 1.6;
+}
+
 .order-footer {
   display: flex;
   justify-content: space-between;

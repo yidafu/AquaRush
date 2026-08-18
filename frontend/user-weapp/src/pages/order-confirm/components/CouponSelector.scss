@@ -20,8 +20,8 @@
 }
 
 .coupon-option-selected {
-  border-color: var(--brand-primary);
-  background: var(--brand-primary-light);
+  border-color: var(--coupon-primary);
+  background: var(--coupon-primary-light);
 }
 
 .coupon-option-disabled {
@@ -55,7 +55,7 @@
   font-size: 20px;
   font-weight: 500;
   color: var(--bg-card);
-  background: var(--brand-primary); // 最优券标记:品牌蓝,不用强调橙(§2.1 红线)
+  background: var(--coupon-primary); // 最优券标记:优惠券品牌橙红(§2.1)
   border-radius: var(--radius-sm);
   padding: 2px 8px;
   flex-shrink: 0;
@@ -81,7 +81,7 @@
 .coupon-option-discount {
   font-size: 26px;
   font-weight: 600;
-  color: var(--brand-primary); // 金额用主色加粗,不用强调橙(§4)
+  color: var(--coupon-primary); // 金额用优惠券品牌橙红加粗(§2.1)
 }
 
 .coupon-option-radio {
@@ -96,14 +96,14 @@
 }
 
 .coupon-option-selected .coupon-option-radio {
-  border-color: var(--brand-primary);
+  border-color: var(--coupon-primary);
 }
 
 .coupon-option-radio-dot {
   width: 20px;
   height: 20px;
   border-radius: 50%;
-  background: var(--brand-primary);
+  background: var(--coupon-primary);
 }
 
 // 响应式

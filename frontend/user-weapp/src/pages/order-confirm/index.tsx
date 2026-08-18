@@ -11,6 +11,7 @@ import { Address } from '../../types/address'
 import { normalizeCents, OrderPreviewVo } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { removeSelectedCartItems, syncCartTabBadge } from '../../utils/cart'
+import { maxTicketRedeem } from '../../utils/orderCost'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/checkbox.scss"
@@ -42,7 +43,7 @@ interface OrderItem {
  * 确认订单页(F-ORD-004 多商品下单 / F-ORD-023 计价预览)
  * 商品明细(items)为唯一下单口径:单商品「立即购买」=单元素,购物车结算=多元素;
  * 计价全部由服务端 orderPreview 计算(R-MON-01,促销引擎 R-MKT-02/07/08 全链路):
- * 逐商品成交单价/水票抵扣/满减/优惠券(最优默认勾选,可改选/取消)/配送费/实付;
+ * 逐商品成交单价/水票抵扣(优先:有可用票默认核销最多张数,可改选/取消)/满减/优惠券(最优默认勾选,可改选/取消)/配送费/实付;
  * 提交订单时回传 items 与 preferredCouponId(0=不用券)/ticketRedeemCount,服务端原子核销。
  */
 const OrderConfirm: React.FC = () => {
@@ -61,12 +62,17 @@ const OrderConfirm: React.FC = () => {
   const [deliveryTime, setDeliveryTime] = useState<string>('immediate')
   const [remark, setRemark] = useState<string>('')
   const [submitting, setSubmitting] = useState<boolean>(false)
-  const [agreeTerms, setAgreeTerms] = useState<boolean[]>([false])
+  // 服务条款勾选:AtCheckbox 的 selectedList 为已选 value 数组(string[]),
+  // 初始为空数组(未勾选),勾选后为 ['agree'] —— 勿用 boolean 数组,否则
+  // onChange 回传的 Set 首位残留 false,校验永远判定未勾选
+  const [agreeTerms, setAgreeTerms] = useState<string[]>([])
 
   // 请求序号:丢弃过期计价响应(水票/优惠券连续调整时只采纳最后一次)
   const previewRequestSeq = useRef<number>(0)
   // 最优券自动勾选只执行一次
   const autoSelectedCouponRef = useRef<boolean>(false)
+  // 水票优先抵扣自动核销只执行一次(默认按最多可用张数核销,用户改选/取消后不再干预 —— R-MKT-08)
+  const autoSelectedTicketsRef = useRef<boolean>(false)
   // 服务端下单幂等键(R-ORD-06):进入确认页生成一次,提交失败重试沿用同一值,
   // 服务端按 (userId, clientRequestId) 去重,重复提交不产生重复订单
   const clientRequestIdRef = useRef<string>(`${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`)
@@ -184,6 +190,17 @@ const OrderConfirm: React.FC = () => {
             setSelectedCouponId(best.couponId)
           }
         }
+
+        // 水票优先抵扣(仅首次,用户改选/取消后不再干预):
+        // 票包有可用水票时默认核销最多可用张数 min(总桶数, 可用张数)(R-MKT-08 一票抵一桶),
+        // 自动核销后触发重计价,实付=抵扣后应付;用户仍可步进改选/取消(可选支付)。
+        if (!autoSelectedTicketsRef.current && (result.data.availableTicketCount ?? 0) > 0) {
+          const maxRedeem = maxTicketRedeem(totalQuantity, result.data.availableTicketCount ?? 0)
+          if (maxRedeem > 0) {
+            autoSelectedTicketsRef.current = true
+            setTicketRedeemCount(maxRedeem)
+          }
+        }
       } catch (error) {
         console.error('获取订单计价失败:', error)
         if (seq !== previewRequestSeq.current) return
@@ -218,7 +235,7 @@ const OrderConfirm: React.FC = () => {
     setRemark(value)
   }
 
-  const handleTermsChange = (value: boolean[]): void => {
+  const handleTermsChange = (value: string[]): void => {
     setAgreeTerms(value)
   }
 
@@ -227,6 +244,8 @@ const OrderConfirm: React.FC = () => {
   }, [])
 
   const handleTicketRedeemChange = useCallback((value: number): void => {
+    // 用户手动改选/取消后,水票优先抵扣不再自动干预(可选支付)
+    autoSelectedTicketsRef.current = true
     setTicketRedeemCount(value)
   }, [])
 
@@ -271,7 +290,7 @@ const OrderConfirm: React.FC = () => {
       return
     }
 
-    if (!agreeTerms[0]) {
+    if (!agreeTerms.includes('agree')) {
       Taro.showToast({ title: '请同意服务条款', icon: 'none' })
       return
     }

@@ -66,6 +66,23 @@ fun OrderModel.toGraphQL(items: List<OrderItemModel> = emptyList()): Order =
     // 营销计价快照(R-MKT-01/02/07:优惠明细展示依据,2026-08 快照落库)
     promotionDiscountCents = promotionDiscountCents,
     couponDiscountCents = couponDiscountCents,
+    // 营销快照名称/水票(R-MKT-03/04/07/08/10:一单一券/满减/首单立减/水票抵扣展示)
+    couponName = couponName,
+    promotionActivityName = promotionActivityName,
+    firstOrderActivityName = firstOrderActivityName,
+    ticketRedeemCount = ticketRedeemCount,
+    ticketDiscountCents = ticketDiscountCents,
+    // 桶押金快照(R-MON-03/G06)
+    depositCents = depositCents,
+    // 配送照片核验留痕(G23,领域枚举 → GraphQL 枚举同名互转;用户端不展示,随单透传)
+    deliveryPhotoReviewStatus =
+      deliveryPhotoReviewStatus?.let {
+        dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewStatus
+          .valueOf(it.name)
+      },
+    deliveryPhotoReviewedAt = deliveryPhotoReviewedAt,
+    deliveryPhotoReviewedBy = deliveryPhotoReviewedBy,
+    deliveryPhotoReviewRemark = deliveryPhotoReviewRemark,
     // 商品明细(F-ORD-004 多商品下单,order_items 权威数据源,随单快照映射)
     items = items.map { it.toOrderItemVo() },
     address = address?.toGraphQL(),
@@ -82,7 +99,6 @@ fun ProductModel.toGraphQL(): Product =
     subtitle = subtitle,
     priceCents = price,
     originalPriceCents = originalPrice,
-    depositPriceCents = depositPrice,
     coverImageUrl = coverImageUrl,
     imageGallery = imageGallery,
     specification = specification,

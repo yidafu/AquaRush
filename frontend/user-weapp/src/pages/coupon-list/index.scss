@@ -26,7 +26,7 @@
 }
 
 .coupon-tab-active {
-  background: var(--theme-primary-light);
+  background: var(--coupon-primary-light);
 }
 
 .coupon-tab-text {
@@ -35,7 +35,7 @@
 }
 
 .coupon-tab-active .coupon-tab-text {
-  color: var(--theme-primary);
+  color: var(--coupon-primary);
   font-weight: 600;
 }
 
@@ -76,7 +76,7 @@
 .coupon-discount {
   font-size: 36px;
   font-weight: 800;
-  color: var(--theme-text-primary);
+  color: var(--coupon-primary);
   line-height: 1.2;
 }
 
