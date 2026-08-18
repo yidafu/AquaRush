@@ -61,6 +61,21 @@ const OPERATION_CONFIG: Record<string, { icon: React.ReactNode; color: string; l
     color: 'purple',
     label: '退款完成',
   },
+  DELIVERY_PHOTO_APPROVED: {
+    icon: <CheckCircleOutlined />,
+    color: 'green',
+    label: '照片核验通过',
+  },
+  DELIVERY_PHOTO_REJECTED: {
+    icon: <CloseCircleOutlined />,
+    color: 'red',
+    label: '照片核验驳回',
+  },
+  ADDRESS_UPDATED: {
+    icon: <CarOutlined />,
+    color: 'orange',
+    label: '地址信息修正',
+  },
   PAYMENT_TIMEOUT: {
     icon: <ClockCircleOutlined />,
     color: 'default',

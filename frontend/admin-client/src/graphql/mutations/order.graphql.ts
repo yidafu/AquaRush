@@ -43,3 +43,19 @@ export const BATCH_ASSIGN_ORDERS_MUTATION = gql`
     }
   }
 `;
+
+// 配送照片核验(G23/F-ORD-021):后台「通过/驳回」核验流(PERMISSION_ORDER_REVIEW)
+export const REVIEW_DELIVERY_PHOTO_MUTATION = gql`
+  mutation ReviewDeliveryPhoto($orderId: PrimaryId!, $action: DeliveryPhotoReviewAction!, $remark: String) {
+    reviewDeliveryPhoto(orderId: $orderId, action: $action, remark: $remark) {
+      id
+      deliveryPhotos
+      deliveryPhotoReviewStatus
+      deliveryPhotoReviewedAt
+      deliveryPhotoReviewedBy
+      deliveryPhotoReviewRemark
+      status
+      updatedAt
+    }
+  }
+`;

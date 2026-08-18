@@ -50,4 +50,11 @@ extend type Mutation {
   acceptDelivery(orderId: PrimaryId!): Order!           # 配送员接单
   startDelivery(orderId: PrimaryId!): Order!             # 开始配送
   completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType, remark: String): Order!  # 完成配送
+
+  # 配送任务中修正收货地址信息(F-ORD-024:收货人/电话/详细地址/楼层/定位 WGS-84 经纬度,
+  # 仅传入字段生效;PERMISSION_DELIVERY_TASK,送水工与管理员共用)
+  updateOrderAddress(orderId: PrimaryId!, input: UpdateOrderAddressInput!): Order!
+
+  # 配送照片核验(G23/F-ORD-021:后台「通过/驳回」核验流,PERMISSION_ORDER_REVIEW)
+  reviewDeliveryPhoto(orderId: PrimaryId!, action: DeliveryPhotoReviewAction!, remark: String): Order!
 }

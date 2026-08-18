@@ -23,11 +23,11 @@ import dev.yidafu.aqua.api.dto.CreateOrderRequest
 import dev.yidafu.aqua.api.dto.DailyStatDTO
 import dev.yidafu.aqua.api.dto.OrderItemRequest
 import dev.yidafu.aqua.api.dto.TodayStatisticsDTO
+import dev.yidafu.aqua.api.dto.UpdateOrderAddressRequest
 import dev.yidafu.aqua.api.dto.WeekStatisticsDTO
 import dev.yidafu.aqua.common.domain.model.DeliveryAddressModel
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot as DeliveryTimeSlotModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.domain.model.enums.PriceSource
@@ -40,6 +40,7 @@ import dev.yidafu.aqua.common.graphql.generated.OrderItemVo
 import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
 import dev.yidafu.aqua.common.graphql.generated.TodayStatistics
+import dev.yidafu.aqua.common.graphql.generated.UpdateOrderAddressInput
 import dev.yidafu.aqua.common.graphql.generated.WeekStatistics
 import dev.yidafu.aqua.delivery.mapper.DeliveryWorkerMapper
 import dev.yidafu.aqua.order.dto.OrderDTO
@@ -50,8 +51,9 @@ import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
 import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.LocalDateTime
-import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
+import dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewStatus as DeliveryPhotoReviewStatusG
 import dev.yidafu.aqua.common.graphql.generated.DeliveryTimeSlot as DeliveryTimeSlotG
+import dev.yidafu.aqua.common.graphql.generated.OrderStatus as OrderStatusG
 import dev.yidafu.aqua.common.graphql.generated.PaymentType as PaymentTypeG
 import dev.yidafu.aqua.common.graphql.generated.PriceSource as PriceSourceG
 
@@ -149,6 +151,17 @@ object OrderDTOToGraphQLMapper : ObjectMappie<OrderDTO, Order>() {
       to::giftItems fromValue null
       to::promotionDiscountCents fromValue 0L
       to::couponDiscountCents fromValue 0L
+      // 营销快照/核验/押金字段:DTO 链路不承载,统一兜底默认值(权威值由 OrderModel 直映提供)
+      to::couponName fromValue null
+      to::promotionActivityName fromValue null
+      to::firstOrderActivityName fromValue null
+      to::ticketDiscountCents fromValue 0L
+      to::ticketRedeemCount fromValue 0
+      to::depositCents fromValue 0L
+      to::deliveryPhotoReviewStatus fromValue null
+      to::deliveryPhotoReviewedAt fromValue null
+      to::deliveryPhotoReviewedBy fromValue null
+      to::deliveryPhotoReviewRemark fromValue null
     }
 }
 
@@ -227,6 +240,21 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       to::items fromValue emptyList()
       // 赠品行由字段级 Resolver 联查 order_gifts 提供(R-MKT-09,配置变更不影响已生成订单)
       to::giftItems fromValue null
+      // 营销快照(R-MKT-01/02/07/08/10:订单快照直映,配置变更不影响已生成订单)
+      to::couponName fromProperty from::couponName
+      to::promotionActivityName fromProperty from::promotionActivityName
+      to::firstOrderActivityName fromProperty from::firstOrderActivityName
+      to::ticketRedeemCount fromProperty from::ticketRedeemCount
+      to::ticketDiscountCents fromProperty from::ticketDiscountCents
+      // 桶押金快照(R-MON-03/G06)
+      to::depositCents fromProperty from::depositCents
+      // 配送照片核验留痕(G23,领域枚举 → GraphQL 枚举同名互转)
+      to::deliveryPhotoReviewStatus fromExpression {
+        from.deliveryPhotoReviewStatus?.let { DeliveryPhotoReviewStatusG.valueOf(it.name) }
+      }
+      to::deliveryPhotoReviewedAt fromProperty from::deliveryPhotoReviewedAt
+      to::deliveryPhotoReviewedBy fromProperty from::deliveryPhotoReviewedBy
+      to::deliveryPhotoReviewRemark fromProperty from::deliveryPhotoReviewRemark
     }
 }
 
@@ -256,6 +284,22 @@ object CreateDeliveryOrderInputMapper : ObjectMappie<CreateDeliveryOrderInput, C
     }
 }
 
+/**
+ * 送水端订单页地址信息修改输入映射(F-ORD-024)
+ * GraphQL 经纬度为 Float,领域模型/存储统一 Double(WGS-84)。
+ */
+object UpdateOrderAddressInputMapper : ObjectMappie<UpdateOrderAddressInput, UpdateOrderAddressRequest>() {
+  override fun map(from: UpdateOrderAddressInput): UpdateOrderAddressRequest =
+    mapping {
+      to::receiverName fromProperty from::receiverName
+      to::phone fromProperty from::phone
+      to::detailAddress fromProperty from::detailAddress
+      to::floor fromProperty from::floor
+      to::longitude fromValue from.longitude?.toDouble()
+      to::latitude fromValue from.latitude?.toDouble()
+    }
+}
+
 object CreateOrderInputMapper : ObjectMappie<CreateOrderInput, CreateOrderRequest>() {
   override fun map(from: CreateOrderInput): CreateOrderRequest =
     mapping {
@@ -268,7 +312,10 @@ object CreateOrderInputMapper : ObjectMappie<CreateOrderInput, CreateOrderReques
       to::clientRequestId fromProperty from::clientRequestId
       // 配送时段(AC-ORD-001-05,缺省=立即配送 IMMEDIATE;GraphQL 枚举 → 领域枚举同名互转)
       to::deliveryTimeSlot fromExpression {
-        from.deliveryTime?.let { dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot.valueOf(it.name) }
+        from.deliveryTime?.let {
+          dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot
+            .valueOf(it.name)
+        }
       }
       // 促销引擎(R-MKT-07 叠加③):省略=引擎自动选最优,0=不用券;一单一券
       to::preferredCouponId fromProperty from::preferredCouponId
@@ -314,7 +361,6 @@ fun OrderItemModel.toOrderItemVo(): OrderItemVo {
         certificateImages = null,
         coverImageUrl = snapshot?.get("coverImageUrl")?.toString() ?: "",
         createdAt = createdAt,
-        depositPriceCents = null,
         detailContent = null,
         effectivePriceCents = unitPriceCents,
         hasGroupPrice = false,

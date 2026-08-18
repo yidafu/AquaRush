@@ -19,7 +19,9 @@
 
 package dev.yidafu.aqua.delivery.service.impl
 
+import dev.yidafu.aqua.api.dto.UpdateOrderAddressRequest
 import dev.yidafu.aqua.api.service.admin.AdminService
+import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.api.service.delivery.DeliveryTaskMutationService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
@@ -52,6 +54,7 @@ class DeliveryTaskMutationServiceImpl(
   private val eventPublishService: SimplifiedEventPublishService,
   private val jsonHelper: JsonHelper,
   private val bizLogger: BizLogger,
+  private val addressService: AddressService,
 ) : DeliveryTaskMutationService {
   private val logger = LoggerFactory.getLogger(DeliveryTaskMutationService::class.java)
 
@@ -372,5 +375,74 @@ class DeliveryTaskMutationServiceImpl(
       additionalData = mapOf("paymentType" to (savedOrder.paymentType?.name ?: "NONE")),
     )
     return savedOrder
+  }
+
+  /**
+   * 配送任务中修正订单收货地址信息(F-ORD-024)
+   *
+   * 订单关联 addresses 表的地址记录(OrderModel.addressId → AddressModel),修改会同步
+   * 反映到该用户的地址簿(后续订单复用修正后的地址);仅传入字段生效,空值不覆盖原值。
+   * 终态订单(已完成/已取消/已退款)不可修改;订单状态不影响已生成订单的配送费快照(R-MON-02)。
+   */
+  @Transactional
+  override fun updateOrderAddress(
+    operatorId: Long,
+    orderId: Long,
+    request: UpdateOrderAddressRequest,
+  ): OrderModel {
+    val order = orderQueryService.getOrderById(orderId)
+
+    // 终态订单不可再修正地址(R-ORD-01 状态机终态不可逆)
+    if (
+      order.status == OrderModelStatus.COMPLETED ||
+      order.status == OrderModelStatus.CANCELLED ||
+      order.status == OrderModelStatus.REFUNDED
+    ) {
+      throw BadRequestException("订单已结束，无法修改收货地址")
+    }
+
+    val address =
+      addressService.findById(order.addressId)
+        ?: throw BadRequestException("订单关联的收货地址不存在")
+
+    // 仅非空字段生效(与 UpdateAddressInput 语义一致,空值不覆盖原值)
+    request.receiverName?.let { address.receiverName = it }
+    request.phone?.let { address.phone = it }
+    request.detailAddress?.let { address.detailAddress = it }
+    request.floor?.let { address.floor = it }
+    request.longitude?.let { address.longitude = it }
+    request.latitude?.let { address.latitude = it }
+    addressService.save(address)
+
+    // 订单操作留痕:配送地址修正(F-ORD-024)
+    orderOperationService.recordOperation(
+      orderId = order.id!!,
+      operationType = OrderOperationType.ADDRESS_UPDATED,
+      operatorType = OperatorType.DELIVERY_WORKER,
+      operatorId = operatorId,
+      description = "配送员修正收货地址信息(收货人/电话/详细地址/楼层/定位)",
+      extraData = jsonHelper.createObjectNode(
+        mapOf(
+          "receiverName" to request.receiverName,
+          "phone" to request.phone,
+          "detailAddress" to request.detailAddress,
+          "floor" to request.floor,
+          "longitude" to request.longitude,
+          "latitude" to request.latitude,
+        ),
+      ).toString(),
+    )
+
+    logger.info("Worker $operatorId updated address $order.addressId for order $orderId")
+
+    // 业务日志(F-LOG-003 DELIVERY 域):配送地址修正
+    bizLogger.logDeliveryOperation(
+      deliveryId = order.id!!,
+      operation = "DELIVERY_ADDRESS_UPDATED",
+      result = "SUCCESS",
+      userId = operatorId,
+      additionalData = mapOf("addressId" to order.addressId),
+    )
+    return order
   }
 }

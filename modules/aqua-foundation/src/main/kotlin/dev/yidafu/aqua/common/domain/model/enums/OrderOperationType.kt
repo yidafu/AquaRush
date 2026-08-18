@@ -34,6 +34,9 @@ enum class OrderOperationType {
   REFUND_INITIATED, // 退款发起
   REFUND_COMPLETED, // 退款完成
   PAYMENT_TIMEOUT, // 支付超时
+  DELIVERY_PHOTO_APPROVED, // 配送照片核验通过(G23)
+  DELIVERY_PHOTO_REJECTED, // 配送照片核验驳回(G23)
+  ADDRESS_UPDATED, // 配送任务中修正收货地址(F-ORD-024:收货人/定位/楼层等)
 }
 
 /**

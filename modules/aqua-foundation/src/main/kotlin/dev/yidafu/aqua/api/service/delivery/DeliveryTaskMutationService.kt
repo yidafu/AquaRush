@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.api.service.delivery
 
+import dev.yidafu.aqua.api.dto.UpdateOrderAddressRequest
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 
@@ -78,5 +79,19 @@ interface DeliveryTaskMutationService {
     deliveryPhotos: List<String>,
     paymentType: PaymentType?,
     remark: String?,
+  ): OrderModel
+
+  /**
+   * 配送任务中修正订单收货地址信息(F-ORD-024)
+   *
+   * 仅传入字段生效(空值字段不覆盖原地址);终态订单(已完成/已取消/已退款)不可修改。
+   * @param operatorId 操作人(送水工/管理员账号 id,用于订单操作留痕)
+   * @param orderId 订单ID
+   * @param request 待更新的地址字段(仅非空字段生效)
+   */
+  fun updateOrderAddress(
+    operatorId: Long,
+    orderId: Long,
+    request: UpdateOrderAddressRequest,
   ): OrderModel
 }

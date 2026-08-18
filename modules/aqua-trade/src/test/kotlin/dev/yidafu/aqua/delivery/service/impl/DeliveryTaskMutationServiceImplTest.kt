@@ -19,15 +19,19 @@
 
 package dev.yidafu.aqua.delivery.service.impl
 
+import dev.yidafu.aqua.api.dto.UpdateOrderAddressRequest
 import dev.yidafu.aqua.api.service.admin.AdminService
+import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
 import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
+import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
@@ -58,6 +62,7 @@ class DeliveryTaskMutationServiceImplTest :
     var orderOperationService: OrderOperationService = mockk()
     var eventPublishService: SimplifiedEventPublishService = mockk()
     var bizLogger: BizLogger = mockk()
+    var addressService: AddressService = mockk()
     var service: DeliveryTaskMutationServiceImpl = mockk()
     val onlineWorker =
       AdminModel(
@@ -79,6 +84,7 @@ class DeliveryTaskMutationServiceImplTest :
       orderOperationService = mockk(relaxed = true)
       eventPublishService = mockk(relaxed = true)
       bizLogger = mockk(relaxed = true)
+      addressService = mockk(relaxed = true)
       every { adminService.findById(1L) } returns onlineWorker
       every { orderMutationService.updateOrder(any(), any()) } answers { secondArg() as OrderModel }
       service =
@@ -90,6 +96,7 @@ class DeliveryTaskMutationServiceImplTest :
           eventPublishService,
           JsonHelper(),
           bizLogger,
+          addressService,
         )
     }
     test("assign accepts pending dispatch only") {
@@ -205,5 +212,65 @@ class DeliveryTaskMutationServiceImplTest :
 
       val exception = shouldThrow<BadRequestException> { service.acceptDelivery(1L, 1L) }
       exception.message!!.contains("停用") shouldBe true
+    }
+    // ==================== updateOrderAddress(F-ORD-024) ====================
+    test("update order address applies non-null fields only") {
+      val order = order(OrderModelStatus.DELIVERING).also { it.addressId = 1L }
+      val address = AddressModel(id = 1L, userId = 100L, receiverName = "旧收货人", phone = "13800138000",
+        province = "广东省", city = "深圳市", district = "南山区", detailAddress = "旧详细地址1号")
+      every { orderQueryService.getOrderById(1L) } returns order
+      every { addressService.findById(1L) } returns address
+
+      val result =
+        service.updateOrderAddress(
+          operatorId = 1L,
+          orderId = 1L,
+          request =
+            UpdateOrderAddressRequest(
+              receiverName = "新收货人",
+              floor = 6,
+              longitude = 113.9304,
+              latitude = 22.5313,
+            ),
+        )
+
+      result.id shouldBe 1L
+      address.receiverName shouldBe "新收货人"
+      address.floor shouldBe 6
+      address.longitude shouldBe 113.9304
+      address.latitude shouldBe 22.5313
+      // 未传入字段不覆盖
+      address.phone shouldBe "13800138000"
+      address.detailAddress shouldBe "旧详细地址1号"
+      verify(exactly = 1) { addressService.save(address) }
+      verify(exactly = 1) {
+        orderOperationService.recordOperation(1L, OrderOperationType.ADDRESS_UPDATED, any(), 1L, any(), any())
+      }
+    }
+    test("update order address rejects terminal orders") {
+      listOf(
+        OrderModelStatus.COMPLETED,
+        OrderModelStatus.CANCELLED,
+        OrderModelStatus.REFUNDED,
+      ).forEach { status ->
+        every { orderQueryService.getOrderById(1L) } returns order(status)
+
+        withClue("status=$status 应被拦截") {
+          shouldThrow<BadRequestException> {
+            service.updateOrderAddress(1L, 1L, UpdateOrderAddressRequest(receiverName = "新收货人"))
+          }
+        }
+      }
+      verify(exactly = 0) { addressService.save(any()) }
+    }
+    test("update order address rejects missing linked address") {
+      every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DELIVERY)
+      every { addressService.findById(0L) } returns null
+
+      val exception =
+        shouldThrow<BadRequestException> {
+          service.updateOrderAddress(1L, 1L, UpdateOrderAddressRequest(floor = 5))
+        }
+      exception.message!!.contains("地址不存在") shouldBe true
     }
   })

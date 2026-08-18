@@ -112,6 +112,10 @@ export const ORDER_DETAIL_PAGE_DATA_QUERY = gql`
       paymentTransactionId
       paymentTime
       deliveryPhotos
+      deliveryPhotoReviewStatus
+      deliveryPhotoReviewedAt
+      deliveryPhotoReviewedBy
+      deliveryPhotoReviewRemark
       isSelfCollect
       paymentType
       deliveryStartedAt

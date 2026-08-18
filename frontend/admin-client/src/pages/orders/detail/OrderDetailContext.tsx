@@ -52,6 +52,11 @@ export interface OrderDetailData {
   paymentTime?: string;
   paymentType?: string;
   deliveryPhotos?: string[];
+  // 配送照片核验(G23):PENDING/APPROVED/REJECTED,空=未核验
+  deliveryPhotoReviewStatus?: string;
+  deliveryPhotoReviewedAt?: string;
+  deliveryPhotoReviewedBy?: string;
+  deliveryPhotoReviewRemark?: string;
   isSelfCollect: boolean;
   deliveryStartedAt?: string;
   deliveryConfirmedAt?: string;

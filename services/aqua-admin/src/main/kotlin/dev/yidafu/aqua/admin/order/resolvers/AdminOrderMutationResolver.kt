@@ -29,8 +29,10 @@ import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.Order
+import dev.yidafu.aqua.common.graphql.generated.UpdateOrderAddressInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.order.mapper.CreateDeliveryOrderInputMapper
+import dev.yidafu.aqua.order.mapper.UpdateOrderAddressInputMapper
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -124,7 +126,9 @@ class AdminOrderMutationResolver(
     @AuthenticationPrincipal userDetail: UserDetails,
   ): Order {
     logger.info(
-      "Delivery creating order: items=${input.items.map { "productId=${it.productId},quantity=${it.quantity}" }.joinToString(";")}, addressId=${input.addressId}, isSelfCollect=${input.isSelfCollect}",
+      "Delivery creating order: items=${input.items.map { "productId=${it.productId},quantity=${it.quantity}" }.joinToString(
+        ";",
+      )}, addressId=${input.addressId}, isSelfCollect=${input.isSelfCollect}",
     )
     val adminId = getAdminId(userDetail.username)
     val request = CreateDeliveryOrderInputMapper.map(input)
@@ -180,6 +184,26 @@ class AdminOrderMutationResolver(
   ): Order {
     logger.info("Completing delivery for order $orderId, paymentType: $paymentType, remark: $remark")
     return adminOrderMapper.map(deliveryTaskMutationService.completeDelivery(orderId, photos, paymentType, remark))
+  }
+
+  /**
+   * 配送任务中修正订单收货地址信息(F-ORD-024:收货人/电话/详细地址/楼层/定位)
+   * 送水工与管理员共用 DELIVERY_TASK 权限;仅传入字段生效。
+   */
+  @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
+  fun updateOrderAddress(
+    @Argument orderId: Long,
+    @Argument @Valid input: UpdateOrderAddressInput,
+    @AuthenticationPrincipal principal: UserPrincipal,
+  ): Order {
+    logger.info(
+      "Worker ${principal.username} updating address for order $orderId: " +
+        "receiverName=${input.receiverName}, floor=${input.floor}, " +
+        "longitude=${input.longitude}, latitude=${input.latitude}",
+    )
+    val request = UpdateOrderAddressInputMapper.map(input)
+    return adminOrderMapper.map(deliveryTaskMutationService.updateOrderAddress(principal.id, orderId, request))
   }
 
   private fun getAdminId(username: String): Long =
