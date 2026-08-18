@@ -3,7 +3,7 @@
 | 文档信息 | 内容 |
 | --- | --- |
 | 文档名称 | AquaRush 送水小程序产品需求文档 |
-| 版本 | v0.13(编号调整) |
+| 版本 | v0.21(通知与消息域序号调整为 13,公共附录顺延为 14-misc.md) |
 | 编写日期 | 2026-08-09 |
 | 文档状态 | 草稿(待评审) |
 | 覆盖范围 | 用户端小程序 / 送水工端小程序 / 管理后台(三端) |
@@ -26,6 +26,15 @@
 | 2026-08-09 | v0.6 | 新增熟客分组价:客户分组管理(F-USR-023)、分组商品价格配置(F-PRO-009)、订单计价与熟客分组价(跨端 F-ORD-023,R-ORD-11,自动应用 + 代客下单手动兜底);登记缺口 G45-G48;同步更新订单/用户/商品三域功能清单与规则、核心实体、流程、路线图、页面清单与术语表 | - |
 | 2026-08-09 | v0.12 | 新增系统设置域(12-system-settings.md):系统参数管理(F-SYS-001)、订单与履约参数(F-SYS-002)、库存预警阈值(F-SYS-003)、账号与安全策略(F-SYS-004)、通知与订阅消息配置(F-SYS-005)、数据维护(F-SYS-006),规则 R-SYS-01~03;新增运营配置域(13-operations-config.md):首页轮播图(F-OPS-001)、公告管理(F-OPS-002)、意见反馈管理(F-OPS-003)、店铺信息配置(F-OPS-004)、配送费规则配置(F-OPS-005),规则 R-OPS-01~02;权限码目录新增 OPS_CONFIG_READ/WRITE、FEEDBACK_READ/FEEDBACK_REVIEW(32→36 码,后台角色权限矩阵同步);登记缺口 G61-G64;同步更新核心实体、术语表、后台菜单、路线图与目录导航 | - |
 | 2026-08-09 | v0.13 | 编号调整:11-misc.md(公共规范与附录)移至 13-misc.md 置于文档末尾,系统设置域顺延为 11-system-settings.md、运营配置域顺延为 12-operations-config.md;同步更新目录导航与全部跨文件引用(历史修订记录保留原文件名) | - |
+| 2026-09 | v0.22 | 通知与消息域落地(2026-09):F-NTF-001/002/003/004/006 由 [规划中] 校准为 [已实现]——订阅消息全链路(access-token 服务/发送服务/授权记录 `user_subscription_auths`)、消息网关统一落库(`notifications` 表,幂等键 R-NTF-02)、WebSocket 实时推送(F-NTF-003 通道,`/ws/notifications` + broadcast-events 主题分发)、用户端 message-center / 送水工端 messages / 后台 notifications-messages 三端消息中心、保留期清理(R-NTF-04,notification_retention_days);同步更新 13-notification.md 各条目现状、04-order.md R-ORD-10(WebSocket 直连落地)、01-overview.md §权限码目录(NOTIFICATION_READ 已接线)、14-misc.md 缺口 G08/G44/G66/G67/G68 登记已解决 | - |
+| 2026-08-15 | v0.14 | 意见反馈闭环完成(2026-08):F-USR-005 由「[部分实现]」校准为「[已实现]」——提交接口接通(client `submitFeedback` 落库,G04 已解决)+ 处理结果回传落地(站内「我的-反馈记录」feedback-records 页展示本人反馈状态与处理结果,后台处理流转后即时可见,`myFeedbacks` 查询仅本人数据);F-OPS-003「处理结果回传」开放问题关闭(订阅消息为备选通道,暂未启用);同步更新 07-user.md §F-USR-005(页面/交互/验收 AC-USR-005-08~09)、12-operations-config.md §F-OPS-003(闭环与页面入口)与 13-misc.md §G04 | - |
+| 2026-08-16 | v0.15 | 用户域管理后台展示优化(2026-08):07-user.md §3.3 补充「展示约定」——账号/用户列表与详情不使用 Tab 页切换展示,账号列表以「用户类型」过滤参数(下拉)替代角色 Tab;补充管理员详情页设计(详情弹窗升级为独立详情页 users/accounts/:id 统一账号详情页,按角色渲染:管理账号=基本信息/账号安全/配送能力(兼送水)/操作,送水员=基本信息/统计/配送记录);送水员详情订单区由 Tab 改为「订单状态」筛选参数+单表格;用户详情收货地址/订单记录由 Tab 改为纵向区块;新增验收用例 AC-USR-020-11~13、AC-USR-021-09,更新 AC-USR-020-01/04、AC-USR-021-06、AC-USR-022-02~04 | - |
+| 2026-08-16 | v0.16 | 轨迹上报闭环完成(2026-08):F-ADR-012 实时轨迹上报与后台轨迹查看由「规划中」校准为「已实现」——送水工端 App 配送中每 5s 上报(定位 SDK react-native-fitness-geolocation,原生 GPS + SQLite 持久化,弱网缓存补传)、后端 `delivery_trajectories` 轨迹表与 `reportTrajectory`(仅本人 DELIVERING 订单)、后台「配送轨迹」页地图实时位置+轨迹回放(仅 PERMISSION_DELIVERY_WORKER_READ);R-ADR-03 现状与目标更新;G22 关闭(13-misc.md),残余(用户端配送跟踪未复用轨迹数据源、上报参数不可后台配置)登记为 G65;同步更新 05-address-delivery.md §1.1/§1.2/§1.3/§3.4/§4 与 13-misc.md §G22/§G65 | - |
+| 2026-08-16 | v0.17 | 用户详情页恢复 Tab 布局(2026-08-16 设计调整):07-user.md §3.3 展示约定更新——账号详情仍纵向排布,用户详情(users/:id)由纵向区块改为 Tab 切换(基本信息/统计/收货地址/订单记录,默认「基本信息」),替代原纵向区块(2026-08 v0.15 将收货地址/订单记录由 Tab 改纵向,现恢复为全页 Tab);同步更新 F-USR-022(现状/页面布局/组件清单/关键交互流程),新增 AC-USR-022-09,更新 AC-USR-022-02~04;前端 users/detail 页实现落地 | - |
+| 2026-09 | v0.18 | 用户详情页内容增强(2026-09):F-USR-022 详情页由「基本信息/统计/收货地址/订单记录」调整为**顶部基本信息卡+统计卡 + 7 个 Tabs**(收货地址/订单记录/优惠券/水票/意见反馈/评价记录/收藏商品,默认「收货地址」)——基本信息卡补齐角色/邮箱/所属客户分组/账户余额/总消费金额;统计卡改为全量口径(总订单取 orders.totalElements、总消费取 user.totalSpentCents、已完成订单按状态计数、平均=总消费/总订单),不再按当前分页计算;新增 5 个 Tab 数据源:userCoupons/userTickets(营销域复用 CouponQueryApiService/TicketQueryApiService)、feedbacks(userId 过滤,FeedbackListInput 新增)、reviewsByUser(评价按用户分页,ReviewQueryService 新增)、favoriteProducts(复用 ProductFavoriteService),新查询均以 PERMISSION_USER_READ 强制;UserCouponVO/UserTicketVO 及状态枚举上移 shared-config 双端共用;新增验收用例 AC-USR-022-10~16;同步更新 07-user.md §F-USR-022/§展示约定、10-marketing.md(F-MKT-003/007 后台入口)、12-operations-config.md(F-OPS-003 userId 过滤) | - |
+| 2026-09 | v0.19 | 账号详情页改 Tab 布局并补充内容(2026-09):07-user.md §3.3 展示约定与 F-USR-020/F-USR-021 更新——账号详情(users/accounts/:id)由纵向区块改为 **Tab 切换**(管理员视图:基本信息(含权限信息)/账号安全/配送能力(含配送统计)/配送记录/配送轨迹/每日收款/评价记录/操作;送水员视图:基本信息(含当前任务数)/统计/配送记录/配送轨迹/每日收款/评价记录,默认「基本信息」),配送记录 Tab 内保留「订单状态」筛选参数;新增后端查询 `reviewsByDeliveryWorker`(ReviewQueryService.findByDeliveryWorkerIdPaginated 复用 findReviewsWithFilters,PERMISSION_DELIVERY_WORKER_READ)与 `deliveryWorkerRatingStatistics`(DeliveryWorkerStatisticsQueryApiService,delivery_worker_statistics 表 1~5 星分布,无记录全零);前端 AdminAccountDetail/WorkerAccountDetail 改 Tabs,新增 sections/(TrajectorySection/DailyCollectionSection/WorkerReviewSection)复用轨迹/日报查询与地图组件;新增验收用例 AC-USR-020-14~17、AC-USR-021-10~13,更新 AC-USR-020-11、AC-USR-021-05/06/09 | - |
+| 2026-09 | v0.20 | 新增通知与消息域(13-notification.md):订阅消息通知(F-NTF-001,承接原 F-ADR-011,编号保留)、用户端消息中心(F-NTF-002)、送水工端实时推送(F-NTF-003,承接原 F-ORD-014,编号保留)、送水工端消息中心(F-NTF-004)、后台推送与消息配置(F-NTF-005,承接原 F-SYS-005,状态校准为 [部分实现]——模板 ID/启用配置已落地,保留时长与 RN 凭证配置为目标形态)、后台消息列表页(F-NTF-006);规则 R-NTF-01~05(订阅授权与降级/消息幂等去重/离线弱网降级/已读保留/配置与密钥保护);权限码目录新增 NOTIFICATION_READ/WRITE(38→40 码,后台角色权限矩阵同步);登记缺口 G66-G69(用户端/送水工端消息中心、后台消息列表页、RN 推送凭证);同步更新 05-address-delivery.md §F-ADR-011、04-order.md §F-ORD-014/R-ORD-10、11-system-settings.md §F-SYS-005、12-operations-config.md(公告与消息中心)、07-user.md(消息中心入口)、01-overview.md(权限码/矩阵)、14-misc.md(核心实体/异常处理/缺口)与目录导航 | - |
+| 2026-09 | v0.21 | 序号调整:通知与消息域由 14-notification.md 调整为 13-notification.md(紧随 12-operations-config.md),公共规范与附录由 13-misc.md 顺延为 14-misc.md 置于文档末尾;同步更新目录导航与全部跨文件引用(历史修订记录 v0.13 及以前保留当时文件名) | - |
 
 ### 阅读约定
 
@@ -33,7 +42,7 @@
 - 功能条目编号 `F-域-序号`,业务规则编号 `R-域-序号`,验收用例编号 `AC-域-F序号-序号`,缺口编号 `G-序号`;可在开发排期、测试用例中引用。
 - 页面标题(浏览器标签页)由前端统一管理(admin-client 用 react-helmet-async 按路由设置),属实现细节,PRD 不在页面布局中逐页描述「标题区」。
 - 状态标记反映当前 `refactor/unify-module-structure` 分支工作区状态,重构完成后需复查校准。
-- 规划中/部分实现功能的缺口登记见 [13-misc.md](13-misc.md) §缺口清单,不虚构需求。
+- 规划中/部分实现功能的缺口登记见 [14-misc.md](14-misc.md) §缺口清单,不虚构需求。
 - `_ref/` 为内部工作目录(代码现状基线 facts.md、编写规范 conventions.md、域切片),**不属于正式 PRD 内容**,不进入目录导航;重构完成复查标记时可参考 `_ref/facts.md`。
 
 ---
@@ -63,12 +72,13 @@
 | [10-marketing.md](10-marketing.md) | 营销域 | F-MKT-001~009(预留 010+) | R-MKT-01~10 |
 | [11-system-settings.md](11-system-settings.md) | 系统设置域 | F-SYS-001~006(预留 007+) | R-SYS-01~03 |
 | [12-operations-config.md](12-operations-config.md) | 运营配置域 | F-OPS-001~005(预留 006+) | R-OPS-01~02 |
+| [13-notification.md](13-notification.md) | 通知与消息域 | F-NTF-001~006(预留 007+) | R-NTF-01~05 |
 
 ### 公共规范与附录
 
 | 文档 | 内容 | 对应原章节 |
 | --- | --- | --- |
-| [13-misc.md](13-misc.md) | 数据需求要点、异常处理与边界场景、现状缺口登记(G01-G64)与阶段路线图、非功能需求、通用/端到端验收(AC-E2E-01~03)、附录(页面清单/术语表/代码对应) | 第 7-11 章、附录 A/C/D |
+| [14-misc.md](14-misc.md) | 数据需求要点、异常处理与边界场景、现状缺口登记(G01-G69)与阶段路线图、非功能需求、通用/端到端验收(AC-E2E-01~03)、附录(页面清单/术语表/代码对应) | 第 7-11 章、附录 A/C/D |
 
 ---
 
@@ -82,16 +92,16 @@
 | R-域-序号 | 业务规则(唯一归属一个文件,他处只引用) | R-ORD-02 |
 | AC-域-F序号-序号 | 功能级验收用例(定义于各域文件) | AC-ORD-001-01 |
 | AC-E2E-序号 | 跨域端到端用例 | AC-E2E-01 |
-| G-序号 | 缺口登记(唯一归属 13-misc.md) | G01 |
+| G-序号 | 缺口登记(唯一归属 14-misc.md) | G01 |
 
 ### 域缩写
 
-- 功能域:PRO 商品 / ORD 订单 / ADR 地址配送 / COL 收银 / USR 用户 / STA 统计 / LOG 日志 / MKT 营销 / OPS 运营配置 / SYS 系统设置;
-- 规则域:PRO/ORD/ADR/COL/EVL/MON/AUTH/PAY/MKT/OPS/SYS。
+- 功能域:PRO 商品 / ORD 订单 / ADR 地址配送 / COL 收银 / USR 用户 / STA 统计 / LOG 日志 / MKT 营销 / OPS 运营配置 / SYS 系统设置 / NTF 通知消息;
+- 规则域:PRO/ORD/ADR/COL/EVL/MON/AUTH/PAY/MKT/OPS/SYS/NTF。
 
 ### 约定
 
 - 状态标记仅三种:`[已实现]` / `[部分实现]` / `[规划中]`;
-- 新增功能须登记编号与状态,不得跳过编号直接编写;新增缺口按序追加至 13-misc.md(G54+),并在对应域文件补记关联;
+- 新增功能须登记编号与状态,不得跳过编号直接编写;新增缺口按序追加至 14-misc.md(G54+),并在对应域文件补记关联;
 - 开发在提交信息、测试用例中引用功能编号,形成"PRD → 开发 → 测试"追踪链;
-- PRD 管业务规则与验收,技术文档管实现细节,两者通过 13-misc.md 附录D 的路径互引,不互相复制。
+- PRD 管业务规则与验收,技术文档管实现细节,两者通过 14-misc.md 附录D 的路径互引,不互相复制。

@@ -1,6 +1,6 @@
 # 平台与日志域(LOG)
 
-> 面向管理后台的日志管理子域:三类日志(API 日志 / 用户操作日志 / 业务日志)的记录、查询、筛选与详情追溯,供异常排查与审计。本域范围:F-LOG-001~003(均为管理后台端);规则:本域无自有 R-* 规则,遵循 01-overview.md §非功能(日志审计)与 13-misc.md §安全与合规(交叉引用见 §4)。
+> 面向管理后台的日志管理子域:三类日志(API 日志 / 用户操作日志 / 业务日志)的记录、查询、筛选与详情追溯,供异常排查与审计。本域范围:F-LOG-001~003(均为管理后台端);规则:本域无自有 R-* 规则,遵循 01-overview.md §非功能(日志审计)与 14-misc.md §安全与合规(交叉引用见 §4)。
 
 ## 1. 域概述
 
@@ -10,13 +10,13 @@
 | --- | --- | --- | --- |
 | F-LOG-001 | API 日志 | [已实现] | 管理后台 |
 | F-LOG-002 | 用户操作日志 | [已实现] | 管理后台 |
-| F-LOG-003 | 业务日志 | [部分实现](时间线视图与业务域/操作类型筛选为规划中目标形态,见 G43) | 管理后台 |
+| F-LOG-003 | 业务日志 | [已实现] | 管理后台 |
 
 ### 1.2 域内角色与入口
 
 - 使用角色:管理员(后台账号登录),对应 01-overview.md §角色权限矩阵中「数据统计与日志」列(管理员 ✅)。
 - 入口:登录管理后台后,经左侧导航「日志管理」展开子菜单,分别进入「API日志」(`/logs/api`)、「用户操作」(`/logs/user-actions`)、「业务日志」(`/logs/business`)。
-- 数据来源:三类日志均由前端通过 REST 接口查询(`/logs/api`、`/logs/user-actions`、`/logs/business`,见 `frontend/admin-client/src/services/logs.ts`),分页与后端 Page 结构对应;目标形态:业务日志(F-LOG-003)查询迁移至 GraphQL `businessLogs`(admin 端),API/用户操作日志保持 REST。
+- 数据来源:API/用户操作日志由前端通过 REST 接口查询(`/logs/api`、`/logs/user-actions`,见 `frontend/admin-client/src/services/logs.ts`);业务日志(F-LOG-003)经 GraphQL `businessLogs` 查询(admin 端,`frontend/admin-client/src/services/log-graphql.ts`),REST `/logs/business` 控制器保留。三张日志表(api_logs/user_action_logs/business_logs)按月 RANGE 分区,超期分区经「系统设置-数据维护」离线备份(转储冷表 + 导出文件)后不再在线查询(见 11-system-settings.md §F-SYS-006)。
 
 ### 1.3 域级验收清单
 
@@ -27,7 +27,7 @@
 本域无自有 R-* 规则。日志记录、保留与审计的合规性要求引用:
 
 - 01-overview.md §非功能(日志审计):接口调用、用户操作、业务事件须留痕且可追溯;
-- 13-misc.md §安全与合规:日志审计须满足合规要求。
+- 14-misc.md §安全与合规:日志审计须满足合规要求。
 
 各功能在 §3「业务规则扩充」中对上述要求做本域口径的细化说明。
 
@@ -43,7 +43,7 @@
   1. 筛选区(Card):请求类型 Select(HTTP/GraphQL)、请求方法 Select(GET/POST/PUT/DELETE)、用户 ID Input、时间范围 RangePicker(含时间)、「搜索」主按钮、「重置」按钮,均支持清除(allowClear)。
   2. 日志表格(Table):列依次为 时间(本地化 zh-CN)、类型(Tag:HTTP 蓝 / GraphQL 紫)、方法、状态(Tag:2xx 绿 / 4xx 橙 / 5xx 红)、URI(超长省略)、耗时(毫秒)、用户(用户名或 ID)、IP、操作(「详情」文字按钮);横向滚动 x=1200。
   3. 分页:默认 20/页,支持切换每页条数、快速跳页,页脚文案「共 N 条记录」。
-  4. 详情弹窗(Modal「请求详情」):Descriptions 两列,含 请求类型/方法/URI/Query/状态码/耗时/用户ID/用户名/IP/UserAgent/关联ID/操作类型/操作名称/请求体(可滚动)/错误信息(红色、可滚动)/时间。
+  4. 详情弹窗(Modal「请求详情」):Descriptions 两列,含 请求类型/方法/URI/Query(等宽可滚动+复制按钮)/状态码/耗时/用户ID/用户名/IP/UserAgent/关联ID/操作类型/操作名称/请求体(JsonViewer:格式化、可折叠、可复制)/错误信息(红色、可滚动+复制)/时间。
 - **组件清单**: Card、Space、Select、Input、DatePicker.RangePicker、Button、Table、Tag、Modal、Descriptions(均 antd;页面 `logs/api/index.tsx`)。
 - **关键交互流程**:
   1. 进入页面 → 按默认第 1 页/20 条请求 `/logs/api` → 渲染列表与总数。
@@ -82,14 +82,17 @@
 **缺口关联**: —(切片声明本域无新增缺口;疑似 UI 口径差异见本文件 §4 开放问题,不占用 G 编号)。
 
 #### F-LOG-002 用户操作日志 [已实现]
-**需求描述**: 记录用户关键操作(登录/下单/取消/支付/地址变更),含操作人、时间、操作对象,供行为追溯与审计。现状:已实现——「用户操作」页通过 REST `/logs/user-actions` 查询(`queryUserActionLogs`,见 `frontend/admin-client/src/pages/logs/user-actions/index.tsx`),按操作类型、用户 ID/用户名、时间范围筛选;表格展示 时间/操作类型/用户/页面/目标/元素ID/IP,详情弹窗含元素类型/元素文本/附加属性。说明:当前埋点枚举以页面浏览/点击等前端行为为主(PAGE_VIEW/CLICK/FORM_SUBMIT/SEARCH/SHARE/SCROLL/FILE_OPERATION),与需求所列业务操作(登录/下单/取消/支付/地址变更)存在口径差异,见 §4 开放问题。验收要点:操作可追溯;时间准确。
+**需求描述**: 记录用户关键操作(登录/下单/取消/支付/地址变更),含操作人、时间、操作对象,供行为追溯与审计。现状:已实现——「用户操作」页通过 REST `/logs/user-actions` 查询(`queryUserActionLogs`,见 `frontend/admin-client/src/pages/logs/user-actions/index.tsx`),按操作类型、用户 ID/用户名/目标、时间范围筛选;表格展示 时间/操作类型/用户/页面/目标/元素ID/IP,详情弹窗含元素类型/元素文本/附加属性(格式化 JSON 视图,`components/JsonViewer`,可折叠/着色/复制)。上报侧:用户操作上报能力已封装为跨端 SDK `@aquarush/common/tracking`(平台无关核心 + 各端注入 `TrackingAdapter`,队列缓冲/定时 flush/PAGE_VIEW 去重/无 token 暂存/失败静默重入队均由 SDK 承担),三端统一经 `POST /api/logs/user-actions/batch` 批量上报:
+- **user-weapp(小程序,已接入)**:页面浏览经 `usePageViewTracking`(19 页全覆盖,页面名映射 `src/config/tracking.ts`)上报 PAGE_VIEW;按钮/元素经 `data-track-*` attr 标记(或 `Track` 包装组件)上报 CLICK/FORM_SUBMIT/SEARCH;适配器注入 Taro 存储/路由,无 token 暂存,登录成功/切后台(useDidHide)flush;
+- **admin-client(管理后台 PC 端,已接入)**:页面浏览经 `usePageViewTracking`(Layout 内路由变化上报)上报 PAGE_VIEW;登录成功/退出登录上报 CLICK(login-submit/logout);切后台(visibilitychange)flush;
+- **delivery-app(配送 RN 端,已接入)**:页面浏览经 `usePageViewTracking`(expo-router 路由变化上报)上报 PAGE_VIEW;登录/登出、订单接单/开始配送/确认送达上报 CLICK(login-submit/logout/order-accept/order-start/order-complete);切后台(AppState)flush;后端 `UserActionEventService.saveToDatabase` 支持显式字段(pageUrl/elementId/elementType/elementText)与 properties 回退提取,properties pretty-print 落库并按配置剔除敏感键。说明:当前埋点枚举以页面浏览/点击等前端行为为主(PAGE_VIEW/CLICK/FORM_SUBMIT/SEARCH/SHARE/SCROLL/FILE_OPERATION),与需求所列业务操作(登录/下单/取消/支付/地址变更)存在口径差异,见 §4 开放问题。验收要点:操作可追溯;时间准确。
 **页面与入口**: 用户操作日志页(logs/user-actions)| 管理后台 | 入口:左侧导航「日志管理」→「用户操作」。
 **UI与交互**:
 - **页面布局**:
-  1. 筛选区(Card):操作类型 Select(页面浏览/点击/表单提交/搜索/分享/滚动/文件操作,各带色 Tag)、用户 ID Input、用户名 Input、时间范围 RangePicker(含时间)、「搜索」/「重置」按钮。
+  1. 筛选区(Card):操作类型 Select(页面浏览/点击/表单提交/搜索/分享/滚动/文件操作,各带色 Tag;含用户登录/登出、系统配置保存/恢复等后端自定义类型)、用户 ID Input、用户名 Input、目标 Input(匹配 target 列)、时间范围 RangePicker(含时间)、「搜索」/「重置」按钮。
   2. 操作表格(Table):列依次为 时间(zh-CN)、操作类型(Tag:页面浏览蓝/点击绿/表单提交橙/搜索紫/分享青/滚动品红/文件操作红)、用户(用户名或 ID)、页面(pageUrl 超长省略)、目标(target 省略)、元素 ID、IP、操作(「详情」文字按钮)。
   3. 分页:默认 20/页,支持切换每页条数、快速跳页,页脚「共 N 条记录」。
-  4. 详情弹窗(Modal「操作详情」):Descriptions 两列,含 操作类型/用户ID/用户名/IP/页面URL/目标/元素ID/元素类型/元素文本/UserAgent(可滚动)/附加属性(可滚动)/时间。
+  4. 详情弹窗(Modal「操作详情」):Descriptions 两列,含 操作类型/用户ID/用户名/IP/页面URL/目标/元素ID/元素类型/元素文本/UserAgent(可滚动)/附加属性(JsonViewer:格式化、可折叠、语法着色、可复制)/时间。
 - **组件清单**: Card、Space、Select、Input、DatePicker.RangePicker、Button、Table、Tag、Modal、Descriptions(均 antd;页面 `logs/user-actions/index.tsx`)。
 - **关键交互流程**:
   1. 进入页面 → 按默认第 1 页/20 条请求 `/logs/user-actions` → 渲染列表与总数。
@@ -126,24 +129,24 @@
 - 枚举口径差异:需求所列「登录/下单/取消/支付/地址变更」为业务操作维度,当前埋点枚举为前端行为维度(PAGE_VIEW/CLICK 等),二者未建立映射,是后续对齐项(见 §4 开放问题),不影响现有「操作可追溯」验收。
 **缺口关联**: —(切片声明本域无新增缺口;疑似枚举口径差异与分页字段问题见 §4 开放问题,不占用 G 编号)。
 
-#### F-LOG-003 业务日志 [部分实现]
-**需求描述**: 记录业务事件(订单状态流转/派单/对账/退款申请),供异常排查与审计,须与订单操作记录时间线一致;以用户为视角可查看该用户全部业务操作记录,时间线形式展示。现状:已实现——「业务日志」页通过 REST `/logs/business` 查询(`queryBusinessLogs`,见 `frontend/admin-client/src/pages/logs/business/index.tsx`),按日志级别(INFO/WARN/ERROR/DEBUG)、Logger 名称、用户 ID、时间范围筛选;表格展示 时间/级别/Logger/消息/用户/关联ID(correlationId),详情弹窗含完整消息与堆栈跟踪;F-LOG-003 与订单操作记录时间线一致(facts.md §3)。目标形态:① 数据源迁移至 GraphQL `businessLogs`(admin 端);② 筛选新增业务域与操作类型维度(登录/提交订单/查看产品等);③ 页面新增表格/时间线视图切换,时间线以用户为视角展示其全部业务操作记录(倒序、分页)。验收要点:状态流转均有日志;与订单操作时间线一致。
+#### F-LOG-003 业务日志 [已实现]
+**需求描述**: 记录业务事件(订单状态流转/派单/对账/退款申请),供异常排查与审计,须与订单操作记录时间线一致;以用户为视角可查看该用户全部业务操作记录,时间线形式展示。现状:已实现——「业务日志」页经 GraphQL `businessLogs` 查询(`frontend/admin-client/src/pages/logs/business/index.tsx`,服务层 `services/log-graphql.ts`),按业务域、操作类型、日志级别(TRACE/DEBUG/INFO/WARN/ERROR)、用户 ID、时间范围筛选;操作类型已结构化落库(`business_logs.operation` 列,BizLogger 写入);页面支持「表格 / 时间线」视图切换,时间线以用户为视角展示其全部业务操作记录(恒 createdAt 倒序、分页 10/页);表格展示 时间/级别/操作类型/Logger/消息/用户/关联ID(correlationId),详情弹窗含完整消息与堆栈跟踪;REST `/logs/business` 控制器保留。F-LOG-003 与订单操作记录时间线一致(facts.md §3)。验收要点:状态流转均有日志;与订单操作时间线一致。
 **页面与入口**: 业务日志页(logs/business)| 管理后台 | 入口:左侧导航「日志管理」→「业务日志」。业务操作记录仅在日志管理页查看,用户详情页不提供操作记录。
 **UI与交互**:
 - **页面布局**:
-  1. 筛选区(Card):业务域 Select(订单/支付/配送/用户/认证,目标形态,映射自后端 module)、操作类型 Select(与业务域联动,登录/提交订单/查看产品等,目标形态)、日志级别 Select(INFO 蓝/WARN 橙/ERROR 红/DEBUG 绿)、用户 ID Input、时间范围 RangePicker(含时间)、「搜索」/「重置」按钮。
-  2. 视图切换(目标形态):Segmented「表格 / 时间线」,切换保留筛选与分页状态。
-  3. 业务日志表格(Table):列依次为 时间(zh-CN)、级别(Tag 带色)、Logger(省略)、消息(省略)、用户(用户名或 ID)、关联ID(correlationId,省略)、操作(「详情」文字按钮)。
-  4. 时间线视图(目标形态):AntD Timeline(mode="left"),条目含 级别 Tag、操作类型(图标+色+文案)、用户 Tag、消息(省略)、关联ID、本地化时间;恒按 createdAt 倒序;分页默认 10/页。
-  5. 分页:默认 20/页,支持切换每页条数、快速跳页,页脚「共 N 条记录」。
-  6. 详情弹窗(Modal「日志详情」):Descriptions 两列,含 日志级别(Tag)/时间/Logger/关联ID/用户ID/用户名/消息(pre、可滚动)/堆栈跟踪(pre、可滚动)。
-- **组件清单**: Card、Space、Select、Input、DatePicker.RangePicker、Button、Table、Tag、Modal、Descriptions(均 antd;页面 `logs/business/index.tsx`);目标形态追加:Timeline、Segmented、Empty、`BusinessLogTimeline` 组件(规划,`components/BusinessLogTimeline`)、GraphQL 查询文档与 Hook(`graphql/queries/log.graphql.ts`、`services/log-graphql.ts`,规划)。
+  1. 筛选区(Card):业务域 Select(订单/支付/配送/用户/认证,映射自后端 loggerName)、操作类型 Select(与业务域联动,登录/提交订单/查看产品等,未选域时展示全部)、日志级别 Select(TRACE default/DEBUG 绿/INFO 蓝/WARN 橙/ERROR 红)、用户 ID Input、时间范围 RangePicker(含时间)、「搜索」/「重置」按钮。
+  2. 视图切换:Segmented「表格 / 时间线」,切换保留筛选,分页回第 1 页并按视图调整每页条数(表格 20/时间线 10)。
+  3. 业务日志表格(Table):列依次为 时间(zh-CN)、级别(Tag 带色)、操作类型(中文文案,老数据回退解析 message 前缀)、Logger(省略)、消息(省略)、用户(用户名或 ID)、关联ID(correlationId,省略)、操作(「详情」文字按钮)。
+  4. 时间线视图:AntD Timeline(mode="left",`components/BusinessLogTimeline`),条目含 操作类型(图标+色+中文文案)、级别 Tag、用户 Tag、消息(省略)、关联ID、本地化时间;恒按 createdAt 倒序;分页默认 10/页。
+  5. 分页:表格默认 20/页,支持切换每页条数、快速跳页,页脚「共 N 条记录」;时间线固定 10/页。
+  6. 详情弹窗(Modal「日志详情」):Descriptions 两列,含 日志级别(Tag)/时间/Logger/关联ID/用户ID/用户名/消息(以 `{`/`[` 开头且可解析时用 JsonViewer 格式化展示,否则保留原文 pre)/堆栈跟踪(pre、可滚动、可复制)。
+- **组件清单**: Card、Space、Select、Input、DatePicker.RangePicker、Button、Table、Tag、Modal、Descriptions、Segmented、Pagination、Timeline、Empty(均 antd);`BusinessLogTimeline` 组件(`components/BusinessLogTimeline`,含域→操作类型映射 `DOMAIN_OPERATIONS` 与操作文案映射 `OPERATION_CONFIG`);GraphQL 查询文档与 Hook(`graphql/queries/log.graphql.ts`、`services/log-graphql.ts`)。
 - **关键交互流程**:
-  1. 进入页面 → 按默认第 1 页/20 条请求 → 渲染列表与总数。
-  2. 选择业务域(目标形态)→ 操作类型下拉联动为该域类型;再选操作类型/日志级别 / 输入用户 ID / 选择时间范围(可组合)→ 点击「搜索」→ 回到第 1 页重新请求。
+  1. 进入页面 → 经 GraphQL `businessLogs` 按默认第 1 页/20 条请求 → 渲染列表与总数。
+  2. 选择业务域 → 操作类型下拉联动为该域类型(未选域展示全部);再选操作类型/日志级别 / 输入用户 ID / 选择时间范围(可组合)→ 点击「搜索」→ 回到第 1 页重新请求。
   3. 点击「重置」→ 清空全部筛选并回到第 1 页。
   4. 点击某行「详情」→ 弹窗展示消息全文与堆栈跟踪。
-  5. 切换「时间线」视图(目标形态)→ 以时间线展示当前筛选结果(恒 createdAt 倒序);按用户 ID 筛选后,即以该用户为视角查看其全部业务操作轨迹。
+  5. 切换「时间线」视图 → 以时间线展示当前筛选结果(恒 createdAt 倒序);按用户 ID 筛选后,即以该用户为视角查看其全部业务操作轨迹。
   6. 翻页 / 切换每页条数 → 按新分页参数重新请求。
 - **状态呈现**:
   - 空态:无匹配记录时表格展示 antd 默认空态;时间线视图展示 Empty「暂无操作记录」;
@@ -152,9 +155,9 @@
   - 禁用态:请求期间「搜索」/「重置」无显式禁用(现状)。
 - **校验与文案**:
   - 筛选条件均为可选,无必填校验;时间范围缺省不限;
-  - 分页页脚「共 N 条记录」;级别 Tag 色:INFO 蓝 / WARN 橙 / ERROR 红 / DEBUG 绿;
+  - 分页页脚「共 N 条记录」;级别 Tag 色:TRACE default / DEBUG 绿 / INFO 蓝 / WARN 橙 / ERROR 红;
   - 关联ID 列用于将业务日志与订单操作时间线、请求链(correlationId)关联;
-  - 时间范围提交格式 `YYYY-MM-DDTHH:mm:ss`(目标形态,修复现状 `.toISOString()` 与后端 LocalDateTime 解析不兼容的隐患,关联 G40);
+  - 时间范围提交格式 `YYYY-MM-DDTHH:mm:ss`(本地时间,弃用 `.toISOString()` 的 UTC 偏移,消除与后端 LocalDateTime 解析不兼容的隐患,关联 G40);
   - 时间线恒按 createdAt 倒序。
 **验收测试用例**:
 
@@ -179,16 +182,16 @@
 - 状态流转留痕:每笔订单状态变更均写入业务日志,经 correlationId 可与订单操作记录时间线(后台订单详情时间线)对齐,满足「状态流转均有日志、与订单操作时间线一致」;
 - 排查与审计:ERROR 级日志携带堆栈跟踪,可据 Logger 名称与关联ID 定位异常来源;
 - 级别口径:日志级别由后端日志框架写入,前端仅做筛选与着色展示,不参与级别判定;
-- 业务域与操作类型口径(目标形态):业务日志按 业务域 + 操作类型 两维度组织——业务域映射自后端 module(`BizLogger.logOperation` 的 module 参数,落库为 loggerName 列,如 ORDER/PAYMENT/DELIVERY/USER/AUTH);操作类型映射自 operation 参数(BizLogger 已封装 logOrderOperation/logPaymentOperation/logDeliveryOperation/logUserOperation/logLogin 等,如登录、提交订单、查看产品),现状 operation 内嵌于 message 文本,目标形态结构化落库(独立字段或按 message 结构解析)以支持服务端筛选;枚举可扩展;
-- 数据源(目标形态):业务日志经 GraphQL `businessLogs`(admin 角色)查询,输入含 domain(业务域)/operationType(操作类型)维度,后端按域映射 loggerName 过滤,恒按 createdAt 倒序;REST `/logs/business` 控制器保留;
-- 分页口径(目标形态):日志页迁移 GraphQL 后按 PageInfo 字段读取,修复现状 REST 分页字段不一致(G40,F-LOG-003 侧)。
-**缺口关联**: G43(时间线视图与业务域/操作类型筛选未实现);G40(分页字段问题)于业务日志页迁移至 GraphQL 后 F-LOG-003 侧消除(用户操作日志侧保留)。
+- 业务域与操作类型口径:业务日志按 业务域 + 操作类型 两维度组织——业务域映射自后端 module(`BizLogger.logOperation` 的 module 参数,落库为 loggerName 列,含 ORDER/PAYMENT/DELIVERY/USER/AUTH/PRODUCT/MARKETING/OPS/RECONCILIATION);操作类型映射自 operation 参数(BizLogger 已封装 logOrderOperation/logPaymentOperation/logDeliveryOperation/logUserOperation/logProductOperation/logMarketingOperation/logOpsOperation/logLogin 等,并在各业务 Service 的写操作埋点:订单创建/取消/状态变更/支付成功、支付发起/完成/失败/退款/超时、派单/接单/开始/完成配送、配送员与配送区域管理、用户/地址/管理员管理、产品管理、营销活动/券/水票/分组定价、运营配置(OPS_*,经 OpsConfigAuditService 与 user_action_logs 审计并存)、对账(每日收款提交/确认/复核/执行),登录区分 USER_LOGIN/ADMIN_LOGIN/LOGIN_FAILED),operation 结构化落库(`business_logs.operation` 列,迁移 v1.1.1 新增;老数据为 NULL,前端时间线回退解析 message 前缀 `Operation: X`);枚举可扩展;
+- 数据源:业务日志经 GraphQL `businessLogs`(admin 角色,PERMISSION_LOG_READ)查询,输入含 domain(业务域)/operationType(操作类型)维度,后端按域映射 loggerName 过滤、按 operationType 精确匹配 operation 列,恒按 createdAt 倒序,PageInfo 分页;REST `/logs/business` 控制器保留;
+- 分页口径:业务日志页经 GraphQL 按 PageInfo 字段读取(修复 REST 分页字段不一致,见 G40,F-LOG-003 侧消除,用户操作日志侧保留)。
+**缺口关联**: —(G43 已解决:时间线视图与业务域/操作类型筛选已实现)。
 
 ## 4. 交叉引用
 
 - 状态机:见 02-business-flows.md §订单状态机、§配送履约流程(F-LOG-003 记录订单状态流转与履约事件,时间线与订单操作记录一致)。
-- 缺口:见 13-misc.md §G01-G17(本域无关联缺口)。
-- 实体:见 13-misc.md §核心实体(操作日志)。
-- 异常:见 13-misc.md(异常信息经业务日志 ERROR 级记录的堆栈跟踪落库)。
+- 缺口:见 14-misc.md §G01-G17(本域无关联缺口)。
+- 实体:见 14-misc.md §核心实体(操作日志)。
+- 异常:见 14-misc.md(异常信息经业务日志 ERROR 级记录的堆栈跟踪落库)。
 - 全局金额精度:见 01-overview.md §全局约束(本域不涉及金额)。
-- 非功能审计:见 13-misc.md §安全与合规(日志审计要求)。
+- 非功能审计:见 14-misc.md §安全与合规(日志审计要求)。
