@@ -1,16 +1,7 @@
 import React, { useMemo, useState } from 'react';
-import { Button, Table, Space, Tag, Avatar, Modal, message, Select } from 'antd';
-import {
-  PlusOutlined,
-  EditOutlined,
-  LockOutlined,
-  DeleteOutlined,
-  EyeOutlined,
-} from '@ant-design/icons';
+import { Modal, message } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@apollo/client';
-import { avatarFromName } from '@aquarush/common/utils';
-import type { ColumnsType } from 'antd/es/table';
 import AdminForm from '../components/AdminForm';
 import DeliveryWorkerForm from '../components/DeliveryWorkerForm';
 import ResetPasswordModal from '../components/ResetPasswordModal';
@@ -37,7 +28,8 @@ import type {
   AdminFormData,
   DeliveryWorkerFormData,
 } from '../components/types';
-import { ROLE_MAPPINGS, WORKER_STATUS_MAPPINGS } from '../components/types';
+import { AccountToolbar, AccountTable } from './components';
+import type { AccountRow, EditingAdmin, EditingWorker } from './types';
 
 /**
  * 账号管理(管理员管理与送水员管理合并,PRD/07-user.md §F-USR-020/021):
@@ -49,39 +41,6 @@ import { ROLE_MAPPINGS, WORKER_STATUS_MAPPINGS } from '../components/types';
  * - 删除/重置密码走真实接口(超管 deleteAdmin/resetAdminPassword;普通管理员 deleteDeliveryWorker/
  *   resetDeliveryWorkerPassword,后端仅允许 DELIVERY_WORKER 账号行)。
  */
-type AccountRole = 'SUPER_ADMIN' | 'ADMIN' | 'DELIVERY_WORKER';
-
-interface AccountRow {
-  id: string;
-  username?: string;
-  realName?: string;
-  name?: string;
-  phone?: string;
-  role: AccountRole;
-  avatarUrl?: string;
-  onlineStatus?: 'ONLINE' | 'OFFLINE';
-  isAvailable?: boolean;
-  accountStatus?: 'ACTIVE' | 'DISABLED';
-  lastLoginAt?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-/** 编辑态记录:表单数据 + 主键/时间戳(供 handleAdminSubmit 判断新建/更新) */
-type EditingAdmin = AdminFormData & {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  lastLoginAt?: string;
-};
-
-type EditingWorker = DeliveryWorkerFormData & {
-  id: string;
-  userId: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
 const AccountUsers: React.FC = () => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState<boolean>(false);
@@ -125,7 +84,7 @@ const AccountUsers: React.FC = () => {
         username: a.username,
         realName: a.realName,
         phone: a.phone,
-        role: a.role as AccountRole,
+        role: a.role as AccountRow['role'],
         avatarUrl: a.avatarUrl || undefined,
         onlineStatus: a.onlineStatus,
         isAvailable: a.isAvailable,
@@ -139,7 +98,7 @@ const AccountUsers: React.FC = () => {
       id: w.id,
       name: w.name,
       phone: w.phone,
-      role: (w.role as AccountRole) || 'DELIVERY_WORKER',
+      role: (w.role as AccountRow['role']) || 'DELIVERY_WORKER',
       avatarUrl: w.avatarUrl || undefined,
       onlineStatus: w.onlineStatus,
       isAvailable: w.isAvailable,
@@ -353,147 +312,32 @@ const AccountUsers: React.FC = () => {
     }
   };
 
-  const columns: ColumnsType<AccountRow> = [
-    {
-      title: '头像',
-      dataIndex: 'avatarUrl',
-      key: 'avatarUrl',
-      width: 70,
-      render: (avatarUrl: string, record: AccountRow) => (
-        <Avatar
-          src={avatarUrl || avatarFromName(record.username || record.name || record.realName || '账号')}
-          size="small"
-        />
-      ),
-    },
-    {
-      title: '账号',
-      dataIndex: 'username',
-      key: 'username',
-      width: 170,
-      render: (username: string, record: AccountRow) => username || record.name || '-',
-    },
-    {
-      title: '姓名',
-      dataIndex: 'realName',
-      key: 'realName',
-      width: 120,
-      render: (realName: string, record: AccountRow) => realName || (record.role === 'DELIVERY_WORKER' ? record.name || '-' : '-'),
-    },
-    {
-      title: '手机号',
-      dataIndex: 'phone',
-      key: 'phone',
-      width: 130,
-      render: (phone: string) => phone || '-',
-    },
-    {
-      title: '角色',
-      dataIndex: 'role',
-      key: 'role',
-      width: 120,
-      render: (role: AccountRole) => {
-        const config = ROLE_MAPPINGS[role as keyof typeof ROLE_MAPPINGS];
-        return <Tag color={config.color}>{config.text}</Tag>;
-      },
-    },
-    {
-      title: '在线状态',
-      dataIndex: 'onlineStatus',
-      key: 'onlineStatus',
-      width: 100,
-      render: (onlineStatus: string, record: AccountRow) => {
-        if (record.role !== 'DELIVERY_WORKER') return '-';
-        const config = WORKER_STATUS_MAPPINGS[onlineStatus as keyof typeof WORKER_STATUS_MAPPINGS];
-        return config ? <Tag color={config.color}>{config.text}</Tag> : '-';
-      },
-    },
-    {
-      title: '最后登录时间',
-      dataIndex: 'lastLoginAt',
-      key: 'lastLoginAt',
-      width: 160,
-      render: (lastLoginAt: string) => {
-        if (!lastLoginAt) return '从未登录';
-        return new Date(lastLoginAt).toLocaleString('zh-CN');
-      },
-    },
-    {
-      title: '创建时间',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 160,
-      render: (createdAt: string) => new Date(createdAt).toLocaleString('zh-CN'),
-    },
-    {
-      title: '操作',
-      key: 'action',
-      width: 240,
-      fixed: 'right',
-      render: (_, record) => (
-        <Space size="small">
-          <Button type="link" icon={<EyeOutlined />} onClick={() => handleView(record)} size="small">
-            查看
-          </Button>
-          <Button type="link" icon={<EditOutlined />} onClick={() => handleEdit(record)} size="small">
-            编辑
-          </Button>
-          {canDeleteOrReset(record) && (
-            <>
-              <Button
-                type="link"
-                icon={<LockOutlined />}
-                onClick={() => setResetTarget(record)}
-                size="small"
-              >
-                重置密码
-              </Button>
-              <Button type="link" danger icon={<DeleteOutlined />} onClick={() => handleDelete(record)} size="small">
-                删除
-              </Button>
-            </>
-          )}
-        </Space>
-      ),
-    },
-  ];
-
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Space>
-          <h3 style={{ margin: 0 }}>账号列表</h3>
-          <Select
-            value={activeRole}
-            onChange={setActiveRole}
-            options={roleFilterOptions}
-            style={{ width: 160 }}
-          />
-        </Space>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => {
-            if (isSuperAdmin) {
-              setEditingAdmin(null);
-              setAdminFormVisible(true);
-            } else {
-              setEditingWorker(null);
-              setWorkerFormVisible(true);
-            }
-          }}
-        >
-          {isSuperAdmin ? '新增账号' : '新增送水员'}
-        </Button>
-      </div>
+      <AccountToolbar
+        activeRole={activeRole}
+        roleFilterOptions={roleFilterOptions}
+        isSuperAdmin={isSuperAdmin}
+        onRoleChange={setActiveRole}
+        onAdd={() => {
+          if (isSuperAdmin) {
+            setEditingAdmin(null);
+            setAdminFormVisible(true);
+          } else {
+            setEditingWorker(null);
+            setWorkerFormVisible(true);
+          }
+        }}
+      />
 
-      <Table
-        columns={columns}
-        dataSource={filtered}
+      <AccountTable
+        accounts={filtered}
         loading={loadingAccounts}
-        rowKey="id"
-        scroll={{ x: 1200 }}
-        pagination={{ pageSize: 20, showSizeChanger: true }}
+        canDeleteOrReset={canDeleteOrReset}
+        onView={handleView}
+        onEdit={handleEdit}
+        onDelete={handleDelete}
+        onReset={setResetTarget}
       />
 
       {/* 重置密码弹窗(新密码留空=默认 123456,G11 落地) */}

@@ -1,77 +1,22 @@
 import React, { useState } from 'react';
-import { Card, Row, Col, Spin, Select, Space, DatePicker, Table, Tag, Button } from 'antd';
+import { Row } from 'antd';
 import { useNavigate } from 'react-router-dom';
-import {
-  LineChart,
-  Line,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  Legend,
-} from 'recharts';
 import { useQuery } from '@apollo/client';
 import { centsToYuan } from '@aquarush/common';
-import StatisticsCard from '@/components/StatisticsCard';
 import RefreshControls from '@/components/RefreshControls';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
-import { PRODUCT_STATISTICS_PAGE_DATA_QUERY } from '../../../graphql/queries/statistics.graphql';
-import { BRAND_PRIMARY } from '../../../config/theme';
 import dayjs, { Dayjs } from 'dayjs';
-
-const { RangePicker } = DatePicker;
-
-interface ProductSalesStat {
-  productId: number;
-  productName: string;
-  salesVolume: number;
-  revenueCents: number;
-}
-
-interface ProductFavoriteStat {
-  productId: number;
-  productName: string;
-  favoriteCount: number;
-}
-
-interface ProductDailySalesData {
-  date: string;
-  productId: number;
-  productName: string;
-  salesVolume: number;
-  revenueCents: number;
-}
-
-// 库存预警明细项(F-STA-006,G39)
-interface StockWarningItem {
-  productId: number;
-  productName: string;
-  specification: string;
-  currentStock: number;
-  threshold: number;
-  status: 'OUT_OF_STOCK' | 'WARNING';
-}
-
-interface ProductStatisticsPageData {
-  productStatistics: {
-    totalProducts: number;
-    onlineProducts: number;
-    offlineProducts: number;
-    lowStockProducts: number;
-    totalSales: number;
-    totalFavorites: number;
-    productRanking: ProductSalesStat[];
-    favoriteStatistics: ProductFavoriteStat[];
-    stockWarningItems: StockWarningItem[];
-  };
-  productDailySales: ProductDailySalesData[];
-  productsPaginated: {
-    list: { id: number; name: string }[];
-  };
-}
+import {
+  PRODUCT_STATISTICS_PAGE_DATA_QUERY,
+  type ProductStatisticsPageData,
+} from './data';
+import {
+  ProductSummaryCards,
+  SalesTrendChart,
+  SalesRankingChart,
+  FavoriteRankingChart,
+  StockWarningTable,
+} from './components';
 
 const ProductStatisticsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -101,17 +46,11 @@ const ProductStatisticsPage: React.FC = () => {
     onRefresh: () => refetch(),
   });
 
-  const statsData = data
-  const dailySalesData = data
-  const productsData = data
-  const statsLoading = loading
-  const dailySalesLoading = loading
-
   if (error) {
     return <div>加载失败: {error.message}</div>;
   }
 
-  const stats = statsData?.productStatistics;
+  const stats = data?.productStatistics;
 
   // Prepare chart data for sales ranking
   const salesChartData = stats?.productRanking.map((item) => ({
@@ -127,7 +66,7 @@ const ProductStatisticsPage: React.FC = () => {
   })) || [];
 
   // Prepare daily sales trend chart data
-  const dailySales = dailySalesData?.productDailySales || [];
+  const dailySales = data?.productDailySales || [];
 
   // Aggregate daily sales by date (for all products combined trend)
   const dailyTrendMap = new Map<string, { date: string; sales: number; revenue: number }>();
@@ -168,7 +107,7 @@ const ProductStatisticsPage: React.FC = () => {
         }))
     : [];
 
-  const productList = productsData?.productsPaginated?.list || [];
+  const productList = data?.productsPaginated?.list || [];
 
   return (
     <div style={{ padding: 24 }}>
@@ -183,212 +122,39 @@ const ProductStatisticsPage: React.FC = () => {
         />
       </div>
 
-      <Row gutter={[16, 16]}>
-        <Col xs={24} sm={12} lg={6}>
-          <StatisticsCard
-            title="商品总数"
-            value={stats?.totalProducts ?? 0}
-            loading={statsLoading}
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatisticsCard
-            title="在售商品"
-            value={stats?.onlineProducts ?? 0}
-            loading={statsLoading}
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatisticsCard
-            title="低库存预警"
-            value={stats?.lowStockProducts ?? 0}
-            loading={statsLoading}
-            trend={stats?.lowStockProducts && stats.lowStockProducts > 0 ? 'up' : 'neutral'}
-          />
-        </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <StatisticsCard
-            title="总销量"
-            value={stats?.totalSales ?? 0}
-            suffix="桶"
-            loading={statsLoading}
-          />
-        </Col>
-      </Row>
+      <ProductSummaryCards
+        loading={loading}
+        totalProducts={stats?.totalProducts ?? 0}
+        onlineProducts={stats?.onlineProducts ?? 0}
+        lowStockProducts={stats?.lowStockProducts ?? 0}
+        totalSales={stats?.totalSales ?? 0}
+        totalFavorites={stats?.totalFavorites ?? 0}
+      />
 
-      <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <StatisticsCard
-            title="总收藏数"
-            value={stats?.totalFavorites ?? 0}
-            loading={statsLoading}
-          />
-        </Col>
-      </Row>
-
-      {/* Daily Sales Trend Chart */}
-      <Card
-        title="日销量趋势"
-        style={{ marginTop: 24 }}
-        extra={
-          <Space>
-            <Select
-              placeholder="选择商品（可选）"
-              allowClear
-              style={{ width: 200 }}
-              value={selectedProductId}
-              onChange={setSelectedProductId}
-              options={productList.map((p: { id: number; name: string }) => ({
-                value: p.id,
-                label: p.name,
-              }))}
-            />
-            <RangePicker
-              value={dateRange}
-              onChange={(dates) => {
-                if (dates && dates[0] && dates[1]) {
-                  setDateRange([dates[0], dates[1]]);
-                }
-              }}
-            />
-          </Space>
-        }
-      >
-        <Spin spinning={dailySalesLoading}>
-          <ResponsiveContainer width="100%" height={350}>
-            <LineChart data={selectedProductId ? selectedProductTrendData : dailyTrendChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-              <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
-              <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} tickFormatter={(v) => `¥${v}`} />
-              <Tooltip
-                labelFormatter={(label) => `日期: ${label}`}
-                formatter={(value, name) => {
-                  const numValue = typeof value === 'number' ? value : 0;
-                  const strName = typeof name === 'string' ? name : 'unknown';
-                  if (strName === 'sales') return [`${numValue} 桶`, '销量'];
-                  return [`¥${numValue.toFixed(2)}`, '营收'];
-                }}
-              />
-              <Legend />
-              <Line yAxisId="left" type="monotone" dataKey="sales" name="销量" stroke={BRAND_PRIMARY} strokeWidth={2} dot={{ fill: BRAND_PRIMARY, r: 3 }} />
-              <Line yAxisId="right" type="monotone" dataKey="revenue" name="营收" stroke="#52c41a" strokeWidth={2} dot={{ fill: '#52c41a', r: 3 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        </Spin>
-      </Card>
+      <SalesTrendChart
+        data={selectedProductId ? selectedProductTrendData : dailyTrendChartData}
+        loading={loading}
+        productList={productList}
+        selectedProductId={selectedProductId}
+        dateRange={dateRange}
+        onProductChange={setSelectedProductId}
+        onDateRangeChange={setDateRange}
+      />
 
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
-        <Col xs={24} lg={12}>
-          <Card title="商品销量排行 TOP10">
-            <Spin spinning={statsLoading}>
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={salesChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
-                  <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
-                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} tickFormatter={(v) => `¥${v}`} />
-                  <Tooltip
-                    labelFormatter={(label) => `商品: ${label}`}
-                    formatter={(value, name) => {
-                      if (name === 'sales') return [`${Number(value)} 桶`, '销量'];
-                      return [`¥${Number(value).toFixed(2)}`, '营收'];
-                    }}
-                  />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="sales" name="销量" fill={BRAND_PRIMARY} radius={[4, 4, 0, 0]} />
-                  <Bar yAxisId="right" dataKey="revenue" name="营收" fill="#52c41a" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Spin>
-          </Card>
-        </Col>
-        <Col xs={24} lg={12}>
-          <Card title="商品收藏排行 TOP10">
-            <Spin spinning={statsLoading}>
-              <ResponsiveContainer width="100%" height={350}>
-                <BarChart data={favoriteChartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 10 }} angle={-45} textAnchor="end" height={80} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    labelFormatter={(label) => `商品: ${label}`}
-                    formatter={(value) => [`${Number(value)} 人`, '收藏数']}
-                  />
-                  <Legend />
-                  <Bar dataKey="favorites" name="收藏数" fill="#fa8c16" radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Spin>
-          </Card>
-        </Col>
+        <SalesRankingChart data={salesChartData} loading={loading} />
+        <FavoriteRankingChart data={favoriteChartData} loading={loading} />
       </Row>
 
-      {/* 库存预警明细(F-STA-006,G39):库存≤阈值(同 R-PRO-02 低库存计数口径),缺货(库存=0)置顶、按库存升序;
-          阈值配置入口跳转系统设置-库存预警阈值(F-SYS-003) */}
-      <Card
-        title="库存预警明细"
-        style={{ marginTop: 24 }}
-        extra={
-          <Button type="link" onClick={() => navigate('/system-config/stock')}>
-            阈值配置 ›
-          </Button>
-        }
-      >
-        <Table
-          rowKey="productId"
-          dataSource={stats?.stockWarningItems || []}
-          columns={stockWarningColumns}
-          pagination={false}
-          size="small"
-          loading={statsLoading}
-          locale={{ emptyText: '暂无库存预警商品' }}
-        />
-        <div style={{ marginTop: 8, color: '#999', fontSize: 13 }}>
-          口径:库存 ≤ 阈值({stats?.stockWarningItems?.[0]?.threshold ?? 10} 件)进入预警,库存 = 0 标记「缺货」并置顶;与「低库存预警」计数卡同源。
-        </div>
-      </Card>
+      {/* 库存预警明细(F-STA-006,G39) */}
+      <StockWarningTable
+        items={stats?.stockWarningItems || []}
+        loading={loading}
+        threshold={stats?.stockWarningItems?.[0]?.threshold ?? 10}
+        onConfigThreshold={() => navigate('/system-config/stock')}
+      />
     </div>
   );
 };
-
-// 库存预警明细列(F-STA-006,G39)
-const stockWarningColumns = [
-  {
-    title: '商品名',
-    dataIndex: 'productName',
-    key: 'productName',
-  },
-  {
-    title: '规格',
-    dataIndex: 'specification',
-    key: 'specification',
-    render: (spec: string) => (spec || '—'),
-  },
-  {
-    title: '当前库存',
-    dataIndex: 'currentStock',
-    key: 'currentStock',
-    width: 100,
-  },
-  {
-    title: '阈值',
-    dataIndex: 'threshold',
-    key: 'threshold',
-    width: 80,
-  },
-  {
-    title: '状态',
-    dataIndex: 'status',
-    key: 'status',
-    width: 100,
-    render: (status: StockWarningItem['status']) =>
-      status === 'OUT_OF_STOCK' ? (
-        <Tag color="red">缺货</Tag>
-      ) : (
-        <Tag color="orange">预警</Tag>
-      ),
-  },
-];
 
 export default ProductStatisticsPage;

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Button, Input, Modal, Select, Space, message } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Modal, message } from 'antd';
 
 // Import components
 import UserTable from '../components/UserTable';
 import UserForm from '../components/UserForm';
+import { CustomerToolbar, SetCustomerGroupModal } from './components';
 
 // Import GraphQL hooks and types
 import { useQuery } from '@apollo/client';
@@ -25,17 +25,7 @@ import { UserStatus } from '@aquarush/common';
 
 // Import types for forms
 import type { User as CustomerUser, UserFormData } from '../components/types';
-import { STATUS_MAPPINGS } from '../components/types';
-
-// 未分组选项占位值(提交时转换为 null)
-const NO_GROUP_VALUE = '__NONE__';
-
-/** 客户分组选项最小形状(marketing-graphql 返回类型为 any,这里显式标注) */
-interface CustomerGroupOption {
-  id: string | number;
-  name: string;
-  memberCount?: number;
-}
+import type { CustomerGroupOption } from './components';
 
 /** 客户列表页单页查询(CustomerUsersPageData)返回结构 */
 interface CustomerUsersPageData {
@@ -99,7 +89,7 @@ const CustomerUsers: React.FC = () => {
   const groups = (data?.customerGroups?.content ?? []) as CustomerGroupOption[];
 
   const handleGroupFilterChange = (value: string | undefined) => {
-    setGroupFilter(value === NO_GROUP_VALUE ? undefined : value);
+    setGroupFilter(value === '__NONE__' ? undefined : value);
   };
 
   const handleSearch = (value: string) => {
@@ -117,7 +107,7 @@ const CustomerUsers: React.FC = () => {
       await setUserGroup({
         variables: {
           userId: groupTarget.id,
-          customerGroupId: !selectedGroup || selectedGroup === NO_GROUP_VALUE ? null : selectedGroup,
+          customerGroupId: !selectedGroup || selectedGroup === '__NONE__' ? null : selectedGroup,
         },
       });
       setGroupTarget(null);
@@ -197,53 +187,18 @@ const CustomerUsers: React.FC = () => {
 
   return (
     <div>
-      <div style={{ marginBottom: 16, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Space>
-          <h3 style={{ margin: 0 }}>用户列表</h3>
-          <Input.Search
-            placeholder="搜索昵称/手机号"
-            allowClear
-            style={{ width: 220 }}
-            onSearch={handleSearch}
-          />
-          <Select
-            allowClear
-            placeholder="筛选客户分组"
-            style={{ width: 200 }}
-            value={groupFilter}
-            onChange={handleGroupFilterChange}
-            showSearch
-            optionFilterProp="label"
-            options={[
-              { value: NO_GROUP_VALUE, label: '未分组' },
-              ...groups.map((g) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` })),
-            ]}
-          />
-          <Select
-            allowClear
-            placeholder="筛选账户状态"
-            style={{ width: 160 }}
-            value={statusFilter}
-            onChange={(value: UserStatus | undefined) => setStatusFilter(value)}
-            options={(
-              ['ACTIVE', 'INACTIVE', 'SUSPENDED', 'DELETED'] as const
-            ).map((status) => ({
-              value: status,
-              label: STATUS_MAPPINGS[status].text,
-            }))}
-          />
-        </Space>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={() => {
-            setEditingUser(null);
-            setUserFormVisible(true);
-          }}
-        >
-          新增用户
-        </Button>
-      </div>
+      <CustomerToolbar
+        groupFilter={groupFilter}
+        statusFilter={statusFilter}
+        groups={groups}
+        onGroupFilterChange={handleGroupFilterChange}
+        onStatusFilterChange={setStatusFilter}
+        onSearch={handleSearch}
+        onAdd={() => {
+          setEditingUser(null);
+          setUserFormVisible(true);
+        }}
+      />
 
       <UserTable
         data={users}
@@ -254,31 +209,15 @@ const CustomerUsers: React.FC = () => {
       />
 
       {/* 设置分组 Modal */}
-      <Modal
-        title={`设置分组 - ${groupTarget?.nickname || groupTarget?.wechatOpenId || ''}`}
-        open={groupTarget !== null}
+      <SetCustomerGroupModal
+        target={groupTarget}
+        groups={groups}
+        selectedGroup={selectedGroup}
+        confirmLoading={settingGroup}
+        onSelectedGroupChange={setSelectedGroup}
         onOk={handleConfirmSetGroup}
         onCancel={() => setGroupTarget(null)}
-        confirmLoading={settingGroup}
-        destroyOnClose
-        okText="确定"
-      >
-        <div style={{ marginBottom: 8, color: '#888' }}>
-          设置用户所属客户分组,选择「未分组」将用户移出当前分组(即时生效)。
-        </div>
-        <Select
-          style={{ width: '100%' }}
-          value={selectedGroup}
-          onChange={setSelectedGroup}
-          showSearch
-          optionFilterProp="label"
-          options={[
-            { value: NO_GROUP_VALUE, label: '未分组' },
-            ...groups.map((g) => ({ value: String(g.id), label: g.name })),
-          ]}
-          placeholder="选择客户分组"
-        />
-      </Modal>
+      />
 
       {/* Form Modal */}
       <UserForm

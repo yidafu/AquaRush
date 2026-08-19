@@ -1,42 +1,23 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Button, Card, Col, DatePicker, Descriptions, Empty, Row, Select, Slider, Space, Spin, Statistic, message, Tag, Typography } from 'antd';
-import {
-  AimOutlined,
-  EnvironmentOutlined,
-  PauseCircleOutlined,
-  PlayCircleOutlined,
-  ReloadOutlined,
-  SyncOutlined,
-} from '@ant-design/icons';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { Row, Empty, Card, message } from 'antd';
 import { useQuery } from '@apollo/client';
 import type { DeliveryTrajectory, DeliveryWorker } from '@aquarush/common';
 import { BRAND_PRIMARY, COLOR_SUCCESS, COLOR_ERROR } from '../../config/theme';
-import MapLibreMap from '../../components/MapLibreMap';
-import type { MapLine, MapMarker } from '../../components/MapLibreMap';
 import { DEFAULT_MAP_CENTER } from '../../lib/map/tianditu';
 import { GET_DELIVERY_WORKERS_QUERY } from '../../graphql/queries/user.graphql';
 import {
   GET_DELIVERY_TRAJECTORIES_QUERY,
   GET_DELIVERY_WORKER_LATEST_LOCATION_QUERY,
 } from '../../graphql/queries/trajectory.graphql';
-
-const { RangePicker } = DatePicker;
-
-interface TrajectoryPoint {
-  lat: number;
-  lng: number;
-  time: string;
-  orderId: string;
-}
-
-/** 将后端轨迹点转换为地图坐标序列 */
-const toPoints = (list: readonly DeliveryTrajectory[]): TrajectoryPoint[] =>
-  list.map((t) => ({
-    lat: t.latitude,
-    lng: t.longitude,
-    time: t.reportedAt,
-    orderId: t.orderId,
-  }));
+import {
+  TrajectoryFilters,
+  LiveLocationCard,
+  TrajectoryStatsCard,
+  ReplayControlsCard,
+  TrajectoryMap,
+} from './components';
+import { useTrajectoryReplay } from './hooks/useTrajectoryReplay';
+import { toPoints } from './utils';
 
 /**
  * 配送轨迹管理(F-ADR-012,后台轨迹查看):
@@ -47,10 +28,6 @@ const toPoints = (list: readonly DeliveryTrajectory[]): TrajectoryPoint[] =>
 const DeliveryTrajectoriesPage: React.FC = () => {
   const [selectedWorkerId, setSelectedWorkerId] = useState<string | undefined>();
   const [range, setRange] = useState<[string | null, string | null]>([null, null]);
-  const [playIndex, setPlayIndex] = useState(-1);
-  const [playing, setPlaying] = useState(false);
-  const [replaySpeed, setReplaySpeed] = useState(2);
-  const playTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // 送水员列表(在线优先排序)
   const { data: workersData, loading: workersLoading } = useQuery<{ deliveryWorkers: readonly DeliveryWorker[] }>(
@@ -91,6 +68,13 @@ const DeliveryTrajectoriesPage: React.FC = () => {
   const points = useMemo(() => toPoints(trajData?.deliveryTrajectories ?? []), [trajData]);
   const latest = latestData?.deliveryWorkerLatestLocation;
 
+  // 回放控制(播放进度/状态/速度,定时器在组件内管理)
+  const { playIndex, playing, replaySpeed, setPlayIndex, setPlaying, setReplaySpeed, stopPlayback, handlePlay } =
+    useTrajectoryReplay(points);
+
+  // 切换送水工时停止回放
+  useEffect(() => stopPlayback, [stopPlayback, selectedWorkerId]);
+
   // 地图中心:优先最新位置,其次轨迹首点,兜底默认(轨迹坐标为 WGS-84,天地图直接展示)
   const mapCenter = useMemo(() => {
     if (latest) return { lng: latest.longitude, lat: latest.latitude };
@@ -108,8 +92,8 @@ const DeliveryTrajectoriesPage: React.FC = () => {
   }, [points, playIndex, fullPath]);
 
   // 地图折线图层:完整轨迹(品牌蓝)+ 回放进度(红,后添加置于上层)
-  const mapLines = useMemo<MapLine[]>(() => {
-    const lines: MapLine[] = [];
+  const mapLines = useMemo(() => {
+    const lines = [];
     if (points.length > 1) {
       lines.push({ id: 'full', points: fullPath, color: BRAND_PRIMARY, width: 6 });
     }
@@ -120,8 +104,8 @@ const DeliveryTrajectoriesPage: React.FC = () => {
   }, [points, playIndex, replayPath, fullPath]);
 
   // 地图标记:当前位置 + 轨迹起点
-  const mapMarkers = useMemo<MapMarker[]>(() => {
-    const markers: MapMarker[] = [];
+  const mapMarkers = useMemo(() => {
+    const markers = [];
     if (latest) {
       markers.push({ id: 'worker', lng: latest.longitude, lat: latest.latitude, label: '当前位置', color: COLOR_ERROR });
     } else if (points.length > 0) {
@@ -134,40 +118,6 @@ const DeliveryTrajectoriesPage: React.FC = () => {
     }
     return markers;
   }, [latest, points]);
-
-  const stopPlayback = useCallback(() => {
-    setPlaying(false);
-    if (playTimerRef.current) {
-      clearInterval(playTimerRef.current);
-      playTimerRef.current = null;
-    }
-  }, []);
-
-  const handlePlay = useCallback(() => {
-    if (points.length === 0) return;
-    if (playing) {
-      stopPlayback();
-      return;
-    }
-    setPlayIndex(0);
-    setPlaying(true);
-    playTimerRef.current = setInterval(() => {
-      setPlayIndex((prev) => {
-        if (prev >= points.length - 1) {
-          setPlaying(false);
-          if (playTimerRef.current) {
-            clearInterval(playTimerRef.current);
-            playTimerRef.current = null;
-          }
-          return prev;
-        }
-        return prev + 1;
-      });
-    }, 1000 / replaySpeed);
-  }, [points, playing, replaySpeed, stopPlayback]);
-
-  // 组件卸载/切换送水工时停止回放
-  useEffect(() => stopPlayback, [stopPlayback, selectedWorkerId]);
 
   const handleRefresh = useCallback(async () => {
     if (!selectedWorkerId) return;
@@ -182,53 +132,23 @@ const DeliveryTrajectoriesPage: React.FC = () => {
   const selectedWorker = workers.find((w) => String(w.id) === String(selectedWorkerId));
   const isDelivering = points.some((p) => p.orderId);
 
+  const timeText = (index: number) => points[index]?.time.replace('T', ' ');
+
   return (
     <div>
-      <Card style={{ marginBottom: 16 }}>
-        <Row gutter={16} align="middle">
-          <Col>
-            <Space>
-              <Typography.Text strong>送水工:</Typography.Text>
-              <Select
-                placeholder="选择送水工查看轨迹"
-                style={{ width: 240 }}
-                loading={workersLoading}
-                value={selectedWorkerId}
-                onChange={(v) => {
-                  stopPlayback();
-                  setPlayIndex(-1);
-                  setSelectedWorkerId(v);
-                }}
-                options={workers.map((w) => ({
-                  value: String(w.id),
-                  label: `${w.name}（${w.phone ?? ''}）${w.onlineStatus === 'ONLINE' ? ' · 在线' : ''}`,
-                }))}
-              />
-            </Space>
-          </Col>
-          <Col>
-            <Space>
-              <Typography.Text strong>时间范围:</Typography.Text>
-              <RangePicker
-                showTime
-                allowClear
-                placeholder={['开始时间', '结束时间']}
-                onChange={(dates) => {
-                  setRange([
-                    dates?.[0] ? dates[0].format('YYYY-MM-DDTHH:mm:ss') : null,
-                    dates?.[1] ? dates[1].format('YYYY-MM-DDTHH:mm:ss') : null,
-                  ]);
-                }}
-              />
-            </Space>
-          </Col>
-          <Col>
-            <Button icon={<ReloadOutlined />} onClick={handleRefresh} disabled={!selectedWorkerId}>
-              刷新
-            </Button>
-          </Col>
-        </Row>
-      </Card>
+      <TrajectoryFilters
+        workers={workers}
+        workersLoading={workersLoading}
+        selectedWorkerId={selectedWorkerId}
+        onWorkerChange={(v) => {
+          stopPlayback();
+          setPlayIndex(-1);
+          setSelectedWorkerId(v);
+        }}
+        onRangeChange={setRange}
+        onRefresh={handleRefresh}
+        refreshDisabled={!selectedWorkerId}
+      />
 
       {!selectedWorkerId ? (
         <Card>
@@ -237,130 +157,35 @@ const DeliveryTrajectoriesPage: React.FC = () => {
       ) : (
         <>
           <Row gutter={16}>
-            <Col span={8}>
-              <Card size="small" title="实时位置">
-                <Spin spinning={latestLoading}>
-                  {latest ? (
-                    <Descriptions column={1} size="small">
-                      <Descriptions.Item label="当前坐标">
-                        <AimOutlined /> {latest.longitude.toFixed(6)}, {latest.latitude.toFixed(6)}
-                      </Descriptions.Item>
-                      <Descriptions.Item label="最近上报">{latest.reportedAt.replace('T', ' ')}</Descriptions.Item>
-                      <Descriptions.Item label="关联订单">#{latest.orderId}</Descriptions.Item>
-                      <Descriptions.Item label="定位精度">
-                        {latest.accuracy != null ? `${latest.accuracy.toFixed(1)} 米` : '未知'}
-                      </Descriptions.Item>
-                    </Descriptions>
-                  ) : (
-                    <Typography.Text type="secondary">暂无实时位置(非配送中)</Typography.Text>
-                  )}
-                </Spin>
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card size="small" title="轨迹统计">
-                <Row gutter={16}>
-                  <Col span={12}>
-                    <Statistic title="轨迹点数" value={points.length} suffix="个" />
-                  </Col>
-                  <Col span={12}>
-                    <Statistic title="送水工状态" valueRender={() => (
-                      <Tag color={selectedWorker?.onlineStatus === 'ONLINE' ? 'success' : 'default'}>
-                        {selectedWorker?.onlineStatus === 'ONLINE' ? '在线' : '离线'}
-                      </Tag>
-                    )} />
-                  </Col>
-                </Row>
-                {isDelivering ? (
-                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                    <SyncOutlined spin /> 存在配送中订单,位置持续更新
-                  </Typography.Text>
-                ) : null}
-              </Card>
-            </Col>
-            <Col span={8}>
-              <Card size="small" title="轨迹回放">
-                <Spin spinning={trajLoading}>
-                  {points.length > 0 ? (
-                    <Space direction="vertical" style={{ width: '100%' }}>
-                      <Space>
-                        <Button
-                          size="small"
-                          icon={playing ? <PauseCircleOutlined /> : <PlayCircleOutlined />}
-                          onClick={handlePlay}
-                          disabled={points.length < 2}
-                        >
-                          {playing ? '暂停' : '播放'}
-                        </Button>
-                        <Select
-                          size="small"
-                          style={{ width: 100 }}
-                          value={replaySpeed}
-                          onChange={(v) => {
-                            setReplaySpeed(v);
-                            if (playing) {
-                              stopPlayback();
-                              setPlaying(true);
-                              setPlayIndex((prev) => prev);
-                            }
-                          }}
-                          options={[
-                            { value: 1, label: '1x 慢速' },
-                            { value: 2, label: '2x 标准' },
-                            { value: 5, label: '5x 快速' },
-                            { value: 10, label: '10x 极速' },
-                          ]}
-                        />
-                      </Space>
-                      <Slider
-                        min={0}
-                        max={Math.max(points.length - 1, 0)}
-                        value={playIndex >= 0 ? playIndex : 0}
-                        onChange={(v) => {
-                          stopPlayback();
-                          setPlayIndex(v);
-                        }}
-                        tooltip={{ formatter: (v) => points[v ?? 0]?.time.replace('T', ' ') }}
-                      />
-                      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-                        {playIndex >= 0 ? `播放至 ${points[playIndex].time.replace('T', ' ')}` : '点击「播放」按时间顺序回放轨迹'}
-                      </Typography.Text>
-                    </Space>
-                  ) : (
-                    <Typography.Text type="secondary">暂无轨迹数据</Typography.Text>
-                  )}
-                </Spin>
-              </Card>
-            </Col>
+            <LiveLocationCard latest={latest} loading={latestLoading} />
+            <TrajectoryStatsCard
+              pointsCount={points.length}
+              workerOnline={selectedWorker?.onlineStatus === 'ONLINE'}
+              isDelivering={isDelivering}
+            />
+            <ReplayControlsCard
+              pointsCount={points.length}
+              playIndex={playIndex}
+              playing={playing}
+              replaySpeed={replaySpeed}
+              loading={trajLoading}
+              onPlay={handlePlay}
+              onSpeedChange={(v) => {
+                setReplaySpeed(v);
+                if (playing) {
+                  stopPlayback();
+                  setPlaying(true);
+                }
+              }}
+              onSeek={(v) => {
+                stopPlayback();
+                setPlayIndex(v);
+              }}
+              timeText={timeText}
+            />
           </Row>
 
-          <Card size="small" style={{ marginTop: 16, overflow: 'hidden' }}>
-            <div style={{ position: 'relative', height: 480 }}>
-              <MapLibreMap
-                center={mapCenter}
-                zoom={14}
-                height={480}
-                markers={mapMarkers}
-                lines={mapLines}
-              />
-              <div
-                style={{
-                  position: 'absolute',
-                  bottom: 8,
-                  left: 8,
-                  background: 'rgba(0,0,0,0.6)',
-                  color: '#fff',
-                  padding: '4px 8px',
-                  borderRadius: 4,
-                  fontSize: 12,
-                  zIndex: 1000,
-                  pointerEvents: 'none',
-                }}
-              >
-                <EnvironmentOutlined /> {mapCenter.lat.toFixed(4)}, {mapCenter.lng.toFixed(4)} · 共 {points.length} 个轨迹点
-              </div>
-            </div>
-          </Card>
+          <TrajectoryMap center={mapCenter} markers={mapMarkers} lines={mapLines} pointsCount={points.length} />
         </>
       )}
     </div>

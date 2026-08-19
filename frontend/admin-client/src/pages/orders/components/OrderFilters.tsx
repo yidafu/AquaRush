@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Card, Row, Col, Input, Select, Button, Space, DatePicker } from 'antd';
+import { Card, Row, Col, Input, Select, Button, DatePicker } from 'antd';
 import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
 
 const { RangePicker } = DatePicker;
@@ -51,7 +51,7 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
     onFiltersChange?.(newFilters);
   };
 
-  const handleDateRangeChange = (dates: any, dateStrings: [string, string]) => {
+  const handleDateRangeChange = (_dates: any, dateStrings: [string, string]) => {
     const newFilters = {
       ...localFilters,
       dateFrom: dateStrings[0] || undefined,
@@ -69,18 +69,6 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
       minAmount: newAmountRange[0],
       maxAmount: newAmountRange[1],
     };
-    setLocalFilters(newFilters);
-    onFiltersChange?.(newFilters);
-  };
-
-  const handleSortByChange = (value: string) => {
-    const newFilters = { ...localFilters, sortBy: value };
-    setLocalFilters(newFilters);
-    onFiltersChange?.(newFilters);
-  };
-
-  const handleSortOrderChange = (value: 'asc' | 'desc') => {
-    const newFilters = { ...localFilters, sortOrder: value };
     setLocalFilters(newFilters);
     onFiltersChange?.(newFilters);
   };

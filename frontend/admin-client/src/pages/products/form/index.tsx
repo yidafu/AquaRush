@@ -8,8 +8,6 @@ import {
   Alert,
   Card,
   Typography,
-  Tag,
-  Empty,
   Row,
   Col,
 } from 'antd';
@@ -20,7 +18,6 @@ import {
   CloseOutlined,
   EyeOutlined,
 } from '@ant-design/icons';
-import { yuanToCents } from '@aquarush/common';
 import {
   useCreateProduct,
   useUpdateProduct,
@@ -31,124 +28,11 @@ import { productToFormData } from '../components/hooks/useProductData';
 import type { ProductFormData } from '../components/hooks/useProductData';
 import { EnhancedWeChatPreview } from '../components/EnhancedWeChatPreview';
 import { FloatingBubblingWall } from '../components/FloatingBubblingWall';
+import LiveProductPreview from './components/LiveProductPreview';
+import { uniq, toProductInput } from './form-utils';
 import { debounce } from '../../../utils/debounce';
 
 const { Title, Text } = Typography;
-
-/** 去重并保持先后顺序(配置项在前,当前值兜底补入) */
-function uniq(values: string[]): string[] {
-  return [...new Set(values.filter(Boolean))];
-}
-
-/**
- * 将表单值转换为 Create/UpdateProductInput 所需结构:
- * 价格由元转分;图片数组序列化为 JSON 字符串(与后端 JsonArray 标量兼容)。
- */
-function toProductInput(values: ProductFormData): Record<string, unknown> {
-  const input: Record<string, unknown> = {
-    ...values,
-    priceCents: yuanToCents(values.price),
-    originalPriceCents: values.originalPrice ? yuanToCents(values.originalPrice) : null,
-    salesVolume: values.salesVolume || 0,
-    sortOrder: values.sortOrder || 0,
-  };
-
-  if (values.imageGallery) {
-    const gallery = values.imageGallery as string[] | string;
-    if (Array.isArray(gallery)) {
-      input.imageGallery = JSON.stringify(gallery);
-    } else if (typeof gallery === 'string') {
-      input.imageGallery = gallery.startsWith('[')
-        ? gallery
-        : JSON.stringify([gallery]);
-    }
-  }
-
-  if (values.certificateImages) {
-    const certificates = values.certificateImages as string[] | string;
-    if (Array.isArray(certificates)) {
-      input.certificateImages = JSON.stringify(certificates);
-    } else if (typeof certificates === 'string') {
-      input.certificateImages = certificates.startsWith('[')
-        ? certificates
-        : JSON.stringify([certificates]);
-    }
-  }
-
-  return input;
-}
-
-const statusConfig: Record<string, { text: string; color: string }> = {
-  ONLINE: { text: '在售', color: 'green' },
-  OFFLINE: { text: '下架', color: 'red' },
-  OUT_OF_STOCK: { text: '缺货', color: 'orange' },
-};
-
-/**
- * 新增模式下的实时预览卡:展示左侧表单当前填写的商品信息(防抖更新)。
- */
-const LiveProductPreview: React.FC<{ data: ProductFormData | null }> = ({ data }) => {
-  if (!data || !data.name) {
-    return (
-      <div style={{ height: 640, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Empty description="填写左侧表单后，此处实时预览商品信息" />
-      </div>
-    );
-  }
-
-  const status = data.status ? statusConfig[data.status] : undefined;
-
-  return (
-    <div
-      style={{
-        width: 320,
-        margin: '0 auto',
-        background: '#fff',
-        borderRadius: 16,
-        border: '1px solid #e8e8e8',
-        overflow: 'hidden',
-        boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
-      }}
-    >
-      <div
-        style={{
-          height: 260,
-          background: '#f0f2f5',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          overflow: 'hidden',
-        }}
-      >
-        {data.coverImageUrl ? (
-          <img
-            src={data.coverImageUrl}
-            alt="封面"
-            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-          />
-        ) : (
-          <Text type="secondary">暂无封面图</Text>
-        )}
-      </div>
-      <div style={{ padding: 16 }}>
-        <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>{data.name}</div>
-        {data.subtitle && (
-          <Text type="secondary" style={{ fontSize: 13 }}>{data.subtitle}</Text>
-        )}
-        <div style={{ marginTop: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <span style={{ fontSize: 20, fontWeight: 700, color: '#ff4d4f' }}>
-            {data.price ? `¥${Number(data.price).toFixed(2)}` : '—'}
-          </span>
-          {data.specification && <Tag>{data.specification}</Tag>}
-          {status && <Tag color={status.color}>{status.text}</Tag>}
-        </div>
-        <div style={{ marginTop: 8, fontSize: 13, color: '#999' }}>
-          库存 {data.stock ?? 0} 件
-        </div>
-      </div>
-    </div>
-  );
-};
 
 /**
  * 商品统一页面(新增/编辑/详情,不弹框):

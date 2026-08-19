@@ -1,51 +1,15 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import {
-  Table,
-  Card,
-  Select,
-  Input,
-  DatePicker,
-  Space,
-  Tag,
-  Button,
-  Modal,
-  Descriptions,
-  message,
-} from 'antd';
-import dayjs, { Dayjs } from 'dayjs';
-import type { ColumnsType } from 'antd/es/table';
+import { Card, Space, message } from 'antd';
 import {
   useNotificationsQuery,
   useNotificationDetail,
 } from '../../../services/notification-graphql';
-
-const { RangePicker } = DatePicker;
-const { Option } = Select;
-
-interface NotificationRecord {
-  id: string;
-  receiverType: 'USER' | 'WORKER';
-  type: 'ORDER' | 'SYSTEM' | 'ANNOUNCEMENT' | 'FEEDBACK';
-  scene: string;
-  title: string;
-  summary?: string | null;
-  relatedNo?: string | null;
-  read: boolean;
-  readAt?: string | null;
-  createdAt: string;
-}
-
-const TYPE_LABELS: Record<string, { label: string; color: string }> = {
-  ORDER: { label: '订单', color: 'blue' },
-  SYSTEM: { label: '系统', color: 'default' },
-  ANNOUNCEMENT: { label: '公告', color: 'green' },
-  FEEDBACK: { label: '反馈', color: 'orange' },
-};
-
-const RECEIVER_LABELS: Record<string, string> = {
-  USER: '用户',
-  WORKER: '送水工',
-};
+import {
+  NotificationFilters,
+  NotificationTable,
+  NotificationDetailModal,
+} from './components';
+import type { NotificationRecord, NotificationFiltersState } from './components';
 
 /**
  * 后台消息列表页(F-NTF-006,PRD 13-notification.md)
@@ -53,13 +17,7 @@ const RECEIVER_LABELS: Record<string, string> = {
  * 权限:PERMISSION_NOTIFICATION_READ(管理员/超管,后端强制)。
  */
 const NotificationMessages: React.FC = () => {
-  const [filters, setFilters] = useState<{
-    messageType?: string;
-    receiverType?: string;
-    keyword?: string;
-    read?: string; // 'READ' | 'UNREAD'
-    range?: [Dayjs | null, Dayjs | null] | null;
-  }>({});
+  const [filters, setFilters] = useState<NotificationFiltersState>({});
   const [pageNum, setPageNum] = useState(0);
   const [pageSize, setPageSize] = useState(10);
   const [detail, setDetail] = useState<NotificationRecord | null>(null);
@@ -106,171 +64,36 @@ const NotificationMessages: React.FC = () => {
 
   const detailRecord: NotificationRecord | null = detailData?.notification ?? detail;
 
-  const columns: ColumnsType<NotificationRecord> = [
-    {
-      title: '时间',
-      dataIndex: 'createdAt',
-      width: 170,
-      render: (v: string) => dayjs(v).format('YYYY-MM-DD HH:mm'),
-    },
-    {
-      title: '类型',
-      dataIndex: 'type',
-      width: 90,
-      render: (v: string) => {
-        const info = TYPE_LABELS[v] ?? { label: v, color: 'default' };
-        return <Tag color={info.color}>{info.label}</Tag>;
-      },
-    },
-    {
-      title: '标题',
-      dataIndex: 'title',
-      ellipsis: true,
-    },
-    {
-      title: '摘要',
-      dataIndex: 'summary',
-      ellipsis: true,
-      render: (v?: string | null) => v || '-',
-    },
-    {
-      title: '接收人',
-      dataIndex: 'receiverType',
-      width: 90,
-      render: (v: string) => RECEIVER_LABELS[v] ?? v ?? '—',
-    },
-    {
-      title: '关联单号',
-      dataIndex: 'relatedNo',
-      width: 130,
-      render: (v?: string | null) => v || '-',
-    },
-    {
-      title: '状态',
-      dataIndex: 'read',
-      width: 90,
-      render: (v: boolean) => (v ? <Tag color='default'>已读</Tag> : <Tag color='red'>未读</Tag>),
-    },
-    {
-      title: '操作',
-      width: 80,
-      render: (_, record) => <Button type='link' size='small' onClick={() => openDetail(record)}>详情</Button>,
-    },
-  ];
-
   return (
     <Card title='消息列表' extra={<Space>共 {total} 条</Space>}>
       {/* 筛选区 */}
-      <Space wrap style={{ marginBottom: 16 }}>
-        <Select
-          placeholder='消息类型'
-          allowClear
-          style={{ width: 130 }}
-          value={filters.messageType}
-          onChange={(v) => setFilters((f) => ({ ...f, messageType: v }))}
-        >
-          {Object.entries(TYPE_LABELS).map(([value, info]) => (
-            <Option key={value} value={value}>{info.label}</Option>
-          ))}
-        </Select>
-        <Select
-          placeholder='接收人'
-          allowClear
-          style={{ width: 120 }}
-          value={filters.receiverType}
-          onChange={(v) => setFilters((f) => ({ ...f, receiverType: v }))}
-        >
-          {Object.entries(RECEIVER_LABELS).map(([value, label]) => (
-            <Option key={value} value={value}>{label}</Option>
-          ))}
-        </Select>
-        <Input.Search
-          placeholder='关键字(关联单号/标题/摘要)'
-          allowClear
-          style={{ width: 240 }}
-          value={filters.keyword}
-          onChange={(e) => setFilters((f) => ({ ...f, keyword: e.target.value }))}
-          onSearch={handleSearch}
-          enterButton
-        />
-        <Select
-          placeholder='已读状态'
-          allowClear
-          style={{ width: 110 }}
-          value={filters.read}
-          onChange={(v: unknown) => setFilters((f) => ({ ...f, read: v === 'READ' || v === 'UNREAD' ? v : undefined }))}
-        >
-          <Option value='READ'>已读</Option>
-          <Option value='UNREAD'>未读</Option>
-        </Select>
-        <RangePicker
-          allowClear
-          value={filters.range}
-          onChange={(range) => setFilters((f) => ({ ...f, range }))}
-        />
+      <NotificationFilters
+        filters={filters}
+        onChange={(partial) => setFilters((f) => ({ ...f, ...partial }))}
+        onSearch={handleSearch}
+        onReset={handleReset}
+      />
 
-        <Button type='primary' onClick={handleSearch}>查询</Button>
-        <Button onClick={handleReset}>重置</Button>
-      </Space>
-
-      <Table<NotificationRecord>
-        rowKey='id'
-        columns={columns}
-        dataSource={list}
+      <NotificationTable
+        list={list}
         loading={loading}
-        pagination={{
-          current: pageNum + 1,
-          pageSize,
-          total,
-          showSizeChanger: true,
-          pageSizeOptions: [10, 20, 50],
-          onChange: (page, size) => {
-            setPageNum(page - 1);
-            setPageSize(size);
-          },
-          onShowSizeChange: (_current, size) => {
-            setPageNum(0);
-            setPageSize(size);
-          },
+        total={total}
+        pageNum={pageNum}
+        pageSize={pageSize}
+        onPageChange={(nextPage, nextSize) => {
+          setPageNum(nextPage);
+          setPageSize(nextSize);
         }}
+        onViewDetail={openDetail}
       />
 
       {/* 详情弹窗 */}
-      <Modal
-        title='消息详情'
+      <NotificationDetailModal
+        record={detailRecord}
+        loading={detailLoading}
         open={detailVisible}
-        onCancel={() => setDetailVisible(false)}
-        footer={null}
-        width={560}
-      >
-        {detailLoading && !detailRecord ? (
-          <div style={{ textAlign: 'center', padding: 24 }}>加载中...</div>
-        ) : detailRecord ? (
-          <Descriptions column={1} size='middle'>
-            <Descriptions.Item label='标题'>{detailRecord.title}</Descriptions.Item>
-            <Descriptions.Item label='摘要'>{detailRecord.summary || '-'}</Descriptions.Item>
-            <Descriptions.Item label='类型'>
-              <Tag color={TYPE_LABELS[detailRecord.type]?.color}>{TYPE_LABELS[detailRecord.type]?.label ?? detailRecord.type}</Tag>
-            </Descriptions.Item>
-            <Descriptions.Item label='场景'>{detailRecord.scene}</Descriptions.Item>
-            <Descriptions.Item label='关联单号'>{detailRecord.relatedNo || '-'}</Descriptions.Item>
-            <Descriptions.Item label='接收人'>
-              {RECEIVER_LABELS[detailRecord.receiverType] ?? detailRecord.receiverType}
-            </Descriptions.Item>
-            <Descriptions.Item label='状态'>
-              {detailRecord.read ? <Tag color='default'>已读</Tag> : <Tag color='red'>未读</Tag>}
-            </Descriptions.Item>
-            <Descriptions.Item label='发送时间'>
-              {dayjs(detailRecord.createdAt).format('YYYY-MM-DD HH:mm:ss')}
-            </Descriptions.Item>
-            <Descriptions.Item label='已读时间'>
-              {detailRecord.readAt ? dayjs(detailRecord.readAt).format('YYYY-MM-DD HH:mm:ss') : '-'}
-            </Descriptions.Item>
-          </Descriptions>
-        ) : (
-          <div style={{ textAlign: 'center', padding: 24 }}>未找到该消息</div>
-        )}
-      </Modal>
+        onClose={() => setDetailVisible(false)}
+      />
     </Card>
   );
 };
