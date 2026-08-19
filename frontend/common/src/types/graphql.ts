@@ -835,6 +835,13 @@ export enum DeliveryPhotoReviewStatus {
   REJECTED = 'REJECTED'
 }
 
+export type DeliverySlotVo = {
+  readonly enabled: Scalars['Boolean']['output'];
+  readonly hint: Scalars['String']['output'];
+  readonly id: DeliveryTimeSlot;
+  readonly name: Scalars['String']['output'];
+};
+
 export enum DeliveryTimeSlot {
   AFTERNOON = 'AFTERNOON',
   EVENING = 'EVENING',
@@ -2711,6 +2718,7 @@ export type Query = {
   readonly dataMaintenanceOverview: DataMaintenanceOverviewVo;
   readonly deliveringOrders: ReadonlyArray<Order>;
   readonly deliveryFeeRule: DeliveryFeeRule;
+  readonly deliverySlots: ReadonlyArray<DeliverySlotVo>;
   readonly deliveryTrajectories: ReadonlyArray<DeliveryTrajectory>;
   readonly deliveryWorker?: Maybe<DeliveryWorker>;
   readonly deliveryWorkerHistoryOrders: OrderVoPage;

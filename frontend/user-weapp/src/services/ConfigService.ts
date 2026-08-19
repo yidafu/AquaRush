@@ -1,5 +1,5 @@
 import { networkManager } from '../utils/networkManager'
-import { Banner, DeliveryFeeRule } from '@aquarush/common'
+import { Banner, DeliveryFeeRule, DeliverySlotVo } from '@aquarush/common'
 
 export interface ConfigServiceResult<T> {
   success: true
@@ -103,6 +103,41 @@ class ConfigService {
         success: false,
         error: {
           message: error?.message || '获取配送费规则失败',
+          code: error?.code
+        }
+      }
+    }
+  }
+
+  /**
+   * 获取配送时段配置(F-SYS-002,AC-SYS-002-01/03):后台「订单与履约参数」配置,
+   * 立即配送时限/上午/下午/晚上时间窗与启停,保存即热生效;
+   * 未配置/失败时服务端返回种子默认,前端另有 DEFAULT_DELIVERY_SLOTS 兜底。
+   */
+  public async getDeliverySlots(): Promise<ConfigServiceResponse<DeliverySlotVo[]>> {
+    const query = `
+      query DeliverySlots {
+        deliverySlots {
+          id
+          name
+          hint
+          enabled
+        }
+      }
+    `
+
+    try {
+      const response = await networkManager.query<{ deliverySlots: DeliverySlotVo[] }>(query)
+      return {
+        success: true,
+        data: response.data?.deliverySlots ?? []
+      }
+    } catch (error: any) {
+      console.error('Get delivery slots failed:', error)
+      return {
+        success: false,
+        error: {
+          message: error?.message || '获取配送时段失败',
           code: error?.code
         }
       }

@@ -23,10 +23,12 @@ import dev.yidafu.aqua.api.service.ops.BannerQueryApiService
 import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleQueryApiService
 import dev.yidafu.aqua.api.service.ops.NoticeQueryApiService
 import dev.yidafu.aqua.api.service.ops.StoreProfileQueryApiService
+import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.common.domain.model.BannerModel
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.common.domain.model.NoticeModel
 import dev.yidafu.aqua.common.domain.model.StoreProfileModel
+import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
 import dev.yidafu.aqua.common.domain.model.enums.BannerLinkType
 import dev.yidafu.aqua.common.domain.model.enums.NoticeStatus
 import dev.yidafu.aqua.common.domain.model.enums.NoticeType
@@ -38,8 +40,8 @@ import io.mockk.mockk
 import io.mockk.verify
 
 /**
- * 用户端运营配置查询 Resolver 测试(F-OPS-001/002/004/005 用户端消费:
- * activeBanners / activeNotices / storeProfile / deliveryFeeRule)
+ * 用户端运营配置查询 Resolver 测试(F-OPS-001/002/004/005 + F-SYS-002 用户端消费:
+ * activeBanners / activeNotices / storeProfile / deliveryFeeRule / deliverySlots)
  */
 class ClientOpsQueryResolverTest :
   FunSpec({
@@ -47,6 +49,7 @@ class ClientOpsQueryResolverTest :
     var noticeQueryApiService: NoticeQueryApiService = mockk()
     var storeProfileQueryApiService: StoreProfileQueryApiService = mockk()
     var deliveryFeeRuleQueryApiService: DeliveryFeeRuleQueryApiService = mockk()
+    var systemConfigQueryApiService: SystemConfigQueryApiService = mockk()
     var resolver: ClientOpsQueryResolver = mockk()
 
     beforeTest {
@@ -54,12 +57,14 @@ class ClientOpsQueryResolverTest :
       noticeQueryApiService = mockk(relaxed = true)
       storeProfileQueryApiService = mockk(relaxed = true)
       deliveryFeeRuleQueryApiService = mockk(relaxed = true)
+      systemConfigQueryApiService = mockk(relaxed = true)
       resolver =
         ClientOpsQueryResolver(
           bannerQueryApiService,
           noticeQueryApiService,
           storeProfileQueryApiService,
           deliveryFeeRuleQueryApiService,
+          systemConfigQueryApiService,
         )
     }
     test("activeBanners returns mapped banners") {
@@ -149,5 +154,52 @@ class ClientOpsQueryResolverTest :
       result.freeFloorLimit shouldBe 4
       result.surchargeCents shouldBe 200L
       verify { deliveryFeeRuleQueryApiService.getEffectiveDeliveryFeeRule() }
+    }
+    test("deliverySlots returns default slots when unconfigured") {
+      // 未配置:数值/布尔按 fallback,时间窗按各自默认值(与 Liquibase 种子一致)
+      every { systemConfigQueryApiService.getLongValue(any(), any()) } returns 30L
+      every { systemConfigQueryApiService.getBooleanValue(any(), any()) } returns true
+      every { systemConfigQueryApiService.getStringValue(any(), any()) } answers { secondArg() }
+
+      val result = resolver.deliverySlots()
+
+      result.size shouldBe 4
+      result.map { it.id.name } shouldBe listOf("IMMEDIATE", "MORNING", "AFTERNOON", "EVENING")
+      result.map { it.name } shouldBe listOf("立即配送", "上午配送", "下午配送", "晚上配送")
+      result[0].hint shouldBe "30分钟内"
+      result[1].hint shouldBe "9:00-12:00"
+      result[2].hint shouldBe "14:00-18:00"
+      result[3].hint shouldBe "18:00-21:00"
+      result.all { it.enabled } shouldBe true
+    }
+    test("deliverySlots marks disabled window slot") {
+      every { systemConfigQueryApiService.getLongValue(any(), any()) } returns 30L
+      // 仅上午停用(布尔参数按 key 判定,避免多桩匹配歧义)
+      every { systemConfigQueryApiService.getBooleanValue(any(), any()) } answers {
+        firstArg<String>() != SystemSettingKeys.DELIVERY_SLOT_MORNING_ENABLED
+      }
+      every { systemConfigQueryApiService.getStringValue(any(), any()) } answers { secondArg() }
+
+      val result = resolver.deliverySlots()
+
+      // 全量返回 4 时段(含已停用,订单详情映射用),停用时段 enabled=false(前端过滤不渲染)
+      result.size shouldBe 4
+      result.map { it.id.name } shouldBe listOf("IMMEDIATE", "MORNING", "AFTERNOON", "EVENING")
+      result.first { it.id.name == "MORNING" }.enabled shouldBe false
+      result.first { it.id.name == "AFTERNOON" }.enabled shouldBe true
+      result.first { it.id.name == "EVENING" }.enabled shouldBe true
+    }
+    test("deliverySlots reflects custom config") {
+      every { systemConfigQueryApiService.getLongValue(any(), any()) } returns 45L
+      every { systemConfigQueryApiService.getBooleanValue(any(), any()) } returns true
+      every { systemConfigQueryApiService.getStringValue(any(), any()) } answers { secondArg() }
+      every { systemConfigQueryApiService.getStringValue(SystemSettingKeys.DELIVERY_SLOT_AFTERNOON_START, "14:00") } returns "15:30"
+      every { systemConfigQueryApiService.getStringValue(SystemSettingKeys.DELIVERY_SLOT_AFTERNOON_END, "18:00") } returns "17:30"
+
+      val result = resolver.deliverySlots()
+
+      result[0].hint shouldBe "45分钟内"
+      result[2].hint shouldBe "15:30-17:30"
+      result[2].enabled shouldBe true
     }
   })

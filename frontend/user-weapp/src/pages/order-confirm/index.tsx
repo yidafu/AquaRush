@@ -7,11 +7,17 @@ import Taro, {
 import AddressService from '../../services/AddressService'
 import OrderService, { CreateOrderRequest, OrderItemInput } from '../../services/OrderService'
 import NotificationService from '../../services/NotificationService'
+import ConfigService from '../../services/ConfigService'
 import { Address } from '../../types/address'
-import { normalizeCents, OrderPreviewVo } from '@aquarush/common'
+import { DeliverySlotVo, DeliveryTimeSlot, normalizeCents, OrderPreviewVo } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { removeSelectedCartItems, syncCartTabBadge } from '../../utils/cart'
 import { maxTicketRedeem } from '../../utils/orderCost'
+import {
+  DEFAULT_DELIVERY_SLOTS,
+  enabledDeliverySlots,
+  resolveSelectedSlot
+} from '../../utils/deliverySlots'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/checkbox.scss"
@@ -59,7 +65,10 @@ const OrderConfirm: React.FC = () => {
   const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null)
   const [ticketRedeemCount, setTicketRedeemCount] = useState<number>(0)
   const [paymentMethod, setPaymentMethod] = useState<string>('wechat')
-  const [deliveryTime, setDeliveryTime] = useState<string>('immediate')
+  // 配送时段(F-SYS-002):默认立即配送;选项由后台「订单与履约参数」配置驱动(请求失败/离线回退兜底)
+  const [deliveryTime, setDeliveryTime] = useState<string>(DeliveryTimeSlot.IMMEDIATE)
+  // 全量配送时段配置(含已停用;渲染时仅取 enabled 项,订单详情需全量映射)
+  const [deliverySlots, setDeliverySlots] = useState<DeliverySlotVo[]>(DEFAULT_DELIVERY_SLOTS)
   const [remark, setRemark] = useState<string>('')
   const [submitting, setSubmitting] = useState<boolean>(false)
   // 服务条款勾选:AtCheckbox 的 selectedList 为已选 value 数组(string[]),
@@ -142,11 +151,30 @@ const OrderConfirm: React.FC = () => {
     }
   }, [addressService, selectedAddress])
 
+  // 加载配送时段配置(F-SYS-002):后台「订单与履约参数」配置,热生效;
+  // 与地址加载并行发出(非串行,单次轻量查询);失败/离线时保持兜底默认,不阻塞下单流程
+  const loadDeliverySlots = useCallback(async (): Promise<void> => {
+    try {
+      const result = await ConfigService.getInstance().getDeliverySlots()
+      if (result.success && result.data && result.data.length > 0) {
+        setDeliverySlots(result.data)
+      }
+    } catch (error) {
+      console.error('获取配送时段配置失败:', error)
+    }
+  }, [])
+
   // Load initial data
   useReady(() => {
     loadOrderData()
     loadAddresses()
+    loadDeliverySlots()
   })
+
+  // 配送时段配置生效后校准选中态:后台停用当前时段时回退第一个启用时段(AC-SYS-002-03)
+  useEffect(() => {
+    setDeliveryTime(current => resolveSelectedSlot(deliverySlots, current))
+  }, [deliverySlots])
 
   // Refresh addresses when page is shown(用户从地址列表选择后返回)
   useDidShow(() => {
@@ -308,7 +336,7 @@ const OrderConfirm: React.FC = () => {
         addressId: selectedAddress.id,
         // 幂等键(R-ORD-06):同会话重复提交返回同一订单
         clientRequestId: clientRequestIdRef.current,
-        // 配送时段(AC-ORD-001-05):与 DeliveryTimeSelector id 一一对应,大写枚举随单落库
+        // 配送时段(AC-ORD-001-05):id 与后端 DeliveryTimeSlot 枚举对应,大写随单快照落库
         deliveryTime: deliveryTime.toUpperCase() as CreateOrderRequest['deliveryTime'],
         // 0 = 用户选择不用券/无券可选;否则回传选中的券 ID
         preferredCouponId: selectedCouponId ?? 0,
@@ -438,8 +466,9 @@ const OrderConfirm: React.FC = () => {
         }))}
       />
 
-      {/* 配送时间 */}
+      {/* 配送时间(选项由后台 F-SYS-002 配置驱动,仅渲染启用时段) */}
       <DeliveryTimeSelector
+        slots={enabledDeliverySlots(deliverySlots)}
         selectedTime={deliveryTime}
         onTimeChange={handleDeliveryTimeChange}
       />

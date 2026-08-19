@@ -2,10 +2,12 @@ import { Component } from 'react'
 import { View, Text, Image } from '@tarojs/components'
 import { AtCard, AtIcon, AtButton, AtToast, AtTag, AtTimeline, AtProgress } from 'taro-ui'
 import Taro from '@tarojs/taro'
-import { Money, OrderReviewCheckResponse, normalizeCents } from '@aquarush/common'
+import { DeliverySlotVo, Money, OrderReviewCheckResponse, normalizeCents } from '@aquarush/common'
 import OrderService from '../../services/OrderService'
+import ConfigService from '../../services/ConfigService'
 import { userActionTracker } from '../../utils/tracking'
 import { buildOrderDetailCostRows } from '../../utils/orderCost'
+import { DEFAULT_DELIVERY_SLOTS, deliverySlotLabel } from '../../utils/deliverySlots'
 
 import "taro-ui/dist/style/components/card.scss"
 import "taro-ui/dist/style/components/icon.scss"
@@ -108,6 +110,8 @@ interface OrderDetailState {
   refreshing: boolean
   // 评价信息(F-ORD-007):已完成订单的评价入口/已评内容
   reviewInfo: ReviewCheckState | null
+  // 配送时段配置(F-SYS-002:全量含已停用,历史订单时段文案按配置渲染,兜底见 DELIVERY_TIME_SLOT_MAP)
+  deliverySlots: DeliverySlotVo[]
 }
 
 const STATUS_MAP = {
@@ -123,7 +127,8 @@ const PAYMENT_METHOD_MAP = {
   balance: '余额支付'
 }
 
-// 配送时段文案(AC-ORD-001-05,与 DeliveryTimeSelector/后端 DeliveryTimeSlot 枚举对应)
+// 配送时段文案兜底(AC-ORD-001-05,与 DeliveryTimeSelector/后端 DeliveryTimeSlot 枚举对应;
+// 在线时优先按后台 F-SYS-002 配置渲染,仅配置获取失败/离线时使用本兜底)
 const DELIVERY_TIME_SLOT_MAP: Record<string, string> = {
   IMMEDIATE: '立即配送（30分钟内）',
   MORNING: '上午配送（9:00-12:00）',
@@ -143,7 +148,8 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       toastText: '',
       toastType: 'success',
       refreshing: false,
-      reviewInfo: null
+      reviewInfo: null,
+      deliverySlots: DEFAULT_DELIVERY_SLOTS
     }
   }
 
@@ -151,6 +157,9 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     // 获取页面参数
     const instance = Taro.getCurrentInstance()
     const { orderId } = instance.router?.params || {}
+
+    // 并行加载配送时段配置(F-SYS-002,单次轻量查询,失败兜底默认,不阻塞详情加载)
+    this.loadDeliverySlots()
 
     if (orderId) {
       this.orderId = orderId
@@ -189,6 +198,17 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
 
   hideToast = () => {
     this.setState({ showToast: false })
+  }
+
+  loadDeliverySlots = async () => {
+    try {
+      const result = await ConfigService.getInstance().getDeliverySlots()
+      if (result.success && result.data && result.data.length > 0) {
+        this.setState({ deliverySlots: result.data })
+      }
+    } catch (error) {
+      console.error('获取配送时段配置失败:', error)
+    }
   }
 
   loadOrderDetail = async () => {
@@ -834,7 +854,11 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
           {order.deliveryTimeSlot && (
             <View className='info-item'>
               <Text className='info-label'>配送时段</Text>
-              <Text className='info-value'>{DELIVERY_TIME_SLOT_MAP[order.deliveryTimeSlot] || order.deliveryTimeSlot}</Text>
+              <Text className='info-value'>
+                {deliverySlotLabel(this.state.deliverySlots, order.deliveryTimeSlot) ||
+                  DELIVERY_TIME_SLOT_MAP[order.deliveryTimeSlot] ||
+                  order.deliveryTimeSlot}
+              </Text>
             </View>
           )}
           {order.paymentTime && (

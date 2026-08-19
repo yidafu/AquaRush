@@ -1445,6 +1445,13 @@ enum class DeliveryPhotoReviewStatus(val label: String) {
   }
 }
 
+data class DeliverySlotVo(
+    val enabled: kotlin.Boolean,
+    val hint: kotlin.String,
+    val id: DeliveryTimeSlot,
+    val name: kotlin.String
+)
+
 enum class DeliveryTimeSlot(val label: String) {
       AFTERNOON("AFTERNOON"),
       EVENING("EVENING"),
@@ -4752,6 +4759,7 @@ data class Query(
     val dataMaintenanceOverview: DataMaintenanceOverviewVo,
     val deliveringOrders: kotlin.collections.List<Order>,
     val deliveryFeeRule: DeliveryFeeRule,
+    val deliverySlots: kotlin.collections.List<DeliverySlotVo>,
     val deliveryTrajectories: kotlin.collections.List<DeliveryTrajectory>,
     val deliveryWorker: DeliveryWorker?,
     val deliveryWorkerHistoryOrders: OrderVoPage,

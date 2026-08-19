@@ -51,6 +51,9 @@ type Query {
   storeProfile: StoreProfile
   # 配送费规则(未配置返回默认规则 免费4楼/加价2元)
   deliveryFeeRule: DeliveryFeeRule!
+  # 配送时段配置(F-SYS-002,AC-SYS-002-01/03):后台「订单与履约参数」配置,保存即热生效。
+  # 确认订单页只展示 enabled=true 的时段;订单详情按 id 映射全量时段(含已停用,历史快照展示用)。
+  deliverySlots: [DeliverySlotVO!]!
   # 我的-反馈记录(F-USR-005 处理结果回传):仅本人反馈,按提交时间倒序分页
   myFeedbacks(page: Int = 0, size: Int = 10): FeedbackRecordVOPage!
 
@@ -435,4 +438,19 @@ input PurchaseBarrelItemInput {
   quantity: Int!
     @min(value: 1, message: "购桶数量不能小于1")
     @max(value: 99, message: "购桶数量不能大于99")
+}
+
+# ============ 配送时段配置(F-SYS-002,订单与履约参数) ============
+# 后台「订单与履约参数」页(system-config/order)配置立即配送时限/上午/下午/晚上时间窗与启停,
+# 用户端确认订单页(F-ORD-001)按 enabled=true 渲染配送时间选项(AC-SYS-002-01/03),
+# 订单详情按 id 映射全量时段文案(含已停用,供历史订单快照展示);未配置时按种子默认兜底。
+type DeliverySlotVO {
+  # 时段枚举(与 orders.delivery_time_slot 落库值一一对应,提交时随单快照)
+  id: DeliveryTimeSlot!
+  # 时段名称(立即配送/上午配送/下午配送/晚上配送,后端统一提供,前端不写死)
+  name: String!
+  # 时段说明(立即配送=「N分钟内」;其他=「HH:mm-HH:mm」时间窗)
+  hint: String!
+  # 是否启用(后台启停;立即配送恒启用)
+  enabled: Boolean!
 }
