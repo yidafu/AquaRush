@@ -215,7 +215,8 @@ class DeliveryTaskMutationServiceImplTest :
     }
     // ==================== updateOrderAddress(F-ORD-024) ====================
     test("update order address applies non-null fields only") {
-      val order = order(OrderModelStatus.DELIVERING).also { it.addressId = 1L }
+      val order =
+        OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.DELIVERING, addressId = 1L)
       val address = AddressModel(id = 1L, userId = 100L, receiverName = "旧收货人", phone = "13800138000",
         province = "广东省", city = "深圳市", district = "南山区", detailAddress = "旧详细地址1号")
       every { orderQueryService.getOrderById(1L) } returns order

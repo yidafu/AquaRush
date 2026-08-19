@@ -783,7 +783,7 @@ input UpdateOrderAddressInput {
     @size(min: 2, max: 20, message: "收货人姓名长度应在2-20个字符之间")
   phone: String
     @notBlank(message: "收货人手机号不能为空")
-    @pattern(regexp: "^1[3-9]\\d{9}$", message: "手机号格式不正确")
+    @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
   detailAddress: String
     @notBlank(message: "详细地址不能为空")
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")

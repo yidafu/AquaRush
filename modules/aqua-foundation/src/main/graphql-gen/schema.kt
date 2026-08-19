@@ -5750,7 +5750,7 @@ data class UpdateOrderAddressInput(
     @field:Max(value = 180, message = "经度不能大于180")
     val longitude: kotlin.Float? = null,
     @field:NotBlank(message = "收货人手机号不能为空")
-    @field:Pattern(regexp = "^1[3-9]\d{9}$", message = "手机号格式不正确")
+    @field:Pattern(regexp = "^1[3-9]\\d{9}$", message = "手机号格式不正确")
     val phone: kotlin.String? = null,
     @field:NotBlank(message = "收货人姓名不能为空")
     @field:Size(min = 2, max = 20, message = "收货人姓名长度应在2-20个字符之间")

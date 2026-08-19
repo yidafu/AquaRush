@@ -414,23 +414,21 @@ class DeliveryTaskMutationServiceImpl(
     request.latitude?.let { address.latitude = it }
     addressService.save(address)
 
-    // 订单操作留痕:配送地址修正(F-ORD-024)
+    // 订单操作留痕:配送地址修正(F-ORD-024),extraData 仅记录本次实际更新的字段
+    val updatedFields = mutableMapOf<String, Any>()
+    request.receiverName?.let { updatedFields["receiverName"] = it }
+    request.phone?.let { updatedFields["phone"] = it }
+    request.detailAddress?.let { updatedFields["detailAddress"] = it }
+    request.floor?.let { updatedFields["floor"] = it }
+    request.longitude?.let { updatedFields["longitude"] = it }
+    request.latitude?.let { updatedFields["latitude"] = it }
     orderOperationService.recordOperation(
       orderId = order.id!!,
       operationType = OrderOperationType.ADDRESS_UPDATED,
       operatorType = OperatorType.DELIVERY_WORKER,
       operatorId = operatorId,
       description = "配送员修正收货地址信息(收货人/电话/详细地址/楼层/定位)",
-      extraData = jsonHelper.createObjectNode(
-        mapOf(
-          "receiverName" to request.receiverName,
-          "phone" to request.phone,
-          "detailAddress" to request.detailAddress,
-          "floor" to request.floor,
-          "longitude" to request.longitude,
-          "latitude" to request.latitude,
-        ),
-      ).toString(),
+      extraData = jsonHelper.createObjectNode(updatedFields).toString(),
     )
 
     logger.info("Worker $operatorId updated address $order.addressId for order $orderId")

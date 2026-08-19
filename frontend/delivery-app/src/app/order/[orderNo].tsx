@@ -19,6 +19,7 @@ import { Card } from '@/components/card';
 import { AddressCard } from '@/components/order-detail/address-card';
 import { CostSummaryCard } from '@/components/order-detail/cost-summary-card';
 import { DeliveryInfoCard } from '@/components/order-detail/delivery-info-card';
+import { OrderAddressEditSheet } from '@/components/order-detail/order-address-edit-sheet';
 import { OperationsCard } from '@/components/order-detail/operations-card';
 import { OrderInfoCard } from '@/components/order-detail/order-info-card';
 import { ProductCard } from '@/components/order-detail/product-card';
@@ -41,10 +42,11 @@ import {
   getOrderDetail,
   getOrderOperations,
   startDelivery,
+  updateOrderAddress,
 } from '@/services/delivery';
 import { buildOrderDeepLink, shareOrderToWechat } from '@/services/wechat-share';
 import { DeliveryWorkerStatus } from '@aquarush/common';
-import type { DeliveryWorker, Order } from '@aquarush/common';
+import type { DeliveryWorker, Order, UpdateOrderAddressInput } from '@aquarush/common';
 
 const PAYMENT_TYPES = [
   { value: 'WATER_TICKET', label: '水票收款' },
@@ -66,6 +68,10 @@ export default function OrderDetailScreen() {
 
   const [deliveryPhotos, setDeliveryPhotos] = useState<string[]>([]);
   const [deliveryRemark, setDeliveryRemark] = useState('');
+
+  // 订单页地址信息修正(F-ORD-024)
+  const [editAddressVisible, setEditAddressVisible] = useState(false);
+  const [savingAddress, setSavingAddress] = useState(false);
 
   // 管理员派单
   const [assignSheetVisible, setAssignSheetVisible] = useState(false);
@@ -272,6 +278,24 @@ export default function OrderDetailScreen() {
     [order, assignIsSelfCollect, loadOrderDetail],
   );
 
+  const handleSaveAddress = useCallback(
+    async (input: UpdateOrderAddressInput) => {
+      if (!order) return;
+      setSavingAddress(true);
+      try {
+        await updateOrderAddress(order.id, input);
+        setEditAddressVisible(false);
+        Alert.alert('修改成功', '收货地址信息已更新');
+        loadOrderDetail();
+      } catch (e: any) {
+        Alert.alert(e?.message || '修改地址信息失败');
+      } finally {
+        setSavingAddress(false);
+      }
+    },
+    [order, loadOrderDetail],
+  );
+
   if (loading) {
     return (
       <ThemedView type="pageBackground" style={styles.center}>
@@ -305,7 +329,10 @@ export default function OrderDetailScreen() {
           </Card>
         )}
 
-        <AddressCard address={order.address ?? undefined} />
+        <AddressCard
+          address={order.address ?? undefined}
+          onEdit={cancelledOrRefunded || isCompleted ? undefined : () => setEditAddressVisible(true)}
+        />
 
         {order.address?.longitude != null && order.address?.latitude != null ? (
           <DestinationMap
@@ -516,6 +543,14 @@ export default function OrderDetailScreen() {
           );
         })}
       </BottomSheet>
+
+      <OrderAddressEditSheet
+        visible={editAddressVisible}
+        address={order.address ?? null}
+        saving={savingAddress}
+        onClose={() => setEditAddressVisible(false)}
+        onSave={handleSaveAddress}
+      />
     </ThemedView>
   );
 }

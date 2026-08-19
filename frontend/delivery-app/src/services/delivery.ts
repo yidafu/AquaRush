@@ -7,6 +7,7 @@ import type {
   Address,
   Scalars,
   TodayStatistics,
+  UpdateOrderAddressInput,
   WeekStatistics,
 } from '@aquarush/common';
 
@@ -179,6 +180,10 @@ export const getOrderDetail = (orderNo: string) => {
           city
           district
           detailAddress
+          # 楼层/定位(WGS-84,订单页地址信息修正 F-ORD-024 编辑回显用)
+          floor
+          longitude
+          latitude
         }
         deliveryWorker {
           id
@@ -258,6 +263,34 @@ export const completeDelivery = (
     }
   `,
     { orderId, photos, paymentType, remark },
+  );
+};
+
+// 配送任务中修正订单收货地址(F-ORD-024):收货人/电话/详细地址/楼层/定位(WGS-84 经纬度)。
+// 仅传入字段生效(空值字段不覆盖原地址),终态订单(已完成/已取消/已退款)不可修改。
+export const updateOrderAddress = (
+  orderId: Scalars['PrimaryId']['input'],
+  input: UpdateOrderAddressInput,
+) => {
+  return networkManager.mutate<{ updateOrderAddress: Order }>(
+    `
+    mutation UpdateOrderAddress($orderId: PrimaryId!, $input: UpdateOrderAddressInput!) {
+      updateOrderAddress(orderId: $orderId, input: $input) {
+        id
+        status
+        address {
+          id
+          receiverName
+          phone
+          detailAddress
+          floor
+          longitude
+          latitude
+        }
+      }
+    }
+  `,
+    { orderId, input },
   );
 };
 
