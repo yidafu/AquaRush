@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
+import dev.yidafu.aqua.common.domain.model.DailyMarketingFactModel
+import dev.yidafu.aqua.common.domain.model.DailyMarketingUsageFactModel
 import dev.yidafu.aqua.common.domain.model.DailyOrderFactModel
 import dev.yidafu.aqua.common.domain.model.DailyProductFactModel
 import dev.yidafu.aqua.common.domain.model.DailyRefundFactModel
@@ -52,6 +54,33 @@ interface StatisticsSnapshotAggregationRepository {
    * 聚合单日退款事实:按 (status, refund_type) 分组,归属日为退款成功时间(processed_at)。
    */
   fun aggregateRefundFacts(date: LocalDate): List<DailyRefundFactModel>
+
+  /**
+   * 聚合单日营销事实(F-STA-007):营销订单数(任一快照优惠,按订单去重)+ 券/满减/首单立减让利 +
+   * 用券数 + 水票销售/核销 + 赠品件数。无数据的日期也返回全 0 行,保证事实表按日连续。
+   */
+  fun aggregateMarketingFacts(date: LocalDate): DailyMarketingFactModel
+
+  /**
+   * 聚合日期范围营销事实(按日分组,查询侧实时兜底段;空数据日补零)。
+   */
+  fun aggregateMarketingFactsRange(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<DailyMarketingFactModel>
+
+  /**
+   * 聚合单日营销使用事实(F-STA-007):按 (kind, ref_id) 分组,营销方式使用明细数据源。
+   */
+  fun aggregateMarketingUsageFacts(date: LocalDate): List<DailyMarketingUsageFactModel>
+
+  /**
+   * 聚合日期范围营销使用事实(按 日 × kind × ref_id 分组,查询侧实时兜底段)。
+   */
+  fun aggregateMarketingUsageFactsRange(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<DailyMarketingUsageFactModel>
 
   /**
    * 最早源数据日期(orders/users/user_action_logs/payment_refunds 四源最小创建/处理日期)。

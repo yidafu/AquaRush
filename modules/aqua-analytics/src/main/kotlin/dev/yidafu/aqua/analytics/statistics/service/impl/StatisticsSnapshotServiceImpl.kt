@@ -21,6 +21,8 @@ package dev.yidafu.aqua.analytics.statistics.service.impl
 
 import dev.yidafu.aqua.analytics.statistics.StatisticsTime
 import dev.yidafu.aqua.analytics.statistics.config.StatisticsSnapshotConfig
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyMarketingFactRepository
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyMarketingUsageFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyOrderFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyProductFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRefundFactRepository
@@ -45,6 +47,8 @@ class StatisticsSnapshotServiceImpl(
   private val productFactRepository: DailyProductFactRepository,
   private val userFactRepository: DailyUserFactRepository,
   private val refundFactRepository: DailyRefundFactRepository,
+  private val marketingFactRepository: DailyMarketingFactRepository,
+  private val marketingUsageFactRepository: DailyMarketingUsageFactRepository,
   private val aggregationRepository: StatisticsSnapshotAggregationRepository,
   transactionManager: PlatformTransactionManager,
   private val config: StatisticsSnapshotConfig,
@@ -111,7 +115,7 @@ class StatisticsSnapshotServiceImpl(
   }
 
   /**
-   * 重建单日快照:delete-then-insert 幂等;四个事实表同一事务,保证一致性。
+   * 重建单日快照:delete-then-insert 幂等;六张事实表同一事务,保证一致性。
    */
   private fun rebuildDate(date: LocalDate) {
     transactionTemplate.execute {
@@ -119,11 +123,15 @@ class StatisticsSnapshotServiceImpl(
       productFactRepository.deleteByStatDateIn(listOf(date))
       userFactRepository.deleteByStatDateIn(listOf(date))
       refundFactRepository.deleteByStatDateIn(listOf(date))
+      marketingFactRepository.deleteByStatDateIn(listOf(date))
+      marketingUsageFactRepository.deleteByStatDateIn(listOf(date))
 
       orderFactRepository.saveAll(aggregationRepository.aggregateOrderFacts(date))
       productFactRepository.saveAll(aggregationRepository.aggregateProductFacts(date))
       userFactRepository.saveAll(listOf(aggregationRepository.aggregateUserFact(date)))
       refundFactRepository.saveAll(aggregationRepository.aggregateRefundFacts(date))
+      marketingFactRepository.save(aggregationRepository.aggregateMarketingFacts(date))
+      marketingUsageFactRepository.saveAll(aggregationRepository.aggregateMarketingUsageFacts(date))
     }
   }
 

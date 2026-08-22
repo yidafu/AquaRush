@@ -15,6 +15,7 @@ import UserStatistics from './pages/statistics/users';
 import DeliveryWorkerStatistics from './pages/statistics/delivery-workers';
 import OrderStatistics from './pages/statistics/orders';
 import ProductStatistics from './pages/statistics/products';
+import MarketingStatistics from './pages/statistics/marketing';
 import UserDetailPage from './pages/users/detail/index';
 import AccountUsers from './pages/users/accounts';
 import AccountDetailPage from './pages/users/accounts/detail/index';
@@ -94,6 +95,7 @@ const App: React.FC = () => {
         <Route path="statistics/delivery-workers" element={page('送水员统计', <DeliveryWorkerStatistics />)} />
         <Route path="statistics/orders" element={page('订单统计', <OrderStatistics />)} />
         <Route path="statistics/products" element={page('商品统计', <ProductStatistics />)} />
+        <Route path="statistics/marketing" element={page('营销统计', <MarketingStatistics />)} />
         <Route path="addresses" element={page('地址管理', <AddressListPage />)} />
         <Route path="trajectories" element={page('配送轨迹', <DeliveryTrajectories />)} />
         <Route path="logs/api" element={page('API日志', <ApiLogs />)} />

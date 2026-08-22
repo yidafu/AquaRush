@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.marketing.usage.service.impl
 
+import dev.yidafu.aqua.api.dto.MarketingActivityName
+import dev.yidafu.aqua.api.dto.MarketingActivityNameRef
 import dev.yidafu.aqua.api.dto.MarketingUsageItemRow
 import dev.yidafu.aqua.api.dto.MarketingUsageKind
 import dev.yidafu.aqua.api.dto.MarketingUsageOrderCriteria
@@ -29,10 +31,13 @@ import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
+import dev.yidafu.aqua.marketing.coupon.domain.repository.CouponTemplateRepository
 import dev.yidafu.aqua.marketing.coupon.domain.repository.UserCouponRepository
 import dev.yidafu.aqua.marketing.firstorder.domain.repository.FirstOrderActivityRepository
 import dev.yidafu.aqua.marketing.flashsale.domain.repository.FlashSaleActivityRepository
 import dev.yidafu.aqua.marketing.gift.domain.repository.GiftActivityRepository
+import dev.yidafu.aqua.marketing.promotion.domain.repository.PromotionActivityRepository
+import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketTypeRepository
 import org.springframework.stereotype.Service
 
 /**
@@ -49,7 +54,41 @@ class MarketingUsageQueryServiceImpl(
   private val flashSaleActivityRepository: FlashSaleActivityRepository,
   private val giftActivityRepository: GiftActivityRepository,
   private val firstOrderActivityRepository: FirstOrderActivityRepository,
+  private val couponTemplateRepository: CouponTemplateRepository,
+  private val promotionActivityRepository: PromotionActivityRepository,
+  private val ticketTypeRepository: TicketTypeRepository,
 ) : MarketingUsageQueryService {
+  override fun resolveMarketingActivityNames(refs: List<MarketingActivityNameRef>): Map<MarketingActivityNameRef, MarketingActivityName> {
+    if (refs.isEmpty()) return emptyMap()
+    val byKind = refs.groupBy { it.kind }
+    val names = mutableMapOf<MarketingActivityNameRef, MarketingActivityName>()
+
+    byKind[KIND_COUPON_TEMPLATE]?.let { list ->
+      val idToName = couponTemplateRepository.findAllById(list.map { it.refId }).associate { it.id!! to it.name }
+      list.forEach { ref -> names[ref] = MarketingActivityName(idToName[ref.refId] ?: "") }
+    }
+    byKind[KIND_PROMOTION_ACTIVITY]?.let { list ->
+      val idToName = promotionActivityRepository.findAllById(list.map { it.refId }).associate { it.id!! to it.name }
+      list.forEach { ref -> names[ref] = MarketingActivityName(idToName[ref.refId] ?: "") }
+    }
+    byKind[KIND_FIRST_ORDER_ACTIVITY]?.let { list ->
+      val idToName = firstOrderActivityRepository.findAllById(list.map { it.refId }).associate { it.id!! to it.name }
+      list.forEach { ref -> names[ref] = MarketingActivityName(idToName[ref.refId] ?: "") }
+    }
+    byKind[KIND_GIFT_ACTIVITY]?.let { list ->
+      val byId = giftActivityRepository.findAllById(list.map { it.refId }).associateBy { it.id!! }
+      list.forEach { ref ->
+        val activity = byId[ref.refId]
+        names[ref] = MarketingActivityName(activity?.name ?: "", activity?.giftProductId)
+      }
+    }
+    byKind[KIND_TICKET_TYPE]?.let { list ->
+      val idToName = ticketTypeRepository.findAllById(list.map { it.refId }).associate { it.id!! to it.name }
+      list.forEach { ref -> names[ref] = MarketingActivityName(idToName[ref.refId] ?: "") }
+    }
+    return names
+  }
+
   override fun couponTemplateUsage(
     templateId: Long,
     page: Int,
@@ -196,5 +235,14 @@ class MarketingUsageQueryServiceImpl(
       val catalogPrice = catalogById[row.productId] ?: 0L
       (row.quantitySum * (catalogPrice - unitPrice)).coerceAtLeast(0L)
     }
+  }
+
+  companion object {
+    // 营销统计明细类型(MarketingBreakdownKind 的 name,以字符串承载跨模块解耦)
+    private const val KIND_COUPON_TEMPLATE = "COUPON_TEMPLATE"
+    private const val KIND_PROMOTION_ACTIVITY = "PROMOTION_ACTIVITY"
+    private const val KIND_FIRST_ORDER_ACTIVITY = "FIRST_ORDER_ACTIVITY"
+    private const val KIND_GIFT_ACTIVITY = "GIFT_ACTIVITY"
+    private const val KIND_TICKET_TYPE = "TICKET_TYPE"
   }
 }

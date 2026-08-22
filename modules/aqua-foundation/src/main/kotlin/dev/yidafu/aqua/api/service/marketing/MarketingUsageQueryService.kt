@@ -1,5 +1,7 @@
 package dev.yidafu.aqua.api.service.marketing
 
+import dev.yidafu.aqua.api.dto.MarketingActivityName
+import dev.yidafu.aqua.api.dto.MarketingActivityNameRef
 import dev.yidafu.aqua.api.dto.MarketingUsagePage
 
 /**
@@ -8,6 +10,13 @@ import dev.yidafu.aqua.api.dto.MarketingUsagePage
  * 口径见 MarketingUsageKind/MarketingUsageSummary;由 aqua-marketing 模块实现。
  */
 interface MarketingUsageQueryService {
+  /**
+   * 批量解析营销活动/券模板/票种名称(F-STA-007 营销统计明细,查询侧取名,中间表不落 name 列):
+   * kind 为 MarketingBreakdownKind 的 name;GIFT_ACTIVITY 行附带赠品商品 ID 供让利估算;
+   * 未命中的引用返回空名(展示为「已删除」)。
+   */
+  fun resolveMarketingActivityNames(refs: List<MarketingActivityNameRef>): Map<MarketingActivityNameRef, MarketingActivityName>
+
   /**
    * 优惠券模板使用情况(F-MKT-003):orders.coupon_id = user_coupons.id 且 coupon_template_id = templateId;
    * benefitCents = Σ coupon_discount_cents;usageCount = 已核销券张数。

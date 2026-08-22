@@ -1331,6 +1331,58 @@ export type LoginStatistics = {
   readonly totalLogins: Scalars['Int']['output'];
 };
 
+export enum MarketingBreakdownKind {
+  COUPON_TEMPLATE = 'COUPON_TEMPLATE',
+  FIRST_ORDER_ACTIVITY = 'FIRST_ORDER_ACTIVITY',
+  GIFT_ACTIVITY = 'GIFT_ACTIVITY',
+  PROMOTION_ACTIVITY = 'PROMOTION_ACTIVITY',
+  TICKET_TYPE = 'TICKET_TYPE'
+}
+
+export type MarketingDailyStatistic = {
+  readonly couponBenefitCents: Scalars['Long']['output'];
+  readonly couponRedeemedCount: Scalars['Int']['output'];
+  readonly date: Scalars['String']['output'];
+  readonly firstOrderBenefitCents: Scalars['Long']['output'];
+  readonly giftQuantity: Scalars['Int']['output'];
+  readonly marketingOrderCount: Scalars['Int']['output'];
+  readonly promotionBenefitCents: Scalars['Long']['output'];
+  readonly ticketRedeemedCount: Scalars['Int']['output'];
+  readonly ticketSalesCount: Scalars['Int']['output'];
+  readonly ticketSalesRevenueCents: Scalars['Long']['output'];
+};
+
+export type MarketingStatistics = {
+  readonly breakdown: ReadonlyArray<MarketingUsageBreakdownRow>;
+  readonly daily: ReadonlyArray<MarketingDailyStatistic>;
+  readonly summary: MarketingStatisticsSummary;
+};
+
+export type MarketingStatisticsSummary = {
+  readonly couponBenefitCents: Scalars['Long']['output'];
+  readonly couponRedeemedCount: Scalars['Int']['output'];
+  readonly firstOrderBenefitCents: Scalars['Long']['output'];
+  readonly giftQuantity: Scalars['Int']['output'];
+  readonly marketingOrderCount: Scalars['Int']['output'];
+  readonly promotionBenefitCents: Scalars['Long']['output'];
+  readonly ticketRedeemedCount: Scalars['Int']['output'];
+  readonly ticketSalesCount: Scalars['Int']['output'];
+  readonly ticketSalesRevenueCents: Scalars['Long']['output'];
+  readonly totalBenefitCents: Scalars['Long']['output'];
+};
+
+export type MarketingUsageBreakdownRow = {
+  readonly benefitCents: Scalars['Long']['output'];
+  readonly kind: MarketingBreakdownKind;
+  readonly name: Scalars['String']['output'];
+  readonly orderCount: Scalars['Int']['output'];
+  readonly refId: Scalars['PrimaryId']['output'];
+  readonly ticketRedeemedCount: Scalars['Int']['output'];
+  readonly ticketSalesCount: Scalars['Int']['output'];
+  readonly ticketSalesRevenueCents: Scalars['Long']['output'];
+  readonly usageCount: Scalars['Int']['output'];
+};
+
 export type MarketingUsageListInput = {
   readonly page?: InputMaybe<Scalars['Int']['input']>;
   readonly size?: InputMaybe<Scalars['Int']['input']>;
@@ -2759,6 +2811,7 @@ export type Query = {
   readonly giftActivityUsage?: Maybe<MarketingUsageVo>;
   readonly groupProductPrices?: Maybe<GroupProductPriceVoPage>;
   readonly isProductFavorited: Scalars['Boolean']['output'];
+  readonly marketingStatistics: MarketingStatistics;
   readonly me?: Maybe<UserInfo>;
   readonly monthlyStatistics: ReadonlyArray<MonthlyStatistic>;
   readonly myBarrelPurchase?: Maybe<BarrelPurchaseVo>;
@@ -3010,6 +3063,11 @@ export type QueryGroupProductPricesArgs = {
 
 export type QueryIsProductFavoritedArgs = {
   productId: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryMarketingStatisticsArgs = {
+  input: DateRangeInput;
 };
 
 

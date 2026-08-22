@@ -2138,6 +2138,65 @@ data class LoginStatistics(
     val totalLogins: kotlin.Int
 )
 
+enum class MarketingBreakdownKind(val label: String) {
+      COUPON_TEMPLATE("COUPON_TEMPLATE"),
+      FIRST_ORDER_ACTIVITY("FIRST_ORDER_ACTIVITY"),
+      GIFT_ACTIVITY("GIFT_ACTIVITY"),
+      PROMOTION_ACTIVITY("PROMOTION_ACTIVITY"),
+      TICKET_TYPE("TICKET_TYPE");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): MarketingBreakdownKind? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class MarketingDailyStatistic(
+    val couponBenefitCents: kotlin.Long,
+    val couponRedeemedCount: kotlin.Int,
+    val date: kotlin.String,
+    val firstOrderBenefitCents: kotlin.Long,
+    val giftQuantity: kotlin.Int,
+    val marketingOrderCount: kotlin.Int,
+    val promotionBenefitCents: kotlin.Long,
+    val ticketRedeemedCount: kotlin.Int,
+    val ticketSalesCount: kotlin.Int,
+    val ticketSalesRevenueCents: kotlin.Long
+)
+
+data class MarketingStatistics(
+    val breakdown: kotlin.collections.List<MarketingUsageBreakdownRow>,
+    val daily: kotlin.collections.List<MarketingDailyStatistic>,
+    val summary: MarketingStatisticsSummary
+)
+
+data class MarketingStatisticsSummary(
+    val couponBenefitCents: kotlin.Long,
+    val couponRedeemedCount: kotlin.Int,
+    val firstOrderBenefitCents: kotlin.Long,
+    val giftQuantity: kotlin.Int,
+    val marketingOrderCount: kotlin.Int,
+    val promotionBenefitCents: kotlin.Long,
+    val ticketRedeemedCount: kotlin.Int,
+    val ticketSalesCount: kotlin.Int,
+    val ticketSalesRevenueCents: kotlin.Long,
+    val totalBenefitCents: kotlin.Long
+)
+
+data class MarketingUsageBreakdownRow(
+    val benefitCents: kotlin.Long,
+    val kind: MarketingBreakdownKind,
+    val name: kotlin.String,
+    val orderCount: kotlin.Int,
+    val refId: kotlin.Long,
+    val ticketRedeemedCount: kotlin.Int,
+    val ticketSalesCount: kotlin.Int,
+    val ticketSalesRevenueCents: kotlin.Long,
+    val usageCount: kotlin.Int
+)
+
 data class MarketingUsageListInput(
     val page: kotlin.Int? = 0,
     val size: kotlin.Int? = 20
@@ -4429,6 +4488,14 @@ data class QueryIsProductFavoritedArgs(
       args["productId"] as kotlin.Long
   )
 }
+data class QueryMarketingStatisticsArgs(
+    val input: DateRangeInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      DateRangeInput(args["input"] as Map<String, Any>)
+  )
+}
 data class QueryMonthlyStatisticsArgs(
     val input: DateRangeInput
 ) {
@@ -4865,6 +4932,7 @@ data class Query(
     val giftActivityUsage: MarketingUsageVo?,
     val groupProductPrices: GroupProductPriceVoPage?,
     val isProductFavorited: kotlin.Boolean,
+    val marketingStatistics: MarketingStatistics,
     val me: UserInfo?,
     val monthlyStatistics: kotlin.collections.List<MonthlyStatistic>,
     val myBarrelPurchase: BarrelPurchaseVo?,

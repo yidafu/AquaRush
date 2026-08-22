@@ -20,11 +20,15 @@
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
 import dev.yidafu.aqua.analytics.statistics.config.StatisticsSnapshotConfig
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyMarketingFactRepository
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyMarketingUsageFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyOrderFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyProductFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRefundFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsSnapshotAggregationRepository
+import dev.yidafu.aqua.common.domain.model.DailyMarketingFactModel
+import dev.yidafu.aqua.common.domain.model.DailyMarketingUsageFactModel
 import dev.yidafu.aqua.common.domain.model.DailyOrderFactModel
 import dev.yidafu.aqua.common.domain.model.DailyProductFactModel
 import dev.yidafu.aqua.common.domain.model.DailyRefundFactModel
@@ -39,6 +43,7 @@ import java.time.LocalDate
 
 /**
  * 统计快照服务单元测试:增量窗口(昨天/前天)、缺口自愈、首次回填、delete-then-insert 幂等
+ * (F-STA-007 扩展:营销日事实/营销使用日事实与既有事实表同一事务写入)
  */
 class StatisticsSnapshotServiceImplTest :
   FunSpec({
@@ -46,6 +51,8 @@ class StatisticsSnapshotServiceImplTest :
     var productFactRepository: DailyProductFactRepository = mockk()
     var userFactRepository: DailyUserFactRepository = mockk()
     var refundFactRepository: DailyRefundFactRepository = mockk()
+    var marketingFactRepository: DailyMarketingFactRepository = mockk()
+    var marketingUsageFactRepository: DailyMarketingUsageFactRepository = mockk()
     var aggregationRepository: StatisticsSnapshotAggregationRepository = mockk()
     var service: StatisticsSnapshotServiceImpl = mockk()
 
@@ -57,10 +64,35 @@ class StatisticsSnapshotServiceImplTest :
         productFactRepository,
         userFactRepository,
         refundFactRepository,
+        marketingFactRepository,
+        marketingUsageFactRepository,
         aggregationRepository,
         txManager,
         config,
       ).also { service = it }
+    }
+
+    /**
+     * 营销事实聚合与落库 stub:
+     * relaxed mock 无法为泛型 save(S) 生成返回值(relaxed 回退 Any → 代理层强转 ClassCastException),
+     * 必须显式 stub save/saveAll 与聚合方法;saveAll 泛型返回 List 可 relaxed,这里统一显式 stub 保持流程干净。
+     */
+    fun stubMarketingAggregates(date: LocalDate) {
+      every { aggregationRepository.aggregateMarketingFacts(any()) } returns
+        DailyMarketingFactModel(statDate = date, marketingOrderCount = 3L, couponBenefitCents = 600L)
+      every { aggregationRepository.aggregateMarketingUsageFacts(any()) } returns
+        listOf(
+          DailyMarketingUsageFactModel(
+            statDate = date,
+            kind = "COUPON_TEMPLATE",
+            refId = 1L,
+            orderCount = 2L,
+            benefitCents = 600L,
+            usageCount = 2L,
+          ),
+        )
+      every { marketingFactRepository.save(any()) } returns DailyMarketingFactModel()
+      every { marketingUsageFactRepository.saveAll(any<List<DailyMarketingUsageFactModel>>()) } returns emptyList()
     }
 
     beforeTest {
@@ -68,6 +100,8 @@ class StatisticsSnapshotServiceImplTest :
       productFactRepository = mockk(relaxed = true)
       userFactRepository = mockk(relaxed = true)
       refundFactRepository = mockk(relaxed = true)
+      marketingFactRepository = mockk(relaxed = true)
+      marketingUsageFactRepository = mockk(relaxed = true)
       aggregationRepository = mockk(relaxed = true)
     }
 
@@ -79,6 +113,7 @@ class StatisticsSnapshotServiceImplTest :
       every { aggregationRepository.aggregateProductFacts(any()) } returns emptyList()
       every { aggregationRepository.aggregateUserFact(any()) } returns DailyUserFactModel(statDate = LocalDate.of(2025, 1, 1))
       every { aggregationRepository.aggregateRefundFacts(any()) } returns emptyList()
+      stubMarketingAggregates(LocalDate.of(2025, 1, 1))
 
       service.executeIncrementalSnapshot()
 
@@ -96,6 +131,7 @@ class StatisticsSnapshotServiceImplTest :
       every { aggregationRepository.aggregateProductFacts(any()) } returns emptyList()
       every { aggregationRepository.aggregateUserFact(any()) } returns DailyUserFactModel(statDate = LocalDate.now())
       every { aggregationRepository.aggregateRefundFacts(any()) } returns emptyList()
+      stubMarketingAggregates(LocalDate.now().minusDays(1))
 
       service.executeIncrementalSnapshot()
 
@@ -117,6 +153,7 @@ class StatisticsSnapshotServiceImplTest :
       every { aggregationRepository.aggregateProductFacts(any()) } returns emptyList()
       every { aggregationRepository.aggregateUserFact(any()) } returns DailyUserFactModel(statDate = LocalDate.now())
       every { aggregationRepository.aggregateRefundFacts(any()) } returns emptyList()
+      stubMarketingAggregates(LocalDate.now().minusDays(2))
 
       service.executeIncrementalSnapshot()
 
@@ -126,7 +163,7 @@ class StatisticsSnapshotServiceImplTest :
       verify(exactly = 1) { orderFactRepository.deleteByStatDateIn(listOf(yesterday)) }
     }
 
-    test("rebuildDate is delete-then-insert idempotent across all four fact tables") {
+    test("rebuildDate is delete-then-insert idempotent across all six fact tables") {
       buildService()
       every { orderFactRepository.count() } returns 100L
       every { orderFactRepository.findFirstByOrderByStatDateDesc() } returns
@@ -155,12 +192,13 @@ class StatisticsSnapshotServiceImplTest :
             refundAmountCents = 50L,
           ),
         )
+      stubMarketingAggregates(LocalDate.now().minusDays(1))
 
       service.executeIncrementalSnapshot()
 
       val yesterday = LocalDate.now().minusDays(1)
       val dayBefore = LocalDate.now().minusDays(2)
-      // 四表全部 delete-then-insert(同一事务;增量窗口 [前天, 昨天] 两日期)
+      // 六表全部 delete-then-insert(同一事务;增量窗口 [前天, 昨天] 两日期)
       verify(exactly = 1) { orderFactRepository.deleteByStatDateIn(listOf(dayBefore)) }
       verify(exactly = 1) { orderFactRepository.deleteByStatDateIn(listOf(yesterday)) }
       verify(exactly = 1) { productFactRepository.deleteByStatDateIn(listOf(dayBefore)) }
@@ -169,16 +207,23 @@ class StatisticsSnapshotServiceImplTest :
       verify(exactly = 1) { userFactRepository.deleteByStatDateIn(listOf(yesterday)) }
       verify(exactly = 1) { refundFactRepository.deleteByStatDateIn(listOf(dayBefore)) }
       verify(exactly = 1) { refundFactRepository.deleteByStatDateIn(listOf(yesterday)) }
+      verify(exactly = 1) { marketingFactRepository.deleteByStatDateIn(listOf(dayBefore)) }
+      verify(exactly = 1) { marketingFactRepository.deleteByStatDateIn(listOf(yesterday)) }
+      verify(exactly = 1) { marketingUsageFactRepository.deleteByStatDateIn(listOf(dayBefore)) }
+      verify(exactly = 1) { marketingUsageFactRepository.deleteByStatDateIn(listOf(yesterday)) }
       verify(exactly = 2) { orderFactRepository.saveAll(any<List<DailyOrderFactModel>>()) }
       verify(exactly = 2) { productFactRepository.saveAll(any<List<DailyProductFactModel>>()) }
       verify(exactly = 2) { userFactRepository.saveAll(any<List<DailyUserFactModel>>()) }
       verify(exactly = 2) { refundFactRepository.saveAll(any<List<DailyRefundFactModel>>()) }
+      verify(exactly = 2) { marketingFactRepository.save(any()) }
+      verify(exactly = 2) { marketingUsageFactRepository.saveAll(any<List<DailyMarketingUsageFactModel>>()) }
     }
 
     test("backfillHistory rebuilds each date in range") {
       buildService()
       val start = LocalDate.of(2025, 1, 1)
       val end = LocalDate.of(2025, 1, 3)
+      stubMarketingAggregates(start)
 
       service.backfillHistory(start, end)
 

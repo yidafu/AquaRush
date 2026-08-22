@@ -46,5 +46,7 @@
   <include file="db/changelog/changes/v2.3.0-fix-order-payment-method.xml"/>
   <!-- 第 3 层历史趋势指标:原子日汇总中间表(夜间快照任务写入,查询侧两段合并) -->
   <include file="db/changelog/changes/v2.4.0-add-daily-stat-facts.xml"/>
+  <!-- F-STA-007 营销统计:营销日事实 + 营销使用日事实(同一夜间快照任务写入) -->
+  <include file="db/changelog/changes/v2.5.0-add-marketing-daily-facts.xml"/>
 
 </databaseChangeLog>

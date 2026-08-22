@@ -152,6 +152,7 @@ const Layout: React.FC = () => {
         { key: '/statistics/delivery-workers', icon: <CarOutlined />, label: '送水员统计' },
         { key: '/statistics/orders', icon: <FileTextOutlined />, label: '订单统计' },
         { key: '/statistics/products', icon: <ShoppingCartOutlined />, label: '商品统计' },
+        { key: '/statistics/marketing', icon: <GiftOutlined />, label: '营销统计' },
       ]
     },
     {

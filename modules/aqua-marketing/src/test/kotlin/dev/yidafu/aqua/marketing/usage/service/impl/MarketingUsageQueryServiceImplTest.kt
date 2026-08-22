@@ -19,22 +19,30 @@
 
 package dev.yidafu.aqua.marketing.usage.service.impl
 
+import dev.yidafu.aqua.api.dto.MarketingActivityName
+import dev.yidafu.aqua.api.dto.MarketingActivityNameRef
 import dev.yidafu.aqua.api.dto.MarketingUsageItemRow
 import dev.yidafu.aqua.api.dto.MarketingUsageKind
 import dev.yidafu.aqua.api.dto.MarketingUsageOrderCriteria
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
+import dev.yidafu.aqua.common.domain.model.CouponTemplateModel
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
+import dev.yidafu.aqua.common.domain.model.TicketTypeModel
 import dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
+import dev.yidafu.aqua.marketing.coupon.domain.repository.CouponTemplateRepository
 import dev.yidafu.aqua.marketing.coupon.domain.repository.UserCouponRepository
 import dev.yidafu.aqua.marketing.firstorder.domain.repository.FirstOrderActivityRepository
 import dev.yidafu.aqua.marketing.flashsale.domain.repository.FlashSaleActivityRepository
 import dev.yidafu.aqua.marketing.gift.domain.repository.GiftActivityRepository
+import dev.yidafu.aqua.marketing.promotion.domain.repository.PromotionActivityRepository
+import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketTypeRepository
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -45,7 +53,7 @@ import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 import java.util.Optional
 
-/** 营销使用情况查询服务单元测试(PRD 10-marketing.md 营销方式详情,F-MKT-003~009)。 */
+/** 营销使用情况查询服务单元测试(PRD 10-marketing.md 营销方式详情,F-MKT-003~009;名称解析 F-STA-007)。 */
 class MarketingUsageQueryServiceImplTest :
   FunSpec({
     var orderQueryApiService: OrderQueryApiService = mockk()
@@ -54,6 +62,9 @@ class MarketingUsageQueryServiceImplTest :
     var flashSaleActivityRepository: FlashSaleActivityRepository = mockk()
     var giftActivityRepository: GiftActivityRepository = mockk()
     var firstOrderActivityRepository: FirstOrderActivityRepository = mockk()
+    var couponTemplateRepository: CouponTemplateRepository = mockk()
+    var promotionActivityRepository: PromotionActivityRepository = mockk()
+    var ticketTypeRepository: TicketTypeRepository = mockk()
     var service: MarketingUsageQueryServiceImpl = mockk()
 
     val from = LocalDateTime.of(2025, 1, 1, 0, 0)
@@ -69,6 +80,9 @@ class MarketingUsageQueryServiceImplTest :
       flashSaleActivityRepository = mockk()
       giftActivityRepository = mockk()
       firstOrderActivityRepository = mockk()
+      couponTemplateRepository = mockk()
+      promotionActivityRepository = mockk()
+      ticketTypeRepository = mockk()
       service =
         MarketingUsageQueryServiceImpl(
           orderQueryApiService = orderQueryApiService,
@@ -77,6 +91,9 @@ class MarketingUsageQueryServiceImplTest :
           flashSaleActivityRepository = flashSaleActivityRepository,
           giftActivityRepository = giftActivityRepository,
           firstOrderActivityRepository = firstOrderActivityRepository,
+          couponTemplateRepository = couponTemplateRepository,
+          promotionActivityRepository = promotionActivityRepository,
+          ticketTypeRepository = ticketTypeRepository,
         )
     }
 
@@ -215,5 +232,30 @@ class MarketingUsageQueryServiceImplTest :
 
       result.summary.orderCount shouldBe 0L
       result.orders.content shouldBe emptyList()
+    }
+
+    test("resolveMarketingActivityNames resolves names by kind and gift product id") {
+      val couponRef = MarketingActivityNameRef("COUPON_TEMPLATE", 11L)
+      val promotionRef = MarketingActivityNameRef("PROMOTION_ACTIVITY", 12L)
+      val giftRef = MarketingActivityNameRef("GIFT_ACTIVITY", 13L)
+      val ticketRef = MarketingActivityNameRef("TICKET_TYPE", 14L)
+      val missingRef = MarketingActivityNameRef("COUPON_TEMPLATE", 999L)
+      every { couponTemplateRepository.findAllById(listOf(11L, 999L)) } returns listOf(CouponTemplateModel(id = 11L, name = "满50减10"))
+      every { promotionActivityRepository.findAllById(listOf(12L)) } returns listOf(PromotionActivityModel(id = 12L, name = "全场满100减20"))
+      every { giftActivityRepository.findAllById(listOf(13L)) } returns
+        listOf(GiftActivityModel(id = 13L, name = "买5送1", giftProductId = 8L))
+      every { ticketTypeRepository.findAllById(listOf(14L)) } returns listOf(TicketTypeModel(id = 14L, name = "通兑19L票"))
+
+      val result = service.resolveMarketingActivityNames(listOf(couponRef, promotionRef, giftRef, ticketRef, missingRef))
+
+      result[couponRef] shouldBe MarketingActivityName("满50减10")
+      result[promotionRef] shouldBe MarketingActivityName("全场满100减20")
+      result[giftRef] shouldBe MarketingActivityName("买5送1", 8L)
+      result[ticketRef] shouldBe MarketingActivityName("通兑19L票")
+      result[missingRef] shouldBe MarketingActivityName("")
+    }
+
+    test("resolveMarketingActivityNames returns empty map for empty refs") {
+      service.resolveMarketingActivityNames(emptyList()) shouldBe emptyMap()
     }
   })
