@@ -152,6 +152,7 @@ class ClientMarketingResolverTest :
         userId = 1L,
         ticketTypeId = 20L,
         purchaseId = 1L,
+        ticketNo = "SP20260800000001",
         status = UserTicketStatus.UNUSED,
         expireTime = LocalDateTime.now().plusDays(30),
         isGift = false,
@@ -262,6 +263,7 @@ class ClientMarketingResolverTest :
       result.size shouldBe 1
       result[0].ticketTypeName shouldBe "通兑19L"
       result[0].specification shouldBe "19L"
+      result[0].ticketNo shouldBe "SP20260800000001"
     }
     test("purchaseTickets marks simulation when payment stubbed") {
       val purchase =

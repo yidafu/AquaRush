@@ -67,6 +67,16 @@ const TicketListPage: React.FC = () => {
     Taro.navigateTo({ url: '/pages/ticket-shop/index' })
   }, [])
 
+  // 长按复制水票票号(F-MKT-007 每张票唯一递增票号)
+  const copyTicketNo = useCallback((ticketNo: string) => {
+    Taro.setClipboardData({
+      data: ticketNo,
+      success: () => {
+        Taro.showToast({ title: '票号已复制', icon: 'none' })
+      }
+    })
+  }, [])
+
   const isAvailable = (ticket: UserTicketVo): boolean =>
     ticket.status === UserTicketStatus.UNUSED || ticket.status === UserTicketStatus.RETURNED
 
@@ -131,6 +141,13 @@ const TicketListPage: React.FC = () => {
                   <Text className='ticket-item-spec'>限{ticket.specification}规格</Text>
                 )}
                 <Text className='ticket-item-expire'>有效期至 {formatDateTime(ticket.expireTime)}</Text>
+                {/* 水票唯一递增票号(长按复制) */}
+                <Text
+                  className='ticket-item-no'
+                  onLongPress={() => copyTicketNo(ticket.ticketNo)}
+                >
+                  票号 {ticket.ticketNo}
+                </Text>
               </View>
               <Text className='ticket-item-status'>{getTicketStatusLabel(ticket.status)}</Text>
             </View>

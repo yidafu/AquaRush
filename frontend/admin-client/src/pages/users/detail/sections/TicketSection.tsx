@@ -56,6 +56,13 @@ const TicketSection: React.FC<TicketSectionProps> = ({ userId }) => {
 
   const columns = [
     {
+      title: '票号',
+      dataIndex: 'ticketNo',
+      key: 'ticketNo',
+      width: 200,
+      render: (v: string) => (v ? <span style={{ fontFamily: 'monospace' }}>{v}</span> : '—'),
+    },
+    {
       title: '票种名称',
       dataIndex: 'ticketTypeName',
       key: 'ticketTypeName',

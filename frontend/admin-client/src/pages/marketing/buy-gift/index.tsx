@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import { useNavigate } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import type { GiftActivity } from '@aquarush/common';
 import {
@@ -28,6 +29,7 @@ const DISPLAY_STATUS_META: Record<string, { text: string; color: string }> = {
 
 // 买赠/满赠活动页(F-MKT-008):订单达标自动赠指定商品,赠品为附加 0 价行随单配送
 const BuyGift: React.FC = () => {
+  const navigate = useNavigate();
   const [loadActivities, { data, loading }] = useGiftActivities();
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
@@ -124,9 +126,12 @@ const BuyGift: React.FC = () => {
     },
     {
       title: '操作',
-      width: 150,
+      width: 200,
       render: (_, record) => (
         <Space size="small">
+          <Button size="small" onClick={() => navigate(`/marketing/buy-gift/${record.id}?name=${encodeURIComponent(record.name)}`)}>
+            详情
+          </Button>
           <Button size="small" onClick={() => handleEdit(record)}>
             编辑
           </Button>

@@ -32,11 +32,17 @@ import OpsDeliveryFeeRule from './pages/ops/delivery-fee-rule';
 import MarketingCustomerGroups from './pages/marketing/customer-groups';
 import MarketingGroupPrices from './pages/marketing/group-prices';
 import MarketingCoupons from './pages/marketing/coupons';
+import MarketingCouponDetail from './pages/marketing/coupons/detail';
 import MarketingPromotions from './pages/marketing/promotions';
+import MarketingPromotionDetail from './pages/marketing/promotions/detail';
 import MarketingWaterTickets from './pages/marketing/water-tickets';
+import MarketingWaterTicketDetail from './pages/marketing/water-tickets/detail';
 import MarketingFlashSale from './pages/marketing/flash-sale';
+import MarketingFlashSaleDetail from './pages/marketing/flash-sale/detail';
 import MarketingBuyGift from './pages/marketing/buy-gift';
+import MarketingGiftDetail from './pages/marketing/buy-gift/detail';
 import MarketingNewcomer from './pages/marketing/newcomer';
+import MarketingNewcomerDetail from './pages/marketing/newcomer/detail';
 import SystemOrderConfig from './pages/system/order';
 import SystemStockConfig from './pages/system/stock';
 import SystemSecurityConfig from './pages/system/security';
@@ -104,11 +110,17 @@ const App: React.FC = () => {
         <Route path="marketing/customer-groups" element={page('客户分组', <MarketingCustomerGroups />)} />
         <Route path="marketing/group-prices" element={page('分组价格', <MarketingGroupPrices />)} />
         <Route path="marketing/coupons" element={page('优惠券', <MarketingCoupons />)} />
+        <Route path="marketing/coupons/:id" element={page('优惠券详情', <MarketingCouponDetail />)} />
         <Route path="marketing/promotions" element={page('满减/折扣', <MarketingPromotions />)} />
+        <Route path="marketing/promotions/:id" element={page('满减/折扣详情', <MarketingPromotionDetail />)} />
         <Route path="marketing/water-tickets" element={page('桶水票', <MarketingWaterTickets />)} />
+        <Route path="marketing/water-tickets/:id" element={page('水票详情', <MarketingWaterTicketDetail />)} />
         <Route path="marketing/flash-sale" element={page('限时特价', <MarketingFlashSale />)} />
+        <Route path="marketing/flash-sale/:id" element={page('限时特价详情', <MarketingFlashSaleDetail />)} />
         <Route path="marketing/buy-gift" element={page('买赠/满赠', <MarketingBuyGift />)} />
+        <Route path="marketing/buy-gift/:id" element={page('买赠/满赠详情', <MarketingGiftDetail />)} />
         <Route path="marketing/newcomer" element={page('首单立减/新人价', <MarketingNewcomer />)} />
+        <Route path="marketing/newcomer/:id" element={page('首单立减/新人价详情', <MarketingNewcomerDetail />)} />
         <Route path="system-config/order" element={page('订单与履约参数', <SystemOrderConfig />)} />
         <Route path="system-config/stock" element={page('库存预警阈值', <SystemStockConfig />)} />
         <Route path="system-config/security" element={page('账号与安全', <SystemSecurityConfig />)} />

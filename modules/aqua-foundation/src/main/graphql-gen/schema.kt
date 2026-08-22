@@ -2138,6 +2138,27 @@ data class LoginStatistics(
     val totalLogins: kotlin.Int
 )
 
+data class MarketingUsageListInput(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
+
+data class MarketingUsageSummary(
+    val benefitCents: kotlin.Long,
+    val orderCount: kotlin.Int,
+    val usageCount: kotlin.Int
+)
+
+data class MarketingUsageVo(
+    val orders: OrderVoPage,
+    val summary: MarketingUsageSummary
+)
+
 data class MonthlyStatistic(
     val month: kotlin.Int,
     val monthName: kotlin.String,
@@ -4182,6 +4203,16 @@ data class QueryCouponTemplateArgs(
       args["id"] as kotlin.Long
   )
 }
+data class QueryCouponTemplateUsageArgs(
+    val couponTemplateId: kotlin.Long,
+    val input: MarketingUsageListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["couponTemplateId"] as kotlin.Long,
+      args["input"]?.let { MarketingUsageListInput(it as Map<String, Any>) }
+  )
+}
 data class QueryCouponTemplatesArgs(
     val input: CouponTemplateListInput? = null
 ) {
@@ -4323,6 +4354,16 @@ data class QueryFirstOrderActivityArgs(
       args["id"] as kotlin.Long
   )
 }
+data class QueryFirstOrderActivityUsageArgs(
+    val firstOrderActivityId: kotlin.Long,
+    val input: MarketingUsageListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["firstOrderActivityId"] as kotlin.Long,
+      args["input"]?.let { MarketingUsageListInput(it as Map<String, Any>) }
+  )
+}
 data class QueryFlashSaleActivitiesArgs(
     val input: FlashSaleActivityListInput? = null
 ) {
@@ -4338,6 +4379,16 @@ data class QueryFlashSaleActivityArgs(
       args["id"] as kotlin.Long
   )
 }
+data class QueryFlashSaleActivityUsageArgs(
+    val flashSaleActivityId: kotlin.Long,
+    val input: MarketingUsageListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["flashSaleActivityId"] as kotlin.Long,
+      args["input"]?.let { MarketingUsageListInput(it as Map<String, Any>) }
+  )
+}
 data class QueryGiftActivitiesArgs(
     val input: GiftActivityListInput? = null
 ) {
@@ -4351,6 +4402,16 @@ data class QueryGiftActivityArgs(
 ) {
   constructor(args: Map<String, Any>) : this(
       args["id"] as kotlin.Long
+  )
+}
+data class QueryGiftActivityUsageArgs(
+    val giftActivityId: kotlin.Long,
+    val input: MarketingUsageListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["giftActivityId"] as kotlin.Long,
+      args["input"]?.let { MarketingUsageListInput(it as Map<String, Any>) }
   )
 }
 data class QueryGroupProductPricesArgs(
@@ -4591,6 +4652,16 @@ data class QueryPromotionActivityArgs(
       args["id"] as kotlin.Long
   )
 }
+data class QueryPromotionActivityUsageArgs(
+    val input: MarketingUsageListInput? = null,
+    val promotionActivityId: kotlin.Long
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { MarketingUsageListInput(it as Map<String, Any>) },
+      args["promotionActivityId"] as kotlin.Long
+  )
+}
 data class QueryRefundRequestArgs(
     val id: kotlin.String
 ) {
@@ -4676,6 +4747,16 @@ data class QueryTicketTypeArgs(
       args["id"] as kotlin.Long
   )
 }
+data class QueryTicketTypeStatsArgs(
+    val input: DateRangeInput,
+    val ticketTypeId: kotlin.Long
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      DateRangeInput(args["input"] as Map<String, Any>),
+      args["ticketTypeId"] as kotlin.Long
+  )
+}
 data class QueryTicketTypesArgs(
     val input: TicketTypeListInput? = null
 ) {
@@ -4750,6 +4831,7 @@ data class Query(
     val businessLogs: BusinessLogVoPage?,
     val couponCenter: kotlin.collections.List<CouponTemplateVo>,
     val couponTemplate: CouponTemplate?,
+    val couponTemplateUsage: MarketingUsageVo?,
     val couponTemplates: CouponTemplateVoPage?,
     val customerGroup: CustomerGroup?,
     val customerGroups: CustomerGroupVoPage?,
@@ -4774,10 +4856,13 @@ data class Query(
     val feedbacks: FeedbackVoPage?,
     val firstOrderActivities: FirstOrderActivityVoPage?,
     val firstOrderActivity: FirstOrderActivity?,
+    val firstOrderActivityUsage: MarketingUsageVo?,
     val flashSaleActivities: FlashSaleActivityVoPage?,
     val flashSaleActivity: FlashSaleActivity?,
+    val flashSaleActivityUsage: MarketingUsageVo?,
     val giftActivities: GiftActivityVoPage?,
     val giftActivity: GiftActivity?,
+    val giftActivityUsage: MarketingUsageVo?,
     val groupProductPrices: GroupProductPriceVoPage?,
     val isProductFavorited: kotlin.Boolean,
     val me: UserInfo?,
@@ -4813,6 +4898,7 @@ data class Query(
     val productsPaginated: ProductVoPage?,
     val promotionActivities: PromotionActivityVoPage?,
     val promotionActivity: PromotionActivity?,
+    val promotionActivityUsage: MarketingUsageVo?,
     val refundRequest: RefundRequest?,
     val refundRequests: RefundRequestPage,
     val region: Region?,
@@ -4826,6 +4912,7 @@ data class Query(
     val systemConfigs: kotlin.collections.List<SystemConfigVo>,
     val ticketShop: kotlin.collections.List<TicketTypeVo>,
     val ticketType: TicketType?,
+    val ticketTypeStats: TicketTypeStatsVo,
     val ticketTypes: TicketTypeVoPage?,
     val todayStatistics: TodayStatistics?,
     val unreadNotificationCount: kotlin.Int,
@@ -5286,6 +5373,22 @@ data class TicketPurchaseVo(
     val totalCount: kotlin.Int
 )
 
+data class TicketSalesPointVo(
+    val date: kotlin.String,
+    val purchaseCount: kotlin.Int,
+    val revenueCents: kotlin.Long,
+    val ticketCount: kotlin.Int
+)
+
+data class TicketStatsSummaryVo(
+    val availableCount: kotlin.Int,
+    val expiredCount: kotlin.Int,
+    val redeemedCount: kotlin.Int,
+    val returnedCount: kotlin.Int,
+    val revenueCents: kotlin.Long,
+    val soldCount: kotlin.Int
+)
+
 data class TicketType(
     val createdAt: java.time.LocalDateTime,
     val giftCount: kotlin.Int,
@@ -5331,6 +5434,14 @@ data class TicketTypeListInput(
   )
 }
 
+data class TicketTypeStatsVo(
+    val sales: kotlin.collections.List<TicketSalesPointVo>,
+    val summary: TicketStatsSummaryVo,
+    val ticketTypeId: kotlin.Long,
+    val ticketTypeName: kotlin.String,
+    val usage: kotlin.collections.List<TicketUsagePointVo>
+)
+
 enum class TicketTypeStatus(val label: String) {
       ACTIVE("ACTIVE"),
       DISABLED("DISABLED");
@@ -5366,6 +5477,13 @@ data class TicketTypeVoPage(
     val size: kotlin.Int,
     val totalElements: kotlin.Int,
     val totalPages: kotlin.Int
+)
+
+data class TicketUsagePointVo(
+    val date: kotlin.String,
+    val expiredCount: kotlin.Int,
+    val redeemedCount: kotlin.Int,
+    val returnedCount: kotlin.Int
 )
 
 data class TodayStatistics(
@@ -6158,6 +6276,7 @@ data class UserTicketVo(
     val isGift: kotlin.Boolean,
     val specification: kotlin.String?,
     val status: UserTicketStatus,
+    val ticketNo: kotlin.String,
     val ticketTypeName: kotlin.String
 )
 

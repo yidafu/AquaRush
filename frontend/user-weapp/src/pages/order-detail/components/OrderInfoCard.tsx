@@ -26,7 +26,11 @@ const OrderInfoCard: React.FC<OrderInfoCardProps> = ({ order, deliverySlots }) =
     >
       <View className='info-item'>
         <Text className='info-label'>支付方式</Text>
-        <Text className='info-value'>{PAYMENT_METHOD_MAP[order.paymentMethod] || order.paymentMethod}</Text>
+        <Text className='info-value'>
+          {PAYMENT_METHOD_MAP[order.paymentMethod] || order.paymentMethod}
+          {/* 核销水票时展示水票支付(F-MKT-007,R-MKT-08:被核销桶按水票支付) */}
+          {(order.ticketRedeemCount ?? 0) > 0 && ` + 水票${order.ticketRedeemCount}张`}
+        </Text>
       </View>
       <View className='info-item'>
         <Text className='info-label'>下单时间</Text>

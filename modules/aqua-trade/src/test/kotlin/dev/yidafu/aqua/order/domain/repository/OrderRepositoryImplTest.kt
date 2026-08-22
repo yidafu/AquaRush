@@ -28,6 +28,8 @@ import com.querydsl.core.types.Predicate
 import com.querydsl.jpa.impl.JPAQuery
 import com.querydsl.jpa.impl.JPAQueryFactory
 import com.querydsl.jpa.impl.JPAUpdateClause
+import dev.yidafu.aqua.api.dto.MarketingUsageKind
+import dev.yidafu.aqua.api.dto.MarketingUsageOrderCriteria
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
@@ -337,5 +339,97 @@ class OrderRepositoryImplTest :
       val result = repo.countOrdersByUserIdGroupByStatus(100L)
 
       result shouldBe mapOf(OrderModelStatus.PENDING_PAYMENT to 2L)
+    }
+
+    // ================================================================
+    // 营销使用情况(PRD 10-marketing.md 营销方式详情)
+    // ================================================================
+
+    test("findOrdersByMarketingUsage by promotion activity") {
+      val orders = listOf(order(1L), order(2L))
+      every { selectQuery.fetch() } returns orders
+      every { countQuery.fetchCount() } returns 2L
+      val criteria = MarketingUsageOrderCriteria(MarketingUsageKind.PROMOTION_ACTIVITY, 5L)
+
+      val page = repo.findOrdersByMarketingUsage(criteria, 0, 20)
+
+      page.content shouldBe orders
+      page.totalElements shouldBe 2L
+    }
+    test("findOrdersByMarketingUsage by flash sale item match") {
+      val orders = listOf(order(1L))
+      every { selectQuery.fetch() } returns orders
+      every { countQuery.fetchCount() } returns 1L
+      val criteria =
+        MarketingUsageOrderCriteria(
+          kind = MarketingUsageKind.FLASH_SALE_ITEM,
+          refId = 3L,
+          productId = 9L,
+          unitPriceCents = 1500L,
+          validFrom = start,
+          validTo = end,
+        )
+
+      val page = repo.findOrdersByMarketingUsage(criteria, 0, 20)
+
+      page.content shouldBe orders
+      page.totalElements shouldBe 1L
+    }
+    test("countOrdersByMarketingUsage counts") {
+      every { countQuery.fetchCount() } returns 6L
+      val criteria = MarketingUsageOrderCriteria(MarketingUsageKind.COUPON_TEMPLATE, 1L)
+
+      repo.countOrdersByMarketingUsage(criteria) shouldBe 6L
+    }
+    test("sumMarketingDiscountCents sums per kind") {
+      every { exprQuery.fetchOne() } returnsMany listOf(1500L, 0L)
+
+      repo.sumMarketingDiscountCents(MarketingUsageOrderCriteria(MarketingUsageKind.PROMOTION_ACTIVITY, 1L)) shouldBe 1500L
+      // 限时特价/新人价/赠品无订单列优惠快照,返回 0
+      repo.sumMarketingDiscountCents(MarketingUsageOrderCriteria(MarketingUsageKind.FLASH_SALE_ITEM, 2L)) shouldBe 0L
+    }
+    test("aggregateMarketingUsageItems for gift activity") {
+      val tuple = mockk<Tuple>()
+      val tupleQuery = mockk<JPAQuery<Tuple>>(relaxed = true)
+      every { tuple.get(any<Expression<*>>()) } returnsMany listOf(8L, 5L)
+      every { tupleQuery.fetch() } returns listOf(tuple)
+      every { anyConstructed<JPAQueryFactory>().select(any(), any()) } returns tupleQuery
+      every { tupleQuery.from(any()) } returns tupleQuery
+      every { tupleQuery.where(any<Predicate>()) } returns tupleQuery
+      every { tupleQuery.groupBy(any()) } returns tupleQuery
+
+      val result = repo.aggregateMarketingUsageItems(MarketingUsageOrderCriteria(MarketingUsageKind.GIFT_ACTIVITY, 4L))
+
+      result.size shouldBe 1
+      result[0].productId shouldBe 8L
+      result[0].unitPriceCents shouldBe null
+      result[0].quantitySum shouldBe 5L
+    }
+    test("aggregateMarketingUsageItems for flash sale item") {
+      val tuple = mockk<Tuple>()
+      val tupleQuery = mockk<JPAQuery<Tuple>>(relaxed = true)
+      every { tuple.get(any<Expression<*>>()) } returnsMany listOf(9L, 1500L, 3L)
+      every { tupleQuery.fetch() } returns listOf(tuple)
+      every { anyConstructed<JPAQueryFactory>().select(any(), any(), any()) } returns tupleQuery
+      every { tupleQuery.from(any()) } returns tupleQuery
+      every { tupleQuery.where(any<Predicate>()) } returns tupleQuery
+      every { tupleQuery.where(any(), any(), any()) } returns tupleQuery
+      every { tupleQuery.groupBy(any(), any()) } returns tupleQuery
+      val criteria =
+        MarketingUsageOrderCriteria(
+          kind = MarketingUsageKind.FLASH_SALE_ITEM,
+          refId = 3L,
+          productId = 9L,
+          unitPriceCents = 1500L,
+          validFrom = start,
+          validTo = end,
+        )
+
+      val result = repo.aggregateMarketingUsageItems(criteria)
+
+      result.size shouldBe 1
+      result[0].productId shouldBe 9L
+      result[0].unitPriceCents shouldBe 1500L
+      result[0].quantitySum shouldBe 3L
     }
   })

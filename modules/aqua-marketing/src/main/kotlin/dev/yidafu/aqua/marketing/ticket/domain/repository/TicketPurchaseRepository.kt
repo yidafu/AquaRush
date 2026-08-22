@@ -26,6 +26,7 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -40,6 +41,43 @@ interface TicketPurchaseRepository : JpaRepository<TicketPurchaseModel, Long> {
     ticketTypeId: Long,
     paymentStatus: TicketPurchaseStatus,
   ): Long
+
+  /**
+   * 销售统计投影(按日):购票单数/入账张数(totalCount = N+M)/销售金额(分)。
+   */
+  interface TicketPaidSalesDay {
+    fun getDay(): LocalDate
+
+    fun getPurchaseCount(): Long
+
+    fun getTicketCount(): Long
+
+    fun getRevenueCents(): Long
+  }
+
+  /**
+   * 按日汇总已支付购票(后台水票统计):[from, to) 左闭右开,paidAt 为空回退 createdAt;空数据日由服务层补零。
+   */
+  @Query(
+    """
+    select cast(coalesce(p.paidAt, p.createdAt) as date) as day,
+           count(p.id) as purchaseCount,
+           sum(p.totalCount) as ticketCount,
+           sum(p.packagePriceCents) as revenueCents
+    from TicketPurchaseModel p
+    where p.ticketTypeId = :ticketTypeId
+      and p.paymentStatus = dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus.PAID
+      and coalesce(p.paidAt, p.createdAt) >= :from
+      and coalesce(p.paidAt, p.createdAt) < :to
+    group by cast(coalesce(p.paidAt, p.createdAt) as date)
+    order by day
+    """,
+  )
+  fun findPaidSalesGroupedByDay(
+    @Param("ticketTypeId") ticketTypeId: Long,
+    @Param("from") from: LocalDateTime,
+    @Param("to") to: LocalDateTime,
+  ): List<TicketPaidSalesDay>
 
   @Modifying
   @Query(

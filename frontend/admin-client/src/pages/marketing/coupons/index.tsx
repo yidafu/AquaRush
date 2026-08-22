@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Table, Tag, Space, Button, Card, Popconfirm, Input } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import { useNavigate } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import type { CouponTemplate } from '@aquarush/common';
 import {
@@ -19,8 +20,9 @@ const COUPON_TYPE_LABELS: Record<string, string> = {
   NO_THRESHOLD_CASH: '无门槛现金券',
 };
 
-// 优惠券管理页(F-MKT-003):列表/新建/编辑/停用/定向发放
+// 优惠券管理页(F-MKT-003):列表/新建/编辑/停用/定向发放/详情(使用情况与相关订单)
 const Coupons: React.FC = () => {
+  const navigate = useNavigate();
   const [loadTemplates, { data, loading }] = useCouponTemplates();
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
@@ -130,9 +132,12 @@ const Coupons: React.FC = () => {
     },
     {
       title: '操作',
-      width: 210,
+      width: 260,
       render: (_, record) => (
         <Space size="small">
+          <Button size="small" onClick={() => navigate(`/marketing/coupons/${record.id}?name=${encodeURIComponent(record.name)}`)}>
+            详情
+          </Button>
           <Button size="small" onClick={() => handleEdit(record)}>
             编辑
           </Button>

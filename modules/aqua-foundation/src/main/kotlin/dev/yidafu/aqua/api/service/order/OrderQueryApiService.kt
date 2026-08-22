@@ -1,5 +1,8 @@
 package dev.yidafu.aqua.api.service.order
 
+import dev.yidafu.aqua.api.dto.MarketingUsageItemRow
+import dev.yidafu.aqua.api.dto.MarketingUsageKind
+import dev.yidafu.aqua.api.dto.MarketingUsageOrderCriteria
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
@@ -100,4 +103,37 @@ interface OrderQueryApiService {
     endDate: LocalDateTime,
     deliveryWorkerId: Long?,
   ): Long
+
+  // ========================================================================
+  // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
+  // ========================================================================
+
+  /**
+   * 按营销追溯条件分页查询相关订单(营销方式详情「相关订单记录」,按下单时间倒序)。
+   * 匹配语义见 [MarketingUsageKind];限时特价/新人专享价按商品+活动价+时间窗匹配 order_items。
+   */
+  fun findOrdersByMarketingUsage(
+    criteria: MarketingUsageOrderCriteria,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel>
+
+  /**
+   * 营销使用订单数(与 [findOrdersByMarketingUsage] 同口径的汇总计数)。
+   */
+  fun countOrdersByMarketingUsage(criteria: MarketingUsageOrderCriteria): Long
+
+  /**
+   * 营销优惠金额合计(分,订单快照列口径):
+   * 券=coupon_discount_cents、满减=promotion_discount_cents、首单立减=first_order_discount_cents;
+   * 限时特价/新人专享价/买赠满赠无订单列优惠,返回 0,让利金额由 [aggregateMarketingUsageItems] 计算。
+   */
+  fun sumMarketingDiscountCents(criteria: MarketingUsageOrderCriteria): Long
+
+  /**
+   * 营销使用商品聚合行(让利金额计算用):
+   * 限时特价/新人专享价 = order_items 按 (product_id, unit_price_cents) 分组合计数量;
+   * 买赠/满赠 = order_gifts 按 product_id 分组合计赠品数量。
+   */
+  fun aggregateMarketingUsageItems(criteria: MarketingUsageOrderCriteria): List<MarketingUsageItemRow>
 }

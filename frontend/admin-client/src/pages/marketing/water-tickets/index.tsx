@@ -5,6 +5,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import type { TicketType } from '@aquarush/common';
 import { useQuery } from '@apollo/client';
+import { useNavigate } from 'react-router-dom';
 import { WATER_TICKETS_PAGE_DATA_QUERY } from '../../../graphql/queries/marketing.graphql';
 import {
   useCreateTicketType,
@@ -13,13 +14,19 @@ import {
 } from '../../../services/marketing-graphql';
 import TicketTypeFormModal, { type TicketTypeFormPayload } from './components/TicketTypeFormModal';
 
-// 桶水票票种管理页(F-MKT-007):列表/新建/编辑/停用
+// 桶水票票种管理页(F-MKT-007):列表/新建/编辑/停用/详情统计图表(独立页面)
 const WaterTickets: React.FC = () => {
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
   const [keyword, setKeyword] = useState('');
   const [modalOpen, setModalOpen] = useState(false);
   const [editingRecord, setEditingRecord] = useState<TicketType | null>(null);
+  const navigate = useNavigate();
+
+  // 详情统计页入口(独立页面:/marketing/water-tickets/:id?name=&kind=)
+  const goDetail = (record: TicketType): void => {
+    navigate(`/marketing/water-tickets/${record.id}?name=${encodeURIComponent(record.name)}&kind=${record.ticketType}`);
+  };
 
   const [createTicketType, { loading: creating }] = useCreateTicketType();
   const [updateTicketType, { loading: updating }] = useUpdateTicketType();
@@ -126,9 +133,12 @@ const WaterTickets: React.FC = () => {
     },
     {
       title: '操作',
-      width: 150,
+      width: 220,
       render: (_, record) => (
         <Space size="small">
+          <Button size="small" onClick={() => goDetail(record)}>
+            详情
+          </Button>
           <Button size="small" onClick={() => handleEdit(record)}>
             编辑
           </Button>

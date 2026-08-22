@@ -78,6 +78,7 @@ class TicketService {
       query MyTickets($status: UserTicketStatus) {
         myTickets(status: $status) {
           id
+          ticketNo
           ticketTypeName
           specification
           status

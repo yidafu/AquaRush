@@ -28,6 +28,7 @@ import java.time.LocalDateTime
 /**
  * 用户水票实例(PRD 10-marketing.md §F-MKT-007,每票一行):
  * 一票抵一桶,购票入账 N+M 张(赠送票 is_gift 与正常票同池);
+ * 每张票带唯一递增票号 ticketNo(格式 SP+入账年月+8位序号,按月重置,见 v2.2.0 迁移);
  * 状态机 UNUSED → USED(核销)→ RETURNED(订单取消/退款退回,未过期可复用)→ USED ... / EXPIRED;
  * 核销幂等:原子条件 UPDATE(status IN (UNUSED,RETURNED) 且未过期),防并发重复使用。
  */
@@ -51,6 +52,9 @@ open class UserTicketModel(
   val ticketTypeId: Long = 0,
   @Column(name = "purchase_id", nullable = false)
   val purchaseId: Long = 0,
+  // 用户可见唯一递增票号(SP+入账年月+8位序号,按月重置;支付入账时生成)
+  @Column(name = "ticket_no", nullable = false, unique = true, length = 32)
+  var ticketNo: String = "",
   @Column(name = "status", nullable = false, length = 30)
   @Enumerated(EnumType.STRING)
   var status: UserTicketStatus = UserTicketStatus.UNUSED,

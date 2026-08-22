@@ -70,6 +70,7 @@ class AdminUserCouponTicketQueryResolverTest :
         userId = 1L,
         ticketTypeId = 20L,
         purchaseId = 1L,
+        ticketNo = "SP20260800000001",
         status = UserTicketStatus.UNUSED,
         expireTime = LocalDateTime.now().plusDays(30),
         isGift = false,
@@ -123,6 +124,7 @@ class AdminUserCouponTicketQueryResolverTest :
       result.size shouldBe 1
       result[0].ticketTypeName shouldBe "通兑19L"
       result[0].specification shouldBe "19L"
+      result[0].ticketNo shouldBe "SP20260800000001"
       verify { ticketQueryApiService.findUserTickets(1L, UserTicketStatus.UNUSED) }
     }
     test("userTickets should fall back to default name when ticket type missing") {

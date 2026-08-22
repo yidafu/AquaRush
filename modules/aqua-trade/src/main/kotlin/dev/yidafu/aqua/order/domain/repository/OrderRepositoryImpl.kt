@@ -20,12 +20,21 @@
 package dev.yidafu.aqua.order.domain.repository
 
 import com.querydsl.core.BooleanBuilder
+import com.querydsl.core.types.Predicate
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.core.types.dsl.NumberExpression
+import com.querydsl.core.types.dsl.NumberPath
+import com.querydsl.jpa.JPAExpressions
 import com.querydsl.jpa.impl.JPAQueryFactory
+import dev.yidafu.aqua.api.dto.MarketingUsageItemRow
+import dev.yidafu.aqua.api.dto.MarketingUsageKind
+import dev.yidafu.aqua.api.dto.MarketingUsageOrderCriteria
 import dev.yidafu.aqua.api.dto.OrderAnalyticsRow
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.QOrderGiftModel.Companion.orderGiftModel
+import dev.yidafu.aqua.common.domain.model.QOrderItemModel.Companion.orderItemModel
 import dev.yidafu.aqua.common.domain.model.QOrderModel.Companion.orderModel
+import dev.yidafu.aqua.common.domain.model.QUserCouponModel.Companion.userCouponModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import jakarta.persistence.EntityManager
@@ -467,4 +476,182 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
       .associate { row ->
         row.get(orderModel.status)!! to (row.get(orderModel.count()) ?: 0L)
       }
+
+  // ========================================================================
+  // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
+  // ========================================================================
+
+  override fun findOrdersByMarketingUsage(
+    criteria: MarketingUsageOrderCriteria,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel> {
+    val pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt")))
+    val builder = marketingUsagePredicate(criteria)
+    val content =
+      queryFactory
+        .selectFrom(orderModel)
+        .where(builder)
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .orderBy(orderModel.createdAt.desc())
+        .fetch()
+    val total =
+      queryFactory
+        .query()
+        .from(orderModel)
+        .where(builder)
+        .fetchCount()
+    return PageImpl(content, pageable, total)
+  }
+
+  override fun countOrdersByMarketingUsage(criteria: MarketingUsageOrderCriteria): Long =
+    queryFactory
+      .query()
+      .from(orderModel)
+      .where(marketingUsagePredicate(criteria))
+      .fetchCount()
+
+  override fun sumMarketingDiscountCents(criteria: MarketingUsageOrderCriteria): Long =
+    when (criteria.kind) {
+      MarketingUsageKind.PROMOTION_ACTIVITY -> {
+        sumDiscountCents(orderModel.promotionDiscountCents, orderModel.promotionActivityId.eq(criteria.refId))
+      }
+
+      MarketingUsageKind.FIRST_ORDER_REDUCE -> {
+        sumDiscountCents(orderModel.firstOrderDiscountCents, orderModel.firstOrderActivityId.eq(criteria.refId))
+      }
+
+      MarketingUsageKind.COUPON_TEMPLATE -> {
+        sumDiscountCents(orderModel.couponDiscountCents, marketingUsagePredicate(criteria))
+      }
+
+      // 限时特价/新人专享价/买赠满赠无订单列优惠快照,让利金额由 aggregateMarketingUsageItems 计算
+      else -> {
+        0L
+      }
+    }
+
+  override fun aggregateMarketingUsageItems(criteria: MarketingUsageOrderCriteria): List<MarketingUsageItemRow> =
+    when (criteria.kind) {
+      MarketingUsageKind.GIFT_ACTIVITY -> {
+        queryFactory
+          .select(orderGiftModel.productId, orderGiftModel.quantity.sumLong())
+          .from(orderGiftModel)
+          .where(orderGiftModel.giftActivityId.eq(criteria.refId))
+          .groupBy(orderGiftModel.productId)
+          .fetch()
+          .map { row ->
+            MarketingUsageItemRow(
+              productId = row.get(orderGiftModel.productId) ?: 0L,
+              unitPriceCents = null,
+              quantitySum = row.get(orderGiftModel.quantity.sumLong()) ?: 0L,
+            )
+          }
+      }
+
+      MarketingUsageKind.FLASH_SALE_ITEM, MarketingUsageKind.NEWCOMER_PRICE_ITEM -> {
+        // 时间窗匹配经 orders 子查询实现(与 marketingUsagePredicate 同口径,避免 join 重复行)
+        queryFactory
+          .select(orderItemModel.productId, orderItemModel.unitPriceCents, orderItemModel.quantity.sumLong())
+          .from(orderItemModel)
+          .where(
+            orderItemModel.productId.eq(criteria.productId),
+            orderItemModel.unitPriceCents.eq(criteria.unitPriceCents),
+            orderItemModel.orderId.`in`(
+              JPAExpressions
+                .select(orderModel.id)
+                .from(orderModel)
+                .where(
+                  orderModel.createdAt.goe(criteria.validFrom),
+                  orderModel.createdAt.lt(criteria.validTo),
+                ),
+            ),
+          )
+          .groupBy(orderItemModel.productId, orderItemModel.unitPriceCents)
+          .fetch()
+          .map { row ->
+            MarketingUsageItemRow(
+              productId = row.get(orderItemModel.productId) ?: 0L,
+              unitPriceCents = row.get(orderItemModel.unitPriceCents),
+              quantitySum = row.get(orderItemModel.quantity.sumLong()) ?: 0L,
+            )
+          }
+      }
+
+      else -> {
+        emptyList()
+      }
+    }
+
+  /**
+   * 营销使用订单匹配谓词(join 语义见 MarketingUsageKind):
+   * 关联表匹配用子查询(避免 join 造成的订单重复行)。
+   */
+  private fun marketingUsagePredicate(criteria: MarketingUsageOrderCriteria): BooleanBuilder {
+    val builder = BooleanBuilder()
+    when (criteria.kind) {
+      MarketingUsageKind.PROMOTION_ACTIVITY -> {
+        builder.and(orderModel.promotionActivityId.eq(criteria.refId))
+      }
+
+      MarketingUsageKind.FIRST_ORDER_REDUCE -> {
+        builder.and(orderModel.firstOrderActivityId.eq(criteria.refId))
+      }
+
+      MarketingUsageKind.COUPON_TEMPLATE -> {
+        builder.and(
+          orderModel.couponId.`in`(
+            JPAExpressions
+              .select(userCouponModel.id)
+              .from(userCouponModel)
+              .where(userCouponModel.couponTemplateId.eq(criteria.refId)),
+          ),
+        )
+      }
+
+      MarketingUsageKind.GIFT_ACTIVITY -> {
+        builder.and(
+          orderModel.id.`in`(
+            JPAExpressions
+              .select(orderGiftModel.orderId)
+              .from(orderGiftModel)
+              .where(orderGiftModel.giftActivityId.eq(criteria.refId)),
+          ),
+        )
+      }
+
+      MarketingUsageKind.FLASH_SALE_ITEM, MarketingUsageKind.NEWCOMER_PRICE_ITEM -> {
+        requireNotNull(criteria.productId) { "productId is required for ${criteria.kind}" }
+        requireNotNull(criteria.unitPriceCents) { "unitPriceCents is required for ${criteria.kind}" }
+        requireNotNull(criteria.validFrom) { "validFrom is required for ${criteria.kind}" }
+        requireNotNull(criteria.validTo) { "validTo is required for ${criteria.kind}" }
+        // 活动窗口径与引擎一致:validFrom ≤ 下单时间 < validTo
+        builder.and(orderModel.createdAt.goe(criteria.validFrom))
+        builder.and(orderModel.createdAt.lt(criteria.validTo))
+        builder.and(
+          orderModel.id.`in`(
+            JPAExpressions
+              .select(orderItemModel.orderId)
+              .from(orderItemModel)
+              .where(
+                orderItemModel.productId.eq(criteria.productId),
+                orderItemModel.unitPriceCents.eq(criteria.unitPriceCents),
+              ),
+          ),
+        )
+      }
+    }
+    return builder
+  }
+
+  private fun sumDiscountCents(
+    expr: NumberPath<Long>,
+    predicate: Predicate,
+  ): Long =
+    queryFactory
+      .select(expr.sumLong())
+      .from(orderModel)
+      .where(predicate)
+      .fetchOne() ?: 0L
 }

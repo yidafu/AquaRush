@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import { useNavigate } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import { BRAND_PRIMARY } from '../../../config/theme';
 import type { FlashSaleActivity } from '@aquarush/common';
@@ -24,6 +25,7 @@ const DISPLAY_STATUS_META: Record<string, { text: string; color: string }> = {
 
 // 限时特价活动页(F-MKT-005):商品级活动价,活动期自动按特价计价(单价链③)
 const FlashSale: React.FC = () => {
+  const navigate = useNavigate();
   const [loadActivities, { data, loading }] = useFlashSaleActivities();
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
@@ -111,9 +113,12 @@ const FlashSale: React.FC = () => {
     },
     {
       title: '操作',
-      width: 150,
+      width: 200,
       render: (_, record) => (
         <Space size="small">
+          <Button size="small" onClick={() => navigate(`/marketing/flash-sale/${record.id}?name=${encodeURIComponent(record.name)}`)}>
+            详情
+          </Button>
           <Button size="small" onClick={() => handleEdit(record)}>
             编辑
           </Button>

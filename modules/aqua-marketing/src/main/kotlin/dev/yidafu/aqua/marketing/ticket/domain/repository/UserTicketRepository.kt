@@ -27,6 +27,7 @@ import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
@@ -36,7 +37,8 @@ import java.time.LocalDateTime
 @Repository
 interface UserTicketRepository :
   JpaRepository<UserTicketModel, Long>,
-  JpaSpecificationExecutor<UserTicketModel> {
+  JpaSpecificationExecutor<UserTicketModel>,
+  UserTicketSequenceRepository {
   fun findByUserId(userId: Long): List<UserTicketModel>
 
   fun findByUserIdAndStatus(
@@ -52,6 +54,57 @@ interface UserTicketRepository :
   fun findByUsedOrderId(orderId: Long): List<UserTicketModel>
 
   fun findByPurchaseId(purchaseId: Long): List<UserTicketModel>
+
+  /**
+   * 当前可用张数(UNUSED + 未过期 RETURNED),后台水票统计「当前可用」口径。
+   */
+  fun countByTicketTypeIdAndStatusInAndExpireTimeGreaterThan(
+    ticketTypeId: Long,
+    statuses: List<UserTicketStatus>,
+    expireTime: LocalDateTime,
+  ): Long
+
+  /**
+   * 使用统计投影(按日):已核销/已退回/已过期张数。
+   * 时间取各状态对应时间戳:USED=usedAt,RETURNED=returnedAt,EXPIRED=returnedAt 回退 updatedAt。
+   */
+  interface TicketUsageDay {
+    fun getDay(): LocalDate
+
+    fun getRedeemedCount(): Long
+
+    fun getReturnedCount(): Long
+
+    fun getExpiredCount(): Long
+  }
+
+  /**
+   * 按日汇总使用情况(后台水票统计):[from, to) 左闭右开,空数据日由服务层补零。
+   */
+  @Query(
+    """
+    select cast(coalesce(t.usedAt, t.returnedAt, t.updatedAt) as date) as day,
+           sum(case when t.status = dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus.USED then 1 else 0 end) as redeemedCount,
+           sum(case when t.status = dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus.RETURNED then 1 else 0 end) as returnedCount,
+           sum(case when t.status = dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus.EXPIRED then 1 else 0 end) as expiredCount
+    from UserTicketModel t
+    where t.ticketTypeId = :ticketTypeId
+      and t.status in (
+        dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus.USED,
+        dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus.RETURNED,
+        dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus.EXPIRED
+      )
+      and coalesce(t.usedAt, t.returnedAt, t.updatedAt) >= :from
+      and coalesce(t.usedAt, t.returnedAt, t.updatedAt) < :to
+    group by cast(coalesce(t.usedAt, t.returnedAt, t.updatedAt) as date)
+    order by day
+    """,
+  )
+  fun findUsageGroupedByDay(
+    @Param("ticketTypeId") ticketTypeId: Long,
+    @Param("from") from: LocalDateTime,
+    @Param("to") to: LocalDateTime,
+  ): List<TicketUsageDay>
 
   /**
    * 原子核销:UNUSED/RETURNED 且未过期可核销;受影响行数=1 成功,=0 已被并发核销/过期。

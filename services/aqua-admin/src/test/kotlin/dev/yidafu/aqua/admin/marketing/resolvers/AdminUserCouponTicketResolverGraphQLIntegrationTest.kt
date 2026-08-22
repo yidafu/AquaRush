@@ -139,6 +139,11 @@ class AdminUserCouponTicketResolverGraphQLIntegrationTest(
             userId = user.id!!,
             ticketTypeId = ticketType.id!!,
             purchaseId = 0L,
+            // 唯一票号(SP+年月+8位序号;测试用时间戳序号保证唯一)
+            ticketNo = "SP${java.time.LocalDate.now().format(
+              java.time.format.DateTimeFormatter
+                .ofPattern("yyyyMM"),
+            )}${System.nanoTime().toString().takeLast(8).padStart(8, '0')}",
             status = status,
             expireTime = LocalDateTime.now().plusDays(90),
             isGift = false,

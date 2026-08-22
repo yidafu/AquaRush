@@ -136,3 +136,11 @@
   margin-left: 32px;
   flex-shrink: 0;
 }
+
+/* 水票唯一递增票号(长按复制,F-MKT-007) */
+.ticket-item-no {
+  font-size: 20px;
+  font-family: monospace;
+  color: var(--theme-text-tertiary);
+  user-select: none;
+}

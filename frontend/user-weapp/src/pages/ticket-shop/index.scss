@@ -125,3 +125,59 @@
   font-weight: 600;
   color: #ffffff;
 }
+
+/* 购票张数选择(1~10,一次购买按张数生成对应水票记录 F-MKT-007) */
+.ticket-quantity-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 32px 32px;
+  border-top: 1px solid var(--theme-border);
+  padding-top: 24px;
+}
+
+.ticket-quantity-label {
+  font-size: 24px;
+  color: var(--theme-text-secondary);
+}
+
+.ticket-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ticket-stepper-btn {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--theme-background-page);
+  border: 1px solid var(--theme-border);
+}
+
+.ticket-stepper-btn-disabled {
+  opacity: 0.4;
+}
+
+.ticket-stepper-icon {
+  font-size: 32px;
+  color: var(--theme-text-primary);
+}
+
+.ticket-stepper-value {
+  min-width: 64px;
+  text-align: center;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--theme-text-primary);
+}
+
+.ticket-quantity-total {
+  margin-left: auto;
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}

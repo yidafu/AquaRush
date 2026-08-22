@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import { useNavigate } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import type { PromotionActivity } from '@aquarush/common';
 import {
@@ -26,8 +27,9 @@ const DISPLAY_STATUS_META: Record<string, { text: string; color: string }> = {
   DISABLED: { text: '已停用', color: 'red' },
 };
 
-// 满减/折扣活动页(F-MKT-004):列表/新建/编辑/停用
+// 满减/折扣活动页(F-MKT-004):列表/新建/编辑/停用/详情(使用情况与相关订单)
 const Promotions: React.FC = () => {
+  const navigate = useNavigate();
   const [loadActivities, { data, loading }] = usePromotionActivities();
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
@@ -121,9 +123,12 @@ const Promotions: React.FC = () => {
     },
     {
       title: '操作',
-      width: 150,
+      width: 200,
       render: (_, record) => (
         <Space size="small">
+          <Button size="small" onClick={() => navigate(`/marketing/promotions/${record.id}?name=${encodeURIComponent(record.name)}`)}>
+            详情
+          </Button>
           <Button size="small" onClick={() => handleEdit(record)}>
             编辑
           </Button>

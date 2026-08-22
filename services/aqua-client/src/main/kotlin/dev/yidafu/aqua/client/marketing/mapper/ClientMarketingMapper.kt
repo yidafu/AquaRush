@@ -157,6 +157,7 @@ fun UserTicketModel.toGraphQL(
 ): UserTicketVo =
   UserTicketVo(
     id = id ?: 0L,
+    ticketNo = ticketNo,
     ticketTypeName = ticketTypeName,
     specification = specification,
     status = status.toGraphQL(),

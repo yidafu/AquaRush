@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.order.service.impl
 
+import dev.yidafu.aqua.api.dto.MarketingUsageItemRow
+import dev.yidafu.aqua.api.dto.MarketingUsageOrderCriteria
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
@@ -129,4 +131,24 @@ class OrderQueryApiServiceImpl(
       }
     return orders.sumOf { it.amountCents ?: 0L }
   }
+
+  // ========================================================================
+  // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
+  // ========================================================================
+
+  override fun findOrdersByMarketingUsage(
+    criteria: MarketingUsageOrderCriteria,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel> =
+    orderRepository.findOrdersByMarketingUsage(criteria = criteria, page = page, size = size)
+
+  override fun countOrdersByMarketingUsage(criteria: MarketingUsageOrderCriteria): Long =
+    orderRepository.countOrdersByMarketingUsage(criteria)
+
+  override fun sumMarketingDiscountCents(criteria: MarketingUsageOrderCriteria): Long =
+    orderRepository.sumMarketingDiscountCents(criteria)
+
+  override fun aggregateMarketingUsageItems(criteria: MarketingUsageOrderCriteria): List<MarketingUsageItemRow> =
+    orderRepository.aggregateMarketingUsageItems(criteria)
 }

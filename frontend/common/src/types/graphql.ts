@@ -1331,6 +1331,22 @@ export type LoginStatistics = {
   readonly totalLogins: Scalars['Int']['output'];
 };
 
+export type MarketingUsageListInput = {
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type MarketingUsageSummary = {
+  readonly benefitCents: Scalars['Long']['output'];
+  readonly orderCount: Scalars['Int']['output'];
+  readonly usageCount: Scalars['Int']['output'];
+};
+
+export type MarketingUsageVo = {
+  readonly orders: OrderVoPage;
+  readonly summary: MarketingUsageSummary;
+};
+
 export type MonthlyStatistic = {
   readonly month: Scalars['Int']['output'];
   readonly monthName: Scalars['String']['output'];
@@ -2709,6 +2725,7 @@ export type Query = {
   readonly businessLogs?: Maybe<BusinessLogVoPage>;
   readonly couponCenter: ReadonlyArray<CouponTemplateVo>;
   readonly couponTemplate?: Maybe<CouponTemplate>;
+  readonly couponTemplateUsage?: Maybe<MarketingUsageVo>;
   readonly couponTemplates?: Maybe<CouponTemplateVoPage>;
   readonly customerGroup?: Maybe<CustomerGroup>;
   readonly customerGroups?: Maybe<CustomerGroupVoPage>;
@@ -2733,10 +2750,13 @@ export type Query = {
   readonly feedbacks?: Maybe<FeedbackVoPage>;
   readonly firstOrderActivities?: Maybe<FirstOrderActivityVoPage>;
   readonly firstOrderActivity?: Maybe<FirstOrderActivity>;
+  readonly firstOrderActivityUsage?: Maybe<MarketingUsageVo>;
   readonly flashSaleActivities?: Maybe<FlashSaleActivityVoPage>;
   readonly flashSaleActivity?: Maybe<FlashSaleActivity>;
+  readonly flashSaleActivityUsage?: Maybe<MarketingUsageVo>;
   readonly giftActivities?: Maybe<GiftActivityVoPage>;
   readonly giftActivity?: Maybe<GiftActivity>;
+  readonly giftActivityUsage?: Maybe<MarketingUsageVo>;
   readonly groupProductPrices?: Maybe<GroupProductPriceVoPage>;
   readonly isProductFavorited: Scalars['Boolean']['output'];
   readonly me?: Maybe<UserInfo>;
@@ -2772,6 +2792,7 @@ export type Query = {
   readonly productsPaginated?: Maybe<ProductVoPage>;
   readonly promotionActivities?: Maybe<PromotionActivityVoPage>;
   readonly promotionActivity?: Maybe<PromotionActivity>;
+  readonly promotionActivityUsage?: Maybe<MarketingUsageVo>;
   readonly refundRequest?: Maybe<RefundRequest>;
   readonly refundRequests: RefundRequestPage;
   readonly region?: Maybe<Region>;
@@ -2785,6 +2806,7 @@ export type Query = {
   readonly systemConfigs: ReadonlyArray<SystemConfigVo>;
   readonly ticketShop: ReadonlyArray<TicketTypeVo>;
   readonly ticketType?: Maybe<TicketType>;
+  readonly ticketTypeStats: TicketTypeStatsVo;
   readonly ticketTypes?: Maybe<TicketTypeVoPage>;
   readonly todayStatistics?: Maybe<TodayStatistics>;
   readonly unreadNotificationCount: Scalars['Int']['output'];
@@ -2841,6 +2863,12 @@ export type QueryBusinessLogsArgs = {
 
 export type QueryCouponTemplateArgs = {
   id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryCouponTemplateUsageArgs = {
+  couponTemplateId: Scalars['PrimaryId']['input'];
+  input?: InputMaybe<MarketingUsageListInput>;
 };
 
 
@@ -2937,6 +2965,12 @@ export type QueryFirstOrderActivityArgs = {
 };
 
 
+export type QueryFirstOrderActivityUsageArgs = {
+  firstOrderActivityId: Scalars['PrimaryId']['input'];
+  input?: InputMaybe<MarketingUsageListInput>;
+};
+
+
 export type QueryFlashSaleActivitiesArgs = {
   input?: InputMaybe<FlashSaleActivityListInput>;
 };
@@ -2947,6 +2981,12 @@ export type QueryFlashSaleActivityArgs = {
 };
 
 
+export type QueryFlashSaleActivityUsageArgs = {
+  flashSaleActivityId: Scalars['PrimaryId']['input'];
+  input?: InputMaybe<MarketingUsageListInput>;
+};
+
+
 export type QueryGiftActivitiesArgs = {
   input?: InputMaybe<GiftActivityListInput>;
 };
@@ -2954,6 +2994,12 @@ export type QueryGiftActivitiesArgs = {
 
 export type QueryGiftActivityArgs = {
   id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryGiftActivityUsageArgs = {
+  giftActivityId: Scalars['PrimaryId']['input'];
+  input?: InputMaybe<MarketingUsageListInput>;
 };
 
 
@@ -3113,6 +3159,12 @@ export type QueryPromotionActivityArgs = {
 };
 
 
+export type QueryPromotionActivityUsageArgs = {
+  input?: InputMaybe<MarketingUsageListInput>;
+  promotionActivityId: Scalars['PrimaryId']['input'];
+};
+
+
 export type QueryRefundRequestArgs = {
   id: Scalars['String']['input'];
 };
@@ -3166,6 +3218,12 @@ export type QuerySystemConfigsArgs = {
 
 export type QueryTicketTypeArgs = {
   id: Scalars['PrimaryId']['input'];
+};
+
+
+export type QueryTicketTypeStatsArgs = {
+  input: DateRangeInput;
+  ticketTypeId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -3485,6 +3543,22 @@ export type TicketPurchaseVo = {
   readonly totalCount: Scalars['Int']['output'];
 };
 
+export type TicketSalesPointVo = {
+  readonly date: Scalars['String']['output'];
+  readonly purchaseCount: Scalars['Int']['output'];
+  readonly revenueCents: Scalars['Long']['output'];
+  readonly ticketCount: Scalars['Int']['output'];
+};
+
+export type TicketStatsSummaryVo = {
+  readonly availableCount: Scalars['Int']['output'];
+  readonly expiredCount: Scalars['Int']['output'];
+  readonly redeemedCount: Scalars['Int']['output'];
+  readonly returnedCount: Scalars['Int']['output'];
+  readonly revenueCents: Scalars['Long']['output'];
+  readonly soldCount: Scalars['Int']['output'];
+};
+
 export type TicketType = {
   readonly createdAt: Scalars['LocalDateTime']['output'];
   readonly giftCount: Scalars['Int']['output'];
@@ -3516,6 +3590,14 @@ export type TicketTypeListInput = {
   readonly status?: InputMaybe<TicketTypeStatus>;
 };
 
+export type TicketTypeStatsVo = {
+  readonly sales: ReadonlyArray<TicketSalesPointVo>;
+  readonly summary: TicketStatsSummaryVo;
+  readonly ticketTypeId: Scalars['PrimaryId']['output'];
+  readonly ticketTypeName: Scalars['String']['output'];
+  readonly usage: ReadonlyArray<TicketUsagePointVo>;
+};
+
 export enum TicketTypeStatus {
   ACTIVE = 'ACTIVE',
   DISABLED = 'DISABLED'
@@ -3544,6 +3626,13 @@ export type TicketTypeVoPage = {
   readonly size: Scalars['Int']['output'];
   readonly totalElements: Scalars['Int']['output'];
   readonly totalPages: Scalars['Int']['output'];
+};
+
+export type TicketUsagePointVo = {
+  readonly date: Scalars['String']['output'];
+  readonly expiredCount: Scalars['Int']['output'];
+  readonly redeemedCount: Scalars['Int']['output'];
+  readonly returnedCount: Scalars['Int']['output'];
 };
 
 export type TodayStatistics = {
@@ -3931,6 +4020,7 @@ export type UserTicketVo = {
   readonly isGift: Scalars['Boolean']['output'];
   readonly specification?: Maybe<Scalars['String']['output']>;
   readonly status: UserTicketStatus;
+  readonly ticketNo: Scalars['String']['output'];
   readonly ticketTypeName: Scalars['String']['output'];
 };
 

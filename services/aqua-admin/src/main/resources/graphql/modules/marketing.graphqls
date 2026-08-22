@@ -38,6 +38,18 @@ extend type Query {
   userCoupons(userId: PrimaryId!, status: UserCouponStatus): [UserCouponVO!]!
   # 用户持有的桶水票(用户详情页「水票」Tab,状态空=全部)
   userTickets(userId: PrimaryId!, status: UserTicketStatus): [UserTicketVO!]!
+  # 桶水票票种销售/使用统计(票种详情图表,时间范围)
+  ticketTypeStats(ticketTypeId: PrimaryId!, input: DateRangeInput!): TicketTypeStatsVO!
+  # 优惠券模板使用情况与相关订单(营销方式详情:汇总 + 订单分页,F-MKT-003)
+  couponTemplateUsage(couponTemplateId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVO
+  # 满减/折扣活动使用情况与相关订单(营销方式详情:汇总 + 订单分页,F-MKT-004)
+  promotionActivityUsage(promotionActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVO
+  # 限时特价活动使用情况与相关订单(营销方式详情:汇总 + 订单分页,F-MKT-005)
+  flashSaleActivityUsage(flashSaleActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVO
+  # 买赠/满赠活动使用情况与相关订单(营销方式详情:汇总 + 订单分页,F-MKT-008)
+  giftActivityUsage(giftActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVO
+  # 首单立减/新人专享价活动使用情况与相关订单(营销方式详情:汇总 + 订单分页,F-MKT-009)
+  firstOrderActivityUsage(firstOrderActivityId: PrimaryId!, input: MarketingUsageListInput): MarketingUsageVO
 }
 
 extend type Mutation {
@@ -457,6 +469,57 @@ input UpdateTicketTypeInput {
   perUserLimit: Int! @min(value: 0, message: "限购数无效") @max(value: 1000, message: "限购数不能超过1000")
 }
 
+# 桶水票票种销售/使用统计(后台票种详情图表,F-MKT-007)
+
+# 按日销售点(购票单数/入账张数 N+M/销售金额,金额单位:分 R-MON-01)
+type TicketSalesPointVO {
+  # 日期(yyyy-MM-dd)
+  date: String!
+  # 购票单数
+  purchaseCount: Int!
+  # 入账张数(N 张 + 赠送 M 张)
+  ticketCount: Int!
+  # 销售金额(分)
+  revenueCents: Long!
+}
+
+# 按日使用点(核销/退回/过期张数)
+type TicketUsagePointVO {
+  # 日期(yyyy-MM-dd)
+  date: String!
+  # 核销张数(USED)
+  redeemedCount: Int!
+  # 退回张数(RETURNED)
+  returnedCount: Int!
+  # 过期张数(EXPIRED)
+  expiredCount: Int!
+}
+
+# 区间汇总(与查询时间范围一致;availableCount 为当前存量,与区间无关)
+type TicketStatsSummaryVO {
+  # 区间销售张数(入账 N+M)
+  soldCount: Int!
+  # 区间销售金额(分)
+  revenueCents: Long!
+  # 区间核销张数
+  redeemedCount: Int!
+  # 区间退回张数
+  returnedCount: Int!
+  # 区间过期张数
+  expiredCount: Int!
+  # 当前可用张数(UNUSED + 未过期 RETURNED)
+  availableCount: Int!
+}
+
+# 票种统计汇总:汇总 + 销售/使用按日序列(空数据日补零)
+type TicketTypeStatsVO {
+  ticketTypeId: PrimaryId!
+  ticketTypeName: String!
+  summary: TicketStatsSummaryVO!
+  sales: [TicketSalesPointVO!]!
+  usage: [TicketUsagePointVO!]!
+}
+
 # ============ 限时特价活动(F-MKT-005,R-MKT-02 单价链③) ============
 
 type FlashSaleActivity {
@@ -658,4 +721,31 @@ input UpdateFirstOrderActivityInput {
   newcomerPriceCents: Long @min(value: 1, message: "新人专享价无效(0.01-99999元)") @max(value: 9999900, message: "新人专享价无效(0.01-99999元)")
   validFrom: LocalDateTime!
   validTo: LocalDateTime!
+}
+
+# ============ 营销方式详情:使用情况与相关订单(F-MKT-003~009) ============
+
+# 营销使用情况汇总(金额单位:分 R-MON-01)
+type MarketingUsageSummary {
+  # 使用订单数
+  orderCount: Int!
+  # 优惠/让利总金额(分)。口径:券/满减/首单立减=订单营销优惠快照列合计
+  # (coupon_discount_cents / promotion_discount_cents / first_order_discount_cents);
+  # 限时特价/新人专享价=Σ(当前目录价 − 成交单价) × 数量(估算);
+  # 买赠/满赠=Σ 赠品数量 × 赠品当前目录价(估算)
+  benefitCents: Long!
+  # 使用/核销数量。券=已核销张数;赠品=赠品总件数;特价/新人价=命中商品件数;满减/首单立减=使用订单数
+  usageCount: Int!
+}
+
+# 营销方式使用情况(汇总 + 相关订单分页)
+type MarketingUsageVO {
+  summary: MarketingUsageSummary!
+  # 相关订单记录(分页,按下单时间倒序)
+  orders: OrderVOPage!
+}
+
+input MarketingUsageListInput {
+  page: Int = 0
+  size: Int = 20
 }

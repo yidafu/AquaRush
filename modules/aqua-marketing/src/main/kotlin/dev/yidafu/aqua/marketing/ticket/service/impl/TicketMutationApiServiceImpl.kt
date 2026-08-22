@@ -36,6 +36,7 @@ import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 /**
  * 桶水票用户侧变更服务实现(F-MKT-007):
@@ -55,6 +56,8 @@ class TicketMutationApiServiceImpl(
     userId: Long,
     request: PurchaseTicketsRequest,
   ): TicketPurchaseModel {
+    // 防御校验:单次购票张数 1~10(GraphQL input 已约束,服务层兜底防直连调用越界)
+    require(request.packageCount in 1..10) { "单次购票张数必须为1-10张" }
     val ticketType = ticketTypeRepository.findById(request.ticketTypeId).orElseThrow { TicketTypeNotFoundException(request.ticketTypeId) }
     if (ticketType.status != TicketTypeStatus.ACTIVE) {
       throw TicketTypeNotFoundException(request.ticketTypeId)
@@ -122,19 +125,23 @@ class TicketMutationApiServiceImpl(
       return purchase
     }
     val ticketType = ticketTypeRepository.findById(purchase.ticketTypeId).orElseThrow { TicketTypeNotFoundException(purchase.ticketTypeId) }
-    // 票包入账 totalCount 张(N 张正常 + M 张赠送,同池核销/过期口径一致 R-MKT-08)
+    // 票包入账 totalCount 张(N 张正常 + M 张赠送,同池核销/过期口径一致 R-MKT-08);
+    // 每张票生成唯一递增票号:SP + 入账年月(yyyyMM) + 8 位序号,按月重置(v2.2.0)
     val expireTime =
       when (ticketType.validityType) {
         ValidityType.FIXED_RANGE -> ticketType.validTo ?: now
         ValidityType.DAYS_AFTER_PURCHASE -> now.plusDays((ticketType.validDays ?: 0).toLong())
         else -> now
       }
+    val monthKey = DateTimeFormatter.ofPattern("yyyyMM").format(now)
     repeat(purchase.totalCount) { index ->
+      val seq = userTicketRepository.nextTicketSeq(monthKey)
       userTicketRepository.save(
         UserTicketModel(
           userId = purchase.userId,
           ticketTypeId = purchase.ticketTypeId,
           purchaseId = ticketPurchaseId,
+          ticketNo = "SP$monthKey${seq.toString().padStart(8, '0')}",
           status = dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus.UNUSED,
           expireTime = expireTime,
           isGift = index >= purchase.packageCount,

@@ -2385,6 +2385,8 @@ enum UserCouponStatus {
 # 用户持有的桶水票(F-MKT-007;管理后台用户详情页「水票」Tab 与用户端「我的水票」共用)
 type UserTicketVO {
   id: PrimaryId!
+  # 水票唯一递增票号(SP+入账年月+8位序号,按月重置;用户可见,长按可复制)
+  ticketNo: String!
   # 票种名称
   ticketTypeName: String!
   # 通兑票限定规格

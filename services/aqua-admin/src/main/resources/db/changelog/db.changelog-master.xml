@@ -40,5 +40,7 @@
   <include file="db/changelog/changes/v2.1.0-add-barrel-fee.xml"/>
   <!-- 南山牌桶装水演示数据:位于全部 schema 变更之后,可引用最终 schema;重建数据库后生效 -->
   <include file="db/changelog/changes/v1.7.0-seed-nanshan-demo-data.xml"/>
+  <!-- F-MKT-007 水票唯一递增票号(SP+年月+8位序号,按月重置):置于 seed 之后以回填种子数据 -->
+  <include file="db/changelog/changes/v2.2.0-add-user-ticket-no.xml"/>
 
 </databaseChangeLog>

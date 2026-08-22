@@ -1,5 +1,7 @@
 package dev.yidafu.aqua.order.domain.repository
 
+import dev.yidafu.aqua.api.dto.MarketingUsageItemRow
+import dev.yidafu.aqua.api.dto.MarketingUsageOrderCriteria
 import dev.yidafu.aqua.api.dto.OrderAnalyticsRow
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
@@ -122,4 +124,33 @@ interface OrderRepositoryCustom {
    * 仅本人订单(软删除自动过滤);缺失状态不计入(调用方补 0)。
    */
   fun countOrdersByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long>
+
+  // ========================================================================
+  // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
+  // ========================================================================
+
+  /**
+   * 按营销追溯条件分页查询相关订单(按下单时间倒序),匹配语义见 MarketingUsageKind。
+   */
+  fun findOrdersByMarketingUsage(
+    criteria: MarketingUsageOrderCriteria,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel>
+
+  /**
+   * 营销使用订单数(与 findOrdersByMarketingUsage 同口径)。
+   */
+  fun countOrdersByMarketingUsage(criteria: MarketingUsageOrderCriteria): Long
+
+  /**
+   * 营销优惠金额合计(分):券/满减/首单立减按订单快照列求和,其余类型返回 0。
+   */
+  fun sumMarketingDiscountCents(criteria: MarketingUsageOrderCriteria): Long
+
+  /**
+   * 营销使用商品聚合行:限时特价/新人价按 order_items (product_id, unit_price_cents) 分组;
+   * 买赠/满赠按 order_gifts product_id 分组。
+   */
+  fun aggregateMarketingUsageItems(criteria: MarketingUsageOrderCriteria): List<MarketingUsageItemRow>
 }

@@ -52,6 +52,7 @@ export const USER_TICKETS_QUERY = gql`
   query GetUserTickets($userId: PrimaryId!, $status: UserTicketStatus) {
     userTickets(userId: $userId, status: $status) {
       id
+      ticketNo
       ticketTypeName
       specification
       status

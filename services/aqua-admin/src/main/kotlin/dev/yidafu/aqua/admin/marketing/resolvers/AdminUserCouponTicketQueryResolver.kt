@@ -101,6 +101,7 @@ class AdminUserCouponTicketQueryResolver(
   ): UserTicketVo =
     UserTicketVo(
       id = id ?: 0L,
+      ticketNo = ticketNo,
       ticketTypeName = ticketTypeName,
       specification = specification,
       status = GraphQLUserTicketStatus.valueOf(status.name),

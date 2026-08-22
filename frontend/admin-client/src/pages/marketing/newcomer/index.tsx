@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { Table, Tag, Space, Button, Card, Popconfirm, Input, Typography } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
+import { useNavigate } from 'react-router-dom';
 import { displayCents, formatDateTime } from '@aquarush/common';
 import type { FirstOrderActivity } from '@aquarush/common';
 import {
@@ -28,6 +29,7 @@ const DISPLAY_STATUS_META: Record<string, { text: string; color: string }> = {
 
 // 首单立减/新人专享价页(F-MKT-009):新用户首次下单自动享受,一单一享
 const Newcomer: React.FC = () => {
+  const navigate = useNavigate();
   const [loadActivities, { data, loading }] = useFirstOrderActivities();
   const [page, setPage] = useState(0);
   const [size, setSize] = useState(20);
@@ -129,9 +131,12 @@ const Newcomer: React.FC = () => {
     },
     {
       title: '操作',
-      width: 150,
+      width: 200,
       render: (_, record) => (
         <Space size="small">
+          <Button size="small" onClick={() => navigate(`/marketing/newcomer/${record.id}?name=${encodeURIComponent(record.name)}`)}>
+            详情
+          </Button>
           <Button size="small" onClick={() => handleEdit(record)}>
             编辑
           </Button>

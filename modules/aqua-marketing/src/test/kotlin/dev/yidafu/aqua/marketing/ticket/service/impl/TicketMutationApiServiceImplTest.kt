@@ -108,6 +108,16 @@ class TicketMutationApiServiceImplTest :
         service.purchaseTickets(1L, PurchaseTicketsRequest(ticketTypeId = 1L, packageCount = 2))
       }
     }
+    test("purchaseTickets rejects packageCount out of 1..10") {
+      every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(perUserLimit = 0))
+
+      shouldThrow<IllegalArgumentException> {
+        service.purchaseTickets(1L, PurchaseTicketsRequest(ticketTypeId = 1L, packageCount = 0))
+      }
+      shouldThrow<IllegalArgumentException> {
+        service.purchaseTickets(1L, PurchaseTicketsRequest(ticketTypeId = 1L, packageCount = 11))
+      }
+    }
     test("handleTicketPurchasePaid credits N plus M gift") {
       val purchase =
         TicketPurchaseModel(
@@ -124,17 +134,35 @@ class TicketMutationApiServiceImplTest :
       every { ticketPurchaseRepository.findById(1L) } returns Optional.of(purchase)
       every { ticketPurchaseRepository.markPaidAtomically(1L, "tx-1", any()) } returns 1
       every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(giftCount = 1))
+      every { userTicketRepository.nextTicketSeq(any()) } returnsMany (1L..11L).toList()
       // 真实实现中 EntityManager.refresh 将实体刷新为 DB 最新状态(PAID)
       every { entityManager.refresh(any()) } answers { (firstArg() as TicketPurchaseModel).paymentStatus = TicketPurchaseStatus.PAID }
-      val ticketSlot = slot<UserTicketModel>()
-      every { userTicketRepository.save(capture(ticketSlot)) } answers { firstArg() }
+      val ticketSlots = mutableListOf<UserTicketModel>()
+      every { userTicketRepository.save(capture(ticketSlots)) } answers { firstArg() }
 
       val paid = service.handleTicketPurchasePaid(1L, "tx-1")
 
       paid.paymentStatus shouldBe TicketPurchaseStatus.PAID
       verify(exactly = 11) { userTicketRepository.save(any()) }
-      ticketSlot.captured.isGift shouldBe true
-      ticketSlot.captured.status shouldBe UserTicketStatus.UNUSED
+      // 每张票唯一递增票号:SP + 入账年月 + 8位序号(按月重置 v2.2.0)
+      val monthKey =
+        java.time.LocalDate
+          .now()
+          .format(
+            java.time.format.DateTimeFormatter
+              .ofPattern("yyyyMM"),
+          )
+      val ticketNoPattern = Regex("^SP\\d{6}\\d{8}$")
+      ticketSlots.map { it.ticketNo }.forEach { no -> ticketNoPattern.matches(no) shouldBe true }
+      ticketSlots.map { it.ticketNo }.distinct().size shouldBe 11
+      ticketSlots.forEachIndexed { index, ticket ->
+        ticket.ticketNo shouldBe "SP$monthKey${(index + 1).toString().padStart(8, '0')}"
+      }
+      // 最后一票为赠送票(总 11 张 = 10 正常 + 1 赠送)
+      ticketSlots.last().isGift shouldBe true
+      ticketSlots.first().isGift shouldBe false
+      ticketSlots.all { it.status == UserTicketStatus.UNUSED } shouldBe true
+      ticketSlots.all { it.purchaseId == 1L } shouldBe true
     }
     test("handleTicketPurchasePaid is idempotent") {
       val paidPurchase =
@@ -157,6 +185,7 @@ class TicketMutationApiServiceImplTest :
       result.paymentStatus shouldBe TicketPurchaseStatus.PAID
       verify(exactly = 0) { userTicketRepository.save(any()) }
       verify(exactly = 0) { ticketPurchaseRepository.markPaidAtomically(any(), any(), any()) }
+      verify(exactly = 0) { userTicketRepository.nextTicketSeq(any()) }
     }
     test("returnTicketsByOrder returns unexpired tickets") {
       every { userTicketRepository.returnByOrder(99L, any()) } returns 3
