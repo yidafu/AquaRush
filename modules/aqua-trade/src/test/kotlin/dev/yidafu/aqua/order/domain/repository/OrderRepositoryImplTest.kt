@@ -309,6 +309,38 @@ class OrderRepositoryImplTest :
 
       repo.sumAmountCentsByStatusAndDateRange(listOf(OrderModelStatus.COMPLETED), start, end, 5L) shouldBe 0L
     }
+    test("countByStatusAndCreatedAtBetween counts with filters") {
+      // 后台首页 orderStatistics:严格开区间 (startDate, endDate),状态/配送员可空过滤
+      every { exprQuery.fetchOne() } returnsMany listOf(4L, 2L, null)
+      repo.countByStatusAndCreatedAtBetween(start, end, 5L, listOf(OrderModelStatus.COMPLETED)) shouldBe 4L
+      repo.countByStatusAndCreatedAtBetween(start, end, null, null) shouldBe 2L
+
+      repo.countByStatusAndCreatedAtBetween(start, end, 5L, listOf(OrderModelStatus.CANCELLED)) shouldBe 0L
+    }
+    test("sumAmountCentsByStatusAndCreatedAtBetween sums") {
+      every { exprQuery.fetchOne() } returnsMany listOf(9499L, 3500L, null)
+      repo.sumAmountCentsByStatusAndCreatedAtBetween(
+        listOf(OrderModelStatus.COMPLETED, OrderModelStatus.CANCELLED),
+        start,
+        end,
+        null,
+      ) shouldBe 9499L
+      repo.sumAmountCentsByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, 5L) shouldBe 3500L
+
+      repo.sumAmountCentsByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, 5L) shouldBe 0L
+    }
+    test("findByCreatedAtBetween fetches in window") {
+      val orders = listOf(order(1L))
+      every { selectQuery.fetch() } returns orders
+
+      repo.findByCreatedAtBetween(start, end) shouldBe orders
+    }
+    test("findByStatusAndCreatedAtBetween fetches in window by status") {
+      val orders = listOf(order(1L, status = OrderModelStatus.COMPLETED))
+      every { selectQuery.fetch() } returns orders
+
+      repo.findByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end) shouldBe orders
+    }
     test("countAndSumByPaymentType returns count and sum") {
       every { exprQuery.fetchOne() } returnsMany listOf(2L, 2500L)
 

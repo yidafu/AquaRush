@@ -125,6 +125,47 @@ interface OrderRepositoryCustom {
    */
   fun countOrdersByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long>
 
+  /**
+   * 统计日期窗口内订单数(后台首页 orderStatistics 口径):
+   * createdAt 严格开区间 (startDate, endDate),与原内存过滤 isAfter/isBefore 逐位等价;
+   * statuses 为 null=全部状态;deliveryWorkerId 为 null=不限配送员;软删除自动过滤。
+   */
+  fun countByStatusAndCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Long
+
+  /**
+   * 统计日期窗口内指定状态订单金额合计(分,amountCents 快照列,后台首页 orderStatistics 口径):
+   * createdAt 严格开区间 (startDate, endDate),与原内存过滤 isAfter/isBefore 逐位等价;
+   * deliveryWorkerId 为 null=不限配送员;软删除自动过滤。
+   */
+  fun sumAmountCentsByStatusAndCreatedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long
+
+  /**
+   * 查询日期窗口内订单(createdAt 严格开区间,与原内存过滤 isAfter/isBefore 逐位等价;软删除自动过滤)
+   */
+  fun findByCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<OrderModel>
+
+  /**
+   * 查询日期窗口内指定状态订单(createdAt 严格开区间,与原内存过滤 isAfter/isBefore 逐位等价;软删除自动过滤)
+   */
+  fun findByStatusAndCreatedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<OrderModel>
+
   // ========================================================================
   // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
   // ========================================================================

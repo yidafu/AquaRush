@@ -152,6 +152,7 @@ const OrderHistoryTable: React.FC<OrderHistoryTableProps> = ({
         const methodMap: Record<string, string> = {
           WECHAT_PAY: '微信支付',
           ALIPAY: '支付宝',
+          CASH: '货到付款',
           CASH_ON_DELIVERY: '货到付款',
         };
         return methodMap[method] || method;

@@ -24,12 +24,14 @@ import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRep
 import dev.yidafu.aqua.analytics.statistics.dto.OrderValueBucketDTO
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
 import dev.yidafu.aqua.common.domain.model.AddressModel
+import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
@@ -37,6 +39,7 @@ import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRefundRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
 import dev.yidafu.aqua.user.domain.repository.AddressRepository
+import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.FunSpec
@@ -73,6 +76,7 @@ class StatisticsOrderRepositoryIntegrationTest(
   private val statisticsService: StatisticsService,
   private val paymentRepository: PaymentRepository,
   private val paymentRefundRepository: PaymentRefundRepository,
+  private val adminRepository: AdminRepository,
 ) : FunSpec({
     // orders.user_id/address_id 存在外键,先种一条用户与地址供订单引用
     var userId = 1L
@@ -355,6 +359,62 @@ class StatisticsOrderRepositoryIntegrationTest(
       result.completedAmountCents shouldBe 10000L
       result.refundedAmountCents shouldBe 400L
       result.netRevenueCents shouldBe 9600L
+    }
+
+    test("order statistics window is strict open interval with filters (第1层 SQL 聚合)") {
+      // 与旧内存过滤 isAfter/isBefore 等价:createdAt 严格 > start 且 < end
+      // 种子数据在独立月内(2033-03),避免与其它用例互相污染
+      val start = LocalDateTime.of(2033, 3, 1, 0, 0)
+      val end = LocalDateTime.of(2033, 3, 2, 0, 0)
+      seedOrder(amountCents = 1000L, status = OrderModelStatus.COMPLETED, createdAt = start) // 恰在窗口起点 → 排除
+      seedOrder(amountCents = 2000L, status = OrderModelStatus.COMPLETED, createdAt = start.plusSeconds(1))
+      seedOrder(amountCents = 4000L, status = OrderModelStatus.PENDING_DISPATCH, createdAt = end.minusSeconds(1))
+      seedOrder(amountCents = 8000L, status = OrderModelStatus.COMPLETED, createdAt = end) // 恰在窗口终点 → 排除
+      // orders.delivery_worker_id 外键引用 admins.id,须先种一条真实账号行
+      val workerId =
+        adminRepository
+          .save(
+            AdminModel(
+              username = "rev-worker-${System.nanoTime()}",
+              passwordHash = "hash",
+              role = AdminRoleModel.DELIVERY_WORKER,
+            ),
+          ).id!!
+      orderRepository.save(
+        OrderModel(
+          orderNo = "REV-${System.nanoTime()}",
+          userId = userId,
+          addressId = addressId,
+          amountCents = 16000L,
+          status = OrderModelStatus.COMPLETED,
+          deliveryWorkerId = workerId,
+          createdAt = start.plusSeconds(2),
+        ),
+      )
+
+      // 窗口内共 3 单:2000(COMPLETED) + 4000(PENDING_DISPATCH) + 16000(COMPLETED,workerId)
+      orderRepository.countByStatusAndCreatedAtBetween(start, end, null, null) shouldBe 3L
+      orderRepository.countByStatusAndCreatedAtBetween(start, end, workerId, null) shouldBe 1L
+      orderRepository.countByStatusAndCreatedAtBetween(start, end, null, listOf(OrderModelStatus.COMPLETED)) shouldBe 2L
+      orderRepository.sumAmountCentsByStatusAndCreatedAtBetween(
+        listOf(OrderModelStatus.COMPLETED),
+        start,
+        end,
+        null,
+      ) shouldBe 18000L
+      orderRepository.sumAmountCentsByStatusAndCreatedAtBetween(
+        listOf(OrderModelStatus.COMPLETED),
+        start,
+        end,
+        workerId,
+      ) shouldBe 16000L
+
+      // 端到端:statisticsService 走同一聚合,口径与直接调用一致
+      val stats = statisticsService.getOrderStatistics(LocalDate.of(2033, 3, 1), LocalDate.of(2033, 3, 1))
+      stats.totalOrders shouldBe 3L
+      stats.totalAmountCents shouldBe 22000L
+      stats.completedOrders shouldBe 2L
+      stats.completedAmountCents shouldBe 18000L
     }
 
     test("getDailyStatistics merges refund amounts by processed day (F-STA-002)") {

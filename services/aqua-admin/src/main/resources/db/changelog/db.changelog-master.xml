@@ -42,5 +42,7 @@
   <include file="db/changelog/changes/v1.7.0-seed-nanshan-demo-data.xml"/>
   <!-- F-MKT-007 水票唯一递增票号(SP+年月+8位序号,按月重置):置于 seed 之后以回填种子数据 -->
   <include file="db/changelog/changes/v2.2.0-add-user-ticket-no.xml"/>
+  <!-- 数据修正:seed 将 2 笔订单 payment_method 写成 CASH_ON_DELIVERY,不在域枚举 PaymentMethod(WECHAT_PAY/CASH)中,导致 orderStatistics 的 findAll() 实体映射崩溃 → 归一为 CASH(PRD 04-order.md §R-PAY-03) -->
+  <include file="db/changelog/changes/v2.3.0-fix-order-payment-method.xml"/>
 
 </databaseChangeLog>

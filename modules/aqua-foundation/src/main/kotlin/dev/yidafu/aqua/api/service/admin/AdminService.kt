@@ -81,6 +81,11 @@ interface AdminService {
   fun findAllDeliveryCapable(): List<AdminModel>
 
   /**
+   * 具备配送能力的账号数(role ∈ {DELIVERY_WORKER, ADMIN},统计场景条件 count,避免全表加载)
+   */
+  fun countDeliveryCapable(): Long
+
+  /**
    * 按在线状态查询配送能力账号
    */
   fun findByOnlineStatus(status: DeliverWorkerModelStatus): List<AdminModel>

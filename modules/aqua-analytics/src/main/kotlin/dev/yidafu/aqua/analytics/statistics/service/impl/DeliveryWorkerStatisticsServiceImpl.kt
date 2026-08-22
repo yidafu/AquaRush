@@ -48,8 +48,8 @@ class DeliveryWorkerStatisticsServiceImpl(
   }
 
   override fun getDeliveryWorkerStatistics(): DeliveryWorkerStatisticsDTO {
-    // 送水员总数(账号单表,配送能力角色)
-    val totalWorkers = adminService.findAllDeliveryCapable().size
+    // 送水员总数(账号单表,配送能力角色条件 count,避免全表加载)
+    val totalWorkers = adminService.countDeliveryCapable()
 
     // 今日在岗送水员数
     val today = LocalDate.now()

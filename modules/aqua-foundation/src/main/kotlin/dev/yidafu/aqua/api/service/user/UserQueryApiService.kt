@@ -29,6 +29,11 @@ import java.time.LocalDateTime
 interface UserQueryApiService {
   fun findAll(): List<UserModel>
 
+  /**
+   * 用户总数(委托 JpaRepository.count(),统计场景避免全表加载)
+   */
+  fun countAll(): Long
+
   fun findById(id: Long): UserModel?
 
   fun findByIds(ids: List<Long>): List<UserModel>

@@ -22,7 +22,6 @@ package dev.yidafu.aqua.analytics.statistics.service.impl
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepositoryCustom
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
-import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import io.kotest.core.spec.style.FunSpec
@@ -50,7 +49,7 @@ class UserStatisticsServiceImplTest :
       service = UserStatisticsServiceImpl(userQueryApiService, statisticsUserRepository, statisticsOrderRepository, userActionLogRepository)
     }
     test("getUserStatistics aggregates totals and actives") {
-      every { userQueryApiService.findAll() } returns listOf(mockk<UserModel>(relaxed = true), mockk(relaxed = true))
+      every { userQueryApiService.countAll() } returns 2L
       every { statisticsUserRepository.countUsersCreatedAfter(any()) } returnsMany listOf(5L, 20L)
       every { statisticsUserRepository.countActiveUsersSince(any()) } returns 15L
 
@@ -100,7 +99,7 @@ class UserStatisticsServiceImplTest :
           4L to 3L, // 2~3次
           5L to 5L, // 4次以上
         )
-      every { userQueryApiService.findAll() } returns listOf(mockk<UserModel>(relaxed = true), mockk(relaxed = true))
+      every { userQueryApiService.countAll() } returns 2L
 
       val result = service.getOrderUserDistribution(start, end)
 
@@ -120,7 +119,7 @@ class UserStatisticsServiceImplTest :
       val start = LocalDate.of(2025, 6, 1)
       val end = LocalDate.of(2025, 6, 30)
       every { statisticsOrderRepository.countOrdersPerUserInRange(any(), any()) } returns emptyMap()
-      every { userQueryApiService.findAll() } returns emptyList()
+      every { userQueryApiService.countAll() } returns 0L
 
       val result = service.getOrderUserDistribution(start, end)
 

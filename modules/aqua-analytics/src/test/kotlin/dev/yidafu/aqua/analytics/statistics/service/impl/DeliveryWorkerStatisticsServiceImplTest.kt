@@ -23,8 +23,6 @@ import dev.yidafu.aqua.analytics.statistics.domain.repository.CompletedOrderTimi
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsDeliveryWorkerRepositoryCustom
 import dev.yidafu.aqua.api.service.admin.AdminService
 import dev.yidafu.aqua.api.service.delivery.DeliveryWorkerStatisticsQueryApiService
-import dev.yidafu.aqua.common.domain.model.AdminModel
-import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -40,21 +38,6 @@ class DeliveryWorkerStatisticsServiceImplTest :
     var statisticsDeliveryWorkerRepository: StatisticsDeliveryWorkerRepositoryCustom = mockk()
     var service: DeliveryWorkerStatisticsServiceImpl = mockk()
 
-    fun worker(
-      id: Long,
-      name: String?,
-      earnings: Long?,
-    ): AdminModel =
-      AdminModel(
-        id = id,
-        username = "worker$id",
-        passwordHash = "hash",
-        role = AdminRoleModel.DELIVERY_WORKER,
-      ).apply {
-        realName = name
-        earningCents = earnings
-      }
-
     beforeTest {
       adminService = mockk(relaxed = true)
       deliveryWorkerStatisticsQueryApiService = mockk(relaxed = true)
@@ -67,7 +50,7 @@ class DeliveryWorkerStatisticsServiceImplTest :
         )
     }
     test("getDeliveryWorkerStatistics aggregates worker counts") {
-      every { adminService.findAllDeliveryCapable() } returns listOf(worker(1L, "张三", null), worker(2L, "李四", null))
+      every { adminService.countDeliveryCapable() } returns 2L
       every { statisticsDeliveryWorkerRepository.countTodayActiveWorkers(any()) } returns 2L
       every { statisticsDeliveryWorkerRepository.countDeliveringOrders() } returns 5L
       every { statisticsDeliveryWorkerRepository.countCompletedOrdersSince(any()) } returns 8L
@@ -89,7 +72,7 @@ class DeliveryWorkerStatisticsServiceImplTest :
       val todayStart = today.atStartOfDay()
       val completedAt1 = todayStart.plusHours(10)
       val completedAt2 = todayStart.plusHours(11)
-      every { adminService.findAllDeliveryCapable() } returns listOf(worker(1L, "张三", null))
+      every { adminService.countDeliveryCapable() } returns 1L
       every { statisticsDeliveryWorkerRepository.countTodayActiveWorkers(any()) } returns 1L
       every { statisticsDeliveryWorkerRepository.countDeliveringOrders() } returns 0L
       every { statisticsDeliveryWorkerRepository.countCompletedOrdersSince(any()) } returns 2L
@@ -122,7 +105,7 @@ class DeliveryWorkerStatisticsServiceImplTest :
     }
     test("getDeliveryWorkerStatistics handles zero active workers") {
       // G36 边界:今日在岗为 0 → 人均单量 null;无完成订单 → 平均履约时长 null
-      every { adminService.findAllDeliveryCapable() } returns emptyList()
+      every { adminService.countDeliveryCapable() } returns 0L
       every { statisticsDeliveryWorkerRepository.countTodayActiveWorkers(any()) } returns 0L
       every { statisticsDeliveryWorkerRepository.countDeliveringOrders() } returns 0L
       every { statisticsDeliveryWorkerRepository.countCompletedOrdersSince(any()) } returns 0L

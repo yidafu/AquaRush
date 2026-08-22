@@ -25,6 +25,7 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 @Repository
 interface UserRepository :
@@ -56,4 +57,17 @@ interface UserRepository :
   ): Page<UserModel>
 
   fun countByCustomerGroupId(groupId: Long): Long
+
+  // ===== 创建时间窗口查询(统计口径:createdAt 严格开区间,与原内存 isAfter/isBefore 等价)=====
+  fun findByCreatedAtGreaterThan(startDate: LocalDateTime): List<UserModel>
+
+  fun findByCreatedAtGreaterThanAndCreatedAtLessThan(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<UserModel>
+
+  fun countByCreatedAtGreaterThanAndCreatedAtLessThan(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): Long
 }

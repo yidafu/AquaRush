@@ -478,6 +478,81 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
       }
 
   // ========================================================================
+  // 后台首页 orderStatistics 聚合(与 StatisticsOrderRepositoryImpl 同款 QueryDSL 写法)
+  // createdAt 一律用 gt/lt 严格开区间,与原内存过滤 isAfter/isBefore 逐位等价,不改统计口径
+  // ========================================================================
+
+  override fun countByStatusAndCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Long {
+    val whereClause = buildWindowWhereClause(startDate, endDate, deliveryWorkerId, statuses)
+    return queryFactory
+      .select(orderModel.count())
+      .from(orderModel)
+      .where(whereClause)
+      .fetchOne() ?: 0L
+  }
+
+  override fun sumAmountCentsByStatusAndCreatedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long {
+    val whereClause = buildWindowWhereClause(startDate, endDate, deliveryWorkerId, statuses)
+    return queryFactory
+      .select(orderModel.amountCents.sumLong())
+      .from(orderModel)
+      .where(whereClause)
+      .fetchOne() ?: 0L
+  }
+
+  override fun findByCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<OrderModel> =
+    queryFactory
+      .selectFrom(orderModel)
+      .where(orderModel.createdAt.gt(startDate).and(orderModel.createdAt.lt(endDate)))
+      .fetch()
+
+  override fun findByStatusAndCreatedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<OrderModel> =
+    queryFactory
+      .selectFrom(orderModel)
+      .where(
+        orderModel.status
+          .`in`(statuses)
+          .and(orderModel.createdAt.gt(startDate))
+          .and(orderModel.createdAt.lt(endDate)),
+      ).fetch()
+
+  /**
+   * 构建后台首页 orderStatistics 的窗口谓词(严格开区间 + 可选配送员/状态过滤)
+   */
+  private fun buildWindowWhereClause(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): BooleanBuilder {
+    val whereClause = BooleanBuilder(orderModel.createdAt.gt(startDate).and(orderModel.createdAt.lt(endDate)))
+    deliveryWorkerId?.let {
+      whereClause.and(orderModel.deliveryWorkerId.eq(it))
+    }
+    statuses?.let {
+      whereClause.and(orderModel.status.`in`(it))
+    }
+    return whereClause
+  }
+
+  // ========================================================================
   // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
   // ========================================================================
 
@@ -567,8 +642,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
                   orderModel.createdAt.lt(criteria.validTo),
                 ),
             ),
-          )
-          .groupBy(orderItemModel.productId, orderItemModel.unitPriceCents)
+          ).groupBy(orderItemModel.productId, orderItemModel.unitPriceCents)
           .fetch()
           .map { row ->
             MarketingUsageItemRow(

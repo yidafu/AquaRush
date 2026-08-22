@@ -35,6 +35,8 @@ class UserQueryApiServiceImpl(
 ) : UserQueryApiService {
   override fun findAll(): List<UserModel> = userRepository.findAll()
 
+  override fun countAll(): Long = userRepository.count()
+
   override fun findById(id: Long): UserModel? = userRepository.findById(id).orElse(null)
 
   override fun findByIds(ids: List<Long>): List<UserModel> = userRepository.findAllById(ids)
@@ -45,23 +47,17 @@ class UserQueryApiServiceImpl(
 
   override fun existsById(id: Long): Boolean = userRepository.existsById(id)
 
-  override fun findUsersCreatedAfter(startDate: LocalDateTime): List<UserModel> =
-    userRepository.findAll().filter {
-      it.createdAt?.isAfter(startDate) == true
-    }
+  override fun findUsersCreatedAfter(startDate: LocalDateTime): List<UserModel> = userRepository.findByCreatedAtGreaterThan(startDate)
 
   override fun findUsersCreatedBetween(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): List<UserModel> =
-    userRepository.findAll().filter {
-      it.createdAt?.isAfter(startDate) == true && it.createdAt?.isBefore(endDate) == true
-    }
+  ): List<UserModel> = userRepository.findByCreatedAtGreaterThanAndCreatedAtLessThan(startDate, endDate)
 
   override fun countUsersCreatedBetween(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): Long = userRepository.count()
+  ): Long = userRepository.countByCreatedAtGreaterThanAndCreatedAtLessThan(startDate, endDate)
 
   // ===== 客户分组(F-MKT-001,营销受众维度)=====
   override fun findByCustomerGroupId(groupId: Long): List<UserModel> = userRepository.findByCustomerGroupId(groupId)

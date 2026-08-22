@@ -133,6 +133,11 @@ class AdminServiceImplExtraTest :
       every { adminRepository.findAllByRoleIn(any()) } returns listOf(admin(role = AdminRoleModel.DELIVERY_WORKER))
       service.findAllDeliveryCapable().size shouldBe 1
     }
+    test("countDeliveryCapable should delegate with delivery capable roles") {
+      every { adminRepository.countByRoleIn(any()) } returns 3L
+      service.countDeliveryCapable() shouldBe 3L
+      verify { adminRepository.countByRoleIn(any()) }
+    }
     test("findByOnlineStatus should filter to delivery capable roles") {
       every { adminRepository.findByOnlineStatus(DeliverWorkerModelStatus.ONLINE) } returns
         listOf(admin(role = AdminRoleModel.DELIVERY_WORKER), admin(role = AdminRoleModel.SUPER_ADMIN))

@@ -62,6 +62,11 @@ class UserQueryApiServiceImplTest :
       service.findAll().size shouldBe 2
       verify { userRepository.findAll() }
     }
+    test("countAll should delegate to count") {
+      every { userRepository.count() } returns 5L
+      service.countAll() shouldBe 5L
+      verify(exactly = 1) { userRepository.count() }
+    }
     test("findById should return user when present") {
       every { userRepository.findById(1L) } returns Optional.of(user(1L))
       service.findById(1L).shouldNotBeNull()
@@ -84,31 +89,29 @@ class UserQueryApiServiceImplTest :
       every { userRepository.existsById(2L) } returns false
       service.existsById(2L) shouldBe false
     }
-    test("findUsersCreatedAfter should filter users") {
+    test("findUsersCreatedAfter should delegate to derived query") {
       val start = LocalDateTime.of(2025, 1, 1, 0, 0)
-      every { userRepository.findAll() } returns
-        listOf(
-          user(1L, LocalDateTime.of(2025, 6, 1, 0, 0)),
-          user(2L, LocalDateTime.of(2024, 6, 1, 0, 0)),
-        )
+      val created = LocalDateTime.of(2025, 6, 1, 0, 0)
+      every { userRepository.findByCreatedAtGreaterThan(start) } returns listOf(user(1L, created))
       val result = service.findUsersCreatedAfter(start)
       result.map { it.id } shouldBe listOf(1L)
+      verify(exactly = 1) { userRepository.findByCreatedAtGreaterThan(start) }
     }
-    test("findUsersCreatedBetween should filter users") {
+    test("findUsersCreatedBetween should delegate to derived query") {
       val start = LocalDateTime.of(2025, 1, 1, 0, 0)
       val end = LocalDateTime.of(2025, 12, 31, 0, 0)
-      every { userRepository.findAll() } returns
-        listOf(
-          user(1L, LocalDateTime.of(2025, 6, 1, 0, 0)),
-          user(2L, LocalDateTime.of(2026, 1, 1, 0, 0)),
-          user(3L, LocalDateTime.of(2024, 1, 1, 0, 0)),
-        )
+      val created = LocalDateTime.of(2025, 6, 1, 0, 0)
+      every { userRepository.findByCreatedAtGreaterThanAndCreatedAtLessThan(start, end) } returns listOf(user(1L, created))
       val result = service.findUsersCreatedBetween(start, end)
       result.map { it.id } shouldBe listOf(1L)
+      verify(exactly = 1) { userRepository.findByCreatedAtGreaterThanAndCreatedAtLessThan(start, end) }
     }
-    test("countUsersCreatedBetween should delegate to count") {
-      every { userRepository.count() } returns 5L
-      service.countUsersCreatedBetween(LocalDateTime.now(), LocalDateTime.now()) shouldBe 5L
+    test("countUsersCreatedBetween should delegate to conditional count") {
+      val start = LocalDateTime.of(2025, 1, 1, 0, 0)
+      val end = LocalDateTime.of(2025, 12, 31, 0, 0)
+      every { userRepository.countByCreatedAtGreaterThanAndCreatedAtLessThan(start, end) } returns 3L
+      service.countUsersCreatedBetween(start, end) shouldBe 3L
+      verify(exactly = 1) { userRepository.countByCreatedAtGreaterThanAndCreatedAtLessThan(start, end) }
     }
     test("findByCustomerGroupId should delegate") {
       every { userRepository.findByCustomerGroupId(3L) } returns listOf(user(1L))

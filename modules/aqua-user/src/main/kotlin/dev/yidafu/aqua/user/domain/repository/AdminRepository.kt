@@ -49,6 +49,11 @@ interface AdminRepository :
   fun findAllByRoleIn(roles: Collection<AdminRoleModel>): List<AdminModel>
 
   /**
+   * 按角色集合计数(配送员统计 totalWorkers 等,避免全表加载)
+   */
+  fun countByRoleIn(roles: Collection<AdminRoleModel>): Long
+
+  /**
    * 按在线状态查询(DeliverWorkerStatusConverter 自动转换)
    */
   fun findByOnlineStatus(status: DeliverWorkerModelStatus): List<AdminModel>

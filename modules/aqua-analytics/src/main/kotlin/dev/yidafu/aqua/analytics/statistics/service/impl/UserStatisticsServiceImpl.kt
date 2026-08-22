@@ -41,8 +41,8 @@ class UserStatisticsServiceImpl(
   private val userActionLogRepository: UserActionLogRepository,
 ) : UserStatisticsService {
   override fun getUserStatistics(): UserStatisticsDTO {
-    // 总用户数
-    val totalUsers = userQueryApiService.findAll().size.toLong()
+    // 总用户数(条件 count,避免全表加载)
+    val totalUsers = userQueryApiService.countAll()
 
     // 今日新增用户数
     val today = LocalDate.now()
@@ -167,7 +167,7 @@ class UserStatisticsServiceImpl(
       )
 
     // 下单用户占比 = 下单用户数 / 总用户数;复购率 = 下单≥2次用户数 / 下单用户数(除零为 0)
-    val totalUsers = userQueryApiService.findAll().size.toLong()
+    val totalUsers = userQueryApiService.countAll()
     val orderingUserRatio = if (totalUsers > 0) orderingUsers.toFloat() / totalUsers.toFloat() else 0f
     val repurchaseUsers = twoToThree + fourPlus
     val repurchaseRate = if (orderingUsers > 0) repurchaseUsers.toFloat() / orderingUsers.toFloat() else 0f

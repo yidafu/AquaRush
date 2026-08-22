@@ -169,6 +169,11 @@ class AdminServiceImpl(
   override fun findAllDeliveryCapable(): List<AdminModel> = adminRepository.findAllByRoleIn(DELIVERY_CAPABLE_ROLES)
 
   /**
+   * 具备配送能力的账号数(role ∈ {DELIVERY_WORKER, ADMIN},条件 count,避免全表加载)
+   */
+  override fun countDeliveryCapable(): Long = adminRepository.countByRoleIn(DELIVERY_CAPABLE_ROLES)
+
+  /**
    * 按在线状态查询配送能力账号
    */
   override fun findByOnlineStatus(status: DeliverWorkerModelStatus): List<AdminModel> =

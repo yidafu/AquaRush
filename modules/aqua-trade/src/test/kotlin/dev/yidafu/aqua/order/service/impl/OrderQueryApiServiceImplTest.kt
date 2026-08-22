@@ -102,57 +102,63 @@ class OrderQueryApiServiceImplTest :
       service.findByStatus(OrderModelStatus.COMPLETED) shouldBe orders
       service.findByDeliveryWorkerId(5L) shouldBe orders
     }
-    test("findByCreatedAtBetween filters by range") {
-      val before = order(1L, createdAt = start.minusHours(1))
+    test("findByCreatedAtBetween delegates to repository") {
       val inside = order(2L, createdAt = LocalDateTime.of(2025, 1, 1, 6, 0))
-      val after = order(3L, createdAt = end.plusHours(1))
-      every { orderRepository.findAll() } returns listOf(before, inside, after)
+      every { orderRepository.findByCreatedAtBetween(start, end) } returns listOf(inside)
 
       val result = service.findByCreatedAtBetween(start, end)
 
       result shouldBe listOf(inside)
+      verify(exactly = 1) { orderRepository.findByCreatedAtBetween(start, end) }
     }
-    test("findByStatusAndCreatedAtBetween filters by status and range") {
+    test("findByStatusAndCreatedAtBetween delegates to repository") {
       val insideCompleted = order(2L, createdAt = LocalDateTime.of(2025, 1, 1, 6, 0), status = OrderModelStatus.COMPLETED)
-      val insideCancelled = order(4L, createdAt = LocalDateTime.of(2025, 1, 1, 6, 0), status = OrderModelStatus.CANCELLED)
-      val outsideCompleted = order(3L, createdAt = end.plusHours(1), status = OrderModelStatus.COMPLETED)
-      every { orderRepository.findAll() } returns listOf(insideCompleted, insideCancelled, outsideCompleted)
+      every { orderRepository.findByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end) } returns
+        listOf(insideCompleted)
 
       val result = service.findByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end)
 
       result shouldBe listOf(insideCompleted)
+      verify(exactly = 1) { orderRepository.findByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end) }
     }
-    test("countByStatusAndCreatedAtBetween counts with nullable filters") {
-      val inside = order(2L, createdAt = LocalDateTime.of(2025, 1, 1, 6, 0), deliveryWorkerId = 5L)
-      val insideOtherWorker = order(3L, createdAt = LocalDateTime.of(2025, 1, 1, 6, 0), deliveryWorkerId = 6L)
-      val outside = order(4L, createdAt = end.plusHours(1))
-      every { orderRepository.findAll() } returns listOf(inside, insideOtherWorker, outside)
+    test("countByStatusAndCreatedAtBetween delegates with nullable filters") {
+      // 聚合口径(严格开区间/状态/配送员过滤)由仓储层负责,服务层只做委托
+      every { orderRepository.countByStatusAndCreatedAtBetween(start, end, null, null) } returns 2L
+      every { orderRepository.countByStatusAndCreatedAtBetween(start, end, 5L, null) } returns 1L
+      every { orderRepository.countByStatusAndCreatedAtBetween(start, end, null, listOf(OrderModelStatus.COMPLETED)) } returns 2L
+      every { orderRepository.countByStatusAndCreatedAtBetween(start, end, 5L, listOf(OrderModelStatus.CANCELLED)) } returns 0L
 
       service.countByStatusAndCreatedAtBetween(start, end, null, null) shouldBe 2L
       service.countByStatusAndCreatedAtBetween(start, end, 5L, null) shouldBe 1L
       service.countByStatusAndCreatedAtBetween(start, end, null, listOf(OrderModelStatus.COMPLETED)) shouldBe 2L
       service.countByStatusAndCreatedAtBetween(start, end, 5L, listOf(OrderModelStatus.CANCELLED)) shouldBe 0L
     }
-    test("sumAmountCentsByStatusAndCreatedAtBetween sums amounts") {
-      val a = order(1L, createdAt = LocalDateTime.of(2025, 1, 1, 6, 0), amountCents = 1000, deliveryWorkerId = 5L)
-      val b = order(2L, createdAt = LocalDateTime.of(2025, 1, 1, 7, 0), amountCents = 2500, deliveryWorkerId = 5L)
-      val c = order(3L, createdAt = LocalDateTime.of(2025, 1, 1, 8, 0), amountCents = 999, deliveryWorkerId = 6L)
-      val cancelled = order(4L, createdAt = LocalDateTime.of(2025, 1, 1, 8, 0), amountCents = 5000, status = OrderModelStatus.CANCELLED)
-      every { orderRepository.findAll() } returns listOf(a, b, c, cancelled)
+    test("sumAmountCentsByStatusAndCreatedAtBetween delegates with filters") {
+      every {
+        orderRepository.sumAmountCentsByStatusAndCreatedAtBetween(
+          listOf(OrderModelStatus.COMPLETED, OrderModelStatus.CANCELLED),
+          start,
+          end,
+          null,
+        )
+      } returns 9499L
+      every {
+        orderRepository.sumAmountCentsByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, 5L)
+      } returns 3500L
 
-      // 全部状态,不限配送员:1000 + 2500 + 999 + 5000
       service.sumAmountCentsByStatusAndCreatedAtBetween(
         listOf(OrderModelStatus.COMPLETED, OrderModelStatus.CANCELLED),
         start,
         end,
         null,
-      ) shouldBe
-        9499L
-      // 仅已完成 + 指定配送员
+      ) shouldBe 9499L
       service.sumAmountCentsByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, 5L) shouldBe 3500L
     }
     test("empty results are safe") {
-      every { orderRepository.findAll() } returns emptyList()
+      every { orderRepository.findByCreatedAtBetween(start, end) } returns emptyList()
+      every { orderRepository.findByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end) } returns emptyList()
+      every { orderRepository.countByStatusAndCreatedAtBetween(start, end, null, null) } returns 0L
+      every { orderRepository.sumAmountCentsByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, null) } returns 0L
 
       service.findByCreatedAtBetween(start, end).isEmpty() shouldBe true
       service.findByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end).isEmpty() shouldBe true

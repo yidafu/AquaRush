@@ -81,37 +81,26 @@ class OrderQueryApiServiceImpl(
   override fun findByCreatedAtBetween(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): List<OrderModel> =
-    orderRepository.findAll().filter {
-      it.createdAt?.isAfter(startDate) == true && it.createdAt?.isBefore(endDate) == true
-    }
+  ): List<OrderModel> = orderRepository.findByCreatedAtBetween(startDate, endDate)
 
   override fun findByStatusAndCreatedAtBetween(
     statuses: List<OrderModelStatus>,
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): List<OrderModel> =
-    orderRepository.findAll().filter { order ->
-      order.status in statuses &&
-        order.createdAt?.isAfter(startDate) == true &&
-        order.createdAt?.isBefore(endDate) == true
-    }
+  ): List<OrderModel> = orderRepository.findByStatusAndCreatedAtBetween(statuses, startDate, endDate)
 
   override fun countByStatusAndCreatedAtBetween(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
     deliveryWorkerId: Long?,
     statuses: List<OrderModelStatus>?,
-  ): Long {
-    val orders =
-      orderRepository.findAll().filter { order ->
-        order.createdAt?.isAfter(startDate) == true &&
-          order.createdAt?.isBefore(endDate) == true &&
-          (statuses == null || order.status in statuses) &&
-          (deliveryWorkerId == null || order.deliveryWorkerId == deliveryWorkerId)
-      }
-    return orders.size.toLong()
-  }
+  ): Long =
+    orderRepository.countByStatusAndCreatedAtBetween(
+      startDate = startDate,
+      endDate = endDate,
+      deliveryWorkerId = deliveryWorkerId,
+      statuses = statuses,
+    )
 
   override fun countByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long> =
     orderRepository.countOrdersByUserIdGroupByStatus(userId)
@@ -121,16 +110,13 @@ class OrderQueryApiServiceImpl(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
     deliveryWorkerId: Long?,
-  ): Long {
-    val orders =
-      orderRepository.findAll().filter { order ->
-        order.status in statuses &&
-          order.createdAt?.isAfter(startDate) == true &&
-          order.createdAt?.isBefore(endDate) == true &&
-          (deliveryWorkerId == null || order.deliveryWorkerId == deliveryWorkerId)
-      }
-    return orders.sumOf { it.amountCents ?: 0L }
-  }
+  ): Long =
+    orderRepository.sumAmountCentsByStatusAndCreatedAtBetween(
+      statuses = statuses,
+      startDate = startDate,
+      endDate = endDate,
+      deliveryWorkerId = deliveryWorkerId,
+    )
 
   // ========================================================================
   // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
@@ -140,14 +126,12 @@ class OrderQueryApiServiceImpl(
     criteria: MarketingUsageOrderCriteria,
     page: Int,
     size: Int,
-  ): Page<OrderModel> =
-    orderRepository.findOrdersByMarketingUsage(criteria = criteria, page = page, size = size)
+  ): Page<OrderModel> = orderRepository.findOrdersByMarketingUsage(criteria = criteria, page = page, size = size)
 
   override fun countOrdersByMarketingUsage(criteria: MarketingUsageOrderCriteria): Long =
     orderRepository.countOrdersByMarketingUsage(criteria)
 
-  override fun sumMarketingDiscountCents(criteria: MarketingUsageOrderCriteria): Long =
-    orderRepository.sumMarketingDiscountCents(criteria)
+  override fun sumMarketingDiscountCents(criteria: MarketingUsageOrderCriteria): Long = orderRepository.sumMarketingDiscountCents(criteria)
 
   override fun aggregateMarketingUsageItems(criteria: MarketingUsageOrderCriteria): List<MarketingUsageItemRow> =
     orderRepository.aggregateMarketingUsageItems(criteria)
