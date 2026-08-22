@@ -19,9 +19,12 @@
 
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
+import dev.yidafu.aqua.common.domain.model.DailyUserFactModel
 import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import io.kotest.core.spec.style.FunSpec
@@ -31,7 +34,7 @@ import io.mockk.mockk
 import java.time.LocalDate
 
 /**
- * 用户统计服务单元测试: 总量/新增/活跃口径、每日新增与登录趋势补零
+ * 用户统计服务单元测试: 总量/新增/活跃口径、每日新增与登录趋势补零、两段合并
  */
 class UserStatisticsServiceImplTest :
   FunSpec({
@@ -39,6 +42,8 @@ class UserStatisticsServiceImplTest :
     var statisticsUserRepository: StatisticsUserRepositoryCustom = mockk()
     var statisticsOrderRepository: StatisticsOrderRepositoryCustom = mockk()
     var userActionLogRepository: UserActionLogRepository = mockk()
+    var dailyUserFactRepository: DailyUserFactRepository = mockk()
+    var snapshotCoverageService: StatisticsSnapshotCoverageService = mockk()
     var service: UserStatisticsServiceImpl = mockk()
 
     beforeTest {
@@ -46,7 +51,17 @@ class UserStatisticsServiceImplTest :
       statisticsUserRepository = mockk(relaxed = true)
       statisticsOrderRepository = mockk(relaxed = true)
       userActionLogRepository = mockk(relaxed = true)
-      service = UserStatisticsServiceImpl(userQueryApiService, statisticsUserRepository, statisticsOrderRepository, userActionLogRepository)
+      dailyUserFactRepository = mockk(relaxed = true)
+      snapshotCoverageService = StatisticsSnapshotCoverageService(dailyUserFactRepository)
+      service =
+        UserStatisticsServiceImpl(
+          userQueryApiService,
+          statisticsUserRepository,
+          statisticsOrderRepository,
+          userActionLogRepository,
+          dailyUserFactRepository,
+          snapshotCoverageService,
+        )
     }
     test("getUserStatistics aggregates totals and actives") {
       every { userQueryApiService.countAll() } returns 2L
@@ -86,6 +101,47 @@ class UserStatisticsServiceImplTest :
       result.dailyLogins.size shouldBe 2
       result.dailyLogins[0].loginCount shouldBe 3
       result.dailyLogins[1].loginCount shouldBe 0
+    }
+    test("getDailyNewUsers reads historical segment from user facts (两段合并)") {
+      val start = LocalDate.of(2025, 6, 1)
+      val end = LocalDate.of(2025, 6, 30)
+      every { dailyUserFactRepository.findFirstByOrderByStatDateAsc() } returns DailyUserFactModel(statDate = LocalDate.of(2025, 6, 1))
+      every { dailyUserFactRepository.findFirstByOrderByStatDateDesc() } returns DailyUserFactModel(statDate = LocalDate.of(2025, 6, 30))
+      every {
+        dailyUserFactRepository.findByStatDateBetween(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 30))
+      } returns
+        listOf(
+          DailyUserFactModel(statDate = LocalDate.of(2025, 6, 10), newUserCount = 7L, loginUserCount = 9L),
+        )
+
+      val result = service.getDailyNewUsers(start, end)
+
+      result.size shouldBe 30
+      result.first { it.date == "2025-06-10" }.orderCount shouldBe 7
+      result.first { it.date == "2025-06-01" }.orderCount shouldBe 0
+    }
+    test("getLoginStatistics reads historical segment from user facts and keeps today live") {
+      val start = LocalDate.of(2025, 6, 1)
+      val end = LocalDate.of(2025, 6, 30)
+      every { dailyUserFactRepository.findFirstByOrderByStatDateAsc() } returns DailyUserFactModel(statDate = LocalDate.of(2025, 6, 1))
+      every { dailyUserFactRepository.findFirstByOrderByStatDateDesc() } returns DailyUserFactModel(statDate = LocalDate.of(2025, 6, 29))
+      every {
+        dailyUserFactRepository.findByStatDateBetween(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 29))
+      } returns
+        listOf(
+          DailyUserFactModel(statDate = LocalDate.of(2025, 6, 10), newUserCount = 0L, loginUserCount = 9L),
+        )
+      // 实时段(6/30):登录日志按日聚合
+      every { userActionLogRepository.countDailyLoginsByDateRange(any(), any()) } returns mapOf(LocalDate.of(2025, 6, 30) to 3L)
+      every { userActionLogRepository.countDistinctUsersByActionTypeAndDateRange(any(), any(), any()) } returns 12L
+
+      val result = service.getLoginStatistics(start, end)
+
+      result.dailyLogins.first { it.date == "2025-06-10" }.loginCount shouldBe 9
+      result.dailyLogins.first { it.date == "2025-06-30" }.loginCount shouldBe 3
+      result.dailyLogins.first { it.date == "2025-06-01" }.loginCount shouldBe 0
+      // 今日登录为实时值(与日期窗口无关)
+      result.todayLogins shouldBe 12L
     }
     test("getOrderUserDistribution tiers ratio and repurchase") {
       // G35: 近30天下单用户分布 —— 1次/2~3次/4次以上 分层 + 占比 + 复购率

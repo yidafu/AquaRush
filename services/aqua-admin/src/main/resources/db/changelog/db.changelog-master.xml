@@ -44,5 +44,7 @@
   <include file="db/changelog/changes/v2.2.0-add-user-ticket-no.xml"/>
   <!-- 数据修正:seed 将 2 笔订单 payment_method 写成 CASH_ON_DELIVERY,不在域枚举 PaymentMethod(WECHAT_PAY/CASH)中,导致 orderStatistics 的 findAll() 实体映射崩溃 → 归一为 CASH(PRD 04-order.md §R-PAY-03) -->
   <include file="db/changelog/changes/v2.3.0-fix-order-payment-method.xml"/>
+  <!-- 第 3 层历史趋势指标:原子日汇总中间表(夜间快照任务写入,查询侧两段合并) -->
+  <include file="db/changelog/changes/v2.4.0-add-daily-stat-facts.xml"/>
 
 </databaseChangeLog>

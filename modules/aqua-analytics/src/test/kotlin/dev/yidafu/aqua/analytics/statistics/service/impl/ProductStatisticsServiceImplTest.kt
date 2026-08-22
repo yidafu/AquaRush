@@ -19,14 +19,20 @@
 
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyProductFactRepository
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductDailySalesResult
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductInfo
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
+import dev.yidafu.aqua.common.domain.model.DailyProductFactModel
+import dev.yidafu.aqua.common.domain.model.DailyUserFactModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductFavoriteStat
 import dev.yidafu.aqua.common.graphql.generated.StockWarningStatus
@@ -37,7 +43,7 @@ import io.mockk.mockk
 import java.time.LocalDate
 
 /**
- * 商品统计服务单元测试(PRD F-STA/R-PRO-02: 上下架/低库存/排行榜/每日销量补零)
+ * 商品统计服务单元测试(PRD F-STA/R-PRO-02: 上下架/低库存/排行榜/每日销量补零、两段合并)
  */
 class ProductStatisticsServiceImplTest :
   FunSpec({
@@ -45,6 +51,9 @@ class ProductStatisticsServiceImplTest :
     var productFavoriteService: ProductFavoriteService = mockk()
     var productSalesStatisticsRepository: ProductSalesStatisticsRepositoryCustom = mockk()
     var systemConfigQueryApiService: SystemConfigQueryApiService = mockk()
+    var dailyProductFactRepository: DailyProductFactRepository = mockk()
+    var dailyUserFactRepository: DailyUserFactRepository = mockk()
+    var snapshotCoverageService: StatisticsSnapshotCoverageService = mockk()
     var service: ProductStatisticsServiceImpl = mockk()
 
     fun product(
@@ -69,12 +78,17 @@ class ProductStatisticsServiceImplTest :
       productFavoriteService = mockk(relaxed = true)
       productSalesStatisticsRepository = mockk(relaxed = true)
       systemConfigQueryApiService = mockk(relaxed = true)
+      dailyProductFactRepository = mockk(relaxed = true)
+      dailyUserFactRepository = mockk(relaxed = true)
+      snapshotCoverageService = StatisticsSnapshotCoverageService(dailyUserFactRepository)
       service =
         ProductStatisticsServiceImpl(
           productQueryApiService,
           productFavoriteService,
           productSalesStatisticsRepository,
           systemConfigQueryApiService,
+          dailyProductFactRepository,
+          snapshotCoverageService,
         )
     }
     test("getProductStatistics computes counts value and ranking") {
@@ -176,6 +190,52 @@ class ProductStatisticsServiceImplTest :
       result[1].productName shouldBe "无销售"
       result[1].salesVolume shouldBe 0
       result[1].revenueCents shouldBe 0L
+    }
+    test("getProductDailySales reads historical segment from product facts (两段合并)") {
+      val start = LocalDate.of(2025, 6, 1)
+      val end = LocalDate.of(2025, 6, 3)
+      every { dailyUserFactRepository.findFirstByOrderByStatDateAsc() } returns DailyUserFactModel(statDate = LocalDate.of(2025, 6, 1))
+      every { dailyUserFactRepository.findFirstByOrderByStatDateDesc() } returns DailyUserFactModel(statDate = LocalDate.of(2025, 6, 3))
+      every {
+        dailyProductFactRepository.findByStatDateBetween(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 3))
+      } returns
+        listOf(
+          DailyProductFactModel(
+            statDate = LocalDate.of(2025, 6, 1),
+            status = OrderModelStatus.COMPLETED.name,
+            productId = 1L,
+            quantity = 3L,
+            revenueCents = 600L,
+            orderCount = 1L,
+          ),
+          // 非 COMPLETED 状态不计入商品日销
+          DailyProductFactModel(
+            statDate = LocalDate.of(2025, 6, 1),
+            status = OrderModelStatus.PENDING_DISPATCH.name,
+            productId = 1L,
+            quantity = 99L,
+            revenueCents = 9999L,
+            orderCount = 1L,
+          ),
+        )
+      every { productQueryApiService.findByIds(listOf(1L)) } returns
+        listOf(
+          ProductModel().apply {
+            this.id = 1L
+            this.name = "怡宝"
+          },
+        )
+
+      val result = service.getProductDailySales(start, end)
+
+      result.size shouldBe 3
+      result[0].date shouldBe "2025-06-01"
+      result[0].productId shouldBe 1L
+      result[0].productName shouldBe "怡宝"
+      result[0].salesVolume shouldBe 3
+      result[0].revenueCents shouldBe 600L
+      // 无销售日期 → 占位
+      result[1].productName shouldBe "无销售"
     }
     test("getAllProducts returns product infos") {
       val infos = listOf(ProductInfo(productId = 1L, productName = "怡宝"))

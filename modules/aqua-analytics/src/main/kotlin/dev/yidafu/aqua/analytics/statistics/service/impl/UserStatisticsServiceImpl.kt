@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
+import dev.yidafu.aqua.analytics.statistics.StatisticsTime
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsUserRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.dto.DailyLoginStatisticDTO
@@ -26,12 +28,14 @@ import dev.yidafu.aqua.analytics.statistics.dto.LoginStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderUserDistributionDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderUserTierDTO
 import dev.yidafu.aqua.analytics.statistics.dto.UserStatisticsDTO
+import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
 import dev.yidafu.aqua.analytics.statistics.service.UserStatisticsService
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
 import dev.yidafu.aqua.common.graphql.generated.DailyStatistic
 import dev.yidafu.aqua.logging.repository.UserActionLogRepository
 import org.springframework.stereotype.Service
 import java.time.LocalDate
+import java.time.LocalTime
 
 @Service
 class UserStatisticsServiceImpl(
@@ -39,13 +43,15 @@ class UserStatisticsServiceImpl(
   private val statisticsUserRepository: StatisticsUserRepositoryCustom,
   private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
   private val userActionLogRepository: UserActionLogRepository,
+  private val dailyUserFactRepository: DailyUserFactRepository,
+  private val snapshotCoverageService: StatisticsSnapshotCoverageService,
 ) : UserStatisticsService {
   override fun getUserStatistics(): UserStatisticsDTO {
     // 总用户数(条件 count,避免全表加载)
     val totalUsers = userQueryApiService.countAll()
 
     // 今日新增用户数
-    val today = LocalDate.now()
+    val today = LocalDate.now(StatisticsTime.STATS_ZONE)
     val todayStart = today.atStartOfDay()
     val todayNewUsers = statisticsUserRepository.countUsersCreatedAfter(todayStart)
 
@@ -53,7 +59,7 @@ class UserStatisticsServiceImpl(
     val monthStart = today.withDayOfMonth(1).atStartOfDay()
     val monthNewUsers = statisticsUserRepository.countUsersCreatedAfter(monthStart)
 
-    // 活跃用户数（30天内有下单的用户）
+    // 活跃用户数(30天内有下单的用户)
     val thirtyDaysAgo = today.minusDays(30).atStartOfDay()
     val activeUsers = statisticsUserRepository.countActiveUsersSince(thirtyDaysAgo)
 
@@ -69,10 +75,24 @@ class UserStatisticsServiceImpl(
     startDate: LocalDate,
     endDate: LocalDate,
   ): List<DailyStatistic> {
-    val startDateTime = startDate.atStartOfDay()
-    val endDateTime = endDate.plusDays(1).atStartOfDay()
+    val today = LocalDate.now(StatisticsTime.STATS_ZONE)
+    val yesterday = today.minusDays(1)
 
-    val dateCountMap = statisticsUserRepository.countDailyNewUsers(startDateTime, endDateTime)
+    // 快照段:昨日及以前读 daily_user_facts(新增用户数)
+    val factDates = snapshotCoverageService.coveredDates(startDate, minOf(endDate, yesterday))
+    val dateCountMap = mutableMapOf<LocalDate, Long>()
+    if (factDates.isNotEmpty()) {
+      dailyUserFactRepository
+        .findByStatDateBetween(factDates.min(), factDates.max())
+        .forEach { fact -> dateCountMap[fact.statDate] = fact.newUserCount }
+    }
+
+    // 实时段:未覆盖历史日期 + 今日
+    snapshotCoverageService.uncoveredRanges(startDate, endDate, factDates).forEach { (rangeStart, rangeEnd) ->
+      statisticsUserRepository
+        .countDailyNewUsers(rangeStart.atStartOfDay(), rangeEnd.plusDays(1).atStartOfDay())
+        .forEach { (date, count) -> dateCountMap[date] = count }
+    }
 
     // Fill in missing dates with 0
     val filledResults = mutableListOf<DailyStatistic>()
@@ -99,13 +119,28 @@ class UserStatisticsServiceImpl(
     startDate: LocalDate,
     endDate: LocalDate,
   ): LoginStatisticsDTO {
-    val startDateTime = startDate.atStartOfDay()
-    val endDateTime = endDate.atTime(java.time.LocalTime.MAX)
+    val today = LocalDate.now(StatisticsTime.STATS_ZONE)
+    val yesterday = today.minusDays(1)
 
-    // 今日登录用户数
-    val today = LocalDate.now()
+    // 快照段:昨日及以前读 daily_user_facts(登录用户数)
+    val factDates = snapshotCoverageService.coveredDates(startDate, minOf(endDate, yesterday))
+    val dailyLoginsMap = mutableMapOf<LocalDate, Long>()
+    if (factDates.isNotEmpty()) {
+      dailyUserFactRepository
+        .findByStatDateBetween(factDates.min(), factDates.max())
+        .forEach { fact -> dailyLoginsMap[fact.statDate] = fact.loginUserCount }
+    }
+
+    // 实时段:未覆盖历史日期 + 今日
+    snapshotCoverageService.uncoveredRanges(startDate, endDate, factDates).forEach { (rangeStart, rangeEnd) ->
+      userActionLogRepository
+        .countDailyLoginsByDateRange(rangeStart.atStartOfDay(), rangeEnd.atTime(LocalTime.MAX))
+        .forEach { (date, count) -> dailyLoginsMap[date] = count }
+    }
+
+    // 今日登录用户数(实时,与日期窗口无关的存量指标)
     val todayStart = today.atStartOfDay()
-    val todayEnd = today.atTime(java.time.LocalTime.MAX)
+    val todayEnd = today.atTime(LocalTime.MAX)
     val todayLogins =
       userActionLogRepository.countDistinctUsersByActionTypeAndDateRange(
         "USER_LOGIN",
@@ -113,16 +148,13 @@ class UserStatisticsServiceImpl(
         todayEnd,
       )
 
-    // 累计登录用户数（指定日期范围内）
+    // 累计登录用户数 = 窗口内去重用户数(区间级 distinct 无法由原子日汇总还原,保持实时查询,窗口有界)
     val totalLogins =
       userActionLogRepository.countDistinctUsersByActionTypeAndDateRange(
         "USER_LOGIN",
-        startDateTime,
-        endDateTime,
+        startDate.atStartOfDay(),
+        endDate.atTime(LocalTime.MAX),
       )
-
-    // 每日登录趋势
-    val dailyLoginsMap = userActionLogRepository.countDailyLoginsByDateRange(startDateTime, endDateTime)
 
     val filledResults = mutableListOf<DailyLoginStatisticDTO>()
     var currentDate = startDate
@@ -149,7 +181,7 @@ class UserStatisticsServiceImpl(
     endDate: LocalDate,
   ): OrderUserDistributionDTO {
     val startDateTime = startDate.atStartOfDay()
-    val endDateTime = endDate.atTime(java.time.LocalTime.MAX)
+    val endDateTime = endDate.atTime(LocalTime.MAX)
 
     // 近30天下单用户聚合(orders 按 userId 去重分组计数,与活跃用户同窗口同源)
     val ordersPerUser = statisticsOrderRepository.countOrdersPerUserInRange(startDateTime, endDateTime)

@@ -19,6 +19,9 @@
 
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
+import dev.yidafu.aqua.analytics.statistics.StatisticsTime
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyOrderFactRepository
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRefundFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderStatisticsDTO
@@ -27,9 +30,12 @@ import dev.yidafu.aqua.analytics.statistics.dto.OrderValueBucketDTO
 import dev.yidafu.aqua.analytics.statistics.dto.PeakHourDTO
 import dev.yidafu.aqua.analytics.statistics.dto.PendingOrderBreakdownDTO
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsService
+import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.api.service.payment.PaymentQueryService
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.graphql.generated.RefundStatus
+import dev.yidafu.aqua.common.graphql.generated.RefundType
 import org.springframework.stereotype.Service
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -41,6 +47,9 @@ class StatisticsServiceImpl(
   private val orderQueryApiService: OrderQueryApiService,
   private val paymentQueryService: PaymentQueryService,
   private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
+  private val dailyOrderFactRepository: DailyOrderFactRepository,
+  private val dailyRefundFactRepository: DailyRefundFactRepository,
+  private val snapshotCoverageService: StatisticsSnapshotCoverageService,
 ) : StatisticsService {
   /**
    * 客单价分布默认金额区间(单位分,PRD F-STA-005 G37 客单价分布):
@@ -58,51 +67,73 @@ class StatisticsServiceImpl(
 
   /**
    * 获取日期范围内的订单统计
+   * 两段合并:昨日及以前读快照事实表(原子日汇总,口径查询时组合),今日走实时 SQL。
    */
   override fun getOrderStatistics(
     startDate: LocalDate,
     endDate: LocalDate,
   ): OrderStatisticsDTO {
-    val startDateTime = startDate.atStartOfDay()
-    val endDateTime = endDate.atTime(LocalTime.MAX)
+    val today = LocalDate.now(StatisticsTime.STATS_ZONE)
+    val yesterday = today.minusDays(1)
 
-    val allStatuses = OrderModelStatus.entries
-    val completedStatuses = listOf(OrderModelStatus.COMPLETED)
+    // 历史段:快照事实表(有覆盖则读快照,否则回退实时)
+    val factDates = snapshotCoverageService.coveredDates(startDate, minOf(endDate, yesterday))
+    val factRanges = contiguousRanges(factDates)
 
-    val totalOrders =
-      orderQueryApiService.countByStatusAndCreatedAtBetween(
-        startDateTime,
-        endDateTime,
-        deliveryWorkerId = null,
-        statuses = null,
-      )
+    var totalOrders = 0L
+    var totalAmountCents = 0L
+    var completedOrders = 0L
+    var completedAmountCents = 0L
+    var refundedAmountCents = 0L
 
-    val totalAmountCents =
-      orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(
-        allStatuses,
-        startDateTime,
-        endDateTime,
-        deliveryWorkerId = null,
-      )
+    factRanges.forEach { (rangeStart, rangeEnd) ->
+      val orderFacts = dailyOrderFactRepository.findByStatDateBetween(rangeStart, rangeEnd)
+      val refundFacts = dailyRefundFactRepository.findByStatDateBetween(rangeStart, rangeEnd)
+      totalOrders += orderFacts.sumOf { it.orderCount }
+      totalAmountCents += orderFacts.sumOf { it.amountCents }
+      completedOrders += orderFacts.filter { it.status == OrderModelStatus.COMPLETED.name }.sumOf { it.orderCount }
+      completedAmountCents += orderFacts.filter { it.status == OrderModelStatus.COMPLETED.name }.sumOf { it.amountCents }
+      refundedAmountCents +=
+        refundFacts
+          .filter { it.status == RefundStatus.COMPLETED.name && it.refundType == RefundType.ORDER_REFUND.name }
+          .sumOf { it.refundAmountCents }
+    }
 
-    val completedOrders =
-      orderQueryApiService.countByStatusAndCreatedAtBetween(
-        startDateTime,
-        endDateTime,
-        deliveryWorkerId = null,
-        statuses = completedStatuses,
-      )
-
-    val completedAmountCents =
-      orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(
-        completedStatuses,
-        startDateTime,
-        endDateTime,
-        deliveryWorkerId = null,
-      )
-
-    // 已退款金额(分,payment_refunds status=COMPLETED 按退款成功时间归属窗口,PRD F-STA-002)
-    val refundedAmountCents = paymentQueryService.sumRefundedAmountCents(startDateTime, endDateTime)
+    // 未覆盖历史日期 + 今日:实时 SQL 聚合
+    val liveRanges = snapshotCoverageService.uncoveredRanges(startDate, endDate, factDates)
+    liveRanges.forEach { (rangeStart, rangeEnd) ->
+      val startDateTime = rangeStart.atStartOfDay()
+      val endDateTime = rangeEnd.atTime(LocalTime.MAX)
+      totalOrders +=
+        orderQueryApiService.countByStatusAndCreatedAtBetween(
+          startDateTime,
+          endDateTime,
+          deliveryWorkerId = null,
+          statuses = null,
+        )
+      totalAmountCents +=
+        orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(
+          OrderModelStatus.entries,
+          startDateTime,
+          endDateTime,
+          deliveryWorkerId = null,
+        )
+      completedOrders +=
+        orderQueryApiService.countByStatusAndCreatedAtBetween(
+          startDateTime,
+          endDateTime,
+          deliveryWorkerId = null,
+          statuses = listOf(OrderModelStatus.COMPLETED),
+        )
+      completedAmountCents +=
+        orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(
+          listOf(OrderModelStatus.COMPLETED),
+          startDateTime,
+          endDateTime,
+          deliveryWorkerId = null,
+        )
+      refundedAmountCents += paymentQueryService.sumRefundedAmountCents(startDateTime, endDateTime)
+    }
 
     return OrderStatisticsDTO(
       totalOrders = totalOrders,
@@ -115,167 +146,111 @@ class StatisticsServiceImpl(
 
   /**
    * 获取每日订单统计
-   * 订单数口径：当日全部订单；营收口径：已完成订单金额合计（PRD F-STA-002 定稿）
+   * 订单数口径:当日全部订单;营收口径:已完成订单金额合计(PRD F-STA-002 定稿)
+   * 两段合并:昨日及以前读快照(已完成口径/退款按 processed_at 归属在查询时组合),今日走实时 SQL;缺失快照日期回退实时。
    */
   override fun getDailyStatistics(
     startDate: LocalDate,
     endDate: LocalDate,
   ): List<DailyStatisticsDTO> {
-    val startDateTime = startDate.atStartOfDay()
-    val endDateTime = endDate.atTime(LocalTime.MAX)
+    val today = LocalDate.now(StatisticsTime.STATS_ZONE)
+    val yesterday = today.minusDays(1)
 
-    val dailyStats =
-      statisticsOrderRepository.getDailyOrderStatistics(
-        startDateTime = startDateTime,
-        endDateTime = endDateTime,
-        deliveryWorkerId = null,
-        statuses = null,
-      )
+    val historicalEnd = minOf(endDate, yesterday)
+    val factDates = if (startDate <= historicalEnd) snapshotCoverageService.coveredDates(startDate, historicalEnd) else emptySet()
+    val statsMap = mutableMapOf<LocalDate, DailyStatisticsDTO>()
 
-    // 营收按已完成订单口径聚合（与订单数分两次聚合，口径不同）
-    val dailyRevenueStats =
-      statisticsOrderRepository.getDailyOrderStatistics(
-        startDateTime = startDateTime,
-        endDateTime = endDateTime,
-        deliveryWorkerId = null,
-        statuses = listOf(OrderModelStatus.COMPLETED),
-      )
-    val revenueMap = dailyRevenueStats.associateBy { it.date }
+    // 快照段:每日期 orderCount=Σ 全状态,itemQuantity=Σ 件数,revenue=Σ COMPLETED 金额,refund=Σ COMPLETED+ORDER_REFUND
+    if (factDates.isNotEmpty()) {
+      val (factStart, factEnd) = factDates.min() to factDates.max()
+      val orderFacts = dailyOrderFactRepository.findByStatDateBetween(factStart, factEnd)
+      val refundFacts = dailyRefundFactRepository.findByStatDateBetween(factStart, factEnd)
+      val orderByDate = orderFacts.groupBy { it.statDate }
+      val refundByDate = refundFacts.groupBy { it.statDate }
+      factDates.forEach { date ->
+        val orders = orderByDate[date].orEmpty()
+        val refunds = refundByDate[date].orEmpty()
+        statsMap[date] =
+          DailyStatisticsDTO(
+            date = date,
+            orderCount = orders.sumOf { it.orderCount },
+            orderProductCount = orders.sumOf { it.itemQuantity },
+            totalAmountCents = orders.filter { it.status == OrderModelStatus.COMPLETED.name }.sumOf { it.amountCents },
+            refundedAmountCents =
+              refunds
+                .filter { it.status == RefundStatus.COMPLETED.name && it.refundType == RefundType.ORDER_REFUND.name }
+                .sumOf { it.refundAmountCents },
+          )
+      }
+    }
 
-    // 退款金额按退款成功时间(processed_at)归属当日(payment_refunds status=COMPLETED,PRD F-STA-002)
-    val refundMap = paymentQueryService.getDailyRefundedAmountCents(startDateTime, endDateTime)
+    // 实时段:未覆盖历史日期 + 今日
+    val liveRanges = snapshotCoverageService.uncoveredRanges(startDate, endDate, factDates)
+    liveRanges.forEach { (rangeStart, rangeEnd) ->
+      liveDailyStatistics(rangeStart, rangeEnd).forEach { statsMap[it.date] = it }
+    }
 
-    // 构建日期到统计的映射
-    val statsMap = dailyStats.associateBy { it.date }
-
-    // 遍历日期范围，填充缺失日期（无订单的日期）
+    // 遍历日期范围,填充缺失日期(无订单的日期)
     val result = mutableListOf<DailyStatisticsDTO>()
     var currentDate = startDate
     while (!currentDate.isAfter(endDate)) {
-      val stat = statsMap[currentDate]
-      result.add(
-        stat?.copy(totalAmountCents = revenueMap[currentDate]?.totalAmountCents ?: 0L)
-          ?: DailyStatisticsDTO.default(currentDate),
-      )
+      result.add(statsMap[currentDate] ?: DailyStatisticsDTO.default(currentDate))
       currentDate = currentDate.plusDays(1)
     }
-
-    return result.map { it.copy(refundedAmountCents = refundMap[it.date] ?: 0L) }
+    return result
   }
 
   /**
    * 获取每周订单统计
-   * 订单数口径：当周全部订单；营收口径：已完成订单金额合计（与 getDailyStatistics 对齐）
+   * 周聚合在查询时组合:对两段合并后的日序列按 ISO 周(周一)滚动聚合(PRD F-STA-002 口径)。
    */
   override fun getWeeklyStatistics(
     startDate: LocalDate,
     endDate: LocalDate,
   ): List<DailyStatisticsDTO> {
-    val startDateTime = startDate.atStartOfDay()
-    val endDateTime = endDate.atTime(LocalTime.MAX)
-
-    val weeklyStats =
-      statisticsOrderRepository.getWeeklyOrderStatistics(
-        startDateTime = startDateTime,
-        endDateTime = endDateTime,
-        deliveryWorkerId = null,
-        statuses = null,
-      )
-
-    // 营收按已完成订单口径聚合（与订单数分两次聚合，口径不同）
-    val weeklyRevenueStats =
-      statisticsOrderRepository.getWeeklyOrderStatistics(
-        startDateTime = startDateTime,
-        endDateTime = endDateTime,
-        deliveryWorkerId = null,
-        statuses = listOf(OrderModelStatus.COMPLETED),
-      )
-    val revenueMap = weeklyRevenueStats.associateBy { it.date }
-
-    // 退款金额按退款成功时间(processed_at)归属当周(周一作为周开始,与订单周趋势同桶口径)
+    val daily = getDailyStatistics(startDate, endDate)
     val weekFields = WeekFields.of(DayOfWeek.MONDAY, 4)
-    val refundMap = paymentQueryService.getDailyRefundedAmountCents(startDateTime, endDateTime)
-    val refundWeekMap =
-      refundMap.entries
-        .groupBy({ it.key.with(weekFields.dayOfWeek(), 1) }, { it.value })
-        .mapValues { (_, amounts) -> amounts.sum() }
+    val weeklyMap = daily.groupBy { it.date.with(weekFields.dayOfWeek(), 1) }
 
-    // 构建周开始日期到统计的映射
-    val statsMap = weeklyStats.associateBy { it.date }
-
-    // 遍历周范围，填充缺失周（无订单的周）
     val result = mutableListOf<DailyStatisticsDTO>()
     var currentWeekStart = startDate.with(weekFields.dayOfWeek(), 1)
-
     while (!currentWeekStart.isAfter(endDate)) {
-      val stat = statsMap[currentWeekStart]
+      val weekStats = weeklyMap[currentWeekStart]
       result.add(
-        stat?.copy(totalAmountCents = revenueMap[currentWeekStart]?.totalAmountCents ?: 0L)
+        weekStats?.reduce { acc, dto -> acc.sumWith(dto) }?.copy(date = currentWeekStart)
           ?: DailyStatisticsDTO.default(currentWeekStart),
       )
       currentWeekStart = currentWeekStart.plusWeeks(1)
     }
-
-    return result.map { it.copy(refundedAmountCents = refundWeekMap[it.date] ?: 0L) }
+    return result
   }
 
   /**
    * 获取每月订单统计
-   * 订单数口径：当月全部订单；营收口径：已完成订单金额合计（与 getDailyStatistics 对齐）
+   * 月聚合在查询时组合:对两段合并后的日序列按自然月滚动聚合。
    */
   override fun getMonthlyStatistics(
     startDate: LocalDate,
     endDate: LocalDate,
   ): List<DailyStatisticsDTO> {
-    val startDateTime = startDate.atStartOfDay()
-    val endDateTime = endDate.atTime(LocalTime.MAX)
+    val daily = getDailyStatistics(startDate, endDate)
+    val monthlyMap = daily.groupBy { it.date.withDayOfMonth(1) }
 
-    val monthlyStats =
-      statisticsOrderRepository.getMonthlyOrderStatistics(
-        startDateTime = startDateTime,
-        endDateTime = endDateTime,
-        deliveryWorkerId = null,
-        statuses = null,
-      )
-
-    // 营收按已完成订单口径聚合（与订单数分两次聚合，口径不同）
-    val monthlyRevenueStats =
-      statisticsOrderRepository.getMonthlyOrderStatistics(
-        startDateTime = startDateTime,
-        endDateTime = endDateTime,
-        deliveryWorkerId = null,
-        statuses = listOf(OrderModelStatus.COMPLETED),
-      )
-    val revenueMap = monthlyRevenueStats.associateBy { it.date }
-
-    // 退款金额按退款成功时间(processed_at)归属当月(与订单月趋势同桶口径)
-    val refundMap = paymentQueryService.getDailyRefundedAmountCents(startDateTime, endDateTime)
-    val refundMonthMap =
-      refundMap.entries
-        .groupBy({ it.key.withDayOfMonth(1) }, { it.value })
-        .mapValues { (_, amounts) -> amounts.sum() }
-
-    // 构建月份开始日期到统计的映射
-    val statsMap = monthlyStats.associateBy { it.date }
-
-    // 遍历月份范围，填充缺失月份（无订单的月份）
     val result = mutableListOf<DailyStatisticsDTO>()
     var currentMonth = startDate.withDayOfMonth(1)
-
     while (!currentMonth.isAfter(endDate)) {
-      val stat = statsMap[currentMonth]
+      val monthStats = monthlyMap[currentMonth]
       result.add(
-        stat?.copy(totalAmountCents = revenueMap[currentMonth]?.totalAmountCents ?: 0L)
+        monthStats?.reduce { acc, dto -> acc.sumWith(dto) }?.copy(date = currentMonth)
           ?: DailyStatisticsDTO.default(currentMonth),
       )
       currentMonth = currentMonth.plusMonths(1)
     }
-
-    return result.map { it.copy(refundedAmountCents = refundMonthMap[it.date] ?: 0L) }
+    return result
   }
 
   /**
-   * 获取待处理订单存量快照（待支付/待派单/待配送三态合计，当前状态，与日期窗口无关）
+   * 获取待处理订单存量快照(待支付/待派单/待配送三态合计,当前状态,与日期窗口无关)
    */
   override fun getPendingOrderBreakdown(): PendingOrderBreakdownDTO {
     val counts =
@@ -294,25 +269,50 @@ class StatisticsServiceImpl(
   }
 
   /**
-   * 获取日期窗口内订单状态分布（G37，7 态补零，合计 = 订单总数 totalOrders）
+   * 获取日期窗口内订单状态分布(G37,7 态补零,合计 = 订单总数)
+   * 快照化:历史段由订单事实表按 status 分组求和,未覆盖日期与今日走实时 SQL。
    */
   override fun getOrderStatusDistribution(
     startDate: LocalDate,
     endDate: LocalDate,
   ): List<OrderStatusDistributionItemDTO> {
-    val counts =
-      statisticsOrderRepository.countOrdersGroupByStatus(
-        startDateTime = startDate.atStartOfDay(),
-        endDateTime = endDate.atTime(LocalTime.MAX),
-      )
+    val today = LocalDate.now(StatisticsTime.STATS_ZONE)
+    val yesterday = today.minusDays(1)
+    val factDates =
+      if (startDate <=
+        minOf(endDate, yesterday)
+      ) {
+        snapshotCoverageService.coveredDates(startDate, minOf(endDate, yesterday))
+      } else {
+        emptySet()
+      }
+
+    val counts = mutableMapOf<OrderModelStatus, Long>()
+
+    if (factDates.isNotEmpty()) {
+      val (factStart, factEnd) = factDates.min() to factDates.max()
+      dailyOrderFactRepository
+        .findByStatDateBetween(factStart, factEnd)
+        .forEach { fact ->
+          val status = OrderModelStatus.valueOf(fact.status)
+          counts[status] = (counts[status] ?: 0L) + fact.orderCount
+        }
+    }
+
+    snapshotCoverageService.uncoveredRanges(startDate, endDate, factDates).forEach { (rangeStart, rangeEnd) ->
+      statisticsOrderRepository
+        .countOrdersGroupByStatus(rangeStart.atStartOfDay(), rangeEnd.atTime(LocalTime.MAX))
+        .forEach { (status, count) -> counts[status] = (counts[status] ?: 0L) + count }
+    }
+
     return OrderModelStatus.entries.map { status ->
       OrderStatusDistributionItemDTO(status = status, count = counts[status] ?: 0L)
     }
   }
 
   /**
-   * 获取日期窗口内容单价分布（G37，默认金额区间补零，合计 = 订单总数 totalOrders）
-   * 金额按订单 amountCents 只计一次（与 P1-3 口径一致）。
+   * 获取日期窗口内容单价分布(G37,默认金额区间补零,合计 = 订单总数)
+   * 原子日汇总无法还原单笔订单金额,保持实时 SQL 聚合(窗口内订单量级可控)。
    */
   override fun getOrderValueDistribution(
     startDate: LocalDate,
@@ -330,7 +330,8 @@ class StatisticsServiceImpl(
   }
 
   /**
-   * 获取日期窗口内高峰时段分析（G37，0-23 时补零，合计 = 订单总数 totalOrders，按 createdAt 小时聚合）
+   * 获取日期窗口内高峰时段分析(G37,0-23 时补零,合计 = 订单总数,按 createdAt 小时聚合)
+   * 原子日汇总无小时维度,保持实时 SQL 聚合。
    */
   override fun getPeakHourDistribution(
     startDate: LocalDate,
@@ -345,4 +346,79 @@ class StatisticsServiceImpl(
       PeakHourDTO(hour = hour, count = counts[hour] ?: 0L)
     }
   }
+
+  /**
+   * 实时聚合 [startDate, endDate] 的每日统计(订单数全状态 + 营收已完成口径 + 退款按日)。
+   */
+  private fun liveDailyStatistics(
+    startDate: LocalDate,
+    endDate: LocalDate,
+  ): List<DailyStatisticsDTO> {
+    val startDateTime = startDate.atStartOfDay()
+    val endDateTime = endDate.atTime(LocalTime.MAX)
+
+    val dailyStats =
+      statisticsOrderRepository.getDailyOrderStatistics(
+        startDateTime = startDateTime,
+        endDateTime = endDateTime,
+        deliveryWorkerId = null,
+        statuses = null,
+      )
+    val dailyRevenueStats =
+      statisticsOrderRepository.getDailyOrderStatistics(
+        startDateTime = startDateTime,
+        endDateTime = endDateTime,
+        deliveryWorkerId = null,
+        statuses = listOf(OrderModelStatus.COMPLETED),
+      )
+    val revenueMap = dailyRevenueStats.associateBy { it.date }
+    val refundMap = paymentQueryService.getDailyRefundedAmountCents(startDateTime, endDateTime)
+
+    val statsMap = dailyStats.associateBy { it.date }
+    val result = mutableListOf<DailyStatisticsDTO>()
+    var currentDate = startDate
+    while (!currentDate.isAfter(endDate)) {
+      val stat = statsMap[currentDate]
+      result.add(
+        stat?.copy(totalAmountCents = revenueMap[currentDate]?.totalAmountCents ?: 0L)
+          ?: DailyStatisticsDTO.default(currentDate),
+      )
+      currentDate = currentDate.plusDays(1)
+    }
+    return result.map { it.copy(refundedAmountCents = refundMap[it.date] ?: 0L) }
+  }
+
+  /**
+   * 将日期集合折叠为连续区间列表(供快照段批量读取)。
+   */
+  private fun contiguousRanges(dates: Set<LocalDate>): List<Pair<LocalDate, LocalDate>> {
+    if (dates.isEmpty()) return emptyList()
+    val sorted = dates.sorted()
+    val ranges = mutableListOf<Pair<LocalDate, LocalDate>>()
+    var rangeStart = sorted.first()
+    var rangeEnd = sorted.first()
+    for (date in sorted.drop(1)) {
+      if (date == rangeEnd.plusDays(1)) {
+        rangeEnd = date
+      } else {
+        ranges.add(rangeStart to rangeEnd)
+        rangeStart = date
+        rangeEnd = date
+      }
+    }
+    ranges.add(rangeStart to rangeEnd)
+    return ranges
+  }
+
+  /**
+   * 日统计滚动聚合(周/月):四口径相加,date 取聚合周期起点。
+   */
+  private fun DailyStatisticsDTO.sumWith(other: DailyStatisticsDTO): DailyStatisticsDTO =
+    DailyStatisticsDTO(
+      date = date,
+      orderCount = orderCount + other.orderCount,
+      orderProductCount = orderProductCount + other.orderProductCount,
+      totalAmountCents = totalAmountCents + other.totalAmountCents,
+      refundedAmountCents = refundedAmountCents + other.refundedAmountCents,
+    )
 }

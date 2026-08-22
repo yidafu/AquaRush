@@ -19,12 +19,16 @@
 
 package dev.yidafu.aqua.analytics.statistics.service.impl
 
+import dev.yidafu.aqua.analytics.statistics.StatisticsTime
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyProductFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductInfo
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductDailySales
 import dev.yidafu.aqua.common.graphql.generated.ProductSalesStat
@@ -44,6 +48,8 @@ class ProductStatisticsServiceImpl(
   private val productFavoriteService: ProductFavoriteService,
   private val productSalesStatisticsRepository: ProductSalesStatisticsRepositoryCustom,
   private val systemConfigQueryApiService: SystemConfigQueryApiService,
+  private val dailyProductFactRepository: DailyProductFactRepository,
+  private val snapshotCoverageService: StatisticsSnapshotCoverageService,
 ) {
   /**
    * 获取商品统计信息
@@ -118,6 +124,7 @@ class ProductStatisticsServiceImpl(
 
   /**
    * 获取商品每日销量统计
+   * 两段合并:昨日及以前读 daily_product_facts(已完成口径在查询时组合),今日/未覆盖日期走实时 SQL。
    * @param startDate 开始日期
    * @param endDate 结束日期
    */
@@ -125,30 +132,80 @@ class ProductStatisticsServiceImpl(
     startDate: LocalDate,
     endDate: LocalDate,
   ): List<ProductDailySales> {
-    val startDateTime = startDate.atStartOfDay()
-    val endDateTime = endDate.atTime(LocalTime.MAX)
+    val today = LocalDate.now(StatisticsTime.STATS_ZONE)
+    val yesterday = today.minusDays(1)
+    val historicalEnd = minOf(endDate, yesterday)
 
-    val results =
-      productSalesStatisticsRepository.getProductDailySales(
-        startDateTime = startDateTime,
-        endDateTime = endDateTime,
-        productId = null,
-      )
+    // 快照段:COMPLETED 状态过滤在查询时组合;商品名易变,查询时批量取名
+    val factDates = snapshotCoverageService.coveredDates(startDate, historicalEnd)
+    val factRows = mutableMapOf<Pair<LocalDate, Long>, Pair<Long, Long>>() // (date, productId) -> (quantity, revenue)
+    if (factDates.isNotEmpty()) {
+      dailyProductFactRepository
+        .findByStatDateBetween(factDates.min(), factDates.max())
+        .filter { it.status == OrderModelStatus.COMPLETED.name }
+        .forEach { fact ->
+          val key = fact.statDate to fact.productId
+          val current = factRows[key]
+          factRows[key] = (current?.first ?: 0L) + fact.quantity to (current?.second ?: 0L) + fact.revenueCents
+        }
+    }
 
-    // Create a map of existing results by date
-    val resultsByDate = results.groupBy { it.date }
+    // 实时段:未覆盖历史日期 + 今日
+    val liveResults =
+      snapshotCoverageService
+        .uncoveredRanges(startDate, endDate, factDates)
+        .flatMap { (rangeStart, rangeEnd) ->
+          productSalesStatisticsRepository.getProductDailySales(
+            startDateTime = rangeStart.atStartOfDay(),
+            endDateTime = rangeEnd.atTime(LocalTime.MAX),
+            productId = null,
+          )
+        }
 
-    // Generate all dates in the range and fill in zeros for missing dates
+    // 批量取商品名(快照段事实表只存 product_id;实时段已含名)
+    val factProductIds = factRows.keys.map { it.second }.distinct()
+    val productNames =
+      if (factProductIds.isEmpty()) {
+        emptyMap()
+      } else {
+        productQueryApiService.findByIds(factProductIds).associate { it.id!! to it.name }
+      }
+
+    // 合并:快照段优先,实时段补齐(按 (date, productId) 去重)
+    val merged = mutableMapOf<Pair<LocalDate, Long>, Triple<String, Long, Long>>()
+    factRows.forEach { (key, counts) ->
+      merged[key] = Triple(productNames[key.second] ?: "未知商品", counts.first, counts.second)
+    }
+    liveResults.forEach { result ->
+      val date = LocalDate.parse(result.date)
+      val key = date to result.productId
+      if (merged[key] == null) {
+        merged[key] = Triple(result.productName, result.salesVolume.toLong(), result.revenue)
+      }
+    }
+
+    // 生成范围内所有日期,缺失日期补「无销售」
     val allDates = generateSequence(startDate) { it.plusDays(1) }.takeWhile { !it.isAfter(endDate) }.toList()
 
     return allDates.flatMap { date ->
-      val dateStr = date.toString()
-      val dayResults = resultsByDate[dateStr]
-      if (dayResults.isNullOrEmpty()) {
+      val dayResults =
+        merged.entries
+          .filter { it.key.first == date }
+          .sortedByDescending { it.value.third }
+          .map { (key, value) ->
+            ProductDailySales(
+              date = date.toString(),
+              productId = key.second,
+              productName = value.first,
+              salesVolume = value.second.toInt(),
+              revenueCents = value.third,
+            )
+          }
+      if (dayResults.isEmpty()) {
         // No sales on this date, return a single entry with zero
         listOf(
           ProductDailySales(
-            date = dateStr,
+            date = date.toString(),
             productId = 0L,
             productName = "无销售",
             salesVolume = 0,
@@ -156,15 +213,7 @@ class ProductStatisticsServiceImpl(
           ),
         )
       } else {
-        dayResults.map { result ->
-          ProductDailySales(
-            date = result.date,
-            productId = result.productId,
-            productName = result.productName,
-            salesVolume = result.salesVolume.toInt(),
-            revenueCents = result.revenue,
-          )
-        }
+        dayResults
       }
     }
   }
