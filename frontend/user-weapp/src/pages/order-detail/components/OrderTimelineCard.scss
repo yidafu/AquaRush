@@ -1,0 +1,47 @@
+@import "../../../styles/theme.scss";
+
+.timeline-card {
+  margin: 20px 24px;
+}
+
+.at-timeline {
+  padding: 0;
+}
+
+.at-timeline__item {
+  padding-bottom: 16px;
+
+  &:last-child {
+    padding-bottom: 0;
+  }
+}
+
+.at-timeline__item-content {
+  margin-left: 24px;
+}
+
+.at-timeline__item-title {
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--text-main);
+  margin-bottom: 4px;
+}
+
+.at-timeline__item-subtitle {
+  font-size: 24px;
+  color: var(--text-sub);
+  line-height: 1.4;
+}
+
+.at-timeline__item-time {
+  font-size: 24px;
+  color: var(--text-weak);
+  margin-bottom: 4px;
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .timeline-card {
+    margin: 16px 20px;
+  }
+}

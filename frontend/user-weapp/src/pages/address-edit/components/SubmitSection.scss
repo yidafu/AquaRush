@@ -1,0 +1,45 @@
+@import "../../../styles/theme.scss";
+
+.submit-section {
+  padding: 30px 16px;
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.submit-button {
+  width: 100%;
+  font-size: 34px;
+  font-weight: 600;
+  background: var(--brand-primary); // 保存地址:主按钮品牌蓝实底(§7)
+  color: var(--bg-card);
+  border: none;
+  border-radius: 28px;
+  box-shadow: 0 8px 24px rgba(var(--brand-primary-rgb), 0.4);
+  transition: all 0.3s ease;
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 4px 16px rgba(var(--brand-primary-rgb), 0.5);
+  }
+
+  &:active::before {
+    left: 100%;
+  }
+
+  &[disabled] {
+    opacity: 0.6;
+    background: var(--text-weak);
+    box-shadow: var(--shadow-card);
+    cursor: not-allowed;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

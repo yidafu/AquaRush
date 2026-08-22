@@ -2,9 +2,7 @@
 
 // ============================================================
 // 全部商品列表页
-// 布局:搜索栏(sticky) → 排序 Tab → 商品网格(2 列) → 加载更多
-// 全颜色走设计 token;强调橙(#FF5436)不出现在本页(价格用主文字色加粗)
-// 注意:designWidth 750 下 px→rpx 1:1,此处 px 按小程序刻度书写
+// 布局:搜索栏(sticky) → 排序 Tab(components/SortBar) → 商品网格(2 列,components/ProductCard) → 加载更多
 // ============================================================
 
 .product-list-page {
@@ -27,163 +25,11 @@
   }
 }
 
-// ---- 排序 Tab(白底卡片,选中主色 tint) ----
-.sort-bar {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-  padding: var(--spacing-sm) var(--spacing-md);
-  background: var(--bg-card);
-  border-radius: var(--radius-card);
-  box-shadow: var(--shadow-card);
-
-  .sort-tab {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 8px 20px;
-    border-radius: var(--radius-btn);
-    background: var(--bg);
-
-    .sort-tab-text {
-      font-size: 28px;
-      color: var(--text-sub);
-    }
-
-    .sort-tab-arrow {
-      font-size: 24px;
-      color: var(--brand-primary);
-    }
-
-    &.sort-tab-active {
-      background: var(--brand-primary-light);
-
-      .sort-tab-text {
-        color: var(--brand-primary);
-        font-weight: 600;
-      }
-    }
-  }
-
-  .sort-total {
-    margin-left: auto;
-    font-size: 24px;
-    color: var(--text-weak);
-  }
-}
-
 // ---- 商品网格(2 列) ----
 .product-grid {
   display: flex;
   flex-wrap: wrap;
   justify-content: space-between;
-
-  // 商品卡(白底卡片,图片 1:1,名称 2 行截断)
-  .product-card {
-    width: calc((100% - var(--spacing-md)) / 2);
-    margin-bottom: var(--spacing-md);
-    padding: var(--spacing-sm);
-    background: var(--bg-card);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-card);
-    box-sizing: border-box;
-    overflow: hidden;
-
-    .product-img-wrap {
-      position: relative;
-      width: 100%;
-      height: 320px;
-      border-radius: var(--radius-sm);
-      overflow: hidden;
-
-      .product-img {
-        width: 100%;
-        height: 100%;
-      }
-
-      .product-sold-out {
-        position: absolute;
-        left: 0;
-        right: 0;
-        top: 0;
-        bottom: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(255, 255, 255, 0.55);
-
-        .product-sold-out-text {
-          padding: 6px 16px;
-          border-radius: var(--radius-sm);
-          background: rgba(0, 0, 0, 0.45);
-          color: #fff;
-          font-size: 24px;
-        }
-      }
-    }
-
-    .product-info {
-      padding: var(--spacing-sm) 4px 4px;
-
-      .product-name {
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
-        overflow: hidden;
-        font-size: 28px;
-        font-weight: 500;
-        line-height: 1.35;
-        color: var(--text-main);
-        min-height: 76px;
-      }
-
-      .product-spec {
-        display: block;
-        margin-top: 4px;
-        font-size: 24px;
-        color: var(--text-sub);
-        overflow: hidden;
-        white-space: nowrap;
-        text-overflow: ellipsis;
-      }
-
-      .product-bottom {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-top: var(--spacing-sm);
-
-        .product-price-wrap {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          min-width: 0;
-
-          .product-price {
-            font-size: 32px;
-            font-weight: 600;
-            color: var(--text-main); // 价格用主文字色加粗,不用强调橙(§4)
-          }
-
-          .product-price-tag {
-            flex-shrink: 0;
-            padding: 2px 8px;
-            border-radius: var(--radius-sm);
-            background: var(--brand-primary-light);
-            color: var(--brand-primary);
-            font-size: 20px;
-          }
-        }
-
-        .product-sales {
-          flex-shrink: 0;
-          font-size: 22px;
-          color: var(--text-weak);
-        }
-      }
-    }
-  }
 }
 
 // ---- 重试按钮(错误态) ----

@@ -1,0 +1,46 @@
+@import "../../../styles/theme.scss";
+
+/* 地址地图预览样式 */
+.address-map-section {
+  margin: 32px 0;
+  padding: 24px;
+  background: linear-gradient(135deg, var(--bg), var(--bg-card));
+  border-radius: 16px;
+  border: 2px solid var(--border);
+  animation: fadeIn 0.5s ease-out;
+  animation-delay: 0.4s;
+
+  .section-title {
+    font-size: 32px;
+    font-weight: bold;
+    color: var(--brand-primary);
+    margin-bottom: 16px;
+    display: block;
+    text-align: center;
+  }
+
+  .address-edit-map {
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+    margin-bottom: 16px;
+  }
+
+  .map-hint {
+    font-size: 24px;
+    color: var(--text-sub);
+    line-height: 1.4;
+    text-align: center;
+    font-style: italic;
+    display: block;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

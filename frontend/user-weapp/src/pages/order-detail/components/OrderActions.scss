@@ -1,0 +1,49 @@
+@import "../../../styles/theme.scss";
+
+.bottom-actions {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  z-index: 1000;
+}
+
+.action-button {
+  flex: 1;
+  height: 64px;
+  font-size: 32px;
+  font-weight: 500;
+
+  &.primary {
+    background: var(--action); // 去支付/催单 = 消费者最高优先级 CTA(强调橙 #FF5436)
+    color: white;
+    border: none;
+    box-shadow: var(--shadow-btn);
+
+    &:active {
+      background: #E64A30;
+      opacity: 0.9;
+    }
+  }
+
+  &.full-width {
+    width: 100%;
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .bottom-actions {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .action-button {
+    width: 100%;
+    font-size: 28px;
+  }
+}

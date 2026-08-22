@@ -4,16 +4,15 @@ import {
   DailyCollectionStatus,
   Money,
   centsToYuan,
-  formatCentsToCurrency,
   normalizeCents,
   yuanToCents,
 } from '@aquarush/common';
 import type { MyTodayCollectionVo } from '@aquarush/common';
 
-import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
-import { Input } from '@/components/input';
+import { CollectionInputFields } from '@/components/daily-collection/collection-input-fields';
+import { DiffConfirmSheet } from '@/components/daily-collection/diff-confirm-sheet';
 import { OrderInfoRow } from '@/components/order-info-row';
 import { StatusBadge } from '@/components/status-badge';
 import { ThemedText } from '@/components/themed-text';
@@ -163,32 +162,6 @@ export default function DailyCollectionScreen() {
     yuanToCents(parseFloat(cashAmount) || 0) + yuanToCents(parseFloat(qrCodeAmount) || 0);
   const status = orderStats?.status;
 
-  const formField = (
-    label: string,
-    value: string,
-    onChangeText: (t: string) => void,
-    unit: string,
-    keyboardType: 'decimal-pad' | 'number-pad',
-  ) => (
-    <View style={styles.formRow}>
-      <ThemedText type="small" themeColor="textSecondary" style={styles.formLabel}>
-        {label}
-      </ThemedText>
-      <View style={[styles.inputWrap, { borderColor: theme.border, backgroundColor: theme.background }]}>
-        <Input
-          value={value}
-          onChangeText={onChangeText}
-          keyboardType={keyboardType}
-          placeholder={`请输入${label}`}
-          containerStyle={styles.input}
-        />
-        <ThemedText type="small" themeColor="textTertiary" style={styles.unit}>
-          {unit}
-        </ThemedText>
-      </View>
-    </View>
-  );
-
   return (
     <ThemedView type="pageBackground" style={styles.container}>
       <View style={styles.content}>
@@ -250,18 +223,16 @@ export default function DailyCollectionScreen() {
             value={`${orderStats?.calculatedWaterTicketCount ?? 0} 张`}
           />
 
-          <View style={styles.formSection}>
-            {formField('现金收款', cashAmount, setCashAmount, '元', 'decimal-pad')}
-            {formField('水票数量', waterTicketCount, setWaterTicketCount, '张', 'number-pad')}
-            {formField('扫码收款', qrCodeAmount, setQrCodeAmount, '元', 'decimal-pad')}
-          </View>
-
-          <View style={styles.totalRow}>
-            <ThemedText type="smallBold">合计：</ThemedText>
-            <ThemedText type="smallBold" themeColor="primary">
-              {formatCentsToCurrency(totalCents)}
-            </ThemedText>
-          </View>
+          {/* 收款录入表单(现金/水票/扫码 + 合计) */}
+          <CollectionInputFields
+            cashAmount={cashAmount}
+            waterTicketCount={waterTicketCount}
+            qrCodeAmount={qrCodeAmount}
+            totalCents={totalCents}
+            onCashAmountChange={setCashAmount}
+            onWaterTicketCountChange={setWaterTicketCount}
+            onQrCodeAmountChange={setQrCodeAmount}
+          />
         </Card>
 
         <Button
@@ -272,38 +243,17 @@ export default function DailyCollectionScreen() {
         />
       </View>
 
-      <BottomSheet
+      {/* 金额差异确认(任一子项超容差时二次确认) */}
+      <DiffConfirmSheet
         visible={showConfirmModal}
-        onClose={handleCancelConfirm}
-        title="金额差异确认">
-        <View style={styles.modalBody}>
-          <ThemedText type="small">现金差异：{formatCentsToCurrency(pendingCashDiff)}</ThemedText>
-          <ThemedText type="small">
-            水票差异：
-            {pendingWaterTicketDiff > 0 ? `+${pendingWaterTicketDiff}` : pendingWaterTicketDiff} 张
-          </ThemedText>
-          <ThemedText type="small">扫码差异：{formatCentsToCurrency(pendingQrCodeDiff)}</ThemedText>
-          <ThemedText type="small" themeColor="textSecondary" style={styles.modalLabel}>
-            请输入差异原因说明：
-          </ThemedText>
-          <Input
-            multiline
-            value={notes}
-            onChangeText={setNotes}
-            maxLength={200}
-            placeholder="请输入情况说明（如：某订单未收款、额外收到水票等）"
-          />
-          <View style={styles.modalActions}>
-            <Button title="取消" variant="ghost" onPress={handleCancelConfirm} style={styles.modalButton} />
-            <Button
-              title="确定"
-              onPress={handleConfirm}
-              disabled={!notes.trim()}
-              style={styles.modalButton}
-            />
-          </View>
-        </View>
-      </BottomSheet>
+        cashDiffCents={pendingCashDiff}
+        waterTicketDiff={pendingWaterTicketDiff}
+        qrCodeDiffCents={pendingQrCodeDiff}
+        notes={notes}
+        onNotesChange={setNotes}
+        onConfirm={handleConfirm}
+        onCancel={handleCancelConfirm}
+      />
     </ThemedView>
   );
 }
@@ -333,54 +283,5 @@ const styles = StyleSheet.create({
   },
   orderInfoTitle: {
     marginBottom: Spacing.two,
-  },
-  formSection: {
-    marginTop: Spacing.three,
-    gap: Spacing.three,
-  },
-  formRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: Spacing.two,
-  },
-  formLabel: {
-    width: 76,
-    flexShrink: 0,
-  },
-  inputWrap: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderRadius: Radius.sm,
-    borderWidth: 1,
-  },
-  input: {
-    flex: 1,
-    borderWidth: 0,
-    backgroundColor: 'transparent',
-  },
-  unit: {
-    paddingRight: Spacing.three,
-  },
-  totalRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: Spacing.three,
-  },
-  modalBody: {
-    gap: Spacing.two,
-  },
-  modalLabel: {
-    marginTop: Spacing.two,
-  },
-  modalActions: {
-    flexDirection: 'row',
-    gap: Spacing.two,
-    marginTop: Spacing.four,
-    marginBottom: Spacing.two,
-  },
-  modalButton: {
-    flex: 1,
   },
 });

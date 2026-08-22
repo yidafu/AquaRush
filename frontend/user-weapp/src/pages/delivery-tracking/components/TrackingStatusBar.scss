@@ -1,0 +1,23 @@
+@import "../../../styles/theme.scss";
+
+.tracking-info {
+  margin: 32px;
+  padding: 24px;
+  background-color: var(--brand-primary);
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .tracking-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+
+    .tracking-text {
+      font-size: 28px;
+      color: white;
+      font-weight: 500;
+    }
+  }
+}

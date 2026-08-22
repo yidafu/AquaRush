@@ -1,12 +1,16 @@
 import React, { useState, useCallback, useEffect } from 'react'
-import { View, Text, Image } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { AtSearchBar, AtLoadMore, AtButton } from 'taro-ui'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh, useShareAppMessage } from '@tarojs/taro'
 import ProductService from '../../services/ProductService'
-import { displayCents } from '@aquarush/common'
 import { syncCartTabBadge } from '../../utils/cart'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { userActionTracker } from '../../utils/tracking'
+
+// 子组件
+import ProductCard from './components/ProductCard'
+import SortBar from './components/SortBar'
+import type { ProductListItem } from './components/constants'
 
 import "taro-ui/dist/style/components/search-bar.scss"
 import "taro-ui/dist/style/components/load-more.scss"
@@ -19,19 +23,9 @@ import './index.scss'
  * - 支持关键词搜索(服务端过滤,activeProducts.keyword)
  * - 排序:综合(最新上架) / 销量 / 价格(asc↔desc 切换)
  * - 分页:上拉加载更多(useReachBottom),下拉刷新
- * - 促销价展示走 R-MKT-02 单价链(priceSource/effectivePriceCents)
+ * - 促销价展示走 R-MKT-02 单价链(priceSource/effectivePriceCents,见 utils/productPrice)
+ * 渲染由 components/ 完成。
  */
-
-interface SortTab {
-  key: string
-  label: string
-}
-
-const SORT_TABS: SortTab[] = [
-  { key: 'default', label: '综合' },
-  { key: 'sales', label: '销量' },
-  { key: 'price', label: '价格' }
-]
 
 const PAGE_SIZE = 10
 
@@ -46,22 +40,6 @@ const toSortParams = (sortKey: string, priceAsc: boolean): { sortBy: string; sor
       // 综合 = 最新上架
       return { sortBy: 'createdAt', sortDirection: 'desc' }
   }
-}
-
-interface ProductListItem {
-  id: string
-  name: string
-  subtitle?: string
-  specification: string
-  /** 目录价(分) */
-  priceCents: number
-  /** 促销价(分,有效成交单价 R-MKT-02) */
-  effectivePriceCents?: number
-  /** 成交单价来源标签:GROUP_PRICE/FLASH_SALE_PRICE/NEWCOMER_PRICE/CATALOG_PRICE */
-  priceSource?: string
-  coverImageUrl: string
-  stock: number
-  salesVolume: number
 }
 
 const ProductListPage: React.FC = () => {
@@ -215,57 +193,6 @@ const ProductListPage: React.FC = () => {
     Taro.navigateTo({ url: `/pages/product-detail/index?id=${product.id}` })
   }, [])
 
-  // 促销价展示(R-MKT-02 单价链):命中且低于目录价时展示促销价 + tint 标签
-  const getDisplayPrice = (p: ProductListItem): { price: number; tag: string } => {
-    const source = p.priceSource
-    const hasDiscounted =
-      (source === 'GROUP_PRICE' || source === 'FLASH_SALE_PRICE' || source === 'NEWCOMER_PRICE') &&
-      p.effectivePriceCents != null &&
-      p.effectivePriceCents < p.priceCents
-    const tag =
-      source === 'FLASH_SALE_PRICE' ? '特价' : source === 'NEWCOMER_PRICE' ? '新人价' : source === 'GROUP_PRICE' ? '熟客价' : ''
-    return { price: hasDiscounted && p.effectivePriceCents != null ? p.effectivePriceCents : p.priceCents, tag }
-  }
-
-  const renderProductCard = (product: ProductListItem) => {
-    const { price, tag } = getDisplayPrice(product)
-    const outOfStock = product.stock <= 0
-    return (
-      <View
-        key={product.id}
-        className='product-card'
-        onClick={() => handleProductClick(product)}
-      >
-        <View className='product-img-wrap'>
-          <Image
-            src={product.coverImageUrl}
-            mode='aspectFill'
-            className='product-img'
-            lazyLoad
-          />
-          {outOfStock && (
-            <View className='product-sold-out'>
-              <Text className='product-sold-out-text'>暂时缺货</Text>
-            </View>
-          )}
-        </View>
-        <View className='product-info'>
-          <Text className='product-name' numberOfLines={2}>{product.name}</Text>
-          <Text className='product-spec' numberOfLines={1}>{product.subtitle || product.specification}</Text>
-          <View className='product-bottom'>
-            <View className='product-price-wrap'>
-              <Text className='product-price'>{displayCents(price)}</Text>
-              {tag && <Text className='product-price-tag'>{tag}</Text>}
-            </View>
-            {product.salesVolume > 0 && (
-              <Text className='product-sales'>已售{product.salesVolume}</Text>
-            )}
-          </View>
-        </View>
-      </View>
-    )
-  }
-
   return (
     <View className='product-list-page'>
       {/* 搜索栏(关键词过滤,服务端 activeProducts.keyword) */}
@@ -285,21 +212,12 @@ const ProductListPage: React.FC = () => {
       </View>
 
       {/* 排序 Tab */}
-      <View className='sort-bar'>
-        {SORT_TABS.map((tab) => (
-          <View
-            key={tab.key}
-            className={`sort-tab ${activeSort === tab.key ? 'sort-tab-active' : ''}`}
-            onClick={() => handleSortClick(tab.key)}
-          >
-            <Text className='sort-tab-text'>{tab.label}</Text>
-            {tab.key === 'price' && activeSort === 'price' && (
-              <Text className='sort-tab-arrow'>{priceAsc ? '↑' : '↓'}</Text>
-            )}
-          </View>
-        ))}
-        {total > 0 && <Text className='sort-total'>共 {total} 件</Text>}
-      </View>
+      <SortBar
+        activeSort={activeSort}
+        priceAsc={priceAsc}
+        total={total}
+        onSortClick={handleSortClick}
+      />
 
       {/* 商品网格(2 列) */}
       {loading ? (
@@ -320,7 +238,13 @@ const ProductListPage: React.FC = () => {
         </View>
       ) : (
         <View className='product-grid'>
-          {products.map((p) => renderProductCard(p))}
+          {products.map((p) => (
+            <ProductCard
+              key={p.id}
+              product={p}
+              onClick={() => handleProductClick(p)}
+            />
+          ))}
         </View>
       )}
 

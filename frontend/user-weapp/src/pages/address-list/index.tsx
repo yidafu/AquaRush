@@ -1,23 +1,22 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, Button, Image } from '@tarojs/components'
-import { AtButton, AtToast, AtModal, AtModalHeader, AtModalContent, AtModalAction, AtSearchBar } from 'taro-ui'
+import { View, Text } from '@tarojs/components'
+import { AtButton, AtToast } from 'taro-ui'
 import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import AddressService from '../../services/AddressService'
 import { Address } from '../../types/address'
 import AddressCard from '../../components/AddressCard'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
+// 子组件
+import AddressSearchSection from './components/AddressSearchSection'
+import AddressListEmptyState from './components/AddressListEmptyState'
+import DeleteAddressModal from './components/DeleteAddressModal'
+
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/toast.scss"
-import "taro-ui/dist/style/components/modal.scss"
-import "taro-ui/dist/style/components/search-bar.scss"
 import './index.scss'
 
-interface AddressListProps {
-  // Props can be added here if needed
-}
-
-const AddressList: React.FC<AddressListProps> = () => {
+const AddressList: React.FC = () => {
   usePageViewTracking()
 
   const [addresses, setAddresses] = useState<Address[]>([])
@@ -239,28 +238,13 @@ const AddressList: React.FC<AddressListProps> = () => {
 
   return (
     <View className='address-list-page'>
-      {/* 搜索栏 */}
-      <View className='search-section'>
-        <AtSearchBar
-          value={searchValue}
-          onChange={handleSearch}
-          onClear={handleSearchClear}
-          placeholder='搜索手机号或地址'
-          showActionButton={false}
-        />
-      </View>
-
-      {/* 微信地址导入按钮 */}
-      <View className='flex justify-end import-section'>
-        <AtButton
-          type='secondary'
-          size='small'
-          onClick={handleWechatImport}
-          className='import-button'
-        >
-          <Text>导入微信地址</Text>
-        </AtButton>
-      </View>
+      {/* 搜索栏 + 微信地址导入 */}
+      <AddressSearchSection
+        searchValue={searchValue}
+        onSearch={handleSearch}
+        onSearchClear={handleSearchClear}
+        onWechatImport={handleWechatImport}
+      />
 
       {/* 地址列表 */}
       <View className='address-list'>
@@ -269,24 +253,7 @@ const AddressList: React.FC<AddressListProps> = () => {
             <Text>加载中...</Text>
           </View>
         ) : filteredAddresses.length === 0 ? (
-          <View className='empty-container'>
-            {searchValue ? (
-              <>
-                <Text className='empty-text'>未找到匹配地址</Text>
-                <Text className='empty-desc'>试试其他搜索词</Text>
-              </>
-            ) : (
-              <>
-                <Image
-                  src='/assets/empty-address.png'
-                  mode='aspectFit'
-                  className='empty-image'
-                />
-                <Text className='empty-text'>暂无收货地址</Text>
-                <Text className='empty-desc'>添加您的收货地址，方便快速下单</Text>
-              </>
-            )}
-          </View>
+          <AddressListEmptyState searching={!!searchValue} />
         ) : (
           filteredAddresses.map((address) => (
             <AddressCard
@@ -303,19 +270,11 @@ const AddressList: React.FC<AddressListProps> = () => {
       </View>
 
       {/* 删除确认弹窗 */}
-      <AtModal
-        isOpened={deleteModalVisible}
-        onClose={handleDeleteCancel}
-      >
-        <AtModalHeader>确认删除</AtModalHeader>
-        <AtModalContent>
-          <Text>确定要删除这个地址吗？删除后无法恢复。</Text>
-        </AtModalContent>
-        <AtModalAction>
-          <Button onClick={handleDeleteCancel}>取消</Button>
-          <Button onClick={handleDeleteConfirm}>删除</Button>
-        </AtModalAction>
-      </AtModal>
+      <DeleteAddressModal
+        visible={deleteModalVisible}
+        onCancel={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+      />
 
       {/* Toast 提示 */}
       <AtToast

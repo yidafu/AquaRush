@@ -1,16 +1,22 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, Image, Swiper, SwiperItem, ScrollView } from '@tarojs/components'
+import { View, Text, ScrollView } from '@tarojs/components'
 import { AtButton } from 'taro-ui'
 import Taro, {
   useDidShow,
   usePullDownRefresh,
   useShareAppMessage
 } from '@tarojs/taro'
-import { displayCents } from '@aquarush/common'
 import HomeService, { HomeProduct, HomeData } from '../../services/HomeService'
 import { syncCartTabBadge } from '../../utils/cart'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { userActionTracker } from '../../utils/tracking'
+
+// 子组件
+import HomeNoticeBar from './components/HomeNoticeBar'
+import AddressBar from './components/AddressBar'
+import CarouselSection from './components/CarouselSection'
+import DeliveryTimeCard from './components/DeliveryTimeCard'
+import HomeProductCard from './components/HomeProductCard'
 
 import "taro-ui/dist/style/components/button.scss"
 import './index.scss'
@@ -21,6 +27,7 @@ import './index.scss'
  * 布局:顶部地址栏 → 品牌水站 Banner → 活动轮播(有配置时) →
  *      配送时效卡 → 最常买(横滑) → 更多商品(≤3)
  * 数据:单次 GraphQL 请求聚合(规则 #10,HomeService.loadHomeData)
+ * 渲染:区块与商品卡由 components/ 子组件完成。
  */
 const HomePage: React.FC = () => {
   usePageViewTracking()
@@ -33,18 +40,6 @@ const HomePage: React.FC = () => {
   const [notices, setNotices] = useState<HomeData['notices']>([])
   const [defaultAddress, setDefaultAddress] = useState<HomeData['defaultAddress']>(null)
   const [businessHours, setBusinessHours] = useState<string>('07:00-22:00')
-
-  // 促销价展示(R-MKT-02 单价链):命中且低于目录价时展示促销价 + tint 标签
-  const getDisplayPrice = (p: HomeProduct): { price: number; tag: string } => {
-    const source = p.priceSource
-    const hasDiscounted =
-      (source === 'GROUP_PRICE' || source === 'FLASH_SALE_PRICE' || source === 'NEWCOMER_PRICE') &&
-      p.effectivePriceCents != null &&
-      p.effectivePriceCents < p.priceCents
-    const tag =
-      source === 'FLASH_SALE_PRICE' ? '特价' : source === 'NEWCOMER_PRICE' ? '新人价' : source === 'GROUP_PRICE' ? '熟客价' : ''
-    return { price: hasDiscounted && p.effectivePriceCents != null ? p.effectivePriceCents : p.priceCents, tag }
-  }
 
   /**
    * 加载首页数据(单次 GraphQL 请求,规则 #10)
@@ -101,124 +96,76 @@ const HomePage: React.FC = () => {
     return `${defaultAddress.city}${defaultAddress.district}${defaultAddress.detailAddress}`
   }, [defaultAddress])
 
-  const handleAddressClick = () => {
+  const handleAddressClick = useCallback(() => {
     Taro.navigateTo({ url: '/pages/address-list/index' })
-  }
+  }, [])
 
-  const handleSearchClick = () => {
+  const handleSearchClick = useCallback(() => {
     // 埋点:首页搜索入口(SEARCH)
     userActionTracker.track('SEARCH', 'home-search-entry', {
       elementType: 'icon',
       elementText: '搜索'
     })
     Taro.showToast({ title: '搜索功能开发中', icon: 'none' })
-  }
+  }, [])
 
-  const handleProductClick = (product: HomeProduct) => {
+  const handleProductClick = useCallback((product: HomeProduct) => {
     Taro.navigateTo({ url: `/pages/product-detail/index?id=${product.id}` })
-  }
+  }, [])
 
   /**
    * 更多商品「更多」入口 → 全部商品列表页(排序/搜索/分页)
    */
-  const handleMoreClick = () => {
+  const handleMoreClick = useCallback(() => {
     userActionTracker.track('CLICK', 'home-more-entry', {
       elementType: 'link',
       elementText: '更多',
       properties: { target: '/pages/product-list/index' }
     })
     Taro.navigateTo({ url: '/pages/product-list/index' })
-  }
+  }, [])
 
   /**
    * 立即订水(最常买 CTA,强调橙 #FF5436):
    * 跳商品详情走最短购买路径(详情页 立即购买 → 确认订单)
    */
-  const handleQuickOrder = (product: HomeProduct) => {
+  const handleQuickOrder = useCallback((product: HomeProduct) => {
     userActionTracker.track('CLICK', 'home-quick-order', {
       elementType: 'button',
       elementText: '立即订水',
       properties: { productId: product.id }
     })
     handleProductClick(product)
-  }
+  }, [handleProductClick])
 
-  const handleBannerClick = (linkType: string, linkTarget: string) => {
+  const handleBannerClick = useCallback((linkType: string, linkTarget: string) => {
     if (linkType === 'PRODUCT') {
       Taro.navigateTo({ url: `/pages/product-detail/index?id=${linkTarget}` })
     } else if (linkTarget) {
       Taro.navigateTo({ url: linkTarget })
     }
-  }
+  }, [])
 
-  const handleNoticeClick = (id: string) => {
+  const handleNoticeClick = useCallback((id: string) => {
     Taro.navigateTo({ url: `/pages/notice-detail/index?id=${id}` })
-  }
-
-  // 商品卡(最常买/更多商品共用)
-  const renderProductCard = (product: HomeProduct, action?: boolean) => {
-    const { price, tag } = getDisplayPrice(product)
-    return (
-      <View
-        key={product.id}
-        className={action ? 'hot-card' : 'more-card'}
-        onClick={() => handleProductClick(product)}
-      >
-        <View className='product-img-wrap'>
-          <Image
-            src={product.coverImageUrl}
-            mode='aspectFill'
-            className='product-img'
-            lazyLoad
-          />
-        </View>
-        <View className='product-info'>
-          <Text className='product-name' numberOfLines={1}>{product.name}</Text>
-          <Text className='product-spec' numberOfLines={1}>{product.subtitle || product.specification}</Text>
-          <View className='product-bottom'>
-            <View className='product-price-wrap'>
-              <Text className='product-price'>{displayCents(price)}</Text>
-              {tag && <Text className='product-price-tag'>{tag}</Text>}
-            </View>
-            {action && (
-              <AtButton
-                size='small'
-                className='quick-order-btn'
-                onClick={(e: any) => {
-                  e.stopPropagation?.()
-                  handleQuickOrder(product)
-                }}
-              >
-                立即订水
-              </AtButton>
-            )}
-          </View>
-        </View>
-      </View>
-    )
-  }
+  }, [])
 
   return (
     <View className='home-page'>
       {/* 顶部公告栏(浅蓝 tint 底,仅生效公告时显示,F-OPS-002) */}
       {notices.length > 0 && (
-        <View className='notice-bar' onClick={() => handleNoticeClick(notices[0].id)}>
-          <Text className='notice-bar-label'>公告</Text>
-          <Text className='notice-bar-title' numberOfLines={1}>{notices[0].title}</Text>
-        </View>
+        <HomeNoticeBar
+          title={notices[0].title}
+          onClick={() => handleNoticeClick(notices[0].id)}
+        />
       )}
 
       {/* ① 顶部地址栏(44px 白底固定顶部) */}
-      <View className='address-bar'>
-        <View className='address-bar-left' onClick={handleAddressClick}>
-          <Text className='address-location-icon'>📍</Text>
-          <Text className='address-text' numberOfLines={1}>{addressText()}</Text>
-          <Text className='address-arrow'>▾</Text>
-        </View>
-        <View className='address-bar-right' onClick={handleSearchClick}>
-          <Text className='search-icon'>🔍</Text>
-        </View>
-      </View>
+      <AddressBar
+        addressText={addressText()}
+        onAddressClick={handleAddressClick}
+        onSearchClick={handleSearchClick}
+      />
 
       {/* ② 品牌水站 Banner(清水蓝渐变,信任条) */}
       <View className='brand-banner theme-gradient'>
@@ -229,48 +176,10 @@ const HomePage: React.FC = () => {
       </View>
 
       {/* ③ 活动轮播(卡片化,无生效条目隐藏) */}
-      {banners.length > 0 && (
-        <View className='carousel-section'>
-          <Swiper
-            className='carousel-swiper'
-            indicatorColor='rgba(58, 155, 217, 0.25)'
-            indicatorActiveColor='#3A9BD9'
-            indicatorDots
-            circular
-            autoplay
-            interval={3000}
-            duration={500}
-            onChange={() => undefined}
-          >
-            {banners.map((item) => (
-              <SwiperItem
-                key={item.id}
-                className='carousel-swiper-item'
-                onClick={() => handleBannerClick(item.linkType, item.linkTarget)}
-              >
-                <View className='carousel-card'>
-                  <Image src={item.imageUrl} mode='aspectFill' className='carousel-img' />
-                  {(item.title || item.subtitle) && (
-                    <View className='carousel-mask'>
-                      <Text className='carousel-title'>{item.title}</Text>
-                      {item.subtitle && <Text className='carousel-subtitle'>{item.subtitle}</Text>}
-                    </View>
-                  )}
-                </View>
-              </SwiperItem>
-            ))}
-          </Swiper>
-        </View>
-      )}
+      <CarouselSection banners={banners} onBannerClick={handleBannerClick} />
 
       {/* ④ 配送时效卡(浅蓝左侧色条) */}
-      <View className='delivery-time-card'>
-        <View className='delivery-time-bar' />
-        <View className='delivery-time-content'>
-          <Text className='delivery-time-main'>预计 28 分钟送达</Text>
-          <Text className='delivery-time-sub'>营业中 · 每日 {businessHours}</Text>
-        </View>
-      </View>
+      <DeliveryTimeCard businessHours={businessHours} />
 
       {/* ⑤ 最常买 · 快捷购买区(横滑卡片) */}
       <View className='section-block'>
@@ -293,7 +202,15 @@ const HomePage: React.FC = () => {
         ) : (
           <ScrollView scrollX className='hot-scroll' showScrollbar={false}>
             <View className='hot-list'>
-              {hotProducts.map((p) => renderProductCard(p, true))}
+              {hotProducts.map((p) => (
+                <HomeProductCard
+                  key={p.id}
+                  product={p}
+                  action
+                  onClick={() => handleProductClick(p)}
+                  onQuickOrder={() => handleQuickOrder(p)}
+                />
+              ))}
             </View>
           </ScrollView>
         )}
@@ -308,7 +225,14 @@ const HomePage: React.FC = () => {
           </View>
           {moreProducts.length > 0 && (
             <View className='more-list'>
-              {moreProducts.map((p) => renderProductCard(p, false))}
+              {moreProducts.map((p) => (
+                <HomeProductCard
+                  key={p.id}
+                  product={p}
+                  onClick={() => handleProductClick(p)}
+                  onQuickOrder={() => handleQuickOrder(p)}
+                />
+              ))}
             </View>
           )}
         </View>

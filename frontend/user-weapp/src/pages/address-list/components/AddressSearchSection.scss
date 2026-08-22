@@ -1,0 +1,51 @@
+@import "../../../styles/theme.scss";
+
+.search-section {
+  padding: 16px;
+  background: var(--theme-background);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px var(--theme-shadow-light);
+}
+
+.import-section {
+  text-align: center;
+  animation: fadeInDown 0.5s ease-out;
+  display: flex;
+  align-items: center;
+}
+
+.import-button {
+  font-size: 30px;
+  font-weight: 500;
+  padding: 24px;
+  background: var(--theme-background);
+  border: 1px solid var(--theme-primary);
+  color: var(--theme-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 24px 24px;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px var(--theme-shadow-light);
+  transition: all 0.3s ease;
+
+  &:active {
+    background: var(--theme-primary-light);
+    transform: scale(0.98);
+    box-shadow: 0 1px 4px rgba(var(--theme-primary-rgb), 0.2);
+  }
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

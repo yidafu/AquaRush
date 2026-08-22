@@ -1,13 +1,25 @@
-import { Component } from 'react'
-import { View, Text, Image } from '@tarojs/components'
-import { AtCard, AtIcon, AtButton, AtToast, AtTag, AtTimeline, AtProgress } from 'taro-ui'
-import Taro from '@tarojs/taro'
-import { DeliverySlotVo, Money, OrderReviewCheckResponse, normalizeCents } from '@aquarush/common'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
+import { View, Text } from '@tarojs/components'
+import { AtButton, AtToast } from 'taro-ui'
+import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import { DeliverySlotVo, normalizeCents } from '@aquarush/common'
 import OrderService from '../../services/OrderService'
 import ConfigService from '../../services/ConfigService'
 import { userActionTracker } from '../../utils/tracking'
 import { buildOrderDetailCostRows } from '../../utils/orderCost'
-import { DEFAULT_DELIVERY_SLOTS, deliverySlotLabel } from '../../utils/deliverySlots'
+import { DEFAULT_DELIVERY_SLOTS } from '../../utils/deliverySlots'
+import { buildMockOrder } from './utils/orderDetailMock'
+
+// 子组件
+import OrderStatusHeader from './components/OrderStatusHeader'
+import DeliveryWorkerCard from './components/DeliveryWorkerCard'
+import OrderTimelineCard from './components/OrderTimelineCard'
+import OrderItemsCard from './components/OrderItemsCard'
+import OrderReviewCard from './components/OrderReviewCard'
+import OrderInfoCard from './components/OrderInfoCard'
+import OrderAddressCard from './components/OrderAddressCard'
+import OrderActions from './components/OrderActions'
+import type { OrderDetail, ReviewCheckState } from './components/constants'
 
 import "taro-ui/dist/style/components/card.scss"
 import "taro-ui/dist/style/components/icon.scss"
@@ -18,314 +30,55 @@ import "taro-ui/dist/style/components/timeline.scss"
 import "taro-ui/dist/style/components/progress.scss"
 import './index.scss'
 
-interface OrderItem {
-  id: string
-  name: string
-  image: string
-  // 成交单价快照(分,R-MKT-02 优惠价;无营销价=目录价)
-  priceCents: number
-  // 目录价(分,划线价展示依据)
-  originalPriceCents?: number
-  // 是否命中营销价(成交单价 ≠ 目录价快照,划线目录价展示依据 —— R-MKT-01/02)
-  hasMarketingPrice?: boolean
-  quantity: number
-  specifications?: string[]
-}
-
-// 赠品行(R-MKT-09:附加 0 价行,随单配送)
-interface OrderGiftItem {
-  productId: string
-  productName: string
-  quantity: number
-}
-
-// 评价信息(F-ORD-007):服务端返回结构(OrderReviewCheckResponse),含已评价内容与是否可评
-type ReviewCheckState = OrderReviewCheckResponse
-
-interface DeliveryInfo {
-  deliveryWorkerId?: string
-  deliveryWorkerName?: string
-  deliveryWorkerPhone?: string
-  deliveryWorkerAvatar?: string
-  estimatedDeliveryTime?: string
-  currentLocation?: string
-  deliveryDistance?: string
-}
-
-interface OrderTimeline {
-  time: string
-  title: string
-  content?: string
-  icon?: string
-  color?: string
-}
-
-interface OrderDetailState {
-  order: {
-    id: string
-    orderNo: string
-    status: 'pending_payment' | 'pending_delivery' | 'delivering' | 'completed' | 'cancelled'
-    items: OrderItem[]
-    totalAmount: number
-    deliveryFee: number
-    finalAmount: number
-    // 营销计价快照(R-MKT-01/02/07/08/09/10:费用明细行展示依据,均以分为单位)
-    subtotalCents?: number
-    promotionDiscountCents?: number
-    promotionActivityName?: string
-    firstOrderDiscountCents?: number
-    firstOrderActivityName?: string
-    couponDiscountCents?: number
-    couponName?: string
-    ticketRedeemCount?: number
-    ticketDiscountCents?: number
-    giftItems?: OrderGiftItem[]
-    // 水桶费快照(分,历史字段——2026-08 水桶费改造后新订单恒为 0,仅旧订单有值,见 14-misc.md §G06)
-    depositCents?: number
-    address: {
-      receiverName: string
-      phone: string
-      province: string
-      city: string
-      district: string
-      detailAddress: string
-    }
-    paymentMethod: string
-    deliveryTime: string
-    // 配送时段(AC-ORD-001-05,随单落库展示;IMMEDIATE/MORNING/AFTERNOON/EVENING)
-    deliveryTimeSlot?: string
-    createTime: string
-    paymentTime?: string
-    acceptTime?: string
-    completedTime?: string
-    cancelledTime?: string
-    remark?: string
-    deliveryInfo?: DeliveryInfo
-    timeline: OrderTimeline[]
-  } | null
-  loading: boolean
-  showToast: boolean
-  toastText: string
-  toastType: 'success' | 'error' | 'loading'
-  refreshing: boolean
+/**
+ * 订单详情页(F-ORD-003)
+ * 页面仅保留数据加载/映射与事件处理,渲染全部由 components/ 子组件完成;
+ * 已完成订单额外加载评价信息(F-ORD-007);配送时段配置(F-SYS-002)并行加载不阻塞详情。
+ */
+const OrderDetailPage: React.FC = () => {
+  const [order, setOrder] = useState<OrderDetail | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [showToast, setShowToast] = useState<boolean>(false)
+  const [toastText, setToastText] = useState<string>('')
+  const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
   // 评价信息(F-ORD-007):已完成订单的评价入口/已评内容
-  reviewInfo: ReviewCheckState | null
+  const [reviewInfo, setReviewInfo] = useState<ReviewCheckState | null>(null)
   // 配送时段配置(F-SYS-002:全量含已停用,历史订单时段文案按配置渲染,兜底见 DELIVERY_TIME_SLOT_MAP)
-  deliverySlots: DeliverySlotVo[]
-}
+  const [deliverySlots, setDeliverySlots] = useState<DeliverySlotVo[]>(DEFAULT_DELIVERY_SLOTS)
 
-const STATUS_MAP = {
-  pending_payment: { text: '待付款', color: 'var(--status-pending-pay-text)', bg: 'var(--status-pending-pay-bg)', step: 1 },
-  pending_delivery: { text: '待配送', color: 'var(--status-dispatch-text)', bg: 'var(--status-dispatch-bg)', step: 2 },
-  delivering: { text: '配送中', color: 'var(--status-delivering-text)', bg: 'var(--status-delivering-bg)', step: 3 },
-  completed: { text: '已完成', color: 'var(--status-completed-text)', bg: 'var(--status-completed-bg)', step: 4 },
-  cancelled: { text: '已取消', color: 'var(--status-cancelled-text)', bg: 'var(--status-cancelled-bg)', step: 0 }
-}
+  const orderIdRef = useRef<string>('')
+  const loadingRef = useRef<boolean>(true)
 
-const PAYMENT_METHOD_MAP = {
-  wechat: '微信支付',
-  balance: '余额支付'
-}
+  useEffect(() => {
+    loadingRef.current = loading
+  }, [loading])
 
-// 配送时段文案兜底(AC-ORD-001-05,与 DeliveryTimeSelector/后端 DeliveryTimeSlot 枚举对应;
-// 在线时优先按后台 F-SYS-002 配置渲染,仅配置获取失败/离线时使用本兜底)
-const DELIVERY_TIME_SLOT_MAP: Record<string, string> = {
-  IMMEDIATE: '立即配送（30分钟内）',
-  MORNING: '上午配送（9:00-12:00）',
-  AFTERNOON: '下午配送（14:00-18:00）',
-  EVENING: '晚上配送（18:00-21:00）'
-}
+  const showToastMessage = useCallback((text: string, type: 'success' | 'error' | 'loading' = 'success') => {
+    setShowToast(true)
+    setToastText(text)
+    setToastType(type)
+  }, [])
 
-export default class OrderDetail extends Component<{}, OrderDetailState> {
-  orderId: string = ''
+  const hideToast = useCallback(() => {
+    setShowToast(false)
+  }, [])
 
-  constructor(props) {
-    super(props)
-    this.state = {
-      order: null,
-      loading: true,
-      showToast: false,
-      toastText: '',
-      toastType: 'success',
-      refreshing: false,
-      reviewInfo: null,
-      deliverySlots: DEFAULT_DELIVERY_SLOTS
-    }
-  }
-
-  componentDidMount() {
-    // 获取页面参数
-    const instance = Taro.getCurrentInstance()
-    const { orderId } = instance.router?.params || {}
-
-    // 并行加载配送时段配置(F-SYS-002,单次轻量查询,失败兜底默认,不阻塞详情加载)
-    this.loadDeliverySlots()
-
-    if (orderId) {
-      this.orderId = orderId
-      this.loadOrderDetail()
-    } else {
-      this.showToast('订单ID缺失', 'error')
-      setTimeout(() => {
-        Taro.navigateBack()
-      }, 1500)
-    }
-  }
-
-  componentDidShow() {
-    userActionTracker.trackPageView()
-    // 页面显示时刷新订单详情
-    if (this.orderId && !this.state.loading) {
-      this.loadOrderDetail()
-    }
-  }
-
-  onPullDownRefresh = () => {
-    this.setState({ refreshing: true }, () => {
-      this.loadOrderDetail().finally(() => {
-        Taro.stopPullDownRefresh()
-      })
-    })
-  }
-
-  showToast = (text: string, type: 'success' | 'error' | 'loading' = 'success') => {
-    this.setState({
-      showToast: true,
-      toastText: text,
-      toastType: type
-    })
-  }
-
-  hideToast = () => {
-    this.setState({ showToast: false })
-  }
-
-  loadDeliverySlots = async () => {
+  const loadDeliverySlots = useCallback(async () => {
     try {
       const result = await ConfigService.getInstance().getDeliverySlots()
       if (result.success && result.data && result.data.length > 0) {
-        this.setState({ deliverySlots: result.data })
+        setDeliverySlots(result.data)
       }
     } catch (error) {
       console.error('获取配送时段配置失败:', error)
     }
-  }
-
-  loadOrderDetail = async () => {
-    try {
-      this.setState({ loading: true })
-
-      // 优先加载真实订单数据(F-ORD-003);失败回退模拟数据(离线/演示场景)
-      const result = await OrderService.getInstance().getOrder(this.orderId)
-      if (result.success && result.data) {
-        const order = this.mapRealOrder(result.data)
-        this.setState({ order })
-        // 已完成订单:加载评价信息(F-ORD-007)
-        if (order.status === 'completed') {
-          this.loadReviewCheck()
-        }
-        return
-      }
-
-      // 模拟订单详情数据
-      const mockOrder = {
-        id: this.orderId,
-        orderNo: 'ORD202412020001',
-        status: 'delivering' as const,
-        items: [
-          {
-            id: '1',
-            name: '农夫山泉 天然矿泉水 550ml',
-            image: '/assets/product-water.jpg',
-            priceCents: 200,
-            quantity: 2,
-            specifications: ['24瓶装']
-          },
-          {
-            id: '2',
-            name: '怡宝 纯净水 380ml',
-            image: '/assets/product-water.jpg',
-            priceCents: 150,
-            quantity: 3,
-            specifications: ['36瓶装']
-          }
-        ],
-        totalAmount: 8700,
-        deliveryFee: 0,
-        finalAmount: 8700,
-        address: {
-          receiverName: '张三',
-          phone: '13800138000',
-          province: '广东省',
-          city: '深圳市',
-          district: '南山区',
-          detailAddress: '科技园南区深南大道9988号'
-        },
-        paymentMethod: 'wechat',
-        deliveryTime: 'immediate',
-        createTime: '2024-12-02 10:30:00',
-        paymentTime: '2024-12-02 10:35:00',
-        acceptTime: '2024-12-02 10:45:00',
-        actualDeliveryTime: '2024-12-02 10:50:00',
-        remark: '请送到前台',
-        deliveryInfo: {
-          deliveryWorkerId: 'DW001',
-          deliveryWorkerName: '配送员小李',
-          deliveryWorkerPhone: '13600136000',
-          deliveryWorkerAvatar: '/assets/delivery-worker.jpg',
-          estimatedDeliveryTime: '2024-12-02 11:15:00',
-          currentLocation: '科技园北区',
-          deliveryDistance: '1.2km'
-        },
-        timeline: [
-          {
-            time: '2024-12-02 10:30:00',
-            title: '订单创建',
-            content: '您的订单已创建',
-            icon: 'bookmark',
-            color: 'var(--brand-primary)'
-          },
-          {
-            time: '2024-12-02 10:35:00',
-            title: '支付成功',
-            content: '使用微信支付成功',
-            icon: 'credit-card',
-            color: 'var(--success)'
-          },
-          {
-            time: '2024-12-02 10:45:00',
-            title: '商家接单',
-            content: '商家已接单，正在准备商品',
-            icon: 'shopping-bag',
-            color: 'var(--brand-primary)'
-          },
-          {
-            time: '2024-12-02 10:50:00',
-            title: '配送员取货',
-            content: '配送员小李已取货，正在配送中',
-            icon: 'truck',
-            color: 'var(--success)'
-          }
-        ]
-      }
-
-      this.setState({ order: mockOrder })
-    } catch (error) {
-      console.error('获取订单详情失败:', error)
-      this.showToast('获取订单详情失败', 'error')
-    } finally {
-      this.setState({
-        loading: false,
-        refreshing: false
-      })
-    }
-  }
+  }, [])
 
   /**
    * GraphQL OrderStatus → 页面状态键
    */
-  mapStatus = (status: string): 'pending_payment' | 'pending_delivery' | 'delivering' | 'completed' | 'cancelled' => {
-    const map: Record<string, 'pending_payment' | 'pending_delivery' | 'delivering' | 'completed' | 'cancelled'> = {
+  const mapStatus = useCallback((status: string): OrderDetail['status'] => {
+    const map: Record<string, OrderDetail['status']> = {
       PENDING_PAYMENT: 'pending_payment',
       PENDING_DELIVERY: 'pending_delivery',
       PENDING_DISPATCH: 'pending_delivery',
@@ -335,14 +88,14 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       REFUNDED: 'cancelled'
     }
     return map[status] || 'pending_payment'
-  }
+  }, [])
 
   /**
    * 真实订单 → 页面订单结构(F-ORD-004 多商品:商品信息来自 order.items 随单快照,金额均为分)
    */
-  mapRealOrder = (order: any) => {
+  const mapRealOrder = useCallback((order: any): OrderDetail => {
     const rawItems: any[] = Array.isArray(order.items) && order.items.length > 0 ? order.items : []
-    const items: OrderItem[] = rawItems.map((item: any) => {
+    const items = rawItems.map((item: any) => {
       // 成交单价(分,快照);目录价(分,商品快照) —— 划线价判定:成交单价 ≠ 目录价即命中营销价(AC-ORD-003-09,R-MKT-01/02)
       const unitPriceCents = normalizeCents(item.unitPriceCents) ?? normalizeCents(item.product?.priceCents) ?? 0
       const catalogPriceCents = normalizeCents(item.product?.priceCents) ?? unitPriceCents
@@ -358,8 +111,8 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       }
     })
 
-    const status = this.mapStatus(order.status)
-    const timeline: OrderTimeline[] = []
+    const status = mapStatus(order.status)
+    const timeline: OrderDetail['timeline'] = []
     if (order.createdAt) {
       timeline.push({ time: order.createdAt, title: '订单创建', content: '您的订单已创建', icon: 'bookmark', color: 'var(--brand-primary)' })
     }
@@ -417,32 +170,102 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       remark: order.remark || undefined,
       timeline
     }
-  }
+  }, [mapStatus])
+
+  const loadReviewCheck = useCallback(async (orderId: string) => {
+    try {
+      const result = await OrderService.getInstance().getReviewCheck(orderId)
+      if (result.success && result.data) {
+        setReviewInfo(result.data)
+      }
+    } catch (error) {
+      console.error('获取评价信息失败:', error)
+    }
+  }, [])
+
+  const loadOrderDetail = useCallback(async () => {
+    const orderId = orderIdRef.current
+    try {
+      setLoading(true)
+
+      // 优先加载真实订单数据(F-ORD-003);失败回退模拟数据(离线/演示场景)
+      const result = await OrderService.getInstance().getOrder(orderId)
+      if (result.success && result.data) {
+        const mapped = mapRealOrder(result.data)
+        setOrder(mapped)
+        // 已完成订单:加载评价信息(F-ORD-007)
+        if (mapped.status === 'completed') {
+          loadReviewCheck(orderId)
+        }
+        return
+      }
+
+      // 模拟订单详情数据
+      setOrder(buildMockOrder(orderId))
+    } catch (error) {
+      console.error('获取订单详情失败:', error)
+      showToastMessage('获取订单详情失败', 'error')
+    } finally {
+      setLoading(false)
+    }
+  }, [mapRealOrder, loadReviewCheck, showToastMessage])
+
+  // 初始化:读取路由参数 + 并行加载配送时段配置(F-SYS-002,失败兜底默认,不阻塞详情加载)
+  useReady(() => {
+    const instance = Taro.getCurrentInstance()
+    const { orderId } = instance.router?.params || {}
+
+    loadDeliverySlots()
+
+    if (orderId) {
+      orderIdRef.current = orderId
+      loadOrderDetail()
+    } else {
+      showToastMessage('订单ID缺失', 'error')
+      setTimeout(() => {
+        Taro.navigateBack()
+      }, 1500)
+    }
+  })
+
+  // 页面显示时刷新订单详情
+  useDidShow(() => {
+    userActionTracker.trackPageView()
+    if (orderIdRef.current && !loadingRef.current) {
+      loadOrderDetail()
+    }
+  })
+
+  // 下拉刷新
+  usePullDownRefresh(() => {
+    loadOrderDetail().finally(() => {
+      Taro.stopPullDownRefresh()
+    })
+  })
 
   /**
    * 立即支付(F-ORD-005):测试环境假支付自动完成,真实环境拉起微信支付
    */
-  handlePayment = async () => {
-    const { order } = this.state
+  const handlePayment = async () => {
     if (!order) return
 
-    this.showToast('正在发起支付...', 'loading')
+    showToastMessage('正在发起支付...', 'loading')
 
     const payResult = await OrderService.getInstance().createOrderPayment(order.id)
     if (!payResult.success || !payResult.data) {
-      this.showToast(payResult.error?.message || '支付发起失败', 'error')
+      showToastMessage(payResult.error?.message || '支付发起失败', 'error')
       return
     }
     const { autoCompleted, requiresSimulation, paymentParams } = payResult.data
 
     // 测试环境假支付:服务端已自动完成,直接刷新订单状态
     if (autoCompleted) {
-      this.showToast('支付成功（模拟支付自动完成）', 'success')
-      setTimeout(() => this.loadOrderDetail(), 800)
+      showToastMessage('支付成功（模拟支付自动完成）', 'success')
+      setTimeout(() => loadOrderDetail(), 800)
       return
     }
     if (requiresSimulation || !paymentParams) {
-      this.showToast('支付功能待接入', 'error')
+      showToastMessage('支付功能待接入', 'error')
       return
     }
 
@@ -454,16 +277,15 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
         signType: paymentParams.signType as 'MD5' | 'HMAC-SHA256' | 'RSA',
         paySign: paymentParams.paySign as string
       })
-      this.showToast('支付成功', 'success')
-      setTimeout(() => this.loadOrderDetail(), 800)
+      showToastMessage('支付成功', 'success')
+      setTimeout(() => loadOrderDetail(), 800)
     } catch (e) {
       console.error('微信支付未完成:', e)
-      this.showToast('支付未完成，请重试', 'error')
+      showToastMessage('支付未完成，请重试', 'error')
     }
   }
 
-  handleCancelOrder = () => {
-    const { order } = this.state
+  const handleCancelOrder = () => {
     if (!order) return
 
     Taro.showModal({
@@ -477,13 +299,13 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
             if (!result.success) {
               throw new Error(result.error?.message || '取消订单失败')
             }
-            this.showToast('订单已取消', 'success')
+            showToastMessage('订单已取消', 'success')
 
             // 刷新订单详情
-            this.loadOrderDetail()
+            loadOrderDetail()
           } catch (error) {
             console.error('取消订单失败:', error)
-            this.showToast(error instanceof Error ? error.message : '取消订单失败', 'error')
+            showToastMessage(error instanceof Error ? error.message : '取消订单失败', 'error')
           }
         }
       }
@@ -491,30 +313,15 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
   }
 
   /**
-   * 评价信息加载(F-ORD-007):一单一评,已评价展示内容,未评价展示入口
-   */
-  loadReviewCheck = async () => {
-    try {
-      const result = await OrderService.getInstance().getReviewCheck(this.orderId)
-      if (result.success && result.data) {
-        this.setState({ reviewInfo: result.data })
-      }
-    } catch (error) {
-      console.error('获取评价信息失败:', error)
-    }
-  }
-
-  /**
    * 进入评价页(F-ORD-007)
    */
-  handleReview = () => {
+  const handleReview = () => {
     Taro.navigateTo({
-      url: `/pages/order-review/index?orderId=${this.orderId}`
+      url: `/pages/order-review/index?orderId=${orderIdRef.current}`
     })
   }
 
-  handleContactDelivery = () => {
-    const { order } = this.state
+  const handleContactDelivery = () => {
     if (!order || !order.deliveryInfo?.deliveryWorkerPhone) return
 
     Taro.makePhoneCall({
@@ -522,14 +329,13 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     })
   }
 
-  handleReorder = () => {
-    const { order } = this.state
+  const handleReorder = () => {
     if (!order) return
 
     // 检查order.items是否为数组
     if (!Array.isArray(order.items)) {
       console.warn('handleReorder: order.items is not an array', order.items)
-      this.showToast('订单商品信息异常', 'error')
+      showToastMessage('订单商品信息异常', 'error')
       return
     }
 
@@ -553,20 +359,18 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     })
   }
 
-  handleCopyOrderNo = () => {
-    const { order } = this.state
+  const handleCopyOrderNo = () => {
     if (!order) return
 
     Taro.setClipboardData({
       data: order.orderNo,
       success: () => {
-        this.showToast('订单号已复制', 'success')
+        showToastMessage('订单号已复制', 'success')
       }
     })
   }
 
-  handleTrackDelivery = () => {
-    const { order } = this.state
+  const handleTrackDelivery = () => {
     if (!order) return
 
     // 跳转到配送跟踪页面
@@ -575,430 +379,102 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     })
   }
 
-  getTimelineColor = (color?: string): 'blue' | 'green' | 'red' | 'yellow' => {
-    if (!color) return 'blue'
-
-    const colorMap: Record<string, 'blue' | 'green' | 'red' | 'yellow'> = {
-      'var(--brand-primary)': 'blue',
-      'var(--success)': 'green',
-      'var(--action)': 'red',
-      'var(--warning)': 'yellow',
-      // Legacy color mappings for backward compatibility
-      '#667eea': 'blue',
-      '#19be6b': 'green',
-      '#ff6b35': 'red',
-      '#ffc107': 'yellow'
-    }
-
-    return colorMap[color] || 'blue'
+  const handleContinueShopping = () => {
+    Taro.switchTab({ url: '/pages/home/index' })
   }
 
-  renderOrderItems = (items: OrderItem[] = []) => {
-    if (!Array.isArray(items)) {
-      console.warn('renderOrderItems: items is not an array', items)
-      return <View className='order-items'><Text>暂无商品信息</Text></View>
-    }
-
-    return (
-      <View className='order-items'>
-        {items.map((item, index) => (
-          <View key={`${item.id}-${index}`} className='order-item'>
-            <Image
-              src={item.image || '/assets/default-product.png'}
-              mode='aspectFill'
-              className='item-image'
-            />
-            <View className='item-info'>
-              <Text className='item-name'>{item.name || '商品名称'}</Text>
-              {item.specifications && Array.isArray(item.specifications) && item.specifications.length > 0 && (
-                <Text className='item-spec'>
-                  规格：{item.specifications.join(', ')}
-                </Text>
-              )}
-              <View className='item-bottom'>
-                <View className='item-price-row'>
-                  <Text className='item-price'><Money cents={item.priceCents || 0} /></Text>
-                  {/* 命中营销价时划线目录价(AC-ORD-003-09 —— R-MKT-01/02) */}
-                  {item.hasMarketingPrice && item.originalPriceCents != null && (
-                    <Text className='item-original-price'><Money cents={item.originalPriceCents} /></Text>
-                  )}
-                </View>
-                <Text className='item-quantity'>x{item.quantity || 0}</Text>
-              </View>
-            </View>
-          </View>
-        ))}
-      </View>
-    )
-  }
-
-  render() {
-    const { order, loading, showToast, toastText, toastType, reviewInfo } = this.state
-
-    if (loading) {
-      return (
-        <View className='order-detail-page'>
-          <View className='loading-container'>
-            <Text>加载中...</Text>
-          </View>
-        </View>
-      )
-    }
-
-    if (!order) {
-      return (
-        <View className='order-detail-page'>
-          <View className='error-container'>
-            <Text>订单不存在</Text>
-            <AtButton
-              type='primary'
-              size='small'
-              onClick={() => Taro.navigateBack()}
-            >
-              返回
-            </AtButton>
-          </View>
-        </View>
-      )
-    }
-
-    const status = STATUS_MAP[order.status] || STATUS_MAP.cancelled
-
+  if (loading) {
     return (
       <View className='order-detail-page'>
-        {/* 订单状态头部(浅 tint 背景,按状态色,§6) */}
-        <View className='status-header' style={{ background: status.bg }}>
-          <View className='status-info'>
-            <AtTag
-              type='primary'
-              size='large'
-              circle
-              customStyle={{
-                background: status.color,
-                color: 'white',
-                border: 'none'
-              }}
-            >
-              {status.text}
-            </AtTag>
-            <Text className='order-no'>
-              订单号：{order.orderNo}
-              <AtIcon
-                value='copy'
-                size='14'
-                color='var(--brand-primary)'
-                onClick={this.handleCopyOrderNo}
-              />
-            </Text>
-          </View>
-
-          {/* 配送进度 */}
-          {order.status !== 'cancelled' && order.status !== 'pending_payment' && (
-            <View className='delivery-progress'>
-              <AtProgress
-                percent={status.step * 25}
-                strokeWidth={4}
-                color={status.color}
-                isShowPercent={false}
-              />
-              <View className='progress-steps'>
-                <View className={`step-item ${status.step >= 1 ? 'active' : ''}`}>
-                  <View className='step-dot' />
-                  <Text className='step-text'>下单</Text>
-                </View>
-                <View className={`step-item ${status.step >= 2 ? 'active' : ''}`}>
-                  <View className='step-dot' />
-                  <Text className='step-text'>付款</Text>
-                </View>
-                <View className={`step-item ${status.step >= 3 ? 'active' : ''}`}>
-                  <View className='step-dot' />
-                  <Text className='step-text'>配送</Text>
-                </View>
-                <View className={`step-item ${status.step >= 4 ? 'active' : ''}`}>
-                  <View className='step-dot' />
-                  <Text className='step-text'>完成</Text>
-                </View>
-              </View>
-            </View>
-          )}
+        <View className='loading-container'>
+          <Text>加载中...</Text>
         </View>
-
-        {/* 配送员信息 */}
-        {order.status === 'delivering' && order.deliveryInfo && (
-          <AtCard
-            title='配送员信息'
-            className='delivery-info-card shadow-default'
-          >
-            <View className='delivery-worker'>
-              <View className='worker-avatar'>
-                <Image
-                  src={order.deliveryInfo.deliveryWorkerAvatar || '/assets/default-avatar.png'}
-                  mode='aspectFill'
-                  className='avatar-image'
-                />
-              </View>
-              <View className='worker-info'>
-                <Text className='worker-name'>{order.deliveryInfo.deliveryWorkerName}</Text>
-                <Text className='worker-phone'>{order.deliveryInfo.deliveryWorkerPhone}</Text>
-                <Text className='delivery-location'>
-                  <AtIcon value='map-pin' size='12' color='var(--text-sub)' />
-                  {order.deliveryInfo.currentLocation} · {order.deliveryInfo.deliveryDistance}
-                </Text>
-              </View>
-              <View className='worker-actions'>
-                <AtButton
-                  type='primary'
-                  size='small'
-                  circle
-                  onClick={this.handleContactDelivery}
-                >
-                  <AtIcon value='phone' size='14' color='white' />
-                </AtButton>
-                <AtButton
-                  type='secondary'
-                  size='small'
-                  circle
-                  onClick={this.handleTrackDelivery}
-                >
-                  <AtIcon value='navigation' size='14' color='var(--text-sub)' />
-                </AtButton>
-              </View>
-            </View>
-          </AtCard>
-        )}
-
-        {/* 订单时间轴 */}
-        {Array.isArray(order.timeline) && order.timeline.length > 0 && (
-          <AtCard
-            title='订单跟踪'
-            className='timeline-card shadow-default'
-          >
-            <AtTimeline
-              items={order.timeline.map(item => ({
-                title: item.title || '状态更新',
-                content: Array.isArray(item.content) ? item.content : [item.content || ''],
-                icon: item.icon || 'clock',
-                color: this.getTimelineColor(item.color)
-              }))}
-            />
-          </AtCard>
-        )}
-
-        {/* 商品信息 */}
-        <AtCard
-          title='商品信息'
-          className='items-card shadow-default'
-        >
-          {this.renderOrderItems(order.items)}
-          {/* 费用明细(F-ORD-003,AC-ORD-003-09:商品金额/水票抵扣/满减/首单立减/优惠券/赠品/配送费/实付,
-              营销优惠明细来自订单快照 —— R-MKT-02/07/08/09/10) */}
-          <View className='order-summary'>
-            {buildOrderDetailCostRows({
-              ...order,
-              deliveryFeeCents: order.deliveryFee,
-              payAmountCents: order.finalAmount
-            }).map(row => (
-              <View key={row.key} className={`summary-item${row.total ? ' total' : ''}`}>
-                <Text className='summary-label'>{row.label}</Text>
-                <Text
-                  className={`summary-value${row.discount ? ' summary-discount' : ''}${row.total ? ' total-amount' : ''}`}
-                >
-                  {row.value}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </AtCard>
-
-        {/* 订单评价(F-ORD-007):已评价展示内容 */}
-        {order.status === 'completed' && reviewInfo?.hasReviewed && reviewInfo.review && (
-          <AtCard
-            title='我的评价'
-            className='review-card shadow-default'
-          >
-            <View className='review-content'>
-              <View className='review-stars'>
-                {[1, 2, 3, 4, 5].map(star => (
-                  <Text
-                    key={star}
-                    className={`review-star ${star <= reviewInfo.review!.rating ? 'active' : ''}`}
-                  >
-                    ★
-                  </Text>
-                ))}
-              </View>
-              {reviewInfo.review.comment && (
-                <Text className='review-comment'>{reviewInfo.review.comment}</Text>
-              )}
-              <Text className='review-time'>
-                {reviewInfo.review.createdAt}
-                {reviewInfo.review.isAnonymous ? ' · 匿名评价' : ''}
-              </Text>
-            </View>
-          </AtCard>
-        )}
-
-        {/* 订单信息 */}
-        <AtCard
-          title='订单信息'
-          className='info-card shadow-default'
-        >
-          <View className='info-item'>
-            <Text className='info-label'>支付方式</Text>
-            <Text className='info-value'>{PAYMENT_METHOD_MAP[order.paymentMethod] || order.paymentMethod}</Text>
-          </View>
-          <View className='info-item'>
-            <Text className='info-label'>下单时间</Text>
-            <Text className='info-value'>{order.createTime}</Text>
-          </View>
-          {order.deliveryTimeSlot && (
-            <View className='info-item'>
-              <Text className='info-label'>配送时段</Text>
-              <Text className='info-value'>
-                {deliverySlotLabel(this.state.deliverySlots, order.deliveryTimeSlot) ||
-                  DELIVERY_TIME_SLOT_MAP[order.deliveryTimeSlot] ||
-                  order.deliveryTimeSlot}
-              </Text>
-            </View>
-          )}
-          {order.paymentTime && (
-            <View className='info-item'>
-              <Text className='info-label'>支付时间</Text>
-              <Text className='info-value'>{order.paymentTime}</Text>
-            </View>
-          )}
-          {order.completedTime && (
-            <View className='info-item'>
-              <Text className='info-label'>完成时间</Text>
-              <Text className='info-value'>{order.completedTime}</Text>
-            </View>
-          )}
-          {order.remark && (
-            <View className='info-item'>
-              <Text className='info-label'>订单备注</Text>
-              <Text className='info-value'>{order.remark}</Text>
-            </View>
-          )}
-        </AtCard>
-
-        {/* 收货地址 */}
-        <AtCard
-          title='收货地址'
-          className='address-card shadow-default'
-        >
-          <View className='address-content'>
-            <View className='address-header'>
-              <Text className='receiver-name'>{order.address.receiverName}</Text>
-              <Text className='receiver-phone'>{order.address.phone}</Text>
-            </View>
-            <Text className='address-detail'>
-              {order.address.province} {order.address.city} {order.address.district} {order.address.detailAddress}
-            </Text>
-          </View>
-        </AtCard>
-
-        {/* 底部操作按钮 */}
-        <View className='bottom-actions shadow-action'>
-          {order.status === 'pending_payment' && (
-            <>
-              <AtButton
-                trackTarget="order-cancel"
-                trackElementType="button"
-                trackElementText="取消订单"
-                trackProps={{ orderId: order.id }}
-                onClick={this.handleCancelOrder}
-                  type='secondary'
-                  size='normal'
-                  className='action-button'
-                >
-                  取消订单
-                </AtButton>
-              <AtButton
-                trackTarget="order-pay"
-                trackElementType="button"
-                trackElementText="立即支付"
-                trackProps={{ orderId: order.id }}
-                onClick={this.handlePayment}
-                  type='primary'
-                  size='normal'
-                  className='action-button primary'
-                >
-                  立即支付
-                </AtButton>
-            </>
-          )}
-
-          {order.status === 'delivering' && (
-            <AtButton
-              type='secondary'
-              size='normal'
-              onClick={this.handleTrackDelivery}
-              className='action-button'
-            >
-              查看配送
-            </AtButton>
-          )}
-
-          {order.status === 'completed' && (
-            <>
-              <AtButton
-                trackTarget="order-review"
-                trackElementType="button"
-                trackElementText={reviewInfo?.hasReviewed ? '查看评价' : '评价'}
-                trackProps={{ orderId: order.id }}
-                onClick={this.handleReview}
-                type='secondary'
-                size='normal'
-                className='action-button'
-              >
-                {reviewInfo?.hasReviewed ? '查看评价' : '评价'}
-              </AtButton>
-              <AtButton
-                trackTarget="order-reorder"
-                trackElementType="button"
-                trackElementText="再次购买"
-                trackProps={{ orderId: order.id }}
-                onClick={this.handleReorder}
-                  type='secondary'
-                  size='normal'
-                  className='action-button'
-                >
-                  再次购买
-                </AtButton>
-              <AtButton
-                type='secondary'
-                size='normal'
-                onClick={() => Taro.switchTab({ url: '/pages/home/index' })}
-                className='action-button'
-              >
-                继续购物
-              </AtButton>
-            </>
-          )}
-
-          {(order.status === 'pending_delivery' || order.status === 'cancelled') && (
-            <AtButton
-              type='secondary'
-              size='normal'
-              onClick={this.handleReorder}
-              className='action-button full-width'
-            >
-              再次购买
-            </AtButton>
-          )}
-        </View>
-
-        {/* Toast 提示 */}
-        <AtToast
-          isOpened={showToast}
-          text={toastText}
-          status={toastType}
-          onClose={this.hideToast}
-        />
-
-        {/* 底部安全区域 */}
-        <View className='safe-bottom' />
       </View>
     )
   }
+
+  if (!order) {
+    return (
+      <View className='order-detail-page'>
+        <View className='error-container'>
+          <Text>订单不存在</Text>
+          <AtButton
+            type='primary'
+            size='small'
+            onClick={() => Taro.navigateBack()}
+          >
+            返回
+          </AtButton>
+        </View>
+      </View>
+    )
+  }
+
+  // 费用明细行(F-ORD-003,AC-ORD-003-09:营销优惠明细来自订单快照 —— R-MKT-02/07/08/09/10)
+  const costRows = buildOrderDetailCostRows({
+    ...order,
+    deliveryFeeCents: order.deliveryFee,
+    payAmountCents: order.finalAmount
+  })
+
+  return (
+    <View className='order-detail-page'>
+      <OrderStatusHeader
+        status={order.status}
+        orderNo={order.orderNo}
+        onCopyOrderNo={handleCopyOrderNo}
+      />
+
+      {/* 配送员信息(配送中订单) */}
+      {order.status === 'delivering' && order.deliveryInfo && (
+        <DeliveryWorkerCard
+          deliveryInfo={order.deliveryInfo}
+          onContact={handleContactDelivery}
+          onTrack={handleTrackDelivery}
+        />
+      )}
+
+      {/* 订单时间轴 */}
+      <OrderTimelineCard timeline={order.timeline} />
+
+      {/* 商品信息 + 费用明细 */}
+      <OrderItemsCard items={order.items} costRows={costRows} />
+
+      {/* 订单评价(F-ORD-007):已评价展示内容 */}
+      {order.status === 'completed' && reviewInfo?.hasReviewed && reviewInfo.review && (
+        <OrderReviewCard review={reviewInfo.review} />
+      )}
+
+      {/* 订单信息 */}
+      <OrderInfoCard order={order} deliverySlots={deliverySlots} />
+
+      {/* 收货地址 */}
+      <OrderAddressCard address={order.address} />
+
+      {/* 底部操作按钮 */}
+      <OrderActions
+        order={order}
+        reviewInfo={reviewInfo}
+        onPayment={handlePayment}
+        onCancel={handleCancelOrder}
+        onReview={handleReview}
+        onReorder={handleReorder}
+        onTrack={handleTrackDelivery}
+        onContinueShopping={handleContinueShopping}
+      />
+
+      {/* Toast 提示 */}
+      <AtToast
+        isOpened={showToast}
+        text={toastText}
+        status={toastType}
+        onClose={hideToast}
+      />
+
+      {/* 底部安全区域 */}
+      <View className='safe-bottom' />
+    </View>
+  )
 }
+
+export default OrderDetailPage

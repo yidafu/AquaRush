@@ -1,9 +1,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react'
-import { View, Text, Picker } from '@tarojs/components'
-import { AtButton, AtForm, AtInput, AtSwitch, AtToast, AtMessage, AtList, AtListItem, AtActivityIndicator } from 'taro-ui'
+import { View } from '@tarojs/components'
+import { AtForm, AtToast, AtMessage } from 'taro-ui'
 import Taro from '@tarojs/taro'
 import { useRegionSelector } from '../../hooks/useRegionSelector'
-import AddressMap from '../../components/AddressMap'
 import AddressService from '../../services/AddressService'
 import { AddressFormData } from '../../types/address'
 import {
@@ -11,14 +10,20 @@ import {
   UpdateAddressInput as GraphQLUpdateAddressInput
 } from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
+import { validateAddressForm } from './utils/addressValidation'
+
+// 子组件
+import ContactFields from './components/ContactFields'
+import RegionPickerField from './components/RegionPickerField'
+import DetailAddressField from './components/DetailAddressField'
+import FloorField from './components/FloorField'
+import MapPreviewSection from './components/MapPreviewSection'
+import SubmitSection from './components/SubmitSection'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/form.scss"
-import "taro-ui/dist/style/components/input.scss"
-import "taro-ui/dist/style/components/switch.scss"
 import "taro-ui/dist/style/components/toast.scss"
 import "taro-ui/dist/style/components/message.scss"
-import "taro-ui/dist/style/components/activity-indicator.scss"
 import "taro-ui/dist/style/components/icon.scss"
 import './index.scss'
 
@@ -55,7 +60,6 @@ const AddressEdit: React.FC = () => {
 
   // Initialize region selector
   const regionSelector = useRegionSelector({
-    // initialSelection: initialRegionSelection,
     onError: (error) => {
       showToastMessage(`地区加载失败: ${error}`, 'error')
     }
@@ -108,6 +112,12 @@ const AddressEdit: React.FC = () => {
         [field]: ''
       }
     })
+  }, [])
+
+  // 楼层变更:更新 formData 并清除楼层错误
+  const handleFloorChange = useCallback((floor: number | undefined) => {
+    setFormData(prev => ({ ...prev, floor }))
+    setErrors(prev => (prev.floor ? { ...prev, floor: '' } : prev))
   }, [])
 
   // Sync form data with region selection changes - 优化：减少不必要的重新渲染
@@ -243,56 +253,11 @@ const AddressEdit: React.FC = () => {
     }
   }, [])
 
+  // 校验(纯函数见 utils/addressValidation,失败返回首个错误供 toast 提示)
   const validateForm = useCallback((): { valid: boolean; firstError?: string } => {
-    const newErrors: Partial<Record<keyof AddressFormData, string>> = {}
-
-    // 收货人姓名验证
-    if (!formData.receiverName.trim()) {
-      newErrors.receiverName = '请输入收货人姓名'
-    } else if (formData.receiverName.length < 2) {
-      newErrors.receiverName = '收货人姓名至少2个字符'
-    } else if (formData.receiverName.length > 20) {
-      newErrors.receiverName = '收货人姓名不能超过20个字符'
-    }
-
-    // 手机号验证
-    if (!formData.phone.trim()) {
-      newErrors.phone = '请输入手机号'
-    } else if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
-      newErrors.phone = '手机号格式不正确'
-    }
-
-    // 地区验证
-    if (!formData.province.trim()) {
-      newErrors.province = '请选择省份'
-    }
-
-    if (!formData.city.trim()) {
-      newErrors.city = '请选择城市'
-    }
-
-    if (!formData.district.trim()) {
-      newErrors.district = '请选择区域'
-    }
-
-    // 详细地址验证
-    if (!formData.detailAddress.trim()) {
-      newErrors.detailAddress = '请输入详细地址'
-    } else if (formData.detailAddress.length < 5) {
-      newErrors.detailAddress = '详细地址至少5个字符'
-    } else if (formData.detailAddress.length > 100) {
-      newErrors.detailAddress = '详细地址不能超过100个字符'
-    }
-
-    // 楼层验证(选填;填了必须 ≥ 1,配送费楼层判定用 —— R-MON-02)
-    if (formData.floor !== undefined && formData.floor !== null && formData.floor < 1) {
-      newErrors.floor = '楼层必须大于0'
-    }
-
-
-    setErrors(newErrors as Record<keyof AddressFormData, string>)
-    const firstError = (Object.values(newErrors) as string[]).find((msg) => !!msg)
-    return { valid: Object.keys(newErrors).length === 0, firstError }
+    const { valid, errors: newErrors, firstError } = validateAddressForm(formData)
+    setErrors(newErrors)
+    return { valid, firstError }
   }, [formData])
 
   // Handle map selection results
@@ -425,163 +390,60 @@ const AddressEdit: React.FC = () => {
   return (
     <View className='address-edit-page'>
       <AtForm className='address-form'>
-
-
-        {/* 收货人 */}
-        <AtInput
-          name='receiverName'
-          title='收货人'
-          type='text'
-          placeholder='请输入收货人姓名'
-          value={formData.receiverName}
-          onChange={(value) => handleInputChange('receiverName', value)}
-          error={!!errors.receiverName}
+        {/* 收货人 + 手机号 */}
+        <ContactFields
+          receiverName={formData.receiverName}
+          phone={formData.phone}
+          errors={errors}
+          onChange={handleInputChange}
         />
-        {errors.receiverName && <Text className='input-hint error-text'>{errors.receiverName}</Text>}
 
-        {/* 手机号 */}
-        <AtInput
-          name='phone'
-          title='手机号'
-          type='phone'
-          placeholder='请输入手机号'
-          value={formData.phone}
-          onChange={(value) => handleInputChange('phone', value)}
-          error={!!errors.phone}
+        {/* 地区选择(省市区级联) */}
+        <RegionPickerField
+          provinces={regionSelector.provinces}
+          cities={regionSelector.cities}
+          districts={regionSelector.districts}
+          selectedIndex={regionSelector.selectedIndex}
+          loading={regionSelector.loading}
+          getFullRegionText={regionSelector.getFullRegionText}
+          handleColumnChange={regionSelector.handleColumnChange}
+          handlePickerChange={regionSelector.handlePickerChange}
+          error={errors.province || errors.city || errors.district}
         />
-        {errors.phone && <Text className='input-hint error-text'>{errors.phone}</Text>}
-
-        {/* 地区选择 */}
-        {regionSelector.provinces.length > 0 ? (
-          <Picker
-            mode='multiSelector'
-            range={[
-              regionSelector.provinces.map(p => p.name),
-              regionSelector.cities.map(c => c.name),
-              regionSelector.districts.map(d => d.name)
-            ]}
-            value={[
-              regionSelector.selectedIndex.province,
-              regionSelector.selectedIndex.city,
-              regionSelector.selectedIndex.district
-            ]}
-            onColumnChange={regionSelector.handleColumnChange}
-            onChange={regionSelector.handlePickerChange}
-          >
-            <AtList>
-              <AtListItem
-                title='所在地区'
-                extraText={regionSelector.getFullRegionText() || '请选择省市区'}
-                arrow='right'
-              />
-            </AtList>
-          </Picker>
-        ) : (
-          <AtList>
-            <AtListItem
-              title='所在地区'
-              extraText='正在加载地区数据...'
-              arrow='right'
-              disabled={true}
-            />
-          </AtList>
-        )}
-        {(errors.province || errors.city || errors.district) && (
-          <Text className='input-hint error-text'>{errors.province || errors.city || errors.district}</Text>
-        )}
-
-        {/* Loading indicator for regions */}
-        {(regionSelector.loading.provinces || regionSelector.loading.cities || regionSelector.loading.districts) && (
-          <View className='region-loading'>
-            <AtActivityIndicator content='加载地区数据...' />
-          </View>
-        )}
 
         {/* 详细地址 */}
-        <AtInput
-          name='detailAddress'
-          title='详细地址'
-          type='text'
-          placeholder='街道、门牌号、小区、楼号等详细信息'
+        <DetailAddressField
           value={formData.detailAddress}
+          error={errors.detailAddress}
           onChange={(value) => handleInputChange('detailAddress', value)}
-          maxlength={100}
-          error={!!errors.detailAddress}
         />
-        {errors.detailAddress ? (
-          <Text className='input-hint error-text'>{errors.detailAddress}</Text>
-        ) : (
-          <Text className='input-hint'>请输入详细的收货地址，不少于5个字符</Text>
-        )}
 
         {/* 楼层(配送费判定用:超过免费楼层加收运费) */}
-        <AtInput
-          name='floor'
-          title='楼层'
-          type='number'
-          placeholder='选填,如 5'
+        <FloorField
           value={formData.floor !== undefined ? String(formData.floor) : ''}
-          onChange={(value) => {
-            const str = typeof value === 'number' ? value.toString() : value
-            const floor = str.trim() === '' ? undefined : parseInt(str, 10)
-            setFormData(prev => ({
-              ...prev,
-              floor: floor === undefined || isNaN(floor) ? undefined : floor
-            }))
-            setErrors(prev => (prev.floor ? { ...prev, floor: '' } : prev))
-          }}
-          error={!!errors.floor}
+          error={errors.floor}
+          onChange={handleFloorChange}
         />
-        <Text className='input-hint'>配送费按楼层计算:免费楼层内免运费,超过免费楼层加收运费</Text>
 
         {/* 地址地图预览 */}
-        <View className='address-map-section'>
-          <Text className='section-title'>地址预览</Text>
-          <AddressMap
-            address={formData.detailAddress}
-            province={formData.province}
-            city={formData.city}
-            district={formData.district}
-            latitude={formData.latitude}
-            longitude={formData.longitude}
-            height='200px'
-            className='address-edit-map'
-            showControls={true}
-            onLocationChange={handleMapLocationChange}
-          />
-          <Text className='map-hint'>地图会根据地址信息自动定位，也可以手动选择位置</Text>
-        </View>
-
-
-        {/* 设为默认地址 */}
-        <AtSwitch
-          title='设为默认地址'
-          checked={formData.isDefault}
-          onChange={(value) => handleInputChange('isDefault', value)}
+        <MapPreviewSection
+          detailAddress={formData.detailAddress}
+          province={formData.province}
+          city={formData.city}
+          district={formData.district}
+          latitude={formData.latitude}
+          longitude={formData.longitude}
+          onLocationChange={handleMapLocationChange}
         />
 
-
-        {/* 提交按钮 */}
-        <View className='submit-section'>
-          <AtButton
-            trackTarget="address-save"
-            trackAction="FORM_SUBMIT"
-            trackElementType="button"
-            trackElementText="保存地址"
-            trackDisabled={loading}
-            onClick={handleSubmit}
-            type='primary'
-            size='normal'
-            loading={loading}
-            disabled={loading}
-            className='submit-button'
-          >
-            {loading ? '保存中...' : '保存地址'}
-          </AtButton>
-        </View>
-
+        {/* 设为默认地址 + 保存按钮 */}
+        <SubmitSection
+          isDefault={formData.isDefault}
+          loading={loading}
+          onDefaultChange={(checked) => handleInputChange('isDefault', checked)}
+          onSubmit={handleSubmit}
+        />
       </AtForm>
-
 
       {/* Toast 提示 */}
       <AtToast

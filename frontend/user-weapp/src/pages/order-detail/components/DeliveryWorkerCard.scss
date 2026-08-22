@@ -1,0 +1,76 @@
+@import "../../../styles/theme.scss";
+
+.delivery-info-card {
+  margin: 20px 24px;
+}
+
+.delivery-worker {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  transition: transform 0.2s ease;
+
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+.worker-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar-image {
+  width: 100%;
+  height: 100%;
+}
+
+.worker-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.worker-name {
+  font-size: 32px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+.worker-phone {
+  font-size: 28px;
+  color: var(--text-sub);
+}
+
+.delivery-location {
+  font-size: 24px;
+  color: var(--text-weak);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.worker-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .delivery-info-card {
+    margin: 16px 20px;
+  }
+
+  .worker-name {
+    font-size: 28px;
+  }
+
+  .worker-phone,
+  .delivery-location {
+    font-size: 20px;
+  }
+}

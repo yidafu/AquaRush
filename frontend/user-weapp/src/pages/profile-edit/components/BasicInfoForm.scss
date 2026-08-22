@@ -1,0 +1,78 @@
+@import "../../../styles/theme.scss";
+
+.form-section {
+  background-color: var(--bg-card);
+  padding: 20px 20px 10px;
+  margin-bottom: 1px;
+
+  .section-title {
+    display: block;
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-bottom: 16px;
+  }
+
+  animation: fadeInUp 0.3s ease-out;
+}
+
+// 头像区域
+.avatar-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .avatar-upload-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin-bottom: 10px;
+  }
+}
+
+// 错误信息
+.error-message {
+  margin: 8px 0 0 0;
+  padding: 0 5px;
+
+  .error-text {
+    font-size: 22px;
+    color: var(--error);
+    line-height: 1.4;
+  }
+}
+
+.error-text {
+  color: var(--error);
+}
+
+.at-divider {
+  background-color: var(--bg);
+  color: transparent;
+  height: 8px;
+  margin: 0;
+  border: none;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// 响应式设计
+@media (max-width: 375px) {
+  .form-section {
+    padding: 16px 16px 8px;
+
+    .section-title {
+      font-size: 26px;
+      margin-bottom: 12px;
+    }
+  }
+}

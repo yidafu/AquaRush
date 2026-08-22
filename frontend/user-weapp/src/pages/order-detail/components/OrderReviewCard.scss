@@ -1,0 +1,33 @@
+@import "../../../styles/theme.scss";
+
+/* 订单评价展示(F-ORD-007) */
+.review-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-stars {
+  display: flex;
+  gap: 4px;
+}
+
+.review-star {
+  font-size: 32px;
+  color: var(--text-weak);
+}
+
+.review-star.active {
+  color: #ffb800;
+}
+
+.review-comment {
+  font-size: 26px;
+  color: var(--text-main);
+  line-height: 1.6;
+}
+
+.review-time {
+  font-size: 22px;
+  color: var(--text-sub);
+}

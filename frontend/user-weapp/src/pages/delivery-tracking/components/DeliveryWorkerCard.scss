@@ -1,0 +1,82 @@
+@import "../../../styles/theme.scss";
+
+.delivery-worker-card {
+  margin: 32px;
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+
+  .worker-info {
+    .worker-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 24px;
+      margin-bottom: 24px;
+
+      .worker-avatar {
+        flex-shrink: 0;
+        width: 96px;
+        height: 96px;
+        border-radius: 50%;
+        overflow: hidden;
+        background-color: var(--bg);
+
+        .avatar-image {
+          width: 100%;
+          height: 100%;
+        }
+      }
+
+      .worker-details {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        .worker-name {
+          font-size: 36px;
+          font-weight: 600;
+          color: var(--text-main);
+        }
+
+        .worker-phone {
+          font-size: 28px;
+          color: var(--text-sub);
+        }
+
+        .worker-location {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 24px;
+          color: var(--text-weak);
+        }
+      }
+
+      .worker-actions {
+        flex-shrink: 0;
+
+        .at-button {
+          width: 80px;
+          height: 80px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+      }
+    }
+
+    .delivery-status {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background-color: var(--bg);
+      padding: 24px 32px;
+      border-radius: 16px;
+
+      .status-text {
+        font-size: 28px;
+        color: var(--text-sub);
+      }
+    }
+  }
+}

@@ -1,0 +1,83 @@
+@import "../../../styles/theme.scss";
+
+// 页面头部
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background-color: var(--bg-card);
+  border-bottom: 1px solid var(--border);
+
+  .header-left,
+  .header-right {
+    flex: 1;
+    min-width: 60px;
+  }
+
+  .header-left {
+    .cancel-btn {
+      font-size: 26px;
+      color: var(--text-sub);
+
+      &:active {
+        opacity: 0.6;
+      }
+    }
+  }
+
+  .header-center {
+    flex: 2;
+    text-align: center;
+
+    .page-title {
+      font-size: 32px;
+      font-weight: 600;
+      color: var(--text-main);
+    }
+  }
+
+  .header-right {
+    text-align: right;
+
+    .save-btn {
+      font-size: 26px;
+      color: var(--text-sub);
+      font-weight: 500;
+
+      &.active {
+        color: var(--brand-primary);
+
+        &:active {
+          opacity: 0.6;
+        }
+      }
+
+      &.disabled {
+        color: var(--text-weak);
+        pointer-events: none;
+      }
+    }
+  }
+}
+
+// 响应式设计
+@media (max-width: 375px) {
+  .page-header {
+    padding: 12px 16px;
+
+    .header-left,
+    .header-right {
+      min-width: 50px;
+    }
+
+    .header-center .page-title {
+      font-size: 28px;
+    }
+
+    .header-left .cancel-btn,
+    .header-right .save-btn {
+      font-size: 24px;
+    }
+  }
+}

@@ -1,0 +1,43 @@
+@import "../../../styles/theme.scss";
+
+.info-card {
+  margin: 20px 24px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.info-label {
+  font-size: 28px;
+  color: var(--text-sub);
+  width: 80px;
+  flex-shrink: 0;
+}
+
+.info-value {
+  font-size: 28px;
+  color: var(--text-main);
+  flex: 1;
+  text-align: right;
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .info-card {
+    margin: 16px 20px;
+  }
+
+  .info-label,
+  .info-value {
+    font-size: 24px;
+  }
+}
