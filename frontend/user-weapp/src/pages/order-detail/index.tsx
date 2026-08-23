@@ -313,6 +313,23 @@ const OrderDetailPage: React.FC = () => {
   }
 
   /**
+   * 催单(F-ORD-008):仅配送中订单展示按钮;服务端防抖,短时间重复点击仅一次生效
+   */
+  const handleUrgeOrder = async () => {
+    if (!order) return
+    try {
+      const result = await OrderService.getInstance().urgeOrder(order.id)
+      if (!result.success) {
+        throw new Error(result.error?.message || '催单失败')
+      }
+      showToastMessage('催单已发出', 'success')
+    } catch (error) {
+      console.error('催单失败:', error)
+      showToastMessage(error instanceof Error ? error.message : '催单失败,请稍后再试', 'error')
+    }
+  }
+
+  /**
    * 进入评价页(F-ORD-007)
    */
   const handleReview = () => {
@@ -460,6 +477,7 @@ const OrderDetailPage: React.FC = () => {
         onReview={handleReview}
         onReorder={handleReorder}
         onTrack={handleTrackDelivery}
+        onUrge={handleUrgeOrder}
         onContinueShopping={handleContinueShopping}
       />
 

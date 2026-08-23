@@ -102,6 +102,8 @@ type Mutation {
   createOrderPayment(orderId: PrimaryId!): OrderPaymentParams!
   # 取消订单(F-ORD-006,仅本人):未支付即时取消恢复库存;已支付(待派单)取消自动退款
   cancelOrder(orderId: PrimaryId!): Order!
+  # 催单(F-ORD-008,仅本人配送中订单):防抖短时间重复点击仅一次生效,向用户/送水工推送催单提醒
+  urgeOrder(orderId: PrimaryId!): Boolean!
   # 订单评价(F-ORD-007,R-EVL-01 一单一评):仅已完成订单,评分计入送水工统计
   createReview(input: CreateReviewRequest!): Review!
 

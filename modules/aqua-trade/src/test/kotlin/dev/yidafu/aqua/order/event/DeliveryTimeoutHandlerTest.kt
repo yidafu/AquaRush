@@ -24,10 +24,9 @@ import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import java.util.UUID
 
 /**
- * 配送超时事件处理器单元测试:当前仅记录日志,payload 需含 UUID 订单号。
+ * 配送超时事件处理器单元测试:当前仅记录日志,payload 含 Long 订单号(与全系统 Long Snowflake 主键一致)。
  */
 class DeliveryTimeoutHandlerTest :
   FunSpec({
@@ -37,18 +36,18 @@ class DeliveryTimeoutHandlerTest :
       handler.getSupportedEventType() shouldBe DomainEventType.DELIVERY_TIMEOUT
     }
     test("valid payload is processed") {
-      val uuid = UUID.randomUUID().toString()
       val event =
         DomainEvent(
           id = 1L,
           eventType = "DELIVERY_TIMEOUT",
-          payload = """{"orderId": "$uuid", "orderNumber": "ORD-001"}""",
+          payload = """{"orderId": 1001, "orderNumber": "ORD-001", "deliveryWorkerId": 3}""",
         )
 
       handler.handle(event)
     }
-    test("invalid uuid rethrows") {
-      val event = DomainEvent(id = 2L, eventType = "DELIVERY_TIMEOUT", payload = """{"orderId": "not-a-uuid", "orderNumber": "ORD-001"}""")
+    test("invalid order id rethrows") {
+      val event =
+        DomainEvent(id = 2L, eventType = "DELIVERY_TIMEOUT", payload = """{"orderId": "not-a-number", "orderNumber": "ORD-001"}""")
 
       shouldThrow<Exception> { handler.handle(event) }
     }

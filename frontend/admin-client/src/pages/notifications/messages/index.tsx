@@ -3,6 +3,7 @@ import { Card, Space, message } from 'antd';
 import {
   useNotificationsQuery,
   useNotificationDetail,
+  useResendNotification,
 } from '../../../services/notification-graphql';
 import {
   NotificationFilters,
@@ -13,7 +14,8 @@ import type { NotificationRecord, NotificationFiltersState } from './components'
 
 /**
  * 后台消息列表页(F-NTF-006,PRD 13-notification.md)
- * 按类型/接收人/关键字/已读状态/时间范围组合筛选,默认近 30 天;详情弹窗展示全文与状态。
+ * 按类型/接收人/关键字/已读状态/时间范围组合筛选,默认近 30 天;详情弹窗展示全文与状态;
+ * 失败/待发送消息可手动重发微信订阅消息(仅超管,PERMISSION_NOTIFICATION_WRITE)。
  * 权限:PERMISSION_NOTIFICATION_READ(管理员/超管,后端强制)。
  */
 const NotificationMessages: React.FC = () => {
@@ -23,6 +25,7 @@ const NotificationMessages: React.FC = () => {
   const [detail, setDetail] = useState<NotificationRecord | null>(null);
   const [detailVisible, setDetailVisible] = useState(false);
   const [loadDetail, { data: detailData, loading: detailLoading }] = useNotificationDetail(null);
+  const [resendNotification, { loading: resending }] = useResendNotification();
 
   const { data, loading, error } = useNotificationsQuery({
     messageType: filters.messageType,
@@ -64,6 +67,24 @@ const NotificationMessages: React.FC = () => {
 
   const detailRecord: NotificationRecord | null = detailData?.notification ?? detail;
 
+  /**
+   * 手动重发失败/待发送的微信订阅消息(F-NTF-006,仅超管)
+   */
+  const handleResend = async (record: NotificationRecord) => {
+    try {
+      const result = await resendNotification({ variables: { id: record.id } });
+      if (result.errors?.length) {
+        message.error(result.errors[0].message || '重发失败');
+        return;
+      }
+      message.success('已重新发送,请在通道状态确认结果');
+      // 刷新详情与列表(通道状态更新)
+      loadDetail({ variables: { id: record.id } });
+    } catch (e: any) {
+      message.error(e?.message || '重发失败');
+    }
+  };
+
   return (
     <Card title='消息列表' extra={<Space>共 {total} 条</Space>}>
       {/* 筛选区 */}
@@ -92,7 +113,9 @@ const NotificationMessages: React.FC = () => {
         record={detailRecord}
         loading={detailLoading}
         open={detailVisible}
+        resending={resending}
         onClose={() => setDetailVisible(false)}
+        onResend={handleResend}
       />
     </Card>
   );

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <!-- 消息发送补齐(PRD 13-notification.md):
+       1) notifications 持久化微信订阅消息模板上下文(template_scene/template_page/template_fields),
+          支撑失败消息手动重发(F-NTF-006 开放问题关闭);
+       2) 新增系统参数:优惠券即将过期提醒窗口(coupon_expiring_notify_days)、配送超时阈值(delivery_timeout_minutes)。 -->
+  <changeSet id="2.6.0-add-notification-send-support" author="aqua-rush">
+    <comment>Notification send support: template context columns + coupon-expiring / delivery-timeout params</comment>
+
+    <!-- ==================== notifications:模板上下文列(F-NTF-006 失败消息手动重发) ==================== -->
+    <addColumn tableName="notifications">
+      <column name="template_scene" type="varchar(50)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="template_page" type="varchar(255)">
+        <constraints nullable="true"/>
+      </column>
+      <column name="template_fields" type="text">
+        <constraints nullable="true"/>
+      </column>
+    </addColumn>
+
+    <!-- ==================== 优惠券即将过期提醒窗口(默认 3 天) ==================== -->
+    <insert tableName="system_settings">
+      <column name="id">45</column>
+      <column name="setting_key">coupon_expiring_notify_days</column>
+      <column name="setting_value">3</column>
+      <column name="description">优惠券即将过期提醒窗口(天),每日调度扫描该窗口内到期的已领取未使用优惠券并站内提醒用户</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">NOTIFICATION</column>
+      <column name="default_value">3</column>
+      <column name="min_value">1</column>
+      <column name="max_value">30</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+
+    <!-- ==================== 配送超时阈值(默认 120 分钟,触发送水工超时推送) ==================== -->
+    <insert tableName="system_settings">
+      <column name="id">46</column>
+      <column name="setting_key">delivery_timeout_minutes</column>
+      <column name="setting_value">120</column>
+      <column name="description">配送超时阈值(分钟),配送中订单超过该时长未送达时向送水工推送超时提醒</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">120</column>
+      <column name="min_value">10</column>
+      <column name="max_value">1440</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+  </changeSet>
+
+</databaseChangeLog>

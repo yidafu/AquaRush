@@ -48,5 +48,7 @@
   <include file="db/changelog/changes/v2.4.0-add-daily-stat-facts.xml"/>
   <!-- F-STA-007 营销统计:营销日事实 + 营销使用日事实(同一夜间快照任务写入) -->
   <include file="db/changelog/changes/v2.5.0-add-marketing-daily-facts.xml"/>
+  <!-- 消息发送补齐:notifications 模板上下文列(失败消息手动重发) + 优惠过期提醒窗口/配送超时阈值参数 -->
+  <include file="db/changelog/changes/v2.6.0-add-notification-send-support.xml"/>
 
 </databaseChangeLog>

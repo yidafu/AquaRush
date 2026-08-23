@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
-import java.util.*
 
 @Component
 class DeliveryTimeoutHandler : EventProcessor {
@@ -48,8 +47,8 @@ class DeliveryTimeoutHandler : EventProcessor {
           objectMapper.typeFactory.constructMapType(Map::class.java, String::class.java, Any::class.java),
         )
 
-      val orderId = UUID.fromString(eventData["orderId"] as String)
-      val orderNumber = eventData["orderNumber"] as String
+      val orderId = eventData["orderId"].toString().toLong()
+      val orderNumber = eventData["orderNumber"]?.toString() ?: orderId.toString()
 
       logger.info("Processing DELIVERY_TIMEOUT event for order: $orderNumber")
 

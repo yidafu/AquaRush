@@ -61,6 +61,14 @@ open class NotificationModel(
   val relatedNo: String? = null,
   @Column(name = "idempotency_key", nullable = false, unique = true, length = 128)
   val idempotencyKey: String,
+  // ===== 微信订阅消息模板上下文(支撑失败消息手动重发,PRD 13-notification.md F-NTF-006) =====
+  @Column(name = "template_scene", length = 50)
+  var templateScene: String? = null,
+  @Column(name = "template_page", length = 255)
+  var templatePage: String? = null,
+  /** 模板字段值 JSON(模板参数名 → 值) */
+  @Column(name = "template_fields", columnDefinition = "TEXT")
+  var templateFields: String? = null,
   @Enumerated(EnumType.STRING)
   @Column(name = "channel_status", nullable = false, length = 20)
   var channelStatus: NotificationChannelStatus = NotificationChannelStatus.PENDING,

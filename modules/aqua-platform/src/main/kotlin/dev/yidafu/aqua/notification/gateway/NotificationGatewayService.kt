@@ -35,6 +35,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.transaction.support.TransactionSynchronization
 import org.springframework.transaction.support.TransactionSynchronizationManager
+import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.ZoneId
 
 /**
@@ -56,6 +57,7 @@ class NotificationGatewayService(
   @Qualifier("notificationDispatchExecutor") private val dispatchExecutor: TaskExecutor,
 ) {
   private val logger = LoggerFactory.getLogger(NotificationGatewayService::class.java)
+  private val objectMapper = jacksonObjectMapper()
 
   @Transactional
   fun handle(event: DomainEvent) {
@@ -110,6 +112,13 @@ class NotificationGatewayService(
           summary = data.summary,
           relatedNo = data.relatedNo,
           idempotencyKey = data.idempotencyKey,
+          // 持久化微信订阅消息模板上下文(重发失败消息还原用,F-NTF-006)
+          templateScene = data.templateScene,
+          templatePage = data.page,
+          templateFields =
+            data.templateFields?.let { fields ->
+              objectMapper.writeValueAsString(fields)
+            },
         ),
       )
 

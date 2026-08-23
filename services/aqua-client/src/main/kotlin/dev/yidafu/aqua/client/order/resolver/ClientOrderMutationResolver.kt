@@ -140,6 +140,26 @@ class ClientOrderMutationResolver(
   }
 
   /**
+   * 催单(F-ORD-008):仅本人「配送中」订单可催;服务端防抖(5 分钟内重复催单仅一次生效),
+   * 成功后向用户端推送「催单已受理」站内/订阅消息,并向配送该订单的送水工推送「用户催单」。
+   */
+  @MutationMapping
+  @PreAuthorize("isAuthenticated()")
+  fun urgeOrder(
+    @Argument orderId: Long,
+    @AuthenticationPrincipal principal: UserPrincipal,
+  ): Boolean {
+    val order =
+      orderQueryApiService.findById(orderId)
+        ?: throw NotFoundException("订单不存在: $orderId")
+    if (order.userId != principal.id) {
+      throw BadRequestException("无权操作此订单")
+    }
+    orderMutationService.urgeOrder(orderId, principal.id)
+    return true
+  }
+
+  /**
    * 订单评价(F-ORD-007,R-EVL-01):仅本人已完成订单;一单一评;评分计入送水工统计。
    * deliveryWorkerId 由服务端按订单解析,忽略前端传入。
    */

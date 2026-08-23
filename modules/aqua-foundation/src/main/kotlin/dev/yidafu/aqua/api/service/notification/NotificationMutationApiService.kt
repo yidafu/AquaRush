@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.api.service.notification
 
+import dev.yidafu.aqua.common.domain.model.NotificationModel
 import dev.yidafu.aqua.common.domain.model.enums.NotificationReceiverType
 
 /**
@@ -51,4 +52,12 @@ interface NotificationMutationApiService {
     userId: Long,
     templateIds: List<String>,
   ): Int
+
+  /**
+   * 手动重发失败/待发送的微信订阅消息(F-NTF-006,后台超管):
+   * 仅接收人为 USER 且已持久化模板场景、通道状态为 FAILED/PENDING 的消息可重发;
+   * 重置为 PENDING 后复用微信订阅消息全部门控(R-NTF-01)重发,返回更新后的消息;
+   * 不可重发返回 null。
+   */
+  fun resendNotification(notificationId: Long): NotificationModel?
 }

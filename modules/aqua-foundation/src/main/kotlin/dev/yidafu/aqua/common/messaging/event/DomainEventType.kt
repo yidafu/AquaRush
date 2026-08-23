@@ -31,6 +31,7 @@ enum class DomainEventType(
   ORDER_CANCELLED("ORDER_CANCELLED"),
   ORDER_COMPLETED("ORDER_COMPLETED"),
   ORDER_DELIVERED("ORDER_DELIVERED"),
+  ORDER_URGING("ORDER_URGING"), // 用户催单(F-ORD-008,催单推送 R-ORD-10)
 
   // 配送事件
   DELIVERY_ASSIGNED("DELIVERY_ASSIGNED"),
@@ -54,6 +55,9 @@ enum class DomainEventType(
 
   // 通知事件(PRD 13-notification.md:领域事件 → notifications-events 队列 → 消息网关)
   NOTIFICATION_SEND("NOTIFICATION_SEND"),
+
+  // 营销事件(PRD 10-marketing.md):优惠券即将过期 → 站内消息通知用户(F-NTF-002 消息来源)
+  COUPON_EXPIRING("COUPON_EXPIRING"),
 
   // 通用事件
   UNKNOWN("UNKNOWN"),

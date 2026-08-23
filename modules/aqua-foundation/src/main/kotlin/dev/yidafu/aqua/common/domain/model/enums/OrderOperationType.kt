@@ -27,6 +27,7 @@ enum class OrderOperationType {
   ORDER_CREATED, // 订单创建
   ORDER_PAID, // 支付成功
   ORDER_CANCELLED, // 订单取消
+  ORDER_URGING, // 用户催单(F-ORD-008)
   DELIVERY_ASSIGNED, // 配送员分配
   DELIVERY_STARTED, // 开始配送
   DELIVERY_COMPLETED, // 配送完成

@@ -24,6 +24,7 @@ import dev.yidafu.aqua.common.domain.model.enums.NotificationMessageType
 import dev.yidafu.aqua.common.domain.model.enums.NotificationReceiverType
 import dev.yidafu.aqua.common.graphql.generated.NotificationType
 import dev.yidafu.aqua.common.graphql.generated.NotificationVo
+import dev.yidafu.aqua.common.graphql.generated.NotificationChannelStatus as GraphQlNotificationChannelStatus
 import dev.yidafu.aqua.common.graphql.generated.NotificationReceiverType as GraphQlNotificationReceiverType
 
 /**
@@ -48,6 +49,13 @@ object NotificationVoMapper {
       read = model.readAt != null,
       readAt = model.readAt,
       createdAt = model.createdAt,
+      // 微信订阅消息通道投递状态(失败消息手动重发,F-NTF-006)
+      channelStatus =
+        GraphQlNotificationChannelStatus.valueOfLabel(model.channelStatus.name)
+          ?: GraphQlNotificationChannelStatus.PENDING,
+      wxMessageId = model.wxMessageId,
+      errorMessage = model.errorMessage,
+      sentAt = model.sentAt,
     )
 
   /** GraphQL 消息分类 → 领域枚举(为空 = 全部) */

@@ -87,6 +87,15 @@ interface OrderMutationService {
   fun handlePaymentTimeout(orderId: Long)
 
   /**
+   * 用户催单(F-ORD-008):仅本人「配送中」订单可催;防抖(短时间重复催单仅一次生效,AC-ORD-008-01);
+   * 记录操作时间线并发布 ORDER_URGING 事件(通知域据此向用户/送水工推送)。
+   */
+  fun urgeOrder(
+    orderId: Long,
+    userId: Long,
+  ): OrderModel?
+
+  /**
    * 确认订单计价预览(F-ORD-023,PRD 10-marketing.md §R-MKT-02/07/08):
    * 委托促销引擎纯计算,无副作用;返回完整费用明细(单价/水票核销/满减/优惠券/封顶)。
    */

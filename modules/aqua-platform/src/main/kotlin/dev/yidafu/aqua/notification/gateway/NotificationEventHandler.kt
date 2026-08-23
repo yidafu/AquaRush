@@ -210,11 +210,13 @@ class OrderPaidNotificationHandler(
 }
 
 /**
- * 订单取消通知(用户端:取消结果/退款结果)
+ * 订单取消通知(用户端:取消结果/退款结果 + 送水工端:已接订单被取消)
  */
 @Component
 class OrderCancelledNotificationHandler(
   publisher: NotificationEventPublisher,
+  private val orderQueryApiService: OrderQueryApiService,
+  private val systemConfigQueryApiService: SystemConfigQueryApiService,
 ) : BaseNotificationEventHandler(publisher) {
   override fun getSupportedEventType(): DomainEventType = DomainEventType.ORDER_CANCELLED
 
@@ -247,15 +249,39 @@ class OrderCancelledNotificationHandler(
           ),
       ),
     )
+
+    // 送水工端:已接订单被取消(开关 delivery_push_cancelled_enabled)
+    val workerPush = systemConfigQueryApiService.getBooleanValue("delivery_push_cancelled_enabled", true)
+    if (workerPush) {
+      val order = orderQueryApiService.findById(orderId)
+      val workerId = order?.deliveryWorkerId
+      if (workerId != null) {
+        val orderNo = order?.orderNo ?: orderId.toString()
+        publisher.publish(
+          NotificationEventData(
+            receiverType = "WORKER",
+            workerId = workerId,
+            messageType = "ORDER",
+            scene = DomainEventType.ORDER_CANCELLED.value,
+            title = "订单已取消",
+            summary = "订单($orderNo)已被取消,请注意任务变更。${if (reason.isNotBlank()) "原因:$reason" else ""}",
+            relatedNo = orderNo,
+            eventTime = eventTime,
+          ),
+        )
+      }
+    }
   }
 }
 
 /**
- * 支付超时通知(用户端)
+ * 支付超时通知(用户端:站内消息 + 微信「支付结果」订阅消息;送水工端:已分配订单超时提醒)
  */
 @Component
 class PaymentTimeoutNotificationHandler(
   publisher: NotificationEventPublisher,
+  private val orderQueryApiService: OrderQueryApiService,
+  private val systemConfigQueryApiService: SystemConfigQueryApiService,
 ) : BaseNotificationEventHandler(publisher) {
   override fun getSupportedEventType(): DomainEventType = DomainEventType.PAYMENT_TIMEOUT
 
@@ -276,10 +302,95 @@ class PaymentTimeoutNotificationHandler(
         summary = "订单($orderId)未在有效时间内完成支付,已自动取消。",
         relatedNo = orderId.toString(),
         eventTime = eventTime,
+        // 复用「支付结果」模板(支付结果通知,含超时未支付取消),门控同 F-NTF-001
+        templateScene = NotificationTemplateScenes.PAYMENT_RESULT,
         page = "pages/order-detail/index?id=$orderId",
         templateFields = mapOf("thing1" to "订单号:$orderId", "time3" to formatTime(eventTime)),
       ),
     )
+
+    // 送水工端:支付超时提醒(开关 delivery_push_payment_timeout_enabled;仅订单已分配送水工时定向推送,
+    // 常规待支付订单未派单无推送目标 —— 代客下单等已分配场景生效)
+    val workerPush = systemConfigQueryApiService.getBooleanValue("delivery_push_payment_timeout_enabled", true)
+    if (workerPush) {
+      val order = orderQueryApiService.findById(orderId)
+      val workerId = order?.deliveryWorkerId
+      if (workerId != null) {
+        val orderNo = order?.orderNo ?: orderId.toString()
+        publisher.publish(
+          NotificationEventData(
+            receiverType = "WORKER",
+            workerId = workerId,
+            messageType = "ORDER",
+            scene = DomainEventType.PAYMENT_TIMEOUT.value,
+            title = "支付超时",
+            summary = "订单($orderNo)超时未支付,已自动取消。",
+            relatedNo = orderNo,
+            eventTime = eventTime,
+          ),
+        )
+      }
+    }
+  }
+}
+
+/**
+ * 用户催单通知(F-ORD-008 最小闭环 / R-ORD-10):用户「催单已受理」站内消息 + 微信催单模板
+ * + 送水工「用户催单」推送(开关 delivery_push_urging_enabled)。
+ */
+@Component
+class OrderUrgingNotificationHandler(
+  publisher: NotificationEventPublisher,
+  private val orderQueryApiService: OrderQueryApiService,
+  private val systemConfigQueryApiService: SystemConfigQueryApiService,
+) : BaseNotificationEventHandler(publisher) {
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.ORDER_URGING
+
+  override fun handleEvent(
+    event: DomainEvent,
+    data: Map<String, Any>,
+  ) {
+    val orderId = requireLong(data, "orderId")
+    val userId = requireLong(data, "userId")
+    val deliveryWorkerId = longOrNull(data, "deliveryWorkerId")
+    val eventTime = eventTimeMillis(data)
+    val order = orderQueryApiService.findById(orderId)
+    val orderNo = order?.orderNo ?: orderId.toString()
+
+    // 用户端:催单已受理(站内消息 + 微信催单模板)
+    publisher.publish(
+      NotificationEventData(
+        receiverType = "USER",
+        userId = userId,
+        messageType = "ORDER",
+        scene = DomainEventType.ORDER_URGING.value,
+        title = "催单已受理",
+        summary = "您的订单($orderNo)催单已受理,配送员正在加急处理,请稍候。",
+        relatedNo = orderId.toString(),
+        eventTime = eventTime,
+        templateScene = NotificationTemplateScenes.ORDER_URGING,
+        page = "pages/order-detail/index?id=$orderId",
+        templateFields = mapOf("thing1" to "订单号:$orderNo", "time3" to formatTime(eventTime)),
+      ),
+    )
+
+    // 送水工端:用户催单(开关 delivery_push_urging_enabled,定向配送该订单的送水工)
+    val workerPush = systemConfigQueryApiService.getBooleanValue("delivery_push_urging_enabled", true)
+    val workerId = deliveryWorkerId ?: order?.deliveryWorkerId
+    if (workerPush && workerId != null) {
+      publisher.publish(
+        NotificationEventData(
+          receiverType = "WORKER",
+          workerId = workerId,
+          messageType = "ORDER",
+          scene = DomainEventType.ORDER_URGING.value,
+          title = "用户催单",
+          summary = "订单($orderNo)的用户正在催单,请尽快配送。",
+          relatedNo = orderNo,
+          eventTime = eventTime,
+        ),
+      )
+    }
   }
 }
 
@@ -455,6 +566,83 @@ class DeliveryCompletedNotificationHandler(
           templateScene = NotificationTemplateScenes.DELIVERY_COMPLETED,
           page = "pages/order-detail/index?id=$orderId",
           templateFields = mapOf("thing1" to "订单号:$orderId", "time3" to formatTime(eventTime)),
+        ),
+      )
+    }
+  }
+}
+
+/**
+ * 优惠券即将过期通知(用户端站内系统消息,PRD 10-marketing.md / 13-notification.md F-NTF-002 消息来源)
+ * 幂等键 = couponId:COUPON_EXPIRING:expireTime(跨天/跨服务重复扫描不重复提醒,R-NTF-02)。
+ */
+@Component
+class CouponExpiringNotificationHandler(
+  publisher: NotificationEventPublisher,
+) : BaseNotificationEventHandler(publisher) {
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.COUPON_EXPIRING
+
+  override fun handleEvent(
+    event: DomainEvent,
+    data: Map<String, Any>,
+  ) {
+    val userId = requireLong(data, "userId")
+    val couponId = requireLong(data, "couponId")
+    val couponName = data["couponName"]?.toString() ?: "优惠券"
+    val expireTime = longOrNull(data, "expireTime")
+    if (expireTime == null) {
+      logger.warn("优惠券过期事件缺少 expireTime,跳过: couponId={}", couponId)
+      return
+    }
+    publisher.publish(
+      NotificationEventData(
+        receiverType = "USER",
+        userId = userId,
+        messageType = "SYSTEM",
+        scene = DomainEventType.COUPON_EXPIRING.value,
+        title = "优惠券即将过期",
+        summary = "您的优惠券「$couponName」将于 ${formatTime(expireTime)} 过期,请尽快使用。",
+        relatedNo = couponId.toString(),
+        eventTime = expireTime,
+      ),
+    )
+  }
+}
+
+/**
+ * 配送超时通知(送水工端:R-ORD-10 推送节点「配送超时」,开关 delivery_push_timeout_enabled)
+ * 幂等键 = 订单号:DELIVERY_TIMEOUT:eventTime(取开始配送时间,重复扫描/双服务并发不重复提醒)。
+ */
+@Component
+class DeliveryTimeoutNotificationHandler(
+  publisher: NotificationEventPublisher,
+  private val orderQueryApiService: OrderQueryApiService,
+  private val systemConfigQueryApiService: SystemConfigQueryApiService,
+) : BaseNotificationEventHandler(publisher) {
+  override fun getSupportedEventType(): DomainEventType = DomainEventType.DELIVERY_TIMEOUT
+
+  override fun handleEvent(
+    event: DomainEvent,
+    data: Map<String, Any>,
+  ) {
+    val orderId = requireLong(data, "orderId")
+    val order = orderQueryApiService.findById(orderId)
+    val deliveryWorkerId = longOrNull(data, "deliveryWorkerId") ?: order?.deliveryWorkerId
+    val eventTime = longOrNull(data, "eventTime") ?: eventTimeMillis(data)
+    val orderNo = order?.orderNo ?: orderId.toString()
+
+    val workerPush = systemConfigQueryApiService.getBooleanValue("delivery_push_timeout_enabled", true)
+    if (workerPush && deliveryWorkerId != null) {
+      publisher.publish(
+        NotificationEventData(
+          receiverType = "WORKER",
+          workerId = deliveryWorkerId,
+          messageType = "ORDER",
+          scene = DomainEventType.DELIVERY_TIMEOUT.value,
+          title = "配送超时",
+          summary = "订单($orderNo)配送超时,请尽快送达。",
+          relatedNo = orderNo,
+          eventTime = eventTime,
         ),
       )
     }

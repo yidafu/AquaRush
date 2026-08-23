@@ -1475,6 +1475,7 @@ export type Mutation = {
   readonly rejectDailyCollection: DailyCollectionRecord;
   readonly reorderBanner: ReadonlyArray<Banner>;
   readonly reportTrajectory: Scalars['Boolean']['output'];
+  readonly resendNotification?: Maybe<NotificationVo>;
   readonly resetAdminPassword: Scalars['Boolean']['output'];
   readonly resetDeliveryWorkerPassword: Scalars['Boolean']['output'];
   readonly restoreSystemConfig: SystemConfigVo;
@@ -1513,6 +1514,7 @@ export type Mutation = {
   readonly updatePromotionActivity: PromotionActivity;
   readonly updateTicketType: TicketType;
   readonly updateUser: User;
+  readonly urgeOrder: Scalars['Boolean']['output'];
 };
 
 
@@ -1834,6 +1836,11 @@ export type MutationReportTrajectoryArgs = {
 };
 
 
+export type MutationResendNotificationArgs = {
+  id: Scalars['PrimaryId']['input'];
+};
+
+
 export type MutationResetAdminPasswordArgs = {
   id: Scalars['PrimaryId']['input'];
   newPassword?: InputMaybe<Scalars['String']['input']>;
@@ -2049,6 +2056,11 @@ export type MutationUpdateUserArgs = {
   input: UpdateUserInput;
 };
 
+
+export type MutationUrgeOrderArgs = {
+  orderId: Scalars['PrimaryId']['input'];
+};
+
 export type MyOrderStatistics = {
   readonly cancelled: Scalars['Int']['output'];
   readonly completed: Scalars['Int']['output'];
@@ -2116,6 +2128,12 @@ export type NoticeVoPage = {
   readonly totalPages: Scalars['Int']['output'];
 };
 
+export enum NotificationChannelStatus {
+  FAILED = 'FAILED',
+  PENDING = 'PENDING',
+  SENT = 'SENT'
+}
+
 export enum NotificationReceiverType {
   USER = 'USER',
   WORKER = 'WORKER'
@@ -2129,16 +2147,20 @@ export enum NotificationType {
 }
 
 export type NotificationVo = {
+  readonly channelStatus: NotificationChannelStatus;
   readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly errorMessage?: Maybe<Scalars['String']['output']>;
   readonly id: Scalars['PrimaryId']['output'];
   readonly read: Scalars['Boolean']['output'];
   readonly readAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly receiverType: NotificationReceiverType;
   readonly relatedNo?: Maybe<Scalars['String']['output']>;
   readonly scene: Scalars['String']['output'];
+  readonly sentAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly summary?: Maybe<Scalars['String']['output']>;
   readonly title: Scalars['String']['output'];
   readonly type: NotificationType;
+  readonly wxMessageId?: Maybe<Scalars['String']['output']>;
 };
 
 export type NotificationVoPage = {

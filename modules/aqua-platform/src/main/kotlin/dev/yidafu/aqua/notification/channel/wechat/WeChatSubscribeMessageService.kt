@@ -33,6 +33,8 @@ import dev.yidafu.aqua.notification.domain.repository.UserSubscriptionAuthReposi
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestTemplate
+import tools.jackson.core.type.TypeReference
+import tools.jackson.module.kotlin.jacksonObjectMapper
 
 /**
  * 微信订阅消息发送服务(PRD 13-notification.md F-NTF-001)
@@ -59,13 +61,16 @@ class WeChatSubscribeMessageService(
   private val weChatProperties: WeChatProperties,
 ) {
   private val logger = LoggerFactory.getLogger(WeChatSubscribeMessageService::class.java)
+  private val objectMapper = jacksonObjectMapper()
 
   /**
    * 尝试发送订阅消息;所有门控不满足时静默跳过(站内消息已可见)。
+   * 模板场景/页面/字段优先取入参(网关首次发送);入参为空时回退持久化字段
+   * (notifications.template_scene/template_page/template_fields,失败消息手动重发场景)。
    */
   fun trySend(
     notification: NotificationModel,
-    templateScene: String,
+    templateScene: String?,
     page: String?,
     fields: Map<String, String>?,
   ) {
@@ -73,16 +78,19 @@ class WeChatSubscribeMessageService(
       if (notification.receiverType != NotificationReceiverType.USER) return
       val userId = notification.userId ?: return
 
+      // 模板场景:入参为空时回退持久化字段(重发场景)
+      val scene = templateScene ?: notification.templateScene ?: return
+
       // 门控 2:模板配置 + 启用
       val templateId =
-        systemConfigQueryApiService.getStringValue(templateIdKey(templateScene), null)
+        systemConfigQueryApiService.getStringValue(templateIdKey(scene), null)
           ?: return
-      val enabled = systemConfigQueryApiService.getBooleanValue(templateEnabledKey(templateScene), false)
+      val enabled = systemConfigQueryApiService.getBooleanValue(templateEnabledKey(scene), false)
       if (!enabled) return
 
       // 门控 3:用户分类订阅开关(默认行缺失时按全部开启处理)
       val settings = userNotificationSettingsRepository.findByUserId(userId).orElse(null)
-      if (settings != null && !categoryAllowed(settings, templateScene)) return
+      if (settings != null && !categoryAllowed(settings, scene)) return
 
       // 门控 4:授权剩余次数
       val auth =
@@ -94,7 +102,9 @@ class WeChatSubscribeMessageService(
       val openid = userQueryApiService.findById(userId)?.wechatOpenId ?: return
       if (openid.isBlank() || openid.startsWith(MANUAL_OPENID_PREFIX)) return
 
-      sendAndRecord(notification, templateId, openid, page, fields, auth)
+      val pagePath = page ?: notification.templatePage
+      val fieldMap = fields ?: parseTemplateFields(notification.templateFields)
+      sendAndRecord(notification, templateId, openid, pagePath, fieldMap, auth, scene)
     } catch (e: Exception) {
       logger.error("订阅消息发送失败, notificationId={}, scene={}", notification.id, templateScene, e)
       notification.recordChannelResult(
@@ -116,6 +126,7 @@ class WeChatSubscribeMessageService(
     page: String?,
     fields: Map<String, String>?,
     auth: dev.yidafu.aqua.common.domain.model.UserSubscriptionAuthModel,
+    scene: String,
   ) {
     val token = accessTokenService.getAccessToken()
     val body =
@@ -151,6 +162,17 @@ class WeChatSubscribeMessageService(
       logger.warn("订阅消息发送失败(微信返回), notificationId={}, {}", notification.id, reason)
     }
     notificationRepository.save(notification)
+  }
+
+  /** 解析持久化的模板字段 JSON(失败消息重发还原用) */
+  private fun parseTemplateFields(json: String?): Map<String, String>? {
+    if (json.isNullOrBlank()) return null
+    return try {
+      objectMapper.readValue(json, object : TypeReference<Map<String, String>>() {})
+    } catch (e: Exception) {
+      logger.warn("解析持久化模板字段失败,按无字段处理: {}", e.message)
+      null
+    }
   }
 
   /** 模板场景 → 用户分类开关(门控 3) */

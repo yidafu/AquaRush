@@ -21,8 +21,11 @@ package dev.yidafu.aqua.order.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
 
 @Repository
 interface OrderRepository :
@@ -54,6 +57,15 @@ interface OrderRepository :
   fun findByStatus(status: OrderModelStatus): List<OrderModel>
 
   fun findByStatusOrderByCreatedAtAsc(status: OrderModelStatus): List<OrderModel>
+
+  /**
+   * 分页查询指定状态且开始配送时间早于截止时刻的订单(配送超时扫描用,分页游标,规则 13)。
+   */
+  fun findByStatusAndDeliveryStartedAtBefore(
+    status: OrderModelStatus,
+    before: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel>
 
   fun findByDeliveryWorkerIdOrderByCreatedAtDesc(deliveryWorkerId: Long): List<OrderModel>
 

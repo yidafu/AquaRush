@@ -420,6 +420,33 @@ class OrderService {
   }
 
   /**
+   * 催单(F-ORD-008):仅本人配送中订单;服务端防抖,短时间重复点击仅一次生效
+   */
+  public async urgeOrder(orderId: string): Promise<ProductServiceResult<boolean>> {
+    const mutation = `
+      mutation UrgeOrder($orderId: PrimaryId!) {
+        urgeOrder(orderId: $orderId)
+      }
+    `
+
+    try {
+      const response = await networkManager.mutate<{ urgeOrder: boolean }>(
+        mutation,
+        { orderId }
+      )
+      return {
+        success: true,
+        data: response.urgeOrder
+      }
+    } catch (error) {
+      return {
+        success: false,
+        error: this.extractError(error, '催单失败')
+      }
+    }
+  }
+
+  /**
    * 订单评价检查(F-ORD-007):返回已评价内容与是否可评(仅已完成订单)
    */
   public async getReviewCheck(orderId: string): Promise<ProductServiceResult<OrderReviewCheckResponse>> {

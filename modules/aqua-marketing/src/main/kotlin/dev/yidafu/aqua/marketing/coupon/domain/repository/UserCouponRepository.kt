@@ -21,6 +21,8 @@ package dev.yidafu.aqua.marketing.coupon.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.UserCouponModel
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.data.jpa.repository.Modifying
@@ -64,6 +66,17 @@ interface UserCouponRepository :
   ): Long
 
   fun findByCouponTemplateId(templateId: Long): List<UserCouponModel>
+
+  /**
+   * 分页查询指定状态且过期时间在 [from, to) 区间的优惠券(优惠券即将过期提醒调度用;
+   * 分页游标,禁止全表查询 —— 规则 13)。
+   */
+  fun findByStatusAndExpireTimeBetween(
+    status: UserCouponStatus,
+    from: LocalDateTime,
+    to: LocalDateTime,
+    pageable: Pageable,
+  ): Page<UserCouponModel>
 
   /**
    * 原子核销:仅 RECEIVED 且未过期可核销;受影响行数=1 成功,=0 表示已被并发核销/过期(核销幂等)。

@@ -104,6 +104,7 @@ class ArtemisEventPublisher(
       DomainEventType.ORDER_CANCELLED,
       DomainEventType.ORDER_COMPLETED,
       DomainEventType.ORDER_DELIVERED,
+      DomainEventType.ORDER_URGING,
       -> EventQueueName.ORDER_QUEUE.toString()
 
       DomainEventType.PAYMENT_TIMEOUT,
@@ -118,6 +119,7 @@ class ArtemisEventPublisher(
 
       DomainEventType.USER_REGISTERED,
       DomainEventType.USER_UPDATED,
+      DomainEventType.COUPON_EXPIRING,
       -> EventQueueName.USER_QUEUE.toString()
 
       DomainEventType.NOTIFICATION_SEND,

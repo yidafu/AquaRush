@@ -2707,6 +2707,13 @@ data class MutationReportTrajectoryArgs(
       ReportTrajectoryInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationResendNotificationArgs(
+    val id: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long
+  )
+}
 data class MutationResetAdminPasswordArgs(
     val id: kotlin.Long,
     val newPassword: kotlin.String? = null
@@ -3051,6 +3058,13 @@ data class MutationUpdateUserArgs(
       UpdateUserInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationUrgeOrderArgs(
+    val orderId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["orderId"] as kotlin.Long
+  )
+}
 data class Mutation(
     val _dummy: kotlin.String?,
     val acceptDelivery: Order,
@@ -3117,6 +3131,7 @@ data class Mutation(
     val rejectDailyCollection: DailyCollectionRecord,
     val reorderBanner: kotlin.collections.List<Banner>,
     val reportTrajectory: kotlin.Boolean,
+    val resendNotification: NotificationVo?,
     val resetAdminPassword: kotlin.Boolean,
     val resetDeliveryWorkerPassword: kotlin.Boolean,
     val restoreSystemConfig: SystemConfigVo,
@@ -3154,7 +3169,8 @@ data class Mutation(
     val updateProfile: UserInfo,
     val updatePromotionActivity: PromotionActivity,
     val updateTicketType: TicketType,
-    val updateUser: User
+    val updateUser: User,
+    val urgeOrder: kotlin.Boolean
 )
 
 data class MyOrderStatistics(
@@ -3246,6 +3262,19 @@ data class NoticeVoPage(
     val totalPages: kotlin.Int
 )
 
+enum class NotificationChannelStatus(val label: String) {
+      FAILED("FAILED"),
+      PENDING("PENDING"),
+      SENT("SENT");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): NotificationChannelStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
 enum class NotificationReceiverType(val label: String) {
       USER("USER"),
       WORKER("WORKER");
@@ -3273,16 +3302,20 @@ enum class NotificationType(val label: String) {
 }
 
 data class NotificationVo(
+    val channelStatus: NotificationChannelStatus,
     val createdAt: java.time.LocalDateTime,
+    val errorMessage: kotlin.String?,
     val id: kotlin.Long,
     val read: kotlin.Boolean,
     val readAt: java.time.LocalDateTime?,
     val receiverType: NotificationReceiverType,
     val relatedNo: kotlin.String?,
     val scene: kotlin.String,
+    val sentAt: java.time.LocalDateTime?,
     val summary: kotlin.String?,
     val title: kotlin.String,
-    val type: NotificationType
+    val type: NotificationType,
+    val wxMessageId: kotlin.String?
 )
 
 data class NotificationVoPage(

@@ -29,6 +29,7 @@ import dev.yidafu.aqua.api.service.marketing.PromotionPricingService
 import dev.yidafu.aqua.api.service.marketing.TicketMutationApiService
 import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderIdGeneratorService
+import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductService
@@ -37,9 +38,12 @@ import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.DeliveryFeeRuleModel
 import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.OrderOperationModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot
+import dev.yidafu.aqua.common.domain.model.enums.OperatorType
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.domain.model.enums.PriceSource
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
@@ -49,10 +53,13 @@ import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.time.LocalDateTime
+import java.util.Optional
 
 /**
  * 订单变更服务单元测试:
@@ -76,6 +83,7 @@ class OrderMutationServiceImplTest :
     var promotionPricingService: PromotionPricingService = mockk()
     var couponMutationApiService: CouponMutationApiService = mockk()
     var ticketMutationApiService: TicketMutationApiService = mockk()
+    var orderOperationService: OrderOperationService = mockk()
     var bizLogger: BizLogger = mockk()
     var service: OrderMutationServiceImpl = mockk()
     val product = ProductModel(id = 1L, name = "桶装水", price = 1000, stock = 100)
@@ -172,6 +180,7 @@ class OrderMutationServiceImplTest :
       promotionPricingService = mockk(relaxed = true)
       couponMutationApiService = mockk(relaxed = true)
       ticketMutationApiService = mockk(relaxed = true)
+      orderOperationService = mockk(relaxed = true)
       bizLogger = mockk(relaxed = true)
       // 单测无安全上下文,resolveOperator 返回空操作者(日志仅缺操作人,不阻断业务)
       every { bizLogger.resolveOperator() } returns (null to null)
@@ -191,6 +200,7 @@ class OrderMutationServiceImplTest :
           promotionPricingService,
           couponMutationApiService,
           ticketMutationApiService,
+          orderOperationService,
           bizLogger,
         )
     }
@@ -421,6 +431,55 @@ class OrderMutationServiceImplTest :
       every { orderQueryService.getOrderById(1L) } returns order
 
       shouldThrow<BadRequestException> { service.cancelOrder(1L) }
+    }
+    test("urge delivering order publishes ORDER_URGING event and records operation") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.DELIVERING, deliveryWorkerId = 3L)
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+      every { orderOperationService.getOrderOperations(1L) } returns emptyList()
+
+      val result = service.urgeOrder(1L, 100L)
+
+      result shouldBe order
+      verify(exactly = 1) {
+        orderOperationService.recordOperation(
+          1L,
+          OrderOperationType.ORDER_URGING,
+          OperatorType.USER,
+          100L,
+          "用户催单",
+        )
+      }
+      verify(exactly = 1) {
+        eventPublishService.publishDomainEvent(
+          match { it == "ORDER_URGING" },
+          match { it == "1" },
+          any(),
+        )
+      }
+    }
+    test("urge rejects non delivering order") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_DELIVERY)
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+
+      shouldThrow<BadRequestException> { service.urgeOrder(1L, 100L) }
+    }
+    test("urge debounce: recent urge within 5 minutes rejected") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.DELIVERING)
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+      val recent =
+        OrderOperationModel(
+          operationType = OrderOperationType.ORDER_URGING,
+          createdAt = LocalDateTime.now().minusMinutes(1),
+        )
+      every { orderOperationService.getOrderOperations(1L) } returns listOf(recent)
+
+      shouldThrow<BadRequestException> { service.urgeOrder(1L, 100L) }
+    }
+    test("urge returns null for other user's order") {
+      val order = OrderModel(id = 1L, userId = 200L, status = OrderModelStatus.DELIVERING)
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+
+      service.urgeOrder(1L, 100L).shouldBeNull()
     }
     test("delivery order belongs to address owner") {
       // 地址归属客户 200L(而非送水工本人)

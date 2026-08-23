@@ -2429,6 +2429,14 @@ type NotificationVO {
   read: Boolean!
   readAt: LocalDateTime
   createdAt: LocalDateTime!
+  # 微信订阅消息通道投递状态(PENDING/SENT/FAILED,后台失败消息手动重发 F-NTF-006)
+  channelStatus: NotificationChannelStatus!
+  # 微信订阅消息返回的消息 ID(发送成功时)
+  wxMessageId: String
+  # 微信订阅消息发送失败原因(发送失败时)
+  errorMessage: String
+  # 微信订阅消息通道最近一次处理时间
+  sentAt: LocalDateTime
 }
 
 # 站内消息分页
@@ -2438,6 +2446,13 @@ type NotificationVOPage {
   totalPages: Int!
   size: Int!
   number: Int!
+}
+
+# 微信订阅消息通道投递状态(R-NTF-01/F-NTF-001:站内消息落库即消息中心可见,channel_status 记录微信通道结果)
+enum NotificationChannelStatus {
+  PENDING
+  SENT
+  FAILED
 }
 
 # 订阅消息模板配置项(R-NTF-01,下单确认页订阅授权用)

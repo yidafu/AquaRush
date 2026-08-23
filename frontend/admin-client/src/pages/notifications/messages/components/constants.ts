@@ -11,6 +11,11 @@ export interface NotificationRecord {
   read: boolean;
   readAt?: string | null;
   createdAt: string;
+  /** 微信订阅消息通道投递状态(PENDING/SENT/FAILED,F-NTF-006 失败消息手动重发) */
+  channelStatus?: 'PENDING' | 'SENT' | 'FAILED' | null;
+  wxMessageId?: string | null;
+  errorMessage?: string | null;
+  sentAt?: string | null;
 }
 
 export const TYPE_LABELS: Record<string, { label: string; color: string }> = {
@@ -23,4 +28,10 @@ export const TYPE_LABELS: Record<string, { label: string; color: string }> = {
 export const RECEIVER_LABELS: Record<string, string> = {
   USER: '用户',
   WORKER: '送水工',
+};
+
+export const CHANNEL_STATUS_LABELS: Record<string, { label: string; color: string }> = {
+  PENDING: { label: '待发送', color: 'default' },
+  SENT: { label: '已发送', color: 'green' },
+  FAILED: { label: '发送失败', color: 'red' },
 };

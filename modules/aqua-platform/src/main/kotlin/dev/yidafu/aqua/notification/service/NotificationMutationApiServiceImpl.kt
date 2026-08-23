@@ -22,7 +22,9 @@ package dev.yidafu.aqua.notification.service
 import dev.yidafu.aqua.api.service.notification.NotificationMutationApiService
 import dev.yidafu.aqua.common.domain.model.NotificationModel
 import dev.yidafu.aqua.common.domain.model.UserSubscriptionAuthModel
+import dev.yidafu.aqua.common.domain.model.enums.NotificationChannelStatus
 import dev.yidafu.aqua.common.domain.model.enums.NotificationReceiverType
+import dev.yidafu.aqua.notification.channel.wechat.WeChatSubscribeMessageService
 import dev.yidafu.aqua.notification.domain.repository.NotificationRepository
 import dev.yidafu.aqua.notification.domain.repository.UserSubscriptionAuthRepository
 import org.springframework.stereotype.Service
@@ -36,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional
 class NotificationMutationApiServiceImpl(
   private val notificationRepository: NotificationRepository,
   private val userSubscriptionAuthRepository: UserSubscriptionAuthRepository,
+  private val weChatSubscribeMessageService: WeChatSubscribeMessageService,
 ) : NotificationMutationApiService {
   @Transactional
   override fun markRead(
@@ -96,4 +99,24 @@ class NotificationMutationApiServiceImpl(
       NotificationReceiverType.WORKER ->
         notification.receiverType == NotificationReceiverType.WORKER && notification.workerId == receiverId
     }
+
+  /**
+   * 手动重发(F-NTF-006):仅 USER + 已持久化模板场景 + 通道状态 FAILED/PENDING 可重发;
+   * 重置 PENDING 后复用微信订阅消息全部门控(trySend 内部不抛异常,结果回写 channel_status)。
+   */
+  @Transactional
+  override fun resendNotification(notificationId: Long): NotificationModel? {
+    val notification = notificationRepository.findById(notificationId).orElse(null) ?: return null
+    if (notification.receiverType != NotificationReceiverType.USER) return null
+    val scene = notification.templateScene ?: return null
+    if (notification.channelStatus != NotificationChannelStatus.FAILED &&
+      notification.channelStatus != NotificationChannelStatus.PENDING
+    ) {
+      return null
+    }
+    notification.recordChannelResult(NotificationChannelStatus.PENDING)
+    notificationRepository.save(notification)
+    weChatSubscribeMessageService.trySend(notification, scene, notification.templatePage, null)
+    return notificationRepository.findById(notificationId).orElse(null)
+  }
 }

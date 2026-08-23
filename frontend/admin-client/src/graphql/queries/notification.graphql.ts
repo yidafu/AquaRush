@@ -56,6 +56,25 @@ export const GET_NOTIFICATION_QUERY = gql`
       read
       readAt
       createdAt
+      channelStatus
+      wxMessageId
+      errorMessage
+      sentAt
+    }
+  }
+`;
+
+/**
+ * 手动重发失败/待发送的微信订阅消息(F-NTF-006,PERMISSION_NOTIFICATION_WRITE 仅超管)
+ */
+export const RESEND_NOTIFICATION_MUTATION = gql`
+  mutation ResendNotification($id: PrimaryId!) {
+    resendNotification(id: $id) {
+      id
+      channelStatus
+      wxMessageId
+      errorMessage
+      sentAt
     }
   }
 `;

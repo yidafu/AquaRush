@@ -27,4 +27,6 @@ extend type Mutation {
   markWorkerNotificationRead(id: PrimaryId!): Boolean!
   # 送水工端:全部已读
   markAllWorkerNotificationsRead: Boolean!
+  # 后台:手动重发失败/待发送的微信订阅消息(F-NTF-006,PERMISSION_NOTIFICATION_WRITE 仅超管)
+  resendNotification(id: PrimaryId!): NotificationVO
 }

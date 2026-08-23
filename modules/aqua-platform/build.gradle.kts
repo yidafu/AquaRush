@@ -3,21 +3,6 @@ plugins {
   id("aqua.kotlin.querydsl")
 }
 
-// ========================================================
-// 临时排除并发进行中的通知模块测试(未跟踪,在途工作,待其完成后移除):
-// dev.yidafu.aqua.notification.** 测试随生产代码演进,存在编译/运行不稳,
-// 与本次「日志离线备份」任务无关,从测试源集排除以免阻塞全量测试。
-// ========================================================
-kotlin {
-  sourceSets {
-    test {
-      kotlin {
-        exclude("dev/yidafu/aqua/notification/**")
-      }
-    }
-  }
-}
-
 group = "dev.yidafu.aqua"
 version = "1.0.0"
 

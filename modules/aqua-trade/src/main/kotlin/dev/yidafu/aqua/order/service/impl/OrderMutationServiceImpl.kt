@@ -31,6 +31,7 @@ import dev.yidafu.aqua.api.service.marketing.TicketMutationApiService
 import dev.yidafu.aqua.api.service.ops.DeliveryFeeRuleQueryApiService
 import dev.yidafu.aqua.api.service.order.OrderIdGeneratorService
 import dev.yidafu.aqua.api.service.order.OrderMutationService
+import dev.yidafu.aqua.api.service.order.OrderOperationService
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductService
@@ -42,9 +43,12 @@ import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.PaymentMethod
 import dev.yidafu.aqua.common.domain.model.ProductModel
 import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot
+import dev.yidafu.aqua.common.domain.model.enums.OperatorType
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.OrderOperationType
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.NotFoundException
+import dev.yidafu.aqua.common.messaging.event.DomainEventType
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.common.utils.SearchContentBuilder
 import dev.yidafu.aqua.logging.util.BizLogger
@@ -80,6 +84,7 @@ class OrderMutationServiceImpl(
   private val promotionPricingService: PromotionPricingService,
   private val couponMutationApiService: CouponMutationApiService,
   private val ticketMutationApiService: TicketMutationApiService,
+  private val orderOperationService: OrderOperationService,
   private val bizLogger: BizLogger,
 ) : OrderMutationService {
   private val logger = LoggerFactory.getLogger(OrderMutationServiceImpl::class.java)
@@ -566,6 +571,52 @@ class OrderMutationServiceImpl(
       null
     }
 
+  /**
+   * 用户催单(F-ORD-008,AC-ORD-008-01):仅本人「配送中」订单可催;
+   * 防抖 —— 5 分钟内重复催单仅一次生效(操作时间线 ORDER_URGING 为准);
+   * 记录操作时间线并发布 ORDER_URGING 事件(通知域据此推送用户「催单已受理」+ 送水工「用户催单」)。
+   */
+  @Transactional
+  override fun urgeOrder(
+    orderId: Long,
+    userId: Long,
+  ): OrderModel? {
+    val order = orderRepository.findById(orderId).orElse(null) ?: return null
+    if (order.userId != userId) {
+      return null
+    }
+    if (order.status != OrderModelStatus.DELIVERING) {
+      throw BadRequestException("仅配送中的订单可催单")
+    }
+    val latestUrge =
+      orderOperationService
+        .getOrderOperations(orderId)
+        .firstOrNull { it.operationType == OrderOperationType.ORDER_URGING }
+    if (latestUrge != null && latestUrge.createdAt.isAfter(LocalDateTime.now().minusMinutes(URGE_DEBOUNCE_MINUTES))) {
+      throw BadRequestException("催单过于频繁,请稍后再试")
+    }
+
+    orderOperationService.recordOperation(
+      orderId = orderId,
+      operationType = OrderOperationType.ORDER_URGING,
+      operatorType = OperatorType.USER,
+      operatorId = userId,
+      description = "用户催单",
+    )
+    eventPublishService.publishDomainEvent(
+      eventType = DomainEventType.ORDER_URGING.value,
+      aggregateId = orderId.toString(),
+      eventData =
+        buildMap<String, Any> {
+          put("orderId", orderId)
+          put("userId", userId)
+          order.deliveryWorkerId?.let { put("deliveryWorkerId", it) }
+          put("timestamp", System.currentTimeMillis())
+        },
+    )
+    return order
+  }
+
   @Transactional
   override fun updateOrderStatus(
     orderId: Long,
@@ -712,4 +763,9 @@ class OrderMutationServiceImpl(
 
   /** 订单商品 ID 列表(日志用) */
   private fun OrderModel.orderItemIds(): List<Long> = orderItemRepository.findByOrderId(id!!).map { it.productId }
+
+  companion object {
+    /** 催单防抖窗口(分钟):短时间重复催单仅一次生效(AC-ORD-008-01) */
+    private const val URGE_DEBOUNCE_MINUTES = 5L
+  }
 }

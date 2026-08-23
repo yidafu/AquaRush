@@ -55,6 +55,10 @@ export const SystemSettingKeys = {
   DELIVERY_PUSH_PAYMENT_TIMEOUT_ENABLED: 'delivery_push_payment_timeout_enabled', // 支付超时推送
   DELIVERY_POLL_INTERVAL_SECONDS: 'delivery_poll_interval_seconds', // 离线/弱网轮询间隔(秒),默认 30
 
+  // 消息发送补齐(2026-08):优惠券即将过期提醒窗口 / 配送超时阈值
+  COUPON_EXPIRING_NOTIFY_DAYS: 'coupon_expiring_notify_days', // 优惠券即将过期提醒窗口(天),默认 3
+  DELIVERY_TIMEOUT_MINUTES: 'delivery_timeout_minutes', // 配送超时阈值(分钟),默认 120
+
   // 数据维护参数组(F-SYS-006)
   LOG_RETENTION_API_DAYS: 'log_retention_api_days', // API 日志保留天数,默认 90
   LOG_RETENTION_USER_ACTION_DAYS: 'log_retention_user_action_days', // 用户操作日志保留天数,默认 90

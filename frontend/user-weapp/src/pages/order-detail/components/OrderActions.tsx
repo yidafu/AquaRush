@@ -14,12 +14,13 @@ interface OrderActionsProps {
   onReview: () => void
   onReorder: () => void
   onTrack: () => void
+  onUrge: () => void
   onContinueShopping: () => void
 }
 
 /**
  * 底部操作栏(按订单状态渲染对应按钮组,保留全部 track* 埋点):
- * 待付款 = 取消 + 立即支付;配送中 = 查看配送;已完成 = 评价/再次购买/继续购物;
+ * 待付款 = 取消 + 立即支付;配送中 = 催单 + 查看配送;已完成 = 评价/再次购买/继续购物;
  * 待配送/已取消 = 再次购买
  */
 const OrderActions: React.FC<OrderActionsProps> = ({
@@ -30,6 +31,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
   onReview,
   onReorder,
   onTrack,
+  onUrge,
   onContinueShopping
 }) => {
   return (
@@ -64,14 +66,28 @@ const OrderActions: React.FC<OrderActionsProps> = ({
       )}
 
       {order.status === 'delivering' && (
-        <AtButton
-          type='secondary'
-          size='normal'
-          onClick={onTrack}
-          className='action-button'
-        >
-          查看配送
-        </AtButton>
+        <>
+          <AtButton
+            trackTarget="order-urge"
+            trackElementType="button"
+            trackElementText="催单"
+            trackProps={{ orderId: order.id }}
+            onClick={onUrge}
+            type='secondary'
+            size='normal'
+            className='action-button'
+          >
+            催单
+          </AtButton>
+          <AtButton
+            type='secondary'
+            size='normal'
+            onClick={onTrack}
+            className='action-button'
+          >
+            查看配送
+          </AtButton>
+        </>
       )}
 
       {order.status === 'completed' && (

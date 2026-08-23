@@ -1,7 +1,8 @@
-import { useLazyQuery, useQuery } from '@apollo/client';
+import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import {
   GET_NOTIFICATIONS_QUERY,
   GET_NOTIFICATION_QUERY,
+  RESEND_NOTIFICATION_MUTATION,
 } from '../graphql/queries/notification.graphql';
 
 /**
@@ -31,5 +32,14 @@ export const useNotificationDetail = (id: string | null) => {
     fetchPolicy: 'network-only',
     errorPolicy: 'all',
     variables: { id },
+  });
+};
+
+/**
+ * 手动重发失败/待发送的微信订阅消息(F-NTF-006,仅超管)
+ */
+export const useResendNotification = () => {
+  return useMutation(RESEND_NOTIFICATION_MUTATION, {
+    errorPolicy: 'all',
   });
 };
