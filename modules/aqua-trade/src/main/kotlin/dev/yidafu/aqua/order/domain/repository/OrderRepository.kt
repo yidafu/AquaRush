@@ -24,6 +24,9 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Modifying
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
@@ -72,4 +75,27 @@ interface OrderRepository :
   fun findByAddressId(addressId: Long): List<OrderModel>
 
   fun countByStatus(status: OrderModelStatus): Long
+
+  /**
+   * 原子认领取消(订单级乐观锁 CAS,R-ORD-04 互斥):
+   * 仅 [statuses] 内状态可置 CANCELLED,返回受影响行数
+   * (1=认领成功,0=已被并发取消/支付超时/状态已流转)。
+   * 用户/管理员手动取消([cancelOrder])与支付超时([handlePaymentTimeout])
+   * 均先认领再恢复库存——并发行只有一方成功,杜绝重复恢复库存。
+   */
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query(
+    """
+    update OrderModel o
+    set o.status = dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.CANCELLED,
+        o.updatedAt = :now
+    where o.id = :id
+      and o.status in :statuses
+    """,
+  )
+  fun cancelAtomically(
+    @Param("id") id: Long,
+    @Param("statuses") statuses: Collection<OrderModelStatus>,
+    @Param("now") now: LocalDateTime,
+  ): Int
 }

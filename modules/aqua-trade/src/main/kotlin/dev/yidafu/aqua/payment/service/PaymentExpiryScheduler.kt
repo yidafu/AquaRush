@@ -19,62 +19,56 @@
 
 package dev.yidafu.aqua.payment.service
 
-import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.api.service.payment.PaymentService
+import dev.yidafu.aqua.common.annotation.AdminService
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
-import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.payment.config.PaymentExpiryProperties
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
 
 /**
- * 支付超时扫描(R-ORD-04:待支付订单超过支付时限默认 30 分钟自动取消并恢复库存):
- * 周期扫描 PENDING 且已过期的支付记录,触发 [PaymentService.handlePaymentTimeout];
- * 超时处理后按订单终态同步支付记录(取消→EXPIRED,已支付→SUCCESS),幂等可重入。
+ * 支付超时兜底扫描(R-ORD-04 支付超时优化):
+ * 延迟消息(MQ,payment-expiry-events)为主触发,本扫描为兜底安全网——仅 admin 服务运行
+ * ([AdminService],client 不扫描),间隔默认 5 分钟(可配 `aqua.payment.expiry.scan-interval-ms`);
+ * 分页游标分批扫描 PENDING 且已过期的支付记录(禁止全表拉取,CLAUDE.md 规则 13),
+ * 逐条触发 [PaymentService.handlePaymentTimeout];与 MQ 触发并发时由数据库乐观锁
+ * CAS 认领(claimExpired)保证幂等与互斥,重复处理安全。
  */
 @Component
+@AdminService
 class PaymentExpiryScheduler(
   private val paymentRepository: PaymentRepository,
   private val paymentService: PaymentService,
-  private val orderQueryService: OrderQueryService,
+  private val properties: PaymentExpiryProperties,
 ) {
   private val logger = LoggerFactory.getLogger(PaymentExpiryScheduler::class.java)
 
-  @Scheduled(fixedDelay = 60_000, initialDelay = 30_000)
+  @Scheduled(
+    fixedDelayString = "\${aqua.payment.expiry.scan-interval-ms:300000}",
+    initialDelayString = "\${aqua.payment.expiry.scan-initial-delay-ms:30000}",
+  )
   fun expirePendingPayments() {
     val now = LocalDateTime.now()
-    val expiredPayments =
-      paymentRepository
-        .findByStatus(PaymentStatus.PENDING)
-        .filter { payment -> payment.expiredAt != null && payment.expiredAt!!.isBefore(now) }
-
-    expiredPayments.forEach { payment ->
-      try {
-        paymentService.handlePaymentTimeout(payment.orderId)
-        val order = orderQueryService.getOrderById(payment.orderId)
-        when (order.status) {
-          // 超时取消:支付记录置 EXPIRED
-          OrderModelStatus.CANCELLED -> {
-            payment.status = PaymentStatus.EXPIRED
-            paymentRepository.save(payment)
-            logger.info("支付超时处理完成: 订单 {} 已自动取消", payment.orderId)
-          }
-          // 回调与超时竞态且回调胜出:支付记录同步为 SUCCESS
-          OrderModelStatus.PENDING_DELIVERY -> {
-            if (payment.status != PaymentStatus.SUCCESS) {
-              payment.status = PaymentStatus.SUCCESS
-              payment.transactionId = order.paymentTransactionId
-              payment.paidAt = order.paymentTime
-              paymentRepository.save(payment)
-            }
-          }
-          else -> logger.debug("订单 {} 状态为 {},跳过支付记录同步", payment.orderId, order.status)
+    var pageNumber = 0
+    while (true) {
+      val pageable = PageRequest.of(pageNumber, properties.scanBatchSize, Sort.by(Sort.Direction.ASC, "id"))
+      val page = paymentRepository.findByStatusAndExpiredAtBefore(PaymentStatus.PENDING, now, pageable)
+      page.content.forEach { payment ->
+        try {
+          paymentService.handlePaymentTimeout(payment.orderId)
+        } catch (e: Exception) {
+          logger.error("支付超时兜底处理失败: 订单 {}", payment.orderId, e)
         }
-      } catch (e: Exception) {
-        logger.error("支付超时处理失败: 订单 {}", payment.orderId, e)
       }
+      if (!page.hasNext()) {
+        break
+      }
+      pageNumber++
     }
   }
 }

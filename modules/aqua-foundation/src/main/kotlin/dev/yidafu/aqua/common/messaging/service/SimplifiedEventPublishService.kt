@@ -29,6 +29,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.module.kotlin.jacksonObjectMapper
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.*
 
 /**
@@ -70,6 +72,31 @@ class SimplifiedEventPublishService(
       eventPublisher.publishSync(event)
     } catch (e: Exception) {
       logger.error("Failed to publish domain event: $eventType", e)
+      false
+    }
+
+  /**
+   * 延迟发布领域事件(延迟消息,R-ORD-04 支付超时优化):
+   * 由 broker 在 deliveryTimeMillis 时刻投递;失败仅记录日志,不阻塞主流程
+   * (兜底扫描会覆盖消息丢失场景)。
+   */
+  private fun publishDomainEventDelayed(
+    eventType: String,
+    aggregateId: String,
+    eventData: Map<String, Any>,
+    deliveryTimeMillis: Long,
+  ): Boolean =
+    try {
+      val event =
+        DomainEvent(
+          id = DefaultIdGenerator().generate(),
+          aggregateId = aggregateId,
+          eventType = eventType,
+          payload = objectMapper.writeValueAsString(eventData),
+        )
+      eventPublisher.publishDelayed(event, deliveryTimeMillis)
+    } catch (e: Exception) {
+      logger.error("Failed to publish delayed domain event: $eventType", e)
       false
     }
   // ==================== Long 类型版本 ====================
@@ -214,6 +241,29 @@ class SimplifiedEventPublishService(
           "deliveryWorkerId" to deliveryWorkerId,
           "timestamp" to System.currentTimeMillis(),
         ),
+    )
+
+  /**
+   * 发布支付到期检查延迟消息(R-ORD-04 支付超时优化):
+   * 创建/重置待支付记录时发布,broker 在 expireAt 时刻投递到 payment-expiry-events 队列,
+   * 仅 admin 服务消费触发支付超时处理;消费端以 payments 记录守卫(状态+到期时间)保证幂等。
+   */
+  fun publishPaymentExpiryCheck(
+    orderId: Long,
+    userId: Long,
+    expireAt: LocalDateTime,
+  ): Boolean =
+    publishDomainEventDelayed(
+      eventType = DomainEventType.PAYMENT_EXPIRY_CHECK.value,
+      aggregateId = orderId.toString(),
+      eventData =
+        mapOf(
+          "orderId" to orderId,
+          "userId" to userId,
+          "expireAt" to expireAt.toString(),
+          "timestamp" to System.currentTimeMillis(),
+        ),
+      deliveryTimeMillis = expireAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli(),
     )
 
   /**

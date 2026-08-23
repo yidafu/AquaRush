@@ -43,6 +43,10 @@ enum class DomainEventType(
   PAYMENT_TIMEOUT("PAYMENT_TIMEOUT"),
   PAYMENT_REFUNDED("PAYMENT_REFUNDED"),
 
+  // 支付到期检查触发事件(R-ORD-04 支付超时优化:延迟消息到期投递,仅 admin 消费处理;
+  // 与 PAYMENT_TIMEOUT(取消后通知)语义分离,避免复用同一事件类型导致循环触发)
+  PAYMENT_EXPIRY_CHECK("PAYMENT_EXPIRY_CHECK"),
+
   // 用户事件
   USER_REGISTERED("USER_REGISTERED"),
   USER_UPDATED("USER_UPDATED"),

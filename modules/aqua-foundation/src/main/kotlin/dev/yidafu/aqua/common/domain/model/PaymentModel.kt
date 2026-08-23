@@ -58,6 +58,9 @@ open class PaymentModel(
   var paidAt: LocalDateTime? = null,
   @Column(name = "expired_at")
   var expiredAt: LocalDateTime? = null,
+  @Version
+  @Column(name = "version", nullable = false)
+  var version: Long = 0L,
   @Column(name = "created_at", nullable = false)
   val createdAt: LocalDateTime = LocalDateTime.now(),
   @Column(name = "updated_at", nullable = false)

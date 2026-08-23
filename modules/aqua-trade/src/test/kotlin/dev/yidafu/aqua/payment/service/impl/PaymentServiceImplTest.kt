@@ -29,12 +29,14 @@ import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.PaymentModel
+import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
+import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.payment.domain.repository.PaymentRefundRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
@@ -48,7 +50,10 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.springframework.beans.factory.ObjectProvider
+import java.time.LocalDateTime
 import java.util.Optional
+import java.util.function.Consumer
 
 /**
  * 支付服务单元测试(PRD 04-order.md §F-ORD-005/R-PAY-01~03):
@@ -67,6 +72,8 @@ class PaymentServiceImplTest :
     var paymentRefundRepository: PaymentRefundRepository = mockk()
     var wechatPayGateway: WechatPayGateway = mockk()
     var bizLogger: BizLogger = mockk()
+    var eventPublishService: SimplifiedEventPublishService = mockk()
+    var eventPublishServiceProvider: ObjectProvider<SimplifiedEventPublishService> = mockk()
     var service: PaymentServiceImpl = mockk()
 
     fun order(
@@ -75,6 +82,8 @@ class PaymentServiceImplTest :
       orderNo: String = "ORD-TEST-001",
       amountCents: Long = 1000,
       deliveryFeeCents: Long = 200,
+      transactionId: String? = null,
+      paymentTime: LocalDateTime? = null,
     ) = OrderModel(
       id = id,
       orderNo = orderNo,
@@ -82,6 +91,8 @@ class PaymentServiceImplTest :
       amountCents = amountCents,
       deliveryFeeCents = deliveryFeeCents,
       status = status,
+      paymentTransactionId = transactionId,
+      paymentTime = paymentTime,
     )
 
     fun ticketPurchase(orderNo: String = "TP2025-001") =
@@ -138,6 +149,12 @@ class PaymentServiceImplTest :
       paymentRefundRepository = mockk(relaxed = true)
       wechatPayGateway = mockk(relaxed = true)
       bizLogger = mockk(relaxed = true)
+      eventPublishService = mockk(relaxed = true)
+      eventPublishServiceProvider = mockk(relaxed = true)
+      // ObjectProvider.ifAvailable:存在 bean 时调用消费者(upsertPendingPayment 发布延迟消息)
+      every { eventPublishServiceProvider.ifAvailable(any()) } answers {
+        firstArg<Consumer<SimplifiedEventPublishService>>().accept(eventPublishService)
+      }
       service =
         PaymentServiceImpl(
           orderQueryService,
@@ -151,6 +168,7 @@ class PaymentServiceImplTest :
           paymentRefundRepository,
           wechatPayGateway,
           bizLogger,
+          eventPublishServiceProvider,
         )
       // JpaRepository.save 返回泛型 S,MockK relaxed 无法构造实体 → 显式回传入参
       every { paymentRepository.save(any()) } answers { firstArg() }
@@ -396,9 +414,40 @@ class PaymentServiceImplTest :
 
       ok shouldBe false
     }
-    test("paymentTimeoutDelegatesToOrderMutation") {
+    test("paymentTimeoutClaimsAndDelegatesToOrderMutation (R-ORD-04)") {
+      every { paymentRepository.claimExpired(1L, any()) } returns 1
+      every { orderQueryService.getOrderById(1L) } returns order()
+
       service.handlePaymentTimeout(1L)
 
       verify(exactly = 1) { orderMutationService.handlePaymentTimeout(1L) }
+    }
+    test("paymentTimeoutSkipsWhenClaimFails (幂等/互斥)") {
+      every { paymentRepository.claimExpired(1L, any()) } returns 0
+
+      service.handlePaymentTimeout(1L)
+
+      verify(exactly = 0) { orderMutationService.handlePaymentTimeout(any()) }
+    }
+    test("paymentTimeoutReconcilesSuccessWhenCallbackWonRace") {
+      val payment = PaymentModel(id = 9L, orderId = 1L, userId = 100L, amount = 1200, status = PaymentStatus.EXPIRED)
+      every { paymentRepository.claimExpired(1L, any()) } returns 1
+      every { orderQueryService.getOrderById(1L) } returns
+        order(status = OrderModelStatus.PENDING_DELIVERY, transactionId = "WX-1", paymentTime = LocalDateTime.now())
+      every { paymentRepository.findByOrderId(1L) } returns Optional.of(payment)
+
+      service.handlePaymentTimeout(1L)
+
+      verify(exactly = 0) { orderMutationService.handlePaymentTimeout(any()) }
+      verify { paymentRepository.save(match { it.status == PaymentStatus.SUCCESS }) }
+      payment.transactionId shouldBe "WX-1"
+    }
+    test("upsertPublishesPaymentExpiryCheckDelayedMessage") {
+      every { orderQueryService.getOrderById(1L) } returns order()
+      every { paymentRepository.findByOrderId(1L) } returns Optional.empty()
+
+      service.createWechatJsapiPay(1L, 1200, "桶装水订单", "openid-1")
+
+      verify(exactly = 1) { eventPublishService.publishPaymentExpiryCheck(1L, 100L, any()) }
     }
   })

@@ -485,7 +485,7 @@ class OrderMutationServiceImpl(
   override fun cancelOrder(orderId: Long): OrderModel {
     val order = orderQueryService.getOrderById(orderId)
 
-    // 1. 验证订单状态是否可以取消
+    // 1. 验证订单状态是否可以取消(快照校验,快速失败给出准确提示;原子认领兜底并发)
     if (order.status == OrderModelStatus.CANCELLED) {
       throw BadRequestException("订单已取消")
     }
@@ -512,40 +512,51 @@ class OrderMutationServiceImpl(
       shouldRefund = true
     }
 
-    // 3. 恢复库存(逐商品明细 R-ORD-02;未配送且已支付或待支付时恢复)
-    if (order.status != OrderModelStatus.DELIVERING && order.status != OrderModelStatus.COMPLETED) {
-      restoreStock(order)
+    // 3. 原子认领取消(订单级乐观锁 CAS,R-ORD-04 互斥):
+    //    与支付超时/并发取消竞争时仅一方认领成功,保证库存只恢复一次;
+    //    0 行 = 已被并发取消/支付超时处理或状态已流转(如支付回调)
+    val claimed =
+      orderRepository.cancelAtomically(
+        orderId,
+        CANCELABLE_STATUSES,
+        LocalDateTime.now(),
+      )
+    if (claimed == 0) {
+      val latest = orderQueryService.getOrderById(orderId)
+      throw BadRequestException(
+        if (latest.status == OrderModelStatus.CANCELLED) "订单已取消" else "订单状态已变更,请刷新后重试",
+      )
     }
 
-    // 4. 更新订单状态
-    order.status = OrderModelStatus.CANCELLED
-    val cancelledOrder = orderRepository.save(order)
+    // 4. 恢复库存(逐商品明细 R-ORD-02;仅认领成功方执行,并发下不重复恢复)
+    restoreStock(order)
 
     // 5. 退回营销权益(同事务,幂等):已核销券/水票未过期→可复用,过期→作废(R-MKT-03/08)
-    returnCouponAndTickets(cancelledOrder.id!!)
+    returnCouponAndTickets(orderId)
 
     // 6. 发布订单取消事件
     val cancelDescription = if (shouldRefund) "用户取消订单（需退款）" else "用户取消订单"
     eventPublishService.publishOrderCancelled(
-      orderId = cancelledOrder.id!!,
-      userId = cancelledOrder.userId,
+      orderId = orderId,
+      userId = order.userId,
       reason = cancelDescription,
       shouldRefund = shouldRefund,
-      paymentTransactionId = if (shouldRefund) cancelledOrder.paymentTransactionId else null,
+      paymentTransactionId = if (shouldRefund) order.paymentTransactionId else null,
     )
 
     // 业务日志(F-LOG-003 ORDER 域):记录取消
     val (operatorId, operatorName) = bizLogger.resolveOperator()
     bizLogger.logOrderOperation(
-      orderId = cancelledOrder.id!!,
+      orderId = orderId,
       operation = "ORDER_CANCELLED",
       result = "SUCCESS",
-      userId = operatorId ?: cancelledOrder.userId,
+      userId = operatorId ?: order.userId,
       username = operatorName,
       additionalData = mapOf("reason" to cancelDescription, "refund" to shouldRefund),
     )
 
-    return cancelledOrder
+    // 返回最新状态(CAS 已置 CANCELLED;clearAutomatically 后重新读取,避免返回过期快照)
+    return orderQueryService.getOrderById(orderId)
   }
 
   @Transactional
@@ -718,12 +729,21 @@ class OrderMutationServiceImpl(
       return // 已处理过，跳过
     }
 
-    // 恢复库存(逐商品明细)
-    restoreStock(order)
+    // 原子认领超时取消(订单级乐观锁 CAS,R-ORD-04 互斥):
+    // 与用户/管理员手动取消并发时仅一方认领成功,保证库存只恢复一次;
+    // 0 行 = 已被并发取消或回调已流转,幂等跳过
+    val claimed =
+      orderRepository.cancelAtomically(
+        orderId,
+        listOf(OrderModelStatus.PENDING_PAYMENT),
+        LocalDateTime.now(),
+      )
+    if (claimed == 0) {
+      return // 已处理过(并发取消/回调),跳过
+    }
 
-    // 取消订单
-    order.status = OrderModelStatus.CANCELLED
-    orderRepository.save(order)
+    // 恢复库存(逐商品明细;仅认领成功方执行,并发下不重复恢复)
+    restoreStock(order)
 
     // 退回营销权益(幂等)
     returnCouponAndTickets(orderId)
@@ -767,5 +787,13 @@ class OrderMutationServiceImpl(
   companion object {
     /** 催单防抖窗口(分钟):短时间重复催单仅一次生效(AC-ORD-008-01) */
     private const val URGE_DEBOUNCE_MINUTES = 5L
+
+    /** 可取消状态(用户/管理员取消,乐观锁 CAS 认领范围,R-ORD-04 互斥) */
+    private val CANCELABLE_STATUSES =
+      listOf(
+        OrderModelStatus.PENDING_PAYMENT,
+        OrderModelStatus.PENDING_DISPATCH,
+        OrderModelStatus.PENDING_DELIVERY,
+      )
   }
 }

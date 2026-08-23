@@ -28,6 +28,8 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.UUID
 
 class SimplifiedEventPublishServiceTest :
@@ -86,6 +88,24 @@ class SimplifiedEventPublishServiceTest :
     test("publishPaymentTimeout with Long ids should publish") {
       every { eventPublisher.publishSync(any()) } returns true
       service.publishPaymentTimeout(100L, 1L) shouldBe true
+    }
+    test("publishPaymentExpiryCheck should publish delayed event at expireAt (R-ORD-04)") {
+      every { eventPublisher.publishDelayed(any(), any()) } returns true
+      val expireAt = LocalDateTime.now().plusMinutes(30)
+      val expectedMillis = expireAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+      service.publishPaymentExpiryCheck(100L, 1L, expireAt) shouldBe true
+
+      verify {
+        eventPublisher.publishDelayed(
+          match<DomainEvent> { event -> event.eventType == DomainEventType.PAYMENT_EXPIRY_CHECK.value },
+          expectedMillis,
+        )
+      }
+    }
+    test("publishPaymentExpiryCheck should return false when delayed publish fails") {
+      every { eventPublisher.publishDelayed(any(), any()) } throws RuntimeException("broker down")
+      service.publishPaymentExpiryCheck(100L, 1L, LocalDateTime.now().plusMinutes(30)) shouldBe false
     }
     test("publishPaymentTimeout with UUID ids should publish") {
       every { eventPublisher.publishSync(any()) } returns true

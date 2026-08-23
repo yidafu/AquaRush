@@ -40,6 +40,9 @@ dependencies {
   // aqua-payment: WeChat Pay SDK
   implementation(libs.wechatpay.sdk)
 
+  // aqua-payment: JMS 延迟消息(R-ORD-04 支付超时优化,PaymentExpiryCheckConsumer @JmsListener)
+  implementation(libs.spring.boot.starter.artemis)
+
   // aqua-delivery: 微信小程序 & 支付
   implementation(libs.wechat.miniapp)
 

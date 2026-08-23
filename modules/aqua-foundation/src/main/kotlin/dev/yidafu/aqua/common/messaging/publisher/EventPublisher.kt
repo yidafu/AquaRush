@@ -65,6 +65,18 @@ interface EventPublisher {
   fun getPriority(): Int = 100
 
   /**
+   * 延迟发布事件(延迟消息,R-ORD-04 支付超时优化):
+   * 由 broker 在 deliveryTimeMillis 时刻投递;不支持延迟的实现可退化为立即投递(默认实现)。
+   * @param event 要发布的事件
+   * @param deliveryTimeMillis 期望投递时刻(epoch millis,通常为业务到期时间)
+   * @return 发布是否成功
+   */
+  fun publishDelayed(
+    event: DomainEvent,
+    deliveryTimeMillis: Long,
+  ): Boolean = publishSync(event)
+
+  /**
    * 批量发布事件
    * @param events 要发布的事件列表
    * @return 发布结果列表
@@ -92,6 +104,7 @@ enum class EventTypePublisherType {
 object EventQueueConst {
   const val ORDER_QUEUE_NAME = "order-events"
   const val PAYMENT_QUEUE_NAME = "payment-events"
+  const val PAYMENT_EXPIRY_QUEUE_NAME = "payment-expiry-events"
   const val DELIVERY_QUEUE_NAME = "delivery-events"
   const val USER_QUEUE_NAME = "user-events"
   const val NOTIFICATIONS_QUEUE_NAME = "notifications-events"
@@ -104,6 +117,7 @@ enum class EventQueueName(
 ) {
   ORDER_QUEUE(EventQueueConst.ORDER_QUEUE_NAME),
   PAYMENT_QUEUE(EventQueueConst.PAYMENT_QUEUE_NAME),
+  PAYMENT_EXPIRY_QUEUE(EventQueueConst.PAYMENT_EXPIRY_QUEUE_NAME),
   DELIVERY_QUEUE(EventQueueConst.DELIVERY_QUEUE_NAME),
   USER_QUEUE(EventQueueConst.USER_QUEUE_NAME),
   NOTIFICATION_QUEUE(EventQueueConst.NOTIFICATIONS_QUEUE_NAME),

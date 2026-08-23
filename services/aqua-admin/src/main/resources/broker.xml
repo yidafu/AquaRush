@@ -47,6 +47,12 @@
           <queue name="payment-events"/>
         </anycast>
       </address>
+      <!-- 支付到期检查触发队列(R-ORD-04 支付超时优化:延迟消息,仅 admin 消费) -->
+      <address name="payment-expiry-events">
+        <anycast>
+          <queue name="payment-expiry-events"/>
+        </anycast>
+      </address>
       <address name="delivery-events">
         <anycast>
           <queue name="delivery-events"/>

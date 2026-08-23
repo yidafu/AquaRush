@@ -37,12 +37,14 @@ import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
 import dev.yidafu.aqua.common.graphql.generated.RefundType
+import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.payment.domain.repository.PaymentRefundRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
 import dev.yidafu.aqua.payment.service.WechatPayGateway
 import dev.yidafu.aqua.payment.service.WechatPrepayRequest
 import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -68,6 +70,8 @@ class PaymentServiceImpl(
   private val paymentRefundRepository: PaymentRefundRepository,
   private val wechatPayGateway: WechatPayGateway,
   private val bizLogger: BizLogger,
+  /** 延迟消息发布(仅 admin 消费,R-ORD-04 支付超时优化);messaging 关闭时跳过发布 */
+  private val eventPublishServiceProvider: ObjectProvider<SimplifiedEventPublishService>,
 ) : PaymentService {
   private val logger = LoggerFactory.getLogger(PaymentService::class.java)
 
@@ -570,31 +574,45 @@ class PaymentServiceImpl(
   }
 
   /**
-   * 处理支付超时(R-ORD-04):由 PaymentExpiryScheduler 周期扫描触发。
+   * 处理支付超时(R-ORD-04 支付超时优化):
+   * 由 admin 的延迟消息消费(PaymentExpiryCheckConsumer)或兜底扫描(PaymentExpiryScheduler)触发;
+   * ① 数据库乐观锁 CAS 认领(PENDING 且已到期 → EXPIRED,version+1),0 行=已被处理/未到期,
+   *    直接返回——幂等且互斥(MQ 重复投递、MQ 与扫描并发、admin 多实例并发均只处理一次);
+   * ② 订单仍待支付才流转取消(恢复库存/退回权益/发布 PAYMENT_TIMEOUT),异常上抛使事务回滚、
+   *    认领撤销,触发 MQ 重投或扫描重试,不产生「支付已 EXPIRED 但订单未取消」卡死态;
+   * ③ 回调竞态对账:订单已支付(PENDING_DELIVERY)→ 支付记录回写 SUCCESS。
    */
   @Transactional
   override fun handlePaymentTimeout(orderId: Long) {
-    try {
+    val now = LocalDateTime.now()
+    val claimed = paymentRepository.claimExpired(orderId, now)
+    if (claimed == 0) {
+      // 已被其他触发方处理 / 支付已成功 / 未到期(旧延迟消息或重复消息),幂等跳过
+      logger.debug("支付超时认领跳过(已处理或未到期): 订单 {}", orderId)
+      return
+    }
+    val order = orderQueryService.getOrderById(orderId)
+    if (order.status == OrderModelStatus.PENDING_PAYMENT) {
       orderMutationService.handlePaymentTimeout(orderId)
       logger.info("支付超时处理成功: 订单ID={}", orderId)
-      // 业务日志(F-LOG-003 PAYMENT 域):支付超时
-      bizLogger.logPaymentOperation(
-        paymentId = orderId,
-        operation = "PAYMENT_TIMEOUT",
-        result = "SUCCESS",
-        additionalData = mapOf("orderId" to orderId),
-      )
-    } catch (e: Exception) {
-      logger.error("支付超时处理失败", e)
-      // 业务日志(F-LOG-003 PAYMENT 域):支付超时处理失败
-      bizLogger.logOperation(
-        operation = "PAYMENT_TIMEOUT",
-        module = "PAYMENT",
-        result = "FAILURE",
-        target = orderId.toString(),
-        additionalData = mapOf("error" to (e.message ?: "unknown error")),
-      )
     }
+    // 回调与超时竞态且回调胜出:支付记录同步为 SUCCESS
+    if (order.status == OrderModelStatus.PENDING_DELIVERY) {
+      val payment = paymentRepository.findByOrderId(orderId).orElse(null)
+      if (payment != null && payment.status != PaymentStatus.SUCCESS) {
+        payment.status = PaymentStatus.SUCCESS
+        payment.transactionId = order.paymentTransactionId
+        payment.paidAt = order.paymentTime
+        paymentRepository.save(payment)
+      }
+    }
+    // 业务日志(F-LOG-003 PAYMENT 域):支付超时
+    bizLogger.logPaymentOperation(
+      paymentId = orderId,
+      operation = "PAYMENT_TIMEOUT",
+      result = "SUCCESS",
+      additionalData = mapOf("orderId" to orderId),
+    )
   }
 
   // ================================================================
@@ -603,6 +621,9 @@ class PaymentServiceImpl(
 
   /**
    * 幂等落库/更新待支付记录(同一订单重复发起支付时复用并重置)。
+   * 落库后发布支付到期检查延迟消息(R-ORD-04 支付超时优化):
+   * broker 在 expiredAt 时刻投递,由 admin 消费触发超时处理;重复消息/旧消息
+   * 由消费端 CAS 认领(状态+到期时间)幂等跳过。
    */
   private fun upsertPendingPayment(
     orderId: Long,
@@ -631,7 +652,12 @@ class PaymentServiceImpl(
       existing.paidAt = null
       existing.expiredAt = LocalDateTime.now().plusMinutes(PAYMENT_EXPIRE_MINUTES)
     }
-    paymentRepository.save(payment)
+    val saved = paymentRepository.save(payment)
+    saved.expiredAt?.let { expireAt ->
+      eventPublishServiceProvider.ifAvailable { eventPublishService ->
+        eventPublishService.publishPaymentExpiryCheck(saved.orderId, saved.userId, expireAt)
+      }
+    }
   }
 
   /**

@@ -339,7 +339,7 @@ class OrderMutationServiceImplTest :
     test("cancel order writes business log") {
       val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
       every { orderQueryService.getOrderById(1L) } returns order
-      every { orderRepository.save(any()) } answers { firstArg() }
+      every { orderRepository.cancelAtomically(1L, any(), any()) } returns 1
       every { productService.increaseStock(any(), any()) } returns true
 
       service.cancelOrder(1L)
@@ -409,13 +409,15 @@ class OrderMutationServiceImplTest :
           status = OrderModelStatus.PENDING_DISPATCH,
           paymentTransactionId = "WX-TXN-001",
         )
-      every { orderQueryService.getOrderById(1L) } returns order
-      every { orderRepository.save(any()) } answers { firstArg() }
+      // CAS 认领后重新读取返回最新状态(CANCELLED)
+      every { orderQueryService.getOrderById(1L) } returnsMany
+        listOf(order, order.copy(status = OrderModelStatus.CANCELLED))
+      every { orderRepository.cancelAtomically(1L, any(), any()) } returns 1
       every { productService.increaseStock(any(), any()) } returns true
 
-      service.cancelOrder(1L)
+      val result = service.cancelOrder(1L)
 
-      order.status shouldBe OrderModelStatus.CANCELLED
+      result.status shouldBe OrderModelStatus.CANCELLED
       verify(exactly = 1) {
         eventPublishService.publishOrderCancelled(
           orderId = 1L,
@@ -425,6 +427,17 @@ class OrderMutationServiceImplTest :
           paymentTransactionId = "WX-TXN-001",
         )
       }
+    }
+    test("cancel skips restore when claim lost (订单级互斥)") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
+      // 并发取消/支付超时已认领 → CAS 返回 0,重新读取为 CANCELLED
+      every { orderQueryService.getOrderById(1L) } returnsMany
+        listOf(order, order.copy(status = OrderModelStatus.CANCELLED))
+      every { orderRepository.cancelAtomically(1L, any(), any()) } returns 0
+
+      shouldThrow<BadRequestException> { service.cancelOrder(1L) }
+
+      verify(exactly = 0) { productService.increaseStock(any(), any()) }
     }
     test("refunded order cannot be cancelled") {
       val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.REFUNDED)
@@ -553,7 +566,7 @@ class OrderMutationServiceImplTest :
     test("cancel multi item order restores each stock") {
       val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
       every { orderQueryService.getOrderById(1L) } returns order
-      every { orderRepository.save(any()) } answers { firstArg() }
+      every { orderRepository.cancelAtomically(1L, any(), any()) } returns 1
       every { productService.increaseStock(any(), any()) } returns true
       every { orderItemRepository.findByOrderId(1L) } returns
         listOf(
@@ -565,6 +578,52 @@ class OrderMutationServiceImplTest :
 
       verify(exactly = 1) { productService.increaseStock(1L, 2) }
       verify(exactly = 1) { productService.increaseStock(2L, 3) }
+    }
+
+    // ============ 支付超时订单级互斥(R-ORD-04,乐观锁 CAS) ============
+
+    test("payment timeout claims and restores stock") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
+      every { orderQueryService.getOrderById(1L) } returns order
+      every { orderRepository.cancelAtomically(1L, any(), any()) } returns 1
+      every { productService.increaseStock(any(), any()) } returns true
+      every { orderItemRepository.findByOrderId(1L) } returns
+        listOf(
+          OrderItemModel(
+            orderId = 1L,
+            productId = 1L,
+            quantity = 2,
+            unitPriceCents = 1000,
+            totalPriceCents = 2000,
+            productSnapshot = "{}",
+          ),
+        )
+
+      service.handlePaymentTimeout(1L)
+
+      verify(exactly = 1) { productService.increaseStock(1L, 2) }
+      verify(exactly = 1) {
+        eventPublishService.publishPaymentTimeout(orderId = 1L, userId = 100L)
+      }
+    }
+    test("payment timeout skips when claim lost (与手动取消互斥)") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_PAYMENT)
+      every { orderQueryService.getOrderById(1L) } returns order
+      every { orderRepository.cancelAtomically(1L, any(), any()) } returns 0
+
+      service.handlePaymentTimeout(1L)
+
+      verify(exactly = 0) { productService.increaseStock(any(), any()) }
+      verify(exactly = 0) { eventPublishService.publishPaymentTimeout(any<Long>(), any<Long>()) }
+    }
+    test("payment timeout skips non pending order") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.PENDING_DELIVERY)
+      every { orderQueryService.getOrderById(1L) } returns order
+
+      service.handlePaymentTimeout(1L)
+
+      verify(exactly = 0) { orderRepository.cancelAtomically(any(), any(), any()) }
+      verify(exactly = 0) { productService.increaseStock(any(), any()) }
     }
 
     // ============ 服务端下单幂等(R-ORD-06) ============

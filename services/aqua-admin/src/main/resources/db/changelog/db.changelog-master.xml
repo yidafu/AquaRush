@@ -50,5 +50,7 @@
   <include file="db/changelog/changes/v2.5.0-add-marketing-daily-facts.xml"/>
   <!-- 消息发送补齐:notifications 模板上下文列(失败消息手动重发) + 优惠过期提醒窗口/配送超时阈值参数 -->
   <include file="db/changelog/changes/v2.6.0-add-notification-send-support.xml"/>
+  <!-- R-ORD-04 支付超时优化:payments.version 乐观锁列 + chk_payments_status 对齐枚举 -->
+  <include file="db/changelog/changes/v2.7.0-add-payment-expiry-optimization.xml"/>
 
 </databaseChangeLog>

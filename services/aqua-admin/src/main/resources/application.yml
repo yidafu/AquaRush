@@ -55,7 +55,7 @@ spring:
       config-url: classpath:broker.xml
       config-resource: classpath:broker.xml
       server-config: classpath:broker.xml
-      queues: order-events,payment-events,delivery-events,user-events
+      queues: order-events,payment-events,payment-expiry-events,delivery-events,user-events
       topics: broadcast-events
     user: admin
     password: admin
