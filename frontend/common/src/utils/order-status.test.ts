@@ -19,6 +19,7 @@ describe('ORDER_STATUS_TEXT', () => {
     expect(ORDER_STATUS_TEXT[OrderStatus.PENDING_DISPATCH]).toBe('待派单')
     expect(ORDER_STATUS_TEXT[OrderStatus.PENDING_DELIVERY]).toBe('待配送')
     expect(ORDER_STATUS_TEXT[OrderStatus.DELIVERING]).toBe('配送中')
+    expect(ORDER_STATUS_TEXT[OrderStatus.AWAITING_CONFIRMATION]).toBe('待收货')
     expect(ORDER_STATUS_TEXT[OrderStatus.COMPLETED]).toBe('已完成')
     expect(ORDER_STATUS_TEXT[OrderStatus.CANCELLED]).toBe('已取消')
     expect(ORDER_STATUS_TEXT[OrderStatus.REFUNDED]).toBe('已退款')
@@ -26,21 +27,23 @@ describe('ORDER_STATUS_TEXT', () => {
 
   it('getOrderStatusText 未命中/空返回 undefined', () => {
     expect(getOrderStatusText(OrderStatus.DELIVERING)).toBe('配送中')
+    expect(getOrderStatusText(OrderStatus.AWAITING_CONFIRMATION)).toBe('待收货')
     expect(getOrderStatusText('UNKNOWN')).toBeUndefined()
     expect(getOrderStatusText(null)).toBeUndefined()
   })
 })
 
 describe('ORDER_STEPS / getCurrentStep', () => {
-  it('步骤文案 = 待派单/待配送/配送中/已完成', () => {
-    expect(ORDER_STEPS).toEqual(['待派单', '待配送', '配送中', '已完成'])
+  it('步骤文案 = 待派单/待配送/配送中/待收货/已完成', () => {
+    expect(ORDER_STEPS).toEqual(['待派单', '待配送', '配送中', '待收货', '已完成'])
   })
 
-  it('进度下标:待派单=0 … 已完成=3,其余=0', () => {
+  it('进度下标:待派单=0 … 已完成=4,其余=0', () => {
     expect(getCurrentStep(OrderStatus.PENDING_DISPATCH)).toBe(0)
     expect(getCurrentStep(OrderStatus.PENDING_DELIVERY)).toBe(1)
     expect(getCurrentStep(OrderStatus.DELIVERING)).toBe(2)
-    expect(getCurrentStep(OrderStatus.COMPLETED)).toBe(3)
+    expect(getCurrentStep(OrderStatus.AWAITING_CONFIRMATION)).toBe(3)
+    expect(getCurrentStep(OrderStatus.COMPLETED)).toBe(4)
     expect(getCurrentStep(OrderStatus.PENDING_PAYMENT)).toBe(0)
     expect(getCurrentStep(OrderStatus.CANCELLED)).toBe(0)
     expect(getCurrentStep(null)).toBe(0)
@@ -48,16 +51,18 @@ describe('ORDER_STEPS / getCurrentStep', () => {
 })
 
 describe('ORDER_TABS', () => {
-  it('「待发货」口径 = 待派单 + 待配送', () => {
-    expect(ORDER_TABS.map((t) => t.title)).toEqual(['全部', '待付款', '待配送', '配送中', '已完成'])
+  it('「待发货」口径 = 待派单 + 待配送;含「待收货」Tab', () => {
+    expect(ORDER_TABS.map((t) => t.title)).toEqual(['全部', '待付款', '待配送', '配送中', '待收货', '已完成'])
     expect(ORDER_TABS[0].statuses).toBeNull()
     expect(ORDER_TABS[2].statuses).toEqual([OrderStatus.PENDING_DISPATCH, OrderStatus.PENDING_DELIVERY])
+    expect(ORDER_TABS[4].statuses).toEqual([OrderStatus.AWAITING_CONFIRMATION])
   })
 })
 
 describe('getStatusView', () => {
   it('派生 text/tone/step', () => {
     expect(getStatusView(OrderStatus.DELIVERING)).toEqual({ text: '配送中', tone: 'success', step: 2 })
+    expect(getStatusView(OrderStatus.AWAITING_CONFIRMATION)).toEqual({ text: '待收货', tone: 'success', step: 3 })
     expect(getStatusView(OrderStatus.CANCELLED)).toEqual({ text: '已取消', tone: 'error', step: 0 })
     expect(getStatusView(null)).toEqual({ text: undefined, tone: undefined, step: 0 })
   })

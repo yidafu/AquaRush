@@ -19,6 +19,8 @@
 
 package dev.yidafu.aqua.analytics.reconciliation.dto
 
+import java.time.LocalDate
+
 /**
  * 订单统计结果DTO
  */
@@ -34,4 +36,19 @@ data class PaymentStatsDTO(
   val cashAmountCents: Long,
   val waterTicketCount: Int,
   val qrCodeAmountCents: Long,
+)
+
+/**
+ * 指定日期收银汇总(后台收银对账顶部汇总卡数据源,按日报记录聚合):
+ * 现金/扫码/水票为送水工填报合计,订单金额/订单数为系统计算合计。
+ */
+data class DailyCollectionSummaryDTO(
+  val collectionDate: LocalDate,
+  val totalCashAmountCents: Long,
+  val totalQrCodeAmountCents: Long,
+  val totalWaterTicketCount: Int,
+  val totalOrderCount: Int,
+  val totalOrderAmountCents: Long,
+  /** 已提交日报的送水工人数(草稿不计入) */
+  val totalSubmittedCount: Int,
 )

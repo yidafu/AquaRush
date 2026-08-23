@@ -1420,6 +1420,7 @@ export type Mutation = {
   readonly claimCoupon: UserCouponVo;
   readonly completeDelivery: Order;
   readonly confirmDailyCollection: DailyCollectionRecord;
+  readonly confirmReceipt: Order;
   readonly createAddress: Address;
   readonly createAdmin: Admin;
   readonly createAdminAddress: Address;
@@ -1566,6 +1567,11 @@ export type MutationCompleteDeliveryArgs = {
 
 export type MutationConfirmDailyCollectionArgs = {
   input: ConfirmDailyCollectionInput;
+};
+
+
+export type MutationConfirmReceiptArgs = {
+  orderId: Scalars['PrimaryId']['input'];
 };
 
 
@@ -2062,6 +2068,7 @@ export type MutationUrgeOrderArgs = {
 };
 
 export type MyOrderStatistics = {
+  readonly awaitingConfirmation: Scalars['Int']['output'];
   readonly cancelled: Scalars['Int']['output'];
   readonly completed: Scalars['Int']['output'];
   readonly delivering: Scalars['Int']['output'];
@@ -2359,6 +2366,7 @@ export type OrderStatistics = {
 };
 
 export enum OrderStatus {
+  AWAITING_CONFIRMATION = 'AWAITING_CONFIRMATION',
   CANCELLED = 'CANCELLED',
   COMPLETED = 'COMPLETED',
   DELIVERING = 'DELIVERING',

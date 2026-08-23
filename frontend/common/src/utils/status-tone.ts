@@ -27,12 +27,13 @@ export const STATUS_TONE_COLORS: Record<StatusTone, { text: string; bg: string }
   accent: { text: '#FF5436', bg: 'rgba(255, 84, 54, 0.10)' },
 }
 
-/** 订单状态 → tone(§2.2:待付款 warning / 待派单·待配送 info / 配送中 success / 已完成 neutral / 已取消·已退款 error) */
+/** 订单状态 → tone(§2.2:待付款 warning / 待派单·待配送 info / 配送中·待确认收货 success / 已完成 neutral / 已取消·已退款 error) */
 export const ORDER_STATUS_TONE: Record<OrderStatus, StatusTone> = {
   [OrderStatus.PENDING_PAYMENT]: 'warning',
   [OrderStatus.PENDING_DISPATCH]: 'info',
   [OrderStatus.PENDING_DELIVERY]: 'info',
   [OrderStatus.DELIVERING]: 'success',
+  [OrderStatus.AWAITING_CONFIRMATION]: 'success',
   [OrderStatus.COMPLETED]: 'neutral',
   [OrderStatus.CANCELLED]: 'error',
   [OrderStatus.REFUNDED]: 'error',

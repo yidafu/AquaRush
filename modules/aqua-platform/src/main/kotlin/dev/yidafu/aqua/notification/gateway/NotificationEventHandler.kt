@@ -551,7 +551,7 @@ class DeliveryCompletedNotificationHandler(
       )
     }
 
-    // 用户端:送达确认
+    // 用户端:送达确认(R-ORD-11:送达后进入待确认收货,提示用户确认)
     if (userId != null) {
       publisher.publish(
         NotificationEventData(
@@ -560,7 +560,7 @@ class DeliveryCompletedNotificationHandler(
           messageType = "ORDER",
           scene = DomainEventType.DELIVERY_COMPLETED.value,
           title = "送达确认",
-          summary = "您的订单($orderId)已送达,感谢您的信任,欢迎再次下单。",
+          summary = "您的订单($orderId)已送达,请在订单详情确认收货。",
           relatedNo = orderId.toString(),
           eventTime = eventTime,
           templateScene = NotificationTemplateScenes.DELIVERY_COMPLETED,

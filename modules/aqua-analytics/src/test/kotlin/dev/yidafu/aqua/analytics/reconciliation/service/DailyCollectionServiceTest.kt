@@ -56,14 +56,15 @@ class DailyCollectionServiceTest :
       ticket: Array<Long> = arrayOf(1L, 0L),
       qr: Array<Long> = arrayOf(1L, 500L),
     ) {
+      // 已送达口径(R-ORD-11):含 待确认收货 + 已完成,按送达时间计入
       every {
-        orderRepository.countAndSumByPaymentType(1L, any(), PaymentType.CASH, any(), any())
+        orderRepository.countAndSumDeliveredByPaymentType(1L, PaymentType.CASH, any(), any())
       } returns cash
       every {
-        orderRepository.countAndSumByPaymentType(1L, any(), PaymentType.WATER_TICKET, any(), any())
+        orderRepository.countAndSumDeliveredByPaymentType(1L, PaymentType.WATER_TICKET, any(), any())
       } returns ticket
       every {
-        orderRepository.countAndSumByPaymentType(1L, any(), PaymentType.QR_CODE, any(), any())
+        orderRepository.countAndSumDeliveredByPaymentType(1L, PaymentType.QR_CODE, any(), any())
       } returns qr
     }
 
@@ -122,8 +123,8 @@ class DailyCollectionServiceTest :
       stats.qrCodeAmountCents shouldBe 0L
     }
     test("getTodayOrderStats aggregates completed orders") {
-      every { orderQueryService.countOrdersByDateRange(any(), any(), any(), any()) } returns 6L
-      every { orderQueryService.sumAmountCentsByStatusAndDateRange(any(), any(), any(), any()) } returns 1200L
+      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 6L
+      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1200L
 
       val stats = service.getTodayOrderStats(1L, date)
 
@@ -132,8 +133,8 @@ class DailyCollectionServiceTest :
     }
     test("submitDailyCollection creates record marked submitted within tolerance") {
       stubPaymentStats()
-      every { orderQueryService.countOrdersByDateRange(any(), any(), any(), any()) } returns 3L
-      every { orderQueryService.sumAmountCentsByStatusAndDateRange(any(), any(), any(), any()) } returns 1400L
+      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 3L
+      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1400L
       every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
       every { collectionRecordRepository.save(any()) } answers { firstArg() }
 
@@ -154,8 +155,8 @@ class DailyCollectionServiceTest :
     }
     test("submitDailyCollection marks draft when difference exceeds tolerance") {
       stubPaymentStats()
-      every { orderQueryService.countOrdersByDateRange(any(), any(), any(), any()) } returns 3L
-      every { orderQueryService.sumAmountCentsByStatusAndDateRange(any(), any(), any(), any()) } returns 800L
+      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 3L
+      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 800L
       every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
       every { collectionRecordRepository.save(any()) } answers { firstArg() }
 
@@ -173,8 +174,8 @@ class DailyCollectionServiceTest :
     }
     test("submitDailyCollection updates existing record") {
       stubPaymentStats()
-      every { orderQueryService.countOrdersByDateRange(any(), any(), any(), any()) } returns 3L
-      every { orderQueryService.sumAmountCentsByStatusAndDateRange(any(), any(), any(), any()) } returns 1400L
+      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 3L
+      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1400L
       val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.DRAFT)
       every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns existing
       every { collectionRecordRepository.save(any()) } answers { firstArg() }

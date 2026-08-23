@@ -112,7 +112,8 @@ export const GET_MONTHLY_STATISTICS = gql`
 `;
 
 /**
- * 订单状态展示与图表色(G37 状态分布,7 态,与 OrderStatus 枚举一致)。
+ * 订单状态展示与图表色(G37 状态分布,8 态,与 OrderStatus 枚举一致;AWAITING_CONFIRMATION 为
+ * R-ORD-11 新增「待确认收货」)。
  * 文本统一来自 common ORDER_STATUS_TEXT;色值为图表色板(hex,按 docs/ui-spec.md §2.2,
  * 仅供图表渲染,Tag 颜色走 constants/status.ts toneToAntDColor)。
  */
@@ -121,6 +122,7 @@ export const ORDER_STATUS_MAP: Record<string, { text: string; color: string }> =
   PENDING_DISPATCH: { text: ORDER_STATUS_TEXT.PENDING_DISPATCH, color: BRAND_PRIMARY },
   PENDING_DELIVERY: { text: ORDER_STATUS_TEXT.PENDING_DELIVERY, color: BRAND_PRIMARY },
   DELIVERING: { text: ORDER_STATUS_TEXT.DELIVERING, color: '#389E0D' },
+  AWAITING_CONFIRMATION: { text: ORDER_STATUS_TEXT.AWAITING_CONFIRMATION, color: '#52C41A' },
   COMPLETED: { text: ORDER_STATUS_TEXT.COMPLETED, color: TEXT_SECONDARY },
   CANCELLED: { text: ORDER_STATUS_TEXT.CANCELLED, color: '#CF1322' },
   REFUNDED: { text: ORDER_STATUS_TEXT.REFUNDED, color: '#CF1322' },

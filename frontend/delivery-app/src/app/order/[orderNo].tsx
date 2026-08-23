@@ -114,6 +114,7 @@ export default function OrderDetailScreen() {
     if (order.status === 'DELIVERING') {
       void trajectoryReporter.startForOrder(order.id);
     } else if (
+      order.status === 'AWAITING_CONFIRMATION' ||
       order.status === 'COMPLETED' ||
       order.status === 'CANCELLED' ||
       order.status === 'REFUNDED'
@@ -313,6 +314,8 @@ export default function OrderDetailScreen() {
 
   const cancelledOrRefunded = order.status === 'CANCELLED' || order.status === 'REFUNDED';
   const isCompleted = order.status === 'COMPLETED';
+  // 已送达(配送完成):待确认收货(用户待签收,R-ORD-11)与已完成均为送水工视角终态
+  const isDelivered = order.status === 'AWAITING_CONFIRMATION' || isCompleted;
 
   return (
     <ThemedView type="pageBackground" style={styles.container}>
@@ -329,7 +332,7 @@ export default function OrderDetailScreen() {
 
         <AddressCard
           address={order.address ?? undefined}
-          onEdit={cancelledOrRefunded || isCompleted ? undefined : () => setEditAddressVisible(true)}
+          onEdit={cancelledOrRefunded || isDelivered ? undefined : () => setEditAddressVisible(true)}
         />
 
         {order.address?.longitude != null && order.address?.latitude != null ? (
@@ -345,13 +348,13 @@ export default function OrderDetailScreen() {
         {/* 费用明细(营销优惠明细:水票抵扣/满减/首单立减/优惠券/赠品 —— R-MKT-02/07/08/09/10) */}
         <CostSummaryCard order={order} />
 
-        {order.status === 'DELIVERING' || isCompleted ? (
+        {order.status === 'DELIVERING' || isDelivered ? (
           <DeliveryInfoCard
-            photos={isCompleted ? [...(order.deliveryPhotos ?? [])] : deliveryPhotos}
-            remark={isCompleted ? (order.deliveryRemark ?? '') : deliveryRemark}
+            photos={isDelivered ? [...(order.deliveryPhotos ?? [])] : deliveryPhotos}
+            remark={isDelivered ? (order.deliveryRemark ?? '') : deliveryRemark}
             onPhotosChange={setDeliveryPhotos}
             onRemarkChange={setDeliveryRemark}
-            disabled={isCompleted}
+            disabled={isDelivered}
           />
         ) : null}
 

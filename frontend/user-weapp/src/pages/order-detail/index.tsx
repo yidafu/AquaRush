@@ -76,6 +76,7 @@ const OrderDetailPage: React.FC = () => {
       PENDING_DELIVERY: 'pending_delivery',
       PENDING_DISPATCH: 'pending_delivery',
       DELIVERING: 'delivering',
+      AWAITING_CONFIRMATION: 'awaiting_confirmation',
       COMPLETED: 'completed',
       CANCELLED: 'cancelled',
       REFUNDED: 'cancelled'
@@ -347,6 +348,34 @@ const OrderDetailPage: React.FC = () => {
   }
 
   /**
+   * 确认收货(R-ORD-11):仅待确认收货订单展示;确认后按确认时间计入营收,
+   * 送达 7 天未确认由系统自动签收(配置 auto_confirm_receipt_days)
+   */
+  const handleConfirmReceipt = () => {
+    if (!order) return
+
+    Taro.showModal({
+      title: '确认收货',
+      content: '请确认已收到本次配送的商品。确认后订单完成,7 天内未确认将自动签收。',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            const result = await OrderService.getInstance().confirmReceipt(order.id)
+            if (!result.success) {
+              throw new Error(result.error?.message || '确认收货失败')
+            }
+            showToastMessage('确认收货成功', 'success')
+            refresh()
+          } catch (error) {
+            console.error('确认收货失败:', error)
+            showToastMessage(error instanceof Error ? error.message : '确认收货失败', 'error')
+          }
+        }
+      }
+    })
+  }
+
+  /**
    * 进入评价页(F-ORD-007)
    */
   const handleReview = () => {
@@ -500,6 +529,7 @@ const OrderDetailPage: React.FC = () => {
         onReorder={handleReorder}
         onTrack={handleTrackDelivery}
         onUrge={handleUrgeOrder}
+        onConfirmReceipt={handleConfirmReceipt}
         onContinueShopping={handleContinueShopping}
       />
 

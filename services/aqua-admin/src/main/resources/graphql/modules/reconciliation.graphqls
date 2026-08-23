@@ -1,9 +1,95 @@
 # Daily collection & reconciliation management
+# 分页/筛选(CLAUDE.md 规则 13 禁止全量查询):dailyCollections / dailyReconciliations
+# 均返回分页结果;对账详情逐单明细(G29)经 dailyReconciliationOrderDetails 分页取回。
+
+# 收款记录分页输入
+input DailyCollectionListInput {
+  # 收款日期(YYYY-MM-DD,可选)
+  collectionDate: String
+  # 送水工ID(可选)
+  deliveryWorkerId: Long
+  # 页码(从 0 开始)
+  page: Int = 0
+  # 每页条数
+  size: Int = 10
+}
+
+# 对账记录分页输入
+input DailyReconciliationListInput {
+  # 页码(从 0 开始)
+  page: Int = 0
+  # 每页条数
+  size: Int = 10
+}
+
+# 收款记录分页结果
+type DailyCollectionPage {
+  list: [DailyCollectionRecord!]!
+  pageInfo: PageInfo!
+}
+
+# 对账记录分页结果
+type DailyReconciliationPage {
+  list: [DailyReconciliation!]!
+  pageInfo: PageInfo!
+}
+
+# 指定日期收银汇总(后台顶部汇总卡)
+type DailyCollectionSummary {
+  # 汇总日期
+  collectionDate: String!
+  # 现金收款合计(分,送水工填报)
+  totalCashAmountCents: Long!
+  # 扫码收款合计(分,送水工填报)
+  totalQrCodeAmountCents: Long!
+  # 水票数量合计(张,送水工填报)
+  totalWaterTicketCount: Int!
+  # 订单总数(系统计算)
+  totalOrderCount: Int!
+  # 订单金额合计(分,系统计算,含水票订单金额)
+  totalOrderAmountCents: Long!
+  # 已提交日报的送水工人数(草稿不计入)
+  totalSubmittedCount: Int!
+}
+
+# 对账逐单明细(G29):当日「已送达」订单流水,与日报系统计算值同源
+type ReconciliationOrderDetail {
+  # 订单ID
+  orderId: PrimaryId!
+  # 订单号
+  orderNo: String!
+  # 送水工ID
+  deliveryWorkerId: PrimaryId
+  # 订单金额(分)
+  amountCents: Long!
+  # 收款方式(现金/水票/扫码)
+  paymentType: PaymentType
+  # 订单状态(待确认收货/已完成等)
+  status: OrderStatus!
+  # 送达时间(送达当场收款按此计入日报)
+  deliveredAt: LocalDateTime
+}
+
+# 对账逐单明细分页结果
+type ReconciliationOrderDetailPage {
+  list: [ReconciliationOrderDetail!]!
+  pageInfo: PageInfo!
+}
 
 extend type Query {
-  # 每日收款查询
-  dailyCollections(collectionDate: String): [DailyCollectionRecord!]!
-  dailyReconciliations: [DailyReconciliation!]!
+  # 每日收款分页查询(按收款日期/送水工筛选)
+  dailyCollections(input: DailyCollectionListInput): DailyCollectionPage!
+  # 对账记录分页查询(恒按对账日期倒序)
+  dailyReconciliations(input: DailyReconciliationListInput): DailyReconciliationPage!
+  # 指定日期收银汇总(默认今日)
+  dailyCollectionSummary(collectionDate: String): DailyCollectionSummary!
+  # 对账逐单差异明细(G29:按对账日期分页返回当日已送达订单流水)
+  dailyReconciliationOrderDetails(
+    reconciliationDate: String!
+    deliveryWorkerId: Long
+    page: Int = 0
+    size: Int = 20
+  ): ReconciliationOrderDetailPage!
   # 配送员今日收款 - 获取今日收款预计算结果（订单统计）
   myTodayCollection: MyTodayCollectionVO
 }

@@ -20,6 +20,8 @@
 package dev.yidafu.aqua.delivery.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
@@ -43,6 +45,25 @@ interface DailyCollectionRecordRepository : JpaRepository<DailyCollectionRecordM
   ): List<DailyCollectionRecordModel>
 
   fun findByCollectionDate(collectionDate: LocalDate): List<DailyCollectionRecordModel>
+
+  /** 按收款日期分页(后台收银对账列表,CLAUDE.md 规则 13 禁止全量查询) */
+  fun findByCollectionDate(
+    collectionDate: LocalDate,
+    pageable: Pageable,
+  ): Page<DailyCollectionRecordModel>
+
+  /** 按送水工+收款日期分页(后台按配送员筛选) */
+  fun findByDeliveryWorkerIdAndCollectionDate(
+    deliveryWorkerId: Long,
+    collectionDate: LocalDate,
+    pageable: Pageable,
+  ): Page<DailyCollectionRecordModel>
+
+  /** 按送水工分页(后台按配送员筛选,不限日期) */
+  fun findByDeliveryWorkerId(
+    deliveryWorkerId: Long,
+    pageable: Pageable,
+  ): Page<DailyCollectionRecordModel>
 
   fun existsByDeliveryWorkerIdAndCollectionDate(
     deliveryWorkerId: Long,

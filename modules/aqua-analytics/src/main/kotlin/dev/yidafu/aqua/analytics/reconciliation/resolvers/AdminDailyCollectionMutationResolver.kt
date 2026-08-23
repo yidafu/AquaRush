@@ -72,6 +72,7 @@ class AdminDailyCollectionMutationResolver(
         waterTicketCount = input.waterTicketCount,
         qrCodeAmountCents = input.qrCodeAmountCents,
         collectionDate = date,
+        notes = input.notes,
       )
 
     // 业务日志(F-LOG-003 RECONCILIATION 域):提交每日收款

@@ -43,7 +43,13 @@ export interface OrderTimeline {
   color?: string
 }
 
-export type OrderStatusKey = 'pending_payment' | 'pending_delivery' | 'delivering' | 'completed' | 'cancelled'
+export type OrderStatusKey =
+  | 'pending_payment'
+  | 'pending_delivery'
+  | 'delivering'
+  | 'awaiting_confirmation'
+  | 'completed'
+  | 'cancelled'
 
 export interface OrderDetailAddress {
   receiverName: string

@@ -405,8 +405,9 @@ class DeliveryTaskMutationServiceImpl(
   ): OrderModel {
     val order = orderQueryService.getOrderById(orderId)
 
-    // 终态订单不可再修正地址(R-ORD-01 状态机终态不可逆)
+    // 终态订单不可再修正地址(R-ORD-01 状态机终态不可逆;待确认收货=已送达,地址亦不可再改 —— R-ORD-11)
     if (
+      order.status == OrderModelStatus.AWAITING_CONFIRMATION ||
       order.status == OrderModelStatus.COMPLETED ||
       order.status == OrderModelStatus.CANCELLED ||
       order.status == OrderModelStatus.REFUNDED

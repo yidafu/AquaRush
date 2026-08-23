@@ -14,9 +14,11 @@ import { getDeliveryWorkerHistoryOrders } from '@/services/delivery';
 
 const PAGE_SIZE = 20;
 
-// 历史订单 Tab:全部/已完成/已取消/已退款 —— 标题取 common ORDER_STATUS_TEXT(单来源)
+// 历史订单 Tab:全部/待收货/已完成/已取消/已退款 —— 标题取 common ORDER_STATUS_TEXT(单来源);
+// 待收货(AWAITING_CONFIRMATION)= 已送达待用户确认签收,送水工视角配送已完成(R-ORD-11)
 const HISTORY_STATUSES: (OrderStatus | null)[] = [
   null,
+  OrderStatus.AWAITING_CONFIRMATION,
   OrderStatus.COMPLETED,
   OrderStatus.CANCELLED,
   OrderStatus.REFUNDED,

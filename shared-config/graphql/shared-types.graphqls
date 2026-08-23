@@ -44,11 +44,14 @@ directive @max(
 ) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
 # Enum types - Common across all services
+# 订单状态(R-ORD-11 确认收货与营收确认):AWAITING_CONFIRMATION=已送达待用户确认收货,
+# 用户确认或送达 N 天(配置 auto_confirm_receipt_days,默认 7)系统自动确认后进入 COMPLETED 并计入营收
 enum OrderStatus {
   PENDING_PAYMENT
   PENDING_DISPATCH
   PENDING_DELIVERY
   DELIVERING
+  AWAITING_CONFIRMATION
   COMPLETED
   CANCELLED
   REFUNDED
@@ -138,6 +141,7 @@ enum OrderOperationType {
   ORDER_CREATED          # 订单创建
   ORDER_PAID             # 支付成功
   ORDER_CANCELLED        # 订单取消
+  ORDER_URGING           # 用户催单(F-ORD-008)
   DELIVERY_ASSIGNED      # 配送员分配
   DELIVERY_STARTED       # 开始配送
   DELIVERY_COMPLETED     # 配送完成
@@ -145,6 +149,9 @@ enum OrderOperationType {
   REFUND_INITIATED       # 退款发起
   REFUND_COMPLETED       # 退款完成
   PAYMENT_TIMEOUT        # 支付超时
+  DELIVERY_PHOTO_APPROVED # 配送照片核验通过(G23)
+  DELIVERY_PHOTO_REJECTED # 配送照片核验驳回(G23)
+  ADDRESS_UPDATED        # 配送任务中修正收货地址(F-ORD-024)
 }
 
 # 操作人类型枚举
@@ -341,6 +348,8 @@ type Order {
   completedAt: LocalDateTime
   # 订单备注
   remark: String
+  # 配送备注(完成配送时配送员填写,随 completeDelivery 落库;R-ORD-07)
+  deliveryRemark: String
   # 配送时段(下单时快照,AC-ORD-001-05;null=未指定,默认立即配送)
   deliveryTimeSlot: DeliveryTimeSlot
   # 创建时间

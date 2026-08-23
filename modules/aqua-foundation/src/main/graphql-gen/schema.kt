@@ -2306,6 +2306,13 @@ data class MutationConfirmDailyCollectionArgs(
       ConfirmDailyCollectionInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationConfirmReceiptArgs(
+    val orderId: kotlin.Long
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["orderId"] as kotlin.Long
+  )
+}
 data class MutationCreateAddressArgs(
     val input: AddressInput
 ) {
@@ -3076,6 +3083,7 @@ data class Mutation(
     val claimCoupon: UserCouponVo,
     val completeDelivery: Order,
     val confirmDailyCollection: DailyCollectionRecord,
+    val confirmReceipt: Order,
     val createAddress: Address,
     val createAdmin: Admin,
     val createAdminAddress: Address,
@@ -3174,6 +3182,7 @@ data class Mutation(
 )
 
 data class MyOrderStatistics(
+    val awaitingConfirmation: kotlin.Int,
     val cancelled: kotlin.Int,
     val completed: kotlin.Int,
     val delivering: kotlin.Int,
@@ -3562,6 +3571,7 @@ data class OrderStatistics(
 )
 
 enum class OrderStatus(val label: String) {
+      AWAITING_CONFIRMATION("AWAITING_CONFIRMATION"),
       CANCELLED("CANCELLED"),
       COMPLETED("COMPLETED"),
       DELIVERING("DELIVERING"),

@@ -19,17 +19,21 @@
 
 package dev.yidafu.aqua.analytics.reconciliation.service
 
+import dev.yidafu.aqua.analytics.reconciliation.dto.DailyCollectionSummaryDTO
 import dev.yidafu.aqua.analytics.reconciliation.dto.OrderStatsDTO
 import dev.yidafu.aqua.analytics.reconciliation.dto.PaymentStatsDTO
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
+import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
 import dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus
-import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.delivery.domain.repository.DailyCollectionRecordRepository
 import dev.yidafu.aqua.delivery.domain.repository.DailyReconciliationRepository
 import org.slf4j.LoggerFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
@@ -55,7 +59,8 @@ class DailyCollectionService(
 
   /**
    * 获取配送员今日按支付类型的收款统计
-   * 从已完成的订单中按支付类型统计
+   * 从已送达的订单中按支付类型统计(含待确认收货 + 已完成,R-ORD-11 ——
+   * 收款在送达当场发生,按送达时间计入,不受用户确认收货延迟影响)
    */
   fun getTodayPaymentStats(
     deliveryWorkerId: Long,
@@ -63,13 +68,11 @@ class DailyCollectionService(
   ): PaymentStatsDTO {
     val startOfDay = date.atStartOfDay()
     val endOfDay = date.atTime(LocalTime.MAX)
-    val completedStatus = OrderModelStatus.COMPLETED
 
     // 统计现金订单
     val cashResult =
-      orderRepository.countAndSumByPaymentType(
+      orderRepository.countAndSumDeliveredByPaymentType(
         deliveryWorkerId,
-        completedStatus,
         PaymentType.CASH,
         startOfDay,
         endOfDay,
@@ -79,9 +82,8 @@ class DailyCollectionService(
 
     // 统计水票订单
     val waterTicketResult =
-      orderRepository.countAndSumByPaymentType(
+      orderRepository.countAndSumDeliveredByPaymentType(
         deliveryWorkerId,
-        completedStatus,
         PaymentType.WATER_TICKET,
         startOfDay,
         endOfDay,
@@ -90,9 +92,8 @@ class DailyCollectionService(
 
     // 统计扫码订单
     val qrCodeResult =
-      orderRepository.countAndSumByPaymentType(
+      orderRepository.countAndSumDeliveredByPaymentType(
         deliveryWorkerId,
-        completedStatus,
         PaymentType.QR_CODE,
         startOfDay,
         endOfDay,
@@ -107,7 +108,7 @@ class DailyCollectionService(
   }
 
   /**
-   * 获取配送员今日订单统计（系统自动计算）
+   * 获取配送员今日订单统计（系统自动计算,已送达口径含待确认收货,R-ORD-11）
    */
   fun getTodayOrderStats(
     deliveryWorkerId: Long,
@@ -115,30 +116,21 @@ class DailyCollectionService(
   ): OrderStatsDTO {
     val startOfDay = date.atStartOfDay()
     val endOfDay = date.atTime(LocalTime.MAX)
-    val completedStatuses = listOf(OrderModelStatus.COMPLETED)
 
-    val orderCount =
-      orderQueryService
-        .countOrdersByDateRange(
-          startOfDay,
-          endOfDay,
-          deliveryWorkerId,
-          completedStatuses,
-        ).toInt()
+    val orderCount = orderRepository.countDeliveredByDateRange(startOfDay, endOfDay, deliveryWorkerId).toInt()
 
-    val orderAmountCents =
-      orderQueryService.sumAmountCentsByStatusAndDateRange(
-        completedStatuses,
-        startOfDay,
-        endOfDay,
-        deliveryWorkerId,
-      )
+    val orderAmountCents = orderRepository.sumDeliveredAmountCentsByDateRange(startOfDay, endOfDay, deliveryWorkerId)
 
     return OrderStatsDTO(orderCount, orderAmountCents)
   }
 
   /**
    * 配送员录入今日收款
+   *
+   * 差异口径(R-COL-02/R-COL-04):填报(现金+扫码) 与 系统计算(现金+扫码) 比对;
+   * 水票订单金额(应收但不由送水工收钱)不计入金额差异基数,水票按张数精确比对。
+   * 超容差或水票数量不符 → 「有争议」(DISPUTED,G28),差异说明(notes)随提交落库(G30),
+   * 管理员确认/驳回;驳回退回草稿可改可重提,重新提交清空驳回留痕。
    */
   @Transactional
   fun submitDailyCollection(
@@ -147,6 +139,7 @@ class DailyCollectionService(
     waterTicketCount: Int,
     qrCodeAmountCents: Long,
     collectionDate: LocalDate = LocalDate.now(),
+    notes: String? = null,
   ): DailyCollectionRecordModel {
     logger.info(
       "配送员 {} 提交每日收款: cash={}, waterTicket={}, qrCode={}, date={}",
@@ -164,40 +157,29 @@ class DailyCollectionService(
     // 获取按支付类型的收款统计
     val paymentStats = getTodayPaymentStats(deliveryWorkerId, collectionDate)
 
-    // 统计已完成订单数量和金额
-    val completedStatuses = listOf(OrderModelStatus.COMPLETED)
-    val orderCount =
-      orderQueryService
-        .countOrdersByDateRange(
-          startOfDay,
-          endOfDay,
-          deliveryWorkerId,
-          completedStatuses,
-        ).toInt()
+    // 统计已送达订单数量和金额(含待确认收货 + 已完成,按送达时间,R-ORD-11)
+    val orderCount = orderRepository.countDeliveredByDateRange(startOfDay, endOfDay, deliveryWorkerId).toInt()
 
-    val orderAmountCents =
-      orderQueryService.sumAmountCentsByStatusAndDateRange(
-        completedStatuses,
-        startOfDay,
-        endOfDay,
-        deliveryWorkerId,
-      )
+    val orderAmountCents = orderRepository.sumDeliveredAmountCentsByDateRange(startOfDay, endOfDay, deliveryWorkerId)
 
     // 计算实际收款金额（现金 + 扫码）
     val totalCollectionAmount = cashAmountCents + qrCodeAmountCents
 
-    // 计算差异金额
-    val differenceAmountCents = totalCollectionAmount - orderAmountCents
+    // 差异口径:填报(现金+扫码) vs 系统计算(现金+扫码) —— 水票订单金额不计入应收基数,
+    // 避免使用水票的日期产生系统性「负差异」(此前错误地以全部订单金额作基数)
+    val calculatedCollectionAmount = paymentStats.cashAmountCents + paymentStats.qrCodeAmountCents
+    val differenceAmountCents = totalCollectionAmount - calculatedCollectionAmount
 
-    // 判断状态
+    // 判断状态:超容差或水票数量不符 → 「有争议」(DISPUTED,G28/R-COL-02)
     val status =
       when {
-        kotlin.math.abs(differenceAmountCents) <= TOLERANCE_AMOUNT_CENTS -> {
-          DailyCollectionStatus.SUBMITTED // 容差范围内，标记为已提交
+        kotlin.math.abs(differenceAmountCents) <= TOLERANCE_AMOUNT_CENTS &&
+          waterTicketCount == paymentStats.waterTicketCount -> {
+          DailyCollectionStatus.SUBMITTED // 容差范围内且水票精确匹配，标记为已提交
         }
 
         else -> {
-          DailyCollectionStatus.DRAFT // 差异过大，保留草稿状态让配送员确认
+          DailyCollectionStatus.DISPUTED // 差异过大/水票不符，进入争议流程由管理员处理(G28)
         }
       }
 
@@ -217,7 +199,12 @@ class DailyCollectionService(
         this.orderAmountCents = orderAmountCents
         this.differenceAmountCents = differenceAmountCents
         this.status = status
+        this.notes = notes
         this.updatedAt = LocalDateTime.now()
+        // 重新提交清空驳回留痕(驳回退回草稿可改可重提,G28)
+        this.rejectedAt = null
+        this.rejectedBy = null
+        this.rejectReason = null
         // 填充计算字段
         this.calculatedCashAmountCents = paymentStats.cashAmountCents
         this.calculatedQrCodeAmountCents = paymentStats.qrCodeAmountCents
@@ -234,6 +221,7 @@ class DailyCollectionService(
           orderAmountCents = orderAmountCents,
           differenceAmountCents = differenceAmountCents,
           status = status,
+          notes = notes,
           // 填充计算字段
           calculatedCashAmountCents = paymentStats.cashAmountCents,
           calculatedQrCodeAmountCents = paymentStats.qrCodeAmountCents,
@@ -317,6 +305,11 @@ class DailyCollectionService(
    * 定时任务：执行每日对账
    * 对账指定日期的收款和订单数据
    * 如果记录已存在，则更新（而不是删除后重建，避免唯一约束冲突）
+   *
+   * 差异口径(R-COL-02/R-COL-04):填报(现金+扫码)合计 vs 系统计算(现金+扫码)合计,
+   * 水票按张数精确比对;任一超容差/不符 → 「有差异」。水票订单金额(应收但不由
+   * 送水工收钱)不计入差异基数,避免使用水票的日期产生系统性「负差异」。
+   * 重新执行对账会重算结果并清除复核痕迹(状态与复核字段保持一致)。
    */
   @Transactional
   fun executeDailyReconciliation(reconciliationDate: LocalDate = LocalDate.now().minusDays(1)) {
@@ -332,6 +325,9 @@ class DailyCollectionService(
     var totalOrderCount = 0
     var totalOrderAmountCents = 0L
     var totalCollectionAmountCents = 0L
+    var totalCalculatedCashAmountCents = 0L
+    var totalCalculatedQrCodeAmountCents = 0L
+    var totalCalculatedWaterTicketCount = 0
 
     val workerReports = mutableListOf<Map<String, Any>>()
 
@@ -342,6 +338,9 @@ class DailyCollectionService(
       totalOrderCount += collection.orderCount
       totalOrderAmountCents += collection.orderAmountCents
       totalCollectionAmountCents += collection.cashAmountCents + collection.qrCodeAmountCents
+      totalCalculatedCashAmountCents += collection.calculatedCashAmountCents
+      totalCalculatedQrCodeAmountCents += collection.calculatedQrCodeAmountCents
+      totalCalculatedWaterTicketCount += collection.calculatedWaterTicketCount
 
       workerReports.add(
         mapOf(
@@ -352,18 +351,23 @@ class DailyCollectionService(
           "orderCount" to collection.orderCount,
           "orderAmountCents" to collection.orderAmountCents,
           "differenceAmountCents" to collection.differenceAmountCents,
+          "calculatedCashAmountCents" to collection.calculatedCashAmountCents,
+          "calculatedQrCodeAmountCents" to collection.calculatedQrCodeAmountCents,
+          "calculatedWaterTicketCount" to collection.calculatedWaterTicketCount,
           "status" to collection.status.name,
         ),
       )
     }
 
-    // 计算差异
-    val discrepancyAmountCents = totalCollectionAmountCents - totalOrderAmountCents
+    // 计算差异:填报(现金+扫码) vs 系统计算(现金+扫码)
+    val calculatedCollectionAmountCents = totalCalculatedCashAmountCents + totalCalculatedQrCodeAmountCents
+    val discrepancyAmountCents = totalCollectionAmountCents - calculatedCollectionAmountCents
+    val waterTicketMismatch = totalWaterTicketCount != totalCalculatedWaterTicketCount
 
-    // 判断状态
+    // 判断状态:金额超容差或水票数量不符 → 「有差异」
     val status =
       when {
-        kotlin.math.abs(discrepancyAmountCents) <= TOLERANCE_AMOUNT_CENTS -> {
+        kotlin.math.abs(discrepancyAmountCents) <= TOLERANCE_AMOUNT_CENTS && !waterTicketMismatch -> {
           DailyReconciliationStatus.MATCHED
         }
 
@@ -371,6 +375,15 @@ class DailyCollectionService(
           DailyReconciliationStatus.DISCREPANCY
         }
       }
+
+    val reportData =
+      mapOf(
+        "workerReports" to workerReports,
+        "totalWorkers" to collections.size,
+        "totalCalculatedCashAmountCents" to totalCalculatedCashAmountCents,
+        "totalCalculatedQrCodeAmountCents" to totalCalculatedQrCodeAmountCents,
+        "totalCalculatedWaterTicketCount" to totalCalculatedWaterTicketCount,
+      )
 
     // 检查是否已存在对账记录，存在则更新，不存在则创建
     val existingReconciliation = reconciliationRepository.findByReconciliationDate(reconciliationDate)
@@ -384,11 +397,11 @@ class DailyCollectionService(
         this.totalCollectionAmountCents = totalCollectionAmountCents
         this.discrepancyAmountCents = discrepancyAmountCents
         this.status = status
-        this.reportData =
-          mapOf(
-            "workerReports" to workerReports,
-            "totalWorkers" to collections.size,
-          )
+        this.reportData = reportData
+        // 重新执行对账会重算结果,清除复核痕迹,避免「状态未复核但带复核字段」的不一致
+        this.reviewedAt = null
+        this.reviewedBy = null
+        this.reviewNotes = null
         this.updatedAt = LocalDateTime.now()
       }
         ?: DailyReconciliationModel(
@@ -401,11 +414,7 @@ class DailyCollectionService(
           totalCollectionAmountCents = totalCollectionAmountCents,
           discrepancyAmountCents = discrepancyAmountCents,
           status = status,
-          reportData =
-            mapOf(
-              "workerReports" to workerReports,
-              "totalWorkers" to collections.size,
-            ),
+          reportData = reportData,
         )
 
     reconciliationRepository.save(reconciliation)
@@ -417,6 +426,94 @@ class DailyCollectionService(
       totalCollectionAmountCents,
       discrepancyAmountCents,
       status,
+    )
+  }
+
+  /**
+   * 分页查询收款记录(后台收银对账列表,CLAUDE.md 规则 13):
+   * 支持按收款日期/送水工筛选,恒按收款日期倒序 + 送水工升序。
+   */
+  fun getCollectionsPage(
+    collectionDate: LocalDate?,
+    deliveryWorkerId: Long?,
+    page: Int,
+    size: Int,
+  ): Page<DailyCollectionRecordModel> {
+    val pageable =
+      PageRequest.of(
+        page,
+        size,
+        Sort.by(Sort.Direction.DESC, "collectionDate").and(Sort.by(Sort.Direction.ASC, "deliveryWorkerId")),
+      )
+    return when {
+      collectionDate != null && deliveryWorkerId != null ->
+        collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(deliveryWorkerId, collectionDate, pageable)
+      collectionDate != null -> collectionRecordRepository.findByCollectionDate(collectionDate, pageable)
+      deliveryWorkerId != null -> collectionRecordRepository.findByDeliveryWorkerId(deliveryWorkerId, pageable)
+      else -> collectionRecordRepository.findAll(pageable)
+    }
+  }
+
+  /**
+   * 分页查询对账记录(后台/送水工端,CLAUDE.md 规则 13):恒按对账日期倒序。
+   */
+  fun getReconciliationsPage(
+    page: Int,
+    size: Int,
+  ): Page<DailyReconciliationModel> =
+    reconciliationRepository.findAll(
+      PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "reconciliationDate")),
+    )
+
+  /**
+   * 指定日期收银汇总(后台顶部汇总卡):按该日全部日报记录聚合。
+   */
+  fun getDailyCollectionSummary(collectionDate: LocalDate): DailyCollectionSummaryDTO {
+    val records = collectionRecordRepository.findByCollectionDate(collectionDate)
+    var totalCashAmountCents = 0L
+    var totalQrCodeAmountCents = 0L
+    var totalWaterTicketCount = 0
+    var totalOrderCount = 0
+    var totalOrderAmountCents = 0L
+    var totalSubmittedCount = 0
+    for (record in records) {
+      totalCashAmountCents += record.cashAmountCents
+      totalQrCodeAmountCents += record.qrCodeAmountCents
+      totalWaterTicketCount += record.waterTicketCount
+      totalOrderCount += record.orderCount
+      totalOrderAmountCents += record.orderAmountCents
+      if (record.status != DailyCollectionStatus.DRAFT) {
+        totalSubmittedCount++
+      }
+    }
+    return DailyCollectionSummaryDTO(
+      collectionDate = collectionDate,
+      totalCashAmountCents = totalCashAmountCents,
+      totalQrCodeAmountCents = totalQrCodeAmountCents,
+      totalWaterTicketCount = totalWaterTicketCount,
+      totalOrderCount = totalOrderCount,
+      totalOrderAmountCents = totalOrderAmountCents,
+      totalSubmittedCount = totalSubmittedCount,
+    )
+  }
+
+  /**
+   * 分页查询对账日期窗口内「已送达」订单明细(G29 逐单差异明细):
+   * 订单流水按送达时间口径(含待确认收货 + 已完成),与日报系统计算值同源。
+   */
+  fun getReconciliationOrderDetails(
+    reconciliationDate: LocalDate,
+    deliveryWorkerId: Long?,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel> {
+    val startOfDay = reconciliationDate.atStartOfDay()
+    val endOfDay = reconciliationDate.atTime(LocalTime.MAX)
+    return orderRepository.findDeliveredOrdersByDateRange(
+      deliveryWorkerId = deliveryWorkerId,
+      startDate = startOfDay,
+      endDate = endOfDay,
+      pageable = PageRequest.of(page, size),
     )
   }
 

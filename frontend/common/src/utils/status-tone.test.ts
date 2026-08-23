@@ -46,6 +46,7 @@ describe('域映射覆盖枚举', () => {
     expect(ORDER_STATUS_TONE[OrderStatus.PENDING_DISPATCH]).toBe('info')
     expect(ORDER_STATUS_TONE[OrderStatus.PENDING_DELIVERY]).toBe('info')
     expect(ORDER_STATUS_TONE[OrderStatus.DELIVERING]).toBe('success')
+    expect(ORDER_STATUS_TONE[OrderStatus.AWAITING_CONFIRMATION]).toBe('success')
     expect(ORDER_STATUS_TONE[OrderStatus.COMPLETED]).toBe('neutral')
     expect(ORDER_STATUS_TONE[OrderStatus.CANCELLED]).toBe('error')
     expect(ORDER_STATUS_TONE[OrderStatus.REFUNDED]).toBe('error')

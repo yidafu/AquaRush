@@ -40,6 +40,12 @@ class StatisticsDeliveryWorkerRepositoryImpl : StatisticsDeliveryWorkerRepositor
     JPAQueryFactory(entityManager)
   }
 
+  companion object {
+    /** 送水工业绩「已送达」状态集合(待确认收货 + 已完成,R-ORD-11) */
+    private val DELIVERED_STATUSES =
+      listOf(OrderModelStatus.AWAITING_CONFIRMATION, OrderModelStatus.COMPLETED)
+  }
+
   override fun countTodayActiveWorkers(sinceDateTime: LocalDateTime): Long {
     // 送水员档案并入 admins 单表:在岗送水员 = 具备配送能力的账号(role ∈ DELIVERY_WORKER/ADMIN)
     val adminModel = QAdminModel.adminModel
@@ -75,34 +81,39 @@ class StatisticsDeliveryWorkerRepositoryImpl : StatisticsDeliveryWorkerRepositor
 
   override fun countCompletedOrdersSince(dateTime: LocalDateTime): Long {
     val orderModel = QOrderModel.orderModel
+    // 今日完成/业绩口径(R-ORD-11):含 待确认收货 + 已完成,按送达时间归属 ——
+    // 送水工业绩按送达即时计入,不受用户确认收货延迟影响
+    val deliveredAt = orderModel.deliveryConfirmedAt.coalesce(orderModel.completedAt)
 
     return queryFactory
       .query()
       .from(orderModel)
       .where(
-        orderModel.status.eq(OrderModelStatus.COMPLETED),
-        orderModel.updatedAt.goe(dateTime),
+        orderModel.status.`in`(DELIVERED_STATUSES),
+        deliveredAt.goe(dateTime),
       ).fetchCount()
   }
 
   override fun findCompletedOrderTimingsSince(dateTime: LocalDateTime): List<CompletedOrderTiming> {
     val orderModel = QOrderModel.orderModel
+    // 履约时长终点 = 送达时间(deliveryConfirmedAt,历史数据为 null 时回退 completedAt)
+    val deliveredAt = orderModel.deliveryConfirmedAt.coalesce(orderModel.completedAt)
 
     return queryFactory
       .select(
         orderModel.id,
-        orderModel.completedAt,
+        deliveredAt,
         orderModel.deliveryStartedAt,
         orderModel.createdAt,
       ).from(orderModel)
       .where(
-        orderModel.status.eq(OrderModelStatus.COMPLETED),
-        orderModel.completedAt.goe(dateTime),
+        orderModel.status.`in`(DELIVERED_STATUSES),
+        deliveredAt.goe(dateTime),
       ).fetch()
       .map { row ->
         CompletedOrderTiming(
           orderId = row.get(orderModel.id)!!,
-          completedAt = row.get(orderModel.completedAt)!!,
+          completedAt = row.get(deliveredAt)!!,
           deliveryStartedAt = row.get(orderModel.deliveryStartedAt),
           createdAt = row.get(orderModel.createdAt)!!,
         )

@@ -15,21 +15,23 @@ export const ORDER_STATUS_TEXT: Record<OrderStatus, string> = {
   [OrderStatus.PENDING_DISPATCH]: '待派单',
   [OrderStatus.PENDING_DELIVERY]: '待配送',
   [OrderStatus.DELIVERING]: '配送中',
+  [OrderStatus.AWAITING_CONFIRMATION]: '待收货',
   [OrderStatus.COMPLETED]: '已完成',
   [OrderStatus.CANCELLED]: '已取消',
   [OrderStatus.REFUNDED]: '已退款',
 }
 
-/** 配送进度步骤(不含待付款/已取消/已退款) */
-export const ORDER_STEPS: string[] = ['待派单', '待配送', '配送中', '已完成']
+/** 配送进度步骤(不含待付款/已取消/已退款;待确认收货 = 送达待用户确认,R-ORD-11) */
+export const ORDER_STEPS: string[] = ['待派单', '待配送', '配送中', '待收货', '已完成']
 
-/** 状态 → 进度下标(PENDING_DISPATCH=0 … COMPLETED=3;其余返回 0) */
+/** 状态 → 进度下标(PENDING_DISPATCH=0 … COMPLETED=4;其余返回 0) */
 export function getCurrentStep(status: string | null | undefined): number {
   const statusToStep: Record<string, number> = {
     [OrderStatus.PENDING_DISPATCH]: 0,
     [OrderStatus.PENDING_DELIVERY]: 1,
     [OrderStatus.DELIVERING]: 2,
-    [OrderStatus.COMPLETED]: 3,
+    [OrderStatus.AWAITING_CONFIRMATION]: 3,
+    [OrderStatus.COMPLETED]: 4,
   }
   if (status == null) return 0
   return statusToStep[status] ?? 0
@@ -60,5 +62,6 @@ export const ORDER_TABS: { title: string; statuses: OrderStatus[] | null }[] = [
   { title: '待付款', statuses: [OrderStatus.PENDING_PAYMENT] },
   { title: '待配送', statuses: [OrderStatus.PENDING_DISPATCH, OrderStatus.PENDING_DELIVERY] },
   { title: '配送中', statuses: [OrderStatus.DELIVERING] },
+  { title: '待收货', statuses: [OrderStatus.AWAITING_CONFIRMATION] },
   { title: '已完成', statuses: [OrderStatus.COMPLETED] },
 ]

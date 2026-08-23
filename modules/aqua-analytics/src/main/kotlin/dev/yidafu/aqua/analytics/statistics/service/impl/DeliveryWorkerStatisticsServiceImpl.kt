@@ -105,13 +105,15 @@ class DeliveryWorkerStatisticsServiceImpl(
     val todayStart = today.atStartOfDay()
 
     // Get today's completed order counts per worker
+    // 业绩口径(R-ORD-11):含 待确认收货 + 已完成,按送达时间归属(不受用户确认延迟影响)
+    val deliveredAt = orderModel.deliveryConfirmedAt.coalesce(orderModel.completedAt)
     val todayOrderCounts =
       queryFactory
         .select(orderModel.deliveryWorkerId, orderModel.count())
         .from(orderModel)
         .where(
-          orderModel.status.eq(OrderModelStatus.COMPLETED),
-          orderModel.updatedAt.goe(todayStart),
+          orderModel.status.`in`(listOf(OrderModelStatus.AWAITING_CONFIRMATION, OrderModelStatus.COMPLETED)),
+          deliveredAt.goe(todayStart),
           orderModel.deliveryWorkerId.isNotNull,
         ).groupBy(orderModel.deliveryWorkerId)
         .fetch()

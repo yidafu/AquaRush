@@ -89,6 +89,7 @@ fun OrderModel.toGraphQL(items: List<OrderItemModel> = emptyList()): Order =
     user = null,
     deliveryWorker = null,
     deliveryPhotos = null,
+    deliveryRemark = deliveryRemark,
     giftItems = null,
   )
 

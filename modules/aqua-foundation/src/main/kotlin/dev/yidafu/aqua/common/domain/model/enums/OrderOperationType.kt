@@ -30,7 +30,9 @@ enum class OrderOperationType {
   ORDER_URGING, // 用户催单(F-ORD-008)
   DELIVERY_ASSIGNED, // 配送员分配
   DELIVERY_STARTED, // 开始配送
-  DELIVERY_COMPLETED, // 配送完成
+  DELIVERY_COMPLETED, // 配送完成(送达,进入待确认收货 —— R-ORD-11)
+  ORDER_CONFIRMED, // 用户确认收货(待确认收货→已完成 —— R-ORD-11)
+  AUTO_CONFIRMED, // 系统自动确认收货(送达 N 天未确认自动签收 —— R-ORD-11)
   ORDER_COMPLETED, // 订单完成
   REFUND_INITIATED, // 退款发起
   REFUND_COMPLETED, // 退款完成

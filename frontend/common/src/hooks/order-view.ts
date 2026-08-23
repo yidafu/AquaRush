@@ -31,7 +31,7 @@ export interface OrderTimelineView {
   time: string
   title: string
   content: string
-  icon: 'order-created' | 'paid' | 'delivery-started' | 'completed'
+  icon: 'order-created' | 'paid' | 'delivery-started' | 'delivered' | 'completed'
   tone: StatusTone
 }
 
@@ -49,6 +49,7 @@ export interface OrderStatusFlags {
   isPendingPayment: boolean
   isPendingDelivery: boolean
   isDelivering: boolean
+  isAwaitingConfirmation: boolean
   isCompleted: boolean
   isCancelledOrRefunded: boolean
 }
@@ -65,6 +66,7 @@ export const statusFlagsOf = (status: OrderStatus): OrderStatusFlags => ({
   isPendingPayment: status === OrderStatus.PENDING_PAYMENT,
   isPendingDelivery: status === OrderStatus.PENDING_DISPATCH || status === OrderStatus.PENDING_DELIVERY,
   isDelivering: status === OrderStatus.DELIVERING,
+  isAwaitingConfirmation: status === OrderStatus.AWAITING_CONFIRMATION,
   isCompleted: status === OrderStatus.COMPLETED,
   isCancelledOrRefunded: status === OrderStatus.CANCELLED || status === OrderStatus.REFUNDED,
 })
@@ -80,6 +82,16 @@ export const buildOrderTimeline = (order: Order): OrderTimelineView[] => {
   }
   if (order.deliveryStartedAt) {
     timeline.push({ time: order.deliveryStartedAt, title: '开始配送', content: '配送员正在配送中', icon: 'delivery-started', tone: 'success' })
+  }
+  // 已送达(送达时间,待确认收货 —— R-ORD-11)
+  if (order.deliveryConfirmedAt) {
+    timeline.push({
+      time: order.deliveryConfirmedAt,
+      title: '已送达',
+      content: order.status === OrderStatus.AWAITING_CONFIRMATION ? '商品已送达,请确认收货' : '商品已送达',
+      icon: 'delivered',
+      tone: 'success',
+    })
   }
   if (order.completedAt) {
     timeline.push({ time: order.completedAt, title: '订单完成', content: '订单已完成', icon: 'completed', tone: 'success' })

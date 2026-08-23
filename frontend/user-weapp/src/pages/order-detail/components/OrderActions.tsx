@@ -15,12 +15,14 @@ interface OrderActionsProps {
   onReorder: () => void
   onTrack: () => void
   onUrge: () => void
+  onConfirmReceipt: () => void
   onContinueShopping: () => void
 }
 
 /**
  * 底部操作栏(按订单状态渲染对应按钮组,保留全部 track* 埋点):
- * 待付款 = 取消 + 立即支付;配送中 = 催单 + 查看配送;已完成 = 评价/再次购买/继续购物;
+ * 待付款 = 取消 + 立即支付;配送中 = 催单 + 查看配送;
+ * 待确认收货 = 确认收货(主按钮,R-ORD-11);已完成 = 评价/再次购买/继续购物;
  * 待配送/已取消 = 再次购买
  */
 const OrderActions: React.FC<OrderActionsProps> = ({
@@ -32,6 +34,7 @@ const OrderActions: React.FC<OrderActionsProps> = ({
   onReorder,
   onTrack,
   onUrge,
+  onConfirmReceipt,
   onContinueShopping
 }) => {
   return (
@@ -86,6 +89,31 @@ const OrderActions: React.FC<OrderActionsProps> = ({
             className='action-button'
           >
             查看配送
+          </AtButton>
+        </>
+      )}
+
+      {order.status === 'awaiting_confirmation' && (
+        <>
+          <AtButton
+            trackTarget="order-confirm-receipt"
+            trackElementType="button"
+            trackElementText="确认收货"
+            trackProps={{ orderId: order.id }}
+            onClick={onConfirmReceipt}
+            type='primary'
+            size='normal'
+            className='action-button primary'
+          >
+            确认收货
+          </AtButton>
+          <AtButton
+            type='secondary'
+            size='normal'
+            onClick={onContinueShopping}
+            className='action-button'
+          >
+            继续购物
           </AtButton>
         </>
       )}

@@ -6,10 +6,90 @@ scalar LocalDateTime
 scalar JsonObject
 scalar PrimaryId
 
+enum OrderStatus {
+  PENDING_PAYMENT
+  PENDING_DISPATCH
+  PENDING_DELIVERY
+  DELIVERING
+  AWAITING_CONFIRMATION
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentType {
+  WATER_TICKET
+  CASH
+  QR_CODE
+}
+
 type Query {
   _dummy: String
-  dailyCollections(collectionDate: String): [DailyCollectionRecord!]!
-  dailyReconciliations: [DailyReconciliation!]!
+  dailyCollections(input: DailyCollectionListInput): DailyCollectionPage!
+  dailyReconciliations(input: DailyReconciliationListInput): DailyReconciliationPage!
+  dailyCollectionSummary(collectionDate: String): DailyCollectionSummary!
+  dailyReconciliationOrderDetails(
+    reconciliationDate: String!
+    deliveryWorkerId: Long
+    page: Int = 0
+    size: Int = 20
+  ): ReconciliationOrderDetailPage!
+}
+
+input DailyCollectionListInput {
+  collectionDate: String
+  deliveryWorkerId: Long
+  page: Int = 0
+  size: Int = 10
+}
+
+input DailyReconciliationListInput {
+  page: Int = 0
+  size: Int = 10
+}
+
+type DailyCollectionPage {
+  list: [DailyCollectionRecord!]!
+  pageInfo: PageInfo!
+}
+
+type DailyReconciliationPage {
+  list: [DailyReconciliation!]!
+  pageInfo: PageInfo!
+}
+
+type DailyCollectionSummary {
+  collectionDate: String!
+  totalCashAmountCents: Long!
+  totalQrCodeAmountCents: Long!
+  totalWaterTicketCount: Int!
+  totalOrderCount: Int!
+  totalOrderAmountCents: Long!
+  totalSubmittedCount: Int!
+}
+
+type ReconciliationOrderDetail {
+  orderId: PrimaryId!
+  orderNo: String!
+  deliveryWorkerId: PrimaryId
+  amountCents: Long!
+  paymentType: PaymentType
+  status: OrderStatus!
+  deliveredAt: LocalDateTime
+}
+
+type ReconciliationOrderDetailPage {
+  list: [ReconciliationOrderDetail!]!
+  pageInfo: PageInfo!
+}
+
+type PageInfo {
+  total: Int!
+  pageSize: Int!
+  pageNum: Int!
+  hasNext: Boolean!
+  hasPrevious: Boolean!
+  totalPages: Int!
 }
 
 type DailyCollectionRecord {

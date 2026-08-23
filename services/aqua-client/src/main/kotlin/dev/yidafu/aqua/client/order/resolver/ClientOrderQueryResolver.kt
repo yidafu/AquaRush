@@ -114,15 +114,18 @@ class ClientOrderQueryResolver(
     val pendingDispatch = countOf(OrderModelStatus.PENDING_DISPATCH)
     val pendingDelivery = countOf(OrderModelStatus.PENDING_DELIVERY)
     val delivering = countOf(OrderModelStatus.DELIVERING)
+    // 待确认收货(R-ORD-11:已送达未确认,我的页角标)
+    val awaitingConfirmation = countOf(OrderModelStatus.AWAITING_CONFIRMATION)
     val completed = countOf(OrderModelStatus.COMPLETED)
     val cancelled = countOf(OrderModelStatus.CANCELLED)
     val refunded = countOf(OrderModelStatus.REFUNDED)
     return MyOrderStatistics(
-      total = pendingPayment + pendingDispatch + pendingDelivery + delivering + completed + cancelled + refunded,
+      total = pendingPayment + pendingDispatch + pendingDelivery + delivering + awaitingConfirmation + completed + cancelled + refunded,
       pendingPayment = pendingPayment,
       pendingDispatch = pendingDispatch,
       pendingDelivery = pendingDelivery,
       delivering = delivering,
+      awaitingConfirmation = awaitingConfirmation,
       completed = completed,
       cancelled = cancelled,
       refunded = refunded,

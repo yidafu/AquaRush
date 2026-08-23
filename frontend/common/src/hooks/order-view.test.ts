@@ -82,12 +82,26 @@ describe('buildOrderTimeline', () => {
         createdAt: '2026-08-01T10:00:00',
         paymentTime: '2026-08-01T10:01:00',
         deliveryStartedAt: '2026-08-01T11:00:00',
+        deliveryConfirmedAt: '2026-08-01T11:30:00',
         completedAt: '2026-08-01T12:00:00',
       })
     )
-    expect(timeline.map((t) => t.title)).toEqual(['订单创建', '支付成功', '开始配送', '订单完成'])
-    expect(timeline.map((t) => t.icon)).toEqual(['order-created', 'paid', 'delivery-started', 'completed'])
-    expect(timeline.map((t) => t.tone)).toEqual(['info', 'accent', 'success', 'success'])
+    expect(timeline.map((t) => t.title)).toEqual(['订单创建', '支付成功', '开始配送', '已送达', '订单完成'])
+    expect(timeline.map((t) => t.icon)).toEqual(['order-created', 'paid', 'delivery-started', 'delivered', 'completed'])
+    expect(timeline.map((t) => t.tone)).toEqual(['info', 'accent', 'success', 'success', 'success'])
+  })
+
+  it('待确认收货订单:已送达提示确认收货且无订单完成节点', () => {
+    const timeline = buildOrderTimeline(
+      makeOrder({
+        status: OrderStatus.AWAITING_CONFIRMATION,
+        createdAt: '2026-08-01T10:00:00',
+        deliveryStartedAt: '2026-08-01T11:00:00',
+        deliveryConfirmedAt: '2026-08-01T11:30:00',
+      })
+    )
+    expect(timeline.map((t) => t.title)).toEqual(['订单创建', '开始配送', '已送达'])
+    expect(timeline[2].content).toBe('商品已送达,请确认收货')
   })
 
   it('无时间节点(createdAt 为空)返回空', () => {
@@ -129,6 +143,7 @@ describe('address / flags', () => {
     expect(statusFlagsOf(OrderStatus.PENDING_DISPATCH)).toMatchObject({ isPendingDelivery: true })
     expect(statusFlagsOf(OrderStatus.PENDING_DELIVERY)).toMatchObject({ isPendingDelivery: true })
     expect(statusFlagsOf(OrderStatus.DELIVERING)).toMatchObject({ isDelivering: true })
+    expect(statusFlagsOf(OrderStatus.AWAITING_CONFIRMATION)).toMatchObject({ isAwaitingConfirmation: true })
     expect(statusFlagsOf(OrderStatus.COMPLETED)).toMatchObject({ isCompleted: true })
     expect(statusFlagsOf(OrderStatus.CANCELLED)).toMatchObject({ isCancelledOrRefunded: true })
     expect(statusFlagsOf(OrderStatus.REFUNDED)).toMatchObject({ isCancelledOrRefunded: true })

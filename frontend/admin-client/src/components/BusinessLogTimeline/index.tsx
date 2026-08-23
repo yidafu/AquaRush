@@ -55,6 +55,8 @@ export const OPERATION_CONFIG: Record<string, { icon: React.ReactNode; color: st
   ORDER_PAID: { icon: <DollarOutlined />, color: 'green', label: '订单支付' },
   ORDER_CANCELLED: { icon: <CloseCircleOutlined />, color: 'red', label: '订单取消' },
   ORDER_COMPLETED: { icon: <CheckCircleOutlined />, color: 'green', label: '订单完成' },
+  ORDER_CONFIRMED: { icon: <CheckCircleOutlined />, color: 'green', label: '用户确认收货' },
+  ORDER_AUTO_CONFIRMED: { icon: <CheckCircleOutlined />, color: 'green', label: '系统自动确认收货' },
   ORDER_STATUS_CHANGED: { icon: <SwapOutlined />, color: 'orange', label: '订单状态变更' },
   ORDER_REFUND: { icon: <SafetyOutlined />, color: 'purple', label: '订单退款' },
   // PAYMENT 支付
