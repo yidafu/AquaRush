@@ -7,7 +7,8 @@ import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
  * 角色-权限映射配置
  * 与 PRD 01-overview.md §角色权限矩阵 保持一致。
  * - SUPER_ADMIN: 全部 40 码
- * - ADMIN: 业务域 33 码(缺 ADMIN_USER_*、SYSTEM_CONFIG_*、ORDER_CREATE、RECONCILIATION_SUBMIT 共 6 码,含 NOTIFICATION_READ)
+ * - ADMIN: 业务域 35 码(缺 ADMIN_USER_*、SYSTEM_CONFIG_*、NOTIFICATION_WRITE 共 5 码,含 NOTIFICATION_READ;
+ *   兼送水 F-USR-023 覆盖 DELIVERY_TASK/ORDER_CREATE/RECONCILIATION_SUBMIT)
  * - DELIVERY_WORKER: 8 码(ORDER_READ/PRODUCT_READ/ADDRESS_READ/ORDER_CREATE/DELIVERY_TASK/RECONCILIATION_READ/RECONCILIATION_SUBMIT/STATISTICS_READ)
  */
 object RolePermissionMapping {
@@ -33,6 +34,8 @@ object RolePermissionMapping {
           AdminPermission.ORDER_WRITE,
           AdminPermission.ORDER_ASSIGN,
           AdminPermission.ORDER_REVIEW,
+          // 代客下单(兼送水 F-USR-023):送水工端 create-order 入口对 ADMIN 开放(见 delivery-app docs/ui-spec.md §7)
+          AdminPermission.ORDER_CREATE,
           // 配送执行(管理员兼送水,F-USR-023)
           AdminPermission.DELIVERY_TASK,
           // 送水工管理
@@ -50,6 +53,7 @@ object RolePermissionMapping {
           AdminPermission.ADDRESS_WRITE,
           // 对账
           AdminPermission.RECONCILIATION_READ,
+          AdminPermission.RECONCILIATION_SUBMIT, // 兼送水:管理员提交本人日报(送水工端每日收款)
           AdminPermission.RECONCILIATION_CONFIRM,
           AdminPermission.RECONCILIATION_REVIEW,
           AdminPermission.RECONCILIATION_EXECUTE,

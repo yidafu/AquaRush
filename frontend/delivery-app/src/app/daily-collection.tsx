@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
+import { toast } from 'sonner-native';
 import {
   DailyCollectionStatus,
   Money,
@@ -70,6 +71,7 @@ export default function DailyCollectionScreen() {
       const tickets = parseInt(waterTicketCount, 10) || 0;
 
       setSubmitting(true);
+      const toastId = toast.loading('提交中...');
       try {
         const input = {
           cashAmountCents: yuanToCents(cash),
@@ -91,11 +93,13 @@ export default function DailyCollectionScreen() {
                 }
               : prev,
           );
-          Alert.alert('提交成功');
+          toast.success('提交成功', { id: toastId });
+        } else {
+          toast.dismiss(toastId);
         }
       } catch (e) {
         console.error('提交收款失败:', e);
-        Alert.alert('提交失败');
+        toast.error('提交失败', { id: toastId });
       } finally {
         setSubmitting(false);
         setShowConfirmModal(false);
@@ -111,7 +115,7 @@ export default function DailyCollectionScreen() {
     const tickets = parseInt(waterTicketCount, 10) || 0;
 
     if (cash === 0 && tickets === 0 && qr === 0) {
-      Alert.alert('请填写收款金额');
+      toast.warning('请填写收款金额');
       return;
     }
 
@@ -139,7 +143,7 @@ export default function DailyCollectionScreen() {
 
   const handleConfirm = useCallback(() => {
     if (!notes.trim()) {
-      Alert.alert('请输入情况说明');
+      toast.warning('请输入情况说明');
       return;
     }
     doSubmit(notes.trim()).catch(() => {});

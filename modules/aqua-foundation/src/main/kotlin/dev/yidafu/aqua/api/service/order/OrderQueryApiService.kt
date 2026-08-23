@@ -104,6 +104,27 @@ interface OrderQueryApiService {
     deliveryWorkerId: Long?,
   ): Long
 
+  /**
+   * 按完成时间(completed_at)窗口统计已完成订单数(营收/已完成口径按完成日归属,PRD F-STA-002):
+   * 跨日完成订单(下单日 ≠ 完成日)计入完成日窗口;deliveryWorkerId 为 null=不限配送员。
+   */
+  fun countByStatusAndCompletedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Long
+
+  /**
+   * 按完成时间(completed_at)窗口统计已完成订单金额合计(分;营收口径按完成日归属,PRD F-STA-002)。
+   */
+  fun sumAmountCentsByStatusAndCompletedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long
+
   // ========================================================================
   // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
   // ========================================================================

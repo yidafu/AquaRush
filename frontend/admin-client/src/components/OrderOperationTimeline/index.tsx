@@ -31,6 +31,11 @@ const OPERATION_CONFIG: Record<string, { icon: React.ReactNode; color: string; l
     color: 'red',
     label: '订单取消',
   },
+  ORDER_URGING: {
+    icon: <ClockCircleOutlined />,
+    color: 'orange',
+    label: '用户催单',
+  },
   DELIVERY_ASSIGNED: {
     icon: <UserOutlined />,
     color: 'cyan',

@@ -159,13 +159,40 @@ class OrderQueryApiServiceImplTest :
       every { orderRepository.findByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end) } returns emptyList()
       every { orderRepository.countByStatusAndCreatedAtBetween(start, end, null, null) } returns 0L
       every { orderRepository.sumAmountCentsByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, null) } returns 0L
+      every { orderRepository.countByStatusAndCompletedAtBetween(start, end, null, null) } returns 0L
+      every { orderRepository.sumAmountCentsByStatusAndCompletedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, null) } returns 0L
 
       service.findByCreatedAtBetween(start, end).isEmpty() shouldBe true
       service.findByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end).isEmpty() shouldBe true
       service.countByStatusAndCreatedAtBetween(start, end, null, null) shouldBe 0L
       service.sumAmountCentsByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, null) shouldBe 0L
+      service.countByStatusAndCompletedAtBetween(start, end, null, null) shouldBe 0L
+      service.sumAmountCentsByStatusAndCompletedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, null) shouldBe 0L
       service.hasCompletedOrders(100L) shouldBe false
       verify { orderRepository.existsByUserIdAndStatus(100L, OrderModelStatus.COMPLETED) }
+    }
+    test("countByStatusAndCompletedAtBetween delegates with filters") {
+      every { orderRepository.countByStatusAndCompletedAtBetween(start, end, null, listOf(OrderModelStatus.COMPLETED)) } returns 4L
+      every { orderRepository.countByStatusAndCompletedAtBetween(start, end, 5L, null) } returns 2L
+
+      service.countByStatusAndCompletedAtBetween(start, end, null, listOf(OrderModelStatus.COMPLETED)) shouldBe 4L
+      service.countByStatusAndCompletedAtBetween(start, end, 5L, null) shouldBe 2L
+      verify(exactly = 1) { orderRepository.countByStatusAndCompletedAtBetween(start, end, null, listOf(OrderModelStatus.COMPLETED)) }
+    }
+    test("sumAmountCentsByStatusAndCompletedAtBetween delegates with filters") {
+      every {
+        orderRepository.sumAmountCentsByStatusAndCompletedAtBetween(
+          listOf(OrderModelStatus.COMPLETED),
+          start,
+          end,
+          null,
+        )
+      } returns 9499L
+
+      service.sumAmountCentsByStatusAndCompletedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, null) shouldBe 9499L
+      verify(exactly = 1) {
+        orderRepository.sumAmountCentsByStatusAndCompletedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, null)
+      }
     }
     test("countByUserIdGroupByStatus delegates to repository") {
       // G31: 我的页订单角标 —— 委托仓库按用户分组计数

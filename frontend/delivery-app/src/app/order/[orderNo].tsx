@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Alert,
   Platform,
   ScrollView,
   Share,
@@ -8,6 +7,7 @@ import {
   View,
 } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
+import { toast } from 'sonner-native';
 
 import { Card } from '@/components/card';
 import { LoadingScreen } from '@/components/loading-screen';
@@ -102,7 +102,7 @@ export default function OrderDetailScreen() {
 
   // 加载失败提示(与原 loadOrderDetail 的 catch 行为一致)
   useEffect(() => {
-    if (error) Alert.alert('获取订单详情失败');
+    if (error) toast.error('获取订单详情失败');
   }, [error]);
 
   // 轨迹上报(F-ADR-012,R-ADR-03):订单进入「配送中」自动启动持续定位上报,
@@ -125,12 +125,13 @@ export default function OrderDetailScreen() {
   const handleAccept = useCallback(async () => {
     if (!order) return;
     setActionLoading(true);
+    const toastId = toast.loading('接单中...');
     try {
       await acceptDelivery(order.id);
-      Alert.alert('接单成功');
+      toast.success('接单成功', { id: toastId });
       refresh();
     } catch (e: any) {
-      Alert.alert(e?.message || '接单失败');
+      toast.error(e?.message || '接单失败', { id: toastId });
     } finally {
       setActionLoading(false);
     }
@@ -139,12 +140,13 @@ export default function OrderDetailScreen() {
   const handleStart = useCallback(async () => {
     if (!order) return;
     setActionLoading(true);
+    const toastId = toast.loading('开始配送中...');
     try {
       await startDelivery(order.id);
-      Alert.alert('开始配送成功');
+      toast.success('开始配送成功', { id: toastId });
       refresh();
     } catch (e: any) {
-      Alert.alert(e?.message || '开始配送失败');
+      toast.error(e?.message || '开始配送失败', { id: toastId });
     } finally {
       setActionLoading(false);
     }
@@ -156,7 +158,7 @@ export default function OrderDetailScreen() {
       setPaymentSheetVisible(false);
 
       if (deliveryPhotos.length === 0) {
-        Alert.alert('请先拍摄配送照片');
+        toast.warning('请先拍摄配送照片');
         return;
       }
 
@@ -167,14 +169,15 @@ export default function OrderDetailScreen() {
         properties: { orderNo: order.orderNo, paymentType: paymentType ?? undefined },
       });
       setActionLoading(true);
+      const toastId = toast.loading('配送完成处理中...');
       try {
         await completeDelivery(order.id, deliveryPhotos, paymentType ?? undefined, deliveryRemark || undefined);
-        Alert.alert('配送完成');
+        toast.success('配送完成', { id: toastId });
         setDeliveryPhotos([]);
         setDeliveryRemark('');
         refresh();
       } catch (e: any) {
-        Alert.alert(e?.message || '完成配送失败');
+        toast.error(e?.message || '完成配送失败', { id: toastId });
       } finally {
         setActionLoading(false);
       }
@@ -203,7 +206,7 @@ export default function OrderDetailScreen() {
     if (!order) return;
     if (Platform.OS === 'web') {
       // web 端微信 SDK 不可用，直接提示不支持
-      Alert.alert('微信分享不支持', '微信分享仅支持手机 App，请使用系统分享');
+      toast.warning('微信分享不支持', { description: '微信分享仅支持手机 App，请使用系统分享' });
       return;
     }
     setSharing(true);
@@ -215,12 +218,12 @@ export default function OrderDetailScreen() {
         if (uri) {
           await Share.share({ url: uri, message: buildOrderDeepLink(order.orderNo) });
         } else {
-          Alert.alert('分享失败');
+          toast.error('分享失败');
         }
       }
     } catch (e) {
       console.error('分享失败:', e);
-      Alert.alert('分享失败');
+      toast.error('分享失败');
     } finally {
       setSharing(false);
     }
@@ -237,7 +240,7 @@ export default function OrderDetailScreen() {
       });
     } catch (e) {
       console.error('分享失败:', e);
-      Alert.alert('分享失败');
+      toast.error('分享失败');
     } finally {
       setSharing(false);
     }
@@ -252,7 +255,7 @@ export default function OrderDetailScreen() {
       setAssignIsSelfCollect(Boolean(order.isSelfCollect));
       setAssignSheetVisible(true);
     } catch (e: any) {
-      Alert.alert(e?.message || '加载送水员失败');
+      toast.error(e?.message || '加载送水员失败');
     } finally {
       setAssignLoading(false);
     }
@@ -262,13 +265,14 @@ export default function OrderDetailScreen() {
     async (workerId: string) => {
       if (!order) return;
       setAssigning(true);
+      const toastId = toast.loading('分配中...');
       try {
         await assignDeliveryWorker(order.id, workerId, assignIsSelfCollect);
         setAssignSheetVisible(false);
-        Alert.alert('分配成功');
+        toast.success('分配成功', { id: toastId });
         refresh();
       } catch (e: any) {
-        Alert.alert(e?.message || '分配送水员失败');
+        toast.error(e?.message || '分配送水员失败', { id: toastId });
       } finally {
         setAssigning(false);
       }
@@ -280,13 +284,14 @@ export default function OrderDetailScreen() {
     async (input: UpdateOrderAddressInput) => {
       if (!order) return;
       setSavingAddress(true);
+      const toastId = toast.loading('保存中...');
       try {
         await updateOrderAddress(order.id, input);
         setEditAddressVisible(false);
-        Alert.alert('修改成功', '收货地址信息已更新');
+        toast.success('修改成功', { id: toastId, description: '收货地址信息已更新' });
         refresh();
       } catch (e: any) {
-        Alert.alert(e?.message || '修改地址信息失败');
+        toast.error(e?.message || '修改地址信息失败', { id: toastId });
       } finally {
         setSavingAddress(false);
       }
@@ -343,7 +348,7 @@ export default function OrderDetailScreen() {
         {order.status === 'DELIVERING' || isCompleted ? (
           <DeliveryInfoCard
             photos={isCompleted ? [...(order.deliveryPhotos ?? [])] : deliveryPhotos}
-            remark={isCompleted ? (order.remark ?? '') : deliveryRemark}
+            remark={isCompleted ? (order.deliveryRemark ?? '') : deliveryRemark}
             onPhotosChange={setDeliveryPhotos}
             onRemarkChange={setDeliveryRemark}
             disabled={isCompleted}

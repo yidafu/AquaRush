@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Alert, Image, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { toast } from 'sonner-native';
 
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -32,20 +33,20 @@ export function ImageUploader({
 
   const pickAndUpload = async (source: 'camera' | 'album') => {
     if (images.length >= max) {
-      Alert.alert(`最多上传${max}张图片`);
+      toast.warning(`最多上传${max}张图片`);
       return;
     }
 
     if (source === 'camera') {
       const perm = await ImagePicker.requestCameraPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('需要相机权限才能拍摄配送照片');
+        toast.warning('需要相机权限才能拍摄配送照片');
         return;
       }
     } else {
       const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!perm.granted) {
-        Alert.alert('需要相册权限才能选择配送照片');
+        toast.warning('需要相册权限才能选择配送照片');
         return;
       }
     }
@@ -74,7 +75,7 @@ export function ImageUploader({
       }
       onChange([...images, ...uploaded]);
     } catch (e: any) {
-      Alert.alert(e?.message || '图片上传失败');
+      toast.error(e?.message || '图片上传失败');
     } finally {
       setUploading(false);
     }

@@ -88,6 +88,39 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
     return mergeDailyStatistics(orderRows, quantityRows)
   }
 
+  /**
+   * 已完成营收按完成时间归属日(实时段营收口径):
+   * status=COMPLETED 且 completed_at ∈ [start, end],按 DATE_TRUNC('day', completed_at) 分组。
+   * 跨日完成订单(created_at 在窗口外、completed_at 在窗口内)计入完成日 —— 营收趋势不再丢失当天完成单。
+   */
+  override fun getDailyRevenueStatistics(
+    startDateTime: LocalDateTime,
+    endDateTime: LocalDateTime,
+  ): List<DailyStatisticsDTO> {
+    val dateExpr = Expressions.dateTemplate(LocalDateTime::class.java, "DATE_TRUNC('day', {0})", orderModel.completedAt)
+    return queryFactory
+      .select(
+        dateExpr,
+        orderModel.id.countDistinct(),
+        orderModel.amountCents.sumLong(),
+      ).from(orderModel)
+      .where(
+        orderModel.status.eq(OrderModelStatus.COMPLETED),
+        orderModel.completedAt.goe(startDateTime),
+        orderModel.completedAt.loe(endDateTime),
+      )
+      .groupBy(dateExpr)
+      .fetch()
+      .map { row ->
+        DailyStatisticsDTO(
+          date = row.get(dateExpr)!!.toLocalDate(),
+          orderCount = row.get(orderModel.id.countDistinct())!!,
+          orderProductCount = 0L,
+          totalAmountCents = row.get(orderModel.amountCents.sumLong()) ?: 0L,
+        )
+      }
+  }
+
   override fun getWeeklyOrderStatistics(
     startDateTime: LocalDateTime,
     endDateTime: LocalDateTime,

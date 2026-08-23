@@ -174,6 +174,18 @@ class DeliveryTaskMutationServiceImplTest :
 
       completed.status shouldBe OrderModelStatus.COMPLETED
     }
+    test("complete delivery stores delivery remark") {
+      val deliveringOrder =
+        order(OrderModelStatus.DELIVERING).also {
+          it.deliveryWorkerId = 1L
+        }
+      every { orderQueryService.getOrderById(1L) } returns deliveringOrder
+
+      val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), PaymentType.CASH, "放门口")
+
+      completed.status shouldBe OrderModelStatus.COMPLETED
+      completed.deliveryRemark shouldBe "放门口"
+    }
     test("complete delivery rejects non delivering order") {
       every { orderQueryService.getOrderById(1L) } returns order(OrderModelStatus.PENDING_DELIVERY)
 

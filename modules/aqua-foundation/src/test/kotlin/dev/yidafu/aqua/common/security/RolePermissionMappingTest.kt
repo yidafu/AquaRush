@@ -37,17 +37,19 @@ class RolePermissionMappingTest :
       val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.SUPER_ADMIN)
       permissions shouldBe AdminPermission.entries.toSet()
     }
-    test("ADMIN should have 33 permissions excluding admin-user system-config and worker-only ops") {
+    test("ADMIN should have 35 permissions excluding admin-user and system-config ops") {
       val permissions = RolePermissionMapping.getPermissions(AdminRoleModel.ADMIN)
-      permissions.size shouldBe 33
+      permissions.size shouldBe 35
       (AdminPermission.ADMIN_USER_READ !in permissions) shouldBe true
       (AdminPermission.ADMIN_USER_WRITE !in permissions) shouldBe true
       (AdminPermission.SYSTEM_CONFIG_READ !in permissions) shouldBe true
       (AdminPermission.SYSTEM_CONFIG_WRITE !in permissions) shouldBe true
-      (AdminPermission.ORDER_CREATE !in permissions) shouldBe true
-      (AdminPermission.RECONCILIATION_SUBMIT !in permissions) shouldBe true
-      // 管理员兼送水(F-USR-023):DELIVERY_TASK 已授予管理员(PRD 01-overview §角色权限矩阵)
+      (AdminPermission.NOTIFICATION_WRITE !in permissions) shouldBe true
+      // 管理员兼送水(F-USR-023):DELIVERY_TASK/ORDER_CREATE/RECONCILIATION_SUBMIT 已授予管理员
+      // (代客下单送水工端入口 ADMIN 可见;日报提交为本人日报) —— PRD 01-overview §角色权限矩阵
       (AdminPermission.DELIVERY_TASK in permissions) shouldBe true
+      (AdminPermission.ORDER_CREATE in permissions) shouldBe true
+      (AdminPermission.RECONCILIATION_SUBMIT in permissions) shouldBe true
       // 运营配置/意见反馈/营销 6 码属于管理员
       (AdminPermission.OPS_CONFIG_READ in permissions) shouldBe true
       (AdminPermission.OPS_CONFIG_WRITE in permissions) shouldBe true

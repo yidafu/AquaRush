@@ -30,6 +30,7 @@ import dev.yidafu.aqua.common.domain.model.DailyMarketingUsageFactModel
 import dev.yidafu.aqua.common.domain.model.DailyOrderFactModel
 import dev.yidafu.aqua.common.domain.model.DailyProductFactModel
 import dev.yidafu.aqua.common.domain.model.DailyRefundFactModel
+import dev.yidafu.aqua.common.domain.model.DailyRevenueFactModel
 import dev.yidafu.aqua.common.domain.model.DailyUserFactModel
 import dev.yidafu.aqua.common.domain.model.QOrderGiftModel.Companion.orderGiftModel
 import dev.yidafu.aqua.common.domain.model.QOrderItemModel.Companion.orderItemModel
@@ -40,6 +41,7 @@ import dev.yidafu.aqua.common.domain.model.QUserActionLogModel.Companion.userAct
 import dev.yidafu.aqua.common.domain.model.QUserCouponModel.Companion.userCouponModel
 import dev.yidafu.aqua.common.domain.model.QUserModel.Companion.userModel
 import dev.yidafu.aqua.common.domain.model.QUserTicketModel.Companion.userTicketModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
 import dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus
@@ -205,6 +207,34 @@ class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregatio
           refundType = row.get(paymentRefundModel.refundType)!!.name,
           refundCount = row.get(paymentRefundModel.id.count())!!,
           refundAmountCents = row.get(paymentRefundModel.refundAmount.sumLong().coalesce(0L))!!,
+        )
+      }
+  }
+
+  /**
+   * 已完成营收事实:仅 status=COMPLETED 且 completed_at 落在单日窗口 [date, date+1) 的订单。
+   * 归属日为完成时间 —— 跨日完成(下单日 ≠ 完成日)的订单营收计入完成日,避免既不在下单日
+   * (当时未完成)也不在完成日(created_at 不在窗口)而永久丢失(仪表盘营收趋势为空)。
+   * 金额按订单只计一次(orders 单表聚合,不 join order_items,P1-3)。
+   */
+  override fun aggregateRevenueFacts(date: LocalDate): List<DailyRevenueFactModel> {
+    val window = dateWindow(date)
+    return queryFactory
+      .select(
+        orderModel.id.count(),
+        orderModel.amountCents.sumLong().coalesce(0L),
+      ).from(orderModel)
+      .where(
+        orderModel.status.eq(OrderModelStatus.COMPLETED),
+        orderModel.completedAt.goe(window.start),
+        orderModel.completedAt.lt(window.end),
+      )
+      .fetch()
+      .map { row ->
+        DailyRevenueFactModel(
+          statDate = date,
+          orderCount = row.get(orderModel.id.count())!!,
+          amountCents = row.get(orderModel.amountCents.sumLong().coalesce(0L))!!,
         )
       }
   }

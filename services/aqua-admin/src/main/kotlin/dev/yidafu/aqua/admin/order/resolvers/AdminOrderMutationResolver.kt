@@ -28,11 +28,13 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
+import dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewAction
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.UpdateOrderAddressInput
 import dev.yidafu.aqua.common.security.UserPrincipal
 import dev.yidafu.aqua.order.mapper.CreateDeliveryOrderInputMapper
 import dev.yidafu.aqua.order.mapper.UpdateOrderAddressInputMapper
+import dev.yidafu.aqua.order.service.DeliveryPhotoReviewService
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -49,6 +51,7 @@ class AdminOrderMutationResolver(
   private val deliveryTaskMutationService: DeliveryTaskMutationService,
   private val adminService: AdminService,
   private val adminOrderMapper: AdminOrderMapper,
+  private val deliveryPhotoReviewService: DeliveryPhotoReviewService,
 ) {
   private val logger = LoggerFactory.getLogger(AdminOrderMutationResolver::class.java)
 
@@ -204,6 +207,27 @@ class AdminOrderMutationResolver(
     )
     val request = UpdateOrderAddressInputMapper.map(input)
     return adminOrderMapper.map(deliveryTaskMutationService.updateOrderAddress(principal.id, orderId, request))
+  }
+
+  /**
+   * 配送照片核验(G23/F-ORD-021:后台「通过/驳回」核验流,PERMISSION_ORDER_REVIEW)。
+   * 核验状态/时间/核验人/备注落库 + 订单操作时间线(DELIVERY_PHOTO_APPROVED/REJECTED)+
+   * 业务日志(ORDER_PHOTO_REVIEW)留痕,可重复核验纠错。
+   */
+  @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ORDER_REVIEW')")
+  fun reviewDeliveryPhoto(
+    @Argument orderId: Long,
+    @Argument action: DeliveryPhotoReviewAction,
+    @Argument remark: String?,
+    @AuthenticationPrincipal principal: UserPrincipal,
+  ): Order {
+    logger.info(
+      "Admin ${principal.username}(${principal.id}) reviewing delivery photo for order $orderId, action: $action, remark: $remark",
+    )
+    return adminOrderMapper.map(
+      deliveryPhotoReviewService.reviewDeliveryPhoto(orderId, action, remark, principal.id, principal.username),
+    )
   }
 
   private fun getAdminId(username: String): Long =

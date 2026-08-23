@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { router } from 'expo-router';
 import { Money } from '@aquarush/common';
 
 import { Button } from '@/components/button';
@@ -127,15 +126,13 @@ export function ProductSelector({ addedCount, onAdd }: ProductSelectorProps) {
               </ThemedText>
             ) : (
               products.map((product) => (
-                <Pressable key={product.id} onPress={() => router.push(`/product/${product.id}`)}>
+                <Pressable key={product.id} onPress={() => handleAdd(product)}>
                   <ThemedView type="card" style={styles.item}>
                     {renderProductItem(product)}
-                    {/* 点 + 直接加购(与进详情拆分,避免误触) */}
-                    <Pressable onPress={() => handleAdd(product)} hitSlop={12} style={styles.addHit}>
-                      <ThemedText type="small" themeColor="primary" style={styles.addHint}>
-                        +
-                      </ThemedText>
-                    </Pressable>
+                    {/* 整行点击即加入明细(F-ORD-012 多选:弹窗保持打开可继续添加);不嵌套 Pressable,避免外层跳详情吞掉加购事件 */}
+                    <ThemedText type="small" themeColor="primary" style={styles.addHint}>
+                      +
+                    </ThemedText>
                   </ThemedView>
                 </Pressable>
               ))
@@ -201,9 +198,6 @@ const styles = StyleSheet.create({
   addHint: {
     fontSize: 22,
     marginLeft: 'auto',
-  },
-  addHit: {
-    padding: Spacing.two,
   },
   emptyText: {
     textAlign: 'center',

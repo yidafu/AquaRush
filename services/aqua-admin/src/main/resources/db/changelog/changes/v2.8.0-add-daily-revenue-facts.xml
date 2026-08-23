@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <!-- 已完成营收日事实:营收按完成时间(completed_at)归属日,与订单数(下单日)分离。
+       daily_order_facts 的 COMPLETED 行按 created_at 归属,只用于订单数/状态分布;
+       营收/已完成订单数改由本表提供(PRD 01-overview §日完成订单数 = 当日进入「已完成」状态的订单数)。 -->
+  <changeSet id="2.8.0-add-daily-revenue-facts" author="aqua-rush">
+    <comment>Add daily completed-revenue fact table (revenue attributed by completed_at day)</comment>
+
+    <createTable tableName="daily_revenue_facts">
+      <column name="id" type="bigint">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="stat_date" type="date">
+        <constraints nullable="false"/>
+      </column>
+      <column name="order_count" type="bigint" defaultValueNumeric="0">
+        <constraints nullable="false"/>
+      </column>
+      <column name="amount_cents" type="bigint" defaultValueNumeric="0">
+        <constraints nullable="false"/>
+      </column>
+      <column name="created_at" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_at" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+    <addUniqueConstraint tableName="daily_revenue_facts"
+                         columnNames="stat_date"
+                         constraintName="uk_daily_revenue_facts_date"/>
+    <createIndex tableName="daily_revenue_facts" indexName="idx_daily_revenue_facts_date">
+      <column name="stat_date"/>
+    </createIndex>
+
+  </changeSet>
+
+</databaseChangeLog>

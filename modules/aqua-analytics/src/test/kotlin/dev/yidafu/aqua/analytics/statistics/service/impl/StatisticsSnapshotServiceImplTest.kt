@@ -25,6 +25,7 @@ import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyMarketingUsag
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyOrderFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyProductFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRefundFactRepository
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRevenueFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsSnapshotAggregationRepository
 import dev.yidafu.aqua.common.domain.model.DailyMarketingFactModel
@@ -32,6 +33,7 @@ import dev.yidafu.aqua.common.domain.model.DailyMarketingUsageFactModel
 import dev.yidafu.aqua.common.domain.model.DailyOrderFactModel
 import dev.yidafu.aqua.common.domain.model.DailyProductFactModel
 import dev.yidafu.aqua.common.domain.model.DailyRefundFactModel
+import dev.yidafu.aqua.common.domain.model.DailyRevenueFactModel
 import dev.yidafu.aqua.common.domain.model.DailyUserFactModel
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -43,7 +45,8 @@ import java.time.LocalDate
 
 /**
  * 统计快照服务单元测试:增量窗口(昨天/前天)、缺口自愈、首次回填、delete-then-insert 幂等
- * (F-STA-007 扩展:营销日事实/营销使用日事实与既有事实表同一事务写入)
+ * (F-STA-007 扩展:营销日事实/营销使用日事实与既有事实表同一事务写入;
+ * 营收事实表扩展:rebuildDate 七表同写 + 新表一次性回补)
  */
 class StatisticsSnapshotServiceImplTest :
   FunSpec({
@@ -51,6 +54,7 @@ class StatisticsSnapshotServiceImplTest :
     var productFactRepository: DailyProductFactRepository = mockk()
     var userFactRepository: DailyUserFactRepository = mockk()
     var refundFactRepository: DailyRefundFactRepository = mockk()
+    var revenueFactRepository: DailyRevenueFactRepository = mockk()
     var marketingFactRepository: DailyMarketingFactRepository = mockk()
     var marketingUsageFactRepository: DailyMarketingUsageFactRepository = mockk()
     var aggregationRepository: StatisticsSnapshotAggregationRepository = mockk()
@@ -64,6 +68,7 @@ class StatisticsSnapshotServiceImplTest :
         productFactRepository,
         userFactRepository,
         refundFactRepository,
+        revenueFactRepository,
         marketingFactRepository,
         marketingUsageFactRepository,
         aggregationRepository,
@@ -100,6 +105,7 @@ class StatisticsSnapshotServiceImplTest :
       productFactRepository = mockk(relaxed = true)
       userFactRepository = mockk(relaxed = true)
       refundFactRepository = mockk(relaxed = true)
+      revenueFactRepository = mockk(relaxed = true)
       marketingFactRepository = mockk(relaxed = true)
       marketingUsageFactRepository = mockk(relaxed = true)
       aggregationRepository = mockk(relaxed = true)
@@ -163,7 +169,7 @@ class StatisticsSnapshotServiceImplTest :
       verify(exactly = 1) { orderFactRepository.deleteByStatDateIn(listOf(yesterday)) }
     }
 
-    test("rebuildDate is delete-then-insert idempotent across all six fact tables") {
+    test("rebuildDate is delete-then-insert idempotent across all seven fact tables") {
       buildService()
       every { orderFactRepository.count() } returns 100L
       every { orderFactRepository.findFirstByOrderByStatDateDesc() } returns
@@ -192,13 +198,15 @@ class StatisticsSnapshotServiceImplTest :
             refundAmountCents = 50L,
           ),
         )
+      every { aggregationRepository.aggregateRevenueFacts(any()) } returns
+        listOf(DailyRevenueFactModel(statDate = LocalDate.now().minusDays(1), orderCount = 1L, amountCents = 100L))
       stubMarketingAggregates(LocalDate.now().minusDays(1))
 
       service.executeIncrementalSnapshot()
 
       val yesterday = LocalDate.now().minusDays(1)
       val dayBefore = LocalDate.now().minusDays(2)
-      // 六表全部 delete-then-insert(同一事务;增量窗口 [前天, 昨天] 两日期)
+      // 七表全部 delete-then-insert(同一事务;增量窗口 [前天, 昨天] 两日期)
       verify(exactly = 1) { orderFactRepository.deleteByStatDateIn(listOf(dayBefore)) }
       verify(exactly = 1) { orderFactRepository.deleteByStatDateIn(listOf(yesterday)) }
       verify(exactly = 1) { productFactRepository.deleteByStatDateIn(listOf(dayBefore)) }
@@ -207,6 +215,8 @@ class StatisticsSnapshotServiceImplTest :
       verify(exactly = 1) { userFactRepository.deleteByStatDateIn(listOf(yesterday)) }
       verify(exactly = 1) { refundFactRepository.deleteByStatDateIn(listOf(dayBefore)) }
       verify(exactly = 1) { refundFactRepository.deleteByStatDateIn(listOf(yesterday)) }
+      verify(exactly = 1) { revenueFactRepository.deleteByStatDateIn(listOf(dayBefore)) }
+      verify(exactly = 1) { revenueFactRepository.deleteByStatDateIn(listOf(yesterday)) }
       verify(exactly = 1) { marketingFactRepository.deleteByStatDateIn(listOf(dayBefore)) }
       verify(exactly = 1) { marketingFactRepository.deleteByStatDateIn(listOf(yesterday)) }
       verify(exactly = 1) { marketingUsageFactRepository.deleteByStatDateIn(listOf(dayBefore)) }
@@ -215,8 +225,27 @@ class StatisticsSnapshotServiceImplTest :
       verify(exactly = 2) { productFactRepository.saveAll(any<List<DailyProductFactModel>>()) }
       verify(exactly = 2) { userFactRepository.saveAll(any<List<DailyUserFactModel>>()) }
       verify(exactly = 2) { refundFactRepository.saveAll(any<List<DailyRefundFactModel>>()) }
+      verify(exactly = 2) { revenueFactRepository.saveAll(any<List<DailyRevenueFactModel>>()) }
       verify(exactly = 2) { marketingFactRepository.save(any()) }
       verify(exactly = 2) { marketingUsageFactRepository.saveAll(any<List<DailyMarketingUsageFactModel>>()) }
+    }
+
+    test("new revenue fact table is backfilled once on first run after upgrade") {
+      buildService()
+      every { orderFactRepository.count() } returns 100L
+      // 营收事实表为空(新增表),订单事实已存在 → 触发一次性回补(旧日期不在增量窗口内)
+      every { revenueFactRepository.count() } returns 0L
+      every { orderFactRepository.findFirstByOrderByStatDateAsc() } returns
+        DailyOrderFactModel(statDate = LocalDate.now().minusDays(10))
+      every { orderFactRepository.findFirstByOrderByStatDateDesc() } returns
+        DailyOrderFactModel(statDate = LocalDate.now().minusDays(1))
+      every { aggregationRepository.aggregateRevenueFacts(any()) } returns emptyList()
+
+      service.executeIncrementalSnapshot()
+
+      // 回补 [最早订单事实日, 昨天] 全部日期(10 天) + 增量窗口(前天/昨天)重复重建 → 12 次
+      verify(atLeast = 12) { revenueFactRepository.deleteByStatDateIn(any()) }
+      verify(atLeast = 12) { aggregationRepository.aggregateRevenueFacts(any()) }
     }
 
     test("backfillHistory rebuilds each date in range") {

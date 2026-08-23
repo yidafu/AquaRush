@@ -3354,6 +3354,7 @@ data class Order(
     val deliveryPhotoReviewedAt: java.time.LocalDateTime?,
     val deliveryPhotoReviewedBy: kotlin.Long?,
     val deliveryPhotos: kotlin.collections.List<kotlin.String>?,
+    val deliveryRemark: kotlin.String?,
     val deliveryStartedAt: java.time.LocalDateTime?,
     val deliveryTimeSlot: DeliveryTimeSlot?,
     val deliveryWorker: DeliveryWorker?,
@@ -3441,13 +3442,17 @@ data class OrderOperation(
 )
 
 enum class OrderOperationType(val label: String) {
+      ADDRESS_UPDATED("ADDRESS_UPDATED"),
       DELIVERY_ASSIGNED("DELIVERY_ASSIGNED"),
       DELIVERY_COMPLETED("DELIVERY_COMPLETED"),
+      DELIVERY_PHOTO_APPROVED("DELIVERY_PHOTO_APPROVED"),
+      DELIVERY_PHOTO_REJECTED("DELIVERY_PHOTO_REJECTED"),
       DELIVERY_STARTED("DELIVERY_STARTED"),
       ORDER_CANCELLED("ORDER_CANCELLED"),
       ORDER_COMPLETED("ORDER_COMPLETED"),
       ORDER_CREATED("ORDER_CREATED"),
       ORDER_PAID("ORDER_PAID"),
+      ORDER_URGING("ORDER_URGING"),
       PAYMENT_TIMEOUT("PAYMENT_TIMEOUT"),
       REFUND_COMPLETED("REFUND_COMPLETED"),
       REFUND_INITIATED("REFUND_INITIATED");

@@ -40,6 +40,17 @@ interface StatisticsOrderRepositoryCustom {
   ): List<DailyStatisticsDTO>
 
   /**
+   * 按完成时间(completed_at)分组统计已完成营收(实时段营收口径,PRD F-STA-002):
+   * 仅 status=COMPLETED 且 completed_at ∈ [startDateTime, endDateTime] 的订单,
+   * 按 DATE(completed_at) 归属日 —— 跨日完成订单营收计入完成日,不随下单日丢失。
+   * 返回行的 orderCount=当日完成订单数、totalAmountCents=当日完成订单金额合计。
+   */
+  fun getDailyRevenueStatistics(
+    startDateTime: LocalDateTime,
+    endDateTime: LocalDateTime,
+  ): List<DailyStatisticsDTO>
+
+  /**
    * 按周分组统计订单数量和金额（周一作为周开始）
    */
   fun getWeeklyOrderStatistics(

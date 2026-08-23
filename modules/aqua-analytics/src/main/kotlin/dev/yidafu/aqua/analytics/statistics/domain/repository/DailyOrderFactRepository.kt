@@ -41,4 +41,9 @@ interface DailyOrderFactRepository : JpaRepository<DailyOrderFactModel, Long> {
    * 最新快照日期(用于缺口自愈判定;四表按日同写,以订单事实表为准)
    */
   fun findFirstByOrderByStatDateDesc(): DailyOrderFactModel?
+
+  /**
+   * 最早快照日期(新营收事实表一次性回补起点判定)
+   */
+  fun findFirstByOrderByStatDateAsc(): DailyOrderFactModel?
 }

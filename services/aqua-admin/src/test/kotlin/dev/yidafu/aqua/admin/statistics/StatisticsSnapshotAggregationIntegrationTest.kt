@@ -273,6 +273,34 @@ class StatisticsSnapshotAggregationIntegrationTest(
       facts.first { it.status == RefundStatus.PENDING.name }.refundAmountCents shouldBe 200L
     }
 
+    test("aggregateRevenueFacts attributes completed revenue by completion day (营收按完成日归属)") {
+      // 1/10 下单、1/12 完成:1/10 的营收事实为空(当时未完成),1/12 落 1 单 6600 分
+      val createdDay = LocalDate.of(2040, 6, 15)
+      val completedDay = LocalDate.of(2040, 6, 17)
+      seedOrder(
+        amountCents = 6600L,
+        status = OrderModelStatus.COMPLETED,
+        createdAt = createdDay.atTime(23, 30),
+      ).also {
+        // 显式把 completed_at 改为完成日(seedOrder 默认 completed_at=created_at)
+        val order = orderRepository.findById(it).get()
+        order.completedAt = completedDay.atTime(9, 0)
+        orderRepository.save(order)
+      }
+      // 同日完成的普通订单(6/17 也下单也完成)与未完成订单:未完成不计入营收事实
+      seedOrder(amountCents = 2000L, status = OrderModelStatus.COMPLETED, createdAt = completedDay.atTime(10, 0))
+      seedOrder(amountCents = 9999L, status = OrderModelStatus.PENDING_DISPATCH, createdAt = completedDay.atTime(11, 0))
+
+      val createdFacts = snapshotAggregationRepository.aggregateRevenueFacts(createdDay)
+      val completedFacts = snapshotAggregationRepository.aggregateRevenueFacts(completedDay)
+
+      // 下单日无营收(当时未完成);完成日营收 = 6600 + 2000
+      createdFacts shouldBe emptyList()
+      completedFacts.size shouldBe 1
+      completedFacts[0].orderCount shouldBe 2L
+      completedFacts[0].amountCents shouldBe 8600L
+    }
+
     test("aggregateUserFact returns zero row for empty day (coverage continuity)") {
       val day = LocalDate.of(2040, 6, 14)
       val fact = snapshotAggregationRepository.aggregateUserFact(day)

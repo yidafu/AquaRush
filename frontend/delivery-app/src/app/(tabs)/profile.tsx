@@ -1,6 +1,7 @@
-import { Alert, Platform, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, type Href } from 'expo-router';
+import { toast } from 'sonner-native';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -52,16 +53,21 @@ export default function ProfileScreen() {
       router.replace('/login');
     };
 
-    if (Platform.OS === 'web') {
-      if (typeof window !== 'undefined' && window.confirm('确定要退出登录吗？')) {
-        doLogout();
-      }
-      return;
-    }
-    Alert.alert('退出登录', '确定要退出登录吗？', [
-      { text: '取消', style: 'cancel' },
-      { text: '退出', style: 'destructive', onPress: () => doLogout() },
-    ]);
+    toast.warning('退出登录', {
+      description: '确定要退出登录吗？',
+      duration: Infinity,
+      id: 'logout-confirm',
+      action: {
+        label: '退出',
+        onClick: () => {
+          void doLogout();
+        },
+      },
+      cancel: {
+        label: '取消',
+        onClick: () => toast.dismiss('logout-confirm'),
+      },
+    });
   };
 
   const displayName = userInfo?.realName || userInfo?.username || '未知';

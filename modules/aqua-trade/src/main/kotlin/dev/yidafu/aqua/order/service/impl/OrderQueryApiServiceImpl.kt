@@ -118,6 +118,32 @@ class OrderQueryApiServiceImpl(
       deliveryWorkerId = deliveryWorkerId,
     )
 
+  override fun countByStatusAndCompletedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Long =
+    orderRepository.countByStatusAndCompletedAtBetween(
+      startDate = startDate,
+      endDate = endDate,
+      deliveryWorkerId = deliveryWorkerId,
+      statuses = statuses,
+    )
+
+  override fun sumAmountCentsByStatusAndCompletedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long =
+    orderRepository.sumAmountCentsByStatusAndCompletedAtBetween(
+      statuses = statuses,
+      startDate = startDate,
+      endDate = endDate,
+      deliveryWorkerId = deliveryWorkerId,
+    )
+
   // ========================================================================
   // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
   // ========================================================================

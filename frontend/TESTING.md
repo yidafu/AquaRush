@@ -50,21 +50,26 @@ cd frontend/common && pnpm test:coverage
 | admin-client | `src/utils/debounce.ts` | 防抖合并、计时重置、参数透传(100%) |
 | admin-client | `src/utils/http.ts` | 拦截器:token 注入、success 解包、业务失败抛错、错误提示(94.4%) |
 | user-weapp | `src/utils/cart.ts` | 购物车增删改、合并、勾选、合计(95.9%) |
-| user-weapp | `src/utils/marketing.ts` | 优惠券/水票状态、门槛、折扣、有效期文案(100%) |
-| user-weapp | `src/utils/feedback.ts` | 反馈类型/状态标签与状态色(100%) |
-| delivery-app | `src/constants/order.ts` | 订单状态/进度步骤/收款方式文案与工具(100%) |
-| delivery-app | `src/constants/collection.ts` | 每日收款/对账状态文案与 tone 映射(100%) |
+| user-weapp | `src/utils/feedback.ts` | 反馈状态色(CSS 变量,100%) |
+| user-weapp | `src/styles/tokens.test.ts` | theme.scss `--status-*` ↔ common STATUS_TONE_COLORS 同步守卫 |
+| delivery-app | `src/constants/order.ts` | 订单状态/进度步骤/收款方式文案与工具(100%;状态文案与步骤改自 common re-export) |
+| delivery-app | `src/constants/collection.ts` | 每日收款/对账状态文案与 tone 映射(100%;tone 改自 common re-export) |
 | delivery-app | `src/utils/url.ts` | resolveAssetUrl:相对路径拼接、localhost 重写、非法 URL 透传(100%) |
 | delivery-app | `src/services/storage.ts` | AsyncStorage 封装:token/用户信息存取、损坏 JSON、clearAll(100%) |
 | delivery-app | `src/utils/tracking.ts` | RN 适配器:send 上报(带 token 头)、路由、认证上下文解析(100%) |
 
+> 2026 复用改造后迁移说明:user-weapp 的 `orderCost`/`marketing`(券/票标签)与
+> delivery-app 的 `orderCost` 已合并进 common `utils/order-cost`/`utils/marketing`(测试随迁,
+> 见 common 表);user-weapp `network.ts`(共享 NetworkManager 的本地副本)已删除,
+> `auth.ts` 改接共享单例;hook 层(`useOrderDetail`/`usePagedList`/`order-view`)测试在 common。
+
 ### 尚未覆盖(下一阶段候选)
 
-- **user-weapp**:`auth.ts` / `auth.h5.ts` / `network.ts` / `networkManager.ts` / `tracking.ts` / `clear-auth.ts`(Taro API 耦合较多,需 mock `@tarojs/taro` 后补测);
+- **user-weapp**:`auth.ts` / `auth.h5.ts` / `networkManager.ts` / `tracking.ts` / `clear-auth.ts`(Taro API 耦合较多,需 mock `@tarojs/taro` 后补测);
 - **admin-client**:`utils/tracking.ts`(需 jsdom + fetch mock);
 - **delivery-app**:`services/*`(GraphQL 查询)、`utils/network-manager.ts`(依赖 common NetworkManager + fetch)、`utils/upload.ts`(依赖 networkManager)、`utils/trajectory-*`(原生模块耦合)— 下一阶段补测;
-- **common**:`utils/index.ts`(仅 re-export,无需测);
-- **UI 组件与页面**:common 的 `Money`/`Track`、admin-client 的 `components/`、user-weapp 的 `pages/` — 按约定本阶段不做。
+- **common**:`utils/index.ts`(仅 re-export,无需测)、`hooks/useOrderDetail.ts`/`usePagedList.ts` 的 renderHook 测试已随 hooks 目录纳入 coverage;
+- **UI 组件与页面**:admin-client 的 `components/`、user-weapp 的 `pages/` 与共享组件(StatusTag/OrderItemRow 等)— 按约定本阶段不做。
 
 ## 覆盖率基线(2026 年 08 月记录)
 
@@ -72,7 +77,9 @@ cd frontend/common && pnpm test:coverage
 > `admin-client/src/utils/**`、`user-weapp/src/utils/**`),UI/pages/components 未纳入。
 > 用 `pnpm test:coverage` 复现;后续每轮新增测试后更新此表。
 
-### @aquarush/common — 75 tests
+### @aquarush/common — 143 tests(2026 复用改造后新增 status-tone / order-status / order-cost / marketing / tianditu / hooks 等)
+
+> 覆盖率数值以 `pnpm test:coverage` 实测为准(本表为迁移前基线,待下次覆盖运行回写)。
 
 | 文件 | Stmts | Branch | Funcs | Lines |
 | --- | --- | --- | --- | --- |
@@ -84,6 +91,14 @@ cd frontend/common && pnpm test:coverage
 | utils/network.ts | 83.47% | 67.59% | 81.48% | 83.33% |
 | tracking/tracker.ts | 94.87% | 86.79% | 92.30% | 94.59% |
 | utils/index.ts | 0% | 0% | 0% | 0% |
+| utils/status-tone.ts | 新增:值=§2.2、域映射覆盖枚举、getStatusTone 兜底 | | | |
+| utils/order-status.ts | 新增:文案全覆盖、步骤、ORDER_TABS 口径、getStatusView | | | |
+| utils/order-cost.ts | 新增:全优惠栈/单优惠/赠品/免运费/全零/水桶费/小计推导/fromPreview | | | |
+| utils/marketing.ts | 新增:券/票/反馈标签、折扣率 ÷1000(8500‰→8.5折) | | | |
+| utils/tianditu.ts | 新增:瓦片 URL 模板、style 结构、attribution | | | |
+| hooks/order-view.ts | 新增:items 归一/营销价判定、时间轴、地址、flags、费用快照 | | | |
+| hooks/useOrderDetail.ts | 新增:renderHook 加载/失败/刷新/无 orderNo | | | |
+| hooks/usePagedList.ts | 新增:renderHook 首屏/分页/重置/失败保持 | | | |
 
 ### @aquarush/admin-client — 14 tests
 
@@ -94,17 +109,17 @@ cd frontend/common && pnpm test:coverage
 | utils/http.ts | 94.44% | 100% | 88.88% | 94.44% |
 | utils/tracking.ts | 0% | 0% | 0% | 0% |
 
-### user-weapp — 36 tests
+### user-weapp — 55 tests(2026 复用改造后;orderCost/marketing 测试已迁 common)
 
 | 文件 | Stmts | Branch | Funcs | Lines |
 | --- | --- | --- | --- | --- |
 | **All files** | **16.96%** | **24.46%** | **22.13%** | **15.93%** |
 | utils/cart.ts | 95.91% | 90.00% | 100% | 95.00% |
 | utils/feedback.ts | 100% | 100% | 100% | 100% |
-| utils/marketing.ts | 100% | 97.05% | 100% | 100% |
-| utils/auth.ts / auth.h5.ts / network.ts / networkManager.ts / tracking.ts / clear-auth.ts | 0% | 0% | 0% | 0% |
+| styles/tokens.test.ts | 守卫:theme.scss `--status-*` ↔ common STATUS_TONE_COLORS | | | |
+| utils/auth.ts / auth.h5.ts / networkManager.ts / tracking.ts / clear-auth.ts | 0% | 0% | 0% | 0% |
 
-### delivery-app — 31 tests
+### delivery-app — 31 tests(2026 复用改造后;orderCost 测试已迁 common)
 
 > 口径:`jest.config.js` 的 `collectCoverageFrom` 覆盖 `src/constants|utils|services/**`
 > (UI 组件与页面未纳入),与其它包一致;`api.ts` 的未覆盖分支为 Android 平台分支,`theme.ts`

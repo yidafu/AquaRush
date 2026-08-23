@@ -138,11 +138,37 @@ interface OrderRepositoryCustom {
   ): Long
 
   /**
+   * 统计日期窗口内已完成订单数(orderStatistics 已完成口径,按完成时间归属):
+   * completedAt 严格开区间 (startDate, endDate);statuses 为 null=全部状态;软删除自动过滤。
+   * 与 countByStatusAndCreatedAtBetween 的差异:窗口按 completed_at 而非 created_at ——
+   * 跨日完成订单(下单日 ≠ 完成日)计入完成日,与营收口径一致(PRD 01-overview §日完成订单数)。
+   */
+  fun countByStatusAndCompletedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Long
+
+  /**
    * 统计日期窗口内指定状态订单金额合计(分,amountCents 快照列,后台首页 orderStatistics 口径):
    * createdAt 严格开区间 (startDate, endDate),与原内存过滤 isAfter/isBefore 逐位等价;
    * deliveryWorkerId 为 null=不限配送员;软删除自动过滤。
    */
   fun sumAmountCentsByStatusAndCreatedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long
+
+  /**
+   * 统计日期窗口内已完成订单金额合计(orderStatistics 营收口径,按完成时间归属):
+   * completedAt 严格开区间 (startDate, endDate);软删除自动过滤。
+   * 窗口按 completed_at 而非 created_at —— 跨日完成订单营收计入完成日,不随下单日丢失,
+   * 与 dailyStatistics/weeklyStatistics/monthlyStatistics 营收口径统一(PRD F-STA-002)。
+   */
+  fun sumAmountCentsByStatusAndCompletedAtBetween(
     statuses: List<OrderModelStatus>,
     startDate: LocalDateTime,
     endDate: LocalDateTime,

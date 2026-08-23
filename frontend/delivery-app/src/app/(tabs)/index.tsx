@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { OrderStatus, ORDER_STATUS_TEXT, usePagedList } from '@aquarush/common';
 import type { Order } from '@aquarush/common';
+import { toast } from 'sonner-native';
 
 import { EmptyState } from '@/components/empty-state';
 import { FloatingButton } from '@/components/floating-button';
@@ -26,7 +27,7 @@ const TAB_EMPTY_ICONS = ['📋', '🕐', '🚚'];
 export default function TasksScreen() {
   const router = useRouter();
   const [currentTab, setCurrentTab] = useState(0);
-  const { userInfo, isAdmin } = useAuth();
+  const { userInfo, isAdmin, isDeliveryWorker } = useAuth();
 
   // 三个任务列表(待接单/待配送/配送中)各自独立分页状态机 —— common usePagedList
   const pendingList = usePagedList<Order>({
@@ -94,12 +95,13 @@ export default function TasksScreen() {
 
   const handleAccept = useCallback(
     async (orderId: string) => {
+      const toastId = toast.loading('接单中...');
       try {
         await acceptDelivery(orderId);
-        Alert.alert('接单成功');
+        toast.success('接单成功', { id: toastId });
         loadAllData();
       } catch (e: any) {
-        Alert.alert(e?.message || '接单失败');
+        toast.error(e?.message || '接单失败', { id: toastId });
       }
     },
     [loadAllData],
@@ -107,12 +109,13 @@ export default function TasksScreen() {
 
   const handleStartDelivery = useCallback(
     async (orderId: string) => {
+      const toastId = toast.loading('开始配送中...');
       try {
         await startDelivery(orderId);
-        Alert.alert('已开始配送');
+        toast.success('已开始配送', { id: toastId });
         loadAllData();
       } catch (e: any) {
-        Alert.alert(e?.message || '操作失败');
+        toast.error(e?.message || '操作失败', { id: toastId });
       }
     },
     [loadAllData],
@@ -175,8 +178,9 @@ export default function TasksScreen() {
           }>
           {renderCards()}
         </ScrollView>
-        {/* 代客下单(F-ORD-012)：仅 ADMIN/SUPER_ADMIN 可见（见 docs/ui-spec.md §7） */}
-        {isAdmin ? <FloatingButton onPress={() => router.push('/create-order')} /> : null}
+        {/* 代客下单(F-ORD-012)：送水工/管理员/超管均可见 —— 送水工 ORDER_CREATE、
+            管理员兼送水 F-USR-023 亦覆盖(见 PRD 01-overview §角色权限矩阵) */}
+        {isAdmin || isDeliveryWorker ? <FloatingButton onPress={() => router.push('/create-order')} /> : null}
       </SafeAreaView>
     </ThemedView>
   );

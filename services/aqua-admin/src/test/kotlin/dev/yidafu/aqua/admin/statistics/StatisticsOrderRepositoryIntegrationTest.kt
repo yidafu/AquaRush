@@ -109,6 +109,7 @@ class StatisticsOrderRepositoryIntegrationTest(
       amountCents: Long,
       status: OrderModelStatus,
       createdAt: LocalDateTime,
+      completedAt: LocalDateTime? = null,
     ): Long =
       orderRepository
         .save(
@@ -119,6 +120,9 @@ class StatisticsOrderRepositoryIntegrationTest(
             amountCents = amountCents,
             status = status,
             createdAt = createdAt,
+            // 营收按完成日归属:已完成订单必须带 completed_at(与生产 completeDelivery 一致),
+            // 缺省与 createdAt 同刻,保持既有用例的窗口边界语义不变
+            completedAt = completedAt ?: createdAt.takeIf { status == OrderModelStatus.COMPLETED },
           ),
         ).id!!
 
@@ -389,6 +393,7 @@ class StatisticsOrderRepositoryIntegrationTest(
           status = OrderModelStatus.COMPLETED,
           deliveryWorkerId = workerId,
           createdAt = start.plusSeconds(2),
+          completedAt = start.plusSeconds(2),
         ),
       )
 
@@ -429,5 +434,31 @@ class StatisticsOrderRepositoryIntegrationTest(
       val dayStat = result.first { it.date == day }
       dayStat.totalAmountCents shouldBe 8000L
       dayStat.refundedAmountCents shouldBe 250L
+    }
+
+    test("cross-day completed order revenue is attributed to completion day (营收按完成日归属)") {
+      // 关键回归用例(仪表盘营收趋势为空):1/10 23:30 下单、1/12 09:00 完成 →
+      // 1/10 订单数=1 营收=0(当时未完成);1/12 无新下单但营收=6600(完成日归属)
+      val createdDay = LocalDate.of(2034, 1, 10)
+      val completedDay = LocalDate.of(2034, 1, 12)
+      seedOrder(
+        amountCents = 6600L,
+        status = OrderModelStatus.COMPLETED,
+        createdAt = createdDay.atTime(23, 30),
+        completedAt = completedDay.atTime(9, 0),
+      )
+
+      val daily = statisticsService.getDailyStatistics(LocalDate.of(2034, 1, 1), LocalDate.of(2034, 1, 31))
+
+      daily.first { it.date == createdDay }.orderCount shouldBe 1L
+      daily.first { it.date == createdDay }.totalAmountCents shouldBe 0L
+      daily.first { it.date == completedDay }.orderCount shouldBe 0L
+      daily.first { it.date == completedDay }.totalAmountCents shouldBe 6600L
+
+      // 区间汇总口径与日趋势一致:营收/已完成订单数按完成日计入窗口
+      val stats = statisticsService.getOrderStatistics(LocalDate.of(2034, 1, 1), LocalDate.of(2034, 1, 31))
+      stats.totalOrders shouldBe 1L
+      stats.completedOrders shouldBe 1L
+      stats.completedAmountCents shouldBe 6600L
     }
   })

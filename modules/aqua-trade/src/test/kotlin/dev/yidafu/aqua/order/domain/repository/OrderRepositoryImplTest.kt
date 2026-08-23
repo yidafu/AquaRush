@@ -329,6 +329,26 @@ class OrderRepositoryImplTest :
 
       repo.sumAmountCentsByStatusAndCreatedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, 5L) shouldBe 0L
     }
+    test("countByStatusAndCompletedAtBetween counts with filters (窗口按完成时间)") {
+      // 已完成口径:窗口按 completed_at(完成时间),跨日完成订单计入完成日
+      every { exprQuery.fetchOne() } returnsMany listOf(4L, 2L, null)
+      repo.countByStatusAndCompletedAtBetween(start, end, 5L, listOf(OrderModelStatus.COMPLETED)) shouldBe 4L
+      repo.countByStatusAndCompletedAtBetween(start, end, null, null) shouldBe 2L
+
+      repo.countByStatusAndCompletedAtBetween(start, end, 5L, listOf(OrderModelStatus.CANCELLED)) shouldBe 0L
+    }
+    test("sumAmountCentsByStatusAndCompletedAtBetween sums (窗口按完成时间)") {
+      every { exprQuery.fetchOne() } returnsMany listOf(9499L, 3500L, null)
+      repo.sumAmountCentsByStatusAndCompletedAtBetween(
+        listOf(OrderModelStatus.COMPLETED, OrderModelStatus.CANCELLED),
+        start,
+        end,
+        null,
+      ) shouldBe 9499L
+      repo.sumAmountCentsByStatusAndCompletedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, 5L) shouldBe 3500L
+
+      repo.sumAmountCentsByStatusAndCompletedAtBetween(listOf(OrderModelStatus.COMPLETED), start, end, 5L) shouldBe 0L
+    }
     test("findByCreatedAtBetween fetches in window") {
       val orders = listOf(order(1L))
       every { selectQuery.fetch() } returns orders

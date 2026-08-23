@@ -24,6 +24,7 @@ import dev.yidafu.aqua.common.domain.model.DailyMarketingUsageFactModel
 import dev.yidafu.aqua.common.domain.model.DailyOrderFactModel
 import dev.yidafu.aqua.common.domain.model.DailyProductFactModel
 import dev.yidafu.aqua.common.domain.model.DailyRefundFactModel
+import dev.yidafu.aqua.common.domain.model.DailyRevenueFactModel
 import dev.yidafu.aqua.common.domain.model.DailyUserFactModel
 import java.time.LocalDate
 
@@ -54,6 +55,13 @@ interface StatisticsSnapshotAggregationRepository {
    * 聚合单日退款事实:按 (status, refund_type) 分组,归属日为退款成功时间(processed_at)。
    */
   fun aggregateRefundFacts(date: LocalDate): List<DailyRefundFactModel>
+
+  /**
+   * 聚合单日已完成营收事实:status=COMPLETED 且 completed_at ∈ [date, date+1) 的订单数与金额合计,
+   * 归属日为完成时间(completed_at)——跨日完成订单的营收计入完成日,不随下单日丢失。
+   * 金额按订单只计一次(orders 单表聚合,P1-3);无完成订单的日期返回空列表(查询侧补零)。
+   */
+  fun aggregateRevenueFacts(date: LocalDate): List<DailyRevenueFactModel>
 
   /**
    * 聚合单日营销事实(F-STA-007):营销订单数(任一快照优惠,按订单去重)+ 券/满减/首单立减让利 +

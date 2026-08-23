@@ -31,9 +31,11 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
+import dev.yidafu.aqua.common.graphql.generated.DeliveryPhotoReviewAction
 import dev.yidafu.aqua.common.graphql.generated.Order
 import dev.yidafu.aqua.common.graphql.generated.OrderItemInput
 import dev.yidafu.aqua.common.security.UserPrincipal
+import dev.yidafu.aqua.order.service.DeliveryPhotoReviewService
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldNotBeNull
@@ -51,6 +53,7 @@ class AdminOrderMutationResolverTest :
     var deliveryTaskMutationService: DeliveryTaskMutationService = mockk()
     var adminService: AdminService = mockk()
     var adminOrderMapper: AdminOrderMapper = mockk()
+    var deliveryPhotoReviewService: DeliveryPhotoReviewService = mockk()
     var resolver: AdminOrderMutationResolver = mockk()
     val order: Order = mockk(relaxed = true)
     val orderModel: OrderModel =
@@ -89,6 +92,7 @@ class AdminOrderMutationResolverTest :
       deliveryTaskMutationService = mockk(relaxed = true)
       adminService = mockk(relaxed = true)
       adminOrderMapper = mockk(relaxed = true)
+      deliveryPhotoReviewService = mockk(relaxed = true)
       resolver =
         AdminOrderMutationResolver(
           orderMutationService,
@@ -96,6 +100,7 @@ class AdminOrderMutationResolverTest :
           deliveryTaskMutationService,
           adminService,
           adminOrderMapper,
+          deliveryPhotoReviewService,
         )
       every { adminOrderMapper.map(any()) } returns order
     }
@@ -239,5 +244,37 @@ class AdminOrderMutationResolverTest :
       result.shouldNotBeNull()
       (result === order) shouldBe true
       verify { deliveryTaskMutationService.completeDelivery(1L, listOf("a.jpg"), PaymentType.CASH, "已收款") }
+    }
+    test("reviewDeliveryPhoto should delegate approve with principal id and username") {
+      // Given
+      every {
+        deliveryPhotoReviewService.reviewDeliveryPhoto(1L, DeliveryPhotoReviewAction.APPROVE, null, 1L, "admin")
+      } returns orderModel
+
+      // When
+      val result = resolver.reviewDeliveryPhoto(1L, DeliveryPhotoReviewAction.APPROVE, null, principal())
+
+      // Then
+      result.shouldNotBeNull()
+      (result === order) shouldBe true
+      verify {
+        deliveryPhotoReviewService.reviewDeliveryPhoto(1L, DeliveryPhotoReviewAction.APPROVE, null, 1L, "admin")
+      }
+      verify { adminOrderMapper.map(orderModel) }
+    }
+    test("reviewDeliveryPhoto should delegate reject with remark") {
+      // Given
+      every {
+        deliveryPhotoReviewService.reviewDeliveryPhoto(1L, DeliveryPhotoReviewAction.REJECT, "照片模糊无法确认", 1L, "admin")
+      } returns orderModel
+
+      // When
+      val result = resolver.reviewDeliveryPhoto(1L, DeliveryPhotoReviewAction.REJECT, "照片模糊无法确认", principal())
+
+      // Then
+      result.shouldNotBeNull()
+      verify {
+        deliveryPhotoReviewService.reviewDeliveryPhoto(1L, DeliveryPhotoReviewAction.REJECT, "照片模糊无法确认", 1L, "admin")
+      }
     }
   })

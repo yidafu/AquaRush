@@ -1,4 +1,4 @@
-import { Alert } from 'react-native';
+import { toast } from 'sonner-native';
 
 import { WS_PUSH_URL } from '@/constants/api';
 import { authService } from '@/services/auth';
@@ -127,11 +127,13 @@ export const wsPushService = new WsPushService();
 export function showPushBanner(message: WsPushMessage): void {
   const title = message.title ?? '新消息';
   if (message.scene === 'NEW_ORDER') {
-    Alert.alert('新订单待接单', message.summary ?? '有新的待接单订单,请及时处理');
+    toast.warning('新订单待接单', {
+      description: message.summary ?? '有新的待接单订单,请及时处理',
+    });
     return;
   }
   if (message.type === 'ORDER') {
-    Alert.alert(title, message.summary ?? undefined);
+    toast.info(title, { description: message.summary ?? undefined });
   }
 }
 

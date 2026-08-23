@@ -297,6 +297,11 @@ class DeliveryTaskMutationServiceImpl(
    * @param deliveryPhotos 配送照片列表
    * @param paymentType 收款方式（非自收订单需要记录）
    * @param remark 配送员备注
+   *
+   * 状态流转(R-ORD-11 确认收货与营收确认,PRD 02-business-flows.md §订单状态机):
+   * - 非自提订单:配送中 → 待确认收货,仅记录送达时间(deliveryConfirmedAt,自动签收锚点),
+   *   不置完成时间(completedAt)—— 营收在用户确认收货/系统自动确认后才计入(按确认时间归属);
+   * - 自提订单:控制权在取水当场转移,配送中 → 已完成,即时计入营收(R-ORD-09)。
    */
   @Transactional
   override fun completeDelivery(
@@ -318,7 +323,7 @@ class DeliveryTaskMutationServiceImpl(
     }
 
     // 更新订单状态
-    order.status = OrderModelStatus.COMPLETED
+    order.status = if (order.isSelfCollect) OrderModelStatus.COMPLETED else OrderModelStatus.AWAITING_CONFIRMATION
     order.deliveryPhotos = jsonHelper.createArrayNode(deliveryPhotos).toString()
     // 电子票核销订单:未指定收款方式时自动记为「水票」(R-COL-04,PRD 10-marketing.md §F-MKT-007)
     val resolvedPaymentType = paymentType ?: if (order.ticketRedeemCount > 0) PaymentType.WATER_TICKET else null
@@ -328,11 +333,15 @@ class DeliveryTaskMutationServiceImpl(
     }
     order.paymentType = resolvedPaymentType
     order.deliveryRemark = remark
+    // 送达时间(自动签收锚点,R-ORD-11):非自提订单从此刻起 N 天未确认自动签收
     order.deliveryConfirmedAt = java.time.LocalDateTime.now()
-    order.completedAt = java.time.LocalDateTime.now()
+    // 自提订单控制权当场转移:即时完成并计入营收;非自提订单待用户确认后由 confirmReceipt/autoConfirmReceipt 置完成时间
+    if (order.isSelfCollect) {
+      order.completedAt = java.time.LocalDateTime.now()
+    }
     val savedOrder = orderMutationService.updateOrder(orderId, order)
 
-    // 记录订单操作 - 配送完成
+    // 记录订单操作 - 配送完成(送达)
     orderOperationService.recordOperation(
       orderId = savedOrder.id!!,
       operationType = OrderOperationType.DELIVERY_COMPLETED,
@@ -342,25 +351,29 @@ class DeliveryTaskMutationServiceImpl(
       extraData = """{"paymentType": "${savedOrder.paymentType?.name}"}""",
     )
 
-    // 记录订单操作 - 订单完成
-    orderOperationService.recordOperation(
-      orderId = savedOrder.id!!,
-      operationType = OrderOperationType.ORDER_COMPLETED,
-      operatorType = OperatorType.DELIVERY_WORKER,
-      operatorId = savedOrder.deliveryWorkerId,
-      description = "订单已完成",
-    )
+    // 自提订单:即时订单完成(操作 + 事件);非自提订单进入「待确认收货」,
+    // 订单完成操作与 ORDER_COMPLETED 事件推迟到用户确认收货/系统自动确认(R-ORD-11)
+    if (order.isSelfCollect) {
+      // 记录订单操作 - 订单完成
+      orderOperationService.recordOperation(
+        orderId = savedOrder.id!!,
+        operationType = OrderOperationType.ORDER_COMPLETED,
+        operatorType = OperatorType.DELIVERY_WORKER,
+        operatorId = savedOrder.deliveryWorkerId,
+        description = "订单已完成",
+      )
 
-    // 发布配送完成事件
+      // 发布订单完成事件
+      eventPublishService.publishOrderCompleted(
+        orderId = savedOrder.id!!,
+        userId = savedOrder.userId,
+        deliveryWorkerId = savedOrder.deliveryWorkerId!!,
+      )
+    }
+
+    // 发布配送完成事件(送达确认通知:用户端「已送达,请确认收货」)
     eventPublishService.publishDeliveryCompleted(
       orderId = savedOrder.id!!,
-      deliveryWorkerId = savedOrder.deliveryWorkerId!!,
-    )
-
-    // 发布订单完成事件
-    eventPublishService.publishOrderCompleted(
-      orderId = savedOrder.id!!,
-      userId = savedOrder.userId,
       deliveryWorkerId = savedOrder.deliveryWorkerId!!,
     )
 

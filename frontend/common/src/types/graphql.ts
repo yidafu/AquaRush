@@ -2192,6 +2192,7 @@ export type Order = {
   readonly deliveryPhotoReviewedAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly deliveryPhotoReviewedBy?: Maybe<Scalars['PrimaryId']['output']>;
   readonly deliveryPhotos?: Maybe<ReadonlyArray<Scalars['String']['output']>>;
+  readonly deliveryRemark?: Maybe<Scalars['String']['output']>;
   readonly deliveryStartedAt?: Maybe<Scalars['LocalDateTime']['output']>;
   readonly deliveryTimeSlot?: Maybe<DeliveryTimeSlot>;
   readonly deliveryWorker?: Maybe<DeliveryWorker>;
@@ -2257,13 +2258,17 @@ export type OrderOperation = {
 };
 
 export enum OrderOperationType {
+  ADDRESS_UPDATED = 'ADDRESS_UPDATED',
   DELIVERY_ASSIGNED = 'DELIVERY_ASSIGNED',
   DELIVERY_COMPLETED = 'DELIVERY_COMPLETED',
+  DELIVERY_PHOTO_APPROVED = 'DELIVERY_PHOTO_APPROVED',
+  DELIVERY_PHOTO_REJECTED = 'DELIVERY_PHOTO_REJECTED',
   DELIVERY_STARTED = 'DELIVERY_STARTED',
   ORDER_CANCELLED = 'ORDER_CANCELLED',
   ORDER_COMPLETED = 'ORDER_COMPLETED',
   ORDER_CREATED = 'ORDER_CREATED',
   ORDER_PAID = 'ORDER_PAID',
+  ORDER_URGING = 'ORDER_URGING',
   PAYMENT_TIMEOUT = 'PAYMENT_TIMEOUT',
   REFUND_COMPLETED = 'REFUND_COMPLETED',
   REFUND_INITIATED = 'REFUND_INITIATED'

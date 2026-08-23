@@ -140,6 +140,8 @@ export const getOrderDetail = (orderNo: string) => {
         deliveryConfirmedAt
         paymentType
         deliveryPhotos
+        # 配送备注(完成配送时配送员填写,R-ORD-07;完成态「配送信息」卡回显)
+        deliveryRemark
         # 营销计价快照(R-MKT-02/07/08/09/10:费用明细行展示依据)
         promotionDiscountCents
         promotionActivityName

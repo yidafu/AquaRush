@@ -137,6 +137,8 @@ object OrderDTOToGraphQLMapper : ObjectMappie<OrderDTO, Order>() {
       // This mapper should only be used when nested objects are properly populated
       to::amountCents fromProperty from::amount
       to::deliveryPhotos fromExpression { from.deliveryPhotos }
+      // DTO 链路不承载配送备注(权威值由 OrderModel 直映 OrderMapper 提供 —— R-ORD-07)
+      to::deliveryRemark fromValue null
       to::paymentMethod fromExpression { from.paymentMethod?.name }
       to::status fromExpression { OrderStatusG.valueOf(from.status.name) }
       // These are required by GraphQL Order constructor - use requireNotNull
@@ -213,6 +215,8 @@ object OrderMapper : ObjectMappie<OrderModel, Order>() {
       // Create placeholder objects for required nested fields
       // In a real implementation, these should be loaded from their respective services
       to::amountCents fromProperty from::amountCents
+      // 配送备注(完成配送时配送员填写,随 completeDelivery 落库 —— R-ORD-07)
+      to::deliveryRemark fromProperty from::deliveryRemark
       to::deliveryPhotos fromExpression {
         from.deliveryPhotos?.let { photos ->
           try {

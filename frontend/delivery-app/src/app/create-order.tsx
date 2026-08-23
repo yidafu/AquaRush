@@ -1,6 +1,7 @@
 import { useCallback, useMemo, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
+import { toast } from 'sonner-native';
 
 import { AddressDisplay } from '@/components/address-display';
 import { Button } from '@/components/button';
@@ -46,19 +47,20 @@ export default function CreateOrderScreen() {
 
   const handleSubmit = async () => {
     if (!selectedAddress) {
-      Alert.alert('请选择地址');
+      toast.warning('请选择地址');
       return;
     }
     if (lines.length === 0) {
-      Alert.alert('请选择商品');
+      toast.warning('请选择商品');
       return;
     }
     if (lines.some((line) => line.quantity < 1)) {
-      Alert.alert('数量不能少于1');
+      toast.warning('数量不能少于1');
       return;
     }
 
     setSubmitting(true);
+    const toastId = toast.loading('创建中...');
     try {
       const items: CreateDeliveryOrderItem[] = lines.map((line) => ({
         productId: line.product.id,
@@ -70,10 +72,10 @@ export default function CreateOrderScreen() {
         orderInfo.isSelfCollect,
         orderInfo.remark || undefined,
       );
-      Alert.alert('创建成功');
+      toast.success('创建成功', { id: toastId });
       router.back();
     } catch (e: any) {
-      Alert.alert(e?.message || '创建失败');
+      toast.error(e?.message || '创建失败', { id: toastId });
     } finally {
       setSubmitting(false);
     }

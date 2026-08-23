@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
+import { toast } from 'sonner-native';
 
 import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
@@ -56,7 +57,9 @@ export function OrderAddressEditSheet({
     try {
       const position = await getCurrentPosition();
       if (!position) {
-        Alert.alert('定位失败', '无法获取当前位置,请检查定位权限后重试,或手动输入经纬度');
+        toast.error('定位失败', {
+          description: '无法获取当前位置,请检查定位权限后重试,或手动输入经纬度',
+        });
         return;
       }
       setLongitude(position.longitude.toFixed(6));
@@ -75,7 +78,7 @@ export function OrderAddressEditSheet({
     const latValue = latitude.trim();
 
     if (phoneValue && phoneValue !== address?.phone && !PHONE_RE.test(phoneValue)) {
-      Alert.alert('手机号格式不正确');
+      toast.warning('手机号格式不正确');
       return;
     }
 
@@ -83,7 +86,7 @@ export function OrderAddressEditSheet({
     if (floorValue) {
       floorNum = Number(floorValue);
       if (!Number.isInteger(floorNum) || floorNum < 1) {
-        Alert.alert('楼层无效', '楼层必须为大于 0 的整数');
+        toast.warning('楼层无效', { description: '楼层必须为大于 0 的整数' });
         return;
       }
       if (floorNum === address?.floor) floorNum = undefined;
@@ -93,11 +96,11 @@ export function OrderAddressEditSheet({
     const latNum = latValue ? Number(latValue) : null;
     if (lngNum != null || latNum != null) {
       if (lngNum == null || latNum == null) {
-        Alert.alert('定位不完整', '经度与纬度需同时填写');
+        toast.warning('定位不完整', { description: '经度与纬度需同时填写' });
         return;
       }
       if (Number.isNaN(lngNum) || lngNum < -180 || lngNum > 180 || Number.isNaN(latNum) || latNum < -90 || latNum > 90) {
-        Alert.alert('坐标无效', '经度范围 -180~180,纬度范围 -90~90');
+        toast.warning('坐标无效', { description: '经度范围 -180~180,纬度范围 -90~90' });
         return;
       }
     }
@@ -113,7 +116,7 @@ export function OrderAddressEditSheet({
     };
 
     if (Object.keys(input).length === 0) {
-      Alert.alert('未修改', '请填写需要修改的信息');
+      toast.warning('未修改', { description: '请填写需要修改的信息' });
       return;
     }
     onSave(input);

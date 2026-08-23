@@ -5,6 +5,8 @@ import '@/utils/install-expo-blob';
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { useEffect } from 'react';
 import { AppState, useColorScheme } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Toaster } from 'sonner-native';
 
 import { LoadingScreen } from '@/components/loading-screen';
 import { RootStatusBar } from '@/components/root-status-bar';
@@ -103,11 +105,14 @@ function RootNavigator() {
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <RootStatusBar />
-      <AuthProvider>
-        <RootNavigator />
-      </AuthProvider>
-    </ThemeProvider>
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <RootStatusBar />
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
+        <Toaster theme={colorScheme === 'dark' ? 'dark' : 'light'} richColors position="top-center" />
+      </ThemeProvider>
+    </GestureHandlerRootView>
   );
 }

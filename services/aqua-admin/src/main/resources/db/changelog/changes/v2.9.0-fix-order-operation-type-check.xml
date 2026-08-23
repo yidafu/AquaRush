@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <!--
+    chk_operation_type_valid 重建:旧约束仅含 v1.0.0 的 10 种操作类型,
+    与域枚举 OrderOperationType(见 modules/aqua-foundation .../enums/OrderOperationType.kt)
+    不一致 —— 催单(F-ORD-008 ORDER_URGING)、配送任务改址(F-ORD-024 ADDRESS_UPDATED)、
+    配送照片核验(G23 DELIVERY_PHOTO_APPROVED/REJECTED)写入 order_operations 时会被旧 CHECK
+    拦截(DataIntegrityViolationException → GraphQL INTERNAL_ERROR),一并对齐。
+  -->
+  <changeSet id="2.9.0-fix-order-operation-type-check" author="aqua-rush">
+    <comment>Align order_operations.operation_type CHECK with OrderOperationType enum (G23/F-ORD-008/F-ORD-024)</comment>
+    <sql>
+      ALTER TABLE order_operations DROP CONSTRAINT IF EXISTS chk_operation_type_valid;
+    </sql>
+    <sql>
+      ALTER TABLE order_operations ADD CONSTRAINT chk_operation_type_valid
+        CHECK (operation_type IN ('ORDER_CREATED', 'ORDER_PAID', 'ORDER_CANCELLED', 'ORDER_URGING',
+        'DELIVERY_ASSIGNED', 'DELIVERY_STARTED', 'DELIVERY_COMPLETED', 'ORDER_COMPLETED',
+        'REFUND_INITIATED', 'REFUND_COMPLETED', 'PAYMENT_TIMEOUT',
+        'DELIVERY_PHOTO_APPROVED', 'DELIVERY_PHOTO_REJECTED', 'ADDRESS_UPDATED'));
+    </sql>
+  </changeSet>
+</databaseChangeLog>

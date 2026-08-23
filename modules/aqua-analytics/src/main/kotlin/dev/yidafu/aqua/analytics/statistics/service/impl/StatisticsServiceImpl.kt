@@ -22,6 +22,7 @@ package dev.yidafu.aqua.analytics.statistics.service.impl
 import dev.yidafu.aqua.analytics.statistics.StatisticsTime
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyOrderFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRefundFactRepository
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRevenueFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
 import dev.yidafu.aqua.analytics.statistics.dto.OrderStatisticsDTO
@@ -49,6 +50,7 @@ class StatisticsServiceImpl(
   private val statisticsOrderRepository: StatisticsOrderRepositoryCustom,
   private val dailyOrderFactRepository: DailyOrderFactRepository,
   private val dailyRefundFactRepository: DailyRefundFactRepository,
+  private val dailyRevenueFactRepository: DailyRevenueFactRepository,
   private val snapshotCoverageService: StatisticsSnapshotCoverageService,
 ) : StatisticsService {
   /**
@@ -67,7 +69,8 @@ class StatisticsServiceImpl(
 
   /**
    * 获取日期范围内的订单统计
-   * 两段合并:昨日及以前读快照事实表(原子日汇总,口径查询时组合),今日走实时 SQL。
+   * 两段合并:昨日及以前读快照事实表(口径查询时组合),今日走实时 SQL。
+   * 订单数口径:按下单日(created_at)归属窗口;营收/已完成口径:按完成日(completed_at)归属窗口。
    */
   override fun getOrderStatistics(
     startDate: LocalDate,
@@ -88,11 +91,14 @@ class StatisticsServiceImpl(
 
     factRanges.forEach { (rangeStart, rangeEnd) ->
       val orderFacts = dailyOrderFactRepository.findByStatDateBetween(rangeStart, rangeEnd)
+      val revenueFacts = dailyRevenueFactRepository.findByStatDateBetween(rangeStart, rangeEnd)
       val refundFacts = dailyRefundFactRepository.findByStatDateBetween(rangeStart, rangeEnd)
       totalOrders += orderFacts.sumOf { it.orderCount }
       totalAmountCents += orderFacts.sumOf { it.amountCents }
-      completedOrders += orderFacts.filter { it.status == OrderModelStatus.COMPLETED.name }.sumOf { it.orderCount }
-      completedAmountCents += orderFacts.filter { it.status == OrderModelStatus.COMPLETED.name }.sumOf { it.amountCents }
+      // 已完成口径(营收/已完成订单数)按完成日归属:读营收事实表(completed_at 日),而非订单事实表的
+      // COMPLETED 行(按下单日归属)——跨日完成订单不再既漏下单日、又漏完成日
+      completedOrders += revenueFacts.sumOf { it.orderCount }
+      completedAmountCents += revenueFacts.sumOf { it.amountCents }
       refundedAmountCents +=
         refundFacts
           .filter { it.status == RefundStatus.COMPLETED.name && it.refundType == RefundType.ORDER_REFUND.name }
@@ -118,15 +124,16 @@ class StatisticsServiceImpl(
           endDateTime,
           deliveryWorkerId = null,
         )
+      // 已完成口径按完成时间归属(completed_at 窗口,与快照段营收事实表同口径)
       completedOrders +=
-        orderQueryApiService.countByStatusAndCreatedAtBetween(
+        orderQueryApiService.countByStatusAndCompletedAtBetween(
           startDateTime,
           endDateTime,
           deliveryWorkerId = null,
           statuses = listOf(OrderModelStatus.COMPLETED),
         )
       completedAmountCents +=
-        orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(
+        orderQueryApiService.sumAmountCentsByStatusAndCompletedAtBetween(
           listOf(OrderModelStatus.COMPLETED),
           startDateTime,
           endDateTime,
@@ -146,8 +153,9 @@ class StatisticsServiceImpl(
 
   /**
    * 获取每日订单统计
-   * 订单数口径:当日全部订单;营收口径:已完成订单金额合计(PRD F-STA-002 定稿)
-   * 两段合并:昨日及以前读快照(已完成口径/退款按 processed_at 归属在查询时组合),今日走实时 SQL;缺失快照日期回退实时。
+   * 订单数口径:当日全部订单(按下单日);营收口径:已完成订单金额合计,按完成日归属(PRD F-STA-002 定稿)
+   * 两段合并:昨日及以前读快照(营收读 daily_revenue_facts 按 completed_at 日,退款按 processed_at 归属在查询时组合),
+   * 今日走实时 SQL;缺失快照日期回退实时。
    */
   override fun getDailyStatistics(
     startDate: LocalDate,
@@ -160,22 +168,26 @@ class StatisticsServiceImpl(
     val factDates = if (startDate <= historicalEnd) snapshotCoverageService.coveredDates(startDate, historicalEnd) else emptySet()
     val statsMap = mutableMapOf<LocalDate, DailyStatisticsDTO>()
 
-    // 快照段:每日期 orderCount=Σ 全状态,itemQuantity=Σ 件数,revenue=Σ COMPLETED 金额,refund=Σ COMPLETED+ORDER_REFUND
+    // 快照段:每日期 orderCount=Σ 全状态(按下单日),itemQuantity=Σ 件数,
+    // revenue=Σ 营收事实表金额(按 completed_at 完成日,跨日完成订单计入完成日),refund=Σ COMPLETED+ORDER_REFUND
     if (factDates.isNotEmpty()) {
       val (factStart, factEnd) = factDates.min() to factDates.max()
       val orderFacts = dailyOrderFactRepository.findByStatDateBetween(factStart, factEnd)
+      val revenueFacts = dailyRevenueFactRepository.findByStatDateBetween(factStart, factEnd)
       val refundFacts = dailyRefundFactRepository.findByStatDateBetween(factStart, factEnd)
       val orderByDate = orderFacts.groupBy { it.statDate }
+      val revenueByDate = revenueFacts.groupBy { it.statDate }
       val refundByDate = refundFacts.groupBy { it.statDate }
       factDates.forEach { date ->
         val orders = orderByDate[date].orEmpty()
+        val revenue = revenueByDate[date].orEmpty()
         val refunds = refundByDate[date].orEmpty()
         statsMap[date] =
           DailyStatisticsDTO(
             date = date,
             orderCount = orders.sumOf { it.orderCount },
             orderProductCount = orders.sumOf { it.itemQuantity },
-            totalAmountCents = orders.filter { it.status == OrderModelStatus.COMPLETED.name }.sumOf { it.amountCents },
+            totalAmountCents = revenue.sumOf { it.amountCents },
             refundedAmountCents =
               refunds
                 .filter { it.status == RefundStatus.COMPLETED.name && it.refundType == RefundType.ORDER_REFUND.name }
@@ -348,7 +360,7 @@ class StatisticsServiceImpl(
   }
 
   /**
-   * 实时聚合 [startDate, endDate] 的每日统计(订单数全状态 + 营收已完成口径 + 退款按日)。
+   * 实时聚合 [startDate, endDate] 的每日统计(订单数全状态按下单日 + 营收已完成口径按完成日 + 退款按日)。
    */
   private fun liveDailyStatistics(
     startDate: LocalDate,
@@ -364,13 +376,8 @@ class StatisticsServiceImpl(
         deliveryWorkerId = null,
         statuses = null,
       )
-    val dailyRevenueStats =
-      statisticsOrderRepository.getDailyOrderStatistics(
-        startDateTime = startDateTime,
-        endDateTime = endDateTime,
-        deliveryWorkerId = null,
-        statuses = listOf(OrderModelStatus.COMPLETED),
-      )
+    // 营收按完成时间归属日:跨日完成订单(created_at 在窗口外、completed_at 在窗口内)计入完成日
+    val dailyRevenueStats = statisticsOrderRepository.getDailyRevenueStatistics(startDateTime, endDateTime)
     val revenueMap = dailyRevenueStats.associateBy { it.date }
     val refundMap = paymentQueryService.getDailyRefundedAmountCents(startDateTime, endDateTime)
 
@@ -379,9 +386,15 @@ class StatisticsServiceImpl(
     var currentDate = startDate
     while (!currentDate.isAfter(endDate)) {
       val stat = statsMap[currentDate]
+      // 营收来自独立的完成日聚合:即使当天无新下单(订单数=0),有跨日完成订单也如实展示营收
       result.add(
-        stat?.copy(totalAmountCents = revenueMap[currentDate]?.totalAmountCents ?: 0L)
-          ?: DailyStatisticsDTO.default(currentDate),
+        DailyStatisticsDTO(
+          date = currentDate,
+          orderCount = stat?.orderCount ?: 0L,
+          orderProductCount = stat?.orderProductCount ?: 0L,
+          totalAmountCents = revenueMap[currentDate]?.totalAmountCents ?: 0L,
+          refundedAmountCents = 0L,
+        ),
       )
       currentDate = currentDate.plusDays(1)
     }

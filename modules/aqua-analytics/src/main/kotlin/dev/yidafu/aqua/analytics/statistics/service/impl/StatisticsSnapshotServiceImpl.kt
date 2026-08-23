@@ -26,6 +26,7 @@ import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyMarketingUsag
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyOrderFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyProductFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRefundFactRepository
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRevenueFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsSnapshotAggregationRepository
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotService
@@ -47,6 +48,7 @@ class StatisticsSnapshotServiceImpl(
   private val productFactRepository: DailyProductFactRepository,
   private val userFactRepository: DailyUserFactRepository,
   private val refundFactRepository: DailyRefundFactRepository,
+  private val revenueFactRepository: DailyRevenueFactRepository,
   private val marketingFactRepository: DailyMarketingFactRepository,
   private val marketingUsageFactRepository: DailyMarketingUsageFactRepository,
   private val aggregationRepository: StatisticsSnapshotAggregationRepository,
@@ -70,6 +72,22 @@ class StatisticsSnapshotServiceImpl(
       }
       backfillHistory(earliest, yesterday)
       return
+    }
+
+    // 兼容升级:新增营收事实表(daily_revenue_facts)后首次运行,一次性回补全部历史营收事实。
+    // 旧日期不在增量窗口内(增量只覆盖 前天/昨天),若不回补,查询侧历史段营收将读不到数据。
+    if (revenueFactRepository.count() == 0L && orderFactRepository.count() > 0L) {
+      val earliestOrderFact = orderFactRepository.findFirstByOrderByStatDateAsc()?.statDate
+      if (earliestOrderFact != null && !earliestOrderFact.isAfter(yesterday)) {
+        logger.info("营收事实表为空,一次性回补: {} ~ {}", earliestOrderFact, yesterday)
+        dateRange(earliestOrderFact, yesterday).forEach { date ->
+          try {
+            rebuildRevenueDate(date)
+          } catch (e: Exception) {
+            logger.error("营收事实回补失败: {}", date, e)
+          }
+        }
+      }
     }
 
     val incrementalStart = yesterday.minusDays((config.incrementalDays - 1).toLong())
@@ -115,7 +133,7 @@ class StatisticsSnapshotServiceImpl(
   }
 
   /**
-   * 重建单日快照:delete-then-insert 幂等;六张事实表同一事务,保证一致性。
+   * 重建单日快照:delete-then-insert 幂等;七张事实表同一事务,保证一致性。
    */
   private fun rebuildDate(date: LocalDate) {
     transactionTemplate.execute {
@@ -123,6 +141,7 @@ class StatisticsSnapshotServiceImpl(
       productFactRepository.deleteByStatDateIn(listOf(date))
       userFactRepository.deleteByStatDateIn(listOf(date))
       refundFactRepository.deleteByStatDateIn(listOf(date))
+      revenueFactRepository.deleteByStatDateIn(listOf(date))
       marketingFactRepository.deleteByStatDateIn(listOf(date))
       marketingUsageFactRepository.deleteByStatDateIn(listOf(date))
 
@@ -130,8 +149,19 @@ class StatisticsSnapshotServiceImpl(
       productFactRepository.saveAll(aggregationRepository.aggregateProductFacts(date))
       userFactRepository.saveAll(listOf(aggregationRepository.aggregateUserFact(date)))
       refundFactRepository.saveAll(aggregationRepository.aggregateRefundFacts(date))
+      revenueFactRepository.saveAll(aggregationRepository.aggregateRevenueFacts(date))
       marketingFactRepository.save(aggregationRepository.aggregateMarketingFacts(date))
       marketingUsageFactRepository.saveAll(aggregationRepository.aggregateMarketingUsageFacts(date))
+    }
+  }
+
+  /**
+   * 仅重建单日营收事实(新表一次性回补用;delete-then-insert 幂等,不触碰其余事实表)。
+   */
+  private fun rebuildRevenueDate(date: LocalDate) {
+    transactionTemplate.execute {
+      revenueFactRepository.deleteByStatDateIn(listOf(date))
+      revenueFactRepository.saveAll(aggregationRepository.aggregateRevenueFacts(date))
     }
   }
 

@@ -21,6 +21,7 @@ package dev.yidafu.aqua.analytics.statistics.service.impl
 
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyOrderFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRefundFactRepository
+import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyRevenueFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.StatisticsOrderRepositoryCustom
 import dev.yidafu.aqua.analytics.statistics.dto.DailyStatisticsDTO
@@ -29,6 +30,7 @@ import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.api.service.payment.PaymentQueryService
 import dev.yidafu.aqua.common.domain.model.DailyOrderFactModel
 import dev.yidafu.aqua.common.domain.model.DailyRefundFactModel
+import dev.yidafu.aqua.common.domain.model.DailyRevenueFactModel
 import dev.yidafu.aqua.common.domain.model.DailyUserFactModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.graphql.generated.RefundStatus
@@ -50,6 +52,7 @@ class StatisticsServiceImplTest :
     var statisticsOrderRepository: StatisticsOrderRepositoryCustom = mockk()
     var dailyOrderFactRepository: DailyOrderFactRepository = mockk()
     var dailyRefundFactRepository: DailyRefundFactRepository = mockk()
+    var dailyRevenueFactRepository: DailyRevenueFactRepository = mockk()
     var dailyUserFactRepository: DailyUserFactRepository = mockk()
     var snapshotCoverageService: StatisticsSnapshotCoverageService = mockk()
     var service: StatisticsServiceImpl = mockk()
@@ -60,6 +63,7 @@ class StatisticsServiceImplTest :
       statisticsOrderRepository = mockk(relaxed = true)
       dailyOrderFactRepository = mockk(relaxed = true)
       dailyRefundFactRepository = mockk(relaxed = true)
+      dailyRevenueFactRepository = mockk(relaxed = true)
       dailyUserFactRepository = mockk(relaxed = true)
       // 真实覆盖判定服务 + 空用户事实表 → coveredDates 恒空 → 全部走实时 SQL(快照缺失回退)
       snapshotCoverageService = StatisticsSnapshotCoverageService(dailyUserFactRepository)
@@ -70,12 +74,16 @@ class StatisticsServiceImplTest :
           statisticsOrderRepository,
           dailyOrderFactRepository,
           dailyRefundFactRepository,
+          dailyRevenueFactRepository,
           snapshotCoverageService,
         )
     }
     test("getOrderStatistics aggregates totals and completed") {
-      every { orderQueryApiService.countByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returnsMany listOf(10L, 6L)
-      every { orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returnsMany listOf(5000L, 3000L)
+      every { orderQueryApiService.countByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returns 10L
+      every { orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returns 5000L
+      // 已完成口径按完成时间(completed_at)归属窗口
+      every { orderQueryApiService.countByStatusAndCompletedAtBetween(any(), any(), any(), any()) } returns 6L
+      every { orderQueryApiService.sumAmountCentsByStatusAndCompletedAtBetween(any(), any(), any(), any()) } returns 3000L
       every { paymentQueryService.sumRefundedAmountCents(any(), any()) } returns 500L
 
       val result = service.getOrderStatistics(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 30))
@@ -89,8 +97,10 @@ class StatisticsServiceImplTest :
       result.netRevenueCents shouldBe 2500L
     }
     test("getOrderStatistics refund defaults to zero when no refund records") {
-      every { orderQueryApiService.countByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returnsMany listOf(1L, 1L)
-      every { orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returnsMany listOf(100L, 100L)
+      every { orderQueryApiService.countByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returns 1L
+      every { orderQueryApiService.sumAmountCentsByStatusAndCreatedAtBetween(any(), any(), any(), any()) } returns 100L
+      every { orderQueryApiService.countByStatusAndCompletedAtBetween(any(), any(), any(), any()) } returns 1L
+      every { orderQueryApiService.sumAmountCentsByStatusAndCompletedAtBetween(any(), any(), any(), any()) } returns 100L
       every { paymentQueryService.sumRefundedAmountCents(any(), any()) } returns 0L
 
       val result = service.getOrderStatistics(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 30))
@@ -98,7 +108,7 @@ class StatisticsServiceImplTest :
       result.refundedAmountCents shouldBe 0L
       result.netRevenueCents shouldBe 100L
     }
-    test("getOrderStatistics reads historical segment from order/refund facts (两段合并)") {
+    test("getOrderStatistics reads historical segment from order/revenue/refund facts (两段合并)") {
       // 快照覆盖 2025-06-01..06-30:全部历史段读事实表,不触发实时 SQL
       every { dailyUserFactRepository.findFirstByOrderByStatDateAsc() } returns DailyUserFactModel(statDate = LocalDate.of(2025, 6, 1))
       every { dailyUserFactRepository.findFirstByOrderByStatDateDesc() } returns DailyUserFactModel(statDate = LocalDate.of(2025, 6, 30))
@@ -119,6 +129,17 @@ class StatisticsServiceImplTest :
             orderCount = 2L,
             amountCents = 999L,
             itemQuantity = 2L,
+          ),
+        )
+      // 已完成口径改读营收事实表(按 completed_at 归属日)
+      every {
+        dailyRevenueFactRepository.findByStatDateBetween(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 30))
+      } returns
+        listOf(
+          DailyRevenueFactModel(
+            statDate = LocalDate.of(2025, 6, 10),
+            orderCount = 4L,
+            amountCents = 2000L,
           ),
         )
       every {
@@ -158,11 +179,8 @@ class StatisticsServiceImplTest :
       val start = LocalDate.of(2025, 6, 1)
       val end = LocalDate.of(2025, 6, 3)
       val stat = DailyStatisticsDTO(start, orderCount = 3L, orderProductCount = 5L, totalAmountCents = 1200L)
-      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returnsMany
-        listOf(
-          listOf(stat),
-          listOf(stat), // revenue pass (COMPLETED only)
-        )
+      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returns listOf(stat)
+      every { statisticsOrderRepository.getDailyRevenueStatistics(any(), any()) } returns listOf(stat)
 
       val result = service.getDailyStatistics(start, end)
 
@@ -188,14 +206,18 @@ class StatisticsServiceImplTest :
             itemQuantity = 5L,
           ),
         )
+      // 历史段营收读营收事实表(completed_at 归属日)
+      every {
+        dailyRevenueFactRepository.findByStatDateBetween(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 29))
+      } returns
+        listOf(
+          DailyRevenueFactModel(statDate = LocalDate.of(2025, 6, 10), orderCount = 3L, amountCents = 1500L),
+        )
       every { dailyRefundFactRepository.findByStatDateBetween(any(), any()) } returns emptyList()
       // 实时段(今日 6/30):6/30 当天 2 单完成 1 单
       val todayStat = DailyStatisticsDTO(LocalDate.of(2025, 6, 30), orderCount = 2L, orderProductCount = 2L, totalAmountCents = 888L)
-      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returnsMany
-        listOf(
-          listOf(todayStat),
-          listOf(todayStat), // revenue pass
-        )
+      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returns listOf(todayStat)
+      every { statisticsOrderRepository.getDailyRevenueStatistics(any(), any()) } returns listOf(todayStat)
 
       val result = service.getDailyStatistics(LocalDate.of(2025, 6, 1), LocalDate.of(2025, 6, 30))
 
@@ -207,16 +229,13 @@ class StatisticsServiceImplTest :
       // 其余日期补零
       result.first { it.date == LocalDate.of(2025, 6, 1) }.orderCount shouldBe 0L
     }
-    test("getDailyStatistics uses revenue from completed-only aggregation") {
+    test("getDailyStatistics uses revenue from completed-only aggregation (按完成日归属)") {
       val start = LocalDate.of(2025, 6, 1)
       val end = LocalDate.of(2025, 6, 1)
       val allStats = DailyStatisticsDTO(start, orderCount = 8L, orderProductCount = 10L, totalAmountCents = 9999L)
       val completedStats = DailyStatisticsDTO(start, orderCount = 2L, orderProductCount = 2L, totalAmountCents = 700L)
-      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returnsMany
-        listOf(
-          listOf(allStats),
-          listOf(completedStats),
-        )
+      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returns listOf(allStats)
+      every { statisticsOrderRepository.getDailyRevenueStatistics(any(), any()) } returns listOf(completedStats)
 
       val result = service.getDailyStatistics(start, end)
 
@@ -225,17 +244,32 @@ class StatisticsServiceImplTest :
       result[0].orderCount shouldBe 8L
       result[0].totalAmountCents shouldBe 700L
     }
+    test("getDailyStatistics attributes cross-day completed revenue to completion date") {
+      // 关键回归用例(仪表盘营收趋势为空):订单 6/1 下单,6/3 才完成 →
+      // 营收应计入 6/3(完成日),6/1 订单数=1 但营收=0,6/3 无新下单但营收=500
+      val start = LocalDate.of(2025, 6, 1)
+      val end = LocalDate.of(2025, 6, 3)
+      val orderDay1 = DailyStatisticsDTO(LocalDate.of(2025, 6, 1), orderCount = 1L, orderProductCount = 1L, totalAmountCents = 500L)
+      val completedDay3 = DailyStatisticsDTO(LocalDate.of(2025, 6, 3), orderCount = 1L, orderProductCount = 0L, totalAmountCents = 500L)
+      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returns listOf(orderDay1)
+      every { statisticsOrderRepository.getDailyRevenueStatistics(any(), any()) } returns listOf(completedDay3)
+
+      val result = service.getDailyStatistics(start, end)
+
+      result.first { it.date == LocalDate.of(2025, 6, 1) }.orderCount shouldBe 1L
+      result.first { it.date == LocalDate.of(2025, 6, 1) }.totalAmountCents shouldBe 0L
+      result.first { it.date == LocalDate.of(2025, 6, 2) }.totalAmountCents shouldBe 0L
+      result.first { it.date == LocalDate.of(2025, 6, 3) }.orderCount shouldBe 0L
+      result.first { it.date == LocalDate.of(2025, 6, 3) }.totalAmountCents shouldBe 500L
+    }
     test("getWeeklyStatistics fills missing weeks with default") {
       val start = LocalDate.of(2025, 6, 1) // 周日
       val end = LocalDate.of(2025, 6, 22)
       // 6/2(周一) 当周有 4 单/5 件/已完成营收 800(已完成口径在日序列上已组合)
       val stat = DailyStatisticsDTO(LocalDate.of(2025, 6, 2), orderCount = 4L, orderProductCount = 5L, totalAmountCents = 9999L)
       val completedStat = DailyStatisticsDTO(LocalDate.of(2025, 6, 2), orderCount = 4L, orderProductCount = 5L, totalAmountCents = 800L)
-      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returnsMany
-        listOf(
-          listOf(stat),
-          listOf(completedStat), // revenue pass (COMPLETED only)
-        )
+      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returns listOf(stat)
+      every { statisticsOrderRepository.getDailyRevenueStatistics(any(), any()) } returns listOf(completedStat)
 
       val result = service.getWeeklyStatistics(start, end)
 
@@ -253,11 +287,8 @@ class StatisticsServiceImplTest :
       val end = LocalDate.of(2025, 3, 20)
       val jan = DailyStatisticsDTO(LocalDate.of(2025, 1, 20), orderCount = 5L, orderProductCount = 5L, totalAmountCents = 1000L)
       val mar = DailyStatisticsDTO(LocalDate.of(2025, 3, 5), orderCount = 7L, orderProductCount = 7L, totalAmountCents = 1400L)
-      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returnsMany
-        listOf(
-          listOf(jan, mar),
-          listOf(jan, mar), // revenue pass
-        )
+      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returns listOf(jan, mar)
+      every { statisticsOrderRepository.getDailyRevenueStatistics(any(), any()) } returns listOf(jan, mar)
 
       val result = service.getMonthlyStatistics(start, end)
 
@@ -275,11 +306,8 @@ class StatisticsServiceImplTest :
       val start = LocalDate.of(2025, 6, 1)
       val end = LocalDate.of(2025, 6, 3)
       val stat = DailyStatisticsDTO(start, orderCount = 3L, orderProductCount = 5L, totalAmountCents = 1200L)
-      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returnsMany
-        listOf(
-          listOf(stat),
-          listOf(stat),
-        )
+      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returns listOf(stat)
+      every { statisticsOrderRepository.getDailyRevenueStatistics(any(), any()) } returns listOf(stat)
       every { paymentQueryService.getDailyRefundedAmountCents(any(), any()) } returns
         mapOf(start to 200L, LocalDate.of(2025, 6, 2) to 100L)
 
@@ -293,8 +321,8 @@ class StatisticsServiceImplTest :
     test("getWeeklyStatistics rolls up daily refunds into week buckets (F-STA-002)") {
       val start = LocalDate.of(2025, 6, 1)
       val end = LocalDate.of(2025, 6, 22)
-      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returnsMany
-        listOf(emptyList(), emptyList())
+      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returns emptyList()
+      every { statisticsOrderRepository.getDailyRevenueStatistics(any(), any()) } returns emptyList()
       // 6/3+6/5 同属 6/2(周一)周 → 300;6/10 属 6/9 周 → 50
       every { paymentQueryService.getDailyRefundedAmountCents(any(), any()) } returns
         mapOf(
@@ -314,8 +342,8 @@ class StatisticsServiceImplTest :
     test("getMonthlyStatistics rolls up daily refunds into month buckets (F-STA-002)") {
       val start = LocalDate.of(2025, 1, 15)
       val end = LocalDate.of(2025, 3, 20)
-      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returnsMany
-        listOf(emptyList(), emptyList())
+      every { statisticsOrderRepository.getDailyOrderStatistics(any(), any(), any(), any()) } returns emptyList()
+      every { statisticsOrderRepository.getDailyRevenueStatistics(any(), any()) } returns emptyList()
       every { paymentQueryService.getDailyRefundedAmountCents(any(), any()) } returns
         mapOf(
           LocalDate.of(2025, 1, 20) to 100L,

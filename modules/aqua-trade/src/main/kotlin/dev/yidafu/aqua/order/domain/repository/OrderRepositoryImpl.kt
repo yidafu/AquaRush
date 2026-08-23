@@ -510,6 +510,34 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
       .fetchOne() ?: 0L
   }
 
+  override fun countByStatusAndCompletedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Long {
+    val whereClause = buildCompletedAtWindowWhereClause(startDate, endDate, deliveryWorkerId, statuses)
+    return queryFactory
+      .select(orderModel.count())
+      .from(orderModel)
+      .where(whereClause)
+      .fetchOne() ?: 0L
+  }
+
+  override fun sumAmountCentsByStatusAndCompletedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long {
+    val whereClause = buildCompletedAtWindowWhereClause(startDate, endDate, deliveryWorkerId, statuses)
+    return queryFactory
+      .select(orderModel.amountCents.sumLong())
+      .from(orderModel)
+      .where(whereClause)
+      .fetchOne() ?: 0L
+  }
+
   override fun findByCreatedAtBetween(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
@@ -543,6 +571,26 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     statuses: List<OrderModelStatus>?,
   ): BooleanBuilder {
     val whereClause = BooleanBuilder(orderModel.createdAt.gt(startDate).and(orderModel.createdAt.lt(endDate)))
+    deliveryWorkerId?.let {
+      whereClause.and(orderModel.deliveryWorkerId.eq(it))
+    }
+    statuses?.let {
+      whereClause.and(orderModel.status.`in`(it))
+    }
+    return whereClause
+  }
+
+  /**
+   * 构建已完成口径的窗口谓词:窗口按 completed_at(完成时间)严格开区间,其余过滤与
+   * [buildWindowWhereClause] 一致。营收/已完成订单数按完成日归属(PRD F-STA-002)。
+   */
+  private fun buildCompletedAtWindowWhereClause(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): BooleanBuilder {
+    val whereClause = BooleanBuilder(orderModel.completedAt.gt(startDate).and(orderModel.completedAt.lt(endDate)))
     deliveryWorkerId?.let {
       whereClause.and(orderModel.deliveryWorkerId.eq(it))
     }

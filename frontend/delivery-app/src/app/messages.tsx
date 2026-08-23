@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { toast } from 'sonner-native';
 
 import { EmptyState } from '@/components/empty-state';
 import { ThemedText } from '@/components/themed-text';
@@ -51,7 +52,7 @@ export default function MessagesScreen() {
       setPage(currentPage + 1);
     } catch (e) {
       console.error('加载消息失败:', e);
-      Alert.alert('加载失败', '请稍后重试');
+      toast.error('加载失败', { description: '请稍后重试' });
     } finally {
       setLoading(false);
     }
@@ -102,7 +103,7 @@ export default function MessagesScreen() {
       setMessages((prev) => prev.map((m) => ({ ...m, read: true })));
     } catch (e) {
       console.error('全部已读失败:', e);
-      Alert.alert('操作失败', '请稍后重试');
+      toast.error('操作失败', { description: '请稍后重试' });
     }
   }, []);
 
