@@ -3,6 +3,9 @@
  * 这些模块不是本应用的依赖，会被 RN autolinking 自动 link 进原生构建，
  * 且部分模块的 build.gradle 仍使用 Gradle 9 已移除的 API（如 jcenter()），导致构建失败。
  *
+ * 注意：react-native-webview 是本应用的直接依赖（product/[id].tsx 商详 H5 嵌入），
+ * 必须保持原生 link，不要加入此排除列表。
+ *
  * 对应 expo 原生模块的排除见 package.json 的 expo.autolinking.exclude。
  */
 module.exports = {
@@ -14,6 +17,5 @@ module.exports = {
     '@react-native-community/slider': { platforms: { android: null, ios: null } },
     'react-native-device-info': { platforms: { android: null, ios: null } },
     'react-native-pager-view': { platforms: { android: null, ios: null } },
-    'react-native-webview': { platforms: { android: null, ios: null } },
   },
 };

@@ -150,6 +150,19 @@ describe('GraphQL 错误处理', () => {
       message: 'Request timeout',
     })
   })
+
+  it('底层取消/中止错误(AbortController 超时)转成 NetworkError 超时信息', async () => {
+    const handler = makeRequestHandler()
+    handler.request = jest.fn(async () => {
+      throw new Error('fetch failed: Fetch request has been canceled')
+    })
+    const manager = new NetworkManager({ baseURL: BASE_URL }, makeAuth(), handler)
+
+    await expect(manager.query('{ me { id } }')).rejects.toMatchObject({
+      name: 'NetworkError',
+      message: 'Request timeout',
+    })
+  })
 })
 
 describe('401 认证失败与自动重试', () => {

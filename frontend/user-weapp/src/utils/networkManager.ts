@@ -14,7 +14,8 @@ const taroRequestHandler: RequestHandler = {
     }>
   },
   uploadFile: async (options) => {
-    return Taro.uploadFile(options) as Promise<{
+    // 小程序端 filePath 恒为本地路径字符串(UploadFilePath 联合类型在 Taro 边界收窄)
+    return Taro.uploadFile({ ...options, filePath: options.filePath as string }) as Promise<{
       statusCode: number
       data: string
       errMsg?: string

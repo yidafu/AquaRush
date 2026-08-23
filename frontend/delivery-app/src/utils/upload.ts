@@ -1,5 +1,3 @@
-import { Platform } from 'react-native';
-
 import { UPLOAD_URL } from '@/constants/api';
 import { networkManager } from '@/utils/network-manager';
 
@@ -15,19 +13,22 @@ interface ApiResponse<T> {
 }
 
 async function toFile(uri: string, name: string, mime: string): Promise<File> {
-  const blob = await (await fetch(uri)).blob(); // data:/blob: URI -> Blob (web)
+  // file:/blob:/data: URI -> Blob (works on web with the browser fetch and on
+  // native with expo/fetch, which reads file:// URIs natively).
+  const blob = await (await fetch(uri)).blob();
   return new File([blob], name, { type: mime });
 }
 
 /**
  * Upload a delivery photo to `POST /api/v1/storage/files` (multipart `file`).
  * Auth header is injected by NetworkManager. Returns the resolved file URL.
+ *
+ * Expo SDK 53+ runs `expo/fetch` on native, which rejects React Native's legacy
+ * `{ uri, name, type }` FormData parts ("Unsupported FormDataPart implementation") —
+ * always pass a real `File`/`Blob`, on every platform.
  */
 export async function uploadPhoto(uri: string, name: string, mime: string): Promise<string> {
-  const file: any =
-    Platform.OS === 'web'
-      ? await toFile(uri, name, mime)
-      : { uri, name, type: mime };
+  const file = await toFile(uri, name, mime);
 
   const res = await networkManager.uploadFile<ApiResponse<FileMetadataResponse>>({
     url: UPLOAD_URL,

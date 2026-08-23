@@ -45,8 +45,21 @@ const fetchRequestHandler: RequestHandler = {
     const timer = setTimeout(() => controller.abort(), timeout);
     try {
       const body = new FormData();
-      // Native: `filePath` is `{ uri, name, type }`; web: a `File`.
-      body.append(name, filePath as any);
+      // Expo SDK 53+ replaces RN's fetch with expo/fetch, which only accepts
+      // string/Blob/File FormData parts. React Native's legacy `{ uri, name, type }`
+      // part is rejected with "Unsupported FormDataPart implementation", so convert
+      // local file URIs to a Blob first (fetch() reads file:// natively).
+      const rawFile = filePath;
+      const part =
+        typeof rawFile === 'object' && rawFile !== null && !(rawFile instanceof Blob)
+          ? await (await fetch(rawFile.uri, { signal: controller.signal })).blob()
+          : rawFile;
+      const filename = typeof rawFile === 'object' && rawFile !== null ? rawFile.name ?? name : name;
+      if (typeof part === 'string') {
+        body.append(name, part);
+      } else {
+        body.append(name, part, filename);
+      }
       if (formData) {
         for (const [key, value] of Object.entries(formData)) {
           body.append(key, value);

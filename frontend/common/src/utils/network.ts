@@ -6,9 +6,18 @@ export interface RequestOptions {
   data?: any
 }
 
+/**
+ * 上传文件源(平台相关):
+ * - Taro 小程序:`string` 本地文件路径
+ * - React Native / Expo:浏览器风格 `File`/`Blob`,或兼容 RN 旧版 fetch 的 `{ uri, name, type }`
+ *   (expo/fetch 只接受 string/Blob/File 部件,旧式 `{ uri }` 对象会抛 "Unsupported FormDataPart implementation",
+ *   由各端 request handler 负责归一化)
+ */
+export type UploadFilePath = string | File | { uri: string; name?: string; type?: string }
+
 export interface UploadOptions {
   url: string
-  filePath: string
+  filePath: UploadFilePath
   name: string
   formData?: Record<string, string>
   header?: Record<string, string>
@@ -58,7 +67,7 @@ export interface RestRequestOptions {
 
 export interface FileUploadOptions {
   url: string
-  filePath: string
+  filePath: UploadFilePath
   name: string
   formData?: Record<string, string>
   headers?: Record<string, string>
@@ -302,6 +311,13 @@ class NetworkManager {
           throw error
         }
         if (error.errMsg && error.errMsg.includes('timeout')) {
+          throw new NetworkError('Request timeout', undefined, error)
+        }
+        // RN/Expo 中 AbortController 超时触发取消时,底层会抛出
+        // "fetch failed: Fetch request has been canceled" 之类的取消/中止错误,
+        // 与 timeout 一并归类为「请求超时」,避免展示误导性的 "Network request failed"。
+        const message = String(error?.message ?? '')
+        if (/cancel(?:l)?ed|aborted|timeout|timed out/i.test(message)) {
           throw new NetworkError('Request timeout', undefined, error)
         }
         throw new NetworkError(error.errMsg || 'Network request failed', undefined, error)
