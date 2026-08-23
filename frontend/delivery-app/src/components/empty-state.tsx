@@ -6,7 +6,8 @@ import { Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 interface EmptyStateProps {
-  icon: ReactNode;
+  /** emoji 字符串或任意 ReactNode(字符串按 28px emoji 渲染) */
+  icon: string | ReactNode;
   title: string;
   description?: string;
   action?: ReactNode;
@@ -18,7 +19,9 @@ export function EmptyState({ icon, title, description, action }: EmptyStateProps
 
   return (
     <View style={styles.container}>
-      <View style={[styles.iconCircle, { backgroundColor: theme.primaryBg }]}>{icon}</View>
+      <View style={[styles.iconCircle, { backgroundColor: theme.primaryBg }]}>
+        {typeof icon === 'string' ? <ThemedText style={styles.iconText}>{icon}</ThemedText> : icon}
+      </View>
       <ThemedText type="smallBold" themeColor="textSecondary" style={styles.title}>
         {title}
       </ThemedText>
@@ -45,6 +48,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: Spacing.three,
+  },
+  iconText: {
+    fontSize: 28,
+    lineHeight: 32,
   },
   title: {
     textAlign: 'center',

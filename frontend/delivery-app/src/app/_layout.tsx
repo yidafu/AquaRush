@@ -1,7 +1,12 @@
+// 必须在任何 fetch(...).blob() / 上传逻辑之前执行:把 expo-blob 的 Blob 装为全局,
+// 消除 Response.blob() 的 RN Blob 慢路径告警(侧效应模块,先于其他导入)。
+import '@/utils/install-expo-blob';
+
 import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
 import { useEffect } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, useColorScheme, View } from 'react-native';
+import { AppState, useColorScheme } from 'react-native';
 
+import { LoadingScreen } from '@/components/loading-screen';
 import { RootStatusBar } from '@/components/root-status-bar';
 import { TypeScale } from '@/constants/theme';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
@@ -13,7 +18,6 @@ import { trajectoryReporter } from '@/utils/trajectory-reporter';
 function RootNavigator() {
   const { isHydrating, isAuthenticated } = useAuth();
   const theme = useTheme();
-
   // 埋点:路由变化上报 PAGE_VIEW(覆盖全部页面,含登录页)
   usePageViewTracking();
 
@@ -40,11 +44,8 @@ function RootNavigator() {
   }, []);
 
   if (isHydrating) {
-    return (
-      <View style={styles.loading}>
-        <ActivityIndicator size="large" color={theme.primary} />
-      </View>
-    );
+    // boot overlay 变体:仅 spinner 无文案(沿用共享 LoadingScreen 的居中布局)
+    return <LoadingScreen label="" />;
   }
 
   const headerOptions = {
@@ -110,11 +111,3 @@ export default function RootLayout() {
     </ThemeProvider>
   );
 }
-
-const styles = StyleSheet.create({
-  loading: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});

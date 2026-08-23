@@ -5,6 +5,7 @@ import { DELIVERY_WORKER_ORDERS_QUERY } from '../../../../graphql/queries/user.g
 import type { Order } from '@aquarush/common';
 import { OrderStatus } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';
+import { pagination } from '@/utils/table';
 
 interface OrderRecordsSectionProps {
   /** 配送身份 id(送水员档案并入 admins 单表后=账号 id;F-USR-021/023) */
@@ -174,19 +175,17 @@ const OrderRecordsSection: React.FC<OrderRecordsSectionProps> = ({
         dataSource={orders}
         rowKey="id"
         loading={ordersLoading}
-        pagination={{
+        pagination={pagination(ordersData?.orders.totalElements ?? 0, {
           current: page + 1,
           pageSize,
-          total: ordersData?.orders.totalElements ?? 0,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total: number, range: [number, number]) =>
-            `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
+          showTotal: 'range',
           onChange: (nextPage: number, nextPageSize: number) => {
             setPage(nextPage - 1);
             setPageSize(nextPageSize);
           },
-        }}
+        })}
         scroll={{ x: 1200 }}
         locale={{ emptyText }}
       />

@@ -1,6 +1,6 @@
 import React from 'react'
-import { View, Text, Image } from '@tarojs/components'
-import { displayCents } from '@aquarush/common'
+import { View, Text } from '@tarojs/components'
+import OrderItemRow from '../../../components/OrderItemRow'
 import './ProductList.scss'
 
 /** 商品行(多商品 F-ORD-004:单价以服务端 orderPreview.items 为准,特价/熟客价/新人价划线展示目录价) */
@@ -24,7 +24,7 @@ interface ProductListProps {
 
 /**
  * 商品信息列表(F-ORD-004 多商品下单;单价以服务端计价为准)
- * 标题右侧展示「共N件」;卡片内边距与图片尺寸与购物车页保持一致。
+ * 标题右侧展示「共N件」;商品行渲染复用共享 OrderItemRow。
  */
 const ProductList: React.FC<ProductListProps> = ({ items }) => {
   const totalQuantity = items.reduce((sum, item) => sum + item.quantity, 0)
@@ -37,33 +37,21 @@ const ProductList: React.FC<ProductListProps> = ({ items }) => {
       </View>
       <View className='product-list'>
         {items.map(item => {
+          // 非目录价成交且目录价更高时划线展示(R-MKT-02)
           const showCatalogPrice =
             item.priceSource != null && item.priceSource !== 'CATALOG_PRICE' &&
             item.catalogPriceCents != null &&
             item.catalogPriceCents > item.unitPriceCents
           return (
-            <View key={item.id} className='product-item'>
-              <Image
-                src={item.image}
-                mode='aspectFill'
-                className='product-image'
-              />
-              <View className='product-info'>
-                <Text className='product-name'>{item.name}</Text>
-                {item.specification && (
-                  <Text className='product-spec'>规格：{item.specification}</Text>
-                )}
-                <View className='product-bottom'>
-                  <View className='product-price-wrap'>
-                    <Text className='product-price'>{displayCents(item.unitPriceCents)}</Text>
-                    {showCatalogPrice && (
-                      <Text className='product-catalog-price'>{displayCents(item.catalogPriceCents)}</Text>
-                    )}
-                  </View>
-                  <Text className='product-quantity'>x{item.quantity}</Text>
-                </View>
-              </View>
-            </View>
+            <OrderItemRow
+              key={item.id}
+              image={item.image}
+              name={item.name}
+              spec={item.specification}
+              priceCents={item.unitPriceCents}
+              originalPriceCents={showCatalogPrice ? item.catalogPriceCents : null}
+              quantity={item.quantity}
+            />
           )
         })}
       </View>

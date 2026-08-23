@@ -1,13 +1,14 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Alert, RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect, useRouter } from 'expo-router';
+import { OrderStatus, ORDER_STATUS_TEXT, usePagedList } from '@aquarush/common';
+import type { Order } from '@aquarush/common';
 
 import { EmptyState } from '@/components/empty-state';
 import { FloatingButton } from '@/components/floating-button';
 import { OrderCard } from '@/components/order-card';
 import { SegmentedTabs } from '@/components/segmented-tabs';
-import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import {
@@ -25,11 +26,35 @@ const TAB_EMPTY_ICONS = ['📋', '🕐', '🚚'];
 export default function TasksScreen() {
   const router = useRouter();
   const [currentTab, setCurrentTab] = useState(0);
-  const [pendingOrders, setPendingOrders] = useState<any[]>([]);
-  const [assignedOrders, setAssignedOrders] = useState<any[]>([]);
-  const [deliveringOrders, setDeliveringOrders] = useState<any[]>([]);
-  const [refreshing, setRefreshing] = useState(false);
   const { userInfo, isAdmin } = useAuth();
+
+  // 三个任务列表(待接单/待配送/配送中)各自独立分页状态机 —— common usePagedList
+  const pendingList = usePagedList<Order>({
+    fetchPage: async () => {
+      const res = await getPendingDeliveryOrders();
+      return { items: [...(res?.pendingDeliveryOrders ?? [])], hasMore: false };
+    },
+  });
+  const assignedList = usePagedList<Order>({
+    fetchPage: async () => {
+      const res = await getMyAssignedOrders();
+      return { items: [...(res?.assignedOrders ?? [])], hasMore: false };
+    },
+  });
+  const deliveringList = usePagedList<Order>({
+    fetchPage: async () => {
+      const res = await getMyDeliveringOrders();
+      return { items: [...(res?.deliveringOrders ?? [])], hasMore: false };
+    },
+  });
+
+  const loadAllData = useCallback(() => {
+    return Promise.all([
+      pendingList.refresh(),
+      assignedList.refresh(),
+      deliveringList.refresh(),
+    ]);
+  }, [pendingList.refresh, assignedList.refresh, deliveringList.refresh]);
 
   // WebSocket 实时推送(F-NTF-003):登录后建立连接;推送到达 → 刷新任务列表 + 横幅提示
   useEffect(() => {
@@ -49,32 +74,22 @@ export default function TasksScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userInfo?.id]);
 
-  const loadAllData = useCallback(async () => {
-    const results = await Promise.all([
-      getPendingDeliveryOrders(),
-      getMyAssignedOrders(),
-      getMyDeliveringOrders(),
-    ]);
-    setPendingOrders([...(results[0]?.pendingDeliveryOrders ?? [])]);
-    setAssignedOrders([...(results[1]?.assignedOrders ?? [])]);
-    setDeliveringOrders([...(results[2]?.deliveringOrders ?? [])]);
-  }, []);
-
   // 管理员兼送水(F-USR-023):管理员账号同样可在「订单」Tab 执行任务流,
   // 「管理」Tab 仍保留经营看板;不再重定向。
+  // 首屏由 usePagedList 自动加载;再次聚焦时刷新。
+  const firstFocus = useRef(true);
   useFocusEffect(
     useCallback(() => {
+      if (firstFocus.current) {
+        firstFocus.current = false;
+        return;
+      }
       loadAllData().catch((e) => console.error('加载订单列表失败:', e));
     }, [loadAllData]),
   );
 
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await loadAllData();
-    } finally {
-      setRefreshing(false);
-    }
+  const handleRefresh = useCallback(() => {
+    return loadAllData();
   }, [loadAllData]);
 
   const handleAccept = useCallback(
@@ -103,12 +118,13 @@ export default function TasksScreen() {
     [loadAllData],
   );
 
-  const lists = [pendingOrders, assignedOrders, deliveringOrders];
+  const lists = [pendingList.items, assignedList.items, deliveringList.items];
   const empties = ['暂无未接单订单', '暂无已接单订单', '暂无配送中订单'];
+  // 「待接单」为送水工视角本地措辞(common 统一口径为「待派单」);其余标题取 common ORDER_STATUS_TEXT
   const tabTitles = [
-    `待接单 (${pendingOrders.length})`,
-    `待配送 (${assignedOrders.length})`,
-    `配送中 (${deliveringOrders.length})`,
+    `待接单 (${pendingList.items.length})`,
+    `${ORDER_STATUS_TEXT[OrderStatus.PENDING_DELIVERY]} (${assignedList.items.length})`,
+    `${ORDER_STATUS_TEXT[OrderStatus.DELIVERING]} (${deliveringList.items.length})`,
   ];
 
   const renderCards = () => {
@@ -116,7 +132,7 @@ export default function TasksScreen() {
     if (list.length === 0) {
       return (
         <EmptyState
-          icon={<ThemedText style={styles.emptyIcon}>{TAB_EMPTY_ICONS[currentTab]}</ThemedText>}
+          icon={TAB_EMPTY_ICONS[currentTab]}
           title={empties[currentTab]}
           description="下拉可刷新订单列表"
         />
@@ -150,7 +166,12 @@ export default function TasksScreen() {
           style={styles.list}
           contentContainerStyle={styles.listContent}
           refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
+            <RefreshControl
+              refreshing={
+                pendingList.refreshing || assignedList.refreshing || deliveringList.refreshing
+              }
+              onRefresh={handleRefresh}
+            />
           }>
           {renderCards()}
         </ScrollView>
@@ -175,9 +196,5 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: Spacing.six,
-  },
-  emptyIcon: {
-    fontSize: 28,
-    lineHeight: 32,
   },
 });

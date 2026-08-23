@@ -9,16 +9,21 @@ export interface RequestOptions {
 /**
  * 上传文件源(平台相关):
  * - Taro 小程序:`string` 本地文件路径
- * - React Native / Expo:浏览器风格 `File`/`Blob`,或兼容 RN 旧版 fetch 的 `{ uri, name, type }`
+ * - React Native / Expo:浏览器风格 `Blob`(推荐,配合 `filename`),或兼容 RN 旧版 fetch 的 `{ uri, name, type }`
  *   (expo/fetch 只接受 string/Blob/File 部件,旧式 `{ uri }` 对象会抛 "Unsupported FormDataPart implementation",
  *   由各端 request handler 负责归一化)
+ * - 不要传 React Native 的 `File`:expo/fetch 的 FormData 补丁会写部件的 `name` 属性,
+ *   而 RN File 把 `name` 定义为原型上只读 getter,会抛 "Cannot assign to property 'name' which has only a getter"。
+ *   统一传 `Blob` + `filename` 即可携带文件名。
  */
-export type UploadFilePath = string | File | { uri: string; name?: string; type?: string }
+export type UploadFilePath = string | File | Blob | { uri: string; name?: string; type?: string }
 
 export interface UploadOptions {
   url: string
   filePath: UploadFilePath
   name: string
+  /** multipart 部件文件名(Blob 无 name 属性,需显式传入以生成 Content-Disposition filename)。 */
+  filename?: string
   formData?: Record<string, string>
   header?: Record<string, string>
   timeout?: number
@@ -50,6 +55,52 @@ export interface GraphQLResponse<T = any> {
   }>
 }
 
+/**
+ * graphql-java 在「非空字段解析失败」时追加的空值冒泡机制错误
+ * (如非空 Mutation 字段抛业务异常后附带的
+ * "The field at path '/assignDeliveryWorker' was declared as a non null type ...")。
+ * 这类信息对用户无意义,聚合展示错误消息时应过滤,只保留业务/校验错误。
+ */
+const NULL_BUBBLE_ERROR_PATTERN =
+  /was declared as a non null type|non-nullable type|bubble up null|cannot return null for non-nullable/i
+
+/** 是否为 graphql-java 非空字段空值冒泡机制错误 */
+export function isGraphQLNullBubbleError(error: { message: string }): boolean {
+  return NULL_BUBBLE_ERROR_PATTERN.test(error.message)
+}
+
+/**
+ * 过滤掉空值冒泡机制错误;若全部被过滤(极端情况)则原样返回,避免吞掉错误。
+ */
+export function extractMeaningfulGraphQLErrors<T extends { message: string }>(errors: T[]): T[] {
+  const meaningful = errors.filter(error => !isGraphQLNullBubbleError(error))
+  return meaningful.length > 0 ? meaningful : errors
+}
+
+/** 聚合 GraphQL 错误消息(已过滤机制错误),用于展示给用户 */
+export function graphQLErrorMessage(errors: Array<{ message: string }>): string {
+  return extractMeaningfulGraphQLErrors(errors)
+    .map(error => error.message)
+    .join('; ')
+}
+
+/**
+ * 从任意错误对象提取面向用户的错误消息。
+ * 兼容:
+ * - ApolloError(graphQLErrors 数组,含 graphql-java 空值冒泡机制错误)
+ * - NetworkManager 的 GraphQLError(message 已聚合清洗)
+ * - 普通 Error / 其它对象
+ */
+export function extractErrorMessage(error: any, fallback = '操作失败'): string {
+  if (!error) return fallback
+  if (Array.isArray(error.graphQLErrors) && error.graphQLErrors.length > 0) {
+    const message = graphQLErrorMessage(error.graphQLErrors)
+    if (message) return message
+  }
+  const message = typeof error?.message === 'string' ? error.message.trim() : ''
+  return message || fallback
+}
+
 export interface GraphQLRequestOptions {
   query: string
   variables?: Record<string, any>
@@ -69,6 +120,8 @@ export interface FileUploadOptions {
   url: string
   filePath: UploadFilePath
   name: string
+  /** multipart 部件文件名(透传给 request handler 的 UploadOptions.filename)。 */
+  filename?: string
   formData?: Record<string, string>
   headers?: Record<string, string>
   skipAuth?: boolean
@@ -296,8 +349,11 @@ class NetworkManager {
             }
           }
 
-          const errorMessages = result.errors.map(err => err.message).join('; ')
-          throw new GraphQLError(`GraphQL Error: ${errorMessages}`, result.errors)
+          // 过滤 graphql-java 非空字段空值冒泡机制错误,避免用户看到
+          // "The field at path ... was declared as a non null type ..." 这类内部噪音
+          const meaningfulErrors = extractMeaningfulGraphQLErrors(result.errors)
+          const errorMessages = meaningfulErrors.map(err => err.message).join('; ')
+          throw new GraphQLError(`GraphQL Error: ${errorMessages}`, meaningfulErrors)
         }
 
         if (!result.data) {
@@ -305,7 +361,7 @@ class NetworkManager {
         }
 
         return result.data
-      } catch (error) {
+      } catch (error: any) {
         console.error('Network request failed:', error)
         if (error instanceof NetworkError || error instanceof GraphQLError) {
           throw error
@@ -376,7 +432,7 @@ class NetworkManager {
       }
 
       return response.data
-    } catch (error) {
+    } catch (error: any) {
       console.error('REST request failed:', error)
       if (error instanceof NetworkError) {
         throw error
@@ -396,13 +452,14 @@ class NetworkManager {
       throw new Error('uploadFile is not implemented in the request handler')
     }
 
-    const { url, filePath, name, formData } = options
+    const { url, filePath, name, filename, formData } = options
 
     try {
       const response = await this.requestHandler.uploadFile({
         url: url.startsWith('http') ? url : `${this.config.baseURL.replace('/graphql', '')}${url}`,
         filePath,
         name,
+        filename,
         formData,
         header: await this.buildUploadHeaders(options),
         timeout: this.config.timeout || 30000
@@ -424,7 +481,7 @@ class NetworkManager {
       } catch {
         return response.data as any
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('File upload failed:', error)
       if (error instanceof NetworkError) {
         throw error
@@ -464,7 +521,7 @@ class NetworkManager {
   /**
    * 设置认证 token
    */
-  setAuthToken(token: string): void {
+  setAuthToken(_token: string): void {
     // This should be handled by the auth handler
   }
 

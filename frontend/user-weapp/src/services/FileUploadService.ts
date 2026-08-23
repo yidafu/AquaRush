@@ -1,4 +1,5 @@
 import Taro from '@tarojs/taro'
+import { NetworkError } from '@aquarush/common'
 import { networkManager } from '../utils/networkManager'
 import apiConfig from '../config/api'
 import {

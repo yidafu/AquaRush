@@ -1,7 +1,7 @@
 import { Card } from '@/components/card';
 import { OrderInfoRow } from '@/components/order-info-row';
 import { useTheme } from '@/hooks/use-theme';
-import { buildCostRows } from '@/utils/orderCost';
+import { buildCostRows } from '@aquarush/common/utils/order-cost';
 
 interface CostSummaryCardProps {
   /** 订单营销快照(F-ORD-003 费用明细卡,金额均为分 R-MON-01) */

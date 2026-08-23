@@ -4,10 +4,10 @@
 
 /**
  * Format date string to Chinese format
- * @param dateString ISO date string
+ * @param dateString ISO date string(null/undefined 返回空串)
  * @returns Formatted date string
  */
-export const formatDateTime = (dateString: string): string => {
+export const formatDateTime = (dateString: string | null | undefined): string => {
   if (!dateString) return ''
 
   const date = new Date(dateString)
@@ -24,10 +24,10 @@ export const formatDateTime = (dateString: string): string => {
 
 /**
  * Format date to date only (no time)
- * @param dateString ISO date string
+ * @param dateString ISO date string(null/undefined 返回空串)
  * @returns Formatted date string
  */
-export const formatDate = (dateString: string): string => {
+export const formatDate = (dateString: string | null | undefined): string => {
   if (!dateString) return ''
 
   const date = new Date(dateString)

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, Col, Spin } from 'antd';
+import { Col } from 'antd';
 import {
   BarChart,
   Bar,
@@ -8,9 +8,9 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
 } from 'recharts';
 import { BRAND_PRIMARY, COLOR_WARNING } from '../../../../config/theme';
+import ChartCard from '@/components/ChartCard';
 
 export interface PeakHourBarChartProps {
   data: { hour: string; count: number }[];
@@ -27,31 +27,33 @@ const PeakHourBarChart: React.FC<PeakHourBarChartProps> = ({
   loading,
 }) => (
   <Col xs={24} lg={8}>
-    <Card title="高峰时段分析" extra={peakHourExtra} style={{ height: '100%' }}>
-      <Spin spinning={loading}>
-        <ResponsiveContainer width="100%" height={280}>
-          <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={1} />
-            <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
-            <Tooltip
-              formatter={(value) => {
-                const numValue = typeof value === 'number' ? value : Number(value ?? 0);
-                return [`${numValue} 单`, '订单数'];
-              }}
+    <ChartCard
+      title="高峰时段分析"
+      extra={peakHourExtra}
+      loading={loading}
+      height={280}
+      style={{ height: '100%' }}
+    >
+      <BarChart data={data} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="hour" tick={{ fontSize: 10 }} interval={1} />
+        <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
+        <Tooltip
+          formatter={(value) => {
+            const numValue = typeof value === 'number' ? value : Number(value ?? 0);
+            return [`${numValue} 单`, '订单数'];
+          }}
+        />
+        <Bar dataKey="count" name="订单数">
+          {data.map((entry) => (
+            <Cell
+              key={entry.hour}
+              fill={entry.count === maxHourCount && maxHourCount > 0 ? COLOR_WARNING : BRAND_PRIMARY}
             />
-            <Bar dataKey="count" name="订单数">
-              {data.map((entry) => (
-                <Cell
-                  key={entry.hour}
-                  fill={entry.count === maxHourCount && maxHourCount > 0 ? COLOR_WARNING : BRAND_PRIMARY}
-                />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </Spin>
-    </Card>
+          ))}
+        </Bar>
+      </BarChart>
+    </ChartCard>
   </Col>
 );
 

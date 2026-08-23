@@ -64,16 +64,14 @@ apiConfig.resetConfig()
 Services should import and use the configuration:
 
 ```typescript
-import NetworkManager from '../utils/network'
+// 网络请求统一走共享 networkManager(见 utils/networkManager.ts,内部封装
+// @aquarush/common 的 NetworkManager + Taro 请求处理器 + auth handler)
+import { networkManager } from '../utils/networkManager'
 import apiConfig from '../config/api'
 
 class MyService {
-  private networkManager: NetworkManager
-
-  constructor() {
-    this.networkManager = NetworkManager.getInstance({
-      baseURL: apiConfig.getGraphqlUrl(),
-      timeout: apiConfig.getTimeout(),
+  async fetch() {
+    return networkManager.query(/* ... */, undefined, {
       headers: apiConfig.getHeaders()
     })
   }

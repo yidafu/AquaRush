@@ -1,27 +1,5 @@
-// 订单状态文案
-export const ORDER_STATUS_MAP: Record<string, string> = {
-  PENDING_DISPATCH: '待接单',
-  PENDING_DELIVERY: '待配送',
-  DELIVERING: '配送中',
-  COMPLETED: '已完成',
-  CANCELLED: '已取消',
-  REFUNDED: '已退款',
-  PENDING_PAYMENT: '待支付',
-};
-
-// 配送进度步骤
-export const ORDER_STEPS = ['待接单', '待配送', '配送中', '已完成'];
-
-// 根据订单状态计算当前进度
-export function getCurrentStep(status: string): number {
-  const statusToStep: Record<string, number> = {
-    PENDING_DISPATCH: 0,
-    PENDING_DELIVERY: 1,
-    DELIVERING: 2,
-    COMPLETED: 3,
-  };
-  return statusToStep[status] ?? 0;
-}
+// 订单状态文案/进度步骤/状态步骤工具 —— 统一从 common 取(单来源,见 common/utils/order-status)
+export { ORDER_STATUS_TEXT, ORDER_STEPS, getCurrentStep } from '@aquarush/common/utils/order-status';
 
 // 订单操作类型文案
 export const OPERATION_TYPE_MAP: Record<string, string> = {

@@ -1,0 +1,21 @@
+// 星级统一样式(收敛 order-review / OrderReviewCard 的 star 样式;活动星金色 #ffb800)
+.stars {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  .star {
+    font-size: 40px;
+    line-height: 1;
+    color: var(--text-weak);
+    transition: color 0.2s;
+
+    &.active {
+      color: #ffb800;
+    }
+  }
+
+  &.picker .star {
+    font-size: 64px;
+  }
+}

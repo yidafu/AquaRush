@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select } from 'antd';
 import { useLazyQuery } from '@apollo/client';
-import type { CustomerGroup } from '@aquarush/common';
+import type { CustomerGroup, User } from '@aquarush/common';
 import { GET_USERS_QUERY } from '../../../../graphql/queries/user.graphql';
 
 // 提交给 mutation 的表单载荷(memberIds 覆盖式成员列表,后端据此同步成员)
@@ -64,7 +64,7 @@ const GroupFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, o
     searchUsers({ variables: { input: { customerGroupId: record.id, page: 0, size: 1000 } } })
       .then((result) => {
         const list = result.data?.users?.list ?? [];
-        const ids = list.map((u) => String(u.id));
+        const ids = list.map((u: User) => String(u.id));
         mergeOptions(list.map(toOption));
         form.setFieldsValue({
           name: record.name,
@@ -95,6 +95,7 @@ const GroupFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, o
   };
 
   return (
+// TODO(Phase4): 弹窗外壳可复用 FormModal + useFormModal(编辑X/新建X/confirmLoading/destroyOnClose),见 ops/banners/BannerFormModal 迁移示例;字段与 payload 转换保留本页。
     <Modal
       title={record ? '编辑客户分组' : '新建客户分组'}
       open={open}

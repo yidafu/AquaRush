@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Radio, Select, Alert, message } from 'antd';
 import { useLazyQuery } from '@apollo/client';
-import type { CouponTemplate, IssueTargetType } from '@aquarush/common';
+import { IssueTargetType } from '@aquarush/common';
+import type { CouponTemplate, CustomerGroup, User } from '@aquarush/common';
 import { GET_USERS_QUERY } from '../../../../graphql/queries/user.graphql';
 import { useCustomerGroups, useIssueCoupons } from '../../../../services/marketing-graphql';
 
@@ -19,7 +20,7 @@ const TARGET_TYPE_OPTIONS = [
 // 定向发放优惠券(F-MKT-003):按用户列表 / 客户分组发放,返回实际发放张数
 const IssueCouponModal: React.FC<Props> = ({ open, couponTemplate, onCancel }) => {
   const [form] = Form.useForm();
-  const [targetType, setTargetType] = useState<IssueTargetType>('USER');
+  const [targetType, setTargetType] = useState<IssueTargetType>(IssueTargetType.USER);
   const [userOptions, setUserOptions] = useState<{ value: string; label: string }[]>([]);
   const [searchUsers, { loading: searching }] = useLazyQuery(GET_USERS_QUERY, {
     fetchPolicy: 'network-only',
@@ -31,7 +32,7 @@ const IssueCouponModal: React.FC<Props> = ({ open, couponTemplate, onCancel }) =
   useEffect(() => {
     if (!open) return;
     form.resetFields();
-    setTargetType('USER');
+    setTargetType(IssueTargetType.USER);
     setUserOptions([]);
     loadGroups({ variables: { input: { page: 0, size: 200 } } });
   }, [open, form, loadGroups]);
@@ -42,7 +43,7 @@ const IssueCouponModal: React.FC<Props> = ({ open, couponTemplate, onCancel }) =
     }).then((result) => {
       const list = result.data?.users?.list ?? [];
       setUserOptions(
-        list.map((u) => ({
+        list.map((u: User) => ({
           value: String(u.id),
           label: `${u.nickname || '未设置昵称'}${u.phone ? `(${u.phone})` : ''}`,
         })),
@@ -116,7 +117,7 @@ const IssueCouponModal: React.FC<Props> = ({ open, couponTemplate, onCancel }) =
             <Select
               showSearch
               optionFilterProp="label"
-              options={groups.map((g) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
+              options={groups.map((g: CustomerGroup) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
               placeholder="选择客户分组"
             />
           </Form.Item>

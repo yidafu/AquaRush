@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text } from '@tarojs/components'
 import { AtCard } from 'taro-ui'
 import type { Review } from '@aquarush/common'
+import StarRating from '../../../components/StarRating'
 
 import "taro-ui/dist/style/components/card.scss"
 import './OrderReviewCard.scss'
@@ -20,16 +21,7 @@ const OrderReviewCard: React.FC<OrderReviewCardProps> = ({ review }) => {
       className='review-card shadow-default'
     >
       <View className='review-content'>
-        <View className='review-stars'>
-          {[1, 2, 3, 4, 5].map(star => (
-            <Text
-              key={star}
-              className={`review-star ${star <= review.rating ? 'active' : ''}`}
-            >
-              ★
-            </Text>
-          ))}
-        </View>
+        <StarRating rating={review.rating} />
         {review.comment && (
           <Text className='review-comment'>{review.comment}</Text>
         )}

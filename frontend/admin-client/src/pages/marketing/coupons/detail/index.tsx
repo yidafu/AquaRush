@@ -4,17 +4,11 @@ import type { TablePaginationConfig } from 'antd/es/table';
 import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { displayCents, formatDateTime } from '@aquarush/common';
+import { displayCents, formatDateTime, COUPON_TYPE_LABELS } from '@aquarush/common';
 import type { CouponTemplate, MarketingUsageVo } from '@aquarush/common';
 import { COUPON_TEMPLATE_USAGE_PAGE_DATA_QUERY } from '../../../../graphql/queries/marketing.graphql';
 import MarketingUsageSummaryCards from '../../components/MarketingUsageSummaryCards';
 import MarketingUsageOrdersTable from '../../components/MarketingUsageOrdersTable';
-
-const COUPON_TYPE_LABELS: Record<string, string> = {
-  CASH: '现金券',
-  DISCOUNT: '折扣券',
-  NO_THRESHOLD_CASH: '无门槛现金券',
-};
 
 /**
  * 优惠券模板详情页:营销使用情况 + 相关订单记录(F-MKT-003)

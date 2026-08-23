@@ -3,12 +3,14 @@ import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import CouponService from '../../services/CouponService'
 import { authService } from '../../utils/auth'
-import { UserCouponStatus, UserCouponVo, formatDateTime } from '@aquarush/common'
 import {
+  UserCouponStatus,
+  UserCouponVo,
+  formatDateTime,
   getCouponDiscountText,
   getCouponStatusLabel,
   getCouponThresholdText
-} from '../../utils/marketing'
+} from '@aquarush/common'
 import BasePageLayout, { EmptyState } from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 

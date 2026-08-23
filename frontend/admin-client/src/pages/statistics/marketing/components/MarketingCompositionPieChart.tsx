@@ -1,8 +1,8 @@
 import React from 'react';
-import { Card, Spin, Empty } from 'antd';
-import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { centsToYuan } from '@aquarush/common';
 import { BRAND_PRIMARY, COLOR_WARNING, COLOR_SUCCESS } from '../../../../config/theme';
+import ChartCard from '@/components/ChartCard';
 
 export interface CompositionSlice {
   name: string;
@@ -22,34 +22,33 @@ interface MarketingCompositionPieChartProps {
 const MarketingCompositionPieChart: React.FC<MarketingCompositionPieChartProps> = ({ data, loading }) => {
   const total = data.reduce((sum, slice) => sum + slice.value, 0);
   return (
-    <Card title="营销方式构成" style={{ marginTop: 24 }}>
-      <Spin spinning={loading}>
-        {total > 0 ? (
-          <ResponsiveContainer width="100%" height={320}>
-            <PieChart>
-              <Pie
-                data={data}
-                dataKey="value"
-                nameKey="name"
-                cx="50%"
-                cy="50%"
-                innerRadius={60}
-                outerRadius={100}
-                paddingAngle={2}
-              >
-                {data.map((slice) => (
-                  <Cell key={slice.name} fill={slice.color} />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => `¥${Number(value ?? 0).toFixed(2)}`} />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        ) : (
-          <Empty description="所选范围暂无让利数据" style={{ padding: '48px 0' }} />
-        )}
-      </Spin>
-    </Card>
+    <ChartCard
+      title="营销方式构成"
+      loading={loading}
+      height={320}
+      empty={total <= 0}
+      emptyText="所选范围暂无让利数据"
+      style={{ marginTop: 24 }}
+    >
+      <PieChart>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          cx="50%"
+          cy="50%"
+          innerRadius={60}
+          outerRadius={100}
+          paddingAngle={2}
+        >
+          {data.map((slice) => (
+            <Cell key={slice.name} fill={slice.color} />
+          ))}
+        </Pie>
+        <Tooltip formatter={(value) => `¥${Number(value ?? 0).toFixed(2)}`} />
+        <Legend />
+      </PieChart>
+    </ChartCard>
   );
 };
 

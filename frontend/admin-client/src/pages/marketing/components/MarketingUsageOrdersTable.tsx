@@ -4,6 +4,7 @@ import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
 import { OrderStatus, displayCents, formatDateTime } from '@aquarush/common';
 import type { Order, OrderVoPage } from '@aquarush/common';
+import { pagination } from '@/utils/table';
 
 const getStatusColor = (status: OrderStatus) => {
   switch (status) {
@@ -160,13 +161,11 @@ const MarketingUsageOrdersTable: React.FC<MarketingUsageOrdersTableProps> = ({
       columns={columns}
       dataSource={content}
       loading={loading}
-      pagination={{
+      pagination={pagination(orders?.totalElements ?? 0, {
         current: page + 1,
         pageSize: size,
-        total: orders?.totalElements ?? 0,
         showSizeChanger: true,
-        showTotal: (t) => `共 ${t} 条`,
-      }}
+      })}
       onChange={onTableChange}
       scroll={{ x: 1100 }}
     />

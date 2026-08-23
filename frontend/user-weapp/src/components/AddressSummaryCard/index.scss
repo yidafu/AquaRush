@@ -1,0 +1,30 @@
+.address-summary-card {
+  .address-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .address-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+
+      .receiver-name {
+        font-size: 30px;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+
+      .receiver-phone {
+        font-size: 26px;
+        color: var(--text-sub);
+      }
+    }
+
+    .address-detail {
+      font-size: 26px;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+  }
+}

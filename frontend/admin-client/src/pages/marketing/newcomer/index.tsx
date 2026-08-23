@@ -12,6 +12,7 @@ import {
   useDisableFirstOrderActivity,
 } from '../../../services/marketing-graphql';
 import FirstOrderFormModal, { type FirstOrderFormPayload } from './components/FirstOrderFormModal';
+import { pagination } from '@/utils/table';
 
 const { Text } = Typography;
 
@@ -186,13 +187,11 @@ const Newcomer: React.FC = () => {
         columns={columns}
         dataSource={activities}
         loading={loading}
-        pagination={{
+        pagination={pagination(total, {
           current: page + 1,
           pageSize: size,
-          total,
           showSizeChanger: true,
-          showTotal: (t) => `共 ${t} 条`,
-        }}
+        })}
         onChange={handleTableChange}
         scroll={{ x: 1200 }}
       />

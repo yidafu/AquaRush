@@ -1,15 +1,17 @@
 import React from 'react';
 import { Card, Descriptions, Tag, Space } from 'antd';
 import { ShoppingCartOutlined } from '@ant-design/icons';
-import { useOrderDetail, ORDER_STATUS_MAP, formatDateTime } from '../OrderDetailContext';
+import { useOrderDetail, formatDateTime } from '../OrderDetailContext';
 import { displayCents, normalizeCents } from '@aquarush/common'
+import { getOrderStatusConfig } from '../../../../constants/order';
+import { toneToAntDColor } from '../../../../constants/status';
 
 const OrderInfoCard: React.FC = () => {
   const { order } = useOrderDetail();
 
   if (!order) return null;
 
-  const statusInfo = ORDER_STATUS_MAP[order.status] || { text: order.status, color: 'default' };
+  const { text: statusText, tone: statusTone } = getOrderStatusConfig(order.status);
 
   return (
     <Card
@@ -24,7 +26,7 @@ const OrderInfoCard: React.FC = () => {
       <Descriptions column={{ xs: 1, sm: 2 }} bordered size="small">
         <Descriptions.Item label="订单编号">{order.orderNo}</Descriptions.Item>
         <Descriptions.Item label="订单状态">
-          <Tag color={statusInfo.color}>{statusInfo.text}</Tag>
+          <Tag color={toneToAntDColor[statusTone]}>{statusText}</Tag>
         </Descriptions.Item>
         <Descriptions.Item label="订单金额">
           {displayCents(normalizeCents(order.amountCents))}

@@ -7,6 +7,7 @@ import {
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
+import { isGraphQLNullBubbleError } from '@aquarush/common/utils/network';
 import { message } from 'antd';
 
 // HTTP 连接到 GraphQL 服务器
@@ -42,17 +43,21 @@ const errorLink = onError(({ graphQLErrors, networkError }) => {
   }
 
   if (graphQLErrors) {
-    graphQLErrors.forEach(({ message: errorMessage, extensions }) => {
-      // 处理认证错误
-      if (extensions?.code === 'UNAUTHENTICATED') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userInfo');
-        window.location.href = '/login';
-        return;
-      }
-      // 显示其他 GraphQL 错误
-      message.error(errorMessage || 'GraphQL 请求失败');
-    });
+    graphQLErrors
+      // 过滤 graphql-java 非空字段空值冒泡机制错误(如
+      // "The field at path ... was declared as a non null type ..."),避免弹出无意义 toast
+      .filter(err => !isGraphQLNullBubbleError(err))
+      .forEach(({ message: errorMessage, extensions }) => {
+        // 处理认证错误
+        if (extensions?.code === 'UNAUTHENTICATED') {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userInfo');
+          window.location.href = '/login';
+          return;
+        }
+        // 显示其他 GraphQL 错误
+        message.error(errorMessage || 'GraphQL 请求失败');
+      });
   }
 });
 
@@ -140,21 +145,24 @@ export const useErrorHandler = () => {
     }
 
     if (error?.graphQLErrors) {
-      error.graphQLErrors.forEach((err: any) => {
-        switch (err.extensions?.code) {
-          case 'UNAUTHENTICATED':
-            message.error('登录已过期，请重新登录');
-            localStorage.removeItem('token');
-            localStorage.removeItem('userInfo');
-            window.location.href = '/login';
-            break;
-          case 'FORBIDDEN':
-            message.error('权限不足');
-            break;
-          default:
-            message.error(err.message || '操作失败');
-        }
-      });
+      error.graphQLErrors
+        // 过滤 graphql-java 非空字段空值冒泡机制错误,避免弹出无意义 toast
+        .filter((err: any) => !isGraphQLNullBubbleError(err))
+        .forEach((err: any) => {
+          switch (err.extensions?.code) {
+            case 'UNAUTHENTICATED':
+              message.error('登录已过期，请重新登录');
+              localStorage.removeItem('token');
+              localStorage.removeItem('userInfo');
+              window.location.href = '/login';
+              break;
+            case 'FORBIDDEN':
+              message.error('权限不足');
+              break;
+            default:
+              message.error(err.message || '操作失败');
+          }
+        });
     }
   };
 };

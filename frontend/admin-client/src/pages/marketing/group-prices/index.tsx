@@ -3,8 +3,9 @@ import { Card, Table, Button, Space, Select, InputNumber, Modal, Alert, Typograp
 import type { ColumnsType } from 'antd/es/table';
 import { useLazyQuery } from '@apollo/client';
 import { displayCents, centsToYuan, yuanToCents } from '@aquarush/common';
-import type { Product } from '@aquarush/common';
+import type { CustomerGroup, GroupProductPrice, Product } from '@aquarush/common';
 import { GET_PRODUCTS_QUERY } from '../../../graphql/queries/product.graphql';
+import { pagination } from '@/utils/table';
 import {
   useCustomerGroups,
   useGroupProductPrices,
@@ -62,9 +63,9 @@ const GroupPrices: React.FC = () => {
     if (products.length === 0) return;
     // 过滤保证价格属于当前分组,避免切换分组时旧分组价格瞬闪
     const prices = (pricesData?.groupProductPrices?.content ?? []).filter(
-      (p) => groupId == null || String(p.customerGroupId) === groupId,
+      (p: GroupProductPrice) => groupId == null || String(p.customerGroupId) === groupId,
     );
-    const configured = new Map(prices.map((p) => [p.productId, p.priceCents]));
+    const configured = new Map(prices.map((p: GroupProductPrice) => [p.productId, p.priceCents]));
     setRows(
       products.map((product: Product) => ({
         productId: String(product.id),
@@ -129,7 +130,6 @@ const GroupPrices: React.FC = () => {
           min={0.01}
           max={99999}
           precision={2}
-          allowClear
           placeholder="不设置=回退目录价"
           style={{ width: 150 }}
           value={record.priceYuan}
@@ -191,14 +191,14 @@ const GroupPrices: React.FC = () => {
           onChange={handleGroupChange}
           showSearch
           optionFilterProp="label"
-          options={groups.map((g) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
+          options={groups.map((g: CustomerGroup) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
         />
         <Table<PriceRow>
           rowKey="productId"
           columns={columns}
           dataSource={rows}
           loading={productsLoading || pricesLoading}
-          pagination={{ pageSize: 20, showSizeChanger: true, showTotal: (t) => `共 ${t} 条` }}
+          pagination={pagination(rows.length, { pageSize: 20, showSizeChanger: true })}
           scroll={{ x: 900 }}
         />
       </Space>

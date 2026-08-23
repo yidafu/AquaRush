@@ -1,12 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, Button, Space, message } from 'antd';
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import dayjs, { Dayjs } from 'dayjs';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
+import { PromotionActivityType, PromotionScope } from '@aquarush/common';
 import type {
+  CustomerGroup,
   PromotionActivity,
-  PromotionActivityType,
-  PromotionScope,
   PromotionTierInput,
 } from '@aquarush/common';
 import ProductSelect from '../../../../components/ProductSelect';
@@ -72,8 +72,8 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
     if (!record) {
       form.resetFields();
       form.setFieldsValue({
-        activityType: 'FULL_REDUCE',
-        scope: 'ALL',
+        activityType: PromotionActivityType.FULL_REDUCE,
+        scope: PromotionScope.ALL,
         tiers: [{ thresholdYuan: 0 }],
       });
       return;
@@ -143,6 +143,7 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
   const groups = groupsData?.customerGroups?.content ?? [];
 
   return (
+// TODO(Phase4): 弹窗外壳可复用 FormModal + useFormModal(编辑X/新建X/confirmLoading/destroyOnClose),见 ops/banners/BannerFormModal 迁移示例;字段与 payload 转换保留本页。
     <Modal
       title={record ? '编辑活动' : '新建活动'}
       open={open}
@@ -179,7 +180,7 @@ const PromotionFormModal: React.FC<Props> = ({ open, record, submitting, onCance
             <Select
               showSearch
               optionFilterProp="label"
-              options={groups.map((g) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
+              options={groups.map((g: CustomerGroup) => ({ value: String(g.id), label: `${g.name}(${g.memberCount}人)` }))}
               placeholder="选择客户分组"
             />
           </Form.Item>

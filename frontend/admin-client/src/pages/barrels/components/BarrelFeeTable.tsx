@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
 import type { BarrelFee } from '../../../types/barrel';
 import { FEE_STATUS_MAP } from './constants';
+import { pagination } from '@/utils/table';
 
 export interface BarrelFeeTableProps {
   dataSource: BarrelFee[];
@@ -102,13 +103,11 @@ const BarrelFeeTable: React.FC<BarrelFeeTableProps> = ({
         loading={loading}
         rowKey="id"
         scroll={{ x: 800 }}
-        pagination={{
+        pagination={pagination(total, {
           current: page + 1,
           pageSize: 10,
-          total,
           onChange: (p) => onPageChange(p - 1),
-          showTotal: (total) => `共 ${total} 条`,
-        }}
+        })}
       />
     </>
   );

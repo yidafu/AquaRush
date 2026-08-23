@@ -5,6 +5,7 @@ import { GET_DAILY_COLLECTIONS } from '../../../../../graphql/queries/daily-coll
 import type { DailyCollectionRecord, DailyCollectionStatus } from '../../../../../types/daily-collection';
 import { displayCents } from '@aquarush/common';
 import dayjs from 'dayjs';
+import { pagination } from '@/utils/table';
 
 interface DailyCollectionSectionProps {
   /** 配送身份 id(送水员档案并入 admins 单表后=账号 id;F-USR-021/023) */
@@ -163,7 +164,7 @@ const DailyCollectionSection: React.FC<DailyCollectionSectionProps> = ({ deliver
         dataSource={records}
         rowKey="id"
         loading={loading}
-        pagination={{ pageSize: 10, showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条/共 ${total} 条` }}
+        pagination={pagination(records.length, { pageSize: 10, showTotal: 'range' })}
         scroll={{ x: 1000 }}
         locale={{ emptyText: <Empty description="该账号暂无收款日报" /> }}
       />

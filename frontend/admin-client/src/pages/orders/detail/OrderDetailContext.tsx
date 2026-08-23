@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
 import { useQuery, useMutation } from '@apollo/client';
+import { extractErrorMessage } from '@aquarush/common/utils/network';
 import { message } from 'antd';
 import { ORDER_DETAIL_PAGE_DATA_QUERY } from '../../../graphql/queries/order.graphql';
 import { ASSIGN_DELIVERY_WORKER_MUTATION } from '../../../graphql/mutations/order.graphql';
@@ -79,14 +80,8 @@ export interface DeliveryWorker {
   avatarUrl?: string;
 }
 
-export const ORDER_STATUS_MAP: Record<string, { text: string; color: string }> = {
-  PENDING_PAYMENT: { text: '待支付', color: 'default' },
-  PENDING_DELIVERY: { text: '待配送', color: 'blue' },
-  DELIVERING: { text: '配送中', color: 'processing' },
-  COMPLETED: { text: '已完成', color: 'green' },
-  CANCELLED: { text: '已取消', color: 'red' },
-  REFUNDED: { text: '已退款', color: 'magenta' },
-};
+// 注:订单状态文本/tone 统一来自 constants/order.ts(common ORDER_STATUS_TEXT +
+// ORDER_STATUS_TONE),颜色经 constants/status.ts toneToAntDColor 桥接,勿在页面重定义。
 
 interface OrderDetailContextType {
   // Order data
@@ -184,7 +179,7 @@ export const OrderDetailProvider: React.FC<OrderDetailProviderProps> = ({ childr
       // Refresh order data
       refreshOrder();
     } catch (err: any) {
-      message.error(err.message || '分配配送员失败');
+      message.error(extractErrorMessage(err, '分配配送员失败'));
     }
   }, [selectedWorkerId, isSelfCollect, orderId, assignDeliveryWorkerMutation, refreshOrder]);
 

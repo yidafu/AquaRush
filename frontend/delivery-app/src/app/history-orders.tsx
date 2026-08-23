@@ -1,122 +1,113 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Alert, FlatList, RefreshControl, StyleSheet, View } from 'react-native';
+import { FlatList, RefreshControl, StyleSheet, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams } from 'expo-router';
-import { OrderStatus } from '@aquarush/common';
+import { OrderStatus, ORDER_STATUS_TEXT, usePagedList } from '@aquarush/common';
 
 import { EmptyState } from '@/components/empty-state';
 import { Input } from '@/components/input';
+import { ListFooterStatus } from '@/components/list-footer-status';
 import { OrderCard, type OrderCardData } from '@/components/order-card';
 import { SegmentedTabs, type SegmentedTabItem } from '@/components/segmented-tabs';
-import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { getDeliveryWorkerHistoryOrders } from '@/services/delivery';
 
 const PAGE_SIZE = 20;
 
-const TAB_LIST: { title: string; status?: OrderStatus }[] = [
-  { title: '全部' },
-  { title: '已完成', status: OrderStatus.COMPLETED },
-  { title: '已取消', status: OrderStatus.CANCELLED },
-  { title: '已退款', status: OrderStatus.REFUNDED },
+// 历史订单 Tab:全部/已完成/已取消/已退款 —— 标题取 common ORDER_STATUS_TEXT(单来源)
+const HISTORY_STATUSES: (OrderStatus | null)[] = [
+  null,
+  OrderStatus.COMPLETED,
+  OrderStatus.CANCELLED,
+  OrderStatus.REFUNDED,
 ];
+
+const TAB_LIST: SegmentedTabItem[] = HISTORY_STATUSES.map((status) => ({
+  title: status == null ? '全部' : ORDER_STATUS_TEXT[status],
+}));
 
 export default function HistoryOrdersScreen() {
   const { tab } = useLocalSearchParams<{ tab?: string }>();
 
-  const [currentTab, setCurrentTab] = useState(0);
-  const [orders, setOrders] = useState<OrderCardData[]>([]);
+  const [currentTab, setCurrentTab] = useState(() => {
+    if (tab === undefined) return 0;
+    const index = parseInt(tab, 10);
+    return !Number.isNaN(index) && index >= 0 && index < TAB_LIST.length ? index : 0;
+  });
   const [keyword, setKeyword] = useState('');
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
   const keywordRef = useRef('');
 
-  // 统计页深链：?tab=0/1/2（今日总订单→全部、已完成→已完成、未完成→已取消）
+  const {
+    items: orders,
+    loading,
+    refreshing,
+    loadingMore,
+    hasMore,
+    refresh,
+    loadMore,
+    setParams,
+  } = usePagedList<OrderCardData>({
+    fetchPage: async (page, params) => {
+      const { status, keyword: kw } = params as { status?: OrderStatus; keyword?: string };
+      const res = await getDeliveryWorkerHistoryOrders(status, kw || undefined, page, PAGE_SIZE);
+      const data = res?.deliveryWorkerHistoryOrders;
+      return {
+        items: [...(data?.content ?? [])] as OrderCardData[],
+        hasMore: (data?.totalPages ?? 0) > page + 1,
+      };
+    },
+    // 统计页深链:?tab=0/1/2(今日总订单→全部、已完成→已完成、未完成→已取消)
+    initialParams: {
+      status: HISTORY_STATUSES[currentTab],
+      keyword: '',
+    },
+  });
+
+  // Tab 深链参数变化(如从统计页跳转后再次进入)时切换并回到第一页
   useEffect(() => {
     if (tab === undefined) return;
     const index = parseInt(tab, 10);
-    if (!Number.isNaN(index) && index >= 0 && index < TAB_LIST.length) {
+    if (!Number.isNaN(index) && index >= 0 && index < TAB_LIST.length && index !== currentTab) {
       setCurrentTab(index);
-      setPage(0);
-      setOrders([]);
-      setHasMore(true);
+      setParams({ status: HISTORY_STATUSES[index], keyword: keywordRef.current }).catch(() => {});
     }
-  }, [tab]);
+  }, [tab, currentTab, setParams]);
 
-  const loadHistoryOrders = useCallback(
-    async (reset: boolean) => {
-      const currentPage = reset ? 0 : page;
-      const status = TAB_LIST[currentTab].status;
-      try {
-        setLoading(true);
-        const res = await getDeliveryWorkerHistoryOrders(
-          status,
-          keywordRef.current || undefined,
-          currentPage,
-          PAGE_SIZE,
-        );
-        const data = res?.deliveryWorkerHistoryOrders;
-        if (data) {
-          const content = [...(data.content ?? [])] as OrderCardData[];
-          setOrders((prev) => (reset ? content : [...prev, ...content]));
-          setHasMore(currentPage + 1 < data.totalPages);
-          setPage(currentPage + 1);
-        }
-      } catch (e) {
-        console.error('加载历史订单失败:', e);
-        Alert.alert('加载失败');
-      } finally {
-        setLoading(false);
-      }
-    },
-    [page, currentTab],
-  );
-
+  // 首屏由 usePagedList 自动加载;再次聚焦时刷新(返回本页取最新数据)
+  const firstFocus = useRef(true);
   useFocusEffect(
     useCallback(() => {
-      setPage(0);
-      setOrders([]);
-      setHasMore(true);
-      loadHistoryOrders(true).catch(() => {});
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [currentTab]),
+      if (firstFocus.current) {
+        firstFocus.current = false;
+        return;
+      }
+      refresh().catch(() => {});
+    }, [refresh]),
   );
 
   const handleTabClick = useCallback(
     (index: number) => {
       if (index === currentTab) return;
       setCurrentTab(index);
-      setPage(0);
-      setOrders([]);
-      setHasMore(true);
+      setParams({ status: HISTORY_STATUSES[index], keyword: keywordRef.current }).catch(() => {});
     },
-    [currentTab],
+    [currentTab, setParams],
   );
 
   const handleSearch = useCallback(() => {
     keywordRef.current = keyword.trim();
-    setPage(0);
-    setOrders([]);
-    setHasMore(true);
-    loadHistoryOrders(true).catch(() => {});
-  }, [keyword, loadHistoryOrders]);
+    setParams({ status: HISTORY_STATUSES[currentTab], keyword: keywordRef.current }).catch(
+      () => {},
+    );
+  }, [keyword, currentTab, setParams]);
 
-  const handleRefresh = useCallback(async () => {
-    setRefreshing(true);
-    try {
-      await loadHistoryOrders(true);
-    } finally {
-      setRefreshing(false);
-    }
-  }, [loadHistoryOrders]);
+  const handleRefresh = useCallback(() => {
+    refresh().catch(() => {});
+  }, [refresh]);
 
   const handleLoadMore = useCallback(() => {
-    if (!loading && hasMore) {
-      loadHistoryOrders(false).catch(() => {});
-    }
-  }, [loading, hasMore, loadHistoryOrders]);
+    loadMore().catch(() => {});
+  }, [loadMore]);
 
   return (
     <ThemedView type="pageBackground" style={styles.container}>
@@ -131,11 +122,7 @@ export default function HistoryOrdersScreen() {
         />
       </View>
       <View style={styles.tabs}>
-        <SegmentedTabs
-          current={currentTab}
-          tabs={TAB_LIST as SegmentedTabItem[]}
-          onChange={handleTabClick}
-        />
+        <SegmentedTabs current={currentTab} tabs={TAB_LIST} onChange={handleTabClick} />
       </View>
       <FlatList
         data={orders}
@@ -147,23 +134,15 @@ export default function HistoryOrdersScreen() {
         onEndReachedThreshold={0.3}
         ListEmptyComponent={
           loading ? null : (
-            <EmptyState
-              icon={<ThemedText style={styles.emptyIcon}>📋</ThemedText>}
-              title="暂无历史订单"
-              description="下拉可刷新"
-            />
+            <EmptyState icon="📋" title="暂无历史订单" description="下拉可刷新" />
           )
         }
         ListFooterComponent={
-          loading ? (
-            <ThemedText type="caption" themeColor="textTertiary" style={styles.footer}>
-              加载中...
-            </ThemedText>
-          ) : !hasMore && orders.length > 0 ? (
-            <ThemedText type="caption" themeColor="textTertiary" style={styles.footer}>
-              没有更多了
-            </ThemedText>
-          ) : null
+          <ListFooterStatus
+            loading={loading || loadingMore}
+            noMore={!hasMore}
+            hasItems={orders.length > 0}
+          />
         }
       />
     </ThemedView>
@@ -189,13 +168,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     paddingBottom: Spacing.six,
     flexGrow: 1,
-  },
-  emptyIcon: {
-    fontSize: 28,
-    lineHeight: 32,
-  },
-  footer: {
-    textAlign: 'center',
-    paddingVertical: Spacing.three,
   },
 });

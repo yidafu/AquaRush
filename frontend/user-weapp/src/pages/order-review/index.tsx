@@ -103,11 +103,7 @@ const OrderReview: React.FC = () => {
         /* 已评价只读展示(一单一评,R-EVL-01) */
         <View className='review-card'>
           <View className='review-card-title'>我的评价</View>
-          <View className='stars'>
-            {[1, 2, 3, 4, 5].map(star => (
-              <Text key={star} className={`star ${star <= existingReview.rating ? 'active' : ''}`}>★</Text>
-            ))}
-          </View>
+          <StarRating rating={existingReview.rating} />
           {existingReview.comment && (
             <Text className='comment-text'>{existingReview.comment}</Text>
           )}
@@ -122,17 +118,7 @@ const OrderReview: React.FC = () => {
           {/* 星级评分(1-5) */}
           <View className='form-section'>
             <Text className='section-title'>服务评分</Text>
-            <View className='stars picker'>
-              {[1, 2, 3, 4, 5].map(star => (
-                <Text
-                  key={star}
-                  className={`star ${star <= rating ? 'active' : ''}`}
-                  onClick={() => setRating(star)}
-                >
-                  ★
-                </Text>
-              ))}
-            </View>
+            <StarRating rating={rating} readonly={false} onChange={setRating} />
             <Text className='section-desc'>为本次配送的送水工评分</Text>
           </View>
 

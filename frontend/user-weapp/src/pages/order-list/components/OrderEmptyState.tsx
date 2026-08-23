@@ -1,8 +1,5 @@
 import React from 'react'
-import { View, Text, Image } from '@tarojs/components'
-import { AtButton } from 'taro-ui'
-
-import './OrderEmptyState.scss'
+import EmptyState from '../../../components/EmptyState'
 
 interface OrderEmptyStateProps {
   /** 是否「全部」Tab(仅全部 Tab 展示「去逛逛」按钮) */
@@ -13,27 +10,17 @@ interface OrderEmptyStateProps {
 }
 
 /**
- * 订单列表空态:空图 + 文案 + 「去逛逛」按钮(仅全部 Tab)
+ * 订单列表空态:空图 + 文案 + 「去逛逛」按钮(仅全部 Tab;渲染统一走共享 EmptyState)
  */
 const OrderEmptyState: React.FC<OrderEmptyStateProps> = ({ isAllTab, tabTitle, onGoShopping }) => {
   return (
-    <View className='empty-container'>
-      <Image src='/assets/empty-order.png' mode='aspectFit' className='empty-image' />
-      <Text className='empty-text'>暂无订单</Text>
-      <Text className='empty-desc'>
-        {isAllTab ? '您还没有任何订单哦' : `暂无${tabTitle}订单`}
-      </Text>
-      {isAllTab && (
-        <AtButton
-          type='primary'
-          size='normal'
-          onClick={onGoShopping}
-          className='go-shopping-button'
-        >
-          去逛逛
-        </AtButton>
-      )}
-    </View>
+    <EmptyState
+      image='/assets/empty-order.png'
+      title='暂无订单'
+      description={isAllTab ? '您还没有任何订单哦' : `暂无${tabTitle}订单`}
+      actionText={isAllTab ? '去逛逛' : undefined}
+      onAction={isAllTab ? onGoShopping : undefined}
+    />
   )
 }
 

@@ -9,10 +9,15 @@ import OrderService, { CreateOrderRequest, OrderItemInput } from '../../services
 import NotificationService from '../../services/NotificationService'
 import ConfigService from '../../services/ConfigService'
 import { Address } from '../../types/address'
-import { DeliverySlotVo, DeliveryTimeSlot, normalizeCents, OrderPreviewVo } from '@aquarush/common'
+import {
+  DeliverySlotVo,
+  DeliveryTimeSlot,
+  normalizeCents,
+  OrderPreviewVo,
+  maxTicketRedeem
+} from '@aquarush/common'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import { removeSelectedCartItems, syncCartTabBadge } from '../../utils/cart'
-import { maxTicketRedeem } from '../../utils/orderCost'
 import {
   DEFAULT_DELIVERY_SLOTS,
   enabledDeliverySlots,
@@ -155,7 +160,7 @@ const OrderConfirm: React.FC = () => {
   // 与地址加载并行发出(非串行,单次轻量查询);失败/离线时保持兜底默认,不阻塞下单流程
   const loadDeliverySlots = useCallback(async (): Promise<void> => {
     try {
-      const result = await ConfigService.getInstance().getDeliverySlots()
+      const result = await ConfigService.getDeliverySlots()
       if (result.success && result.data && result.data.length > 0) {
         setDeliverySlots(result.data)
       }

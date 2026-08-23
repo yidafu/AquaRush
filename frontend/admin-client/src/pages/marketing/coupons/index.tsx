@@ -3,8 +3,8 @@ import { Table, Tag, Space, Button, Card, Popconfirm, Input } from 'antd';
 import { PlusOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import { useNavigate } from 'react-router-dom';
-import { displayCents, formatDateTime } from '@aquarush/common';
-import type { CouponTemplate } from '@aquarush/common';
+import { displayCents, formatDateTime, COUPON_TYPE_LABELS } from '@aquarush/common';
+import type { CouponTemplate, CouponType } from '@aquarush/common';
 import {
   useCouponTemplates,
   useCreateCouponTemplate,
@@ -13,12 +13,7 @@ import {
 } from '../../../services/marketing-graphql';
 import CouponFormModal, { type CouponFormPayload } from './components/CouponFormModal';
 import IssueCouponModal from './components/IssueCouponModal';
-
-const COUPON_TYPE_LABELS: Record<string, string> = {
-  CASH: '现金券',
-  DISCOUNT: '折扣券',
-  NO_THRESHOLD_CASH: '无门槛现金券',
-};
+import { pagination } from '@/utils/table';
 
 // 优惠券管理页(F-MKT-003):列表/新建/编辑/停用/定向发放/详情(使用情况与相关订单)
 const Coupons: React.FC = () => {
@@ -98,7 +93,7 @@ const Coupons: React.FC = () => {
       title: '类型',
       dataIndex: 'couponType',
       width: 120,
-      render: (type: string) => <Tag color="blue">{COUPON_TYPE_LABELS[type] ?? type}</Tag>,
+      render: (type: string) => <Tag color="blue">{COUPON_TYPE_LABELS[type as CouponType] ?? type}</Tag>,
     },
     {
       title: '面额或折扣率',
@@ -192,13 +187,11 @@ const Coupons: React.FC = () => {
         columns={columns}
         dataSource={templates}
         loading={loading}
-        pagination={{
+        pagination={pagination(total, {
           current: page + 1,
           pageSize: size,
-          total,
           showSizeChanger: true,
-          showTotal: (t) => `共 ${t} 条`,
-        }}
+        })}
         onChange={handleTableChange}
         scroll={{ x: 1500 }}
       />

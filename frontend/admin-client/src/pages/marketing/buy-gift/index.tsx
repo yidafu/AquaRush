@@ -12,6 +12,7 @@ import {
   useDisableGiftActivity,
 } from '../../../services/marketing-graphql';
 import GiftActivityFormModal, { type GiftFormPayload } from './components/GiftActivityFormModal';
+import { pagination } from '@/utils/table';
 
 const { Text } = Typography;
 
@@ -181,13 +182,11 @@ const BuyGift: React.FC = () => {
         columns={columns}
         dataSource={activities}
         loading={loading}
-        pagination={{
+        pagination={pagination(total, {
           current: page + 1,
           pageSize: size,
-          total,
           showSizeChanger: true,
-          showTotal: (t) => `共 ${t} 条`,
-        }}
+        })}
         onChange={handleTableChange}
         scroll={{ x: 1200 }}
       />

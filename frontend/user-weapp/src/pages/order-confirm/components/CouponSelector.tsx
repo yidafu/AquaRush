@@ -4,12 +4,10 @@ import {
   CouponOptionVo,
   UserCouponVo,
   displayCents,
+  getCouponDiscountText,
+  getCouponThresholdText,
   normalizeCents
 } from '@aquarush/common'
-import {
-  getCouponDiscountText,
-  getCouponThresholdText
-} from '../../../utils/marketing'
 import './CouponSelector.scss'
 
 interface CouponSelectorProps {

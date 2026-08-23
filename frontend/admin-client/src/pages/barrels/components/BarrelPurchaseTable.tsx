@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import { displayCents } from '@aquarush/common';
 import type { BarrelPurchase } from '../../../types/barrel';
 import { PURCHASE_STATUS_MAP } from './constants';
+import { pagination } from '@/utils/table';
 
 export interface BarrelPurchaseTableProps {
   dataSource: BarrelPurchase[];
@@ -124,13 +125,11 @@ const BarrelPurchaseTable: React.FC<BarrelPurchaseTableProps> = ({
         loading={loading}
         rowKey="id"
         scroll={{ x: 1100 }}
-        pagination={{
+        pagination={pagination(total, {
           current: page + 1,
           pageSize: 10,
-          total,
           onChange: (p) => onPageChange(p - 1),
-          showTotal: (total) => `共 ${total} 条`,
-        }}
+        })}
       />
     </>
   );

@@ -63,7 +63,7 @@ export function AssignWorkerSheet({
               {worker.onlineStatus === DeliveryWorkerStatus.ONLINE ? (
                 <StatusBadge label="在线" tone="success" />
               ) : (
-                <StatusBadge label="离线" tone="processing" />
+                <StatusBadge label="离线" tone="info" />
               )}
               {isCurrent ? <StatusBadge label="当前" tone="accent" /> : null}
             </View>

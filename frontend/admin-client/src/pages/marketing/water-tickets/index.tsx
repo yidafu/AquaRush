@@ -13,6 +13,7 @@ import {
   useDisableTicketType,
 } from '../../../services/marketing-graphql';
 import TicketTypeFormModal, { type TicketTypeFormPayload } from './components/TicketTypeFormModal';
+import { pagination } from '@/utils/table';
 
 // 桶水票票种管理页(F-MKT-007):列表/新建/编辑/停用/详情统计图表(独立页面)
 const WaterTickets: React.FC = () => {
@@ -188,13 +189,11 @@ const WaterTickets: React.FC = () => {
         columns={columns}
         dataSource={ticketTypes}
         loading={loading}
-        pagination={{
+        pagination={pagination(total, {
           current: page + 1,
           pageSize: size,
-          total,
           showSizeChanger: true,
-          showTotal: (t) => `共 ${t} 条`,
-        }}
+        })}
         onChange={handleTableChange}
         scroll={{ x: 1200 }}
       />

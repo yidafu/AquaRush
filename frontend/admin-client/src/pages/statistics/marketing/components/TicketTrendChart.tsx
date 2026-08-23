@@ -1,5 +1,4 @@
 import React from 'react';
-import { Card, Spin, Empty } from 'antd';
 import {
   LineChart,
   Line,
@@ -8,9 +7,9 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
 } from 'recharts';
 import { BRAND_PRIMARY, COLOR_ERROR } from '../../../../config/theme';
+import ChartCard from '@/components/ChartCard';
 
 export interface TicketTrendPoint {
   date: string;
@@ -30,28 +29,27 @@ interface TicketTrendChartProps {
 const TicketTrendChart: React.FC<TicketTrendChartProps> = ({ data, loading }) => {
   const hasData = data.some((p) => p.sales > 0 || p.redeemed > 0);
   return (
-    <Card title="水票销售与核销趋势" style={{ marginTop: 24 }}>
-      <Spin spinning={loading}>
-        {hasData ? (
-          <ResponsiveContainer width="100%" height={320}>
-            <LineChart data={data} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-              <YAxis tick={{ fontSize: 12 }} />
-              <Tooltip
-                labelFormatter={(label) => `日期: ${label}`}
-                formatter={(value, name) => [`${Number(value ?? 0)} 张`, String(name)]}
-              />
-              <Legend />
-              <Line type="monotone" dataKey="sales" name="销售张数" stroke={BRAND_PRIMARY} strokeWidth={2} dot={{ r: 2 }} />
-              <Line type="monotone" dataKey="redeemed" name="核销张数" stroke={COLOR_ERROR} strokeWidth={2} dot={{ r: 2 }} />
-            </LineChart>
-          </ResponsiveContainer>
-        ) : (
-          <Empty description="所选范围暂无水票数据" style={{ padding: '48px 0' }} />
-        )}
-      </Spin>
-    </Card>
+    <ChartCard
+      title="水票销售与核销趋势"
+      loading={loading}
+      height={320}
+      empty={!hasData}
+      emptyText="所选范围暂无水票数据"
+      style={{ marginTop: 24 }}
+    >
+      <LineChart data={data} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+        <YAxis tick={{ fontSize: 12 }} />
+        <Tooltip
+          labelFormatter={(label) => `日期: ${label}`}
+          formatter={(value, name) => [`${Number(value ?? 0)} 张`, String(name)]}
+        />
+        <Legend />
+        <Line type="monotone" dataKey="sales" name="销售张数" stroke={BRAND_PRIMARY} strokeWidth={2} dot={{ r: 2 }} />
+        <Line type="monotone" dataKey="redeemed" name="核销张数" stroke={COLOR_ERROR} strokeWidth={2} dot={{ r: 2 }} />
+      </LineChart>
+    </ChartCard>
   );
 };
 

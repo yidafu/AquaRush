@@ -1,6 +1,10 @@
-import React, { useState, useMemo } from 'react';
-import { Card, Row, Col, Input, Select, Button, DatePicker } from 'antd';
-import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
+import React from 'react';
+import { Row, Col, Input, Select, DatePicker } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import { ORDER_STATUS_TEXT } from '@aquarush/common';
+import type { OrderStatus } from '@aquarush/common';
+import FilterCard from '@/components/FilterCard';
+import { useDebouncedFilters } from '@/hooks/useDebouncedFilters';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -23,88 +27,59 @@ interface OrderFiltersProps {
   onFiltersChange?: (filters: OrderFilters) => void;
 }
 
+// 订单状态下拉:文本统一来自 common ORDER_STATUS_TEXT(含 7 态,与后端 OrderStatus 枚举一致)
+const STATUS_OPTIONS = (Object.keys(ORDER_STATUS_TEXT) as OrderStatus[]).map((value) => ({
+  value,
+  label: ORDER_STATUS_TEXT[value],
+}));
+
 export const OrderFilters: React.FC<OrderFiltersProps> = ({
   filters = {},
   onFiltersChange
 }) => {
-  const [localFilters, setLocalFilters] = useState<OrderFilters>(filters);
-
-  const debouncedFilterChange = useMemo(() => {
-    let timeoutId: number;
-    return (newFilters: OrderFilters) => {
-      clearTimeout(timeoutId);
-      timeoutId = window.setTimeout(() => {
-        onFiltersChange?.(newFilters);
-      }, 300);
-    };
-  }, [onFiltersChange]);
+  // 本地状态 + 300ms 防抖(搜索字段防抖,状态/日期/金额即时);reset 回默认
+  const { filters: localFilters, setFilters, reset } = useDebouncedFilters<OrderFilters>({
+    initial: filters,
+    onFiltersChange,
+  });
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFilters = { ...localFilters, search: e.target.value };
-    setLocalFilters(newFilters);
-    debouncedFilterChange(newFilters);
+    setFilters({ ...localFilters, search: e.target.value });
   };
 
   const handleStatusChange = (status: string) => {
-    const newFilters = { ...localFilters, status: status === 'ALL' ? undefined : status };
-    setLocalFilters(newFilters);
-    onFiltersChange?.(newFilters);
+    setFilters(
+      { ...localFilters, status: status === 'ALL' ? undefined : status },
+      { immediate: true },
+    );
   };
 
-  const handleDateRangeChange = (_dates: any, dateStrings: [string, string]) => {
-    const newFilters = {
-      ...localFilters,
-      dateFrom: dateStrings[0] || undefined,
-      dateTo: dateStrings[1] || undefined,
-    };
-    setLocalFilters(newFilters);
-    onFiltersChange?.(newFilters);
+  const handleDateRangeChange = (_dates: unknown, dateStrings: [string, string]) => {
+    setFilters(
+      {
+        ...localFilters,
+        dateFrom: dateStrings[0] || undefined,
+        dateTo: dateStrings[1] || undefined,
+      },
+      { immediate: true },
+    );
   };
 
   const handleAmountRangeChange = (index: number, value: number | null) => {
     const newAmountRange = [localFilters.minAmount, localFilters.maxAmount] as [number | undefined, number | undefined];
     newAmountRange[index] = value || undefined;
-    const newFilters = {
-      ...localFilters,
-      minAmount: newAmountRange[0],
-      maxAmount: newAmountRange[1],
-    };
-    setLocalFilters(newFilters);
-    onFiltersChange?.(newFilters);
-  };
-
-  const handleReset = () => {
-    const emptyFilters: OrderFilters = {
-      search: '',
-      status: undefined,
-      userId: undefined,
-      dateFrom: undefined,
-      dateTo: undefined,
-      minAmount: undefined,
-      maxAmount: undefined,
-      deliveryWorkerId: undefined,
-      sortBy: 'createdAt',
-      sortOrder: 'desc',
-    };
-    setLocalFilters(emptyFilters);
-    onFiltersChange?.(emptyFilters);
+    setFilters(
+      {
+        ...localFilters,
+        minAmount: newAmountRange[0],
+        maxAmount: newAmountRange[1],
+      },
+      { immediate: true },
+    );
   };
 
   return (
-    <Card
-      size="small"
-      style={{ marginBottom: 16 }}
-      title="筛选条件"
-      extra={
-        <Button
-          icon={<ClearOutlined />}
-          size="small"
-          onClick={handleReset}
-        >
-          重置
-        </Button>
-      }
-    >
+    <FilterCard onReset={reset}>
       <Row gutter={16}>
         <Col xs={24} sm={12} md={6}>
           <div style={{ marginBottom: 8 }}>
@@ -133,12 +108,11 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
               placeholder="选择状态"
             >
               <Option value="ALL">全部</Option>
-              <Option value="PENDING_PAYMENT">待支付</Option>
-              <Option value="PENDING_DELIVERY">待配送</Option>
-              <Option value="DELIVERING">配送中</Option>
-              <Option value="COMPLETED">已完成</Option>
-              <Option value="CANCELLED">已取消</Option>
-              <Option value="REFUNDED">已退款</Option>
+              {STATUS_OPTIONS.map((option) => (
+                <Option key={option.value} value={option.value}>
+                  {option.label}
+                </Option>
+              ))}
             </Select>
           </div>
         </Col>
@@ -183,7 +157,7 @@ export const OrderFilters: React.FC<OrderFiltersProps> = ({
         </Col>
 
       </Row>
-    </Card>
+    </FilterCard>
   );
 };
 

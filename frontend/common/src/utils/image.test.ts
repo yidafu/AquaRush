@@ -1,17 +1,39 @@
 /**
- * image 工具单测:buildUrl 与 GitHub identicon 风格默认头像生成
+ * image 工具单测:resolveAssetUrl 与 GitHub identicon 风格默认头像生成
  */
 import { describe, expect, it } from '@jest/globals'
-import { avatarFromName, buildUrl } from './image'
+import { avatarFromName, resolveAssetUrl } from './image'
 
-describe('buildUrl', () => {
-  it('以 / 开头的相对路径拼接后端地址', () => {
-    expect(buildUrl('/static/avatar/1.png')).toBe('http://127.0.0.1:8080/static/avatar/1.png')
+describe('resolveAssetUrl', () => {
+  it('以 / 开头的相对路径拼接 baseUrl', () => {
+    expect(resolveAssetUrl('/files/1.png', 'http://localhost:9090')).toBe(
+      'http://localhost:9090/files/1.png'
+    )
   })
 
-  it('完整 URL 原样返回', () => {
-    expect(buildUrl('https://cdn.example.com/a.png')).toBe('https://cdn.example.com/a.png')
-    expect(buildUrl('http://localhost:9090/x')).toBe('http://localhost:9090/x')
+  it('localhost/127.0.0.1 主机重写到 baseUrl 的 origin', () => {
+    expect(resolveAssetUrl('http://localhost:9090/api/v1/storage/files/1.png', 'http://10.0.2.2:9090')).toBe(
+      'http://10.0.2.2:9090/api/v1/storage/files/1.png'
+    )
+    expect(resolveAssetUrl('http://127.0.0.1:8080/a.png?x=1', 'https://api.example.com/graphql')).toBe(
+      'https://api.example.com/a.png?x=1'
+    )
+  })
+
+  it('完整 URL(非 localhost)原样返回', () => {
+    expect(resolveAssetUrl('https://cdn.example.com/a.png', 'http://localhost:9090')).toBe(
+      'https://cdn.example.com/a.png'
+    )
+  })
+
+  it('null / undefined / 空串返回 undefined', () => {
+    expect(resolveAssetUrl(null, 'http://localhost:9090')).toBeUndefined()
+    expect(resolveAssetUrl(undefined, 'http://localhost:9090')).toBeUndefined()
+    expect(resolveAssetUrl('', 'http://localhost:9090')).toBeUndefined()
+  })
+
+  it('非法 URL 原样返回', () => {
+    expect(resolveAssetUrl('not a url', 'http://localhost:9090')).toBe('not a url')
   })
 })
 

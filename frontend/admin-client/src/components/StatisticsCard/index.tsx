@@ -6,25 +6,33 @@ import { COLOR_SUCCESS, COLOR_ERROR, TEXT_SECONDARY } from '../../config/theme';
 interface StatisticsCardProps {
   title: string;
   value: number | string;
+  /** 统计项图标(渲染为 Statistic prefix;未提供时可用 prefix) */
+  icon?: React.ReactNode;
   prefix?: React.ReactNode;
   suffix?: string;
   precision?: number;
+  size?: 'small' | 'default';
   trend?: 'up' | 'down' | 'neutral';
   trendValue?: number | null;
   trendLabel?: string;
   loading?: boolean;
+  /** 覆盖默认趋势色(如需要品牌色/红绿强调时传入) */
+  valueStyle?: React.CSSProperties;
 }
 
 const StatisticsCard: React.FC<StatisticsCardProps> = ({
   title,
   value,
+  icon,
   prefix,
   suffix,
   precision,
+  size,
   trend = 'neutral',
   trendValue,
   trendLabel = '较昨日',
   loading = false,
+  valueStyle,
 }) => {
   const getTrendIcon = () => {
     if (trend === 'up') return <ArrowUpOutlined />;
@@ -41,14 +49,14 @@ const StatisticsCard: React.FC<StatisticsCardProps> = ({
   const showTrendLine = trendValue !== undefined;
 
   return (
-    <Card loading={loading}>
+    <Card loading={loading} size={size}>
       <Statistic
         title={title}
         value={value}
-        prefix={prefix}
+        prefix={prefix ?? icon}
         suffix={suffix}
         precision={precision}
-        valueStyle={{ color: getTrendColor() }}
+        valueStyle={valueStyle ?? { color: getTrendColor() }}
       />
       {showTrendLine && (
         <span style={{ color: getTrendColor(), fontSize: 14 }}>

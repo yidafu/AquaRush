@@ -24,9 +24,10 @@ describe('每日收款常量', () => {
     });
   });
 
-  it('状态 tone 映射完整(DRAFT 无 tone,走纯文本渲染)', () => {
+  it('状态 tone 映射完整(从 common re-export,DRAFT 为 neutral)', () => {
     expect(DAILY_COLLECTION_STATUS_TONE).toEqual({
-      SUBMITTED: 'processing',
+      DRAFT: 'neutral',
+      SUBMITTED: 'info',
       CONFIRMED: 'success',
       DISPUTED: 'error',
     });
@@ -43,7 +44,7 @@ describe('每日收款常量', () => {
       PENDING: 'warning',
       MATCHED: 'success',
       DISCREPANCY: 'error',
-      REVIEWED: 'processing',
+      REVIEWED: 'info',
     });
   });
 });

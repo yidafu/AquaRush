@@ -8,6 +8,7 @@ import { afterEach, describe, expect, it, jest } from '@jest/globals'
 import NetworkManager, {
   GraphQLError,
   NetworkError,
+  extractErrorMessage,
   type AuthHandler,
   type RequestHandler,
 } from './network'
@@ -127,6 +128,45 @@ describe('GraphQL 错误处理', () => {
     })
   })
 
+  it('errors 含非空字段空值冒泡机制错误时过滤,只保留业务错误消息', async () => {
+    const handler = makeRequestHandler()
+    const nullBubbleMessage =
+      "The field at path '/assignDeliveryWorker' was declared as a non null type, but the code involved in retrieving data has wrongly returned a null value. The graphql specification requires that the parent field be set to null, or if that is non nullable that it bubble up null to its parent and so on. The non-nullable type is 'Order' within parent type 'Mutation'"
+    handler.request = jest.fn(async () => ({
+      statusCode: 200,
+      data: {
+        errors: [
+          { message: '订单状态不正确，仅待派单订单可分配配送员' },
+          { message: nullBubbleMessage },
+        ],
+      },
+    }))
+    const manager = new NetworkManager({ baseURL: BASE_URL }, makeAuth(), handler)
+
+    await expect(manager.query('{ me { id } }')).rejects.toMatchObject({
+      name: 'GraphQLError',
+      message: 'GraphQL Error: 订单状态不正确，仅待派单订单可分配配送员',
+    })
+  })
+
+  it('errors 全部为机制错误时仍抛错且不吞掉消息', async () => {
+    const handler = makeRequestHandler()
+    handler.request = jest.fn(async () => ({
+      statusCode: 200,
+      data: {
+        errors: [
+          { message: "Cannot return null for non-nullable field Mutation.assignDeliveryWorker." },
+        ],
+      },
+    }))
+    const manager = new NetworkManager({ baseURL: BASE_URL }, makeAuth(), handler)
+
+    await expect(manager.query('{ me { id } }')).rejects.toMatchObject({
+      name: 'GraphQLError',
+      message: 'GraphQL Error: Cannot return null for non-nullable field Mutation.assignDeliveryWorker.',
+    })
+  })
+
   it('响应体无 data 抛出 GraphQLError', async () => {
     const handler = makeRequestHandler()
     handler.request = jest.fn(async () => ({ statusCode: 200, data: { errors: undefined } }))
@@ -162,6 +202,32 @@ describe('GraphQL 错误处理', () => {
       name: 'NetworkError',
       message: 'Request timeout',
     })
+  })
+})
+
+describe('extractErrorMessage', () => {
+  const nullBubbleMessage =
+    "The field at path '/assignDeliveryWorker' was declared as a non null type, but the code involved in retrieving data has wrongly returned a null value. The non-nullable type is 'Order' within parent type 'Mutation'"
+
+  it('Apollo 风格错误(graphQLErrors 含机制错误)只返回业务消息', () => {
+    const apolloError = {
+      graphQLErrors: [
+        { message: '订单状态不正确，仅待派单订单可分配配送员' },
+        { message: nullBubbleMessage },
+      ],
+    }
+    expect(extractErrorMessage(apolloError, '分配配送员失败')).toBe(
+      '订单状态不正确，仅待派单订单可分配配送员'
+    )
+  })
+
+  it('普通 Error 直接返回 message', () => {
+    expect(extractErrorMessage(new Error('boom'), 'fallback')).toBe('boom')
+  })
+
+  it('无 message 时返回 fallback', () => {
+    expect(extractErrorMessage(null, 'fallback')).toBe('fallback')
+    expect(extractErrorMessage({ code: 500 }, 'fallback')).toBe('fallback')
   })
 })
 

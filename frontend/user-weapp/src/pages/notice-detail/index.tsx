@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, Image } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import Taro, { useRouter } from '@tarojs/taro'
 import { Notice } from '@aquarush/common'
 import NoticeService from '../../services/NoticeService'
+import StatusTag from '../../components/StatusTag'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 import './index.scss'
 
@@ -81,7 +82,7 @@ const NoticeDetailPage: React.FC = () => {
                 className={`notice-list-item ${notice.id === selected?.id ? 'notice-list-item-active' : ''}`}
                 onClick={() => setSelectedId(notice.id)}
               >
-                {notice.pinned && <Text className='notice-pin-tag'>置顶</Text>}
+                {notice.pinned && <StatusTag tone='warning' text='置顶' size='small' />}
                 <Text className='notice-list-title' numberOfLines={1}>
                   {notice.title}
                 </Text>

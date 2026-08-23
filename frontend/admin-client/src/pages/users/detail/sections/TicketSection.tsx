@@ -3,8 +3,13 @@ import { Card, Select, Table, Tag, Empty, Alert } from 'antd';
 import { useQuery } from '@apollo/client';
 import { USER_TICKETS_QUERY } from '../../../../graphql/queries/user.graphql';
 import type { UserTicketVo, UserTicketStatus } from '@aquarush/common';
-import { UserTicketStatus as UserTicketStatusEnum } from '@aquarush/common';
-import { formatDateTime } from '@aquarush/common';
+import {
+  TICKET_STATUS_LABELS,
+  TICKET_STATUS_TONE,
+  UserTicketStatus as UserTicketStatusEnum,
+  formatDateTime,
+} from '@aquarush/common';
+import { getToneColor } from '../../../../constants/status';
 
 interface TicketSectionProps {
   userId: string;
@@ -12,25 +17,11 @@ interface TicketSectionProps {
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: '全部' },
-  { value: UserTicketStatusEnum.UNUSED, label: '未使用' },
-  { value: UserTicketStatusEnum.USED, label: '已使用' },
+  { value: UserTicketStatusEnum.UNUSED, label: '未用' },
+  { value: UserTicketStatusEnum.USED, label: '已核销' },
   { value: UserTicketStatusEnum.RETURNED, label: '已退回' },
   { value: UserTicketStatusEnum.EXPIRED, label: '已过期' },
 ];
-
-const STATUS_COLORS: Record<string, string> = {
-  UNUSED: 'processing',
-  USED: 'success',
-  RETURNED: 'warning',
-  EXPIRED: 'default',
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  UNUSED: '未使用',
-  USED: '已使用',
-  RETURNED: '已退回',
-  EXPIRED: '已过期',
-};
 
 /**
  * 用户详情页「水票」Tab(F-MKT-007):展示该用户持有的桶水票,支持状态筛选。
@@ -88,7 +79,7 @@ const TicketSection: React.FC<TicketSectionProps> = ({ userId }) => {
       key: 'status',
       width: 100,
       render: (s: UserTicketStatus) => (
-        <Tag color={STATUS_COLORS[s]}>{STATUS_LABELS[s] ?? s}</Tag>
+        <Tag color={getToneColor(TICKET_STATUS_TONE[s])}>{TICKET_STATUS_LABELS[s] ?? s}</Tag>
       ),
     },
     {

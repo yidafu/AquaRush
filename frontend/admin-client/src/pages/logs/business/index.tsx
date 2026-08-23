@@ -5,6 +5,7 @@ import { useBusinessLogs } from '../../../services/log-graphql';
 import BusinessLogTimeline, { OPERATION_CONFIG, DOMAIN_OPERATIONS } from '../../../components/BusinessLogTimeline';
 import { BusinessLogFilters, BusinessLogTable, BusinessLogDetailModal } from './components';
 import type { BizLogFilters } from './components/constants';
+import { pagination } from '@/utils/table';
 
 const BusinessLogs: React.FC = () => {
   const [filters, setFilters] = useState<BizLogFilters>({});
@@ -96,11 +97,11 @@ const BusinessLogs: React.FC = () => {
             <BusinessLogTimeline logs={list} loading={loading} />
           </Card>
           <Pagination
-            current={pageNum + 1}
-            pageSize={10}
-            total={pageInfo?.total ?? 0}
-            onChange={(page) => setPageNum(page - 1)}
-            showTotal={(total) => `共 ${total} 条记录`}
+            {...pagination(pageInfo?.total ?? 0, {
+              current: pageNum + 1,
+              pageSize: 10,
+              onChange: (page) => setPageNum(page - 1),
+            })}
             style={{ marginTop: 16, textAlign: 'right' }}
           />
         </>

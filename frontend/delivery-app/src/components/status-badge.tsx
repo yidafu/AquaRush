@@ -1,36 +1,26 @@
 import { StyleSheet, View } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { ORDER_STATUS_MAP } from '@/constants/order';
 import { Radius, Spacing, StatusTints, type StatusTone } from '@/constants/theme';
 import { useColorScheme } from '@/hooks/use-color-scheme';
-
-/** 订单状态 → 标签 tone 的映射。见 docs/ui-spec.md §2。 */
-export const STATUS_TONE: Record<string, StatusTone> = {
-  PENDING_DISPATCH: 'processing',
-  PENDING_DELIVERY: 'processing',
-  DELIVERING: 'success',
-  COMPLETED: 'success',
-  CANCELLED: 'error',
-  REFUNDED: 'warning',
-  PENDING_PAYMENT: 'warning',
-};
+import { getStatusView } from '@aquarush/common/utils/order-status';
 
 interface StatusBadgeProps {
-  /** 订单状态 key，自动取文案与 tone */
+  /** 订单状态 key，自动取文案与 tone（common getStatusView，单来源） */
   status?: string;
-  /** 覆盖文案（如「自收」） */
+  /** 覆盖文案（如「自收」「草稿」等非订单状态） */
   label?: string;
   /** 覆盖 tone */
   tone?: StatusTone;
 }
 
-/** 订单状态标签：10% tint 底 + 状态色文字。 */
+/** 订单状态标签：10% tint 底 + 状态色文字。见 docs/ui-spec.md §2。 */
 export function StatusBadge({ status, label, tone }: StatusBadgeProps) {
   const scheme = useColorScheme();
   const tints = StatusTints[scheme === 'dark' ? 'dark' : 'light'];
-  const resolvedTone = tone ?? (status ? STATUS_TONE[status] : undefined);
-  const resolvedLabel = label ?? (status ? ORDER_STATUS_MAP[status] ?? status : undefined);
+  const view = getStatusView(status);
+  const resolvedTone = tone ?? view.tone;
+  const resolvedLabel = label ?? view.text ?? status;
 
   if (!resolvedTone || !resolvedLabel) return null;
 

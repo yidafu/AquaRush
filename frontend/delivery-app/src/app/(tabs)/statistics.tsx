@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Money, centsToYuan } from '@aquarush/common';
@@ -7,17 +7,13 @@ import type { TodayStatistics, WeekStatistics } from '@aquarush/common';
 
 import { Card } from '@/components/card';
 import { StatCard } from '@/components/stat-card';
+import { StatCardGrid } from '@/components/stat-card-grid';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { WeekLineChart } from '@/components/week-line-chart';
 import { Spacing } from '@/constants/theme';
 import { getTodayStatistics, getWeekStatistics } from '@/services/delivery';
-
-function getTodayDate(): string {
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-}
+import { todayDateString } from '@/utils/date';
 
 export default function StatisticsScreen() {
   const router = useRouter();
@@ -80,10 +76,10 @@ export default function StatisticsScreen() {
           contentContainerStyle={styles.content}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
           <ThemedText type="small" themeColor="textSecondary">
-            {getTodayDate()}
+            {todayDateString()}
           </ThemedText>
 
-          <View style={styles.cards}>
+          <StatCardGrid>
             <StatCard
               label="今日总订单"
               value={<ThemedText type="subtitle">{statistics?.totalOrders ?? 0}</ThemedText>}
@@ -108,7 +104,7 @@ export default function StatisticsScreen() {
                 </ThemedText>
               }
             />
-          </View>
+          </StatCardGrid>
 
           <Card
             title="近7天统计"
@@ -144,11 +140,6 @@ const styles = StyleSheet.create({
   content: {
     gap: Spacing.three,
     paddingBottom: Spacing.six,
-  },
-  cards: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.three,
   },
   tip: {
     textAlign: 'center',

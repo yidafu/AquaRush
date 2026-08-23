@@ -9,6 +9,7 @@ import { OrderFilters, OrderFilters as FilterType } from './components/OrderFilt
 import { OrderTable, BatchAssignModal } from './components';
 import type { OrdersQueryResult, OrderData } from './types';
 import { yuanToCents } from '@aquarush/common';
+import { pagination as createPagination } from '@/utils/table';
 
 const Orders: React.FC = () => {
   const navigate = useNavigate();
@@ -156,12 +157,12 @@ const Orders: React.FC = () => {
       <OrderTable
         dataSource={data?.orders?.content || []}
         loading={loading}
-        pagination={{
-          ...pagination,
+        pagination={createPagination(pagination.total, {
+          current: pagination.current,
+          pageSize: pagination.pageSize,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 条记录`,
-        }}
+        })}
         rowSelection={rowSelection}
         workers={workers}
         workersLoading={workersLoading}

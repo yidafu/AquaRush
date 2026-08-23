@@ -4,12 +4,15 @@ import Taro, { useDidShow, useReachBottom, usePullDownRefresh } from '@tarojs/ta
 import { AtLoadMore } from 'taro-ui'
 import FeedbackService from '../../services/FeedbackService'
 import { authService } from '../../utils/auth'
-import { FeedbackRecordVo, formatDateTime } from '@aquarush/common'
 import {
-  getFeedbackStatusColor,
+  FEEDBACK_STATUS_TONE,
+  FeedbackRecordVo,
+  formatDateTime,
   getFeedbackStatusLabel,
-  getFeedbackTypeLabel
-} from '../../utils/feedback'
+  getFeedbackTypeLabel,
+  getStatusTone
+} from '@aquarush/common'
+import StatusTag from '../../components/StatusTag'
 import BasePageLayout from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
@@ -116,12 +119,11 @@ const FeedbackRecordsPage: React.FC = () => {
           <View key={record.id} className='feedback-record-item'>
             <View className='feedback-record-header'>
               <Text className='feedback-record-type'>{getFeedbackTypeLabel(record.feedbackType)}</Text>
-              <Text
-                className='feedback-record-status'
-                style={{ color: getFeedbackStatusColor(record.status) }}
-              >
-                {getFeedbackStatusLabel(record.status)}
-              </Text>
+              <StatusTag
+                tone={getStatusTone(FEEDBACK_STATUS_TONE, record.status)}
+                text={getFeedbackStatusLabel(record.status)}
+                size='small'
+              />
             </View>
 
             <Text className='feedback-record-content'>{record.content}</Text>

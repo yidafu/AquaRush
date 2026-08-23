@@ -25,6 +25,7 @@ const NotificationDetailModal: React.FC<NotificationDetailModalProps> = ({
   const canResend = !!record && (record.channelStatus === 'FAILED' || record.channelStatus === 'PENDING');
 
   return (
+// TODO(Phase4): 外壳可复用 DetailModal(footer 走本插槽),见 logs/api/ApiLogDetailModal 迁移示例。
     <Modal
       title='消息详情'
       open={open}

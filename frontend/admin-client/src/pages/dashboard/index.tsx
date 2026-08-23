@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Button, Card, Col, DatePicker, Empty, Row, Segmented, Space, Spin, Tooltip } from 'antd';
+import { Alert, Button, Col, DatePicker, Row, Segmented, Space, Tooltip } from 'antd';
 import { ClockCircleOutlined, DollarOutlined, ShoppingCartOutlined } from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import { centsToYuan, normalizeCents } from '@aquarush/common';
@@ -230,33 +230,13 @@ const Dashboard: React.FC = () => {
 
       <Row gutter={16} style={{ marginTop: 24 }}>
         <Col span={24}>
-          <Card title={`${rangeLabel}营收趋势`}>
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: 50 }}>
-                <Spin />
-              </div>
-            ) : isEmpty ? (
-              <Empty description="所选范围暂无数据" style={{ padding: 50 }} />
-            ) : (
-              <DailyRevenueChart data={sliced} />
-            )}
-          </Card>
+          <DailyRevenueChart data={sliced} title={`${rangeLabel}营收趋势`} loading={loading} empty={isEmpty} />
         </Col>
       </Row>
 
       <Row gutter={16} style={{ marginTop: 16 }}>
         <Col span={24}>
-          <Card title={`${rangeLabel}订单数`}>
-            {loading ? (
-              <div style={{ textAlign: 'center', padding: 50 }}>
-                <Spin />
-              </div>
-            ) : isEmpty ? (
-              <Empty description="所选范围暂无数据" style={{ padding: 50 }} />
-            ) : (
-              <DailyOrderChart data={sliced} />
-            )}
-          </Card>
+          <DailyOrderChart data={sliced} title={`${rangeLabel}订单数`} loading={loading} empty={isEmpty} />
         </Col>
       </Row>
     </div>

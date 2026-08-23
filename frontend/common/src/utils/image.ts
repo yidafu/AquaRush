@@ -1,8 +1,26 @@
 import { md5 } from './md5';
 
-export function buildUrl(url: string) {
-  if (url.startsWith('/')) {
-    return 'http://127.0.0.1:8080' + url;
+/**
+ * 解析后端返回的资产 URL(相对路径拼接 + localhost/127.0.0.1 主机重写到当前服务基址)。
+ *
+ * 收敛来源:delivery-app src/utils/url.ts resolveAssetUrl(原实现)与
+ * 本模块旧 buildUrl(硬编码 127.0.0.1:8080,已退役)。baseUrl 由各端注入
+ * (API_BASE_URL / import.meta.env 基址),RN 真机/模拟器 localhost 不可达问题由此解决。
+ */
+export function resolveAssetUrl(
+  url: string | null | undefined,
+  baseUrl: string
+): string | undefined {
+  if (!url) return undefined;
+  if (url.startsWith('/')) return `${baseUrl}${url}`;
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname === 'localhost' || parsed.hostname === '127.0.0.1') {
+      const base = new URL(baseUrl);
+      return `${base.origin}${parsed.pathname}${parsed.search}`;
+    }
+  } catch {
+    // not a URL — return as-is
   }
   return url;
 }

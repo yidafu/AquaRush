@@ -27,7 +27,14 @@ const taroRequestHandler: RequestHandler = {
 // 关键点:silentLogin 必须接通 authService.silentLogin(),否则 401/UNAUTHORIZED 时
 // 共享 networkManager 只会清 token、不会拉起登录验证,请求直接抛错(用户看到裸 401)。
 export const createAuthHandler = (): AuthHandler => ({
-  getToken: () => authService.getToken(),
+  // 同步读存储(auth.ts storeAuth 已镜像写 auth_token;避免内存/存储不一致)
+  getToken: () => {
+    try {
+      return Taro.getStorageSync('auth_token') || null
+    } catch {
+      return null
+    }
+  },
   getTokenAsync: async () => {
     try {
       let token = Taro.getStorageSync('auth_token')

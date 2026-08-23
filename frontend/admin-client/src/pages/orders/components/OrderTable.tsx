@@ -2,17 +2,10 @@ import React from 'react';
 import { Table, Tag, Space, Button } from 'antd';
 import type { TableProps } from 'antd';
 import { displayCents } from '@aquarush/common';
+import { getOrderStatusConfig } from '../../../constants/order';
+import { toneToAntDColor } from '../../../constants/status';
 import AssignDeliveryButton from '../../../components/AssignDeliveryButton';
 import type { OrderData, DeliveryWorkerOption } from '../types';
-
-const ORDER_STATUS_MAP: Record<string, { text: string; color: string }> = {
-  PENDING_PAYMENT: { text: '待支付', color: 'default' },
-  PENDING_DELIVERY: { text: '待配送', color: 'blue' },
-  DELIVERING: { text: '配送中', color: 'processing' },
-  COMPLETED: { text: '已完成', color: 'green' },
-  CANCELLED: { text: '已取消', color: 'red' },
-  REFUNDED: { text: '已退款', color: 'magenta' },
-};
 
 export interface OrderTableProps {
   dataSource: OrderData[];
@@ -86,8 +79,8 @@ const OrderTable: React.FC<OrderTableProps> = ({
       dataIndex: 'status',
       key: 'status',
       render: (status: string) => {
-        const statusInfo = ORDER_STATUS_MAP[status] || { text: status, color: 'default' };
-        return <Tag color={statusInfo.color}>{statusInfo.text}</Tag>;
+        const { text, tone } = getOrderStatusConfig(status);
+        return <Tag color={toneToAntDColor[tone]}>{text}</Tag>;
       },
     },
     {

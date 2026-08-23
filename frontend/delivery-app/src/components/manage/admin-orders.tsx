@@ -1,13 +1,13 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { FlatList, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { OrderStatus } from '@aquarush/common';
+import { OrderStatus, ORDER_STATUS_TEXT } from '@aquarush/common';
 import type { Order, OrderVoPage } from '@aquarush/common';
 
 import { EmptyState } from '@/components/empty-state';
 import { Input } from '@/components/input';
+import { ListFooterStatus } from '@/components/list-footer-status';
 import { OrderCard } from '@/components/order-card';
 import { ThemedText } from '@/components/themed-text';
-import { ORDER_STATUS_MAP } from '@/constants/order';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getAdminOrders } from '@/services/admin';
@@ -16,7 +16,10 @@ const PAGE_SIZE = 20;
 
 const STATUS_OPTIONS: { label: string; value?: OrderStatus }[] = [
   { label: '全部' },
-  ...Object.values(OrderStatus).map((value) => ({ label: ORDER_STATUS_MAP[value] ?? value, value })),
+  ...Object.values(OrderStatus).map((value) => ({
+    label: ORDER_STATUS_TEXT[value] ?? value,
+    value,
+  })),
 ];
 
 export function AdminOrders() {
@@ -127,19 +130,15 @@ export function AdminOrders() {
       }
       ListEmptyComponent={
         loading ? null : (
-          <EmptyState
-            icon={<ThemedText style={styles.emptyIcon}>📦</ThemedText>}
-            title="暂无订单"
-            description="下拉刷新或调整筛选条件"
-          />
+          <EmptyState icon="📦" title="暂无订单" description="下拉刷新或调整筛选条件" />
         )
       }
       ListFooterComponent={
-        loadingMore ? (
-          <ThemedText type="caption" themeColor="textTertiary" style={styles.tip}>
-            加载更多...
-          </ThemedText>
-        ) : null
+        <ListFooterStatus
+          loading={loadingMore}
+          noMore={page >= totalPages - 1}
+          hasItems={orders.length > 0}
+        />
       }
     />
   );
@@ -176,9 +175,5 @@ const styles = StyleSheet.create({
   tip: {
     textAlign: 'center',
     paddingVertical: Spacing.two,
-  },
-  emptyIcon: {
-    fontSize: 28,
-    lineHeight: 32,
   },
 });

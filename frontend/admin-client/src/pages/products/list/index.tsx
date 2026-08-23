@@ -6,6 +6,7 @@ import { useQuery } from '@apollo/client';
 import { ProductTable } from '../components/ProductTable';
 import { ProductFilters } from '../components/ProductFilters';
 import { PRODUCTS_PAGE_DATA_QUERY } from '../../../graphql/queries/product.graphql';
+import { pagination } from '@/utils/table';
 
 const ProductListPage: React.FC = () => {
   const navigate = useNavigate();
@@ -81,14 +82,12 @@ const ProductListPage: React.FC = () => {
             ? { low: data.stockWarningThresholds.lowThreshold, mid: data.stockWarningThresholds.midThreshold }
             : { low: 10, mid: 50 }
         }
-        pagination={{
+        pagination={pagination(data?.productsPaginated?.pageInfo?.total || 0, {
           current: (data?.productsPaginated?.pageInfo?.pageNum || 0) + 1,
           pageSize: data?.productsPaginated?.pageInfo?.pageSize || 20,
-          total: data?.productsPaginated?.pageInfo?.total || 0,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 条记录`
-        }}
+        })}
         onViewDetail={handleViewDetail}
         onChange={(pagination) => {
           // Handle pagination and sorting

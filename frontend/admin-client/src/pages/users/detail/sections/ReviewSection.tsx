@@ -4,6 +4,7 @@ import { useQuery } from '@apollo/client';
 import { REVIEWS_BY_USER_QUERY } from '../../../../graphql/queries/user.graphql';
 import type { Review } from '@aquarush/common';
 import { formatDateTime } from '@aquarush/common';
+import { pagination } from '@/utils/table';
 
 interface ReviewSectionProps {
   userId: string;
@@ -74,17 +75,16 @@ const ReviewSection: React.FC<ReviewSectionProps> = ({ userId }) => {
         dataSource={reviews}
         rowKey="reviewId"
         loading={loading}
-        pagination={{
+        pagination={pagination(data?.reviewsByUser?.totalElements ?? 0, {
           current: page + 1,
           pageSize,
-          total: data?.reviewsByUser?.totalElements ?? 0,
           showSizeChanger: true,
-          showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
+          showTotal: 'range',
           onChange: (nextPage, nextPageSize) => {
             setPage(nextPage - 1);
             setPageSize(nextPageSize);
           },
-        }}
+        })}
         scroll={{ x: 800 }}
         locale={{ emptyText: <Empty description="该用户暂无评价记录" /> }}
       />

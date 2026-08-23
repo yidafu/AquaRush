@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { BottomSheet } from '@/components/bottom-sheet';
 import { Button } from '@/components/button';
 import { Input } from '@/components/input';
+import { OrderInfoRow } from '@/components/order-info-row';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
 import { formatCentsToCurrency } from '@aquarush/common';
@@ -34,12 +35,12 @@ export function DiffConfirmSheet({
   return (
     <BottomSheet visible={visible} onClose={onCancel} title="金额差异确认">
       <View style={styles.body}>
-        <ThemedText type="small">现金差异：{formatCentsToCurrency(cashDiffCents)}</ThemedText>
-        <ThemedText type="small">
-          水票差异：
-          {waterTicketDiff > 0 ? `+${waterTicketDiff}` : waterTicketDiff} 张
-        </ThemedText>
-        <ThemedText type="small">扫码差异：{formatCentsToCurrency(qrCodeDiffCents)}</ThemedText>
+        <OrderInfoRow label="现金差异" value={formatCentsToCurrency(cashDiffCents)} />
+        <OrderInfoRow
+          label="水票差异"
+          value={`${waterTicketDiff > 0 ? `+${waterTicketDiff}` : waterTicketDiff} 张`}
+        />
+        <OrderInfoRow label="扫码差异" value={formatCentsToCurrency(qrCodeDiffCents)} />
         <ThemedText type="small" themeColor="textSecondary" style={styles.label}>
           请输入差异原因说明：
         </ThemedText>

@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Input } from '@/components/input';
 import { ThemedText } from '@/components/themed-text';
-import { Radius, Spacing } from '@/constants/theme';
+import { LabelColumnWidth, Radius, Spacing } from '@/constants/theme';
 import { formatCentsToCurrency } from '@aquarush/common';
 import { useTheme } from '@/hooks/use-theme';
 
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     gap: Spacing.two,
   },
   formLabel: {
-    width: 76,
+    width: LabelColumnWidth,
     flexShrink: 0,
   },
   inputWrap: {

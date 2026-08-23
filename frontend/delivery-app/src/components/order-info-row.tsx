@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { StyleSheet, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { LabelColumnWidth, Spacing } from '@/constants/theme';
 
 interface OrderInfoRowProps {
   label: string;
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.one,
   },
   label: {
-    width: 76,
+    width: LabelColumnWidth,
     flexShrink: 0,
   },
   value: {

@@ -1,7 +1,7 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
-import { OrderPreviewVo } from '@aquarush/common'
-import { buildCostRows } from '../../../utils/orderCost'
+import { OrderPreviewVo, buildCostRows, orderCostFromPreview } from '@aquarush/common'
+import CostRowList from '../../../components/CostRowList'
 import './CostSummary.scss'
 
 interface CostSummaryProps {
@@ -26,7 +26,7 @@ const CostSummary: React.FC<CostSummaryProps> = ({
   loading = false,
   onRetry
 }) => {
-  const rows = preview ? buildCostRows(preview) : []
+  const rows = preview ? buildCostRows(orderCostFromPreview(preview)) : []
 
   return (
     <View className='cost-section'>
@@ -46,16 +46,7 @@ const CostSummary: React.FC<CostSummaryProps> = ({
       )}
 
       {rows.length > 0 ? (
-        rows.map(row => (
-          <View key={row.key} className={`cost-item${row.total ? ' total' : ''}`}>
-            <Text className='cost-label'>{row.label}</Text>
-            <Text
-              className={`cost-value${row.discount ? ' cost-discount' : ''}${row.total ? ' total-amount' : ''}`}
-            >
-              {row.value}
-            </Text>
-          </View>
-        ))
+        <CostRowList rows={rows} />
       ) : (
         !error && (
           <View className='cost-item'>

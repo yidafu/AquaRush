@@ -2,7 +2,7 @@ import type { RefObject } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { captureRef } from 'react-native-view-shot';
-import { formatCentsToCurrency, normalizeCents } from '@aquarush/common';
+import { formatCentsToCurrency, formatDateTime, normalizeCents } from '@aquarush/common';
 import type { Order } from '@aquarush/common';
 
 import { resolveAssetUrl } from '@/utils/url';
@@ -78,13 +78,6 @@ const COLORS = {
   footerBg: '#f8f8f8',
 };
 
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return '';
-  const date = new Date(dateStr);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
-}
-
 // 手机号脱敏：138****5678
 function maskPhone(phone?: string): string {
   if (!phone || phone.length < 7) return phone ?? '';
@@ -147,7 +140,7 @@ export function PosterView({ order }: { order: PosterOrderData }) {
       {/* 底部信息带 */}
       <View style={styles.footer}>
         <Text style={styles.footerText}>订单号: {order.orderNo || ''}</Text>
-        <Text style={styles.footerText}>下单时间: {formatDate(order.createdAt)}</Text>
+        <Text style={styles.footerText}>下单时间: {formatDateTime(order.createdAt)}</Text>
       </View>
     </View>
   );

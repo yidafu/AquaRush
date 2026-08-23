@@ -1,0 +1,47 @@
+// 费用明细行统一样式(收敛 CostSummary / OrderItemsCard 汇总块的重复 SCSS)
+.cost-row-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  .cost-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+
+    .cost-row-label {
+      font-size: 26px;
+      color: var(--text-sub);
+      flex-shrink: 0;
+    }
+
+    .cost-row-value {
+      font-size: 26px;
+      color: var(--text-main);
+      text-align: right;
+    }
+
+    .cost-row-value--discount {
+      color: var(--error);
+    }
+
+    &--total {
+      margin-top: 4px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+
+      .cost-row-label {
+        font-size: 28px;
+        font-weight: 600;
+        color: var(--text-main);
+      }
+
+      .cost-row-value--total {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--action);
+      }
+    }
+  }
+}

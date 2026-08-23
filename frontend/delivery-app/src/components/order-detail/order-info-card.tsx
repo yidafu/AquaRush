@@ -1,4 +1,4 @@
-import { Money } from '@aquarush/common';
+import { Money, formatDateTime } from '@aquarush/common';
 
 import { Card } from '@/components/card';
 import { OrderInfoRow } from '@/components/order-info-row';
@@ -15,13 +15,6 @@ interface OrderInfoCardProps {
     status?: string;
     paymentType?: string | null;
   };
-}
-
-function formatDateTime(dateStr?: string) {
-  if (!dateStr) return '-';
-  const date = new Date(dateStr);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 export function OrderInfoCard({ order }: OrderInfoCardProps) {

@@ -12,6 +12,7 @@ import {
   useReorderBanner,
 } from '../../../services/ops-graphql';
 import BannerFormModal, { type BannerFormPayload } from './components/BannerFormModal';
+import { pagination } from '@/utils/table';
 
 // 轮播图管理页(F-OPS-001):列表/新建/编辑/删除/上移下移/启用停用
 const Banners: React.FC = () => {
@@ -168,13 +169,11 @@ const Banners: React.FC = () => {
         columns={columns}
         dataSource={banners}
         loading={loading}
-        pagination={{
+        pagination={pagination(total, {
           current: page + 1,
           pageSize: size,
-          total,
           showSizeChanger: true,
-          showTotal: (t) => `共 ${t} 条`,
-        }}
+        })}
         onChange={handleTableChange}
       />
       <BannerFormModal

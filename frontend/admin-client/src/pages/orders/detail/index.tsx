@@ -16,7 +16,9 @@ import {
 } from '@ant-design/icons';
 import { useMutation } from '@apollo/client';
 import { CANCEL_ORDER_MUTATION } from '../../../graphql/mutations/order.graphql';
-import { OrderDetailProvider, useOrderDetail, ORDER_STATUS_MAP } from './OrderDetailContext';
+import { OrderDetailProvider, useOrderDetail } from './OrderDetailContext';
+import { getOrderStatusConfig } from '../../../constants/order';
+import { toneToAntDColor } from '../../../constants/status';
 import AssignDeliveryButton from '../../../components/AssignDeliveryButton';
 import OrderOperationTimeline from '../../../components/OrderOperationTimeline';
 import {
@@ -94,7 +96,7 @@ const OrderDetailContent: React.FC = () => {
     );
   }
 
-  const statusInfo = ORDER_STATUS_MAP[order.status] || { text: order.status, color: 'default' };
+  const { text: statusText, tone: statusTone } = getOrderStatusConfig(order.status);
   // 派单前置状态=待派单(R-ORD-01 状态机「待派单→配送中」,G09)
   const canAssign = order.status === 'PENDING_DISPATCH';
   // 可取消状态:待支付/待派单/待配送(已支付取消自动退款,配送中/已完成不可取消)
@@ -118,7 +120,7 @@ const OrderDetailContent: React.FC = () => {
           <Title level={3} style={{ margin: 0 }}>
             订单详情
           </Title>
-          <Tag color={statusInfo.color}>{statusInfo.text}</Tag>
+          <Tag color={toneToAntDColor[statusTone]}>{statusText}</Tag>
           {canAssign && (
             <AssignDeliveryButton
               orderId={order.id}

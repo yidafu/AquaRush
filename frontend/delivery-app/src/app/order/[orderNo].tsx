@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  ActivityIndicator,
   Alert,
   Platform,
   ScrollView,
@@ -11,6 +10,7 @@ import {
 import { useLocalSearchParams } from 'expo-router';
 
 import { Card } from '@/components/card';
+import { LoadingScreen } from '@/components/loading-screen';
 import { AddressCard } from '@/components/order-detail/address-card';
 import { AssignWorkerSheet } from '@/components/order-detail/assign-worker-sheet';
 import { CostSummaryCard } from '@/components/order-detail/cost-summary-card';
@@ -27,10 +27,9 @@ import { capturePosterView, toPosterOrderData } from '@/components/order-poster'
 import { StatusSteps } from '@/components/status-steps';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { ORDER_STATUS_MAP, getCurrentStep } from '@/constants/order';
 import { Spacing } from '@/constants/theme';
+import { useOrderDetail } from '@aquarush/common';
 import { useAuth } from '@/hooks/use-auth';
-import { useTheme } from '@/hooks/use-theme';
 import { assignDeliveryWorker, getDeliveryWorkers } from '@/services/admin';
 import { userActionTracker } from '@/utils/tracking';
 import { trajectoryReporter } from '@/utils/trajectory-reporter';
@@ -43,16 +42,13 @@ import {
   updateOrderAddress,
 } from '@/services/delivery';
 import { buildOrderDeepLink, shareOrderToWechat } from '@/services/wechat-share';
-import type { DeliveryWorker, Order, UpdateOrderAddressInput } from '@aquarush/common';
+import type { DeliveryWorker, UpdateOrderAddressInput } from '@aquarush/common';
 
 export default function OrderDetailScreen() {
   const { orderNo } = useLocalSearchParams<{ orderNo: string }>();
-  const theme = useTheme();
   const { isAdmin } = useAuth();
 
-  const [order, setOrder] = useState<Order | null>(null);
   const [operations, setOperations] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
   const [paymentSheetVisible, setPaymentSheetVisible] = useState(false);
 
@@ -78,34 +74,36 @@ export default function OrderDetailScreen() {
   // web 端按钮保持可见，点击提示「不支持」（wechat-sdk.web.ts 桩实现）
   const wechatConfigured = Platform.OS === 'web' || !!process.env.EXPO_PUBLIC_WECHAT_MOBILE_APP_ID;
 
-  const loadOrderDetail = useCallback(async () => {
-    if (!orderNo) {
-      Alert.alert('订单不存在');
-      return;
-    }
-    setLoading(true);
-    try {
+  // 订单详情/费用明细/状态派生 —— common useOrderDetail 统一编排(单来源)。
+  // 操作记录(getOrderOperations)不并入 Order 类型,单独按 order.id 拉取。
+  const { order, loading, error, refresh, status } = useOrderDetail(orderNo, {
+    fetchOrder: async () => {
+      if (!orderNo) return null;
       const res = await getOrderDetail(orderNo);
-      if (res?.orderByNo) {
-        setOrder(res.orderByNo);
-        if (res.orderByNo.id) {
-          const opsRes = await getOrderOperations(res.orderByNo.id);
-          if (opsRes?.orderOperations) {
-            setOperations(opsRes.orderOperations);
-          }
-        }
-      }
-    } catch (e) {
-      console.error('获取订单详情失败:', e);
-      Alert.alert('获取订单详情失败');
-    } finally {
-      setLoading(false);
-    }
-  }, [orderNo]);
+      return res?.orderByNo ?? null;
+    },
+  });
 
   useEffect(() => {
-    loadOrderDetail();
-  }, [loadOrderDetail]);
+    if (!order?.id) {
+      setOperations([]);
+      return;
+    }
+    let cancelled = false;
+    getOrderOperations(order.id)
+      .then((opsRes) => {
+        if (!cancelled) setOperations(opsRes?.orderOperations ?? []);
+      })
+      .catch((e) => console.error('获取订单操作记录失败:', e));
+    return () => {
+      cancelled = true;
+    };
+  }, [order?.id]);
+
+  // 加载失败提示(与原 loadOrderDetail 的 catch 行为一致)
+  useEffect(() => {
+    if (error) Alert.alert('获取订单详情失败');
+  }, [error]);
 
   // 轨迹上报(F-ADR-012,R-ADR-03):订单进入「配送中」自动启动持续定位上报,
   // 「完成配送/取消/退款」停止;页面卸载不停止(配送中会话级持续,App 重启后由根布局恢复)。
@@ -130,13 +128,13 @@ export default function OrderDetailScreen() {
     try {
       await acceptDelivery(order.id);
       Alert.alert('接单成功');
-      loadOrderDetail();
+      refresh();
     } catch (e: any) {
       Alert.alert(e?.message || '接单失败');
     } finally {
       setActionLoading(false);
     }
-  }, [order, loadOrderDetail]);
+  }, [order, refresh]);
 
   const handleStart = useCallback(async () => {
     if (!order) return;
@@ -144,13 +142,13 @@ export default function OrderDetailScreen() {
     try {
       await startDelivery(order.id);
       Alert.alert('开始配送成功');
-      loadOrderDetail();
+      refresh();
     } catch (e: any) {
       Alert.alert(e?.message || '开始配送失败');
     } finally {
       setActionLoading(false);
     }
-  }, [order, loadOrderDetail]);
+  }, [order, refresh]);
 
   const handlePaymentCollection = useCallback(
     async (paymentType: string | null) => {
@@ -174,14 +172,14 @@ export default function OrderDetailScreen() {
         Alert.alert('配送完成');
         setDeliveryPhotos([]);
         setDeliveryRemark('');
-        loadOrderDetail();
+        refresh();
       } catch (e: any) {
         Alert.alert(e?.message || '完成配送失败');
       } finally {
         setActionLoading(false);
       }
     },
-    [order, deliveryPhotos, deliveryRemark, loadOrderDetail],
+    [order, deliveryPhotos, deliveryRemark, refresh],
   );
 
   // 确认送达按钮:自收直接完成,否则打开收款方式选择
@@ -268,14 +266,14 @@ export default function OrderDetailScreen() {
         await assignDeliveryWorker(order.id, workerId, assignIsSelfCollect);
         setAssignSheetVisible(false);
         Alert.alert('分配成功');
-        loadOrderDetail();
+        refresh();
       } catch (e: any) {
         Alert.alert(e?.message || '分配送水员失败');
       } finally {
         setAssigning(false);
       }
     },
-    [order, assignIsSelfCollect, loadOrderDetail],
+    [order, assignIsSelfCollect, refresh],
   );
 
   const handleSaveAddress = useCallback(
@@ -286,23 +284,18 @@ export default function OrderDetailScreen() {
         await updateOrderAddress(order.id, input);
         setEditAddressVisible(false);
         Alert.alert('修改成功', '收货地址信息已更新');
-        loadOrderDetail();
+        refresh();
       } catch (e: any) {
         Alert.alert(e?.message || '修改地址信息失败');
       } finally {
         setSavingAddress(false);
       }
     },
-    [order, loadOrderDetail],
+    [order, refresh],
   );
 
   if (loading) {
-    return (
-      <ThemedView type="pageBackground" style={styles.center}>
-        <ActivityIndicator size="large" color={theme.primary} />
-        <ThemedText themeColor="textSecondary">加载中...</ThemedText>
-      </ThemedView>
-    );
+    return <LoadingScreen label="加载中..." />;
   }
 
   if (!order) {
@@ -320,11 +313,11 @@ export default function OrderDetailScreen() {
     <ThemedView type="pageBackground" style={styles.container}>
       <ScrollView contentContainerStyle={styles.content}>
         {!cancelledOrRefunded ? (
-          <StatusSteps current={getCurrentStep(order.status)} />
+          <StatusSteps current={status.step} />
         ) : (
           <Card>
             <ThemedText type="smallBold" themeColor="danger">
-              {ORDER_STATUS_MAP[order.status] ?? order.status}
+              {status.text ?? order.status}
             </ThemedText>
           </Card>
         )}

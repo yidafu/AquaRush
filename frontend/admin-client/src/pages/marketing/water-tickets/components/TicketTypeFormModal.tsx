@@ -1,9 +1,11 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, InputNumber, Radio, DatePicker } from 'antd';
+import { Form, Input, InputNumber, Radio, DatePicker } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
-import type { TicketType, TicketTypeKind, ValidityType } from '@aquarush/common';
+import { TicketTypeKind, ValidityType } from '@aquarush/common';
+import type { TicketType } from '@aquarush/common';
 import ProductSelect from '../../../../components/ProductSelect';
+import FormModal from '@/components/FormModal';
 
 const { RangePicker } = DatePicker;
 
@@ -64,7 +66,7 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
     if (!open) return;
     if (!record) {
       form.resetFields();
-      form.setFieldsValue({ ticketType: 'SPECIFIC_PRODUCT', validityType: 'FIXED_RANGE', perUserLimit: 0 });
+      form.setFieldsValue({ ticketType: TicketTypeKind.SPECIFIC_PRODUCT, validityType: ValidityType.FIXED_RANGE, perUserLimit: 0 });
       return;
     }
     form.setFieldsValue({
@@ -112,13 +114,13 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
   };
 
   return (
-    <Modal
-      title={record ? '编辑票种' : '新建票种'}
+    <FormModal
       open={open}
-      onOk={handleOk}
+      record={record}
+      submitting={submitting}
       onCancel={onCancel}
-      confirmLoading={submitting}
-      destroyOnClose
+      onOk={handleOk}
+      noun="票种"
       width={560}
     >
       <Form form={form} layout="vertical" preserve={false}>
@@ -239,7 +241,7 @@ const TicketTypeFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
           <InputNumber min={0} max={1000} precision={0} style={{ width: '100%' }} placeholder="0 = 不限购" />
         </Form.Item>
       </Form>
-    </Modal>
+    </FormModal>
   );
 };
 

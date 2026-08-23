@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker } from 'antd';
+import React, { useEffect } from 'react';
+import { Form, Input, InputNumber, Select, Radio, DatePicker } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
-import { centsToYuan, yuanToCents } from '@aquarush/common';
-import type { CouponTemplate, CouponType, CouponScope, ValidityType, CouponIssuanceType } from '@aquarush/common';
+import { centsToYuan, yuanToCents, COUPON_TYPE_LABELS } from '@aquarush/common';
+import { CouponType, CouponScope, ValidityType, CouponIssuanceType } from '@aquarush/common';
+import type { CouponTemplate } from '@aquarush/common';
 import ProductSelect from '../../../../components/ProductSelect';
+import FormModal from '@/components/FormModal';
 
 const { RangePicker } = DatePicker;
 
@@ -47,11 +49,10 @@ interface Props {
   onSubmit: (payload: CouponFormPayload, record: CouponTemplate | null) => void;
 }
 
-const COUPON_TYPE_OPTIONS = [
-  { value: 'CASH', label: '现金券' },
-  { value: 'DISCOUNT', label: '折扣券' },
-  { value: 'NO_THRESHOLD_CASH', label: '无门槛现金券' },
-];
+const COUPON_TYPE_OPTIONS = (Object.keys(COUPON_TYPE_LABELS) as CouponType[]).map((value) => ({
+  value,
+  label: COUPON_TYPE_LABELS[value],
+}));
 
 const SCOPE_OPTIONS = [
   { value: 'ALL', label: '全场' },
@@ -78,7 +79,7 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
     if (!open) return;
     if (!record) {
       form.resetFields();
-      form.setFieldsValue({ couponType: 'CASH', scope: 'ALL', validityType: 'FIXED_RANGE', issuanceType: 'AUTO_CLAIM' });
+      form.setFieldsValue({ couponType: CouponType.CASH, scope: CouponScope.ALL, validityType: ValidityType.FIXED_RANGE, issuanceType: CouponIssuanceType.AUTO_CLAIM });
       return;
     }
     form.setFieldsValue({
@@ -139,13 +140,13 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
   };
 
   return (
-    <Modal
-      title={record ? '编辑优惠券' : '新建优惠券'}
+    <FormModal
       open={open}
-      onOk={handleOk}
+      record={record}
+      submitting={submitting}
       onCancel={onCancel}
-      confirmLoading={submitting}
-      destroyOnClose
+      onOk={handleOk}
+      noun="优惠券"
       width={560}
     >
       <Form form={form} layout="vertical" preserve={false}>
@@ -265,7 +266,7 @@ const CouponFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
           <InputNumber min={1} max={100} precision={0} style={{ width: '100%' }} placeholder="如 1" />
         </Form.Item>
       </Form>
-    </Modal>
+    </FormModal>
   );
 };
 

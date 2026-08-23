@@ -74,6 +74,7 @@ const FlashSaleFormModal: React.FC<Props> = ({ open, record, submitting, onCance
   };
 
   return (
+// TODO(Phase4): 弹窗外壳可复用 FormModal + useFormModal(编辑X/新建X/confirmLoading/destroyOnClose),见 ops/banners/BannerFormModal 迁移示例;字段与 payload 转换保留本页。
     <Modal
       title={record ? '编辑特价活动' : '新建特价活动'}
       open={open}

@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, Select, Switch, DatePicker, Spin } from 'antd';
+import React, { useState } from 'react';
+import { Form, Input, Select, Switch, DatePicker, Spin } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
-import type { Notice, NoticeType } from '@aquarush/common';
+import { NoticeType } from '@aquarush/common';
+import type { Notice } from '@aquarush/common';
 import { useNotice } from '../../../../services/ops-graphql';
 import { NOTICE_TYPE_LABELS } from '../constants';
+import FormModal from '@/components/FormModal';
+import { useDetailBackfill } from '@/hooks/useDetailBackfill';
 
 const { RangePicker } = DatePicker;
 
@@ -38,40 +41,33 @@ export const NOTICE_TYPE_OPTIONS = Object.entries(NOTICE_TYPE_LABELS).map(([valu
 
 const NoticeFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, onSubmit }) => {
   const [form] = Form.useForm<FormValues>();
-  const [type, setType] = useState<NoticeType>('PLATFORM_NOTICE');
+  const [, setType] = useState<NoticeType>(NoticeType.PLATFORM_NOTICE);
   const [loadNotice, { data, error }] = useNotice();
 
-  // 编辑模式:打开弹窗后按 ID 拉取公告详情(回填数据源)
-  useEffect(() => {
-    if (!open || !record) return;
-    loadNotice({ variables: { id: record.id } });
-  }, [open, record, loadNotice]);
-
-  // 详情返回后再回填;查询失败退化为用列表记录回填;新建模式给默认值
-  useEffect(() => {
-    if (!open) return;
-    if (!record) {
+  // 编辑模式:按 ID 拉详情回填 + detailReady 禁提交(useDetailBackfill);字段映射保留在本页
+  const { ready: detailReady } = useDetailBackfill({
+    open,
+    record,
+    load: (id: string) => loadNotice({ variables: { id } }),
+    detail: data?.notice,
+    detailError: error,
+    applyDefaults: () => {
       form.resetFields();
-      form.setFieldsValue({ type: 'PLATFORM_NOTICE', pinned: false });
-      setType('PLATFORM_NOTICE');
-      return;
-    }
-    const detail = data?.notice;
-    const source = detail && detail.id === record.id ? detail : error ? record : null;
-    if (!source) return; // 详情未就绪
-    form.setFieldsValue({
-      title: source.title,
-      content: source.content,
-      type: source.type,
-      pinned: source.pinned,
-      timeWindow:
-        source.startAt && source.endAt ? [dayjs(source.startAt), dayjs(source.endAt)] : undefined,
-    });
-    setType(source.type);
-  }, [open, record, data, error, form]);
-
-  // 编辑模式且详情尚未返回(且未失败)时不可提交
-  const detailReady = !record || !!error || (!!data?.notice && data.notice.id === record.id);
+      form.setFieldsValue({ type: NoticeType.PLATFORM_NOTICE, pinned: false });
+      setType(NoticeType.PLATFORM_NOTICE);
+    },
+    backfill: (source) => {
+      form.setFieldsValue({
+        title: source.title,
+        content: source.content,
+        type: source.type,
+        pinned: source.pinned,
+        timeWindow:
+          source.startAt && source.endAt ? [dayjs(source.startAt), dayjs(source.endAt)] : undefined,
+      });
+      setType(source.type);
+    },
+  });
 
   const handleOk = async () => {
     const values = await form.validateFields();
@@ -91,15 +87,15 @@ const NoticeFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
   };
 
   return (
-    <Modal
-      title={record ? '编辑公告' : '新建公告'}
+    <FormModal
       open={open}
-      onOk={handleOk}
+      record={record}
+      submitting={submitting}
       onCancel={onCancel}
-      confirmLoading={submitting}
-      destroyOnClose
+      onOk={handleOk}
+      noun="公告"
       width={560}
-      okButtonProps={{ disabled: !detailReady }}
+      okDisabled={!detailReady}
     >
       <Spin spinning={!detailReady} tip="加载公告详情...">
       <Form form={form} layout="vertical" preserve={false}>
@@ -139,7 +135,7 @@ const NoticeFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
         </Form.Item>
       </Form>
       </Spin>
-    </Modal>
+    </FormModal>
   );
 };
 

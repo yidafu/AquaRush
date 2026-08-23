@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { formatDateTime } from '@aquarush/common';
 
 import { Card } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
@@ -12,13 +13,6 @@ interface OrderOperation {
   operationType: string;
   description?: string;
   createdAt: string;
-}
-
-function formatDateTime(dateStr?: string) {
-  if (!dateStr) return '-';
-  const date = new Date(dateStr);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 interface OperationsCardProps {

@@ -3,8 +3,12 @@ import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import TicketService from '../../services/TicketService'
 import { authService } from '../../utils/auth'
-import { UserTicketStatus, UserTicketVo, formatDateTime } from '@aquarush/common'
-import { getTicketStatusLabel } from '../../utils/marketing'
+import {
+  UserTicketStatus,
+  UserTicketVo,
+  formatDateTime,
+  getTicketStatusLabel
+} from '@aquarush/common'
 import BasePageLayout, { EmptyState } from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 

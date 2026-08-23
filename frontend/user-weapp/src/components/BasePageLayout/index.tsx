@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text } from '@tarojs/components'
 import { AtButton } from 'taro-ui'
 import { authService } from '../../utils/auth'
+import SharedEmptyState from '../EmptyState'
 
 import "taro-ui/dist/style/components/button.scss"
 import './index.scss'
@@ -88,6 +89,7 @@ interface EmptyStateProps {
   onAction?: () => void
 }
 
+// 共享空态实现(见 components/EmptyState);本导出保留旧 API 兼容(subtitle → description)
 export const EmptyState: React.FC<EmptyStateProps> = ({
   title = '暂无数据',
   subtitle = '',
@@ -95,21 +97,13 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
   onAction
 }) => {
   return (
-    <View className='empty-container'>
-      <View className='empty-icon'>❤️</View>
-      <Text className='empty-title'>{title}</Text>
-      {subtitle && <Text className='empty-subtitle'>{subtitle}</Text>}
-      {onAction && (
-        <AtButton
-          type='secondary'
-          size='normal'
-          onClick={onAction}
-          className='empty-action-button'
-        >
-          {actionText}
-        </AtButton>
-      )}
-    </View>
+    <SharedEmptyState
+      icon='❤️'
+      title={title}
+      description={subtitle || undefined}
+      actionText={actionText}
+      onAction={onAction}
+    />
   )
 }
 

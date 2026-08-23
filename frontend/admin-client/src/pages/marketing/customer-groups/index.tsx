@@ -11,6 +11,7 @@ import {
   useDeleteCustomerGroup,
 } from '../../../services/marketing-graphql';
 import GroupFormModal, { type GroupFormPayload } from './components/GroupFormModal';
+import { pagination } from '@/utils/table';
 
 // 客户分组管理页(F-MKT-001):列表/新建/编辑/删除(删除后成员回到未分组)
 const CustomerGroups: React.FC = () => {
@@ -125,13 +126,11 @@ const CustomerGroups: React.FC = () => {
         columns={columns}
         dataSource={groups}
         loading={loading}
-        pagination={{
+        pagination={pagination(total, {
           current: page + 1,
           pageSize: size,
-          total,
           showSizeChanger: true,
-          showTotal: (t) => `共 ${t} 条`,
-        }}
+        })}
         onChange={handleTableChange}
       />
       <GroupFormModal

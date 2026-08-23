@@ -14,12 +14,12 @@ import {
   CartesianGrid,
   Tooltip,
   Legend,
-  ResponsiveContainer,
 } from 'recharts';
 import { centsToYuan } from '@aquarush/common';
 import type { TicketTypeStatsVo } from '@aquarush/common';
 import { TICKET_TYPE_STATS_QUERY } from '../../../../graphql/queries/marketing.graphql';
 import { BRAND_PRIMARY } from '../../../../config/theme';
+import ChartCard from '@/components/ChartCard';
 
 const { RangePicker } = DatePicker;
 
@@ -166,46 +166,42 @@ const WaterTicketDetailPage: React.FC = () => {
             </Row>
 
             {/* 销售趋势:入账张数(柱)+ 销售金额(线,元) */}
-            <Card title="销售趋势" size="small">
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart data={salesData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                  <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
-                  <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} tickFormatter={(v: number) => `¥${v}`} />
-                  <Tooltip
-                    labelFormatter={(label) => `日期: ${label}`}
-                    formatter={(value, name) => {
-                      const num = typeof value === 'number' ? value : 0;
-                      if (name === 'ticketCount') return [`${num} 张`, '销售张数'];
-                      return [`¥${num.toFixed(2)}`, '销售金额'];
-                    }}
-                  />
-                  <Legend />
-                  <Bar yAxisId="left" dataKey="ticketCount" name="销售张数" fill={BRAND_PRIMARY} radius={[4, 4, 0, 0]} />
-                  <Line yAxisId="right" type="monotone" dataKey="revenue" name="销售金额" stroke="#52c41a" strokeWidth={2} dot={{ r: 2 }} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Card>
+            <ChartCard title="销售趋势" size="small" height={320}>
+              <BarChart data={salesData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis yAxisId="left" tick={{ fontSize: 12 }} />
+                <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 12 }} tickFormatter={(v: number) => `¥${v}`} />
+                <Tooltip
+                  labelFormatter={(label) => `日期: ${label}`}
+                  formatter={(value, name) => {
+                    const num = typeof value === 'number' ? value : 0;
+                    if (name === 'ticketCount') return [`${num} 张`, '销售张数'];
+                    return [`¥${num.toFixed(2)}`, '销售金额'];
+                  }}
+                />
+                <Legend />
+                <Bar yAxisId="left" dataKey="ticketCount" name="销售张数" fill={BRAND_PRIMARY} radius={[4, 4, 0, 0]} />
+                <Line yAxisId="right" type="monotone" dataKey="revenue" name="销售金额" stroke="#52c41a" strokeWidth={2} dot={{ r: 2 }} />
+              </BarChart>
+            </ChartCard>
 
             {/* 使用情况:核销/退回/过期 */}
-            <Card title="使用情况" size="small">
-              <ResponsiveContainer width="100%" height={320}>
-                <LineChart data={usageData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    labelFormatter={(label) => `日期: ${label}`}
-                    formatter={(value, name) => [`${typeof value === 'number' ? value : 0} 张`, String(name)]}
-                  />
-                  <Legend />
-                  <Line type="monotone" dataKey="redeemedCount" name="核销" stroke={BRAND_PRIMARY} strokeWidth={2} dot={{ r: 2 }} />
-                  <Line type="monotone" dataKey="returnedCount" name="退回" stroke="#faad14" strokeWidth={2} dot={{ r: 2 }} />
-                  <Line type="monotone" dataKey="expiredCount" name="过期" stroke="#ff4d4f" strokeWidth={2} dot={{ r: 2 }} />
-                </LineChart>
-              </ResponsiveContainer>
-            </Card>
+            <ChartCard title="使用情况" size="small" height={320}>
+              <LineChart data={usageData} margin={{ top: 5, right: 30, left: 10, bottom: 5 }}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="date" tick={{ fontSize: 12 }} />
+                <YAxis tick={{ fontSize: 12 }} />
+                <Tooltip
+                  labelFormatter={(label) => `日期: ${label}`}
+                  formatter={(value, name) => [`${typeof value === 'number' ? value : 0} 张`, String(name)]}
+                />
+                <Legend />
+                <Line type="monotone" dataKey="redeemedCount" name="核销" stroke={BRAND_PRIMARY} strokeWidth={2} dot={{ r: 2 }} />
+                <Line type="monotone" dataKey="returnedCount" name="退回" stroke="#faad14" strokeWidth={2} dot={{ r: 2 }} />
+                <Line type="monotone" dataKey="expiredCount" name="过期" stroke="#ff4d4f" strokeWidth={2} dot={{ r: 2 }} />
+              </LineChart>
+            </ChartCard>
           </Space>
         )}
       </Spin>

@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Money } from '@aquarush/common';
+import { Money, formatDateTime } from '@aquarush/common';
 
 import { Button } from '@/components/button';
 import { Card } from '@/components/card';
@@ -50,13 +50,6 @@ interface OrderCardProps {
   type?: OrderCardType;
   onAccept?: (orderId: string) => void;
   onStartDelivery?: (orderId: string) => void;
-}
-
-function formatDateTime(dateStr?: string | null) {
-  if (!dateStr) return '-';
-  const date = new Date(dateStr);
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
 }
 
 export function OrderCard({ order, type = 'history', onAccept, onStartDelivery }: OrderCardProps) {

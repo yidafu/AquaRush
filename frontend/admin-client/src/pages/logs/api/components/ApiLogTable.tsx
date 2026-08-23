@@ -1,6 +1,6 @@
 import React from 'react';
 import { Table, Tag, Button } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import type { ApiLogItem } from '../../../../services/logs';
 
 const getStatusColor = (status?: number) => {
@@ -14,14 +14,7 @@ const getStatusColor = (status?: number) => {
 export interface ApiLogTableProps {
   data: readonly ApiLogItem[];
   loading: boolean;
-  pagination: {
-    current: number;
-    pageSize: number;
-    total: number;
-    showSizeChanger: boolean;
-    showQuickJumper: boolean;
-    showTotal: (total: number) => string;
-  };
+  pagination: TablePaginationConfig;
   onChange: (pagination: { current: number; pageSize: number }) => void;
   onViewDetail: (log: ApiLogItem) => void;
 }

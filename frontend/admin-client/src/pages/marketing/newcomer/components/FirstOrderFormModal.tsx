@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { Modal, Form, Input, InputNumber, Select, Radio, DatePicker, message } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { centsToYuan, yuanToCents } from '@aquarush/common';
-import type { FirstOrderActivity, FirstOrderActivityType, PromotionScope } from '@aquarush/common';
+import { FirstOrderActivityType, PromotionScope } from '@aquarush/common';
+import type { FirstOrderActivity } from '@aquarush/common';
 import ProductSelect from '../../../../components/ProductSelect';
 
 const { RangePicker } = DatePicker;
@@ -62,7 +63,7 @@ const FirstOrderFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
     if (!open) return;
     if (!record) {
       form.resetFields();
-      form.setFieldsValue({ activityType: 'FIRST_ORDER_REDUCE', discountMode: 'AMOUNT', scope: 'ALL' });
+      form.setFieldsValue({ activityType: FirstOrderActivityType.FIRST_ORDER_REDUCE, discountMode: 'AMOUNT', scope: PromotionScope.ALL });
       return;
     }
     const discountMode = record.discountAmountCents != null ? 'AMOUNT' : 'RATE';
@@ -73,7 +74,7 @@ const FirstOrderFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
       thresholdYuan: record.thresholdCents != null ? centsToYuan(record.thresholdCents) : undefined,
       discountAmountYuan: record.discountAmountCents != null ? centsToYuan(record.discountAmountCents) : undefined,
       discountRate: record.discountRatePermille != null ? record.discountRatePermille / 1000 : undefined,
-      scope: record.activityType === 'NEWCOMER_PRICE' ? 'PRODUCT' : record.scope,
+      scope: record.activityType === FirstOrderActivityType.NEWCOMER_PRICE ? PromotionScope.PRODUCT : record.scope,
       productId: record.productId != null ? String(record.productId) : undefined,
       newcomerPriceYuan: record.newcomerPriceCents != null ? centsToYuan(record.newcomerPriceCents) : undefined,
       timeWindow: [dayjs(record.validFrom), dayjs(record.validTo)],
@@ -142,7 +143,7 @@ const FirstOrderFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
         thresholdCents: null,
         discountAmountCents: null,
         discountRatePermille: null,
-        scope: 'PRODUCT',
+        scope: PromotionScope.PRODUCT,
         productId: values.productId,
         newcomerPriceCents: yuanToCents(values.newcomerPriceYuan),
       };
@@ -151,6 +152,7 @@ const FirstOrderFormModal: React.FC<Props> = ({ open, record, submitting, onCanc
   };
 
   return (
+// TODO(Phase4): 弹窗外壳可复用 FormModal + useFormModal(编辑X/新建X/confirmLoading/destroyOnClose),见 ops/banners/BannerFormModal 迁移示例;字段与 payload 转换保留本页。
     <Modal
       title={record ? '编辑优惠' : '新建优惠'}
       open={open}

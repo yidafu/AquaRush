@@ -12,11 +12,13 @@ interface ApiResponse<T> {
   message?: string | null;
 }
 
-async function toFile(uri: string, name: string, mime: string): Promise<File> {
-  // file:/blob:/data: URI -> Blob (works on web with the browser fetch and on
-  // native with expo/fetch, which reads file:// URIs natively).
+async function toBlob(uri: string, mime: string): Promise<Blob> {
+  // file:/blob:/data: URI -> Blob(web 走浏览器 fetch;native 走 expo/fetch,
+  // 原生读取 file://,安装 expo-blob 后直接返回原生 Blob,避免 base64 往返)。
   const blob = await (await fetch(uri)).blob();
-  return new File([blob], name, { type: mime });
+  // Response.blob() 的 type 来自响应头,file:// 场景可能为空;按 ImagePicker 提供的
+  // mime 重建 Blob,保证 multipart 部件携带正确的 Content-Type(类型一致时零拷贝)。
+  return blob.type === mime ? blob : new Blob([blob], { type: mime });
 }
 
 /**
@@ -25,15 +27,21 @@ async function toFile(uri: string, name: string, mime: string): Promise<File> {
  *
  * Expo SDK 53+ runs `expo/fetch` on native, which rejects React Native's legacy
  * `{ uri, name, type }` FormData parts ("Unsupported FormDataPart implementation") —
- * always pass a real `File`/`Blob`, on every platform.
+ * always pass a real `Blob`, on every platform.
+ *
+ * 注意:部件必须传 `Blob` 而非 RN 的 `File`。expo/fetch 的 FormData 补丁会写部件的
+ * `name` 属性,而 RN File 的 `name` 是原型上只读 getter,传 File 会抛
+ * "Cannot assign to property 'name' which has only a getter"。
+ * 文件名通过 `filename` 显式传给 multipart Content-Disposition。
  */
 export async function uploadPhoto(uri: string, name: string, mime: string): Promise<string> {
-  const file = await toFile(uri, name, mime);
+  const blob = await toBlob(uri, mime);
 
   const res = await networkManager.uploadFile<ApiResponse<FileMetadataResponse>>({
     url: UPLOAD_URL,
-    filePath: file,
+    filePath: blob,
     name: 'file',
+    filename: name,
     headers: {}, // no Content-Type -> fetch sets the multipart boundary
   });
 

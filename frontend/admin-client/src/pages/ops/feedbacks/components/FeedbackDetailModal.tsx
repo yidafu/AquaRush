@@ -1,8 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import { Modal, Form, Input, Select, Tag, Image, Space, Typography, Descriptions } from 'antd';
-import dayjs from 'dayjs';
-import { formatDateTime } from '@aquarush/common';
-import type { Feedback, FeedbackStatus } from '@aquarush/common';
+import {
+  FEEDBACK_STATUS_LABELS,
+  FEEDBACK_STATUS_OPTIONS,
+  FEEDBACK_STATUS_TONE,
+  FEEDBACK_TYPE_LABELS,
+  FeedbackStatus,
+  formatDateTime,
+} from '@aquarush/common';
+import type { Feedback } from '@aquarush/common';
+import { getToneColor } from '../../../../constants/status';
 
 const { TextArea } = Input;
 
@@ -19,30 +26,9 @@ interface Props {
   onSubmit: (payload: ReviewPayload, record: Feedback) => void;
 }
 
-export const FEEDBACK_TYPE_LABELS: Record<string, string> = {
-  PRODUCT_QUALITY: '产品质量问题',
-  DELIVERY_SERVICE: '配送服务问题',
-  APP_USAGE: '小程序使用问题',
-  SUGGESTION: '功能建议',
-  COMPLAINT: '投诉建议',
-  OTHER: '其他问题',
-};
-
-export const FEEDBACK_STATUS_OPTIONS = [
-  { value: 'PENDING', label: '待处理' },
-  { value: 'PROCESSING', label: '处理中' },
-  { value: 'RESOLVED', label: '已处理' },
-];
-
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: 'orange',
-  PROCESSING: 'blue',
-  RESOLVED: 'green',
-};
-
 const FeedbackDetailModal: React.FC<Props> = ({ open, record, submitting, onCancel, onSubmit }) => {
   const [form] = Form.useForm<ReviewPayload>();
-  const [currentStatus, setCurrentStatus] = useState<FeedbackStatus>('PENDING');
+  const [currentStatus, setCurrentStatus] = useState<FeedbackStatus>(FeedbackStatus.PENDING);
 
   useEffect(() => {
     if (open && record) {
@@ -84,7 +70,9 @@ const FeedbackDetailModal: React.FC<Props> = ({ open, record, submitting, onCanc
               <Tag color="blue">{FEEDBACK_TYPE_LABELS[record.feedbackType] ?? record.feedbackType}</Tag>
             </Descriptions.Item>
             <Descriptions.Item label="状态">
-              <Tag color={STATUS_COLORS[record.status]}>{FEEDBACK_STATUS_OPTIONS.find((o) => o.value === record.status)?.label}</Tag>
+              <Tag color={getToneColor(FEEDBACK_STATUS_TONE[record.status])}>
+                {FEEDBACK_STATUS_LABELS[record.status] ?? record.status}
+              </Tag>
             </Descriptions.Item>
             <Descriptions.Item label="联系方式">{record.contactInfo || '—'}</Descriptions.Item>
             <Descriptions.Item label="提交时间">{formatDateTime(record.createdAt)}</Descriptions.Item>

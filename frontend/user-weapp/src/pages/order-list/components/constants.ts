@@ -43,22 +43,5 @@ export interface OrderItem {
   createTime: string
 }
 
-export const TAB_LIST: { title: string; statuses: OrderStatus[] | null }[] = [
-  { title: '全部', statuses: null },
-  { title: '待付款', statuses: [OrderStatus.PENDING_PAYMENT] },
-  // 「待发货」口径=待派单+待配送(02-business-flows.md §订单状态机)
-  { title: '待配送', statuses: [OrderStatus.PENDING_DISPATCH, OrderStatus.PENDING_DELIVERY] },
-  { title: '配送中', statuses: [OrderStatus.DELIVERING] },
-  { title: '已完成', statuses: [OrderStatus.COMPLETED] }
-]
-
-// 状态标签(§2.2 设计系统:共享 .status-tag 类 + 修饰符,样式见 styles/common.scss)
-export const STATUS_MAP: Record<string, { text: string; modifier: string }> = {
-  [OrderStatus.PENDING_PAYMENT]: { text: '待付款', modifier: 'status-tag--pending-pay' },
-  [OrderStatus.PENDING_DISPATCH]: { text: '待配送', modifier: 'status-tag--dispatch' },
-  [OrderStatus.PENDING_DELIVERY]: { text: '待配送', modifier: 'status-tag--dispatch' },
-  [OrderStatus.DELIVERING]: { text: '配送中', modifier: 'status-tag--delivering' },
-  [OrderStatus.COMPLETED]: { text: '已完成', modifier: 'status-tag--completed' },
-  [OrderStatus.CANCELLED]: { text: '已取消', modifier: 'status-tag--cancelled' },
-  [OrderStatus.REFUNDED]: { text: '已退款', modifier: 'status-tag--cancelled' }
-}
+// 注:TAB_LIST 与 STATUS_MAP 已收敛到 @aquarush/common(ORDER_TABS / order-status + status-tone),
+// 本文件仅保留页面列表卡片展示模型类型。

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Card, Row, Col, Table, Spin } from 'antd';
+import { Card, Row, Col, Table } from 'antd';
 import {
   BarChart,
   Bar,
@@ -7,11 +7,11 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
 } from 'recharts';
 import { useQuery, gql } from '@apollo/client';
 import { displayCents } from '@aquarush/common';
 import StatisticsCard from '@/components/StatisticsCard';
+import ChartCard from '@/components/ChartCard';
 import RefreshControls from '@/components/RefreshControls';
 import { useAutoRefresh } from '@/hooks/useAutoRefresh';
 import { BRAND_PRIMARY } from '../../../config/theme';
@@ -182,22 +182,18 @@ const DeliveryWorkerStatisticsPage: React.FC = () => {
 
       <Row gutter={[16, 16]} style={{ marginTop: 24 }}>
         <Col xs={24} lg={12}>
-          <Card title="送水员工作量排行">
-            <Spin spinning={loading}>
-              <ResponsiveContainer width="100%" height={300}>
-                <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="name" tick={{ fontSize: 12 }} />
-                  <YAxis tick={{ fontSize: 12 }} />
-                  <Tooltip
-                    labelFormatter={(label) => `送水员: ${label}`}
-                    formatter={(value) => [`${Number(value)} 单`, '今日完成订单']}
-                  />
-                  <Bar dataKey="orders" name="今日完成订单" fill={BRAND_PRIMARY} radius={[4, 4, 0, 0]} />
-                </BarChart>
-              </ResponsiveContainer>
-            </Spin>
-          </Card>
+          <ChartCard title="送水员工作量排行" loading={loading} height={300}>
+            <BarChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+              <YAxis tick={{ fontSize: 12 }} />
+              <Tooltip
+                labelFormatter={(label) => `送水员: ${label}`}
+                formatter={(value) => [`${Number(value)} 单`, '今日完成订单']}
+              />
+              <Bar dataKey="orders" name="今日完成订单" fill={BRAND_PRIMARY} radius={[4, 4, 0, 0]} />
+            </BarChart>
+          </ChartCard>
         </Col>
         <Col xs={24} lg={12}>
           <Card title="送水员排行榜">

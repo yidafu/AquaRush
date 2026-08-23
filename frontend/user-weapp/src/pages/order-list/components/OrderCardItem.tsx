@@ -1,8 +1,9 @@
 import React from 'react'
-import { View, Text, Image } from '@tarojs/components'
+import { View, Text } from '@tarojs/components'
 import { AtCard, AtIcon, AtButton } from 'taro-ui'
 import { Money, OrderStatus, normalizeCents } from '@aquarush/common'
-import { STATUS_MAP } from './constants'
+import StatusTag from '../../../components/StatusTag'
+import OrderItemRow from '../../../components/OrderItemRow'
 import type { OrderItem } from './constants'
 
 import "taro-ui/dist/style/components/card.scss"
@@ -26,7 +27,6 @@ interface OrderCardItemProps {
  * 底部实付金额 + 按状态操作按钮
  */
 const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, onReorder, onClick }) => {
-  const status = STATUS_MAP[order.status] || STATUS_MAP[OrderStatus.CANCELLED]
 
   /**
    * 订单层总优惠(分)= 满减/折扣 + 优惠券 + 首单立减 + 水票抵扣(R-MKT-07/08 叠加,「已优惠」口径)
@@ -72,48 +72,22 @@ const OrderCardItem: React.FC<OrderCardItemProps> = ({ order, onPay, onCancel, o
       <View className='order-header'>
         <View className='order-info'>
           <Text className='order-no'>订单号：{order.orderNo}</Text>
-          <Text className={`status-tag ${status.modifier}`}>{status.text}</Text>
+          <StatusTag status={order.status} size='small' />
         </View>
         <Text className='order-time'>{order.createTime}</Text>
       </View>
 
       {order.product && (
         <View className='order-items'>
-          <View className='order-item'>
-            {order.items.length > 1 && (
-              <Text className='item-more'>等{order.items.length}件</Text>
-            )}
-            <Image
-              src={order.product.image}
-              mode='aspectFill'
-              className='item-image'
-            />
-            <View className='item-info'>
-              <Text className='item-name'>{order.product.name}</Text>
-              {order.product.specification && (
-                <Text className='item-spec'>
-                  规格：{order.product.specification}
-                </Text>
-              )}
-              <View className='item-bottom'>
-                {order.hasMarketingPrice ? (
-                  <>
-                    <Text className='item-price'>
-                      <Money cents={order.unitPriceCents} />
-                    </Text>
-                    <Text className='item-original-price'>
-                      <Money cents={order.product.priceCents} />
-                    </Text>
-                  </>
-                ) : (
-                  <Text className='item-price'>
-                    <Money cents={order.unitPriceCents ?? order.product.priceCents} />
-                  </Text>
-                )}
-                <Text className='item-quantity'>x{order.quantity}</Text>
-              </View>
-            </View>
-          </View>
+          <OrderItemRow
+            image={order.product.image}
+            name={order.product.name}
+            spec={order.product.specification}
+            priceCents={normalizeCents(order.unitPriceCents ?? order.product.priceCents)}
+            originalPriceCents={order.hasMarketingPrice ? normalizeCents(order.product.priceCents) : null}
+            quantity={order.quantity}
+            badge={order.items.length > 1 ? `等${order.items.length}件` : undefined}
+          />
         </View>
       )}
 

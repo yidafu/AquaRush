@@ -1,9 +1,11 @@
 import React from 'react';
-import { Modal, Descriptions, Tag, Button, message } from 'antd';
+import { Descriptions, Tag, Button } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
 import type { BusinessLog } from '@aquarush/common';
 import JsonViewer from '../../../../components/JsonViewer';
 import { getLogLevelInfo } from './constants';
+import DetailModal from '@/components/DetailModal';
+import { copyText } from '@/utils/clipboard';
 
 export interface BusinessLogDetailModalProps {
   log: BusinessLog | null;
@@ -18,24 +20,9 @@ const looksLikeJson = (text?: string): boolean => {
   return trimmed.startsWith('{') || trimmed.startsWith('[');
 };
 
-const copyText = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text || '');
-    message.success('已复制');
-  } catch {
-    message.error('复制失败');
-  }
-};
-
-/** 业务日志详情弹窗(logs/business/index.tsx 拆分) */
+/** 业务日志详情弹窗(logs/business/index.tsx 拆分;外壳复用 DetailModal) */
 const BusinessLogDetailModal: React.FC<BusinessLogDetailModalProps> = ({ log, open, onClose }) => (
-  <Modal
-    title="日志详情"
-    open={open}
-    onCancel={onClose}
-    footer={[<Button key="close" onClick={onClose}>关闭</Button>]}
-    width={800}
-  >
+  <DetailModal title="日志详情" open={open} onClose={onClose} width={800}>
     {log && (
       <Descriptions column={2} bordered size="small">
         <Descriptions.Item label="日志级别">
@@ -75,7 +62,7 @@ const BusinessLogDetailModal: React.FC<BusinessLogDetailModalProps> = ({ log, op
         </Descriptions.Item>
       </Descriptions>
     )}
-  </Modal>
+  </DetailModal>
 );
 
 export default BusinessLogDetailModal;

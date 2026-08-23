@@ -40,7 +40,7 @@ const fetchRequestHandler: RequestHandler = {
     }
   },
 
-  uploadFile: async ({ url, filePath, name, formData, header = {}, timeout = 30000 }) => {
+  uploadFile: async ({ url, filePath, name, filename, formData, header = {}, timeout = 30000 }) => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), timeout);
     try {
@@ -54,11 +54,31 @@ const fetchRequestHandler: RequestHandler = {
         typeof rawFile === 'object' && rawFile !== null && !(rawFile instanceof Blob)
           ? await (await fetch(rawFile.uri, { signal: controller.signal })).blob()
           : rawFile;
-      const filename = typeof rawFile === 'object' && rawFile !== null ? rawFile.name ?? name : name;
+      // 关键:FormData 部件必须传 Blob 而非 RN 的 File。expo/fetch 的 FormData 补丁
+      // (expo/src/winter/FormData.ts normalizeArgs)会写部件的 `name` 属性,而 RN File
+      // 把 `name` 定义为原型上只读 getter,导致
+      //   TypeError: Cannot assign to property 'name' which has only a getter
+      // 统一传 Blob + 显式 filename(Blob 无 name 属性,不会被 getter 拦截)。
+      const finalFilename =
+        filename ??
+        (typeof rawFile === 'object' && rawFile !== null && 'name' in rawFile ? rawFile.name : undefined) ??
+        name;
       if (typeof part === 'string') {
         body.append(name, part);
       } else {
-        body.append(name, part, filename);
+        // expo/fetch 从部件的 `name` 生成 Content-Disposition filename:RN Blob 与
+        // expo-blob Blob 都没有该属性,先写 own 属性保证任意 Blob 实现都带上文件名;
+        // append 的第三个参数作为兜底。部分实现(如浏览器原生 Blob)拒绝写属性,忽略即可。
+        if (Object.isExtensible(part)) {
+          try {
+            // TS 视角下 Blob 没有 name 属性、File 的 name 只读,但这里是在给可扩展对象
+            // 增加 own 属性(运行时行为),故显式收窄类型。
+            (part as { name?: string }).name = finalFilename;
+          } catch {
+            // ignore:append(name, blob, filename) 会兜底
+          }
+        }
+        body.append(name, part, finalFilename);
       }
       if (formData) {
         for (const [key, value] of Object.entries(formData)) {

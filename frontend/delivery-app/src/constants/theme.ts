@@ -10,6 +10,8 @@ import '@/global.css';
 
 import { Platform } from 'react-native';
 
+import { STATUS_TONE_COLORS } from '@aquarush/common/utils/status-tone';
+
 export const Colors = {
   light: {
     text: '#1A1A1A',
@@ -73,25 +75,32 @@ export const Colors = {
 
 export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
-/** 订单状态标签的 tint 配色（亮暗区分，保证暗色下可读）。见 docs/ui-spec.md §2。 */
+/** 订单状态标签的 tint 配色(亮暗区分,保证暗色下可读)。见 docs/ui-spec.md §2。
+ * light 直接引用 common STATUS_TONE_COLORS(§2.2 的 10% tint 权威值);
+ * dark 保留本地适配(16% tint + 亮色文字),tone 语义与 common 对齐。 */
 export const StatusTints = {
   light: {
-    processing: { text: '#3A9BD9', bg: 'rgba(58,155,217,0.10)' },
-    success: { text: '#389e0d', bg: '#f6ffed' },
-    warning: { text: '#d46b08', bg: '#fff7e6' },
-    error: { text: '#cf1322', bg: '#fff1f0' },
-    accent: { text: '#FA8C16', bg: 'rgba(250,140,22,0.10)' },
+    info: STATUS_TONE_COLORS.info,
+    success: STATUS_TONE_COLORS.success,
+    warning: STATUS_TONE_COLORS.warning,
+    error: STATUS_TONE_COLORS.error,
+    neutral: STATUS_TONE_COLORS.neutral,
+    accent: STATUS_TONE_COLORS.accent,
   },
   dark: {
-    processing: { text: '#6FC3EC', bg: 'rgba(77,182,229,0.16)' },
+    info: { text: '#6FC3EC', bg: 'rgba(77,182,229,0.16)' },
     success: { text: '#95de64', bg: 'rgba(82,196,26,0.16)' },
     warning: { text: '#ffc53d', bg: 'rgba(250,173,20,0.16)' },
     error: { text: '#ff7875', bg: 'rgba(255,77,79,0.16)' },
+    neutral: { text: '#A6ACB4', bg: 'rgba(140,140,140,0.16)' },
     accent: { text: '#FA8C16', bg: 'rgba(250,140,22,0.16)' },
   },
 } as const;
 
 export type StatusTone = keyof typeof StatusTints.light & keyof typeof StatusTints.dark;
+
+/** 信息行标签列宽(OrderInfoRow / OrderSummaryCard / CollectionInputFields 共享)。 */
+export const LabelColumnWidth = 76;
 
 export const Radius = {
   xs: 4,

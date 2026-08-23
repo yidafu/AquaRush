@@ -1,8 +1,10 @@
 import React from 'react';
-import { Modal, Descriptions, Button, message } from 'antd';
+import { Descriptions, Button } from 'antd';
 import { CopyOutlined } from '@ant-design/icons';
 import type { ApiLogItem } from '../../../../services/logs';
 import JsonViewer from '../../../../components/JsonViewer';
+import DetailModal from '@/components/DetailModal';
+import { copyText } from '@/utils/clipboard';
 
 export interface ApiLogDetailModalProps {
   log: ApiLogItem | null;
@@ -10,24 +12,9 @@ export interface ApiLogDetailModalProps {
   onClose: () => void;
 }
 
-const copyText = async (text: string) => {
-  try {
-    await navigator.clipboard.writeText(text || '');
-    message.success('已复制');
-  } catch {
-    message.error('复制失败');
-  }
-};
-
-/** API 日志详情弹窗(logs/api/index.tsx 拆分) */
+/** API 日志详情弹窗(logs/api/index.tsx 拆分;外壳复用 DetailModal) */
 const ApiLogDetailModal: React.FC<ApiLogDetailModalProps> = ({ log, open, onClose }) => (
-  <Modal
-    title="请求详情"
-    open={open}
-    onCancel={onClose}
-    footer={[<Button key="close" onClick={onClose}>关闭</Button>]}
-    width={800}
-  >
+  <DetailModal title="请求详情" open={open} onClose={onClose} width={800}>
     {log && (
       <Descriptions column={2} bordered size="small">
         <Descriptions.Item label="请求类型">{log.requestType}</Descriptions.Item>
@@ -80,7 +67,7 @@ const ApiLogDetailModal: React.FC<ApiLogDetailModalProps> = ({ log, open, onClos
         <Descriptions.Item label="时间">{new Date(log.createdAt).toLocaleString('zh-CN')}</Descriptions.Item>
       </Descriptions>
     )}
-  </Modal>
+  </DetailModal>
 );
 
 export default ApiLogDetailModal;

@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { Modal, Form, Input, InputNumber } from 'antd';
+import { Form, Input, InputNumber } from 'antd';
 import { centsToYuan } from '@aquarush/common';
 import type { BarrelFee } from '../../../types/barrel';
+import FormModal from '@/components/FormModal';
 
 export interface BarrelFeeFormValues {
   specification: string;
@@ -18,7 +19,7 @@ export interface BarrelFeeFormModalProps {
   onSubmit: (values: BarrelFeeFormValues) => void;
 }
 
-/** 价目新增/编辑弹窗(G06,barrels/index.tsx 拆分) */
+/** 价目新增/编辑弹窗(G06,barrels/index.tsx 拆分;外壳复用 FormModal) */
 const BarrelFeeFormModal: React.FC<BarrelFeeFormModalProps> = ({
   open,
   editing,
@@ -46,17 +47,13 @@ const BarrelFeeFormModal: React.FC<BarrelFeeFormModalProps> = ({
     onSubmit(values);
   };
 
-  const handleCancel = () => {
-    form.resetFields();
-    onCancel();
-  };
-
   return (
-    <Modal
-      title={editing ? '编辑水桶费价目' : '新增水桶费价目'}
+    <FormModal
       open={open}
-      onCancel={handleCancel}
+      record={editing}
+      onCancel={onCancel}
       onOk={handleOk}
+      noun="水桶费价目"
       okText={editing ? '保存' : '创建'}
     >
       <Form form={form} layout="vertical">
@@ -78,7 +75,7 @@ const BarrelFeeFormModal: React.FC<BarrelFeeFormModalProps> = ({
           <InputNumber min={0} max={9999} style={{ width: '100%' }} placeholder="默认 999" />
         </Form.Item>
       </Form>
-    </Modal>
+    </FormModal>
   );
 };
 

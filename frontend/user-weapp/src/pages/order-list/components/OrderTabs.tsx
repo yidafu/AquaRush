@@ -1,6 +1,6 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
-import { TAB_LIST } from './constants'
+import { ORDER_TABS } from '@aquarush/common'
 
 import './OrderTabs.scss'
 
@@ -15,7 +15,7 @@ interface OrderTabsProps {
 const OrderTabs: React.FC<OrderTabsProps> = ({ current, onChange }) => {
   return (
     <View className='order-tabs'>
-      {TAB_LIST.map((tab, index) => (
+      {ORDER_TABS.map((tab, index) => (
         <View
           key={tab.title}
           className={`order-tab-item ${index === current ? 'order-tab-item-active' : ''}`}

@@ -14,6 +14,7 @@ import {
   useDeleteNotice,
 } from '../../../services/ops-graphql';
 import NoticeFormModal, { type NoticeFormPayload } from './components/NoticeFormModal';
+import { pagination } from '@/utils/table';
 import {
   NOTICE_TYPE_LABELS,
   NOTICE_TYPE_COLORS,
@@ -186,13 +187,11 @@ const Notices: React.FC = () => {
         columns={columns}
         dataSource={notices}
         loading={loading || publishing}
-        pagination={{
+        pagination={pagination(total, {
           current: page + 1,
           pageSize: size,
-          total,
           showSizeChanger: true,
-          showTotal: (t) => `共 ${t} 条`,
-        }}
+        })}
         onChange={handleTableChange}
       />
       <NoticeFormModal

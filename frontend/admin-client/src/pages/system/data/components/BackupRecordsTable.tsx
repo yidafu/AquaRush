@@ -3,6 +3,7 @@ import { Table, Tag, Button } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { LogBackupRecord, LogTableType } from '@aquarush/common';
 import { BACKUP_STATUS_CONFIG, LOG_TABLE_LABEL, formatBytes, formatDateTime } from './constants';
+import { pagination } from '@/utils/table';
 
 export interface BackupRecordsTableProps {
   records: readonly LogBackupRecord[];
@@ -63,17 +64,15 @@ const BackupRecordsTable: React.FC<BackupRecordsTableProps> = ({
       columns={columns}
       dataSource={records}
       size="middle"
-      pagination={{
+      pagination={pagination(total, {
         current: pageNum + 1,
         pageSize,
-        total,
         showSizeChanger: true,
         showQuickJumper: true,
-        showTotal: (total) => `共 ${total} 条记录`,
         onChange: (nextPage, nextSize) => {
           onPageChange(nextPage - 1, nextSize);
         },
-      }}
+      })}
     />
   );
 };

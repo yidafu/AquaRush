@@ -1,6 +1,8 @@
-import React, { useState, useMemo } from 'react';
-import { Card, Row, Col, Input, Select, Button, Space, InputNumber } from 'antd';
-import { SearchOutlined, ClearOutlined } from '@ant-design/icons';
+import React from 'react';
+import { Row, Col, Input, Select, InputNumber, Space, Button } from 'antd';
+import { SearchOutlined } from '@ant-design/icons';
+import FilterCard from '@/components/FilterCard';
+import { useDebouncedFilters } from '@/hooks/useDebouncedFilters';
 
 const { Option } = Select;
 
@@ -52,100 +54,45 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
   onFiltersChange,
   extra
 }) => {
-  const [localFilters, setLocalFilters] = useState<ProductFilters>(filters);
-
-  const debouncedFilterChange = useMemo(() => {
-    let timeoutId: number;
-    return (newFilters: ProductFilters) => {
-      clearTimeout(timeoutId);
-      timeoutId = window.setTimeout(() => {
-        onFiltersChange?.(newFilters);
-      }, 300);
-    };
-  }, [onFiltersChange]);
+  // 本地状态 + 300ms 防抖(关键词防抖,状态/数值/排序即时);reset 回默认
+  const { filters: localFilters, setFilters, reset } = useDebouncedFilters<ProductFilters>({
+    initial: filters,
+    onFiltersChange,
+  });
 
   const handleKeywordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newFilters = { ...localFilters, keyword: e.target.value };
-    setLocalFilters(newFilters);
-    debouncedFilterChange(newFilters);
+    setFilters({ ...localFilters, keyword: e.target.value });
   };
 
   const handleStatusChange = (status: string) => {
-    const newFilters = { ...localFilters, status: status as 'ONLINE' | 'OFFLINE' | 'OUT_OF_STOCK' | 'ACTIVE' | 'ALL' };
-    setLocalFilters(newFilters);
-    onFiltersChange?.(newFilters);
+    setFilters(
+      { ...localFilters, status: status as 'ONLINE' | 'OFFLINE' | 'OUT_OF_STOCK' | 'ACTIVE' | 'ALL' },
+      { immediate: true },
+    );
   };
 
   const handleMinPriceChange = (value: number | null) => {
-    const newFilters: ProductFilters = { ...localFilters, minPrice: value };
-    setLocalFilters(newFilters);
-    onFiltersChange?.(newFilters);
+    setFilters({ ...localFilters, minPrice: value }, { immediate: true });
   };
 
   const handleMaxPriceChange = (value: number | null) => {
-    const newFilters: ProductFilters = { ...localFilters, maxPrice: value };
-    setLocalFilters(newFilters);
-    onFiltersChange?.(newFilters);
+    setFilters({ ...localFilters, maxPrice: value }, { immediate: true });
   };
 
   const handleMinSalesVolumeChange = (value: number | null) => {
-    const newFilters: ProductFilters = { ...localFilters, minSalesVolume: value };
-    setLocalFilters(newFilters);
-    onFiltersChange?.(newFilters);
+    setFilters({ ...localFilters, minSalesVolume: value }, { immediate: true });
   };
 
   const handleMaxSalesVolumeChange = (value: number | null) => {
-    const newFilters: ProductFilters = { ...localFilters, maxSalesVolume: value };
-    setLocalFilters(newFilters);
-    onFiltersChange?.(newFilters);
+    setFilters({ ...localFilters, maxSalesVolume: value }, { immediate: true });
   };
 
   const handleSortByChange = (value: ProductSortByOption) => {
-    const newFilters: ProductFilters = { ...localFilters, sortBy: value };
-    setLocalFilters(newFilters);
-    onFiltersChange?.(newFilters);
-  };
-
-  const handleReset = () => {
-    const emptyFilters: ProductFilters = {
-      keyword: '',
-      search: '',
-      status: 'ALL',
-      minPrice: null,
-      maxPrice: null,
-      minStock: null,
-      maxStock: null,
-      minSalesVolume: null,
-      maxSalesVolume: null,
-      specification: '',
-      waterSource: '',
-      tags: '',
-      sortBy: 'CREATED_AT_DESC',
-      page: 0,
-      size: 20
-    };
-    setLocalFilters(emptyFilters);
-    onFiltersChange?.(emptyFilters);
+    setFilters({ ...localFilters, sortBy: value }, { immediate: true });
   };
 
   return (
-    <Card
-      size="small"
-      style={{ marginBottom: 16 }}
-      title="筛选条件"
-      extra={
-        <Space>
-          {extra}
-          <Button
-            icon={<ClearOutlined />}
-            size="small"
-            onClick={handleReset}
-          >
-            重置
-          </Button>
-        </Space>
-      }
-    >
+    <FilterCard onReset={reset} extra={extra}>
       <Row gutter={16}>
         <Col xs={24} sm={12} md={6}>
           <div style={{ marginBottom: 8 }}>
@@ -242,9 +189,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
               placeholder="搜索标签"
               value={localFilters.tags || ''}
               onChange={(e) => {
-                const newFilters = { ...localFilters, tags: e.target.value };
-                setLocalFilters(newFilters);
-                onFiltersChange?.(newFilters);
+                setFilters({ ...localFilters, tags: e.target.value }, { immediate: true });
               }}
               allowClear
             />
@@ -287,9 +232,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
                 placeholder="最小库存"
                 value={localFilters.minStock || null}
                 onChange={(value) => {
-                  const newFilters: ProductFilters = { ...localFilters, minStock: value };
-                  setLocalFilters(newFilters);
-                  onFiltersChange?.(newFilters);
+                  setFilters({ ...localFilters, minStock: value }, { immediate: true });
                 }}
                 min={0}
               />
@@ -298,9 +241,7 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
                 placeholder="最大库存"
                 value={localFilters.maxStock || null}
                 onChange={(value) => {
-                  const newFilters: ProductFilters = { ...localFilters, maxStock: value };
-                  setLocalFilters(newFilters);
-                  onFiltersChange?.(newFilters);
+                  setFilters({ ...localFilters, maxStock: value }, { immediate: true });
                 }}
                 min={0}
               />
@@ -320,6 +261,8 @@ export const ProductFilters: React.FC<ProductFiltersProps> = ({
           </div>
         </Col>
       </Row>
-    </Card>
+    </FilterCard>
   );
 };
+
+export default ProductFilters;

@@ -3,6 +3,7 @@ import { Table, Card, Select, Input, DatePicker, Space, Tag, Button, Modal, Desc
 import { queryUserActionLogs } from '../../../services/logs';
 import type { UserActionLogItem, UserActionLogQueryParams } from '../../../services/logs';
 import JsonViewer from '../../../components/JsonViewer';
+import { pagination as createPagination } from '@/utils/table';
 
 const { RangePicker } = DatePicker;
 const { Option } = Select;
@@ -201,12 +202,12 @@ const UserActionLogs: React.FC = () => {
         dataSource={data}
         loading={loading}
         rowKey="id"
-        pagination={{
-          ...pagination,
+        pagination={createPagination(pagination.total, {
+          current: pagination.current,
+          pageSize: pagination.pageSize,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 条记录`,
-        }}
+        })}
         onChange={handleTableChange}
         scroll={{ x: 1200 }}
       />

@@ -7,6 +7,7 @@ import {
 } from '../../../../../graphql/queries/user.graphql';
 import type { DeliveryWorkerStatisticsResponse, Review } from '@aquarush/common';
 import { formatDateTime } from '@aquarush/common';
+import { pagination } from '@/utils/table';
 
 interface WorkerReviewSectionProps {
   /** 配送身份 id(送水员档案并入 admins 单表后=账号 id;F-USR-021/023) */
@@ -145,17 +146,16 @@ const WorkerReviewSection: React.FC<WorkerReviewSectionProps> = ({ deliveryWorke
         dataSource={reviews}
         rowKey="reviewId"
         loading={reviewsLoading}
-        pagination={{
+        pagination={pagination(reviewsData?.reviewsByDeliveryWorker?.totalElements ?? 0, {
           current: page + 1,
           pageSize,
-          total: reviewsData?.reviewsByDeliveryWorker?.totalElements ?? 0,
           showSizeChanger: true,
-          showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
+          showTotal: 'range',
           onChange: (nextPage, nextPageSize) => {
             setPage(nextPage - 1);
             setPageSize(nextPageSize);
           },
-        }}
+        })}
         scroll={{ x: 800 }}
         locale={{ emptyText: <Empty description="该账号暂无评价记录" /> }}
       />

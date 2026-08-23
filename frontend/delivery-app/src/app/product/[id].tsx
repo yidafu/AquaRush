@@ -1,14 +1,14 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 import WebView from 'react-native-webview';
 
 import { Button } from '@/components/button';
+import { LoadingScreen } from '@/components/loading-screen';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { productDetailH5Url } from '@/constants/api';
 import { Spacing } from '@/constants/theme';
-import { useTheme } from '@/hooks/use-theme';
 
 /**
  * 商品详情页:直接加载 user-weapp 商详页的 H5 编译产物(admin-client 托管于 /weapp/)。
@@ -17,7 +17,6 @@ import { useTheme } from '@/hooks/use-theme';
  */
 export default function ProductDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const theme = useTheme();
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -62,11 +61,7 @@ export default function ProductDetailScreen() {
           // 忽略 window.open(如大图预览),禁止弹出新页面 —— 纯展示
         }}
       />
-      {loading ? (
-        <View style={styles.loadingOverlay} pointerEvents="none">
-          <ActivityIndicator size="large" color={theme.primary} />
-        </View>
-      ) : null}
+      {loading ? <LoadingScreen label="" style={styles.loadingOverlay} /> : null}
       {error && !loading ? (
         <View style={styles.center}>
           <ThemedText themeColor="danger" style={styles.errorText}>
@@ -100,8 +95,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   errorText: {
     textAlign: 'center',

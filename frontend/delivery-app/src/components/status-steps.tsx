@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { Card } from '@/components/card';
 import { ThemedText } from '@/components/themed-text';
-import { ORDER_STEPS } from '@/constants/order';
+import { ORDER_STEPS } from '@aquarush/common/utils/order-status';
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 

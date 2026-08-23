@@ -3,19 +3,21 @@ import { Card, Select, Table, Tag, Empty, Alert } from 'antd';
 import { useQuery } from '@apollo/client';
 import { USER_COUPONS_QUERY } from '../../../../graphql/queries/user.graphql';
 import type { UserCouponVo, CouponType, UserCouponStatus } from '@aquarush/common';
-import { CouponType as CouponTypeEnum, UserCouponStatus as UserCouponStatusEnum } from '@aquarush/common';
-import { formatDateTime } from '@aquarush/common';
-import { displayCents } from '@aquarush/common';
+import {
+  COUPON_STATUS_LABELS,
+  COUPON_STATUS_TONE,
+  COUPON_TYPE_LABELS,
+  CouponType as CouponTypeEnum,
+  UserCouponStatus as UserCouponStatusEnum,
+  formatDateTime,
+  getCouponDiscountText,
+  getCouponThresholdText,
+} from '@aquarush/common';
+import { getToneColor } from '../../../../constants/status';
 
 interface CouponSectionProps {
   userId: string;
 }
-
-const COUPON_TYPE_LABELS: Record<CouponType, string> = {
-  CASH: '现金券',
-  DISCOUNT: '折扣券',
-  NO_THRESHOLD_CASH: '无门槛现金券',
-};
 
 const STATUS_OPTIONS = [
   { value: 'ALL', label: '全部' },
@@ -24,20 +26,6 @@ const STATUS_OPTIONS = [
   { value: UserCouponStatusEnum.RETURNED, label: '已退回' },
   { value: UserCouponStatusEnum.EXPIRED, label: '已过期' },
 ];
-
-const STATUS_COLORS: Record<string, string> = {
-  RECEIVED: 'processing',
-  USED: 'success',
-  RETURNED: 'warning',
-  EXPIRED: 'default',
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  RECEIVED: '未使用',
-  USED: '已使用',
-  RETURNED: '已退回',
-  EXPIRED: '已过期',
-};
 
 /**
  * 用户详情页「优惠券」Tab(F-MKT-003):展示该用户持有的优惠券,支持状态筛选。
@@ -80,21 +68,21 @@ const CouponSection: React.FC<CouponSectionProps> = ({ userId }) => {
       width: 130,
       render: (_: unknown, record: UserCouponVo) => {
         if (record.couponType === CouponTypeEnum.DISCOUNT) {
-          return record.discountRatePermille
-            ? `${(record.discountRatePermille / 100).toFixed(1)}折`
+          // 折扣率万分比 ÷1000 转折数(8500‰ = 8.5折),共用 common 实现
+          return record.discountRatePermille != null
+            ? getCouponDiscountText({ couponType: record.couponType, discountRatePermille: record.discountRatePermille })
             : '-';
         }
-        return record.discountAmountCents != null ? displayCents(record.discountAmountCents) : '-';
+        return record.discountAmountCents != null
+          ? getCouponDiscountText({ couponType: record.couponType, discountAmountCents: record.discountAmountCents })
+          : '-';
       },
     },
     {
       title: '使用门槛',
       key: 'threshold',
       width: 120,
-      render: (_: unknown, record: UserCouponVo) =>
-        record.thresholdCents != null && record.thresholdCents > 0
-          ? `满${displayCents(record.thresholdCents)}可用`
-          : '无门槛',
+      render: (_: unknown, record: UserCouponVo) => getCouponThresholdText(record.thresholdCents),
     },
     {
       title: '适用范围',
@@ -109,7 +97,7 @@ const CouponSection: React.FC<CouponSectionProps> = ({ userId }) => {
       key: 'status',
       width: 100,
       render: (s: UserCouponStatus) => (
-        <Tag color={STATUS_COLORS[s]}>{STATUS_LABELS[s] ?? s}</Tag>
+        <Tag color={getToneColor(COUPON_STATUS_TONE[s])}>{COUPON_STATUS_LABELS[s] ?? s}</Tag>
       ),
     },
     {

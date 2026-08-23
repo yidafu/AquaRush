@@ -1,21 +1,22 @@
 import React from 'react';
-import { Modal, Descriptions, Tag, Typography } from 'antd';
+import { Descriptions, Tag, Typography } from 'antd';
 import type { LogBackupRecord } from '@aquarush/common';
 import { BACKUP_STATUS_CONFIG, LOG_TABLE_LABEL, formatBytes, formatDateTime } from './constants';
+import DetailModal from '@/components/DetailModal';
 
 export interface BackupRecordDetailModalProps {
   record: LogBackupRecord | null;
   onClose: () => void;
 }
 
-/** 备份记录详情弹窗(system/data/index.tsx 拆分) */
+/** 备份记录详情弹窗(system/data/index.tsx 拆分;外壳复用 DetailModal,footer 走插槽传 null) */
 const BackupRecordDetailModal: React.FC<BackupRecordDetailModalProps> = ({ record, onClose }) => (
-  <Modal
+  <DetailModal
     title="备份记录详情"
     open={record != null}
-    onCancel={onClose}
-    footer={null}
+    onClose={onClose}
     width={640}
+    footer={null}
   >
     {record && (
       <Descriptions column={2} size="small" bordered>
@@ -39,7 +40,7 @@ const BackupRecordDetailModal: React.FC<BackupRecordDetailModalProps> = ({ recor
         )}
       </Descriptions>
     )}
-  </Modal>
+  </DetailModal>
 );
 
 export default BackupRecordDetailModal;

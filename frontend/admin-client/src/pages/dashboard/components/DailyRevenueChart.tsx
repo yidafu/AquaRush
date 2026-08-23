@@ -6,10 +6,10 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
-  ResponsiveContainer,
 } from 'recharts';
 import { centsToYuan } from '@aquarush/common';
 import { BRAND_PRIMARY } from '../../../config/theme';
+import ChartCard from '@/components/ChartCard';
 
 interface DailyStatistic {
   date: string;
@@ -19,16 +19,19 @@ interface DailyStatistic {
 
 interface DailyRevenueChartProps {
   data: DailyStatistic[];
+  title: string;
+  loading: boolean;
+  empty: boolean;
 }
 
-const DailyRevenueChart: React.FC<DailyRevenueChartProps> = ({ data }) => {
+const DailyRevenueChart: React.FC<DailyRevenueChartProps> = ({ data, title, loading, empty }) => {
   const chartData = data.map((item) => ({
     date: item.date.slice(5),
     revenue: centsToYuan(item.revenueCents || 0),
   }));
 
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ChartCard title={title} loading={loading} empty={empty} emptyText="所选范围暂无数据" height={300}>
       <LineChart data={chartData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="date" tick={{ fontSize: 12 }} />
@@ -49,7 +52,7 @@ const DailyRevenueChart: React.FC<DailyRevenueChartProps> = ({ data }) => {
           activeDot={{ r: 6 }}
         />
       </LineChart>
-    </ResponsiveContainer>
+    </ChartCard>
   );
 };
 

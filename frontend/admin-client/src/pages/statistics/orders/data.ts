@@ -1,4 +1,5 @@
 import { gql } from '@apollo/client';
+import { ORDER_STATUS_TEXT } from '@aquarush/common';
 import { BRAND_PRIMARY, TEXT_SECONDARY } from '../../../config/theme';
 
 /** 日期粒度(订单统计页) */
@@ -110,15 +111,19 @@ export const GET_MONTHLY_STATISTICS = gql`
   }
 `;
 
-/** 订单状态中文名与图表色(G37 状态分布,7 态,与 OrderStatus 枚举一致;色值按 docs/ui-spec.md §2.2) */
+/**
+ * 订单状态展示与图表色(G37 状态分布,7 态,与 OrderStatus 枚举一致)。
+ * 文本统一来自 common ORDER_STATUS_TEXT;色值为图表色板(hex,按 docs/ui-spec.md §2.2,
+ * 仅供图表渲染,Tag 颜色走 constants/status.ts toneToAntDColor)。
+ */
 export const ORDER_STATUS_MAP: Record<string, { text: string; color: string }> = {
-  PENDING_PAYMENT: { text: '待支付', color: '#FA8C16' },
-  PENDING_DISPATCH: { text: '待派单', color: BRAND_PRIMARY },
-  PENDING_DELIVERY: { text: '待配送', color: BRAND_PRIMARY },
-  DELIVERING: { text: '配送中', color: '#389E0D' },
-  COMPLETED: { text: '已完成', color: TEXT_SECONDARY },
-  CANCELLED: { text: '已取消', color: '#CF1322' },
-  REFUNDED: { text: '已退款', color: '#CF1322' },
+  PENDING_PAYMENT: { text: ORDER_STATUS_TEXT.PENDING_PAYMENT, color: '#FA8C16' },
+  PENDING_DISPATCH: { text: ORDER_STATUS_TEXT.PENDING_DISPATCH, color: BRAND_PRIMARY },
+  PENDING_DELIVERY: { text: ORDER_STATUS_TEXT.PENDING_DELIVERY, color: BRAND_PRIMARY },
+  DELIVERING: { text: ORDER_STATUS_TEXT.DELIVERING, color: '#389E0D' },
+  COMPLETED: { text: ORDER_STATUS_TEXT.COMPLETED, color: TEXT_SECONDARY },
+  CANCELLED: { text: ORDER_STATUS_TEXT.CANCELLED, color: '#CF1322' },
+  REFUNDED: { text: ORDER_STATUS_TEXT.REFUNDED, color: '#CF1322' },
 };
 
 export interface OrderStatusStat {

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Button, Modal, Form, Select, message } from 'antd';
 import { useQuery, useMutation } from '@apollo/client';
+import { extractErrorMessage } from '@aquarush/common/utils/network';
 import { ASSIGN_DELIVERY_WORKER_MUTATION } from '../../graphql/mutations/order.graphql';
 import { GET_ONLINE_DELIVERY_WORKERS_QUERY } from '../../graphql/queries/delivery.graphql';
 
@@ -71,7 +72,7 @@ export const AssignDeliveryButton: React.FC<AssignDeliveryButtonProps> = ({
       setModalVisible(false);
       onAssigned?.();
     } catch (err: any) {
-      message.error(err.message || '分配送水员失败');
+      message.error(extractErrorMessage(err, '分配送水员失败'));
     }
   };
 

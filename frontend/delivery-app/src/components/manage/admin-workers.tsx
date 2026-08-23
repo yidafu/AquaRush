@@ -7,6 +7,7 @@ import { Card } from '@/components/card';
 import { EmptyState } from '@/components/empty-state';
 import { OrderInfoRow } from '@/components/order-info-row';
 import { StatCard } from '@/components/stat-card';
+import { StatCardGrid } from '@/components/stat-card-grid';
 import { StatusBadge } from '@/components/status-badge';
 import { ThemedText } from '@/components/themed-text';
 import { Spacing } from '@/constants/theme';
@@ -56,7 +57,7 @@ export function AdminWorkers() {
             <View style={styles.header}>
               <ThemedText type="smallBold">{item.name}</ThemedText>
               <View style={styles.badges}>
-                <StatusBadge label={online ? '在线' : '离线'} tone={online ? 'success' : 'processing'} />
+                <StatusBadge label={online ? '在线' : '离线'} tone={online ? 'success' : 'info'} />
                 <StatusBadge label={item.isAvailable ? '可接单' : '休息中'} tone={item.isAvailable ? 'success' : 'warning'} />
               </View>
             </View>
@@ -76,19 +77,15 @@ export function AdminWorkers() {
       contentContainerStyle={styles.listContent}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
       ListHeaderComponent={
-        <View style={styles.cards}>
+        <StatCardGrid style={styles.cards}>
           <StatCard label="送水员总数" value={<ThemedText type="subtitle">{overview?.totalWorkers ?? 0}</ThemedText>} />
           <StatCard label="今日在岗" value={<ThemedText type="subtitle">{overview?.todayActiveWorkers ?? 0}</ThemedText>} />
           <StatCard label="配送中订单" value={<ThemedText type="subtitle">{overview?.deliveringOrders ?? 0}</ThemedText>} />
           <StatCard label="今日完成" value={<ThemedText type="subtitle">{overview?.todayCompletedOrders ?? 0}</ThemedText>} />
-        </View>
+        </StatCardGrid>
       }
       ListEmptyComponent={
-        <EmptyState
-          icon={<ThemedText style={styles.emptyIcon}>🚚</ThemedText>}
-          title="暂无送水员"
-          description="下拉可刷新"
-        />
+        <EmptyState icon="🚚" title="暂无送水员" description="下拉可刷新" />
       }
     />
   );
@@ -103,9 +100,6 @@ const styles = StyleSheet.create({
     gap: Spacing.three,
   },
   cards: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.three,
     marginBottom: Spacing.two,
   },
   header: {
@@ -118,9 +112,5 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: Spacing.two,
     alignItems: 'center',
-  },
-  emptyIcon: {
-    fontSize: 28,
-    lineHeight: 32,
   },
 });

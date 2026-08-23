@@ -7,6 +7,7 @@ import type { ColumnsType } from 'antd/es/table';
 import type { User, TableActionProps } from './types';
 import { STATUS_MAPPINGS, ROLE_MAPPINGS } from './types';
 import { BRAND_PRIMARY } from '../../../config/theme';
+import { pagination } from '@/utils/table';
 
 interface UserTableProps extends TableActionProps {
   data: User[];
@@ -176,14 +177,13 @@ const UserTable: React.FC<UserTableProps> = ({
       rowKey="id"
       loading={loading}
       scroll={{ x: 1200 }}
-      pagination={{
+      pagination={pagination(data.length, {
         showSizeChanger: true,
         showQuickJumper: true,
-        showTotal: (total, range) =>
-          `第 ${range[0]}-${range[1]} 条，共 ${total} 条记录`,
+        showTotal: 'range',
         pageSizeOptions: ['10', '20', '50', '100'],
         defaultPageSize: 20,
-      }}
+      })}
       size="middle"
     />
   );

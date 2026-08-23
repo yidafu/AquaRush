@@ -25,12 +25,7 @@ import {
 import { Radius, Spacing } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 import { getTodayCollection, submitDailyCollection } from '@/services/dailyCollection';
-
-function getTodayDate(): string {
-  const now = new Date();
-  const pad = (n: number) => String(n).padStart(2, '0');
-  return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
-}
+import { todayDateString } from '@/utils/date';
 
 export default function DailyCollectionScreen() {
   const theme = useTheme();
@@ -180,7 +175,7 @@ export default function DailyCollectionScreen() {
         <View style={styles.sectionHeader}>
           <ThemedText type="smallBold">收款日期</ThemedText>
           <ThemedText type="small" themeColor="textSecondary">
-            {getTodayDate()}
+            {todayDateString()}
           </ThemedText>
         </View>
 

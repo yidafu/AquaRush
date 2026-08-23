@@ -3,26 +3,13 @@ import { Card, Table, Tag, Empty, Alert } from 'antd';
 import { useQuery } from '@apollo/client';
 import { GET_FEEDBACKS_QUERY } from '../../../../graphql/queries/ops.graphql';
 import type { Feedback, FeedbackType, FeedbackStatus } from '@aquarush/common';
-import { formatDateTime } from '@aquarush/common';
-import {
-  FEEDBACK_TYPE_LABELS,
-} from '../../../ops/feedbacks/components/FeedbackDetailModal';
+import { FEEDBACK_STATUS_LABELS, FEEDBACK_STATUS_TONE, FEEDBACK_TYPE_LABELS, formatDateTime } from '@aquarush/common';
+import { getToneColor } from '../../../../constants/status';
+import { pagination } from '@/utils/table';
 
 interface FeedbackSectionProps {
   userId: string;
 }
-
-const STATUS_COLORS: Record<string, string> = {
-  PENDING: 'orange',
-  PROCESSING: 'blue',
-  RESOLVED: 'green',
-};
-
-const STATUS_LABELS: Record<FeedbackStatus, string> = {
-  PENDING: '待处理',
-  PROCESSING: '处理中',
-  RESOLVED: '已处理',
-};
 
 /**
  * 用户详情页「意见反馈」Tab(F-OPS-003):展示该用户提交的反馈记录,按 userId 过滤。
@@ -73,8 +60,8 @@ const FeedbackSection: React.FC<FeedbackSectionProps> = ({ userId }) => {
       key: 'status',
       width: 100,
       render: (status: FeedbackStatus) => (
-        <Tag color={STATUS_COLORS[status]}>
-          {STATUS_LABELS[status] ?? status}
+        <Tag color={getToneColor(FEEDBACK_STATUS_TONE[status])}>
+          {FEEDBACK_STATUS_LABELS[status] ?? status}
         </Tag>
       ),
     },
@@ -101,17 +88,16 @@ const FeedbackSection: React.FC<FeedbackSectionProps> = ({ userId }) => {
         dataSource={feedbacks}
         rowKey="id"
         loading={loading}
-        pagination={{
+        pagination={pagination(data?.feedbacks?.totalElements ?? 0, {
           current: page + 1,
           pageSize,
-          total: data?.feedbacks?.totalElements ?? 0,
           showSizeChanger: true,
-          showTotal: (total, range) => `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
+          showTotal: 'range',
           onChange: (nextPage, nextPageSize) => {
             setPage(nextPage - 1);
             setPageSize(nextPageSize);
           },
-        }}
+        })}
         scroll={{ x: 900 }}
         locale={{ emptyText: <Empty description="该用户暂无意见反馈" /> }}
       />

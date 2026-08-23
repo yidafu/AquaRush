@@ -11,6 +11,7 @@ import type {
 
 import { Card } from '@/components/card';
 import { StatCard } from '@/components/stat-card';
+import { StatCardGrid } from '@/components/stat-card-grid';
 import { ThemedText } from '@/components/themed-text';
 import { WeekLineChart } from '@/components/week-line-chart';
 import { Spacing } from '@/constants/theme';
@@ -96,7 +97,7 @@ export function ManageDashboard() {
       <ThemedText type="small" themeColor="textSecondary">
         待处理订单
       </ThemedText>
-      <View style={styles.cards}>
+      <StatCardGrid style={styles.cards}>
         <StatCard label="待支付" value={<ThemedText type="subtitle">{breakdown?.pendingPayment ?? 0}</ThemedText>} />
         <StatCard label="待派单" value={<ThemedText type="subtitle">{breakdown?.pendingDispatch ?? 0}</ThemedText>} />
         <StatCard label="待配送" value={<ThemedText type="subtitle">{breakdown?.pendingDelivery ?? 0}</ThemedText>} />
@@ -109,26 +110,26 @@ export function ManageDashboard() {
             </ThemedText>
           }
         />
-      </View>
+      </StatCardGrid>
 
       <ThemedText type="small" themeColor="textSecondary">
         送水员
       </ThemedText>
-      <View style={styles.cards}>
+      <StatCardGrid style={styles.cards}>
         <StatCard label="送水员总数" value={<ThemedText type="subtitle">{workers?.totalWorkers ?? 0}</ThemedText>} />
         <StatCard label="今日在岗" value={<ThemedText type="subtitle">{workers?.todayActiveWorkers ?? 0}</ThemedText>} />
         <StatCard label="配送中订单" value={<ThemedText type="subtitle">{workers?.deliveringOrders ?? 0}</ThemedText>} />
         <StatCard label="今日完成" value={<ThemedText type="subtitle">{workers?.todayCompletedOrders ?? 0}</ThemedText>} />
-      </View>
+      </StatCardGrid>
 
       <ThemedText type="small" themeColor="textSecondary">
         用户
       </ThemedText>
-      <View style={styles.cards}>
+      <StatCardGrid style={styles.cards}>
         <StatCard label="总用户" value={<ThemedText type="subtitle">{users?.totalUsers ?? 0}</ThemedText>} />
         <StatCard label="今日新增" value={<ThemedText type="subtitle">{users?.todayNewUsers ?? 0}</ThemedText>} />
         <StatCard label="活跃用户" value={<ThemedText type="subtitle">{users?.activeUsers ?? 0}</ThemedText>} />
-      </View>
+      </StatCardGrid>
 
       <Card
         title="送水员排行榜"
@@ -189,9 +190,6 @@ const styles = StyleSheet.create({
     paddingBottom: Spacing.six,
   },
   cards: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: Spacing.three,
     marginBottom: Spacing.two,
   },
   rankRow: {

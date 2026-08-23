@@ -6,7 +6,7 @@ import { Input } from '@/components/input';
 import { OrderInfoRow } from '@/components/order-info-row';
 import { QuantityStepper } from '@/components/quantity-stepper';
 import { ThemedText } from '@/components/themed-text';
-import { Spacing } from '@/constants/theme';
+import { Spacing, LabelColumnWidth } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
 
 /** 代客下单商品明细行(F-ORD-012 多商品下单,items 为唯一口径 —— F-ORD-004) */
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.two,
   },
   rowLabel: {
-    width: 76,
+    width: LabelColumnWidth,
   },
   remarkInput: {
     marginTop: Spacing.two,

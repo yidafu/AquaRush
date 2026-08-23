@@ -3,6 +3,7 @@ import { Table, Tag, Button, Space, Popconfirm } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { Address } from './types';
+import { pagination } from '@/utils/table';
 
 interface AddressTableProps {
   addresses: Address[];
@@ -117,11 +118,10 @@ export const AddressTable: React.FC<AddressTableProps> = ({
       dataSource={addresses}
       rowKey="id"
       loading={loading}
-      pagination={{
+      pagination={pagination(addresses.length, {
         pageSize: 20,
         showSizeChanger: true,
-        showTotal: (total) => `共 ${total} 条`,
-      }}
+      })}
       scroll={{ x: 1000 }}
     />
   );

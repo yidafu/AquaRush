@@ -30,6 +30,36 @@
       "import": "./src/utils/network.ts",
       "default": "./src/utils/network.ts"
     },
+    "./utils/status-tone": {
+      "types": "./src/utils/status-tone.ts",
+      "import": "./src/utils/status-tone.ts",
+      "default": "./src/utils/status-tone.ts"
+    },
+    "./utils/order-status": {
+      "types": "./src/utils/order-status.ts",
+      "import": "./src/utils/order-status.ts",
+      "default": "./src/utils/order-status.ts"
+    },
+    "./utils/order-cost": {
+      "types": "./src/utils/order-cost.ts",
+      "import": "./src/utils/order-cost.ts",
+      "default": "./src/utils/order-cost.ts"
+    },
+    "./utils/marketing": {
+      "types": "./src/utils/marketing.ts",
+      "import": "./src/utils/marketing.ts",
+      "default": "./src/utils/marketing.ts"
+    },
+    "./utils/tianditu": {
+      "types": "./src/utils/tianditu.ts",
+      "import": "./src/utils/tianditu.ts",
+      "default": "./src/utils/tianditu.ts"
+    },
+    "./hooks": {
+      "types": "./src/hooks/index.ts",
+      "import": "./src/hooks/index.ts",
+      "default": "./src/hooks/index.ts"
+    },
     "./types": {
       "types": "./src/types/index.ts",
       "import": "./src/types/index.ts",
@@ -68,9 +98,13 @@
     "@babel/preset-env": "^7.28.5",
     "@babel/preset-typescript": "^7.28.5",
     "@jest/globals": "^29.7.0",
+    "@testing-library/react": "^16.3.0",
     "@types/jest": "^29.5.14",
     "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
     "babel-jest": "^29.7.0",
-    "jest": "^29.7.0"
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "react-dom": "19.2.3"
   }
 }

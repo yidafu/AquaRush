@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import type { Order } from '@aquarush/common';
 import { OrderStatus } from '@aquarush/common';
 import { displayCents } from '@aquarush/common';
+import { pagination } from '@/utils/table';
 
 const { Text } = Typography;
 
@@ -188,18 +189,16 @@ const OrderHistoryTable: React.FC<OrderHistoryTableProps> = ({
         onClick: () => onViewOrder(record.id),
       })}
       rowClassName={() => 'clickable-row'}
-      pagination={{
+      pagination={pagination(total, {
         current: page + 1,
         pageSize,
-        total,
         showSizeChanger: true,
         showQuickJumper: true,
-        showTotal: (total, range) =>
-          `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
+        showTotal: 'range',
         onChange: (nextPage, nextPageSize) => {
           onPageChange(nextPage - 1, nextPageSize);
         },
-      }}
+      })}
       scroll={{ x: 1400 }}
       locale={{
         emptyText: '该用户暂无订单记录',

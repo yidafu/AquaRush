@@ -87,7 +87,7 @@ export function AddressDisplay({ selectedId, onSelect }: AddressDisplayProps) {
         <ThemedText type="small" themeColor="textSecondary">
           {addr.phone}
         </ThemedText>
-        {addr.isDefault ? <StatusBadge label="默认" tone="processing" /> : null}
+        {addr.isDefault ? <StatusBadge label="默认" tone="info" /> : null}
       </View>
       <ThemedText type="small">
         {addr.province}

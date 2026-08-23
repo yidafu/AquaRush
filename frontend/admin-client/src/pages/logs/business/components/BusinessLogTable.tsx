@@ -4,6 +4,7 @@ import type { ColumnsType } from 'antd/es/table';
 import type { BusinessLog } from '@aquarush/common';
 import { OPERATION_CONFIG } from '../../../../components/BusinessLogTimeline';
 import { getLogLevelInfo } from './constants';
+import { pagination } from '@/utils/table';
 
 export interface BusinessLogTableProps {
   list: readonly BusinessLog[];
@@ -98,14 +99,12 @@ const BusinessLogTable: React.FC<BusinessLogTableProps> = ({
       dataSource={list}
       loading={loading}
       rowKey="id"
-      pagination={{
+      pagination={pagination(total, {
         current: pageNum + 1,
         pageSize,
-        total,
         showSizeChanger: true,
         showQuickJumper: true,
-        showTotal: (total) => `共 ${total} 条记录`,
-      }}
+      })}
       onChange={(pagination) => {
         onPageChange((pagination.current ?? 1) - 1, pagination.pageSize ?? pageSize);
       }}

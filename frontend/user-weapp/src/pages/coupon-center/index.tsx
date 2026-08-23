@@ -3,13 +3,13 @@ import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow } from '@tarojs/taro'
 import CouponService from '../../services/CouponService'
 import { authService } from '../../utils/auth'
-import { CouponTemplateVo } from '@aquarush/common'
 import {
+  CouponTemplateVo,
   getCouponDiscountText,
   getCouponThresholdText,
   getCouponTypeLabel,
   getValidityText
-} from '../../utils/marketing'
+} from '@aquarush/common'
 import BasePageLayout from '../../components/BasePageLayout'
 import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 

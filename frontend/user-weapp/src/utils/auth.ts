@@ -1,6 +1,7 @@
 import Taro from '@tarojs/taro'
 import { useState, useCallback } from 'react'
-import NetworkManager, { GraphQLError } from './network'
+import { GraphQLError } from '@aquarush/common'
+import { networkManager } from './networkManager'
 
 export interface WeChatAuthResponse {
   code: string
@@ -34,15 +35,6 @@ export interface UserInfo {
 // 与 utils/networkManager.ts 保持一致:优先取构建期环境变量,避免真机/非本机环境下 localhost 不可达
 const apiBaseUrl = import.meta.env.TARO_APP_API_BASE_URL || 'http://localhost:8080';
 
-// 初始化网络管理器
-const networkManager = NetworkManager.getInstance({
-  baseURL: `${apiBaseUrl}/graphql`,
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json'
-  }
-});
-
 console.log('import API_BASE_URL', apiBaseUrl)
 console.log('API_BASE_URL', Taro.env)
 class AuthService {
@@ -56,8 +48,8 @@ class AuthService {
 
   private loadStoredAuth() {
     try {
-      // 从网络管理器获取 token
-      this.token = networkManager.getAuthToken()
+      // 直接从本地存储读取 token(共享 NetworkManager 的 AuthHandler 亦从本存储读取,保持一致)
+      this.token = Taro.getStorageSync('auth_token') || null
 
       const storedUserInfo = Taro.getStorageSync('user_info')
       if (storedUserInfo) {
@@ -74,8 +66,8 @@ class AuthService {
       this.token = token
       this.userInfo = userInfo
 
-      // 使用网络管理器存储 token
-      networkManager.setAuthToken(token)
+      // 共享 NetworkManager 的 setAuthToken 为 no-op(由 AuthHandler 负责持久化),这里直接写存储
+      Taro.setStorageSync('auth_token', token)
 
       // 继续存储用户信息到本地
       Taro.setStorageSync('user_info', JSON.stringify(userInfo))
@@ -92,8 +84,8 @@ class AuthService {
       // 清除进行中的静默登录 Promise
       this.silentLoginPromise = null
 
-      // 使用网络管理器清除 token
-      networkManager.clearAuthToken()
+      // 直接清除本地存储
+      Taro.removeStorageSync('auth_token')
 
       // 继续清除本地用户信息
       Taro.removeStorageSync('user_info')
@@ -357,7 +349,7 @@ class AuthService {
     try {
       this.token = null
       this.userInfo = null
-      networkManager.clearAuthToken()
+      Taro.removeStorageSync('auth_token')
       Taro.removeStorageSync('user_info')
     } catch (error) {
       console.error('Failed to clear auth state:', error)

@@ -7,8 +7,8 @@ import { useDeliveryTracking } from './hooks/useDeliveryTracking'
 
 // 子组件
 import TrackingMap from './components/TrackingMap'
-import DeliveryWorkerCard from './components/DeliveryWorkerCard'
-import DeliveryAddressCard from './components/DeliveryAddressCard'
+import DeliveryWorkerCard from '../../components/DeliveryWorkerCard'
+import AddressSummaryCard from '../../components/AddressSummaryCard'
 import TrackingStatusBar from './components/TrackingStatusBar'
 
 import "taro-ui/dist/style/components/button.scss"
@@ -82,14 +82,26 @@ const DeliveryTracking: React.FC = () => {
       {/* 配送员信息卡片 */}
       {deliveryWorker && (
         <DeliveryWorkerCard
-          worker={deliveryWorker}
+          name={deliveryWorker.name}
+          phone={deliveryWorker.phone}
+          avatar={deliveryWorker.avatar}
+          location={deliveryWorker.currentLocation?.address}
+          showStatus
           estimatedDeliveryTime={order.estimatedDeliveryTime}
           onContact={handleContactDelivery}
         />
       )}
 
       {/* 配送地址信息 */}
-      <DeliveryAddressCard deliveryAddress={order.deliveryAddress} />
+      <AddressSummaryCard
+        title='配送地址'
+        receiverName={order.deliveryAddress.receiverName}
+        phone={order.deliveryAddress.phone}
+        province={order.deliveryAddress.province}
+        city={order.deliveryAddress.city}
+        district={order.deliveryAddress.district}
+        detailAddress={order.deliveryAddress.detailAddress}
+      />
 
       {/* 实时跟踪提示 */}
       <TrackingStatusBar />

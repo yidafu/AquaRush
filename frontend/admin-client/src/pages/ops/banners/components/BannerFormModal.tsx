@@ -1,9 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Modal, Form, Input, InputNumber, Select, Switch, DatePicker, Spin } from 'antd';
+import React, { useState } from 'react';
+import { Form, Input, InputNumber, Select, Switch, DatePicker, Spin } from 'antd';
 import dayjs, { Dayjs } from 'dayjs';
 import { SingleImageUpload } from '../../../../components/ImageUpload';
-import type { Banner, BannerLinkType } from '@aquarush/common';
+import { BannerLinkType } from '@aquarush/common';
+import type { Banner } from '@aquarush/common';
 import { useBanner } from '../../../../services/ops-graphql';
+import FormModal from '@/components/FormModal';
+import { useDetailBackfill } from '@/hooks/useDetailBackfill';
 
 const { RangePicker } = DatePicker;
 
@@ -47,45 +50,38 @@ export const LINK_TYPE_OPTIONS = [
 
 const BannerFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, onSubmit }) => {
   const [form] = Form.useForm<FormValues>();
-  const [linkType, setLinkType] = useState<BannerLinkType>('CUSTOM_PAGE');
+  const [linkType, setLinkType] = useState<BannerLinkType>(BannerLinkType.CUSTOM_PAGE);
   const [loadBanner, { data, error }] = useBanner();
 
-  // 编辑模式:打开弹窗后按 ID 拉取轮播图详情(回填数据源)
-  useEffect(() => {
-    if (!open || !record) return;
-    loadBanner({ variables: { id: record.id } });
-  }, [open, record, loadBanner]);
-
-  // 详情返回后再回填;查询失败退化为用列表记录回填;新建模式给默认值
-  useEffect(() => {
-    if (!open) return;
-    if (!record) {
+  // 编辑模式:按 ID 拉详情回填 + detailReady 禁提交(useDetailBackfill);字段映射保留在本页
+  const { ready: detailReady } = useDetailBackfill({
+    open,
+    record,
+    load: (id: string) => loadBanner({ variables: { id } }),
+    detail: data?.banner,
+    detailError: error,
+    applyDefaults: () => {
       form.resetFields();
-      form.setFieldsValue({ linkType: 'CUSTOM_PAGE', enabled: false });
-      setLinkType('CUSTOM_PAGE');
-      return;
-    }
-    const detail = data?.banner;
-    const source = detail && detail.id === record.id ? detail : error ? record : null;
-    if (!source) return; // 详情未就绪
-    form.setFieldsValue({
-      imageUrl: source.imageUrl,
-      title: source.title,
-      subtitle: source.subtitle || undefined,
-      linkType: source.linkType,
-      linkTarget: source.linkTarget,
-      sortOrder: source.sortOrder,
-      enabled: source.enabled,
-      timeWindow:
-        source.startAt && source.endAt
-          ? [dayjs(source.startAt), dayjs(source.endAt)]
-          : undefined,
-    });
-    setLinkType(source.linkType);
-  }, [open, record, data, error, form]);
-
-  // 编辑模式且详情尚未返回(且未失败)时不可提交
-  const detailReady = !record || !!error || (!!data?.banner && data.banner.id === record.id);
+      form.setFieldsValue({ linkType: BannerLinkType.CUSTOM_PAGE, enabled: false });
+      setLinkType(BannerLinkType.CUSTOM_PAGE);
+    },
+    backfill: (source) => {
+      form.setFieldsValue({
+        imageUrl: source.imageUrl,
+        title: source.title,
+        subtitle: source.subtitle || undefined,
+        linkType: source.linkType,
+        linkTarget: source.linkTarget,
+        sortOrder: source.sortOrder,
+        enabled: source.enabled,
+        timeWindow:
+          source.startAt && source.endAt
+            ? [dayjs(source.startAt), dayjs(source.endAt)]
+            : undefined,
+      });
+      setLinkType(source.linkType);
+    },
+  });
 
   const handleOk = async () => {
     const values = await form.validateFields();
@@ -108,15 +104,15 @@ const BannerFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
   };
 
   return (
-    <Modal
-      title={record ? '编辑轮播图' : '新建轮播图'}
+    <FormModal
       open={open}
-      onOk={handleOk}
+      record={record}
+      submitting={submitting}
       onCancel={onCancel}
-      confirmLoading={submitting}
-      destroyOnClose
+      onOk={handleOk}
+      noun="轮播图"
       width={560}
-      okButtonProps={{ disabled: !detailReady }}
+      okDisabled={!detailReady}
     >
       <Spin spinning={!detailReady} tip="加载轮播图详情...">
       <Form form={form} layout="vertical" preserve={false}>
@@ -166,7 +162,7 @@ const BannerFormModal: React.FC<Props> = ({ open, record, submitting, onCancel, 
         </Form.Item>
       </Form>
       </Spin>
-    </Modal>
+    </FormModal>
   );
 };
 

@@ -76,6 +76,11 @@
     background-color: var(--status-cancelled-bg);
     color: var(--status-cancelled-text);
   }
+
+  &--action {
+    background-color: rgba(255, 84, 54, 0.10);
+    color: var(--action);
+  }
 }
 
 // ---- 加载/错误/空态容器(统一,§4 空态/加载/错误态) ----

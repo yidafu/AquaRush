@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { queryApiLogs } from '../../../services/logs';
 import type { ApiLogItem, ApiLogQueryParams } from '../../../services/logs';
 import { ApiLogFilters, ApiLogTable, ApiLogDetailModal } from './components';
+import { pagination as createPagination } from '@/utils/table';
 
 const ApiLogs: React.FC = () => {
   const [data, setData] = useState<ApiLogItem[]>([]);
@@ -68,12 +69,12 @@ const ApiLogs: React.FC = () => {
       <ApiLogTable
         data={data}
         loading={loading}
-        pagination={{
-          ...pagination,
+        pagination={createPagination(pagination.total, {
+          current: pagination.current,
+          pageSize: pagination.pageSize,
           showSizeChanger: true,
           showQuickJumper: true,
-          showTotal: (total) => `共 ${total} 条记录`,
-        }}
+        })}
         onChange={handleTableChange}
         onViewDetail={(log) => {
           setSelectedLog(log);

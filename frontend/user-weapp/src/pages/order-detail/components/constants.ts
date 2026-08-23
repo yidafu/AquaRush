@@ -90,14 +90,6 @@ export interface OrderDetail {
   timeline: OrderTimeline[]
 }
 
-export const STATUS_MAP: Record<OrderStatusKey, { text: string; color: string; bg: string; step: number }> = {
-  pending_payment: { text: '待付款', color: 'var(--status-pending-pay-text)', bg: 'var(--status-pending-pay-bg)', step: 1 },
-  pending_delivery: { text: '待配送', color: 'var(--status-dispatch-text)', bg: 'var(--status-dispatch-bg)', step: 2 },
-  delivering: { text: '配送中', color: 'var(--status-delivering-text)', bg: 'var(--status-delivering-bg)', step: 3 },
-  completed: { text: '已完成', color: 'var(--status-completed-text)', bg: 'var(--status-completed-bg)', step: 4 },
-  cancelled: { text: '已取消', color: 'var(--status-cancelled-text)', bg: 'var(--status-cancelled-bg)', step: 0 }
-}
-
 export const PAYMENT_METHOD_MAP: Record<string, string> = {
   wechat: '微信支付',
   balance: '余额支付'
