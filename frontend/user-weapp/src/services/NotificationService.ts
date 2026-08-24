@@ -42,11 +42,16 @@ class NotificationService {
     return NotificationService.instance
   }
 
-  /** 消息中心分页查询(仅本人消息) */
-  public async getMyNotifications(type?: NotificationType, page = 0, size = 10): Promise<NotificationVOPage> {
+  /** 消息中心分页查询(仅本人消息;type/read 为空 = 全部,未读 Tab read=false,已读 Tab read=true) */
+  public async getMyNotifications(
+    type?: NotificationType,
+    read?: boolean,
+    page = 0,
+    size = 10
+  ): Promise<NotificationVOPage> {
     const query = `
-      query MyNotifications($type: NotificationType, $page: Int!, $size: Int!) {
-        myNotifications(type: $type, page: $page, size: $size) {
+      query MyNotifications($type: NotificationType, $read: Boolean, $page: Int!, $size: Int!) {
+        myNotifications(type: $type, read: $read, page: $page, size: $size) {
           content {
             id
             type
@@ -67,6 +72,7 @@ class NotificationService {
     `
     const response = await networkManager.query<{ myNotifications: NotificationVOPage }>(query, {
       type,
+      read,
       page,
       size
     })

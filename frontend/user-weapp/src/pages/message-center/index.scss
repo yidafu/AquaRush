@@ -15,6 +15,36 @@
   color: var(--brand-primary);
 }
 
+// 已读状态 Tab 行(第二行,胶囊式,与类型 Tab 组合筛选)
+.message-center-read-tabs {
+  display: flex;
+  gap: 16px;
+  padding: 8px 24px 12px;
+  background: var(--bg);
+}
+
+.message-center-read-tab {
+  flex: 1;
+  padding: 10px 0;
+  text-align: center;
+  border-radius: 999px;
+  background: var(--bg-card);
+}
+
+.message-center-read-tab-active {
+  background: var(--brand-primary);
+}
+
+.message-center-read-tab-text {
+  font-size: 26px;
+  color: var(--text-sub);
+}
+
+.message-center-read-tab-text-active {
+  color: #fff;
+  font-weight: 600;
+}
+
 .message-center-list {
   padding: 8px 0 24px;
 }

@@ -81,16 +81,44 @@ class ClientNotificationResolverTest :
     }
 
     test("myNotifications 强制注入本人 userId 与分页") {
-      every { queryApiService.findMyNotifications(any(), any(), any(), any(), any()) } returns
+      every { queryApiService.findMyNotifications(any(), any(), any(), any(), any(), any()) } returns
         PageImpl(emptyList<NotificationModel>())
 
-      queryResolver.myNotifications(type = null, page = 0, size = 10, userPrincipal)
+      queryResolver.myNotifications(type = null, read = null, page = 0, size = 10, userPrincipal)
 
       verify {
         queryApiService.findMyNotifications(
           receiverType = NotificationReceiverType.USER,
           receiverId = 100L,
           messageType = null,
+          read = null,
+          page = 0,
+          size = 10,
+        )
+      }
+    }
+
+    test("myNotifications 透传已读/未读筛选(未读 Tab read=false,已读 Tab read=true)") {
+      every { queryApiService.findMyNotifications(any(), any(), any(), any(), any(), any()) } returns
+        PageImpl(emptyList<NotificationModel>())
+
+      queryResolver.myNotifications(type = null, read = false, page = 0, size = 10, userPrincipal)
+      queryResolver.myNotifications(type = null, read = true, page = 0, size = 10, userPrincipal)
+
+      verify {
+        queryApiService.findMyNotifications(
+          receiverType = NotificationReceiverType.USER,
+          receiverId = 100L,
+          messageType = null,
+          read = false,
+          page = 0,
+          size = 10,
+        )
+        queryApiService.findMyNotifications(
+          receiverType = NotificationReceiverType.USER,
+          receiverId = 100L,
+          messageType = null,
+          read = true,
           page = 0,
           size = 10,
         )
@@ -104,9 +132,9 @@ class ClientNotificationResolverTest :
           PageRequest.of(0, 10),
           2,
         )
-      every { queryApiService.findMyNotifications(any(), any(), any(), any(), any()) } returns page
+      every { queryApiService.findMyNotifications(any(), any(), any(), any(), any(), any()) } returns page
 
-      val result = queryResolver.myNotifications(type = null, page = 0, size = 10, userPrincipal)
+      val result = queryResolver.myNotifications(type = null, read = null, page = 0, size = 10, userPrincipal)
 
       result.content.size shouldBe 2
       result.content[0].read shouldBe false

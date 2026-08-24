@@ -2173,6 +2173,171 @@ input ReviewReconciliationInput {
   reviewNotes: String!
 }
 
+# ==================== 微信资金对账域(REC) ====================
+# 微信支付对账:微信账单(交易/退款/结算) vs 内部支付流水(payments)/退款记录(payment_refunds)。
+# 后台「微信资金对账」页(支付管理):对账任务/差异列表与解决/报表查看。
+# 实现于 aqua-analytics reconciliation 模块(ReconciliationServiceImpl)。
+
+# 对账任务类型
+enum ReconciliationTaskType {
+  # 支付对账:微信交易账单 vs 内部支付流水
+  PAYMENT
+  # 退款对账:微信退款账单 vs 内部退款记录
+  REFUND
+  # 结算对账:微信结算账单 vs 内部支付流水
+  SETTLEMENT
+}
+
+# 对账任务状态
+enum ReconciliationTaskStatus {
+  # 待执行
+  PENDING
+  # 执行中
+  RUNNING
+  # 执行成功(无差异)
+  SUCCESS
+  # 执行失败(有差异或执行异常)
+  FAILED
+}
+
+# 对账差异类型
+enum DiscrepancyType {
+  # 缺失:一方有记录、另一方无
+  MISSING
+  # 金额不一致
+  MISMATCH
+  # 多余记录
+  EXTRA
+}
+
+# 对账差异状态
+enum DiscrepancyStatus {
+  # 未解决
+  UNRESOLVED
+  # 已解决
+  RESOLVED
+}
+
+# 差异来源系统
+enum SourceSystem {
+  # 内部系统
+  INTERNAL
+  # 微信支付
+  WECHAT
+}
+
+# 对账任务
+type ReconciliationTask {
+  # 记录ID
+  id: PrimaryId!
+  # 任务唯一标识
+  taskId: String!
+  # 任务类型
+  taskType: ReconciliationTaskType!
+  # 任务状态
+  status: ReconciliationTaskStatus!
+  # 对账日期
+  taskDate: LocalDateTime!
+  # 开始时间
+  startTime: LocalDateTime
+  # 结束时间
+  endTime: LocalDateTime
+  # 总记录数
+  totalRecords: Int!
+  # 匹配记录数
+  matchedRecords: Int!
+  # 未匹配记录数
+  unmatchedRecords: Int!
+  # 错误信息(有差异时提示差异数,异常时提示异常信息)
+  errorMessage: String
+  # 创建时间
+  createdAt: LocalDateTime!
+  # 更新时间
+  updatedAt: LocalDateTime!
+}
+
+# 对账任务分页
+type ReconciliationTaskPage {
+  content: [ReconciliationTask!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 对账差异
+type ReconciliationDiscrepancy {
+  # 记录ID
+  id: PrimaryId!
+  # 关联的对账任务ID
+  taskId: String!
+  # 差异类型
+  discrepancyType: DiscrepancyType!
+  # 差异来源系统
+  sourceSystem: SourceSystem!
+  # 差异记录的标识符(微信交易号/退款单号等)
+  recordId: String!
+  # 差异记录详细信息(JSON:内部/微信两侧金额与状态)
+  recordDetails: JsonObject
+  # 处理状态
+  status: DiscrepancyStatus!
+  # 解决备注
+  resolutionNotes: String
+  # 解决人
+  resolvedBy: String
+  # 解决时间
+  resolvedAt: LocalDateTime
+  # 创建时间
+  createdAt: LocalDateTime!
+  # 更新时间
+  updatedAt: LocalDateTime!
+}
+
+# 对账差异分页
+type ReconciliationDiscrepancyPage {
+  content: [ReconciliationDiscrepancy!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 对账报表
+type ReconciliationReport {
+  # 记录ID
+  id: PrimaryId!
+  # 关联的对账任务ID
+  taskId: String!
+  # 报表类型:SUMMARY-汇总 / DETAIL-明细 / EXCEL_EXPORT-导出
+  reportType: String!
+  # 报表数据(JSON)
+  reportData: JsonObject!
+  # 报表文件名
+  fileName: String
+  # 报表文件路径
+  filePath: String
+  # 报表文件大小(字节)
+  fileSize: Long
+  # 生成时间
+  generatedAt: LocalDateTime!
+}
+
+# 手动执行对账输入
+input ExecuteReconciliationInput {
+  # 对账任务类型
+  taskType: ReconciliationTaskType!
+  # 对账日期(ISO yyyy-MM-dd)
+  reconciliationDate: String!
+}
+
+# 解决对账差异输入
+input ResolveDiscrepancyInput {
+  # 差异记录ID
+  discrepancyId: PrimaryId!
+  # 解决备注(必填,留痕)
+  resolutionNotes: String!
+}
+
 # ==================== 运营配置域(OPS) ====================
 # 与 PRD 12-operations-config.md 保持一致;共享类型供 admin/client 两端使用
 

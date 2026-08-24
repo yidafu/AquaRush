@@ -146,19 +146,11 @@ export default function WorkbenchScreen() {
         <ScrollView
           contentContainerStyle={styles.content}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
-          <Gradient
-            colors={[theme.headerGradientStart, theme.headerGradientEnd] as const}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.hero}>
-            <ThemedText type="heading" themeColor="headerText">
-              工作台
-            </ThemedText>
-            <ThemedText type="small" themeColor="headerTextSecondary">
-              {displayName ? `${displayName} · ` : ''}
-              {todayDateString()}
-            </ThemedText>
-          </Gradient>
+
+          {/* 九宫格快捷入口(管理员额外显示经营/管理入口) */}
+          <Card title="快捷入口">
+            <QuickEntryGrid entries={isAdmin ? [...commonEntries, ...adminEntries] : commonEntries} />
+          </Card>
 
           {/* 本人今日配送概览(仅本人数据) */}
           <StatCardGrid>
@@ -200,10 +192,6 @@ export default function WorkbenchScreen() {
             <WeekLineChart data={chartData} />
           </Card>
 
-          {/* 九宫格快捷入口(管理员额外显示经营/管理入口) */}
-          <Card title="快捷入口">
-            <QuickEntryGrid entries={isAdmin ? [...commonEntries, ...adminEntries] : commonEntries} />
-          </Card>
         </ScrollView>
       </SafeAreaView>
     </ThemedView>

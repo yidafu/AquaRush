@@ -33,12 +33,13 @@ import org.springframework.data.domain.Page
  */
 interface NotificationQueryApiService {
   /**
-   * 分页查询本人消息(仅本人,按创建时间倒序)
+   * 分页查询本人消息(仅本人,按创建时间倒序;messageType/read 为空 = 全部)
    */
   fun findMyNotifications(
     receiverType: NotificationReceiverType,
     receiverId: Long,
     messageType: NotificationMessageType?,
+    read: Boolean?,
     page: Int,
     size: Int,
   ): Page<NotificationModel>

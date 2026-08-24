@@ -74,16 +74,35 @@ class WorkerNotificationResolverTest :
     }
 
     test("myWorkerNotifications 以登录账号 id 作为 workerId 查询本人消息") {
-      every { queryApiService.findMyNotifications(any(), any(), any(), any(), any()) } returns
+      every { queryApiService.findMyNotifications(any(), any(), any(), any(), any(), any()) } returns
         PageImpl(emptyList<NotificationModel>())
 
-      resolver.myWorkerNotifications(type = null, page = 0, size = 10, userDetails)
+      resolver.myWorkerNotifications(type = null, read = null, page = 0, size = 10, userDetails)
 
       verify {
         queryApiService.findMyNotifications(
           receiverType = NotificationReceiverType.WORKER,
           receiverId = 9L,
           messageType = null,
+          read = null,
+          page = 0,
+          size = 10,
+        )
+      }
+    }
+
+    test("myWorkerNotifications 透传已读/未读筛选") {
+      every { queryApiService.findMyNotifications(any(), any(), any(), any(), any(), any()) } returns
+        PageImpl(emptyList<NotificationModel>())
+
+      resolver.myWorkerNotifications(type = null, read = false, page = 0, size = 10, userDetails)
+
+      verify {
+        queryApiService.findMyNotifications(
+          receiverType = NotificationReceiverType.WORKER,
+          receiverId = 9L,
+          messageType = null,
+          read = false,
           page = 0,
           size = 10,
         )

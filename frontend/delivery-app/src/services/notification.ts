@@ -28,11 +28,16 @@ export interface WorkerNotificationVOPage {
 }
 
 export const notificationService = {
-  /** 送水工端消息中心分页查询(仅本人) */
-  async getMyNotifications(page = 0, size = 10): Promise<WorkerNotificationVOPage> {
+  /** 送水工端消息中心分页查询(仅本人;type/read 为空 = 全部,未读 Tab read=false,已读 Tab read=true) */
+  async getMyNotifications(
+    type?: WorkerNotificationType,
+    read?: boolean,
+    page = 0,
+    size = 10,
+  ): Promise<WorkerNotificationVOPage> {
     const response = await networkManager.query<{ myWorkerNotifications: WorkerNotificationVOPage }>(`
-      query MyWorkerNotifications($page: Int!, $size: Int!) {
-        myWorkerNotifications(page: $page, size: $size) {
+      query MyWorkerNotifications($type: NotificationType, $read: Boolean, $page: Int!, $size: Int!) {
+        myWorkerNotifications(type: $type, read: $read, page: $page, size: $size) {
           content {
             id
             type
@@ -50,7 +55,7 @@ export const notificationService = {
           number
         }
       }
-    `, { page, size });
+    `, { type, read, page, size });
     return (
       response.myWorkerNotifications ?? {
         content: [],

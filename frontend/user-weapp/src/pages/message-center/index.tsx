@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect, useRef } from 'react'
 import { View, Text } from '@tarojs/components'
 import Taro, { useDidShow, useReachBottom, usePullDownRefresh } from '@tarojs/taro'
-import { AtLoadMore, AtTabs, AtTabsPane } from 'taro-ui'
+import { AtLoadMore, AtTabs } from 'taro-ui'
 import NotificationService, { NotificationType, NotificationVO } from '../../services/NotificationService'
 import { wsPushService } from '../../services/wsPush'
 import { isDuplicateNotification } from '../../utils/notificationDedup'
@@ -17,16 +17,28 @@ import './index.scss'
 const PAGE_SIZE = 10
 
 type TabKey = 'ALL' | 'ORDER' | 'SYSTEM'
+type ReadTabKey = 'ALL' | 'UNREAD' | 'READ'
 
-const TABS = [
+const TABS: { title: string; key: TabKey }[] = [
   { title: '全部', key: 'ALL' },
   { title: '订单', key: 'ORDER' },
   { title: '系统', key: 'SYSTEM' }
 ]
 
+const READ_TABS: { title: string; key: ReadTabKey }[] = [
+  { title: '全部', key: 'ALL' },
+  { title: '未读', key: 'UNREAD' },
+  { title: '已读', key: 'READ' }
+]
+
+/** 状态 Tab → read 筛选值:全部=不过滤,未读=false,已读=true */
+const readTabToValue = (key: ReadTabKey): boolean | undefined =>
+  key === 'ALL' ? undefined : key === 'UNREAD' ? false : true
+
 /**
  * 消息中心(F-NTF-002,PRD 13-notification.md)
  * 站内消息列表(仅本人数据,后端强制 userId=登录用户),分页 + 下拉刷新;
+ * 双行筛选:第一行类型 Tab(全部/订单/系统),第二行已读状态 Tab(全部/未读/已读),两维度组合过滤;
  * 点击消息标已读并跳转关联订单详情;WebSocket 实时推送到达时增量刷新(R-NTF-02 幂等去重)。
  * 公告/反馈分类聚合为开放问题(PRD 13-notification.md §3.1),枚举与 Tab 预留。
  */
@@ -34,6 +46,7 @@ const MessageCenterPage: React.FC = () => {
   usePageViewTracking()
 
   const [activeTab, setActiveTab] = useState<TabKey>('ALL')
+  const [activeReadTab, setActiveReadTab] = useState<ReadTabKey>('ALL')
   const [records, setRecords] = useState<NotificationVO[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [loadingMore, setLoadingMore] = useState<boolean>(false)
@@ -53,7 +66,12 @@ const MessageCenterPage: React.FC = () => {
       } else {
         setLoadingMore(true)
       }
-      const data = await NotificationService.getMyNotifications(tabToType(activeTab), page, PAGE_SIZE)
+      const data = await NotificationService.getMyNotifications(
+        tabToType(activeTab),
+        readTabToValue(activeReadTab),
+        page,
+        PAGE_SIZE
+      )
       const newRecords = data.content ?? []
       setRecords(prev => (append ? [...prev, ...newRecords] : newRecords))
       setHasMore(page + 1 < (data.totalPages ?? 0))
@@ -65,7 +83,7 @@ const MessageCenterPage: React.FC = () => {
       setLoading(false)
       setLoadingMore(false)
     }
-  }, [activeTab])
+  }, [activeTab, activeReadTab])
 
   // Tab 切换时重置列表
   useEffect(() => {
@@ -73,7 +91,7 @@ const MessageCenterPage: React.FC = () => {
       loadRecords(0, false)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab])
+  }, [activeTab, activeReadTab])
 
   useDidShow(() => {
     if (authService.isAuthenticated()) {
@@ -107,17 +125,26 @@ const MessageCenterPage: React.FC = () => {
     })
     return unsubscribe
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab])
+  }, [activeTab, activeReadTab])
 
   const handleTabClick = (index: number): void => {
     setActiveTab(TABS[index].key as TabKey)
+  }
+
+  const handleReadTabClick = (key: ReadTabKey): void => {
+    setActiveReadTab(key)
   }
 
   const handleReadAndNavigate = async (item: NotificationVO): Promise<void> => {
     if (!item.read) {
       try {
         await NotificationService.markRead(item.id)
-        setRecords(prev => prev.map(r => (r.id === item.id ? { ...r, read: true } : r)))
+        if (activeReadTab === 'UNREAD') {
+          // 未读 Tab 下点击即读:从列表移除(否则残留灰色已读项)
+          setRecords(prev => prev.filter(r => r.id !== item.id))
+        } else {
+          setRecords(prev => prev.map(r => (r.id === item.id ? { ...r, read: true } : r)))
+        }
       } catch (e) {
         console.error('标记已读失败:', e)
       }
@@ -131,7 +158,12 @@ const MessageCenterPage: React.FC = () => {
   const handleMarkAllRead = async (): Promise<void> => {
     try {
       await NotificationService.markAllRead()
-      setRecords(prev => prev.map(r => ({ ...r, read: true })))
+      if (activeReadTab === 'UNREAD') {
+        // 未读 Tab 下全部置读后列表应为空,重新拉取
+        loadRecords(0, false)
+      } else {
+        setRecords(prev => prev.map(r => ({ ...r, read: true })))
+      }
     } catch (e) {
       console.error('全部已读失败:', e)
       Taro.showToast({ title: '操作失败,请重试', icon: 'none' })
@@ -174,41 +206,58 @@ const MessageCenterPage: React.FC = () => {
         </View>
       )}
 
-      <AtTabs current={TABS.findIndex(t => t.key === activeTab)} tabList={TABS} onClick={handleTabClick}>
-        {TABS.map(tab => (
-          <AtTabsPane key={tab.key} current={TABS.findIndex(t => t.key === activeTab)} index={TABS.findIndex(t => t.key === tab.key)}>
-            <View className='message-center-list'>
-              {records.length === 0 && !loading && !error && (
-                <View className='message-center-empty'>
-                  <Text>暂无消息</Text>
-                </View>
-              )}
-              {records.map(item => (
-                <View
-                  key={item.id}
-                  className={`message-center-item ${item.read ? '' : 'message-center-item-unread'}`}
-                  onClick={() => handleReadAndNavigate(item)}
-                >
-                  <View className='message-center-item-body'>
-                    <View className='message-center-item-title-row'>
-                      {!item.read && <View className='message-center-item-dot' />}
-                      <Text className='message-center-item-title'>{item.title}</Text>
-                      <Text className='message-center-item-time'>{formatRelativeTime(item.createdAt)}</Text>
-                    </View>
-                    {item.summary && (
-                      <Text className='message-center-item-summary' numberOfLines={2}>
-                        {item.summary}
-                      </Text>
-                    )}
-                  </View>
-                </View>
-              ))}
-              {loadingMore && <AtLoadMore status='loading' loadingText='加载更多...' />}
-              {!hasMore && records.length > 0 && <AtLoadMore status='noMore' noMoreText='没有更多了' />}
+      {/* 第一行:类型 Tab(全部/订单/系统) */}
+      <AtTabs current={TABS.findIndex(t => t.key === activeTab)} tabList={TABS} onClick={handleTabClick} />
+
+      {/* 第二行:已读状态 Tab(全部/未读/已读),与类型 Tab 组合筛选 */}
+      <View className='message-center-read-tabs'>
+        {READ_TABS.map(tab => {
+          const active = activeReadTab === tab.key
+          return (
+            <View
+              key={tab.key}
+              className={`message-center-read-tab ${active ? 'message-center-read-tab-active' : ''}`}
+              onClick={() => handleReadTabClick(tab.key)}
+            >
+              <Text className={`message-center-read-tab-text ${active ? 'message-center-read-tab-text-active' : ''}`}>
+                {tab.title}
+              </Text>
             </View>
-          </AtTabsPane>
+          )
+        })}
+      </View>
+
+      <View className='message-center-list'>
+        {records.length === 0 && !loading && !error && (
+          <View className='message-center-empty'>
+            <Text>
+              {activeReadTab === 'UNREAD' ? '暂无未读消息' : activeReadTab === 'READ' ? '暂无已读消息' : '暂无消息'}
+            </Text>
+          </View>
+        )}
+        {records.map(item => (
+          <View
+            key={item.id}
+            className={`message-center-item ${item.read ? '' : 'message-center-item-unread'}`}
+            onClick={() => handleReadAndNavigate(item)}
+          >
+            <View className='message-center-item-body'>
+              <View className='message-center-item-title-row'>
+                {!item.read && <View className='message-center-item-dot' />}
+                <Text className='message-center-item-title'>{item.title}</Text>
+                <Text className='message-center-item-time'>{formatRelativeTime(item.createdAt)}</Text>
+              </View>
+              {item.summary && (
+                <Text className='message-center-item-summary' numberOfLines={2}>
+                  {item.summary}
+                </Text>
+              )}
+            </View>
+          </View>
         ))}
-      </AtTabs>
+        {loadingMore && <AtLoadMore status='loading' loadingText='加载更多...' />}
+        {!hasMore && records.length > 0 && <AtLoadMore status='noMore' noMoreText='没有更多了' />}
+      </View>
     </BasePageLayout>
   )
 }

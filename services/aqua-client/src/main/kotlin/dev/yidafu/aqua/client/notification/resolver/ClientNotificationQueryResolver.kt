@@ -43,12 +43,13 @@ class ClientNotificationQueryResolver(
   private val notificationQueryApiService: NotificationQueryApiService,
 ) {
   /**
-   * 消息中心:分页查询本人消息(仅本人),type 为空 = 全部
+   * 消息中心:分页查询本人消息(仅本人),type/read 为空 = 全部
    */
   @QueryMapping
   @PreAuthorize("isAuthenticated()")
   fun myNotifications(
     @Argument type: NotificationType?,
+    @Argument read: Boolean?,
     @Argument page: Int,
     @Argument size: Int,
     @AuthenticationPrincipal principal: UserPrincipal,
@@ -58,6 +59,7 @@ class ClientNotificationQueryResolver(
         receiverType = NotificationReceiverType.USER,
         receiverId = principal.id,
         messageType = NotificationVoMapper.toDomainMessageType(type),
+        read = read,
         page = page,
         size = size,
       )

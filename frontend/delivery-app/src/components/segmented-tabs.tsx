@@ -6,6 +6,8 @@ import { Radius, Spacing } from '@/constants/theme';
 
 export interface SegmentedTabItem {
   title: string;
+  /** 可选:携带业务标识(如筛选值),由调用方在 onChange 中通过索引回查 */
+  key?: string;
 }
 
 interface SegmentedTabsProps {

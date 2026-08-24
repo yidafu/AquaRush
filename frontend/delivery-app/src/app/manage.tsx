@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { AdminOrders } from '@/components/manage/admin-orders';
@@ -19,7 +18,7 @@ function parseTabParam(raw?: string): number | null {
   return !Number.isNaN(index) && index >= 0 && index < SEGMENTS.length ? index : null;
 }
 
-/** 管理枢纽：仅 ADMIN/SUPER_ADMIN 可见（Tab 条件渲染 + 此处兜底）。 */
+/** 管理枢纽：仅 ADMIN/SUPER_ADMIN 可见(工作台「经营看板」入口,原「管理」Tab 已移除;此处兜底非管理员跳回工作台)。 */
 export default function ManageScreen() {
   const { isAdmin } = useAuth();
   const router = useRouter();
@@ -46,12 +45,12 @@ export default function ManageScreen() {
 
   return (
     <ThemedView type="pageBackground" style={styles.container}>
-      <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.safeArea}>
         <SegmentedTabs current={current} tabs={SEGMENTS.map((t) => ({ title: t }))} onChange={setCurrent} />
         {current === 0 ? <ManageDashboard /> : null}
         {current === 1 ? <AdminOrders /> : null}
         {current === 2 ? <AdminWorkers /> : null}
-      </SafeAreaView>
+      </View>
     </ThemedView>
   );
 }

@@ -52,10 +52,18 @@ class NotificationRepositoryImpl : NotificationRepositoryCustom {
     receiverType: NotificationReceiverType,
     receiverId: Long,
     messageType: NotificationMessageType?,
+    read: Boolean?,
     pageable: Pageable,
   ): Page<NotificationModel> {
     val builder = BooleanBuilder(receiverPredicate(receiverType, receiverId))
     messageType?.let { builder.and(notificationModel.messageType.eq(it)) }
+    read?.let { isRead ->
+      if (isRead) {
+        builder.and(notificationModel.readAt.isNotNull)
+      } else {
+        builder.and(notificationModel.readAt.isNull)
+      }
+    }
 
     val content =
       queryFactory

@@ -45,6 +45,7 @@ class NotificationQueryApiServiceImpl(
     receiverType: NotificationReceiverType,
     receiverId: Long,
     messageType: NotificationMessageType?,
+    read: Boolean?,
     page: Int,
     size: Int,
   ): Page<NotificationModel> {
@@ -54,7 +55,7 @@ class NotificationQueryApiServiceImpl(
         size.coerceIn(1, 50),
         Sort.by(Sort.Direction.DESC, "createdAt"),
       )
-    return notificationRepository.findMyNotifications(receiverType, receiverId, messageType, pageable)
+    return notificationRepository.findMyNotifications(receiverType, receiverId, messageType, read, pageable)
   }
 
   override fun countUnread(

@@ -47,12 +47,13 @@ class WorkerNotificationResolver(
   private val adminService: AdminService,
 ) {
   /**
-   * 送水工端消息中心:分页查询本人消息(仅本人)
+   * 送水工端消息中心:分页查询本人消息(仅本人),type/read 为空 = 全部
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_DELIVERY_TASK')")
   fun myWorkerNotifications(
     @Argument type: NotificationType?,
+    @Argument read: Boolean?,
     @Argument page: Int,
     @Argument size: Int,
     @AuthenticationPrincipal userDetail: UserDetails,
@@ -63,6 +64,7 @@ class WorkerNotificationResolver(
         receiverType = NotificationReceiverType.WORKER,
         receiverId = workerId,
         messageType = NotificationVoMapper.toDomainMessageType(type),
+        read = read,
         page = page,
         size = size,
       )

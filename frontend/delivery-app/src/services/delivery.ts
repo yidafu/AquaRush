@@ -298,40 +298,10 @@ export const updateOrderAddress = (
 
 // ==================== 统计与历史订单相关 API ====================
 
-// 获取当日统计数据
-export const getTodayStatistics = () => {
-  return networkManager.query<{ todayStatistics: TodayStatistics | null }>(`
-    query GetTodayStatistics {
-      todayStatistics {
-        totalOrders
-        completedOrders
-        unfinishedOrders
-        earningCents
-      }
-    }
-  `);
-};
-
-// 获取一周统计数据
-export const getWeekStatistics = () => {
-  return networkManager.query<{ weekStatistics: WeekStatistics | null }>(`
-    query GetWeekStatistics {
-      weekStatistics {
-        dailyStats {
-          date
-          orderCount
-          earningCents
-        }
-        totalOrders
-        totalEarningCents
-      }
-    }
-  `);
-};
-
 /**
  * 工作台首页单请求(规则 #10):今日统计 + 近7天统计一次取回,
  * 均按当前登录账号(本人)收敛 —— 送水员只能看到本人送水的数据。
+ * (独立「统计」Tab 已移除,统计收敛到工作台,原 getTodayStatistics/getWeekStatistics 已删除)
  */
 export const getWorkbenchData = () => {
   return networkManager.query<{

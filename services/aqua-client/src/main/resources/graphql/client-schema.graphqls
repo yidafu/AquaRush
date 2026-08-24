@@ -76,8 +76,8 @@ type Query {
   orderPreview(input: OrderPreviewInput!): OrderPreviewVO!
 
   # ============ 消息中心与订阅消息(PRD 13-notification.md F-NTF-002/001) ============
-  # 消息中心:分页查询本人消息(仅本人,R-AUTH-02),type 为空=全部
-  myNotifications(type: NotificationType, page: Int = 0, size: Int = 10): NotificationVOPage!
+  # 消息中心:分页查询本人消息(仅本人,R-AUTH-02),type/read 为空=全部
+  myNotifications(type: NotificationType, read: Boolean, page: Int = 0, size: Int = 10): NotificationVOPage!
   # 未读消息数(我的页消息中心入口角标)
   unreadNotificationCount: Int!
   # 已启用的订阅消息模板(下单确认页订阅授权 Taro.requestSubscribeMessage 用,R-NTF-01)

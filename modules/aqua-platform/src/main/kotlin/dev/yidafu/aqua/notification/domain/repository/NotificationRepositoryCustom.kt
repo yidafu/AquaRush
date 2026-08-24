@@ -32,12 +32,13 @@ import java.time.LocalDateTime
  */
 interface NotificationRepositoryCustom {
   /**
-   * 分页查询本人消息(仅本人;messageType 为空 = 全部),按创建时间倒序
+   * 分页查询本人消息(仅本人;messageType/read 为空 = 全部),按创建时间倒序
    */
   fun findMyNotifications(
     receiverType: NotificationReceiverType,
     receiverId: Long,
     messageType: NotificationMessageType?,
+    read: Boolean?,
     pageable: Pageable,
   ): Page<NotificationModel>
 

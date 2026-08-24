@@ -13,10 +13,8 @@ import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
 
 import { MaxContentWidth, Spacing } from '@/constants/theme';
-import { useAuth } from '@/hooks/use-auth';
 
 export default function AppTabs() {
-  const { isAdmin } = useAuth();
   return (
     <Tabs>
       <TabSlot style={{ height: '100%' }} />
@@ -28,14 +26,6 @@ export default function AppTabs() {
           <TabTrigger name="orders" href={'/orders' as Href} asChild>
             <TabButton>订单</TabButton>
           </TabTrigger>
-          <TabTrigger name="statistics" href="/statistics" asChild>
-            <TabButton>统计</TabButton>
-          </TabTrigger>
-          {isAdmin ? (
-            <TabTrigger name="manage" href="/manage" asChild>
-              <TabButton>管理</TabButton>
-            </TabTrigger>
-          ) : null}
           <TabTrigger name="profile" href="/profile" asChild>
             <TabButton>我的</TabButton>
           </TabTrigger>

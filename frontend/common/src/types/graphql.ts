@@ -978,6 +978,22 @@ export enum DeliveryWorkerStatus {
   ONLINE = 'ONLINE'
 }
 
+export enum DiscrepancyStatus {
+  RESOLVED = 'RESOLVED',
+  UNRESOLVED = 'UNRESOLVED'
+}
+
+export enum DiscrepancyType {
+  EXTRA = 'EXTRA',
+  MISMATCH = 'MISMATCH',
+  MISSING = 'MISSING'
+}
+
+export type ExecuteReconciliationInput = {
+  readonly reconciliationDate: Scalars['String']['input'];
+  readonly taskType: ReconciliationTaskType;
+};
+
 export type ExportFavoritesInput = {
   readonly dateFrom?: InputMaybe<Scalars['LocalDateTime']['input']>;
   readonly dateTo?: InputMaybe<Scalars['LocalDateTime']['input']>;
@@ -1492,6 +1508,7 @@ export type Mutation = {
   readonly disablePromotionActivity: PromotionActivity;
   readonly disableTicketType: TicketType;
   readonly executeDailyReconciliation: DailyReconciliation;
+  readonly executeReconciliation: ReconciliationTask;
   readonly issueCoupons: Scalars['Int']['output'];
   readonly markAllNotificationsRead: Scalars['Boolean']['output'];
   readonly markAllWorkerNotificationsRead: Scalars['Boolean']['output'];
@@ -1511,6 +1528,7 @@ export type Mutation = {
   readonly resendNotification?: Maybe<NotificationVo>;
   readonly resetAdminPassword: Scalars['Boolean']['output'];
   readonly resetDeliveryWorkerPassword: Scalars['Boolean']['output'];
+  readonly resolveDiscrepancy: Scalars['Boolean']['output'];
   readonly restoreSystemConfig: SystemConfigVo;
   readonly reviewDeliveryPhoto: Order;
   readonly reviewFeedback: Feedback;
@@ -1802,6 +1820,11 @@ export type MutationExecuteDailyReconciliationArgs = {
 };
 
 
+export type MutationExecuteReconciliationArgs = {
+  input: ExecuteReconciliationInput;
+};
+
+
 export type MutationIssueCouponsArgs = {
   input: IssueCouponsInput;
 };
@@ -1888,6 +1911,11 @@ export type MutationResetAdminPasswordArgs = {
 export type MutationResetDeliveryWorkerPasswordArgs = {
   id: Scalars['PrimaryId']['input'];
   newPassword?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type MutationResolveDiscrepancyArgs = {
+  input: ResolveDiscrepancyInput;
 };
 
 
@@ -2915,6 +2943,10 @@ export type Query = {
   readonly promotionActivities?: Maybe<PromotionActivityVoPage>;
   readonly promotionActivity?: Maybe<PromotionActivity>;
   readonly promotionActivityUsage?: Maybe<MarketingUsageVo>;
+  readonly reconciliationDiscrepancies: ReconciliationDiscrepancyPage;
+  readonly reconciliationReports: ReadonlyArray<ReconciliationReport>;
+  readonly reconciliationTask?: Maybe<ReconciliationTask>;
+  readonly reconciliationTasks: ReconciliationTaskPage;
   readonly refundRequest?: Maybe<RefundRequest>;
   readonly refundRequests: RefundRequestPage;
   readonly region?: Maybe<Region>;
@@ -3310,6 +3342,35 @@ export type QueryPromotionActivityUsageArgs = {
 };
 
 
+export type QueryReconciliationDiscrepanciesArgs = {
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<DiscrepancyStatus>;
+  taskId?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryReconciliationReportsArgs = {
+  reportType?: InputMaybe<Scalars['String']['input']>;
+  taskId: Scalars['String']['input'];
+};
+
+
+export type QueryReconciliationTaskArgs = {
+  taskId: Scalars['String']['input'];
+};
+
+
+export type QueryReconciliationTasksArgs = {
+  dateFrom?: InputMaybe<Scalars['String']['input']>;
+  dateTo?: InputMaybe<Scalars['String']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  size?: InputMaybe<Scalars['Int']['input']>;
+  status?: InputMaybe<ReconciliationTaskStatus>;
+  taskType?: InputMaybe<ReconciliationTaskType>;
+};
+
+
 export type QueryRefundRequestArgs = {
   id: Scalars['String']['input'];
 };
@@ -3408,6 +3469,29 @@ export type QueryWeeklyStatisticsArgs = {
   input: DateRangeInput;
 };
 
+export type ReconciliationDiscrepancy = {
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly discrepancyType: DiscrepancyType;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly recordDetails?: Maybe<Scalars['JsonObject']['output']>;
+  readonly recordId: Scalars['String']['output'];
+  readonly resolutionNotes?: Maybe<Scalars['String']['output']>;
+  readonly resolvedAt?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly resolvedBy?: Maybe<Scalars['String']['output']>;
+  readonly sourceSystem: SourceSystem;
+  readonly status: DiscrepancyStatus;
+  readonly taskId: Scalars['String']['output'];
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+};
+
+export type ReconciliationDiscrepancyPage = {
+  readonly content: ReadonlyArray<ReconciliationDiscrepancy>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
 export type ReconciliationOrderDetail = {
   readonly amountCents: Scalars['Long']['output'];
   readonly deliveredAt?: Maybe<Scalars['LocalDateTime']['output']>;
@@ -3422,6 +3506,54 @@ export type ReconciliationOrderDetailPage = {
   readonly list: ReadonlyArray<ReconciliationOrderDetail>;
   readonly pageInfo: PageInfo;
 };
+
+export type ReconciliationReport = {
+  readonly fileName?: Maybe<Scalars['String']['output']>;
+  readonly filePath?: Maybe<Scalars['String']['output']>;
+  readonly fileSize?: Maybe<Scalars['Long']['output']>;
+  readonly generatedAt: Scalars['LocalDateTime']['output'];
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly reportData: Scalars['JsonObject']['output'];
+  readonly reportType: Scalars['String']['output'];
+  readonly taskId: Scalars['String']['output'];
+};
+
+export type ReconciliationTask = {
+  readonly createdAt: Scalars['LocalDateTime']['output'];
+  readonly endTime?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly errorMessage?: Maybe<Scalars['String']['output']>;
+  readonly id: Scalars['PrimaryId']['output'];
+  readonly matchedRecords: Scalars['Int']['output'];
+  readonly startTime?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly status: ReconciliationTaskStatus;
+  readonly taskDate: Scalars['LocalDateTime']['output'];
+  readonly taskId: Scalars['String']['output'];
+  readonly taskType: ReconciliationTaskType;
+  readonly totalRecords: Scalars['Int']['output'];
+  readonly unmatchedRecords: Scalars['Int']['output'];
+  readonly updatedAt: Scalars['LocalDateTime']['output'];
+};
+
+export type ReconciliationTaskPage = {
+  readonly content: ReadonlyArray<ReconciliationTask>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
+export enum ReconciliationTaskStatus {
+  FAILED = 'FAILED',
+  PENDING = 'PENDING',
+  RUNNING = 'RUNNING',
+  SUCCESS = 'SUCCESS'
+}
+
+export enum ReconciliationTaskType {
+  PAYMENT = 'PAYMENT',
+  REFUND = 'REFUND',
+  SETTLEMENT = 'SETTLEMENT'
+}
 
 export type RefreshTokenInput = {
   readonly refreshToken: Scalars['String']['input'];
@@ -3512,6 +3644,11 @@ export type ReportTrajectoryInput = {
   readonly reportedAt?: InputMaybe<Scalars['LocalDateTime']['input']>;
 };
 
+export type ResolveDiscrepancyInput = {
+  readonly discrepancyId: Scalars['PrimaryId']['input'];
+  readonly resolutionNotes: Scalars['String']['input'];
+};
+
 export type Review = {
   readonly comment?: Maybe<Scalars['String']['output']>;
   readonly createdAt: Scalars['LocalDateTime']['output'];
@@ -3585,6 +3722,11 @@ export type SaveSystemConfigInput = {
   readonly settingKey: Scalars['String']['input'];
   readonly settingValue?: InputMaybe<Scalars['String']['input']>;
 };
+
+export enum SourceSystem {
+  INTERNAL = 'INTERNAL',
+  WECHAT = 'WECHAT'
+}
 
 export type SpecificationStatistics = {
   readonly averagePriceCents: Scalars['Long']['output'];

@@ -89,6 +89,10 @@ function RootNavigator() {
           options={{ headerShown: true, title: '数据统计', ...headerOptions }}
         />
         <Stack.Screen
+          name="manage"
+          options={{ headerShown: true, title: '经营看板', ...headerOptions }}
+        />
+        <Stack.Screen
           name="admin-collection"
           options={{ headerShown: true, title: '收银对账', ...headerOptions }}
         />

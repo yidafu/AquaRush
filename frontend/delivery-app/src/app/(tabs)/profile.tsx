@@ -20,33 +20,18 @@ const ROLE_LABELS: Record<string, string> = {
   SUPER_ADMIN: '超级管理员',
 };
 
+// 仅保留「工作台」九宫格之外的入口(每日收款/对账记录/历史订单/消息中心等
+// 已在工作台快捷入口中,避免重复;管理员经营入口同在工作台)
 const MENU_ITEMS: { label: string; href: Href }[] = [
-  { label: '消息中心', href: '/messages' as Href },
-  { label: '每日收款', href: '/daily-collection' },
-  { label: '对账记录', href: '/reconciliation-records' },
-  { label: '历史订单', href: '/history-orders' },
   { label: '关于我们', href: '/about' },
   { label: '用户协议', href: '/user-agreement' },
   { label: '隐私政策', href: '/privacy-policy' },
 ];
 
-// 管理员专属菜单(工作台九宫格之外的第二入口)
-const ADMIN_MENU_ITEMS: { label: string; href: Href }[] = [
-  { label: '经营看板', href: '/manage' as Href },
-  { label: '数据统计', href: '/admin-statistics' as Href },
-  { label: '收银对账', href: '/admin-collection' as Href },
-  { label: '退单处置', href: '/refund-management' as Href },
-];
-
 export default function ProfileScreen() {
-  const { userInfo, isAdmin, logout } = useAuth();
+  const { userInfo, logout } = useAuth();
   const router = useRouter();
   const theme = useTheme();
-
-  const menuItems = [
-    ...(isAdmin ? ADMIN_MENU_ITEMS : []),
-    ...MENU_ITEMS,
-  ];
 
   const handleLogout = () => {
     const doLogout = async () => {
@@ -114,13 +99,13 @@ export default function ProfileScreen() {
         </Card>
 
         <Card>
-          {menuItems.map((item, index) => (
+          {MENU_ITEMS.map((item, index) => (
             <Pressable
               key={item.label}
               onPress={() => router.push(item.href)}
               style={({ pressed }) => [
                 styles.menuItem,
-                index < menuItems.length - 1 && {
+                index < MENU_ITEMS.length - 1 && {
                   borderBottomWidth: StyleSheet.hairlineWidth,
                   borderBottomColor: theme.border,
                 },
