@@ -1,5 +1,5 @@
-import { useCallback, useRef } from 'react';
-import { FlatList, RefreshControl, StyleSheet } from 'react-native';
+import { useCallback, useRef, useState } from 'react';
+import { FlatList, Pressable, RefreshControl, StyleSheet } from 'react-native';
 import { useFocusEffect } from 'expo-router';
 import { usePagedList } from '@aquarush/common';
 import type { DailyReconciliation } from '@aquarush/common';
@@ -7,6 +7,7 @@ import type { DailyReconciliation } from '@aquarush/common';
 import { EmptyState } from '@/components/empty-state';
 import { ListFooterStatus } from '@/components/list-footer-status';
 import { ReconciliationCard } from '@/components/reconciliation-card';
+import { ReconciliationOrderDetailSheet } from '@/components/reconciliation-order-detail-sheet';
 import { ThemedView } from '@/components/themed-view';
 import { Spacing } from '@/constants/theme';
 import { getDailyReconciliations } from '@/services/dailyCollection';
@@ -14,6 +15,7 @@ import { getDailyReconciliations } from '@/services/dailyCollection';
 const PAGE_SIZE = 10;
 
 export default function ReconciliationRecordsScreen() {
+  const [detailDate, setDetailDate] = useState<string | null>(null);
   const {
     items: records,
     loading,
@@ -23,17 +25,13 @@ export default function ReconciliationRecordsScreen() {
     refresh,
     loadMore,
   } = usePagedList<DailyReconciliation>({
+    // 服务端分页(规则 #13):按对账日期倒序,pageInfo.hasNext 驱动触底加载
     fetchPage: async (page) => {
-      const res = await getDailyReconciliations();
-      // 按日期倒序（weapp 行为），客户端分页
-      const sorted = [...(res?.dailyReconciliations ?? [])].sort(
-        (a, b) =>
-          new Date(b.reconciliationDate).getTime() - new Date(a.reconciliationDate).getTime(),
-      );
-      const start = page * PAGE_SIZE;
+      const res = await getDailyReconciliations(page, PAGE_SIZE);
+      const pageData = res?.dailyReconciliations;
       return {
-        items: sorted.slice(start, start + PAGE_SIZE),
-        hasMore: start + PAGE_SIZE < sorted.length,
+        items: [...(pageData?.list ?? [])],
+        hasMore: pageData?.pageInfo.hasNext ?? false,
       };
     },
   });
@@ -58,12 +56,20 @@ export default function ReconciliationRecordsScreen() {
     loadMore().catch(() => {});
   }, [loadMore]);
 
+  const handleOpenDetail = useCallback((record: DailyReconciliation) => {
+    setDetailDate(record.reconciliationDate);
+  }, []);
+
   return (
     <ThemedView type="pageBackground" style={styles.container}>
       <FlatList
         data={records}
         keyExtractor={(record) => record.id}
-        renderItem={({ item }) => <ReconciliationCard record={item} />}
+        renderItem={({ item }) => (
+          <Pressable onPress={() => handleOpenDetail(item)}>
+            <ReconciliationCard record={item} />
+          </Pressable>
+        )}
         contentContainerStyle={styles.listContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}
         onEndReached={handleLoadMore}
@@ -80,6 +86,13 @@ export default function ReconciliationRecordsScreen() {
             hasItems={records.length > 0}
           />
         }
+      />
+
+      {/* G29 对账逐单明细:点击卡片查看当日订单流水 */}
+      <ReconciliationOrderDetailSheet
+        visible={detailDate !== null}
+        reconciliationDate={detailDate}
+        onClose={() => setDetailDate(null)}
       />
     </ThemedView>
   );

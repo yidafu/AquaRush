@@ -27,17 +27,21 @@ const STATUS_MAP: Record<DailyCollectionStatus, { color: string; text: string }>
 const DailyCollectionSection: React.FC<DailyCollectionSectionProps> = ({ deliveryWorkerId }) => {
   const [collectionDate, setCollectionDate] = useState<string | undefined>(undefined);
 
+  // 服务端按送水工/日期筛选分页(规则 #13);单账号日报天然有界(一人一天一份),
+  // size=200 覆盖常规历史,前端仍保留客户端分页
   const { data, loading, error } = useQuery(GET_DAILY_COLLECTIONS, {
-    variables: collectionDate ? { collectionDate } : undefined,
+    variables: {
+      deliveryWorkerId: Number(deliveryWorkerId),
+      collectionDate: collectionDate || null,
+      page: 0,
+      size: 200,
+    },
     errorPolicy: 'all',
   });
 
   const records: DailyCollectionRecord[] = useMemo(
-    () =>
-      ((data?.dailyCollections ?? []) as DailyCollectionRecord[]).filter(
-        (r) => String(r.deliveryWorkerId) === String(deliveryWorkerId),
-      ),
-    [data, deliveryWorkerId],
+    () => (data?.dailyCollections?.list ?? []) as DailyCollectionRecord[],
+    [data],
   );
 
   // 合计(现金/扫码/水票/订单数/订单金额/差异)

@@ -1,89 +1,153 @@
 import { gql } from '@apollo/client'
-import type { DailyCollectionRecord, DailyReconciliation } from '../../types/daily-collection'
 
-// 查询每日收款记录（可选日期筛选）
+// 查询每日收款记录(按收款日期/送水工筛选,服务端分页 —— 规则 #13)
 export const GET_DAILY_COLLECTIONS = gql`
-  query GetDailyCollections($collectionDate: String) {
-    dailyCollections(collectionDate: $collectionDate) {
-      id
-      deliveryWorkerId
-      collectionDate
-      cashAmountCents
-      waterTicketCount
-      qrCodeAmountCents
-      orderCount
-      orderAmountCents
-      differenceAmountCents
-      calculatedCashAmountCents
-      calculatedQrCodeAmountCents
-      calculatedWaterTicketCount
-      calculatedOrderAmountCents
-      status
-      confirmedAt
-      confirmedBy
-      notes
-      rejectedAt
-      rejectedBy
-      rejectReason
-      createdAt
-      updatedAt
+  query GetDailyCollections($collectionDate: String, $deliveryWorkerId: Long, $page: Int, $size: Int) {
+    dailyCollections(input: { collectionDate: $collectionDate, deliveryWorkerId: $deliveryWorkerId, page: $page, size: $size }) {
+      list {
+        id
+        deliveryWorkerId
+        collectionDate
+        cashAmountCents
+        waterTicketCount
+        qrCodeAmountCents
+        orderCount
+        orderAmountCents
+        differenceAmountCents
+        calculatedCashAmountCents
+        calculatedQrCodeAmountCents
+        calculatedWaterTicketCount
+        calculatedOrderAmountCents
+        status
+        confirmedAt
+        confirmedBy
+        notes
+        rejectedAt
+        rejectedBy
+        rejectReason
+        createdAt
+        updatedAt
+      }
+      pageInfo {
+        total
+        pageSize
+        pageNum
+        hasNext
+        hasPrevious
+        totalPages
+      }
     }
   }
 `
 
-// 查询所有对账记录
-// 已并入 DAILY_COLLECTION_PAGE_DATA_QUERY(收银对账页单页查询,规则 #10)
-
-// 收银对账管理页(DailyCollectionPage)单页查询:
-// 一次请求取回「每日收款记录 + 对账记录」(规则 #10)
+// 收银对账管理页(DailyCollectionPage)单页查询(规则 #10):
+// 一次请求取回「每日收款记录(分页) + 对账记录(分页) + 指定日期汇总卡」
 export const DAILY_COLLECTION_PAGE_DATA_QUERY = gql`
-  query DailyCollectionPageData {
-    dailyCollections {
-      id
-      deliveryWorkerId
-      collectionDate
-      cashAmountCents
-      waterTicketCount
-      qrCodeAmountCents
-      orderCount
-      orderAmountCents
-      differenceAmountCents
-      calculatedCashAmountCents
-      calculatedQrCodeAmountCents
-      calculatedWaterTicketCount
-      calculatedOrderAmountCents
-      status
-      confirmedAt
-      confirmedBy
-      notes
-      rejectedAt
-      rejectedBy
-      rejectReason
-      createdAt
-      updatedAt
+  query DailyCollectionPageData(
+    $collectionsInput: DailyCollectionListInput
+    $reconciliationsInput: DailyReconciliationListInput
+    $summaryDate: String
+  ) {
+    dailyCollections(input: $collectionsInput) {
+      list {
+        id
+        deliveryWorkerId
+        collectionDate
+        cashAmountCents
+        waterTicketCount
+        qrCodeAmountCents
+        orderCount
+        orderAmountCents
+        differenceAmountCents
+        calculatedCashAmountCents
+        calculatedQrCodeAmountCents
+        calculatedWaterTicketCount
+        calculatedOrderAmountCents
+        status
+        confirmedAt
+        confirmedBy
+        notes
+        rejectedAt
+        rejectedBy
+        rejectReason
+        createdAt
+        updatedAt
+      }
+      pageInfo {
+        total
+        pageSize
+        pageNum
+        hasNext
+        hasPrevious
+        totalPages
+      }
     }
-    dailyReconciliations {
-      id
-      reconciliationDate
+    dailyReconciliations(input: $reconciliationsInput) {
+      list {
+        id
+        reconciliationDate
+        totalCashAmountCents
+        totalWaterTicketCount
+        totalQrCodeAmountCents
+        totalOrderCount
+        totalOrderAmountCents
+        totalCollectionAmountCents
+        discrepancyAmountCents
+        status
+        reportData
+        reviewedAt
+        reviewedBy
+        reviewNotes
+        createdAt
+        updatedAt
+      }
+      pageInfo {
+        total
+        pageSize
+        pageNum
+        hasNext
+        hasPrevious
+        totalPages
+      }
+    }
+    dailyCollectionSummary(collectionDate: $summaryDate) {
+      collectionDate
       totalCashAmountCents
-      totalWaterTicketCount
       totalQrCodeAmountCents
+      totalWaterTicketCount
       totalOrderCount
       totalOrderAmountCents
-      totalCollectionAmountCents
-      discrepancyAmountCents
-      status
-      reportData
-      reviewedAt
-      reviewedBy
-      reviewNotes
-      createdAt
-      updatedAt
+      totalSubmittedCount
     }
   }
 `
 
-// DailyCollectionPageData 操作名(供 refetchQueries 引用)
-export const DAILY_COLLECTION_PAGE_DATA = 'DailyCollectionPageData'
-
-export type { DailyCollectionRecord, DailyReconciliation }
+// 对账逐单差异明细(G29):按对账日期分页取回当日已送达订单流水(对账详情弹窗按需查询)
+export const GET_RECONCILIATION_ORDER_DETAILS = gql`
+  query GetReconciliationOrderDetails($reconciliationDate: String!, $deliveryWorkerId: Long, $page: Int!, $size: Int!) {
+    dailyReconciliationOrderDetails(
+      reconciliationDate: $reconciliationDate
+      deliveryWorkerId: $deliveryWorkerId
+      page: $page
+      size: $size
+    ) {
+      list {
+        orderId
+        orderNo
+        deliveryWorkerId
+        amountCents
+        paymentType
+        status
+        deliveredAt
+      }
+      pageInfo {
+        total
+        pageSize
+        pageNum
+        hasNext
+        hasPrevious
+        totalPages
+      }
+    }
+  }
+`

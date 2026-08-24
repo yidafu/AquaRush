@@ -445,6 +445,135 @@ class OrderMutationServiceImplTest :
 
       shouldThrow<BadRequestException> { service.cancelOrder(1L) }
     }
+    test("awaiting confirmation order cannot be cancelled (R-ORD-11)") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.AWAITING_CONFIRMATION)
+      every { orderQueryService.getOrderById(1L) } returns order
+
+      shouldThrow<BadRequestException> { service.cancelOrder(1L) }
+    }
+    test("update order status allows admin confirm from awaiting confirmation (R-ORD-11)") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.AWAITING_CONFIRMATION)
+      every { orderQueryService.getOrderById(1L) } returns order
+      every { orderRepository.save(any()) } answers { firstArg() }
+
+      val updated = service.updateOrderStatus(1L, OrderModelStatus.COMPLETED)
+
+      updated.status shouldBe OrderModelStatus.COMPLETED
+    }
+
+    // ============ 确认收货(R-ORD-11) ============
+
+    test("confirmReceipt transitions awaiting confirmation to completed with claim") {
+      val order =
+        OrderModel(
+          id = 1L,
+          userId = 100L,
+          status = OrderModelStatus.AWAITING_CONFIRMATION,
+          deliveryWorkerId = 3L,
+        )
+      val completed = order.copy(status = OrderModelStatus.COMPLETED)
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+      every { orderRepository.confirmReceiptAtomically(1L, any()) } returns 1
+      every { orderQueryService.getOrderById(1L) } returns completed
+
+      val result = service.confirmReceipt(1L, 100L)
+
+      result!!.status shouldBe OrderModelStatus.COMPLETED
+      verify(exactly = 1) {
+        orderOperationService.recordOperation(
+          orderId = 1L,
+          operationType = OrderOperationType.ORDER_CONFIRMED,
+          operatorType = OperatorType.USER,
+          operatorId = 100L,
+          description = any(),
+        )
+      }
+      verify(exactly = 1) {
+        eventPublishService.publishOrderCompleted(1L, 100L, 3L)
+      }
+    }
+    test("confirmReceipt returns null for non-owning user") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.AWAITING_CONFIRMATION)
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+
+      service.confirmReceipt(1L, 999L) shouldBe null
+      verify(exactly = 0) { orderRepository.confirmReceiptAtomically(any(), any()) }
+    }
+    test("confirmReceipt idempotent when already completed") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.COMPLETED)
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+
+      val result = service.confirmReceipt(1L, 100L)
+
+      result!!.status shouldBe OrderModelStatus.COMPLETED
+      verify(exactly = 0) { orderRepository.confirmReceiptAtomically(any(), any()) }
+    }
+    test("confirmReceipt rejects non awaiting confirmation status") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.DELIVERING)
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+
+      shouldThrow<BadRequestException> { service.confirmReceipt(1L, 100L) }
+    }
+    test("confirmReceipt skips when claim lost (并发互斥)") {
+      val order =
+        OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.AWAITING_CONFIRMATION, deliveryWorkerId = 3L)
+      val completed = order.copy(status = OrderModelStatus.COMPLETED)
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+      // 已被系统自动确认抢占 → CAS 返回 0,幂等跳过(不重复发事件)
+      every { orderRepository.confirmReceiptAtomically(1L, any()) } returns 0
+      every { orderQueryService.getOrderById(1L) } returns completed
+
+      val result = service.confirmReceipt(1L, 100L)
+
+      result!!.status shouldBe OrderModelStatus.COMPLETED
+      verify(exactly = 0) { eventPublishService.publishOrderCompleted(any(), any(), any()) }
+    }
+    test("autoConfirmReceipt transitions awaiting confirmation to completed") {
+      val order =
+        OrderModel(
+          id = 1L,
+          userId = 100L,
+          status = OrderModelStatus.AWAITING_CONFIRMATION,
+          deliveryWorkerId = 3L,
+          deliveryConfirmedAt = LocalDateTime.now().minusDays(8),
+        )
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+      every { orderRepository.confirmReceiptAtomically(1L, any()) } returns 1
+
+      service.autoConfirmReceipt(1L)
+
+      verify(exactly = 1) {
+        orderOperationService.recordOperation(
+          orderId = 1L,
+          operationType = OrderOperationType.AUTO_CONFIRMED,
+          operatorType = OperatorType.SYSTEM,
+          operatorId = null,
+          description = any(),
+        )
+      }
+      verify(exactly = 1) {
+        eventPublishService.publishOrderCompleted(1L, 100L, 3L)
+      }
+    }
+    test("autoConfirmReceipt skips non awaiting confirmation status (幂等)") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.COMPLETED)
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+
+      service.autoConfirmReceipt(1L)
+
+      verify(exactly = 0) { orderRepository.confirmReceiptAtomically(any(), any()) }
+      verify(exactly = 0) { eventPublishService.publishOrderCompleted(any(), any(), any()) }
+    }
+    test("autoConfirmReceipt skips when claim lost (并发互斥)") {
+      val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.AWAITING_CONFIRMATION)
+      every { orderRepository.findById(1L) } returns Optional.of(order)
+      // 用户已确认 → CAS 返回 0,自动确认跳过
+      every { orderRepository.confirmReceiptAtomically(1L, any()) } returns 0
+
+      service.autoConfirmReceipt(1L)
+
+      verify(exactly = 0) { eventPublishService.publishOrderCompleted(any(), any(), any()) }
+    }
     test("urge delivering order publishes ORDER_URGING event and records operation") {
       val order = OrderModel(id = 1L, userId = 100L, status = OrderModelStatus.DELIVERING, deliveryWorkerId = 3L)
       every { orderRepository.findById(1L) } returns Optional.of(order)

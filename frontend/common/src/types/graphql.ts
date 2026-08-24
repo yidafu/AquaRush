@@ -675,6 +675,18 @@ export type CustomerGroupVoPage = {
   readonly totalPages: Scalars['Int']['output'];
 };
 
+export type DailyCollectionListInput = {
+  readonly collectionDate?: InputMaybe<Scalars['String']['input']>;
+  readonly deliveryWorkerId?: InputMaybe<Scalars['Long']['input']>;
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type DailyCollectionPage = {
+  readonly list: ReadonlyArray<DailyCollectionRecord>;
+  readonly pageInfo: PageInfo;
+};
+
 export type DailyCollectionRecord = {
   readonly calculatedCashAmountCents: Scalars['Long']['output'];
   readonly calculatedOrderAmountCents: Scalars['Long']['output'];
@@ -706,6 +718,16 @@ export enum DailyCollectionStatus {
   DRAFT = 'DRAFT',
   SUBMITTED = 'SUBMITTED'
 }
+
+export type DailyCollectionSummary = {
+  readonly collectionDate: Scalars['String']['output'];
+  readonly totalCashAmountCents: Scalars['Long']['output'];
+  readonly totalOrderAmountCents: Scalars['Long']['output'];
+  readonly totalOrderCount: Scalars['Int']['output'];
+  readonly totalQrCodeAmountCents: Scalars['Long']['output'];
+  readonly totalSubmittedCount: Scalars['Int']['output'];
+  readonly totalWaterTicketCount: Scalars['Int']['output'];
+};
 
 export type DailyLoginStatistic = {
   readonly date: Scalars['String']['output'];
@@ -742,6 +764,16 @@ export type DailyReconciliation = {
   readonly totalQrCodeAmountCents: Scalars['Long']['output'];
   readonly totalWaterTicketCount: Scalars['Int']['output'];
   readonly updatedAt: Scalars['LocalDateTime']['output'];
+};
+
+export type DailyReconciliationListInput = {
+  readonly page?: InputMaybe<Scalars['Int']['input']>;
+  readonly size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+export type DailyReconciliationPage = {
+  readonly list: ReadonlyArray<DailyReconciliation>;
+  readonly pageInfo: PageInfo;
 };
 
 export enum DailyReconciliationStatus {
@@ -2816,8 +2848,10 @@ export type Query = {
   readonly couponTemplates?: Maybe<CouponTemplateVoPage>;
   readonly customerGroup?: Maybe<CustomerGroup>;
   readonly customerGroups?: Maybe<CustomerGroupVoPage>;
-  readonly dailyCollections: ReadonlyArray<DailyCollectionRecord>;
-  readonly dailyReconciliations: ReadonlyArray<DailyReconciliation>;
+  readonly dailyCollectionSummary: DailyCollectionSummary;
+  readonly dailyCollections: DailyCollectionPage;
+  readonly dailyReconciliationOrderDetails: ReconciliationOrderDetailPage;
+  readonly dailyReconciliations: DailyReconciliationPage;
   readonly dailyStatistics: ReadonlyArray<DailyStatistic>;
   readonly dataMaintenanceOverview: DataMaintenanceOverviewVo;
   readonly deliveringOrders: ReadonlyArray<Order>;
@@ -2975,8 +3009,26 @@ export type QueryCustomerGroupsArgs = {
 };
 
 
-export type QueryDailyCollectionsArgs = {
+export type QueryDailyCollectionSummaryArgs = {
   collectionDate?: InputMaybe<Scalars['String']['input']>;
+};
+
+
+export type QueryDailyCollectionsArgs = {
+  input?: InputMaybe<DailyCollectionListInput>;
+};
+
+
+export type QueryDailyReconciliationOrderDetailsArgs = {
+  deliveryWorkerId?: InputMaybe<Scalars['Long']['input']>;
+  page?: InputMaybe<Scalars['Int']['input']>;
+  reconciliationDate: Scalars['String']['input'];
+  size?: InputMaybe<Scalars['Int']['input']>;
+};
+
+
+export type QueryDailyReconciliationsArgs = {
+  input?: InputMaybe<DailyReconciliationListInput>;
 };
 
 
@@ -3354,6 +3406,21 @@ export type QueryUsersArgs = {
 
 export type QueryWeeklyStatisticsArgs = {
   input: DateRangeInput;
+};
+
+export type ReconciliationOrderDetail = {
+  readonly amountCents: Scalars['Long']['output'];
+  readonly deliveredAt?: Maybe<Scalars['LocalDateTime']['output']>;
+  readonly deliveryWorkerId?: Maybe<Scalars['PrimaryId']['output']>;
+  readonly orderId: Scalars['PrimaryId']['output'];
+  readonly orderNo: Scalars['String']['output'];
+  readonly paymentType?: Maybe<PaymentType>;
+  readonly status: OrderStatus;
+};
+
+export type ReconciliationOrderDetailPage = {
+  readonly list: ReadonlyArray<ReconciliationOrderDetail>;
+  readonly pageInfo: PageInfo;
 };
 
 export type RefreshTokenInput = {

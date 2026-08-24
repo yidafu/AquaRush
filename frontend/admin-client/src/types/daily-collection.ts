@@ -49,3 +49,58 @@ export interface DailyReconciliation {
   createdAt: string
   updatedAt: string
 }
+
+// ==================== 分页/汇总/逐单明细(2026 收银对账分页改造) ====================
+
+export interface PageInfo {
+  total: number
+  pageSize: number
+  pageNum: number
+  hasNext: boolean
+  hasPrevious: boolean
+  totalPages: number
+}
+
+export interface DailyCollectionPage {
+  list: DailyCollectionRecord[]
+  pageInfo: PageInfo
+}
+
+export interface DailyReconciliationPage {
+  list: DailyReconciliation[]
+  pageInfo: PageInfo
+}
+
+/** 指定日期收银汇总(顶部汇总卡,服务端聚合) */
+export interface DailyCollectionSummary {
+  collectionDate: string
+  totalCashAmountCents: number | string
+  totalQrCodeAmountCents: number | string
+  totalWaterTicketCount: number
+  totalOrderCount: number
+  totalOrderAmountCents: number | string
+  totalSubmittedCount: number
+}
+
+/** 对账逐单明细(G29):当日已送达订单流水 */
+export interface ReconciliationOrderDetail {
+  orderId: string
+  orderNo: string
+  deliveryWorkerId?: string
+  amountCents: number | string
+  paymentType?: 'CASH' | 'QR_CODE' | 'WATER_TICKET'
+  status: string
+  deliveredAt?: string
+}
+
+export interface ReconciliationOrderDetailPage {
+  list: ReconciliationOrderDetail[]
+  pageInfo: PageInfo
+}
+
+/** 收款方式文案(对账逐单明细) */
+export const PAYMENT_TYPE_TEXT: Record<string, string> = {
+  CASH: '现金',
+  QR_CODE: '扫码',
+  WATER_TICKET: '水票',
+}

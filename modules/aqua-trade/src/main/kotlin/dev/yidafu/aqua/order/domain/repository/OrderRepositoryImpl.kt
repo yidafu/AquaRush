@@ -42,6 +42,7 @@ import jakarta.persistence.PersistenceContext
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
@@ -464,6 +465,134 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
         .fetchOne() ?: 0L
 
     return arrayOf(count, sum)
+  }
+
+  /** 「已送达」状态集合(待确认收货 + 已完成,R-ORD-11 送水工业绩口径) */
+  private fun deliveredStatuses(): List<OrderModelStatus> =
+    listOf(OrderModelStatus.AWAITING_CONFIRMATION, OrderModelStatus.COMPLETED)
+
+  /**
+   * 「已送达」时间锚点:送达时间(deliveryConfirmedAt),历史数据为 null 时回退完成时间(completedAt)
+   */
+  private fun deliveredAtExpression() = orderModel.deliveryConfirmedAt.coalesce(orderModel.completedAt)
+
+  override fun countDeliveredByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long {
+    val deliveredAt = deliveredAtExpression()
+    val base =
+      orderModel.status
+        .`in`(deliveredStatuses())
+        .and(deliveredAt.goe(startOfDay))
+        .and(deliveredAt.lt(endOfDay))
+
+    val whereClause =
+      if (deliveryWorkerId != null) {
+        base.and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
+      } else {
+        base
+      }
+
+    return queryFactory
+      .select(orderModel.count())
+      .from(orderModel)
+      .where(whereClause)
+      .fetchOne() ?: 0L
+  }
+
+  override fun sumDeliveredAmountCentsByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long {
+    val deliveredAt = deliveredAtExpression()
+    val base =
+      orderModel.status
+        .`in`(deliveredStatuses())
+        .and(deliveredAt.goe(startOfDay))
+        .and(deliveredAt.lt(endOfDay))
+
+    val whereClause =
+      if (deliveryWorkerId != null) {
+        base.and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
+      } else {
+        base
+      }
+
+    return queryFactory
+      .select(orderModel.amountCents.sumLong())
+      .from(orderModel)
+      .where(whereClause)
+      .fetchOne() ?: 0L
+  }
+
+  override fun countAndSumDeliveredByPaymentType(
+    deliveryWorkerId: Long,
+    paymentType: PaymentType,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): Array<Long> {
+    val deliveredAt = deliveredAtExpression()
+    val whereClause =
+      orderModel.deliveryWorkerId
+        .eq(deliveryWorkerId)
+        .and(orderModel.status.`in`(deliveredStatuses()))
+        .and(orderModel.paymentType.eq(paymentType))
+        .and(deliveredAt.goe(startDate))
+        .and(deliveredAt.lt(endDate))
+
+    val count =
+      queryFactory
+        .select(orderModel.count())
+        .from(orderModel)
+        .where(whereClause)
+        .fetchOne() ?: 0L
+
+    val sum =
+      queryFactory
+        .select(orderModel.amountCents.sumLong())
+        .from(orderModel)
+        .where(whereClause)
+        .fetchOne() ?: 0L
+
+    return arrayOf(count, sum)
+  }
+
+  override fun findDeliveredOrdersByDateRange(
+    deliveryWorkerId: Long?,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel> {
+    val deliveredAt = deliveredAtExpression()
+    var whereClause =
+      orderModel.status
+        .`in`(deliveredStatuses())
+        .and(deliveredAt.goe(startDate))
+        .and(deliveredAt.lt(endDate))
+    if (deliveryWorkerId != null) {
+      whereClause = whereClause.and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
+    }
+
+    val total =
+      queryFactory
+        .select(orderModel.count())
+        .from(orderModel)
+        .where(whereClause)
+        .fetchOne() ?: 0L
+
+    val content =
+      queryFactory
+        .selectFrom(orderModel)
+        .where(whereClause)
+        .orderBy(deliveredAt.asc(), orderModel.id.desc())
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .fetch()
+
+    return PageImpl(content, pageable, total)
   }
 
   override fun countOrdersByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long> =

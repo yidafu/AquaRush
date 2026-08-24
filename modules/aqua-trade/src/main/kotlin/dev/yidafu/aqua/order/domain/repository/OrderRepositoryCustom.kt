@@ -7,6 +7,7 @@ import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime
 
 interface OrderRepositoryCustom {
@@ -118,6 +119,53 @@ interface OrderRepositoryCustom {
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Array<Long>
+
+  // ========================================================================
+  // 「已送达」口径聚合(R-ORD-11 确认收货与营收确认):送水工业绩/收款日报/对账专用,
+  // 含 待确认收货(AWAITING_CONFIRMATION)与 已完成(COMPLETED),时间锚点 = 送达时间
+  // (deliveryConfirmedAt,历史数据为 null 时回退 completedAt)——业绩按送达即时计入,
+  // 不受用户确认延迟影响;与营收口径(仅 COMPLETED 按 completedAt,见 08-statistics.md)区分。
+  // ========================================================================
+
+  /**
+   * 统计日期窗口内「已送达」订单数(送水工业绩口径,含待确认收货与已完成)
+   */
+  fun countDeliveredByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long
+
+  /**
+   * 统计日期窗口内「已送达」订单金额合计(分,送水工业绩口径)
+   */
+  fun sumDeliveredAmountCentsByDateRange(
+    startOfDay: LocalDateTime,
+    endOfDay: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long
+
+  /**
+   * 按支付类型统计日期窗口内「已送达」订单数量与金额(收款日报/对账口径,含待确认收货与已完成)
+   */
+  fun countAndSumDeliveredByPaymentType(
+    deliveryWorkerId: Long,
+    paymentType: PaymentType,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): Array<Long>
+
+  /**
+   * 分页查询日期窗口内「已送达」订单明细(对账逐单明细,含待确认收货与已完成):
+   * 按送达时间(deliveryConfirmedAt,回退 completedAt)过滤,可指定送水工;
+   * 供 G29 对账详情逐单差异明细使用,禁止全量拉取(CLAUDE.md 规则 13)。
+   */
+  fun findDeliveredOrdersByDateRange(
+    deliveryWorkerId: Long?,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel>
 
   /**
    * 按订单状态分组统计指定用户的订单数(F-USR-002,G31 我的页订单角标):

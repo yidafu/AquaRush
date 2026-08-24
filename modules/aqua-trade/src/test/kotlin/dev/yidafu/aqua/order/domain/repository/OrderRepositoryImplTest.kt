@@ -377,6 +377,35 @@ class OrderRepositoryImplTest :
       result[0] shouldBe 0L
       result[1] shouldBe 0L
     }
+
+    // ================================================================
+    // 「已送达」口径聚合(R-ORD-11:送水工业绩/收款对账,含 待确认收货 + 已完成,按送达时间)
+    // ================================================================
+
+    test("countDeliveredByDateRange counts delivered orders") {
+      every { exprQuery.fetchOne() } returns 4L
+
+      repo.countDeliveredByDateRange(start, end, 5L) shouldBe 4L
+      repo.countDeliveredByDateRange(start, end, null) shouldBe 4L
+    }
+    test("countDeliveredByDateRange handles null fetch") {
+      every { exprQuery.fetchOne() } returns null
+
+      repo.countDeliveredByDateRange(start, end, 5L) shouldBe 0L
+    }
+    test("sumDeliveredAmountCentsByDateRange sums delivered orders") {
+      every { exprQuery.fetchOne() } returns 9000L
+
+      repo.sumDeliveredAmountCentsByDateRange(start, end, 5L) shouldBe 9000L
+    }
+    test("countAndSumDeliveredByPaymentType returns count and sum") {
+      every { exprQuery.fetchOne() } returnsMany listOf(2L, 2500L)
+
+      val result = repo.countAndSumDeliveredByPaymentType(5L, PaymentType.CASH, start, end)
+
+      result[0] shouldBe 2L
+      result[1] shouldBe 2500L
+    }
     test("countOrdersByUserIdGroupByStatus groups by status") {
       // G31: 我的页订单角标 —— select(status, count()) group by status → Map
       val tuple = mockk<Tuple>()

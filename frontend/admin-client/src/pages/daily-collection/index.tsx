@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Card, Space, Modal, Tabs, message } from 'antd';
+import React, { useCallback, useState } from 'react';
+import { Card, Space, Modal, Tabs, message, DatePicker, Tag } from 'antd';
 import { useQuery, useMutation } from '@apollo/client';
 import { DAILY_COLLECTION_PAGE_DATA_QUERY } from '../../graphql/queries/daily-collection.graphql';
 import { CONFIRM_DAILY_COLLECTION, REJECT_DAILY_COLLECTION, REVIEW_RECONCILIATION, EXECUTE_DAILY_RECONCILIATION } from '../../graphql/mutations/daily-collection.graphql';
@@ -13,21 +13,49 @@ import {
   RejectCollectionModal,
 } from './components';
 
+const PAGE_SIZE = 10;
+
 const DailyCollectionPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>('collections')
   const [reconciliationModalVisible, setReconciliationModalVisible] = useState(false)
   const [selectedReconciliation, setSelectedReconciliation] = useState<DailyReconciliation | null>(null)
   // 驳回弹窗(G28 争议处理)
   const [rejectTarget, setRejectTarget] = useState<DailyCollectionRecord | null>(null)
+  // 分页/筛选状态(服务端分页,规则 #13;页签切换各自独立)
+  const [collectionsPage, setCollectionsPage] = useState(0)
+  const [collectionsSize, setCollectionsSize] = useState(PAGE_SIZE)
+  const [collectionDate, setCollectionDate] = useState<string | undefined>(undefined)
+  const [reconciliationsPage, setReconciliationsPage] = useState(0)
+  const [reconciliationsSize, setReconciliationsSize] = useState(PAGE_SIZE)
 
-  // 单页单请求:每日收款记录 + 对账记录一次取回(规则 #10)
+  // 单页单请求:每日收款记录(分页) + 对账记录(分页) + 汇总卡一次取回(规则 #10)
   const { data: pageData, loading: pageLoading, refetch } = useQuery<{
-    dailyCollections: DailyCollectionRecord[]
-    dailyReconciliations: DailyReconciliation[]
-  }>(DAILY_COLLECTION_PAGE_DATA_QUERY)
+    dailyCollections: { list: DailyCollectionRecord[]; pageInfo: { total: number } }
+    dailyReconciliations: { list: DailyReconciliation[]; pageInfo: { total: number } }
+    dailyCollectionSummary: {
+      collectionDate: string
+      totalCashAmountCents: number | string
+      totalQrCodeAmountCents: number | string
+      totalWaterTicketCount: number
+      totalOrderAmountCents: number | string
+      totalSubmittedCount: number
+    }
+  }>(DAILY_COLLECTION_PAGE_DATA_QUERY, {
+    variables: {
+      collectionsInput: {
+        collectionDate: collectionDate ?? null,
+        page: collectionsPage,
+        size: collectionsSize,
+      },
+      reconciliationsInput: {
+        page: reconciliationsPage,
+        size: reconciliationsSize,
+      },
+      summaryDate: collectionDate ?? dayjs().format('YYYY-MM-DD'),
+    },
+    fetchPolicy: 'cache-and-network',
+  })
 
-  const collectionData = pageData
-  const reconciliationData = pageData
   const collectionLoading = pageLoading
   const reconciliationLoading = pageLoading
 
@@ -137,17 +165,36 @@ const DailyCollectionPage: React.FC = () => {
     })
   }
 
-  // 统计今日数据
+  // 汇总卡数据来自服务端聚合(指定日期,默认今日)—— 不再客户端 reduce 全量记录
+  const summary = pageData?.dailyCollectionSummary
   const todayStats = {
-    totalCash: (collectionData?.dailyCollections || []).reduce((sum, r) => sum + Number(r.cashAmountCents || 0), 0),
-    totalQrCode: (collectionData?.dailyCollections || []).reduce((sum, r) => sum + Number(r.qrCodeAmountCents || 0), 0),
-    totalWaterTicket: (collectionData?.dailyCollections || []).reduce((sum, r) => sum + r.waterTicketCount, 0),
-    totalOrderAmount: (collectionData?.dailyCollections || []).reduce((sum, r) => sum + Number(r.orderAmountCents || 0), 0),
+    totalCash: Number(summary?.totalCashAmountCents ?? 0),
+    totalQrCode: Number(summary?.totalQrCodeAmountCents ?? 0),
+    totalWaterTicket: summary?.totalWaterTicketCount ?? 0,
+    totalOrderAmount: Number(summary?.totalOrderAmountCents ?? 0),
   }
+
+  const handleCollectionsPageChange = useCallback((page: number, size: number) => {
+    setCollectionsPage(page - 1)
+    setCollectionsSize(size)
+  }, [])
+
+  const handleReconciliationsPageChange = useCallback((page: number, size: number) => {
+    setReconciliationsPage(page - 1)
+    setReconciliationsSize(size)
+  }, [])
+
+  const collectionPageInfo = pageData?.dailyCollections.pageInfo
+  const reconciliationPageInfo = pageData?.dailyReconciliations.pageInfo
 
   return (
     <div style={{ padding: 24 }}>
-      <h2 style={{ marginBottom: 24 }}>收银对账管理</h2>
+      <h2 style={{ marginBottom: 24 }}>
+        收银对账管理
+        <Tag style={{ marginLeft: 12 }} color="blue">
+          {summary ? `${summary.collectionDate} 已提交日报 ${summary.totalSubmittedCount} 人` : '汇总加载中'}
+        </Tag>
+      </h2>
       <Space direction="vertical" style={{ width: '100%' }} size="large">
         {/* 统计卡片 */}
         <DailyCollectionStats stats={todayStats} />
@@ -156,20 +203,45 @@ const DailyCollectionPage: React.FC = () => {
         <Card>
           <Tabs activeKey={activeTab} onChange={setActiveTab}>
             <Tabs.TabPane tab="每日收款记录" key="collections">
+              <Space style={{ marginBottom: 16 }}>
+                <DatePicker
+                  placeholder="按收款日期筛选"
+                  allowClear
+                  value={collectionDate ? dayjs(collectionDate) : null}
+                  onChange={(date) => {
+                    setCollectionDate(date ? date.format('YYYY-MM-DD') : undefined)
+                    setCollectionsPage(0)
+                  }}
+                />
+              </Space>
               <CollectionTable
-                dataSource={collectionData?.dailyCollections ?? []}
+                dataSource={pageData?.dailyCollections.list ?? []}
                 loading={collectionLoading}
                 onConfirm={handleConfirm}
                 onReject={setRejectTarget}
+                pagination={{
+                  current: collectionsPage + 1,
+                  pageSize: collectionsSize,
+                  total: collectionPageInfo?.total ?? 0,
+                  showSizeChanger: true,
+                  onChange: handleCollectionsPageChange,
+                }}
               />
             </Tabs.TabPane>
             <Tabs.TabPane tab="对账记录" key="reconciliations">
               <ReconciliationTable
-                dataSource={reconciliationData?.dailyReconciliations ?? []}
+                dataSource={pageData?.dailyReconciliations.list ?? []}
                 loading={reconciliationLoading}
                 executing={executeLoading}
                 onExecute={handleExecuteReconciliation}
                 onView={handleViewReconciliation}
+                pagination={{
+                  current: reconciliationsPage + 1,
+                  pageSize: reconciliationsSize,
+                  total: reconciliationPageInfo?.total ?? 0,
+                  showSizeChanger: true,
+                  onChange: handleReconciliationsPageChange,
+                }}
               />
             </Tabs.TabPane>
           </Tabs>

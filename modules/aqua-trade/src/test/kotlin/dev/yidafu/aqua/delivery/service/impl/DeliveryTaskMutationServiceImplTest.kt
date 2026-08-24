@@ -40,6 +40,7 @@ import dev.yidafu.aqua.logging.util.BizLogger
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
@@ -157,10 +158,14 @@ class DeliveryTaskMutationServiceImplTest :
 
       val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), null, null)
 
-      completed.status shouldBe OrderModelStatus.COMPLETED
+      // 非自提订单:完成配送 → 待确认收货(R-ORD-11),completedAt 不置(营收待确认后计入)
+      completed.status shouldBe OrderModelStatus.AWAITING_CONFIRMATION
       completed.paymentType shouldBe PaymentType.WATER_TICKET
+      completed.deliveryConfirmedAt.shouldNotBeNull()
+      completed.completedAt shouldBe null
       (completed.deliveryPhotos != null) shouldBe true
       verify(exactly = 1) { eventPublishService.publishDeliveryCompleted(1L, 1L) }
+      verify(exactly = 0) { eventPublishService.publishOrderCompleted(any(), any(), any()) }
     }
     test("complete delivery allows self collect without payment type") {
       val selfCollectOrder =
@@ -172,7 +177,12 @@ class DeliveryTaskMutationServiceImplTest :
 
       val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), null, null)
 
+      // 自提订单:控制权当场转移,完成配送 → 已完成并即时计入营收(R-ORD-09/11)
       completed.status shouldBe OrderModelStatus.COMPLETED
+      completed.deliveryConfirmedAt.shouldNotBeNull()
+      completed.completedAt.shouldNotBeNull()
+      verify(exactly = 1) { eventPublishService.publishDeliveryCompleted(1L, 1L) }
+      verify(exactly = 1) { eventPublishService.publishOrderCompleted(1L, 100L, 1L) }
     }
     test("complete delivery stores delivery remark") {
       val deliveringOrder =
@@ -183,7 +193,7 @@ class DeliveryTaskMutationServiceImplTest :
 
       val completed = service.completeDelivery(1L, listOf("https://x/1.jpg"), PaymentType.CASH, "放门口")
 
-      completed.status shouldBe OrderModelStatus.COMPLETED
+      completed.status shouldBe OrderModelStatus.AWAITING_CONFIRMATION
       completed.deliveryRemark shouldBe "放门口"
     }
     test("complete delivery rejects non delivering order") {

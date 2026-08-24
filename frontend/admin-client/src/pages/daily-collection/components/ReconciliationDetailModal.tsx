@@ -1,8 +1,18 @@
-import React, { useEffect } from 'react';
-import { Modal, Row, Col, Statistic, Tag, Form, Input, Button } from 'antd';
-import { centsToYuan } from '@aquarush/common';
-import type { DailyReconciliation } from '../../../types/daily-collection';
+import React, { useEffect, useState } from 'react';
+import { Modal, Row, Col, Statistic, Tag, Form, Input, Button, Table, Empty } from 'antd';
+import { centsToYuan, displayCents } from '@aquarush/common';
+import { useQuery } from '@apollo/client';
+import type { ColumnsType } from 'antd/es/table';
+import { GET_RECONCILIATION_ORDER_DETAILS } from '../../../graphql/queries/daily-collection.graphql';
+import type {
+  DailyReconciliation,
+  ReconciliationOrderDetail,
+  ReconciliationOrderDetailPage,
+} from '../../../types/daily-collection';
+import { PAYMENT_TYPE_TEXT } from '../../../types/daily-collection';
 import { reconciliationStatusColorMap, reconciliationStatusTextMap } from './constants';
+import { getOrderStatusConfig } from '../../../constants/order';
+import { getToneColor } from '../../../constants/status';
 
 export interface ReconciliationDetailModalProps {
   open: boolean;
@@ -12,7 +22,11 @@ export interface ReconciliationDetailModalProps {
   onReview: (notes: string) => void;
 }
 
-/** 对账详情弹窗(daily-collection/index.tsx 拆分) */
+const DETAIL_PAGE_SIZE = 10;
+
+/** 对账详情弹窗(daily-collection/index.tsx 拆分)
+ *  G29:含对账逐单差异明细 —— 按对账日期分页取回当日已送达订单流水(服务端分页,规则 #13)
+ */
 const ReconciliationDetailModal: React.FC<ReconciliationDetailModalProps> = ({
   open,
   record,
@@ -20,25 +34,82 @@ const ReconciliationDetailModal: React.FC<ReconciliationDetailModalProps> = ({
   onReview,
 }) => {
   const [reviewForm] = Form.useForm();
+  const [detailPage, setDetailPage] = useState(0);
 
-  // 切换记录时重置复核表单
+  // 切换记录时重置复核表单与逐单明细页码
   useEffect(() => {
     if (record) {
       reviewForm.resetFields();
+      setDetailPage(0);
     }
   }, [record, reviewForm]);
+
+  const { data: detailData, loading: detailLoading } = useQuery<{
+    dailyReconciliationOrderDetails: ReconciliationOrderDetailPage;
+  }>(GET_RECONCILIATION_ORDER_DETAILS, {
+    variables: {
+      reconciliationDate: record?.reconciliationDate ?? '',
+      deliveryWorkerId: null,
+      page: detailPage,
+      size: DETAIL_PAGE_SIZE,
+    },
+    skip: !open || !record,
+    fetchPolicy: 'cache-and-network',
+  });
+
+  const orderDetails = detailData?.dailyReconciliationOrderDetails?.list ?? [];
+  const detailTotal = detailData?.dailyReconciliationOrderDetails?.pageInfo?.total ?? 0;
 
   const handleReviewSubmit = async () => {
     const values = await reviewForm.validateFields();
     onReview(values.reviewNotes);
   };
 
+  const detailColumns: ColumnsType<ReconciliationOrderDetail> = [
+    {
+      title: '订单号',
+      dataIndex: 'orderNo',
+      key: 'orderNo',
+    },
+    {
+      title: '订单金额',
+      dataIndex: 'amountCents',
+      key: 'amountCents',
+      width: 120,
+      render: (cents: number | string) => displayCents(Number(cents)),
+    },
+    {
+      title: '收款方式',
+      dataIndex: 'paymentType',
+      key: 'paymentType',
+      width: 100,
+      render: (type?: string) => (type ? PAYMENT_TYPE_TEXT[type] ?? type : '-'),
+    },
+    {
+      title: '状态',
+      dataIndex: 'status',
+      key: 'status',
+      width: 120,
+      render: (status: string) => {
+        const config = getOrderStatusConfig(status);
+        return <Tag color={getToneColor(config.tone)}>{config.text}</Tag>;
+      },
+    },
+    {
+      title: '送达时间',
+      dataIndex: 'deliveredAt',
+      key: 'deliveredAt',
+      width: 160,
+      render: (v?: string) => (v ? new Date(v).toLocaleString('zh-CN') : '-'),
+    },
+  ];
+
   return (
-// TODO(Phase4): 外壳可复用 DetailModal(footer 走本插槽),见 logs/api/ApiLogDetailModal 迁移示例。
     <Modal
       title="对账详情"
       open={open}
       onCancel={onClose}
+      width={760}
       footer={[
         <Button key="close" onClick={onClose}>
           关闭
@@ -99,6 +170,27 @@ const ReconciliationDetailModal: React.FC<ReconciliationDetailModalProps> = ({
               </Tag>
             </Col>
           </Row>
+
+          {/* G29 对账逐单差异明细:当日已送达订单流水,与日报系统计算值同源 */}
+          <div style={{ marginTop: 24 }}>
+            <h4 style={{ marginBottom: 8 }}>对账逐单明细(当日已送达订单)</h4>
+            <Table<ReconciliationOrderDetail>
+              columns={detailColumns}
+              dataSource={orderDetails}
+              loading={detailLoading}
+              rowKey="orderId"
+              size="small"
+              locale={{ emptyText: <Empty description="当日无已送达订单" /> }}
+              pagination={{
+                current: detailPage + 1,
+                pageSize: DETAIL_PAGE_SIZE,
+                total: detailTotal,
+                showSizeChanger: false,
+                onChange: (page) => setDetailPage(page - 1),
+              }}
+            />
+          </div>
+
           {record.status !== 'REVIEWED' && (
             <div style={{ marginTop: 16 }}>
               <Form form={reviewForm}>

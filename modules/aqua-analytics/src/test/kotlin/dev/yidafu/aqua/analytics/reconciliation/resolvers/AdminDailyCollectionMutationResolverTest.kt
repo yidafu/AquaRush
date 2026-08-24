@@ -69,7 +69,7 @@ class AdminDailyCollectionMutationResolverTest :
     test("submitDailyCollection resolves worker and logs") {
       every { adminService.findByUsername("admin1") } returns admin()
       val record = DailyCollectionRecordModel(deliveryWorkerId = 1L, status = DailyCollectionStatus.SUBMITTED)
-      every { dailyCollectionService.submitDailyCollection(any(), any(), any(), any(), any()) } returns record
+      every { dailyCollectionService.submitDailyCollection(any(), any(), any(), any(), any(), any()) } returns record
 
       val result =
         resolver.submitDailyCollection(
@@ -78,6 +78,7 @@ class AdminDailyCollectionMutationResolverTest :
             qrCodeAmountCents = 200L,
             waterTicketCount = 1,
             collectionDate = "2025-06-01",
+            notes = "差异说明",
           ),
           user,
         )
@@ -87,7 +88,7 @@ class AdminDailyCollectionMutationResolverTest :
     }
     test("submitDailyCollection uses today when date omitted") {
       every { adminService.findByUsername("admin1") } returns admin()
-      every { dailyCollectionService.submitDailyCollection(any(), any(), any(), any(), any()) } returns
+      every { dailyCollectionService.submitDailyCollection(any(), any(), any(), any(), any(), any()) } returns
         DailyCollectionRecordModel(deliveryWorkerId = 1L)
 
       resolver.submitDailyCollection(
@@ -95,7 +96,7 @@ class AdminDailyCollectionMutationResolverTest :
         user,
       )
 
-      verify { dailyCollectionService.submitDailyCollection(1L, 100L, 0, 0L, LocalDate.now()) }
+      verify { dailyCollectionService.submitDailyCollection(1L, 100L, 0, 0L, LocalDate.now(), null) }
     }
     test("submitDailyCollection throws when user missing") {
       every { adminService.findByUsername("admin1") } returns null

@@ -212,7 +212,14 @@ class OrderQueryServiceImplTest :
       every {
         orderRepository.findByDeliveryWorkerIdAndStatusIn(
           deliveryWorkerId = 3L,
-          statuses = listOf(OrderModelStatus.COMPLETED, OrderModelStatus.CANCELLED, OrderModelStatus.REFUNDED),
+          // R-ORD-11:历史订单含 待确认收货(已送达未确认),与已完成/已取消/已退款并列
+          statuses =
+            listOf(
+              OrderModelStatus.AWAITING_CONFIRMATION,
+              OrderModelStatus.COMPLETED,
+              OrderModelStatus.CANCELLED,
+              OrderModelStatus.REFUNDED,
+            ),
           keyword = "kw",
           page = 0,
           size = 10,

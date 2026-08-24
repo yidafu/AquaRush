@@ -70,6 +70,17 @@ interface OrderRepository :
     pageable: Pageable,
   ): Page<OrderModel>
 
+  /**
+   * 分页查询已送达且送达时间早于截止时刻的待确认收货订单(R-ORD-11 自动签收扫描用,
+   * 分页游标,禁止全表,CLAUDE.md 规则 13):status=AWAITING_CONFIRMATION 且
+   * delivery_confirmed_at < 截止时刻(送达 N 天未确认)。
+   */
+  fun findByStatusAndDeliveryConfirmedAtBefore(
+    status: OrderModelStatus,
+    before: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel>
+
   fun findByDeliveryWorkerIdOrderByCreatedAtDesc(deliveryWorkerId: Long): List<OrderModel>
 
   fun findByAddressId(addressId: Long): List<OrderModel>
@@ -97,5 +108,28 @@ interface OrderRepository :
     @Param("id") id: Long,
     @Param("statuses") statuses: Collection<OrderModelStatus>,
     @Param("now") now: LocalDateTime,
+  ): Int
+
+  /**
+   * 原子认领确认收货(订单级乐观锁 CAS,R-ORD-11 互斥):
+   * 仅「待确认收货」状态可置「已完成」并写入完成时间(completedAt=确认时间,营收按此归属),
+   * 返回受影响行数(1=认领成功,0=已被用户/系统并发确认或状态已流转)。
+   * 用户确认([confirmReceipt])与系统自动确认([autoConfirmReceipt])均先认领再落操作/发事件
+   * ——并发行只有一方成功,保证营收只按一次确认时间计入。
+   */
+  @Modifying(clearAutomatically = true, flushAutomatically = true)
+  @Query(
+    """
+    update OrderModel o
+    set o.status = dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.COMPLETED,
+        o.completedAt = :completedAt,
+        o.updatedAt = :completedAt
+    where o.id = :id
+      and o.status = dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.AWAITING_CONFIRMATION
+    """,
+  )
+  fun confirmReceiptAtomically(
+    @Param("id") id: Long,
+    @Param("completedAt") completedAt: LocalDateTime,
   ): Int
 }

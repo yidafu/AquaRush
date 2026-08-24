@@ -22,6 +22,7 @@ package dev.yidafu.aqua.analytics.reconciliation.service
 import dev.yidafu.aqua.api.service.order.OrderQueryService
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
+import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
 import dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
@@ -36,11 +37,15 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
 import java.time.LocalDate
 import java.util.Optional
 
 /**
- * 每日收款/对账服务单元测试: 按支付类型统计、收款提交容差判定、确认/复核、对账汇总
+ * 每日收款/对账服务单元测试: 按支付类型统计、收款提交容差判定(差异口径)、
+ * 确认/复核、对账汇总、分页查询、汇总卡、对账逐单明细
  */
 class DailyCollectionServiceTest :
   FunSpec({
@@ -79,6 +84,9 @@ class DailyCollectionServiceTest :
       orderAmountCents: Long = 0L,
       differenceAmountCents: Long = 0L,
       status: DailyCollectionStatus = DailyCollectionStatus.SUBMITTED,
+      calculatedCashAmountCents: Long = 0L,
+      calculatedQrCodeAmountCents: Long = 0L,
+      calculatedWaterTicketCount: Int = 0,
     ): DailyCollectionRecordModel =
       DailyCollectionRecordModel(
         id = id,
@@ -91,6 +99,9 @@ class DailyCollectionServiceTest :
         orderAmountCents = orderAmountCents,
         differenceAmountCents = differenceAmountCents,
         status = status,
+        calculatedCashAmountCents = calculatedCashAmountCents,
+        calculatedQrCodeAmountCents = calculatedQrCodeAmountCents,
+        calculatedWaterTicketCount = calculatedWaterTicketCount,
       )
 
     beforeTest {
@@ -138,7 +149,7 @@ class DailyCollectionServiceTest :
       every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
       every { collectionRecordRepository.save(any()) } answers { firstArg() }
 
-      // cash 1000 + qr 500 - order 1400 = 100, 在容差(100)内 → SUBMITTED
+      // 填报 cash 1000 + qr 500 = 1500,系统计算 cash 1000 + qr 500 = 1500 → 差异 0 → SUBMITTED
       val record =
         service.submitDailyCollection(
           1L,
@@ -151,10 +162,11 @@ class DailyCollectionServiceTest :
       record.status shouldBe DailyCollectionStatus.SUBMITTED
       record.orderCount shouldBe 3
       record.orderAmountCents shouldBe 1400L
-      record.differenceAmountCents shouldBe 100L
+      record.differenceAmountCents shouldBe 0L
     }
-    test("submitDailyCollection marks draft when difference exceeds tolerance") {
-      stubPaymentStats()
+    test("submitDailyCollection marks disputed when difference exceeds tolerance") {
+      // 填报 cash 1000 + qr 500 = 1500,系统计算 cash 500 + qr 200 = 700 → 差异 800 > 100 → DISPUTED(G28)
+      stubPaymentStats(cash = arrayOf(1L, 500L), qr = arrayOf(1L, 200L))
       every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 3L
       every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 800L
       every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
@@ -169,14 +181,66 @@ class DailyCollectionServiceTest :
           collectionDate = date,
         )
 
-      record.status shouldBe DailyCollectionStatus.DRAFT
-      record.differenceAmountCents shouldBe 700L
+      record.status shouldBe DailyCollectionStatus.DISPUTED
+      record.differenceAmountCents shouldBe 800L
     }
-    test("submitDailyCollection updates existing record") {
+    test("submitDailyCollection marks disputed when water ticket count mismatches") {
+      // 金额一致但水票张数不符(R-COL-02 水票精确匹配)→ DISPUTED
       stubPaymentStats()
       every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 3L
       every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1400L
-      val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.DRAFT)
+      every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
+      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+
+      val record =
+        service.submitDailyCollection(
+          1L,
+          cashAmountCents = 1000L,
+          waterTicketCount = 2, // 系统计算为 1 张
+          qrCodeAmountCents = 500L,
+          collectionDate = date,
+        )
+
+      record.status shouldBe DailyCollectionStatus.DISPUTED
+      record.differenceAmountCents shouldBe 0L
+    }
+    test("submitDailyCollection excludes water ticket order amount from difference base") {
+      // 口径回归:订单金额(1900,含水票订单 400)不参与差异基数;
+      // 填报(现金+扫码) 与 系统计算(现金+扫码) 一致 → 差异 0,不被误判为「有争议」
+      stubPaymentStats(cash = arrayOf(2L, 1000L), ticket = arrayOf(1L, 0L), qr = arrayOf(1L, 500L))
+      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 4L
+      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1900L
+      every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
+      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+
+      val record =
+        service.submitDailyCollection(
+          1L,
+          cashAmountCents = 1000L,
+          waterTicketCount = 1,
+          qrCodeAmountCents = 500L,
+          collectionDate = date,
+        )
+
+      record.status shouldBe DailyCollectionStatus.SUBMITTED
+      record.differenceAmountCents shouldBe 0L
+      record.orderAmountCents shouldBe 1900L // 订单金额仍展示全量(含水票订单)
+    }
+    test("submitDailyCollection updates existing record and stores notes, clears reject trail") {
+      stubPaymentStats()
+      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 3L
+      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1400L
+      val existing =
+        record(
+          deliveryWorkerId = 1L,
+          collectionDate = date,
+          status = DailyCollectionStatus.DRAFT,
+          differenceAmountCents = 500L,
+        ).apply {
+          rejectedAt = java.time.LocalDateTime.now()
+          rejectedBy = 9L
+          rejectReason = "金额不符"
+        }
       every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns existing
       every { collectionRecordRepository.save(any()) } answers { firstArg() }
 
@@ -187,11 +251,17 @@ class DailyCollectionServiceTest :
           waterTicketCount = 1,
           qrCodeAmountCents = 500L,
           collectionDate = date,
+          notes = "重新提交",
         )
 
       updated.status shouldBe DailyCollectionStatus.SUBMITTED
-      updated.orderAmountCents shouldBe 1400L
+      updated.differenceAmountCents shouldBe 0L
       updated.calculatedCashAmountCents shouldBe 1000L
+      updated.notes shouldBe "重新提交"
+      // 驳回退回草稿可改可重提,重新提交清空驳回留痕(G28)
+      updated.rejectedAt.shouldBeNull()
+      updated.rejectedBy.shouldBeNull()
+      updated.rejectReason.shouldBeNull()
     }
     test("confirmCollection marks record confirmed") {
       val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.SUBMITTED)
@@ -234,6 +304,42 @@ class DailyCollectionServiceTest :
 
       service.getCollectionsByDateRange(start, end) shouldBe expected
     }
+    test("getCollectionsPage with date and worker filters") {
+      val expected: Page<DailyCollectionRecordModel> = PageImpl(listOf(record()))
+      every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date, any()) } returns expected
+
+      val page = service.getCollectionsPage(collectionDate = date, deliveryWorkerId = 1L, page = 0, size = 10)
+
+      page shouldBe expected
+      verify { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date, any()) }
+    }
+    test("getCollectionsPage with date only filters") {
+      val expected: Page<DailyCollectionRecordModel> = PageImpl(listOf(record()))
+      every { collectionRecordRepository.findByCollectionDate(date, any()) } returns expected
+
+      val page = service.getCollectionsPage(collectionDate = date, deliveryWorkerId = null, page = 0, size = 10)
+
+      page shouldBe expected
+      verify { collectionRecordRepository.findByCollectionDate(date, any()) }
+    }
+    test("getCollectionsPage with worker only filters") {
+      val expected: Page<DailyCollectionRecordModel> = PageImpl(listOf(record()))
+      every { collectionRecordRepository.findByDeliveryWorkerId(1L, any()) } returns expected
+
+      val page = service.getCollectionsPage(collectionDate = null, deliveryWorkerId = 1L, page = 0, size = 10)
+
+      page shouldBe expected
+      verify { collectionRecordRepository.findByDeliveryWorkerId(1L, any()) }
+    }
+    test("getCollectionsPage without filters pages all records") {
+      val expected: Page<DailyCollectionRecordModel> = PageImpl(listOf(record()))
+      every { collectionRecordRepository.findAll(any<PageRequest>()) } returns expected
+
+      val page = service.getCollectionsPage(collectionDate = null, deliveryWorkerId = null, page = 0, size = 10)
+
+      page shouldBe expected
+      verify { collectionRecordRepository.findAll(any<PageRequest>()) }
+    }
     test("getReconciliationByDate delegates") {
       val expected = DailyReconciliationModel()
       every { reconciliationRepository.findByReconciliationDate(date) } returns expected
@@ -248,11 +354,46 @@ class DailyCollectionServiceTest :
 
       service.getAllReconciliations() shouldBe emptyList()
     }
+    test("getReconciliationsPage pages all records") {
+      val expected: Page<DailyReconciliationModel> = PageImpl(listOf(DailyReconciliationModel()))
+      every { reconciliationRepository.findAll(any<PageRequest>()) } returns expected
+
+      val page = service.getReconciliationsPage(0, 10)
+
+      page shouldBe expected
+    }
+    test("getDailyCollectionSummary aggregates records excluding drafts from submitted count") {
+      val records =
+        listOf(
+          record(deliveryWorkerId = 1L, cashAmountCents = 1000L, waterTicketCount = 1, qrCodeAmountCents = 500L, orderCount = 3, orderAmountCents = 1900L),
+          record(deliveryWorkerId = 2L, cashAmountCents = 200L, waterTicketCount = 0, qrCodeAmountCents = 0L, orderCount = 1, orderAmountCents = 200L, status = DailyCollectionStatus.DRAFT),
+          record(deliveryWorkerId = 3L, cashAmountCents = 0L, waterTicketCount = 2, qrCodeAmountCents = 0L, orderCount = 2, orderAmountCents = 400L),
+        )
+      every { collectionRecordRepository.findByCollectionDate(date) } returns records
+
+      val summary = service.getDailyCollectionSummary(date)
+
+      summary.totalCashAmountCents shouldBe 1200L
+      summary.totalQrCodeAmountCents shouldBe 500L
+      summary.totalWaterTicketCount shouldBe 3
+      summary.totalOrderCount shouldBe 6
+      summary.totalOrderAmountCents shouldBe 2500L
+      summary.totalSubmittedCount shouldBe 2
+    }
+    test("getReconciliationOrderDetails delegates to order repository") {
+      val expected: Page<OrderModel> = PageImpl(listOf(OrderModel(orderNo = "ORD1")))
+      every { orderRepository.findDeliveredOrdersByDateRange(any(), any(), any(), any()) } returns expected
+
+      val page = service.getReconciliationOrderDetails(reconciliationDate = date, deliveryWorkerId = null, page = 0, size = 20)
+
+      page shouldBe expected
+      verify { orderRepository.findDeliveredOrdersByDateRange(null, date.atStartOfDay(), date.atTime(java.time.LocalTime.MAX), any()) }
+    }
     test("executeDailyReconciliation creates matched reconciliation") {
       val collections =
         listOf(
-          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, qrCodeAmountCents = 500L, orderAmountCents = 1400L),
-          record(deliveryWorkerId = 2L, collectionDate = date, cashAmountCents = 200L, qrCodeAmountCents = 0L, orderAmountCents = 300L),
+          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, qrCodeAmountCents = 500L, orderAmountCents = 1400L, calculatedCashAmountCents = 1000L, calculatedQrCodeAmountCents = 500L),
+          record(deliveryWorkerId = 2L, collectionDate = date, cashAmountCents = 200L, qrCodeAmountCents = 0L, orderAmountCents = 300L, calculatedCashAmountCents = 200L, calculatedQrCodeAmountCents = 0L),
         )
       every { collectionRecordRepository.findByCollectionDate(date) } returns collections
       every { reconciliationRepository.findByReconciliationDate(date) } returns null
@@ -263,9 +404,10 @@ class DailyCollectionServiceTest :
       verify { reconciliationRepository.save(match { it.status == DailyReconciliationStatus.MATCHED }) }
     }
     test("executeDailyReconciliation marks discrepancy") {
+      // 填报 cash 1000 + qr 500 = 1500,系统计算 cash 1000 + qr 200 = 1200 → 差异 300 > 100 → DISCREPANCY
       val collections =
         listOf(
-          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, qrCodeAmountCents = 500L, orderAmountCents = 500L),
+          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, qrCodeAmountCents = 500L, orderAmountCents = 500L, calculatedCashAmountCents = 1000L, calculatedQrCodeAmountCents = 200L),
         )
       every { collectionRecordRepository.findByCollectionDate(date) } returns collections
       every { reconciliationRepository.findByReconciliationDate(date) } returns null
@@ -275,12 +417,52 @@ class DailyCollectionServiceTest :
 
       verify { reconciliationRepository.save(match { it.status == DailyReconciliationStatus.DISCREPANCY }) }
     }
-    test("executeDailyReconciliation updates existing reconciliation") {
+    test("executeDailyReconciliation marks discrepancy on water ticket mismatch") {
       val collections =
         listOf(
-          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, qrCodeAmountCents = 500L, orderAmountCents = 1400L),
+          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, waterTicketCount = 3, qrCodeAmountCents = 500L, orderAmountCents = 1400L, calculatedCashAmountCents = 1000L, calculatedQrCodeAmountCents = 500L, calculatedWaterTicketCount = 1),
         )
-      val existing = DailyReconciliationModel()
+      every { collectionRecordRepository.findByCollectionDate(date) } returns collections
+      every { reconciliationRepository.findByReconciliationDate(date) } returns null
+      every { reconciliationRepository.save(any()) } answers { firstArg() }
+
+      service.executeDailyReconciliation(date)
+
+      verify { reconciliationRepository.save(match { it.status == DailyReconciliationStatus.DISCREPANCY }) }
+    }
+    test("executeDailyReconciliation excludes water ticket order amount from discrepancy base") {
+      // 口径回归:订单金额含水票订单价值(400),但差异基数只比 填报(现金+扫码) vs 计算(现金+扫码)
+      val collections =
+        listOf(
+          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, waterTicketCount = 1, qrCodeAmountCents = 500L, orderAmountCents = 1900L, calculatedCashAmountCents = 1000L, calculatedQrCodeAmountCents = 500L, calculatedWaterTicketCount = 1),
+        )
+      every { collectionRecordRepository.findByCollectionDate(date) } returns collections
+      every { reconciliationRepository.findByReconciliationDate(date) } returns null
+      every { reconciliationRepository.save(any()) } answers { firstArg() }
+
+      service.executeDailyReconciliation(date)
+
+      verify {
+        reconciliationRepository.save(
+          match {
+            it.status == DailyReconciliationStatus.MATCHED &&
+              it.discrepancyAmountCents == 0L &&
+              it.totalOrderAmountCents == 1900L
+          },
+        )
+      }
+    }
+    test("executeDailyReconciliation updates existing reconciliation and clears review trail") {
+      val collections =
+        listOf(
+          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, qrCodeAmountCents = 500L, orderAmountCents = 1400L, calculatedCashAmountCents = 1000L, calculatedQrCodeAmountCents = 500L),
+        )
+      val existing =
+        DailyReconciliationModel(status = DailyReconciliationStatus.REVIEWED).apply {
+          reviewedAt = java.time.LocalDateTime.now()
+          reviewedBy = 7L
+          reviewNotes = "OK"
+        }
       every { collectionRecordRepository.findByCollectionDate(date) } returns collections
       every { reconciliationRepository.findByReconciliationDate(date) } returns existing
       every { reconciliationRepository.save(any()) } answers { firstArg() }
@@ -290,7 +472,11 @@ class DailyCollectionServiceTest :
       existing.status shouldBe DailyReconciliationStatus.MATCHED
       existing.totalCollectionAmountCents shouldBe 1500L
       existing.totalOrderAmountCents shouldBe 1400L
-      existing.discrepancyAmountCents shouldBe 100L
+      existing.discrepancyAmountCents shouldBe 0L
+      // 重新执行对账会重算结果,清除复核痕迹,避免状态与复核字段不一致
+      existing.reviewedAt.shouldBeNull()
+      existing.reviewedBy.shouldBeNull()
+      existing.reviewNotes.shouldBeNull()
     }
     test("reviewReconciliation marks reviewed") {
       val existing = DailyReconciliationModel(status = DailyReconciliationStatus.MATCHED)

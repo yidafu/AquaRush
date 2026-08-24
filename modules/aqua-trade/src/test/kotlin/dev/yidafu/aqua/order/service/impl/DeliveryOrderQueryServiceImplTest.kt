@@ -118,9 +118,8 @@ class DeliveryOrderQueryServiceImplTest :
     }
     test("getTodayStatistics aggregates today") {
       every { orderRepository.countOrdersByDateRange(any(), any(), 5L, null) } returns 10L
-      every {
-        orderRepository.countOrdersByDateRange(any(), any(), 5L, listOf(OrderModelStatus.COMPLETED))
-      } returns 3L
+      // 业绩口径(R-ORD-11):含 待确认收货 + 已完成,按送达时间归属
+      every { orderRepository.countDeliveredByDateRange(any(), any(), 5L) } returns 3L
       every {
         orderRepository.countOrdersByDateRange(
           any(),
@@ -134,9 +133,7 @@ class DeliveryOrderQueryServiceImplTest :
           ),
         )
       } returns 2L
-      every {
-        orderRepository.sumAmountCentsByStatusAndDateRange(listOf(OrderModelStatus.COMPLETED), any(), any(), 5L)
-      } returns 8000L
+      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), 5L) } returns 8000L
 
       val stats = service.getTodayStatistics(5L)
 
@@ -154,11 +151,9 @@ class DeliveryOrderQueryServiceImplTest :
       shouldThrow<NotFoundException> { service.getOrderById(9L) }
     }
     test("getWeekStatistics builds 7 daily stats") {
-      every { orderRepository.countOrdersByDateRange(any(), any(), 5L, listOf(OrderModelStatus.COMPLETED)) } returnsMany
+      every { orderRepository.countDeliveredByDateRange(any(), any(), 5L) } returnsMany
         listOf(1L, 2L, 3L, 4L, 5L, 6L, 7L)
-      every {
-        orderRepository.sumAmountCentsByStatusAndDateRange(listOf(OrderModelStatus.COMPLETED), any(), any(), 5L)
-      } returnsMany
+      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), 5L) } returnsMany
         listOf(100L, 200L, 300L, 400L, 500L, 600L, 700L)
 
       val stats = service.getWeekStatistics(5L)
@@ -169,13 +164,11 @@ class DeliveryOrderQueryServiceImplTest :
       stats.dailyStats
         .first()
         .date.length shouldBe "MM/dd".length
-      verify(exactly = 7) { orderRepository.countOrdersByDateRange(any(), any(), 5L, listOf(OrderModelStatus.COMPLETED)) }
+      verify(exactly = 7) { orderRepository.countDeliveredByDateRange(any(), any(), 5L) }
     }
     test("getWeekStatistics handles zero days") {
-      every { orderRepository.countOrdersByDateRange(any(), any(), null, listOf(OrderModelStatus.COMPLETED)) } returns 0L
-      every {
-        orderRepository.sumAmountCentsByStatusAndDateRange(listOf(OrderModelStatus.COMPLETED), any(), any(), null)
-      } returns 0L
+      every { orderRepository.countDeliveredByDateRange(any(), any(), null) } returns 0L
+      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), null) } returns 0L
 
       val stats = service.getWeekStatistics(null)
 

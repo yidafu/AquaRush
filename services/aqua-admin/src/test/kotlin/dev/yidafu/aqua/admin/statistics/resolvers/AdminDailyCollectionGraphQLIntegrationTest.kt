@@ -45,12 +45,13 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * 每日对账查询 GraphQL 集成测试(收银对账页,PRD 08-statistics.md)
+ * 每日对账查询 GraphQL 集成测试(收银对账页,PRD 06-collection.md)
  *
  * 回归用例:PRD 规则要求页面单请求取数,而 delivery-app / admin-client 均以无参形式
- * 调用 `dailyReconciliations`。此前 resolver 声明了 schema 中不存在的
+ * 调用 `dailyReconciliations`。分页改造后 schema 显式声明 `input: DailyReconciliationListInput`
+ * (含默认 page/size),无参调用必须正常返回第一页(此前 resolver 声明了 schema 中不存在的
  * `@Argument page: Int = 0, size: Int = 20`,Spring GraphQL 会为未声明参数传入 null,
- * 反装箱抛 NPE → INTERNAL_ERROR。本测试以无参查询锁定该回归。
+ * 反装箱抛 NPE → INTERNAL_ERROR)。本测试以无参查询锁定该回归。
  *
  * 权限:PERMISSION_RECONCILIATION_READ。
  */
@@ -88,8 +89,9 @@ class AdminDailyCollectionGraphQLIntegrationTest(
           .build()
     }
 
-    test("dailyReconciliations without args returns records (regression: INTERNAL_ERROR)") {
+    test("dailyReconciliations without args returns first page (regression: INTERNAL_ERROR)") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
+      reconciliationRepository.deleteAll()
       val date = LocalDate.of(2026, 8, 15)
       val model =
         DailyReconciliationModel(
@@ -109,29 +111,82 @@ class AdminDailyCollectionGraphQLIntegrationTest(
 
       val json =
         postGraphql(
-          "{ dailyReconciliations { id reconciliationDate totalOrderCount status reportData } }",
+          "{ dailyReconciliations { list { id reconciliationDate totalOrderCount status reportData } pageInfo { total pageNum pageSize } } }",
         )
       withClue("dailyReconciliations should return seeded record without error: $json") {
         json.contains("\"reconciliationDate\" : \"2026-08-15\"") &&
           json.contains("\"totalOrderCount\" : 3") &&
           json.contains("\"status\" : \"MATCHED\"") &&
+          json.contains("\"total\" : 1") &&
           !json.contains("\"errors\"") shouldBe true
+      }
+    }
+
+    test("dailyReconciliations paginates with size 1") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
+      reconciliationRepository.deleteAll()
+      reconciliationRepository.save(
+        DailyReconciliationModel(
+          reconciliationDate = LocalDate.of(2026, 8, 14),
+          status = DailyReconciliationStatus.PENDING,
+          createdAt = LocalDateTime.of(2026, 8, 14, 10, 0),
+        ),
+      )
+      reconciliationRepository.save(
+        DailyReconciliationModel(
+          reconciliationDate = LocalDate.of(2026, 8, 13),
+          status = DailyReconciliationStatus.PENDING,
+          createdAt = LocalDateTime.of(2026, 8, 13, 10, 0),
+        ),
+      )
+
+      val json =
+        postGraphql(
+          """{ dailyReconciliations(input: { page: 0, size: 1 }) { list { reconciliationDate } pageInfo { total pageNum hasNext } } }""",
+        )
+      withClue("size 1 should return single row with hasNext and total 2: $json") {
+        json.contains("\"pageNum\" : 0") &&
+          json.contains("\"hasNext\" : true") &&
+          json.contains("\"total\" : 2") shouldBe true
       }
     }
 
     test("dailyReconciliations requires RECONCILIATION_READ permission") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_ORDER_READ"))
-      val json = postGraphql("{ dailyReconciliations { id } }")
+      val json = postGraphql("{ dailyReconciliations { list { id } } }")
       withClue("dailyReconciliations should be denied without permission: $json") {
         json.contains("\"errors\"") || !json.contains("\"dailyReconciliations\"") shouldBe true
       }
     }
 
-    test("dailyCollections returns records") {
+    test("dailyCollections returns paginated records") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
-      val json = postGraphql("{ dailyCollections { id collectionDate } }")
+      val json = postGraphql("{ dailyCollections { list { id collectionDate } pageInfo { total } } }")
       withClue("dailyCollections should not error: $json") {
         !json.contains("\"errors\"") shouldBe true
+      }
+    }
+
+    test("dailyCollectionSummary returns zero-filled summary") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
+      val json = postGraphql("{ dailyCollectionSummary(collectionDate: \"2026-08-15\") { collectionDate totalCashAmountCents totalSubmittedCount } }")
+      withClue("dailyCollectionSummary should not error: $json") {
+        // Long 标量序列化为 JSON 字符串(如 "0"),Int 序列化为数字
+        !json.contains("\"errors\"") &&
+          json.contains("\"collectionDate\" : \"2026-08-15\"") &&
+          json.contains("\"totalCashAmountCents\" : \"0\"") &&
+          json.contains("\"totalSubmittedCount\" : 0") shouldBe true
+      }
+    }
+
+    test("dailyReconciliationOrderDetails returns empty page for date without orders") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
+      val json =
+        postGraphql(
+          """{ dailyReconciliationOrderDetails(reconciliationDate: "2026-08-15", page: 0, size: 20) { list { orderId orderNo } pageInfo { total } } }""",
+        )
+      withClue("dailyReconciliationOrderDetails should not error: $json") {
+        !json.contains("\"errors\"") && json.contains("\"total\" : 0") shouldBe true
       }
     }
   })

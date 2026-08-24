@@ -10,6 +10,14 @@ export interface CollectionTableProps {
   loading: boolean;
   onConfirm: (record: DailyCollectionRecord) => void;
   onReject: (record: DailyCollectionRecord) => void;
+  /** 服务端分页配置(规则 #13) */
+  pagination?: {
+    current: number;
+    pageSize: number;
+    total: number;
+    showSizeChanger?: boolean;
+    onChange: (page: number, pageSize: number) => void;
+  };
 }
 
 /** 每日收款记录表格(daily-collection/index.tsx 拆分) */
@@ -18,6 +26,7 @@ const CollectionTable: React.FC<CollectionTableProps> = ({
   loading,
   onConfirm,
   onReject,
+  pagination,
 }) => {
   const columns: ColumnsType<DailyCollectionRecord> = [
     {
@@ -146,7 +155,11 @@ const CollectionTable: React.FC<CollectionTableProps> = ({
       dataSource={dataSource}
       loading={loading}
       rowKey="id"
-      pagination={{ pageSize: 10 }}
+      pagination={
+        pagination ?? {
+          pageSize: 10,
+        }
+      }
     />
   );
 };

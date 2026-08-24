@@ -1248,6 +1248,25 @@ data class CustomerGroupVoPage(
     val totalPages: kotlin.Int
 )
 
+data class DailyCollectionListInput(
+    val collectionDate: kotlin.String? = null,
+    val deliveryWorkerId: kotlin.Long? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 10
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["collectionDate"] as kotlin.String?,
+      args["deliveryWorkerId"] as kotlin.Long?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 10
+  )
+}
+
+data class DailyCollectionPage(
+    val list: kotlin.collections.List<DailyCollectionRecord>,
+    val pageInfo: PageInfo
+)
+
 data class DailyCollectionRecord(
     val calculatedCashAmountCents: kotlin.Long,
     val calculatedOrderAmountCents: kotlin.Long,
@@ -1287,6 +1306,16 @@ enum class DailyCollectionStatus(val label: String) {
   }
 }
 
+data class DailyCollectionSummary(
+    val collectionDate: kotlin.String,
+    val totalCashAmountCents: kotlin.Long,
+    val totalOrderAmountCents: kotlin.Long,
+    val totalOrderCount: kotlin.Int,
+    val totalQrCodeAmountCents: kotlin.Long,
+    val totalSubmittedCount: kotlin.Int,
+    val totalWaterTicketCount: kotlin.Int
+)
+
 data class DailyLoginStatistic(
     val date: kotlin.String,
     val loginCount: kotlin.Int
@@ -1322,6 +1351,21 @@ data class DailyReconciliation(
     val totalQrCodeAmountCents: kotlin.Long,
     val totalWaterTicketCount: kotlin.Int,
     val updatedAt: java.time.LocalDateTime
+)
+
+data class DailyReconciliationListInput(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 10
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 10
+  )
+}
+
+data class DailyReconciliationPage(
+    val list: kotlin.collections.List<DailyReconciliation>,
+    val pageInfo: PageInfo
 )
 
 enum class DailyReconciliationStatus(val label: String) {
@@ -4343,11 +4387,40 @@ data class QueryCustomerGroupsArgs(
       args["input"]?.let { CustomerGroupListInput(it as Map<String, Any>) }
   )
 }
-data class QueryDailyCollectionsArgs(
+data class QueryDailyCollectionSummaryArgs(
     val collectionDate: kotlin.String? = null
 ) {
   constructor(args: Map<String, Any>) : this(
       args["collectionDate"] as kotlin.String?
+  )
+}
+data class QueryDailyCollectionsArgs(
+    val input: DailyCollectionListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { DailyCollectionListInput(it as Map<String, Any>) }
+  )
+}
+data class QueryDailyReconciliationOrderDetailsArgs(
+    val deliveryWorkerId: kotlin.Long? = null,
+    val page: kotlin.Int? = 0,
+    val reconciliationDate: kotlin.String,
+    val size: kotlin.Int? = 20
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["deliveryWorkerId"] as kotlin.Long?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["reconciliationDate"] as kotlin.String,
+      args["size"] as kotlin.Int? ?: 20
+  )
+}
+data class QueryDailyReconciliationsArgs(
+    val input: DailyReconciliationListInput? = null
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["input"]?.let { DailyReconciliationListInput(it as Map<String, Any>) }
   )
 }
 data class QueryDailyStatisticsArgs(
@@ -4950,8 +5023,10 @@ data class Query(
     val couponTemplates: CouponTemplateVoPage?,
     val customerGroup: CustomerGroup?,
     val customerGroups: CustomerGroupVoPage?,
-    val dailyCollections: kotlin.collections.List<DailyCollectionRecord>,
-    val dailyReconciliations: kotlin.collections.List<DailyReconciliation>,
+    val dailyCollectionSummary: DailyCollectionSummary,
+    val dailyCollections: DailyCollectionPage,
+    val dailyReconciliationOrderDetails: ReconciliationOrderDetailPage,
+    val dailyReconciliations: DailyReconciliationPage,
     val dailyStatistics: kotlin.collections.List<DailyStatistic>,
     val dataMaintenanceOverview: DataMaintenanceOverviewVo,
     val deliveringOrders: kotlin.collections.List<Order>,
@@ -5041,6 +5116,21 @@ data class Query(
     val weekStatistics: WeekStatistics?,
     val weeklyStatistics: kotlin.collections.List<WeeklyStatistic>,
     val workerUnreadNotificationCount: kotlin.Long
+)
+
+data class ReconciliationOrderDetail(
+    val amountCents: kotlin.Long,
+    val deliveredAt: java.time.LocalDateTime?,
+    val deliveryWorkerId: kotlin.Long?,
+    val orderId: kotlin.Long,
+    val orderNo: kotlin.String,
+    val paymentType: PaymentType?,
+    val status: OrderStatus
+)
+
+data class ReconciliationOrderDetailPage(
+    val list: kotlin.collections.List<ReconciliationOrderDetail>,
+    val pageInfo: PageInfo
 )
 
 data class RefreshTokenInput(

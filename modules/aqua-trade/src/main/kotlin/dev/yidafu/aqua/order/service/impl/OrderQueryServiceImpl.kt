@@ -161,12 +161,18 @@ class OrderQueryServiceImpl(
     page: Int,
     size: Int,
   ): Page<OrderModel> {
-    // 历史订单状态：已完成、已取消、已退款
+    // 历史订单状态:待确认收货(已送达未确认)、已完成、已取消、已退款(R-ORD-11 ——
+    // 送水工完成配送后订单进入待确认收货,须在历史订单可见)
     val historyStatuses =
       if (status != null) {
         listOf(status)
       } else {
-        listOf(OrderModelStatus.COMPLETED, OrderModelStatus.CANCELLED, OrderModelStatus.REFUNDED)
+        listOf(
+          OrderModelStatus.AWAITING_CONFIRMATION,
+          OrderModelStatus.COMPLETED,
+          OrderModelStatus.CANCELLED,
+          OrderModelStatus.REFUNDED,
+        )
       }
 
     return orderRepository.findByDeliveryWorkerIdAndStatusIn(
