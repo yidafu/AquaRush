@@ -23,19 +23,17 @@ import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Modifying
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 
 /**
  * 水桶购买单仓储(G06:一次性购桶,独立支付,每用户总限购一次;支付入账原子流转 PENDING→PAID,幂等)
+ * 原手写 @Query 方法已迁移至 QueryDSL,见 [BarrelPurchaseRepositoryCustom]/[BarrelPurchaseRepositoryImpl]。
  */
 @Repository
 interface BarrelPurchaseRepository :
   JpaRepository<BarrelPurchaseModel, Long>,
-  JpaSpecificationExecutor<BarrelPurchaseModel> {
+  JpaSpecificationExecutor<BarrelPurchaseModel>,
+  BarrelPurchaseRepositoryCustom {
   fun findByOrderNo(orderNo: String): BarrelPurchaseModel?
 
   fun findFirstByUserIdOrderByCreatedAtDesc(userId: Long): BarrelPurchaseModel?
@@ -44,34 +42,4 @@ interface BarrelPurchaseRepository :
     userId: Long,
     paymentStatus: BarrelPaymentStatus,
   ): Boolean
-
-  @Modifying
-  @Query(
-    """
-    update BarrelPurchaseModel p
-    set p.paymentStatus = dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.PAID,
-        p.transactionId = :transactionId, p.paidAt = :now, p.updatedAt = :now
-    where p.id = :id and p.paymentStatus = dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.PENDING
-    """,
-  )
-  fun markPaidAtomically(
-    @Param("id") id: Long,
-    @Param("transactionId") transactionId: String,
-    @Param("now") now: LocalDateTime,
-  ): Int
-
-  /** 取消该用户未支付(PENDING)旧购桶单(重复发起时幂等化) */
-  @Modifying
-  @Query(
-    """
-    update BarrelPurchaseModel p
-    set p.paymentStatus = dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.CANCELLED,
-        p.updatedAt = :now
-    where p.userId = :userId and p.paymentStatus = dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus.PENDING
-    """,
-  )
-  fun cancelPendingByUser(
-    @Param("userId") userId: Long,
-    @Param("now") now: LocalDateTime,
-  ): Int
 }

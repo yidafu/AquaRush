@@ -905,4 +905,54 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
       .from(orderModel)
       .where(predicate)
       .fetchOne() ?: 0L
+
+  /**
+   * 原子认领取消:flush 后执行条件 UPDATE(等价 @Modifying(flushAutomatically=true)),
+   * clear 持久化上下文(等价 clearAutomatically=true),避免后续读取脏缓存。
+   */
+  @Transactional
+  override fun cancelAtomically(
+    id: Long,
+    statuses: Collection<OrderModelStatus>,
+    now: LocalDateTime,
+  ): Int {
+    entityManager.flush()
+    val updated =
+      queryFactory
+        .update(orderModel)
+        .set(orderModel.status, OrderModelStatus.CANCELLED)
+        .set(orderModel.updatedAt, now)
+        .where(
+          orderModel.id.eq(id),
+          orderModel.status.`in`(statuses),
+        ).execute()
+        .toInt()
+    entityManager.clear()
+    return updated
+  }
+
+  /**
+   * 原子认领确认收货:flush 后执行条件 UPDATE(等价 @Modifying(flushAutomatically=true)),
+   * clear 持久化上下文(等价 clearAutomatically=true),避免后续读取脏缓存。
+   */
+  @Transactional
+  override fun confirmReceiptAtomically(
+    id: Long,
+    completedAt: LocalDateTime,
+  ): Int {
+    entityManager.flush()
+    val updated =
+      queryFactory
+        .update(orderModel)
+        .set(orderModel.status, OrderModelStatus.COMPLETED)
+        .set(orderModel.completedAt, completedAt)
+        .set(orderModel.updatedAt, completedAt)
+        .where(
+          orderModel.id.eq(id),
+          orderModel.status.eq(OrderModelStatus.AWAITING_CONFIRMATION),
+        ).execute()
+        .toInt()
+    entityManager.clear()
+    return updated
+  }
 }

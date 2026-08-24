@@ -268,4 +268,25 @@ interface OrderRepositoryCustom {
    * 买赠/满赠按 order_gifts product_id 分组。
    */
   fun aggregateMarketingUsageItems(criteria: MarketingUsageOrderCriteria): List<MarketingUsageItemRow>
+
+  /**
+   * 原子认领取消(订单级乐观锁 CAS,R-ORD-04 互斥):
+   * 仅 [statuses] 内状态可置 CANCELLED,返回受影响行数
+   * (1=认领成功,0=已被并发取消/支付超时/状态已流转)。
+   */
+  fun cancelAtomically(
+    id: Long,
+    statuses: Collection<OrderModelStatus>,
+    now: LocalDateTime,
+  ): Int
+
+  /**
+   * 原子认领确认收货(订单级乐观锁 CAS,R-ORD-11 互斥):
+   * 仅「待确认收货」状态可置「已完成」并写入完成时间(completedAt=确认时间,营收按此归属),
+   * 返回受影响行数(1=认领成功,0=已被用户/系统并发确认或状态已流转)。
+   */
+  fun confirmReceiptAtomically(
+    id: Long,
+    completedAt: LocalDateTime,
+  ): Int
 }

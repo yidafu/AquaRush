@@ -24,9 +24,6 @@ import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Modifying
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
@@ -86,50 +83,4 @@ interface OrderRepository :
   fun findByAddressId(addressId: Long): List<OrderModel>
 
   fun countByStatus(status: OrderModelStatus): Long
-
-  /**
-   * 原子认领取消(订单级乐观锁 CAS,R-ORD-04 互斥):
-   * 仅 [statuses] 内状态可置 CANCELLED,返回受影响行数
-   * (1=认领成功,0=已被并发取消/支付超时/状态已流转)。
-   * 用户/管理员手动取消([cancelOrder])与支付超时([handlePaymentTimeout])
-   * 均先认领再恢复库存——并发行只有一方成功,杜绝重复恢复库存。
-   */
-  @Modifying(clearAutomatically = true, flushAutomatically = true)
-  @Query(
-    """
-    update OrderModel o
-    set o.status = dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.CANCELLED,
-        o.updatedAt = :now
-    where o.id = :id
-      and o.status in :statuses
-    """,
-  )
-  fun cancelAtomically(
-    @Param("id") id: Long,
-    @Param("statuses") statuses: Collection<OrderModelStatus>,
-    @Param("now") now: LocalDateTime,
-  ): Int
-
-  /**
-   * 原子认领确认收货(订单级乐观锁 CAS,R-ORD-11 互斥):
-   * 仅「待确认收货」状态可置「已完成」并写入完成时间(completedAt=确认时间,营收按此归属),
-   * 返回受影响行数(1=认领成功,0=已被用户/系统并发确认或状态已流转)。
-   * 用户确认([confirmReceipt])与系统自动确认([autoConfirmReceipt])均先认领再落操作/发事件
-   * ——并发行只有一方成功,保证营收只按一次确认时间计入。
-   */
-  @Modifying(clearAutomatically = true, flushAutomatically = true)
-  @Query(
-    """
-    update OrderModel o
-    set o.status = dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.COMPLETED,
-        o.completedAt = :completedAt,
-        o.updatedAt = :completedAt
-    where o.id = :id
-      and o.status = dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus.AWAITING_CONFIRMATION
-    """,
-  )
-  fun confirmReceiptAtomically(
-    @Param("id") id: Long,
-    @Param("completedAt") completedAt: LocalDateTime,
-  ): Int
 }

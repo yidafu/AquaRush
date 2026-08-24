@@ -20,53 +20,16 @@
 package dev.yidafu.aqua.marketing.flashsale.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
-import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 
 /**
  * 限时特价活动仓库(F-MKT-005)
+ * 原手写 @Query 方法已迁移至 QueryDSL,见 [FlashSaleActivityRepositoryCustom]/[FlashSaleActivityRepositoryImpl]。
  */
 @Repository
 interface FlashSaleActivityRepository :
   JpaRepository<FlashSaleActivityModel, Long>,
-  JpaSpecificationExecutor<FlashSaleActivityModel> {
-  /**
-   * 某商品当前生效的特价(ACTIVE 且时间窗内;到期自动失效,供营销引擎单价链③取候选)
-   */
-  @Query(
-    """
-    select a from FlashSaleActivityModel a
-    where a.status = :status and a.validFrom <= :now and a.validTo >= :now and a.productId = :productId
-    order by a.validFrom desc
-    """,
-  )
-  fun findActiveByProductId(
-    @Param("productId") productId: Long,
-    @Param("status") status: PromotionActivityStatus,
-    @Param("now") now: LocalDateTime,
-  ): FlashSaleActivityModel?
-
-  /**
-   * 同商品时间窗重叠校验(仅限启用活动;已结束的历史活动不冲突)
-   */
-  @Query(
-    """
-    select count(a) > 0 from FlashSaleActivityModel a
-    where a.productId = :productId and a.status = :status
-      and a.validFrom < :newValidTo and a.validTo > :newValidFrom
-      and (:excludeId is null or a.id <> :excludeId)
-    """,
-  )
-  fun existsOverlap(
-    @Param("productId") productId: Long,
-    @Param("status") status: PromotionActivityStatus,
-    @Param("newValidFrom") newValidFrom: LocalDateTime,
-    @Param("newValidTo") newValidTo: LocalDateTime,
-    @Param("excludeId") excludeId: Long?,
-  ): Boolean
-}
+  JpaSpecificationExecutor<FlashSaleActivityModel>,
+  FlashSaleActivityRepositoryCustom

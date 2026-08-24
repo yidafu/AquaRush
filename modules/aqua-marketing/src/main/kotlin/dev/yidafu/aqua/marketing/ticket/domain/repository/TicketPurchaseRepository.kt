@@ -22,18 +22,16 @@ package dev.yidafu.aqua.marketing.ticket.domain.repository
 import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Modifying
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.time.LocalDate
-import java.time.LocalDateTime
 
 /**
  * 购票单仓库(F-MKT-007):orderNo 作为微信支付 out_trade_no;支付入账原子流转(PENDING→PAID,幂等)。
+ * 原手写 @Query 方法已迁移至 QueryDSL,见 [TicketPurchaseRepositoryCustom]/[TicketPurchaseRepositoryImpl]。
  */
 @Repository
-interface TicketPurchaseRepository : JpaRepository<TicketPurchaseModel, Long> {
+interface TicketPurchaseRepository :
+  JpaRepository<TicketPurchaseModel, Long>,
+  TicketPurchaseRepositoryCustom {
   fun findByOrderNo(orderNo: String): TicketPurchaseModel?
 
   fun countByUserIdAndTicketTypeIdAndPaymentStatus(
@@ -41,56 +39,4 @@ interface TicketPurchaseRepository : JpaRepository<TicketPurchaseModel, Long> {
     ticketTypeId: Long,
     paymentStatus: TicketPurchaseStatus,
   ): Long
-
-  /**
-   * 销售统计投影(按日):购票单数/入账张数(totalCount = N+M)/销售金额(分)。
-   */
-  interface TicketPaidSalesDay {
-    fun getDay(): LocalDate
-
-    fun getPurchaseCount(): Long
-
-    fun getTicketCount(): Long
-
-    fun getRevenueCents(): Long
-  }
-
-  /**
-   * 按日汇总已支付购票(后台水票统计):[from, to) 左闭右开,paidAt 为空回退 createdAt;空数据日由服务层补零。
-   */
-  @Query(
-    """
-    select cast(coalesce(p.paidAt, p.createdAt) as date) as day,
-           count(p.id) as purchaseCount,
-           sum(p.totalCount) as ticketCount,
-           sum(p.packagePriceCents) as revenueCents
-    from TicketPurchaseModel p
-    where p.ticketTypeId = :ticketTypeId
-      and p.paymentStatus = dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus.PAID
-      and coalesce(p.paidAt, p.createdAt) >= :from
-      and coalesce(p.paidAt, p.createdAt) < :to
-    group by cast(coalesce(p.paidAt, p.createdAt) as date)
-    order by day
-    """,
-  )
-  fun findPaidSalesGroupedByDay(
-    @Param("ticketTypeId") ticketTypeId: Long,
-    @Param("from") from: LocalDateTime,
-    @Param("to") to: LocalDateTime,
-  ): List<TicketPaidSalesDay>
-
-  @Modifying
-  @Query(
-    """
-    update TicketPurchaseModel p
-    set p.paymentStatus = dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus.PAID,
-        p.transactionId = :transactionId, p.paidAt = :now, p.updatedAt = :now
-    where p.id = :id and p.paymentStatus = dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus.PENDING
-    """,
-  )
-  fun markPaidAtomically(
-    @Param("id") id: Long,
-    @Param("transactionId") transactionId: String,
-    @Param("now") now: LocalDateTime,
-  ): Int
 }

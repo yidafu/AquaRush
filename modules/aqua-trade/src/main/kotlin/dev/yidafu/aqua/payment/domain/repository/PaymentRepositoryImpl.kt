@@ -27,6 +27,7 @@ import dev.yidafu.aqua.common.domain.model.QPaymentModel.Companion.paymentModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
 
 /**
@@ -130,5 +131,31 @@ class PaymentRepositoryImpl : PaymentRepositoryCustom {
       .where(builder)
       .orderBy(paymentModel.createdAt.desc())
       .fetch()
+  }
+
+  /**
+   * 原子认领过期支付:flush 后执行条件 UPDATE(等价 @Modifying(flushAutomatically=true)),
+   * clear 持久化上下文(等价 clearAutomatically=true),避免后续读取脏缓存。
+   */
+  @Transactional
+  override fun claimExpired(
+    id: Long,
+    now: LocalDateTime,
+  ): Int {
+    entityManager.flush()
+    val updated =
+      queryFactory
+        .update(paymentModel)
+        .set(paymentModel.status, PaymentStatus.EXPIRED)
+        .set(paymentModel.version, paymentModel.version.add(1L))
+        .set(paymentModel.updatedAt, now)
+        .where(
+          paymentModel.id.eq(id),
+          paymentModel.status.eq(PaymentStatus.PENDING),
+          paymentModel.expiredAt.isNotNull().and(paymentModel.expiredAt.loe(now)),
+        ).execute()
+        .toInt()
+    entityManager.clear()
+    return updated
   }
 }

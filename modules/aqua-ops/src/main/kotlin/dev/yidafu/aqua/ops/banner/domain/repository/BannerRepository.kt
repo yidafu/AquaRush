@@ -20,54 +20,22 @@
 package dev.yidafu.aqua.ops.banner.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.BannerModel
-import jakarta.persistence.LockModeType
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Lock
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 
 /**
  * 轮播图仓库
  * 注意:@SoftDelete 自动过滤已删行,派生查询/JPQL 均不含软删数据。
+ * 原手写 @Query 方法已迁移至 QueryDSL,见 [BannerRepositoryCustom]/[BannerRepositoryImpl]。
  */
 @Repository
 interface BannerRepository :
   JpaRepository<BannerModel, Long>,
-  JpaSpecificationExecutor<BannerModel> {
-  /**
-   * 当前最大排序号(用于新建时缺省排序号 = max + 1)
-   */
-  @Query("select max(b.sortOrder) from BannerModel b")
-  fun findMaxSortOrder(): Int?
-
+  JpaSpecificationExecutor<BannerModel>,
+  BannerRepositoryCustom {
   /**
    * 按排序号查询(用于编辑时唯一性校验)
    */
   fun findBySortOrder(sortOrder: Int): BannerModel?
-
-  /**
-   * 按排序号升序取全量并加悲观写锁(用于上移/下移交换排序号,防并发)
-   */
-  @Lock(LockModeType.PESSIMISTIC_WRITE)
-  @Query("select b from BannerModel b order by b.sortOrder asc")
-  fun findAllOrderedForUpdate(): List<BannerModel>
-
-  /**
-   * 当前生效轮播图:启用且处于时间窗内,按排序号升序(时间窗为空=长期)
-   */
-  @Query(
-    """
-    select b from BannerModel b
-    where b.enabled = true
-      and (b.startAt is null or b.startAt <= :now)
-      and (b.endAt is null or b.endAt >= :now)
-    order by b.sortOrder asc
-    """,
-  )
-  fun findActiveBanners(
-    @Param("now") now: LocalDateTime,
-  ): List<BannerModel>
 }

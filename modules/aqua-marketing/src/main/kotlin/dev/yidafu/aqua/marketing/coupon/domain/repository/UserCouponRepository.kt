@@ -25,20 +25,19 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Modifying
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 
 /**
  * 用户优惠券实例仓库(F-MKT-003):
  * 核销/退回用原子条件 UPDATE(防并发重复使用,核销幂等 R-MKT-03)。
+ * 原手写 @Query 方法已迁移至 QueryDSL,见 [UserCouponRepositoryCustom]/[UserCouponRepositoryImpl]。
  */
 @Repository
 interface UserCouponRepository :
   JpaRepository<UserCouponModel, Long>,
-  JpaSpecificationExecutor<UserCouponModel> {
+  JpaSpecificationExecutor<UserCouponModel>,
+  UserCouponRepositoryCustom {
   fun findByUserId(userId: Long): List<UserCouponModel>
 
   fun findByUserIdAndStatus(
@@ -77,43 +76,4 @@ interface UserCouponRepository :
     to: LocalDateTime,
     pageable: Pageable,
   ): Page<UserCouponModel>
-
-  /**
-   * 原子核销:仅 RECEIVED 且未过期可核销;受影响行数=1 成功,=0 表示已被并发核销/过期(核销幂等)。
-   */
-  @Modifying
-  @Query(
-    """
-    update UserCouponModel c
-    set c.status = :to, c.usedOrderId = :orderId, c.usedAt = :now, c.updatedAt = :now
-    where c.id = :id and c.userId = :userId and c.status = :from and c.expireTime > :now
-    """,
-  )
-  fun redeemAtomically(
-    @Param("id") id: Long,
-    @Param("userId") userId: Long,
-    @Param("orderId") orderId: Long,
-    @Param("from") from: UserCouponStatus,
-    @Param("to") to: UserCouponStatus,
-    @Param("now") now: LocalDateTime,
-  ): Int
-
-  /**
-   * 订单取消/退款退回(幂等):该订单已核销券,未过期→RETURNED 可复用,过期→EXPIRED。
-   */
-  @Modifying
-  @Query(
-    """
-    update UserCouponModel c
-    set c.status = case when c.expireTime > :now
-        then dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus.RETURNED
-        else dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus.EXPIRED end,
-        c.usedOrderId = null, c.usedAt = null, c.returnedAt = :now, c.updatedAt = :now
-    where c.usedOrderId = :orderId and c.status = dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus.USED
-    """,
-  )
-  fun returnByOrder(
-    @Param("orderId") orderId: Long,
-    @Param("now") now: LocalDateTime,
-  ): Int
 }

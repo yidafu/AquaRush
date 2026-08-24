@@ -23,8 +23,10 @@ import dev.yidafu.aqua.common.domain.model.TicketTypeModel
 import dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketPurchaseRepository
+import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketPurchaseRepositoryCustom
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketTypeRepository
 import dev.yidafu.aqua.marketing.ticket.domain.repository.UserTicketRepository
+import dev.yidafu.aqua.marketing.ticket.domain.repository.UserTicketRepositoryCustom
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -50,8 +52,8 @@ class TicketStatsQueryServiceImplTest :
       purchaseCount: Long,
       ticketCount: Long,
       revenueCents: Long,
-    ): TicketPurchaseRepository.TicketPaidSalesDay =
-      object : TicketPurchaseRepository.TicketPaidSalesDay {
+    ): TicketPurchaseRepositoryCustom.TicketPaidSalesDay =
+      object : TicketPurchaseRepositoryCustom.TicketPaidSalesDay {
         override fun getDay(): LocalDate = day
 
         override fun getPurchaseCount(): Long = purchaseCount
@@ -66,8 +68,8 @@ class TicketStatsQueryServiceImplTest :
       redeemedCount: Long,
       returnedCount: Long,
       expiredCount: Long,
-    ): UserTicketRepository.TicketUsageDay =
-      object : UserTicketRepository.TicketUsageDay {
+    ): UserTicketRepositoryCustom.TicketUsageDay =
+      object : UserTicketRepositoryCustom.TicketUsageDay {
         override fun getDay(): LocalDate = day
 
         override fun getRedeemedCount(): Long = redeemedCount

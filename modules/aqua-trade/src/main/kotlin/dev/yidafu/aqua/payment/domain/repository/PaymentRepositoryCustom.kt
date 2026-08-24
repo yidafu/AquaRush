@@ -80,4 +80,14 @@ interface PaymentRepositoryCustom {
     minAmount: Long? = null,
     maxAmount: Long? = null,
   ): List<PaymentModel>
+
+  /**
+   * 原子认领过期支付(乐观锁 CAS,R-ORD-04 支付超时优化):
+   * 仅 PENDING 且已到期可置 EXPIRED(version+1);返回受影响行数
+   * (1=认领成功,0=已被处理/未到期/不存在,幂等且互斥)。
+   */
+  fun claimExpired(
+    id: Long,
+    now: LocalDateTime,
+  ): Int
 }

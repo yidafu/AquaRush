@@ -22,32 +22,15 @@ package dev.yidafu.aqua.ops.notice.domain.repository
 import dev.yidafu.aqua.common.domain.model.NoticeModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 
 /**
  * 公告仓库
  * 注意:@SoftDelete 自动过滤已删行,派生查询/JPQL 均不含软删数据。
+ * 原手写 @Query 方法已迁移至 QueryDSL,见 [NoticeRepositoryCustom]/[NoticeRepositoryImpl]。
  */
 @Repository
 interface NoticeRepository :
   JpaRepository<NoticeModel, Long>,
-  JpaSpecificationExecutor<NoticeModel> {
-  /**
-   * 当前生效公告:已发布且处于时间窗内(空=长期),置顶优先、发布时间倒序(AC-OPS-002-02)
-   */
-  @Query(
-    """
-    select n from NoticeModel n
-    where n.status = 'PUBLISHED'
-      and (n.startAt is null or n.startAt <= :now)
-      and (n.endAt is null or n.endAt >= :now)
-    order by n.pinned desc, n.publishedAt desc nulls last
-    """,
-  )
-  fun findActiveNotices(
-    @Param("now") now: LocalDateTime,
-  ): List<NoticeModel>
-}
+  JpaSpecificationExecutor<NoticeModel>,
+  NoticeRepositoryCustom

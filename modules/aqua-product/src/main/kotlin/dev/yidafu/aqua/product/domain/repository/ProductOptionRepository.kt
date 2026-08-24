@@ -22,15 +22,17 @@ package dev.yidafu.aqua.product.domain.repository
 import dev.yidafu.aqua.common.domain.model.ProductOptionModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductOptionType
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
 import org.springframework.stereotype.Repository
 
 /**
  * 商品属性选项字典仓库(F-PRO-009)
  * 注意:@SoftDelete 自动过滤已删行。
+ * 原手写 @Query 方法已迁移至 QueryDSL,见 [ProductOptionRepositoryCustom]/[ProductOptionRepositoryImpl]。
  */
 @Repository
-interface ProductOptionRepository : JpaRepository<ProductOptionModel, Long> {
+interface ProductOptionRepository :
+  JpaRepository<ProductOptionModel, Long>,
+  ProductOptionRepositoryCustom {
   /**
    * 按类型查询选项(按 sortOrder 升序,同序按创建时间)
    */
@@ -48,10 +50,4 @@ interface ProductOptionRepository : JpaRepository<ProductOptionModel, Long> {
     type: ProductOptionType,
     value: String,
   ): ProductOptionModel?
-
-  /**
-   * 同类型当前最大排序号(新建默认排末尾用)
-   */
-  @Query("select max(o.sortOrder) from ProductOptionModel o where o.optionType = :type")
-  fun findMaxSortOrder(type: ProductOptionType): Int?
 }

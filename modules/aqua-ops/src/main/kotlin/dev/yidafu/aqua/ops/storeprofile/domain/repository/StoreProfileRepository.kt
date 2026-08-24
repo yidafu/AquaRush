@@ -40,6 +40,9 @@ interface StoreProfileRepository : JpaRepository<StoreProfileModel, Long> {
   /**
    * 原生硬删除(绕过 @SoftDelete 的软删除改写):
    * 软删行仍占用 SINGLETON_ID,单行配置重新保存会撞主键(测试复位用)。
+   *
+   * 注意:此方法刻意保留手写原生 SQL —— Hibernate @SoftDelete 会把 JPQL/QueryDSL 的
+   * delete 一律改写为软删除 UPDATE,querydsl-jpa 无法表达「物理删除」;该行为由原生 SQL 保证。
    */
   @Modifying
   @Transactional

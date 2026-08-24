@@ -20,32 +20,16 @@
 package dev.yidafu.aqua.marketing.gift.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
-import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 
 /**
  * 买赠/满赠活动仓库(F-MKT-008)
+ * 原手写 @Query 方法已迁移至 QueryDSL,见 [GiftActivityRepositoryCustom]/[GiftActivityRepositoryImpl]。
  */
 @Repository
 interface GiftActivityRepository :
   JpaRepository<GiftActivityModel, Long>,
-  JpaSpecificationExecutor<GiftActivityModel> {
-  /**
-   * 当前生效活动(ACTIVE 且时间窗内;到期自动失效,供营销引擎取候选后内存过滤 scope)
-   */
-  @Query(
-    """
-    select a from GiftActivityModel a
-    where a.status = :status and a.validFrom <= :now and a.validTo >= :now
-    """,
-  )
-  fun findActiveActivities(
-    @Param("status") status: PromotionActivityStatus,
-    @Param("now") now: LocalDateTime,
-  ): List<GiftActivityModel>
-}
+  JpaSpecificationExecutor<GiftActivityModel>,
+  GiftActivityRepositoryCustom

@@ -20,32 +20,16 @@
 package dev.yidafu.aqua.marketing.promotion.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
-import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Query
-import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 
 /**
  * 满减/折扣活动仓库(F-MKT-004)
+ * 原手写 @Query 方法已迁移至 QueryDSL,见 [PromotionActivityRepositoryCustom]/[PromotionActivityRepositoryImpl]。
  */
 @Repository
 interface PromotionActivityRepository :
   JpaRepository<PromotionActivityModel, Long>,
-  JpaSpecificationExecutor<PromotionActivityModel> {
-  /**
-   * 当前生效活动:启用且时间窗内(R-MKT-04 到期自动失效,供营销引擎取候选)
-   */
-  @Query(
-    """
-    select a from PromotionActivityModel a
-    where a.status = :status and a.validFrom <= :now and a.validTo >= :now
-    """,
-  )
-  fun findActiveActivities(
-    @Param("status") status: PromotionActivityStatus,
-    @Param("now") now: LocalDateTime,
-  ): List<PromotionActivityModel>
-}
+  JpaSpecificationExecutor<PromotionActivityModel>,
+  PromotionActivityRepositoryCustom
