@@ -1614,6 +1614,41 @@ enum class DeliveryWorkerStatus(val label: String) {
   }
 }
 
+enum class DiscrepancyStatus(val label: String) {
+      RESOLVED("RESOLVED"),
+      UNRESOLVED("UNRESOLVED");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): DiscrepancyStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+enum class DiscrepancyType(val label: String) {
+      EXTRA("EXTRA"),
+      MISMATCH("MISMATCH"),
+      MISSING("MISSING");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): DiscrepancyType? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+data class ExecuteReconciliationInput(
+    val reconciliationDate: kotlin.String,
+    val taskType: ReconciliationTaskType
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["reconciliationDate"] as kotlin.String,
+      args["taskType"] as ReconciliationTaskType
+  )
+}
+
 data class ExportFavoritesInput(
     val dateFrom: java.time.LocalDateTime? = null,
     val dateTo: java.time.LocalDateTime? = null,
@@ -2650,6 +2685,14 @@ data class MutationExecuteDailyReconciliationArgs(
       args["reconciliationDate"] as kotlin.String?
   )
 }
+data class MutationExecuteReconciliationArgs(
+    val input: ExecuteReconciliationInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      ExecuteReconciliationInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationIssueCouponsArgs(
     val input: IssueCouponsInput
 ) {
@@ -2781,6 +2824,14 @@ data class MutationResetDeliveryWorkerPasswordArgs(
   constructor(args: Map<String, Any>) : this(
       args["id"] as kotlin.Long,
       args["newPassword"] as kotlin.String?
+  )
+}
+data class MutationResolveDiscrepancyArgs(
+    val input: ResolveDiscrepancyInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      ResolveDiscrepancyInput(args["input"] as Map<String, Any>)
   )
 }
 data class MutationRestoreSystemConfigArgs(
@@ -3167,6 +3218,7 @@ data class Mutation(
     val disablePromotionActivity: PromotionActivity,
     val disableTicketType: TicketType,
     val executeDailyReconciliation: DailyReconciliation,
+    val executeReconciliation: ReconciliationTask,
     val issueCoupons: kotlin.Int,
     val markAllNotificationsRead: kotlin.Boolean,
     val markAllWorkerNotificationsRead: kotlin.Boolean,
@@ -3186,6 +3238,7 @@ data class Mutation(
     val resendNotification: NotificationVo?,
     val resetAdminPassword: kotlin.Boolean,
     val resetDeliveryWorkerPassword: kotlin.Boolean,
+    val resolveDiscrepancy: kotlin.Boolean,
     val restoreSystemConfig: SystemConfigVo,
     val reviewDeliveryPhoto: Order,
     val reviewFeedback: Feedback,
@@ -4850,6 +4903,52 @@ data class QueryPromotionActivityUsageArgs(
       args["promotionActivityId"] as kotlin.Long
   )
 }
+data class QueryReconciliationDiscrepanciesArgs(
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val status: DiscrepancyStatus? = null,
+    val taskId: kotlin.String? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["status"] as DiscrepancyStatus?,
+      args["taskId"] as kotlin.String?
+  )
+}
+data class QueryReconciliationReportsArgs(
+    val reportType: kotlin.String? = null,
+    val taskId: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["reportType"] as kotlin.String?,
+      args["taskId"] as kotlin.String
+  )
+}
+data class QueryReconciliationTaskArgs(
+    val taskId: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["taskId"] as kotlin.String
+  )
+}
+data class QueryReconciliationTasksArgs(
+    val dateFrom: kotlin.String? = null,
+    val dateTo: kotlin.String? = null,
+    val page: kotlin.Int? = 0,
+    val size: kotlin.Int? = 20,
+    val status: ReconciliationTaskStatus? = null,
+    val taskType: ReconciliationTaskType? = null
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["dateFrom"] as kotlin.String?,
+      args["dateTo"] as kotlin.String?,
+      args["page"] as kotlin.Int? ?: 0,
+      args["size"] as kotlin.Int? ?: 20,
+      args["status"] as ReconciliationTaskStatus?,
+      args["taskType"] as ReconciliationTaskType?
+  )
+}
 data class QueryRefundRequestArgs(
     val id: kotlin.String
 ) {
@@ -5090,6 +5189,10 @@ data class Query(
     val promotionActivities: PromotionActivityVoPage?,
     val promotionActivity: PromotionActivity?,
     val promotionActivityUsage: MarketingUsageVo?,
+    val reconciliationDiscrepancies: ReconciliationDiscrepancyPage,
+    val reconciliationReports: kotlin.collections.List<ReconciliationReport>,
+    val reconciliationTask: ReconciliationTask?,
+    val reconciliationTasks: ReconciliationTaskPage,
     val refundRequest: RefundRequest?,
     val refundRequests: RefundRequestPage,
     val region: Region?,
@@ -5118,6 +5221,29 @@ data class Query(
     val workerUnreadNotificationCount: kotlin.Long
 )
 
+data class ReconciliationDiscrepancy(
+    val createdAt: java.time.LocalDateTime,
+    val discrepancyType: DiscrepancyType,
+    val id: kotlin.Long,
+    val recordDetails: tools.jackson.databind.node.ObjectNode?,
+    val recordId: kotlin.String,
+    val resolutionNotes: kotlin.String?,
+    val resolvedAt: java.time.LocalDateTime?,
+    val resolvedBy: kotlin.String?,
+    val sourceSystem: SourceSystem,
+    val status: DiscrepancyStatus,
+    val taskId: kotlin.String,
+    val updatedAt: java.time.LocalDateTime
+)
+
+data class ReconciliationDiscrepancyPage(
+    val content: kotlin.collections.List<ReconciliationDiscrepancy>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
 data class ReconciliationOrderDetail(
     val amountCents: kotlin.Long,
     val deliveredAt: java.time.LocalDateTime?,
@@ -5132,6 +5258,68 @@ data class ReconciliationOrderDetailPage(
     val list: kotlin.collections.List<ReconciliationOrderDetail>,
     val pageInfo: PageInfo
 )
+
+data class ReconciliationReport(
+    val fileName: kotlin.String?,
+    val filePath: kotlin.String?,
+    val fileSize: kotlin.Long?,
+    val generatedAt: java.time.LocalDateTime,
+    val id: kotlin.Long,
+    val reportData: tools.jackson.databind.node.ObjectNode,
+    val reportType: kotlin.String,
+    val taskId: kotlin.String
+)
+
+data class ReconciliationTask(
+    val createdAt: java.time.LocalDateTime,
+    val endTime: java.time.LocalDateTime?,
+    val errorMessage: kotlin.String?,
+    val id: kotlin.Long,
+    val matchedRecords: kotlin.Int,
+    val startTime: java.time.LocalDateTime?,
+    val status: ReconciliationTaskStatus,
+    val taskDate: java.time.LocalDateTime,
+    val taskId: kotlin.String,
+    val taskType: ReconciliationTaskType,
+    val totalRecords: kotlin.Int,
+    val unmatchedRecords: kotlin.Int,
+    val updatedAt: java.time.LocalDateTime
+)
+
+data class ReconciliationTaskPage(
+    val content: kotlin.collections.List<ReconciliationTask>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
+enum class ReconciliationTaskStatus(val label: String) {
+      FAILED("FAILED"),
+      PENDING("PENDING"),
+      RUNNING("RUNNING"),
+      SUCCESS("SUCCESS");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): ReconciliationTaskStatus? {
+      return values().find { it.label == label }
+    }
+  }
+}
+
+enum class ReconciliationTaskType(val label: String) {
+      PAYMENT("PAYMENT"),
+      REFUND("REFUND"),
+      SETTLEMENT("SETTLEMENT");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): ReconciliationTaskType? {
+      return values().find { it.label == label }
+    }
+  }
+}
 
 data class RefreshTokenInput(
     @field:NotBlank(message = "刷新令牌不能为空")
@@ -5284,6 +5472,16 @@ data class ReportTrajectoryInput(
   )
 }
 
+data class ResolveDiscrepancyInput(
+    val discrepancyId: kotlin.Long,
+    val resolutionNotes: kotlin.String
+) {
+  constructor(args: Map<String, Any>) : this(
+      args["discrepancyId"] as kotlin.Long,
+      args["resolutionNotes"] as kotlin.String
+  )
+}
+
 data class Review(
     val comment: kotlin.String?,
     val createdAt: java.time.LocalDateTime,
@@ -5424,6 +5622,18 @@ data class SaveSystemConfigInput(
       args["settingKey"] as kotlin.String,
       args["settingValue"] as kotlin.String?
   )
+}
+
+enum class SourceSystem(val label: String) {
+      INTERNAL("INTERNAL"),
+      WECHAT("WECHAT");
+
+  companion object {
+    @JvmStatic
+    fun valueOfLabel(label: String): SourceSystem? {
+      return values().find { it.label == label }
+    }
+  }
 }
 
 data class SpecificationStatistics(

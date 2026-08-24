@@ -27,6 +27,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.util.concurrent.CompletableFuture
 
 /**
  * 对账调度器单元测试: 每日支付/退款/结算任务创建与跳过、异常兜底
@@ -42,15 +43,17 @@ class ReconciliationSchedulerTest :
       eventPublishService = mockk(relaxed = true)
       scheduler = ReconciliationScheduler(reconciliationService, eventPublishService)
     }
-    test("daily payment reconciliation creates task and publishes event") {
+    test("daily payment reconciliation creates task and dispatches execution") {
       val task = ReconciliationTaskModel()
       every { reconciliationService.createPaymentReconciliationTask(any()) } returns task
       every { reconciliationService.hasRunningTask() } returns false
+      every { reconciliationService.executePaymentReconciliation(task) } returns CompletableFuture.completedFuture(task)
 
       scheduler.executeDailyPaymentReconciliation()
 
       verify(exactly = 1) { reconciliationService.createPaymentReconciliationTask(any()) }
       verify { eventPublishService.publishDomainEvent("DAILY_RECONCILIATION_STARTED", task.taskId, any()) }
+      verify(exactly = 1) { reconciliationService.executePaymentReconciliation(task) }
     }
     test("daily payment reconciliation skips when task already running") {
       val task = ReconciliationTaskModel()
@@ -59,6 +62,8 @@ class ReconciliationSchedulerTest :
 
       scheduler.executeDailyPaymentReconciliation()
 
+      verify(exactly = 0) { reconciliationService.createPaymentReconciliationTask(any()) }
+      verify(exactly = 0) { reconciliationService.executePaymentReconciliation(any()) }
       verify(exactly = 0) { eventPublishService.publishDomainEvent("DAILY_RECONCILIATION_STARTED", any(), any()) }
     }
     test("daily payment reconciliation swallows exceptions") {
@@ -66,15 +71,17 @@ class ReconciliationSchedulerTest :
 
       shouldNotThrowAny { scheduler.executeDailyPaymentReconciliation() }
     }
-    test("daily refund reconciliation creates refund task") {
+    test("daily refund reconciliation creates refund task and dispatches execution") {
       val task = ReconciliationTaskModel()
       every { reconciliationService.createRefundReconciliationTask(any()) } returns task
       every { reconciliationService.hasRunningTask() } returns false
+      every { reconciliationService.executeRefundReconciliation(task) } returns CompletableFuture.completedFuture(task)
 
       scheduler.executeDailyRefundReconciliation()
 
       verify(exactly = 1) { reconciliationService.createRefundReconciliationTask(any()) }
       verify { eventPublishService.publishDomainEvent("DAILY_RECONCILIATION_STARTED", task.taskId, any()) }
+      verify(exactly = 1) { reconciliationService.executeRefundReconciliation(task) }
     }
     test("daily refund reconciliation skips when running") {
       val task = ReconciliationTaskModel()
@@ -85,15 +92,17 @@ class ReconciliationSchedulerTest :
 
       verify(exactly = 0) { eventPublishService.publishDomainEvent("DAILY_RECONCILIATION_STARTED", any(), any()) }
     }
-    test("daily settlement reconciliation creates settlement task") {
+    test("daily settlement reconciliation creates settlement task and dispatches execution") {
       val task = ReconciliationTaskModel()
       every { reconciliationService.createSettlementReconciliationTask(any()) } returns task
       every { reconciliationService.hasRunningTask() } returns false
+      every { reconciliationService.executeSettlementReconciliation(task) } returns CompletableFuture.completedFuture(task)
 
       scheduler.executeDailySettlementReconciliation()
 
       verify(exactly = 1) { reconciliationService.createSettlementReconciliationTask(any()) }
       verify { eventPublishService.publishDomainEvent("DAILY_RECONCILIATION_STARTED", task.taskId, any()) }
+      verify(exactly = 1) { reconciliationService.executeSettlementReconciliation(task) }
     }
     test("cleanup old data does not throw") {
       shouldNotThrowAny { scheduler.cleanupOldReconciliationData() }

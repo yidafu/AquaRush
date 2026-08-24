@@ -20,7 +20,11 @@
 package dev.yidafu.aqua.api.service.reconciliation
 
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
+import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
+import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.time.LocalDate
@@ -74,6 +78,17 @@ interface ReconciliationService {
   ): List<ReconciliationTaskModel>
 
   /**
+   * 对账任务分页查询(后台微信资金对账页):任务类型/状态/对账日期范围均可选
+   */
+  fun getReconciliationTasksPaged(
+    taskType: ReconciliationTaskType?,
+    status: ReconciliationTaskStatus?,
+    dateFrom: LocalDate?,
+    dateTo: LocalDate?,
+    pageable: Pageable,
+  ): Page<ReconciliationTaskModel>
+
+  /**
    * 获取对账任务详情
    */
   fun getReconciliationTask(taskId: String): ReconciliationTaskModel?
@@ -89,9 +104,26 @@ interface ReconciliationService {
   fun getDiscrepancies(taskId: String): List<ReconciliationDiscrepancyModel>
 
   /**
+   * 对账差异分页查询(后台微信资金对账页):任务ID/解决状态均可选
+   */
+  fun getDiscrepanciesPaged(
+    taskId: String?,
+    status: DiscrepancyStatus?,
+    pageable: Pageable,
+  ): Page<ReconciliationDiscrepancyModel>
+
+  /**
    * 获取未解决的差异
    */
   fun getUnresolvedDiscrepancies(): List<ReconciliationDiscrepancyModel>
+
+  /**
+   * 获取对账报表列表(按任务,可选报表类型过滤)
+   */
+  fun getReports(
+    taskId: String,
+    reportType: String?,
+  ): List<ReconciliationReportModel>
 
   /**
    * 解决对账差异

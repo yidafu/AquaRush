@@ -1,6 +1,10 @@
 # Daily collection & reconciliation management
 # 分页/筛选(CLAUDE.md 规则 13 禁止全量查询):dailyCollections / dailyReconciliations
 # 均返回分页结果;对账详情逐单明细(G29)经 dailyReconciliationOrderDetails 分页取回。
+#
+# 微信资金对账(类型定义见 shared-types.graphqls §微信资金对账域):对账任务/差异/报表查询与
+# 手动执行/差异解决 mutation。权限:查询 RECONCILIATION_READ、执行 RECONCILIATION_EXECUTE、
+# 差异解决 RECONCILIATION_REVIEW。
 
 # 收款记录分页输入
 input DailyCollectionListInput {
@@ -92,6 +96,27 @@ extend type Query {
   ): ReconciliationOrderDetailPage!
   # 配送员今日收款 - 获取今日收款预计算结果（订单统计）
   myTodayCollection: MyTodayCollectionVO
+
+  # 微信资金对账:对账任务分页查询(类型/状态/对账日期范围筛选)
+  reconciliationTasks(
+    taskType: ReconciliationTaskType
+    status: ReconciliationTaskStatus
+    dateFrom: String
+    dateTo: String
+    page: Int = 0
+    size: Int = 20
+  ): ReconciliationTaskPage!
+  # 对账任务详情
+  reconciliationTask(taskId: String!): ReconciliationTask
+  # 对账差异分页查询(任务ID/解决状态筛选)
+  reconciliationDiscrepancies(
+    taskId: String
+    status: DiscrepancyStatus
+    page: Int = 0
+    size: Int = 20
+  ): ReconciliationDiscrepancyPage!
+  # 对账报表列表(按任务,可选报表类型过滤)
+  reconciliationReports(taskId: String!, reportType: String): [ReconciliationReport!]!
 }
 
 extend type Mutation {
@@ -101,4 +126,9 @@ extend type Mutation {
   rejectDailyCollection(input: RejectDailyCollectionInput!): DailyCollectionRecord!
   reviewReconciliation(input: ReviewReconciliationInput!): DailyReconciliation!
   executeDailyReconciliation(reconciliationDate: String): DailyReconciliation!
+
+  # 微信资金对账:手动执行对账(创建任务并异步执行)
+  executeReconciliation(input: ExecuteReconciliationInput!): ReconciliationTask!
+  # 解决对账差异(审核处理,备注留痕)
+  resolveDiscrepancy(input: ResolveDiscrepancyInput!): Boolean!
 }

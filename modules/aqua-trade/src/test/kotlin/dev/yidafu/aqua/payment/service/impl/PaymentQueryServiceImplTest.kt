@@ -20,6 +20,7 @@
 package dev.yidafu.aqua.payment.service.impl
 
 import dev.yidafu.aqua.common.domain.model.PaymentModel
+import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.payment.domain.repository.PaymentRefundRepository
 import dev.yidafu.aqua.payment.domain.repository.PaymentRepository
 import io.kotest.core.spec.style.FunSpec
@@ -77,5 +78,14 @@ class PaymentQueryServiceImplTest :
 
       service.getDailyRefundedAmountCents(start, end) shouldBe daily
       verify(exactly = 1) { paymentRefundRepository.sumRefundedAmountGroupByDay(start, end) }
+    }
+    test("getRefundedByDateRange delegates to refund repository") {
+      val start = LocalDateTime.of(2025, 6, 1, 0, 0)
+      val end = LocalDateTime.of(2025, 6, 1, 23, 59, 59)
+      val page = mockk<org.springframework.data.domain.Page<PaymentRefundModel>>(relaxed = true)
+      every { paymentRefundRepository.findRefundedByDateRange(start, end, 0, 100) } returns page
+
+      service.getRefundedByDateRange(start, end, 0, 100) shouldBe page
+      verify(exactly = 1) { paymentRefundRepository.findRefundedByDateRange(start, end, 0, 100) }
     }
   })

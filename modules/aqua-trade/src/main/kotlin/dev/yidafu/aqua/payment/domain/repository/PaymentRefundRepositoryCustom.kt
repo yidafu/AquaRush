@@ -57,4 +57,16 @@ interface PaymentRefundRepositoryCustom {
     page: Int,
     size: Int,
   ): Page<PaymentRefundModel>
+
+  /**
+   * 日期窗口内已退款(COMPLETED)记录分页查询(微信资金对账-退款对账用):
+   * 口径同聚合查询 = status=COMPLETED 按退款成功时间(refundedAt/processed_at)归属窗口;
+   * 按退款成功时间倒序,与微信退款账单按退款成功日的归属对齐。
+   */
+  fun findRefundedByDateRange(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    page: Int,
+    size: Int,
+  ): Page<PaymentRefundModel>
 }

@@ -24,15 +24,23 @@ import dev.yidafu.aqua.analytics.reconciliation.domain.repository.Reconciliation
 import dev.yidafu.aqua.analytics.reconciliation.domain.repository.ReconciliationTaskRepository
 import dev.yidafu.aqua.analytics.reconciliation.external.config.ReconciliationConfig
 import dev.yidafu.aqua.analytics.reconciliation.external.wechat.WeChatReconciliationApi
+import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatRefundRecord
+import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatSettlementRecord
 import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatTransactionRecord
 import dev.yidafu.aqua.api.service.payment.PaymentQueryService
 import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.common.domain.model.PaymentModel
+import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
+import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
+import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyType
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
+import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
+import dev.yidafu.aqua.common.graphql.generated.RefundStatus
+import dev.yidafu.aqua.common.graphql.generated.RefundType
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
@@ -42,6 +50,10 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.PageRequest
+import java.math.BigDecimal
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.Optional
@@ -103,6 +115,94 @@ class ReconciliationServiceImplTest :
         goodsDetail = null,
         costType = null,
         profitSharing = null,
+        returnCode = "SUCCESS",
+        returnMsg = "获取成功",
+        errorCode = null,
+        errorCodeDes = null,
+      )
+
+    fun newWeChatRefund(
+      refundId: String,
+      outRefundNo: String,
+      refundFee: Long,
+      transactionId: String = "tx-$refundId",
+    ): WeChatRefundRecord =
+      WeChatRefundRecord(
+        transactionId = transactionId,
+        outTradeNo = "OUT_$transactionId",
+        outRefundNo = outRefundNo,
+        refundId = refundId,
+        refundChannel = null,
+        refundFee = BigDecimal.valueOf(refundFee),
+        settlementRefundFee = null,
+        totalFee = null,
+        settlementTotalFee = null,
+        couponType = null,
+        amount = BigDecimal.valueOf(refundFee),
+        refundRecvAccount = null,
+        refundAccount = null,
+        refundRequestSource = null,
+        refundSuccessTime = LocalDateTime.of(2025, 6, 1, 11, 0),
+        refundStatus = "SUCCESS",
+        createTime = LocalDateTime.of(2025, 6, 1, 10, 0),
+        returnCode = "SUCCESS",
+        returnMsg = "获取成功",
+        errorCode = null,
+        errorCodeDes = null,
+      )
+
+    fun newInternalRefund(
+      refundId: String?,
+      outRefundNo: String?,
+      amount: Long,
+    ): PaymentRefundModel =
+      PaymentRefundModel(
+        paymentId = 1L,
+        orderId = 1L,
+        userId = 1L,
+        refundAmount = amount,
+        refundId = refundId,
+        outRefundNo = outRefundNo,
+        status = RefundStatus.COMPLETED,
+        refundType = RefundType.ORDER_REFUND,
+        refundedAt = LocalDateTime.of(2025, 6, 1, 10, 30),
+      )
+
+    fun newWeChatSettlement(
+      transactionId: String,
+      outTradeNo: String,
+      amount: Long,
+    ): WeChatSettlementRecord =
+      WeChatSettlementRecord(
+        settlementId = "settle-$transactionId",
+        transactionId = transactionId,
+        outTradeNo = outTradeNo,
+        amount = BigDecimal.valueOf(amount),
+        settlementAmount = BigDecimal.valueOf(amount),
+        mchId = "mch1",
+        subMchId = null,
+        deviceInfo = null,
+        billType = "ALL",
+        tradeType = "JSAPI",
+        tradeState = "SUCCESS",
+        bankType = null,
+        feeType = null,
+        totalFee = null,
+        settlementTotalFee = null,
+        rate = null,
+        cashFee = null,
+        refundFee = BigDecimal.ZERO,
+        settlementRefundFee = BigDecimal.ZERO,
+        body = "矿泉水",
+        detail = null,
+        attach = null,
+        goodsTag = null,
+        timeEnd = LocalDateTime.of(2025, 6, 1, 10, 0),
+        settlementTime = LocalDateTime.of(2025, 6, 1, 12, 0),
+        tradeCreateTime = LocalDateTime.of(2025, 6, 1, 9, 59),
+        tradePayTime = LocalDateTime.of(2025, 6, 1, 10, 0),
+        promotionInfo = null,
+        createTime = LocalDateTime.of(2025, 6, 1, 12, 0),
         returnCode = "SUCCESS",
         returnMsg = "获取成功",
         errorCode = null,
@@ -244,13 +344,100 @@ class ReconciliationServiceImplTest :
     }
     test("executeRefundReconciliation succeeds with zero records") {
       val task = newTask(type = ReconciliationTaskType.REFUND)
+      every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(emptyList<PaymentRefundModel>(), PageRequest.of(0, 100), 0)
       every { weChatApi.fetchRefunds(date) } returns emptyList()
 
       val result = service.executeRefundReconciliation(task).join()
 
       result.status shouldBe ReconciliationTaskStatus.SUCCESS
       result.totalRecords shouldBe 0
+      result.unmatchedRecords shouldBe 0
       verify { eventPublishService.publishDomainEvent("RECONCILIATION_COMPLETED", task.taskId, any()) }
+      verify { reportRepository.save(any()) }
+    }
+    test("executeRefundReconciliation succeeds when all refunds match") {
+      val task = newTask(type = ReconciliationTaskType.REFUND)
+      val internalRefund = newInternalRefund(refundId = "refund1", outRefundNo = "out1", amount = 1000L)
+      val weChatRefund = newWeChatRefund(refundId = "refund1", outRefundNo = "out1", refundFee = 1000L)
+      every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(listOf(internalRefund), PageRequest.of(0, 100), 1)
+      every { weChatApi.fetchRefunds(date) } returns listOf(weChatRefund)
+
+      val result = service.executeRefundReconciliation(task).join()
+
+      result.status shouldBe ReconciliationTaskStatus.SUCCESS
+      result.totalRecords shouldBe 2
+      result.matchedRecords shouldBe 1
+      result.unmatchedRecords shouldBe 0
+      result.errorMessage.shouldBeNull()
+      verify { eventPublishService.publishDomainEvent("RECONCILIATION_COMPLETED", task.taskId, any()) }
+      verify { reportRepository.save(any()) }
+    }
+    test("executeRefundReconciliation matches by outRefundNo fallback") {
+      val task = newTask(type = ReconciliationTaskType.REFUND)
+      // 内部退款无微信退款单号,以商户退款单号(outRefundNo)匹配
+      val internalRefund = newInternalRefund(refundId = null, outRefundNo = "out1", amount = 1000L)
+      val weChatRefund = newWeChatRefund(refundId = "refund1", outRefundNo = "out1", refundFee = 1000L)
+      every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(listOf(internalRefund), PageRequest.of(0, 100), 1)
+      every { weChatApi.fetchRefunds(date) } returns listOf(weChatRefund)
+
+      val result = service.executeRefundReconciliation(task).join()
+
+      result.status shouldBe ReconciliationTaskStatus.SUCCESS
+      result.matchedRecords shouldBe 1
+      result.unmatchedRecords shouldBe 0
+    }
+    test("executeRefundReconciliation records MISMATCH when refund amounts differ") {
+      val task = newTask(type = ReconciliationTaskType.REFUND)
+      val internalRefund = newInternalRefund(refundId = "refund1", outRefundNo = "out1", amount = 1000L)
+      val weChatRefund = newWeChatRefund(refundId = "refund1", outRefundNo = "out1", refundFee = 950L)
+      every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(listOf(internalRefund), PageRequest.of(0, 100), 1)
+      every { weChatApi.fetchRefunds(date) } returns listOf(weChatRefund)
+
+      val result = service.executeRefundReconciliation(task).join()
+
+      result.status shouldBe ReconciliationTaskStatus.FAILED
+      val saved = slot<List<ReconciliationDiscrepancyModel>>()
+      verify { discrepancyRepository.saveAll(capture(saved)) }
+      saved.captured.size shouldBe 1
+      saved.captured[0].discrepancyType shouldBe DiscrepancyType.MISMATCH
+      saved.captured[0].status shouldBe DiscrepancyStatus.UNRESOLVED
+      saved.captured[0].recordDetails!!.containsKey("amountDifferenceCents") shouldBe true
+    }
+    test("executeRefundReconciliation records MISSING when internal refund absent in wechat") {
+      val task = newTask(type = ReconciliationTaskType.REFUND)
+      val internalRefund = newInternalRefund(refundId = "refund-only", outRefundNo = "out-only", amount = 1000L)
+      every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(listOf(internalRefund), PageRequest.of(0, 100), 1)
+      every { weChatApi.fetchRefunds(date) } returns emptyList()
+
+      val result = service.executeRefundReconciliation(task).join()
+
+      result.status shouldBe ReconciliationTaskStatus.FAILED
+      val saved = slot<List<ReconciliationDiscrepancyModel>>()
+      verify { discrepancyRepository.saveAll(capture(saved)) }
+      saved.captured.size shouldBe 1
+      saved.captured[0].discrepancyType shouldBe DiscrepancyType.MISSING
+      saved.captured[0].sourceSystem shouldBe SourceSystem.WECHAT
+    }
+    test("executeRefundReconciliation records MISSING for extra wechat refund") {
+      val task = newTask(type = ReconciliationTaskType.REFUND)
+      val weChatRefund = newWeChatRefund(refundId = "wechat-only", outRefundNo = "out-wechat-only", refundFee = 1000L)
+      every { paymentQueryService.getRefundedByDateRange(any(), any(), any(), any()) } returns
+        PageImpl(emptyList<PaymentRefundModel>(), PageRequest.of(0, 100), 0)
+      every { weChatApi.fetchRefunds(date) } returns listOf(weChatRefund)
+
+      val result = service.executeRefundReconciliation(task).join()
+
+      result.status shouldBe ReconciliationTaskStatus.FAILED
+      val saved = slot<List<ReconciliationDiscrepancyModel>>()
+      verify { discrepancyRepository.saveAll(capture(saved)) }
+      saved.captured.size shouldBe 1
+      saved.captured[0].sourceSystem shouldBe SourceSystem.INTERNAL
+      saved.captured[0].recordDetails!!.containsKey("wechat") shouldBe true
     }
     test("executeRefundReconciliation marks failed on exception") {
       val task = newTask(type = ReconciliationTaskType.REFUND)
@@ -261,20 +448,52 @@ class ReconciliationServiceImplTest :
       future.isCompletedExceptionally shouldBe true
       task.status shouldBe ReconciliationTaskStatus.FAILED
     }
-    test("executeSettlementReconciliation matches all fetched settlements") {
+    test("executeSettlementReconciliation succeeds when all settlements match internal payments") {
       val task = newTask(type = ReconciliationTaskType.SETTLEMENT)
-      every { weChatApi.fetchSettlements(any()) } returns
-        listOf(
-          mockk(relaxed = true),
-          mockk(relaxed = true),
-        )
+      val payment = PaymentModel(orderId = 1L, userId = 1L, amount = 1000L, transactionId = "wx1")
+      val settlement = newWeChatSettlement(transactionId = "wx1", outTradeNo = "OUT_wx1", amount = 1000L)
+      every { paymentQueryService.getByDateRange(any(), any()) } returns listOf(payment)
+      every { weChatApi.fetchSettlements(any()) } returns listOf(settlement)
 
       val result = service.executeSettlementReconciliation(task).join()
 
       result.status shouldBe ReconciliationTaskStatus.SUCCESS
       result.totalRecords shouldBe 2
-      result.matchedRecords shouldBe 2
+      result.matchedRecords shouldBe 1
       result.unmatchedRecords shouldBe 0
+      result.errorMessage.shouldBeNull()
+      verify { eventPublishService.publishDomainEvent("RECONCILIATION_COMPLETED", task.taskId, any()) }
+      verify { reportRepository.save(any()) }
+    }
+    test("executeSettlementReconciliation records MISMATCH when settlement amount differs") {
+      val task = newTask(type = ReconciliationTaskType.SETTLEMENT)
+      val payment = PaymentModel(orderId = 1L, userId = 1L, amount = 1000L, transactionId = "wx1")
+      val settlement = newWeChatSettlement(transactionId = "wx1", outTradeNo = "OUT_wx1", amount = 980L)
+      every { paymentQueryService.getByDateRange(any(), any()) } returns listOf(payment)
+      every { weChatApi.fetchSettlements(any()) } returns listOf(settlement)
+
+      val result = service.executeSettlementReconciliation(task).join()
+
+      result.status shouldBe ReconciliationTaskStatus.FAILED
+      val saved = slot<List<ReconciliationDiscrepancyModel>>()
+      verify { discrepancyRepository.saveAll(capture(saved)) }
+      saved.captured.size shouldBe 1
+      saved.captured[0].discrepancyType shouldBe DiscrepancyType.MISMATCH
+    }
+    test("executeSettlementReconciliation records MISSING for wechat-only settlement") {
+      val task = newTask(type = ReconciliationTaskType.SETTLEMENT)
+      val settlement = newWeChatSettlement(transactionId = "wechat-only", outTradeNo = "OUT_wechat-only", amount = 1000L)
+      every { paymentQueryService.getByDateRange(any(), any()) } returns emptyList()
+      every { weChatApi.fetchSettlements(any()) } returns listOf(settlement)
+
+      val result = service.executeSettlementReconciliation(task).join()
+
+      result.status shouldBe ReconciliationTaskStatus.FAILED
+      val saved = slot<List<ReconciliationDiscrepancyModel>>()
+      verify { discrepancyRepository.saveAll(capture(saved)) }
+      saved.captured.size shouldBe 1
+      saved.captured[0].sourceSystem shouldBe SourceSystem.INTERNAL
+      saved.captured[0].recordDetails!!.containsKey("wechat") shouldBe true
     }
     test("executeSettlementReconciliation marks failed on exception") {
       val task = newTask(type = ReconciliationTaskType.SETTLEMENT)
@@ -335,6 +554,72 @@ class ReconciliationServiceImplTest :
       every { discrepancyRepository.findByStatus("UNRESOLVED") } returns expected
 
       service.getUnresolvedDiscrepancies() shouldBe expected
+    }
+    test("getReconciliationTasksPaged delegates to repository with date window") {
+      val pageable = PageRequest.of(0, 10)
+      val expected = PageImpl(listOf(newTask()), pageable, 1)
+      every {
+        taskRepository.findTasksPaged(
+          ReconciliationTaskType.PAYMENT,
+          ReconciliationTaskStatus.SUCCESS,
+          LocalDate.of(2025, 6, 1).atStartOfDay(),
+          LocalDate.of(2025, 6, 1).atTime(23, 59, 59, 999999999),
+          pageable,
+        )
+      } returns expected
+
+      val result =
+        service.getReconciliationTasksPaged(
+          ReconciliationTaskType.PAYMENT,
+          ReconciliationTaskStatus.SUCCESS,
+          LocalDate.of(2025, 6, 1),
+          LocalDate.of(2025, 6, 1),
+          pageable,
+        )
+
+      result shouldBe expected
+    }
+    test("getReconciliationTasksPaged passes null filters through") {
+      val pageable = PageRequest.of(0, 10)
+      val expected = PageImpl(listOf(newTask()), pageable, 1)
+      every { taskRepository.findTasksPaged(null, null, null, null, pageable) } returns expected
+
+      val result = service.getReconciliationTasksPaged(null, null, null, null, pageable)
+
+      result shouldBe expected
+    }
+    test("getDiscrepanciesPaged delegates to repository") {
+      val pageable = PageRequest.of(0, 20)
+      val expected = PageImpl(listOf(mockk<ReconciliationDiscrepancyModel>(relaxed = true)), pageable, 1)
+      every {
+        discrepancyRepository.findDiscrepanciesPaged("T1", DiscrepancyStatus.UNRESOLVED, pageable)
+      } returns expected
+
+      val result =
+        service.getDiscrepanciesPaged(
+          "T1",
+          DiscrepancyStatus.UNRESOLVED,
+          pageable,
+        )
+
+      result shouldBe expected
+    }
+    test("getReports returns all reports when reportType is null") {
+      val expected = listOf(mockk<ReconciliationReportModel>(relaxed = true))
+      every { reportRepository.findByTaskId("T1") } returns expected
+
+      service.getReports("T1", null) shouldBe expected
+    }
+    test("getReports filters by reportType") {
+      val expected = mockk<ReconciliationReportModel>(relaxed = true)
+      every { reportRepository.findByTaskIdAndReportType("T1", "SUMMARY") } returns expected
+
+      service.getReports("T1", "SUMMARY") shouldBe listOf(expected)
+    }
+    test("getReports returns empty when reportType not found") {
+      every { reportRepository.findByTaskIdAndReportType("T1", "SUMMARY") } returns null
+
+      service.getReports("T1", "SUMMARY") shouldBe emptyList()
     }
     test("resolveDiscrepancy marks resolved and publishes event") {
       val discrepancy =

@@ -22,6 +22,8 @@ package dev.yidafu.aqua.analytics.reconciliation.domain.repository
 import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime
 
 /**
@@ -62,4 +64,16 @@ interface ReconciliationTaskRepositoryCustom {
     taskType: ReconciliationTaskType,
     status: ReconciliationTaskStatus,
   ): Long
+
+  /**
+   * 对账任务分页查询(后台微信资金对账页):任务类型/状态/对账日期范围均可选,按对账日期倒序。
+   * 禁止全表查询(CLAUDE.md 规则 #13),面向接口的列表查询必须分页。
+   */
+  fun findTasksPaged(
+    taskType: ReconciliationTaskType?,
+    status: ReconciliationTaskStatus?,
+    startDate: LocalDateTime?,
+    endDate: LocalDateTime?,
+    pageable: Pageable,
+  ): Page<ReconciliationTaskModel>
 }

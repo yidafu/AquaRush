@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.analytics.reconciliation.domain.repository
 
+import com.querydsl.core.BooleanBuilder
 import com.querydsl.core.Tuple
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.QReconciliationDiscrepancyModel.Companion.reconciliationDiscrepancyModel
@@ -26,6 +27,9 @@ import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -89,4 +93,32 @@ class ReconciliationDiscrepancyRepositoryImpl : ReconciliationDiscrepancyReposit
           .and(reconciliationDiscrepancyModel.resolvedAt.lt(beforeDate)),
       ).execute()
       .toInt()
+
+  override fun findDiscrepanciesPaged(
+    taskId: String?,
+    status: DiscrepancyStatus?,
+    pageable: Pageable,
+  ): Page<ReconciliationDiscrepancyModel> {
+    val builder = BooleanBuilder()
+    taskId?.let { builder.and(reconciliationDiscrepancyModel.taskId.eq(it)) }
+    status?.let { builder.and(reconciliationDiscrepancyModel.status.eq(it)) }
+
+    val content =
+      queryFactory
+        .selectFrom(reconciliationDiscrepancyModel)
+        .where(builder)
+        .orderBy(reconciliationDiscrepancyModel.createdAt.desc())
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .fetch()
+
+    val total =
+      queryFactory
+        .select(reconciliationDiscrepancyModel.count())
+        .from(reconciliationDiscrepancyModel)
+        .where(builder)
+        .fetchOne() ?: 0L
+
+    return PageImpl(content, pageable, total)
+  }
 }

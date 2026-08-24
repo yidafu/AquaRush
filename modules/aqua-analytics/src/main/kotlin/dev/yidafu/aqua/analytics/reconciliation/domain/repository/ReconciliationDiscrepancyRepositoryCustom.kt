@@ -20,6 +20,9 @@
 package dev.yidafu.aqua.analytics.reconciliation.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
+import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime
 
 /**
@@ -57,4 +60,14 @@ interface ReconciliationDiscrepancyRepositoryCustom {
    * @return number of deleted records
    */
   fun deleteResolvedBefore(beforeDate: LocalDateTime): Int
+
+  /**
+   * 对账差异分页查询(后台微信资金对账页):任务ID/解决状态均可选,按创建时间倒序。
+   * 禁止全表查询(CLAUDE.md 规则 #13),面向接口的列表查询必须分页。
+   */
+  fun findDiscrepanciesPaged(
+    taskId: String?,
+    status: DiscrepancyStatus?,
+    pageable: Pageable,
+  ): Page<ReconciliationDiscrepancyModel>
 }

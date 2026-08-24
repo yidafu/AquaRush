@@ -24,16 +24,20 @@ import dev.yidafu.aqua.analytics.reconciliation.domain.repository.Reconciliation
 import dev.yidafu.aqua.analytics.reconciliation.domain.repository.ReconciliationTaskRepository
 import dev.yidafu.aqua.analytics.reconciliation.external.config.ReconciliationConfig
 import dev.yidafu.aqua.analytics.reconciliation.external.wechat.WeChatReconciliationApi
+import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatRefundRecord
+import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatSettlementRecord
 import dev.yidafu.aqua.analytics.reconciliation.external.wechat.dto.WeChatTransactionRecord
 import dev.yidafu.aqua.api.service.payment.PaymentQueryService
 import dev.yidafu.aqua.api.service.payment.PaymentService
 import dev.yidafu.aqua.api.service.reconciliation.ReconciliationService
 import dev.yidafu.aqua.common.domain.model.PaymentModel
+import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationDiscrepancyModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationReportModel
 import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
 import dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
 import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
+import dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
 import dev.yidafu.aqua.common.domain.model.enums.SourceSystem
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import dev.yidafu.aqua.common.utils.MoneyUtils
@@ -52,6 +56,7 @@ import kotlin.time.Duration
 
 /**
  * 对账服务核心实现
+ * 支付/退款/结算三类对账:拉取微信账单 → 与内部流水(支付记录/退款记录)比对 → 差异落库 → 生成报表。
  */
 @Service
 class ReconciliationServiceImpl(
@@ -99,6 +104,7 @@ class ReconciliationServiceImpl(
 
   /**
    * 执行支付对账任务
+   * 微信交易账单 vs 内部支付流水(payments),按微信交易号(transactionId)匹配,金额按分比对。
    */
   @Async("reconciliationExecutor")
   @Transactional
@@ -107,22 +113,7 @@ class ReconciliationServiceImpl(
       try {
         logger.info("开始执行支付对账任务: ${task.taskId}")
 
-        // 更新任务状态为运行中
-        task.status = ReconciliationTaskStatus.RUNNING
-        task.startTime = LocalDateTime.now()
-        reconciliationTaskRepository.save(task)
-
-        // 发布对账开始事件
-        eventPublishService.publishDomainEvent(
-          eventType = "RECONCILIATION_STARTED",
-          aggregateId = task.taskId,
-          eventData =
-            mapOf<String, Any>(
-              "taskType" to "PAYMENT",
-              "taskDate" to (task.taskDate ?: LocalDateTime.now()),
-              "startTime" to (task.startTime ?: LocalDateTime.now()),
-            ),
-        )
+        markTaskRunning(task, "PAYMENT")
 
         // 获取内部支付记录
         val internalPayments =
@@ -138,37 +129,8 @@ class ReconciliationServiceImpl(
         // 执行对账
         val result = performPaymentReconciliation(internalPayments, weChatTransactions, task.taskId)
 
-        // 更新任务结果
-        task.status =
-          if (result.discrepancies.isEmpty()) ReconciliationTaskStatus.SUCCESS else ReconciliationTaskStatus.FAILED
-        task.endTime = LocalDateTime.now()
-        task.totalRecords = result.totalRecords
-        task.matchedRecords = result.matchedRecords
-        task.unmatchedRecords = result.unmatchedRecords
-        if (result.errorMessage != null) {
-          task.errorMessage = result.errorMessage
-        }
-
-        reconciliationTaskRepository.save(task)
-
-        // 生成对账报表
-        generatePaymentReconciliationReport(task, result)
-
-        // 发布对账完成事件
-        eventPublishService.publishDomainEvent(
-          eventType = if (task.status == ReconciliationTaskStatus.SUCCESS) "RECONCILIATION_COMPLETED" else "RECONCILIATION_FAILED",
-          aggregateId = task.taskId,
-          eventData =
-            mapOf<String, Any>(
-              "taskType" to "PAYMENT",
-              "status" to task.status.name,
-              "totalRecords" to result.totalRecords,
-              "matchedRecords" to result.matchedRecords,
-              "unmatchedRecords" to result.unmatchedRecords,
-              "discrepancies" to result.discrepancies.size,
-              "endTime" to (task.endTime ?: LocalDateTime.now()),
-            ),
-        )
+        // 收尾:状态/统计/报表/事件
+        completeTask(task, "PAYMENT", result)
 
         logger.info(
           "支付对账任务执行完成: ${task.taskId}, 状态: ${task.status}, 总记录: ${result.totalRecords}, 匹配: ${result.matchedRecords}, 差异: ${result.unmatchedRecords}",
@@ -177,32 +139,15 @@ class ReconciliationServiceImpl(
         task
       } catch (e: Exception) {
         logger.error("支付对账任务执行失败: ${task.taskId}", e)
-
-        // 更新任务状态为失败
-        task.status = ReconciliationTaskStatus.FAILED
-        task.endTime = LocalDateTime.now()
-        task.errorMessage = e.message
-        reconciliationTaskRepository.save(task)
-
-        // 发布对账失败事件
-        eventPublishService.publishDomainEvent(
-          eventType = "RECONCILIATION_FAILED",
-          aggregateId = task.taskId,
-          eventData =
-            mapOf<String, Any>(
-              "taskType" to "PAYMENT",
-              "status" to ReconciliationTaskStatus.FAILED.name,
-              "error" to (e.message ?: ""),
-              "endTime" to (task.endTime ?: LocalDateTime.now()),
-            ),
-        )
-
+        failTask(task, "PAYMENT", e)
         throw e
       }
     }, taskExecutor)
 
   /**
    * 执行退款对账任务
+   * 微信退款账单 vs 内部退款记录(payment_refunds,status=COMPLETED),
+   * 按微信退款单号(refundId,备用商户退款单号 outRefundNo)匹配,金额按分比对。
    */
   @Async("reconciliationExecutor")
   @Transactional
@@ -211,74 +156,44 @@ class ReconciliationServiceImpl(
       try {
         logger.info("开始执行退款对账任务: ${task.taskId}")
 
-        // 更新任务状态为运行中
-        task.status = ReconciliationTaskStatus.RUNNING
-        task.startTime = LocalDateTime.now()
-        reconciliationTaskRepository.save(task)
+        markTaskRunning(task, "REFUND")
 
-        // 发布对账开始事件
-        eventPublishService.publishDomainEvent(
-          eventType = "RECONCILIATION_STARTED",
-          aggregateId = task.taskId,
-          eventData =
-            mapOf<String, Any>(
-              "taskType" to "REFUND",
-              "taskDate" to (task.taskDate ?: LocalDateTime.now()),
-              "startTime" to (task.startTime ?: LocalDateTime.now()),
-            ),
-        )
-
-        // TODO: 获取内部退款记录
-        // val internalRefunds = refundRepository.findByCreatedAtBetween(...)
+        // 获取内部已退款记录(COMPLETED,按退款成功时间归属任务日期窗口,分页取全)
+        val dayStart = task.taskDate!!.toLocalDate().atStartOfDay()
+        val dayEnd = task.taskDate!!.toLocalDate().atTime(23, 59, 59, 999999999)
+        val internalRefunds = mutableListOf<PaymentRefundModel>()
+        var refundPage = 0
+        do {
+          val page = paymentQueryService.getRefundedByDateRange(dayStart, dayEnd, refundPage, REFUND_BATCH_SIZE)
+          internalRefunds.addAll(page.content)
+          refundPage++
+        } while (refundPage < page.totalPages)
 
         // 获取微信退款记录
         val weChatRefunds = weChatReconciliationApi.fetchRefunds(task.taskDate!!.toLocalDate())
 
         // 执行退款对账
-        // val result = performRefundReconciliation(internalRefunds, weChatRefunds, task.taskId)
+        val result = performRefundReconciliation(internalRefunds, weChatRefunds, task.taskId)
 
-        // 暂时返回成功
-        task.status = ReconciliationTaskStatus.SUCCESS
-        task.endTime = LocalDateTime.now()
-        task.totalRecords = 0
-        task.matchedRecords = 0
-        task.unmatchedRecords = 0
+        // 收尾:状态/统计/报表/事件
+        completeTask(task, "REFUND", result)
 
-        reconciliationTaskRepository.save(task)
-
-        // 发布对账完成事件
-        eventPublishService.publishDomainEvent(
-          eventType = "RECONCILIATION_COMPLETED",
-          aggregateId = task.taskId,
-          eventData =
-            mapOf(
-              "taskType" to "REFUND",
-              "status" to task.status.name,
-              "totalRecords" to 0,
-              "matchedRecords" to 0,
-              "unmatchedRecords" to 0,
-              "endTime" to (task.endTime ?: LocalDateTime.now()),
-            ),
+        logger.info(
+          "退款对账任务执行完成: ${task.taskId}, 状态: ${task.status}, 总记录: ${result.totalRecords}, 匹配: ${result.matchedRecords}, 差异: ${result.unmatchedRecords}",
         )
-
-        logger.info("退款对账任务执行完成: ${task.taskId}, 状态: ${task.status}")
 
         task
       } catch (e: Exception) {
         logger.error("退款对账任务执行失败: ${task.taskId}", e)
-
-        // 更新任务状态为失败
-        task.status = ReconciliationTaskStatus.FAILED
-        task.endTime = LocalDateTime.now()
-        task.errorMessage = e.message
-        reconciliationTaskRepository.save(task)
-
+        failTask(task, "REFUND", e)
         throw e
       }
     }, taskExecutor)
 
   /**
    * 执行结算对账任务
+   * 微信结算账单 vs 内部支付流水(payments),按微信交易号(transactionId,备用商户订单号 outTradeNo)匹配,
+   * 金额按分比对(微信结算按结算日归属,内部按当日支付流水近似匹配)。
    */
   @Async("reconciliationExecutor")
   @Transactional
@@ -287,65 +202,33 @@ class ReconciliationServiceImpl(
       try {
         logger.info("开始执行结算对账任务: ${task.taskId}")
 
-        // 更新任务状态为运行中
-        task.status = ReconciliationTaskStatus.RUNNING
-        task.startTime = LocalDateTime.now()
-        reconciliationTaskRepository.save(task)
+        markTaskRunning(task, "SETTLEMENT")
 
-        // 发布对账开始事件
-        eventPublishService.publishDomainEvent(
-          eventType = "RECONCILIATION_STARTED",
-          aggregateId = task.taskId,
-          eventData =
-            mapOf(
-              "taskType" to "SETTLEMENT",
-              "taskDate" to (task.taskDate ?: LocalDateTime.now()),
-              "startTime" to (task.startTime ?: LocalDateTime.now()),
-            ),
-        )
+        // 获取内部支付记录
+        val internalPayments =
+          paymentQueryService
+            .getByDateRange(
+              task.taskDate!!.toLocalDate().atStartOfDay(),
+              task.taskDate!!.toLocalDate().atTime(23, 59, 59, 999999999),
+            )
 
         // 获取微信结算记录
         val weChatSettlements = weChatReconciliationApi.fetchSettlements(task.taskDate!!.toLocalDate())
 
         // 执行结算对账
-        // val result = performSettlementReconciliation(weChatSettlements, task.taskId)
+        val result = performSettlementReconciliation(internalPayments, weChatSettlements, task.taskId)
 
-        // 暂时返回成功
-        task.status = ReconciliationTaskStatus.SUCCESS
-        task.endTime = LocalDateTime.now()
-        task.totalRecords = weChatSettlements.size
-        task.matchedRecords = weChatSettlements.size
-        task.unmatchedRecords = 0
+        // 收尾:状态/统计/报表/事件
+        completeTask(task, "SETTLEMENT", result)
 
-        reconciliationTaskRepository.save(task)
-
-        // 发布对账完成事件
-        eventPublishService.publishDomainEvent(
-          eventType = "RECONCILIATION_COMPLETED",
-          aggregateId = task.taskId,
-          eventData =
-            mapOf<String, Any>(
-              "taskType" to "SETTLEMENT",
-              "status" to task.status.name,
-              "totalRecords" to task.totalRecords,
-              "matchedRecords" to task.matchedRecords,
-              "unmatchedRecords" to task.unmatchedRecords,
-              "endTime" to (task.endTime ?: LocalDateTime.now()),
-            ),
+        logger.info(
+          "结算对账任务执行完成: ${task.taskId}, 状态: ${task.status}, 总记录: ${result.totalRecords}, 匹配: ${result.matchedRecords}, 差异: ${result.unmatchedRecords}",
         )
-
-        logger.info("结算对账任务执行完成: ${task.taskId}, 状态: ${task.status}")
 
         task
       } catch (e: Exception) {
         logger.error("结算对账任务执行失败: ${task.taskId}", e)
-
-        // 更新任务状态为失败
-        task.status = ReconciliationTaskStatus.FAILED
-        task.endTime = LocalDateTime.now()
-        task.errorMessage = e.message
-        reconciliationTaskRepository.save(task)
-
+        failTask(task, "SETTLEMENT", e)
         throw e
       }
     }, taskExecutor)
@@ -365,6 +248,24 @@ class ReconciliationServiceImpl(
     reconciliationTaskRepository.findByTaskDateBetween(
       startDate.atStartOfDay(),
       endDate.atTime(23, 59, 59, 999999999),
+    )
+
+  /**
+   * 对账任务分页查询(后台微信资金对账页)
+   */
+  override fun getReconciliationTasksPaged(
+    taskType: ReconciliationTaskType?,
+    status: ReconciliationTaskStatus?,
+    dateFrom: LocalDate?,
+    dateTo: LocalDate?,
+    pageable: Pageable,
+  ): Page<ReconciliationTaskModel> =
+    reconciliationTaskRepository.findTasksPaged(
+      taskType = taskType,
+      status = status,
+      startDate = dateFrom?.atStartOfDay(),
+      endDate = dateTo?.atTime(23, 59, 59, 999999999),
+      pageable = pageable,
     )
 
   /**
@@ -390,10 +291,33 @@ class ReconciliationServiceImpl(
     reconciliationDiscrepancyRepository.findByTaskId(taskId)
 
   /**
+   * 对账差异分页查询(后台微信资金对账页)
+   */
+  override fun getDiscrepanciesPaged(
+    taskId: String?,
+    status: DiscrepancyStatus?,
+    pageable: Pageable,
+  ): Page<ReconciliationDiscrepancyModel> =
+    reconciliationDiscrepancyRepository.findDiscrepanciesPaged(taskId, status, pageable)
+
+  /**
    * 获取未解决的差异
    */
   override fun getUnresolvedDiscrepancies(): List<ReconciliationDiscrepancyModel> =
     reconciliationDiscrepancyRepository.findByStatus("UNRESOLVED")
+
+  /**
+   * 获取对账报表列表(按任务,可选报表类型过滤)
+   */
+  override fun getReports(
+    taskId: String,
+    reportType: String?,
+  ): List<ReconciliationReportModel> =
+    if (reportType == null) {
+      reconciliationReportRepository.findByTaskId(taskId)
+    } else {
+      listOfNotNull(reconciliationReportRepository.findByTaskIdAndReportType(taskId, reportType))
+    }
 
   /**
    * 解决对账差异
@@ -445,7 +369,7 @@ class ReconciliationServiceImpl(
     internalPayments: List<PaymentModel>,
     weChatTransactions: List<WeChatTransactionRecord>,
     taskId: String,
-  ): PaymentReconciliationResult {
+  ): ReconciliationResult {
     val internalMap = internalPayments.associateBy { it.transactionId }
     val weChatMap = weChatTransactions.associateBy { it.transactionId }
 
@@ -553,11 +477,262 @@ class ReconciliationServiceImpl(
       }
     }
 
+    return finalizeDiscrepancies(discrepancies, internalPayments.size + weChatTransactions.size, matchedCount)
+  }
+
+  /**
+   * 执行退款对账核心逻辑
+   */
+  private fun performRefundReconciliation(
+    internalRefunds: List<PaymentRefundModel>,
+    weChatRefunds: List<WeChatRefundRecord>,
+    taskId: String,
+  ): ReconciliationResult {
+    // 内部退款:优先按微信退款单号(refundId),备用商户退款单号(outRefundNo)
+    val weChatMap = weChatRefunds.associateBy { it.refundId }
+
+    val discrepancies = mutableListOf<ReconciliationDiscrepancyModel>()
+    var matchedCount = 0
+
+    internalRefunds.forEach { refund ->
+      val weChatRefund = weChatMap[refund.refundId] ?: weChatRefunds.firstOrNull { it.outRefundNo == refund.outRefundNo }
+      when {
+        weChatRefund == null -> {
+          // 内部有退款，微信账单没有记录
+          discrepancies.add(
+            ReconciliationDiscrepancyModel.createMissingRecord(
+              taskId = taskId,
+              sourceSystem = SourceSystem.WECHAT,
+              recordId = refund.refundId ?: refund.outRefundNo ?: refund.id?.toString() ?: "",
+              recordDetails =
+                mapOf(
+                  "internal" to
+                    mapOf(
+                      "refundId" to refund.refundId,
+                      "outRefundNo" to refund.outRefundNo,
+                      "orderId" to refund.orderId,
+                      "paymentId" to refund.paymentId,
+                      "refundAmountCents" to refund.refundAmount,
+                      "refundAmount" to MoneyUtils.fromCents(refund.refundAmount),
+                      "status" to refund.status.name,
+                      "refundedAt" to refund.refundedAt,
+                    ),
+                  "amountCents" to refund.refundAmount,
+                  "refundedAt" to (refund.refundedAt?.toString() ?: ""),
+                ),
+            ),
+          )
+        }
+
+        refund.refundAmount != weChatRefund.refundFee.toLong() -> {
+          // 金额不匹配 (both amounts are in cents)
+          val internalAmountYuan = MoneyUtils.fromCents(refund.refundAmount)
+          val wechatAmountYuan = MoneyUtils.fromCents(weChatRefund.refundFee.toLong())
+          discrepancies.add(
+            ReconciliationDiscrepancyModel.createMismatchRecord(
+              taskId = taskId,
+              sourceSystem = SourceSystem.INTERNAL,
+              recordId = weChatRefund.refundId,
+              recordDetails =
+                mapOf(
+                  "internal" to
+                    mapOf(
+                      "refundId" to refund.refundId,
+                      "outRefundNo" to refund.outRefundNo,
+                      "orderId" to refund.orderId,
+                      "refundAmountCents" to refund.refundAmount,
+                      "refundAmount" to internalAmountYuan,
+                      "status" to refund.status.name,
+                    ),
+                  "wechat" to
+                    mapOf(
+                      "refundId" to weChatRefund.refundId,
+                      "outRefundNo" to weChatRefund.outRefundNo,
+                      "transactionId" to weChatRefund.transactionId,
+                      "outTradeNo" to weChatRefund.outTradeNo,
+                      "refundFeeCents" to weChatRefund.refundFee.toLong(),
+                      "refundFee" to wechatAmountYuan,
+                      "refundStatus" to weChatRefund.refundStatus,
+                    ),
+                  "amountDifference" to MoneyUtils.fromCents(abs(refund.refundAmount - weChatRefund.refundFee.toLong())),
+                  "amountDifferenceCents" to abs(refund.refundAmount - weChatRefund.refundFee.toLong()),
+                ),
+            ),
+          )
+        }
+
+        else -> {
+          // 匹配成功
+          matchedCount++
+        }
+      }
+    }
+
+    // 检查微信退款记录在内部是否存在
+    weChatRefunds.forEach { weChatRefund ->
+      val internalRefund = internalRefunds.firstOrNull { it.refundId == weChatRefund.refundId || it.outRefundNo == weChatRefund.outRefundNo }
+      if (internalRefund == null) {
+        // 微信有退款，内部没有
+        val amountYuan = MoneyUtils.fromCents(weChatRefund.refundFee.toLong())
+        discrepancies.add(
+          ReconciliationDiscrepancyModel.createMissingRecord(
+            taskId = taskId,
+            sourceSystem = SourceSystem.INTERNAL,
+            recordId = weChatRefund.refundId,
+            recordDetails =
+              mapOf(
+                "wechat" to
+                  mapOf(
+                    "refundId" to weChatRefund.refundId,
+                    "outRefundNo" to weChatRefund.outRefundNo,
+                    "transactionId" to weChatRefund.transactionId,
+                    "outTradeNo" to weChatRefund.outTradeNo,
+                    "refundFeeCents" to weChatRefund.refundFee.toLong(),
+                    "refundFee" to amountYuan,
+                    "refundStatus" to weChatRefund.refundStatus,
+                    "refundSuccessTime" to weChatRefund.refundSuccessTime,
+                  ),
+                "amountCents" to weChatRefund.refundFee.toLong(),
+              ),
+          ),
+        )
+      }
+    }
+
+    return finalizeDiscrepancies(discrepancies, internalRefunds.size + weChatRefunds.size, matchedCount)
+  }
+
+  /**
+   * 执行结算对账核心逻辑
+   */
+  private fun performSettlementReconciliation(
+    internalPayments: List<PaymentModel>,
+    weChatSettlements: List<WeChatSettlementRecord>,
+    taskId: String,
+  ): ReconciliationResult {
+    val internalByTransactionId = internalPayments.associateBy { it.transactionId }
+
+    val discrepancies = mutableListOf<ReconciliationDiscrepancyModel>()
+    var matchedCount = 0
+
+    weChatSettlements.forEach { settlement ->
+      val internalPayment = internalByTransactionId[settlement.transactionId]
+        ?: internalPayments.firstOrNull { it.transactionId == settlement.outTradeNo }
+      when {
+        internalPayment == null -> {
+          // 微信有结算，内部没有对应支付记录
+          val amountYuan = MoneyUtils.fromCents(settlement.amount.toLong())
+          discrepancies.add(
+            ReconciliationDiscrepancyModel.createMissingRecord(
+              taskId = taskId,
+              sourceSystem = SourceSystem.INTERNAL,
+              recordId = settlement.transactionId,
+              recordDetails =
+                mapOf(
+                  "wechat" to
+                    mapOf(
+                      "settlementId" to settlement.settlementId,
+                      "transactionId" to settlement.transactionId,
+                      "outTradeNo" to settlement.outTradeNo,
+                      "amountCents" to settlement.amount.toLong(),
+                      "amount" to amountYuan,
+                      "tradeState" to settlement.tradeState,
+                      "settlementTime" to settlement.settlementTime,
+                    ),
+                  "amountCents" to settlement.amount.toLong(),
+                ),
+            ),
+          )
+        }
+
+        internalPayment.amount != settlement.amount.toLong() -> {
+          // 金额不匹配 (both amounts are in cents)
+          val internalAmountYuan = MoneyUtils.fromCents(internalPayment.amount)
+          val wechatAmountYuan = MoneyUtils.fromCents(settlement.amount.toLong())
+          discrepancies.add(
+            ReconciliationDiscrepancyModel.createMismatchRecord(
+              taskId = taskId,
+              sourceSystem = SourceSystem.INTERNAL,
+              recordId = settlement.transactionId,
+              recordDetails =
+                mapOf(
+                  "internal" to
+                    mapOf(
+                      "transactionId" to internalPayment.transactionId,
+                      "orderId" to internalPayment.orderId,
+                      "amountCents" to internalPayment.amount,
+                      "amount" to internalAmountYuan,
+                      "status" to internalPayment.status.name,
+                    ),
+                  "wechat" to
+                    mapOf(
+                      "settlementId" to settlement.settlementId,
+                      "transactionId" to settlement.transactionId,
+                      "outTradeNo" to settlement.outTradeNo,
+                      "amountCents" to settlement.amount.toLong(),
+                      "amount" to wechatAmountYuan,
+                      "tradeState" to settlement.tradeState,
+                    ),
+                  "amountDifference" to MoneyUtils.fromCents(abs(internalPayment.amount - settlement.amount.toLong())),
+                  "amountDifferenceCents" to abs(internalPayment.amount - settlement.amount.toLong()),
+                ),
+            ),
+          )
+        }
+
+        else -> {
+          // 匹配成功
+          matchedCount++
+        }
+      }
+    }
+
+    // 检查内部支付记录在微信结算账单中是否存在
+    internalPayments.forEach { payment ->
+      val settlement = weChatSettlements.firstOrNull {
+        it.transactionId == payment.transactionId || it.outTradeNo == payment.transactionId
+      }
+      if (settlement == null) {
+        // 内部有支付，微信结算账单没有记录
+        discrepancies.add(
+          ReconciliationDiscrepancyModel.createMissingRecord(
+            taskId = taskId,
+            sourceSystem = SourceSystem.WECHAT,
+            recordId = payment.transactionId ?: "",
+            recordDetails =
+              mapOf(
+                "internal" to
+                  mapOf(
+                    "transactionId" to payment.transactionId,
+                    "orderId" to payment.orderId,
+                    "amountCents" to payment.amount,
+                    "amount" to MoneyUtils.fromCents(payment.amount),
+                    "status" to payment.status.name,
+                    "createdAt" to payment.createdAt,
+                  ),
+                "amountCents" to payment.amount,
+              ),
+          ),
+        )
+      }
+    }
+
+    return finalizeDiscrepancies(discrepancies, internalPayments.size + weChatSettlements.size, matchedCount)
+  }
+
+  /**
+   * 差异落库并汇总结果
+   */
+  private fun finalizeDiscrepancies(
+    discrepancies: List<ReconciliationDiscrepancyModel>,
+    totalRecords: Int,
+    matchedCount: Int,
+  ): ReconciliationResult {
     // 保存差异记录
     reconciliationDiscrepancyRepository.saveAll(discrepancies)
 
-    return PaymentReconciliationResult(
-      totalRecords = internalPayments.size + weChatTransactions.size,
+    return ReconciliationResult(
+      totalRecords = totalRecords,
       matchedRecords = matchedCount,
       unmatchedRecords = discrepancies.size,
       discrepancies = discrepancies,
@@ -566,18 +741,112 @@ class ReconciliationServiceImpl(
   }
 
   /**
-   * 生成支付对账报表
+   * 任务置为运行中并发布开始事件
    */
-  private fun generatePaymentReconciliationReport(
+  private fun markTaskRunning(
     task: ReconciliationTaskModel,
-    result: PaymentReconciliationResult,
+    taskType: String,
+  ) {
+    task.status = ReconciliationTaskStatus.RUNNING
+    task.startTime = LocalDateTime.now()
+    reconciliationTaskRepository.save(task)
+
+    // 发布对账开始事件
+    eventPublishService.publishDomainEvent(
+      eventType = "RECONCILIATION_STARTED",
+      aggregateId = task.taskId,
+      eventData =
+        mapOf<String, Any>(
+          "taskType" to taskType,
+          "taskDate" to (task.taskDate ?: LocalDateTime.now()),
+          "startTime" to (task.startTime ?: LocalDateTime.now()),
+        ),
+    )
+  }
+
+  /**
+   * 任务收尾:状态/统计落库、生成报表、发布完成/失败事件
+   */
+  private fun completeTask(
+    task: ReconciliationTaskModel,
+    taskType: String,
+    result: ReconciliationResult,
+  ) {
+    // 更新任务结果(有差异视为 FAILED,errorMessage 提示差异数)
+    task.status =
+      if (result.discrepancies.isEmpty()) ReconciliationTaskStatus.SUCCESS else ReconciliationTaskStatus.FAILED
+    task.endTime = LocalDateTime.now()
+    task.totalRecords = result.totalRecords
+    task.matchedRecords = result.matchedRecords
+    task.unmatchedRecords = result.unmatchedRecords
+    if (result.errorMessage != null) {
+      task.errorMessage = result.errorMessage
+    }
+
+    reconciliationTaskRepository.save(task)
+
+    // 生成对账报表
+    generateReconciliationReport(task, taskType, result)
+
+    // 发布对账完成事件
+    eventPublishService.publishDomainEvent(
+      eventType = if (task.status == ReconciliationTaskStatus.SUCCESS) "RECONCILIATION_COMPLETED" else "RECONCILIATION_FAILED",
+      aggregateId = task.taskId,
+      eventData =
+        mapOf<String, Any>(
+          "taskType" to taskType,
+          "status" to task.status.name,
+          "totalRecords" to result.totalRecords,
+          "matchedRecords" to result.matchedRecords,
+          "unmatchedRecords" to result.unmatchedRecords,
+          "discrepancies" to result.discrepancies.size,
+          "endTime" to (task.endTime ?: LocalDateTime.now()),
+        ),
+    )
+  }
+
+  /**
+   * 任务失败:状态 FAILED、发布失败事件(不重新抛出——由调用方抛出原异常)
+   */
+  private fun failTask(
+    task: ReconciliationTaskModel,
+    taskType: String,
+    e: Exception,
+  ) {
+    // 更新任务状态为失败
+    task.status = ReconciliationTaskStatus.FAILED
+    task.endTime = LocalDateTime.now()
+    task.errorMessage = e.message
+    reconciliationTaskRepository.save(task)
+
+    // 发布对账失败事件
+    eventPublishService.publishDomainEvent(
+      eventType = "RECONCILIATION_FAILED",
+      aggregateId = task.taskId,
+      eventData =
+        mapOf<String, Any>(
+          "taskType" to taskType,
+          "status" to ReconciliationTaskStatus.FAILED.name,
+          "error" to (e.message ?: ""),
+          "endTime" to (task.endTime ?: LocalDateTime.now()),
+        ),
+    )
+  }
+
+  /**
+   * 生成对账报表(汇总 + 有差异时明细)
+   */
+  private fun generateReconciliationReport(
+    task: ReconciliationTaskModel,
+    taskType: String,
+    result: ReconciliationResult,
   ) {
     val summaryReport =
       ReconciliationReportModel.createSummaryReport(
         taskId = task.taskId!!,
         reportData =
           mapOf<String, Any>(
-            "taskType" to "PAYMENT",
+            "taskType" to taskType,
             "taskDate" to (task.taskDate ?: LocalDateTime.now()),
             "totalRecords" to result.totalRecords,
             "matchedRecords" to result.matchedRecords,
@@ -612,7 +881,7 @@ class ReconciliationServiceImpl(
           taskId = task.taskId!!,
           reportData =
             mapOf(
-              "taskType" to "PAYMENT",
+              "taskType" to taskType,
               "discrepancies" to
                 result.discrepancies.map {
                   mapOf(
@@ -635,13 +904,18 @@ class ReconciliationServiceImpl(
   }
 
   /**
-   * 支付对账结果数据类
+   * 对账结果数据类(支付/退款/结算共用)
    */
-  private data class PaymentReconciliationResult(
+  private data class ReconciliationResult(
     val totalRecords: Int,
     val matchedRecords: Int,
     val unmatchedRecords: Int,
     val discrepancies: List<ReconciliationDiscrepancyModel>,
     val errorMessage: String?,
   )
+
+  companion object {
+    /** 退款对账内部分批拉取每页大小(规则 #13:禁止全表,分批处理) */
+    private const val REFUND_BATCH_SIZE = 100
+  }
 }

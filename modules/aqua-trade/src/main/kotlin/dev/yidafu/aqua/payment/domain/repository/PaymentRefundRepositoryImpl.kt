@@ -116,4 +116,32 @@ class PaymentRefundRepositoryImpl : PaymentRefundRepositoryCustom {
 
     return PageImpl(content, pageable, total)
   }
+
+  override fun findRefundedByDateRange(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    page: Int,
+    size: Int,
+  ): Page<PaymentRefundModel> {
+    val builder = buildWhereClause(startDate, endDate)
+    val pageable = PageRequest.of(page.coerceAtLeast(0), size.coerceIn(1, 100))
+
+    val content =
+      queryFactory
+        .selectFrom(paymentRefundModel)
+        .where(builder)
+        .orderBy(paymentRefundModel.refundedAt.desc())
+        .offset(pageable.offset)
+        .limit(pageable.pageSize.toLong())
+        .fetch()
+
+    val total =
+      queryFactory
+        .select(paymentRefundModel.count())
+        .from(paymentRefundModel)
+        .where(builder)
+        .fetchOne() ?: 0L
+
+    return PageImpl(content, pageable, total)
+  }
 }

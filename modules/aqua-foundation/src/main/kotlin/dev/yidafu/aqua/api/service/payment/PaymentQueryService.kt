@@ -34,6 +34,18 @@ interface PaymentQueryService {
   fun getRefundRequest(id: Long): PaymentRefundModel?
 
   /**
+   * 日期窗口内已退款(COMPLETED)记录分页查询(微信资金对账-退款对账用):
+   * 口径 = payment_refunds.status=COMPLETED 按退款成功时间(refundedAt/processed_at)归属窗口,
+   * 与微信退款账单按退款成功日的归属一致;按退款成功时间倒序。
+   */
+  fun getRefundedByDateRange(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    page: Int,
+    size: Int,
+  ): Page<PaymentRefundModel>
+
+  /**
    * 日期窗口内已退款金额合计(分)。
    * 口径 = payment_refunds.status=COMPLETED 按退款成功时间(processed_at)归属窗口
    * (PRD 08-statistics.md §F-STA-002 退款/净营收维度)。

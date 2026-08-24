@@ -31,6 +31,13 @@ class PaymentQueryServiceImpl(
 
   override fun getRefundRequest(id: Long): PaymentRefundModel? = paymentRefundRepository.findById(id).orElse(null)
 
+  override fun getRefundedByDateRange(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    page: Int,
+    size: Int,
+  ): Page<PaymentRefundModel> = paymentRefundRepository.findRefundedByDateRange(startDate, endDate, page, size)
+
   override fun sumRefundedAmountCents(
     startDate: LocalDateTime,
     endDate: LocalDateTime,

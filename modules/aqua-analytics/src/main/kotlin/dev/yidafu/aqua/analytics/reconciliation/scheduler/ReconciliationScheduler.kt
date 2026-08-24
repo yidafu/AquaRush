@@ -20,11 +20,13 @@
 package dev.yidafu.aqua.analytics.reconciliation.scheduler
 
 import dev.yidafu.aqua.api.service.reconciliation.ReconciliationService
+import dev.yidafu.aqua.common.domain.model.ReconciliationTaskModel
 import dev.yidafu.aqua.common.messaging.service.SimplifiedEventPublishService
 import org.slf4j.LoggerFactory
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import java.time.LocalDate
+import java.util.concurrent.CompletableFuture
 
 /**
  * 对账定时任务调度器
@@ -44,14 +46,14 @@ class ReconciliationScheduler(
     logger.info("开始执行每日支付对账任务")
 
     try {
-      val yesterday = LocalDate.now().minusDays(1)
-      val task = reconciliationService.createPaymentReconciliationTask(yesterday)
-
-      // 检查是否有正在运行的任务
+      // 检查是否有正在运行的任务(先检查再创建,避免自身新任务阻塞调度)
       if (reconciliationService.hasRunningTask()) {
         logger.warn("已有对账任务正在运行，跳过本次调度")
         return
       }
+
+      val yesterday = LocalDate.now().minusDays(1)
+      val task = reconciliationService.createPaymentReconciliationTask(yesterday)
 
       logger.info("每日支付对账任务已创建: ${task.taskId}")
 
@@ -66,6 +68,11 @@ class ReconciliationScheduler(
             "schedule" to "daily",
           ),
       )
+
+      // 派发异步执行
+      dispatchExecution(task, "PAYMENT") {
+        reconciliationService.executePaymentReconciliation(task)
+      }
     } catch (e: Exception) {
       logger.error("每日支付对账调度失败", e)
     }
@@ -79,14 +86,14 @@ class ReconciliationScheduler(
     logger.info("开始执行每日退款对账任务")
 
     try {
-      val yesterday = LocalDate.now().minusDays(1)
-      val task = reconciliationService.createRefundReconciliationTask(yesterday)
-
-      // 检查是否有正在运行的任务
+      // 检查是否有正在运行的任务(先检查再创建)
       if (reconciliationService.hasRunningTask()) {
         logger.warn("已有对账任务正在运行，跳过本次退款对账调度")
         return
       }
+
+      val yesterday = LocalDate.now().minusDays(1)
+      val task = reconciliationService.createRefundReconciliationTask(yesterday)
 
       logger.info("每日退款对账任务已创建: ${task.taskId}")
 
@@ -101,6 +108,11 @@ class ReconciliationScheduler(
             "schedule" to "daily",
           ),
       )
+
+      // 派发异步执行
+      dispatchExecution(task, "REFUND") {
+        reconciliationService.executeRefundReconciliation(task)
+      }
     } catch (e: Exception) {
       logger.error("每日退款对账调度失败", e)
     }
@@ -114,15 +126,15 @@ class ReconciliationScheduler(
     logger.info("开始执行每日结算对账任务")
 
     try {
-      // 结算对账通常在支付和退款完成后执行
-      val twoDaysAgo = LocalDate.now().minusDays(2)
-      val task = reconciliationService.createSettlementReconciliationTask(twoDaysAgo)
-
-      // 检查是否有正在运行的任务
+      // 检查是否有正在运行的任务(先检查再创建)
       if (reconciliationService.hasRunningTask()) {
         logger.warn("已有对账任务正在运行，跳过本次结算对账调度")
         return
       }
+
+      // 结算对账通常在支付和退款完成后执行
+      val twoDaysAgo = LocalDate.now().minusDays(2)
+      val task = reconciliationService.createSettlementReconciliationTask(twoDaysAgo)
 
       logger.info("每日结算对账任务已创建: ${task.taskId}")
 
@@ -137,8 +149,30 @@ class ReconciliationScheduler(
             "schedule" to "daily",
           ),
       )
+
+      // 派发异步执行
+      dispatchExecution(task, "SETTLEMENT") {
+        reconciliationService.executeSettlementReconciliation(task)
+      }
     } catch (e: Exception) {
       logger.error("每日结算对账调度失败", e)
+    }
+  }
+
+  /**
+   * 派发对账任务异步执行(不阻塞调度线程;完成/异常仅记日志)
+   */
+  private fun <T> dispatchExecution(
+    task: ReconciliationTaskModel,
+    taskType: String,
+    execution: () -> CompletableFuture<T>,
+  ) {
+    execution().whenComplete { _, error ->
+      if (error != null) {
+        logger.error("对账任务($taskType:${task.taskId})执行异常", error)
+      } else {
+        logger.info("对账任务($taskType:${task.taskId})执行完成")
+      }
     }
   }
 
