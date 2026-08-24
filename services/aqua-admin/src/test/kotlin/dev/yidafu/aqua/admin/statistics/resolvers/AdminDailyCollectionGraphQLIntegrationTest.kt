@@ -21,9 +21,15 @@ package dev.yidafu.aqua.admin.statistics.resolvers
 
 import dev.yidafu.aqua.admin.AquaAdminApplication
 import dev.yidafu.aqua.admin.testutil.setMockUserPrincipal
+import dev.yidafu.aqua.common.domain.model.AdminModel
+import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
 import dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus
+import dev.yidafu.aqua.delivery.domain.repository.DailyCollectionRecordRepository
 import dev.yidafu.aqua.delivery.domain.repository.DailyReconciliationRepository
+import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import io.kotest.assertions.withClue
 import io.kotest.core.extensions.ApplyExtension
 import io.kotest.core.spec.style.FunSpec
@@ -65,11 +71,19 @@ import java.time.LocalDateTime
 class AdminDailyCollectionGraphQLIntegrationTest(
   context: WebApplicationContext,
   reconciliationRepository: DailyReconciliationRepository,
+  collectionRecordRepository: DailyCollectionRecordRepository,
+  adminRepository: AdminRepository,
 ) : FunSpec({
     var mockMvc: MockMvc = mockk()
 
     fun postGraphql(query: String): String {
-      val escaped = query.replace("\"", "\\\"")
+      // 转义为合法 JSON 字符串:反斜杠/引号/换行等控制字符(支持多行 GraphQL 查询体)
+      val escaped =
+        query
+          .replace("\\", "\\\\")
+          .replace("\"", "\\\"")
+          .replace("\r", "\\r")
+          .replace("\n", "\\n")
       val result =
         mockMvc
           .perform(
@@ -169,7 +183,14 @@ class AdminDailyCollectionGraphQLIntegrationTest(
 
     test("dailyCollectionSummary returns zero-filled summary") {
       setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
-      val json = postGraphql("{ dailyCollectionSummary(collectionDate: \"2026-08-15\") { collectionDate totalCashAmountCents totalSubmittedCount } }")
+      val query =
+        """
+        { dailyCollectionSummary(collectionDate: "2026-08-15") {
+            collectionDate totalCashAmountCents totalSubmittedCount
+          }
+        }
+        """.trimIndent()
+      val json = postGraphql(query)
       withClue("dailyCollectionSummary should not error: $json") {
         // Long 标量序列化为 JSON 字符串(如 "0"),Int 序列化为数字
         !json.contains("\"errors\"") &&
@@ -187,6 +208,54 @@ class AdminDailyCollectionGraphQLIntegrationTest(
         )
       withClue("dailyReconciliationOrderDetails should not error: $json") {
         !json.contains("\"errors\"") && json.contains("\"total\" : 0") shouldBe true
+      }
+    }
+
+    test("rejectDailyCollection rejects submitted record to draft with trail") {
+      setMockUserPrincipal(
+        username = "admin1",
+        authorities = listOf("PERMISSION_RECONCILIATION_CONFIRM"),
+      )
+      adminRepository.deleteAll()
+      collectionRecordRepository.deleteAll()
+      val admin =
+        AdminModel(username = "admin1", passwordHash = "hash", role = AdminRoleModel.ADMIN)
+      adminRepository.save(admin)
+      val record =
+        DailyCollectionRecordModel(
+          deliveryWorkerId = admin.id ?: 1L,
+          collectionDate = LocalDate.of(2026, 8, 15),
+          cashAmountCents = 1000L,
+          waterTicketCount = 1,
+          qrCodeAmountCents = 500L,
+          orderCount = 3,
+          orderAmountCents = 1500L,
+          differenceAmountCents = 200L,
+          status = DailyCollectionStatus.SUBMITTED,
+          createdAt = LocalDateTime.of(2026, 8, 15, 10, 0),
+        )
+      collectionRecordRepository.save(record)
+      val recordId = record.id ?: 1L
+
+      val json =
+        postGraphql(
+          """mutation { rejectDailyCollection(input: { recordId: $recordId, reason: "金额不符" }) { id status rejectedBy rejectReason } }""",
+        )
+      withClue("rejectDailyCollection should set DRAFT with trail: $json") {
+        json.contains("\"status\" : \"DRAFT\"") &&
+          json.contains("\"rejectReason\" : \"金额不符\"") &&
+          !json.contains("\"errors\"") shouldBe true
+      }
+    }
+
+    test("rejectDailyCollection requires RECONCILIATION_CONFIRM permission") {
+      setMockUserPrincipal(authorities = listOf("PERMISSION_RECONCILIATION_READ"))
+      val json =
+        postGraphql(
+          """mutation { rejectDailyCollection(input: { recordId: 1, reason: "金额不符" }) { id status } }""",
+        )
+      withClue("rejectDailyCollection should be denied without permission: $json") {
+        json.contains("\"errors\"") || !json.contains("\"rejectDailyCollection\"") shouldBe true
       }
     }
   })

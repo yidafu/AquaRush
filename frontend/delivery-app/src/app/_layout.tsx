@@ -85,6 +85,18 @@ function RootNavigator() {
           options={{ headerShown: true, title: '对账记录', ...headerOptions }}
         />
         <Stack.Screen
+          name="admin-statistics"
+          options={{ headerShown: true, title: '数据统计', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="admin-collection"
+          options={{ headerShown: true, title: '收银对账', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="refund-management"
+          options={{ headerShown: true, title: '退款管理', ...headerOptions }}
+        />
+        <Stack.Screen
           name="about"
           options={{ headerShown: true, title: '关于我们', ...headerOptions }}
         />

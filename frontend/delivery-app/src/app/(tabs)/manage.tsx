@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 
 import { AdminOrders } from '@/components/manage/admin-orders';
 import { AdminWorkers } from '@/components/manage/admin-workers';
@@ -13,15 +13,36 @@ import { useAuth } from '@/hooks/use-auth';
 
 const SEGMENTS = ['看板', '全部订单', '送水员'];
 
+function parseTabParam(raw?: string): number | null {
+  if (raw === undefined) return null;
+  const index = parseInt(raw, 10);
+  return !Number.isNaN(index) && index >= 0 && index < SEGMENTS.length ? index : null;
+}
+
 /** 管理枢纽：仅 ADMIN/SUPER_ADMIN 可见（Tab 条件渲染 + 此处兜底）。 */
 export default function ManageScreen() {
   const { isAdmin } = useAuth();
   const router = useRouter();
-  const [current, setCurrent] = useState(0);
+  const { tab } = useLocalSearchParams<{ tab?: string }>();
+  const [current, setCurrent] = useState(() => parseTabParam(tab) ?? 0);
 
   useEffect(() => {
     if (!isAdmin) router.replace('/');
   }, [isAdmin, router]);
+
+  // 工作台九宫格「全部订单」深链(?tab=1)切换分段;Tab 切换后参数变化同样生效
+  const lastTabParam = useRef(tab);
+  useFocusEffect(
+    useCallback(() => {
+      if (tab !== lastTabParam.current) {
+        lastTabParam.current = tab;
+        const parsed = parseTabParam(tab);
+        if (parsed !== null) {
+          setCurrent(parsed);
+        }
+      }
+    }, [tab]),
+  );
 
   return (
     <ThemedView type="pageBackground" style={styles.container}>

@@ -30,13 +30,21 @@ const MENU_ITEMS: { label: string; href: Href }[] = [
   { label: '隐私政策', href: '/privacy-policy' },
 ];
 
+// 管理员专属菜单(工作台九宫格之外的第二入口)
+const ADMIN_MENU_ITEMS: { label: string; href: Href }[] = [
+  { label: '经营看板', href: '/manage' as Href },
+  { label: '数据统计', href: '/admin-statistics' as Href },
+  { label: '收银对账', href: '/admin-collection' as Href },
+  { label: '退单处置', href: '/refund-management' as Href },
+];
+
 export default function ProfileScreen() {
   const { userInfo, isAdmin, logout } = useAuth();
   const router = useRouter();
   const theme = useTheme();
 
   const menuItems = [
-    ...(isAdmin ? [{ label: '经营看板', href: '/manage' as Href }] : []),
+    ...(isAdmin ? ADMIN_MENU_ITEMS : []),
     ...MENU_ITEMS,
   ];
 

@@ -30,6 +30,7 @@ import dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.generated.ConfirmDailyCollectionInput
+import dev.yidafu.aqua.common.graphql.generated.RejectDailyCollectionInput
 import dev.yidafu.aqua.common.graphql.generated.ReviewReconciliationInput
 import dev.yidafu.aqua.common.graphql.generated.SubmitDailyCollectionInput
 import dev.yidafu.aqua.logging.util.BizLogger
@@ -123,6 +124,27 @@ class AdminDailyCollectionMutationResolverTest :
     }
     test("reviewReconciliation requires login") {
       shouldThrow<UnauthorizedException> { resolver.reviewReconciliation(null, null) }
+    }
+    test("rejectDailyCollection requires login") {
+      shouldThrow<UnauthorizedException> { resolver.rejectDailyCollection(null, null) }
+    }
+    test("rejectDailyCollection rejects null input") {
+      shouldThrow<BadRequestException> { resolver.rejectDailyCollection(null, user) }
+    }
+    test("rejectDailyCollection rejects blank reason") {
+      shouldThrow<BadRequestException> {
+        resolver.rejectDailyCollection(RejectDailyCollectionInput(recordId = 9L, reason = "  "), user)
+      }
+    }
+    test("rejectDailyCollection rejects record and logs") {
+      every { adminService.findByUsername("admin1") } returns admin()
+      val record = DailyCollectionRecordModel(deliveryWorkerId = 1L, status = DailyCollectionStatus.DRAFT)
+      every { dailyCollectionService.rejectCollection(9L, 1L, "金额不符") } returns record
+
+      val result = resolver.rejectDailyCollection(RejectDailyCollectionInput(recordId = 9L, reason = "金额不符"), user)
+
+      result shouldBe record
+      verify { bizLogger.logOperation("RECON_DAILY_REJECT", "RECONCILIATION", "SUCCESS", any(), 1L, "admin1", any()) }
     }
     test("reviewReconciliation rejects blank notes") {
       shouldThrow<BadRequestException> {

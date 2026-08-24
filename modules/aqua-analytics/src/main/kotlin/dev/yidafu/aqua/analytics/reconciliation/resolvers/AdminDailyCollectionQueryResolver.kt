@@ -26,11 +26,8 @@ import dev.yidafu.aqua.analytics.reconciliation.mapper.DailyReconciliationModelM
 import dev.yidafu.aqua.analytics.reconciliation.mapper.MyTodayCollectionResultMapper
 import dev.yidafu.aqua.analytics.reconciliation.service.DailyCollectionService
 import dev.yidafu.aqua.api.service.admin.AdminService
-import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
-import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
-import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.exception.UserNotFoundException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
@@ -40,7 +37,9 @@ import dev.yidafu.aqua.common.graphql.generated.DailyCollectionSummary
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationListInput
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationPage
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo
+import dev.yidafu.aqua.common.graphql.generated.OrderStatus
 import dev.yidafu.aqua.common.graphql.generated.PageInfo
+import dev.yidafu.aqua.common.graphql.generated.PaymentType
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationOrderDetail
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationOrderDetailPage
 import org.slf4j.LoggerFactory
@@ -207,8 +206,8 @@ class AdminDailyCollectionQueryResolver(
       orderNo = order.orderNo,
       deliveryWorkerId = order.deliveryWorkerId,
       amountCents = order.amountCents,
-      paymentType = order.paymentType?.let { dev.yidafu.aqua.common.graphql.generated.PaymentType.valueOf(it.name) },
-      status = dev.yidafu.aqua.common.graphql.generated.OrderStatus.valueOf(order.status.name),
+      paymentType = order.paymentType?.let { PaymentType.valueOf(it.name) },
+      status = OrderStatus.valueOf(order.status.name),
       deliveredAt = order.deliveryConfirmedAt ?: order.completedAt,
     )
 

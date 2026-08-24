@@ -23,6 +23,7 @@ import dev.yidafu.aqua.analytics.reconciliation.dto.DailyCollectionSummaryDTO
 import dev.yidafu.aqua.analytics.reconciliation.dto.OrderStatsDTO
 import dev.yidafu.aqua.analytics.reconciliation.dto.PaymentStatsDTO
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
+import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
@@ -253,6 +254,42 @@ class DailyCollectionService(
     record.updatedAt = LocalDateTime.now()
 
     logger.info("管理员 {} 确认收款记录 {}", confirmedBy, recordId)
+
+    return collectionRecordRepository.save(record)
+  }
+
+  /**
+   * 管理员驳回收款记录(G28/R-COL-02:争议日报驳回,退回草稿可改可重提)
+   *
+   * 仅允许驳回「已提交」(SUBMITTED)与「有争议」(DISPUTED)状态;已确认(CONFIRMED)
+   * 不可驳回(终态),草稿(DRAFT)无需驳回。驳回置状态为「草稿」并留痕
+   * rejected_at/by/reject_reason;配送员重新提交时清空驳回留痕(见 submitDailyCollection)。
+   */
+  @Transactional
+  fun rejectCollection(
+    recordId: Long,
+    rejectedBy: Long,
+    reason: String,
+  ): DailyCollectionRecordModel {
+    if (reason.isBlank()) {
+      throw BadRequestException("驳回原因不能为空")
+    }
+    val record =
+      collectionRecordRepository
+        .findById(recordId)
+        .orElseThrow { BadRequestException("收款记录不存在: $recordId") }
+
+    if (record.status != DailyCollectionStatus.SUBMITTED && record.status != DailyCollectionStatus.DISPUTED) {
+      throw BadRequestException("仅「已提交/有争议」状态的收款记录可驳回,当前状态: ${record.status}")
+    }
+
+    record.status = DailyCollectionStatus.DRAFT
+    record.rejectedAt = LocalDateTime.now()
+    record.rejectedBy = rejectedBy
+    record.rejectReason = reason
+    record.updatedAt = LocalDateTime.now()
+
+    logger.info("管理员 {} 驳回收款记录 {}: {}", rejectedBy, recordId, reason)
 
     return collectionRecordRepository.save(record)
   }

@@ -6,6 +6,7 @@ import type {
   DeliveryWorkerRankingItem,
   Order,
   OrderListInput,
+  OrderStatistics,
   OrderStatus,
   OrderVoPage,
   PendingOrderBreakdown,
@@ -94,6 +95,50 @@ export const getDailyStatistics = (startDate: Date, endDate: Date) => {
     }
   `,
     { input: { startDate: toIsoDateTime(startDate), endDate: toIsoDateTime(endDate) } },
+  );
+};
+
+/**
+ * 数据统计页单请求(规则 #10):日趋势 + 订单统计汇总(含状态分布) + 送水员排行一次取回。
+ * 日期范围由调用方按「近7天/近30天」切换后重发本查询。
+ */
+export const getAdminStatistics = (startDate: Date, endDate: Date) => {
+  return networkManager.query<{
+    dailyStatistics: readonly DailyStatistic[];
+    orderStatistics: OrderStatistics | null;
+    deliveryWorkerRanking: readonly DeliveryWorkerRankingItem[];
+  }>(
+    `
+    query GetAdminStatistics($input: DateRangeInput!, $limit: Int) {
+      dailyStatistics(input: $input) {
+        date
+        orderCount
+        orderProductCount
+        revenueCents
+      }
+      orderStatistics(input: $input) {
+        totalOrders
+        completedOrders
+        totalRevenueCents
+        averageOrderValueCents
+        statusDistribution {
+          status
+          count
+        }
+      }
+      deliveryWorkerRanking(limit: $limit) {
+        workerId
+        name
+        todayCompletedOrders
+        rating
+        totalEarningsCents
+      }
+    }
+  `,
+    {
+      input: { startDate: toIsoDateTime(startDate), endDate: toIsoDateTime(endDate) },
+      limit: 5,
+    },
   );
 };
 

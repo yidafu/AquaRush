@@ -36,6 +36,15 @@ type Query {
   ): ReconciliationOrderDetailPage!
 }
 
+type Mutation {
+  rejectDailyCollection(input: RejectDailyCollectionInput!): DailyCollectionRecord!
+}
+
+input RejectDailyCollectionInput {
+  recordId: PrimaryId!
+  reason: String!
+}
+
 input DailyCollectionListInput {
   collectionDate: String
   deliveryWorkerId: Long
@@ -103,6 +112,9 @@ type DailyCollectionRecord {
   orderAmountCents: Long!
   differenceAmountCents: Long!
   status: String!
+  rejectedAt: LocalDateTime
+  rejectedBy: PrimaryId
+  rejectReason: String
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }

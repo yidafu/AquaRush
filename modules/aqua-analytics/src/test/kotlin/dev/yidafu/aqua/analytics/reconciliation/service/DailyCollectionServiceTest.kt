@@ -26,6 +26,7 @@ import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
 import dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
+import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.delivery.domain.repository.DailyCollectionRecordRepository
 import dev.yidafu.aqua.delivery.domain.repository.DailyReconciliationRepository
 import dev.yidafu.aqua.order.domain.repository.OrderRepository
@@ -279,6 +280,49 @@ class DailyCollectionServiceTest :
       every { collectionRecordRepository.findById(9L) } returns Optional.empty()
 
       shouldThrow<IllegalArgumentException> { service.confirmCollection(9L, confirmedBy = 5L) }
+    }
+    test("rejectCollection rejects submitted record back to draft with trail") {
+      val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.SUBMITTED)
+      every { collectionRecordRepository.findById(9L) } returns Optional.of(existing)
+      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+
+      val rejected = service.rejectCollection(9L, rejectedBy = 5L, reason = "金额不符")
+
+      rejected.status shouldBe DailyCollectionStatus.DRAFT
+      rejected.rejectedBy shouldBe 5L
+      rejected.rejectReason shouldBe "金额不符"
+      rejected.rejectedAt.shouldNotBeNull()
+    }
+    test("rejectCollection rejects disputed record back to draft with trail") {
+      val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.DISPUTED)
+      every { collectionRecordRepository.findById(9L) } returns Optional.of(existing)
+      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+
+      val rejected = service.rejectCollection(9L, rejectedBy = 5L, reason = "扫码金额对不上")
+
+      rejected.status shouldBe DailyCollectionStatus.DRAFT
+      rejected.rejectedBy shouldBe 5L
+      rejected.rejectReason shouldBe "扫码金额对不上"
+    }
+    test("rejectCollection throws when record missing") {
+      every { collectionRecordRepository.findById(9L) } returns Optional.empty()
+
+      shouldThrow<BadRequestException> { service.rejectCollection(9L, rejectedBy = 5L, reason = "金额不符") }
+    }
+    test("rejectCollection throws when reason blank") {
+      val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.SUBMITTED)
+      every { collectionRecordRepository.findById(9L) } returns Optional.of(existing)
+
+      shouldThrow<BadRequestException> { service.rejectCollection(9L, rejectedBy = 5L, reason = "  ") }
+    }
+    test("rejectCollection throws for confirmed or draft records") {
+      val confirmed = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.CONFIRMED)
+      val draft = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.DRAFT)
+      every { collectionRecordRepository.findById(9L) } returns Optional.of(confirmed)
+      every { collectionRecordRepository.findById(10L) } returns Optional.of(draft)
+
+      shouldThrow<BadRequestException> { service.rejectCollection(9L, rejectedBy = 5L, reason = "金额不符") }
+      shouldThrow<BadRequestException> { service.rejectCollection(10L, rejectedBy = 5L, reason = "金额不符") }
     }
     test("getCollectionByWorkerAndDate delegates to repository") {
       val expected = record(deliveryWorkerId = 1L, collectionDate = date)

@@ -27,6 +27,7 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.ConfirmDailyCollectionInput
+import dev.yidafu.aqua.common.graphql.generated.RejectDailyCollectionInput
 import dev.yidafu.aqua.common.graphql.generated.ReviewReconciliationInput
 import dev.yidafu.aqua.common.graphql.generated.SubmitDailyCollectionInput
 import dev.yidafu.aqua.logging.util.BizLogger
@@ -130,6 +131,48 @@ class AdminDailyCollectionMutationResolver(
       userId = adminId,
       username = userDetails.username,
       additionalData = mapOf("recordId" to input.recordId, "notes" to (input.notes ?: "")),
+    )
+    return record
+  }
+
+  /**
+   * 管理员驳回收款记录(G28 争议处理:驳回退回草稿,配送员可改可重提,驳回留痕)
+   */
+  @PreAuthorize("hasAuthority('PERMISSION_RECONCILIATION_CONFIRM')")
+  @MutationMapping
+  fun rejectDailyCollection(
+    @Argument input: RejectDailyCollectionInput?,
+    @AuthenticationPrincipal userDetails: UserDetails?,
+  ): DailyCollectionRecordModel {
+    if (userDetails == null) {
+      throw UnauthorizedException("请先登录")
+    }
+    if (input == null || input.recordId == null) {
+      throw BadRequestException("收款记录ID不能为空")
+    }
+    if (input.reason.isNullOrBlank()) {
+      throw BadRequestException("驳回原因不能为空")
+    }
+    val admin =
+      adminService.findByUsername(userDetails.username)
+        ?: throw BadRequestException("管理员不存在")
+    val adminId = admin.id ?: throw BadRequestException("管理员ID无效")
+    val record =
+      dailyCollectionService.rejectCollection(
+        recordId = input.recordId,
+        rejectedBy = adminId,
+        reason = input.reason,
+      )
+
+    // 业务日志(F-LOG-003 RECONCILIATION 域):驳回每日收款
+    bizLogger.logOperation(
+      operation = "RECON_DAILY_REJECT",
+      module = "RECONCILIATION",
+      result = "SUCCESS",
+      target = record.id?.toString() ?: input.recordId.toString(),
+      userId = adminId,
+      username = userDetails.username,
+      additionalData = mapOf("recordId" to input.recordId, "reason" to input.reason),
     )
     return record
   }

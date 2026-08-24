@@ -329,6 +329,35 @@ export const getWeekStatistics = () => {
   `);
 };
 
+/**
+ * 工作台首页单请求(规则 #10):今日统计 + 近7天统计一次取回,
+ * 均按当前登录账号(本人)收敛 —— 送水员只能看到本人送水的数据。
+ */
+export const getWorkbenchData = () => {
+  return networkManager.query<{
+    todayStatistics: TodayStatistics | null;
+    weekStatistics: WeekStatistics | null;
+  }>(`
+    query GetWorkbenchData {
+      todayStatistics {
+        totalOrders
+        completedOrders
+        unfinishedOrders
+        earningCents
+      }
+      weekStatistics {
+        dailyStats {
+          date
+          orderCount
+          earningCents
+        }
+        totalOrders
+        totalEarningCents
+      }
+    }
+  `);
+};
+
 // 获取配送员历史订单（已完成、已取消、已退款）
 export const getDeliveryWorkerHistoryOrders = (
   status?: OrderStatus,

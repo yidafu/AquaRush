@@ -5,6 +5,7 @@ import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.common.graphql.generated.DailyCollectionRecord
 import dev.yidafu.aqua.common.graphql.generated.DailyReconciliation
+import dev.yidafu.aqua.common.graphql.generated.DailyReconciliationStatus
 import dev.yidafu.aqua.common.graphql.generated.MyTodayCollectionVo
 import dev.yidafu.aqua.common.utils.JsonHelper
 import tech.mappie.api.ObjectMappie
@@ -30,11 +31,13 @@ object DailyCollectionRecordModelMapper : ObjectMappie<DailyCollectionRecordMode
  * 处理类型转换（LocalDate -> String, Long? -> Long, 状态枚举跨包名, reportData Map -> ObjectNode）
  */
 object DailyReconciliationModelMapper : ObjectMappie<DailyReconciliationModel, DailyReconciliation>() {
-  override fun map(from: DailyReconciliationModel): DailyReconciliation =
-    mapping {
+  override fun map(from: DailyReconciliationModel): DailyReconciliation {
+    val reportDataNode = from.reportData?.let { JsonHelper().createObjectNode(it) }
+    return mapping {
       to::id fromValue (from.id ?: 0L)
       to::reconciliationDate fromValue from.reconciliationDate.toString()
-      to::status fromValue dev.yidafu.aqua.common.graphql.generated.DailyReconciliationStatus.valueOf(from.status.name)
-      to::reportData fromValue (from.reportData?.let { JsonHelper().createObjectNode(it) })
+      to::status fromValue DailyReconciliationStatus.valueOf(from.status.name)
+      to::reportData fromValue reportDataNode
     }
+  }
 }

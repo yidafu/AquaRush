@@ -1,83 +1,45 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { RefreshControl, ScrollView, StyleSheet } from 'react-native';
+import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect, useRouter } from 'expo-router';
-import { OrderStatus, ORDER_STATUS_TEXT, usePagedList } from '@aquarush/common';
-import type { Order } from '@aquarush/common';
-import { toast } from 'sonner-native';
+import { useFocusEffect, useRouter, type Href } from 'expo-router';
+import { Money, centsToYuan } from '@aquarush/common';
+import type { TodayStatistics, WeekStatistics } from '@aquarush/common';
 
-import { EmptyState } from '@/components/empty-state';
-import { FloatingButton } from '@/components/floating-button';
-import { OrderCard } from '@/components/order-card';
-import { SegmentedTabs } from '@/components/segmented-tabs';
+import { Card } from '@/components/card';
+import { Gradient } from '@/components/gradient';
+import { QuickEntryGrid, type QuickEntryItem } from '@/components/quick-entry-grid';
+import { StatCard } from '@/components/stat-card';
+import { StatCardGrid } from '@/components/stat-card-grid';
+import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
-import { Spacing } from '@/constants/theme';
-import {
-  acceptDelivery,
-  getMyAssignedOrders,
-  getMyDeliveringOrders,
-  getPendingDeliveryOrders,
-  startDelivery,
-} from '@/services/delivery';
-import { wsPushService, connectWsPushIfLoggedIn, showPushBanner, WsPushMessage } from '@/services/wsPush';
+import { WeekLineChart } from '@/components/week-line-chart';
+import { Radius, Spacing } from '@/constants/theme';
 import { useAuth } from '@/hooks/use-auth';
+import { useTheme } from '@/hooks/use-theme';
+import { getWorkbenchData } from '@/services/delivery';
+import { todayDateString } from '@/utils/date';
 
-const TAB_EMPTY_ICONS = ['📋', '🕐', '🚚'];
+interface WorkbenchData {
+  today: TodayStatistics | null;
+  week: WeekStatistics | null;
+}
 
-export default function TasksScreen() {
+export default function WorkbenchScreen() {
   const router = useRouter();
-  const [currentTab, setCurrentTab] = useState(0);
-  const { userInfo, isAdmin, isDeliveryWorker } = useAuth();
+  const theme = useTheme();
+  const { userInfo, isAdmin } = useAuth();
+  const [data, setData] = useState<WorkbenchData>({ today: null, week: null });
+  const [refreshing, setRefreshing] = useState(false);
 
-  // 三个任务列表(待接单/待配送/配送中)各自独立分页状态机 —— common usePagedList
-  const pendingList = usePagedList<Order>({
-    fetchPage: async () => {
-      const res = await getPendingDeliveryOrders();
-      return { items: [...(res?.pendingDeliveryOrders ?? [])], hasMore: false };
-    },
-  });
-  const assignedList = usePagedList<Order>({
-    fetchPage: async () => {
-      const res = await getMyAssignedOrders();
-      return { items: [...(res?.assignedOrders ?? [])], hasMore: false };
-    },
-  });
-  const deliveringList = usePagedList<Order>({
-    fetchPage: async () => {
-      const res = await getMyDeliveringOrders();
-      return { items: [...(res?.deliveringOrders ?? [])], hasMore: false };
-    },
-  });
-
-  const loadAllData = useCallback(() => {
-    return Promise.all([
-      pendingList.refresh(),
-      assignedList.refresh(),
-      deliveringList.refresh(),
-    ]);
-  }, [pendingList.refresh, assignedList.refresh, deliveringList.refresh]);
-
-  // WebSocket 实时推送(F-NTF-003):登录后建立连接;推送到达 → 刷新任务列表 + 横幅提示
-  useEffect(() => {
-    const workerId = userInfo?.id != null ? String(userInfo.id) : null;
-    if (!workerId) {
-      return;
-    }
-    connectWsPushIfLoggedIn().catch((e) => console.error('WS 连接失败:', e));
-    const unsubscribe = wsPushService.onMessage((message: WsPushMessage) => {
-      showPushBanner(message);
-      loadAllData().catch((e) => console.error('推送刷新任务列表失败:', e));
+  const loadData = useCallback(async () => {
+    const res = await getWorkbenchData();
+    setData({
+      today: res?.todayStatistics ?? null,
+      week: res?.weekStatistics ?? null,
     });
-    return () => {
-      unsubscribe();
-      // 登出/切换账号时断开(由登出流程显式断开)
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userInfo?.id]);
+  }, []);
 
-  // 管理员兼送水(F-USR-023):管理员账号同样可在「订单」Tab 执行任务流,
-  // 「管理」Tab 仍保留经营看板;不再重定向。
-  // 首屏由 usePagedList 自动加载;再次聚焦时刷新。
+  // 首屏加载;再次聚焦时刷新
   const firstFocus = useRef(true);
   useFocusEffect(
     useCallback(() => {
@@ -85,102 +47,164 @@ export default function TasksScreen() {
         firstFocus.current = false;
         return;
       }
-      loadAllData().catch((e) => console.error('加载订单列表失败:', e));
-    }, [loadAllData]),
+      loadData().catch((e) => console.error('刷新工作台数据失败:', e));
+    }, [loadData]),
   );
 
-  const handleRefresh = useCallback(() => {
-    return loadAllData();
-  }, [loadAllData]);
+  useEffect(() => {
+    loadData().catch((e) => console.error('加载工作台数据失败:', e));
+  }, [loadData]);
 
-  const handleAccept = useCallback(
-    async (orderId: string) => {
-      const toastId = toast.loading('接单中...');
-      try {
-        await acceptDelivery(orderId);
-        toast.success('接单成功', { id: toastId });
-        loadAllData();
-      } catch (e: any) {
-        toast.error(e?.message || '接单失败', { id: toastId });
-      }
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await loadData();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadData]);
+
+  const chartData =
+    data.week?.dailyStats?.map((d) => ({
+      date: d.date,
+      orderCount: d.orderCount,
+      earning: centsToYuan(d.earningCents),
+    })) ?? [];
+
+  const openHistory = useCallback(
+    (tabIndex: number) => {
+      router.push({ pathname: '/history-orders', params: { tab: String(tabIndex) } });
     },
-    [loadAllData],
+    [router],
   );
 
-  const handleStartDelivery = useCallback(
-    async (orderId: string) => {
-      const toastId = toast.loading('开始配送中...');
-      try {
-        await startDelivery(orderId);
-        toast.success('已开始配送', { id: toastId });
-        loadAllData();
-      } catch (e: any) {
-        toast.error(e?.message || '操作失败', { id: toastId });
-      }
+  const commonEntries: QuickEntryItem[] = [
+    {
+      key: 'history',
+      icon: '📋',
+      label: '历史订单',
+      onPress: () => router.push('/history-orders'),
     },
-    [loadAllData],
-  );
-
-  const lists = [pendingList.items, assignedList.items, deliveringList.items];
-  const empties = ['暂无未接单订单', '暂无已接单订单', '暂无配送中订单'];
-  // 「待接单」为送水工视角本地措辞(common 统一口径为「待派单」);其余标题取 common ORDER_STATUS_TEXT
-  const tabTitles = [
-    `待接单 (${pendingList.items.length})`,
-    `${ORDER_STATUS_TEXT[OrderStatus.PENDING_DELIVERY]} (${assignedList.items.length})`,
-    `${ORDER_STATUS_TEXT[OrderStatus.DELIVERING]} (${deliveringList.items.length})`,
+    {
+      key: 'collection',
+      icon: '💵',
+      label: '每日收款',
+      onPress: () => router.push('/daily-collection'),
+    },
+    {
+      key: 'reconciliation',
+      icon: '📜',
+      label: '对账记录',
+      onPress: () => router.push('/reconciliation-records'),
+    },
+    {
+      key: 'messages',
+      icon: '🔔',
+      label: '消息中心',
+      onPress: () => router.push('/messages'),
+    },
   ];
 
-  const renderCards = () => {
-    const list = lists[currentTab];
-    if (list.length === 0) {
-      return (
-        <EmptyState
-          icon={TAB_EMPTY_ICONS[currentTab]}
-          title={empties[currentTab]}
-          description="下拉可刷新订单列表"
-        />
-      );
-    }
-    if (currentTab === 0) {
-      return list.map((order) => (
-        <OrderCard key={order.id} order={order} type="pending" onAccept={handleAccept} />
-      ));
-    }
-    if (currentTab === 1) {
-      return list.map((order) => (
-        <OrderCard key={order.id} order={order} type="assigned" onStartDelivery={handleStartDelivery} />
-      ));
-    }
-    return list.map((order) => (
-      <OrderCard key={order.id} order={order} type="delivering" />
-    ));
-  };
+  const adminEntries: QuickEntryItem[] = [
+    {
+      key: 'dashboard',
+      icon: '📊',
+      label: '经营看板',
+      onPress: () => router.push('/manage'),
+    },
+    {
+      key: 'all-orders',
+      icon: '📦',
+      label: '全部订单',
+      onPress: () => router.push({ pathname: '/manage', params: { tab: '1' } }),
+    },
+    {
+      key: 'statistics',
+      icon: '📈',
+      label: '数据统计',
+      onPress: () => router.push('/admin-statistics' as Href),
+    },
+    {
+      key: 'admin-collection',
+      icon: '🧾',
+      label: '收银对账',
+      onPress: () => router.push('/admin-collection' as Href),
+    },
+    {
+      key: 'refunds',
+      icon: '↩️',
+      label: '退单处置',
+      onPress: () => router.push('/refund-management' as Href),
+    },
+  ];
+
+  const displayName = userInfo?.realName || userInfo?.username || '';
 
   return (
     <ThemedView type="pageBackground" style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['top']}>
-        <SegmentedTabs
-          current={currentTab}
-          tabs={tabTitles.map((t) => ({ title: t }))}
-          onChange={setCurrentTab}
-        />
-
         <ScrollView
-          style={styles.list}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl
-              refreshing={
-                pendingList.refreshing || assignedList.refreshing || deliveringList.refreshing
-              }
-              onRefresh={handleRefresh}
+          contentContainerStyle={styles.content}
+          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />}>
+          <Gradient
+            colors={[theme.headerGradientStart, theme.headerGradientEnd] as const}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.hero}>
+            <ThemedText type="heading" themeColor="headerText">
+              工作台
+            </ThemedText>
+            <ThemedText type="small" themeColor="headerTextSecondary">
+              {displayName ? `${displayName} · ` : ''}
+              {todayDateString()}
+            </ThemedText>
+          </Gradient>
+
+          {/* 本人今日配送概览(仅本人数据) */}
+          <StatCardGrid>
+            <StatCard
+              label="今日总订单"
+              value={<ThemedText type="subtitle">{data.today?.totalOrders ?? 0}</ThemedText>}
+              onPress={() => openHistory(0)}
             />
-          }>
-          {renderCards()}
+            <StatCard
+              label="已完成"
+              value={<ThemedText type="subtitle">{data.today?.completedOrders ?? 0}</ThemedText>}
+              onPress={() => openHistory(1)}
+            />
+            <StatCard
+              label="未完成"
+              value={<ThemedText type="subtitle">{data.today?.unfinishedOrders ?? 0}</ThemedText>}
+              onPress={() => openHistory(2)}
+            />
+            <StatCard
+              label="今日营收"
+              highlight
+              value={
+                <ThemedText type="subtitle" themeColor="headerText">
+                  <Money cents={data.today?.earningCents ?? 0} />
+                </ThemedText>
+              }
+            />
+          </StatCardGrid>
+
+          {/* 本人近7天送水数据 */}
+          <Card
+            title="近7天送水数据"
+            right={
+              <ThemedText type="caption" themeColor="textSecondary">
+                订单: {data.week?.totalOrders ?? 0} | 营收:{' '}
+                <Money cents={data.week?.totalEarningCents ?? 0} />
+              </ThemedText>
+            }>
+            <WeekLineChart data={chartData} />
+          </Card>
+
+          {/* 九宫格快捷入口(管理员额外显示经营/管理入口) */}
+          <Card title="快捷入口">
+            <QuickEntryGrid entries={isAdmin ? [...commonEntries, ...adminEntries] : commonEntries} />
+          </Card>
         </ScrollView>
-        {/* 代客下单(F-ORD-012)：送水工/管理员/超管均可见 —— 送水工 ORDER_CREATE、
-            管理员兼送水 F-USR-023 亦覆盖(见 PRD 01-overview §角色权限矩阵) */}
-        {isAdmin || isDeliveryWorker ? <FloatingButton onPress={() => router.push('/create-order')} /> : null}
       </SafeAreaView>
     </ThemedView>
   );
@@ -192,13 +216,16 @@ const styles = StyleSheet.create({
   },
   safeArea: {
     flex: 1,
+    paddingHorizontal: Spacing.four,
+  },
+  content: {
     gap: Spacing.three,
-    padding: Spacing.four,
-  },
-  list: {
-    flex: 1,
-  },
-  listContent: {
     paddingBottom: Spacing.six,
+  },
+  hero: {
+    borderRadius: Radius.lg,
+    padding: Spacing.four,
+    gap: Spacing.one,
+    marginTop: Spacing.one,
   },
 });

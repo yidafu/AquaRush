@@ -7,6 +7,7 @@ import {
   TabListProps,
 } from 'expo-router/ui';
 import { Pressable, StyleSheet, View } from 'react-native';
+import type { Href } from 'expo-router';
 
 import { ThemedText } from './themed-text';
 import { ThemedView } from './themed-view';
@@ -21,7 +22,10 @@ export default function AppTabs() {
       <TabSlot style={{ height: '100%' }} />
       <TabList asChild>
         <CustomTabList>
-          <TabTrigger name="home" href="/" asChild>
+          <TabTrigger name="workbench" href="/" asChild>
+            <TabButton>工作台</TabButton>
+          </TabTrigger>
+          <TabTrigger name="orders" href={'/orders' as Href} asChild>
             <TabButton>订单</TabButton>
           </TabTrigger>
           <TabTrigger name="statistics" href="/statistics" asChild>
