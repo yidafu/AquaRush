@@ -137,3 +137,129 @@ type DailyReconciliation {
   createdAt: LocalDateTime!
   updatedAt: LocalDateTime!
 }
+
+# ==================== 微信资金对账域(测试子集) ====================
+# 仅暴露 AdminWechatReconciliationGraphQLIntegrationTest 覆盖的字段
+
+enum ReconciliationTaskType {
+  PAYMENT
+  REFUND
+  SETTLEMENT
+}
+
+enum ReconciliationTaskStatus {
+  PENDING
+  RUNNING
+  SUCCESS
+  FAILED
+}
+
+enum DiscrepancyType {
+  MISSING
+  MISMATCH
+  EXTRA
+}
+
+enum DiscrepancyStatus {
+  UNRESOLVED
+  RESOLVED
+}
+
+enum SourceSystem {
+  INTERNAL
+  WECHAT
+}
+
+type ReconciliationTask {
+  id: PrimaryId!
+  taskId: String!
+  taskType: ReconciliationTaskType!
+  status: ReconciliationTaskStatus!
+  taskDate: LocalDateTime!
+  startTime: LocalDateTime
+  endTime: LocalDateTime
+  totalRecords: Int!
+  matchedRecords: Int!
+  unmatchedRecords: Int!
+  errorMessage: String
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type ReconciliationTaskPage {
+  content: [ReconciliationTask!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+type ReconciliationDiscrepancy {
+  id: PrimaryId!
+  taskId: String!
+  discrepancyType: DiscrepancyType!
+  sourceSystem: SourceSystem!
+  recordId: String!
+  recordDetails: JsonObject
+  status: DiscrepancyStatus!
+  resolutionNotes: String
+  resolvedBy: String
+  resolvedAt: LocalDateTime
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type ReconciliationDiscrepancyPage {
+  content: [ReconciliationDiscrepancy!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+type ReconciliationReport {
+  id: PrimaryId!
+  taskId: String!
+  reportType: String!
+  reportData: JsonObject!
+  fileName: String
+  filePath: String
+  fileSize: Long
+  generatedAt: LocalDateTime!
+}
+
+input ExecuteReconciliationInput {
+  taskType: ReconciliationTaskType!
+  reconciliationDate: String!
+}
+
+input ResolveDiscrepancyInput {
+  discrepancyId: PrimaryId!
+  resolutionNotes: String!
+}
+
+extend type Query {
+  # 微信资金对账查询
+  reconciliationTasks(
+    taskType: ReconciliationTaskType
+    status: ReconciliationTaskStatus
+    dateFrom: String
+    dateTo: String
+    page: Int = 0
+    size: Int = 20
+  ): ReconciliationTaskPage!
+  reconciliationTask(taskId: String!): ReconciliationTask
+  reconciliationDiscrepancies(
+    taskId: String
+    status: DiscrepancyStatus
+    page: Int = 0
+    size: Int = 20
+  ): ReconciliationDiscrepancyPage!
+  reconciliationReports(taskId: String!, reportType: String): [ReconciliationReport!]!
+}
+
+extend type Mutation {
+  # 微信资金对账变更
+  executeReconciliation(input: ExecuteReconciliationInput!): ReconciliationTask!
+  resolveDiscrepancy(input: ResolveDiscrepancyInput!): Boolean!
+}
