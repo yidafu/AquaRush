@@ -28,9 +28,9 @@ import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
-import dev.yidafu.aqua.deposit.domain.repository.BarrelFeeRepository
-import dev.yidafu.aqua.deposit.domain.repository.BarrelPurchaseItemRepository
-import dev.yidafu.aqua.deposit.domain.repository.BarrelPurchaseRepository
+import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
+import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseItemRepository
+import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseRepository
 import dev.yidafu.aqua.user.domain.repository.AdminRepository
 import io.kotest.assertions.withClue
 import io.kotest.core.extensions.ApplyExtension

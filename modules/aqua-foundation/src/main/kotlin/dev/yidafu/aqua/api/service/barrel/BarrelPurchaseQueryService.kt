@@ -26,7 +26,7 @@ import org.springframework.data.domain.Page
 import java.time.LocalDateTime
 
 /**
- * 水桶购买单查询服务(G06 水桶费模块,实现位于 aqua-deposit;CLAUDE.md 规则 4)
+ * 水桶购买单查询服务(G06 水桶费模块,实现位于 aqua-marketing;CLAUDE.md 规则 4)
  */
 interface BarrelPurchaseQueryService {
   fun getById(purchaseId: Long): BarrelPurchaseModel?

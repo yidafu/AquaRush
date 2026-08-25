@@ -76,8 +76,7 @@ dependencies {
   implementation(project(":modules:aqua-user"))
   implementation(project(":modules:aqua-product"))
   implementation(project(":modules:aqua-ops")) // For operations config domain
-  implementation(project(":modules:aqua-marketing")) // For marketing domain (F-MKT-001/002/003/004/007)
-  implementation(project(":modules:aqua-deposit")) // For deposit domain (G06 桶押金模块,下单随单收取)
+  implementation(project(":modules:aqua-marketing")) // For marketing domain (F-MKT-001/002/003/004/007, G06 水桶费/购桶)
 
   // Entry module specific dependencies
   implementation(libs.spring.boot.starter.web)

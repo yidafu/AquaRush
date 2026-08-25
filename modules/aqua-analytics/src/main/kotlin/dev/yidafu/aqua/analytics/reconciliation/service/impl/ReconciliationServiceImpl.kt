@@ -52,7 +52,6 @@ import java.time.LocalDateTime
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executor
 import kotlin.math.abs
-import kotlin.time.Duration
 
 /**
  * 对账服务核心实现
@@ -847,11 +846,11 @@ class ReconciliationServiceImpl(
         reportData =
           mapOf<String, Any>(
             "taskType" to taskType,
-            "taskDate" to (task.taskDate ?: LocalDateTime.now()),
+            "taskDate" to (task.taskDate ?: LocalDateTime.now()).toString(),
             "totalRecords" to result.totalRecords,
             "matchedRecords" to result.matchedRecords,
             "unmatchedRecords" to result.unmatchedRecords,
-            "discrepancies" to result.discrepancies.groupBy { it.discrepancyType }.mapValues { it.value },
+            "discrepancies" to result.discrepancies.groupingBy { it.discrepancyType.name }.eachCount(),
             "discrepancyDetails" to
               result.discrepancies.take(50).map {
                 mapOf(
@@ -867,7 +866,7 @@ class ReconciliationServiceImpl(
                   .between(task.startTime, task.endTime)
                   .toMillis()
               } else {
-                Duration.ZERO
+                0L
               },
           ),
       )
@@ -891,8 +890,8 @@ class ReconciliationServiceImpl(
                     "recordId" to it.recordId,
                     "recordDetails" to it.recordDetails,
                     "status" to it.status,
-                    "createdAt" to it.createdAt,
-                    "resolvedAt" to it.resolvedAt,
+                    "createdAt" to it.createdAt.toString(),
+                    "resolvedAt" to it.resolvedAt?.toString(),
                     "resolutionNotes" to it.resolutionNotes,
                   )
                 },

@@ -24,7 +24,7 @@ import dev.yidafu.aqua.api.dto.UpdateBarrelFeeRequest
 import dev.yidafu.aqua.common.domain.model.BarrelFeeModel
 
 /**
- * 水桶费价目变更服务(G06 水桶费模块,实现位于 aqua-deposit;CLAUDE.md 规则 4)
+ * 水桶费价目变更服务(G06 水桶费模块,实现位于 aqua-marketing;CLAUDE.md 规则 4)
  */
 interface BarrelFeeMutationService {
   /** 新增价目(规格唯一,重复拦截) */
