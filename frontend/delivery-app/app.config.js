@@ -55,6 +55,9 @@ const config = {
       // 配送地图(F-ADR-012 扩展):@maplibre/maplibre-react-native 需 dev build,
       // 定位权限已在 android.permissions / ios.infoPlist 中声明,无需重复配置
       '@maplibre/maplibre-react-native',
+      // 系统通知栏(F-NTF-003):WS 实时推送 → expo-notifications 本地通知;
+      // Android 通知权限/默认图标/通知通道由插件自动注册
+      'expo-notifications',
       [
         'expo-splash-screen',
         {

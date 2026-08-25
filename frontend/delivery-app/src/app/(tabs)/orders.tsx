@@ -19,7 +19,7 @@ import {
   getPendingDeliveryOrders,
   startDelivery,
 } from '@/services/delivery';
-import { wsPushService, connectWsPushIfLoggedIn, showPushBanner, WsPushMessage } from '@/services/wsPush';
+import { wsPushService, connectWsPushIfLoggedIn, WsPushMessage } from '@/services/wsPush';
 import { useAuth } from '@/hooks/use-auth';
 
 const TAB_EMPTY_ICONS = ['📋', '🕐', '🚚'];
@@ -58,15 +58,15 @@ export default function OrdersScreen() {
     ]);
   }, [pendingList.refresh, assignedList.refresh, deliveringList.refresh]);
 
-  // WebSocket 实时推送(F-NTF-003):登录后建立连接;推送到达 → 刷新任务列表 + 横幅提示
+  // WebSocket 实时推送(F-NTF-003):登录后由 AuthProvider 全局监听并弹系统通知栏,
+  // 本页监听仅负责推送到达时刷新任务列表(通知呈现见 use-auth.tsx)。
   useEffect(() => {
     const workerId = userInfo?.id != null ? String(userInfo.id) : null;
     if (!workerId) {
       return;
     }
     connectWsPushIfLoggedIn().catch((e) => console.error('WS 连接失败:', e));
-    const unsubscribe = wsPushService.onMessage((message: WsPushMessage) => {
-      showPushBanner(message);
+    const unsubscribe = wsPushService.onMessage((_message: WsPushMessage) => {
       loadAllData().catch((e) => console.error('推送刷新任务列表失败:', e));
     });
     return () => {
