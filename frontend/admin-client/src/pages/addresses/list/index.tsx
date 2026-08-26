@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { Card, Button, Space, message } from 'antd';
+import { Card, Button, Space, Input, message } from 'antd';
 import { PlusOutlined, UploadOutlined } from '@ant-design/icons';
+import type { TablePaginationConfig } from 'antd/es/table';
 import { useQuery, useMutation } from '@apollo/client';
-import { GET_ADDRESSES_QUERY } from '../../../graphql/queries/address.graphql';
+import { SEARCH_ALL_ADDRESSES_QUERY } from '../../../graphql/queries/address.graphql';
 import {
   CREATE_ADDRESS_MUTATION,
+  UPDATE_ADDRESS_MUTATION,
   BATCH_IMPORT_ADDRESSES_MUTATION,
   DELETE_ADDRESS_MUTATION,
 } from '../../../graphql/mutations/address.graphql';
@@ -14,16 +16,17 @@ import { AddressImport } from '../components/AddressImport';
 import type { Address, AddressFormData, AddressInput } from '../components/types';
 
 const AddressListPage: React.FC = () => {
-  const [addresses, setAddresses] = useState<Address[]>([]);
   const [formVisible, setFormVisible] = useState(false);
   const [importVisible, setImportVisible] = useState(false);
   const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [keyword, setKeyword] = useState('');
+  const [page, setPage] = useState(0);
+  const [size, setSize] = useState(20);
 
-  // 获取地址列表
-  const { data, loading, refetch } = useQuery(GET_ADDRESSES_QUERY, {
-    onCompleted: (data) => {
-      setAddresses(data.addresses || []);
-    },
+  // 分页 + 关键字搜索地址列表(G25: 筛选/分页,禁止全量拉取)
+  const { data, loading, refetch } = useQuery(SEARCH_ALL_ADDRESSES_QUERY, {
+    variables: { keyword: keyword || null, page, size },
+    fetchPolicy: 'network-only',
     onError: (error) => {
       message.error('获取地址列表失败: ' + error.message);
     },
@@ -32,11 +35,17 @@ const AddressListPage: React.FC = () => {
   // 创建地址 mutation
   const [createAddress, { loading: creating }] = useMutation(CREATE_ADDRESS_MUTATION);
 
+  // 更新地址 mutation
+  const [updateAddress, { loading: updating }] = useMutation(UPDATE_ADDRESS_MUTATION);
+
   // 批量导入 mutation
-  const [batchImport, { loading: importing }] = useMutation(BATCH_IMPORT_ADDRESSES_MUTATION);
+  const [batchImport] = useMutation(BATCH_IMPORT_ADDRESSES_MUTATION);
 
   // 删除地址 mutation
   const [deleteAddress] = useMutation(DELETE_ADDRESS_MUTATION);
+
+  const addresses = data?.searchAllAddresses?.content ?? [];
+  const total = data?.searchAllAddresses?.totalElements ?? 0;
 
   // 处理新增
   const handleAdd = () => {
@@ -58,8 +67,8 @@ const AddressListPage: React.FC = () => {
       });
       message.success('删除成功');
       refetch();
-    } catch (error: any) {
-      message.error('删除失败: ' + error.message);
+    } catch (error) {
+      message.error(error instanceof Error ? '删除失败: ' + error.message : '删除失败');
     }
   };
 
@@ -81,15 +90,21 @@ const AddressListPage: React.FC = () => {
         isDefault: values.isDefault,
       };
 
-      await createAddress({
-        variables: { input },
-      });
+      if (editingAddress) {
+        await updateAddress({
+          variables: { id: editingAddress.id, input },
+        });
+      } else {
+        await createAddress({
+          variables: { input },
+        });
+      }
 
       message.success(editingAddress ? '编辑成功' : '创建成功');
       setFormVisible(false);
       refetch();
-    } catch (error: any) {
-      message.error('操作失败: ' + error.message);
+    } catch (error) {
+      message.error(error instanceof Error ? '操作失败: ' + error.message : '操作失败');
       throw error;
     }
   };
@@ -101,16 +116,34 @@ const AddressListPage: React.FC = () => {
         variables: { input: addresses },
       });
       refetch();
-    } catch (error: any) {
-      message.error('导入失败: ' + error.message);
+    } catch (error) {
+      message.error(error instanceof Error ? '导入失败: ' + error.message : '导入失败');
       throw error;
     }
+  };
+
+  // 处理搜索
+  const handleSearch = (value: string) => {
+    setKeyword(value);
+    setPage(0);
+  };
+
+  // 处理分页/每页条数变更
+  const handleTableChange = (pagination: TablePaginationConfig) => {
+    setPage((pagination.current ?? 1) - 1);
+    setSize(pagination.pageSize ?? 20);
   };
 
   return (
     <div style={{ padding: '24px' }}>
       <Card>
         <Space style={{ marginBottom: 16 }}>
+          <Input.Search
+            placeholder="搜索收货人/手机号/详细地址"
+            allowClear
+            style={{ width: 260 }}
+            onSearch={handleSearch}
+          />
           <Button
             type="primary"
             icon={<PlusOutlined />}
@@ -129,14 +162,18 @@ const AddressListPage: React.FC = () => {
         <AddressTable
           addresses={addresses}
           loading={loading}
+          total={total}
+          current={page + 1}
+          pageSize={size}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onChange={handleTableChange}
         />
       </Card>
 
       <AddressForm
         visible={formVisible}
-        loading={creating}
+        loading={creating || updating}
         record={editingAddress}
         onCancel={() => setFormVisible(false)}
         onSubmit={handleFormSubmit}

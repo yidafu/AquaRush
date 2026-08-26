@@ -20,25 +20,31 @@ export interface Address {
   updatedAt: string;
 }
 
-export const GET_ADDRESSES_QUERY = gql`
-  query GetAddresses {
-    addresses {
-      id
-      userId
-      receiverName
-      phone
-      province
-      provinceCode
-      city
-      cityCode
-      district
-      districtCode
-      detailAddress
-      longitude
-      latitude
-      isDefault
-      createdAt
-      updatedAt
+export const SEARCH_ALL_ADDRESSES_QUERY = gql`
+  query SearchAllAddresses($keyword: String, $page: Int, $size: Int) {
+    searchAllAddresses(keyword: $keyword, page: $page, size: $size) {
+      content {
+        id
+        userId
+        receiverName
+        phone
+        province
+        provinceCode
+        city
+        cityCode
+        district
+        districtCode
+        detailAddress
+        longitude
+        latitude
+        isDefault
+        createdAt
+        updatedAt
+      }
+      totalElements
+      totalPages
+      size
+      number
     }
   }
 `;

@@ -38,6 +38,22 @@ export const CREATE_ADDRESS_MUTATION = gql`
   }
 `;
 
+export const UPDATE_ADDRESS_MUTATION = gql`
+  mutation UpdateAdminAddress($id: PrimaryId!, $input: UpdateAddressInput!) {
+    updateAdminAddress(id: $id, input: $input) {
+      id
+      receiverName
+      phone
+      province
+      city
+      district
+      detailAddress
+      isDefault
+      createdAt
+    }
+  }
+`;
+
 export const BATCH_IMPORT_ADDRESSES_MUTATION = gql`
   mutation BatchImportAddresses($input: [AddressInput!]!) {
     batchImportAddresses(input: $input) {

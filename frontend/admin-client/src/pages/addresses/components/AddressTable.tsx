@@ -1,6 +1,6 @@
 import React from 'react';
 import { Table, Tag, Button, Space, Popconfirm } from 'antd';
-import type { ColumnsType } from 'antd/es/table';
+import type { ColumnsType, TablePaginationConfig } from 'antd/es/table';
 import { EditOutlined, DeleteOutlined } from '@ant-design/icons';
 import type { Address } from './types';
 import { pagination } from '@/utils/table';
@@ -8,15 +8,23 @@ import { pagination } from '@/utils/table';
 interface AddressTableProps {
   addresses: Address[];
   loading?: boolean;
+  total: number;
+  current: number;
+  pageSize: number;
   onEdit: (record: Address) => void;
   onDelete: (record: Address) => void;
+  onChange: (pagination: TablePaginationConfig) => void;
 }
 
 export const AddressTable: React.FC<AddressTableProps> = ({
   addresses,
   loading = false,
+  total,
+  current,
+  pageSize,
   onEdit,
   onDelete,
+  onChange,
 }) => {
   const columns: ColumnsType<Address> = [
     {
@@ -118,10 +126,13 @@ export const AddressTable: React.FC<AddressTableProps> = ({
       dataSource={addresses}
       rowKey="id"
       loading={loading}
-      pagination={pagination(addresses.length, {
-        pageSize: 20,
+      pagination={pagination(total, {
+        current,
+        pageSize,
         showSizeChanger: true,
+        showQuickJumper: true,
       })}
+      onChange={onChange}
       scroll={{ x: 1000 }}
     />
   );

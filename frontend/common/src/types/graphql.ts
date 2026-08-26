@@ -1547,6 +1547,7 @@ export type Mutation = {
   readonly toggleProductFavorites: Scalars['Boolean']['output'];
   readonly updateAddress: Address;
   readonly updateAdmin: Admin;
+  readonly updateAdminAddress: Address;
   readonly updateBanner: Banner;
   readonly updateBarrelFee: BarrelFee;
   readonly updateCouponTemplate: CouponTemplate;
@@ -2013,6 +2014,12 @@ export type MutationUpdateAddressArgs = {
 export type MutationUpdateAdminArgs = {
   id: Scalars['PrimaryId']['input'];
   input: UpdateAdminInput;
+};
+
+
+export type MutationUpdateAdminAddressArgs = {
+  id: Scalars['PrimaryId']['input'];
+  input: UpdateAddressInput;
 };
 
 
@@ -2735,6 +2742,7 @@ export type ProductStatistics = {
   readonly lowStockProducts: Scalars['Int']['output'];
   readonly offlineProducts: Scalars['Int']['output'];
   readonly onlineProducts: Scalars['Int']['output'];
+  readonly outOfStockProducts: Scalars['Int']['output'];
   readonly productRanking: ReadonlyArray<ProductSalesStat>;
   readonly stockWarningItems: ReadonlyArray<StockWarningItem>;
   readonly totalFavorites: Scalars['Int']['output'];
@@ -3208,6 +3216,7 @@ export type QueryMyFeedbacksArgs = {
 
 export type QueryMyNotificationsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
+  read?: InputMaybe<Scalars['Boolean']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
   type?: InputMaybe<NotificationType>;
 };
@@ -3227,6 +3236,7 @@ export type QueryMyTicketsArgs = {
 
 export type QueryMyWorkerNotificationsArgs = {
   page?: InputMaybe<Scalars['Int']['input']>;
+  read?: InputMaybe<Scalars['Boolean']['input']>;
   size?: InputMaybe<Scalars['Int']['input']>;
   type?: InputMaybe<NotificationType>;
 };
