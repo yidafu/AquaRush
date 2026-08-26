@@ -24,9 +24,7 @@ function RootNavigator() {
   usePageViewTracking();
 
   // 轨迹上报(F-ADR-012):登录/App 启动后恢复配送中订单的轨迹上报,
-  // 登出时停止全部上报并清空活动订单。
-  // 注:react-native-fitness-geolocation 已移除,trajectoryReporter 为空实现,
-  // 以下调用保留作集成点,当前不产生任何定位行为。
+  // 登出时停止全部上报并清空活动订单与补传队列。
   useEffect(() => {
     if (isAuthenticated) {
       void trajectoryReporter.resumeActive();

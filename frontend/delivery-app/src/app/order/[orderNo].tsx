@@ -105,14 +105,17 @@ export default function OrderDetailScreen() {
     if (error) toast.error('获取订单详情失败');
   }, [error]);
 
-  // 轨迹上报(F-ADR-012,R-ADR-03):订单进入「配送中」自动启动持续定位上报,
+  // 轨迹上报(F-ADR-012,R-ADR-03):订单进入「配送中」自动启动后台持续定位上报,
   // 「完成配送/取消/退款」停止;页面卸载不停止(配送中会话级持续,App 重启后由根布局恢复)。
-  // 注:react-native-fitness-geolocation 已移除,trajectoryReporter 为空实现,
-  // 以下调用保留作集成点,当前不产生任何定位行为。
   useEffect(() => {
     if (!order?.id) return;
     if (order.status === 'DELIVERING') {
-      void trajectoryReporter.startForOrder(order.id);
+      void trajectoryReporter.startForOrder(order.id, order.orderNo).then((started) => {
+        // R-ADR-03:定位权限被拒 → 上报停止,配送主流程不受影响;提示开启定位
+        if (!started) {
+          toast.warning('需要开启定位权限才能上报配送位置');
+        }
+      });
     } else if (
       order.status === 'AWAITING_CONFIRMATION' ||
       order.status === 'COMPLETED' ||
@@ -121,7 +124,7 @@ export default function OrderDetailScreen() {
     ) {
       void trajectoryReporter.stopForOrder(order.id);
     }
-  }, [order?.id, order?.status]);
+  }, [order?.id, order?.orderNo, order?.status]);
 
   const handleAccept = useCallback(async () => {
     if (!order) return;

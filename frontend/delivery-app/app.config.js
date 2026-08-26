@@ -15,7 +15,7 @@ const domain = process.env.EXPO_PUBLIC_DEEP_LINK_DOMAIN;
 
 const config = {
   expo: {
-    name: 'delivery-app',
+    name: 'AquaPush',
     slug: 'delivery-app',
     version: '1.0.0',
     orientation: 'portrait',
@@ -25,9 +25,12 @@ const config = {
     ios: {
       icon: './assets/expo.icon',
       bundleIdentifier: 'com.aquarush.delivery',
-      // 配送地图用户定位(MapLibre UserLocation)
+      // 轨迹上报(F-ADR-012):react-native-fitness-geolocation 原生定位
+      // + 配送地图用户定位(MapLibre UserLocation)
       infoPlist: {
-        NSLocationWhenInUseUsageDescription: '需要获取您的位置以在地图中展示当前位置',
+        NSLocationWhenInUseUsageDescription: '需要获取您的位置以展示配送地图并上报配送轨迹',
+        NSLocationAlwaysAndWhenInUseUsageDescription: '配送中需要持续获取您的位置,以便后台持续上报配送轨迹',
+        UIBackgroundModes: ['location'],
       },
     },
     android: {
@@ -39,11 +42,14 @@ const config = {
         monochromeImage: './assets/images/android-icon-monochrome.png',
       },
       predictiveBackGestureEnabled: false,
-      // 配送地图用户定位(MapLibre UserLocation)所需最小权限;
-      // 后台定位/前台服务权限已随轨迹上报 SDK 移除
+      // 轨迹上报(F-ADR-012):react-native-fitness-geolocation 所需定位/前台服务权限
+      // (SDK 自带 manifest 亦声明,应用层显式声明保证权限清单完整)
       permissions: [
         'android.permission.ACCESS_FINE_LOCATION',
         'android.permission.ACCESS_COARSE_LOCATION',
+        'android.permission.ACCESS_BACKGROUND_LOCATION',
+        'android.permission.FOREGROUND_SERVICE',
+        'android.permission.FOREGROUND_SERVICE_LOCATION',
       ],
     },
     web: {
