@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 我的收藏｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 我的收藏</h1>
+      <p class="sub">功能编号 F-PRO-003 ｜ 商品域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 下游：商品详情</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-PRO-003</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：收藏列表 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 已登录且有收藏</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">我的收藏</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells__title">共 12 件收藏</div>
+              <div class="weui-cells">
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <span class="weui-media-box__thumb">实拍图占位</span>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="weui-media-box__title ellipsis">怡宝 饮用纯净水 18.9L</div>
+                    <div class="weui-media-box__desc">桶装水 · 押金桶（可退）</div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">15</span><span class="weui-price__dec">.00</span></span>
+                      <span class="f-note t-weak">已售 1,280</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <span class="weui-media-box__thumb">实拍图占位</span>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="weui-media-box__title ellipsis">农夫山泉 天然水 19L</div>
+                    <div class="weui-media-box__desc">桶装水 · 押金桶（可退）</div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">28</span><span class="weui-price__dec">.00</span></span>
+                      <span class="f-note t-weak">已售 986</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <span class="weui-media-box__thumb">实拍图占位</span>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="weui-media-box__title ellipsis">景田 百岁山矿泉水 18.9L</div>
+                    <div class="weui-media-box__desc">桶装水 · 押金桶（可退）</div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">35</span><span class="weui-price__dec">.00</span></span>
+                      <span class="f-note t-weak">已售 412</span>
+                    </div>
+                    <div class="mt2"><span class="weui-tag weui-tag--orange">暂时缺货</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-loadmore">
+                <span class="weui-loadmore__line"></span>
+                <span>没有更多了</span>
+                <span class="weui-loadmore__line"></span>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：无收藏空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 已登录但无收藏（空态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">我的收藏</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells__title">共 0 件收藏</div>
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7 3.1C19 15.6 12 20 12 20z"/></svg>
+                </div>
+                <div class="weui-empty__text">暂无收藏<br>快去收藏喜欢的商品吧</div>
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">去逛逛</span>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：未登录引导 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 未登录（登录引导）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">我的收藏</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
+                </div>
+                <div class="weui-empty__text">登录后查看收藏<br>登录即可同步你在各设备收藏的商品</div>
+                <span class="weui-btn weui-btn_primary weui-btn_mini">立即登录</span>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（BasePageLayout 承载）</p>
+        <p><strong>入口：</strong>我的页「我的收藏」（收藏 / 取消在商品详情页 F-PRO-002 执行）</p>
+        <p><strong>跳转：</strong>商品卡 → <code>product-detail?id=xx</code>；空态「去逛逛」→ 回首页</p>
+        <p><strong>刷新：</strong>useDidShow 检查登录态并刷新；详情页取消收藏后返回自动刷新列表</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部：<code>.mp-status</code> + 白底二级页 <code>.mp-nav</code>（带 <code>.mp-nav__back</code> + 微信胶囊）</li>
+          <li>页头统计：<code>.weui-cells__title</code>「共 N 件收藏」</li>
+          <li>收藏列表：<code>.weui-cells</code> 内 <code>.weui-media-box</code>（72px 缩略图 + 名称 + <code>.weui-price</code> + 已售 + 缺货 <code>.weui-tag--orange</code>），整卡可点击进详情</li>
+          <li>加载更多区：<code>.weui-loadmore</code>「没有更多了」</li>
+          <li>空态容器：无收藏引导空态 / 未登录登录引导空态（<code>.weui-empty</code>）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互与状态</h3>
+        <ol>
+          <li>useDidShow 检查登录态，已登录刷新第 0 页；未登录展示登录引导空态</li>
+          <li>下拉刷新重置第 0 页；触底加载下一页（每页 20）</li>
+          <li>点击商品卡 → 商品详情；返回后 useDidShow 自动刷新</li>
+        </ol>
+        <p><strong>空态：</strong>「暂无收藏」「快去收藏喜欢的商品吧」+「去逛逛」；<strong>加载态：</strong>首屏 loading、加载更多 <code>.weui-loadmore</code>；<strong>错误态：</strong>toast「加载失败」。</p>
+        <p><strong>禁用态：</strong>未登录时不加载列表、只展示登录引导。<strong>缺货：</strong>缺货商品标「暂时缺货」且仍可点击进详情。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>外壳：</strong>二级页 <code>.mp-nav</code> 44px + 返回箭头 <code>.mp-nav__back</code>（左 6px）+ 微信胶囊 87×32，无 TabBar，保留 <code>.home-indicator</code>。</p>
+        <p><strong>列表：</strong><code>.weui-cells</code> 白底上下 0.5px 发丝线；<code>.weui-media-box</code> 内缩 16px、行间 0.5px 发丝线；缩略图 <code>.weui-media-box__thumb</code> 72×72 / 圆角 8px。</p>
+        <p><strong>文字：</strong>名称 <code>.weui-media-box__title</code> 17px / 行高 1.4 单行省略；描述 14px 灰；时间 / 已售 12px 弱灰。</p>
+        <p><strong>价格与标签：</strong>金额 <code>.weui-price--md</code> 17px（微信电商红 <code>#FA5151</code>）；缺货 <code>.weui-tag--orange</code> 高 18px。</p>
+        <p><strong>空态：</strong><code>.weui-empty</code>（84px 品牌蓝 tint 圆 + 36px 图标 + 14px 文案 + <code>.weui-btn_plain-primary.weui-btn_mini</code> 28px 描边按钮）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>交互主色统一品牌蓝 <code>--weui-BRAND</code>；金额用微信电商红 <code>#FA5151</code>；危险用 <code>--weui-RED</code>。本页不使用强调橙 <code>--action</code>。</p>
+        <p><strong>R-MON-01：</strong>价格展示换算为元两位小数，统一走 <code>.weui-price</code>；缺货标用 <code>.weui-tag--orange</code>，不复用订单状态色。</p>
+        <p>缩略图用 <code>.weui-media-box__thumb</code> 占位并标「实拍图占位」，严禁卡通插画。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

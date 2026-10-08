@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 会员折扣配置｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 会员折扣配置</h1>
+      <p class="sub">功能编号 F-MKT-006 [规划中]（已并入 F-MKT-011 会员等级与权益）｜ 营销域 ｜ 上游：客户分组管理（F-MKT-001）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-006</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">admin-client</span>
+      <span class="chip chip-plain">缺口 G80 / G57 收敛</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：等级 × 折扣率配置表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 等级 / 分组 × 折扣率配置表 + 折扣叠加边界 + 效果预览</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/member-discount</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>会员折扣</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>会员折扣 <span class="tag tag-goal"></span></h2>
+                    <div class="desc">仅按未命中单价让利（分组价 / 特价 / 新人价）的商品小计生效，商品维度互斥；正式并入 F-MKT-011</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">停用全部</span>
+                    <span class="btn sm">保存</span>
+                  </div>
+                </div>
+
+                <div class="notice brand mb3">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+                  折扣叠加边界：会员折扣与分组价 / 限时特价 / 新人专享价<strong>按商品维度互斥</strong>；命中让利单价的商品不再享受会员折扣，未命中商品的小计参与会员折扣（R-MKT-06）
+                </div>
+
+                <div class="ant-table mb3">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>等级 / 分组名</th>
+                        <th class="num">折扣率</th>
+                        <th>生效范围</th>
+                        <th>启用状态</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="bold">普通会员</div><div class="sub-line">默认等级</div></td>
+                        <td class="num">100.00%</td>
+                        <td>全场</td>
+                        <td><span class="switch on"></span></td>
+                        <td><div class="ops"><a>配置</a><a class="danger">停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">银卡</div><div class="sub-line">成长值 ≥ 500</div></td>
+                        <td class="num t-brand bold">95.00%（9.5 折）</td>
+                        <td>全场</td>
+                        <td><span class="switch on"></span></td>
+                        <td><div class="ops"><a>配置</a><a class="danger">停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">金卡</div><div class="sub-line">成长值 ≥ 2,000</div></td>
+                        <td class="num t-brand bold">90.00%（9 折）</td>
+                        <td>指定商品</td>
+                        <td><span class="switch on"></span></td>
+                        <td><div class="ops"><a>配置</a><a class="danger">停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">钻石</div><div class="sub-line">成长值 ≥ 5,000</div></td>
+                        <td class="num t-brand bold">85.00%（8.5 折）</td>
+                        <td>全场</td>
+                        <td><span class="switch"></span></td>
+                        <td><div class="ops"><a>配置</a><a class="danger">停用</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 4 个等级</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i></div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head"><span class="card-title sm">效果预览 · 某商品折后价试算</span><span class="f-note t-weak">按未命中单价让利商品小计试算</span></div>
+                  <div class="desc-grid">
+                    <div class="desc-item"><div class="k">商品</div><div class="v">怡宝 饮用纯净水 18.9L</div></div>
+                    <div class="desc-item"><div class="k">目录价</div><div class="v num">¥22.00</div></div>
+                    <div class="desc-item"><div class="k">是否命中让利单价</div><div class="v">否（未配置分组价 / 特价）</div></div>
+                    <div class="desc-item"><div class="k">金卡折扣率</div><div class="v num">90.00%</div></div>
+                    <div class="desc-item"><div class="k">会员折扣 -¥2.20</div><div class="v num">较原价省 ¥2.20</div></div>
+                    <div class="desc-item"><div class="k">折后单价</div><div class="v num bold">¥19.80</div></div>
+                  </div>
+                  <div class="divider">试算口径</div>
+                  <p class="f-note t-sub mb0">会员折扣 = Σ（未命中让利单价的商品小计）×（1 − 折扣率）；命中分组价 / 特价 / 新人价的商品不参与。</p>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：配置弹窗 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 配置弹窗（折扣率 + 生效范围 + 启用开关）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/member-discount — 配置</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>会员折扣</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title"><div><h2>会员折扣</h2><div class="desc">弹窗打开态（背景遮罩）</div></div>
+                  <div class="row gap2"><span class="btn sm ghost">停用全部</span><span class="btn sm">保存</span></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>等级 / 分组名</th><th class="num">折扣率</th><th>生效范围</th><th>启用状态</th></tr></thead>
+                    <tbody>
+                      <tr><td>银卡</td><td class="num">95.00%</td><td>全场</td><td><span class="switch on"></span></td></tr>
+                      <tr><td>金卡</td><td class="num">90.00%</td><td>指定商品</td><td><span class="switch on"></span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal">
+              <div class="modal-head">配置会员折扣 · 金卡</div>
+              <div class="modal-body">
+                <div class="field">
+                  <label class="req">折扣率</label>
+                  <div class="input"><span>90</span></div>
+                  <div class="f-note t-weak" style="margin-top:4px">单位：折 / 百分比，1%–99%（9 折 = 90）；超出时提示「折扣率超出范围」</div>
+                </div>
+                <div class="field">
+                  <label class="req">生效范围</label>
+                  <div class="radio-row">
+                    <span class="radio on">全场</span>
+                    <span class="radio">指定商品</span>
+                  </div>
+                  <div class="f-note t-weak" style="margin-top:4px">与分组价 / 特价 / 新人价按商品维度互斥，命中让利单价的商品不参与</div>
+                </div>
+                <div class="field">
+                  <label>指定商品（仅「指定商品」启用）</label>
+                  <div class="select disabled"><span class="ph">选择商品（多选）</span></div>
+                </div>
+                <div class="field mb0">
+                  <label>启用</label>
+                  <div class="row gap2">
+                    <span class="switch on"></span>
+                    <span class="f-aux t-sub">启用后保存即自动应用；停用后该等级不再享受会员折扣</span>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">保存</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ 状态三：空态 ============ -->
+      <div>
+        <div class="browser-cap">状态三 · 空态（无分组 / 等级时引导先建）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/member-discount — 空态</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>会员折扣</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title"><div><h2>会员折扣</h2><div class="desc">尚无分组 / 等级</div></div></div>
+                <div class="empty">
+                  <div class="e-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><circle cx="12" cy="8" r="3.4"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg></div>
+                  <div class="e-title">暂无分组 / 等级</div>
+                  <div class="e-desc">请先在「客户分组」或「会员等级」建立受众，再配置会员折扣</div>
+                  <span class="btn sm">去新建分组</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>营销管理 → 会员折扣；或客户分组详情（F-MKT-001）</p>
+        <p><strong>跳转：</strong>配置保存后自动应用；正式并入 F-MKT-011 会员等级与权益</p>
+        <p><strong>组件：</strong>Table、Form、InputNumber、Switch</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>分组 / 等级列表：分组名 / 折扣率 / 生效范围 / 启用状态 / 操作（配置 / 停用）</li>
+          <li>配置弹窗：折扣率、生效范围、启用开关</li>
+          <li>折扣叠加边界说明（与分组价 / 特价 / 新人价按商品维度互斥）</li>
+          <li>效果预览：某商品折后价试算卡</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>选分组 / 等级 → 配折扣率 → 保存 → 自动应用</li>
+          <li>停用 → 该分组不再享受会员折扣</li>
+          <li>折扣率超出范围时表单即时拦截</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>无分组 / 等级时引导先建；<strong>停用态：</strong>停用后不再应用。</p>
+        <p><strong>校验：</strong>「折扣率超出范围」（1%–99%）。</p>
+        <p><strong>计价规则：</strong>会员折扣仅按未命中单价让利（分组价 / 特价 / 新人价）的商品小计生效，商品维度互斥；展示「会员折扣 -¥10.00」。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p><span class="tag tag-goal"></span> 本页为规划中占位，正式形态并入 F-MKT-011 会员等级与权益（缺口 G80，含 G57 收敛）；画布内已用 tag-goal 标注目标区块。</p>
+        <p>管理端<strong>不出现强调橙</strong>：折扣率用品牌蓝强调，主操作用品牌蓝。</p>
+        <p>金额分存储（R-MON-01）、百分比两位小数；试算口径须与下单计价链一致。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 地址订单热度地图｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 地址与配送 / 地址订单热度地图</h1>
+      <p class="sub">功能编号 F-ADR-022 ｜ 地址与配送域 ｜ 依赖：配送片区（F-ADR-013）区域维度</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ADR-022</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <div>
+        <div class="browser-cap">状态一 · 地址订单热度地图（左筛选与图例 / 中热力图 / 右 TOP 区域排行）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/addresses/heatmap</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">地址与配送 <span class="crumb-sep">/</span> <b>地址订单热度地图</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>地址订单热度地图 <span class="tag tag-goal"></span></h2>
+                    <div class="desc">默认统计最近 30 天；热力图与标记点可叠加，缺坐标地址显式说明而非静默丢失</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">导出</span>
+                  </div>
+                </div>
+
+                <div class="stat-grid c3 mb3">
+                  <div class="stat-card"><div class="lbl">地址总数</div><div class="val">1,284</div></div>
+                  <div class="stat-card"><div class="lbl">有坐标地址数</div><div class="val">1,102 <small>85.8%</small></div></div>
+                  <div class="stat-card"><div class="lbl">统计范围内订单总数</div><div class="val">3,961</div></div>
+                </div>
+
+                <div class="row top gap3 wrap">
+
+                  <!-- 左：筛选与图例 -->
+                  <div class="col gap3" style="width:200px;flex:0 0 200px">
+                    <div class="card" style="margin-bottom:0">
+                      <div class="card-title sm mb2">筛选</div>
+                      <div class="field" style="margin-bottom:10px">
+                        <label>时间范围</label>
+                        <div class="input"><span>最近 30 天</span></div>
+                      </div>
+                      <div class="field" style="margin-bottom:10px">
+                        <label>指标</label>
+                        <div class="radio-row">
+                          <span class="radio on">订单量</span>
+                          <span class="radio">营收</span>
+                        </div>
+                      </div>
+                      <div class="field" style="margin-bottom:0">
+                        <label>聚合维度</label>
+                        <div class="select"><span>按地址</span></div>
+                        <div class="f-note t-weak" style="margin-top:4px">按片区聚合依赖片区数据（未建则不可用）</div>
+                      </div>
+                    </div>
+
+                    <div class="card" style="margin-bottom:0">
+                      <div class="card-title sm mb2">图例</div>
+                      <div class="f-note t-sub mb2">热力强度（订单量）</div>
+                      <div class="hbar">
+                        <div class="hr"><span class="nm">高</span><span class="track"><span class="fill" style="width:100%"></span></span></div>
+                        <div class="hr"><span class="nm">中</span><span class="track"><span class="fill" style="width:60%"></span></span></div>
+                        <div class="hr"><span class="nm">低</span><span class="track"><span class="fill" style="width:25%"></span></span></div>
+                      </div>
+                      <div class="divider" style="margin:12px 0 10px">标记</div>
+                      <div class="col gap2 f-note t-sub">
+                        <span class="row gap2"><span style="width:10px;height:10px;border-radius:50%;background:var(--brand);display:inline-block"></span>地址标记点</span>
+                        <span class="row gap2"><span style="width:10px;height:10px;border-radius:50%;background:var(--success);display:inline-block"></span>高热度地址</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 中：热力图 -->
+                  <div class="grow card flush" style="min-width:360px;margin-bottom:0">
+                    <div class="map" style="height:400px">
+                      <div class="road"></div>
+                      <div class="water"></div>
+
+                      <!-- 半透明热力块叠层 -->
+                      <span style="position:absolute;left:180px;top:80px;width:220px;height:200px;border-radius:50%;background:var(--brand-tint-strong);opacity:.9"></span>
+                      <span style="position:absolute;left:150px;top:60px;width:140px;height:130px;border-radius:50%;background:var(--brand-tint-strong);opacity:.85"></span>
+                      <span style="position:absolute;left:340px;top:150px;width:150px;height:130px;border-radius:50%;background:var(--brand-tint);opacity:.9"></span>
+                      <span style="position:absolute;left:90px;top:210px;width:120px;height:110px;border-radius:50%;background:var(--brand-tint);opacity:.85"></span>
+                      <span style="position:absolute;left:400px;top:60px;width:90px;height:90px;border-radius:50%;background:var(--brand-tint);opacity:.7"></span>
+
+                      <!-- TOP 区域标注 -->
+                      <span class="map-label" style="left:200px;top:96px">TOP1 · 南山科技园 1,284 单</span>
+                      <span class="map-label" style="left:352px;top:158px">TOP2 · 福田中心 862 单</span>
+                      <span class="map-label" style="left:96px;top:236px">TOP3 · 宝安新安 615 单</span>
+
+                      <span class="pin pickup" style="left:250px;top:150px"></span>
+                      <span class="pin pickup" style="left:392px;top:196px"></span>
+                      <span class="pin" style="left:150px;top:270px"></span>
+                      <span class="pin" style="left:440px;top:100px"></span>
+
+                      <div class="map-ctrl"><i>＋</i><i>－</i><i>◎</i></div>
+                    </div>
+                  </div>
+
+                  <!-- 右：TOP 区域排行 -->
+                  <div class="col gap3" style="width:280px;flex:0 0 280px">
+                    <div class="card" style="margin-bottom:0">
+                      <div class="card-head" style="margin-bottom:12px">
+                        <span class="card-title sm">TOP 区域排行</span>
+                        <span class="f-note t-sub">按订单量</span>
+                      </div>
+                      <div class="hbar">
+                        <div class="hr"><span class="nm">南山科技园</span><span class="track"><span class="fill" style="width:92%"></span></span><span class="vl">1,284</span><span class="f-note t-weak" style="flex:0 0 46px;text-align:right">32.4%</span></div>
+                        <div class="hr"><span class="nm">福田中心</span><span class="track"><span class="fill" style="width:74%"></span></span><span class="vl">862</span><span class="f-note t-weak" style="flex:0 0 46px;text-align:right">21.8%</span></div>
+                        <div class="hr"><span class="nm">宝安新安</span><span class="track"><span class="fill" style="width:58%"></span></span><span class="vl">615</span><span class="f-note t-weak" style="flex:0 0 46px;text-align:right">15.5%</span></div>
+                        <div class="hr"><span class="nm">龙岗布吉</span><span class="track"><span class="fill" style="width:41%"></span></span><span class="vl">402</span><span class="f-note t-weak" style="flex:0 0 46px;text-align:right">10.2%</span></div>
+                        <div class="hr"><span class="nm">罗湖东门</span><span class="track"><span class="fill" style="width:33%"></span></span><span class="vl">318</span><span class="f-note t-weak" style="flex:0 0 46px;text-align:right">8.0%</span></div>
+                      </div>
+                    </div>
+
+                    <div class="notice">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 2 20h20z"/><path d="M12 10v4M12 17h.01"/></svg>
+                      <span>182 个地址缺少坐标，未展示在地图上</span>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>左侧菜单「地址与配送」→ 地址热力图</p>
+        <p><strong>跳转：</strong>点击标记点 / 列表项联动地图 setCenter；区域维度视图依赖片区数据</p>
+        <p><strong>权限：</strong><code>PERMISSION_ADDRESS_READ</code></p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部：时间范围 + 汇总卡（地址总数 / 有坐标地址数 / 统计范围内订单总数）</li>
+          <li>主区左：筛选与图例（时间范围 / 订单量 vs 营收 / 按片区聚合 / 热力强度图例）</li>
+          <li>主区中：热力图（半透明热力块叠层 + 标记点 + TOP 区域 map-label）</li>
+          <li>主区右：TOP 区域排行（.hbar：区域名 / 订单量 / 占比）+ 缺坐标提示 + 导出</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>进入默认拉取最近 30 天统计 → 渲染热力图 + 标记点 + 排行</li>
+          <li>调整时间范围 / 切换订单量与营收 → 重新查询并刷新地图与列表</li>
+          <li>点击标记点 / 排行项 → 展示地址详情与订单数，并触发地图定位</li>
+          <li>无坐标地址不计入地图点，仅在汇总中体现并提示</li>
+          <li>切换「区域维度」按配送片区聚合（片区未建时不可用）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>无有坐标地址时提示「暂无带坐标的地址，请通过地图选点或编辑地址补充经纬度」；无订单时热力图不显示热区但标记点仍展示。</p>
+        <p><strong>加载态：</strong>列表 loading + 地图就绪前 Spin；<strong>错误态：</strong>message「获取地址热度统计失败」。</p>
+        <p><strong>规则：</strong>时间范围开始不得晚于结束、上限 1 年；坐标统一 WGS-84（与天地图底图一致）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：热力块与条形统一用品牌蓝系 tint，高热度用加深而非换色。</p>
+        <p><span class="tag tag-goal"></span> 整页为目标形态：后端暂无按地址聚合订单数接口；区域维度依赖 F-ADR-013 片区数据（缺口 G89）；缺坐标地址无法上图为缺口候选。</p>
+        <p>缺坐标地址必须显式说明而非静默丢失；热力图与标记点可叠加。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

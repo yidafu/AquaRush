@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 商品列表 / 搜索｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 商品列表 / 搜索</h1>
+      <p class="sub">功能编号 F-PRO-001（目标形态）｜ 商品域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 下游：商品详情 / 加入购物车</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-PRO-001</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：列表正常态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 搜索结果列表（有结果）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">全部商品</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 搜索栏（左对齐放大镜） -->
+              <div class="weui-searchbar">
+                <div class="weui-searchbar__box start">
+                  <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+                  <span>怡宝 18.9L</span>
+                </div>
+              </div>
+
+              <div class="weui-cells__tips">
+                <span class="weui-tag weui-tag--goal"></span>
+                <span class="f-note t-weak"> 搜索与分类筛选可用（缺口 G18）</span>
+              </div>
+
+              <!-- 排序分段控件 -->
+              <div class="weui-cells mt2" style="padding:10px 16px">
+                <div class="weui-segmented">
+                  <span class="weui-segmented__item on">综合</span>
+                  <span class="weui-segmented__item">销量</span>
+                  <span class="weui-segmented__item">价格 ↑</span>
+                </div>
+              </div>
+
+              <!-- 筛选行 -->
+              <div class="weui-cells mt2">
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__bd">规格</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">全部</div>
+                </div>
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__bd">水源地</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">全部</div>
+                </div>
+              </div>
+
+              <!-- 商品网格 -->
+              <div class="mp-grid2">
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">怡宝 饮用纯净水 18.9L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">15</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥21.00</span>
+                        <div style="margin-top:4px">
+                          <span class="weui-tag weui-tag--brand">熟客价</span>
+                          <span class="f-note t-weak" style="margin-left:4px">已售 1,280</span>
+                        </div>
+                      </div>
+                      <span class="mp-prod__cart">＋</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">农夫山泉 天然水 19L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">28</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥32.00</span>
+                        <div style="margin-top:4px">
+                          <span class="weui-tag weui-tag--brand">熟客价</span>
+                          <span class="f-note t-weak" style="margin-left:4px">已售 986</span>
+                        </div>
+                      </div>
+                      <span class="mp-prod__cart">＋</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">娃哈哈 饮用纯净水 19L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">20</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥24.00</span>
+                        <div style="margin-top:4px">
+                          <span class="weui-tag weui-tag--brand">熟客价</span>
+                          <span class="f-note t-weak" style="margin-left:4px">已售 2,130</span>
+                        </div>
+                      </div>
+                      <span class="mp-prod__cart">＋</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">景田 百岁山矿泉水 18.9L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">35</span><span class="weui-price__dec">.00</span></span>
+                        <div style="margin-top:4px">
+                          <span class="weui-tag weui-tag--orange">仅剩 8 桶</span>
+                        </div>
+                      </div>
+                      <span class="mp-prod__cart">＋</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 加载更多 -->
+              <div class="weui-loadmore">
+                <span class="weui-loadmore__line"></span>
+                <span>加载更多…</span>
+                <span class="weui-loadmore__line"></span>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：无结果空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 无匹配结果（空态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">全部商品</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-searchbar">
+                <div class="weui-searchbar__box start">
+                  <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+                  <span>依云 12L</span>
+                </div>
+              </div>
+
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+                </div>
+                <div class="weui-empty__text">没有找到相关商品<br>换个关键词或调整筛选条件试试</div>
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">清空筛选</span>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序</p>
+        <p><strong>入口：</strong>首页顶部搜索栏 / 分类快捷入口（现状为 TODO 占位）</p>
+        <p><strong>跳转：</strong>商品卡 → 商品详情 <code>?id=xx</code>；加入购物车 → 本地 cart（F-PRO-004）</p>
+        <p><strong>数据：</strong>按关键词 / 规格 / 水源地 / 排序组合查询，分页每页 20 条</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部：<code>.mp-status</code> + 白底 <code>.mp-nav</code>（标题「全部商品」+ 返回 + 微信胶囊）</li>
+          <li>搜索栏：<code>.weui-searchbar__box.start</code> 左对齐放大镜 + 关键词</li>
+          <li>排序：<code>.weui-segmented</code> 综合 / 销量 / 价格（可切换升序降序）</li>
+          <li>筛选行：<code>.weui-cells</code> 内「规格 / 水源地」，右侧 <code>.weui-cell__ft_in-access</code> 箭头</li>
+          <li>商品网格：<code>.mp-grid2</code> 2 列（封面 1:1 实拍图占位 + 名称 + 描述 + 价格 + 已售 / 库存标签）</li>
+          <li>加载更多：<code>.weui-loadmore</code>（加载中 / 点击加载更多 / 没有更多）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互与状态</h3>
+        <ol>
+          <li>搜索框输入防抖后触发查询；切换规格 / 水源地即时重查第 0 页</li>
+          <li>切换排序方式重查并回到列表顶部</li>
+          <li>触底加载下一页并追加；下拉刷新重置到第 0 页</li>
+          <li>点击商品卡 → 商品详情；点击加购圆钮 → 本地 cart 累积</li>
+        </ol>
+        <p><strong>空态：</strong>无匹配结果显示「没有找到相关商品」+「清空筛选」；<strong>加载态：</strong>首屏骨架 / 分页 <code>.weui-loadmore</code> 加载中；<strong>错误态：</strong>toast「加载失败」+「重试」。</p>
+        <p><strong>筛选：</strong>仅返回在售且库存 &gt; 0 的商品（R-PRO-03）；价格以分存储、展示换算为元两位小数（R-MON-01）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>外壳：</strong><code>.mp-nav</code> 白底高 44px + 微信胶囊 87×32；页面底 <code>#EDEDED</code>。</p>
+        <p><strong>搜索：</strong><code>.weui-searchbar__box</code> 灰底（黑 5%）高 36px / 圆角 8px，<code>.start</code> 左对齐 + 16px 放大镜 SVG。</p>
+        <p><strong>分段：</strong><code>.weui-segmented</code> 灰底 2px 内衬 + 选中项白底 6px 圆角。</p>
+        <p><strong>列表：</strong><code>.weui-cells</code> 单元格 17px / 内缩 16px / 最小高 56px；可点行用 <code>.weui-cell_link</code>（<code>--weui-LINK</code> 蓝）；箭头 8px 由 <code>.weui-cell__ft_in-access</code> 生成。</p>
+        <p><strong>商品卡：</strong><code>.mp-grid2</code> 2 列（gap 8px），<code>.mp-prod__cover</code> 1:1 占位，价格 <code>.weui-price--md</code> 17px，标签 <code>.weui-tag</code> 18px。</p>
+        <p><strong>加载更多：</strong><code>.weui-loadmore</code> 双短线（32px）+ 14px 灰字。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>交互主色统一品牌蓝 <code>--weui-BRAND</code>；金额用微信电商红 <code>#FA5151</code>；链接用 <code>--weui-LINK</code>。本页不使用强调橙 <code>--action</code>。</p>
+        <p>商品图严禁卡通插画，一律真实摆拍占位；有优惠才出现划线目录价；消费者端不做无限滚动长列表，加载更多显式分页受控。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 首页搜索与分类筛选可用、轮播由后台运营配置（F-OPS-001）；缺口 <strong>G18</strong>（首页搜索入口为 stub）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

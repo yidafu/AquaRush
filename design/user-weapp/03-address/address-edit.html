@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 地址新增与编辑｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 地址新增与编辑</h1>
+      <p class="sub">功能编号 F-ADR-002 ｜ 地址与配送域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 上游：地址列表 / 微信地址导入</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ADR-002</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 状态一：新增地址 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 新增地址（含地图选点）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">新增收货地址</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells mt2">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label weui-label--req">收货人</div></div>
+                  <div class="weui-cell__bd"><div class="weui-input">张伟</div></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label weui-label--req">手机号</div></div>
+                  <div class="weui-cell__bd"><div class="weui-input">13800136688</div></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label weui-label--req">所在地区</div></div>
+                  <div class="weui-cell__bd"></div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">广东省 / 深圳市 / 南山区</div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-label weui-label--req">详细地址</div>
+                  <div class="weui-textarea" style="min-height:64px;padding:10px 0 0">科技园南路 18 号 3 号楼 2 单元 802</div>
+                  <div class="f-note t-weak" style="padding-top:8px">请输入详细的收货地址，不少于5个字符</div>
+                </div>
+              </div>
+
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label">楼层</div></div>
+                  <div class="weui-cell__bd"><div class="weui-input">8 楼</div></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label">门牌</div></div>
+                  <div class="weui-cell__bd"><div class="weui-input">802</div></div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-label">标签</div>
+                  <div class="row wrap gap2" style="padding-top:10px">
+                    <span class="weui-tag weui-tag--md weui-tag--brand">家</span>
+                    <span class="weui-tag weui-tag--md">公司</span>
+                    <span class="weui-tag weui-tag--md">学校</span>
+                    <span class="weui-tag weui-tag--md">其他</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">地图选点</div>
+              <div class="mp-pad-16">
+                <div class="map" style="height:200px">
+                  <span class="water"></span>
+                  <span class="road"></span>
+                  <span class="pin cur" style="left:44%;top:38%"></span>
+                  <span class="map-label" style="left:8%;top:12%">已选择地图位置</span>
+                  <div class="map-ctrl">
+                    <i><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg></i>
+                    <i>+</i>
+                    <i>−</i>
+                  </div>
+                </div>
+              </div>
+              <div class="weui-cells__tips">地图选点失败可手动填写详细地址（经纬度可空）；确认后自动回填详细地址与经纬度。</div>
+
+              <div class="weui-cells mt3">
+                <div class="weui-cell weui-cell_switch">
+                  <div class="weui-cell__bd">设为默认地址</div>
+                  <div class="weui-cell__ft"><span class="weui-switch on"></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="weui-btn_area">
+              <span class="weui-btn weui-btn_primary flex1">保存地址</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 状态二：必填校验错误态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 必填校验错误态（单元格下方红字）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">新增收货地址</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="weui-toptips">请完善收货信息后再保存</div>
+            <div class="app-scroll">
+              <div class="weui-cells mt2">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="row">
+                    <div class="weui-label weui-label--req">收货人</div>
+                    <div class="weui-cell__bd"><div class="weui-input" style="color:var(--weui-FG-2)">请输入收货人姓名</div></div>
+                  </div>
+                  <div class="f-note" style="color:var(--weui-RED);padding-top:6px">收货人姓名至少2个字符</div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="row">
+                    <div class="weui-label weui-label--req">手机号</div>
+                    <div class="weui-cell__bd"><div class="weui-input">1380013</div></div>
+                  </div>
+                  <div class="f-note" style="color:var(--weui-RED);padding-top:6px">手机号格式不正确</div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="row">
+                    <div class="weui-label weui-label--req">所在地区</div>
+                    <div class="weui-cell__bd"></div>
+                    <div class="weui-cell__ft weui-cell__ft_in-access" style="color:var(--weui-FG-2)">请选择省市区</div>
+                  </div>
+                  <div class="f-note" style="color:var(--weui-RED);padding-top:6px">请选择省份</div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-label weui-label--req">详细地址</div>
+                  <div class="weui-textarea" style="min-height:64px;padding:10px 0 0">科技园</div>
+                  <div class="f-note" style="color:var(--weui-RED);padding-top:6px">详细地址至少5个字符</div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">地图选点</div>
+              <div class="mp-pad-16">
+                <div class="map" style="height:200px">
+                  <span class="water"></span>
+                  <span class="road"></span>
+                  <span class="pin cur" style="left:44%;top:38%"></span>
+                  <span class="map-label" style="left:8%;top:12%">已选择地图位置</span>
+                  <div class="map-ctrl">
+                    <i><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg></i>
+                    <i>+</i>
+                    <i>−</i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells mt3">
+                <div class="weui-cell weui-cell_switch">
+                  <div class="weui-cell__bd">设为默认地址</div>
+                  <div class="weui-cell__ft"><span class="weui-switch"></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="weui-btn_area">
+              <span class="weui-btn weui-btn_primary flex1">保存地址</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 状态三：编辑态回填 · 保存中 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 编辑态回填（保存中，按钮禁用）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">编辑地址</span>
+            <span class="mp-nav__right">删除</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells mt2">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label weui-label--req">收货人</div></div>
+                  <div class="weui-cell__bd"><div class="weui-input">李娜</div></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label weui-label--req">手机号</div></div>
+                  <div class="weui-cell__bd"><div class="weui-input">13900132233</div></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label weui-label--req">所在地区</div></div>
+                  <div class="weui-cell__bd"></div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">广东省 / 深圳市 / 福田区</div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-label weui-label--req">详细地址</div>
+                  <div class="weui-textarea" style="min-height:64px;padding:10px 0 0">深南大道 1000 号 AquaRush 大厦 12 层 1206</div>
+                </div>
+              </div>
+
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label">楼层</div></div>
+                  <div class="weui-cell__bd"><div class="weui-input">12 楼</div></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label">门牌</div></div>
+                  <div class="weui-cell__bd"><div class="weui-input">1206</div></div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-label">标签</div>
+                  <div class="row wrap gap2" style="padding-top:10px">
+                    <span class="weui-tag weui-tag--md">家</span>
+                    <span class="weui-tag weui-tag--md weui-tag--brand">公司</span>
+                    <span class="weui-tag weui-tag--md">学校</span>
+                    <span class="weui-tag weui-tag--md">其他</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">地图选点</div>
+              <div class="mp-pad-16">
+                <div class="map" style="height:200px">
+                  <span class="water"></span>
+                  <span class="road"></span>
+                  <span class="pin cur" style="left:52%;top:44%"></span>
+                  <span class="map-label" style="left:8%;top:12%">地图位置已更新</span>
+                  <div class="map-ctrl">
+                    <i><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg></i>
+                    <i>+</i>
+                    <i>−</i>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells mt3">
+                <div class="weui-cell weui-cell_switch">
+                  <div class="weui-cell__bd">设为默认地址</div>
+                  <div class="weui-cell__ft"><span class="weui-switch"></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="weui-btn_area">
+              <span class="weui-btn weui-btn_primary weui-btn_disabled flex1">保存中...</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x；表单用官方 <code>.weui-cells</code> + <code>.weui-cell</code>（含 <code>__hd</code> / <code>__bd</code> / <code>__ft</code>），必填标记用 <code>.weui-label--req</code>，箭头用 <code>.weui-cell__ft_in-access</code>。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code>（含 <code>.mp-nav__right</code>「删除」）+ <code>.weui-input</code> + <code>.weui-textarea</code> + <code>.weui-cell_switch</code>（<code>.weui-switch</code>）+ <code>.weui-tag--md</code> 芯片 + <code>.map</code> 选点（<code>ui.css</code> 壳层）+ <code>.weui-toptips</code> + <code>.weui-btn_area</code> / <code>.weui-btn_primary</code>。</p>
+        <p><strong>度量：</strong>单元格最小 56px、17px 主文字、行高 1.41；发丝线 0.5px 左缩 16px；开关 51×31；地图高 200px；按钮区 16px 内边距、圆角 8px。</p>
+        <p><strong>配色：</strong>交互主色品牌蓝；行内校验红字用 <code>var(--weui-RED)</code>；「删除」为语义红；本页金额不涉及，不使用强调橙。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序</p>
+        <p><strong>入口：</strong>地址列表「新增收货地址」/「编辑」（<code>?id=xx</code>）；微信地址导入（<code>fromWechat=true</code>）</p>
+        <p><strong>跳转：</strong>保存成功 Toast 后 1.5s <code>navigateBack</code> 回地址列表</p>
+        <p><strong>数据：</strong>收货人 / 手机号 / 省 / 市 / 区 / 详细地址 / 楼层 / 门牌 / 标签 / longitude / latitude（可空）/ isDefault / 地址 id</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏（二级页）：返回 + 标题「编辑地址」+ 右侧「删除」（新增态为「新增收货地址」，无删除）</li>
+          <li>表单行：收货人 / 手机号 / 所在地区（<code>.weui-cell__ft_in-access</code>）/ 详细地址</li>
+          <li>表单行：楼层 / 门牌 / 标签芯片（<code>.weui-tag--md</code>，选中 <code>--brand</code>）</li>
+          <li>地图选点区（高 200px，含定位 / 缩放控件与手动点选）</li>
+          <li>「设为默认地址」开关行（<code>.weui-cell_switch</code> + <code>.weui-switch</code>）</li>
+          <li>底部按钮区 <code>.weui-btn_area</code> 内 <code>.weui-btn_primary</code>「保存地址」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>加载态：</strong>「正在加载地址详情...」「加载地区数据...」「保存中...」（状态三按钮 <code>.weui-btn_disabled</code>）；<strong>错误态：</strong>字段校验行内红字（状态二），顶部 <code>.weui-toptips</code>；Toast「保存失败，请重试」「地区加载失败: ...」；<strong>禁用态：</strong>提交 loading 期间按钮禁用；<strong>空态：</strong>无。</p>
+        <p><strong>校验文案：</strong>「请输入收货人姓名」「收货人姓名至少2个字符」「收货人姓名不能超过20个字符」；「请输入手机号」「手机号格式不正确」；「请选择省份 / 城市 / 区域」；「请输入详细地址」「详细地址至少5个字符」「详细地址不能超过100个字符」；「请选择省市区」；「请输入详细的收货地址，不少于5个字符」。</p>
+        <p><strong>地图文案：</strong>「地图位置已更新」「已选择地图位置」；保存成功「地址添加成功」/「地址更新成功」。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>Web 风旧组件（表单行 / 输入 / 开关 / 卡片 / 底部操作栏等旧类名）一律禁用，全部以 WeUI 等价类实现；行内校验用语义红 <code>var(--weui-RED)</code>，不用强调橙。</p>
+        <p>三级联动（行政区划）与地图选点（地图坐标）是两个独立通道，须清晰区分；地图选点失败允许手动填详细地址，经纬度可空不影响入库；提交期间禁止重复点击（防重复提交）。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 坐标边界转换（gcj02ToWgs84 / wgs84ToGcj02）为既有实现细节；省市区为底部弹层三级联动 Picker，保存与校验以 Toast / 行内红字呈现，不新增独立页面。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

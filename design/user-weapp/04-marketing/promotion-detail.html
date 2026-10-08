@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 活动详情｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 活动详情</h1>
+      <p class="sub">功能编号 F-MKT-004 / 005 / 008 ｜ 营销域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 下游：商品详情 / 确认订单（活动已减行）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-004</span>
+      <span class="chip">F-MKT-005</span>
+      <span class="chip">F-MKT-008</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：满减活动 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 满减 / 折扣活动</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">活动详情</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 活动头图 -->
+              <div class="mp-pad">
+                <div class="banner">
+                  <span class="b-thumb"></span>
+                  <span class="b-kicker">限时满减</span>
+                  <span class="b-title">全场满 100 减 10</span>
+                  <span class="b-desc">多档阶梯 · 下单自动减免 · 不与券叠加</span>
+                </div>
+              </div>
+
+              <!-- 活动规则 -->
+              <div class="weui-cells__title">活动规则</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">满减档位</div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-tag weui-tag--brand">满 100 减 10</span>
+                    <span class="weui-tag weui-tag--brand">满 200 减 30</span>
+                    <span class="weui-tag weui-tag--brand">满 300 减 50</span>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">· 档位金额需递增，同一订单命中多活动取优惠最大者，不叠加。</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">· 修改档位 / 时间窗后，新订单生效，已生成订单不受影响。</div>
+                </div>
+              </div>
+
+              <!-- 活动商品 -->
+              <div class="weui-cells__title">活动商品</div>
+              <div class="mp-grid2">
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">怡宝 饮用纯净水 18.9L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div style="margin-top:6px">
+                      <span class="weui-tag weui-tag--brand">参加活动</span>
+                    </div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span>
+                      </div>
+                    </div>
+                    <div style="margin-top:8px">
+                      <div class="f-note t-weak mb2">已抢 128 件</div>
+                      <div class="weui-progress"><div class="weui-progress__bar" style="width:64%"></div></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">农夫山泉 天然水 19L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div style="margin-top:6px">
+                      <span class="weui-tag weui-tag--brand">参加活动</span>
+                    </div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">28</span><span class="weui-price__dec">.00</span></span>
+                      </div>
+                    </div>
+                    <div style="margin-top:8px">
+                      <div class="f-note t-weak mb2">已抢 76 件</div>
+                      <div class="weui-progress"><div class="weui-progress__bar" style="width:38%"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <div class="mp-footbar__info">
+                <div class="mp-footbar__lbl">已选 2 件 · 满 200 减 30</div>
+                <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">50</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_primary">去凑单</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：限时特价 + 买赠 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 限时特价（倒计时）/ 买赠</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">活动详情</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="mp-pad">
+                <div class="banner">
+                  <span class="b-thumb"></span>
+                  <span class="b-kicker">限时特价</span>
+                  <span class="b-title">今日特价 14:00 开抢</span>
+                  <span class="b-desc">特价 ¥15.00 · 划线价 ¥21.00</span>
+                </div>
+              </div>
+
+              <!-- 活动规则 -->
+              <div class="weui-cells__title">活动规则</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">限时特价倒计时</div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--brand">距结束 02 : 15 : 30</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">买赠规则</div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--brand">满 100 元赠 4L 小桶 1 桶</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">· 达标判定：满赠按现金部分商品小计，买赠按指定商品数量。</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">· 同一订单命中多档取赠品最大者；赠品不参与现金叠加与券门槛。</div>
+                </div>
+              </div>
+
+              <!-- 活动商品 -->
+              <div class="weui-cells__title">活动商品</div>
+              <div class="mp-grid2">
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">怡宝 饮用纯净水 18.9L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div style="margin-top:6px">
+                      <span class="weui-tag weui-tag--orange">特价</span>
+                    </div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">15</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥21.00</span>
+                      </div>
+                    </div>
+                    <div style="margin-top:8px">
+                      <div class="f-note t-weak mb2">已抢 204 件</div>
+                      <div class="weui-progress"><div class="weui-progress__bar" style="width:82%"></div></div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">娃哈哈 饮用纯净水 19L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div style="margin-top:6px">
+                      <span class="weui-tag weui-tag--orange">特价</span>
+                    </div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">15</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥20.00</span>
+                      </div>
+                    </div>
+                    <div style="margin-top:8px">
+                      <div class="f-note t-weak mb2">已抢 96 件</div>
+                      <div class="weui-progress"><div class="weui-progress__bar" style="width:48%"></div></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <div class="mp-footbar__info">
+                <div class="mp-footbar__lbl">特价省 ¥6.00 · 满 100 元赠 4L 小桶</div>
+                <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">15</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_primary">去凑单</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（Taro）</p>
+        <p><strong>入口：</strong>首页 / 商品列表活动位 → 活动详情；商品详情特价展示（product-detail，F-PRO-002）</p>
+        <p><strong>跳转：</strong>底部「去凑单」→ 商品列表 / 首页选品；确认订单页展示「活动已减 ¥x」行（order-confirm）</p>
+        <p><strong>数据：</strong>活动 ID、名称、类型、档位（门槛 / 减免或折扣）、适用范围、开始 / 结束时间、状态</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>活动头图：<code>.banner</code>（活动主题 + 副标题 + 运营实拍图占位），套 <code>.mp-pad</code> 留白</li>
+          <li>活动规则（<code>.weui-cells__title</code> + <code>.weui-cells</code>）：满减档位 / 限时特价倒计时 / 买赠规则</li>
+          <li>活动商品（「活动商品」+ <code>.mp-grid2</code>）：活动价 <code>.weui-price--md</code> + 划线价 + <code>.weui-progress</code>「已抢 N 件」</li>
+          <li>底部操作栏（<code>.mp-footbar</code>）：活动摘要 +「去凑单」（<code>.weui-btn_primary</code>）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>配置活动 → 保存上架 → 下单自动减免（无需领券）</li>
+          <li>限时特价按活动期自动计价，到期回退分组价 / 目录价</li>
+          <li>买赠 / 满赠：订单达标自动追加赠品行（0 价），随单配送</li>
+          <li>点击「去凑单」→ 进入选品补足门槛</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>活动状态：</strong>未开始 / 进行中 / 已结束 / 已停用；过期自动失效并在列表状态体现。</p>
+        <p><strong>优惠叠加：</strong>同一订单命中多活动取优惠最大者，不叠加；首单立减与满减互斥取最大。</p>
+        <p><strong>订单快照：</strong>修改档位 / 时间窗后新订单生效，已生成订单不受影响；确认订单展示「活动已减 ¥x」。</p>
+        <p><strong>R-MON-01：</strong>金额以分存储，展示转元（两位小数）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>基准：</strong>微信官方 WeUI 2.x；满减 / 特价为活动（非券）品牌元素，用品牌蓝 <code>var(--brand)</code>。</p>
+        <p><strong>关键度量：</strong>导航 44px + 胶囊 87×32；<code>.banner</code> 高 148px、圆角 8px；<code>.weui-progress</code> 高 4px；<code>.mp-footbar</code> 底白 + 0.5px 顶线；<code>.mp-grid2</code> 两列间距 8px。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code> / <code>.mp-capsule</code>、<code>.banner</code>、<code>.weui-cells</code> / <code>__title</code>、<code>.weui-tag--brand</code> / <code>--orange</code>、<code>.mp-grid2</code> + <code>.mp-prod</code>、<code>.weui-progress</code>、<code>.weui-price--md</code> / <code>--origin</code>、<code>.mp-footbar</code> + <code>.weui-btn_primary</code>。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p><strong>强调橙使用：</strong>本页 CTA「去凑单」按微信官方主按钮 <code>.weui-btn_primary</code>（品牌蓝）；满减 / 特价为活动（非券）品牌元素，使用品牌蓝 <code>var(--brand)</code>，<strong>不使用强调橙</strong>。</p>
+        <p>特价与划线原价视觉区分明显；「已抢 N 件」进度条（<code>.weui-progress</code>）用品牌蓝填充，直观传递紧迫感。</p>
+        <p>头图用 <code>.banner</code> +「运营实拍图占位 750×360」，严禁卡通插画；金额统一用 <code>.weui-price</code>，禁止手拼「¥」字符串。</p>
+        <p>不做无限滚动长列表；活动商品限量展示，底部「去凑单」导流补门槛。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>送水工端 · 对账记录｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-delivery">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>送水工端 App · 对账记录</h1>
+      <p class="sub">功能编号 F-COL-002 ｜ 收银与对账域 ｜ 下游：对账详情下钻 / 差异申诉</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-COL-002</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">delivery-app · 暗色</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：对账列表 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 对账列表</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>对账记录</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div style="padding:0 16px 12px">
+              <div class="seg">
+                <div class="s on">全部</div>
+                <div class="s">待确认</div>
+                <div class="s">有差异</div>
+              </div>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="card" style="margin-top:0">
+                <div class="row between">
+                  <span class="f-body bold t-main" style="font-family:var(--font-num)">2026-10-08</span>
+                  <span class="tag tag-err">差异申诉中</span>
+                </div>
+                <div class="cost-row mt2"><span class="t-sub">系统预计算</span><span class="amt t-main">¥360.00</span></div>
+                <div class="cost-row"><span class="t-sub">实际填报</span><span class="amt t-main">¥358.00</span></div>
+                <div class="cost-row"><span class="t-sub">差异</span><span class="amt" style="color:var(--error)">-¥2.00</span></div>
+                <div class="row between mt3">
+                  <span class="f-note t-brand">查看详情</span>
+                  <span class="btn xs secondary">差异申诉</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="row between">
+                  <span class="f-body bold t-main" style="font-family:var(--font-num)">2026-10-07</span>
+                  <span class="tag tag-warn">待确认</span>
+                </div>
+                <div class="cost-row mt2"><span class="t-sub">系统预计算</span><span class="amt t-main">¥412.00</span></div>
+                <div class="cost-row"><span class="t-sub">实际填报</span><span class="amt t-main">¥412.00</span></div>
+                <div class="cost-row"><span class="t-sub">差异</span><span class="amt t-ok">¥0.00 · 匹配</span></div>
+                <div class="row between mt3">
+                  <span class="f-note t-brand">查看详情</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="row between">
+                  <span class="f-body bold t-main" style="font-family:var(--font-num)">2026-10-06</span>
+                  <span class="tag tag-ok">已确认</span>
+                </div>
+                <div class="cost-row mt2"><span class="t-sub">系统预计算</span><span class="amt t-main">¥388.00</span></div>
+                <div class="cost-row"><span class="t-sub">实际填报</span><span class="amt t-main">¥387.00</span></div>
+                <div class="cost-row"><span class="t-sub">差异</span><span class="amt t-ok">-¥1.00 · 容差内</span></div>
+                <div class="row between mt3">
+                  <span class="f-note t-brand">查看详情</span>
+                  <span class="f-note t-sub">复核 10-07 09:12</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="row between">
+                  <span class="f-body bold t-main" style="font-family:var(--font-num)">2026-10-05</span>
+                  <span class="tag tag-brand">已审核</span>
+                </div>
+                <div class="cost-row mt2"><span class="t-sub">系统预计算</span><span class="amt t-main">¥256.00</span></div>
+                <div class="cost-row"><span class="t-sub">实际填报</span><span class="amt t-main">¥256.00</span></div>
+                <div class="cost-row"><span class="t-sub">差异</span><span class="amt t-ok">¥0.00 · 匹配</span></div>
+              </div>
+
+              <div class="f-note t-sub" style="text-align:center;padding:12px 0 6px">没有更多了</div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：差异申诉弹层 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 差异申诉弹层</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>对账记录</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div class="app-scroll">
+              <div class="card" style="margin-top:0">
+                <div class="row between">
+                  <span class="f-body bold t-main" style="font-family:var(--font-num)">2026-10-08</span>
+                  <span class="tag tag-err">差异申诉中</span>
+                </div>
+                <div class="cost-row mt2"><span class="t-sub">系统预计算</span><span class="amt t-main">¥360.00</span></div>
+                <div class="cost-row"><span class="t-sub">实际填报</span><span class="amt t-main">¥358.00</span></div>
+              </div>
+            </div>
+
+            <div class="overlay center">
+              <div class="sheet">
+                <div class="sheet-title">差异申诉</div>
+                <div class="cost-row"><span class="t-sub">对账日期</span><span class="t-main" style="font-family:var(--font-num)">2026-10-08</span></div>
+                <div class="cost-row"><span class="t-sub">差异金额</span><span class="amt" style="color:var(--error)">-¥2.00</span></div>
+                <div class="field mt3">
+                  <label>申诉说明（必填）</label>
+                  <div class="textarea"><span class="ph">请输入申诉理由，≤ 200 字</span></div>
+                </div>
+                <div class="row gap2">
+                  <div class="btn grow secondary">取消</div>
+                  <div class="btn grow">提交申诉</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：对账详情下钻 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 对账详情下钻（逐单明细）</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>对账详情</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="card" style="margin-top:0">
+                <div class="row between">
+                  <span class="f-body bold t-main" style="font-family:var(--font-num)">2026-10-08</span>
+                  <span class="tag tag-err">有差异</span>
+                </div>
+                <div class="cost-row mt2"><span class="t-sub">订单总数</span><span class="amt t-main">12 笔</span></div>
+                <div class="cost-row"><span class="t-sub">订单金额</span><span class="amt t-main">¥360.00</span></div>
+                <div class="cost-row"><span class="t-sub">现金 / 水票 / 扫码</span><span class="amt t-main">¥240.00 / 4 张 / ¥120.00</span></div>
+                <div class="cost-row total"><span class="lbl t-main">差异金额</span><span class="amt" style="color:var(--error)">-¥2.00</span></div>
+              </div>
+
+              <div class="section-title">逐单差异明细</div>
+
+              <div class="card" style="margin:0 0 12px">
+                <div class="row between">
+                  <span class="f-note t-sub" style="font-family:var(--font-num)">No. AR20261008005</span>
+                  <span class="tag tag-err">扫码 -¥2.00</span>
+                </div>
+                <div class="row between mt2">
+                  <span class="f-aux t-main">清水湾小区 3 号楼 2 单元</span>
+                  <span class="price plain">¥36.00</span>
+                </div>
+              </div>
+
+              <div class="card" style="margin:0 0 12px">
+                <div class="row between">
+                  <span class="f-note t-sub" style="font-family:var(--font-num)">No. AR20261008007</span>
+                  <span class="tag tag-warn">水票 -1 张</span>
+                </div>
+                <div class="row between mt2">
+                  <span class="f-aux t-main">和平里 12 号院 3 号楼</span>
+                  <span class="price plain">¥72.00</span>
+                </div>
+              </div>
+
+              <div class="card" style="margin:0">
+                <div class="row between">
+                  <span class="f-note t-sub" style="font-family:var(--font-num)">No. AR20261008009</span>
+                  <span class="tag tag-ok">一致</span>
+                </div>
+                <div class="row between mt2">
+                  <span class="f-aux t-main">阳光花园 A 座 1203</span>
+                  <span class="price plain">¥22.00</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>入口：</strong>「我的」页「对账记录」→ reconciliation-records。</p>
+        <p><strong>跳转：</strong>点击卡片 → 对账详情下钻（当日已送达订单流水，逐单差异明细）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏：返回 + 标题「对账记录」+ 消息入口（未读红点）</li>
+          <li>状态筛选（分段控件：全部 / 待确认 / 有差异）</li>
+          <li>对账记录卡片列表（按日期倒序）：日期 + 状态标签；系统预计算 / 实际填报 / 差异；差异申诉入口 + 详情下钻</li>
+          <li>加载更多区：「没有更多了」</li>
+          <li>差异申诉弹层：对账日期 + 差异金额 + 申诉说明（必填）+ 取消 / 提交申诉</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>加载对账记录，按日期倒序，初始展示第一页；上拉加载下一页，下拉刷新重置。</li>
+          <li>点击卡片 → 下钻查看当日已送达订单流水（逐单差异明细）。</li>
+          <li>点「差异申诉」→ 打开申诉弹层 → 填写说明提交 → 状态置「差异申诉中」。</li>
+          <li>后台复核后此处状态同步更新。</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>状态标签：</strong>待确认（warning）/ 已确认（success）/ 差异申诉中（error）/ 已审核（brand）—— 与后台一致并一目了然。</p>
+        <p><strong>差异金额色：</strong>|差异| ≤ 1 元绿色、&gt; 1 元红色（±100 分容差）；水票按张数精确比对。</p>
+        <p><strong>空态：</strong>「暂无对账记录」；<strong>加载态：</strong>「加载中...」；<strong>错误态：</strong>「加载失败」；<strong>禁用态：</strong>无更多数据「没有更多了」。</p>
+        <p>复核信息（时间 / 备注）仅在已确认 / 已审核记录展示；列表倒序不可打乱。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>差异金额正负与超容差需<strong>红色强调</strong>，容差内用绿色；系统预计算与填报值须显式并列。</p>
+        <p>送水工端<strong>完全不出现强调橙</strong>：提交按钮走品牌蓝（<code>--d-primary</code>），申诉用 error 色。</p>
+        <p>仅本人可见（R-AUTH-02）；申诉说明为必填追溯依据，提交防重复点击。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

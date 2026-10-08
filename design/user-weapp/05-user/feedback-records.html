@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 反馈记录｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 反馈记录</h1>
+      <p class="sub">功能编号 F-USR-005 ｜ 用户与账户域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 处理结果回传闭环（2026-08）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-USR-005</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 状态一：记录列表 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 记录列表（含展开处理结果）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">我的反馈记录</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-panel mt2">
+                <div class="weui-panel__bd">
+                  <div class="weui-media-box" style="flex-direction:column;align-items:stretch">
+                    <div class="row between">
+                      <span class="weui-tag">配送服务问题</span>
+                      <span class="weui-tag weui-tag--done">已处理</span>
+                    </div>
+                    <div class="f-body clamp2 mt3">今天配送的桶装水外包装有明显破损，桶身有轻微渗水，希望配送前帮忙检查一下，谢谢。</div>
+                    <div class="row gap2 mt2">
+                      <span class="weui-media-box__thumb weui-media-box__thumb--sm">图 1</span>
+                      <span class="weui-media-box__thumb weui-media-box__thumb--sm">图 2</span>
+                    </div>
+                    <div class="f-note t-weak mt3">提交时间：2026-09-27 18:02</div>
+
+                    <div class="weui-cells mt3">
+                      <div class="weui-cells__title" style="padding:8px 0">处理结果</div>
+                      <div class="f-aux">已核实为运输途中挤压导致，已为您补发 1 桶并加强出库检查，给您带来不便敬请谅解。</div>
+                      <div class="f-note t-weak mt2">处理人：客服小云 ｜ 处理时间：2026-09-28 14:20</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-panel">
+                <div class="weui-panel__bd">
+                  <div class="weui-media-box" style="flex-direction:column;align-items:stretch">
+                    <div class="row between">
+                      <span class="weui-tag">功能建议</span>
+                      <span class="weui-tag weui-tag--deliver">处理中</span>
+                    </div>
+                    <div class="f-body clamp2 mt3">希望增加「一键复购上次订单」的入口，每次都要重新挑一遍有点麻烦。</div>
+                    <div class="f-note t-weak mt3">提交时间：2026-09-26 09:15</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-panel">
+                <div class="weui-panel__bd">
+                  <div class="weui-media-box" style="flex-direction:column;align-items:stretch">
+                    <div class="row between">
+                      <span class="weui-tag">小程序使用问题</span>
+                      <span class="weui-tag weui-tag--assign">待处理</span>
+                    </div>
+                    <div class="f-body clamp2 mt3">弱网环境下点击「立即下单」会卡住，希望可以增加重试提示。</div>
+                    <div class="f-note t-weak mt3">提交时间：2026-09-25 21:40</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-loadmore">
+                <span class="weui-loadmore__line"></span>
+                <span>上拉加载更多</span>
+                <span class="weui-loadmore__line"></span>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 状态二：空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 空态（暂无反馈记录）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">我的反馈记录</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+                </div>
+                <div class="weui-empty__text">暂无反馈记录<br>您的意见对我们很重要</div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x；每条反馈用官方 <code>.weui-panel</code>，缩略图用 <code>.weui-media-box__thumb--sm</code>，状态标签用官方订单状态口径 <code>.weui-tag--*</code>，处理结果以嵌套 <code>.weui-cells</code> 展开。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code>（二级页）+ <code>.weui-panel</code> / <code>__bd</code> + <code>.weui-media-box</code> + <code>.weui-media-box__thumb--sm</code> + <code>.weui-tag--assign</code> / <code>--deliver</code> / <code>--done</code> + 内嵌 <code>.weui-cells</code> + <code>.weui-loadmore</code> + <code>.weui-empty</code>。</p>
+        <p><strong>度量：</strong>导航栏 44px、胶囊 87×32；面板内边距 16px、14px 组标题；缩略图 48px、圆角 8px；发丝线 0.5px 左缩 16px；加载更多为双短线样式。</p>
+        <p><strong>配色：</strong>状态标签 10% tint 底 + 状态色文字（待处理蓝 / 处理中绿 / 已处理灰）；本页无主 CTA、<strong>不出现强调橙</strong>、金额不涉及。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序</p>
+        <p><strong>入口：</strong>「我的」页「常用服务 → 反馈记录」；意见反馈页页脚「我的反馈记录 ›」</p>
+        <p><strong>跳转：</strong>列表项不跳转，直接页内展示处理结果</p>
+        <p><strong>数据：</strong>类型、内容、状态、提交时间、图片缩略图、处理结果、处理人、处理时间</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏（二级页）：返回 + 标题「我的反馈记录」+ 右上微信胶囊</li>
+          <li>面板列表（按提交时间倒序分页）：类型标签 + 内容摘要（<code>.clamp2</code>）+ 状态标签 + 提交时间 + 图片缩略图</li>
+          <li>已处理 / 处理中记录追加「处理结果 + 处理人 + 处理时间」内嵌 <code>.weui-cells</code> 区块</li>
+          <li>加载更多（<code>.weui-loadmore</code> 双短线「上拉加载更多」）+ 下拉刷新</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>无数据空态「暂无反馈记录」+「您的意见对我们很重要」（<code>.weui-empty</code>，状态二）；<strong>加载态：</strong>加载中 / 加载更多；<strong>错误态：</strong>加载失败可重试。</p>
+        <p><strong>状态标签（WeUI 订单状态口径）：</strong>待处理 <code>.weui-tag--assign</code> / 处理中 <code>.weui-tag--deliver</code> / 已处理 <code>.weui-tag--done</code>；已处理 / 处理中展示处理结果与处理人、处理时间，待处理不展示处理区；仅展示<strong>本人</strong>数据（R-AUTH-02）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>Web 风旧组件（卡片 / 着色卡片 / 标签 / 缩略图 / 空态等旧类名）一律禁用，全部以 WeUI 等价类实现；本页无主 CTA，<strong>不出现强调橙</strong>。</p>
+        <p>处理结果区块以内嵌 <code>.weui-cells</code> 与主面板区分层级；缩略图用 <code>.weui-media-box__thumb--sm</code> 占位并标注实拍图占位，不做卡通插画。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 订阅消息回传（F-NTF-001）为备选通道暂未启用；是否并入消息中心（F-NTF-002）为开放问题。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

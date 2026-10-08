@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 我的水票｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 我的水票（票夹）</h1>
+      <p class="sub">功能编号 F-MKT-007 ｜ 营销域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 票夹卡用品牌蓝</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-007</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：可用票夹 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 可用水票（票夹）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">我的水票</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 汇总 -->
+              <div class="weui-cells mt2">
+                <div class="mp-statgrid">
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">8<span class="unit">张</span></div>
+                    <div class="mp-statgrid__lbl">可用张数</div>
+                  </div>
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">11<span class="unit">张</span></div>
+                    <div class="mp-statgrid__lbl">总张数</div>
+                  </div>
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">1<span class="unit">张</span></div>
+                    <div class="mp-statgrid__lbl">即将过期</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-tabs">
+                <div class="weui-tabs__item on">可用</div>
+                <div class="weui-tabs__item">已核销</div>
+                <div class="weui-tabs__item">已过期</div>
+              </div>
+
+              <!-- 票夹卡 1（票夹卡用品牌蓝） -->
+              <div class="weui-cells" style="margin:8px;border-radius:8px">
+                <div style="padding:16px 16px 8px">
+                  <div class="row between mb2">
+                    <span class="bold" style="font-size:17px;color:var(--brand)">18.9L 桶水票</span>
+                    <span class="weui-tag weui-tag--green weui-tag--md">可退票</span>
+                  </div>
+                  <div class="row between mb2">
+                    <span class="f-note t-sub">规格限定：通兑 · 限 18.9L 桶装水</span>
+                    <span class="f-note t-sub">剩余 <b class="t-brand">5</b> 张</span>
+                  </div>
+                  <div class="f-note t-sub">有效期：2027-10-08 到期</div>
+                </div>
+                <div class="weui-cell" style="min-height:0;padding:8px 16px"><div class="weui-cell__bd f-note t-sub">票号</div></div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd" style="font-family:var(--font-num)">SP20261000012345</div>
+                  <div class="weui-cell__ft"><span class="t-brand">长按复制</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd" style="font-family:var(--font-num)">SP20261000012346</div>
+                  <div class="weui-cell__ft"><span class="t-brand">长按复制</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd" style="font-family:var(--font-num)">SP20261000012347</div>
+                  <div class="weui-cell__ft"><span class="t-brand">长按复制</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd" style="font-family:var(--font-num)">SP20261000012348</div>
+                  <div class="weui-cell__ft"><span class="t-brand">长按复制</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd" style="font-family:var(--font-num)">SP20261000012349</div>
+                  <div class="weui-cell__ft"><span class="t-brand">长按复制</span></div>
+                </div>
+              </div>
+
+              <!-- 票夹卡 2 -->
+              <div class="weui-cells" style="margin:8px;border-radius:8px">
+                <div style="padding:16px 16px 8px">
+                  <div class="row between mb2">
+                    <span class="bold" style="font-size:17px;color:var(--brand)">4.5L 桶水票</span>
+                    <span class="weui-tag weui-tag--green weui-tag--md">可退票</span>
+                  </div>
+                  <div class="row between mb2">
+                    <span class="f-note t-sub">规格限定：通兑 · 限 4.5L 桶装水</span>
+                    <span class="f-note t-sub">剩余 <b class="t-brand">3</b> 张</span>
+                  </div>
+                  <div class="f-note t-sub">有效期：2027-08-20 到期</div>
+                </div>
+                <div class="weui-cell" style="min-height:0;padding:8px 16px"><div class="weui-cell__bd f-note t-sub">票号</div></div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd" style="font-family:var(--font-num)">SP20260800020112</div>
+                  <div class="weui-cell__ft"><span class="t-brand">长按复制</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd" style="font-family:var(--font-num)">SP20260800020113</div>
+                  <div class="weui-cell__ft"><span class="t-brand">长按复制</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd" style="font-family:var(--font-num)">SP20260800020114</div>
+                  <div class="weui-cell__ft"><span class="t-brand">长按复制</span></div>
+                </div>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：已核销 + 使用记录 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 已核销票（使用记录）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">我的水票</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells mt2">
+                <div class="mp-statgrid">
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">8<span class="unit">张</span></div>
+                    <div class="mp-statgrid__lbl">可用张数</div>
+                  </div>
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">11<span class="unit">张</span></div>
+                    <div class="mp-statgrid__lbl">总张数</div>
+                  </div>
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">2<span class="unit">张</span></div>
+                    <div class="mp-statgrid__lbl">已核销</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-tabs">
+                <div class="weui-tabs__item">可用</div>
+                <div class="weui-tabs__item on">已核销</div>
+                <div class="weui-tabs__item">已过期</div>
+              </div>
+
+              <!-- 已核销票 + 使用记录 -->
+              <div class="weui-cells" style="margin:8px;border-radius:8px">
+                <div style="padding:16px 16px 8px">
+                  <div class="row between mb2">
+                    <span class="bold t-sub" style="font-size:17px">18.9L 桶水票</span>
+                    <span class="weui-tag weui-tag--done weui-tag--md">已核销</span>
+                  </div>
+                  <div class="f-note t-sub" style="font-family:var(--font-num)">SP20261000010001</div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">使用记录</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">核销时间</div>
+                  <div class="weui-cell__ft">2026-10-05 14:20</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">核销订单</div>
+                  <div class="weui-cell__ft">ORD20261005000123</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">核销点位</div>
+                  <div class="weui-cell__ft">清水湾小区 3 号楼 2 单元</div>
+                </div>
+              </div>
+
+              <div class="weui-cells" style="margin:8px;border-radius:8px">
+                <div style="padding:16px 16px 8px">
+                  <div class="row between mb2">
+                    <span class="bold t-sub" style="font-size:17px">18.9L 桶水票</span>
+                    <span class="weui-tag weui-tag--done weui-tag--md">已核销</span>
+                  </div>
+                  <div class="f-note t-sub" style="font-family:var(--font-num)">SP20261000010002</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">核销时间</div>
+                  <div class="weui-cell__ft">2026-10-06 09:35</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">核销订单</div>
+                  <div class="weui-cell__ft">ORD20261006000088</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">核销点位</div>
+                  <div class="weui-cell__ft">阳光花园 5 号楼配送</div>
+                </div>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 无可用水票（空态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">我的水票</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>
+                </div>
+                <div class="weui-empty__text">暂无可用水票<br>去水票商城买票，到桶更省心</div>
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">去水票商城</span>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（Taro）</p>
+        <p><strong>入口：</strong>我的页 →「我的水票」</p>
+        <p><strong>跳转：</strong>空态「去水票商城」→ <code>ticket-mall</code>；确认订单页（order-confirm）「水票抵扣」区读取可用张数</p>
+        <p><strong>数据：</strong>票号（SP + YYYYMM + 8 位序号）、票种、规格限定、有效期、状态、关联订单（已核销）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部汇总：可用张数 / 总张数 / 即将过期（<code>.mp-statgrid</code>）</li>
+          <li>状态 Tab：可用 / 已核销 / 已过期（<code>.weui-tabs</code>）</li>
+          <li>票夹卡（<code>.weui-cells</code>）：票名 + 规格限定 + 剩余张数 + 有效期 +「可退票」（<code>.weui-tag--green</code>）</li>
+          <li>票号明细：每张票独立展示票号（等宽字体 <code>--font-num</code>）+「长按复制」，用 <code>.weui-cells</code> 行</li>
+          <li>已核销票：使用记录（核销时间 / 核销订单 / 核销点位），用 <code>.weui-cells</code> 列表</li>
+          <li>空态：<code>.weui-empty</code>「暂无可用水票」+「去水票商城」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>长按票号可复制（线下核验对账）</li>
+          <li>可用票在确认订单页可选择核销张数（≤ 下单桶数 ∩ 可用张数）</li>
+          <li>已过期票置灰不可核销；已核销票可回溯使用记录</li>
+          <li>切换 Tab 过滤票状态</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>可用 / 已核销 / 已退回 / 已过期：</strong>四态并存（<code>.weui-tag--green</code> 可退 / <code>.weui-tag--done</code> 已核销）；<strong>空态：</strong>「暂无可用水票」。</p>
+        <p><strong>票有效期：</strong>过期作废不可使用；即将过期（如 30 天内）以警示色提示。</p>
+        <p><strong>退回规则：</strong>订单取消 / 退款 → 已核销未过期票退回票夹；已过期作废。</p>
+        <p><strong>票号：</strong>唯一且可复制，格式 SP + YYYYMM + 8 位序号。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>基准：</strong>微信官方 WeUI 2.x；票夹卡形态（票名、剩余张数）用品牌蓝 <code>var(--brand)</code>，「可退票」用语义绿 <code>.weui-tag--green</code>。</p>
+        <p><strong>关键度量：</strong>导航 44px + 胶囊 87×32；<code>.mp-statgrid__num</code> 19px；<code>.weui-cell</code> 最小高 56px、0.5px 内缩 16px 发丝线；票号等宽字体 <code>--font-num</code>。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code> / <code>.mp-capsule</code>、<code>.mp-statgrid</code>、<code>.weui-tabs</code>、<code>.weui-cells</code>、<code>.weui-cell</code>、<code>.weui-tag</code>（<code>--green</code> / <code>--done</code>）、<code>.weui-empty</code>。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p><strong>水票用品牌蓝：</strong>票名、剩余张数、票号提示使用品牌蓝 <code>var(--brand)</code>，「可退票」用语义绿 <code>.weui-tag--green</code>，<strong>不使用强调橙</strong>。</p>
+        <p>票号唯一且需可复制便于线下核验，用等宽字体（<code>--font-num</code>）呈现；过期票置灰但可回溯。</p>
+        <p>「可退票」为合规 / 权益标识，需醒目但不用强调橙，避免与券品牌混淆。</p>
+        <p>金额统一用 <code>.weui-price</code>，禁止手拼「¥」字符串；非券元素一律不上强调橙。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

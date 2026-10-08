@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>送水工端 · 订单详情与完成配送｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-delivery">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>送水工端 App · 订单详情与完成配送</h1>
+      <p class="sub">功能编号 F-ORD-011 / F-ORD-024 / F-ORD-028 / F-ORD-029 ｜ 订单域 ｜ 下游：修改地址信息 / 转单 / 地图导航 / 拨号</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-011</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip">F-ORD-024</span>
+      <span class="chip chip-partial">F-ORD-029 部分</span>
+      <span class="chip chip-plan">F-ORD-028 规划</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">delivery-app · 暗色</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：待配送 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 待配送</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>订单详情</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="card" style="margin-top:0">
+                <div class="row between">
+                  <span class="tag tag-assign tag-lg">待配送</span>
+                  <span class="f-note t-sub" style="font-family:var(--font-num)">No. AR20261008002</span>
+                </div>
+                <div class="progress mt3">
+                  <span class="dot on"></span><span class="bar on"></span>
+                  <span class="dot on"></span><span class="bar on"></span>
+                  <span class="dot on"></span><span class="bar"></span>
+                  <span class="dot"></span><span class="bar"></span>
+                  <span class="dot"></span>
+                </div>
+                <div class="row between mt2">
+                  <span class="f-note t-sub">已接单，等待开始配送</span>
+                  <span class="f-note t-sub">下单 → 支付 → 派单 → 配送 → 完成</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">收货地址</span>
+                  <span class="tag tag-brand">6 楼 · 有电梯</span>
+                </div>
+                <div class="row between">
+                  <span class="f-body bold t-main">张先生</span>
+                  <span class="row gap1 t-brand">
+                    <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 4h3.5l1.8 4.2-2.1 1.6a12 12 0 0 0 5.9 5.9l1.6-2.1L20 15.5V19a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>
+                    138****6621
+                  </span>
+                </div>
+                <div class="f-aux t-sub mt2">广东省深圳市南山区科技园南路 88 号 清水湾小区 3 号楼 2 单元 602</div>
+                <div class="f-note t-sub mt2">定位：22.5431, 113.9345（WGS-84）</div>
+
+                <div class="map" style="height:150px;margin-top:12px">
+                  <div class="water"></div>
+                  <div class="road"></div>
+                  <span class="pin" style="left:52%;top:36%"></span>
+                  <span class="map-label" style="left:12px;bottom:12px">清水湾小区 3 号楼 · 目的地</span>
+                  <div class="map-ctrl"><i>＋</i><i>－</i></div>
+                </div>
+
+                <div class="row between" style="margin-top:12px">
+                  <span class="f-note t-sub">目的地导航</span>
+                  <span class="tag tag-goal"></span>
+                </div>
+                <div class="row gap2 mt2">
+                  <div class="btn sm secondary grow">修改地址信息(定位/楼层等)</div>
+                  <div class="btn sm grow">导航</div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">商品信息</span>
+                  <span class="f-note t-sub">共 2 件</span>
+                </div>
+                <div class="row gap3">
+                  <div class="thumb sq-sm">实拍图</div>
+                  <div class="grow">
+                    <div class="f-body bold t-main">怡宝纯净水</div>
+                    <div class="f-note t-sub mt2">规格 18.9L / 桶</div>
+                  </div>
+                  <div class="col" style="align-items:flex-end;gap:4px">
+                    <span class="price plain">¥18.00</span>
+                    <span class="f-note t-sub">× 2 桶</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="bottom-bar">
+              <div class="bb-info">
+                <div class="lbl">到付应收（现金 / 水票 / 扫码）</div>
+                <span class="price"><span class="cur">¥</span>36<span class="dec">.00</span></span>
+              </div>
+              <div class="btn">开始配送</div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：配送中 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 配送中（未拍照，完成配送禁用）</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>订单详情</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="card" style="margin-top:0">
+                <div class="row between">
+                  <span class="tag tag-deliver tag-lg">配送中</span>
+                  <span class="f-note t-sub" style="font-family:var(--font-num)">No. AR20261008002</span>
+                </div>
+                <div class="progress mt3">
+                  <span class="dot on"></span><span class="bar on"></span>
+                  <span class="dot on"></span><span class="bar on"></span>
+                  <span class="dot on"></span><span class="bar on"></span>
+                  <span class="dot on"></span><span class="bar"></span>
+                  <span class="dot"></span>
+                </div>
+                <div class="f-note t-sub mt2">已开始配送 12 分钟</div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">收货地址</span>
+                  <span class="f-note t-sub">张先生 138****6621</span>
+                </div>
+                <div class="f-aux t-sub">清水湾小区 3 号楼 2 单元 602 · <strong class="t-main">6 楼</strong></div>
+                <div class="row gap2 mt3">
+                  <div class="btn sm secondary grow">修改地址信息(定位/楼层等)</div>
+                  <div class="btn sm grow">导航</div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">商品信息</span>
+                  <span class="f-note t-sub">共 2 件</span>
+                </div>
+                <div class="row gap3">
+                  <div class="thumb sq-sm">实拍图</div>
+                  <div class="grow">
+                    <div class="f-body bold t-main">怡宝纯净水</div>
+                    <div class="f-note t-sub mt2">规格 18.9L / 桶</div>
+                  </div>
+                  <div class="col" style="align-items:flex-end;gap:4px">
+                    <span class="price plain">¥18.00</span>
+                    <span class="f-note t-sub">× 2 桶</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">收款方式</span>
+                  <span class="f-note t-sub">必选</span>
+                </div>
+                <div class="radio-row">
+                  <span class="radio on">现金</span>
+                  <span class="radio">水票</span>
+                  <span class="radio">扫码</span>
+                </div>
+                <div class="f-note t-sub mt2">自提订单默认已收款，豁免选择</div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">配送照片</span>
+                  <span class="f-note" style="color:var(--error)">必拍 ≥ 1 张</span>
+                </div>
+                <div class="row gap3">
+                  <div style="width:76px;height:76px;border-radius:8px;border:1px dashed var(--d-border);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--d-text-sub)">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M4 8h3l1.6-2h6.8L17 8h3v11H4z"/><circle cx="12" cy="13.2" r="3.4"/></svg>
+                    <span class="f-note">拍照</span>
+                  </div>
+                </div>
+                <div class="f-note mt2" style="color:var(--error)">请先拍摄配送照片</div>
+              </div>
+
+              <div class="card">
+                <div class="card-title sm mb3">配送备注</div>
+                <div class="textarea"><span class="ph">选填，如放门口 / 联系不上等情况，≤200 字</span></div>
+              </div>
+
+              <div class="row between" style="padding:0 2px 4px">
+                <span class="f-note t-sub">转单给其他送水工</span>
+                <span class="tag tag-goal"></span>
+              </div>
+            </div>
+
+            <div class="bottom-bar">
+              <div class="btn secondary">转单</div>
+              <div class="btn grow disabled">完成配送</div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：已完成 + 转单弹层 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 已完成 + 转单弹层</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>订单详情</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="card" style="margin-top:0">
+                <div class="row between">
+                  <span class="tag tag-done tag-lg">已完成</span>
+                  <span class="f-note t-sub" style="font-family:var(--font-num)">No. AR20261007018</span>
+                </div>
+                <div class="f-note t-sub mt2">送达即完成，营收即时计入 completed_at</div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">配送信息</span>
+                  <span class="f-note t-sub">完成时间 2026-10-07 18:12</span>
+                </div>
+                <div class="cost-row">
+                  <span class="t-sub">配送备注</span>
+                  <span class="amt t-main">已放前台，用户自取</span>
+                </div>
+                <div class="cost-row">
+                  <span class="t-sub">收款方式</span>
+                  <span class="t-main">现金</span>
+                </div>
+                <div class="cost-row">
+                  <span class="t-sub">配送照片</span>
+                  <span class="t-main">已上传 1 张</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">收货地址</span>
+                  <span class="f-note t-sub">终态不可修改</span>
+                </div>
+                <div class="f-aux t-sub">清水湾小区 5 号楼 1 单元 301 · 3 楼</div>
+              </div>
+            </div>
+
+            <div class="overlay">
+              <div class="sheet">
+                <div class="row between">
+                  <span class="sheet-title" style="margin:0">转单</span>
+                  <span class="tag tag-goal"></span>
+                </div>
+                <div class="f-note t-sub" style="margin-top:10px;margin-bottom:6px">选择接收送水工</div>
+                <div class="list">
+                  <div class="list-item">
+                    <div class="li-ico">王</div>
+                    <div class="grow">
+                      <div class="f-body t-main">王大力</div>
+                      <div class="f-note t-sub">在线 · 距目的地 1.2 km</div>
+                    </div>
+                    <span class="check on"></span>
+                  </div>
+                  <div class="list-item">
+                    <div class="li-ico">李</div>
+                    <div class="grow">
+                      <div class="f-body t-main">李强</div>
+                      <div class="f-note t-sub">在线 · 距目的地 2.8 km</div>
+                    </div>
+                    <span class="check"></span>
+                  </div>
+                  <div class="list-item">
+                    <div class="li-ico">赵</div>
+                    <div class="grow">
+                      <div class="f-body t-main" style="color:var(--d-text-sub)">赵磊（休息中）</div>
+                      <div class="f-note t-sub">忙碌 · 当前 3 单</div>
+                    </div>
+                    <span class="check"></span>
+                  </div>
+                </div>
+                <div class="field mt3">
+                  <label>转单原因</label>
+                  <div class="textarea"><span class="ph">选填，如车辆故障 / 顺路代送</span></div>
+                </div>
+                <div class="row gap2 mt3">
+                  <div class="btn grow secondary">取消</div>
+                  <div class="btn grow">确认转单</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>入口：</strong>任务列表点击任务卡。</p>
+        <p><strong>跳转：</strong>「修改地址信息」→ 修改地址信息弹层（F-ORD-024）；「导航」→ 第三方地图（F-ORD-029）；「转单」→ 转单弹层（F-ORD-028）；电话图标 → <code>tel:</code> 拨号。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏：返回 + 标题 + 消息入口（未读红点）</li>
+          <li>状态头：订单状态标签 + 配送进度（下单 → 支付 → 派单 → 配送 → 完成）+ 订单号</li>
+          <li>收货地址卡：收货人 / 电话（可拨打）/ 省市区 + 详细地址 / 楼层 / 定位；内嵌目的地地图；卡底按钮组「修改地址信息(定位/楼层等)」+「导航」</li>
+          <li>商品卡：图 / 名 / 规格 × 数量</li>
+          <li>收款方式（配送中）：现金 / 水票 / 扫码 三选一</li>
+          <li>配送照片上传（≥ 1 张）+ 配送备注</li>
+          <li>配送信息卡（完成态）：配送备注 / 完成时间 / 收款方式</li>
+          <li>底部操作区：「开始配送」/「完成配送」+「转单」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>「开始配送」→ 待配送 → 配送中（<code>startDelivery</code>）。</li>
+          <li>拍照 → 上传返回 fileUrl（≥ 1 张，支持删除）。</li>
+          <li>选收款方式 → 必选（非自提且无水票核销时拦截；电子票核销订单自动记「水票」；自提订单默认已收款豁免）。</li>
+          <li>「完成配送」→ 前置校验（本人订单、状态 = 配送中、照片非空、收款方式必选）→ 配送中 → 已完成，记 <code>completedAt</code>（送达即完成，R-ORD-11）。</li>
+          <li>「修改地址信息」→ 打开弹层（地址修正仅改订单快照，不回写地址簿）；「导航」→ 唤起第三方地图；「转单」→ 打开转单弹层。</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>状态：</strong>待配送 / 配送中 / 已完成；已完成 = 终态（不可取消、不可修正地址、不展示转单）。</p>
+        <p><strong>禁用态：</strong>未拍照禁用「完成配送」并提示「请先拍摄配送照片」；终态订单隐藏修改地址 / 转单入口。</p>
+        <p><strong>错误态：</strong>提交失败提示后端错误（如「订单已结束」）；<strong>自提标识：</strong>自提订单显示自提标识、免运费。</p>
+        <p>收款方式三选一互斥；导航无坐标时降级为「复制地址」；离线提示「网络不可用，可复制地址」。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>弹层说明（转单）</h3>
+        <p>转单弹层：标题「转单」+ 目标送水工列表（在线，按片区 / 就近排序，忙碌不可选）+ 转单原因（选填）+ 取消 / 确认。</p>
+        <p>仅「待配送 / 配送中」可转；目标须在线可接单（R-ORD-08 口径）；已完成 / 已取消不可转；并发转单幂等仅一次生效；留痕含原 / 目标 / 时间 / 原因。空态「暂无其他在线送水工」；不可接单提示「该送水工当前不可接单」。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>完成配送为<strong>硬校验</strong>（照片 ≥ 1 张 + 收款方式必选），未满足不得提交；送达即完成，不得出现「待确认收货」中间态。</p>
+        <p>送水工端<strong>完全不出现强调橙</strong>：主操作「开始配送 / 完成配送」走品牌蓝（暗色 <code>--d-primary</code>），禁用态置灰，异常用 error 色。</p>
+        <p><strong>规划中缺口：</strong>转单 F-ORD-028（G84，规划中，chip-plan）；一键导航 F-ORD-029（G85，地图已具备 / 唤起导航未集成，chip-partial）。两处目标形态以 <code>.tag-goal</code> 标注。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

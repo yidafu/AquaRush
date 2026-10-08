@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 订单统计｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 数据统计 / 订单统计</h1>
+      <p class="sub">功能编号 F-STA-005 ｜ 统计与数据域 ｜ 下游：无（只读统计分析）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-STA-005</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plan">导出 规划中</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <div>
+        <div class="browser-cap">状态一 · 订单统计（六卡 + 柱线叠加趋势 + 状态/时段分布 + 维度拆分）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/statistics/orders</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">数据统计 <span class="crumb-sep">/</span> <b>订单统计</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>订单统计</h2>
+                    <div class="desc">订单数按下单时间归属，营收按完成时间归属；三分析卡无数据仍渲染真实 0 值图表</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost disabled">导出</span>
+                    <span class="tag tag-goal"></span>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem">
+                    <span>时间范围</span>
+                    <div class="row gap1">
+                      <span class="btn xs ghost">今日</span>
+                      <span class="btn xs ghost">本周</span>
+                      <span class="btn xs secondary">本月</span>
+                      <span class="btn xs ghost">自定义</span>
+                    </div>
+                  </div>
+                  <div class="fitem"><span>自定义区间</span><div class="input" style="width:196px"><span>2026-09-01 ~ 2026-09-30</span></div></div>
+                  <div class="fitem"><span>日期粒度</span><div class="select" style="width:120px"><span>按日</span></div></div>
+                  <div class="fitem"><span>订单状态</span><div class="select" style="width:132px"><span>全部</span></div></div>
+                  <div class="fitem"><span>配送区域</span><div class="select" style="width:132px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">查询</span>
+                  </div>
+                </div>
+
+                <div class="stat-grid c3">
+                  <div class="stat-card">
+                    <div class="lbl">订单总数</div>
+                    <div class="val">486 <small>单</small></div>
+                    <div class="delta up">▲ +12.40% 较上期</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">完成率</div>
+                    <div class="val">64.20 <small>%</small></div>
+                    <div class="delta up">▲ +1.60% 较上期</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">取消率</div>
+                    <div class="val">3.70 <small>%</small></div>
+                    <div class="delta down">▼ -0.40% 较上期</div>
+                  </div>
+                </div>
+
+                <div class="stat-grid c3 mt3">
+                  <div class="stat-card">
+                    <div class="lbl">退款率</div>
+                    <div class="val">2.18 <small>%</small></div>
+                    <div class="delta up">▲ +0.20% 较上期</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">平均履约时长</div>
+                    <div class="val">28.6 <small>分钟</small></div>
+                    <div class="delta down">▼ -1.20% 较上期</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">已完成订单</div>
+                    <div class="val">312 <small>单</small></div>
+                    <div class="delta up">▲ +10.80% 较上期</div>
+                  </div>
+                </div>
+
+                <!-- 订单量趋势：柱状 + 折线叠加 -->
+                <div class="chart-box mt3">
+                  <div class="cb-head">
+                    <span class="cb-title">订单与营收趋势</span>
+                    <div class="chart-legend">
+                      <span><i style="background:var(--brand)"></i>订单数（单）</span>
+                      <span><i style="background:var(--brand-dark)"></i>营收（¥）</span>
+                    </div>
+                  </div>
+                  <div style="position:relative">
+                    <div class="bars">
+                      <div class="bar-col"><div class="bar" style="height:58%"></div><span class="x">09-24</span></div>
+                      <div class="bar-col"><div class="bar" style="height:72%"></div><span class="x">09-25</span></div>
+                      <div class="bar-col"><div class="bar" style="height:44%"></div><span class="x">09-26</span></div>
+                      <div class="bar-col"><div class="bar" style="height:86%"></div><span class="x">09-27</span></div>
+                      <div class="bar-col"><div class="bar" style="height:68%"></div><span class="x">09-28</span></div>
+                      <div class="bar-col"><div class="bar" style="height:94%"></div><span class="x">09-29</span></div>
+                      <div class="bar-col"><div class="bar" style="height:80%"></div><span class="x">09-30</span></div>
+                    </div>
+                    <svg viewBox="0 0 640 168" preserveAspectRatio="none" style="position:absolute;left:0;right:0;top:0;height:168px;width:100%;pointer-events:none">
+                      <polyline fill="none" stroke="var(--brand-dark)" stroke-width="2.5" points="46,92 137,78 229,98 320,58 411,80 503,44 594,64"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="grid2 mt3">
+                  <!-- 订单状态分布 -->
+                  <div class="chart-box">
+                    <div class="cb-head">
+                      <span class="cb-title">订单状态分布</span>
+                      <span class="f-note t-sub">合计 486 单</span>
+                    </div>
+                    <div class="hbar">
+                      <div class="hr"><span class="nm">已完成</span><span class="track"><span class="fill" style="width:64%"></span></span><span class="vl">312 单</span></div>
+                      <div class="hr"><span class="nm">配送中</span><span class="track"><span class="fill" style="width:14%"></span></span><span class="vl">68 单</span></div>
+                      <div class="hr"><span class="nm">待派单</span><span class="track"><span class="fill" style="width:9%"></span></span><span class="vl">46 单</span></div>
+                      <div class="hr"><span class="nm">待付款</span><span class="track"><span class="fill" style="width:9%"></span></span><span class="vl">42 单</span></div>
+                      <div class="hr"><span class="nm">已取消</span><span class="track"><span class="fill" style="width:4%"></span></span><span class="vl">18 单</span></div>
+                      <div class="hr"><span class="nm">已退款</span><span class="track"><span class="fill" style="width:2%"></span></span><span class="vl">10 单</span></div>
+                    </div>
+                  </div>
+
+                  <!-- 客单价分布 -->
+                  <div class="chart-box">
+                    <div class="cb-head">
+                      <span class="cb-title">客单价分布</span>
+                      <span class="f-note t-sub">各区间合计 = 订单总数</span>
+                    </div>
+                    <div class="hbar">
+                      <div class="hr"><span class="nm">0-20 元</span><span class="track"><span class="fill" style="width:12%"></span></span><span class="vl">58 单</span></div>
+                      <div class="hr"><span class="nm">20-50 元</span><span class="track"><span class="fill" style="width:100%"></span></span><span class="vl">196 单</span></div>
+                      <div class="hr"><span class="nm">50-100 元</span><span class="track"><span class="fill" style="width:82%"></span></span><span class="vl">148 单</span></div>
+                      <div class="hr"><span class="nm">100-200 元</span><span class="track"><span class="fill" style="width:36%"></span></span><span class="vl">62 单</span></div>
+                      <div class="hr"><span class="nm">200+ 元</span><span class="track"><span class="fill" style="width:12%"></span></span><span class="vl">22 单</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 高峰时段分析 -->
+                <div class="chart-box mt3">
+                  <div class="cb-head">
+                    <span class="cb-title">高峰时段分析（0-23 时）</span>
+                    <span class="f-note t-sub">高峰时段: 17 时（96 单）</span>
+                  </div>
+                  <div class="bars">
+                    <div class="bar-col"><div class="bar" style="height:5%"></div><span class="x">00</span></div>
+                    <div class="bar-col"><div class="bar" style="height:3%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:2%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:2%"></div><span class="x">03</span></div>
+                    <div class="bar-col"><div class="bar" style="height:3%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:8%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:18%"></div><span class="x">06</span></div>
+                    <div class="bar-col"><div class="bar" style="height:38%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:62%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:78%"></div><span class="x">09</span></div>
+                    <div class="bar-col"><div class="bar" style="height:92%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:88%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:70%"></div><span class="x">12</span></div>
+                    <div class="bar-col"><div class="bar" style="height:52%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:58%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:66%"></div><span class="x">15</span></div>
+                    <div class="bar-col"><div class="bar" style="height:80%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:100%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:84%"></div><span class="x">18</span></div>
+                    <div class="bar-col"><div class="bar" style="height:62%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:40%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:24%"></div><span class="x">21</span></div>
+                    <div class="bar-col"><div class="bar" style="height:12%"></div><span class="x"></span></div>
+                    <div class="bar-col"><div class="bar" style="height:7%"></div><span class="x"></span></div>
+                  </div>
+                </div>
+
+                <!-- 商品 / 区域维度拆分 -->
+                <div class="ant-table mt3">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:96px">维度</th>
+                        <th>名称</th>
+                        <th class="num">订单数</th>
+                        <th class="num">营收</th>
+                        <th class="num">占比</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><span class="tag tag-brand">商品</span></td>
+                        <td class="bold">怡宝 饮用纯净水 18.9L</td>
+                        <td class="num">128</td>
+                        <td class="num bold">¥2,816.00</td>
+                        <td class="num">26.34%</td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-brand">商品</span></td>
+                        <td class="bold">农夫山泉 天然水 19L</td>
+                        <td class="num">96</td>
+                        <td class="num bold">¥2,688.00</td>
+                        <td class="num">19.75%</td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-neutral">区域</span></td>
+                        <td class="bold">高新区 · 科技园站</td>
+                        <td class="num">154</td>
+                        <td class="num bold">¥9,240.00</td>
+                        <td class="num">31.69%</td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-neutral">区域</span></td>
+                        <td class="bold">江北区 · 滨江站</td>
+                        <td class="num">112</td>
+                        <td class="num bold">¥6,780.00</td>
+                        <td class="num">23.05%</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 2 个维度 ｜ 8 条拆分记录</span>
+                    <div class="pager">
+                      <i>‹</i><i class="on">1</i><i>2</i><i>›</i>
+                      <span class="t-sub" style="margin-left:8px">20 条/页</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>左侧菜单「数据统计 → 订单统计」；路由 <code>statistics/orders</code></p>
+        <p><strong>跳转：</strong>无（只读）</p>
+        <p><strong>权限：</strong><code>PERMISSION_STATISTICS_READ</code>；导出 <code>PERMISSION_STATISTICS_EXPORT</code>（目标形态）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>筛选区：时间范围（今日 / 本周 / 本月 / 自定义）+ 日期粒度 + 订单状态 + 配送区域 + 导出</li>
+          <li>KPI 第一行（三卡）：订单总数 / 完成率 / 取消率</li>
+          <li>KPI 第二行（三卡）：退款率 / 平均履约时长 / 已完成订单</li>
+          <li>订单与营收趋势：柱状（订单数）+ 折线（营收）叠加</li>
+          <li>分析区两列：订单状态分布（.hbar）· 客单价分布（.hbar）</li>
+          <li>高峰时段分析（.bars，0-23 时）· 商品/区域维度拆分表格</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>图表规格</h3>
+        <p><strong>图表类型：</strong>柱状 + 折线叠加（订单与营收趋势）· 横向条形（状态/客单价分布）· 柱状（高峰时段 0-23 时）</p>
+        <p><strong>X-Y 轴：</strong>趋势 X = 日/周 MM-DD、月 YYYY-MM，左 Y = 订单数（单）、右 Y = 营收（¥）；时段 X = 小时 0-23、Y = 订单创建量</p>
+        <p><strong>指标口径：</strong>订单数按 <code>created_at</code>；营收按已完成订单金额（<code>completed_at</code>）；状态 = 所选范围全部订单按态聚合（<code>OrderModelStatus.entries</code> 补零）；客单价按 <code>amountCents</code> 分桶只计一次；时段按 <code>created_at</code> 小时聚合（Asia/Shanghai）</p>
+        <p><strong>时间范围：</strong>今日 / 本周 / 本月 / 自定义；粒度联动（日=近 30 天、周=近 12 周、月=近 1 年）</p>
+        <p><strong>导出：</strong>无（目标形态，<code>PERMISSION_STATISTICS_EXPORT</code>）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>默认「按日」+ 近 30 天；切换粒度重置时间范围并 refetch</li>
+          <li>三分析卡随汇总查询一并下发，随粒度 / 时间范围联动刷新</li>
+          <li>高峰柱显示最大小时并标注「高峰时段: X 时 (n 单)」</li>
+          <li>空态：卡片 0、折线无数据点；三分析卡仍渲染真实 0 值图表，不用空态占位</li>
+          <li>失败「加载失败: {error.message}」</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：柱状品牌蓝 <code>var(--brand)</code>，折线用深湖蓝 <code>var(--brand-dark)</code> 以区分双系列。</p>
+        <p>「已完成订单」卡必须取 <code>completedOrders</code>，<strong>不得复用 <code>totalOrders</code></strong>；营收总额仅计已完成订单。</p>
+        <p>三分析卡无数据时仍渲染真实 0 值图表；金额统一「元」两位小数。</p>
+        <p><span class="tag tag-goal"></span> 统计导出：按当前筛选与粒度生成文件。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

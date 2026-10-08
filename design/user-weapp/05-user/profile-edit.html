@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 资料编辑｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 资料编辑</h1>
+      <p class="sub">功能编号 F-USR-003 ｜ 用户与账户域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 上游：「我的」页用户区</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-USR-003</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 状态一：编辑资料 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 编辑资料（正常态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">编辑资料</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells mt2">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">头像</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">
+                    <span class="weui-media-box__thumb weui-media-box__thumb--sm" style="border-radius:50%">头像</span>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label">昵称</div></div>
+                  <div class="weui-cell__bd"><div class="weui-input">林小满</div></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">性别</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">男</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">手机号</div>
+                  <div class="weui-cell__ft" style="color:var(--weui-FG-2)">138****6688</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">生日</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">1995-08-16</div>
+                </div>
+              </div>
+              <div class="weui-cells__tips">手机号不可修改，如需更换请联系客服；点击头像可更换头像（相册 / 拍照）。</div>
+            </div>
+
+            <div class="weui-btn_area">
+              <span class="weui-btn weui-btn_primary flex1">保存</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 状态二：保存中 + 保存成功 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 保存成功（Toast 反馈）</span>
+      <div class="phone mp viewport">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">编辑资料</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells mt2">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">头像</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">
+                    <span class="weui-media-box__thumb weui-media-box__thumb--sm" style="border-radius:50%">头像</span>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label">昵称</div></div>
+                  <div class="weui-cell__bd"><div class="weui-input">林小满</div></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">性别</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">男</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">手机号</div>
+                  <div class="weui-cell__ft" style="color:var(--weui-FG-2)">138****6688</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="weui-btn_area">
+              <span class="weui-btn weui-btn_primary weui-btn_disabled flex1">正在保存...</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+          <div class="weui-toast">
+            <svg class="weui-toast__icon" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <div class="weui-toast__text">保存成功</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x；表单用官方 <code>.weui-cells</code> + <code>.weui-cell</code>，输入用 <code>.weui-input</code>，选择箭头用 <code>.weui-cell__ft_in-access</code>，反馈用官方 <code>.weui-toast</code>。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code>（二级页）+ <code>.weui-cell</code>（<code>__bd</code> / <code>__ft_in-access</code>）+ <code>.weui-media-box__thumb--sm</code>（48px 圆头像）+ <code>.weui-input</code> + <code>.weui-cells__tips</code> + <code>.weui-btn_area</code> / <code>.weui-btn_primary</code> / <code>.weui-btn_disabled</code> + <code>.weui-toast</code>（含对勾图标）。</p>
+        <p><strong>度量：</strong>导航栏 44px、胶囊 87×32；单元格最小 56px、17px 主文字、行高 1.41；发丝线 0.5px 左缩 16px；头像 48px；按钮高 48px；Toast 136×136、圆角 12px。</p>
+        <p><strong>配色：</strong>交互主色品牌蓝；手机号只读为灰字（<code>--weui-FG-2</code>）；成功反馈 Toast 为深色半透明 + 白字；本页无金额、无强调橙。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序</p>
+        <p><strong>入口：</strong>「我的」页用户区弹头像昵称表单（仅头像昵称）；或独立 profile-edit 页（完整资料编辑）</p>
+        <p><strong>跳转：</strong>保存成功 1.5s 后 <code>navigateBack</code> 返回上一页</p>
+        <p><strong>数据：</strong>头像 avatarUrl、昵称 nickname、性别、手机号 phone（脱敏只读）、生日</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏（二级页）：返回 + 标题「编辑资料」+ 右上微信胶囊</li>
+          <li>头像行：右侧 48px 圆头像 + 箭头（<code>.weui-cell__ft_in-access</code>）</li>
+          <li>昵称输入（<code>.weui-input</code>，2-20 字符）</li>
+          <li>性别选择（箭头：「男」）</li>
+          <li>手机号只读（脱敏灰字，不可改）</li>
+          <li>生日选择（箭头：「1995-08-16」）</li>
+          <li>底部按钮区 <code>.weui-btn_area</code> 内 <code>.weui-btn_primary</code>「保存」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>未登录提示后返回；<strong>加载态：</strong>「加载中...」/ 保存「正在保存...」（状态二按钮 <code>.weui-btn_disabled</code>）；<strong>错误态：</strong>校验错误行内展示 + Toast「请修正表单错误」；<strong>禁用态：</strong>无修改时「保存」置灰，loading 期间表单禁用。</p>
+        <p><strong>校验文案：</strong>「请输入昵称」「昵称至少2个字符」「昵称不能超过20个字符」「昵称只能包含中文、英文、数字、下划线和空格」「请输入手机号」「请输入正确的手机号格式」「没有修改内容」「保存成功」「请先登录」「请修正表单错误」「正在保存...」。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>Web 风旧组件（表单行 / 单选行 / 卡片 / 缩略图 / 底部操作栏 / 遮罩弹层等旧类名）一律禁用，全部以 WeUI 等价类实现。</p>
+        <p>手机号为只读态（灰字 <code>--weui-FG-2</code>），须有明确不可改说明；成功反馈用官方 <code>.weui-toast</code>（对勾 + 白字），非强调橙；触达行高 ≥ 44px；头像区不做卡通插画风占位。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 规格中的「账户信息只读区」（用户ID / 会员等级 / 余额 / 积分 / VIP 到期）因 UserInfo 接口字段已注释、可能为空，<strong>是否保留为开放问题</strong>，本稿暂不呈现；手机号键盘为数字键盘。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

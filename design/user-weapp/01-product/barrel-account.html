@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 水桶账户与退押｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 水桶账户与退押</h1>
+      <p class="sub">功能编号 F-PRO-010（规划中 · 2026-10 新增）｜ 商品域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 下游：退押申请（页内）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-PRO-010</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：桶账主页 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 有在租押金桶（正常态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">水桶账户</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells__title">桶账概览　<span class="weui-tag weui-tag--goal"></span></div>
+              <div class="weui-cells">
+                <div class="mp-statgrid">
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">3<span class="unit">桶</span></div>
+                    <div class="mp-statgrid__lbl">在租押金桶</div>
+                  </div>
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">1<span class="unit">桶</span></div>
+                    <div class="mp-statgrid__lbl">欠桶数</div>
+                  </div>
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num"><span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">90</span><span class="weui-price__dec">.00</span></span></div>
+                    <div class="mp-statgrid__lbl">押金合计</div>
+                  </div>
+                </div>
+              </div>
+              <div class="weui-cells__tips">在租押金桶（按规格）：18.9L 桶装水 2 桶 · 19L 桶装水 1 桶；欠桶数（应回收未回收）1 桶。</div>
+
+              <div class="weui-cells__title">押金记录</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div class="row between">
+                      <span>18.9L 桶装水</span>
+                      <span class="weui-tag weui-tag--green">已收取</span>
+                    </div>
+                    <div class="f-note t-sub mt2">押金 <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">30</span><span class="weui-price__dec">.00</span></span> · 关联订单 AQ20261008001</div>
+                    <div class="f-note t-weak" style="margin-top:4px">2026-10-08 14:20</div>
+                  </div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div class="row between">
+                      <span>19L 桶装水</span>
+                      <span class="weui-tag weui-tag--orange">待收取</span>
+                    </div>
+                    <div class="f-note t-sub mt2">押金 <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">30</span><span class="weui-price__dec">.00</span></span> · 关联订单 AQ20261008002</div>
+                    <div class="f-note t-weak" style="margin-top:4px">2026-10-08 15:05</div>
+                  </div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div class="row between">
+                      <span>18.9L 桶装水</span>
+                      <span class="weui-tag weui-tag--done">已退还</span>
+                    </div>
+                    <div class="f-note t-sub mt2">押金 <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">30</span><span class="weui-price__dec">.00</span></span> · 原路退回</div>
+                    <div class="f-note t-weak" style="margin-top:4px">2026-09-21 10:12</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-btn_area">
+                <span class="weui-btn weui-btn_primary flex1">申请退桶退押</span>
+              </div>
+
+              <div class="weui-cells__title">退押申请记录</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div class="row between">
+                      <span>18.9L · 退还 1 桶</span>
+                      <span class="weui-tag weui-tag--assign">待处理</span>
+                    </div>
+                    <div class="f-note t-sub mt2">回收地址：清水湾小区 3 号楼 2 单元</div>
+                    <div class="f-note t-weak" style="margin-top:4px">2026-10-08 15:30</div>
+                  </div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div class="row between">
+                      <span>19L · 退还 2 桶</span>
+                      <span class="weui-tag weui-tag--deliver">已回收</span>
+                    </div>
+                    <div class="f-note t-sub mt2">回收地址：清水湾小区 3 号楼 2 单元</div>
+                    <div class="f-note t-weak" style="margin-top:4px">2026-09-20 09:40</div>
+                  </div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div class="row between">
+                      <span>18.9L · 退还 1 桶</span>
+                      <span class="weui-tag weui-tag--done">已退还</span>
+                    </div>
+                    <div class="f-note t-sub mt2">押金已原路退回</div>
+                    <div class="f-note t-weak" style="margin-top:4px">2026-09-21 10:12</div>
+                  </div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div class="row between">
+                      <span>19L · 退还 1 桶</span>
+                      <span class="weui-tag weui-tag--cancel">已驳回</span>
+                    </div>
+                    <div class="f-note t-sub mt2">驳回原因：空桶破损，按规则扣减</div>
+                    <div class="f-note t-weak" style="margin-top:4px">2026-09-05 18:00</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：退押申请半屏表单 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 申请退桶退押（半屏表单）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">水桶账户</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells__title">桶账概览　<span class="weui-tag weui-tag--goal"></span></div>
+              <div class="weui-cells">
+                <div class="mp-statgrid">
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">3<span class="unit">桶</span></div>
+                    <div class="mp-statgrid__lbl">在租押金桶</div>
+                  </div>
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">1<span class="unit">桶</span></div>
+                    <div class="mp-statgrid__lbl">欠桶数</div>
+                  </div>
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num"><span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">90</span><span class="weui-price__dec">.00</span></span></div>
+                    <div class="mp-statgrid__lbl">押金合计</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">押金记录</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div class="row between">
+                      <span>18.9L 桶装水</span>
+                      <span class="weui-tag weui-tag--green">已收取</span>
+                    </div>
+                    <div class="f-note t-sub mt2">押金 <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">30</span><span class="weui-price__dec">.00</span></span> · 关联订单 AQ20261008001</div>
+                    <div class="f-note t-weak" style="margin-top:4px">2026-10-08 14:20</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+          <!-- 退押申请半屏表单 -->
+          <div class="weui-mask"></div>
+          <div class="weui-half">
+            <div class="weui-half__hd">
+              <span class="weui-half__title">申请退桶退押</span>
+              <span class="weui-half__close"></span>
+            </div>
+            <div class="weui-half__bd">
+
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="weui-label weui-label--req">水桶规格</span></div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">18.9L 桶装水</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="weui-label weui-label--req">退还桶数</span></div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-stepper">
+                      <span class="weui-stepper__btn">−</span>
+                      <span class="weui-stepper__num">1</span>
+                      <span class="weui-stepper__btn">+</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="weui-label weui-label--req">回收地址</span></div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">清水湾小区 3 号楼 2 单元 601</div>
+                </div>
+              </div>
+              <div class="weui-cells__tips">退还桶数不能超过在租押金桶数（在租 2 桶，最多可退 2 桶）。</div>
+
+              <div class="weui-cells__title">备注</div>
+              <div class="weui-cells">
+                <textarea class="weui-textarea" placeholder="选填，如：请周末上门回收"></textarea>
+                <div class="weui-textarea__counter">0/100</div>
+              </div>
+
+              <div class="weui-cells mt2">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">退还押金（1 桶）</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">30</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">预计退回</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">30</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+              </div>
+              <div class="weui-cells__tips">空桶完好全额退押，损坏 / 缺失按规则扣减，不计入营收。</div>
+
+              <div class="weui-btn_area">
+                <span class="weui-btn weui-btn_primary flex1">提交申请</span>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 暂无押金桶（空态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">水桶账户</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>
+                </div>
+                <div class="weui-empty__text">暂无押金桶<br>下单押金桶后，可在此查看桶账并申请退押</div>
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">去订水</span>
+              </div>
+
+            </div>
+
+            <div class="weui-btn_area">
+              <span class="weui-btn weui-btn_primary weui-btn_disabled flex1">申请退桶退押</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（目标形态）</p>
+        <p><strong>入口：</strong>我的页「我的资产 → 水桶账户」；退押申请流程为页内</p>
+        <p><strong>跳转：</strong>提交退押申请 → 生成退押申请记录（待处理）；门店 / 送水工上门回收</p>
+        <p><strong>口径：</strong>入口文案由「一次性购买塑料水桶」统一为「押金桶 / 水桶账户」（现状 barrel-shop / barrel-mine 语义不一致）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部：<code>.mp-status</code> + 白底二级页 <code>.mp-nav</code>（带 <code>.mp-nav__back</code> + 微信胶囊）</li>
+          <li>桶账概览：<code>.mp-statgrid</code>（在租押金桶 / 欠桶数 / 押金合计，金额用 <code>.weui-price--sm</code>）</li>
+          <li>押金记录：<code>.weui-cells__title</code> + <code>.weui-cells</code>（规格 / 押金 <code>.weui-price</code> / 状态 <code>.weui-tag--*</code> / 时间 / 关联订单）</li>
+          <li>主操作：<code>.weui-btn_area</code> 内 <code>.weui-btn_primary</code>「申请退桶退押」</li>
+          <li>退押申请记录：<code>.weui-cells</code>（待处理 / 已回收 / 已退还 / 已驳回）</li>
+          <li>退押申请表单：<code>.weui-mask</code> + <code>.weui-half</code>（规格 + 退还桶数 <code>.weui-stepper</code> + 回收地址 + <code>.weui-textarea</code> 备注 + 提交）</li>
+          <li>空态：<code>.weui-empty</code>「暂无押金桶」，主操作禁用</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互与状态</h3>
+        <ol>
+          <li>进入页面加载桶账与押金记录（R-AUTH-02 仅本人）</li>
+          <li>「申请退桶退押」→ 半屏表单选规格与退还桶数（≤ 在租桶数）→ 提交 → 生成待处理申请</li>
+          <li>上门回收空桶并登记数量 → 状态「已回收」</li>
+          <li>后台确认退还 → 押金原路退回（记 DEPOSIT_REFUND，不计营收）→ 状态「已退还」，桶账与记录同步更新</li>
+        </ol>
+        <p><strong>空态：</strong>「暂无押金桶」（无在租）/「暂无押金记录」；<strong>加载态：</strong>列表 loading；<strong>错误态：</strong>提交 / 加载失败 toast。</p>
+        <p><strong>禁用态：</strong>在租桶数为 0 时「申请退桶退押」用 <code>.weui-btn_disabled</code> 不可点。<strong>状态机：</strong>待处理 → 已回收 → 已退还 / 已驳回；退还以押金记录状态幂等防重复。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>数据格：</strong><code>.mp-statgrid</code> 三等分列，数值 <code>.mp-statgrid__num</code> 19px / 标签 12px 灰，列间 0.5px 竖发丝线；金额用 <code>.weui-price--sm</code> 15px 红。</p>
+        <p><strong>列表：</strong><code>.weui-cells</code> 主文字 17px / 行高 1.41 、内缩 16px、行间 0.5px 发丝线；纵向单元格 <code>.weui-cell_vertical</code> 用于「规格 + 状态 + 金额 + 时间」多行。</p>
+        <p><strong>标签：</strong>押金状态 <code>.weui-tag--green</code>（已收取）/ <code>--orange</code>（待收取）/ <code>--done</code>（已退还）；申请状态 <code>--assign</code>（待处理）/ <code>--deliver</code>（已回收）/ <code>--done</code>（已退还）/ <code>--cancel</code>（已驳回）。</p>
+        <p><strong>表单：</strong><code>.weui-label--req</code> 必填红星；<code>.weui-stepper</code> 高 28px；<code>.weui-textarea</code> 最小高 96px / 白底内缩 16px + <code>.weui-textarea__counter</code> 右对齐计数。</p>
+        <p><strong>弹层与按钮：</strong><code>.weui-mask</code> + <code>.weui-half</code>（圆角 12px、max-height 78%）；按钮区 <code>.weui-btn_area</code>，主按钮 <code>.weui-btn_primary</code> 高 48px / 圆角 8px。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>交互主色统一品牌蓝 <code>--weui-BRAND</code>；金额用微信电商红 <code>#FA5151</code>；危险用 <code>--weui-RED</code>；成功 / 配送中用 <code>--weui-GREEN</code>。本页不使用强调橙 <code>--action</code>。</p>
+        <p><strong>R-MON-01：</strong>金额以分计、展示为元两位小数，统一走 <code>.weui-price</code>，不手拼 ¥。</p>
+        <p><strong>R-AUTH-02：</strong>仅返回本人数据、他人数据不可见；退押不计入营收 / 退款统计（独立押金账本 DEPOSIT_REFUND）。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 目标形态：用户端「水桶账户」页与「退押申请」入口未实现；缺口 <strong>G75</strong>；开放问题：退押损坏 / 缺失扣减规则、退押空桶上门方式。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 订单评价｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 订单评价</h1>
+      <p class="sub">功能编号 F-ORD-007 ｜ 订单域 ｜ 入口：已完成订单详情「评价」</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-007</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：填写评价 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 待评价（填写态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">评价</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 送水工信息 + 商品行 -->
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd">
+                    <svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
+                  </div>
+                  <div class="weui-cell__bd">
+                    <div class="f-body bold">王师傅</div>
+                    <div class="f-note t-sub mt2">清水湾直营店 · 送水工</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--done">已完成</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__title">怡宝 饮用纯净水 18.9L</div>
+                    <div class="weui-media-box__desc">规格 18.9L／桶 · 订单号 AQ20261008003</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 星级评分（选中态品牌蓝，非价格红） -->
+              <div class="weui-cells__title row between"><span>配送评分</span><span>非常满意</span></div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="row gap2" style="color:var(--weui-BRAND)">
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83z"/></svg>
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83z"/></svg>
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83z"/></svg>
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83z"/></svg>
+                    <svg width="30" height="30" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83z"/></svg>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 评价标签多选 -->
+              <div class="weui-cells__title row between"><span>评价标签</span><span>可多选</span></div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="row wrap gap2">
+                    <span class="weui-tag weui-tag--md weui-tag--brand">送达及时</span>
+                    <span class="weui-tag weui-tag--md weui-tag--brand">服务态度好</span>
+                    <span class="weui-tag weui-tag--md weui-tag--brand">着装整洁</span>
+                    <span class="weui-tag weui-tag--md weui-tag--outline">搬运小心</span>
+                    <span class="weui-tag weui-tag--md weui-tag--outline">沟通顺畅</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 文字评论 -->
+              <div class="weui-cells__title">评价内容</div>
+              <div class="weui-cells">
+                <div class="weui-textarea"><span style="color:var(--weui-FG-2)">分享这次送水体验，帮助其他用户参考（≤500 字）</span></div>
+                <div class="weui-textarea__counter">0/500</div>
+              </div>
+
+              <!-- 匿名开关 -->
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_switch">
+                  <div class="weui-cell__bd">
+                    <div>匿名评价</div>
+                    <div class="f-note t-weak mt2">开启后对送水工隐藏你的身份信息</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-switch on"></span></div>
+                </div>
+              </div>
+
+              <div class="weui-btn_area">
+                <span class="weui-btn weui-btn_primary flex1">提交评价</span>
+              </div>
+
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：已评价回显 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 已评价（只读回显）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">订单详情</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells mt3">
+                <div class="weui-cell weui-cell_vertical">
+                  <div><span class="weui-tag weui-tag--md weui-tag--done">已完成</span></div>
+                  <div class="f-body mt2">订单已完成，感谢惠顾</div>
+                  <div class="f-note t-sub mt2">完成时间 2026-10-08 10:02</div>
+                </div>
+              </div>
+
+              <div class="weui-notice weui-notice--brand mt3">
+                <svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg>
+                <span class="ellipsis">该订单已评价，评价内容不可修改</span>
+              </div>
+
+              <!-- 只读评价卡 -->
+              <div class="weui-cells__title row between"><span>我的评价</span><span class="weui-tag weui-tag--outline">匿名</span></div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="row between">
+                    <div class="row gap2" style="color:var(--weui-BRAND)">
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83z"/></svg>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83z"/></svg>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83z"/></svg>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83z"/></svg>
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.55 5.17 5.7.83-4.13 4.02.98 5.68L12 16.62l-5.1 2.68.98-5.68L3.75 9.6l5.7-.83z"/></svg>
+                    </div>
+                    <span class="f-note t-weak">2026-10-08 12:20</span>
+                  </div>
+                  <div class="row wrap gap2 mt3">
+                    <span class="weui-tag weui-tag--md weui-tag--brand">送达及时</span>
+                    <span class="weui-tag weui-tag--md weui-tag--brand">服务态度好</span>
+                    <span class="weui-tag weui-tag--md weui-tag--brand">着装整洁</span>
+                  </div>
+                  <div class="f-aux t-main mt3">师傅很准时，水桶帮忙放到门口，服务态度很好，下次还找这家。</div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">订单信息</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">订单编号</div>
+                  <div class="weui-cell__ft"><span style="font-variant-numeric:tabular-nums">AQ20261008003</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">配送人</div>
+                  <div class="weui-cell__ft">王师傅</div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <span class="weui-btn weui-btn_primary flex1">再次购买</span>
+              <span class="weui-btn weui-btn_default flex1">继续购物</span>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x，样式来自 <code>assets/weui.css</code>；主题色经 <code>--weui-BRAND</code> 注入品牌蓝 <code>#3A9BD9</code>，灰阶 / 发丝线 / 排版刻度沿用微信官方值。</p>
+        <p><strong>关键度量：</strong>导航栏 44px + 右上胶囊 87×32；星标 30px（只读 20px）；标签芯片 <code>.weui-tag--md</code> 高 22px；开关 51×31；文本域最小高 96px、字数计数右对齐 14px。</p>
+        <p><strong>价格：</strong>本屏无金额。<strong>星级用品牌蓝</strong>（选中态），<strong>不使用价格红</strong>，避免与金额语义混淆。</p>
+        <p><strong>用色：</strong>交互主色品牌蓝（导航 / 星级 / 选中标签 / 主按钮）；未选中标签用 <code>.weui-tag--outline</code>；本屏未使用强调橙。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序</p>
+        <p><strong>功能：</strong>F-ORD-007 订单评价（已实现，一单一评、不可修改）。</p>
+        <p><strong>入口：</strong>已完成订单详情「评价」。</p>
+        <p><strong>跳转：</strong>提交成功 → 返回订单详情并展示已评内容。</p>
+        <p><strong>数据：</strong>订单号、送水工信息、评分（1-5）、评论（≤500 字）、匿名标记、是否可评（orderReviewCheck）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>送水工信息 + 商品行（<code>.weui-cells</code>）：头像 / 姓名 / 门店 · 送水工；缩略图 + 名称 + 规格</li>
+          <li>星级评分（1-5 星，点选，5 星为「非常满意」，内联 SVG 星选中态品牌蓝）</li>
+          <li>评价标签多选（<code>.weui-tag</code> 芯片，选中 <code>.weui-tag--brand</code>）</li>
+          <li>文字评论 <code>.weui-textarea</code>（≤500 字）+ <code>.weui-textarea__counter</code> 计数</li>
+          <li>匿名开关 <code>.weui-cell_switch</code> + <code>.weui-switch</code>（开启后对送水工隐藏身份）</li>
+          <li><code>.weui-btn_area</code> 内「提交评价」主按钮</li>
+          <li>已评价态：订单详情内只读展示已评星级、标签与文字</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>已完成订单 → 点「评价」→ 进入评价页</li>
+          <li>选星 / 填文字 / 开匿名 → 提交（createReview）</li>
+          <li>提交成功 → 计入送水工评分 → 返回订单详情展示评价内容</li>
+          <li>已评价订单再次进入 → 只读展示已评内容，不可修改（R-EVL-01）</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>状态与规则 / 设计要点</h3>
+        <p><strong>加载态：</strong>提交中按钮 loading；<strong>错误态：</strong>提交失败 toast。</p>
+        <p><strong>禁用态：</strong>非已完成 / 已评价订单评价入口隐藏。</p>
+        <p><strong>校验：</strong>未选评分提示「请选择评分」；已评价提示「该订单已评价」。</p>
+        <p><strong>设计要点：</strong>评论 ≤500 字且实时计数；匿名评价对送水工隐藏用户身份；评分实时计入送水工统计；星级使用品牌蓝而非价格红；一单一评、不可修改，提交后必须能即时反馈。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

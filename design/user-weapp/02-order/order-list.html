@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 我的订单｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 我的订单</h1>
+      <p class="sub">功能编号 F-ORD-002 ｜ 订单域 ｜ 下游：订单详情 / 确认订单 / 在线支付 / 评价</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-002</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip">F-ORD-025</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">缺口 G76</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：订单列表（5 状态卡） ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 订单列表（全部 Tab）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__title">我的订单</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 状态 Tabs -->
+              <div class="weui-tabs hair-b">
+                <span class="weui-tabs__item on">全部</span>
+                <span class="weui-tabs__item">待付款</span>
+                <span class="weui-tabs__item">待配送</span>
+                <span class="weui-tabs__item">配送中</span>
+                <span class="weui-tabs__item">已完成</span>
+              </div>
+
+              <!-- 1. 待付款 -->
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="f-body bold">清水湾直营店</div>
+                    <div class="f-note t-weak mt2">订单号 AQ20261008001</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--pay">待付款</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__title">怡宝 饮用纯净水 18.9L</div>
+                    <div class="weui-media-box__desc">规格 18.9L／桶</div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span>
+                      <span class="f-note t-sub">× 2</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="f-note" style="color:var(--weui-ORANGE)">支付剩余 28:45，超时将自动取消</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="f-note t-sub">2026-10-08 09:12</span></div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">实付</span><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">66</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd ellipsis f-note t-sub">李静 138****6688 · 清水湾小区 3 号楼 2 单元</div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-btn weui-btn_plain-default weui-btn_xs">取消订单</span>
+                    <span class="weui-btn weui-btn_primary weui-btn_xs">立即支付</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. 待配送 -->
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="f-body bold">清水湾直营店</div>
+                    <div class="f-note t-weak mt2">订单号 AQ20261008002</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--assign">待配送</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__title">农夫山泉 天然水 19L</div>
+                    <div class="weui-media-box__desc">规格 19L／桶</div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">28</span><span class="weui-price__dec">.00</span></span>
+                      <span class="f-note t-sub">× 1</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="f-note t-sub">2026-10-08 08:40</span></div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">实付</span><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">28</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd ellipsis f-note t-sub">李静 138****6688 · 清水湾小区 3 号楼 2 单元</div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-btn weui-btn_plain-default weui-btn_xs">取消订单</span>
+                    <span class="weui-btn weui-btn_plain-default weui-btn_xs">查看详情</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 3. 配送中 -->
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="f-body bold">清水湾直营店</div>
+                    <div class="f-note t-weak mt2">订单号 AQ20261008003</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--deliver">配送中</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__title">娃哈哈 饮用纯净水 19L</div>
+                    <div class="weui-media-box__desc">规格 19L／桶</div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">20</span><span class="weui-price__dec">.00</span></span>
+                      <span class="f-note t-sub">× 3</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="f-note t-sub">2026-10-08 07:55</span></div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">实付</span><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">60</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd ellipsis f-note t-sub">李静 138****6688 · 清水湾小区 3 号楼 2 单元</div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-btn weui-btn_plain-default weui-btn_xs">查看详情</span>
+                    <span class="weui-btn weui-btn_plain-primary weui-btn_xs">催单</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 4. 已完成 -->
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="f-body bold">清水湾直营店</div>
+                    <div class="f-note t-weak mt2">订单号 AQ20261007008</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--done">已完成</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__title">景田 百岁山矿泉水 18.9L</div>
+                    <div class="weui-media-box__desc">规格 18.9L／桶</div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">35</span><span class="weui-price__dec">.00</span></span>
+                      <span class="f-note t-sub">× 2</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="f-note t-sub">2026-10-07 16:20</span></div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">实付</span><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">70</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd ellipsis f-note t-sub">李静 138****6688 · 清水湾小区 3 号楼 2 单元</div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-btn weui-btn_plain-default weui-btn_xs">评价</span>
+                    <span class="weui-tag weui-tag--goal"></span>
+                    <span class="weui-btn weui-btn_plain-primary weui-btn_xs">再次购买</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 5. 已退款 -->
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="f-body bold">清水湾直营店</div>
+                    <div class="f-note t-weak mt2">订单号 AQ20261006015</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--cancel">已退款</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__title">怡宝 饮用纯净水 18.9L</div>
+                    <div class="weui-media-box__desc">规格 18.9L／桶</div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span>
+                      <span class="f-note t-sub">× 1</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="f-note t-sub">2026-10-06 11:05</span></div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">退款</span><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd ellipsis f-note t-sub">李静 138****6688 · 清水湾小区 3 号楼 2 单元</div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-btn weui-btn_plain-primary weui-btn_xs">再次购买</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 加载更多 -->
+              <div class="weui-loadmore">
+                <span class="weui-loadmore__line"></span>
+                <span>没有更多订单了</span>
+                <span class="weui-loadmore__line"></span>
+              </div>
+
+            </div>
+
+            <div class="mp-tabbar hair-t">
+              <div class="mp-tab">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M10 20v-5h4v5"/></svg>
+                首页
+              </div>
+              <div class="mp-tab on">
+                <svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+                订单
+              </div>
+              <div class="mp-tab">
+                <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
+                我的
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 暂无订单（空态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__title">我的订单</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-tabs hair-b">
+                <span class="weui-tabs__item on">全部</span>
+                <span class="weui-tabs__item">待付款</span>
+                <span class="weui-tabs__item">待配送</span>
+                <span class="weui-tabs__item">配送中</span>
+                <span class="weui-tabs__item">已完成</span>
+              </div>
+
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+                </div>
+                <div class="weui-empty__text">暂无订单<br>下单后可在此查看订单与配送进度</div>
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">去逛逛</span>
+              </div>
+
+            </div>
+
+            <div class="mp-tabbar hair-t">
+              <div class="mp-tab">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M10 20v-5h4v5"/></svg>
+                首页
+              </div>
+              <div class="mp-tab on">
+                <svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+                订单
+              </div>
+              <div class="mp-tab">
+                <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
+                我的
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x，样式来自 <code>assets/weui.css</code>；主题色经 <code>--weui-BRAND</code> 注入品牌蓝 <code>#3A9BD9</code>，灰阶 / 发丝线 / 排版刻度沿用微信官方值。</p>
+        <p><strong>关键度量：</strong>导航栏 44px + 右上胶囊 87×32；原生 TabBar 高 50px、底 <code>#F7F7F7</code>、图标 27px、文字 10px；单元格 17px 主文字、内缩 16px 发丝线；Tab 选中项带品牌蓝短下划线（20×3px）。</p>
+        <p><strong>价格：</strong>所有金额用 <code>.weui-price</code>（微信电商红 <code>#FA5151</code>），符号 / 小数位缩放。</p>
+        <p><strong>用色：</strong>交互主色品牌蓝（导航 / TabBar / 主按钮）；订单状态一律 <code>.weui-tag--pay / --assign / --deliver / --done / --cancel</code>；本屏未使用强调橙（CTA 交品牌蓝承担）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序</p>
+        <p><strong>功能：</strong>F-ORD-002 订单列表（已实现）；「立即支付」F-ORD-005、「取消订单」F-ORD-006 入口；「再来一单」F-ORD-025（规划中，<span class="weui-tag weui-tag--goal"></span> 缺口 G76）。</p>
+        <p><strong>入口：</strong>「我的」页订单入口；下单成功跳转亦到达。</p>
+        <p><strong>跳转：</strong>点订单卡 → 订单详情；「立即支付」→ 支付发起；「再次购买 / 再来一单」→ 写 pendingOrder 跳确认订单页。</p>
+        <p><strong>数据：</strong>componentDidShow / 下拉刷新重载第一页，pageSize=10，触底加载下一页。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>状态 Tab（<code>.weui-tabs</code>）：全部 / 待付款 / 待配送 / 配送中 / 已完成（2026-10 已移除「待收货」Tab）</li>
+          <li>订单卡（<code>.weui-cells</code>）：门店名 + 订单号 + 状态标签（<code>.weui-tag--*</code>）</li>
+          <li>商品行（媒体项）：缩略图 + 名称 + 规格 + 优惠价 × 数量</li>
+          <li>下单时间 + 实付金额（<code>.weui-price</code>，精确到分）</li>
+          <li>收货人 + 电话 + 地址一行（截断展示，完整可查）</li>
+          <li>操作按钮组（<code>.weui-btn_xs</code>，按状态渲染）</li>
+          <li>列表尾「没有更多订单了」（<code>.weui-loadmore</code>）+ 原生 TabBar</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>切换 Tab 重置分页并按状态过滤；「待配送」口径 = 待派单 + 待配送；statuses 为空 = 全部</li>
+          <li>待付款 →「取消订单」+「立即支付」；待配送 →「取消订单」+「查看详情」</li>
+          <li>配送中 →「查看详情」+「催单」；已完成 →「评价」+「再次购买」</li>
+          <li>「立即支付」调 createOrderPayment；「取消订单」调真实 cancelOrder 后刷新；「再次购买」写 pendingOrder 跳确认页</li>
+          <li>触底加载下一页；加载中禁止重复拉取</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>状态与规则 / 设计要点</h3>
+        <p><strong>状态标签口径（7 态映射）：</strong>待付款 <code>.weui-tag--pay</code> / 待配送 <code>.weui-tag--assign</code> / 配送中 <code>.weui-tag--deliver</code> / 已完成 <code>.weui-tag--done</code> / 已退款 <code>.weui-tag--cancel</code>；已取消同样以 <code>.weui-tag--cancel</code> 在「全部」Tab 内呈现。</p>
+        <p><strong>送达即完成：</strong>配送中订单仅「查看详情 / 催单」；送达即完成并直接呈现「已完成」，不得出现「确认收货」中间态（R-ORD-11）。</p>
+        <p><strong>状态：</strong>空态「暂无订单」+「去逛逛」；加载态「加载中...」；错误态 toast「获取订单列表失败」。</p>
+        <p><strong>设计要点：</strong>卡片第一行订单号可截断但需完整可查；金额精确到分；<span class="weui-tag weui-tag--goal"></span>「再来一单」目标形态为读取历史 items + 地址快照 → 校验在售与库存 → 剔除失效商品并提示（缺口 G76），现状为最小实现（仅携带商品写 pendingOrder）；消费者端不做无限滚动长列表，仅分页 10 条/页。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

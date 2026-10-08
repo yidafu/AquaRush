@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 用户操作日志｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 日志管理 / 用户操作日志</h1>
+      <p class="sub">功能编号 F-LOG-002 ｜ 平台与日志域 ｜ 下游：无（行内「详情」弹抽屉）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-LOG-002</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plan">业务操作筛选 规划中</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：操作列表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 用户操作日志（组合筛选 + 分页，追溯三要素完整可读）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/logs/user-actions</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">日志管理 <span class="crumb-sep">/</span> <b>用户操作日志</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>用户操作日志</h2>
+                    <div class="desc">时间以服务端为准，前端仅本地化，不做时区换算；附加属性敏感键由后端剔除后落库</div>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>时间范围</span><div class="input" style="width:206px"><span>2026-10-08 00:00 ~ 2026-10-08 23:59</span></div></div>
+                  <div class="fitem"><span>操作人</span><div class="input" style="width:140px"><span class="ph">用户 ID / 用户名</span></div></div>
+                  <div class="fitem"><span>角色</span><div class="select" style="width:128px"><span>全部</span></div></div>
+                  <div class="fitem"><span>操作类型</span><div class="select" style="width:132px"><span>全部</span></div></div>
+                  <div class="fitem"><span>业务域</span><div class="select" style="width:128px"><span>全部</span></div></div>
+                  <div class="fitem"><span>结果</span><div class="select" style="width:112px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">搜索</span>
+                  </div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="white-space:nowrap">时间</th>
+                        <th>操作人</th>
+                        <th>角色</th>
+                        <th>业务域</th>
+                        <th>操作类型</th>
+                        <th>目标对象</th>
+                        <th>结果</th>
+                        <th>IP</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 11:20:05</td>
+                        <td>张**（1031）</td>
+                        <td>运营管理员</td>
+                        <td>商品</td>
+                        <td><span class="tag tag-warn">表单提交</span></td>
+                        <td class="ellipsis">商品「怡宝 18.9L」</td>
+                        <td><span class="tag tag-ok">成功</span></td>
+                        <td>10.24.18.55</td>
+                        <td><div class="ops"><a>详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 11:05:42</td>
+                        <td>超管（1）</td>
+                        <td>超级管理员</td>
+                        <td>系统设置</td>
+                        <td><span class="tag tag-warn">表单提交</span></td>
+                        <td class="ellipsis">配送费规则</td>
+                        <td><span class="tag tag-ok">成功</span></td>
+                        <td>10.24.18.2</td>
+                        <td><div class="ops"><a>详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 10:58:17</td>
+                        <td>王**（1008）</td>
+                        <td>客服</td>
+                        <td>订单</td>
+                        <td><span class="tag tag-ok">点击</span></td>
+                        <td class="ellipsis">订单 #20261008102</td>
+                        <td><span class="tag tag-ok">成功</span></td>
+                        <td>10.24.18.36</td>
+                        <td><div class="ops"><a>详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 10:44:30</td>
+                        <td>李**（1012）</td>
+                        <td>财务</td>
+                        <td>收银对账</td>
+                        <td><span class="tag tag-err">文件操作</span></td>
+                        <td class="ellipsis">对账导出（9 月）</td>
+                        <td><span class="tag tag-err">失败</span></td>
+                        <td>10.24.18.42</td>
+                        <td><div class="ops"><a>详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 10:31:09</td>
+                        <td>张**（1031）</td>
+                        <td>运营管理员</td>
+                        <td>营销</td>
+                        <td><span class="tag tag-brand">页面浏览</span></td>
+                        <td class="ellipsis">优惠券列表</td>
+                        <td><span class="tag tag-ok">成功</span></td>
+                        <td>10.24.18.55</td>
+                        <td><div class="ops"><a>详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 10:12:51</td>
+                        <td>超管（1）</td>
+                        <td>超级管理员</td>
+                        <td>系统设置</td>
+                        <td><span class="tag tag-neutral">搜索</span></td>
+                        <td class="ellipsis">关键词「配送费」</td>
+                        <td><span class="tag tag-ok">成功</span></td>
+                        <td>10.24.18.2</td>
+                        <td><div class="ops"><a>详情</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 5,124 条记录</span>
+                    <div class="pager">
+                      <i>‹</i><i class="on">1</i><i>2</i><i>3</i><i>…</i><i>›</i>
+                      <span class="t-sub" style="margin-left:8px">20 条/页</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：操作详情抽屉（变更前后对比） ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 操作详情抽屉（元素级信息 + 变更前后对比）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/logs/user-actions — 操作详情</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">日志管理 <span class="crumb-sep">/</span> <b>用户操作日志</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>用户操作日志</h2><div class="desc">抽屉打开态（背景遮罩）</div></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>时间</th><th>操作人</th><th>业务域</th><th>操作类型</th></tr></thead>
+                    <tbody>
+                      <tr><td>2026-10-08 11:20:05</td><td>张**（1031）</td><td>商品</td><td><span class="tag tag-warn">表单提交</span></td></tr>
+                      <tr><td>2026-10-08 11:05:42</td><td>超管（1）</td><td>系统设置</td><td><span class="tag tag-warn">表单提交</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask"></div>
+          <div class="drawer">
+            <div class="modal-head">操作详情
+              <span class="card-more" style="margin-left:auto"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+            </div>
+            <div class="modal-body">
+              <div class="desc-grid two">
+                <div class="desc-item"><div class="k">操作类型</div><div class="v"><span class="tag tag-warn">表单提交</span></div></div>
+                <div class="desc-item"><div class="k">业务域</div><div class="v">商品</div></div>
+                <div class="desc-item"><div class="k">用户 ID</div><div class="v num">1031</div></div>
+                <div class="desc-item"><div class="k">用户名</div><div class="v">张**</div></div>
+                <div class="desc-item"><div class="k">IP</div><div class="v">10.24.18.55</div></div>
+                <div class="desc-item"><div class="k">时间</div><div class="v">2026-10-08 11:20:05</div></div>
+                <div class="desc-item"><div class="k">页面 URL</div><div class="v">/products/12/edit</div></div>
+                <div class="desc-item"><div class="k">目标</div><div class="v">商品「怡宝 18.9L」</div></div>
+                <div class="desc-item"><div class="k">元素 ID</div><div class="v">#btn-save</div></div>
+                <div class="desc-item"><div class="k">元素类型</div><div class="v">button</div></div>
+                <div class="desc-item"><div class="k">元素文本</div><div class="v">保存</div></div>
+                <div class="desc-item"><div class="k">UserAgent</div><div class="v ellipsis">Chrome 126 / macOS</div></div>
+              </div>
+
+              <div class="section-title mt3">变更前后对比</div>
+              <div class="grid2">
+                <div class="card tint mb0">
+                  <div class="card-title sm mb2">变更前</div>
+                  <div class="cost-row"><span class="lbl">销售价</span><span class="amt">¥22.00</span></div>
+                  <div class="cost-row"><span class="lbl">库存</span><span class="amt">86</span></div>
+                  <div class="cost-row"><span class="lbl">状态</span><span class="amt">在售</span></div>
+                  <div class="cost-row"><span class="lbl">排序权重</span><span class="amt">100</span></div>
+                </div>
+                <div class="card mb0">
+                  <div class="card-title sm mb2">变更后</div>
+                  <div class="cost-row"><span class="lbl">销售价</span><span class="amt t-err bold">¥24.00</span></div>
+                  <div class="cost-row"><span class="lbl">库存</span><span class="amt t-err bold">64</span></div>
+                  <div class="cost-row"><span class="lbl">状态</span><span class="amt">在售</span></div>
+                  <div class="cost-row"><span class="lbl">排序权重</span><span class="amt">100</span></div>
+                </div>
+              </div>
+
+              <div class="field mt3 mb0">
+                <label>附加属性（properties）</label>
+                <div class="textarea" style="height:64px">{"source":"admin-client","module":"product-edit","changeType":"UPDATE"}</div>
+              </div>
+            </div>
+            <div class="modal-foot">
+              <span class="btn sm ghost">复制 JSON</span>
+              <span class="btn sm">关闭</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>左侧导航「日志管理 → 用户操作」；路由 <code>/logs/user-actions</code></p>
+        <p><strong>跳转：</strong>行内「详情」弹出抽屉；本页<strong>不提供</strong>用户时间线视图（时间线仅在业务日志页）</p>
+        <p><strong>权限：</strong><code>PERMISSION_LOG_READ</code></p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>筛选卡：时间范围 / 操作人 / 角色 / 操作类型 / 业务域 / 结果 + 搜索 / 重置</li>
+          <li>操作表格：时间 / 操作人 / 角色 / 业务域 / 操作类型 / 目标对象 / 结果 / IP / 操作</li>
+          <li>分页（默认 20/页）</li>
+          <li>操作详情抽屉：元素级信息 + 变更前后对比 + 附加属性</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>表格与字段</h3>
+        <p><strong>本页无图表</strong>（纯表格 + 抽屉）。</p>
+        <p><strong>操作类型配色：</strong>页面浏览 蓝 · 点击 绿 · 表单提交 橙 · 搜索 紫 · 分享 青 · 滚动 品红 · 文件操作 红；未命中枚举显示原值 + default 色。</p>
+        <p><strong>详情字段：</strong>操作类型 / 用户ID / 用户名 / IP / 页面URL / 目标 / 元素ID / 元素类型 / 元素文本 / UserAgent / 附加属性 / 时间。</p>
+        <p><strong>导出：</strong>无（如需导出为<strong>目标形态</strong>）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>进入页面按默认第 1 页 / 20 条请求并渲染列表与总数</li>
+          <li>选择操作类型 / 输入用户 / 选择时间范围（可组合）→ 搜索 → 回第 1 页重新请求</li>
+          <li>重置 → 清空全部筛选并回第 1 页</li>
+          <li>点击某行「详情」→ 抽屉展示元素级信息与变更前后对比</li>
+          <li>翻页 / 切换每页条数 → 按新分页重新请求</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>；操作类型 Tag 配色须稳定映射，新增后端自定义类型走 default 色并显示原值。</p>
+        <p>页面 URL / 目标 / UserAgent 超长须省略或滚动 + 复制；追溯三要素「操作人 + 时间 + 对象」须完整可读。</p>
+        <p>附加属性格式化 JSON 展示，敏感键被后端剔除后落库；时间不做时区换算。</p>
+        <p>请求失败现状仅 <code>console.error</code>（缺口 G74）；<span class="tag tag-goal"></span> 业务操作维度筛选（枚举映射，与当前前端行为枚举口径存在差异）、错误态前端提示、查询期间按钮禁用、导出。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

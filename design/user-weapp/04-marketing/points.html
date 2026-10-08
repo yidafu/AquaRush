@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 积分中心｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 积分中心</h1>
+      <p class="sub">功能编号 F-MKT-012 ｜ 营销域 ｜ 规划中（缺口 G81）｜ 组件体系 WeUI 2.x ｜ 下游：我的资产 / 优惠券 / 水票 / 确认订单积分抵扣</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-012</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：积分中心 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 有积分（正常态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">积分中心</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 积分余额卡 -->
+              <div class="weui-cells mt2">
+                <div class="mp-statgrid">
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">1,280<span class="unit">分</span></div>
+                    <div class="mp-statgrid__lbl">我的积分 · 100 积分 = 1 元，下单可抵扣（单笔 ≤ 应付 30%）</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 即将过期提醒 -->
+              <div class="weui-notice" style="margin:8px;border-radius:8px">
+                <svg viewBox="0 0 24 24"><path d="M12 4 3 19h18z"/><path d="M12 10v4M12 16.5v.5"/></svg>
+                <span class="ellipsis">即将过期：120 积分将于 2026-10-31 到期，请尽快使用</span>
+              </div>
+
+              <!-- 积分任务 -->
+              <div class="weui-cells__title">积分任务</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span></div>
+                  <div class="weui-cell__bd">
+                    <div>每日签到</div>
+                    <div class="f-note t-weak">连续签到额外奖励，每日 +5 分</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-btn weui-btn_xs weui-btn_plain-primary">去完成</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11h10.2L20 7H6"/><circle cx="9" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></svg></span></div>
+                  <div class="weui-cell__bd">
+                    <div>下单得积分</div>
+                    <div class="f-note t-weak">消费 1 元 = 1 积分，订单完成后入账</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-btn weui-btn_xs weui-btn_plain-primary">去完成</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></span></div>
+                  <div class="weui-cell__bd">
+                    <div>评价得积分</div>
+                    <div class="f-note t-weak">完成订单后评价，每单 +10 分</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-btn weui-btn_xs weui-btn_plain-primary">去完成</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg></span></div>
+                  <div class="weui-cell__bd">
+                    <div>邀请好友</div>
+                    <div class="f-note t-weak">好友首单完成，双方各 +50 分</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-btn weui-btn_xs weui-btn_plain-primary">去完成</span></div>
+                </div>
+              </div>
+
+              <!-- 积分明细（获取 / 消耗） -->
+              <div class="weui-tabs mt3">
+                <div class="weui-tabs__item on">获取</div>
+                <div class="weui-tabs__item">消耗</div>
+              </div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div>下单得积分</div>
+                    <div class="f-note t-weak">2026-10-08 18:05 · 订单 ORD20261008000091</div>
+                  </div>
+                  <div class="weui-cell__ft"><span style="color:var(--weui-price)">+</span><span class="mp-statgrid__num" style="font-size:15px;color:var(--weui-price)">22</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div>每日签到</div>
+                    <div class="f-note t-weak">2026-10-08 08:30 · 连续 6 天</div>
+                  </div>
+                  <div class="weui-cell__ft"><span style="color:var(--weui-price)">+</span><span class="mp-statgrid__num" style="font-size:15px;color:var(--weui-price)">5</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div>兑换优惠券</div>
+                    <div class="f-note t-weak">2026-10-06 12:10 · ¥5 优惠券</div>
+                  </div>
+                  <div class="weui-cell__ft"><span style="color:var(--weui-FG-0)">-</span><span class="mp-statgrid__num" style="font-size:15px;color:var(--weui-FG-0)">500</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div>积分过期</div>
+                    <div class="f-note t-weak">2026-09-30 23:59 · 到期作废</div>
+                  </div>
+                  <div class="weui-cell__ft"><span style="color:var(--weui-FG-0)">-</span><span class="mp-statgrid__num" style="font-size:15px;color:var(--weui-FG-0)">50</span></div>
+                </div>
+              </div>
+
+              <!-- 积分兑换 -->
+              <div class="weui-cells__title">积分兑换 <span class="weui-tag weui-tag--goal"></span></div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">¥5 优惠券</div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">500 积分</span><span class="weui-btn weui-btn_xs weui-btn_plain-primary">去兑换</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">18.9L 水票 1 张</div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">1000 积分</span><span class="weui-btn weui-btn_xs weui-btn_plain-primary">去兑换</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">¥10 优惠券</div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">900 积分</span><span class="weui-btn weui-btn_xs weui-btn_plain-primary">去兑换</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">桶装水押金抵扣</div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">1200 积分</span><span class="weui-btn weui-btn_xs weui-btn_plain-primary">去兑换</span></div>
+                </div>
+              </div>
+
+              <div class="weui-cells__tips">积分不可提现 / 转让，退款按比例扣回。</div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 无积分（空态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">积分中心</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells mt2">
+                <div class="mp-statgrid">
+                  <div class="mp-statgrid__item">
+                    <div class="mp-statgrid__num">0<span class="unit">分</span></div>
+                    <div class="mp-statgrid__lbl">我的积分 · 100 积分 = 1 元，下单可抵扣</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">积分任务</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg></span></div>
+                  <div class="weui-cell__bd">
+                    <div>每日签到</div>
+                    <div class="f-note t-weak">每日 +5 分</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-btn weui-btn_xs weui-btn_plain-primary">去完成</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11h10.2L20 7H6"/><circle cx="9" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></svg></span></div>
+                  <div class="weui-cell__bd">
+                    <div>下单得积分</div>
+                    <div class="f-note t-weak">消费 1 元 = 1 积分</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-btn weui-btn_xs weui-btn_plain-primary">去完成</span></div>
+                </div>
+              </div>
+
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5 13 10l3.5.2-2.7 2.3.9 3.4-2.7-1.8-2.7 1.8.9-3.4L7.5 10.2 11 10z"/></svg>
+                </div>
+                <div class="weui-empty__text">暂无积分<br>完成订单 / 每日签到即可获得积分</div>
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">去做任务</span>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（Taro）</p>
+        <p><strong>入口：</strong>我的页「我的资产 → 积分」</p>
+        <p><strong>跳转：</strong>兑换 → 券 / 水票 / 配件；确认订单页「积分抵扣」区；到期提醒 → 消息中心 / 订阅消息</p>
+        <p><strong>数据：</strong>积分余额、明细（获取 / 消耗 / 过期）、兑换品、所需积分、抵扣比例与上限</p>
+        <p><strong>功能状态：</strong>规划中（缺口 G81），本页为目标形态。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>积分余额卡（<code>.mp-statgrid__num</code> 大号数字）+ 即将过期提醒（<code>.weui-notice</code>）</li>
+          <li>积分任务（<code>.weui-cells__title</code> + <code>.weui-cells</code>）：每日签到 / 下单得积分 / 评价得积分 / 邀请好友，各带 <code>.weui-btn_xs</code>「去完成」</li>
+          <li>明细 Tab：获取 / 消耗（<code>.weui-tabs</code>）+ 明细 <code>.weui-cells</code>（正负用色）</li>
+          <li>积分兑换（<code>.weui-cells__title</code> + <code>.weui-cells</code> 行）：券 / 水票 / 配件，所需积分 +「去兑换」</li>
+          <li>空态：<code>.weui-empty</code>「暂无积分」+「去做任务」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>订单完成 → 按实付金额计积分入账；退款 → 按比例扣回</li>
+          <li>签到 / 活动 → 获积分（防刷）；兑换券 / 水票 / 配件（幂等）</li>
+          <li>下单选积分抵扣（≤ 上限与可用积分）</li>
+          <li>到期前提醒（消息中心 / 订阅消息）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>积分不足：</strong>不可兑换 / 抵扣，提示「积分不足以抵扣」；<strong>空态：</strong>「暂无积分」；<strong>兑换 loading：</strong>按钮转「兑换中…」；重复兑换提示「请勿重复兑换」。</p>
+        <p><strong>有效期：</strong>按获取批次 / 滚动过期；到期前提醒。</p>
+        <p><strong>规则：</strong>积分获取以已完成订单实付金额计；退款按比例扣回、赠出积分作废；积分不可提现 / 转让。</p>
+        <p><strong>明细配色：</strong>获取用 <code>var(--weui-price)</code> 前缀 <code>+</code>，消耗 / 过期用 <code>var(--weui-FG-0)</code> 前缀 <code>-</code>。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>基准：</strong>微信官方 WeUI 2.x；积分余额为视觉焦点，明细 Tab 选中态为品牌蓝短下划线。</p>
+        <p><strong>关键度量：</strong>导航 44px + 胶囊 87×32；<code>.mp-statgrid__num</code> 19px；<code>.weui-btn_xs</code> 高 24px；<code>.weui-tabs__item</code> 15px；<code>.weui-empty__icon</code> 84px 品牌 tint 圆。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code> / <code>.mp-capsule</code>、<code>.mp-statgrid__num</code>、<code>.weui-notice</code>、<code>.weui-cells</code> / <code>__title</code> / <code>__tips</code>、<code>.weui-tabs</code>、<code>.weui-btn_xs</code> / <code>.weui-btn_plain-primary</code>、<code>.weui-empty</code>、<code>.weui-tag--goal</code>。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p><span class="weui-tag weui-tag--goal"></span> 本页为规划中目标形态，缺口编号 <strong>G81</strong>。</p>
+        <p><strong>强调橙禁用：</strong>本页属「积分 / 资产」类，<strong>禁止把强调橙用于非券元素</strong>；积分余额、任务按钮、兑换按钮、明细一律用品牌蓝 / 微信电商红 / 语义色。</p>
+        <p>积分余额为视觉焦点（大号数字）；兑换区清晰标注所需积分。</p>
+        <p>叠加顺序（积分抵扣与券 / 满减 / 会员折扣）为开放问题；金额统一用 <code>.weui-price</code>，禁止手拼「¥」字符串。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>送水工端 · 任务列表｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-delivery">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>送水工端 App · 任务列表</h1>
+      <p class="sub">功能编号 F-ORD-010 / F-ORD-014 ｜ 订单域 ｜ 下游：订单详情与完成配送</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-010</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">delivery-app · 暗色</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：未接单（可抢单） ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 未接单（可抢单）</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar" style="justify-content:flex-start;padding:0 16px;">
+              <div class="row between" style="width:100%">
+                <span>任务</span>
+                <div class="row gap3">
+                  <span class="f-note" style="color:var(--d-primary-dark)">● 在线接单</span>
+                  <svg class="ico" viewBox="0 0 24 24" style="color:var(--d-text-sub)"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" fill="var(--error)" stroke="none"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding:0 16px 12px">
+              <div class="seg">
+                <div class="s on">未接单<span class="cnt">3</span></div>
+                <div class="s">已接单<span class="cnt">2</span></div>
+                <div class="s">配送中<span class="cnt">1</span></div>
+              </div>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="task-card">
+                <div class="tc-head">
+                  <span class="f-note" style="color:var(--d-text-sub);font-family:var(--font-num)">No. AR20261008001</span>
+                  <span class="tag tag-assign">待派单</span>
+                </div>
+                <div class="addr">
+                  <svg class="ico" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>
+                  <span>清水湾小区 3 号楼 2 单元 <strong>6 楼</strong>（有电梯）</span>
+                </div>
+                <div class="meta">怡宝 18.9L × 2 桶 ｜ 距您 1.2 km ｜ 下单 8 分钟前</div>
+                <div class="foot">
+                  <span class="f-note" style="color:var(--d-primary-dark)">预计 5 分钟送达</span>
+                  <span class="btn sm">抢单</span>
+                </div>
+              </div>
+
+              <div class="task-card">
+                <div class="tc-head">
+                  <span class="f-note" style="color:var(--d-text-sub);font-family:var(--font-num)">No. AR20261008002</span>
+                  <span class="tag tag-assign">待派单</span>
+                </div>
+                <div class="addr">
+                  <svg class="ico" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>
+                  <span>阳光花园 A 座 1203 <strong>12 楼</strong></span>
+                </div>
+                <div class="meta">农夫山泉 19L × 1 桶 · 饮水机 × 1 ｜ 距您 2.8 km</div>
+                <div class="foot">
+                  <span class="f-note" style="color:var(--d-text-sub)">配送费 +¥2.00（楼层分档）</span>
+                  <span class="btn sm">抢单</span>
+                </div>
+              </div>
+
+              <div class="task-card">
+                <div class="tc-head">
+                  <span class="f-note" style="color:var(--d-text-sub);font-family:var(--font-num)">No. AR20261008003</span>
+                  <span class="tag tag-assign">待派单</span>
+                </div>
+                <div class="addr">
+                  <svg class="ico" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>
+                  <span>碧水云天 7 栋 1 单元 <strong>2 楼</strong></span>
+                </div>
+                <div class="meta">景田百岁山 18.9L × 3 桶 ｜ 距您 0.6 km ｜ 已支付</div>
+                <div class="foot">
+                  <span class="f-note" style="color:var(--d-text-sub)">免配送费（免费楼层内）</span>
+                  <span class="btn sm">抢单</span>
+                </div>
+              </div>
+
+              <div class="f-note" style="text-align:center;color:var(--d-text-weak);padding:10px 0 6px">下拉刷新 · 新订单实时推送</div>
+            </div>
+
+            <div class="tabbar dark">
+              <div class="tab">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>
+                工作台
+              </div>
+              <div class="tab active">
+                <svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+                任务
+              </div>
+              <div class="tab">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>
+                日报
+              </div>
+              <div class="tab">
+                <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
+                我的
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：配送中 + 实时推送 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 配送中（订单详情入口）+ 实时推送</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar" style="justify-content:flex-start;padding:0 16px;">
+              <div class="row between" style="width:100%">
+                <span>任务</span>
+                <div class="row gap3">
+                  <span class="f-note" style="color:var(--d-text-sub)">○ 离线收单</span>
+                  <svg class="ico" viewBox="0 0 24 24" style="color:var(--d-text-sub)"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" fill="var(--error)" stroke="none"/></svg>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding:0 16px 12px">
+              <div class="seg">
+                <div class="s">未接单<span class="cnt">0</span></div>
+                <div class="s">已接单<span class="cnt">1</span></div>
+                <div class="s on">配送中<span class="cnt">2</span></div>
+              </div>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="task-card" style="box-shadow:0 0 0 1.5px var(--d-primary), 0 4px 16px rgba(0,0,0,.35)">
+                <div class="tc-head">
+                  <span class="f-note" style="color:var(--d-text-sub);font-family:var(--font-num)">No. AR20261007018</span>
+                  <span class="tag tag-deliver">配送中</span>
+                </div>
+                <div class="addr">
+                  <svg class="ico" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>
+                  <span>清水湾小区 5 号楼 1 单元 <strong>3 楼</strong></span>
+                </div>
+                <div class="meta">娃哈哈 19L × 2 桶 ｜ 王女士 138****6621</div>
+                <div class="meta" style="color:var(--warning)">客户已催单 · 请尽快送达</div>
+                <div class="foot">
+                  <span class="f-note" style="color:var(--d-text-sub)">已开始配送 12 分钟</span>
+                  <span class="btn sm">查看 / 完成配送</span>
+                </div>
+              </div>
+
+              <div class="task-card">
+                <div class="tc-head">
+                  <span class="f-note" style="color:var(--d-text-sub);font-family:var(--font-num)">No. AR20261007021</span>
+                  <span class="tag tag-deliver">配送中</span>
+                </div>
+                <div class="addr">
+                  <svg class="ico" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>
+                  <span>和平里 12 号院 3 号楼 <strong>7 楼</strong></span>
+                </div>
+                <div class="meta">怡宝 18.9L × 4 桶 ｜ 李先生 139****0088</div>
+                <div class="foot">
+                  <span class="f-note" style="color:var(--d-text-sub)">已开始配送 4 分钟</span>
+                  <span class="btn sm secondary">查看 / 完成配送</span>
+                </div>
+              </div>
+
+              <div class="f-note" style="text-align:center;color:var(--d-text-weak);padding:10px 0 6px">没有更多任务了</div>
+            </div>
+
+            <!-- 实时推送横幅 -->
+            <div style="position:absolute;left:16px;right:16px;top:112px;z-index:30">
+              <div class="card" style="margin:0;padding:12px 14px;background:var(--d-card-2);display:flex;gap:10px;align-items:center;box-shadow:0 8px 24px rgba(0,0,0,.5)">
+                <span class="tag tag-assign" style="flex:0 0 auto">新订单</span>
+                <span class="f-aux grow ellipsis" style="color:var(--d-text)">阳光花园 B 座 902 有新订单可抢单</span>
+                <span class="f-note" style="color:var(--d-primary-dark)">去抢单</span>
+              </div>
+            </div>
+
+            <div class="tabbar dark">
+              <div class="tab"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>工作台</div>
+              <div class="tab active"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>任务</div>
+              <div class="tab"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>日报</div>
+              <div class="tab"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>我的</div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，亮/暗双模式，本页为暗色夜间作业态）</p>
+        <p><strong>入口：</strong>底部 TabBar「任务」</p>
+        <p><strong>跳转：</strong>点击任务卡 → 订单详情与完成配送；「抢单」→ 就地状态流转</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏：标题「任务」+ 在线/离线接单开关 + 消息入口（未读红点）</li>
+          <li>分段控件：未接单 / 已接单 / 配送中（各带数量角标）</li>
+          <li>任务卡片列表：订单号 + 状态标签 + 收货地址（含楼层）+ 商品摘要 + 距离/时间 + 操作按钮</li>
+          <li>加载更多区：「没有更多任务了」</li>
+          <li>实时推送横幅（新订单可抢单广播）</li>
+          <li>底部 TabBar：工作台 / 任务 / 日报 / 我的</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>任务卡片规格</h3>
+        <p>订单号（等宽字体）+ 状态标签 + 地址（楼层<strong>必须醒目</strong>，影响配送费分档）+ 商品摘要 + 距您距离 + 下单时间。</p>
+        <p>操作按钮：<strong>待派单 → 「抢单」</strong>；<strong>待配送 → 「开始配送」</strong>；<strong>配送中 → 「查看 / 完成配送」</strong>。</p>
+        <p>催单订单（用户催单）以 warning 色文案加粗提醒，卡片描边高亮。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>进入 / 下拉刷新拉取任务</li>
+          <li>WebSocket 长连接（<code>/ws/notifications</code>）实时刷新：新订单可抢单广播、被派单、订单取消、催单、配送超时、支付超时</li>
+          <li>抢单成功 → 任务移入「已接单」（待派单 → 待配送，与派单口径统一）</li>
+          <li>开始配送 → 待配送 → 配送中</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与降级</h3>
+        <p><strong>空态：</strong>「暂无任务」；<strong>加载态：</strong>「加载中」。</p>
+        <p><strong>弱网降级（R-NTF-03）：</strong>定时轮询（默认 30s）+ 离线补发；推送与轮询按幂等键去重，</p>
+        <p><strong>幂等键 = 订单号 + 事件类型 + 事件时间</strong>，不得重复渲染（R-NTF-02）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>配送端<strong>完全不出现强调橙</strong>：主操作走品牌蓝（暗色态为 <code>--d-primary</code>），「抢单」用品牌蓝而非橙。</p>
+        <p>信息密度优先：触达目标 ≥ 48px（夜间/手套操作）；暗色下文字对比度 ≥ 4.5:1。</p>
+        <p>新订单广播需醒目但不得重复渲染；离线不丢消息。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

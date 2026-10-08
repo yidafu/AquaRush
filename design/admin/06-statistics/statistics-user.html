@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 用户统计｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 数据统计 / 用户统计</h1>
+      <p class="sub">功能编号 F-STA-003 ｜ 统计与数据域 ｜ 下游：无（只读统计分析）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-STA-003</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plan">月活/留存 规划中</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <div>
+        <div class="browser-cap">状态一 · 用户统计（六卡 + 双趋势 + 下单次数分布 + TOP 榜）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/statistics/users</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">数据统计 <span class="crumb-sep">/</span> <b>用户统计</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>用户统计</h2>
+                    <div class="desc">活跃用户 = 近 30 天内下单用户去重（不含登录活跃）；占比 / 复购率两位小数</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost disabled">导出</span>
+                    <span class="tag tag-goal"></span>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem">
+                    <span>时间范围</span>
+                    <div class="row gap1">
+                      <span class="btn xs ghost">今日</span>
+                      <span class="btn xs ghost">本周</span>
+                      <span class="btn xs secondary">本月</span>
+                      <span class="btn xs ghost">自定义</span>
+                    </div>
+                  </div>
+                  <div class="fitem"><span>自定义区间</span><div class="input" style="width:196px"><span>2026-09-09 ~ 2026-10-08</span></div></div>
+                  <div class="fitem"><span>用户维度</span><div class="select" style="width:132px"><span>全部用户</span></div></div>
+                  <div class="fitem"><span>下单次数</span><div class="select" style="width:132px"><span>不限</span></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">查询</span>
+                  </div>
+                </div>
+
+                <div class="stat-grid c3">
+                  <div class="stat-card">
+                    <div class="lbl">总用户数</div>
+                    <div class="val">12,486 <small>人</small></div>
+                    <div class="delta up">▲ +2.10% 较上期</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">新增用户</div>
+                    <div class="val">86 <small>人</small></div>
+                    <div class="delta up">▲ +9.20% 较昨日</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">活跃用户</div>
+                    <div class="val">2,318 <small>人</small></div>
+                    <div class="delta up">▲ +4.60% 较上期</div>
+                  </div>
+                </div>
+
+                <div class="stat-grid c3 mt3">
+                  <div class="stat-card">
+                    <div class="lbl">复购率</div>
+                    <div class="val">46.80 <small>%</small></div>
+                    <div class="delta up">▲ +1.20% 较上期</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">平均下单次数</div>
+                    <div class="val">3.24 <small>次</small></div>
+                    <div class="delta down">▼ -0.80% 较上期</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">本月新增</div>
+                    <div class="val">1,264 <small>人</small></div>
+                    <div class="delta up">▲ +6.30% 较上月</div>
+                  </div>
+                </div>
+
+                <!-- 新增与活跃趋势 -->
+                <div class="chart-box mt3">
+                  <div class="cb-head">
+                    <span class="cb-title">新增与活跃趋势（近 30 天）</span>
+                    <div class="chart-legend">
+                      <span><i style="background:var(--brand)"></i>新增用户</span>
+                      <span><i style="background:var(--brand-light)"></i>活跃用户</span>
+                    </div>
+                  </div>
+                  <svg viewBox="0 0 640 180" style="width:100%;height:180px">
+                    <line x1="0" y1="156" x2="640" y2="156" stroke="var(--border-strong)"/>
+                    <line x1="0" y1="108" x2="640" y2="108" stroke="var(--border)"/>
+                    <line x1="0" y1="60" x2="640" y2="60" stroke="var(--border)"/>
+                    <polyline fill="none" stroke="var(--brand)" stroke-width="2.5" points="20,128 122,116 224,120 326,96 428,104 530,76 620,84"/>
+                    <polyline fill="none" stroke="var(--brand-light)" stroke-width="2" stroke-dasharray="5 5" points="20,120 122,112 224,124 326,88 428,98 530,68 620,78"/>
+                  </svg>
+                  <div class="row between f-note t-weak" style="margin-top:6px">
+                    <span>09-09</span><span>09-14</span><span>09-19</span><span>09-24</span><span>09-29</span><span>10-04</span><span>10-08</span>
+                  </div>
+                </div>
+
+                <div class="grid2 mt3">
+                  <!-- 下单次数分布 -->
+                  <div class="chart-box">
+                    <div class="cb-head">
+                      <span class="cb-title">下单次数分布（近 30 天）</span>
+                      <span class="f-note t-sub">下单用户 1,202 人</span>
+                    </div>
+                    <div class="hbar">
+                      <div class="hr"><span class="nm">1 次</span><span class="track"><span class="fill" style="width:95%"></span></span><span class="vl">486 人</span></div>
+                      <div class="hr"><span class="nm">2~3 次</span><span class="track"><span class="fill" style="width:100%"></span></span><span class="vl">512 人</span></div>
+                      <div class="hr"><span class="nm">4 次以上</span><span class="track"><span class="fill" style="width:40%"></span></span><span class="vl">204 人</span></div>
+                    </div>
+                  </div>
+
+                  <!-- 分布指标列 -->
+                  <div class="chart-box">
+                    <div class="cb-head">
+                      <span class="cb-title">下单用户指标（近 30 天）</span>
+                    </div>
+                    <div class="hbar">
+                      <div class="hr"><span class="nm">下单用户数</span><span class="track"><span class="fill" style="width:100%"></span></span><span class="vl">1,202 人</span></div>
+                      <div class="hr"><span class="nm">下单用户占比</span><span class="track"><span class="fill" style="width:10%"></span></span><span class="vl">9.63%</span></div>
+                      <div class="hr"><span class="nm">复购率</span><span class="track"><span class="fill" style="width:47%"></span></span><span class="vl">46.80%</span></div>
+                    </div>
+                    <p class="f-note t-sub mt3 mb0">「累计登录」与登录趋势同为近 30 天窗口，非历史全量，文案避免「历史累计」歧义。</p>
+                  </div>
+                </div>
+
+                <!-- 用户 TOP 榜 -->
+                <div class="ant-table mt3">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:64px">排名</th>
+                        <th>昵称</th>
+                        <th class="num">订单数</th>
+                        <th class="num">消费额</th>
+                        <th>最近下单</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><span class="tag tag-brand">1</span></td>
+                        <td class="bold">王**</td>
+                        <td class="num">42</td>
+                        <td class="num bold">¥9,860.00</td>
+                        <td>2026-10-08 11:24</td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-brand">2</span></td>
+                        <td class="bold">李**</td>
+                        <td class="num">38</td>
+                        <td class="num bold">¥8,420.00</td>
+                        <td>2026-10-08 09:12</td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-neutral">3</span></td>
+                        <td class="bold">张**</td>
+                        <td class="num">35</td>
+                        <td class="num bold">¥7,980.00</td>
+                        <td>2026-10-07 19:36</td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-neutral">4</span></td>
+                        <td class="bold">陈**</td>
+                        <td class="num">31</td>
+                        <td class="num bold">¥6,740.00</td>
+                        <td>2026-10-07 15:02</td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-neutral">5</span></td>
+                        <td class="bold">刘**</td>
+                        <td class="num">28</td>
+                        <td class="num bold">¥6,120.00</td>
+                        <td>2026-10-06 20:48</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 50 条记录</span>
+                    <div class="pager">
+                      <i>‹</i><i class="on">1</i><i>2</i><i>3</i><i>›</i>
+                      <span class="t-sub" style="margin-left:8px">20 条/页</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>左侧菜单「数据统计 → 用户统计」；路由 <code>statistics/users</code></p>
+        <p><strong>跳转：</strong>无（只读）；如需下钻用户详情标目标形态</p>
+        <p><strong>权限：</strong><code>PERMISSION_STATISTICS_READ</code>；导出 <code>PERMISSION_STATISTICS_EXPORT</code>（目标形态）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>筛选区：时间范围（今日 / 本周 / 本月 / 自定义）+ 用户维度 + 下单次数 + 导出</li>
+          <li>KPI 第一行（三卡）：总用户数 / 新增用户 / 活跃用户</li>
+          <li>KPI 第二行（三卡）：复购率 / 平均下单次数 / 本月新增</li>
+          <li>新增与活跃趋势折线（内联 SVG，双线）</li>
+          <li>下单次数分布（.hbar）+ 下单用户指标列</li>
+          <li>用户 TOP 榜表格（昵称 / 订单数 / 消费额 / 最近下单）+ 分页</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>图表规格</h3>
+        <p><strong>图表类型：</strong>折线图（新增与活跃，内联 SVG）· 横向条形占比（下单次数分布）· 表格（TOP 榜）</p>
+        <p><strong>X-Y 轴：</strong>折线 X = 日期 MM-DD（近 30 天固定）、Y = 用户数（人）</p>
+        <p><strong>指标口径：</strong>新增 = 当日新增用户；活跃 = 近 30 天下单用户去重；复购率 = 下单 ≥ 2 次 ÷ 下单用户；占比 = 下单用户 ÷ 总用户；平均下单次数 = 订单总数 ÷ 下单用户数</p>
+        <p><strong>时间范围：</strong>今日 / 本周 / 本月 / 自定义（趋势图固定近 30 天）</p>
+        <p><strong>导出：</strong>无（目标形态，<code>PERMISSION_STATISTICS_EXPORT</code>）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>挂载发起单查询，返回后回填六张数字卡</li>
+          <li>切换时间范围 / 维度 → refetch → 卡片与图表联动刷新</li>
+          <li>下单用户分布按近 30 天下单用户按 userId 去重分层</li>
+          <li>今日新增 &gt; 0 时带上升 trend 标识；查询失败整页「加载失败: {error.message}」</li>
+          <li>空态：卡片值 0、图表无数据点、分布图空</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：新增用品牌蓝 <code>var(--brand)</code>，活跃用浅蓝 <code>var(--brand-light)</code> 虚线。</p>
+        <p>占比 / 复购率两位小数；总用户或下单用户为 0 时比率显示 0，不报错。</p>
+        <p><strong>累计登录非历史全量</strong>，与登录趋势同为近 30 天窗口，文案须避免歧义。</p>
+        <p><span class="tag tag-goal"></span> 统计导出：按当前筛选生成文件。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

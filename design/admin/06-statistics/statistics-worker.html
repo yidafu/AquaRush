@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 送水工统计｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 数据统计 / 送水工统计</h1>
+      <p class="sub">功能编号 F-STA-004 ｜ 统计与数据域 ｜ 下游：无（只读统计分析）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-STA-004</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plan">列头排序 规划中</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <div>
+        <div class="browser-cap">状态一 · 送水工统计（六卡 + 排行表 + 单量对比 + 好评率分布）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/statistics/delivery-workers</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">数据统计 <span class="crumb-sep">/</span> <b>送水工统计</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>送水工统计</h2>
+                    <div class="desc">完成口径 = 当日已完成订单（送达即完成）；人均单量 / 平均履约时长无数据显示「—」</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost disabled">导出</span>
+                    <span class="tag tag-goal"></span>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem">
+                    <span>时间范围</span>
+                    <div class="row gap1">
+                      <span class="btn xs ghost">今日</span>
+                      <span class="btn xs ghost">本周</span>
+                      <span class="btn xs secondary">本月</span>
+                      <span class="btn xs ghost">自定义</span>
+                    </div>
+                  </div>
+                  <div class="fitem"><span>自定义区间</span><div class="input" style="width:196px"><span>2026-10-01 ~ 2026-10-08</span></div></div>
+                  <div class="fitem"><span>在线状态</span><div class="select" style="width:132px"><span>全部</span></div></div>
+                  <div class="fitem"><span>配送站</span><div class="select" style="width:132px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">查询</span>
+                  </div>
+                </div>
+
+                <div class="stat-grid c3">
+                  <div class="stat-card">
+                    <div class="lbl">在岗送水工</div>
+                    <div class="val">24 <small>人</small></div>
+                    <div class="delta up">▲ +2 人 较昨日</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">完成总单数</div>
+                    <div class="val">486 <small>单</small></div>
+                    <div class="delta up">▲ +12.40% 较昨日</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">平均单量</div>
+                    <div class="val">20.25 <small>单/人</small></div>
+                    <div class="delta up">▲ +5.10% 较昨日</div>
+                  </div>
+                </div>
+
+                <div class="stat-grid c3 mt3">
+                  <div class="stat-card">
+                    <div class="lbl">好评率</div>
+                    <div class="val">96.40 <small>%</small></div>
+                    <div class="delta up">▲ +0.60% 较昨日</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">平均配送时长</div>
+                    <div class="val">28.6 <small>分钟</small></div>
+                    <div class="delta down">▼ -1.20% 较昨日</div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">送水工总数</div>
+                    <div class="val">32 <small>人</small></div>
+                    <div class="delta t-weak">实时存量</div>
+                  </div>
+                </div>
+
+                <div class="grid2 mt3">
+                  <!-- 送水工工作量排行柱状图 -->
+                  <div class="chart-box">
+                    <div class="cb-head">
+                      <span class="cb-title">送水工工作量排行 TOP10</span>
+                      <div class="chart-legend"><span><i style="background:var(--brand)"></i>今日完成订单（单）</span></div>
+                    </div>
+                    <div class="bars">
+                      <div class="bar-col"><div class="bar" style="height:100%"></div><span class="x">赵**</span></div>
+                      <div class="bar-col"><div class="bar" style="height:91%"></div><span class="x">钱**</span></div>
+                      <div class="bar-col"><div class="bar" style="height:84%"></div><span class="x">孙**</span></div>
+                      <div class="bar-col"><div class="bar" style="height:78%"></div><span class="x">李**</span></div>
+                      <div class="bar-col"><div class="bar" style="height:69%"></div><span class="x">周**</span></div>
+                      <div class="bar-col"><div class="bar" style="height:56%"></div><span class="x">吴**</span></div>
+                      <div class="bar-col"><div class="bar" style="height:50%"></div><span class="x">郑**</span></div>
+                      <div class="bar-col"><div class="bar" style="height:44%"></div><span class="x">冯**</span></div>
+                      <div class="bar-col"><div class="bar" style="height:38%"></div><span class="x">陈**</span></div>
+                      <div class="bar-col"><div class="bar" style="height:31%"></div><span class="x">褚**</span></div>
+                    </div>
+                  </div>
+
+                  <!-- 好评率分布 -->
+                  <div class="chart-box">
+                    <div class="cb-head">
+                      <span class="cb-title">好评率分布（1~5 星）</span>
+                      <span class="f-note t-sub">基于已完成订单评价</span>
+                    </div>
+                    <div class="hbar">
+                      <div class="hr"><span class="nm">5 星</span><span class="track"><span class="fill" style="width:100%"></span></span><span class="vl">76.40%</span></div>
+                      <div class="hr"><span class="nm">4 星</span><span class="track"><span class="fill" style="width:24%"></span></span><span class="vl">18.20%</span></div>
+                      <div class="hr"><span class="nm">3 星</span><span class="track"><span class="fill" style="width:5%"></span></span><span class="vl">3.60%</span></div>
+                      <div class="hr"><span class="nm">2 星</span><span class="track"><span class="fill" style="width:2%"></span></span><span class="vl">1.20%</span></div>
+                      <div class="hr"><span class="nm">1 星</span><span class="track"><span class="fill" style="width:1%"></span></span><span class="vl">0.60%</span></div>
+                    </div>
+                    <p class="f-note t-sub mt3 mb0">好评率依赖评价链路，无评价数据时显示 0.00% 或空，页面须标注数据源缺失说明。</p>
+                  </div>
+                </div>
+
+                <!-- 送水工排行榜 -->
+                <div class="ant-table mt3">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:64px">排名</th>
+                        <th>姓名</th>
+                        <th class="num">完成单数</th>
+                        <th class="num">桶数</th>
+                        <th class="num">收款额</th>
+                        <th class="num">好评率</th>
+                        <th class="num">平均时长</th>
+                        <th>在线状态</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><span class="tag tag-brand">1</span></td>
+                        <td class="bold">赵**</td>
+                        <td class="num">32</td>
+                        <td class="num">68</td>
+                        <td class="num bold">¥1,860.00</td>
+                        <td class="num">98.50%</td>
+                        <td class="num">24.2 分钟</td>
+                        <td><span class="tag tag-deliver">在线</span></td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-brand">2</span></td>
+                        <td class="bold">钱**</td>
+                        <td class="num">29</td>
+                        <td class="num">62</td>
+                        <td class="num bold">¥1,720.00</td>
+                        <td class="num">97.20%</td>
+                        <td class="num">26.5 分钟</td>
+                        <td><span class="tag tag-deliver">在线</span></td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-neutral">3</span></td>
+                        <td class="bold">孙**</td>
+                        <td class="num">27</td>
+                        <td class="num">58</td>
+                        <td class="num bold">¥1,640.00</td>
+                        <td class="num">96.80%</td>
+                        <td class="num">27.1 分钟</td>
+                        <td><span class="tag tag-deliver">在线</span></td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-neutral">4</span></td>
+                        <td class="bold">李**</td>
+                        <td class="num">25</td>
+                        <td class="num">54</td>
+                        <td class="num bold">¥1,520.00</td>
+                        <td class="num">95.40%</td>
+                        <td class="num">29.8 分钟</td>
+                        <td><span class="tag tag-pay">休息</span></td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-neutral">5</span></td>
+                        <td class="bold">周**</td>
+                        <td class="num">22</td>
+                        <td class="num">47</td>
+                        <td class="num bold">¥1,340.00</td>
+                        <td class="num">94.60%</td>
+                        <td class="num">31.2 分钟</td>
+                        <td><span class="tag tag-deliver">在线</span></td>
+                      </tr>
+                      <tr>
+                        <td><span class="tag tag-neutral">6</span></td>
+                        <td class="bold">吴**</td>
+                        <td class="num">18</td>
+                        <td class="num">39</td>
+                        <td class="num bold">¥1,120.00</td>
+                        <td class="num">93.80%</td>
+                        <td class="num">33.5 分钟</td>
+                        <td><span class="tag tag-done">离线</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 32 条记录 ｜ 默认按今日完成订单降序</span>
+                    <div class="pager">
+                      <i>‹</i><i class="on">1</i><i>2</i><i>›</i>
+                      <span class="t-sub" style="margin-left:8px">10 条/页</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>左侧菜单「数据统计 → 送水工统计」；路由 <code>statistics/delivery-workers</code></p>
+        <p><strong>跳转：</strong>无（只读）</p>
+        <p><strong>权限：</strong><code>PERMISSION_STATISTICS_READ</code>；导出 <code>PERMISSION_STATISTICS_EXPORT</code>（目标形态）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>筛选区：时间范围（今日 / 本周 / 本月 / 自定义）+ 在线状态 + 配送站 + 导出</li>
+          <li>KPI 第一行（三卡）：在岗送水工 / 完成总单数 / 平均单量</li>
+          <li>KPI 第二行（三卡）：好评率 / 平均配送时长 / 送水工总数</li>
+          <li>图表区两列：送水工工作量排行柱状图 · 好评率分布（1~5 星 .hbar）</li>
+          <li>送水工排行榜表格（姓名 / 完成单数 / 桶数 / 收款额 / 好评率 / 平均时长 / 在线状态）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>图表规格</h3>
+        <p><strong>图表类型：</strong>柱状图（工作量排行 Top10）· 横向条形占比（好评率 1~5 星）· 表格（排行榜）</p>
+        <p><strong>X-Y 轴：</strong>柱状 X = 送水工姓名（Top10）、Y = 今日完成订单数（单）</p>
+        <p><strong>指标口径：</strong>完成 = 当日已完成订单（<code>completed_at</code>，送达即完成）；平均单量 = 完成总数 ÷ 在岗人数；平均履约时长 = Σ(完成时间 − 派单时间) ÷ 完成订单数；好评率 = rating × 100%</p>
+        <p><strong>时间范围：</strong>今日 / 本周 / 本月 / 自定义（排行柱状固定当日口径）</p>
+        <p><strong>导出：</strong>无（目标形态，<code>PERMISSION_STATISTICS_EXPORT</code>）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>挂载并发查询概览与排行（Top10），前 10 生成柱状图与表格</li>
+          <li>切换时间范围 / 在线状态 / 配送站 → refetch → 卡片与图表联动</li>
+          <li>效率指标无数据时显示「—」而非 0（人均单量与平均履约时长）</li>
+          <li>查询失败显示「加载失败: {error.message}」</li>
+          <li>空态：柱状图空、表格空，效率卡显示「—」</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：柱状图与条形一律品牌蓝 <code>var(--brand)</code>。</p>
+        <p>好评率无评价数据时显示 0.00% 或空，须有数据源缺失说明；人均单量/平均履约时长无数据时显示「—」。</p>
+        <p>当前排序固定按「今日完成订单」降序，列头切换排序标目标形态。</p>
+        <p><span class="tag tag-goal"></span> 排行榜列头切换排序、统计导出。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

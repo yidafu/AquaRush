@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 桶账台账｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 押金管理 / 桶账台账</h1>
+      <p class="sub">功能编号 F-PRO-012 [规划中] ｜ 商品域 ｜ 入口：押金管理 → 桶账台账</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-PRO-012</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">缺口 G87</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：桶账台账列表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 桶账台账（汇总卡 + 筛选 + 实时聚合台账）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/barrel-ledger</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">押金管理 <span class="crumb-sep">/</span> <b>桶账台账</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>桶账台账</h2>
+                    <div class="desc">实时聚合视图（非独立存储）；退押 / 回收后即时刷新 <span class="tag tag-goal"></span></div>
+                  </div>
+                  <span class="btn sm ghost">导出台账</span>
+                </div>
+
+                <div class="stat-grid c3 mb3">
+                  <div class="stat-card">
+                    <div class="lbl">在租总桶数</div>
+                    <div class="val">1,286<small>桶</small></div>
+                    <div class="delta"><span class="up">↑ 42</span><span class="t-sub">较上周</span></div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">总押金</div>
+                    <div class="val">¥38580.00</div>
+                    <div class="delta"><span class="t-sub">按在租桶 × 押金价目</span></div>
+                  </div>
+                  <div class="stat-card">
+                    <div class="lbl">欠桶客户数</div>
+                    <div class="val">27<small>人</small></div>
+                    <div class="delta"><span class="up">↑ 3</span><span class="t-sub">应回收未回收</span></div>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>客户姓名</span><div class="input" style="width:132px"><span class="ph">姓名</span></div></div>
+                  <div class="fitem"><span>手机号</span><div class="input" style="width:148px"><span class="ph">手机号</span></div></div>
+                  <div class="fitem"><span>规格</span><div class="select" style="width:120px"><span>全部</span></div></div>
+                  <div class="fitem"><span>欠桶</span><div class="select" style="width:120px"><span>全部</span></div></div>
+                  <div class="fitem"><span>在租</span><div class="select" style="width:120px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto"><span class="btn sm ghost">重置</span><span class="btn sm">查询</span></div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>客户</th><th>规格</th><th class="num">在租桶数</th><th class="num">欠桶数</th>
+                        <th class="num">押金合计</th><th class="num">押金余额</th><th>最近变动时间</th><th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="bold">张*华</div><div class="sub-line">138****6621</div></td>
+                        <td>18.9L</td>
+                        <td class="num t-ok bold">3</td>
+                        <td class="num">0</td>
+                        <td class="num">¥90.00</td>
+                        <td class="num">¥90.00</td>
+                        <td>2026-10-06 14:22</td>
+                        <td><div class="ops"><a>查看明细</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">李*明</div><div class="sub-line">139****0088</div></td>
+                        <td>19L</td>
+                        <td class="num t-ok bold">2</td>
+                        <td class="num t-err bold">1</td>
+                        <td class="num">¥70.00</td>
+                        <td class="num">¥70.00</td>
+                        <td>2026-10-07 09:10</td>
+                        <td><div class="ops"><a>查看明细</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">王*芳</div><div class="sub-line">137****4512</div></td>
+                        <td>18.9L</td>
+                        <td class="num bold">1</td>
+                        <td class="num">0</td>
+                        <td class="num">¥30.00</td>
+                        <td class="num t-warn">¥0.00</td>
+                        <td>2026-10-05 17:38</td>
+                        <td><div class="ops"><a>查看明细</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">陈*强</div><div class="sub-line">135****9930</div></td>
+                        <td>11.3L</td>
+                        <td class="num t-ok bold">4</td>
+                        <td class="num t-err bold">2</td>
+                        <td class="num">¥100.00</td>
+                        <td class="num">¥75.00</td>
+                        <td>2026-10-07 11:05</td>
+                        <td><div class="ops"><a>查看明细</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">赵*琴</div><div class="sub-line">136****2201</div></td>
+                        <td>19L</td>
+                        <td class="num bold">2</td>
+                        <td class="num">0</td>
+                        <td class="num">¥70.00</td>
+                        <td class="num">¥70.00</td>
+                        <td>2026-10-04 10:47</td>
+                        <td><div class="ops"><a>查看明细</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 <b>27</b> 位客户 ｜ 导出台账为只读快照，含个人信息列先脱敏再输出并留痕</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>2</i><i>3</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div>
+                  </div>
+                </div>
+
+                <div class="notice mt3">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                  <span>「导出台账」含客户姓名 / 手机号等个人信息，须<strong>先脱敏再输出</strong>（列表已按 张*华 / 138****6621 展示）并留痕；金额以分计、导出为元两位小数（R-MON-01）。</span>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：空态 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 空态（暂无桶账数据）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/barrel-ledger — 无数据</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">押金管理 <span class="crumb-sep">/</span> <b>桶账台账</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>桶账台账</h2><div class="desc">筛选无结果 / 尚无押金桶业务</div></div>
+                  <span class="btn sm ghost">导出台账</span>
+                </div>
+                <div class="stat-grid c3 mb3">
+                  <div class="stat-card"><div class="lbl">在租总桶数</div><div class="val">0<small>桶</small></div></div>
+                  <div class="stat-card"><div class="lbl">总押金</div><div class="val">¥0.00</div></div>
+                  <div class="stat-card"><div class="lbl">欠桶客户数</div><div class="val">0<small>人</small></div></div>
+                </div>
+                <div class="filter-card">
+                  <div class="fitem"><span>客户姓名</span><div class="input" style="width:132px"><span>张*华</span></div></div>
+                  <div class="fitem"><span>规格</span><div class="select" style="width:120px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto"><span class="btn sm ghost">重置</span><span class="btn sm">查询</span></div>
+                </div>
+                <div class="ant-table">
+                  <div class="empty">
+                    <div class="e-ico">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 7h12l-1 13H7z"/><path d="M9 7V5a3 3 0 0 1 6 0v2"/><path d="M10 11v6M14 11v6"/></svg>
+                    </div>
+                    <div class="e-title">暂无桶账数据</div>
+                    <div class="e-desc">台账为实时聚合视图；客户产生押金桶 / 回收记录后自动出现</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（目标形态）</p>
+        <p><strong>入口：</strong>后台「商品管理 → 押金管理 → 桶账台账」（新增）</p>
+        <p><strong>跳转 / 下钻：</strong>「查看明细」→ 该客户押金记录 / 回收记录</p>
+        <p><strong>备注：</strong>后台「押金管理」已具备押金价目 / 押金记录 / 空桶回收与退押确认，但<strong>无按客户的桶账台账视图与导出</strong>。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>汇总卡：在租总桶数 / 总押金 / 欠桶客户数（统计卡 3 列）</li>
+          <li>筛选区：客户（姓名 / 手机号）+ 规格 + 是否有欠桶 / 在租</li>
+          <li>台账 Table：客户 / 规格 / 在租桶数 / 欠桶数 / 押金合计 / 押金余额 / 最近变动时间；操作「查看明细」</li>
+          <li>顶部「导出台账」按钮</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>进入页面加载台账（实时聚合）</li>
+          <li>筛选 / 排序</li>
+          <li>点「导出台账」→ 按筛选条件导出（个人信息列脱敏）→ 下载</li>
+          <li>下钻查看某客户押金 / 回收明细</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>「暂无桶账数据」；<strong>加载态：</strong>列表 / 导出 loading；<strong>错误态：</strong>加载 / 导出失败 message；<strong>禁用态：</strong>—。</p>
+        <p><strong>数据口径：</strong>押金余额 = 押金合计 − 已退押金；欠桶数 = 应回收未回收；台账为实时聚合非独立存储。</p>
+        <p>退押不计入营收 / 退款统计，走独立押金账本 DEPOSIT_REFUND。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>本页为 <span class="tag tag-goal"></span>，缺口 <strong>G87</strong>。</p>
+        <p>管理端<strong>不出现强调橙</strong>：主操作用品牌蓝、欠桶等异常用语义 error 色。</p>
+        <p>导出含客户姓名 / 手机号等个人信息，须<strong>先脱敏再输出</strong>并留痕；导出为只读快照、不改变数据；金额以分计、导出为元两位小数（R-MON-01）。</p>
+        <p>开放问题：导出独立权限码、导出条数上限。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

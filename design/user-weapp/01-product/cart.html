@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 购物车｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 购物车</h1>
+      <p class="sub">功能编号 F-PRO-004（规划中）｜ 商品域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 下游：确认订单（复用 F-ORD-004 多商品下单）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-PRO-004</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：购物车列表 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 有商品（勾选 / 步进 / 删除）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">购物车</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells__title">全部商品　<span class="weui-tag weui-tag--goal"></span></div>
+              <div class="weui-cells">
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <span class="weui-checkbox on"></span>
+                  </div>
+                  <div class="weui-media-box__hd">
+                    <span class="weui-media-box__thumb">实拍图占位</span>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="weui-media-box__title ellipsis">怡宝 饮用纯净水 18.9L</div>
+                    <div class="weui-media-box__desc">规格：18.9L 桶装水 · 押金桶（可退）</div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">15</span><span class="weui-price__dec">.00</span></span>
+                      <span class="weui-stepper">
+                        <span class="weui-stepper__btn">−</span>
+                        <span class="weui-stepper__num">2</span>
+                        <span class="weui-stepper__btn">+</span>
+                      </span>
+                    </div>
+                    <div class="row between mt2">
+                      <span class="f-note t-weak">小计 <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">30</span><span class="weui-price__dec">.00</span></span></span>
+                      <span class="f-note" style="color:var(--weui-RED)">删除</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <span class="weui-checkbox on"></span>
+                  </div>
+                  <div class="weui-media-box__hd">
+                    <span class="weui-media-box__thumb">实拍图占位</span>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="weui-media-box__title ellipsis">农夫山泉 天然水 19L</div>
+                    <div class="weui-media-box__desc">规格：19L 桶装水 · 押金桶（可退）</div>
+                    <div class="row gap2 mt2"><span class="weui-tag weui-tag--orange">库存不足</span></div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">28</span><span class="weui-price__dec">.00</span></span>
+                      <span class="weui-stepper">
+                        <span class="weui-stepper__btn">−</span>
+                        <span class="weui-stepper__num">3</span>
+                        <span class="weui-stepper__btn">+</span>
+                      </span>
+                    </div>
+                    <div class="row between mt2">
+                      <span class="f-note t-weak">小计 <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">84</span><span class="weui-price__dec">.00</span></span></span>
+                      <span class="f-note" style="color:var(--weui-RED)">删除</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <span class="weui-checkbox"></span>
+                  </div>
+                  <div class="weui-media-box__hd">
+                    <span class="weui-media-box__thumb">实拍图占位</span>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="weui-media-box__title ellipsis">娃哈哈 饮用纯净水 19L</div>
+                    <div class="weui-media-box__desc">规格：19L 桶装水 · 押金桶（可退）</div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">20</span><span class="weui-price__dec">.00</span></span>
+                      <span class="weui-stepper">
+                        <span class="weui-stepper__btn">−</span>
+                        <span class="weui-stepper__num">1</span>
+                        <span class="weui-stepper__btn">+</span>
+                      </span>
+                    </div>
+                    <div class="row between mt2">
+                      <span class="f-note t-weak">小计 <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">20</span><span class="weui-price__dec">.00</span></span></span>
+                      <span class="f-note" style="color:var(--weui-RED)">删除</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-notice">
+                <svg viewBox="0 0 24 24"><path d="M12 4 3 19h18z"/><path d="M12 10v4M12 16.5v.5"/></svg>
+                <span class="ellipsis">部分商品库存不足，请调整数量后再结算</span>
+              </div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <span class="weui-checkbox on"></span>
+              <span class="f-note t-sub">全选</span>
+              <div class="mp-footbar__info" style="text-align:right">
+                <div class="mp-footbar__lbl">合计</div>
+                <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">114</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_primary">去结算</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：库存不足拦截 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 库存不足拦截（R-PRO-01）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">购物车</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells__title">全部商品　<span class="weui-tag weui-tag--goal"></span></div>
+              <div class="weui-cells">
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <span class="weui-checkbox on"></span>
+                  </div>
+                  <div class="weui-media-box__hd">
+                    <span class="weui-media-box__thumb">实拍图占位</span>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="weui-media-box__title ellipsis">农夫山泉 天然水 19L</div>
+                    <div class="weui-media-box__desc">规格：19L 桶装水 · 押金桶（可退）</div>
+                    <div class="row between mt2">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">28</span><span class="weui-price__dec">.00</span></span>
+                      <span class="weui-stepper">
+                        <span class="weui-stepper__btn">−</span>
+                        <span class="weui-stepper__num">5</span>
+                        <span class="weui-stepper__btn">+</span>
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <span class="weui-checkbox on"></span>
+              <span class="f-note t-sub">全选</span>
+              <div class="mp-footbar__info" style="text-align:right">
+                <div class="mp-footbar__lbl">合计</div>
+                <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">140</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_primary">去结算</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+          <!-- 库存不足弹窗 -->
+          <div class="weui-mask"></div>
+          <div class="weui-dialog">
+            <div class="weui-dialog__hd">
+              <span class="weui-dialog__title">库存不足</span>
+            </div>
+            <div class="weui-dialog__bd">「农夫山泉 天然水 19L」仅剩 3 桶，请调整数量后再结算。</div>
+            <div class="weui-dialog__ft">
+              <span class="weui-dialog__btn weui-dialog__btn_default">调整数量</span>
+              <span class="weui-dialog__btn weui-dialog__btn_primary">知道了</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 购物车为空（空态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">购物车</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><path d="M3 4h2l2.4 11h10.2L20 7H6"/><circle cx="9" cy="19" r="1.6"/><circle cx="17" cy="19" r="1.6"/></svg>
+                </div>
+                <div class="weui-empty__text">购物车还是空的<br>去挑几桶好水，加入购物车一起下单</div>
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">去逛逛</span>
+              </div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <span class="weui-checkbox"></span>
+              <span class="f-note t-sub">全选</span>
+              <div class="mp-footbar__info" style="text-align:right">
+                <div class="mp-footbar__lbl">合计</div>
+                <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">0</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_primary weui-btn_disabled">去结算</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（目标形态 <code>pages/cart</code> + <code>utils/cart</code>）</p>
+        <p><strong>入口：</strong>商品详情页「加入购物车」按钮、首页悬浮购物车按钮、我的页「购物车」</p>
+        <p><strong>跳转：</strong>「去结算」携带勾选商品写 pendingOrder → 确认订单页（复用 F-ORD-004 多商品下单）；空态「去逛逛」→ 首页</p>
+        <p><strong>状态校准：</strong>由原「部分实现」按 1.1 校准说明定为「规划中」</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部：<code>.mp-status</code> + 白底 <code>.mp-nav</code>（带返回 + 微信胶囊）</li>
+          <li>购物车列表：<code>.weui-cells</code> 内 <code>.weui-media-box</code>（<code>.weui-checkbox</code> + 72px 缩略图 + 名称 + 规格 + 单价 + <code>.weui-stepper</code> + 小计 + 删除）</li>
+          <li>冲突提示条：部分商品库存不足时用 <code>.weui-notice</code> 置顶提示</li>
+          <li>底部结算栏：<code>.mp-footbar</code>（全选 <code>.weui-checkbox</code> + 合计 <code>.weui-price--lg</code> + <code>.weui-btn_primary</code>「去结算」）</li>
+          <li>库存不足弹窗：<code>.weui-mask</code> + <code>.weui-dialog</code>（标题 + 正文 + 两按钮）</li>
+          <li>空态：<code>.weui-empty</code> 引导去首页逛一逛，结算禁用</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互与状态</h3>
+        <ol>
+          <li>详情页「加入购物车」→ 写本地 <code>cart</code> 累积多商品 → toast「已加入购物车」</li>
+          <li>调整数量 / 勾选 / 删除 → 合计金额实时汇总（分 → 元）</li>
+          <li>「去结算」→ 携带勾选多商品进确认订单页</li>
+          <li>数量调整超库存 → 拦截并提示「库存不足」（R-PRO-01）</li>
+        </ol>
+        <p><strong>空态：</strong>无商品显示空态引导「去逛逛」，结算不可用；<strong>加载态：</strong>本地读取瞬时完成（无网络请求）；<strong>错误态：</strong>本地数据损坏时提示并清空。</p>
+        <p><strong>禁用态：</strong>无勾选商品时「去结算」用 <code>.weui-btn_disabled</code> 禁用。<strong>库存校验：</strong>各商品分别校验，部分缺货整体拦截并提示缺货项；数量 ≤ 库存；同商品按 productId 合并数量。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>复选：</strong><code>.weui-checkbox</code> 22×22 / 圆角 4px，选中 <code>.on</code> 转品牌蓝 + 白色对勾；圆形加 <code>--circle</code>。</p>
+        <p><strong>列表：</strong><code>.weui-cells</code> 白底上下 0.5px 发丝线；<code>.weui-media-box</code> 内缩 16px、行间 0.5px 发丝线；缩略图 <code>.weui-media-box__thumb</code> 72×72 / 圆角 8px。</p>
+        <p><strong>步进：</strong><code>.weui-stepper</code> 高 28px（按钮 28×28、数值区 38px、背景 <code>#F7F7F7</code>）。</p>
+        <p><strong>价格：</strong>单价 <code>.weui-price--md</code> 17px、小计 <code>--sm</code> 15px、合计 <code>--lg</code> 22px，一律微信电商红 <code>#FA5151</code>。</p>
+        <p><strong>底部栏：</strong><code>.mp-footbar</code> 白底 + 发丝顶线，<code>.weui-btn</code> 高 48px / 圆角 8px / min-width 120px。</p>
+        <p><strong>弹窗：</strong><code>.weui-mask</code>（黑 60%）+ <code>.weui-dialog</code> 宽 280px / 圆角 12px，按钮行 56px 高、左右 0.5px 分隔线。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>交互主色统一品牌蓝 <code>--weui-BRAND</code>；金额用微信电商红 <code>#FA5151</code>；危险 / 删除用 <code>--weui-RED</code>；库存不足提示用 <code>.weui-tag--orange</code>。本页不使用强调橙 <code>--action</code>。</p>
+        <p><strong>R-MON-01：</strong>金额以分存储、展示换算为元两位小数，合计走汇总逻辑；统一用 <code>.weui-price</code>，不手拼 ¥。</p>
+        <p>商品图用 <code>.weui-media-box__thumb</code> 占位并标「实拍图占位」，严禁卡通插画。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 目标形态：<code>pages/cart</code> 购物车页、详情页「加入购物车」按钮激活（缺货禁用）、同商品合并数量；缺口 <strong>G03</strong> 已解决。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

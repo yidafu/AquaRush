@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 系统参数管理｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 系统设置 / 系统参数管理</h1>
+      <p class="sub">功能编号 F-SYS-001 ｜ 系统设置域 ｜ 入口「系统设置 → 系统参数」· 路由 system-config/parameters ｜ 仅超级管理员可见</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-SYS-001</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：参数分组列表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 参数分组列表（Tabs + 分组卡片逐字段）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/system-config/parameters</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">系统设置 <span class="crumb-sep">/</span> <b>系统参数</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>系统参数管理</h2>
+                    <div class="desc">键 + 值 + 类型 + 分组模型 ｜ 变更按声明即时生效（热生效优先）｜ 不追溯已生成业务数据</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost disabled">参数导入 / 导出</span>
+                    <span class="btn sm">保存修改</span>
+                  </div>
+                </div>
+
+                <div class="tabs">
+                  <span class="tab-item on">安全</span>
+                  <span class="tab-item">通知</span>
+                  <span class="tab-item">数据维护</span>
+                  <span class="tab-item">修改记录</span>
+                </div>
+
+                <div class="notice" style="margin-bottom:16px">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 3 3 20h18z"/><path d="M12 9v5M12 17h.01"/></svg>
+                  密钥类参数（微信 / 支付 / DB 口令等）不在本页展示与在线修改（R-SYS-02），由配置文件 / 环境变量注入，前端仅展示掩码。
+                </div>
+
+                <!-- 分组卡片：基础参数 -->
+                <div class="card">
+                  <div class="card-head">
+                    <div class="card-title sm">基础参数</div>
+                    <span class="f-note t-sub">组内 3 项</span>
+                  </div>
+
+                  <div class="field">
+                    <label>平台名称 <span class="f-note t-weak">｜ setting_key：system.platform.name ｜ 类型：文本</span></label>
+                    <div class="input"><span>AquaRush 桶装水</span></div>
+                    <div class="f-note t-weak mt2">生效范围：用户端关于页 / 订单短信签名；变更后即时生效。最近修改：超管 · 2026-08-20 10:12</div>
+                  </div>
+
+                  <div class="field">
+                    <label>平台客服电话 <span class="f-note t-weak">｜ setting_key：system.platform.service_phone ｜ 类型：文本</span></label>
+                    <div class="input"><span>400-888-0000</span></div>
+                    <div class="f-note t-weak mt2">生效范围：用户端反馈页 / 关于页客服热线；格式校验 400-xxx-xxxx。最近修改：超管 · 2026-08-20 10:12</div>
+                  </div>
+
+                  <div class="field mb0">
+                    <label>维护模式 <span class="f-note t-weak">｜ setting_key：system.maintenance.enabled ｜ 类型：布尔</span></label>
+                    <div class="row gap2">
+                      <span class="switch"></span>
+                      <span class="f-note t-sub">停用（仅展示，不影响用户端下单）</span>
+                    </div>
+                    <div class="f-note t-weak mt2">生效范围：开启后仅超管可访问管理后台，用户端提示维护中；即时生效。</div>
+                  </div>
+                </div>
+
+                <!-- 分组卡片：业务参数 -->
+                <div class="card">
+                  <div class="card-head">
+                    <div class="card-title sm">业务参数</div>
+                    <span class="f-note t-sub">组内 3 项 · 订单与履约 / 库存两组在独立页面配置</span>
+                  </div>
+
+                  <div class="field">
+                    <label>单笔订单最大桶数 <span class="f-note t-weak">｜ setting_key：system.order.max_bucket ｜ 类型：数值</span></label>
+                    <div class="input" style="width:180px"><span>99</span></div>
+                    <div class="f-note t-weak mt2">取值范围：1-999 整数；生效范围：用户端下单校验；即时生效，不追溯已生成订单。</div>
+                  </div>
+
+                  <div class="field">
+                    <label>允许自提 <span class="f-note t-weak">｜ setting_key：system.order.pickup_enabled ｜ 类型：布尔</span></label>
+                    <div class="row gap2">
+                      <span class="switch on"></span>
+                      <span class="f-note t-sub">启用</span>
+                    </div>
+                    <div class="f-note t-weak mt2">生效范围：用户端确认订单页「自提」入口（联动 F-OPS-005 自提免运费）；即时生效。</div>
+                  </div>
+
+                  <div class="field mb0">
+                    <label>订单号前缀 <span class="f-note t-weak">｜ setting_key：system.order.no_prefix ｜ 类型：文本</span></label>
+                    <div class="input" style="width:180px"><span>AQ</span></div>
+                    <div class="f-note t-weak mt2">取值范围：2-6 位大写字母；生效范围：仅新生成订单号，历史订单不受影响。</div>
+                  </div>
+                </div>
+
+                <!-- 分组卡片：展示参数 -->
+                <div class="card">
+                  <div class="card-head">
+                    <div class="card-title sm">展示参数</div>
+                    <span class="f-note t-sub">组内 3 项</span>
+                  </div>
+
+                  <div class="field">
+                    <label>首页商品展示条数 <span class="f-note t-weak">｜ setting_key：system.home.product_limit ｜ 类型：数值</span></label>
+                    <div class="input" style="width:180px"><span>6</span></div>
+                    <div class="f-note t-weak mt2">取值范围：3-12 整数；生效范围：用户端首页商品卡数量；即时生效。</div>
+                  </div>
+
+                  <div class="field">
+                    <label>首页公告展示开关 <span class="f-note t-weak">｜ setting_key：system.home.notice_enabled ｜ 类型：布尔</span></label>
+                    <div class="row gap2">
+                      <span class="switch on"></span>
+                      <span class="f-note t-sub">启用</span>
+                    </div>
+                    <div class="f-note t-weak mt2">生效范围：用户端首页公告栏（F-OPS-002）；关闭后整条隐藏。即时生效。</div>
+                  </div>
+
+                  <div class="field mb0">
+                    <label>列表默认分页大小 <span class="f-note t-weak">｜ setting_key：system.list.page_size ｜ 类型：枚举</span></label>
+                    <div class="select" style="width:180px"><span>20 条 / 页</span></div>
+                    <div class="f-note t-weak mt2">取值范围：10 / 20 / 50；生效范围：后台列表默认分页；即时生效。</div>
+                  </div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>参数名</th>
+                        <th>键</th>
+                        <th>类型</th>
+                        <th>当前值</th>
+                        <th>说明</th>
+                        <th>修改人</th>
+                        <th>修改时间</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="bold">平台名称</td>
+                        <td><span class="f-note" style="font-family:var(--font-num)">system.platform.name</span></td>
+                        <td><span class="tag tag-neutral">文本</span></td>
+                        <td>AquaRush 桶装水</td>
+                        <td class="sub-line">用户端关于页 / 订单签名</td>
+                        <td>超级管理员</td>
+                        <td class="num">2026-08-20 10:12</td>
+                        <td><div class="ops"><a>编辑</a><a>恢复默认</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="bold">维护模式</td>
+                        <td><span class="f-note" style="font-family:var(--font-num)">system.maintenance.enabled</span></td>
+                        <td><span class="tag tag-neutral">布尔</span></td>
+                        <td><span class="tag tag-done">关</span></td>
+                        <td class="sub-line">开启后用户端提示维护中</td>
+                        <td>超级管理员</td>
+                        <td class="num">2026-08-20 10:12</td>
+                        <td><div class="ops"><a>编辑</a><a>恢复默认</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="bold">单笔订单最大桶数</td>
+                        <td><span class="f-note" style="font-family:var(--font-num)">system.order.max_bucket</span></td>
+                        <td><span class="tag tag-neutral">数值</span></td>
+                        <td class="num">99</td>
+                        <td class="sub-line">1-999 整数</td>
+                        <td>超级管理员</td>
+                        <td class="num">2026-08-22 15:40</td>
+                        <td><div class="ops"><a>编辑</a><a>恢复默认</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="bold">列表默认分页大小</td>
+                        <td><span class="f-note" style="font-family:var(--font-num)">system.list.page_size</span></td>
+                        <td><span class="tag tag-neutral">枚举</span></td>
+                        <td>20 条 / 页</td>
+                        <td class="sub-line">10 / 20 / 50</td>
+                        <td>超级管理员</td>
+                        <td class="num">2026-08-25 09:05</td>
+                        <td><div class="ops"><a>编辑</a><a>恢复默认</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 9 条记录</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>2</i><i>›</i><span class="t-sub" style="margin-left:8px">20 条/页</span></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：编辑参数弹窗 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 编辑参数弹窗（按声明类型渲染控件 + 校验文案）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/system-config/parameters — 编辑参数</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi on">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">系统设置 <span class="crumb-sep">/</span> <b>系统参数</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>系统参数管理</h2><div class="desc">弹窗打开态（背景遮罩）</div></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>参数名</th><th>键</th><th>类型</th><th>当前值</th><th>操作</th></tr></thead>
+                    <tbody>
+                      <tr><td>单笔订单最大桶数</td><td>system.order.max_bucket</td><td><span class="tag tag-neutral">数值</span></td><td class="num">99</td><td><div class="ops"><a>编辑</a></div></td></tr>
+                      <tr><td>维护模式</td><td>system.maintenance.enabled</td><td><span class="tag tag-neutral">布尔</span></td><td><span class="tag tag-done">关</span></td><td><div class="ops"><a>编辑</a></div></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal">
+              <div class="modal-head">编辑参数 · 单笔订单最大桶数</div>
+              <div class="modal-body">
+                <div class="desc-grid two">
+                  <div class="desc-item"><div class="k">参数键（setting_key）</div><div class="v">system.order.max_bucket</div></div>
+                  <div class="desc-item"><div class="k">类型</div><div class="v"><span class="tag tag-neutral">数值</span></div></div>
+                </div>
+                <div class="divider">按声明类型渲染控件</div>
+
+                <div class="field">
+                  <label class="req">当前值（数值 · InputNumber）</label>
+                  <div class="input"><span>99</span></div>
+                  <div class="f-note t-weak mt2">整数区间 1-999；越界提示「参数值超出范围」，格式错误提示「参数值格式不正确」。</div>
+                </div>
+
+                <div class="field">
+                  <label>布尔示例 · 维护模式（Switch）</label>
+                  <div class="row gap2"><span class="switch"></span><span class="f-note t-sub">关</span></div>
+                </div>
+
+                <div class="field">
+                  <label>枚举示例 · 列表默认分页大小（Select）</label>
+                  <div class="select"><span>20 条 / 页</span></div>
+                </div>
+
+                <div class="field mb0">
+                  <label>说明（文本展示）</label>
+                  <div class="input disabled"><span>用户端下单时校验单笔最大桶数</span></div>
+                  <div class="f-note t-weak mt2">保存后按声明热生效；所有修改写入审计（操作人 / 时间 / 旧值 / 新值）。</div>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">保存</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态三：修改记录页签 ============ -->
+      <div>
+        <div class="browser-cap">状态三 · 「修改记录」页签（审计日志：时间 / 操作人 / 旧值 / 新值）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/system-config/parameters — 修改记录</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi on">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">系统设置 <span class="crumb-sep">/</span> <b>系统参数 · 修改记录</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>系统参数管理</h2><div class="desc">「修改记录」页签：全量变更审计</div></div>
+                </div>
+                <div class="tabs">
+                  <span class="tab-item">安全</span>
+                  <span class="tab-item">通知</span>
+                  <span class="tab-item">数据维护</span>
+                  <span class="tab-item on">修改记录</span>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>时间</th><th>参数键</th><th>操作人</th><th>旧值</th><th>新值</th></tr></thead>
+                    <tbody>
+                      <tr><td class="num">2026-08-25 09:05</td><td style="font-family:var(--font-num)">system.list.page_size</td><td>超级管理员</td><td><span class="strike">10 条 / 页</span></td><td class="t-ok bold">20 条 / 页</td></tr>
+                      <tr><td class="num">2026-08-22 15:40</td><td style="font-family:var(--font-num)">system.order.max_bucket</td><td>超级管理员</td><td><span class="strike">50</span></td><td class="t-ok bold">99</td></tr>
+                      <tr><td class="num">2026-08-20 10:12</td><td style="font-family:var(--font-num)">system.platform.name</td><td>超级管理员</td><td><span class="strike">AquaRush</span></td><td class="t-ok bold">AquaRush 桶装水</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 3 条记录</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i><span class="t-sub" style="margin-left:8px">20 条/页</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>系统设置 → 系统参数；路由 <code>system-config/parameters</code>；<strong>仅超级管理员可见</strong>（管理员菜单不可见、接口返回 FORBIDDEN — R-SYS-03）</p>
+        <p><strong>权限：</strong><code>SYSTEM_CONFIG_READ</code> / <code>SYSTEM_CONFIG_WRITE</code></p>
+        <p><strong>状态：</strong><span class="chip chip-plan">规划中</span> 目标形态为「参数中心 + 业务消费 + 审计闭环」。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>参数分组导航（Tabs）：「安全」「通知」「数据维护」「修改记录」；订单与履约、库存两组在独立页面配置（F-SYS-002 / F-SYS-003），本页不重复展示</li>
+          <li>分组卡片（基础参数 / 业务参数 / 展示参数）逐字段：参数名 + 键 + 类型 + 当前值控件 + 说明 + 修改人 / 修改时间</li>
+          <li>参数列表（Table）：参数名 / 键 / 类型 / 当前值 / 说明 / 修改人 / 修改时间 + 操作「编辑」「恢复默认」</li>
+          <li>编辑弹窗（Modal）：按声明类型渲染控件</li>
+          <li>「修改记录」页签：时间 / 操作人 / 旧值 / 新值</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>进入页面 → 按组加载参数列表</li>
+          <li>编辑 → 按声明类型校验 → 保存 → 按声明热生效</li>
+          <li>恢复默认 → 二次确认「确定恢复默认值吗?」→ 回默认值</li>
+          <li>「修改记录」页签可查审计日志</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>组内无参数空态；<strong>加载态：</strong>列表 / 保存 loading；<strong>错误态：</strong>保存失败 toast；<strong>禁用态：</strong>无 <code>SYSTEM_CONFIG_WRITE</code> 权限时只读（仅超管可写）。</p>
+        <p><strong>类型 Tag：</strong>数值 / 布尔 / 文本 / 枚举。</p>
+        <p><strong>校验：</strong>「参数值格式不正确」「参数值超出范围」；值按声明类型校验（数值区间 / 布尔 / 枚举 / 长度），整数型限区间。<strong>变更不追溯</strong>已生成业务数据（R-SYS-01）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：主操作用品牌蓝，恢复默认等敏感动作二次确认，密钥类参数用 warning 提示保护。</p>
+        <p>值与控件须按声明类型渲染（数值 / 开关 / 文本 / 枚举），<strong>不得一律用文本框</strong>。</p>
+        <p><strong>密钥类参数（微信 / 支付 / DB 口令等）不得出现在本页</strong>（R-SYS-02），后端不回显明文、前端展示掩码。</p>
+        <p><span class="tag tag-goal"></span> 缺口 <strong>G64</strong>：批量修改、参数导入导出；孤儿种子键 <code>bucket_deposit_amount</code> 清理（G06）。「参数导入 / 导出」按钮现状为禁用占位。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

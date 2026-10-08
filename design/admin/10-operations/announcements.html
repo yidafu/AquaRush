@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 公告管理｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 运营配置 / 公告管理</h1>
+      <p class="sub">功能编号 F-OPS-002 ｜ 运营配置域 ｜ 入口「运营配置 → 公告」｜ 用户端首页公告栏（home）、公告详情页（notice-detail，目标形态）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-OPS-002</span>
+      <span class="chip chip-partial">部分实现</span>
+      <span class="chip chip-goal">后台维护链路 目标形态</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：公告列表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 公告列表（类型 / 展示位置 / 生效时间 / 状态）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/operations/announcements</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">运营配置 <span class="crumb-sep">/</span> <b>公告管理</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>公告管理</h2>
+                    <div class="desc">公告为站内内容，与订阅消息不同通道 ｜ 用户端展示已具备，后台维护链路为目标形态</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm">＋ 新建公告</span>
+                  </div>
+                </div>
+
+                <div class="card tint">
+                  <div class="card-title sm mb2"><span class="tag tag-goal"></span> 后台维护链路</div>
+                  <p class="f-aux mb0">现状：用户端首页公告栏与公告详情已具备展示能力，<strong>后台新建 / 编辑 / 发布链路尚未闭环</strong>（缺口 G62）。目标形态为后台可维护公告草稿 → 发布 → 置顶 / 停用，并驱动用户端数据源。</p>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>标题</th>
+                        <th>类型</th>
+                        <th>展示位置</th>
+                        <th>生效时间</th>
+                        <th>状态</th>
+                        <th>发布时间</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="bold"><span class="tag tag-warn">置顶</span> 【停水通知】水岸花园今日 14:00-17:00 停水</div></td>
+                        <td><span class="tag tag-err">停水通知</span></td>
+                        <td>首页公告条 / 消息中心</td>
+                        <td>2026-10-08 ~ 2026-10-08</td>
+                        <td><span class="tag tag-ok">已发布</span></td>
+                        <td class="num">2026-10-08 09:30</td>
+                        <td><div class="ops"><a>编辑</a><a>置顶</a><a>停用</a><a class="danger">删除</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">双十一桶装水活动预告</div></td>
+                        <td><span class="tag tag-brand">活动预告</span></td>
+                        <td>首页公告条</td>
+                        <td>2026-11-01 ~ 2026-11-11</td>
+                        <td><span class="tag tag-ok">已发布</span></td>
+                        <td class="num">2026-10-05 15:12</td>
+                        <td><div class="ops"><a>编辑</a><a>置顶</a><a>停用</a><a class="danger">删除</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">平台系统升级公告</div></td>
+                        <td><span class="tag tag-neutral">平台公告</span></td>
+                        <td>消息中心</td>
+                        <td>2026-09-20 ~ 2026-09-22</td>
+                        <td><span class="tag tag-done">已过期</span></td>
+                        <td class="num">2026-09-20 08:00</td>
+                        <td><div class="ops"><a>编辑</a><a>置顶</a><a class="danger">删除</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">配送时间调整通知（草稿）</div></td>
+                        <td><span class="tag tag-brand">活动预告</span></td>
+                        <td>首页公告条</td>
+                        <td>—</td>
+                        <td><span class="tag tag-neutral">草稿</span></td>
+                        <td class="num">—</td>
+                        <td><div class="ops"><a>编辑</a><a>发布</a><a class="danger">删除</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 4 条记录</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：新建 / 编辑公告弹窗 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 新建 / 编辑公告弹窗（标题 / 内容富文本 / 类型 / 展示位置 / 时间窗 / 置顶）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/operations/announcements — 新建公告</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi on">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">运营配置 <span class="crumb-sep">/</span> <b>公告管理</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title"><div><h2>公告管理</h2><div class="desc">弹窗打开态（背景遮罩）</div></div></div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>标题</th><th>类型</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr><td>【停水通知】水岸花园今日 14:00-17:00 停水</td><td><span class="tag tag-err">停水通知</span></td><td><span class="tag tag-ok">已发布</span></td></tr>
+                      <tr><td>双十一桶装水活动预告</td><td><span class="tag tag-brand">活动预告</span></td><td><span class="tag tag-ok">已发布</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal wide">
+              <div class="modal-head">新建公告</div>
+              <div class="modal-body">
+
+                <div class="field">
+                  <label class="req">标题 <span class="f-note t-weak">｜ Input ｜ 必填 ｜ ≤ 50 字</span></label>
+                  <div class="input"><span class="ph">公告标题不能为空</span></div>
+                </div>
+
+                <div class="field">
+                  <label class="req">内容 <span class="f-note t-weak">｜ 富文本（TextArea）｜ 必填 ｜ ≤ 2000 字</span></label>
+                  <div class="textarea" style="height:120px"><span class="ph">公告内容不能为空</span></div>
+                  <div class="f-note t-weak mt2">支持图文混排；用户端公告详情按正文排版渲染（行距舒适、层级分明）。</div>
+                </div>
+
+                <div class="grid2" style="gap:0 16px">
+                  <div class="field">
+                    <label>类型 <span class="f-note t-weak">｜ Select ｜ 平台公告 / 停水通知 / 活动预告</span></label>
+                    <div class="select"><span>停水通知</span></div>
+                    <div class="f-note t-weak mt2">「停水通知」建议独立色标识（语义 error）。</div>
+                  </div>
+                  <div class="field">
+                    <label>展示位置 <span class="f-note t-weak">｜ Select ｜ 首页公告条 / 消息中心</span> <span class="tag tag-goal"></span></label>
+                    <div class="select"><span>首页公告条 / 消息中心</span></div>
+                  </div>
+                  <div class="field">
+                    <label>生效时间范围 <span class="f-note t-weak">｜ DatePicker.RangePicker ｜ 可选 ｜ 开始 &lt; 结束</span></label>
+                    <div class="row gap2">
+                      <div class="input" style="width:140px"><span>2026-10-08</span></div>
+                      <span class="t-weak">–</span>
+                      <div class="input" style="width:140px"><span>2026-10-08</span></div>
+                    </div>
+                    <div class="f-note t-weak mt2">校验：「时间窗不合法」；留空表示长期生效。</div>
+                  </div>
+                  <div class="field">
+                    <label>置顶 <span class="f-note t-weak">｜ Switch</span></label>
+                    <div class="row gap2"><span class="switch on"></span><span class="f-note t-sub">置顶（公告栏最前展示）</span></div>
+                  </div>
+                </div>
+
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm ghost">保存草稿</span>
+                <span class="btn sm">发布</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>运营配置 → 公告；路由 <code>operations/announcements</code></p>
+        <p><strong>下游：</strong>用户端首页公告栏（home）、公告详情页（notice-detail，目标形态）</p>
+        <p><strong>状态：</strong><span class="chip chip-partial">部分实现</span>（用户端展示已具备、后台维护链路未闭环）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部：「新建公告」按钮</li>
+          <li>公告列表：标题 / 类型（Tag）/ 置顶标识 / 展示位置 / 生效时间 / 状态 / 发布时间 / 操作（编辑 / 发布 / 置顶 / 停用 / 删除）</li>
+          <li>新建 / 编辑弹窗：标题、内容富文本、类型、展示位置、生效时间范围、置顶开关</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>新建公告（草稿）→ 编辑 → 发布（时间窗内生效）</li>
+          <li>置顶公告在公告栏最前展示</li>
+          <li>停用 / 到期 → 用户端不再展示</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>状态：</strong>草稿 / 已发布 / 已停用；置顶标识；时间窗内 / 已过期。</p>
+        <p><strong>关键数据字段：</strong>标题、内容、类型、置顶、展示位置、开始 / 结束时间、发布时间、状态。</p>
+        <p><strong>校验：</strong>「公告标题不能为空」「公告内容不能为空」「时间窗不合法」。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：类型「停水通知」用语义 error 色标识，「活动预告」用品牌蓝，主操作用品牌蓝。</p>
+        <p><strong>已停用公告不可再编辑</strong>（开放问题）；公告为站内内容，<strong>与订阅消息不同通道</strong>。</p>
+        <p><span class="tag tag-goal"></span> 缺口 <strong>G62</strong>：用户端展示已具备、<strong>后台维护链路为目标形态</strong>（新建 / 编辑 / 发布 / 置顶 / 停用）；公告详情页与展示位置为开放问题。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

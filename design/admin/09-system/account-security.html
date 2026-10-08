@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 账号与安全策略配置｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 系统设置 / 账号与安全</h1>
+      <p class="sub">功能编号 F-SYS-004 ｜ 系统设置域 ｜ 入口「系统设置 → 账号与安全」· 路由 system-config/security ｜ 仅超级管理员可见</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-SYS-004</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：策略配置表单 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 密码策略 / 登录安全 / Token 有效期</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/system-config/security</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">系统设置 <span class="crumb-sep">/</span> <b>账号与安全</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>账号与安全策略配置</h2>
+                    <div class="desc">登录校验即时生效 ｜ Token 有效期重启生效 ｜ 密钥 / 证书类不在此页在线修改（R-SYS-02）</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">保存</span>
+                  </div>
+                </div>
+
+                <div class="notice" style="margin-bottom:16px">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 3 3 20h18z"/><path d="M12 9v5M12 17h.01"/></svg>
+                  <span>敏感配置保护：本页策略影响全部管理员账号，修改将写入审计日志（操作人 / 时间 / 旧值 / 新值）。密钥 / 证书类参数不在线修改。</span>
+                </div>
+
+                <!-- 密码策略 -->
+                <div class="card">
+                  <div class="card-head">
+                    <div class="card-title sm">密码策略</div>
+                    <span class="f-note t-sub">登录校验即时生效</span>
+                  </div>
+
+                  <div class="field">
+                    <label>密码最小长度 <span class="f-note t-weak">｜ 控件：InputNumber ｜ 默认 8 ｜ 取值 6-32 整数</span></label>
+                    <div class="row gap2">
+                      <div class="input" style="width:180px"><span>8</span></div>
+                      <span class="f-note t-sub">位</span>
+                    </div>
+                    <div class="f-note t-weak mt2">校验：「参数无效」（最小长度 6-32）。</div>
+                  </div>
+
+                  <div class="field">
+                    <label>是否要求字母数字混合 <span class="f-note t-weak">｜ 控件：Switch ｜ 默认（按需）｜ 取值：开 / 关</span></label>
+                    <div class="row gap2"><span class="switch on"></span><span class="f-note t-sub">开启（修改密码时强制字母 + 数字）</span></div>
+                  </div>
+
+                  <div class="field">
+                    <label>密码有效期（天） <span class="f-note t-weak">｜ 控件：InputNumber ｜ 默认 0（不过期）｜ 取值 0-3650</span> <span class="tag tag-goal"></span></label>
+                    <div class="row gap2">
+                      <div class="input" style="width:180px"><span>0</span></div>
+                      <span class="f-note t-sub">天（0 = 永久有效）</span>
+                    </div>
+                    <div class="f-note t-weak mt2">到期强制修改密码；目标形态（缺口 G64）。</div>
+                  </div>
+
+                  <div class="field mb0">
+                    <label>历史密码不可重用次数 <span class="f-note t-weak">｜ 控件：InputNumber ｜ 默认 5 ｜ 取值 0-20</span> <span class="tag tag-goal"></span></label>
+                    <div class="row gap2">
+                      <div class="input" style="width:180px"><span>5</span></div>
+                      <span class="f-note t-sub">次</span>
+                    </div>
+                    <div class="f-note t-weak mt2">新密码不得与最近 N 次历史密码重复；目标形态（缺口 G64）。</div>
+                  </div>
+                </div>
+
+                <!-- 登录安全 -->
+                <div class="card">
+                  <div class="card-head">
+                    <div class="card-title sm">登录安全</div>
+                    <span class="f-note t-sub">登录校验即时生效</span>
+                  </div>
+
+                  <div class="field">
+                    <label>登录失败锁定次数 <span class="f-note t-weak">｜ 控件：InputNumber（次）｜ 默认 5 ｜ 取值 1-99</span></label>
+                    <div class="row gap2">
+                      <div class="input" style="width:180px"><span>5</span></div>
+                      <span class="f-note t-sub">次</span>
+                    </div>
+                    <div class="f-note t-weak mt2">连续失败达次数锁定账号；校验：「参数无效」（锁定次数 1-99）。</div>
+                  </div>
+
+                  <div class="field mb0">
+                    <label>锁定时长（分钟） <span class="f-note t-weak">｜ 控件：InputNumber ｜ 默认 15 ｜ 取值 &gt; 0</span></label>
+                    <div class="row gap2">
+                      <div class="input" style="width:180px"><span>15</span></div>
+                      <span class="f-note t-sub">分钟</span>
+                    </div>
+                    <div class="f-note t-weak mt2">校验：「参数无效」（锁定时长 &gt; 0）。</div>
+                  </div>
+                </div>
+
+                <!-- Token 有效期 -->
+                <div class="card">
+                  <div class="card-head">
+                    <div class="card-title sm">Token 有效期</div>
+                    <span class="tag tag-warn">重启生效</span>
+                  </div>
+
+                  <div class="field mb0">
+                    <label>Token 有效期（小时） <span class="f-note t-weak">｜ 控件：InputNumber ｜ 默认 24 ｜ 取值 &gt; 0</span></label>
+                    <div class="row gap2">
+                      <div class="input" style="width:180px"><span>24</span></div>
+                      <span class="f-note t-sub">小时</span>
+                    </div>
+                    <div class="f-note t-weak mt2">生效提示：「Token 有效期重启生效」；校验：「参数无效」。</div>
+                  </div>
+                </div>
+
+                <!-- 敏感操作二次确认范围 -->
+                <div class="card">
+                  <div class="card-head">
+                    <div class="card-title sm">敏感操作二次确认范围 <span class="tag tag-goal"></span></div>
+                    <span class="f-note t-sub">目标形态 · 缺口 G64</span>
+                  </div>
+                  <div class="list" style="box-shadow:none">
+                    <div class="list-item"><span class="grow">系统参数保存 / 恢复默认</span><span class="switch on"></span></div>
+                    <div class="list-item"><span class="grow">配送费规则保存</span><span class="switch on"></span></div>
+                    <div class="list-item"><span class="grow">数据维护 · 手动触发离线备份</span><span class="switch on"></span></div>
+                    <div class="list-item"><span class="grow">消息失败重发</span><span class="switch on"></span></div>
+                    <div class="list-item"><span class="grow">账号与安全策略保存</span><span class="switch on"></span></div>
+                  </div>
+                </div>
+
+                <!-- 登录日志查询入口 -->
+                <div class="card mb0">
+                  <div class="card-head">
+                    <div class="card-title sm">登录日志查询入口</div>
+                    <span class="card-more">前往日志管理 <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span>
+                  </div>
+                  <p class="f-aux t-sub mb2">登录成功 / 失败 / 锁定记录统一归档至「日志管理 → 用户操作日志」，支持按账号、IP、时间范围检索。</p>
+                  <div class="row gap2">
+                    <span class="btn sm secondary">查询登录日志</span>
+                    <span class="f-note t-weak">保留天数由「数据维护」F-SYS-006 统一配置（默认 90 天）</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：保存二次确认（生效时机提示） ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 保存二次确认（即时生效 / 重启生效分列）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/system-config/security — 保存确认</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi on">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">系统设置 <span class="crumb-sep">/</span> <b>账号与安全</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title"><div><h2>账号与安全策略配置</h2><div class="desc">保存确认弹窗打开态</div></div></div>
+                <div class="card"><div class="card-title sm mb2">密码策略</div><div class="sub-line">最小长度 8 ｜ 字母数字混合 开</div></div>
+                <div class="card"><div class="card-title sm mb2">登录安全</div><div class="sub-line">失败锁定 5 次 ｜ 锁定时长 15 分钟</div></div>
+                <div class="card"><div class="card-title sm mb2">Token 有效期</div><div class="sub-line">24 小时（重启生效）</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal">
+              <div class="modal-head">确认保存安全策略</div>
+              <div class="modal-body">
+                <p class="f-body">确定保存吗?新策略将影响全部管理员账号。</p>
+                <div class="desc-grid two">
+                  <div class="desc-item"><div class="k">即时生效（登录校验）</div><div class="v">密码最小长度 8 · 字母数字混合 · 失败锁定 5 次 · 锁定时长 15 分钟</div></div>
+                  <div class="desc-item"><div class="k">重启生效（Token）</div><div class="v">Token 有效期 24 小时</div></div>
+                </div>
+                <div class="notice mt3 mb0">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v5h1"/></svg>
+                  <span>Token 有效期需重启服务后生效；重启前仍按旧值签发。</span>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">确定</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>系统设置 → 账号与安全；路由 <code>system-config/security</code>；<strong>仅超级管理员可见</strong></p>
+        <p><strong>下游：</strong>「日志管理 → 用户操作日志」承接登录日志检索</p>
+        <p><strong>状态：</strong><span class="chip chip-plan">规划中</span>（目标形态）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>密码策略分组：最小长度 / 字母数字混合 / 有效期 / 历史密码不可重用次数</li>
+          <li>登录安全分组：失败锁定次数 / 锁定时长</li>
+          <li>Token 有效期分组（重启生效提示）：Token 有效期</li>
+          <li>敏感操作二次确认范围（目标形态）</li>
+          <li>登录日志查询入口 + 保存按钮 + 修改记录</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>回显当前策略 → 修改 → 确认保存 → 新策略生效（登录校验类即时、Token 类重启生效）</li>
+          <li>点「查询登录日志」→ 跳转日志管理并带账号 / 时间条件</li>
+          <li>敏感操作范围开关变更后，对应操作弹出二次确认</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>加载态：</strong>回显 / 保存 loading；<strong>错误态：</strong>保存失败 toast；<strong>禁用态：</strong>无权限只读；<strong>重启生效提示：</strong>Token 有效期字段旁提示「重启生效」。</p>
+        <p><strong>校验：</strong>「参数无效」（最小长度 6-32、锁定次数 1-99、锁定时长 &gt; 0）。</p>
+        <p><strong>生效提示：</strong>「登录校验即时生效」「Token 有效期重启生效」。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：敏感配置用 warning 色提示保护（重启生效 Tag、敏感操作范围卡），主操作用品牌蓝。</p>
+        <p>区分即时生效（登录校验类）与重启生效（Token 类），<strong>字段旁须明示生效时机</strong>。</p>
+        <p><strong>密钥 / 证书类不在此页在线修改</strong>（R-SYS-02）。</p>
+        <p><span class="tag tag-goal"></span> 缺口 <strong>G64</strong>、<strong>G49</strong>（权限强制配套）。现状登录校验简化（无强度 / 锁定策略），Token 有效期配置于 application.yml。开放问题：是否引入双因子 / 验证码登录（现状按不引入设计）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

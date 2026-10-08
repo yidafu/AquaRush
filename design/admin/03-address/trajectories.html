@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 配送轨迹查看｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 地址与配送 / 配送轨迹</h1>
+      <p class="sub">功能编号 F-ADR-012 ｜ 地址与配送域（管理后台侧）｜ 上游：送水工端轨迹上报</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ADR-012</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <div>
+        <div class="browser-cap">状态一 · 轨迹查看与回放（左送水工选择 / 中地图回放 / 右轨迹详情）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/trajectories</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">地址与配送 <span class="crumb-sep">/</span> <b>配送轨迹</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>配送轨迹</h2>
+                    <div class="desc">选择送水工查看当前位置与历史轨迹，支持按时间顺序回放</div>
+                  </div>
+                  <div class="row gap2">
+                    <div class="select" style="width:150px"><span>今天 2026-08-24</span></div>
+                    <span class="btn sm ghost">刷新</span>
+                  </div>
+                </div>
+
+                <div class="row top gap3 wrap">
+
+                  <!-- 左：送水工 / 订单选择 -->
+                  <div class="col gap3" style="width:220px;flex:0 0 220px">
+                    <div class="card" style="margin-bottom:0">
+                      <div class="card-title sm mb2">订单查询</div>
+                      <div class="input"><span class="ph">订单号 / 收货人</span></div>
+                    </div>
+                    <div class="card flush" style="margin-bottom:0">
+                      <div class="card-head" style="margin:0;padding:12px 16px">
+                        <span class="card-title sm">送水工</span>
+                        <span class="f-note t-sub">在线 3</span>
+                      </div>
+                      <div class="list" style="box-shadow:none;border-radius:0">
+                        <div class="list-item" style="background:var(--brand-tint)">
+                          <span class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.2-3.4 3.8-5.2 7-5.2s5.8 1.8 7 5.2"/></svg></span>
+                          <div class="grow">
+                            <div class="bold">张强</div>
+                            <div class="f-note t-ok">● 在线 · 配送中 2 单</div>
+                          </div>
+                        </div>
+                        <div class="list-item">
+                          <span class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.2-3.4 3.8-5.2 7-5.2s5.8 1.8 7 5.2"/></svg></span>
+                          <div class="grow">
+                            <div class="bold">李明</div>
+                            <div class="f-note t-ok">● 在线 · 配送中 1 单</div>
+                          </div>
+                        </div>
+                        <div class="list-item">
+                          <span class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.2-3.4 3.8-5.2 7-5.2s5.8 1.8 7 5.2"/></svg></span>
+                          <div class="grow">
+                            <div class="bold">赵刚</div>
+                            <div class="f-note t-ok">● 在线 · 配送中 3 单</div>
+                          </div>
+                        </div>
+                        <div class="list-item">
+                          <span class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="3.4"/><path d="M5 20c1.2-3.4 3.8-5.2 7-5.2s5.8 1.8 7 5.2"/></svg></span>
+                          <div class="grow">
+                            <div class="bold">王磊</div>
+                            <div class="f-note t-weak">● 离线 · 配送中 0 单</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <!-- 中：地图轨迹回放 -->
+                  <div class="grow card" style="min-width:420px;margin-bottom:0">
+                    <div class="card-head">
+                      <span class="card-title sm">轨迹回放 · 张强</span>
+                      <span class="tag tag-deliver">配送中</span>
+                    </div>
+
+                    <div class="map" style="height:340px">
+                      <div class="road"></div>
+                      <div class="water"></div>
+
+                      <!-- 历史轨迹折线 -->
+                      <svg viewBox="0 0 720 340" preserveAspectRatio="none" style="position:absolute;inset:0;width:100%;height:100%">
+                        <polyline points="70,300 130,285 175,255 220,262 275,215 330,222 375,168 425,140 475,112 540,92 610,66"
+                                  style="fill:none;stroke:var(--brand);stroke-width:3;stroke-linecap:round;stroke-linejoin:round" />
+                        <circle cx="375" cy="168" r="6" style="fill:var(--brand);stroke:var(--card);stroke-width:2" />
+                      </svg>
+
+                      <span class="pin pickup" style="left:62px;top:292px"></span>
+                      <span class="pin" style="left:602px;top:58px"></span>
+                      <span class="pin cur" style="left:367px;top:160px"></span>
+
+                      <span class="map-label" style="left:78px;top:258px">起点 · 08:12 取货</span>
+                      <span class="map-label" style="left:392px;top:126px">当前位置 · 09:21</span>
+                      <span class="map-label" style="left:556px;top:24px">终点 · 09:47 送达</span>
+
+                      <div class="map-ctrl"><i>＋</i><i>－</i><i>◎</i></div>
+                    </div>
+
+                    <div class="row gap3" style="margin-top:12px">
+                      <span class="btn xs ghost">⏸ 暂停</span>
+                      <span class="btn xs secondary">1×</span>
+                      <span class="btn xs ghost">2×</span>
+                      <span class="btn xs ghost">4×</span>
+                      <div class="grow" style="position:relative;height:6px;border-radius:3px;background:rgba(0,0,0,.08)">
+                        <div style="position:absolute;left:0;top:0;bottom:0;width:42%;border-radius:3px;background:var(--brand)"></div>
+                        <span style="position:absolute;left:42%;top:-5px;width:16px;height:16px;border-radius:50%;background:var(--card);box-shadow:0 1px 4px rgba(0,0,0,.25);transform:translateX(-8px)"></span>
+                      </div>
+                      <span class="f-note t-sub">09:21 / 09:47</span>
+                    </div>
+                    <div class="row between f-note t-weak" style="margin-top:4px">
+                      <span>08:12</span><span>08:36</span><span>09:00</span><span>09:21</span><span>09:47</span>
+                    </div>
+                  </div>
+
+                  <!-- 右：轨迹详情 -->
+                  <div class="col gap3" style="width:260px;flex:0 0 260px">
+                    <div class="card" style="margin-bottom:0">
+                      <div class="card-title sm mb2">轨迹详情</div>
+                      <div class="desc-grid two">
+                        <div class="desc-item"><div class="k">起止时间</div><div class="v num">08:12 – 09:47</div></div>
+                        <div class="desc-item"><div class="k">总里程</div><div class="v num">6.8 km</div></div>
+                        <div class="desc-item"><div class="k">平均时速</div><div class="v num">14.2 km/h</div></div>
+                        <div class="desc-item"><div class="k">关联订单号</div><div class="v num">AR20260824012</div></div>
+                      </div>
+
+                      <div class="divider" style="margin:14px 0 12px">停留点（3）</div>
+                      <div class="timeline">
+                        <div class="tl-item done">
+                          <span class="tl-dot"></span>
+                          <div class="grow">
+                            <div class="f-aux">科技园南路 100 号 3 栋</div>
+                            <div class="tl-time">08:36 · 停留 4 分钟</div>
+                          </div>
+                        </div>
+                        <div class="tl-item done">
+                          <span class="tl-dot"></span>
+                          <div class="grow">
+                            <div class="f-aux">深南大道 6008 号 2 座</div>
+                            <div class="tl-time">09:02 · 停留 6 分钟</div>
+                          </div>
+                        </div>
+                        <div class="tl-item">
+                          <span class="tl-dot"></span>
+                          <div class="grow">
+                            <div class="f-aux">望海路 8 号 7 栋</div>
+                            <div class="tl-time">09:47 · 停留 3 分钟</div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="notice brand">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+                      <span>轨迹含收货地址隐私，仅 <code>PERMISSION_DELIVERY_WORKER_READ</code> 可查（R-AUTH-02 权限隔离）</span>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>左侧菜单「地址与配送」→ 配送轨迹</p>
+        <p><strong>跳转：</strong>选择送水工切换查看；轨迹时间轴点选定位到地图</p>
+        <p><strong>权限：</strong><code>PERMISSION_DELIVERY_WORKER_READ</code>（仅此权限可查）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部操作栏：时间范围（默认当天）+「刷新」</li>
+          <li>主区左：送水工选择列表（姓名 + 在线状态 + 配送中订单数）+ 订单查询</li>
+          <li>主区中：地图轨迹回放（折线 + 起点 / 终点 / 当前位置标记）+ 播放控制条（播放暂停 / 倍速 / 时间刻度）</li>
+          <li>主区右：轨迹详情（起止时间 / 总里程 / 平均时速 / 停留点列表）+ 权限说明</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>选择送水工 → 地图展示当前位置与历史轨迹</li>
+          <li>「轨迹回放」→ 按时间顺序播放所选时间范围轨迹，可调速（1× / 2× / 4×）</li>
+          <li>轨迹时间轴点选 → 地图定位到该轨迹点并与回放同步高亮</li>
+          <li>「刷新」重取当前位置与最新轨迹</li>
+          <li>数据仅 <code>PERMISSION_DELIVERY_WORKER_READ</code> 可查</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>该送水工无轨迹或当前无配送任务「暂无轨迹数据」；<strong>加载态：</strong>轨迹加载中；<strong>错误态：</strong>「轨迹加载失败」/ 定位权限拒绝提示。</p>
+        <p><strong>禁用态：</strong>非配送中无实时位置，仅展示历史轨迹。</p>
+        <p>地图需区分「当前位置标记」与「历史轨迹折线」；上报频率 / 保留时长为后台可配置（开放问题）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：轨迹折线与标记统一品牌蓝；当前位置用目标色区分，不用强调橙大色块。</p>
+        <p>轨迹涉及用户收货地址隐私，仅管理员可查（R-AUTH-02）；用户端配送跟踪复用同一数据源为后续迭代（缺口 G65）。</p>
+        <p>坐标统一 WGS-84，勿与小程序端 GCJ-02 混用；数据来自 <code>delivery_trajectories</code> 表（G22 已解决）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

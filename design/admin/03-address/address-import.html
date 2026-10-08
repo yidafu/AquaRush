@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 地址批量导入｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 地址与配送 / 地址批量导入</h1>
+      <p class="sub">功能编号 F-ADR-021 ｜ 地址与配送域 ｜ 上游：地址管理（导入 Excel）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ADR-021</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-partial">失败明细下载 / 去重 部分实现</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：批量导入弹窗 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 批量导入弹窗（下载模板 → 上传 → 校验预览 → 确认导入）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/addresses — 批量导入</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi on">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">地址与配送 <span class="crumb-sep">/</span> <b>地址管理</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>地址管理</h2><div class="desc">弹窗打开态（背景遮罩）</div></div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">导入 Excel</span>
+                    <span class="btn sm">＋ 新增地址</span>
+                  </div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>收货人</th><th>电话</th><th>省市区 + 详细地址</th><th>操作</th></tr></thead>
+                    <tbody>
+                      <tr><td class="bold">张伟</td><td class="num">138****6621</td><td>广东省 深圳市 南山区 科技园南路 100 号 3 栋 1502</td><td><div class="ops"><a>编辑</a><a class="danger">删除</a></div></td></tr>
+                      <tr><td class="bold">李静</td><td class="num">139****0087</td><td>广东省 深圳市 福田区 深南大道 6008 号 2 座 806</td><td><div class="ops"><a>编辑</a><a class="danger">删除</a></div></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal wide">
+              <div class="modal-head">批量导入</div>
+              <div class="modal-body">
+
+                <div class="row gap3" style="align-items:stretch">
+                  <div class="grow card tint" style="margin-bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;padding:22px">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:26px;height:26px;color:var(--brand-dark)"><path d="M12 16V4"/><path d="M7 9l5-5 5 5"/><path d="M4 16v3h16v-3"/></svg>
+                    <span class="f-aux">点击或拖拽文件到此区域上传</span>
+                    <span class="f-note t-weak">支持 .xlsx / .xls，单次 ≤ 2000 行</span>
+                  </div>
+                  <div class="col gap2" style="justify-content:center">
+                    <span class="btn sm ghost">下载模板</span>
+                  </div>
+                </div>
+
+                <div class="notice brand mt3">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                  <span>已解析 6 行，其中 3 行校验通过、3 行失败；失败行不会导入，请修正后重新上传。</span>
+                </div>
+
+                <div class="section-title" style="margin-top:16px">校验预览（6 行）</div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:56px">行号</th>
+                        <th>收货人</th>
+                        <th>地址</th>
+                        <th style="width:96px">校验结果</th>
+                        <th>失败原因</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="num">1</td><td class="bold">张伟</td><td>广东省 深圳市 南山区 科技园南路 100 号 3 栋 1502</td><td><span class="tag tag-ok">通过</span></td><td class="t-weak">—</td></tr>
+                      <tr><td class="num">2</td><td class="bold">李静</td><td>广东省 深圳市 福田区 深南大道 6008 号 2 座 806</td><td><span class="tag tag-ok">通过</span></td><td class="t-weak">—</td></tr>
+                      <tr><td class="num">3</td><td class="bold">陈志强</td><td>广东省 深圳市 宝安区 新安街道兴华路 12 号 1 栋 201</td><td><span class="tag tag-ok">通过</span></td><td class="t-weak">—</td></tr>
+                      <tr><td class="num">4</td><td class="t-weak">（空）</td><td>广东省 深圳市 龙岗区 布吉街道吉华路 44 号</td><td><span class="tag tag-err">失败</span></td><td class="t-err">缺少必要的表头字段: 收货人姓名（行数据不完整）</td></tr>
+                      <tr><td class="num">5</td><td class="bold">王芳</td><td>广东省 深圳市 龙岗区 布吉街道吉华路 44 号 5 栋 902</td><td><span class="tag tag-err">失败</span></td><td class="t-err">手机号格式不正确</td></tr>
+                      <tr><td class="num">6</td><td class="bold">刘洋</td><td class="t-weak">（空）</td><td><span class="tag tag-err">失败</span></td><td class="t-err">详细地址为空</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="f-note t-weak mt3">
+                  表头要求：收货人姓名 / 手机号 / 省 / 市 / 县 / 详细地址。导入的地址将不关联任何用户（user_id 为 null）；请先点击「下载模板」获取标准模板。
+                </div>
+
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">导入 (3 条)</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ 状态二：导入结果反馈 + 留痕记录 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 导入结果反馈（成功 / 失败 / 失败明细可下载）与导入留痕记录</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/addresses — 导入结果</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi on">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">地址与配送 <span class="crumb-sep">/</span> <b>地址管理</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div><h2>导入留痕记录</h2><div class="desc">每次批量导入生成一条台账，失败明细可回查下载</div></div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">导出记录</span>
+                    <span class="btn sm">＋ 新增地址</span>
+                  </div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>导入时间</th>
+                        <th>操作人</th>
+                        <th>文件名</th>
+                        <th class="num">成功条数</th>
+                        <th class="num">失败条数</th>
+                        <th>状态</th>
+                        <th>失败明细</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="num">2026-08-24 10:30</td>
+                        <td>超级管理员</td>
+                        <td>地址导入模板.xlsx</td>
+                        <td class="num t-ok bold">3</td>
+                        <td class="num t-err bold">3</td>
+                        <td><span class="tag tag-warn">部分成功</span></td>
+                        <td><div class="ops"><a>下载</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="num">2026-08-20 15:02</td>
+                        <td>运营小王</td>
+                        <td>南山新增地址.xlsx</td>
+                        <td class="num t-ok bold">48</td>
+                        <td class="num">0</td>
+                        <td><span class="tag tag-ok">全部成功</span></td>
+                        <td class="t-weak">—</td>
+                      </tr>
+                      <tr>
+                        <td class="num">2026-08-16 09:41</td>
+                        <td>超级管理员</td>
+                        <td>福田客户名单.xlsx</td>
+                        <td class="num">0</td>
+                        <td class="num t-err bold">12</td>
+                        <td><span class="tag tag-err">全部失败</span></td>
+                        <td><div class="ops"><a>下载</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 3 条记录</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal" style="max-width:520px">
+              <div class="modal-head">导入结果</div>
+              <div class="modal-body">
+                <div class="grid2" style="gap:12px">
+                  <div class="stat-card" style="box-shadow:none;background:rgba(82,196,26,.08)">
+                    <div class="lbl">导入成功</div>
+                    <div class="val t-ok">3<small>条</small></div>
+                  </div>
+                  <div class="stat-card" style="box-shadow:none;background:rgba(255,77,79,.08)">
+                    <div class="lbl">导入失败</div>
+                    <div class="val t-err">3<small>条</small></div>
+                  </div>
+                </div>
+
+                <div class="row between mt3">
+                  <span class="f-aux t-sub">失败明细（3 行）</span>
+                  <span class="btn sm xs ghost">下载失败明细</span>
+                </div>
+                <div class="ant-table mt2">
+                  <table>
+                    <thead><tr><th style="width:56px">行号</th><th>收货人</th><th>失败原因</th></tr></thead>
+                    <tbody>
+                      <tr><td class="num">4</td><td class="t-weak">（空）</td><td class="t-err">缺少必要的表头字段: 收货人姓名（行数据不完整）</td></tr>
+                      <tr><td class="num">5</td><td class="bold">王芳</td><td class="t-err">手机号格式不正确</td></tr>
+                      <tr><td class="num">6</td><td class="bold">刘洋</td><td class="t-err">详细地址为空</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">关闭</span>
+                <span class="btn sm">下载失败明细</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>地址管理页「导入 Excel」打开的弹窗</p>
+        <p><strong>跳转：</strong>弹窗内「下载模板」触发模板下载；确认导入后关闭并刷新地址列表</p>
+        <p><strong>权限：</strong><code>PERMISSION_ADDRESS_WRITE</code></p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>文件选择区：上传控件（.xlsx / .xls）+「下载模板」按钮</li>
+          <li>解析提示区：解析中 / 表头缺失 / 行不完整 / 文件为空</li>
+          <li>校验预览表：行号 / 收货人 / 地址 / 校验结果 / 失败原因</li>
+          <li>导入按钮：带条数「导入 (N 条)」，无数据时 disabled</li>
+          <li>底部说明区：表头要求 + user_id 为 null 提示</li>
+          <li>第二状态：导入结果反馈 + 失败明细 + 导入留痕记录</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>选择文件 → 解析 Excel → 表头校验（缺列 Alert「缺少必要的表头字段: …」）</li>
+          <li>行完整性校验（空行 Alert「有 N 行数据不完整，请检查」）</li>
+          <li>校验通过 / 失败逐行标注，失败行不导入</li>
+          <li>点「导入」→ 提交并返回成功 / 失败条数与失败明细</li>
+          <li>「下载模板」生成标准模板「地址导入模板.xlsx」；失败明细可单独下载</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>Alert「Excel 文件为空」；<strong>加载态：</strong>Alert「正在解析 Excel 文件...」；<strong>错误态：</strong>「解析 Excel 文件失败，请确保文件格式正确」「加载 Excel 解析库失败」。</p>
+        <p><strong>禁用态：</strong>无解析数据时导入按钮 disabled。</p>
+        <p><strong>结果字段：</strong>successCount / failureCount / totalCount。</p>
+        <p>校验失败必须给出可定位原因（列名 / 行号）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：主操作用品牌蓝，失败语义用 error 色。</p>
+        <p><span class="tag tag-goal"></span> 失败行下载（本页已画目标形态）与重复导入去重（接后端 isDuplicateAddress）为缺口候选；缺手机号格式 / 区域存在性校验。</p>
+        <p>导入字段不含经纬度（与 F-ADR-022 缺坐标联动）；导入地址 user_id 为 null。</p>
+        <p>台账须留痕（时间 / 操作人 / 文件 / 成功失败数），失败明细可回查。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

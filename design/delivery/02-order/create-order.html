@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>送水工端 · 代客下单｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-delivery">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>送水工端 App · 代客下单</h1>
+      <p class="sub">功能编号 F-ORD-012 / F-PRO-005 ｜ 订单域 · 商品域 ｜ 下游：订单落入「待派单」</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-012</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip">F-PRO-005</span>
+      <span class="chip chip-plain">delivery-app · 暗色</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：已选商品（正常态） ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 已选商品</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>代客下单</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="card" style="margin-top:0">
+                <div class="card-head">
+                  <span class="card-title sm">收货地址</span>
+                  <span class="f-note t-brand">选择地址</span>
+                </div>
+                <div class="row between">
+                  <span class="f-body bold t-main">张先生</span>
+                  <span class="row gap1 t-brand">
+                    <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M5 4h3.5l1.8 4.2-2.1 1.6a12 12 0 0 0 5.9 5.9l1.6-2.1L20 15.5V19a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>
+                    138****6621
+                  </span>
+                </div>
+                <div class="f-aux t-sub mt2">清水湾小区 3 号楼 2 单元 602 · 6 楼</div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">商品</span>
+                  <span class="f-note t-brand">更换</span>
+                </div>
+                <div class="row gap3">
+                  <div class="thumb sq-sm">实拍图</div>
+                  <div class="grow">
+                    <div class="f-body bold t-main">农夫山泉天然水</div>
+                    <div class="f-note t-sub mt2">规格 19L / 桶 · 库存 128</div>
+                    <span class="price mt2">¥22.00</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="row between">
+                  <span class="card-title sm">数量</span>
+                  <div class="stepper"><span>－</span><span class="num">2</span><span>＋</span></div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="row between">
+                  <div>
+                    <div class="f-body t-main">自提</div>
+                    <div class="f-note t-sub mt2">自提免运费，记为已收款</div>
+                  </div>
+                  <div class="switch"></div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">收款方式</span>
+                  <span class="f-note t-sub">默认现金</span>
+                </div>
+                <div class="radio-row">
+                  <span class="radio on">现金</span>
+                  <span class="radio">水票</span>
+                  <span class="radio">扫码</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-title sm mb3">备注</div>
+                <div class="textarea"><span class="ph">选填，≤ 200 字</span></div>
+              </div>
+            </div>
+
+            <div class="bottom-bar">
+              <div class="bb-info">
+                <div class="lbl">合计</div>
+                <span class="price"><span class="cur">¥</span>44<span class="dec">.00</span></span>
+              </div>
+              <div class="btn">创建送水订单</div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：商品选择弹层 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 商品选择弹层</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>代客下单</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div class="app-scroll">
+              <div class="card" style="margin-top:0">
+                <div class="card-head">
+                  <span class="card-title sm">商品</span>
+                  <span class="f-note t-brand">更换</span>
+                </div>
+                <div class="row gap3">
+                  <div style="width:56px;height:56px;border-radius:8px;border:1px dashed var(--d-border);display:flex;align-items:center;justify-content:center;color:var(--d-text-sub)">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>
+                  </div>
+                  <div class="grow">
+                    <div class="f-body t-sub">点击选择商品</div>
+                  </div>
+                  <span class="arrow t-weak"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="overlay">
+              <div class="sheet" style="max-height:76%;overflow:auto">
+                <div class="sheet-title">选择商品</div>
+                <div class="input" style="margin-bottom:12px">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24" style="margin-right:8px;color:var(--d-text-sub)"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+                  <span class="ph">搜索商品名称</span>
+                </div>
+                <div class="list">
+                  <div class="list-item">
+                    <div class="thumb sq-sm">实拍图</div>
+                    <div class="grow">
+                      <div class="f-body t-main">农夫山泉天然水</div>
+                      <div class="f-note t-sub mt2">19L / 桶 · 库存 128 · ¥22.00</div>
+                    </div>
+                    <span class="check on"></span>
+                  </div>
+                  <div class="list-item">
+                    <div class="thumb sq-sm">实拍图</div>
+                    <div class="grow">
+                      <div class="f-body t-main">怡宝纯净水</div>
+                      <div class="f-note t-sub mt2">18.9L / 桶 · 库存 64 · ¥18.00</div>
+                    </div>
+                    <span class="check"></span>
+                  </div>
+                  <div class="list-item">
+                    <div class="thumb sq-sm">实拍图</div>
+                    <div class="grow">
+                      <div class="f-body t-main">景田百岁山</div>
+                      <div class="f-note t-sub mt2">18.9L / 桶 · 库存 32 · ¥26.00</div>
+                    </div>
+                    <span class="check"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：搜索空结果 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 搜索空结果</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>代客下单</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div class="app-scroll">
+              <div class="card" style="margin-top:0">
+                <div class="card-head">
+                  <span class="card-title sm">商品</span>
+                  <span class="f-note t-brand">更换</span>
+                </div>
+                <div class="row gap3">
+                  <div style="width:56px;height:56px;border-radius:8px;border:1px dashed var(--d-border);display:flex;align-items:center;justify-content:center;color:var(--d-text-sub)">
+                    <svg class="ico" viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>
+                  </div>
+                  <div class="grow">
+                    <div class="f-body t-sub">点击选择商品</div>
+                  </div>
+                  <span class="arrow t-weak"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="overlay">
+              <div class="sheet" style="max-height:76%;overflow:auto">
+                <div class="sheet-title">选择商品</div>
+                <div class="input" style="margin-bottom:12px">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24" style="margin-right:8px;color:var(--d-text-sub)"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+                  <span class="t-main">农夫山泉大桶水</span>
+                </div>
+                <div class="empty">
+                  <div class="e-ico"><svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg></div>
+                  <div class="e-title">没有匹配的商品</div>
+                  <div class="e-desc">换个关键词试试；全部在售商品见上滑列表</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>入口：</strong>工作台快捷入口「代客下单」/ 任务列表悬浮按钮。</p>
+        <p><strong>跳转：</strong>提交成功后 1.5s 返回；订单落入「待派单」。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏：返回 + 标题「代客下单」+ 消息入口（未读红点）</li>
+          <li>收货地址卡（AddressDisplay）</li>
+          <li>商品选择卡（ProductSelector）：未选时「点击选择商品」，选中后回显封面 / 名称 / 价格 / 库存</li>
+          <li>数量步进器（Stepper）</li>
+          <li>自提开关（自提免运费、记为已收款）</li>
+          <li>收款方式（默认现金）</li>
+          <li>备注输入</li>
+          <li>底部提交栏：合计 +「创建送水订单」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>点击商品卡 → 打开底部弹层「选择商品」，首开加载在售商品（每页 20）。</li>
+          <li>搜索框输入（防抖 300ms）→ <code>searchProducts</code> 实时刷新列表；空结果区分「暂无可用商品」/「没有匹配的商品」。</li>
+          <li>点击选中商品 → 弹层关闭，卡片回显商品并带勾选标记。</li>
+          <li>填数量 / 选自提 / 填备注 → 校验地址、商品、数量（≥ 1）→ 提交 <code>createOrder</code>。</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>弹层无商品「暂无可用商品」/「没有匹配的商品」；<strong>加载态：</strong>弹层搜索「加载中...」、提交中按钮「创建中...」。</p>
+        <p><strong>错误态：</strong>提交失败 toast 后端错误；<strong>禁用态：</strong>未选地址 / 商品或数量 &lt; 1 时提交按钮 disabled。</p>
+        <p>仅可选在售且有库存商品（R-PRO-01 / R-PRO-03）；items-only，同一商品不可重复；自提订单免运费且 <code>paymentTime = 下单时间</code>（已收款）；代客下单默认 CASH（R-PAY-03）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>送水工端<strong>完全不出现强调橙</strong>：提交按钮走品牌蓝（暗色 <code>--d-primary</code>）。</p>
+        <p>商品图一律 <code>.thumb</code> 占位并标注「实拍图」；不得使用卡通插画风；金额「¥xx.xx」两位小数。</p>
+        <p>手动改价为订单层兜底（目标形态，单价链「手动实收价」未接入统一取价服务）；同一时刻仅一次提交（防重）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

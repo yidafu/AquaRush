@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 意见反馈｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 意见反馈</h1>
+      <p class="sub">功能编号 F-USR-005 ｜ 用户与账户域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 下游：反馈记录（处理结果回传闭环）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-USR-005</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 状态一：填写态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 填写态（字数计数 / 图片上传）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">意见反馈</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="mp-pad-16 mt3">
+                <div class="f-aux t-sub">您的意见对我们很重要</div>
+              </div>
+
+              <div class="weui-cells__title">反馈类型</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="row wrap gap2">
+                    <span class="weui-tag weui-tag--md">产品质量问题</span>
+                    <span class="weui-tag weui-tag--md weui-tag--brand">配送服务问题</span>
+                    <span class="weui-tag weui-tag--md">小程序使用问题</span>
+                    <span class="weui-tag weui-tag--md">功能建议</span>
+                    <span class="weui-tag weui-tag--md">投诉建议</span>
+                    <span class="weui-tag weui-tag--md">其他问题</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">反馈内容</div>
+              <div class="weui-cells">
+                <div class="weui-textarea">今天配送的桶装水外包装有明显破损，桶身有轻微渗水，希望配送前帮忙检查一下，谢谢。</div>
+                <div class="weui-textarea__counter">反馈内容至少输入10个字　38/500</div>
+              </div>
+
+              <div class="weui-cells__title">图片（≤3 张）</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-uploader">
+                    <div class="weui-uploader__file">图片 1</div>
+                    <div class="weui-uploader__file">图片 2</div>
+                    <div class="weui-uploader__input"></div>
+                  </div>
+                </div>
+              </div>
+              <div class="weui-cells__tips">最多上传 3 张，支持相册 / 拍照，可删除。</div>
+
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><div class="weui-label">联系方式</div></div>
+                  <div class="weui-cell__bd"><div class="weui-input" style="color:var(--weui-FG-2)">手机号 / 微信，便于我们联系您</div></div>
+                </div>
+              </div>
+
+              <div class="weui-btn_area">
+                <span class="weui-btn weui-btn_primary flex1">提交反馈</span>
+              </div>
+
+              <div class="weui-cells__tips" style="text-align:center">我们会在1-2个工作日内处理您的反馈</div>
+              <div class="f-aux t-sub" style="text-align:center">客服热线 400-800-8888</div>
+              <div class="f-note" style="text-align:center"><span style="color:var(--weui-LINK)">我的反馈记录 ›</span></div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 状态二：提交中 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 提交中（按钮禁用防重复）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">意见反馈</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="mp-pad-16 mt3">
+                <div class="f-aux t-sub">您的意见对我们很重要</div>
+              </div>
+
+              <div class="weui-cells__title">反馈类型</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="row wrap gap2">
+                    <span class="weui-tag weui-tag--md">产品质量问题</span>
+                    <span class="weui-tag weui-tag--md">配送服务问题</span>
+                    <span class="weui-tag weui-tag--md weui-tag--brand">小程序使用问题</span>
+                    <span class="weui-tag weui-tag--md">功能建议</span>
+                    <span class="weui-tag weui-tag--md">投诉建议</span>
+                    <span class="weui-tag weui-tag--md">其他问题</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">反馈内容</div>
+              <div class="weui-cells">
+                <div class="weui-textarea">小程序在弱网环境下点击「立即下单」会卡住，希望可以增加重试提示，谢谢。</div>
+                <div class="weui-textarea__counter">反馈内容至少输入10个字　33/500</div>
+              </div>
+
+              <div class="weui-btn_area">
+                <span class="weui-btn weui-btn_primary weui-btn_disabled flex1">提交中...</span>
+              </div>
+
+              <div class="weui-cells__tips" style="text-align:center">我们会在1-2个工作日内处理您的反馈</div>
+              <div class="f-aux t-sub" style="text-align:center">客服热线 400-800-8888</div>
+              <div class="f-note" style="text-align:center"><span style="color:var(--weui-LINK)">我的反馈记录 ›</span></div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x；类型为可点选 <code>.weui-tag--md</code> 芯片（选中加 <code>--brand</code>），内容用官方 <code>.weui-textarea</code> + <code>.weui-textarea__counter</code>，图片用官方 <code>.weui-uploader</code>。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code>（二级页）+ <code>.weui-cells__title</code> / <code>.weui-cells</code> + <code>.weui-tag--md</code> + <code>.weui-textarea</code> / <code>__counter</code> + <code>.weui-cell</code>「图片（≤3 张）」+ <code>.weui-uploader__file</code> / <code>__input</code> + <code>.weui-input</code>（联系方式）+ <code>.weui-btn_area</code> / <code>.weui-btn_primary</code> / <code>.weui-btn_disabled</code>。</p>
+        <p><strong>度量：</strong>导航栏 44px、胶囊 87×32；单元格最小 56px、17px 主文字；文本域最小高 96px、内边距 16px；上传方块 78×78、圆角 8px；按钮高 48px。</p>
+        <p><strong>配色：</strong>类型芯片选中用品牌蓝；链接「我的反馈记录」用 <code>var(--weui-LINK)</code>；本页金额不涉及、不使用强调橙。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序</p>
+        <p><strong>入口：</strong>「我的」页「常用服务 → 意见反馈」</p>
+        <p><strong>跳转：</strong>页脚「我的反馈记录 ›」→ <code>feedback-records</code>；提交成功后清空表单（不跳转）</p>
+        <p><strong>数据：</strong>type（反馈类型）、content（10-500 字）、images（≤3 张 fileUrl）、contact（联系方式，可选）、userId（登录主体）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏（二级页）：返回 + 「意见反馈」+ 右上微信胶囊；副标题「您的意见对我们很重要」</li>
+          <li>「反馈类型」组标题 + 类型芯片单选（必选）：产品质量问题 / 配送服务问题 / 小程序使用问题 / 功能建议 / 投诉建议 / 其他问题</li>
+          <li>「反馈内容」组标题 + <code>.weui-textarea</code>（≥10 字，≤500 字）+ <code>.weui-textarea__counter</code>（38/500）</li>
+          <li>「图片（≤3 张）」组标题 + <code>.weui-uploader</code>（已选 2 张 + 加号）</li>
+          <li>联系方式行（选填，<code>.weui-input</code>）</li>
+          <li><code>.weui-btn_area</code> 内 <code>.weui-btn_primary</code>「提交反馈」</li>
+          <li>底部说明：处理时效 + 客服热线 +「我的反馈记录 ›」入口</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>表单初始为空，字数统计 0/500；<strong>加载态：</strong>提交按钮「提交中...」+ <code>.weui-btn_disabled</code> 禁用（状态二）；<strong>错误态：</strong>提交失败 Toast「提交失败，请重试」；<strong>禁用态：</strong>提交中禁用按钮防重复（幂等，仅一次提交）。</p>
+        <p><strong>校验文案：</strong>「请选择反馈类型」「请输入反馈内容」「反馈内容至少输入10个字」；成功「提交成功，感谢您的反馈」；图片超 3 张不再增加。提交需登录态（服务端 <code>isAuthenticated()</code> 强制，userId 取登录主体，防越权）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>Web 风旧组件（芯片 / 表单行 / 文本域 / 缩略图 / 卡片 / 底部操作栏 / 按钮等旧类名）一律禁用，全部以 WeUI 等价类实现；类型芯片选中态用品牌蓝，<strong>不用强调橙</strong>。</p>
+        <p>类型为<strong>胶囊单选</strong>（非下拉）；图片区最多 3 张并显示删除角标；客服热线动态读取（文案与「关于页」一致口径）；提交结果以 Toast 轻提示呈现，不弹窗阻断。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 类型芯片共 6 类（按规格 07-user.md 状态与标签）；处理结果回传闭环依赖 F-OPS-003 后台处理（12-operations-config.md）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

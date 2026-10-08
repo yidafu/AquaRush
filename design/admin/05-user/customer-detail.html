@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 用户详情｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 用户管理 / 用户详情</h1>
+      <p class="sub">功能编号 F-USR-022 ｜ 用户与账户域 ｜ 路由 <code>/users/:id</code> ｜ 统计卡为全量口径</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-USR-022</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：基本信息卡 + 统计卡 + 默认 Tab（收货地址） ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 基本信息卡 + 统计卡 + 默认 Tab「收货地址」</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/100208</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 用户列表 <span class="crumb-sep">/</span> <b>用户详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="row gap2" style="margin-bottom:12px"><span class="f-aux t-sub">← 返回用户列表</span></div>
+
+                <!-- 基本信息卡 -->
+                <div class="card">
+                  <div class="row gap4 top">
+                    <span class="thumb sq" style="border-radius:50%">张</span>
+                    <div class="grow">
+                      <div class="row gap2" style="margin-bottom:10px">
+                        <span class="f-blk bold">张小明</span>
+                        <span class="tag tag-brand">普通用户</span>
+                        <span class="tag tag-ok">正常</span>
+                      </div>
+                      <div class="desc-grid">
+                        <div class="desc-item"><div class="k">用户ID</div><div class="v num">100208</div></div>
+                        <div class="desc-item"><div class="k">昵称</div><div class="v">张小明</div></div>
+                        <div class="desc-item"><div class="k">手机号</div><div class="v">138****6621</div></div>
+                        <div class="desc-item"><div class="k">微信OpenID</div><div class="v">oX8kL5a9…f2c1</div></div>
+                        <div class="desc-item"><div class="k">用户角色</div><div class="v">普通用户</div></div>
+                        <div class="desc-item"><div class="k">账户状态</div><div class="v">正常</div></div>
+                        <div class="desc-item"><div class="k">所属客户分组</div><div class="v">家庭客户</div></div>
+                        <div class="desc-item"><div class="k">邮箱</div><div class="v">zhangxm@example.com</div></div>
+                        <div class="desc-item"><div class="k">账户余额</div><div class="v num">¥58.00</div></div>
+                        <div class="desc-item"><div class="k">总消费金额</div><div class="v num">¥1,286.00</div></div>
+                        <div class="desc-item"><div class="k">最近下单时间</div><div class="v">2026-09-04 18:22</div></div>
+                        <div class="desc-item"><div class="k">注册时间</div><div class="v">2026-03-12 09:20</div></div>
+                        <div class="desc-item"><div class="k">最后更新</div><div class="v">2026-09-04 18:25</div></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 统计卡（全量口径） -->
+                <div class="stat-grid" style="margin-bottom:16px">
+                  <div class="stat-card"><span class="lbl">总订单数</span><span class="val">42</span></div>
+                  <div class="stat-card"><span class="lbl">总消费金额</span><span class="val">¥1,286.00</span></div>
+                  <div class="stat-card"><span class="lbl">已完成订单</span><span class="val">38</span></div>
+                  <div class="stat-card"><span class="lbl">平均客单价</span><span class="val">¥30.62</span></div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                  <span class="tab-item on">收货地址</span>
+                  <span class="tab-item">订单记录</span>
+                  <span class="tab-item">优惠券</span>
+                  <span class="tab-item">水票</span>
+                  <span class="tab-item">意见反馈</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item">收藏商品</span>
+                </div>
+
+                <!-- 收货地址 -->
+                <div class="list">
+                  <div class="list-item">
+                    <div class="grow">
+                      <div class="row gap2"><span class="bold">张小明</span><span class="f-aux t-sub">138****6621</span><span class="tag tag-brand">默认</span><span class="tag tag-outline">家</span></div>
+                      <div class="f-aux t-sub" style="margin-top:4px">北京市朝阳区望京街道阜通东大街 6 号院 3 号楼 1203 室</div>
+                    </div>
+                  </div>
+                  <div class="list-item">
+                    <div class="grow">
+                      <div class="row gap2"><span class="bold">张小明</span><span class="f-aux t-sub">138****6621</span><span class="tag tag-outline">公司</span></div>
+                      <div class="f-aux t-sub" style="margin-top:4px">北京市海淀区中关村大街 27 号 5 层 508 室</div>
+                    </div>
+                  </div>
+                  <div class="list-item">
+                    <div class="grow">
+                      <div class="row gap2"><span class="bold">李阿姨</span><span class="f-aux t-sub">139****0021</span><span class="tag tag-outline">代收</span></div>
+                      <div class="f-aux t-sub" style="margin-top:4px">北京市朝阳区望京西园 4 区 412 号楼 0802 室</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：订单记录 Tab ============ -->
+      <div>
+        <div class="browser-cap">状态二 · Tab「订单记录」（含订单状态筛选，可下钻）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/100208 — 订单记录</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 用户列表 <span class="crumb-sep">/</span> <b>用户详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">收货地址</span>
+                  <span class="tab-item on">订单记录</span>
+                  <span class="tab-item">优惠券</span>
+                  <span class="tab-item">水票</span>
+                  <span class="tab-item">意见反馈</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item">收藏商品</span>
+                </div>
+                <div class="filter-card">
+                  <div class="fitem"><span>订单状态</span><div class="select" style="width:140px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto"><span class="btn sm ghost">重置</span><span class="btn sm">查询</span></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>订单编号</th>
+                        <th>商品信息</th>
+                        <th class="num">订单金额</th>
+                        <th>收货地址</th>
+                        <th>配送员</th>
+                        <th>支付方式</th>
+                        <th>下单时间</th>
+                        <th>状态</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="num bold">AR20260904001</td>
+                        <td>怡宝 饮用纯净水 18.9L × 2</td>
+                        <td class="num bold">¥44.00</td>
+                        <td class="ellipsis">望京街道阜通东大街 6 号院…</td>
+                        <td>刘勇</td>
+                        <td>微信支付</td>
+                        <td>2026-09-04 18:22</td>
+                        <td><span class="tag tag-done">已完成</span></td>
+                      </tr>
+                      <tr>
+                        <td class="num bold">AR20260830007</td>
+                        <td>农夫山泉 天然水 19L × 1</td>
+                        <td class="num bold">¥28.00</td>
+                        <td class="ellipsis">中关村大街 27 号 5 层 508 室</td>
+                        <td>孙浩</td>
+                        <td>余额抵扣</td>
+                        <td>2026-08-30 09:41</td>
+                        <td><span class="tag tag-deliver">配送中</span></td>
+                      </tr>
+                      <tr>
+                        <td class="num bold">AR20260822013</td>
+                        <td>景田 百岁山矿泉水 18.9L × 1</td>
+                        <td class="num bold">¥35.00</td>
+                        <td class="ellipsis">望京西园 4 区 412 号楼 0802 室</td>
+                        <td>—</td>
+                        <td>微信支付</td>
+                        <td>2026-08-22 20:10</td>
+                        <td><span class="tag tag-cancel">已取消</span></td>
+                      </tr>
+                      <tr>
+                        <td class="num bold">AR20260818002</td>
+                        <td>怡宝 饮用纯净水 18.9L × 4</td>
+                        <td class="num bold">¥88.00</td>
+                        <td class="ellipsis">望京街道阜通东大街 6 号院…</td>
+                        <td>郑凯</td>
+                        <td>水票抵扣</td>
+                        <td>2026-08-18 08:05</td>
+                        <td><span class="tag tag-done">已完成</span></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 42 条记录</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>2</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态三：优惠券 Tab ============ -->
+      <div>
+        <div class="browser-cap">状态三 · Tab「优惠券」（状态筛选）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/100208 — 优惠券</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 用户列表 <span class="crumb-sep">/</span> <b>用户详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">收货地址</span>
+                  <span class="tab-item">订单记录</span>
+                  <span class="tab-item on">优惠券</span>
+                  <span class="tab-item">水票</span>
+                  <span class="tab-item">意见反馈</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item">收藏商品</span>
+                </div>
+                <div class="filter-card">
+                  <div class="fitem"><span>状态</span><div class="select" style="width:140px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto"><span class="btn sm ghost">重置</span><span class="btn sm">查询</span></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>券名称</th>
+                        <th>类型</th>
+                        <th>面额 / 折扣</th>
+                        <th class="num">使用门槛</th>
+                        <th>适用范围</th>
+                        <th>状态</th>
+                        <th>过期时间</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="bold">新客首单立减</td><td>满减券</td><td class="num">¥5.00</td><td class="num">¥30.00</td><td>全场通用</td><td><span class="tag tag-ok">未使用</span></td><td>2026-10-31 23:59</td></tr>
+                      <tr><td class="bold">桶装水满减</td><td>满减券</td><td class="num">¥8.00</td><td class="num">¥50.00</td><td>桶装水品类</td><td><span class="tag tag-neutral">已使用</span></td><td>2026-09-15 23:59</td></tr>
+                      <tr><td class="bold">会员 9 折</td><td>折扣券</td><td class="num">9 折</td><td class="num">¥100.00</td><td>全场通用</td><td><span class="tag tag-warn">已过期</span></td><td>2026-07-31 23:59</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot"><span>共 3 条记录</span><div class="pager"><i class="on">1</i></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态四：水票 Tab ============ -->
+      <div>
+        <div class="browser-cap">状态四 · Tab「水票」（状态筛选）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/100208 — 水票</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 用户列表 <span class="crumb-sep">/</span> <b>用户详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">收货地址</span>
+                  <span class="tab-item">订单记录</span>
+                  <span class="tab-item">优惠券</span>
+                  <span class="tab-item on">水票</span>
+                  <span class="tab-item">意见反馈</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item">收藏商品</span>
+                </div>
+                <div class="filter-card">
+                  <div class="fitem"><span>状态</span><div class="select" style="width:140px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto"><span class="btn sm ghost">重置</span><span class="btn sm">查询</span></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>票种名称</th>
+                        <th>限定规格</th>
+                        <th>票类型</th>
+                        <th>状态</th>
+                        <th>过期时间</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="bold">18.9L 桶装水票（10 次）</td><td>18.9L</td><td><span class="tag tag-brand">购买</span></td><td><span class="tag tag-ok">未使用</span></td><td>2027-03-12 23:59</td></tr>
+                      <tr><td class="bold">19L 桶装水票（20 次）</td><td>19L</td><td><span class="tag tag-assign">赠送</span></td><td><span class="tag tag-ok">使用中</span></td><td>2026-12-31 23:59</td></tr>
+                      <tr><td class="bold">18.9L 桶装水票（5 次）</td><td>18.9L</td><td><span class="tag tag-brand">购买</span></td><td><span class="tag tag-neutral">已用完</span></td><td>2026-08-31 23:59</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot"><span>共 3 条记录</span><div class="pager"><i class="on">1</i></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态五：意见反馈 Tab ============ -->
+      <div>
+        <div class="browser-cap">状态五 · Tab「意见反馈」（处理结果回传）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/100208 — 意见反馈</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 用户列表 <span class="crumb-sep">/</span> <b>用户详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">收货地址</span>
+                  <span class="tab-item">订单记录</span>
+                  <span class="tab-item">优惠券</span>
+                  <span class="tab-item">水票</span>
+                  <span class="tab-item on">意见反馈</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item">收藏商品</span>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>类型</th>
+                        <th>内容</th>
+                        <th>联系方式</th>
+                        <th>状态</th>
+                        <th>处理结果</th>
+                        <th>提交时间</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td>配送服务问题</td>
+                        <td class="ellipsis">配送员未按约定时间上楼，电话也联系不上。</td>
+                        <td>138****6621</td>
+                        <td><span class="tag tag-deliver">已处理</span></td>
+                        <td class="ellipsis">已回访并补偿优惠券 ¥5</td>
+                        <td>2026-08-21 21:02</td>
+                      </tr>
+                      <tr>
+                        <td>功能建议</td>
+                        <td class="ellipsis">希望可以设置周期性自动下单。</td>
+                        <td>138****6621</td>
+                        <td><span class="tag tag-assign">处理中</span></td>
+                        <td class="t-weak">—</td>
+                        <td>2026-09-02 10:30</td>
+                      </tr>
+                      <tr>
+                        <td>产品质量问题</td>
+                        <td class="ellipsis">其中一桶水有异味。</td>
+                        <td>138****6621</td>
+                        <td><span class="tag tag-pay">待处理</span></td>
+                        <td class="t-weak">—</td>
+                        <td>2026-09-05 08:15</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot"><span>共 3 条记录</span><div class="pager"><i class="on">1</i></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态六：评价记录 Tab ============ -->
+      <div>
+        <div class="browser-cap">状态六 · Tab「评价记录」（含星级）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/100208 — 评价记录</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 用户列表 <span class="crumb-sep">/</span> <b>用户详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">收货地址</span>
+                  <span class="tab-item">订单记录</span>
+                  <span class="tab-item">优惠券</span>
+                  <span class="tab-item">水票</span>
+                  <span class="tab-item">意见反馈</span>
+                  <span class="tab-item on">评价记录</span>
+                  <span class="tab-item">收藏商品</span>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>配送员</th>
+                        <th>评分</th>
+                        <th>评价内容</th>
+                        <th>是否匿名</th>
+                        <th>评价时间</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>刘勇</td><td><span class="t-warn">★★★★★</span></td><td class="ellipsis">送得很及时，师傅态度好。</td><td>否</td><td>2026-09-04 19:10</td></tr>
+                      <tr><td>孙浩</td><td><span class="t-warn">★★★★☆</span></td><td class="ellipsis">整体不错，稍微晚了一点。</td><td>是</td><td>2026-08-30 10:22</td></tr>
+                      <tr><td>郑凯</td><td><span class="t-warn">★★★★★</span></td><td class="ellipsis">搬运到六楼，很有耐心。</td><td>否</td><td>2026-08-18 09:40</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot"><span>共 24 条记录</span><div class="pager"><i>‹</i><i class="on">1</i><i>2</i><i>3</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态七：收藏商品 Tab ============ -->
+      <div>
+        <div class="browser-cap">状态七 · Tab「收藏商品」</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/100208 — 收藏商品</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 用户列表 <span class="crumb-sep">/</span> <b>用户详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">收货地址</span>
+                  <span class="tab-item">订单记录</span>
+                  <span class="tab-item">优惠券</span>
+                  <span class="tab-item">水票</span>
+                  <span class="tab-item">意见反馈</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item on">收藏商品</span>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>商品</th>
+                        <th class="num">价格</th>
+                        <th class="num">销量</th>
+                        <th>状态</th>
+                        <th>收藏时间</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="row gap2"><span class="thumb sq-sm">实拍图占位</span><div class="bold">怡宝 饮用纯净水 18.9L</div></div></td>
+                        <td class="num bold">¥22.00</td><td class="num">1,284</td><td><span class="tag tag-ok">在售</span></td><td>2026-08-18 09:50</td>
+                      </tr>
+                      <tr>
+                        <td><div class="row gap2"><span class="thumb sq-sm">实拍图占位</span><div class="bold">农夫山泉 天然水 19L</div></div></td>
+                        <td class="num bold">¥28.00</td><td class="num">963</td><td><span class="tag tag-ok">在售</span></td><td>2026-07-02 16:12</td>
+                      </tr>
+                      <tr>
+                        <td><div class="row gap2"><span class="thumb sq-sm">实拍图占位</span><div class="bold">饮水机 台式温热款</div></div></td>
+                        <td class="num bold">¥159.00</td><td class="num">52</td><td><span class="tag tag-warn">缺货</span></td><td>2026-06-11 11:31</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot"><span>共 3 条记录</span><div class="pager"><i class="on">1</i></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>用户列表行「详情」／「← 返回用户列表」回到列表</p>
+        <p><strong>路由：</strong><code>/users/:id</code>；顶部为返回栏 + 基本信息卡 + 统计卡</p>
+        <p><strong>权限：</strong>用户只读 + 营销（优惠券 / 水票）只读</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>返回栏：← 返回用户列表</li>
+          <li>基本信息卡：头像 / 用户ID / 昵称 / 手机号 / 微信OpenID / 用户角色 / 账户状态 / 所属客户分组 / 邮箱 / 账户余额 / 总消费金额 / 最近下单时间 / 注册时间 / 最后更新</li>
+          <li>统计卡（<strong>全量口径</strong>）：总订单数 / 总消费金额 / 已完成订单 / 平均客单价</li>
+          <li>Tabs（7 个，默认「收货地址」）：收货地址 · 订单记录 · 优惠券 · 水票 · 意见反馈 · 评价记录 · 收藏商品</li>
+          <li>各 Tab 独立查询、独立空态、互不影响</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>进入 → 加载基本信息卡 + 统计卡 + 默认「收货地址」；切换 Tab 按需加载</li>
+          <li>订单记录：订单状态筛选 + 分页，可下钻订单详情</li>
+          <li>优惠券 / 水票：状态筛选 + 分页；意见反馈 / 评价记录 / 收藏商品各自分页</li>
+          <li>金额分 → 元展示</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>状态与规则</h3>
+        <p><strong>空态（逐 Tab 独立）：</strong>暂无收货地址 / 该用户暂无订单记录 / 该用户暂无优惠券 / 该用户暂无桶水票 / 该用户暂无意见反馈 / 该用户暂无评价记录 / 该用户暂无收藏商品。</p>
+        <p><strong>加载态：</strong>Table / Spin loading；<strong>错误态：</strong>详情整体失败「加载失败」+「返回用户列表」，<strong>单个 Tab 失败仅区块内提示，不整页失败</strong>；<strong>禁用态：</strong>提交 loading。</p>
+        <p><strong>统计卡口径（2026-09 修正）：</strong>总订单数 / 已完成订单 / 总消费金额均为<strong>全量</strong>口径，不随分页变化；平均客单价 = 总消费 ÷ 总订单（除零为 0）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>设计要点 / 禁忌</h3>
+        <p><strong>使用 Tab 布局</strong>（2026-09 决策，PRD v0.15「详情页纵向区块」表述<strong>作废</strong>，禁止纵向堆叠）。</p>
+        <p>所属客户分组为空显示「未分组」；微信OpenID 截断展示；手机号脱敏。</p>
+        <p>管理端<strong>不出现强调橙</strong>；评价星级用语义 warn 色；订单状态沿用标色映射（待付款橙 / 配送中绿 / 已完成灰 / 已取消红）。</p>
+        <p>优惠券 / 水票归属 10-marketing 与桶水票域，本页仅只读查询展示。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>
