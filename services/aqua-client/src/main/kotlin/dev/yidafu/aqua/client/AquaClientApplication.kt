@@ -26,6 +26,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.persistence.autoconfigure.EntityScan
 import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableScheduling
+import java.util.TimeZone
 
 @SpringBootApplication(
   scanBasePackages = [
@@ -43,5 +44,8 @@ import org.springframework.scheduling.annotation.EnableScheduling
 class AquaClientApplication
 
 fun main(args: Array<String>) {
+  // 统计聚合时区统一 Asia/Shanghai(P2-8,PRD 08-statistics.md §域级口径):
+  // 实体默认时间戳(LocalDateTime.now())与统计日界均依赖 JVM 默认时区,显式钉死不随部署环境漂移。
+  TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"))
   runApplication<AquaClientApplication>(*args)
 }

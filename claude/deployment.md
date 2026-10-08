@@ -65,3 +65,13 @@ Key environment variables for production:
   - `WECHAT_PAY_NOTIFY_URL`: 回调地址(公网 HTTPS,如 `https://api.example.com/api/pay/notify`)
 - `JWT_SECRET`: JWT signing secret
 - `SNOWFLAKE_MACHINE_ID`: Unique ID for distributed ID generation
+
+### Timezone (统计聚合时区)
+
+统计按日/周/月聚合时区统一 **Asia/Shanghai**(PRD 08-statistics.md §域级口径,P2-8)。为避免依赖部署环境默认时区,时区在以下三处显式钉死,新增部署方式时须保持一致:
+
+1. **应用入口**:两个服务 `main()` 开头调用 `TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"))`(`AquaAdminApplication.kt` / `AquaClientApplication.kt`),覆盖所有启动方式;
+2. **JDBC 连接**:`application.yml` 数据源 URL 携带 `TimeZone=Asia/Shanghai`(PostgreSQL 会话时区);
+3. **systemd**:`scripts/aquarush.service` 的 `ExecStart` 显式 `-Duser.timezone=Asia/Shanghai`。
+
+直接用 `java -jar` 部署时,同样建议追加 `-Duser.timezone=Asia/Shanghai`。

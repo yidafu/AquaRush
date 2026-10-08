@@ -24,6 +24,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableScheduling
 import org.springframework.transaction.annotation.EnableTransactionManagement
+import java.util.TimeZone
 
 @SpringBootApplication(
   scanBasePackages = [
@@ -36,5 +37,8 @@ import org.springframework.transaction.annotation.EnableTransactionManagement
 class AquaAdminApplication
 
 fun main(args: Array<String>) {
+  // 统计聚合时区统一 Asia/Shanghai(P2-8,PRD 08-statistics.md §域级口径):
+  // 实体默认时间戳(LocalDateTime.now())与统计日界均依赖 JVM 默认时区,显式钉死不随部署环境漂移。
+  TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"))
   runApplication<AquaAdminApplication>(*args)
 }

@@ -9,7 +9,8 @@ After=syslog.target network.target postgresql.service
 Type=simple
 User=aquarush
 WorkingDirectory=/opt/aquarush
-ExecStart=/usr/bin/java -jar /opt/aquarush/aquarush.jar --spring.profiles.active=prod
+# 统计聚合时区统一 Asia/Shanghai(P2-8):显式 -Duser.timezone,与 JDBC TimeZone 参数/应用入口 TimeZone.setDefault 一致
+ExecStart=/usr/bin/java -Duser.timezone=Asia/Shanghai -jar /opt/aquarush/aquarush.jar --spring.profiles.active=prod
 SuccessExitStatus=143
 Restart=on-failure
 RestartSec=10

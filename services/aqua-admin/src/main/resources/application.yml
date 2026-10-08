@@ -8,7 +8,10 @@ spring:
     throw-exception-if-no-handler-found: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/aqua_rush?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    # 统计聚合时区统一 Asia/Shanghai(P2-8):PostgreSQL 会话时区显式指定,
+    # 与统计域 LocalDate.now(STATS_ZONE) 及 JVM 默认时区(应用入口 TimeZone.setDefault)保持一致,
+    # 不依赖部署环境默认时区。
+    url: jdbc:postgresql://localhost:5432/aqua_rush?useUnicode=true&characterEncoding=UTF-8&TimeZone=Asia/Shanghai
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:admin123}
     driver-class-name: org.postgresql.Driver
@@ -73,7 +76,8 @@ spring:
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
-    time-zone: GMT+8
+    # 统计聚合时区统一 Asia/Shanghai(P2-8),与 JDBC 会话时区/应用默认时区一致
+    time-zone: Asia/Shanghai
     serialization:
       FAIL_ON_EMPTY_BEANS: false
       INDENT_OUTPUT: true
