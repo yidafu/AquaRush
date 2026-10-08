@@ -198,6 +198,7 @@ class ProductServiceImpl(
     // 低库存阈值由系统参数提供(F-SYS-003,R-PRO-02),缺省 10
     val lowStockThreshold = systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L)
     val lowStockProducts = allProducts.filter { it.stock <= lowStockThreshold }
+    val outOfStockProducts = allProducts.filter { it.status == ProductModelStatus.OUT_OF_STOCK }.size
 
     val totalValue = allProducts.sumOf { it.price }
     val averagePrice = if (allProducts.isNotEmpty()) totalValue / allProducts.size else 0L
@@ -207,6 +208,7 @@ class ProductServiceImpl(
       onlineProducts = onlineProducts.size,
       offlineProducts = offlineProducts.size,
       lowStockProducts = lowStockProducts.size,
+      outOfStockProducts = outOfStockProducts,
       totalValueCents = totalValue,
       averagePriceCents = averagePrice,
       productRanking = emptyList(),

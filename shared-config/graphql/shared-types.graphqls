@@ -1473,6 +1473,8 @@ type ProductStatistics {
   totalProducts: Int!
   onlineProducts: Int!
   offlineProducts: Int!
+  # 售罄商品数(P1-4:全量商品口径,与 total/online/offline 同源按状态 SQL 分组)
+  outOfStockProducts: Int!
   lowStockProducts: Int!
   totalValueCents: Long!
   averagePriceCents: Long!
@@ -1480,8 +1482,8 @@ type ProductStatistics {
   favoriteStatistics: [ProductFavoriteStat!]!
   totalSales: Int!
   totalFavorites: Int!
-  # 库存预警明细(F-STA-006,G39):库存≤阈值的在售商品,缺货(库存=0)置顶、按库存升序;
-  # 口径与 lowStockProducts 计数同源(R-PRO-02 阈值)
+  # 库存预警明细(F-STA-006,G39):库存≤阈值的商品(任意状态,含 OFFLINE/OUT_OF_STOCK —— P1-4),
+  # 缺货(库存=0)置顶、按库存升序;口径与 lowStockProducts 计数同源(R-PRO-02 阈值)
   stockWarningItems: [StockWarningItem!]!
 }
 

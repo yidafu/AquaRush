@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
+import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.QOrderModel
 import dev.yidafu.aqua.common.domain.model.QUserModel
@@ -43,20 +44,21 @@ class StatisticsUserRepositoryImpl : StatisticsUserRepositoryCustom {
   ): Map<LocalDate, Long> {
     val userModel = QUserModel.userModel
 
-    val results =
-      queryFactory
-        .select(userModel.createdAt)
-        .from(userModel)
-        .where(
-          userModel.createdAt.goe(startDateTime),
-          userModel.createdAt.lt(endDateTime),
-        ).fetch()
-
-    return results
-      .map { it.toLocalDate() }
-      .groupingBy { it }
-      .eachCount()
-      .mapValues { it.value.toLong() }
+    // 按日 SQL GROUP BY(DATE_TRUNC 返回 TIMESTAMP,H2/Postgres 兼容,查询侧转 LocalDate —— 与 getDailyOrderStatistics 同模式),
+    // 避免全量拉取 createdAt 后内存分组(P2-9/规则 13)。
+    // 注意不能用 CAST(... AS DATE):H2/JDBC 返回 java.sql.Date 而非 LocalDate,按 LocalDate 取键会失配。
+    val dateExpr = Expressions.dateTemplate(LocalDateTime::class.java, "DATE_TRUNC('day', {0})", userModel.createdAt)
+    return queryFactory
+      .select(dateExpr, userModel.count())
+      .from(userModel)
+      .where(
+        userModel.createdAt.goe(startDateTime),
+        userModel.createdAt.lt(endDateTime),
+      ).groupBy(dateExpr)
+      .fetch()
+      .associate { row ->
+        row.get(dateExpr)!!.toLocalDate() to (row.get(userModel.count()) ?: 0L)
+      }
   }
 
   override fun countUsersCreatedAfter(dateTime: LocalDateTime): Long {

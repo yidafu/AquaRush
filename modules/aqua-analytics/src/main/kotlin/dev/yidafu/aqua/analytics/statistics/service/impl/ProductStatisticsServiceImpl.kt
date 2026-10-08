@@ -51,33 +51,46 @@ class ProductStatisticsServiceImpl(
   private val dailyProductFactRepository: DailyProductFactRepository,
   private val snapshotCoverageService: StatisticsSnapshotCoverageService,
 ) {
+  /** 商品销量排行 TOP N */
+  private val rankingTopN = 10
+
+  /** 库存预警明细列表有界上限(规则 13:统计查询带 LIMIT;明细按库存≤阈值过滤,实际数量受商品目录规模约束) */
+  private val lowStockListLimit = 500
+
   /**
    * 获取商品统计信息
+   * 口径(F-STA-006,P1-4):商品总数/在售/下架/售罄/低库存均按全量商品 SQL 聚合,
+   * OFFLINE/OUT_OF_STOCK 商品计入总数与低库存预警,不再以 findByStatus(ONLINE) 取子集;
+   * 排行营收按已完成订单项聚合(P2-7)。
    */
   fun getProductStatistics(): ProductStatistics {
-    val allProducts = productQueryApiService.findByStatus(ProductModelStatus.ONLINE)
-    val onlineProducts = allProducts.filter { it.status == ProductModelStatus.ONLINE }
-    val offlineProducts = allProducts.filter { it.status == ProductModelStatus.OFFLINE }
+    // 状态分布:总数 = 各状态合计,不整表加载实体(规则 13)
+    val statusCounts = productSalesStatisticsRepository.countProductsByStatus()
+    val totalProducts = statusCounts.values.sum()
+    val onlineProducts = statusCounts[ProductModelStatus.ONLINE] ?: 0L
+    val offlineProducts = statusCounts[ProductModelStatus.OFFLINE] ?: 0L
+    val outOfStockProducts = statusCounts[ProductModelStatus.OUT_OF_STOCK] ?: 0L
+
     // 低库存阈值由系统参数提供(F-SYS-003,R-PRO-02),缺省 10
     val lowStockThreshold = systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L)
-    val lowStockProducts = allProducts.filter { (it.stock ?: 0) <= lowStockThreshold }
 
-    val totalValue = allProducts.sumOf { it.price }
-    val averagePrice = if (allProducts.isNotEmpty()) totalValue / allProducts.size else 0L
-    val totalSales = allProducts.sumOf { it.salesVolume }
+    // 价值聚合(全状态):总价/均价/总销量
+    val aggregate = productSalesStatisticsRepository.aggregateProductValue()
+    val averagePrice = if (aggregate.totalProducts > 0) aggregate.totalValueCents / aggregate.totalProducts else 0L
 
-    // Get product ranking by sales volume
+    // 低库存计数(任意状态,含 OFFLINE/OUT_OF_STOCK —— R-PRO-02/P1-4)
+    val lowStockCount = productSalesStatisticsRepository.countLowStockProducts(lowStockThreshold)
+
+    // 商品销量排行(P2-7):销量/营收均按已完成订单项聚合,与「营收=已完成订单金额合计」全域口径同源
     val productRanking: List<ProductSalesStat> =
-      allProducts
-        .filter { it.status == ProductModelStatus.ONLINE }
-        .sortedByDescending { it.salesVolume }
-        .take(10)
-        .map { product ->
+      productSalesStatisticsRepository
+        .getProductSalesRanking(rankingTopN)
+        .map { row ->
           ProductSalesStat(
-            productId = product.id ?: 0L,
-            productName = product.name,
-            salesVolume = product.salesVolume,
-            revenueCents = product.price * product.salesVolume,
+            productId = row.productId,
+            productName = row.productName,
+            salesVolume = row.salesVolume.toInt(),
+            revenueCents = row.revenueCents,
           )
         }
 
@@ -86,20 +99,19 @@ class ProductStatisticsServiceImpl(
     val totalFavorites = allFavoriteStats.sumOf { it.favoriteCount }
 
     // 库存预警明细(F-STA-006,G39):库存 ≤ 阈值(与 lowStockProducts 计数同源同口径,R-PRO-02);
-    // 缺货(库存=0)置顶、其余按库存升序;状态:缺货 OUT_OF_STOCK / 预警 WARNING
+    // 缺货(库存=0)置顶、其余按库存升序(仓储层已排序);状态:缺货 OUT_OF_STOCK / 预警 WARNING
     val stockWarningItems: List<StockWarningItem> =
-      allProducts
-        .filter { (it.stock ?: 0) <= lowStockThreshold }
-        .sortedWith(compareBy({ it.stock ?: 0 }, { it.id ?: 0L }))
-        .map { product ->
+      productSalesStatisticsRepository
+        .findLowStockProducts(lowStockThreshold, lowStockListLimit)
+        .map { item ->
           StockWarningItem(
-            productId = product.id ?: 0L,
-            productName = product.name,
-            specification = product.specification,
-            currentStock = product.stock ?: 0,
+            productId = item.productId,
+            productName = item.productName,
+            specification = item.specification,
+            currentStock = item.stock,
             threshold = lowStockThreshold.toInt(),
             status =
-              if ((product.stock ?: 0) == 0) {
+              if (item.stock == 0) {
                 StockWarningStatus.OUT_OF_STOCK
               } else {
                 StockWarningStatus.WARNING
@@ -108,13 +120,14 @@ class ProductStatisticsServiceImpl(
         }
 
     return ProductStatistics(
-      totalProducts = allProducts.size,
-      onlineProducts = onlineProducts.size,
-      offlineProducts = offlineProducts.size,
-      lowStockProducts = lowStockProducts.size,
-      totalValueCents = totalValue,
+      totalProducts = totalProducts.toInt(),
+      onlineProducts = onlineProducts.toInt(),
+      offlineProducts = offlineProducts.toInt(),
+      outOfStockProducts = outOfStockProducts.toInt(),
+      lowStockProducts = lowStockCount.toInt(),
+      totalValueCents = aggregate.totalValueCents,
       averagePriceCents = averagePrice,
-      totalSales = totalSales,
+      totalSales = aggregate.totalSales.toInt(),
       productRanking = productRanking,
       favoriteStatistics = allFavoriteStats,
       totalFavorites = totalFavorites.toInt(),

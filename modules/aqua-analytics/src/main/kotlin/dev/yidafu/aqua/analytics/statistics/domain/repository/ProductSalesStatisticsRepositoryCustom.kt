@@ -19,6 +19,7 @@
 
 package dev.yidafu.aqua.analytics.statistics.domain.repository
 
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import java.time.LocalDateTime
 
 /**
@@ -41,6 +42,37 @@ interface ProductSalesStatisticsRepositoryCustom {
    * 获取所有商品列表（用于下拉选择）
    */
   fun getAllProductIdsAndNames(): List<ProductInfo>
+
+  /**
+   * 按状态分组的商品数（SQL 聚合，规则 13：不整表加载实体）。
+   * 商品统计口径全量商品（F-STA-006）：OFFLINE/OUT_OF_STOCK 均计入总数，低库存预警同源（P1-4）。
+   */
+  fun countProductsByStatus(): Map<ProductModelStatus, Long>
+
+  /**
+   * 商品价值聚合（单行 SQL）：商品总数 / 总价 / 总销量，全状态口径。
+   */
+  fun aggregateProductValue(): ProductStatisticsAggregate
+
+  /**
+   * 低库存商品数（库存 ≤ 阈值，任意状态，含 OFFLINE/OUT_OF_STOCK —— R-PRO-02/P1-4）。
+   */
+  fun countLowStockProducts(threshold: Long): Long
+
+  /**
+   * 低库存商品明细（库存 ≤ 阈值，任意状态；按库存升序、缺货置顶；LIMIT 有界，规则 13）。
+   */
+  fun findLowStockProducts(
+    threshold: Long,
+    limit: Int,
+  ): List<ProductStockInfo>
+
+  /**
+   * 商品销量排行（TOP N，已完成订单项聚合）：
+   * 销量 = 已完成订单项数量合计、营收 = 已完成订单项金额合计，
+   * 与「营收=已完成订单金额合计」全域口径及 productDailySales 同源（P2-7）。
+   */
+  fun getProductSalesRanking(limit: Int): List<ProductSalesRankingResult>
 }
 
 /**
@@ -60,4 +92,33 @@ data class ProductDailySalesResult(
 data class ProductInfo(
   val productId: Long,
   val productName: String,
+)
+
+/**
+ * 商品价值聚合结果（全量商品，SQL 聚合）
+ */
+data class ProductStatisticsAggregate(
+  val totalProducts: Long,
+  val totalValueCents: Long,
+  val totalSales: Long,
+)
+
+/**
+ * 低库存商品信息（库存 ≤ 阈值，任意状态）
+ */
+data class ProductStockInfo(
+  val productId: Long,
+  val productName: String,
+  val specification: String,
+  val stock: Int,
+)
+
+/**
+ * 商品销量排行项（已完成订单项聚合：销量/营收同源）
+ */
+data class ProductSalesRankingResult(
+  val productId: Long,
+  val productName: String,
+  val salesVolume: Long,
+  val revenueCents: Long,
 )

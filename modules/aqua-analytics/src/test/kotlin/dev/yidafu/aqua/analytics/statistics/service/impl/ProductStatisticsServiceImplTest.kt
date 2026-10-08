@@ -23,7 +23,10 @@ import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyProductFactRe
 import dev.yidafu.aqua.analytics.statistics.domain.repository.DailyUserFactRepository
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductDailySalesResult
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductInfo
+import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesRankingResult
 import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductSalesStatisticsRepositoryCustom
+import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductStatisticsAggregate
+import dev.yidafu.aqua.analytics.statistics.domain.repository.ProductStockInfo
 import dev.yidafu.aqua.analytics.statistics.service.StatisticsSnapshotCoverageService
 import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
 import dev.yidafu.aqua.api.service.product.ProductFavoriteService
@@ -43,7 +46,7 @@ import io.mockk.mockk
 import java.time.LocalDate
 
 /**
- * 商品统计服务单元测试(PRD F-STA/R-PRO-02: 上下架/低库存/排行榜/每日销量补零、两段合并)
+ * 商品统计服务单元测试(PRD F-STA/R-PRO-02: 全量商品口径 P1-4、排行已完成订单营收 P2-7、低库存/每日销量补零、两段合并)
  */
 class ProductStatisticsServiceImplTest :
   FunSpec({
@@ -56,22 +59,19 @@ class ProductStatisticsServiceImplTest :
     var snapshotCoverageService: StatisticsSnapshotCoverageService = mockk()
     var service: ProductStatisticsServiceImpl = mockk()
 
-    fun product(
-      id: Long,
-      name: String,
-      price: Long,
-      stock: Int,
-      salesVolume: Int,
-      status: ProductModelStatus,
-    ): ProductModel =
-      ProductModel().apply {
-        this.id = id
-        this.name = name
-        this.price = price
-        this.stock = stock
-        this.salesVolume = salesVolume
-        this.status = status
-      }
+    fun stubStatisticsAggregation(
+      statusCounts: Map<ProductModelStatus, Long>,
+      aggregate: ProductStatisticsAggregate,
+      lowStockCount: Long,
+      lowStockItems: List<ProductStockInfo>,
+      ranking: List<ProductSalesRankingResult>,
+    ) {
+      every { productSalesStatisticsRepository.countProductsByStatus() } returns statusCounts
+      every { productSalesStatisticsRepository.aggregateProductValue() } returns aggregate
+      every { productSalesStatisticsRepository.countLowStockProducts(any()) } returns lowStockCount
+      every { productSalesStatisticsRepository.findLowStockProducts(any(), any()) } returns lowStockItems
+      every { productSalesStatisticsRepository.getProductSalesRanking(any()) } returns ranking
+    }
 
     beforeTest {
       productQueryApiService = mockk(relaxed = true)
@@ -91,11 +91,25 @@ class ProductStatisticsServiceImplTest :
           snapshotCoverageService,
         )
     }
-    test("getProductStatistics computes counts value and ranking") {
-      val online = product(1L, "怡宝", 200L, stock = 50, salesVolume = 100, status = ProductModelStatus.ONLINE)
-      val lowStock = product(2L, "农夫山泉", 300L, stock = 3, salesVolume = 20, status = ProductModelStatus.ONLINE)
-      val offline = product(3L, "百岁山", 400L, stock = 10, salesVolume = 5, status = ProductModelStatus.OFFLINE)
-      every { productQueryApiService.findByStatus(ProductModelStatus.ONLINE) } returns listOf(online, lowStock, offline)
+    test("getProductStatistics counts all statuses and low stock includes OFFLINE/OUT_OF_STOCK (P1-4)") {
+      stubStatisticsAggregation(
+        statusCounts =
+          mapOf(
+            ProductModelStatus.ONLINE to 2L,
+            ProductModelStatus.OFFLINE to 1L,
+            ProductModelStatus.OUT_OF_STOCK to 1L,
+          ),
+        aggregate = ProductStatisticsAggregate(totalProducts = 4L, totalValueCents = 900L, totalSales = 125L),
+        lowStockCount = 3L,
+        lowStockItems =
+          listOf(
+            ProductStockInfo(productId = 1L, productName = "缺货水", specification = "500ml", stock = 0),
+            ProductStockInfo(productId = 3L, productName = "百岁山", specification = "500ml", stock = 3),
+            // 下架商品库存≤阈值同样计入低库存预警(P1-4)
+            ProductStockInfo(productId = 4L, productName = "下架低库存", specification = "500ml", stock = 10),
+          ),
+        ranking = emptyList(),
+      )
       every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) } returns 10L
       every { productFavoriteService.getProductFavoriteStats() } returns
         listOf(
@@ -105,37 +119,68 @@ class ProductStatisticsServiceImplTest :
 
       val result = service.getProductStatistics()
 
-      result.totalProducts shouldBe 3
+      // 商品总数 = 全量商品,不再等于在售数(P1-4)
+      result.totalProducts shouldBe 4
       result.onlineProducts shouldBe 2
       result.offlineProducts shouldBe 1
-      // stock<=10 的商品 (lowStock 3, offline 10) 都算低库存
-      result.lowStockProducts shouldBe 2
+      result.outOfStockProducts shouldBe 1
+      // 低库存计数与明细均含 OFFLINE 商品
+      result.lowStockProducts shouldBe 3
       result.totalValueCents shouldBe 900L
-      result.averagePriceCents shouldBe 300L
+      result.averagePriceCents shouldBe 225L // 900 / 4
       result.totalSales shouldBe 125
       result.totalFavorites shouldBe 6
       result.favoriteStatistics.size shouldBe 2
+      // 库存预警明细(缺货置顶 → 按库存升序)
+      result.stockWarningItems.size shouldBe 3
+      result.stockWarningItems[0].productName shouldBe "缺货水"
+      result.stockWarningItems[0].status shouldBe StockWarningStatus.OUT_OF_STOCK
+      result.stockWarningItems[1].productName shouldBe "百岁山"
+      result.stockWarningItems[2].productName shouldBe "下架低库存"
+      result.stockWarningItems[2].threshold shouldBe 10
     }
-    test("getProductStatistics ranks online products by sales desc and caps at 10") {
-      val products = (1L..12L).map { i -> product(i, "P$i", 100L, stock = 99, salesVolume = i.toInt(), status = ProductModelStatus.ONLINE) }
-      every { productQueryApiService.findByStatus(ProductModelStatus.ONLINE) } returns products
+    test("getProductStatistics ranking revenue comes from completed order aggregation (P2-7)") {
+      // 排行营收 = 已完成订单项金额合计,非 price × salesVolume 估算
+      stubStatisticsAggregation(
+        statusCounts = mapOf(ProductModelStatus.ONLINE to 3L),
+        aggregate = ProductStatisticsAggregate(totalProducts = 3L, totalValueCents = 600L, totalSales = 30L),
+        lowStockCount = 0L,
+        lowStockItems = emptyList(),
+        ranking =
+          listOf(
+            ProductSalesRankingResult(productId = 2L, productName = "农夫山泉", salesVolume = 50L, revenueCents = 15000L),
+            ProductSalesRankingResult(productId = 1L, productName = "怡宝", salesVolume = 30L, revenueCents = 6000L),
+          ),
+      )
       every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) } returns 10L
       every { productFavoriteService.getProductFavoriteStats() } returns emptyList()
 
       val result = service.getProductStatistics()
 
-      result.productRanking.size shouldBe 10
-      result.productRanking.first().productId shouldBe 12L
-      result.productRanking.first().revenueCents shouldBe 100L * 12
-      result.productRanking.last().productId shouldBe 3L
+      result.productRanking.size shouldBe 2
+      result.productRanking[0].productId shouldBe 2L
+      result.productRanking[0].productName shouldBe "农夫山泉"
+      result.productRanking[0].salesVolume shouldBe 50
+      result.productRanking[0].revenueCents shouldBe 15000L
+      result.productRanking[1].revenueCents shouldBe 6000L
     }
     test("getProductStatistics handles empty products") {
-      every { productQueryApiService.findByStatus(ProductModelStatus.ONLINE) } returns emptyList()
+      stubStatisticsAggregation(
+        statusCounts = emptyMap(),
+        aggregate = ProductStatisticsAggregate(totalProducts = 0L, totalValueCents = 0L, totalSales = 0L),
+        lowStockCount = 0L,
+        lowStockItems = emptyList(),
+        ranking = emptyList(),
+      )
       every { productFavoriteService.getProductFavoriteStats() } returns emptyList()
 
       val result = service.getProductStatistics()
 
       result.totalProducts shouldBe 0
+      result.onlineProducts shouldBe 0
+      result.offlineProducts shouldBe 0
+      result.outOfStockProducts shouldBe 0
+      result.lowStockProducts shouldBe 0
       result.totalValueCents shouldBe 0L
       result.averagePriceCents shouldBe 0L
       result.totalSales shouldBe 0
@@ -143,13 +188,24 @@ class ProductStatisticsServiceImplTest :
       result.productRanking.size shouldBe 0
       result.stockWarningItems.size shouldBe 0
     }
-    test("getProductStatistics builds stock warning items sorted with out-of-stock first") {
+    test("getProductStatistics builds stock warning items sorted with out-of-stock first (G39)") {
       // G39: 库存预警明细 —— 库存≤阈值(含缺货),缺货(库存=0)置顶,按库存升序,阈值与状态正确
-      val out = product(1L, "缺货水", 200L, stock = 0, salesVolume = 10, status = ProductModelStatus.ONLINE)
-      val low = product(2L, "低库存水", 300L, stock = 3, salesVolume = 20, status = ProductModelStatus.ONLINE)
-      val boundary = product(3L, "边界水", 400L, stock = 10, salesVolume = 5, status = ProductModelStatus.ONLINE)
-      val safe = product(4L, "充足水", 500L, stock = 50, salesVolume = 5, status = ProductModelStatus.ONLINE)
-      every { productQueryApiService.findByStatus(ProductModelStatus.ONLINE) } returns listOf(out, low, boundary, safe)
+      stubStatisticsAggregation(
+        statusCounts =
+          mapOf(
+            ProductModelStatus.ONLINE to 3L,
+            ProductModelStatus.OUT_OF_STOCK to 1L,
+          ),
+        aggregate = ProductStatisticsAggregate(totalProducts = 4L, totalValueCents = 1100L, totalSales = 30L),
+        lowStockCount = 3L,
+        lowStockItems =
+          listOf(
+            ProductStockInfo(productId = 1L, productName = "缺货水", specification = "500ml", stock = 0),
+            ProductStockInfo(productId = 2L, productName = "低库存水", specification = "500ml", stock = 3),
+            ProductStockInfo(productId = 3L, productName = "边界水", specification = "500ml", stock = 10),
+          ),
+        ranking = emptyList(),
+      )
       every { systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L) } returns 10L
       every { productFavoriteService.getProductFavoriteStats() } returns emptyList()
 
