@@ -30,7 +30,7 @@ type Query {
   addresses: [Address!]!
   address(id: PrimaryId!): Address
   searchUserAddresses(keyword: String!, userId: Long, page: Int = 0, size: Int = 10): [Address!]!
-  searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): [Address!]!
+  searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): AddressVOPage!
   deliveryAddresses: [DeliveryAddress!]!
   deliveryAddress(id: PrimaryId!): DeliveryAddress
 
@@ -256,4 +256,13 @@ type BatchImportAddressesResult {
   successCount: Int!
   failureCount: Int!
   totalCount: Int!
+}
+
+# 地址分页
+type AddressVOPage {
+  content: [Address!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
 }

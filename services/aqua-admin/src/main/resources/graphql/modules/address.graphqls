@@ -1,15 +1,25 @@
 # Address management (for admin)
 
+# 地址分页(新式分页,参照 OrderVOPage/BannerVOPage)
+type AddressVOPage {
+  content: [Address!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
 extend type Query {
   # Address queries
   userAddresses(userId: PrimaryId): [Address!]!
   addresses: [Address!]!
-  searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): [Address!]!
+  searchAllAddresses(keyword: String, page: Int = 0, size: Int = 10): AddressVOPage!
 }
 
 extend type Mutation {
   # Address mutations
   createAdminAddress(input: AddressInput!): Address!
+  updateAdminAddress(id: PrimaryId!, input: UpdateAddressInput!): Address!
   batchImportAddresses(input: [AddressInput!]!): BatchImportAddressesResult!
   deleteAdminAddress(id: PrimaryId!): Boolean!
 }

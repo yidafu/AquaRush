@@ -72,6 +72,14 @@ data class AddressInput(
   )
 }
 
+data class AddressVoPage(
+    val content: kotlin.collections.List<Address>,
+    val number: kotlin.Int,
+    val size: kotlin.Int,
+    val totalElements: kotlin.Int,
+    val totalPages: kotlin.Int
+)
+
 data class Admin(
     val accountStatus: AdminAccountStatus,
     val avatarUrl: kotlin.String?,
@@ -2984,6 +2992,16 @@ data class MutationUpdateAdminArgs(
       UpdateAdminInput(args["input"] as Map<String, Any>)
   )
 }
+data class MutationUpdateAdminAddressArgs(
+    val id: kotlin.Long,
+    val input: UpdateAddressInput
+) {
+  @Suppress("UNCHECKED_CAST")
+  constructor(args: Map<String, Any>) : this(
+      args["id"] as kotlin.Long,
+      UpdateAddressInput(args["input"] as Map<String, Any>)
+  )
+}
 data class MutationUpdateBannerArgs(
     val id: kotlin.Long,
     val input: UpdateBannerInput
@@ -3257,6 +3275,7 @@ data class Mutation(
     val toggleProductFavorites: kotlin.Boolean,
     val updateAddress: Address,
     val updateAdmin: Admin,
+    val updateAdminAddress: Address,
     val updateBanner: Banner,
     val updateBarrelFee: BarrelFee,
     val updateCouponTemplate: CouponTemplate,
@@ -4106,6 +4125,7 @@ data class ProductStatistics(
     val lowStockProducts: kotlin.Int,
     val offlineProducts: kotlin.Int,
     val onlineProducts: kotlin.Int,
+    val outOfStockProducts: kotlin.Int,
     val productRanking: kotlin.collections.List<ProductSalesStat>,
     val stockWarningItems: kotlin.collections.List<StockWarningItem>,
     val totalFavorites: kotlin.Int,
@@ -4696,11 +4716,13 @@ data class QueryMyFeedbacksArgs(
 }
 data class QueryMyNotificationsArgs(
     val page: kotlin.Int? = 0,
+    val read: kotlin.Boolean? = null,
     val size: kotlin.Int? = 10,
     val type: NotificationType? = null
 ) {
   constructor(args: Map<String, Any>) : this(
       args["page"] as kotlin.Int? ?: 0,
+      args["read"] as kotlin.Boolean?,
       args["size"] as kotlin.Int? ?: 10,
       args["type"] as NotificationType?
   )
@@ -4725,11 +4747,13 @@ data class QueryMyTicketsArgs(
 }
 data class QueryMyWorkerNotificationsArgs(
     val page: kotlin.Int? = 0,
+    val read: kotlin.Boolean? = null,
     val size: kotlin.Int? = 10,
     val type: NotificationType? = null
 ) {
   constructor(args: Map<String, Any>) : this(
       args["page"] as kotlin.Int? ?: 0,
+      args["read"] as kotlin.Boolean?,
       args["size"] as kotlin.Int? ?: 10,
       args["type"] as NotificationType?
   )
@@ -5199,7 +5223,7 @@ data class Query(
     val regions: kotlin.collections.List<Region>,
     val reviewsByDeliveryWorker: ReviewVoPage,
     val reviewsByUser: ReviewVoPage,
-    val searchAllAddresses: kotlin.collections.List<Address>,
+    val searchAllAddresses: AddressVoPage,
     val stockWarningThresholds: StockWarningThresholds,
     val storeProfile: StoreProfile?,
     val subscribeTemplates: kotlin.collections.List<SubscribeTemplateVo>,

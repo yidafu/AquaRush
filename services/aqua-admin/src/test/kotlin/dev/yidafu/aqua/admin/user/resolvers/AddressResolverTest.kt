@@ -22,6 +22,8 @@ package dev.yidafu.aqua.admin.user.resolvers
 import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -91,16 +93,21 @@ class AddressResolverTest :
       result.size shouldBe 1
       verify { addressService.findAllAddresses() }
     }
-    test("searchAllAddresses should search with keyword") {
+    test("searchAllAddresses should search with keyword and return page") {
       // Given
       every { addressService.searchAllAddresses("张三", PageRequest.of(0, 10)) } returns
-        PageImpl(listOf(createSampleAddress()))
+        PageImpl(listOf(createSampleAddress()), PageRequest.of(0, 10), 1)
 
       // When
       val result = resolver.searchAllAddresses("张三", 0, 10)
 
       // Then
-      result.size shouldBe 1
+      result.content.size shouldBe 1
+      result.content[0].receiverName shouldBe "张三"
+      result.totalElements shouldBe 1
+      result.totalPages shouldBe 1
+      result.size shouldBe 10
+      result.number shouldBe 0
       verify { addressService.searchAllAddresses("张三", PageRequest.of(0, 10)) }
     }
     test("createAdminAddress should save mapped address") {
@@ -126,6 +133,36 @@ class AddressResolverTest :
       result.successCount shouldBe 2
       result.failureCount shouldBe 0
       verify { addressService.saveAll(any()) }
+    }
+    test("updateAdminAddress should merge input into existing address and save") {
+      // Given
+      val existing = createSampleAddress()
+      every { addressService.findById(1L) } returns existing
+      every { addressService.save(any()) } returnsArgument 0
+
+      // When
+      val result = resolver.updateAdminAddress(1L, UpdateAddressInput(receiverName = "李四", detailAddress = "新地址2号"))
+
+      // Then
+      result.id shouldBe 1L
+      result.receiverName shouldBe "李四"
+      result.detailAddress shouldBe "新地址2号"
+      // 未传入的字段保持不变
+      result.phone shouldBe "13800138000"
+      verify { addressService.findById(1L) }
+      verify { addressService.save(existing) }
+    }
+    test("updateAdminAddress should throw when address not found") {
+      // Given
+      every { addressService.findById(999L) } returns null
+
+      // When
+      val e = shouldThrow<RuntimeException> { resolver.updateAdminAddress(999L, UpdateAddressInput(receiverName = "李四")) }
+
+      // Then
+      e.message shouldBe "更新地址失败: 地址不存在: 999"
+      verify { addressService.findById(999L) }
+      verify(exactly = 0) { addressService.save(any()) }
     }
     test("deleteAdminAddress should delegate") {
       // Given

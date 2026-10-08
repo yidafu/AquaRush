@@ -22,9 +22,12 @@ package dev.yidafu.aqua.admin.user.resolvers
 import dev.yidafu.aqua.api.service.admin.AddressService
 import dev.yidafu.aqua.common.graphql.generated.Address
 import dev.yidafu.aqua.common.graphql.generated.AddressInput
+import dev.yidafu.aqua.common.graphql.generated.AddressVoPage
 import dev.yidafu.aqua.common.graphql.generated.BatchImportAddressesResult
+import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.user.mapper.AddressInputMapper
 import dev.yidafu.aqua.user.mapper.AddressMapper
+import dev.yidafu.aqua.user.mapper.merge
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -61,7 +64,7 @@ class AddressResolver(
   }
 
   /**
-   * 搜索所有地址 (管理员)
+   * 搜索所有地址 (管理员,分页;keyword 模糊匹配 detailAddress/phone/receiverName)
    */
   @QueryMapping
   @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_READ')")
@@ -69,12 +72,18 @@ class AddressResolver(
     @Argument keyword: String?,
     @Argument page: Int = 0,
     @Argument size: Int = 10,
-  ): List<Address> {
+  ): AddressVoPage {
     val pageable =
       org.springframework.data.domain.PageRequest
         .of(page, size)
     val addresses = addressService.searchAllAddresses(keyword, pageable)
-    return AddressMapper.mapList(addresses.content)
+    return AddressVoPage(
+      content = AddressMapper.mapList(addresses.content),
+      totalElements = addresses.totalElements.toInt(),
+      totalPages = addresses.totalPages,
+      size = addresses.size,
+      number = addresses.number,
+    )
   }
 
   // Admin-only mutations
@@ -96,6 +105,29 @@ class AddressResolver(
     } catch (e: Exception) {
       logger.error("Failed to create admin address", e)
       throw RuntimeException("创建地址失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 管理员更新地址 (不校验 userId;仅更新传入字段,空值字段保持不变)
+   */
+  @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_WRITE')")
+  fun updateAdminAddress(
+    @Argument id: Long,
+    @Argument @Valid input: UpdateAddressInput,
+  ): Address {
+    try {
+      val existingAddress =
+        addressService.findById(id)
+          ?: throw IllegalArgumentException("地址不存在: $id")
+      existingAddress.merge(input)
+      val savedAddress = addressService.save(existingAddress)
+      logger.info("Admin updated address with ID: ${savedAddress.id}")
+      return AddressMapper.map(savedAddress)
+    } catch (e: Exception) {
+      logger.error("Failed to update admin address", e)
+      throw RuntimeException("更新地址失败: ${e.message}")
     }
   }
 

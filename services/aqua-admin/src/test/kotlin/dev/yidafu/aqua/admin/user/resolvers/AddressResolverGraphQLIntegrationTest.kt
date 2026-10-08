@@ -107,14 +107,28 @@ class AddressResolverGraphQLIntegrationTest(
 
       // searchAllAddresses 仅按 detailAddress / phone / receiverName 模糊匹配，不匹配 city
       graphql(
-        """{"query":"{ searchAllAddresses(keyword: \"科技园\", page: 0, size: 10) { id receiverName phone province city district detailAddress } }"}""",
-      ).andExpect(jsonPath("$.data.searchAllAddresses.length()").value(greaterThanOrEqualTo(1)))
+        """{"query":"{ searchAllAddresses(keyword: \"科技园\", page: 0, size: 10) { content { id receiverName phone province city district detailAddress } totalElements totalPages size number } }"}""",
+      ).andExpect(jsonPath("$.data.searchAllAddresses.content.length()").value(greaterThanOrEqualTo(1)))
+        .andExpect(jsonPath("$.data.searchAllAddresses.totalElements").value(greaterThanOrEqualTo(1)))
+        .andExpect(jsonPath("$.data.searchAllAddresses.size").value(10))
+        .andExpect(jsonPath("$.data.searchAllAddresses.number").value(0))
     }
     test("createAdminAddress mutation creates address") {
       setMockUser(authorities = listOf("PERMISSION_ADDRESS_READ", "PERMISSION_ADDRESS_WRITE"))
       graphql(
         """{"query":"mutation createAddress(${'$'}input: AddressInput!) { createAdminAddress(input: ${'$'}input) { id userId receiverName phone province city district detailAddress isDefault } }","variables":{"input":{"receiverName":"测试用户","phone":"13800138000","province":"广东省","provinceCode":"440000","city":"深圳市","cityCode":"440300","district":"南山区","districtCode":"440305","detailAddress":"测试地址1号","isDefault":false}}}""",
       ).andExpect(jsonPath("$.data.createAdminAddress.receiverName").value("测试用户"))
+    }
+    test("updateAdminAddress mutation updates existing address") {
+      setMockUser(authorities = listOf("PERMISSION_ADDRESS_READ", "PERMISSION_ADDRESS_WRITE"))
+      val savedAddress = addressService.save(createSampleAddress())
+
+      graphql(
+        """{"query":"mutation updateAddress(${'$'}id: Long!, ${'$'}input: UpdateAddressInput!) { updateAdminAddress(id: ${'$'}id, input: ${'$'}input) { id receiverName phone province city district detailAddress isDefault } }","variables":{"id":${savedAddress.id},"input":{"receiverName":"李四","phone":"13800138000","province":"广东省","provinceCode":"440000","city":"深圳市","cityCode":"440300","district":"南山区","districtCode":"440305","detailAddress":"更新后的地址","isDefault":false}}}""",
+      ).andExpect(jsonPath("$.data.updateAdminAddress.id").value(savedAddress.id))
+        .andExpect(jsonPath("$.data.updateAdminAddress.receiverName").value("李四"))
+        .andExpect(jsonPath("$.data.updateAdminAddress.detailAddress").value("更新后的地址"))
+        .andExpect(jsonPath("$.data.updateAdminAddress.phone").value("13800138000"))
     }
     test("deleteAdminAddress mutation deletes address") {
       setMockUser(authorities = listOf("PERMISSION_ADDRESS_READ", "PERMISSION_ADDRESS_WRITE"))

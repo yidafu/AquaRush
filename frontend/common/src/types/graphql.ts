@@ -58,6 +58,14 @@ export type AddressInput = {
   readonly receiverName: Scalars['String']['input'];
 };
 
+export type AddressVoPage = {
+  readonly content: ReadonlyArray<Address>;
+  readonly number: Scalars['Int']['output'];
+  readonly size: Scalars['Int']['output'];
+  readonly totalElements: Scalars['Int']['output'];
+  readonly totalPages: Scalars['Int']['output'];
+};
+
 export type Admin = {
   readonly accountStatus: AdminAccountStatus;
   readonly avatarUrl?: Maybe<Scalars['String']['output']>;
@@ -2961,7 +2969,7 @@ export type Query = {
   readonly regions: ReadonlyArray<Region>;
   readonly reviewsByDeliveryWorker: ReviewVoPage;
   readonly reviewsByUser: ReviewVoPage;
-  readonly searchAllAddresses: ReadonlyArray<Address>;
+  readonly searchAllAddresses: AddressVoPage;
   readonly stockWarningThresholds: StockWarningThresholds;
   readonly storeProfile?: Maybe<StoreProfile>;
   readonly subscribeTemplates: ReadonlyArray<SubscribeTemplateVo>;
