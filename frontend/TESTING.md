@@ -67,7 +67,7 @@ cd frontend/common && pnpm test:coverage
 
 - **user-weapp**:`auth.ts` / `auth.h5.ts` / `networkManager.ts` / `tracking.ts` / `clear-auth.ts`(Taro API 耦合较多,需 mock `@tarojs/taro` 后补测);
 - **admin-client**:`utils/tracking.ts`(需 jsdom + fetch mock);
-- **delivery-app**:`services/*`(GraphQL 查询)、`utils/network-manager.ts`(依赖 common NetworkManager + fetch)、`utils/upload.ts`(依赖 networkManager)、`utils/trajectory-*`(原生模块耦合)— 下一阶段补测;
+- **delivery-app**:`services/*`(GraphQL 查询)、`utils/network-manager.ts`(依赖 common NetworkManager + fetch)、`utils/upload.ts`(依赖 networkManager)— 下一阶段补测;`utils/trajectory-reporter.ts` 已补测(2026-09,jest mock 原生定位模块与 AsyncStorage,覆盖节流上报/弱网补传/服务端拒绝停止/重启恢复),`trajectory-sdk.ts`(原生模块薄封装)不单测;
 - **common**:`utils/index.ts`(仅 re-export,无需测)、`hooks/useOrderDetail.ts`/`usePagedList.ts` 的 renderHook 测试已随 hooks 目录纳入 coverage;
 - **UI 组件与页面**:admin-client 的 `components/`、user-weapp 的 `pages/` 与共享组件(StatusTag/OrderItemRow 等)— 按约定本阶段不做。
 

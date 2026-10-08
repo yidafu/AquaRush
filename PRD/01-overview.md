@@ -21,7 +21,7 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 | 端             | 形态            | 定位     | 核心诉求                       |
 | -------------- | --------------- | -------- | ------------------------------ |
 | 用户端小程序   | Taro 微信小程序 | 订购入口 | 像点外卖一样方便地买水         |
-| 送水工端小程序 | Taro 微信小程序 | 履约工具 | 接单、配送、收款一气呵成       |
+| 送水工端独立 App | React Native + Expo(delivery-app) | 履约工具 | 接单、配送、收款一气呵成       |
 | 管理后台       | Web(React)      | 运营中枢 | 订单、库存、对账、营收可视可控 |
 
 ### 业务闭环
@@ -29,14 +29,14 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 业务主链路(跨三端):
 
 ```text
-用户端:浏览商品 → 下单支付 → 等待配送 → 查看跟踪 → 确认收货 → 评价
+用户端:浏览商品 → 下单支付 → 等待配送 → 查看跟踪 → 送达即完成 → 评价
 送水工端:接单/被派单 → 配送 → 拍照验证 → 收款 → 提交每日收款日报
 管理后台:维护商品/地址 → 派单 → 核验配送照片 → 确认日报 → 对账审核 → 查看统计
 ```
 
 ### 当前阶段说明
 
-系统主体框架与主要业务链路已搭建完成:商品展示、地址管理、下单、送水工接单配送收款、日报对账、后台管理均已具备可用雏形。**支付链路、用户端订单数据真实性、评论、押金、订阅消息通知**等环节存在缺口(详见 14-misc.md),是后续迭代重点。
+系统主体框架与主要业务链路已建成并可用:商品展示与下单、微信支付与退款、派单与配送履约、拍照核验、日报与对账、统计看板、消息通知(订阅消息 + 三端消息中心 + WebSocket 实时推送)、营销玩法(分组价/优惠券/满减折扣/限时特价/水票/买赠/首单立减)、意见反馈闭环、配送轨迹上报与后台轨迹回放均已落地(2026-08~2026-09)。当前未关闭项集中在:**配送范围校验未启用、后台地址与商品的批量操作、日志筛选与错误提示、会员折扣、公告管理、系统设置接口补齐、用户端配送跟踪复用真实轨迹、APNs/FCM 远程推送凭证**等(逐项登记见 14-misc.md §现状缺口与后续规划),是后续迭代重点。2026-10 依据《送水小程序行业惯例功能对比与差异分析》补充 7 项行业惯例功能规划(一键复购、周期订购、配送范围与片区校验、用户端真实配送追踪、水桶账户与退押、储值与套餐、会员等级与积分,另含补水与续购提醒;仅在线客服 IM 未纳入),缺口登记 G75-G82,详各域文件。2026-10 续:依据同一差异分析的 **Top 8 之外剩余项**补充规划——企业客户下单(F-ORD-027,含批量下单/月结/开票)、送水工转单(F-ORD-028)、送水工地图导航(F-ORD-029)、订单导出(F-ORD-030)、商品导出与批量导入(F-PRO-011)、桶账台账与押金对账导出(F-PRO-012)、送水工工资结算(F-COL-012)、配送区域热力图/区域维度(F-ADR-022 扩充)、水票核销点位修订与票号唯一性/防重核销(R-MKT-08 修订),缺口登记 G83-G92(其中多门店 G90、在线客服 IM G92 为**本期不做**);公告管理现状校准为「用户端展示已具备、后台维护链路未闭环」(F-OPS-002/G62)。详各域文件。
 
 ## 产品目标与成功指标
 
@@ -66,13 +66,15 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 | 库存准确率   | 盘点库存与系统库存一致率         | ≥ 99%                     |
 | 用户留存     | 月内下单 ≥ 2 次的用户 / 活跃用户 | ≥ 30%                     |
 
+> 2026-10 新增建议指标(随 F-ORD-025/026、F-MKT-010/011/012 落地后启用,口径见 14-misc.md §附录术语表):复购率(复购订单数 ÷ 总订单数)、周期订购计划渗透率(有生效计划用户 ÷ 活跃用户)、储值渗透率(有储值余额用户 ÷ 活跃用户)、会员等级覆盖率、积分获取/消耗率。目标值待运营给定(依能力 1「不编造默认值」)。2026-10 续增建议指标(随 F-ORD-027、F-COL-012 落地后启用):企业客户月结应收回款率(已结清金额 ÷ 应收金额)、工资结算准确率(结算单与日报/订单对账一致率,目标 100%)、订单/商品导出使用率;目标值待运营给定。
+
 ### 阶段目标
 
 | 阶段     | 主题                  | 关键交付                                                     |
 | -------- | --------------------- | ------------------------------------------------------------ |
-| 一期(P0) | 支付闭环 + 订单真实化 | 微信支付全链路、用户端订单列表/详情/跟踪真实数据、状态机对齐 |
-| 二期(P1) | 体验完善              | 多商品购物车下单、订单评价、订阅消息通知、意见反馈提交       |
-| 三期(P2) | 增值业务              | 水桶费购买(一次性,2026-08 已实现)、配送范围校验启用、营销能力                 |
+| 一期(P0) | 支付闭环 + 订单真实化 | ✅ 已达成(2026-08):微信支付全链路、用户端订单列表/详情/跟踪真实数据、状态机对齐(G01/G02/G09);权限方法级强制(G49,2026-09) |
+| 二期(P1) | 体验完善              | ✅ 已达成(2026-08):多商品下单、订单评价、订阅消息通知与三端消息中心、意见反馈闭环、营销玩法(分组价/优惠券/满减折扣/限时特价/水票/买赠/首单立减) |
+| 三期(P2) | 增值业务              | 进行中:水桶押金/空桶回收(2026-08 押金已实现,2026-10 按行业惯例恢复押金桶)、配送范围校验启用(待)、后台批量操作与日志体验(待)、会员折扣(待)、公告管理(待);**2026-10 新增规划(行业惯例差异分析)**:一键复购(F-ORD-025)、周期订购(F-ORD-026)、配送片区与范围校验(F-ADR-003/013)、用户端真实配送追踪(F-ADR-010 本期目标)、水桶账户与退押(F-PRO-010)、储值与套餐(F-MKT-010)、会员等级与权益(F-MKT-011)、积分(F-MKT-012)、补水与续购提醒(F-NTF-007);**2026-10 续(Top 8 之外剩余项)**:企业客户下单(F-ORD-027)、送水工转单(F-ORD-028)、地图导航(F-ORD-029)、订单导出(F-ORD-030)、商品导出/批量导入(F-PRO-011)、桶账台账导出(F-PRO-012)、工资结算(F-COL-012)、区域热力图(F-ADR-022)、水票核销修订(R-MKT-08);多门店(G90)与在线客服 IM(G92)**本期不做** |
 
 ## 用户角色与权限
 
@@ -82,7 +84,7 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 | ---------- | -------------------------------- | --------------------- | -------------- | ------------------------------------------------ |
 | 普通用户   | —                                | 微信静默登录          | 用户端小程序   | 浏览商品、下单、支付、查看订单、管理地址         |
 | 送水工     | `AdminRoleModel.DELIVERY_WORKER` | 后台创建的登录账号(用户名/密码,表数据由管理员创建,不关联微信 openId) | 送水工端独立 App | 接单、配送、收款、提交日报、查看业绩             |
-| 管理员     | `AdminRoleModel.ADMIN`           | 后台账号(用户名/密码) | 管理后台 + 送水工端(兼送水) | 业务域管理:商品/订单/用户/送水员/对账,统计与日志;兼送水(F-USR-023) |
+| 管理员     | `AdminRoleModel.ADMIN`           | 后台账号(用户名/密码) | 管理后台 + 送水工端(兼送水) | 业务域管理:商品/订单/用户/送水工/对账,统计与日志;兼送水(F-USR-023) |
 | 超级管理员 | `AdminRoleModel.SUPER_ADMIN`     | 后台账号(用户名/密码) | 管理后台       | 全部权限,含管理员账号管理与系统配置              |
 
 ### 权限码目录(40 码)
@@ -120,14 +122,14 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 | PRODUCT_WRITE                    | ✅          | ✅      | —      | DELIVERY_WORKER_RESET_PASSWORD | ✅          | ✅      | —      |
 | ORDER_READ                       | ✅          | ✅      | ✅      | USER_READ                      | ✅          | ✅      | —      |
 | ORDER_WRITE                      | ✅          | ✅      | —      | USER_WRITE                     | ✅          | ✅      | —      |
-| ORDER_CREATE(代客下单)           | ✅          | —      | ✅      | USER_DELETE                    | ✅          | ✅      | —      |
+| ORDER_CREATE(代客下单)           | ✅          | ✅      | ✅      | USER_DELETE                    | ✅          | ✅      | —      |
 | ORDER_ASSIGN(派单)               | ✅          | ✅      | —      | USER_RESET_PASSWORD            | ✅          | ✅      | —      |
 | ORDER_REVIEW(照片核验)           | ✅          | ✅      | —      | ADDRESS_READ                   | ✅          | ✅      | ✅      |
 | DELIVERY_TASK(接单/开始/完成)    | ✅          | ✅      | ✅      | ADDRESS_WRITE                  | ✅          | ✅      | —      |
 | DELIVERY_WORKER_READ             | ✅          | ✅      | —      | ADMIN_USER_READ                | ✅          | —      | —      |
 | DELIVERY_WORKER_WRITE            | ✅          | ✅      | —      | ADMIN_USER_WRITE               | ✅          | —      | —      |
 | RECONCILIATION_READ              | ✅          | ✅      | ✅      | SYSTEM_CONFIG_READ             | ✅          | —      | —      |
-| RECONCILIATION_SUBMIT(日报提交)  | ✅          | —      | ✅      | SYSTEM_CONFIG_WRITE            | ✅          | —      | —      |
+| RECONCILIATION_SUBMIT(日报提交)  | ✅          | ✅      | ✅      | SYSTEM_CONFIG_WRITE            | ✅          | —      | —      |
 | OPS_CONFIG_READ                  | ✅          | ✅      | —      | FEEDBACK_READ                  | ✅          | ✅      | —      |
 | OPS_CONFIG_WRITE                 | ✅          | ✅      | —      | FEEDBACK_REVIEW(反馈处理)      | ✅          | ✅      | —      |
 | RECONCILIATION_CONFIRM(日报确认) | ✅          | ✅      | —      | PAYMENT_READ                   | ✅          | ✅      | —      |
@@ -138,22 +140,22 @@ AquaRush 以微信小程序为载体,为小型桶装水门店提供"订购 → �
 | NOTIFICATION_READ                | ✅          | ✅      | —      | NOTIFICATION_WRITE             | ✅          | —      | —      |
 
 > 权限模型说明:
-> - 超级管理员全 40 码;管理员 33 码(缺 ADMIN_USER_*/SYSTEM_CONFIG_*/ORDER_CREATE/RECONCILIATION_SUBMIT/NOTIFICATION_WRITE,共 7 码);送水工 8 码(ORDER_READ/PRODUCT_READ/ADDRESS_READ/ORDER_CREATE/DELIVERY_TASK/RECONCILIATION_READ/RECONCILIATION_SUBMIT/STATISTICS_READ)。
+> - 超级管理员全 40 码;管理员 35 码(缺 ADMIN_USER_*/SYSTEM_CONFIG_*/NOTIFICATION_WRITE,共 5 码);送水工 8 码(ORDER_READ/PRODUCT_READ/ADDRESS_READ/ORDER_CREATE/DELIVERY_TASK/RECONCILIATION_READ/RECONCILIATION_SUBMIT/STATISTICS_READ)。
 > - **普通用户(USER)独立于本矩阵**:走 `isAuthenticated()` + 本人数据隔离(R-AUTH-02),不授予后台权限码;client 侧以 `ROLE_USER` 标记身份。
 > - 超级管理员额外携带 `ROLE_ADMIN`(兼容 `hasRole('ADMIN')` 表达式);`users.role=WORKER` 对应 `ROLE_DELIVERY_WORKER`。
-> - `SYSTEM_CONFIG_*` 当前无对应接口(系统设置域为规划中,见 11-system-settings.md,G64);`OPS_CONFIG_*`/`FEEDBACK_*` 为 v0.12 新增规划码,**已随运营配置域 F-OPS-001/F-OPS-003 接线(2026-08)**:banners/feedbacks 查询与变更分别以 `PERMISSION_OPS_CONFIG_READ/WRITE`、`PERMISSION_FEEDBACK_READ/REVIEW` 方法级强制(见 12-operations-config.md);`PAYMENT_*` 同理(G01 支付 stub)。均保留在矩阵待接线。
+> - `SYSTEM_CONFIG_*` 已随系统设置域 F-SYS-001/002/003 接线(2026-08:系统参数中心/订单与履约参数/库存预警阈值),F-SYS-004/005/006 接口待核验(见 11-system-settings.md,G64);`OPS_CONFIG_*`/`FEEDBACK_*` 为 v0.12 新增码,**已随运营配置域 F-OPS-001/F-OPS-003 接线(2026-08)**:banners/feedbacks 查询与变更分别以 `PERMISSION_OPS_CONFIG_READ/WRITE`、`PERMISSION_FEEDBACK_READ/REVIEW` 方法级强制(见 12-operations-config.md);`PAYMENT_*` 已随支付链路接线(2026-08,G01 已解决)。
 > - `MKT_READ`/`MKT_WRITE` 为营销域新增码,**已随营销域 F-MKT-001/002/003/004/007 接线(2026-08)**:客户分组/分组价/优惠券/满减折扣/桶水票的查询与配置分别以 `PERMISSION_MKT_READ/WRITE` 方法级强制(见 10-marketing.md)。
-> - `NOTIFICATION_READ`/`NOTIFICATION_WRITE` 为通知与消息域(v0.20)新增规划码,见 13-notification.md:消息列表查询(F-NTF-006)已以 `PERMISSION_NOTIFICATION_READ` 接线(管理员/超管,2026 通知域落地);推送与消息配置(F-NTF-005)现状复用 `SYSTEM_CONFIG_WRITE`(system-config/notifications 页已接线 2026-08),`NOTIFICATION_WRITE` 为规划码待接线。
-> - `STATISTICS_READ` **已随统计域接线(2026-08)**:仪表盘 `dailyStatistics`/`pendingOrderBreakdown` 与用户/送水员/商品统计查询均以 `PERMISSION_STATISTICS_READ` 方法级强制(见 08-statistics.md);`STATISTICS_EXPORT` 为预留码,暂无统计导出功能。
-> - `DELIVERY_TASK` **已授予管理员(2026-08)**:支持「管理员兼送水」——管理员账号可登录送水工端执行接单/开始配送/完成配送,业绩按账号关联的送水员档案归集(见 07-user.md §F-USR-023);`ORDER_CREATE`/`RECONCILIATION_SUBMIT` 对管理员仍未授予,兼送水是否覆盖代客下单/日报提交为开放问题。
-> - 强制链路与方法级校验见 **R-AUTH-04**(定义于 07-user.md)。后台「照片核验」当前仅为照片展示(F-ORD-021,部分实现),核验/通过/驳回流程缺失(G23)。
+> - `NOTIFICATION_READ`/`NOTIFICATION_WRITE` 为通知与消息域(v0.20)新增规划码,见 13-notification.md:消息列表查询(F-NTF-006)已以 `PERMISSION_NOTIFICATION_READ` 接线(管理员/超管,2026 通知域落地);推送与消息配置(F-NTF-005)现状复用 `SYSTEM_CONFIG_WRITE`(system-config/notifications 页已接线 2026-08);`NOTIFICATION_WRITE` 已接线(2026-08)——失败消息手动重发 `resendNotification` 以 `PERMISSION_NOTIFICATION_WRITE` 方法级强制(仅超管,见 13-notification.md §F-NTF-006)。
+> - `STATISTICS_READ` **已随统计域接线(2026-08)**:仪表盘 `dailyStatistics`/`pendingOrderBreakdown` 与用户/送水工/商品统计查询均以 `PERMISSION_STATISTICS_READ` 方法级强制(见 08-statistics.md);`STATISTICS_EXPORT` 为预留码,暂无统计导出功能。
+> - `DELIVERY_TASK` **已授予管理员(2026-08)**:支持「管理员兼送水」——管理员账号可登录送水工端执行接单/开始配送/完成配送,业绩按账号关联的送水工档案归集(见 07-user.md §F-USR-023);**`ORDER_CREATE`(代客下单)与 `RECONCILIATION_SUBMIT`(日报提交)已随兼送水覆盖(2026-08)**:送水工端代客下单(create-order,入口 ADMIN 可见)与每日收款(daily-collection,提交本人日报)对兼送水管理员开放,与送水工同权;原「兼送水是否覆盖代客下单/日报提交」开放问题已闭合。
+> - 强制链路与方法级校验见 **R-AUTH-04**(定义于 07-user.md)。后台「照片核验」已闭环(2026-08-19,G23 已解决):`reviewDeliveryPhoto` 提供通过/驳回、驳回必填原因、核验状态与留痕,订单详情「交付照片」卡展示(见 04-order.md §F-ORD-021)。
 
 ### 角色层级关系
 
 - **超级管理员 > 管理员**:超管可管理管理员账号(ADMIN_USER_*)与系统配置(SYSTEM_CONFIG_*),普通管理员不可;
-- **管理员 > 送水员**:管理员创建/停用送水员账号,查看送水员订单与业绩,向送水员派单;
+- **管理员 > 送水工**:管理员创建/停用送水工账号,查看送水工订单与业绩,向送水工派单;
 - **管理员 > 普通用户**:管理员可查看用户信息与订单,处理售后问题;
-- 送水员与普通用户之间**无直接管理关系**,送水员仅在配送履约(接单后)看到用户配送信息。
+- 送水工与普通用户之间**无直接管理关系**,送水工仅在配送履约(接单后)看到用户配送信息。
 
 ## 全局约束
 

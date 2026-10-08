@@ -1,6 +1,6 @@
 # 统计与数据域(STA)
 
-> 本域覆盖管理后台数据统计能力:仪表盘与营收/用户/送水员/订单/商品五个统计子页,为运营提供订单、营收、用户、送水员业绩与商品维度的可视化分析,全部为管理员只读查看,无写操作。本域范围:F-STA-001~006;规则引用:R-MON-01(01-overview.md §全局约束)、R-PRO-02(03-product.md)、STATISTICS_READ/STATISTICS_EXPORT(01-overview.md §权限码目录)(交叉引用见 §4)。
+> 本域覆盖管理后台数据统计能力:仪表盘与营收/用户/送水工/订单/商品五个统计子页,为运营提供订单、营收、用户、送水工业绩与商品维度的可视化分析,全部为管理员只读查看,无写操作。本域范围:F-STA-001~F-STA-007;规则引用:R-MON-01(01-overview.md §全局约束)、R-PRO-02(03-product.md)、STATISTICS_READ/STATISTICS_EXPORT(01-overview.md §权限码目录)(交叉引用见 §4)。
 
 ## 1. 域概述
 
@@ -11,23 +11,24 @@
 | F-STA-001 | 仪表盘 | [已实现] | 管理后台 |
 | F-STA-002 | 营收统计 | [已实现] | 管理后台 |
 | F-STA-003 | 用户统计 | [已实现] | 管理后台 |
-| F-STA-004 | 送水员统计 | [已实现] | 管理后台 |
+| F-STA-004 | 送水工统计 | [已实现] | 管理后台 |
 | F-STA-005 | 订单统计 | [已实现] | 管理后台 |
 | F-STA-006 | 商品统计 | [已实现] | 管理后台 |
+| F-STA-007 | 营销统计 | [已实现] | 管理后台 |
 
-> 状态标记以 facts.md §1 校准表为准(2026-08 复查校准):F-STA-002 由「[部分实现]」校准回「[已实现]」(2026-08 营收统计页重建:日/周/月粒度切换 + 时间范围筛选 + 三张汇总卡(营收总额/日均营收/最大单日营收)+「订单趋势」「营收趋势」双图表 + 退款/净营收 G01 说明区,`orderStatistics`/`weeklyStatistics`/`monthlyStatistics` 已接线 `AdminOrderStatisticsQueryResolver`,G12 与 G42 剩余部分解决;多商品订单营收按订单只计一次,P1-3 修复;**2026-08 再补充:退款/净营收维度随支付链路(G01)落地兑现**——退款记录(`payment_refunds` status=COMPLETED)由退款流程落库并接入聚合,营收统计页新增 退款金额/净营收/退款率 汇总卡与「营收/净营收/退款趋势」三线图,净营收 = 已完成营收 − 退款金额);F-STA-001 由原「[部分实现]」校准回「[已实现]」(2026-08-09 仪表盘重建:预设/自定义时间范围、待处理订单卡、环比、错误/空/加载态齐备,`dailyStatistics`/`pendingOrderBreakdown` 已接线 resolver,G33/G34 解决、G42 仪表盘部分解决);F-STA-005 由「[部分实现]」校准回「[已实现]」(2026-08:G37 状态分布/客单价分布/高峰时段分析三分析卡随 `orderStatistics` 查询端到端可用,`OrderStatistics` 增三分布字段,仓储/服务/Resolver 三层聚合补零,前端三列分析卡;G38/G42/P1-5 均已解决,周/月营收口径已对齐已完成订单金额,「已完成订单」卡取 `completedOrders`);其余三项保持原标记。送水工端「当日/周统计」属收银对账域(F-COL-003),见 06-collection.md。
+> 状态标记以 facts.md §1 校准表为准(2026-08 复查校准):F-STA-002 由「[部分实现]」校准回「[已实现]」(2026-08 营收统计页重建:日/周/月粒度切换 + 时间范围筛选 + 三张汇总卡(营收总额/日均营收/最大单日营收)+「订单趋势」「营收趋势」双图表 + 退款/净营收 G01 说明区,`orderStatistics`/`weeklyStatistics`/`monthlyStatistics` 已接线 `AdminOrderStatisticsQueryResolver`,G12 与 G42 剩余部分解决;多商品订单营收按订单只计一次,P1-3 修复;**2026-08 再补充:退款/净营收维度随支付链路(G01)落地兑现**——退款记录(`payment_refunds` status=COMPLETED)由退款流程落库并接入聚合,营收统计页新增 退款金额/净营收/退款率 汇总卡与「营收/净营收/退款趋势」三线图,净营收 = 已完成营收 − 退款金额);F-STA-001 由原「[部分实现]」校准回「[已实现]」(2026-08-09 仪表盘重建:预设/自定义时间范围、待处理订单卡、环比、错误/空/加载态齐备,`dailyStatistics`/`pendingOrderBreakdown` 已接线 resolver,G33/G34 解决、G42 仪表盘部分解决);F-STA-005 由「[部分实现]」校准回「[已实现]」(2026-08:G37 状态分布/客单价分布/高峰时段分析三分析卡随 `orderStatistics` 查询端到端可用,`OrderStatistics` 增三分布字段,仓储/服务/Resolver 三层聚合补零,前端三列分析卡;G38/G42/P1-5 均已解决,周/月营收口径已对齐已完成订单金额,「已完成订单」卡取 `completedOrders`);其余三项保持原标记。送水工端「当日/周统计」属收银对账域(F-COL-003,独立「统计」Tab 已于 2026 去重调整并入工作台首页),见 06-collection.md。
 
 ### 1.2 域内角色与入口
 
 - 使用角色:管理员(对应 01-overview.md §角色权限矩阵「数据统计与日志 → 管理员 ✅」);
-- 入口:管理后台左侧菜单「仪表盘」与「数据统计 → 营收统计 / 用户统计 / 送水员统计 / 订单统计 / 商品统计」五个子菜单(Layout.tsx menuItems);
-- 本域全部为只读统计分析,管理员无写权限以外的操作集合;三个统计页路由:statistics、statistics/users、statistics/delivery-workers、statistics/orders、statistics/products。
+- 入口:管理后台左侧菜单「仪表盘」与「数据统计 → 营收统计 / 用户统计 / 送水工统计 / 订单统计 / 商品统计 / 营销统计」六个子菜单(Layout.tsx menuItems);
+- 本域全部为只读统计分析,管理员无写权限以外的操作集合;统计页路由:statistics、statistics/users、statistics/delivery-workers、statistics/orders、statistics/products、statistics/marketing。
 
 ### 1.3 域级验收清单
 
 > 迁移自拆分前 PRD §11.1「统计」行,一行/域;2026-08 补全权限与时区两条。
 
-- 仪表盘与 5 个统计页数据与订单/商品/送水员数据一致;金额展示精度正确(分→元,两位小数);
+- 仪表盘与 5 个统计页数据与订单/商品/送水工数据一致;金额展示精度正确(分→元,两位小数);
 - 全部统计查询受 `STATISTICS_READ` 权限码方法级强制(对应 01-overview.md §角色权限矩阵,与 F-STA 全部条目适用);
 - 统计按日/周/月聚合时区统一 Asia/Shanghai,口径与订单/商品/用户源数据一致(见 14-misc.md §数据一致性要求)。
 
@@ -37,8 +38,8 @@
 
 - **R-MON-01 金额精度**(定义于 01-overview.md §全局约束):适用 F-STA-001、F-STA-002、F-STA-005、F-STA-006;统计聚合金额以"分"存储与计算,展示换算为元、两位小数。
 - **R-PRO-02 库存预警阈值**(定义于 03-product.md):适用 F-STA-006;低库存预警计数口径与商品域阈值配置一致。
-- **STATISTICS_READ / STATISTICS_EXPORT 权限码**(定义于 01-overview.md §权限码目录 / §角色权限矩阵):适用全部 F-STA;`STATISTICS_READ` 已随仪表盘与用户/送水员/商品统计接线(2026-08,`PERMISSION_STATISTICS_READ` 方法级强制,见 §3 各 F- 条目);`STATISTICS_EXPORT` 为预留码,当前无统计导出功能。
-- **域级口径(2026-08 定稿,适用全部 F-STA)**:营收口径全域统一 = 已完成订单金额合计(仅 `COMPLETED` 状态,依据 02-business-flows.md §订单状态机「完成配送→已完成→计入业绩」);退款口径(2026-08 补充,F-STA-002)= `payment_refunds` status=COMPLETED 按退款成功时间(processed_at)归属窗口,与退款记录一致;净营收 = 已完成营收 − 退款金额;统计时间聚合时区统一 Asia/Shanghai;统计数字与订单/商品/用户/送水员源数据一致(见 14-misc.md §数据一致性要求)。
+- **STATISTICS_READ / STATISTICS_EXPORT 权限码**(定义于 01-overview.md §权限码目录 / §角色权限矩阵):适用全部 F-STA;`STATISTICS_READ` 已随仪表盘与用户/送水工/商品统计接线(2026-08,`PERMISSION_STATISTICS_READ` 方法级强制,见 §3 各 F- 条目);`STATISTICS_EXPORT` 为预留码,当前无统计导出功能。
+- **域级口径(2026-08 定稿,适用全部 F-STA;2026-10 随 R-ORD-11 送达即完成修订)**:营收口径全域统一 = 已完成订单金额合计(仅 `COMPLETED` 状态,依据 02-business-flows.md §订单状态机「完成配送→已完成→计入业绩」),**按完成时间(`completed_at`)归属日/周/月窗口**——跨日完成订单(下单日 ≠ 完成日)营收计入完成日,与「日完成订单数 = 当日进入已完成状态的订单数」(01-overview.md §全局约束)对齐;**「已完成」在完成配送时直接达成(2026-10 按行业惯例送达即完成,订单域 R-ORD-11):`completed_at` = 完成配送时间,营收即时计入,无「待确认收货」延迟**;订单数口径仍按下单时间(`created_at`)归属窗口(订单数 = 当日全部订单);退款口径(2026-08 补充,F-STA-002)= `payment_refunds` status=COMPLETED 按退款成功时间(processed_at)归属窗口,与退款记录一致;净营收 = 已完成营收 − 退款金额;统计时间聚合时区统一 Asia/Shanghai,且**显式钉死不依赖部署环境默认时区(P2-8):应用入口 `TimeZone.setDefault("Asia/Shanghai")`、JDBC 连接 `TimeZone=Asia/Shanghai`(PostgreSQL 会话时区)、systemd `-Duser.timezone=Asia/Shanghai` 三处一致,实体默认时间戳(LocalDateTime.now())与统计日界均以该时区为准**;统计数字与订单/商品/用户/送水工源数据一致(见 14-misc.md §数据一致性要求)。
 
 ## 3. 功能需求详述
 
@@ -96,7 +97,7 @@
 - R-MON-01 扩充:营收聚合以"分"为单位(dailyStatistics.revenueCents),展示统一除 100 转元、两位小数,仅展示层换算。
 - 环比口径(已实现):环比增长率 = (本期值 − 上期值) / 上期值 × 100%,保留 1 位小数;上升显示绿色(#3f8600)上箭头、下降显示红色(#cf1322)下箭头、持平显示中性;上期值为 0 且本期 > 0 时显示「—」(避免除零与无穷大误导)。基准:今日订单/今日营收 → 切片前一日(较昨日);本月累计营收 → 所选范围平移一个月(较上月同期);待处理订单为存量指标,不设环比。
 - 待处理订单口径(已实现):= 待支付 + 待派单 + 待配送 三态订单合计(pendingOrderBreakdown 存量快照,未进入履约执行中的未完结订单),tooltip 细分三态;若运营仅关注派单,可收窄为仅待派单。
-- 营收口径:dailyStatistics.revenueCents = 当日已完成订单金额合计(仅 COMPLETED 状态),订单数 orderCount = 当日全部订单,两口径分离聚合(与 F-STA-005 统一)。
+- 营收口径:dailyStatistics.revenueCents = 当日已完成订单金额合计(仅 COMPLETED 状态),按完成时间(`completed_at`)归属当日——跨日完成订单计入完成日,不再随下单日丢失(2026-08 修正:此前按 created_at 归属,导致「今天完成但前几天下单」的订单营收在营收趋势中永久缺失);订单数 orderCount = 当日全部订单(按下单日),两口径分离聚合(与 F-STA-005 统一)。
 - 开放问题:仪表盘「今日订单/今日营收」取切片最后一条数据(非当日实时汇总),自定义区间不含今日时显示区间末日数据,口径须与订单统计统一(见 §4 14-misc.md)。
 **缺口关联**: G33(时间范围不可切换)、G34(缺「待处理订单」关键数字)均已解决(2026-08-09 仪表盘重建);G42 仪表盘部分已解决(dailyStatistics/pendingOrderBreakdown 已接线),剩余部分关联 F-STA-005。
 
@@ -148,9 +149,9 @@
 **业务规则扩充**:
 - R-MON-01 扩充:营收按"分"聚合、以"元"展示(两位小数);**营收口径定稿 = 已完成订单金额合计**(依据 02-business-flows.md §订单状态机「完成配送→已完成→计入业绩」,已取消/已退款/未完成订单不计入),与 F-STA-005 订单统计统一,解决既有营收图表口径重叠问题。
 - 汇总口径(已实现):营收总额 = orderStatistics.totalRevenueCents(已完成口径,G38 映射 completedAmountCents);日均营收 = 营收总额 ÷ 覆盖天数;最大单日营收 = 按日趋势 revenueCents 最大值(周/月粒度展示最大周期营收)。
-- 退款/净营收口径(2026-08 定稿,G01 落地后兑现;2026-08-19 增补;2026-08 水桶费改造):退款金额 = 窗口内 `payment_refunds.status=COMPLETED` 且 `refund_type=ORDER_REFUND` 的 refund_amount_cents 合计,按退款成功时间(processed_at)归属窗口(与服务层 `sumRefundedAmountCents` 一致);净营收 = 已完成营收 − 退款金额(`netRevenueCents`);退款率 = 退款金额 ÷ 营收总额 ×100%,营收为 0 时显示「—」;退款金额与退款记录一致(同源于 payment_refunds),部分退款按 sum 聚合天然支持。**水桶费退还(DEPOSIT_REFUND,含历史桶押金退还)不计入退款/净营收统计**——购桶款/押金不计入订单营收,退还不产生净营收扭曲(G06)。跨窗口边界:退款成功时间在窗口内、订单完成在窗口外时,净营收如实为负,不钳 0(PRD 如实展示口径)。
+- 退款/净营收口径(2026-08 定稿,G01 落地后兑现;2026-08-19 增补;2026-10 押金桶恢复):退款金额 = 窗口内 `payment_refunds.status=COMPLETED` 且 `refund_type=ORDER_REFUND` 的 refund_amount_cents 合计,按退款成功时间(processed_at)归属窗口(与服务层 `sumRefundedAmountCents` 一致);净营收 = 已完成营收 − 退款金额(`netRevenueCents`);退款率 = 退款金额 ÷ 营收总额 ×100%,营收为 0 时显示「—」;退款金额与退款记录一致(同源于 payment_refunds),部分退款按 sum 聚合天然支持。**水桶押金退还(DEPOSIT_REFUND)不计入退款/净营收统计**——押金不计入订单营收,退还不产生净营收扭曲(G06);水票退票款(2026-10 未核销可退)计入退款统计。跨窗口边界:退款成功时间在窗口内、订单完成在窗口外时,净营收如实为负,不钳 0(PRD 如实展示口径)。
 - 实现要点(2026-08):`OrderStatistics`/`DailyStatistic`/`WeeklyStatistic`/`MonthlyStatistic` 增 refundAmountCents/netRevenueCents/refundCents 字段;`PaymentQueryService`(aqua-foundation)增 sumRefundedAmountCents/getDailyRefundedAmountCents,实现于 aqua-trade(`PaymentRefundRepositoryCustom`/Impl,QueryDSL,DATE_TRUNC('day') + status=COMPLETED + refund_type=ORDER_REFUND);`StatisticsServiceImpl` 注入 paymentQueryService,日/周/月趋势按退款成功时间归属(周=ISO 周首、月=月首,与订单趋势同桶);退款记录由 `PaymentServiceImpl.refund()` 落库(status=COMPLETED,04-order.md §R-PAY-02)。
-- 开放问题:退款统计仅覆盖在线支付订单的退款记录;购票预收款不支持退款、现金/线下收款无退款记录,均不计入;退款结果异步查询/微信退款回调对账为后续增强。购桶款(水桶费购买)为独立支付链路,未计入订单营收/退款统计,是否单独统计购桶营收待运营确认(G06)。
+- 开放问题:退款统计覆盖在线支付订单退款记录与**水票退票款**(2026-10 未核销可退,G58);现金/线下收款无退款记录,不计入;退款结果异步查询/微信退款回调对账为后续增强。水桶押金及退押(DEPOSIT_REFUND)为独立押金账本,不计入订单营收/退款统计,是否单独统计押金流量待运营确认(G06)。
 **缺口关联**: G12(营收统计页为占位)已解决(2026-08 重建);G01(支付链路)已解决(2026-08,退款/净营收维度随之落地);G42 剩余部分(orderStatistics/weeklyStatistics/monthlyStatistics)已接线(`AdminOrderStatisticsQueryResolver`);P1-3(多商品订单营收虚增)已修复(仓储层按订单聚合金额、明细单独聚合件数后合并)。
 
 #### F-STA-003 用户统计 [已实现]
@@ -199,50 +200,51 @@
 - 下单用户分布口径(已实现,2026-08-18 定稿):按近30天下单用户去重计数,按累计下单次数分层(1次/2~3次/4次以上);下单用户占比 = 下单用户数/总用户数;复购率 = 下单≥2次用户数/下单用户数;总用户数为 0 或下单用户数为 0 时对应比率为 0,不报错。实现:后端 `StatisticsOrderRepositoryImpl.countOrdersPerUserInRange`(orders 按 userId 分组计数,与活跃用户同窗口同源)+ `UserStatisticsService.getOrderUserDistribution`;`UserStatistics` 增 `orderDistribution` 字段,随 `userStatistics` 单查询下发。
 **缺口关联**: G35(用户统计缺「下单用户分布」维度)已解决(2026-08-18)。
 
-#### F-STA-004 送水员统计 [已实现]
+#### F-STA-004 送水工统计 [已实现]
 
-**需求描述**: 送水员业绩排行(完成单量/好评率/收入),人均单量、平均履约时长。现状:statistics/delivery-workers 真实页面,展示 送水员总数/今日在岗/配送中订单/今日完成 四张数字卡 + 「送水员工作量排行」柱状图 + 「送水员排行榜」表格(排名/姓名/今日完成订单/好评率/累计收入),数据来自 deliveryWorkerStatistics 与 deliveryWorkerRanking(limit:10) 查询;「人均单量」「平均履约时长」维度当前未实现,为目标补充(G36)。好评率依赖评价数据,评价链路未接线(G05),好评率可能为空或失真。
+**需求描述**: 送水工业绩排行(完成单量/好评率/收入),人均单量、平均履约时长。现状:statistics/delivery-workers 真实页面,展示 送水工总数/今日在岗/配送中订单/今日完成 四张数字卡 + 「送水工工作量排行」柱状图 + 「送水工排行榜」表格(排名/姓名/今日完成订单/好评率/累计收入),数据来自 deliveryWorkerStatistics 与 deliveryWorkerRanking(limit:10) 查询;「人均单量」「平均履约时长」维度当前未实现,为目标补充(G36)。好评率依赖评价数据,评价链路未接线(G05),好评率可能为空或失真。
 
-**页面与入口**: 数据统计-送水员(statistics/delivery-workers)| 管理后台 | 入口:左侧菜单「数据统计 → 送水员统计」。
+**页面与入口**: 数据统计-送水工(statistics/delivery-workers)| 管理后台 | 入口:左侧菜单「数据统计 → 送水工统计」。
 
 **UI与交互**:
 - **页面布局**:
-  1. 关键数字卡区:送水员总数/今日在岗/配送中订单/今日完成 + 「人均单量」「平均履约时长」两张卡(G36 已实现,2026-08-18;人均单量 = 今日完成订单总数/今日在岗送水员数,「单/人」后缀;平均履约时长 = Σ(completedAt − 派单时间)/今日完成订单数,「分钟」后缀;无数据时显示「—」)。
-  2. 排行图区:左「送水员工作量排行」柱状图(Top10 今日完成订单),右「送水员排行榜」表格(排名/姓名/今日完成订单/好评率/累计收入),分页关闭、size=small;目标形态:排行榜下方或表头标注口径说明「排行默认按今日完成订单排序,好评率/累计收入为展示列,支持列头切换排序」。
+  1. 关键数字卡区:送水工总数/今日在岗/配送中订单/今日完成 + 「人均单量」「平均履约时长」两张卡(G36 已实现,2026-08-18;人均单量 = 今日完成订单总数/今日在岗送水工数,「单/人」后缀;平均履约时长 = Σ(completedAt − 派单时间)/今日完成订单数,「分钟」后缀;无数据时显示「—」)。
+  2. 排行图区:左「送水工工作量排行」柱状图(Top10 今日完成订单),右「送水工排行榜」表格(排名/姓名/今日完成订单/好评率/累计收入),分页关闭、size=small;目标形态:排行榜下方或表头标注口径说明「排行默认按今日完成订单排序,好评率/累计收入为展示列,支持列头切换排序」。
 - **组件清单**: StatisticsCard、Card、Row、Col、Table、Spin(antd)、BarChart、Bar、XAxis、YAxis、CartesianGrid、Tooltip、ResponsiveContainer(recharts)、useQuery(gql)。
 - **关键交互流程**:
   1. 页面挂载发起 GET_DELIVERY_WORKER_STATISTICS(deliveryWorkerStatistics + deliveryWorkerRanking limit:10)。
   2. ranking 取前 10 生成柱状图与表格;好评率按 rating×100 百分比显示、累计收入按分转元(¥x.xx)。
-  3. 履约效率指标(2026-08-18 落地):人均单量 = 今日完成订单总数/今日在岗送水员数(在岗为 0 时为 null → 「—」);平均履约时长 = Σ(completedAt − 派单时间)/今日完成订单数(派单时间 = 最早 DELIVERY_ASSIGNED 订单操作时间,回退 deliveryStartedAt,再回退 createdAt;无完成订单时为 null → 「—」)。
+  3. 履约效率指标(2026-08-18 落地):人均单量 = 今日完成订单总数/今日在岗送水工数(在岗为 0 时为 null → 「—」);平均履约时长 = Σ(completedAt − 派单时间)/今日完成订单数(派单时间 = 最早 DELIVERY_ASSIGNED 订单操作时间,回退 deliveryStartedAt,再回退 createdAt;无完成订单时为 null → 「—」)。
   4. 查询失败显示「加载失败: {error.message}」。
 - **状态呈现**:
   - 空态:无排行数据时柱状图空、表格空,人均单量/平均履约时长显示「—」;
   - 加载态:图表 Spin、表格 loading;
   - 错误态:「加载失败: {error.message}」;
   - 禁用态:无交互元素,不适用。
-- **校验与文案**: 好评率列百分比显示(如 95.0%);收入列「¥」前缀两位小数;柱状图 tooltip「送水员: 姓名」「n 单 今日完成订单」;人均单量「n 单/人」、平均履约时长「n 分钟」。
+- **校验与文案**: 好评率列百分比显示(如 95.0%);收入列「¥」前缀两位小数;柱状图 tooltip「送水工: 姓名」「n 单 今日完成订单」;人均单量「n 单/人」、平均履约时长「n 分钟」。
 
 **验收测试用例**:
 
 | AC编号 | 前置条件 | 操作步骤 | 预期结果 |
 | --- | --- | --- | --- |
-| AC-STA-004-01 | 有送水员数据 | 打开送水员统计页 | 四张卡显示送水员总数/今日在岗/配送中订单/今日完成 |
-| AC-STA-004-02 | 有排行数据 | 查看「送水员工作量排行」 | 柱状图展示 Top10 今日完成订单 |
-| AC-STA-004-03 | 有排行数据 | 查看「送水员排行榜」表格 | 按排名展示姓名/今日完成订单/好评率/累计收入,好评率百分比、收入「¥」两位小数 |
-| AC-STA-004-04 | 有评价数据 | 查看好评率列 | 好评率 = 该送水员好评数/评价总数 |
+| AC-STA-004-01 | 有送水工数据 | 打开送水工统计页 | 四张卡显示送水工总数/今日在岗/配送中订单/今日完成 |
+| AC-STA-004-02 | 有排行数据 | 查看「送水工工作量排行」 | 柱状图展示 Top10 今日完成订单 |
+| AC-STA-004-03 | 有排行数据 | 查看「送水工排行榜」表格 | 按排名展示姓名/今日完成订单/好评率/累计收入,好评率百分比、收入「¥」两位小数 |
+| AC-STA-004-04 | 有评价数据 | 查看好评率列 | 好评率 = 该送水工好评数/评价总数 |
 | AC-STA-004-05 | 无评价数据(G05) | 查看好评率列 | 好评率显示 0.0% 或空,说明评价数据源缺失 |
-| AC-STA-004-06 | 后端异常 | 打开送水员统计页 | 页面显示「加载失败: {错误信息}」 |
-| AC-STA-004-07 | 今日有完成订单与在岗送水员 | 查看「人均单量」卡 | 人均单量 = 今日完成订单总数/今日在岗送水员数,口径标注(G36) |
+| AC-STA-004-06 | 后端异常 | 打开送水工统计页 | 页面显示「加载失败: {错误信息}」 |
+| AC-STA-004-07 | 今日有完成订单与在岗送水工 | 查看「人均单量」卡 | 人均单量 = 今日完成订单总数/今日在岗送水工数,口径标注(G36) |
 | AC-STA-004-08 | 有已完成订单 | 查看「平均履约时长」卡 | 平均履约时长按 completedAt − 派单时间聚合展示(分钟) |
 
 **规则引用**: STATISTICS_READ(权限码,01-overview.md §权限码目录)。
 **业务规则扩充**:
 - 好评率口径:rating 以 0~1 小数存储,展示乘 100 转百分比(如 95.0%);当前评价链路无写入(G05),好评率依赖评价功能(F-ORD-007)落地,无评价数据时显示 0.0%。
 - 排行实现(已实现):`deliveryWorkerRanking(limit:10)` 按「今日完成订单」降序返回 Top10,柱状图与表格同源;好评率/累计收入为展示列;需求所述业绩综合排行(完成单量/好评率/收入)排序口径待明确,目标形态以默认排序 + 列头切换排序承载。
-- 人均单量口径(已实现,2026-08-18 定稿):今日完成订单总数 / 今日在岗送水员数(在岗口径);今日在岗为 0 时返回 null,前端显示「—」。
+- 人均单量口径(已实现,2026-08-18 定稿):今日完成订单总数 / 今日在岗送水工数(在岗口径);今日在岗为 0 时返回 null,前端显示「—」。
 - 平均履约时长口径(已实现,2026-08-18 定稿):Σ(completedAt − 派单时间)/ 今日完成订单数,单位分钟,保留 1 位小数;「派单时间」= order_operations 中该订单最早 DELIVERY_ASSIGNED 操作时间,未命中回退 `deliveryStartedAt`(出发时间),再回退 `createdAt`;无今日完成订单时返回 null,前端显示「—」。实现:`StatisticsDeliveryWorkerRepositoryImpl.findCompletedOrderTimingsSince`/`findEarliestAssignedAtByOrderIds` + `DeliveryWorkerStatisticsServiceImpl.getDeliveryWorkerStatistics`;`DeliveryWorkerOverview` 增 `averageOrdersPerWorker`/`averageFulfillmentMinutes`(可空)。
+- **送水工业绩口径(R-ORD-11,2026-10 修订)**:「今日完成订单」= 当日「已完成」订单数(2026-10 送达即完成,已无「待确认收货」态),时间锚点 = 完成配送时间(送达时间,`completed_at`)——送水工业绩按完成配送即时计入;排行/人均单量/平均履约时长同口径(履约时长终点 = 完成配送时间)。
 - 开放问题:排名当前固定按「今日完成订单」口径。
-**缺口关联**: G36(送水员统计缺人均单量/平均履约时长)已解决(2026-08-18);G05(评论功能未接线——好评率数据源缺失)。
+**缺口关联**: G36(送水工统计缺人均单量/平均履约时长)已解决(2026-08-18);G05(评论功能未接线——好评率数据源缺失)。
 
 #### F-STA-005 订单统计 [已实现]
 
@@ -351,11 +353,66 @@
 - 现状确认(2026-08):`productStatistics`/`productDailySales` 已接线 resolver(`ProductStatisticsQueryResolver`,`PERMISSION_STATISTICS_READ`);日销量趋势按商品筛选 + 时间范围刷新、全商品按日聚合为前端聚合逻辑,数据与商品销量一致。
 **缺口关联**: G39(商品统计缺库存预警明细与阈值配置 UI)已解决(2026-08-18;阈值配置 UI 归 F-SYS-003,已于 2026-08 落地 system-config/stock)。
 
-## 4. 交叉引用
+#### F-STA-007 营销统计 [已实现]
 
+**需求描述**: 营销效果时间维度分析(营销订单/让利/用券/水票/赠品)+ 营销方式使用明细,为运营评估营销投入产出提供数据支撑。现状(2026-08 落地):基于**第 3 层日汇总中间表**(`daily_marketing_facts`/`daily_marketing_usage_facts`,v2.5.0 迁移,夜间快照任务与既有四张事实表同事务 delete-then-insert)查询侧两段合并,与 F-STA-001~006 同构;页面「效果统计 + 明细表」:时间范围筛选(默认近 30 天,日粒度)+ 六张汇总卡(营销订单数/让利总额/用券数/水票销售金额/水票核销/赠品数量)+ 四张图表(营销优惠趋势[券/满减/首单立减三线]、营销订单与用券趋势、水票销售与核销趋势、营销方式构成环形图)+ 营销方式使用明细表(Segmented 按 券/满减/首单立减/买赠满赠/桶水票 切换,行操作跳详情);数据来自 `marketingStatistics` 单查询(`AdminMarketingStatisticsQueryResolver`,`PERMISSION_STATISTICS_READ`),单页面单请求(规则 #10),端到端可用。
+
+**页面与入口**: 数据统计-营销(statistics/marketing)| 管理后台 | 入口:左侧菜单「数据统计 → 营销统计」。
+
+**UI与交互**:
+- **页面布局**:
+  1. 筛选区:时间范围 RangePicker(默认近 30 天,禁用未来日期,日粒度,含手动刷新/定时刷新);
+  2. 汇总卡区:营销订单数(单)/让利总额(¥)/用券数(张)/水票销售金额(¥)/水票核销(张)/赠品数量(件);
+  3. 图表区:左上「营销优惠趋势」折线(券/满减/首单立减 优惠金额三线,¥)、右上「营销方式构成」环形(让利金额占比)、左下「营销订单与用券趋势」柱+线、右下「水票销售与核销趋势」双线(销售/核销张数);
+  4. 明细表区:「营销方式使用明细」Segmented 切换(优惠券/满减折扣/首单立减/买赠满赠/桶水票),列随类型变化——券:券名/使用订单数/优惠金额/核销张数;满减/首单:活动名/使用订单数/优惠金额/使用数量;赠品:活动名/使用订单数/优惠金额(估算)/赠品件数;票种:票种名/销售张数/销售金额/核销张数;行操作「详情」跳对应活动详情页(营销管理)。
+- **组件清单**: StatisticsCard、Card、Row、Col、Spin、Alert、Button、Empty、Segmented、Table、Tooltip、DatePicker(RangePicker)(antd)、LineChart/ComposedChart/PieChart 等(recharts)、useQuery(gql)、dayjs、RefreshControls/useAutoRefresh。
+- **关键交互流程**:
+  1. 页面挂载发起 `marketingStatistics` 查询(默认近 30 天);
+  2. 切换时间范围 → refetch → 汇总卡/图表/明细表联动刷新;
+  3. 明细表切换 Segmented → 前端按 kind 过滤展示该营销方式区间使用记录;
+  4. 行「详情」→ 跳转 /marketing/{coupons|promotions|newcomer|buy-gift|water-tickets}/:id。
+- **状态呈现**:
+  - 空态:无数据汇总卡 0、图表 Empty、明细表 Empty;
+  - 加载态:汇总卡/图表/表格 loading;
+  - 错误态:整页 Alert「数据加载失败」+ error.message + 重试按钮;
+  - 禁用态:查询期间筛选/切换仍可操作,由 loading 呈现数据未更新。
+- **校验与文案**: 金额统一「元」两位小数(R-MON-01);图表 tooltip「日期: xx」+「¥x.xx」/「n 张」/「n 单」;明细表优惠金额列 tooltip 口径说明(券/满减/首单=快照精确,赠品=估算);让利总额不含赠品估算与桶水票抵扣(预收抵扣非让利),页面/PRD 明示。
+
+**验收测试用例**:
+
+| AC编号 | 前置条件 | 操作步骤 | 预期结果 |
+| --- | --- | --- | --- |
+| AC-STA-007-01 | 有营销数据 | 打开营销统计页 | 六张汇总卡显示营销订单数/让利总额/用券数/水票销售金额/水票核销/赠品数量,金额两位小数带「¥」 |
+| AC-STA-007-02 | 有券订单 | 查看「营销优惠趋势」 | 折线图按日展示券/满减/首单立减 优惠金额(元) |
+| AC-STA-007-03 | 有营销订单 | 查看「营销订单与用券趋势」 | 柱状图展示营销订单数 + 用券数折线,与订单/券数据一致 |
+| AC-STA-007-04 | 有水票数据 | 查看「水票销售与核销趋势」 | 双线图按日展示销售/核销张数 |
+| AC-STA-007-05 | 有让利数据 | 查看「营销方式构成」 | 环形图按 券/满减/首单立减 让利金额占比展示 |
+| AC-STA-007-06 | 有券模板使用 | 明细表默认「优惠券」 | 展示券名称/使用订单数/优惠金额/核销张数,「详情」跳转券详情 |
+| AC-STA-007-07 | 有满减活动使用 | 明细表切「满减/折扣」 | 展示活动区间使用记录,优惠金额=快照列合计 |
+| AC-STA-007-08 | 有票种数据 | 明细表切「桶水票」 | 展示票种销售张数/销售金额/核销张数,「详情」跳转票种统计页 |
+| AC-STA-007-09 | 有赠品订单 | 明细表切「买赠/满赠」 | 优惠金额列展示估算金额(件数×目录价)并带口径说明 |
+| AC-STA-007-10 | 区间无营销数据 | 打开营销统计页 | 汇总卡 0、图表/明细表空态,不报错 |
+| AC-STA-007-11 | 后端统计查询异常 | 打开营销统计页 | 「数据加载失败」Alert + 重试按钮,点击重试可恢复 |
+| AC-STA-007-12 | 已进入页面 | 切换时间范围 | 汇总卡/图表/明细表按所选范围刷新 |
+| AC-STA-007-13 | 夜间快照已运行且今日有新数据 | 打开营销统计页 | 昨日及以前读中间表、今日实时兜底,两段合并数据与源数据一致 |
+
+**规则引用**: STATISTICS_READ(权限码,01-overview.md §权限码目录)、R-MON-01(金额精度,01-overview.md §全局约束)。
+**业务规则扩充**:
+- **中间表机制(与 F-STA-001~006 同构)**:`daily_marketing_facts`(单日一行,无数据日全 0 保证覆盖连续)与 `daily_marketing_usage_facts`(日 × 营销方式 kind × 活动 ref_id)由夜间快照任务(`StatisticsSnapshotServiceImpl.rebuildDate`,六表同一事务 delete-then-insert)写入;查询侧两段合并——覆盖历史段读中间表,未覆盖日期(今日/缺口)实时聚合兜底(与快照写同口径),`StatisticsSnapshotCoverageService` 覆盖区间判定不变。
+- **营销订单口径(已实现,定稿)**:区间内订单含 券/满减/首单立减 任一快照优惠列 > 0(coupon_discount_cents/promotion_discount_cents/first_order_discount_cents),按订单去重(券与满减可同单只计 1);营销订单数由每日事实独立聚合,不能由明细求和得出。
+- **让利总额口径(已实现,定稿)**:= 券 + 满减 + 首单立减 三快照列合计(精确,与 10-marketing.md 营销方式详情口径一致);赠品让利估算(件数 × 赠品当前目录价,估算)仅在明细表展示并标注,不并入总额;桶水票抵扣为预收抵扣(被核销桶按单价 0 计入,非让利)不并入总额。
+- **用券数口径**:user_coupons status=USED 按 used_at 归属区间(与营销方式详情「已核销券张数」同口径)。
+- **水票口径**:销售 = ticket_purchases paymentStatus=PAID 按 paidAt(回退 createdAt)归属,张数含赠送(N+M);核销 = user_tickets USED 按 usedAt 归属;与 F-MKT-007 票种统计同口径。
+- **赠品件数口径**:order_gifts 按 created_at 归属区间,Σ quantity。
+- **明细表口径**:券行按 orders.coupon_id → user_coupons.coupon_template_id 归并(含已退回券订单——订单快照保留 coupon_id);满减/首单按订单快照活动列;赠品按 gift_activity_id(usage_count=赠品件数,让利估算);票种按 ticket_type_id(销售/核销);活动名查询侧批量解析(中间表不落 name 列,活动改名即时生效)。
+- **开放问题**:限时特价/新人专享价因 order_items 无活动 ID 快照,本页汇总/构成/明细均不纳入(估算口径与查询成本),由各活动详情页承接(与 10-marketing.md §营销方式详情口径一致);后续 order_items 落活动 ID 快照后可补充。
+**缺口关联**: 无(2026-08 新增功能)。
+
+## 4. 交叉引用
 - 状态机 → 02-business-flows.md §订单状态机(F-STA-005 订单统计口径依赖订单状态;营收口径 = 已完成订单金额,依据「完成配送→已完成→计入业绩」)。
 - 缺口 → 14-misc.md(G33/G34 已解决;G12 营收统计页为占位已解决(2026-08 重建);G35~G39 为统计维度补全、G42 剩余部分(orderStatistics/weeklyStatistics/monthlyStatistics)已接线、G38「已完成订单」卡口径已修正;G01 已解决(2026-08,支付链路落地,退款/净营收维度随之兑现,见 F-STA-002);现状登记见 facts.md §2;G05 影响好评率)。
 - 权限码 → 01-overview.md §权限码目录/§角色权限矩阵(STATISTICS_READ 已接线、STATISTICS_EXPORT 为预留码)。
 - 实体与数据一致性 → 14-misc.md §数据一致性要求(送水工统计 ↔ 订单、商品统计 ↔ 销量、用户统计活跃口径 = 近30天下单用户)。
+- 营销口径 → 10-marketing.md §营销方式详情口径与 R-MKT-02/07(F-STA-007 让利总额/用券数/水票/明细表口径与营销域一致;限时特价/新人专享价不纳入见开放问题)。
 - 异常 → 14-misc.md(统计查询异常处理)。
 - 全局金额精度 → 01-overview.md §全局约束 R-MON-01。

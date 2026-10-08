@@ -41,5 +41,12 @@ Use namespaces for cache isolation and configure appropriate TTL based on data v
   生产置 `WECHAT_PAY_MOCK_ENABLED=false`。
 - 回调端点:`POST /api/pay/notify`(aqua-client,permitAll),必须透传原始报文与 wechatpay-* 头;
   验签/金额校验失败返回 500 FAIL 由微信重试;重复回调/已取消订单返回成功但不流转状态。
-- 支付超时:R-ORD-04,`PaymentExpiryScheduler` 60s 周期扫描 PENDING 且过期(默认 30 分钟)的支付记录,
-  触发 `handlePaymentTimeout` 自动取消并恢复库存;状态守卫保证幂等。
+- 支付超时:R-ORD-04,延迟消息(MQ)为主触发 + 定时扫表兜底,仅 admin 服务处理——
+  创建/重置待支付记录时发布 `PAYMENT_EXPIRY_CHECK` 延迟消息(Artemis
+  `AMQ_SCHEDULED_DELIVERY_TIME`=expiredAt,投递到独立队列 `payment-expiry-events`),
+  到期后由 `PaymentExpiryCheckConsumer`(`@AdminService`,client 不消费)触发
+  `handlePaymentTimeout` 自动取消并恢复库存;`PaymentExpiryScheduler`(`@AdminService`,
+  默认 5 分钟,分页游标扫描)兜底;幂等与互斥由 `payments.version` 乐观锁 CAS 认领
+  (`claimExpired`:PENDING 且到期 → EXPIRED, version+1)保证,并发触发仅一方生效;
+  用户/管理员手动取消与支付超时并发防重复恢复库存:订单级乐观锁 CAS 认领
+  (`OrderRepository.cancelAtomically`:可取消状态 → CANCELLED 仅一方成功,先认领再恢复库存)。

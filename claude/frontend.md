@@ -18,9 +18,22 @@ It uses:
 
 A native delivery client built with Expo SDK 57 and expo-router (file-based routing). It is part of the pnpm workspace. See `frontend/delivery-app/README.md` for structure and `AGENTS.md` for the versioned Expo docs requirement.
 
+**pnpm + RN autolinking 缓存坑**:RN Gradle settings 插件会把 autolinking 结果缓存到 `frontend/delivery-app/android/build/generated/autolinking/autolinking.json`,失效检测只看 `yarn.lock`/`package-lock.json`/`package.json`/`react-native.config.js` 的 SHA,**不包含 `pnpm-lock.yaml`**。因此 `pnpm install` 改变了 `.pnpm` store 布局(包目录 hash 变化)后,下次构建会复用旧的 `autolinking.json`,报 `Configuring project ':react-native-worklets' without an existing directory` 之类错误。处理方式:
+
+- 立即修复:删除 `frontend/delivery-app/android/build/generated/autolinking`(必要时连同 `android/app/.cxx`)后重新构建。
+- 防复发:`android/settings.gradle` 中已把仓库根 `pnpm-lock.yaml` 加入 `autolinkLibrariesFromCommand` 的 `lockFiles`(见该文件内注释)。注意 `android/` 是 `expo prebuild` 生成目录、不入 git,执行 `expo prebuild` 会重新生成 `settings.gradle` 并丢弃该补丁,届时需按上面注释重新加上,或直接清理缓存目录。
+
 ### Shared Frontend Package (`frontend/common`, `@aquarush/common`)
 
-A pnpm-workspace package shared by `user-weapp`, `delivery-app`, and `admin-client`. Holds GraphQL TypeScript types plus `money` (Long-cents ↔ yuan formatting), `date`, `image`, and `network` utils. All money formatting/parsing in the frontends should go through `@aquarush/common/utils/money`.
+A pnpm-workspace package shared by `user-weapp`, `delivery-app`, and `admin-client`. Holds GraphQL TypeScript types plus `money` (Long-cents ↔ yuan formatting), `date`, `image`, `network` utils. All money formatting/parsing in the frontends should go through `@aquarush/common/utils/money`.
+
+### 前端复用与共享约定(组件 / 工具函数 / Hook / 标签颜色)
+
+1. **项目内组件复用**:同一组件或近重复实现被 ≥2 个页面使用 → 提升到该项目 `src/components/`(命名唯一,如 `OrderItemRow`/`CostRowList`/`StatusTag`);仅单页使用的组件留在 `pages/*/components`。"仅相似"的(表格 columns、表单字段、图表配色)只抽壳层(`ChartCard`/`FormModal`/`FilterCard`/`DetailModal`),不强行合并。
+2. **工具函数跨项目共用**:纯函数(无 `@tarojs/taro`/`react-native`/`window`/存储依赖)且跨端可能复用 → 进 `@aquarush/common/src/utils/` 并配 jest 测试;平台适配层(网络 RequestHandler、tracking adapter、上传 File 归一化、RN localhost 资产 URL 重写)留在各端。既有公共模块:`order-cost`(费用明细行)、`order-status`(订单文案/步骤/Tab)、`marketing`(券/票/反馈标签)、`status-tone`(标签颜色)、`tianditu`(天地图)。
+3. **双端页面 Hook 共享**:weapp 与 RN 共有的页面处理逻辑(加载编排、订单快照归一化、状态/费用/时间轴派生、分页状态机)经 `@aquarush/common/src/hooks/`(`useOrderDetail`/`usePagedList`/`order-view`)共享;hook 平台无关,数据获取一律 fetcher 注入,生命周期重取由页面调用返回的 `refresh()`/`loadMore()`(Taro `useDidShow`/RN `useEffect`);角色动作(支付/接单/派单等)与 UI 留在各端。
+4. **标签颜色单一来源**:状态标签的「状态 → 颜色」以 `docs/ui-design-system.md §2.2` 为语义权威,机器可读值为 `@aquarush/common` 的 `STATUS_TONE_COLORS` + 各域 tone 映射(`ORDER_STATUS_TONE`/`FEEDBACK_STATUS_TONE`/`COUPON_STATUS_TONE`/`TICKET_STATUS_TONE`/`DAILY_COLLECTION_STATUS_TONE`/`RECONCILIATION_STATUS_TONE`);各端只保留「tone → 平台渲染」薄桥:weapp 共享 `StatusTag` + `theme.scss` 的 `--status-*` 变量(值由 `src/styles/tokens.test.ts` 同步守卫锁定)、admin `toneToAntDColor`、delivery `StatusTints`(light 派生自 common)。禁止在页面里散落状态色字面量。
+5. **金额一律经 common money**(R-MON-01);UI 组件不跨项目共享(Taro/RN/AntD 不兼容)。
 
 ### Admin Dashboard (`frontend/admin-client`, React + Vite + Ant Design)
 

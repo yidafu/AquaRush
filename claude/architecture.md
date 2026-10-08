@@ -13,7 +13,7 @@ The project follows a clean multi-module architecture. Modules (`modules/`) hold
 - **aqua-analytics**: Reconciliation with external systems (e.g. WeChat Pay) and business statistics (revenue, delivery workers, products, users)
 - **aqua-platform**: Storage (file upload/images), notice (WeChat notifications)
 - **aqua-ops**: Operations configuration — banner, notice, feedback, store profile, delivery fee rule, system config parameters. Sub-domains: `banner/`, `notice/`, `feedback/`, `storeprofile/`, `deliveryfeerule/`, `systemconfig/`, plus `audit/` (config-change audit). Maps to `PRD/12-operations-config.md` and `PRD/11-system-settings.md`.
-- **aqua-marketing**: Marketing domain — customer groups, group product pricing, coupons, promotion activities (满减/折扣), water tickets (桶水票), flash sale, buy-gift, first-order promotions, and a shared pricing engine. Sub-domains: `coupon/`, `customer/`, `promotion/`, `ticket/`, `flashsale/`, `gift/`, `firstorder/`, `pricing/`, plus `engine/` (`PromotionEngineImpl`, `CouponRule`, `TicketRule`, `GiftRule`, `UnitPriceRule`, ...). Maps to `PRD/10-marketing.md`.
+- **aqua-marketing**: Marketing domain — customer groups, group product pricing, coupons, promotion activities (满减/折扣), water tickets (桶水票), flash sale, buy-gift, first-order promotions, and a shared pricing engine. Also hosts the `barrel/` sub-domain (G06 水桶费/购桶/历史押金, merged from the former aqua-deposit module). Sub-domains: `coupon/`, `customer/`, `promotion/`, `ticket/`, `barrel/`, `flashsale/`, `gift/`, `firstorder/`, `pricing/`, plus `engine/` (`PromotionEngineImpl`, `CouponRule`, `TicketRule`, `GiftRule`, `UnitPriceRule`, ...). Maps to `PRD/10-marketing.md` (and `PRD/14-misc.md §G06`).
 
 Services (deployable Spring Boot applications):
 
@@ -79,6 +79,11 @@ Modules are structured with clear dependency hierarchy:
 - Spring Cache + MapDB integration for high-performance local caching
 - Namespace-based cache isolation with configurable TTL
 - Full compatibility with Spring Cache annotations (@Cacheable, @CacheEvict, @CachePut)
+
+**Query Bounds(禁止全量查询)**:
+
+- 列表/统计查询必须分页 + 条件过滤,禁止 `findAll()` / 无 `LIMIT` 的查询一次性拉取整张表(数据量增长后会造成慢查询、内存膨胀并拖垮接口响应)
+- 面向 GraphQL/REST 接口的 Repository 方法一律返回有界结果(Page / Limit);确需全量数据的场景(导出、定时任务)改为分批(keyset/游标)或流式处理,禁止无界 `findAll()` 后整表进内存
 
 ## Database Configuration
 

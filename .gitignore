@@ -144,3 +144,7 @@ modules/aqua-platform/*/document/
 modules/aqua-platform/*/image/
 .gradle-home
 PRD/_ref/
+storage/
+.workbuddy/memory/
+/*.md
+!/AGENTS.md
