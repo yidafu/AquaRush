@@ -1,0 +1,132 @@
+// 必须在任何 fetch(...).blob() / 上传逻辑之前执行:把 expo-blob 的 Blob 装为全局,
+// 消除 Response.blob() 的 RN Blob 慢路径告警(侧效应模块,先于其他导入)。
+import '@/utils/install-expo-blob';
+
+import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
+import { useEffect } from 'react';
+import { AppState, useColorScheme } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { Toaster } from 'sonner-native';
+
+import { LoadingScreen } from '@/components/loading-screen';
+import { RootStatusBar } from '@/components/root-status-bar';
+import { TypeScale } from '@/constants/theme';
+import { AuthProvider, useAuth } from '@/hooks/use-auth';
+import { usePageViewTracking } from '@/hooks/usePageViewTracking';
+import { useTheme } from '@/hooks/use-theme';
+import { userActionTracker } from '@/utils/tracking';
+import { trajectoryReporter } from '@/utils/trajectory-reporter';
+
+function RootNavigator() {
+  const { isHydrating, isAuthenticated } = useAuth();
+  const theme = useTheme();
+  // 埋点:路由变化上报 PAGE_VIEW(覆盖全部页面,含登录页)
+  usePageViewTracking();
+
+  // 轨迹上报(F-ADR-012):登录/App 启动后恢复配送中订单的轨迹上报,
+  // 登出时停止全部上报并清空活动订单与补传队列。
+  useEffect(() => {
+    if (isAuthenticated) {
+      void trajectoryReporter.resumeActive();
+    } else {
+      void trajectoryReporter.stopAll();
+    }
+  }, [isAuthenticated]);
+
+  // 埋点:应用切后台时立即上报缓冲队列,避免事件滞留丢失
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state !== 'active') {
+        void userActionTracker.flush();
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
+  if (isHydrating) {
+    // boot overlay 变体:仅 spinner 无文案(沿用共享 LoadingScreen 的居中布局)
+    return <LoadingScreen label="" />;
+  }
+
+  const headerOptions = {
+    headerStyle: { backgroundColor: theme.background },
+    headerTintColor: theme.text,
+    headerTitleStyle: TypeScale.heading,
+  };
+
+  return (
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Protected guard={isAuthenticated}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen
+          name="order/[orderNo]"
+          options={{ headerShown: true, title: '订单详情', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="create-order"
+          options={{ headerShown: true, title: '创建送水订单', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="product/[id]"
+          options={{ headerShown: true, title: '商品详情', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="history-orders"
+          options={{ headerShown: true, title: '历史订单', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="daily-collection"
+          options={{ headerShown: true, title: '每日收款', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="reconciliation-records"
+          options={{ headerShown: true, title: '对账记录', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="admin-statistics"
+          options={{ headerShown: true, title: '数据统计', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="manage"
+          options={{ headerShown: true, title: '经营看板', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="admin-collection"
+          options={{ headerShown: true, title: '收银对账', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="refund-management"
+          options={{ headerShown: true, title: '退款管理', ...headerOptions }}
+        />
+        <Stack.Screen
+          name="about"
+          options={{ headerShown: true, title: '关于我们', ...headerOptions }}
+        />
+      </Stack.Protected>
+      <Stack.Screen name="login" />
+      <Stack.Screen
+        name="user-agreement"
+        options={{ headerShown: true, title: '用户协议', ...headerOptions }}
+      />
+      <Stack.Screen
+        name="privacy-policy"
+        options={{ headerShown: true, title: '隐私政策', ...headerOptions }}
+      />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  const colorScheme = useColorScheme();
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+        <RootStatusBar />
+        <AuthProvider>
+          <RootNavigator />
+        </AuthProvider>
+        <Toaster theme={colorScheme === 'dark' ? 'dark' : 'light'} richColors position="top-center" />
+      </ThemeProvider>
+    </GestureHandlerRootView>
+  );
+}

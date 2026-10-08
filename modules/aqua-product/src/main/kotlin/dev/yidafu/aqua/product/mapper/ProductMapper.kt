@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,39 +19,47 @@
 
 package dev.yidafu.aqua.product.mapper
 
+import dev.yidafu.aqua.api.dto.ProductSearchRequest
+import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
+import dev.yidafu.aqua.common.graphql.generated.PriceSource
 import dev.yidafu.aqua.common.graphql.generated.Product
+import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.product.domain.model.ProductModel
 import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
 
 /**
- * Mapper for converting ProductModel domain entity to GraphQL ProductModel type
+ * Mapper for converting ProductModel domain entity to GraphQL Product type
  */
 object ProductMapper : ObjectMappie<ProductModel, Product>() {
-    override fun map(from: ProductModel) = mapping {
-        to::id fromProperty from::id
-        to::name fromProperty from::name
-        to::subtitle fromProperty from::subtitle
-        to::price fromProperty from::price
-        to::originalPrice fromProperty from::originalPrice
-        to::depositPrice fromProperty from::depositPrice
-        to::coverImageUrl fromProperty from::coverImageUrl
-        to::specification fromProperty from::specification
-        to::waterSource fromProperty from::waterSource
-        to::mineralContent fromProperty from::mineralContent
-        to::stock fromProperty from::stock
-        to::salesVolume fromProperty from::salesVolume
-        to::status fromProperty from::status
-        to::sortOrder fromProperty from::sortOrder
-        to::detailContent fromProperty from::detailContent
-        to::isDeleted fromProperty from::isDeleted
-        to::createdAt fromProperty from::createdAt
-        to::updatedAt fromProperty from::updatedAt
-
-        // Note: JSON fields are handled by JPA converters and will be returned as strings by GraphQL
-        // The actual type conversion happens in the resolvers if needed
+  override fun map(from: ProductModel): Product =
+    mapping {
+      to::id fromValue (from.id ?: 0L)
+      to::priceCents fromProperty from::price
+      to::originalPriceCents fromProperty from::originalPrice
+      // Fields with same name and type - auto-mapped by Mappie
+      to::status fromExpression {
+        ProductModelStatusMapper.map(from.status)
+      }
+      // Map coverImageUrl to image field
+      to::coverImageUrl fromProperty from::coverImageUrl
+      // 管理侧无用户分组上下文:有效价=目录价,未命中熟客价(R-MKT-01)
+      to::effectivePriceCents fromProperty from::price
+      to::hasGroupPrice fromValue false
+      // 管理侧成交单价来源=目录价(R-MKT-02,用户端按登录用户解析)
+      to::priceSource fromValue PriceSource.CATALOG_PRICE
     }
 }
 
+object ProductQueryMapper : ObjectMappie<ProductSearchInput, ProductSearchRequest>() {
+  override fun map(from: ProductSearchInput): ProductSearchRequest =
+    mapping {
+      to::sortBy fromValue from.sortBy.toString()
+      to::status fromExpression { from.status?.let { ProductStatusMapper.map(it) } }
+    }
+}
 
+object ProductModelStatusMapper : EnumMappie<ProductModelStatus, ProductStatus>()
+
+object ProductStatusMapper : EnumMappie<ProductStatus, ProductModelStatus>()

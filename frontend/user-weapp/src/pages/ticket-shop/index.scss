@@ -1,0 +1,183 @@
+@import '@/styles/theme.scss';
+
+.ticket-shop-page {
+  min-height: 100vh;
+  background-color: var(--theme-background-page);
+  padding: 0 32px 32px; // 1x 倍尺寸
+  box-sizing: border-box;
+}
+
+.ticket-shop-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 8px 24px;
+}
+
+.ticket-shop-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--theme-text-primary);
+}
+
+.ticket-shop-link {
+  font-size: 24px;
+  color: var(--theme-text-secondary);
+}
+
+.ticket-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.ticket-card {
+  background: var(--theme-background);
+  border-radius: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.ticket-card-body {
+  display: flex;
+  align-items: stretch;
+  padding: 32px;
+}
+
+.ticket-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ticket-name {
+  font-size: 28px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}
+
+.ticket-count-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.ticket-count {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--theme-primary);
+  line-height: 1.2;
+}
+
+.ticket-gift {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--bg-card);
+  background: var(--brand-primary); // 赠票标记:品牌蓝,不用强调橙(§2.1 红线)
+  border-radius: 8px;
+  padding: 4px 10px;
+}
+
+.ticket-validity {
+  font-size: 22px;
+  color: var(--theme-text-secondary);
+}
+
+.ticket-limit {
+  font-size: 22px;
+  color: var(--theme-text-tertiary);
+}
+
+.ticket-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  padding-left: 32px;
+}
+
+.ticket-price {
+  font-size: 32px;
+  font-weight: 800;
+  color: var(--theme-text-primary);
+}
+
+.ticket-buy-btn {
+  min-width: 140px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--action); // 水票购买 = 消费者最高优先级 CTA(强调橙 #FF5436)
+  box-shadow: var(--shadow-btn);
+  border-radius: 30px;
+  padding: 0 24px;
+}
+
+.ticket-buy-btn-disabled {
+  background: var(--theme-border);
+}
+
+.ticket-buy-text {
+  font-size: 26px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+/* 购票张数选择(1~10,一次购买按张数生成对应水票记录 F-MKT-007) */
+.ticket-quantity-row {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  padding: 0 32px 32px;
+  border-top: 1px solid var(--theme-border);
+  padding-top: 24px;
+}
+
+.ticket-quantity-label {
+  font-size: 24px;
+  color: var(--theme-text-secondary);
+}
+
+.ticket-stepper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ticket-stepper-btn {
+  width: 56px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  background: var(--theme-background-page);
+  border: 1px solid var(--theme-border);
+}
+
+.ticket-stepper-btn-disabled {
+  opacity: 0.4;
+}
+
+.ticket-stepper-icon {
+  font-size: 32px;
+  color: var(--theme-text-primary);
+}
+
+.ticket-stepper-value {
+  min-width: 64px;
+  text-align: center;
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--theme-text-primary);
+}
+
+.ticket-quantity-total {
+  margin-left: auto;
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--theme-text-primary);
+}

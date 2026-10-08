@@ -1,13 +1,12 @@
 import { useMemo } from 'react';
-import { formatAdminTableAmount } from '../../../../utils/money';
+import { centsToYuan, yuanToCents, displayCents } from '@aquarush/common';
 
 export interface Product {
   id: number;
   name: string;
   subtitle?: string;
-  price: number; // in cents (分)
-  originalPrice?: number; // in cents (分)
-  depositPrice?: number; // in cents (分)
+  priceCents: number; // 销售价（分）
+  originalPriceCents?: number; // 原价（分）
   coverImageUrl: string;
   imageGallery?: string[] | string; // JSON array from backend
   specification: string;
@@ -20,8 +19,6 @@ export interface Product {
   tags?: string[] | string; // JSON array from backend
   detailContent?: string;
   certificateImages?: string[] | string; // JSON array from backend
-  deliverySettings?: any; // JSON object from backend
-  isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -31,7 +28,6 @@ export interface ProductFormData {
   subtitle?: string;
   price: number; // in yuan (元) for form display
   originalPrice?: number; // in yuan (元) for form display
-  depositPrice?: number; // in yuan (元) for form display
   coverImageUrl?: string;
   imageGallery?: string[]; // Form handles arrays directly
   specification: string;
@@ -44,7 +40,6 @@ export interface ProductFormData {
   tags?: string[]; // Form handles arrays directly
   detailContent?: string;
   certificateImages?: string[]; // Form handles arrays directly
-  deliverySettings?: any; // Form handles objects directly
 }
 
 /**
@@ -69,17 +64,13 @@ export function productToFormData(product: Product): ProductFormData {
 
   return {
     ...product,
-    price: product.price / 100,
-    originalPrice: product.originalPrice ? product.originalPrice / 100 : undefined,
-    depositPrice: product.depositPrice ? product.depositPrice / 100 : undefined,
+    price: centsToYuan(product.priceCents),
+    originalPrice: product.originalPriceCents ? centsToYuan(product.originalPriceCents) : undefined,
     status: product.status === 'ACTIVE' ? 'ONLINE' : product.status,
     // Convert JSON string fields to arrays for form
     imageGallery: parseArrayField(product.imageGallery),
     tags: parseArrayField(product.tags),
     certificateImages: parseArrayField(product.certificateImages),
-    deliverySettings: product.deliverySettings && typeof product.deliverySettings === 'string'
-      ? JSON.parse(product.deliverySettings)
-      : product.deliverySettings,
   };
 }
 
@@ -87,12 +78,11 @@ export function productToFormData(product: Product): ProductFormData {
  * 将表单数据转换为数据库格式
  * 主要处理价格从元转换为分
  */
-export function formDataToProduct(formData: ProductFormData): Partial<Product> {
+export function formDataToProduct({ price, originalPrice, ...formData }: ProductFormData): Partial<Product> {
   const result: Partial<Product> = {
     ...formData,
-    price: Math.round(formData.price * 100),
-    originalPrice: formData.originalPrice ? Math.round(formData.originalPrice * 100) : undefined,
-    depositPrice: formData.depositPrice ? Math.round(formData.depositPrice * 100) : undefined,
+    priceCents: yuanToCents(price),
+    originalPriceCents: originalPrice ? yuanToCents(originalPrice) : undefined,
     salesVolume: formData.salesVolume || 0,
     sortOrder: formData.sortOrder || 0,
   };
@@ -119,10 +109,9 @@ export function formDataToProduct(formData: ProductFormData): Partial<Product> {
  */
 export function useFormattedPrices(product: Product) {
   return useMemo(() => ({
-    price: formatAdminTableAmount(product.price),
-    originalPrice: product.originalPrice ? formatAdminTableAmount(product.originalPrice) : null,
-    depositPrice: product.depositPrice ? formatAdminTableAmount(product.depositPrice) : null,
-  }), [product.price, product.originalPrice, product.depositPrice]);
+    price: displayCents(product.priceCents),
+    originalPrice: product.originalPriceCents ? displayCents(product.originalPriceCents) : null,
+  }), [product.priceCents, product.originalPriceCents]);
 }
 
 /**
@@ -144,26 +133,12 @@ export function useParsedJSONFields(product: Product) {
       return [];
     };
 
-    const parseObjectField = (field?: any) => {
-      if (!field) return {};
-      if (typeof field === 'object' && field !== null) return field;
-      if (typeof field === 'string') {
-        try {
-          return JSON.parse(field);
-        } catch {
-          return {};
-        }
-      }
-      return {};
-    };
-
     return {
       imageGallery: parseJSONField(product.imageGallery),
       certificateImages: parseJSONField(product.certificateImages),
       tags: parseJSONField(product.tags),
-      deliverySettings: parseObjectField(product.deliverySettings),
     };
-  }, [product.imageGallery, product.certificateImages, product.tags, product.deliverySettings]);
+  }, [product.imageGallery, product.certificateImages, product.tags]);
 }
 
 /**

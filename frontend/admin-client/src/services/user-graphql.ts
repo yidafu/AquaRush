@@ -1,80 +1,99 @@
-import { useQuery, useMutation, useLazyQuery } from '@apollo/client';
+import { useQuery, useMutation } from '@apollo/client';
 import { message } from 'antd';
 import {
   GET_USERS_QUERY,
-  GET_USER_DETAIL_QUERY,
   GET_ADMINS_QUERY,
   GET_DELIVERY_WORKERS_QUERY,
-  DELIVERY_WORKER_DETAIL_QUERY,
-  DELIVERY_WORKER_STATISTICS_QUERY,
-  DELIVERY_WORKER_ORDERS_QUERY,
-  USER_ORDERS_QUERY,
 } from '../graphql/queries/user.graphql';
 import {
-  UPDATE_USER_MUTATION,
-  CREATE_USER_MUTATION,
-  DELETE_USER_MUTATION,
-  TOGGLE_USER_STATUS_MUTATION,
   CREATE_ADMIN_MUTATION,
   UPDATE_ADMIN_MUTATION,
+  DELETE_ADMIN_MUTATION,
+  RESET_ADMIN_PASSWORD_MUTATION,
+  CREATE_USER_MUTATION,
+  UPDATE_USER_MUTATION,
+  DELETE_USER_MUTATION,
 } from '../graphql/mutations/user.graphql';
+import {
+  CREATE_DELIVERY_WORKER_MUTATION,
+  UPDATE_DELIVERY_WORKER_MUTATION,
+  DELETE_DELIVERY_WORKER_MUTATION,
+  RESET_DELIVERY_WORKER_PASSWORD_MUTATION,
+} from '../graphql/mutations/delivery-worker.graphql';
 import type {
-  User,
   UserListInput,
-  UserStatus,
 } from '@aquarush/common';
 
-// Temporary local types for missing input types
-// TODO: These should be added to @aquarush/common package
-export interface UpdateUserInput {
-  readonly id: number;
-  readonly nickname?: string;
-  readonly phone?: string;
-  readonly status?: UserStatus;
-}
-
-export interface CreateUserInput {
-  readonly wechatOpenId: string;
-  readonly nickname?: string;
-  readonly phone?: string;
-  readonly status?: UserStatus;
-}
-
 export interface CreateAdminInput {
-  readonly username: string;
+  readonly username?: string;
+  readonly password?: string;
   readonly realName?: string;
   readonly phone?: string;
-  readonly role?: string;
-  readonly wechatOpenId?: string;
+  readonly role: string;
+  // 配送字段(送水员角色,送水员档案并入账号行 —— F-USR-021)
+  readonly avatarUrl?: string;
+  readonly status?: 'ONLINE' | 'OFFLINE';
+  readonly isAvailable?: boolean;
+  // 账号状态(缺省 ACTIVE;F-USR-020)
+  readonly accountStatus?: 'ACTIVE' | 'DISABLED';
 }
 
 export interface UpdateAdminInput {
-  readonly id: number;
-  readonly username?: string;
   readonly realName?: string;
   readonly phone?: string;
   readonly role?: string;
+  readonly avatarUrl?: string;
+  readonly status?: 'ONLINE' | 'OFFLINE';
+  readonly isAvailable?: boolean;
+  readonly accountStatus?: 'ACTIVE' | 'DISABLED';
+}
+
+export interface CreateDeliveryWorkerInput {
+  readonly name: string;
+  readonly phone: string;
+  readonly password?: string;
+  readonly avatarUrl?: string;
+  readonly wechatOpenId?: string;
+  readonly coordinates?: string;
+  readonly currentLocation?: string;
+  readonly rating?: number;
+  readonly earningCents?: number;
+  readonly isAvailable?: boolean;
+  readonly status?: 'ONLINE' | 'OFFLINE';
+  readonly accountStatus?: 'ACTIVE' | 'DISABLED';
+}
+
+export interface UpdateDeliveryWorkerInput {
+  readonly name?: string;
+  readonly phone?: string;
+  readonly avatarUrl?: string;
+  readonly wechatOpenId?: string;
+  readonly coordinates?: string;
+  readonly currentLocation?: string;
+  readonly rating?: number;
+  readonly earningCents?: number;
+  readonly isAvailable?: boolean;
+  readonly status?: 'ONLINE' | 'OFFLINE';
+  readonly accountStatus?: 'ACTIVE' | 'DISABLED';
+}
+
+export interface CreateUserInput {
+  readonly nickname?: string;
+  readonly phone?: string;
+  readonly avatarUrl?: string;
+}
+
+export interface UpdateUserInput {
+  readonly nickname?: string;
+  readonly phone?: string;
+  readonly avatarUrl?: string;
+  readonly status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'DELETED';
 }
 
 // User Query Hooks
 export const useUsers = (input?: UserListInput) => {
   return useQuery(GET_USERS_QUERY, {
     variables: { input },
-    errorPolicy: 'all',
-    notifyOnNetworkStatusChange: true,
-  });
-};
-
-export const useUserDetail = (id: number) => {
-  return useQuery(GET_USER_DETAIL_QUERY, {
-    variables: { id },
-    skip: !id,
-    errorPolicy: 'all',
-  });
-};
-
-export const useLazyUsers = () => {
-  return useLazyQuery(GET_USERS_QUERY, {
     errorPolicy: 'all',
     notifyOnNetworkStatusChange: true,
   });
@@ -89,55 +108,6 @@ export const useAdmins = () => {
 export const useDeliveryWorkers = () => {
   return useQuery(GET_DELIVERY_WORKERS_QUERY, {
     errorPolicy: 'all',
-  });
-};
-
-// User Mutation Hooks
-export const useUpdateUser = () => {
-  return useMutation(UPDATE_USER_MUTATION, {
-    onCompleted: () => {
-      message.success('用户信息更新成功');
-    },
-    onError: (error) => {
-      message.error(error.message || '用户信息更新失败');
-    },
-    refetchQueries: ['GetUsers'], // 自动刷新用户列表
-  });
-};
-
-export const useCreateUser = () => {
-  return useMutation(CREATE_USER_MUTATION, {
-    onCompleted: () => {
-      message.success('用户创建成功');
-    },
-    onError: (error) => {
-      message.error(error.message || '用户创建失败');
-    },
-    refetchQueries: ['GetUsers'],
-  });
-};
-
-export const useDeleteUser = () => {
-  return useMutation(DELETE_USER_MUTATION, {
-    onCompleted: () => {
-      message.success('用户删除成功');
-    },
-    onError: (error) => {
-      message.error(error.message || '用户删除失败');
-    },
-    refetchQueries: ['GetUsers'],
-  });
-};
-
-export const useToggleUserStatus = () => {
-  return useMutation(TOGGLE_USER_STATUS_MUTATION, {
-    onCompleted: () => {
-      message.success('用户状态更新成功');
-    },
-    onError: (error) => {
-      message.error(error.message || '用户状态更新失败');
-    },
-    refetchQueries: ['GetUsers'],
   });
 };
 
@@ -166,41 +136,90 @@ export const useUpdateAdmin = () => {
   });
 };
 
-// Delivery Worker Detail Query Hooks
-export const useDeliveryWorkerDetail = (id: number) => {
-  return useQuery(DELIVERY_WORKER_DETAIL_QUERY, {
-    variables: { id },
-    skip: !id,
-    errorPolicy: 'all',
+export const useDeleteAdmin = () => {
+  return useMutation(DELETE_ADMIN_MUTATION, {
+    onError: (error) => {
+      message.error(error.message || '删除管理员失败');
+    },
+    refetchQueries: ['GetAdmins'],
   });
 };
 
-export const useDeliveryWorkerStatistics = (deliveryWorkerId: number) => {
-  return useQuery(DELIVERY_WORKER_STATISTICS_QUERY, {
-    variables: { deliveryWorkerId },
-    skip: !deliveryWorkerId,
-    errorPolicy: 'all',
+export const useResetAdminPassword = () => {
+  return useMutation(RESET_ADMIN_PASSWORD_MUTATION, {
+    onError: (error) => {
+      message.error(error.message || '重置管理员密码失败');
+    },
   });
 };
 
-export const useDeliveryWorkerOrders = (deliveryWorkerId: number, status?: string) => {
-  return useQuery(DELIVERY_WORKER_ORDERS_QUERY, {
-    variables: { deliveryWorkerId, status },
-    skip: !deliveryWorkerId,
-    errorPolicy: 'all',
+// User Mutation Hooks (F-USR-022,G11 落地)
+export const useCreateUser = () => {
+  return useMutation(CREATE_USER_MUTATION, {
+    onError: (error) => {
+      message.error(error.message || '创建用户失败');
+    },
+    refetchQueries: ['GetUsers', 'CustomerUsersPageData'],
   });
 };
 
-export const useUserOrders = (userId: number) => {
-  return useQuery(USER_ORDERS_QUERY, {
-    variables: { userId },
-    skip: !userId,
-    errorPolicy: 'all',
+export const useUpdateUser = () => {
+  return useMutation(UPDATE_USER_MUTATION, {
+    onError: (error) => {
+      message.error(error.message || '更新用户失败');
+    },
+    refetchQueries: ['GetUsers', 'CustomerUsersPageData'],
   });
 };
 
-// Utility functions for manual cache updates
-export const updateUserCache = (_userId: number, _updatedData: Partial<User>) => {
-  // This would be used for optimistic updates
-  // Implementation depends on your cache structure
+export const useDeleteUser = () => {
+  return useMutation(DELETE_USER_MUTATION, {
+    onError: (error) => {
+      message.error(error.message || '删除用户失败');
+    },
+    refetchQueries: ['GetUsers', 'CustomerUsersPageData'],
+  });
 };
+
+// Delivery Worker Mutation Hooks
+export const useCreateDeliveryWorker = () => {
+  return useMutation(CREATE_DELIVERY_WORKER_MUTATION, {
+    onCompleted: () => {
+      message.success('送水员创建成功');
+    },
+    onError: (error) => {
+      message.error(error.message || '送水员创建失败');
+    },
+    refetchQueries: ['GetDeliveryWorkers'],
+  });
+};
+
+export const useUpdateDeliveryWorker = () => {
+  return useMutation(UPDATE_DELIVERY_WORKER_MUTATION, {
+    onCompleted: () => {
+      message.success('送水员信息更新成功');
+    },
+    onError: (error) => {
+      message.error(error.message || '送水员信息更新失败');
+    },
+    refetchQueries: ['GetDeliveryWorkers'],
+  });
+};
+
+export const useDeleteDeliveryWorker = () => {
+  return useMutation(DELETE_DELIVERY_WORKER_MUTATION, {
+    onError: (error) => {
+      message.error(error.message || '删除送水员失败');
+    },
+    refetchQueries: ['GetDeliveryWorkers'],
+  });
+};
+
+export const useResetDeliveryWorkerPassword = () => {
+  return useMutation(RESET_DELIVERY_WORKER_PASSWORD_MUTATION, {
+    onError: (error) => {
+      message.error(error.message || '重置送水员密码失败');
+    },
+  });
+};
+

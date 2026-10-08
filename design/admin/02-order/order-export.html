@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 订单导出｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 订单管理 / 订单导出</h1>
+      <p class="sub">功能编号 F-ORD-030 [规划中] ｜ 订单域 ｜ 入口：订单列表顶部「导出」按钮</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-030</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">缺口 G86</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：列表顶部导出按钮 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 订单列表顶部「导出」按钮</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/orders</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">订单管理 <span class="crumb-sep">/</span> <b>订单列表</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>订单列表</h2>
+                    <div class="desc">顶部操作区「导出」入口 <span class="tag tag-goal"></span></div>
+                  </div>
+                  <span class="btn sm ghost">导出</span>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>订单状态</span><div class="select" style="width:140px"><span>已完成</span></div></div>
+                  <div class="fitem"><span>下单时间</span><div class="input" style="width:180px"><span class="ph">2026-10-01 ~ 2026-10-08</span></div></div>
+                  <div class="fitem"><span>配送人</span><div class="select" style="width:120px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto"><span class="btn sm ghost">重置</span><span class="btn sm">查询</span></div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>订单号</th><th>用户</th><th>商品摘要</th><th class="num">金额</th><th>状态</th><th>下单时间</th></tr></thead>
+                    <tbody>
+                      <tr><td>AR20261007018</td><td>周*海</td><td>景田 18.9L × 5</td><td class="num bold">¥180.00</td><td><span class="tag tag-done">已完成</span></td><td>2026-10-07 16:31</td></tr>
+                      <tr><td>AR20261007015</td><td>吴*丽</td><td>怡宝 18.9L × 2</td><td class="num bold">¥44.00</td><td><span class="tag tag-done">已完成</span></td><td>2026-10-07 14:02</td></tr>
+                      <tr><td>AR20261006009</td><td>郑*涛</td><td>农夫山泉 19L × 1</td><td class="num bold">¥28.00</td><td><span class="tag tag-done">已完成</span></td><td>2026-10-06 19:44</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 3 条记录 ｜ 导出内容与当前筛选结果一致</span>
+                    <div class="pager"><i class="on">1</i></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：导出弹窗（范围 / 模板 / 上限 / 脱敏） ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 导出弹窗（范围 + 字段模板 + 条数上限 + 脱敏说明）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/orders — 导出</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">订单管理 <span class="crumb-sep">/</span> 订单列表 <span class="crumb-sep">/</span> <b>导出</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>订单列表</h2><div class="desc">弹窗打开态</div></div>
+                  <span class="btn sm ghost">导出</span>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>订单号</th><th>用户</th><th class="num">金额</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr><td>AR20261007018</td><td>周*海</td><td class="num bold">¥180.00</td><td><span class="tag tag-done">已完成</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal">
+              <div class="modal-head">导出订单 <span class="tag tag-goal" style="margin-left:8px"></span></div>
+              <div class="modal-body">
+
+                <div class="field">
+                  <label class="req">导出范围</label>
+                  <div class="radio-row">
+                    <span class="radio on">当前筛选结果（3 条）</span>
+                    <span class="radio">全部订单</span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="req">字段模板</label>
+                  <div class="select"><span>标准订单模板（订单号 / 用户 / 金额 / 状态 / 配送人 / 下单时间）</span></div>
+                  <div class="f-note t-weak" style="margin-top:4px">可选：财务对账模板 / 配送履约模板；模板字段为开放问题</div>
+                </div>
+
+                <div class="field" style="margin-bottom:0">
+                  <label>导出文件格式</label>
+                  <div class="radio-row">
+                    <span class="radio on">Excel（.xlsx）</span>
+                    <span class="radio">CSV</span>
+                  </div>
+                </div>
+
+                <div class="notice brand mt3">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                  <span>导出条数上限 <b>50,000</b> 条 ｜ 本范围 3 条，未超限；超限将分批或拒绝（开放问题）。</span>
+                </div>
+
+                <div class="notice mt3">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.4 8-8 9-4.6-1-8-4-8-9V7z"/></svg>
+                  <span>敏感字段脱敏：顾客手机号导出前脱敏（138****6621）；导出金额以元两位小数（R-MON-01）；导出操作记业务日志（操作人 / 条件 / 条数）。</span>
+                </div>
+
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">开始导出</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ 状态三：异步生成进度 / 完成下载 / 无可导出数据 ============ -->
+      <div>
+        <div class="browser-cap">状态三 · 异步生成进度 / 下载 / 「无可导出数据」提示</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/orders — 导出任务</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">订单管理 <span class="crumb-sep">/</span> 订单列表 <span class="crumb-sep">/</span> <b>导出任务</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>订单列表</h2><div class="desc">导出任务异步生成态</div></div>
+                  <span class="btn sm ghost">导出</span>
+                </div>
+
+                <div class="card">
+                  <div class="card-head">
+                    <span class="card-title">导出任务 · 进行中</span>
+                    <span class="tag tag-assign">导出中，请稍候</span>
+                  </div>
+                  <div class="progress">
+                    <span class="dot on"></span><span class="bar on"></span>
+                    <span class="dot on"></span><span class="bar on"></span>
+                    <span class="dot on"></span><span class="bar"></span>
+                    <span class="dot"></span>
+                  </div>
+                  <div class="f-note t-sub mt2">正在生成 3 条记录（标准订单模板 · Excel）… 完成后自动开始下载</div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head"><span class="card-title">导出完成</span></div>
+                  <div class="list-item" style="padding-left:0;padding-right:0">
+                    <span class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 21h16"/></svg></span>
+                    <span class="grow">订单导出_2026-10-08_标准模板.xlsx<div class="sub-line">3 条 ｜ 128 KB ｜ 生成于 2026-10-08 11:02</div></span>
+                    <span class="btn xs secondary">下载</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal">
+              <div class="modal-head">导出结果</div>
+              <div class="modal-body">
+                <div class="notice">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                  <span>本次筛选范围内<strong>无可导出数据</strong>，请调整筛选条件后重试。</span>
+                </div>
+                <div class="notice mt3">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                  <span>导出失败时提示「导出失败」（后端错误信息），可重试；敏感字段（顾客手机号）导出前脱敏，导出操作记业务日志。</span>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">关闭</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（目标形态）</p>
+        <p><strong>入口：</strong>订单列表顶部操作区「导出」按钮</p>
+        <p><strong>效果：</strong>生成导出任务 → 下载链接 / 自动下载</p>
+        <p><strong>权限：</strong>受独立权限码 <code>ORDER_EXPORT</code>（规划）约束，无权限时按钮隐藏 / 禁用</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>订单列表顶部「导出」按钮</li>
+          <li>导出弹窗：选择导出范围（当前筛选 / 全部）+ 选择字段模板</li>
+          <li>异步生成任务 + 进度提示 + 下载</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>设置筛选 → 点「导出」→ 按筛选条件生成导出任务</li>
+          <li>异步生成完成后下载链接 / 自动下载</li>
+          <li>导出操作记业务日志（操作人 / 条件 / 条数）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>无匹配数据提示「无可导出数据」；<strong>加载态：</strong>「导出中，请稍候」进度；<strong>错误态：</strong>「导出失败」message；<strong>禁用态：</strong>无导出权限时按钮隐藏 / 禁用。</p>
+        <p>导出内容与筛选结果一致；导出条数上限（如 5 万条，超限分批或拒绝，开放问题）；金额以元两位小数（R-MON-01）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>本页为 <span class="tag tag-goal"></span>，缺口 <strong>G86</strong>（商品导出见 G20）。</p>
+        <p>管理端<strong>不出现强调橙</strong>：主操作用品牌蓝、失败 / 无数据用语义 warning / error 色。</p>
+        <p><strong>敏感字段（顾客手机号）导出前必须脱敏</strong>，先脱敏再输出并留痕；导出为只读快照，不改变数据。</p>
+        <p>开放问题：导出字段模板与条数上限、敏感字段脱敏范围、独立导出权限码落地。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,138 @@
+// ============================================================
+// 全局共享组件样式(用户端)
+// 经 app.scss 引入,所有页面可用;页面禁止重复定义同名样式。
+// 设计 token 见 theme.scss;本文件只放「跨页面复用」的组件级样式。
+// ============================================================
+
+// ---- 安全区底部留白(底部操作栏/悬浮按钮预留) ----
+.safe-bottom {
+  height: constant(safe-area-inset-bottom);
+  height: env(safe-area-inset-bottom);
+}
+
+// ---- 区块标题(§3.1:16px/600 主文字色;标题行 + 右侧插槽) ----
+// 注意:designWidth 750 下 px→rpx 1:1,此处按小程序刻度书写
+// (32px = 32rpx = 物理 16px,与 my/address-edit 等页面 32rpx 区块标题一致)
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+
+  .section-title {
+    font-size: 32px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .section-extra {
+    font-size: 26px;
+    color: var(--text-sub);
+  }
+}
+
+// ---- 通用白卡(§4:白底、圆角 ≥16、--shadow-card、padding 16) ----
+.page-card {
+  background-color: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: var(--spacing-lg);
+  box-sizing: border-box;
+}
+
+// ---- 状态标签(§2.2:10% tint 底 + 状态色文字,圆角 8) ----
+// 用法:<Text className='status-tag status-tag--pending-pay'>待付款</Text>
+// 注意:designWidth 750 下 px→rpx 1:1,此处按页面既有标签字号(≈24px)书写
+.status-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
+  font-size: 24px;
+  font-weight: 500;
+  line-height: 1.4;
+
+  &--pending-pay {
+    background-color: var(--status-pending-pay-bg);
+    color: var(--status-pending-pay-text);
+  }
+
+  &--dispatch {
+    background-color: var(--status-dispatch-bg);
+    color: var(--status-dispatch-text);
+  }
+
+  &--delivering {
+    background-color: var(--status-delivering-bg);
+    color: var(--status-delivering-text);
+  }
+
+  &--completed {
+    background-color: var(--status-completed-bg);
+    color: var(--status-completed-text);
+  }
+
+  &--cancelled {
+    background-color: var(--status-cancelled-bg);
+    color: var(--status-cancelled-text);
+  }
+
+  &--action {
+    background-color: rgba(255, 84, 54, 0.10);
+    color: var(--action);
+  }
+}
+
+// ---- 加载/错误/空态容器(统一,§4 空态/加载/错误态) ----
+.state-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  min-height: 200px;
+  padding: var(--spacing-xl);
+  color: var(--text-weak);
+  font-size: 14px;
+  text-align: center;
+
+  .state-icon {
+    font-size: 48px;
+    line-height: 1;
+  }
+
+  .state-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .state-text {
+    font-size: 14px;
+    color: var(--text-sub);
+  }
+
+  .state-btn {
+    margin-top: var(--spacing-sm);
+  }
+}
+
+// ---- Taro UI AtCard 品牌化覆盖(全局一次,页面勿重复) ----
+.at-card {
+  border-radius: var(--radius-card);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+  border: none;
+}
+
+.at-card__content {
+  padding: var(--spacing-lg);
+}
+
+.at-card__header {
+  padding: var(--spacing-lg);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-main);
+  border-bottom: 1px solid var(--border);
+}

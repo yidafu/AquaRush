@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -21,11 +21,12 @@ package dev.yidafu.aqua.user.service
 
 import cn.binarywang.wx.miniapp.api.WxMaService
 import com.fasterxml.jackson.annotation.JsonProperty
-import dev.yidafu.aqua.api.dto.UserRole
-import dev.yidafu.aqua.api.dto.UserStatus
+import dev.yidafu.aqua.common.domain.model.UserModel
+import dev.yidafu.aqua.common.graphql.generated.UserRole
+import dev.yidafu.aqua.common.graphql.generated.UserStatus
 import dev.yidafu.aqua.common.security.JwtTokenService
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.user.domain.model.UserModel
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.user.domain.repository.UserRepository
 import me.chanjar.weixin.common.error.WxErrorException
 import org.slf4j.LoggerFactory
@@ -33,7 +34,6 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import tools.jackson.databind.ObjectMapper
-import java.math.BigDecimal
 import java.time.LocalDateTime
 
 @Service
@@ -41,7 +41,8 @@ class WeChatAuthService(
   private val userRepository: UserRepository,
   private val jwtTokenService: JwtTokenService,
   private val objectMapper: ObjectMapper,
-  private val wxMaService: WxMaService
+  private val wxMaService: WxMaService,
+  private val bizLogger: BizLogger,
 ) {
   private val logger = LoggerFactory.getLogger(WeChatAuthService::class.java)
 
@@ -59,7 +60,7 @@ class WeChatAuthService(
       }
       val wechatResp = wechatResult.getOrNull()!!
       // Find or create user
-      val user = findOrCreateUser(wechatResp.openid!!)
+      val (user, justCreated) = findOrCreateUser(wechatResp.openid!!)
 
       // Create user principal
       val authorities = listOf(SimpleGrantedAuthority("ROLE_USER"))
@@ -77,6 +78,24 @@ class WeChatAuthService(
 
       logger.info("User logged in successfully: openid={}", wechatResp.openid)
 
+      // 记录用户登录日志
+      bizLogger.logLogin(
+        userId = user.id!!.toString(),
+        username = user.wechatOpenId ?: "unknown",
+        loginMethod = "WECHAT",
+        success = true,
+      )
+
+      // 新用户首次登录自动注册,记录用户创建(F-LOG-003 USER 域)
+      if (justCreated) {
+        bizLogger.logUserOperation(
+          targetUserId = user.id!!,
+          operation = "USER_CREATED",
+          result = "SUCCESS",
+          additionalData = mapOf("loginMethod" to "WECHAT"),
+        )
+      }
+
       return WeChatLoginResponse(
         accessToken = accessToken,
         refreshToken = refreshToken,
@@ -84,16 +103,25 @@ class WeChatAuthService(
         tokenType = "Bearer",
         userInfo =
           UserInfo(
-            id = user.id,
+            id = user.id!!,
             openid = user.wechatOpenId,
             nickname = user.nickname,
             avatar = user.avatarUrl,
             phone = user.phone,
-            wechatOpenId = user.wechatOpenId
+            wechatOpenId = user.wechatOpenId,
           ),
       )
     } catch (e: Exception) {
       logger.error("WeChat login failed", e)
+      // 记录登录失败日志
+      bizLogger.logLogin(
+        userId = "0",
+        username = "unknown",
+        loginMethod = "WECHAT",
+        success = false,
+        operation = "LOGIN_FAILED",
+        additionalData = mapOf("error" to (e.message ?: "unknown error")),
+      )
       throw WeChatAuthException("Login failed: ${e.message}")
     }
   }
@@ -135,26 +163,27 @@ class WeChatAuthService(
    */
   private fun exchangeCodeForOpenId(code: String): Result<WeChatCode2SessionResponse> {
     try {
-
       val session = wxMaService.userService.getSessionInfo(code)
       return Result.success(
-      WeChatCode2SessionResponse(
-        session.openid,
-        session.sessionKey,
-        session.unionid,
+        WeChatCode2SessionResponse(
+          session.openid,
+          session.sessionKey,
+          session.unionid,
+        ),
       )
-      )
-    }catch (e: WxErrorException) {
+    } catch (e: WxErrorException) {
       return Result.failure(e)
     }
   }
 
   /**
    * Find existing user or create new one
+   * @return (用户, 是否本次新建)
    */
-  private fun findOrCreateUser(openid: String): UserModel =
-    userRepository.findByWechatOpenId(openid)
-      ?: UserModel(
+  private fun findOrCreateUser(openid: String): Pair<UserModel, Boolean> {
+    userRepository.findByWechatOpenId(openid)?.let { return it to false }
+    val newUser =
+      UserModel(
         wechatOpenId = openid,
         createdAt = LocalDateTime.now(),
         nickname = "",
@@ -167,10 +196,11 @@ class WeChatAuthService(
 //        balance = BigDecimal(0),
 //        totalSpent = BigDecimal(0),
         lastLoginAt = LocalDateTime.now(),
-      ).also { newUser ->
-        userRepository.save(newUser)
-        logger.info("Created new user with openid: {}", openid)
-      }
+      )
+    userRepository.save(newUser)
+    logger.info("Created new user with openid: {}", openid)
+    return newUser to true
+  }
 
   /**
    * Get user info by user principal
@@ -187,7 +217,7 @@ class WeChatAuthService(
       nickname = user.nickname,
       avatar = user.avatarUrl,
       phone = user.phone,
-      wechatOpenId = user.wechatOpenId
+      wechatOpenId = user.wechatOpenId,
     )
   }
 
@@ -210,13 +240,29 @@ class WeChatAuthService(
 
     val updatedUser = userRepository.save(user)
 
+    // 记录用户资料更新(F-LOG-003 USER 域)
+    val changedFields =
+      buildList {
+        if (request.nickname != null) add("nickname")
+        if (request.phone != null) add("phone")
+        if (request.avatar != null) add("avatar")
+      }
+    bizLogger.logUserOperation(
+      targetUserId = updatedUser.id!!,
+      operation = "USER_UPDATED",
+      result = "SUCCESS",
+      operatorId = userPrincipal.id,
+      operatorName = userPrincipal.username,
+      additionalData = mapOf("fields" to changedFields),
+    )
+
     return UserInfo(
       id = updatedUser.id!!,
       openid = updatedUser.wechatOpenId,
       nickname = updatedUser.nickname,
       avatar = updatedUser.avatarUrl,
       phone = updatedUser.phone,
-      wechatOpenId = updatedUser.wechatOpenId
+      wechatOpenId = updatedUser.wechatOpenId,
     )
   }
 }
@@ -252,7 +298,7 @@ data class UserInfo(
   val nickname: String?,
   val avatar: String?,
   val phone: String?,
-  val wechatOpenId: String?
+  val wechatOpenId: String?,
 )
 
 data class UpdateUserRequest(

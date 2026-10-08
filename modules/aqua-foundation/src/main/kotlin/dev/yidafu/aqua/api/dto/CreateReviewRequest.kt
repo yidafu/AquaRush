@@ -1,0 +1,48 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.yidafu.aqua.api.dto
+
+import com.fasterxml.jackson.annotation.JsonProperty
+import jakarta.validation.constraints.Max
+import jakarta.validation.constraints.Min
+import jakarta.validation.constraints.NotNull
+import jakarta.validation.constraints.Size
+
+/**
+ * 创建评价请求DTO(F-ORD-007,PRD 04-order.md §R-EVL-01):
+ * deliveryWorkerId 由服务端按订单解析(评价对象=本次配送的送水工),调用方不传。
+ */
+data class CreateReviewRequest(
+  @field:JsonProperty("orderId")
+  @field:NotNull(message = "订单ID不能为空")
+  val orderId: Long,
+  @field:JsonProperty("deliveryWorkerId")
+  val deliveryWorkerId: Long? = null,
+  @field:JsonProperty("rating")
+  @field:NotNull(message = "评分不能为空")
+  @field:Min(value = 1, message = "评分不能低于1星")
+  @field:Max(value = 5, message = "评分不能高于5星")
+  val rating: Int,
+  @field:JsonProperty("comment")
+  @field:Size(max = 500, message = "评论长度不能超过500个字符")
+  val comment: String? = null,
+  @field:JsonProperty("isAnonymous")
+  val isAnonymous: Boolean = false,
+)

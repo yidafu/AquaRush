@@ -31,39 +31,68 @@ const ActionButtons: React.FC<ActionButtonsProps> = ({
         {/* 收藏按钮 */}
         <View className='flex-shrink-0'>
           <View
-            className={`w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 transition-all duration-300 cursor-pointer ${isFavorite ? 'bg-gradient-to-br from-red-500 to-red-400 transform scale-105 shadow-lg' : ''}`}
+            trackTarget="toggle-favorite"
+            trackElementType="button"
+            trackElementText={isFavorite ? '取消收藏' : '收藏'}
             onClick={onToggleFavorite}
+            className={`w-10 h-10 flex items-center justify-center rounded-full bg-gray-50 transition-all duration-300 cursor-pointer ${isFavorite ? 'bg-gradient-to-br from-red-500 to-red-400 transform scale-105 shadow-lg' : ''}`}
           >
             <Text className={`text-xl transition-colors duration-300 ${isFavorite ? 'text-white' : 'text-gray-400'}`}>{isFavorite ? '♥' : '♡'}</Text>
           </View>
         </View>
         {/* 客服按钮 */}
         <View
-          className='flex flex-col items-center justify-center w-10 h-10 transition-all duration-300 rounded cursor-pointer bg-gray-50 active:bg-gray-200 active:scale-95'
+          trackTarget="contact-service"
+          trackElementType="button"
+          trackElementText="客服"
           onClick={onContactService}
+          className='flex flex-col items-center justify-center w-10 h-10 transition-all duration-300 rounded cursor-pointer bg-gray-50 active:bg-gray-200 active:scale-95'
         >
           <Text className='mb-1 text-base'>📞</Text>
           {/* <Text className='text-sm font-medium text-gray-600'>客服</Text> */}
         </View>
 
-        {/* 主要操作按钮 */}
+        {/* 主要操作按钮(F-PRO-004:加入购物车 + 立即购买) */}
         {status === 'ONLINE' && (
-          <View className='flex-1 h-10'>
-              {/* 立即购买按钮 */}
-              <AtButton
-                type='primary'
-                size='small'
-                className='h-10'
-                customStyle={{
-                  backgroundColor: stock <= 0 ? '#f5f5f5' : '#ff6700',
-                  borderColor: stock <= 0 ? '#f5f5f5' : '#ff6700',
-                  color: stock <= 0 ? '#999' : '#ffffff'
-                }}
-                onClick={onBuyNow}
-                disabled={stock <= 0}
-              >
-                {stock <= 0 ? '暂时缺货' : '立即购买'}
-              </AtButton>
+          <View className='flex-1 flex items-center gap-2'>
+            {/* 加入购物车按钮(幽灵按钮:品牌蓝边框字,§2) */}
+            <AtButton
+              trackTarget="add-to-cart"
+              trackElementType="button"
+              trackElementText={stock <= 0 ? '暂时缺货' : '加入购物车'}
+              trackDisabled={stock <= 0}
+              onClick={onAddToCart}
+              size='small'
+              className='h-10 flex-1'
+              customStyle={{
+                backgroundColor: stock <= 0 ? 'var(--text-weak)' : 'transparent',
+                borderColor: stock <= 0 ? 'var(--text-weak)' : 'var(--brand-primary)',
+                color: stock <= 0 ? 'var(--bg-card)' : 'var(--brand-primary)',
+                borderWidth: '1px',
+                borderStyle: 'solid'
+              }}
+            >
+              {stock <= 0 ? '暂时缺货' : '加入购物车'}
+            </AtButton>
+            {/* 立即购买按钮(强调色 #FF5436 底白字,§2) */}
+            <AtButton
+              trackTarget="buy-now"
+              trackElementType="button"
+              trackElementText={stock <= 0 ? '暂时缺货' : '立即购买'}
+              trackDisabled={stock <= 0}
+              onClick={onBuyNow}
+              type='primary'
+              size='small'
+              className='h-10 flex-1'
+              customStyle={{
+                backgroundColor: stock <= 0 ? 'var(--text-weak)' : 'var(--action)',
+                borderColor: stock <= 0 ? 'var(--text-weak)' : 'var(--action)',
+                color: stock <= 0 ? 'var(--bg-card)' : '#ffffff',
+                boxShadow: stock <= 0 ? 'none' : 'var(--shadow-btn)'
+              }}
+            >
+              {stock <= 0 ? '暂时缺货' : '立即购买'}
+            </AtButton>
           </View>
         )}
 

@@ -1,0 +1,29 @@
+@import "../../../styles/theme.scss";
+
+// ---- 顶部公告栏(浅蓝 tint 底,仅生效公告时显示,F-OPS-002) ----
+.notice-bar {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin: var(--spacing-sm) 0;
+  padding: 20px var(--spacing-lg);
+  background: var(--brand-primary-light);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+
+  .notice-bar-label {
+    flex-shrink: 0;
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--brand-primary);
+  }
+
+  .notice-bar-title {
+    flex: 1;
+    font-size: 26px;
+    color: var(--text-main);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+}

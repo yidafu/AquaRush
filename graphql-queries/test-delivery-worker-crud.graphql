@@ -1,0 +1,315 @@
+# GraphQL测试 - 送水工增删改操作完整测试
+# 包含创建、更新、删除送水工的完整测试用例
+
+# ==================== 1. 创建送水工测试 ====================
+
+# 创建第一个测试送水工
+mutation CreateTestWorker1 {
+  createDeliveryWorker(input: {
+    wechatOpenId: "delivery_worker_test_001"
+    name: "测试送水工1号"
+    phone: "13800138101"
+    avatarUrl: "https://example.com/avatars/worker1.jpg"
+    coordinates: "120.155486,30.274086"
+    currentLocation: "杭州市上城区建国路88号"
+    rating: 4.5
+    earning: 1500.00
+    isAvailable: true
+  }) {
+    id
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# 创建第二个测试送水工
+mutation CreateTestWorker2 {
+  createDeliveryWorker(input: {
+    wechatOpenId: "delivery_worker_test_002"
+    name: "测试送水工2号"
+    phone: "13800138102"
+    avatarUrl: "https://example.com/avatars/worker2.jpg"
+    coordinates: "120.155486,30.274086"
+    currentLocation: "杭州市上城区庆春路66号"
+    rating: 4.8
+    earning: 1600.50
+    isAvailable: true
+  }) {
+    id
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 2. 更新送水工测试 ====================
+
+# 更新送水工基本信息
+mutation UpdateTestWorkerBasic {
+  updateDeliveryWorker(
+    workerId: 1000000000000000001
+    input: {
+      name: "测试送水工1号（已更新）"
+      phone: "13800138101"
+      avatarUrl: "https://example.com/avatars/worker1-updated.jpg"
+      coordinates: "120.155486,30.274086"
+      currentLocation: "杭州市上城区建国路88号A座"
+      rating: 4.6
+      earning: 1550.75
+      isAvailable: true
+    }
+  ) {
+    id
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    earning
+    isAvailable
+    updatedAt
+  }
+}
+
+# 更新送水工可用性状态
+mutation UpdateWorkerAvailability {
+  updateDeliveryWorker(
+    workerId: 1000000000000000002
+    input: {
+      isAvailable: false
+    }
+  ) {
+    id
+    name
+    phone
+    status
+    isAvailable
+    updatedAt
+  }
+}
+
+# 更新送水工评分和收入
+mutation UpdateWorkerEarnings {
+  updateDeliveryWorker(
+    workerId: 1000000000000000001
+    input: {
+      rating: 4.7,
+      earning: 1650.25
+    }
+  ) {
+    id
+    name
+    rating
+    earning
+    updatedAt
+  }
+}
+
+# ==================== 3. 删除送水工测试 ====================
+
+# 删除测试送水工（这个ID可能不存在，应该返回错误）
+mutation DeleteNonExistentWorker {
+  deleteDeliveryWorker(workerId: 9999999999999999)
+}
+
+# 删除存在的送水工（需要先创建，然后删除）
+# 这个测试需要分为两步：
+# 1. 先创建一个临时送水工
+# 2. 然后删除它
+
+mutation DeleteExistingWorker {
+  deleteDeliveryWorker(workerId: 1000000000000000003)
+}
+
+# ==================== 4. 批量创建测试 ====================
+
+mutation CreateMultipleTestWorkers {
+  result1: createDeliveryWorker(input: {
+    wechatOpenId: "batch_worker_001"
+    name: "批量送水工1号"
+    phone: "13800138111"
+    avatarUrl: "https://example.com/avatars/batch1.jpg"
+    rating: 4.2
+    earning: 1200.00
+    isAvailable: true
+  }) {
+    id
+    name
+    phone
+    status
+    createdAt
+  }
+
+  result2: createDeliveryWorker(input: {
+    wechatOpenId: "batch_worker_002"
+    name: "批量送水工2号"
+    phone: "13800138112"
+    avatarUrl: "https://example.com/avatars/batch2.jpg"
+    rating: 4.3
+    earning: 1300.00
+    isAvailable: true
+  }) {
+    id
+    name
+    phone
+    status
+    createdAt
+  }
+}
+
+# ==================== 5. 错误情况测试 ====================
+
+# 测试必填字段验证 - 空的微信OpenID
+mutation TestMissingWechatOpenId {
+  createDeliveryWorker(input: {
+    wechatOpenId: ""
+    name: "测试送水工"
+    phone: "13800138101"
+    isAvailable: true
+  }) {
+    id
+    name
+    phone
+    wechatOpenId
+  }
+}
+
+# 测试必填字段验证 - 空的姓名
+mutation TestMissingName {
+  createDeliveryWorker(input: {
+    wechatOpenId: "test_worker_001"
+    name: ""
+    phone: "13800138101"
+    isAvailable: true
+  }) {
+    id
+    name
+    phone
+    wechatOpenId
+  }
+}
+
+# 测试手机号码格式验证 - 无效手机号
+mutation TestInvalidPhone {
+  createDeliveryWorker(input: {
+    wechatOpenId: "test_worker_001"
+    name: "测试送水工"
+    phone: "123456"
+    isAvailable: true
+  }) {
+    id
+    name
+    phone
+    wechatOpenId
+  }
+}
+
+# 测试负数评分验证
+mutation TestNegativeRating {
+  createDeliveryWorker(input: {
+    wechatOpenId: "test_worker_001"
+    name: "测试送水工"
+    phone: "13800138101"
+    rating: -1.5
+    isAvailable: true
+  }) {
+    id
+    name
+    rating
+    phone
+  }
+}
+
+# ==================== 6. 综合查询验证 ====================
+
+# 查询所有送水工以验证创建结果
+query GetAllWorkersAfterCreate {
+  deliveryWorkers {
+    id
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    rating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询特定送水工以验证更新结果
+query GetWorkerAfterUpdate($workerId: Long!) {
+  deliveryWorker(id: $workerId) {
+    id
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询在线送水工
+query GetOnlineWorkersAfterOperations {
+  onlineDeliveryWorkers {
+    id
+    name
+    phone
+    status
+    isAvailable
+    lastLoginAt
+  }
+}
+
+# ==================== 使用说明 ====================
+
+# 测试步骤：
+# 1. 首先查询现有的送水工：GetAllWorkersAfterCreate
+# 2. 创建新送水工：CreateTestWorker1, CreateTestWorker2
+# 3. 验证创建结果：GetAllWorkersAfterCreate
+# 4. 更新送水工：UpdateTestWorkerBasic, UpdateWorkerAvailability, UpdateWorkerEarnings
+# 5. 验证更新结果：GetWorkerAfterUpdate
+# 6. 测试错误情况：TestMissingWechatOpenId, TestInvalidPhone, TestNegativeRating
+# 7. 测试删除：DeleteExistingWorker（确保ID存在）
+
+# 变量使用示例：
+# GetWorkerAfterUpdate查询的变量：
+# {
+#   "workerId": 1000000000000000001
+# }
+
+# 注意事项：
+# 1. 需要管理员权限才能执行这些操作
+# 2. 删除操作会检查是否有进行中的配送任务
+# 3. 微信OpenID和手机号码必须唯一
+# 4. 所有的时间字段都会自动更新为当前时间

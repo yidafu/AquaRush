@@ -6,9 +6,8 @@ export const CREATE_PRODUCT_MUTATION = gql`
       id
       name
       subtitle
-      price
-      originalPrice
-      depositPrice
+      priceCents
+      originalPriceCents
       coverImageUrl
       imageGallery
       specification
@@ -21,8 +20,6 @@ export const CREATE_PRODUCT_MUTATION = gql`
       tags
       detailContent
       certificateImages
-      deliverySettings
-      isDeleted
       createdAt
       updatedAt
     }
@@ -35,9 +32,8 @@ export const UPDATE_PRODUCT_MUTATION = gql`
       id
       name
       subtitle
-      price
-      originalPrice
-      depositPrice
+      priceCents
+      originalPriceCents
       coverImageUrl
       imageGallery
       specification
@@ -50,8 +46,6 @@ export const UPDATE_PRODUCT_MUTATION = gql`
       tags
       detailContent
       certificateImages
-      deliverySettings
-      isDeleted
       updatedAt
     }
   }
@@ -63,74 +57,37 @@ export const DELETE_PRODUCT_MUTATION = gql`
   }
 `;
 
-export const UPDATE_PRODUCT_STATUS_MUTATION = gql`
-  mutation UpdateProductStatus($productId: PrimaryId!, $status: ProductStatus!) {
-    updateProductStatus(productId: $productId, status: $status) {
+// 商品属性选项字典(F-PRO-009):规格/水源地下拉候选的配置
+export const CREATE_PRODUCT_OPTION_MUTATION = gql`
+  mutation CreateProductOption($input: CreateProductOptionInput!) {
+    createProductOption(input: $input) {
       id
-      status
+      optionType
+      value
+      sortOrder
+      enabled
+      createdAt
       updatedAt
     }
   }
 `;
 
-export const BATCH_ADJUST_STOCK_MUTATION = gql`
-  mutation BatchAdjustStock($input: BatchStockAdjustmentInput!) {
-    batchAdjustStock(input: $input) {
-      success
-      successCount
-      failureCount
-      results {
-        productId
-        success
-        message
-        previousStock
-        newStock
-      }
-    }
-  }
-`;
-
-export const INCREASE_STOCK_MUTATION = gql`
-  mutation IncreaseStock($productId: PrimaryId!, $quantity: Int!) {
-    increaseStock(productId: $productId, quantity: $quantity)
-  }
-`;
-
-export const DECREASE_STOCK_MUTATION = gql`
-  mutation DecreaseStock($productId: PrimaryId!, $quantity: Int!) {
-    decreaseStock(productId: $productId, quantity: $quantity)
-  }
-`;
-
-export const ONLINE_PRODUCT_MUTATION = gql`
-  mutation OnlineProduct($id: PrimaryId!) {
-    onlineProduct(id: $id) {
+export const UPDATE_PRODUCT_OPTION_MUTATION = gql`
+  mutation UpdateProductOption($id: PrimaryId!, $input: UpdateProductOptionInput!) {
+    updateProductOption(id: $id, input: $input) {
       id
-      status
+      optionType
+      value
+      sortOrder
+      enabled
+      createdAt
       updatedAt
     }
   }
 `;
 
-export const OFFLINE_PRODUCT_MUTATION = gql`
-  mutation OfflineProduct($id: PrimaryId!) {
-    offlineProduct(id: $id) {
-      id
-      status
-      updatedAt
-    }
-  }
-`;
-
-export const BATCH_UPDATE_PRODUCTS_MUTATION = gql`
-  mutation BatchUpdateProducts($input: [ProductUpdateRequest!]!) {
-    batchUpdateProducts(input: $input) {
-      id
-      name
-      price
-      stock
-      status
-      updatedAt
-    }
+export const DELETE_PRODUCT_OPTION_MUTATION = gql`
+  mutation DeleteProductOption($id: PrimaryId!) {
+    deleteProductOption(id: $id)
   }
 `;

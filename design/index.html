@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AquaRush UI 设计稿总索引（PRD 驱动）</title>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/ui.css">
+</head>
+<body>
+<div class="stage">
+  <header class="stage-head">
+    <div>
+      <h1>AquaRush 三端 UI 设计稿 · 总索引</h1>
+      <p class="sub">依据 PRD 文档（v0.30 · 12 个功能域）逐模块生成，未参考任何代码 · 设计规范来源 <code>docs/ui-design-system.md</code></p>
+    </div>
+    <div class="chips">
+      <span class="chip">PRD v0.30</span>
+      <span class="chip chip-plain">每页面一个独立 HTML</span>
+      <span class="chip chip-plain">小程序端按微信官方 WeUI 2.x</span>
+    </div>
+  </header>
+
+  <div class="ix-wrap">
+
+    <div class="card">
+      <div class="ix-stats">
+        <div class="ix-stat"><div class="n">107</div><div class="l">页面总数</div></div>
+        <div class="ix-stat"><div class="n">3</div><div class="l">终端</div></div>
+        <div class="ix-stat"><div class="n">21</div><div class="l">功能域 / 模块组</div></div>
+        <div class="ix-stat"><div class="n">77</div><div class="l">已实现页</div></div>
+        <div class="ix-stat"><div class="n">4</div><div class="l">部分实现页</div></div>
+        <div class="ix-stat"><div class="n">26</div><div class="l">规划中页（目标形态）</div></div>
+      </div>
+      <div class="ix-note mt4">
+        <strong>阅读方式：</strong>每张稿为「stage 画布 + 设备外框 + 右侧标注面板」。左侧是设计效果（多状态并排：正常态 / 空态 / 弹窗态 / 视口态），右侧标注面板给出 <strong>页面说明 / 布局结构 / 关键交互 / 状态与规则 / 设计要点·禁忌</strong>；三端稿件的标注面板另含一张「组件与度量」说明卡。
+        <br><strong>小程序端（user-weapp）组件体系：</strong>严格按微信官方 <strong>WeUI 2.x</strong> —— 44px 导航栏 + 87×32 微信胶囊、原生 TabBar（50px / 图标 27px / 文字 10px / 底 <code>#F7F7F7</code>）、页面底 <code>#EDEDED</code>、单元格 17px 主文字与 0.5px 内缩 16px 发丝线、官方 Grids / Loadmore / Actionsheet / HalfScreen / Dialog。主题色经 <code>--weui-BRAND</code> 注入 AquaRush 品牌蓝；<strong>金额用微信电商惯例红 <code>#FA5151</code></strong>。
+        <br><strong>配色红线：</strong>强调橙仅用于消费者端优惠券品牌元素与最高优先级 CTA（每屏 ≤ 3 处）；管理后台与送水工端完全不出现强调橙。增长指标用红、下降用绿（中国口径）。金额一律分存储、展示为元两位小数。
+        <br><strong>状态标记：</strong>与 PRD 功能条目一一对应；「规划中」页面在稿内以「目标形态」标签标出并注明缺口编号（G 编号）。
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="card-head"><div class="ix-end"><div class="t">① 用户端小程序</div><div class="d">Taro 微信小程序 · 消费者订购链路 · 组件体系 WeUI 2.x（微信官方）· 主题色注入品牌蓝</div></div><span class="chip chip-plain">35 页</span></div>
+      <div class="section-title">商品域 <span class="f-note t-weak">F-PRO-001~012 · 6 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="user-weapp/01-product/barrel-account.html"><span class="grow col"><span class="f-body bold t-main">水桶账户与退押</span><span class="f-note t-sub">商品域 · F-PRO-010</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/01-product/cart.html"><span class="grow col"><span class="f-body bold t-main">购物车</span><span class="f-note t-sub">商品域 · F-PRO-004</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/01-product/favorites.html"><span class="grow col"><span class="f-body bold t-main">我的收藏</span><span class="f-note t-sub">商品域 · F-PRO-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/01-product/home.html"><span class="grow col"><span class="f-body bold t-main">首页</span><span class="f-note t-sub">商品域 · F-PRO-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/01-product/product-detail.html"><span class="grow col"><span class="f-body bold t-main">商品详情</span><span class="f-note t-sub">商品域 · F-PRO-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/01-product/product-list.html"><span class="grow col"><span class="f-body bold t-main">商品列表 / 搜索</span><span class="f-note t-sub">商品域 · F-PRO-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">订单域 <span class="f-note t-weak">F-ORD-001~030 · 9 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="user-weapp/02-order/delivery-tracking.html"><span class="grow col"><span class="f-body bold t-main">配送跟踪</span><span class="f-note t-sub">订单域 · F-ADR-010</span></span><span class="chip chip-partial">部分实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/02-order/enterprise-order.html"><span class="grow col"><span class="f-body bold t-main">企业下单</span><span class="f-note t-sub">订单域 · F-ORD-027</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/02-order/order-confirm.html"><span class="grow col"><span class="f-body bold t-main">确认订单</span><span class="f-note t-sub">订单域 · F-ORD-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/02-order/order-detail.html"><span class="grow col"><span class="f-body bold t-main">订单详情</span><span class="f-note t-sub">订单域 · F-ORD-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/02-order/order-list.html"><span class="grow col"><span class="f-body bold t-main">我的订单</span><span class="f-note t-sub">订单域 · F-ORD-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/02-order/order-payment.html"><span class="grow col"><span class="f-body bold t-main">在线支付发起与结果</span><span class="f-note t-sub">订单域 · F-ORD-005</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/02-order/order-rebuy.html"><span class="grow col"><span class="f-body bold t-main">一键复购（再来一单）</span><span class="f-note t-sub">订单域 · F-ORD-025</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/02-order/order-review.html"><span class="grow col"><span class="f-body bold t-main">订单评价</span><span class="f-note t-sub">订单域 · F-ORD-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/02-order/subscriptions.html"><span class="grow col"><span class="f-body bold t-main">周期订购（订阅）</span><span class="f-note t-sub">订单域 · F-ORD-026</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">地址与配送域 <span class="f-note t-weak">F-ADR-001~003 · 3 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="user-weapp/03-address/address-edit.html"><span class="grow col"><span class="f-body bold t-main">地址新增与编辑</span><span class="f-note t-sub">地址与配送域 · F-ADR-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/03-address/address-list.html"><span class="grow col"><span class="f-body bold t-main">地址列表</span><span class="f-note t-sub">地址与配送域 · F-ADR-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/03-address/address-select.html"><span class="grow col"><span class="f-body bold t-main">下单地址选择与配送范围校验</span><span class="f-note t-sub">地址与配送域 · F-ADR-003</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">营销域 <span class="f-note t-weak">F-MKT-003/007/010/011/012 · 9 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="user-weapp/04-marketing/assets.html"><span class="grow col"><span class="f-body bold t-main">我的资产</span><span class="f-note t-sub">营销域 · F-MKT-010</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/04-marketing/coupon-center.html"><span class="grow col"><span class="f-body bold t-main">领券中心</span><span class="f-note t-sub">营销域 · F-MKT-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/04-marketing/coupon-mine.html"><span class="grow col"><span class="f-body bold t-main">我的优惠券（券包）</span><span class="f-note t-sub">营销域 · F-MKT-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/04-marketing/member-center.html"><span class="grow col"><span class="f-body bold t-main">会员中心</span><span class="f-note t-sub">营销域 · F-MKT-011</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/04-marketing/points.html"><span class="grow col"><span class="f-body bold t-main">积分中心</span><span class="f-note t-sub">营销域 · F-MKT-012</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/04-marketing/promotion-detail.html"><span class="grow col"><span class="f-body bold t-main">活动详情</span><span class="f-note t-sub">营销域 · F-MKT-004</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/04-marketing/recharge.html"><span class="grow col"><span class="f-body bold t-main">充值（储值）</span><span class="f-note t-sub">营销域 · F-MKT-010</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/04-marketing/ticket-mall.html"><span class="grow col"><span class="f-body bold t-main">水票商城（购票页）</span><span class="f-note t-sub">营销域 · F-MKT-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/04-marketing/ticket-mine.html"><span class="grow col"><span class="f-body bold t-main">我的水票（票夹）</span><span class="f-note t-sub">营销域 · F-MKT-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">用户与账户域 / 通知 <span class="f-note t-weak">F-USR-001~006、F-NTF-001/002 · 8 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="user-weapp/05-user/about.html"><span class="grow col"><span class="f-body bold t-main">关于我们</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-006</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/05-user/feedback-records.html"><span class="grow col"><span class="f-body bold t-main">反馈记录</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-005</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/05-user/feedback.html"><span class="grow col"><span class="f-body bold t-main">意见反馈</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-005</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/05-user/login.html"><span class="grow col"><span class="f-body bold t-main">微信登录授权</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/05-user/message-center.html"><span class="grow col"><span class="f-body bold t-main">消息中心</span><span class="f-note t-sub">用户与账户域 / 通知 · F-NTF-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/05-user/my.html"><span class="grow col"><span class="f-body bold t-main">个人中心（我的）</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/05-user/profile-edit.html"><span class="grow col"><span class="f-body bold t-main">资料编辑</span><span class="f-note t-sub">用户与账户域 / 通知 · F-USR-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="user-weapp/05-user/subscription-auth.html"><span class="grow col"><span class="f-body bold t-main">订阅消息授权</span><span class="f-note t-sub">用户与账户域 / 通知 · F-NTF-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-head"><div class="ix-end"><div class="t">② 管理后台</div><div class="d">React + Ant Design 5 · 运营中枢 · 深色侧边栏 + 浅色内容区</div></div><span class="chip chip-plain">60 页</span></div>
+      <div class="section-title">商品域 <span class="f-note t-weak">F-PRO-006~012 · 5 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="admin/01-product/barrel-ledger.html"><span class="grow col"><span class="f-body bold t-main">押金管理 / 桶账台账</span><span class="f-note t-sub">商品域 · F-PRO-012</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/01-product/product-import.html"><span class="grow col"><span class="f-body bold t-main">商品管理 / 商品导出与批量导入</span><span class="f-note t-sub">商品域 · F-PRO-011</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/01-product/products-editor.html"><span class="grow col"><span class="f-body bold t-main">商品管理 / 商品创建与编辑</span><span class="f-note t-sub">商品域 · F-PRO-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/01-product/products-list.html"><span class="grow col"><span class="f-body bold t-main">商品管理 / 商品列表</span><span class="f-note t-sub">商品域 · F-PRO-006</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/01-product/products-options.html"><span class="grow col"><span class="f-body bold t-main">商品管理 / 规格 / 水源地配置</span><span class="f-note t-sub">商品域 · F-PRO-009</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">订单域 <span class="f-note t-weak">F-ORD-020~030 · 7 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="admin/02-order/enterprise-customers.html"><span class="grow col"><span class="f-body bold t-main">用户管理 / 企业客户管理</span><span class="f-note t-sub">订单域 · F-ORD-027</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/02-order/order-assign.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 派单与批量派单</span><span class="f-note t-sub">订单域 · F-ORD-022</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/02-order/order-create.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 代客下单</span><span class="f-note t-sub">订单域 · F-ORD-013</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/02-order/order-detail.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 订单详情</span><span class="f-note t-sub">订单域 · F-ORD-021</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/02-order/order-export.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 订单导出</span><span class="f-note t-sub">订单域 · F-ORD-030</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/02-order/orders-list.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 订单列表与筛选</span><span class="f-note t-sub">订单域 · F-ORD-020</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/02-order/subscriptions.html"><span class="grow col"><span class="f-body bold t-main">订单管理 / 周期订购计划管理</span><span class="f-note t-sub">订单域 · F-ORD-026</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">地址与配送域 <span class="f-note t-weak">F-ADR-012/013/020~022 · 5 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="admin/03-address/address-import.html"><span class="grow col"><span class="f-body bold t-main">地址与配送 / 地址批量导入</span><span class="f-note t-sub">地址与配送域 · F-ADR-021</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/03-address/addresses-map.html"><span class="grow col"><span class="f-body bold t-main">地址与配送 / 地址订单热度地图</span><span class="f-note t-sub">地址与配送域 · F-ADR-022</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/03-address/addresses.html"><span class="grow col"><span class="f-body bold t-main">地址与配送 / 地址管理</span><span class="f-note t-sub">地址与配送域 · F-ADR-020</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/03-address/areas.html"><span class="grow col"><span class="f-body bold t-main">地址与配送 / 配送片区管理</span><span class="f-note t-sub">地址与配送域 · F-ADR-013</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/03-address/trajectories.html"><span class="grow col"><span class="f-body bold t-main">地址与配送 / 配送轨迹</span><span class="f-note t-sub">地址与配送域 · F-ADR-012</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">收银与对账域 <span class="f-note t-weak">F-COL-010~012 · 3 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="admin/04-collection/daily-reconciliation.html"><span class="grow col"><span class="f-body bold t-main">收银与对账 / 日报确认</span><span class="f-note t-sub">收银与对账域 · F-COL-010</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/04-collection/payroll.html"><span class="grow col"><span class="f-body bold t-main">收银与对账 / 送水工工资结算</span><span class="f-note t-sub">收银与对账域 · F-COL-012</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/04-collection/reconciliation-review.html"><span class="grow col"><span class="f-body bold t-main">收银与对账 / 每日对账与审核</span><span class="f-note t-sub">收银与对账域 · F-COL-011</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">用户与账户域 <span class="f-note t-weak">F-USR-020~023 · 5 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="admin/05-user/account-detail-worker.html"><span class="grow col"><span class="f-body bold t-main">用户管理 / 账号详情（送水工视图）</span><span class="f-note t-sub">用户与账户域 · F-USR-021</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/05-user/account-detail.html"><span class="grow col"><span class="f-body bold t-main">用户管理 / 账号详情（管理员视图）</span><span class="f-note t-sub">用户与账户域 · F-USR-020</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/05-user/accounts.html"><span class="grow col"><span class="f-body bold t-main">用户管理 / 账号列表</span><span class="f-note t-sub">用户与账户域 · F-USR-020</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/05-user/customer-detail.html"><span class="grow col"><span class="f-body bold t-main">用户管理 / 用户详情</span><span class="f-note t-sub">用户与账户域 · F-USR-022</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/05-user/customers.html"><span class="grow col"><span class="f-body bold t-main">用户管理 / 用户列表</span><span class="f-note t-sub">用户与账户域 · F-USR-022</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">统计与数据域 <span class="f-note t-weak">F-STA-001~007 · 7 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="admin/06-statistics/dashboard.html"><span class="grow col"><span class="f-body bold t-main">数据统计 / 仪表盘</span><span class="f-note t-sub">统计与数据域 · F-STA-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/06-statistics/statistics-marketing.html"><span class="grow col"><span class="f-body bold t-main">数据统计 / 营销统计</span><span class="f-note t-sub">统计与数据域 · F-STA-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/06-statistics/statistics-order.html"><span class="grow col"><span class="f-body bold t-main">数据统计 / 订单统计</span><span class="f-note t-sub">统计与数据域 · F-STA-005</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/06-statistics/statistics-product.html"><span class="grow col"><span class="f-body bold t-main">数据统计 / 商品统计</span><span class="f-note t-sub">统计与数据域 · F-STA-006</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/06-statistics/statistics-revenue.html"><span class="grow col"><span class="f-body bold t-main">数据统计 / 营收统计</span><span class="f-note t-sub">统计与数据域 · F-STA-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/06-statistics/statistics-user.html"><span class="grow col"><span class="f-body bold t-main">数据统计 / 用户统计</span><span class="f-note t-sub">统计与数据域 · F-STA-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/06-statistics/statistics-worker.html"><span class="grow col"><span class="f-body bold t-main">数据统计 / 送水工统计</span><span class="f-note t-sub">统计与数据域 · F-STA-004</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">平台与日志域 <span class="f-note t-weak">F-LOG-001~003 · 3 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="admin/07-logs/logs-api.html"><span class="grow col"><span class="f-body bold t-main">日志管理 / API 日志</span><span class="f-note t-sub">平台与日志域 · F-LOG-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/07-logs/logs-business.html"><span class="grow col"><span class="f-body bold t-main">日志管理 / 业务日志</span><span class="f-note t-sub">平台与日志域 · F-LOG-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/07-logs/logs-operation.html"><span class="grow col"><span class="f-body bold t-main">日志管理 / 用户操作日志</span><span class="f-note t-sub">平台与日志域 · F-LOG-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">营销域 <span class="f-note t-weak">F-MKT-001~012 · 13 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="admin/08-marketing/coupons.html"><span class="grow col"><span class="f-body bold t-main">优惠券管理</span><span class="f-note t-sub">营销域 · F-MKT-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/customer-groups.html"><span class="grow col"><span class="f-body bold t-main">客户分组管理</span><span class="f-note t-sub">营销域 · F-MKT-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/first-order.html"><span class="grow col"><span class="f-body bold t-main">首单立减 / 新人专享价</span><span class="f-note t-sub">营销域 · F-MKT-009</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/flash-sale.html"><span class="grow col"><span class="f-body bold t-main">限时特价活动</span><span class="f-note t-sub">营销域 · F-MKT-005</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/gift-rules.html"><span class="grow col"><span class="f-body bold t-main">买赠 / 满赠活动</span><span class="f-note t-sub">营销域 · F-MKT-008</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/group-pricing.html"><span class="grow col"><span class="f-body bold t-main">分组价格管理</span><span class="f-note t-sub">营销域 · F-MKT-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/member-discount.html"><span class="grow col"><span class="f-body bold t-main">会员折扣配置</span><span class="f-note t-sub">营销域 · F-MKT-006</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/member-levels.html"><span class="grow col"><span class="f-body bold t-main">会员等级配置</span><span class="f-note t-sub">营销域 · F-MKT-011</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/points-rules.html"><span class="grow col"><span class="f-body bold t-main">积分规则配置</span><span class="f-note t-sub">营销域 · F-MKT-012</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/promotions-discount.html"><span class="grow col"><span class="f-body bold t-main">满减 / 折扣活动</span><span class="f-note t-sub">营销域 · F-MKT-004</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/recharge-plans.html"><span class="grow col"><span class="f-body bold t-main">储值与套餐配置</span><span class="f-note t-sub">营销域 · F-MKT-010</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/ticket-detail.html"><span class="grow col"><span class="f-body bold t-main">票种销售 · 使用详情</span><span class="f-note t-sub">营销域 · F-MKT-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/08-marketing/tickets.html"><span class="grow col"><span class="f-body bold t-main">桶水票票种管理</span><span class="f-note t-sub">营销域 · F-MKT-007</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">系统设置域 <span class="f-note t-weak">F-SYS-001~006 · 6 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="admin/09-system/account-security.html"><span class="grow col"><span class="f-body bold t-main">系统设置 / 账号与安全</span><span class="f-note t-sub">系统设置域 · F-SYS-004</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/09-system/data-maintenance.html"><span class="grow col"><span class="f-body bold t-main">系统设置 / 数据维护</span><span class="f-note t-sub">系统设置域 · F-SYS-006</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/09-system/notification-config.html"><span class="grow col"><span class="f-body bold t-main">系统设置 / 通知与订阅消息配置</span><span class="f-note t-sub">系统设置域 · F-SYS-005</span></span><span class="chip chip-partial">部分实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/09-system/order-fulfillment.html"><span class="grow col"><span class="f-body bold t-main">系统设置 / 订单与履约参数</span><span class="f-note t-sub">系统设置域 · F-SYS-002</span></span><span class="chip chip-partial">部分实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/09-system/stock-alert.html"><span class="grow col"><span class="f-body bold t-main">系统设置 / 库存预警阈值配置</span><span class="f-note t-sub">系统设置域 · F-SYS-003</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/09-system/system-config.html"><span class="grow col"><span class="f-body bold t-main">系统设置 / 系统参数管理</span><span class="f-note t-sub">系统设置域 · F-SYS-001</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">运营配置域 <span class="f-note t-weak">F-OPS-001~005 · 5 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="admin/10-operations/announcements.html"><span class="grow col"><span class="f-body bold t-main">运营配置 / 公告管理</span><span class="f-note t-sub">运营配置域 · F-OPS-002</span></span><span class="chip chip-partial">部分实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/10-operations/banners.html"><span class="grow col"><span class="f-body bold t-main">运营配置 / 首页轮播图</span><span class="f-note t-sub">运营配置域 · F-OPS-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/10-operations/delivery-fee.html"><span class="grow col"><span class="f-body bold t-main">运营配置 / 配送费规则配置</span><span class="f-note t-sub">运营配置域 · F-OPS-005</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/10-operations/feedback-manage.html"><span class="grow col"><span class="f-body bold t-main">运营配置 / 意见反馈管理</span><span class="f-note t-sub">运营配置域 · F-OPS-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="admin/10-operations/shop-info.html"><span class="grow col"><span class="f-body bold t-main">运营配置 / 店铺信息配置</span><span class="f-note t-sub">运营配置域 · F-OPS-004</span></span><span class="chip chip-plan">规划中</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">通知与消息域 <span class="f-note t-weak">F-NTF-005/006 · 1 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="admin/11-notification/messages.html"><span class="grow col"><span class="f-body bold t-main">通知与消息 / 消息列表</span><span class="f-note t-sub">通知与消息域 · F-NTF-006</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+    </section>
+    <section class="card">
+      <div class="card-head"><div class="ix-end"><div class="t">③ 送水工端 App</div><div class="d">Expo React Native · 履约作业 · 暗色为主（夜间作业）</div></div><span class="chip chip-plain">12 页</span></div>
+      <div class="section-title">登录 <span class="f-note t-weak">F-USR-010 · 1 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="delivery/01-auth/login.html"><span class="grow col"><span class="f-body bold t-main">登录</span><span class="f-note t-sub">登录 · F-USR-010</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">订单与履约 <span class="f-note t-weak">F-ORD-010~013/024/028/029、F-PRO-005 · 6 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="delivery/02-order/collection.html"><span class="grow col"><span class="f-body bold t-main">收款执行</span><span class="f-note t-sub">订单与履约 · F-ORD-011</span></span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="delivery/02-order/create-order.html"><span class="grow col"><span class="f-body bold t-main">代客下单</span><span class="f-note t-sub">订单与履约 · F-ORD-012</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="delivery/02-order/history.html"><span class="grow col"><span class="f-body bold t-main">历史订单</span><span class="f-note t-sub">订单与履约 · F-ORD-013</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="delivery/02-order/order-detail.html"><span class="grow col"><span class="f-body bold t-main">订单详情与完成配送</span><span class="f-note t-sub">订单与履约 · F-ORD-011</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="delivery/02-order/tasks.html"><span class="grow col"><span class="f-body bold t-main">任务列表</span><span class="f-note t-sub">订单与履约 · F-ORD-010</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="delivery/02-order/workbench.html"><span class="grow col"><span class="f-body bold t-main">工作台</span><span class="f-note t-sub">订单与履约 · F-COL-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">收款与对账 <span class="f-note t-weak">F-COL-001~003 · 3 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="delivery/03-collection/daily-collection.html"><span class="grow col"><span class="f-body bold t-main">每日收款提交</span><span class="f-note t-sub">收款与对账 · F-COL-001</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="delivery/03-collection/reconciliation-records.html"><span class="grow col"><span class="f-body bold t-main">对账记录</span><span class="f-note t-sub">收款与对账 · F-COL-002</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="delivery/03-collection/statistics.html"><span class="grow col"><span class="f-body bold t-main">当日 / 周统计</span><span class="f-note t-sub">收款与对账 · F-COL-003</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">通知 <span class="f-note t-weak">F-NTF-003/004 · 1 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="delivery/04-notification/messages.html"><span class="grow col"><span class="f-body bold t-main">消息中心</span><span class="f-note t-sub">通知 · F-NTF-004</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+      <div class="section-title">我的 <span class="f-note t-weak">F-USR-011 · 1 页</span></div>
+      <div class="list mb3">
+        <a class="list-item" href="delivery/05-user/profile.html"><span class="grow col"><span class="f-body bold t-main">我的</span><span class="f-note t-sub">我的 · F-USR-011</span></span><span class="chip chip-ok">已实现</span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+    </section>
+    <div class="card">
+      <div class="card-title">配套文档</div>
+      <div class="list mt3">
+        <a class="list-item" href="_CONTRACT.md"><span class="grow col"><span class="f-body bold t-main">页面编写契约（_CONTRACT.md）</span><span class="f-note t-sub">§0 小程序 WeUI 组件体系 / 设计 token / 可用类名 / 红线清单 / 图标库</span></span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="_spec/03-product.md"><span class="grow col"><span class="f-body bold t-main">PRD 页面规格提取件（_spec/，11 个文件）</span><span class="f-note t-sub">从 PRD 12 个域文件逐页提取的规格，含页面文案与业务规则</span></span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="assets/weui.css"><span class="grow col"><span class="f-body bold t-main">小程序组件库（assets/weui.css）</span><span class="f-note t-sub">微信官方 WeUI 2.x 组件 + 小程序外壳（导航栏胶囊 / 原生 TabBar）</span></span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+        <a class="list-item" href="assets/tokens.css"><span class="grow col"><span class="f-body bold t-main">品牌设计 token（assets/tokens.css）</span><span class="f-note t-sub">品牌色板 / 语义色 / 状态色 / 间距 / 圆角 / 阴影 / 字号刻度</span></span><span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></a>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

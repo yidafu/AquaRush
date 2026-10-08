@@ -1,0 +1,63 @@
+# Admin-specific Input Types
+
+input CreateAdminInput {
+  # 送水员角色(DELIVERY_WORKER)可不传,后端自动生成 delivery_{账号ID}(F-USR-021)
+  username: String
+  password: String
+  realName: String
+  phone: String
+  role: AdminRole!
+  avatarUrl: String
+  status: DeliveryWorkerStatus
+  isAvailable: Boolean
+  # 账号状态(停用/启用,缺省 ACTIVE;F-USR-020/021)
+  accountStatus: AdminAccountStatus
+}
+
+input UpdateAdminInput {
+  username: String
+  realName: String
+  phone: String
+  role: AdminRole
+  avatarUrl: String
+  status: DeliveryWorkerStatus
+  isAvailable: Boolean
+  # 账号状态(停用/启用;F-USR-020/021)
+  accountStatus: AdminAccountStatus
+}
+
+# 后台创建用户(F-USR-022,G11 落地;wechatOpenId 由后端自动生成占位)
+input CreateUserInput {
+  nickname: String
+  phone: String
+  avatarUrl: String
+}
+
+# 后台编辑用户(F-USR-022)
+input UpdateUserInput {
+  nickname: String
+  phone: String
+  avatarUrl: String
+  status: UserStatus
+}
+
+# Batch Import Result Types
+type BatchImportAddressesResult {
+  successCount: Int!
+  failureCount: Int!
+  totalCount: Int!
+}
+
+# 轨迹上报输入(F-ADR-012,R-ADR-03;送水工上报本人配送中订单的位置点)
+input ReportTrajectoryInput {
+  # 关联订单
+  orderId: PrimaryId! @positive(message: "订单ID必须为正数")
+  # 经度
+  longitude: Float!
+  # 纬度
+  latitude: Float!
+  # 定位精度(米,可空)
+  accuracy: Float
+  # 上报时间(客户端定位产生时间,ISO_LOCAL_DATE_TIME;为空取服务端当前时间)
+  reportedAt: LocalDateTime
+}

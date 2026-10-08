@@ -1,0 +1,148 @@
+.order-review-page {
+  min-height: 100vh;
+  background: var(--bg);
+  padding: 24px;
+  box-sizing: border-box;
+}
+
+.loading-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 200px;
+  color: var(--text-sub);
+  font-size: 28px;
+}
+
+/* ============ 已评价只读展示 ============ */
+.review-card {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: var(--shadow-card);
+}
+
+.review-card-title {
+  font-size: 32px;
+  font-weight: 600;
+  color: var(--text-main);
+  margin-bottom: 24px;
+}
+
+.review-hint {
+  display: block;
+  margin-top: 24px;
+  font-size: 22px;
+  color: var(--text-weak);
+}
+
+/* ============ 评价表单 ============ */
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.form-section {
+  background: var(--bg-card);
+  border-radius: 16px;
+  padding: 32px;
+  box-shadow: var(--shadow-card);
+}
+
+.form-section.row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.section-title {
+  display: block;
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+.section-desc {
+  display: block;
+  margin-top: 8px;
+  font-size: 24px;
+  color: var(--text-sub);
+}
+
+/* 星级 */
+.stars {
+  display: flex;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.stars.picker .star {
+  font-size: 64px;
+  line-height: 1;
+}
+
+.star {
+  font-size: 40px;
+  color: var(--text-weak);
+  transition: color 0.2s;
+}
+
+.star.active {
+  color: #ffb800;
+}
+
+/* 评论输入 */
+.comment-input {
+  width: 100%;
+  min-height: 200px;
+  margin-top: 16px;
+  padding: 20px;
+  background: var(--bg);
+  border-radius: 12px;
+  font-size: 28px;
+  color: var(--text-main);
+  box-sizing: border-box;
+}
+
+.char-count {
+  display: block;
+  text-align: right;
+  margin-top: 8px;
+  font-size: 22px;
+  color: var(--text-weak);
+}
+
+.comment-text {
+  display: block;
+  margin-top: 16px;
+  font-size: 28px;
+  line-height: 1.6;
+  color: var(--text-main);
+}
+
+.review-meta {
+  display: block;
+  margin-top: 16px;
+  font-size: 22px;
+  color: var(--text-sub);
+}
+
+.anonymous-info {
+  flex: 1;
+}
+
+/* 提交按钮(主按钮品牌蓝,§9) */
+.submit-button {
+  margin-top: 16px;
+  background: var(--brand-primary);
+  border-radius: var(--radius-btn);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--bg-card);
+  border: none;
+}
+
+.submit-button::after {
+  border: none;
+}

@@ -1,44 +1,40 @@
 .address-list-page {
   min-height: 100vh;
   background-color: var(--theme-background-page);
-  padding-bottom: 80px; // 为底部操作栏预留空间
-}
-
-.import-section {
-  text-align: center;
-  animation: fadeInDown 0.5s ease-out;
-  display: flex;
-  align-items: center;
-}
-
-.import-button {
-  // width: 220px;
-  // height: 40px;
-  font-size: 30px;
-  font-weight: 500;
-  padding: 24px;
-  background: var(--theme-background);
-  border: 1px solid var(--theme-primary);
-  color: var(--theme-primary);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  margin: 24px 24px;
-  border-radius: 10px;
-  box-shadow: 0 2px 8px var(--theme-shadow-light);
-  transition: all 0.3s ease;
-
-  &:active {
-    background: var(--theme-primary-light);
-    transform: scale(0.98);
-    box-shadow: 0 1px 4px rgba(var(--theme-primary-rgb), 0.2);
-  }
+  padding-bottom: 160px; // 为底部「新增收货地址」操作栏预留空间
 }
 
 .address-list {
   padding: 0 16px;
   animation: fadeInUp 0.6s ease-out;
+}
+
+/* 底部新增收货地址主按钮(F-ADR-001 组件清单 4) */
+.add-address-bar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  background: var(--theme-background);
+  padding: 16px 24px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom)); // iOS 安全区域
+  box-shadow: 0 -2px 16px rgba(0, 0, 0, 0.08);
+}
+
+.add-address-button {
+  height: 80px;
+  font-size: 30px;
+  font-weight: 600;
+  border-radius: var(--radius-btn);
+
+  &::after {
+    border: none;
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 .loading-container {
@@ -49,32 +45,6 @@
   color: var(--theme-text-tertiary);
   font-size: 35px;
   animation: pulse 1.5s ease-in-out infinite;
-}
-
-.empty-container {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 80px 40px;
-  animation: fadeInUp 0.6s ease-out;
-}
-
-.empty-image {
-  width: 140px;
-  height: 140px;
-  margin-bottom: 24px;
-  opacity: 0.4;
-  border-radius: 20px;
-  background: linear-gradient(135deg, var(--theme-primary-light) 0%, var(--theme-primary-light) 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  &::before {
-    content: '📍';
-    font-size: 105px;
-    opacity: 0.6;
-  }
 }
 
 .empty-text {
@@ -117,14 +87,12 @@
 }
 
 .default-badge {
-  background: var(--theme-secondary);
-  color: white;
+  background: var(--brand-primary-light); // 默认标签:主色 tint 底 + 主色字(§2.2)
+  color: var(--brand-primary);
   padding: 6px 12px;
   border-radius: 12px;
   font-size: 24px;
   font-weight: 600;
-  box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
-  animation: pulse 2s ease-in-out infinite;
 }
 
 .address-header {
@@ -249,54 +217,16 @@
 }
 
 .delete-button {
-  background: rgba(255, 107, 53, 0.08);
+  background: rgba(255, 77, 79, 0.08); // 删除按钮:error 红 tint(§2.1 红线,禁用强调橙)
   color: var(--theme-error);
   border: 1px solid var(--theme-error);
 
   &:active {
-    background: rgba(255, 107, 53, 0.15);
+    background: rgba(255, 77, 79, 0.15);
     box-shadow: 0 2px 8px var(--theme-error);
   }
 }
 
-.bottom-actions {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: var(--theme-background);
-  padding: 20px 16px;
-  box-shadow: 0 -4px 20px var(--theme-shadow-medium);
-  z-index: 1000;
-  backdrop-filter: blur(10px);
-  animation: slideInUp 0.3s ease-out;
-}
-
-.add-button {
-  width: 100%;
-  // height: 52px;
-  font-size: 35px;
-  font-weight: 600;
-  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
-  color: white;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  border-radius: 26px;
-  box-shadow: 0 6px 20px rgba(var(--theme-primary-rgb), 0.4);
-  transition: all 0.3s ease;
-
-  &:active {
-    transform: scale(0.98);
-    box-shadow: 0 4px 16px rgba(var(--theme-primary-rgb), 0.5);
-  }
-}
-
-.safe-bottom {
-  height: 20px;
-}
 
 /* 动画效果 */
 @keyframes fadeInDown {
@@ -342,12 +272,6 @@
 }
 
 /* Taro UI 组件样式覆盖 */
-.at-card {
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 4px 12px var(--theme-shadow-medium);
-  border: none;
-}
 
 .at-card__content {
   padding: 0;
@@ -377,38 +301,4 @@
 .at-toast {
   border-radius: 12px;
   backdrop-filter: blur(10px);
-}
-
-.at-modal {
-  border-radius: 16px;
-  overflow: hidden;
-}
-
-.at-modal__content {
-  padding: 20px;
-  text-align: center;
-  font-size: 35px;
-  line-height: 1.6;
-}
-
-.at-modal__header {
-  padding: 16px 20px;
-  font-size: 39px;
-  font-weight: 600;
-  border-bottom: 1px solid var(--theme-border);
-}
-
-.at-modal__action {
-  padding: 16px 20px;
-  border-top: 1px solid var(--theme-border);
-  display: flex;
-  gap: 12px;
-
-  button {
-    flex: 1;
-    height: 40px;
-    border-radius: 20px;
-    font-weight: 500;
-    transition: all 0.3s ease;
-  }
 }

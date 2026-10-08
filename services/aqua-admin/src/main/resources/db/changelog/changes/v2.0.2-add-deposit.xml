@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+  xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+    http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <!--
+    G06 桶押金模块(新增水桶押金模块):
+    - orders.deposit_amount_cents:订单押金合计快照(随单一并收取,R-MON-03);
+    - deposit_records:押金记录表(用户/金额/状态/收取与退还时间,收取→退还闭环)。
+  -->
+  <changeSet id="2.0.2-add-order-deposit-column" author="aqua-rush">
+    <preConditions onFail="CONTINUE" onErrorMessage="orders.deposit_amount_cents 已存在,跳过">
+      <not>
+        <columnExists tableName="orders" columnName="deposit_amount_cents"/>
+      </not>
+    </preConditions>
+    <comment>Add deposit_amount_cents snapshot column to orders (G06/R-MON-03)</comment>
+    <addColumn tableName="orders">
+      <column name="deposit_amount_cents" type="bigint" defaultValueNumeric="0">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+  </changeSet>
+
+  <changeSet id="2.0.2-create-deposit-records-table" author="aqua-rush">
+    <preConditions onFail="CONTINUE" onErrorMessage="deposit_records 表已存在,跳过">
+      <not>
+        <tableExists tableName="deposit_records"/>
+      </not>
+    </preConditions>
+    <comment>Create deposit_records table (G06)</comment>
+    <createTable tableName="deposit_records">
+      <column name="id" type="bigint" autoIncrement="true">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="order_id" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="user_id" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="deposit_amount_cents" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="status" type="varchar(20)" defaultValue="COLLECTED">
+        <constraints nullable="false"/>
+      </column>
+      <column name="collected_at" type="timestamp"/>
+      <column name="refunded_at" type="timestamp"/>
+      <column name="refunded_by" type="bigint"/>
+      <column name="refund_remark" type="varchar(500)"/>
+      <column name="is_deleted" type="boolean" defaultValueBoolean="false">
+        <constraints nullable="false"/>
+      </column>
+      <column name="deleted_at" type="timestamp"/>
+      <column name="deleted_by" type="bigint"/>
+      <column name="created_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_at" type="timestamp" defaultValueComputed="CURRENT_TIMESTAMP">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <createIndex tableName="deposit_records" indexName="idx_deposit_records_order_id">
+      <column name="order_id"/>
+    </createIndex>
+    <createIndex tableName="deposit_records" indexName="idx_deposit_records_user_id">
+      <column name="user_id"/>
+    </createIndex>
+    <createIndex tableName="deposit_records" indexName="idx_deposit_records_status">
+      <column name="status"/>
+    </createIndex>
+    <createIndex tableName="deposit_records" indexName="idx_deposit_records_collected_at">
+      <column name="collected_at"/>
+    </createIndex>
+
+    <addForeignKeyConstraint
+      baseTableName="deposit_records"
+      baseColumnNames="order_id"
+      referencedTableName="orders"
+      referencedColumnNames="id"
+      constraintName="fk_deposit_records_order"/>
+    <addForeignKeyConstraint
+      baseTableName="deposit_records"
+      baseColumnNames="user_id"
+      referencedTableName="users"
+      referencedColumnNames="id"
+      constraintName="fk_deposit_records_user"/>
+  </changeSet>
+</databaseChangeLog>

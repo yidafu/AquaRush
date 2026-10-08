@@ -1,0 +1,46 @@
+@import "../../styles/theme.scss";
+
+// ============================================================
+// 全部商品列表页
+// 布局:搜索栏(sticky) → 排序 Tab(components/SortBar) → 商品网格(2 列,components/ProductCard) → 加载更多
+// ============================================================
+
+.product-list-page {
+  min-height: 100vh;
+  background-color: var(--bg);
+  padding: 0 var(--spacing-lg) var(--spacing-xl);
+  box-sizing: border-box;
+}
+
+// ---- 搜索栏(sticky 顶部,品牌蓝搜索按钮) ----
+.search-bar-wrap {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--bg);
+  padding: var(--spacing-md) 0 var(--spacing-sm);
+
+  .at-search-bar {
+    background: var(--bg) !important;
+  }
+}
+
+// ---- 商品网格(2 列) ----
+.product-grid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+// ---- 重试按钮(错误态) ----
+.retry-btn {
+  width: 240px;
+  background: var(--brand-primary) !important;
+  border-radius: var(--radius-btn) !important;
+  border: none !important;
+}
+
+// ---- 加载更多容器 ----
+.load-more-wrap {
+  padding: var(--spacing-sm) 0;
+}

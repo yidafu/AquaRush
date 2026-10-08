@@ -1,8 +1,7 @@
 import React from 'react';
-import { Form, Input, Select, Switch, Modal, Upload } from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
+import { Form, Input, Select, Switch, Modal } from 'antd';
+import { AvatarUpload } from '../../../components/AvatarUpload';
 import type { DeliveryWorkerFormData, FormModalProps } from './types';
-import type { UploadFile, UploadProps } from 'antd/es/upload/interface';
 
 const DeliveryWorkerForm: React.FC<FormModalProps<DeliveryWorkerFormData>> = ({
   open,
@@ -12,7 +11,8 @@ const DeliveryWorkerForm: React.FC<FormModalProps<DeliveryWorkerFormData>> = ({
   loading = false,
 }) => {
   const [form] = Form.useForm();
-  const [fileList, setFileList] = React.useState<UploadFile[]>([]);
+  // 头像/姓名联动:未上传头像时预览根据姓名自动生成的默认头像
+  const name = Form.useWatch('name', form);
 
   React.useEffect(() => {
     if (record) {
@@ -23,40 +23,23 @@ const DeliveryWorkerForm: React.FC<FormModalProps<DeliveryWorkerFormData>> = ({
         avatarUrl: record.avatarUrl,
         status: record.status,
         isAvailable: record.isAvailable,
+        accountStatus: record.accountStatus ?? 'ACTIVE',
       });
-
-      if (record.avatarUrl) {
-        setFileList([
-          {
-            uid: '-1',
-            name: 'avatar.jpg',
-            status: 'done',
-            url: record.avatarUrl,
-          },
-        ]);
-      }
     } else {
       form.resetFields();
       form.setFieldsValue({
         status: 'OFFLINE',
         isAvailable: true,
+        accountStatus: 'ACTIVE',
       });
-      setFileList([]);
     }
   }, [record, form]);
 
   const handleSubmit = async () => {
     try {
       const values = await form.validateFields();
-
-      // Handle avatar URL from upload if present
-      if (fileList.length > 0 && fileList[0].url) {
-        values.avatarUrl = fileList[0].url;
-      }
-
       await onSubmit(values);
       form.resetFields();
-      setFileList([]);
     } catch (error) {
       console.error('Form validation failed:', error);
     }
@@ -64,43 +47,8 @@ const DeliveryWorkerForm: React.FC<FormModalProps<DeliveryWorkerFormData>> = ({
 
   const handleCancel = () => {
     form.resetFields();
-    setFileList([]);
     onClose();
   };
-
-  const uploadProps: UploadProps = {
-    name: 'file',
-    listType: 'picture-card',
-    fileList,
-    maxCount: 1,
-    accept: 'image/*',
-    beforeUpload: (file) => {
-      const isJpgOrPng = file.type === 'image/jpeg' || file.type === 'image/png';
-      if (!isJpgOrPng) {
-        console.error('只能上传 JPG/PNG 格式的图片!');
-        return false;
-      }
-      const isLt2M = file.size / 1024 / 1024 < 2;
-      if (!isLt2M) {
-        console.error('图片大小不能超过 2MB!');
-        return false;
-      }
-      return false; // Prevent auto upload
-    },
-    onChange: (info) => {
-      setFileList(info.fileList.slice(-1));
-    },
-    onRemove: () => {
-      setFileList([]);
-    },
-  };
-
-  const uploadButton = (
-    <div>
-      <PlusOutlined />
-      <div style={{ marginTop: 8 }}>上传头像</div>
-    </div>
-  );
 
   return (
     <Modal
@@ -118,15 +66,14 @@ const DeliveryWorkerForm: React.FC<FormModalProps<DeliveryWorkerFormData>> = ({
         initialValues={{
           status: 'OFFLINE',
           isAvailable: true,
+          accountStatus: 'ACTIVE',
         }}
       >
         <Form.Item
           label="头像"
           name="avatarUrl"
         >
-          <Upload {...uploadProps}>
-            {fileList.length >= 1 ? null : uploadButton}
-          </Upload>
+          <AvatarUpload name={name} fallbackName="送水员" />
         </Form.Item>
 
         <Form.Item
@@ -135,7 +82,10 @@ const DeliveryWorkerForm: React.FC<FormModalProps<DeliveryWorkerFormData>> = ({
           rules={[
             { required: true, message: '请输入姓名' },
             { min: 2, max: 20, message: '姓名长度为2-20个字符' },
-            { pattern: /^[\u4e00-\u9fa5a-zA-Z\s]+$/, message: '姓名只能包含中文、英文字母和空格' },
+            {
+            pattern: /^[\u4e00-\u9fa5a-zA-Z\u00b7]+(?:[ \u3000][\u4e00-\u9fa5a-zA-Z\u00b7]+)*$/,
+            message: '姓名只能包含中文、英文字母、空格和·',
+          },
           ]}
         >
           <Input placeholder="请输入姓名" />
@@ -155,13 +105,22 @@ const DeliveryWorkerForm: React.FC<FormModalProps<DeliveryWorkerFormData>> = ({
         <Form.Item
           label="微信OpenID"
           name="wechatOpenId"
-          rules={[
-            { required: true, message: '请输入微信OpenID' },
-            { min: 1, max: 100, message: '微信OpenID长度为1-100个字符' },
-          ]}
         >
-          <Input placeholder="请输入微信OpenID" />
+          <Input placeholder="请输入微信OpenID" disabled />
         </Form.Item>
+
+        {!record && (
+          <Form.Item
+            label="登录密码"
+            name="password"
+            rules={[
+              { required: true, message: '请输入登录密码' },
+              { min: 6, max: 20, message: '密码长度为6-20个字符' },
+            ]}
+          >
+            <Input.Password placeholder="请输入登录密码" />
+          </Form.Item>
+        )}
 
         <Form.Item
           label="状态"
@@ -171,6 +130,17 @@ const DeliveryWorkerForm: React.FC<FormModalProps<DeliveryWorkerFormData>> = ({
           <Select placeholder="请选择状态">
             <Select.Option value="ONLINE">在线</Select.Option>
             <Select.Option value="OFFLINE">离线</Select.Option>
+          </Select>
+        </Form.Item>
+
+        <Form.Item
+          label="账号状态"
+          name="accountStatus"
+          rules={[{ required: true, message: '请选择账号状态' }]}
+        >
+          <Select placeholder="请选择账号状态">
+            <Select.Option value="ACTIVE">正常</Select.Option>
+            <Select.Option value="DISABLED">停用</Select.Option>
           </Select>
         </Form.Item>
 

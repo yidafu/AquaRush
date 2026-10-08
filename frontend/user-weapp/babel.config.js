@@ -12,4 +12,5 @@ module.exports = {
       },
     ],
   ],
+  plugins: [["babel-plugin-aquarush-track", {}]],
 };

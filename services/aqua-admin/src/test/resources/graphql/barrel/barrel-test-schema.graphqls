@@ -1,0 +1,108 @@
+# Test Schema for Admin Barrel Resolvers GraphQL Integration Tests
+# 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/barrel/) 加载
+# 与 services/aqua-admin/src/main/resources/graphql/modules/barrel.graphqls 保持一致(G06 水桶费)
+
+scalar Long
+scalar LocalDateTime
+
+# 水桶费价目状态
+enum BarrelFeeStatus {
+  ENABLED
+  DISABLED
+}
+
+# 购桶单支付状态
+enum BarrelPaymentStatus {
+  PENDING
+  PAID
+  CANCELLED
+  REFUNDED
+}
+
+type BarrelFee {
+  id: Long!
+  specification: String!
+  priceCents: Long!
+  status: BarrelFeeStatus!
+  sortOrder: Int!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type BarrelFeePage {
+  content: [BarrelFee!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+type BarrelPurchaseItem {
+  specification: String!
+  unitPriceCents: Long!
+  quantity: Int!
+  amountCents: Long!
+}
+
+type BarrelPurchase {
+  id: Long!
+  orderNo: String!
+  userId: Long!
+  totalAmountCents: Long!
+  paymentStatus: BarrelPaymentStatus!
+  paidAt: LocalDateTime
+  refundedAt: LocalDateTime
+  refundedBy: Long
+  refundRemark: String
+  remark: String
+  items: [BarrelPurchaseItem!]!
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+type BarrelPurchasePage {
+  content: [BarrelPurchase!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input CreateBarrelFeeInput {
+  specification: String!
+  priceCents: Long!
+  sortOrder: Int!
+}
+
+input UpdateBarrelFeeInput {
+  specification: String
+  priceCents: Long
+  sortOrder: Int
+}
+
+input BarrelFeeListInput {
+  status: BarrelFeeStatus
+  keyword: String
+  page: Int
+  size: Int
+}
+
+input BarrelPurchaseListInput {
+  status: BarrelPaymentStatus
+  dateFrom: LocalDateTime
+  dateTo: LocalDateTime
+  page: Int
+  size: Int
+}
+
+type Query {
+  barrelFees(input: BarrelFeeListInput): BarrelFeePage!
+  barrelPurchases(input: BarrelPurchaseListInput): BarrelPurchasePage!
+}
+
+type Mutation {
+  createBarrelFee(input: CreateBarrelFeeInput!): BarrelFee!
+  updateBarrelFee(id: Long!, input: UpdateBarrelFeeInput!): BarrelFee!
+  disableBarrelFee(id: Long!): BarrelFee!
+  refundBarrelPurchase(purchaseId: Long!, remark: String): BarrelPurchase!
+}

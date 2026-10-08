@@ -1,0 +1,164 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.yidafu.aqua.order.service.impl
+
+import dev.yidafu.aqua.api.dto.MarketingUsageItemRow
+import dev.yidafu.aqua.api.dto.MarketingUsageOrderCriteria
+import dev.yidafu.aqua.api.service.order.OrderQueryApiService
+import dev.yidafu.aqua.common.domain.model.OrderItemModel
+import dev.yidafu.aqua.common.domain.model.OrderModel
+import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
+import dev.yidafu.aqua.order.domain.repository.OrderItemRepository
+import dev.yidafu.aqua.order.domain.repository.OrderRepository
+import org.springframework.data.domain.Page
+import org.springframework.stereotype.Service
+import java.time.LocalDateTime
+
+/**
+ * 跨模块订单查询服务实现
+ * 供其他模块使用
+ */
+@Service
+class OrderQueryApiServiceImpl(
+  private val orderRepository: OrderRepository,
+  private val orderItemRepository: OrderItemRepository,
+) : OrderQueryApiService {
+  override fun findById(id: Long): OrderModel? = orderRepository.findById(id).orElse(null)
+
+  /**
+   * 订单商品明细(F-ORD-004 多商品下单,order_items 权威数据源)
+   */
+  override fun findItemsByOrderId(orderId: Long): List<OrderItemModel> = orderItemRepository.findByOrderId(orderId)
+
+  override fun findByIds(ids: List<Long>): List<OrderModel> = orderRepository.findAllById(ids)
+
+  override fun findByOrderNumber(orderNumber: String): OrderModel? = orderRepository.findByOrderNo(orderNumber)
+
+  override fun findByUserId(userId: Long): List<OrderModel> = orderRepository.findByUserId(userId)
+
+  override fun findByUserIdAndStatus(
+    userId: Long,
+    status: OrderModelStatus,
+  ): List<OrderModel> = orderRepository.findByUserIdAndStatus(userId, status)
+
+  override fun findByUserIdPaginated(
+    userId: Long,
+    statuses: List<OrderModelStatus>?,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel> =
+    orderRepository.findUserOrdersPaginated(
+      userId = userId,
+      statuses = statuses,
+      page = page,
+      size = size,
+    )
+
+  override fun hasCompletedOrders(userId: Long): Boolean = orderRepository.existsByUserIdAndStatus(userId, OrderModelStatus.COMPLETED)
+
+  override fun findByStatus(status: OrderModelStatus): List<OrderModel> = orderRepository.findByStatus(status)
+
+  override fun findByDeliveryWorkerId(deliveryWorkerId: Long): List<OrderModel> =
+    orderRepository.findByDeliveryWorkerIdOrderByCreatedAtDesc(deliveryWorkerId)
+
+  override fun findByCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<OrderModel> = orderRepository.findByCreatedAtBetween(startDate, endDate)
+
+  override fun findByStatusAndCreatedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+  ): List<OrderModel> = orderRepository.findByStatusAndCreatedAtBetween(statuses, startDate, endDate)
+
+  override fun countByStatusAndCreatedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Long =
+    orderRepository.countByStatusAndCreatedAtBetween(
+      startDate = startDate,
+      endDate = endDate,
+      deliveryWorkerId = deliveryWorkerId,
+      statuses = statuses,
+    )
+
+  override fun countByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long> =
+    orderRepository.countOrdersByUserIdGroupByStatus(userId)
+
+  override fun sumAmountCentsByStatusAndCreatedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long =
+    orderRepository.sumAmountCentsByStatusAndCreatedAtBetween(
+      statuses = statuses,
+      startDate = startDate,
+      endDate = endDate,
+      deliveryWorkerId = deliveryWorkerId,
+    )
+
+  override fun countByStatusAndCompletedAtBetween(
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Long =
+    orderRepository.countByStatusAndCompletedAtBetween(
+      startDate = startDate,
+      endDate = endDate,
+      deliveryWorkerId = deliveryWorkerId,
+      statuses = statuses,
+    )
+
+  override fun sumAmountCentsByStatusAndCompletedAtBetween(
+    statuses: List<OrderModelStatus>,
+    startDate: LocalDateTime,
+    endDate: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Long =
+    orderRepository.sumAmountCentsByStatusAndCompletedAtBetween(
+      statuses = statuses,
+      startDate = startDate,
+      endDate = endDate,
+      deliveryWorkerId = deliveryWorkerId,
+    )
+
+  // ========================================================================
+  // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
+  // ========================================================================
+
+  override fun findOrdersByMarketingUsage(
+    criteria: MarketingUsageOrderCriteria,
+    page: Int,
+    size: Int,
+  ): Page<OrderModel> = orderRepository.findOrdersByMarketingUsage(criteria = criteria, page = page, size = size)
+
+  override fun countOrdersByMarketingUsage(criteria: MarketingUsageOrderCriteria): Long =
+    orderRepository.countOrdersByMarketingUsage(criteria)
+
+  override fun sumMarketingDiscountCents(criteria: MarketingUsageOrderCriteria): Long = orderRepository.sumMarketingDiscountCents(criteria)
+
+  override fun aggregateMarketingUsageItems(criteria: MarketingUsageOrderCriteria): List<MarketingUsageItemRow> =
+    orderRepository.aggregateMarketingUsageItems(criteria)
+}

@@ -1,14 +1,22 @@
 import React from "react";
 import { View, Text } from "@tarojs/components";
 import { useProduct } from "../context/ProductContext";
-import { displayCents } from "@/utils/money";
-
+import { displayCents, normalizeCents } from "@aquarush/common";
 const ProductInfo: React.FC = () => {
   const { product } = useProduct();
 
-  // Price calculations
-  const hasMarketPrice =
-    product.originalPrice && parseFloat(product.originalPrice) > 0;
+  // 价格展示(R-MKT-02 单价链):按 priceSource 解析标签与划线价
+  // GROUP_PRICE→熟客价、FLASH_SALE_PRICE→特价、NEWCOMER_PRICE→新人价;非目录价时划线目录价
+  const priceCents = normalizeCents(product.priceCents) ?? 0;
+  const effectivePriceCents = normalizeCents(product.effectivePriceCents) ?? priceCents;
+  const priceSource = product.priceSource;
+  const hasDiscountedPrice =
+    (priceSource === 'GROUP_PRICE' || priceSource === 'FLASH_SALE_PRICE' || priceSource === 'NEWCOMER_PRICE') &&
+    effectivePriceCents < priceCents;
+  const priceTag =
+    priceSource === 'GROUP_PRICE' ? '熟客价' : priceSource === 'FLASH_SALE_PRICE' ? '特价' : priceSource === 'NEWCOMER_PRICE' ? '新人价' : '';
+  const originalPriceCents = normalizeCents(product.originalPriceCents);
+  const hasMarketPrice = originalPriceCents !== null && originalPriceCents > 0;
 
   return (
     <View className="px-4 py-2 mt-4 bg-white animate-fade-in-up">
@@ -36,27 +44,43 @@ const ProductInfo: React.FC = () => {
         {/* 价格信息 */}
         <View className="flex items-baseline gap-1">
           <Text className="text-xl font-extrabold tracking-tight text-red-500">
-            {displayCents(parseFloat(product.price))}
+            {displayCents(hasDiscountedPrice ? effectivePriceCents : priceCents)}
           </Text>
+          {hasDiscountedPrice && priceTag && (
+            <Text className="px-1 text-xs font-medium text-red-500 bg-red-50 rounded">
+              {priceTag}
+            </Text>
+          )}
         </View>
         <View className="flex flex-row justify-between">
           <View>
-            {/* 原价显示 */}
-            {hasMarketPrice && (
+            {/* 特价/熟客价/新人价:划线展示目录价;否则展示原价(如配置) */}
+            {hasDiscountedPrice ? (
               <View className="flex flex-col items-end gap-2 text-right">
                 <Text className="text-xs font-normal text-gray-400">
-                  原价 <Text className="line-through">
-                  {displayCents(parseFloat(product.originalPrice!))}
+                  目录价 <Text className="line-through">
+                  {displayCents(priceCents)}
                   </Text>
 
                 </Text>
               </View>
+            ) : (
+              hasMarketPrice && (
+                <View className="flex flex-col items-end gap-2 text-right">
+                  <Text className="text-xs font-normal text-gray-400">
+                    原价 <Text className="line-through">
+                    {displayCents(originalPriceCents)}
+                    </Text>
+
+                  </Text>
+                </View>
+              )
             )}
           </View>
 
           <View className="flex items-end gap-2 text-right">
             <Text className="text-xs font-normal text-gray-400">
-              已售 122 | 剩余 234
+              已售 {product.salesVolume ?? 0} | 剩余 {product.stock ?? 0}
             </Text>
           </View>
         </View>

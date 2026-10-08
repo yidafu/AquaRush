@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,8 +19,8 @@
 
 package dev.yidafu.aqua.user.service
 
+import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.user.domain.exception.AquaException
-import dev.yidafu.aqua.user.domain.model.RegionModel
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
 import jakarta.transaction.Transactional
 import org.springframework.cache.annotation.CacheEvict
@@ -30,9 +30,8 @@ import org.springframework.stereotype.Service
 @Service
 @Transactional
 class RegionService(
-    private val regionRepository: RegionRepository
+  private val regionRepository: RegionRepository,
 ) {
-
   /**
    * 创建新地区
    */
@@ -48,16 +47,18 @@ class RegionService(
     }
 
     // 验证父级地区
-    val parentCode = if (input.level == 1) {
-      "0" // 根级地区的父代码为 "0"
-    } else {
-      input.parentCode ?: throw AquaException("非根级地区必须指定父级代码")
-    }
+    val parentCode =
+      if (input.level == 1) {
+        "0" // 根级地区的父代码为 "0"
+      } else {
+        input.parentCode ?: throw AquaException("非根级地区必须指定父级代码")
+      }
 
     // 验证父级地区是否存在（如果指定了父级代码）
     if (parentCode != "0") {
-      val parentRegion = regionRepository.findByCode(parentCode)
-        ?: throw AquaException("父级地区不存在: $parentCode")
+      val parentRegion =
+        regionRepository.findByCode(parentCode)
+          ?: throw AquaException("父级地区不存在: $parentCode")
 
       // 验证层级关系
       if (parentRegion.level != input.level - 1) {
@@ -71,12 +72,13 @@ class RegionService(
     }
 
     // 创建地区
-    val region = RegionModel(
-      name = input.name,
-      code = input.code,
-      parentCode = parentCode,
-      level = input.level
-    )
+    val region =
+      RegionModel(
+        name = input.name,
+        code = input.code,
+        parentCode = parentCode,
+        level = input.level,
+      )
 
     return regionRepository.save(region)
   }
@@ -85,9 +87,13 @@ class RegionService(
    * 更新地区信息
    */
   @CacheEvict(value = ["regions"], allEntries = true)
-  fun updateRegion(code: String, input: UpdateRegionInput): RegionModel {
-    val region = regionRepository.findByCode(code)
-      ?: throw AquaException("地区不存在: $code")
+  fun updateRegion(
+    code: String,
+    input: UpdateRegionInput,
+  ): RegionModel {
+    val region =
+      regionRepository.findByCode(code)
+        ?: throw AquaException("地区不存在: $code")
 
     // 更新名称
     input.name?.let { newName ->
@@ -105,15 +111,16 @@ class RegionService(
     input.parentCode?.let { newParentCode ->
       if (newParentCode != region.parentCode) {
         // 验证新的父级地区
-        val newParent = if (region.level == 1) {
-          if (newParentCode != "0") {
-            throw AquaException("根级地区的父代码必须为 '0'")
+        val newParent =
+          if (region.level == 1) {
+            if (newParentCode != "0") {
+              throw AquaException("根级地区的父代码必须为 '0'")
+            }
+            null
+          } else {
+            regionRepository.findByCode(newParentCode)
+              ?: throw AquaException("父级地区不存在: $newParentCode")
           }
-          null
-        } else {
-          regionRepository.findByCode(newParentCode)
-            ?: throw AquaException("父级地区不存在: $newParentCode")
-        }
 
         // 验证层级关系
         newParent?.let { parent ->
@@ -150,8 +157,9 @@ class RegionService(
    */
   @CacheEvict(value = ["regions"], allEntries = true)
   fun deleteRegion(code: String): Boolean {
-    val region = regionRepository.findByCode(code)
-      ?: throw AquaException("地区不存在: $code")
+    val region =
+      regionRepository.findByCode(code)
+        ?: throw AquaException("地区不存在: $code")
 
     // 检查是否有子地区
     val hasChildren = regionRepository.findByParentCodeOrderByCode(code).isNotEmpty()
@@ -173,11 +181,15 @@ class RegionService(
    * 根据层级和父代码获取地区列表
    */
   @Cacheable(value = ["regions"], key = "#level.toString() + '_' + (#parentCode ?: 'root')")
-  fun getRegions(level: Int?, parentCode: String?): List<RegionModel> {
-    return when {
+  fun getRegions(
+    level: Int?,
+    parentCode: String?,
+  ): List<RegionModel> =
+    when {
       level != null && parentCode != null -> {
         regionRepository.findByParentCodeAndLevel(parentCode, level)
       }
+
       level != null -> {
         if (level == 1) {
           regionRepository.findRootRegions(level)
@@ -185,30 +197,30 @@ class RegionService(
           regionRepository.findByLevel(level)
         }
       }
+
       else -> {
         regionRepository.findAll()
       }
     }
-  }
 
   /**
    * 根据代码获取地区
    */
   @Cacheable(value = ["regions"], key = "#code")
-  fun getRegionByCode(code: String): RegionModel? {
-    return regionRepository.findByCode(code)
-  }
+  fun getRegionByCode(code: String): RegionModel? = regionRepository.findByCode(code)
 
   /**
    * 搜索地区
    */
-  fun searchRegions(keyword: String, level: Int?): List<RegionModel> {
-    return if (level != null) {
+  fun searchRegions(
+    keyword: String,
+    level: Int?,
+  ): List<RegionModel> =
+    if (level != null) {
       regionRepository.findByNameContainingAndLevelOrderByCode(keyword, level)
     } else {
       regionRepository.findByNameContainingOrderByCode(keyword)
     }
-  }
 
   /**
    * 创建更新后的地区实例（由于 Region 是不可变的）
@@ -216,18 +228,17 @@ class RegionService(
   private fun createUpdatedRegion(
     original: RegionModel,
     name: String? = null,
-    parentCode: String? = null
-  ): RegionModel {
-    return RegionModel(
+    parentCode: String? = null,
+  ): RegionModel =
+    RegionModel(
       id = original.id,
       name = name ?: original.name,
       code = original.code,
       parentCode = parentCode ?: original.parentCode,
       level = original.level,
       createdAt = original.createdAt,
-      updatedAt = java.time.LocalDateTime.now()
+      updatedAt = java.time.LocalDateTime.now(),
     )
-  }
 }
 
 // Input types
@@ -235,10 +246,10 @@ data class CreateRegionInput(
   val name: String,
   val code: String,
   val level: Int,
-  val parentCode: String?
+  val parentCode: String?,
 )
 
 data class UpdateRegionInput(
   val name: String?,
-  val parentCode: String?
+  val parentCode: String?,
 )

@@ -14,81 +14,81 @@ schema {
 type Query {
   # Authentication
   me: UserInfo
-  user(id: PrimaryId!): User
 
   # Addresses
-  addresses: [Address!]!
   address(id: PrimaryId!): Address
 
   # Enhanced Address Management
   userAddresses: [Address!]!
-  userDefaultAddress: Address
 
   # Regions
   regions(level: Int, parentCode: String): [Region!]!
   region(code: String!): Region
-  regionByCoordinates(
-    longitude: Float!
-    latitude: Float!
-  ): RegionCoordinatesPayload
-  searchRegions(keyword: String!, level: Int): [Region!]!
-
-  # Geolocation Services
-  nearbyAddresses(
-    longitude: Float!
-    latitude: Float!
-    radiusKm: Float
-  ): NearbyAddressesPayload
-  calculateDistance(
-    lng1: Float!
-    lat1: Float!
-    lng2: Float!
-    lat2: Float!
-  ): DistancePayload
-  isInServiceArea(longitude: Float!, latitude: Float!): ServiceAreaPayload
 
   # Products
-  allProducts: [Product!]!
-  activeProducts(page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductPage!
+  activeProducts(keyword: String, page: Int = 0, size: Int = 20, sortBy: String = "createdAt", sortDirection: String = "desc"): ProductVOPage!
   product(id: PrimaryId!): Product
 
-  # Orders
-  order(orderId: PrimaryId!): Order
-  orderByNumber(orderNumber: String!): Order
-  ordersByUser(userId: PrimaryId!): [Order!]!
-  ordersByUserAndStatus(userId: PrimaryId!, status: OrderStatus!): [Order!]!
-  ordersByStatus(status: OrderStatus!): [Order!]!
+  # Favorites queries
+  favoriteProducts(page: Int = 0, size: Int = 20): FavoriteProductVOPage!
+  isProductFavorited(productId: PrimaryId!): Boolean!
+  favoritesCount: Long!
 
-  # Payments
-  paymentStatus(transactionId: String!): String!
-  orderPaymentInfo(orderId: PrimaryId!): OrderPaymentInfo!
-  paymentPeriodStats(
-    from: LocalDateTime!
-    to: LocalDateTime!
-  ): [PaymentPeriodStats!]!
-  myPaymentTransactions(
-    page: Int = 0
-    size: Int = 20
-  ): [UserPaymentTransaction!]!
-  refundEligibility(orderId: PrimaryId!): RefundEligibility!
-  myRefundRequests(page: Int = 0, size: Int = 20): [RefundRequest!]!
+  # Orders (F-ORD-003 订单详情/支付回显)
+  order(id: PrimaryId!): Order
+  # 我的订单列表(F-ORD-002,仅本人,分页;statuses 为空=全部)
+  myOrders(statuses: [OrderStatus!], page: Int = 0, size: Int = 10): OrderVOPage!
+  # 我的订单状态计数(F-USR-002,G31):仅本人,单请求返回各状态订单数(我的页订单角标)
+  myOrderStatistics: MyOrderStatistics!
+  # 订单评价检查(F-ORD-007):已评价内容 + 是否可评(仅已完成订单)
+  orderReviewCheck(orderId: PrimaryId!): OrderReviewCheckResponse!
 
-  # Review queries
-  checkOrderReview(orderId: PrimaryId!): OrderReviewCheckResponse!
-  myReviews(page: Int, size: Int): [Review!]!
-  deliveryWorkerPublicStatistics(deliveryWorkerId: PrimaryId!): Review!
+  # Operations config queries (运营配置域 F-OPS-001/002/004/005)
+  activeBanners: [Banner!]!
+  # 当前生效公告(已发布且在时间窗内,置顶优先、发布时间倒序)
+  activeNotices: [Notice!]!
+  # 店铺信息(未配置返回 null,用户端按默认值兜底)
+  storeProfile: StoreProfile
+  # 配送费规则(未配置返回默认规则 免费4楼/加价2元)
+  deliveryFeeRule: DeliveryFeeRule!
+  # 配送时段配置(F-SYS-002,AC-SYS-002-01/03):后台「订单与履约参数」配置,保存即热生效。
+  # 确认订单页只展示 enabled=true 的时段;订单详情按 id 映射全量时段(含已停用,历史快照展示用)。
+  deliverySlots: [DeliverySlotVO!]!
+  # 我的-反馈记录(F-USR-005 处理结果回传):仅本人反馈,按提交时间倒序分页
+  myFeedbacks(page: Int = 0, size: Int = 10): FeedbackRecordVOPage!
 
-  # Default region hierarchy
-  defaultRegionHierarchy: RegionHierarchy
+  # Marketing queries (营销域 F-MKT-002/003/007,PRD 10-marketing.md)
+  # 商品成交单价解析(按登录用户分组价,R-MKT-01)
+  productPrice(productId: PrimaryId!): ProductPriceVO
+  # 领券中心(F-MKT-003,仅自动领取模板)
+  couponCenter: [CouponTemplateVO!]!
+  # 我的券包(按状态过滤,空=全部)
+  myCoupons(status: UserCouponStatus): [UserCouponVO!]!
+  # 水票商城(F-MKT-007,仅上架票种)
+  ticketShop: [TicketTypeVO!]!
+  # 我的水票(按状态过滤,空=全部)
+  myTickets(status: UserTicketStatus): [UserTicketVO!]!
+  # 水桶费商城(买水桶,G06:仅启用价目,按排序;一次性塑料水桶费,独立支付,与商品订单不捆绑)
+  barrelShop: [BarrelFeeVO!]!
+  # 我的水桶(G06:当前用户购桶单,未购买返回 null)
+  myBarrelPurchase: BarrelPurchaseVO
+  # 确认订单计价预览(F-ORD-023,促销引擎 R-MKT-02/07/08 全链路,服务端计算 R-MON-01)
+  orderPreview(input: OrderPreviewInput!): OrderPreviewVO!
+
+  # ============ 消息中心与订阅消息(PRD 13-notification.md F-NTF-002/001) ============
+  # 消息中心:分页查询本人消息(仅本人,R-AUTH-02),type/read 为空=全部
+  myNotifications(type: NotificationType, read: Boolean, page: Int = 0, size: Int = 10): NotificationVOPage!
+  # 未读消息数(我的页消息中心入口角标)
+  unreadNotificationCount: Int!
+  # 已启用的订阅消息模板(下单确认页订阅授权 Taro.requestSubscribeMessage 用,R-NTF-01)
+  subscribeTemplates: [SubscribeTemplateVO!]!
+
 }
 
 # Client-specific Mutation Schema
 type Mutation {
   # Authentication
-  wechatLogin(input: WechatLoginInput!): WeChatLoginResponse!
-  refreshToken(input: RefreshTokenInput!): WeChatTokenResponse!
   updateProfile(input: UpdateProfileInput!): UserInfo!
-  logout: Boolean!
 
   # Addresses
   createAddress(input: AddressInput!): Address!
@@ -96,94 +96,368 @@ type Mutation {
   deleteAddress(id: PrimaryId!): Boolean!
   setDefaultAddress(id: PrimaryId!): Boolean!
 
-  geocodeAddress(address: GeocodeInput!): GeocodePayload!
-  reverseGeocode(longitude: Float!, latitude: Float!): ReverseGeocodePayload!
-  validateAddress(input: AddressValidationInput!): AddressValidationPayload!
-
   # Orders
   createOrder(input: CreateOrderInput!): Order!
+  # 发起订单支付(F-ORD-005):测试环境假支付自动完成(autoCompleted=true)
+  createOrderPayment(orderId: PrimaryId!): OrderPaymentParams!
+  # 取消订单(F-ORD-006,仅本人):未支付即时取消恢复库存;已支付(待派单)取消自动退款
   cancelOrder(orderId: PrimaryId!): Order!
-  updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): Order!
-
-  # Payments
-  createWechatPayment(input: CreateWechatPaymentInput!): PaymentData!
-  handleWechatCallback(input: WechatCallbackInput!): String!
-  refund(input: RefundInput!): Boolean!
-  requestRefund(input: RequestRefundInput!): RefundRequest!
-
-  # Review mutations
+  # 确认收货(R-ORD-11,仅本人):待确认收货 → 已完成,按确认时间计入营收;
+  # 送达 N 天未确认由系统自动签收(配置 auto_confirm_receipt_days,默认 7)
+  confirmReceipt(orderId: PrimaryId!): Order!
+  # 催单(F-ORD-008,仅本人配送中订单):防抖短时间重复点击仅一次生效,向用户/送水工推送催单提醒
+  urgeOrder(orderId: PrimaryId!): Boolean!
+  # 订单评价(F-ORD-007,R-EVL-01 一单一评):仅已完成订单,评分计入送水工统计
   createReview(input: CreateReviewRequest!): Review!
 
-  # Region mutations (Admin only)
-  createRegion(input: CreateRegionInput!): Region!
-  updateRegion(code: String!, input: UpdateRegionInput!): Region!
-  deleteRegion(code: String!): Boolean!
+
+  # Favorites mutations
+  toggleProductFavorites(productId: PrimaryId!): Boolean!
+
+  # Operations config mutations (意见反馈提交, F-USR-005)
+  submitFeedback(input: FeedbackSubmitInput!): Boolean!
+
+  # Marketing mutations (营销域 F-MKT-003/007)
+  # 领取优惠券(领券中心)
+  claimCoupon(couponTemplateId: PrimaryId!): UserCouponVO!
+  # 购买桶水票(在线支付,购票即预收款项,一经购买不支持退款 R-MKT-08)
+  purchaseTickets(input: PurchaseTicketsInput!): TicketPurchaseVO!
+  # 购买水桶(一次性塑料水桶费,G06:独立支付,每用户总限购一次;测试环境假支付自动完成)
+  purchaseBarrel(input: PurchaseBarrelInput!): BarrelPurchaseVO!
+
+  # ============ 消息中心与订阅消息(PRD 13-notification.md R-NTF-01/04) ============
+  # 单条消息标已读(幂等,仅本人消息)
+  markNotificationRead(id: PrimaryId!): Boolean!
+  # 全部已读
+  markAllNotificationsRead: Boolean!
+  # 记录微信订阅消息授权结果(仅记录用户接受的模板,一次性模板授权一次可发一次)
+  recordSubscribeAuth(templateIds: [String!]!): Boolean!
 }
 
-# Additional Client-specific Payment Types
-type UserPaymentTransaction {
-  id: String!
-  orderId: PrimaryId!
-  orderNumber: String!
-  amount: BigDecimal!
-  status: PaymentStatus!
-  paymentMethod: PaymentMethod!
-  transactionId: String
-  createdAt: LocalDateTime!
-  completedAt: LocalDateTime
-  refundedAt: LocalDateTime
-  refundAmount: BigDecimal
-  failureReason: String
+# ============ 商品价格(R-MKT-01) ============
+
+type ProductPriceVO {
+  productId: PrimaryId!
+  # 有效成交单价(分,R-MKT-02:分组价→特价→新人价→目录价)
+  effectivePriceCents: Long!
+  # 成交单价来源(展示标签依据:熟客价/特价/新人价/目录价 —— R-MKT-01)
+  priceSource: PriceSource!
+  # 是否命中熟客价(分组价)
+  hasGroupPrice: Boolean!
+  # 商品目录价(分)
+  catalogPriceCents: Long!
 }
 
-type PaymentStatusInfo {
-  transactionId: String!
-  status: PaymentStatus!
-  orderNumber: String!
-  amount: BigDecimal!
-  createdAt: LocalDateTime!
-  updatedAt: LocalDateTime!
-  paidAt: LocalDateTime
-  refundedAt: LocalDateTime
-  refundAmount: BigDecimal
-  failureReason: String
+# 用户端商品成交单价(按登录用户解析,分组价/特价/新人价/目录价 —— R-MKT-01)
+extend type Product {
+  # 当前用户有效成交单价(分,R-MKT-02 链路解析)
+  effectivePriceCents: Long!
+  # 成交单价来源(展示标签依据 —— R-MKT-01)
+  priceSource: PriceSource!
+  # 是否命中熟客价(分组价)
+  hasGroupPrice: Boolean!
 }
 
-input RequestRefundInput {
-  orderId: PrimaryId!
-  outTradeNo: String!
-  amount: BigDecimal!
-  reason: String!
-}
+# ============ 优惠券用户端(F-MKT-003) ============
 
-# Region mutation inputs
-input CreateRegionInput {
+type CouponTemplateVO {
+  id: PrimaryId!
   name: String!
-    @notBlank(message: "地区名称不能为空")
-    @size(min: 2, max: 50, message: "地区名称长度应在2-50个字符之间")
-  code: String!
-    @notBlank(message: "地区代码不能为空")
-    @size(min: 1, max: 20, message: "地区代码长度应在1-20个字符之间")
-    @pattern(regexp: "^[A-Z0-9]+$", message: "地区代码只能包含大写字母和数字")
-  level: Int!
-    @min(value: 1, message: "地区级别不能小于1")
-    @max(value: 5, message: "地区级别不能大于5")
-  parentCode: String
-    @size(min: 1, max: 20, message: "上级地区代码长度应在1-20个字符之间")
+  couponType: CouponType!
+  thresholdCents: Long
+  discountAmountCents: Long
+  discountRatePermille: Long
+  scope: CouponScope!
+  productId: PrimaryId
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  perUserLimit: Int!
+  # 当前用户已领数量
+  claimedCount: Int!
 }
 
-input UpdateRegionInput {
-  name: String @size(min: 2, max: 50, message: "地区名称长度应在2-50个字符之间")
-  parentCode: String
-    @size(min: 1, max: 20, message: "上级地区代码长度应在1-20个字符之间")
+# UserCouponVO / UserCouponStatus 已上移 shared-config/graphql/shared-types.graphqls
+# (管理后台用户详情页「优惠券」Tab 共用,避免 admin/client schema 重复定义)
+
+# ============ 桶水票用户端(F-MKT-007) ============
+
+type TicketTypeVO {
+  id: PrimaryId!
+  name: String!
+  ticketType: TicketTypeKind!
+  productId: PrimaryId
+  specification: String
+  packageCount: Int!
+  packagePriceCents: Long!
+  giftCount: Int!
+  validityType: ValidityType!
+  validFrom: LocalDateTime
+  validTo: LocalDateTime
+  validDays: Int
+  perUserLimit: Int!
+  # 当前用户已购张数(限购判定展示)
+  myPurchasedCount: Int!
 }
 
-# Region hierarchy for default region configuration
-type RegionHierarchy {
-  province: Region!
-  city: Region!
-  district: Region!
-  provinces: [Region!]!
-  cities: [Region!]!
-  districts: [Region!]!
+# UserTicketVO / UserTicketStatus 已上移 shared-config/graphql/shared-types.graphqls
+# (管理后台用户详情页「水票」Tab 共用,避免 admin/client schema 重复定义)
+
+input PurchaseTicketsInput {
+  ticketTypeId: PrimaryId! @positive(message: "票种ID必须为正数")
+  packageCount: Int! @min(value: 1, message: "购票张数必须大于0") @max(value: 10, message: "单次购票张数不能超过10")
+}
+
+type TicketPurchaseVO {
+  id: PrimaryId!
+  orderNo: String!
+  ticketTypeName: String!
+  # 入账总张数(N 张 + 赠送 M 张)
+  totalCount: Int!
+  packagePriceCents: Long!
+  paymentStatus: TicketPurchaseStatus!
+  # 微信支付参数(真实支付待 SDK 接入;当前桩实现)
+  paymentParams: JsonObject
+  # true=支付功能待接入(桩实现),前端提示后返回;false=可发起 Taro.requestPayment
+  requiresSimulation: Boolean!
+}
+
+enum TicketPurchaseStatus {
+  PENDING
+  PAID
+  FAILED
+  CANCELLED
+}
+
+# ============ 订单支付(F-ORD-005) ============
+
+type OrderPaymentParams {
+  # 微信支付参数(真实支付:appId/timeStamp/nonceStr/package/signType/paySign;
+  # 测试环境假支付:mock=true 且已自动完成,前端直接刷新订单状态)
+  paymentParams: JsonObject
+  # true=支付未接入(未配置商户参数),前端提示后返回
+  requiresSimulation: Boolean!
+  # true=测试环境假支付已自动完成,无需调起 Taro.requestPayment
+  autoCompleted: Boolean!
+}
+
+# ============ 我的订单状态计数(F-USR-002,G31) ============
+# 我的页订单角标:按当前用户各状态订单数聚合(仅本人,R-AUTH-02);待配送口径=待派单+待配送
+
+type MyOrderStatistics {
+  # 全部订单数(各状态合计)
+  total: Int!
+  pendingPayment: Int!
+  pendingDispatch: Int!
+  pendingDelivery: Int!
+  delivering: Int!
+  # 待确认收货(已送达未确认,R-ORD-11)
+  awaitingConfirmation: Int!
+  completed: Int!
+  cancelled: Int!
+  # 售后(已退款)
+  refunded: Int!
+}
+
+# ============ 确认订单计价预览(F-ORD-023) ============
+
+input OrderPreviewInput {
+  # 商品明细列表(F-ORD-004 多商品下单;单商品=单元素;同一商品不可重复)
+  items: [OrderItemInput!]!
+  addressId: PrimaryId! @positive(message: "地址ID必须为正数")
+  # 优惠券偏好(省略=引擎自动选最优,0=不用券)
+  # 类型用 Long 而非 PrimaryId:0 是合法的「不用券」哨兵值,PrimaryId 标量会拒绝 0
+  preferredCouponId: Long @min(value: 0, message: "优惠券ID无效")
+  # 水票核销张数
+  ticketRedeemCount: Int @min(value: 0, message: "水票核销张数无效") @max(value: 999, message: "水票核销张数不能超过999")
+}
+
+type OrderPreviewVO {
+  # 逐商品计价明细(F-ORD-004 多商品下单:单价/小计/水票覆盖/目录价)
+  items: [OrderPreviewItemVO!]!
+  # 成交单价(分,首件商品,R-MKT-02:分组价→目录价)
+  unitPriceCents: Long!
+  priceSource: PriceSource!
+  # 商品小计(分)
+  subtotalCents: Long!
+  # 水票核销张数
+  ticketRedeemCount: Int!
+  # 被水票覆盖的商品数量(按单价 0 计入)
+  ticketCoveredQuantity: Int!
+  # 现金部分商品小计(分)
+  cashSubtotalCents: Long!
+  # 满减/折扣优惠(叠加①)
+  promotionDiscountCents: Long!
+  promotionActivityId: PrimaryId
+  promotionActivityName: String
+  # 首单立减优惠(叠加①,与满减互斥取最大 —— R-MKT-10)
+  firstOrderDiscountCents: Long!
+  firstOrderActivityId: PrimaryId
+  firstOrderActivityName: String
+  # 优惠券优惠(叠加③)
+  couponDiscountCents: Long!
+  selectedCouponId: PrimaryId
+  selectedCouponName: String
+  # 总优惠(分)
+  totalDiscountCents: Long!
+  # 商品应付(分,封顶 ≥ 0)
+  payableProductCents: Long!
+  # 配送费(分,订单域计算)
+  deliveryFeeCents: Long!
+  # 水桶费快照(分,历史字段——2026-08 水桶费改造后新订单恒为 0,见 14-misc.md §G06)
+  depositCents: Long!
+  # 实付合计(分)= 商品应付 + 配送费
+  payAmountCents: Long!
+  # 可用水票张数
+  availableTicketCount: Int!
+  # 全部可用券及各自优惠金额(最优默认勾选,用户可改选/取消)
+  couponOptions: [CouponOptionVO!]!
+  # 可用券列表(含不可用置灰项)
+  availableCoupons: [UserCouponVO!]!
+  # 买赠/满赠赠品(附加 0 价行 —— R-MKT-09)
+  giftItems: [GiftItemVO!]!
+}
+
+# 商品计价明细项(F-ORD-004 多商品下单:服务端按 R-MKT-02 逐商品解析)
+type OrderPreviewItemVO {
+  productId: PrimaryId!
+  quantity: Int!
+  # 成交单价(分,R-MKT-02:分组价→特价→新人价→目录价)
+  unitPriceCents: Long!
+  priceSource: PriceSource!
+  # 目录价(分,非目录价成交时划线展示)
+  catalogPriceCents: Long!
+  # 商品小计(分)= 成交单价 × 数量
+  subtotalCents: Long!
+  # 被水票覆盖的商品数量(按单价 0 计入应付)
+  ticketCoveredQuantity: Int!
+  # 现金部分商品小计(分)
+  cashSubtotalCents: Long!
+}
+
+type CouponOptionVO {
+  couponId: PrimaryId!
+  name: String!
+  # 该券在本订单上下文下的优惠金额(分)
+  discountCents: Long!
+  usable: Boolean!
+  # 引擎选出的最优券(默认勾选)
+  isBest: Boolean!
+}
+
+
+# 反馈提交输入
+input FeedbackSubmitInput {
+  # 反馈类型
+  feedbackType: FeedbackType!
+  # 反馈内容(10~500字)
+  content: String! @notBlank @size(min: 10, max: 500)
+  # 图片地址数组(≤3张,平台存储服务上传后回传)
+  images: [String!]
+  # 联系方式(可选)
+  contactInfo: String @size(max: 100)
+}
+
+# ============ 我的-反馈记录(F-USR-005 处理结果回传) ============
+
+# 反馈记录(用户端,仅本人数据;不含联系方式)
+type FeedbackRecordVO {
+  id: PrimaryId!
+  feedbackType: FeedbackType!
+  # 反馈内容
+  content: String!
+  # 图片地址数组(≤3张)
+  images: [String!]
+  status: FeedbackStatus!
+  # 处理结果(后台填写,未处理为空)
+  handleResult: String
+  # 处理人姓名(未处理为空)
+  handledByName: String
+  # 处理时间(未处理为空)
+  handledAt: LocalDateTime
+  # 提交时间
+  createdAt: LocalDateTime!
+}
+
+# 反馈记录分页(新式分页,参照 OrderVOPage)
+type FeedbackRecordVOPage {
+  content: [FeedbackRecordVO!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# ============ 水桶费(买水桶,G06:一次性塑料水桶费,独立支付) ============
+
+# 水桶费价目(用户端,仅启用项)
+type BarrelFeeVO {
+  id: PrimaryId!
+  # 规格(如 19L/5L)
+  specification: String!
+  # 价格(分)
+  priceCents: Long!
+}
+
+# 购桶单明细项(规格/单价/数量快照)
+type BarrelPurchaseItemVO {
+  specification: String!
+  unitPriceCents: Long!
+  quantity: Int!
+  amountCents: Long!
+}
+
+# 购桶支付状态
+enum BarrelPaymentStatus {
+  PENDING # 待支付
+  PAID # 已支付(入账)
+  CANCELLED # 已取消
+  REFUNDED # 已退还(管理员手动退还)
+}
+
+# 水桶购买单(用户端;paymentParams=微信支付参数,requiresSimulation=支付桩标记)
+type BarrelPurchaseVO {
+  id: PrimaryId!
+  orderNo: String!
+  totalAmountCents: Long!
+  paymentStatus: BarrelPaymentStatus!
+  # 支付时间(未支付为空)
+  paidAt: LocalDateTime
+  # 退还时间(未退还为空)
+  refundedAt: LocalDateTime
+  # 购买明细
+  items: [BarrelPurchaseItemVO!]!
+  createdAt: LocalDateTime!
+  requiresSimulation: Boolean!
+  paymentParams: JsonObject
+}
+
+# 购桶下单输入(每用户总限购一次,存在已支付购桶单即拦截)
+input PurchaseBarrelInput {
+  # 购桶明细(至少 1 项,数量 ≥ 1)
+  items: [PurchaseBarrelItemInput!]!
+    @size(min: 1, max: 20, message: "购桶明细数量应在1-20之间")
+}
+
+input PurchaseBarrelItemInput {
+  barrelFeeId: PrimaryId!
+  quantity: Int!
+    @min(value: 1, message: "购桶数量不能小于1")
+    @max(value: 99, message: "购桶数量不能大于99")
+}
+
+# ============ 配送时段配置(F-SYS-002,订单与履约参数) ============
+# 后台「订单与履约参数」页(system-config/order)配置立即配送时限/上午/下午/晚上时间窗与启停,
+# 用户端确认订单页(F-ORD-001)按 enabled=true 渲染配送时间选项(AC-SYS-002-01/03),
+# 订单详情按 id 映射全量时段文案(含已停用,供历史订单快照展示);未配置时按种子默认兜底。
+type DeliverySlotVO {
+  # 时段枚举(与 orders.delivery_time_slot 落库值一一对应,提交时随单快照)
+  id: DeliveryTimeSlot!
+  # 时段名称(立即配送/上午配送/下午配送/晚上配送,后端统一提供,前端不写死)
+  name: String!
+  # 时段说明(立即配送=「N分钟内」;其他=「HH:mm-HH:mm」时间窗)
+  hint: String!
+  # 是否启用(后台启停;立即配送恒启用)
+  enabled: Boolean!
 }

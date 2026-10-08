@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,41 +19,45 @@
 
 package dev.yidafu.aqua.product.domain.repository
 
+import dev.yidafu.aqua.common.domain.model.ProductModel
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.ProductStatus
-import dev.yidafu.aqua.product.domain.model.ProductModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.jpa.repository.Modifying
 import org.springframework.stereotype.Repository
 
 @Repository
-interface ProductRepository : JpaRepository<ProductModel, Long>, JpaSpecificationExecutor<ProductModel> {
-  fun findByStatus(status: ProductStatus): List<ProductModel>
+interface ProductRepository :
+  JpaRepository<ProductModel, Long>,
+  JpaSpecificationExecutor<ProductModel>,
+  ProductRepositoryCustom {
+  // 参数须用域枚举 ProductModelStatus(实体字段类型),传 GraphQL 生成枚举会在运行期报 QueryArgumentException
+  fun findByStatus(status: ProductModelStatus): List<ProductModel>
 
-  fun findByStatus(status: ProductStatus, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<ProductModel>
+  fun findByStatus(
+    status: ProductStatus,
+    pageable: org.springframework.data.domain.Pageable,
+  ): org.springframework.data.domain.Page<ProductModel>
 
-  fun findByNameContaining(name: String, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<ProductModel>
+  fun findByNameContaining(
+    name: String,
+    pageable: org.springframework.data.domain.Pageable,
+  ): org.springframework.data.domain.Page<ProductModel>
 
-  fun findByNameContainingAndStatus(name: String, status: ProductStatus, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<ProductModel>
+  fun findByNameContainingAndStatus(
+    name: String,
+    status: ProductStatus,
+    pageable: org.springframework.data.domain.Pageable,
+  ): org.springframework.data.domain.Page<ProductModel>
 
-  fun findByPriceBetween(minPrice: Long, maxPrice: Long, pageable: org.springframework.data.domain.Pageable): org.springframework.data.domain.Page<ProductModel>
-
-  // Advanced filtering methods
-  fun findByWaterSourceContaining(waterSource: String): List<ProductModel>
-
-  fun findBySalesVolumeGreaterThan(minVolume: Int): List<ProductModel>
-
-  fun findByTagsContaining(tag: String): List<ProductModel>
-
-  // Soft delete support
-  fun findByIsDeletedFalse(): List<ProductModel>
-
-  fun findByIsDeletedFalseAndStatus(status: ProductStatus): List<ProductModel>
+  fun findByPriceBetween(
+    minPrice: Long,
+    maxPrice: Long,
+    pageable: org.springframework.data.domain.Pageable,
+  ): org.springframework.data.domain.Page<ProductModel>
 
   // Sorting and ordering
   fun findAllByOrderBySalesVolumeDesc(): List<ProductModel>
-
-  fun findAllByOrderBySortOrderAsc(): List<ProductModel>
 
   fun decreaseStock(
     productId: Long,
@@ -63,7 +67,7 @@ interface ProductRepository : JpaRepository<ProductModel, Long>, JpaSpecificatio
     return if (product != null && product.stock >= quantity) {
       product.stock -= quantity
       if (product.stock == 0) {
-        product.status = ProductStatus.OUT_OF_STOCK
+        product.status = ProductModelStatus.OUT_OF_STOCK
       }
       save(product)
       1
@@ -79,8 +83,8 @@ interface ProductRepository : JpaRepository<ProductModel, Long>, JpaSpecificatio
     val product = findById(productId).orElse(null)
     return if (product != null) {
       product.stock += quantity
-      if (product.stock > 0 && product.status == ProductStatus.OUT_OF_STOCK) {
-        product.status = ProductStatus.ONLINE
+      if (product.stock > 0 && product.status == ProductModelStatus.OUT_OF_STOCK) {
+        product.status = ProductModelStatus.ONLINE
       }
       save(product)
       1

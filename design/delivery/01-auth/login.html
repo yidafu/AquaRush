@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>送水工端 · 登录｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-delivery">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>送水工端 App · 登录</h1>
+      <p class="sub">功能编号 F-USR-010 ｜ 用户与账户域 ｜ 下游：任务首页（送水工）/ 经营看板（管理员）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-USR-010</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">delivery-app · 暗色</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：默认登录态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 默认（记住账号）</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="col" style="align-items:center;gap:10px;padding:36px 0 22px">
+                <div style="width:64px;height:64px;border-radius:20px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:var(--d-text)">A</div>
+                <div class="bold" style="font-size:22px">AquaRush</div>
+                <div class="f-aux t-sub">送水配送·运营管理</div>
+              </div>
+
+              <p class="f-aux t-sub" style="text-align:center;margin:0 0 24px">欢迎使用 AquaRush 配送与运营平台</p>
+
+              <div class="field">
+                <label>用户名</label>
+                <div class="input">delivery_10086</div>
+              </div>
+
+              <div class="field">
+                <label>密码</label>
+                <div class="input">••••••••</div>
+              </div>
+
+              <div class="row between" style="margin:2px 0 20px">
+                <span class="f-aux t-sub">记住账号</span>
+                <div class="switch on"></div>
+              </div>
+
+              <div class="btn block">登录</div>
+
+              <p class="f-note t-sub" style="text-align:center;margin:20px 0 0">
+                登录即代表同意 <span class="t-brand">《用户服务协议》</span> 与 <span class="t-brand">《隐私政策》</span>
+              </p>
+
+              <p class="f-note t-weak" style="text-align:center;margin:28px 0 0">AquaRush 配送版 v1.0.0</p>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：账号不存在 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 错误提示（账号不存在）</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="col" style="align-items:center;gap:10px;padding:36px 0 22px">
+                <div style="width:64px;height:64px;border-radius:20px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:var(--d-text)">A</div>
+                <div class="bold" style="font-size:22px">AquaRush</div>
+                <div class="f-aux t-sub">送水配送·运营管理</div>
+              </div>
+
+              <div class="row wrap gap2" style="margin-bottom:16px">
+                <span class="tag tag-err tag-lg">登录失败，请检查用户名和密码</span>
+              </div>
+
+              <div class="field">
+                <label>用户名</label>
+                <div class="input">delivery_10086x</div>
+                <div class="f-note" style="color:var(--error);margin-top:5px">账号不存在</div>
+              </div>
+
+              <div class="field">
+                <label>密码</label>
+                <div class="input">••••••••</div>
+              </div>
+
+              <div class="row between" style="margin:2px 0 20px">
+                <span class="f-aux t-sub">记住账号</span>
+                <div class="switch on"></div>
+              </div>
+
+              <div class="btn block">登录</div>
+
+              <p class="f-note t-weak" style="text-align:center;margin:28px 0 0">AquaRush 配送版 v1.0.0</p>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：密码错误 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 错误提示（密码错误）</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="col" style="align-items:center;gap:10px;padding:36px 0 22px">
+                <div style="width:64px;height:64px;border-radius:20px;background:var(--grad);display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:700;color:var(--d-text)">A</div>
+                <div class="bold" style="font-size:22px">AquaRush</div>
+                <div class="f-aux t-sub">送水配送·运营管理</div>
+              </div>
+
+              <div class="row wrap gap2" style="margin-bottom:16px">
+                <span class="tag tag-err tag-lg">登录失败，请检查用户名和密码</span>
+              </div>
+
+              <div class="field">
+                <label>用户名</label>
+                <div class="input">delivery_10086</div>
+              </div>
+
+              <div class="field">
+                <label>密码</label>
+                <div class="input">••••</div>
+                <div class="f-note" style="color:var(--error);margin-top:5px">密码错误</div>
+              </div>
+
+              <div class="row between" style="margin:2px 0 20px">
+                <span class="f-aux t-sub">记住账号</span>
+                <div class="switch on"></div>
+              </div>
+
+              <div class="btn block">登录中...</div>
+
+              <p class="f-note t-weak" style="text-align:center;margin:28px 0 0">AquaRush 配送版 v1.0.0</p>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>送水工端 App（delivery-app，Expo React Native，暗色）</p>
+        <p><strong>入口：</strong>未登录由路由守卫（<code>Stack.Protected</code>）渲染本页；冷启动校验本地会话失败时回退。</p>
+        <p><strong>跳转：</strong>登录成功按角色分流——送水工（<code>DELIVERY_WORKER</code>）→ 任务首页；管理员（<code>ADMIN</code>/<code>SUPER_ADMIN</code>）→ 经营看板 / 工作台首页。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>品牌区：logo（渐变底字母标记）+ 端名「AquaRush」+ 副标题「送水配送·运营管理」</li>
+          <li>欢迎语：「欢迎使用 AquaRush 配送与运营平台」</li>
+          <li>错误提示区（仅错误时显示）：红色 tint 胶囊「登录失败，请检查用户名和密码」</li>
+          <li>输入区：用户名 + 密码（暗色输入框）</li>
+          <li>记住账号开关（默认开启）</li>
+          <li>主按钮「登录」（提交中「登录中...」）</li>
+          <li>用户协议 / 隐私政策链接；底部版本号</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>启动读取本地会话（token + userInfo），有效则保持登录态（<code>useAuth isHydrating</code>），不闪现本页。</li>
+          <li>输入账号密码 → <code>POST /api/auth/login</code>（与后台同源）→ 存 token + userInfo → 按角色 replace 分流。</li>
+          <li>401 / 会话失效 → 清本地凭证并回登录页（R-AUTH-03）。</li>
+          <li>「记住账号」仅本地记住用户名，不缓存密码。</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>加载态：</strong>按钮「登录中...」+ loading 禁用；<strong>禁用态：</strong>提交中按钮禁用，防重复提交。</p>
+        <p><strong>错误态：</strong>统一文案「登录失败，请检查用户名和密码」；字段级区分「账号不存在」「密码错误」（PRD 未细分，按语境拟定，字段级提示不改变统一主文案）。</p>
+        <p><strong>空态：</strong>用户名 / 密码为空时提示「请输入用户名和密码」。</p>
+        <p>登录方式为<strong>账号密码</strong>（非微信登录）；送水工账号由管理员创建，<strong>无自助注册入口</strong>；未登录不可进入任务页。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>送水工端<strong>完全不出现强调橙</strong>：主操作「登录」用品牌蓝（暗色态 <code>--brand</code>/<code>--d-primary</code>）；错误提示用 error 色，不用橙色。</p>
+        <p>暗色下输入框与文字对比度 ≥ 4.5:1；触达目标 ≥ 44px（夜间 / 手套操作）。</p>
+        <p>禁止设计授权弹窗页；禁止在登录页出现商品、优惠等消费者端元素。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

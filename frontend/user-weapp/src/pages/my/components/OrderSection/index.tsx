@@ -1,17 +1,14 @@
 import React from 'react'
 import { View, Text } from '@tarojs/components'
-import { AtCard, AtBadge, AtDivider } from 'taro-ui'
 import CustomIcon from '@/components/CustomIcon'
-import Taro from '@tarojs/taro'
 
-import "taro-ui/dist/style/components/card.scss"
-import "taro-ui/dist/style/components/badge.scss"
-import "taro-ui/dist/style/components/divider.scss"
+import './index.scss'
 
 interface OrderStats {
   pendingPayment: number
   pendingDelivery: number
   delivering: number
+  awaitingConfirmation: number
   completed: number
   afterSales: number
 }
@@ -24,58 +21,71 @@ interface OrderSectionProps {
 const OrderSection: React.FC<OrderSectionProps> = ({ orderStats, onOrderNavigation }) => {
   const orderItems = [
     {
-      icon: '/assets/icons/order/all.png',
+      icon: '/assets/icons/order/all',
       label: '全部',
       count: 0,
-      type: 'pending_payment',
-      color: '#ff6b35'
+      type: 'all'
     },
     {
-      icon: '/assets/icons/order/credit-card.png',
+      icon: '/assets/icons/order/credit-card',
       label: '待付款',
       count: orderStats.pendingPayment,
-      type: 'pending_payment',
-      color: '#ff6b35'
+      type: 'pending_payment'
     },
     {
-      icon: '/assets/icons/order/shopping-bag.png',
+      icon: '/assets/icons/order/shopping-bag',
       label: '待配送',
       count: orderStats.pendingDelivery,
-      type: 'pending_delivery',
-      color: '#667eea'
+      type: 'pending_delivery'
     },
     {
-      icon: '/assets/icons/order/truck.png',
+      icon: '/assets/icons/order/truck',
       label: '配送中',
       count: orderStats.delivering,
-      type: 'delivering',
-      color: '#19be6b'
+      type: 'delivering'
+    },
+    {
+      icon: '/assets/icons/order/check-circle',
+      label: '待收货',
+      count: orderStats.awaitingConfirmation,
+      type: 'awaiting_confirmation'
     }
   ]
 
   return (
-    <AtCard title='我的订单' className='h-auto mb-4'>
-      <View className='at-row'>
-        {orderItems.map((item, index) => (
+    <View className='order-card page-card'>
+      <View className='section-header'>
+        <Text className='section-title'>我的订单</Text>
+        <Text
+          className='section-extra'
+          onClick={() => onOrderNavigation('all')}
+        >
+          查看全部 ›
+        </Text>
+      </View>
+
+      <View className='order-grid'>
+        {orderItems.map((item) => (
           <View
-            key={index}
-            className='my-4 at-col at-col-3'
+            key={item.type}
+            className='order-item'
             onClick={() => onOrderNavigation(item.type)}
           >
-            <View className='flex flex-col items-center justify-center '>
-              <AtBadge value={item.count < 1 ? undefined : item.count} maxValue={99} className='order-badge'>
-                <View className='flex items-center justify-center w-10 h-10 rounded-full bg-primary-light bg-opacity-10' style={{ color: item.color }}>
-                  <CustomIcon value={item.icon} size={30} />
+            <View className='order-icon'>
+              <CustomIcon value={item.icon} size={44} />
+              {item.count > 0 && (
+                <View className='order-badge'>
+                  <Text className='order-badge-text'>
+                    {item.count > 99 ? '99+' : item.count}
+                  </Text>
                 </View>
-              </AtBadge>
-              <Text className='text-base font-medium text-center theme-text-primary'>{item.label}</Text>
+              )}
             </View>
-
+            <Text className='order-label'>{item.label}</Text>
           </View>
         ))}
       </View>
-
-    </AtCard>
+    </View>
   )
 }
 

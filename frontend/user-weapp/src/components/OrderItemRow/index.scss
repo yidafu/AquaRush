@@ -1,0 +1,77 @@
+// 商品行统一样式(收敛 order-detail/order-list/order-confirm/cart/favorites 的重复 SCSS)
+.order-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  position: relative;
+
+  .item-badge {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    background-color: var(--brand-primary-light);
+    color: var(--brand-primary);
+    font-size: 20px;
+    line-height: 1.4;
+  }
+
+  .item-image {
+    width: 90px;
+    height: 90px;
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-card);
+    flex-shrink: 0;
+  }
+
+  .item-info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .item-name {
+      font-size: 28px;
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    .item-spec {
+      font-size: 24px;
+      color: var(--text-sub);
+    }
+
+    .item-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+
+      .item-price-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+
+        .item-price {
+          font-size: 30px;
+          font-weight: 600;
+          color: var(--text-main);
+        }
+
+        .item-original-price {
+          font-size: 24px;
+          color: var(--text-weak);
+          text-decoration: line-through;
+        }
+      }
+
+      .item-quantity {
+        font-size: 24px;
+        color: var(--text-sub);
+      }
+    }
+  }
+}

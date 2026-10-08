@@ -8,7 +8,10 @@ spring:
     throw-exception-if-no-handler-found: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/aqua_rush?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    # 统计聚合时区统一 Asia/Shanghai(P2-8):PostgreSQL 会话时区显式指定,
+    # 与统计域 LocalDate.now(STATS_ZONE) 及 JVM 默认时区(应用入口 TimeZone.setDefault)保持一致,
+    # 不依赖部署环境默认时区。
+    url: jdbc:postgresql://localhost:5432/aqua_rush?useUnicode=true&characterEncoding=UTF-8&TimeZone=Asia/Shanghai
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:admin123}
     driver-class-name: org.postgresql.Driver
@@ -30,38 +33,35 @@ spring:
     generate-ddl: false        # 禁用 JPA 自动 DDL
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     default-schema: public
     drop-first: false         # 生产环境必须为 false！
-    enabled: true             # Enable Liquibase for client service
+    enabled: false            # Schema is managed by the admin service; client has no db changelog resources
 
   artemis:
-    mode: embedded
+    # 单一 broker 拓扑:client 与 admin 均连接独立 Artemis broker(tcp://localhost:61616,
+    # 仓库 artemis/ 下的 standalone 实例
+    mode: native
+    broker-url: tcp://localhost:61616
+    user: admin
+    password: admin
     embedded:
-      enabled: true
-      persistent: true
-      data-directory: ./data/artemis-user
-      queues:
-        - order-events
-        - payment-events
-        - user-events
-      topics:
-        - broadcast-events
+      enabled: false
 
   jms:
     template:
       default-destination: user-events
       delivery-mode: persistent
-      priority: 100
+      priority: 5
       time-to-live: 3600000 # 1小时
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
-    time-zone: GMT+8
+    # 统计聚合时区统一 Asia/Shanghai(P2-8),与 JDBC 会话时区/应用默认时区一致
+    time-zone: Asia/Shanghai
     serialization:
       FAIL_ON_EMPTY_BEANS: false
       INDENT_OUTPUT: true
@@ -103,25 +103,11 @@ management:
 
 logging:
   level:
-    liquibase: DEBUG
-    org.springframework.boot.autoconfigure.liquibase: DEBUG
-    root: INFO
     dev.yidafu.aqua: DEBUG
     # Enhanced logging for request troubleshooting
     dev.yidafu.aqua.security: DEBUG
     dev.yidafu.aqua.exception: DEBUG
-    dev.yidafu.aqua.error: DEBUG
-    dev.yidafu.aqua.audit: INFO
-    dev.yidafu.aqua.security.request: DEBUG
-    dev.yidafu.aqua.security.jwt: DEBUG
-    dev.yidafu.aqua.interceptor.test: DEBUG
-    # Spring Security logging
-    org.springframework.security: DEBUG
-    org.springframework.web: DEBUG
-    # Database access logging
-    org.springframework.jdbc: DEBUG
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
@@ -140,24 +126,20 @@ aqua:
     app-secret: ${WECHAT_APP_SECRET:your-app-secret}
     token: "token"
     aes-key: "string"
+    # 微信支付 V3(PRD 04-order.md §F-ORD-005):
+    # 测试环境默认假支付自动完成(mock-enabled=true);生产置 WECHAT_PAY_MOCK_ENABLED=false
+    # 并配置真实商户参数(商户号/商户私钥路径/证书序列号/APIv3 密钥),密钥不落库;
+    # 回调地址 notify-url 需为公网可达的 HTTPS 地址(生产),本地开发用 localhost。
+    pay:
+      appid: ${WECHAT_PAY_APPID:}
+      mchid: ${WECHAT_PAY_MCHID:}
+      private-key-path: ${WECHAT_PAY_PRIVATE_KEY_PATH:}
+      merchant-serial-number: ${WECHAT_PAY_MERCHANT_SERIAL_NUMBER:}
+      api-v3-key: ${WECHAT_PAY_API_V3_KEY:}
+      notify-url: ${WECHAT_PAY_NOTIFY_URL:http://localhost:8080/api/pay/notify}
+      mock-enabled: ${WECHAT_PAY_MOCK_ENABLED:true}
   messaging:
     enabled: true
-    strategy: artemis # artemis, hybrid, outbox-only, memory-only
-    # 轻量级内存队列配置
-    memory-queue:
-      enabled: true
-      max-size: 3000      # 用户服务相对较少事件
-      batch-size: 30
-      poll-interval-ms: 50   # 50ms轮询间隔，低延迟
-      high-frequency-events: ["ORDER_PAID", "PAYMENT_TIMEOUT"]
-      low-frequency-events: ["ORDER_CREATED", "ORDER_CANCELLED", "ADDRESS_UPDATED"]
-    # 传统Outbox配置（作为备份）
-    outbox:
-      enabled: true
-      poll-interval-seconds: 30  # 30秒轮询，更快响应
-      max-retry-count: 5
-      retry-delays-ms: [30000, 90000, 300000, 900000, 1800000] # 30s, 90s, 5min, 15min, 30min
-      cleanup-days: 30
   mode: client
   # Default region configuration
   region:
@@ -169,7 +151,7 @@ storage:
   local:
     base-path: ${STORAGE_BASE_PATH:./storage}
     max-file-size: 104857600  # 100MB
-    allowed-extensions: ["jpg", "jpeg", "png", "gif", "bmp", "webp", "mp4", "avi", "mov", "wmv", "flv", "mp3", "wav", "flac", "aac", "pdf", "doc", "docx", "txt", "xls", "xlsx", "csv", "ppt", "pptx", "html", "css", "js", "zip", "rar", "7z", "tar", "gz", "bak", "backup"]
+    allowed-extensions: [ "jpg", "jpeg", "png", "gif", "bmp", "webp", "mp4", "avi", "mov", "wmv", "flv", "mp3", "wav", "flac", "aac", "pdf", "doc", "docx", "txt", "xls", "xlsx", "csv", "ppt", "pptx", "html", "css", "js", "zip", "rar", "7z", "tar", "gz", "bak", "backup" ]
 
 # JWT configuration
 app:
@@ -178,4 +160,4 @@ app:
     expiration: 86400 # 24 hours in seconds
     refresh-expiration: 604800 # 7 days in seconds
   debug:
-    enabled: ${DEBUG_ENABLED:true} # Enable debug endpoints (should only be true in development)
+    enabled: ${DEBUG_ENABLED:false} # Enable debug endpoints (should only be true in development)

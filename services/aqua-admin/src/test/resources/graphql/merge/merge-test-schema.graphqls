@@ -1,0 +1,60 @@
+# Merge integration test schema (送水员档案并入 admins 单表, PRD/07-user.md §F-USR-021)
+# 自包含 schema:仅暴露 AdminDeliveryWorkerMergeIntegrationTest 需要的最小面
+
+scalar Long
+
+type Query {
+  deliveryWorkers: [DeliveryWorker!]!
+}
+
+type Mutation {
+  createAdmin(input: CreateAdminInput!): Admin!
+  createDeliveryWorker(input: CreateDeliveryWorkerInput!): DeliveryWorker!
+}
+
+type Admin {
+  id: Long!
+  username: String!
+  realName: String
+  phone: String
+  role: String!
+  onlineStatus: DeliveryWorkerStatus!
+  isAvailable: Boolean!
+}
+
+type DeliveryWorker {
+  id: Long!
+  name: String!
+  phone: String!
+  isAvailable: Boolean!
+}
+
+enum DeliveryWorkerStatus {
+  ONLINE
+  OFFLINE
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  DELIVERY_WORKER
+}
+
+input CreateAdminInput {
+  username: String
+  password: String
+  realName: String
+  phone: String
+  role: AdminRole!
+  avatarUrl: String
+  status: DeliveryWorkerStatus
+  isAvailable: Boolean
+}
+
+input CreateDeliveryWorkerInput {
+  wechatOpenId: String
+  name: String!
+  phone: String!
+  password: String
+  isAvailable: Boolean
+}

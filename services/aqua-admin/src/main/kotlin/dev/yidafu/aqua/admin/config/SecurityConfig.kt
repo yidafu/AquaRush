@@ -19,67 +19,102 @@
 
 package dev.yidafu.aqua.admin.config
 
+import dev.yidafu.aqua.common.config.CustomAccessDeniedHandler
+import dev.yidafu.aqua.common.config.CustomAuthenticationEntryPoint
+import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.http.HttpMethod
 import org.springframework.security.authentication.AuthenticationManager
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
+import org.springframework.security.authentication.dao.DaoAuthenticationProvider
+import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
-import org.springframework.security.core.Authentication
-import org.springframework.security.core.authority.AuthorityUtils
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
+import org.springframework.security.web.context.HttpSessionSecurityContextRepository
 
 @Configuration
 @EnableWebSecurity
-class SecurityConfig {
+@EnableMethodSecurity
+class SecurityConfig(
+  private val jwtAuthenticationFilter: JwtAuthenticationFilter,
+  private val customAccessDeniedHandler: CustomAccessDeniedHandler,
+  private val customAuthenticationEntryPoint: CustomAuthenticationEntryPoint,
+  private val adminUserDetailsService: AdminUserDetailsService,
+) {
+  private val log = LoggerFactory.getLogger(SecurityConfig::class.java)
 
   @Bean
   fun filterChain(http: HttpSecurity): SecurityFilterChain {
+    // Configure security context repository to persist authentication across requests
+    val securityContextRepository = HttpSessionSecurityContextRepository()
+    http.securityContext { context ->
+      context
+        .securityContextRepository(securityContextRepository)
+        .requireExplicitSave(false)
+    }
+
     http
       .authorizeHttpRequests { auth ->
         auth
           .requestMatchers(
             "/login",
+            "/api/auth/login",
+            "/api/auth/delivery/login",
             "/css/**",
             "/js/**",
+            "/static/**",
             "/images/**",
             "/graphiql",
-            "/graphql",
-            ).permitAll()
-          .anyRequest().permitAll()
-      }
-      .csrf {
+          ).permitAll()
+          // 公开文件/图片服务（后台 <img> 无法携带 Authorization header）
+          .requestMatchers(HttpMethod.GET, "/api/v1/storage/files/**")
+          .permitAll()
+          // GraphQL 必须认证；方法级权限由 @EnableMethodSecurity + @PreAuthorize 强制
+          .requestMatchers("/graphql")
+          .authenticated()
+          .requestMatchers("/api/**")
+          .authenticated()
+          // 保留遗留 HTML 页与静态资源
+          .anyRequest()
+          .permitAll()
+      }.csrf {
         it.disable()
-      }
-      .formLogin { form ->
+      }.formLogin { form ->
         form
           .loginPage("/login")
           .defaultSuccessUrl("/admin", true)
           .permitAll()
-      }
-      .logout { logout ->
+      }.logout { logout ->
         logout
           .logoutUrl("/logout")
           .logoutSuccessUrl("/login?logout")
           .permitAll()
+      }.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
+      .exceptionHandling { authenticationException ->
+        authenticationException
+          .accessDeniedHandler(customAccessDeniedHandler)
+          .authenticationEntryPoint(customAuthenticationEntryPoint)
       }
-
     return http.build()
   }
 
+  // PasswordEncoder Bean 由 aqua-foundation common/config/PasswordEncoderConfig 提供，
+  // 避免 SecurityConfig → AdminUserDetailsService → AdminServiceImpl → PasswordEncoder 循环依赖。
+
   @Bean
-  fun authenticationManager(): AuthenticationManager {
-    return AuthenticationManager { authentication: Authentication? ->
-      UsernamePasswordAuthenticationToken(
-        "anonymous", null, AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS")
-      )
-    }
+  fun authenticationProvider(passwordEncoder: PasswordEncoder): DaoAuthenticationProvider {
+    val provider = DaoAuthenticationProvider(adminUserDetailsService)
+    provider.setPasswordEncoder(passwordEncoder)
+    return provider
   }
 
   @Bean
-  fun passwordEncoder(): PasswordEncoder {
-    return BCryptPasswordEncoder()
+  fun authenticationManager(authenticationConfiguration: AuthenticationConfiguration): AuthenticationManager {
+    assert(authenticationConfiguration.authenticationManager != null) { "Authentication Manager not configured" }
+    return authenticationConfiguration.authenticationManager
   }
 }

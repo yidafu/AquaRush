@@ -1,0 +1,191 @@
+# GraphQL查询 - 管理员和送水工管理
+# 新增的GraphQL接口用于查询所有管理员和送水工
+
+# ==================== 管理员查询 ====================
+
+# 查询所有管理员（需要管理员权限）
+query GetAllAdmins {
+  admins {
+    id
+    username
+    realName
+    phone
+    role
+    lastLoginAt
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询指定管理员（需要管理员权限）
+query GetAdminById($adminId: Long!) {
+  admin(id: $adminId) {
+    id
+    username
+    realName
+    phone
+    role
+    lastLoginAt
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 送水工查询 ====================
+
+# 查询所有送水工（需要管理员或送水工权限）
+query GetAllDeliveryWorkers {
+  deliveryWorkers {
+    id
+    userId
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询所有在线送水工（需要管理员或送水工权限）
+query GetOnlineDeliveryWorkers {
+  onlineDeliveryWorkers {
+    id
+    userId
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询指定送水工（需要管理员或送水工权限）
+query GetDeliveryWorkerById($workerId: Long!) {
+  deliveryWorker(id: $workerId) {
+    id
+    userId
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 综合查询 ====================
+
+# 查询管理员统计信息
+query GetAdminsSummary {
+  admins {
+    id
+    username
+    realName
+    phone
+    role
+    lastLoginAt
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询送水工统计信息
+query GetDeliveryWorkersSummary {
+  deliveryWorkers {
+    id
+    name
+    phone
+    status
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    lastLoginAt
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询在线送水工详细信息
+query GetOnlineWorkersDetails {
+  onlineDeliveryWorkers {
+    id
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 变量示例 ====================
+
+# 管理员查询变量：
+# {
+#   "adminId": 1
+# }
+
+# 送水工查询变量：
+# {
+#   "workerId": 1000000000000000001
+# }
+
+# ==================== 权限说明 ====================
+
+# 管理员查询：
+# - admins: 需要 ROLE_ADMIN 权限
+# - admin: 需要 ROLE_ADMIN 权限
+
+# 送水工查询：
+# - deliveryWorkers: 需要 ROLE_ADMIN 或 ROLE_WORKER 权限
+# - onlineDeliveryWorkers: 需要 ROLE_ADMIN 或 ROLE_WORKER 权限
+# - deliveryWorker: 需要 ROLE_ADMIN 或 ROLE_WORKER 权限
+
+# ==================== 枚举值 ====================
+
+# WorkerStatus:
+# - ONLINE: 在线
+# - OFFLINE: 离线
+
+# AdminRole (在Admin实体中):
+# - SUPER_ADMIN: 超级管理员
+# - NORMAL_ADMIN: 普通管理员

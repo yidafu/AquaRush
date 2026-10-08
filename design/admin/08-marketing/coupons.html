@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 优惠券管理｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 优惠券管理</h1>
+      <p class="sub">功能编号 F-MKT-003 ｜ 营销域（客户与营销）｜ 下游：领券中心 / 我的优惠券 / 确认订单券选择器</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-003</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">admin-client</span>
+      <span class="chip chip-plain">缺口 G54 已解决</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：券列表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 券列表（类型 / 面额 / 门槛 / 总量 / 已领 / 已核销 / 状态）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/coupons</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>优惠券</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>优惠券</h2>
+                    <div class="desc">一单一券不可叠加；订单取消 / 退款时未过期券退回券包（核销幂等）</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">定向发放</span>
+                    <span class="btn sm">＋ 新建优惠券</span>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>券名称</span><div class="input" style="width:170px"><span class="ph">输入券名称</span></div></div>
+                  <div class="fitem"><span>券类型</span><div class="select" style="width:130px"><span>全部</span></div></div>
+                  <div class="fitem"><span>状态</span><div class="select" style="width:130px"><span>全部</span></div></div>
+                  <div class="fitem"><span>领取方式</span><div class="select" style="width:140px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">查询</span>
+                  </div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>券名</th>
+                        <th>类型</th>
+                        <th class="num">面额</th>
+                        <th class="num">门槛</th>
+                        <th class="num">总量</th>
+                        <th class="num">已领取</th>
+                        <th class="num">已核销</th>
+                        <th>有效期</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="bold">满 50 减 10</div><div class="sub-line">全场通用</div></td>
+                        <td><span class="tag tag-brand">满减券</span></td>
+                        <td class="num bold">¥10.00</td>
+                        <td class="num">满 ¥50.00</td>
+                        <td class="num">1,000</td>
+                        <td class="num">632</td>
+                        <td class="num">418</td>
+                        <td>2026-08-01 ~ 2026-12-31</td>
+                        <td><span class="tag tag-deliver">进行中</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>停用</a><a class="danger">作废</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">满 100 减 25</div><div class="sub-line">指定商品</div></td>
+                        <td><span class="tag tag-brand">满减券</span></td>
+                        <td class="num bold">¥25.00</td>
+                        <td class="num">满 ¥100.00</td>
+                        <td class="num">500</td>
+                        <td class="num">210</td>
+                        <td class="num">96</td>
+                        <td>2026-08-15 ~ 2026-11-30</td>
+                        <td><span class="tag tag-deliver">进行中</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>停用</a><a class="danger">作废</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">全场 9.5 折</div><div class="sub-line">全场通用</div></td>
+                        <td><span class="tag tag-brand">折扣券</span></td>
+                        <td class="num bold">9.50 折</td>
+                        <td class="num">满 ¥0.00</td>
+                        <td class="num">800</td>
+                        <td class="num">340</td>
+                        <td class="num">156</td>
+                        <td>2026-09-01 ~ 2026-12-31</td>
+                        <td><span class="tag tag-assign">未开始</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>停用</a><a class="danger">作废</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">新人礼 5 元券</div><div class="sub-line">指定分组</div></td>
+                        <td><span class="tag tag-brand">满减券</span></td>
+                        <td class="num bold">¥5.00</td>
+                        <td class="num">满 ¥20.00</td>
+                        <td class="num">2,000</td>
+                        <td class="num">1,240</td>
+                        <td class="num">820</td>
+                        <td>2026-06-01 ~ 2026-08-31</td>
+                        <td><span class="tag tag-done">已结束</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">满 200 减 60</div><div class="sub-line">全场通用</div></td>
+                        <td><span class="tag tag-brand">满减券</span></td>
+                        <td class="num bold">¥60.00</td>
+                        <td class="num">满 ¥200.00</td>
+                        <td class="num">300</td>
+                        <td class="num">88</td>
+                        <td class="num">41</td>
+                        <td>2026-05-01 ~ 2026-12-31</td>
+                        <td><span class="tag tag-neutral">已停用</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 5 条记录</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>2</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：新建优惠券弹窗（逐字段） ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 新建优惠券弹窗（现金券 / 折扣券两套字段显隐）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/coupons/new</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>优惠券</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title"><div><h2>优惠券</h2><div class="desc">弹窗打开态（背景遮罩）</div></div>
+                  <div class="row gap2"><span class="btn sm ghost">定向发放</span><span class="btn sm">＋ 新建优惠券</span></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>券名</th><th>类型</th><th class="num">面额</th><th class="num">已领取</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr><td>满 50 减 10</td><td><span class="tag tag-brand">满减券</span></td><td class="num">¥10.00</td><td class="num">632</td><td><span class="tag tag-deliver">进行中</span></td></tr>
+                      <tr><td>全场 9.5 折</td><td><span class="tag tag-brand">折扣券</span></td><td class="num">9.50 折</td><td class="num">340</td><td><span class="tag tag-assign">未开始</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal wide">
+              <div class="modal-head">新建优惠券</div>
+              <div class="modal-body">
+                <div class="grid2" style="gap:0 16px">
+                  <div class="field">
+                    <label class="req">券名称</label>
+                    <div class="input"><span class="ph">满 50 减 10</span></div>
+                  </div>
+                  <div class="field">
+                    <label class="req">券类型</label>
+                    <div class="radio-row">
+                      <span class="radio on">现金券（满减券）</span>
+                      <span class="radio">折扣券</span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="req">面额（元）</label>
+                    <div class="input"><span class="ph">10.00</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">仅现金券；precision=2，&gt; 0；券面额无效</div>
+                  </div>
+                  <div class="field">
+                    <label>折扣率（折）</label>
+                    <div class="input disabled"><span class="ph">9.5</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">仅折扣券；0.01–9.99；折扣率超出范围</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">使用门槛「满 X」（元）</label>
+                    <div class="input"><span class="ph">50.00</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">≥ 0；门槛金额无效</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">发放总量（张）</label>
+                    <div class="input"><span class="ph">1000</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">整数 &gt; 0</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">每人限领（张）</label>
+                    <div class="input"><span>1</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">整数 &gt; 0，占位「每人限领 1 张」</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">领取方式</label>
+                    <div class="radio-row">
+                      <span class="radio on">主动领取</span>
+                      <span class="radio">系统发放</span>
+                      <span class="radio">新人礼</span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="req">适用商品范围</label>
+                    <div class="select"><span>全场</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">选「指定商品」时联动商品多选</div>
+                  </div>
+                  <div class="field">
+                    <label>适用客户分组</label>
+                    <div class="select"><span class="ph">不限定（全部客户）</span></div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="req">有效期类型</label>
+                  <div class="radio-row">
+                    <span class="radio on">固定区间</span>
+                    <span class="radio">领取后 N 天</span>
+                  </div>
+                </div>
+                <div class="grid2" style="gap:0 16px">
+                  <div class="field">
+                    <label class="req">有效期区间</label>
+                    <div class="row gap2"><div class="input"><span>2026-09-01</span></div><span class="t-weak">–</span><div class="input"><span>2026-12-31</span></div></div>
+                    <div class="f-note t-weak" style="margin-top:4px">开始 &lt; 结束；有效期不合法</div>
+                  </div>
+                  <div class="field">
+                    <label>领取后有效天数</label>
+                    <div class="input disabled"><span class="ph">天</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">仅「领取后 N 天」启用；天数 &gt; 0</div>
+                  </div>
+                </div>
+
+                <div class="field mb0">
+                  <label>上架状态</label>
+                  <div class="row gap2">
+                    <span class="switch on"></span>
+                    <span class="f-aux t-sub">保存后即上架（可领取 / 发放）</span>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">保存并上架</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ 状态三：券详情（领取与核销记录） ============ -->
+      <div>
+        <div class="browser-cap">状态三 · 券详情（领取与核销记录 + 定向发放）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/coupons/C-20260801-01</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> 优惠券 <span class="crumb-sep">/</span> <b>券详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>满 50 减 10</h2><div class="desc">券模板 C-20260801-01 ｜ 满减券 ｜ 全场通用</div></div>
+                  <div class="row gap2"><span class="btn sm ghost">作废</span><span class="btn sm ghost">停用</span><span class="btn sm">定向发放</span></div>
+                </div>
+
+                <div class="stat-grid c3 mb3">
+                  <div class="stat-card"><span class="lbl">已领取</span><span class="val">632<small>张</small></span><span class="delta t-sub">总量 1,000 张</span></div>
+                  <div class="stat-card"><span class="lbl">已核销</span><span class="val">418<small>张</small></span><span class="delta t-sub">核销率 66.14%</span></div>
+                  <div class="stat-card"><span class="lbl">优惠金额合计</span><span class="val">¥4,180.00</span><span class="delta t-sub">Σ 优惠金额（分转元）</span></div>
+                </div>
+
+                <div class="tabs">
+                  <span class="tab-item on">领取记录</span>
+                  <span class="tab-item">核销记录</span>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr><th>用户</th><th>手机号</th><th>领取方式</th><th>领取时间</th><th>券状态</th><th>核销时间</th><th>核销订单</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="bold">张伟</td><td class="num">138****6621</td><td>主动领取</td><td>2026-08-20 10:24</td><td><span class="tag tag-deliver">已核销</span></td><td>2026-08-20 18:02</td><td class="num">A20260820180201</td></tr>
+                      <tr><td class="bold">李娜</td><td class="num">139****3308</td><td>系统发放</td><td>2026-08-19 09:12</td><td><span class="tag tag-assign">已领取</span></td><td class="t-weak">—</td><td class="t-weak">—</td></tr>
+                      <tr><td class="bold">王强</td><td class="num">137****9012</td><td>新人礼</td><td>2026-08-18 15:40</td><td><span class="tag tag-neutral">已过期</span></td><td class="t-weak">—</td><td class="t-weak">—</td></tr>
+                      <tr><td class="bold">赵敏</td><td class="num">136****2255</td><td>主动领取</td><td>2026-08-17 11:05</td><td><span class="tag tag-cancel">已退回</span></td><td>2026-08-17 20:11</td><td class="num">A20260817201108</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 632 条记录</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>2</i><i>3</i><i>›</i><span class="t-sub" style="margin-left:8px">20 条/页</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>营销管理 → 优惠券</p>
+        <p><strong>跳转：</strong>行「详情」→ 券详情（本页状态三）；用户详情「优惠券」Tab（F-USR-022）</p>
+        <p><strong>组件：</strong>Table、Modal、Form、InputNumber、Select、DatePicker、Radio、Switch</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部：面包屑 + 「新建优惠券」按钮</li>
+          <li>券列表：券名 / 类型 / 面额或折扣率 / 门槛 / 适用范围 / 有效期 / 发放方式 / 已领未用数 / 操作</li>
+          <li>新建 / 编辑弹窗表单（逐字段，见状态二）</li>
+          <li>券详情：领取与核销记录（Tabs + 表格）</li>
+          <li>定向发放弹窗：选择用户或客户分组 → 发放</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>建券 → 保存上架（可领取 / 发放）</li>
+          <li>定向发放 → 目标用户券包出现</li>
+          <li>用户端确认订单 → 满足门槛的可用券列表 → 勾选一张 → 优惠金额计入应付（R-MKT-07）</li>
+          <li>订单取消 / 退款 → 未过期券退回券包（核销幂等）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>券状态机：</strong>未领取 → 已领取 / 已核销 / 已过期 / 已退回；停用 / 作废后不可领取使用。</p>
+        <p><strong>活动态标签：</strong>未开始 .tag-assign / 进行中 .tag-deliver / 已结束 .tag-done；已停用 .tag-neutral / 已退回 .tag-cancel。</p>
+        <p><strong>校验文案：</strong>「券面额无效」「折扣率超出范围」「门槛金额无效」「有效期不合法」；操作按钮「上架 / 停用 / 作废」。一单一券不可叠加；现金券 / 折扣券两套字段显隐。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>券的<strong>视觉标识</strong>（金额 / 类型标签）在管理后台用品牌蓝或中性色；品牌强调橙（<code>--action</code>）是消费者端券卡 / 领券按钮 / 券选择器的专属，后台不出现强调橙。</p>
+        <p>金额一律分存储（R-MON-01），展示两位小数；核销幂等，退款退回未过期券。</p>
+        <p>缺口 G54 已解决：本页已形成「建券 → 发放 → 下单用券 → 退款退回」闭环。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

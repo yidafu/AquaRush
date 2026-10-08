@@ -7,8 +7,8 @@ import {
 } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { onError } from '@apollo/client/link/error';
+import { isGraphQLNullBubbleError } from '@aquarush/common/utils/network';
 import { message } from 'antd';
-import { createMockApolloLink } from '../mock/apolloMockLink';
 
 // HTTP 连接到 GraphQL 服务器
 const httpLink = createHttpLink({
@@ -29,22 +29,35 @@ const authLink = setContext((_, { headers }) => {
 
 // 错误处理 Link
 const errorLink = onError(({ graphQLErrors, networkError }) => {
-  if (graphQLErrors) {
-    graphQLErrors.forEach(({ message: errorMessage, extensions }) => {
-      // 处理认证错误
-      if (extensions?.code === 'UNAUTHENTICATED') {
-        localStorage.removeItem('token');
-        localStorage.removeItem('userInfo');
-        window.location.href = '/login';
-        return;
-      }
-      // 显示其他 GraphQL 错误
-      message.error(errorMessage || 'GraphQL 请求失败');
-    });
+  // 检查 networkError 中的 HTTP 401（后端返回的认证失败）
+  if (networkError) {
+    // 检测 HTTP 401 认证失败
+    if ('statusCode' in networkError && networkError.statusCode === 401) {
+      localStorage.removeItem('token');
+      localStorage.removeItem('userInfo');
+      window.location.href = '/login';
+      return;
+    }
+    message.error('网络连接失败，请检查网络');
+    return;
   }
 
-  if (networkError) {
-    message.error('网络连接失败，请检查网络');
+  if (graphQLErrors) {
+    graphQLErrors
+      // 过滤 graphql-java 非空字段空值冒泡机制错误(如
+      // "The field at path ... was declared as a non null type ..."),避免弹出无意义 toast
+      .filter(err => !isGraphQLNullBubbleError(err))
+      .forEach(({ message: errorMessage, extensions }) => {
+        // 处理认证错误
+        if (extensions?.code === 'UNAUTHENTICATED') {
+          localStorage.removeItem('token');
+          localStorage.removeItem('userInfo');
+          window.location.href = '/login';
+          return;
+        }
+        // 显示其他 GraphQL 错误
+        message.error(errorMessage || 'GraphQL 请求失败');
+      });
   }
 });
 
@@ -67,7 +80,7 @@ export const apolloClient = new ApolloClient({
     logLink,
     errorLink,
     authLink,
-    createMockApolloLink() || httpLink, // 如果有mock链接就使用，否则使用httpLink
+    httpLink,
   ]),
   cache: new InMemoryCache({
     // 配置缓存策略
@@ -132,21 +145,24 @@ export const useErrorHandler = () => {
     }
 
     if (error?.graphQLErrors) {
-      error.graphQLErrors.forEach((err: any) => {
-        switch (err.extensions?.code) {
-          case 'UNAUTHENTICATED':
-            message.error('登录已过期，请重新登录');
-            localStorage.removeItem('token');
-            localStorage.removeItem('userInfo');
-            window.location.href = '/login';
-            break;
-          case 'FORBIDDEN':
-            message.error('权限不足');
-            break;
-          default:
-            message.error(err.message || '操作失败');
-        }
-      });
+      error.graphQLErrors
+        // 过滤 graphql-java 非空字段空值冒泡机制错误,避免弹出无意义 toast
+        .filter((err: any) => !isGraphQLNullBubbleError(err))
+        .forEach((err: any) => {
+          switch (err.extensions?.code) {
+            case 'UNAUTHENTICATED':
+              message.error('登录已过期，请重新登录');
+              localStorage.removeItem('token');
+              localStorage.removeItem('userInfo');
+              window.location.href = '/login';
+              break;
+            case 'FORBIDDEN':
+              message.error('权限不足');
+              break;
+            default:
+              message.error(err.message || '操作失败');
+          }
+        });
     }
   };
 };

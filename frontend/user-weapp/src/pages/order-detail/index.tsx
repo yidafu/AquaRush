@@ -1,7 +1,28 @@
-import { Component } from 'react'
-import { View, Text, Image, Button, Progress, Steps } from '@tarojs/components'
-import { AtCard, AtIcon, AtButton, AtToast, AtTag, AtTimeline, AtProgress } from 'taro-ui'
-import Taro from '@tarojs/taro'
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { View, Text } from '@tarojs/components'
+import { AtButton, AtToast } from 'taro-ui'
+import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import {
+  DeliverySlotVo,
+  OrderStatus,
+  useOrderDetail,
+  type OrderDetailView
+} from '@aquarush/common'
+import OrderService from '../../services/OrderService'
+import ConfigService from '../../services/ConfigService'
+import { userActionTracker } from '../../utils/tracking'
+import { DEFAULT_DELIVERY_SLOTS } from '../../utils/deliverySlots'
+
+// 子组件
+import OrderStatusHeader from './components/OrderStatusHeader'
+import DeliveryWorkerCard from '../../components/DeliveryWorkerCard'
+import OrderTimelineCard from './components/OrderTimelineCard'
+import OrderItemsCard from './components/OrderItemsCard'
+import OrderReviewCard from './components/OrderReviewCard'
+import OrderInfoCard from './components/OrderInfoCard'
+import AddressSummaryCard from '../../components/AddressSummaryCard'
+import OrderActions from './components/OrderActions'
+import type { OrderDetail, ReviewCheckState } from './components/constants'
 
 import "taro-ui/dist/style/components/card.scss"
 import "taro-ui/dist/style/components/icon.scss"
@@ -12,253 +33,277 @@ import "taro-ui/dist/style/components/timeline.scss"
 import "taro-ui/dist/style/components/progress.scss"
 import './index.scss'
 
-interface OrderItem {
-  id: string
-  name: string
-  image: string
-  price: number
-  quantity: number
-  specifications?: string[]
+/** 时间轴图标语义键 → taro-ui AtIcon value(common 视图为平台无关语义) */
+const TIMELINE_ICON: Record<OrderDetailView['timeline'][number]['icon'], string> = {
+  'order-created': 'bookmark',
+  paid: 'credit-card',
+  'delivery-started': 'truck',
+  completed: 'check-circle'
 }
 
-interface DeliveryInfo {
-  deliveryWorkerId?: string
-  deliveryWorkerName?: string
-  deliveryWorkerPhone?: string
-  deliveryWorkerAvatar?: string
-  estimatedDeliveryTime?: string
-  currentLocation?: string
-  deliveryDistance?: string
+/** 时间轴 tone → 页面 CSS 变量色 */
+const TIMELINE_COLOR: Record<string, string> = {
+  info: 'var(--brand-primary)',
+  accent: 'var(--action)',
+  success: 'var(--success)'
 }
 
-interface OrderTimeline {
-  time: string
-  title: string
-  content?: string
-  icon?: string
-  color?: string
-}
+/**
+ * 订单详情页(F-ORD-003)
+ * 加载编排/订单快照归一化/费用明细行/状态派生由 @aquarush/common 的 useOrderDetail 共享
+ * (weapp 与 delivery-app 同源);本页保留 weapp 展示模型适配(小写状态键、AtIcon 图标、
+ * CSS 变量色)与事件处理,渲染全部由 components/ 子组件完成。
+ * 已完成订单额外加载评价信息(F-ORD-007);配送时段配置(F-SYS-002)并行加载不阻塞详情。
+ */
+const OrderDetailPage: React.FC = () => {
+  const [orderId, setOrderId] = useState<string>('')
+  const [showToast, setShowToast] = useState<boolean>(false)
+  const [toastText, setToastText] = useState<string>('')
+  const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
+  // 评价信息(F-ORD-007):已完成订单的评价入口/已评内容
+  const [reviewInfo, setReviewInfo] = useState<ReviewCheckState | null>(null)
+  // 配送时段配置(F-SYS-002:全量含已停用,历史订单时段文案按配置渲染,兜底见 DELIVERY_TIME_SLOT_MAP)
+  const [deliverySlots, setDeliverySlots] = useState<DeliverySlotVo[]>(DEFAULT_DELIVERY_SLOTS)
 
-interface OrderDetailState {
-  order: {
-    id: string
-    orderNo: string
-    status: 'pending_payment' | 'pending_delivery' | 'delivering' | 'completed' | 'cancelled'
-    items: OrderItem[]
-    totalAmount: number
-    deliveryFee: number
-    finalAmount: number
-    address: {
-      receiverName: string
-      phone: string
-      province: string
-      city: string
-      district: string
-      detailAddress: string
+  const loadingRef = useRef<boolean>(true)
+
+  /**
+   * GraphQL OrderStatus → 页面状态键(weapp 展示模型小写键;渲染语义与文案见 common order-status)
+   */
+  const mapStatus = useCallback((status: OrderStatus): OrderDetail['status'] => {
+    const map: Record<OrderStatus, OrderDetail['status']> = {
+      PENDING_PAYMENT: 'pending_payment',
+      PENDING_DELIVERY: 'pending_delivery',
+      PENDING_DISPATCH: 'pending_delivery',
+      DELIVERING: 'delivering',
+      AWAITING_CONFIRMATION: 'awaiting_confirmation',
+      COMPLETED: 'completed',
+      CANCELLED: 'cancelled',
+      REFUNDED: 'cancelled'
     }
-    paymentMethod: string
-    deliveryTime: string
-    createTime: string
-    paymentTime?: string
-    acceptTime?: string
-    deliveryTime?: string
-    completedTime?: string
-    cancelledTime?: string
-    remark?: string
-    deliveryInfo?: DeliveryInfo
-    timeline: OrderTimeline[]
-  } | null
-  loading: boolean
-  showToast: boolean
-  toastText: string
-  toastType: 'success' | 'error' | 'loading'
-  refreshing: boolean
-}
+    return map[status] || 'pending_payment'
+  }, [])
 
-const STATUS_MAP = {
-  pending_payment: { text: '待付款', color: 'var(--theme-secondary)', step: 1 },
-  pending_delivery: { text: '待配送', color: 'var(--theme-primary)', step: 2 },
-  delivering: { text: '配送中', color: 'var(--theme-success)', step: 3 },
-  completed: { text: '已完成', color: 'var(--theme-text-tertiary)', step: 4 },
-  cancelled: { text: '已取消', color: 'var(--theme-text-tertiary)', step: 0 }
-}
+  /**
+   * common OrderDetailView → 页面订单结构(仅做展示模型适配;items/时间轴/地址/营销快照
+   * 已由 toOrderDetailView 归一化,金额均为分)
+   */
+  const mapViewToDetail = useCallback(
+    (view: OrderDetailView): OrderDetail => {
+      const order = view.order
+      return {
+        id: order.id,
+        orderNo: order.orderNo,
+        status: mapStatus(order.status),
+        items: view.items.map((item) => ({
+          id: item.id,
+          name: item.name,
+          image: item.image || '/assets/default-product.png',
+          priceCents: item.unitPriceCents,
+          originalPriceCents: item.catalogPriceCents,
+          hasMarketingPrice: item.hasMarketingPrice,
+          quantity: item.quantity,
+          specifications: item.specification ? [item.specification] : []
+        })),
+        totalAmount: order.amountCents,
+        deliveryFee: order.deliveryFeeCents,
+        finalAmount: order.payAmountCents,
+        // 营销计价快照(分,费用明细行展示依据 —— R-MKT-02/07/08/09/10)
+        subtotalCents: view.items.reduce((sum, item) => sum + item.unitPriceCents * item.quantity, 0),
+        promotionDiscountCents: order.promotionDiscountCents ?? 0,
+        promotionActivityName: order.promotionActivityName || undefined,
+        firstOrderDiscountCents: order.firstOrderDiscountCents ?? 0,
+        firstOrderActivityName: order.firstOrderActivityName || undefined,
+        couponDiscountCents: order.couponDiscountCents ?? 0,
+        couponName: order.couponName || undefined,
+        ticketRedeemCount: order.ticketRedeemCount ?? 0,
+        ticketDiscountCents: order.ticketDiscountCents ?? 0,
+        // 水桶费快照(历史字段,2026-08 水桶费改造后新订单恒为 0,仅旧订单有值,见 14-misc.md §G06)
+        depositCents: order.depositCents ?? 0,
+        giftItems: (order.giftItems ?? []).map((gift) => ({
+          productId: String(gift.productId),
+          productName: gift.productName || '赠品',
+          quantity: gift.quantity ?? 0
+        })),
+        address: view.address ?? {
+          receiverName: '',
+          phone: '',
+          province: '',
+          city: '',
+          district: '',
+          detailAddress: ''
+        },
+        paymentMethod: order.paymentMethod === 'WECHAT_PAY' ? 'wechat' : (order.paymentMethod || 'wechat'),
+        deliveryTime: 'immediate',
+        // 配送时段(AC-ORD-001-05):随单快照,缺省=立即配送
+        deliveryTimeSlot: order.deliveryTimeSlot || 'IMMEDIATE',
+        createTime: order.createdAt || '',
+        paymentTime: order.paymentTime || undefined,
+        remark: order.remark || undefined,
+        timeline: view.timeline.map((t) => ({
+          time: t.time,
+          title: t.title,
+          content: t.content,
+          icon: TIMELINE_ICON[t.icon],
+          color: TIMELINE_COLOR[t.tone]
+        })),
+        deliveryInfo: order.deliveryWorker
+          ? {
+              deliveryWorkerId: String(order.deliveryWorker.id ?? ''),
+              deliveryWorkerName: order.deliveryWorker.name,
+              deliveryWorkerPhone: order.deliveryWorker.phone,
+              deliveryWorkerAvatar: order.deliveryWorker.avatarUrl ?? undefined
+            }
+          : undefined
+      }
+    },
+    [mapStatus]
+  )
 
-const PAYMENT_METHOD_MAP = {
-  wechat: '微信支付',
-  balance: '余额支付'
-}
-
-export default class OrderDetail extends Component<{}, OrderDetailState> {
-  orderId: string = ''
-
-  constructor(props) {
-    super(props)
-    this.state = {
-      order: null,
-      loading: true,
-      showToast: false,
-      toastText: '',
-      toastType: 'success',
-      refreshing: false
+  // 共享加载编排(useOrderDetail:loading/error/refresh + 费用明细行 + 状态派生)
+  const {
+    order: rawOrder,
+    loading,
+    error,
+    refresh,
+    view,
+    costRows
+  } = useOrderDetail(orderId || undefined, {
+    fetchOrder: async () => {
+      const result = await OrderService.getInstance().getOrder(orderId)
+      return result.success && result.data ? result.data : null
     }
-  }
+  })
 
-  componentDidMount() {
-    // 获取页面参数
+  const order = useMemo(() => (view ? mapViewToDetail(view) : null), [view, mapViewToDetail])
+
+  // 加载失败提示(共享 hook 的 error)
+  useEffect(() => {
+    if (error) {
+      showToastMessage('获取订单详情失败', 'error')
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [error])
+
+  useEffect(() => {
+    loadingRef.current = loading
+  }, [loading])
+
+  const showToastMessage = useCallback((text: string, type: 'success' | 'error' | 'loading' = 'success') => {
+    setShowToast(true)
+    setToastText(text)
+    setToastType(type)
+  }, [])
+
+  const hideToast = useCallback(() => {
+    setShowToast(false)
+  }, [])
+
+  const loadDeliverySlots = useCallback(async () => {
+    try {
+      const result = await ConfigService.getDeliverySlots()
+      if (result.success && result.data && result.data.length > 0) {
+        setDeliverySlots(result.data)
+      }
+    } catch (error) {
+      console.error('获取配送时段配置失败:', error)
+    }
+  }, [])
+
+  const loadReviewCheck = useCallback(async (orderId: string) => {
+    try {
+      const result = await OrderService.getInstance().getReviewCheck(orderId)
+      if (result.success && result.data) {
+        setReviewInfo(result.data)
+      }
+    } catch (error) {
+      console.error('获取评价信息失败:', error)
+    }
+  }, [])
+
+  // 已完成订单:加载评价信息(F-ORD-007)
+  useEffect(() => {
+    if (rawOrder?.status === OrderStatus.COMPLETED && orderId) {
+      loadReviewCheck(orderId)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rawOrder?.status, orderId])
+
+  // 初始化:读取路由参数 + 并行加载配送时段配置(F-SYS-002,失败兜底默认,不阻塞详情加载)
+  useReady(() => {
     const instance = Taro.getCurrentInstance()
-    const { orderId } = instance.router?.params || {}
+    const { orderId: routeOrderId } = instance.router?.params || {}
 
-    if (orderId) {
-      this.orderId = orderId
-      this.loadOrderDetail()
+    loadDeliverySlots()
+
+    if (routeOrderId) {
+      setOrderId(routeOrderId)
     } else {
-      this.showToast('订单ID缺失', 'error')
+      showToastMessage('订单ID缺失', 'error')
       setTimeout(() => {
         Taro.navigateBack()
       }, 1500)
     }
-  }
+  })
 
-  componentDidShow() {
-    // 页面显示时刷新订单详情
-    if (this.orderId && !this.state.loading) {
-      this.loadOrderDetail()
+  // 页面显示时刷新订单详情
+  useDidShow(() => {
+    userActionTracker.trackPageView()
+    if (orderId && !loadingRef.current) {
+      void refresh()
     }
-  }
+  })
 
-  onPullDownRefresh = () => {
-    this.setState({ refreshing: true }, () => {
-      this.loadOrderDetail().finally(() => {
-        Taro.stopPullDownRefresh()
-      })
+  // 下拉刷新
+  usePullDownRefresh(() => {
+    refresh().finally(() => {
+      Taro.stopPullDownRefresh()
     })
-  }
+  })
 
-  showToast = (text: string, type: 'success' | 'error' | 'loading' = 'success') => {
-    this.setState({
-      showToast: true,
-      toastText: text,
-      toastType: type
-    })
-  }
-
-  hideToast = () => {
-    this.setState({ showToast: false })
-  }
-
-  loadOrderDetail = async () => {
-    try {
-      this.setState({ loading: true })
-
-      // TODO: 实际项目中这里应该调用获取订单详情的API
-      // const order = await getOrderDetail(this.orderId)
-
-      // 模拟订单详情数据
-      const mockOrder = {
-        id: this.orderId,
-        orderNo: 'ORD202412020001',
-        status: 'delivering' as const,
-        items: [
-          {
-            id: '1',
-            name: '农夫山泉 天然矿泉水 550ml',
-            image: '/assets/product-water.jpg',
-            price: 2.00,
-            quantity: 2,
-            specifications: ['24瓶装']
-          },
-          {
-            id: '2',
-            name: '怡宝 纯净水 380ml',
-            image: '/assets/product-water.jpg',
-            price: 1.50,
-            quantity: 3,
-            specifications: ['36瓶装']
-          }
-        ],
-        totalAmount: 87.00,
-        deliveryFee: 0,
-        finalAmount: 87.00,
-        address: {
-          receiverName: '张三',
-          phone: '13800138000',
-          province: '广东省',
-          city: '深圳市',
-          district: '南山区',
-          detailAddress: '科技园南区深南大道9988号'
-        },
-        paymentMethod: 'wechat',
-        deliveryTime: 'immediate',
-        createTime: '2024-12-02 10:30:00',
-        paymentTime: '2024-12-02 10:35:00',
-        acceptTime: '2024-12-02 10:45:00',
-        actualDeliveryTime: '2024-12-02 10:50:00',
-        remark: '请送到前台',
-        deliveryInfo: {
-          deliveryWorkerId: 'DW001',
-          deliveryWorkerName: '配送员小李',
-          deliveryWorkerPhone: '13600136000',
-          deliveryWorkerAvatar: '/assets/delivery-worker.jpg',
-          estimatedDeliveryTime: '2024-12-02 11:15:00',
-          currentLocation: '科技园北区',
-          deliveryDistance: '1.2km'
-        },
-        timeline: [
-          {
-            time: '2024-12-02 10:30:00',
-            title: '订单创建',
-            content: '您的订单已创建',
-            icon: 'bookmark',
-            color: 'var(--theme-primary)'
-          },
-          {
-            time: '2024-12-02 10:35:00',
-            title: '支付成功',
-            content: '使用微信支付成功',
-            icon: 'credit-card',
-            color: 'var(--theme-secondary)'
-          },
-          {
-            time: '2024-12-02 10:45:00',
-            title: '商家接单',
-            content: '商家已接单，正在准备商品',
-            icon: 'shopping-bag',
-            color: 'var(--theme-primary)'
-          },
-          {
-            time: '2024-12-02 10:50:00',
-            title: '配送员取货',
-            content: '配送员小李已取货，正在配送中',
-            icon: 'truck',
-            color: 'var(--theme-success)'
-          }
-        ]
-      }
-
-      this.setState({ order: mockOrder })
-    } catch (error) {
-      console.error('获取订单详情失败:', error)
-      this.showToast('获取订单详情失败', 'error')
-    } finally {
-      this.setState({
-        loading: false,
-        refreshing: false
-      })
-    }
-  }
-
-  handlePayment = () => {
-    const { order } = this.state
+  /**
+   * 立即支付(F-ORD-005):测试环境假支付自动完成,真实环境拉起微信支付
+   */
+  const handlePayment = async () => {
     if (!order) return
 
-    // 跳转到支付页面
-    Taro.navigateTo({
-      url: `/pages/payment/index?orderId=${order.id}&amount=${order.finalAmount}`
-    })
+    showToastMessage('正在发起支付...', 'loading')
+
+    const payResult = await OrderService.getInstance().createOrderPayment(order.id)
+    if (!payResult.success || !payResult.data) {
+      showToastMessage(payResult.error?.message || '支付发起失败', 'error')
+      return
+    }
+    const { autoCompleted, requiresSimulation, paymentParams } = payResult.data
+
+    // 测试环境假支付:服务端已自动完成,直接刷新订单状态
+    if (autoCompleted) {
+      showToastMessage('支付成功（模拟支付自动完成）', 'success')
+      setTimeout(() => refresh(), 800)
+      return
+    }
+    if (requiresSimulation || !paymentParams) {
+      showToastMessage('支付功能待接入', 'error')
+      return
+    }
+
+    try {
+      await Taro.requestPayment({
+        timeStamp: paymentParams.timeStamp as string,
+        nonceStr: paymentParams.nonceStr as string,
+        package: paymentParams.package as string,
+        signType: paymentParams.signType as 'MD5' | 'HMAC-SHA256' | 'RSA',
+        paySign: paymentParams.paySign as string
+      })
+      showToastMessage('支付成功', 'success')
+      setTimeout(() => refresh(), 800)
+    } catch (e) {
+      console.error('微信支付未完成:', e)
+      showToastMessage('支付未完成，请重试', 'error')
+    }
   }
 
-  handleCancelOrder = () => {
-    const { order } = this.state
+  const handleCancelOrder = () => {
     if (!order) return
 
     Taro.showModal({
@@ -267,24 +312,79 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       success: async (res) => {
         if (res.confirm) {
           try {
-            // TODO: 实际项目中这里应该调用取消订单的API
-            // await cancelOrder(order.id)
-
-            this.showToast('订单已取消', 'success')
+            // 真实取消接口(F-ORD-006,G02 接线):未支付即时取消恢复库存;已支付自动退款
+            const result = await OrderService.getInstance().cancelOrder(order.id)
+            if (!result.success) {
+              throw new Error(result.error?.message || '取消订单失败')
+            }
+            showToastMessage('订单已取消', 'success')
 
             // 刷新订单详情
-            this.loadOrderDetail()
+            refresh()
           } catch (error) {
             console.error('取消订单失败:', error)
-            this.showToast('取消订单失败', 'error')
+            showToastMessage(error instanceof Error ? error.message : '取消订单失败', 'error')
           }
         }
       }
     })
   }
 
-  handleContactDelivery = () => {
-    const { order } = this.state
+  /**
+   * 催单(F-ORD-008):仅配送中订单展示按钮;服务端防抖,短时间重复点击仅一次生效
+   */
+  const handleUrgeOrder = async () => {
+    if (!order) return
+    try {
+      const result = await OrderService.getInstance().urgeOrder(order.id)
+      if (!result.success) {
+        throw new Error(result.error?.message || '催单失败')
+      }
+      showToastMessage('催单已发出', 'success')
+    } catch (error) {
+      console.error('催单失败:', error)
+      showToastMessage(error instanceof Error ? error.message : '催单失败,请稍后再试', 'error')
+    }
+  }
+
+  /**
+   * 确认收货(R-ORD-11):仅待确认收货订单展示;确认后按确认时间计入营收,
+   * 送达 7 天未确认由系统自动签收(配置 auto_confirm_receipt_days)
+   */
+  const handleConfirmReceipt = () => {
+    if (!order) return
+
+    Taro.showModal({
+      title: '确认收货',
+      content: '请确认已收到本次配送的商品。确认后订单完成,7 天内未确认将自动签收。',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            const result = await OrderService.getInstance().confirmReceipt(order.id)
+            if (!result.success) {
+              throw new Error(result.error?.message || '确认收货失败')
+            }
+            showToastMessage('确认收货成功', 'success')
+            refresh()
+          } catch (error) {
+            console.error('确认收货失败:', error)
+            showToastMessage(error instanceof Error ? error.message : '确认收货失败', 'error')
+          }
+        }
+      }
+    })
+  }
+
+  /**
+   * 进入评价页(F-ORD-007)
+   */
+  const handleReview = () => {
+    Taro.navigateTo({
+      url: `/pages/order-review/index?orderId=${orderId}`
+    })
+  }
+
+  const handleContactDelivery = () => {
     if (!order || !order.deliveryInfo?.deliveryWorkerPhone) return
 
     Taro.makePhoneCall({
@@ -292,40 +392,13 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     })
   }
 
-  handleConfirmReceive = () => {
-    const { order } = this.state
-    if (!order) return
-
-    Taro.showModal({
-      title: '确认收货',
-      content: '确定已收到商品吗？',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            // TODO: 实际项目中这里应该调用确认收货的API
-            // await confirmReceive(order.id)
-
-            this.showToast('确认收货成功', 'success')
-
-            // 刷新订单详情
-            this.loadOrderDetail()
-          } catch (error) {
-            console.error('确认收货失败:', error)
-            this.showToast('确认收货失败', 'error')
-          }
-        }
-      }
-    })
-  }
-
-  handleReorder = () => {
-    const { order } = this.state
+  const handleReorder = () => {
     if (!order) return
 
     // 检查order.items是否为数组
     if (!Array.isArray(order.items)) {
       console.warn('handleReorder: order.items is not an array', order.items)
-      this.showToast('订单商品信息异常', 'error')
+      showToastMessage('订单商品信息异常', 'error')
       return
     }
 
@@ -334,7 +407,7 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
       products: order.items.map(item => ({
         id: item.id,
         name: item.name || '商品名称',
-        price: item.price || 0,
+        price: item.priceCents || 0,
         quantity: item.quantity || 0,
         image: item.image || '/assets/default-product.png',
         specifications: Array.isArray(item.specifications) ? item.specifications : []
@@ -349,20 +422,18 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     })
   }
 
-  handleCopyOrderNo = () => {
-    const { order } = this.state
+  const handleCopyOrderNo = () => {
     if (!order) return
 
     Taro.setClipboardData({
       data: order.orderNo,
       success: () => {
-        this.showToast('订单号已复制', 'success')
+        showToastMessage('订单号已复制', 'success')
       }
     })
   }
 
-  handleTrackDelivery = () => {
-    const { order } = this.state
+  const handleTrackDelivery = () => {
     if (!order) return
 
     // 跳转到配送跟踪页面
@@ -371,370 +442,109 @@ export default class OrderDetail extends Component<{}, OrderDetailState> {
     })
   }
 
-  getTimelineColor = (color?: string): 'blue' | 'green' | 'red' | 'yellow' => {
-    if (!color) return 'blue'
-
-    const colorMap: Record<string, 'blue' | 'green' | 'red' | 'yellow'> = {
-      'var(--theme-primary)': 'blue',
-      'var(--theme-success)': 'green',
-      'var(--theme-secondary)': 'red',
-      'var(--theme-warning)': 'yellow',
-      // Legacy color mappings for backward compatibility
-      '#667eea': 'blue',
-      '#19be6b': 'green',
-      '#ff6b35': 'red',
-      '#ffc107': 'yellow'
-    }
-
-    return colorMap[color] || 'blue'
+  const handleContinueShopping = () => {
+    Taro.switchTab({ url: '/pages/home/index' })
   }
 
-  renderOrderItems = (items: OrderItem[] = []) => {
-    if (!Array.isArray(items)) {
-      console.warn('renderOrderItems: items is not an array', items)
-      return <View className='order-items'><Text>暂无商品信息</Text></View>
-    }
-
-    return (
-      <View className='order-items'>
-        {items.map((item, index) => (
-          <View key={`${item.id}-${index}`} className='order-item'>
-            <Image
-              src={item.image || '/assets/default-product.png'}
-              mode='aspectFill'
-              className='item-image'
-            />
-            <View className='item-info'>
-              <Text className='item-name'>{item.name || '商品名称'}</Text>
-              {item.specifications && Array.isArray(item.specifications) && item.specifications.length > 0 && (
-                <Text className='item-spec'>
-                  规格：{item.specifications.join(', ')}
-                </Text>
-              )}
-              <View className='item-bottom'>
-                <Text className='item-price'>¥{(item.price || 0).toFixed(2)}</Text>
-                <Text className='item-quantity'>x{item.quantity || 0}</Text>
-              </View>
-            </View>
-          </View>
-        ))}
-      </View>
-    )
-  }
-
-  render() {
-    const { order, loading, showToast, toastText, toastType } = this.state
-
-    if (loading) {
-      return (
-        <View className='order-detail-page'>
-          <View className='loading-container'>
-            <Text>加载中...</Text>
-          </View>
-        </View>
-      )
-    }
-
-    if (!order) {
-      return (
-        <View className='order-detail-page'>
-          <View className='error-container'>
-            <Text>订单不存在</Text>
-            <AtButton
-              type='primary'
-              size='small'
-              onClick={() => Taro.navigateBack()}
-            >
-              返回
-            </AtButton>
-          </View>
-        </View>
-      )
-    }
-
-    const status = STATUS_MAP[order.status] || STATUS_MAP.cancelled
-
+  // 首帧(useReady 尚未写入路由参数)与加载中统一显示加载态
+  if (loading || !orderId) {
     return (
       <View className='order-detail-page'>
-        {/* 订单状态头部 */}
-        <View className='status-header' style={{ background: `linear-gradient(135deg, ${status.color}22, ${status.color}11)` }}>
-          <View className='status-info'>
-            <AtTag
-              type='primary'
-              size='large'
-              circle
-              customStyle={{
-                background: status.color,
-                color: 'white',
-                border: 'none'
-              }}
-            >
-              {status.text}
-            </AtTag>
-            <Text className='order-no'>
-              订单号：{order.orderNo}
-              <AtIcon
-                value='copy'
-                size='14'
-                color='#667eea'
-                onClick={this.handleCopyOrderNo}
-              />
-            </Text>
-          </View>
-
-          {/* 配送进度 */}
-          {order.status !== 'cancelled' && order.status !== 'pending_payment' && (
-            <View className='delivery-progress'>
-              <AtProgress
-                percent={status.step * 25}
-                strokeWidth={4}
-                color={status.color}
-                isShowPercent={false}
-              />
-              <View className='progress-steps'>
-                <View className={`step-item ${status.step >= 1 ? 'active' : ''}`}>
-                  <View className='step-dot' />
-                  <Text className='step-text'>下单</Text>
-                </View>
-                <View className={`step-item ${status.step >= 2 ? 'active' : ''}`}>
-                  <View className='step-dot' />
-                  <Text className='step-text'>付款</Text>
-                </View>
-                <View className={`step-item ${status.step >= 3 ? 'active' : ''}`}>
-                  <View className='step-dot' />
-                  <Text className='step-text'>配送</Text>
-                </View>
-                <View className={`step-item ${status.step >= 4 ? 'active' : ''}`}>
-                  <View className='step-dot' />
-                  <Text className='step-text'>完成</Text>
-                </View>
-              </View>
-            </View>
-          )}
+        <View className='loading-container'>
+          <Text>加载中...</Text>
         </View>
-
-        {/* 配送员信息 */}
-        {order.status === 'delivering' && order.deliveryInfo && (
-          <AtCard
-            title='配送员信息'
-            className='delivery-info-card shadow-default'
-          >
-            <View className='delivery-worker'>
-              <View className='worker-avatar'>
-                <Image
-                  src={order.deliveryInfo.deliveryWorkerAvatar || '/assets/default-avatar.png'}
-                  mode='aspectFill'
-                  className='avatar-image'
-                />
-              </View>
-              <View className='worker-info'>
-                <Text className='worker-name'>{order.deliveryInfo.deliveryWorkerName}</Text>
-                <Text className='worker-phone'>{order.deliveryInfo.deliveryWorkerPhone}</Text>
-                <Text className='delivery-location'>
-                  <AtIcon value='map-pin' size='12' color='#999' />
-                  {order.deliveryInfo.currentLocation} · {order.deliveryInfo.deliveryDistance}
-                </Text>
-              </View>
-              <View className='worker-actions'>
-                <AtButton
-                  type='primary'
-                  size='small'
-                  circle
-                  onClick={this.handleContactDelivery}
-                >
-                  <AtIcon value='phone' size='14' color='white' />
-                </AtButton>
-                <AtButton
-                  type='secondary'
-                  size='small'
-                  circle
-                  onClick={this.handleTrackDelivery}
-                >
-                  <AtIcon value='navigation' size='14' color='#666' />
-                </AtButton>
-              </View>
-            </View>
-          </AtCard>
-        )}
-
-        {/* 订单时间轴 */}
-        {Array.isArray(order.timeline) && order.timeline.length > 0 && (
-          <AtCard
-            title='订单跟踪'
-            className='timeline-card shadow-default'
-          >
-            <AtTimeline
-              items={order.timeline.map(item => ({
-                title: item.title || '状态更新',
-                content: Array.isArray(item.content) ? item.content : [item.content || ''],
-                icon: item.icon || 'clock',
-                color: this.getTimelineColor(item.color)
-              }))}
-            />
-          </AtCard>
-        )}
-
-        {/* 商品信息 */}
-        <AtCard
-          title='商品信息'
-          className='items-card shadow-default'
-        >
-          {this.renderOrderItems(order.items)}
-          <View className='order-summary'>
-            <View className='summary-item'>
-              <Text className='summary-label'>商品总价</Text>
-              <Text className='summary-value'>¥{order.totalAmount.toFixed(2)}</Text>
-            </View>
-            <View className='summary-item'>
-              <Text className='summary-label'>配送费</Text>
-              <Text className='summary-value'>
-                {order.deliveryFee === 0 ? '免配送费' : `¥${order.deliveryFee.toFixed(2)}`}
-              </Text>
-            </View>
-            <View className='summary-item total'>
-              <Text className='summary-label'>实付金额</Text>
-              <Text className='summary-value total-amount'>¥{order.finalAmount.toFixed(2)}</Text>
-            </View>
-          </View>
-        </AtCard>
-
-        {/* 订单信息 */}
-        <AtCard
-          title='订单信息'
-          className='info-card shadow-default'
-        >
-          <View className='info-item'>
-            <Text className='info-label'>支付方式</Text>
-            <Text className='info-value'>{PAYMENT_METHOD_MAP[order.paymentMethod] || order.paymentMethod}</Text>
-          </View>
-          <View className='info-item'>
-            <Text className='info-label'>下单时间</Text>
-            <Text className='info-value'>{order.createTime}</Text>
-          </View>
-          {order.paymentTime && (
-            <View className='info-item'>
-              <Text className='info-label'>支付时间</Text>
-              <Text className='info-value'>{order.paymentTime}</Text>
-            </View>
-          )}
-          {order.completedTime && (
-            <View className='info-item'>
-              <Text className='info-label'>完成时间</Text>
-              <Text className='info-value'>{order.completedTime}</Text>
-            </View>
-          )}
-          {order.remark && (
-            <View className='info-item'>
-              <Text className='info-label'>订单备注</Text>
-              <Text className='info-value'>{order.remark}</Text>
-            </View>
-          )}
-        </AtCard>
-
-        {/* 收货地址 */}
-        <AtCard
-          title='收货地址'
-          className='address-card shadow-default'
-        >
-          <View className='address-content'>
-            <View className='address-header'>
-              <Text className='receiver-name'>{order.address.receiverName}</Text>
-              <Text className='receiver-phone'>{order.address.phone}</Text>
-            </View>
-            <Text className='address-detail'>
-              {order.address.province} {order.address.city} {order.address.district} {order.address.detailAddress}
-            </Text>
-          </View>
-        </AtCard>
-
-        {/* 底部操作按钮 */}
-        <View className='bottom-actions shadow-action'>
-          {order.status === 'pending_payment' && (
-            <>
-              <AtButton
-                type='secondary'
-                size='normal'
-                onClick={this.handleCancelOrder}
-                className='action-button'
-              >
-                取消订单
-              </AtButton>
-              <AtButton
-                type='primary'
-                size='normal'
-                onClick={this.handlePayment}
-                className='action-button primary'
-              >
-                立即支付
-              </AtButton>
-            </>
-          )}
-
-          {order.status === 'delivering' && (
-            <>
-              <AtButton
-                type='secondary'
-                size='normal'
-                onClick={this.handleTrackDelivery}
-                className='action-button'
-              >
-                查看配送
-              </AtButton>
-              <AtButton
-                type='primary'
-                size='normal'
-                onClick={this.handleConfirmReceive}
-                className='action-button primary'
-              >
-                确认收货
-              </AtButton>
-            </>
-          )}
-
-          {order.status === 'completed' && (
-            <>
-              <AtButton
-                type='secondary'
-                size='normal'
-                onClick={this.handleReorder}
-                className='action-button'
-              >
-                再次购买
-              </AtButton>
-              <AtButton
-                type='secondary'
-                size='normal'
-                onClick={() => Taro.switchTab({ url: '/pages/home/index' })}
-                className='action-button'
-              >
-                继续购物
-              </AtButton>
-            </>
-          )}
-
-          {(order.status === 'pending_delivery' || order.status === 'cancelled') && (
-            <AtButton
-              type='secondary'
-              size='normal'
-              onClick={this.handleReorder}
-              className='action-button full-width'
-            >
-              再次购买
-            </AtButton>
-          )}
-        </View>
-
-        {/* Toast 提示 */}
-        <AtToast
-          isOpened={showToast}
-          text={toastText}
-          status={toastType}
-          onClose={this.hideToast}
-        />
-
-        {/* 底部安全区域 */}
-        <View className='safe-bottom' />
       </View>
     )
   }
+
+  if (!order) {
+    return (
+      <View className='order-detail-page'>
+        <View className='error-container'>
+          <Text>订单不存在</Text>
+          <AtButton
+            type='primary'
+            size='small'
+            onClick={() => Taro.navigateBack()}
+          >
+            返回
+          </AtButton>
+        </View>
+      </View>
+    )
+  }
+
+  return (
+    <View className='order-detail-page'>
+      <OrderStatusHeader
+        status={rawOrder?.status}
+        orderNo={order.orderNo}
+        onCopyOrderNo={handleCopyOrderNo}
+      />
+
+      {/* 配送员信息(配送中订单) */}
+      {order.status === 'delivering' && order.deliveryInfo && (
+        <DeliveryWorkerCard
+          name={order.deliveryInfo.deliveryWorkerName}
+          phone={order.deliveryInfo.deliveryWorkerPhone}
+          avatar={order.deliveryInfo.deliveryWorkerAvatar}
+          location={order.deliveryInfo.currentLocation}
+          distance={order.deliveryInfo.deliveryDistance}
+          onContact={handleContactDelivery}
+          onTrack={handleTrackDelivery}
+        />
+      )}
+
+      {/* 订单时间轴 */}
+      <OrderTimelineCard timeline={order.timeline} />
+
+      {/* 商品信息 + 费用明细 */}
+      <OrderItemsCard items={order.items} costRows={costRows} />
+
+      {/* 订单评价(F-ORD-007):已评价展示内容 */}
+      {order.status === 'completed' && reviewInfo?.hasReviewed && reviewInfo.review && (
+        <OrderReviewCard review={reviewInfo.review} />
+      )}
+
+      {/* 订单信息 */}
+      <OrderInfoCard order={order} deliverySlots={deliverySlots} />
+
+      {/* 收货地址 */}
+      <AddressSummaryCard
+        receiverName={order.address.receiverName}
+        phone={order.address.phone}
+        province={order.address.province}
+        city={order.address.city}
+        district={order.address.district}
+        detailAddress={order.address.detailAddress}
+      />
+
+      {/* 底部操作按钮 */}
+      <OrderActions
+        order={order}
+        reviewInfo={reviewInfo}
+        onPayment={handlePayment}
+        onCancel={handleCancelOrder}
+        onReview={handleReview}
+        onReorder={handleReorder}
+        onTrack={handleTrackDelivery}
+        onUrge={handleUrgeOrder}
+        onConfirmReceipt={handleConfirmReceipt}
+        onContinueShopping={handleContinueShopping}
+      />
+
+      {/* Toast 提示 */}
+      <AtToast
+        isOpened={showToast}
+        text={toastText}
+        status={toastType}
+        onClose={hideToast}
+      />
+
+      {/* 底部安全区域 */}
+      <View className='safe-bottom' />
+    </View>
+  )
 }
+
+export default OrderDetailPage

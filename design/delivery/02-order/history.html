@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>送水工端 · 历史订单｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-delivery">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>送水工端 App · 历史订单</h1>
+      <p class="sub">功能编号 F-ORD-013 ｜ 订单域 ｜ 下游：订单详情</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-013</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">delivery-app · 暗色</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：订单列表 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 订单列表</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>历史订单</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div style="padding:0 16px 12px">
+              <div class="seg">
+                <div class="s on">今日</div>
+                <div class="s">近 7 天</div>
+                <div class="s">本月</div>
+              </div>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="card" style="margin-top:0">
+                <div class="row between">
+                  <span class="f-note t-sub" style="font-family:var(--font-num)">No. AR20261007018</span>
+                  <span class="tag tag-done">已完成</span>
+                </div>
+                <div class="row gap3 mt3">
+                  <div class="thumb sq-sm">实拍图</div>
+                  <div class="grow">
+                    <div class="f-aux t-main">清水湾小区 5 号楼 1 单元 301</div>
+                    <div class="f-note t-sub mt2">怡宝 18.9L × 2 桶</div>
+                    <div class="f-note t-sub mt2">完成 2026-10-07 18:12 · 现金</div>
+                  </div>
+                  <span class="price plain">¥36.00</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="row between">
+                  <span class="f-note t-sub" style="font-family:var(--font-num)">No. AR20261007021</span>
+                  <span class="tag tag-done">已完成</span>
+                </div>
+                <div class="row gap3 mt3">
+                  <div class="thumb sq-sm">实拍图</div>
+                  <div class="grow">
+                    <div class="f-aux t-main">和平里 12 号院 3 号楼 702</div>
+                    <div class="f-note t-sub mt2">怡宝 18.9L × 4 桶</div>
+                    <div class="f-note t-sub mt2">完成 2026-10-07 16:40 · 水票</div>
+                  </div>
+                  <span class="price plain">¥72.00</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="row between">
+                  <span class="f-note t-sub" style="font-family:var(--font-num)">No. AR20261007009</span>
+                  <span class="tag tag-done">已完成</span>
+                </div>
+                <div class="row gap3 mt3">
+                  <div class="thumb sq-sm">实拍图</div>
+                  <div class="grow">
+                    <div class="f-aux t-main">阳光花园 A 座 1203</div>
+                    <div class="f-note t-sub mt2">农夫山泉 19L × 1 桶 · 饮水机 × 1</div>
+                    <div class="f-note t-sub mt2">完成 2026-10-07 11:05 · 扫码</div>
+                  </div>
+                  <span class="price plain">¥22.00</span>
+                </div>
+              </div>
+
+              <div class="f-note t-sub" style="text-align:center;padding:12px 0 6px">没有更多了</div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 空态</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>历史订单</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div style="padding:0 16px 12px">
+              <div class="seg">
+                <div class="s on">今日</div>
+                <div class="s">近 7 天</div>
+                <div class="s">本月</div>
+              </div>
+            </div>
+
+            <div class="app-scroll">
+              <div class="empty">
+                <div class="e-ico"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+                <div class="e-title">暂无历史订单</div>
+                <div class="e-desc">完成配送的订单会出现在这里</div>
+              </div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>入口：</strong>工作台快捷入口「历史订单」/「我的」页「历史订单」。</p>
+        <p><strong>跳转：</strong>点击订单卡片 → 订单详情。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏：返回 + 标题「历史订单」+ 消息入口（未读红点）</li>
+          <li>日期筛选（分段控件：今日 / 近 7 天 / 本月）</li>
+          <li>历史订单卡片列表：订单号 + 状态标签 + 收货地址 + 商品摘要 + 完成时间 / 收款方式 + 金额</li>
+          <li>加载更多区：「没有更多了」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>按时间 / 状态筛选；下拉刷新 / 触底加载。</li>
+          <li>点击卡片查看订单详情。</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>「暂无历史订单」；<strong>加载态：</strong>加载中；<strong>禁用态：</strong>无更多数据时显示「没有更多了」。</p>
+        <p><strong>营收口径：</strong>按完成配送时间（<code>completed_at</code>）计入，送水工业绩 / 收款日报 / 对账三者口径一致（R-ORD-11）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>订单号可截断但需完整可查；金额精确到分、统一「¥xx.xx」。</p>
+        <p>送水工端<strong>完全不出现强调橙</strong>：状态标签用 <code>.tag-done</code> 灰系，选中项走品牌蓝。</p>
+        <p>列表倒序（按完成时间）不可打乱；卡片圆角 ≥ 16px。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

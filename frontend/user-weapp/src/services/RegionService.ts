@@ -1,17 +1,14 @@
-import NetworkManager from '../utils/network'
+import { networkManager } from '../utils/networkManager'
 import apiConfig from '../config/api'
 import {
   Region,
   RegionCacheItem,
   RegionsResponse,
-  RegionVariables,
-  RegionHierarchy,
-  DefaultRegionResponse
+  RegionVariables
 } from '../types/region'
 
 class RegionService {
   private static instance: RegionService
-  private networkManager: NetworkManager
   private cache: Map<string, RegionCacheItem> = new Map()
 
   // Cache configuration
@@ -24,12 +21,7 @@ class RegionService {
   private readonly MAX_CACHE_SIZE = 100 // Maximum number of cache entries
 
   private constructor() {
-    // Use centralized API configuration
-    this.networkManager = NetworkManager.getInstance({
-      baseURL: apiConfig.getGraphqlUrl(),
-      timeout: apiConfig.getTimeout(),
-      headers: apiConfig.getHeaders()
-    })
+    // Use shared networkManager from networkManager.ts
   }
 
   public static getInstance(): RegionService {
@@ -91,7 +83,7 @@ class RegionService {
     }
 
     try {
-      const response = await this.networkManager.query<RegionsResponse>(query, variables, {})
+      const response = await networkManager.query<RegionsResponse>(query, variables, {})
       console.log('response', response)
       return response?.regions || []
     } catch (error) {
@@ -174,7 +166,7 @@ class RegionService {
     `
 
     try {
-      const response = await this.networkManager.query<{ region: Region | null }>(
+      const response = await networkManager.query<{ region: Region | null }>(
         query,
         { code },
         {}
@@ -201,51 +193,6 @@ class RegionService {
     }).catch(error => {
       console.warn('Failed to preload region data:', error)
     })
-  }
-
-  /**
-   * Get default region hierarchy from backend configuration
-   */
-  public async getDefaultRegionHierarchy(): Promise<RegionHierarchy | null> {
-    const query = `
-      query GetDefaultRegionHierarchy {
-        defaultRegionHierarchy {
-          province {
-            name
-            code
-          }
-          city {
-            name
-            code
-          }
-          district {
-            name
-            code
-          }
-          provinces {
-            name
-            code
-          }
-          cities {
-            name
-            code
-          }
-          districts {
-            name
-            code
-          }
-        }
-      }
-    `
-
-    try {
-      const response = await this.networkManager.query<DefaultRegionResponse>(query, {}, {})
-      console.log('Default region hierarchy response:', response)
-      return response?.defaultRegionHierarchy || null
-    } catch (error) {
-      console.error('Failed to fetch default region hierarchy:', error)
-      return null
-    }
   }
 }
 

@@ -17,3 +17,11 @@ body {
 #root {
   min-height: 100vh;
 }
+
+/* 可点击表格行(如订单记录下钻) */
+.ant-table-row.clickable-row {
+  cursor: pointer;
+}
+.ant-table-row.clickable-row:hover td {
+  background-color: rgba(58, 155, 217, 0.10) !important;
+}

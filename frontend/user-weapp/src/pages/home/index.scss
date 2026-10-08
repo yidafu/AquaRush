@@ -1,336 +1,114 @@
 @import "../../styles/theme.scss";
 
+// ============================================================
+// 首页(user-weapp §1 首屏详设)
+// 布局:地址栏 → 品牌 Banner → 活动轮播 → 时效卡 → 最常买 → 更多商品
+// 全颜色走设计 token;强调橙(#FF5436)仅出现在「立即订水」CTA
+// 注意:designWidth 750 下 px→rpx 1:1,此处 px 按小程序刻度书写
+// (28px = 28rpx = 物理 14px,与订单/购物车等页面一致)
+// 商品卡/公告栏/地址栏/轮播/时效卡样式已随组件迁至 components/
+// ============================================================
+
 .home-page {
   min-height: 100vh;
-  background-color: var(--theme-background-page);
-  padding-bottom: 40px; // 为底部安全区域预留空间
+  background-color: var(--bg);
+  padding: 0 var(--spacing-lg) var(--spacing-xl);
 }
 
-.carousel-section {
-  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
-  color: white;
-  padding: 40px 20px 20px;
-  position: relative;
-  overflow: hidden;
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -50%;
-    right: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-    animation: float 6s ease-in-out infinite;
-  }
-
-  @keyframes float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
-  }
-}
-
-.carousel-swiper {
-  height: 180px;
-  border-radius: 16px;
-  overflow: hidden;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-}
-
-.carousel-swiper-item {
-  height: 100%;
-}
-
-.carousel-slide {
-  position: relative;
-  height: 100%;
+// ---- ② 品牌水站 Banner(清水蓝渐变,信任条) ----
+.brand-banner {
   display: flex;
   align-items: center;
-  justify-content: center;
-}
-
-.carousel-background {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 1;
-}
-
-.carousel-bg-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.carousel-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(135deg,
-    rgba(24, 144, 255, 0.7) 0%,
-    rgba(24, 144, 255, 0.5) 50%,
-    rgba(24, 144, 255, 0.3) 100%
-  );
-  z-index: 2;
-}
-
-.carousel-content {
-  padding: 30px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  position: relative;
-  z-index: 3;
-  text-align: center;
-}
-
-.carousel-title {
-  font-size: 48px;
-  font-weight: bold;
-  display: block;
-  margin-bottom: 8px;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-}
-
-.carousel-subtitle {
-  font-size: 24px;
-  opacity: 0.9;
-  display: block;
-  margin-bottom: 20px;
-  color: rgba(255, 255, 255, 0.9);
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
-}
-
-.carousel-button {
-  width: 120px;
-  align-self: center;
-  background: rgba(255, 255, 255, 0.9);
-  color: var(--theme-primary);
-  border: none;
-  font-weight: 600;
-
-  &:active {
-    background: white;
-    transform: scale(0.95);
-  }
-}
-
-.menu-section {
-  background: var(--theme-background);
-  margin: 16px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px var(--theme-shadow-medium);
-}
-
-.product-section {
-  padding: 0 12px;
-}
-
-.loading-container,
-.empty-container,
-.error-container {
-  text-align: center;
-  padding: 40px;
-  color: var(--theme-text-tertiary);
-}
-
-.error-container {
-  color: var(--theme-secondary);
-
-  .retry-button {
-    margin-top: 16px;
-  }
-}
-
-.load-more-container {
-  padding: 20px 0;
-  text-align: center;
-}
-
-.no-more-container {
-  text-align: center;
-  padding: 20px;
-  color: var(--theme-text-tertiary);
-  font-size: 24px;
-}
-
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
-  padding-bottom: 20px;
-}
-
-.product-card {
-  background: var(--theme-background);
-  border-radius: 12px;
+  margin-top: var(--spacing-md);
+  padding: 40px var(--spacing-lg);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
-  box-shadow: 0 2px 8px var(--theme-shadow-medium);
-  transition: all 0.2s ease;
-  display: flex;
-  flex-direction: column;
 
-  &:active {
-    transform: scale(0.98);
-    box-shadow: 0 1px 4px var(--theme-shadow-medium);
-  }
-}
-
-.product-image-container {
-  width: 100%;
-  height: 160px;
-  overflow: hidden;
-  position: relative;
-}
-
-.product-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-
-  .product-card:hover & {
-    transform: scale(1.05);
-  }
-}
-
-.product-content {
-  padding: 12px;
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.product-name {
-  font-size: 24px;
-  font-weight: 600;
-  color: var(--theme-text-primary);
-  margin-bottom: 4px;
-  line-height: 1.3;
-  // 限制为两行文本
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-.product-desc {
-  font-size: 20px;
-  color: var(--theme-text-secondary);
-  margin-bottom: 8px;
-  line-height: 1.4;
-  flex: 1;
-  // 限制为两行文本
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-  overflow: hidden;
-}
-
-.product-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: auto;
-}
-
-.product-price {
-  font-size: 28px;
-  font-weight: bold;
-  color: var(--theme-secondary);
-}
-
-.product-stock {
-  font-size: 24px;
-  color: var(--theme-text-tertiary);
-  background: var(--theme-background-page);
-  padding: 2px 6px;
-  border-radius: 10px;
-}
-
-.safe-bottom {
-  height: 20px;
-}
-
-// 响应式设计
-@media (max-width: 375px) {
-  .carousel-section {
-    padding: 30px 16px 16px;
-  }
-
-  .carousel-container {
-    height: 160px;
-  }
-
-  .carousel-content {
-    padding: 24px;
-  }
-
-  .carousel-title {
-    font-size: 40px;
-  }
-
-  .carousel-subtitle {
-    font-size: 22px;
-  }
-
-  .product-grid {
-    grid-template-columns: repeat(2, 1fr);
+  .brand-banner-text {
+    display: flex;
+    flex-direction: column;
     gap: 8px;
   }
 
-  .product-section {
-    padding: 0 8px;
+  .brand-banner-title {
+    font-size: 36px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1.4;
   }
 
-  .product-image-container {
-    height: 140px;
-  }
-
-  .product-content {
-    padding: 10px;
-  }
-
-  .product-name {
-    font-size: 22px;
-  }
-
-  .product-desc {
-    font-size: 18px;
-  }
-
-  .product-price {
-    font-size: 26px;
-  }
-
-  .product-stock {
-    font-size: 20px;
+  .brand-banner-subtitle {
+    font-size: 28px;
+    color: rgba(255, 255, 255, 0.85);
   }
 }
 
-// 大屏幕优化
-@media (min-width: 414px) {
-  .product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 16px;
+// ---- 区块通用(section-header/section-title 复用 styles/common.scss) ----
+.section-block {
+  margin-top: var(--spacing-xl);
+}
+
+// ---- ⑤ 最常买 · 快捷购买区(横滑卡片) ----
+.hot-scroll {
+  width: 100%;
+  white-space: nowrap;
+
+  .hot-list {
+    display: inline-flex;
+    gap: var(--spacing-md);
+    padding-bottom: 8px;
+  }
+}
+
+// ---- ⑥ 更多商品(≤3,无无限滚动) ----
+.more-list {
+  .more-card:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// 「更多」入口(→ 全部商品列表页):48px 触达 + 按下主色反馈
+.section-extra {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding-left: var(--spacing-sm);
+
+  &:active {
+    color: var(--brand-primary);
+  }
+}
+
+// ---- 加载/错误/空态 ----
+.loading-box,
+.error-box,
+.empty-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  min-height: 240px;
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+
+  .loading-text,
+  .empty-text {
+    font-size: 28px;
+    color: var(--text-weak);
   }
 
-  .product-section {
-    padding: 0 20px;
+  .error-text {
+    font-size: 28px;
+    color: var(--error);
   }
 
-  .product-image-container {
-    height: 180px;
-  }
-
-  .product-content {
-    padding: 16px;
+  .retry-btn {
+    width: 240px;
+    background: var(--brand-primary) !important;
+    border-radius: var(--radius-btn) !important;
+    border: none !important;
   }
 }

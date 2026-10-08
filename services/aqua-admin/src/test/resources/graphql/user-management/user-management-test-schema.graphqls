@@ -1,0 +1,74 @@
+# 用户与账号域管理 mutation 集成测试 schema(PRD/07-user.md §F-USR-020/021/022)
+# 自包含 schema:仅暴露 AdminUserManagementGraphQLIntegrationTest 需要的最小面
+
+scalar Long
+
+type Query {
+  _dummy: String
+}
+
+type Mutation {
+  deleteAdmin(id: Long!): Boolean!
+  resetAdminPassword(id: Long!, newPassword: String): Boolean!
+  updateAdmin(id: Long!, input: UpdateAdminInput!): Admin!
+  deleteDeliveryWorker(id: Long!): Boolean!
+  resetDeliveryWorkerPassword(id: Long!, newPassword: String): Boolean!
+  createUser(input: CreateUserInput!): User!
+  updateUser(id: Long!, input: UpdateUserInput!): User!
+  deleteUser(id: Long!): Boolean!
+}
+
+type Admin {
+  id: Long!
+  username: String!
+  role: String!
+  accountStatus: AdminAccountStatus!
+}
+
+type User {
+  id: Long!
+  wechatOpenId: String!
+  nickname: String
+  phone: String
+  status: UserStatus!
+  role: UserRole!
+}
+
+enum AdminAccountStatus {
+  ACTIVE
+  DISABLED
+}
+
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  DELETED
+}
+
+enum UserRole {
+  USER
+  ADMIN
+  WORKER
+  NONE
+}
+
+input UpdateAdminInput {
+  realName: String
+  phone: String
+  role: String
+  accountStatus: AdminAccountStatus
+}
+
+input CreateUserInput {
+  nickname: String
+  phone: String
+  avatarUrl: String
+}
+
+input UpdateUserInput {
+  nickname: String
+  phone: String
+  avatarUrl: String
+  status: UserStatus
+}

@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 首页｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 首页</h1>
+      <p class="sub">功能编号 F-PRO-001 ｜ 商品域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 主题色注入品牌蓝 · 价格用微信电商红</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-PRO-001</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：正常态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 有商品（正常态）</span>
+      <div class="phone mp">
+        <div class="phone-screen is-brand">
+
+          <div class="hero">
+            <div class="mp-status">
+              <span>9:41</span>
+              <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+            </div>
+            <div class="mp-nav is-brand">
+              <span class="mp-nav__title">AquaRush 送水</span>
+              <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+            </div>
+            <div class="hero-inner">
+              <div class="hero-loc">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>
+                <span>清水湾小区 3 号楼 2 单元</span>
+                <span class="more">切换 ▾</span>
+              </div>
+              <div class="weui-searchbar__box on-brand">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+                <span>搜索「怡宝」「农夫山泉」</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 运营轮播位 -->
+              <div class="mp-pad">
+                <div class="banner">
+                  <span class="b-thumb"></span>
+                  <span class="b-kicker">今日订水</span>
+                  <span class="b-title">14:00 前下单 · 当日送达</span>
+                  <span class="b-desc">门店直供 · 桶桶可溯源</span>
+                  <span class="b-cta">快速下单</span>
+                </div>
+                <div class="banner-dots"><i class="on"></i><i></i><i></i></div>
+              </div>
+
+              <!-- 通告栏 -->
+              <div class="weui-notice">
+                <svg viewBox="0 0 24 24"><path d="M12 4 3 19h18z"/><path d="M12 10v4M12 16.5v.5"/></svg>
+                <span class="ellipsis">停水通知：10 月 9 日 09:00-12:00 小区管网检修</span>
+              </div>
+
+              <!-- 快捷入口（微信官方 Grids） -->
+              <div class="weui-cells mt2" style="padding:4px 0">
+                <div class="weui-grids">
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg></span>
+                    <span class="weui-grid__label">立即订水</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+                    <span class="weui-grid__label">我的订单</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg></span>
+                    <span class="weui-grid__label">领券中心</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9.5 10h5M9.5 14h5"/></svg></span>
+                    <span class="weui-grid__label">我的水票</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 商品网格 -->
+              <div class="weui-cells__title">推荐产品</div>
+              <div class="mp-grid2">
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">怡宝 饮用纯净水 18.9L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥26.00</span>
+                        <div style="margin-top:4px">
+                          <span class="weui-tag weui-tag--brand">熟客价</span>
+                          <span style="font-size:12px;color:var(--weui-FG-2);margin-left:4px">库存 86</span>
+                        </div>
+                      </div>
+                      <span class="mp-prod__cart">＋</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">农夫山泉 天然水 19L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">28</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥32.00</span>
+                        <div style="margin-top:4px">
+                          <span class="weui-tag weui-tag--brand">熟客价</span>
+                          <span style="font-size:12px;color:var(--weui-FG-2);margin-left:4px">库存 42</span>
+                        </div>
+                      </div>
+                      <span class="mp-prod__cart">＋</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">娃哈哈 饮用纯净水 19L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">20</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥24.00</span>
+                        <div style="margin-top:4px">
+                          <span class="weui-tag weui-tag--brand">熟客价</span>
+                          <span style="font-size:12px;color:var(--weui-FG-2);margin-left:4px">库存 130</span>
+                        </div>
+                      </div>
+                      <span class="mp-prod__cart">＋</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">景田 百岁山矿泉水 18.9L</div>
+                    <div class="mp-prod__desc">桶装水 · 押金桶（可退）</div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">35</span><span class="weui-price__dec">.00</span></span>
+                        <div style="margin-top:4px">
+                          <span class="weui-tag weui-tag--orange">仅剩 8 桶</span>
+                        </div>
+                      </div>
+                      <span class="mp-prod__cart">＋</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 加载更多（微信官方 Loadmore） -->
+              <div class="weui-loadmore">
+                <span class="weui-loadmore__line"></span>
+                <span>没有更多产品了</span>
+                <span class="weui-loadmore__line"></span>
+              </div>
+
+            </div>
+
+            <div class="mp-tabbar hair-t">
+              <div class="mp-tab on">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M10 20v-5h4v5"/></svg>
+                首页
+              </div>
+              <div class="mp-tab">
+                <svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+                订单
+              </div>
+              <div class="mp-tab">
+                <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
+                我的
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 无在售商品（微信官方空态）</span>
+      <div class="phone mp">
+        <div class="phone-screen is-brand">
+          <div class="hero">
+            <div class="mp-status">
+              <span>9:41</span>
+              <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+            </div>
+            <div class="mp-nav is-brand">
+              <span class="mp-nav__title">AquaRush 送水</span>
+              <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+            </div>
+            <div class="hero-inner">
+              <div class="hero-loc">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>
+                <span>清水湾小区 3 号楼 2 单元</span>
+                <span class="more">切换 ▾</span>
+              </div>
+              <div class="weui-searchbar__box on-brand">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+                <span>搜索「怡宝」「农夫山泉」</span>
+              </div>
+            </div>
+          </div>
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells__title">推荐产品</div>
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>
+                </div>
+                <div class="weui-empty__text">暂无产品<br>门店补货中，稍后再来看看</div>
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">重试</span>
+              </div>
+            </div>
+            <div class="mp-tabbar hair-t">
+              <div class="mp-tab on"><svg class="ico" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M10 20v-5h4v5"/></svg>首页</div>
+              <div class="mp-tab"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单</div>
+              <div class="mp-tab"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>我的</div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件体系</h3>
+        <p><strong>基准：</strong>微信官方 WeUI 2.x，主题色经 <code>--weui-BRAND</code> 注入 AquaRush 品牌蓝 <code>#3A9BD9</code>；灰阶、发丝线、排版刻度用微信官方值。</p>
+        <p><strong>关键官方特征：</strong>导航栏 44px + 右上微信胶囊 87×32；原生 TabBar 高 50px、底 <code>#F7F7F7</code>、图标 27px、文字 10px；页面底 <code>#EDEDED</code>；单元格 17px 主文字、行高 1.41、0.5px 内缩 16px 发丝线；网格用官方 Grids；加载更多用官方 Loadmore 双短线。</p>
+        <p><strong>价格：</strong>微信电商惯例红 <code>#FA5151</code>，货币符号与小数位缩放。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（Taro）</p>
+        <p><strong>入口：</strong>小程序启动默认页；下拉刷新 / 触底加载为页内交互</p>
+        <p><strong>跳转：</strong>商品卡 → 商品详情 <code>?id=xx</code>；轮播「快速下单」→ 下单流程；TabBar → 订单 / 我的</p>
+        <p><strong>数据：</strong>首屏第 0 页，每页 20 条，创建时间倒序；仅返回在售且库存 &gt; 0 的商品</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>渐变头图：状态栏 + 导航栏（微信胶囊）+ 定位行 + 搜索框</li>
+          <li>运营轮播位：3 张自动轮播，首张 CTA「快速下单」+ 指示点</li>
+          <li>通告栏（<code>.weui-notice</code>，橙色 tint）</li>
+          <li>快捷入口（<code>.weui-grids</code> 官方四宫格）</li>
+          <li>「推荐产品」组标题（<code>.weui-cells__title</code>）+ 商品网格 2 列</li>
+          <li>加载更多（<code>.weui-loadmore</code> 双短线）</li>
+          <li>原生 TabBar：首页 / 订单 / 我的</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>商品卡规格</h3>
+        <p>封面 1:1（<code>.mp-prod__cover</code> 实拍图占位）+ 名称最多 2 行 + 描述 1 行 + 价格行 + 加购圆钮。</p>
+        <p>有营销优惠 → <strong>优惠价 + 划线目录价</strong>并存（价格红 + 划线灰）；无优惠则只显示目录价，不出现划线价。</p>
+        <p>库存偏低用 <code>.weui-tag--orange</code>「仅剩 N 桶」；营销价来源用 <code>.weui-tag--brand</code>「熟客价」。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>首屏加载第 0 页；下拉刷新重置；触底且 hasMore 时追加下一页</li>
+          <li>点击商品卡 → 商品详情；点击加购圆钮 → 加入购物车（目标形态）</li>
+          <li>点击轮播「快速下单」→ 下单流程（地址 → 确认订单）</li>
+          <li>加载失败 → 「加载失败」+ 重试；分页失败 → 顶部提示（<code>.weui-toptips</code>）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>官方空态（品牌蓝 tint 圆 + 双行文案 + 描边重试按钮）；<strong>加载态：</strong>「加载中…」与 Loadmore loading；<strong>禁用态：</strong>hasMore=false 时显示「没有更多产品了」。</p>
+        <p><strong>R-PRO-03：</strong>下架 / 售罄商品用户端不展示，由服务端过滤。<strong>R-MON-01：</strong>金额以分存储，展示时换算为元。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>品牌蓝承担交互主色（导航、TabBar 选中、Grid 图标、加购钮）；<strong>价格红 <code>#FA5151</code> 仅用于金额</strong>，不用于按钮与图标。</p>
+        <p>强调橙 <code>--action</code> 仅保留给优惠券品牌元素与最高优先级 CTA（本页仅轮播「快速下单」1 处）。</p>
+        <p>商品图严禁卡通插画，必须真实场景摆拍；首屏核心信息 ≤ 3 个（定位 / 时效 / 高频购买），不做分类导航、不做无限滚动。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 搜索与分类筛选可用（缺口 G18）；轮播图由后台运营配置驱动（F-OPS-001）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

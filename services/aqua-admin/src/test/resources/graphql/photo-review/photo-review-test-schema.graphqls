@@ -1,0 +1,78 @@
+# Test Schema for Admin Delivery Photo Review Resolver GraphQL Integration Tests
+# 自包含 schema,仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/photo-review/) 加载
+# 与 services/aqua-admin/src/main/resources/graphql/modules/order.graphqls 的 reviewDeliveryPhoto(G23/F-ORD-021)
+# 保持一致:通过/驳回核验流,返回 Order!(含核验留痕字段)
+
+scalar Long
+scalar LocalDateTime
+scalar Map
+scalar BigDecimal
+
+# 根 Query 占位(graphql 规范要求 query 根类型;本 schema 仅测 mutation)
+type Query {
+  _dummy: String
+  orderOperations(orderId: Long!): [OrderOperation!]!
+}
+
+type Mutation {
+  reviewDeliveryPhoto(orderId: Long!, action: DeliveryPhotoReviewAction!, remark: String): Order!
+}
+
+enum DeliveryPhotoReviewAction {
+  APPROVE
+  REJECT
+}
+
+enum DeliveryPhotoReviewStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum OrderStatus {
+  PENDING_PAYMENT
+  PENDING_DISPATCH
+  PENDING_DELIVERY
+  DELIVERING
+  COMPLETED
+  CANCELLED
+  REFUNDED
+}
+
+# 订单操作时间线(G23:核验留痕 DELIVERY_PHOTO_APPROVED/REJECTED 需可序列化)
+enum OrderOperationType {
+  ORDER_CREATED
+  ORDER_PAID
+  ORDER_CANCELLED
+  ORDER_URGING
+  DELIVERY_ASSIGNED
+  DELIVERY_STARTED
+  DELIVERY_COMPLETED
+  ORDER_COMPLETED
+  REFUND_INITIATED
+  REFUND_COMPLETED
+  PAYMENT_TIMEOUT
+  DELIVERY_PHOTO_APPROVED
+  DELIVERY_PHOTO_REJECTED
+  ADDRESS_UPDATED
+}
+
+type OrderOperation {
+  id: Long!
+  orderId: Long!
+  operationType: OrderOperationType!
+  description: String
+  createdAt: LocalDateTime!
+}
+
+type Order {
+  id: Long!
+  orderNo: String!
+  status: OrderStatus!
+  deliveryPhotos: [String!]
+  deliveryPhotoReviewStatus: DeliveryPhotoReviewStatus
+  deliveryPhotoReviewedAt: LocalDateTime
+  deliveryPhotoReviewedBy: Long
+  deliveryPhotoReviewRemark: String
+  updatedAt: LocalDateTime!
+}

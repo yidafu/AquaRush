@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,30 +19,46 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.common.graphql.generated.Admin
-import dev.yidafu.aqua.user.domain.model.AdminModel
-import dev.yidafu.aqua.user.domain.model.AdminRoleModel
+import dev.yidafu.aqua.common.domain.model.AdminModel
+import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor
 import org.springframework.stereotype.Repository
-import java.util.*
 
 @Repository
-interface AdminRepository : JpaRepository<AdminModel, Long>, JpaSpecificationExecutor<AdminModel> {
-  fun findByUsername(username: String): Optional<AdminModel>
+interface AdminRepository :
+  JpaRepository<AdminModel, Long>,
+  JpaSpecificationExecutor<AdminModel> {
+  fun findByUsername(username: String): AdminModel?
+
+  fun findByUserId(userId: Long): AdminModel?
 
   fun findByUsernameAndRole(
     username: String,
     role: AdminRoleModel,
-  ): Optional<Admin>
+  ): AdminModel?
 
-  fun findByPhone(phone: String): Optional<Admin>
+  fun findByPhone(phone: String): AdminModel?
 
   fun findByRole(role: AdminRoleModel): List<AdminModel>
 
-  fun countByRole(
-    role: AdminRoleModel,
-  ): Long {
+  /**
+   * 按角色集合查询(送水员档案并入 admins 单表后,配送能力角色查询走这里)
+   */
+  fun findAllByRoleIn(roles: Collection<AdminRoleModel>): List<AdminModel>
+
+  /**
+   * 按角色集合计数(配送员统计 totalWorkers 等,避免全表加载)
+   */
+  fun countByRoleIn(roles: Collection<AdminRoleModel>): Long
+
+  /**
+   * 按在线状态查询(DeliverWorkerStatusConverter 自动转换)
+   */
+  fun findByOnlineStatus(status: DeliverWorkerModelStatus): List<AdminModel>
+
+  fun countByRole(role: AdminRoleModel): Long {
     val specification = AdminSpecifications.byRole(role)
     return count(specification)
   }
@@ -57,11 +73,7 @@ interface AdminRepository : JpaRepository<AdminModel, Long>, JpaSpecificationExe
     return count(specification) > 0
   }
 
-  fun findAllAdmins(): List<AdminModel> {
-    return findAll()
-  }
+  fun findAllAdmins(): List<AdminModel> = findAll()
 
-  fun findAdminById(id: Long): AdminModel? {
-    return findById(id).orElse(null)
-  }
+  fun findAdminById(id: Long): AdminModel? = findById(id).orElse(null)
 }

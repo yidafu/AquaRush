@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 水票商城｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 水票商城（购票页）</h1>
+      <p class="sub">功能编号 F-MKT-007 ｜ 营销域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 票卡形态用品牌蓝</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-007</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：票种列表 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 票种列表（可购）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">水票商城</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-notice weui-notice--brand" style="margin:8px 8px 0;border-radius:8px">
+                <svg viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>
+                <span class="ellipsis">通兑票按规格限定，跨容量不通用；票号可在我的水票查看</span>
+              </div>
+
+              <!-- 票种 1（票卡形态用品牌蓝） -->
+              <div class="weui-cells" style="margin:8px;border-radius:8px">
+                <div style="padding:16px">
+                  <div class="row between mb2">
+                    <span class="bold" style="font-size:17px">18.9L 桶水票 · 10 张装</span>
+                    <span class="weui-tag weui-tag--red weui-tag--md">买 10 送 1</span>
+                  </div>
+                  <div class="row top gap3">
+                    <div class="weui-media-box__thumb">实拍图占位<br>票 · 1:1</div>
+                    <div class="col grow gap1">
+                      <span class="f-note t-sub">适用规格：通兑票 · 限 18.9L 桶装水 <span class="weui-tag weui-tag--brand">规格限定</span></span>
+                      <span class="f-note t-sub">单张面值 <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span></span>
+                      <span class="f-note t-sub">有效期：购票后 365 天</span>
+                      <span class="f-note t-warn">限购：每人 2 份</span>
+                    </div>
+                  </div>
+                  <div class="row between mt3" style="align-items:flex-end">
+                    <div>
+                      <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">198</span><span class="weui-price__dec">.00</span></span>
+                      <span class="weui-price--origin">¥220.00</span>
+                    </div>
+                    <span class="weui-btn weui-btn_mini weui-btn_primary">立即购买</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 票种 2 -->
+              <div class="weui-cells" style="margin:8px;border-radius:8px">
+                <div style="padding:16px">
+                  <div class="row between mb2">
+                    <span class="bold" style="font-size:17px">4.5L 桶水票 · 20 张装</span>
+                    <span class="weui-tag weui-tag--red weui-tag--md">买 10 送 1</span>
+                  </div>
+                  <div class="row top gap3">
+                    <div class="weui-media-box__thumb">实拍图占位<br>票 · 1:1</div>
+                    <div class="col grow gap1">
+                      <span class="f-note t-sub">适用规格：通兑票 · 限 4.5L 桶装水 <span class="weui-tag weui-tag--brand">规格限定</span></span>
+                      <span class="f-note t-sub">单张面值 <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">12</span><span class="weui-price__dec">.00</span></span></span>
+                      <span class="f-note t-sub">有效期：购票后 365 天</span>
+                      <span class="f-note t-weak">限购：不限</span>
+                    </div>
+                  </div>
+                  <div class="row between mt3" style="align-items:flex-end">
+                    <div>
+                      <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">216</span><span class="weui-price__dec">.00</span></span>
+                      <span class="weui-price--origin">¥240.00</span>
+                    </div>
+                    <span class="weui-btn weui-btn_mini weui-btn_primary">立即购买</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 通兑 / 限规格说明 -->
+              <div class="weui-cells__tips">通兑票按规格限定，跨容量不通用；限购与购票张数上限 10 张，超出按限购校验拦截。</div>
+
+              <!-- 购票须知 -->
+              <div class="weui-cells__title">购票须知</div>
+              <div class="weui-cells__tips">· 水票为电子票，购票成功后逐张生成唯一票号入账票夹。</div>
+              <div class="weui-cells__tips">· 有效期自购票成功之日起算，过期作废不可使用。</div>
+              <div class="weui-cells__tips">· 未核销水票可申请退款；已核销不可退（订单取消 / 退款时退回）。</div>
+              <div class="weui-cells__tips">· 单次购票张数上限 10 张，超出按限购校验拦截。</div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：购买确认半屏 + 微信支付 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 购买确认半屏 + 微信支付</span>
+      <div class="phone mp viewport">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">水票商城</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells" style="margin:8px;border-radius:8px">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">18.9L 桶水票 · 10 张装</div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">198</span><span class="weui-price__dec">.00</span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 半屏弹层：确认购票 -->
+            <div class="weui-mask"></div>
+            <div class="weui-half">
+              <div class="weui-half__hd">
+                <div class="weui-half__title">确认购票</div>
+                <span class="weui-half__close"></span>
+              </div>
+              <div class="weui-half__bd">
+                <div class="weui-cells">
+                  <div class="weui-cell">
+                    <div class="weui-cell__bd">票种</div>
+                    <div class="weui-cell__ft">18.9L 桶水票 · 10 张装</div>
+                  </div>
+                  <div class="weui-cell">
+                    <div class="weui-cell__bd">规格限定</div>
+                    <div class="weui-cell__ft">通兑 · 限 18.9L</div>
+                  </div>
+                  <div class="weui-cell">
+                    <div class="weui-cell__bd">购票张数</div>
+                    <div class="weui-cell__ft">
+                      <span class="weui-stepper"><span class="weui-stepper__btn">−</span><span class="weui-stepper__num">1</span><span class="weui-stepper__btn">+</span></span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="weui-cells__title">金额明细</div>
+                <div class="weui-cells">
+                  <div class="weui-cell">
+                    <div class="weui-cell__bd">购票价</div>
+                    <div class="weui-cell__ft"><span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">198</span><span class="weui-price__dec">.00</span></span></div>
+                  </div>
+                  <div class="weui-cell">
+                    <div class="weui-cell__bd">赠送张数</div>
+                    <div class="weui-cell__ft">+1 张</div>
+                  </div>
+                  <div class="weui-cell">
+                    <div class="weui-cell__bd">应付金额</div>
+                    <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">198</span><span class="weui-price__dec">.00</span></span></div>
+                  </div>
+                </div>
+
+                <div class="weui-cells__title">支付方式</div>
+                <div class="weui-cells">
+                  <div class="weui-cell">
+                    <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M6 7h12a2 2 0 0 1 2 2v6H4V9a2 2 0 0 1 2-2z"/><path d="M7 4v3M12 4v3M17 4v3"/></svg></span></div>
+                    <div class="weui-cell__bd">微信支付</div>
+                    <div class="weui-cell__ft"><span class="weui-radio on"></span></div>
+                  </div>
+                </div>
+
+                <div class="weui-btn_area">
+                  <span class="weui-btn weui-btn_primary flex1">确认支付 ¥198.00</span>
+                </div>
+                <div class="weui-cells__tips">支付即表示同意《购票须知》，未核销可退</div>
+              </div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（Taro）</p>
+        <p><strong>入口：</strong>首页 / 我的页「水票」入口 → 水票商城</p>
+        <p><strong>跳转：</strong>购票成功 → 我的水票 <code>ticket-mine</code>；确认订单页「水票抵扣」区（order-confirm）读取可用张数</p>
+        <p><strong>数据：</strong>票种名、类型、张数、购票价（分）、赠送张数、有效期、限购、已购张数</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部导航：「水票商城」（<code>.mp-nav</code>）+ 通兑 / 限规格说明条（<code>.weui-notice--brand</code>）</li>
+          <li>票种卡（<code>.weui-cells</code>）：票名 + 规格限定（<code>.weui-tag--brand</code>）+ 单张面值 + 套餐价（<code>.weui-price--lg</code>）+ 划线原价 +「买 10 送 1」（<code>.weui-tag--red</code>）+「立即购买」（<code>.weui-btn_mini</code>）</li>
+          <li>通兑 / 限规格说明、购票须知（<code>.weui-cells__tips</code>）</li>
+          <li>购买确认半屏（<code>.weui-mask</code> + <code>.weui-half</code>）：票种 / 规格 / 张数（<code>.weui-stepper</code>）+ 金额明细 + 微信支付 +「确认支付」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>选择张数（1~10，受限购约束）→ 点击「立即购买」→ 弹出购买确认半屏</li>
+          <li>确认 → 微信支付 → 支付成功逐张生成水票记录（唯一票号）→ 票包入账 → toast</li>
+          <li>停用票种不可购；超限提示「购票张数无效」；可核销不足提示「可核销水票不足」</li>
+          <li>半屏内可调整张数，金额明细实时联动</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>可购 / 限购达上限：</strong>达上限按钮置灰并提示「已达限购」；<strong>支付 loading：</strong>按钮转「支付中…」；<strong>票状态：</strong>可用 / 已核销 / 已退回 / 已过期。</p>
+        <p><strong>规则：</strong>单次购票张数上限 10（GraphQL / 服务层双重约束）；「买 N 送 M」赠送张数随单入账。</p>
+        <p><strong>R-MON-01：</strong>金额以分存储与计算，展示转元（两位小数）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>基准：</strong>微信官方 WeUI 2.x；票卡形态、规格标签、购买按钮用品牌蓝 <code>var(--brand)</code>。</p>
+        <p><strong>关键度量：</strong>导航栏 44px + 胶囊 87×32；<code>.mp-capsule</code> 87×32；<code>.weui-half</code> 顶部圆角 12px、最大高 78%；<code>.weui-btn_mini</code> 高 28px；<code>.weui-stepper</code> 高 28px。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code> / <code>.mp-capsule</code>、<code>.weui-cells</code>、<code>.weui-tag--brand</code> / <code>--red</code>、<code>.weui-price--lg</code> / <code>--origin</code>、<code>.weui-btn_mini</code> / <code>.weui-btn_primary</code>、<code>.weui-notice--brand</code>、<code>.weui-mask</code> + <code>.weui-half</code>、<code>.weui-stepper</code>、<code>.weui-radio</code>、<code>.weui-media-box__thumb</code>。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p><strong>水票用品牌蓝：</strong>票卡形态、规格限定标签、购买按钮统一使用品牌蓝 <code>var(--brand)</code>，<strong>不使用强调橙</strong>（非券品牌元素，规避「强调橙仅限 CTA」红线）。</p>
+        <p><strong>金额：</strong>套餐价与单张面值统一用 <code>.weui-price</code>（微信电商红），划线原价用 <code>.weui-price--origin</code>；禁止手拼「¥」字符串。</p>
+        <p>套餐卡金额与「买 N 送 M」是决策关键，需突出；有效期与退款规则须明示（合规）；通兑票按规格限定，禁止跨容量套利。</p>
+        <p>票 / 商品图一律用 <code>.weui-media-box__thumb</code> 占位并标注「实拍图占位」，严禁卡通插画。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

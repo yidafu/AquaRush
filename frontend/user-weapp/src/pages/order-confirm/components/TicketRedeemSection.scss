@@ -1,0 +1,70 @@
+@import './Section.styles.scss';
+
+.ticket-redeem-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px 24px 24px;
+}
+
+.ticket-redeem-info {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.ticket-redeem-text {
+  font-size: 26px;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.ticket-redeem-hint {
+  font-size: 22px;
+  color: var(--text-weak);
+}
+
+.ticket-stepper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.stepper-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: var(--radius-sm);
+  background: var(--brand-primary-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stepper-btn-disabled {
+  background: var(--bg);
+  opacity: 0.5;
+}
+
+.stepper-btn-icon {
+  font-size: 30px;
+  color: var(--brand-primary);
+  line-height: 1;
+}
+
+.stepper-value {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--text-main);
+  min-width: 40px;
+  text-align: center;
+}
+
+// 响应式
+@media (max-width: 375px) {
+  .ticket-redeem-content {
+    padding: 12px 20px 20px;
+  }
+}

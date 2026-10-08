@@ -1,0 +1,208 @@
+# GraphQL查询 - 获取用户信息
+# 注意：当前API不支持查询所有用户，只能查询当前用户或指定ID的用户
+
+# 查询当前登录用户信息
+query GetCurrentUser {
+  me {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询指定用户信息（需要管理员权限或用户本人）
+query GetUserById($userId: Long!) {
+  user(id: $userId) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+}
+
+# 获取当前用户的所有地址
+query GetUserAddresses {
+  addresses {
+    id
+    userId
+    receiverName
+    phone
+    province
+    city
+    district
+    detailAddress
+    isDefault
+    createdAt
+    updatedAt
+  }
+}
+
+# 获取指定地址信息
+query GetAddressById($addressId: Long!) {
+  address(id: $addressId) {
+    id
+    userId
+    receiverName
+    phone
+    province
+    city
+    district
+    detailAddress
+    isDefault
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询指定用户的所有订单（需要管理员权限）
+query GetOrdersByUser($userId: Long!) {
+  ordersByUser(userId: $userId) {
+    id
+    orderNumber
+    user {
+      id
+      nickname
+      phone
+    }
+    product {
+      id
+      name
+      price
+    }
+    address {
+      id
+      receiverName
+      phone
+      province
+      city
+      district
+      detailAddress
+    }
+    quantity
+    amount
+    status
+    paymentMethod
+    paymentTime
+    deliveryWorker {
+      id
+      name
+      phone
+      status
+    }
+    deliveryPhotos
+    completedAt
+    createdAt
+    updatedAt
+  }
+}
+
+# 查询指定用户和状态的订单
+query GetOrdersByUserAndStatus($userId: Long!, $status: OrderStatus!) {
+  ordersByUserAndStatus(userId: $userId, status: $status) {
+    id
+    orderNumber
+    user {
+      id
+      nickname
+      phone
+    }
+    product {
+      id
+      name
+      price
+    }
+    address {
+      id
+      receiverName
+      phone
+      province
+      city
+      district
+      detailAddress
+    }
+    quantity
+    amount
+    status
+    paymentMethod
+    paymentTime
+    deliveryWorker {
+      id
+      name
+      phone
+      status
+    }
+    deliveryPhotos
+    completedAt
+    createdAt
+    updatedAt
+  }
+}
+
+# 综合查询 - 用户信息 + 地址 + 订单
+query GetUserCompleteInfo($userId: Long!) {
+  user(id: $userId) {
+    id
+    wechatOpenId
+    nickname
+    phone
+    avatarUrl
+    createdAt
+    updatedAt
+  }
+
+  ordersByUser(userId: $userId) {
+    id
+    orderNumber
+    product {
+      id
+      name
+      price
+    }
+    address {
+      id
+      receiverName
+      phone
+      province
+      city
+      district
+      detailAddress
+    }
+    quantity
+    amount
+    status
+    paymentMethod
+    paymentTime
+    deliveryWorker {
+      id
+      name
+      phone
+      status
+    }
+    deliveryPhotos
+    completedAt
+    createdAt
+    updatedAt
+  }
+}
+
+# 变量示例
+# {
+#   "userId": 1000000000000000011
+# }
+
+# 订单状态枚举值：
+# - PENDING: 待处理
+# - CONFIRMED: 已确认
+# - PREPARING: 准备中
+# - READY_FOR_DELIVERY: 待配送
+# - OUT_FOR_DELIVERY: 配送中
+# - DELIVERED: 已送达
+# - CANCELLED: 已取消
+# - REFUNDED: 已退款

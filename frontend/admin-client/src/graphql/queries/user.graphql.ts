@@ -3,54 +3,154 @@ import { gql } from '@apollo/client';
 export const GET_USERS_QUERY = gql`
   query GetUsers($input: UserListInput) {
     users(input: $input) {
-      content {
+      list {
         id
         wechatOpenId
         nickname
         phone
         avatarUrl
+        status
+        role
+        customerGroupId
+        customerGroupName
         createdAt
         updatedAt
+      }
+      pageInfo {
+        total
+        pageSize
+        pageNum
+        hasNext
+        hasPrevious
+        totalPages
+      }
+    }
+  }
+`;
+
+/** 用户持有的优惠券(用户详情页「优惠券」Tab,状态空=全部;F-MKT-003) */
+export const USER_COUPONS_QUERY = gql`
+  query GetUserCoupons($userId: PrimaryId!, $status: UserCouponStatus) {
+    userCoupons(userId: $userId, status: $status) {
+      id
+      name
+      couponType
+      thresholdCents
+      discountAmountCents
+      discountRatePermille
+      scope
+      productId
+      status
+      expireTime
+      usable
+    }
+  }
+`;
+
+/** 用户持有的桶水票(用户详情页「水票」Tab,状态空=全部;F-MKT-007) */
+export const USER_TICKETS_QUERY = gql`
+  query GetUserTickets($userId: PrimaryId!, $status: UserTicketStatus) {
+    userTickets(userId: $userId, status: $status) {
+      id
+      ticketNo
+      ticketTypeName
+      specification
+      status
+      expireTime
+      isGift
+    }
+  }
+`;
+
+/** 用户评价记录(用户详情页「评价记录」Tab,分页;F-ORD-007) */
+export const REVIEWS_BY_USER_QUERY = gql`
+  query GetReviewsByUser($userId: PrimaryId!, $page: Int, $size: Int) {
+    reviewsByUser(userId: $userId, page: $page, size: $size) {
+      content {
+        reviewId
+        orderId
+        deliveryWorkerId
+        deliveryWorkerName
+        rating
+        comment
+        isAnonymous
+        createdAt
       }
       totalElements
       totalPages
       size
       number
-      first
-      last
-      empty
     }
   }
 `;
 
-export const GET_USER_DETAIL_QUERY = gql`
-query GetUserDetail($id: PrimaryId!) {
-  user(id: $id) {
-    id
-    wechatOpenId
-    nickname
-    phone
-    avatarUrl
-    createdAt
-    updatedAt
-    __typename
+/** 配送员收到的评价记录(账号详情页「评价记录」Tab,分页;deliveryWorkerId=账号 id,F-USR-020/021) */
+export const REVIEWS_BY_DELIVERY_WORKER_QUERY = gql`
+  query GetReviewsByDeliveryWorker($deliveryWorkerId: PrimaryId!, $page: Int, $size: Int) {
+    reviewsByDeliveryWorker(deliveryWorkerId: $deliveryWorkerId, page: $page, size: $size) {
+      content {
+        reviewId
+        orderId
+        deliveryWorkerId
+        deliveryWorkerName
+        rating
+        comment
+        isAnonymous
+        createdAt
+      }
+      totalElements
+      totalPages
+      size
+      number
+    }
   }
-  userAddresses(userId: $id) {
-    id
-    province
-    provinceCode
-    city
-    cityCode
-    district
-    districtCode
-    receiverName
-    phone
-    detailAddress
-    longitude
-    latitude
-    isDefault
+`;
+
+/** 配送员评分分布/总评价数(账号详情页「评价记录」Tab;数据源 delivery_worker_statistics,F-USR-020/021) */
+export const DELIVERY_WORKER_RATING_STATISTICS_QUERY = gql`
+  query GetDeliveryWorkerRatingStatistics($deliveryWorkerId: PrimaryId!) {
+    deliveryWorkerRatingStatistics(deliveryWorkerId: $deliveryWorkerId) {
+      deliveryWorkerId
+      workerName
+      averageRating
+      totalReviews
+      oneStarReviews
+      twoStarReviews
+      threeStarReviews
+      fourStarReviews
+      fiveStarReviews
+      ratingDistribution
+      lastUpdated
+    }
   }
-}
+`;
+
+/** 用户收藏的商品(用户详情页「收藏商品」Tab,分页) */
+export const USER_FAVORITES_QUERY = gql`
+  query GetUserFavorites($userId: PrimaryId!, $page: Int, $size: Int) {
+    favoriteProducts(userId: $userId, page: $page, size: $size) {
+      list {
+        id
+        name
+        subtitle
+        priceCents
+        originalPriceCents
+        coverImageUrl
+        stock
+        salesVolume
+        status
+        addedAt
+      }
+      pageInfo {
+        total
+        pageSize
+        pageNum
+        hasNext
+        hasPrevious
+        totalPages
+      }
+    }
+  }
 `;
 
 export const GET_ADMINS_QUERY = gql`
@@ -61,9 +161,20 @@ export const GET_ADMINS_QUERY = gql`
       realName
       phone
       role
+      accountStatus
       lastLoginAt
       createdAt
       updatedAt
+      avatarUrl
+      onlineStatus
+      isAvailable
+      coordinates
+      currentLocation
+      rating
+      totalOrders
+      completedOrders
+      averageRating
+      earningCents
     }
   }
 `;
@@ -78,6 +189,7 @@ export const GET_DELIVERY_WORKERS_QUERY = gql`
       phone
       avatarUrl
       onlineStatus
+      role
       rating
       totalOrders
       completedOrders
@@ -99,124 +211,236 @@ export const DELIVERY_WORKER_DETAIL_QUERY = gql`
       phone
       avatarUrl
       onlineStatus
+      role
       rating
       totalOrders
       completedOrders
       averageRating
       isAvailable
+      accountStatus
       coordinates
       currentLocation
-      earning
+      earningCents
+      currentTaskCount
       createdAt
       updatedAt
     }
   }
 `;
 
-export const DELIVERY_WORKER_STATISTICS_QUERY = gql`
-  query GetDeliveryWorkerStatistics($deliveryWorkerId: PrimaryId!) {
-    deliveryWorkerStatistics(deliveryWorkerId: $deliveryWorkerId) {
-      deliveryWorkerId
-      workerName
-      averageRating
-      totalReviews
-      fiveStarReviews
-      fourStarReviews
-      threeStarReviews
-      twoStarReviews
-      oneStarReviews
-      ratingDistribution
-      lastUpdated
-    }
-  }
-`;
-
+// 配送员订单分页查询(admin `orders` 按 deliveryWorkerId+status 过滤)
 export const DELIVERY_WORKER_ORDERS_QUERY = gql`
-  query GetDeliveryWorkerOrders($deliveryWorkerId: PrimaryId!, $status: OrderStatus!) {
-    ordersByUserAndStatus(userId: $deliveryWorkerId, status: $status) {
-      id
-      orderNumber
-      status
-      amount
-      quantity
-      createdAt
-      updatedAt
-      completedAt
-      paymentMethod
-      paymentTime
-      deliveryPhotos
-      product {
-        id
-        name
-        price
-        coverImageUrl
+  query GetDeliveryWorkerOrders(
+    $deliveryWorkerId: PrimaryId!
+    $status: OrderStatus
+    $page: Int
+    $size: Int
+  ) {
+    orders(
+      input: {
+        deliveryWorkerId: $deliveryWorkerId
+        status: $status
+        page: $page
+        size: $size
       }
-      user {
+    ) {
+      content {
         id
-        nickname
-        phone
-        avatarUrl
+        orderNo
+        status
+        amountCents
+        createdAt
+        updatedAt
+        completedAt
+        paymentMethod
+        paymentTime
+        deliveryPhotos
+        items {
+          product {
+            id
+            name
+            priceCents
+            coverImageUrl
+          }
+          quantity
+          unitPriceCents
+          totalPriceCents
+        }
+        user {
+          id
+          nickname
+          phone
+          avatarUrl
+        }
+        address {
+          id
+          receiverName
+          phone
+          province
+          city
+          district
+          detailAddress
+        }
+        deliveryWorker {
+          id
+          name
+          phone
+          avatarUrl
+        }
       }
-      address {
-        id
-        receiverName
-        phone
-        province
-        city
-        district
-        detailAddress
-      }
-      deliveryWorker {
-        id
-        name
-        phone
-        avatarUrl
-      }
+      totalElements
+      totalPages
+      number
+      size
     }
   }
 `;
 
-export const USER_ORDERS_QUERY = gql`
-  query GetUserOrders($userId: PrimaryId!) {
-    ordersByUser(userId: $userId) {
+/**
+ * 用户详情页(UserDetailPage)单页查询:
+ * 一次请求取回「用户基本信息 + 收货地址 + 分页订单 + 已完成订单数(全量口径,别名)」,
+ * 满足 CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ * Tab 区块(优惠券/水票/反馈/评价/收藏)由 Tabs 懒挂载,激活时才各自请求,不在此合并。
+ */
+export const USER_DETAIL_PAGE_DATA_QUERY = gql`
+  query UserDetailPageData($id: PrimaryId!, $page: Int!, $size: Int!) {
+    user(id: $id) {
       id
-      orderNumber
+      wechatOpenId
+      nickname
+      phone
+      avatarUrl
       status
-      amount
-      quantity
+      role
+      email
+      balanceCents
+      totalSpentCents
+      customerGroupId
+      customerGroupName
       createdAt
       updatedAt
-      completedAt
-      paymentMethod
-      paymentTime
-      deliveryPhotos
-      product {
+      __typename
+    }
+    userAddresses(userId: $id) {
+      id
+      province
+      provinceCode
+      city
+      cityCode
+      district
+      districtCode
+      receiverName
+      phone
+      detailAddress
+      longitude
+      latitude
+      isDefault
+    }
+    orders(input: { userId: $id, page: $page, size: $size }) {
+      content {
         id
-        name
-        price
-        coverImageUrl
+        orderNo
+        status
+        amountCents
+        createdAt
+        updatedAt
+        completedAt
+        paymentMethod
+        paymentTime
+        deliveryPhotos
+        items {
+          product {
+            id
+            name
+            priceCents
+            coverImageUrl
+          }
+          quantity
+          unitPriceCents
+          totalPriceCents
+        }
+        user {
+          id
+          nickname
+          phone
+          avatarUrl
+        }
+        address {
+          id
+          receiverName
+          phone
+          province
+          city
+          district
+          detailAddress
+        }
+        deliveryWorker {
+          id
+          name
+          phone
+          avatarUrl
+        }
       }
-      user {
-        id
-        nickname
-        phone
-        avatarUrl
-      }
-      address {
-        id
-        receiverName
-        phone
-        province
-        city
-        district
-        detailAddress
-      }
-      deliveryWorker {
-        id
-        name
-        phone
-        avatarUrl
-      }
+      totalElements
+      totalPages
+      number
+      size
+    }
+    completedOrders: orders(input: { userId: $id, page: 0, size: 1, status: COMPLETED }) {
+      totalElements
     }
   }
 `;
+
+/** UserDetailPageData 操作名(供 refetchQueries 引用) */
+export const USER_DETAIL_PAGE_DATA = 'UserDetailPageData';
+
+/**
+ * 客户列表页(CustomerUsersPage)单页查询:
+ * 一次请求取回「用户分页 + 客户分组(筛选器/设置分组弹窗)」,满足
+ * CLAUDE.md 规则 #10 —— 一个页面的一次渲染只发起一个 GraphQL 请求。
+ */
+export const CUSTOMER_USERS_PAGE_DATA_QUERY = gql`
+  query CustomerUsersPageData($input: UserListInput) {
+    users(input: $input) {
+      list {
+        id
+        wechatOpenId
+        nickname
+        phone
+        avatarUrl
+        status
+        role
+        customerGroupId
+        customerGroupName
+        createdAt
+        updatedAt
+      }
+      pageInfo {
+        total
+        pageSize
+        pageNum
+        hasNext
+        hasPrevious
+        totalPages
+      }
+    }
+    customerGroups(input: { page: 0, size: 200 }) {
+      content {
+        id
+        name
+        description
+        memberCount
+        createdAt
+        updatedAt
+      }
+      totalElements
+      totalPages
+      size
+      number
+    }
+  }
+`;
+
+/** CustomerUsersPageData 操作名(供 refetchQueries 引用) */
+export const CUSTOMER_USERS_PAGE_DATA = 'CustomerUsersPageData';

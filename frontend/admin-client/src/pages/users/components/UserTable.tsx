@@ -1,10 +1,13 @@
 import React from 'react';
 import { Table, Button, Space, Tag, Avatar } from 'antd';
-import { EditOutlined, LockOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { EditOutlined, LockOutlined, DeleteOutlined, EyeOutlined, UsergroupAddOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { avatarFromName } from '@aquarush/common/utils';
 import type { ColumnsType } from 'antd/es/table';
 import type { User, TableActionProps } from './types';
 import { STATUS_MAPPINGS, ROLE_MAPPINGS } from './types';
+import { BRAND_PRIMARY } from '../../../config/theme';
+import { pagination } from '@/utils/table';
 
 interface UserTableProps extends TableActionProps {
   data: User[];
@@ -17,6 +20,7 @@ const UserTable: React.FC<UserTableProps> = ({
   onEdit,
   onDelete,
   onResetPassword,
+  onSetGroup,
 }) => {
   const navigate = useNavigate();
   const columns: ColumnsType<User> = [
@@ -27,9 +31,9 @@ const UserTable: React.FC<UserTableProps> = ({
       width: 80,
       render: (avatarUrl: string, record: User) => (
         <Avatar
-          src={avatarUrl}
+          src={avatarUrl || avatarFromName(record.nickname || '用户')}
           size={40}
-          style={{ backgroundColor: '#1890ff' }}
+          style={{ backgroundColor: BRAND_PRIMARY }}
         >
           {record.nickname?.charAt(0)?.toUpperCase() || 'U'}
         </Avatar>
@@ -88,6 +92,14 @@ const UserTable: React.FC<UserTableProps> = ({
       },
     },
     {
+      title: '所属分组',
+      dataIndex: 'customerGroupName',
+      key: 'customerGroupName',
+      width: 130,
+      render: (customerGroupName: string | null | undefined) =>
+        customerGroupName ? <Tag color="geekblue">{customerGroupName}</Tag> : <Tag>未分组</Tag>,
+    },
+    {
       title: '注册时间',
       dataIndex: 'createdAt',
       key: 'createdAt',
@@ -124,14 +136,26 @@ const UserTable: React.FC<UserTableProps> = ({
           >
             编辑
           </Button>
-          <Button
-            type="link"
-            icon={<LockOutlined />}
-            onClick={() => onResetPassword(record)}
-            size="small"
-          >
-            重置密码
-          </Button>
+          {onResetPassword && (
+            <Button
+              type="link"
+              icon={<LockOutlined />}
+              onClick={() => onResetPassword(record)}
+              size="small"
+            >
+              重置密码
+            </Button>
+          )}
+          {onSetGroup && (
+            <Button
+              type="link"
+              icon={<UsergroupAddOutlined />}
+              onClick={() => onSetGroup(record)}
+              size="small"
+            >
+              设置分组
+            </Button>
+          )}
           <Button
             type="link"
             danger
@@ -153,14 +177,13 @@ const UserTable: React.FC<UserTableProps> = ({
       rowKey="id"
       loading={loading}
       scroll={{ x: 1200 }}
-      pagination={{
+      pagination={pagination(data.length, {
         showSizeChanger: true,
         showQuickJumper: true,
-        showTotal: (total, range) =>
-          `第 ${range[0]}-${range[1]} 条，共 ${total} 条记录`,
+        showTotal: 'range',
         pageSizeOptions: ['10', '20', '50', '100'],
         defaultPageSize: 20,
-      }}
+      })}
       size="middle"
     />
   );

@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,24 +19,34 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.RegionModel
+import dev.yidafu.aqua.common.domain.model.RegionModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 
 @Repository
-interface RegionRepository : JpaRepository<RegionModel, Long>, RegionRepositoryCustom {
-
+interface RegionRepository :
+  JpaRepository<RegionModel, Long>,
+  RegionRepositoryCustom {
   fun findByCode(code: String): RegionModel?
 
-  fun findByParentCodeAndLevel(parentCode: String, level: Int): List<RegionModel>
+  fun findByParentCodeAndLevel(
+    parentCode: String,
+    level: Int,
+  ): List<RegionModel>
 
   fun findByLevel(level: Int): List<RegionModel>
 
   fun existsByCode(code: String): Boolean
 
-  fun existsByCodeAndLevel(code: String, level: Int): Boolean
+  fun existsByCodeAndLevel(
+    code: String,
+    level: Int,
+  ): Boolean
 
-  fun findByNameContainingAndLevelOrderByCode(name: String, level: Int): List<RegionModel>
+  fun findByNameContainingAndLevelOrderByCode(
+    name: String,
+    level: Int,
+  ): List<RegionModel>
 
   fun findByNameContainingOrderByCode(name: String): List<RegionModel>
 

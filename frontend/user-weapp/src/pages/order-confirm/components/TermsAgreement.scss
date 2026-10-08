@@ -1,0 +1,54 @@
+.terms-section {
+  margin: 0 24px 24px;
+  padding: 16px 24px;
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+
+  // 覆盖 taro-ui AtCheckbox 默认样式:标题默认 32px($font-size-lg × $hd=2)过大,
+  // 缩至说明级 22px 弱化展示;去掉自带上下发丝线(白卡内无需);压缩内边距与图标尺寸。
+  .at-checkbox {
+    background: transparent;
+
+    &::before,
+    &::after {
+      display: none;
+    }
+
+    &__option-wrap {
+      padding: 0;
+    }
+
+    &__option-cnt {
+      align-items: center;
+    }
+
+    &__icon-cnt {
+      width: 32px;
+      min-width: 32px;
+      height: 32px;
+      margin-top: 0;
+      margin-right: 12px;
+    }
+
+    &__title {
+      font-size: 22px;
+      color: var(--text-sub);
+      line-height: 1.5;
+    }
+  }
+}
+
+// 小屏收紧边距
+@media (max-width: 375px) {
+  .terms-section {
+    margin: 0 16px 20px;
+    padding: 12px 20px;
+  }
+}
+
+@media (min-width: 414px) {
+  .terms-section {
+    margin: 0 32px 24px;
+  }
+}

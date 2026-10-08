@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 数据维护｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 系统设置 / 数据维护</h1>
+      <p class="sub">功能编号 F-SYS-006 ｜ 系统设置域 ｜ 入口「系统设置 → 数据维护」· 路由 system-config/data ｜ 仅超级管理员可见</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-SYS-006</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-goal">备份文件在线下载 目标形态</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：保留策略 + 分区管理 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 日志保留策略 + 日志分区管理（Tabs）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/system-config/data</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">系统设置 <span class="crumb-sep">/</span> <b>数据维护</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>数据维护</h2>
+                    <div class="desc">单查询 dataMaintenanceOverview ｜ 分区预建每日 03:00 与启动时 ｜ 自动备份每日 03:30 与启动时（操作人 system）</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">保存策略</span>
+                  </div>
+                </div>
+
+                <div class="section-title">日志保留策略</div>
+                <div class="card">
+                  <div class="grid3">
+                    <div class="field">
+                      <label>API 日志保留天数 <span class="f-note t-weak">｜ InputNumber（天）｜ 默认 90 ｜ 1-3650 整数</span></label>
+                      <div class="input"><span>90</span></div>
+                    </div>
+                    <div class="field">
+                      <label>用户操作日志保留天数 <span class="f-note t-weak">｜ InputNumber（天）｜ 默认 90 ｜ 1-3650 整数</span></label>
+                      <div class="input"><span>90</span></div>
+                    </div>
+                    <div class="field">
+                      <label>业务日志保留天数 <span class="f-note t-weak">｜ InputNumber（天）｜ 默认 90 ｜ 1-3650 整数</span></label>
+                      <div class="input"><span>90</span></div>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>自动备份开关（log_cleanup_enabled） <span class="f-note t-weak">｜ Switch ｜ 默认开</span></label>
+                    <div class="row gap2"><span class="switch on"></span><span class="f-note t-sub">开启（关闭后不再自动备份超期日志，手动备份不受影响）</span></div>
+                  </div>
+                  <div class="f-note t-weak">校验：「保留天数无效」（1-3650 整数，0 或负数拦截）；保存审计留痕，超期判定按新策略生效。</div>
+                </div>
+
+                <div class="section-title">日志分区管理</div>
+                <div class="tabs">
+                  <span class="tab-item on">API 日志</span>
+                  <span class="tab-item">用户操作日志</span>
+                  <span class="tab-item">业务日志</span>
+                </div>
+
+                <div class="ant-table" style="margin-bottom:14px">
+                  <table>
+                    <thead><tr><th>表名</th><th class="num">分区数</th><th>最老分区</th><th class="num">占用空间</th></tr></thead>
+                    <tbody>
+                      <tr><td class="bold" style="font-family:var(--font-num)">log_api</td><td class="num">6</td><td>2026-04</td><td class="num">1.28 GB</td></tr>
+                      <tr><td class="bold" style="font-family:var(--font-num)">log_user_action</td><td class="num">6</td><td>2026-04</td><td class="num">642 MB</td></tr>
+                      <tr><td class="bold" style="font-family:var(--font-num)">log_business</td><td class="num">6</td><td>2026-04</td><td class="num">318 MB</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr><th>分区名</th><th>月份</th><th class="num">行数</th><th class="num">大小</th><th>状态</th><th>操作</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="font-family:var(--font-num)">log_api_202604</td>
+                        <td>2026-04</td>
+                        <td class="num">1,284,301</td>
+                        <td class="num">312 MB</td>
+                        <td><span class="tag tag-warn">已超期</span></td>
+                        <td><div class="ops"><a>离线备份</a></div></td>
+                      </tr>
+                      <tr>
+                        <td style="font-family:var(--font-num)">log_api_202605</td>
+                        <td>2026-05</td>
+                        <td class="num">1,120,442</td>
+                        <td class="num">286 MB</td>
+                        <td><span class="tag tag-neutral">未超期</span></td>
+                        <td><div class="ops"><span class="t-weak">离线备份</span></div></td>
+                      </tr>
+                      <tr>
+                        <td style="font-family:var(--font-num)">log_api_202609</td>
+                        <td>2026-09</td>
+                        <td class="num">986,120</td>
+                        <td class="num">241 MB</td>
+                        <td><span class="tag tag-neutral">未超期</span></td>
+                        <td><div class="ops"><span class="t-weak">离线备份</span></div></td>
+                      </tr>
+                      <tr>
+                        <td style="font-family:var(--font-num)">log_api_202610</td>
+                        <td>2026-10</td>
+                        <td class="num">164,882</td>
+                        <td class="num">42 MB</td>
+                        <td><span class="tag tag-brand">当前月</span></td>
+                        <td><div class="ops"><span class="t-weak">离线备份</span></div></td>
+                      </tr>
+                      <tr>
+                        <td style="font-family:var(--font-num)">log_api_default</td>
+                        <td>—</td>
+                        <td class="num">120</td>
+                        <td class="num">1 MB</td>
+                        <td><span class="tag tag-done">默认分区</span></td>
+                        <td><div class="ops"><span class="t-weak">离线备份</span></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 6 个分区 ｜ 禁用项 Tooltip 说明原因（当前月 / DEFAULT / 未超期 / 已备份不可备份）</span>
+                    <div class="pager"><i class="on">1</i></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：离线备份记录 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 离线备份记录 + 手动触发备份（危险操作）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/system-config/data — 离线备份记录</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi on">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">系统设置 <span class="crumb-sep">/</span> <b>数据维护 · 离线备份记录</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div>
+                    <h2>数据维护</h2>
+                    <div class="desc">备份语义 = 转储冷表 log_archive.{table}_{yyyy} + 导出 gzip CSV（带 SHA-256），两步均成功后删除热表分区</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost disabled">备份文件在线下载</span>
+                    <span class="btn sm danger">手动触发备份</span>
+                  </div>
+                </div>
+
+                <div class="notice" style="margin-bottom:14px">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 3 3 20h18z"/><path d="M12 9v5M12 17h.01"/></svg>
+                  <span>手动备份为<strong>危险操作</strong>：将把已超期历史月分区转储并导出，在线日志将不再包含该月数据，须二次确认。</span>
+                </div>
+
+                <div class="section-title">离线备份记录</div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr><th>时间</th><th>日志表</th><th>分区</th><th>冷表名</th><th class="num">行数</th><th>文件</th><th class="num">大小</th><th>状态</th><th>操作人</th><th>详情</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="num">2026-10-07 03:30</td>
+                        <td style="font-family:var(--font-num)">log_api</td>
+                        <td style="font-family:var(--font-num)">log_api_202604</td>
+                        <td style="font-family:var(--font-num)">log_archive.log_api_2026</td>
+                        <td class="num">1,284,301</td>
+                        <td class="ellipsis" style="max-width:150px">log_api_202604.csv.gz</td>
+                        <td class="num">86 MB</td>
+                        <td><span class="tag tag-ok">成功</span></td>
+                        <td>system</td>
+                        <td><div class="ops"><a>详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="num">2026-10-07 03:31</td>
+                        <td style="font-family:var(--font-num)">log_user_action</td>
+                        <td style="font-family:var(--font-num)">log_user_action_202604</td>
+                        <td style="font-family:var(--font-num)">log_archive.log_user_action_2026</td>
+                        <td class="num">642,118</td>
+                        <td class="ellipsis" style="max-width:150px">log_user_action_202604.csv.gz</td>
+                        <td class="num">41 MB</td>
+                        <td><span class="tag tag-ok">成功</span></td>
+                        <td>system</td>
+                        <td><div class="ops"><a>详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="num">2026-10-06 14:22</td>
+                        <td style="font-family:var(--font-num)">log_business</td>
+                        <td style="font-family:var(--font-num)">log_business_202604</td>
+                        <td>—</td>
+                        <td class="num">—</td>
+                        <td class="ellipsis" style="max-width:150px">—</td>
+                        <td class="num">—</td>
+                        <td><span class="tag tag-err">失败</span></td>
+                        <td>超级管理员</td>
+                        <td><div class="ops"><a>详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="num">2026-10-06 14:20</td>
+                        <td style="font-family:var(--font-num)">log_business</td>
+                        <td style="font-family:var(--font-num)">log_business_202604</td>
+                        <td>—</td>
+                        <td class="num">—</td>
+                        <td class="ellipsis" style="max-width:150px">—</td>
+                        <td class="num">—</td>
+                        <td><span class="tag tag-brand">进行中</span></td>
+                        <td>超级管理员</td>
+                        <td><div class="ops"><a>详情</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 4 条记录 ｜ 失败详情含失败原因、SHA-256；数据仍在热表，未丢失</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态三：手动备份二次确认 ============ -->
+      <div>
+        <div class="browser-cap">状态三 · 手动触发备份二次确认（含备份文案）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/system-config/data — 备份确认</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi on">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">系统设置 <span class="crumb-sep">/</span> <b>数据维护</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title"><div><h2>数据维护</h2><div class="desc">二次确认弹窗打开态</div></div></div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>分区名</th><th>月份</th><th class="num">行数</th><th class="num">大小</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr><td style="font-family:var(--font-num)">log_api_202604</td><td>2026-04</td><td class="num">1,284,301</td><td class="num">312 MB</td><td><span class="tag tag-warn">已超期</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal">
+              <div class="modal-head">离线备份确认</div>
+              <div class="modal-body">
+                <p class="f-body">将把分区 log_api_202604 转储为冷表并导出数据文件，在线日志将不再包含该月数据，确定继续吗?</p>
+                <div class="desc-grid two">
+                  <div class="desc-item"><div class="k">目标分区</div><div class="v num">log_api_202604</div></div>
+                  <div class="desc-item"><div class="k">冷表名</div><div class="v num">log_archive.log_api_2026</div></div>
+                  <div class="desc-item"><div class="k">导出文件</div><div class="v num">log_api_202604.csv.gz（gzip CSV）</div></div>
+                  <div class="desc-item"><div class="k">完整性校验</div><div class="v num">SHA-256</div></div>
+                </div>
+                <div class="notice mt3 mb0">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 3 3 20h18z"/><path d="M12 9v5M12 17h.01"/></svg>
+                  <span>备份为「转储冷表 + 导出文件」两步，均成功后删除热表分区（不做在线删除）；失败回滚，数据仍在热表。</span>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm danger">确定继续</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>系统设置 → 数据维护；路由 <code>system-config/data</code>；<strong>仅超级管理员可见</strong></p>
+        <p><strong>数据来源：</strong>单查询 <code>dataMaintenanceOverview</code> 加载保留策略 + 三类日志分区 + 备份记录分页</p>
+        <p><strong>状态：</strong><span class="chip chip-ok">已实现</span></p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>日志保留策略：三类日志保留天数 + 自动备份开关 + 保存 / 重置</li>
+          <li>日志分区管理：Tabs（API 日志 / 用户操作日志 / 业务日志）+ 汇总表（表名 / 分区数 / 最老分区 / 占用空间）+ 分区明细表</li>
+          <li>离线备份记录表：时间 / 日志表 / 分区 / 冷表名 / 行数 / 文件 / 大小 / 状态 / 操作人 / 详情</li>
+          <li>手动触发备份按钮（危险操作 + 二次确认）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>进入页面 → 单请求加载保留策略 + 三类日志分区 + 备份记录分页</li>
+          <li>修改保留天数 / 开关 → 保存（审计留痕）→ 超期判定按新策略生效</li>
+          <li>点某历史超期分区「离线备份」→ 二次确认 → 转储冷表 + 导出文件 → 分区从热表移除 → 备份记录追加</li>
+          <li>每日 03:30 与启动时自动备份超期分区（开关关闭跳过；单分区失败记 FAILED 并继续其余）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>分区列表空时提示「日志表尚未按月分区」；备份记录空态。<strong>加载态：</strong>总览 / 保存 / 备份 loading。<strong>错误态：</strong>备份失败 toast + 备份记录 FAILED（数据仍在热表，未丢失）。<strong>禁用态：</strong>无 <code>SYSTEM_CONFIG_WRITE</code> 权限时只读；当前月 / DEFAULT / 未超期 / 已备份分区不可备份（Tooltip 说明原因）。</p>
+        <p><strong>分区状态 Tag：</strong>默认分区 / 当前月 / 已超期 / 未超期。<strong>备份状态 Tag：</strong>成功 / 失败 / 进行中。</p>
+        <p><strong>校验：</strong>「保留天数无效」（1-3650 整数）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：手动备份为危险操作，用语义 error 色（<code>.btn.danger</code>），并二次确认。</p>
+        <p>保留天数 1-3650 整数，0 或负数拦截。备份语义 =「转储冷表 + 导出 gzip CSV（带 SHA-256）」，两步均成功后删除热表分区，<strong>不做在线删除</strong>。</p>
+        <p><strong>已备份月份数据不再在线查询到</strong>（仅冷表 / 备份文件可见），须提示。自动备份受 <code>log_cleanup_enabled</code> 控制，关闭后仅跳过自动、不阻断手动。</p>
+        <p><span class="tag tag-goal"></span> 缺口 <strong>G64</strong>：冷表保留 / 清理策略、<strong>备份文件在线下载</strong>与异地传输（建议保持运维侧）、按年份冷表分区化。恢复为运维侧操作（不在 UI 提供）。「备份文件在线下载」按钮现状为禁用占位。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

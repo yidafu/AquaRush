@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 会员等级配置｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 会员等级配置</h1>
+      <p class="sub">功能编号 F-MKT-011 [规划中]（含 F-MKT-006，2026-10 新增）｜ 营销域 ｜ 下游：用户端会员中心</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-011</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">admin-client</span>
+      <span class="chip chip-plain">缺口 G80 / G57 收敛</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：等级列表 + 权益矩阵 + 升降级规则 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 等级列表 + 等级权益矩阵 + 升级 / 降级规则</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/member-levels</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>会员等级</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>会员等级 <span class="tag tag-goal"></span></h2>
+                    <div class="desc">门槛递增且不重复；累计消费口径 = 已完成订单实付金额（不含押金、退款）</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">导出</span>
+                    <span class="btn sm">＋ 新建等级</span>
+                  </div>
+                </div>
+
+                <div class="ant-table mb3">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>等级名</th>
+                        <th class="num">成长值门槛</th>
+                        <th class="num">折扣率</th>
+                        <th>免配送费</th>
+                        <th>生日券</th>
+                        <th>专属客服</th>
+                        <th class="num">会员数</th>
+                        <th>启用</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="bold">普通</div><div class="sub-line">默认等级</div></td>
+                        <td class="num">0</td>
+                        <td class="num">100.00%</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td>—</td>
+                        <td class="num">1,284</td>
+                        <td><span class="switch on"></span></td>
+                        <td><div class="ops"><a>配置</a><a class="danger">停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">银卡</div><div class="sub-line">成长值 ≥ 500</div></td>
+                        <td class="num">500</td>
+                        <td class="num t-brand bold">95.00%</td>
+                        <td><span class="tag tag-brand">免配送费</span></td>
+                        <td><span class="tag tag-neutral">—</span></td>
+                        <td><span class="tag tag-neutral">—</span></td>
+                        <td class="num">642</td>
+                        <td><span class="switch on"></span></td>
+                        <td><div class="ops"><a>配置</a><a class="danger">停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">金卡</div><div class="sub-line">成长值 ≥ 2,000</div></td>
+                        <td class="num">2,000</td>
+                        <td class="num t-brand bold">90.00%</td>
+                        <td><span class="tag tag-brand">免配送费</span></td>
+                        <td><span class="tag tag-brand">生日券</span></td>
+                        <td><span class="tag tag-neutral">—</span></td>
+                        <td class="num">210</td>
+                        <td><span class="switch on"></span></td>
+                        <td><div class="ops"><a>配置</a><a class="danger">停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">钻石</div><div class="sub-line">成长值 ≥ 5,000</div></td>
+                        <td class="num">5,000</td>
+                        <td class="num t-brand bold">85.00%</td>
+                        <td><span class="tag tag-brand">免配送费</span></td>
+                        <td><span class="tag tag-brand">生日券</span></td>
+                        <td><span class="tag tag-brand">专属客服</span></td>
+                        <td class="num">36</td>
+                        <td><span class="switch"></span></td>
+                        <td><div class="ops"><a>配置</a><a class="danger">停用</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 4 个等级</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i></div>
+                  </div>
+                </div>
+
+                <div class="card mb3">
+                  <div class="card-head"><span class="card-title sm">等级权益矩阵（等级 × 权益）</span><span class="tag tag-goal"></span></div>
+                  <div class="ant-table" style="box-shadow:none">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>权益</th>
+                          <th>普通</th>
+                          <th>银卡</th>
+                          <th>金卡</th>
+                          <th>钻石</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr><td>会员折扣</td><td>100.00%</td><td>95.00%</td><td>90.00%</td><td>85.00%</td></tr>
+                        <tr><td>免配送费</td><td>—</td><td><span class="tag tag-brand">享</span></td><td><span class="tag tag-brand">享</span></td><td><span class="tag tag-brand">享</span></td></tr>
+                        <tr><td>优先派单</td><td>—</td><td>—</td><td><span class="tag tag-brand">享</span></td><td><span class="tag tag-brand">享</span></td></tr>
+                        <tr><td>生日券</td><td>—</td><td>—</td><td><span class="tag tag-brand">享</span></td><td><span class="tag tag-brand">享</span></td></tr>
+                        <tr><td>专属客服</td><td>—</td><td>—</td><td>—</td><td><span class="tag tag-brand">享</span></td></tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="grid2">
+                  <div class="card">
+                    <div class="card-head"><span class="card-title sm">升级规则</span></div>
+                    <ul class="f-aux t-sub">
+                      <li>成长值来源：每消费 ¥1.00 = 1 成长值（按已完成订单实付金额计）</li>
+                      <li>用户完成订单 → 累计消费更新 → 达门槛自动升级</li>
+                      <li>升级后可发站内 / 订阅消息通知</li>
+                      <li>下单按等级权益应用会员折扣（R-MKT-06，商品维度互斥）、免配送费</li>
+                    </ul>
+                  </div>
+                  <div class="card">
+                    <div class="card-head"><span class="card-title sm">降级规则</span></div>
+                    <ul class="f-aux t-sub">
+                      <li>自然年 / 滚动周期内累计消费未达标 → 降级至达标等级</li>
+                      <li>累计消费口径 = 已完成订单实付金额（不含押金、退款）</li>
+                      <li>停用等级不参与判定；降级前可发预警通知</li>
+                      <li>免配送费权益与楼层分档关系为开放问题</li>
+                    </ul>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：配置弹窗 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 配置弹窗（等级名 / 门槛 / 折扣率 / 权益勾选 / 启用）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/member-levels — 配置</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>会员等级</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title"><div><h2>会员等级</h2><div class="desc">弹窗打开态（背景遮罩）</div></div>
+                  <div class="row gap2"><span class="btn sm ghost">导出</span><span class="btn sm">＋ 新建等级</span></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>等级名</th><th class="num">成长值门槛</th><th class="num">折扣率</th><th>会员数</th><th>启用</th></tr></thead>
+                    <tbody>
+                      <tr><td>银卡</td><td class="num">500</td><td class="num">95.00%</td><td class="num">642</td><td><span class="switch on"></span></td></tr>
+                      <tr><td>金卡</td><td class="num">2,000</td><td class="num">90.00%</td><td class="num">210</td><td><span class="switch on"></span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal">
+              <div class="modal-head">配置会员等级</div>
+              <div class="modal-body">
+                <div class="field">
+                  <label class="req">等级名</label>
+                  <div class="input"><span class="ph">银卡</span></div>
+                </div>
+                <div class="grid2" style="gap:0 16px">
+                  <div class="field">
+                    <label class="req">升级门槛</label>
+                    <div class="input"><span class="ph">500</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">累计消费金额（元）或完成订单数，递增不重复；「等级门槛需递增」</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">折扣率</label>
+                    <div class="input"><span>95</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">1%–99%，9 折 = 90；「折扣率超出范围」</div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label>权益勾选</label>
+                  <div class="col gap2">
+                    <div class="row gap2"><span class="check on"></span><span class="f-aux">免配送费</span></div>
+                    <div class="row gap2"><span class="check"></span><span class="f-aux">优先派单</span></div>
+                    <div class="row gap2"><span class="check"></span><span class="f-aux">生日礼包 / 生日券</span></div>
+                    <div class="row gap2"><span class="check"></span><span class="f-aux">专属客服</span></div>
+                  </div>
+                  <div class="f-note t-weak" style="margin-top:6px">权益按等级叠加生效；会员折扣按未命中让利单价商品小计应用（R-MKT-06，商品维度互斥）</div>
+                </div>
+
+                <div class="field mb0">
+                  <label>启用</label>
+                  <div class="row gap2">
+                    <span class="switch on"></span>
+                    <span class="f-aux t-sub">停用等级不参与判定</span>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">保存</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>营销管理 → 会员等级（或客户分组详情）</p>
+        <p><strong>跳转：</strong>用户端会员中心；下单按等级权益应用会员折扣 / 免配送费</p>
+        <p><strong>组件：</strong>Table、Form、InputNumber、Switch</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>等级列表：等级名 / 成长值门槛 / 折扣率 / 免配送费 / 生日券 / 专属客服 / 会员数 / 操作</li>
+          <li>配置弹窗：等级名、升级门槛、折扣率、权益勾选、启用</li>
+          <li>等级权益矩阵表：等级 × 权益</li>
+          <li>升级规则（成长值来源：每消费 ¥1.00 = 1 成长值）</li>
+          <li>降级规则</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>配置等级与门槛 → 保存生效</li>
+          <li>用户完成订单 → 累计消费更新 → 达门槛自动升级 → 可选站内 / 订阅消息通知</li>
+          <li>下单 → 按等级权益应用会员折扣（R-MKT-06，商品维度互斥）、免配送费等</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>无等级配置时引导先建；<strong>停用：</strong>停用等级不参与判定。</p>
+        <p><strong>校验：</strong>「等级门槛需递增」「折扣率超出范围」（1%–99%）；文案「会员折扣 -¥5.00」。</p>
+        <p><strong>口径：</strong>累计消费 = 已完成订单实付金额（不含押金、退款）；免配送费权益与楼层分档关系为开放问题。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p><span class="tag tag-goal"></span> 本页为规划中（缺口 G80，含 G57 收敛）：门槛递增且不重复，等级与权益矩阵同屏可评审。</p>
+        <p>管理端<strong>不出现强调橙</strong>：折扣率用品牌蓝强调，权益标签用品牌蓝。</p>
+        <p>金额分存储（R-MON-01）、百分比两位小数；等级卡在用户端可适度品牌化，后台保持克制。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

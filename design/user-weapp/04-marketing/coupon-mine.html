@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 我的优惠券｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 我的优惠券（券包）</h1>
+      <p class="sub">功能编号 F-MKT-003 ｜ 营销域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 券卡金额用品牌橙红（券例外）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-003</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：可用 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 可用券</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">我的优惠券</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-tabs">
+                <div class="weui-tabs__item on">可用</div>
+                <div class="weui-tabs__item">已使用</div>
+                <div class="weui-tabs__item">已过期</div>
+              </div>
+
+              <!-- 现金券 · 可用（缺口 / 齿孔） -->
+              <div class="weui-cells" style="margin:8px;border-radius:8px">
+                <div style="display:flex;align-items:stretch;position:relative">
+                  <div style="flex:0 0 104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:22px 0;background:var(--action-tint)">
+                    <span class="weui-price weui-price--lg" style="color:var(--action)"><span class="weui-price__symbol">¥</span><span class="weui-price__int">10</span><span class="weui-price__dec">.00</span></span>
+                    <span style="font-size:12px;color:var(--action)">满 50 可用</span>
+                  </div>
+                  <i style="position:absolute;left:104px;top:-7px;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--weui-BG-0)"></i>
+                  <i style="position:absolute;left:104px;bottom:-7px;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--weui-BG-0)"></i>
+                  <span style="position:absolute;left:104px;top:14px;bottom:14px;border-left:1px dashed var(--weui-FG-3)"></span>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px">
+                    <div style="min-width:0">
+                      <div class="row gap2 wrap">
+                        <span class="bold">满 50 减 10</span>
+                        <span class="weui-tag" style="background:var(--action-tint);color:var(--action)">现金券</span>
+                      </div>
+                      <div class="f-note t-sub mt2">适用范围：全场通用</div>
+                      <div class="f-note t-weak">有效期：2026-10-01 至 2026-10-31</div>
+                    </div>
+                    <span class="weui-btn weui-btn_xs" style="background:var(--action);color:var(--card)">去使用</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 折扣券 · 可用 -->
+              <div class="weui-cells" style="margin:8px;border-radius:8px">
+                <div style="display:flex;align-items:stretch;position:relative">
+                  <div style="flex:0 0 104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:22px 0;background:var(--action-tint)">
+                    <span class="weui-price weui-price--lg" style="color:var(--action)"><span class="weui-price__int">9</span><span class="weui-price__dec">折</span></span>
+                    <span style="font-size:12px;color:var(--action)">满 50 可用</span>
+                  </div>
+                  <i style="position:absolute;left:104px;top:-7px;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--weui-BG-0)"></i>
+                  <i style="position:absolute;left:104px;bottom:-7px;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--weui-BG-0)"></i>
+                  <span style="position:absolute;left:104px;top:14px;bottom:14px;border-left:1px dashed var(--weui-FG-3)"></span>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px">
+                    <div style="min-width:0">
+                      <div class="row gap2 wrap">
+                        <span class="bold">满 50 打 9 折</span>
+                        <span class="weui-tag" style="background:var(--action-tint);color:var(--action)">折扣券</span>
+                      </div>
+                      <div class="f-note t-sub mt2">适用范围：指定商品（怡宝 18.9L）</div>
+                      <div class="f-note t-weak">有效期：领取后 7 天内有效</div>
+                    </div>
+                    <span class="weui-btn weui-btn_xs" style="background:var(--action);color:var(--card)">去使用</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-loadmore">
+                <span class="weui-loadmore__line"></span>
+                <span>已展示全部可用券</span>
+                <span class="weui-loadmore__line"></span>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：已过期 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 已过期券（置灰只读）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">我的优惠券</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-tabs">
+                <div class="weui-tabs__item">可用</div>
+                <div class="weui-tabs__item">已使用</div>
+                <div class="weui-tabs__item on">已过期</div>
+              </div>
+
+              <!-- 已过期 · 置灰只读 -->
+              <div class="weui-cells" style="margin:8px;border-radius:8px">
+                <div style="display:flex;align-items:stretch;position:relative;opacity:.62">
+                  <div style="flex:0 0 104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:22px 0;background:var(--weui-BG-1)">
+                    <span class="weui-price weui-price--lg weui-price--gray"><span class="weui-price__symbol">¥</span><span class="weui-price__int">5</span><span class="weui-price__dec">.00</span></span>
+                    <span style="font-size:12px;color:var(--weui-FG-2)">满 30 可用</span>
+                  </div>
+                  <i style="position:absolute;left:104px;top:-7px;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--weui-BG-0)"></i>
+                  <i style="position:absolute;left:104px;bottom:-7px;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--weui-BG-0)"></i>
+                  <span style="position:absolute;left:104px;top:14px;bottom:14px;border-left:1px dashed var(--weui-FG-3)"></span>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px">
+                    <div style="min-width:0">
+                      <div class="row gap2 wrap">
+                        <span class="bold t-sub">满 30 减 5</span>
+                        <span class="weui-tag">现金券</span>
+                      </div>
+                      <div class="f-note t-sub mt2">适用范围：全场通用</div>
+                      <div class="f-note t-weak">有效期：2026-09-01 至 2026-09-30</div>
+                    </div>
+                    <span class="weui-tag weui-tag--done">已过期</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells" style="margin:8px;border-radius:8px">
+                <div style="display:flex;align-items:stretch;position:relative;opacity:.62">
+                  <div style="flex:0 0 104px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:22px 0;background:var(--weui-BG-1)">
+                    <span class="weui-price weui-price--lg weui-price--gray"><span class="weui-price__symbol">¥</span><span class="weui-price__int">20</span><span class="weui-price__dec">.00</span></span>
+                    <span style="font-size:12px;color:var(--weui-FG-2)">满 100 可用</span>
+                  </div>
+                  <i style="position:absolute;left:104px;top:-7px;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--weui-BG-0)"></i>
+                  <i style="position:absolute;left:104px;bottom:-7px;transform:translateX(-50%);width:14px;height:14px;border-radius:50%;background:var(--weui-BG-0)"></i>
+                  <span style="position:absolute;left:104px;top:14px;bottom:14px;border-left:1px dashed var(--weui-FG-3)"></span>
+                  <div style="flex:1;min-width:0;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px">
+                    <div style="min-width:0">
+                      <div class="row gap2 wrap">
+                        <span class="bold t-sub">满 100 减 20</span>
+                        <span class="weui-tag">现金券</span>
+                      </div>
+                      <div class="f-note t-sub mt2">适用范围：全场通用</div>
+                      <div class="f-note t-weak">有效期：2026-09-01 至 2026-09-30</div>
+                    </div>
+                    <span class="weui-tag weui-tag--done">已过期</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells__tips">过期券仅保留历史记录，不可再使用</div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 无可用券（空态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">我的优惠券</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-tabs">
+                <div class="weui-tabs__item on">可用</div>
+                <div class="weui-tabs__item">已使用</div>
+                <div class="weui-tabs__item">已过期</div>
+              </div>
+
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>
+                </div>
+                <div class="weui-empty__text">暂无优惠券<br>去领券中心看看有哪些好券</div>
+              </div>
+
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__bd">去领券中心</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+              </div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（Taro）</p>
+        <p><strong>入口：</strong>我的页 →「我的优惠券 / 券包」；领券中心领取后回此</p>
+        <p><strong>跳转：</strong>可用券「去使用」→ 商品列表 / 首页选品；空态「去领券中心」→ <code>coupon-center</code>；确认订单页券选择器（order-confirm）由此读取可用券</p>
+        <p><strong>数据：</strong>券名、面额 / 折扣率、门槛、适用范围、有效期、状态</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部 Tab：可用 / 已使用 / 已过期（<code>.weui-tabs</code>，可选「已退回」）</li>
+          <li>券卡列表（<code>.weui-cells</code>）：券名 + 金额 / 折扣 + 门槛 + 适用范围 + 有效期 + 状态操作（<code>.weui-btn_xs</code>「去使用」）</li>
+          <li>底部说明：过期券仅保留历史记录（<code>.weui-cells__tips</code>）</li>
+          <li>空态：<code>.weui-empty</code>「暂无优惠券」+「去领券中心」（<code>.weui-cell_link</code>）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>切换 Tab 过滤券状态；可用券点击券卡 → 跳商品 / 首页选品</li>
+          <li>「去使用」→ 进入选品或下单流程</li>
+          <li>已使用 / 已过期券只读，按状态降透明度</li>
+          <li>确认订单页据此列表提供可选券（此动作在 order-confirm 页完成）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>未使用 / 已使用 / 已过期 / 已退回：</strong>四态并存；可用券面额显示橙红，其余置灰降透明（面额区灰底 + <code>.weui-tag--done</code>）。</p>
+        <p><strong>空态：</strong>「暂无优惠券」+「去领券中心」；<strong>加载态：</strong>Loadmore 双短线 / 骨架屏。</p>
+        <p><strong>R-MKT-07：</strong>确认订单勾选一张券后优惠金额计入应付；一单一券不可叠加。</p>
+        <p><strong>R-MON-01：</strong>金额以分存储，展示转元（两位小数）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>基准：</strong>微信官方 WeUI 2.x，主题色经 <code>--weui-BRAND</code> 注入品牌蓝；Tab 选中态为品牌蓝短下划线。</p>
+        <p><strong>关键度量：</strong>导航栏 44px + 胶囊 87×32；<code>.weui-tabs__item</code> 15px、选中 3px 品牌蓝下划线；券卡圆角 8px；页面底 <code>--weui-BG-0</code>。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code> / <code>.mp-capsule</code>、<code>.weui-tabs</code>、<code>.weui-cells</code>、<code>.weui-tag</code>（<code>--done</code>）、<code>.weui-btn_xs</code>、<code>.weui-loadmore</code>、<code>.weui-empty</code>、<code>.weui-cell_link</code>、<code>.weui-price--lg</code>。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p><strong>券品牌色例外：</strong>券卡金额、类型标签、券图标、「去使用」按钮统一使用品牌橙红 <code>var(--action)</code>，按设计系统 §2.1 <strong>不受「强调橙仅限 CTA」限制</strong>。</p>
+        <p>已过期券需与可用券明显区分（置灰 + 中性标签 <code>.weui-tag--done</code>），但保留历史可查，不做删除。</p>
+        <p>券卡沿用「缺口 / 齿孔」形态（圆形遮罩 + 虚线），保持与领券中心同源识别度。</p>
+        <p>非券元素（Tab、空态说明、返回导航）使用品牌蓝，不用强调橙；金额统一用 <code>.weui-price</code>。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

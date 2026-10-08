@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 个人中心（我的）｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 个人中心（我的）</h1>
+      <p class="sub">功能编号 F-USR-002 ｜ 用户与账户域（tabBar 页）｜ 组件体系 WeUI 2.x（微信官方）｜ 下游：订单 / 地址 / 收藏 / 反馈 / 关于 / 消息中心</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-USR-002</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 状态一：已登录 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 已登录（完整信息）</span>
+      <div class="phone mp">
+        <div class="phone-screen is-brand">
+
+          <div class="hero">
+            <div class="mp-status">
+              <span>9:41</span>
+              <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+            </div>
+            <div class="mp-nav is-brand">
+              <span class="mp-nav__title">我的</span>
+              <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+            </div>
+            <div class="hero-inner">
+              <div class="row gap3">
+                <span style="flex:0 0 auto;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center;font-size:12px">头像</span>
+                <div class="grow">
+                  <div class="row gap2">
+                    <span style="font-size:20px;font-weight:600">林小满</span>
+                    <span class="weui-tag" style="background:rgba(255,255,255,.24);color:var(--weui-BG-2)">金卡会员</span>
+                  </div>
+                  <div class="f-aux mt2" style="opacity:.88">138****6688</div>
+                </div>
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="mp-statgrid hair-b">
+                <div class="mp-statgrid__item">
+                  <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">126</span><span class="weui-price__dec">.50</span></span>
+                  <div class="mp-statgrid__lbl">余额</div>
+                </div>
+                <div class="mp-statgrid__item">
+                  <div class="mp-statgrid__num">3</div>
+                  <div class="mp-statgrid__lbl">优惠券</div>
+                </div>
+                <div class="mp-statgrid__item">
+                  <div class="mp-statgrid__num">5</div>
+                  <div class="mp-statgrid__lbl">水票</div>
+                </div>
+                <div class="mp-statgrid__item">
+                  <div class="mp-statgrid__num">1200</div>
+                  <div class="mp-statgrid__lbl">积分</div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">我的订单</div>
+              <div class="weui-panel">
+                <div class="weui-panel__hd">
+                  <span></span>
+                  <span style="color:var(--weui-LINK)">查看全部</span>
+                </div>
+                <div class="weui-grids" style="grid-template-columns:repeat(5,1fr)">
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon">
+                      <svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+                    </span>
+                    <span class="weui-grid__label">全部</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon" style="position:relative">
+                      <svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="17" cy="14.5" r="1.2"/></svg>
+                      <span class="weui-badge" style="position:absolute;top:-6px;left:20px">1</span>
+                    </span>
+                    <span class="weui-grid__label">待付款</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon" style="position:relative">
+                      <svg viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>
+                      <span class="weui-badge" style="position:absolute;top:-6px;left:20px">2</span>
+                    </span>
+                    <span class="weui-grid__label">待配送</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon" style="position:relative">
+                      <svg viewBox="0 0 24 24"><path d="M3 7h11v8H3z"/><path d="M14 10h4l3 3v2h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>
+                      <span class="weui-badge" style="position:absolute;top:-6px;left:20px">1</span>
+                    </span>
+                    <span class="weui-grid__label">配送中</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon">
+                      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.6"/></svg>
+                    </span>
+                    <span class="weui-grid__label">已完成</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">常用服务</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M12 20s-7-4.5-7-9.3A4.2 4.2 0 0 1 12 7.6 4.2 4.2 0 0 1 19 10.7C19 15.5 12 20 12 20z"/></svg></div>
+                  <div class="weui-cell__bd">我的收藏</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg></div>
+                  <div class="weui-cell__bd">收货地址</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg></div>
+                  <div class="weui-cell__bd">水桶账户</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 9h18M8 3v4M16 3v4"/></svg></div>
+                  <div class="weui-cell__bd">周期订购</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg></div>
+                  <div class="weui-cell__bd">优惠券</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 7.5v9M9.5 10h5M9.5 14h5"/></svg></div>
+                  <div class="weui-cell__bd">我的水票</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9.5h18"/></svg></div>
+                  <div class="weui-cell__bd">储值</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M4 18h16l1.5-9-5 3-4.5-6-4.5 6-5-3z"/></svg></div>
+                  <div class="weui-cell__bd">会员中心</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8L3.5 9.7l5.9-.9z"/></svg></div>
+                  <div class="weui-cell__bd">积分中心</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2.5H4.5z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></div>
+                  <div class="weui-cell__bd">消息中心</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"><span class="weui-tag weui-tag--goal"></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M4 20h4L20 8l-4-4L4 16z"/><path d="M14 6l4 4"/></svg></div>
+                  <div class="weui-cell__bd">意见反馈</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg></div>
+                  <div class="weui-cell__bd">反馈记录</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg></div>
+                  <div class="weui-cell__bd">关于我们</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+              </div>
+
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd" style="color:var(--weui-RED)">退出登录</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mp-tabbar hair-t">
+              <div class="mp-tab">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M10 20v-5h4v5"/></svg>
+                首页
+              </div>
+              <div class="mp-tab">
+                <svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+                订单
+              </div>
+              <div class="mp-tab on">
+                <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
+                我的
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 状态二：游客态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 游客态（未登录）</span>
+      <div class="phone mp">
+        <div class="phone-screen is-brand">
+
+          <div class="hero">
+            <div class="mp-status">
+              <span>9:41</span>
+              <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+            </div>
+            <div class="mp-nav is-brand">
+              <span class="mp-nav__title">我的</span>
+              <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+            </div>
+            <div class="hero-inner">
+              <div class="row gap3">
+                <span style="flex:0 0 auto;width:48px;height:48px;border-radius:50%;background:rgba(255,255,255,.24);display:flex;align-items:center;justify-content:center;font-size:12px">游</span>
+                <div class="grow">
+                  <div style="font-size:20px;font-weight:600">游客</div>
+                  <div class="f-aux mt2" style="opacity:.88">点击头像登录</div>
+                </div>
+                <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="mp-statgrid hair-b">
+                <div class="mp-statgrid__item">
+                  <span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">0</span><span class="weui-price__dec">.00</span></span>
+                  <div class="mp-statgrid__lbl">余额</div>
+                </div>
+                <div class="mp-statgrid__item">
+                  <div class="mp-statgrid__num">0</div>
+                  <div class="mp-statgrid__lbl">优惠券</div>
+                </div>
+                <div class="mp-statgrid__item">
+                  <div class="mp-statgrid__num">0</div>
+                  <div class="mp-statgrid__lbl">水票</div>
+                </div>
+                <div class="mp-statgrid__item">
+                  <div class="mp-statgrid__num">0</div>
+                  <div class="mp-statgrid__lbl">积分</div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">我的订单</div>
+              <div class="weui-panel">
+                <div class="weui-panel__hd">
+                  <span></span>
+                  <span style="color:var(--weui-LINK)">查看全部</span>
+                </div>
+                <div class="weui-grids" style="grid-template-columns:repeat(5,1fr)">
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span>
+                    <span class="weui-grid__label">全部</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><circle cx="17" cy="14.5" r="1.2"/></svg></span>
+                    <span class="weui-grid__label">待付款</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg></span>
+                    <span class="weui-grid__label">待配送</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><path d="M3 7h11v8H3z"/><path d="M14 10h4l3 3v2h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg></span>
+                    <span class="weui-grid__label">配送中</span>
+                  </div>
+                  <div class="weui-grid">
+                    <span class="weui-grid__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12.4l2.6 2.6L16 9.6"/></svg></span>
+                    <span class="weui-grid__label">已完成</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
+                </div>
+                <div class="weui-empty__text">登录后查看更多<br>收藏 / 地址 / 水票 / 会员权益一站管理</div>
+              </div>
+
+            </div>
+
+            <div class="mp-tabbar hair-t">
+              <div class="mp-tab">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/><path d="M10 20v-5h4v5"/></svg>
+                首页
+              </div>
+              <div class="mp-tab">
+                <svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+                订单
+              </div>
+              <div class="mp-tab on">
+                <svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
+                我的
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x；渐变头部（<code>.phone-screen.is-brand</code> + <code>.hero</code>）、资产条用小程序数据格 <code>.mp-statgrid</code>、订单入口用官方 <code>.weui-grids</code>、服务列表用官方 <code>.weui-cells</code>。</p>
+        <p><strong>本页组件：</strong><code>.mp-status</code> / <code>.mp-nav.is-brand</code> / <code>.mp-capsule</code> + <code>.weui-tag</code>（会员等级）+ <code>.mp-statgrid__item</code> / <code>__num</code> / <code>__lbl</code> + <code>.weui-cells__title</code> + <code>.weui-panel</code> / <code>.weui-grids</code>（5 列，<code>.weui-badge</code> 角标）+ <code>.weui-cell</code> / <code>.weui-cell__icon--brand</code> / <code>.weui-cell__ft_in-access</code> + <code>.weui-empty</code> + <code>.mp-tabbar</code>。</p>
+        <p><strong>度量：</strong>导航栏 44px、胶囊 87×32；TabBar 高 50px、底 <code>--weui-BG-1</code>、图标 27px、文字 10px；单元格最小 56px、17px 主文字；资产格数字 19px、间隔 0.5px 发丝线。</p>
+        <p><strong>配色：</strong>交互主色品牌蓝（图标、TabBar 选中）；金额 <code>.weui-price</code>（微信电商红）；未读 / 角标用 <code>var(--weui-RED)</code>；链接色 <code>var(--weui-LINK)</code>；本页不使用强调橙。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（tabBar 页）</p>
+        <p><strong>入口：</strong>tabBar「我的」</p>
+        <p><strong>跳转：</strong>订单区 → <code>order-list?tab=类型</code>；服务区 → <code>favorites</code> / <code>address-list</code> / 拨打客服 400-800-8888 / <code>feedback</code> / <code>feedback-records</code> / <code>about</code>；消息中心 → <code>message-center</code>（目标形态）；用户区已登录 → 弹头像昵称表单</p>
+        <p><strong>数据：</strong>用户信息（头像 / 昵称 / 手机号）；订单统计 total / pendingPayment / pendingDispatch+pendingDelivery（待配送口径）/ delivering / completed / cancelled / refunded</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>渐变头部：头像 + 昵称 + 手机号脱敏 + 会员等级标签 + 右箭头</li>
+          <li>资产条（<code>.mp-statgrid</code>）：余额（<code>.weui-price--sm</code>）/ 优惠券 / 水票 / 积分，点击下钻</li>
+          <li>「我的订单」组标题（<code>.weui-cells__title</code>）+ <code>.weui-panel</code> 内 <code>.weui-grids</code> 五入口：全部 / 待付款 / 待配送 / 配送中 / 已完成（各带图标与 <code>.weui-badge</code> 角标）</li>
+          <li>「常用服务」组标题 + 服务单元格（13 项）：我的收藏 / 收货地址 / 水桶账户 / 周期订购 / 优惠券 / 我的水票 / 储值 / 会员中心 / 积分中心 / 消息中心 / 意见反馈 / 反馈记录 / 关于我们</li>
+          <li>「退出登录」入口（语义红）</li>
+          <li>底部原生 TabBar：首页 / 订单 / 我的（当前选中「我的」）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>无头像显示默认头像字母（游客态显示「游」）；无订单角标不显示数字；<strong>游客态：</strong>昵称「游客」+「点击头像登录」，角标全 0（状态二）；<strong>加载态：</strong>「加载中...」；<strong>错误态：</strong>获取用户信息失败回退游客态；<strong>禁用态：</strong>登录中禁用重复触发。</p>
+        <p><strong>角标规则：</strong>&gt;99 显示 <code>99+</code>；待配送口径 = 待派单 + 待配送。金额一律 <code>.weui-price</code>（分转元两位小数）。useDidShow 加载用户信息与订单统计；未登录回退游客态且不发起需登录请求。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>Web 风旧组件（卡片 / 四列宫格 / 快捷入口 / 旧 TabBar / 缩略图等旧类名）一律禁用，全部以 WeUI 等价类实现；<strong>本页不出现强调橙</strong>，资产条数字与单元格图标一律品牌蓝，角标仅用语义红。</p>
+        <p>用户区 / 资产条 / 订单区 / 常用服务 / 退出登录自上而下分区清晰；触达行高 ≥ 44px（单元格最小 56px）；「设置」为现状死链，本稿不呈现待清理。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 消息中心入口为 <strong>目标形态（F-NTF-002）</strong>，未读数与消息中心联动；订单入口按切片补全为五入口；<strong>优惠券 / 水票入口归属见 10-marketing.md（优惠券）与水票域，07-user.md 未定义，需交叉确认归属</strong>。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

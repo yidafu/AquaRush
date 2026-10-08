@@ -1,12 +1,110 @@
 {
   "name": "@aquarush/common",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+  "description": "Common types and utilities for AquaRush frontend applications",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "type": "module",
+  "peerDependencies": {
+    "@tarojs/taro": "4.1.9",
+    "react": ">=18"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC"
+  "exports": {
+    ".": {
+      "types": "./src/index.ts",
+      "import": "./src/index.ts",
+      "default": "./src/index.ts"
+    },
+    "./utils": {
+      "types": "./src/utils/index.ts",
+      "import": "./src/utils/index.ts",
+      "default": "./src/utils/index.ts"
+    },
+    "./utils/money": {
+      "types": "./src/utils/money.ts",
+      "import": "./src/utils/money.ts",
+      "default": "./src/utils/money.ts"
+    },
+    "./utils/network": {
+      "types": "./src/utils/network.ts",
+      "import": "./src/utils/network.ts",
+      "default": "./src/utils/network.ts"
+    },
+    "./utils/status-tone": {
+      "types": "./src/utils/status-tone.ts",
+      "import": "./src/utils/status-tone.ts",
+      "default": "./src/utils/status-tone.ts"
+    },
+    "./utils/order-status": {
+      "types": "./src/utils/order-status.ts",
+      "import": "./src/utils/order-status.ts",
+      "default": "./src/utils/order-status.ts"
+    },
+    "./utils/order-cost": {
+      "types": "./src/utils/order-cost.ts",
+      "import": "./src/utils/order-cost.ts",
+      "default": "./src/utils/order-cost.ts"
+    },
+    "./utils/marketing": {
+      "types": "./src/utils/marketing.ts",
+      "import": "./src/utils/marketing.ts",
+      "default": "./src/utils/marketing.ts"
+    },
+    "./utils/tianditu": {
+      "types": "./src/utils/tianditu.ts",
+      "import": "./src/utils/tianditu.ts",
+      "default": "./src/utils/tianditu.ts"
+    },
+    "./hooks": {
+      "types": "./src/hooks/index.ts",
+      "import": "./src/hooks/index.ts",
+      "default": "./src/hooks/index.ts"
+    },
+    "./types": {
+      "types": "./src/types/index.ts",
+      "import": "./src/types/index.ts",
+      "default": "./src/types/index.ts"
+    },
+    "./types/graphql": {
+      "types": "./src/types/graphql.ts",
+      "import": "./src/types/graphql.ts",
+      "default": "./src/types/graphql.ts"
+    },
+    "./tracking": {
+      "types": "./src/tracking/index.ts",
+      "import": "./src/tracking/index.ts",
+      "default": "./src/tracking/index.ts"
+    }
+  },
+  "scripts": {
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage"
+  },
+  "keywords": [
+    "aquarush",
+    "frontend",
+    "common",
+    "types",
+    "utilities"
+  ],
+  "author": "AquaRush Team",
+  "license": "ISC",
+  "dependencies": {
+    "taro-ui": "^3.3.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.28.5",
+    "@babel/preset-env": "^7.28.5",
+    "@babel/preset-typescript": "^7.28.5",
+    "@jest/globals": "^29.7.0",
+    "@testing-library/react": "^16.3.0",
+    "@types/jest": "^29.5.14",
+    "@types/react": "^19.2.2",
+    "@types/react-dom": "^19.2.2",
+    "babel-jest": "^29.7.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "react-dom": "19.2.3"
+  }
 }

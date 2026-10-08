@@ -1,0 +1,7 @@
+# Region queries (for admin)
+
+extend type Query {
+  # Region queries
+  # 获取所有地区数据，用于前端构建树形结构
+  allRegions: [Region!]!
+}

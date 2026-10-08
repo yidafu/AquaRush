@@ -1,0 +1,55 @@
+# Test Schema for Admin System Config Resolvers GraphQL Integration Tests
+# 自包含 schema(仿 ops 测试目录模式),仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/system/) 加载
+# 含 productStatistics 声明,供库存阈值消费断言(AC-SYS-003)在同一测试切片内执行
+
+scalar Long
+scalar LocalDateTime
+
+type Query {
+  systemConfigs(group: SystemConfigGroup!): [SystemConfigVO!]!
+  productStatistics: ProductStatistics
+}
+
+type Mutation {
+  saveSystemConfigs(input: [SaveSystemConfigInput!]!): [SystemConfigVO!]!
+  restoreSystemConfig(settingKey: String!): SystemConfigVO!
+}
+
+enum SystemConfigGroup {
+  ORDER_AND_FULFILLMENT
+  INVENTORY
+  SECURITY
+  NOTIFICATION
+  DATA_MAINTENANCE
+}
+
+enum SystemSettingType {
+  NUMBER
+  BOOLEAN
+  STRING
+  ENUM
+}
+
+type SystemConfigVO {
+  id: Long!
+  settingKey: String!
+  settingType: SystemSettingType!
+  settingGroup: SystemConfigGroup!
+  settingValue: String
+  defaultValue: String
+  description: String
+  minValue: String
+  maxValue: String
+  options: String
+  updatedBy: String
+  updatedAt: LocalDateTime!
+}
+
+input SaveSystemConfigInput {
+  settingKey: String!
+  settingValue: String
+}
+
+type ProductStatistics {
+  lowStockProducts: Int!
+}

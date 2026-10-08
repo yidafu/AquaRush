@@ -1,28 +1,13 @@
 import { PropsWithChildren, useEffect } from 'react'
 import { useDidShow, useDidHide } from '@tarojs/taro'
-import { ThemeProvider } from './components/ThemeProvider'
 import { authService } from './utils/auth'
+import { userActionTracker } from './utils/tracking'
 import { testConfigurationInDevelopment } from './config/config-test'
+import { connectWsPushIfLoggedIn } from './services/wsPush'
 
 import './app.scss'
 
 function App({ children }: PropsWithChildren) {
-  // 初始化主题
-  const initAppTheme = () => {
-    // 可以在这里进行主题的初始化设置
-    // 例如根据系统主题、用户偏好等设置默认主题
-    try {
-      const hour = new Date().getHours()
-      // 根据时间自动切换主题（可选）
-      if (hour >= 18 || hour < 6) {
-        // 晚上可以使用更柔和的颜色
-        // setTheme('purple')
-      }
-    } catch (error) {
-      console.warn('Failed to initialize app theme:', error)
-    }
-  }
-
   // 执行静默登录
   const performSilentLogin = async () => {
     try {
@@ -30,6 +15,8 @@ function App({ children }: PropsWithChildren) {
       const success = await authService.silentLogin()
       if (success) {
         console.log('Silent login successful')
+        // 登录成功:补发登录前暂存的操作日志
+        void userActionTracker.flush()
       } else {
         console.log('Silent login failed')
       }
@@ -83,28 +70,31 @@ function App({ children }: PropsWithChildren) {
     // 验证API配置（仅在开发环境）
     testConfigurationInDevelopment()
 
-    // 初始化主题
-    initAppTheme()
     // 静默登录
     initSilentLogin()
+    // 已登录用户建立 WebSocket 实时推送连接(F-NTF-003;未登录时跳过,登录页/我的页会再连)
+    void connectWsPushIfLoggedIn()
   }, [])
 
   // 对应 onShow
   useDidShow(() => {
     // 应用显示时检查登录状态
     checkLoginStatus()
+    // 应用回前台时确保 WebSocket 推送连接可用
+    void connectWsPushIfLoggedIn()
   })
 
   // 对应 onHide
   useDidHide(() => {
-    // 应用隐藏时的处理逻辑（如果需要）
+    // 应用切后台时立即上报缓冲队列,避免事件滞留丢失
+    void userActionTracker.flush()
   })
 
   return (
-    <ThemeProvider defaultTheme="aqua">
+    <>
       {/* props.children 是将要被渲染的页面 */}
       {children}
-    </ThemeProvider>
+    </>
   )
 }
 

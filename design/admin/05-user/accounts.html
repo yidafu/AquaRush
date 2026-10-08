@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 账号列表｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 用户管理 / 账号列表</h1>
+      <p class="sub">功能编号 F-USR-020 / F-USR-021 ｜ 用户与账户域 ｜ 下游：账号详情（按角色渲染两套 Tab）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-USR-020</span>
+      <span class="chip">F-USR-021</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：管理员视角 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 管理员视角（「用户类型」下拉切换视角）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/accounts</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> <b>账号列表</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>账号列表</h2>
+                    <div class="desc">列表页不使用 Tab；角色通过「用户类型」下拉筛选（管理员 / 送水工共用同一页）</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm">＋ 新增管理员</span>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>关键词</span><div class="input" style="width:180px"><span class="ph">账号 / 姓名 / 手机号</span></div></div>
+                  <div class="fitem"><span>用户类型</span><div class="select" style="width:150px"><span>全部</span></div></div>
+                  <div class="fitem"><span>角色</span><div class="select" style="width:140px"><span>全部</span></div></div>
+                  <div class="fitem"><span>状态</span><div class="select" style="width:120px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">查询</span>
+                  </div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>账号</th>
+                        <th>姓名</th>
+                        <th>角色</th>
+                        <th>状态</th>
+                        <th>兼送水标记</th>
+                        <th>创建时间</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="bold">admin</div><div class="sub-line">138****0001</div></td>
+                        <td>王海</td>
+                        <td><span class="tag tag-brand">超级管理员</span></td>
+                        <td><span class="tag tag-ok">正常</span></td>
+                        <td><span class="t-weak">—</span></td>
+                        <td>2025-09-01 09:00</td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">ops_li</div><div class="sub-line">139****2210</div></td>
+                        <td>李明</td>
+                        <td><span class="tag tag-neutral">普通管理员</span></td>
+                        <td><span class="tag tag-ok">正常</span></td>
+                        <td><span class="t-weak">—</span></td>
+                        <td>2025-10-12 14:20</td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">ops_zhao</div><div class="sub-line">137****5566</div></td>
+                        <td>赵磊</td>
+                        <td><span class="tag tag-neutral">普通管理员</span></td>
+                        <td><span class="tag tag-err">已停用</span></td>
+                        <td><span class="tag tag-assign">兼送水</span></td>
+                        <td>2026-01-05 11:08</td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>启用</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">ops_chen</div><div class="sub-line">136****7788</div></td>
+                        <td>陈功</td>
+                        <td><span class="tag tag-neutral">普通管理员</span></td>
+                        <td><span class="tag tag-ok">正常</span></td>
+                        <td><span class="tag tag-assign">兼送水</span></td>
+                        <td>2026-03-18 16:40</td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">ops_wu</div><div class="sub-line">135****1122</div></td>
+                        <td>吴涛</td>
+                        <td><span class="tag tag-neutral">普通管理员</span></td>
+                        <td><span class="tag tag-ok">正常</span></td>
+                        <td><span class="t-weak">—</span></td>
+                        <td>2026-06-02 10:15</td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 5 条记录</span>
+                    <div class="pager">
+                      <i>‹</i><i class="on">1</i><i>›</i>
+                      <span class="t-sub" style="margin-left:8px">10 条/页</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：送水工视角 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 送水工视角（同一列表页，仅视图过滤不同）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/accounts — 用户类型：送水工</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> <b>账号列表（送水工视角）</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>账号列表（送水工视角）</h2>
+                    <div class="desc">与管理员列表共用同一页；送水工档案并入 admins 单表，账号名 <code>delivery_{账号ID}</code></div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm">＋ 新增送水工</span>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>关键词</span><div class="input" style="width:180px"><span class="ph">账号 / 姓名 / 手机号</span></div></div>
+                  <div class="fitem"><span>用户类型</span><div class="select" style="width:150px"><span>送水工</span></div></div>
+                  <div class="fitem"><span>在线状态</span><div class="select" style="width:120px"><span>全部</span></div></div>
+                  <div class="fitem"><span>状态</span><div class="select" style="width:120px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">查询</span>
+                  </div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>账号</th>
+                        <th>姓名</th>
+                        <th>工号</th>
+                        <th>在线状态</th>
+                        <th class="num">今日完成单数</th>
+                        <th class="num">今日收款</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="bold">delivery_1013</td>
+                        <td>刘勇</td>
+                        <td class="num">A1013</td>
+                        <td><span class="tag tag-ok">在线</span></td>
+                        <td class="num">18</td>
+                        <td class="num bold">¥1,286.00</td>
+                        <td><span class="tag tag-ok">正常</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>停用</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="bold">delivery_1017</td>
+                        <td>孙浩</td>
+                        <td class="num">A1017</td>
+                        <td><span class="tag tag-ok">在线</span></td>
+                        <td class="num">12</td>
+                        <td class="num bold">¥864.00</td>
+                        <td><span class="tag tag-ok">正常</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>停用</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="bold">delivery_1021</td>
+                        <td>周涛</td>
+                        <td class="num">A1021</td>
+                        <td><span class="tag tag-neutral">离线</span></td>
+                        <td class="num">0</td>
+                        <td class="num bold">¥0.00</td>
+                        <td><span class="tag tag-ok">正常</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>停用</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="bold">delivery_1024</td>
+                        <td>郑凯</td>
+                        <td class="num">A1024</td>
+                        <td><span class="tag tag-ok">在线</span></td>
+                        <td class="num">21</td>
+                        <td class="num bold">¥1,540.00</td>
+                        <td><span class="tag tag-ok">正常</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>停用</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="bold">delivery_1030</td>
+                        <td>冯磊</td>
+                        <td class="num">A1030</td>
+                        <td><span class="tag tag-neutral">离线</span></td>
+                        <td class="num">5</td>
+                        <td class="num bold">¥320.00</td>
+                        <td><span class="tag tag-err">已停用</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>启用</a><a>重置密码</a><a class="danger">删除</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 5 条记录</span>
+                    <div class="pager">
+                      <i>‹</i><i class="on">1</i><i>›</i>
+                      <span class="t-sub" style="margin-left:8px">10 条/页</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>左侧菜单「用户管理 → 账号」</p>
+        <p><strong>跳转：</strong>行「详情」→ <code>/users/accounts/:id</code>（按角色渲染管理员 / 送水工两套 Tab）</p>
+        <p><strong>权限：</strong>超管可见全部账号；普通管理员仅见配送能力账号（R-AUTH-04）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>页头：标题「账号列表」+「用户类型」下拉 +「新增管理员」/「新增送水工」按钮</li>
+          <li>筛选卡：关键词 · 用户类型 · 角色 / 在线状态 · 状态</li>
+          <li><strong>管理员视角</strong>列：账号 / 姓名 / 角色 / 状态 / 兼送水标记 / 创建时间 / 操作</li>
+          <li><strong>送水工视角</strong>列：账号 / 姓名 / 工号 / 在线状态 / 今日完成单数 / 今日收款 / 状态 / 操作</li>
+          <li>操作列：管理员「详情·编辑·重置密码·删除」；送水工「详情·编辑·停用·重置密码·删除」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>「用户类型」下拉切换即过滤（全部 / 超级管理员 / 管理员 / 送水工；兼送水管理员视图含「兼送水管理员」）——<strong>不使用 Tab</strong></li>
+          <li>新增 / 编辑 → 表单弹窗 → message「管理员创建成功」「管理员更新成功」→ refetch</li>
+          <li>删除 → Modal.confirm「确定要删除管理员 X 吗？此操作不可恢复。」（送水工同款文案）→ 软删除</li>
+          <li>重置密码 → ResetPasswordModal（新密码可留空 = 默认 123456）→「密码重置成功」</li>
+          <li>停用 / 启用 → 二次确认 → 账号无法登录且旧 token 立即失效</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>列表为空；<strong>加载态：</strong>Table loading；<strong>错误态：</strong>「操作失败」/「删除失败」；<strong>禁用态：</strong>提交 loading 期间禁用。</p>
+        <p><strong>标签：</strong>角色 超级管理员（品牌蓝）/ 普通管理员（中性灰）/ 送水工；状态 正常绿 / 已停用红；在线状态 在线绿 / 离线灰。</p>
+        <p><strong>删除保护：</strong>不能删自己、不能删最后一个超管；停用送水工不可派单 / 接单。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>设计要点 / 禁忌</h3>
+        <p><strong>列表页不使用 Tab</strong>：管理员与送水工<strong>共用同一页</strong>，仅「用户类型」过滤视图不同（合并为同一列表）。</p>
+        <p>送水工档案已并入 <code>admins</code> 单表（2026-08 迁移 v1.2.1），<strong>不再有 <code>delivery_workers</code> 表</strong>；无自助注册入口。</p>
+        <p>管理端<strong>不出现强调橙</strong>；权限隔离须服务端强制，前端隐藏不作为隔离手段。</p>
+        <p>金额分转元（<code>¥0.00</code> 口径）；仅超管可进入本页 / 增删改管理员。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

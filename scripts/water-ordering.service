@@ -1,0 +1,25 @@
+[Unit]
+Description=Water Ordering System
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=water-ordering
+WorkingDirectory=/opt/water-ordering
+ExecStart=/usr/bin/java -jar /opt/water-ordering/water-ordering-system.jar
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=water-ordering
+
+# 环境变量
+Environment="SPRING_PROFILES_ACTIVE=prod"
+Environment="JAVA_OPTS=-Xmx1g -Xms512m"
+
+# 安全配置
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

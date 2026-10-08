@@ -1,0 +1,118 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.yidafu.aqua.admin.product.resolvers
+
+import dev.yidafu.aqua.api.dto.ProductSearchRequest
+import dev.yidafu.aqua.api.service.ops.SystemConfigQueryApiService
+import dev.yidafu.aqua.common.domain.model.SystemSettingKeys
+import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
+import dev.yidafu.aqua.common.graphql.generated.Product
+import dev.yidafu.aqua.common.graphql.generated.ProductSearchInput
+import dev.yidafu.aqua.common.graphql.generated.ProductVoPage
+import dev.yidafu.aqua.common.graphql.generated.StockWarningThresholds
+import dev.yidafu.aqua.common.graphql.util.toPageInfo
+import dev.yidafu.aqua.product.mapper.ProductMapper
+import dev.yidafu.aqua.product.mapper.ProductQueryMapper
+import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
+import org.springframework.data.domain.PageRequest
+import org.springframework.data.domain.Pageable
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.QueryMapping
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.stereotype.Controller
+
+/**
+ * 管理端产品查询解析器
+ * 提供产品管理的完整查询功能，仅管理员可访问
+ */
+@Controller
+class AdminProductQueryResolver(
+  private val productService: ProductServiceImpl,
+  private val systemConfigQueryApiService: SystemConfigQueryApiService,
+) {
+  /**
+   * 库存预警阈值(读系统参数 F-SYS-003,缺省 10/50;供商品列表着色,普通管理员亦可访问)
+   */
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
+  @QueryMapping
+  fun stockWarningThresholds(): StockWarningThresholds =
+    StockWarningThresholds(
+      lowThreshold = systemConfigQueryApiService.getLongValue(SystemSettingKeys.LOW_STOCK_THRESHOLD, 10L).toInt(),
+      midThreshold = systemConfigQueryApiService.getLongValue(SystemSettingKeys.STOCK_WARNING_TIER_MID, 50L).toInt(),
+    )
+
+  /**
+   * 查询所有产品（管理员功能，包括下线产品）
+   */
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
+  @QueryMapping
+  fun productsPaginated(
+    @Argument input: ProductSearchInput,
+  ): ProductVoPage {
+    val actualPage = input.page ?: 0
+    val actualSize = input.size ?: 20
+    val pageable: Pageable = PageRequest.of(actualPage, actualSize)
+    val query = ProductQueryMapper.map(input)
+    val productsPage = productService.productsPaginated(query, pageable)
+
+    val (productList, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
+    return ProductVoPage(
+      list = productList,
+      pageInfo = pageInfo,
+    )
+  }
+
+  /**
+   * 根据ID查询产品详细信息（管理员功能）
+   */
+
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
+  @QueryMapping
+  fun product(
+    @Argument id: Long,
+  ): Product? = productService.findById(id)?.let { ProductMapper.map(it) }
+
+  /**
+   * 查询在售商品列表(R-PRO-03:仅返回在售且库存>0 的商品,供用户端/预览使用)
+   */
+  @PreAuthorize("hasAuthority('PERMISSION_PRODUCT_READ')")
+  @QueryMapping
+  fun activeProducts(
+    @Argument keyword: String?,
+    @Argument page: Int = 0,
+    @Argument size: Int = 20,
+  ): ProductVoPage {
+    val pageable = PageRequest.of(page, size)
+    val productsPage =
+      productService.productsPaginated(
+        ProductSearchRequest(
+          keyword = keyword,
+          status = ProductModelStatus.ONLINE,
+          minStock = 0,
+        ),
+        pageable,
+      )
+    val (productList, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
+    return ProductVoPage(
+      list = productList,
+      pageInfo = pageInfo,
+    )
+  }
+}

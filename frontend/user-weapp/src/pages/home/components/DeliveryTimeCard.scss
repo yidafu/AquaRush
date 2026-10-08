@@ -1,0 +1,38 @@
+@import "../../../styles/theme.scss";
+
+// ---- ④ 配送时效卡(浅蓝左侧色条,主文字色加粗) ----
+.delivery-time-card {
+  display: flex;
+  align-items: center;
+  margin-top: var(--spacing-md);
+  padding: var(--spacing-lg);
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+
+  .delivery-time-bar {
+    width: 8px;
+    height: 72px;
+    border-radius: 4px;
+    background: var(--brand-primary);
+    margin-right: var(--spacing-md);
+  }
+
+  .delivery-time-content {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .delivery-time-main {
+    font-size: 36px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+
+  .delivery-time-sub {
+    font-size: 28px;
+    color: var(--text-sub);
+  }
+}

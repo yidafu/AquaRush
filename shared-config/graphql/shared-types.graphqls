@@ -4,7 +4,6 @@
 # Scalar types
 scalar Long
 scalar BigDecimal
-scalar Money
 scalar Float
 scalar LocalDateTime
 scalar Map
@@ -13,33 +12,68 @@ scalar JsonArray
 scalar PrimaryId
 
 # Validation Directives
-directive @notBlank(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-directive @size(min: Int, max: Int, message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-directive @email(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-directive @pattern(regexp: String!, message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-directive @positive(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-directive @future(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+directive @notBlank(
+  message: String
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+directive @size(
+  min: Int
+  max: Int
+  message: String
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+directive @email(
+  message: String
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+directive @pattern(
+  regexp: String!
+  message: String
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+directive @positive(
+  message: String
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+directive @future(
+  message: String
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 directive @past(message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-directive @min(value: Float!, message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
-directive @max(value: Float!, message: String) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+directive @min(
+  value: Float!
+  message: String
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
+directive @max(
+  value: Float!
+  message: String
+) on ARGUMENT_DEFINITION | INPUT_FIELD_DEFINITION
 
 # Enum types - Common across all services
+# 订单状态(R-ORD-11 确认收货与营收确认):AWAITING_CONFIRMATION=已送达待用户确认收货,
+# 用户确认或送达 N 天(配置 auto_confirm_receipt_days,默认 7)系统自动确认后进入 COMPLETED 并计入营收
 enum OrderStatus {
-  PENDING
-  CONFIRMED
-  PREPARING
-  READY_FOR_DELIVERY
-  OUT_FOR_DELIVERY
-  DELIVERED
+  PENDING_PAYMENT
+  PENDING_DISPATCH
+  PENDING_DELIVERY
+  DELIVERING
+  AWAITING_CONFIRMATION
+  COMPLETED
   CANCELLED
   REFUNDED
+}
+
+# 配送照片核验状态(G23/F-ORD-021:后台「通过/驳回」核验流)
+enum DeliveryPhotoReviewStatus {
+  PENDING # 待核验(已上传照片,未审核)
+  APPROVED # 已通过
+  REJECTED # 已驳回
+}
+
+# 配送照片核验动作(G23:后台核验操作)
+enum DeliveryPhotoReviewAction {
+  APPROVE # 通过
+  REJECT # 驳回
 }
 
 enum ProductStatus {
   ONLINE
   OFFLINE
   OUT_OF_STOCK
-  ACTIVE
 }
 
 enum UserRole {
@@ -54,11 +88,24 @@ enum UserStatus {
   INACTIVE
   SUSPENDED
   DELETED
+  ONLINE
 }
 
 enum DeliveryWorkerStatus {
   ONLINE
   OFFLINE
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  DELIVERY_WORKER
+}
+
+# 后台账号状态(F-USR-020/021):停用账号不可登录/不可派单接单
+enum AdminAccountStatus {
+  ACTIVE
+  DISABLED
 }
 
 enum PaymentStatus {
@@ -74,220 +121,619 @@ enum PaymentMethod {
   CASH_ON_DELIVERY
 }
 
+# 收款方式枚举 - 用于记录配送员完成配送时的收款方式
+enum PaymentType {
+  WATER_TICKET # 水票
+  CASH # 现金
+  QR_CODE # 扫码
+}
+
+# 配送时段枚举(AC-ORD-001-05 配送时间随单落库;与用户端 DeliveryTimeSelector 一一对应)
+enum DeliveryTimeSlot {
+  IMMEDIATE # 立即配送(30分钟内)
+  MORNING # 上午配送(9:00-12:00)
+  AFTERNOON # 下午配送(14:00-18:00)
+  EVENING # 晚上配送(18:00-21:00)
+}
+
+# 订单操作类型枚举
+enum OrderOperationType {
+  ORDER_CREATED          # 订单创建
+  ORDER_PAID             # 支付成功
+  ORDER_CANCELLED        # 订单取消
+  ORDER_URGING           # 用户催单(F-ORD-008)
+  DELIVERY_ASSIGNED      # 配送员分配
+  DELIVERY_STARTED       # 开始配送
+  DELIVERY_COMPLETED     # 配送完成
+  ORDER_COMPLETED        # 订单完成
+  REFUND_INITIATED       # 退款发起
+  REFUND_COMPLETED       # 退款完成
+  PAYMENT_TIMEOUT        # 支付超时
+  DELIVERY_PHOTO_APPROVED # 配送照片核验通过(G23)
+  DELIVERY_PHOTO_REJECTED # 配送照片核验驳回(G23)
+  ADDRESS_UPDATED        # 配送任务中修正收货地址(F-ORD-024)
+}
+
+# 操作人类型枚举
+enum OperatorType {
+  USER              # 普通用户
+  ADMIN             # 管理员
+  DELIVERY_WORKER   # 配送员
+  SYSTEM            # 系统自动
+}
+
+# 订单操作记录类型
+type OrderOperation {
+  id: PrimaryId!
+  orderId: PrimaryId!
+  operationType: OrderOperationType!
+  operatorId: PrimaryId
+  operatorType: OperatorType
+  description: String
+  extraData: JsonObject
+  createdAt: LocalDateTime!
+}
+
 # Core Domain Types
 type User {
+  # 用户唯一标识ID
   id: PrimaryId!
+  # 微信OpenID
   wechatOpenId: String!
+  # 用户昵称
   nickname: String
+  # 用户手机号
   phone: String
+  # 用户头像URL
   avatarUrl: String
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type Product {
+  # 商品唯一标识ID
   id: PrimaryId!
+  # 商品名称
   name: String!
+  # 商品副标题
   subtitle: String
-  price: Money!
-  originalPrice: Money
-  depositPrice: Money
+  # 商品价格（分）
+  priceCents: Long!
+  # 商品原价（分）
+  originalPriceCents: Long
+  # 商品封面图片URL
   coverImageUrl: String!
+  # 商品图片画廊
   imageGallery: JsonArray
+  # 商品规格（如18.9L桶装水）
   specification: String!
+  # 水源地
   waterSource: String
+  # 矿物质含量
   mineralContent: String
+  # 库存数量
   stock: Int!
+  # 销量
   salesVolume: Int!
+  # 商品状态
   status: ProductStatus!
+  # 排序权重
   sortOrder: Int!
+  # 商品标签
   tags: JsonArray
+  # 商品详情内容
   detailContent: String
+  # 证书图片列表
   certificateImages: JsonArray
-  deliverySettings: JsonObject
-  isDeleted: Boolean!
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type Address {
+  # 地址唯一标识ID
   id: PrimaryId!
+  # 用户ID
   userId: PrimaryId!
+  # 收货人姓名
   receiverName: String!
+  # 收货人手机号
   phone: String!
+  # 省份
   province: String!
+  # 省份代码
   provinceCode: String
+  # 城市
   city: String!
+  # 城市代码
   cityCode: String
+  # 区县
   district: String!
+  # 区县代码
   districtCode: String
+  # 详细地址
   detailAddress: String!
+  # 楼层(空=无楼层信息/平房,配送费楼层判定用 —— R-MON-02)
+  floor: Int
+  # 经度
   longitude: Float
+  # 纬度
   latitude: Float
+  # 是否为默认地址
   isDefault: Boolean!
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type DeliveryAddress {
+  # 配送地址唯一标识ID
   id: PrimaryId!
+  # 用户ID
   userId: PrimaryId!
+  # 收货人姓名
   receiverName: String!
+  # 收货人手机号
   receiverPhone: String!
+  # 省份
   province: String!
+  # 城市
   city: String!
+  # 区县
   district: String!
+  # 详细地址
   detailAddress: String!
+  # 经度
   longitude: Float
+  # 纬度
   latitude: Float
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type Order {
+  # 订单唯一标识ID
   id: PrimaryId!
-  orderNumber: String!
-  user: User!
-  product: Product!
-  address: Address!
-  quantity: Int!
-  amount: Money!
+  # 订单编号
+  orderNo: String!
+  # 下单用户
+  user: User
+  # 配送地址
+  address: Address
+  # 订单商品明细(F-ORD-004 多商品下单,权威数据源 order_items 表)
+  items: [OrderItemVO!]!
+  # 订单金额（分）
+  amountCents: Long!
+  # 配送费(分,下单时按配送费规则快照,规则变更不影响已生成订单 —— R-MON-02)
+  deliveryFeeCents: Long!
+  # 应付合计(分)= amountCents + deliveryFeeCents(纯展示口径)
+  payAmountCents: Long!
+  # 订单状态
   status: OrderStatus!
+  # 支付方式
   paymentMethod: String
+  # 支付交易流水号
   paymentTransactionId: String
+  # 支付时间
   paymentTime: LocalDateTime
+  # 配送员信息
   deliveryWorker: DeliveryWorker
+  # 配送照片列表
   deliveryPhotos: [String!]
+  # 配送照片核验状态(PENDING/APPROVED/REJECTED;null=未核验 —— G23/F-ORD-021)
+  deliveryPhotoReviewStatus: DeliveryPhotoReviewStatus
+  # 配送照片核验时间
+  deliveryPhotoReviewedAt: LocalDateTime
+  # 配送照片核验人ID
+  deliveryPhotoReviewedBy: PrimaryId
+  # 配送照片核验备注
+  deliveryPhotoReviewRemark: String
+  # 水桶费快照(分,历史字段——2026-08 水桶费改造后新订单恒为 0,仅旧订单有值,见 14-misc.md §G06)
+  depositCents: Long!
+  # 是否自收（水钱已收/水票已扣）
+  isSelfCollect: Boolean!
+  # 收款方式
+  paymentType: PaymentType
+  # 开始配送时间
+  deliveryStartedAt: LocalDateTime
+  # 配送确认时间
+  deliveryConfirmedAt: LocalDateTime
+  # 订单完成时间
   completedAt: LocalDateTime
+  # 订单备注
+  remark: String
+  # 配送备注(完成配送时配送员填写,随 completeDelivery 落库;R-ORD-07)
+  deliveryRemark: String
+  # 配送时段(下单时快照,AC-ORD-001-05;null=未指定,默认立即配送)
+  deliveryTimeSlot: DeliveryTimeSlot
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
+  # 满减/折扣优惠快照(分,叠加① —— R-MKT-07)
+  promotionDiscountCents: Long
+  # 满减/折扣活动名快照(费用明细「满减(活动名)」展示 —— R-MKT-04)
+  promotionActivityName: String
+  # 首单立减优惠(分,叠加①与满减互斥取最大 —— R-MKT-10)
+  firstOrderDiscountCents: Long
+  # 首单立减活动名快照(费用明细「首单立减(活动名)」展示 —— R-MKT-10)
+  firstOrderActivityName: String
+  # 优惠券优惠快照(分,叠加③ —— R-MKT-07,一单一券)
+  couponDiscountCents: Long
+  # 优惠券名快照(费用明细「优惠券(券名)」展示 —— R-MKT-03)
+  couponName: String
+  # 水票核销张数快照(一票抵一桶,费用明细「水票抵扣(N桶)」展示 —— R-MKT-08)
+  ticketRedeemCount: Int
+  # 水票抵扣金额快照(分,被核销桶按单价 0 计入应付的差额 —— R-MKT-08)
+  ticketDiscountCents: Long
+  # 买赠/满赠赠品行(附加 0 价行,随单配送 —— R-MKT-09)
+  giftItems: [GiftItemVO!]
+}
+
+# 订单商品明细项(F-ORD-004 多商品下单:成交单价/小计随单快照,商品信息取快照)
+type OrderItemVO {
+  productId: PrimaryId!
+  # 商品信息(下单时快照:名称/规格/封面/目录价)
+  product: Product!
+  # 购买数量
+  quantity: Int!
+  # 成交单价(分,下单时营销引擎解析结果 —— R-MKT-02)
+  unitPriceCents: Long!
+  # 商品小计(分)= 成交单价 × 数量
+  totalPriceCents: Long!
+}
+
+# 赠品行(R-MKT-09:赠品为附加 0 价行,单价 ¥0.00 由前端呈现,不传价)
+type GiftItemVO {
+  productId: PrimaryId!
+  productName: String!
+  quantity: Int!
 }
 
 type DeliveryWorker {
+  # 配送员唯一标识ID(送水员档案并入 admins 单表后=账号 id)
   id: PrimaryId!
+  # 用户ID
   userId: PrimaryId!
+  # 微信OpenID
   wechatOpenId: String!
+  # 配送员姓名
   name: String!
+  # 配送员手机号
   phone: String!
+  # 角色(账号行投影:DELIVERY_WORKER/ADMIN)
+  role: String!
+  # 配送员头像URL
   avatarUrl: String
+  # 在线状态
   onlineStatus: DeliveryWorkerStatus!
+  # 账号状态(停用后不可登录/不可派单接单;F-USR-021)
+  accountStatus: AdminAccountStatus!
+  # 坐标位置（经纬度格式）
   coordinates: String
+  # 当前位置描述
   currentLocation: String
+  # 评分
   rating: BigDecimal
+  # 总订单数
   totalOrders: Int!
+  # 已完成订单数
   completedOrders: Int!
+  # 平均评分
   averageRating: BigDecimal
-  earning: Money
+  # 收入（分）
+  earningCents: Long
+  # 是否可接单
   isAvailable: Boolean!
+  # 当前任务数（待配送订单数）
+  currentTaskCount: Int!
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
-type DeliveryArea {
+# 配送轨迹点(PRD 05-address-delivery.md §F-ADR-012,R-ADR-03)
+# 送水工在订单「配送中」期间按设定频率(默认 5s)上报的实时位置点;
+# 轨迹涉及用户收货地址隐私,仅管理员可查(R-AUTH-02)。
+type DeliveryTrajectory {
   id: PrimaryId!
+  # 送水工账号 id(admins 单表,迁移 v1.2.1)
+  deliveryWorkerId: PrimaryId!
+  # 关联订单
+  orderId: PrimaryId!
+  # 经度
+  longitude: Float!
+  # 纬度
+  latitude: Float!
+  # 定位精度(米)
+  accuracy: Float
+  # 上报时间(客户端定位产生时间)
+  reportedAt: LocalDateTime!
+  # 服务端落库时间
+  createdAt: LocalDateTime!
+}
+
+# 当日统计数据 - 用于配送员小程序
+type TodayStatistics {
+  # 今日总订单数
+  totalOrders: Int!
+  # 今日已完成订单数
+  completedOrders: Int!
+  # 今日待配送订单数
+  unfinishedOrders: Int!
+  # 今日收入（分）
+  earningCents: Long!
+}
+
+# 每日统计数据
+type DailyStat {
+  # 日期（MM/dd格式）
+  date: String!
+  # 订单数
+  orderCount: Int!
+  # 营收金额（分）
+  earningCents: Long!
+}
+
+# 一周统计数据
+type WeekStatistics {
+  # 每日统计数据列表
+  dailyStats: [DailyStat!]!
+  # 总订单数
+  totalOrders: Int!
+  # 总营收金额（分）
+  totalEarningCents: Long!
+}
+
+type DeliveryArea {
+  # 配送区域ID
+  id: PrimaryId!
+  # 配送区域名称
   name: String!
+  # 省份
   province: String!
+  # 城市
   city: String!
+  # 区县
   district: String!
+  # 是否启用
   enabled: Boolean!
 }
 
 type Region {
+  # 区域ID
   id: PrimaryId!
+  # 区域名称
   name: String!
+  # 区域代码
   code: String!
+  # 父级区域代码
   parentCode: String
+  # 区域级别（1-省/2-市/3-区）
   level: Int!
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 # Authentication Types
 type AuthPayload {
+  # 访问令牌
   accessToken: String!
+  # 刷新令牌
   refreshToken: String!
+  # 用户信息
   user: User!
 }
 
 type UserInfo {
+  # 用户ID
   id: PrimaryId!
+  # 微信OpenID
   wechatOpenId: String!
+  # 用户昵称
   nickname: String
+  # 用户手机号
   phone: String
+  # 用户头像URL
   avatarUrl: String
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type Admin {
+  # 管理员ID
   id: PrimaryId!
+  # 用户名
   username: String!
+  # 真实姓名
   realName: String
+  # 手机号
   phone: String
+  # 角色
   role: String!
+  # 账号状态(停用后不可登录;F-USR-020)
+  accountStatus: AdminAccountStatus!
+  # 最后登录时间
   lastLoginAt: LocalDateTime
+  # 头像URL(送水员档案并入账号行,纯管理账号留空)
+  avatarUrl: String
+  # 在线状态
+  onlineStatus: DeliveryWorkerStatus!
+  # 坐标位置(经纬度格式)
+  coordinates: String
+  # 当前位置描述
+  currentLocation: String
+  # 评分
+  rating: BigDecimal
+  # 总订单数
+  totalOrders: Int!
+  # 已完成订单数
+  completedOrders: Int!
+  # 平均评分
+  averageRating: BigDecimal
+  # 收入(分)
+  earningCents: Long
+  # 是否可接单
+  isAvailable: Boolean!
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
 }
 
 type WeChatLoginResponse {
+  # 访问令牌
   accessToken: String!
+  # 刷新令牌
   refreshToken: String!
+  # 过期时间（秒）
   expiresIn: Int!
+  # 用户信息
   userInfo: UserInfo!
 }
 
 type WeChatTokenResponse {
+  # 访问令牌
   accessToken: String!
+  # 刷新令牌
   refreshToken: String!
+  # 过期时间（秒）
   expiresIn: Int!
 }
 
 type PaymentData {
+  # 支付二维码URL
   codeUrl: String!
+  # 商户订单号
   outTradeNo: String!
+  # 微信应用ID
   appId: String!
+  # 时间戳
   timeStamp: String!
+  # 随机字符串
   nonceStr: String!
+  # 订单详情扩展字符串
   packageValue: String!
+  # 签名方式
   signType: String!
+  # 签名
   paySign: String!
 }
 
 # Statistics Types
 type OrderStatistics {
+  # 订单总数
   totalOrders: Int!
-  totalRevenue: Money!
-  averageOrderValue: Money!
+  # 已完成订单数（口径 = 状态为「已完成」的订单数，G38）
+  completedOrders: Int!
+  # 总收入（口径 = 已完成订单金额合计，仅 COMPLETED 状态）
+  totalRevenueCents: Long!
+  # 平均订单金额（客单价 = 已完成营收 / 已完成订单数）
+  averageOrderValueCents: Long!
+  # 已退款金额（口径 = payment_refunds status=COMPLETED，按退款成功时间归属窗口，F-STA-002）
+  refundAmountCents: Long!
+  # 净营收（= 已完成营收 − 已退款金额；跨窗口退款时可为负，F-STA-002）
+  netRevenueCents: Long!
+  # 日期范围
   dateRange: DateRange!
+  # 订单状态分布（G37，7 态聚合所选范围订单数，合计 = totalOrders）
+  statusDistribution: [OrderStatusStatistic!]!
+  # 客单价分布（G37，按金额区间聚合订单数，合计 = totalOrders）
+  orderValueDistribution: [OrderValueBucketStatistic!]!
+  # 高峰时段分析（G37，按订单创建小时 0-23 聚合，合计 = totalOrders）
+  peakHourDistribution: [PeakHourStatistic!]!
+}
+
+# 订单状态分布项（G37）
+type OrderStatusStatistic {
+  # 订单状态
+  status: OrderStatus!
+  # 该状态订单数
+  count: Int!
+}
+
+# 客单价分布区间（G37，金额单位分；fromCents 含下限、toCents 不含上限，null = 开区间）
+type OrderValueBucketStatistic {
+  # 区间下限（分，含）
+  fromCents: Long
+  # 区间上限（分，不含）
+  toCents: Long
+  # 区间标签（如「0-20元」）
+  label: String!
+  # 该区间订单数
+  count: Int!
+}
+
+# 高峰时段分析项（G37，0-23 时）
+type PeakHourStatistic {
+  # 小时（0-23）
+  hour: Int!
+  # 该小时订单数
+  count: Int!
 }
 
 type DateRange {
+  # 开始日期
   startDate: LocalDateTime!
+  # 结束日期
   endDate: LocalDateTime!
 }
 
 type DailyStatistic {
+  # 日期
   date: String!
+  # 订单数量
   orderCount: Int!
-  revenue: Money!
+  orderProductCount: Int!
+  # 收入（单位：分）
+  revenueCents: Long!
+  # 该日已退款金额（单位：分，退款记录 status=COMPLETED 按退款成功时间归属，F-STA-002）
+  refundCents: Long!
 }
 
 type WeeklyStatistic {
+  # 周数
   weekNumber: Int!
+  # 年份
   year: Int!
+  # 开始日期
   startDate: String!
+  # 结束日期
   endDate: String!
+  # 订单数量
   orderCount: Int!
-  revenue: Money!
+  orderProductCount: Int!
+  # 收入（单位：分）
+  revenueCents: Long!
+  # 该周已退款金额（单位：分，F-STA-002）
+  refundCents: Long!
 }
 
 type MonthlyStatistic {
+  # 月份
   month: Int!
+  # 年份
   year: Int!
+  # 月份名称
   monthName: String!
+  # 订单数量
   orderCount: Int!
-  revenue: Money!
+  orderProductCount: Int!
+  # 收入（单位：分）
+  revenueCents: Long!
+  # 该月已退款金额（单位：分，F-STA-002）
+  refundCents: Long!
 }
 
 # Common Input Types
@@ -303,12 +749,10 @@ input RefreshTokenInput {
 }
 
 input UpdateProfileInput {
-  nickname: String
-    @size(min: 2, max: 50, message: "昵称长度应在2-50个字符之间")
+  nickname: String @size(min: 2, max: 50, message: "昵称长度应在2-50个字符之间")
   phone: String
     @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
-  avatar: String
-    @size(max: 500, message: "头像URL长度不能超过500个字符")
+  avatar: String @size(max: 500, message: "头像URL长度不能超过500个字符")
 }
 
 input UpdateAddressInput {
@@ -318,21 +762,19 @@ input UpdateAddressInput {
   phone: String
     @notBlank(message: "收货人手机号不能为空")
     @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
-  province: String
-    @notBlank(message: "省份不能为空")
+  province: String @notBlank(message: "省份不能为空")
   provinceCode: String
     @size(min: 1, max: 20, message: "省份代码长度应在1-20个字符之间")
-  city: String
-    @notBlank(message: "城市不能为空")
+  city: String @notBlank(message: "城市不能为空")
   cityCode: String
     @size(min: 1, max: 20, message: "城市代码长度应在1-20个字符之间")
-  district: String
-    @notBlank(message: "区县不能为空")
+  district: String @notBlank(message: "区县不能为空")
   districtCode: String
     @size(min: 1, max: 20, message: "区县代码长度应在1-20个字符之间")
   detailAddress: String
     @notBlank(message: "详细地址不能为空")
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
+  floor: Int @min(value: 1, message: "楼层必须大于0")
   longitude: Float
     @min(value: -180, message: "经度不能小于-180")
     @max(value: 180, message: "经度不能大于180")
@@ -342,6 +784,27 @@ input UpdateAddressInput {
   isDefault: Boolean
 }
 
+# 送水端订单页地址信息修改(F-ORD-024):配送员/管理员在配送任务中修正收货人信息、
+# 定位(WGS-84 经纬度)与楼层等;仅传入字段生效(不传=保持不变),空值字段不覆盖。
+input UpdateOrderAddressInput {
+  receiverName: String
+    @notBlank(message: "收货人姓名不能为空")
+    @size(min: 2, max: 20, message: "收货人姓名长度应在2-20个字符之间")
+  phone: String
+    @notBlank(message: "收货人手机号不能为空")
+    @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
+  detailAddress: String
+    @notBlank(message: "详细地址不能为空")
+    @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
+  floor: Int @min(value: 1, message: "楼层必须大于0")
+  longitude: Float
+    @min(value: -180, message: "经度不能小于-180")
+    @max(value: 180, message: "经度不能大于180")
+  latitude: Float
+    @min(value: -90, message: "纬度不能小于-90")
+    @max(value: 90, message: "纬度不能大于90")
+}
+
 input AddressInput {
   receiverName: String!
     @notBlank(message: "收货人姓名不能为空")
@@ -349,21 +812,19 @@ input AddressInput {
   phone: String!
     @notBlank(message: "收货人手机号不能为空")
     @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
-  province: String!
-    @notBlank(message: "省份不能为空")
+  province: String! @notBlank(message: "省份不能为空")
   provinceCode: String!
     @size(min: 1, max: 20, message: "省份代码长度应在1-20个字符之间")
-  city: String!
-    @notBlank(message: "城市不能为空")
+  city: String! @notBlank(message: "城市不能为空")
   cityCode: String!
     @size(min: 1, max: 20, message: "城市代码长度应在1-20个字符之间")
-  district: String!
-    @notBlank(message: "区县不能为空")
+  district: String! @notBlank(message: "区县不能为空")
   districtCode: String!
     @size(min: 1, max: 20, message: "区县代码长度应在1-20个字符之间")
   detailAddress: String!
     @notBlank(message: "详细地址不能为空")
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
+  floor: Int @min(value: 1, message: "楼层必须大于0")
   longitude: Float
     @min(value: -180, message: "经度不能小于-180")
     @max(value: 180, message: "经度不能大于180")
@@ -373,14 +834,40 @@ input AddressInput {
   isDefault: Boolean! = false
 }
 
-input CreateOrderInput {
-  productId: PrimaryId!
-    @positive(message: "商品ID必须为正数")
-  addressId: PrimaryId!
-    @positive(message: "地址ID必须为正数")
+input OrderItemInput {
+  productId: PrimaryId! @positive(message: "商品ID必须为正数")
   quantity: Int!
     @min(value: 1, message: "购买数量不能少于1")
     @max(value: 999, message: "购买数量不能超过999")
+}
+
+input CreateOrderInput {
+  # 商品明细列表(F-ORD-004 多商品下单;单商品=单元素;同一商品不可重复)
+  items: [OrderItemInput!]!
+  addressId: PrimaryId! @positive(message: "地址ID必须为正数")
+  remark: String @size(max: 500, message: "备注长度不能超过500个字符")
+  # 服务端下单幂等键(R-ORD-06):同一用户同一 clientRequestId 重复提交不产生重复订单;
+  # 缺省时维持旧行为(仅前端 loading 防重)
+  clientRequestId: String @size(max: 64, message: "clientRequestId长度不能超过64个字符")
+  # 配送时段(AC-ORD-001-05,缺省=立即配送 IMMEDIATE)
+  deliveryTime: DeliveryTimeSlot
+  # 优惠券选择(促销引擎 R-MKT-07 叠加③):省略=引擎自动选最优,0=不用券;一单一券
+  # 类型用 Long 而非 PrimaryId:0 是合法的「不用券」哨兵值,PrimaryId 标量会拒绝 0
+  preferredCouponId: Long @min(value: 0, message: "优惠券ID无效")
+  # 水票核销张数(一票抵一桶 R-MKT-08,≤下单桶数 ∩ 可用张数)
+  ticketRedeemCount: Int
+    @min(value: 0, message: "水票核销张数无效")
+    @max(value: 999, message: "水票核销张数不能超过999")
+}
+
+# 配送员创建订单输入类型(F-ORD-012 代客下单,多商品 items 口径 —— F-ORD-004)
+input CreateDeliveryOrderInput {
+  # 商品明细列表(多商品;单商品=单元素;同一商品不可重复)
+  items: [OrderItemInput!]!
+  addressId: PrimaryId! @positive(message: "地址ID必须为正数")
+  # 是否自收（水钱已收/水票已扣），默认 false
+  isSelfCollect: Boolean = false
+  remark: String @size(max: 500, message: "备注长度不能超过500个字符")
 }
 
 input WechatLoginInput {
@@ -393,78 +880,65 @@ input CreateProductInput {
   name: String!
     @notBlank(message: "商品名称不能为空")
     @size(min: 2, max: 200, message: "商品名称长度应在2-200个字符之间")
-  subtitle: String
-    @size(max: 500, message: "商品副标题长度不能超过500个字符")
-  price: Money!
+  subtitle: String @size(max: 500, message: "商品副标题长度不能超过500个字符")
+  priceCents: Long!
     @positive(message: "商品价格必须为正数")
     @min(value: 1, message: "商品价格不能小于1分")
     @max(value: 9999900, message: "商品价格不能大于99999元")
-  originalPrice: Money
+  originalPriceCents: Long
     @positive(message: "原价必须为正数")
     @min(value: 1, message: "原价不能小于1分")
-    @max(value : 9999900, message: "原价不能大于99999元")
-  depositPrice: Money
-    @min(value : 0, message: "押金不能小于0")
-    @max(value : 9999900, message: "押金不能大于99999元")
+    @max(value: 9999900, message: "原价不能大于99999元")
   coverImageUrl: String!
     @notBlank(message: "商品封面图片不能为空")
-    @size(max : 500, message: "封面图片URL长度不能超过500个字符")
+    @size(max: 500, message: "封面图片URL长度不能超过500个字符")
   imageGallery: JsonArray
   specification: String!
     @notBlank(message: "商品规格不能为空")
-    @size(min : 1, max : 100, message: "商品规格长度应在1-100个字符之间")
-  waterSource: String
-    @size(max : 200, message: "水源地长度不能超过200个字符")
+    @size(min: 1, max: 100, message: "商品规格长度应在1-100个字符之间")
+  waterSource: String @size(max: 200, message: "水源地长度不能超过200个字符")
 
   mineralContent: String
-    @size(max : 200, message: "矿物质含量长度不能超过200个字符")
+    @size(max: 200, message: "矿物质含量长度不能超过200个字符")
   stock: Int!
-    @min(value : 0, message: "库存数量不能小于0")
-    @max(value : 99999, message: "库存数量不能大于99999")
-  salesVolume: Int!
-    @min(value : 0, message: "销量不能小于0")
+    @min(value: 0, message: "库存数量不能小于0")
+    @max(value: 99999, message: "库存数量不能大于99999")
+  salesVolume: Int! @min(value: 0, message: "销量不能小于0")
   status: ProductStatus!
   sortOrder: Int!
-    @min(value : 0, message: "排序权重不能小于0")
-    @max(value : 9999, message: "排序权重不能大于9999")
+    @min(value: 0, message: "排序权重不能小于0")
+    @max(value: 9999, message: "排序权重不能大于9999")
   tags: JsonArray
   detailContent: String
-    @size(max : 5000, message: "详情内容长度不能超过5000个字符")
+    @size(max: 5000, message: "详情内容长度不能超过5000个字符")
   certificateImages: JsonArray
-  deliverySettings: JsonObject
 }
 
 input UpdateProductInput {
   name: String
     @size(min: 2, max: 200, message: "商品名称长度应在2-200个字符之间")
-  subtitle: String
-    @size(max: 500, message: "商品副标题长度不能超过500个字符")
-  price: Money
+  subtitle: String @size(max: 500, message: "商品副标题长度不能超过500个字符")
+  priceCents: Long
     @positive(message: "商品价格必须为正数")
     @min(value: 1, message: "商品价格不能小于1分")
     @max(value: 9999900, message: "商品价格不能大于99999元")
-  originalPrice: Money
+  originalPriceCents: Long
     @positive(message: "原价必须为正数")
     @min(value: 1, message: "原价不能小于1分")
     @max(value: 9999900, message: "原价不能大于99999元")
-  depositPrice: Money
-    @min(value: 0, message: "押金不能小于0")
-    @max(value: 9999900, message: "押金不能大于99999元")
   coverImageUrl: String
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
   imageGallery: JsonArray
   specification: String
     @size(min: 1, max: 100, message: "商品规格长度应在1-100个字符之间")
-  waterSource: String
-    @size(max: 200, message: "水源地长度不能超过200个字符")
+  waterSource: String @size(max: 200, message: "水源地长度不能超过200个字符")
 
   mineralContent: String
     @size(max: 200, message: "矿物质含量长度不能超过200个字符")
   stock: Int
     @min(value: 0, message: "库存数量不能小于0")
     @max(value: 99999, message: "库存数量不能大于99999")
-  salesVolume: Int
-    @min(value: 0, message: "销量不能小于0")
+  salesVolume: Int @min(value: 0, message: "销量不能小于0")
   status: ProductStatus
   sortOrder: Int
     @min(value: 0, message: "排序权重不能小于0")
@@ -473,14 +947,11 @@ input UpdateProductInput {
   detailContent: String
     @size(max: 5000, message: "详情内容长度不能超过5000个字符")
   certificateImages: JsonArray
-  deliverySettings: JsonObject
-  isDeleted: Boolean
 }
 
 input CreateWechatPaymentInput {
-  orderId: PrimaryId!
-    @positive(message: "订单ID必须为正数")
-  amount: Money!
+  orderId: PrimaryId! @positive(message: "订单ID必须为正数")
+  amountCents: Long!
     @positive(message: "支付金额必须为正数")
     @min(value: 1, message: "支付金额不能小于1分")
     @max(value: 9999900, message: "支付金额不能大于99999元")
@@ -496,27 +967,23 @@ input WechatCallbackInput {
   resourceType: String!
     @notBlank(message: "资源类型不能为空")
     @size(min: 1, max: 50, message: "资源类型长度应在1-50个字符之间")
-  summary: String!
-    @size(max: 500, message: "摘要长度不能超过500个字符")
-  outTradeNo: String
-    @size(max: 100, message: "商户订单号长度不能超过100个字符")
+  summary: String! @size(max: 500, message: "摘要长度不能超过500个字符")
+  outTradeNo: String @size(max: 100, message: "商户订单号长度不能超过100个字符")
   transactionId: String
     @size(max: 100, message: "微信支付订单号长度不能超过100个字符")
-  mchId: String
-    @size(max: 50, message: "商户号长度不能超过50个字符")
-  appId: String
-    @size(max: 50, message: "应用ID长度不能超过50个字符")
+  mchId: String @size(max: 50, message: "商户号长度不能超过50个字符")
+  appId: String @size(max: 50, message: "应用ID长度不能超过50个字符")
 }
 
 input RefundInput {
   transactionId: String!
     @notBlank(message: "交易ID不能为空")
     @size(min: 10, max: 100, message: "交易ID长度应在10-100个字符之间")
-  refundAmount: Money!
+  refundAmountCents: Long!
     @positive(message: "退款金额必须为正数")
     @min(value: 1, message: "退款金额不能小于1分")
     @max(value: 9999900, message: "退款金额不能大于99999元")
-  totalAmount: Money!
+  totalAmountCents: Long!
     @positive(message: "总金额必须为正数")
     @min(value: 1, message: "总金额不能小于1分")
     @max(value: 9999900, message: "总金额不能大于99999元")
@@ -529,11 +996,9 @@ input ProcessRefundInput {
   originalTransactionId: String!
     @notBlank(message: "原交易ID不能为空")
     @size(min: 1, max: 100, message: "原交易ID长度应在1-100个字符之间")
-  orderId: PrimaryId!
-    @positive(message: "订单ID必须为正数")
-  userId: PrimaryId!
-    @positive(message: "用户ID必须为正数")
-  amount: Money!
+  orderId: PrimaryId! @positive(message: "订单ID必须为正数")
+  userId: PrimaryId! @positive(message: "用户ID必须为正数")
+  amountCents: Long!
     @positive(message: "退款金额必须为正数")
     @min(value: 1, message: "退款金额不能小于1分")
     @max(value: 9999900, message: "退款金额不能大于99999元")
@@ -549,11 +1014,9 @@ input CreateManualRefundInput {
   originalTransactionId: String!
     @notBlank(message: "原交易ID不能为空")
     @size(min: 1, max: 100, message: "原交易ID长度应在1-100个字符之间")
-  orderId: PrimaryId!
-    @positive(message: "订单ID必须为正数")
-  userId: PrimaryId!
-    @positive(message: "用户ID必须为正数")
-  amount: Money!
+  orderId: PrimaryId! @positive(message: "订单ID必须为正数")
+  userId: PrimaryId! @positive(message: "用户ID必须为正数")
+  amountCents: Long!
     @positive(message: "退款金额必须为正数")
     @min(value: 1, message: "退款金额不能小于1分")
     @max(value: 9999900, message: "退款金额不能大于99999元")
@@ -598,8 +1061,8 @@ input ValidateAddressInput {
 }
 
 input CreateDeliveryWorkerInput {
-  wechatOpenId: String!
-    @notBlank(message: "微信OpenID不能为空")
+  # 微信OpenID已不再落库(送水工端独立 App 账号密码登录),字段保留仅为兼容,后端忽略
+  wechatOpenId: String
     @size(min: 1, max: 100, message: "微信OpenID长度应在1-100个字符之间")
   name: String!
     @notBlank(message: "配送员姓名不能为空")
@@ -607,19 +1070,20 @@ input CreateDeliveryWorkerInput {
   phone: String!
     @notBlank(message: "手机号不能为空")
     @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
-  avatarUrl: String
-    @size(max: 500, message: "头像URL长度不能超过500个字符")
-  coordinates: String
-    @size(max: 100, message: "坐标信息长度不能超过100个字符")
+  password: String
+  avatarUrl: String @size(max: 500, message: "头像URL长度不能超过500个字符")
+  coordinates: String @size(max: 100, message: "坐标信息长度不能超过100个字符")
   currentLocation: String
     @size(max: 200, message: "当前位置长度不能超过200个字符")
   rating: BigDecimal
     @min(value: 0, message: "评分不能小于0")
     @max(value: 5, message: "评分不能大于5")
-  earning: Money
+  earningCents: Long
     @min(value: 0, message: "收入不能小于0")
     @max(value: 99999900, message: "收入不能大于999999元")
   isAvailable: Boolean
+  # 账号状态(缺省 ACTIVE;F-USR-021)
+  accountStatus: AdminAccountStatus
 }
 
 input UpdateDeliveryWorkerInput {
@@ -629,19 +1093,21 @@ input UpdateDeliveryWorkerInput {
     @size(min: 2, max: 20, message: "配送员姓名长度应在2-20个字符之间")
   phone: String
     @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
-  avatarUrl: String
-    @size(max: 500, message: "头像URL长度不能超过500个字符")
-  coordinates: String
-    @size(max: 100, message: "坐标信息长度不能超过100个字符")
+  avatarUrl: String @size(max: 500, message: "头像URL长度不能超过500个字符")
+  coordinates: String @size(max: 100, message: "坐标信息长度不能超过100个字符")
   currentLocation: String
     @size(max: 200, message: "当前位置长度不能超过200个字符")
   rating: BigDecimal
     @min(value: 0, message: "评分不能小于0")
     @max(value: 5, message: "评分不能大于5")
-  earning: Money
+  earningCents: Long
     @min(value: 0, message: "收入不能小于0")
     @max(value: 99999900, message: "收入不能大于999999元")
   isAvailable: Boolean
+  # 在线状态(送水员档案并入 admins 单表后编辑在线状态,见 F-USR-021)
+  status: DeliveryWorkerStatus
+  # 账号状态(停用/启用;F-USR-021)
+  accountStatus: AdminAccountStatus
 }
 
 input CreateDeliveryAddressInput {
@@ -678,8 +1144,7 @@ input UpdateDeliveryAddressInput {
     @pattern(regexp: "^1[3-9]\\\\d{9}$", message: "手机号格式不正确")
   province: String
     @size(min: 2, max: 50, message: "省份名称长度应在2-50个字符之间")
-  city: String
-    @size(min: 2, max: 50, message: "城市名称长度应在2-50个字符之间")
+  city: String @size(min: 2, max: 50, message: "城市名称长度应在2-50个字符之间")
   district: String
     @size(min: 2, max: 50, message: "区县名称长度应在2-50个字符之间")
   detailAddress: String
@@ -691,7 +1156,6 @@ input UpdateDeliveryAddressInput {
     @min(value: -90, message: "纬度不能小于-90")
     @max(value: 90, message: "纬度不能大于90")
 }
-
 
 input GeocodeInput {
   province: String!
@@ -708,106 +1172,6 @@ input GeocodeInput {
     @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
 }
 
-input AddressValidationInput {
-  province: String!
-    @notBlank(message: "省份不能为空")
-    @size(min: 2, max: 50, message: "省份名称长度应在2-50个字符之间")
-  provinceCode: String
-    @size(min: 1, max: 20, message: "省份代码长度应在1-20个字符之间")
-  city: String!
-    @notBlank(message: "城市不能为空")
-    @size(min: 2, max: 50, message: "城市名称长度应在2-50个字符之间")
-  cityCode: String
-    @size(min: 1, max: 20, message: "城市代码长度应在1-20个字符之间")
-  district: String!
-    @notBlank(message: "区县不能为空")
-    @size(min: 2, max: 50, message: "区县名称长度应在2-50个字符之间")
-  districtCode: String
-    @size(min: 1, max: 20, message: "区县代码长度应在1-20个字符之间")
-  detailAddress: String!
-    @notBlank(message: "详细地址不能为空")
-    @size(min: 5, max: 200, message: "详细地址长度应在5-200个字符之间")
-  longitude: Float
-    @min(value: -180, message: "经度不能小于-180")
-    @max(value: 180, message: "经度不能大于180")
-  latitude: Float
-    @min(value: -90, message: "纬度不能小于-90")
-    @max(value: 90, message: "纬度不能大于90")
-}
-
-
-type BooleanPayload {
-  success: Boolean!
-  message: String!
-}
-
-type GeocodePayload {
-  success: Boolean!
-  message: String!
-  longitude: Float
-  latitude: Float
-}
-
-type ReverseGeocodePayload {
-  success: Boolean!
-  message: String!
-  province: String
-  provinceCode: String
-  city: String
-  cityCode: String
-  district: String
-  districtCode: String
-  street: String
-  formattedAddress: String
-  confidence: Float
-}
-
-type AddressValidationPayload {
-  success: Boolean!
-  message: String!
-  isValid: Boolean!
-  isDuplicate: Boolean!
-  coordinatesValid: Boolean!
-  normalizedAddress: NormalizedAddress
-  errors: [String!]!
-}
-
-type NormalizedAddress {
-  province: String!
-  provinceCode: String
-  city: String!
-  cityCode: String
-  district: String!
-  districtCode: String
-  detailAddress: String!
-}
-
-
-type NearbyAddressesPayload {
-  success: Boolean!
-  message: String!
-  addresses: [Address!]!
-  distanceMap: Map!
-}
-
-type RegionCoordinatesPayload {
-  success: Boolean!
-  message: String!
-  region: Region
-}
-
-type DistancePayload {
-  success: Boolean!
-  message: String!
-  distanceKm: Float
-}
-
-type ServiceAreaPayload {
-  success: Boolean!
-  message: String!
-  inServiceArea: Boolean!
-}
-
 # Review Types
 type Review {
   reviewId: PrimaryId!
@@ -822,15 +1186,12 @@ type Review {
 }
 
 input CreateReviewRequest {
-  orderId: PrimaryId!
-    @positive(message: "订单ID必须为正数")
-  deliveryWorkerId: PrimaryId!
-    @positive(message: "配送员ID必须为正数")
+  orderId: PrimaryId! @positive(message: "订单ID必须为正数")
+  deliveryWorkerId: PrimaryId! @positive(message: "配送员ID必须为正数")
   rating: Int!
     @min(value: 1, message: "评分不能小于1")
     @max(value: 5, message: "评分不能大于5")
-  comment: String
-    @size(max: 1000, message: "评论长度不能超过1000个字符")
+  comment: String @size(max: 1000, message: "评论长度不能超过1000个字符")
   isAnonymous: Boolean
 }
 
@@ -875,16 +1236,27 @@ type DeliveryWorkerRankingResponse {
 
 # Payment Refund Types
 type RefundRequest {
+  # 退款请求ID
   id: String!
+  # 原交易ID
   originalTransactionId: String!
+  # 订单ID
   orderId: PrimaryId!
+  # 用户ID
   userId: PrimaryId!
-  amount: Money!
+  # 退款金额（分）
+  amountCents: Long!
+  # 退款原因
   reason: String!
+  # 退款状态
   status: RefundStatus!
+  # 申请时间
   requestedAt: LocalDateTime!
+  # 处理时间
   processedAt: LocalDateTime
+  # 处理人ID
   processedBy: Long
+  # 管理员备注
   adminNote: String
 }
 
@@ -896,22 +1268,43 @@ enum RefundStatus {
   FAILED
 }
 
+# 退款类型(R-PAY-02/G06:退款账本区分口径,营收统计仅计入 ORDER_REFUND)
+enum RefundType {
+  ORDER_REFUND # 订单退款(含商品+配送费)
+  DEPOSIT_REFUND # 水桶费退还(含历史桶押金退还,不计入退款/净营收统计)
+}
+
 # Payment Transaction Types
 type PaymentTransaction {
+  # 交易ID
   id: String!
+  # 订单ID
   orderId: PrimaryId!
+  # 用户ID
   userId: PrimaryId!
-  amount: Money!
+  # 交易金额（分）
+  amountCents: Long!
+  # 交易状态
   status: PaymentStatus!
+  # 支付方式
   paymentMethod: PaymentMethod!
+  # 交易流水号
   transactionId: String
+  # 外部交易号
   externalTransactionId: String
+  # 支付网关
   gateway: String!
+  # 创建时间
   createdAt: LocalDateTime!
+  # 更新时间
   updatedAt: LocalDateTime!
+  # 完成时间
   completedAt: LocalDateTime
+  # 失败原因
   failureReason: String
+  # 附加数据
   metadata: Map
+  # 管理员备注
   adminNote: String
 }
 
@@ -920,41 +1313,40 @@ input ExportTransactionsInput {
   dateTo: LocalDateTime
   status: PaymentStatus
   paymentMethod: PaymentMethod
-  userId: PrimaryId
-    @positive(message: "用户ID必须为正数")
-  minAmount: Money
+  userId: PrimaryId @positive(message: "用户ID必须为正数")
+  minAmountCents: Long
     @positive(message: "最小金额必须为正数")
     @min(value: 1, message: "最小金额不能小于1分")
     @max(value: 9999900, message: "最小金额不能大于99999元")
-  maxAmount: Money
+  maxAmountCents: Long
     @positive(message: "最大金额必须为正数")
     @min(value: 1, message: "最大金额不能小于1分")
     @max(value: 9999900, message: "最大金额不能大于99999元")
-  format: String! = "CSV" # CSV, EXCEL, PDF
+  format: String! = "CSV"  # CSV, EXCEL, PDF
     @size(min: 1, max: 10, message: "导出格式长度应在1-10个字符之间")
   includeMetadata: Boolean! = false
 }
 
 # Payment Statistics Types
 type PaymentStatistics {
-  totalAmount: Money!
+  totalAmountCents: Long!
   totalTransactions: Long!
   successfulTransactions: Long!
   failedTransactions: Long!
-  refundedAmount: Money!
+  refundedAmountCents: Long!
   refundCount: Long!
-  averageTransactionAmount: Money!
+  averageTransactionAmountCents: Long!
   dailyStats: [DailyPaymentStats!]!
 }
 
 type PaymentMethodStats {
   paymentMethod: PaymentMethod!
-  totalAmount: Money!
+  totalAmountCents: Long!
   transactionCount: Long!
   successCount: Long!
   failureCount: Long!
   refundCount: Long!
-  averageAmount: Money!
+  averageAmountCents: Long!
   successRate: Float!
 }
 
@@ -962,7 +1354,7 @@ type SuspiciousTransaction {
   id: String!
   orderId: PrimaryId!
   userId: PrimaryId!
-  amount: Money!
+  amountCents: Long!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
   transactionId: String
@@ -978,13 +1370,13 @@ type SuspiciousTransaction {
 
 type DailyPaymentStats {
   date: String!
-  totalAmount: Money!
+  totalAmountCents: Long!
   totalTransactions: Long!
   successfulTransactions: Long!
   failedTransactions: Long!
-  refundedAmount: Money!
+  refundedAmountCents: Long!
   refundCount: Long!
-  averageTransactionAmount: Money!
+  averageTransactionAmountCents: Long!
   peakHour: Int!
   paymentMethodBreakdown: [PaymentMethodStats!]!
 }
@@ -995,15 +1387,14 @@ input UpdateTransactionInput {
     @size(max: 1000, message: "管理员备注长度不能超过1000个字符")
   status: PaymentStatus
   isFrozen: Boolean
-  freezeReason: String
-    @size(max: 500, message: "冻结原因长度不能超过500个字符")
+  freezeReason: String @size(max: 500, message: "冻结原因长度不能超过500个字符")
 }
 
 input ProcessSuspiciousTransactionInput {
   transactionId: String!
     @notBlank(message: "交易ID不能为空")
     @size(min: 1, max: 100, message: "交易ID长度应在1-100个字符之间")
-  action: String! # FREEZE, UNFREEZE, MARK_SAFE, FLAG_FOR_REVIEW
+  action: String!  # FREEZE, UNFREEZE, MARK_SAFE, FLAG_FOR_REVIEW
     @notBlank(message: "操作类型不能为空")
     @size(min: 1, max: 50, message: "操作类型长度应在1-50个字符之间")
   adminNote: String
@@ -1013,33 +1404,33 @@ input ProcessSuspiciousTransactionInput {
 # Additional Payment Types
 type OrderPaymentInfo {
   orderId: PrimaryId!
-  orderNumber: String!
-  amount: Money!
+  orderNo: String!
+  amountCents: Long!
   status: PaymentStatus!
   paymentMethod: PaymentMethod!
   transactionId: String
   createdAt: LocalDateTime!
   paidAt: LocalDateTime
   refundedAt: LocalDateTime
-  refundAmount: Money
+  refundAmountCents: Long
 }
 
 type PaymentPeriodStats {
   period: String!
-  totalAmount: Money!
+  totalAmountCents: Long!
   totalTransactions: Long!
   successfulTransactions: Long!
   failedTransactions: Long!
-  averageTransactionAmount: Money!
+  averageTransactionAmountCents: Long!
   paymentMethodBreakdown: [PaymentMethodStats!]!
 }
 
 type RefundEligibility {
   eligible: Boolean!
   orderId: PrimaryId!
-  orderAmount: Money!
-  paidAmount: Money!
-  refundableAmount: Money!
+  orderAmountCents: Long!
+  paidAmountCents: Long!
+  refundableAmountCents: Long!
   refundReason: String
   deadline: LocalDateTime
   refundPolicy: String
@@ -1047,16 +1438,22 @@ type RefundEligibility {
 
 # Pagination Types
 type PageInfo {
+  # 总记录数
   total: Int!
+  # 每页大小
   pageSize: Int!
-  pageNum: Int!  # current page index (0-based)
+  # 当前页码（从0开始）
+  pageNum: Int!
+  # 是否有下一页
   hasNext: Boolean!
+  # 是否有上一页
   hasPrevious: Boolean!
-  totalPages: Int!  # Include for completeness
+  # 总页数
+  totalPages: Int!
 }
 
 # User Management Types for Admin
-type UserPage {
+type UserVOPage {
   list: [User!]!
   pageInfo: PageInfo!
 }
@@ -1067,6 +1464,8 @@ input UserListInput {
   sort: String = "createdAt,desc"
   search: String
   status: UserStatus
+  # 按客户分组筛选(F-MKT-001 营销受众维度,用户列表 F-USR-022)
+  customerGroupId: PrimaryId
 }
 
 # Product Management Types for Admin
@@ -1074,22 +1473,291 @@ type ProductStatistics {
   totalProducts: Int!
   onlineProducts: Int!
   offlineProducts: Int!
+  # 售罄商品数(P1-4:全量商品口径,与 total/online/offline 同源按状态 SQL 分组)
+  outOfStockProducts: Int!
   lowStockProducts: Int!
-  totalValue: Money!
-  averagePrice: Money!
+  totalValueCents: Long!
+  averagePriceCents: Long!
+  productRanking: [ProductSalesStat!]!
+  favoriteStatistics: [ProductFavoriteStat!]!
+  totalSales: Int!
+  totalFavorites: Int!
+  # 库存预警明细(F-STA-006,G39):库存≤阈值的商品(任意状态,含 OFFLINE/OUT_OF_STOCK —— P1-4),
+  # 缺货(库存=0)置顶、按库存升序;口径与 lowStockProducts 计数同源(R-PRO-02 阈值)
+  stockWarningItems: [StockWarningItem!]!
 }
 
-type LowStockAlert {
+# 库存预警明细项(F-STA-006,G39,R-PRO-02)
+type StockWarningItem {
   productId: PrimaryId!
   productName: String!
+  specification: String!
   currentStock: Int!
   threshold: Int!
-  status: ProductStatus!
+  status: StockWarningStatus!
 }
 
-type ProductPage {
+enum StockWarningStatus {
+  # 缺货:库存 = 0
+  OUT_OF_STOCK
+  # 预警:0 < 库存 ≤ 阈值
+  WARNING
+}
+
+type ProductSalesStat {
+  productId: PrimaryId!
+  productName: String!
+  salesVolume: Int!
+  revenueCents: Long!
+}
+
+type ProductFavoriteStat {
+  productId: PrimaryId!
+  productName: String!
+  favoriteCount: Long!
+}
+
+type ProductDailySales {
+  date: String!
+  productId: PrimaryId!
+  productName: String!
+  salesVolume: Int!
+  revenueCents: Long!
+}
+
+type ProductVOPage {
   list: [Product!]!
   pageInfo: PageInfo!
+}
+
+# Order Management Types
+type OrderVOPage {
+  content: [Order!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input OrderListInput {
+  page: Int = 0
+  size: Int = 20
+  sort: String = "createdAt,desc"
+  search: String
+  status: OrderStatus
+  userId: PrimaryId
+  dateFrom: LocalDateTime
+  dateTo: LocalDateTime
+  minAmountCents: Long
+  maxAmountCents: Long
+  deliveryWorkerId: PrimaryId
+}
+
+# Favorites Management Types
+type FavoriteProduct {
+  id: PrimaryId!
+  name: String!
+  subtitle: String
+  priceCents: Long!
+  originalPriceCents: Long
+  coverImageUrl: String!
+  stock: Int!
+  salesVolume: Int!
+  status: ProductStatus!
+  addedAt: LocalDateTime!
+}
+
+type FavoriteProductVOPage {
+  list: [FavoriteProduct!]!
+  pageInfo: PageInfo!
+}
+
+# Admin Favorites Management Types
+type UserFavorite {
+  id: PrimaryId!
+  user: User!
+  product: Product!
+  createdAt: LocalDateTime!
+}
+
+type UserFavoriteVOPage {
+  list: [UserFavorite!]!
+  pageInfo: PageInfo!
+}
+
+type UserFavoriteAnalytics {
+  totalFavorites: Long!
+  activeUsersWithFavorites: Long!
+  averageFavoritesPerUser: Float!
+  newFavoritesToday: Long!
+  newFavoritesThisWeek: Long!
+  newFavoritesThisMonth: Long!
+}
+
+type ProductFavoriteCount {
+  product: Product!
+  favoriteCount: Long!
+  addedThisWeek: Long!
+  addedThisMonth: Long!
+  addedToday: Long!
+}
+
+type FavoriteTrendData {
+  date: String!
+  newFavorites: Long!
+  totalFavorites: Long!
+  activeUsers: Long!
+}
+
+type UserFavoriteSummary {
+  user: User!
+  favoriteCount: Long!
+  lastFavoriteAdded: LocalDateTime
+  totalValueOfFavoritedProductsCents: Long!
+  categories: [String!]!
+  mostFavoritedCategory: String
+}
+
+type UserSummaryVOPage {
+  list: [UserFavoriteSummary!]!
+  pageInfo: PageInfo!
+}
+
+type UserFavoriteWithProduct {
+  id: PrimaryId!
+  user: User!
+  product: Product!
+  createdAt: LocalDateTime!
+  productStatus: ProductStatus!
+  productStock: Int!
+  productSalesVolume: Int!
+}
+
+type UserFavoriteWithProductVOPage {
+  list: [UserFavoriteWithProduct!]!
+  pageInfo: PageInfo!
+}
+
+type FavoriteProductStats {
+  productId: PrimaryId!
+  productName: String!
+  favoriteCount: Long!
+  addToOrderRate: Float!
+  averageTimeToOrder: Float! # days from favorite to order
+  revenueFromFavoritesCents: Long!
+}
+
+type AllProductsFavoriteStats {
+  totalProducts: Long!
+  totalFavorites: Long!
+  averageFavoritesPerProduct: Float!
+}
+
+type ProductFavoriteVOPage {
+  list: [ProductFavoriteItem!]!
+  pageInfo: PageInfo!
+}
+
+type ProductFavoriteItem {
+  product: Product!
+  favoriteCount: Long!
+  lastFavoritedAt: LocalDateTime
+}
+
+type UserFavoriteInsights {
+  userId: PrimaryId!
+  userNickname: String!
+  totalFavorites: Long!
+  favoriteCategories: [String!]!
+  averageFavoritePriceCents: Long!
+  favoriteToOrderRate: Float!
+  lastActiveAt: LocalDateTime!
+  engagementLevel: UserEngagementLevel!
+}
+
+enum UserEngagementLevel {
+  LOW
+  MEDIUM
+  HIGH
+  VERY_HIGH
+}
+
+# Admin Favorites Input Types
+input AdminFavoriteListInput {
+  page: Int = 0
+  size: Int = 20
+  userId: PrimaryId
+  productId: PrimaryId
+  dateFrom: LocalDateTime
+  dateTo: LocalDateTime
+  sortBy: FavoriteSortBy! = CREATED_AT_DESC
+  search: String
+  productStatus: ProductStatus
+}
+
+enum FavoriteSortBy {
+  CREATED_AT_ASC
+  CREATED_AT_DESC
+  USER_ID_ASC
+  USER_ID_DESC
+  PRODUCT_ID_ASC
+  PRODUCT_ID_DESC
+  PRODUCT_NAME_ASC
+  PRODUCT_NAME_DESC
+  PRODUCT_PRICE_ASC
+  PRODUCT_PRICE_DESC
+}
+
+input BatchFavoriteOperationInput {
+  userIds: [PrimaryId!]!
+    @size(min: 1, max: 1000, message: "用户ID数量应在1-1000之间")
+  productIds: [PrimaryId!]!
+    @size(min: 1, max: 1000, message: "商品ID数量应在1-1000之间")
+  operation: BatchFavoriteOperation!
+  reason: String @size(max: 500, message: "操作原因长度不能超过500个字符")
+}
+
+enum BatchFavoriteOperation {
+  CLEAR_ALL_FAVORITES
+  CLEAR_SPECIFIC_PRODUCTS
+  EXPORT_FAVORITES
+  ANALYZE_FAVORITES
+}
+
+input ExportFavoritesInput {
+  userId: PrimaryId
+  productIds: [PrimaryId!]
+  dateFrom: LocalDateTime
+  dateTo: LocalDateTime
+  format: ExportFormat! = CSV
+  includeUserInfo: Boolean! = true
+  includeProductInfo: Boolean! = true
+}
+
+enum ExportFormat {
+  CSV
+  EXCEL
+  JSON
+}
+
+type BatchOperationResult {
+  success: Boolean!
+  message: String!
+  processedCount: Int!
+  successCount: Int!
+  failureCount: Int!
+  errors: [String!]!
+  details: Map!
+}
+
+type ExportFavoritesResult {
+  success: Boolean!
+  message: String!
+  downloadUrl: String
+  fileName: String!
+  fileSize: Long!
+  recordCount: Int!
+  expiresAt: LocalDateTime!
 }
 
 input ProductListInput {
@@ -1098,54 +1766,45 @@ input ProductListInput {
   sort: String = "createdAt,desc"
   search: String
   status: ProductStatus
-  minPrice: Money
+  minPriceCents: Long
     @positive(message: "最小价格必须为正数")
     @min(value: 1, message: "最小价格不能小于1分")
     @max(value: 9999900, message: "最小价格不能大于99999元")
-  maxPrice: Money
+  maxPriceCents: Long
     @positive(message: "最大价格必须为正数")
     @min(value: 1, message: "最大价格不能小于1分")
     @max(value: 9999900, message: "最大价格不能大于99999元")
-  minStock: Int
-    @min(value: 0, message: "最小库存不能小于0")
-  maxStock: Int
-    @min(value: 0, message: "最大库存不能小于0")
+  minStock: Int @min(value: 0, message: "最小库存不能小于0")
+  maxStock: Int @min(value: 0, message: "最大库存不能小于0")
 }
 
 input ProductUpdateRequest {
-  id: PrimaryId!
-    @positive(message: "商品ID必须为正数")
+  id: PrimaryId! @positive(message: "商品ID必须为正数")
   name: String
     @size(min: 2, max: 200, message: "商品名称长度应在2-200个字符之间")
-  subtitle: String
-    @size(max: 500, message: "商品副标题长度不能超过500个字符")
-  price: Money
+  subtitle: String @size(max: 500, message: "商品副标题长度不能超过500个字符")
+  priceCents: Long
     @positive(message: "商品价格必须为正数")
     @min(value: 1, message: "商品价格不能小于1分")
     @max(value: 9999900, message: "商品价格不能大于99999元")
-  originalPrice: Money
+  originalPriceCents: Long
     @positive(message: "原价必须为正数")
     @min(value: 1, message: "原价不能小于1分")
     @max(value: 9999900, message: "原价不能大于99999元")
-  depositPrice: Money
-    @min(value: 0, message: "押金不能小于0")
-    @max(value: 9999900, message: "押金不能大于99999元")
   coverImageUrl: String
     @size(max: 500, message: "封面图片URL长度不能超过500个字符")
   imageGallery: JsonArray
     @size(max: 2000, message: "图片画廊URL长度不能超过2000个字符")
   specification: String
     @size(min: 1, max: 100, message: "商品规格长度应在1-100个字符之间")
-  waterSource: String
-    @size(max: 200, message: "水源地长度不能超过200个字符")
+  waterSource: String @size(max: 200, message: "水源地长度不能超过200个字符")
 
   mineralContent: String
     @size(max: 200, message: "矿物质含量长度不能超过200个字符")
   stock: Int
     @min(value: 0, message: "库存数量不能小于0")
     @max(value: 99999, message: "库存数量不能大于99999")
-  salesVolume: Int
-    @min(value: 0, message: "销量不能小于0")
+  salesVolume: Int @min(value: 0, message: "销量不能小于0")
   status: ProductStatus
   sortOrder: Int
     @min(value: 0, message: "排序权重不能小于0")
@@ -1154,7 +1813,6 @@ input ProductUpdateRequest {
   detailContent: String
     @size(max: 5000, message: "详情内容长度不能超过5000个字符")
   certificateImages: JsonArray
-  deliverySettings: JsonObject
 }
 
 # Enhanced Product Management Types
@@ -1163,20 +1821,20 @@ type WaterSourceStatistics {
   waterSource: String!
   productCount: Int!
   totalSalesVolume: Int!
-  averagePrice: Money!
+  averagePriceCents: Long!
 }
 
 type SpecificationStatistics {
   specification: String!
   productCount: Int!
   totalSalesVolume: Int!
-  averagePrice: Money!
+  averagePriceCents: Long!
 }
 
 type SalesReport {
   dateRange: DateRange!
   totalSales: Int!
-  totalRevenue: Money!
+  totalRevenueCents: Long!
   topSellingProducts: [ProductSalesInfo!]!
   salesByWaterSource: [WaterSourceStatistics!]!
   salesBySpecification: [SpecificationStatistics!]!
@@ -1185,7 +1843,7 @@ type SalesReport {
 type ProductSalesInfo {
   product: Product!
   salesVolume: Int!
-  revenue: Money!
+  revenueCents: Long!
   salesPercentage: Float!
 }
 
@@ -1196,7 +1854,7 @@ input SalesReportInput {
   includeSpecificationBreakdown: Boolean! = true
   topProductLimit: Int! = 10
     @min(value: 1, message: "热销商品数量不能小于1")
-    @max(value : 100, message: "热销商品数量不能大于100")
+    @max(value: 100, message: "热销商品数量不能大于100")
 }
 
 enum SalesReportGroupBy {
@@ -1205,25 +1863,26 @@ enum SalesReportGroupBy {
   MONTH
 }
 
+
 input ProductSearchInput {
-  keyword: String
-    @size(max: 100, message: "搜索关键词长度不能超过100个字符")
-  waterSource: String
-    @size(max: 200, message: "水源地长度不能超过200个字符")
-  minPh: BigDecimal
-    @min(value: 0, message: "最小PH值不能小于0")
-    @max(value : 14, message: "最小PH值不能大于14")
-  maxPh: BigDecimal
-    @min(value: 0, message: "最大PH值不能小于0")
-    @max(value : 14, message: "最大PH值不能大于14")
-  tags: [String!]
-  minSalesVolume: Int
-    @min(value: 0, message: "最小销量不能小于0")
-  maxSalesVolume: Int
-    @min(value : 0, message: "最大销量不能小于0")
-  hasOriginalPrice: Boolean
-  hasDepositPrice: Boolean
+  page: Int = 0
+  size: Int = 20
+  search: String
+  status: ProductStatus
+  keyword: String @size(max: 100, message: "搜索关键词长度不能超过100个字符")
+  minSalesVolume: Int @min(value: 0, message: "最小销量不能小于0")
+  maxSalesVolume: Int @min(value: 0, message: "最大销量不能小于0")
   sortBy: ProductSortBy! = SALES_VOLUME_DESC
+  minPriceCents: Long
+    @positive(message: "最小价格必须为正数")
+    @min(value: 1, message: "最小价格不能小于1分")
+    @max(value: 9999900, message: "最小价格不能大于99999元")
+  maxPriceCents: Long
+    @positive(message: "最大价格必须为正数")
+    @min(value: 1, message: "最大价格不能小于1分")
+    @max(value: 9999900, message: "最大价格不能大于99999元")
+  minStock: Int @min(value: 0, message: "最小库存不能小于0")
+  maxStock: Int @min(value: 0, message: "最大库存不能小于0")
 }
 
 enum ProductSortBy {
@@ -1239,39 +1898,748 @@ enum ProductSortBy {
   NAME_DESC
 }
 
-input BatchStockAdjustmentInput {
-  adjustments: [StockAdjustmentInput!]!
-    @size(min : 1, max : 100, message: "调整项目数量应在1-100之间")
+# Delivery Worker Authentication Types
+input DeliveryLoginInput {
+  code: String!
 }
 
-input StockAdjustmentInput {
-  productId: PrimaryId!
-    @positive(message: "商品ID必须为正数")
-  quantity: Int!
-    @min(value : 1, message: "调整数量不能小于1")
-    @max(value : 99999, message: "调整数量不能大于99999")
-  type: StockAdjustmentType!
-  reason: String
-    @size(max : 500, message: "调整原因长度不能超过500个字符")
+input BindDeliveryPhoneInput {
+  openId: String!
+  phoneNumber: String!
 }
 
-enum StockAdjustmentType {
-  INCREASE
-  DECREASE
-  SET
+type DeliveryLoginResponse {
+  token: String
+  refreshToken: String
+  needBindPhone: Boolean!
+  workerInfo: DeliveryWorkerInfo
+  message: String
+  openId: String
 }
 
-type StockAdjustmentResult {
-  productId: PrimaryId!
-  success: Boolean!
-  message: String!
-  previousStock: Int
-  newStock: Int
+type DeliveryWorkerInfo {
+  id: ID!
+  name: String!
+  phone: String!
+  avatarUrl: String
+  wechatOpenId: String!
 }
 
-type BatchStockAdjustmentResult {
-  success: Boolean!
-  successCount: Int!
-  failureCount: Int!
-  results: [StockAdjustmentResult!]!
+# 用户统计
+type UserStatistics {
+  # 总用户数
+  totalUsers: Int!
+  # 今日新增用户数
+  todayNewUsers: Int!
+  # 本月新增用户数
+  monthNewUsers: Int!
+  # 活跃用户数（30天内有下单）
+  activeUsers: Int!
+  # 每日新增用户趋势
+  dailyNewUsers: [DailyStatistic!]!
+  # 登录统计
+  loginStatistics: LoginStatistics
+  # 下单用户分布(近30天,G35):下单次数分层 + 下单用户占比 + 复购率
+  orderDistribution: OrderUserDistribution!
+}
+
+# 下单用户分布(F-STA-003,G35):按近30天下单用户去重聚合
+type OrderUserDistribution {
+  # 下单用户数(近30天下单用户去重)
+  orderingUsers: Int!
+  # 下单用户占比 = 下单用户数 / 总用户数(0..1,总用户数为 0 时为 0)
+  orderingUserRatio: Float!
+  # 复购率 = 下单≥2次用户数 / 下单用户数(0..1,无下单用户时为 0)
+  repurchaseRate: Float!
+  # 下单次数分层(1次/2~3次/4次以上)
+  tiers: [OrderUserTier!]!
+}
+
+# 下单次数分层项(F-STA-003,G35)
+type OrderUserTier {
+  # 分层标签:1次 / 2~3次 / 4次以上
+  label: String!
+  # 该分层用户数
+  userCount: Int!
+}
+
+# 用户登录统计
+type LoginStatistics {
+  # 今日登录用户数
+  todayLogins: Int!
+  # 累计登录用户数
+  totalLogins: Int!
+  # 每日登录趋势
+  dailyLogins: [DailyLoginStatistic!]!
+}
+
+# 每日登录统计
+type DailyLoginStatistic {
+  # 日期
+  date: String!
+  # 登录用户数
+  loginCount: Int!
+}
+
+# 送水员概览统计
+type DeliveryWorkerOverview {
+  # 送水员总数
+  totalWorkers: Int!
+  # 今日在岗送水员数
+  todayActiveWorkers: Int!
+  # 今日配送中订单数
+  deliveringOrders: Int!
+  # 今日已完成订单数
+  todayCompletedOrders: Int!
+  # 人均单量 = 今日完成订单总数 / 今日在岗送水员数(在岗为 0 时为 null,G36)
+  averageOrdersPerWorker: Float
+  # 平均履约时长(分钟)= Σ(completedAt − 派单时间) / 今日完成订单数;无完成订单时为 null(G36)
+  averageFulfillmentMinutes: Float
+}
+
+# 送水员排行
+type DeliveryWorkerRankingItem {
+  # 送水员ID
+  workerId: ID!
+  # 送水员姓名
+  name: String!
+  # 今日完成订单数
+  todayCompletedOrders: Int!
+  # 好评率
+  rating: Float!
+  # 累计收入（分）
+  totalEarningsCents: Long!
+}
+
+# 每日收款记录状态枚举
+enum DailyCollectionStatus {
+  DRAFT      # 草稿（配送员刚录入）
+  SUBMITTED  # 已提交（待管理员确认）
+  CONFIRMED  # 已确认（管理员已确认）
+  DISPUTED   # 有争议（金额不匹配）
+}
+
+# 每日对账记录状态枚举
+enum DailyReconciliationStatus {
+  PENDING      # 待对账
+  MATCHED      # 匹配（差异在容差范围内）
+  DISCREPANCY  # 有差异（超出容差范围）
+  REVIEWED     # 已人工复核
+}
+
+# 每日收款记录
+type DailyCollectionRecord {
+  # 记录ID
+  id: PrimaryId!
+  # 配送员ID
+  deliveryWorkerId: PrimaryId!
+  # 收款日期
+  collectionDate: String!
+  # 现金收款金额（分）
+  cashAmountCents: Long!
+  # 水票数量
+  waterTicketCount: Int!
+  # 扫码收款金额（分）
+  qrCodeAmountCents: Long!
+  # 订单数量
+  orderCount: Int!
+  # 订单金额合计（分）
+  orderAmountCents: Long!
+  # 差异金额（分）
+  differenceAmountCents: Long!
+  # 系统计算的现金金额（分）
+  calculatedCashAmountCents: Long!
+  # 系统计算的扫码金额（分）
+  calculatedQrCodeAmountCents: Long!
+  # 系统计算的水票数量
+  calculatedWaterTicketCount: Int!
+  # 系统计算的订单金额（分）
+  calculatedOrderAmountCents: Long!
+  # 状态
+  status: DailyCollectionStatus!
+  # 确认时间
+  confirmedAt: LocalDateTime
+  # 确认人ID
+  confirmedBy: PrimaryId
+  # 备注(配送员差异说明,超容差时必填 —— G28/G30)
+  notes: String
+  # 驳回时间(管理员驳回争议日报 —— G28)
+  rejectedAt: LocalDateTime
+  # 驳回人ID
+  rejectedBy: PrimaryId
+  # 驳回原因
+  rejectReason: String
+  # 创建时间
+  createdAt: LocalDateTime!
+  # 更新时间
+  updatedAt: LocalDateTime!
+}
+
+# 配送员今日收款预计算结果（返回给配送员小程序）
+type MyTodayCollectionVO {
+  # 今日完成订单数（系统自动计算）
+  orderCount: Int!
+  # 今日订单金额合计（系统自动计算，单位：分）
+  orderAmountCents: Long!
+  # 配送员已填写的现金收款金额（分）
+  cashAmountCents: Long
+  # 配送员已填写的水票数量
+  waterTicketCount: Int
+  # 配送员已填写的扫码收款金额（分）
+  qrCodeAmountCents: Long
+  # 差异金额（分）
+  differenceAmountCents: Long
+  # 系统计算的现金应收金额（分）- 从订单支付统计得出
+  calculatedCashAmountCents: Long
+  # 系统计算的扫码应收金额（分）- 从订单支付统计得出
+  calculatedQrCodeAmountCents: Long
+  # 系统计算的水票应收数量 - 从订单支付统计得出
+  calculatedWaterTicketCount: Int
+  # 系统计算的订单金额合计（分）
+  calculatedOrderAmountCents: Long
+  # 记录状态
+  status: DailyCollectionStatus
+}
+
+# 每日对账记录
+type DailyReconciliation {
+  # 记录ID
+  id: PrimaryId!
+  # 对账日期
+  reconciliationDate: String!
+  # 现金总收款（分）
+  totalCashAmountCents: Long!
+  # 水票总数
+  totalWaterTicketCount: Int!
+  # 扫码总金额（分）
+  totalQrCodeAmountCents: Long!
+  # 订单总数
+  totalOrderCount: Int!
+  # 订单总金额（分）
+  totalOrderAmountCents: Long!
+  # 收款总金额（分）
+  totalCollectionAmountCents: Long!
+  # 差异金额（分）
+  discrepancyAmountCents: Long!
+  # 状态
+  status: DailyReconciliationStatus!
+  # 报表数据
+  reportData: JsonObject
+  # 复核时间
+  reviewedAt: LocalDateTime
+  # 复核人ID
+  reviewedBy: PrimaryId
+  # 复核备注
+  reviewNotes: String
+  # 创建时间
+  createdAt: LocalDateTime!
+  # 更新时间
+  updatedAt: LocalDateTime!
+}
+
+# 提交每日收款输入
+input SubmitDailyCollectionInput {
+  # 现金收款金额（分）
+  cashAmountCents: Long!
+  # 水票数量
+  waterTicketCount: Int!
+  # 扫码收款金额（分）
+  qrCodeAmountCents: Long!
+  # 收款日期（可选，默认今天）
+  collectionDate: String
+  # 差异说明（超出容差时填写）
+  notes: String
+}
+
+# 确认每日收款输入
+input ConfirmDailyCollectionInput {
+  # 记录ID
+  recordId: PrimaryId!
+  # 备注
+  notes: String
+}
+
+# 驳回每日收款输入(G28:管理员驳回争议/待确认日报,退回草稿可改可重提)
+input RejectDailyCollectionInput {
+  # 记录ID
+  recordId: PrimaryId!
+  # 驳回原因(必填)
+  reason: String!
+}
+
+# 复核对账记录输入
+input ReviewReconciliationInput {
+  # 对账记录ID
+  reconciliationId: PrimaryId!
+  # 复核备注
+  reviewNotes: String!
+}
+
+# ==================== 微信资金对账域(REC) ====================
+# 微信支付对账:微信账单(交易/退款/结算) vs 内部支付流水(payments)/退款记录(payment_refunds)。
+# 后台「微信资金对账」页(支付管理):对账任务/差异列表与解决/报表查看。
+# 实现于 aqua-analytics reconciliation 模块(ReconciliationServiceImpl)。
+
+# 对账任务类型
+enum ReconciliationTaskType {
+  # 支付对账:微信交易账单 vs 内部支付流水
+  PAYMENT
+  # 退款对账:微信退款账单 vs 内部退款记录
+  REFUND
+  # 结算对账:微信结算账单 vs 内部支付流水
+  SETTLEMENT
+}
+
+# 对账任务状态
+enum ReconciliationTaskStatus {
+  # 待执行
+  PENDING
+  # 执行中
+  RUNNING
+  # 执行成功(无差异)
+  SUCCESS
+  # 执行失败(有差异或执行异常)
+  FAILED
+}
+
+# 对账差异类型
+enum DiscrepancyType {
+  # 缺失:一方有记录、另一方无
+  MISSING
+  # 金额不一致
+  MISMATCH
+  # 多余记录
+  EXTRA
+}
+
+# 对账差异状态
+enum DiscrepancyStatus {
+  # 未解决
+  UNRESOLVED
+  # 已解决
+  RESOLVED
+}
+
+# 差异来源系统
+enum SourceSystem {
+  # 内部系统
+  INTERNAL
+  # 微信支付
+  WECHAT
+}
+
+# 对账任务
+type ReconciliationTask {
+  # 记录ID
+  id: PrimaryId!
+  # 任务唯一标识
+  taskId: String!
+  # 任务类型
+  taskType: ReconciliationTaskType!
+  # 任务状态
+  status: ReconciliationTaskStatus!
+  # 对账日期
+  taskDate: LocalDateTime!
+  # 开始时间
+  startTime: LocalDateTime
+  # 结束时间
+  endTime: LocalDateTime
+  # 总记录数
+  totalRecords: Int!
+  # 匹配记录数
+  matchedRecords: Int!
+  # 未匹配记录数
+  unmatchedRecords: Int!
+  # 错误信息(有差异时提示差异数,异常时提示异常信息)
+  errorMessage: String
+  # 创建时间
+  createdAt: LocalDateTime!
+  # 更新时间
+  updatedAt: LocalDateTime!
+}
+
+# 对账任务分页
+type ReconciliationTaskPage {
+  content: [ReconciliationTask!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 对账差异
+type ReconciliationDiscrepancy {
+  # 记录ID
+  id: PrimaryId!
+  # 关联的对账任务ID
+  taskId: String!
+  # 差异类型
+  discrepancyType: DiscrepancyType!
+  # 差异来源系统
+  sourceSystem: SourceSystem!
+  # 差异记录的标识符(微信交易号/退款单号等)
+  recordId: String!
+  # 差异记录详细信息(JSON:内部/微信两侧金额与状态)
+  recordDetails: JsonObject
+  # 处理状态
+  status: DiscrepancyStatus!
+  # 解决备注
+  resolutionNotes: String
+  # 解决人
+  resolvedBy: String
+  # 解决时间
+  resolvedAt: LocalDateTime
+  # 创建时间
+  createdAt: LocalDateTime!
+  # 更新时间
+  updatedAt: LocalDateTime!
+}
+
+# 对账差异分页
+type ReconciliationDiscrepancyPage {
+  content: [ReconciliationDiscrepancy!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 对账报表
+type ReconciliationReport {
+  # 记录ID
+  id: PrimaryId!
+  # 关联的对账任务ID
+  taskId: String!
+  # 报表类型:SUMMARY-汇总 / DETAIL-明细 / EXCEL_EXPORT-导出
+  reportType: String!
+  # 报表数据(JSON)
+  reportData: JsonObject!
+  # 报表文件名
+  fileName: String
+  # 报表文件路径
+  filePath: String
+  # 报表文件大小(字节)
+  fileSize: Long
+  # 生成时间
+  generatedAt: LocalDateTime!
+}
+
+# 手动执行对账输入
+input ExecuteReconciliationInput {
+  # 对账任务类型
+  taskType: ReconciliationTaskType!
+  # 对账日期(ISO yyyy-MM-dd)
+  reconciliationDate: String!
+}
+
+# 解决对账差异输入
+input ResolveDiscrepancyInput {
+  # 差异记录ID
+  discrepancyId: PrimaryId!
+  # 解决备注(必填,留痕)
+  resolutionNotes: String!
+}
+
+# ==================== 运营配置域(OPS) ====================
+# 与 PRD 12-operations-config.md 保持一致;共享类型供 admin/client 两端使用
+
+# 轮播图(运营位)
+type Banner {
+  # 主键
+  id: PrimaryId!
+  # 图片地址(平台存储服务上传素材)
+  imageUrl: String!
+  # 标题(≤20字)
+  title: String!
+  # 副标题
+  subtitle: String
+  # 跳转类型
+  linkType: BannerLinkType!
+  # 跳转目标(PRODUCT 为商品ID,CUSTOM_PAGE 为页面路径)
+  linkTarget: String!
+  # 排序号
+  sortOrder: Int!
+  # 是否启用
+  enabled: Boolean!
+  # 时间窗开始(空=长期)
+  startAt: LocalDateTime
+  # 时间窗结束(空=长期)
+  endAt: LocalDateTime
+  # 创建时间
+  createdAt: LocalDateTime!
+  # 更新时间
+  updatedAt: LocalDateTime!
+}
+
+# 轮播跳转链接类型
+enum BannerLinkType {
+  # 商品详情
+  PRODUCT
+  # 自定义页面
+  CUSTOM_PAGE
+}
+
+# 意见反馈类型
+enum FeedbackType {
+  # 产品质量问题
+  PRODUCT_QUALITY
+  # 配送服务问题
+  DELIVERY_SERVICE
+  # 小程序使用问题
+  APP_USAGE
+  # 功能建议
+  SUGGESTION
+  # 投诉建议
+  COMPLAINT
+  # 其他问题
+  OTHER
+}
+
+# 反馈处理状态
+enum FeedbackStatus {
+  # 待处理
+  PENDING
+  # 处理中
+  PROCESSING
+  # 已处理
+  RESOLVED
+}
+
+# 公告 (F-OPS-002)
+type Notice {
+  # 主键
+  id: PrimaryId!
+  # 标题(≤50字)
+  title: String!
+  # 内容(≤2000字)
+  content: String!
+  # 类型
+  type: NoticeType!
+  # 是否置顶(置顶公告在公告栏最前展示)
+  pinned: Boolean!
+  # 时间窗开始(空=长期)
+  startAt: LocalDateTime
+  # 时间窗结束(空=长期)
+  endAt: LocalDateTime
+  # 状态(草稿/已发布/已停用)
+  status: NoticeStatus!
+  # 发布时间(每次发布重置为当前时间)
+  publishedAt: LocalDateTime
+  # 创建时间
+  createdAt: LocalDateTime!
+  # 更新时间
+  updatedAt: LocalDateTime!
+}
+
+# 公告类型
+enum NoticeType {
+  # 平台公告
+  PLATFORM_NOTICE
+  # 停水通知
+  WATER_OUTAGE
+  # 活动预告
+  ACTIVITY_PREVIEW
+}
+
+# 公告状态
+enum NoticeStatus {
+  # 草稿
+  DRAFT
+  # 已发布
+  PUBLISHED
+  # 已停用
+  STOPPED
+}
+
+# 店铺信息 (F-OPS-004,单行配置;未配置时用户端按默认值兜底)
+type StoreProfile {
+  # 店铺名称(≤20字)
+  shopName: String!
+  # LOGO 图片地址
+  logoUrl: String
+  # 客服电话
+  serviceHotline: String!
+  # 营业开始时间("HH:mm")
+  businessHoursStart: String
+  # 营业结束时间("HH:mm")
+  businessHoursEnd: String
+  # 店铺简介(≤100字)
+  shopIntro: String
+  # 关于我们文案(≤2000字)
+  aboutUs: String
+  # 更新时间
+  updatedAt: LocalDateTime
+}
+
+# 配送费规则 (F-OPS-005;楼层口径,未配置按默认 免费4楼/加价2元)
+type DeliveryFeeRule {
+  # 免费楼层(楼层 ≤ 该值免运费)
+  freeFloorLimit: Int!
+  # 超出免费楼层的一次性加价(分,0-99900)
+  surchargeCents: Long!
+  # 更新时间
+  updatedAt: LocalDateTime
+}
+
+# ==================== 营销域(MKT,PRD 10-marketing.md) ====================
+# 营销域共享枚举(管理后台与用户端共用)
+
+# 优惠券类型(R-MKT-03)
+enum CouponType {
+  # 现金券(满X减Y)
+  CASH
+  # 折扣券(满X打N折)
+  DISCOUNT
+  # 无门槛现金券
+  NO_THRESHOLD_CASH
+}
+
+# 营销适用范围
+enum CouponScope {
+  # 全场
+  ALL
+  # 指定商品
+  PRODUCT
+}
+
+# 有效期类型
+enum ValidityType {
+  # 固定区间
+  FIXED_RANGE
+  # 领取后N天(优惠券)
+  DAYS_AFTER_CLAIM
+  # 购票后N天(桶水票)
+  DAYS_AFTER_PURCHASE
+}
+
+# 桶水票票种类型(R-MKT-08)
+enum TicketTypeKind {
+  # 指定商品票(仅抵指定商品)
+  SPECIFIC_PRODUCT
+  # 通兑票(抵限定规格下全场商品,跨规格不通用)
+  UNIVERSAL
+}
+
+# 成交单价来源(R-MKT-01)
+enum PriceSource {
+  # 商品目录价
+  CATALOG_PRICE
+  # 客户分组商品专属价(熟客价)
+  GROUP_PRICE
+  # 限时特价活动价(R-MKT-05,单价链③)
+  FLASH_SALE_PRICE
+  # 新人专享价(R-MKT-10,单价链④)
+  NEWCOMER_PRICE
+  # 送水工代客下单手动实收价(预留)
+  MANUAL
+}
+
+# ==================== 用户持有券/票(管理后台与用户端共用) ====================
+# 用户持有的优惠券(F-MKT-003;管理后台用户详情页「优惠券」Tab 与用户端「我的券包」共用)
+type UserCouponVO {
+  id: PrimaryId!
+  name: String!
+  couponType: CouponType!
+  thresholdCents: Long
+  discountAmountCents: Long
+  discountRatePermille: Long
+  scope: CouponScope!
+  productId: PrimaryId
+  status: UserCouponStatus!
+  expireTime: LocalDateTime!
+  # 当前订单上下文是否可用(引擎计算,门槛不足/过期置灰;后台列表恒 false)
+  usable: Boolean!
+}
+
+enum UserCouponStatus {
+  RECEIVED
+  USED
+  RETURNED
+  EXPIRED
+}
+
+# 用户持有的桶水票(F-MKT-007;管理后台用户详情页「水票」Tab 与用户端「我的水票」共用)
+type UserTicketVO {
+  id: PrimaryId!
+  # 水票唯一递增票号(SP+入账年月+8位序号,按月重置;用户可见,长按可复制)
+  ticketNo: String!
+  # 票种名称
+  ticketTypeName: String!
+  # 通兑票限定规格
+  specification: String
+  status: UserTicketStatus!
+  expireTime: LocalDateTime!
+  # 是否赠送票
+  isGift: Boolean!
+}
+
+enum UserTicketStatus {
+  UNUSED
+  USED
+  RETURNED
+  EXPIRED
+}
+# ============ 通知与消息(PRD 13-notification.md F-NTF-002/004/006,两个服务共用) ============
+
+# 站内消息分类(消息中心 Tab:全部/订单/公告/反馈;公告与反馈聚合为开放问题,枚举预留)
+enum NotificationType {
+  ORDER
+  SYSTEM
+  ANNOUNCEMENT
+  FEEDBACK
+}
+
+# 站内消息
+type NotificationVO {
+  id: PrimaryId!
+  type: NotificationType!
+  # 接收人类型(USER/WORKER,后台消息列表展示)
+  receiverType: NotificationReceiverType!
+  # 触发场景(领域事件名,如 ORDER_PAID)
+  scene: String!
+  title: String!
+  summary: String
+  # 关联单号(订单 id)
+  relatedNo: String
+  # 是否已读
+  read: Boolean!
+  readAt: LocalDateTime
+  createdAt: LocalDateTime!
+  # 微信订阅消息通道投递状态(PENDING/SENT/FAILED,后台失败消息手动重发 F-NTF-006)
+  channelStatus: NotificationChannelStatus!
+  # 微信订阅消息返回的消息 ID(发送成功时)
+  wxMessageId: String
+  # 微信订阅消息发送失败原因(发送失败时)
+  errorMessage: String
+  # 微信订阅消息通道最近一次处理时间
+  sentAt: LocalDateTime
+}
+
+# 站内消息分页
+type NotificationVOPage {
+  content: [NotificationVO!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 微信订阅消息通道投递状态(R-NTF-01/F-NTF-001:站内消息落库即消息中心可见,channel_status 记录微信通道结果)
+enum NotificationChannelStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+# 订阅消息模板配置项(R-NTF-01,下单确认页订阅授权用)
+type SubscribeTemplateVO {
+  scene: String!
+  templateId: String!
+  enabled: Boolean!
+}
+
+# 通知接收人类型(后台消息列表筛选,F-NTF-006)
+enum NotificationReceiverType {
+  USER
+  WORKER
 }

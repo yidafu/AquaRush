@@ -1,12 +1,12 @@
 plugins {
   id("aqua.spring.boot.library")
   alias(libs.plugins.mappie)
+  alias(libs.plugins.ksp)
   id("aqua.kotlin.querydsl")
 }
 
 dependencies {
-  implementation(project(":modules:aqua-common"))
-  implementation(project(":modules:aqua-api"))
+  implementation(project(":modules:aqua-foundation"))
 
   // Spring Data JPA for AddressRepository
   implementation(libs.bundles.spring.boot.data)
@@ -23,23 +23,16 @@ dependencies {
 
   // QueryDSL dependencies are handled by aqua.kotlin.querydsl plugin
   implementation(libs.wechat.miniapp)
+
+  // Used by WeChat code (kept after notice migration)
+  implementation(libs.bundles.kotlin)
+  implementation(libs.bundles.http.client)
+
+  // Test dependencies
+  testImplementation(libs.h2)
+  testImplementation(libs.spring.boot.starter.test)
+  testImplementation(libs.mockk.core)
+  testImplementation("org.springframework.graphql:spring-graphql-test:2.0.0")
 }
 
-// Configure QueryDSL
-val querydslDir = "$buildDir/generated/querydsl"
-
-querydsl {
-  jpa = true
-  hibernate = true
-  querydslSourcesDir = querydslDir
-}
-
-// Configure Kotlin compilation to include generated source
-kotlin {
-  sourceSets {
-    main {
-      // Add QueryDSL generated sources
-      kotlin.srcDir(layout.buildDirectory.dir("generated/sources/annotationProcessor/java/main"))
-    }
-  }
-}
+// QueryDSL configuration is now handled by aqua.kotlin.querydsl plugin

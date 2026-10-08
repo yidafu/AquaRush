@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 会员中心｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 会员中心</h1>
+      <p class="sub">功能编号 F-MKT-011 ｜ 营销域 ｜ 规划中（缺口 G80）｜ 组件体系 WeUI 2.x ｜ 下游：我的资产 / 优惠券 / 积分 / 商品</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-011</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：会员中心 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 当前等级（银卡）</span>
+      <div class="phone mp">
+        <div class="phone-screen is-brand">
+
+          <div class="hero">
+            <div class="mp-status">
+              <span>9:41</span>
+              <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+            </div>
+            <div class="mp-nav is-brand">
+              <span class="mp-nav__back"></span>
+              <span class="mp-nav__title">会员中心</span>
+              <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+            </div>
+            <div class="hero-inner">
+              <div class="row gap2 mb2" style="align-items:center">
+                <span class="weui-tag weui-tag--md" style="background:var(--card);color:var(--brand-dark);font-weight:700">银卡</span>
+                <span class="hero-h" style="font-size:22px;margin-bottom:0">当前等级 银卡</span>
+              </div>
+              <div class="hero-sub">尊享会员折扣 · 免配送费 · 生日礼包</div>
+              <div class="mt3">
+                <div class="row between" style="font-size:12px;opacity:.92"><span>成长值 620/1000</span><span>再消费 ¥380.00 升级金卡</span></div>
+                <div class="weui-progress mt2" style="background:rgba(255,255,255,.28)"><div class="weui-progress__bar" style="width:62%;background:var(--card)"></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 我的权益 -->
+              <div class="weui-cells__title">我的权益 <span class="weui-tag weui-tag--goal"></span></div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M6 6h15l-2 9H8z"/><circle cx="9" cy="20" r="1.6"/><circle cx="18" cy="20" r="1.6"/></svg></span></div>
+                  <div class="weui-cell__bd">会员折扣</div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">95 折</span><span class="weui-tag weui-tag--green">已享</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M3 6h13v9H3z"/><path d="M16 9h3l2 3v3h-5"/><circle cx="7" cy="18" r="1.6"/><circle cx="17.5" cy="18" r="1.6"/></svg></span></div>
+                  <div class="weui-cell__bd">免配送费</div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">不限楼层</span><span class="weui-tag weui-tag--green">已享</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><path d="M4 11h16v8H4z"/><path d="M12 11V7M12 7a2.5 2.5 0 1 1 2.5-2.5M12 7a2.5 2.5 0 1 0-2.5-2.5"/></svg></span></div>
+                  <div class="weui-cell__bd">生日礼包</div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">生日当月券</span><span class="weui-tag weui-tag--green">已享</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.4"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg></span></div>
+                  <div class="weui-cell__bd">专属客服</div>
+                  <div class="weui-cell__ft"><span class="f-note t-sub">金卡起</span><span class="weui-tag">未达门槛</span></div>
+                </div>
+              </div>
+
+              <!-- 等级权益矩阵 -->
+              <div class="weui-cells__title">等级权益</div>
+              <div class="weui-cells">
+                <div class="weui-cell" style="min-height:0;padding:12px 16px">
+                  <div class="weui-cell__bd" style="display:flex">
+                    <span style="flex:0 0 84px;font-size:14px;color:var(--weui-FG-1)">权益</span>
+                    <span style="flex:1;text-align:center;font-size:14px;color:var(--weui-FG-1)">银卡</span>
+                    <span style="flex:1;text-align:center;font-size:14px;color:var(--weui-FG-1)">金卡</span>
+                    <span style="flex:1;text-align:center;font-size:14px;color:var(--weui-FG-1)">钻石卡</span>
+                  </div>
+                </div>
+                <div class="weui-cell" style="min-height:0;padding:12px 16px">
+                  <div class="weui-cell__bd" style="display:flex;font-size:14px">
+                    <span style="flex:0 0 84px;color:var(--weui-FG-1)">折扣力度</span>
+                    <span style="flex:1;text-align:center">95 折</span>
+                    <span style="flex:1;text-align:center">9 折</span>
+                    <span style="flex:1;text-align:center">85 折</span>
+                  </div>
+                </div>
+                <div class="weui-cell" style="min-height:0;padding:12px 16px">
+                  <div class="weui-cell__bd" style="display:flex;font-size:14px">
+                    <span style="flex:0 0 84px;color:var(--weui-FG-1)">免配送费</span>
+                    <span style="flex:1;text-align:center">已享</span>
+                    <span style="flex:1;text-align:center">已享</span>
+                    <span style="flex:1;text-align:center">已享</span>
+                  </div>
+                </div>
+                <div class="weui-cell" style="min-height:0;padding:12px 16px">
+                  <div class="weui-cell__bd" style="display:flex;font-size:14px">
+                    <span style="flex:0 0 84px;color:var(--weui-FG-1)">生日券</span>
+                    <span style="flex:1;text-align:center">¥5</span>
+                    <span style="flex:1;text-align:center">¥10</span>
+                    <span style="flex:1;text-align:center">¥20</span>
+                  </div>
+                </div>
+                <div class="weui-cell" style="min-height:0;padding:12px 16px">
+                  <div class="weui-cell__bd" style="display:flex;font-size:14px">
+                    <span style="flex:0 0 84px;color:var(--weui-FG-1)">专属客服</span>
+                    <span style="flex:1;text-align:center">—</span>
+                    <span style="flex:1;text-align:center">已享</span>
+                    <span style="flex:1;text-align:center">已享</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 会员专享商品 -->
+              <div class="weui-cells__title">会员专享商品</div>
+              <div class="mp-grid2">
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">怡宝 饮用纯净水 18.9L</div>
+                    <div class="mp-prod__desc">会员价 · 限银卡及以上</div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">20</span><span class="weui-price__dec">.90</span></span>
+                        <span class="weui-price--origin">¥22.00</span>
+                        <div style="margin-top:4px"><span class="weui-tag weui-tag--brand">会员价</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="mp-prod">
+                  <div class="mp-prod__cover">实拍图占位 · 1:1</div>
+                  <div class="mp-prod__body">
+                    <div class="mp-prod__name">农夫山泉 天然水 19L</div>
+                    <div class="mp-prod__desc">会员价 · 限银卡及以上</div>
+                    <div class="mp-prod__foot">
+                      <div>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">26</span><span class="weui-price__dec">.60</span></span>
+                        <span class="weui-price--origin">¥28.00</span>
+                        <div style="margin-top:4px"><span class="weui-tag weui-tag--brand">会员价</span></div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 积分中心入口 -->
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__hd"><span class="weui-cell__icon weui-cell__icon--brand"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 6.5 13 10l3.5.2-2.7 2.3.9 3.4-2.7-1.8-2.7 1.8.9-3.4L7.5 10.2 11 10z"/></svg></span></div>
+                  <div class="weui-cell__bd">积分中心</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">1,280 分</div>
+                </div>
+              </div>
+
+              <!-- 升级说明 -->
+              <div class="weui-cells__title">升级说明</div>
+              <div class="weui-cells__tips">· 累计消费口径 = 已完成订单实付金额（不含押金、退款）。</div>
+              <div class="weui-cells__tips">· 会员折扣仅对未命中单价让利（分组价 / 特价 / 新人价）的商品小计生效，商品维度互斥。</div>
+              <div class="weui-cells__tips">· 等级权益实时生效，完成订单后进度与等级自动更新。</div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：未达门槛等级 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 未达门槛等级</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">会员中心</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells mt2">
+                <div class="weui-cell weui-cell_vertical" style="align-items:stretch">
+                  <div class="weui-cell__bd">
+                    <div class="row between mb2">
+                      <span class="bold">金卡</span>
+                      <span class="weui-tag">未达门槛</span>
+                    </div>
+                    <div class="f-note t-sub mb2">升级门槛：累计消费 ¥1000</div>
+                    <div class="row between" style="font-size:12px;color:var(--weui-FG-1)"><span>成长值 620/1000</span><span>再消费 ¥380.00 升级金卡</span></div>
+                    <div class="weui-progress mt2"><div class="weui-progress__bar" style="width:62%"></div></div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="row between">
+                      <span class="bold">钻石卡</span>
+                      <span class="weui-tag">未达门槛</span>
+                    </div>
+                    <div class="f-note t-sub mt2">升级门槛：累计消费 ¥3000</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells__tips">等级门槛递增且不重复；累计消费口径 = 已完成订单实付金额（不含押金、退款）。</div>
+
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（Taro）</p>
+        <p><strong>入口：</strong>我的页「我的资产 → 会员中心」</p>
+        <p><strong>跳转：</strong>权益跳转（优惠券 / 积分 / 会员专享商品）；完成订单后进度与等级更新</p>
+        <p><strong>数据：</strong>当前等级、累计消费、下一级门槛、权益列表、成长值</p>
+        <p><strong>功能状态：</strong>规划中（缺口 G80），本页为目标形态；用户端账户信息「会员等级」现状为占位（F-USR-003）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>渐变等级卡（<code>.phone-screen.is-brand</code> + <code>.hero</code>）：等级名（银卡徽标）+ 成长值进度（<code>.weui-progress</code>）+ 距下一等级差额</li>
+          <li>我的权益列表（<code>.weui-cells</code>）：会员折扣 / 免配送费 / 生日礼包 / 专属客服（已享 / 未达门槛）</li>
+          <li>等级权益矩阵（「等级权益」+ <code>.weui-cells</code>）：折扣力度 / 免配送费 / 生日券 / 专属客服 × 银卡 / 金卡 / 钻石卡</li>
+          <li>会员专享商品（「会员专享商品」+ <code>.mp-grid2</code>）：2 列网格（会员价 + 划线价）</li>
+          <li>积分中心入口（<code>.weui-cell_link</code>）+ 升级说明（<code>.weui-cells__tips</code>）</li>
+          <li>未达门槛等级：金卡 / 钻石卡门槛与进度（<code>.weui-cells</code>）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>实时展示当前等级与成长进度；完成订单后进度与等级自动更新</li>
+          <li>点击会员专享商品 → 商品详情；点击积分 / 优惠券入口跳转对应页</li>
+          <li>仅本人可见（R-AUTH-02）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>当前等级 / 下一等级：</strong>进度条（<code>.weui-progress</code>）+ 差额提示；<strong>权益：</strong>已享（<code>.weui-tag--green</code>）/ 未达门槛（<code>.weui-tag</code> 中性）；<strong>禁用：</strong>未达门槛权益置灰不可点。</p>
+        <p><strong>升级门槛递增：</strong>累计消费口径 = 已完成订单实付金额（不含押金、退款）。</p>
+        <p><strong>会员折扣：</strong>仅按未命中单价让利（分组价 / 特价 / 新人价）的商品小计生效，商品维度互斥。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>基准：</strong>微信官方 WeUI 2.x；等级卡在品牌渐变头图（<code>.hero</code>）内，进度条白色填充。</p>
+        <p><strong>关键度量：</strong>导航 44px + 胶囊 87×32；<code>.weui-progress</code> 高 4px、圆角 2px；<code>.mp-grid2</code> 两列间距 8px；<code>.weui-tag</code> 18px / <code>--md</code> 22px。</p>
+        <p><strong>本页组件：</strong><code>.hero</code> + <code>.phone-screen.is-brand</code>、<code>.mp-nav is-brand</code> / <code>.mp-capsule</code>、<code>.weui-progress</code>、<code>.weui-cells</code> / <code>__title</code> / <code>__tips</code>、<code>.weui-tag</code>（<code>--green</code> / <code>--brand</code>）、<code>.mp-grid2</code> + <code>.mp-prod</code>、<code>.weui-cell_link</code>、<code>.weui-price--md</code>。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p><span class="weui-tag weui-tag--goal"></span> 本页为规划中目标形态，缺口编号 <strong>G80</strong>（含 G57 / F-MKT-006 收敛）。</p>
+        <p><strong>强调橙禁用：</strong>等级卡、进度条、权益状态均用品牌蓝 + 语义色，<strong>不使用强调橙</strong>（避免与券品牌混淆）。</p>
+        <p>等级卡可适度品牌化（渐变头图 + 徽标）营造会员尊享感，但避免过度装饰；进度条与门槛数字须清晰可读。</p>
+        <p>会员专享商品图严禁卡通插画，用 <code>.mp-prod__cover</code> 占位并标注「实拍图占位」；金额统一用 <code>.weui-price</code>，禁止手拼「¥」字符串。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

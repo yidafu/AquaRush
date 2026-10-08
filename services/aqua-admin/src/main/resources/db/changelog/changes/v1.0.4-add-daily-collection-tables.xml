@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <changeSet id="1.0.4-add-daily-collection-tables" author="aqua-rush">
+    <comment>Add daily collection and reconciliation tables for cashier reconciliation</comment>
+
+    <!-- 每日收款记录表 -->
+    <createTable tableName="daily_collection_records">
+      <column name="id" type="bigint">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="delivery_worker_id" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="collection_date" type="date">
+        <constraints nullable="false"/>
+      </column>
+      <column name="cash_amount_cents" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="water_ticket_count" type="int">
+        <constraints nullable="false"/>
+      </column>
+      <column name="qr_code_amount_cents" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="order_count" type="int"/>
+      <column name="order_amount_cents" type="bigint"/>
+      <column name="difference_amount_cents" type="bigint"/>
+      <column name="status" type="varchar(20)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="confirmed_at" type="timestamp"/>
+      <column name="confirmed_by" type="bigint"/>
+      <column name="notes" type="varchar(500)"/>
+      <column name="created_at" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_at" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="is_deleted" type="boolean" defaultValue="false">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <!-- 添加唯一约束：每个配送员每天只能有一条记录 -->
+    <addUniqueConstraint tableName="daily_collection_records"
+                         columnNames="delivery_worker_id, collection_date"
+                         constraintName="uk_daily_collection_worker_date"/>
+
+    <!-- 创建索引 -->
+    <createIndex tableName="daily_collection_records" indexName="idx_dcr_worker_date">
+      <column name="delivery_worker_id"/>
+      <column name="collection_date"/>
+    </createIndex>
+    <createIndex tableName="daily_collection_records" indexName="idx_dcr_collection_date">
+      <column name="collection_date"/>
+    </createIndex>
+    <createIndex tableName="daily_collection_records" indexName="idx_dcr_status">
+      <column name="status"/>
+    </createIndex>
+
+    <!-- 每日对账记录表 -->
+    <createTable tableName="daily_reconciliations">
+      <column name="id" type="bigint">
+        <constraints primaryKey="true" nullable="false"/>
+      </column>
+      <column name="reconciliation_date" type="date">
+        <constraints nullable="false" unique="true"/>
+      </column>
+      <column name="total_cash_amount_cents" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="total_water_ticket_count" type="int">
+        <constraints nullable="false"/>
+      </column>
+      <column name="total_qr_code_amount_cents" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="total_order_count" type="int">
+        <constraints nullable="false"/>
+      </column>
+      <column name="total_order_amount_cents" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="total_collection_amount_cents" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="discrepancy_amount_cents" type="bigint">
+        <constraints nullable="false"/>
+      </column>
+      <column name="status" type="varchar(20)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="report_data" type="text"/>
+      <column name="reviewed_at" type="timestamp"/>
+      <column name="reviewed_by" type="bigint"/>
+      <column name="review_notes" type="varchar(500)"/>
+      <column name="created_at" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="updated_at" type="timestamp">
+        <constraints nullable="false"/>
+      </column>
+      <column name="is_deleted" type="boolean" defaultValue="false">
+        <constraints nullable="false"/>
+      </column>
+    </createTable>
+
+    <!-- 创建索引 -->
+    <createIndex tableName="daily_reconciliations" indexName="idx_dr_reconciliation_date">
+      <column name="reconciliation_date"/>
+    </createIndex>
+    <createIndex tableName="daily_reconciliations" indexName="idx_dr_status">
+      <column name="status"/>
+    </createIndex>
+
+  </changeSet>
+
+</databaseChangeLog>

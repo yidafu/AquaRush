@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 首单立减 / 新人专享价｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 首单立减 / 新人专享价</h1>
+      <p class="sub">功能编号 F-MKT-009 ｜ 营销域（客户与营销）｜ 下游：商品详情新人价 / 确认订单立减行</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-009</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">admin-client</span>
+      <span class="chip chip-plain">缺口 G60 已解决</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：活动配置总览 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 活动开关 + 活动列表 + 新人定义 + 预算与已用金额</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/first-order</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>首单立减 / 新人价</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>首单立减 / 新人专享价</h2>
+                    <div class="desc">首单立减与满减互斥取最大；新人价进单价链④（优先于目录价）</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">导出</span>
+                    <span class="btn sm">＋ 新建活动</span>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head"><span class="card-title sm">首单立减总开关</span><span class="switch on"></span></div>
+                  <div class="desc-grid">
+                    <div class="desc-item"><div class="k">立减金额（元）</div><div class="v num">¥10.00</div></div>
+                    <div class="desc-item"><div class="k">新人定义</div><div class="v">首次下单（无已完成订单）</div></div>
+                    <div class="desc-item"><div class="k">有效资格</div><div class="v">注册后 30 天内，默认首单为限</div></div>
+                    <div class="desc-item"><div class="k">互斥规则</div><div class="v">与满减 / 折扣互斥，取优惠最大者</div></div>
+                    <div class="desc-item"><div class="k">预算上限</div><div class="v num">¥20,000.00</div></div>
+                    <div class="desc-item"><div class="k">已用金额</div><div class="v num t-brand">¥12,480.00（62.40%）</div></div>
+                  </div>
+                </div>
+
+                <div class="ant-table mb3">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>活动名</th>
+                        <th>类型</th>
+                        <th>优惠内容</th>
+                        <th>适用范围</th>
+                        <th>有效期</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="bold">新人首单立减 10 元</div><div class="sub-line">全场适用</div></td>
+                        <td><span class="tag tag-brand">首单立减</span></td>
+                        <td>满 ¥50.00 减 ¥10.00</td>
+                        <td>全场</td>
+                        <td>注册后 30 天</td>
+                        <td><span class="tag tag-deliver">进行中</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">新人专享价 · 桶装水</div><div class="sub-line">指定商品</div></td>
+                        <td><span class="tag tag-brand">新人专享价</span></td>
+                        <td>新人价 ¥15.00（目录价 ¥22.00）</td>
+                        <td>指定商品</td>
+                        <td>注册后 15 天</td>
+                        <td><span class="tag tag-deliver">进行中</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">新人首单 9 折</div><div class="sub-line">全场适用</div></td>
+                        <td><span class="tag tag-brand">首单立减</span></td>
+                        <td>满 ¥30.00 打 9.00 折（1–99%）</td>
+                        <td>全场</td>
+                        <td>注册后 7 天</td>
+                        <td><span class="tag tag-done">已结束</span></td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 3 条记录</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head"><span class="card-title sm">规则说明</span></div>
+                  <ul class="f-aux t-sub">
+                    <li><strong>新用户判定：</strong>无已完成订单 → 首单立减（R-MKT-07①）或新人价（R-MKT-02④）</li>
+                    <li><strong>互斥取最大：</strong>首单立减与满减 / 折扣互斥，同一订单取优惠最大者</li>
+                    <li><strong>资格失效：</strong>首单完成 → 资格失效；停用 → 新订单失效，已生成订单不变</li>
+                  </ul>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：新建 / 编辑活动弹窗 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 新建 / 编辑活动弹窗（类型联动字段显隐）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/first-order/new</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>首单立减 / 新人价</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title"><div><h2>首单立减 / 新人专享价</h2><div class="desc">弹窗打开态（背景遮罩）</div></div>
+                  <div class="row gap2"><span class="btn sm ghost">导出</span><span class="btn sm">＋ 新建活动</span></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>活动名</th><th>类型</th><th>优惠内容</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr><td>新人首单立减 10 元</td><td><span class="tag tag-brand">首单立减</span></td><td>满 ¥50.00 减 ¥10.00</td><td><span class="tag tag-deliver">进行中</span></td></tr>
+                      <tr><td>新人专享价 · 桶装水</td><td><span class="tag tag-brand">新人专享价</span></td><td>新人价 ¥15.00</td><td><span class="tag tag-deliver">进行中</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal wide">
+              <div class="modal-head">新建首单立减 / 新人专享价</div>
+              <div class="modal-body">
+                <div class="grid2" style="gap:0 16px">
+                  <div class="field">
+                    <label class="req">活动名称</label>
+                    <div class="input"><span class="ph">新人首单立减 10 元</span></div>
+                  </div>
+                  <div class="field">
+                    <label class="req">类型</label>
+                    <div class="radio-row">
+                      <span class="radio on">首单立减</span>
+                      <span class="radio">新人专享价</span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label class="req">满 X（元）</label>
+                    <div class="input"><span>50.00</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">仅首单立减；≥ 0</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">减 Y（元）/ 打 N 折</label>
+                    <div class="row gap2"><div class="input"><span>10.00</span></div><div class="input" style="flex:0 0 96px"><span>9.00</span></div></div>
+                    <div class="f-note t-weak" style="margin-top:4px">仅首单立减；减 Y &gt; 0 或 1–99%</div>
+                  </div>
+                  <div class="field">
+                    <label>新人专享价商品</label>
+                    <div class="select disabled"><span class="ph">选择商品</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">仅新人专享价启用</div>
+                  </div>
+                  <div class="field">
+                    <label>专享单价（元）</label>
+                    <div class="input disabled"><span class="ph">15.00</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">仅新人专享价；precision=2</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">适用范围</label>
+                    <div class="select"><span>全场</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">全场 / 指定商品</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">新人定义 / 有效期</label>
+                    <div class="row gap2"><div class="select" style="flex:1 1 auto"><span>首次下单</span></div><div class="input" style="flex:0 0 118px"><span>30</span></div></div>
+                    <div class="f-note t-weak" style="margin-top:4px">首次下单 或 注册后 N 天（天数 &gt; 0）</div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label>时间窗</label>
+                  <div class="row gap2"><div class="input"><span>2026-09-01 00:00</span></div><span class="t-weak">–</span><div class="input"><span>2026-12-31 23:59</span></div></div>
+                  <div class="f-note t-weak" style="margin-top:4px">开始 &lt; 结束；不合法时提示「时间窗不合法」</div>
+                </div>
+
+                <div class="grid2" style="gap:0 16px">
+                  <div class="field">
+                    <label>预算上限（元）</label>
+                    <div class="input"><span>20000.00</span></div>
+                  </div>
+                  <div class="field">
+                    <label>已用金额（只读）</label>
+                    <div class="input disabled"><span>¥12,480.00</span></div>
+                  </div>
+                </div>
+
+                <div class="field mb0">
+                  <label>启用</label>
+                  <div class="row gap2">
+                    <span class="switch on"></span>
+                    <span class="f-aux t-sub">启用后保存上架，首单自动应用；与满减互斥取最大</span>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">保存并上架</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ 状态三：新人专享商品价配置表 ============ -->
+      <div>
+        <div class="browser-cap">状态三 · 新人专享商品价配置表（商品 / 目录价 / 新人价 / 折扣率）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/first-order/newcomer-prices</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> 首单立减 / 新人价 <span class="crumb-sep">/</span> <b>新人专享商品价</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>新人专享商品价配置</h2><div class="desc">新人价进单价链④（优先于目录价）；用户端商品详情划线展示</div></div>
+                  <div class="row gap2"><span class="btn sm ghost">批量设置</span><span class="btn sm">保存</span></div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="width:40px"><span class="check"></span></th>
+                        <th>商品</th>
+                        <th>规格</th>
+                        <th class="num">目录价</th>
+                        <th class="num">新人专享价（元）</th>
+                        <th class="num">折扣率</th>
+                        <th>生效时间</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><span class="check"></span></td>
+                        <td class="bold">怡宝 饮用纯净水 18.9L</td>
+                        <td>18.9L</td>
+                        <td class="num">¥22.00</td>
+                        <td class="num"><span class="input" style="height:32px;width:104px"><span>15.00</span></span></td>
+                        <td class="num t-brand bold">68.18%</td>
+                        <td>2026-09-01 ~ 2026-12-31</td>
+                        <td><div class="ops"><a>清空</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><span class="check on"></span></td>
+                        <td class="bold">农夫山泉 天然水 19L</td>
+                        <td>19L</td>
+                        <td class="num">¥28.00</td>
+                        <td class="num"><span class="input" style="height:32px;width:104px"><span>19.90</span></span></td>
+                        <td class="num t-brand bold">71.07%</td>
+                        <td>2026-09-01 ~ 2026-12-31</td>
+                        <td><div class="ops"><a>清空</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><span class="check"></span></td>
+                        <td class="bold">景田 百岁山矿泉水 18.9L</td>
+                        <td>18.9L</td>
+                        <td class="num">¥35.00</td>
+                        <td class="num"><span class="input" style="height:32px;width:104px"><span class="ph">不设置</span></span></td>
+                        <td class="num t-weak">—</td>
+                        <td class="t-weak">未配置</td>
+                        <td><div class="ops"><a>设置</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 3 个商品 ｜ 已配置 2 个</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>营销管理 → 首单立减 / 新人价</p>
+        <p><strong>跳转：</strong>用户端商品详情新人价、确认订单立减行；行「详情」→ 营销活动详情页（共用）</p>
+        <p><strong>组件：</strong>Table、Modal、Form、InputNumber、Select、DatePicker、Switch</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部：「新建活动」按钮 + 首单立减总开关</li>
+          <li>活动列表：名称 / 类型 / 优惠内容 / 适用范围 / 有效期 / 状态 / 操作</li>
+          <li>新建 / 编辑弹窗：类型、优惠内容、适用范围、有效期、时间窗、启用</li>
+          <li>新人专享商品价配置表：商品 / 规格 / 目录价 / 新人价 / 折扣率 / 生效时间 / 操作</li>
+          <li>预算与已用金额卡 + 互斥取最大规则说明</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>配置 → 上架 → 首单自动应用</li>
+          <li>判定新用户（无已完成订单）→ 首单立减（R-MKT-07①）或新人价（R-MKT-02④）</li>
+          <li>首单完成 → 资格失效；停用 → 新订单失效</li>
+          <li>新人专享价以元录入、×100 转分提交，回显 ÷100</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>活动态：</strong>未开始 .tag-assign / 进行中 .tag-deliver / 已结束 .tag-done / 已停用 .tag-neutral；新人价划线展示。</p>
+        <p><strong>校验：</strong>「新人优惠无效」「时间窗不合法」；文案「新人价 ¥15.00」「首单立减 -¥10.00」。</p>
+        <p><strong>规则：</strong>首单立减与满减互斥取最大；新人价进单价链④（优先于目录价）；预算按已用金额监控。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>首单立减与新人价两套语义需在类型处清晰区分；新人价配置表与分组价格表结构同源（商品 / 目录价 / 让利价 / 折扣率）。</p>
+        <p>管理端<strong>不出现强调橙</strong>：主操作用品牌蓝，划线价用中性删除线。</p>
+        <p>缺口 G60 已解决；金额分存储（R-MON-01）、百分比两位小数。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

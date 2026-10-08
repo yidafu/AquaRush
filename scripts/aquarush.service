@@ -1,0 +1,26 @@
+#!/bin/bash
+# Systemd service file for AquaRush
+
+[Unit]
+Description=AquaRush Water Ordering System
+After=syslog.target network.target postgresql.service
+
+[Service]
+Type=simple
+User=aquarush
+WorkingDirectory=/opt/aquarush
+# 统计聚合时区统一 Asia/Shanghai(P2-8):显式 -Duser.timezone,与 JDBC TimeZone 参数/应用入口 TimeZone.setDefault 一致
+ExecStart=/usr/bin/java -Duser.timezone=Asia/Shanghai -jar /opt/aquarush/aquarush.jar --spring.profiles.active=prod
+SuccessExitStatus=143
+Restart=on-failure
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=aquarush
+
+Environment="JAVA_OPTS=-Xmx512m -Xms256m"
+Environment="DB_USERNAME=aquarush_user"
+Environment="DB_PASSWORD=change_me_in_prod"
+
+[Install]
+WantedBy=multi-user.target

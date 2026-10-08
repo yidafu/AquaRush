@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>送水工端 · 当日 / 周统计｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-delivery">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>送水工端 App · 当日 / 周统计</h1>
+      <p class="sub">功能编号 F-COL-003 ｜ 收银与对账域 ｜ 下游：订单明细列表 / 历史订单</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-COL-003</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">delivery-app · 暗色</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：今日 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 今日</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar" style="justify-content:flex-start;padding:0 16px;">
+              <div class="row between" style="width:100%">
+                <span>数据统计</span>
+                <svg class="ico" viewBox="0 0 24 24" style="color:var(--d-text-sub)"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg>
+              </div>
+            </div>
+
+            <div style="padding:0 16px 12px">
+              <div class="seg">
+                <div class="s on">今日</div>
+                <div class="s">本周</div>
+                <div class="s">本月</div>
+              </div>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="grid2">
+                <div class="card" style="margin:0">
+                  <div class="f-note t-sub">完成订单数</div>
+                  <div class="bold t-main" style="font-size:24px;font-family:var(--font-num);line-height:1.2">12</div>
+                </div>
+                <div class="card" style="margin:0">
+                  <div class="f-note t-sub">收款金额</div>
+                  <div class="price big" style="font-family:var(--font-num)"><span class="cur">¥</span>358<span class="dec">.00</span></div>
+                </div>
+                <div class="card" style="margin:0">
+                  <div class="f-note t-sub">桶数</div>
+                  <div class="bold t-main" style="font-size:24px;font-family:var(--font-num);line-height:1.2">26</div>
+                </div>
+                <div class="card" style="margin:0">
+                  <div class="f-note t-sub">平均单值</div>
+                  <div class="price big" style="font-family:var(--font-num)"><span class="cur">¥</span>29<span class="dec">.83</span></div>
+                </div>
+              </div>
+
+              <div class="card mt3">
+                <div class="card-head">
+                  <span class="card-title sm">每日订单量</span>
+                  <span class="f-note t-sub">近 7 天 · 单位：单</span>
+                </div>
+                <div class="bars">
+                  <div class="bar-col"><div class="bar" style="height:46%"></div><span class="x">10-02</span></div>
+                  <div class="bar-col"><div class="bar" style="height:62%"></div><span class="x">10-03</span></div>
+                  <div class="bar-col"><div class="bar" style="height:38%"></div><span class="x">10-04</span></div>
+                  <div class="bar-col"><div class="bar" style="height:70%"></div><span class="x">10-05</span></div>
+                  <div class="bar-col"><div class="bar" style="height:54%"></div><span class="x">10-06</span></div>
+                  <div class="bar-col"><div class="bar" style="height:84%"></div><span class="x">10-07</span></div>
+                  <div class="bar-col"><div class="bar alt" style="height:100%"></div><span class="x">10-08</span></div>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">收款方式占比</span>
+                  <span class="f-note t-sub">今日</span>
+                </div>
+                <div class="hbar">
+                  <div class="hr">
+                    <span class="nm">现金</span>
+                    <span class="track" style="background:var(--d-card-2)"><span class="fill" style="width:67%"></span></span>
+                    <span class="vl">¥240.00</span>
+                  </div>
+                  <div class="hr">
+                    <span class="nm">扫码</span>
+                    <span class="track" style="background:var(--d-card-2)"><span class="fill" style="width:33%"></span></span>
+                    <span class="vl">¥118.00</span>
+                  </div>
+                  <div class="hr">
+                    <span class="nm">水票</span>
+                    <span class="track" style="background:var(--d-card-2)"><span class="fill" style="width:12%"></span></span>
+                    <span class="vl">3 张</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="card flush">
+                <div class="list-item">
+                  <div class="li-ico"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></div>
+                  <div class="grow">
+                    <div class="f-body t-main">订单明细列表</div>
+                    <div class="f-note t-sub mt2">查看今日 12 笔完成订单</div>
+                  </div>
+                  <span class="arrow"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="tabbar dark">
+              <div class="tab"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>工作台</div>
+              <div class="tab"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>任务</div>
+              <div class="tab active"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>日报</div>
+              <div class="tab"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>我的</div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：本周（空数据） ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 本周（无数据）</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar" style="justify-content:flex-start;padding:0 16px;">
+              <div class="row between" style="width:100%">
+                <span>数据统计</span>
+                <svg class="ico" viewBox="0 0 24 24" style="color:var(--d-text-sub)"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg>
+              </div>
+            </div>
+
+            <div style="padding:0 16px 12px">
+              <div class="seg">
+                <div class="s">今日</div>
+                <div class="s on">本周</div>
+                <div class="s">本月</div>
+              </div>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="grid2">
+                <div class="card" style="margin:0">
+                  <div class="f-note t-sub">完成订单数</div>
+                  <div class="bold t-main" style="font-size:24px;font-family:var(--font-num);line-height:1.2">0</div>
+                </div>
+                <div class="card" style="margin:0">
+                  <div class="f-note t-sub">收款金额</div>
+                  <div class="price big" style="font-family:var(--font-num)"><span class="cur">¥</span>0<span class="dec">.00</span></div>
+                </div>
+                <div class="card" style="margin:0">
+                  <div class="f-note t-sub">桶数</div>
+                  <div class="bold t-main" style="font-size:24px;font-family:var(--font-num);line-height:1.2">0</div>
+                </div>
+                <div class="card" style="margin:0">
+                  <div class="f-note t-sub">平均单值</div>
+                  <div class="price big" style="font-family:var(--font-num)"><span class="cur">¥</span>0<span class="dec">.00</span></div>
+                </div>
+              </div>
+
+              <div class="empty">
+                <div class="e-ico"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg></div>
+                <div class="e-title">本周暂无数据</div>
+                <div class="e-desc">完成配送后会自动汇总到这里</div>
+              </div>
+            </div>
+
+            <div class="tabbar dark">
+              <div class="tab"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>工作台</div>
+              <div class="tab"><svg class="ico" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>任务</div>
+              <div class="tab active"><svg class="ico" viewBox="0 0 24 24"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>日报</div>
+              <div class="tab"><svg class="ico" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>我的</div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>入口：</strong>底部 TabBar「日报」/ 工作台统计区。</p>
+        <p><strong>跳转：</strong>订单明细列表入口 → 历史订单（对应时间 Tab）；统计卡点击 → 历史订单对应 Tab。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏：标题「数据统计」+ 消息入口（未读红点）</li>
+          <li>时间范围切换（分段控件：今日 / 本周 / 本月）</li>
+          <li>统计卡（2×2）：完成订单数 / 收款金额 / 桶数 / 平均单值</li>
+          <li>柱状图（<code>.bars</code>）：每日订单量（近 7 天）</li>
+          <li>收款方式占比（<code>.hbar</code>）：现金 / 扫码 / 水票</li>
+          <li>订单明细列表入口</li>
+          <li>底部 TabBar：工作台 / 任务 / 日报 / 我的（选中「日报」）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>切换时间范围（今日 / 本周 / 本月）→ 重新取数渲染统计卡与图表。</li>
+          <li>点击统计卡 / 订单明细入口 → 跳转历史订单对应 Tab。</li>
+          <li>聚焦 / 下拉刷新重取数据；30 秒轮询刷新。</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>无数据时各卡为 0、图为空；<strong>加载态：</strong>数据加载中；<strong>错误态：</strong>加载失败提示。</p>
+        <p>营收口径 = 当日已完成订单收款汇总（现金 + 扫码，水票以张数计）；与日报 / 对账三者一致（R-ORD-11）；金额分转元两位小数。</p>
+        <p>本周 / 本月按 <code>completed_at</code> 归属统计，跨周期订单以完成时间为准。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>数值与图表统一走品牌蓝（<code>--d-primary</code> / <code>--brand</code> 梯度）；<strong>禁用强调橙</strong>，涨跌同色系不引入橙。</p>
+        <p>柱状图与横向占比条高度 / 宽度按真实占比等比例；数值用等宽字体。</p>
+        <p>图表容器在暗色下轨道底改用 <code>--d-card-2</code>，保证可见性；信息密度优先，触达 ≥ 44px。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

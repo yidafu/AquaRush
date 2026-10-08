@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · API 日志｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 日志管理 / API 日志</h1>
+      <p class="sub">功能编号 F-LOG-001 ｜ 平台与日志域 ｜ 下游：无（行内「详情」弹抽屉）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-LOG-001</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plan">状态筛选 规划中</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：日志列表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · API 日志列表（组合筛选 + 分页）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/logs/api</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">日志管理 <span class="crumb-sep">/</span> <b>API 日志</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>API 日志</h2>
+                    <div class="desc">时间以服务端为准，前端仅本地化（zh-CN）展示，不换算时区；敏感字段脱敏</div>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>时间范围</span><div class="input" style="width:206px"><span>2026-10-08 00:00 ~ 2026-10-08 23:59</span></div></div>
+                  <div class="fitem"><span>路径</span><div class="input" style="width:168px"><span class="ph">URI 关键词</span></div></div>
+                  <div class="fitem"><span>方法</span><div class="select" style="width:112px"><span>全部</span></div></div>
+                  <div class="fitem"><span>状态码</span><div class="select" style="width:118px"><span>全部</span></div></div>
+                  <div class="fitem"><span>耗时阈值</span><div class="input" style="width:118px"><span class="ph">≥ 0 ms</span></div></div>
+                  <div class="fitem"><span>用户</span><div class="input" style="width:132px"><span class="ph">用户 ID / 用户名</span></div></div>
+                  <div class="fitem"><span>traceId</span><div class="input" style="width:150px"><span class="ph">关联 ID</span></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">搜索</span>
+                  </div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th style="white-space:nowrap">时间</th>
+                        <th>方法</th>
+                        <th>路径</th>
+                        <th>状态码</th>
+                        <th class="num">耗时</th>
+                        <th>用户</th>
+                        <th>IP</th>
+                        <th>traceId</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 11:24:36</td>
+                        <td><span class="tag tag-assign">GET</span></td>
+                        <td class="ellipsis">/api/orders</td>
+                        <td><span class="tag tag-ok">200</span></td>
+                        <td class="num">42 ms</td>
+                        <td>王**（1008）</td>
+                        <td>10.24.18.36</td>
+                        <td class="ellipsis">a1b2c3d4e5f6</td>
+                        <td><div class="ops"><a>查看详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 11:23:58</td>
+                        <td><span class="tag tag-brand">POST</span></td>
+                        <td class="ellipsis">/api/orders</td>
+                        <td><span class="tag tag-ok">201</span></td>
+                        <td class="num">128 ms</td>
+                        <td>李**（1012）</td>
+                        <td>10.24.18.42</td>
+                        <td class="ellipsis">b2c3d4e5f6a1</td>
+                        <td><div class="ops"><a>查看详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 11:23:11</td>
+                        <td><span class="tag tag-neutral">GRAPHQL</span></td>
+                        <td class="ellipsis">/graphql</td>
+                        <td><span class="tag tag-ok">200</span></td>
+                        <td class="num">86 ms</td>
+                        <td>超管（1）</td>
+                        <td>10.24.18.2</td>
+                        <td class="ellipsis">c3d4e5f6a1b2</td>
+                        <td><div class="ops"><a>查看详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 11:22:40</td>
+                        <td><span class="tag tag-brand">POST</span></td>
+                        <td class="ellipsis">/api/payments/callback</td>
+                        <td><span class="tag tag-err">500</span></td>
+                        <td class="num t-err bold">1,420 ms</td>
+                        <td>-</td>
+                        <td>47.98.12.7</td>
+                        <td class="ellipsis">d4e5f6a1b2c3</td>
+                        <td><div class="ops"><a>查看详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 11:21:55</td>
+                        <td><span class="tag tag-warn">PUT</span></td>
+                        <td class="ellipsis">/api/products/12</td>
+                        <td><span class="tag tag-warn">403</span></td>
+                        <td class="num">31 ms</td>
+                        <td>张**（1031）</td>
+                        <td>10.24.18.55</td>
+                        <td class="ellipsis">e5f6a1b2c3d4</td>
+                        <td><div class="ops"><a>查看详情</a></div></td>
+                      </tr>
+                      <tr>
+                        <td style="white-space:nowrap">2026-10-08 11:21:12</td>
+                        <td><span class="tag tag-assign">GET</span></td>
+                        <td class="ellipsis">/api/products</td>
+                        <td><span class="tag tag-ok">200</span></td>
+                        <td class="num">26 ms</td>
+                        <td>-</td>
+                        <td>10.24.18.36</td>
+                        <td class="ellipsis">f6a1b2c3d4e5</td>
+                        <td><div class="ops"><a>查看详情</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 3,842 条记录</span>
+                    <div class="pager">
+                      <i>‹</i><i class="on">1</i><i>2</i><i>3</i><i>…</i><i>›</i>
+                      <span class="t-sub" style="margin-left:8px">20 条/页</span>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：请求详情抽屉 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 请求详情抽屉（请求参数 / 响应体 / 耗时分解）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/logs/api — 请求详情</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">日志管理 <span class="crumb-sep">/</span> <b>API 日志</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>API 日志</h2><div class="desc">抽屉打开态（背景遮罩）</div></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>时间</th><th>方法</th><th>路径</th><th>状态码</th><th class="num">耗时</th></tr></thead>
+                    <tbody>
+                      <tr><td>2026-10-08 11:24:36</td><td>GET</td><td>/api/orders</td><td><span class="tag tag-ok">200</span></td><td class="num">42 ms</td></tr>
+                      <tr><td>2026-10-08 11:23:58</td><td>POST</td><td>/api/orders</td><td><span class="tag tag-ok">201</span></td><td class="num">128 ms</td></tr>
+                      <tr><td>2026-10-08 11:22:40</td><td>POST</td><td>/api/payments/callback</td><td><span class="tag tag-err">500</span></td><td class="num">1,420 ms</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask"></div>
+          <div class="drawer">
+            <div class="modal-head">请求详情
+              <span class="card-more" style="margin-left:auto"><svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></svg></span>
+            </div>
+            <div class="modal-body">
+              <div class="desc-grid two">
+                <div class="desc-item"><div class="k">请求类型</div><div class="v">HTTP</div></div>
+                <div class="desc-item"><div class="k">方法</div><div class="v">POST</div></div>
+                <div class="desc-item"><div class="k">URI</div><div class="v">/api/payments/callback</div></div>
+                <div class="desc-item"><div class="k">Query</div><div class="v">-</div></div>
+                <div class="desc-item"><div class="k">状态码</div><div class="v"><span class="tag tag-err">500</span></div></div>
+                <div class="desc-item"><div class="k">耗时</div><div class="v num">1,420 ms</div></div>
+                <div class="desc-item"><div class="k">用户 ID</div><div class="v num">-</div></div>
+                <div class="desc-item"><div class="k">用户名</div><div class="v">匿名回调</div></div>
+                <div class="desc-item"><div class="k">IP</div><div class="v">47.98.12.7</div></div>
+                <div class="desc-item"><div class="k">关联 ID</div><div class="v">d4e5f6a1b2c3</div></div>
+                <div class="desc-item"><div class="k">操作类型</div><div class="v">PAYMENT_CALLBACK</div></div>
+                <div class="desc-item"><div class="k">操作名称</div><div class="v">支付回调</div></div>
+              </div>
+
+              <div class="field mt3">
+                <label>请求体</label>
+                <div class="textarea" style="height:96px">{"outTradeNo":"AR20261008112201","resultCode":"FAIL","errCode":"SYSTEM_ERROR"}</div>
+              </div>
+
+              <div class="field">
+                <label>响应体</label>
+                <div class="textarea" style="height:74px">{"code":500,"message":"Internal Server Error"}</div>
+              </div>
+
+              <div class="field">
+                <label>错误信息</label>
+                <div class="textarea t-err" style="height:56px">NullPointerException: refund amount is null (sensitive fields masked)</div>
+              </div>
+
+              <div class="field mb0">
+                <label>耗时分解</label>
+                <div class="hbar">
+                  <div class="hr"><span class="nm">网关转发</span><span class="track"><span class="fill" style="width:9%"></span></span><span class="vl">128 ms</span></div>
+                  <div class="hr"><span class="nm">业务处理</span><span class="track"><span class="fill" style="width:100%"></span></span><span class="vl">1,142 ms</span></div>
+                  <div class="hr"><span class="nm">数据库</span><span class="track"><span class="fill" style="width:13%"></span></span><span class="vl">150 ms</span></div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-foot">
+              <span class="btn sm ghost">复制 JSON</span>
+              <span class="btn sm">关闭</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>左侧导航「日志管理 → API 日志」；路由 <code>/logs/api</code></p>
+        <p><strong>跳转：</strong>行内「详情」弹出抽屉（不跳页）</p>
+        <p><strong>权限：</strong><code>PERMISSION_LOG_READ</code></p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>筛选卡：时间范围 / 路径 / 方法 / 状态码 / 耗时阈值 / 用户 / traceId + 搜索 / 重置（均 allowClear）</li>
+          <li>日志表格（横向滚动 x=1200）：时间 / 方法 / 路径 / 状态码 / 耗时 / 用户 / IP / traceId / 操作</li>
+          <li>分页（默认 20/页）</li>
+          <li>请求详情抽屉：请求参数 / 响应体 / 耗时分解</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>表格与字段</h3>
+        <p><strong>本页无图表</strong>（纯表格 + 抽屉）。</p>
+        <p><strong>状态着色：</strong>2xx 绿 / 4xx 橙 / 5xx 红 / 其余 default，避免与类型标签混淆。</p>
+        <p><strong>详情字段：</strong>请求类型 / 方法 / URI / Query / 状态码 / 耗时 / 用户ID / 用户名 / IP / UserAgent / 关联ID / 操作类型 / 操作名称 / 请求体 / 错误信息 / 时间。</p>
+        <p><strong>导出：</strong>无（如需导出为<strong>目标形态</strong>）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>进入页面按默认第 1 页 / 20 条请求并渲染列表与总数</li>
+          <li>设置任一筛选条件（可组合）→ 搜索 → 回第 1 页重新请求</li>
+          <li>重置 → 清空全部筛选并回第 1 页重新加载</li>
+          <li>点击某行「详情」→ 打开抽屉展示完整请求信息</li>
+          <li>翻页 / 切换每页条数 → 按新分页参数重新请求</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：操作链接用品牌蓝，删除等语义色用 error。</p>
+        <p>URI / 请求体超长须省略或滚动 + 复制，<strong>禁止撑破布局</strong>；错误信息红色、可滚动且可复制。</p>
+        <p>时间以服务端时间为准，前端仅做本地化，<strong>不换算时区</strong>；敏感字段脱敏（R-SYS-02）。</p>
+        <p>请求失败现状仅 <code>console.error</code>，无前端提示（缺口 G74）；<span class="tag tag-goal"></span> 状态筛选（4xx/5xx 快速定位）、错误态前端提示、查询期间按钮禁用、导出。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

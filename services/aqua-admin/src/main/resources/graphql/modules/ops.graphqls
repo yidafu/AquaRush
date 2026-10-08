@@ -1,0 +1,233 @@
+# Operations config domain (OPS)
+# 与 PRD 12-operations-config.md 保持一致:F-OPS-001 轮播图配置、F-OPS-002 公告管理、
+# F-OPS-003 意见反馈管理、F-OPS-004 店铺信息配置、F-OPS-005 配送费规则配置
+
+extend type Query {
+  # 轮播图列表(分页,按排序号升序)
+  banners(input: BannerListInput): BannerVOPage
+  # 轮播图详情
+  banner(id: PrimaryId!): Banner
+  # 意见反馈列表(分页,按提交时间倒序)
+  feedbacks(input: FeedbackListInput): FeedbackVOPage
+  # 意见反馈详情
+  feedback(id: PrimaryId!): Feedback
+  # 公告列表(分页,置顶优先、发布时间倒序)
+  notices(input: NoticeListInput): NoticeVOPage
+  # 公告详情
+  notice(id: PrimaryId!): Notice
+  # 店铺信息(单行配置,未配置返回 null)
+  storeProfile: StoreProfile
+  # 配送费规则(未配置返回默认规则 免费4楼/加价2元)
+  deliveryFeeRule: DeliveryFeeRule
+}
+
+extend type Mutation {
+  # 新建轮播图
+  createBanner(input: CreateBannerInput!): Banner!
+  # 编辑轮播图
+  updateBanner(id: PrimaryId!, input: UpdateBannerInput!): Banner!
+  # 删除轮播图
+  deleteBanner(id: PrimaryId!): Boolean!
+  # 上移/下移调整排序,返回重排后的全量列表(按排序号升序)
+  reorderBanner(id: PrimaryId!, direction: ReorderDirection!): [Banner!]!
+  # 处理反馈(填写处理结果并流转状态)
+  reviewFeedback(id: PrimaryId!, input: FeedbackReviewInput!): Feedback!
+  # 新建公告(默认草稿状态)
+  createNotice(input: CreateNoticeInput!): Notice!
+  # 编辑公告(全量更新;已停用公告不可编辑)
+  updateNotice(id: PrimaryId!, input: UpdateNoticeInput!): Notice!
+  # 发布公告(重置发布时间为当前时间)
+  publishNotice(id: PrimaryId!): Notice!
+  # 停用公告(同时取消置顶)
+  stopNotice(id: PrimaryId!): Notice!
+  # 置顶/取消置顶(仅已发布公告)
+  setNoticePinned(id: PrimaryId!, pinned: Boolean!): Notice!
+  # 删除公告(软删除)
+  deleteNotice(id: PrimaryId!): Boolean!
+  # 保存店铺信息(单行配置,整体覆盖)
+  saveStoreProfile(input: SaveStoreProfileInput!): StoreProfile!
+  # 保存配送费规则(单行配置,整体覆盖;变更即时生效,已生成订单不受影响)
+  saveDeliveryFeeRule(input: SaveDeliveryFeeRuleInput!): DeliveryFeeRule!
+}
+
+# 轮播图分页(新式分页,参照 OrderVOPage)
+type BannerVOPage {
+  content: [Banner!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 意见反馈
+type Feedback {
+  id: PrimaryId!
+  userId: PrimaryId!
+  feedbackType: FeedbackType!
+  content: String!
+  images: [String!]
+  contactInfo: String
+  status: FeedbackStatus!
+  handleResult: String
+  handledById: PrimaryId
+  handledByName: String
+  handledAt: LocalDateTime
+  createdAt: LocalDateTime!
+}
+
+# 意见反馈分页
+type FeedbackVOPage {
+  content: [Feedback!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+# 反馈处理状态(枚举定义收敛于 shared-types.graphqls,两端共用)
+# 排序调整方向
+enum ReorderDirection {
+  # 上移
+  UP
+  # 下移
+  DOWN
+}
+
+input BannerListInput {
+  keyword: String
+  enabled: Boolean
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateBannerInput {
+  # 图片地址(平台存储服务上传素材,≤5MB)
+  imageUrl: String! @notBlank @size(max: 1000)
+  # 标题(≤20字)
+  title: String! @notBlank @size(max: 20)
+  # 副标题
+  subtitle: String @size(max: 100)
+  # 跳转类型
+  linkType: BannerLinkType!
+  # 跳转目标(PRODUCT 为商品ID,CUSTOM_PAGE 为页面路径)
+  linkTarget: String! @notBlank @size(max: 1000)
+  # 排序号(缺省=当前最大+1)
+  sortOrder: Int
+  # 是否启用
+  enabled: Boolean = false
+  # 时间窗开始(空=长期)
+  startAt: LocalDateTime
+  # 时间窗结束(空=长期)
+  endAt: LocalDateTime
+}
+
+input UpdateBannerInput {
+  imageUrl: String! @notBlank @size(max: 1000)
+  title: String! @notBlank @size(max: 20)
+  subtitle: String @size(max: 100)
+  linkType: BannerLinkType!
+  linkTarget: String! @notBlank @size(max: 1000)
+  sortOrder: Int
+  enabled: Boolean = false
+  startAt: LocalDateTime
+  endAt: LocalDateTime
+}
+
+input FeedbackListInput {
+  feedbackType: FeedbackType
+  status: FeedbackStatus
+  # 用户ID(用户详情页「意见反馈」Tab 按用户过滤)
+  userId: PrimaryId
+  # 联系方式关键字
+  contactKeyword: String
+  dateFrom: LocalDateTime
+  dateTo: LocalDateTime
+  page: Int = 0
+  size: Int = 20
+}
+
+input FeedbackReviewInput {
+  # 处理结果(≤500字,选填)
+  handleResult: String @size(max: 500)
+  # 处理状态(仅允许前进:待处理→处理中→已处理)
+  status: FeedbackStatus!
+}
+
+# 公告分页(新式分页,参照 OrderVOPage)
+type NoticeVOPage {
+  content: [Notice!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input NoticeListInput {
+  # 标题关键字
+  keyword: String
+  # 公告类型
+  type: NoticeType
+  # 公告状态
+  status: NoticeStatus
+  page: Int = 0
+  size: Int = 20
+}
+
+input CreateNoticeInput {
+  # 标题(≤50字)
+  title: String! @notBlank(message: "公告标题不能为空") @size(max: 50, message: "公告标题不能超过50个字")
+  # 内容(≤2000字)
+  content: String! @notBlank(message: "公告内容不能为空") @size(max: 2000, message: "公告内容不能超过2000个字")
+  # 类型
+  type: NoticeType!
+  # 是否置顶(新建默认 false,仅已发布可置顶)
+  pinned: Boolean = false
+  # 时间窗开始(空=长期)
+  startAt: LocalDateTime
+  # 时间窗结束(空=长期)
+  endAt: LocalDateTime
+}
+
+input UpdateNoticeInput {
+  # 标题(≤50字)
+  title: String! @notBlank(message: "公告标题不能为空") @size(max: 50, message: "公告标题不能超过50个字")
+  # 内容(≤2000字)
+  content: String! @notBlank(message: "公告内容不能为空") @size(max: 2000, message: "公告内容不能超过2000个字")
+  # 类型
+  type: NoticeType!
+  # 是否置顶
+  pinned: Boolean = false
+  # 时间窗开始(空=长期)
+  startAt: LocalDateTime
+  # 时间窗结束(空=长期)
+  endAt: LocalDateTime
+}
+
+input SaveStoreProfileInput {
+  # 店铺名称(≤20字)
+  shopName: String! @notBlank(message: "店铺名称不能为空") @size(max: 20, message: "店铺名称不能超过20个字")
+  # LOGO 图片地址(平台存储服务上传素材)
+  logoUrl: String @size(max: 1000, message: "LOGO 地址长度不能超过1000个字符")
+  # 客服电话(手机/固话/400)
+  serviceHotline: String!
+    @notBlank(message: "客服电话不能为空")
+    @pattern(
+      regexp: "^1[3-9]\\\\d{9}$|^0\\\\d{2,3}-?\\\\d{7,8}$|^400-?\\\\d{3}-?\\\\d{4}$"
+      message: "客服电话格式不正确"
+    )
+  # 营业开始时间("HH:mm")
+  businessHoursStart: String @pattern(regexp: "^([01]\\\\d|2[0-3]):[0-5]\\\\d$", message: "营业时间格式不正确")
+  # 营业结束时间("HH:mm")
+  businessHoursEnd: String @pattern(regexp: "^([01]\\\\d|2[0-3]):[0-5]\\\\d$", message: "营业时间格式不正确")
+  # 店铺简介(≤100字)
+  shopIntro: String @size(max: 100, message: "店铺简介不能超过100个字")
+  # 关于我们文案(≤2000字)
+  aboutUs: String @size(max: 2000, message: "关于我们内容不能超过2000个字")
+}
+
+input SaveDeliveryFeeRuleInput {
+  # 免费楼层(楼层 ≤ 该值免运费,≥0)
+  freeFloorLimit: Int! @min(value: 0, message: "免费楼层不能小于0")
+  # 超出免费楼层的一次性加价(分,0-99900)
+  surchargeCents: Long! @min(value: 0, message: "运费金额无效") @max(value: 99900, message: "运费金额无效")
+}

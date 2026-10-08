@@ -3,16 +3,15 @@ import { View, Text, Image, Button } from '@tarojs/components'
 import { AtFloatLayout, AtInputNumber } from 'taro-ui'
 import "taro-ui/dist/style/components/float-layout.scss"
 import "taro-ui/dist/style/components/input-number.scss"
-import { displayCents, calculateAndFormatTotal } from '@/utils/money'
+import { Money, calculateTotalCents, formatCentsToCurrency } from '@aquarush/common'
 
 interface BuyModalProps {
   isOpened: boolean
   product: {
     id: string
     name: string
-    price: string
-    originalPrice?: string
-    depositPrice?: string
+    priceCents: number
+    originalPriceCents?: number
     specification: string
     coverImageUrl: string
     stock: number
@@ -33,7 +32,8 @@ const BuyModal: React.FC<BuyModalProps> = ({
 }) => {
   if (!product) return null
 
-  const hasDeposit = product.depositPrice && parseFloat(product.depositPrice) > 0
+  // 水桶费不随商品订单捆绑收取(2026-08 改造,见 14-misc.md §G06)
+  const totalCents = calculateTotalCents(quantity, product.priceCents)
 
   return (
     <AtFloatLayout
@@ -56,7 +56,7 @@ const BuyModal: React.FC<BuyModalProps> = ({
           />
           <View className='flex flex-col flex-1 gap-3'>
             <Text className='text-base font-semibold leading-tight text-gray-900'>{product.name}</Text>
-            <Text className='text-sm font-bold text-red-500'>{displayCents(parseFloat(product.price))}</Text>
+            <Text className='text-sm font-bold text-red-500'><Money cents={product.priceCents} /></Text>
             <Text className='text-sm text-gray-600'>规格: {product.specification}</Text>
             <Text className='text-sm text-gray-600'>库存: {product.stock}</Text>
           </View>
@@ -81,7 +81,7 @@ const BuyModal: React.FC<BuyModalProps> = ({
         >
           <Text className='text-base text-gray-600'>合计：</Text>
           <Text className='text-xl font-bold text-red-500'>
-            {calculateAndFormatTotal(quantity, parseFloat(product.price))}
+            {formatCentsToCurrency(totalCents)}
           </Text>
         </View>
       </View>
@@ -106,22 +106,26 @@ const BuyModal: React.FC<BuyModalProps> = ({
             height: '32px',
             fontSize: '16px',
             borderRadius: '8px',
-            backgroundColor: '#f5f5f5',
-            color: '#666'
+            backgroundColor: 'var(--bg)',
+            color: 'var(--text-sub)'
           }}
         >
           取消
         </Button>
         <Button
-          type='primary'
+          trackTarget="buy-confirm"
+          trackElementType="button"
+          trackElementText="确认购买"
+          trackProps={{ productId: product.id }}
           onClick={onConfirm}
+          type='primary'
           style={{
             flex: 1,
             height: '32px',
             fontSize: '16px',
             borderRadius: '8px',
-            backgroundColor: '#ff6700',
-            borderColor: '#ff6700'
+            backgroundColor: 'var(--action)', // 立即购买 CTA:强调橙
+            borderColor: 'var(--action)'
           }}
         >
           确认购买

@@ -1,0 +1,239 @@
+# GraphQL Mutations - 送水工增删改接口
+# 新增的送水工管理GraphQL mutation接口
+
+# ==================== 创建送水工 ====================
+
+# 创建新的送水工（需要管理员权限）
+mutation CreateDeliveryWorker(
+  $wechatOpenId: String!
+  $name: String!
+  $phone: String!
+  $avatarUrl: String
+  $coordinates: String
+  $currentLocation: String
+  $rating: BigDecimal
+  $earning: BigDecimal
+  $isAvailable: Boolean
+) {
+  createDeliveryWorker(input: {
+    wechatOpenId: $wechatOpenId
+    name: $name
+    phone: $phone
+    avatarUrl: $avatarUrl
+    coordinates: $coordinates
+    currentLocation: $currentLocation
+    rating: $rating
+    earning: $earning
+    isAvailable: $isAvailable
+  }) {
+    id
+    userId
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 更新送水工 ====================
+
+# 更新送水工信息（需要管理员权限）
+mutation UpdateDeliveryWorker(
+  $workerId: Long!
+  $wechatOpenId: String
+  $name: String
+  $phone: String
+  $avatarUrl: String
+  $coordinates: String
+  $currentLocation: String
+  $rating: BigDecimal
+  $earning: BigDecimal
+  $isAvailable: Boolean
+) {
+  updateDeliveryWorker(
+    workerId: $workerId
+    input: {
+      wechatOpenId: $wechatOpenId
+      name: $name
+      phone: $phone
+      avatarUrl: $avatarUrl
+      coordinates: $coordinates
+      currentLocation: $currentLocation
+      rating: $rating
+      earning: $earning
+      isAvailable: $isAvailable
+    }
+  ) {
+    id
+    userId
+    wechatOpenId
+    name
+    phone
+    avatarUrl
+    status
+    coordinates
+    currentLocation
+    rating
+    totalOrders
+    completedOrders
+    averageRating
+    earning
+    isAvailable
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 删除送水工 ====================
+
+# 删除送水工（需要管理员权限）
+mutation DeleteDeliveryWorker($workerId: Long!) {
+  deleteDeliveryWorker(workerId: $workerId)
+}
+
+# ==================== 批量操作 ====================
+
+# 创建多个送水工
+mutation CreateMultipleDeliveryWorkers(
+  $workers: [CreateDeliveryWorkerInput!]!
+) {
+  result1: createDeliveryWorker(input: $workers[0]) {
+    id
+    name
+    phone
+    wechatOpenId
+    status
+    createdAt
+  }
+  result2: createDeliveryWorker(input: $workers[1]) {
+    id
+    name
+    phone
+    wechatOpenId
+    status
+    createdAt
+  }
+  result3: createDeliveryWorker(input: $workers[2]) {
+    id
+    name
+    phone
+    wechatOpenId
+    status
+    createdAt
+  }
+}
+
+# ==================== 测试用例 ====================
+
+# 测试创建张师傅的变体
+mutation TestCreateWorker1 {
+  createDeliveryWorker(input: {
+    wechatOpenId: "delivery_worker_test_001"
+    name: "测试张师傅"
+    phone: "13800138101"
+    avatarUrl: "https://example.com/avatar1.jpg"
+    coordinates: "120.12345,30.12345"
+    currentLocation: "杭州市上城区某某大厦"
+    rating: 4.5
+    earning: 1500.50
+    isAvailable: true
+  }) {
+    id
+    name
+    phone
+    status
+    createdAt
+  }
+}
+
+# 测试更新送水工信息
+mutation TestUpdateWorker {
+  updateDeliveryWorker(
+    workerId: 1000000000000000001
+    input: {
+      name: "张师傅（更新后）"
+      avatarUrl: "https://example.com/new-avatar.jpg"
+      rating: 4.8
+      earning: 1800.75
+      isAvailable: false
+    }
+  ) {
+    id
+    name
+    avatarUrl
+    rating
+    earning
+    isAvailable
+    status
+    updatedAt
+  }
+}
+
+# 测试删除送水工
+mutation TestDeleteWorker {
+  deleteDeliveryWorker(workerId: 1000000000000000003)
+}
+
+# ==================== 变量示例 ====================
+
+# 创建送水工变量：
+# {
+#   "wechatOpenId": "delivery_worker_new_001",
+#   "name": "新送水工",
+#   "phone": "13800138199",
+#   "avatarUrl": "https://example.com/avatar-new.jpg",
+#   "coordinates": "120.123456,30.123456",
+#   "currentLocation": "杭州市上城区新地址",
+#   "rating": 4.0,
+#   "earning": 1200.00,
+#   "isAvailable": true
+# }
+
+# 更新送水工变量：
+# {
+#   "workerId": 1000000000000000001,
+#   "name": "张师傅（更新后）",
+#   "avatarUrl": "https://example.com/new-avatar.jpg",
+#   "rating": 4.8,
+#   "earning": 1800.75,
+#   "isAvailable": false
+# }
+
+# 删除送水工变量：
+# {
+#   "workerId": 1000000000000000003
+# }
+
+# ==================== 权限说明 ====================
+
+# 权限要求：
+# - createDeliveryWorker: 需要 ROLE_ADMIN 权限
+# - updateDeliveryWorker: 需要 ROLE_ADMIN 权限
+# - deleteDeliveryWorker: 需要 ROLE_ADMIN 权限
+
+# 输入验证：
+# - wechatOpenId: 必填，不能为空
+# - name: 必填，不能为空
+# - phone: 必填，必须为有效的中国手机号码
+# - rating: 可选，不能为负数
+# - earning: 可选，不能为负数
+# - isAvailable: 可选，默认为 true
+
+# 删除限制：
+# - 送水工必须存在
+# - 送水工不能有进行中的配送任务
+
+# 重复性检查：
+# - 微信OpenID必须唯一
+# - 手机号码必须唯一

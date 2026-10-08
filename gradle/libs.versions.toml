@@ -1,5 +1,6 @@
 [versions]
-kotlin = "2.2.20"
+kotlin = "2.3.0"
+kover = "0.9.9"
 spring-boot = "4.0.0"
 spring-dependency-management = "1.1.4"
 liquibase = "4.33.0"
@@ -8,7 +9,7 @@ wechatpay = "0.2.17"
 jwt = "0.13.0"
 graphql = "25.0"
 spring-graphql = "1.3.0" # Let Spring Boot manage GraphQL version
-# ksp = "1.9.24-1.0.20" # Using annotationProcessor instead
+ksp = "2.3.0"
 querydsl = "5.1.0"
 logback-logstash = "7.4"
 kotlinx-serialization = "1.6.3"
@@ -20,8 +21,9 @@ spring-for-kafka = "3.2.1"
 reactor-core = "3.6.2"
 micrometer-tracing = "1.2.1"
 ktlint = "12.1.0"
-mappie = "2.2.20-1.6.0"
+mappie = "2.3.0-2.3.1"
 artemis = "2.31.2"
+kotest = "6.2.4"
 
 [libraries]
 # Kotlin
@@ -50,6 +52,7 @@ spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-depe
 spring-boot-starter-liquibase = { module = "org.springframework.boot:spring-boot-starter-liquibase", version.ref = "spring-boot" }
 liquibase-core = { module = "org.liquibase:liquibase-core", version.ref = "liquibase" }
 postgresql = { module = "org.postgresql:postgresql", version = "42.7.8" }
+h2 = { module = "com.h2database:h2", version = "2.2.224" }
 
 # Jackson (Updated for Jackson 3.x)
 #implementation("tools.jackson.core:jackson-annotations:3.0.0")
@@ -96,7 +99,7 @@ ktlint-gradlePlugin = { module = "org.jlleitschuh.gradle:ktlint-gradle", version
 
 # Mappie
 mappie-api = { module = "tech.mappie:mappie-api", version.ref = "mappie" }
-#mappie-processor = { module = "tech.mappie:mappie-processor", version.ref = "mappie" }
+mappie-processor = { module = "tech.mappie:mappie-processor", version.ref = "mappie" }
 
 # MapDB
 mapdb = { module = "org.mapdb:mapdb", version.ref = "mapdb" }
@@ -120,16 +123,17 @@ okhttp-logging-interceptor = { module = "com.squareup.okhttp3:logging-intercepto
 commons-lang3 = { module = "org.apache.commons:commons-lang3", version = "3.14.0" }
 commons-collections4 = { module = "org.apache.commons:commons-collections4", version = "4.4" }
 
-# Database Migration
-flyway-core = { module = "org.flywaydb:flyway-core", version = "9.22.3" }
-
 # Redis
 spring-boot-starter-data-redis = { module = "org.springframework.boot:spring-boot-starter-data-redis", version.ref = "spring-boot" }
 
 # Test Dependencies
 springmockk = { module = "com.ninja-squad:springmockk", version = "3.1.1" }
-testcontainers-junit-jupiter = { module = "org.testcontainers:junit-jupiter", version = "1.19.7" }
-testcontainers-postgresql = { module = "org.testcontainers:postgresql", version = "1.19.7" }
+
+# Kotest (replaces JUnit 5 as the test framework)
+kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }
+kotest-assertions-core = { module = "io.kotest:kotest-assertions-core", version.ref = "kotest" }
+kotest-extensions-spring = { module = "io.kotest:kotest-extensions-spring", version.ref = "kotest" }
+kotest-extensions-testcontainers = { module = "io.kotest:kotest-extensions-testcontainers", version.ref = "kotest" }
 
 # Retry and Resilience
 spring-retry = { module = "org.springframework.retry:spring-retry", version = "2.0.4" }
@@ -176,10 +180,10 @@ kotlin-noarg = { id = "org.jetbrains.kotlin.plugin.noarg", version.ref = "kotlin
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
 ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 mappie = { id = "tech.mappie.plugin", version.ref = "mappie" }
 # Database & Migration
 liquibase = { id = "org.liquibase.gradle", version.ref = "liquibase" }
-flyway = { id = "org.flywaydb.flyway", version = "9.22.3" }
 # Code Quality
 spotbugs = { id = "com.github.spotbugs", version.ref = "spotbugs" }
 detekt = { id = "io.gitlab.arturbosch.detekt", version = "1.23.4" }
@@ -194,7 +198,7 @@ testcontainers = { id = "org.testcontainers", version = "1.19.7" }
 versions = { id = "com.github.ben-manes.versions", version = "0.51.0" }
 # Dependency Analysis
 dependency-check = { id = "org.owasp.dependencycheck", version = "9.0.9" }
-# ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" } # Using annotationProcessor instead
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
 
 # Aqua project convention plugins
 aqua-kotlin-common = { id = "aqua.kotlin.common", version = "unspecified" }

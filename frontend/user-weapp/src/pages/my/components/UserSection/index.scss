@@ -1,11 +1,11 @@
 @import "../../../../styles/theme.scss";
 
-/* 用户信息区域 */
+/* 用户信息区域(§8.1:清水蓝渐变头部卡 + 白字) */
 .user-section {
-  background: linear-gradient(135deg, var(--theme-gradient-start, #00A8CC) 0%, var(--theme-gradient-end, #006B8A) 100%);
-  background: -webkit-linear-gradient(315deg, var(--theme-gradient-start, #00A8CC) 0%, var(--theme-gradient-end, #006B8A) 100%);
-  padding: 32px 16px;
-  color: white;
+  background: linear-gradient(135deg, var(--brand-gradient-start) 0%, var(--brand-gradient-end) 100%);
+  background: -webkit-linear-gradient(315deg, var(--brand-gradient-start) 0%, var(--brand-gradient-end) 100%);
+  padding: 40px 24px 32px;
+  color: #fff;
   position: relative;
   overflow: hidden;
 
@@ -29,24 +29,17 @@
 .user-info {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 24px;
   position: relative;
   z-index: 1;
   cursor: pointer;
   transition: all 0.2s ease;
-  background-color: rgba(var(--theme-primary-light-rgb), 0.3);
-  border-radius: 20px;
+  background-color: rgba(var(--brand-primary-light-rgb), 0.3);
+  border-radius: var(--radius-card);
 
   &.not-logged-in {
     border: 2px dashed rgba(255,255,255,0.4);
-    border-radius: 12px;
-    padding: 8px 12px;
     background: rgba(255,255,255,0.1);
-
-    &:hover {
-      border-color: rgba(255,255,255,0.6);
-      background: rgba(255,255,255,0.15);
-    }
 
     &:active {
       transform: scale(0.98);
@@ -56,43 +49,39 @@
 
 .avatar-section {
   position: relative;
+  flex-shrink: 0;
 }
 
-.user-avatar {
-  width: 100px;
-  height: 100px;
+/* 头像:圆 128rpx(§8),白描边 */
+.user-avatar,
+.default-avatar {
+  width: 128px;
+  height: 128px;
   border-radius: 50%;
-  border: 3px solid rgba(255,255,255,0.3);
+  border: 4px solid rgba(255,255,255,0.35);
+  box-sizing: border-box;
 }
 
 .default-avatar {
-  width: 100px;
-  height: 100px;
-  background: rgba(255,255,255,0.2);
-  color: white;
-  font-size: 28px;
-  font-weight: bold;
-  border: 3px solid rgba(255,255,255,0.3);
-}
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.25);
 
-.vip-badge {
-  position: absolute;
-  top: -5px;
-  right: -5px;
-  background: var(--theme-secondary);
-  color: white;
-  padding: 2px 6px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: bold;
-  border: 2px solid white;
+  .default-avatar-text {
+    font-size: 52px;
+    font-weight: 600;
+    color: #fff;
+    line-height: 1;
+  }
 }
 
 .user-details {
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  min-width: 0;
 }
 
 .user-name-section {
@@ -102,37 +91,25 @@
 }
 
 .user-name {
-  font-size: 20px;
-  font-weight: bold;
-  color: white;
-}
-
-.user-level {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  background: rgba(255,255,255,0.2);
-  padding: 2px 8px;
-  border-radius: 12px;
-}
-
-.level-text {
-  font-size: 12px;
-  color: white;
+  font-size: 36px; // §8:昵称 18px 物理/600 白字(小程序刻度 36px)
+  font-weight: 600;
+  color: #fff;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .user-phone {
-  font-size: 14px;
-  opacity: 0.8;
+  font-size: 26px;
+  opacity: 0.85;
 }
 
 .login-hint {
-  font-size: 12px;
+  font-size: 22px;
   color: rgba(255,255,255,0.9);
   background: rgba(0,0,0,0.2);
-  padding: 2px 8px;
-  border-radius: 8px;
-  margin-top: 4px;
+  padding: 4px 12px;
+  border-radius: var(--radius-sm);
   display: inline-block;
+  align-self: flex-start;
 }
-

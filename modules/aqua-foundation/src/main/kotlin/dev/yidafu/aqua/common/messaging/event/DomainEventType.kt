@@ -1,0 +1,73 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.yidafu.aqua.common.messaging.event
+
+/**
+ * 领域事件类型枚举
+ */
+enum class DomainEventType(
+  val value: String,
+) {
+  // 订单事件
+  ORDER_CREATED("ORDER_CREATED"),
+  ORDER_PAID("ORDER_PAID"),
+  ORDER_CANCELLED("ORDER_CANCELLED"),
+  ORDER_COMPLETED("ORDER_COMPLETED"),
+  ORDER_DELIVERED("ORDER_DELIVERED"),
+  ORDER_URGING("ORDER_URGING"), // 用户催单(F-ORD-008,催单推送 R-ORD-10)
+
+  // 配送事件
+  DELIVERY_ASSIGNED("DELIVERY_ASSIGNED"),
+  DELIVERY_STARTED("DELIVERY_STARTED"),
+  DELIVERY_COMPLETED("DELIVERY_COMPLETED"),
+  DELIVERY_TIMEOUT("DELIVERY_TIMEOUT"),
+
+  // 支付事件
+  PAYMENT_TIMEOUT("PAYMENT_TIMEOUT"),
+  PAYMENT_REFUNDED("PAYMENT_REFUNDED"),
+
+  // 支付到期检查触发事件(R-ORD-04 支付超时优化:延迟消息到期投递,仅 admin 消费处理;
+  // 与 PAYMENT_TIMEOUT(取消后通知)语义分离,避免复用同一事件类型导致循环触发)
+  PAYMENT_EXPIRY_CHECK("PAYMENT_EXPIRY_CHECK"),
+
+  // 用户事件
+  USER_REGISTERED("USER_REGISTERED"),
+  USER_UPDATED("USER_UPDATED"),
+
+  // 地址事件
+  ADDRESS_UPDATED("ADDRESS_UPDATED"),
+
+  // 商品事件
+  PRODUCT_UPDATED("PRODUCT_UPDATED"),
+
+  // 通知事件(PRD 13-notification.md:领域事件 → notifications-events 队列 → 消息网关)
+  NOTIFICATION_SEND("NOTIFICATION_SEND"),
+
+  // 营销事件(PRD 10-marketing.md):优惠券即将过期 → 站内消息通知用户(F-NTF-002 消息来源)
+  COUPON_EXPIRING("COUPON_EXPIRING"),
+
+  // 通用事件
+  UNKNOWN("UNKNOWN"),
+  ;
+
+  companion object {
+    fun fromValue(value: String): DomainEventType = entries.find { it.value == value } ?: UNKNOWN
+  }
+}

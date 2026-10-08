@@ -1,35 +1,40 @@
-import React, { useState, useEffect, useMemo } from 'react'
-import { View, Text, Image, Button } from '@tarojs/components'
-import { AtButton, AtCard, AtList, AtListItem, AtToast } from 'taro-ui'
-import { ThemeSwitcher } from '../../components/ThemeProvider'
+import React, { useState, useEffect } from 'react'
+import { View, Text } from '@tarojs/components'
+import { AtButton, AtToast } from 'taro-ui'
 import AvatarNicknameForm from './components/AvatarNicknameForm'
 import UserSection from './components/UserSection'
 import OrderSection from './components/OrderSection'
 import ServiceSection from './components/ServiceSection'
-import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
-import { authService, type UserInfo as AuthUserInfo, type LoginResponse } from '../../utils/auth'
+import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import { authService, type UserInfo as AuthUserInfo } from '../../utils/auth'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
+import NotificationService from '../../services/NotificationService'
+import OrderService from '../../services/OrderService'
+import { connectWsPushIfLoggedIn, wsPushService } from '../../services/wsPush'
 
 // Taro UI 样式已在 app.scss 中全局引入，无需重复引入
 import './index.scss'
-import { CONTACT_INFO } from '@/constants'
-
-// Use AuthUserInfo from auth utility
+import 'taro-ui/dist/style/components/button.scss'
 
 interface OrderStats {
   pendingPayment: number
   pendingDelivery: number
   delivering: number
+  awaitingConfirmation: number
   completed: number
   afterSales: number
 }
 
 const MyPage: React.FC = () => {
+  usePageViewTracking()
+
   // State management
   const [userInfo, setUserInfo] = useState<AuthUserInfo | null>(null)
   const [orderStats, setOrderStats] = useState<OrderStats>({
     pendingPayment: 0,
     pendingDelivery: 0,
     delivering: 0,
+    awaitingConfirmation: 0,
     completed: 0,
     afterSales: 0
   })
@@ -38,6 +43,7 @@ const MyPage: React.FC = () => {
   const [toastText, setToastText] = useState<string>('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
   const [showAvatarNicknameForm, setShowAvatarNicknameForm] = useState<boolean>(false)
+  const [unreadCount, setUnreadCount] = useState<number>(0)
 
   // Lifecycle hooks
   useEffect(() => {
@@ -53,6 +59,14 @@ const MyPage: React.FC = () => {
 
     // 检查并刷新认证状态
     checkAuthStatus()
+
+    // 消息中心未读角标(F-NTF-002)
+    loadUnreadCount()
+
+    // 登录态下建立 WebSocket 实时推送连接(F-NTF-003)
+    if (authService.isAuthenticated()) {
+      connectWsPushIfLoggedIn()
+    }
   })
 
   usePullDownRefresh(() => {
@@ -99,6 +113,7 @@ const MyPage: React.FC = () => {
             pendingPayment: 0,
             pendingDelivery: 0,
             delivering: 0,
+            awaitingConfirmation: 0,
             completed: 0,
             afterSales: 0
           })
@@ -149,26 +164,72 @@ const MyPage: React.FC = () => {
   }
 
   const loadOrderStats = async (): Promise<void> => {
+    // 游客态:无真实订单统计,角标全 0 且不发起需登录的请求(F-USR-002,AC-USR-002-02)
+    if (!authService.isAuthenticated()) {
+      setOrderStats({
+        pendingPayment: 0,
+        pendingDelivery: 0,
+        delivering: 0,
+        completed: 0,
+        afterSales: 0
+      })
+      setLoading(false)
+      return
+    }
     try {
-      // TODO: 实际项目中这里应该调用获取订单统计的API
-      // const orderStats = await getOrderStats()
-
-      // 模拟订单统计数据
-      const mockOrderStats: OrderStats = {
-        pendingPayment: 2,
-        pendingDelivery: 1,
-        delivering: 3,
-        completed: 25,
-        afterSales: 1
+      // 真实订单统计(G31):myOrderStatistics 单请求返回当前用户各状态订单数;
+      // 待配送口径 = 待派单 + 待配送(与 order-list「待配送」Tab 一致);售后 = 已退款
+      const result = await OrderService.getInstance().getMyOrderStatistics()
+      if (!result.success || !result.data) {
+        throw new Error(result.error?.message || '获取订单统计失败')
       }
-
-      setOrderStats(mockOrderStats)
+      const stats = result.data
+      setOrderStats({
+        pendingPayment: stats.pendingPayment,
+        pendingDelivery: stats.pendingDispatch + stats.pendingDelivery,
+        delivering: stats.delivering,
+        awaitingConfirmation: stats.awaitingConfirmation,
+        completed: stats.completed,
+        afterSales: stats.refunded
+      })
     } catch (error) {
       console.error('获取订单统计失败:', error)
+      setOrderStats({
+        pendingPayment: 0,
+        pendingDelivery: 0,
+        delivering: 0,
+        completed: 0,
+        afterSales: 0
+      })
     } finally {
       setLoading(false)
     }
   }
+
+  const loadUnreadCount = async (): Promise<void> => {
+    if (!authService.isAuthenticated()) {
+      setUnreadCount(0)
+      return
+    }
+    try {
+      const count = await NotificationService.getUnreadCount()
+      setUnreadCount(count)
+    } catch (e) {
+      console.error('获取未读消息数失败:', e)
+    }
+  }
+
+  // WebSocket 推送实时更新未读角标
+  useEffect(() => {
+    const unsubscribe = wsPushService.onMessage((message) => {
+      if (typeof message.unreadCount === 'number') {
+        setUnreadCount(message.unreadCount)
+      } else {
+        loadUnreadCount()
+      }
+    })
+    return unsubscribe
+  }, [])
 
   const handleProfileEdit = (): void => {
     // 如果用户未登录，触发微信登录
@@ -226,88 +287,45 @@ const MyPage: React.FC = () => {
     }
   }
 
-  const handleRecharge = (): void => {
-    Taro.navigateTo({
-      url: '/pages/recharge/index'
-    })
-  }
-
-  const handlePointsMall = (): void => {
-    Taro.navigateTo({
-      url: '/pages/points-mall/index'
-    })
-  }
-
   const handleOrderNavigation = (type: string): void => {
     Taro.navigateTo({
       url: `/pages/order-list/index?tab=${type}`
     })
   }
 
-  const handleAddressManagement = (): void => {
-    Taro.navigateTo({
-      url: '/pages/address-list/index'
+  const handleLogout = (): void => {
+    Taro.showModal({
+      title: '退出登录',
+      content: '确定要退出登录吗？',
+      confirmText: '退出',
+      confirmColor: '#FF4D4F',
+      success: async (res) => {
+        if (!res.confirm) return
+        try {
+          await authService.logout()
+          setUserInfo({
+            id: '',
+            nickname: '游客',
+            avatarUrl: '',
+            phone: '',
+            wechatOpenId: ''
+          })
+          setOrderStats({
+            pendingPayment: 0,
+            pendingDelivery: 0,
+            delivering: 0,
+            awaitingConfirmation: 0,
+            completed: 0,
+            afterSales: 0
+          })
+          showToastMessage('已退出登录', 'success')
+        } catch (error) {
+          console.error('退出登录失败:', error)
+          showToastMessage('退出登录失败', 'error')
+        }
+      }
     })
   }
-
-  const handleCustomerService = (): void => {
-    // 联系客服
-    Taro.makePhoneCall({
-      phoneNumber: CONTACT_INFO.COMPLAINT_HOTLINE
-    })
-  }
-
-  const handleFeedback = (): void => {
-    Taro.navigateTo({
-      url: '/pages/feedback/index'
-    })
-  }
-
-  const handleAbout = (): void => {
-    Taro.navigateTo({
-      url: '/pages/about/index'
-    })
-  }
-
-  const handleSettings = (): void => {
-    Taro.navigateTo({
-      url: '/pages/settings/index'
-    })
-  }
-
-  const handleShare = (): void => {
-    Taro.showShareMenu({
-      withShareTicket: true
-    })
-  }
-
-
-  const serviceItems = useMemo(() =>[
-    {
-      icon: '/assets/icons/service/map-pin.png',
-      title: '收货地址',
-      description: '管理收货地址',
-      onClick: handleAddressManagement
-    },
-    {
-      icon: '/assets/icons/service/comments.png',
-      title: '客服中心',
-      description: '联系在线客服',
-      onClick: handleCustomerService
-    },
-    {
-      icon: '/assets/icons/service/feedback.png',
-      title: '意见反馈',
-      description: '帮助我们改进',
-      onClick: handleFeedback
-    },
-    {
-      icon: '/assets/icons/service/info-circle.png',
-      title: '关于我们',
-      description: '了解好喝山泉',
-      onClick: handleAbout
-    }
-  ], [])
 
   // Return JSX directly
   if (loading) {
@@ -335,21 +353,16 @@ const MyPage: React.FC = () => {
       />
 
       {/* 服务区域 */}
-      <ServiceSection serviceItems={serviceItems} />
+      <ServiceSection unreadCount={unreadCount} />
 
       {/* 其他设置 */}
-      <AtCard title='其他' className='settings-section'>
-        <AtList>
-
-          <AtListItem
-            title='设置'
-            arrow='right'
-            iconInfo={{ value: '/assets/icons/service/settings.png', color: 'var(--theme-primary)' }}
-            onClick={handleSettings}
-          />
-        </AtList>
-
-      </AtCard>
+      {authService.isAuthenticated() && (
+        <View className='logout-section'>
+          <AtButton className='logout-button' onClick={handleLogout}>
+            退出登录
+          </AtButton>
+        </View>
+      )}
       {/* 底部安全区域 */}
       <View className='safe-bottom' />
 

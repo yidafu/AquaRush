@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 意见反馈管理｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 运营配置 / 意见反馈管理</h1>
+      <p class="sub">功能编号 F-OPS-003 ｜ 运营配置域 ｜ 入口「运营配置 → 意见反馈」｜ 关联：用户详情「意见反馈」Tab（F-USR-022）、用户端反馈页（feedback）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-OPS-003</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：反馈列表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 筛选 + 反馈列表</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/operations/feedbacks</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">运营配置 <span class="crumb-sep">/</span> <b>意见反馈</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>意见反馈管理</h2>
+                    <div class="desc">处理结果回传用户端反馈记录（feedback-records）｜ 联系方式默认脱敏</div>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>反馈类型</span><div class="select" style="width:132px"><span>全部</span></div></div>
+                  <div class="fitem"><span>状态</span><div class="select" style="width:132px"><span>待处理</span></div></div>
+                  <div class="fitem"><span>用户</span><div class="input" style="width:150px"><span class="ph">昵称 / 手机号</span></div></div>
+                  <div class="fitem"><span>userId</span><div class="input" style="width:140px"><span class="ph">用户 ID</span></div></div>
+                  <div class="fitem"><span>提交时间</span><div class="input" style="width:190px"><span>2026-10-01 ~ 2026-10-08</span></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">搜索</span>
+                  </div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>提交时间</th>
+                        <th>用户</th>
+                        <th>类型</th>
+                        <th>内容摘要</th>
+                        <th class="num">图片数</th>
+                        <th>状态</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="num">2026-10-07 18:22</td>
+                        <td><div class="bold">王**</div><div class="sub-line">138****6621</div></td>
+                        <td><span class="tag tag-brand">配送问题</span></td>
+                        <td class="ellipsis" style="max-width:280px">送水员把水放在一楼门口就走了，没有送到楼上……</td>
+                        <td class="num">2</td>
+                        <td><span class="tag tag-warn">待处理</span></td>
+                        <td><div class="ops"><a>处理</a><a>查看</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="num">2026-10-07 10:05</td>
+                        <td><div class="bold">李**</div><div class="sub-line">186****3345</div></td>
+                        <td><span class="tag tag-neutral">产品质量</span></td>
+                        <td class="ellipsis" style="max-width:280px">桶身有划痕，担心卫生问题，希望更换……</td>
+                        <td class="num">1</td>
+                        <td><span class="tag tag-brand">处理中</span></td>
+                        <td><div class="ops"><a>处理</a><a>查看</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="num">2026-10-06 16:40</td>
+                        <td><div class="bold">赵**</div><div class="sub-line">139****8890</div></td>
+                        <td><span class="tag tag-neutral">功能建议</span></td>
+                        <td class="ellipsis" style="max-width:280px">希望增加周期订购提醒功能，避免忘记订水……</td>
+                        <td class="num">0</td>
+                        <td><span class="tag tag-ok">已处理</span></td>
+                        <td><div class="ops"><a>处理</a><a>查看</a></div></td>
+                      </tr>
+                      <tr>
+                        <td class="num">2026-10-05 09:12</td>
+                        <td><div class="bold">陈**</div><div class="sub-line">137****2201</div></td>
+                        <td><span class="tag tag-brand">配送问题</span></td>
+                        <td class="ellipsis" style="max-width:280px">配送时间不准时，预约了上午结果下午才到……</td>
+                        <td class="num">3</td>
+                        <td><span class="tag tag-ok">已处理</span></td>
+                        <td><div class="ops"><a>处理</a><a>查看</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 4 条记录 ｜ 空态「暂无反馈」</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：处理抽屉 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 处理抽屉（反馈详情 + 图片预览 + 回复 + 状态流转 + 处理人留痕）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/operations/feedbacks — 处理反馈</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi on">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">运营配置 <span class="crumb-sep">/</span> <b>意见反馈</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title"><div><h2>意见反馈管理</h2><div class="desc">抽屉打开态（背景遮罩）</div></div></div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>提交时间</th><th>用户</th><th>类型</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr><td class="num">2026-10-07 18:22</td><td>王**</td><td>配送问题</td><td><span class="tag tag-warn">待处理</span></td></tr>
+                      <tr><td class="num">2026-10-07 10:05</td><td>李**</td><td>产品质量</td><td><span class="tag tag-brand">处理中</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask" style="align-items:stretch;justify-content:flex-end;padding:0">
+            <div class="drawer">
+              <div class="modal-head">反馈详情 <span class="row gap2" style="margin-left:auto"><span class="btn xs ghost">关闭</span></span></div>
+              <div class="modal-body" style="flex:1 1 auto">
+
+                <div class="desc-grid two">
+                  <div class="desc-item"><div class="k">反馈类型</div><div class="v"><span class="tag tag-brand">配送问题</span></div></div>
+                  <div class="desc-item"><div class="k">提交时间</div><div class="v num">2026-10-07 18:22</div></div>
+                  <div class="desc-item"><div class="k">用户</div><div class="v">王**（userId：100238）</div></div>
+                  <div class="desc-item"><div class="k">联系方式（脱敏）</div><div class="v num">138****6621</div></div>
+                </div>
+
+                <div class="divider">反馈内容</div>
+                <p class="f-aux t-main">送水员把水放在一楼门口就走了，没有送到楼上，家里老人搬不动，希望平台加强管理。</p>
+
+                <div class="divider">图片预览</div>
+                <div class="row gap2 wrap">
+                  <div class="thumb sq">实拍图占位</div>
+                  <div class="thumb sq">实拍图占位</div>
+                </div>
+
+                <div class="divider">处理</div>
+                <div class="field">
+                  <label>状态流转 <span class="f-note t-weak">｜ 按钮 / Select：待处理 → 处理中 → 已处理</span></label>
+                  <div class="radio-row">
+                    <span class="radio on">待处理</span>
+                    <span class="radio">处理中</span>
+                    <span class="radio">已处理</span>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label>处理结果 <span class="f-note t-weak">｜ TextArea ｜ ≤ 500 字 ｜ 选填</span></label>
+                  <div class="textarea"><span class="ph">填写处理结果，将回传至用户端反馈记录</span></div>
+                </div>
+
+                <div class="divider">处理人留痕</div>
+                <div class="timeline">
+                  <div class="tl-item done">
+                    <span class="tl-dot"></span>
+                    <div class="grow"><div class="f-aux t-main">提交反馈</div><div class="tl-time">2026-10-07 18:22 · 用户 王**</div></div>
+                  </div>
+                  <div class="tl-item">
+                    <span class="tl-dot"></span>
+                    <div class="grow"><div class="f-aux t-sub">待处理（等待运营处理）</div><div class="tl-time">—</div></div>
+                  </div>
+                </div>
+
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">提交处理</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>运营配置 → 意见反馈；路由 <code>operations/feedbacks</code></p>
+        <p><strong>关联：</strong>用户详情「意见反馈」Tab（F-USR-022）；用户端反馈页（F-USR-005）与反馈记录（feedback-records）</p>
+        <p><strong>状态：</strong><span class="chip chip-ok">已实现</span>（缺口 G63 / G04 已解决）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>筛选区：反馈类型 Select、状态 Select（待处理 / 处理中 / 已处理）、用户 / userId、时间范围 RangePicker、「搜索」/「重置」</li>
+          <li>反馈列表：提交时间 / 用户 / 类型（Tag）/ 内容摘要（省略）/ 图片数 / 状态（Tag 着色）/ 操作「处理」「查看」</li>
+          <li>处理抽屉：反馈详情（类型 / 内容全文 / 图片可预览 / 联系方式）/ 处理区（处理结果 + 状态流转）/ 处理人留痕</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>进入页面 → 反馈列表加载（默认第 1 页，分页）</li>
+          <li>组合筛选 / 搜索 / 重置</li>
+          <li>打开详情 → 查看内容与图片 → 填写处理结果 → 流转状态</li>
+          <li>「处理结果回传用户端」：提交后回传至用户端反馈记录（feedback-records）可见</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>状态：</strong>待处理 / 处理中 / 已处理（Tag 着色）；空态「暂无反馈」。</p>
+        <p><strong>关键数据字段：</strong>类型、内容、图片、联系方式、提交时间、状态、处理结果、处理人 / 时间。</p>
+        <p><strong>表单字段：</strong>处理结果（TextArea，≤ 500 字，选填）；状态流转（待处理 → 处理中 → 已处理）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：状态 Tag 用品牌蓝 / warning / success，主操作用品牌蓝。</p>
+        <p><strong>联系方式默认脱敏</strong>（开放问题）；<strong>已处理反馈不可再修改</strong>（开放问题）。</p>
+        <p>图片预览使用真实场景实拍占位，严禁卡通插画；抽屉内处理留痕须可见（操作人 / 时间）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

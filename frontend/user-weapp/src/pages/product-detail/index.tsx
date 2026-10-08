@@ -6,7 +6,12 @@ import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/toast.scss"
 import { CONTACT_INFO } from '@/constants'
 import ProductService from '../../services/ProductService'
+import FavoriteService from '../../services/FavoriteService'
+import { authService } from '../../utils/auth'
 import { Product } from '../../types/product'
+import { addToCart, syncCartTabBadge } from '../../utils/cart'
+import { normalizeCents } from '@aquarush/common'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
 
 // Import extracted components
 import ProductImageGallery from './components/ProductImageGallery'
@@ -23,19 +28,28 @@ interface ProductDetailState {
   toastText: string
   toastType: 'success' | 'error' | 'loading'
   productId: string
+  // 来源标识(H5 嵌入场景:admin 预览 from=admin;RN WebView 纯展示 from=rn —— 见下方渲染分支)
+  from?: string
   showBuyModal: boolean
   buyModalQuantity: number
   imagesLoaded: boolean[]
   imagesWithError: boolean[]
   imageLoadingStates: boolean[]
   isFavorite: boolean
+  favoriteLoading: boolean
 }
 
 // Retry configuration
 const MAX_RETRIES = 3
 const RETRY_DELAY = 1000 // 1 second
 
+// 嵌入只读场景(from=rn,RN WebView / delivery web iframe):富文本移除 <a> 链接跳转,保留文本 —— 仅展示
+const stripRichTextLinks = (html: string): string =>
+  html.replace(/<a\b[^>]*>(.*?)<\/a>/gi, '$1')
+
 const ProductDetail: React.FC = () => {
+  usePageViewTracking()
+
   const [state, setState] = useState<ProductDetailState>({
     product: null,
     loading: true,
@@ -43,12 +57,14 @@ const ProductDetail: React.FC = () => {
     toastText: '',
     toastType: 'success',
     productId: '',
+    from: '',
     showBuyModal: false,
     buyModalQuantity: 1,
     imagesLoaded: [],
     imagesWithError: [],
     imageLoadingStates: [],
-    isFavorite: false
+    isFavorite: false,
+    favoriteLoading: false
   })
 
   const updateState = useCallback((updates: Partial<ProductDetailState>) => {
@@ -67,6 +83,24 @@ const ProductDetail: React.FC = () => {
     updateState({ showToast: false })
   }, [updateState])
 
+  const checkFavoriteStatus = useCallback(async () => {
+    if (!state.productId || !authService.isAuthenticated()) {
+      return
+    }
+
+    try {
+      updateState({ favoriteLoading: true })
+      const favoriteService = FavoriteService.getInstance()
+      const isFavorited = await favoriteService.isProductFavorited(state.productId)
+      updateState({ isFavorite: isFavorited })
+    } catch (error) {
+      console.error('Failed to check favorite status:', error)
+      // Don't show error to user for favorite status check
+    } finally {
+      updateState({ favoriteLoading: false })
+    }
+  }, [state.productId, updateState])
+
   const loadProductDetail = useCallback(async (retryCount = 0) => {
     if (!state.productId) return
 
@@ -83,6 +117,8 @@ const ProductDetail: React.FC = () => {
         const imageCount = result.data.imageGallery?.length || 1
         initializeImageStates(imageCount)
         console.log('Product loaded successfully:', result.data)
+        // Check favorite status after product is loaded
+        checkFavoriteStatus()
       } else {
         // Handle specific error cases
         const errorMessage = result.error?.message || '产品不存在'
@@ -116,7 +152,7 @@ const ProductDetail: React.FC = () => {
     } finally {
       updateState({ loading: false })
     }
-  }, [state.productId, showToastMessage, updateState])
+  }, [state.productId, showToastMessage, updateState, checkFavoriteStatus])
 
 
   const handleBuyNow = useCallback(() => {
@@ -136,17 +172,20 @@ const ProductDetail: React.FC = () => {
       return
     }
 
+    // 熟客价优先写入待支付订单(正式计价以服务端 orderPreview 为准,本地价仅作兜底 —— R-MKT-01)
+    const unitPriceCents = normalizeCents(state.product.effectivePriceCents) ?? normalizeCents(state.product.priceCents) ?? 0
+
     // 跳转到订单确认页面
     const orderData = {
       products: [{
         id: state.product.id.toString(),
         name: state.product.name,
-        price: parseFloat(state.product.price),
+        price: unitPriceCents,
         quantity: state.buyModalQuantity,
         image: state.product.coverImageUrl,
         specification: state.product.specification
       }],
-      totalAmount: parseFloat(state.product.price) * state.buyModalQuantity,
+      totalAmount: unitPriceCents * state.buyModalQuantity,
       specification: state.product.specification
     }
 
@@ -182,33 +221,47 @@ const ProductDetail: React.FC = () => {
     })
   }, [])
 
-  const handleToggleFavorite = useCallback(() => {
-    setState(prev => ({ ...prev, isFavorite: !prev.isFavorite }))
-    showToastMessage(
-      state.isFavorite ? '已取消收藏' : '已添加收藏',
-      'success'
-    )
-  }, [state.isFavorite, showToastMessage])
+  const handleToggleFavorite = useCallback(async () => {
+    if (!state.productId || !authService.isAuthenticated()) {
+      showToastMessage('请先登录', 'error')
+      // Navigate to login page or show login prompt
+      return
+    }
+
+    try {
+      updateState({ favoriteLoading: true })
+      const favoriteService = FavoriteService.getInstance()
+
+      const result = await favoriteService.toggleProductFavorites(state.productId)
+
+      if (result) {
+        const newFavoriteStatus = !state.isFavorite
+        showToastMessage(newFavoriteStatus ? '已添加收藏' : '已取消收藏', 'success')
+        updateState({ isFavorite: newFavoriteStatus })
+      }
+    } catch (error) {
+      console.error('Failed to toggle favorite:', error)
+      showToastMessage('操作失败，请重试', 'error')
+    } finally {
+      updateState({ favoriteLoading: false })
+    }
+  }, [state.productId, state.isFavorite, showToastMessage, updateState])
 
   const handleAddToCart = useCallback(() => {
     if (!state.product) return
 
-    // 简单的购物车添加逻辑（实际项目中应该调用购物车API）
-    const cartItem = {
-      id: state.product.id,
+    // 加入本地购物车(F-PRO-004:同商品合并数量,累积多商品)
+    addToCart({
+      id: state.product.id.toString(),
       name: state.product.name,
-      price: parseFloat(state.product.price),
+      priceCents: normalizeCents(state.product.effectivePriceCents) ?? normalizeCents(state.product.priceCents) ?? 0,
       quantity: 1,
       image: state.product.coverImageUrl,
       specification: state.product.specification
-    }
+    })
 
-    // 获取现有购物车数据
-    const existingCart = Taro.getStorageSync('cart') || []
-    const updatedCart = [...existingCart, cartItem]
-
-    // 保存到本地存储
-    Taro.setStorageSync('cart', updatedCart)
+    // 实时同步购物车 tabBar 角标
+    syncCartTabBadge()
 
     showToastMessage('已加入购物车', 'success')
   }, [state.product, showToastMessage])
@@ -260,7 +313,7 @@ const ProductDetail: React.FC = () => {
   // 初始化
   useEffect(() => {
     const instance = Taro.getCurrentInstance()
-    const { id } = instance.router?.params || {}
+    const { id, from } = instance.router?.params || {}
 
     if (!id) {
       Taro.showToast({
@@ -272,7 +325,8 @@ const ProductDetail: React.FC = () => {
     }
 
     updateState({
-      productId: id
+      productId: id,
+      from: String(from || '')
     })
   }, [updateState])
 
@@ -286,6 +340,13 @@ const ProductDetail: React.FC = () => {
   // 注册下拉刷新
   Taro.usePullDownRefresh(handlePullDownRefresh)
 
+  // 注册页面显示时检查收藏状态
+  Taro.useDidShow(() => {
+    if (state.productId && authService.isAuthenticated()) {
+      checkFavoriteStatus()
+    }
+  })
+
   // Loading state - use skeleton component
   if (state.loading) {
     return <LoadingSkeleton />
@@ -297,13 +358,15 @@ const ProductDetail: React.FC = () => {
       <View className='min-h-screen pb-40 bg-gray-50'>
         <View className='flex flex-col items-center justify-center gap-20 min-h-96'>
           <Text>产品不存在</Text>
-          <AtButton
-            type='primary'
-            size='small'
-            onClick={() => Taro.navigateBack()}
-          >
-            返回
-          </AtButton>
+          {state.from !== 'rn' && (
+            <AtButton
+              type='primary'
+              size='small'
+              onClick={() => Taro.navigateBack()}
+            >
+              返回
+            </AtButton>
+          )}
         </View>
       </View>
     )
@@ -315,10 +378,10 @@ const ProductDetail: React.FC = () => {
 
   return (
     <View className='min-h-screen pb-10 bg-gray-100 md:max-w-md md:mx-auto md:shadow-xl md:rounded-3xl md:overflow-hidden'>
-      {/* 产品图片轮播 */}
+      {/* 产品图片轮播(嵌入只读场景 from=rn:不传 onImagePress,图片不可点击) */}
       <ProductImageGallery
         images={currentImages}
-        onImagePress={handleImagePress}
+        onImagePress={state.from === 'rn' ? undefined : handleImagePress}
         imagesLoaded={state.imagesLoaded}
         imagesWithError={state.imagesWithError}
         imageLoadingStates={state.imageLoadingStates}
@@ -333,26 +396,28 @@ const ProductDetail: React.FC = () => {
         <ProductInfo />
       </ProductProvider>
 
-      {/* 产品详情 */}
+      {/* 产品详情(嵌入只读场景 from=rn:剥离富文本链接,仅展示) */}
       {state.product.detailContent && (
         <View className='mt-4 mb-5 bg-white rounded animate-fade-in'>
           <View className='p-4'>
-            <RichText nodes={state.product.detailContent} />
+            <RichText nodes={state.from === 'rn' ? stripRichTextLinks(state.product.detailContent) : state.product.detailContent} />
           </View>
         </View>
       )}
 
-      {/* 操作按钮 */}
-      <ActionButtons
-        isFavorite={state.isFavorite}
-        onToggleFavorite={handleToggleFavorite}
-        onAddToCart={handleAddToCart}
-        onBuyNow={handleBuyNow}
-        onContactService={handleContactService}
-        onShare={handleShare}
-        stock={state.product.stock}
-        status={state.product.status}
-      />
+      {/* 操作按钮(RN WebView 纯展示场景 from=rn 时隐藏,避免跳转不存在的 H5 路由) */}
+      {state.from !== 'rn' && (
+        <ActionButtons
+          isFavorite={state.isFavorite}
+          onToggleFavorite={handleToggleFavorite}
+          onAddToCart={handleAddToCart}
+          onBuyNow={handleBuyNow}
+          onContactService={handleContactService}
+          onShare={handleShare}
+          stock={state.product.stock}
+          status={state.product.status}
+        />
+      )}
 
       {/* Toast 提示 */}
       <AtToast

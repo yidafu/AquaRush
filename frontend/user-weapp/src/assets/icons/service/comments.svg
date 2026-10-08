@@ -1,3 +1,5 @@
 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M21 6h-2v9H6v2c0 .55.45 1 1 1h11l4 4V7c0-.55-.45-1-1-1zm-4 6H3c-.55 0-1-.45-1-1V3c0-.55.45-1 1-1h14c.55 0 1 .45 1 1v8c0 .55-.45 1-1 1z" fill="#1890ff"/>
+  <!-- 客服中心：对话气泡 -->
+  <path d="M21 11.6a8.6 8.6 0 0 1-8.6 8.6 8.6 8.6 0 0 1-4.3-1.1L3 21l1.9-5.1a8.6 8.6 0 1 1 16.1-4.3z" stroke="#3A9BD9" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M8.5 11.5h.01M12 11.5h.01M15.5 11.5h.01" stroke="#3A9BD9" stroke-width="2.4" stroke-linecap="round"/>
 </svg>

@@ -1,0 +1,12 @@
+# Extend the User type with admin-specific fields
+extend type User {
+  status: UserStatus!
+  role: UserRole!
+  email: String!
+  balanceCents: Long!
+  totalSpentCents: Long!
+  # 所属客户分组(空=未分组;F-MKT-001)
+  customerGroupId: PrimaryId
+  # 所属分组名称(空=未分组)
+  customerGroupName: String
+}

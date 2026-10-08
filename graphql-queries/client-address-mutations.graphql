@@ -1,0 +1,437 @@
+# GraphQL Mutations - 客户端地址管理接口
+# 基于 ClientAddressMutationResolver 创建的地址管理 GraphQL mutation 接口
+
+# ==================== 创建地址 ====================
+
+# 创建新地址（需要用户登录）
+mutation CreateAddress(
+  $province: String!
+  $provinceCode: String
+  $city: String!
+  $cityCode: String
+  $district: String!
+  $districtCode: String
+  $detailAddress: String!
+    $longitude: Float
+  $latitude: Float
+  $isDefault: Boolean = false
+) {
+  createAddress(input: {
+    province: $province
+    provinceCode: $provinceCode
+    city: $city
+    cityCode: $cityCode
+    district: $district
+    districtCode: $districtCode
+    detailAddress: $detailAddress
+      longitude: $longitude
+    latitude: $latitude
+    isDefault: $isDefault
+  }) {
+    id
+    userId
+    province
+    provinceCode
+    city
+    cityCode
+    district
+    districtCode
+    detailAddress
+      longitude
+    latitude
+    isDefault
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 更新地址 ====================
+
+# 更新地址信息（需要用户登录）
+mutation UpdateUserAddress(
+  $id: Long!
+  $province: String
+  $provinceCode: String
+  $city: String
+  $cityCode: String
+  $district: String
+  $districtCode: String
+  $detailAddress: String
+    $longitude: Float
+  $latitude: Float
+  $isDefault: Boolean
+  $phone: String
+  $receiverName: String
+) {
+  updateUserAddress(
+    id: $id
+    input: {
+      province: $province
+      provinceCode: $provinceCode
+      city: $city
+      cityCode: $cityCode
+      district: $district
+      districtCode: $districtCode
+      detailAddress: $detailAddress
+          longitude: $longitude
+      latitude: $latitude
+      isDefault: $isDefault
+      phone: $phone
+      receiverName: $receiverName
+    }
+  ) {
+    id
+    userId
+    province
+    provinceCode
+    city
+    cityCode
+    district
+    districtCode
+    detailAddress
+      longitude
+    latitude
+    isDefault
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 删除地址 ====================
+
+# 删除单个地址（需要用户登录）
+mutation DeleteUserAddress($id: Long!) {
+  deleteUserAddress(id: $id)
+}
+
+# 批量删除地址（需要用户登录）
+mutation DeleteUserAddresses($ids: [Long!]!) {
+  deleteUserAddresses(ids: $ids)
+}
+
+# ==================== 设置默认地址 ====================
+
+# 设置默认地址（需要用户登录）
+mutation SetDefaultUserAddress($id: Long!) {
+  setDefaultUserAddress(id: $id)
+}
+
+# ==================== 复制地址 ====================
+
+# 复制地址（需要用户登录）
+mutation CopyUserAddress(
+  $id: Long!
+  $newName: String!
+) {
+  copyUserAddress(
+    id: $id
+    newName: $newName
+  ) {
+    id
+    userId
+    province
+    provinceCode
+    city
+    cityCode
+    district
+    districtCode
+    detailAddress
+      longitude
+    latitude
+    isDefault
+    createdAt
+    updatedAt
+  }
+}
+
+# ==================== 测试用例 ====================
+
+# 测试创建地址
+mutation TestCreateAddress {
+  createAddress(input: {
+    province: "浙江省"
+    provinceCode: "330000"
+    city: "杭州市"
+    cityCode: "330100"
+    district: "上城区"
+    districtCode: "330102"
+    detailAddress: "某某大厦123号"
+      longitude: 120.12345
+    latitude: 30.12345
+    isDefault: true
+  }) {
+    id
+    province
+    city
+    district
+    detailAddress
+    isDefault
+    createdAt
+  }
+}
+
+# 测试更新地址
+mutation TestUpdateAddress {
+  updateUserAddress(
+    id: 1000000000000000001
+    input: {
+      detailAddress: "更新后的详细地址：某某大厦456号"
+      isDefault: true
+      receiverName: "张三"
+    }
+  ) {
+    id
+    detailAddress
+    isDefault
+    updatedAt
+  }
+}
+
+# 测试删除地址
+mutation TestDeleteAddress {
+  deleteUserAddress(id: 1000000000000000002)
+}
+
+# 测试设置默认地址
+mutation TestSetDefaultAddress {
+  setDefaultUserAddress(id: 1000000000000000003)
+}
+
+# 测试复制地址
+mutation TestCopyAddress {
+  copyUserAddress(
+    id: 1000000000000000001
+    newName: "家庭地址副本"
+  ) {
+    id
+    detailAddress
+    isDefault
+    createdAt
+  }
+}
+
+# 测试批量删除地址
+mutation TestDeleteAddresses {
+  deleteUserAddresses(ids: [1000000000000000004, 1000000000000000005])
+}
+
+# 测试地址数量限制（创建第21个地址时会失败）
+mutation TestAddressLimit {
+  createAddress(input: {
+    province: "上海市"
+    provinceCode: "310000"
+    city: "上海市"
+    cityCode: "310100"
+    district: "浦东新区"
+    districtCode: "310115"
+    detailAddress: "第21个地址测试"
+        longitude: 121.473701
+    latitude: 31.230416
+    isDefault: false
+  }) {
+    id
+    province
+    city
+    district
+    detailAddress
+  }
+}
+
+# ==================== JSON Variables 示例 ====================
+
+# 创建地址 JSON Variables：
+# {
+#   "province": "浙江省",
+#   "provinceCode": "330000",
+#   "city": "杭州市",
+#   "cityCode": "330100",
+#   "district": "上城区",
+#   "districtCode": "330102",
+#   "detailAddress": "某某大厦123号",
+#   "longitude": 120.12345,
+#   "latitude": 30.12345,
+#   "isDefault": true
+# }
+
+# 创建地址（公司） JSON Variables：
+# {
+#   "province": "北京市",
+#   "provinceCode": "110000",
+#   "city": "北京市",
+#   "cityCode": "110100",
+#   "district": "朝阳区",
+#   "districtCode": "110105",
+#   "detailAddress": "国贸CBD某某大厦A座1501室",
+#   "longitude": 116.45678,
+#   "latitude": 39.98765,
+#   "isDefault": false
+# }
+
+# 创建地址（家庭） JSON Variables：
+# {
+#   "province": "广东省",
+#   "provinceCode": "440000",
+#   "city": "深圳市",
+#   "cityCode": "440300",
+#   "district": "南山区",
+#   "districtCode": "440305",
+#   "detailAddress": "科技园南区某某小区3栋2单元801",
+#   "longitude": 113.92345,
+#   "latitude": 22.54321,
+#   "isDefault": false
+# }
+
+# 更新地址 JSON Variables：
+# {
+#   "id": 1000000000000000001,
+#   "province": "浙江省",
+#   "city": "杭州市",
+#   "district": "上城区",
+#   "detailAddress": "更新后的详细地址：某某大厦456号",
+#   "longitude": 120.12346,
+#   "latitude": 30.12346,
+#   "isDefault": true,
+#   "phone": "13800138000",
+#   "receiverName": "张三"
+# }
+
+# 更新地址（仅更新默认状态） JSON Variables：
+# {
+#   "id": 1000000000000000002,
+#   "isDefault": true
+# }
+
+# 更新地址（仅更新详细地址） JSON Variables：
+# {
+#   "id": 1000000000000000003,
+#   "detailAddress": "新的详细地址信息"
+# }
+
+# 删除地址 JSON Variables：
+# {
+#   "id": 1000000000000000001
+# }
+
+# 批量删除地址 JSON Variables（2个地址）：
+# {
+#   "ids": [1000000000000000001, 1000000000000000002]
+# }
+
+# 批量删除地址 JSON Variables（3个地址）：
+# {
+#   "ids": [1000000000000000001, 1000000000000000002, 1000000000000000003]
+# }
+
+# 批量删除地址 JSON Variables（5个地址）：
+# {
+#   "ids": [1000000000000000001, 1000000000000000002, 1000000000000000003, 1000000000000000004, 1000000000000000005]
+# }
+
+# 设置默认地址 JSON Variables：
+# {
+#   "id": 1000000000000000001
+# }
+
+# 复制地址 JSON Variables：
+# {
+#   "id": 1000000000000000001,
+#   "newName": "家庭地址副本"
+# }
+
+# 复制地址（公司地址副本） JSON Variables：
+# {
+#   "id": 1000000000000000002,
+#   "newName": "公司地址副本"
+# }
+
+# 复制地址（备用地址） JSON Variables：
+# {
+#   "id": 1000000000000000003,
+#   "newName": "备用地址"
+# }
+
+# ==================== 完整的 GraphQL 请求示例 ====================
+
+# 示例1：创建地址请求
+# Query:
+# mutation CreateAddress($province: String!, $city: String!, $district: String!, $detailAddress: String!, $isDefault: Boolean) {
+#   createAddress(input: {
+#     province: $province
+#     city: $city
+#     district: $district
+#     detailAddress: $detailAddress
+#     isDefault: $isDefault
+#   }) {
+#     id
+#     province
+#     city
+#     district
+#     detailAddress
+#     isDefault
+#     createdAt
+#   }
+# }
+#
+# Variables:
+# {
+#   "province": "浙江省",
+#   "city": "杭州市",
+#   "district": "上城区",
+#   "detailAddress": "某某大厦123号",
+#   "isDefault": true
+# }
+
+# 示例2：更新地址请求
+# Query:
+# mutation UpdateUserAddress($id: Long!, $detailAddress: String, $isDefault: Boolean) {
+#   updateUserAddress(id: $id, input: {
+#     detailAddress: $detailAddress
+#     isDefault: $isDefault
+#   }) {
+#     id
+#     detailAddress
+#     isDefault
+#     updatedAt
+#   }
+# }
+#
+# Variables:
+# {
+#   "id": 1000000000000000001,
+#   "detailAddress": "更新后的详细地址",
+#   "isDefault": true
+# }
+
+# ==================== 权限说明 ====================
+
+# 权限要求：
+# - createAddress: 需要用户登录（ isAuthenticated() ）
+# - updateUserAddress: 需要用户登录，且只能更新自己的地址
+# - deleteUserAddress: 需要用户登录，且只能删除自己的地址
+# - deleteUserAddresses: 需要用户登录，且只能删除自己的地址
+# - setDefaultUserAddress: 需要用户登录，且只能设置自己的默认地址
+# - copyUserAddress: 需要用户登录，且只能复制自己的地址
+
+# 输入验证：
+# - province: 必填，不能为空
+# - city: 必填，不能为空
+# - district: 必填，不能为空
+# - detailAddress: 必填，不能为空，长度不能超过200个字符
+# - longitude: 可选，经度坐标
+# - latitude: 可选，纬度坐标
+# - isDefault: 可选，默认为false
+# - newName: 复制地址时必填，新地址的名称
+
+# 业务逻辑：
+# - 设置默认地址时，会自动取消其他默认地址
+# - 复制的地址默认不是默认地址
+# - 批量删除最多一次删除10个地址
+# - 删除地址前应检查是否有关联的未完成订单（TODO）
+# - 所有可能抛出 BadRequestException 的操作都有适当的错误处理
+# - 用户最多可以创建20个地址，超出限制将抛出 BadRequestException
+
+# 安全考虑：
+# - 所有操作都验证地址所有权
+# - 用户只能操作自己的地址
+# - 使用 @AuthenticationPrincipal 获取当前用户信息
+# - 所有操作都在事务中执行（@Transactional）

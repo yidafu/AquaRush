@@ -4,7 +4,8 @@ import Taro from '@tarojs/taro'
 
 interface ProductImageGalleryProps {
   images: string[]
-  onImagePress: (index: number) => void
+  /** 大图预览回调(嵌入只读场景不传,图片不可点击) */
+  onImagePress?: (index: number) => void
   imagesLoaded: boolean[]
   imagesWithError: boolean[]
   imageLoadingStates: boolean[]
@@ -30,7 +31,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
         interval={3000}
         duration={500}
         indicatorColor='rgba(255, 255, 255, 0.5)'
-        indicatorActiveColor='#667eea'
+        indicatorActiveColor='#3A9BD9'
         circular
       >
         {images.map((image, index) => (
@@ -52,7 +53,7 @@ const ProductImageGallery: React.FC<ProductImageGalleryProps> = ({
                   className='w-full h-full transition-transform duration-300 rounded cursor-pointer hover:scale-105'
                   onLoad={() => onImageLoad(index)}
                   onError={() => onImageError(index)}
-                  onClick={() => onImagePress(index)}
+                  onClick={onImagePress ? () => onImagePress(index) : undefined}
                 />
               )}
             </View>

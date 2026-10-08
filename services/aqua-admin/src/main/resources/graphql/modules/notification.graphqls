@@ -1,0 +1,32 @@
+# 通知与消息(PRD 13-notification.md)
+# F-NTF-004 送水工端消息中心(本人任务/系统消息,送水工与「管理员兼送水」PERMISSION_DELIVERY_TASK)
+# F-NTF-006 后台消息列表页(管理员/超管 PERMISSION_NOTIFICATION_READ)
+
+extend type Query {
+  # 送水工端消息中心:分页查询本人消息(type/read 为空 = 全部,仅本人数据 R-AUTH-02)
+  myWorkerNotifications(type: NotificationType, read: Boolean, page: Int = 0, size: Int = 10): NotificationVOPage!
+  # 送水工端未读消息数(任务页/我的页入口角标)
+  workerUnreadNotificationCount: Long!
+  # 后台消息列表(F-NTF-006):组合筛选分页,默认近 30 天由页面层给定时间范围
+  notifications(
+    messageType: NotificationType
+    receiverType: NotificationReceiverType
+    keyword: String
+    read: Boolean
+    startAt: LocalDateTime
+    endAt: LocalDateTime
+    page: Int = 0
+    size: Int = 10
+  ): NotificationVOPage!
+  # 后台消息详情(F-NTF-006)
+  notification(id: PrimaryId!): NotificationVO
+}
+
+extend type Mutation {
+  # 送水工端:单条消息标已读(幂等,仅本人消息)
+  markWorkerNotificationRead(id: PrimaryId!): Boolean!
+  # 送水工端:全部已读
+  markAllWorkerNotificationsRead: Boolean!
+  # 后台:手动重发失败/待发送的微信订阅消息(F-NTF-006,PERMISSION_NOTIFICATION_WRITE 仅超管)
+  resendNotification(id: PrimaryId!): NotificationVO
+}

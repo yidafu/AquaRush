@@ -1,5 +1,6 @@
 import Taro from '@tarojs/taro'
-import NetworkManager, { NetworkError } from '../utils/network'
+import { NetworkError } from '@aquarush/common'
+import { networkManager } from '../utils/networkManager'
 import apiConfig from '../config/api'
 import {
   FileMetadataResponse,
@@ -13,16 +14,10 @@ import {
 } from '../types/storage'
 
 class FileUploadService {
-  private networkManager: NetworkManager
   private static instance: FileUploadService
 
-  constructor() {
-    // Use centralized API configuration for REST API
-    this.networkManager = NetworkManager.getInstance({
-      baseURL: apiConfig.getRestApiBaseUrl(),
-      timeout: apiConfig.getTimeout(),
-      headers: apiConfig.getHeaders()
-    })
+  private constructor() {
+    // Use shared networkManager from networkManager.ts
   }
 
   static getInstance(): FileUploadService {
@@ -36,7 +31,7 @@ class FileUploadService {
    * 获取上传API的基础URL
    */
   private getUploadBaseUrl(): string {
-    const config = this.networkManager.getConfig()
+    const config = networkManager.getConfig()
     const baseUrl = config.baseURL.replace('/graphql', '')
     return `${baseUrl}/api/v1/storage/files`
   }
@@ -112,7 +107,7 @@ class FileUploadService {
       }
 
       // 上传文件
-      const response = await this.networkManager.uploadFile<FileMetadataResponse>({
+      const response = await networkManager.uploadFile<FileMetadataResponse>({
         url: this.getUploadBaseUrl(),
         filePath,
         name: 'file',
@@ -187,44 +182,6 @@ class FileUploadService {
       return results
     } catch (error) {
       console.error('Multiple files upload failed:', error)
-      throw error
-    }
-  }
-
-  /**
-   * 获取文件信息
-   */
-  async getFileInfo(fileId: number): Promise<FileMetadata> {
-    try {
-      const response = await this.networkManager.get<FileMetadataResponse>(
-        `${this.getUploadBaseUrl()}/${fileId}`
-      )
-
-      if (!response.success) {
-        throw new Error(response.message || '获取文件信息失败')
-      }
-
-      return response.data
-    } catch (error) {
-      console.error('Get file info failed:', error)
-      throw error
-    }
-  }
-
-  /**
-   * 删除文件
-   */
-  async deleteFile(fileId: number): Promise<void> {
-    try {
-      const response = await this.networkManager.delete<{success: boolean; message?: string}>(
-        `${this.getUploadBaseUrl()}/${fileId}`
-      )
-
-      if (!response.success) {
-        throw new Error(response.message || '删除文件失败')
-      }
-    } catch (error) {
-      console.error('Delete file failed:', error)
       throw error
     }
   }

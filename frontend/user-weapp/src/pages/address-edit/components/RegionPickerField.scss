@@ -1,0 +1,23 @@
+@import "../../../styles/theme.scss";
+@import './fields.scss';
+
+/* 地区选择加载状态 */
+.region-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg-card);
+  margin: 0 16px;
+  border-radius: 12px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

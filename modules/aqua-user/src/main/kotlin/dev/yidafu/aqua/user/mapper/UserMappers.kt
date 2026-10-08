@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,49 +19,64 @@
 
 package dev.yidafu.aqua.user.mapper
 
-import dev.yidafu.aqua.api.dto.CreateAddressRequest
-import dev.yidafu.aqua.api.dto.NotificationSettingsDTO
-import dev.yidafu.aqua.api.dto.UpdateAddressRequest
-import dev.yidafu.aqua.api.dto.UserDTO
-import dev.yidafu.aqua.common.graphql.generated.Address
-import dev.yidafu.aqua.common.graphql.generated.AddressInput
-import dev.yidafu.aqua.common.graphql.generated.Admin
-import dev.yidafu.aqua.common.graphql.generated.Region
-import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
-import dev.yidafu.aqua.common.graphql.generated.User
-import dev.yidafu.aqua.user.domain.model.AddressModel
-import dev.yidafu.aqua.user.domain.model.AdminModel
-import dev.yidafu.aqua.user.domain.model.NotificationSettingsModel
-import dev.yidafu.aqua.user.domain.model.RegionModel
-import dev.yidafu.aqua.user.domain.model.UserModel
-import org.springframework.data.domain.Page
-import org.springframework.stereotype.Component
+import dev.yidafu.aqua.common.domain.model.*
+import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
+import dev.yidafu.aqua.common.graphql.generated.*
+import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatus
+import tech.mappie.api.EnumMappie
 import tech.mappie.api.ObjectMappie
 import java.time.LocalDateTime
-import jakarta.validation.constraints.NotNull
-import tools.jackson.databind.ObjectMapper
+import dev.yidafu.aqua.common.graphql.generated.AdminRole as AdminRoleG
 
 // ============================================================================
 // Domain Model → GraphQL Mappers
 // ============================================================================
 
+object AdminRoleMapper : EnumMappie<AdminRoleG, AdminRoleModel>()
+
 /**
  * Mapper for converting UserModel domain entity to GraphQL User type
+ * Handles monetary field conversion from cents (Long) to GraphQL cent-based fields
  */
-object UserMapper : ObjectMappie<UserModel, User>(){
-  override fun map(from: UserModel): User  = mapping {
-    to::id fromValue (from.id ?: -1L)
-  }
+object UserMapper : ObjectMappie<UserModel, User>() {
+  override fun map(from: UserModel): User =
+    mapping {
+      to::id fromValue (from.id ?: -1L)
+      // Monetary fields are already in cents (Long) in UserModel, so direct mapping works
+      // No conversion needed as both source and target use cent-based Long fields
+      to::balanceCents fromValue from.balanceCents
+      to::totalSpentCents fromValue from.totalSpentCents
+      // 所属客户分组(F-MKT-001):分组名由 resolver 联查填充(默认 null=未分组)
+      to::customerGroupId fromProperty from::customerGroupId
+      to::customerGroupName fromValue null
+    }
 }
-
 
 /**
  * Mapper for converting Admin domain entity to GraphQL Admin type
+ *
+ * 送水员档案并入 admins 单表后,Admin 类型同时承载配送业务字段(F-USR-021)
  */
 object AdminMapper : ObjectMappie<AdminModel, Admin>() {
   override fun map(from: AdminModel) =
     mapping {
-      to::role fromExpression { admin -> admin.role.name }
+      to::id fromValue (from.id ?: 0L)
+      to::username fromProperty from::username
+      to::realName fromProperty from::realName
+      to::phone fromProperty from::phone
+      to::role fromExpression { it.role.name }
+      to::createdAt fromProperty from::createdAt
+      to::updatedAt fromProperty from::updatedAt
+      to::lastLoginAt fromProperty from::lastLoginAt
+      // 账号状态(枚举需显式转换;F-USR-020)
+      to::accountStatus fromExpression {
+        AdminAccountStatus.valueOf(from.accountStatus.name)
+      }
+      // 配送业务字段(与 AdminModel 同名同类型自动映射;枚举需显式转换)
+      to::onlineStatus fromExpression {
+        DeliveryWorkerStatus.valueOf(from.onlineStatus.name)
+      }
+      to::isAvailable fromProperty from::isAvailable
     }
 }
 
@@ -86,50 +101,11 @@ object AddressMapper : ObjectMappie<AddressModel, Address>() {
 object RegionMapper : ObjectMappie<RegionModel, Region>() {
   override fun map(from: RegionModel) =
     mapping {
+      to::id fromValue (from.id ?: 0L)
       // Most fields map automatically by name
       // No custom mapping needed as field names match
     }
 }
-
-// ============================================================================
-// DTO → Domain Model Mappers
-// ============================================================================
-
-
-
-/**
- * Mapper for converting NotificationSettingsModel to NotificationSettingsDTO
- */
-object NotificationSettingsModelToDTOMapper : ObjectMappie<NotificationSettingsModel, NotificationSettingsDTO>() {
-  override fun map(from: NotificationSettingsModel) =
-    mapping {
-      // Most fields map automatically by name
-      // No custom mapping needed as field names match
-    }
-}
-
-/**
- * Mapper for converting UserModel to UserDTO
- */
-object UserModelToDTOMapper : ObjectMappie<UserModel, UserDTO>() {
-  override fun map(from: UserModel) =
-    mapping {
-      // Most fields map automatically by name
-      // No custom mapping needed as field names match
-      to::addresses fromValue emptyList()
-      to::notificationSettings fromValue NotificationSettingsDTO()
-    }
-}
-
-/**
- * Mapper for converting UserDTO to UserModel
- */
-// object UserDTOToModelMapper : ObjectMappie<UserDTO, UserModel>() {
-//    override fun map(from: UserDTO) = mapping {
-//        // Most fields map automatically by name
-//        // No custom mapping needed as field names match
-//    }
-// }
 
 // ============================================================================
 // Request → Domain Model Mappers (with additional parameters)
@@ -141,6 +117,7 @@ object UserModelToDTOMapper : ObjectMappie<UserModel, UserDTO>() {
 object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
   override fun map(from: AddressInput) =
     mapping {
+      // id 置空交由 @SnowflakeIdGenerator 在 INSERT 时生成；固定 -1 会导致 save() 走 merge 抛 StaleObjectState
       to::id fromValue null
       to::userId fromValue 0L // Will be set after mapping
       to::createdAt fromValue LocalDateTime.now()
@@ -150,32 +127,33 @@ object AddressInputMapper : ObjectMappie<AddressInput, AddressModel>() {
       to::latitude fromValue from.latitude?.toDouble()
     }
 }
+
 /**
  * Mapper for converting UpdateAddressRequest with id and userId to AddressModel domain entity
  */
 object AddressUpdateMapper : ObjectMappie<UpdateAddressInput, AddressModel>() {
-  override fun map(from: UpdateAddressInput): AddressModel  = mapping {
+  override fun map(from: UpdateAddressInput): AddressModel =
+    mapping {
+      to::id fromValue -1L
+      to::userId fromValue 0L // Will be set after mapping
 
-    to::id fromValue null
-    to::userId fromValue 0L // Will be set after mapping
+      to::province fromValue (from.province ?: "")
+      to::receiverName fromValue (from.receiverName ?: "")
+      to::phone fromValue (from.phone ?: "")
+      to::provinceCode fromValue (from.provinceCode ?: "")
+      to::city fromValue (from.city ?: "")
+      to::cityCode fromValue (from.cityCode ?: "")
+      to::district fromValue (from.district ?: "")
+      to::districtCode fromValue (from.districtCode ?: "")
+      to::detailAddress fromValue (from.detailAddress ?: "")
+      to::isDefault fromValue (from.isDefault ?: false)
 
-    to::province fromValue (from.province ?: "")
-    to::receiverName fromValue (from.receiverName ?: "")
-    to::phone fromValue (from.phone ?: "")
-    to::provinceCode fromValue (from.provinceCode ?: "")
-    to::city fromValue (from.city ?: "")
-    to::cityCode fromValue (from.cityCode ?: "")
-    to::district fromValue (from.district ?: "")
-    to::districtCode fromValue (from.districtCode ?: "")
-    to::detailAddress fromValue (from.detailAddress ?: "")
-    to::isDefault fromValue (from.isDefault ?: false)
-
-    to::createdAt fromValue LocalDateTime.now()
-    to::updatedAt fromValue LocalDateTime.now()
-    // Convert Float to Double for nullable fields
-    to::longitude fromValue from.longitude?.toDouble()
-    to::latitude fromValue from.latitude?.toDouble()
-  }
+      to::createdAt fromValue LocalDateTime.now()
+      to::updatedAt fromValue LocalDateTime.now()
+      // Convert Float to Double for nullable fields
+      to::longitude fromValue from.longitude?.toDouble()
+      to::latitude fromValue from.latitude?.toDouble()
+    }
 }
 
 fun AddressModel.merge(inputInput: UpdateAddressInput) {
@@ -188,6 +166,7 @@ fun AddressModel.merge(inputInput: UpdateAddressInput) {
   inputInput.district?.let { this.district = it }
   inputInput.districtCode?.let { this.districtCode = it }
   inputInput.detailAddress?.let { this.detailAddress = it }
+  inputInput.floor?.let { this.floor = it }
   inputInput.longitude?.let { this.longitude = it.toDouble() }
   inputInput.latitude?.let { this.latitude = it.toDouble() }
   inputInput.isDefault?.let { this.isDefault = it }

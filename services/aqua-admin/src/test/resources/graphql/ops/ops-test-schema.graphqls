@@ -1,0 +1,243 @@
+# Test Schema for Admin Ops Resolvers GraphQL Integration Tests
+# 自包含 schema(仿 delivery-worker 测试目录模式),仅被 @TestPropertySource(spring.graphql.schema.locations=classpath:graphql/ops/) 加载
+
+scalar Long
+scalar LocalDateTime
+
+type Query {
+  banners(input: BannerListInput): BannerVOPage
+  banner(id: Long!): Banner
+  feedbacks(input: FeedbackListInput): FeedbackVOPage
+  feedback(id: Long!): Feedback
+  notices(input: NoticeListInput): NoticeVOPage
+  notice(id: Long!): Notice
+  storeProfile: StoreProfile
+  deliveryFeeRule: DeliveryFeeRule
+}
+
+type Mutation {
+  createBanner(input: CreateBannerInput!): Banner!
+  updateBanner(id: Long!, input: UpdateBannerInput!): Banner!
+  deleteBanner(id: Long!): Boolean!
+  reorderBanner(id: Long!, direction: ReorderDirection!): [Banner!]!
+  reviewFeedback(id: Long!, input: FeedbackReviewInput!): Feedback!
+  createNotice(input: CreateNoticeInput!): Notice!
+  updateNotice(id: Long!, input: UpdateNoticeInput!): Notice!
+  publishNotice(id: Long!): Notice!
+  stopNotice(id: Long!): Notice!
+  setNoticePinned(id: Long!, pinned: Boolean!): Notice!
+  deleteNotice(id: Long!): Boolean!
+  saveStoreProfile(input: SaveStoreProfileInput!): StoreProfile!
+  saveDeliveryFeeRule(input: SaveDeliveryFeeRuleInput!): DeliveryFeeRule!
+}
+
+type Banner {
+  id: Long!
+  imageUrl: String!
+  title: String!
+  subtitle: String
+  linkType: BannerLinkType!
+  linkTarget: String!
+  sortOrder: Int!
+  enabled: Boolean!
+  startAt: LocalDateTime
+  endAt: LocalDateTime
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+enum BannerLinkType {
+  PRODUCT
+  CUSTOM_PAGE
+}
+
+type BannerVOPage {
+  content: [Banner!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+type Feedback {
+  id: Long!
+  userId: Long!
+  feedbackType: FeedbackType!
+  content: String!
+  images: [String!]
+  contactInfo: String
+  status: FeedbackStatus!
+  handleResult: String
+  handledById: Long
+  handledByName: String
+  handledAt: LocalDateTime
+  createdAt: LocalDateTime!
+}
+
+enum FeedbackType {
+  PRODUCT_QUALITY
+  DELIVERY_SERVICE
+  APP_USAGE
+  SUGGESTION
+  COMPLAINT
+  OTHER
+}
+
+enum FeedbackStatus {
+  PENDING
+  PROCESSING
+  RESOLVED
+}
+
+enum ReorderDirection {
+  UP
+  DOWN
+}
+
+type FeedbackVOPage {
+  content: [Feedback!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+input BannerListInput {
+  keyword: String
+  enabled: Boolean
+  page: Int
+  size: Int
+}
+
+input CreateBannerInput {
+  imageUrl: String!
+  title: String!
+  subtitle: String
+  linkType: BannerLinkType!
+  linkTarget: String!
+  sortOrder: Int
+  enabled: Boolean
+  startAt: LocalDateTime
+  endAt: LocalDateTime
+}
+
+input UpdateBannerInput {
+  imageUrl: String!
+  title: String!
+  subtitle: String
+  linkType: BannerLinkType!
+  linkTarget: String!
+  sortOrder: Int
+  enabled: Boolean
+  startAt: LocalDateTime
+  endAt: LocalDateTime
+}
+
+input FeedbackListInput {
+  feedbackType: FeedbackType
+  status: FeedbackStatus
+  # 用户ID(用户详情页「意见反馈」Tab 按用户过滤)
+  userId: Long
+  contactKeyword: String
+  dateFrom: LocalDateTime
+  dateTo: LocalDateTime
+  page: Int
+  size: Int
+}
+
+input FeedbackReviewInput {
+  handleResult: String
+  status: FeedbackStatus!
+}
+
+type Notice {
+  id: Long!
+  title: String!
+  content: String!
+  type: NoticeType!
+  pinned: Boolean!
+  startAt: LocalDateTime
+  endAt: LocalDateTime
+  status: NoticeStatus!
+  publishedAt: LocalDateTime
+  createdAt: LocalDateTime!
+  updatedAt: LocalDateTime!
+}
+
+enum NoticeType {
+  PLATFORM_NOTICE
+  WATER_OUTAGE
+  ACTIVITY_PREVIEW
+}
+
+enum NoticeStatus {
+  DRAFT
+  PUBLISHED
+  STOPPED
+}
+
+type NoticeVOPage {
+  content: [Notice!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+type StoreProfile {
+  shopName: String!
+  logoUrl: String
+  serviceHotline: String!
+  businessHoursStart: String
+  businessHoursEnd: String
+  shopIntro: String
+  aboutUs: String
+  updatedAt: LocalDateTime
+}
+
+type DeliveryFeeRule {
+  freeFloorLimit: Int!
+  surchargeCents: Long!
+  updatedAt: LocalDateTime
+}
+
+input NoticeListInput {
+  keyword: String
+  type: NoticeType
+  status: NoticeStatus
+  page: Int
+  size: Int
+}
+
+input CreateNoticeInput {
+  title: String!
+  content: String!
+  type: NoticeType!
+  pinned: Boolean
+  startAt: LocalDateTime
+  endAt: LocalDateTime
+}
+
+input UpdateNoticeInput {
+  title: String!
+  content: String!
+  type: NoticeType!
+  pinned: Boolean
+  startAt: LocalDateTime
+  endAt: LocalDateTime
+}
+
+input SaveStoreProfileInput {
+  shopName: String!
+  logoUrl: String
+  serviceHotline: String!
+  businessHoursStart: String
+  businessHoursEnd: String
+  shopIntro: String
+  aboutUs: String
+}
+
+input SaveDeliveryFeeRuleInput {
+  freeFloorLimit: Int!
+  surchargeCents: Long!
+}

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 企业客户管理｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 用户管理 / 企业客户管理</h1>
+      <p class="sub">功能编号 F-ORD-027 [规划中]（企业客户下单 — 后台侧）｜ 订单域 ｜ 入口：用户管理 → 企业客户</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-027</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">缺口 G83</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：企业客户列表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 企业客户列表（账期 / 信用额度 / 开票状态）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/enterprise-customers</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> <b>企业客户</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>企业客户</h2>
+                    <div class="desc">企业身份由后台标记（非自助注册）｜ 月结为资金类业务须评估风控与合规 <span class="tag tag-goal"></span></div>
+                  </div>
+                  <span class="btn sm">＋ 新建企业客户</span>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>企业名称</span><div class="input" style="width:180px"><span class="ph">企业名称 / 税号</span></div></div>
+                  <div class="fitem"><span>开票状态</span><div class="select" style="width:120px"><span>全部</span></div></div>
+                  <div class="fitem"><span>状态</span><div class="select" style="width:112px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto"><span class="btn sm ghost">重置</span><span class="btn sm">查询</span></div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>企业名称</th><th>联系人</th><th>账期</th>
+                        <th class="num">信用额度</th><th class="num">已用额度</th><th>开票状态</th><th>状态</th><th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="bold">深圳市前海科技有限公司</div><div class="sub-line">91440300MA5*******</div></td>
+                        <td><div>李*明</div><div class="sub-line">139****0088</div></td>
+                        <td>月结 30 天</td>
+                        <td class="num">¥20000.00</td>
+                        <td class="num">¥8640.00</td>
+                        <td><span class="tag tag-ok">已开票</span></td>
+                        <td><span class="tag tag-ok">正常</span></td>
+                        <td><div class="ops"><a>编辑</a><a>额度调整</a><a>账单查看</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">南山物业管理有限公司</div><div class="sub-line">91440300MA5*******</div></td>
+                        <td><div>王*芳</div><div class="sub-line">137****4512</div></td>
+                        <td>月结 15 天</td>
+                        <td class="num">¥10000.00</td>
+                        <td class="num t-warn">¥9760.00</td>
+                        <td><span class="tag tag-warn">未开票</span></td>
+                        <td><span class="tag tag-warn">额度紧张</span></td>
+                        <td><div class="ops"><a>编辑</a><a>额度调整</a><a>账单查看</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">福田建筑工程集团</div><div class="sub-line">91440300MA5*******</div></td>
+                        <td><div>陈*强</div><div class="sub-line">135****9930</div></td>
+                        <td>月结 30 天</td>
+                        <td class="num">¥50000.00</td>
+                        <td class="num t-err">¥50000.00</td>
+                        <td><span class="tag tag-cancel">已红冲</span></td>
+                        <td><span class="tag tag-err">已超额度</span></td>
+                        <td><div class="ops"><a>编辑</a><a>额度调整</a><a>账单查看</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">罗湖餐饮连锁管理公司</div><div class="sub-line">91440300MA5*******</div></td>
+                        <td><div>赵*琴</div><div class="sub-line">136****2201</div></td>
+                        <td>月结 30 天</td>
+                        <td class="num">¥15000.00</td>
+                        <td class="num">¥3200.00</td>
+                        <td><span class="tag tag-ok">已开票</span></td>
+                        <td><span class="tag tag-ok">正常</span></td>
+                        <td><div class="ops"><a>编辑</a><a>额度调整</a><a>账单查看</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 4 家企业客户 ｜ 超出信用额度时下单拦截</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div>
+                  </div>
+                </div>
+
+                <div class="notice mt3">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><path d="M12 3l8 4v5c0 5-3.4 8-8 9-4.6-1-8-4-8-9V7z"/></svg>
+                  <span>账期到期 → 后台生成账单（按客户 + 账期聚合已完成订单金额）→ 收款核销 → 更新额度；下单一侧超出额度提示「已超出信用额度，请先结清或联系管理员」。</span>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：新建 / 编辑弹窗 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 新建 / 编辑企业客户弹窗</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/enterprise-customers — 新建</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 企业客户 <span class="crumb-sep">/</span> <b>新建</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title">
+                  <div><h2>企业客户</h2><div class="desc">弹窗打开态</div></div>
+                  <span class="btn sm">＋ 新建企业客户</span>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>企业名称</th><th>联系人</th><th>账期</th><th class="num">信用额度</th></tr></thead>
+                    <tbody>
+                      <tr><td>深圳市前海科技有限公司</td><td>李*明</td><td>月结 30 天</td><td class="num">¥20000.00</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal">
+              <div class="modal-head">新建企业客户</div>
+              <div class="modal-body">
+                <div class="field">
+                  <label class="req">企业名称</label>
+                  <div class="input"><span>深圳市前海科技有限公司</span></div>
+                </div>
+                <div class="field">
+                  <label class="req">税号</label>
+                  <div class="input"><span>91440300MA5*******</span></div>
+                </div>
+                <div class="field">
+                  <label>开票抬头</label>
+                  <div class="input"><span>深圳市前海科技有限公司</span></div>
+                </div>
+                <div class="grid2" style="gap:0 16px">
+                  <div class="field">
+                    <label class="req">账期</label>
+                    <div class="select"><span>月结 30 天</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">账期 ≥ 0 天</div>
+                  </div>
+                  <div class="field">
+                    <label class="req">信用额度（元）</label>
+                    <div class="input"><span>20000.00</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">信用额度 ≥ 0；超出时下单拦截</div>
+                  </div>
+                </div>
+                <div class="field" style="margin-bottom:0">
+                  <label>状态</label>
+                  <div class="row gap2"><span class="switch on"></span><span class="f-aux t-sub">启用（企业身份由后台标记）</span></div>
+                </div>
+                <div class="notice mt3">
+                  <svg class="ico ico-sm" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/></svg>
+                  <span>企业名称 / 税号必填；保存失败 message；月结为资金类业务须评估风控与合规。</span>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">保存</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- ============ 状态三：企业客户详情 ============ -->
+      <div>
+        <div class="browser-cap">状态三 · 企业客户详情（基本信息 + 地址 + 月结账单 + 开票记录）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/enterprise-customers/ENT1024</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 企业客户 <span class="crumb-sep">/</span> <b>深圳市前海科技有限公司</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>深圳市前海科技有限公司</h2>
+                    <div class="desc">账期 月结 30 天 ｜ <span class="tag tag-ok">正常</span> <span class="tag tag-goal"></span></div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">编辑</span>
+                    <span class="btn sm">额度调整</span>
+                  </div>
+                </div>
+
+                <div class="stat-grid c3 mb3">
+                  <div class="stat-card"><div class="lbl">信用额度</div><div class="val">¥20000<small>.00</small></div></div>
+                  <div class="stat-card"><div class="lbl">已用额度</div><div class="val">¥8640<small>.00</small></div></div>
+                  <div class="stat-card"><div class="lbl">可用余额</div><div class="val t-ok">¥11360<small>.00</small></div></div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head"><span class="card-title">基本信息</span></div>
+                  <div class="desc-grid">
+                    <div class="desc-item"><div class="k">企业名称</div><div class="v">深圳市前海科技有限公司</div></div>
+                    <div class="desc-item"><div class="k">税号</div><div class="v num">91440300MA5*******</div></div>
+                    <div class="desc-item"><div class="k">开票抬头</div><div class="v">深圳市前海科技有限公司</div></div>
+                    <div class="desc-item"><div class="k">联系人</div><div class="v">李*明 ｜ 139****0088</div></div>
+                    <div class="desc-item"><div class="k">账期</div><div class="v">月结 30 天</div></div>
+                    <div class="desc-item"><div class="k">状态</div><div class="v"><span class="tag tag-ok">正常</span></div></div>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head">
+                    <span class="card-title">绑定收货地址</span>
+                    <span class="btn xs ghost">＋ 绑定地址</span>
+                  </div>
+                  <div class="list-item" style="padding-left:0;padding-right:0">
+                    <span class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg></span>
+                    <span class="grow">广东省深圳市南山区前海自贸区 A 座 18 层<div class="sub-line">默认 ｜ 楼层 18</div></span>
+                  </div>
+                  <div class="list-item" style="padding-left:0;padding-right:0">
+                    <span class="li-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg></span>
+                    <span class="grow">广东省深圳市南山区前海自贸区 C 座 6 层<div class="sub-line">楼层 6</div></span>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head"><span class="card-title">月结账单（按账期汇总已完成订单金额）</span></div>
+                  <div class="ant-table">
+                    <table>
+                      <thead>
+                        <tr><th>账期</th><th class="num">订单金额</th><th class="num">已结</th><th class="num">未结</th><th>状态</th><th>操作</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>2026-09-01 ~ 2026-09-30</td>
+                          <td class="num bold">¥12860.00</td>
+                          <td class="num t-ok">¥12860.00</td>
+                          <td class="num">¥0.00</td>
+                          <td><span class="tag tag-done">已结清</span></td>
+                          <td><div class="ops"><a>查看明细</a></div></td>
+                        </tr>
+                        <tr>
+                          <td>2026-10-01 ~ 2026-10-31</td>
+                          <td class="num bold">¥8640.00</td>
+                          <td class="num">¥0.00</td>
+                          <td class="num t-err">¥8640.00</td>
+                          <td><span class="tag tag-warn">未结</span></td>
+                          <td><div class="ops"><a>查看明细</a><a>收款核销</a></div></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div class="card">
+                  <div class="card-head"><span class="card-title">开票记录</span></div>
+                  <div class="ant-table">
+                    <table>
+                      <thead>
+                        <tr><th>开票抬头</th><th>税号</th><th class="num">金额</th><th>状态</th><th>时间</th></tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>深圳市前海科技有限公司</td>
+                          <td class="num">91440300MA5*******</td>
+                          <td class="num bold">¥12860.00</td>
+                          <td><span class="tag tag-ok">已开票</span></td>
+                          <td>2026-10-01 10:12</td>
+                        </tr>
+                        <tr>
+                          <td>深圳市前海科技有限公司</td>
+                          <td class="num">91440300MA5*******</td>
+                          <td class="num bold">¥8640.00</td>
+                          <td><span class="tag tag-warn">未开票</span></td>
+                          <td>2026-10-31 待生成</td>
+                        </tr>
+                        <tr>
+                          <td>深圳市前海科技有限公司</td>
+                          <td class="num">91440300MA5*******</td>
+                          <td class="num bold">¥1200.00</td>
+                          <td><span class="tag tag-cancel">已红冲</span></td>
+                          <td>2026-09-18 15:40</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div class="f-note t-weak mt2">退款触发红冲；开票粒度为开放问题。</div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（目标形态）</p>
+        <p><strong>入口：</strong>左侧菜单「用户管理 → 企业客户」</p>
+        <p><strong>跳转：</strong>企业客户详情（基本信息 + 地址 + 月结账单 + 开票记录）</p>
+        <p><strong>交叉：</strong>07-user.md §F-USR-022（客户管理）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>企业客户列表：企业名称 / 联系人 / 账期 / 信用额度 / 已用额度 / 开票状态 / 状态；操作 新建 · 编辑 · 额度调整 · 账单查看</li>
+          <li>企业客户详情：基本信息 + 绑定收货地址 + 月结账单 + 开票记录</li>
+          <li>新建 / 编辑弹窗：企业名称 / 税号 / 开票抬头 / 账期 / 信用额度</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>建企业客户 → 设置账期（如月结 30 天）与信用额度 → 绑定收货地址</li>
+          <li>账期到期 → 后台生成账单（按客户 + 账期聚合已完成订单金额）→ 收款核销 → 更新额度</li>
+          <li>开票 → 按账单 / 订单生成发票记录 → 开票状态流转，退款触发红冲</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>「暂无企业客户」；<strong>加载态：</strong>列表 / 保存 loading；<strong>错误态：</strong>保存 / 提交失败 message；<strong>禁用态：</strong>超出信用额度时下单拦截。</p>
+        <p><strong>开票状态：</strong>未开票 / 已开票 / 已红冲。</p>
+        <p><strong>约束：</strong>企业名称 / 税号必填；账期 ≥ 0 天、信用额度 ≥ 0。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>本页为 <span class="tag tag-goal"></span>，缺口 <strong>G83</strong>。</p>
+        <p>管理端<strong>不出现强调橙</strong>：主操作用品牌蓝；已红冲 / 已超额度用语义 error 色，未开票 / 额度紧张用 warning 色。</p>
+        <p>企业客户身份由后台标记（非自助注册）；月结为资金类业务须评估风控与合规；金额一律 <code>¥0.00</code>。</p>
+        <p>开放问题：账期上限与信用额度风控、坏账预警、账期逾期是否限制下单、拆单规则、开票粒度与退款红冲。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

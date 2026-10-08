@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 满减 / 折扣活动｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 满减 / 折扣活动</h1>
+      <p class="sub">功能编号 F-MKT-004 ｜ 营销域（客户与营销）｜ 下游：确认订单「活动已减」行（order-confirm）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-MKT-004</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">admin-client</span>
+      <span class="chip chip-plain">缺口 G55 已解决</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：活动列表 ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 活动列表（类型 / 档位 / 生效时间 / 状态 / 参与订单数）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/promotions</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>满减 / 折扣</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>满减 / 折扣</h2>
+                    <div class="desc">下单自动减免、无需领券；同一订单命中多活动取优惠最大者，不叠加</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">导出</span>
+                    <span class="btn sm">＋ 新建活动</span>
+                  </div>
+                </div>
+
+                <div class="filter-card">
+                  <div class="fitem"><span>活动名称</span><div class="input" style="width:170px"><span class="ph">输入活动名称</span></div></div>
+                  <div class="fitem"><span>类型</span><div class="select" style="width:130px"><span>全部</span></div></div>
+                  <div class="fitem"><span>状态</span><div class="select" style="width:130px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto">
+                    <span class="btn sm ghost">重置</span>
+                    <span class="btn sm">查询</span>
+                  </div>
+                </div>
+
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>活动名</th>
+                        <th>类型</th>
+                        <th>档位</th>
+                        <th>生效时间</th>
+                        <th>状态</th>
+                        <th class="num">参与订单数</th>
+                        <th>操作</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td><div class="bold">全场满 100 减 10</div><div class="sub-line">全场适用</div></td>
+                        <td><span class="tag tag-brand">满减</span></td>
+                        <td>
+                          <div class="f-note">满 ¥100.00 减 ¥10.00</div>
+                          <div class="f-note">满 ¥200.00 减 ¥25.00</div>
+                        </td>
+                        <td>2026-08-01 ~ 2026-12-31</td>
+                        <td><span class="tag tag-deliver">进行中</span></td>
+                        <td class="num bold">1,024</td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">桶装水满 3 桶 9 折</div><div class="sub-line">指定商品</div></td>
+                        <td><span class="tag tag-brand">满折</span></td>
+                        <td><div class="f-note">满 ¥60.00 打 9.00 折</div></td>
+                        <td>2026-09-01 ~ 2026-10-31</td>
+                        <td><span class="tag tag-assign">未开始</span></td>
+                        <td class="num">0</td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a><a>停用</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">企业客户满 500 减 80</div><div class="sub-line">指定分组</div></td>
+                        <td><span class="tag tag-brand">满减</span></td>
+                        <td><div class="f-note">满 ¥500.00 减 ¥80.00</div></td>
+                        <td>2026-07-01 ~ 2026-09-30</td>
+                        <td><span class="tag tag-done">已结束</span></td>
+                        <td class="num">318</td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a></div></td>
+                      </tr>
+                      <tr>
+                        <td><div class="bold">新客满 50 减 8</div><div class="sub-line">全场适用</div></td>
+                        <td><span class="tag tag-brand">满减</span></td>
+                        <td><div class="f-note">满 ¥50.00 减 ¥8.00</div></td>
+                        <td>2026-06-01 ~ 2026-08-31</td>
+                        <td><span class="tag tag-neutral">已停用</span></td>
+                        <td class="num">206</td>
+                        <td><div class="ops"><a>详情</a><a>编辑</a></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot">
+                    <span>共 4 条记录</span>
+                    <div class="pager"><i>‹</i><i class="on">1</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：新建活动弹窗（档位阶梯编辑器） ============ -->
+      <div>
+        <div class="browser-cap">状态二 · 新建活动弹窗（多档阶梯可增删 + 叠加与互斥规则）</div>
+        <div class="browser viewport">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/marketing/promotions/new</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">营销管理 <span class="crumb-sep">/</span> <b>满减 / 折扣</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="page-title"><div><h2>满减 / 折扣</h2><div class="desc">弹窗打开态（背景遮罩）</div></div>
+                  <div class="row gap2"><span class="btn sm ghost">导出</span><span class="btn sm">＋ 新建活动</span></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead><tr><th>活动名</th><th>类型</th><th>档位</th><th>状态</th></tr></thead>
+                    <tbody>
+                      <tr><td>全场满 100 减 10</td><td><span class="tag tag-brand">满减</span></td><td>满 ¥100.00 减 ¥10.00</td><td><span class="tag tag-deliver">进行中</span></td></tr>
+                      <tr><td>桶装水满 3 桶 9 折</td><td><span class="tag tag-brand">满折</span></td><td>满 ¥60.00 打 9.00 折</td><td><span class="tag tag-assign">未开始</span></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-mask">
+            <div class="modal wide">
+              <div class="modal-head">新建满减 / 折扣活动</div>
+              <div class="modal-body">
+                <div class="grid2" style="gap:0 16px">
+                  <div class="field">
+                    <label class="req">活动名称</label>
+                    <div class="input"><span class="ph">全场满 100 减 10</span></div>
+                  </div>
+                  <div class="field">
+                    <label class="req">类型</label>
+                    <div class="radio-row">
+                      <span class="radio on">满减（满 X 元减 Y 元）</span>
+                      <span class="radio">满折（满 X 元打 N 折）</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="req">档位（阶梯，可增删，金额递增）</label>
+                  <div class="row gap2 mb2">
+                    <span class="f-note t-sub" style="flex:0 0 118px">满 X（元，≥0）</span>
+                    <span class="f-note t-sub" style="flex:1 1 auto">减 Y（元，&gt;0）/ 打 N 折（1–9.99）</span>
+                    <span style="width:32px"></span>
+                  </div>
+                  <div class="row gap2 mb2">
+                    <div class="input" style="flex:0 0 118px"><span>100.00</span></div>
+                    <div class="input"><span>10.00</span></div>
+                    <span class="btn xs ghost">删除</span>
+                  </div>
+                  <div class="row gap2 mb2">
+                    <div class="input" style="flex:0 0 118px"><span>200.00</span></div>
+                    <div class="input"><span>25.00</span></div>
+                    <span class="btn xs ghost">删除</span>
+                  </div>
+                  <span class="btn xs secondary">＋ 增加档位</span>
+                  <div class="f-note t-weak" style="margin-top:6px">档位金额需递增；同档重复或倒挂时提示「档位金额需递增」</div>
+                </div>
+
+                <div class="grid2" style="gap:0 16px">
+                  <div class="field">
+                    <label class="req">适用范围</label>
+                    <div class="select"><span>全场</span></div>
+                    <div class="f-note t-weak" style="margin-top:4px">可选：全场 / 指定商品 / 指定分组（联动选择器）</div>
+                  </div>
+                  <div class="field">
+                    <label>指定对象</label>
+                    <div class="select disabled"><span class="ph">选择商品 / 分组</span></div>
+                  </div>
+                </div>
+
+                <div class="field">
+                  <label class="req">时间窗</label>
+                  <div class="row gap2"><div class="input"><span>2026-09-01 00:00</span></div><span class="t-weak">–</span><div class="input"><span>2026-12-31 23:59</span></div></div>
+                  <div class="f-note t-weak" style="margin-top:4px">开始 &lt; 结束；不合法时提示「时间窗不合法」</div>
+                </div>
+
+                <div class="field">
+                  <label>叠加与互斥规则</label>
+                  <div class="notice brand">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01M11 12h1v4h1"/></svg>
+                    同一订单命中多个满减 / 折扣活动时取优惠最大者，不叠加；与首单立减互斥取最大；不参与赠品的现金叠加与券门槛计算
+                  </div>
+                </div>
+
+                <div class="field mb0">
+                  <label>启用</label>
+                  <div class="row gap2">
+                    <span class="switch on"></span>
+                    <span class="f-aux t-sub">启用后保存上架，下单自动减免（无需领券）</span>
+                  </div>
+                </div>
+              </div>
+              <div class="modal-foot">
+                <span class="btn sm ghost">取消</span>
+                <span class="btn sm">保存并上架</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>营销管理 → 满减 / 折扣</p>
+        <p><strong>跳转：</strong>行「详情」→ 营销活动详情页（F-MKT-003/004/005/008/009 共用）</p>
+        <p><strong>组件：</strong>Table、Modal、Form、InputNumber、Select、DatePicker、Switch</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部：「新建活动」按钮</li>
+          <li>活动列表：活动名 / 类型 / 档位 / 适用范围 / 时间窗 / 状态 / 参与订单数 / 操作</li>
+          <li>新建 / 编辑弹窗：活动名称、类型、多档位阶梯、适用范围、时间窗、启用</li>
+          <li>档位阶梯编辑器：可增删多行，行内删除 + 「增加档位」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>配置活动 → 保存上架 → 下单自动减免（无需领券）</li>
+          <li>修改档位 / 时间窗 → 新订单生效，已生成订单不受影响</li>
+          <li>停用 → 立即失效</li>
+          <li>用户端确认订单展示「活动已减 ¥x」行（order-confirm）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>活动态：</strong>未开始 .tag-assign / 进行中 .tag-deliver / 已结束 .tag-done / 已停用 .tag-neutral，时间窗过期自动失效在列表状态体现。</p>
+        <p><strong>校验：</strong>「档位金额需递增」「时间窗不合法」；文案「满 100 减 10」「活动已减 ¥x」。</p>
+        <p><strong>规则：</strong>同一订单命中多活动取优惠最大者，不叠加；档位金额单位为分存储（R-MON-01）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>多档阶梯需可增删且实时校验递增互斥；档位「满 / 减」两列对齐，便于评审读数。</p>
+        <p>管理端<strong>不出现强调橙</strong>：主操作「保存并上架」用品牌蓝，删除档位用 ghost 中性按钮。</p>
+        <p>缺口 G55 已解决：满减 / 折扣已闭环，且与首单立减取最大的互斥规则在弹窗内明示。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

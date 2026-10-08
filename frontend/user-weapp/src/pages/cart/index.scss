@@ -1,0 +1,247 @@
+@import "../../styles/theme.scss";
+
+.cart-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg);
+}
+
+/* 空态 */
+.cart-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 0;
+
+  .cart-empty-icon {
+    width: 160px;
+    height: 160px;
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .cart-empty-emoji {
+      font-size: 96px;
+    }
+  }
+
+  .cart-empty-text {
+    font-size: 28px;
+    color: var(--text-weak);
+    margin-bottom: 32px;
+  }
+
+  .cart-empty-btn {
+    padding: 16px 64px;
+    border-radius: var(--radius-btn);
+    background: var(--brand-primary); // 去逛逛:主按钮品牌蓝
+
+    .cart-empty-btn-text {
+      font-size: 28px;
+      color: var(--bg-card);
+    }
+  }
+}
+
+/* 商品列表 */
+.cart-list {
+  flex: 1;
+  padding: 20px;
+  box-sizing: border-box;
+  height: calc(100vh - 140px - env(safe-area-inset-bottom));
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  background: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px;
+  margin-bottom: 20px;
+
+  .cart-check {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 16px;
+    flex-shrink: 0;
+
+    .cart-check-icon {
+      color: var(--bg-card);
+      font-size: 24px;
+    }
+  }
+
+  .cart-check-on {
+    background: var(--brand-primary); // 勾选框选中:主色
+    border-color: var(--brand-primary);
+  }
+
+  .cart-item-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 12px;
+    margin-right: 16px;
+    flex-shrink: 0;
+  }
+
+  .cart-item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
+    .cart-item-name {
+      font-size: 28px;
+      color: var(--text-main);
+      font-weight: 600;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .cart-item-spec {
+      font-size: 22px;
+      color: var(--text-weak);
+      margin-top: 6px;
+    }
+
+    .cart-item-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 16px;
+
+      .cart-item-price {
+        font-size: 30px;
+        color: var(--brand-primary); // 单价:主色加粗,不用强调橙(§3)
+        font-weight: 700;
+      }
+
+      .cart-stepper {
+        display: flex;
+        align-items: center;
+
+        .cart-stepper-btn {
+          width: 48px;
+          height: 48px;
+          border: 1px solid var(--border);
+          border-radius: var(--radius-sm);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: var(--bg);
+
+          .cart-stepper-icon {
+            font-size: 28px;
+            color: var(--text-main);
+          }
+        }
+
+        .cart-stepper-disabled {
+          opacity: 0.3;
+        }
+
+        .cart-stepper-value {
+          min-width: 56px;
+          text-align: center;
+          font-size: 26px;
+          color: var(--text-main);
+        }
+      }
+    }
+  }
+
+  .cart-item-delete {
+    padding: 12px;
+    flex-shrink: 0;
+
+    .cart-item-delete-icon {
+      font-size: 36px;
+      color: var(--text-weak);
+    }
+  }
+}
+
+/* 底部结算栏 */
+.cart-footer {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--bg-card);
+  display: flex;
+  align-items: center;
+  padding: 16px 24px;
+  padding-bottom: calc(16px + env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+
+  .cart-select-all {
+    display: flex;
+    align-items: center;
+
+    .cart-check {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-right: 8px;
+
+      .cart-check-icon {
+        color: var(--bg-card);
+        font-size: 24px;
+      }
+    }
+
+    .cart-check-on {
+      background: var(--brand-primary);
+      border-color: var(--brand-primary);
+    }
+
+    .cart-select-all-text {
+      font-size: 26px;
+      color: var(--text-main);
+    }
+  }
+
+  .cart-total {
+    flex: 1;
+    text-align: right;
+    margin-right: 16px;
+
+    .cart-total-label {
+      font-size: 26px;
+      color: var(--text-sub);
+    }
+
+    .cart-total-price {
+      font-size: 32px;
+      color: var(--brand-primary); // 合计:主色加粗(§3)
+      font-weight: 700;
+    }
+  }
+
+  .cart-checkout-btn {
+    padding: 16px 40px;
+    border-radius: var(--radius-btn);
+    background: var(--brand-primary); // 去结算:品牌蓝底白字全圆角(§3)
+
+    .cart-checkout-text {
+      font-size: 28px;
+      color: var(--bg-card);
+      font-weight: 600;
+    }
+  }
+}

@@ -1,0 +1,60 @@
+# Order management (Admin/Delivery perspective)
+
+extend type Query {
+  # Order queries
+  order(orderId: PrimaryId!): Order
+  orderByNo(orderNo: String!): Order
+  orders(input: OrderListInput): OrderVOPage
+  orderOperations(orderId: PrimaryId!): [OrderOperation!]!
+
+  # 派单相关查询
+  pendingDeliveryOrders: [Order!]!              # 待派单订单
+  assignedOrders: [Order!]!  # 已分配订单
+  deliveringOrders: [Order!]! # 配送中订单
+
+  # 配送员历史订单查询（已完成、已取消、已退款）
+  deliveryWorkerHistoryOrders(
+    status: OrderStatus
+    keyword: String
+    page: Int = 0
+    size: Int = 20
+  ): OrderVOPage!
+
+  # 用户评价记录(用户详情页「评价记录」Tab,分页,F-ORD-007)
+  reviewsByUser(userId: PrimaryId!, page: Int = 0, size: Int = 20): ReviewVOPage!
+
+  # 配送员收到的评价记录(账号详情页「评价记录」Tab,分页,F-USR-020/021;
+  # deliveryWorkerId=账号 id,管理员兼送水同口径,PERMISSION_DELIVERY_WORKER_READ)
+  reviewsByDeliveryWorker(deliveryWorkerId: PrimaryId!, page: Int = 0, size: Int = 20): ReviewVOPage!
+}
+
+# 用户评价分页
+type ReviewVOPage {
+  content: [Review!]!
+  totalElements: Int!
+  totalPages: Int!
+  size: Int!
+  number: Int!
+}
+
+extend type Mutation {
+  # Order mutations
+  updateOrderStatus(orderId: PrimaryId!, status: OrderStatus!): Order!
+  createDeliveryOrder(input: CreateDeliveryOrderInput!): Order!  # 配送员创建订单
+
+  # 派单管理
+  assignDeliveryWorker(orderId: PrimaryId!, workerId: PrimaryId!, isSelfCollect: Boolean!): Order!
+  batchAssignOrders(orderIds: [PrimaryId!]!, workerId: PrimaryId!): [Order!]!
+
+  # 配送员操作
+  acceptDelivery(orderId: PrimaryId!): Order!           # 配送员接单
+  startDelivery(orderId: PrimaryId!): Order!             # 开始配送
+  completeDelivery(orderId: PrimaryId!, photos: [String!]!, paymentType: PaymentType, remark: String): Order!  # 完成配送
+
+  # 配送任务中修正收货地址信息(F-ORD-024:收货人/电话/详细地址/楼层/定位 WGS-84 经纬度,
+  # 仅传入字段生效;PERMISSION_DELIVERY_TASK,送水工与管理员共用)
+  updateOrderAddress(orderId: PrimaryId!, input: UpdateOrderAddressInput!): Order!
+
+  # 配送照片核验(G23/F-ORD-021:后台「通过/驳回」核验流,PERMISSION_ORDER_REVIEW)
+  reviewDeliveryPhoto(orderId: PrimaryId!, action: DeliveryPhotoReviewAction!, remark: String): Order!
+}

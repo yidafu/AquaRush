@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 下单地址选择与配送范围校验｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 下单地址选择与配送范围校验</h1>
+      <p class="sub">功能编号 F-ADR-003 ｜ 地址与配送域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 缺口 G07 ｜ 下游：地址列表选择模式 / 客服会话</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ADR-003</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 状态一：配送范围内 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 配送范围内（校验通过）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">确认订单</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells mt2">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="row gap2">
+                      <svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>
+                      <span class="bold">张伟</span>
+                      <span class="t-sub">138****6688</span>
+                    </div>
+                    <div class="f-body mt2">广东省深圳市南山区科技园南路 18 号 3 号楼 2 单元 802</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-radio on"></span></div>
+                </div>
+              </div>
+
+              <div class="weui-notice weui-notice--brand">
+                <svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg>
+                <span class="ellipsis">配送范围内 · 预计 30 分钟送达</span>
+              </div>
+
+              <div class="weui-cells__title">商品清单</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">怡宝 饮用纯净水 18.9L × 2</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">配送费</div>
+                  <div class="weui-cell__ft"><span class="weui-price--free">免运费</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="bold">合计</span></div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <div class="mp-footbar__info">
+                <span class="mp-footbar__lbl">合计</span>
+                <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_primary">提交订单</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 状态二：超出配送范围 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 超出配送范围（拦截提示）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">确认订单</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells mt2">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="row gap2">
+                      <svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>
+                      <span class="bold">王强</span>
+                      <span class="t-sub">137****5566</span>
+                    </div>
+                    <div class="f-body mt2">广东省深圳市宝安区石岩街道塘头社区工业路 6 号</div>
+                  </div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access"></div>
+                </div>
+              </div>
+
+              <div class="weui-notice weui-notice--red">
+                <svg viewBox="0 0 24 24"><path d="M12 4 3 19h18z"/><path d="M12 10v4M12 16.5v.5"/></svg>
+                <span class="bold">该地址暂不支持配送</span>
+                <span class="weui-tag weui-tag--goal" style="margin-left:auto"></span>
+              </div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div>该地址不在任一启用配送片区内，暂不支持下单</div>
+                  <div class="f-note t-weak" style="padding-top:8px">就近片区：距最近片区约 6.8 公里，可前往「南山区科技园片区」范围下单</div>
+                </div>
+              </div>
+              <div class="weui-btn_area">
+                <span class="weui-btn weui-btn_plain-primary flex1">更换地址</span>
+                <span class="weui-btn weui-btn_plain-primary flex1">联系客服</span>
+              </div>
+
+              <div class="weui-cells__title">商品清单</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">怡宝 饮用纯净水 18.9L × 2</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="bold">合计</span></div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <div class="mp-footbar__info">
+                <span class="mp-footbar__lbl">合计</span>
+                <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_primary weui-btn_disabled">提交订单</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 状态三：范围校验中 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 配送范围校验中（加载态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">确认订单</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells mt2">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="row gap2">
+                      <svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>
+                      <span class="bold">张伟</span>
+                      <span class="t-sub">138****6688</span>
+                    </div>
+                    <div class="f-body mt2">广东省深圳市南山区科技园南路 18 号 3 号楼 2 单元 802</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-radio on"></span></div>
+                </div>
+              </div>
+
+              <div class="weui-loadmore weui-loadmore_loading">
+                <span class="spinner"></span>
+                <span>配送范围校验中...</span>
+              </div>
+
+              <div class="weui-cells__title">商品清单</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">怡宝 饮用纯净水 18.9L × 2</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="bold">合计</span></div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <div class="mp-footbar__info">
+                <span class="mp-footbar__lbl">合计</span>
+                <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_primary weui-btn_disabled">校验中...</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x；范围提示用官方 <code>.weui-notice</code>（<code>--brand</code> 通过 / <code>--red</code> 拦截），加载用官方 <code>.weui-loadmore_loading</code> + <code>.spinner</code>。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code>（二级页）+ <code>.weui-cells</code> / <code>.weui-cell</code>（地址选择，右侧 <code>.weui-radio.on</code>）+ <code>.weui-notice--red</code> / <code>--brand</code> + <code>.weui-btn_plain-primary</code>「更换地址 / 联系客服」+ <code>.weui-price</code>（合计）+ <code>.mp-footbar</code> + <code>.weui-loadmore_loading</code> + <code>.weui-tag--goal</code>。</p>
+        <p><strong>度量：</strong>导航栏 44px、胶囊 87×32；单元格最小 56px、17px 主文字；通告栏内边距 10px 16px、14px 文字；按钮高 48px、圆角 8px。</p>
+        <p><strong>配色：</strong>通过态用品牌蓝 tint，拦截态用 <code>var(--weui-RED)</code> 10% tint + 红字；金额一律 <code>.weui-price</code>（微信电商红）；不使用强调橙。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（位于确认订单页地址卡下方校验结果提示区）</p>
+        <p><strong>入口：</strong>提交订单前触发范围校验；范围外「更换地址」跳地址列表选择模式，「联系客服」拉起客服会话</p>
+        <p><strong>跳转：</strong>更换地址 → <code>address-list?select=true</code>；联系客服 → 客服会话</p>
+        <p><strong>数据：</strong>收货地址省 / 市 / 区、是否落入任一启用片区、可达标记 <code>inRange</code></p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏（二级页）：返回 + 「确认订单」+ 右上微信胶囊</li>
+          <li>地址单元格：收货人 / 电话 / 完整地址 + 右侧选中 <code>.weui-radio.on</code></li>
+          <li>校验结果提示条：范围内 <code>.weui-notice--brand</code>「配送范围内」；范围外 <code>.weui-notice--red</code>「该地址暂不支持配送」</li>
+          <li>范围外：不支持原因 + 就近片区提示 + <code>.weui-btn_plain-primary</code>「更换地址」「联系客服」</li>
+          <li>商品清单与合计金额（<code>.weui-price</code>）</li>
+          <li>吸底「提交订单」主按钮（范围外 / 校验中禁用）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>无可达区域时全部地址不可下单；<strong>加载态：</strong>校验中（<code>.weui-loadmore_loading</code> + 按钮禁用 + 提示「校验中...」）；<strong>错误态：</strong>校验接口异常时<strong>降级放行</strong>，避免误拦正常下单；<strong>禁用态：</strong>范围外时提交按钮 <code>.weui-btn_disabled</code>。</p>
+        <p><strong>拦截提示必须给出明确出路</strong>（换地址 / 联系客服），避免死胡同；范围拦截优先在后端提交链路执行，前端提示与之对齐。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>Web 风旧组件（通告栏 / 金额行 / 底部操作栏 / 卡片 / 骨架屏等旧类名）一律禁用，全部以 WeUI 等价类实现；Web 风描边按钮替换为 <code>.weui-btn_plain-primary</code>。</p>
+        <p>范围警告用语义红（10% tint 底 + 红字），<strong>不得用强调橙做警告</strong>；金额一律 <code>.weui-price</code>；校验异常必须降级放行（不可误拦正常下单）。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 现状 <code>isAddressInDeliveryArea()</code> 恒返回 true（缺口 G07），校验关闭、前端无拦截，本页 UI 全部为规划形态；依赖 F-ADR-013 配送片区数据先落地（缺口 G78），「就近片区」提示依赖片区坐标。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

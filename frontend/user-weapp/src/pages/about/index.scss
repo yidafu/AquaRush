@@ -1,6 +1,6 @@
 .about-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, var(--theme-gradient-start) 0%, var(--theme-gradient-end) 100%);
+  background: linear-gradient(135deg, var(--brand-gradient-start) 0%, var(--brand-gradient-end) 100%);
   padding: 40px 24px 24px;
   box-sizing: border-box;
   color: white;
@@ -23,11 +23,18 @@
           filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
         }
 
+        .logo-image {
+          width: 96px;
+          height: 96px;
+          margin-right: 12px;
+          border-radius: 16px;
+        }
+
         .logo-text {
           font-size: 32px;
           font-weight: bold;
           text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-          background: linear-gradient(45deg, #ffffff, #e6f7ff);
+          background: linear-gradient(45deg, var(--bg-card), var(--brand-primary-light));
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -50,15 +57,15 @@
       border-radius: 16px;
       padding: 24px;
       margin-bottom: 20px;
-      border: 1px solid rgba(24, 144, 255, 0.2);
-      box-shadow: 0 8px 32px rgba(24, 144, 255, 0.1);
-      color: var(--theme-text-primary);
+      border: 1px solid rgba(var(--brand-primary-rgb), 0.20);
+      box-shadow: 0 8px 32px rgba(var(--brand-primary-rgb), 0.10);
+      color: var(--text-main);
 
       .section-title {
         font-size: 20px;
         font-weight: bold;
         margin-bottom: 16px;
-        color: var(--theme-primary);
+        color: var(--brand-primary);
         display: block;
         position: relative;
         padding-left: 12px;
@@ -71,7 +78,7 @@
           transform: translateY(-50%);
           width: 4px;
           height: 20px;
-          background: var(--theme-primary);
+          background: var(--brand-primary);
           border-radius: 2px;
         }
       }
@@ -79,7 +86,7 @@
       .section-text {
         font-size: 16px;
         line-height: 1.7;
-        color: var(--theme-text-secondary);
+        color: var(--text-sub);
         margin-bottom: 0;
       }
 
@@ -89,9 +96,9 @@
           align-items: center;
           margin-bottom: 20px;
           padding: 12px;
-          background: rgba(24, 144, 255, 0.05);
+          background: rgba(var(--brand-primary-rgb), 0.05);
           border-radius: 12px;
-          border: 1px solid rgba(24, 144, 255, 0.1);
+          border: 1px solid var(--brand-primary-light);
           transition: all 0.3s ease;
 
           &:last-child {
@@ -99,9 +106,9 @@
           }
 
           &:hover {
-            background: rgba(24, 144, 255, 0.1);
+            background: var(--brand-primary-light);
             transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(24, 144, 255, 0.15);
+            box-shadow: 0 4px 12px rgba(var(--brand-primary-rgb), 0.15);
           }
 
           .feature-icon {
@@ -109,13 +116,13 @@
             margin-right: 16px;
             width: 48px;
             height: 48px;
-            background: linear-gradient(135deg, var(--theme-primary-light), var(--theme-primary));
+            background: linear-gradient(135deg, var(--brand-primary-light), var(--brand-primary));
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+            box-shadow: 0 2px 8px rgba(var(--brand-primary-rgb), 0.20);
           }
 
           .feature-content {
@@ -124,14 +131,14 @@
             .feature-title {
               font-size: 18px;
               font-weight: 600;
-              color: var(--theme-text-primary);
+              color: var(--text-main);
               display: block;
               margin-bottom: 4px;
             }
 
             .feature-desc {
               font-size: 14px;
-              color: var(--theme-text-tertiary);
+              color: var(--text-weak);
               line-height: 1.4;
             }
           }
@@ -145,7 +152,7 @@
           margin-bottom: 16px;
           font-size: 16px;
           padding: 12px 0;
-          border-bottom: 1px solid var(--theme-border);
+          border-bottom: 1px solid var(--border);
 
           &:last-child {
             margin-bottom: 0;
@@ -155,14 +162,14 @@
           .contact-label {
             font-weight: 600;
             margin-right: 12px;
-            color: var(--theme-text-primary);
+            color: var(--text-main);
             min-width: 80px;
             display: flex;
             align-items: center;
 
             &::before {
               content: '•';
-              color: var(--theme-primary);
+              color: var(--brand-primary);
               margin-right: 8px;
               font-weight: bold;
             }
@@ -170,7 +177,7 @@
 
           .contact-value {
             flex: 1;
-            color: var(--theme-secondary);
+            color: var(--brand-primary); // 客服电话:主色,不用强调橙(§2.1 红线)
             font-weight: 500;
           }
         }

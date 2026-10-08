@@ -1,0 +1,144 @@
+@import "../../../styles/theme.scss";
+
+.items-card {
+  margin: 20px 24px;
+}
+
+.order-items {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.order-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.item-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.item-name {
+  font-size: 28px;
+  color: var(--text-main);
+  line-height: 1.4;
+  margin-bottom: 4px;
+}
+
+.item-spec {
+  font-size: 24px;
+  color: var(--text-sub);
+  margin-bottom: 4px;
+}
+
+.item-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.item-price-row {
+  display: flex;
+  align-items: baseline;
+}
+
+.item-price {
+  font-size: 28px;
+  font-weight: 500;
+  color: var(--text-main);
+}
+
+/* 划线目录价(有营销价时展示,AC-ORD-003-09 —— R-MKT-01/02) */
+.item-original-price {
+  font-size: 24px;
+  color: var(--text-sub);
+  text-decoration: line-through;
+  margin-left: 8px;
+}
+
+.item-quantity {
+  font-size: 24px;
+  color: var(--text-sub);
+}
+
+.order-summary {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+
+  &.total {
+    border-top: 1px solid var(--border);
+    margin-top: 8px;
+    padding-top: 16px;
+  }
+}
+
+.summary-label {
+  font-size: 28px;
+  color: var(--text-sub);
+
+  .total & {
+    font-size: 32px;
+    color: var(--text-main);
+    font-weight: 500;
+  }
+}
+
+.summary-value {
+  font-size: 28px;
+  color: var(--text-main);
+
+  // 优惠扣减行(满减/首单立减/优惠券/水票抵扣):语义红展示(§6)
+  &.summary-discount {
+    color: var(--action);
+  }
+
+  .total & {
+    font-size: 40px;
+    font-weight: bold;
+    color: var(--brand-primary); // 实付合计:主色加粗(§6)
+  }
+
+  &.total-amount {
+    font-size: 40px;
+    font-weight: bold;
+    color: var(--brand-primary);
+  }
+}
+
+/* 响应式调整 */
+@media (max-width: 480px) {
+  .items-card {
+    margin: 16px 20px;
+  }
+
+  .item-name,
+  .item-price {
+    font-size: 24px;
+  }
+
+  .item-spec,
+  .item-quantity {
+    font-size: 20px;
+  }
+}

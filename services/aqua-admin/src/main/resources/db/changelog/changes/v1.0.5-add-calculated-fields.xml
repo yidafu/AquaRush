@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <changeSet id="1.0.5-add-calculated-fields" author="aqua-rush">
+    <comment>Add calculated fields for daily collection records</comment>
+
+    <!-- Add calculated cash amount column -->
+    <addColumn tableName="daily_collection_records">
+      <column name="calculated_cash_amount_cents" type="bigint" defaultValue="0">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+
+    <!-- Add calculated QR code amount column -->
+    <addColumn tableName="daily_collection_records">
+      <column name="calculated_qr_code_amount_cents" type="bigint" defaultValue="0">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+
+    <!-- Add calculated water ticket count column -->
+    <addColumn tableName="daily_collection_records">
+      <column name="calculated_water_ticket_count" type="int" defaultValue="0">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+
+    <!-- Add calculated order amount column -->
+    <addColumn tableName="daily_collection_records">
+      <column name="calculated_order_amount_cents" type="bigint" defaultValue="0">
+        <constraints nullable="false"/>
+      </column>
+    </addColumn>
+
+  </changeSet>
+
+</databaseChangeLog>

@@ -3,8 +3,8 @@
 .address-map {
   border-radius: 16px;
   overflow: hidden;
-  background: var(--surface-color);
-  box-shadow: 0 4px 16px var(--shadow-color);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-card);
   animation: fadeIn 0.3s ease-out;
 
   // 地图容器
@@ -13,7 +13,7 @@
     width: 100%;
     border-radius: 16px;
     overflow: hidden;
-    background: var(--background-color);
+    background: var(--bg);
 
     .address-map-component {
       width: 100%;
@@ -35,7 +35,7 @@
       border-radius: 12px;
       padding: 32px;
       backdrop-filter: blur(8px);
-      box-shadow: 0 4px 16px var(--shadow-color);
+      box-shadow: var(--shadow-card);
       z-index: 10;
 
       .at-loading {
@@ -44,7 +44,7 @@
 
       .loading-text {
         font-size: 20px;
-        color: var(--text-color-secondary);
+        color: var(--text-sub);
         font-weight: 500;
       }
     }
@@ -57,8 +57,8 @@
       transform: translateX(-50%);
       display: flex;
       align-items: center;
-      background: rgba(var(--error-color-rgb), 0.1);
-      border: 1px solid var(--error-color);
+      background: rgba(var(--error-rgb), 0.1);
+      border: 1px solid var(--error);
       border-radius: 8px;
       padding: 12px 20px;
       z-index: 10;
@@ -69,7 +69,7 @@
 
       .error-text {
         font-size: 18px;
-        color: var(--error-color);
+        color: var(--error);
         font-weight: 500;
       }
     }
@@ -90,7 +90,7 @@
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.9);
         backdrop-filter: blur(8px);
-        box-shadow: 0 2px 8px var(--shadow-color);
+        box-shadow: var(--shadow-card);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -99,7 +99,7 @@
 
         &:active {
           transform: scale(0.95);
-          box-shadow: 0 1px 4px var(--shadow-color);
+          box-shadow: var(--shadow-card);
         }
 
         .at-icon {
@@ -116,8 +116,8 @@
   // 位置信息
   .address-map-info {
     padding: 20px;
-    background: var(--surface-color);
-    border-top: 1px solid var(--border-color);
+    background: var(--bg-card);
+    border-top: 1px solid var(--border);
 
     .info-item {
       display: flex;
@@ -130,13 +130,13 @@
 
       .at-icon {
         margin-right: 12px;
-        color: var(--primary-color);
+        color: var(--brand-primary);
         min-width: 16px;
       }
 
       .info-label {
         font-size: 18px;
-        color: var(--text-color-secondary);
+        color: var(--text-sub);
         font-weight: 600;
         margin-right: 12px;
         min-width: 50px;
@@ -144,7 +144,7 @@
 
       .info-value {
         font-size: 18px;
-        color: var(--text-color-primary);
+        color: var(--text-main);
         font-weight: 500;
         flex: 1;
         word-break: break-all;
@@ -153,96 +153,3 @@
   }
 }
 
-// 暗色模式适配
-@media (prefers-color-scheme: dark) {
-  .address-map {
-    background: var(--surface-color-dark);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
-
-    .address-map-container {
-      background: var(--background-color-dark);
-
-      .address-map-loading {
-        background: rgba(0, 0, 0, 0.8);
-
-        .loading-text {
-          color: var(--text-color-primary-dark);
-        }
-      }
-
-      .address-map-error {
-        background: rgba(var(--error-color-rgb), 0.2);
-      }
-
-      .control-button {
-        background: rgba(0, 0, 0, 0.8);
-      }
-    }
-
-    .address-map-info {
-      background: var(--surface-color-dark);
-      border-top-color: var(--border-color-dark);
-    }
-  }
-}
-
-// 响应式设计
-@media (max-width: 768px) {
-  .address-map {
-    .address-map-info {
-      padding: 16px;
-
-      .info-item {
-        .info-label {
-          font-size: 16px;
-          min-width: 45px;
-        }
-
-        .info-value {
-          font-size: 16px;
-        }
-      }
-    }
-
-    .address-map-container {
-      .address-map-loading {
-        padding: 24px;
-
-        .loading-text {
-          font-size: 18px;
-        }
-      }
-    }
-  }
-}
-
-// 高分辨率显示优化
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
-  .address-map {
-    box-shadow: 0 8px 32px var(--shadow-color);
-  }
-}
-
-// 地图标记动画
-@keyframes markerPulse {
-  0% {
-    transform: scale(1);
-    opacity: 1;
-  }
-  50% {
-    transform: scale(1.1);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-.address-map-container {
-  .at-map__markers {
-    .at-map__marker {
-      animation: markerPulse 2s ease-in-out infinite;
-    }
-  }
-}

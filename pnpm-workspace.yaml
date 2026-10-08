@@ -1,4 +1,7 @@
 packages:
   - 'graphql-codegen-kotlin-validation'
+  - 'babel-plugin-aquarush-track'
   - 'frontend/common'
   - 'frontend/admin-client'
+  - 'frontend/user-weapp'
+  - 'frontend/delivery-app'

@@ -1,0 +1,53 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.yidafu.aqua.common.domain.model.enums
+
+/**
+ * 订单操作类型枚举
+ * 用于记录订单的操作历史（时间线）
+ */
+enum class OrderOperationType {
+  ORDER_CREATED, // 订单创建
+  ORDER_PAID, // 支付成功
+  ORDER_CANCELLED, // 订单取消
+  ORDER_URGING, // 用户催单(F-ORD-008)
+  DELIVERY_ASSIGNED, // 配送员分配
+  DELIVERY_STARTED, // 开始配送
+  DELIVERY_COMPLETED, // 配送完成(送达,进入待确认收货 —— R-ORD-11)
+  ORDER_CONFIRMED, // 用户确认收货(待确认收货→已完成 —— R-ORD-11)
+  AUTO_CONFIRMED, // 系统自动确认收货(送达 N 天未确认自动签收 —— R-ORD-11)
+  ORDER_COMPLETED, // 订单完成
+  REFUND_INITIATED, // 退款发起
+  REFUND_COMPLETED, // 退款完成
+  PAYMENT_TIMEOUT, // 支付超时
+  DELIVERY_PHOTO_APPROVED, // 配送照片核验通过(G23)
+  DELIVERY_PHOTO_REJECTED, // 配送照片核验驳回(G23)
+  ADDRESS_UPDATED, // 配送任务中修正收货地址(F-ORD-024:收货人/定位/楼层等)
+}
+
+/**
+ * 操作人类型枚举
+ */
+enum class OperatorType {
+  USER, // 普通用户
+  ADMIN, // 管理员
+  DELIVERY_WORKER, // 配送员
+  SYSTEM, // 系统自动
+}

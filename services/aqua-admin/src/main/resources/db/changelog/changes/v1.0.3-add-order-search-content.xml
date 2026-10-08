@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <changeSet id="1.0.3-add-order-search-content" author="aqua-rush">
+    <comment>Add search_content field for full-text search on orders</comment>
+
+    <!-- Add search_content column as text -->
+    <addColumn tableName="orders">
+      <column name="search_content" type="text"/>
+    </addColumn>
+
+    <!-- Create GIN index for full-text search -->
+    <createIndex tableName="orders" indexName="idx_orders_search_content">
+      <column name="search_content"/>
+    </createIndex>
+  </changeSet>
+
+</databaseChangeLog>

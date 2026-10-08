@@ -8,8 +8,8 @@ plugins {
 // Configure bootJar task
 tasks.named<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
     archiveClassifier.set("boot")
-    // Set main class if not automatically detected
-    mainClass.set("dev.yidafu.aqua.AquaRushApplicationKt")
+    // mainClass 由各服务自行声明(services/*/build.gradle.kts 的 springBoot { mainClass }),
+    // 不再在此硬编码,否则会覆盖服务级配置导致 java -jar 启动失败。
 }
 
 dependencies {

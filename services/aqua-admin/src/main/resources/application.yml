@@ -8,7 +8,10 @@ spring:
     throw-exception-if-no-handler-found: true
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/aqua_rush?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC
+    # 统计聚合时区统一 Asia/Shanghai(P2-8):PostgreSQL 会话时区显式指定,
+    # 与统计域 LocalDate.now(STATS_ZONE) 及 JVM 默认时区(应用入口 TimeZone.setDefault)保持一致,
+    # 不依赖部署环境默认时区。
+    url: jdbc:postgresql://localhost:5432/aqua_rush?useUnicode=true&characterEncoding=UTF-8&TimeZone=Asia/Shanghai
     username: ${DB_USERNAME:postgres}
     password: ${DB_PASSWORD:admin123}
     driver-class-name: org.postgresql.Driver
@@ -32,6 +35,8 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.PostgreSQLDialect
         format_sql: true
+      jakarta.persistence.schema-generation.create-source: metadata-then-scripts
+      jakarta.persistence.schema-generation.drop-source: metadata-then-scripts
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
@@ -40,29 +45,39 @@ spring:
     enabled: true            # Disable Liquibase for admin service since main app manages schema
 
   artemis:
-    mode: embedded
-    embedded:
+    mode: native
+    broker-url: tcp://localhost:61616
+    pool:
       enabled: true
+      max-connections: 10
+    embedded:
+      enabled: false
+      max-disk-usage: 98
       persistent: true
-      data-directory: ./data/artemis-delivery
-      queues:
-        - order-events
-        - payment-events
-        - delivery-events
-        - user-events
-      topics:
-        - broadcast-events
+      data-directory: ./data/artemis-admin
+      config-url: classpath:broker.xml
+      config-resource: classpath:broker.xml
+      server-config: classpath:broker.xml
+      queues: order-events,payment-events,payment-expiry-events,delivery-events,user-events
+      topics: broadcast-events
+    user: admin
+    password: admin
 
   jms:
+    listener:
+      auto-startup: true
+      acknowledge-mode: client
+      concurrency: 1-5
     template:
       default-destination: delivery-events
       delivery-mode: persistent
-      priority: 100
+      priority: 5
       time-to-live: 3600000 # 1小时
 
   jackson:
     date-format: yyyy-MM-dd HH:mm:ss
-    time-zone: GMT+8
+    # 统计聚合时区统一 Asia/Shanghai(P2-8),与 JDBC 会话时区/应用默认时区一致
+    time-zone: Asia/Shanghai
     serialization:
       FAIL_ON_EMPTY_BEANS: false
       INDENT_OUTPUT: true
@@ -77,7 +92,7 @@ spring:
       printer:
         enabled: true
       file-extensions: .graphqls
-      locations: classpath:graphql/, classpath:shared-config/graphql/
+      locations: classpath:graphql/, classpath:graphql/modules/, classpath:graphql/inputs/, classpath:graphql/extensions/, classpath:shared-config/graphql/
     graphiql:
       enabled: true
       path: /graphiql
@@ -111,17 +126,16 @@ logging:
     # Enhanced logging for request troubleshooting
     dev.yidafu.aqua.security: DEBUG
     dev.yidafu.aqua.exception: DEBUG
-    dev.yidafu.aqua.error: DEBUG
-    dev.yidafu.aqua.audit: INFO
-    dev.yidafu.aqua.security.request: DEBUG
-    dev.yidafu.aqua.security.jwt: DEBUG
-    dev.yidafu.aqua.interceptor.test: DEBUG
     # Spring Security logging
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
     # Database access logging
     org.springframework.jdbc: DEBUG
     org.hibernate.SQL: DEBUG
+    org.hibernate: DEBUG
+    org.hibernate.orm.id: TRACE
+    org.hibernate.boot.model.internal: TRACE
+    org.hibernate.orm.metadata: TRACE
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
@@ -136,29 +150,27 @@ aqua:
   id:
     snowflake:
       machine-id: ${SNOWFLAKE_MACHINE_ID:2} # Different machine ID for delivery service
+  # 数据维护(F-SYS-006):日志离线备份文件输出目录
+  data-maintenance:
+    backup-dir: ${LOG_BACKUP_DIR:./data/log-backup}
   wechat:
     app-id: ${WECHAT_APP_ID:your-app-id}
     app-secret: ${WECHAT_APP_SECRET:your-app-secret}
     token: "token"
     aes-key: "string"
+    # 微信支付 V3(PRD 04-order.md §F-ORD-005):
+    # 测试环境默认假支付自动完成(mock-enabled=true);生产置 WECHAT_PAY_MOCK_ENABLED=false
+    # 并配置真实商户参数(商户号/商户私钥路径/证书序列号/APIv3 密钥),密钥不落库。
+    pay:
+      appid: ${WECHAT_PAY_APPID:}
+      mchid: ${WECHAT_PAY_MCHID:}
+      private-key-path: ${WECHAT_PAY_PRIVATE_KEY_PATH:}
+      merchant-serial-number: ${WECHAT_PAY_MERCHANT_SERIAL_NUMBER:}
+      api-v3-key: ${WECHAT_PAY_API_V3_KEY:}
+      notify-url: ${WECHAT_PAY_NOTIFY_URL:http://localhost:8080/api/pay/notify}
+      mock-enabled: ${WECHAT_PAY_MOCK_ENABLED:true}
   messaging:
     enabled: true
-    strategy: artemis # artemis, hybrid, outbox-only, memory-only
-    # 轻量级内存队列配置
-    memory-queue:
-      enabled: true
-      max-size: 8000      # 配送服务需要处理更多事件
-      batch-size: 100       # 批处理大小
-      poll-interval-ms: 25   # 25ms轮询间隔，更快的响应
-      high-frequency-events: ["ORDER_PAID", "DELIVERY_ASSIGNED", "DELIVERY_TIMEOUT", "DELIVERY_STARTED"]
-      low-frequency-events: ["ORDER_CREATED", "ORDER_DELIVERED", "DELIVERY_COMPLETED"]
-    # 传统Outbox配置（作为备份）
-    outbox:
-      enabled: true
-      poll-interval-seconds: 15  # 15秒轮询，最快的响应
-      max-retry-count: 5
-      retry-delays-ms: [15000, 30000, 60000, 300000, 900000] # 15s, 30s, 1min, 5min, 15min
-      cleanup-days: 30
   mode: admin
 
 # Storage configuration
@@ -167,7 +179,7 @@ storage:
   local:
     base-path: ${STORAGE_BASE_PATH:./data/storage}
     max-file-size: 104857600  # 100MB
-    allowed-extensions: ["jpg", "jpeg", "png", "gif", "bmp", "webp", "mp4", "avi", "mov", "wmv", "flv", "mp3", "wav", "flac", "aac", "pdf", "doc", "docx", "txt", "xls", "xlsx", "csv", "ppt", "pptx", "html", "css", "js", "zip", "rar", "7z", "tar", "gz", "exe", "msi", "sh", "bat", "bak", "backup"]
+    allowed-extensions: [ "jpg", "jpeg", "png", "gif", "bmp", "webp", "mp4", "avi", "mov", "wmv", "flv", "mp3", "wav", "flac", "aac", "pdf", "doc", "docx", "txt", "xls", "xlsx", "csv", "ppt", "pptx", "html", "css", "js", "zip", "rar", "7z", "tar", "gz", "exe", "msi", "sh", "bat", "bak", "backup" ]
 
 # JWT configuration
 app:

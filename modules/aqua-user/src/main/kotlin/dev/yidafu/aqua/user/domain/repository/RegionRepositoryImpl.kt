@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,69 +19,46 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.RegionModel
+import com.querydsl.jpa.impl.JPAQueryFactory
+import dev.yidafu.aqua.common.domain.model.QRegionModel.Companion.regionModel
+import dev.yidafu.aqua.common.domain.model.RegionModel
 import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
-import jakarta.persistence.criteria.Predicate
 import org.springframework.stereotype.Repository
 
 /**
- * Custom repository implementation for Region entity using type-safe queries
+ * Custom repository implementation for Region entity using QueryDSL
  */
 @Repository
-class RegionRepositoryImpl(
-  @PersistenceContext private val entityManager: EntityManager
-) : RegionRepositoryCustom {
+class RegionRepositoryImpl : RegionRepositoryCustom {
+  @PersistenceContext
+  private lateinit var entityManager: EntityManager
 
-  override fun findRootRegions(level: Int): List<RegionModel> {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(RegionModel::class.java)
-    val root = query.from(RegionModel::class.java)
-
-    // Create predicates for parentCode = '0' AND level = :level
-    val predicates = mutableListOf<Predicate>()
-
-    // parentCode = '0' predicate
-    predicates.add(cb.equal(root.get<String>("parentCode"), "0"))
-
-    // level = :level predicate
-    predicates.add(cb.equal(root.get<Int>("level"), level))
-
-    // Apply where clause with AND condition
-    query.where(*predicates.toTypedArray())
-
-    return entityManager.createQuery(query).resultList
+  private val queryFactory: JPAQueryFactory by lazy {
+    JPAQueryFactory(entityManager)
   }
+
+  override fun findRootRegions(level: Int): List<RegionModel> =
+    queryFactory
+      .selectFrom(regionModel)
+      .where(
+        regionModel.parentCode
+          .eq("0")
+          .and(regionModel.level.eq(level)),
+      ).fetch()
 
   override fun existsByNameAndLevelAndParentCode(
     name: String,
     level: Int,
-    parentCode: String
-  ): Boolean {
-    val cb = entityManager.criteriaBuilder
-    val query = cb.createQuery(Long::class.java)
-    val root = query.from(RegionModel::class.java)
-
-    // Create count query
-    query.select(cb.count(root))
-
-    // Create predicates for name, level, and parentCode
-    val predicates = mutableListOf<Predicate>()
-
-    // name = :name predicate
-    predicates.add(cb.equal(root.get<String>("name"), name))
-
-    // level = :level predicate
-    predicates.add(cb.equal(root.get<Int>("level"), level))
-
-    // parentCode = :parentCode predicate
-    predicates.add(cb.equal(root.get<String>("parentCode"), parentCode))
-
-    // Apply where clause with AND condition
-    query.where(*predicates.toTypedArray())
-
-    // Execute count query and return if count > 0
-    val count = entityManager.createQuery(query).singleResult
-    return count > 0
-  }
+    parentCode: String,
+  ): Boolean =
+    queryFactory
+      .query()
+      .from(regionModel)
+      .where(
+        regionModel.name
+          .eq(name)
+          .and(regionModel.level.eq(level))
+          .and(regionModel.parentCode.eq(parentCode)),
+      ).fetchCount() > 0
 }

@@ -1,0 +1,188 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.yidafu.aqua.admin.user.resolvers
+
+import dev.yidafu.aqua.api.service.admin.AddressService
+import dev.yidafu.aqua.common.graphql.generated.Address
+import dev.yidafu.aqua.common.graphql.generated.AddressInput
+import dev.yidafu.aqua.common.graphql.generated.AddressVoPage
+import dev.yidafu.aqua.common.graphql.generated.BatchImportAddressesResult
+import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
+import dev.yidafu.aqua.user.mapper.AddressInputMapper
+import dev.yidafu.aqua.user.mapper.AddressMapper
+import dev.yidafu.aqua.user.mapper.merge
+import jakarta.validation.Valid
+import org.slf4j.LoggerFactory
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.MutationMapping
+import org.springframework.graphql.data.method.annotation.QueryMapping
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.stereotype.Controller
+
+@Controller
+class AddressResolver(
+  private val addressService: AddressService,
+) {
+  private val logger = LoggerFactory.getLogger(AddressResolver::class.java)
+
+  @QueryMapping
+  @PreAuthorize("isAuthenticated()")
+  fun userAddresses(
+    @Argument userId: Long,
+  ): List<Address> {
+    val list = addressService.findByUserId(userId)
+    return AddressMapper.mapList(list)
+  }
+
+  // Admin-only queries
+
+  /**
+   * 获取所有地址 (管理员)
+   */
+  @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_READ')")
+  fun addresses(): List<Address> {
+    val allAddresses = addressService.findAllAddresses()
+    return AddressMapper.mapList(allAddresses)
+  }
+
+  /**
+   * 搜索所有地址 (管理员,分页;keyword 模糊匹配 detailAddress/phone/receiverName)
+   */
+  @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_READ')")
+  fun searchAllAddresses(
+    @Argument keyword: String?,
+    @Argument page: Int = 0,
+    @Argument size: Int = 10,
+  ): AddressVoPage {
+    val pageable =
+      org.springframework.data.domain.PageRequest
+        .of(page, size)
+    val addresses = addressService.searchAllAddresses(keyword, pageable)
+    return AddressVoPage(
+      content = AddressMapper.mapList(addresses.content),
+      totalElements = addresses.totalElements.toInt(),
+      totalPages = addresses.totalPages,
+      size = addresses.size,
+      number = addresses.number,
+    )
+  }
+
+  // Admin-only mutations
+
+  /**
+   * 管理员创建地址 (userId 可以为 null)
+   */
+  @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_WRITE')")
+  fun createAdminAddress(
+    @Argument @Valid input: AddressInput,
+  ): Address {
+    try {
+      val address = AddressInputMapper.map(input)
+      // userId 保持为 null，由 AddressInput 中的值决定
+      val savedAddress = addressService.save(address)
+      logger.info("Admin created address with ID: ${savedAddress.id}")
+      return AddressMapper.map(savedAddress)
+    } catch (e: Exception) {
+      logger.error("Failed to create admin address", e)
+      throw RuntimeException("创建地址失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 管理员更新地址 (不校验 userId;仅更新传入字段,空值字段保持不变)
+   */
+  @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_WRITE')")
+  fun updateAdminAddress(
+    @Argument id: Long,
+    @Argument @Valid input: UpdateAddressInput,
+  ): Address {
+    try {
+      val existingAddress =
+        addressService.findById(id)
+          ?: throw IllegalArgumentException("地址不存在: $id")
+      existingAddress.merge(input)
+      val savedAddress = addressService.save(existingAddress)
+      logger.info("Admin updated address with ID: ${savedAddress.id}")
+      return AddressMapper.map(savedAddress)
+    } catch (e: Exception) {
+      logger.error("Failed to update admin address", e)
+      throw RuntimeException("更新地址失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 批量导入地址 (管理员)
+   */
+  @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_WRITE')")
+  fun batchImportAddresses(
+    @Argument input: List<AddressInput>,
+  ): BatchImportAddressesResult {
+    try {
+      val totalCount = input.size
+      var successCount = 0
+      var failureCount = 0
+
+      val addresses =
+        input
+          .mapIndexed { index, addressInput ->
+            try {
+              val address = AddressInputMapper.map(addressInput)
+              // userId 保持为 null
+              successCount++
+              address
+            } catch (e: Exception) {
+              failureCount++
+              logger.warn("Failed to parse address at index $index: ${e.message}")
+              null
+            }
+          }.filterNotNull()
+
+      // 批量保存
+      if (addresses.isNotEmpty()) {
+        addressService.saveAll(addresses)
+      }
+
+      logger.info("Batch import completed: $successCount success, $failureCount failed out of $totalCount")
+
+      return BatchImportAddressesResult(
+        successCount = successCount,
+        failureCount = failureCount,
+        totalCount = totalCount,
+      )
+    } catch (e: Exception) {
+      logger.error("Failed to batch import addresses", e)
+      throw RuntimeException("批量导入地址失败: ${e.message}")
+    }
+  }
+
+  /**
+   * 管理员删除地址 (不校验 userId)
+   */
+  @MutationMapping
+  @PreAuthorize("hasAuthority('PERMISSION_ADDRESS_WRITE')")
+  fun deleteAdminAddress(
+    @Argument id: Long,
+  ): Boolean = addressService.deleteAddressById(id)
+}

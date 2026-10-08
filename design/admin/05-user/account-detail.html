@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 账号详情（管理员）｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 用户管理 / 账号详情（管理员视图）</h1>
+      <p class="sub">功能编号 F-USR-020 ｜ 用户与账户域 ｜ 路由 <code>/users/accounts/:id</code>（按角色渲染）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-USR-020</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <!-- ============ 状态一：基本信息（默认 Tab） ============ -->
+      <div>
+        <div class="browser-cap">状态一 · 基本信息卡 + 默认 Tab「基本信息」（含权限信息）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/accounts/3</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 账号列表 <span class="crumb-sep">/</span> <b>账号详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="row gap2" style="margin-bottom:12px"><span class="f-aux t-sub">← 返回账号列表</span></div>
+
+                <!-- 基本信息卡 -->
+                <div class="card">
+                  <div class="row gap4 top">
+                    <span class="thumb sq" style="border-radius:50%">陈</span>
+                    <div class="grow">
+                      <div class="row gap2" style="margin-bottom:10px">
+                        <span class="f-blk bold">陈功</span>
+                        <span class="tag tag-neutral">普通管理员</span>
+                        <span class="tag tag-assign">兼送水</span>
+                        <span class="tag tag-ok">正常</span>
+                      </div>
+                      <div class="desc-grid">
+                        <div class="desc-item"><div class="k">账号</div><div class="v num">ops_chen</div></div>
+                        <div class="desc-item"><div class="k">姓名</div><div class="v">陈功</div></div>
+                        <div class="desc-item"><div class="k">手机号</div><div class="v">136****7788</div></div>
+                        <div class="desc-item"><div class="k">角色</div><div class="v">普通管理员（兼送水）</div></div>
+                        <div class="desc-item"><div class="k">兼送水标记</div><div class="v">是</div></div>
+                        <div class="desc-item"><div class="k">状态</div><div class="v">正常</div></div>
+                      </div>
+                      <div style="margin-top:12px">
+                        <div class="f-note t-sub" style="margin-bottom:6px">权限信息（由角色推导）</div>
+                        <div class="row gap2 wrap">
+                          <span class="tag tag-outline">订单读取</span>
+                          <span class="tag tag-outline">订单派单</span>
+                          <span class="tag tag-outline">配送任务</span>
+                          <span class="tag tag-outline">收银对账</span>
+                          <span class="tag tag-outline">代客下单</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                  <span class="tab-item on">基本信息</span>
+                  <span class="tab-item">账号安全</span>
+                  <span class="tab-item">配送能力</span>
+                  <span class="tab-item">配送记录</span>
+                  <span class="tab-item">配送轨迹</span>
+                  <span class="tab-item">每日收款</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item">操作</span>
+                </div>
+
+                <div class="card">
+                  <div class="desc-grid">
+                    <div class="desc-item"><div class="k">头像</div><div class="v">已上传</div></div>
+                    <div class="desc-item"><div class="k">姓名</div><div class="v">陈功</div></div>
+                    <div class="desc-item"><div class="k">用户名</div><div class="v num">ops_chen</div></div>
+                    <div class="desc-item"><div class="k">手机号</div><div class="v">136****7788</div></div>
+                    <div class="desc-item"><div class="k">角色</div><div class="v">普通管理员（兼送水）</div></div>
+                    <div class="desc-item"><div class="k">账号状态</div><div class="v"><span class="tag tag-ok">正常</span></div></div>
+                    <div class="desc-item"><div class="k">最后登录时间</div><div class="v">2026-09-05 08:12</div></div>
+                    <div class="desc-item"><div class="k">创建时间</div><div class="v">2026-03-18 16:40</div></div>
+                    <div class="desc-item"><div class="k">更新时间</div><div class="v">2026-09-01 11:03</div></div>
+                  </div>
+                  <div class="divider">权限信息</div>
+                  <p class="f-aux t-sub mb2">由角色推导：普通管理员 = 配送能力账号范围；兼送水含 <code>DELIVERY_TASK</code>；删除 / 重置密码仅超管。</p>
+                  <div class="row gap2 wrap">
+                    <span class="tag tag-outline">订单读取</span>
+                    <span class="tag tag-outline">订单派单</span>
+                    <span class="tag tag-outline">配送任务 DELIVERY_TASK</span>
+                    <span class="tag tag-outline">收银对账</span>
+                    <span class="tag tag-outline">代客下单</span>
+                    <span class="tag tag-neutral">删除 / 重置密码（仅超管）</span>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态二：账号安全 ============ -->
+      <div>
+        <div class="browser-cap">状态二 · Tab「账号安全」（密码管理 / 停用启用）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/accounts/3 — 账号安全</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 账号列表 <span class="crumb-sep">/</span> <b>账号详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">基本信息</span>
+                  <span class="tab-item on">账号安全</span>
+                  <span class="tab-item">配送能力</span>
+                  <span class="tab-item">配送记录</span>
+                  <span class="tab-item">配送轨迹</span>
+                  <span class="tab-item">每日收款</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item">操作</span>
+                </div>
+                <div class="card">
+                  <div class="desc-grid two">
+                    <div class="desc-item"><div class="k">登录账号</div><div class="v num">ops_chen</div></div>
+                    <div class="desc-item"><div class="k">账号状态</div><div class="v"><span class="tag tag-ok">正常</span></div></div>
+                  </div>
+                  <div class="divider">密码管理</div>
+                  <div class="row between">
+                    <span class="f-aux t-sub">重置后旧密码立即失效；新密码留空 = 默认 123456</span>
+                    <span class="btn sm ghost">重置密码</span>
+                  </div>
+                  <div class="divider">账号状态与操作</div>
+                  <div class="row between">
+                    <span class="f-aux t-sub">停用后账号无法登录，且旧 token 立即失效</span>
+                    <div class="row gap2">
+                      <span class="btn sm ghost">停用</span>
+                      <span class="btn sm disabled">启用</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态三：配送能力 ============ -->
+      <div>
+        <div class="browser-cap">状态三 · Tab「配送能力」（仅兼送水管理员展示）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/accounts/3 — 配送能力</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 账号列表 <span class="crumb-sep">/</span> <b>账号详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">基本信息</span>
+                  <span class="tab-item">账号安全</span>
+                  <span class="tab-item on">配送能力</span>
+                  <span class="tab-item">配送记录</span>
+                  <span class="tab-item">配送轨迹</span>
+                  <span class="tab-item">每日收款</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item">操作</span>
+                </div>
+                <div class="card">
+                  <div class="card-title sm mb3">配送能力</div>
+                  <div class="desc-grid">
+                    <div class="desc-item"><div class="k">在线状态</div><div class="v"><span class="tag tag-ok">在线</span></div></div>
+                    <div class="desc-item"><div class="k">接单权限</div><div class="v"><span class="tag tag-brand">已开启</span></div></div>
+                    <div class="desc-item"><div class="k">当前坐标</div><div class="v num">116.481, 39.996</div></div>
+                    <div class="desc-item"><div class="k">当前位置</div><div class="v">北京市朝阳区望京街道</div></div>
+                  </div>
+                </div>
+                <div class="section-title">配送统计</div>
+                <div class="stat-grid">
+                  <div class="stat-card"><span class="lbl">总订单数</span><span class="val">128</span></div>
+                  <div class="stat-card"><span class="lbl">已完成订单</span><span class="val">121</span></div>
+                  <div class="stat-card"><span class="lbl">平均评分</span><span class="val">4.8<small>分</small></span></div>
+                  <div class="stat-card"><span class="lbl">总评价数</span><span class="val">98</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态四：配送记录 ============ -->
+      <div>
+        <div class="browser-cap">状态四 · Tab「配送记录」（Tab 内「订单状态」筛选 + 单表格）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/accounts/3 — 配送记录</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 账号列表 <span class="crumb-sep">/</span> <b>账号详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">基本信息</span>
+                  <span class="tab-item">账号安全</span>
+                  <span class="tab-item">配送能力</span>
+                  <span class="tab-item on">配送记录</span>
+                  <span class="tab-item">配送轨迹</span>
+                  <span class="tab-item">每日收款</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item">操作</span>
+                </div>
+                <div class="filter-card">
+                  <div class="fitem"><span>订单状态</span><div class="select" style="width:140px"><span>全部</span></div></div>
+                  <div class="row gap2" style="margin-left:auto"><span class="btn sm ghost">重置</span><span class="btn sm">查询</span></div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>订单编号</th>
+                        <th>下单用户</th>
+                        <th>商品信息</th>
+                        <th class="num">订单金额</th>
+                        <th>收货地址</th>
+                        <th>下单时间</th>
+                        <th>状态</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="num bold">AR20260905006</td><td>张小明</td><td>怡宝 饮用纯净水 18.9L × 2</td><td class="num bold">¥44.00</td><td class="ellipsis">望京街道阜通东大街 6 号院…</td><td>2026-09-05 08:20</td><td><span class="tag tag-deliver">送货中</span></td></tr>
+                      <tr><td class="num bold">AR20260905002</td><td>李静</td><td>农夫山泉 天然水 19L × 3</td><td class="num bold">¥84.00</td><td class="ellipsis">中关村大街 27 号 5 层 508 室</td><td>2026-09-05 07:48</td><td><span class="tag tag-assign">待派送</span></td></tr>
+                      <tr><td class="num bold">AR20260904011</td><td>王强</td><td>景田 百岁山矿泉水 18.9L × 6</td><td class="num bold">¥210.00</td><td class="ellipsis">望京西园 4 区 412 号楼 0802 室</td><td>2026-09-04 16:32</td><td><span class="tag tag-done">已完成</span></td></tr>
+                      <tr><td class="num bold">AR20260903008</td><td>赵敏</td><td>怡宝 饮用纯净水 18.9L × 1</td><td class="num bold">¥22.00</td><td class="ellipsis">望京街道阜通东大街 6 号院…</td><td>2026-09-03 19:05</td><td><span class="tag tag-done">已完成</span></td></tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot"><span>共 128 条记录</span><div class="pager"><i>‹</i><i class="on">1</i><i>2</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态五：配送轨迹 ============ -->
+      <div>
+        <div class="browser-cap">状态五 · Tab「配送轨迹」（时间范围 + 实时位置）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/accounts/3 — 配送轨迹</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 账号列表 <span class="crumb-sep">/</span> <b>账号详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">基本信息</span>
+                  <span class="tab-item">账号安全</span>
+                  <span class="tab-item">配送能力</span>
+                  <span class="tab-item">配送记录</span>
+                  <span class="tab-item on">配送轨迹</span>
+                  <span class="tab-item">每日收款</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item">操作</span>
+                </div>
+                <div class="filter-card">
+                  <div class="fitem"><span>时间范围</span><div class="select" style="width:150px"><span>最近 7 天</span></div></div>
+                  <div class="row gap2" style="margin-left:auto"><span class="btn sm ghost">重置</span><span class="btn sm">查询</span></div>
+                </div>
+                <div class="card">
+                  <div class="row between mb3">
+                    <span class="card-title sm">配送轨迹折线</span>
+                    <span class="f-note t-sub">实时位置：北京市朝阳区望京街道（116.481, 39.996）</span>
+                  </div>
+                  <div class="map" style="height:240px">
+                    <div class="water"></div>
+                    <div class="road"></div>
+                    <div class="map-label" style="left:16px;top:16px">配送轨迹 · 最近 7 天</div>
+                    <div class="pin pickup" style="left:26%;top:34%"></div>
+                    <div class="pin" style="left:46%;top:52%"></div>
+                    <div class="pin" style="left:60%;top:38%"></div>
+                    <div class="pin" style="left:74%;top:60%"></div>
+                    <div class="map-ctrl"><i>＋</i><i>－</i></div>
+                  </div>
+                  <p class="f-note t-sub mt3">轨迹点位来自 <code>deliveryTrajectories(workerId)</code>；实时位置来自 <code>deliveryWorkerLatestLocation</code>；无轨迹时展示空态。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态六：每日收款 ============ -->
+      <div>
+        <div class="browser-cap">状态六 · Tab「每日收款」（含合计）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/accounts/3 — 每日收款</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 账号列表 <span class="crumb-sep">/</span> <b>账号详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">基本信息</span>
+                  <span class="tab-item">账号安全</span>
+                  <span class="tab-item">配送能力</span>
+                  <span class="tab-item">配送记录</span>
+                  <span class="tab-item">配送轨迹</span>
+                  <span class="tab-item on">每日收款</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item">操作</span>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr>
+                        <th>日期</th>
+                        <th class="num">现金</th>
+                        <th class="num">扫码</th>
+                        <th class="num">水票</th>
+                        <th class="num">订单数</th>
+                        <th class="num">订单金额</th>
+                        <th class="num">差异</th>
+                        <th>状态</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr><td>2026-09-05</td><td class="num">¥120.00</td><td class="num">¥486.00</td><td class="num">¥66.00</td><td class="num">18</td><td class="num bold">¥672.00</td><td class="num">¥0.00</td><td><span class="tag tag-ok">已对账</span></td></tr>
+                      <tr><td>2026-09-04</td><td class="num">¥80.00</td><td class="num">¥520.00</td><td class="num">¥44.00</td><td class="num">21</td><td class="num bold">¥644.00</td><td class="num t-err">-¥6.00</td><td><span class="tag tag-warn">有差异</span></td></tr>
+                      <tr><td>2026-09-03</td><td class="num">¥60.00</td><td class="num">¥398.00</td><td class="num">¥35.00</td><td class="num">16</td><td class="num bold">¥493.00</td><td class="num">¥0.00</td><td><span class="tag tag-ok">已对账</span></td></tr>
+                      <tr><td class="bold">合计</td><td class="num bold">¥260.00</td><td class="num bold">¥1,404.00</td><td class="num bold">¥145.00</td><td class="num bold">55</td><td class="num bold">¥1,809.00</td><td class="num bold t-err">-¥6.00</td><td>—</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot"><span>共 3 条记录</span><div class="pager"><i class="on">1</i></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态七：评价记录 ============ -->
+      <div>
+        <div class="browser-cap">状态七 · Tab「评价记录」（评分分布 + 分页）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/accounts/3 — 评价记录</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 账号列表 <span class="crumb-sep">/</span> <b>账号详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">基本信息</span>
+                  <span class="tab-item">账号安全</span>
+                  <span class="tab-item">配送能力</span>
+                  <span class="tab-item">配送记录</span>
+                  <span class="tab-item">配送轨迹</span>
+                  <span class="tab-item">每日收款</span>
+                  <span class="tab-item on">评价记录</span>
+                  <span class="tab-item">操作</span>
+                </div>
+                <div class="card">
+                  <div class="row between mb3">
+                    <span class="card-title sm">评分分布</span>
+                    <span class="f-aux t-sub">平均评分 <strong class="bold">4.8</strong> ｜ 总评价数 98</span>
+                  </div>
+                  <div class="hbar">
+                    <div class="hr"><span class="nm">5 星</span><span class="track"><span class="fill" style="width:86%"></span></span><span class="vl">84</span></div>
+                    <div class="hr"><span class="nm">4 星</span><span class="track"><span class="fill" style="width:11%"></span></span><span class="vl">11</span></div>
+                    <div class="hr"><span class="nm">3 星</span><span class="track"><span class="fill" style="width:2%"></span></span><span class="vl">2</span></div>
+                    <div class="hr"><span class="nm">2 星</span><span class="track"><span class="fill" style="width:1%"></span></span><span class="vl">1</span></div>
+                    <div class="hr"><span class="nm">1 星</span><span class="track"><span class="fill" style="width:0%"></span></span><span class="vl">0</span></div>
+                  </div>
+                </div>
+                <div class="ant-table">
+                  <table>
+                    <thead>
+                      <tr><th>订单号</th><th>评分</th><th>内容</th><th>匿名</th><th>时间</th></tr>
+                    </thead>
+                    <tbody>
+                      <tr><td class="num bold">AR20260904011</td><td><span class="t-warn">★★★★★</span></td><td class="ellipsis">送得很及时，师傅态度好。</td><td>否</td><td>2026-09-04 19:10</td></tr>
+                      <tr><td class="num bold">AR20260903008</td><td><span class="t-warn">★★★★☆</span></td><td class="ellipsis">整体不错，稍微晚了一点。</td><td>是</td><td>2026-09-03 20:22</td></tr>
+                      <tr><td class="num bold">AR20260901005</td><td><span class="t-warn">★★★★★</span></td><td class="ellipsis">搬运到六楼，很有耐心。</td><td>否</td><td>2026-09-01 18:40</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="table-foot"><span>共 98 条记录</span><div class="pager"><i>‹</i><i class="on">1</i><i>2</i><i>›</i><span class="t-sub" style="margin-left:8px">10 条/页</span></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ 状态八：操作 ============ -->
+      <div>
+        <div class="browser-cap">状态八 · Tab「操作」（仅超管视角；删除保护）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/users/accounts/3 — 操作</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi">工作台</div>
+                <div class="mi">数据统计</div>
+                <div class="mi">商品管理</div>
+                <div class="mi">订单管理<span class="badge">12</span></div>
+                <div class="mi">地址与配送</div>
+                <div class="mi">收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi on">用户管理</div>
+                <div class="mi">营销管理</div>
+                <div class="mi">运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi">通知消息</div>
+                <div class="mi">系统设置</div>
+                <div class="mi">日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">用户管理 <span class="crumb-sep">/</span> 账号列表 <span class="crumb-sep">/</span> <b>账号详情</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+                <div class="tabs">
+                  <span class="tab-item">基本信息</span>
+                  <span class="tab-item">账号安全</span>
+                  <span class="tab-item">配送能力</span>
+                  <span class="tab-item">配送记录</span>
+                  <span class="tab-item">配送轨迹</span>
+                  <span class="tab-item">每日收款</span>
+                  <span class="tab-item">评价记录</span>
+                  <span class="tab-item on">操作</span>
+                </div>
+                <div class="card">
+                  <div class="row gap2 wrap">
+                    <span class="btn sm">编辑</span>
+                    <span class="btn sm ghost">重置密码</span>
+                    <span class="btn sm ghost">停用</span>
+                    <span class="btn sm danger">删除</span>
+                  </div>
+                  <div class="divider">删除保护</div>
+                  <p class="f-aux t-sub mb0">删除为软删除，且受保护：<strong>不能删自己</strong>、<strong>不能删最后一个超管</strong>。停用后账号无法登录，旧 token 立即失效；重置密码弹窗中新密码留空 = 默认 123456。</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（React + Ant Design 5）</p>
+        <p><strong>入口：</strong>账号列表行「详情」（管理账号角色）／顶部「← 返回账号列表」</p>
+        <p><strong>路由：</strong><code>/users/accounts/:id</code>，与送水工视图<strong>同路由按角色渲染</strong></p>
+        <p><strong>权限：</strong>超管可见「操作」Tab；普通管理员仅见配送能力账号范围（R-AUTH-04）</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>返回栏：← 返回账号列表</li>
+          <li>基本信息卡：头像 / 账号 / 姓名 / 角色 / 权限信息（权限码标签墙）/ 兼送水标记 / 状态</li>
+          <li>Tabs（8 个，默认「基本信息」）：基本信息 · 账号安全 · 配送能力 · 配送记录 · 配送轨迹 · 每日收款 · 评价记录 · 操作</li>
+          <li>配送能力 / 配送记录仅<strong>兼送水管理员</strong>展示；操作 Tab 仅<strong>超管视角</strong></li>
+          <li>配送记录为单表格 + Tab 内「订单状态」下拉筛选</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>Tab 切换按需加载对应区块，默认「基本信息」</li>
+          <li>配送记录按「订单状态」（全部 / 送货中 / 待派送 / 已完成）筛选，切换即重新请求</li>
+          <li>重置密码 → ResetPasswordModal（可留空 = 默认 123456）</li>
+          <li>停用 / 启用 → 二次确认；停用后无法登录、旧 token 失效</li>
+          <li>删除 → Modal.confirm → 软删除（超管保护）</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>状态与规则</h3>
+        <p><strong>标签：</strong>账号状态 正常绿 / 已停用红；最后登录时间未登录时展示「从未登录」；在线状态 / 接单权限标签；评分分布 1~5 星。</p>
+        <p><strong>空态：</strong>无轨迹空态；无日报 / 无评价空态。</p>
+        <p><strong>加载态：</strong>Spin loading；<strong>错误态：</strong>操作失败 message；<strong>禁用态：</strong>提交 loading 期间禁用。</p>
+        <p><strong>权限信息：</strong>由角色推导——超管全权限；普通管理员 = 配送能力账号范围；兼送水含 <code>DELIVERY_TASK</code>；删除 / 重置密码仅超管。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>设计要点 / 禁忌</h3>
+        <p><strong>详情页使用 Tab</strong>（2026-09 由纵向区块改为 Tab 布局，<strong>禁止纵向堆叠</strong>）。</p>
+        <p>「配送能力 / 配送记录」仅兼送水管理员展示；「操作」Tab 仅超管视角。原弹窗 AdminDetailModal 已移除，统一为独立详情页。</p>
+        <p>管理端<strong>不出现强调橙</strong>；金额分转元（<code>¥0.00</code> 口径）；删除用语义 error 色。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

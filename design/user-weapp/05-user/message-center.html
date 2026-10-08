@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 消息中心｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 消息中心</h1>
+      <p class="sub">功能编号 F-NTF-002 ｜ 通知与消息域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 下游：订单详情 / 公告详情 / 反馈记录</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-NTF-002</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 状态一：消息列表 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 消息列表（未读 / 已读并存）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">消息</span>
+            <span class="mp-nav__right">全部已读</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-tabs hair-b">
+                <div class="weui-tabs__item on">全部</div>
+                <div class="weui-tabs__item">订单</div>
+                <div class="weui-tabs__item">系统</div>
+                <div class="weui-tabs__item">优惠</div>
+              </div>
+              <div class="weui-tabs hair-b">
+                <div class="weui-tabs__item on">全部</div>
+                <div class="weui-tabs__item">未读 <span class="cnt">3</span></div>
+                <div class="weui-tabs__item">已读</div>
+              </div>
+
+              <div class="weui-cells mt2">
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="row between">
+                      <div class="weui-media-box__title bold">您的订单已出库</div>
+                      <div class="f-note t-weak">10 分钟前</div>
+                    </div>
+                    <div class="weui-media-box__desc weui-media-box__desc--2">您的水票订单已出库，配送员正在路上，预计 30 分钟送达。</div>
+                  </div>
+                  <span class="weui-badge weui-badge_dot" style="margin-top:6px"></span>
+                </div>
+
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2.5H4.5z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="row between">
+                      <div class="weui-media-box__title bold">停水通知</div>
+                      <div class="f-note t-weak">2 小时前</div>
+                    </div>
+                    <div class="weui-media-box__desc weui-media-box__desc--2">10 月 9 日 09:00-12:00 小区管网检修，期间配送可能延迟，敬请谅解。</div>
+                  </div>
+                  <span class="weui-badge weui-badge_dot" style="margin-top:6px"></span>
+                </div>
+
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M3 7h11v8H3z"/><path d="M14 10h4l3 3v2h-7z"/><circle cx="7" cy="17.5" r="1.6"/><circle cx="17" cy="17.5" r="1.6"/></svg>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="row between">
+                      <div class="weui-media-box__title">配送员已接单</div>
+                      <div class="f-note t-weak">昨天 18:20</div>
+                    </div>
+                    <div class="weui-media-box__desc weui-media-box__desc--2">配送员李师傅已接单，将在 20 分钟内上门，请保持电话畅通。</div>
+                  </div>
+                </div>
+
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="row between">
+                      <div class="weui-media-box__title">优惠券即将过期</div>
+                      <div class="f-note t-weak">3 天前</div>
+                    </div>
+                    <div class="weui-media-box__desc weui-media-box__desc--2">您有 1 张「满 20 减 5」优惠券将于 3 天后过期，记得使用哦。</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-loadmore">
+                <span class="weui-loadmore__line"></span>
+                <span>加载更多</span>
+                <span class="weui-loadmore__line"></span>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 状态二：空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 空态（暂无消息）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">消息</span>
+            <span class="mp-nav__right">全部已读</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-tabs hair-b">
+                <div class="weui-tabs__item on">全部</div>
+                <div class="weui-tabs__item">订单</div>
+                <div class="weui-tabs__item">系统</div>
+                <div class="weui-tabs__item">优惠</div>
+              </div>
+              <div class="weui-tabs hair-b">
+                <div class="weui-tabs__item on">全部</div>
+                <div class="weui-tabs__item">未读</div>
+                <div class="weui-tabs__item">已读</div>
+              </div>
+
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2.5H4.5z"/><path d="M10 20a2 2 0 0 0 4 0"/></svg>
+                </div>
+                <div class="weui-empty__text">暂无消息<br>订单与系统通知会在这里展示</div>
+              </div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x；筛选用官方 <code>.weui-tabs</code>（选中短下划线），消息列表用官方 <code>.weui-cells</code> + <code>.weui-media-box</code>，未读用 <code>.weui-badge_dot</code>。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code>（含 <code>.mp-nav__right</code>「全部已读」）+ <code>.weui-tabs</code> / <code>.weui-tabs__item.on</code> / <code>.cnt</code> + <code>.weui-media-box</code> / <code>__hd</code> / <code>__title</code> / <code>__desc--2</code> + <code>.weui-cell__icon--brand</code> + <code>.weui-badge_dot</code> + <code>.weui-loadmore</code> + <code>.weui-empty</code>。</p>
+        <p><strong>度量：</strong>导航栏 44px、胶囊 87×32；Tab 高 43px、选中下划线 20×3；图文项左缩 16px、主文字 17px、摘要 14px、时间 12px；未读圆点 8px。</p>
+        <p><strong>配色：</strong>类型图标统一品牌蓝；未读圆点为语义红 <code>var(--weui-RED)</code>；本页无金额、无强调橙。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序</p>
+        <p><strong>入口：</strong>「我的」页「消息中心」入口 + 未读角标</p>
+        <p><strong>跳转：</strong>点击消息 → 标已读 → 跳订单详情 <code>order-detail</code> / 公告详情 <code>notice-detail</code> / 反馈记录 <code>feedback-records</code></p>
+        <p><strong>数据：</strong>消息类型、标题、摘要、时间、已读状态、关联单号 / 页面</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏：返回 + 「消息」+ 右上「全部已读」（<code>.mp-nav__right</code>）</li>
+          <li>第一行 Tab（类型）：全部 / 订单 / 系统 / 优惠</li>
+          <li>第二行 Tab（已读状态）：全部 / 未读 <code>.cnt</code> / 已读（两维度组合过滤）</li>
+          <li>消息列表：类型图标 + 标题 17px + 摘要（<code>.weui-media-box__desc--2</code> 两行省略）+ 时间 12px 灰 + 未读红点</li>
+          <li>加载更多（<code>.weui-loadmore</code>）+ 下拉刷新</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>空态：</strong>「暂无消息」+「订单与系统通知会在这里展示」（状态二）；<strong>加载态：</strong>加载更多 / 下拉刷新；<strong>错误态：</strong>「加载失败，请重试」；<strong>类型：</strong>全部 / 订单 / 系统 / 优惠（来源含优惠券即将过期 COUPON_EXPIRING）。</p>
+        <p><strong>未读 / 已读视觉区分：</strong>未读 = 标题加粗（<code>.bold</code>）+ 右侧 <code>.weui-badge_dot</code> 红点；已读 = 标题常规字重 + 无圆点；未读高亮与入口角标实时联动（WebSocket 推送与轮询按幂等键去重）；仅本人可见（R-AUTH-02）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>Web 风旧组件（标签芯片组 / 列表 / 列表项 / 列表图标 / 标签 / 空态等旧类名）一律禁用，全部以 WeUI 等价类实现；本页无主 CTA，<strong>不出现强调橙</strong>。</p>
+        <p>双行 Tab 组合筛选需清晰（类型行与已读状态行视觉可区分）；摘要固定 2 行省略（<code>.weui-media-box__desc--2</code>），触达行高 ≥ 44px；未读圆点用语义红，图标统一品牌蓝。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 缺口 G66 已解决（2026-08）；左右滑操作与「删除消息」为目标形态（底部 <code>.weui-actionsheet</code> 承载）；F-NTF-007 目标新增「提醒」分类（补水 / 周期 / 余量 / 余额）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

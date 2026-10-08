@@ -1,0 +1,208 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <changeSet id="1.0.8-add-system-config-params" author="aqua-rush">
+    <comment>Extend system_settings with type/group/default columns and seed system config params for F-SYS-001/F-SYS-002/F-SYS-003</comment>
+
+    <!-- 孤儿种子清理(G06):bucket_deposit_amount 随押桶功能移除成为孤儿数据,须先于 NOT NULL addColumn 删除 -->
+    <delete tableName="system_settings">
+      <where>setting_key = 'bucket_deposit_amount'</where>
+    </delete>
+
+    <!-- 参数中心列扩展(R-SYS-01:键 + 值 + 类型 + 分组 + 默认值) -->
+    <addColumn tableName="system_settings">
+      <column name="setting_type" type="varchar(20)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="setting_group" type="varchar(50)">
+        <constraints nullable="false"/>
+      </column>
+      <column name="default_value" type="varchar(255)"/>
+      <column name="min_value" type="varchar(64)"/>
+      <column name="max_value" type="varchar(64)"/>
+      <column name="options" type="varchar(255)"/>
+      <column name="updated_by" type="varchar(50)"/>
+    </addColumn>
+
+    <!-- ==================== 订单与履约参数组(F-SYS-002) ==================== -->
+    <insert tableName="system_settings">
+      <column name="id">1</column>
+      <column name="setting_key">payment_timeout_minutes</column>
+      <column name="setting_value">30</column>
+      <column name="description">支付超时(分钟),超时自动取消订单并恢复库存(R-ORD-04)</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">30</column>
+      <column name="min_value">1</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">2</column>
+      <column name="setting_key">delivery_slot_immediate_minutes</column>
+      <column name="setting_value">30</column>
+      <column name="description">立即配送时限(分钟)</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">30</column>
+      <column name="min_value">1</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">3</column>
+      <column name="setting_key">delivery_slot_morning_enabled</column>
+      <column name="setting_value">true</column>
+      <column name="description">上午配送时段启用</column>
+      <column name="setting_type">BOOLEAN</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">true</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">4</column>
+      <column name="setting_key">delivery_slot_morning_start</column>
+      <column name="setting_value">09:00</column>
+      <column name="description">上午配送时段开始时间</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">09:00</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">5</column>
+      <column name="setting_key">delivery_slot_morning_end</column>
+      <column name="setting_value">12:00</column>
+      <column name="description">上午配送时段结束时间</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">12:00</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">6</column>
+      <column name="setting_key">delivery_slot_afternoon_enabled</column>
+      <column name="setting_value">true</column>
+      <column name="description">下午配送时段启用</column>
+      <column name="setting_type">BOOLEAN</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">true</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">7</column>
+      <column name="setting_key">delivery_slot_afternoon_start</column>
+      <column name="setting_value">14:00</column>
+      <column name="description">下午配送时段开始时间</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">14:00</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">8</column>
+      <column name="setting_key">delivery_slot_afternoon_end</column>
+      <column name="setting_value">18:00</column>
+      <column name="description">下午配送时段结束时间</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">18:00</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">9</column>
+      <column name="setting_key">delivery_slot_evening_enabled</column>
+      <column name="setting_value">true</column>
+      <column name="description">晚上配送时段启用</column>
+      <column name="setting_type">BOOLEAN</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">true</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">10</column>
+      <column name="setting_key">delivery_slot_evening_start</column>
+      <column name="setting_value">18:00</column>
+      <column name="description">晚上配送时段开始时间</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">18:00</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">11</column>
+      <column name="setting_key">delivery_slot_evening_end</column>
+      <column name="setting_value">21:00</column>
+      <column name="description">晚上配送时段结束时间</column>
+      <column name="setting_type">STRING</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">21:00</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">12</column>
+      <column name="setting_key">dispatch_timeout_reminder_minutes</column>
+      <column name="setting_value">15</column>
+      <column name="description">派单超时提醒(分钟),无 PRD 默认值,暂定 15(开放问题,见 PRD F-SYS-002)</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">15</column>
+      <column name="min_value">1</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">13</column>
+      <column name="setting_key">auto_confirm_receipt_days</column>
+      <column name="setting_value">7</column>
+      <column name="description">自动确认收货(天),无 PRD 默认值,暂定 7(开放问题,见 PRD F-SYS-002)</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">ORDER_AND_FULFILLMENT</column>
+      <column name="default_value">7</column>
+      <column name="min_value">1</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+
+    <!-- ==================== 库存预警参数组(F-SYS-003,R-PRO-02) ==================== -->
+    <insert tableName="system_settings">
+      <column name="id">14</column>
+      <column name="setting_key">low_stock_threshold</column>
+      <column name="setting_value">10</column>
+      <column name="description">低库存阈值(件),库存低于该值显示红色预警(F-PRO-006/F-STA-006)</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">INVENTORY</column>
+      <column name="default_value">10</column>
+      <column name="min_value">0</column>
+      <column name="max_value">99999</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+    <insert tableName="system_settings">
+      <column name="id">15</column>
+      <column name="setting_key">stock_warning_tier_mid</column>
+      <column name="setting_value">50</column>
+      <column name="description">中档预警阈值(件),库存低于该值显示橙色预警;须大于低库存阈值</column>
+      <column name="setting_type">NUMBER</column>
+      <column name="setting_group">INVENTORY</column>
+      <column name="default_value">50</column>
+      <column name="min_value">0</column>
+      <column name="max_value">99999</column>
+      <column name="created_at">NOW()</column>
+      <column name="updated_at">NOW()</column>
+    </insert>
+
+  </changeSet>
+
+</databaseChangeLog>

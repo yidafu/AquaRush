@@ -1,243 +1,78 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Card, Row,
-  Col,
-  Statistic,
-  Tag,
-  Avatar,
+  Card,
   Button,
-  Table,
   Spin,
-  Descriptions,
-  Typography,
   Empty,
   Tabs,
-
 } from 'antd';
-import {
-  UserOutlined,
-  PhoneOutlined,
-  ShoppingOutlined,
-  DollarOutlined,
-  CalendarOutlined,
-} from '@ant-design/icons';
 import { useQuery } from '@apollo/client';
 import {
-  GET_USER_DETAIL_QUERY,
-  USER_ORDERS_QUERY,
+  USER_DETAIL_PAGE_DATA_QUERY,
 } from '../../../graphql/queries/user.graphql';
 import type {
   User,
   Order,
   Address,
 } from '@aquarush/common';
-import { OrderStatus } from '@aquarush/common';
-import { formatAdminTableAmount } from '../../../utils/money';
 import AddressListUsingList from '../components/AddressListUsingList';
+import CouponSection from './sections/CouponSection';
+import TicketSection from './sections/TicketSection';
+import FeedbackSection from './sections/FeedbackSection';
+import ReviewSection from './sections/ReviewSection';
+import FavoriteSection from './sections/FavoriteSection';
+import { UserBasicInfoCard, UserStatisticsCards, OrderHistoryTable } from './components';
+import type { UserDetailPageData } from './types';
 
-const { Text } = Typography;
-
+/**
+ * 用户详情页(users/:id,PRD/07-user.md §F-USR-022):
+ * 基本信息卡(含角色/邮箱/所属分组/余额/总消费) → 统计卡(全量口径) → Tabs
+ * (收货地址/订单记录/优惠券/水票/意见反馈/评价记录/收藏商品),订单记录可下钻。
+ */
 const UserDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
 
   const userId = id;
 
-  // Query for user basic info
+  // 单页单请求:用户基本信息 + 地址 + 分页订单 + 已完成订单数一次取回(规则 #10);
+  // 分页/尺寸变化经 variables 变化自动重取
   const {
-    data: userData,
+    data,
     loading: userLoading,
     error: userError,
-  } = useQuery(GET_USER_DETAIL_QUERY, {
-    variables: { id: userId },
+  } = useQuery<UserDetailPageData>(USER_DETAIL_PAGE_DATA_QUERY, {
+    variables: { id: userId as string, page, size: pageSize },
     skip: !userId,
     errorPolicy: 'all',
   });
 
-  // Query for user orders
-  const {
-    data: ordersData,
-    loading: ordersLoading,
-  } = useQuery(USER_ORDERS_QUERY, {
-    variables: { userId },
-    skip: !userId,
-    errorPolicy: 'all',
-  });
-
-  const user: User | undefined = userData?.user;
-  const userAddresses: Address[] = userData?.userAddresses || [];
-  const orders: Order[] = ordersData?.ordersByUser || [];
-
-  const getStatusColor = (status: OrderStatus) => {
-    switch (status) {
-      case OrderStatus.PENDING:
-        return 'default';
-      case OrderStatus.CONFIRMED:
-        return 'processing';
-      case OrderStatus.PREPARING:
-        return 'processing';
-      case OrderStatus.READY_FOR_DELIVERY:
-        return 'warning';
-      case OrderStatus.OUT_FOR_DELIVERY:
-        return 'processing';
-      case OrderStatus.DELIVERED:
-        return 'success';
-      case OrderStatus.CANCELLED:
-        return 'error';
-      case OrderStatus.REFUNDED:
-        return 'error';
-      default:
-        return 'default';
+  // 最近下单时间(orders 默认 createdAt 倒序,取第 0 页首条,分页时保持首载值)
+  const [latestOrderTime, setLatestOrderTime] = useState<string | null>(null);
+  useEffect(() => {
+    if (page === 0 && data?.orders?.content?.length) {
+      setLatestOrderTime(data.orders.content[0].createdAt);
     }
-  };
+  }, [data, page]);
 
-  const getStatusText = (status: OrderStatus) => {
-    switch (status) {
-      case OrderStatus.PENDING:
-        return '待确认';
-      case OrderStatus.CONFIRMED:
-        return '已确认';
-      case OrderStatus.PREPARING:
-        return '准备中';
-      case OrderStatus.READY_FOR_DELIVERY:
-        return '待派送';
-      case OrderStatus.OUT_FOR_DELIVERY:
-        return '送货中';
-      case OrderStatus.DELIVERED:
-        return '已完成';
-      case OrderStatus.CANCELLED:
-        return '已取消';
-      case OrderStatus.REFUNDED:
-        return '已退款';
-      default:
-        return status;
-    }
-  };
+  const user: User | undefined = data?.user;
+  const userAddresses: Address[] = data?.userAddresses || [];
+  const orders: Order[] = data?.orders.content || [];
 
-  const orderColumns = [
-    {
-      title: '订单编号',
-      dataIndex: 'orderNumber',
-      key: 'orderNumber',
-      width: 150,
-    },
-    {
-      title: '商品信息',
-      dataIndex: ['product', 'name'],
-      key: 'product',
-      render: (productName: string, record: Order) => (
-        <div>
-          <div>{productName}</div>
-          <div style={{ fontSize: '12px', color: '#999' }}>
-            数量: {record.quantity}
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: '订单金额',
-      dataIndex: 'amount',
-      key: 'amount',
-      width: 120,
-      render: (amount: number | null | undefined) => (
-        <span>{formatAdminTableAmount(amount)}</span>
-      ),
-    },
-    {
-      title: '收货地址',
-      dataIndex: ['address', 'detailAddress'],
-      key: 'address',
-      width: 250,
-      render: (detailAddress: string, record: Order) => (
-        <div>
-          <div>{detailAddress}</div>
-          <div style={{ fontSize: '12px', color: '#999' }}>
-            {record.address?.receiverName} - {record.address?.phone}
-          </div>
-        </div>
-      ),
-    },
-    {
-      title: '配送员',
-      dataIndex: ['deliveryWorker', 'name'],
-      key: 'deliveryWorker',
-      width: 100,
-      render: (name: string, record: Order) => (
-        name ? (
-          <div>
-            <div>{name}</div>
-            <div style={{ fontSize: '12px', color: '#999' }}>
-              {record.deliveryWorker?.phone}
-            </div>
-          </div>
-        ) : (
-          <Text type="secondary">未分配</Text>
-        )
-      ),
-    },
-    {
-      title: '支付方式',
-      dataIndex: 'paymentMethod',
-      key: 'paymentMethod',
-      width: 100,
-      render: (method: string) => {
-        const methodMap: Record<string, string> = {
-          WECHAT_PAY: '微信支付',
-          ALIPAY: '支付宝',
-          CASH_ON_DELIVERY: '货到付款',
-        };
-        return methodMap[method] || method;
-      },
-    },
-    {
-      title: '下单时间',
-      dataIndex: 'createdAt',
-      key: 'createdAt',
-      width: 150,
-      render: (date: string) => new Date(date).toLocaleString(),
-    },
-    {
-      title: '状态',
-      dataIndex: 'status',
-      key: 'status',
-      width: 100,
-      render: (status: OrderStatus) => (
-        <Tag color={getStatusColor(status)}>
-          {getStatusText(status)}
-        </Tag>
-      ),
-    },
-  ];
-
-  // Calculate statistics
-  const totalOrders = orders.length;
-  const totalAmount = orders.reduce((sum, order) => {
-    // order.amount is a string in yuan format, sum as number
-    const amountValue = parseFloat(order.amount || '0');
-    return sum + amountValue;
-  }, 0);
-  const totalAmountInYuan = totalAmount;
-  const completedOrders = orders.filter(order => order.status === OrderStatus.DELIVERED).length;
-  const lastOrderTime = orders.length > 0
-    ? new Date(Math.max(...orders.map(order => new Date(order.createdAt).getTime()))).toLocaleString()
+  // 统计口径(2026-09 修正:不再按当前分页计算)
+  // 总订单数 = orders.totalElements(全量);总消费 = user.totalSpentCents(持久化权威值);
+  // 已完成订单 = 按状态 COMPLETED 计数查询(completedOrders 别名);平均订单金额 = 总消费/总订单(除零守卫)
+  const totalOrders = data?.orders.totalElements ?? 0;
+  const totalSpentCents = user?.totalSpentCents ?? 0;
+  const totalAmountInYuan = totalSpentCents / 100;
+  const completedOrders = data?.completedOrders.totalElements ?? 0;
+  const averageAmountInYuan = totalOrders > 0 ? totalAmountInYuan / totalOrders : 0;
+  const lastOrderTime = latestOrderTime
+    ? new Date(latestOrderTime).toLocaleString()
     : '暂无订单';
-
-  // Handle address actions
-  const handleEditAddress = (id: string) => {
-    console.log('Edit address:', id);
-    // Implement edit address logic here
-  };
-
-  const handleDeleteAddress = (id: string) => {
-    console.log('Delete address:', id);
-    // Implement delete address logic here
-  };
-
-  const handleSetDefaultAddress = (id: string) => {
-    console.log('Set default address:', id);
-    // Implement set default address logic here
-  };
 
   if (userLoading) {
     return (
@@ -259,158 +94,93 @@ const UserDetailPage: React.FC = () => {
     );
   }
 
-  const tabItems = [
-    {
-      key: 'address',
-      label: '收货地址',
-      children: (
-        <>
-          {userAddresses && userAddresses.length > 0 ? (
-            <AddressListUsingList
-              addresses={userAddresses}
-              loading={userLoading}
-              onEdit={handleEditAddress}
-              onDelete={handleDeleteAddress}
-              onSetDefault={handleSetDefaultAddress}
-            />
-          ) : (
-            <Empty description="暂无收货地址" />
-          )}
-        </>
-      )
-    }, {
-      key: 'order',
-      label: '订单记录',
-      children: (
-        <Table
-          columns={orderColumns}
-          dataSource={orders}
-          rowKey="id"
-          loading={ordersLoading}
-          pagination={{
-            pageSize: 10,
-            showSizeChanger: true,
-            showQuickJumper: true,
-            showTotal: (total, range) =>
-              `第 ${range[0]}-${range[1]} 条/共 ${total} 条`,
-          }}
-          scroll={{ x: 1400 }}
-          locale={{
-            emptyText: '该用户暂无订单记录',
-          }}
-        />
-      )
-    }
-  ]
-
   return (
-    <div style={{  minHeight: '100vh' }}>
+    <div style={{ minHeight: '100vh' }}>
       {/* Header with back button */}
       <div style={{ marginBottom: '12px' }}>
-        <Button onClick={() => navigate('/users')} >
+        <Button onClick={() => navigate('/users')}>
           ← 返回用户列表
         </Button>
       </div>
 
       {/* Basic Information Card */}
-      <Card style={{ marginBottom: '24px' }}>
-        <Row gutter={24}>
-          <Col span={4}>
-            <Avatar
-              size={120}
-              src={user.avatarUrl}
-              icon={<UserOutlined />}
-              style={{ marginBottom: '16px' }}
-            />
-          </Col>
-          <Col span={20}>
-            <Descriptions title="基本信息" column={3}>
+      <UserBasicInfoCard user={user} lastOrderTime={lastOrderTime} />
 
-              <Descriptions.Item label="用户ID">
-                 {user.id || '未绑定'}
-              </Descriptions.Item>
+      {/* Statistics Cards (全量口径) */}
+      <UserStatisticsCards
+        totalOrders={totalOrders}
+        totalAmountInYuan={totalAmountInYuan}
+        completedOrders={completedOrders}
+        averageAmountInYuan={averageAmountInYuan}
+      />
 
-              <Descriptions.Item label="昵称">
-                {user.nickname || '未设置'}
-              </Descriptions.Item>
-              <Descriptions.Item label="手机号">
-                <PhoneOutlined /> {user.phone || '未绑定'}
-              </Descriptions.Item>
-              <Descriptions.Item label="微信OpenID">
-                {user.wechatOpenId}
-              </Descriptions.Item>
-
-              <Descriptions.Item label="账户状态">
-                <Tag color="success">正常</Tag>
-              </Descriptions.Item>
-
-              <Descriptions.Item label="最近下单时间">
-                <CalendarOutlined /> {new Date(lastOrderTime).toLocaleString()}
-              </Descriptions.Item>
-
-              <Descriptions.Item label="注册时间">
-                <CalendarOutlined /> {new Date(user.createdAt).toLocaleString()}
-              </Descriptions.Item>
-              <Descriptions.Item label="最后更新">
-                {new Date(user.updatedAt).toLocaleString()}
-              </Descriptions.Item>
-            </Descriptions>
-          </Col>
-        </Row>
-      </Card>
-
-
-      {/* Statistics Cards */}
-      <Row gutter={16} style={{ marginBottom: '24px' }}>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="总订单数"
-              value={totalOrders}
-              prefix={<ShoppingOutlined />}
-              valueStyle={{ color: '#1890ff' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="总消费金额"
-              value={totalAmountInYuan}
-              prefix={<DollarOutlined />}
-              precision={2}
-              valueStyle={{ color: '#f5222d' }}
-              suffix="元"
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="已完成订单"
-              value={completedOrders}
-              prefix={<ShoppingOutlined />}
-              valueStyle={{ color: '#52c41a' }}
-            />
-          </Card>
-        </Col>
-        <Col span={6}>
-          <Card>
-            <Statistic
-              title="平均订单金额"
-              value={totalOrders > 0 ? totalAmountInYuan / totalOrders : 0}
-              prefix={<DollarOutlined />}
-              precision={2}
-              suffix="元"
-              valueStyle={{ color: '#f5222d' }}
-            />
-          </Card>
-        </Col>
-      </Row>
-
-      <Tabs items={ tabItems}>
-      </Tabs>
-
+      {/* 各区块以 Tab 切换(2026-09 决策:保持 Tabs 布局,PRD 07-user.md §F-USR-022) */}
+      <Tabs
+        defaultActiveKey="address"
+        items={[
+          {
+            key: 'address',
+            label: '收货地址',
+            children: (
+              <Card>
+                {userAddresses && userAddresses.length > 0 ? (
+                  <AddressListUsingList
+                    addresses={userAddresses}
+                    loading={userLoading}
+                  />
+                ) : (
+                  <Empty description="暂无收货地址" />
+                )}
+              </Card>
+            ),
+          },
+          {
+            key: 'orders',
+            label: '订单记录',
+            children: (
+              <Card>
+                <OrderHistoryTable
+                  orders={orders}
+                  loading={userLoading}
+                  page={page}
+                  pageSize={pageSize}
+                  total={data?.orders.totalElements ?? 0}
+                  onPageChange={(nextPage, nextPageSize) => {
+                    setPage(nextPage);
+                    setPageSize(nextPageSize);
+                  }}
+                  onViewOrder={(orderId) => navigate(`/orders/${orderId}`)}
+                />
+              </Card>
+            ),
+          },
+          {
+            key: 'coupons',
+            label: '优惠券',
+            children: <CouponSection userId={user.id} />,
+          },
+          {
+            key: 'tickets',
+            label: '水票',
+            children: <TicketSection userId={user.id} />,
+          },
+          {
+            key: 'feedback',
+            label: '意见反馈',
+            children: <FeedbackSection userId={user.id} />,
+          },
+          {
+            key: 'reviews',
+            label: '评价记录',
+            children: <ReviewSection userId={user.id} />,
+          },
+          {
+            key: 'favorites',
+            label: '收藏商品',
+            children: <FavoriteSection userId={user.id} />,
+          },
+        ]}
+      />
     </div>
   );
 };

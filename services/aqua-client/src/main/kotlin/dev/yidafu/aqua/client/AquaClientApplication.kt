@@ -23,50 +23,29 @@ import dev.yidafu.aqua.common.cache.CacheAutoConfiguration
 import dev.yidafu.aqua.storage.config.StorageProperties
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.context.properties.EnableConfigurationProperties
-import org.springframework.boot.runApplication
 import org.springframework.boot.persistence.autoconfigure.EntityScan
+import org.springframework.boot.runApplication
 import org.springframework.scheduling.annotation.EnableScheduling
+import java.util.TimeZone
 
 @SpringBootApplication(
   scanBasePackages = [
-    "dev.yidafu.aqua.common",
-    "dev.yidafu.aqua.api",
-    "dev.yidafu.aqua.client.config",
-    "dev.yidafu.aqua.client.user.controller",
-    "dev.yidafu.aqua.logging",
-    "dev.yidafu.aqua.user",
-    "dev.yidafu.aqua.product",
-    "dev.yidafu.aqua.delivery",
-    "dev.yidafu.aqua.notice",
-    "dev.yidafu.aqua.review",
-    "dev.yidafu.aqua.payment",
-    "dev.yidafu.aqua.order",
-    "dev.yidafu.aqua.storage",
-    "dev.yidafu.aqua.client.user.resolvers",
-    "dev.yidafu.aqua.client.product.resolvers",
-    "dev.yidafu.aqua.client.delivery.resolvers",
-    "dev.yidafu.aqua.client.notice.resolvers",
-    "dev.yidafu.aqua.client.review.resolvers",
-    "dev.yidafu.aqua.client.payment.resolvers",
+    "dev.yidafu.aqua",
   ],
   exclude = [CacheAutoConfiguration::class],
 )
 @EnableScheduling
 @EnableConfigurationProperties(StorageProperties::class)
-@EntityScan(basePackages = [
-  "dev.yidafu.aqua.common.domain.model",
-  "dev.yidafu.aqua.user.domain.model",
-  "dev.yidafu.aqua.product.domain.model",
-  "dev.yidafu.aqua.order.domain.model",
-  "dev.yidafu.aqua.payment.domain.model",
-  "dev.yidafu.aqua.delivery.domain.model",
-  "dev.yidafu.aqua.review.domain.model",
-  "dev.yidafu.aqua.notice.domain.model",
-  "dev.yidafu.aqua.reconciliation.domain.model",
-  "dev.yidafu.aqua.storage.domain.entity"
-])
+@EntityScan(
+  basePackages = [
+    "dev.yidafu.aqua",
+  ],
+)
 class AquaClientApplication
 
 fun main(args: Array<String>) {
+  // 统计聚合时区统一 Asia/Shanghai(P2-8,PRD 08-statistics.md §域级口径):
+  // 实体默认时间戳(LocalDateTime.now())与统计日界均依赖 JVM 默认时区,显式钉死不随部署环境漂移。
+  TimeZone.setDefault(TimeZone.getTimeZone("Asia/Shanghai"))
   runApplication<AquaClientApplication>(*args)
 }

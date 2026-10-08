@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.33.xsd">
+
+  <!--
+    下单支付链路完善:
+    1. R-ORD-06 服务端下单幂等:orders 新增 client_request_id,并建 (user_id, client_request_id) 唯一索引,
+       同一用户同一 clientRequestId 重复提交不产生重复订单(并发重复由唯一约束兜底);
+       可空列,NULL 不参与唯一约束(未携带幂等键的旧请求维持原行为)。
+    2. AC-ORD-001-05 配送时间随单落库:orders 新增 delivery_time_slot varchar(20)(可空,默认立即配送 IMMEDIATE)。
+  -->
+  <changeSet id="1.2.5-add-order-idempotency-delivery-time" author="aqua-rush">
+    <comment>Add client_request_id (idempotency R-ORD-06) and delivery_time_slot (AC-ORD-001-05) to orders</comment>
+
+    <addColumn tableName="orders">
+      <column name="client_request_id" type="varchar(64)">
+        <constraints nullable="true"/>
+      </column>
+    </addColumn>
+
+    <addColumn tableName="orders">
+      <column name="delivery_time_slot" type="varchar(20)">
+        <constraints nullable="true"/>
+      </column>
+    </addColumn>
+
+    <!-- 服务端幂等最终防线(R-ORD-06):同一用户同一 clientRequestId 全局唯一 -->
+    <createIndex indexName="uk_orders_user_client_request"
+                 tableName="orders"
+                 unique="true">
+      <column name="user_id"/>
+      <column name="client_request_id"/>
+    </createIndex>
+  </changeSet>
+
+</databaseChangeLog>

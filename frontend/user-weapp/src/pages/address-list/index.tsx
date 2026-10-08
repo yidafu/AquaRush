@@ -1,29 +1,34 @@
 import React, { useState, useEffect } from 'react'
-import { View, Text, Button, Image } from '@tarojs/components'
-import { AtButton, AtToast, AtModal, AtModalHeader, AtModalContent, AtModalAction } from 'taro-ui'
+import { View, Text } from '@tarojs/components'
+import { AtButton, AtToast } from 'taro-ui'
 import Taro, { useReady, useDidShow, usePullDownRefresh } from '@tarojs/taro'
 import AddressService from '../../services/AddressService'
 import { Address } from '../../types/address'
 import AddressCard from '../../components/AddressCard'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
+
+// 子组件
+import AddressSearchSection from './components/AddressSearchSection'
+import AddressListEmptyState from './components/AddressListEmptyState'
+import DeleteAddressModal from './components/DeleteAddressModal'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/toast.scss"
-import "taro-ui/dist/style/components/modal.scss"
 import './index.scss'
 
-interface AddressListProps {
-  // Props can be added here if needed
-}
+const AddressList: React.FC = () => {
+  usePageViewTracking()
 
-const AddressList: React.FC<AddressListProps> = () => {
   const [addresses, setAddresses] = useState<Address[]>([])
+  const [filteredAddresses, setFilteredAddresses] = useState<Address[]>([])
   const [loading, setLoading] = useState<boolean>(true)
   const [isSelectMode, setIsSelectMode] = useState<boolean>(false)
   const [deleteModalVisible, setDeleteModalVisible] = useState<boolean>(false)
-  const [deleteAddressId, setDeleteAddressId] = useState<number | null>(null)
+  const [deleteAddressId, setDeleteAddressId] = useState<string | null>(null)
   const [showToast, setShowToast] = useState<boolean>(false)
   const [toastText, setToastText] = useState<string>('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
+  const [searchValue, setSearchValue] = useState<string>('')
 
   const addressService = AddressService.getInstance()
 
@@ -63,6 +68,7 @@ const AddressList: React.FC<AddressListProps> = () => {
 
       if (result.success && result.data) {
         setAddresses(result.data)
+        setFilteredAddresses(result.data)
       } else {
         setToastText(result.error?.message || '获取地址列表失败')
         setToastType('error')
@@ -78,6 +84,40 @@ const AddressList: React.FC<AddressListProps> = () => {
     }
   }
 
+  const handleSearch = (value: string) => {
+    setSearchValue(value)
+    if (!value.trim()) {
+      // 如果搜索词为空，显示所有地址
+      setFilteredAddresses(addresses)
+      return
+    }
+
+    const searchLower = value.toLowerCase().trim()
+    const filtered = addresses.filter(address => {
+      // 按手机号搜索
+      if (address.phone.includes(searchLower)) {
+        return true
+      }
+      // 按收货人姓名搜索
+      if (address.receiverName.toLowerCase().includes(searchLower)) {
+        return true
+      }
+      // 按地址关键词搜索（省市区 + 详细地址）
+      const fullAddress = `${address.province}${address.city}${address.district}${address.detailAddress}`.toLowerCase()
+      if (fullAddress.includes(searchLower)) {
+        return true
+      }
+      return false
+    })
+
+    setFilteredAddresses(filtered)
+  }
+
+  const handleSearchClear = () => {
+    setSearchValue('')
+    setFilteredAddresses(addresses)
+  }
+
   const handleShowToast = (text: string, type: 'success' | 'error' | 'loading' = 'success') => {
     setToastText(text)
     setToastType(type)
@@ -89,12 +129,13 @@ const AddressList: React.FC<AddressListProps> = () => {
   }
 
   const handleAddAddress = () => {
+    // 新增收货地址:无 id 进入编辑页为新增模式(F-ADR-002)
     Taro.navigateTo({
       url: '/pages/address-edit/index'
     })
   }
 
-  const handleEditAddress = (addressId: number) => {
+  const handleEditAddress = (addressId: string) => {
     Taro.navigateTo({
       url: `/pages/address-edit/index?id=${addressId}`
     })
@@ -110,7 +151,7 @@ const AddressList: React.FC<AddressListProps> = () => {
     Taro.navigateBack()
   }
 
-  const handleSetDefault = async (addressId: number) => {
+  const handleSetDefault = async (addressId: string) => {
     try {
       const result = await addressService.setDefaultAddress(addressId)
 
@@ -131,7 +172,7 @@ const AddressList: React.FC<AddressListProps> = () => {
     }
   }
 
-  const handleDeleteClick = (addressId: number) => {
+  const handleDeleteClick = (addressId: string) => {
     setDeleteModalVisible(true)
     setDeleteAddressId(addressId)
   }
@@ -197,17 +238,13 @@ const AddressList: React.FC<AddressListProps> = () => {
 
   return (
     <View className='address-list-page'>
-      {/* 微信地址导入按钮 */}
-      <View className='flex justify-end import-section'>
-        <AtButton
-          type='secondary'
-          size='small'
-          onClick={handleWechatImport}
-          className='import-button'
-        >
-          <Text>导入微信地址</Text>
-        </AtButton>
-      </View>
+      {/* 搜索栏 + 微信地址导入 */}
+      <AddressSearchSection
+        searchValue={searchValue}
+        onSearch={handleSearch}
+        onSearchClear={handleSearchClear}
+        onWechatImport={handleWechatImport}
+      />
 
       {/* 地址列表 */}
       <View className='address-list'>
@@ -215,18 +252,10 @@ const AddressList: React.FC<AddressListProps> = () => {
           <View className='loading-container'>
             <Text>加载中...</Text>
           </View>
-        ) : addresses.length === 0 ? (
-          <View className='empty-container'>
-            <Image
-              src='/assets/empty-address.png'
-              mode='aspectFit'
-              className='empty-image'
-            />
-            <Text className='empty-text'>暂无收货地址</Text>
-            <Text className='empty-desc'>添加您的收货地址，方便快速下单</Text>
-          </View>
+        ) : filteredAddresses.length === 0 ? (
+          <AddressListEmptyState searching={!!searchValue} />
         ) : (
-          addresses.map((address) => (
+          filteredAddresses.map((address) => (
             <AddressCard
               key={address.id}
               address={address}
@@ -240,32 +269,12 @@ const AddressList: React.FC<AddressListProps> = () => {
         )}
       </View>
 
-      {/* 底部添加按钮 */}
-      <View className='bottom-actions'>
-        <AtButton
-          type='primary'
-          size='normal'
-          onClick={handleAddAddress}
-          className='add-button'
-        >
-          <Text>新增收货地址</Text>
-        </AtButton>
-      </View>
-
       {/* 删除确认弹窗 */}
-      <AtModal
-        isOpened={deleteModalVisible}
-        onClose={handleDeleteCancel}
-      >
-        <AtModalHeader>确认删除</AtModalHeader>
-        <AtModalContent>
-          <Text>确定要删除这个地址吗？删除后无法恢复。</Text>
-        </AtModalContent>
-        <AtModalAction>
-          <Button onClick={handleDeleteCancel}>取消</Button>
-          <Button onClick={handleDeleteConfirm}>删除</Button>
-        </AtModalAction>
-      </AtModal>
+      <DeleteAddressModal
+        visible={deleteModalVisible}
+        onCancel={handleDeleteCancel}
+        onConfirm={handleDeleteConfirm}
+      />
 
       {/* Toast 提示 */}
       <AtToast
@@ -274,6 +283,23 @@ const AddressList: React.FC<AddressListProps> = () => {
         status={toastType}
         onClose={handleHideToast}
       />
+
+      {/* 底部新增收货地址主按钮 */}
+      <View className='add-address-bar'>
+        <AtButton
+          trackTarget="address-add"
+          trackAction="CLICK"
+          trackElementType="button"
+          trackElementText="新增收货地址"
+          type='primary'
+          size='normal'
+          full
+          className='add-address-button'
+          onClick={handleAddAddress}
+        >
+          <Text>新增收货地址</Text>
+        </AtButton>
+      </View>
 
       {/* 底部安全区域 */}
       <View className='safe-bottom' />

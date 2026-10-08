@@ -1,16 +1,16 @@
 import React from 'react';
 import { Table, Button, Space, Tag, message, Popconfirm, type PaginationProps } from 'antd';
-import { EditOutlined, DeleteOutlined, EyeOutlined, SearchOutlined } from '@ant-design/icons';
+import { EditOutlined, DeleteOutlined, EyeOutlined } from '@ant-design/icons';
+import { useNavigate } from 'react-router-dom';
 import { useDeleteProduct } from '../../../services/product-graphql';
-import { formatAdminTableAmount } from '../../../utils/money';
+import { displayCents } from '@aquarush/common'
 
 interface Product {
   id: number;
   name: string;
   subtitle?: string;
-  price: number;
-  originalPrice?: number;
-  depositPrice?: number;
+  priceCents: number;
+  originalPriceCents?: number;
   coverImageUrl?: string;
   imageGallery?: string;
   specification: string;
@@ -23,8 +23,6 @@ interface Product {
   tags?: string;
   detailContent?: string;
   certificateImages?: string;
-  deliverySettings?: string;
-  isDeleted: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -33,10 +31,9 @@ interface ProductTableProps {
   data?: Product[];
   loading?: boolean;
   pagination?: false | PaginationProps;
-  onProductSelect: (productId: number) => void;
-  onProductEdit: (product: Product) => void;
+  // 库存预警阈值(F-SYS-003,R-PRO-02):缺省 10/50,商品列表着色按系统参数动态计算
+  stockThresholds?: { low: number; mid: number };
   onViewDetail: (productId: number) => void;
-  selectedProductId?: number | null;
   onChange?: (pagination: any, filters: any, sorter: any) => void;
 }
 
@@ -44,12 +41,11 @@ export const ProductTable: React.FC<ProductTableProps> = ({
   data = [],
   loading = false,
   pagination = false,
-  onProductSelect,
-  onProductEdit,
+  stockThresholds = { low: 10, mid: 50 },
   onViewDetail,
-  selectedProductId,
   onChange
 }) => {
+  const navigate = useNavigate();
   const [deleteProduct] = useDeleteProduct();
 
   const columns = [
@@ -77,18 +73,18 @@ export const ProductTable: React.FC<ProductTableProps> = ({
     },
     {
       title: '价格',
-      dataIndex: 'price',
-      key: 'price',
-      render: (price: number) => formatAdminTableAmount(price),
-      sorter: (a: Product, b: Product) => a.price - b.price,
+      dataIndex: 'priceCents',
+      key: 'priceCents',
+      render: (price: number) => displayCents(price),
+      sorter: (a: Product, b: Product) => a.priceCents - b.priceCents,
       width: 100,
     },
     {
       title: '原价',
-      dataIndex: 'originalPrice',
-      key: 'originalPrice',
-      render: (price: number) => price ? <del>{formatAdminTableAmount(price)}</del> : '-',
-      sorter: (a: Product, b: Product) => (a.originalPrice || 0) - (b.originalPrice || 0),
+      dataIndex: 'originalPriceCents',
+      key: 'originalPriceCents',
+      render: (price: number) => price ? <del>{displayCents(price)}</del> : '-',
+      sorter: (a: Product, b: Product) => (a.originalPriceCents || 0) - (b.originalPriceCents || 0),
       width: 100,
     },
     {
@@ -96,7 +92,7 @@ export const ProductTable: React.FC<ProductTableProps> = ({
       dataIndex: 'stock',
       key: 'stock',
       render: (stock: number) => (
-        <Tag color={stock < 10 ? 'red' : stock < 50 ? 'orange' : 'green'}>
+        <Tag color={stock < stockThresholds.low ? 'red' : stock < stockThresholds.mid ? 'orange' : 'green'}>
           {stock}
         </Tag>
       ),
@@ -155,16 +151,8 @@ export const ProductTable: React.FC<ProductTableProps> = ({
             详情
           </Button>
           <Button
-            icon={<SearchOutlined />}
-            onClick={() => onProductSelect(record.id)}
-            type={selectedProductId === record.id ? 'primary' : 'default'}
-            size="small"
-          >
-            预览
-          </Button>
-          <Button
             icon={<EditOutlined />}
-            onClick={() => onProductEdit(record)}
+            onClick={() => navigate(`/products/${record.id}/edit`)}
             size="small"
           >
             编辑

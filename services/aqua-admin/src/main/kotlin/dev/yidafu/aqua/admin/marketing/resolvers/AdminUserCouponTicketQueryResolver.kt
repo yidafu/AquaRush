@@ -1,0 +1,111 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.yidafu.aqua.admin.marketing.resolvers
+
+import dev.yidafu.aqua.api.service.marketing.CouponQueryApiService
+import dev.yidafu.aqua.api.service.marketing.TicketQueryApiService
+import dev.yidafu.aqua.api.service.marketing.TicketTypeQueryService
+import dev.yidafu.aqua.common.domain.model.UserCouponModel
+import dev.yidafu.aqua.common.domain.model.UserTicketModel
+import dev.yidafu.aqua.common.graphql.generated.UserCouponVo
+import dev.yidafu.aqua.common.graphql.generated.UserTicketVo
+import org.springframework.graphql.data.method.annotation.Argument
+import org.springframework.graphql.data.method.annotation.QueryMapping
+import org.springframework.security.access.prepost.PreAuthorize
+import org.springframework.stereotype.Controller
+import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus as DomainUserCouponStatus
+import dev.yidafu.aqua.common.domain.model.enums.UserTicketStatus as DomainUserTicketStatus
+import dev.yidafu.aqua.common.graphql.generated.CouponScope as GraphQLCouponScope
+import dev.yidafu.aqua.common.graphql.generated.CouponType as GraphQLCouponType
+import dev.yidafu.aqua.common.graphql.generated.UserCouponStatus as GraphQLUserCouponStatus
+import dev.yidafu.aqua.common.graphql.generated.UserTicketStatus as GraphQLUserTicketStatus
+
+/**
+ * 用户持有券/票查询 Resolver(管理后台,PERMISSION_USER_READ):
+ * 供用户详情页「优惠券」「水票」Tab 展示(PRD 10-marketing.md §F-MKT-003/007),
+ * 复用 CouponQueryApiService/TicketQueryApiService 用户侧查询,按 userId 显式过滤。
+ * 枚举同名条目 valueOf 互转;usable 字段后台列表恒 false(与用户端列表一致)。
+ */
+@Controller
+class AdminUserCouponTicketQueryResolver(
+  private val couponQueryApiService: CouponQueryApiService,
+  private val ticketQueryApiService: TicketQueryApiService,
+  private val ticketTypeQueryService: TicketTypeQueryService,
+) {
+  /**
+   * 用户持有的优惠券(状态空=全部)
+   */
+  @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_USER_READ')")
+  fun userCoupons(
+    @Argument userId: Long,
+    @Argument status: GraphQLUserCouponStatus?,
+  ): List<UserCouponVo> = couponQueryApiService.findUserCoupons(userId, status?.toDomain()).map { it.toGraphQL() }
+
+  /**
+   * 用户持有的桶水票(状态空=全部;票种名称/通兑票限定规格取自票种)
+   */
+  @QueryMapping
+  @PreAuthorize("hasAuthority('PERMISSION_USER_READ')")
+  fun userTickets(
+    @Argument userId: Long,
+    @Argument status: GraphQLUserTicketStatus?,
+  ): List<UserTicketVo> =
+    ticketQueryApiService.findUserTickets(userId, status?.toDomain()).map { ticket ->
+      val ticketType = ticketTypeQueryService.getTicketType(ticket.ticketTypeId)
+      ticket.toGraphQL(
+        ticketTypeName = ticketType?.name ?: "水票",
+        specification = ticketType?.specification,
+      )
+    }
+
+  private fun GraphQLUserCouponStatus.toDomain(): DomainUserCouponStatus = DomainUserCouponStatus.valueOf(name)
+
+  private fun GraphQLUserTicketStatus.toDomain(): DomainUserTicketStatus = DomainUserTicketStatus.valueOf(name)
+
+  private fun UserCouponModel.toGraphQL(): UserCouponVo =
+    UserCouponVo(
+      id = id ?: 0L,
+      name = name,
+      couponType = GraphQLCouponType.valueOf(couponType.name),
+      thresholdCents = thresholdCents,
+      discountAmountCents = discountAmountCents,
+      discountRatePermille = discountRatePermille,
+      scope = GraphQLCouponScope.valueOf(scope.name),
+      productId = productId,
+      status = GraphQLUserCouponStatus.valueOf(status.name),
+      expireTime = expireTime,
+      usable = false,
+    )
+
+  private fun UserTicketModel.toGraphQL(
+    ticketTypeName: String,
+    specification: String?,
+  ): UserTicketVo =
+    UserTicketVo(
+      id = id ?: 0L,
+      ticketNo = ticketNo,
+      ticketTypeName = ticketTypeName,
+      specification = specification,
+      status = GraphQLUserTicketStatus.valueOf(status.name),
+      expireTime = expireTime,
+      isGift = isGift,
+    )
+}

@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.NotificationSettingsModel
+import dev.yidafu.aqua.common.domain.model.NotificationSettingsModel
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.stereotype.Repository
 import java.util.*
@@ -27,5 +27,6 @@ import java.util.*
 @Repository
 interface NotificationSettingsRepository : JpaRepository<NotificationSettingsModel, Long> {
   fun findByUserId(userId: Long): Optional<NotificationSettingsModel>
+
   fun deleteByUserId(userId: Long)
 }

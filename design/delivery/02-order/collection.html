@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>送水工端 · 收款执行｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-delivery">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>送水工端 App · 收款执行</h1>
+      <p class="sub">功能编号 F-ORD-011（收款方式）/ F-COL-001（收款与日报口径）｜ 订单域 · 收银域 ｜ 下游：完成配送 / 每日收款</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-011</span>
+      <span class="chip">F-COL-001</span>
+      <span class="chip chip-plain">PRD 未给 · 按语境拟定</span>
+      <span class="chip chip-plain">delivery-app · 暗色</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：选择收款方式（现金） ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 选择收款方式（现金找零）</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>收款</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="card" style="margin-top:0">
+                <div class="row between">
+                  <span class="f-note t-sub" style="font-family:var(--font-num)">No. AR20261008002</span>
+                  <span class="tag tag-deliver">配送中</span>
+                </div>
+                <div class="f-aux t-main mt3">清水湾小区 3 号楼 2 单元 602</div>
+                <div class="cost-row total" style="margin-top:10px">
+                  <span class="lbl t-main">应收金额</span>
+                  <span class="price big"><span class="cur">¥</span>36<span class="dec">.00</span></span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">收款方式</span>
+                  <span class="f-note t-sub">必选</span>
+                </div>
+                <div class="radio-row">
+                  <span class="radio on">现金</span>
+                  <span class="radio">水票</span>
+                  <span class="radio">扫码</span>
+                </div>
+                <div class="f-note t-sub mt2">自提订单默认已收款，豁免选择</div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">现金收款</span>
+                  <span class="f-note t-sub">找零提示</span>
+                </div>
+                <div class="field">
+                  <label>实收金额（元）</label>
+                  <div class="input">50.00</div>
+                </div>
+                <div class="row gap2" style="margin-bottom:12px">
+                  <span class="chip">¥50</span>
+                  <span class="chip">¥100</span>
+                  <span class="chip">整钱</span>
+                </div>
+                <div class="cost-row total">
+                  <span class="lbl t-main">应找零</span>
+                  <span class="price"><span class="cur">¥</span>14<span class="dec">.00</span></span>
+                </div>
+              </div>
+
+              <div class="notice">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>
+                现金收款将计入当日现金收款，与日报自动比对
+              </div>
+            </div>
+
+            <div class="bottom-bar">
+              <div class="bb-info">
+                <div class="lbl">实收 / 应找零</div>
+                <span class="price"><span class="cur">¥</span>50<span class="dec">.00</span> <span class="f-note t-sub">/ 找零 ¥14.00</span></span>
+              </div>
+              <div class="btn">确认收款</div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：水票核销 / 扫码收款 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 水票核销 + 扫码收款码</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>收款</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="card" style="margin-top:0">
+                <div class="card-head">
+                  <span class="card-title sm">收款方式</span>
+                  <span class="f-note t-sub">必选</span>
+                </div>
+                <div class="radio-row">
+                  <span class="radio">现金</span>
+                  <span class="radio on">水票</span>
+                  <span class="radio">扫码</span>
+                </div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">水票核销</span>
+                  <span class="tag tag-brand">扫码核销</span>
+                </div>
+                <div style="width:100%;height:120px;border-radius:12px;background:var(--d-card-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--d-text-sub)">
+                  <svg class="ico ico-lg" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h3v3h-3zM19 19h1v1h-1z"/></svg>
+                  <span class="f-note">请让用户出示水票核销码</span>
+                </div>
+                <div class="f-note t-sub mt2">电子票核销订单未选收款方式时自动记「水票」</div>
+              </div>
+
+              <div class="card">
+                <div class="card-head">
+                  <span class="card-title sm">扫码收款</span>
+                  <span class="f-note t-sub">展示收款码</span>
+                </div>
+                <div style="width:170px;height:170px;margin:4px auto;border-radius:12px;background:var(--d-card-2);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;color:var(--d-text-sub)">
+                  <svg class="ico ico-lg" viewBox="0 0 24 24"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4z"/><path d="M14 14h3v3h-3zM19 19h1v1h-1z"/></svg>
+                  <span class="f-note">AquaRush 收款码</span>
+                </div>
+                <div class="f-note t-sub" style="text-align:center">请用户扫码支付 ¥36.00</div>
+              </div>
+            </div>
+
+            <div class="bottom-bar">
+              <div class="bb-info">
+                <div class="lbl">应收金额</div>
+                <span class="price"><span class="cur">¥</span>36<span class="dec">.00</span></span>
+              </div>
+              <div class="btn">确认收款</div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：收款成功 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 收款成功</span>
+      <div class="phone dark">
+        <div class="phone-screen">
+          <div class="statusbar">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="app">
+
+            <div class="navbar">
+              <span class="nav-back"><svg class="ico" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></span>
+              <span>收款</span>
+              <span class="nav-right"><svg class="ico" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/><circle cx="18" cy="5" r="3" stroke="none" style="fill:var(--error)"/></svg></span>
+            </div>
+
+            <div class="app-scroll">
+
+              <div class="empty" style="padding-top:36px">
+                <div class="e-ico"><svg class="ico" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg></div>
+                <div class="e-title">收款成功</div>
+                <div class="e-desc">现金 ¥36.00 · 已计入当日收款</div>
+              </div>
+
+              <div class="card">
+                <div class="cost-row"><span class="t-sub">订单号</span><span class="amt t-main" style="font-family:var(--font-num)">AR20261008002</span></div>
+                <div class="cost-row"><span class="t-sub">收款方式</span><span class="t-main">现金</span></div>
+                <div class="cost-row"><span class="t-sub">实收 / 找零</span><span class="amt t-main">¥50.00 / ¥14.00</span></div>
+                <div class="cost-row total"><span class="lbl t-main">实收金额</span><span class="price"><span class="cur">¥</span>36<span class="dec">.00</span></span></div>
+              </div>
+
+              <div class="notice">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>
+                请核对成功后继续「完成配送」，营收以完成时间计入
+              </div>
+            </div>
+
+            <div class="bottom-bar">
+              <div class="btn block">完成配送</div>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>送水工端 App（Expo React Native，暗色）</p>
+        <p><strong>入口：</strong>订单详情「收款方式」区 / 完成配送前置步骤。</p>
+        <p><strong>跳转：</strong>收款成功后返回订单详情继续「完成配送」；收款额计入每日收款日报。</p>
+        <p><strong>来源说明：PRD 未给本页独立规格，页面结构与文案按「订单收款方式」与「每日收款」相关条目按语境拟定（标注于 chips：PRD 未给 · 按语境拟定）。</strong></p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>导航栏：返回 + 标题「收款」+ 消息入口（未读红点）</li>
+          <li>订单信息卡：订单号 + 状态 + 收货地址 + 应收金额</li>
+          <li>收款方式（现金 / 水票 / 扫码，三选一互斥）</li>
+          <li>现金收款：实收金额输入 + 快捷面额 + 应找零提示</li>
+          <li>水票核销：扫码核销框；扫码收款：展示商户收款码</li>
+          <li>底部操作栏：实收 / 应找零信息 +「确认收款」</li>
+          <li>收款成功态：成功提示 + 收款明细 +「完成配送」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>选择收款方式 → 进入对应录入：现金填实收并实时算找零；水票调起扫码核销；扫码展示收款码。</li>
+          <li>点「确认收款」→ 记录收款方式与金额 → 回写订单完成配送的收款字段。</li>
+          <li>收款成功 → 展示明细，返回订单详情可继续「完成配送」（送达即完成，R-ORD-11）。</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>必选：</strong>非自提且无水票核销时收款方式必选，否则拦截完成配送；自提订单默认已收款豁免。</p>
+        <p><strong>电子票核销：</strong>电子票核销订单未选收款方式自动记「水票」；<strong>找零：</strong>实收 &lt; 应收时不渲染找零并提示补足。</p>
+        <p><strong>口径：</strong>现金 / 扫码收款计入当日收款汇总，与「今日订单情况」系统预计算自动比对（容差 ±1 元，水票按张数精确比对）；两者与对账三者口径一致（R-ORD-11）。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>送水工端<strong>完全不出现强调橙</strong>：主操作「确认收款 / 完成配送」走品牌蓝（<code>--d-primary</code>），找零提示用品牌蓝高亮，异常用 error 色。</p>
+        <p>金额统一「¥xx.xx」两位小数（分转元）；收款码 / 核销码为占位块，标注「收款码展示」。</p>
+        <p>本页细节 PRD 未明确，均按语境拟定；正式实现以统一取价 / 收款口径为准，禁止与日报金额手拼不一致。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

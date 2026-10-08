@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 订阅消息授权｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 订阅消息授权</h1>
+      <p class="sub">功能编号 F-NTF-001 ｜ 通知与消息域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 缺口 G08 ｜ 下游：消息中心 / 订单详情（未授权降级站内）</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-NTF-001</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-goal">目标形态</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 状态一：授权前置引导卡片 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 授权前置引导卡片（确认订单页内）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">确认订单</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells__title">开启服务通知</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="row between">
+                    <span class="f-note t-weak">订阅消息</span>
+                    <span class="weui-tag weui-tag--goal"></span>
+                  </div>
+                  <div class="mt2">开启后，下列订单节点将第一时间通过微信服务通知提醒您，不错过每次配送。</div>
+                  <div class="row wrap gap2 mt3">
+                    <span class="weui-tag">下单成功</span>
+                    <span class="weui-tag">配送员接单</span>
+                    <span class="weui-tag">开始配送</span>
+                    <span class="weui-tag">送达确认</span>
+                    <span class="weui-tag">退款结果</span>
+                    <span class="weui-tag">催单</span>
+                  </div>
+                  <div class="row between mt3">
+                    <span class="f-note t-weak">未开启时，节点信息可在站内查看</span>
+                    <span class="weui-btn weui-btn_plain-primary weui-btn_mini">一键开启</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">商品清单</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">怡宝 饮用纯净水 18.9L × 2</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="bold">合计</span></div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <div class="mp-footbar__info">
+                <span class="mp-footbar__lbl">合计</span>
+                <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_primary">提交订单</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 状态二：订阅授权弹窗 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 订阅消息授权弹窗</span>
+      <div class="phone mp viewport">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">确认订单</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-cells mt2">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">怡宝 饮用纯净水 18.9L × 2</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="bold">合计</span></div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="mp-footbar hair-t">
+              <span class="weui-btn weui-btn_primary flex1">提交订单</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+          <div class="weui-mask"></div>
+          <div class="weui-dialog">
+            <div class="weui-dialog__hd">
+              <div class="weui-dialog__title">订阅消息</div>
+            </div>
+            <div class="weui-dialog__bd">
+              <div class="f-note t-sub">开启后，下列节点将为您推送服务通知</div>
+              <div class="mt2">
+                <div class="weui-cell" style="padding:10px 0;min-height:0">
+                  <div class="weui-cell__bd">
+                    <div>下单成功</div>
+                    <div class="f-note t-weak">提交订单后推送</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-checkbox on"></span></div>
+                </div>
+                <div class="weui-cell" style="padding:10px 0;min-height:0">
+                  <div class="weui-cell__bd">
+                    <div>配送员接单</div>
+                    <div class="f-note t-weak">配送员接单后推送</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-checkbox on"></span></div>
+                </div>
+                <div class="weui-cell" style="padding:10px 0;min-height:0">
+                  <div class="weui-cell__bd">
+                    <div>开始配送</div>
+                    <div class="f-note t-weak">开始配送时推送</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-checkbox on"></span></div>
+                </div>
+                <div class="weui-cell" style="padding:10px 0;min-height:0">
+                  <div class="weui-cell__bd">
+                    <div>送达确认</div>
+                    <div class="f-note t-weak">送达确认时推送</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-checkbox on"></span></div>
+                </div>
+                <div class="weui-cell" style="padding:10px 0;min-height:0">
+                  <div class="weui-cell__bd">
+                    <div>退款结果</div>
+                    <div class="f-note t-weak">退款结果时推送</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-checkbox on"></span></div>
+                </div>
+                <div class="weui-cell" style="padding:10px 0;min-height:0">
+                  <div class="weui-cell__bd">
+                    <div>催单</div>
+                    <div class="f-note t-weak">催单处理时推送</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-checkbox"></span></div>
+                </div>
+              </div>
+            </div>
+            <div class="weui-dialog__ft">
+              <div class="weui-dialog__btn weui-dialog__btn_default">拒绝</div>
+              <div class="weui-dialog__btn weui-dialog__btn_primary">允许</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 状态三：拒绝后降级 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 拒绝后降级（仅站内消息）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav hair-b">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">确认订单</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-notice">
+                <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>
+                <span class="ellipsis">已关闭，仅站内消息</span>
+              </div>
+
+              <div class="weui-cells__title">站内可查看的订单节点</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg></div>
+                  <div class="weui-cell__bd">下单成功</div>
+                  <div class="weui-cell__ft">订单详情</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg></div>
+                  <div class="weui-cell__bd">配送员接单</div>
+                  <div class="weui-cell__ft">订单详情</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg></div>
+                  <div class="weui-cell__bd">开始配送 · 送达确认</div>
+                  <div class="weui-cell__ft">消息中心</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg></div>
+                  <div class="weui-cell__bd">退款结果</div>
+                  <div class="weui-cell__ft">订单详情</div>
+                </div>
+              </div>
+
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">重新开启服务通知</div>
+                  <div class="weui-cell__ft"><span class="weui-btn weui-btn_plain-primary weui-btn_mini">去开启</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <div class="mp-footbar__info">
+                <span class="mp-footbar__lbl">合计</span>
+                <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">44</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_primary">提交订单</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x；授权面板用官方 <code>.weui-mask</code> + <code>.weui-dialog</code>（标题 + 模板勾选列表 + 双按钮），降级提示用官方 <code>.weui-notice</code>。</p>
+        <p><strong>本页组件：</strong><code>.mp-nav</code>（二级页）+ <code>.weui-cells__title</code> / <code>.weui-cells</code> + <code>.weui-tag</code>（场景标签）+ <code>.weui-btn_plain-primary</code>「一键开启 / 去开启」+ <code>.weui-mask</code> / <code>.weui-dialog</code> / <code>__hd</code> / <code>__title</code> / <code>__bd</code> / <code>__ft</code> / <code>__btn_primary</code> + <code>.weui-checkbox.on</code> + <code>.weui-notice</code> + <code>.weui-price</code> + <code>.mp-footbar</code>。</p>
+        <p><strong>度量：</strong>导航栏 44px、胶囊 87×32；单元格最小 56px；弹窗宽 280px、圆角 12px、标题 17px、按钮行高 56px；复选 22×22；通告栏内边距 10px 16px。</p>
+        <p><strong>配色：</strong>弹窗主按钮「允许」用品牌蓝（不得用强调橙诱导）；金额 <code>.weui-price</code>（微信电商红）；本页不使用强调橙。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（UI 为目标形态；送水工端复用同域推送能力）</p>
+        <p><strong>入口：</strong>下单确认页（order-confirm）提交前订阅授权弹窗 / 组件；消息中心「订阅管理」区（F-NTF-002）</p>
+        <p><strong>跳转：</strong>未授权降级站内查看（订单详情 / 消息中心），<strong>不阻塞下单主流程</strong></p>
+        <p><strong>数据：</strong>可订阅场景、模板 ID、授权状态、授权剩余次数</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>授权前置引导（<code>.weui-cells__title</code> + <code>.weui-cells</code>）：说明订阅用途 + 6 个场景标签（下单成功 / 配送员接单 / 开始配送 / 送达确认 / 退款结果 / 催单）+「一键开启」</li>
+          <li>订阅授权弹窗（<code>.weui-mask</code> + <code>.weui-dialog</code>）：模板列表（<code>.weui-checkbox.on</code> + 模板名 + 触发场景）+「拒绝」「允许」</li>
+          <li>拒绝后降级提示：<code>.weui-notice</code> + 站内可查看节点列表 + 「去开启」补救入口</li>
+          <li>确认订单页吸底「提交订单」主按钮（不受授权状态阻塞）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>授权状态：</strong>已授权 / 未授权 / 已拒绝 / 达次数上限（不再弹）；场景开关 启用 / 停用。</p>
+        <p><strong>规则：</strong>授权弹窗须在<strong>提交订单时机</strong>触发（与提交动作绑定，不可诱导）；<strong>已拒绝或达上限不再打扰</strong>；未授权不阻塞下单；发送失败重试并幂等。模板由后台配置（F-NTF-005）驱动，场景与模板 ID 一一对应。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>Web 风旧组件（卡片 / 列表 / 列表项 / 勾选 / 金额行 / 底部操作栏 / 遮罩弹层等旧类名）一律禁用，全部以 WeUI 等价类实现。</p>
+        <p>弹窗内「允许」用品牌蓝，<strong>不得用强调橙诱导授权</strong>；未授权不得阻断下单主流程；「已拒绝 / 达上限」不再弹授权（不打扰）；场景与模板由后台配置驱动，前端不硬编码模板 ID。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 投递链路已接通，<strong>UI 为目标形态</strong>；缺口 G08（仅脚手架，无发送服务、无 access-token 服务）；权威定义见 13-notification.md，历史编号 F-ADR-011 保留。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

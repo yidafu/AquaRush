@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { View, Map, Text, BaseEventOrig, MapProps } from '@tarojs/components'
 import { AtIcon, AtToast } from 'taro-ui'
 import { geocoder, IGeocoderOptions, IGeocoderResult } from '@/libs/qqmap'
+import { gcj02ToWgs84 } from '@aquarush/common'
 
 
 const debounce = (callback: Function, delay: number) => {
@@ -21,11 +22,15 @@ interface AddressMapProps {
   province?: string;        // 省份
   city?: string;           // 城市
   district?: string;       // 区域
-  latitude?: number;       // 纬度坐标，优先级高于地址解析
-  longitude?: number;      // 经度坐标，优先级高于地址解析
+  latitude?: number;       // WGS-84 纬度(后端坐标体系统一;当前按地址解析展示,未直接使用)
+  longitude?: number;      // WGS-84 经度(后端坐标体系统一;当前按地址解析展示,未直接使用)
   className?: string;      // 自定义样式类名
   height?: string;         // 地图高度，默认400px
   showControls?: boolean;  // 是否显示地图控件
+  /**
+   * 选点/定位回调:返回 **WGS-84** 坐标(与后端存储一致)。
+   * 组件内部使用微信地图(GCJ-02),回调前经 gcj02ToWgs84 转换。
+   */
   onLocationChange?: (location: { latitude: number; longitude: number; address: string }) => void;
 }
 
@@ -51,8 +56,7 @@ const AddressMap: React.FC<AddressMapProps> = ({
   province = '',
   city = '',
   district = '',
-  latitude,
-  longitude,
+  // latitude/longitude 为 WGS-84(后端契约),当前按地址解析展示,不直接消费
   className = '',
   height = '400px',
   showControls = true,
@@ -120,7 +124,7 @@ const AddressMap: React.FC<AddressMapProps> = ({
     setMarkers([newMarker])
   }, [])
 
-  // 地理编码：将地址转换为坐标
+  // 地理编码：将地址转换为坐标(腾讯/微信返回 GCJ-02,回调前转 WGS-84)
   const performGeocoder = useCallback(async (result: IGeocoderResult) => {
 
     setLocation(prev => ({ ...prev, loading: true, error: '' }))
@@ -142,11 +146,12 @@ const AddressMap: React.FC<AddressMapProps> = ({
       updateMarker(result.latitude, result.longitude, result.address)
       // showToast('地址定位成功', 'success')
 
-      // 回调父组件
+      // 回调父组件(存储/接口坐标统一 WGS-84)
       if (onLocationChange) {
+        const wgs = gcj02ToWgs84(result.longitude, result.latitude)
         onLocationChange({
-          latitude: result.latitude,
-          longitude: result.longitude,
+          latitude: wgs.latitude,
+          longitude: wgs.longitude,
           address: result.address
         })
       }
@@ -210,7 +215,7 @@ const AddressMap: React.FC<AddressMapProps> = ({
     }
   }, [address, onLocationChange, updateMarker])
 
-  // 处理地图点击事件
+  // 处理地图点击事件(微信地图返回 GCJ-02,回调前转 WGS-84)
   const handleMapTap = useCallback((event: any) => {
     const { latitude, longitude } = event.detail
 
@@ -224,11 +229,12 @@ const AddressMap: React.FC<AddressMapProps> = ({
     updateMarker(latitude, longitude, '手动选择位置')
     // showToast('已选择新位置', 'success')
 
-    // 回调父组件
+    // 回调父组件(存储/接口坐标统一 WGS-84)
     if (onLocationChange) {
+      const wgs = gcj02ToWgs84(longitude, latitude)
       onLocationChange({
-        latitude,
-        longitude,
+        latitude: wgs.latitude,
+        longitude: wgs.longitude,
         address: '手动选择位置'
       })
     }

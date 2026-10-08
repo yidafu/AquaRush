@@ -1,0 +1,29 @@
+# Test Schema for AdminDeliveryWorkerResolver GraphQL Integration Tests
+
+scalar Long
+
+type Query {
+  deliveryWorkers: [DeliveryWorker!]!
+  onlineDeliveryWorkers: [DeliveryWorker!]!
+  deliveryWorker(id: Long!): DeliveryWorker
+}
+
+type DeliveryWorker {
+  id: Long!
+  userId: Long!
+  wechatOpenId: String!
+  name: String!
+  phone: String!
+  avatarUrl: String
+  onlineStatus: DeliveryWorkerStatus!
+  currentTaskCount: Int!
+  earningCents: Long
+  isAvailable: Boolean!
+  totalOrders: Int!
+  completedOrders: Int!
+}
+
+enum DeliveryWorkerStatus {
+  ONLINE
+  OFFLINE
+}

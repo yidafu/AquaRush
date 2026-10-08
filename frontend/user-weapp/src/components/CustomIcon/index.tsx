@@ -71,9 +71,9 @@ const CustomIcon: React.FC<CustomIconProps> = ({
           style={{
             width: typeof size === 'number' ? `${size}px` : size,
             height: typeof size === 'number' ? `${size}px` : size,
-            backgroundColor: '#f5f5f5',
-            border: '1px dashed #ddd',
-            color: '#999',
+            backgroundColor: 'var(--bg)',
+            border: '1px dashed var(--border)',
+            color: 'var(--text-weak)',
             fontSize: typeof size === 'number' ? `${size * 0.6}px` : '12px',
             ...style
           }}

@@ -1,407 +1,253 @@
-import { Component } from 'react'
-import { View, Text, Image, Tabs, TabPane } from '@tarojs/components'
-import { AtCard, AtIcon, AtButton, AtTabs, AtTabsPane, AtToast, AtBadge, AtTag } from 'taro-ui'
-import Taro from '@tarojs/taro'
+import React, { useCallback, useState } from 'react'
+import { View, Text } from '@tarojs/components'
+import { AtToast } from 'taro-ui'
+import Taro, { useReady, useDidShow, usePullDownRefresh, useReachBottom } from '@tarojs/taro'
+import { ORDER_TABS, OrderStatus, normalizeCents, usePagedList } from '@aquarush/common'
+import { userActionTracker } from '../../utils/tracking'
+import OrderService from '../../services/OrderService'
+
+// 子组件
+import OrderTabs from './components/OrderTabs'
+import OrderCardItem from './components/OrderCardItem'
+import OrderEmptyState from './components/OrderEmptyState'
+import type { OrderItem, OrderProduct } from './components/constants'
 
 import "taro-ui/dist/style/components/card.scss"
 import "taro-ui/dist/style/components/icon.scss"
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/toast.scss"
-import "taro-ui/dist/style/components/tabs.scss"
-import "taro-ui/dist/style/components/badge.scss"
 import "taro-ui/dist/style/components/tag.scss"
 import './index.scss'
-import { displayCents } from '@/utils/money'
 
-interface OrderItem {
-  id: string
-  orderNo: string
-  status: 'pending_payment' | 'pending_delivery' | 'delivering' | 'completed' | 'cancelled'
-  items: Array<{
-    id: string
-    name: string
-    image: string
-    price: number
-    quantity: number
-    specifications?: string[]
-  }>
-  totalAmount: number
-  deliveryFee: number
-  finalAmount: number
-  address: {
-    receiverName: string
-    phone: string
-    province: string
-    city: string
-    district: string
-    detailAddress: string
-  }
-  deliveryTime?: string
-  createTime: string
-  paymentTime?: string
-  deliveryTime?: string
-  completedTime?: string
-  remark?: string
-}
+const PAGE_SIZE = 10
 
-interface OrderListState {
-  currentTab: number
-  orders: OrderItem[]
-  loading: boolean
-  refreshing: boolean
-  hasMore: boolean
-  page: number
-  showToast: boolean
-  toastText: string
-  toastType: 'success' | 'error' | 'loading'
-}
+/**
+ * 订单列表页(F-ORD-004 多商品下单)
+ * 分页状态机/刷新/加载更多由 @aquarush/common 的 usePagedList 共享,Tab 定义来自
+ * common ORDER_TABS(全部/待付款/待配送/配送中/已完成);页面保留 Tab 路由定位、
+ * 行映射与事件处理(支付/取消/再次购买)。
+ */
+const OrderListPage: React.FC = () => {
+  const [currentTab, setCurrentTab] = useState<number>(0)
+  const [showToast, setShowToast] = useState<boolean>(false)
+  const [toastText, setToastText] = useState<string>('')
+  const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
 
-const TAB_LIST = [
-  { title: '全部', status: 'all' },
-  { title: '待付款', status: 'pending_payment' },
-  { title: '待配送', status: 'pending_delivery' },
-  { title: '配送中', status: 'delivering' },
-  { title: '已完成', status: 'completed' }
-]
+  const showToastMessage = useCallback((text: string, type: 'success' | 'error' | 'loading' = 'success') => {
+    setShowToast(true)
+    setToastText(text)
+    setToastType(type)
+  }, [])
 
-const STATUS_MAP = {
-  pending_payment: { text: '待付款', color: '#ff6b35', bg: 'rgba(255, 107, 53, 0.1)' },
-  pending_delivery: { text: '待配送', color: '#667eea', bg: 'rgba(102, 126, 234, 0.1)' },
-  delivering: { text: '配送中', color: '#19be6b', bg: 'rgba(25, 190, 107, 0.1)' },
-  completed: { text: '已完成', color: '#999', bg: 'rgba(153, 153, 153, 0.1)' },
-  cancelled: { text: '已取消', color: '#ccc', bg: 'rgba(204, 204, 204, 0.1)' }
-}
+  const hideToast = useCallback(() => {
+    setShowToast(false)
+  }, [])
 
-export default class OrderList extends Component<{}, OrderListState> {
-  pageSize = 10
+  /**
+   * 商品 id 归一化(PrimaryId 传输为字符串)
+   */
+  const productId = useCallback((product: any): string => String(product.id), [])
 
-  constructor(props) {
-    super(props)
-    this.state = {
-      currentTab: 0,
-      orders: [],
-      loading: false,
-      refreshing: false,
-      hasMore: true,
-      page: 1,
-      showToast: false,
-      toastText: '',
-      toastType: 'success'
+  /**
+   * GraphQL Order → 页面订单结构(金额均为分,Long 字符串经 normalizeCents 归一化)
+   */
+  const mapOrder = useCallback((order: any): OrderItem => {
+    const rawItems: any[] = Array.isArray(order.items) && order.items.length > 0 ? order.items : []
+    const items: OrderProduct[] = rawItems.map((item: any) => ({
+      id: productId(item.product || { id: item.productId }),
+      name: item.product?.name || '商品',
+      image: item.product?.coverImageUrl || '/assets/default-product.png',
+      priceCents: item.unitPriceCents ?? item.product?.priceCents ?? 0,
+      specification: item.product?.specification
+    }))
+    const product = items[0] || null
+    // 营销价判定(AC-ORD-002-09):首件成交单价 ≠ 目录价快照即命中(熟客价/特价/新人价 —— R-MKT-01/02)
+    const unitPriceCents = normalizeCents(order.unitPriceCents) ?? normalizeCents(product?.priceCents) ?? null
+    const hasMarketingPrice = product != null && unitPriceCents != null && unitPriceCents !== normalizeCents(product.priceCents)
+
+    return {
+      id: order.id,
+      orderNo: order.orderNo,
+      status: order.status as OrderStatus,
+      product,
+      items,
+      quantity: order.items && order.items.length > 0 ? order.items[0].quantity : 0,
+      unitPriceCents: items[0]?.priceCents ?? null,
+      hasMarketingPrice,
+      amountCents: order.amountCents,
+      deliveryFeeCents: order.deliveryFeeCents,
+      payAmountCents: order.payAmountCents,
+      promotionDiscountCents: order.promotionDiscountCents ?? null,
+      promotionActivityName: order.promotionActivityName || null,
+      couponDiscountCents: order.couponDiscountCents ?? null,
+      couponName: order.couponName || null,
+      firstOrderDiscountCents: order.firstOrderDiscountCents ?? null,
+      firstOrderActivityName: order.firstOrderActivityName || null,
+      ticketRedeemCount: order.ticketRedeemCount ?? null,
+      ticketDiscountCents: order.ticketDiscountCents ?? null,
+      address: order.address
+        ? {
+            receiverName: order.address.receiverName,
+            phone: order.address.phone,
+            province: order.address.province,
+            city: order.address.city,
+            district: order.address.district,
+            detailAddress: order.address.detailAddress
+          }
+        : null,
+      createTime: order.createdAt || ''
     }
-  }
+  }, [productId])
 
-  componentDidMount() {
-    this.loadOrders(true)
-  }
-
-  componentDidShow() {
-    // 页面显示时刷新第一页数据
-    this.setState({ page: 1, hasMore: true }, () => {
-      this.loadOrders(true)
-    })
-  }
-
-  onPullDownRefresh = () => {
-    this.setState({ refreshing: true, page: 1, hasMore: true }, () => {
-      this.loadOrders(true)
-    })
-  }
-
-  onReachBottom = () => {
-    const { loading, hasMore, currentTab } = this.state
-
-    if (!loading && hasMore && currentTab !== 0) {
-      this.loadOrders(false)
-    }
-  }
-
-  showToast = (text: string, type: 'success' | 'error' | 'loading' = 'success') => {
-    this.setState({
-      showToast: true,
-      toastText: text,
-      toastType: type
-    })
-  }
-
-  hideToast = () => {
-    this.setState({ showToast: false })
-  }
-
-  loadOrders = async (refresh: boolean = false) => {
-    try {
-      const { currentTab, page } = this.state
-      const status = TAB_LIST[currentTab].status
-
-      this.setState({
-        loading: true,
-        refreshing: refresh
-      })
-
-      // TODO: 实际项目中这里应该调用获取订单列表的API
-      // const result = await getOrders({
-      //   status: status === 'all' ? undefined : status,
-      //   page: refresh ? 1 : page,
-      //   pageSize: this.pageSize
-      // })
-
-      // 模拟订单数据
-      const mockOrders: OrderItem[] = this.generateMockOrders(status)
-
-      // 过滤和分页处理
-      const filteredOrders = status === 'all'
-        ? mockOrders
-        : mockOrders.filter(order => order.status === status)
-
-      const startIndex = refresh ? 0 : (page - 1) * this.pageSize
-      const endIndex = startIndex + this.pageSize
-      const pageOrders = filteredOrders.slice(startIndex, endIndex)
-
-      const newOrders = refresh ? pageOrders : [...this.state.orders, ...pageOrders]
-      const hasMore = endIndex < filteredOrders.length
-
-      this.setState({
-        orders: newOrders,
-        page: refresh ? 2 : page + 1,
-        hasMore,
-        loading: false,
-        refreshing: false
-      })
-    } catch (error) {
-      console.error('获取订单列表失败:', error)
-      this.showToast('获取订单列表失败', 'error')
-      this.setState({
-        loading: false,
-        refreshing: false
-      })
-    }
-  }
-
-  generateMockOrders = (status: string): OrderItem[] => {
-    const baseOrders: OrderItem[] = [
-      {
-        id: '1',
-        orderNo: 'ORD202412020001',
-        status: 'pending_payment',
-        items: [
-          {
-            id: '1',
-            name: '农夫山泉 天然矿泉水 550ml',
-            image: '/assets/product-water.jpg',
-            price: 2.00,
-            quantity: 2,
-            specifications: ['24瓶装']
-          }
-        ],
-        totalAmount: 4800, // 48.00 yuan in cents
-        deliveryFee: 0,
-        finalAmount: 4800, // 48.00 yuan in cents
-        address: {
-          receiverName: '张三',
-          phone: '13800138000',
-          province: '广东省',
-          city: '深圳市',
-          district: '南山区',
-          detailAddress: '科技园南区深南大道9988号'
-        },
-        createTime: '2024-12-02 10:30:00'
-      },
-      {
-        id: '2',
-        orderNo: 'ORD202412020002',
-        status: 'pending_delivery',
-        items: [
-          {
-            id: '2',
-            name: '怡宝 纯净水 380ml',
-            image: '/assets/product-water.jpg',
-            price: 1.50,
-            quantity: 3,
-            specifications: ['36瓶装']
-          }
-        ],
-        totalAmount: 16200, // 162.00 yuan in cents
-        deliveryFee: 0,
-        finalAmount: 16200, // 162.00 yuan in cents
-        address: {
-          receiverName: '李四',
-          phone: '13900139000',
-          province: '广东省',
-          city: '深圳市',
-          district: '福田区',
-          detailAddress: '华强北电子世界1栋'
-        },
-        createTime: '2024-12-02 09:15:00',
-        paymentTime: '2024-12-02 09:20:00'
-      },
-      {
-        id: '3',
-        orderNo: 'ORD202412010001',
-        status: 'delivering',
-        items: [
-          {
-            id: '3',
-            name: '娃哈哈 AD钙奶 596ml',
-            image: '/assets/product-water.jpg',
-            price: 2.50,
-            quantity: 4,
-            specifications: ['12瓶装']
-          }
-        ],
-        totalAmount: 12000, // 120.00 yuan in cents
-        deliveryFee: 0,
-        finalAmount: 12000, // 120.00 yuan in cents
-        address: {
-          receiverName: '王五',
-          phone: '13700137000',
-          province: '广东省',
-          city: '深圳市',
-          district: '宝安区',
-          detailAddress: '宝安中心区新安街道'
-        },
-        createTime: '2024-12-01 14:30:00',
-        paymentTime: '2024-12-01 14:35:00',
-        deliveryTime: '2024-12-01 15:00:00'
-      },
-      {
-        id: '4',
-        orderNo: 'ORD202411300001',
-        status: 'completed',
-        items: [
-          {
-            id: '4',
-            name: '农夫山泉 天然矿泉水 550ml',
-            image: '/assets/product-water.jpg',
-            price: 2.00,
-            quantity: 1,
-            specifications: ['24瓶装']
-          }
-        ],
-        totalAmount: 4800, // 48.00 yuan in cents
-        deliveryFee: 0,
-        finalAmount: 4800, // 48.00 yuan in cents
-        address: {
-          receiverName: '张三',
-          phone: '13800138000',
-          province: '广东省',
-          city: '深圳市',
-          district: '南山区',
-          detailAddress: '科技园南区深南大道9988号'
-        },
-        createTime: '2024-11-30 10:00:00',
-        paymentTime: '2024-11-30 10:05:00',
-        deliveryTime: '2024-11-30 10:30:00',
-        completedTime: '2024-11-30 11:00:00'
+  // 共享分页状态机(usePagedList:items/loading/refreshing/loadingMore/hasMore/refresh/loadMore/setParams)
+  const { items: orders, loading, loadingMore, hasMore, refresh, loadMore, setParams } = usePagedList<OrderItem>({
+    fetchPage: async (page, params) => {
+      const statuses = params.statuses as OrderStatus[] | null
+      const result = await OrderService.getInstance().getMyOrders(statuses, page, PAGE_SIZE)
+      if (!result.success || !result.data) {
+        throw new Error(result.error?.message || '获取订单列表失败')
       }
-    ]
+      const { content, totalPages } = result.data
+      return {
+        items: content.map(order => mapOrder(order)),
+        hasMore: page + 1 < totalPages
+      }
+    },
+    initialParams: { statuses: ORDER_TABS[0].statuses }
+  })
 
-    return baseOrders
-  }
+  // 初始化:从「我的」页订单宫格进入时定位对应 Tab(全部/待付款/待配送/配送中)
+  useReady(() => {
+    const instance = Taro.getCurrentInstance()
+    const tabParam = instance.router?.params?.tab
+    const TAB_INDEX_MAP: Record<string, number> = {
+      all: 0,
+      pending_payment: 1,
+      pending_delivery: 2,
+      delivering: 3,
+      awaiting_confirmation: 4
+    }
+    const initialTab = typeof tabParam === 'string' && tabParam in TAB_INDEX_MAP ? TAB_INDEX_MAP[tabParam] : 0
+    setCurrentTab(initialTab)
+    void setParams({ statuses: ORDER_TABS[initialTab].statuses })
+  })
 
-  handleTabChange = (value: number) => {
-    this.setState({
-      currentTab: value,
-      page: 1,
-      hasMore: true,
-      orders: []
-    }, () => {
-      this.loadOrders(true)
+  // 页面显示时刷新第一页数据(支付完成/取消后返回即时同步)
+  useDidShow(() => {
+    userActionTracker.trackPageView()
+    void refresh()
+  })
+
+  // 下拉刷新
+  usePullDownRefresh(() => {
+    refresh().finally(() => {
+      Taro.stopPullDownRefresh()
     })
-  }
+  })
 
-  handleOrderClick = (order: OrderItem) => {
+  // 上拉加载更多(usePagedList 内部处理 hasMore/busy 守卫)
+  useReachBottom(() => {
+    void loadMore()
+  })
+
+  const handleTabChange = useCallback((value: number) => {
+    setCurrentTab(value)
+    void setParams({ statuses: ORDER_TABS[value].statuses })
+  }, [setParams])
+
+  const handleOrderClick = useCallback((order: OrderItem) => {
     Taro.navigateTo({
       url: `/pages/order-detail/index?orderId=${order.id}`
     })
-  }
+  }, [])
 
-  handlePayment = (order: OrderItem) => {
-    // 跳转到支付页面
-    Taro.navigateTo({
-      url: `/pages/payment/index?orderId=${order.id}&amount=${order.finalAmount}`
-    })
-  }
+  const handlePayment = useCallback(async (order: OrderItem) => {
+    showToastMessage('正在发起支付...', 'loading')
 
-  handleCancelOrder = (order: OrderItem) => {
+    const payResult = await OrderService.getInstance().createOrderPayment(order.id)
+    if (!payResult.success || !payResult.data) {
+      showToastMessage(payResult.error?.message || '支付发起失败', 'error')
+      return
+    }
+    const { autoCompleted, requiresSimulation, paymentParams } = payResult.data
+
+    // 测试环境假支付:服务端已自动完成,直接刷新订单列表
+    if (autoCompleted) {
+      showToastMessage('支付成功（模拟支付自动完成）', 'success')
+      setTimeout(() => refresh(), 800)
+      return
+    }
+    if (requiresSimulation || !paymentParams) {
+      showToastMessage('支付功能待接入', 'error')
+      return
+    }
+
+    try {
+      await Taro.requestPayment({
+        timeStamp: paymentParams.timeStamp as string,
+        nonceStr: paymentParams.nonceStr as string,
+        package: paymentParams.package as string,
+        signType: paymentParams.signType as 'MD5' | 'HMAC-SHA256' | 'RSA',
+        paySign: paymentParams.paySign as string
+      })
+      showToastMessage('支付成功', 'success')
+      setTimeout(() => refresh(), 800)
+    } catch (e) {
+      console.error('微信支付未完成:', e)
+      showToastMessage('支付未完成，请重试', 'error')
+    }
+  }, [refresh, showToastMessage])
+
+  const handleCancelOrder = useCallback((order: OrderItem) => {
     Taro.showModal({
       title: '确认取消',
       content: '确定要取消这个订单吗？取消后无法恢复。',
       success: async (res) => {
         if (res.confirm) {
           try {
-            // TODO: 实际项目中这里应该调用取消订单的API
-            // await cancelOrder(order.id)
-
-            this.showToast('订单已取消', 'success')
+            const result = await OrderService.getInstance().cancelOrder(order.id)
+            if (!result.success) {
+              throw new Error(result.error?.message || '取消订单失败')
+            }
+            showToastMessage('订单已取消', 'success')
 
             // 刷新订单列表
-            this.loadOrders(true)
+            refresh()
           } catch (error) {
             console.error('取消订单失败:', error)
-            this.showToast('取消订单失败', 'error')
+            showToastMessage(error instanceof Error ? error.message : '取消订单失败', 'error')
           }
         }
       }
     })
-  }
+  }, [refresh, showToastMessage])
 
-  handleConfirmReceive = (order: OrderItem) => {
-    Taro.showModal({
-      title: '确认收货',
-      content: '确定已收到商品吗？',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            // TODO: 实际项目中这里应该调用确认收货的API
-            // await confirmReceive(order.id)
-
-            this.showToast('确认收货成功', 'success')
-
-            // 刷新订单列表
-            this.loadOrders(true)
-          } catch (error) {
-            console.error('确认收货失败:', error)
-            this.showToast('确认收货失败', 'error')
-          }
-        }
-      }
-    })
-  }
-
-  handleDeleteOrder = (order: OrderItem) => {
-    Taro.showModal({
-      title: '确认删除',
-      content: '确定要删除这个订单吗？删除后无法恢复。',
-      success: async (res) => {
-        if (res.confirm) {
-          try {
-            // TODO: 实际项目中这里应该调用删除订单的API
-            // await deleteOrder(order.id)
-
-            this.showToast('订单已删除', 'success')
-
-            // 刷新订单列表
-            this.loadOrders(true)
-          } catch (error) {
-            console.error('删除订单失败:', error)
-            this.showToast('删除订单失败', 'error')
-          }
-        }
-      }
-    })
-  }
-
-  handleReorder = (order: OrderItem) => {
-    // 将订单商品添加到购物车或直接跳转到订单确认页面
+  const handleReorder = useCallback((order: OrderItem) => {
+    if (!order.product) {
+      showToastMessage('订单商品信息缺失', 'error')
+      return
+    }
+    // 写入 pendingOrder 并跳转确认订单页(F-ORD-004:多商品全部明细再次购买)
+    const products = order.items.length > 0
+      ? order.items.map((p, idx) => ({
+          id: p.id,
+          name: p.name,
+          price: normalizeCents(idx === 0 ? order.unitPriceCents : p.priceCents) ?? 0,
+          quantity: idx === 0 ? order.quantity : 1,
+          image: p.image,
+          specifications: p.specification ? [p.specification] : []
+        }))
+      : [{
+          id: order.product.id,
+          name: order.product.name,
+          price: normalizeCents(order.unitPriceCents) ?? 0,
+          quantity: order.quantity,
+          image: order.product.image,
+          specifications: order.product.specification ? [order.product.specification] : []
+        }]
     const orderData = {
-      products: order.items.map(item => ({
-        id: item.id,
-        name: item.name,
-        price: item.price,
-        quantity: item.quantity,
-        image: item.image,
-        specifications: item.specifications
-      })),
-      totalAmount: order.totalAmount
+      products,
+      totalAmount: normalizeCents(order.payAmountCents) ?? 0
     }
 
     Taro.setStorageSync('pendingOrder', orderData)
@@ -409,230 +255,90 @@ export default class OrderList extends Component<{}, OrderListState> {
     Taro.navigateTo({
       url: '/pages/order-confirm/index'
     })
-  }
+  }, [showToastMessage])
 
-  renderOrderItem = (order: OrderItem) => {
-    const status = STATUS_MAP[order.status] || STATUS_MAP.cancelled
+  /**
+   * 确认收货(R-ORD-11,仅本人):待确认收货订单卡片操作;
+   * 确认后按确认时间计入营收,送达 7 天未确认由系统自动签收
+   */
+  const handleConfirmReceipt = useCallback((order: OrderItem) => {
+    Taro.showModal({
+      title: '确认收货',
+      content: '请确认已收到本次配送的商品。确认后订单完成,7 天内未确认将自动签收。',
+      success: async (res) => {
+        if (res.confirm) {
+          try {
+            const result = await OrderService.getInstance().confirmReceipt(order.id)
+            if (!result.success) {
+              throw new Error(result.error?.message || '确认收货失败')
+            }
+            showToastMessage('确认收货成功', 'success')
+            refresh()
+          } catch (error) {
+            console.error('确认收货失败:', error)
+            showToastMessage(error instanceof Error ? error.message : '确认收货失败', 'error')
+          }
+        }
+      }
+    })
+  }, [refresh, showToastMessage])
 
-    return (
-      <AtCard key={order.id} className='order-card'>
-        <View className='order-header'>
-          <View className='order-info'>
-            <Text className='order-no'>订单号：{order.orderNo}</Text>
-            <AtTag
-              type='primary'
-              size='small'
-              circle
-              customStyle={{
-                background: status.bg,
-                color: status.color,
-                border: 'none'
-              }}
-            >
-              {status.text}
-            </AtTag>
+  return (
+    <View className='order-list-page'>
+      <OrderTabs current={currentTab} onChange={handleTabChange} />
+
+      <View className='order-content'>
+        {loading && orders.length === 0 ? (
+          <View className='loading-container'>
+            <Text>加载中...</Text>
           </View>
-          <Text className='order-time'>{order.createTime}</Text>
-        </View>
-
-        <View className='order-items'>
-          {order.items.map((item, index) => (
-            <View key={`${item.id}-${index}`} className='order-item'>
-              <Image
-                src={item.image}
-                mode='aspectFill'
-                className='item-image'
+        ) : orders.length === 0 ? (
+          <OrderEmptyState
+            isAllTab={currentTab === 0}
+            tabTitle={ORDER_TABS[currentTab].title}
+            onGoShopping={() => Taro.switchTab({ url: '/pages/home/index' })}
+          />
+        ) : (
+          <View className='order-list'>
+            {orders.map(order => (
+              <OrderCardItem
+                key={order.id}
+                order={order}
+                onPay={handlePayment}
+                onCancel={handleCancelOrder}
+                onConfirmReceipt={handleConfirmReceipt}
+                onReorder={handleReorder}
+                onClick={handleOrderClick}
               />
-              <View className='item-info'>
-                <Text className='item-name'>{item.name}</Text>
-                {item.specifications && item.specifications.length > 0 && (
-                  <Text className='item-spec'>
-                    规格：{item.specifications.join(', ')}
-                  </Text>
-                )}
-                <View className='item-bottom'>
-                  <Text className='item-price'>¥{item.price.toFixed(2)}</Text>
-                  <Text className='item-quantity'>x{item.quantity}</Text>
-                </View>
+            ))}
+
+            {loadingMore && (
+              <View className='loading-more'>
+                <Text>加载中...</Text>
               </View>
-            </View>
-          ))}
-        </View>
-
-        <View className='order-address'>
-          <AtIcon value='map-pin' size='14' color='#999' />
-          <Text className='address-text'>
-            {order.address.receiverName} {order.address.phone}
-            {order.address.province} {order.address.city} {order.address.district} {order.address.detailAddress}
-          </Text>
-        </View>
-
-        <View className='order-footer'>
-          <View className='order-amount'>
-            <Text className='amount-label'>实付：</Text>
-            <Text className='amount-value'>{displayCents(order.finalAmount)}</Text>
-          </View>
-
-          <View className='order-actions'>
-            {order.status === 'pending_payment' && (
-              <>
-                <AtButton
-                  type='secondary'
-                  size='small'
-                  onClick={() => this.handleCancelOrder(order)}
-                  className='action-button'
-                >
-                  取消订单
-                </AtButton>
-                <AtButton
-                  type='primary'
-                  size='small'
-                  onClick={() => this.handlePayment(order)}
-                  className='action-button'
-                >
-                  立即支付
-                </AtButton>
-              </>
             )}
 
-            {order.status === 'pending_delivery' && (
-              <>
-                <AtButton
-                  type='secondary'
-                  size='small'
-                  onClick={() => this.handleOrderClick(order)}
-                  className='action-button'
-                >
-                  查看详情
-                </AtButton>
-                <AtButton
-                  type='secondary'
-                  size='small'
-                  onClick={() => this.handleCancelOrder(order)}
-                  className='action-button'
-                >
-                  取消订单
-                </AtButton>
-              </>
-            )}
-
-            {order.status === 'delivering' && (
-              <>
-                <AtButton
-                  type='secondary'
-                  size='small'
-                  onClick={() => this.handleOrderClick(order)}
-                  className='action-button'
-                >
-                  查看详情
-                </AtButton>
-                <AtButton
-                  type='primary'
-                  size='small'
-                  onClick={() => this.handleConfirmReceive(order)}
-                  className='action-button'
-                >
-                  确认收货
-                </AtButton>
-              </>
-            )}
-
-            {order.status === 'completed' && (
-              <>
-                <AtButton
-                  type='secondary'
-                  size='small'
-                  onClick={() => this.handleReorder(order)}
-                  className='action-button'
-                >
-                  再次购买
-                </AtButton>
-                <AtButton
-                  type='secondary'
-                  size='small'
-                  onClick={() => this.handleDeleteOrder(order)}
-                  className='action-button'
-                >
-                  删除订单
-                </AtButton>
-              </>
+            {!hasMore && orders.length > 0 && (
+              <View className='no-more'>
+                <Text>没有更多订单了</Text>
+              </View>
             )}
           </View>
-        </View>
-      </AtCard>
-    )
-  }
-
-  render() {
-    const { currentTab, orders, loading, hasMore, showToast, toastText, toastType } = this.state
-
-    return (
-      <View className='order-list-page'>
-        <AtTabs
-          current={currentTab}
-          tabList={TAB_LIST}
-          onClick={this.handleTabChange}
-          swipeable={false}
-          className='order-tabs'
-        />
-
-        <View className='order-content'>
-          {loading && orders.length === 0 ? (
-            <View className='loading-container'>
-              <Text>加载中...</Text>
-            </View>
-          ) : orders.length === 0 ? (
-            <View className='empty-container'>
-              <Image
-                src='/assets/empty-order.png'
-                mode='aspectFit'
-                className='empty-image'
-              />
-              <Text className='empty-text'>暂无订单</Text>
-              <Text className='empty-desc'>
-                {currentTab === 0 ? '您还没有任何订单哦' : `暂无${TAB_LIST[currentTab].title}订单`}
-              </Text>
-              {currentTab === 0 && (
-                <AtButton
-                  type='primary'
-                  size='normal'
-                  onClick={() => Taro.switchTab({ url: '/pages/home/index' })}
-                  className='go-shopping-button'
-                >
-                  去逛逛
-                </AtButton>
-              )}
-            </View>
-          ) : (
-            <View className='order-list'>
-              {orders.map(order => this.renderOrderItem(order))}
-
-              {loading && (
-                <View className='loading-more'>
-                  <Text>加载中...</Text>
-                </View>
-              )}
-
-              {!hasMore && orders.length > 0 && (
-                <View className='no-more'>
-                  <Text>没有更多订单了</Text>
-                </View>
-              )}
-            </View>
-          )}
-        </View>
-
-        {/* Toast 提示 */}
-        <AtToast
-          isOpened={showToast}
-          text={toastText}
-          status={toastType}
-          onClose={this.hideToast}
-        />
-
-        {/* 底部安全区域 */}
-        <View className='safe-bottom' />
+        )}
       </View>
-    )
-  }
+
+      {/* Toast 提示 */}
+      <AtToast
+        isOpened={showToast}
+        text={toastText}
+        status={toastType}
+        onClose={hideToast}
+      />
+
+      {/* 底部安全区域 */}
+      <View className='safe-bottom' />
+    </View>
+  )
 }
+
+export default OrderListPage

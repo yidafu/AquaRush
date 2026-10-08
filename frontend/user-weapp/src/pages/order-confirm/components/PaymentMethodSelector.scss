@@ -1,0 +1,118 @@
+@import './Section.styles.scss';
+
+.payment-method-wrapper {
+  padding: 8px 24px 24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.payment-method {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &:active {
+    background-color: var(--bg);
+    margin: 0 -24px;
+    padding: 20px 24px;
+  }
+}
+
+.payment-method-disabled {
+  opacity: 0.5;
+
+  &:active {
+    background-color: transparent;
+  }
+}
+
+.payment-method-selected {
+  .payment-radio {
+    border-color: var(--brand-primary);
+  }
+}
+
+.payment-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.payment-name-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.payment-name {
+  font-size: 26px;
+  color: var(--text-main);
+  font-weight: 500;
+}
+
+.payment-tag {
+  font-size: 20px;
+  font-weight: 500;
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  flex-shrink: 0;
+}
+
+.payment-tag-recommend {
+  background: var(--brand-primary-light); // 推荐标签:tint 底 + 主色字(§2.2)
+  color: var(--brand-primary);
+}
+
+.payment-tag-soon {
+  background: rgba(140, 140, 140, 0.10);
+  color: var(--text-sub);
+}
+
+.payment-desc {
+  font-size: 22px;
+  color: var(--text-sub);
+  display: block;
+  margin-top: 4px;
+}
+
+// 自定义单选圆点(与 CouponSelector 一致)
+.payment-radio {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  flex-shrink: 0;
+}
+
+.payment-radio-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--brand-primary);
+}
+
+// 响应式
+@media (max-width: 375px) {
+  .payment-method-wrapper {
+    padding: 8px 20px 20px;
+  }
+
+  .payment-method {
+    &:active {
+      margin: 0 -20px;
+      padding: 20px 20px;
+    }
+  }
+}

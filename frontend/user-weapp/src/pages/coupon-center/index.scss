@@ -1,0 +1,123 @@
+@import '@/styles/theme.scss';
+
+.coupon-center-page {
+  min-height: 100vh;
+  background-color: var(--bg);
+  padding: 0 32px 32px; // 1x 倍尺寸
+  box-sizing: border-box;
+}
+
+.coupon-center-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 32px 8px 24px;
+}
+
+.coupon-center-title {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.coupon-center-link {
+  font-size: 24px;
+  color: var(--text-sub);
+}
+
+.coupon-list {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.coupon-card {
+  background: var(--bg-card);
+  border-radius: 20px;
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.coupon-card-body {
+  display: flex;
+  align-items: stretch;
+  padding: 32px 0;
+}
+
+.coupon-card-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 0 32px;
+  border-right: 2px dashed var(--border);
+}
+
+.coupon-type {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--coupon-primary);
+}
+
+.coupon-discount {
+  font-size: 36px;
+  font-weight: 800;
+  color: var(--coupon-primary);
+  line-height: 1.2;
+}
+
+.coupon-threshold {
+  font-size: 22px;
+  color: var(--text-sub);
+}
+
+.coupon-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  padding: 0 32px;
+  width: 200px;
+  box-sizing: border-box;
+}
+
+.coupon-validity {
+  font-size: 20px;
+  color: var(--text-weak);
+  text-align: center;
+  line-height: 1.4;
+}
+
+.coupon-claim-btn {
+  min-width: 120px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--coupon-primary); // 领取按钮:优惠券品牌橙红(§2.1)
+  border-radius: 28px;
+  padding: 0 24px;
+}
+
+.coupon-claim-btn-disabled {
+  background: var(--text-weak);
+}
+
+.coupon-claim-text {
+  font-size: 26px;
+  font-weight: 600;
+  color: var(--bg-card);
+}
+
+.coupon-card-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 32px;
+  border-top: 1px solid var(--border);
+}
+
+.coupon-claimed-text {
+  font-size: 20px;
+  color: var(--text-weak);
+}

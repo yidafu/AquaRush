@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 商品详情｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 商品详情</h1>
+      <p class="sub">功能编号 F-PRO-002 ｜ 商品域 ｜ 组件体系 WeUI 2.x（微信官方）｜ 下游：购买弹层 / 确认订单 / 客服</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-PRO-002</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：正常在售 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 正常在售（可购买）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">商品详情</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 图片画廊 -->
+              <div class="mp-pad">
+                <div class="banner" style="height:auto;aspect-ratio:1/1">
+                  <span class="b-desc">商品实拍图占位 · 1:1</span>
+                </div>
+                <div class="banner-dots"><i class="on"></i><i></i><i></i><i></i></div>
+              </div>
+
+              <!-- 商品信息 -->
+              <div class="weui-cells__title">商品信息</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div>
+                      <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">15</span><span class="weui-price__dec">.00</span></span>
+                      <span class="weui-price--origin">¥21.00</span>
+                    </div>
+                    <div class="row wrap gap2 mt2">
+                      <span class="weui-tag weui-tag--red">限时特价</span>
+                      <span class="weui-tag weui-tag--brand">熟客价</span>
+                      <span class="weui-tag weui-tag--green">在售</span>
+                    </div>
+                    <div class="mt3" style="font-size:17px;font-weight:500">怡宝 饮用纯净水 18.9L</div>
+                    <div class="weui-media-box__desc">桶装水 · 全部批次可溯源</div>
+                    <div class="row between mt3">
+                      <span class="f-note t-weak">已售 1,280 桶</span>
+                      <span class="f-note t-weak">剩余 86 桶</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">规格</div>
+                  <div class="weui-cell__ft">18.9L 桶装水</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">押金桶</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--sm"><span class="weui-price__symbol">¥</span><span class="weui-price__int">30</span><span class="weui-price__dec">.00</span></span> · 空桶完好可退</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">配送说明</div>
+                  <div class="weui-cell__ft">当日达</div>
+                </div>
+              </div>
+              <div class="weui-cells__tips">
+                <span class="f-note t-weak">目标形态 · 加入购物车按钮（缺货禁用）</span>
+                <span class="weui-tag weui-tag--goal"></span>
+              </div>
+
+              <!-- 商品详情 -->
+              <div class="weui-cells__title">商品详情</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__desc mb2">怡宝饮用纯净水，经多道过滤工艺处理，水质清纯甘甜，适合家庭与办公日常饮用。</div>
+                    <div class="weui-media-box__desc mb2">水源地：广东肇庆 ｜ 矿物质含量：低矿化度</div>
+                    <div class="weui-media-box__desc">资质证书：食品生产许可证</div>
+                  </div>
+                </div>
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div class="mp-prod__cover" style="height:auto;aspect-ratio:750/320">详情图文实拍图占位 · 750 宽</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <div class="col" style="align-items:center;gap:2px">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7 3.1C19 15.6 12 20 12 20z"/></svg>
+                <span class="f-note t-sub">收藏</span>
+              </div>
+              <div class="col" style="align-items:center;gap:2px">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M5 4h3.5l1.8 4.2-2.1 1.6a12 12 0 0 0 5.9 5.9l1.6-2.1L20 15.5V19a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>
+                <span class="f-note t-sub">客服</span>
+              </div>
+              <span class="weui-btn weui-btn_primary flex1">立即购买</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：购买半屏弹层 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 购买弹层（数量步进 1~库存）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">商品详情</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="mp-pad">
+                <div class="banner" style="height:auto;aspect-ratio:1/1">
+                  <span class="b-desc">商品实拍图占位 · 1:1</span>
+                </div>
+                <div class="banner-dots"><i class="on"></i><i></i><i></i><i></i></div>
+              </div>
+              <div class="weui-cells__title">商品信息</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div>
+                      <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">15</span><span class="weui-price__dec">.00</span></span>
+                      <span class="weui-price--origin">¥21.00</span>
+                    </div>
+                    <div class="mt3" style="font-size:17px;font-weight:500">怡宝 饮用纯净水 18.9L</div>
+                    <div class="weui-media-box__desc">桶装水 · 全部批次可溯源</div>
+                    <div class="row between mt3">
+                      <span class="f-note t-weak">已售 1,280 桶</span>
+                      <span class="f-note t-weak">剩余 86 桶</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="mp-footbar hair-t">
+              <div class="col" style="align-items:center;gap:2px">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7 3.1C19 15.6 12 20 12 20z"/></svg>
+                <span class="f-note t-sub">收藏</span>
+              </div>
+              <div class="col" style="align-items:center;gap:2px">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M5 4h3.5l1.8 4.2-2.1 1.6a12 12 0 0 0 5.9 5.9l1.6-2.1L20 15.5V19a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>
+                <span class="f-note t-sub">客服</span>
+              </div>
+              <span class="weui-btn weui-btn_primary flex1">立即购买</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+          <!-- 购买半屏弹层 -->
+          <div class="weui-mask"></div>
+          <div class="weui-half">
+            <div class="weui-half__hd">
+              <span class="weui-half__title">购买数量</span>
+              <span class="weui-half__close"></span>
+            </div>
+            <div class="weui-half__bd">
+              <div class="weui-cells">
+                <div class="weui-media-box">
+                  <div class="weui-media-box__hd">
+                    <span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span>
+                  </div>
+                  <div class="weui-media-box__bd">
+                    <div class="weui-media-box__title ellipsis">怡宝 饮用纯净水 18.9L</div>
+                    <div class="weui-media-box__desc">
+                      <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">15</span><span class="weui-price__dec">.00</span></span>
+                    </div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">购买数量</div>
+                  <div class="weui-cell__ft">库存 86 桶</div>
+                </div>
+                <div class="weui-cell weui-cell_switch">
+                  <div class="weui-cell__bd">数量（1~库存）</div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-stepper">
+                      <span class="weui-stepper__btn">−</span>
+                      <span class="weui-stepper__num">2</span>
+                      <span class="weui-stepper__btn">+</span>
+                    </span>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">合计</div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">30</span><span class="weui-price__dec">.00</span></span>
+                  </div>
+                </div>
+              </div>
+              <div class="weui-btn_area">
+                <span class="weui-btn weui-btn_default flex1">取消</span>
+                <span class="weui-btn weui-btn_primary flex1">确认</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：缺货禁用态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 库存 0（缺货禁用态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">商品详情</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="mp-pad">
+                <div class="banner" style="height:auto;aspect-ratio:1/1">
+                  <span class="b-desc">商品实拍图占位 · 1:1</span>
+                </div>
+                <div class="banner-dots"><i class="on"></i><i></i><i></i><i></i></div>
+              </div>
+
+              <div class="weui-cells__title">商品信息</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div>
+                      <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">35</span><span class="weui-price__dec">.00</span></span>
+                    </div>
+                    <div class="row wrap gap2 mt2">
+                      <span class="weui-tag weui-tag--orange">暂时缺货</span>
+                      <span class="weui-tag">已售罄</span>
+                    </div>
+                    <div class="mt3" style="font-size:17px;font-weight:500">景田 百岁山矿泉水 18.9L</div>
+                    <div class="weui-media-box__desc">桶装水 · 全部批次可溯源</div>
+                    <div class="row between mt3">
+                      <span class="f-note t-weak">已售 2,041 桶</span>
+                      <span class="f-note t-weak">剩余 0 桶</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">规格</div>
+                  <div class="weui-cell__ft">18.9L 桶装水</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">配送说明</div>
+                  <div class="weui-cell__ft">当日达</div>
+                </div>
+              </div>
+
+              <div class="weui-notice weui-notice--red">
+                <svg viewBox="0 0 24 24"><path d="M12 4 3 19h18z"/><path d="M12 10v4M12 16.5v.5"/></svg>
+                <span class="ellipsis">本商品暂时缺货，补货后恢复购买</span>
+              </div>
+
+              <div class="weui-cells__title">商品详情</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__desc">景田百岁山天然矿泉水，源自优质水源地，口感清冽回甘。</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <div class="col" style="align-items:center;gap:2px">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-9.3A4.2 4.2 0 0 1 12 7.6a4.2 4.2 0 0 1 7 3.1C19 15.6 12 20 12 20z"/></svg>
+                <span class="f-note t-sub">收藏</span>
+              </div>
+              <div class="col" style="align-items:center;gap:2px">
+                <svg class="ico" viewBox="0 0 24 24"><path d="M5 4h3.5l1.8 4.2-2.1 1.6a12 12 0 0 0 5.9 5.9l1.6-2.1L20 15.5V19a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>
+                <span class="f-note t-sub">客服</span>
+              </div>
+              <span class="weui-btn weui-btn_primary weui-btn_disabled flex1">暂时缺货</span>
+            </div>
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（Taro）</p>
+        <p><strong>入口：</strong>首页商品卡、我的收藏页、订单相关页携带商品 id 进入</p>
+        <p><strong>跳转：</strong>立即购买 → 购买弹层 → 写 pendingOrder → 确认订单页；客服 → 拨打门店电话；分享 → showShareMenu</p>
+        <p><strong>容错：</strong>无 id / 无效 id → toast「产品ID缺失」后返回</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>顶部：<code>.mp-status</code> + 白底 <code>.mp-nav</code>（二级页带 <code>.mp-nav__back</code> + 微信胶囊）</li>
+          <li>图片画廊：<code>.banner</code> 1:1 实拍图占位 + <code>.banner-dots</code> 分页点（点击可全屏预览）</li>
+          <li>商品信息组：<code>.weui-cells__title</code> + <code>.weui-cells</code>（价格区 / 名称 / 副标题 / 已售·剩余 / 规格 / 押金桶 / 配送说明「当日达」）</li>
+          <li>详情图文组：<code>.weui-cells</code> 内富文本 + 详情实拍图占位（无详情则隐藏）</li>
+          <li>底部操作栏：<code>.mp-footbar</code>（收藏 ♡ / 客服 ☎）+ <code>.weui-btn_primary</code>「立即购买」</li>
+          <li>购买弹层：<code>.weui-mask</code> + <code>.weui-half</code>（商品行 + 数量步进 1~库存 + 合计 + 取消 / 确认）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互与状态</h3>
+        <ol>
+          <li>加载详情，网络错误最多重试 3 次（间隔 1s），加载中展示骨架屏</li>
+          <li>收藏未登录 → toast「请先登录」；已登录切换 → toast「已添加收藏 / 已取消收藏」</li>
+          <li>立即购买 → 打开购买弹层；数量超库存拦截「库存不足」；确认后写 pendingOrder 进确认订单页</li>
+          <li>客服直接拨打门店电话；下拉刷新重载详情并停止动画</li>
+        </ol>
+        <p><strong>空态：</strong>商品不存在「产品不存在」+「返回」；<strong>错误态：</strong>toast「产品不存在」「加载失败，请检查网络后重试」。</p>
+        <p><strong>禁用态：</strong>库存 ≤ 0 或非在售时按钮 <code>.weui-btn_disabled</code> 显示「暂时缺货」（R-PRO-01 / R-PRO-03）；有优惠才出现划线目录价（R-MON-01）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>外壳：</strong>导航栏 <code>.mp-nav</code> 高 44px，右上微信胶囊 <code>.mp-capsule</code> 87×32（圆角 16）。</p>
+        <p><strong>列表：</strong><code>.weui-cells</code> 主文字 17px / 行高 1.41 / 白底上下 0.5px 发丝线；<code>.weui-cell</code> 内缩 16px、最小高 56px；组标题 <code>.weui-cells__title</code> 14px 灰。</p>
+        <p><strong>价格：</strong>金额一律 <code>.weui-price</code>（微信电商红 <code>#FA5151</code>），主价 <code>--lg</code> 22px，划线原价 <code>.weui-price--origin</code> 13px 灰划线。</p>
+        <p><strong>标签：</strong><code>.weui-tag</code> 高 18px，<code>--red</code>（限时特价）/ <code>--brand</code>（熟客价）/ <code>--green</code>（在售）/ <code>--orange</code>（暂时缺货）。</p>
+        <p><strong>弹层：</strong><code>.weui-mask</code> + <code>.weui-half</code>（圆角 12px、max-height 78%）；数量步进 <code>.weui-stepper</code> 高 28px（数值区 38px）；按钮 <code>.weui-btn</code> 高 48px / 圆角 8px，底部栏 <code>.mp-footbar</code> 白底 + 发丝顶线。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>交互主色统一品牌蓝 <code>--weui-BRAND</code>；金额用微信电商红 <code>#FA5151</code>；链接用 <code>--weui-LINK</code>，危险用 <code>--weui-RED</code>。本页不使用强调橙 <code>--action</code>。</p>
+        <p><strong>R-MON-01：</strong>金额以分存储、展示换算为元并两位小数，统一走 <code>.weui-price</code>，不手拼 ¥ 字符串。</p>
+        <p>商品图严禁卡通插画，一律真实场景摆拍占位；按规格展示可退水桶押金（R-MON-03）。</p>
+        <p><span class="weui-tag weui-tag--goal"></span> 详情页「加入购物车」按钮（缺货禁用，F-PRO-004，缺口 G03 已解决）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

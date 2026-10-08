@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 订单详情｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 订单详情</h1>
+      <p class="sub">功能编号 F-ORD-003 ｜ 订单域 ｜ 下游：配送跟踪 / 在线支付 / 评价 / 确认订单</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-003</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip">F-ORD-025</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">缺口 G76</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：配送中 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 配送中</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">订单详情</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 状态头 + 进度步骤条 -->
+              <div class="weui-cells mt3">
+                <div class="weui-cell weui-cell_vertical">
+                  <div><span class="weui-tag weui-tag--md weui-tag--deliver">配送中</span></div>
+                  <div class="f-body mt2">送水工已出发，预计 10:30 前送达</div>
+                  <div class="weui-steps mt3">
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">下单</span></div>
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">支付</span></div>
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">派单</span></div>
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">配送</span></div>
+                    <div class="weui-step"><span class="weui-step__dot"></span><span class="weui-step__label">完成</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 配送地图卡 -->
+              <div class="mp-pad mt3">
+                <div class="map" style="height:180px;">
+                  <span class="water"></span>
+                  <span class="road"></span>
+                  <span class="pin cur" style="left:92px;top:48px;"></span>
+                  <span class="pin" style="left:224px;top:104px;"></span>
+                  <span class="map-label" style="left:62px;top:82px;">送水工 王师傅</span>
+                  <span class="map-label" style="left:200px;top:136px;">收货地址</span>
+                  <span class="map-ctrl"><i>⟳</i><i>↗</i></span>
+                </div>
+              </div>
+              <div class="weui-cells mt2">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="row gap2"><span class="f-body bold">王师傅</span><span class="weui-tag weui-tag--deliver">配送中</span></div>
+                    <div class="f-note t-sub mt2">电话 139****2233 · 距你约 1.2km</div>
+                  </div>
+                  <div class="weui-cell__ft"><span class="weui-btn weui-btn_plain-default weui-btn_xs">查看跟踪</span></div>
+                </div>
+              </div>
+
+              <!-- 收货地址 -->
+              <div class="weui-cells__title">收货地址</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="row wrap gap2"><span class="f-body bold">李静</span><span class="f-aux t-sub">138****6688</span></div>
+                    <div class="f-aux t-sub mt2">清水湾小区 3 号楼 2 单元 · 6 层</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 商品清单 -->
+              <div class="weui-cells__title row between"><span>商品清单</span><span>共 3 件</span></div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__title">怡宝 饮用纯净水 18.9L</div>
+                    <div class="weui-media-box__desc">规格 18.9L／桶</div>
+                    <div class="row between mt2">
+                      <span>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥26.00</span>
+                      </span>
+                      <span class="f-note t-sub">× 2</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__title">农夫山泉 天然水 19L</div>
+                    <div class="weui-media-box__desc">规格 19L／桶</div>
+                    <div class="row between mt2">
+                      <span>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">28</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥32.00</span>
+                      </span>
+                      <span class="f-note t-sub">× 1</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 金额明细 -->
+              <div class="weui-cells__title">金额明细</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">商品金额</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">72</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">满减</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">-¥</span><span class="weui-price__int">10</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">首单立减</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">-¥</span><span class="weui-price__int">5</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">优惠券</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">-¥</span><span class="weui-price__int">8</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">水票抵扣</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">-¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">配送费（6 层分档）</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">2</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">水桶押金（可退）</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">20</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd bold">实付合计</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">49</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+              </div>
+
+              <!-- 订单信息 -->
+              <div class="weui-cells__title">订单信息</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">订单编号</div>
+                  <div class="weui-cell__ft"><span style="font-variant-numeric:tabular-nums">AQ20261008003</span><span class="weui-btn weui-btn_plain-primary weui-btn_xs">复制</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">下单时间</div>
+                  <div class="weui-cell__ft"><span style="font-variant-numeric:tabular-nums">2026-10-08 09:12</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">支付方式</div>
+                  <div class="weui-cell__ft">微信支付</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">订单备注</div>
+                  <div class="weui-cell__ft">放门口即可</div>
+                </div>
+              </div>
+
+              <!-- 交付照片核验 -->
+              <div class="weui-cells__title row between"><span>交付照片</span><span class="weui-tag weui-tag--outline">待核验</span></div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">待上传</span></div>
+                  <div class="weui-cell__bd f-note t-sub">送水工完成配送后上传现场照片，用于交付核验。</div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <div class="mp-footbar__info">
+                <div class="mp-footbar__lbl">实付</div>
+                <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">49</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_plain-default">查看跟踪</span>
+              <span class="weui-btn weui-btn_primary">催单</span>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：已完成 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 已完成</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">订单详情</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 状态头 + 进度步骤条（全通过） -->
+              <div class="weui-cells mt3">
+                <div class="weui-cell weui-cell_vertical">
+                  <div><span class="weui-tag weui-tag--md weui-tag--done">已完成</span></div>
+                  <div class="f-body mt2">订单已完成，感谢惠顾</div>
+                  <div class="f-note t-sub mt2">完成时间 2026-10-08 10:02</div>
+                  <div class="weui-steps mt3">
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">下单</span></div>
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">支付</span></div>
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">派单</span></div>
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">配送</span></div>
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">完成</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 收货地址 -->
+              <div class="weui-cells__title">收货地址</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">
+                    <div class="row wrap gap2"><span class="f-body bold">李静</span><span class="f-aux t-sub">138****6688</span></div>
+                    <div class="f-aux t-sub mt2">清水湾小区 3 号楼 2 单元 · 6 层</div>
+                    <div class="f-note t-sub mt2">配送人 王师傅　收款方式 微信支付</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 商品清单 -->
+              <div class="weui-cells__title row between"><span>商品清单</span><span>共 3 件</span></div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__title">怡宝 饮用纯净水 18.9L</div>
+                    <div class="weui-media-box__desc">规格 18.9L／桶</div>
+                    <div class="row between mt2">
+                      <span>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥26.00</span>
+                      </span>
+                      <span class="f-note t-sub">× 2</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                  <div class="weui-cell__bd">
+                    <div class="weui-media-box__title">农夫山泉 天然水 19L</div>
+                    <div class="weui-media-box__desc">规格 19L／桶</div>
+                    <div class="row between mt2">
+                      <span>
+                        <span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">28</span><span class="weui-price__dec">.00</span></span>
+                        <span class="weui-price--origin">¥32.00</span>
+                      </span>
+                      <span class="f-note t-sub">× 1</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 金额明细 -->
+              <div class="weui-cells__title">金额明细</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">商品金额</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">72</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">满减</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">-¥</span><span class="weui-price__int">10</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">首单立减</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">-¥</span><span class="weui-price__int">5</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">优惠券</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">-¥</span><span class="weui-price__int">8</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">水票抵扣</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">-¥</span><span class="weui-price__int">22</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">配送费（6 层分档）</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">2</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">水桶押金（可退）</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--md"><span class="weui-price__symbol">¥</span><span class="weui-price__int">20</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd bold">实付合计</div>
+                  <div class="weui-cell__ft"><span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">49</span><span class="weui-price__dec">.00</span></span></div>
+                </div>
+              </div>
+
+              <!-- 订单信息 -->
+              <div class="weui-cells__title">订单信息</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">订单编号</div>
+                  <div class="weui-cell__ft"><span style="font-variant-numeric:tabular-nums">AQ20261008003</span><span class="weui-btn weui-btn_plain-primary weui-btn_xs">复制</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">下单时间</div>
+                  <div class="weui-cell__ft"><span style="font-variant-numeric:tabular-nums">2026-10-08 09:12</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">支付方式</div>
+                  <div class="weui-cell__ft">微信支付</div>
+                </div>
+              </div>
+
+              <!-- 交付照片核验 -->
+              <div class="weui-cells__title row between"><span>交付照片</span><span class="weui-tag weui-tag--green">核验通过</span></div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                  <div class="weui-cell__bd">
+                    <div class="row gap2"><span class="weui-media-box__thumb weui-media-box__thumb--sm">实拍图占位</span></div>
+                    <div class="f-note t-sub mt2">送水工完成配送时上传，已用于交付核验。</div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <div class="mp-footbar__info">
+                <div class="mp-footbar__lbl">实付</div>
+                <span class="weui-price weui-price--lg"><span class="weui-price__symbol">¥</span><span class="weui-price__int">49</span><span class="weui-price__dec">.00</span></span>
+              </div>
+              <span class="weui-btn weui-btn_primary">评价</span>
+              <span class="weui-tag weui-tag--goal"></span>
+              <span class="weui-btn weui-btn_plain-default">再来一单</span>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x，样式来自 <code>assets/weui.css</code>；主题色经 <code>--weui-BRAND</code> 注入品牌蓝 <code>#3A9BD9</code>，灰阶 / 发丝线 / 排版刻度沿用微信官方值。</p>
+        <p><strong>关键度量：</strong>导航栏 44px + 右上胶囊 87×32；步骤条圆点 18px、已完成段连线转品牌蓝；单元格 17px 主文字、内缩 16px 发丝线；状态标签大号 <code>.weui-tag--md</code>（高 22px）。</p>
+        <p><strong>价格：</strong>所有金额用 <code>.weui-price</code>（微信电商红 <code>#FA5151</code>），实付合计用 <code>.weui-price--lg</code>；订单编号用等宽数字（<code>tabular-nums</code>）。</p>
+        <p><strong>用色：</strong>交互主色品牌蓝（导航 / 进度 / 主按钮）；地图当前定位点 <code>.pin.cur</code> 为强调橙（来自 ui.css）；本屏未额外使用强调橙。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序</p>
+        <p><strong>功能：</strong>F-ORD-003 订单详情（已实现）；「立即支付」F-ORD-005 /「取消订单」F-ORD-006 /「评价」F-ORD-007 / 催单 F-ORD-008（部分实现）/「再来一单」F-ORD-025（规划中）。</p>
+        <p><strong>入口：</strong>订单列表点击订单；下单成功 redirectTo。</p>
+        <p><strong>跳转：</strong>「立即支付」→ 支付发起；「评价」→ 订单评价；「再来一单」→ 确认订单页；「查看配送」→ 配送跟踪；拨号 → 送水工电话 / 客服。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>状态头：大号状态标签（<code>.weui-tag--md</code>）+ 说明 + 进度步骤条（<code>.weui-steps</code>：下单 → 支付 → 派单 → 配送 → 完成，<code>.done</code> 标记）</li>
+          <li>配送地图卡（配送中）：<code>.map</code> 双标记（送水工 <code>.pin.cur</code> / 收货地址 <code>.pin</code>）+ 送水工信息 + 查看跟踪</li>
+          <li>收货地址（<code>.weui-cells</code>）：联系人 / 电话 / 完整地址（含楼层）</li>
+          <li>商品清单（<code>.weui-cells</code>）：图 / 名 / 规格 / 优惠价 + 划线价 × 数量</li>
+          <li>金额明细（<code>.weui-cells</code>）：商品金额 / 营销优惠 / 水票抵扣 / 配送费 / 水桶押金 / 实付合计</li>
+          <li>订单信息（<code>.weui-cells</code>）：订单编号（等宽 / 可复制）/ 下单时间 / 支付方式 / 备注</li>
+          <li>交付照片核验（<code>.weui-cells</code>）：待核验 / 核验通过</li>
+          <li>底部操作区 <code>.mp-footbar</code>（按状态变化）</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>componentDidMount 读 orderId → 加载详情；orderId 缺失 toast「订单ID缺失」并返回</li>
+          <li>点「复制订单号」→ 写剪贴板并 toast「复制成功」</li>
+          <li>「立即支付」→ createOrderPayment；「催单」→ 配送中专属，防抖，toast「催单已受理」</li>
+          <li>「查看配送」→ 配送跟踪 <code>delivery-tracking?orderId=xx</code></li>
+          <li>「再来一单」→ 写 pendingOrder 跳确认订单页</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>状态与规则 / 设计要点</h3>
+        <p><strong>操作集合：</strong>待付款 = 取消订单 + 立即支付；待配送 = 再次购买；配送中 = 查看配送 + 催单；已完成 = 评价 / 查看评价 + 再来一单；已取消 / 已退款 = 再来一单。</p>
+        <p><strong>时间线口径：</strong>下单 → 支付 → 派单 → 配送 → 已送达 → 订单完成；送达即完成，无中间态（R-ORD-11）；不得出现「确认收货」节点。</p>
+        <p><strong>禁用态：</strong>非配送中不展示催单；已完成 / 已取消 / 已退款为终态，不可取消、不可改地址。</p>
+        <p><strong>设计要点：</strong>步骤条节点与状态节点必须一致；金额减项用微信电商红、实付合计突出并精确到分；<span class="weui-tag weui-tag--goal"></span>「再来一单」目标形态见 F-ORD-025（缺口 G76）；「查看配送」依赖用户端配送跟踪接入真实轨迹数据源（缺口 G65）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

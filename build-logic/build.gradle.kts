@@ -28,7 +28,10 @@ dependencies {
 
     // Add ktlint plugin
     implementation(libs.ktlint.gradlePlugin)
+  implementation("org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin:${libs.versions.kotlin.get()}")
 
-    // Add QueryDSL plugin
-    implementation("com.ewerk.gradle.plugins.querydsl:com.ewerk.gradle.plugins.querydsl.gradle.plugin:1.0.10")
+  implementation("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:${libs.versions.ksp.get()}")
+
+
+  // QueryDSL is now configured manually without the ewerk plugin (incompatible with Gradle 9)
 }

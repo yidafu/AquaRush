@@ -1,12 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import Taro from '@tarojs/taro'
 import RegionService from '../services/RegionService'
 import {
   Region,
-  RegionSelection,
   RegionLoadingState,
-  RegionErrorState,
-  RegionHierarchy
+  RegionErrorState
 } from '../types/region'
 
 interface IInitialSelection {
@@ -211,64 +208,6 @@ export const useRegionSelector = (options: UseRegionSelectorOptions = {}): UseRe
     }
   }, [onError])
 
-  // Load backend default region hierarchy
-  const loadBackendDefault = useCallback(async () => {
-    setLoading(prev => ({ ...prev, provinces: true }))
-    setErrors(prev => ({ ...prev, provinces: undefined }))
-
-    try {
-      const defaultHierarchy = await regionService.getDefaultRegionHierarchy()
-      if (defaultHierarchy) {
-        // Set data from backend default
-        setProvinces(defaultHierarchy.provinces)
-        setCities(defaultHierarchy.cities)
-        setDistricts(defaultHierarchy.districts)
-
-        // Set selected regions
-        setSelectedProvince(defaultHierarchy.province)
-        setSelectedCity(defaultHierarchy.city)
-        setSelectedDistrict(defaultHierarchy.district)
-
-        // Calculate and set selected indices
-        const provinceIndex = defaultHierarchy.provinces.findIndex(p => p.code === defaultHierarchy.province.code)
-        const cityIndex = defaultHierarchy.cities.findIndex(c => c.code === defaultHierarchy.city.code)
-        const districtIndex = defaultHierarchy.districts.findIndex(d => d.code === defaultHierarchy.district.code)
-
-        setSelectedIndex({
-          province: Math.max(0, provinceIndex),
-          city: Math.max(0, cityIndex),
-          district: Math.max(0, districtIndex)
-        })
-
-        loadingRef.current.provinces = true
-      } else {
-        // Fallback to regular load if backend default fails
-        console.warn('No backend default region hierarchy found, falling back to regular load')
-        const provincesData = await regionService.getProvinces()
-        setProvinces(provincesData)
-        loadingRef.current.provinces = true
-        setSelectedProvince(provincesData[0] || null)
-      }
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load backend default region'
-      console.error('Backend default region load failed:', error)
-      setErrors(prev => ({ ...prev, provinces: errorMessage }))
-      onError?.(errorMessage)
-
-      // Fallback to regular load
-      try {
-        const provincesData = await regionService.getProvinces()
-        setProvinces(provincesData)
-        loadingRef.current.provinces = true
-        setSelectedProvince(provincesData[0] || null)
-      } catch (fallbackError) {
-        console.error('Fallback load also failed:', fallbackError)
-      }
-    } finally {
-      setLoading(prev => ({ ...prev, provinces: false }))
-    }
-  }, [onError])
-
   // Initialize with initial selection
   const initializeWithSelection = useCallback(async (initialSelection: IInitialSelection) => {
     if (!initialSelection) return
@@ -332,7 +271,9 @@ export const useRegionSelector = (options: UseRegionSelectorOptions = {}): UseRe
       if (column === 0) {
         // Province changed
         const province = provinces[value]
-        if (province && province !== selectedProvince) {
+        // 列表为空时也允许加载(修复:新增地址首次打开选择器城市列为空,
+        // 选中同一省份无法触发城市加载的问题)
+        if (province && (province !== selectedProvince || cities.length === 0)) {
           setSelectedProvince(province)
           setSelectedIndex(prev => ({ ...prev, province: value, city: 0, district: 0 }))
 
@@ -348,7 +289,8 @@ export const useRegionSelector = (options: UseRegionSelectorOptions = {}): UseRe
       } else if (column === 1) {
         // City changed
         const city = cities[value]
-        if (city && city !== selectedCity) {
+        // 区县列表为空时也允许加载(与省份列同理)
+        if (city && (city !== selectedCity || districts.length === 0)) {
           setSelectedCity(city)
           setSelectedIndex(prev => ({ ...prev, city: value, district: 0 }))
 
@@ -448,10 +390,10 @@ export const useRegionSelector = (options: UseRegionSelectorOptions = {}): UseRe
       if (initialSelection) {
         initializeWithSelection(initialSelection)
       } else {
-        loadBackendDefault()
+        loadProvinces()
       }
     }
-  }, [autoLoadProvinces, initialSelection, loadBackendDefault, initializeWithSelection])
+  }, [autoLoadProvinces, initialSelection, loadProvinces, initializeWithSelection])
 
   return {
     // Data

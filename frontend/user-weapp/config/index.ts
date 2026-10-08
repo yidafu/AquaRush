@@ -4,6 +4,7 @@ import prodConfig from './prod'
 import path from 'node:path'
 import tailwindcss from 'tailwindcss'
 import { UnifiedViteWeappTailwindcssPlugin as uvtw } from 'weapp-tailwindcss/vite'
+import { aquarushTrackVitePlugin } from 'babel-plugin-aquarush-track/vite'
 
 process.env.BROWSERSLIST_ENV = process.env.NODE_ENV
 
@@ -83,6 +84,9 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
           // 由于 taro vite 默认会移除所有的 tailwindcss css 变量，所以一定要开启这个配置，进行css 变量的重新注入
           injectAdditionalCssVarScope: true,
         }),
+        // 声明式埋点:taro vite 编译器不读 babel.config.js,由本插件在 transform 阶段
+        // 把 track-* props 编译成 <Track> 包裹(见 babel-plugin-aquarush-track)
+        aquarushTrackVitePlugin(),
       ]
     },
     mini: {

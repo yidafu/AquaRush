@@ -1,0 +1,102 @@
+# Statistics and Analytics - Admin only
+
+# 待处理订单存量快照（当前状态，与日期窗口无关）
+type PendingOrderBreakdown {
+  pendingPayment: Int!    # 待支付
+  pendingDispatch: Int!   # 待派单
+  pendingDelivery: Int!   # 待配送
+  total: Int!             # 三态合计
+}
+
+extend type Query {
+  # 当日统计数据
+  todayStatistics: TodayStatistics
+
+  # 一周统计数据
+  weekStatistics: WeekStatistics
+
+  # Statistics and Analytics
+  orderStatistics(input: DateRangeInput!): OrderStatistics!
+  dailyStatistics(input: DateRangeInput!): [DailyStatistic!]!
+  weeklyStatistics(input: DateRangeInput!): [WeeklyStatistic!]!
+  monthlyStatistics(input: DateRangeInput!): [MonthlyStatistic!]!
+
+  # User Statistics - Admin only
+  userStatistics: UserStatistics!
+
+  # Delivery Worker Statistics - Admin only
+  deliveryWorkerStatistics: DeliveryWorkerOverview!
+  deliveryWorkerRanking(limit: Int = 10): [DeliveryWorkerRankingItem!]!
+
+  # 待处理订单三态细分（仪表盘）
+  pendingOrderBreakdown: PendingOrderBreakdown!
+
+  # 营销统计(F-STA-007):汇总 + 按日趋势 + 营销方式使用明细
+  # 第 3 层日汇总中间表(daily_marketing_facts / daily_marketing_usage_facts)查询侧两段合并
+  marketingStatistics(input: DateRangeInput!): MarketingStatistics!
+}
+
+# 营销统计汇总(金额单位:分 R-MON-01;口径见 PRD 08-statistics.md §F-STA-007)
+type MarketingStatisticsSummary {
+  # 营销订单数(订单含 券/满减/首单立减 任一快照优惠,按订单去重)
+  marketingOrderCount: Int!
+  # 让利总额 = 券 + 满减 + 首单立减(订单快照列,精确;赠品估算/水票抵扣不计入)
+  totalBenefitCents: Long!
+  couponBenefitCents: Long!
+  promotionBenefitCents: Long!
+  firstOrderBenefitCents: Long!
+  # 用券数(核销张数)
+  couponRedeemedCount: Int!
+  # 水票销售张数/销售金额(分)/核销张数
+  ticketSalesCount: Int!
+  ticketSalesRevenueCents: Long!
+  ticketRedeemedCount: Int!
+  # 赠品件数(order_gifts)
+  giftQuantity: Int!
+}
+
+# 营销统计单日(空数据日补零,图表 x 轴连续)
+type MarketingDailyStatistic {
+  date: String!
+  marketingOrderCount: Int!
+  couponBenefitCents: Long!
+  promotionBenefitCents: Long!
+  firstOrderBenefitCents: Long!
+  couponRedeemedCount: Int!
+  ticketSalesCount: Int!
+  ticketSalesRevenueCents: Long!
+  ticketRedeemedCount: Int!
+  giftQuantity: Int!
+}
+
+enum MarketingBreakdownKind {
+  COUPON_TEMPLATE
+  PROMOTION_ACTIVITY
+  FIRST_ORDER_ACTIVITY
+  GIFT_ACTIVITY
+  TICKET_TYPE
+}
+
+# 营销方式使用明细行(区间内按 kind × refId 聚合;票种行使用 ticket_* 字段,其余为 0)
+type MarketingUsageBreakdownRow {
+  kind: MarketingBreakdownKind!
+  refId: PrimaryId!
+  # 活动/券/票种名称(查询侧解析)
+  name: String!
+  # 使用订单数(票种恒为 0)
+  orderCount: Int!
+  # 优惠金额(券/满减/首单立减=快照列合计;赠品=件数×当前目录价估算;票种=0)
+  benefitCents: Long!
+  # 使用数量(券=核销张数;赠品=件数;满减/首单=订单数;票种=0)
+  usageCount: Int!
+  # 票种专用:销售张数/销售金额(分)/核销张数
+  ticketSalesCount: Int!
+  ticketSalesRevenueCents: Long!
+  ticketRedeemedCount: Int!
+}
+
+type MarketingStatistics {
+  summary: MarketingStatisticsSummary!
+  daily: [MarketingDailyStatistic!]!
+  breakdown: [MarketingUsageBreakdownRow!]!
+}

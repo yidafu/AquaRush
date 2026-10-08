@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 周期订购｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 周期订购（订阅）</h1>
+      <p class="sub">功能编号 F-ORD-026 ｜ 订单域 ｜ 入口：「我的」页服务区 / 复购确认页 ｜ 下游：确认订单页</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-026</span>
+      <span class="chip chip-plan">规划中</span>
+      <span class="chip chip-goal">缺口 G77</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：计划列表 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 计划列表</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">周期订购</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells__title row between"><span>我的计划</span><span class="weui-tag weui-tag--goal"></span></div>
+
+              <!-- 生效中 -->
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="f-body bold">怡宝 饮用纯净水 18.9L × 2</span></div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--brand">生效中</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">周期规则</div>
+                  <div class="weui-cell__ft">每周 一 / 三 / 五</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">配送时段</div>
+                  <div class="weui-cell__ft">上午 9:00-12:00</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">下次配送</div>
+                  <div class="weui-cell__ft"><span style="font-variant-numeric:tabular-nums">2026-10-10 09:00</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">下单方式</div>
+                  <div class="weui-cell__ft">自动下单</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"></div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-btn weui-btn_plain-default weui-btn_xs">暂停</span>
+                    <span class="weui-btn weui-btn_plain-default weui-btn_xs">终止</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 已暂停 -->
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="f-body bold">农夫山泉 天然水 19L × 1</span></div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--done">已暂停</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">周期规则</div>
+                  <div class="weui-cell__ft">每两周 · 周一</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">配送时段</div>
+                  <div class="weui-cell__ft">下午 14:00-18:00</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">下次配送</div>
+                  <div class="weui-cell__ft">暂停中，不生成</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">下单方式</div>
+                  <div class="weui-cell__ft">仅提醒</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"></div>
+                  <div class="weui-cell__ft">
+                    <span class="weui-btn weui-btn_plain-primary weui-btn_xs">恢复</span>
+                    <span class="weui-btn weui-btn_plain-default weui-btn_xs">终止</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 已终止 -->
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="f-body bold">娃哈哈 饮用纯净水 19L × 3</span></div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--cancel">已终止</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">周期规则</div>
+                  <div class="weui-cell__ft">每月 1 日</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">终止条件</div>
+                  <div class="weui-cell__ft">共 6 期 · 已结束</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">下次配送</div>
+                  <div class="weui-cell__ft">—</div>
+                </div>
+              </div>
+              <div class="weui-cells__tips">终止后不可恢复，如需继续请新建计划。</div>
+
+              <div class="weui-btn_area">
+                <span class="weui-btn weui-btn_plain-primary flex1">新建计划</span>
+              </div>
+
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：新建计划（半屏表单） ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 新建计划（底部半屏表单）</span>
+      <div class="phone mp viewport">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">周期订购</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="weui-cells__title">我的计划</div>
+
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd"><span class="f-body bold">怡宝 饮用纯净水 18.9L × 2</span></div>
+                  <div class="weui-cell__ft"><span class="weui-tag weui-tag--brand">生效中</span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">周期规则</div>
+                  <div class="weui-cell__ft">每周 一 / 三 / 五</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">下次配送</div>
+                  <div class="weui-cell__ft"><span style="font-variant-numeric:tabular-nums">2026-10-10 09:00</span></div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+
+          <!-- 新建计划半屏 -->
+          <div class="weui-mask"></div>
+          <div class="weui-half">
+            <div class="weui-half__hd">
+              <span class="weui-half__title">新建周期计划</span>
+              <span class="weui-half__close"></span>
+            </div>
+            <div class="weui-half__bd">
+
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">商品</div>
+                  <div class="weui-cell__ft">怡宝 饮用纯净水 18.9L（18.9L／桶）</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">数量 · 怡宝 饮用纯净水 18.9L</div>
+                  <div class="weui-cell__ft"><span class="weui-stepper"><span class="weui-stepper__btn">−</span><span class="weui-stepper__num">2</span><span class="weui-stepper__btn">+</span></span></div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title row between"><span>配送周期</span><span>按周 / 按月</span></div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-segmented">
+                    <span class="weui-segmented__item on">每周</span>
+                    <span class="weui-segmented__item">每两周</span>
+                    <span class="weui-segmented__item">每月</span>
+                  </div>
+                  <div class="f-note t-weak mt3">选择星期（可多选）</div>
+                  <div class="row wrap gap2 mt2">
+                    <span class="weui-tag weui-tag--md weui-tag--brand">周一</span>
+                    <span class="weui-tag weui-tag--md weui-tag--outline">周二</span>
+                    <span class="weui-tag weui-tag--md weui-tag--brand">周三</span>
+                    <span class="weui-tag weui-tag--md weui-tag--outline">周四</span>
+                    <span class="weui-tag weui-tag--md weui-tag--brand">周五</span>
+                    <span class="weui-tag weui-tag--md weui-tag--outline">周六</span>
+                    <span class="weui-tag weui-tag--md weui-tag--outline">周日</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">配送时段</div>
+                  <div class="weui-cell__ft">上午 9:00-12:00</div>
+                </div>
+                <div class="weui-cell weui-cell_link">
+                  <div class="weui-cell__bd">收货地址</div>
+                  <div class="weui-cell__ft weui-cell__ft_in-access">李静 · 清水湾小区 3 号楼 2 单元 · 6 层</div>
+                </div>
+              </div>
+
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">生效时间</div>
+                  <div class="weui-cell__ft">2026-10-10 起生效</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">终止条件</div>
+                  <div class="weui-cell__ft">12 期 · 不限截止日期</div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">下单方式</div>
+              <div class="weui-cells">
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">自动下单</div>
+                  <div class="weui-cell__ft"><span class="weui-radio on"></span></div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">仅提醒</div>
+                  <div class="weui-cell__ft"><span class="weui-radio"></span></div>
+                </div>
+              </div>
+              <div class="weui-cells__tips">自动下单：到期按计划生成「待付款」订单并推送提醒；仅提醒：不自动生成订单。</div>
+
+              <div class="weui-notice">
+                <svg viewBox="0 0 24 24"><path d="M12 4 3 19h18z"/><path d="M12 10v4M12 16.5v.5"/></svg>
+                <span class="ellipsis">地址以生成时快照为准；缺货 / 地址不可达时不生成订单并提醒</span>
+              </div>
+
+              <div class="weui-btn_area">
+                <span class="weui-btn weui-btn_primary flex1">保存计划</span>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：空态 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 暂无计划（空态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">周期订购</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>
+                </div>
+                <div class="weui-empty__text">暂无周期订购计划<br>设定周期后，到期自动生成订单或提醒你下单</div>
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">新建计划</span>
+              </div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x，样式来自 <code>assets/weui.css</code>；主题色经 <code>--weui-BRAND</code> 注入品牌蓝 <code>#3A9BD9</code>，灰阶 / 发丝线 / 排版刻度沿用微信官方值。</p>
+        <p><strong>关键度量：</strong>导航栏 44px + 右上胶囊 87×32；半屏弹层圆角 12px、最高 78% 屏高、标题内缩 20px；分段控件与选项芯片高 22px（<code>.weui-tag--md</code>）；步进器 28px；按钮高 48px。</p>
+        <p><strong>价格：</strong>本屏为计划信息展示，无金额明细；如需展示单价统一用 <code>.weui-price</code>（微信电商红 <code>#FA5151</code>）。</p>
+        <p><strong>用色：</strong>交互主色品牌蓝（导航 / 主按钮 / 单选 / 选中芯片）；计划状态用 <code>.weui-tag--brand / --done / --cancel</code>；目标形态用 <code>.weui-tag--goal</code>；本屏未使用强调橙。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序（后台对应页 F-ORD-026 后台侧）</p>
+        <p><strong>功能：</strong>F-ORD-026 周期订购（<span class="weui-tag weui-tag--goal"></span>，缺口 G77）。</p>
+        <p><strong>入口：</strong>「我的」页服务区「周期订购」；复购确认页「设为周期订购」。</p>
+        <p><strong>跳转：</strong>确认订单页（周期来源复用）；计划详情 → 最近生成订单列表。</p>
+        <p><strong>数据：</strong>商品明细、周期类型、配送时段、收货地址、生效时间、终止条件、下单方式、下次配送时间、幂等键（计划 id + 期次）。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>计划列表（<code>.weui-cells</code>）：商品摘要 + 周期规则 + 下次配送时间 + 状态标签（<code>.weui-tag--brand / --done / --cancel</code>）+ 操作（<code>.weui-btn_xs</code> 暂停 / 恢复 / 终止）</li>
+          <li>新建计划半屏表单（<code>.weui-half</code>）：商品 / 数量（<code>.weui-stepper</code>）/ 周期（<code>.weui-segmented</code> + 星期多选芯片）/ 配送时段 / 地址 / 生效时间 / 终止条件 / 下单方式（<code>.weui-radio</code> 自动下单 / 仅提醒）</li>
+          <li>计划详情：最近生成订单列表</li>
+          <li>空态：「暂无周期订购计划」+ 新建入口</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>新建计划 → 校验（商品在售、地址在配送范围内 R-ADR-04）→ 保存生效</li>
+          <li>到期 → 按计划生成「待支付」订单（幂等键 = 计划 id + 期次）→ 未开启自动支付则推送「周期订单待支付」提醒（F-NTF-007）</li>
+          <li>失败（缺货 / 地址不可达）→ 不生成订单，推送提醒用户手动下单 / 调整计划</li>
+          <li>暂停 → 暂停期间不生成；终止 → 计划结束，已生成订单不受影响</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>状态与规则 / 设计要点</h3>
+        <p><strong>计划状态标签：</strong>生效中 <code>.weui-tag--brand</code> / 已暂停 <code>.weui-tag--done</code> / 已终止 <code>.weui-tag--cancel</code>（计划状态，非订单状态，故不使用订单状态标签<code>--pay/--assign/--deliver</code>）。</p>
+        <p><strong>空态：</strong>「暂无周期订购计划」；<strong>加载态：</strong>列表 / 保存 loading；<strong>错误态：</strong>保存 / 生成失败 toast 与提醒。</p>
+        <p><strong>禁用态：</strong>终止后不可恢复（需新建）。</p>
+        <p><strong>设计要点：</strong>地址以生成时快照；生成订单与支付超时 / 取消解耦（生成即「待支付」）；暂停期间不生成；自动下单失败不静默；「自动下单 / 仅提醒」须给出区别说明，避免误选（开放问题：默认值待定）；规划中缺口编号 G77（14-misc.md）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

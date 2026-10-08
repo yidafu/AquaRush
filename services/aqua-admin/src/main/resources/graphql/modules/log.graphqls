@@ -1,0 +1,80 @@
+# Business logs domain (LOG)
+# 与 PRD 09-platform-logs.md §F-LOG-003 保持一致:业务日志时间线展示(G43)
+
+extend type Query {
+  # 业务日志分页查询(恒 createdAt 倒序;时间线视图默认 10/页)
+  businessLogs(input: BusinessLogListInput): BusinessLogVOPage
+}
+
+# 业务域(映射自 logger_name:BizLogger 落库的 module 值)
+enum BizLogDomain {
+  # 订单
+  ORDER
+  # 支付
+  PAYMENT
+  # 配送
+  DELIVERY
+  # 用户
+  USER
+  # 认证
+  AUTH
+}
+
+# 日志级别(与 DB CHECK 约束 chk_log_level_valid 一致:TRACE/DEBUG/INFO/WARN/ERROR)
+enum BizLogLevel {
+  TRACE
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
+
+# 业务日志
+type BusinessLog {
+  # 主键
+  id: PrimaryId!
+  # 关联ID(关联订单操作时间线与请求链)
+  correlationId: String
+  # 日志级别
+  level: BizLogLevel!
+  # Logger 名称(存业务域 module,如 ORDER/PAYMENT/DELIVERY/USER/AUTH)
+  loggerName: String
+  # 操作类型(如 USER_LOGIN;老数据为 NULL,前端回退解析 message 前缀)
+  operation: String
+  # 消息全文
+  message: String
+  # 堆栈跟踪(ERROR 级)
+  stackTrace: String
+  # 用户ID
+  userId: Long
+  # 用户名
+  username: String
+  # 创建时间
+  createdAt: LocalDateTime!
+}
+
+# 业务日志分页查询输入
+input BusinessLogListInput {
+  # 业务域(联动 logger_name 筛选)
+  domain: BizLogDomain
+  # 操作类型(精确匹配 operation 列)
+  operationType: String
+  # 日志级别
+  level: BizLogLevel
+  # 用户 ID
+  userId: Long
+  # 开始时间(YYYY-MM-DDTHH:mm:ss)
+  startTime: LocalDateTime
+  # 结束时间
+  endTime: LocalDateTime
+  # 页码(从 0 开始)
+  page: Int = 0
+  # 每页条数
+  size: Int = 10
+}
+
+# 业务日志分页结果(PageInfo 风格,恒 createdAt 倒序)
+type BusinessLogVOPage {
+  list: [BusinessLog!]!
+  pageInfo: PageInfo!
+}

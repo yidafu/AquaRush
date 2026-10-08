@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>管理后台 · 代客下单｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+</head>
+<body class="end-admin">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>管理后台 · 订单管理 / 代客下单</h1>
+      <p class="sub">功能编号 F-ORD-013（后台侧，复用 F-ORD-012 代客下单）｜ 订单域 ｜ 提交后订单进入「待派单」</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ORD-013</span>
+      <span class="chip chip-ok">已实现</span>
+      <span class="chip chip-partial">手动改价 目标形态</span>
+      <span class="chip chip-goal">手动改价 目标形态</span>
+      <span class="chip chip-plain">admin-client</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+    <div class="stage-main">
+
+      <div>
+        <div class="browser-cap">状态一 · 代客下单（客户 / 地址 + 商品多选 + 自提 + 收款方式）</div>
+        <div class="browser">
+          <div class="browser-bar">
+            <span class="lights"><i></i><i></i><i></i></span>
+            <span class="url">admin.aquarush.cn/orders/create</span>
+          </div>
+          <div class="browser-body">
+            <aside class="admin-side">
+              <div class="logo"><span class="mark">A</span>AquaRush 运营后台</div>
+              <div class="admin-menu">
+                <div class="group-lbl">经营</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.8V20h14V9.8"/></svg>工作台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V9M10 20V4M16 20v-7M22 20H2"/></svg>数据统计</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 3 7.5v9L12 21l9-4.5v-9z"/><path d="M3 7.5 12 12l9-4.5M12 12v9"/></svg>商品管理</div>
+                <div class="mi on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>订单管理<span class="badge">12</span></div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>地址与配送</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v12H4z"/><path d="M8 10h8M8 14h5"/></svg>收银对账<span class="badge">3</span></div>
+                <div class="group-lbl">客户与营销</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c1-3 3.4-4.6 6-4.6s5 1.6 6 4.6"/><path d="M16 5.4a3 3 0 0 1 0 5.6M18 14.6c1.6.7 2.7 2.2 3 4.4"/></svg>用户管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 8h18v3a2 2 0 0 0 0 4v3H3v-3a2 2 0 0 0 0-4z"/><path d="M12 8v10" stroke-dasharray="2 2.5"/></svg>营销管理</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16v13H4z"/><path d="M4 10h16M8 3v3M16 3v3"/></svg>运营配置</div>
+                <div class="group-lbl">平台</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 5h16v11H9l-5 4z"/></svg>通知消息</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3.2"/><path d="M12 3v2.4M12 18.6V21M4.2 7.2l2 1.2M17.8 15.6l2 1.2M4.2 16.8l2-1.2M17.8 8.4l2-1.2"/></svg>系统设置</div>
+                <div class="mi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 4h11l3 3v13H5z"/><path d="M8 10h8M8 14h6"/></svg>日志管理</div>
+              </div>
+            </aside>
+            <div class="admin-main">
+              <div class="admin-header">
+                <span class="breadcrumb">订单管理 <span class="crumb-sep">/</span> <b>代客下单</b></span>
+                <span class="user"><span class="avatar">超</span>超级管理员</span>
+              </div>
+              <div class="admin-content">
+
+                <div class="page-title">
+                  <div>
+                    <h2>代客下单</h2>
+                    <div class="desc">代客下单入「待派单」；收款方式默认现金（R-PAY-03）</div>
+                  </div>
+                  <div class="row gap2">
+                    <span class="btn sm ghost">取消</span>
+                    <span class="btn sm">提交</span>
+                  </div>
+                </div>
+
+                <div class="row top gap3" style="align-items:stretch">
+                  <div class="grow col gap3">
+
+                    <div class="card">
+                      <div class="card-head">
+                        <span class="card-title">客户信息 / 收货地址</span>
+                        <span class="btn xs ghost">选择已存客户</span>
+                      </div>
+                      <div class="grid2" style="gap:0 16px">
+                        <div class="field">
+                          <label class="req">收货人</label>
+                          <div class="input"><span>张*华</span></div>
+                        </div>
+                        <div class="field">
+                          <label class="req">手机号</label>
+                          <div class="input"><span>138****6621</span></div>
+                        </div>
+                        <div class="field">
+                          <label class="req">详细地址</label>
+                          <div class="input"><span>科技园南区 A 栋 12 层 1203 室</span></div>
+                        </div>
+                        <div class="field">
+                          <label>楼层</label>
+                          <div class="input"><span>12</span></div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="card">
+                      <div class="card-head">
+                        <span class="card-title">商品清单（多选 · 行内数量步进）</span>
+                        <span class="btn xs secondary">＋ 添加商品</span>
+                      </div>
+                      <div class="ant-table">
+                        <table>
+                          <thead>
+                            <tr>
+                              <th style="width:40px"><span class="check"></span></th>
+                              <th>商品</th><th>规格</th><th class="num">单价</th><th class="num">数量</th><th class="num">小计</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            <tr>
+                              <td><span class="check on"></span></td>
+                              <td><div class="bold">怡宝 饮用纯净水 18.9L</div><div class="sub-line">库存 86</div></td>
+                              <td>18.9L</td>
+                              <td class="num">¥22.00</td>
+                              <td class="num"><span class="stepper"><span>−</span><span class="num">2</span><span>＋</span></span></td>
+                              <td class="num bold">¥44.00</td>
+                            </tr>
+                            <tr>
+                              <td><span class="check on"></span></td>
+                              <td><div class="bold">农夫山泉 天然水 19L</div><div class="sub-line">库存 42</div></td>
+                              <td>19L</td>
+                              <td class="num">¥28.00</td>
+                              <td class="num"><span class="stepper"><span>−</span><span class="num">1</span><span>＋</span></span></td>
+                              <td class="num bold">¥28.00</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                        <div class="table-foot">
+                          <span>同一商品不可重复添加 ｜ items 1~20 项</span>
+                          <span class="f-note t-sub">数量 ≤ 库存（R-PRO-01，超限后端原子扣减兜底）</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="card">
+                      <div class="card-head"><span class="card-title">配送与收款</span></div>
+                      <div class="row between">
+                        <div>
+                          <div class="f-aux bold">自提</div>
+                          <div class="f-note t-sub mt2">开启后免运费、记录为已收款（自提订单 paymentTime = 下单时间）</div>
+                        </div>
+                        <span class="switch"></span>
+                      </div>
+                      <div class="divider">收款方式</div>
+                      <div class="radio-row">
+                        <span class="radio on">现金</span>
+                        <span class="radio">水票</span>
+                        <span class="radio">扫码</span>
+                      </div>
+                      <div class="f-note t-weak mt2">代客下单默认现金（R-PAY-03）；电子票核销订单未选收款方式自动记「水票」</div>
+                    </div>
+
+                    <div class="card tint">
+                      <div class="card-head">
+                        <span class="card-title">手动改价 <span class="tag tag-goal"></span></span>
+                        <span class="f-note t-sub">订单层兜底</span>
+                      </div>
+                      <div class="grid2" style="gap:0 16px">
+                        <div class="field">
+                          <label>手动实收价（元）</label>
+                          <div class="input"><span class="ph">留空则按单价链计算</span></div>
+                          <div class="f-note t-weak" style="margin-top:4px">单价链「手动实收价」未接入统一取价服务</div>
+                        </div>
+                        <div class="field">
+                          <label>改价原因（备注）</label>
+                          <div class="input"><span class="ph">如：老客户优惠 / 补差价</span></div>
+                        </div>
+                      </div>
+                      <div class="f-note t-sub">目标形态：改价仅作用于订单层实收金额，不改商品目录价；须留痕（操作人 / 原价 / 新价 / 原因）。</div>
+                    </div>
+
+                  </div>
+
+                  <div class="col gap3" style="flex:0 0 300px">
+                    <div class="card">
+                      <div class="card-head"><span class="card-title sm">订单摘要</span></div>
+                      <div class="cost-row"><span class="lbl">商品金额</span><span class="amt">¥72.00</span></div>
+                      <div class="cost-row"><span class="lbl">配送费（楼层分档）</span><span class="amt">¥5.00</span></div>
+                      <div class="cost-row"><span class="lbl">水桶押金（可退）</span><span class="amt">¥30.00</span></div>
+                      <div class="cost-row total"><span class="lbl">实付合计</span><span class="amt bold">¥107.00</span></div>
+                      <div class="f-note t-weak mt2">金额以分计、服务端校验（R-MON-01）；自提免运费。</div>
+                    </div>
+
+                    <div class="card">
+                      <div class="card-head"><span class="card-title sm">提交后流转</span></div>
+                      <div class="timeline">
+                        <div class="tl-item done"><span class="tl-dot"></span><div class="grow"><div class="f-aux">提交代客下单</div></div></div>
+                        <div class="tl-item done"><span class="tl-dot"></span><div class="grow"><div class="f-aux">订单进入「待派单」</div></div></div>
+                        <div class="tl-item"><span class="tl-dot"></span><div class="grow"><div class="f-aux t-weak">后台派单 / 送水工抢单 →「待配送」</div></div></div>
+                      </div>
+                      <div class="btn sm block mt3">提交</div>
+                    </div>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="notes">
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>管理后台（代客下单，与送水工端同链路）</p>
+        <p><strong>入口：</strong>订单管理 → 代客下单</p>
+        <p><strong>去向：</strong>提交后订单落入「待派单」</p>
+        <p><strong>权限：</strong>下单后由后台派单或送水工抢单</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>客户信息 / 收货地址卡（姓名 / 手机号 / 详细地址 / 楼层）</li>
+          <li>商品多选清单：多选添加 + 行内数量步进器（小计实时计算）</li>
+          <li>自提开关（开启免运费、记录已收款）+ 收款方式单选（默认现金）</li>
+          <li>手动改价（目标形态）+ 右栏订单摘要与提交后流转</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>多选添加商品 + 调整数量（items 多商品，同一商品不可重复）</li>
+          <li>选自提 → 免运费、记录为已收款</li>
+          <li>填手动改价 → 仅作用于订单层实收金额并留痕</li>
+          <li>提交 → 订单进入「待派单」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>状态与规则</h3>
+        <p><strong>禁用态：</strong>未选商品时提交禁用；无地址 / 无商品时提交禁用。</p>
+        <p><strong>约束：</strong>items-only（orders 删除 product_id / quantity 列）；同一商品不可重复；自提订单免运费；数量 ≤ 库存。</p>
+        <p>代客下单默认收款方式 CASH（R-PAY-03）；自提订单 paymentTime = 下单时间。</p>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>设计要点 / 禁忌</h3>
+        <p>管理端<strong>不出现强调橙</strong>：主操作用品牌蓝、金额一律 <code>¥0.00</code>。</p>
+        <p><span class="tag tag-goal"></span> 手动改价为订单层兜底（F-ORD-023 部分实现）——单价链「手动实收价」未接入统一取价服务，属开放问题；改价须留痕且不改目录价。</p>
+        <p>代客下单不进入微信支付，收款方式默认现金（或水票 / 扫码）。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

@@ -1,27 +1,35 @@
-import React, { useState, useEffect, useCallback } from 'react'
-import { View, Text, Picker } from '@tarojs/components'
-import { AtButton, AtForm, AtInput, AtSwitch, AtToast, AtMessage, AtList, AtListItem, AtActivityIndicator } from 'taro-ui'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import { View } from '@tarojs/components'
+import { AtForm, AtToast, AtMessage } from 'taro-ui'
 import Taro from '@tarojs/taro'
 import { useRegionSelector } from '../../hooks/useRegionSelector'
-import AddressMap from '../../components/AddressMap'
 import AddressService from '../../services/AddressService'
 import { AddressFormData } from '../../types/address'
 import {
   AddressInput as GraphQLAddressInput,
   UpdateAddressInput as GraphQLUpdateAddressInput
 } from '@aquarush/common'
+import { usePageViewTracking } from '../../hooks/usePageViewTracking'
+import { validateAddressForm } from './utils/addressValidation'
+
+// 子组件
+import ContactFields from './components/ContactFields'
+import RegionPickerField from './components/RegionPickerField'
+import DetailAddressField from './components/DetailAddressField'
+import FloorField from './components/FloorField'
+import MapPreviewSection from './components/MapPreviewSection'
+import SubmitSection from './components/SubmitSection'
 
 import "taro-ui/dist/style/components/button.scss"
 import "taro-ui/dist/style/components/form.scss"
-import "taro-ui/dist/style/components/input.scss"
-import "taro-ui/dist/style/components/switch.scss"
 import "taro-ui/dist/style/components/toast.scss"
 import "taro-ui/dist/style/components/message.scss"
-import "taro-ui/dist/style/components/activity-indicator.scss"
 import "taro-ui/dist/style/components/icon.scss"
 import './index.scss'
 
 const AddressEdit: React.FC = () => {
+  usePageViewTracking()
+
   const [formData, setFormData] = useState<AddressFormData>({
     receiverName: '',
     phone: '',
@@ -29,7 +37,8 @@ const AddressEdit: React.FC = () => {
     city: '',
     district: '',
     detailAddress: '',
-    isDefault: false
+    isDefault: false,
+    floor: undefined
   })
 
   const [errors, setErrors] = useState<Record<keyof AddressFormData, string>>({} as Record<keyof AddressFormData, string>)
@@ -40,12 +49,17 @@ const AddressEdit: React.FC = () => {
   const [toastText, setToastText] = useState('')
   const [toastType, setToastType] = useState<'success' | 'error' | 'loading'>('success')
 
+  // 是否为「新增地址」模式(无 id 且非微信导入):路由参数同步可得,用于
+  // 地区级联加载,避免依赖异步 setState 的 isEdit 造成竞态
+  const isCreateModeRef = useRef(false)
+  // 地区级联加载步骤:0 未开始 / 1 城市已请求 / 2 区县已请求 / 3 完成
+  const regionCascadeStepRef = useRef(0)
+
   // Initialize services
   const addressService = AddressService.getInstance()
 
   // Initialize region selector
   const regionSelector = useRegionSelector({
-    // initialSelection: initialRegionSelection,
     onError: (error) => {
       showToastMessage(`地区加载失败: ${error}`, 'error')
     }
@@ -100,6 +114,12 @@ const AddressEdit: React.FC = () => {
     })
   }, [])
 
+  // 楼层变更:更新 formData 并清除楼层错误
+  const handleFloorChange = useCallback((floor: number | undefined) => {
+    setFormData(prev => ({ ...prev, floor }))
+    setErrors(prev => (prev.floor ? { ...prev, floor: '' } : prev))
+  }, [])
+
   // Sync form data with region selection changes - 优化：减少不必要的重新渲染
   useEffect(() => {
     const selectedNames = regionSelector.getSelectedNames()
@@ -127,14 +147,49 @@ const AddressEdit: React.FC = () => {
         districtCode: selectedCodes.districtCode
       }
     })
+
+    // 地区变化时清除对应校验错误
+    setErrors(prev => {
+      if (!prev.province && !prev.city && !prev.district) return prev
+      return { ...prev, province: '', city: '', district: '' }
+    })
   }, [regionSelector.selectedProvince?.code, regionSelector.selectedCity?.code, regionSelector.selectedDistrict?.code])
+
+  // 新增地址:省份自动选中后级联加载城市/区县(F-ADR-002)。
+  // useRegionSelector 首次仅自动加载省份并选中第一项;城市/区县需滑动
+  // 选择器列才加载。直接打开选择器点「确定」时城市/区县为空 → 表单校验
+  // 静默失败(无请求、无提示)。此处为新增流程自动补齐级联数据,使选择器
+  // 首次打开即有完整数据且默认选中,保存可直接提交。
+  useEffect(() => {
+    if (isCreateModeRef.current !== true) return
+    const r = regionSelector
+    const step = regionCascadeStepRef.current
+
+    if (step === 0 && r.selectedProvince && r.cities.length === 0) {
+      // 第一步:为自动选中的首个省份加载城市
+      regionCascadeStepRef.current = 1
+      r.handleColumnChange({ detail: { column: 0, value: r.selectedIndex.province } })
+    } else if (step === 1 && r.selectedCity && r.districts.length === 0) {
+      // 第二步:为自动选中的首个城市加载区县
+      regionCascadeStepRef.current = 2
+      r.handleColumnChange({ detail: { column: 1, value: r.selectedIndex.city } })
+    } else if (step === 1 || step === 2) {
+      // 城市/区县已就绪(或该省份/城市无下级数据),级联完成
+      regionCascadeStepRef.current = 3
+    }
+  }, [
+    regionSelector.selectedProvince?.code,
+    regionSelector.selectedCity?.code,
+    regionSelector.cities.length,
+    regionSelector.districts.length
+  ])
 
   const loadAddressDetail = useCallback(async (addressId: string) => {
     try {
       setLoading(true)
       showToastMessage('正在加载地址详情...', 'loading')
 
-      const result = await addressService.getAddressDetail(parseInt(addressId))
+      const result = await addressService.getAddressDetail(addressId)
 
       if (!result.success || !result.data) {
         showToastMessage(result.error?.message || '地址不存在', 'error')
@@ -169,7 +224,8 @@ const AddressEdit: React.FC = () => {
         detailAddress: address.detailAddress || '',
         isDefault: address.isDefault || false,
         latitude: address.latitude,
-        longitude: address.longitude
+        longitude: address.longitude,
+        floor: address.floor ?? undefined
       }))
 
       showToastMessage('地址详情加载成功', 'success')
@@ -197,50 +253,11 @@ const AddressEdit: React.FC = () => {
     }
   }, [])
 
-  const validateForm = useCallback((): boolean => {
-    const newErrors: Partial<Record<keyof AddressFormData, string>> = {}
-
-    // 收货人姓名验证
-    if (!formData.receiverName.trim()) {
-      newErrors.receiverName = '请输入收货人姓名'
-    } else if (formData.receiverName.length < 2) {
-      newErrors.receiverName = '收货人姓名至少2个字符'
-    } else if (formData.receiverName.length > 20) {
-      newErrors.receiverName = '收货人姓名不能超过20个字符'
-    }
-
-    // 手机号验证
-    if (!formData.phone.trim()) {
-      newErrors.phone = '请输入手机号'
-    } else if (!/^1[3-9]\d{9}$/.test(formData.phone)) {
-      newErrors.phone = '手机号格式不正确'
-    }
-
-    // 地区验证
-    if (!formData.province.trim()) {
-      newErrors.province = '请选择省份'
-    }
-
-    if (!formData.city.trim()) {
-      newErrors.city = '请选择城市'
-    }
-
-    if (!formData.district.trim()) {
-      newErrors.district = '请选择区域'
-    }
-
-    // 详细地址验证
-    if (!formData.detailAddress.trim()) {
-      newErrors.detailAddress = '请输入详细地址'
-    } else if (formData.detailAddress.length < 5) {
-      newErrors.detailAddress = '详细地址至少5个字符'
-    } else if (formData.detailAddress.length > 100) {
-      newErrors.detailAddress = '详细地址不能超过100个字符'
-    }
-
-
-    setErrors(newErrors as Record<keyof AddressFormData, string>)
-    return Object.keys(newErrors).length === 0
+  // 校验(纯函数见 utils/addressValidation,失败返回首个错误供 toast 提示)
+  const validateForm = useCallback((): { valid: boolean; firstError?: string } => {
+    const { valid, errors: newErrors, firstError } = validateAddressForm(formData)
+    setErrors(newErrors)
+    return { valid, firstError }
   }, [formData])
 
   // Handle map selection results
@@ -267,7 +284,11 @@ const AddressEdit: React.FC = () => {
   }, [showToastMessage])
 
   const handleSubmit = useCallback(async () => {
-    if (!validateForm()) {
+    const { valid, firstError } = validateForm()
+    if (!valid) {
+      // 校验失败:toast 提示首个错误,避免「点击保存无任何反应」的静默失败
+      // (此前地区未选中/错误不可见,导致点击只上报 track、不发地址请求)
+      showToastMessage(firstError || '请完善地址信息', 'error')
       return
     }
 
@@ -287,13 +308,14 @@ const AddressEdit: React.FC = () => {
           district: formData.district,
           districtCode: formData.districtCode || '',
           detailAddress: formData.detailAddress,
+          floor: formData.floor,
           longitude: formData.longitude,
           latitude: formData.latitude,
           isDefault: formData.isDefault
         }
 
         console.log('更新地址:', { id: addressId, updateInput })
-        const result = await addressService.updateAddress(parseInt(addressId), updateInput)
+        const result = await addressService.updateAddress(addressId, updateInput)
 
         if (!result.success) {
           showToastMessage(result.error?.message || '地址更新失败，请重试', 'error')
@@ -308,6 +330,7 @@ const AddressEdit: React.FC = () => {
           city: formData.city,
           district: formData.district,
           detailAddress: formData.detailAddress,
+          floor: formData.floor,
           longitude: formData.longitude || undefined,
           latitude: formData.latitude || undefined,
           isDefault: formData.isDefault,
@@ -345,6 +368,10 @@ const AddressEdit: React.FC = () => {
     const instance = Taro.getCurrentInstance()
     const { id, fromWechat } = instance.router?.params || {}
 
+    // 新增地址模式(无 id 且非微信导入)才级联加载地区;编辑/微信导入跳过,
+    // 避免覆盖编辑回显或微信预填的省市区
+    isCreateModeRef.current = !id && fromWechat !== 'true'
+
     if (id) {
       setIsEdit(true)
       setAddressId(id)
@@ -363,127 +390,60 @@ const AddressEdit: React.FC = () => {
   return (
     <View className='address-edit-page'>
       <AtForm className='address-form'>
-
-
-        {/* 收货人 */}
-        <AtInput
-          name='receiverName'
-          title='收货人'
-          type='text'
-          placeholder='请输入收货人姓名'
-          value={formData.receiverName}
-          onChange={(value) => handleInputChange('receiverName', value)}
+        {/* 收货人 + 手机号 */}
+        <ContactFields
+          receiverName={formData.receiverName}
+          phone={formData.phone}
+          errors={errors}
+          onChange={handleInputChange}
         />
 
-        {/* 手机号 */}
-        <AtInput
-          name='phone'
-          title='手机号'
-          type='phone'
-          placeholder='请输入手机号'
-          value={formData.phone}
-          onChange={(value) => handleInputChange('phone', value)}
-          error={!!errors.phone}
+        {/* 地区选择(省市区级联) */}
+        <RegionPickerField
+          provinces={regionSelector.provinces}
+          cities={regionSelector.cities}
+          districts={regionSelector.districts}
+          selectedIndex={regionSelector.selectedIndex}
+          loading={regionSelector.loading}
+          getFullRegionText={regionSelector.getFullRegionText}
+          handleColumnChange={regionSelector.handleColumnChange}
+          handlePickerChange={regionSelector.handlePickerChange}
+          error={errors.province || errors.city || errors.district}
         />
-
-        {/* 地区选择 */}
-        {regionSelector.provinces.length > 0 ? (
-          <Picker
-            mode='multiSelector'
-            range={[
-              regionSelector.provinces.map(p => p.name),
-              regionSelector.cities.map(c => c.name),
-              regionSelector.districts.map(d => d.name)
-            ]}
-            value={[
-              regionSelector.selectedIndex.province,
-              regionSelector.selectedIndex.city,
-              regionSelector.selectedIndex.district
-            ]}
-            onColumnChange={regionSelector.handleColumnChange}
-            onChange={regionSelector.handlePickerChange}
-          >
-            <AtList>
-              <AtListItem
-                title='所在地区'
-                extraText={regionSelector.getFullRegionText() || '请选择省市区'}
-                arrow='right'
-              />
-            </AtList>
-          </Picker>
-        ) : (
-          <AtList>
-            <AtListItem
-              title='所在地区'
-              extraText='正在加载地区数据...'
-              arrow='right'
-              disabled={true}
-            />
-          </AtList>
-        )}
-
-        {/* Loading indicator for regions */}
-        {(regionSelector.loading.provinces || regionSelector.loading.cities || regionSelector.loading.districts) && (
-          <View className='region-loading'>
-            <AtActivityIndicator content='加载地区数据...' />
-          </View>
-        )}
 
         {/* 详细地址 */}
-        <AtInput
-          name='detailAddress'
-          title='详细地址'
-          type='text'
-          placeholder='街道、门牌号、小区、楼号等详细信息'
+        <DetailAddressField
           value={formData.detailAddress}
+          error={errors.detailAddress}
           onChange={(value) => handleInputChange('detailAddress', value)}
-          maxlength={100}
         />
-        <Text className='input-hint'>请输入详细的收货地址，不少于5个字符</Text>
+
+        {/* 楼层(配送费判定用:超过免费楼层加收运费) */}
+        <FloorField
+          value={formData.floor !== undefined ? String(formData.floor) : ''}
+          error={errors.floor}
+          onChange={handleFloorChange}
+        />
 
         {/* 地址地图预览 */}
-        <View className='address-map-section'>
-          <Text className='section-title'>地址预览</Text>
-          <AddressMap
-            address={formData.detailAddress}
-            province={formData.province}
-            city={formData.city}
-            district={formData.district}
-            latitude={formData.latitude}
-            longitude={formData.longitude}
-            height='200px'
-            className='address-edit-map'
-            showControls={true}
-            onLocationChange={handleMapLocationChange}
-          />
-          <Text className='map-hint'>地图会根据地址信息自动定位，也可以手动选择位置</Text>
-        </View>
-
-
-        {/* 设为默认地址 */}
-        <AtSwitch
-          title='设为默认地址'
-          checked={formData.isDefault}
-          onChange={(value) => handleInputChange('isDefault', value)}
+        <MapPreviewSection
+          detailAddress={formData.detailAddress}
+          province={formData.province}
+          city={formData.city}
+          district={formData.district}
+          latitude={formData.latitude}
+          longitude={formData.longitude}
+          onLocationChange={handleMapLocationChange}
         />
 
-
-        {/* 提交按钮 */}
-        <View className='submit-section'>
-          <AtButton
-            type='primary'
-            size='normal'
-            loading={loading}
-            disabled={loading}
-            onClick={handleSubmit}
-            className='submit-button'
-          >
-            {loading ? '保存中...' : '保存地址'}
-          </AtButton>
-        </View>
-
+        {/* 设为默认地址 + 保存按钮 */}
+        <SubmitSection
+          isDefault={formData.isDefault}
+          loading={loading}
+          onDefaultChange={(checked) => handleInputChange('isDefault', checked)}
+          onSubmit={handleSubmit}
+        />
       </AtForm>
-
 
       {/* Toast 提示 */}
       <AtToast

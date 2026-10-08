@@ -1,32 +1,31 @@
 .address-card {
-  background: linear-gradient(135deg, #e6f4ff 0%, #f0f8ff 50%, #ffffff 100%);
-  border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 123, 255, 0.1);
+  background-color: var(--bg-card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
   margin-bottom: 24px;
   padding: 36px;
   transition: all 0.3s ease;
-  border: 1px solid rgba(0, 123, 255, 0.1);
+  border: 1px solid var(--border);
 
   &:hover {
-    box-shadow: 0 12px 48px rgba(0, 123, 255, 0.15);
+    box-shadow: var(--shadow-modal);
     transform: translateY(-4px);
   }
 
   .name {
     font-size: 36px;
     font-weight: 700;
-    color: #1a3a52;
+    color: var(--text-main);
     min-width: 120px;
   }
 
   .default-badge {
-    background: linear-gradient(135deg, #ff7043, #ff5722);
-    color: white;
+    background: var(--brand-primary-light); // 默认标签:tint 底 + 主色字(§2.2)
+    color: var(--brand-primary);
     padding: 4px 8px;
     border-radius: 8px;
     font-size: 22px;
     font-weight: 600;
-    box-shadow: 0 4px 16px rgba(255, 87, 34, 0.3);
   }
 
   .card-actions {
@@ -34,22 +33,21 @@
     justify-content: center;
     margin-top: 24px;
     padding-top: 24px;
-    border-top: 1px solid rgba(0, 123, 255, 0.1);
+    border-top: 1px solid var(--border);
 
     .select-button {
-      background: linear-gradient(135deg, #007bff, #0056b3);
+      background: var(--brand-primary); // 选择按钮:品牌蓝
       border: none;
-      border-radius: 32px;
+      border-radius: var(--radius-btn);
       padding: 16px 64px;
       font-size: 28px;
       font-weight: 600;
-      color: white;
-      box-shadow: 0 8px 24px rgba(0, 123, 255, 0.3);
+      color: var(--bg-card);
       transition: all 0.3s ease;
 
       &:hover {
         transform: translateY(-2px);
-        box-shadow: 0 12px 32px rgba(0, 123, 255, 0.4);
+        box-shadow: var(--shadow-modal);
       }
 
       &::after {
@@ -62,16 +60,16 @@
 // 选择模式下的特殊样式
 .address-card {
   &.select-mode {
-    background: linear-gradient(135deg, #d4edff 0%, #e6f4ff 50%, #ffffff 100%);
-    border-color: rgba(0, 123, 255, 0.2);
-    box-shadow: 0 8px 32px rgba(0, 123, 255, 0.15);
+    background: var(--brand-primary-light);
+    border-color: rgba(var(--brand-primary-rgb), 0.25);
+    box-shadow: var(--shadow-card);
 
     .card-header .message-icon {
-      background: rgba(0, 123, 255, 0.15);
+      background: rgba(var(--brand-primary-rgb), 0.15);
     }
 
     .card-actions {
-      border-top-color: rgba(0, 123, 255, 0.2);
+      border-top-color: rgba(var(--brand-primary-rgb), 0.2);
     }
   }
 }

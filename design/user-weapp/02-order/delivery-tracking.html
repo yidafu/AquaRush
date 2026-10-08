@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>用户端 · 配送跟踪｜AquaRush UI 设计稿</title>
+<link rel="stylesheet" href="../../assets/tokens.css">
+<link rel="stylesheet" href="../../assets/ui.css">
+<link rel="stylesheet" href="../../assets/weui.css">
+</head>
+<body class="end-weapp">
+<div class="stage">
+
+  <header class="stage-head">
+    <div>
+      <h1>用户端小程序 · 配送跟踪</h1>
+      <p class="sub">功能编号 F-ADR-010 ｜ 地址与配送域 ｜ 入口：订单详情「查看配送进度」｜ 参数 ?orderId=xx</p>
+    </div>
+    <div class="chips">
+      <span class="chip">F-ADR-010</span>
+      <span class="chip chip-partial">部分实现</span>
+      <span class="chip chip-goal">缺口 G02 / G65</span>
+      <span class="chip chip-plain">user-weapp · WeUI</span>
+    </div>
+  </header>
+
+  <div class="stage-body">
+
+    <!-- ============ 手机 1：配送中 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态一 · 配送中（实时跟踪）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">配送跟踪</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <!-- 全屏地图：送水工位置 + 收货位置 + 路线 -->
+              <div class="map" style="height:260px;">
+                <span class="water"></span>
+                <span class="road"></span>
+                <div style="position:absolute;inset:0;color:var(--weui-BRAND)">
+                  <svg viewBox="0 0 343 260" style="width:100%;height:100%;" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="7 7" stroke-linecap="round">
+                    <path d="M112 84 C 152 120, 182 140, 234 166"/>
+                  </svg>
+                </div>
+                <span class="pin cur" style="left:98px;top:58px;"></span>
+                <span class="pin" style="left:222px;top:142px;"></span>
+                <span class="map-label" style="left:64px;top:92px;">送水工 王师傅</span>
+                <span class="map-label" style="left:188px;top:174px;">收货地址</span>
+                <span class="map-ctrl"><i>⟳</i><i>↗</i></span>
+              </div>
+
+              <div class="weui-notice weui-notice--brand mt3">
+                <svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M4.2 12H1.2M22.8 12h-3"/><circle cx="12" cy="12" r="3.2"/></svg>
+                <span class="ellipsis">实时跟踪中，每 10 秒更新位置</span>
+              </div>
+
+              <!-- 配送员信息卡 -->
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd">
+                    <svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
+                  </div>
+                  <div class="weui-cell__bd">
+                    <div class="row gap2"><span class="f-body bold">王师傅</span><span class="weui-tag weui-tag--deliver">配送中</span></div>
+                    <div class="f-note t-sub mt2">清水湾直营店 · 电话 139****2233</div>
+                  </div>
+                  <div class="weui-cell__ft">
+                    <svg class="weui-cell__icon" viewBox="0 0 24 24"><path d="M5 4h3.5l1.8 4.2-2.1 1.6a12 12 0 0 0 5.9 5.9l1.6-2.1L20 15.5V19a1 1 0 0 1-1 1A15 15 0 0 1 4 5a1 1 0 0 1 1-1z"/></svg>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">当前位置</div>
+                  <div class="weui-cell__ft">清水湾小区南门附近</div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">预计送达</div>
+                  <div class="weui-cell__ft"><span class="f-body bold">10:30</span></div>
+                </div>
+              </div>
+
+              <!-- 配送进度 -->
+              <div class="weui-cells__title">配送进度</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-steps">
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">已派单</span></div>
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">配送中</span></div>
+                    <div class="weui-step"><span class="weui-step__dot"></span><span class="weui-step__label">已送达</span></div>
+                  </div>
+                  <div class="f-note t-sub mt3">已派单 09:20 · 送水工 王师傅 已接单</div>
+                  <div class="f-note t-sub mt2">配送中 09:35 · 送水工已出发</div>
+                  <div class="f-note t-weak mt2">已送达 · 预计 10:30；送达即完成（无中间态）</div>
+                </div>
+              </div>
+
+              <div class="weui-cells__tips">用户端仅展示概略位置，不下发精确轨迹序列。</div>
+
+              <div class="weui-btn_area">
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">联系送水工</span>
+              </div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <span class="weui-btn weui-btn_default">查看路线</span>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 2：已送达 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态二 · 已送达（停止刷新）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">配送跟踪</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+
+              <div class="map" style="height:220px;">
+                <span class="water"></span>
+                <span class="road"></span>
+                <span class="pin" style="left:222px;top:120px;"></span>
+                <span class="map-label" style="left:188px;top:152px;">收货地址</span>
+                <span class="map-ctrl"><i>↗</i></span>
+              </div>
+
+              <div class="weui-notice mt3">
+                <svg viewBox="0 0 24 24"><path d="M5 12.5 10 17.5 19 7"/></svg>
+                <span class="ellipsis">订单已送达，位置刷新已停止</span>
+              </div>
+
+              <div class="weui-cells mt3">
+                <div class="weui-cell">
+                  <div class="weui-cell__hd">
+                    <svg class="weui-cell__icon weui-cell__icon--brand" viewBox="0 0 24 24"><circle cx="12" cy="8" r="3.6"/><path d="M4.5 20c1.3-3.6 4-5.4 7.5-5.4s6.2 1.8 7.5 5.4"/></svg>
+                  </div>
+                  <div class="weui-cell__bd">
+                    <div class="row gap2"><span class="f-body bold">王师傅</span><span class="weui-tag weui-tag--done">已送达</span></div>
+                    <div class="f-note t-sub mt2">清水湾直营店 · 电话 139****2233</div>
+                  </div>
+                </div>
+                <div class="weui-cell">
+                  <div class="weui-cell__bd">完成时间</div>
+                  <div class="weui-cell__ft"><span style="font-variant-numeric:tabular-nums">2026-10-08 10:02</span></div>
+                </div>
+              </div>
+
+              <div class="weui-cells__title">配送进度</div>
+              <div class="weui-cells">
+                <div class="weui-cell weui-cell_vertical">
+                  <div class="weui-steps">
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">已派单</span></div>
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">配送中</span></div>
+                    <div class="weui-step done"><span class="weui-step__dot"></span><span class="weui-step__label">已送达</span></div>
+                  </div>
+                  <div class="f-note t-sub mt3">已派单 09:20 · 配送中 09:35 · 已送达 10:02</div>
+                </div>
+              </div>
+
+              <div class="weui-cells__tips">「已送达」后不再刷新位置；送达即完成（R-ORD-11），不出现「确认收货」中间态。</div>
+
+            </div>
+
+            <div class="mp-footbar hair-t">
+              <span class="weui-btn weui-btn_plain-default flex1">再来一单</span>
+              <span class="weui-btn weui-btn_primary flex1">评价</span>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 手机 3：订单不存在 ============ -->
+    <div class="col gap3">
+      <span class="f-note t-sub bold">状态三 · 订单不存在（空态）</span>
+      <div class="phone mp">
+        <div class="phone-screen">
+
+          <div class="mp-status">
+            <span>9:41</span>
+            <span class="sb-icons"><i class="sb-signal"></i><i class="sb-wifi"></i><i class="sb-batt"></i></span>
+          </div>
+          <div class="mp-nav">
+            <span class="mp-nav__back"></span>
+            <span class="mp-nav__title">配送跟踪</span>
+            <span class="mp-capsule"><i class="dots"></i><i class="target"></i></span>
+          </div>
+
+          <div class="app">
+            <div class="app-scroll">
+              <div class="weui-empty">
+                <div class="weui-empty__icon">
+                  <svg viewBox="0 0 24 24"><path d="M12 21s6.5-5.6 6.5-10.4A6.5 6.5 0 0 0 5.5 10.6C5.5 15.4 12 21 12 21z"/><circle cx="12" cy="10.5" r="2.4"/></svg>
+                </div>
+                <div class="weui-empty__text">订单不存在<br>订单ID缺失或订单不可跟踪，请返回订单列表重试</div>
+                <span class="weui-btn weui-btn_plain-primary weui-btn_mini">返回</span>
+              </div>
+            </div>
+
+            <div class="home-indicator"></div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ 标注 ============ -->
+    <div class="notes">
+      <div class="note-card">
+        <h3>组件与度量</h3>
+        <p><strong>组件体系：</strong>微信官方 WeUI 2.x，样式来自 <code>assets/weui.css</code>；主题色经 <code>--weui-BRAND</code> 注入品牌蓝 <code>#3A9BD9</code>，灰阶 / 发丝线 / 排版刻度沿用微信官方值。</p>
+        <p><strong>关键度量：</strong>导航栏 44px + 右上胶囊 87×32；步骤条圆点 18px、已完成段连线转品牌蓝；单元格内缩 16px 发丝线；小按钮 <code>.weui-btn_mini</code> 高 28px；地图圆角 8px。</p>
+        <p><strong>价格：</strong>本屏无金额。<strong>用色：</strong>交互主色品牌蓝（导航 / 路线 / 步骤条 / 主按钮）；送水工当前定位点 <code>.pin.cur</code> 为强调橙（来自 ui.css），本屏未额外使用强调橙；订单状态 <code>.weui-tag--deliver / --done</code>。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>页面说明</h3>
+        <p><strong>所属端：</strong>用户端小程序</p>
+        <p><strong>功能：</strong>F-ADR-010 配送跟踪（部分实现；真实轨迹接入为本期目标 2026-10）。</p>
+        <p><strong>入口：</strong>订单详情「查看配送进度」；参数 <code>delivery-tracking?orderId=xx</code>；无 orderId 时 toast 并返回。</p>
+        <p><strong>跳转：</strong>电话按钮 → 拨号；路线按钮 → openLocation 打开配送地址地图。</p>
+        <p><strong>数据：</strong>orderId、送水工姓名 / 电话 / 当前位置、收货地址（经纬度 + 文案）、预计送达时间、订单状态。</p>
+      </div>
+
+      <div class="note-card">
+        <h3>布局结构</h3>
+        <ol>
+          <li>全屏地图 <code>.map</code>：双标记（送水工 <code>.pin.cur</code> + 收货地址 <code>.pin</code>）+ 路线虚线 + 右下角刷新 / 路线圆形控件</li>
+          <li>实时跟踪提示条（<code>.weui-notice--brand</code>）：「实时跟踪中，每 10 秒更新位置」</li>
+          <li>配送员信息卡（<code>.weui-cells</code>）：头像 + 姓名 + 电话 + 右侧电话图标 +「配送中」标签 + 当前位置 + 预计送达</li>
+          <li>配送进度（<code>.weui-steps</code>：已派单 → 配送中 → 已送达）</li>
+          <li><code>.weui-btn_area</code> 内 <code>.weui-btn_mini</code>「联系送水工」+ 底部 <code>.mp-footbar</code>「查看路线」</li>
+        </ol>
+      </div>
+
+      <div class="note-card">
+        <h3>关键交互</h3>
+        <ol>
+          <li>进入：读取 orderId，无则 toast「订单ID缺失」1.5s 返回</li>
+          <li>加载跟踪信息（现状为 mock，目标为真实轨迹数据源）</li>
+          <li>useDidShow 开启 10s 定时更新送水工位置，useDidHide 停止</li>
+          <li>点电话按钮 makePhoneCall 拨打；点路线按钮 openLocation 打开配送地址地图</li>
+          <li>下拉刷新；送达后展示「已送达」，停止位置刷新（R-ORD-11）</li>
+        </ol>
+      </div>
+
+      <div class="note-card todo-note">
+        <h3>状态与规则 / 设计要点</h3>
+        <p><strong>空态：</strong>「订单不存在」+「返回」按钮；<strong>加载态：</strong>「加载中...」。</p>
+        <p><strong>错误态：</strong>toast「订单ID缺失」「获取位置信息失败」「加载跟踪信息失败」「位置信息不完整」「更新失败」。</p>
+        <p><strong>标签：</strong>配送中 <code>.weui-tag--deliver</code> / 已送达 <code>.weui-tag--done</code>。</p>
+        <p><strong>设计要点：</strong>地图上双标记必须可区分（送水工 / 收货地址不同颜色与图标）；「已送达」后不得继续刷新位置；状态门控——仅「配送中」可进入（现为 mock 绕过判断，为目标缺口）；用户端仅展示概略位置，不下发精确轨迹序列（隐私）；<span class="weui-tag weui-tag--goal"></span> 目标形态：接入真实轨迹数据源 <code>deliveryTrajectories(orderId)</code> / <code>deliveryWorkerLatestLocation(workerId)</code>，缺口 G02、G65。</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+</body>
+</html>

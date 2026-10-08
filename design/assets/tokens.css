@@ -1,0 +1,86 @@
+/* ==========================================================================
+   AquaRush Design Tokens
+   单一事实来源：docs/ui-design-system.md V1.0
+   禁止在页面内硬编码 hex，一律引用下列变量。
+   ========================================================================== */
+
+:root {
+  /* —— 品牌色板（三端共享） —— */
+  --brand: #3A9BD9;          /* 湖蓝 · 主色 */
+  --brand-light: #4DB6E5;    /* 浅蓝 */
+  --brand-dark: #2E7FB8;     /* 深湖蓝 · 按压态 */
+  --brand-tint: rgba(58, 155, 217, 0.10);
+  --brand-tint-strong: rgba(58, 155, 217, 0.18);
+  --grad: linear-gradient(135deg, #4DB6E5 0%, #3A9BD9 100%);
+
+  /* —— 强调色（⚠️ 仅限消费者端最高优先级 CTA + 优惠券品牌元素） —— */
+  --action: #FF5436;
+  --action-shadow: 0 2px 8px rgba(255, 84, 54, 0.30);
+  --action-tint: rgba(255, 84, 54, 0.10);
+
+  /* —— 基底 / 文字 —— */
+  --bg: #F5F7FA;
+  --card: #FFFFFF;
+  --text: #1A1A1A;
+  --text-sub: #8C8C8C;
+  --text-weak: #B8B8B8;
+  --border: rgba(0, 0, 0, 0.06);
+  --border-strong: rgba(0, 0, 0, 0.12);
+
+  /* —— 语义色 —— */
+  --success: #52C41A;
+  --warning: #FAAD14;
+  --error: #FF4D4F;
+
+  /* —— 间距刻度 —— */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+
+  /* —— 圆角 —— */
+  --r-card: 16px;
+  --r-btn: 24px;   /* 全圆角按钮 */
+  --r-sm: 8px;     /* 标签 / 缩略图 / 输入框 */
+
+  /* —— 阴影 —— */
+  --sh-card: 0 4px 16px rgba(0, 0, 0, 0.04);
+  --sh-btn: 0 2px 8px rgba(255, 84, 54, 0.30);
+  --sh-modal: 0 8px 32px rgba(0, 0, 0, 0.12);
+
+  /* —— 订单/业务状态标签（10% tint 底 + 状态色文字） —— */
+  --st-pay-fg: #FA8C16;      --st-pay-bg: rgba(250, 173, 20, 0.10);   /* 待付款 */
+  --st-assign-fg: #3A9BD9;   --st-assign-bg: rgba(58, 155, 217, 0.10);/* 待派单 / 待配送 */
+  --st-deliver-fg: #389E0D;  --st-deliver-bg: rgba(82, 196, 26, 0.10);/* 配送中 */
+  --st-done-fg: #8C8C8C;     --st-done-bg: rgba(140, 140, 140, 0.10); /* 已完成 */
+  --st-cancel-fg: #CF1322;   --st-cancel-bg: rgba(255, 77, 79, 0.10); /* 已取消 / 已退款 */
+
+  /* —— 管理后台 —— */
+  --side: #001529;           /* 深色侧边栏 */
+  --side-sub: #000C17;
+  --side-active: #3A9BD9;
+
+  /* —— 送水工端暗色（夜间作业） —— */
+  --d-bg: #101418;
+  --d-card: #1C1E21;
+  --d-card-2: #24262B;
+  --d-text: #EAEAEA;
+  --d-text-sub: #A6ACB4;
+  --d-text-weak: #7C838C;
+  --d-primary: #4DB6E5;
+  --d-primary-dark: #6FC3EC;
+  --d-primary-tint: rgba(77, 182, 229, 0.16);
+  --d-border: rgba(255, 255, 255, 0.08);
+
+  /* —— 字体排版刻度 —— */
+  --fs-page: 20px;   --lh-page: 28px;
+  --fs-block: 16px;  --lh-block: 24px;
+  --fs-body: 15px;   --lh-body: 22px;
+  --fs-aux: 14px;    --lh-aux: 20px;
+  --fs-note: 12px;   --lh-note: 16px;
+
+  --font: -apple-system, BlinkMacSystemFont, "PingFang SC", "Hiragino Sans GB",
+          "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-num: "SF Mono", "DIN Alternate", ui-monospace, Menlo, Consolas, monospace;
+}

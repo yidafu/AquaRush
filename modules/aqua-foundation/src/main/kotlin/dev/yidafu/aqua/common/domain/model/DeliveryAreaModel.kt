@@ -1,0 +1,53 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+package dev.yidafu.aqua.common.domain.model
+
+import dev.yidafu.aqua.common.annotation.SnowflakeIdGenerator
+import jakarta.persistence.*
+import org.hibernate.annotations.SoftDelete
+import java.time.LocalDateTime
+
+@Entity
+@SoftDelete(columnName = "is_deleted")
+@Table(name = "delivery_areas")
+open class DeliveryAreaModel(
+  @Id
+  @SnowflakeIdGenerator
+  @Column(name = "id", nullable = false, updatable = false)
+  var id: Long? = null,
+  @Column(name = "name", nullable = false)
+  var name: String,
+  @Column(name = "province", nullable = false)
+  var province: String,
+  @Column(name = "city", nullable = false)
+  var city: String,
+  @Column(name = "district", nullable = false)
+  var district: String,
+  @Column(name = "enabled", nullable = false)
+  var enabled: Boolean = true,
+  @Column(name = "created_at", nullable = false)
+  val createdAt: LocalDateTime = LocalDateTime.now(),
+  @Column(name = "updated_at", nullable = false)
+  var updatedAt: LocalDateTime = LocalDateTime.now(),
+  @Column(name = "deleted_at")
+  override var deletedAt: LocalDateTime? = null,
+  @Column(name = "deleted_by")
+  override var deletedBy: Long? = null,
+) : SoftDeletable

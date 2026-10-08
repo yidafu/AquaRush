@@ -1,4 +1,4 @@
-/*
+/**
  * AquaRush
  *
  * Copyright (C) 2025 AquaRush Team
@@ -19,23 +19,24 @@
 
 package dev.yidafu.aqua.user.domain.repository
 
-import dev.yidafu.aqua.user.domain.model.AddressModel
+import dev.yidafu.aqua.common.domain.model.AddressModel
 import org.springframework.data.jpa.domain.Specification
 
 class AddressSpecifications {
-    companion object {
-        fun byUserId(userId: Long): Specification<AddressModel> {
-            return Specification { root, _, cb ->
-                cb.equal(root.get<Long>("userId"), userId)
-            }
-        }
+  companion object {
+    fun byUserId(userId: Long): Specification<AddressModel> =
+      Specification { root, _, cb ->
+        cb.equal(root.get<Long>("userId"), userId)
+      }
 
-        fun byUserIdAndIsDefault(userId: Long, isDefault: Boolean): Specification<AddressModel> {
-            return Specification { root, _, cb ->
-                val userIdPredicate = cb.equal(root.get<Long>("userId"), userId)
-                val isDefaultPredicate = cb.equal(root.get<Boolean>("isDefault"), isDefault)
-                cb.and(userIdPredicate, isDefaultPredicate)
-            }
-        }
-    }
+    fun byUserIdAndIsDefault(
+      userId: Long,
+      isDefault: Boolean,
+    ): Specification<AddressModel> =
+      Specification { root, _, cb ->
+        val userIdPredicate = cb.equal(root.get<Long>("userId"), userId)
+        val isDefaultPredicate = cb.equal(root.get<Boolean>("isDefault"), isDefault)
+        cb.and(userIdPredicate, isDefaultPredicate)
+      }
+  }
 }
