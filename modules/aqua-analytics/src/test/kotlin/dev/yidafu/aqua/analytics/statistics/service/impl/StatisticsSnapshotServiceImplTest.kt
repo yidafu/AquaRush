@@ -109,6 +109,11 @@ class StatisticsSnapshotServiceImplTest :
       marketingFactRepository = mockk(relaxed = true)
       marketingUsageFactRepository = mockk(relaxed = true)
       aggregationRepository = mockk(relaxed = true)
+      // 默认营收事实表非空,跳过「新表升级一次性回补」分支:该分支读
+      // findFirstByOrderByStatDateAsc().statDate,relaxed mock 会返回假 LocalDate,
+      // 使 dateRange 的 generateSequence 永不终止直至 OOM。
+      // 测升级回补的用例自行覆盖 revenueFactRepository.count() returns 0L 并 stub Asc 为真实日期。
+      every { revenueFactRepository.count() } returns 1L
     }
 
     test("first run backfills from earliest source date to yesterday once") {
