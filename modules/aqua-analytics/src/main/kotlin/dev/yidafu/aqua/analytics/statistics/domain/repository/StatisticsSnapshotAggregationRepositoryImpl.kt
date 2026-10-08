@@ -216,6 +216,8 @@ class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregatio
    * 归属日为完成时间 —— 跨日完成(下单日 ≠ 完成日)的订单营收计入完成日,避免既不在下单日
    * (当时未完成)也不在完成日(created_at 不在窗口)而永久丢失(仪表盘营收趋势为空)。
    * 金额按订单只计一次(orders 单表聚合,不 join order_items,P1-3)。
+   * 当日无已完成订单时返回空列表 —— 无 GROUP BY 的聚合查询恒返回一行 count=0,过滤掉以免写入零值营收行
+   * (读取方 findByStatDateBetween 求和/按日 groupBy,缺行即 0,见 StatisticsServiceImpl)。
    */
   override fun aggregateRevenueFacts(date: LocalDate): List<DailyRevenueFactModel> {
     val window = dateWindow(date)
@@ -228,15 +230,14 @@ class StatisticsSnapshotAggregationRepositoryImpl : StatisticsSnapshotAggregatio
         orderModel.status.eq(OrderModelStatus.COMPLETED),
         orderModel.completedAt.goe(window.start),
         orderModel.completedAt.lt(window.end),
-      )
-      .fetch()
+      ).fetch()
       .map { row ->
         DailyRevenueFactModel(
           statDate = date,
           orderCount = row.get(orderModel.id.count())!!,
           amountCents = row.get(orderModel.amountCents.sumLong().coalesce(0L))!!,
         )
-      }
+      }.filter { it.orderCount > 0L }
   }
 
   /**

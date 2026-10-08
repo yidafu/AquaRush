@@ -117,6 +117,8 @@ class StatisticsSnapshotAggregationIntegrationTest(
             status = status,
             deliveryWorkerId = deliveryWorkerId,
             createdAt = createdAt,
+            // OrderModel.completedAt 默认 null;生产在完成时写入,种子数据按下单即完成模拟
+            completedAt = createdAt.takeIf { status == OrderModelStatus.COMPLETED },
           ),
         ).id!!
 
