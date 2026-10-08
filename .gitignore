@@ -146,5 +146,6 @@ modules/aqua-platform/*/image/
 PRD/_ref/
 storage/
 .workbuddy/memory/
+.worktrees/
 /*.md
 !/AGENTS.md
