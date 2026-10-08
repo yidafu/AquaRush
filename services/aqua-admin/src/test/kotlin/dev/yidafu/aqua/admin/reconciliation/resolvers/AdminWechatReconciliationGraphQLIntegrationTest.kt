@@ -102,7 +102,10 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
     }
 
     /** 等待异步对账任务到达终态(SUCCESS/FAILED) */
-    fun awaitTaskTerminal(taskId: String, timeoutMillis: Long = 10000): ReconciliationTaskModel {
+    fun awaitTaskTerminal(
+      taskId: String,
+      timeoutMillis: Long = 10000,
+    ): ReconciliationTaskModel {
       val deadline = System.currentTimeMillis() + timeoutMillis
       while (System.currentTimeMillis() < deadline) {
         val task = taskRepository.findByTaskId(taskId)
@@ -231,8 +234,9 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
       withClue("executeReconciliation should return the created task: $json") {
         json.contains("\"taskType\" : \"PAYMENT\"") && !json.contains("\"errors\"") shouldBe true
       }
-      val taskId = Regex("\"taskId\"\\s*:\\s*\"([^\"]+)\"").find(json)?.groupValues?.get(1)
-        ?: throw AssertionError("无法从响应中解析 taskId: $json")
+      val taskId =
+        Regex("\"taskId\"\\s*:\\s*\"([^\"]+)\"").find(json)?.groupValues?.get(1)
+          ?: throw AssertionError("无法从响应中解析 taskId: $json")
 
       val terminal = awaitTaskTerminal(taskId)
       withClue("支付对账(无差异)应执行成功, 实际状态=${terminal.status}, error=${terminal.errorMessage}") {
@@ -263,8 +267,9 @@ class AdminWechatReconciliationGraphQLIntegrationTest(
         json.contains("\"resolveDiscrepancy\" : true") && !json.contains("\"errors\"") shouldBe true
       }
 
-      val resolved = discrepancyRepository.findById(discrepancy.id!!).orElse(null)
-        ?: throw AssertionError("差异记录不存在")
+      val resolved =
+        discrepancyRepository.findById(discrepancy.id!!).orElse(null)
+          ?: throw AssertionError("差异记录不存在")
       resolved.status shouldBe DiscrepancyStatus.RESOLVED
       resolved.resolutionNotes shouldBe "人工核对无误"
       resolved.resolvedBy shouldBe "admin"

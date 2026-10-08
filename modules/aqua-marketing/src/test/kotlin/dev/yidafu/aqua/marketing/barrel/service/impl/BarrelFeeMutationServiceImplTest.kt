@@ -24,8 +24,8 @@ import dev.yidafu.aqua.api.dto.UpdateBarrelFeeRequest
 import dev.yidafu.aqua.common.domain.model.BarrelFeeModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
 import dev.yidafu.aqua.logging.util.BizLogger
+import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

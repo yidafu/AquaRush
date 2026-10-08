@@ -26,10 +26,10 @@ import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseItemRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseRepository
-import dev.yidafu.aqua.logging.util.BizLogger
 import jakarta.persistence.EntityManager
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

@@ -296,8 +296,7 @@ class ReconciliationServiceImpl(
     taskId: String?,
     status: DiscrepancyStatus?,
     pageable: Pageable,
-  ): Page<ReconciliationDiscrepancyModel> =
-    reconciliationDiscrepancyRepository.findDiscrepanciesPaged(taskId, status, pageable)
+  ): Page<ReconciliationDiscrepancyModel> = reconciliationDiscrepancyRepository.findDiscrepanciesPaged(taskId, status, pageable)
 
   /**
    * 获取未解决的差异
@@ -569,7 +568,10 @@ class ReconciliationServiceImpl(
 
     // 检查微信退款记录在内部是否存在
     weChatRefunds.forEach { weChatRefund ->
-      val internalRefund = internalRefunds.firstOrNull { it.refundId == weChatRefund.refundId || it.outRefundNo == weChatRefund.outRefundNo }
+      val internalRefund =
+        internalRefunds.firstOrNull {
+          it.refundId == weChatRefund.refundId || it.outRefundNo == weChatRefund.outRefundNo
+        }
       if (internalRefund == null) {
         // 微信有退款，内部没有
         val amountYuan = MoneyUtils.fromCents(weChatRefund.refundFee.toLong())
@@ -615,8 +617,9 @@ class ReconciliationServiceImpl(
     var matchedCount = 0
 
     weChatSettlements.forEach { settlement ->
-      val internalPayment = internalByTransactionId[settlement.transactionId]
-        ?: internalPayments.firstOrNull { it.transactionId == settlement.outTradeNo }
+      val internalPayment =
+        internalByTransactionId[settlement.transactionId]
+          ?: internalPayments.firstOrNull { it.transactionId == settlement.outTradeNo }
       when {
         internalPayment == null -> {
           // 微信有结算，内部没有对应支付记录
@@ -688,9 +691,10 @@ class ReconciliationServiceImpl(
 
     // 检查内部支付记录在微信结算账单中是否存在
     internalPayments.forEach { payment ->
-      val settlement = weChatSettlements.firstOrNull {
-        it.transactionId == payment.transactionId || it.outTradeNo == payment.transactionId
-      }
+      val settlement =
+        weChatSettlements.firstOrNull {
+          it.transactionId == payment.transactionId || it.outTradeNo == payment.transactionId
+        }
       if (settlement == null) {
         // 内部有支付，微信结算账单没有记录
         discrepancies.add(

@@ -108,8 +108,7 @@ class StatisticsOrderRepositoryImpl : StatisticsOrderRepositoryCustom {
         orderModel.status.eq(OrderModelStatus.COMPLETED),
         orderModel.completedAt.goe(startDateTime),
         orderModel.completedAt.loe(endDateTime),
-      )
-      .groupBy(dateExpr)
+      ).groupBy(dateExpr)
       .fetch()
       .map { row ->
         DailyStatisticsDTO(

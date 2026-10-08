@@ -468,8 +468,7 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
   }
 
   /** 「已送达」状态集合(待确认收货 + 已完成,R-ORD-11 送水工业绩口径) */
-  private fun deliveredStatuses(): List<OrderModelStatus> =
-    listOf(OrderModelStatus.AWAITING_CONFIRMATION, OrderModelStatus.COMPLETED)
+  private fun deliveredStatuses(): List<OrderModelStatus> = listOf(OrderModelStatus.AWAITING_CONFIRMATION, OrderModelStatus.COMPLETED)
 
   /**
    * 「已送达」时间锚点:送达时间(deliveryConfirmedAt),历史数据为 null 时回退完成时间(completedAt)

@@ -409,9 +409,31 @@ class DailyCollectionServiceTest :
     test("getDailyCollectionSummary aggregates records excluding drafts from submitted count") {
       val records =
         listOf(
-          record(deliveryWorkerId = 1L, cashAmountCents = 1000L, waterTicketCount = 1, qrCodeAmountCents = 500L, orderCount = 3, orderAmountCents = 1900L),
-          record(deliveryWorkerId = 2L, cashAmountCents = 200L, waterTicketCount = 0, qrCodeAmountCents = 0L, orderCount = 1, orderAmountCents = 200L, status = DailyCollectionStatus.DRAFT),
-          record(deliveryWorkerId = 3L, cashAmountCents = 0L, waterTicketCount = 2, qrCodeAmountCents = 0L, orderCount = 2, orderAmountCents = 400L),
+          record(
+            deliveryWorkerId = 1L,
+            cashAmountCents = 1000L,
+            waterTicketCount = 1,
+            qrCodeAmountCents = 500L,
+            orderCount = 3,
+            orderAmountCents = 1900L,
+          ),
+          record(
+            deliveryWorkerId = 2L,
+            cashAmountCents = 200L,
+            waterTicketCount = 0,
+            qrCodeAmountCents = 0L,
+            orderCount = 1,
+            orderAmountCents = 200L,
+            status = DailyCollectionStatus.DRAFT,
+          ),
+          record(
+            deliveryWorkerId = 3L,
+            cashAmountCents = 0L,
+            waterTicketCount = 2,
+            qrCodeAmountCents = 0L,
+            orderCount = 2,
+            orderAmountCents = 400L,
+          ),
         )
       every { collectionRecordRepository.findByCollectionDate(date) } returns records
 
@@ -436,8 +458,24 @@ class DailyCollectionServiceTest :
     test("executeDailyReconciliation creates matched reconciliation") {
       val collections =
         listOf(
-          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, qrCodeAmountCents = 500L, orderAmountCents = 1400L, calculatedCashAmountCents = 1000L, calculatedQrCodeAmountCents = 500L),
-          record(deliveryWorkerId = 2L, collectionDate = date, cashAmountCents = 200L, qrCodeAmountCents = 0L, orderAmountCents = 300L, calculatedCashAmountCents = 200L, calculatedQrCodeAmountCents = 0L),
+          record(
+            deliveryWorkerId = 1L,
+            collectionDate = date,
+            cashAmountCents = 1000L,
+            qrCodeAmountCents = 500L,
+            orderAmountCents = 1400L,
+            calculatedCashAmountCents = 1000L,
+            calculatedQrCodeAmountCents = 500L,
+          ),
+          record(
+            deliveryWorkerId = 2L,
+            collectionDate = date,
+            cashAmountCents = 200L,
+            qrCodeAmountCents = 0L,
+            orderAmountCents = 300L,
+            calculatedCashAmountCents = 200L,
+            calculatedQrCodeAmountCents = 0L,
+          ),
         )
       every { collectionRecordRepository.findByCollectionDate(date) } returns collections
       every { reconciliationRepository.findByReconciliationDate(date) } returns null
@@ -451,7 +489,15 @@ class DailyCollectionServiceTest :
       // 填报 cash 1000 + qr 500 = 1500,系统计算 cash 1000 + qr 200 = 1200 → 差异 300 > 100 → DISCREPANCY
       val collections =
         listOf(
-          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, qrCodeAmountCents = 500L, orderAmountCents = 500L, calculatedCashAmountCents = 1000L, calculatedQrCodeAmountCents = 200L),
+          record(
+            deliveryWorkerId = 1L,
+            collectionDate = date,
+            cashAmountCents = 1000L,
+            qrCodeAmountCents = 500L,
+            orderAmountCents = 500L,
+            calculatedCashAmountCents = 1000L,
+            calculatedQrCodeAmountCents = 200L,
+          ),
         )
       every { collectionRecordRepository.findByCollectionDate(date) } returns collections
       every { reconciliationRepository.findByReconciliationDate(date) } returns null
@@ -464,7 +510,17 @@ class DailyCollectionServiceTest :
     test("executeDailyReconciliation marks discrepancy on water ticket mismatch") {
       val collections =
         listOf(
-          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, waterTicketCount = 3, qrCodeAmountCents = 500L, orderAmountCents = 1400L, calculatedCashAmountCents = 1000L, calculatedQrCodeAmountCents = 500L, calculatedWaterTicketCount = 1),
+          record(
+            deliveryWorkerId = 1L,
+            collectionDate = date,
+            cashAmountCents = 1000L,
+            waterTicketCount = 3,
+            qrCodeAmountCents = 500L,
+            orderAmountCents = 1400L,
+            calculatedCashAmountCents = 1000L,
+            calculatedQrCodeAmountCents = 500L,
+            calculatedWaterTicketCount = 1,
+          ),
         )
       every { collectionRecordRepository.findByCollectionDate(date) } returns collections
       every { reconciliationRepository.findByReconciliationDate(date) } returns null
@@ -478,7 +534,17 @@ class DailyCollectionServiceTest :
       // 口径回归:订单金额含水票订单价值(400),但差异基数只比 填报(现金+扫码) vs 计算(现金+扫码)
       val collections =
         listOf(
-          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, waterTicketCount = 1, qrCodeAmountCents = 500L, orderAmountCents = 1900L, calculatedCashAmountCents = 1000L, calculatedQrCodeAmountCents = 500L, calculatedWaterTicketCount = 1),
+          record(
+            deliveryWorkerId = 1L,
+            collectionDate = date,
+            cashAmountCents = 1000L,
+            waterTicketCount = 1,
+            qrCodeAmountCents = 500L,
+            orderAmountCents = 1900L,
+            calculatedCashAmountCents = 1000L,
+            calculatedQrCodeAmountCents = 500L,
+            calculatedWaterTicketCount = 1,
+          ),
         )
       every { collectionRecordRepository.findByCollectionDate(date) } returns collections
       every { reconciliationRepository.findByReconciliationDate(date) } returns null
@@ -499,7 +565,15 @@ class DailyCollectionServiceTest :
     test("executeDailyReconciliation updates existing reconciliation and clears review trail") {
       val collections =
         listOf(
-          record(deliveryWorkerId = 1L, collectionDate = date, cashAmountCents = 1000L, qrCodeAmountCents = 500L, orderAmountCents = 1400L, calculatedCashAmountCents = 1000L, calculatedQrCodeAmountCents = 500L),
+          record(
+            deliveryWorkerId = 1L,
+            collectionDate = date,
+            cashAmountCents = 1000L,
+            qrCodeAmountCents = 500L,
+            orderAmountCents = 1400L,
+            calculatedCashAmountCents = 1000L,
+            calculatedQrCodeAmountCents = 500L,
+          ),
         )
       val existing =
         DailyReconciliationModel(status = DailyReconciliationStatus.REVIEWED).apply {

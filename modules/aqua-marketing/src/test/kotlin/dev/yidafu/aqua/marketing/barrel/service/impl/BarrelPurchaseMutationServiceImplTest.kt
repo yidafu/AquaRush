@@ -27,10 +27,10 @@ import dev.yidafu.aqua.common.domain.model.BarrelPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import dev.yidafu.aqua.common.domain.model.enums.BarrelPaymentStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
+import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseItemRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseRepository
-import dev.yidafu.aqua.logging.util.BizLogger
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe

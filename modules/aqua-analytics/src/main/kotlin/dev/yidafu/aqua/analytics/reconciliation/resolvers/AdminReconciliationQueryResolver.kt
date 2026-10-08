@@ -27,7 +27,6 @@ import dev.yidafu.aqua.common.exception.BadRequestException
 import dev.yidafu.aqua.common.exception.UnauthorizedException
 import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.DiscrepancyStatus
-import dev.yidafu.aqua.common.graphql.generated.ReconciliationDiscrepancy
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationDiscrepancyPage
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationReport
 import dev.yidafu.aqua.common.graphql.generated.ReconciliationTask
@@ -84,8 +83,16 @@ class AdminReconciliationQueryResolver(
     val dateFromParsed = dateFrom?.let { parseDate(it, "dateFrom") }
     val dateToParsed = dateTo?.let { parseDate(it, "dateTo") }
     // GraphQL 生成枚举 → 域枚举(同名常量)
-    val taskTypeDomain = taskType?.let { dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType.valueOf(it.name) }
-    val statusDomain = status?.let { dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus.valueOf(it.name) }
+    val taskTypeDomain =
+      taskType?.let {
+        dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskType
+          .valueOf(it.name)
+      }
+    val statusDomain =
+      status?.let {
+        dev.yidafu.aqua.common.domain.model.enums.ReconciliationTaskStatus
+          .valueOf(it.name)
+      }
     val result =
       reconciliationService.getReconciliationTasksPaged(
         taskType = taskTypeDomain,
@@ -147,7 +154,11 @@ class AdminReconciliationQueryResolver(
     )
     val pageable = PageRequest.of(page.coerceAtLeast(0), size.coerceIn(1, 100))
     // GraphQL 生成枚举 → 域枚举(同名常量)
-    val statusDomain = status?.let { dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus.valueOf(it.name) }
+    val statusDomain =
+      status?.let {
+        dev.yidafu.aqua.common.domain.model.enums.DiscrepancyStatus
+          .valueOf(it.name)
+      }
     val result =
       reconciliationService.getDiscrepanciesPaged(
         taskId = taskId,

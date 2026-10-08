@@ -21,8 +21,8 @@ package dev.yidafu.aqua.marketing.barrel.service.impl
 
 import dev.yidafu.aqua.common.domain.model.DepositRecordModel
 import dev.yidafu.aqua.common.domain.model.enums.DepositStatus
-import dev.yidafu.aqua.marketing.barrel.domain.repository.DepositRecordRepository
 import dev.yidafu.aqua.logging.util.BizLogger
+import dev.yidafu.aqua.marketing.barrel.domain.repository.DepositRecordRepository
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every

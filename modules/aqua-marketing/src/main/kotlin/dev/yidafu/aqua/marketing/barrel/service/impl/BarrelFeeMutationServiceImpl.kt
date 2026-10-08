@@ -25,8 +25,8 @@ import dev.yidafu.aqua.api.service.barrel.BarrelFeeMutationService
 import dev.yidafu.aqua.common.domain.model.BarrelFeeModel
 import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
 import dev.yidafu.aqua.logging.util.BizLogger
+import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
