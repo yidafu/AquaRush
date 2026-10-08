@@ -1,0 +1,136 @@
+diff --git a/android/build.gradle b/android/build.gradle
+index d2408aad178c04934cf510395f6219c137206f54..a9187988bdc5bb6ff932e6be2464ee01c8e42276 100644
+--- a/android/build.gradle
++++ b/android/build.gradle
+@@ -4,6 +4,10 @@ buildscript {
+ 
+ apply plugin: 'com.android.library'
+ apply plugin: 'kotlin-android'
++// patch: RN 0.7x+ 要求库模块显式应用 com.facebook.react 以注册 codegen 任务
++// (generateCodegenSchemaFromJavaScript/generateCodegenArtifactsFromSchema),
++// 否则 autolinking 的 CMake 找不到 build/generated/source/codegen/jni 产物
++apply plugin: 'com.facebook.react'
+ 
+ def safeExtGet(prop, fallback) {
+   rootProject.ext.has(prop) ? rootProject.ext.get(prop) : fallback
+diff --git a/android/src/main/java/com/fitnessgeolocation/FitnessGeolocationModule.kt b/android/src/main/java/com/fitnessgeolocation/FitnessGeolocationModule.kt
+index e42af3ff4e5aa3ebeff05b5a02ddb54c7dd93298..c0f3436b46cd66e64db97821f43cc1e58b848450 100644
+--- a/android/src/main/java/com/fitnessgeolocation/FitnessGeolocationModule.kt
++++ b/android/src/main/java/com/fitnessgeolocation/FitnessGeolocationModule.kt
+@@ -25,6 +25,10 @@ class FitnessGeolocationModule(private val reactContext: ReactApplicationContext
+ 
+   companion object {
+     const val NAME = "FitnessGeolocation"
++    // patch: Kotlin 类仅允许一个 companion,原私有 companion 常量并入本块
++    private const val REQUEST_FINE = 1001
++    private const val REQUEST_BACKGROUND = 1002
++    private const val TAG = "FitnessGeoModule"
+   }
+ 
+   private val engine = LocationEngine.getInstance(reactContext)
+@@ -36,11 +40,6 @@ class FitnessGeolocationModule(private val reactContext: ReactApplicationContext
+   private var motionEngineStarted = false
+   private val pedometerEngine = PedometerEngine.getInstance(reactContext)
+ 
+-  private companion object {
+-    private const val REQUEST_FINE = 1001
+-    private const val REQUEST_BACKGROUND = 1002
+-    private const val TAG = "FitnessGeoModule"
+-  }
+ 
+   init {
+     reactContext.addLifecycleEventListener(this)
+@@ -110,7 +109,7 @@ class FitnessGeolocationModule(private val reactContext: ReactApplicationContext
+     }
+   }
+ 
+-  @ReactMethod
++  @ReactMethod(isBlockingSynchronousMethod = true)
+   fun watchPosition(options: ReadableMap): Int {
+     val watchId = engine.watchPosition(options)
+     startForegroundTrackingService()
+@@ -446,7 +445,7 @@ class FitnessGeolocationModule(private val reactContext: ReactApplicationContext
+ 
+   // ─── Time-Based Tracking ──────────────────────────────────────────────────
+ 
+-  @ReactMethod
++  @ReactMethod(isBlockingSynchronousMethod = true)
+   fun startTimeBasedTracking(options: ReadableMap): Int {
+     val watchId = engine.startTimeBasedTracking(options)
+     startForegroundTrackingService()
+diff --git a/android/src/main/java/com/fitnessgeolocation/FitnessGeolocationPackage.kt b/android/src/main/java/com/fitnessgeolocation/FitnessGeolocationPackage.kt
+index d6089ca1657284185bf884baa18af9a32a5208e2..052cd0825542f0c8b2627620d077d0dca150d4a3 100644
+--- a/android/src/main/java/com/fitnessgeolocation/FitnessGeolocationPackage.kt
++++ b/android/src/main/java/com/fitnessgeolocation/FitnessGeolocationPackage.kt
+@@ -30,7 +30,7 @@ class FitnessGeolocationPackage : TurboReactPackage() {
+           false, // needsEagerInit
+           true, // hasConstants
+           false, // isCxxModule
+-          true, // isTurboModule (exposed as Turbo-capable via this package)
++          false, // isTurboModule (patch: 模块为 legacy bridge 实现,经 RN legacy interop 在 New Architecture 下注册,不可声明为 TurboModule)
+         ),
+       )
+     }
+diff --git a/android/src/main/java/com/fitnessgeolocation/LocationEngine.kt b/android/src/main/java/com/fitnessgeolocation/LocationEngine.kt
+index 5c03cf706dfb0c52c8e9f6bc55ec68c0f9b05bb0..8fbfde5ec56f2372ef7347e648898cf070521ea7 100644
+--- a/android/src/main/java/com/fitnessgeolocation/LocationEngine.kt
++++ b/android/src/main/java/com/fitnessgeolocation/LocationEngine.kt
+@@ -1062,7 +1062,7 @@ class LocationEngine private constructor(
+     val acc = if (hasAccuracy()) accuracy else 999f
+     val bat = batteryLevel()
+     val positionConfidence = (1.0 - (acc / 100.0)).coerceIn(0.0, 1.0)
+-    val motionConfidence = (currentConfidence / 100.0).coerceIn(0.0, 1.0)
++    val motionConfidence = (MotionEngine.lastConfidence / 100.0).coerceIn(0.0, 1.0)
+     val qualityJson = "{\"positionConfidence\":$positionConfidence,\"motionConfidence\":$motionConfidence,\"headingConfidence\":0.5,\"activityConfidence\":$motionConfidence}"
+     return StoredLocation(
+       id = java.util.UUID.randomUUID().toString(),
+@@ -1128,7 +1128,7 @@ class LocationEngine private constructor(
+     scheduleManager.onScheduleChange = { enabled, mode ->
+       geofencesOnlyMode = mode == ScheduleManager.TrackingMode.geofence
+       if (enabled && mode == ScheduleManager.TrackingMode.location && !isWatching) {
+-        watchPosition(emptyMap())
++        watchPosition(Arguments.createMap())
+       } else if (!enabled) {
+         stopObserving()
+       }
+@@ -1288,7 +1288,7 @@ class LocationEngine private constructor(
+   }
+ 
+   fun mergeConfig(config: Map<String, Any?>) {
+-    (config["trackingMode"] as? String)?.let { setModeString(it) }
++    (config["trackingMode"] as? String)?.let { setTrackingMode(it) }
+     applyLoggerFromConfig(config)
+     (config["url"] as? String)?.let { url ->
+       httpUrl = url
+@@ -1322,7 +1322,7 @@ class LocationEngine private constructor(
+   }
+ 
+   fun startEngine() {
+-    if (!isWatching) watchPosition(emptyMap())
++    if (!isWatching) watchPosition(Arguments.createMap())
+     isEngineEnabled = true
+     emitDiagnostic(mapOf("event" to "enabledchange", "enabled" to true))
+   }
+diff --git a/android/src/main/java/com/fitnessgeolocation/MotionEngine.kt b/android/src/main/java/com/fitnessgeolocation/MotionEngine.kt
+index a5aa6581d4d02d197ed6f908ee2deac8f1619bea..f8e47246f0b399b6939257121575ef95bdbfc6e4 100644
+--- a/android/src/main/java/com/fitnessgeolocation/MotionEngine.kt
++++ b/android/src/main/java/com/fitnessgeolocation/MotionEngine.kt
+@@ -43,6 +43,10 @@ class MotionEngine(
+       "walking", "running", "cycling", "driving" -> true
+       else -> false
+     }
++
++    /** 最近一次活动识别置信度(供 LocationEngine 生成质量元数据;patch: 原为实例私有,跨类不可见) */
++    @Volatile
++    var lastConfidence: Int = 0
+   }
+ 
+   private val client = ActivityRecognition.getClient(context)
+@@ -79,6 +83,7 @@ class MotionEngine(
+   private fun onActivityDetected(activity: String, confidence: Int) {
+     currentActivity = activity
+     currentConfidence = confidence
++    lastConfidence = confidence
+     listener.onActivityChange(activity, confidence)
+ 
+     if (activity == "stationary") {

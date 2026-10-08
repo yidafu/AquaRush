@@ -7,6 +7,11 @@
     "doc": "docs"
   },
   "scripts": {
+    "dev:pc": "cd frontend/admin-client && npm run dev",
+    "dev:weapp": "cd frontend/user-weapp && npm run dev:weapp",
+    "dev:client": "./gradlew :services:aqua-client:bootRun",
+    "dev:admin": "./gradlew :services:aqua-admin:bootRun",
+    "dev": "run-p dev:*",
     "test": "echo \"Error: no test specified\" && exit 1",
     "test:frontend": "pnpm --filter @aquarush/common test && pnpm --filter @aquarush/admin-client test && pnpm --filter user-miniapp test && pnpm --filter delivery-app test",
     "test:frontend:coverage": "pnpm --filter @aquarush/common test:coverage && pnpm --filter @aquarush/admin-client test:coverage && pnpm --filter user-miniapp test:coverage && pnpm --filter delivery-app test:coverage",
@@ -41,12 +46,14 @@
       "graphql": "^16.12.0"
     },
     "patchedDependencies": {
-      "react-native-wechat-lib": "patches/react-native-wechat-lib.patch"
+      "react-native-wechat-lib": "patches/react-native-wechat-lib.patch",
+      "react-native-fitness-geolocation": "patches/react-native-fitness-geolocation.patch"
     }
   },
   "devDependencies": {
     "@graphql-codegen/typescript-operations": "^5.0.6",
-    "@graphql-codegen/typescript-react-apollo": "^4.3.3"
+    "@graphql-codegen/typescript-react-apollo": "^4.3.3",
+    "npm-run-all": "^4.1.5"
   },
   "browserslist": {
     "development": [
