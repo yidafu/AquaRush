@@ -20,6 +20,10 @@
 package dev.yidafu.aqua.analytics.reconciliation.service
 
 import dev.yidafu.aqua.api.service.order.OrderQueryService
+import dev.yidafu.aqua.api.service.reconciliation.DailyCollectionMutationService
+import dev.yidafu.aqua.api.service.reconciliation.DailyCollectionQueryApiService
+import dev.yidafu.aqua.api.service.reconciliation.DailyReconciliationMutationService
+import dev.yidafu.aqua.api.service.reconciliation.DailyReconciliationQueryApiService
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
@@ -27,9 +31,6 @@ import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
 import dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.delivery.domain.repository.DailyCollectionRecordRepository
-import dev.yidafu.aqua.delivery.domain.repository.DailyReconciliationRepository
-import dev.yidafu.aqua.order.domain.repository.OrderRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.nulls.shouldBeNull
@@ -42,7 +43,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDate
-import java.util.Optional
 
 /**
  * 每日收款/对账服务单元测试: 按支付类型统计、收款提交容差判定(差异口径)、
@@ -50,10 +50,11 @@ import java.util.Optional
  */
 class DailyCollectionServiceTest :
   FunSpec({
-    var collectionRecordRepository: DailyCollectionRecordRepository = mockk()
-    var reconciliationRepository: DailyReconciliationRepository = mockk()
+    var dailyCollectionQuery: DailyCollectionQueryApiService = mockk()
+    var dailyReconciliationQuery: DailyReconciliationQueryApiService = mockk()
     var orderQueryService: OrderQueryService = mockk()
-    var orderRepository: OrderRepository = mockk()
+    var dailyCollectionMutation: DailyCollectionMutationService = mockk()
+    var dailyReconciliationMutation: DailyReconciliationMutationService = mockk()
     var service: DailyCollectionService = mockk()
     val date = LocalDate.of(2025, 6, 1)
 
@@ -64,13 +65,13 @@ class DailyCollectionServiceTest :
     ) {
       // 已送达口径(R-ORD-11):含 待确认收货 + 已完成,按送达时间计入
       every {
-        orderRepository.countAndSumDeliveredByPaymentType(1L, PaymentType.CASH, any(), any())
+        orderQueryService.countAndSumDeliveredByPaymentType(1L, PaymentType.CASH, any(), any())
       } returns cash
       every {
-        orderRepository.countAndSumDeliveredByPaymentType(1L, PaymentType.WATER_TICKET, any(), any())
+        orderQueryService.countAndSumDeliveredByPaymentType(1L, PaymentType.WATER_TICKET, any(), any())
       } returns ticket
       every {
-        orderRepository.countAndSumDeliveredByPaymentType(1L, PaymentType.QR_CODE, any(), any())
+        orderQueryService.countAndSumDeliveredByPaymentType(1L, PaymentType.QR_CODE, any(), any())
       } returns qr
     }
 
@@ -106,15 +107,23 @@ class DailyCollectionServiceTest :
       )
 
     beforeTest {
-      collectionRecordRepository = mockk(relaxed = true)
-      reconciliationRepository = mockk(relaxed = true)
+      dailyCollectionQuery = mockk(relaxed = true)
+      dailyReconciliationQuery = mockk(relaxed = true)
       orderQueryService = mockk(relaxed = true)
-      orderRepository = mockk(relaxed = true)
-      service = DailyCollectionService(collectionRecordRepository, reconciliationRepository, orderQueryService, orderRepository)
+      dailyCollectionMutation = mockk(relaxed = true)
+      dailyReconciliationMutation = mockk(relaxed = true)
+      service =
+        DailyCollectionService(
+          dailyCollectionQuery,
+          dailyReconciliationQuery,
+          orderQueryService,
+          dailyCollectionMutation,
+          dailyReconciliationMutation,
+        )
       // relaxed mock 的泛型 save() 会返回裸 Object 导致 ClassCastException,
       // 统一让 save 返回入参
-      every { collectionRecordRepository.save(any()) } answers { firstArg() }
-      every { reconciliationRepository.save(any()) } answers { firstArg() }
+      every { dailyCollectionMutation.save(any()) } answers { firstArg() }
+      every { dailyReconciliationMutation.save(any()) } answers { firstArg() }
     }
     test("getTodayPaymentStats aggregates cash ticket and qr") {
       stubPaymentStats(cash = arrayOf(3L, 3000L), ticket = arrayOf(2L, 0L), qr = arrayOf(5L, 700L))
@@ -135,8 +144,8 @@ class DailyCollectionServiceTest :
       stats.qrCodeAmountCents shouldBe 0L
     }
     test("getTodayOrderStats aggregates completed orders") {
-      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 6L
-      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1200L
+      every { orderQueryService.countDeliveredByDateRange(any(), any(), any()) } returns 6L
+      every { orderQueryService.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1200L
 
       val stats = service.getTodayOrderStats(1L, date)
 
@@ -145,10 +154,10 @@ class DailyCollectionServiceTest :
     }
     test("submitDailyCollection creates record marked submitted within tolerance") {
       stubPaymentStats()
-      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 3L
-      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1400L
-      every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
-      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+      every { orderQueryService.countDeliveredByDateRange(any(), any(), any()) } returns 3L
+      every { orderQueryService.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1400L
+      every { dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
+      every { dailyCollectionMutation.save(any()) } answers { firstArg() }
 
       // 填报 cash 1000 + qr 500 = 1500,系统计算 cash 1000 + qr 500 = 1500 → 差异 0 → SUBMITTED
       val record =
@@ -168,10 +177,10 @@ class DailyCollectionServiceTest :
     test("submitDailyCollection marks disputed when difference exceeds tolerance") {
       // 填报 cash 1000 + qr 500 = 1500,系统计算 cash 500 + qr 200 = 700 → 差异 800 > 100 → DISPUTED(G28)
       stubPaymentStats(cash = arrayOf(1L, 500L), qr = arrayOf(1L, 200L))
-      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 3L
-      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 800L
-      every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
-      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+      every { orderQueryService.countDeliveredByDateRange(any(), any(), any()) } returns 3L
+      every { orderQueryService.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 800L
+      every { dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
+      every { dailyCollectionMutation.save(any()) } answers { firstArg() }
 
       val record =
         service.submitDailyCollection(
@@ -188,10 +197,10 @@ class DailyCollectionServiceTest :
     test("submitDailyCollection marks disputed when water ticket count mismatches") {
       // 金额一致但水票张数不符(R-COL-02 水票精确匹配)→ DISPUTED
       stubPaymentStats()
-      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 3L
-      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1400L
-      every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
-      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+      every { orderQueryService.countDeliveredByDateRange(any(), any(), any()) } returns 3L
+      every { orderQueryService.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1400L
+      every { dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
+      every { dailyCollectionMutation.save(any()) } answers { firstArg() }
 
       val record =
         service.submitDailyCollection(
@@ -209,10 +218,10 @@ class DailyCollectionServiceTest :
       // 口径回归:订单金额(1900,含水票订单 400)不参与差异基数;
       // 填报(现金+扫码) 与 系统计算(现金+扫码) 一致 → 差异 0,不被误判为「有争议」
       stubPaymentStats(cash = arrayOf(2L, 1000L), ticket = arrayOf(1L, 0L), qr = arrayOf(1L, 500L))
-      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 4L
-      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1900L
-      every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
-      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+      every { orderQueryService.countDeliveredByDateRange(any(), any(), any()) } returns 4L
+      every { orderQueryService.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1900L
+      every { dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns null
+      every { dailyCollectionMutation.save(any()) } answers { firstArg() }
 
       val record =
         service.submitDailyCollection(
@@ -229,8 +238,8 @@ class DailyCollectionServiceTest :
     }
     test("submitDailyCollection updates existing record and stores notes, clears reject trail") {
       stubPaymentStats()
-      every { orderRepository.countDeliveredByDateRange(any(), any(), any()) } returns 3L
-      every { orderRepository.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1400L
+      every { orderQueryService.countDeliveredByDateRange(any(), any(), any()) } returns 3L
+      every { orderQueryService.sumDeliveredAmountCentsByDateRange(any(), any(), any()) } returns 1400L
       val existing =
         record(
           deliveryWorkerId = 1L,
@@ -242,8 +251,8 @@ class DailyCollectionServiceTest :
           rejectedBy = 9L
           rejectReason = "金额不符"
         }
-      every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns existing
-      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+      every { dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns existing
+      every { dailyCollectionMutation.save(any()) } answers { firstArg() }
 
       val updated =
         service.submitDailyCollection(
@@ -266,8 +275,8 @@ class DailyCollectionServiceTest :
     }
     test("confirmCollection marks record confirmed") {
       val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.SUBMITTED)
-      every { collectionRecordRepository.findById(9L) } returns Optional.of(existing)
-      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+      every { dailyCollectionQuery.findById(9L) } returns existing
+      every { dailyCollectionMutation.save(any()) } answers { firstArg() }
 
       val confirmed = service.confirmCollection(9L, confirmedBy = 5L, notes = "无误")
 
@@ -277,14 +286,14 @@ class DailyCollectionServiceTest :
       confirmed.confirmedAt.shouldNotBeNull()
     }
     test("confirmCollection throws when record missing") {
-      every { collectionRecordRepository.findById(9L) } returns Optional.empty()
+      every { dailyCollectionQuery.findById(9L) } returns null
 
       shouldThrow<IllegalArgumentException> { service.confirmCollection(9L, confirmedBy = 5L) }
     }
     test("rejectCollection rejects submitted record back to draft with trail") {
       val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.SUBMITTED)
-      every { collectionRecordRepository.findById(9L) } returns Optional.of(existing)
-      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+      every { dailyCollectionQuery.findById(9L) } returns existing
+      every { dailyCollectionMutation.save(any()) } answers { firstArg() }
 
       val rejected = service.rejectCollection(9L, rejectedBy = 5L, reason = "金额不符")
 
@@ -295,8 +304,8 @@ class DailyCollectionServiceTest :
     }
     test("rejectCollection rejects disputed record back to draft with trail") {
       val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.DISPUTED)
-      every { collectionRecordRepository.findById(9L) } returns Optional.of(existing)
-      every { collectionRecordRepository.save(any()) } answers { firstArg() }
+      every { dailyCollectionQuery.findById(9L) } returns existing
+      every { dailyCollectionMutation.save(any()) } answers { firstArg() }
 
       val rejected = service.rejectCollection(9L, rejectedBy = 5L, reason = "扫码金额对不上")
 
@@ -305,38 +314,38 @@ class DailyCollectionServiceTest :
       rejected.rejectReason shouldBe "扫码金额对不上"
     }
     test("rejectCollection throws when record missing") {
-      every { collectionRecordRepository.findById(9L) } returns Optional.empty()
+      every { dailyCollectionQuery.findById(9L) } returns null
 
       shouldThrow<BadRequestException> { service.rejectCollection(9L, rejectedBy = 5L, reason = "金额不符") }
     }
     test("rejectCollection throws when reason blank") {
       val existing = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.SUBMITTED)
-      every { collectionRecordRepository.findById(9L) } returns Optional.of(existing)
+      every { dailyCollectionQuery.findById(9L) } returns existing
 
       shouldThrow<BadRequestException> { service.rejectCollection(9L, rejectedBy = 5L, reason = "  ") }
     }
     test("rejectCollection throws for confirmed or draft records") {
       val confirmed = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.CONFIRMED)
       val draft = record(deliveryWorkerId = 1L, collectionDate = date, status = DailyCollectionStatus.DRAFT)
-      every { collectionRecordRepository.findById(9L) } returns Optional.of(confirmed)
-      every { collectionRecordRepository.findById(10L) } returns Optional.of(draft)
+      every { dailyCollectionQuery.findById(9L) } returns confirmed
+      every { dailyCollectionQuery.findById(10L) } returns draft
 
       shouldThrow<BadRequestException> { service.rejectCollection(9L, rejectedBy = 5L, reason = "金额不符") }
       shouldThrow<BadRequestException> { service.rejectCollection(10L, rejectedBy = 5L, reason = "金额不符") }
     }
     test("getCollectionByWorkerAndDate delegates to repository") {
       val expected = record(deliveryWorkerId = 1L, collectionDate = date)
-      every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns expected
+      every { dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(1L, date) } returns expected
 
       service.getCollectionByWorkerAndDate(1L, date) shouldBe expected
     }
     test("getCollectionsByDate delegates and guards empty") {
-      every { collectionRecordRepository.findByCollectionDate(date) } returns emptyList()
+      every { dailyCollectionQuery.findByCollectionDate(date) } returns emptyList()
 
       service.getCollectionsByDate(1L, date) shouldBe emptyList()
     }
     test("getAllCollections delegates and guards empty") {
-      every { collectionRecordRepository.findAll() } returns emptyList()
+      every { dailyCollectionQuery.findAll() } returns emptyList()
 
       service.getAllCollections() shouldBe emptyList()
     }
@@ -344,63 +353,63 @@ class DailyCollectionServiceTest :
       val start = LocalDate.of(2025, 6, 1)
       val end = LocalDate.of(2025, 6, 30)
       val expected = listOf(record())
-      every { collectionRecordRepository.findByCollectionDateBetween(start, end) } returns expected
+      every { dailyCollectionQuery.findByCollectionDateBetween(start, end) } returns expected
 
       service.getCollectionsByDateRange(start, end) shouldBe expected
     }
     test("getCollectionsPage with date and worker filters") {
       val expected: Page<DailyCollectionRecordModel> = PageImpl(listOf(record()))
-      every { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date, any()) } returns expected
+      every { dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(1L, date, any()) } returns expected
 
       val page = service.getCollectionsPage(collectionDate = date, deliveryWorkerId = 1L, page = 0, size = 10)
 
       page shouldBe expected
-      verify { collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(1L, date, any()) }
+      verify { dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(1L, date, any()) }
     }
     test("getCollectionsPage with date only filters") {
       val expected: Page<DailyCollectionRecordModel> = PageImpl(listOf(record()))
-      every { collectionRecordRepository.findByCollectionDate(date, any()) } returns expected
+      every { dailyCollectionQuery.findByCollectionDate(date, any()) } returns expected
 
       val page = service.getCollectionsPage(collectionDate = date, deliveryWorkerId = null, page = 0, size = 10)
 
       page shouldBe expected
-      verify { collectionRecordRepository.findByCollectionDate(date, any()) }
+      verify { dailyCollectionQuery.findByCollectionDate(date, any()) }
     }
     test("getCollectionsPage with worker only filters") {
       val expected: Page<DailyCollectionRecordModel> = PageImpl(listOf(record()))
-      every { collectionRecordRepository.findByDeliveryWorkerId(1L, any()) } returns expected
+      every { dailyCollectionQuery.findByDeliveryWorkerId(1L, any()) } returns expected
 
       val page = service.getCollectionsPage(collectionDate = null, deliveryWorkerId = 1L, page = 0, size = 10)
 
       page shouldBe expected
-      verify { collectionRecordRepository.findByDeliveryWorkerId(1L, any()) }
+      verify { dailyCollectionQuery.findByDeliveryWorkerId(1L, any()) }
     }
     test("getCollectionsPage without filters pages all records") {
       val expected: Page<DailyCollectionRecordModel> = PageImpl(listOf(record()))
-      every { collectionRecordRepository.findAll(any<PageRequest>()) } returns expected
+      every { dailyCollectionQuery.findAll(any<PageRequest>()) } returns expected
 
       val page = service.getCollectionsPage(collectionDate = null, deliveryWorkerId = null, page = 0, size = 10)
 
       page shouldBe expected
-      verify { collectionRecordRepository.findAll(any<PageRequest>()) }
+      verify { dailyCollectionQuery.findAll(any<PageRequest>()) }
     }
     test("getReconciliationByDate delegates") {
       val expected = DailyReconciliationModel()
-      every { reconciliationRepository.findByReconciliationDate(date) } returns expected
+      every { dailyReconciliationQuery.findByReconciliationDate(date) } returns expected
 
-      every { reconciliationRepository.findByReconciliationDate(LocalDate.of(2020, 1, 1)) } returns null
+      every { dailyReconciliationQuery.findByReconciliationDate(LocalDate.of(2020, 1, 1)) } returns null
 
       service.getReconciliationByDate(date) shouldBe expected
       service.getReconciliationByDate(LocalDate.of(2020, 1, 1)).shouldBeNull()
     }
     test("getAllReconciliations delegates and guards empty") {
-      every { reconciliationRepository.findAll() } returns emptyList()
+      every { dailyReconciliationQuery.findAll() } returns emptyList()
 
       service.getAllReconciliations() shouldBe emptyList()
     }
     test("getReconciliationsPage pages all records") {
       val expected: Page<DailyReconciliationModel> = PageImpl(listOf(DailyReconciliationModel()))
-      every { reconciliationRepository.findAll(any<PageRequest>()) } returns expected
+      every { dailyReconciliationQuery.findAll(any<PageRequest>()) } returns expected
 
       val page = service.getReconciliationsPage(0, 10)
 
@@ -435,7 +444,7 @@ class DailyCollectionServiceTest :
             orderAmountCents = 400L,
           ),
         )
-      every { collectionRecordRepository.findByCollectionDate(date) } returns records
+      every { dailyCollectionQuery.findByCollectionDate(date) } returns records
 
       val summary = service.getDailyCollectionSummary(date)
 
@@ -448,12 +457,12 @@ class DailyCollectionServiceTest :
     }
     test("getReconciliationOrderDetails delegates to order repository") {
       val expected: Page<OrderModel> = PageImpl(listOf(OrderModel(orderNo = "ORD1")))
-      every { orderRepository.findDeliveredOrdersByDateRange(any(), any(), any(), any()) } returns expected
+      every { orderQueryService.findDeliveredOrdersByDateRange(any(), any(), any(), any()) } returns expected
 
       val page = service.getReconciliationOrderDetails(reconciliationDate = date, deliveryWorkerId = null, page = 0, size = 20)
 
       page shouldBe expected
-      verify { orderRepository.findDeliveredOrdersByDateRange(null, date.atStartOfDay(), date.atTime(java.time.LocalTime.MAX), any()) }
+      verify { orderQueryService.findDeliveredOrdersByDateRange(null, date.atStartOfDay(), date.atTime(java.time.LocalTime.MAX), any()) }
     }
     test("executeDailyReconciliation creates matched reconciliation") {
       val collections =
@@ -477,13 +486,13 @@ class DailyCollectionServiceTest :
             calculatedQrCodeAmountCents = 0L,
           ),
         )
-      every { collectionRecordRepository.findByCollectionDate(date) } returns collections
-      every { reconciliationRepository.findByReconciliationDate(date) } returns null
-      every { reconciliationRepository.save(any()) } answers { firstArg() }
+      every { dailyCollectionQuery.findByCollectionDate(date) } returns collections
+      every { dailyReconciliationQuery.findByReconciliationDate(date) } returns null
+      every { dailyReconciliationMutation.save(any()) } answers { firstArg() }
 
       service.executeDailyReconciliation(date)
 
-      verify { reconciliationRepository.save(match { it.status == DailyReconciliationStatus.MATCHED }) }
+      verify { dailyReconciliationMutation.save(match { it.status == DailyReconciliationStatus.MATCHED }) }
     }
     test("executeDailyReconciliation marks discrepancy") {
       // 填报 cash 1000 + qr 500 = 1500,系统计算 cash 1000 + qr 200 = 1200 → 差异 300 > 100 → DISCREPANCY
@@ -499,13 +508,13 @@ class DailyCollectionServiceTest :
             calculatedQrCodeAmountCents = 200L,
           ),
         )
-      every { collectionRecordRepository.findByCollectionDate(date) } returns collections
-      every { reconciliationRepository.findByReconciliationDate(date) } returns null
-      every { reconciliationRepository.save(any()) } answers { firstArg() }
+      every { dailyCollectionQuery.findByCollectionDate(date) } returns collections
+      every { dailyReconciliationQuery.findByReconciliationDate(date) } returns null
+      every { dailyReconciliationMutation.save(any()) } answers { firstArg() }
 
       service.executeDailyReconciliation(date)
 
-      verify { reconciliationRepository.save(match { it.status == DailyReconciliationStatus.DISCREPANCY }) }
+      verify { dailyReconciliationMutation.save(match { it.status == DailyReconciliationStatus.DISCREPANCY }) }
     }
     test("executeDailyReconciliation marks discrepancy on water ticket mismatch") {
       val collections =
@@ -522,13 +531,13 @@ class DailyCollectionServiceTest :
             calculatedWaterTicketCount = 1,
           ),
         )
-      every { collectionRecordRepository.findByCollectionDate(date) } returns collections
-      every { reconciliationRepository.findByReconciliationDate(date) } returns null
-      every { reconciliationRepository.save(any()) } answers { firstArg() }
+      every { dailyCollectionQuery.findByCollectionDate(date) } returns collections
+      every { dailyReconciliationQuery.findByReconciliationDate(date) } returns null
+      every { dailyReconciliationMutation.save(any()) } answers { firstArg() }
 
       service.executeDailyReconciliation(date)
 
-      verify { reconciliationRepository.save(match { it.status == DailyReconciliationStatus.DISCREPANCY }) }
+      verify { dailyReconciliationMutation.save(match { it.status == DailyReconciliationStatus.DISCREPANCY }) }
     }
     test("executeDailyReconciliation excludes water ticket order amount from discrepancy base") {
       // 口径回归:订单金额含水票订单价值(400),但差异基数只比 填报(现金+扫码) vs 计算(现金+扫码)
@@ -546,14 +555,14 @@ class DailyCollectionServiceTest :
             calculatedWaterTicketCount = 1,
           ),
         )
-      every { collectionRecordRepository.findByCollectionDate(date) } returns collections
-      every { reconciliationRepository.findByReconciliationDate(date) } returns null
-      every { reconciliationRepository.save(any()) } answers { firstArg() }
+      every { dailyCollectionQuery.findByCollectionDate(date) } returns collections
+      every { dailyReconciliationQuery.findByReconciliationDate(date) } returns null
+      every { dailyReconciliationMutation.save(any()) } answers { firstArg() }
 
       service.executeDailyReconciliation(date)
 
       verify {
-        reconciliationRepository.save(
+        dailyReconciliationMutation.save(
           match {
             it.status == DailyReconciliationStatus.MATCHED &&
               it.discrepancyAmountCents == 0L &&
@@ -581,9 +590,9 @@ class DailyCollectionServiceTest :
           reviewedBy = 7L
           reviewNotes = "OK"
         }
-      every { collectionRecordRepository.findByCollectionDate(date) } returns collections
-      every { reconciliationRepository.findByReconciliationDate(date) } returns existing
-      every { reconciliationRepository.save(any()) } answers { firstArg() }
+      every { dailyCollectionQuery.findByCollectionDate(date) } returns collections
+      every { dailyReconciliationQuery.findByReconciliationDate(date) } returns existing
+      every { dailyReconciliationMutation.save(any()) } answers { firstArg() }
 
       service.executeDailyReconciliation(date)
 
@@ -598,8 +607,8 @@ class DailyCollectionServiceTest :
     }
     test("reviewReconciliation marks reviewed") {
       val existing = DailyReconciliationModel(status = DailyReconciliationStatus.MATCHED)
-      every { reconciliationRepository.findById(3L) } returns Optional.of(existing)
-      every { reconciliationRepository.save(any()) } answers { firstArg() }
+      every { dailyReconciliationQuery.findById(3L) } returns existing
+      every { dailyReconciliationMutation.save(any()) } answers { firstArg() }
 
       val reviewed = service.reviewReconciliation(3L, reviewedBy = 7L, reviewNotes = "OK")
 
@@ -609,7 +618,7 @@ class DailyCollectionServiceTest :
       reviewed.reviewedAt.shouldNotBeNull()
     }
     test("reviewReconciliation throws when missing") {
-      every { reconciliationRepository.findById(3L) } returns Optional.empty()
+      every { dailyReconciliationQuery.findById(3L) } returns null
 
       shouldThrow<IllegalArgumentException> { service.reviewReconciliation(3L, reviewedBy = 7L, reviewNotes = "OK") }
     }

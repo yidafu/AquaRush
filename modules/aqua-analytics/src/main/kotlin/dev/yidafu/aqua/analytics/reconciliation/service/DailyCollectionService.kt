@@ -22,6 +22,11 @@ package dev.yidafu.aqua.analytics.reconciliation.service
 import dev.yidafu.aqua.analytics.reconciliation.dto.DailyCollectionSummaryDTO
 import dev.yidafu.aqua.analytics.reconciliation.dto.OrderStatsDTO
 import dev.yidafu.aqua.analytics.reconciliation.dto.PaymentStatsDTO
+import dev.yidafu.aqua.api.service.order.OrderQueryService
+import dev.yidafu.aqua.api.service.reconciliation.DailyCollectionMutationService
+import dev.yidafu.aqua.api.service.reconciliation.DailyCollectionQueryApiService
+import dev.yidafu.aqua.api.service.reconciliation.DailyReconciliationMutationService
+import dev.yidafu.aqua.api.service.reconciliation.DailyReconciliationQueryApiService
 import dev.yidafu.aqua.common.domain.model.DailyCollectionRecordModel
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
@@ -29,8 +34,6 @@ import dev.yidafu.aqua.common.domain.model.enums.DailyCollectionStatus
 import dev.yidafu.aqua.common.domain.model.enums.DailyReconciliationStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
 import dev.yidafu.aqua.common.exception.BadRequestException
-import dev.yidafu.aqua.delivery.domain.repository.DailyCollectionRecordRepository
-import dev.yidafu.aqua.delivery.domain.repository.DailyReconciliationRepository
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
@@ -46,10 +49,11 @@ import java.time.LocalTime
  */
 @Service
 class DailyCollectionService(
-  private val collectionRecordRepository: DailyCollectionRecordRepository,
-  private val reconciliationRepository: DailyReconciliationRepository,
-  private val orderQueryService: dev.yidafu.aqua.api.service.order.OrderQueryService,
-  private val orderRepository: dev.yidafu.aqua.order.domain.repository.OrderRepository,
+  private val dailyCollectionQuery: DailyCollectionQueryApiService,
+  private val dailyReconciliationQuery: DailyReconciliationQueryApiService,
+  private val orderQueryService: OrderQueryService,
+  private val dailyCollectionMutation: DailyCollectionMutationService,
+  private val dailyReconciliationMutation: DailyReconciliationMutationService,
 ) {
   private val logger = LoggerFactory.getLogger(DailyCollectionService::class.java)
 
@@ -72,7 +76,7 @@ class DailyCollectionService(
 
     // 统计现金订单
     val cashResult =
-      orderRepository.countAndSumDeliveredByPaymentType(
+      orderQueryService.countAndSumDeliveredByPaymentType(
         deliveryWorkerId,
         PaymentType.CASH,
         startOfDay,
@@ -83,7 +87,7 @@ class DailyCollectionService(
 
     // 统计水票订单
     val waterTicketResult =
-      orderRepository.countAndSumDeliveredByPaymentType(
+      orderQueryService.countAndSumDeliveredByPaymentType(
         deliveryWorkerId,
         PaymentType.WATER_TICKET,
         startOfDay,
@@ -93,7 +97,7 @@ class DailyCollectionService(
 
     // 统计扫码订单
     val qrCodeResult =
-      orderRepository.countAndSumDeliveredByPaymentType(
+      orderQueryService.countAndSumDeliveredByPaymentType(
         deliveryWorkerId,
         PaymentType.QR_CODE,
         startOfDay,
@@ -118,9 +122,9 @@ class DailyCollectionService(
     val startOfDay = date.atStartOfDay()
     val endOfDay = date.atTime(LocalTime.MAX)
 
-    val orderCount = orderRepository.countDeliveredByDateRange(startOfDay, endOfDay, deliveryWorkerId).toInt()
+    val orderCount = orderQueryService.countDeliveredByDateRange(startOfDay, endOfDay, deliveryWorkerId).toInt()
 
-    val orderAmountCents = orderRepository.sumDeliveredAmountCentsByDateRange(startOfDay, endOfDay, deliveryWorkerId)
+    val orderAmountCents = orderQueryService.sumDeliveredAmountCentsByDateRange(startOfDay, endOfDay, deliveryWorkerId)
 
     return OrderStatsDTO(orderCount, orderAmountCents)
   }
@@ -159,9 +163,9 @@ class DailyCollectionService(
     val paymentStats = getTodayPaymentStats(deliveryWorkerId, collectionDate)
 
     // 统计已送达订单数量和金额(含待确认收货 + 已完成,按送达时间,R-ORD-11)
-    val orderCount = orderRepository.countDeliveredByDateRange(startOfDay, endOfDay, deliveryWorkerId).toInt()
+    val orderCount = orderQueryService.countDeliveredByDateRange(startOfDay, endOfDay, deliveryWorkerId).toInt()
 
-    val orderAmountCents = orderRepository.sumDeliveredAmountCentsByDateRange(startOfDay, endOfDay, deliveryWorkerId)
+    val orderAmountCents = orderQueryService.sumDeliveredAmountCentsByDateRange(startOfDay, endOfDay, deliveryWorkerId)
 
     // 计算实际收款金额（现金 + 扫码）
     val totalCollectionAmount = cashAmountCents + qrCodeAmountCents
@@ -186,7 +190,7 @@ class DailyCollectionService(
 
     // 创建或更新记录
     val existingRecord =
-      collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(
+      dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(
         deliveryWorkerId,
         collectionDate,
       )
@@ -230,7 +234,7 @@ class DailyCollectionService(
           calculatedOrderAmountCents = orderAmountCents,
         )
 
-    return collectionRecordRepository.save(record)
+    return dailyCollectionMutation.save(record)
   }
 
   /**
@@ -243,9 +247,8 @@ class DailyCollectionService(
     notes: String? = null,
   ): DailyCollectionRecordModel {
     val record =
-      collectionRecordRepository
-        .findById(recordId)
-        .orElseThrow { IllegalArgumentException("收款记录不存在: $recordId") }
+      dailyCollectionQuery.findById(recordId)
+        ?: throw IllegalArgumentException("收款记录不存在: $recordId")
 
     record.status = DailyCollectionStatus.CONFIRMED
     record.confirmedAt = LocalDateTime.now()
@@ -255,7 +258,7 @@ class DailyCollectionService(
 
     logger.info("管理员 {} 确认收款记录 {}", confirmedBy, recordId)
 
-    return collectionRecordRepository.save(record)
+    return dailyCollectionMutation.save(record)
   }
 
   /**
@@ -275,9 +278,8 @@ class DailyCollectionService(
       throw BadRequestException("驳回原因不能为空")
     }
     val record =
-      collectionRecordRepository
-        .findById(recordId)
-        .orElseThrow { BadRequestException("收款记录不存在: $recordId") }
+      dailyCollectionQuery.findById(recordId)
+        ?: throw BadRequestException("收款记录不存在: $recordId")
 
     if (record.status != DailyCollectionStatus.SUBMITTED && record.status != DailyCollectionStatus.DISPUTED) {
       throw BadRequestException("仅「已提交/有争议」状态的收款记录可驳回,当前状态: ${record.status}")
@@ -291,7 +293,7 @@ class DailyCollectionService(
 
     logger.info("管理员 {} 驳回收款记录 {}: {}", rejectedBy, recordId, reason)
 
-    return collectionRecordRepository.save(record)
+    return dailyCollectionMutation.save(record)
   }
 
   /**
@@ -301,7 +303,7 @@ class DailyCollectionService(
     deliveryWorkerId: Long,
     collectionDate: LocalDate,
   ): DailyCollectionRecordModel? =
-    collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(
+    dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(
       deliveryWorkerId,
       collectionDate,
     )
@@ -312,12 +314,12 @@ class DailyCollectionService(
   fun getCollectionsByDate(
     adminId: Long,
     collectionDate: LocalDate,
-  ): List<DailyCollectionRecordModel> = collectionRecordRepository.findByCollectionDate(collectionDate).ifEmpty { emptyList() }
+  ): List<DailyCollectionRecordModel> = dailyCollectionQuery.findByCollectionDate(collectionDate).ifEmpty { emptyList() }
 
   /**
    * 获取所有收款记录（管理员用）
    */
-  fun getAllCollections(): List<DailyCollectionRecordModel> = collectionRecordRepository.findAll().ifEmpty { emptyList() }
+  fun getAllCollections(): List<DailyCollectionRecordModel> = dailyCollectionQuery.findAll().ifEmpty { emptyList() }
 
   /**
    * 获取指定日期范围的所有收款记录
@@ -325,18 +327,18 @@ class DailyCollectionService(
   fun getCollectionsByDateRange(
     startDate: LocalDate,
     endDate: LocalDate,
-  ): List<DailyCollectionRecordModel> = collectionRecordRepository.findByCollectionDateBetween(startDate, endDate)
+  ): List<DailyCollectionRecordModel> = dailyCollectionQuery.findByCollectionDateBetween(startDate, endDate)
 
   /**
    * 获取对账记录
    */
   fun getReconciliationByDate(reconciliationDate: LocalDate): DailyReconciliationModel? =
-    reconciliationRepository.findByReconciliationDate(reconciliationDate)
+    dailyReconciliationQuery.findByReconciliationDate(reconciliationDate)
 
   /**
    * 获取所有对账记录
    */
-  fun getAllReconciliations(): List<DailyReconciliationModel> = reconciliationRepository.findAll().ifEmpty { emptyList() }
+  fun getAllReconciliations(): List<DailyReconciliationModel> = dailyReconciliationQuery.findAll().ifEmpty { emptyList() }
 
   /**
    * 定时任务：执行每日对账
@@ -353,7 +355,7 @@ class DailyCollectionService(
     logger.info("开始执行每日对账: {}", reconciliationDate)
 
     // 获取当日所有收款记录
-    val collections = collectionRecordRepository.findByCollectionDate(reconciliationDate)
+    val collections = dailyCollectionQuery.findByCollectionDate(reconciliationDate)
 
     // 汇总数据
     var totalCashAmountCents = 0L
@@ -423,7 +425,7 @@ class DailyCollectionService(
       )
 
     // 检查是否已存在对账记录，存在则更新，不存在则创建
-    val existingReconciliation = reconciliationRepository.findByReconciliationDate(reconciliationDate)
+    val existingReconciliation = dailyReconciliationQuery.findByReconciliationDate(reconciliationDate)
     val reconciliation =
       existingReconciliation?.apply {
         this.totalCashAmountCents = totalCashAmountCents
@@ -454,7 +456,7 @@ class DailyCollectionService(
           reportData = reportData,
         )
 
-    reconciliationRepository.save(reconciliation)
+    dailyReconciliationMutation.save(reconciliation)
 
     logger.info(
       "每日对账完成: date={}, totalOrderAmount={}, totalCollection={}, discrepancy={}, status={}",
@@ -484,10 +486,10 @@ class DailyCollectionService(
       )
     return when {
       collectionDate != null && deliveryWorkerId != null ->
-        collectionRecordRepository.findByDeliveryWorkerIdAndCollectionDate(deliveryWorkerId, collectionDate, pageable)
-      collectionDate != null -> collectionRecordRepository.findByCollectionDate(collectionDate, pageable)
-      deliveryWorkerId != null -> collectionRecordRepository.findByDeliveryWorkerId(deliveryWorkerId, pageable)
-      else -> collectionRecordRepository.findAll(pageable)
+        dailyCollectionQuery.findByDeliveryWorkerIdAndCollectionDate(deliveryWorkerId, collectionDate, pageable)
+      collectionDate != null -> dailyCollectionQuery.findByCollectionDate(collectionDate, pageable)
+      deliveryWorkerId != null -> dailyCollectionQuery.findByDeliveryWorkerId(deliveryWorkerId, pageable)
+      else -> dailyCollectionQuery.findAll(pageable)
     }
   }
 
@@ -498,7 +500,7 @@ class DailyCollectionService(
     page: Int,
     size: Int,
   ): Page<DailyReconciliationModel> =
-    reconciliationRepository.findAll(
+    dailyReconciliationQuery.findAll(
       PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "reconciliationDate")),
     )
 
@@ -506,7 +508,7 @@ class DailyCollectionService(
    * 指定日期收银汇总(后台顶部汇总卡):按该日全部日报记录聚合。
    */
   fun getDailyCollectionSummary(collectionDate: LocalDate): DailyCollectionSummaryDTO {
-    val records = collectionRecordRepository.findByCollectionDate(collectionDate)
+    val records = dailyCollectionQuery.findByCollectionDate(collectionDate)
     var totalCashAmountCents = 0L
     var totalQrCodeAmountCents = 0L
     var totalWaterTicketCount = 0
@@ -546,7 +548,7 @@ class DailyCollectionService(
   ): Page<OrderModel> {
     val startOfDay = reconciliationDate.atStartOfDay()
     val endOfDay = reconciliationDate.atTime(LocalTime.MAX)
-    return orderRepository.findDeliveredOrdersByDateRange(
+    return orderQueryService.findDeliveredOrdersByDateRange(
       deliveryWorkerId = deliveryWorkerId,
       startDate = startOfDay,
       endDate = endOfDay,
@@ -564,9 +566,8 @@ class DailyCollectionService(
     reviewNotes: String,
   ): DailyReconciliationModel {
     val reconciliation =
-      reconciliationRepository
-        .findById(reconciliationId)
-        .orElseThrow { IllegalArgumentException("对账记录不存在: $reconciliationId") }
+      dailyReconciliationQuery.findById(reconciliationId)
+        ?: throw IllegalArgumentException("对账记录不存在: $reconciliationId")
 
     reconciliation.status = DailyReconciliationStatus.REVIEWED
     reconciliation.reviewedAt = LocalDateTime.now()
@@ -576,6 +577,6 @@ class DailyCollectionService(
 
     logger.info("管理员 {} 复核对账记录 {}", reviewedBy, reconciliationId)
 
-    return reconciliationRepository.save(reconciliation)
+    return dailyReconciliationMutation.save(reconciliation)
   }
 }
