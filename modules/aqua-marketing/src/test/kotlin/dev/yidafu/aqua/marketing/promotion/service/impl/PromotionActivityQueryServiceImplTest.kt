@@ -34,7 +34,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import java.time.LocalDateTime
 import java.util.Optional
 
@@ -53,16 +52,16 @@ class PromotionActivityQueryServiceImplTest :
     test("listActivities with keyword") {
       val pageable: Pageable = PageRequest.of(0, 10)
       val page: Page<PromotionActivityModel> = PageImpl(listOf(PromotionActivityModel(id = 1L, name = "满减")))
-      every { promotionActivityRepository.findAll(any<Specification<PromotionActivityModel>>(), any<Pageable>()) } returns page
+      every { promotionActivityRepository.searchActivities(any(), any()) } returns page
 
       val result = service.listActivities("满减", pageable)
 
       result.totalElements shouldBe 1
-      verify { promotionActivityRepository.findAll(any<Specification<PromotionActivityModel>>(), any<Pageable>()) }
+      verify { promotionActivityRepository.searchActivities(any(), any()) }
     }
     test("listActivities without keyword") {
       val pageable: Pageable = PageRequest.of(0, 10)
-      every { promotionActivityRepository.findAll(any<Specification<PromotionActivityModel>>(), any<Pageable>()) } returns
+      every { promotionActivityRepository.searchActivities(any(), any()) } returns
         PageImpl(emptyList())
 
       val result = service.listActivities(null, pageable)

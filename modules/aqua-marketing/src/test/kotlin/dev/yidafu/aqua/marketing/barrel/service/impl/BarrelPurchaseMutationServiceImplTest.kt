@@ -38,7 +38,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import jakarta.persistence.EntityManager
 import java.util.Optional
 
 /**
@@ -50,7 +49,6 @@ class BarrelPurchaseMutationServiceImplTest :
     var barrelFeeRepository: BarrelFeeRepository = mockk()
     var barrelPurchaseRepository: BarrelPurchaseRepository = mockk()
     var barrelPurchaseItemRepository: BarrelPurchaseItemRepository = mockk()
-    var entityManager: EntityManager = mockk()
     var bizLogger: BizLogger = mockk()
     var service: BarrelPurchaseMutationServiceImpl = mockk()
 
@@ -84,14 +82,12 @@ class BarrelPurchaseMutationServiceImplTest :
       barrelFeeRepository = mockk()
       barrelPurchaseRepository = mockk()
       barrelPurchaseItemRepository = mockk()
-      entityManager = mockk(relaxed = true)
       bizLogger = mockk(relaxed = true)
       service =
         BarrelPurchaseMutationServiceImpl(
           barrelFeeRepository,
           barrelPurchaseRepository,
           barrelPurchaseItemRepository,
-          entityManager,
           bizLogger,
         )
     }
@@ -104,7 +100,7 @@ class BarrelPurchaseMutationServiceImplTest :
       every { barrelPurchaseRepository.save(capture(purchaseSlot)) } answers {
         firstArg<BarrelPurchaseModel>().apply { id = 99L }
       }
-      every { barrelPurchaseItemRepository.saveAll(any<Iterable<BarrelPurchaseItemModel>>()) } answers
+      every { barrelPurchaseItemRepository.saveAll(any<List<BarrelPurchaseItemModel>>()) } answers
         { firstArg<Iterable<BarrelPurchaseItemModel>>().toList() }
 
       val saved = service.purchaseBarrel(100L, PurchaseBarrelRequest(listOf(PurchaseBarrelItemRequest(1L, 2))))

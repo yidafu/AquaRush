@@ -34,7 +34,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import java.util.Optional
 
 /** 优惠券模板查询服务单元测试(F-MKT-003 列表/统计)。 */
@@ -60,17 +59,17 @@ class CouponQueryServiceImplTest :
       val pageable: Pageable = PageRequest.of(0, 10)
       val page: Page<CouponTemplateModel> = PageImpl(listOf(template(1L)))
       every {
-        couponTemplateRepository.findAll(any<Specification<CouponTemplateModel>>(), any<Pageable>())
+        couponTemplateRepository.searchTemplates(any(), any(), any())
       } returns page
 
       val result = service.listTemplates("券", CouponTemplateStatus.ACTIVE, pageable)
 
       result.totalElements shouldBe 1
-      verify { couponTemplateRepository.findAll(any<Specification<CouponTemplateModel>>(), any<Pageable>()) }
+      verify { couponTemplateRepository.searchTemplates(any(), any(), any()) }
     }
     test("listTemplates without filters") {
       val pageable: Pageable = PageRequest.of(0, 10)
-      every { couponTemplateRepository.findAll(any<Specification<CouponTemplateModel>>(), any<Pageable>()) } returns PageImpl(emptyList())
+      every { couponTemplateRepository.searchTemplates(any(), any(), any()) } returns PageImpl(emptyList())
 
       val result = service.listTemplates(null, null, pageable)
 

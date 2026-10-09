@@ -51,7 +51,7 @@ class DepositMutationApiServiceImplTest :
       depositRecordRepository = mockk(relaxed = true)
       bizLogger = mockk(relaxed = true)
       service = DepositMutationApiServiceImpl(depositRecordRepository, bizLogger)
-      every { depositRecordRepository.saveAll(any<Iterable<DepositRecordModel>>()) } answers
+      every { depositRecordRepository.saveAll(any<List<DepositRecordModel>>()) } answers
         { firstArg<Iterable<DepositRecordModel>>().toList() }
     }
 

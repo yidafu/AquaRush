@@ -31,7 +31,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import java.util.Optional
 
 /** 限时特价活动查询服务单元测试(F-MKT-005 列表/详情)。 */
@@ -47,16 +46,16 @@ class FlashSaleActivityQueryServiceImplTest :
     test("listActivities with keyword") {
       val pageable: Pageable = PageRequest.of(0, 10)
       val page: Page<FlashSaleActivityModel> = PageImpl(listOf(FlashSaleActivityModel(id = 1L, name = "特价")))
-      every { flashSaleActivityRepository.findAll(any<Specification<FlashSaleActivityModel>>(), any<Pageable>()) } returns page
+      every { flashSaleActivityRepository.searchActivities(any(), any()) } returns page
 
       val result = service.listActivities("特价", pageable)
 
       result.totalElements shouldBe 1
-      verify { flashSaleActivityRepository.findAll(any<Specification<FlashSaleActivityModel>>(), any<Pageable>()) }
+      verify { flashSaleActivityRepository.searchActivities(any(), any()) }
     }
     test("listActivities without keyword") {
       val pageable: Pageable = PageRequest.of(0, 10)
-      every { flashSaleActivityRepository.findAll(any<Specification<FlashSaleActivityModel>>(), any<Pageable>()) } returns
+      every { flashSaleActivityRepository.searchActivities(any(), any()) } returns
         PageImpl(emptyList())
 
       val result = service.listActivities(null, pageable)

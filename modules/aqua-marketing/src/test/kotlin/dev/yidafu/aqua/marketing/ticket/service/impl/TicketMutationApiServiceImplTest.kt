@@ -39,7 +39,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
-import jakarta.persistence.EntityManager
 import java.time.LocalDateTime
 import java.util.Optional
 
@@ -52,7 +51,6 @@ class TicketMutationApiServiceImplTest :
     var ticketTypeRepository: TicketTypeRepository = mockk()
     var ticketPurchaseRepository: TicketPurchaseRepository = mockk()
     var userTicketRepository: UserTicketRepository = mockk()
-    var entityManager: EntityManager = mockk()
     var bizLogger: BizLogger = mockk()
     var service: TicketMutationApiServiceImpl = mockk()
 
@@ -83,9 +81,8 @@ class TicketMutationApiServiceImplTest :
       ticketTypeRepository = mockk()
       ticketPurchaseRepository = mockk()
       userTicketRepository = mockk()
-      entityManager = mockk(relaxed = true)
       bizLogger = mockk(relaxed = true)
-      service = TicketMutationApiServiceImpl(ticketTypeRepository, ticketPurchaseRepository, userTicketRepository, entityManager, bizLogger)
+      service = TicketMutationApiServiceImpl(ticketTypeRepository, ticketPurchaseRepository, userTicketRepository, bizLogger)
     }
     test("purchaseTickets creates pending purchase") {
       every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(perUserLimit = 20))
@@ -132,11 +129,14 @@ class TicketMutationApiServiceImplTest :
           paymentStatus = TicketPurchaseStatus.PENDING,
         )
       every { ticketPurchaseRepository.findById(1L) } returns Optional.of(purchase)
-      every { ticketPurchaseRepository.markPaidAtomically(1L, "tx-1", any()) } returns 1
+      every { ticketPurchaseRepository.markPaidAtomically(1L, "tx-1", any()) } answers
+        {
+          purchase.paymentStatus = TicketPurchaseStatus.PAID
+          purchase.transactionId = "tx-1"
+          1
+        }
       every { ticketTypeRepository.findById(1L) } returns Optional.of(ticketType(giftCount = 1))
       every { userTicketRepository.nextTicketSeq(any()) } returnsMany (1L..11L).toList()
-      // 真实实现中 EntityManager.refresh 将实体刷新为 DB 最新状态(PAID)
-      every { entityManager.refresh(any()) } answers { (firstArg() as TicketPurchaseModel).paymentStatus = TicketPurchaseStatus.PAID }
       val ticketSlots = mutableListOf<UserTicketModel>()
       every { userTicketRepository.save(capture(ticketSlots)) } answers { firstArg() }
 

@@ -32,7 +32,6 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import java.util.Optional
 
 /** 买赠/满赠活动查询服务单元测试(F-MKT-008 列表/详情)。 */
@@ -48,16 +47,16 @@ class GiftActivityQueryServiceImplTest :
     test("listActivities with keyword") {
       val pageable: Pageable = PageRequest.of(0, 10)
       val page: Page<GiftActivityModel> = PageImpl(listOf(GiftActivityModel(id = 1L, name = "满赠", giftType = GiftActivityType.FULL_GIFT)))
-      every { giftActivityRepository.findAll(any<Specification<GiftActivityModel>>(), any<Pageable>()) } returns page
+      every { giftActivityRepository.searchActivities(any(), any()) } returns page
 
       val result = service.listActivities("满赠", pageable)
 
       result.totalElements shouldBe 1
-      verify { giftActivityRepository.findAll(any<Specification<GiftActivityModel>>(), any<Pageable>()) }
+      verify { giftActivityRepository.searchActivities(any(), any()) }
     }
     test("listActivities without keyword") {
       val pageable: Pageable = PageRequest.of(0, 10)
-      every { giftActivityRepository.findAll(any<Specification<GiftActivityModel>>(), any<Pageable>()) } returns PageImpl(emptyList())
+      every { giftActivityRepository.searchActivities(any(), any()) } returns PageImpl(emptyList())
 
       val result = service.listActivities(null, pageable)
 
