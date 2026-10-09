@@ -77,6 +77,8 @@ class OrderItemRepositoryImpl(
         .toList()
     }.map(::toModel)
 
+  override fun save(entity: OrderItemModel): OrderItemModel = saveAll(listOf(entity)).first()
+
   override fun saveAll(entities: List<OrderItemModel>): List<OrderItemModel> =
     transaction(database) {
       entities.map { entity ->

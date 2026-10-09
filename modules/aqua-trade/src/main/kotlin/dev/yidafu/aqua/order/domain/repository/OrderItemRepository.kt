@@ -32,6 +32,9 @@ interface OrderItemRepository {
 
   fun findByProductId(productId: Long): List<OrderItemModel>
 
+  /** 单条 upsert:无 id 或 id 不存在时插入(雪花 id 回填),否则按 id 更新业务列。 */
+  fun save(entity: OrderItemModel): OrderItemModel
+
   /** 单事务批量 upsert(全部成功或全部回滚),返回回填 id 后的实体列表。 */
   fun saveAll(entities: List<OrderItemModel>): List<OrderItemModel>
 }
