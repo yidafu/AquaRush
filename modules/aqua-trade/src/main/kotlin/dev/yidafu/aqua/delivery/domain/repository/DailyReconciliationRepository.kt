@@ -20,18 +20,41 @@
 package dev.yidafu.aqua.delivery.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DailyReconciliationModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
 import java.time.LocalDate
+import java.util.Optional
 
-@Repository
-interface DailyReconciliationRepository : JpaRepository<DailyReconciliationModel, Long> {
+/**
+ * 每日对账记录仓储(JPA→Exposed 迁移 P4):剥离 JpaRepository,仅保留实际被调用的方法。
+ * 表为裸 Table 但带 is_deleted 列(类级 @SoftDelete)——每个查询显式过滤
+ * `is_deleted = false`,删除为 `UPDATE is_deleted = true`;
+ * report_data 为 text 列,JSON 结构化转换由仓储层负责(Jackson)。
+ */
+interface DailyReconciliationRepository {
+  /** 全量列表(过滤软删;原 JPA 无序,固定 id 升序取稳定插入序)。 */
+  fun findAll(): List<DailyReconciliationModel>
+
+  /** 分页(过滤软删;原 JPA 无序,id 升序破平防跨页重复)。 */
+  fun findAll(pageable: Pageable): Page<DailyReconciliationModel>
+
+  fun findById(id: Long): Optional<DailyReconciliationModel>
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: DailyReconciliationModel): DailyReconciliationModel
+
+  /**
+   * 清空全部活跃记录。语义对齐 JPA @SoftDelete 的 deleteAll:
+   * `UPDATE ... SET is_deleted = true`(物理行保留,满足软删留痕)。
+   */
+  fun deleteAll()
+
+  /** 按对账日期查询唯一记录(过滤软删)。 */
   fun findByReconciliationDate(reconciliationDate: LocalDate): DailyReconciliationModel?
 
+  /** 日期区间查询,口径同 JPA Between:[startDate, endDate] 闭区间(过滤软删)。 */
   fun findByReconciliationDateBetween(
     startDate: LocalDate,
     endDate: LocalDate,
   ): List<DailyReconciliationModel>
-
-  fun existsByReconciliationDate(reconciliationDate: LocalDate): Boolean
 }

@@ -20,16 +20,28 @@
 package dev.yidafu.aqua.delivery.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DeliveryAreaModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
+import java.util.Optional
 
-@Repository
-interface DeliveryAreaRepository : JpaRepository<DeliveryAreaModel, Long> {
+/**
+ * 配送区域仓储(JPA→Exposed 迁移 P4):剥离 JpaRepository,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted(对齐 @SoftDelete),save 为按 id upsert。
+ */
+interface DeliveryAreaRepository {
+  /** 按省/市/区精确定位区域(地址校验用,过滤软删)。 */
   fun findByProvinceAndCityAndDistrict(
     province: String,
     city: String,
     district: String,
   ): DeliveryAreaModel?
 
+  /** 启用中的区域列表(过滤软删)。 */
   fun findByEnabledTrue(): List<DeliveryAreaModel>
+
+  /** 全部区域(过滤软删;原 JPA 无序,固定 id 升序取稳定插入序)。 */
+  fun findAll(): List<DeliveryAreaModel>
+
+  fun findById(id: Long): Optional<DeliveryAreaModel>
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: DeliveryAreaModel): DeliveryAreaModel
 }
