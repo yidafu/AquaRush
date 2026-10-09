@@ -24,7 +24,7 @@ The build enforces per-module line-coverage gates via **Kover** (configured in r
 | C | ≥ 55% | `aqua-admin`, `aqua-client` | Thin GraphQL resolvers; covered mainly by integration tests |
 | Total | ≥ 60% | whole codebase (merged) | Aggregate gate |
 
-The following are **excluded** from measurement (no business logic or generated code): `dev.yidafu.aqua.api.dto` DTOs, `dev.yidafu.aqua.common.graphql.generated` codegen, `*Mapper*` conversion functions in `*Mapper*.kt` (mechanical translation, covered by integration tests), `*Exception`/`*Exceptions`, `*Application` entry classes, and `@Configuration` classes.
+The following are **excluded** from measurement (no business logic or generated code — `*Mapper*` conversions are handwritten, not generated): `dev.yidafu.aqua.api.dto` DTOs, `dev.yidafu.aqua.common.graphql.generated` codegen, `*Mapper*` conversion functions in `*Mapper*.kt` (mechanical translation, covered by integration tests), `*Exception`/`*Exceptions`, `*Application` entry classes, and `@Configuration` classes.
 
 **Commands**: `./gradlew koverVerify` (whole build), `./gradlew :modules:aqua-trade:koverVerify` (one module), `./gradlew koverHtmlReport` (per-module HTML reports under each `build/reports/kover/`), `./gradlew :modules:aqua-trade:koverHtmlReport`.
 

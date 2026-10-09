@@ -33,13 +33,13 @@ class OrderQueryResolver(
 @PreAuthorize("isAuthenticated()")
 fun myOrders(
   @AuthenticationPrincipal userPrincipal: UserPrincipal,
-): List<OrderModel> = orderQueryService.findOrdersByUserId(userPrincipal.id)
+): List<Order> = orderQueryService.findOrdersByUserId(userPrincipal.id).map { it.toGraphQL() }
 
 @QueryMapping
 fun order(
   @Argument orderId: Long,
   @AuthenticationPrincipal userPrincipal: UserPrincipal,
-): OrderModel? = orderQueryService.findOrderByIdAndUserId(orderId, userPrincipal.id)
+): Order? = orderQueryService.findOrderByIdAndUserId(orderId, userPrincipal.id)?.toGraphQL()
 ```
 
 **Mutation Method Example**:
@@ -50,9 +50,10 @@ fun order(
 fun createOrder(
   @Argument @Valid input: CreateOrderInput,
   @AuthenticationPrincipal userPrincipal: UserPrincipal,
-): OrderModel {
-  val request = CreateOrderInputMapper.map(input).copy(userId = userPrincipal.id)
-  return orderMutationService.createOrder(request)
+): Order {
+  val request = input.toRequest().copy(userId = userPrincipal.id)
+  val order = orderMutationService.createOrder(request)
+  return order.toGraphQL()
 }
 ```
 
