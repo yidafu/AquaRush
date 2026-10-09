@@ -18,7 +18,7 @@ The project follows a clean multi-module architecture. Modules (`modules/`) hold
 Services (deployable Spring Boot applications):
 
 - **aqua-admin**: Admin dashboard backend — GraphQL resolvers under `admin/<domain>/resolvers/` (e.g. `order/`, `marketing/`, `ops/`, `logging/`), REST controllers, security
-- **aqua-client**: Mini Program backend — client-facing resolvers under `client/<domain>/resolver/` (e.g. `marketing/`, `ops/`) and controllers
+- **aqua-client**: Mini Program backend — client-facing resolvers under `client/<domain>/resolvers/` (e.g. `marketing/`, `ops/`) and controllers
 
 ## Module Directory Conventions
 
@@ -35,7 +35,7 @@ dev/yidafu/aqua/<domain>/
 ├── dto/              # module-private DTOs
 ├── event/            # domain events and handlers
 ├── mapper/           # Mappie mappers
-├── resolver/         # GraphQL resolvers that are thin module adapters
+├── resolvers/        # GraphQL resolvers that are thin module adapters
 └── service/
     └── impl/         # implementations (interfaces live in aqua-foundation api/service)
 ```
@@ -50,6 +50,8 @@ Services use `<admin|client>/{config, <domain>/{resolvers, controller, dto}}`.
 4. **Resolver input types are never inlined** (no `data class XxxInput` in a resolver `companion object`) — service-local GraphQL input DTOs go in `<admin|client>/<domain>/dto/` (e.g. `admin/user/dto/AdminRequestDtos.kt`, mapped from the generated GraphQL input via a `fromInput(...)` factory); cross-module DTOs in `aqua-foundation` `api/dto`.
 
 Prohibited: new `*ApiService` interface suffixes (use `*QueryService`/`*MutationService`); `util`/`utils` dual packages (use `util`); module-root `exception/` (use `domain/exception/`); `.imports` files outside `META-INF/spring/`.
+
+> 以上目录约定由 ArchUnit 强制执行：`services/aqua-admin` 测试 `dev.yidafu.aqua.architecture.DirectoryStructureTest`（规则 D1–D6）。
 
 ## Module Dependencies
 
@@ -68,6 +70,8 @@ Modules are structured with clear dependency hierarchy:
 - All cross-module data access must go through the service interfaces in `aqua-foundation` `api/service/**`
 - Each domain module only exposes its functionality via Service interfaces in `api/service`
 - This ensures clean module boundaries and proper encapsulation
+
+> 本节依赖规则由 ArchUnit 强制执行：`services/aqua-admin` 测试 `dev.yidafu.aqua.architecture.ModuleDependencyTest`（规则 P1–P4）。admin/client 直连模块 repository 属计划内豁免（services 非领域模块）。
 
 **Event-Driven Architecture with Artemis MQ**:
 - Domain events are published via ActiveMQ Artemis

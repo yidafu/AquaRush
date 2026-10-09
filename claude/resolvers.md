@@ -127,4 +127,4 @@ class MyResolver(
 5. **Validation**: Use `@Valid` with input DTOs for automatic validation
 6. **Input type placement**: never inline `data class XxxInput` in a resolver — service-local GraphQL input DTOs go in `<domain>/dto/`, cross-module DTOs in `aqua-foundation` `api/dto`
 
-**File Location**: Resolvers live in the service modules under `<domain>/resolvers/` (e.g. `services/aqua-admin/.../admin/order/resolvers/`, `services/aqua-client/.../client/marketing/resolver/`). Thin module adapters may stay in the module (e.g. `analytics/reconciliation/resolvers`).
+**File Location**: Resolvers live in the service modules under `<domain>/resolvers/` (e.g. `services/aqua-admin/.../admin/order/resolvers/`, `services/aqua-client/.../client/marketing/resolvers/`). Thin module adapters may stay in the module (e.g. `analytics/reconciliation/resolvers`).
