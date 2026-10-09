@@ -20,27 +20,38 @@
 package dev.yidafu.aqua.marketing.customer.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.data.repository.query.Param
-import org.springframework.stereotype.Repository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import java.util.Optional
 
 /**
- * 客户分组仓库(F-MKT-001);@SoftDelete 自动过滤软删行。
+ * 客户分组仓库(F-MKT-001)。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted,delete 软删。
  */
-@Repository
-interface CustomerGroupRepository :
-  JpaRepository<CustomerGroupModel, Long>,
-  JpaSpecificationExecutor<CustomerGroupModel> {
+interface CustomerGroupRepository {
   fun findByName(name: String): CustomerGroupModel?
 
   fun existsByName(name: String): Boolean
 
-  /**
-   * 名称关键字模糊查询(分页,按创建时间倒序)
-   */
-  fun findByNameContainingIgnoreCaseOrderByCreatedAtDesc(
-    @Param("keyword") keyword: String,
-    pageable: org.springframework.data.domain.Pageable,
-  ): org.springframework.data.domain.Page<CustomerGroupModel>
+  fun findById(id: Long): Optional<CustomerGroupModel>
+
+  fun existsById(id: Long): Boolean
+
+  /** 存量接口遗留的无界查询(违反规则 10,分组全量名册存量使用;不新增调用)。 */
+  fun findAll(): List<CustomerGroupModel>
+
+  fun findAllById(ids: List<Long>): List<CustomerGroupModel>
+
+  /** 后台分组分页:name 关键词(大小写不敏感);固定 createdAt 降序、id 破平。 */
+  fun searchGroups(
+    keyword: String?,
+    pageable: Pageable,
+  ): Page<CustomerGroupModel>
+
+  /** 语义对齐 @SoftDelete 下的 delete:软删。 */
+  fun delete(entity: CustomerGroupModel)
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: CustomerGroupModel): CustomerGroupModel
 }

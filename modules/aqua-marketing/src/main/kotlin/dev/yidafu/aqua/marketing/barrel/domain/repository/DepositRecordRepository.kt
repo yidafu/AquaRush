@@ -21,21 +21,18 @@ package dev.yidafu.aqua.marketing.barrel.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DepositRecordModel
 import dev.yidafu.aqua.common.domain.model.enums.DepositStatus
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.stereotype.Repository
 
 /**
- * 桶押金记录仓储(G06)
+ * 桶押金记录仓储(G06)。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted(历史数据只读)。
  */
-@Repository
-interface DepositRecordRepository :
-  JpaRepository<DepositRecordModel, Long>,
-  JpaSpecificationExecutor<DepositRecordModel> {
-  fun findByOrderId(orderId: Long): List<DepositRecordModel>
-
+interface DepositRecordRepository {
   fun findByOrderIdAndStatus(
     orderId: Long,
     status: DepositStatus,
   ): List<DepositRecordModel>
+
+  /** 批量 upsert(单事务原子)。 */
+  fun saveAll(entities: List<DepositRecordModel>): List<DepositRecordModel>
 }

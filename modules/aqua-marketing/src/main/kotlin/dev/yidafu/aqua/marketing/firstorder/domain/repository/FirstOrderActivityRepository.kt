@@ -20,16 +20,26 @@
 package dev.yidafu.aqua.marketing.firstorder.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.stereotype.Repository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import java.util.Optional
 
 /**
- * 首单立减/新人专享价活动仓库(F-MKT-009)
- * 原手写 @Query 方法已迁移至 QueryDSL,见 [FirstOrderActivityRepositoryCustom]/[FirstOrderActivityRepositoryImpl]。
+ * 首单立减/新人专享价活动仓库(F-MKT-009)。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted,delete 软删;当前生效活动/重叠校验见 [FirstOrderActivityRepositoryCustom]。
  */
-@Repository
-interface FirstOrderActivityRepository :
-  JpaRepository<FirstOrderActivityModel, Long>,
-  JpaSpecificationExecutor<FirstOrderActivityModel>,
-  FirstOrderActivityRepositoryCustom
+interface FirstOrderActivityRepository : FirstOrderActivityRepositoryCustom {
+  fun findAllById(ids: List<Long>): List<FirstOrderActivityModel>
+
+  fun findById(id: Long): Optional<FirstOrderActivityModel>
+
+  /** 后台活动分页:name 关键词(大小写不敏感);固定 id 升序破平。 */
+  fun searchActivities(
+    keyword: String?,
+    pageable: Pageable,
+  ): Page<FirstOrderActivityModel>
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: FirstOrderActivityModel): FirstOrderActivityModel
+}

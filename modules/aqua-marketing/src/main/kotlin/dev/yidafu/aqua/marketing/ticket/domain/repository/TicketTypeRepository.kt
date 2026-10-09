@@ -21,16 +21,32 @@ package dev.yidafu.aqua.marketing.ticket.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.TicketTypeModel
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.stereotype.Repository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import java.util.Optional
 
 /**
- * 桶水票票种仓库(F-MKT-007)
+ * 桶水票票种仓库(F-MKT-007)。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted,delete 软删。
  */
-@Repository
-interface TicketTypeRepository :
-  JpaRepository<TicketTypeModel, Long>,
-  JpaSpecificationExecutor<TicketTypeModel> {
+interface TicketTypeRepository {
+  /** 存量接口遗留的无界查询(违反规则 10,后台 seed/票种 id 反查存量使用;不新增调用)。 */
+  fun findAll(): List<TicketTypeModel>
+
+  fun findAllById(ids: List<Long>): List<TicketTypeModel>
+
+  fun findById(id: Long): Optional<TicketTypeModel>
+
   fun findByStatus(status: TicketTypeStatus): List<TicketTypeModel>
+
+  /** 后台票种分页:name 关键词(大小写不敏感) + status 精确;固定 id 升序破平。 */
+  fun searchTicketTypes(
+    keyword: String?,
+    status: TicketTypeStatus?,
+    pageable: Pageable,
+  ): Page<TicketTypeModel>
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: TicketTypeModel): TicketTypeModel
 }

@@ -19,41 +19,177 @@
 
 package dev.yidafu.aqua.marketing.firstorder.domain.repository
 
-import com.querydsl.core.BooleanBuilder
-import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
-import dev.yidafu.aqua.common.domain.model.QFirstOrderActivityModel.Companion.firstOrderActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
+import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
+import dev.yidafu.aqua.common.domain.table.FirstOrderActivitiesTable
+import dev.yidafu.aqua.common.domain.table.activeOnly
+import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.lessEq
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.neq
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.util.Optional
 
 /**
- * 首单立减/新人专享价活动仓库 QueryDSL 实现。
- * 注意:@SoftDelete 由 Hibernate 在 SQL 层自动过滤已删行。
+ * 首单立减/新人专享价活动仓储实现(JPA→Exposed 迁移 P4)。
+ * 查询过滤 is_deleted;delete 软删三列写入(语义对齐 @SoftDelete + P4 约定)。
  */
 @Repository
-class FirstOrderActivityRepositoryImpl : FirstOrderActivityRepositoryCustom {
-  @PersistenceContext
-  private lateinit var entityManager: EntityManager
+class FirstOrderActivityRepositoryImpl(
+  private val database: Database,
+) : FirstOrderActivityRepository {
+  private fun toModel(row: ResultRow): FirstOrderActivityModel =
+    FirstOrderActivityModel(
+      id = row[FirstOrderActivitiesTable.id],
+      name = row[FirstOrderActivitiesTable.name],
+      activityType = FirstOrderActivityType.valueOf(row[FirstOrderActivitiesTable.activityType]),
+      thresholdCents = row[FirstOrderActivitiesTable.thresholdCents],
+      discountAmountCents = row[FirstOrderActivitiesTable.discountAmountCents],
+      discountRatePermille = row[FirstOrderActivitiesTable.discountRatePermille],
+      scope = PromotionScope.valueOf(row[FirstOrderActivitiesTable.scope]),
+      productId = row[FirstOrderActivitiesTable.productId],
+      newcomerPriceCents = row[FirstOrderActivitiesTable.newcomerPriceCents],
+      validFrom = row[FirstOrderActivitiesTable.validFrom],
+      validTo = row[FirstOrderActivitiesTable.validTo],
+      status = PromotionActivityStatus.valueOf(row[FirstOrderActivitiesTable.status]),
+      createdAt = row[FirstOrderActivitiesTable.createdAt],
+      updatedAt = row[FirstOrderActivitiesTable.updatedAt],
+      deletedAt = row[FirstOrderActivitiesTable.deletedAt],
+      deletedBy = row[FirstOrderActivitiesTable.deletedBy],
+    )
 
-  private val queryFactory: JPAQueryFactory by lazy {
-    JPAQueryFactory(entityManager)
+  override fun findAllById(ids: List<Long>): List<FirstOrderActivityModel> {
+    if (ids.isEmpty()) return emptyList()
+    return transaction(database) {
+      FirstOrderActivitiesTable
+        .selectAll()
+        .where { FirstOrderActivitiesTable.activeOnly { FirstOrderActivitiesTable.id inList ids } }
+        .orderBy(FirstOrderActivitiesTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
   }
+
+  override fun findById(id: Long): Optional<FirstOrderActivityModel> =
+    Optional.ofNullable(
+      transaction(database) {
+        FirstOrderActivitiesTable
+          .selectAll()
+          .where { FirstOrderActivitiesTable.activeOnly { FirstOrderActivitiesTable.id eq id } }
+          .limit(1)
+          .firstOrNull()
+      }?.let(::toModel),
+    )
+
+  override fun searchActivities(
+    keyword: String?,
+    pageable: Pageable,
+  ): Page<FirstOrderActivityModel> {
+    var condition: Op<Boolean> = Op.TRUE
+    keyword?.takeIf { it.isNotBlank() }?.let {
+      condition = condition and (FirstOrderActivitiesTable.name.lowerCase() like "%${it.lowercase()}%")
+    }
+    val (content, total) =
+      transaction(database) {
+        val content =
+          FirstOrderActivitiesTable
+            .selectAll()
+            .where { FirstOrderActivitiesTable.activeOnly { condition } }
+            // 固定 id 升序破平(原 JPA 无序,取稳定插入序)
+            .orderBy(FirstOrderActivitiesTable.id to SortOrder.ASC)
+            .offset(pageable.offset)
+            .limit(pageable.pageSize)
+            .toList()
+            .map(::toModel)
+        content to FirstOrderActivitiesTable.selectAll().where { FirstOrderActivitiesTable.activeOnly { condition } }.count()
+      }
+    return PageImpl(content, pageable, total)
+  }
+
+  override fun save(entity: FirstOrderActivityModel): FirstOrderActivityModel =
+    transaction(database) {
+      val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
+      val now = LocalDateTime.now()
+      val exists =
+        FirstOrderActivitiesTable
+          .selectAll()
+          .where { FirstOrderActivitiesTable.id eq id }
+          .limit(1)
+          .any()
+      if (exists) {
+        FirstOrderActivitiesTable.update({ FirstOrderActivitiesTable.id eq id }) {
+          it[name] = entity.name
+          it[activityType] = entity.activityType.name
+          it[thresholdCents] = entity.thresholdCents
+          it[discountAmountCents] = entity.discountAmountCents
+          it[discountRatePermille] = entity.discountRatePermille
+          it[scope] = entity.scope.name
+          it[productId] = entity.productId
+          it[newcomerPriceCents] = entity.newcomerPriceCents
+          it[validFrom] = entity.validFrom
+          it[validTo] = entity.validTo
+          it[status] = entity.status.name
+          it[updatedAt] = now
+        }
+      } else {
+        FirstOrderActivitiesTable.insert {
+          it[FirstOrderActivitiesTable.id] = id
+          it[name] = entity.name
+          it[activityType] = entity.activityType.name
+          it[thresholdCents] = entity.thresholdCents
+          it[discountAmountCents] = entity.discountAmountCents
+          it[discountRatePermille] = entity.discountRatePermille
+          it[scope] = entity.scope.name
+          it[productId] = entity.productId
+          it[newcomerPriceCents] = entity.newcomerPriceCents
+          it[validFrom] = entity.validFrom
+          it[validTo] = entity.validTo
+          it[status] = entity.status.name
+          it[FirstOrderActivitiesTable.createdAt] = entity.createdAt
+          it[updatedAt] = entity.updatedAt
+        }
+      }
+      entity
+    }
+
+  // ===== FirstOrderActivityRepositoryCustom =====
 
   override fun findActiveActivities(
     status: PromotionActivityStatus,
     now: LocalDateTime,
   ): List<FirstOrderActivityModel> =
-    queryFactory
-      .selectFrom(firstOrderActivityModel)
-      .where(
-        firstOrderActivityModel.status.eq(status),
-        firstOrderActivityModel.validFrom.loe(now),
-        firstOrderActivityModel.validTo.goe(now),
-      ).fetch()
+    transaction(database) {
+      FirstOrderActivitiesTable
+        .selectAll()
+        .where {
+          FirstOrderActivitiesTable.activeOnly {
+            (FirstOrderActivitiesTable.status eq status.name) and
+              (FirstOrderActivitiesTable.validFrom lessEq now) and
+              (FirstOrderActivitiesTable.validTo greaterEq now)
+          }
+        }.orderBy(FirstOrderActivitiesTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
 
   override fun findActiveNewcomerPriceByProductId(
     productId: Long,
@@ -61,16 +197,23 @@ class FirstOrderActivityRepositoryImpl : FirstOrderActivityRepositoryCustom {
     status: PromotionActivityStatus,
     now: LocalDateTime,
   ): FirstOrderActivityModel? =
-    queryFactory
-      .selectFrom(firstOrderActivityModel)
-      .where(
-        firstOrderActivityModel.status.eq(status),
-        firstOrderActivityModel.validFrom.loe(now),
-        firstOrderActivityModel.validTo.goe(now),
-        firstOrderActivityModel.activityType.eq(activityType),
-        firstOrderActivityModel.productId.eq(productId),
-      ).orderBy(firstOrderActivityModel.validFrom.desc())
-      .fetchFirst()
+    transaction(database) {
+      FirstOrderActivitiesTable
+        .selectAll()
+        .where {
+          FirstOrderActivitiesTable.activeOnly {
+            (FirstOrderActivitiesTable.productId eq productId) and
+              (FirstOrderActivitiesTable.activityType eq activityType.name) and
+              (FirstOrderActivitiesTable.status eq status.name) and
+              (FirstOrderActivitiesTable.validFrom lessEq now) and
+              (FirstOrderActivitiesTable.validTo greaterEq now)
+          }
+        }.orderBy(
+          FirstOrderActivitiesTable.validFrom to SortOrder.DESC,
+          FirstOrderActivitiesTable.id to SortOrder.DESC,
+        ).limit(1)
+        .firstOrNull()
+    }?.let(::toModel)
 
   override fun existsOverlap(
     productId: Long,
@@ -79,18 +222,20 @@ class FirstOrderActivityRepositoryImpl : FirstOrderActivityRepositoryCustom {
     newValidFrom: LocalDateTime,
     newValidTo: LocalDateTime,
     excludeId: Long?,
-  ): Boolean {
-    val builder =
-      BooleanBuilder()
-        .and(firstOrderActivityModel.productId.eq(productId))
-        .and(firstOrderActivityModel.status.eq(status))
-        .and(firstOrderActivityModel.activityType.eq(activityType))
-        .and(firstOrderActivityModel.validFrom.lt(newValidTo))
-        .and(firstOrderActivityModel.validTo.gt(newValidFrom))
-    excludeId?.let { builder.and(firstOrderActivityModel.id.ne(it)) }
-    return queryFactory
-      .selectFrom(firstOrderActivityModel)
-      .where(builder)
-      .fetchCount() > 0
-  }
+  ): Boolean =
+    transaction(database) {
+      FirstOrderActivitiesTable
+        .selectAll()
+        .where {
+          FirstOrderActivitiesTable.activeOnly {
+            (FirstOrderActivitiesTable.productId eq productId) and
+              (FirstOrderActivitiesTable.activityType eq activityType.name) and
+              (FirstOrderActivitiesTable.status eq status.name) and
+              (FirstOrderActivitiesTable.validFrom less newValidTo) and
+              (FirstOrderActivitiesTable.validTo greater newValidFrom) and
+              (if (excludeId != null) FirstOrderActivitiesTable.id neq excludeId else Op.TRUE)
+          }
+        }.limit(1)
+        .any()
+    }
 }

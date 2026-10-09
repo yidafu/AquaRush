@@ -19,37 +19,56 @@
 
 package dev.yidafu.aqua.marketing.ticket.domain.repository
 
-import com.querydsl.core.types.Projections
-import com.querydsl.core.types.dsl.DateTimeExpression
-import com.querydsl.core.types.dsl.Expressions
-import com.querydsl.jpa.impl.JPAQueryFactory
-import dev.yidafu.aqua.common.domain.model.QTicketPurchaseModel.Companion.ticketPurchaseModel
+import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
+import dev.yidafu.aqua.common.domain.table.TicketPurchasesTable
+import dev.yidafu.aqua.common.domain.table.activeOnly
+import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
+import org.jetbrains.exposed.v1.core.LongColumnType
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.javatime.JavaLocalDateTimeColumnType
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.Optional
 
 /**
- * 购票单仓库 QueryDSL 实现。
- * 支付入账原子流转(PENDING→PAID,幂等)。
- * 注意:@SoftDelete 由 Hibernate 在 SQL 层自动过滤已删行。
+ * 购票单仓储实现(JPA→Exposed 迁移 P4)。
+ * 查询过滤 is_deleted;支付入账为原子条件 UPDATE(幂等);
+ * 按日销售聚合走原生 SQL(对齐原 QueryDSL coalesce/cast/date-group,AddressRepositoryImpl 同款 exec 模式)。
  */
 @Repository
-class TicketPurchaseRepositoryImpl : TicketPurchaseRepositoryCustom {
-  @PersistenceContext
-  private lateinit var entityManager: EntityManager
+class TicketPurchaseRepositoryImpl(
+  private val database: Database,
+) : TicketPurchaseRepository {
+  private fun toModel(row: ResultRow): TicketPurchaseModel =
+    TicketPurchaseModel(
+      id = row[TicketPurchasesTable.id],
+      userId = row[TicketPurchasesTable.userId],
+      ticketTypeId = row[TicketPurchasesTable.ticketTypeId],
+      orderNo = row[TicketPurchasesTable.orderNo],
+      packageCount = row[TicketPurchasesTable.packageCount],
+      giftCount = row[TicketPurchasesTable.giftCount],
+      totalCount = row[TicketPurchasesTable.totalCount],
+      packagePriceCents = row[TicketPurchasesTable.packagePriceCents],
+      paymentStatus = TicketPurchaseStatus.valueOf(row[TicketPurchasesTable.paymentStatus]),
+      transactionId = row[TicketPurchasesTable.transactionId],
+      paidAt = row[TicketPurchasesTable.paidAt],
+      createdAt = row[TicketPurchasesTable.createdAt],
+      updatedAt = row[TicketPurchasesTable.updatedAt],
+      deletedAt = row[TicketPurchasesTable.deletedAt],
+      deletedBy = row[TicketPurchasesTable.deletedBy],
+    )
 
-  private val queryFactory: JPAQueryFactory by lazy {
-    JPAQueryFactory(entityManager)
-  }
-
-  /**
-   * 按日汇总已支付购票投影行(Projections.constructor 目标)。
-   */
-  class TicketPaidSalesDayRow(
+  /** 按日汇总投影行。 */
+  private data class TicketPaidSalesDayRow(
     private val day: LocalDate,
     private val purchaseCount: Long,
     private val ticketCount: Long,
@@ -64,51 +83,149 @@ class TicketPurchaseRepositoryImpl : TicketPurchaseRepositoryCustom {
     override fun getRevenueCents(): Long = revenueCents
   }
 
+  override fun findByOrderNo(orderNo: String): TicketPurchaseModel? =
+    transaction(database) {
+      TicketPurchasesTable
+        .selectAll()
+        .where { TicketPurchasesTable.activeOnly { TicketPurchasesTable.orderNo eq orderNo } }
+        .limit(1)
+        .firstOrNull()
+    }?.let(::toModel)
+
+  override fun countByUserIdAndTicketTypeIdAndPaymentStatus(
+    userId: Long,
+    ticketTypeId: Long,
+    paymentStatus: TicketPurchaseStatus,
+  ): Long =
+    transaction(database) {
+      TicketPurchasesTable
+        .selectAll()
+        .where {
+          TicketPurchasesTable.activeOnly {
+            (TicketPurchasesTable.userId eq userId) and
+              (TicketPurchasesTable.ticketTypeId eq ticketTypeId) and
+              (TicketPurchasesTable.paymentStatus eq paymentStatus.name)
+          }
+        }.count()
+    }
+
+  override fun findById(id: Long): Optional<TicketPurchaseModel> =
+    Optional.ofNullable(
+      transaction(database) {
+        TicketPurchasesTable
+          .selectAll()
+          .where { TicketPurchasesTable.activeOnly { TicketPurchasesTable.id eq id } }
+          .limit(1)
+          .firstOrNull()
+      }?.let(::toModel),
+    )
+
+  override fun save(entity: TicketPurchaseModel): TicketPurchaseModel =
+    transaction(database) {
+      val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
+      val now = LocalDateTime.now()
+      val exists =
+        TicketPurchasesTable
+          .selectAll()
+          .where { TicketPurchasesTable.id eq id }
+          .limit(1)
+          .any()
+      if (exists) {
+        TicketPurchasesTable.update({ TicketPurchasesTable.id eq id }) {
+          it[userId] = entity.userId
+          it[ticketTypeId] = entity.ticketTypeId
+          it[orderNo] = entity.orderNo
+          it[packageCount] = entity.packageCount
+          it[giftCount] = entity.giftCount
+          it[totalCount] = entity.totalCount
+          it[packagePriceCents] = entity.packagePriceCents
+          it[paymentStatus] = entity.paymentStatus.name
+          it[transactionId] = entity.transactionId
+          it[paidAt] = entity.paidAt
+          it[updatedAt] = now
+        }
+      } else {
+        TicketPurchasesTable.insert {
+          it[TicketPurchasesTable.id] = id
+          it[userId] = entity.userId
+          it[ticketTypeId] = entity.ticketTypeId
+          it[orderNo] = entity.orderNo
+          it[packageCount] = entity.packageCount
+          it[giftCount] = entity.giftCount
+          it[totalCount] = entity.totalCount
+          it[packagePriceCents] = entity.packagePriceCents
+          it[paymentStatus] = entity.paymentStatus.name
+          it[transactionId] = entity.transactionId
+          it[paidAt] = entity.paidAt
+          it[TicketPurchasesTable.createdAt] = entity.createdAt
+          it[updatedAt] = entity.updatedAt
+        }
+      }
+      entity
+    }
+
+  // ===== TicketPurchaseRepositoryCustom =====
+
   override fun findPaidSalesGroupedByDay(
     ticketTypeId: Long,
     from: LocalDateTime,
     to: LocalDateTime,
   ): List<TicketPurchaseRepositoryCustom.TicketPaidSalesDay> {
-    // 时间戳 = coalesce(paidAt, createdAt),与原 JPQL 一致
-    val tsExpr: DateTimeExpression<LocalDateTime> =
-      ticketPurchaseModel.paidAt.coalesce(ticketPurchaseModel.createdAt)
-    val dayExpr = Expressions.dateTemplate(LocalDate::class.java, "cast({0} as date)", tsExpr)
-
-    return queryFactory
-      .select(
-        Projections.constructor(
-          TicketPaidSalesDayRow::class.java,
-          dayExpr,
-          ticketPurchaseModel.id.count(),
-          ticketPurchaseModel.totalCount.sumLong(),
-          ticketPurchaseModel.packagePriceCents.sumLong(),
-        ),
-      ).from(ticketPurchaseModel)
-      .where(
-        ticketPurchaseModel.ticketTypeId.eq(ticketTypeId),
-        ticketPurchaseModel.paymentStatus.eq(TicketPurchaseStatus.PAID),
-        tsExpr.goe(from),
-        tsExpr.lt(to),
-      ).groupBy(dayExpr)
-      .orderBy(dayExpr.asc())
-      .fetch()
+    // 时间戳 = coalesce(paid_at, created_at),与原 JPQL 一致;[from, to) 左闭右开
+    val sql =
+      """
+      SELECT CAST(COALESCE(paid_at, created_at) AS DATE) AS "day",
+             COUNT(*) AS purchase_count,
+             SUM(total_count) AS ticket_count,
+             SUM(package_price_cents) AS revenue_cents
+      FROM ticket_purchases
+      WHERE ticket_type_id = ?
+        AND payment_status = 'PAID'
+        AND is_deleted = false
+        AND COALESCE(paid_at, created_at) >= ?
+        AND COALESCE(paid_at, created_at) < ?
+      GROUP BY CAST(COALESCE(paid_at, created_at) AS DATE)
+      ORDER BY "day"
+      """.trimIndent()
+    val args =
+      listOf(
+        LongColumnType() to ticketTypeId,
+        JavaLocalDateTimeColumnType() to from,
+        JavaLocalDateTimeColumnType() to to,
+      )
+    return transaction(database) {
+      exec(sql, args) { rs ->
+        val result = mutableListOf<TicketPurchaseRepositoryCustom.TicketPaidSalesDay>()
+        while (rs.next()) {
+          result +=
+            TicketPaidSalesDayRow(
+              day = rs.getDate("day").toLocalDate(),
+              purchaseCount = rs.getLong("purchase_count"),
+              ticketCount = rs.getLong("ticket_count"),
+              revenueCents = rs.getLong("revenue_cents"),
+            )
+        }
+        result
+      } ?: emptyList()
+    }
   }
 
-  @Transactional
   override fun markPaidAtomically(
     id: Long,
     transactionId: String,
     now: LocalDateTime,
   ): Int =
-    queryFactory
-      .update(ticketPurchaseModel)
-      .set(ticketPurchaseModel.paymentStatus, TicketPurchaseStatus.PAID)
-      .set(ticketPurchaseModel.transactionId, transactionId)
-      .set(ticketPurchaseModel.paidAt, now)
-      .set(ticketPurchaseModel.updatedAt, now)
-      .where(
-        ticketPurchaseModel.id.eq(id),
-        ticketPurchaseModel.paymentStatus.eq(TicketPurchaseStatus.PENDING),
-      ).execute()
-      .toInt()
+    transaction(database) {
+      TicketPurchasesTable.update({
+        TicketPurchasesTable.activeOnly {
+          (TicketPurchasesTable.id eq id) and
+            (TicketPurchasesTable.paymentStatus eq TicketPurchaseStatus.PENDING.name)
+        }
+      }) {
+        it[TicketPurchasesTable.paymentStatus] = TicketPurchaseStatus.PAID.name
+        it[TicketPurchasesTable.transactionId] = transactionId
+        it[paidAt] = now
+        it[updatedAt] = now
+      }
+    }
 }

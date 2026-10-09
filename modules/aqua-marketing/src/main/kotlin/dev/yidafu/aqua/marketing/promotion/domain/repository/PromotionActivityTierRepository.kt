@@ -20,15 +20,21 @@
 package dev.yidafu.aqua.marketing.promotion.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PromotionActivityTierModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 
 /**
- * 满减/折扣活动档位仓库(档位递增且互斥)
+ * 满减/折扣活动档位仓库(档位递增且互斥)。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted,delete 软删。
  */
-@Repository
-interface PromotionActivityTierRepository : JpaRepository<PromotionActivityTierModel, Long> {
+interface PromotionActivityTierRepository {
+  /** 按档位 sort 升序(引擎取档位口径);id 破平。 */
   fun findByActivityIdOrderBySortAsc(activityId: Long): List<PromotionActivityTierModel>
 
   fun findByActivityId(activityId: Long): List<PromotionActivityTierModel>
+
+  /** 语义对齐 @SoftDelete 下的 delete:软删。 */
+  fun delete(entity: PromotionActivityTierModel)
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: PromotionActivityTierModel): PromotionActivityTierModel
 }

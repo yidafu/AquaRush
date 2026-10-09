@@ -25,7 +25,6 @@ import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketTypeRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 
 /**
@@ -39,20 +38,7 @@ class TicketTypeQueryServiceImpl(
     keyword: String?,
     status: TicketTypeStatus?,
     pageable: Pageable,
-  ): Page<TicketTypeModel> {
-    val spec =
-      Specification<TicketTypeModel> { root, _, cb ->
-        val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
-        if (!keyword.isNullOrBlank()) {
-          predicates.add(cb.like(cb.lower(root.get("name")), "%${keyword.lowercase()}%"))
-        }
-        if (status != null) {
-          predicates.add(cb.equal(root.get<Any>("status"), status))
-        }
-        cb.and(*predicates.toTypedArray())
-      }
-    return ticketTypeRepository.findAll(spec, pageable)
-  }
+  ): Page<TicketTypeModel> = ticketTypeRepository.searchTicketTypes(keyword, status, pageable)
 
   override fun getTicketType(id: Long): TicketTypeModel? = ticketTypeRepository.findById(id).orElse(null)
 }

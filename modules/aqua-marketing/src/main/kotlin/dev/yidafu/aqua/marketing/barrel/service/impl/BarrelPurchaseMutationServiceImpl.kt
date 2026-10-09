@@ -30,7 +30,6 @@ import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseItemRepository
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelPurchaseRepository
-import jakarta.persistence.EntityManager
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -45,7 +44,6 @@ class BarrelPurchaseMutationServiceImpl(
   private val barrelFeeRepository: BarrelFeeRepository,
   private val barrelPurchaseRepository: BarrelPurchaseRepository,
   private val barrelPurchaseItemRepository: BarrelPurchaseItemRepository,
-  private val entityManager: EntityManager,
   private val bizLogger: BizLogger,
 ) : BarrelPurchaseMutationService {
   private val logger = LoggerFactory.getLogger(BarrelPurchaseMutationServiceImpl::class.java)
@@ -125,10 +123,9 @@ class BarrelPurchaseMutationServiceImpl(
     // 原子 PENDING→PAID;受影响行数=0 表示并发已入账
     val affected = barrelPurchaseRepository.markPaidAtomically(purchaseId, transactionId, now)
     if (affected == 0) {
-      entityManager.refresh(purchase)
-      return purchase
+      // 并发已入账:重读最新状态返回(实体已脱离 JPA 持久化上下文,原 JPA refresh 的等价语义)
+      return barrelPurchaseRepository.findById(purchaseId).orElse(purchase)
     }
-    entityManager.refresh(purchase)
     logger.info("购桶单支付入账: purchaseId={}, transactionId={}", purchaseId, transactionId)
     bizLogger.logOperation(
       operation = "BARREL_PURCHASE_PAID",
@@ -138,7 +135,8 @@ class BarrelPurchaseMutationServiceImpl(
       userId = purchase.userId,
       additionalData = mapOf("transactionId" to transactionId),
     )
-    return purchase
+    // 重读入账后的最新状态(PAID)返回
+    return barrelPurchaseRepository.findById(purchaseId).orElse(purchase)
   }
 
   @Transactional

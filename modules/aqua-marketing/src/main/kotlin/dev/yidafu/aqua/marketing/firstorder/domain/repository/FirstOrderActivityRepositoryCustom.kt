@@ -25,7 +25,7 @@ import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import java.time.LocalDateTime
 
 /**
- * 首单立减/新人专享价活动仓库 QueryDSL 自定义查询(FirstOrderActivityRepository 中手写 @Query 迁移至此)。
+ * 首单立减/新人专享价活动仓库 自定义查询(FirstOrderActivityRepository 中手写 @Query 迁移至此)。
  */
 interface FirstOrderActivityRepositoryCustom {
   /**

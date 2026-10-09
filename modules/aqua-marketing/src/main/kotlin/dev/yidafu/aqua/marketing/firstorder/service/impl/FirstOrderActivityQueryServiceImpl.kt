@@ -24,7 +24,6 @@ import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
 import dev.yidafu.aqua.marketing.firstorder.domain.repository.FirstOrderActivityRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 
 /**
@@ -37,17 +36,7 @@ class FirstOrderActivityQueryServiceImpl(
   override fun listActivities(
     keyword: String?,
     pageable: Pageable,
-  ): Page<FirstOrderActivityModel> {
-    val spec =
-      Specification<FirstOrderActivityModel> { root, _, cb ->
-        if (keyword.isNullOrBlank()) {
-          null
-        } else {
-          cb.like(cb.lower(root.get("name")), "%${keyword.lowercase()}%")
-        }
-      }
-    return firstOrderActivityRepository.findAll(spec, pageable)
-  }
+  ): Page<FirstOrderActivityModel> = firstOrderActivityRepository.searchActivities(keyword, pageable)
 
   override fun getActivity(id: Long): FirstOrderActivityModel? = firstOrderActivityRepository.findById(id).orElse(null)
 }

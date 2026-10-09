@@ -38,12 +38,7 @@ class CustomerGroupQueryServiceImpl(
   override fun listGroups(
     keyword: String?,
     pageable: Pageable,
-  ): Page<CustomerGroupModel> =
-    if (keyword.isNullOrBlank()) {
-      customerGroupRepository.findAll(pageable)
-    } else {
-      customerGroupRepository.findByNameContainingIgnoreCaseOrderByCreatedAtDesc(keyword, pageable)
-    }
+  ): Page<CustomerGroupModel> = customerGroupRepository.searchGroups(keyword, pageable)
 
   override fun getGroup(id: Long): CustomerGroupModel? = customerGroupRepository.findById(id).orElse(null)
 

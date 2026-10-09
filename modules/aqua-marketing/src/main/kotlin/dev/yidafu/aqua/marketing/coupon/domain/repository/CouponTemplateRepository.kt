@@ -21,18 +21,31 @@ package dev.yidafu.aqua.marketing.coupon.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.CouponTemplateModel
 import dev.yidafu.aqua.common.domain.model.enums.CouponTemplateStatus
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.stereotype.Repository
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.Pageable
+import java.util.Optional
 
 /**
- * 优惠券模板仓库(F-MKT-003)
+ * 优惠券模板仓库(F-MKT-003)。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted。
  */
-@Repository
-interface CouponTemplateRepository :
-  JpaRepository<CouponTemplateModel, Long>,
-  JpaSpecificationExecutor<CouponTemplateModel> {
+interface CouponTemplateRepository {
   fun findByName(name: String): CouponTemplateModel?
 
   fun findByStatus(status: CouponTemplateStatus): List<CouponTemplateModel>
+
+  fun findById(id: Long): Optional<CouponTemplateModel>
+
+  fun findAllById(ids: List<Long>): List<CouponTemplateModel>
+
+  /** 后台模板分页:name 关键词(大小写不敏感) + status 精确;固定 id 升序破平。 */
+  fun searchTemplates(
+    keyword: String?,
+    status: CouponTemplateStatus?,
+    pageable: Pageable,
+  ): Page<CouponTemplateModel>
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: CouponTemplateModel): CouponTemplateModel
 }

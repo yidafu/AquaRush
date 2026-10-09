@@ -23,21 +23,16 @@ import dev.yidafu.aqua.common.domain.model.UserCouponModel
 import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
+import java.util.Optional
 
 /**
  * 用户优惠券实例仓库(F-MKT-003):
  * 核销/退回用原子条件 UPDATE(防并发重复使用,核销幂等 R-MKT-03)。
- * 原手写 @Query 方法已迁移至 QueryDSL,见 [UserCouponRepositoryCustom]/[UserCouponRepositoryImpl]。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository/JpaSpecificationExecutor,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted;原子条件 UPDATE 见 [UserCouponRepositoryCustom]。
  */
-@Repository
-interface UserCouponRepository :
-  JpaRepository<UserCouponModel, Long>,
-  JpaSpecificationExecutor<UserCouponModel>,
-  UserCouponRepositoryCustom {
+interface UserCouponRepository : UserCouponRepositoryCustom {
   fun findByUserId(userId: Long): List<UserCouponModel>
 
   fun findByUserIdAndStatus(
@@ -55,20 +50,16 @@ interface UserCouponRepository :
     templateId: Long,
   ): Long
 
-  fun findByUsedOrderId(orderId: Long): List<UserCouponModel>
-
-  fun countByCouponTemplateId(templateId: Long): Long
-
   fun countByCouponTemplateIdAndStatus(
     templateId: Long,
     status: UserCouponStatus,
   ): Long
 
-  fun findByCouponTemplateId(templateId: Long): List<UserCouponModel>
+  fun findById(id: Long): Optional<UserCouponModel>
 
   /**
    * 分页查询指定状态且过期时间在 [from, to) 区间的优惠券(优惠券即将过期提醒调度用;
-   * 分页游标,禁止全表查询 —— 规则 13)。
+   * 分页游标,禁止全表查询 —— 规则 13);固定 id 升序破平。
    */
   fun findByStatusAndExpireTimeBetween(
     status: UserCouponStatus,
@@ -76,4 +67,7 @@ interface UserCouponRepository :
     to: LocalDateTime,
     pageable: Pageable,
   ): Page<UserCouponModel>
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: UserCouponModel): UserCouponModel
 }

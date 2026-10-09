@@ -23,7 +23,7 @@ import java.time.LocalDate
 import java.time.LocalDateTime
 
 /**
- * 购票单仓库 QueryDSL 自定义查询(TicketPurchaseRepository 中手写 @Query 迁移至此)。
+ * 购票单仓库 自定义查询(TicketPurchaseRepository 中手写 @Query 迁移至此)。
  */
 interface TicketPurchaseRepositoryCustom {
   /**

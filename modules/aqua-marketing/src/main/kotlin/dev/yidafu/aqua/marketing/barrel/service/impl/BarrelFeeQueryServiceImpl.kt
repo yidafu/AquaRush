@@ -25,8 +25,6 @@ import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus
 import dev.yidafu.aqua.marketing.barrel.domain.repository.BarrelFeeRepository
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageRequest
-import org.springframework.data.domain.Sort
-import org.springframework.data.jpa.domain.Specification
 import org.springframework.stereotype.Service
 
 /**
@@ -44,18 +42,7 @@ class BarrelFeeQueryServiceImpl(
     page: Int,
     size: Int,
   ): Page<BarrelFeeModel> {
-    val spec =
-      Specification<BarrelFeeModel> { root, _, cb ->
-        val predicates = mutableListOf<jakarta.persistence.criteria.Predicate>()
-        status?.let { predicates.add(cb.equal(root.get<BarrelFeeStatus>("status"), it)) }
-        keyword?.takeIf { it.isNotBlank() }?.let {
-          predicates.add(cb.like(cb.lower(root.get<String>("specification")), "%${it.lowercase()}%"))
-        }
-        cb.and(*predicates.toTypedArray())
-      }
-    return barrelFeeRepository.findAll(
-      spec,
-      PageRequest.of(page, size, Sort.by(Sort.Direction.ASC, "sortOrder")),
-    )
+    // 排序由仓储固定(sortOrder ASC + id 破平),pageable 只带页码
+    return barrelFeeRepository.searchFees(status, keyword, PageRequest.of(page, size))
   }
 }

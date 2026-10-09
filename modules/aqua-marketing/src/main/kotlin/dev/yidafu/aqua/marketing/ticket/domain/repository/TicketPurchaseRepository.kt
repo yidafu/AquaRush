@@ -21,17 +21,14 @@ package dev.yidafu.aqua.marketing.ticket.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.TicketPurchaseModel
 import dev.yidafu.aqua.common.domain.model.enums.TicketPurchaseStatus
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
+import java.util.Optional
 
 /**
  * 购票单仓库(F-MKT-007):orderNo 作为微信支付 out_trade_no;支付入账原子流转(PENDING→PAID,幂等)。
- * 原手写 @Query 方法已迁移至 QueryDSL,见 [TicketPurchaseRepositoryCustom]/[TicketPurchaseRepositoryImpl]。
+ * JPA→Exposed 迁移 P4:剥离 JpaRepository,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted,delete 软删;销售统计/原子流转见 [TicketPurchaseRepositoryCustom]。
  */
-@Repository
-interface TicketPurchaseRepository :
-  JpaRepository<TicketPurchaseModel, Long>,
-  TicketPurchaseRepositoryCustom {
+interface TicketPurchaseRepository : TicketPurchaseRepositoryCustom {
   fun findByOrderNo(orderNo: String): TicketPurchaseModel?
 
   fun countByUserIdAndTicketTypeIdAndPaymentStatus(
@@ -39,4 +36,9 @@ interface TicketPurchaseRepository :
     ticketTypeId: Long,
     paymentStatus: TicketPurchaseStatus,
   ): Long
+
+  fun findById(id: Long): Optional<TicketPurchaseModel>
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: TicketPurchaseModel): TicketPurchaseModel
 }

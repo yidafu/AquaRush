@@ -23,7 +23,7 @@ import dev.yidafu.aqua.common.domain.model.enums.UserCouponStatus
 import java.time.LocalDateTime
 
 /**
- * 用户优惠券实例仓库 QueryDSL 自定义查询(UserCouponRepository 中手写 @Query 迁移至此)。
+ * 用户优惠券实例仓库 自定义查询(UserCouponRepository 中手写 @Query 迁移至此)。
  */
 interface UserCouponRepositoryCustom {
   /**
