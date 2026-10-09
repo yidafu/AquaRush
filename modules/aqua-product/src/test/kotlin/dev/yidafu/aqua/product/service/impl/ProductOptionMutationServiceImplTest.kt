@@ -19,10 +19,10 @@
 
 package dev.yidafu.aqua.product.service.impl
 
-import dev.yidafu.aqua.api.dto.ProductOptionCreateRequest
-import dev.yidafu.aqua.api.dto.ProductOptionUpdateRequest
 import dev.yidafu.aqua.common.domain.model.ProductOptionModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductOptionType
+import dev.yidafu.aqua.common.graphql.generated.CreateProductOptionInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateProductOptionInput
 import dev.yidafu.aqua.product.domain.exception.DuplicateProductOptionValueException
 import dev.yidafu.aqua.product.domain.exception.ProductOptionNotFoundException
 import dev.yidafu.aqua.product.domain.repository.ProductOptionRepository
@@ -33,6 +33,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.util.Optional
+import dev.yidafu.aqua.common.graphql.generated.ProductOptionType as GqlProductOptionType
 
 /**
  * 商品属性选项字典写操作服务单元测试(F-PRO-009):
@@ -67,7 +68,13 @@ class ProductOptionMutationServiceImplTest :
         service.createOption(
           adminId = 1L,
           adminName = "admin",
-          request = ProductOptionCreateRequest(ProductOptionType.SPECIFICATION, "  20L  ", sortOrder = null, enabled = true),
+          input =
+            CreateProductOptionInput(
+              optionType = GqlProductOptionType.SPECIFICATION,
+              value = "  20L  ",
+              sortOrder = null,
+              enabled = true,
+            ),
         )
 
       // Then
@@ -86,7 +93,7 @@ class ProductOptionMutationServiceImplTest :
         service.createOption(
           adminId = 1L,
           adminName = "admin",
-          request = ProductOptionCreateRequest(ProductOptionType.SPECIFICATION, "19L", sortOrder = 1, enabled = true),
+          input = CreateProductOptionInput(optionType = GqlProductOptionType.SPECIFICATION, value = "19L", sortOrder = 1, enabled = true),
         )
       }
       verify(exactly = 0) { productOptionRepository.save(any()) }
@@ -105,7 +112,7 @@ class ProductOptionMutationServiceImplTest :
           adminId = 1L,
           adminName = "admin",
           id = 5L,
-          request = ProductOptionUpdateRequest("昆仑山", sortOrder = 3, enabled = false),
+          input = UpdateProductOptionInput(value = "昆仑山", sortOrder = 3, enabled = false),
         )
 
       // Then
@@ -127,7 +134,7 @@ class ProductOptionMutationServiceImplTest :
           adminId = 1L,
           adminName = "admin",
           id = 5L,
-          request = ProductOptionUpdateRequest("长白山", sortOrder = null, enabled = true),
+          input = UpdateProductOptionInput(value = "长白山", sortOrder = null, enabled = true),
         )
 
       // Then(自身值不触发重复异常,缺省 sortOrder 保留原值)
@@ -148,7 +155,7 @@ class ProductOptionMutationServiceImplTest :
           adminId = 1L,
           adminName = "admin",
           id = 5L,
-          request = ProductOptionUpdateRequest("昆仑山", sortOrder = 1, enabled = true),
+          input = UpdateProductOptionInput(value = "昆仑山", sortOrder = 1, enabled = true),
         )
       }
     }
@@ -163,7 +170,7 @@ class ProductOptionMutationServiceImplTest :
           adminId = 1L,
           adminName = "admin",
           id = 999L,
-          request = ProductOptionUpdateRequest("新值", sortOrder = 1, enabled = true),
+          input = UpdateProductOptionInput(value = "新值", sortOrder = 1, enabled = true),
         )
       }
     }

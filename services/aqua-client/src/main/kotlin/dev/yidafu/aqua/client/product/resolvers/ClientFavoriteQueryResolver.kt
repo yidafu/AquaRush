@@ -26,7 +26,7 @@ import dev.yidafu.aqua.common.graphql.generated.FavoriteProduct
 import dev.yidafu.aqua.common.graphql.generated.FavoriteProductVoPage
 import dev.yidafu.aqua.common.graphql.generated.PageInfo
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.product.mapper.ProductModelStatusMapper
+import dev.yidafu.aqua.product.mapper.toGraphQL
 import org.slf4j.LoggerFactory
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
@@ -136,7 +136,7 @@ class ClientFavoriteQueryResolver(
       coverImageUrl = product.coverImageUrl,
       stock = product.stock,
       salesVolume = product.salesVolume,
-      status = ProductModelStatusMapper.map(product.status),
+      status = product.status.toGraphQL(),
       addedAt = addedAt ?: product.createdAt,
     )
 }

@@ -19,44 +19,32 @@
 
 package dev.yidafu.aqua.product.mapper
 
-import dev.yidafu.aqua.api.dto.ProductOptionCreateRequest
-import dev.yidafu.aqua.api.dto.ProductOptionUpdateRequest
 import dev.yidafu.aqua.common.domain.model.ProductOptionModel
-import dev.yidafu.aqua.common.graphql.generated.CreateProductOptionInput
 import dev.yidafu.aqua.common.graphql.generated.ProductOption
 import dev.yidafu.aqua.common.graphql.generated.ProductOptionType
-import dev.yidafu.aqua.common.graphql.generated.UpdateProductOptionInput
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
 import dev.yidafu.aqua.common.domain.model.enums.ProductOptionType as DomainProductOptionType
 
 /**
  * 商品属性选项字典 Mapper(F-PRO-009):
- * 实体 → GraphQL ProductOption;GraphQL 入参 → 服务层 DTO。
+ * 实体 → GraphQL ProductOption;GraphQL 枚举 ↔ 领域枚举同名互转。
  */
-object ProductOptionMapper : ObjectMappie<ProductOptionModel, ProductOption>() {
-  override fun map(from: ProductOptionModel): ProductOption =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-      to::optionType fromExpression { ProductOptionTypeMapper.map(from.optionType) }
-    }
-}
+fun ProductOptionModel.toGraphQL(): ProductOption =
+  ProductOption(
+    createdAt = createdAt,
+    enabled = enabled,
+    id = id ?: 0L,
+    optionType = optionType.toGraphQL(),
+    sortOrder = sortOrder,
+    updatedAt = updatedAt,
+    value = value,
+  )
 
-object ProductOptionTypeMapper : EnumMappie<DomainProductOptionType, ProductOptionType>()
+/**
+ * 领域枚举 → GraphQL 枚举(同名 valueOf 互转)
+ */
+fun DomainProductOptionType.toGraphQL(): ProductOptionType = ProductOptionType.valueOf(name)
 
-object ProductOptionTypeInputMapper : EnumMappie<ProductOptionType, DomainProductOptionType>()
-
-object CreateProductOptionInputMapper : ObjectMappie<CreateProductOptionInput, ProductOptionCreateRequest>() {
-  override fun map(from: CreateProductOptionInput): ProductOptionCreateRequest =
-    mapping {
-      to::optionType fromExpression { ProductOptionTypeInputMapper.map(from.optionType) }
-      to::enabled fromValue (from.enabled ?: true)
-    }
-}
-
-object UpdateProductOptionInputMapper : ObjectMappie<UpdateProductOptionInput, ProductOptionUpdateRequest>() {
-  override fun map(from: UpdateProductOptionInput): ProductOptionUpdateRequest =
-    mapping {
-      to::enabled fromValue (from.enabled ?: true)
-    }
-}
+/**
+ * GraphQL 枚举 → 领域枚举(同名 valueOf 互转)
+ */
+fun ProductOptionType.toDomain(): DomainProductOptionType = DomainProductOptionType.valueOf(name)

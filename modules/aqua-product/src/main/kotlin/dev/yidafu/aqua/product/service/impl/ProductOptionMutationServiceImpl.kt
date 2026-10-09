@@ -19,14 +19,15 @@
 
 package dev.yidafu.aqua.product.service.impl
 
-import dev.yidafu.aqua.api.dto.ProductOptionCreateRequest
-import dev.yidafu.aqua.api.dto.ProductOptionUpdateRequest
 import dev.yidafu.aqua.api.service.product.ProductOptionMutationService
 import dev.yidafu.aqua.common.domain.model.ProductOptionModel
 import dev.yidafu.aqua.common.domain.model.enums.ProductOptionType
+import dev.yidafu.aqua.common.graphql.generated.CreateProductOptionInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateProductOptionInput
 import dev.yidafu.aqua.product.domain.exception.DuplicateProductOptionValueException
 import dev.yidafu.aqua.product.domain.exception.ProductOptionNotFoundException
 import dev.yidafu.aqua.product.domain.repository.ProductOptionRepository
+import dev.yidafu.aqua.product.mapper.toDomain
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -46,16 +47,18 @@ class ProductOptionMutationServiceImpl(
   override fun createOption(
     adminId: Long,
     adminName: String,
-    request: ProductOptionCreateRequest,
+    input: CreateProductOptionInput,
   ): ProductOptionModel {
-    validateValueUnique(request.optionType, request.value, excludeId = null)
-    val sortOrder = request.sortOrder ?: (productOptionRepository.findMaxSortOrder(request.optionType) ?: 0).plus(1)
+    // GraphQL 枚举 → 领域枚举;enabled 缺省回填 true(原 Request 中转行为)
+    val optionType = input.optionType.toDomain()
+    validateValueUnique(optionType, input.value, excludeId = null)
+    val sortOrder = input.sortOrder ?: (productOptionRepository.findMaxSortOrder(optionType) ?: 0).plus(1)
     val option =
       ProductOptionModel(
-        optionType = request.optionType,
-        value = request.value.trim(),
+        optionType = optionType,
+        value = input.value.trim(),
         sortOrder = sortOrder,
-        enabled = request.enabled,
+        enabled = input.enabled ?: true,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
@@ -67,17 +70,18 @@ class ProductOptionMutationServiceImpl(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: ProductOptionUpdateRequest,
+    input: UpdateProductOptionInput,
   ): ProductOptionModel {
     val existing = productOptionRepository.findById(id).orElseThrow { ProductOptionNotFoundException(id) }
-    val newValue = request.value.trim()
+    val newValue = input.value.trim()
     if (newValue != existing.value) {
       validateValueUnique(existing.optionType, newValue, excludeId = id)
     }
     existing.apply {
       value = newValue
-      sortOrder = request.sortOrder ?: this.sortOrder
-      enabled = request.enabled
+      sortOrder = input.sortOrder ?: this.sortOrder
+      // enabled 缺省回填 true(原 Request 中转行为)
+      enabled = input.enabled ?: true
     }
     return productOptionRepository.save(existing)
   }

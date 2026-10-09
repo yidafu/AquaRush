@@ -22,8 +22,8 @@ package dev.yidafu.aqua.admin.product.resolvers
 import dev.yidafu.aqua.api.service.product.ProductOptionQueryService
 import dev.yidafu.aqua.common.graphql.generated.ProductOption
 import dev.yidafu.aqua.common.graphql.generated.ProductOptionType
-import dev.yidafu.aqua.product.mapper.ProductOptionMapper
-import dev.yidafu.aqua.product.mapper.ProductOptionTypeInputMapper
+import dev.yidafu.aqua.product.mapper.toDomain
+import dev.yidafu.aqua.product.mapper.toGraphQL
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
 import org.springframework.security.access.prepost.PreAuthorize
@@ -45,7 +45,7 @@ class AdminProductOptionQueryResolver(
   ): List<ProductOption> =
     productOptionQueryService
       .listOptions(
-        type = ProductOptionTypeInputMapper.map(type),
+        type = type.toDomain(),
         enabledOnly = enabledOnly,
-      ).map { ProductOptionMapper.map(it) }
+      ).map { it.toGraphQL() }
 }

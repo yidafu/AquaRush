@@ -30,7 +30,7 @@ import dev.yidafu.aqua.common.exception.NotFoundException
 import dev.yidafu.aqua.common.graphql.generated.*
 import dev.yidafu.aqua.product.domain.repository.ProductFavoriteRepository
 import dev.yidafu.aqua.product.domain.repository.ProductRepository
-import dev.yidafu.aqua.product.mapper.ProductMapper
+import dev.yidafu.aqua.product.mapper.toGraphQL
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVPrinter
 import org.apache.poi.ss.usermodel.*
@@ -578,7 +578,7 @@ class ProductFavoriteServiceImpl(
 
   // Private helper methods
 
-  private fun convertToGraphQLProduct(product: ProductModel): Product = ProductMapper.map(product)
+  private fun convertToGraphQLProduct(product: ProductModel): Product = product.toGraphQL()
 
   private fun convertProductStatus(status: ProductStatus): ProductStatus = status
 }

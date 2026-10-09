@@ -25,7 +25,7 @@ import dev.yidafu.aqua.common.domain.model.enums.ProductModelStatus
 import dev.yidafu.aqua.common.graphql.generated.Product
 import dev.yidafu.aqua.common.graphql.generated.ProductVoPage
 import dev.yidafu.aqua.common.graphql.util.toPageInfo
-import dev.yidafu.aqua.product.mapper.ProductMapper
+import dev.yidafu.aqua.product.mapper.toGraphQL
 import dev.yidafu.aqua.product.service.impl.ProductServiceImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
@@ -52,7 +52,7 @@ class ClientProductQueryResolver(
   ): Product? {
     val product = productService.findById(id)
 
-    return product?.let { ProductMapper.map(it) }
+    return product?.toGraphQL()
   }
 
   /**
@@ -77,7 +77,7 @@ class ClientProductQueryResolver(
         sortBy = resolveActiveSort(sortBy, sortDirection),
       )
     val productsPage = productService.productsPaginated(query, pageable)
-    val (productList, pageInfo) = productsPage.toPageInfo { ProductMapper.map(it) }
+    val (productList, pageInfo) = productsPage.toPageInfo { it.toGraphQL() }
     return ProductVoPage(
       list = productList,
       pageInfo = pageInfo,
