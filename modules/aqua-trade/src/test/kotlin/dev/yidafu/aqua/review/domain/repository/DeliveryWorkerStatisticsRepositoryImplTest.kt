@@ -19,107 +19,211 @@
 
 package dev.yidafu.aqua.review.domain.repository
 
-import com.querydsl.core.types.EntityPath
-import com.querydsl.core.types.Expression
-import com.querydsl.core.types.OrderSpecifier
-import com.querydsl.core.types.Predicate
-import com.querydsl.jpa.impl.JPAQuery
-import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
+import dev.yidafu.aqua.common.domain.table.DeliveryWorkerStatisticsTable
+import dev.yidafu.aqua.trade.common.exposed.TradePgTestSupport
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.nulls.shouldBeNull
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.mockkConstructor
-import io.mockk.unmockkConstructor
-import jakarta.persistence.EntityManager
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import org.springframework.data.domain.PageRequest
 import java.math.BigDecimal
+import java.time.LocalDateTime
 
 /**
- * 配送员统计仓储 QueryDSL 实现单元测试:排行榜/评分区间/平均分。
+ * 送水员评价统计仓储 Exposed 实现测试(Testcontainers 真实 PG,替代原 QueryDSL mockk 测试):
+ * save 双分支(lastUpdated 写入口径)/软删可见性/排行榜排序/评分区间/计数/整体均分。
+ *
+ * 测试表由 SchemaUtils 创建、无 last_updated 触发器——断言以写入值为准。
  */
 class DeliveryWorkerStatisticsRepositoryImplTest :
   FunSpec({
-    var selectQuery: JPAQuery<DeliveryWorkerStatisticsModel> = mockk()
-    var countQuery: JPAQuery<Void> = mockk()
-    var avgQuery: JPAQuery<Double> = mockk()
-    var repo: DeliveryWorkerStatisticsRepositoryImpl = mockk()
-    val pageable = PageRequest.of(0, 10)
+    val repo = DeliveryWorkerStatisticsRepositoryImpl(TradePgTestSupport.database)
 
-    fun stats(id: Long) =
-      DeliveryWorkerStatisticsModel(
-        id = id,
-        deliveryWorkerId = id,
-        averageRating = BigDecimal.valueOf(4.5),
-        totalReviews = 10,
-      )
+    beforeTest { TradePgTestSupport.reset() }
 
-    beforeTest {
-      mockkConstructor(JPAQueryFactory::class)
-      selectQuery = mockk(relaxed = true)
-      countQuery = mockk(relaxed = true)
-      avgQuery = mockk(relaxed = true)
-      repo = DeliveryWorkerStatisticsRepositoryImpl()
-      val em = mockk<EntityManager>(relaxed = true)
-      val field = DeliveryWorkerStatisticsRepositoryImpl::class.java.getDeclaredField("entityManager")
-      field.isAccessible = true
-      field.set(repo, em)
+    test("save 新增回填雪花 id 并显式写入 lastUpdated,findByDeliveryWorkerId 可查") {
+      val saved =
+        repo.save(
+          DeliveryWorkerStatisticsModel(
+            deliveryWorkerId = 5L,
+            averageRating = BigDecimal("4.50"),
+            totalReviews = 10,
+            fiveStarReviews = 6,
+            fourStarReviews = 4,
+          ),
+        )
+      saved.id.shouldNotBeNull()
 
-      every { anyConstructed<JPAQueryFactory>().query() } returns countQuery
-      every { anyConstructed<JPAQueryFactory>().selectFrom(any<EntityPath<DeliveryWorkerStatisticsModel>>()) } returns selectQuery
-      every { countQuery.from(any()) } returns countQuery
-      every { countQuery.where(any<Predicate>()) } returns countQuery
-      every { countQuery.select(any<Expression<Double>>()) } returns avgQuery
-      every { selectQuery.where(any<Predicate>()) } returns selectQuery
-      every { selectQuery.orderBy(any<OrderSpecifier<*>>(), any<OrderSpecifier<*>>()) } returns selectQuery
-      every { selectQuery.offset(any()) } returns selectQuery
-      every { selectQuery.limit(any()) } returns selectQuery
+      val found = repo.findByDeliveryWorkerId(5L).shouldNotBeNull()
+      found.averageRating shouldBe BigDecimal("4.50")
+      found.totalReviews shouldBe 10
+
+      // INSERT 显式写入 lastUpdated(表无列默认)
+      val row =
+        transaction(TradePgTestSupport.database) {
+          DeliveryWorkerStatisticsTable
+            .selectAll()
+            .where { DeliveryWorkerStatisticsTable.deliveryWorkerId eq 5L }
+            .single()
+        }
+      row[DeliveryWorkerStatisticsTable.lastUpdated] shouldBe saved.lastUpdated
+      repo.findByDeliveryWorkerId(6L).shouldBeNull()
     }
-    afterTest {
-      unmockkConstructor(JPAQueryFactory::class)
+
+    test("save 更新已有实体走 update 分支,不重复插入") {
+      val id =
+        seedStatistics(
+          workerId = 5L,
+          averageRating = "3.00",
+          totalReviews = 4,
+        )
+      val loaded = repo.findByDeliveryWorkerId(5L).shouldNotBeNull()
+      loaded.updateStatistics(5)
+      repo.save(loaded)
+
+      val reloaded = repo.findByDeliveryWorkerId(5L).shouldNotBeNull()
+      reloaded.id shouldBe id
+      reloaded.totalReviews shouldBe 5
+      reloaded.fiveStarReviews shouldBe 1
+      repo.countRows() shouldBe 1
     }
-    test("findDeliveryWorkersRanking sorts by rating") {
-      val rows = listOf(stats(1L), stats(2L))
-      every { countQuery.fetchCount() } returns 2L
-      every { selectQuery.fetch() } returns rows
 
-      val page = repo.findDeliveryWorkersRanking("rating", 1, pageable)
+    test("软删统计不可见:findByDeliveryWorkerId 过滤") {
+      seedStatistics(workerId = 5L, averageRating = "4.00", totalReviews = 3, deleted = true)
+      val keep = seedStatistics(workerId = 6L, averageRating = "4.50", totalReviews = 3)
 
-      page.content shouldBe rows
+      repo.findByDeliveryWorkerId(5L).shouldBeNull()
+      repo.findByDeliveryWorkerId(6L).shouldNotBeNull().id shouldBe keep
+    }
+
+    test("排行榜:rating 主排序(totalReviews>=minReviews 过滤),lastUpdated/id 破平") {
+      // a 最高分;b 次之;c 评论数不足被过滤;d 软删不进结果
+      val a =
+        seedStatistics(
+          workerId = 1L,
+          averageRating = "4.90",
+          totalReviews = 20,
+          lastUpdated = LocalDateTime.of(2026, 3, 2, 10, 0),
+        )
+      val b =
+        seedStatistics(
+          workerId = 2L,
+          averageRating = "4.50",
+          totalReviews = 15,
+          lastUpdated = LocalDateTime.of(2026, 3, 3, 10, 0),
+        )
+      seedStatistics(workerId = 3L, averageRating = "5.00", totalReviews = 0)
+      seedStatistics(workerId = 4L, averageRating = "5.00", totalReviews = 99, deleted = true)
+
+      val page = repo.findDeliveryWorkersRanking("rating", 1, PageRequest.of(0, 10))
       page.totalElements shouldBe 2L
+      page.content.map { it.id } shouldContainExactly listOf(a, b)
+
+      // 分页不重不漏
+      val p0 = repo.findDeliveryWorkersRanking("rating", 1, PageRequest.of(0, 1))
+      p0.content.map { it.id } shouldContainExactly listOf(a)
+      val p1 = repo.findDeliveryWorkersRanking("rating", 1, PageRequest.of(1, 1))
+      p1.content.map { it.id } shouldContainExactly listOf(b)
     }
-    test("findDeliveryWorkersRanking sorts by reviews") {
-      val rows = listOf(stats(1L))
-      every { countQuery.fetchCount() } returns 1L
-      every { selectQuery.fetch() } returns rows
 
-      val page = repo.findDeliveryWorkersRanking("reviews", 1, pageable)
+    test("排行榜:reviews 主排序按 totalReviews 降序") {
+      val more = seedStatistics(workerId = 1L, averageRating = "4.00", totalReviews = 30)
+      val less = seedStatistics(workerId = 2L, averageRating = "5.00", totalReviews = 10)
 
-      page.content shouldBe rows
+      val page = repo.findDeliveryWorkersRanking("reviews", 1, PageRequest.of(0, 10))
+      page.content.map { it.id } shouldContainExactly listOf(more, less)
     }
-    test("findDeliveryWorkersByRatingRange filters by rating") {
-      val rows = listOf(stats(1L))
-      every { countQuery.fetchCount() } returns 1L
-      every { selectQuery.fetch() } returns rows
 
-      val page = repo.findDeliveryWorkersByRatingRange(4.0, 5.0, 1, null, "rating", pageable)
-      val page2 = repo.findDeliveryWorkersByRatingRange(4.0, 5.0, 1, 20, "reviews", pageable)
+    test("评分区间:闭区间过滤 + maxReviews 上界 + 软删过滤") {
+      val hit = seedStatistics(workerId = 1L, averageRating = "4.00", totalReviews = 10)
+      seedStatistics(workerId = 2L, averageRating = "3.00", totalReviews = 10) // 低于 [4.0,4.5] 下界
+      seedStatistics(workerId = 3L, averageRating = "5.00", totalReviews = 10) // 高于上界
+      seedStatistics(workerId = 4L, averageRating = "4.50", totalReviews = 0) // 低于 minReviews
+      seedStatistics(workerId = 5L, averageRating = "4.20", totalReviews = 50) // 高于 maxReviews
+      seedStatistics(workerId = 6L, averageRating = "4.30", totalReviews = 10, deleted = true)
 
-      page.content shouldBe rows
-      page2.content shouldBe rows
+      // [4.0,4.5] 闭区间:minReviews=1 过滤 totalReviews=0,软删不进结果
+      repo
+        .findDeliveryWorkersByRatingRange(4.0, 4.5, 1, null, "rating", PageRequest.of(0, 10))
+        .totalElements shouldBe 2L
+
+      // maxReviews=20 上界:totalReviews=50 的行被排除
+      repo
+        .findDeliveryWorkersByRatingRange(4.0, 4.5, 1, 20, "rating", PageRequest.of(0, 10))
+        .content
+        .map { it.id } shouldContainExactly listOf(hit)
+
+      // 宽区间 [3.0,5.0]:hit/低分/高分/超上界评论数共 4 行命中
+      repo
+        .findDeliveryWorkersByRatingRange(3.0, 5.0, 1, null, "reviews", PageRequest.of(0, 10))
+        .totalElements shouldBe 4L
+
+      repo
+        .findDeliveryWorkersByRatingRange(4.9, 5.0, 1, null, "rating", PageRequest.of(0, 10))
+        .totalElements shouldBe 1L
     }
-    test("countDeliveryWorkersByMinRating counts") {
-      every { countQuery.fetchCount() } returns 3L
 
-      repo.countDeliveryWorkersByMinRating(4.0, 1) shouldBe 3L
+    test("countDeliveryWorkersByMinRating:均分下界+评论数下界,软删过滤") {
+      seedStatistics(workerId = 1L, averageRating = "4.00", totalReviews = 10)
+      seedStatistics(workerId = 2L, averageRating = "4.50", totalReviews = 5)
+      seedStatistics(workerId = 3L, averageRating = "3.00", totalReviews = 10)
+      seedStatistics(workerId = 4L, averageRating = "4.50", totalReviews = 10, deleted = true)
+
+      repo.countDeliveryWorkersByMinRating(4.0, 1) shouldBe 2L
+      repo.countDeliveryWorkersByMinRating(4.0, 10) shouldBe 1L
+      repo.countDeliveryWorkersByMinRating(5.0, 1) shouldBe 0L
     }
-    test("findOverallAverageRating returns average or null") {
-      every { avgQuery.fetchOne() } returns 4.6
-      repo.findOverallAverageRating(1) shouldBe 4.6
 
-      every { avgQuery.fetchOne() } returns null
+    test("findOverallAverageRating:返回均分,无匹配行返回 null,软删不计入") {
       repo.findOverallAverageRating(1).shouldBeNull()
+
+      seedStatistics(workerId = 1L, averageRating = "4.00", totalReviews = 10)
+      seedStatistics(workerId = 2L, averageRating = "5.00", totalReviews = 10)
+      seedStatistics(workerId = 3L, averageRating = "2.00", totalReviews = 0)
+      seedStatistics(workerId = 4L, averageRating = "1.00", totalReviews = 10, deleted = true)
+
+      // 4.00 与 5.00 均值(2 的倍数,无精度歧义)
+      repo.findOverallAverageRating(1)!!.toDouble() shouldBe 4.5
+      // minReviews=10 过滤掉 totalReviews=0 的行
+      repo.findOverallAverageRating(10)!!.toDouble() shouldBe 4.5
+      repo.findOverallAverageRating(100).shouldBeNull()
     }
   })
+
+private fun DeliveryWorkerStatisticsRepositoryImpl.countRows(): Long =
+  transaction(TradePgTestSupport.database) { DeliveryWorkerStatisticsTable.selectAll().count() }
+
+/** 直接插行的种子构造(含软删开关与 lastUpdated)。 */
+private fun seedStatistics(
+  workerId: Long,
+  averageRating: String,
+  totalReviews: Int,
+  lastUpdated: LocalDateTime = LocalDateTime.of(2026, 3, 1, 10, 0),
+  deleted: Boolean = false,
+): Long {
+  val id = TradePgTestSupport.id()
+  transaction(TradePgTestSupport.database) {
+    DeliveryWorkerStatisticsTable.insert {
+      it[DeliveryWorkerStatisticsTable.id] = id
+      it[DeliveryWorkerStatisticsTable.deliveryWorkerId] = workerId
+      it[DeliveryWorkerStatisticsTable.averageRating] = BigDecimal(averageRating)
+      it[DeliveryWorkerStatisticsTable.totalReviews] = totalReviews
+      it[DeliveryWorkerStatisticsTable.oneStarReviews] = 0
+      it[DeliveryWorkerStatisticsTable.twoStarReviews] = 0
+      it[DeliveryWorkerStatisticsTable.threeStarReviews] = 0
+      it[DeliveryWorkerStatisticsTable.fourStarReviews] = 0
+      it[DeliveryWorkerStatisticsTable.fiveStarReviews] = 0
+      it[DeliveryWorkerStatisticsTable.lastUpdated] = lastUpdated
+      it[DeliveryWorkerStatisticsTable.createdAt] = LocalDateTime.of(2026, 1, 1, 10, 0)
+      it[DeliveryWorkerStatisticsTable.updatedAt] = LocalDateTime.of(2026, 1, 1, 10, 0)
+      if (deleted) it[DeliveryWorkerStatisticsTable.isDeleted] = true
+    }
+  }
+  return id
+}

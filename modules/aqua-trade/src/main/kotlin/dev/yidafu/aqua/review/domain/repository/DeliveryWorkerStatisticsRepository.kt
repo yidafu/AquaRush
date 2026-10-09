@@ -20,21 +20,17 @@
 package dev.yidafu.aqua.review.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.DeliveryWorkerStatisticsModel
-import org.springframework.data.domain.Page
-import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
 
-@Repository
-interface DeliveryWorkerStatisticsRepository :
-  JpaRepository<DeliveryWorkerStatisticsModel, Long>,
-  DeliveryWorkerStatisticsRepositoryCustom {
+/**
+ * 送水员评价统计仓储(JPA→Exposed 迁移 P4):剥离 JpaRepository,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted(对齐 @SoftDelete)。
+ */
+interface DeliveryWorkerStatisticsRepository : DeliveryWorkerStatisticsRepositoryCustom {
   fun findByDeliveryWorkerId(deliveryWorkerId: Long): DeliveryWorkerStatisticsModel?
 
-  fun existsByDeliveryWorkerId(deliveryWorkerId: Long): Boolean
-
-  fun findByTotalReviewsGreaterThanEqual(
-    minReviews: Int,
-    pageable: Pageable,
-  ): Page<DeliveryWorkerStatisticsModel>
+  /**
+   * upsert 语义:无 id 或 id 不存在时插入(雪花 id;INSERT 显式写入 last_updated——
+   * DDL 无列默认),否则按 id 更新业务列(last_updated 由库触发器刷新,UPDATE 不写它)。
+   */
+  fun save(entity: DeliveryWorkerStatisticsModel): DeliveryWorkerStatisticsModel
 }

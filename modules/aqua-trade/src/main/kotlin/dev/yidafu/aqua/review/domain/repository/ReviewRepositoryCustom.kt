@@ -25,7 +25,7 @@ import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime
 
 /**
- * Custom repository interface for Review entity with QueryDSL implementations
+ * Review 仓储的动态过滤查询(JPA→Exposed 迁移 P4,原 QueryDSL 实现整体改写为 Exposed DSL)。
  */
 interface ReviewRepositoryCustom {
   /**
@@ -33,11 +33,11 @@ interface ReviewRepositoryCustom {
    * @param deliveryWorkerId the delivery worker ID (optional)
    * @param minRating the minimum rating (optional)
    * @param maxRating the maximum rating (optional)
-   * @param dateFrom the start date (optional)
-   * @param dateTo the end date (optional)
+   * @param dateFrom the start date (optional, inclusive)
+   * @param dateTo the end date (optional, inclusive)
    * @param userId the user ID (optional)
    * @param pageable pagination information
-   * @return page of reviews matching the filters
+   * @return page of reviews matching the filters, ordered by createdAt desc (id desc 破平)
    */
   fun findReviewsWithFilters(
     deliveryWorkerId: Long? = null,
@@ -48,22 +48,4 @@ interface ReviewRepositoryCustom {
     userId: Long? = null,
     pageable: Pageable,
   ): Page<ReviewModel>
-
-  /**
-   * Count reviews by delivery worker ID and rating
-   * @param deliveryWorkerId the delivery worker ID
-   * @param rating the rating
-   * @return number of reviews with the specified rating
-   */
-  fun countByDeliveryWorkerIdAndRating(
-    deliveryWorkerId: Long,
-    rating: Int,
-  ): Long
-
-  /**
-   * Find average rating for a delivery worker
-   * @param deliveryWorkerId the delivery worker ID
-   * @return average rating or null if no reviews found
-   */
-  fun findAverageRatingByDeliveryWorkerId(deliveryWorkerId: Long): Double?
 }

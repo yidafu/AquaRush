@@ -19,135 +19,460 @@
 
 package dev.yidafu.aqua.order.domain.repository
 
-import com.querydsl.core.BooleanBuilder
-import com.querydsl.core.types.Predicate
-import com.querydsl.core.types.dsl.Expressions
-import com.querydsl.core.types.dsl.NumberExpression
-import com.querydsl.core.types.dsl.NumberPath
-import com.querydsl.jpa.JPAExpressions
-import com.querydsl.jpa.impl.JPAQueryFactory
 import dev.yidafu.aqua.api.dto.MarketingUsageItemRow
 import dev.yidafu.aqua.api.dto.MarketingUsageKind
 import dev.yidafu.aqua.api.dto.MarketingUsageOrderCriteria
-import dev.yidafu.aqua.api.dto.OrderAnalyticsRow
 import dev.yidafu.aqua.common.domain.model.OrderModel
-import dev.yidafu.aqua.common.domain.model.QOrderGiftModel.Companion.orderGiftModel
-import dev.yidafu.aqua.common.domain.model.QOrderItemModel.Companion.orderItemModel
-import dev.yidafu.aqua.common.domain.model.QOrderModel.Companion.orderModel
-import dev.yidafu.aqua.common.domain.model.QUserCouponModel.Companion.userCouponModel
+import dev.yidafu.aqua.common.domain.model.PaymentMethod
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryPhotoReviewStatus
+import dev.yidafu.aqua.common.domain.model.enums.DeliveryTimeSlot
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
-import jakarta.persistence.EntityManager
-import jakarta.persistence.PersistenceContext
+import dev.yidafu.aqua.common.domain.model.enums.PriceSource
+import dev.yidafu.aqua.common.domain.table.OrderGiftsTable
+import dev.yidafu.aqua.common.domain.table.OrderItemsTable
+import dev.yidafu.aqua.common.domain.table.OrdersTable
+import dev.yidafu.aqua.common.domain.table.UserCouponsTable
+import dev.yidafu.aqua.common.domain.table.activeOnly
+import dev.yidafu.aqua.common.id.SnowflakeIdGenerator
+import org.jetbrains.exposed.v1.core.Column
+import org.jetbrains.exposed.v1.core.Expression
+import org.jetbrains.exposed.v1.core.ExpressionWithColumnType
+import org.jetbrains.exposed.v1.core.IColumnType
+import org.jetbrains.exposed.v1.core.Op
+import org.jetbrains.exposed.v1.core.QueryBuilder
+import org.jetbrains.exposed.v1.core.ResultRow
+import org.jetbrains.exposed.v1.core.SortOrder
+import org.jetbrains.exposed.v1.core.and
+import org.jetbrains.exposed.v1.core.count
+import org.jetbrains.exposed.v1.core.eq
+import org.jetbrains.exposed.v1.core.greater
+import org.jetbrains.exposed.v1.core.greaterEq
+import org.jetbrains.exposed.v1.core.inList
+import org.jetbrains.exposed.v1.core.inSubQuery
+import org.jetbrains.exposed.v1.core.less
+import org.jetbrains.exposed.v1.core.lessEq
+import org.jetbrains.exposed.v1.core.like
+import org.jetbrains.exposed.v1.core.lowerCase
+import org.jetbrains.exposed.v1.core.sum
+import org.jetbrains.exposed.v1.javatime.JavaLocalDateTimeColumnType
+import org.jetbrains.exposed.v1.jdbc.Database
+import org.jetbrains.exposed.v1.jdbc.insert
+import org.jetbrains.exposed.v1.jdbc.select
+import org.jetbrains.exposed.v1.jdbc.selectAll
+import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
 import org.springframework.stereotype.Repository
-import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 import java.time.LocalDateTime
+import java.util.Optional
 
 /**
- * Enhanced OrderRepository implementation using QueryDSL
- * Provides type-safe complex queries for order management
+ * 订单仓储实现(JPA→Exposed 迁移 P4:原 957 行 QueryDSL 实现整体重写为 Exposed DSL)。
+ *
+ * 口径约定(与原实现逐方法对照):
+ * - 读侧一律 activeOnly 过滤 is_deleted(等价原 JPA @SoftDelete 附加谓词);
+ * - 枚举列存 .name、读 valueOf;金额 Long 分;
+ * - 分页 count 与 content 同一事务;业务排序 + id 破平(原 JPA 无序处已在 KDoc 注明);
+ * - 「已送达」口径锚点 = COALESCE(delivery_confirmed_at, completed_at),状态含
+ *   AWAITING_CONFIRMATION + COMPLETED(R-ORD-11 送水工业绩,历史 completed_at 回退);
+ * - cancel/confirm 原子方法为单条条件 UPDATE,行数=1 成功 / 0 失败(乐观锁 CAS);
+ * - 原 JPA EAGER 关联字段 user/address/deliveryWorker 不装载(null),列值经
+ *   userId/addressId/deliveryWorkerId 提供,由服务层/Resolver 联查补全。
  */
 @Repository
-class OrderRepositoryImpl : OrderRepositoryCustom {
-  @PersistenceContext
-  private lateinit var entityManager: EntityManager
+class OrderRepositoryImpl(
+  private val database: Database,
+) : OrderRepository {
+  private fun toModel(row: ResultRow): OrderModel =
+    OrderModel(
+      id = row[OrdersTable.id],
+      orderNo = row[OrdersTable.orderNo],
+      userId = row[OrdersTable.userId],
+      clientRequestId = row[OrdersTable.clientRequestId],
+      deliveryTimeSlot = row[OrdersTable.deliveryTimeSlot]?.let { DeliveryTimeSlot.valueOf(it) },
+      amountCents = row[OrdersTable.totalAmountCents],
+      deliveryFeeCents = row[OrdersTable.deliveryFeeCents],
+      unitPriceCents = row[OrdersTable.unitPriceCents],
+      priceSource = row[OrdersTable.priceSource]?.let { PriceSource.valueOf(it) },
+      promotionActivityId = row[OrdersTable.promotionActivityId],
+      promotionActivityName = row[OrdersTable.promotionActivityName],
+      promotionDiscountCents = row[OrdersTable.promotionDiscountCents],
+      couponId = row[OrdersTable.couponId],
+      couponName = row[OrdersTable.couponName],
+      couponDiscountCents = row[OrdersTable.couponDiscountCents],
+      ticketRedeemCount = row[OrdersTable.ticketRedeemCount],
+      ticketDiscountCents = row[OrdersTable.ticketDiscountCents],
+      firstOrderActivityId = row[OrdersTable.firstOrderActivityId],
+      firstOrderActivityName = row[OrdersTable.firstOrderActivityName],
+      firstOrderDiscountCents = row[OrdersTable.firstOrderDiscountCents],
+      addressId = row[OrdersTable.addressId],
+      status = OrderModelStatus.valueOf(row[OrdersTable.status]),
+      paymentMethod = row[OrdersTable.paymentMethod]?.let { PaymentMethod.valueOf(it) },
+      paymentTransactionId = row[OrdersTable.paymentTransactionId],
+      paymentTime = row[OrdersTable.paidAt],
+      deliveryWorkerId = row[OrdersTable.deliveryWorkerId],
+      deliveryPhotos = row[OrdersTable.deliveryPhotos],
+      deliveryPhotoReviewStatus =
+        row[OrdersTable.deliveryPhotoReviewStatus]?.let { DeliveryPhotoReviewStatus.valueOf(it) },
+      deliveryPhotoReviewedAt = row[OrdersTable.deliveryPhotoReviewedAt],
+      deliveryPhotoReviewedBy = row[OrdersTable.deliveryPhotoReviewedBy],
+      deliveryPhotoReviewRemark = row[OrdersTable.deliveryPhotoReviewRemark],
+      depositCents = row[OrdersTable.depositAmountCents],
+      isSelfCollect = row[OrdersTable.isSelfCollect],
+      paymentType = row[OrdersTable.paymentType]?.let { PaymentType.valueOf(it) },
+      deliveryStartedAt = row[OrdersTable.deliveryStartedAt],
+      deliveryConfirmedAt = row[OrdersTable.deliveryConfirmedAt],
+      completedAt = row[OrdersTable.completedAt],
+      createdAt = row[OrdersTable.createdAt],
+      updatedAt = row[OrdersTable.updatedAt],
+      deletedAt = row[OrdersTable.deletedAt],
+      deletedBy = row[OrdersTable.deletedBy],
+      remark = row[OrdersTable.remark],
+      deliveryRemark = row[OrdersTable.deliveryRemark],
+      searchContent = row[OrdersTable.searchContent],
+    )
 
-  private val queryFactory: JPAQueryFactory by lazy {
-    JPAQueryFactory(entityManager)
-  }
+  /** 从聚合 ResultRow 取 SUM/COUNT 数值并转 Long(表达式类型为 Number 族投影,空值回退 0)。 */
+  private fun ResultRow.longOf(expr: Expression<*>): Long = (this[expr] as? Number)?.toLong() ?: 0L
 
-  override fun findOrdersWithFilters(
-    userId: Long?,
-    status: OrderModelStatus?,
-    deliveryWorkerId: Long?,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
-    orderNumber: String?,
-    statuses: List<OrderModelStatus>?,
-  ): List<OrderModel> {
-    val builder = BooleanBuilder()
+  /**
+   * 「已送达」时间锚点 `COALESCE(delivery_confirmed_at, completed_at)`
+   * —— 原 QueryDSL `coalesce(...)` 表达式的 Exposed 等价物(两参,历史数据回退 completedAt)。
+   */
+  private class DeliveredAtExpr : ExpressionWithColumnType<LocalDateTime>() {
+    override val columnType: IColumnType<LocalDateTime> = JavaLocalDateTimeColumnType()
 
-    userId?.let { builder.and(orderModel.userId.eq(it)) }
-    status?.let { builder.and(orderModel.status.eq(it)) }
-    deliveryWorkerId?.let { builder.and(orderModel.deliveryWorkerId.eq(it)) }
-    orderNumber?.let { builder.and(orderModel.orderNo.eq(it)) }
-    statuses?.let { builder.and(orderModel.status.`in`(it)) }
-    startDate?.let { start ->
-      endDate?.let { end ->
-        builder.and(orderModel.createdAt.between(start, end))
-      }
+    override fun toQueryBuilder(queryBuilder: QueryBuilder) {
+      queryBuilder.append("COALESCE(")
+      OrdersTable.deliveryConfirmedAt.toQueryBuilder(queryBuilder)
+      queryBuilder.append(", ")
+      OrdersTable.completedAt.toQueryBuilder(queryBuilder)
+      queryBuilder.append(")")
     }
-
-    return queryFactory
-      .selectFrom(orderModel)
-      .where(builder)
-      .orderBy(orderModel.createdAt.desc())
-      .fetch()
   }
 
-  override fun findDeliveryWorkerOrdersWithFilters(
-    deliveryWorkerId: Long,
+  /** 「已送达」状态集合(待确认收货 + 已完成,R-ORD-11 送水工业绩口径)。 */
+  private fun deliveredStatusNames(): List<String> = listOf(OrderModelStatus.AWAITING_CONFIRMATION.name, OrderModelStatus.COMPLETED.name)
+
+  /** Pageable 排序 → Exposed 排序;原 JPA 无序时默认 id 升序破平(未知属性忽略)。 */
+  private fun pageableOrderings(pageable: Pageable): List<Pair<Expression<*>, SortOrder>> {
+    if (pageable.sort.isUnsorted) return listOf(OrdersTable.id to SortOrder.ASC)
+    val orderings =
+      pageable.sort.mapNotNull { order ->
+        val sortOrder = if (order.isAscending) SortOrder.ASC else SortOrder.DESC
+        when (order.property) {
+          "id" -> OrdersTable.id to sortOrder
+          "createdAt" -> OrdersTable.createdAt to sortOrder
+          "updatedAt" -> OrdersTable.updatedAt to sortOrder
+          "amountCents", "totalAmountCents", "total_amount_cents" -> OrdersTable.totalAmountCents to sortOrder
+          else -> null
+        }
+      }
+    return orderings.ifEmpty { listOf(OrdersTable.id to SortOrder.ASC) }
+  }
+
+  // ========================================================================
+  // OrderRepository(简单派生查询,全部 activeOnly 过滤软删)
+  // ========================================================================
+
+  override fun findByOrderNo(orderNo: String): OrderModel? =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where { OrdersTable.activeOnly { OrdersTable.orderNo eq orderNo } }
+        .limit(1)
+        .firstOrNull()
+    }?.let(::toModel)
+
+  override fun findByUserIdAndClientRequestId(
+    userId: Long,
+    clientRequestId: String,
+  ): OrderModel? =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where {
+          OrdersTable.activeOnly {
+            (OrdersTable.userId eq userId) and (OrdersTable.clientRequestId eq clientRequestId)
+          }
+        }.limit(1)
+        .firstOrNull()
+    }?.let(::toModel)
+
+  override fun findByUserId(userId: Long): List<OrderModel> =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where { OrdersTable.activeOnly { OrdersTable.userId eq userId } }
+        // 原 JPA 无序,按 id 升序破平
+        .orderBy(OrdersTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
+
+  override fun findByUserIdAndStatus(
+    userId: Long,
     status: OrderModelStatus,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
-    limit: Int?,
-  ): List<OrderModel> {
-    var query =
-      queryFactory
-        .selectFrom(orderModel)
-        .where(
-          orderModel.deliveryWorkerId
-            .eq(deliveryWorkerId)
-            .and(orderModel.status.eq(status)),
-        )
+  ): List<OrderModel> =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where {
+          OrdersTable.activeOnly {
+            (OrdersTable.userId eq userId) and (OrdersTable.status eq status.name)
+          }
+        }
+        // 原 JPA 无序,按 id 升序破平
+        .orderBy(OrdersTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
 
-    startDate?.let { start ->
-      endDate?.let { end ->
-        query = query.where(orderModel.createdAt.between(start, end))
+  override fun existsByUserIdAndStatus(
+    userId: Long,
+    status: OrderModelStatus,
+  ): Boolean =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where {
+          OrdersTable.activeOnly {
+            (OrdersTable.userId eq userId) and (OrdersTable.status eq status.name)
+          }
+        }.limit(1)
+        .any()
+    }
+
+  override fun findByStatus(status: OrderModelStatus): List<OrderModel> =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where { OrdersTable.activeOnly { OrdersTable.status eq status.name } }
+        // 原 JPA 无序,按 id 升序破平
+        .orderBy(OrdersTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
+
+  override fun findByStatusOrderByCreatedAtAsc(status: OrderModelStatus): List<OrderModel> =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where { OrdersTable.activeOnly { OrdersTable.status eq status.name } }
+        .orderBy(OrdersTable.createdAt to SortOrder.ASC, OrdersTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
+
+  override fun findByStatusAndDeliveryStartedAtBefore(
+    status: OrderModelStatus,
+    before: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel> =
+    transaction(database) {
+      val condition =
+        OrdersTable.activeOnly {
+          (OrdersTable.status eq status.name) and (OrdersTable.deliveryStartedAt less before)
+        }
+      val content =
+        OrdersTable
+          .selectAll()
+          .where { condition }
+          .orderBy(*pageableOrderings(pageable).toTypedArray())
+          .offset(pageable.offset)
+          .limit(pageable.pageSize)
+          .toList()
+          .map(::toModel)
+      content to OrdersTable.selectAll().where { condition }.count()
+    }.let { (content, total) -> PageImpl(content, pageable, total) }
+
+  override fun findByStatusAndDeliveryConfirmedAtBefore(
+    status: OrderModelStatus,
+    before: LocalDateTime,
+    pageable: Pageable,
+  ): Page<OrderModel> =
+    transaction(database) {
+      val condition =
+        OrdersTable.activeOnly {
+          (OrdersTable.status eq status.name) and (OrdersTable.deliveryConfirmedAt less before)
+        }
+      val content =
+        OrdersTable
+          .selectAll()
+          .where { condition }
+          .orderBy(*pageableOrderings(pageable).toTypedArray())
+          .offset(pageable.offset)
+          .limit(pageable.pageSize)
+          .toList()
+          .map(::toModel)
+      content to OrdersTable.selectAll().where { condition }.count()
+    }.let { (content, total) -> PageImpl(content, pageable, total) }
+
+  override fun findByDeliveryWorkerIdOrderByCreatedAtDesc(deliveryWorkerId: Long): List<OrderModel> =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where { OrdersTable.activeOnly { OrdersTable.deliveryWorkerId eq deliveryWorkerId } }
+        .orderBy(OrdersTable.createdAt to SortOrder.DESC, OrdersTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
+
+  override fun findByAddressId(addressId: Long): List<OrderModel> =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where { OrdersTable.activeOnly { OrdersTable.addressId eq addressId } }
+        // 原 JPA 无序,按 id 升序破平
+        .orderBy(OrdersTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
+
+  override fun countByStatus(status: OrderModelStatus): Long =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where { OrdersTable.activeOnly { OrdersTable.status eq status.name } }
+        .count()
+    }
+
+  override fun findById(id: Long): Optional<OrderModel> =
+    Optional.ofNullable(
+      transaction(database) {
+        OrdersTable
+          .selectAll()
+          .where { OrdersTable.activeOnly { OrdersTable.id eq id } }
+          .limit(1)
+          .firstOrNull()
+      }?.let(::toModel),
+    )
+
+  override fun findAll(): List<OrderModel> =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where { OrdersTable.activeOnly() }
+        // 原 JPA findAll 无序,按 id 升序破平
+        .orderBy(OrdersTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
+
+  override fun findAllById(ids: Iterable<Long>): List<OrderModel> =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where { OrdersTable.activeOnly { OrdersTable.id inList ids } }
+        .orderBy(OrdersTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
+
+  override fun save(entity: OrderModel): OrderModel =
+    transaction(database) {
+      val id = entity.id ?: SnowflakeIdGenerator.getInstance().generate().also { entity.id = it }
+      val exists =
+        OrdersTable
+          .selectAll()
+          .where { OrdersTable.id eq id }
+          .limit(1)
+          .any()
+      if (exists) {
+        // 对齐原 JPA merge + @PreUpdate:业务列全量覆盖,createdAt 不可变,updatedAt=now
+        OrdersTable.update({ OrdersTable.id eq id }) {
+          it[orderNo] = entity.orderNo
+          it[userId] = entity.userId
+          it[clientRequestId] = entity.clientRequestId
+          it[deliveryTimeSlot] = entity.deliveryTimeSlot?.name
+          it[totalAmountCents] = entity.amountCents
+          it[deliveryFeeCents] = entity.deliveryFeeCents
+          it[unitPriceCents] = entity.unitPriceCents
+          it[priceSource] = entity.priceSource?.name
+          it[promotionActivityId] = entity.promotionActivityId
+          it[promotionActivityName] = entity.promotionActivityName
+          it[promotionDiscountCents] = entity.promotionDiscountCents
+          it[couponId] = entity.couponId
+          it[couponName] = entity.couponName
+          it[couponDiscountCents] = entity.couponDiscountCents
+          it[ticketRedeemCount] = entity.ticketRedeemCount
+          it[ticketDiscountCents] = entity.ticketDiscountCents
+          it[firstOrderActivityId] = entity.firstOrderActivityId
+          it[firstOrderActivityName] = entity.firstOrderActivityName
+          it[firstOrderDiscountCents] = entity.firstOrderDiscountCents
+          it[addressId] = entity.addressId
+          it[status] = entity.status.name
+          it[paymentMethod] = entity.paymentMethod?.name
+          it[paymentTransactionId] = entity.paymentTransactionId
+          it[paidAt] = entity.paymentTime
+          it[deliveryWorkerId] = entity.deliveryWorkerId
+          it[deliveryPhotos] = entity.deliveryPhotos
+          it[deliveryPhotoReviewStatus] = entity.deliveryPhotoReviewStatus?.name
+          it[deliveryPhotoReviewedAt] = entity.deliveryPhotoReviewedAt
+          it[deliveryPhotoReviewedBy] = entity.deliveryPhotoReviewedBy
+          it[deliveryPhotoReviewRemark] = entity.deliveryPhotoReviewRemark
+          it[depositAmountCents] = entity.depositCents
+          it[isSelfCollect] = entity.isSelfCollect
+          it[paymentType] = entity.paymentType?.name
+          it[deliveryStartedAt] = entity.deliveryStartedAt
+          it[deliveryConfirmedAt] = entity.deliveryConfirmedAt
+          it[completedAt] = entity.completedAt
+          it[remark] = entity.remark
+          it[deliveryRemark] = entity.deliveryRemark
+          it[searchContent] = entity.searchContent
+          it[updatedAt] = LocalDateTime.now()
+        }
+      } else {
+        OrdersTable.insert {
+          it[OrdersTable.id] = id
+          it[orderNo] = entity.orderNo
+          it[userId] = entity.userId
+          it[clientRequestId] = entity.clientRequestId
+          it[deliveryTimeSlot] = entity.deliveryTimeSlot?.name
+          it[totalAmountCents] = entity.amountCents
+          it[deliveryFeeCents] = entity.deliveryFeeCents
+          it[unitPriceCents] = entity.unitPriceCents
+          it[priceSource] = entity.priceSource?.name
+          it[promotionActivityId] = entity.promotionActivityId
+          it[promotionActivityName] = entity.promotionActivityName
+          it[promotionDiscountCents] = entity.promotionDiscountCents
+          it[couponId] = entity.couponId
+          it[couponName] = entity.couponName
+          it[couponDiscountCents] = entity.couponDiscountCents
+          it[ticketRedeemCount] = entity.ticketRedeemCount
+          it[ticketDiscountCents] = entity.ticketDiscountCents
+          it[firstOrderActivityId] = entity.firstOrderActivityId
+          it[firstOrderActivityName] = entity.firstOrderActivityName
+          it[firstOrderDiscountCents] = entity.firstOrderDiscountCents
+          it[addressId] = entity.addressId
+          it[status] = entity.status.name
+          it[paymentMethod] = entity.paymentMethod?.name
+          it[paymentTransactionId] = entity.paymentTransactionId
+          it[paidAt] = entity.paymentTime
+          it[deliveryWorkerId] = entity.deliveryWorkerId
+          it[deliveryPhotos] = entity.deliveryPhotos
+          it[deliveryPhotoReviewStatus] = entity.deliveryPhotoReviewStatus?.name
+          it[deliveryPhotoReviewedAt] = entity.deliveryPhotoReviewedAt
+          it[deliveryPhotoReviewedBy] = entity.deliveryPhotoReviewedBy
+          it[deliveryPhotoReviewRemark] = entity.deliveryPhotoReviewRemark
+          it[depositAmountCents] = entity.depositCents
+          it[isSelfCollect] = entity.isSelfCollect
+          it[paymentType] = entity.paymentType?.name
+          it[deliveryStartedAt] = entity.deliveryStartedAt
+          it[deliveryConfirmedAt] = entity.deliveryConfirmedAt
+          it[completedAt] = entity.completedAt
+          it[OrdersTable.createdAt] = entity.createdAt
+          it[updatedAt] = entity.updatedAt
+          it[deletedAt] = entity.deletedAt
+          it[deletedBy] = entity.deletedBy
+          it[remark] = entity.remark
+          it[deliveryRemark] = entity.deliveryRemark
+          it[searchContent] = entity.searchContent
+        }
       }
+      entity
     }
 
-    var result = query.orderBy(orderModel.createdAt.desc())
-
-    limit?.let {
-      result = result.limit(it.toLong())
-    }
-
-    return result.fetch()
-  }
-
-  override fun countOrdersWithFilters(
-    userId: Long?,
-    status: OrderModelStatus?,
-    deliveryWorkerId: Long?,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
-    statuses: List<OrderModelStatus>?,
-  ): Long {
-    val builder = BooleanBuilder()
-
-    userId?.let { builder.and(orderModel.userId.eq(it)) }
-    status?.let { builder.and(orderModel.status.eq(it)) }
-    deliveryWorkerId?.let { builder.and(orderModel.deliveryWorkerId.eq(it)) }
-    statuses?.let { builder.and(orderModel.status.`in`(it)) }
-    startDate?.let { start ->
-      endDate?.let { end ->
-        builder.and(orderModel.createdAt.between(start, end))
-      }
-    }
-
-    return queryFactory
-      .query()
-      .from(orderModel)
-      .where(builder)
-      .fetchCount()
-  }
+  // ========================================================================
+  // 分页查询(count 与 content 同一事务)
+  // ========================================================================
 
   override fun findOrdersPaginated(
     keyword: String?,
@@ -163,86 +488,58 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     sortField: String,
     sortDirection: String,
   ): Page<OrderModel> {
-    val builder = BooleanBuilder()
-
+    var condition: Op<Boolean> = Op.TRUE
     keyword?.let { keywordVal ->
-      // Search in order number (using contains)
-      builder.and(orderModel.orderNo.containsIgnoreCase(keywordVal))
+      // 订单号大小写不敏感包含(与原 containsIgnoreCase 一致)
+      condition = condition and (OrdersTable.orderNo.lowerCase() like "%${keywordVal.lowercase()}%")
     }
-    status?.let { builder.and(orderModel.status.eq(it)) }
-    userId?.let { builder.and(orderModel.userId.eq(it)) }
-    deliveryWorkerId?.let { builder.and(orderModel.deliveryWorkerId.eq(it)) }
-
-    startDate?.let { start ->
-      endDate?.let { end ->
-        builder.and(orderModel.createdAt.between(start, end))
-      }
+    status?.let { condition = condition and (OrdersTable.status eq it.name) }
+    userId?.let { condition = condition and (OrdersTable.userId eq it) }
+    deliveryWorkerId?.let { condition = condition and (OrdersTable.deliveryWorkerId eq it) }
+    if (startDate != null && endDate != null) {
+      condition = condition and (OrdersTable.createdAt greaterEq startDate) and (OrdersTable.createdAt less endDate)
     }
+    minAmount?.let { condition = condition and (OrdersTable.totalAmountCents greaterEq it) }
+    maxAmount?.let { condition = condition and (OrdersTable.totalAmountCents lessEq it) }
 
-    minAmount?.let { builder.and(orderModel.amountCents.goe(it)) }
-    maxAmount?.let { builder.and(orderModel.amountCents.loe(it)) }
-
-    // Build sorting - use Spring Data Sort
-    val sortFieldName =
+    // 排序白名单(与原实现一致):totalAmount/updatedAt → 其余回退 createdAt;方向跟随参数;+ id 破平
+    val ascending = sortDirection.equals("asc", ignoreCase = true)
+    val sortProperty =
       when (sortField.lowercase()) {
         "totalamount", "total_amount" -> "amountCents"
         "updatedat", "updated_at" -> "updatedAt"
         else -> "createdAt"
       }
-
-    val springSort =
-      if (sortDirection.equals("asc", ignoreCase = true)) {
-        Sort.by(Sort.Order.asc(sortFieldName))
-      } else {
-        Sort.by(Sort.Order.desc(sortFieldName))
+    val sortColumn =
+      when (sortProperty) {
+        "amountCents" -> OrdersTable.totalAmountCents
+        "updatedAt" -> OrdersTable.updatedAt
+        else -> OrdersTable.createdAt
       }
-
+    val direction = if (ascending) SortOrder.ASC else SortOrder.DESC
+    val springSort =
+      Sort.by(
+        Sort.Order(
+          if (ascending) Sort.Direction.ASC else Sort.Direction.DESC,
+          sortProperty,
+        ),
+      )
     val pageable = PageRequest.of(page, size, springSort)
 
-    val query =
-      queryFactory
-        .selectFrom(orderModel)
-        .where(builder)
-        .offset(pageable.offset)
-        .limit(pageable.pageSize.toLong())
-
-    // Apply ordering using QueryDSL
-    when (sortField.lowercase()) {
-      "totalamount", "total_amount" -> {
-        if (sortDirection.equals("asc", ignoreCase = true)) {
-          query.orderBy(orderModel.amountCents.asc())
-        } else {
-          query.orderBy(orderModel.amountCents.desc())
-        }
-      }
-
-      "updatedat", "updated_at" -> {
-        if (sortDirection.equals("asc", ignoreCase = true)) {
-          query.orderBy(orderModel.updatedAt.asc())
-        } else {
-          query.orderBy(orderModel.updatedAt.desc())
-        }
-      }
-
-      else -> {
-        if (sortDirection.equals("asc", ignoreCase = true)) {
-          query.orderBy(orderModel.createdAt.asc())
-        } else {
-          query.orderBy(orderModel.createdAt.desc())
-        }
-      }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    val content = query.fetch() as List<OrderModel>
-    val total =
-      queryFactory
-        .query()
-        .from(orderModel)
-        .where(builder)
-        .fetchCount()
-
-    return PageImpl(content, pageable, total)
+    return transaction(database) {
+      // activeOnly 内部含 Expression.equals(→toString→需方言上下文),必须在事务内构造
+      val whereOp = OrdersTable.activeOnly { condition }
+      val content =
+        OrdersTable
+          .selectAll()
+          .where { whereOp }
+          .orderBy(sortColumn to direction, OrdersTable.id to SortOrder.ASC)
+          .offset(pageable.offset)
+          .limit(pageable.pageSize)
+          .toList()
+          .map(::toModel)
+      content to OrdersTable.selectAll().where { whereOp }.count()
+    }.let { (content, total) -> PageImpl(content, pageable, total) }
   }
 
   override fun findByDeliveryWorkerIdAndStatusIn(
@@ -252,40 +549,24 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     page: Int,
     size: Int,
   ): Page<OrderModel> {
-    val builder =
-      BooleanBuilder()
-        .and(orderModel.status.`in`(statuses))
+    // keyword 在原 QueryDSL 实现即为注释掉的死代码,保留参数不参与过滤(行为不变)
+    var condition: Op<Boolean> = OrdersTable.status inList statuses.map { it.name }
+    deliveryWorkerId?.let { condition = condition and (OrdersTable.deliveryWorkerId eq it) }
+    val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
 
-    if (deliveryWorkerId != null) {
-      builder.and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
-    }
-
-    // 添加关键字搜索条件
-    if (!keyword.isNullOrBlank()) {
-      // 使用 ilike 进行模糊匹配搜索内容
-//      builder.and(orderModel.searchContent.eq("%$keyword%"))
-    }
-
-    val pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt")))
-
-    val query =
-      queryFactory
-        .selectFrom(orderModel)
-        .where(builder)
-        .offset(pageable.offset)
-        .limit(pageable.pageSize.toLong())
-        .orderBy(orderModel.createdAt.desc())
-
-    @Suppress("UNCHECKED_CAST")
-    val content = query.fetch() as List<OrderModel>
-    val total =
-      queryFactory
-        .query()
-        .from(orderModel)
-        .where(builder)
-        .fetchCount()
-
-    return PageImpl(content, pageable, total)
+    return transaction(database) {
+      val whereOp = OrdersTable.activeOnly { condition }
+      val content =
+        OrdersTable
+          .selectAll()
+          .where { whereOp }
+          .orderBy(OrdersTable.createdAt to SortOrder.DESC, OrdersTable.id to SortOrder.ASC)
+          .offset(pageable.offset)
+          .limit(pageable.pageSize)
+          .toList()
+          .map(::toModel)
+      content to OrdersTable.selectAll().where { whereOp }.count()
+    }.let { (content, total) -> PageImpl(content, pageable, total) }
   }
 
   override fun findUserOrdersPaginated(
@@ -294,97 +575,54 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     page: Int,
     size: Int,
   ): Page<OrderModel> {
-    val builder =
-      BooleanBuilder().and(orderModel.userId.eq(userId))
+    var condition: Op<Boolean> = OrdersTable.userId eq userId
+    // statuses 为空 = 全部状态(与原 takeIf { isNotEmpty } 一致)
     statuses?.takeIf { it.isNotEmpty() }?.let {
-      builder.and(orderModel.status.`in`(it))
+      condition = condition and (OrdersTable.status inList it.map { s -> s.name })
     }
+    val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
 
-    val pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt")))
-
-    val query =
-      queryFactory
-        .selectFrom(orderModel)
-        .where(builder)
-        .offset(pageable.offset)
-        .limit(pageable.pageSize.toLong())
-        .orderBy(orderModel.createdAt.desc())
-
-    @Suppress("UNCHECKED_CAST")
-    val content = query.fetch() as List<OrderModel>
-    val total =
-      queryFactory
-        .query()
-        .from(orderModel)
-        .where(builder)
-        .fetchCount()
-
-    return PageImpl(content, pageable, total)
+    return transaction(database) {
+      val whereOp = OrdersTable.activeOnly { condition }
+      val content =
+        OrdersTable
+          .selectAll()
+          .where { whereOp }
+          .orderBy(OrdersTable.createdAt to SortOrder.DESC, OrdersTable.id to SortOrder.ASC)
+          .offset(pageable.offset)
+          .limit(pageable.pageSize)
+          .toList()
+          .map(::toModel)
+      content to OrdersTable.selectAll().where { whereOp }.count()
+    }.let { (content, total) -> PageImpl(content, pageable, total) }
   }
 
-  @Transactional
-  override fun bulkUpdateOrderStatus(
-    orderIds: List<Long>,
-    newStatus: OrderModelStatus,
-    deliveryWorkerId: Long?,
-  ): Int {
-    var update =
-      queryFactory
-        .update(orderModel)
-        .set(orderModel.status, newStatus)
-        .where(orderModel.id.`in`(orderIds))
+  // ========================================================================
+  // 日期窗口统计(两种窗口口径与原实现逐位一致)
+  // - 半开 [start, end):goe/lt —— countOrdersByDateRange / sumAmountCentsByStatusAndDateRange
+  // - 严格开 (start, end):gt/lt —— orderStatistics 各方法 / findBy*Between
+  // ========================================================================
 
-    deliveryWorkerId?.let {
-      update = update.set(orderModel.deliveryWorkerId, it)
+  /** 金额合计(分):SUM(total_amount_cents),空结果回退 0;条件构造与读行都在事务内。 */
+  private fun sumAmountWhere(buildCondition: () -> Op<Boolean>): Long =
+    transaction(database) {
+      val sumExpr = OrdersTable.totalAmountCents.sum()
+      OrdersTable
+        .select(sumExpr)
+        .where { OrdersTable.activeOnly { buildCondition() } }
+        .firstOrNull()
+        ?.longOf(sumExpr)
+        ?: 0L
     }
 
-    return update.execute().toInt()
-  }
-
-  override fun getOrderAnalytics(
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): List<OrderAnalyticsRow> {
-    // Create date expression for PostgreSQL DATE() function
-    val dateExpr =
-      Expressions.dateTemplate(
-        LocalDate::class.java,
-        "DATE({0})",
-        orderModel.createdAt,
-      )
-
-    val sumAmount: NumberExpression<Long> = orderModel.amountCents.sumLong()
-    val avgAmount = orderModel.amountCents.avg()
-
-    val results =
-      queryFactory
-        .select(
-          dateExpr,
-          orderModel.status,
-          orderModel.count(),
-          sumAmount,
-          avgAmount,
-          orderModel.userId.countDistinct(),
-          orderModel.deliveryWorkerId.countDistinct(),
-        ).from(orderModel)
-        .where(orderModel.createdAt.between(startDate, endDate))
-        .groupBy(dateExpr, orderModel.status)
-        .orderBy(dateExpr.desc(), orderModel.status.asc())
-        .fetch()
-
-    @Suppress("UNCHECKED_CAST")
-    return results.map { tuple ->
-      OrderAnalyticsRow(
-        orderDate = tuple.get(dateExpr) ?: LocalDate.now(),
-        status = tuple.get(orderModel.status) ?: OrderModelStatus.PENDING_PAYMENT,
-        orderCount = tuple.get(orderModel.count()) ?: 0L,
-        totalRevenueCents = tuple.get(sumAmount) ?: 0L,
-        averageOrderValueCents = Math.round(tuple.get(avgAmount) ?: 0.0).toLong(),
-        uniqueCustomers = tuple.get(orderModel.userId.countDistinct()) ?: 0L,
-        activeWorkers = tuple.get(orderModel.deliveryWorkerId.countDistinct()) ?: 0L,
-      )
+  /** 计数:COUNT(*),activeOnly 过滤软删;条件构造在事务内。 */
+  private fun countWhere(buildCondition: () -> Op<Boolean>): Long =
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where { OrdersTable.activeOnly { buildCondition() } }
+        .count()
     }
-  }
 
   override fun countOrdersByDateRange(
     startOfDay: LocalDateTime,
@@ -392,23 +630,11 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     deliveryWorkerId: Long?,
     statuses: List<OrderModelStatus>?,
   ): Long {
-    val baseCondition = orderModel.createdAt.goe(startOfDay).and(orderModel.createdAt.lt(endOfDay))
-
-    val whereClauseBuilder = BooleanBuilder(baseCondition)
-
-    if (deliveryWorkerId != null) {
-      whereClauseBuilder.and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
-    }
-
-    statuses?.let {
-      whereClauseBuilder.and(orderModel.status.`in`(it))
-    }
-
-    return queryFactory
-      .select(orderModel.count())
-      .from(orderModel)
-      .where(whereClauseBuilder)
-      .fetchOne() ?: 0L
+    var condition: Op<Boolean> =
+      (OrdersTable.createdAt greaterEq startOfDay) and (OrdersTable.createdAt less endOfDay)
+    deliveryWorkerId?.let { condition = condition and (OrdersTable.deliveryWorkerId eq it) }
+    statuses?.let { condition = condition and (OrdersTable.status inList it.map { s -> s.name }) }
+    return countWhere { condition }
   }
 
   override fun sumAmountCentsByStatusAndDateRange(
@@ -417,115 +643,41 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     endOfDay: LocalDateTime,
     deliveryWorkerId: Long?,
   ): Long {
-    val baseCondition = orderModel.createdAt.goe(startOfDay).and(orderModel.createdAt.lt(endOfDay))
-
-    val whereClause =
-      if (deliveryWorkerId != null) {
-        baseCondition
-          .and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
-          .and(orderModel.status.`in`(statuses))
-      } else {
-        baseCondition.and(orderModel.status.`in`(statuses))
-      }
-
-    return queryFactory
-      .select(orderModel.amountCents.sumLong())
-      .from(orderModel)
-      .where(whereClause)
-      .fetchOne() ?: 0L
+    var condition: Op<Boolean> =
+      (OrdersTable.createdAt greaterEq startOfDay) and (OrdersTable.createdAt less endOfDay)
+    deliveryWorkerId?.let { condition = condition and (OrdersTable.deliveryWorkerId eq it) }
+    condition = condition and (OrdersTable.status inList statuses.map { it.name })
+    return sumAmountWhere { condition }
   }
 
-  override fun countAndSumByPaymentType(
-    deliveryWorkerId: Long,
-    status: OrderModelStatus,
-    paymentType: PaymentType,
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): Array<Long> {
-    val whereClause =
-      orderModel.deliveryWorkerId
-        .eq(deliveryWorkerId)
-        .and(orderModel.status.eq(status))
-        .and(orderModel.paymentType.eq(paymentType))
-        .and(orderModel.completedAt.goe(startDate))
-        .and(orderModel.completedAt.lt(endDate))
+  // ========================================================================
+  // 「已送达」口径聚合(R-ORD-11:COALESCE(delivery_confirmed_at, completed_at) 时间锚点)
+  // ========================================================================
 
-    val count =
-      queryFactory
-        .select(orderModel.count())
-        .from(orderModel)
-        .where(whereClause)
-        .fetchOne() ?: 0L
-
-    val sum =
-      queryFactory
-        .select(orderModel.amountCents.sumLong())
-        .from(orderModel)
-        .where(whereClause)
-        .fetchOne() ?: 0L
-
-    return arrayOf(count, sum)
+  private fun deliveredWindowCondition(
+    start: LocalDateTime,
+    end: LocalDateTime,
+    deliveryWorkerId: Long?,
+  ): Op<Boolean> {
+    val deliveredAt = DeliveredAtExpr()
+    var condition: Op<Boolean> =
+      (OrdersTable.status inList deliveredStatusNames()) and
+        (deliveredAt greaterEq start) and (deliveredAt less end)
+    deliveryWorkerId?.let { condition = condition and (OrdersTable.deliveryWorkerId eq it) }
+    return condition
   }
-
-  /** 「已送达」状态集合(待确认收货 + 已完成,R-ORD-11 送水工业绩口径) */
-  private fun deliveredStatuses(): List<OrderModelStatus> = listOf(OrderModelStatus.AWAITING_CONFIRMATION, OrderModelStatus.COMPLETED)
-
-  /**
-   * 「已送达」时间锚点:送达时间(deliveryConfirmedAt),历史数据为 null 时回退完成时间(completedAt)
-   */
-  private fun deliveredAtExpression() = orderModel.deliveryConfirmedAt.coalesce(orderModel.completedAt)
 
   override fun countDeliveredByDateRange(
     startOfDay: LocalDateTime,
     endOfDay: LocalDateTime,
     deliveryWorkerId: Long?,
-  ): Long {
-    val deliveredAt = deliveredAtExpression()
-    val base =
-      orderModel.status
-        .`in`(deliveredStatuses())
-        .and(deliveredAt.goe(startOfDay))
-        .and(deliveredAt.lt(endOfDay))
-
-    val whereClause =
-      if (deliveryWorkerId != null) {
-        base.and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
-      } else {
-        base
-      }
-
-    return queryFactory
-      .select(orderModel.count())
-      .from(orderModel)
-      .where(whereClause)
-      .fetchOne() ?: 0L
-  }
+  ): Long = countWhere { deliveredWindowCondition(startOfDay, endOfDay, deliveryWorkerId) }
 
   override fun sumDeliveredAmountCentsByDateRange(
     startOfDay: LocalDateTime,
     endOfDay: LocalDateTime,
     deliveryWorkerId: Long?,
-  ): Long {
-    val deliveredAt = deliveredAtExpression()
-    val base =
-      orderModel.status
-        .`in`(deliveredStatuses())
-        .and(deliveredAt.goe(startOfDay))
-        .and(deliveredAt.lt(endOfDay))
-
-    val whereClause =
-      if (deliveryWorkerId != null) {
-        base.and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
-      } else {
-        base
-      }
-
-    return queryFactory
-      .select(orderModel.amountCents.sumLong())
-      .from(orderModel)
-      .where(whereClause)
-      .fetchOne() ?: 0L
-  }
+  ): Long = sumAmountWhere { deliveredWindowCondition(startOfDay, endOfDay, deliveryWorkerId) }
 
   override fun countAndSumDeliveredByPaymentType(
     deliveryWorkerId: Long,
@@ -533,29 +685,14 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): Array<Long> {
-    val deliveredAt = deliveredAtExpression()
-    val whereClause =
-      orderModel.deliveryWorkerId
-        .eq(deliveryWorkerId)
-        .and(orderModel.status.`in`(deliveredStatuses()))
-        .and(orderModel.paymentType.eq(paymentType))
-        .and(deliveredAt.goe(startDate))
-        .and(deliveredAt.lt(endDate))
-
-    val count =
-      queryFactory
-        .select(orderModel.count())
-        .from(orderModel)
-        .where(whereClause)
-        .fetchOne() ?: 0L
-
-    val sum =
-      queryFactory
-        .select(orderModel.amountCents.sumLong())
-        .from(orderModel)
-        .where(whereClause)
-        .fetchOne() ?: 0L
-
+    val deliveredAt = DeliveredAtExpr()
+    val condition: Op<Boolean> =
+      (OrdersTable.deliveryWorkerId eq deliveryWorkerId) and
+        (OrdersTable.status inList deliveredStatusNames()) and
+        (OrdersTable.paymentType eq paymentType.name) and
+        (deliveredAt greaterEq startDate) and (deliveredAt less endDate)
+    val count = countWhere { condition }
+    val sum = sumAmountWhere { condition }
     return arrayOf(count, sum)
   }
 
@@ -565,393 +702,350 @@ class OrderRepositoryImpl : OrderRepositoryCustom {
     endDate: LocalDateTime,
     pageable: Pageable,
   ): Page<OrderModel> {
-    val deliveredAt = deliveredAtExpression()
-    var whereClause =
-      orderModel.status
-        .`in`(deliveredStatuses())
-        .and(deliveredAt.goe(startDate))
-        .and(deliveredAt.lt(endDate))
-    if (deliveryWorkerId != null) {
-      whereClause = whereClause.and(orderModel.deliveryWorkerId.eq(deliveryWorkerId))
-    }
-
-    val total =
-      queryFactory
-        .select(orderModel.count())
-        .from(orderModel)
-        .where(whereClause)
-        .fetchOne() ?: 0L
-
-    val content =
-      queryFactory
-        .selectFrom(orderModel)
-        .where(whereClause)
-        .orderBy(deliveredAt.asc(), orderModel.id.desc())
-        .offset(pageable.offset)
-        .limit(pageable.pageSize.toLong())
-        .fetch()
-
-    return PageImpl(content, pageable, total)
+    val condition = deliveredWindowCondition(startDate, endDate, deliveryWorkerId)
+    return transaction(database) {
+      val total =
+        OrdersTable
+          .selectAll()
+          .where { OrdersTable.activeOnly { condition } }
+          .count()
+      val content =
+        OrdersTable
+          .selectAll()
+          .where { OrdersTable.activeOnly { condition } }
+          // 与原实现一致:送达时间升序、id 降序破平
+          .orderBy(DeliveredAtExpr() to SortOrder.ASC, OrdersTable.id to SortOrder.DESC)
+          .offset(pageable.offset)
+          .limit(pageable.pageSize)
+          .toList()
+          .map(::toModel)
+      content to total
+    }.let { (content, total) -> PageImpl(content, pageable, total) }
   }
 
-  override fun countOrdersByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long> =
-    queryFactory
-      .select(orderModel.status, orderModel.count())
-      .from(orderModel)
-      .where(orderModel.userId.eq(userId))
-      .groupBy(orderModel.status)
-      .fetch()
-      .associate { row ->
-        row.get(orderModel.status)!! to (row.get(orderModel.count()) ?: 0L)
-      }
+  override fun countOrdersByUserIdGroupByStatus(userId: Long): Map<OrderModelStatus, Long> {
+    val statusCount = OrdersTable.id.count()
+    return transaction(database) {
+      OrdersTable
+        .select(OrdersTable.status, statusCount)
+        .where { OrdersTable.activeOnly { OrdersTable.userId eq userId } }
+        .groupBy(OrdersTable.status)
+        .toList()
+        .associate { row -> OrderModelStatus.valueOf(row[OrdersTable.status]) to row[statusCount] }
+    }
+  }
 
-  // ========================================================================
-  // 后台首页 orderStatistics 聚合(与 StatisticsOrderRepositoryImpl 同款 QueryDSL 写法)
-  // createdAt 一律用 gt/lt 严格开区间,与原内存过滤 isAfter/isBefore 逐位等价,不改统计口径
-  // ========================================================================
+  /**
+   * 严格开区间窗口 + 可选配送员/状态过滤
+   * (orderStatistics 各方法与原内存过滤 isAfter/isBefore 逐位等价;[window] 为按 created_at
+   * 或 completed_at 构建的严格开区间谓词)。
+   */
+  private fun openWindowCondition(
+    window: Op<Boolean>,
+    deliveryWorkerId: Long?,
+    statuses: List<OrderModelStatus>?,
+  ): Op<Boolean> {
+    var condition = window
+    deliveryWorkerId?.let { condition = condition and (OrdersTable.deliveryWorkerId eq it) }
+    statuses?.let { condition = condition and (OrdersTable.status inList it.map { s -> s.name }) }
+    return condition
+  }
 
   override fun countByStatusAndCreatedAtBetween(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
     deliveryWorkerId: Long?,
     statuses: List<OrderModelStatus>?,
-  ): Long {
-    val whereClause = buildWindowWhereClause(startDate, endDate, deliveryWorkerId, statuses)
-    return queryFactory
-      .select(orderModel.count())
-      .from(orderModel)
-      .where(whereClause)
-      .fetchOne() ?: 0L
-  }
+  ): Long =
+    countWhere {
+      openWindowCondition(
+        (OrdersTable.createdAt greater startDate) and (OrdersTable.createdAt less endDate),
+        deliveryWorkerId,
+        statuses,
+      )
+    }
 
   override fun sumAmountCentsByStatusAndCreatedAtBetween(
     statuses: List<OrderModelStatus>,
     startDate: LocalDateTime,
     endDate: LocalDateTime,
     deliveryWorkerId: Long?,
-  ): Long {
-    val whereClause = buildWindowWhereClause(startDate, endDate, deliveryWorkerId, statuses)
-    return queryFactory
-      .select(orderModel.amountCents.sumLong())
-      .from(orderModel)
-      .where(whereClause)
-      .fetchOne() ?: 0L
-  }
+  ): Long =
+    sumAmountWhere {
+      openWindowCondition(
+        (OrdersTable.createdAt greater startDate) and (OrdersTable.createdAt less endDate),
+        deliveryWorkerId,
+        statuses,
+      )
+    }
 
   override fun countByStatusAndCompletedAtBetween(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
     deliveryWorkerId: Long?,
     statuses: List<OrderModelStatus>?,
-  ): Long {
-    val whereClause = buildCompletedAtWindowWhereClause(startDate, endDate, deliveryWorkerId, statuses)
-    return queryFactory
-      .select(orderModel.count())
-      .from(orderModel)
-      .where(whereClause)
-      .fetchOne() ?: 0L
-  }
+  ): Long =
+    countWhere {
+      openWindowCondition(
+        (OrdersTable.completedAt greater startDate) and (OrdersTable.completedAt less endDate),
+        deliveryWorkerId,
+        statuses,
+      )
+    }
 
   override fun sumAmountCentsByStatusAndCompletedAtBetween(
     statuses: List<OrderModelStatus>,
     startDate: LocalDateTime,
     endDate: LocalDateTime,
     deliveryWorkerId: Long?,
-  ): Long {
-    val whereClause = buildCompletedAtWindowWhereClause(startDate, endDate, deliveryWorkerId, statuses)
-    return queryFactory
-      .select(orderModel.amountCents.sumLong())
-      .from(orderModel)
-      .where(whereClause)
-      .fetchOne() ?: 0L
-  }
+  ): Long =
+    sumAmountWhere {
+      openWindowCondition(
+        (OrdersTable.completedAt greater startDate) and (OrdersTable.completedAt less endDate),
+        deliveryWorkerId,
+        statuses,
+      )
+    }
 
   override fun findByCreatedAtBetween(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): List<OrderModel> =
-    queryFactory
-      .selectFrom(orderModel)
-      .where(orderModel.createdAt.gt(startDate).and(orderModel.createdAt.lt(endDate)))
-      .fetch()
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where {
+          OrdersTable.activeOnly {
+            (OrdersTable.createdAt greater startDate) and (OrdersTable.createdAt less endDate)
+          }
+        }
+        // 原 JPA 无序,按 id 升序破平
+        .orderBy(OrdersTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
 
   override fun findByStatusAndCreatedAtBetween(
     statuses: List<OrderModelStatus>,
     startDate: LocalDateTime,
     endDate: LocalDateTime,
   ): List<OrderModel> =
-    queryFactory
-      .selectFrom(orderModel)
-      .where(
-        orderModel.status
-          .`in`(statuses)
-          .and(orderModel.createdAt.gt(startDate))
-          .and(orderModel.createdAt.lt(endDate)),
-      ).fetch()
-
-  /**
-   * 构建后台首页 orderStatistics 的窗口谓词(严格开区间 + 可选配送员/状态过滤)
-   */
-  private fun buildWindowWhereClause(
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-    deliveryWorkerId: Long?,
-    statuses: List<OrderModelStatus>?,
-  ): BooleanBuilder {
-    val whereClause = BooleanBuilder(orderModel.createdAt.gt(startDate).and(orderModel.createdAt.lt(endDate)))
-    deliveryWorkerId?.let {
-      whereClause.and(orderModel.deliveryWorkerId.eq(it))
-    }
-    statuses?.let {
-      whereClause.and(orderModel.status.`in`(it))
-    }
-    return whereClause
-  }
-
-  /**
-   * 构建已完成口径的窗口谓词:窗口按 completed_at(完成时间)严格开区间,其余过滤与
-   * [buildWindowWhereClause] 一致。营收/已完成订单数按完成日归属(PRD F-STA-002)。
-   */
-  private fun buildCompletedAtWindowWhereClause(
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-    deliveryWorkerId: Long?,
-    statuses: List<OrderModelStatus>?,
-  ): BooleanBuilder {
-    val whereClause = BooleanBuilder(orderModel.completedAt.gt(startDate).and(orderModel.completedAt.lt(endDate)))
-    deliveryWorkerId?.let {
-      whereClause.and(orderModel.deliveryWorkerId.eq(it))
-    }
-    statuses?.let {
-      whereClause.and(orderModel.status.`in`(it))
-    }
-    return whereClause
-  }
+    transaction(database) {
+      OrdersTable
+        .selectAll()
+        .where {
+          OrdersTable.activeOnly {
+            (OrdersTable.status inList statuses.map { it.name }) and
+              (OrdersTable.createdAt greater startDate) and
+              (OrdersTable.createdAt less endDate)
+          }
+        }
+        // 原 JPA 无序,按 id 升序破平
+        .orderBy(OrdersTable.id to SortOrder.ASC)
+        .toList()
+    }.map(::toModel)
 
   // ========================================================================
-  // 营销使用情况(PRD 10-marketing.md 营销方式详情:相关订单记录 + 营销使用汇总)
+  // 营销使用情况(PRD 10-marketing.md:相关订单记录 + 营销使用汇总 + 商品聚合行)
   // ========================================================================
+
+  /**
+   * 营销使用订单匹配谓词(MarketingUsageKind 语义,与原实现逐分支一致):
+   * 关联表匹配一律子查询(避免 join 造成的订单重复行);子查询同带各自软删过滤
+   * (user_coupons/order_items 为 @SoftDelete 表,order_gifts 裸表不过滤)。
+   */
+  private fun marketingUsageCondition(criteria: MarketingUsageOrderCriteria): Op<Boolean> =
+    when (criteria.kind) {
+      MarketingUsageKind.PROMOTION_ACTIVITY -> OrdersTable.promotionActivityId eq criteria.refId
+
+      MarketingUsageKind.FIRST_ORDER_REDUCE -> OrdersTable.firstOrderActivityId eq criteria.refId
+
+      MarketingUsageKind.COUPON_TEMPLATE ->
+        OrdersTable.couponId inSubQuery
+          UserCouponsTable
+            .select(UserCouponsTable.id)
+            .where { UserCouponsTable.activeOnly { UserCouponsTable.couponTemplateId eq criteria.refId } }
+
+      MarketingUsageKind.GIFT_ACTIVITY ->
+        OrdersTable.id inSubQuery
+          OrderGiftsTable
+            .select(OrderGiftsTable.orderId)
+            .where { OrderGiftsTable.giftActivityId eq criteria.refId }
+
+      MarketingUsageKind.FLASH_SALE_ITEM, MarketingUsageKind.NEWCOMER_PRICE_ITEM -> {
+        val productId = requireNotNull(criteria.productId) { "productId is required for ${criteria.kind}" }
+        val unitPriceCents = requireNotNull(criteria.unitPriceCents) { "unitPriceCents is required for ${criteria.kind}" }
+        val validFrom = requireNotNull(criteria.validFrom) { "validFrom is required for ${criteria.kind}" }
+        val validTo = requireNotNull(criteria.validTo) { "validTo is required for ${criteria.kind}" }
+        // 活动窗口径与引擎一致:validFrom ≤ 下单时间 < validTo
+        (OrdersTable.createdAt greaterEq validFrom) and
+          (OrdersTable.createdAt less validTo) and
+          (
+            OrdersTable.id inSubQuery
+              OrderItemsTable
+                .select(OrderItemsTable.orderId)
+                .where {
+                  OrderItemsTable.activeOnly {
+                    (OrderItemsTable.productId eq productId) and
+                      (OrderItemsTable.unitPriceCents eq unitPriceCents)
+                  }
+                }
+          )
+      }
+    }
 
   override fun findOrdersByMarketingUsage(
     criteria: MarketingUsageOrderCriteria,
     page: Int,
     size: Int,
   ): Page<OrderModel> {
-    val pageable = PageRequest.of(page, size, Sort.by(Sort.Order.desc("createdAt")))
-    val builder = marketingUsagePredicate(criteria)
-    val content =
-      queryFactory
-        .selectFrom(orderModel)
-        .where(builder)
-        .offset(pageable.offset)
-        .limit(pageable.pageSize.toLong())
-        .orderBy(orderModel.createdAt.desc())
-        .fetch()
-    val total =
-      queryFactory
-        .query()
-        .from(orderModel)
-        .where(builder)
-        .fetchCount()
-    return PageImpl(content, pageable, total)
+    val pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"))
+    return transaction(database) {
+      // marketingUsageCondition 含子查询 activeOnly(需事务上下文),在事务内构造
+      val condition = marketingUsageCondition(criteria)
+      val content =
+        OrdersTable
+          .selectAll()
+          .where { OrdersTable.activeOnly { condition } }
+          .orderBy(OrdersTable.createdAt to SortOrder.DESC, OrdersTable.id to SortOrder.ASC)
+          .offset(pageable.offset)
+          .limit(pageable.pageSize)
+          .toList()
+          .map(::toModel)
+      content to OrdersTable.selectAll().where { OrdersTable.activeOnly { condition } }.count()
+    }.let { (content, total) -> PageImpl(content, pageable, total) }
   }
 
-  override fun countOrdersByMarketingUsage(criteria: MarketingUsageOrderCriteria): Long =
-    queryFactory
-      .query()
-      .from(orderModel)
-      .where(marketingUsagePredicate(criteria))
-      .fetchCount()
+  override fun countOrdersByMarketingUsage(criteria: MarketingUsageOrderCriteria): Long = countWhere { marketingUsageCondition(criteria) }
+
+  /** SUM(单个金额快照列) WHERE 条件(主动软删过滤),空结果回退 0;条件构造在事务内。 */
+  private fun sumDiscountWhere(
+    amountColumn: Column<Long>,
+    buildCondition: () -> Op<Boolean>,
+  ): Long =
+    transaction(database) {
+      val sumExpr = amountColumn.sum()
+      OrdersTable
+        .select(sumExpr)
+        .where { OrdersTable.activeOnly { buildCondition() } }
+        .firstOrNull()
+        ?.longOf(sumExpr)
+        ?: 0L
+    }
 
   override fun sumMarketingDiscountCents(criteria: MarketingUsageOrderCriteria): Long =
     when (criteria.kind) {
-      MarketingUsageKind.PROMOTION_ACTIVITY -> {
-        sumDiscountCents(orderModel.promotionDiscountCents, orderModel.promotionActivityId.eq(criteria.refId))
-      }
+      MarketingUsageKind.PROMOTION_ACTIVITY ->
+        sumDiscountWhere(OrdersTable.promotionDiscountCents) {
+          OrdersTable.promotionActivityId eq criteria.refId
+        }
 
-      MarketingUsageKind.FIRST_ORDER_REDUCE -> {
-        sumDiscountCents(orderModel.firstOrderDiscountCents, orderModel.firstOrderActivityId.eq(criteria.refId))
-      }
+      MarketingUsageKind.FIRST_ORDER_REDUCE ->
+        sumDiscountWhere(OrdersTable.firstOrderDiscountCents) {
+          OrdersTable.firstOrderActivityId eq criteria.refId
+        }
 
-      MarketingUsageKind.COUPON_TEMPLATE -> {
-        sumDiscountCents(orderModel.couponDiscountCents, marketingUsagePredicate(criteria))
-      }
+      MarketingUsageKind.COUPON_TEMPLATE ->
+        sumDiscountWhere(OrdersTable.couponDiscountCents) {
+          marketingUsageCondition(criteria)
+        }
 
       // 限时特价/新人专享价/买赠满赠无订单列优惠快照,让利金额由 aggregateMarketingUsageItems 计算
-      else -> {
-        0L
-      }
+      else -> 0L
     }
 
   override fun aggregateMarketingUsageItems(criteria: MarketingUsageOrderCriteria): List<MarketingUsageItemRow> =
     when (criteria.kind) {
       MarketingUsageKind.GIFT_ACTIVITY -> {
-        queryFactory
-          .select(orderGiftModel.productId, orderGiftModel.quantity.sumLong())
-          .from(orderGiftModel)
-          .where(orderGiftModel.giftActivityId.eq(criteria.refId))
-          .groupBy(orderGiftModel.productId)
-          .fetch()
-          .map { row ->
-            MarketingUsageItemRow(
-              productId = row.get(orderGiftModel.productId) ?: 0L,
-              unitPriceCents = null,
-              quantitySum = row.get(orderGiftModel.quantity.sumLong()) ?: 0L,
-            )
-          }
+        val quantitySum = OrderGiftsTable.quantity.sum()
+        transaction(database) {
+          OrderGiftsTable
+            .select(OrderGiftsTable.productId, quantitySum)
+            .where { OrderGiftsTable.giftActivityId eq criteria.refId }
+            .groupBy(OrderGiftsTable.productId)
+            .toList()
+            .map { row ->
+              MarketingUsageItemRow(
+                productId = row[OrderGiftsTable.productId],
+                unitPriceCents = null,
+                quantitySum = row.longOf(quantitySum),
+              )
+            }
+        }
       }
 
       MarketingUsageKind.FLASH_SALE_ITEM, MarketingUsageKind.NEWCOMER_PRICE_ITEM -> {
-        // 时间窗匹配经 orders 子查询实现(与 marketingUsagePredicate 同口径,避免 join 重复行)
-        queryFactory
-          .select(orderItemModel.productId, orderItemModel.unitPriceCents, orderItemModel.quantity.sumLong())
-          .from(orderItemModel)
-          .where(
-            orderItemModel.productId.eq(criteria.productId),
-            orderItemModel.unitPriceCents.eq(criteria.unitPriceCents),
-            orderItemModel.orderId.`in`(
-              JPAExpressions
-                .select(orderModel.id)
-                .from(orderModel)
-                .where(
-                  orderModel.createdAt.goe(criteria.validFrom),
-                  orderModel.createdAt.lt(criteria.validTo),
-                ),
-            ),
-          ).groupBy(orderItemModel.productId, orderItemModel.unitPriceCents)
-          .fetch()
-          .map { row ->
-            MarketingUsageItemRow(
-              productId = row.get(orderItemModel.productId) ?: 0L,
-              unitPriceCents = row.get(orderItemModel.unitPriceCents),
-              quantitySum = row.get(orderItemModel.quantity.sumLong()) ?: 0L,
-            )
-          }
+        // 时间窗匹配经 orders 子查询实现(与 marketingUsageCondition 同口径,避免 join 重复行)
+        val productId = requireNotNull(criteria.productId) { "productId is required for ${criteria.kind}" }
+        val unitPriceCents = requireNotNull(criteria.unitPriceCents) { "unitPriceCents is required for ${criteria.kind}" }
+        val validFrom = requireNotNull(criteria.validFrom) { "validFrom is required for ${criteria.kind}" }
+        val validTo = requireNotNull(criteria.validTo) { "validTo is required for ${criteria.kind}" }
+        val quantitySum = OrderItemsTable.quantity.sum()
+        transaction(database) {
+          OrderItemsTable
+            .select(OrderItemsTable.productId, OrderItemsTable.unitPriceCents, quantitySum)
+            .where {
+              OrderItemsTable.activeOnly {
+                (OrderItemsTable.productId eq productId) and
+                  (OrderItemsTable.unitPriceCents eq unitPriceCents) and
+                  (
+                    OrderItemsTable.orderId inSubQuery
+                      OrdersTable
+                        .select(OrdersTable.id)
+                        .where {
+                          OrdersTable.activeOnly {
+                            (OrdersTable.createdAt greaterEq validFrom) and (OrdersTable.createdAt less validTo)
+                          }
+                        }
+                  )
+              }
+            }.groupBy(OrderItemsTable.productId, OrderItemsTable.unitPriceCents)
+            .toList()
+            .map { row ->
+              MarketingUsageItemRow(
+                productId = row[OrderItemsTable.productId],
+                unitPriceCents = row[OrderItemsTable.unitPriceCents],
+                quantitySum = row.longOf(quantitySum),
+              )
+            }
+        }
       }
 
-      else -> {
-        emptyList()
-      }
+      else -> emptyList()
     }
 
-  /**
-   * 营销使用订单匹配谓词(join 语义见 MarketingUsageKind):
-   * 关联表匹配用子查询(避免 join 造成的订单重复行)。
-   */
-  private fun marketingUsagePredicate(criteria: MarketingUsageOrderCriteria): BooleanBuilder {
-    val builder = BooleanBuilder()
-    when (criteria.kind) {
-      MarketingUsageKind.PROMOTION_ACTIVITY -> {
-        builder.and(orderModel.promotionActivityId.eq(criteria.refId))
-      }
+  // ========================================================================
+  // 原子条件 UPDATE(资金/状态路径:单条 UPDATE,WHERE 条件 + 行数即结果)
+  // ========================================================================
 
-      MarketingUsageKind.FIRST_ORDER_REDUCE -> {
-        builder.and(orderModel.firstOrderActivityId.eq(criteria.refId))
-      }
-
-      MarketingUsageKind.COUPON_TEMPLATE -> {
-        builder.and(
-          orderModel.couponId.`in`(
-            JPAExpressions
-              .select(userCouponModel.id)
-              .from(userCouponModel)
-              .where(userCouponModel.couponTemplateId.eq(criteria.refId)),
-          ),
-        )
-      }
-
-      MarketingUsageKind.GIFT_ACTIVITY -> {
-        builder.and(
-          orderModel.id.`in`(
-            JPAExpressions
-              .select(orderGiftModel.orderId)
-              .from(orderGiftModel)
-              .where(orderGiftModel.giftActivityId.eq(criteria.refId)),
-          ),
-        )
-      }
-
-      MarketingUsageKind.FLASH_SALE_ITEM, MarketingUsageKind.NEWCOMER_PRICE_ITEM -> {
-        requireNotNull(criteria.productId) { "productId is required for ${criteria.kind}" }
-        requireNotNull(criteria.unitPriceCents) { "unitPriceCents is required for ${criteria.kind}" }
-        requireNotNull(criteria.validFrom) { "validFrom is required for ${criteria.kind}" }
-        requireNotNull(criteria.validTo) { "validTo is required for ${criteria.kind}" }
-        // 活动窗口径与引擎一致:validFrom ≤ 下单时间 < validTo
-        builder.and(orderModel.createdAt.goe(criteria.validFrom))
-        builder.and(orderModel.createdAt.lt(criteria.validTo))
-        builder.and(
-          orderModel.id.`in`(
-            JPAExpressions
-              .select(orderItemModel.orderId)
-              .from(orderItemModel)
-              .where(
-                orderItemModel.productId.eq(criteria.productId),
-                orderItemModel.unitPriceCents.eq(criteria.unitPriceCents),
-              ),
-          ),
-        )
-      }
-    }
-    return builder
-  }
-
-  private fun sumDiscountCents(
-    expr: NumberPath<Long>,
-    predicate: Predicate,
-  ): Long =
-    queryFactory
-      .select(expr.sumLong())
-      .from(orderModel)
-      .where(predicate)
-      .fetchOne() ?: 0L
-
-  /**
-   * 原子认领取消:flush 后执行条件 UPDATE(等价 @Modifying(flushAutomatically=true)),
-   * clear 持久化上下文(等价 clearAutomatically=true),避免后续读取脏缓存。
-   */
-  @Transactional
   override fun cancelAtomically(
     id: Long,
     statuses: Collection<OrderModelStatus>,
     now: LocalDateTime,
-  ): Int {
-    entityManager.flush()
-    val updated =
-      queryFactory
-        .update(orderModel)
-        .set(orderModel.status, OrderModelStatus.CANCELLED)
-        .set(orderModel.updatedAt, now)
-        .where(
-          orderModel.id.eq(id),
-          orderModel.status.`in`(statuses),
-        ).execute()
-        .toInt()
-    entityManager.clear()
-    return updated
-  }
+  ): Int =
+    transaction(database) {
+      OrdersTable.update({
+        OrdersTable.activeOnly {
+          (OrdersTable.id eq id) and (OrdersTable.status inList statuses.map { it.name })
+        }
+      }) {
+        it[status] = OrderModelStatus.CANCELLED.name
+        it[updatedAt] = now
+      }
+    }
 
-  /**
-   * 原子认领确认收货:flush 后执行条件 UPDATE(等价 @Modifying(flushAutomatically=true)),
-   * clear 持久化上下文(等价 clearAutomatically=true),避免后续读取脏缓存。
-   */
-  @Transactional
   override fun confirmReceiptAtomically(
     id: Long,
     completedAt: LocalDateTime,
-  ): Int {
-    entityManager.flush()
-    val updated =
-      queryFactory
-        .update(orderModel)
-        .set(orderModel.status, OrderModelStatus.COMPLETED)
-        .set(orderModel.completedAt, completedAt)
-        .set(orderModel.updatedAt, completedAt)
-        .where(
-          orderModel.id.eq(id),
-          orderModel.status.eq(OrderModelStatus.AWAITING_CONFIRMATION),
-        ).execute()
-        .toInt()
-    entityManager.clear()
-    return updated
-  }
+  ): Int =
+    transaction(database) {
+      OrdersTable.update({
+        OrdersTable.activeOnly {
+          (OrdersTable.id eq id) and (OrdersTable.status eq OrderModelStatus.AWAITING_CONFIRMATION.name)
+        }
+      }) {
+        it[status] = OrderModelStatus.COMPLETED.name
+        it[OrdersTable.completedAt] = completedAt
+        it[updatedAt] = completedAt
+      }
+    }
 }

@@ -20,17 +20,20 @@
 package dev.yidafu.aqua.payment.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PaymentRefundModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
-import java.util.*
+import java.util.Optional
 
-@Repository
-interface PaymentRefundRepository :
-  JpaRepository<PaymentRefundModel, Long>,
-  PaymentRefundRepositoryCustom {
-  fun findByPaymentId(paymentId: Long): List<PaymentRefundModel>
+/**
+ * 退款记录仓储(JPA→Exposed 迁移 P4):剥离 JpaRepository,仅保留实际被调用的方法
+ * (findByPaymentId/findByRefundId/findByOutRefundNo 无调用方,已废除);
+ * 查询过滤 is_deleted,聚合/分页方法在 [PaymentRefundRepositoryCustom]。
+ */
+interface PaymentRefundRepository : PaymentRefundRepositoryCustom {
+  /** 按 id 单行查询:命中且未软删返回实体,不存在或已软删返回 [Optional.empty]。 */
+  fun findById(id: Long): Optional<PaymentRefundModel>
 
-  fun findByRefundId(refundId: String): Optional<PaymentRefundModel>
-
-  fun findByOutRefundNo(outRefundNo: String): Optional<PaymentRefundModel>
+  /**
+   * upsert 语义:无 id 或 id 不存在时插入(雪花 id 由 [dev.yidafu.aqua.common.id.SnowflakeIdGenerator] 回填),
+   * 否则按 id 更新业务列(更新时 updated_at = now)。
+   */
+  fun save(entity: PaymentRefundModel): PaymentRefundModel
 }

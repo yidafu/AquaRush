@@ -1,8 +1,26 @@
+/**
+ * AquaRush
+ *
+ * Copyright (C) 2025 AquaRush Team
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published
+ * by the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
 package dev.yidafu.aqua.order.domain.repository
 
 import dev.yidafu.aqua.api.dto.MarketingUsageItemRow
 import dev.yidafu.aqua.api.dto.MarketingUsageOrderCriteria
-import dev.yidafu.aqua.api.dto.OrderAnalyticsRow
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
@@ -10,36 +28,14 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import java.time.LocalDateTime
 
+/**
+ * 订单仓储自定义查询(JPA→Exposed 迁移 P4:原 QueryDSL 实现整体重写为 Exposed DSL;
+ * 无人调用的方法已删除)。分页方法 count 与 content 同一事务;聚合口径与原实现逐方法对照。
+ */
 interface OrderRepositoryCustom {
-  fun findOrdersWithFilters(
-    userId: Long?,
-    status: OrderModelStatus?,
-    deliveryWorkerId: Long?,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
-    orderNumber: String?,
-    statuses: List<OrderModelStatus>?,
-  ): List<OrderModel>
-
-  fun findDeliveryWorkerOrdersWithFilters(
-    deliveryWorkerId: Long,
-    status: OrderModelStatus,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
-    limit: Int?,
-  ): List<OrderModel>
-
-  fun countOrdersWithFilters(
-    userId: Long?,
-    status: OrderModelStatus?,
-    deliveryWorkerId: Long?,
-    startDate: LocalDateTime?,
-    endDate: LocalDateTime?,
-    statuses: List<OrderModelStatus>?,
-  ): Long
-
   /**
-   * 分页查询订单
+   * 分页查询订单(后台管理列表):keyword 对 orderNo 大小写不敏感包含;
+   * 排序字段白名单 totalAmount/updatedAt/createdAt(未知字段回退 createdAt),+ id 破平。
    */
   fun findOrdersPaginated(
     keyword: String? = null,
@@ -56,19 +52,10 @@ interface OrderRepositoryCustom {
     sortDirection: String = "desc",
   ): Page<OrderModel>
 
-  fun bulkUpdateOrderStatus(
-    orderIds: List<Long>,
-    newStatus: OrderModelStatus,
-    deliveryWorkerId: Long?,
-  ): Int
-
-  fun getOrderAnalytics(
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): List<OrderAnalyticsRow>
-
   /**
-   * 分页查询配送员历史订单（按多个状态）
+   * 分页查询配送员历史订单(按多个状态)。
+   * 原实现的关键字过滤在 QueryDSL 版即为注释掉的死代码,此处保留参数但不参与过滤(行为不变);
+   * createdAt 降序 + id 破平;statuses 为空列表=不匹配任何行。
    */
   fun findByDeliveryWorkerIdAndStatusIn(
     deliveryWorkerId: Long?,
@@ -80,7 +67,7 @@ interface OrderRepositoryCustom {
 
   /**
    * 用户订单分页查询(F-ORD-002 用户端订单列表,G02):
-   * statuses 为空=全部状态;按下单时间倒序;userId 由调用方强制为登录用户(防越权)。
+   * statuses 为空=全部状态;按下单时间倒序 + id 破平;userId 由调用方强制为登录用户(防越权)。
    */
   fun findUserOrdersPaginated(
     userId: Long,
@@ -90,7 +77,8 @@ interface OrderRepositoryCustom {
   ): Page<OrderModel>
 
   /**
-   * 统计指定日期范围内的订单数量（可按配送员筛选，可按状态筛选）
+   * 统计指定日期范围内的订单数量(可按配送员筛选,可按状态筛选):
+   * createdAt ∈ [startOfDay, endOfDay)(goe/lt 半开区间,与原实现一致)。
    */
   fun countOrdersByDateRange(
     startOfDay: LocalDateTime,
@@ -100,7 +88,8 @@ interface OrderRepositoryCustom {
   ): Long
 
   /**
-   * 统计指定日期范围内指定状态订单的金额总和（可按配送员筛选）
+   * 统计指定日期范围内指定状态订单的金额总和(可按配送员筛选):
+   * createdAt ∈ [startOfDay, endOfDay)(goe/lt 半开区间,与原实现一致)。
    */
   fun sumAmountCentsByStatusAndDateRange(
     statuses: List<OrderModelStatus>,
@@ -108,17 +97,6 @@ interface OrderRepositoryCustom {
     endOfDay: LocalDateTime,
     deliveryWorkerId: Long?,
   ): Long
-
-  /**
-   * 按支付类型和日期范围统计订单数量和金额
-   */
-  fun countAndSumByPaymentType(
-    deliveryWorkerId: Long,
-    status: OrderModelStatus,
-    paymentType: PaymentType,
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): Array<Long>
 
   // ========================================================================
   // 「已送达」口径聚合(R-ORD-11 确认收货与营收确认):送水工业绩/收款日报/对账专用,
@@ -128,7 +106,8 @@ interface OrderRepositoryCustom {
   // ========================================================================
 
   /**
-   * 统计日期窗口内「已送达」订单数(送水工业绩口径,含待确认收货与已完成)
+   * 统计日期窗口内「已送达」订单数(送水工业绩口径,含待确认收货与已完成):
+   * COALESCE(delivery_confirmed_at, completed_at) ∈ [startOfDay, endOfDay)。
    */
   fun countDeliveredByDateRange(
     startOfDay: LocalDateTime,
@@ -137,7 +116,7 @@ interface OrderRepositoryCustom {
   ): Long
 
   /**
-   * 统计日期窗口内「已送达」订单金额合计(分,送水工业绩口径)
+   * 统计日期窗口内「已送达」订单金额合计(分,送水工业绩口径):窗口口径同 [countDeliveredByDateRange]。
    */
   fun sumDeliveredAmountCentsByDateRange(
     startOfDay: LocalDateTime,
@@ -146,7 +125,8 @@ interface OrderRepositoryCustom {
   ): Long
 
   /**
-   * 按支付类型统计日期窗口内「已送达」订单数量与金额(收款日报/对账口径,含待确认收货与已完成)
+   * 按支付类型统计日期窗口内「已送达」订单数量与金额(收款日报/对账口径,含待确认收货与已完成):
+   * 返回 [订单数, 金额合计(分)];窗口口径同 [countDeliveredByDateRange]。
    */
   fun countAndSumDeliveredByPaymentType(
     deliveryWorkerId: Long,
@@ -158,6 +138,7 @@ interface OrderRepositoryCustom {
   /**
    * 分页查询日期窗口内「已送达」订单明细(对账逐单明细,含待确认收货与已完成):
    * 按送达时间(deliveryConfirmedAt,回退 completedAt)过滤,可指定送水工;
+   * 排序 = 送达时间升序、id 降序(与原实现一致);count 与 content 同一事务。
    * 供 G29 对账详情逐单差异明细使用,禁止全量拉取(CLAUDE.md 规则 13)。
    */
   fun findDeliveredOrdersByDateRange(
@@ -224,7 +205,8 @@ interface OrderRepositoryCustom {
   ): Long
 
   /**
-   * 查询日期窗口内订单(createdAt 严格开区间,与原内存过滤 isAfter/isBefore 逐位等价;软删除自动过滤)
+   * 查询日期窗口内订单(createdAt 严格开区间,与原内存过滤 isAfter/isBefore 逐位等价;软删除自动过滤;
+   * 原 JPA 无序,按 id 升序破平)
    */
   fun findByCreatedAtBetween(
     startDate: LocalDateTime,
@@ -232,7 +214,8 @@ interface OrderRepositoryCustom {
   ): List<OrderModel>
 
   /**
-   * 查询日期窗口内指定状态订单(createdAt 严格开区间,与原内存过滤 isAfter/isBefore 逐位等价;软删除自动过滤)
+   * 查询日期窗口内指定状态订单(createdAt 严格开区间,与原内存过滤 isAfter/isBefore 逐位等价;
+   * 软删除自动过滤;原 JPA 无序,按 id 升序破平)
    */
   fun findByStatusAndCreatedAtBetween(
     statuses: List<OrderModelStatus>,
@@ -245,7 +228,8 @@ interface OrderRepositoryCustom {
   // ========================================================================
 
   /**
-   * 按营销追溯条件分页查询相关订单(按下单时间倒序),匹配语义见 MarketingUsageKind。
+   * 按营销追溯条件分页查询相关订单(按下单时间倒序 + id 破平),匹配语义见 MarketingUsageKind;
+   * count 与 content 同一事务。
    */
   fun findOrdersByMarketingUsage(
     criteria: MarketingUsageOrderCriteria,
@@ -271,8 +255,9 @@ interface OrderRepositoryCustom {
 
   /**
    * 原子认领取消(订单级乐观锁 CAS,R-ORD-04 互斥):
-   * 仅 [statuses] 内状态可置 CANCELLED,返回受影响行数
-   * (1=认领成功,0=已被并发取消/支付超时/状态已流转)。
+   * 单条条件 UPDATE:仅 [statuses] 内状态可置 CANCELLED,返回受影响行数
+   * (1=认领成功,0=已被并发取消/支付超时/状态已流转);WHERE 同带 activeOnly
+   * (JPA 侧 bulk update 不过滤软删为已知差异,业务上不存在软删订单)。
    */
   fun cancelAtomically(
     id: Long,
@@ -282,8 +267,9 @@ interface OrderRepositoryCustom {
 
   /**
    * 原子认领确认收货(订单级乐观锁 CAS,R-ORD-11 互斥):
-   * 仅「待确认收货」状态可置「已完成」并写入完成时间(completedAt=确认时间,营收按此归属),
-   * 返回受影响行数(1=认领成功,0=已被用户/系统并发确认或状态已流转)。
+   * 单条条件 UPDATE:仅「待确认收货」状态可置「已完成」并写入完成时间
+   * (completedAt=确认时间,营收按此归属,updatedAt 同步),返回受影响行数
+   * (1=认领成功,0=已被用户/系统并发确认或状态已流转);WHERE 同带 activeOnly(口径同 [cancelAtomically])。
    */
   fun confirmReceiptAtomically(
     id: Long,

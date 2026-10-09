@@ -22,51 +22,22 @@ package dev.yidafu.aqua.review.domain.repository
 import dev.yidafu.aqua.common.domain.model.ReviewModel
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
-import java.time.LocalDateTime
 
-@Repository
-interface ReviewRepository :
-  JpaRepository<ReviewModel, Long>,
-  ReviewRepositoryCustom {
+/**
+ * 订单评价仓储(JPA→Exposed 迁移 P4):剥离 JpaRepository,仅保留实际被调用的方法;
+ * 查询过滤 is_deleted(对齐 @SoftDelete)。
+ */
+interface ReviewRepository : ReviewRepositoryCustom {
   fun findByOrderId(orderId: Long): ReviewModel?
 
   fun existsByOrderId(orderId: Long): Boolean
 
-  fun findByUserId(userId: Long): List<ReviewModel>
-
-  fun findByUserIdOrderByCreatedAtDesc(userId: Long): List<ReviewModel>
-
+  /** 用户评价分页(用户详情页 Tab);固定 createdAt 降序,id 降序破平防跨页重复。 */
   fun findByUserIdOrderByCreatedAtDesc(
     userId: Long,
     pageable: Pageable,
   ): Page<ReviewModel>
 
-  fun findByDeliveryWorkerId(deliveryWorkerId: Long): List<ReviewModel>
-
-  fun findByDeliveryWorkerIdOrderByCreatedAtDesc(
-    deliveryWorkerId: Long,
-    pageable: Pageable,
-  ): Page<ReviewModel>
-
-  fun findByDeliveryWorkerIdAndRatingOrderByCreatedAtDesc(
-    deliveryWorkerId: Long,
-    rating: Int,
-    pageable: Pageable,
-  ): Page<ReviewModel>
-
-  fun findByDeliveryWorkerIdAndCreatedAtBetween(
-    deliveryWorkerId: Long,
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): List<ReviewModel>
-
-  fun countByDeliveryWorkerId(deliveryWorkerId: Long): Long
-
-  fun countByDeliveryWorkerIdAndCreatedAtBetween(
-    deliveryWorkerId: Long,
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): Long
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: ReviewModel): ReviewModel
 }

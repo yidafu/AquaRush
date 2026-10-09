@@ -19,72 +19,19 @@
 
 package dev.yidafu.aqua.payment.domain.repository
 
-import dev.yidafu.aqua.common.domain.model.PaymentModel
-import dev.yidafu.aqua.common.domain.model.PaymentStatus
 import java.time.LocalDateTime
 
 /**
- * Custom repository interface for enhanced Payment queries
- * This interface defines methods that require custom implementation
+ * Payment 仓储自定义方法(JPA→Exposed 迁移 P4 仅保留实际被调用的方法;
+ * 原 *Enhanced/findPaymentsWithFilters 死方法随 QueryDSL 实现一并废除)。
  */
 interface PaymentRepositoryCustom {
   /**
-   * Find payments by user ID and status with enhanced query
-   */
-  fun findByUserIdAndStatusEnhanced(
-    userId: Long,
-    status: PaymentStatus,
-  ): List<PaymentModel>
-
-  /**
-   * Find expired payments before specified time
-   */
-  fun findExpiredPaymentsEnhanced(now: LocalDateTime): List<PaymentModel>
-
-  /**
-   * Find payments created within a date range
-   */
-  fun findByCreatedAtBetweenEnhanced(
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): List<PaymentModel>
-
-  /**
-   * Count payments by status and creation date range
-   */
-  fun countByStatusAndCreatedAtBetweenEnhanced(
-    status: PaymentStatus,
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): Long
-
-  /**
-   * Sum payment amounts by status and creation date range
-   * Returns result in cents (Long) since amount is stored as cents in the database
-   */
-  fun sumAmountByStatusAndCreatedAtBetweenEnhanced(
-    status: PaymentStatus,
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): Long
-
-  /**
-   * Complex query: find payments with multiple criteria
-   */
-  fun findPaymentsWithFilters(
-    userId: Long? = null,
-    status: PaymentStatus? = null,
-    transactionId: String? = null,
-    startDate: LocalDateTime? = null,
-    endDate: LocalDateTime? = null,
-    minAmount: Long? = null,
-    maxAmount: Long? = null,
-  ): List<PaymentModel>
-
-  /**
-   * 原子认领过期支付(乐观锁 CAS,R-ORD-04 支付超时优化):
-   * 仅 PENDING 且已到期可置 EXPIRED(version+1);返回受影响行数
-   * (1=认领成功,0=已被处理/未到期/不存在,幂等且互斥)。
+   * 原子认领过期支付(单条条件 UPDATE,R-ORD-04 支付超时优化):
+   * 仅未软删、PENDING 且已到期(expired_at 非空且 <= now)的行置 EXPIRED,
+   * 同时 version 数据库侧 +1、updated_at = now;
+   * 返回受影响行数(1=认领成功,0=已被处理/未到期/已软删/不存在)——单语句原子,幂等且互斥。
+   * KDoc 与实现一致:WHERE 带 activeOnly(软删行不可认领,对齐营销域 CAS 认领先例)。
    */
   fun claimExpired(
     id: Long,

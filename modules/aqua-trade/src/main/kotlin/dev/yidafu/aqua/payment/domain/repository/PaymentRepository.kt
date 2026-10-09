@@ -21,39 +21,25 @@ package dev.yidafu.aqua.payment.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.PaymentModel
 import dev.yidafu.aqua.common.domain.model.PaymentStatus
-import dev.yidafu.aqua.common.util.MoneyUtils
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor
-import org.springframework.stereotype.Repository
-import java.math.BigDecimal
 import java.time.LocalDateTime
-import java.util.*
+import java.util.Optional
 
-@Repository
-interface PaymentRepository :
-  JpaRepository<PaymentModel, Long>,
-  JpaSpecificationExecutor<PaymentModel>,
-  PaymentRepositoryCustom {
+/**
+ * 支付单仓储(JPA→Exposed 迁移 P4):剥离 JpaRepository/JpaSpecificationExecutor,
+ * 仅保留实际被调用的方法;原 PaymentSpecifications 组装的过滤语义并入
+ * [PaymentRepositoryImpl] 的 Exposed 条件构建,所有查询过滤 is_deleted。
+ */
+interface PaymentRepository : PaymentRepositoryCustom {
   fun findByOrderId(orderId: Long): Optional<PaymentModel>
 
   fun findByTransactionId(transactionId: String): Optional<PaymentModel>
 
-  fun findByPrepayId(prepayId: String): Optional<PaymentModel>
-
-  fun findByUserIdAndStatus(
-    userId: Long,
-    status: PaymentStatus,
-  ): List<PaymentModel>
-
-  fun findByStatus(status: PaymentStatus): List<PaymentModel>
-
-  fun findByStatusIn(statuses: List<PaymentStatus>): List<PaymentModel>
-
   /**
-   * 兜底扫描分页查询(R-ORD-04 支付超时优化):PENDING 且已到期的支付记录,
-   * 分批游标处理,禁止全表拉取(CLAUDE.md 规则 13)。
+   * 兜底扫描分页查询(R-ORD-04 支付超时优化):status 列等于入参 [status] 且 expired_at < 入参 [expiredAt]
+   * (严格小于,同原 JPA 派生查询),分批游标处理,禁止全表拉取(CLAUDE.md 规则 13);
+   * content 与 count 同事务;排序应用 pageable.sort(可映射属性),未指定时回退 id 升序防跨页漂移。
    */
   fun findByStatusAndExpiredAtBefore(
     status: PaymentStatus,
@@ -61,40 +47,21 @@ interface PaymentRepository :
     pageable: Pageable,
   ): Page<PaymentModel>
 
-  fun findExpiredPayments(
-    status: PaymentStatus,
-    now: LocalDateTime,
-  ): List<PaymentModel> {
-    val specification = PaymentSpecifications.expiredBefore(now)
-    return findAll(specification)
-  }
-
+  /**
+   * 创建时间闭区间查询:created_at >= startDate AND created_at <= endDate
+   * (同原 PaymentSpecifications.createdAtBetween,两端闭区间),结果无排序。
+   */
   fun findByCreatedAtBetween(
     startDate: LocalDateTime,
     endDate: LocalDateTime,
-  ): List<PaymentModel> {
-    val specification = PaymentSpecifications.createdAtBetween(startDate, endDate)
-    return findAll(specification)
-  }
+  ): List<PaymentModel>
 
-  fun countByStatusAndCreatedAtBetween(
-    status: PaymentStatus,
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): Long {
-    val specification = PaymentSpecifications.byStatusAndCreatedAtBetween(status, startDate, endDate)
-    return count(specification)
-  }
+  /** 按 id 单行查询:命中且未软删返回实体,不存在或已软删返回 [Optional.empty]。 */
+  fun findById(id: Long): Optional<PaymentModel>
 
-  fun sumAmountByStatusAndCreatedAtBetween(
-    status: PaymentStatus,
-    startDate: LocalDateTime,
-    endDate: LocalDateTime,
-  ): BigDecimal {
-    val specification = PaymentSpecifications.byStatusAndCreatedAtBetween(status, startDate, endDate)
-    val payments = findAll(specification)
-    return payments.fold(BigDecimal.ZERO) { sum, payment ->
-      sum + MoneyUtils.fromCents(payment.amount)
-    }
-  }
+  /**
+   * upsert 语义:无 id 或 id 不存在时插入(雪花 id 由 [dev.yidafu.aqua.common.id.SnowflakeIdGenerator] 回填),
+   * 否则按 id 更新业务列(更新时 version 数据库侧 +1,对齐 JPA @Version 每次更新递增)。
+   */
+  fun save(entity: PaymentModel): PaymentModel
 }

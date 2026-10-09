@@ -52,7 +52,10 @@ object OrdersTable : SoftDeletableTable("orders") {
   val firstOrderActivityName = varchar("first_order_activity_name", 100).nullable()
   val firstOrderDiscountCents = long("first_order_discount_cents").default(0L)
   val addressId = long("address_id")
-  val status = varchar("status", 20)
+
+  // 30 而非 DDL 初值 20:枚举 AWAITING_CONFIRMATION 21 字符超宽(Exposed 客户端强校验
+  // 会拒绝写入),changelog V300 已同步加宽生产列。
+  val status = varchar("status", 30)
   val paymentMethod = varchar("payment_method", 20).nullable()
   val paymentTransactionId = varchar("payment_transaction_id", 128).nullable()
   val paidAt = datetime("paid_at").nullable()
