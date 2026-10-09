@@ -38,8 +38,12 @@ import org.jetbrains.exposed.v1.javatime.datetime
 abstract class SoftDeletableTable(
   name: String,
 ) : Table(name) {
-  /** 软删标记列，DDL 为 `boolean NOT NULL DEFAULT false`。 */
-  val isDeleted = bool("is_deleted").default(false)
+  /**
+   * 软删标记列，DDL 为 `boolean NOT NULL DEFAULT false`。
+   * 用 clientDefault 而非 default：default 仅生成 DDL,运行时 INSERT 不附加该列;
+   * 而部分环境的 DDL(如 Liquibase defaultValueBoolean)可能未落 DEFAULT,会导致 NULL 约束违反。
+   */
+  val isDeleted = bool("is_deleted").clientDefault { false }
 
   /** 软删时间（业务侧留痕，与 [isDeleted] 同时写入）。 */
   val deletedAt = datetime("deleted_at").nullable()
