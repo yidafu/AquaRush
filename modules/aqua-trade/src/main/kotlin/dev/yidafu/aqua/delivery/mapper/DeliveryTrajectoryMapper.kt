@@ -23,7 +23,7 @@ import dev.yidafu.aqua.common.domain.model.DeliveryTrajectoryModel
 import dev.yidafu.aqua.common.graphql.generated.DeliveryTrajectory
 
 /**
- * 配送轨迹点模型 → GraphQL 类型映射(F-ADR-012,R-ADR-03,原 DeliveryTrajectoryMapper ObjectMappie 迁移)。
+ * 配送轨迹点模型 → GraphQL 类型映射(F-ADR-012,R-ADR-03,原 DeliveryTrajectoryMapper)。
  *
  * 数据库 double 精度坐标投影为 GraphQL Float(与 Address 投影一致)。
  */

@@ -21,9 +21,7 @@ package dev.yidafu.aqua.delivery.mapper
 
 import dev.yidafu.aqua.common.domain.model.AdminModel
 import dev.yidafu.aqua.common.domain.model.DeliverWorkerModelStatus
-import dev.yidafu.aqua.common.domain.model.DeliveryAreaModel
 import dev.yidafu.aqua.common.graphql.generated.AdminAccountStatus
-import dev.yidafu.aqua.common.graphql.generated.DeliveryArea
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorker
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatus
 import java.math.BigDecimal
@@ -34,7 +32,7 @@ import java.math.BigDecimal
 fun DeliverWorkerModelStatus.toGraphQL(): DeliveryWorkerStatus = DeliveryWorkerStatus.valueOf(name)
 
 /**
- * AdminModel(送水员账号行)→ GraphQL DeliveryWorker(原 DeliveryWorkerMapper ObjectMappie 迁移)。
+ * AdminModel(送水员账号行)→ GraphQL DeliveryWorker(原 DeliveryWorkerMapper)。
  *
  * 送水员档案并入 admins 单表后(PRD/07-user.md §F-USR-021 目标架构),DeliveryWorker
  * 为兼容投影类型:id 即账号 id;wechatOpenId 不再落库,投影为空串。
@@ -63,17 +61,4 @@ fun AdminModel.toDeliveryWorker(): DeliveryWorker =
     rating = rating?.let { BigDecimal.valueOf(it) },
     totalOrders = totalOrders,
     updatedAt = updatedAt,
-  )
-
-/**
- * DeliveryAreaModel → GraphQL DeliveryArea(原 DeliveryAreaMapper ObjectMappie 迁移)。
- */
-fun DeliveryAreaModel.toGraphQL(): DeliveryArea =
-  DeliveryArea(
-    id = id ?: 0L,
-    name = name,
-    province = province,
-    city = city,
-    district = district,
-    enabled = enabled,
   )

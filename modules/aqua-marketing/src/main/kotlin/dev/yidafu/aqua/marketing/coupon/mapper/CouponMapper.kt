@@ -99,8 +99,6 @@ fun DomainCouponTemplateStatus.toGraphQL(): CouponTemplateStatus = CouponTemplat
 fun CouponTemplateStatus.toDomain(): DomainCouponTemplateStatus = DomainCouponTemplateStatus.valueOf(name)
 
 /**
- * 定向发放目标类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 定向发放目标类型:GraphQL 枚举 → 领域枚举同名 valueOf 互转
  */
-fun DomainIssueTargetType.toGraphQL(): IssueTargetType = IssueTargetType.valueOf(name)
-
 fun IssueTargetType.toDomain(): DomainIssueTargetType = DomainIssueTargetType.valueOf(name)

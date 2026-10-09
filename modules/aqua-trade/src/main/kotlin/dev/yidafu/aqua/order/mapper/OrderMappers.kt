@@ -30,7 +30,6 @@ import dev.yidafu.aqua.common.domain.model.OrderItemModel
 import dev.yidafu.aqua.common.domain.model.OrderModel
 import dev.yidafu.aqua.common.domain.model.enums.OrderModelStatus
 import dev.yidafu.aqua.common.domain.model.enums.PaymentType
-import dev.yidafu.aqua.common.domain.model.enums.PriceSource
 import dev.yidafu.aqua.common.graphql.generated.CreateDeliveryOrderInput
 import dev.yidafu.aqua.common.graphql.generated.CreateOrderInput
 import dev.yidafu.aqua.common.graphql.generated.DailyStat
@@ -57,7 +56,7 @@ import dev.yidafu.aqua.common.graphql.generated.PriceSource as PriceSourceG
 // ============================================================================
 
 /**
- * 领域订单状态 → GraphQL OrderStatus(同名 valueOf 互转,与原 mappie 同名解析行为一致)
+ * 领域订单状态 → GraphQL OrderStatus(同名 valueOf 互转)
  */
 fun OrderModelStatus.toGraphQL(): OrderStatusG = OrderStatusG.valueOf(name)
 
@@ -71,27 +70,12 @@ fun OrderStatusG.toDomain(): OrderModelStatus = OrderModelStatus.valueOf(name)
  */
 fun PaymentType.toGraphQL(): PaymentTypeG = PaymentTypeG.valueOf(name)
 
-/**
- * GraphQL PaymentType → 领域收款方式
- */
-fun PaymentTypeG.toDomain(): PaymentType = PaymentType.valueOf(name)
-
-/**
- * 领域成交单价来源 → GraphQL PriceSource(R-MKT-01 成交单价来源)
- */
-fun PriceSource.toGraphQL(): PriceSourceG = PriceSourceG.valueOf(name)
-
-/**
- * GraphQL PriceSource → 领域成交单价来源
- */
-fun PriceSourceG.toDomain(): PriceSource = PriceSource.valueOf(name)
-
 // ============================================================================
 // OrderModel → GraphQL Order
 // ============================================================================
 
 /**
- * OrderModel → GraphQL Order 直映(权威链路,原 OrderMapper ObjectMappie 迁移)。
+ * OrderModel → GraphQL Order 直映(权威链路,原 OrderMapper)。
  *
  * - [items] 商品明细(F-ORD-004)由调用方经 OrderItemRepository 填充(见 [OrderItemModel.toOrderItemVo]);
  * - giftItems 由字段级 Resolver 联查 order_gifts 提供(R-MKT-09,配置变更不影响已生成订单);
@@ -156,7 +140,7 @@ fun OrderModel.toGraphQL(items: List<OrderItemVo> = emptyList()): Order =
   )
 
 /**
- * DeliveryAddressModel → GraphQL DeliveryAddress(原 DeliveryAddressMapper ObjectMappie 迁移)。
+ * DeliveryAddressModel → GraphQL DeliveryAddress(原 DeliveryAddressMapper)。
  * GraphQL 经纬度为 Float,领域模型/存储统一 Double(WGS-84)。
  */
 fun DeliveryAddressModel.toGraphQL(): DeliveryAddress =
@@ -180,7 +164,7 @@ fun DeliveryAddressModel.toGraphQL(): DeliveryAddress =
 // ============================================================================
 
 /**
- * 用户下单输入 → CreateOrderRequest(原 CreateOrderInputMapper ObjectMappie 迁移)。
+ * 用户下单输入 → CreateOrderRequest(原 CreateOrderInputMapper)。
  *
  * - userId 占位 0,resolver 以登录 principal 复制注入(防越权);
  * - deliveryTime → deliveryTimeSlot 改名 + 领域枚举同名互转(AC-ORD-001-05,缺省=立即配送);
@@ -205,7 +189,7 @@ fun CreateOrderInput.toRequest(): CreateOrderRequest =
   )
 
 /**
- * 代客下单输入 → CreateOrderRequest(原 CreateDeliveryOrderInputMapper ObjectMappie 迁移)。
+ * 代客下单输入 → CreateOrderRequest(原 CreateDeliveryOrderInputMapper)。
  * 代客下单(F-ORD-012)多商品:items 直传(F-ORD-004 多商品唯一口径;单商品=单元素);
  * clientRequestId/deliveryTimeSlot/preferredCouponId/ticketRedeemCount 无源字段,保持默认。
  */

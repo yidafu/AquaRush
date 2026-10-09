@@ -21,7 +21,6 @@ package dev.yidafu.aqua.user.mapper
 
 import dev.yidafu.aqua.common.domain.model.AddressModel
 import dev.yidafu.aqua.common.domain.model.AdminModel
-import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.common.domain.model.UserModel
 import dev.yidafu.aqua.common.domain.model.enums.AdminRoleModel
 import dev.yidafu.aqua.common.graphql.generated.Address
@@ -30,7 +29,6 @@ import dev.yidafu.aqua.common.graphql.generated.Admin
 import dev.yidafu.aqua.common.graphql.generated.AdminAccountStatus
 import dev.yidafu.aqua.common.graphql.generated.AdminRole
 import dev.yidafu.aqua.common.graphql.generated.DeliveryWorkerStatus
-import dev.yidafu.aqua.common.graphql.generated.Region
 import dev.yidafu.aqua.common.graphql.generated.UpdateAddressInput
 import dev.yidafu.aqua.common.graphql.generated.User
 import java.math.BigDecimal
@@ -121,20 +119,6 @@ fun AddressModel.toGraphQL(): Address =
     receiverName = receiverName,
     updatedAt = updatedAt,
     userId = userId,
-  )
-
-/**
- * RegionModel → GraphQL Region 类型
- */
-fun RegionModel.toGraphQL(): Region =
-  Region(
-    code = code,
-    createdAt = createdAt,
-    id = id ?: 0L,
-    level = level,
-    name = name,
-    parentCode = parentCode,
-    updatedAt = updatedAt,
   )
 
 // ============================================================================

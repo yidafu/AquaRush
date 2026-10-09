@@ -47,11 +47,9 @@ fun SystemSettingsModel.toGraphQL(): SystemConfigVo =
   )
 
 /**
- * 参数类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ * 参数类型:领域枚举 → GraphQL 枚举同名 valueOf 互转
  */
 fun DomainSystemSettingType.toGraphQL(): SystemSettingType = SystemSettingType.valueOf(name)
-
-fun SystemSettingType.toDomain(): DomainSystemSettingType = DomainSystemSettingType.valueOf(name)
 
 /**
  * 参数分组:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
