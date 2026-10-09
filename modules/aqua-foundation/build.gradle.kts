@@ -46,6 +46,8 @@ dependencies {
   implementation(libs.exposed.java.time)
   implementation(libs.exposed.json)
   testImplementation(libs.spring.boot.starter.test)
+  // 表定义 H2 冒烟测试(TableDefinitionsSmokeTest)的内存库驱动
+  testImplementation(libs.h2)
 
   // ========================================================
   // 来自 aqua-api 的独立依赖（去重后）

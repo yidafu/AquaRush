@@ -81,6 +81,7 @@ object DeliveryTrajectoriesTable : Table("delivery_trajectories") {
 /**
  * 送水员评价统计表(`delivery_worker_statistics`,15 列;delivery_worker_id 有 DB 唯一约束)。
  * last_updated 由数据库触发器在 UPDATE 时自动刷新,仓储更新时无需写入。
+ * INSERT 必须显式设置 [lastUpdated]:H2 无 CURRENT_TIMESTAMP 列默认,PG 侧也不依赖列默认。
  */
 object DeliveryWorkerStatisticsTable : SoftDeletableTable("delivery_worker_statistics") {
   val id = long("id")

@@ -209,6 +209,8 @@ object UserTicketsTable : SoftDeletableTable("user_tickets") {
   val returnedAt = datetime("returned_at").nullable()
   val createdAt = datetime("created_at")
   val updatedAt = datetime("updated_at")
+
+  /** NOT NULL(V220 `addNotNullConstraint` 落库),insert 必须给值。 */
   val ticketNo = varchar("ticket_no", 32)
   override val primaryKey = PrimaryKey(id)
 }
