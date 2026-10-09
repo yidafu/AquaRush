@@ -28,9 +28,7 @@ import dev.yidafu.aqua.common.graphql.generated.PromotionActivity
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.UpdatePromotionActivityInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.marketing.promotion.mapper.CreatePromotionActivityInputMapper
-import dev.yidafu.aqua.marketing.promotion.mapper.PromotionActivityMapper
-import dev.yidafu.aqua.marketing.promotion.mapper.UpdatePromotionActivityInputMapper
+import dev.yidafu.aqua.marketing.promotion.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -62,7 +60,7 @@ class AdminPromotionActivityMutationResolver(
       promotionActivityMutationService.createActivity(
         adminId = principal.id,
         adminName = principal.username,
-        request = CreatePromotionActivityInputMapper.map(input),
+        input = input,
       )
     return toPromotionActivity(activity)
   }
@@ -80,7 +78,7 @@ class AdminPromotionActivityMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
         id = id,
-        request = UpdatePromotionActivityInputMapper.map(input),
+        input = input,
       )
     return toPromotionActivity(activity)
   }
@@ -107,6 +105,6 @@ class AdminPromotionActivityMutationResolver(
         now.isAfter(model.validTo) -> PromotionActivityDisplayStatus.ENDED
         else -> PromotionActivityDisplayStatus.ONGOING
       }
-    return PromotionActivityMapper.toGraphQL(model, tiers, currentStatus)
+    return model.toGraphQL(tiers, currentStatus)
   }
 }

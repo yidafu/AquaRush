@@ -19,18 +19,18 @@
 
 package dev.yidafu.aqua.marketing.coupon.service.impl
 
-import dev.yidafu.aqua.api.dto.CouponTemplateCreateRequest
-import dev.yidafu.aqua.api.dto.CouponTemplateUpdateRequest
-import dev.yidafu.aqua.api.dto.IssueCouponsRequest
-import dev.yidafu.aqua.api.dto.IssueTargetType
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
 import dev.yidafu.aqua.common.domain.model.CouponTemplateModel
 import dev.yidafu.aqua.common.domain.model.UserModel
-import dev.yidafu.aqua.common.domain.model.enums.CouponIssuanceType
-import dev.yidafu.aqua.common.domain.model.enums.CouponScope
 import dev.yidafu.aqua.common.domain.model.enums.CouponTemplateStatus
-import dev.yidafu.aqua.common.domain.model.enums.CouponType
-import dev.yidafu.aqua.common.domain.model.enums.ValidityType
+import dev.yidafu.aqua.common.graphql.generated.CouponIssuanceType
+import dev.yidafu.aqua.common.graphql.generated.CouponScope
+import dev.yidafu.aqua.common.graphql.generated.CouponType
+import dev.yidafu.aqua.common.graphql.generated.CreateCouponTemplateInput
+import dev.yidafu.aqua.common.graphql.generated.IssueCouponsInput
+import dev.yidafu.aqua.common.graphql.generated.IssueTargetType
+import dev.yidafu.aqua.common.graphql.generated.UpdateCouponTemplateInput
+import dev.yidafu.aqua.common.graphql.generated.ValidityType
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.coupon.domain.exception.CouponNotClaimableException
 import dev.yidafu.aqua.marketing.coupon.domain.exception.CouponTemplateNotFoundException
@@ -44,6 +44,10 @@ import io.mockk.mockk
 import io.mockk.verify
 import java.time.LocalDateTime
 import java.util.Optional
+import dev.yidafu.aqua.common.domain.model.enums.CouponIssuanceType as DomainCouponIssuanceType
+import dev.yidafu.aqua.common.domain.model.enums.CouponScope as DomainCouponScope
+import dev.yidafu.aqua.common.domain.model.enums.CouponType as DomainCouponType
+import dev.yidafu.aqua.common.domain.model.enums.ValidityType as DomainValidityType
 
 /** 优惠券模板变更服务单元测试(F-MKT-003):建券/编辑/停用/定向发放。 */
 class CouponMutationServiceImplTest :
@@ -62,14 +66,14 @@ class CouponMutationServiceImplTest :
       CouponTemplateModel(
         id = id,
         name = "满50减10",
-        couponType = CouponType.CASH,
+        couponType = DomainCouponType.CASH,
         thresholdCents = 5000,
         discountAmountCents = 1000,
-        scope = CouponScope.ALL,
-        validityType = ValidityType.FIXED_RANGE,
+        scope = DomainCouponScope.ALL,
+        validityType = DomainValidityType.FIXED_RANGE,
         validFrom = now.minusDays(1),
         validTo = now.plusDays(30),
-        issuanceType = CouponIssuanceType.AUTO_CLAIM,
+        issuanceType = DomainCouponIssuanceType.AUTO_CLAIM,
         perUserLimit = 1,
         status = status,
       )
@@ -84,13 +88,13 @@ class CouponMutationServiceImplTest :
       CouponTemplateModel(
         id = 1L,
         name = "模板1",
-        couponType = CouponType.CASH,
+        couponType = DomainCouponType.CASH,
         discountAmountCents = 1000,
-        scope = CouponScope.ALL,
-        validityType = ValidityType.FIXED_RANGE,
+        scope = DomainCouponScope.ALL,
+        validityType = DomainValidityType.FIXED_RANGE,
         validFrom = now.minusDays(1),
         validTo = now.plusDays(30),
-        issuanceType = CouponIssuanceType.TARGETED,
+        issuanceType = DomainCouponIssuanceType.TARGETED,
         perUserLimit = perUserLimit,
         status = CouponTemplateStatus.ACTIVE,
       )
@@ -106,8 +110,8 @@ class CouponMutationServiceImplTest :
     }
     test("createTemplate saves active template and logs") {
       stubSaveReturningId()
-      val request =
-        CouponTemplateCreateRequest(
+      val input =
+        CreateCouponTemplateInput(
           name = "满50减10",
           couponType = CouponType.CASH,
           thresholdCents = 5000,
@@ -120,7 +124,7 @@ class CouponMutationServiceImplTest :
           perUserLimit = 1,
         )
 
-      val saved = service.createTemplate(adminId = 1L, adminName = "admin", request = request)
+      val saved = service.createTemplate(adminId = 1L, adminName = "admin", input = input)
 
       saved.id shouldBe 1L
       saved.status shouldBe CouponTemplateStatus.ACTIVE
@@ -141,7 +145,7 @@ class CouponMutationServiceImplTest :
         service.createTemplate(
           1L,
           "admin",
-          CouponTemplateCreateRequest(
+          CreateCouponTemplateInput(
             name = "无面额券",
             couponType = CouponType.CASH,
             scope = CouponScope.ALL,
@@ -160,7 +164,7 @@ class CouponMutationServiceImplTest :
         service.createTemplate(
           1L,
           "admin",
-          CouponTemplateCreateRequest(
+          CreateCouponTemplateInput(
             name = "无折扣率券",
             couponType = CouponType.DISCOUNT,
             scope = CouponScope.ALL,
@@ -178,7 +182,7 @@ class CouponMutationServiceImplTest :
         service.createTemplate(
           1L,
           "admin",
-          CouponTemplateCreateRequest(
+          CreateCouponTemplateInput(
             name = "指定商品券",
             couponType = CouponType.CASH,
             discountAmountCents = 1000,
@@ -197,7 +201,7 @@ class CouponMutationServiceImplTest :
         service.createTemplate(
           1L,
           "admin",
-          CouponTemplateCreateRequest(
+          CreateCouponTemplateInput(
             name = "区间券",
             couponType = CouponType.CASH,
             discountAmountCents = 1000,
@@ -216,7 +220,7 @@ class CouponMutationServiceImplTest :
         service.createTemplate(
           1L,
           "admin",
-          CouponTemplateCreateRequest(
+          CreateCouponTemplateInput(
             name = "天数券",
             couponType = CouponType.CASH,
             discountAmountCents = 1000,
@@ -233,8 +237,8 @@ class CouponMutationServiceImplTest :
       val existing = template()
       every { couponTemplateRepository.findById(1L) } returns Optional.of(existing)
       stubSaveReturningId(1L)
-      val request =
-        CouponTemplateUpdateRequest(
+      val input =
+        UpdateCouponTemplateInput(
           name = "改名券",
           couponType = CouponType.DISCOUNT,
           thresholdCents = 10000,
@@ -245,10 +249,10 @@ class CouponMutationServiceImplTest :
           perUserLimit = 2,
         )
 
-      val updated = service.updateTemplate(1L, "admin", 1L, request)
+      val updated = service.updateTemplate(1L, "admin", 1L, input)
 
       updated.name shouldBe "改名券"
-      updated.couponType shouldBe CouponType.DISCOUNT
+      updated.couponType shouldBe DomainCouponType.DISCOUNT
       updated.discountRatePermille shouldBe 9000
       verify {
         bizLogger.logMarketingOperation(
@@ -269,7 +273,7 @@ class CouponMutationServiceImplTest :
           1L,
           "admin",
           99L,
-          CouponTemplateUpdateRequest(
+          UpdateCouponTemplateInput(
             name = "x",
             couponType = CouponType.CASH,
             discountAmountCents = 1000,
@@ -317,7 +321,7 @@ class CouponMutationServiceImplTest :
         service.issueCoupons(
           1L,
           "admin",
-          IssueCouponsRequest(couponTemplateId = 1L, targetType = IssueTargetType.USER, userIds = listOf(10L, 11L)),
+          IssueCouponsInput(couponTemplateId = 1L, targetType = IssueTargetType.USER, userIds = listOf(10L, 11L)),
         )
 
       issued shouldBe 1
@@ -334,7 +338,7 @@ class CouponMutationServiceImplTest :
         service.issueCoupons(
           1L,
           "admin",
-          IssueCouponsRequest(couponTemplateId = 1L, targetType = IssueTargetType.GROUP, customerGroupId = 7L),
+          IssueCouponsInput(couponTemplateId = 1L, targetType = IssueTargetType.GROUP, customerGroupId = 7L),
         )
 
       issued shouldBe 1
@@ -347,7 +351,7 @@ class CouponMutationServiceImplTest :
         service.issueCoupons(
           1L,
           "admin",
-          IssueCouponsRequest(couponTemplateId = 1L, targetType = IssueTargetType.GROUP),
+          IssueCouponsInput(couponTemplateId = 1L, targetType = IssueTargetType.GROUP),
         )
       }
     }
@@ -358,7 +362,7 @@ class CouponMutationServiceImplTest :
         service.issueCoupons(
           1L,
           "admin",
-          IssueCouponsRequest(couponTemplateId = 1L, targetType = IssueTargetType.USER, userIds = listOf(10L)),
+          IssueCouponsInput(couponTemplateId = 1L, targetType = IssueTargetType.USER, userIds = listOf(10L)),
         )
       }
     }
@@ -369,7 +373,7 @@ class CouponMutationServiceImplTest :
         service.issueCoupons(
           1L,
           "admin",
-          IssueCouponsRequest(couponTemplateId = 99L, targetType = IssueTargetType.USER, userIds = listOf(10L)),
+          IssueCouponsInput(couponTemplateId = 99L, targetType = IssueTargetType.USER, userIds = listOf(10L)),
         )
       }
     }
@@ -381,7 +385,7 @@ class CouponMutationServiceImplTest :
         service.issueCoupons(
           1L,
           "admin",
-          IssueCouponsRequest(couponTemplateId = 1L, targetType = IssueTargetType.GROUP, customerGroupId = 7L),
+          IssueCouponsInput(couponTemplateId = 1L, targetType = IssueTargetType.GROUP, customerGroupId = 7L),
         )
 
       issued shouldBe 0

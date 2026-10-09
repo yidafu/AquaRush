@@ -21,14 +21,24 @@ package dev.yidafu.aqua.marketing.barrel.mapper
 
 import dev.yidafu.aqua.common.domain.model.BarrelFeeModel
 import dev.yidafu.aqua.common.graphql.generated.BarrelFee
-import tech.mappie.api.ObjectMappie
+import dev.yidafu.aqua.common.graphql.generated.BarrelFeeStatus
+import dev.yidafu.aqua.common.domain.model.enums.BarrelFeeStatus as DomainBarrelFeeStatus
 
 /**
- * 水桶费价目实体 → GraphQL BarrelFee(状态枚举同名值由 Mappie 自动互转)
+ * 水桶费价目实体 → GraphQL BarrelFee(状态枚举同名 valueOf 互转)
  */
-object BarrelFeeModelMapper : ObjectMappie<BarrelFeeModel, BarrelFee>() {
-  override fun map(from: BarrelFeeModel): BarrelFee =
-    mapping {
-      to::id fromValue (from.id ?: 0L)
-    }
-}
+fun BarrelFeeModel.toGraphQL(): BarrelFee =
+  BarrelFee(
+    id = id ?: 0L,
+    specification = specification,
+    priceCents = priceCents,
+    status = status.toGraphQL(),
+    sortOrder = sortOrder,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
+
+/**
+ * 价目状态:领域枚举 → GraphQL 枚举同名 valueOf 互转
+ */
+fun DomainBarrelFeeStatus.toGraphQL(): BarrelFeeStatus = BarrelFeeStatus.valueOf(name)

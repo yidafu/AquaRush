@@ -27,7 +27,7 @@ import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivity
 import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivityListInput
 import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivityVoPage
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
-import dev.yidafu.aqua.marketing.flashsale.mapper.FlashSaleActivityMapper
+import dev.yidafu.aqua.marketing.flashsale.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -81,8 +81,7 @@ class AdminFlashSaleQueryResolver(
         now.isAfter(model.validTo) -> PromotionActivityDisplayStatus.ENDED
         else -> PromotionActivityDisplayStatus.ONGOING
       }
-    return FlashSaleActivityMapper.toGraphQL(
-      model,
+    return model.toGraphQL(
       currentStatus,
       productName = product?.name,
       catalogPriceCents = product?.price,

@@ -29,7 +29,7 @@ import dev.yidafu.aqua.common.graphql.BaseGraphQLResolver
 import dev.yidafu.aqua.common.graphql.generated.BarrelFee
 import dev.yidafu.aqua.common.graphql.generated.CreateBarrelFeeInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateBarrelFeeInput
-import dev.yidafu.aqua.marketing.barrel.mapper.BarrelFeeModelMapper
+import dev.yidafu.aqua.marketing.barrel.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -65,7 +65,7 @@ class AdminBarrelFeeMutationResolver(
         ),
       )
     logger.info("Admin {} 新增水桶费价目: {}", userDetails?.username, input.specification)
-    return BarrelFeeModelMapper.map(fee)
+    return fee.toGraphQL()
   }
 
   @MutationMapping
@@ -86,7 +86,7 @@ class AdminBarrelFeeMutationResolver(
         ),
       )
     logger.info("Admin {} 更新水桶费价目: id={}", userDetails?.username, id)
-    return BarrelFeeModelMapper.map(fee)
+    return fee.toGraphQL()
   }
 
   @MutationMapping
@@ -98,7 +98,7 @@ class AdminBarrelFeeMutationResolver(
     requireLogin(userDetails)
     val fee = barrelFeeMutationService.disable(id)
     logger.info("Admin {} 停用水桶费价目: id={}", userDetails?.username, id)
-    return BarrelFeeModelMapper.map(fee)
+    return fee.toGraphQL()
   }
 
   private fun requireLogin(userDetails: UserDetails?) {

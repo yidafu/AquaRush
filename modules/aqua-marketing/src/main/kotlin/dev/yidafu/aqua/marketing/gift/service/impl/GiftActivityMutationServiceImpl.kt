@@ -19,18 +19,19 @@
 
 package dev.yidafu.aqua.marketing.gift.service.impl
 
-import dev.yidafu.aqua.api.dto.GiftActivityCreateRequest
-import dev.yidafu.aqua.api.dto.GiftActivityUpdateRequest
 import dev.yidafu.aqua.api.service.marketing.GiftActivityMutationService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.GiftActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
+import dev.yidafu.aqua.common.graphql.generated.CreateGiftActivityInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateGiftActivityInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.gift.domain.exception.GiftActivityNotFoundException
 import dev.yidafu.aqua.marketing.gift.domain.exception.InvalidGiftActivityException
 import dev.yidafu.aqua.marketing.gift.domain.repository.GiftActivityRepository
+import dev.yidafu.aqua.marketing.gift.mapper.toDomain
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -53,33 +54,36 @@ class GiftActivityMutationServiceImpl(
   override fun createActivity(
     adminId: Long,
     adminName: String,
-    request: GiftActivityCreateRequest,
+    input: CreateGiftActivityInput,
   ): GiftActivityModel {
+    // GraphQL 枚举 → 领域枚举
+    val giftType = input.giftType.toDomain()
+    val scope = input.scope.toDomain()
     validateActivity(
-      request.giftType,
-      request.thresholdCents,
-      request.thresholdQuantity,
-      request.scope,
-      request.productId,
-      request.customerGroupId,
-      request.giftProductId,
-      request.giftQuantity,
-      request.validFrom,
-      request.validTo,
+      giftType,
+      input.thresholdCents,
+      input.thresholdQuantity,
+      scope,
+      input.productId,
+      input.customerGroupId,
+      input.giftProductId,
+      input.giftQuantity,
+      input.validFrom,
+      input.validTo,
     )
     val activity =
       GiftActivityModel(
-        name = request.name,
-        giftType = request.giftType,
-        thresholdCents = request.thresholdCents,
-        thresholdQuantity = request.thresholdQuantity,
-        scope = request.scope,
-        productId = request.productId,
-        customerGroupId = request.customerGroupId,
-        giftProductId = request.giftProductId,
-        giftQuantity = request.giftQuantity,
-        validFrom = request.validFrom,
-        validTo = request.validTo,
+        name = input.name,
+        giftType = giftType,
+        thresholdCents = input.thresholdCents,
+        thresholdQuantity = input.thresholdQuantity,
+        scope = scope,
+        productId = input.productId,
+        customerGroupId = input.customerGroupId,
+        giftProductId = input.giftProductId,
+        giftQuantity = input.giftQuantity,
+        validFrom = input.validFrom,
+        validTo = input.validTo,
         status = PromotionActivityStatus.ACTIVE,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
@@ -104,35 +108,38 @@ class GiftActivityMutationServiceImpl(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: GiftActivityUpdateRequest,
+    input: UpdateGiftActivityInput,
   ): GiftActivityModel {
     val activity =
       giftActivityRepository
         .findById(id)
         .orElseThrow { GiftActivityNotFoundException(id) }
+    // GraphQL 枚举 → 领域枚举
+    val giftType = input.giftType.toDomain()
+    val scope = input.scope.toDomain()
     validateActivity(
-      request.giftType,
-      request.thresholdCents,
-      request.thresholdQuantity,
-      request.scope,
-      request.productId,
-      request.customerGroupId,
-      request.giftProductId,
-      request.giftQuantity,
-      request.validFrom,
-      request.validTo,
+      giftType,
+      input.thresholdCents,
+      input.thresholdQuantity,
+      scope,
+      input.productId,
+      input.customerGroupId,
+      input.giftProductId,
+      input.giftQuantity,
+      input.validFrom,
+      input.validTo,
     )
-    activity.name = request.name
-    activity.giftType = request.giftType
-    activity.thresholdCents = request.thresholdCents
-    activity.thresholdQuantity = request.thresholdQuantity
-    activity.scope = request.scope
-    activity.productId = request.productId
-    activity.customerGroupId = request.customerGroupId
-    activity.giftProductId = request.giftProductId
-    activity.giftQuantity = request.giftQuantity
-    activity.validFrom = request.validFrom
-    activity.validTo = request.validTo
+    activity.name = input.name
+    activity.giftType = giftType
+    activity.thresholdCents = input.thresholdCents
+    activity.thresholdQuantity = input.thresholdQuantity
+    activity.scope = scope
+    activity.productId = input.productId
+    activity.customerGroupId = input.customerGroupId
+    activity.giftProductId = input.giftProductId
+    activity.giftQuantity = input.giftQuantity
+    activity.validFrom = input.validFrom
+    activity.validTo = input.validTo
     val saved = giftActivityRepository.save(activity)
     logger.info("Admin {} updated gift activity {}", adminId, id)
 

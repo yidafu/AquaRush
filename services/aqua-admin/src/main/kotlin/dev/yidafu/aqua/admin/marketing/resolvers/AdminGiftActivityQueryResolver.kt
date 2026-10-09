@@ -27,7 +27,7 @@ import dev.yidafu.aqua.common.graphql.generated.GiftActivity
 import dev.yidafu.aqua.common.graphql.generated.GiftActivityListInput
 import dev.yidafu.aqua.common.graphql.generated.GiftActivityVoPage
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
-import dev.yidafu.aqua.marketing.gift.mapper.GiftActivityMapper
+import dev.yidafu.aqua.marketing.gift.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -80,8 +80,7 @@ class AdminGiftActivityQueryResolver(
         now.isAfter(model.validTo) -> PromotionActivityDisplayStatus.ENDED
         else -> PromotionActivityDisplayStatus.ONGOING
       }
-    return GiftActivityMapper.toGraphQL(
-      model,
+    return model.toGraphQL(
       currentStatus,
       giftProductName = productQueryApiService.findById(model.giftProductId)?.name,
     )

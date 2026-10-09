@@ -22,7 +22,6 @@ package dev.yidafu.aqua.admin.marketing.resolvers
 import dev.yidafu.aqua.api.service.marketing.GroupProductPriceMutationService
 import dev.yidafu.aqua.common.graphql.generated.SaveGroupProductPricesInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.marketing.pricing.mapper.SaveGroupProductPricesInputMapper
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -51,7 +50,7 @@ class AdminGroupProductPriceMutationResolver(
     return groupProductPriceMutationService.savePrices(
       adminId = principal.id,
       adminName = principal.username,
-      request = SaveGroupProductPricesInputMapper.map(input),
+      input = input,
     )
   }
 }

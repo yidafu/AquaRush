@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.api.service.marketing
 
-import dev.yidafu.aqua.api.dto.FirstOrderActivityCreateRequest
-import dev.yidafu.aqua.api.dto.FirstOrderActivityUpdateRequest
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
+import dev.yidafu.aqua.common.graphql.generated.CreateFirstOrderActivityInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateFirstOrderActivityInput
 
 /**
  * 首单立减/新人专享价活动变更服务(管理后台,PRD 10-marketing.md §F-MKT-009/R-MKT-10)
@@ -35,7 +35,7 @@ interface FirstOrderActivityMutationService {
   fun createActivity(
     adminId: Long,
     adminName: String,
-    request: FirstOrderActivityCreateRequest,
+    input: CreateFirstOrderActivityInput,
   ): FirstOrderActivityModel
 
   /**
@@ -45,7 +45,7 @@ interface FirstOrderActivityMutationService {
     adminId: Long,
     adminName: String,
     id: Long,
-    request: FirstOrderActivityUpdateRequest,
+    input: UpdateFirstOrderActivityInput,
   ): FirstOrderActivityModel
 
   /**

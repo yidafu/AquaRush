@@ -19,18 +19,12 @@
 
 package dev.yidafu.aqua.marketing.firstorder.mapper
 
-import dev.yidafu.aqua.api.dto.FirstOrderActivityCreateRequest
-import dev.yidafu.aqua.api.dto.FirstOrderActivityUpdateRequest
 import dev.yidafu.aqua.common.domain.model.FirstOrderActivityModel
-import dev.yidafu.aqua.common.graphql.generated.CreateFirstOrderActivityInput
 import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivity
 import dev.yidafu.aqua.common.graphql.generated.FirstOrderActivityType
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionScope
-import dev.yidafu.aqua.common.graphql.generated.UpdateFirstOrderActivityInput
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
 import dev.yidafu.aqua.common.domain.model.enums.FirstOrderActivityType as DomainFirstOrderActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus as DomainPromotionActivityStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionScope as DomainPromotionScope
@@ -38,54 +32,44 @@ import dev.yidafu.aqua.common.domain.model.enums.PromotionScope as DomainPromoti
 /**
  * 首单立减/新人专享价活动映射器:域实体 → GraphQL 类型(展示态/商品名由 Resolver 计算传入,PRD 10-marketing.md §F-MKT-009)
  */
-object FirstOrderActivityMapper {
-  fun toGraphQL(
-    model: FirstOrderActivityModel,
-    currentStatus: PromotionActivityDisplayStatus,
-    productName: String?,
-  ): FirstOrderActivity =
-    FirstOrderActivity(
-      id = model.id ?: 0L,
-      name = model.name,
-      activityType = FirstOrderActivityTypeMapper.map(model.activityType),
-      thresholdCents = model.thresholdCents,
-      discountAmountCents = model.discountAmountCents,
-      discountRatePermille = model.discountRatePermille,
-      scope = FirstOrderActivityScopeMapper.map(model.scope),
-      productId = model.productId,
-      productName = productName,
-      newcomerPriceCents = model.newcomerPriceCents,
-      validFrom = model.validFrom,
-      validTo = model.validTo,
-      status = FirstOrderActivityStatusMapper.map(model.status),
-      currentStatus = currentStatus,
-      createdAt = model.createdAt,
-      updatedAt = model.updatedAt,
-    )
-}
+fun FirstOrderActivityModel.toGraphQL(
+  currentStatus: PromotionActivityDisplayStatus,
+  productName: String?,
+): FirstOrderActivity =
+  FirstOrderActivity(
+    id = id ?: 0L,
+    name = name,
+    activityType = activityType.toGraphQL(),
+    thresholdCents = thresholdCents,
+    discountAmountCents = discountAmountCents,
+    discountRatePermille = discountRatePermille,
+    scope = scope.toGraphQL(),
+    productId = productId,
+    productName = productName,
+    newcomerPriceCents = newcomerPriceCents,
+    validFrom = validFrom,
+    validTo = validTo,
+    status = status.toGraphQL(),
+    currentStatus = currentStatus,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
 
-object FirstOrderActivityTypeMapper : EnumMappie<DomainFirstOrderActivityType, FirstOrderActivityType>()
+/**
+ * 活动类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ */
+fun DomainFirstOrderActivityType.toGraphQL(): FirstOrderActivityType = FirstOrderActivityType.valueOf(name)
 
-object FirstOrderActivityScopeMapper : EnumMappie<DomainPromotionScope, PromotionScope>()
+fun FirstOrderActivityType.toDomain(): DomainFirstOrderActivityType = DomainFirstOrderActivityType.valueOf(name)
 
-object FirstOrderActivityStatusMapper : EnumMappie<DomainPromotionActivityStatus, PromotionActivityStatus>()
+/**
+ * 活动适用范围:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ */
+fun DomainPromotionScope.toGraphQL(): PromotionScope = PromotionScope.valueOf(name)
 
-object CreateFirstOrderActivityInputMapper : ObjectMappie<CreateFirstOrderActivityInput, FirstOrderActivityCreateRequest>() {
-  override fun map(from: CreateFirstOrderActivityInput): FirstOrderActivityCreateRequest =
-    mapping {
-      to::activityType fromExpression { FirstOrderActivityTypeInputMapper.map(from.activityType) }
-      to::scope fromExpression { FirstOrderActivityScopeInputMapper.map(from.scope) }
-    }
-}
+fun PromotionScope.toDomain(): DomainPromotionScope = DomainPromotionScope.valueOf(name)
 
-object UpdateFirstOrderActivityInputMapper : ObjectMappie<UpdateFirstOrderActivityInput, FirstOrderActivityUpdateRequest>() {
-  override fun map(from: UpdateFirstOrderActivityInput): FirstOrderActivityUpdateRequest =
-    mapping {
-      to::activityType fromExpression { FirstOrderActivityTypeInputMapper.map(from.activityType) }
-      to::scope fromExpression { FirstOrderActivityScopeInputMapper.map(from.scope) }
-    }
-}
-
-object FirstOrderActivityTypeInputMapper : EnumMappie<FirstOrderActivityType, DomainFirstOrderActivityType>()
-
-object FirstOrderActivityScopeInputMapper : EnumMappie<PromotionScope, DomainPromotionScope>()
+/**
+ * 活动状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ */
+fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus = PromotionActivityStatus.valueOf(name)

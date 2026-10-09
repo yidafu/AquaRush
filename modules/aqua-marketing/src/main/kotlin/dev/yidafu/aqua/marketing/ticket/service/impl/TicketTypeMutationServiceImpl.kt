@@ -19,16 +19,17 @@
 
 package dev.yidafu.aqua.marketing.ticket.service.impl
 
-import dev.yidafu.aqua.api.dto.TicketTypeCreateRequest
-import dev.yidafu.aqua.api.dto.TicketTypeUpdateRequest
 import dev.yidafu.aqua.api.service.marketing.TicketTypeMutationService
 import dev.yidafu.aqua.common.domain.model.TicketTypeModel
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeKind
 import dev.yidafu.aqua.common.domain.model.enums.TicketTypeStatus
 import dev.yidafu.aqua.common.domain.model.enums.ValidityType
+import dev.yidafu.aqua.common.graphql.generated.CreateTicketTypeInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateTicketTypeInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.ticket.domain.exception.TicketTypeNotFoundException
 import dev.yidafu.aqua.marketing.ticket.domain.repository.TicketTypeRepository
+import dev.yidafu.aqua.marketing.ticket.mapper.toDomain
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -49,29 +50,32 @@ class TicketTypeMutationServiceImpl(
   override fun createTicketType(
     adminId: Long,
     adminName: String,
-    request: TicketTypeCreateRequest,
+    input: CreateTicketTypeInput,
   ): TicketTypeModel {
-    validateType(request.ticketType, request.productId, request.specification)
-    validateValidity(request.validityType, request.validFrom, request.validTo, request.validDays)
-    val ticketType =
+    // GraphQL 枚举 → 领域枚举
+    val ticketType = input.ticketType.toDomain()
+    val validityType = input.validityType.toDomain()
+    validateType(ticketType, input.productId, input.specification)
+    validateValidity(validityType, input.validFrom, input.validTo, input.validDays)
+    val ticketTypeModel =
       TicketTypeModel(
-        name = request.name,
-        ticketType = request.ticketType,
-        productId = request.productId,
-        specification = request.specification,
-        packageCount = request.packageCount,
-        packagePriceCents = request.packagePriceCents,
-        giftCount = request.giftCount,
-        validityType = request.validityType,
-        validFrom = request.validFrom,
-        validTo = request.validTo,
-        validDays = request.validDays,
-        perUserLimit = request.perUserLimit,
+        name = input.name,
+        ticketType = ticketType,
+        productId = input.productId,
+        specification = input.specification,
+        packageCount = input.packageCount,
+        packagePriceCents = input.packagePriceCents,
+        giftCount = input.giftCount,
+        validityType = validityType,
+        validFrom = input.validFrom,
+        validTo = input.validTo,
+        validDays = input.validDays,
+        perUserLimit = input.perUserLimit,
         status = TicketTypeStatus.ACTIVE,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
-    val saved = ticketTypeRepository.save(ticketType)
+    val saved = ticketTypeRepository.save(ticketTypeModel)
     logger.info("Admin {} created ticket type {}: {}", adminId, saved.id, saved.name)
 
     // 业务日志(F-LOG-003 MARKETING 域):票种创建
@@ -91,23 +95,26 @@ class TicketTypeMutationServiceImpl(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: TicketTypeUpdateRequest,
+    input: UpdateTicketTypeInput,
   ): TicketTypeModel {
     val ticketType = ticketTypeRepository.findById(id).orElseThrow { TicketTypeNotFoundException(id) }
-    validateType(request.ticketType, request.productId, request.specification)
-    validateValidity(request.validityType, request.validFrom, request.validTo, request.validDays)
-    ticketType.name = request.name
-    ticketType.ticketType = request.ticketType
-    ticketType.productId = request.productId
-    ticketType.specification = request.specification
-    ticketType.packageCount = request.packageCount
-    ticketType.packagePriceCents = request.packagePriceCents
-    ticketType.giftCount = request.giftCount
-    ticketType.validityType = request.validityType
-    ticketType.validFrom = request.validFrom
-    ticketType.validTo = request.validTo
-    ticketType.validDays = request.validDays
-    ticketType.perUserLimit = request.perUserLimit
+    // GraphQL 枚举 → 领域枚举
+    val kind = input.ticketType.toDomain()
+    val validityType = input.validityType.toDomain()
+    validateType(kind, input.productId, input.specification)
+    validateValidity(validityType, input.validFrom, input.validTo, input.validDays)
+    ticketType.name = input.name
+    ticketType.ticketType = kind
+    ticketType.productId = input.productId
+    ticketType.specification = input.specification
+    ticketType.packageCount = input.packageCount
+    ticketType.packagePriceCents = input.packagePriceCents
+    ticketType.giftCount = input.giftCount
+    ticketType.validityType = validityType
+    ticketType.validFrom = input.validFrom
+    ticketType.validTo = input.validTo
+    ticketType.validDays = input.validDays
+    ticketType.perUserLimit = input.perUserLimit
     val saved = ticketTypeRepository.save(ticketType)
     logger.info("Admin {} updated ticket type {}", adminId, id)
 

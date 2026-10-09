@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.api.service.marketing
 
-import dev.yidafu.aqua.api.dto.CustomerGroupCreateRequest
-import dev.yidafu.aqua.api.dto.CustomerGroupUpdateRequest
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
+import dev.yidafu.aqua.common.graphql.generated.CreateCustomerGroupInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateCustomerGroupInput
 
 /**
  * 客户分组变更服务(管理后台,PRD 10-marketing.md §F-MKT-001)
@@ -34,7 +34,7 @@ interface CustomerGroupMutationService {
   fun createGroup(
     adminId: Long,
     adminName: String,
-    request: CustomerGroupCreateRequest,
+    input: CreateCustomerGroupInput,
   ): CustomerGroupModel
 
   /**
@@ -44,7 +44,7 @@ interface CustomerGroupMutationService {
     adminId: Long,
     adminName: String,
     id: Long,
-    request: CustomerGroupUpdateRequest,
+    input: UpdateCustomerGroupInput,
   ): CustomerGroupModel
 
   /**

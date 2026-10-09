@@ -23,7 +23,7 @@ import dev.yidafu.aqua.api.service.marketing.GroupProductPriceQueryService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.graphql.generated.GroupProductPriceListInput
 import dev.yidafu.aqua.common.graphql.generated.GroupProductPriceVoPage
-import dev.yidafu.aqua.marketing.pricing.mapper.GroupProductPriceMapper
+import dev.yidafu.aqua.marketing.pricing.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -56,8 +56,7 @@ class AdminGroupProductPriceQueryResolver(
       content =
         page.content.map { model ->
           val product = productQueryApiService.findById(model.productId)
-          GroupProductPriceMapper.toGraphQL(
-            model = model,
+          model.toGraphQL(
             productName = product?.name,
             productSpecification = product?.specification,
             catalogPriceCents = product?.price ?: 0L,

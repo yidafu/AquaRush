@@ -19,19 +19,20 @@
 
 package dev.yidafu.aqua.marketing.promotion.service.impl
 
-import dev.yidafu.aqua.api.dto.PromotionActivityCreateRequest
-import dev.yidafu.aqua.api.dto.PromotionActivityUpdateRequest
-import dev.yidafu.aqua.api.dto.PromotionTierItem
 import dev.yidafu.aqua.api.service.marketing.PromotionActivityMutationService
 import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
 import dev.yidafu.aqua.common.domain.model.PromotionActivityTierModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
+import dev.yidafu.aqua.common.graphql.generated.CreatePromotionActivityInput
+import dev.yidafu.aqua.common.graphql.generated.PromotionTierInput
+import dev.yidafu.aqua.common.graphql.generated.UpdatePromotionActivityInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.promotion.domain.exception.InvalidTierException
 import dev.yidafu.aqua.marketing.promotion.domain.exception.PromotionActivityNotFoundException
 import dev.yidafu.aqua.marketing.promotion.domain.repository.PromotionActivityRepository
 import dev.yidafu.aqua.marketing.promotion.domain.repository.PromotionActivityTierRepository
+import dev.yidafu.aqua.marketing.promotion.mapper.toDomain
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -53,32 +54,35 @@ class PromotionActivityMutationServiceImpl(
   override fun createActivity(
     adminId: Long,
     adminName: String,
-    request: PromotionActivityCreateRequest,
+    input: CreatePromotionActivityInput,
   ): PromotionActivityModel {
+    // GraphQL 枚举 → 领域枚举
+    val activityType = input.activityType.toDomain()
+    val scope = input.scope.toDomain()
     validateActivity(
-      request.activityType,
-      request.scope,
-      request.productId,
-      request.customerGroupId,
-      request.validFrom,
-      request.validTo,
-      request.tiers,
+      activityType,
+      scope,
+      input.productId,
+      input.customerGroupId,
+      input.validFrom,
+      input.validTo,
+      input.tiers,
     )
     val activity =
       PromotionActivityModel(
-        name = request.name,
-        activityType = request.activityType,
-        scope = request.scope,
-        productId = request.productId,
-        customerGroupId = request.customerGroupId,
-        validFrom = request.validFrom,
-        validTo = request.validTo,
+        name = input.name,
+        activityType = activityType,
+        scope = scope,
+        productId = input.productId,
+        customerGroupId = input.customerGroupId,
+        validFrom = input.validFrom,
+        validTo = input.validTo,
         status = dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus.ACTIVE,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
     val saved = promotionActivityRepository.save(activity)
-    saveTiers(saved.id!!, request.tiers)
+    saveTiers(saved.id!!, input.tiers)
     logger.info("Admin {} created promotion activity {}: {}", adminId, saved.id, saved.name)
 
     // 业务日志(F-LOG-003 MARKETING 域):促销活动创建
@@ -98,29 +102,32 @@ class PromotionActivityMutationServiceImpl(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: PromotionActivityUpdateRequest,
+    input: UpdatePromotionActivityInput,
   ): PromotionActivityModel {
     val activity = promotionActivityRepository.findById(id).orElseThrow { PromotionActivityNotFoundException(id) }
+    // GraphQL 枚举 → 领域枚举
+    val activityType = input.activityType.toDomain()
+    val scope = input.scope.toDomain()
     validateActivity(
-      request.activityType,
-      request.scope,
-      request.productId,
-      request.customerGroupId,
-      request.validFrom,
-      request.validTo,
-      request.tiers,
+      activityType,
+      scope,
+      input.productId,
+      input.customerGroupId,
+      input.validFrom,
+      input.validTo,
+      input.tiers,
     )
-    activity.name = request.name
-    activity.activityType = request.activityType
-    activity.scope = request.scope
-    activity.productId = request.productId
-    activity.customerGroupId = request.customerGroupId
-    activity.validFrom = request.validFrom
-    activity.validTo = request.validTo
+    activity.name = input.name
+    activity.activityType = activityType
+    activity.scope = scope
+    activity.productId = input.productId
+    activity.customerGroupId = input.customerGroupId
+    activity.validFrom = input.validFrom
+    activity.validTo = input.validTo
     val saved = promotionActivityRepository.save(activity)
     // 全量替换档位(旧档位软删)
     promotionActivityTierRepository.findByActivityId(id).forEach { promotionActivityTierRepository.delete(it) }
-    saveTiers(id, request.tiers)
+    saveTiers(id, input.tiers)
     logger.info("Admin {} updated promotion activity {}", adminId, id)
 
     // 业务日志(F-LOG-003 MARKETING 域):促销活动更新
@@ -160,7 +167,7 @@ class PromotionActivityMutationServiceImpl(
 
   private fun saveTiers(
     activityId: Long,
-    tiers: List<PromotionTierItem>,
+    tiers: List<PromotionTierInput>,
   ) {
     tiers.forEachIndexed { index, tier ->
       promotionActivityTierRepository.save(
@@ -184,7 +191,7 @@ class PromotionActivityMutationServiceImpl(
     customerGroupId: Long?,
     validFrom: LocalDateTime,
     validTo: LocalDateTime,
-    tiers: List<PromotionTierItem>,
+    tiers: List<PromotionTierInput>,
   ) {
     if (!validFrom.isBefore(validTo)) {
       throw InvalidTierException("时间窗不合法:开始时间必须早于结束时间")

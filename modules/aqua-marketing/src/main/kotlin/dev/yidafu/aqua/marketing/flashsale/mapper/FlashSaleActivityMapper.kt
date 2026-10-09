@@ -19,46 +19,36 @@
 
 package dev.yidafu.aqua.marketing.flashsale.mapper
 
-import dev.yidafu.aqua.api.dto.FlashSaleActivityCreateRequest
-import dev.yidafu.aqua.api.dto.FlashSaleActivityUpdateRequest
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
-import dev.yidafu.aqua.common.graphql.generated.CreateFlashSaleActivityInput
 import dev.yidafu.aqua.common.graphql.generated.FlashSaleActivity
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityStatus
-import dev.yidafu.aqua.common.graphql.generated.UpdateFlashSaleActivityInput
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus as DomainPromotionActivityStatus
 
 /**
  * 限时特价活动映射器:域实体 → GraphQL 类型(展示态/商品名/目录价由 Resolver 计算传入,PRD 10-marketing.md §F-MKT-005)
  */
-object FlashSaleActivityMapper {
-  fun toGraphQL(
-    model: FlashSaleActivityModel,
-    currentStatus: PromotionActivityDisplayStatus,
-    productName: String?,
-    catalogPriceCents: Long?,
-  ): FlashSaleActivity =
-    FlashSaleActivity(
-      id = model.id ?: 0L,
-      name = model.name,
-      productId = model.productId,
-      productName = productName,
-      catalogPriceCents = catalogPriceCents,
-      salePriceCents = model.salePriceCents,
-      validFrom = model.validFrom,
-      validTo = model.validTo,
-      status = FlashSaleActivityStatusMapper.map(model.status),
-      currentStatus = currentStatus,
-      createdAt = model.createdAt,
-      updatedAt = model.updatedAt,
-    )
-}
+fun FlashSaleActivityModel.toGraphQL(
+  currentStatus: PromotionActivityDisplayStatus,
+  productName: String?,
+  catalogPriceCents: Long?,
+): FlashSaleActivity =
+  FlashSaleActivity(
+    id = id ?: 0L,
+    name = name,
+    productId = productId,
+    productName = productName,
+    catalogPriceCents = catalogPriceCents,
+    salePriceCents = salePriceCents,
+    validFrom = validFrom,
+    validTo = validTo,
+    status = status.toGraphQL(),
+    currentStatus = currentStatus,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
 
-object FlashSaleActivityStatusMapper : EnumMappie<DomainPromotionActivityStatus, PromotionActivityStatus>()
-
-object CreateFlashSaleActivityInputMapper : ObjectMappie<CreateFlashSaleActivityInput, FlashSaleActivityCreateRequest>()
-
-object UpdateFlashSaleActivityInputMapper : ObjectMappie<UpdateFlashSaleActivityInput, FlashSaleActivityUpdateRequest>()
+/**
+ * 活动状态:领域枚举 → GraphQL 枚举同名 valueOf 互转
+ */
+fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus = PromotionActivityStatus.valueOf(name)

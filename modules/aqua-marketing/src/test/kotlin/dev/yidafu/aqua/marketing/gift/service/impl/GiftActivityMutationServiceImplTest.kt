@@ -19,14 +19,14 @@
 
 package dev.yidafu.aqua.marketing.gift.service.impl
 
-import dev.yidafu.aqua.api.dto.GiftActivityCreateRequest
-import dev.yidafu.aqua.api.dto.GiftActivityUpdateRequest
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
 import dev.yidafu.aqua.common.domain.model.ProductModel
-import dev.yidafu.aqua.common.domain.model.enums.GiftActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
-import dev.yidafu.aqua.common.domain.model.enums.PromotionScope
+import dev.yidafu.aqua.common.graphql.generated.CreateGiftActivityInput
+import dev.yidafu.aqua.common.graphql.generated.GiftActivityType
+import dev.yidafu.aqua.common.graphql.generated.PromotionScope
+import dev.yidafu.aqua.common.graphql.generated.UpdateGiftActivityInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.gift.domain.exception.GiftActivityNotFoundException
 import dev.yidafu.aqua.marketing.gift.domain.exception.InvalidGiftActivityException
@@ -39,6 +39,7 @@ import io.mockk.mockk
 import io.mockk.verify
 import java.time.LocalDateTime
 import java.util.Optional
+import dev.yidafu.aqua.common.domain.model.enums.GiftActivityType as DomainGiftActivityType
 
 /** 买赠/满赠活动变更服务单元测试(F-MKT-008):门槛/范围/赠品校验。 */
 class GiftActivityMutationServiceImplTest :
@@ -57,8 +58,8 @@ class GiftActivityMutationServiceImplTest :
       productId: Long? = null,
       customerGroupId: Long? = null,
       giftQuantity: Int = 1,
-    ): GiftActivityCreateRequest =
-      GiftActivityCreateRequest(
+    ): CreateGiftActivityInput =
+      CreateGiftActivityInput(
         name = "买赠活动",
         giftType = giftType,
         thresholdCents = thresholdCents,
@@ -85,7 +86,7 @@ class GiftActivityMutationServiceImplTest :
       val saved = service.createActivity(1L, "admin", request())
 
       saved.id shouldBe 1L
-      saved.giftType shouldBe GiftActivityType.FULL_GIFT
+      saved.giftType shouldBe DomainGiftActivityType.FULL_GIFT
       saved.status shouldBe PromotionActivityStatus.ACTIVE
       verify {
         bizLogger.logMarketingOperation(
@@ -151,7 +152,7 @@ class GiftActivityMutationServiceImplTest :
       }
     }
     test("updateActivity updates fields") {
-      val existing = GiftActivityModel(id = 1L, name = "旧活动", giftType = GiftActivityType.FULL_GIFT)
+      val existing = GiftActivityModel(id = 1L, name = "旧活动", giftType = DomainGiftActivityType.FULL_GIFT)
       every { giftActivityRepository.findById(1L) } returns Optional.of(existing)
       every { productQueryApiService.findById(2L) } returns ProductModel(id = 2L, name = "赠品水", price = 1200)
       every { giftActivityRepository.save(any()) } answers { firstArg() }
@@ -161,7 +162,7 @@ class GiftActivityMutationServiceImplTest :
           1L,
           "admin",
           1L,
-          GiftActivityUpdateRequest(
+          UpdateGiftActivityInput(
             name = "新活动",
             giftType = GiftActivityType.FULL_GIFT,
             thresholdCents = 20000,
@@ -194,7 +195,7 @@ class GiftActivityMutationServiceImplTest :
           1L,
           "admin",
           99L,
-          GiftActivityUpdateRequest(
+          UpdateGiftActivityInput(
             name = "x",
             giftType = GiftActivityType.FULL_GIFT,
             thresholdCents = 10000,

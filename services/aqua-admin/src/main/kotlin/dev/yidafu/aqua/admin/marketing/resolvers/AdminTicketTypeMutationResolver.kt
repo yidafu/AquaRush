@@ -24,9 +24,7 @@ import dev.yidafu.aqua.common.graphql.generated.CreateTicketTypeInput
 import dev.yidafu.aqua.common.graphql.generated.TicketType
 import dev.yidafu.aqua.common.graphql.generated.UpdateTicketTypeInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.marketing.ticket.mapper.CreateTicketTypeInputMapper
-import dev.yidafu.aqua.marketing.ticket.mapper.TicketTypeMapper
-import dev.yidafu.aqua.marketing.ticket.mapper.UpdateTicketTypeInputMapper
+import dev.yidafu.aqua.marketing.ticket.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -56,9 +54,9 @@ class AdminTicketTypeMutationResolver(
       ticketTypeMutationService.createTicketType(
         adminId = principal.id,
         adminName = principal.username,
-        request = CreateTicketTypeInputMapper.map(input),
+        input = input,
       )
-    return TicketTypeMapper.map(ticketType)
+    return ticketType.toGraphQL()
   }
 
   @MutationMapping
@@ -74,9 +72,9 @@ class AdminTicketTypeMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
         id = id,
-        request = UpdateTicketTypeInputMapper.map(input),
+        input = input,
       )
-    return TicketTypeMapper.map(ticketType)
+    return ticketType.toGraphQL()
   }
 
   @MutationMapping
@@ -88,6 +86,6 @@ class AdminTicketTypeMutationResolver(
     logger.info("Admin {} disabling ticket type {}", principal.username, id)
     val ticketType =
       ticketTypeMutationService.disableTicketType(principal.id, principal.username, id)
-    return TicketTypeMapper.map(ticketType)
+    return ticketType.toGraphQL()
   }
 }

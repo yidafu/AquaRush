@@ -19,38 +19,18 @@
 
 package dev.yidafu.aqua.marketing.customer.mapper
 
-import dev.yidafu.aqua.api.dto.CustomerGroupCreateRequest
-import dev.yidafu.aqua.api.dto.CustomerGroupUpdateRequest
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
-import dev.yidafu.aqua.common.graphql.generated.CreateCustomerGroupInput
 import dev.yidafu.aqua.common.graphql.generated.CustomerGroup
-import dev.yidafu.aqua.common.graphql.generated.UpdateCustomerGroupInput
-import tech.mappie.api.ObjectMappie
 
 /**
  * 客户分组映射器:域实体 → GraphQL 类型(成员数由服务统计后传入,PRD 10-marketing.md §F-MKT-001)
  */
-object CustomerGroupMapper {
-  fun toGraphQL(
-    model: CustomerGroupModel,
-    memberCount: Long,
-  ): CustomerGroup =
-    CustomerGroup(
-      id = model.id ?: 0L,
-      name = model.name,
-      description = model.description,
-      memberCount = memberCount.toInt(),
-      createdAt = model.createdAt,
-      updatedAt = model.updatedAt,
-    )
-}
-
-/**
- * 新建客户分组输入映射器:GraphQL 输入 → 服务请求
- */
-object CreateCustomerGroupInputMapper : ObjectMappie<CreateCustomerGroupInput, CustomerGroupCreateRequest>()
-
-/**
- * 编辑客户分组输入映射器
- */
-object UpdateCustomerGroupInputMapper : ObjectMappie<UpdateCustomerGroupInput, CustomerGroupUpdateRequest>()
+fun CustomerGroupModel.toGraphQL(memberCount: Long): CustomerGroup =
+  CustomerGroup(
+    id = id ?: 0L,
+    name = name,
+    description = description,
+    memberCount = memberCount.toInt(),
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )

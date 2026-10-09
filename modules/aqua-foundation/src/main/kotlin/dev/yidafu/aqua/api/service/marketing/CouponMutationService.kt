@@ -19,10 +19,10 @@
 
 package dev.yidafu.aqua.api.service.marketing
 
-import dev.yidafu.aqua.api.dto.CouponTemplateCreateRequest
-import dev.yidafu.aqua.api.dto.CouponTemplateUpdateRequest
-import dev.yidafu.aqua.api.dto.IssueCouponsRequest
 import dev.yidafu.aqua.common.domain.model.CouponTemplateModel
+import dev.yidafu.aqua.common.graphql.generated.CreateCouponTemplateInput
+import dev.yidafu.aqua.common.graphql.generated.IssueCouponsInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateCouponTemplateInput
 
 /**
  * 优惠券模板变更服务(管理后台,PRD 10-marketing.md §F-MKT-003)
@@ -35,7 +35,7 @@ interface CouponMutationService {
   fun createTemplate(
     adminId: Long,
     adminName: String,
-    request: CouponTemplateCreateRequest,
+    input: CreateCouponTemplateInput,
   ): CouponTemplateModel
 
   /**
@@ -45,7 +45,7 @@ interface CouponMutationService {
     adminId: Long,
     adminName: String,
     id: Long,
-    request: CouponTemplateUpdateRequest,
+    input: UpdateCouponTemplateInput,
   ): CouponTemplateModel
 
   /**
@@ -65,6 +65,6 @@ interface CouponMutationService {
   fun issueCoupons(
     adminId: Long,
     adminName: String,
-    request: IssueCouponsRequest,
+    input: IssueCouponsInput,
   ): Int
 }

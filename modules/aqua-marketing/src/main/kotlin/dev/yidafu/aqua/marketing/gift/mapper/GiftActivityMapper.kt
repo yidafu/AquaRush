@@ -19,18 +19,12 @@
 
 package dev.yidafu.aqua.marketing.gift.mapper
 
-import dev.yidafu.aqua.api.dto.GiftActivityCreateRequest
-import dev.yidafu.aqua.api.dto.GiftActivityUpdateRequest
 import dev.yidafu.aqua.common.domain.model.GiftActivityModel
-import dev.yidafu.aqua.common.graphql.generated.CreateGiftActivityInput
 import dev.yidafu.aqua.common.graphql.generated.GiftActivity
 import dev.yidafu.aqua.common.graphql.generated.GiftActivityType
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionScope
-import dev.yidafu.aqua.common.graphql.generated.UpdateGiftActivityInput
-import tech.mappie.api.EnumMappie
-import tech.mappie.api.ObjectMappie
 import dev.yidafu.aqua.common.domain.model.enums.GiftActivityType as DomainGiftActivityType
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus as DomainPromotionActivityStatus
 import dev.yidafu.aqua.common.domain.model.enums.PromotionScope as DomainPromotionScope
@@ -38,55 +32,45 @@ import dev.yidafu.aqua.common.domain.model.enums.PromotionScope as DomainPromoti
 /**
  * 买赠/满赠活动映射器:域实体 → GraphQL 类型(展示态/赠品名由 Resolver 计算传入,PRD 10-marketing.md §F-MKT-008)
  */
-object GiftActivityMapper {
-  fun toGraphQL(
-    model: GiftActivityModel,
-    currentStatus: PromotionActivityDisplayStatus,
-    giftProductName: String?,
-  ): GiftActivity =
-    GiftActivity(
-      id = model.id ?: 0L,
-      name = model.name,
-      giftType = GiftActivityTypeMapper.map(model.giftType),
-      thresholdCents = model.thresholdCents,
-      thresholdQuantity = model.thresholdQuantity,
-      scope = GiftActivityScopeMapper.map(model.scope),
-      productId = model.productId,
-      customerGroupId = model.customerGroupId,
-      giftProductId = model.giftProductId,
-      giftProductName = giftProductName,
-      giftQuantity = model.giftQuantity,
-      validFrom = model.validFrom,
-      validTo = model.validTo,
-      status = GiftActivityStatusMapper.map(model.status),
-      currentStatus = currentStatus,
-      createdAt = model.createdAt,
-      updatedAt = model.updatedAt,
-    )
-}
+fun GiftActivityModel.toGraphQL(
+  currentStatus: PromotionActivityDisplayStatus,
+  giftProductName: String?,
+): GiftActivity =
+  GiftActivity(
+    id = id ?: 0L,
+    name = name,
+    giftType = giftType.toGraphQL(),
+    thresholdCents = thresholdCents,
+    thresholdQuantity = thresholdQuantity,
+    scope = scope.toGraphQL(),
+    productId = productId,
+    customerGroupId = customerGroupId,
+    giftProductId = giftProductId,
+    giftProductName = giftProductName,
+    giftQuantity = giftQuantity,
+    validFrom = validFrom,
+    validTo = validTo,
+    status = status.toGraphQL(),
+    currentStatus = currentStatus,
+    createdAt = createdAt,
+    updatedAt = updatedAt,
+  )
 
-object GiftActivityTypeMapper : EnumMappie<DomainGiftActivityType, GiftActivityType>()
+/**
+ * 赠品类型:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ */
+fun DomainGiftActivityType.toGraphQL(): GiftActivityType = GiftActivityType.valueOf(name)
 
-object GiftActivityScopeMapper : EnumMappie<DomainPromotionScope, PromotionScope>()
+fun GiftActivityType.toDomain(): DomainGiftActivityType = DomainGiftActivityType.valueOf(name)
 
-object GiftActivityStatusMapper : EnumMappie<DomainPromotionActivityStatus, PromotionActivityStatus>()
+/**
+ * 活动适用范围:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ */
+fun DomainPromotionScope.toGraphQL(): PromotionScope = PromotionScope.valueOf(name)
 
-object CreateGiftActivityInputMapper : ObjectMappie<CreateGiftActivityInput, GiftActivityCreateRequest>() {
-  override fun map(from: CreateGiftActivityInput): GiftActivityCreateRequest =
-    mapping {
-      to::giftType fromExpression { GiftActivityTypeInputMapper.map(from.giftType) }
-      to::scope fromExpression { GiftActivityScopeInputMapper.map(from.scope) }
-    }
-}
+fun PromotionScope.toDomain(): DomainPromotionScope = DomainPromotionScope.valueOf(name)
 
-object UpdateGiftActivityInputMapper : ObjectMappie<UpdateGiftActivityInput, GiftActivityUpdateRequest>() {
-  override fun map(from: UpdateGiftActivityInput): GiftActivityUpdateRequest =
-    mapping {
-      to::giftType fromExpression { GiftActivityTypeInputMapper.map(from.giftType) }
-      to::scope fromExpression { GiftActivityScopeInputMapper.map(from.scope) }
-    }
-}
-
-object GiftActivityTypeInputMapper : EnumMappie<GiftActivityType, DomainGiftActivityType>()
-
-object GiftActivityScopeInputMapper : EnumMappie<PromotionScope, DomainPromotionScope>()
+/**
+ * 活动状态:领域枚举 ↔ GraphQL 枚举同名 valueOf 互转
+ */
+fun DomainPromotionActivityStatus.toGraphQL(): PromotionActivityStatus = PromotionActivityStatus.valueOf(name)

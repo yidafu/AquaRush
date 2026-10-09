@@ -26,10 +26,7 @@ import dev.yidafu.aqua.common.graphql.generated.CreateCouponTemplateInput
 import dev.yidafu.aqua.common.graphql.generated.IssueCouponsInput
 import dev.yidafu.aqua.common.graphql.generated.UpdateCouponTemplateInput
 import dev.yidafu.aqua.common.security.UserPrincipal
-import dev.yidafu.aqua.marketing.coupon.mapper.CouponTemplateMapper
-import dev.yidafu.aqua.marketing.coupon.mapper.CreateCouponTemplateInputMapper
-import dev.yidafu.aqua.marketing.coupon.mapper.IssueCouponsInputMapper
-import dev.yidafu.aqua.marketing.coupon.mapper.UpdateCouponTemplateInputMapper
+import dev.yidafu.aqua.marketing.coupon.mapper.toGraphQL
 import jakarta.validation.Valid
 import org.slf4j.LoggerFactory
 import org.springframework.graphql.data.method.annotation.Argument
@@ -60,9 +57,9 @@ class AdminCouponMutationResolver(
       couponMutationService.createTemplate(
         adminId = principal.id,
         adminName = principal.username,
-        request = CreateCouponTemplateInputMapper.map(input),
+        input = input,
       )
-    return CouponTemplateMapper.toGraphQL(template, receivedCount = 0, usedCount = 0)
+    return template.toGraphQL(receivedCount = 0, usedCount = 0)
   }
 
   @MutationMapping
@@ -78,7 +75,7 @@ class AdminCouponMutationResolver(
         adminId = principal.id,
         adminName = principal.username,
         id = id,
-        request = UpdateCouponTemplateInputMapper.map(input),
+        input = input,
       )
     return toCouponTemplate(template)
   }
@@ -108,14 +105,13 @@ class AdminCouponMutationResolver(
     return couponMutationService.issueCoupons(
       adminId = principal.id,
       adminName = principal.username,
-      request = IssueCouponsInputMapper.map(input),
+      input = input,
     )
   }
 
   private fun toCouponTemplate(template: dev.yidafu.aqua.common.domain.model.CouponTemplateModel): CouponTemplate {
     val templateId = template.id ?: 0L
-    return CouponTemplateMapper.toGraphQL(
-      model = template,
+    return template.toGraphQL(
       receivedCount = couponQueryService.receivedCount(templateId).toInt(),
       usedCount = couponQueryService.usedCount(templateId).toInt(),
     )

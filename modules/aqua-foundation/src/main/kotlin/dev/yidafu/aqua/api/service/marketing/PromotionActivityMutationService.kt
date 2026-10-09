@@ -19,9 +19,9 @@
 
 package dev.yidafu.aqua.api.service.marketing
 
-import dev.yidafu.aqua.api.dto.PromotionActivityCreateRequest
-import dev.yidafu.aqua.api.dto.PromotionActivityUpdateRequest
 import dev.yidafu.aqua.common.domain.model.PromotionActivityModel
+import dev.yidafu.aqua.common.graphql.generated.CreatePromotionActivityInput
+import dev.yidafu.aqua.common.graphql.generated.UpdatePromotionActivityInput
 
 /**
  * 满减/折扣活动变更服务(管理后台,PRD 10-marketing.md §F-MKT-004)
@@ -34,7 +34,7 @@ interface PromotionActivityMutationService {
   fun createActivity(
     adminId: Long,
     adminName: String,
-    request: PromotionActivityCreateRequest,
+    input: CreatePromotionActivityInput,
   ): PromotionActivityModel
 
   /**
@@ -44,7 +44,7 @@ interface PromotionActivityMutationService {
     adminId: Long,
     adminName: String,
     id: Long,
-    request: PromotionActivityUpdateRequest,
+    input: UpdatePromotionActivityInput,
   ): PromotionActivityModel
 
   /**

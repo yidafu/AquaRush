@@ -19,7 +19,7 @@
 
 package dev.yidafu.aqua.api.service.marketing
 
-import dev.yidafu.aqua.api.dto.SaveGroupProductPricesRequest
+import dev.yidafu.aqua.common.graphql.generated.SaveGroupProductPricesInput
 
 /**
  * 分组商品专属价变更服务(管理后台,PRD 10-marketing.md §F-MKT-002)
@@ -32,6 +32,6 @@ interface GroupProductPriceMutationService {
   fun savePrices(
     adminId: Long,
     adminName: String,
-    request: SaveGroupProductPricesRequest,
+    input: SaveGroupProductPricesInput,
   ): Boolean
 }

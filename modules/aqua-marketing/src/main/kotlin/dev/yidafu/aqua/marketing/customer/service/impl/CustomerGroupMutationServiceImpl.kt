@@ -19,12 +19,12 @@
 
 package dev.yidafu.aqua.marketing.customer.service.impl
 
-import dev.yidafu.aqua.api.dto.CustomerGroupCreateRequest
-import dev.yidafu.aqua.api.dto.CustomerGroupUpdateRequest
 import dev.yidafu.aqua.api.service.marketing.CustomerGroupMutationService
 import dev.yidafu.aqua.api.service.user.UserQueryApiService
 import dev.yidafu.aqua.api.service.user.UserService
 import dev.yidafu.aqua.common.domain.model.CustomerGroupModel
+import dev.yidafu.aqua.common.graphql.generated.CreateCustomerGroupInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateCustomerGroupInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.customer.domain.exception.CustomerGroupNotFoundException
 import dev.yidafu.aqua.marketing.customer.domain.exception.DuplicateGroupNameException
@@ -51,24 +51,24 @@ class CustomerGroupMutationServiceImpl(
   override fun createGroup(
     adminId: Long,
     adminName: String,
-    request: CustomerGroupCreateRequest,
+    input: CreateCustomerGroupInput,
   ): CustomerGroupModel {
-    if (customerGroupRepository.existsByName(request.name)) {
-      throw DuplicateGroupNameException(request.name)
+    if (customerGroupRepository.existsByName(input.name)) {
+      throw DuplicateGroupNameException(input.name)
     }
     val group =
       CustomerGroupModel(
-        name = request.name,
-        description = request.description,
+        name = input.name,
+        description = input.description,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
       )
     val saved = customerGroupRepository.save(group)
     // 初始成员:创建后即时划入分组(F-MKT-001 选人)
-    request.memberIds?.distinct()?.forEach { userId ->
+    input.memberIds?.distinct()?.forEach { userId ->
       userService.setCustomerGroup(userId, saved.id)
     }
-    logger.info("Admin {} created customer group {}: {} ({} members)", adminId, saved.id, saved.name, request.memberIds?.size ?: 0)
+    logger.info("Admin {} created customer group {}: {} ({} members)", adminId, saved.id, saved.name, input.memberIds?.size ?: 0)
 
     // 业务日志(F-LOG-003 MARKETING 域):客户分组创建
     bizLogger.logMarketingOperation(
@@ -77,7 +77,7 @@ class CustomerGroupMutationServiceImpl(
       result = "SUCCESS",
       userId = adminId,
       username = adminName,
-      additionalData = mapOf("name" to saved.name, "memberCount" to (request.memberIds?.size ?: 0)),
+      additionalData = mapOf("name" to saved.name, "memberCount" to (input.memberIds?.size ?: 0)),
     )
     return saved
   }
@@ -87,18 +87,18 @@ class CustomerGroupMutationServiceImpl(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: CustomerGroupUpdateRequest,
+    input: UpdateCustomerGroupInput,
   ): CustomerGroupModel {
     val group = customerGroupRepository.findById(id).orElseThrow { CustomerGroupNotFoundException(id) }
-    val existing = customerGroupRepository.findByName(request.name)
+    val existing = customerGroupRepository.findByName(input.name)
     if (existing != null && existing.id != id) {
-      throw DuplicateGroupNameException(request.name)
+      throw DuplicateGroupNameException(input.name)
     }
-    group.name = request.name
-    group.description = request.description
+    group.name = input.name
+    group.description = input.description
     val saved = customerGroupRepository.save(group)
     // 覆盖式成员同步:null=不调整;空数组=清空;非空=仅保留该成员集合
-    request.memberIds?.let { targetIds ->
+    input.memberIds?.let { targetIds ->
       val targetSet = targetIds.distinct().toSet()
       val currentIds = userQueryApiService.findByCustomerGroupId(id).map { it.id!! }.toSet()
       targetSet.minus(currentIds).forEach { userId ->

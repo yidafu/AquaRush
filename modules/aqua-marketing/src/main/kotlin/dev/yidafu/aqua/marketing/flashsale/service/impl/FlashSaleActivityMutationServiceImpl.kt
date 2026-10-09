@@ -19,12 +19,12 @@
 
 package dev.yidafu.aqua.marketing.flashsale.service.impl
 
-import dev.yidafu.aqua.api.dto.FlashSaleActivityCreateRequest
-import dev.yidafu.aqua.api.dto.FlashSaleActivityUpdateRequest
 import dev.yidafu.aqua.api.service.marketing.FlashSaleActivityMutationService
 import dev.yidafu.aqua.api.service.product.ProductQueryApiService
 import dev.yidafu.aqua.common.domain.model.FlashSaleActivityModel
 import dev.yidafu.aqua.common.domain.model.enums.PromotionActivityStatus
+import dev.yidafu.aqua.common.graphql.generated.CreateFlashSaleActivityInput
+import dev.yidafu.aqua.common.graphql.generated.UpdateFlashSaleActivityInput
 import dev.yidafu.aqua.logging.util.BizLogger
 import dev.yidafu.aqua.marketing.flashsale.domain.exception.FlashSaleActivityNotFoundException
 import dev.yidafu.aqua.marketing.flashsale.domain.exception.InvalidFlashSaleActivityException
@@ -51,22 +51,22 @@ class FlashSaleActivityMutationServiceImpl(
   override fun createActivity(
     adminId: Long,
     adminName: String,
-    request: FlashSaleActivityCreateRequest,
+    input: CreateFlashSaleActivityInput,
   ): FlashSaleActivityModel {
     validateActivity(
-      request.productId,
-      request.salePriceCents,
-      request.validFrom,
-      request.validTo,
+      input.productId,
+      input.salePriceCents,
+      input.validFrom,
+      input.validTo,
       excludeId = null,
     )
     val activity =
       FlashSaleActivityModel(
-        name = request.name,
-        productId = request.productId,
-        salePriceCents = request.salePriceCents,
-        validFrom = request.validFrom,
-        validTo = request.validTo,
+        name = input.name,
+        productId = input.productId,
+        salePriceCents = input.salePriceCents,
+        validFrom = input.validFrom,
+        validTo = input.validTo,
         status = PromotionActivityStatus.ACTIVE,
         createdAt = LocalDateTime.now(),
         updatedAt = LocalDateTime.now(),
@@ -91,24 +91,24 @@ class FlashSaleActivityMutationServiceImpl(
     adminId: Long,
     adminName: String,
     id: Long,
-    request: FlashSaleActivityUpdateRequest,
+    input: UpdateFlashSaleActivityInput,
   ): FlashSaleActivityModel {
     val activity =
       flashSaleActivityRepository
         .findById(id)
         .orElseThrow { FlashSaleActivityNotFoundException(id) }
     validateActivity(
-      request.productId,
-      request.salePriceCents,
-      request.validFrom,
-      request.validTo,
+      input.productId,
+      input.salePriceCents,
+      input.validFrom,
+      input.validTo,
       excludeId = id,
     )
-    activity.name = request.name
-    activity.productId = request.productId
-    activity.salePriceCents = request.salePriceCents
-    activity.validFrom = request.validFrom
-    activity.validTo = request.validTo
+    activity.name = input.name
+    activity.productId = input.productId
+    activity.salePriceCents = input.salePriceCents
+    activity.validFrom = input.validFrom
+    activity.validTo = input.validTo
     val saved = flashSaleActivityRepository.save(activity)
     logger.info("Admin {} updated flash sale activity {}", adminId, id)
 

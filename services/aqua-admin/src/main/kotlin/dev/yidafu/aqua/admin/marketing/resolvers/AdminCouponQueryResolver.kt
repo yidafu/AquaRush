@@ -23,8 +23,8 @@ import dev.yidafu.aqua.api.service.marketing.CouponQueryService
 import dev.yidafu.aqua.common.graphql.generated.CouponTemplate
 import dev.yidafu.aqua.common.graphql.generated.CouponTemplateListInput
 import dev.yidafu.aqua.common.graphql.generated.CouponTemplateVoPage
-import dev.yidafu.aqua.marketing.coupon.mapper.CouponTemplateMapper
-import dev.yidafu.aqua.marketing.coupon.mapper.CouponTemplateStatusInputMapper
+import dev.yidafu.aqua.marketing.coupon.mapper.toDomain
+import dev.yidafu.aqua.marketing.coupon.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -48,7 +48,7 @@ class AdminCouponQueryResolver(
     @Argument input: CouponTemplateListInput?,
   ): CouponTemplateVoPage {
     val status =
-      input?.status?.let { CouponTemplateStatusInputMapper.map(it) }
+      input?.status?.let { it.toDomain() }
     val page =
       couponQueryService.listTemplates(
         keyword = input?.keyword,
@@ -59,8 +59,7 @@ class AdminCouponQueryResolver(
       content =
         page.content.map { template ->
           val templateId = template.id ?: 0L
-          CouponTemplateMapper.toGraphQL(
-            model = template,
+          template.toGraphQL(
             receivedCount = couponQueryService.receivedCount(templateId).toInt(),
             usedCount = couponQueryService.usedCount(templateId).toInt(),
           )
@@ -81,8 +80,7 @@ class AdminCouponQueryResolver(
     @Argument id: Long,
   ): CouponTemplate? {
     val template = couponQueryService.getTemplate(id) ?: return null
-    return CouponTemplateMapper.toGraphQL(
-      model = template,
+    return template.toGraphQL(
       receivedCount = couponQueryService.receivedCount(id).toInt(),
       usedCount = couponQueryService.usedCount(id).toInt(),
     )

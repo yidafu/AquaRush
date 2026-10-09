@@ -26,7 +26,7 @@ import dev.yidafu.aqua.common.graphql.generated.PromotionActivity
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityDisplayStatus
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityListInput
 import dev.yidafu.aqua.common.graphql.generated.PromotionActivityVoPage
-import dev.yidafu.aqua.marketing.promotion.mapper.PromotionActivityMapper
+import dev.yidafu.aqua.marketing.promotion.mapper.toGraphQL
 import org.springframework.data.domain.PageRequest
 import org.springframework.graphql.data.method.annotation.Argument
 import org.springframework.graphql.data.method.annotation.QueryMapping
@@ -83,6 +83,6 @@ class AdminPromotionActivityQueryResolver(
         now.isAfter(model.validTo) -> PromotionActivityDisplayStatus.ENDED
         else -> PromotionActivityDisplayStatus.ONGOING
       }
-    return PromotionActivityMapper.toGraphQL(model, tiers, currentStatus)
+    return model.toGraphQL(tiers, currentStatus)
   }
 }
