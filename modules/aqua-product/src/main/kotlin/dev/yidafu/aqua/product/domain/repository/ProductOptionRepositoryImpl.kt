@@ -75,7 +75,8 @@ class ProductOptionRepositoryImpl(
     val id = requireNotNull(entity.id) { "ProductOptionModel.id 不能为空(软删必须携带主键)" }
     transaction(database) {
       val now = LocalDateTime.now()
-      ProductOptionsTable.update({ ProductOptionsTable.id eq id }) {
+      // activeOnly:对已软删行二次 delete 为 no-op(对齐旧 JPA load→软删过滤→不落库)
+      ProductOptionsTable.update({ ProductOptionsTable.activeOnly { ProductOptionsTable.id eq id } }) {
         it[isDeleted] = true
         it[deletedAt] = now
         it[updatedAt] = now

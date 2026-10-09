@@ -121,7 +121,8 @@ class ProductRepositoryImpl(
   override fun deleteById(id: Long) {
     transaction(database) {
       val now = LocalDateTime.now()
-      ProductsTable.update({ ProductsTable.id eq id }) {
+      // activeOnly:对已软删行二次 delete 为 no-op(对齐旧 JPA load→软删过滤→不落库)
+      ProductsTable.update({ ProductsTable.activeOnly { ProductsTable.id eq id } }) {
         it[isDeleted] = true
         it[deletedAt] = now
         it[updatedAt] = now
@@ -213,7 +214,7 @@ class ProductRepositoryImpl(
     query.maxStock?.let { condition = condition and (ProductsTable.stockQuantity less it) }
     query.minSalesVolume?.let { condition = condition and (ProductsTable.salesVolume greater it) }
     query.maxSalesVolume?.let { condition = condition and (ProductsTable.salesVolume less it) }
-    val orderBy =
+    val (sortColumn, sortOrder) =
       when (query.sortBy) {
         "CREATED_AT_ASC" -> ProductsTable.createdAt to SortOrder.ASC
         "CREATED_AT_DESC" -> ProductsTable.createdAt to SortOrder.DESC
@@ -231,7 +232,8 @@ class ProductRepositoryImpl(
           ProductsTable
             .selectAll()
             .where { ProductsTable.activeOnly { condition } }
-            .orderBy(orderBy)
+            // id 破平防跨页重复:同值行在页边界不重不漏
+            .orderBy(sortColumn to sortOrder, ProductsTable.id to sortOrder)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()

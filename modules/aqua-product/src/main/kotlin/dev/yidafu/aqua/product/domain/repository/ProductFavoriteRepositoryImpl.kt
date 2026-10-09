@@ -93,6 +93,7 @@ class ProductFavoriteRepositoryImpl(
           ProductFavoritesTable
             .selectAll()
             .where { ProductFavoritesTable.activeOnly { ProductFavoritesTable.userId eq userId } }
+            // 排序键即主键 id,天然破平防跨页重复,无需追加次级键
             .orderBy(ProductFavoritesTable.id to SortOrder.ASC)
             .offset(pageable.offset)
             .limit(pageable.pageSize)
@@ -175,8 +176,11 @@ class ProductFavoriteRepositoryImpl(
               ProductFavoritesTable.activeOnly {
                 (ProductFavoritesTable.userId eq userId) and (ProductFavoritesTable.enable eq true)
               }
-            }.orderBy(ProductFavoritesTable.createdAt to SortOrder.DESC)
-            .offset(pageable.offset)
+            }.orderBy(
+              ProductFavoritesTable.createdAt to SortOrder.DESC,
+              // id 破平防跨页重复:同 createdAt 行在页边界不重不漏
+              ProductFavoritesTable.id to SortOrder.DESC,
+            ).offset(pageable.offset)
             .limit(pageable.pageSize)
             .toList()
             .map { it[ProductFavoritesTable.productId] }

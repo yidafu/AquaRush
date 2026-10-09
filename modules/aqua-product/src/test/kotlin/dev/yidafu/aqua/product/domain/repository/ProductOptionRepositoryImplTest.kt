@@ -32,6 +32,7 @@ import io.kotest.matchers.shouldBe
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import java.time.LocalDateTime
 
 /**
@@ -86,6 +87,27 @@ class ProductOptionRepositoryImplTest :
         }
       row[ProductOptionsTable.isDeleted] shouldBe true
       row[ProductOptionsTable.deletedAt].shouldNotBeNull()
+    }
+
+    test("delete 对已软删行 no-op:deletedAt 不被重写,行仍不可见") {
+      val id = ProductExposedH2TestSupport.option()
+      val entity = repo.findById(id).orElse(null).shouldNotBeNull()
+      repo.delete(entity)
+      // 哨兵值:若二次 delete 仍写库,deletedAt 会被 now 覆盖
+      val sentinel = LocalDateTime.of(2020, 1, 1, 0, 0)
+      transaction(ProductExposedH2TestSupport.database) {
+        ProductOptionsTable.update({ ProductOptionsTable.id eq id }) { it[ProductOptionsTable.deletedAt] = sentinel }
+      }
+
+      repo.delete(entity)
+
+      val row =
+        transaction(ProductExposedH2TestSupport.database) {
+          ProductOptionsTable.selectAll().where { ProductOptionsTable.id eq id }.single()
+        }
+      row[ProductOptionsTable.deletedAt] shouldBe sentinel
+      row[ProductOptionsTable.isDeleted] shouldBe true
+      repo.findById(id).isPresent shouldBe false
     }
 
     test("findByOptionTypeOrderBySortOrderAscCreatedAtAsc:排序断言+类型过滤+软删过滤") {

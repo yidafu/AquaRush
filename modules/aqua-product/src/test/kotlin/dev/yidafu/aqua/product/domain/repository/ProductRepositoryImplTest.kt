@@ -34,6 +34,7 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import org.jetbrains.exposed.v1.jdbc.update
 import org.springframework.data.domain.PageRequest
 import java.time.LocalDateTime
 
@@ -80,10 +81,10 @@ class ProductRepositoryImplTest :
 
     test("软删商品不可见:findById/existsById/findAll/findByStatus 均过滤") {
       val keep = ProductExposedH2TestSupport.product(name = "存活")
-      ProductExposedH2TestSupport.product(name = "已删", deleted = true)
+      val removed = ProductExposedH2TestSupport.product(name = "已删", deleted = true)
 
       repo.findById(keep).isPresent shouldBe true
-      repo.findById(keep + 1).isPresent shouldBe false
+      repo.findById(removed).isPresent shouldBe false
       repo.existsById(keep) shouldBe true
       repo.findAll() shouldHaveSize 1
       repo.findByStatus(ProductModelStatus.ONLINE) shouldHaveSize 1
@@ -110,6 +111,26 @@ class ProductRepositoryImplTest :
         }
       row[ProductsTable.isDeleted] shouldBe true
       row[ProductsTable.deletedAt].shouldNotBeNull()
+    }
+
+    test("deleteById 对已软删行 no-op:deletedAt 不被重写,行仍不可见") {
+      val id = ProductExposedH2TestSupport.product()
+      repo.deleteById(id)
+      // 哨兵值:若二次 delete 仍写库,deletedAt 会被 now 覆盖
+      val sentinel = LocalDateTime.of(2020, 1, 1, 0, 0)
+      transaction(ProductExposedH2TestSupport.database) {
+        ProductsTable.update({ ProductsTable.id eq id }) { it[ProductsTable.deletedAt] = sentinel }
+      }
+
+      repo.deleteById(id)
+
+      val row =
+        transaction(ProductExposedH2TestSupport.database) {
+          ProductsTable.selectAll().where { ProductsTable.id eq id }.single()
+        }
+      row[ProductsTable.deletedAt] shouldBe sentinel
+      row[ProductsTable.isDeleted] shouldBe true
+      repo.findById(id).isPresent shouldBe false
     }
 
     test("findByStatus 按状态过滤") {
@@ -228,6 +249,26 @@ class ProductRepositoryImplTest :
       names("CREATED_AT_ASC") shouldContainExactly listOf("A", "C", "B")
       names("UNKNOWN") shouldContainExactly listOf("B", "C", "A")
       names(null) shouldContainExactly listOf("B", "C", "A")
+    }
+
+    test("searchProducts:同值排序键以 id 破平,跨页不重不漏") {
+      val tie = LocalDateTime.of(2026, 5, 1, 8, 0)
+      val a = ProductExposedH2TestSupport.product(name = "A", priceCents = 100L, createdAt = tie)
+      val b = ProductExposedH2TestSupport.product(name = "B", priceCents = 100L, createdAt = tie)
+      val c = ProductExposedH2TestSupport.product(name = "C", priceCents = 100L, createdAt = tie)
+
+      // createdAt/price 全同 → 破平后按 id 切分跨页,不重不漏
+      val desc = listOf(a, b, c).sortedDescending()
+      val page0 = repo.searchProducts(ProductSearchRequest(), PageRequest.of(0, 2))
+      val page1 = repo.searchProducts(ProductSearchRequest(), PageRequest.of(1, 2))
+      page0.content.map { it.id } shouldContainExactly desc.take(2)
+      page1.content.map { it.id } shouldContainExactly desc.drop(2)
+
+      // 主键同向(ASC)破平
+      repo
+        .searchProducts(ProductSearchRequest(sortBy = "PRICE_ASC"), PageRequest.of(0, 3))
+        .content
+        .map { it.id } shouldContainExactly listOf(a, b, c).sorted()
     }
 
     test("searchProducts:软删商品不进搜索结果") {

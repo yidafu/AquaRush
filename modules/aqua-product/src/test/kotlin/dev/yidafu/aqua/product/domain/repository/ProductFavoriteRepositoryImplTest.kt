@@ -137,6 +137,24 @@ class ProductFavoriteRepositoryImplTest :
       paged.totalElements shouldBe 3L
     }
 
+    test("findFavoriteIdsByUserId:同 createdAt 以 id 破平,跨页不重不漏") {
+      val at = LocalDateTime.of(2026, 3, 1, 12, 0)
+      val p1 = ProductExposedH2TestSupport.product()
+      val p2 = ProductExposedH2TestSupport.product()
+      val p3 = ProductExposedH2TestSupport.product()
+      val f1 = ProductExposedH2TestSupport.favorite(userId = 7L, productId = p1, createdAt = at)
+      val f2 = ProductExposedH2TestSupport.favorite(userId = 7L, productId = p2, createdAt = at)
+      val f3 = ProductExposedH2TestSupport.favorite(userId = 7L, productId = p3, createdAt = at)
+
+      // createdAt 全同 → 破平后按收藏行 id DESC 跨页切分,不重不漏
+      val byFavoriteIdDesc =
+        listOf(p1 to f1, p2 to f2, p3 to f3).sortedByDescending { it.second }.map { it.first }
+      val page0 = repo.findFavoriteIdsByUserId(7L, PageRequest.of(0, 2))
+      val page1 = repo.findFavoriteIdsByUserId(7L, PageRequest.of(1, 2))
+      page0.content shouldContainExactly byFavoriteIdDesc.take(2)
+      page1.content shouldContainExactly byFavoriteIdDesc.drop(2)
+    }
+
     test("updateEnableStatus:仅更新活跃行") {
       val pid = ProductExposedH2TestSupport.product()
       ProductExposedH2TestSupport.favorite(userId = 1L, productId = pid, enable = true)
@@ -183,10 +201,19 @@ class ProductFavoriteRepositoryImplTest :
       val pa = ProductExposedH2TestSupport.product()
       val pb = ProductExposedH2TestSupport.product()
       val f1 = ProductExposedH2TestSupport.favorite(userId = 11L, productId = pa, createdAt = base)
-      ProductExposedH2TestSupport.favorite(userId = 12L, productId = pb, createdAt = base.plusDays(5))
+      val f2 = ProductExposedH2TestSupport.favorite(userId = 12L, productId = pb, createdAt = base.plusDays(5))
       val f3 = ProductExposedH2TestSupport.favorite(userId = 11L, productId = pb, createdAt = base.plusDays(9))
+      // 软删行:落在任一过滤维度内,均不应出现在导出结果
+      ProductExposedH2TestSupport.favorite(
+        userId = 11L,
+        productId = pa,
+        createdAt = base.plusDays(3),
+        deleted = true,
+      )
 
-      repo.findFavoritesForExport(null, null, null, null) shouldHaveSize 3
+      val all = repo.findFavoritesForExport(null, null, null, null)
+      all shouldHaveSize 3
+      all.map { it.id } shouldContainExactly listOf(f1, f2, f3)
       repo.findFavoritesForExport(11L, null, null, null) shouldHaveSize 2
       repo.findFavoritesForExport(null, listOf(pa), null, null) shouldHaveSize 1
       repo.findFavoritesForExport(null, emptyList(), null, null) shouldHaveSize 3
