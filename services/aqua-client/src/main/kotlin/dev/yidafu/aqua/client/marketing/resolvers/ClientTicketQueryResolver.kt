@@ -17,7 +17,7 @@
  * along with this program. If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.client.marketing.resolver
+package dev.yidafu.aqua.client.marketing.resolvers
 
 import dev.yidafu.aqua.api.service.marketing.TicketQueryApiService
 import dev.yidafu.aqua.api.service.marketing.TicketTypeQueryService

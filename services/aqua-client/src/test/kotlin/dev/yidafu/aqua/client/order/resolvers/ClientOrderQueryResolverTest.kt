@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.client.order.resolver
+package dev.yidafu.aqua.client.order.resolvers
 
 import dev.yidafu.aqua.api.service.order.OrderQueryApiService
 import dev.yidafu.aqua.api.service.review.ReviewQueryService

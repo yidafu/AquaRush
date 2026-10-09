@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.client.barrel.resolver
+package dev.yidafu.aqua.client.barrel.resolvers
 
 import dev.yidafu.aqua.api.dto.PurchaseBarrelItemRequest
 import dev.yidafu.aqua.api.dto.PurchaseBarrelRequest

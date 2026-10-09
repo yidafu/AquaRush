@@ -17,7 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-package dev.yidafu.aqua.client.notification.resolver
+package dev.yidafu.aqua.client.notification.resolvers
 
 import dev.yidafu.aqua.api.service.notification.NotificationMutationApiService
 import dev.yidafu.aqua.api.service.notification.NotificationQueryApiService
