@@ -20,15 +20,17 @@
 package dev.yidafu.aqua.notice.domain.repository
 
 import dev.yidafu.aqua.common.domain.model.UserNotificationSettingsModel
-import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.stereotype.Repository
-import java.util.*
+import java.util.Optional
 
-@Repository
-interface UserNotificationSettingsRepository : JpaRepository<UserNotificationSettingsModel, Long> {
+/** 用户通知开关仓储(JPA→Exposed 迁移 P3,原 JpaRepository 派生查询已显式化)。 */
+interface UserNotificationSettingsRepository {
   fun findByUserId(userId: Long): Optional<UserNotificationSettingsModel>
 
   fun existsByUserId(userId: Long): Boolean
 
+  /** 语义对齐 @SoftDelete 下的派生 delete:按 user_id 软删,返回影响行数。 */
   fun deleteByUserId(userId: Long): Int
+
+  /** upsert 语义:无 id 或 id 不存在时插入(雪花 id),否则按 id 更新业务列。 */
+  fun save(entity: UserNotificationSettingsModel): UserNotificationSettingsModel
 }
