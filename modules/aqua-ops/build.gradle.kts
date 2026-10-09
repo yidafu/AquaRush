@@ -15,5 +15,3 @@ dependencies {
   // 仓储实现测试（H2 + Exposed）：P1 迁移后仓储成为模块内真实代码，必须有实现级回归
   testImplementation(libs.h2)
 }
-
-// QueryDSL configuration is now handled by aqua.kotlin.querydsl plugin

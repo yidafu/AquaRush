@@ -22,10 +22,10 @@ package dev.yidafu.aqua.user.service
 import dev.yidafu.aqua.common.domain.model.RegionModel
 import dev.yidafu.aqua.user.domain.exception.AquaException
 import dev.yidafu.aqua.user.domain.repository.RegionRepository
-import jakarta.transaction.Transactional
 import org.springframework.cache.annotation.CacheEvict
 import org.springframework.cache.annotation.Cacheable
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Transactional
 
 @Service
 @Transactional

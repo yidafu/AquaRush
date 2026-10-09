@@ -21,7 +21,6 @@ dependencies {
   // Spring Boot（web + JPA）
   // ========================================================
   implementation(libs.bundles.spring.boot.web)
-  implementation(libs.spring.boot.starter.data.jpa)
   // storage 控制器的 @PreAuthorize 注解来自 spring-security-core
   implementation("org.springframework.security:spring-security-core")
   runtimeOnly(libs.postgresql)

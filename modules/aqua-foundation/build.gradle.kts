@@ -2,8 +2,6 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
   id("aqua.kotlin.spring")
-  id("aqua.kotlin.querydsl")
-  id("aqua.kotlin.jpa")
   id("aqua.spring.boot.library")
   // aqua-logging 需要 kotlinx.serialization
   alias(libs.plugins.kotlin.serialization)
@@ -15,8 +13,6 @@ dependencies {
   // ========================================================
   implementation(libs.bundles.spring.boot.data)
   implementation(libs.bundles.spring.boot.web)
-  implementation("jakarta.persistence:jakarta.persistence-api:4.0.0-M1")
-  implementation("org.hibernate.orm:hibernate-core:6.4.1.Final")
   implementation(libs.bundles.spring.boot.security)
   implementation(libs.bundles.graphql)
   implementation(libs.bundles.messaging)
@@ -29,9 +25,6 @@ dependencies {
   implementation(libs.bundles.jwt)
   implementation(libs.mapdb)
   implementation(libs.wechat.miniapp)
-  implementation(platform("io.github.openfeign.querydsl:querydsl-bom:7.1"))
-  implementation("io.github.openfeign.querydsl:querydsl-jpa")
-  implementation("io.github.openfeign.querydsl:querydsl-core")
 
   // ========================================================
   // Exposed(1.x)：JPA -> Exposed 迁移期的表定义与 Database 基建。
@@ -51,7 +44,6 @@ dependencies {
   // ========================================================
   implementation(libs.spring.boot.starter.graphql)
   implementation(libs.spring.boot.starter.validation)
-  implementation(libs.spring.boot.starter.data.jpa)
 
   // ========================================================
   // 来自 aqua-logging 的独立依赖（去重后）
@@ -74,15 +66,12 @@ kotlin {
     main {
       // GraphQL codegen 生成的 Kotlin 源码（schema.kt）
       kotlin.srcDir("src/main/graphql-gen")
-      // QueryDSL KSP 输出（build/generated/ksp/main/kotlin）由 KSP 插件自动加入 source set
     }
   }
 }
 
 val compileKotlin: KotlinCompile by tasks
 compileKotlin.compilerOptions {
-  // Use addAll (not set) so the -Xallopen + entity annotations
-  // configured in the root build.gradle.kts subprojects block are preserved.
-  // Setting freeCompilerArgs would wipe out the JPA all-open configuration.
+  // JPA all-open 已随 P5 下线;该参数保留为了实体/领域模型构造器注解的默认落点语义。
   freeCompilerArgs.addAll(listOf("-Xannotation-default-target=param-property"))
 }

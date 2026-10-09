@@ -35,18 +35,6 @@ spring:
     drop-first: false         # 生产环境必须为 false！
     enabled: true
 
-  jpa:
-    hibernate:
-      ddl-auto: none  # 不进行任何自动 DDL 操作
-    show-sql: true
-    generate-ddl: false        # 禁用 JPA 自动 DDL
-    properties:
-      hibernate:
-        dialect: org.hibernate.dialect.PostgreSQLDialect
-        format_sql: true
-      jakarta.persistence.schema-generation.create-source: metadata-then-scripts
-      jakarta.persistence.schema-generation.drop-source: metadata-then-scripts
-
   artemis:
     mode: native
     broker-url: tcp://localhost:61616
@@ -132,14 +120,9 @@ logging:
     # Spring Security logging
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
-    # Database access logging
+    # Database access logging(JPA 已下线:数据访问统一走 Exposed JDBC)
     org.springframework.jdbc: DEBUG
-    org.hibernate.SQL: DEBUG
-    org.hibernate: DEBUG
-    org.hibernate.orm.id: TRACE
-    org.hibernate.boot.model.internal: TRACE
-    org.hibernate.orm.metadata: TRACE
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    org.jetbrains.exposed: INFO
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"

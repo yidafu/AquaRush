@@ -24,9 +24,6 @@ import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes
 import com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import jakarta.persistence.Embeddable
-import jakarta.persistence.Entity
-import jakarta.persistence.MappedSuperclass
 
 private val d1NoUtilsPackage: ArchRule =
   noClasses()
@@ -52,17 +49,15 @@ private val d3ForbiddenPackages: ArchRule =
       "dev.yidafu.aqua.common.dto..",
     ).because("architecture.md 核心规则2：不创建 api/query 或 common/dto")
 
-private val d4JpaEntityLocation: ArchRule =
-  classes()
-    .that()
-    .areAnnotatedWith(Entity::class.java)
-    .or()
-    .areAnnotatedWith(MappedSuperclass::class.java)
-    .or()
-    .areAnnotatedWith(Embeddable::class.java)
+private val d4NoJpaDependency: ArchRule =
+  noClasses()
     .should()
-    .resideInAPackage("dev.yidafu.aqua.common.domain.model..")
-    .because("architecture.md 核心规则1：JPA 实体集中于 aqua-foundation（client 的 @EntityScan 依赖此约定）")
+    .dependOnClassesThat()
+    .resideInAnyPackage(
+      "jakarta.persistence..",
+      "org.hibernate..",
+      "com.querydsl..",
+    ).because("architecture.md 核心规则1：JPA→Exposed 迁移 P5 收口后，持久化统一走 Exposed，JPA/QueryDSL 引用必须归零")
 
 private val d5ResolversPlural: ArchRule =
   classes()
@@ -96,8 +91,8 @@ class DirectoryStructureTest :
       d3ForbiddenPackages.check(backendClasses)
     }
 
-    test("D4 JPA 实体集中在 foundation common.domain.model") {
-      d4JpaEntityLocation.check(backendClasses)
+    test("D4 禁止 JPA/QueryDSL 依赖") {
+      d4NoJpaDependency.check(backendClasses)
     }
 
     test("D5 服务层 Resolver 位于 resolvers 复数目录") {

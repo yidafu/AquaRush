@@ -29,7 +29,6 @@ dependencies {
   // Spring Boot（合并去重）
   // ========================================================
   implementation(libs.bundles.spring.boot.web)
-  implementation(libs.spring.boot.starter.data.jpa)
   implementation(libs.bundles.spring.boot.security)
   implementation(libs.spring.boot.starter.validation)
   implementation(libs.spring.boot.starter.actuator)
@@ -75,6 +74,3 @@ tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
     freeCompilerArgs.add("-Xjsr305=strict")
   }
 }
-
-// QueryDSL 生成源码目录
-// Q 类由 querydsl-ksp 生成到 build/generated/ksp/main/kotlin，由 KSP 插件自动加入 source set

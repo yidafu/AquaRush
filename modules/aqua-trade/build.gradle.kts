@@ -1,8 +1,5 @@
 plugins {
   id("aqua.spring.boot.library")
-  // JPA→Exposed 迁移 P4:两插件暂共存 —— order/payment/review 的 QueryDSL Impl
-  // 全量迁到 Exposed 后摘除 querydsl(与 marketing/product 迁移节奏一致)。
-  id("aqua.kotlin.querydsl")
   id("aqua.kotlin.exposed")
 }
 
@@ -76,6 +73,3 @@ tasks.withType<Test>().configureEach {
     environment("TESTCONTAINERS_RYUK_DISABLED", "true")
   }
 }
-
-// QueryDSL 生成源码目录
-// Q 类由 querydsl-ksp 生成到 build/generated/ksp/main/kotlin，由 KSP 插件自动加入 source set
